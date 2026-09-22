@@ -149,3 +149,26 @@ hotfixed are flagged.
 wago.tools is credited with its official logo, unmodified per its
 [branding guidelines](https://wago.tools/branding), in the app's footer, the About sheet and
 the README.
+
+### D17: Retire foreverchanges.pro as a data source (2026-09-22)
+The guild prefers not to depend on foreverchanges.pro: it has no clear terms of use, while
+wago.tools exists to power apps like this one (D16). Once the client-data pipeline lands,
+every dataset is rebuilt from client files fetched through the wago.tools API: spells,
+talents, races, items and item sources.
+- Forever values come from `wow_classic_beta`.
+- Classic Era comparisons, and fallback stats for items whose Forever row is empty, come from
+  `wow_classic_era`.
+- The JSON shapes stay the same, so the UI and engine don't change.
+
+Then the foreverchanges scrapers are deleted, its attribution comes off the app and README,
+and the doctrine's first tier becomes the Forever client files via wago.tools. Until then,
+the app ships data scraped from foreverchanges, so its credit stays.
+
+What we give up:
+- the site's "popular builds" (our documented default builds stand on their own)
+- a few values the site saw in game or received as server hotfixes, which raw client files
+  lack; they're flagged rather than guessed
+- item drop sources, if this client doesn't ship Encounter Journal tables
+
+Research docs may keep citing foreverchanges pages as historical sources until each claim is
+confirmed against client data.

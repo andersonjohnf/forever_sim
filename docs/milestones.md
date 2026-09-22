@@ -50,6 +50,16 @@ sources, worked examples, and open questions.
 **Exit:** a white-swings-only warrior matches a hand calculation within tolerance; the
 mechanics docs' worked examples all pass as tests.
 
+## M1.5: Client data, one source 🚧
+
+- Client-data pipeline: fetch raw DB2 and game-table files for `wow_classic_beta`
+  1.60.1.69913 through the wago.tools API (D16), parse them with WoWDBDefs, and commit compact
+  spell, talent, item, enchant and game-table data for the engine
+- Confirm or correct every "confirm on wago.tools" claim in the docs against the raw files
+- Rebuild the spells, talents, races and items datasets from Forever and Classic Era client
+  files, keeping the same JSON shapes (D17)
+- Delete the foreverchanges scrapers and attribution; the doctrine's tier 1 becomes client files
+
 ## M2: Warrior DPS with the production UX ⏳
 
 - Fury (dual-wield) and Arms (2H) rotations from [classes/warrior.md](classes/warrior.md)

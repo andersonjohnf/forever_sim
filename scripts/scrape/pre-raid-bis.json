@@ -1,0 +1,2232 @@
+{
+  "$comment": [
+    "Hand-curated input for scripts/scrape/items.mjs: Classic Era pre-raid best-in-slot lists for the seven",
+    "simulated specs. Every item listed here joins src/data/items/pre-bis.json whatever its quality or level",
+    "(it must still be equippable and pass the Season of Discovery id guard), and pool items get",
+    "preRaidBis: [{ spec, slot, rank }]. Curated 2026-09-22 (user request: 'If there are some pre-raid BIS",
+    "that aren't in our filter they should be included too'). See docs/data/items.md#pre-raid-bis-lists.",
+    "Sources (doctrine section 2, Classic Era only): Wowhead's WoW Classic pre-raid BiS guides as archived",
+    "in May 2021, before Season of Mastery and before TBC Classic. The same guides on wowhead.com today have",
+    "been rewritten for Season of Mastery ('...Pre-Raid Best in Slot Gear list for Protection Warrior Tank in",
+    "WoW Classic Season of Mastery'), which the doctrine forbids, so the archived versions are cited.",
+    "Selection: the guide's order is the rank (1 = BiS, 2+ = alternatives). Each slot keeps the top pick plus",
+    "two alternatives; finger and trinket keep four, since two are worn. The guides link Horde PvP items;",
+    "the Alliance counterpart is added at the same rank. PvP items are Rank 10 or lower. No raid drops.",
+    "These are Classic Era lists. Forever re-itemized many of these items and added level-55+ dungeons with",
+    "no recorded drops yet, so Forever's real pre-raid BiS will differ. foreverchanges.pro/bis/<class> only",
+    "has level-20 lists (2026-09-22); revisit it on every re-scrape."
+  ],
+  "curated": "2026-09-22",
+  "selection": {
+    "perSlot": 3,
+    "perSlotFingerTrinket": 4,
+    "pvpMaxRank": 10,
+    "excludes": "raid drops (MC, Onyxia, ZG, AQ20, BWL and later), Season of Discovery/Mastery, TBC+"
+  },
+  "specs": {
+    "warrior-fury": {
+      "name": "Fury Warrior (dual wield)",
+      "source": {
+        "title": "Warrior DPS Pre-Raid Best in Slot Gear (BiS) - WoW Classic Phase 6",
+        "url": "https://classic.wowhead.com/guides/wow-classic-fury-warrior-dps-pre-raid-best-in-slot-gear",
+        "archivedUrl": "https://web.archive.org/web/20210517121139/https://classic.wowhead.com/guides/wow-classic-fury-warrior-dps-pre-raid-best-in-slot-gear",
+        "snapshot": "2021-05-17"
+      },
+      "note": "The guide's Main Hand and Off-Hand rows; its Two-Hand row is used for Arms.",
+      "slots": {
+        "head": [
+          {
+            "id": 12640,
+            "name": "Lionheart Helm",
+            "rank": 1,
+            "notes": "Crafted - Blacksmithing (300)"
+          },
+          {
+            "id": 23244,
+            "name": "Champion's Plate Helm",
+            "rank": 2,
+            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
+          },
+          {
+            "id": 23314,
+            "name": "Lieutenant Commander's Plate Helm",
+            "rank": 2,
+            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Plate Helm"
+          },
+          {
+            "id": 12587,
+            "name": "Eye of Rend",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "neck": [
+          {
+            "id": 15411,
+            "name": "Mark of Fordring",
+            "rank": 1,
+            "notes": "Quest"
+          },
+          {
+            "id": 11933,
+            "name": "Imperial Jewel",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 17044,
+            "name": "Will of the Martyr",
+            "rank": 3,
+            "notes": "Quest"
+          }
+        ],
+        "shoulder": [
+          {
+            "id": 23243,
+            "name": "Champion's Plate Shoulders",
+            "rank": 1,
+            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
+          },
+          {
+            "id": 23315,
+            "name": "Lieutenant Commander's Plate Shoulders",
+            "rank": 1,
+            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Plate Shoulders"
+          },
+          {
+            "id": 12927,
+            "name": "Truestrike Shoulders",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 12082,
+            "name": "Wyrmhide Spaulders",
+            "rank": 3,
+            "notes": "Quest"
+          }
+        ],
+        "back": [
+          {
+            "id": 13340,
+            "name": "Cape of the Black Baron",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 13397,
+            "name": "Stoneskin Gargoyle Cape",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 13203,
+            "name": "Armswake Cloak",
+            "rank": 3,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          }
+        ],
+        "chest": [
+          {
+            "id": 11726,
+            "name": "Savage Gladiator Chain",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 22872,
+            "name": "Legionnaire's Plate Hauberk",
+            "rank": 2,
+            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Horde version"
+          },
+          {
+            "id": 23300,
+            "name": "Knight-Captain's Plate Hauberk",
+            "rank": 2,
+            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Alliance counterpart of Legionnaire's Plate Hauberk"
+          },
+          {
+            "id": 11926,
+            "name": "Deathdealer Breastplate",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "wrist": [
+          {
+            "id": 12936,
+            "name": "Battleborn Armbraces",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 13400,
+            "name": "Vambraces of the Sadist",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Live)"
+          },
+          {
+            "id": 12966,
+            "name": "Blackmist Armguards",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "hands": [
+          {
+            "id": 15063,
+            "name": "Devilsaur Gauntlets",
+            "rank": 1,
+            "notes": "Crafted - Leatherworking (290)"
+          },
+          {
+            "id": 22868,
+            "name": "Blood Guard's Plate Gauntlets",
+            "rank": 2,
+            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Horde version"
+          },
+          {
+            "id": 23286,
+            "name": "Knight-Lieutenant's Plate Gauntlets",
+            "rank": 2,
+            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Alliance counterpart of Blood Guard's Plate Gauntlets"
+          },
+          {
+            "id": 13957,
+            "name": "Gargoyle Slashers",
+            "rank": 3,
+            "notes": "Dungeon - Scholomance"
+          }
+        ],
+        "waist": [
+          {
+            "id": 13142,
+            "name": "Brigam Girdle",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Spire"
+          },
+          {
+            "id": 13959,
+            "name": "Omokk's Girth Restrainer",
+            "rank": 2,
+            "notes": "Quest"
+          }
+        ],
+        "legs": [
+          {
+            "id": 15062,
+            "name": "Devilsaur Leggings",
+            "rank": 1,
+            "notes": "Crafted - Leatherworking (300)"
+          },
+          {
+            "id": 14554,
+            "name": "Cloudkeeper Legplates",
+            "rank": 2,
+            "notes": "World drop (BoE)"
+          },
+          {
+            "id": 22873,
+            "name": "Legionnaire's Plate Leggings",
+            "rank": 3,
+            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Horde version"
+          },
+          {
+            "id": 23301,
+            "name": "Knight-Captain's Plate Leggings",
+            "rank": 3,
+            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Alliance counterpart of Legionnaire's Plate Leggings"
+          }
+        ],
+        "feet": [
+          {
+            "id": 22858,
+            "name": "Blood Guard's Plate Greaves",
+            "rank": 1,
+            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Horde version"
+          },
+          {
+            "id": 23287,
+            "name": "Knight-Lieutenant's Plate Greaves",
+            "rank": 1,
+            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Alliance counterpart of Blood Guard's Plate Greaves"
+          },
+          {
+            "id": 14616,
+            "name": "Bloodmail Boots",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance (mini-bosses)"
+          },
+          {
+            "id": 13967,
+            "name": "Windreaver Greaves",
+            "rank": 3,
+            "notes": "Dungeon - Scholomance"
+          }
+        ],
+        "finger": [
+          {
+            "id": 19325,
+            "name": "Don Julio's Band",
+            "rank": 1,
+            "notes": "PvP - Alterac Valley Exalted"
+          },
+          {
+            "id": 18500,
+            "name": "Tarnished Elven Ring",
+            "rank": 2,
+            "notes": "Dungeon - Dire Maul North"
+          },
+          {
+            "id": 17713,
+            "name": "Blackstone Ring",
+            "rank": 3,
+            "notes": "Dungeon - Maraudon"
+          },
+          {
+            "id": 13098,
+            "name": "Painweaver Band",
+            "rank": 4,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "trinket": [
+          {
+            "id": 11815,
+            "name": "Hand of Justice",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 13965,
+            "name": "Blackhand's Breadth",
+            "rank": 2,
+            "notes": "Quest"
+          },
+          {
+            "id": 20130,
+            "name": "Diamond Flask",
+            "rank": 3,
+            "notes": "Quest"
+          },
+          {
+            "id": 19120,
+            "name": "Rune of the Guard Captain",
+            "rank": 4,
+            "notes": "Quest"
+          }
+        ],
+        "mainHand": [
+          {
+            "id": 11684,
+            "name": "Ironfoe",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 12940,
+            "name": "Dal'Rend's Sacred Charge",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "offHand": [
+          {
+            "id": 15806,
+            "name": "Mirah's Song",
+            "rank": 1,
+            "notes": "Quest"
+          },
+          {
+            "id": 12939,
+            "name": "Dal'Rend's Tribal Guardian",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 12535,
+            "name": "Doomforged Straightedge",
+            "rank": 3,
+            "notes": "World drop (BoE)"
+          }
+        ],
+        "ranged": [
+          {
+            "id": 18323,
+            "name": "Satyr's Bow",
+            "rank": 1,
+            "notes": "Dungeon - Dire Maul East"
+          },
+          {
+            "id": 12651,
+            "name": "Blackcrow",
+            "rank": 2,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          }
+        ]
+      }
+    },
+    "warrior-arms": {
+      "name": "Arms Warrior (two-hander)",
+      "source": {
+        "title": "Warrior DPS Pre-Raid Best in Slot Gear (BiS) - WoW Classic Phase 6",
+        "url": "https://classic.wowhead.com/guides/wow-classic-fury-warrior-dps-pre-raid-best-in-slot-gear",
+        "archivedUrl": "https://web.archive.org/web/20210517121139/https://classic.wowhead.com/guides/wow-classic-fury-warrior-dps-pre-raid-best-in-slot-gear",
+        "snapshot": "2021-05-17"
+      },
+      "note": "Same Warrior DPS guide as Fury: armor rows plus its Two-Hand row.",
+      "slots": {
+        "head": [
+          {
+            "id": 12640,
+            "name": "Lionheart Helm",
+            "rank": 1,
+            "notes": "Crafted - Blacksmithing (300)"
+          },
+          {
+            "id": 23244,
+            "name": "Champion's Plate Helm",
+            "rank": 2,
+            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
+          },
+          {
+            "id": 23314,
+            "name": "Lieutenant Commander's Plate Helm",
+            "rank": 2,
+            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Plate Helm"
+          },
+          {
+            "id": 12587,
+            "name": "Eye of Rend",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "neck": [
+          {
+            "id": 15411,
+            "name": "Mark of Fordring",
+            "rank": 1,
+            "notes": "Quest"
+          },
+          {
+            "id": 11933,
+            "name": "Imperial Jewel",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 17044,
+            "name": "Will of the Martyr",
+            "rank": 3,
+            "notes": "Quest"
+          }
+        ],
+        "shoulder": [
+          {
+            "id": 23243,
+            "name": "Champion's Plate Shoulders",
+            "rank": 1,
+            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
+          },
+          {
+            "id": 23315,
+            "name": "Lieutenant Commander's Plate Shoulders",
+            "rank": 1,
+            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Plate Shoulders"
+          },
+          {
+            "id": 12927,
+            "name": "Truestrike Shoulders",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 12082,
+            "name": "Wyrmhide Spaulders",
+            "rank": 3,
+            "notes": "Quest"
+          }
+        ],
+        "back": [
+          {
+            "id": 13340,
+            "name": "Cape of the Black Baron",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 13397,
+            "name": "Stoneskin Gargoyle Cape",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 13203,
+            "name": "Armswake Cloak",
+            "rank": 3,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          }
+        ],
+        "chest": [
+          {
+            "id": 11726,
+            "name": "Savage Gladiator Chain",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 22872,
+            "name": "Legionnaire's Plate Hauberk",
+            "rank": 2,
+            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Horde version"
+          },
+          {
+            "id": 23300,
+            "name": "Knight-Captain's Plate Hauberk",
+            "rank": 2,
+            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Alliance counterpart of Legionnaire's Plate Hauberk"
+          },
+          {
+            "id": 11926,
+            "name": "Deathdealer Breastplate",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "wrist": [
+          {
+            "id": 12936,
+            "name": "Battleborn Armbraces",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 13400,
+            "name": "Vambraces of the Sadist",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Live)"
+          },
+          {
+            "id": 12966,
+            "name": "Blackmist Armguards",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "hands": [
+          {
+            "id": 15063,
+            "name": "Devilsaur Gauntlets",
+            "rank": 1,
+            "notes": "Crafted - Leatherworking (290)"
+          },
+          {
+            "id": 22868,
+            "name": "Blood Guard's Plate Gauntlets",
+            "rank": 2,
+            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Horde version"
+          },
+          {
+            "id": 23286,
+            "name": "Knight-Lieutenant's Plate Gauntlets",
+            "rank": 2,
+            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Alliance counterpart of Blood Guard's Plate Gauntlets"
+          },
+          {
+            "id": 13957,
+            "name": "Gargoyle Slashers",
+            "rank": 3,
+            "notes": "Dungeon - Scholomance"
+          }
+        ],
+        "waist": [
+          {
+            "id": 13142,
+            "name": "Brigam Girdle",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Spire"
+          },
+          {
+            "id": 13959,
+            "name": "Omokk's Girth Restrainer",
+            "rank": 2,
+            "notes": "Quest"
+          }
+        ],
+        "legs": [
+          {
+            "id": 15062,
+            "name": "Devilsaur Leggings",
+            "rank": 1,
+            "notes": "Crafted - Leatherworking (300)"
+          },
+          {
+            "id": 14554,
+            "name": "Cloudkeeper Legplates",
+            "rank": 2,
+            "notes": "World drop (BoE)"
+          },
+          {
+            "id": 22873,
+            "name": "Legionnaire's Plate Leggings",
+            "rank": 3,
+            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Horde version"
+          },
+          {
+            "id": 23301,
+            "name": "Knight-Captain's Plate Leggings",
+            "rank": 3,
+            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Alliance counterpart of Legionnaire's Plate Leggings"
+          }
+        ],
+        "feet": [
+          {
+            "id": 22858,
+            "name": "Blood Guard's Plate Greaves",
+            "rank": 1,
+            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Horde version"
+          },
+          {
+            "id": 23287,
+            "name": "Knight-Lieutenant's Plate Greaves",
+            "rank": 1,
+            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Alliance counterpart of Blood Guard's Plate Greaves"
+          },
+          {
+            "id": 14616,
+            "name": "Bloodmail Boots",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance (mini-bosses)"
+          },
+          {
+            "id": 13967,
+            "name": "Windreaver Greaves",
+            "rank": 3,
+            "notes": "Dungeon - Scholomance"
+          }
+        ],
+        "finger": [
+          {
+            "id": 19325,
+            "name": "Don Julio's Band",
+            "rank": 1,
+            "notes": "PvP - Alterac Valley Exalted"
+          },
+          {
+            "id": 18500,
+            "name": "Tarnished Elven Ring",
+            "rank": 2,
+            "notes": "Dungeon - Dire Maul North"
+          },
+          {
+            "id": 17713,
+            "name": "Blackstone Ring",
+            "rank": 3,
+            "notes": "Dungeon - Maraudon"
+          },
+          {
+            "id": 13098,
+            "name": "Painweaver Band",
+            "rank": 4,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "trinket": [
+          {
+            "id": 11815,
+            "name": "Hand of Justice",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 13965,
+            "name": "Blackhand's Breadth",
+            "rank": 2,
+            "notes": "Quest"
+          },
+          {
+            "id": 20130,
+            "name": "Diamond Flask",
+            "rank": 3,
+            "notes": "Quest"
+          },
+          {
+            "id": 19120,
+            "name": "Rune of the Guard Captain",
+            "rank": 4,
+            "notes": "Quest"
+          }
+        ],
+        "twoHand": [
+          {
+            "id": 12592,
+            "name": "Blackblade of Shahram",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 18538,
+            "name": "Treant's Bane",
+            "rank": 2,
+            "notes": "Dungeon - Dire Maul North"
+          },
+          {
+            "id": 19323,
+            "name": "The Unstoppable Force",
+            "rank": 3,
+            "notes": "PvP - Alterac Valley Exalted"
+          }
+        ],
+        "ranged": [
+          {
+            "id": 18323,
+            "name": "Satyr's Bow",
+            "rank": 1,
+            "notes": "Dungeon - Dire Maul East"
+          },
+          {
+            "id": 12651,
+            "name": "Blackcrow",
+            "rank": 2,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          }
+        ]
+      }
+    },
+    "warrior-protection": {
+      "name": "Protection Warrior",
+      "source": {
+        "title": "Warrior Tank Pre-Raid Best in Slot Gear (BiS) - WoW Classic Phase 6",
+        "url": "https://classic.wowhead.com/guides/wow-classic-warrior-tank-pre-raid-best-in-slot-gear",
+        "archivedUrl": "https://web.archive.org/web/20210518024651/https://classic.wowhead.com/guides/wow-classic-warrior-tank-pre-raid-best-in-slot-gear",
+        "snapshot": "2021-05-18"
+      },
+      "note": "The guide's dual-wield (Fury/Prot) Off-Hand row is left out; the standard build uses a shield.",
+      "slots": {
+        "head": [
+          {
+            "id": 12640,
+            "name": "Lionheart Helm",
+            "rank": 1,
+            "notes": "Crafted - Blacksmithing (300)"
+          },
+          {
+            "id": 11746,
+            "name": "Golem Skull Helm",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 12952,
+            "name": "Gyth's Skull",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "neck": [
+          {
+            "id": 13091,
+            "name": "Medallion of Grand Marshal Morris",
+            "rank": 1,
+            "notes": "World drop (BoE)"
+          },
+          {
+            "id": 11755,
+            "name": "Verek's Collar",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "shoulder": [
+          {
+            "id": 23243,
+            "name": "Champion's Plate Shoulders",
+            "rank": 1,
+            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
+          },
+          {
+            "id": 23315,
+            "name": "Lieutenant Commander's Plate Shoulders",
+            "rank": 1,
+            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Plate Shoulders"
+          },
+          {
+            "id": 16733,
+            "name": "Spaulders of Valor",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 14552,
+            "name": "Stockade Pauldrons",
+            "rank": 3,
+            "notes": "World drop (BoE)"
+          }
+        ],
+        "back": [
+          {
+            "id": 13397,
+            "name": "Stoneskin Gargoyle Cape",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 18495,
+            "name": "Redoubt Cloak",
+            "rank": 2,
+            "notes": "Dungeon - Dire Maul North"
+          },
+          {
+            "id": 11930,
+            "name": "The Emperor's New Cape",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "chest": [
+          {
+            "id": 22872,
+            "name": "Legionnaire's Plate Hauberk",
+            "rank": 1,
+            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Horde version"
+          },
+          {
+            "id": 23300,
+            "name": "Knight-Captain's Plate Hauberk",
+            "rank": 1,
+            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Alliance counterpart of Legionnaire's Plate Hauberk"
+          },
+          {
+            "id": 11726,
+            "name": "Savage Gladiator Chain",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 12895,
+            "name": "Breastplate of the Chromatic Flight",
+            "rank": 3,
+            "notes": "Quest"
+          }
+        ],
+        "wrist": [
+          {
+            "id": 16735,
+            "name": "Bracers of Valor",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Spire (trash)"
+          },
+          {
+            "id": 13951,
+            "name": "Vigorsteel Vambraces",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance"
+          },
+          {
+            "id": 13400,
+            "name": "Vambraces of the Sadist",
+            "rank": 3,
+            "notes": "Dungeon - Stratholme (Live)"
+          }
+        ],
+        "hands": [
+          {
+            "id": 14525,
+            "name": "Boneclenched Gauntlets",
+            "rank": 1,
+            "notes": "Dungeon - Scholomance"
+          },
+          {
+            "id": 13072,
+            "name": "Stonegrip Gauntlets",
+            "rank": 2,
+            "notes": "World drop (BoE)"
+          },
+          {
+            "id": 13963,
+            "name": "Voone's Vice Grips",
+            "rank": 3,
+            "notes": "Quest"
+          }
+        ],
+        "waist": [
+          {
+            "id": 13142,
+            "name": "Brigam Girdle",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 13502,
+            "name": "Handcrafted Mastersmith Girdle",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 14620,
+            "name": "Deathbone Girdle",
+            "rank": 3,
+            "notes": "Dungeon - Scholomance (mini-bosses)"
+          }
+        ],
+        "legs": [
+          {
+            "id": 14554,
+            "name": "Cloudkeeper Legplates",
+            "rank": 1,
+            "notes": "World drop (BoE)"
+          },
+          {
+            "id": 22873,
+            "name": "Legionnaire's Plate Leggings",
+            "rank": 2,
+            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Horde version"
+          },
+          {
+            "id": 23301,
+            "name": "Knight-Captain's Plate Leggings",
+            "rank": 2,
+            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Alliance counterpart of Legionnaire's Plate Leggings"
+          },
+          {
+            "id": 12935,
+            "name": "Warmaster Legguards",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "feet": [
+          {
+            "id": 22858,
+            "name": "Blood Guard's Plate Greaves",
+            "rank": 1,
+            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Horde version"
+          },
+          {
+            "id": 23287,
+            "name": "Knight-Lieutenant's Plate Greaves",
+            "rank": 1,
+            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Alliance counterpart of Blood Guard's Plate Greaves"
+          },
+          {
+            "id": 14616,
+            "name": "Bloodmail Boots",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance (mini-bosses)"
+          },
+          {
+            "id": 13259,
+            "name": "Ribsteel Footguards",
+            "rank": 3,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          }
+        ],
+        "finger": [
+          {
+            "id": 19325,
+            "name": "Don Julio's Band",
+            "rank": 1,
+            "notes": "PvP - Alterac Valley Exalted"
+          },
+          {
+            "id": 2246,
+            "name": "Myrmidon's Signet",
+            "rank": 2,
+            "notes": "World drop (BoE)"
+          },
+          {
+            "id": 18500,
+            "name": "Tarnished Elven Ring",
+            "rank": 3,
+            "notes": "Dungeon - Dire Maul North"
+          },
+          {
+            "id": 17713,
+            "name": "Blackstone Ring",
+            "rank": 4,
+            "notes": "Dungeon - Maraudon"
+          }
+        ],
+        "trinket": [
+          {
+            "id": 11815,
+            "name": "Hand of Justice",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 17774,
+            "name": "Mark of the Chosen",
+            "rank": 2,
+            "notes": "Quest"
+          },
+          {
+            "id": 13965,
+            "name": "Blackhand's Breadth",
+            "rank": 3,
+            "notes": "Quest"
+          },
+          {
+            "id": 11810,
+            "name": "Force of Will",
+            "rank": 4,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "mainHand": [
+          {
+            "id": 15806,
+            "name": "Mirah's Song",
+            "rank": 1,
+            "notes": "Quest"
+          },
+          {
+            "id": 11684,
+            "name": "Ironfoe",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 13015,
+            "name": "Serathil",
+            "rank": 3,
+            "notes": "World drop (BoE)"
+          }
+        ],
+        "offHand": [
+          {
+            "id": 12602,
+            "name": "Draconian Deflector",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 1168,
+            "name": "Skullflame Shield",
+            "rank": 2,
+            "notes": "World drop (BoE)"
+          },
+          {
+            "id": 13529,
+            "name": "Husk of Nerub'enkan",
+            "rank": 3,
+            "notes": "Dungeon - Stratholme (Undead)"
+          }
+        ],
+        "ranged": [
+          {
+            "id": 18323,
+            "name": "Satyr's Bow",
+            "rank": 1,
+            "notes": "Dungeon - Dire Maul East"
+          },
+          {
+            "id": 16996,
+            "name": "Gorewood Bow",
+            "rank": 2,
+            "notes": "Quest"
+          },
+          {
+            "id": 12651,
+            "name": "Blackcrow",
+            "rank": 3,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          }
+        ]
+      }
+    },
+    "druid-feral-cat": {
+      "name": "Feral Druid (cat)",
+      "source": {
+        "title": "Feral Druid DPS Pre-Raid Best in Slot Gear (BiS) - WoW Classic Phase 6",
+        "url": "https://classic.wowhead.com/guides/wow-classic-feral-druid-dps-pre-raid-best-in-slot-gear",
+        "archivedUrl": "https://web.archive.org/web/20210518013648/https://classic.wowhead.com/guides/wow-classic-feral-druid-dps-pre-raid-best-in-slot-gear",
+        "snapshot": "2021-05-18"
+      },
+      "slots": {
+        "head": [
+          {
+            "id": 8345,
+            "name": "Wolfshead Helm",
+            "rank": 1,
+            "notes": "Crafted - Leatherworking (225, Tribal)"
+          },
+          {
+            "id": 13404,
+            "name": "Mask of the Unforgiven",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Live)"
+          },
+          {
+            "id": 12587,
+            "name": "Eye of Rend",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "neck": [
+          {
+            "id": 15411,
+            "name": "Mark of Fordring",
+            "rank": 1,
+            "notes": "Quest"
+          },
+          {
+            "id": 11933,
+            "name": "Imperial Jewel",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 17044,
+            "name": "Will of the Martyr",
+            "rank": 3,
+            "notes": "Quest"
+          }
+        ],
+        "shoulder": [
+          {
+            "id": 12927,
+            "name": "Truestrike Shoulders",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 12082,
+            "name": "Wyrmhide Spaulders",
+            "rank": 2,
+            "notes": "Quest"
+          }
+        ],
+        "back": [
+          {
+            "id": 13340,
+            "name": "Cape of the Black Baron",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 13397,
+            "name": "Stoneskin Gargoyle Cape",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 11930,
+            "name": "The Emperor's New Cape",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "chest": [
+          {
+            "id": 14637,
+            "name": "Cadaverous Armor",
+            "rank": 1,
+            "notes": "Dungeon - Scholomance (mini-bosses)"
+          },
+          {
+            "id": 12757,
+            "name": "Breastplate of Bloodthirst",
+            "rank": 2,
+            "notes": "Quest"
+          },
+          {
+            "id": 12603,
+            "name": "Nightbrace Tunic",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "wrist": [
+          {
+            "id": 12966,
+            "name": "Blackmist Armguards",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 18375,
+            "name": "Bracers of the Eclipse",
+            "rank": 2,
+            "notes": "Dungeon - Dire Maul West"
+          },
+          {
+            "id": 13120,
+            "name": "Deepfury Bracers",
+            "rank": 3,
+            "notes": "World drop (BoE)"
+          }
+        ],
+        "hands": [
+          {
+            "id": 15063,
+            "name": "Devilsaur Gauntlets",
+            "rank": 1,
+            "notes": "Crafted - Leatherworking (290, Tribal)"
+          }
+        ],
+        "waist": [
+          {
+            "id": 13252,
+            "name": "Cloudrunner Girdle",
+            "rank": 1,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          },
+          {
+            "id": 14502,
+            "name": "Frostbite Girdle",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance"
+          }
+        ],
+        "legs": [
+          {
+            "id": 15062,
+            "name": "Devilsaur Leggings",
+            "rank": 1,
+            "notes": "Crafted - Leatherworking (300, Tribal)"
+          }
+        ],
+        "feet": [
+          {
+            "id": 12553,
+            "name": "Swiftwalker Boots",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 16711,
+            "name": "Shadowcraft Boots",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance"
+          }
+        ],
+        "finger": [
+          {
+            "id": 19325,
+            "name": "Don Julio's Band",
+            "rank": 1,
+            "notes": "PvP - Alterac Valley Exalted"
+          },
+          {
+            "id": 18500,
+            "name": "Tarnished Elven Ring",
+            "rank": 2,
+            "notes": "Dungeon - Dire Maul North"
+          },
+          {
+            "id": 2246,
+            "name": "Myrmidon's Signet",
+            "rank": 3,
+            "notes": "World drop (BoE)"
+          },
+          {
+            "id": 17713,
+            "name": "Blackstone Ring",
+            "rank": 4,
+            "notes": "Dungeon - Maraudon"
+          }
+        ],
+        "trinket": [
+          {
+            "id": 18537,
+            "name": "Counterattack Lodestone",
+            "rank": 1,
+            "notes": "Dungeon - Dire Maul North"
+          },
+          {
+            "id": 11815,
+            "name": "Hand of Justice",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 13965,
+            "name": "Blackhand's Breadth",
+            "rank": 3,
+            "notes": "Quest"
+          },
+          {
+            "id": 19120,
+            "name": "Rune of the Guard Captain",
+            "rank": 4,
+            "notes": "Quest"
+          }
+        ],
+        "twoHand": [
+          {
+            "id": 9449,
+            "name": "Manual Crowd Pummeler",
+            "rank": 1,
+            "notes": "Dungeon - Gnomeregan"
+          },
+          {
+            "id": 19323,
+            "name": "The Unstoppable Force",
+            "rank": 2,
+            "notes": "PvP - Alterac Valley Exalted"
+          },
+          {
+            "id": 18420,
+            "name": "Bonecrusher",
+            "rank": 3,
+            "notes": "Quest"
+          }
+        ],
+        "mainHand": [
+          {
+            "id": 4091,
+            "name": "Widowmaker",
+            "rank": 1,
+            "notes": "World drop (BoE)"
+          },
+          {
+            "id": 13368,
+            "name": "Bonescraper",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 18044,
+            "name": "Hurley's Tankard",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "offHand": [
+          {
+            "id": 13385,
+            "name": "Tome of Knowledge",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme (Live)"
+          }
+        ],
+        "relic": [
+          {
+            "id": 23198,
+            "name": "Idol of Brutality",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme"
+          }
+        ]
+      }
+    },
+    "druid-feral-bear": {
+      "name": "Feral Druid (bear)",
+      "source": {
+        "title": "Druid Tank Pre-Raid Best in Slot Gear (BiS) - WoW Classic Phase 6",
+        "url": "https://classic.wowhead.com/guides/wow-classic-feral-druid-tank-pre-raid-best-in-slot-gear",
+        "archivedUrl": "https://web.archive.org/web/20210518140340/https://classic.wowhead.com/guides/wow-classic-feral-druid-tank-pre-raid-best-in-slot-gear",
+        "snapshot": "2021-05-18"
+      },
+      "slots": {
+        "head": [
+          {
+            "id": 13404,
+            "name": "Mask of the Unforgiven",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme (Live)"
+          },
+          {
+            "id": 14539,
+            "name": "Bone Ring Helm",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance"
+          },
+          {
+            "id": 23253,
+            "name": "Champion's Dragonhide Headguard",
+            "rank": 3,
+            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
+          },
+          {
+            "id": 23308,
+            "name": "Lieutenant Commander's Dragonhide Headguard",
+            "rank": 3,
+            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Dragonhide Headguard"
+          }
+        ],
+        "neck": [
+          {
+            "id": 13177,
+            "name": "Talisman of Evasion",
+            "rank": 1,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          },
+          {
+            "id": 11755,
+            "name": "Verek's Collar",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "shoulder": [
+          {
+            "id": 10783,
+            "name": "Atal'ai Spaulders",
+            "rank": 1,
+            "notes": "Dungeon - Sunken Temple (mini-bosses)"
+          },
+          {
+            "id": 12927,
+            "name": "Truestrike Shoulders",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 23254,
+            "name": "Champion's Dragonhide Shoulders",
+            "rank": 3,
+            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Horde version"
+          },
+          {
+            "id": 23309,
+            "name": "Lieutenant Commander's Dragonhide Shoulders",
+            "rank": 3,
+            "notes": "PvP - Rank 10 (Lieutenant Commander/Champion); Alliance counterpart of Champion's Dragonhide Shoulders"
+          }
+        ],
+        "back": [
+          {
+            "id": 16342,
+            "name": "Sergeant's Cape",
+            "rank": 1,
+            "notes": "PvP - Rank 3 (Sergeant); Horde version"
+          },
+          {
+            "id": 18461,
+            "name": "Sergeant's Cloak",
+            "rank": 1,
+            "notes": "PvP - Rank 3 (Sergeant); Alliance counterpart of Sergeant's Cape"
+          },
+          {
+            "id": 12551,
+            "name": "Stoneshield Cloak",
+            "rank": 2,
+            "notes": "World drop (BoE)"
+          },
+          {
+            "id": 13397,
+            "name": "Stoneskin Gargoyle Cape",
+            "rank": 3,
+            "notes": "Dungeon - Stratholme (Undead)"
+          }
+        ],
+        "chest": [
+          {
+            "id": 12757,
+            "name": "Breastplate of Bloodthirst",
+            "rank": 1,
+            "notes": "Quest"
+          },
+          {
+            "id": 15064,
+            "name": "Warbear Harness",
+            "rank": 2,
+            "notes": "Crafted - Leatherworking (275, Tribal)"
+          },
+          {
+            "id": 12793,
+            "name": "Mixologist's Tunic",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "wrist": [
+          {
+            "id": 12966,
+            "name": "Blackmist Armguards",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 18700,
+            "name": "Malefic Bracers",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance (trash)"
+          },
+          {
+            "id": 18434,
+            "name": "First Sergeant's Dragonhide Armguards",
+            "rank": 3,
+            "notes": "PvP - Rank 4 (Sergeant Major/First Sergeant); Horde version"
+          },
+          {
+            "id": 18454,
+            "name": "Sergeant Major's Dragonhide Armsplints",
+            "rank": 3,
+            "notes": "PvP - Rank 4 (Sergeant Major/First Sergeant); Alliance counterpart of First Sergeant's Dragonhide Armguards"
+          }
+        ],
+        "hands": [
+          {
+            "id": 13258,
+            "name": "Slaghide Gauntlets",
+            "rank": 1,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          },
+          {
+            "id": 15063,
+            "name": "Devilsaur Gauntlets",
+            "rank": 2,
+            "notes": "Crafted - Leatherworking (290)"
+          },
+          {
+            "id": 22863,
+            "name": "Blood Guard's Dragonhide Grips",
+            "rank": 3,
+            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Horde version"
+          },
+          {
+            "id": 23280,
+            "name": "Knight-Lieutenant's Dragonhide Grips",
+            "rank": 3,
+            "notes": "PvP - Rank 7 (Knight-Lieutenant/Blood Guard); Alliance counterpart of Blood Guard's Dragonhide Grips"
+          }
+        ],
+        "waist": [
+          {
+            "id": 14502,
+            "name": "Frostbite Girdle",
+            "rank": 1,
+            "notes": "Dungeon - Scholomance"
+          },
+          {
+            "id": 13252,
+            "name": "Cloudrunner Girdle",
+            "rank": 2,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          }
+        ],
+        "legs": [
+          {
+            "id": 11821,
+            "name": "Warstrife Leggings",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 15062,
+            "name": "Devilsaur Leggings",
+            "rank": 2,
+            "notes": "Crafted - Leatherworking (300)"
+          },
+          {
+            "id": 22878,
+            "name": "Legionnaire's Dragonhide Leggings",
+            "rank": 3,
+            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Horde version"
+          },
+          {
+            "id": 23295,
+            "name": "Knight-Captain's Dragonhide Leggings",
+            "rank": 3,
+            "notes": "PvP - Rank 8 (Knight-Captain/Legionnaire); Alliance counterpart of Legionnaire's Dragonhide Leggings"
+          }
+        ],
+        "feet": [
+          {
+            "id": 18716,
+            "name": "Ash Covered Boots",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme (Live)"
+          },
+          {
+            "id": 14641,
+            "name": "Cadaverous Walkers",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance (mini-bosses)"
+          },
+          {
+            "id": 16711,
+            "name": "Shadowcraft Boots",
+            "rank": 3,
+            "notes": "Dungeon - Scholomance"
+          }
+        ],
+        "finger": [
+          {
+            "id": 19325,
+            "name": "Don Julio's Band",
+            "rank": 1,
+            "notes": "PvP - Alterac Valley Exalted"
+          },
+          {
+            "id": 15855,
+            "name": "Ring of Protection",
+            "rank": 2,
+            "notes": "Quest"
+          },
+          {
+            "id": 12544,
+            "name": "Thrall's Resolve",
+            "rank": 3,
+            "notes": "Quest"
+          },
+          {
+            "id": 11669,
+            "name": "Naglering",
+            "rank": 4,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "trinket": [
+          {
+            "id": 11811,
+            "name": "Smoking Heart of the Mountain",
+            "rank": 1,
+            "notes": "Crafted - Enchanting (265, BoP)"
+          },
+          {
+            "id": 13966,
+            "name": "Mark of Tyranny",
+            "rank": 2,
+            "notes": "Quest"
+          },
+          {
+            "id": 17774,
+            "name": "Mark of the Chosen",
+            "rank": 3,
+            "notes": "Quest"
+          },
+          {
+            "id": 19120,
+            "name": "Rune of the Guard Captain",
+            "rank": 4,
+            "notes": "Quest"
+          }
+        ],
+        "twoHand": [
+          {
+            "id": 943,
+            "name": "Warden Staff",
+            "rank": 1,
+            "notes": "World drop (BoE)"
+          },
+          {
+            "id": 18531,
+            "name": "Unyielding Maul",
+            "rank": 2,
+            "notes": "Dungeon - Dire Maul North"
+          },
+          {
+            "id": 9449,
+            "name": "Manual Crowd Pummeler",
+            "rank": 3,
+            "notes": "Dungeon - Gnomeregan"
+          }
+        ],
+        "mainHand": [
+          {
+            "id": 18376,
+            "name": "Timeworn Mace",
+            "rank": 1,
+            "notes": "Dungeon - Dire Maul West"
+          },
+          {
+            "id": 868,
+            "name": "Ardent Custodian",
+            "rank": 2,
+            "notes": "World drop (BoE)"
+          },
+          {
+            "id": 11805,
+            "name": "Rubidium Hammer",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "offHand": [
+          {
+            "id": 13385,
+            "name": "Tome of Knowledge",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme (Live)"
+          }
+        ],
+        "relic": [
+          {
+            "id": 23198,
+            "name": "Idol of Brutality",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme"
+          }
+        ]
+      }
+    },
+    "paladin-retribution": {
+      "name": "Retribution Paladin",
+      "source": {
+        "title": "Paladin DPS Pre-Raid Best in Slot Gear (BiS) - WoW Classic Phase 6",
+        "url": "https://classic.wowhead.com/guides/wow-classic-paladin-dps-pre-raid-best-in-slot-gear",
+        "archivedUrl": "https://web.archive.org/web/20210517000811/https://classic.wowhead.com/guides/wow-classic-paladin-dps-pre-raid-best-in-slot-gear",
+        "snapshot": "2021-05-17"
+      },
+      "note": "The guide lists no one-handed weapons.",
+      "slots": {
+        "head": [
+          {
+            "id": 12640,
+            "name": "Lionheart Helm",
+            "rank": 1,
+            "notes": "Crafted - Blacksmithing (300)"
+          },
+          {
+            "id": 12587,
+            "name": "Eye of Rend",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 13404,
+            "name": "Mask of the Unforgiven",
+            "rank": 3,
+            "notes": "Dungeon - Stratholme (Live)"
+          }
+        ],
+        "neck": [
+          {
+            "id": 15411,
+            "name": "Mark of Fordring",
+            "rank": 1,
+            "notes": "Quest"
+          },
+          {
+            "id": 11933,
+            "name": "Imperial Jewel",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 17044,
+            "name": "Will of the Martyr",
+            "rank": 3,
+            "notes": "Quest"
+          }
+        ],
+        "shoulder": [
+          {
+            "id": 12927,
+            "name": "Truestrike Shoulders",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 12082,
+            "name": "Wyrmhide Spaulders",
+            "rank": 2,
+            "notes": "Quest"
+          }
+        ],
+        "back": [
+          {
+            "id": 13340,
+            "name": "Cape of the Black Baron",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 13397,
+            "name": "Stoneskin Gargoyle Cape",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Undead)"
+          },
+          {
+            "id": 13203,
+            "name": "Armswake Cloak",
+            "rank": 3,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          }
+        ],
+        "chest": [
+          {
+            "id": 11726,
+            "name": "Savage Gladiator Chain",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 11926,
+            "name": "Deathdealer Breastplate",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 14637,
+            "name": "Cadaverous Armor",
+            "rank": 3,
+            "notes": "Dungeon - Scholomance (mini-bosses)"
+          }
+        ],
+        "wrist": [
+          {
+            "id": 12936,
+            "name": "Battleborn Armbraces",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 13400,
+            "name": "Vambraces of the Sadist",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Live)"
+          },
+          {
+            "id": 12966,
+            "name": "Blackmist Armguards",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "hands": [
+          {
+            "id": 15063,
+            "name": "Devilsaur Gauntlets",
+            "rank": 1,
+            "notes": "Crafted - Leatherworking (290)"
+          },
+          {
+            "id": 13957,
+            "name": "Gargoyle Slashers",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance"
+          }
+        ],
+        "waist": [
+          {
+            "id": 13142,
+            "name": "Brigam Girdle",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Spire"
+          },
+          {
+            "id": 13959,
+            "name": "Omokk's Girth Restrainer",
+            "rank": 2,
+            "notes": "Quest"
+          }
+        ],
+        "legs": [
+          {
+            "id": 15062,
+            "name": "Devilsaur Leggings",
+            "rank": 1,
+            "notes": "Crafted - Leatherworking (300)"
+          },
+          {
+            "id": 14554,
+            "name": "Cloudkeeper Legplates",
+            "rank": 2,
+            "notes": "World drop (BoE)"
+          }
+        ],
+        "feet": [
+          {
+            "id": 14616,
+            "name": "Bloodmail Boots",
+            "rank": 1,
+            "notes": "Dungeon - Scholomance (mini-bosses)"
+          },
+          {
+            "id": 13967,
+            "name": "Windreaver Greaves",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance"
+          },
+          {
+            "id": 12555,
+            "name": "Battlechaser's Greaves",
+            "rank": 3,
+            "notes": "World drop (BoE)"
+          }
+        ],
+        "finger": [
+          {
+            "id": 19325,
+            "name": "Don Julio's Band",
+            "rank": 1,
+            "notes": "PvP - Alterac Valley Exalted"
+          },
+          {
+            "id": 18500,
+            "name": "Tarnished Elven Ring",
+            "rank": 2,
+            "notes": "Dungeon - Dire Maul North"
+          },
+          {
+            "id": 17713,
+            "name": "Blackstone Ring",
+            "rank": 3,
+            "notes": "Dungeon - Maraudon"
+          },
+          {
+            "id": 13098,
+            "name": "Painweaver Band",
+            "rank": 4,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          }
+        ],
+        "trinket": [
+          {
+            "id": 11815,
+            "name": "Hand of Justice",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 13965,
+            "name": "Blackhand's Breadth",
+            "rank": 2,
+            "notes": "Quest"
+          }
+        ],
+        "twoHand": [
+          {
+            "id": 12592,
+            "name": "Blackblade of Shahram",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 19323,
+            "name": "The Unstoppable Force",
+            "rank": 2,
+            "notes": "PvP - Alterac Valley Exalted"
+          },
+          {
+            "id": 12784,
+            "name": "Arcanite Reaper",
+            "rank": 3,
+            "notes": "Crafted - Blacksmithing (300, Axesmith)"
+          }
+        ],
+        "relic": [
+          {
+            "id": 22401,
+            "name": "Libram of Hope",
+            "rank": 1,
+            "notes": "Dungeon - Dire Maul"
+          }
+        ]
+      }
+    },
+    "paladin-protection": {
+      "name": "Protection Paladin",
+      "source": {
+        "title": "Paladin Tank Pre-Raid Best in Slot Gear (BiS) - WoW Classic Phase 3",
+        "url": "https://classic.wowhead.com/guides/wow-classic-paladin-tank-pre-raid-best-in-slot-gear",
+        "archivedUrl": "https://web.archive.org/web/20210505223134/https://classic.wowhead.com/guides/wow-classic-paladin-tank-pre-raid-best-in-slot-gear",
+        "snapshot": "2021-05-05"
+      },
+      "note": "The guide (a Phase 3 snapshot) lists no libram.",
+      "slots": {
+        "head": [
+          {
+            "id": 12620,
+            "name": "Enchanted Thorium Helm",
+            "rank": 1,
+            "notes": "Crafted - Blacksmithing (300, Armorsmith)"
+          },
+          {
+            "id": 12952,
+            "name": "Gyth's Skull",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 11746,
+            "name": "Golem Skull Helm",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "neck": [
+          {
+            "id": 13091,
+            "name": "Medallion of Grand Marshal Morris",
+            "rank": 1,
+            "notes": "World drop (BoE)"
+          },
+          {
+            "id": 13177,
+            "name": "Talisman of Evasion",
+            "rank": 2,
+            "notes": "Dungeon - Lower Blackrock Spire"
+          },
+          {
+            "id": 11755,
+            "name": "Verek's Collar",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "shoulder": [
+          {
+            "id": 14552,
+            "name": "Stockade Pauldrons",
+            "rank": 1,
+            "notes": "World drop (BoE)"
+          },
+          {
+            "id": 13405,
+            "name": "Wailing Nightbane Pauldrons",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Live)"
+          },
+          {
+            "id": 13955,
+            "name": "Stoneform Shoulders",
+            "rank": 3,
+            "notes": "Dungeon - Scholomance"
+          }
+        ],
+        "back": [
+          {
+            "id": 11930,
+            "name": "The Emperor's New Cape",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 16342,
+            "name": "Sergeant's Cape",
+            "rank": 2,
+            "notes": "PvP - Rank 3 (Sergeant); Horde version"
+          },
+          {
+            "id": 18461,
+            "name": "Sergeant's Cloak",
+            "rank": 2,
+            "notes": "PvP - Rank 3 (Sergeant); Alliance counterpart of Sergeant's Cape"
+          },
+          {
+            "id": 18495,
+            "name": "Redoubt Cloak",
+            "rank": 3,
+            "notes": "Dungeon - Dire Maul North"
+          }
+        ],
+        "chest": [
+          {
+            "id": 14624,
+            "name": "Deathbone Chestplate",
+            "rank": 1,
+            "notes": "Dungeon - Scholomance (mini-bosses)"
+          },
+          {
+            "id": 15413,
+            "name": "Ornate Adamantium Breastplate",
+            "rank": 2,
+            "notes": "Quest"
+          },
+          {
+            "id": 12618,
+            "name": "Enchanted Thorium Breastplate",
+            "rank": 3,
+            "notes": "Crafted - Blacksmithing (300, Armorsmith)"
+          }
+        ],
+        "wrist": [
+          {
+            "id": 13951,
+            "name": "Vigorsteel Vambraces",
+            "rank": 1,
+            "notes": "Dungeon - Scholomance"
+          },
+          {
+            "id": 16735,
+            "name": "Bracers of Valor",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Spire (trash)"
+          },
+          {
+            "id": 16722,
+            "name": "Lightforge Bracers",
+            "rank": 3,
+            "notes": "Dungeon - Scholomance (trash)"
+          }
+        ],
+        "hands": [
+          {
+            "id": 14622,
+            "name": "Deathbone Gauntlets",
+            "rank": 1,
+            "notes": "Dungeon - Scholomance (mini-bosses)"
+          },
+          {
+            "id": 14525,
+            "name": "Boneclenched Gauntlets",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance"
+          },
+          {
+            "id": 13072,
+            "name": "Stonegrip Gauntlets",
+            "rank": 3,
+            "notes": "World drop (BoE)"
+          }
+        ],
+        "waist": [
+          {
+            "id": 14620,
+            "name": "Deathbone Girdle",
+            "rank": 1,
+            "notes": "Dungeon - Scholomance (mini-bosses)"
+          },
+          {
+            "id": 12115,
+            "name": "Stalwart Clutch",
+            "rank": 2,
+            "notes": "Quest"
+          },
+          {
+            "id": 16723,
+            "name": "Lightforge Belt",
+            "rank": 3,
+            "notes": "Dungeon - Stratholme (trash)"
+          }
+        ],
+        "legs": [
+          {
+            "id": 14623,
+            "name": "Deathbone Legguards",
+            "rank": 1,
+            "notes": "Dungeon - Scholomance (mini-bosses)"
+          },
+          {
+            "id": 12619,
+            "name": "Enchanted Thorium Leggings",
+            "rank": 2,
+            "notes": "Crafted - Blacksmithing (300, Armorsmith)"
+          },
+          {
+            "id": 11927,
+            "name": "Legplates of the Eternal Guardian",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "feet": [
+          {
+            "id": 14621,
+            "name": "Deathbone Sabatons",
+            "rank": 1,
+            "notes": "Dungeon - Scholomance (mini-bosses)"
+          },
+          {
+            "id": 11787,
+            "name": "Shalehusk Boots",
+            "rank": 2,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 14549,
+            "name": "Boots of Avoidance",
+            "rank": 3,
+            "notes": "World drop (BoE)"
+          }
+        ],
+        "finger": [
+          {
+            "id": 11669,
+            "name": "Naglering",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 15855,
+            "name": "Ring of Protection",
+            "rank": 2,
+            "notes": "Quest"
+          },
+          {
+            "id": 18674,
+            "name": "Hardened Stone Band",
+            "rank": 3,
+            "notes": "World Event - Azshara"
+          },
+          {
+            "id": 2246,
+            "name": "Myrmidon's Signet",
+            "rank": 4,
+            "notes": "World drop (BoE)"
+          }
+        ],
+        "trinket": [
+          {
+            "id": 11810,
+            "name": "Force of Will",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths"
+          },
+          {
+            "id": 4130,
+            "name": "Smotts' Compass",
+            "rank": 2,
+            "notes": "Quest"
+          },
+          {
+            "id": 17904,
+            "name": "Stormpike Insignia Rank 6",
+            "rank": 3,
+            "notes": "Quest (Alliance, Alterac Valley)"
+          },
+          {
+            "id": 17909,
+            "name": "Frostwolf Insignia Rank 6",
+            "rank": 3,
+            "notes": "Quest (Horde, Alterac Valley); Horde counterpart of Stormpike Insignia Rank 6"
+          },
+          {
+            "id": 17774,
+            "name": "Mark of the Chosen",
+            "rank": 4,
+            "notes": "Quest"
+          }
+        ],
+        "mainHand": [
+          {
+            "id": 871,
+            "name": "Flurry Axe",
+            "rank": 1,
+            "notes": "World drop (BoE)"
+          },
+          {
+            "id": 18048,
+            "name": "Mastersmith's Hammer",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 11784,
+            "name": "Arbiter's Blade",
+            "rank": 3,
+            "notes": "Dungeon - Blackrock Depths"
+          }
+        ],
+        "offHand": [
+          {
+            "id": 12602,
+            "name": "Draconian Deflector",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire"
+          },
+          {
+            "id": 18499,
+            "name": "Barrier Shield",
+            "rank": 2,
+            "notes": "Dungeon - Dire Maul North"
+          },
+          {
+            "id": 13243,
+            "name": "Argent Defender",
+            "rank": 3,
+            "notes": "Quest"
+          }
+        ]
+      }
+    }
+  }
+}

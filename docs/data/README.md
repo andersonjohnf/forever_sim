@@ -11,7 +11,7 @@ which datamines the WoW Forever beta client and diffs it against the Classic Era
 | `src/data/spells/{warrior,druid,paladin}.json` | `/spellbook/<class>` | `scripts/scrape/spells.mjs` | [spells.md](spells.md) |
 | `src/data/talents/{warrior,druid,paladin}.json` | `/talents/<class>` | `scripts/scrape/talents.mjs` | [talents.md](talents.md) |
 | `src/data/races/races.json` | `/racials` | `scripts/scrape/races.mjs` | [races.md](races.md) |
-| `src/data/items/pre-bis.json` | `/items?quality=3&req=55-60` (static `/items/<tab>.json`) | `scripts/scrape/items.mjs` | [items.md](items.md) |
+| `src/data/items/pre-bis.json` | `/items` (static `/items/<tab>.json` + `/item/<id>` pages): Rare with required level 55–60 or item level ≥ 58, plus the curated pre-raid BiS list `scripts/scrape/pre-raid-bis.json` | `scripts/scrape/items.mjs` | [items.md](items.md) |
 
 Each folder also has a `types.ts` with TypeScript interfaces that match the JSON exactly.
 

@@ -61,3 +61,14 @@ requirement: Hand of Justice (53), Blackhand's Breadth, Mark of Fordring (none).
 widened it to also take every Rare with item level ≥ 58. Items with no required level are
 included: Classic genuinely gave many quest rewards and boss drops no requirement, so it
 isn't a data error.
+
+### D11: Known pre-raid BiS items are always in the pool (2026-09-22)
+Guild directive: pre-raid best-in-slot items belong in the pool even when the D10 rule
+misses them. Examples are Epic pre-raid pieces (Lionheart Helm, Savage Gladiator Chain) and
+low-item-level staples (Blackstone Ring, Mask of the Unforgiven). A hand-curated list,
+`scripts/scrape/pre-raid-bis.json`, names them per spec and slot. It comes from Classic Era
+pre-raid BiS guides (never SoD lists) and cites a source per spec. The item scraper includes
+those items at any quality or level, and tags every listed item with `preRaidBis`, so the gear
+picker can offer them as default sets. Forever re-itemized many items and added new dungeons,
+so these lists are a Classic Era starting point. Replace them when Forever level-60 BiS data
+exists.

@@ -15,7 +15,7 @@ stopgap until [wowsims](https://github.com/wowsims) ships a Forever sim, so it s
 | Warrior: Arms, Fury (DPS) · Protection (TPS) | Every other class |
 | Druid: Feral cat (DPS) · Feral bear (TPS) | Balance (see [milestones](milestones.md#later)), Restoration |
 | Paladin: Retribution (DPS) · Protection (TPS) | Holy |
-| Pre-raid gear: Rare, required level 55–60 or item level ≥ 58 ([D10](decisions.md#d10-pre-raid-pool--rare-required-level-5560-or-item-level--58-2026-09-22)) | Raid tier gear (easy to add later) |
+| Pre-raid gear: Rare, required level 55–60 or item level ≥ 58 ([D10](decisions.md#d10-pre-raid-pool--rare-required-level-5560-or-item-level--58-2026-09-22)), plus any known pre-raid BiS item ([D11](decisions.md#d11-known-pre-raid-bis-items-are-always-in-the-pool-2026-09-22)) | Raid gear (easy to add later) |
 | Single target, with light multi-target options | Full encounter scripting |
 | Raid buffs, target debuffs, consumables, enchants | **World buffs**: not available in Forever raids (see below) |
 
@@ -83,7 +83,8 @@ fix one of them in the same change.
 ## 3. Data
 
 - `src/data/**/*.json` is a **generated snapshot** of foreverchanges.pro, written by
-  `scripts/scrape/*.mjs`. Never hand-edit it. Re-run the scraper (`npm run scrape`) and
+  `scripts/scrape/*.mjs`. Hand-authored scraper inputs, such as the curated pre-raid BiS
+  list, live next to the scrapers and cite their sources. Never hand-edit the output. Re-run the scraper (`npm run scrape`) and
   review the diff.
 - Every dataset has a `meta` envelope recording its source URL, scrape time and client
   builds. The beta changes weekly, so always know which build a number came from.
@@ -116,7 +117,9 @@ Defaults describe a **typical guild raider in pre-raid gear** on a normal raid n
 theoretical maximum:
 
 - the talent build is the most popular Forever build for the spec
-- standard raid buffs for the chosen faction, and common consumables
+- the gear is the spec's pre-raid BiS set ([D11](decisions.md#d11-known-pre-raid-bis-items-are-always-in-the-pool-2026-09-22))
+- raid buffs for a typical raid composition, and common consumables. Buffs are keyed to
+  composition, not faction: both factions have paladins and shamans in Forever
 - never world buffs (they don't exist in Forever raids, see §1)
 - a rotation that a real player can execute
 

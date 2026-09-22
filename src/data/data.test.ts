@@ -134,22 +134,31 @@ describe('races', () => {
 })
 
 describe('items/pre-bis', () => {
-  it('is Rare, equippable gear with a slot', () => {
+  it('is Rare equippable gear, apart from listed pre-raid BiS items (decisions D11)', () => {
     for (const item of items.items) {
-      expect(item.quality, item.name).toBe(3)
+      if (item.preRaidBis.length === 0) expect(item.quality, item.name).toBe(3)
       expect(item.slot, item.name).toBeTruthy()
     }
+  })
+
+  it('contains every item on the curated pre-raid BiS list (decisions D11)', () => {
+    const bis = items.meta.preRaidBis
+    expect(bis.notInData).toEqual([])
+    expect(bis.inPool).toBe(bis.listedItems)
+    const tagged = items.items.filter((i) => i.preRaidBis.length > 0)
+    expect(tagged).toHaveLength(bis.listedItems)
   })
 
   it('matches its recorded filter (decisions D10)', () => {
     const { qualities, reqLevel, minItemLevel, excludedItemIds } = items.meta.filter
     for (const item of items.items) {
+      expect(excludedItemIds[String(item.id)], item.name).toBeUndefined()
+      if (item.preRaidBis.length > 0) continue // listed items join at any quality or level
       const levelOk =
         (item.reqLevel >= reqLevel[0] && item.reqLevel <= reqLevel[1]) ||
         (minItemLevel !== null && item.itemLevel >= minItemLevel)
       expect(qualities, item.name).toContain(item.quality)
       expect(levelOk, `${item.name} ilvl ${item.itemLevel} req ${item.reqLevel}`).toBe(true)
-      expect(excludedItemIds[String(item.id)], item.name).toBeUndefined()
     }
   })
 

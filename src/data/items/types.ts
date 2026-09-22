@@ -275,6 +275,53 @@ export interface RatingConversion {
   otherRatios: Record<string, number>;
 }
 
+/** Spec keys used by the curated pre-raid BiS lists (scripts/scrape/pre-raid-bis.json). */
+export type PreRaidBisSpec =
+  | "warrior-fury"
+  | "warrior-arms"
+  | "warrior-protection"
+  | "druid-feral-cat"
+  | "druid-feral-bear"
+  | "paladin-retribution"
+  | "paladin-protection";
+
+/** Slot keys used by the pre-raid BiS lists: paperdoll slots, plus `twoHand` and `relic`. */
+export type PreRaidBisSlot =
+  | "head"
+  | "neck"
+  | "shoulder"
+  | "back"
+  | "chest"
+  | "wrist"
+  | "hands"
+  | "waist"
+  | "legs"
+  | "feet"
+  | "finger"
+  | "trinket"
+  | "mainHand"
+  | "offHand"
+  | "twoHand"
+  | "ranged"
+  | "relic";
+
+export interface PreRaidBisEntry {
+  spec: PreRaidBisSpec;
+  slot: PreRaidBisSlot;
+  /** 1 = the guide's best in slot, 2+ = its alternatives (finger/trinket: two are worn). */
+  rank: number;
+}
+
+export interface PreRaidBisSource {
+  title: string;
+  /** The guide's original (2019–2021 Classic) URL. */
+  url: string;
+  /** Wayback Machine copy that was read; the live page has since been rewritten. */
+  archivedUrl: string;
+  /** Date of that copy, YYYY-MM-DD. */
+  snapshot: string;
+}
+
 export interface ItemDataMeta {
   /** The list page the dataset corresponds to. */
   source: string;
@@ -289,7 +336,8 @@ export interface ItemDataMeta {
    * Kept: quality in `qualities` AND equippable AND (`reqLevel[0]` <= required level <=
    * `reqLevel[1]` OR item level >= `minItemLevel`, whatever the required level, including
    * none). `rule` spells it out. Every item outside the "new" tab has an id below
-   * `maxClassicItemId` (the guard against Season of Discovery items).
+   * `maxClassicItemId` (the guard against Season of Discovery items). Items on the curated
+   * pre-raid BiS lists in `includeList` are kept whatever their quality or level.
    */
   filter: {
     rule: string;
@@ -300,8 +348,23 @@ export interface ItemDataMeta {
     maxClassicItemId: number;
     /** Items that pass the rule but are dropped as unobtainable, id → reason. */
     excludedItemIds: Record<string, string>;
+    /** Repo path of the curated pre-raid BiS lists, or null when off. */
+    includeList: string | null;
   };
   counts: { items: number; byTab: Record<ItemTab, number>; sets: number };
+  /** The curated Classic Era pre-raid BiS lists (see docs/data/items.md#pre-raid-bis-lists). */
+  preRaidBis: {
+    file: string | null;
+    specs: Partial<Record<PreRaidBisSpec, { name: string; source: PreRaidBisSource; note?: string }>>;
+    /** Distinct item ids on the lists. */
+    listedItems: number;
+    /** Pool items on at least one list. */
+    inPool: number;
+    /** Pool items that are there only because of the lists (they fail the quality/level rule). */
+    addedByList: number;
+    /** Listed items found in none of the site's four tab files. */
+    notInData: { id: number; name: string }[];
+  };
   /** Tooltip lines of the stat-source tooltip, by how they were handled. */
   parseCoverage: { lines: number; structured: number; verbatim: number; unparsed: number };
   ratingConversions: Partial<Record<StatKey, RatingConversion>>;
@@ -357,6 +420,8 @@ export interface Item {
   setId: string | null;
   /** "Where it comes from" on the item page; null when the page has none. */
   source: SourceGroup[] | null;
+  /** Where this item appears on the curated Classic Era pre-raid BiS lists; [] if nowhere. */
+  preRaidBis: PreRaidBisEntry[];
   /** Copper. */
   sellPrice: number | null;
   flavor: string | null;

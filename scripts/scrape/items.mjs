@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // Snapshot the pre-raid item pool (Rare, equippable, required level 55-60 or item
-// level 58+) from foreverchanges.pro into src/data/items/pre-bis.json.
+// level 58+, plus every item on the curated Classic Era pre-raid BiS lists in
+// scripts/scrape/pre-raid-bis.json) from foreverchanges.pro into
+// src/data/items/pre-bis.json.
 //
 //   node scripts/scrape/items.mjs [--refresh]
 //
@@ -75,13 +77,21 @@ const EXCLUDED_ITEMS = new Map([
   [20368, "Bland Bow of Steadiness: Classic test weapon, not obtainable"],
   [24071, "Bland Dagger: Classic test weapon, not obtainable"],
 ]);
+/**
+ * Hand-curated Classic Era pre-raid BiS lists (scraper input, relative to the repo root).
+ * Every item listed there joins the pool whatever its quality or level; it must still be
+ * equippable and pass the SoD guard. Pool items get `preRaidBis: [{ spec, slot, rank }]`.
+ * Added at the user's request, 2026-09-22. null = off.
+ */
+const PRE_RAID_BIS_FILE = "scripts/scrape/pre-raid-bis.json";
 /** Where the dataset is written, relative to the repo root. */
 const OUT_FILE = "src/data/items/pre-bis.json";
 
 const FILTER_RULE =
-  `quality in [${QUALITIES.join(", ")}] AND equippable AND ` +
+  `equippable AND ((quality in [${QUALITIES.join(", ")}] AND ` +
   `(${REQ_LEVEL[0]} <= required level <= ${REQ_LEVEL[1]}` +
-  `${MIN_ITEM_LEVEL === null ? "" : ` OR item level >= ${MIN_ITEM_LEVEL} (any required level, including none)`})`;
+  `${MIN_ITEM_LEVEL === null ? "" : ` OR item level >= ${MIN_ITEM_LEVEL} (any required level, including none)`}))` +
+  `${PRE_RAID_BIS_FILE === null ? "" : ` OR listed in ${PRE_RAID_BIS_FILE} (any quality or level)`})`;
 
 // ---------------------------------------------------------------------------
 
@@ -732,6 +742,43 @@ function buildWeapon(p, fallback, it, skill) {
 }
 
 // ---------------------------------------------------------------------------
+// Curated pre-raid BiS lists (scripts/scrape/pre-raid-bis.json)
+// ---------------------------------------------------------------------------
+
+/**
+ * Read PRE_RAID_BIS_FILE. Returns { specs: { key: { name, source, note? } },
+ * byId: Map<id, [{ spec, slot, rank }]>, names: Map<id, name>, notInData: [] }.
+ * Malformed entries fail the run.
+ */
+function loadPreRaidBis() {
+  const empty = { specs: {}, byId: new Map(), names: new Map(), notInData: [] };
+  if (PRE_RAID_BIS_FILE === null) return empty;
+  const data = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, PRE_RAID_BIS_FILE), "utf8"));
+  const out = empty;
+  const specOrder = Object.keys(data.specs);
+  for (const [spec, s] of Object.entries(data.specs)) {
+    if (!s.name || !s.source?.url) fail(`${PRE_RAID_BIS_FILE}: spec ${spec} needs a name and source.url`);
+    out.specs[spec] = { name: s.name, source: s.source, ...(s.note ? { note: s.note } : {}) };
+    for (const [slot, entries] of Object.entries(s.slots)) {
+      for (const e of entries) {
+        if (!Number.isInteger(e.id) || !Number.isInteger(e.rank) || e.rank < 1 || !e.name) {
+          fail(`${PRE_RAID_BIS_FILE}: bad entry in ${spec}.${slot}: ${JSON.stringify(e)}`);
+          continue;
+        }
+        if (out.names.has(e.id) && out.names.get(e.id) !== e.name)
+          fail(`${PRE_RAID_BIS_FILE}: ${e.id} is named both "${out.names.get(e.id)}" and "${e.name}"`);
+        out.names.set(e.id, e.name);
+        if (!out.byId.has(e.id)) out.byId.set(e.id, []);
+        out.byId.get(e.id).push({ spec, slot, rank: e.rank });
+      }
+    }
+  }
+  for (const list of out.byId.values())
+    list.sort((a, b) => specOrder.indexOf(a.spec) - specOrder.indexOf(b.spec) || a.slot.localeCompare(b.slot) || a.rank - b.rank);
+  return out;
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -762,7 +809,21 @@ async function main() {
   // r is 0 (occasionally null) when an item has no required level.
   const levelOk = (it) =>
     ((it.r ?? 0) >= REQ_LEVEL[0] && (it.r ?? 0) <= REQ_LEVEL[1]) || (MIN_ITEM_LEVEL !== null && it.l >= MIN_ITEM_LEVEL);
-  const inRange = allRows.filter((it) => QUALITIES.includes(it.q) && levelOk(it));
+  const bis = loadPreRaidBis();
+  const byId = new Map(allRows.map((it) => [it.i, it]));
+  for (const [id, name] of bis.names) {
+    const row = byId.get(id);
+    if (!row) {
+      bis.notInData.push({ id, name });
+      warn(`${PRE_RAID_BIS_FILE}: ${id} ${name} is in none of the four tab files (no Forever or Classic data)`);
+    } else if (row.n !== name) {
+      fail(`${PRE_RAID_BIS_FILE}: ${id} is "${row.n}" in the site data, not "${name}"`);
+    } else if (!isEquippable(row) || EXCLUDED_ITEMS.has(id)) {
+      warn(`${PRE_RAID_BIS_FILE}: ${id} ${name} is listed but not equippable or excluded; left out`);
+    }
+  }
+  const byRule = (it) => QUALITIES.includes(it.q) && levelOk(it);
+  const inRange = allRows.filter((it) => byRule(it) || bis.byId.has(it.i));
   const kept = inRange.filter((it) => isEquippable(it) && !EXCLUDED_ITEMS.has(it.i));
   // SoD guard (see MAX_CLASSIC_ITEM_ID): refuse to write anything if it trips.
   const suspect = kept.filter((it) => it.tab !== "new" && it.i >= MAX_CLASSIC_ITEM_ID);
@@ -774,7 +835,11 @@ async function main() {
     );
   }
   const dropped = inRange.filter((it) => !isEquippable(it) || EXCLUDED_ITEMS.has(it.i));
-  console.log(`${allRows.length} rows; ${inRange.length} match quality/level; ${kept.length} equippable kept`);
+  const addedByList = kept.filter((it) => !byRule(it));
+  console.log(
+    `${allRows.length} rows; ${inRange.length} match the rule or the BiS list; ${kept.length} equippable kept ` +
+      `(${addedByList.length} only because of the BiS list)`,
+  );
 
   // 3. Item pages ------------------------------------------------------------
   const pages = new Map();
@@ -826,13 +891,13 @@ async function main() {
       continue;
     }
     // Cross-check the JSON lines against the item page. The page renders "seen in game"
-    // tooltips without "Equip: " prefixes, sell price or (for some robes) armor and in
-    // another order, so those are compared loosely.
+    // tooltips without "Equip: " prefixes, sell price, Use cooldowns or (for some robes)
+    // armor and in another order, so those are compared loosely.
     const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
     const loose = (ls) =>
       (ls ?? [])
         .filter((l) => !/^(Sell Price: |\d+ Armor$)/.test(l))
-        .map((l) => l.replace(/^Equip: /, "").replace(/\.$/, ""))
+        .map((l) => l.replace(/^Equip: /, "").replace(/ \(\d+ (?:Sec|Min|Hour)s? Cooldown\)$/, "").replace(/\.$/, ""))
         .sort();
     const notes = [];
     if (page.status === 200) {
@@ -954,6 +1019,7 @@ async function main() {
       otherEquip: p.otherEquip,
       setId,
       source: source && source.length ? source : null,
+      preRaidBis: bis.byId.get(it.i) ?? [],
       sellPrice: p.sellPrice,
       flavor: p.flavor,
       classic: classicSide,
@@ -1004,8 +1070,17 @@ async function main() {
         equippableOnly: true,
         maxClassicItemId: MAX_CLASSIC_ITEM_ID,
         excludedItemIds: Object.fromEntries(EXCLUDED_ITEMS),
+        includeList: PRE_RAID_BIS_FILE,
       },
       counts: { items: items.length, byTab, sets: Object.keys(setsOut).length },
+      preRaidBis: {
+        file: PRE_RAID_BIS_FILE,
+        specs: bis.specs,
+        listedItems: bis.names.size,
+        inPool: items.filter((i) => i.preRaidBis.length).length,
+        addedByList: addedByList.length,
+        notInData: bis.notInData,
+      },
       parseCoverage: coverage,
       ratingConversions,
     },
@@ -1013,7 +1088,7 @@ async function main() {
     items,
   };
 
-  report({ items, dropped, coverage, unparsedLines, ratingConversions, setsOut });
+  report({ items, dropped, coverage, unparsedLines, ratingConversions, setsOut, bis, addedByList });
   if (errors.length) {
     console.error(`\nNot writing ${OUT_FILE}: ${errors.length} check(s) failed.`);
     return;
@@ -1070,7 +1145,7 @@ function measureRatingConversions(rows) {
   return out;
 }
 
-function report({ items, dropped, coverage, unparsedLines, ratingConversions, setsOut }) {
+function report({ items, dropped, coverage, unparsedLines, ratingConversions, setsOut, bis, addedByList }) {
   const tally = (f) => {
     const m = new Map();
     for (const i of items) {
@@ -1125,6 +1200,20 @@ function report({ items, dropped, coverage, unparsedLines, ratingConversions, se
   for (const i of items) for (const k of Object.keys(i.stats)) statKeys.add(k);
   for (const s of Object.values(setsOut)) for (const b of s.bonuses) for (const k of Object.keys(b.parsed ?? {})) statKeys.add(k);
   console.log(`\nStat keys emitted (${statKeys.size}): ${[...statKeys].sort().join(", ")}`);
+
+  // Pre-raid BiS coverage per spec: listed items by tab (and those not in the pool at all).
+  const pool = new Map(items.map((i) => [i.id, i]));
+  console.log(`\nPre-raid BiS lists (${PRE_RAID_BIS_FILE}): ${bis.names.size} listed items, ${addedByList.length} added to the pool by the list`);
+  for (const [spec, s] of Object.entries(bis.specs)) {
+    const ids = [...bis.byId.entries()].filter(([, l]) => l.some((e) => e.spec === spec)).map(([id]) => id);
+    const tabs = {};
+    for (const id of ids) {
+      const k = pool.get(id)?.tab ?? "not in pool";
+      tabs[k] = (tabs[k] ?? 0) + 1;
+    }
+    console.log(`  ${spec} (${s.name}): ${ids.length} items; ${JSON.stringify(tabs)}`);
+  }
+  if (bis.notInData.length) console.log(`  not in any tab file: ${bis.notInData.map((e) => `${e.id} ${e.name}`).join(", ")}`);
 }
 
 // The parsers are exported for ad-hoc checks (`import { parseTooltip } from ...`);

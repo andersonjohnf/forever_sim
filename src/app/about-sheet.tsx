@@ -1,5 +1,6 @@
 import { ExternalLink } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { DataAttribution } from '@/components/data-attribution'
 import { Badge } from '@/components/ui/badge'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 
@@ -46,9 +47,10 @@ export function AboutSheet({ open, onOpenChange }: { open: boolean; onOpenChange
             </p>
           </Section>
           <Section title="Game data">
+            <DataAttribution />
             <p className="text-muted-foreground">
-              From <a className="underline underline-offset-2" href="https://foreverchanges.pro">foreverchanges.pro</a>,
-              which reads the WoW Forever beta client.
+              Both read the WoW Forever beta client. wago.tools serves the client&apos;s own data tables;
+              foreverchanges.pro compares them with Classic Era.
             </p>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 tabular-nums">
               {DATASETS.map(({ name, meta }) => (

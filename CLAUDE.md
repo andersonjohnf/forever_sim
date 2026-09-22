@@ -85,6 +85,9 @@ npm run scrape        # re-scrape foreverchanges.pro → src/data (cached; -- --
 - **Scrapers** respect robots.txt (never `/api/`, `/spell/`, `/search`, `/admin` on
   foreverchanges.pro), request sequentially with delays, and cache under `.cache/scrape/`.
   Zero npm dependencies.
-- **Never fetch wago.tools automatically** (curl, WebFetch or scripts). Its robots.txt
-  disallows everything. Cite its URLs and leave lookups to a person.
+- **wago.tools: documented API only** ([wago.tools/apis](https://wago.tools/apis): `/api/builds…`,
+  `/api/files`, `/api/info/{fdid}`, `/api/casc/{fdid}`). Requests go one at a time, are cached
+  and identified, once per build. Never automate its HTML pages or the table pages' CSV export
+  (robots.txt). Keep its logo attribution, per its branding guidelines, wherever its data is
+  used (decision D16).
 - Package manager: **npm**.

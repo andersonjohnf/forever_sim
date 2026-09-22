@@ -70,7 +70,11 @@ Actions**.
 
 ## Credits
 
-- Game data: [foreverchanges.pro](https://foreverchanges.pro).
+<a href="https://wago.tools"><picture><source media="(prefers-color-scheme: dark)" srcset="public/attribution/wago-tools-white.svg"><img alt="wago.tools" src="public/attribution/wago-tools-dark.svg" height="32"></picture></a>
+
+- Game data: [wago.tools](https://wago.tools), which serves the WoW Forever client's data
+  tables, and [foreverchanges.pro](https://foreverchanges.pro), which compares them with
+  Classic Era. The wago.tools logo is used per its [branding guidelines](https://wago.tools/branding).
 - Classic Era mechanics research by the Classic theorycrafting community, credited in each
   doc's *Sources* section.
 

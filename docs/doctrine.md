@@ -39,10 +39,14 @@ Rules come from four tiers. Use the highest tier that has an answer.
 
 1. **WoW Forever, datamined**: [foreverchanges.pro](https://foreverchanges.pro) (beta client
    vs Classic Era diffs) and Forever client DB2 tables on [wago.tools](https://wago.tools)
-   for builds `1.60.x`. **wago.tools is for people only:** its `robots.txt` disallows all
-   automated access, so scripts and agents must never fetch it. A person may look a value up
-   in a browser and cite the URL; docs mark such values "confirm on wago.tools" until a
-   person has.
+   for builds `1.60.x` (product `wow_classic_beta`). **Scripts may use wago.tools only through
+   its documented API** ([wago.tools/apis](https://wago.tools/apis)): `/api/builds…`,
+   `/api/files`, `/api/info/{fdid}` and `/api/casc/{fdid}`, the last of which serves raw client
+   files. Requests go one at a time, are cached, carry our User-Agent, and happen once per
+   build. Nothing else on the site is API: its pages and the table pages' CSV export stay
+   off-limits to automation under its `robots.txt`
+   ([D16](decisions.md#d16-use-the-wagotools-api-with-attribution-2026-09-22)). wago.tools is
+   credited with its logo, per its [branding guidelines](https://wago.tools/branding).
 2. **WoW Forever, measured**: in-game tests on the Forever beta by the guild, recorded in
    the relevant doc with the build, date, method, and sample size. If a measurement
    contradicts a tooltip, the measurement wins; flag the conflict.

@@ -127,3 +127,25 @@ thousands of fights per second per core.
 - **Exact determinism across devices.** Work is split into fixed-size chunks with seeds
   derived per chunk and merged in chunk order. The same setup and seed give identical
   results on any device and core count.
+
+### D16: Use the wago.tools API, with attribution (2026-09-22)
+Supersedes the blanket ban in D9. foreverchanges.pro reads the Forever client through
+wago.tools, and wago.tools publishes an API for exactly this
+([wago.tools/apis](https://wago.tools/apis)):
+- build lists
+- file lists
+- file info
+- raw client files by FileDataID (`/api/casc/{fdid}?version=1.60.1.69913`)
+
+The guild chose to use it. Scripts may call **only those documented endpoints**, one request
+at a time, cached under `.cache/`, with our User-Agent, and once per build. Everything else
+on the site stays off-limits to automation under its `robots.txt`. That includes its pages
+and the table pages' CSV export, which isn't part of the API.
+
+The API serves raw DB2 files, so we parse them ourselves with the community's WoWDBDefs
+definitions. Raw client files don't include server hotfixes, so values that might be
+hotfixed are flagged.
+
+wago.tools is credited with its official logo, unmodified per its
+[branding guidelines](https://wago.tools/branding), in the app's footer, the About sheet and
+the README.

@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { Header } from '@/app/header'
 import { useSetup, type Section } from '@/app/setup-store'
 import { clearSharedSetupFromUrl, readSharedSetup } from '@/app/share'
+import { DataAttribution } from '@/components/data-attribution'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BuffsSection } from '@/features/buffs/buffs-section'
 import { CharacterSection } from '@/features/character/character-section'
@@ -72,6 +73,9 @@ export default function App() {
               <Content />
             </TabsContent>
           ))}
+          <footer className="mt-12 border-t pt-6">
+            <DataAttribution />
+          </footer>
         </Tabs>
         <aside className="hidden lg:block" aria-label="Results">
           <div className="sticky top-20 pt-6">

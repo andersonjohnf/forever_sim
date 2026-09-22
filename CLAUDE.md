@@ -33,6 +33,23 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
    dispositions in `docs/reviews/<YYYY-MM-DD>-<topic>.md` and commit the log before pushing.
    The author never signs off on their own change.
 
+## Working with agents: small slices, fresh contexts
+
+Large work is split into **slices** listed under each milestone in `docs/milestones.md`.
+- **A slice is one reviewable deliverable with its own tests.** Size it to finish well
+  within half an agent's context window: a few hundred thousand tokens, not a whole
+  milestone. If it can't be described in about ten bullets, split it.
+- **One fresh agent per slice.** Never resume a finished agent for a new slice: resuming
+  carries its whole transcript. Resume only for small fixes to the same slice while its
+  context is still small. Hand off through committed code and a short written brief.
+- **Brief narrowly.** Point the agent to the exact doc sections and files it needs, not
+  whole docs. List the files it owns and the ones it must not touch.
+- **Stop at a clean checkpoint.** If a slice grows, the agent stops at a green,
+  committable state and reports what's left, rather than pushing on.
+- **The lead verifies and commits each slice** (lint, typecheck, unit and e2e tests) before
+  starting work that builds on it. Independent slices with disjoint files may run in
+  parallel.
+
 ## Read before changing things
 
 - `docs/doctrine.md`: scope, sourcing rules, engineering rules. **Binding.**

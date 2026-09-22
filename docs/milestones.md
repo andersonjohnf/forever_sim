@@ -25,56 +25,61 @@ push passes the adversarial review gate ([doctrine §6](doctrine.md#6-review-gat
 **Exit:** build, lint and tests pass; every dataset validated; every research doc has
 sources, worked examples, and open questions.
 
-## M1: Engine core ⏳
+## M1: Engine core ✅
 
-- **Rule profiles.** Research found several places where the Forever client and Classic Era
-  disagree and neither is measured yet: attack-table constants, white-hit rage (normalized
-  vs damage-based), rage from damage taken, and rating conversions. Each such rule is data
-  in a profile (`forever`, the default, and `classicEra`), so a guild measurement changes
-  a number, not code. The results panel shows which profile ran.
-- **Ratings.** Forever gear uses combat ratings (crit, hit, haste, expertise, dodge, parry,
-  block, defense). The stats pipeline converts them at level 60, and items without Forever
-  data still use Classic percentages.
-- Seeded RNG, event queue, integer-ms timeline
-- Stats pipeline: race/class base + gear + enchants + buffs → derived stats
-- Melee attack table (white one-roll, yellow as documented), weapon skill, glancing,
-  crit, armor mitigation, dual-wield penalty, normalization
-- Swing timers, haste, GCD, cooldowns, generic auras/procs (PPM and flat %), DoTs
-- Resources: rage, energy, mana
-- Threat accounting with modifiers
-- Results: DPS/TPS mean, standard deviation, confidence interval, per-ability breakdown
-  (casts, hits, crits, misses, dodges, parries, glances, blocks, damage, threat), aura uptimes
-- Web Worker runner with progress, split across cores
-- Unit tests from every worked example in `docs/mechanics/*`
-
-**Exit:** a white-swings-only warrior matches a hand calculation within tolerance; the
-mechanics docs' worked examples all pass as tests.
+Built as D15 describes: rule profiles, stats pipeline with Forever ratings, attack tables,
+rage, threat and TPS, auras and procs, a deterministic chunked worker pool with adaptive
+stopping, and normalizeConfig. An auto-attack-only warrior matches the hand calculation
+within 0.03%. Default Fury runs at about 18k fights/s per core.
 
 ## M1.5: Client data, one source 🚧
 
-- Client-data pipeline: fetch raw DB2 and game-table files for `wow_classic_beta`
-  1.60.1.69913 through the wago.tools API (D16), parse them with WoWDBDefs, and commit compact
-  spell, talent, item, enchant and game-table data for the engine
-- Confirm or correct every "confirm on wago.tools" claim in the docs against the raw files
-- Rebuild the spells, talents, races and items datasets from Forever and Classic Era client
-  files, keeping the same JSON shapes (D17)
-- Delete the foreverchanges scrapers and attribution; the doctrine's tier 1 becomes client files
+Slices ([CLAUDE.md](../CLAUDE.md#working-with-agents-small-slices-fresh-contexts)):
+- [x] **M1.5a Pipeline:** raw DB2 and game-table files for `wow_classic_beta` 1.60.1.69913 and
+      `wow_classic_era` 1.15.9.69722 through the wago.tools API (D16), parsed with WoWDBDefs,
+      into `src/data/client/`. 123 of 129 doc claims confirmed, none contradicted
+      ([data/client.md](data/client.md)).
+- [ ] **M1.5b Doc sync:** apply the client-confirmed values to the docs, resolve the Route D
+      entries in open-questions.md, and fix the 6 partial matches
+- [ ] **M1.5c Items from client:** rebuild `src/data/items/pre-bis.json` from ItemSparse, Item,
+      ItemSet and ItemEffect, with Classic Era rows for items whose Forever row is empty.
+      Same JSON shape; drop sources go away (the Encounter Journal ships empty).
+- [ ] **M1.5d Talents from client:** layout, prerequisite arrows (including the client-only
+      Nature's Splendor arrow), ranks and rendered rank texts. Popular builds become our own
+      documented presets.
+- [ ] **M1.5e Spells and races from client:** class spellbooks via SkillLineAbility, and
+      races and racials via ChrRaces and CharBaseInfo, with Classic comparisons from the Era
+      build
+- [ ] **M1.5f Retire foreverchanges (D17):** delete its scrapers and attribution, and make
+      tier 1 of the doctrine the client files via wago.tools
 
-## M2: Warrior DPS with the production UX ⏳
+## M2: Warrior DPS with the production UX 🚧
 
-- Fury (dual-wield) and Arms (2H) rotations from [classes/warrior.md](classes/warrior.md)
-- The full app shell per [ux.md](ux.md): header and spec switcher, section tabs, the sticky
-  results panel (desktop) or bottom bar (mobile), and the About sheet
-- **Character**: race, rule profile (Advanced)
-- **Talents**: interactive trees, presets, build-code import/export
-- **Gear**: per-slot picker over `src/data/items/pre-bis.json` with search, BiS filter,
-  "Classic stats" badges, enchants, and a pre-raid BiS default set
-- **Buffs**: presets, raid composition, grouped toggles
-- **Rotation**: ability toggles and thresholds with defaults
-- **Fight**: duration, boss armor, execute phase, targets, position
-- Results: headline ± CI, breakdown, character sheet, assumptions, stale and running states
-- The setup is saved to localStorage and shareable by URL
-- Adversarial review, deploy, and the guild's first feedback round
+The production UX shell is built ([ux.md](ux.md)): spec switcher, Character, Talents, Gear
+with enchants, Buffs, Rotation, Fight, results, persistence and share links. The engine
+work is in slices:
+- [ ] **M2.1 Ability framework + core Fury:**
+  - GCD and cooldown events, and the ability kinds (one-roll strike, two-roll melee spell,
+    on-next-swing)
+  - rage costs and refunds, and the priority-list rotation with option plumbing
+  - Bloodthirst, Whirlwind, Heroic Strike and Hamstring, with numbers from
+    `src/data/client/spells.json` and doc fallback
+  - tests W1, W3, W7, W24, and rotation sanity checks
+- [ ] **M2.2 Complete Fury:**
+  - Execute and the execute phase
+  - Bloodrage, Berserker Rage, Death Wish, Recklessness and Battle Shout upkeep
+  - racial cooldowns, Mighty Rage Potion and on-use trinkets
+  - the Fury talents (Flurry, Unbridled Wrath, Enrage, Dual Wield Specialization, Impale,
+    Precision, Boundless Rage, cost reductions)
+  - all Fury rotation options, and a golden snapshot. Then warrior-fury becomes
+    **available**.
+- [ ] **M2.3 Arms:**
+  - Mortal Strike, Overpower (dodge trigger, stance dancing, Tactical Mastery), Slam
+    (Forever rules), Rend with Bloodthrill, Spearing Strike and Sweeping Strikes
+  - Deep Wounds (412609) and Weaponmaster
+  - the Arms rotation options. Then warrior-arms becomes **available**.
+- [ ] **M2.4 Results and review:** results UX with real data, an e2e simulate test, the
+      adversarial logic and UX review, and the first deploy
 
 ## M3: Warrior Protection (TPS) 💤
 

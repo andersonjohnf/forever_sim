@@ -8,6 +8,7 @@ import druidTalents from '@/data/talents/druid.json'
 import paladinTalents from '@/data/talents/paladin.json'
 import type { TalentData } from '@/data/talents/types'
 import warriorTalents from '@/data/talents/warrior.json'
+import { presetBuffIds } from './effects/presets'
 import { SPEC_META } from './specs'
 import type { ClassId, EquippedItem, GearSlot, SimConfig, SpecId } from './types'
 
@@ -110,6 +111,34 @@ function topTwo(spec: SpecId, slot: PreRaidBisSlot): [Item | undefined, Item | u
   return [first, second]
 }
 
+/**
+ * Default enchants per spec (docs/mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec).
+ * Shoulder enchants (Zandalar, Scourge) are defaults only if the guild confirms that content
+ * exists in Forever, so their fallback, none, applies. Paladin and druid enchants come with
+ * those specs.
+ */
+const WARRIOR_DPS_ENCHANTS: Partial<Record<GearSlot, string>> = {
+  head: 'arcanumVoracityStrength',
+  legs: 'arcanumVoracityStrength',
+  back: 'cloakAgility',
+  chest: 'chestGreaterStats',
+  wrist: 'bracerSuperiorStrength',
+  hands: 'gloveGreaterStrength',
+  feet: 'bootsGreaterAgility',
+  mainHand: 'crusader',
+  offHand: 'crusader',
+  neck: 'neckStrength',
+}
+const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>>> = {
+  'warrior-fury': WARRIOR_DPS_ENCHANTS,
+  'warrior-arms': WARRIOR_DPS_ENCHANTS,
+  'warrior-protection': {
+    ...WARRIOR_DPS_ENCHANTS,
+    hands: 'gloveThreat',
+    offHand: 'shieldGreaterStamina',
+  },
+}
+
 export function defaultGear(spec: SpecId): Partial<Record<GearSlot, EquippedItem>> {
   const gear: Partial<Record<GearSlot, EquippedItem>> = {}
   const put = (slot: GearSlot, item: Item | undefined) => {
@@ -133,6 +162,10 @@ export function defaultGear(spec: SpecId): Partial<Record<GearSlot, EquippedItem
   }
   // Paladins and druids equip a relic in the ranged slot.
   if (!gear.ranged) put('ranged', bisFor(spec, 'relic')[0])
+  for (const [slot, enchantId] of Object.entries(DEFAULT_ENCHANTS[spec] ?? {}) as [GearSlot, string][]) {
+    const equipped = gear[slot]
+    if (equipped) gear[slot] = { ...equipped, enchantId }
+  }
   return gear
 }
 
@@ -145,8 +178,8 @@ export function defaultConfig(spec: SpecId): SimConfig {
     race: DEFAULT_RACE[meta.classId],
     talents: DEFAULT_TALENTS[spec],
     gear: defaultGear(spec),
-    // The engine fills `enabled` from the "raid" buff preset when it normalizes the config.
-    buffs: { raid: [...FULL_RAID], enabled: [] },
+    // docs/mechanics/buffs-debuffs-consumables.md#6-default-presets: "Standard raid" is the default.
+    buffs: { raid: [...FULL_RAID], enabled: presetBuffIds('raid', spec, FULL_RAID) },
     rotation: {},
     // docs/mechanics/encounter.md#encounter-settings
     fight: {
@@ -172,6 +205,7 @@ export function defaultConfig(spec: SpecId): SimConfig {
       },
     },
     rules: { profile: 'forever', unmeasuredRatings: 'apply' },
-    run: { iterations: 3000, seed: 1 },
+    // Decision D15: adaptive precision by default; `iterations` applies in fixed mode.
+    run: { mode: 'adaptive', iterations: 3000, seed: 1 },
   }
 }

@@ -1,10 +1,16 @@
-// The engine's public API: the only module the UI imports from src/sim.
-//
-// Data-only pieces (spec metadata, default setups) are implemented here. The simulation
-// pieces are typed stubs until the engine lands (docs/milestones.md, M1/M2); each says
-// what it must do. Replace the stubs; keep the signatures (docs/architecture.md#data-flow).
+// The engine's public API: the only module the UI imports from src/sim
+// (docs/architecture.md#data-flow). Keep these signatures stable.
 import type { ClassSlug } from '@/data/races/types'
-import { defaultConfig } from './defaults'
+import { rotationOptions } from './classes/rotation'
+import { normalizeConfig } from './config/normalize'
+import { BUFFS } from './effects/buffs'
+import { ENCHANTS } from './effects/enchants'
+import { presetBuffIds } from './effects/presets'
+import { buildPlan, UnsupportedSetupError } from './plan/build'
+import { toResult } from './run/aggregate'
+import { type ChunkExecutor, drive } from './run/driver'
+import { localExecutor } from './run/local'
+import { WorkerPool } from './run/pool'
 import { SPEC_IDS, SPEC_META } from './specs'
 import type {
   BuffDefinition,
@@ -22,12 +28,16 @@ export * from './types'
 export { CLASS_COLOR, SPEC_IDS, SPEC_META } from './specs'
 export { defaultConfig, FULL_RAID, TALENT_DATA, talentPresets, type TalentPreset } from './defaults'
 export { canUse, fitsSlot, isTwoHand, PROFICIENCY } from './equip'
+export { normalizeConfig } from './config/normalize'
 
-/** Every spec with its engine-declared options. `available` flips when the spec is complete. */
+/**
+ * Every spec with its engine-declared options. `available` flips when the spec's sim and UI are
+ * complete (docs/ux.md principle 8): none in M1; M2 flips warrior DPS.
+ */
 export const specs: SpecDefinition[] = SPEC_IDS.map((id) => ({
   ...SPEC_META[id],
   available: false,
-  rotationOptions: [],
+  rotationOptions: rotationOptions(id),
 }))
 
 export function getSpec(id: SpecId): SpecDefinition {
@@ -37,7 +47,19 @@ export function getSpec(id: SpecId): SpecDefinition {
 }
 
 /** Raid buffs, target debuffs and consumables (docs/mechanics/buffs-debuffs-consumables.md). */
-export const buffCatalogue: BuffDefinition[] = []
+export const buffCatalogue: BuffDefinition[] = BUFFS.map(
+  ({ id, name, icon, category, group, summary, providedBy, exclusiveGroup, docRef }) => ({
+    id,
+    name,
+    icon,
+    category,
+    group,
+    summary,
+    ...(providedBy ? { providedBy } : {}),
+    ...(exclusiveGroup ? { exclusiveGroup } : {}),
+    docRef,
+  }),
+)
 
 export const buffPresets: BuffPreset[] = [
   { id: 'self', name: 'Self only', description: 'Your own buffs, no group.' },
@@ -46,34 +68,64 @@ export const buffPresets: BuffPreset[] = [
   { id: 'max', name: 'Max consumables', description: 'Raid buffs and every consumable that helps.' },
 ]
 
-/** The buff ids a preset enables for a spec, given the raid composition. */
-export function presetBuffs(_preset: BuffPreset['id'], _spec: SpecId, _raid: ClassSlug[]): string[] {
-  return []
+/** The buff ids a preset enables for a spec, given the raid composition (buffs doc §6). */
+export function presetBuffs(preset: BuffPreset['id'], spec: SpecId, raid: ClassSlug[]): string[] {
+  return presetBuffIds(preset, spec, raid)
 }
 
-/** Enchants per slot (docs/mechanics/buffs-debuffs-consumables.md, enchants). */
-export const enchantCatalogue: EnchantDefinition[] = []
-
-/**
- * Validates and migrates an untrusted config (localStorage, share links): unknown items,
- * illegal races, bad talent codes and out-of-range values are repaired or reset to the
- * spec default, with a warning each.
- */
-export function normalizeConfig(input: unknown): { config: SimConfig; warnings: string[] } {
-  const spec = (input as Partial<SimConfig> | null)?.spec
-  const safeSpec = spec && SPEC_IDS.includes(spec) ? spec : 'warrior-fury'
-  return { config: { ...defaultConfig(safeSpec), ...(input as object) } as SimConfig, warnings: [] }
-}
+/** Enchants per slot (docs/mechanics/buffs-debuffs-consumables.md#5-enchants-and-item-enhancements). */
+export const enchantCatalogue: EnchantDefinition[] = ENCHANTS.map(({ id, name, slots, summary, docRef }) => ({
+  id,
+  name,
+  slots,
+  summary,
+  docRef,
+}))
 
 /** Final character stats for a config, synchronously (docs/mechanics/character-stats.md). */
-export function computeSheet(_config: SimConfig): CharacterSheet | null {
-  return null
+export function computeSheet(config: SimConfig): CharacterSheet | null {
+  try {
+    return buildPlan(normalizeConfig(config).config).sheet
+  } catch {
+    return null
+  }
 }
 
-/** Runs the simulation in Web Workers. Rejects with an AbortError if the signal aborts. */
-export function simulate(
-  _config: SimConfig,
-  _options: { onProgress?: (progress: SimProgress) => void; signal?: AbortSignal } = {},
+let pool: WorkerPool | null = null
+
+function executorFor(plan: Parameters<typeof localExecutor>[0]): ChunkExecutor {
+  if (WorkerPool.supported()) {
+    try {
+      pool ??= new WorkerPool(WorkerPool.defaultSize())
+      return pool.executor(plan)
+    } catch {
+      pool = null
+    }
+  }
+  return localExecutor(plan)
+}
+
+const now = () => (typeof performance !== 'undefined' ? performance.now() : 0)
+
+/**
+ * Runs the simulation in Web Workers (or on this thread where there are none). Adaptive by
+ * default: it stops once the headline's 95% CI is within 0.25% of its mean (decision D15).
+ * Rejects with an AbortError if the signal aborts, and with a plain message if the setup can't be
+ * simulated yet.
+ */
+export async function simulate(
+  config: SimConfig,
+  options: { onProgress?: (progress: SimProgress) => void; signal?: AbortSignal } = {},
 ): Promise<SimResult> {
-  return Promise.reject(new Error('The simulation engine is not implemented yet.'))
+  const start = now()
+  const normalized = normalizeConfig(config).config
+  const bundle = buildPlan(normalized)
+  if (bundle.blockers.length > 0) throw new UnsupportedSetupError(bundle.blockers[0])
+  const agg = await drive(bundle.plan, executorFor(bundle.plan), {
+    mode: normalized.run.mode,
+    iterations: normalized.run.iterations,
+    onProgress: options.onProgress,
+    signal: options.signal,
+  })
+  return toResult(bundle, agg, now() - start)
 }

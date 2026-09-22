@@ -1,0 +1,297 @@
+// The engine end to end: the M1 exit criterion (a white-swings-only warrior matches a hand
+// calculation from the docs' formulas), timing worked examples, determinism across worker
+// counts, a golden fixed-seed snapshot, and a single-core benchmark.
+import { describe, expect, it } from 'vitest'
+import { averageWeaponDamage, armorReduction } from '../core/formulas'
+import { stdev } from '../core/welford'
+import { defaultConfig } from '../defaults'
+import { buildPlan } from '../plan/build'
+import { ACTION, type Plan, type ProcPlan, TRIGGER, TRIGGER_COUNT } from '../plan/types'
+import { FOREVER } from '../rules/profiles'
+import { type Aggregate, emptyAggregate, mergeChunk, toResult } from '../run/aggregate'
+import { type ChunkExecutor, drive } from '../run/driver'
+import { localExecutor } from '../run/local'
+import type { SimConfig } from '../types'
+import { CHUNK_SIZE, type ChunkResult, runChunk } from './chunk'
+import { Sim } from './sim'
+
+/** No talents, no buffs, no enchants: the pure white-swing baseline. */
+function whiteSwingConfig(spec: 'warrior-arms' | 'warrior-fury', gear: SimConfig['gear']): SimConfig {
+  const d = defaultConfig(spec)
+  return {
+    ...d,
+    race: 'alliance-human',
+    talents: '',
+    gear,
+    buffs: { raid: d.buffs.raid, enabled: [] },
+    fight: { ...d.fight, durationVariationPct: 0 },
+    run: { mode: 'fixed', iterations: 10000, seed: 7 },
+  }
+}
+
+function runFights(plan: Plan, fights: number): Aggregate {
+  const sim = new Sim(plan)
+  let agg = emptyAggregate(plan.sources.length)
+  for (let k = 0; k * CHUNK_SIZE < fights; k++) agg = mergeChunk(agg, runChunk(plan, k, Math.min(CHUNK_SIZE, fights - k * CHUNK_SIZE), sim))
+  return agg
+}
+
+/** |simulated − expected| within 4 standard errors, and within 0.3%. */
+function expectMatches(agg: Aggregate, expected: number, metric: 'dps' | 'tps' = 'dps') {
+  const m = agg[metric]
+  const se = stdev(m) / Math.sqrt(m.n)
+  expect(Math.abs(m.mean - expected), `mean ${m.mean} vs ${expected} (SE ${se})`).toBeLessThanOrEqual(4 * se)
+  expect(Math.abs(m.mean / expected - 1)).toBeLessThan(0.003)
+}
+
+describe('M1 exit: a white-swings-only warrior matches the hand calculation', () => {
+  const armorFactor = 1 - armorReduction(3731, 60, FOREVER) // damage-and-timing §1.1
+
+  it('two-hander (Arms, Battle Stance): Arcanite Reaper, naked Human', () => {
+    const plan = buildPlan(whiteSwingConfig('warrior-arms', { mainHand: { itemId: 12784 } })).plan
+    // character-stats: AP = 160 + 2 × 120 Str + 62 (weapon) = 462; crit = 80 Agi × 0.05 = 4%.
+    const ap = 160 + 2 * 120 + 62
+    // combat-tables §2.2 (forever, behind, 300 skill, no aura crit): miss 8, dodge 6.5, glance 40, crit 4 − 0.6.
+    const crit = 4 - 0.6
+    const hit = 100 - 8 - 6.5 - 40 - crit
+    const outcome = hit / 100 + (2 * crit) / 100 + (0.75 * 40) / 100 // glancing mean ×0.75 (§2.3)
+    // damage-and-timing §2.1: (min + max)/2 + AP/14 × 3.8
+    const perSwing = averageWeaponDamage(153, 256, 0, ap, 3.8) * outcome * armorFactor
+    const swings = Math.ceil(180000 / 3800) // swings at 0, 3.8, … < 180 s
+    const expected = (swings * perSwing) / 180
+    const agg = runFights(plan, 10000)
+    expectMatches(agg, expected)
+    // Battle Stance: threat ×0.8, and no energize, so TPS = 0.8 × DPS exactly.
+    expect(agg.tps.mean).toBeCloseTo(0.8 * agg.dps.mean, 9)
+    // rage.md (forever): 4.5 × 3.8 = 17.1 rage per landed swing; landed = 1 − miss − dodge.
+    const rage = (agg.rageGainedTenths + agg.rageWastedTenths) / 10 / agg.fights
+    expect(rage / (swings * 0.855 * 17.1)).toBeCloseTo(1, 2)
+  })
+
+  it('dual wield (Fury, Berserker Stance): two axes, naked Human', () => {
+    const plan = buildPlan(whiteSwingConfig('warrior-fury', { mainHand: { itemId: 17016 }, offHand: { itemId: 18498 } })).plan
+    // Str 120 + 10 + 5 → AP = 160 + 270 = 430. Crit 4 + 3 (Berserker, aura) = 7; vs +3: 7 − 0.6 − 1.8.
+    const ap = 160 + 2 * 135
+    const crit = 7 - 0.6 - 1.8
+    const miss = 27 // 8 + 19 dual-wield penalty (combat-tables §5)
+    const hit = 100 - miss - 6.5 - 40 - crit
+    const outcome = hit / 100 + (2 * crit) / 100 + 0.3
+    const main = averageWeaponDamage(71, 134, 0, ap, 2.4)
+    const off = averageWeaponDamage(60, 90, 0, ap, 1.9) * 0.5 // damage-and-timing §2.3
+    const mainSwings = Math.ceil(180000 / 2400)
+    // The off hand starts at half its speed [?] (damage-and-timing §3.1): 950, 2850, … < 180 s.
+    const offSwings = Math.ceil((180000 - 950) / 1900)
+    const expected = ((mainSwings * main + offSwings * off) * outcome * armorFactor) / 180
+    expectMatches(runFights(plan, 10000), expected)
+  })
+})
+
+/** A plan from a config, with the off hand, stats and procs overridden for a timing test. */
+function timingPlan(mainSpeed: number, offSpeed: number | null, procs: ProcPlan[], durationMs = 60000): Plan {
+  const gear: SimConfig['gear'] = offSpeed ? { mainHand: { itemId: 17016 }, offHand: { itemId: 18498 } } : { mainHand: { itemId: 17016 } }
+  const plan = buildPlan(whiteSwingConfig('warrior-fury', gear)).plan
+  plan.weapons[0]!.speedSec = mainSpeed
+  if (plan.weapons[1] && offSpeed) plan.weapons[1].speedSec = offSpeed
+  plan.stats.hit = 100 // no misses
+  plan.fight.bossCanDodge = false // every swing lands
+  plan.fight.durationMs = durationMs
+  plan.fight.variation = 0
+  plan.sources.push({ id: 'test', name: 'Test', icon: 'x' })
+  plan.procs = procs.map((p) => ({ ...p, source: plan.sources.length - 1 }))
+  plan.auras = []
+  plan.triggers = Array.from({ length: TRIGGER_COUNT }, () => [])
+  plan.procs.forEach((p, i) => plan.triggers[p.trigger].push(i))
+  return plan
+}
+
+const proc = (patch: Partial<ProcPlan>): ProcPlan => ({
+  id: 'test',
+  name: 'Test',
+  trigger: TRIGGER.whiteLanded,
+  chance: [1, 1],
+  hands: 3,
+  icdMs: 0,
+  action: ACTION.extraAttacks,
+  amount: 1,
+  a: 0,
+  b: 0,
+  school: 0,
+  source: 0,
+  chainBit: 1,
+  ...patch,
+})
+
+function trace(plan: Plan, fight = 0) {
+  const sim = new Sim(plan)
+  const events: [number, number, number][] = []
+  sim.trace = (source, hand, time) => events.push([source, hand, time])
+  sim.runFight(fight)
+  return events
+}
+
+describe('timing worked examples in the engine', () => {
+  it('damage-and-timing WE-8: an extra attack swings the main hand now and restarts its timer', () => {
+    // The off hand's first swing (t = 1.00 s) procs one extra attack, once.
+    const plan = timingPlan(2.6, 2.0, [proc({ hands: 2, icdMs: 1e9 })], 8000)
+    const main = trace(plan).filter(([, hand]) => hand === 0).map(([, , t]) => t)
+    expect(main).toEqual([0, 1000, 3600, 6200])
+  })
+
+  it('warrior W17: Flurry 5/5 turns a 2.6 s swing into 2.080 s from the next swing', () => {
+    const flurry = proc({ action: ACTION.aura, amount: 0, chainBit: 0, hands: 1 })
+    const plan = timingPlan(2.6, null, [flurry], 7000)
+    plan.auras = [{ id: 'flurry', name: 'Flurry', durationMs: 15000, maxStacks: 1, whiteSwingCharges: 3, str: 0, agi: 0, ap: 0, crit: 0, haste: 25, damage: 0 }]
+    const times = trace(plan).map(([, , t]) => t)
+    expect(times).toEqual([0, 2080, 4160, 6240])
+  })
+
+  it('damage-and-timing WE-9: reapplying a bleed restarts its ticks; the tick due at 12 s is lost', () => {
+    const bleed = proc({ action: ACTION.weaponBleed, amount: 7, a: 0.2, b: 3000, chainBit: 0, hands: 1 })
+    const plan = timingPlan(10, null, [bleed], 20000)
+    const ticks = trace(plan).filter(([, hand]) => hand === -1).map(([, , t]) => t)
+    expect(ticks).toEqual([3000, 6000, 9000, 13000, 16000, 19000])
+  })
+
+  it('damage-and-timing §3.4: a tank’s parry hastens its own next swing', () => {
+    const d = defaultConfig('warrior-protection')
+    const config: SimConfig = {
+      ...d,
+      talents: '',
+      gear: { mainHand: { itemId: 17016 } },
+      buffs: { raid: d.buffs.raid, enabled: [] },
+      fight: { ...d.fight, durationVariationPct: 0 },
+    }
+    const plan = buildPlan(config).plan
+    plan.weapons[0]!.speedSec = 2.6
+    // Make every boss swing a parry: defense so low that miss is 0, no dodge, parry beyond 100%.
+    plan.stats.defense = -125
+    plan.stats.baseAgi = 0
+    plan.stats.parry = 200
+    const main = trace(plan).filter(([, hand]) => hand === 0).map(([, , t]) => t)
+    // Swing at 0 (next due 2.6 s); the boss's swing at 0 is parried: 2.6 − 0.4 × 2.6 = 1.56 s.
+    expect(main.slice(0, 2)).toEqual([0, 1560])
+  })
+
+  it('stops chains of extra attacks from triggering themselves', () => {
+    // Every landed white swing procs an extra attack, but a source can't proc from its own chain.
+    const plan = timingPlan(2.0, null, [proc({ hands: 1 })], 5000)
+    const main = trace(plan).map(([, , t]) => t)
+    expect(main).toEqual([0, 0, 2000, 2000, 4000, 4000])
+  })
+})
+
+describe('tank rage from boss hits matches the closed form (rage.md tank model)', () => {
+  it('forever default, 1.5 × health lost / 230.6, floored to tenths per hit', () => {
+    const d = defaultConfig('warrior-protection')
+    const config: SimConfig = {
+      ...d,
+      talents: '',
+      gear: { offHand: { itemId: 12602 } }, // shield only: no swings of our own, so only boss hits give rage
+      buffs: { raid: d.buffs.raid, enabled: [] },
+      fight: { ...d.fight, durationVariationPct: 0, boss: { ...d.fight.boss, damageMin: 5000, damageMax: 5000 } },
+    }
+    const plan = buildPlan(config).plan
+    const state = new Sim(plan).inspect()
+    const [miss, dodge, parry, block, crit, crush] = state.bossThresholds
+    const p = [miss, dodge - miss, parry - dodge, block - parry, crit - block, crush - crit, 100 - crush].map((x) => x / 100)
+    const mitigated = 5000 * (1 - armorReduction(plan.armor, 63, FOREVER)) * plan.damageTakenMult
+    const tenths = (lost: number) => Math.floor(((1.5 * lost) / 230.6) * 10 + 1e-9)
+    const perSwing =
+      p[3] * tenths(Math.max(0, mitigated - state.blockValue)) + p[4] * tenths(mitigated * 2) + p[5] * tenths(mitigated * 1.5) + p[6] * tenths(mitigated)
+    const swings = 90 // every 2.0 s from 0 to < 180 s
+    const agg = runFights(plan, 5000)
+    const perFight = (agg.rageGainedTenths + agg.rageWastedTenths) / agg.fights
+    expect(perFight / (swings * perSwing)).toBeCloseTo(1, 2)
+  })
+})
+
+/** A fake pool: `lanes` chunks at once, finishing out of order. */
+function racingExecutor(plan: Plan, lanes: number): ChunkExecutor {
+  const sims = Array.from({ length: lanes }, () => new Sim(plan))
+  let n = 0
+  return {
+    lanes,
+    run: (chunk, fights) =>
+      new Promise<ChunkResult>((resolve) => {
+        const sim = sims[n++ % lanes]
+        const result = runChunk(plan, chunk, fights, sim)
+        // Later chunks tend to finish first.
+        setTimeout(() => resolve(result), (chunk * 7919) % 13)
+      }),
+  }
+}
+
+describe('determinism (decision D15)', () => {
+  const plan = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'adaptive', iterations: 3000, seed: 99 } }).plan
+
+  it('gives bit-identical adaptive results with 1 and 3 workers', async () => {
+    const one = await drive(plan, localExecutor(plan), { mode: 'adaptive', iterations: 0 })
+    const three = await drive(plan, racingExecutor(plan, 3), { mode: 'adaptive', iterations: 0 })
+    expect(three.fights).toBe(one.fights)
+    expect(three.dps).toEqual(one.dps)
+    expect(three.tps).toEqual(one.tps)
+    expect(Array.from(three.counters)).toEqual(Array.from(one.counters))
+    expect(three.durationMs).toBe(one.durationMs)
+  })
+
+  it('gives bit-identical fixed-count results with 1 and 3 workers, including a partial last chunk', async () => {
+    const one = await drive(plan, localExecutor(plan), { mode: 'fixed', iterations: 1100 })
+    const three = await drive(plan, racingExecutor(plan, 3), { mode: 'fixed', iterations: 1100 })
+    expect(one.fights).toBe(1100)
+    expect(three).toEqual(one)
+  })
+
+  it('stops adaptive runs at the documented precision', async () => {
+    const agg = await drive(plan, localExecutor(plan), { mode: 'adaptive', iterations: 0 })
+    expect(agg.fights).toBeGreaterThanOrEqual(1000)
+    expect(agg.fights).toBeLessThanOrEqual(50000)
+    expect(agg.fights % CHUNK_SIZE).toBe(0)
+    const hw = (1.959963984540054 * stdev(agg.dps)) / Math.sqrt(agg.fights)
+    expect(hw / agg.dps.mean).toBeLessThanOrEqual(0.0025)
+  })
+
+  it('depends only on the fight index: a chunk is the same wherever it runs', () => {
+    const a = runChunk(plan, 3, 50)
+    const sim = new Sim(plan)
+    runChunk(plan, 0, 50, sim)
+    const b = runChunk(plan, 3, 50, sim)
+    expect(b).toEqual(a)
+  })
+})
+
+describe('golden run (fixed config and seed)', () => {
+  it('keeps the default Fury warrior’s result unchanged', () => {
+    const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
+    const agg = runFights(bundle.plan, 1000)
+    const result = toResult(bundle, agg, 0)
+    expect({
+      dps: result.dps,
+      tps: result.tps,
+      durationSec: result.durationSec,
+      abilities: result.abilities.map((a) => [a.id, a.damage, a.casts, a.hits, a.crits, a.misses, a.dodges, a.glances]),
+    }).toMatchSnapshot()
+  })
+
+  it('keeps the default Protection warrior’s result unchanged', () => {
+    const bundle = buildPlan({ ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
+    const agg = runFights(bundle.plan, 500)
+    const result = toResult(bundle, agg, 0)
+    expect({ dps: result.dps, tps: result.tps, abilities: result.abilities.map((a) => [a.id, a.damage, a.threat, a.parries, a.blocks]) }).toMatchSnapshot()
+  })
+})
+
+describe('benchmark', () => {
+  it('runs at least 5,000 white-swing warrior fights per second on one core', () => {
+    const plan = buildPlan(defaultConfig('warrior-fury')).plan
+    const sim = new Sim(plan)
+    runChunk(plan, 0, 500, sim) // warm up the JIT
+    const fights = 10000
+    const start = performance.now()
+    for (let k = 0; k < fights / CHUNK_SIZE; k++) runChunk(plan, k, CHUNK_SIZE, sim)
+    const perSecond = fights / ((performance.now() - start) / 1000)
+    console.log(`benchmark: ${Math.round(perSecond)} fights/s (default Fury warrior, one core)`)
+    // Shared CI runners are noisy; the real bar is checked locally.
+    const ci = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env.CI
+    expect(perSecond).toBeGreaterThanOrEqual(ci ? 1000 : 5000)
+  })
+})

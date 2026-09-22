@@ -115,6 +115,26 @@ test.describe('phone', () => {
   })
 })
 
+test.describe('simulation', () => {
+  test('runs the default setup in the worker pool and shows a result', async ({ page }) => {
+    await page.goto('./')
+    const results = page.getByRole('complementary', { name: 'Results' })
+    await results.getByRole('button', { name: 'Simulate' }).click()
+    await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
+    await expect(results.getByText(/fights of \d+ s · Forever rules/)).toBeVisible()
+    await expect(results.getByText('Main hand')).toBeVisible()
+  })
+
+  test('explains a spec the engine can’t simulate yet', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
+    await page.getByRole('menuitem', { name: /Retribution/ }).click()
+    const results = page.getByRole('complementary', { name: 'Results' })
+    await results.getByRole('button', { name: 'Simulate' }).click()
+    await expect(results.getByRole('alert')).toContainText('Paladin simulation isn’t available yet')
+  })
+})
+
 test.describe('dark mode', () => {
   test.use({ colorScheme: 'dark' })
 

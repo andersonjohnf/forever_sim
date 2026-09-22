@@ -106,12 +106,28 @@ export interface SimConfig {
     profile: RuleProfileId
     /** Decision D12: apply unmeasured Forever ratings (expertise, haste, armor pen) by hypothesis, or ignore them. */
     unmeasuredRatings: 'apply' | 'ignore'
+    /**
+     * Rage from damage taken (docs/mechanics/rage.md#rage-from-damage-taken). Omitted: the
+     * profile's default (`forever` for Forever, `classic` for Classic Era).
+     */
+    damageTakenRage?: DamageTakenRageModel
   }
   run: {
+    /**
+     * `adaptive` (default): run until the 95% CI half-width of the headline metric is within
+     * 0.25% of its mean, between 1,000 and 50,000 fights. `fixed`: exactly `iterations` fights
+     * (decision D15).
+     */
+    mode: 'adaptive' | 'fixed'
+    /** Fights to run in `fixed` mode (100–100,000). */
     iterations: number
+    /** Master seed (uint32): the same config and seed give identical results on any device. */
     seed: number
   }
 }
+
+/** docs/mechanics/rage.md#rage-from-damage-taken */
+export type DamageTakenRageModel = 'forever' | 'classic' | 'foreverHp' | 'foreverHpPreArmor'
 
 // ---------------------------------------------------------------------------
 // Schemas the engine declares and the UI renders.
@@ -231,6 +247,7 @@ export interface CharacterSheet {
   /** Melee hit bonus in %. */
   hitPct: number
   hastePct: number
+  /** Expertise in percentage points (the boss's dodge and parry reduction); 0 when not applied. */
   expertise: number
   weaponSkill: { mainHand: number; offHand: number | null }
   dodgePct: number
@@ -238,6 +255,11 @@ export interface CharacterSheet {
   blockPct: number
   blockValue: number
   defense: number
+  /**
+   * Base values not known yet for this race and class (e.g. "base health"), left out of the
+   * numbers above (docs/mechanics/character-stats.md#open-questions). Empty when complete.
+   */
+  unknown: string[]
 }
 
 export interface Assumption {

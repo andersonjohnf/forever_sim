@@ -1,0 +1,65 @@
+// Racials as effects (docs/mechanics/character-stats.md#racials-that-matter-to-the-sim).
+//
+// Passive racials only. Cooldown racials (Blood Fury, Berserking, Elune's Light, Eureka!) are
+// rotation actions the class rotation presses (M2); Touch of the Grave, Stoneform and Shatter
+// Curse aren't simulated (warrior.md §2.9, Q16).
+import type { ClassId } from '../types'
+import type { Effect } from './types'
+
+const SKYBORNE: Effect[] = [
+  // Wind Blessed: +1% melee, ranged and spell haste [F] (character-stats racials table)
+  { kind: 'haste', pct: 1 },
+  // Elemental Insight: +5% damage vs Elementals [F]
+  { kind: 'damage', pct: 5, when: { creature: ['elemental'] } },
+]
+
+export function racialEffects(race: string, classId: ClassId): Effect[] {
+  switch (race) {
+    case 'alliance-human':
+      return [
+        // Sword Specialization (20597): +2% crit with a sword; per hand [?] (character-stats implementation notes)
+        { kind: 'weaponCrit', value: 2, weapons: ['sword'] },
+        // The Human Spirit (20598): Spirit +5% [F]
+        { kind: 'mult', stat: 'spi', pct: 5 },
+      ]
+    case 'alliance-dwarf':
+      return [
+        // Mace Specialization (1259719): +1% crit with a mace [F]
+        { kind: 'weaponCrit', value: 1, weapons: ['mace'] },
+        // Big Game Hunter (1259721): +5% damage vs Beasts [F]
+        { kind: 'damage', pct: 5, when: { creature: ['beast'] } },
+      ]
+    case 'alliance-night-elf':
+      // Quickness (20582): +1% dodge [F]
+      return [{ kind: 'stat', stat: 'dodge', value: 1 }]
+    case 'alliance-gnome':
+      // Expansive Mind, warrior version (1259802): maximum Rage +5% [F]; how it combines with Boundless Rage is [?] (warrior Q17)
+      return classId === 'warrior' ? [{ kind: 'maxRagePct', pct: 5 }] : []
+    case 'horde-orc':
+      // Axe Specialization (20574): +1% crit with an axe [F]
+      return [{ kind: 'weaponCrit', value: 1, weapons: ['axe'] }]
+    case 'horde-tauren':
+      return [
+        // Endurance (20550): total health +5% and +1% hit with melee, ranged and spells [F]
+        { kind: 'mult', stat: 'health', pct: 5 },
+        { kind: 'stat', stat: 'hit', value: 1 },
+        { kind: 'stat', stat: 'spellHit', value: 1 },
+      ]
+    case 'horde-troll':
+      // Beast Slaying (20557): +5% damage vs Beasts [F]
+      return [{ kind: 'damage', pct: 5, when: { creature: ['beast'] } }]
+    case 'alliance-skyborne-high-order':
+    case 'horde-skyborne-windshaper':
+      return SKYBORNE
+    default:
+      return []
+  }
+}
+
+/** Racial cooldowns a rotation presses (M2), for the assumptions list. */
+export const COOLDOWN_RACIALS: Record<string, string> = {
+  'horde-orc': 'Blood Fury',
+  'horde-troll': 'Berserking',
+  'alliance-night-elf': "Elune's Light",
+  'alliance-gnome': 'Eureka!',
+}

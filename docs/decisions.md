@@ -109,3 +109,21 @@ passes an adversarial logic review and an adversarial UX review by an independen
 first, with findings logged in `docs/reviews/` ([doctrine §6](doctrine.md#6-review-gate-before-every-push)).
 Game icons come from Wowhead's CDN by icon name, lazy-loaded with a placeholder, so the app
 works without them.
+
+### D15: Engine architecture (2026-09-22)
+Chosen with the guild after a benchmark. A stripped-down 180 s dual-wield fight ran about
+136k fights/s per core with a textbook allocating event queue, and about 277k/s with a
+no-allocation loop, both in V8. A real engine does 20–50× more per event, which still leaves
+thousands of fights per second per core.
+- **TypeScript in Web Workers.** WebAssembly stays an escape hatch for the hot loop if
+  profiling ever demands it.
+- **One general event-driven engine.** It has a pooled priority queue (no allocation in the
+  hot loop), integer-millisecond time, generic auras and procs, and a priority-list rotation
+  per spec. The config is resolved once into a flat, precomputed plan before the first fight.
+  Each spec is data plus small ability modules, not its own loop.
+- **Adaptive iteration count.** Runs continue until the 95% CI half-width is within ~0.25% of
+  the mean, between 1,000 and 50,000 fights. Each result reports its precision, and Advanced
+  allows a fixed count. Comparisons (stat weights, item A vs B) use common random numbers.
+- **Exact determinism across devices.** Work is split into fixed-size chunks with seeds
+  derived per chunk and merged in chunk order. The same setup and seed give identical
+  results on any device and core count.

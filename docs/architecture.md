@@ -69,9 +69,17 @@ UI state ──► SimConfig (plain, serializable) ──► Worker(s) ──►
   order.
 - **Auras and procs:** a generic aura system (stacks, charges, duration, stat mods,
   on-hit/on-crit hooks) with PPM and flat-% procs. Talents and items mostly become auras.
-- **Iterations:** N independent fights with per-iteration seeds derived from the master seed,
-  split across `navigator.hardwareConcurrency - 1` workers. Results merge with streaming
-  mean/variance (Welford).
+- **Iterations ([D15](decisions.md#d15-engine-architecture-2026-09-22)):**
+  - Work is split into fixed-size chunks, each seeded from the master seed and the chunk
+    index. Chunks are spread over a persistent pool of `navigator.hardwareConcurrency - 1`
+    workers, which stay warm between runs.
+  - Results merge in chunk order with streaming mean and variance (Welford), so the same
+    setup and seed give identical results on any device.
+  - Runs continue until the 95% CI half-width is within ~0.25% of the mean, between 1,000
+    and 50,000 fights. A fixed count is available under Advanced.
+- **Hot-loop discipline:** no allocation per event (pooled events, reset state per fight),
+  monomorphic ability objects, and a flat precomputed plan per run. Stats are recomputed only
+  when an aura that changes them starts or ends.
 - **Stat weights (M6):** paired runs with common random numbers (same seeds), ± a stat
   delta.
 

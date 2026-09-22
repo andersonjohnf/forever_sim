@@ -115,19 +115,30 @@ longer Blessing, a party-to-raid resistance aura or a mount tooltip are omitted.
 
 ### Forever system rules that matter here (owned elsewhere)
 
-These have **no client-data confirmation yet**. Model them from
-[forever-system-changes.md](../mechanics/forever-system-changes.md), not from here.
+These are owned by [forever-system-changes.md](../mechanics/forever-system-changes.md#2-combat-rules)
+and the docs it links; this list only summarizes them, with the same tags.
 
-- Hit and crit from gear are said to count for **all** attacks, melee and spell. The source
-  is the BlizzCon panel, relayed by the
+- **One hit stat and one crit stat** count for all attacks, melee and spell [F]: Blizzard's Deep
+  Dive recap says so, and foreverchanges' item data shows it (Classic items' melee-hit and
+  spell-hit lines both became "Hit Rating", and melee- and spell-crit lines both "Critical
+  Strike Rating"; [combat-tables §6](../mechanics/combat-tables.md#6-hit-caps)). Whether 10 hit
+  rating is exactly 1% in the spell table in combat is open
+  ([combat-tables OQ 18](../mechanics/combat-tables.md#open-questions)). The
   [Warcraft Tavern Forever paladin guide](https://www.warcrafttavern.com/forever/guides/paladin/)
-  ("unifies certain secondary stats like Crit and Hit so that they affect all types of
-  attacks") and by the community sim
-  [ElliotWood/Forever `forever_rules.md`](https://github.com/ElliotWood/Forever/blob/master/docs/forever_rules.md) [?].
-- Periodic damage may crit, and bonus healing on gear may add spell damage at 1/3. Both come
-  from the same community sim's reading of the panel [?].
+  and the community sim
+  [ElliotWood/Forever `forever_rules.md`](https://github.com/ElliotWood/Forever/blob/master/docs/forever_rules.md)
+  relay the same panel statement (secondary).
+- **Periodic damage can crit**: the Forever tooltip says "Most periodic effects can critically
+  strike" [F text], but which spells carry the flag was read only by a secondary source, so it
+  is [?] ([damage-and-timing §4](../mechanics/damage-and-timing.md#4-dots-and-bleeds)). The
+  secondary read puts no flag on Consecration's ranked spell; [open question 18](#open-questions)
+  covers Consecration's ticks.
+- **Bonus healing on gear adds spell damage at 1/3** [F] (Deep Dive; foreverchanges' item data,
+  e.g. Whitesoul Helm's new "+12 Spell Damage" next to "+35 Healing",
+  [items dataset](../data/items.md#forevers-ratings-f-with-open-questions)).
 - Expertise exists: the T1 Protection 4-piece reduces dodge and parry of your attacks
-  ([F 1301083][f1301083]) [F].
+  ([F 1301083][f1301083]) [F]. Its combat effect applies by hypothesis
+  ([D12](../decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
 
 ---
 
@@ -165,12 +176,16 @@ These have **no client-data confirmation yet**. Model them from
   Seals, Sacred Arbiter, Benediction, Holy Conduit) are a separate factor. When two of them
   hit the same spell (Benediction + Holy Conduit on Consecration's cost), **add** them
   (Classic engine convention) [?].
-- **Base mana** at level 60 is **1512** [C]. That's the client game table `OctBaseMPByClass`
-  as transcribed in
-  [ElliotWood/Forever `octbasempbyclass.txt`](https://github.com/ElliotWood/Forever/blob/master/assets/db_inputs/basestats/octbasempbyclass.txt).
-  Cross-check: level 20 gives 412, which matches foreverchanges' level-20 Human paladin
-  sheet (702 mana at 38 Int) ([BiS](https://foreverchanges.pro/bis/paladin)). Percent-of-base
-  costs round down: 6% → 90. Stat-to-mana, regen and crit conversions are in
+- **Base mana** at level 60 is **1512** [F], owned by
+  [character-stats](../mechanics/character-stats.md#other-base-values-at-level-60): the Forever
+  client's `PlayerExpectedStat.BaseMana`, to be confirmed by a person on wago.tools
+  ([OQ-13](../mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser)).
+  Corroboration only: the community sim ElliotWood/Forever transcribes the same value from the
+  `OctBaseMPByClass` table
+  ([`octbasempbyclass.txt`](https://github.com/ElliotWood/Forever/blob/master/assets/db_inputs/basestats/octbasempbyclass.txt)),
+  and its level-20 value, 412, matches foreverchanges' level-20 Human paladin sheet (702 mana at
+  38 Int) ([BiS](https://foreverchanges.pro/bis/paladin)). Percent-of-base costs round down:
+  6% → 90. Stat-to-mana, regen and crit conversions are in
   [character-stats.md](../mechanics/character-stats.md).
 
 ---
@@ -400,7 +415,7 @@ and aren't modelled.
 
 | Item | Value | Tag, source |
 | --- | --- | --- |
-| Base mana (60) | 1512 | [C] ([conventions](#conventions-used-below)) |
+| Base mana (60) | 1512 | [F] (character-stats, `PlayerExpectedStat`; [conventions](#conventions-used-below)) |
 | Max mana | base + Int→mana, see character-stats | [C] |
 | Costs, Ret build (Benediction 5/5; no Holy Conduit) | SoC 189, SoR 180, SotC 144, Judgement 81, Holy Strike 18, Consecration r5 508 / r1 121, Exorcism 310, HoW 382 (instant with Instrument of Law, so Benediction applies). If Holy Conduit 2/2 is taken, Consecration r5 is 282 (additive) or 305 (multiplicative) [?] | [F] costs × talent |
 | Costs, Prot build (no Benediction) | SoF 200, Judgement 90 (0 after Swift Judgement), Holy Strike 20, Holy Shield 240, Consecration r5 565, HotR 90, RF 453 | [F] |
@@ -476,7 +491,7 @@ so check it between GCD actions too.
 | 7 | Consecration (rank 5) | `mana% ≥ consecrateHighManaPct` (60) | on |
 | 8 | Consecration (rank 1) | `mana% ≥ consecrateLowManaPct` (30) | on |
 | 9 | Twist: SoR, then after the next swing SoC | talent taken and `mana% ≥ twistMinManaPct` (80). Cast SoR when the swing lands within `twistWindowMs` (≤ 1500 ms) so the echo is used at once; recast SoC after that swing | **off** |
-| — | Mana potion / rune | missing mana ≥ the item's max restore and off cooldown | on (potion), on (rune) |
+| — | Mana potion / rune | missing mana ≥ the item's max restore and off cooldown | on when the consumables preset includes it (potion: Standard raid; rune: Max-consumables raid) |
 | — | Holy Wrath | Undead/Demon AoE | off |
 
 Notes:
@@ -504,7 +519,7 @@ Notes:
 | Seal / judgement | SoC; JotC maintained by you | [F] rotation above |
 | Aura | Retribution Aura (no DPS effect unless you're hit); raid aura choice lives in the buffs doc | — |
 | Buffs | standard raid buffs from the buffs doc: Kings and Might (133) from paladins, Windfury and totems in a melee group, both factions | [F] factions |
-| Consumables tier | **"Common raid"**: Elixir of the Mongoose, Juju Power or Elixir of Giants, Greater Arcane Elixir (SP matters now), a Str or Agi food buff, a Dense or Elemental sharpening stone, Major Mana Potion, Demonic/Dark Rune. **No world buffs** ([doctrine §1](../doctrine.md#1-what-were-building)) | buffs doc owns values |
+| Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of the Mongoose, Elixir of Greater Strength (Classic: Giants), Greater Arcane Elixir (the buffs doc's per-spec entry for Ret: spell power matters now), Smoked Desert Dumplings, a Dense Sharpening Stone, Major Mana Potion. The Max-consumables preset adds Juju Power, Juju Might, R.O.I.D.S., Elixir of Holy Power, an Elemental stone, Demonic/Dark Rune and Flask of Supreme Power. **No world buffs** ([doctrine §1](../doctrine.md#1-what-were-building)) | buffs doc owns names, values and presets |
 
 ---
 
@@ -555,7 +570,7 @@ Iron Creed adds 25% threat; HotR has no SP coefficient in the data.
 | Weapon | best pre-raid 1H **sword, mace or axe** (so HotR is usable) + shield | [F] HotR requirement |
 | Seal | **Seal of Fury** (SoR selectable) | [F] |
 | Aura | Devotion Aura (option: Retribution Aura, 30 × 1.9 threat per hit taken) | [F] |
-| Consumables tier | "Common tank": Elixir of Superior Defense, Elixir of Fortitude, Greater Arcane Elixir, Stam food, Brilliant Wizard Oil or a sharpening stone. No world buffs | buffs doc owns values |
+| Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of Greater Defense (Classic: Superior Defense), Elixir of Fortitude (+200 health), Elixir of Holy Power (+40 Holy), Nightfin Soup (+22 spell damage), Wizard Oil, Major Mana Potion. The Max-consumables preset adds Flask of Supreme Power, Greater Arcane Elixir, Brilliant Wizard Oil (replacing Wizard Oil) and Demonic/Dark Rune. No world buffs | buffs doc owns names, values and presets |
 
 ---
 
@@ -653,7 +668,8 @@ Each needs an in-game test on the Forever beta. Record the results in this doc w
 date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable)).
 
 1. **SoC proc rate**: 7 PPM ([C] community) or 6.8 (forum claim)? *Test:* 1000+ white swings
-   with a known-speed weapon on a training dummy; procs ÷ landed white hits vs 7×speed/60.
+   with a known-speed weapon on mobs three levels above you (the beta has no target dummies);
+   procs ÷ landed white hits vs 7×speed/60.
    Also confirm base speed rather than hasted speed (repeat with a haste effect).
 2. **SoC proc SP scaling**: is it 0.29 × SP inside the 70% (effective 0.203) or 0.29 on
    top? *Test:* average non-crit proc with and without a +100 spell damage item.
@@ -664,12 +680,12 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
    forbidden to adopt without a beta test). *Test:* two 2H weapons of different speed and
    one 1H, with no SP; then +SP.
 5. **JotC interaction**: flat +161 per Holy hit, or scaled by each spell's coefficient?
-   *Test:* JoC and SoC-proc damage with and without your JotC on a dummy. This is the
+   *Test:* JoC and SoC-proc damage with and without your JotC on a mob. This is the
    biggest single uncertainty for Ret DPS.
 6. **Holy Strike formula**: is the flat 81–105 multiplied by 40%, and is the 0.429 SP added
    in full? *Test:* no-SP and +SP swings; compare with 0.4 × (normalized weapon + 93).
 7. **Judgement of Command SP**: is the coefficient halved with the base when the target
-   isn't stunned? *Test:* JoC on a dummy with and without +SP.
+   isn't stunned? *Test:* JoC on a mob with and without +SP.
 8. **Redoubt proc chance** per rank (10% flat per the tooltips vs 2%/rank per the trait
    curve)? *Test:* count Redoubt procs per melee hit taken at 1–5 ranks.
 9. **Reckoning** extra-attack stacking cap and block-trigger rate. *Test:* block-heavy
@@ -722,7 +738,7 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
 | [Warcraft Tavern: Forever Paladin guide](https://www.warcrafttavern.com/forever/guides/paladin/) | Forever overview: judgements don't consume seals, Seal of Fury taunt, Human vs Dwarf racials, "unified" hit/crit statement | Forever (community guide, pre-data) |
 | [Blizzard forums: "Seal of Command proc rate?" (2020)](https://us.forums.blizzard.com/en/wow/t/seal-of-command-proc-rate/407383) | SoC PPM discussion (7 vs 6.8), base-speed calculation | Classic (2019 re-release), player claims |
 | [timhul/ClassicSim](https://github.com/timhul/ClassicSim) `SealOfCommandProc.cpp` | SoC 7.0 PPM in a WoW Classic (2019) simulator | Classic; corroboration only |
-| [ElliotWood/Forever](https://github.com/ElliotWood/Forever) (`docs/beta-pass/paladin.md`, `docs/forever_rules.md`, `sim/paladin/*.go`, `assets/db_inputs/basestats/octbasempbyclass.txt`) | a community Forever sim: its own client reading (Holy Strike, Consecration, Holy Shield 0.08), a beta combat-log note (JoR crit ×2, no dodge/parry), the base mana table | **Mixed**: built on wowsims/classic code, which describes itself as a Season of Discovery sim. Only its **client-data readings and beta-log notes** are used here, never its SoD-tested formulas (e.g. its SoR "×1.1 for 2H from testing in SoD" is **not** adopted) |
+| [ElliotWood/Forever](https://github.com/ElliotWood/Forever) (`docs/beta-pass/paladin.md`, `docs/forever_rules.md`, `sim/paladin/*.go`, `assets/db_inputs/basestats/octbasempbyclass.txt`) | a community Forever sim: its own client reading (Holy Strike, Consecration, Holy Shield 0.08), a beta combat-log note (JoR crit ×2, no dodge/parry), the base mana table (corroboration of character-stats' [F] value only) | **Mixed**: built on wowsims/classic code, which describes itself as a Season of Discovery sim. Only its **client-data readings and beta-log notes** are used here, never its SoD-tested formulas (e.g. its SoR "×1.1 for 2H from testing in SoD" is **not** adopted) |
 | [cmangos/issues #2022](https://github.com/cmangos/issues/issues/2022) | SoR "9.2%/10.8% per weapon-speed" and the `0.03 × weapon` term | **Forbidden** (TBC 2.4.3 wiki and private server). Listed only to explain why those terms are **not** adopted ([open question 4](#open-questions)) |
 
 ### DB2 links (per spell)

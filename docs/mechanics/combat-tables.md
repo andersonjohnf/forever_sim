@@ -27,9 +27,12 @@ Client builds: Forever beta 1.60.1.69913 · Classic Era 1.15.9.69722
 - **White swings (player → boss):** one roll over `miss → dodge → parry → glancing → block
   → crit → hit`, with later outcomes truncated when the running total reaches 100%
   ([§2](#2-melee-attack-table-white-swings)).
-- **Special (yellow) attacks:** roll 1 over `miss → dodge → parry → block → lands`; roll 2
-  for crit on anything that landed (including blocked hits). Specials never glance and never
-  take the dual-wield penalty ([§3](#3-special-yellow-attacks)).
+- **Special (yellow) attacks** ([§3](#3-special-yellow-attacks)) [C]: specials that deal weapon
+  damage (Heroic Strike, Mortal Strike, Whirlwind, Overpower, Shred, …) make **one** roll over
+  `miss → dodge → parry → block → crit → hit`, like a white swing without glancing. Specials
+  without a weapon-damage effect ("melee spells": Bloodthirst, Execute, Shield Slam, Revenge)
+  make **two**: `miss → dodge → parry → block → lands`, then crit on anything that landed.
+  Specials never glance and never take the dual-wield penalty.
 - **Weapon skill vs defense**, per profile: miss, dodge, parry, glancing chance, glancing
   damage and crit ([§4](#4-weapon-skill-vs-defense)).
 - **Hit suppression** only in `classicEra`: the first `(def − skill − 10) × 0.2%` of +hit is
@@ -39,8 +42,10 @@ Client builds: Forever beta 1.60.1.69913 · Classic Era 1.15.9.69722
 - **Dual wield:** +19% miss on white swings from either hand. An off-hand swing made while
   Heroic Strike or Cleave is queued ignores it ([§5](#5-dual-wield-and-on-next-swing-queues)).
 - **Expertise** (Forever only): by default [?] it subtracts `E` percentage points from the
-  boss's dodge and parry chances, per the Forever tooltip wording. It is **not** TBC's
-  0.25%-per-point formula. The combat effect is unmeasured ([§7](#7-expertise-forever)).
+  boss's dodge and parry chances, per the Forever tooltip wording (hypothesis A, applied per
+  [D12](../decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22);
+  `unmeasuredRatings: 'ignore'` turns it off). It is **not** TBC's 0.25%-per-point formula. The
+  combat effect is unmeasured ([§7](#7-expertise-forever)).
 - **Weapon skill:** 300 + item bonuses per weapon type (usually 300–302). No racial bonuses
   in Forever ([§4.1](#41-effects-per-point)).
 - **Position:** behind the boss (the DPS default) removes parry and block; bosses dodge from
@@ -51,9 +56,10 @@ Client builds: Forever beta 1.60.1.69913 · Classic Era 1.15.9.69722
   profile. Two rolls (hit, then crit ×1.5). Partial resists are averaged, and Holy is never
   partially resisted ([§9](#9-spell-hit-and-crit-generic)).
 - All inputs arrive as **percentages**. Forever gear carries ratings (hit 10, crit 14,
-  expertise 10, dodge 12, parry 15, block 5 per 1%; defense 1:1). The conversions are [F] as
-  displayed and [?] in combat. One hit % serves the melee **and** spell tables. Converting
-  ratings is owned by [character-stats.md](character-stats.md) ([§10](#10-ratings)).
+  dodge 12, parry 15, block 5 per 1%; defense 1:1). The conversions are [F] as displayed and
+  [?] in combat; expertise's 10 per 1% is [?] even as displayed (gametable only). One hit %
+  serves the melee **and** spell tables. Converting ratings is owned by
+  [character-stats.md](character-stats.md) ([§10](#10-ratings)).
 
 ---
 
@@ -63,8 +69,15 @@ Doctrine tier 1 (Forever client data) outranks tier 3 (Classic Era), so `forever
 default. But its values come from the client's **UI text and UI code**, not from measured
 combat. So:
 
-- Every `forever` value that differs from Classic Era is tagged `[F]` with the note
-  *client UI*, and listed in [Open questions](#open-questions) with a test.
+- Per [doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable) ("verbatim mirrors
+  of client files are client data"), a value read from the client's UI code or strings is
+  **[F] for what the client displays or computes** (tagged "[F] client UI" or "[F] tooltip"),
+  and **[?] for the combat behaviour it implies** until measured: the server may disagree with
+  the display. So every `forever` value that differs from Classic Era is tagged
+  "[F] client UI / tooltip; [?] in combat", keeps its place as the profile's default (checkable
+  client data may drive the `forever` profile), and is listed in
+  [Open questions](#open-questions) with a test. Values the client shows unchanged from Classic
+  Era carry Classic's measured behaviour ([C]).
 - `classicEra` keeps the measured Classic Era table, by Magey et al. on the 1.13 client
   ([Attack table][magey-at]).
 - When the guild measures a value (doctrine tier 2), change the `forever` profile entry and
@@ -83,22 +96,22 @@ strings with no numbers ([era strings][gs-era]).
 
 | Parameter | `forever` (default) | `classicEra` |
 | --- | --- | --- |
-| Base miss, special / single-weapon white @300 | 8.0% [F] tooltip `CR_WARRIOR_HIT_CAP_TOOLTIP` ([gs][gs-forever]) | 8.0% [C] ([Magey][magey-at]) |
-| Miss change per weapon-skill point | 0.04% [F] client UI `GetHitDodgeParryChance` ([SkillsFrame][ui-skills]) | 0.2% if def − skill > 10, else 0.1% [C] ([Magey][magey-at]) |
-| Hit suppression | none [F] tooltip: raid-boss cap 8.00% / 27.00% ([gs][gs-forever]) | `(def − skill − 10) × 0.2%` when def − skill > 10 [C] ([Magey][magey-at]) |
-| Dual-wield white miss penalty | +19% [F] (27% − 8% in the tooltip, [gs][gs-forever]) | +19% [C] ([Magey][magey-at]) |
-| Boss dodge @300 | 6.5% [F] tooltip `CR_EXPERTISE_TOOLTIP` ([gs][gs-forever]); `BASE_ENEMY_DODGE_CHANCE[3] = 6.5` ([stats Lua][ui-stats]) | 6.5% [C] ([Magey][magey-at]) |
-| Dodge change per skill point | 0.04% [F] client UI ([SkillsFrame][ui-skills]) | 0.1% [C] ([Magey][magey-at]) |
-| Boss parry @300 (front only) | **16.5%** [F] tooltip `CR_EXPERTISE_TOOLTIP` ([gs][gs-forever]) | 14% [C] (Blizzard, via [Magey][magey-at]) |
-| Parry change per skill point | 0.04% [F] client UI ([SkillsFrame][ui-skills]) | 0 [?] (not established, see [§4.1](#41-effects-per-point)) |
+| Base miss, special / single-weapon white @300 | 8.0% [F] tooltip `CR_WARRIOR_HIT_CAP_TOOLTIP` ([gs][gs-forever]); in combat [C] (unchanged) | 8.0% [C] ([Magey][magey-at]) |
+| Miss change per weapon-skill point | 0.04% [F] client UI `GetHitDodgeParryChance` ([SkillsFrame][ui-skills]); [?] in combat | 0.2% if def − skill > 10, else 0.1% [C] ([Magey][magey-at]) |
+| Hit suppression | none [F] tooltip: raid-boss cap 8.00% / 27.00% ([gs][gs-forever]); [?] in combat | `(def − skill − 10) × 0.2%` when def − skill > 10 [C] ([Magey][magey-at]) |
+| Dual-wield white miss penalty | +19% [F] tooltip (27% − 8%, [gs][gs-forever]); in combat [C] (unchanged) | +19% [C] ([Magey][magey-at]) |
+| Boss dodge @300 | 6.5% [F] tooltip `CR_EXPERTISE_TOOLTIP` ([gs][gs-forever]); `BASE_ENEMY_DODGE_CHANCE[3] = 6.5` ([stats Lua][ui-stats]); in combat [C] (unchanged) | 6.5% [C] ([Magey][magey-at]) |
+| Dodge change per skill point | 0.04% [F] client UI ([SkillsFrame][ui-skills]); [?] in combat | 0.1% [C] ([Magey][magey-at]) |
+| Boss parry @300 (front only) | **16.5%** [F] tooltip `CR_EXPERTISE_TOOLTIP` ([gs][gs-forever]); [?] in combat | 14% [C] (Blizzard, via [Magey][magey-at]) |
+| Parry change per skill point | 0.04% [F] client UI ([SkillsFrame][ui-skills]); [?] in combat | 0 [?] (not established, see [§4.1](#41-effects-per-point)) |
 | Boss block (front only) | 5% [C] ([Magey][magey-at]) | 5% [C] ([Magey][magey-at]) |
-| Glancing chance | `10% + 2% × (def − min(skill, 300))` = 40% [F] client UI `GetGlancingBlowChance` ([SkillsFrame][ui-skills]) | same, 40% [C] ([Magey][magey-at]) |
-| Glancing damage @300 | ×0.65–0.85, mean **×0.75** (25% penalty) [F] client UI `GetGlancingBlowPenalty` ([SkillsFrame][ui-skills]) | ×0.55–0.75, mean ×0.65 (35% penalty) [C] ([Magey][magey-at]) |
-| Crit change per skill point vs boss | 0.04% [F] client UI `GetCriticalHitChance` ([SkillsFrame][ui-skills]) | 0.2%, with skill capped at 300 [C] ([Magey][magey-at]) |
+| Glancing chance | `10% + 2% × (def − min(skill, 300))` = 40% [F] client UI `GetGlancingBlowChance` ([SkillsFrame][ui-skills]); in combat [C] (unchanged) | same, 40% [C] ([Magey][magey-at]) |
+| Glancing damage @300 | ×0.65–0.85, mean **×0.75** (25% penalty) [F] client UI `GetGlancingBlowPenalty` ([SkillsFrame][ui-skills]); [?] in combat (and reported broken on the beta) | ×0.55–0.75, mean ×0.65 (35% penalty) [C] ([Magey][magey-at]) |
+| Crit change per skill point vs boss | 0.04% [F] client UI `GetCriticalHitChance` ([SkillsFrame][ui-skills]); [?] in combat | 0.2%, with skill capped at 300 [C] ([Magey][magey-at]) |
 | Aura-crit suppression vs +3 | 1.8% [?] (carried over from Classic Era; unverified in Forever) | 1.8% [C] ([Magey crit suppression][magey-crit]) |
-| Spell miss vs +3 | 17% [F] client Lua `spellMissChances = {4,5,6,17}` ([stats Lua][ui-stats]) | 17% [C] ([AMR][amr-hit]) |
-| Spell miss floor | 0% [F] tooltip "To never miss Raid Bosses: 17.00% Spells" ([gs][gs-forever]) | 1% (hit cap 16%) [C] ([AMR][amr-hit]) |
-| Expertise | subtracts `E` points from dodge and from parry [?] (the tooltip wording is [F]; the combat effect is unmeasured; [§7](#7-expertise-forever)) | n/a (no source in Classic Era) |
+| Spell miss vs +3 | 17% [F] client UI `spellMissChances = {4,5,6,17}` ([stats Lua][ui-stats]); in combat [C] (unchanged) | 17% [C] ([AMR][amr-hit]) |
+| Spell miss floor | 0% [F] tooltip "To never miss Raid Bosses: 17.00% Spells" ([gs][gs-forever]); [?] in combat | 1% (hit cap 16%) [C] ([AMR][amr-hit]) |
+| Expertise | subtracts `E` points from dodge and from parry [?] (the tooltip wording is [F]; the combat effect is unmeasured; applied by hypothesis with the `unmeasuredRatings` switch, D12; [§7](#7-expertise-forever)) | n/a (no source in Classic Era) |
 
 ---
 
@@ -132,7 +145,8 @@ Symbols: `S` weapon skill of the weapon swinging, `D` target defense (= 5 × tar
 315 for a boss), `d` level difference (3), `H` total +hit %, `C` character-sheet melee crit %,
 `E` expertise %.
 
-**`forever` profile** [F] (client UI; values at `S = 300` from tooltips):
+**`forever` profile** (formulas [F] client UI and values at `S = 300` [F] tooltip, as the
+client computes them; [?] in combat wherever they differ from `classicEra`):
 
 ```
 k         = 0.04 × (D − S − 5·d)          // 0 at S = 300 vs a boss; −0.6 at S = 315
@@ -149,7 +163,7 @@ critTable = C − 0.04 × (D − S) − (d ≥ 3 ? min(auraCrit, 1.8) : 0)
 | 0 | 5.0 [F] tooltip ([gs][gs-forever]) | 5.0 [F] ([stats Lua][ui-stats]) | 5.0 [F] tooltip ([gs][gs-forever]) |
 | 1 | 5.5 [C] ([Magey][magey-at]) | 5.5 [F] ([stats Lua][ui-stats]) | 5.5 [?] |
 | 2 | 6.0 [C] ([Magey][magey-at]) | 6.0 [F] ([stats Lua][ui-stats]) | 6.0 [?] |
-| 3 | 8.0 [F] tooltip ([gs][gs-forever]) | 6.5 [F] ([gs][gs-forever]) | 16.5 [F] tooltip ([gs][gs-forever]) |
+| 3 | 8.0 [F] tooltip ([gs][gs-forever]) | 6.5 [F] ([gs][gs-forever]) | 16.5 [F] tooltip ([gs][gs-forever]); [?] in combat |
 
 The `+1`/`+2` rows only matter for trash; the sim's boss is always `d = 3`.
 
@@ -189,7 +203,7 @@ low  = clamp(1.30 − 0.05 × diff, 0.01, 0.91)
 high = clamp(1.20 − 0.03 × diff, 0.20, 0.99)
 ```
 
-`forever` [F] (client UI `GetGlancingBlowPenalty`, [SkillsFrame][ui-skills]):
+`forever` [F] client UI (`GetGlancingBlowPenalty`, [SkillsFrame][ui-skills]); [?] in combat:
 
 ```
 diff = D − S
@@ -210,8 +224,8 @@ for the fixed penalty is 25%, which matches the UI ([magey/forever-warrior#1][fw
 | Outcome | From behind | From the front | Tag / source |
 | --- | --- | --- | --- |
 | Dodge | yes (mobs dodge from any direction) | yes | [F] tooltip `CR_DODGE_BASE_STAT_TOOLTIP` "For Creatures, Melee attacks may be Dodged from any direction" ([gs][gs-forever]); [C] ([Marrow §3.1][marrow-mech]) |
-| Parry | no | yes | [F] tooltip `CR_PARRY_BASE_STAT_TOOLTIP` "Only Melee attacks from the front may be Parried" ([gs][gs-forever]) |
-| Block | no | yes | [F] tooltip `STAT_BLOCK_VALUE_FLAT_TOOLTIP` "Only Melee and Ranged attacks from the front may be Blocked" ([gs][gs-forever]) |
+| Parry | no | yes | [F] tooltip `CR_PARRY_BASE_STAT_TOOLTIP` "Only Melee attacks from the front may be Parried" ([gs][gs-forever]); in combat [C] ([Marrow §3.1][marrow-mech]: from behind a mob can't parry or block) |
+| Block | no | yes | [F] tooltip `STAT_BLOCK_VALUE_FLAT_TOOLTIP` "Only Melee and Ranged attacks from the front may be Blocked" ([gs][gs-forever]); in combat [C] ([marrow-mech]) |
 
 - **Default:** DPS specs attack from behind. Tanks (Prot warrior, Prot paladin, bear) attack
   from the front, so their table includes parry and block, and every parry hastes the boss
@@ -231,27 +245,43 @@ for the fixed penalty is 25%, which matches the UI ([magey/forever-warrior#1][fw
 Yellow attacks are instant and on-next-swing abilities: Heroic Strike, Cleave, Maul,
 Bloodthirst, Mortal Strike, Shred, Holy Strike and so on.
 
-- **Two rolls** [C]. Roll 1 decides `miss → dodge → parry → block → lands`. Roll 2 decides
-  crit for anything that landed, including blocked hits, so a special can be blocked **and**
-  crit. Magey's Forever test plan asks "is critical strike still two-roll?", which states
-  the Classic behaviour ([magey/forever-warrior#1][fw-1]). Classic Era references agree that
-  specials roll crit after the hit is confirmed ([ZAM hit table][zam-hit]).
-  - *Dissent, not adopted:* the Classic warrior sim WarriorSim puts crit on the same single
-    roll for weapon-damage abilities (commit "Weapon spells single roll", 2020) and uses two
-    rolls only for Bloodthirst and Execute ([WarriorSim `rollmeleespell`][ws-player]). With
-    ~10% avoidance the two models differ by ~10% relative in yellow crits. See
-    [Open questions](#open-questions).
+- **Weapon-damage specials: one roll** [C]. Abilities whose client effect is weapon damage
+  (effects 17, 58, 121 or 31: Heroic Strike, Cleave, Mortal Strike, Whirlwind, Overpower,
+  Slam, Spearing Strike, Holy Strike, Shred, Claw, Maul, Mangle, …) roll once over
+  `miss → dodge → parry → block → crit → hit`, truncated like the white table (§2.1) but with no
+  glancing slice. So they can't be blocked and crit at once. Source: in 2020 the Classic
+  community's log analysis (Fight Club #dps-tc, relayed in
+  [WarriorSim issue #20][ws-issue20]) found that only Bloodthirst, Execute, Shield Slam and
+  Revenge roll twice and "all other yellows should be single roll". WarriorSim implemented that
+  before SoD ([commit 474f8b8][ws-singleroll], 2020-05-08; present in [180a3cc][ws-player]).
+  Marrow's Classic compendium agrees in substance: "Yellow attacks function exactly like white
+  attacks, except they cannot glance" ([Marrow §3.1][marrow-mech]).
+- **"Melee spells": two rolls** [C] (same sources). Specials with no weapon-damage effect
+  (Bloodthirst, Execute, Shield Slam, Revenge) roll 1 over `miss → dodge → parry → block →
+  lands`, and roll 2 for crit on anything that landed, including blocked hits.
+- Mapping other classes' non-weapon specials (Ferocious Bite, Swipe, Rake's initial hit, damage
+  judgements) onto this split by effect type is an inference [?]; the class docs list them.
+- *Not adopted:* two rolls for **every** special, the vanilla-era model on the
+  [ZAM hit table][zam-hit] page (a forbidden, pre-Classic source). Nothing Classic Era supports
+  it. With ~10% avoidance, it gives ~10% fewer yellow crits than one roll. Magey's Forever test
+  plan asks whether crit is "still two-roll" ([magey/forever-warrior#1][fw-1]); that is a
+  question, not evidence. See [Open questions](#open-questions).
 - **No glancing.** Specials never glance [C] ([Marrow §3.1][marrow-mech]).
 - **No dual-wield penalty.** Specials use the single-weapon miss chance even when dual
   wielding [C] ([AMR][amr-hit]; [Magey][magey-at]).
 - Miss, dodge, parry, block and suppression use the same profile formulas as white swings
   ([§2.2](#22-outcome-formulas)). `classicEra` hit suppression applies to specials too, so
   the yellow hit cap is 9% at 300 skill.
-- **Crit on roll 2:** `critTable` from §2.2, plus ability-specific bonuses (e.g. Improved
-  Overpower), and it isn't truncated by the roll-1 outcomes. Yellow crit can therefore exceed
-  the white crit cap [C] ([ZAM hit table][zam-hit]).
+- **Crit:** `critTable` from §2.2, plus ability-specific bonuses (e.g. Improved Overpower). For
+  weapon-damage specials it is truncated like the white table, but with no glancing slice the
+  yellow crit cap is `100 − miss − dodge − parry − block`, far above the white one. For melee
+  spells, roll 2 isn't truncated by the roll-1 outcomes [C] ([ws-player]).
 - **Defense type.** Each ability's client `DefenseType` picks its table [F] (per-spell values
-  come from the client, see [wowsims/forever spell data][wf-spelldata] and the class docs):
+  come from the class docs' own `SpellCategories` reads, e.g.
+  [warrior §3.1](../classes/warrior.md#31-damage-abilities) and
+  [paladin conventions](../classes/paladin.md#conventions-used-below), to be confirmed on
+  wago.tools; [wowsims/forever spell data][wf-spelldata] reads the same and is corroboration
+  only):
   - `Melee`: the table above.
   - `Ranged`: miss, then block (front only), then crit roll 2. No dodge or parry, because
     creatures dodge and parry melee only [F] tooltips ([gs][gs-forever]).
@@ -267,14 +297,14 @@ Bloodthirst, Mortal Strike, Shred, Holy Strike and so on.
 
 | Effect | `forever` | `classicEra` |
 | --- | --- | --- |
-| Miss | −0.04% per point above 300 [F] client UI ([SkillsFrame][ui-skills]) | −0.2%/pt while def − skill > 10, −0.1%/pt at ≤ 10 [C] ([Magey][magey-at]) |
-| Dodge | −0.04%/pt [F] client UI ([SkillsFrame][ui-skills]) | −0.1%/pt [C] ([Magey][magey-at]) |
-| Parry | −0.04%/pt [F] client UI ([SkillsFrame][ui-skills]) | not established [?]: Magey measured 13.49% ±0.40 at 305 but 14.01% at +9 skill ([Magey][magey-at]); the profile keeps 14% flat |
+| Miss | −0.04% per point above 300 [F] client UI ([SkillsFrame][ui-skills]); [?] in combat | −0.2%/pt while def − skill > 10, −0.1%/pt at ≤ 10 [C] ([Magey][magey-at]) |
+| Dodge | −0.04%/pt [F] client UI ([SkillsFrame][ui-skills]); [?] in combat | −0.1%/pt [C] ([Magey][magey-at]) |
+| Parry | −0.04%/pt [F] client UI ([SkillsFrame][ui-skills]); [?] in combat | not established [?]: Magey measured 13.49% ±0.40 at 305 but 14.01% at +9 skill ([Magey][magey-at]); the profile keeps 14% flat |
 | Block (mob) | none (capped at 5%) [C] ([Magey][magey-at]) | none [C] |
 | Glancing chance | none: skill capped at 300 [F]/[C] | none [C] |
-| Glancing damage | per the UI formula in [§2.3](#23-glancing-blows) [F] | per Beaza's formula [C] |
-| Crit vs boss | +0.04%/pt, uncapped [F] client UI ([SkillsFrame][ui-skills]) | none above 300 (skill capped at 300 for crit vs mobs) [C] ([Magey][magey-at]) |
-| Hit suppression | none [F] | removed at def − skill ≤ 10, i.e. 305+ skill [C] |
+| Glancing damage | per the UI formula in [§2.3](#23-glancing-blows) [F] client UI; [?] in combat | per Beaza's formula [C] |
+| Crit vs boss | +0.04%/pt, uncapped [F] client UI ([SkillsFrame][ui-skills]); [?] in combat | none above 300 (skill capped at 300 for crit vs mobs) [C] ([Magey][magey-at]) |
+| Hit suppression | none [F] tooltip; [?] in combat | removed at def − skill ≤ 10, i.e. 305+ skill [C] |
 
 **Is weapon skill now fixed at 300?** No, but 300 is the normal case at level 60.
 
@@ -302,7 +332,8 @@ Bloodthirst, Mortal Strike, Shred, Holy Strike and so on.
 "DW miss" is the white miss when dual wielding. "Hit cap" is the +hit that brings miss to 0.
 Crit suppression assumes ≥ 1.8% aura crit.
 
-**`forever`** [F] (client UI and tooltips; see [§1.1](#11-profile-parameters-player-level-60-vs-boss-level-63-defense-315)):
+**`forever`** ([F] as the client UI and tooltips compute it; [?] in combat where it differs from
+`classicEra`; see [§1.1](#11-profile-parameters-player-level-60-vs-boss-level-63-defense-315)):
 
 | Skill | Miss / yellow cap | DW miss / DW cap | Dodge | Parry (front) | Glance chance | Glance dmg (low–high, mean) | Crit suppression |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -332,10 +363,11 @@ at 10, 5.12% at 7 ([Magey][magey-at]).
 at 304, none at 305+ (Blizzard, via [Magey][magey-at]). It applies to white and yellow
 attacks and to both hands.
 
-`forever`: none [F]. The Forever tooltips give raid-boss caps of 8.00% melee and 27.00% dual
-wield ([gs][gs-forever]), which are the base miss chances with no suppression. Magey lists
-"Hit suppression: is it still `(TargetLevel*5 - AttackerSkill - 10) * 0.2%` … or is it gone?"
-as untested ([magey/forever-warrior#1][fw-1]). See [Open questions](#open-questions).
+`forever`: none, [F] tooltip; [?] in combat. The Forever tooltips give raid-boss caps of 8.00%
+melee and 27.00% dual wield ([gs][gs-forever]), which are the base miss chances with no
+suppression. Magey lists "Hit suppression: is it still
+`(TargetLevel*5 - AttackerSkill - 10) * 0.2%` … or is it gone?" as untested
+([magey/forever-warrior#1][fw-1]). See [Open questions](#open-questions).
 
 ### 4.4 Crit suppression
 
@@ -343,7 +375,7 @@ Against a +3 boss, table crit = sheet crit − (skill part) − (aura part):
 
 - **Skill part.** `classicEra`: `0.2% × (315 − min(skill, 300)) = 3.0%` at any skill ≥ 300
   [C] ([Magey][magey-at]). `forever`: `0.04% × (315 − skill)`, which is 0.6% at 300 [F] client
-  UI ([SkillsFrame][ui-skills]).
+  UI ([SkillsFrame][ui-skills]); [?] in combat.
 - **Aura part.** `min(auraCrit, 1.8%)`, where auraCrit is crit gained from auras (talents,
   gear `Equip:` crit, buffs, consumables). Measured ~1.8% ±0.17 over 60k hits [C]
   ([Magey crit suppression][magey-crit]). In `forever`, gear crit is a *rating*
@@ -363,10 +395,12 @@ Against a +3 boss, table crit = sheet crit − (skill part) − (aura part):
 - **Specials** never take the penalty [C] ([AMR][amr-hit]).
 - **Heroic Strike / Cleave queued.** While an on-next-swing ability is queued on the main
   hand, off-hand white swings use the single-weapon miss chance, with no +19%. Blizzard
-  confirmed this for vanilla and TBC [C] (forum post linked from
-  [magey/forever-warrior#2][fw-2]). It is still present in Forever: a level-20 beta test
-  measured 5.19% off-hand miss while queued vs 18.27% unqueued (77 vs 394 swings, small
-  sample) [F] ([magey/forever-warrior#2][fw-2]).
+  confirmed this for vanilla and TBC, and classified it "not a bug" for Classic in 2019 [C]
+  ([Blizzard forum][bnet-hsq], linked from [magey/forever-warrior#2][fw-2]). Both profiles keep
+  it. A third-party level-20 beta test found it still present in Forever: 5.19% off-hand miss
+  while queued vs 18.27% unqueued (77 vs 394 swings, small sample, addon-based) [?]
+  ([magey/forever-warrior#2][fw-2]); a guild repeat would make it [F]
+  ([Open questions](#open-questions)).
   - Implement it as a flag on the off-hand swing: `dwPenalty = dualWielding &&
     !mainHandQueue.active`. The main-hand queued ability itself is a special (§3).
   - Forever adds off-hand-only hit (`CR_HIT_OFFHAND_MELEE_TOOLTIP`, from Dual Wield
@@ -381,12 +415,12 @@ Hit cap = the +hit % that brings miss to 0 on that table.
 
 | Case | `forever` @300 | `classicEra` @300 | `classicEra` @305 | Source |
 | --- | --- | --- | --- | --- |
-| Specials; 2H or single-weapon white | **8%** | 9% | 6% | [F] [gs][gs-forever]; [C] [Magey][magey-at] |
-| Dual-wield white | **27%** | 28% | 25% | [F] [gs][gs-forever]; [C] [Magey][magey-at] |
-| Off-hand white while HS/Cleave is queued | 8% | 9% | 6% | [F] [fw-2]; [C] [Magey][magey-at] |
-| Spells vs +3 | **17%** | 16% | 16% | [F] [gs][gs-forever]; [C] [AMR][amr-hit] |
-| Melee vs an equal-level mob | 5% | 5% | – | [F] [gs][gs-forever]; [C] |
-| Spells vs an equal-level mob | 4% | 3% | – | [F] [gs][gs-forever]; [C] (1% floor) |
+| Specials; 2H or single-weapon white | **8%** | 9% | 6% | [F] tooltip [gs][gs-forever], [?] in combat; [C] [Magey][magey-at] |
+| Dual-wield white | **27%** | 28% | 25% | [F] tooltip [gs][gs-forever], [?] in combat; [C] [Magey][magey-at] |
+| Off-hand white while HS/Cleave is queued | 8% | 9% | 6% | [C] rule ([bnet-hsq]; [Magey][magey-at]); Forever: third-party test agrees [?] ([fw-2]) |
+| Spells vs +3 | **17%** | 16% | 16% | [F] tooltip [gs][gs-forever], [?] in combat; [C] [AMR][amr-hit] |
+| Melee vs an equal-level mob | 5% | 5% | – | [F] tooltip [gs][gs-forever]; [C] |
+| Spells vs an equal-level mob | 4% | 3% | – | [F] tooltip [gs][gs-forever], [?] in combat; [C] (1% floor) |
 
 **In rating terms** (10 Hit Rating = 1%, as displayed, [§10](#10-ratings)):
 
@@ -397,8 +431,10 @@ Hit cap = the +hit % that brings miss to 0 on that table.
 | Spells vs +3 | **170** | 160 |
 
 **One hit stat for both tables.** In Forever, melee, ranged and spell hit are one stat on gear
-[F] ([Blizzard Deep Dive][bz-deepdive]). The client has one "Hit Rating" item stat, and its
-CombatRatings rows for melee, ranged and spell hit are all 10 per 1% [F] ([wf-cr]). The sim
+[F] ([Blizzard Deep Dive][bz-deepdive]). The foreverchanges item data shows it: Classic items'
+melee-hit and spell-hit lines both became the one "Hit Rating" stat [F]
+([items dataset][items-ratings]). The client's CombatRatings rows for melee, ranged and spell hit
+are all 10 per 1% as read by wowsims ([wf-cr], secondary; corroboration only). The sim
 therefore feeds one gear hit % into §2, §3 and §9. Whether 10 rating really gives 1% in
 **both** tables in combat vs a level-63 boss hasn't been measured [?]. Class talents may still
 add hit to only one kind.
@@ -417,7 +453,9 @@ What the Forever client **says** [F] (displayed text; not a measured combat effe
   (`TOOLTIP_ITEM_STAT_EXPERTISE_PCT_INCREASE`). Character sheet: "Increase the chance Melee
   attacks are not Dodged or Parried by X", listing raid-boss dodge 6.50% / parry 16.50%
   (`CR_EXPERTISE_TOOLTIP`) ([gs][gs-forever]).
-- Conversion as displayed: **10 Expertise Rating = 1%** (CombatRatings, [§10](#10-ratings)).
+- Conversion: **10 Expertise Rating = 1%** [?]. The item tooltip template prints a percentage,
+  but foreverchanges' item data shows only "+N Expertise Rating", so the ratio comes only from
+  the client gametable as read by wowsims ([§10](#10-ratings)).
   Sources in or near the pre-raid pool: Adaptive Combat Assistant +20 rating (2%), a Tier 1
   4-piece tank bonus of 12 rating (1.2%), and the Flask of Natural Precision at 5% (Hyjal
   zones only) [F] ([items dataset](../data/items.md#forevers-ratings-f-with-open-questions);
@@ -427,7 +465,9 @@ What is **not known** [?]: what expertise does in combat.
 
 - **Hypothesis A (sim default):** it subtracts `E` percentage points from the boss's dodge
   **and** from its parry, clamping each at 0, on melee attacks (white and yellow). This is the
-  literal reading of the Forever tooltips.
+  literal reading of the Forever tooltips. Per
+  [D12](../decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)
+  the `forever` profile applies it, and `unmeasuredRatings: 'ignore'` sets `E = 0`.
 - **Hypothesis B:** it works like extra weapon skill. Forever replaced weapon skill with
   Expertise Rating on two low-level items at inconsistent ratios (Dwarven Tree Chopper
   "+2 two-handed axes" → "+6 Expertise Rating"; Servomechanic Sledgehammer "+7" → "+1 skill,
@@ -459,12 +499,12 @@ miss → dodge → parry → block → crit → crushing → hit
 
 | Outcome | Formula vs a level-63 boss | Tag / source |
 | --- | --- | --- |
-| Miss | `5% + (Df − 315) × 0.04%` (clamped ≥ 0) | [F] `GetEnemyChanceToMiss` ([stats Lua][ui-stats]); [C] ([Magey][magey-at] "target is a player") |
+| Miss | `5% + (Df − 315) × 0.04%` (clamped ≥ 0) | [F] client UI `GetEnemyChanceToMiss` ([stats Lua][ui-stats]); in combat [C] (unchanged; [Magey][magey-at] "target is a player") |
 | Dodge | `sheetDodge − 0.6%` (the sheet assumes a level-60 attacker; each point of attacker skill above 300 costs 0.04%) | [C] ([Magey][magey-at]) |
 | Parry (front, can parry) | `sheetParry − 0.6%` | [C] ([Magey][magey-at]) |
 | Block (front, shield) | `sheetBlock − 0.6%` | [C] ([Magey][magey-at]) |
-| Crit | `max(0, 5% + (315 − Df) × 0.04%)`: 5.6% at 300, **0 at 440 defense** | [F] `GetEnemyCritChance` ([stats Lua][ui-stats]); tooltip "At 440 Defense, cannot be Critically Hit by Raid Bosses (-5.60% Critical Strike chance)" ([gs][gs-forever]) |
-| Crushing | `(315 − min(Df, 300)) × 2% − 15%` = **15%** vs a boss whatever your defense; only from attackers 3+ levels above | [F] `GetEnemyCrushingBlowChance` ([stats Lua][ui-stats]); tooltip ([gs][gs-forever]) |
+| Crit | `max(0, 5% + (315 − Df) × 0.04%)`: 5.6% at 300, **0 at 440 defense** | [F] client UI `GetEnemyCritChance` ([stats Lua][ui-stats]); tooltip "At 440 Defense, cannot be Critically Hit by Raid Bosses (-5.60% Critical Strike chance)" ([gs][gs-forever]); in combat [C] (the Classic rule, unchanged) |
+| Crushing | `(315 − min(Df, 300)) × 2% − 15%` = **15%** vs a boss whatever your defense; only from attackers 3+ levels above | [F] client UI `GetEnemyCrushingBlowChance` ([stats Lua][ui-stats]); tooltip ([gs][gs-forever]); in combat [C] (the Classic rule, unchanged) |
 | Hit | remainder | |
 
 - **Multipliers:** creature crit ×2.0; crushing blow ×1.5 [F] tooltip
@@ -503,11 +543,11 @@ covers the generic table.
 | --- | --- | --- |
 | Base spell miss vs level +0 / +1 / +2 / +3 | 4% / 5% / 6% / **17%** | [F] `spellMissChances = {4,5,6,17}` ([stats Lua][ui-stats]); [C] ([AMR][amr-hit]) |
 | Floor ("always 1% miss") | `classicEra`: 1% (max 99% hit, cap 16% vs +3) | [C] ([AMR][amr-hit]) |
-| | `forever`: 0% (tooltip "To never miss Raid Bosses: 17.00% Spells"; equal-level cap 4.00%) | [F] tooltip ([gs][gs-forever]); unverified, see [Open questions](#open-questions) |
+| | `forever`: 0% (tooltip "To never miss Raid Bosses: 17.00% Spells"; equal-level cap 4.00%) | [F] tooltip ([gs][gs-forever]); [?] in combat, see [Open questions](#open-questions) |
 | Spell hit from gear | same hit % as melee (unified stat) | [F] ([Blizzard Deep Dive][bz-deepdive]) |
-| Roll structure | roll 1 hit/miss; roll 2 crit on landed spells | [C] ([WarriorSim `rollmagicspell`][ws-player]) |
+| Roll structure | roll 1 hit/miss; roll 2 crit on landed spells | [C] (the pre-SoD WarriorSim's `magicproc`: a miss roll, then a crit roll, [ws-player]) |
 | Spell crit damage | ×1.5 ("Spell and Healing critical strikes are 50% more effective") | [F] tooltip `STAT_CRIT_BONUS` ([gs][gs-forever]); [C] |
-| Spell crit suppression vs +3 | none | [C] (WarriorSim applies none, [ws-player]). An SoD sim uses 2.1%; **not adopted**, see [Open questions](#open-questions) |
+| Spell crit suppression vs +3 | none | [C] (the pre-SoD WarriorSim applies none, [ws-player]). An SoD sim uses 2.1%; **not adopted**, see [Open questions](#open-questions) |
 | Dodge / parry / block / glancing | never, for spells | [C] |
 
 **Resistances (non-Holy schools)** [C]:
@@ -525,9 +565,10 @@ covers the generic table.
   only affects nature/fire/shadow procs (e.g. item procs) in these specs.
 - Resistance reduction caps at 75% (`R = 5 × level`) [C]; [F] ([Warcraft Tavern stats][wt-stats]).
 - **Forever:** spell penetration can push a target **below 0** resistance ("Spell
-  Vulnerability"), which increases the spell damage it takes [F] tooltip
-  `SPELL_PENETRATION_TOOLTIP` ([gs][gs-forever]). A negative `R` gives a negative
-  `avgResist`, which increases damage.
+  Vulnerability"), which increases the spell damage it takes [F] tooltip text
+  `SPELL_PENETRATION_TOOLTIP` ([gs][gs-forever]); in combat [?], like negative armor
+  ([damage-and-timing OQ 12](damage-and-timing.md#open-questions)). A negative `R` gives a
+  negative `avgResist`, which increases damage.
 
 **Holy:** there is no Holy resistance, so Holy damage is never partially resisted [C];
 [F] (Holy isn't among the resistances, [Warcraft Tavern stats][wt-stats]). Holy spells still
@@ -540,8 +581,8 @@ roll spell hit and can miss [C].
 Forever rewrites Classic's percentage stats on items as **combat ratings**: Hit, Crit, Haste,
 Expertise, Dodge, Parry, Block and Defense, plus new Armor Penetration and Health Regeneration
 stats. The in-game item tooltips show them as percentages again [F] (`TOOLTIP_ITEM_STAT_*_PCT_*`
-strings, [gs][gs-forever]). Two independent Forever sources give the same conversions, and they
-don't vary with level:
+strings, [gs][gs-forever]). The foreverchanges item data gives the conversions for the old stats,
+and a secondary read of the client gametable agrees; neither varies with level:
 
 | Rating | Per 1% (or per defense point) | Tooltip-ratio samples (items dataset) | Tag / source |
 | --- | --- | --- | --- |
@@ -551,14 +592,16 @@ don't vary with level:
 | Parry | 15 | 7 (plus one item at 21) | [F] as displayed |
 | Block | 5 | 11 | [F] as displayed |
 | Defense | 1 rating = 1 defense skill | 69 | [F] as displayed |
-| Haste | 10 | – (new stat) | [F] gametable only ([wf-cr]) |
-| Expertise | 10 | – (new stat) | [F] gametable only ([wf-cr]) |
+| Haste | 10 | – (new stat) | [?] gametable only, as read by wowsims ([wf-cr]); applied by hypothesis (D12) |
+| Expertise | 10 | – (new stat) | [?] gametable only, as read by wowsims ([wf-cr]); applied by hypothesis (D12) |
 
 - The first source is the item diffs: for every changed item whose Classic tooltip had one
   percentage stat and whose Forever tooltip has the rating instead, rating ÷ old value
   ([items dataset][items-ratings]; [foreverchanges items][fc-items]).
 - The second is the client's `CombatRatings` gametable as extracted by wowsims on 2026-09-20.
-  It has the same value at levels 1 through 60 and beyond ([wf-cr]).
+  It has the same value at levels 1 through 60 and beyond ([wf-cr]). It is a secondary source
+  (doctrine §2), so it corroborates the item ratios and is the only source for haste and
+  expertise [?].
 - **In combat** [?]: whether 14 rating really adds exactly 1% crit against a level-63 boss,
   whether 10 hit rating is 1% in both the melee and the spell table, and whether 1 Defense
   Rating is exactly 1 defense skill have not been measured. The sim assumes the displayed
@@ -573,22 +616,22 @@ don't vary with level:
 
 | Topic | Classic Era | Forever | Tag / source |
 | --- | --- | --- | --- |
-| Hit/crit stats | separate melee, ranged and spell hit and crit | one hit stat and one crit stat for all attacks and spells; ratings on gear | [F] [Blizzard Deep Dive][bz-deepdive]; [wf-cr] |
-| Raid-boss hit cap @300 | 9% melee, 28% DW, 16% spell | **8% / 27% / 17%** | [F] tooltip [gs][gs-forever] |
-| Hit suppression | 1% at 300 skill | none implied | [F] tooltip; untested [fw-1] |
-| Weapon skill per point | 0.1–0.2% miss, 0.1% dodge, 0.2% crit (below 300 only) | 0.04% hit, dodge, parry and crit | [F] client UI [SkillsFrame][ui-skills] |
+| Hit/crit stats | separate melee, ranged and spell hit and crit | one hit stat and one crit stat for all attacks and spells; ratings on gear | [F] [Blizzard Deep Dive][bz-deepdive]; [items-ratings]; in combat [?] |
+| Raid-boss hit cap @300 | 9% melee, 28% DW, 16% spell | **8% / 27% / 17%** | [F] tooltip [gs][gs-forever]; [?] in combat |
+| Hit suppression | 1% at 300 skill | none implied | [F] tooltip; [?] in combat (untested, [fw-1]) |
+| Weapon skill per point | 0.1–0.2% miss, 0.1% dodge, 0.2% crit (below 300 only) | 0.04% hit, dodge, parry and crit | [F] client UI [SkillsFrame][ui-skills]; [?] in combat |
 | Weapon-skill sources | racials +5, Edgemaster's +7, etc. | racials give crit instead; Edgemaster's +1 | [F] [fc-racials]; [wt-skill] |
-| Boss parry | 14% | **16.5%** | [F] tooltip [gs][gs-forever] |
-| Glancing damage @300 | 35% penalty | 25% penalty (UI formula); beta currently broken | [F] [SkillsFrame][ui-skills]; [fw-1] |
-| Crit suppression vs +3 | 4.8% | 0.6% skill part + 1.8% [?] | [F]/[?] |
-| Expertise | none | new stat, displayed as dodge/parry reduction (10 rating = 1%); combat effect [?] | [F] [bz-deepdive]; [gs][gs-forever]; [items-ratings] |
+| Boss parry | 14% | **16.5%** | [F] tooltip [gs][gs-forever]; [?] in combat |
+| Glancing damage @300 | 35% penalty | 25% penalty (UI formula); beta reported broken | [F] client UI [SkillsFrame][ui-skills]; [?] in combat; broken [?] (third-party, [fw-1]) |
+| Crit suppression vs +3 | 4.8% | 0.6% skill part + 1.8% [?] | skill part [F] client UI, [?] in combat; aura part [?] |
+| Expertise | none | new stat, displayed as dodge/parry reduction; 10 rating = 1% and the combat effect are [?] (applied by hypothesis, D12) | [F] [bz-deepdive]; [gs][gs-forever]; [items-ratings] |
 | Stats on items | percentages ("+1% crit") | ratings (14 crit, 10 hit, 12 dodge, 15 parry, 5 block, 1 defense per unit) | [F] as displayed [items-ratings]; combat [?] |
-| Spell 1% miss floor | yes | tooltip implies none | [F] tooltip [gs][gs-forever] |
-| Negative resistance | floored at 0 | allowed ("Spell Vulnerability") | [F] tooltip [gs][gs-forever] |
-| HS/Cleave queue removes the OH DW penalty | yes | yes (beta test) | [F] [fw-2] |
-| Defense 440 uncrittable; crushing 15% ×1.5; creature crit ×2 | yes | yes (unchanged) | [F] [gs][gs-forever] |
-| Glancing chance 40% | yes | yes (unchanged) | [F] [SkillsFrame][ui-skills] |
-| Boss dodge 6.5% | yes | yes (unchanged) | [F] [gs][gs-forever] |
+| Spell 1% miss floor | yes | tooltip implies none | [F] tooltip [gs][gs-forever]; [?] in combat |
+| Negative resistance | floored at 0 | allowed ("Spell Vulnerability") | [F] tooltip text [gs][gs-forever]; in combat [?] |
+| HS/Cleave queue removes the OH DW penalty | yes | yes, kept from Classic; a third-party beta test agrees | [C]; Forever [?] [fw-2] |
+| Defense 440 uncrittable; crushing 15% ×1.5; creature crit ×2 | yes | yes (unchanged) | [F] tooltip [gs][gs-forever]; in combat [C] |
+| Glancing chance 40% | yes | yes (unchanged) | [F] client UI [SkillsFrame][ui-skills]; in combat [C] |
+| Boss dodge 6.5% | yes | yes (unchanged) | [F] tooltip [gs][gs-forever]; in combat [C] |
 
 No Forever change found for: the single-roll white table order, glancing only on white
 swings, dodge from any direction vs parry/block from the front only, the +19% dual-wield
@@ -637,11 +680,18 @@ function resolveWhite(attacker, target, hand, ctx):
 ```
 function resolveSpecial(attacker, target, ability, ctx):
   p = outcomes(..., dwPenalty = false, white = false)      // glance = 0
-  o = rollOne([MISS, DODGE, PARRY, BLOCK], p)              // same truncating loop
+  p[CRIT] += ability.bonusCrit
+  if ability.weaponDamage:                                 // one roll (§3)
+    o = rollOne([MISS, DODGE, PARRY, BLOCK, CRIT], p)      // same truncating loop as white
+    return {o == CRIT ? HIT : o, crit: o == CRIT}
+  o = rollOne([MISS, DODGE, PARRY, BLOCK], p)              // "melee spell": roll 1
   if o in {MISS, DODGE, PARRY}: return {o}
-  crit = rng.uniform(0,100) < clamp(p[CRIT] + ability.bonusCrit, 0, 100)
+  crit = rng.uniform(0,100) < clamp(p[CRIT], 0, 100)       // roll 2
   return {o == BLOCK ? BLOCK : HIT, crit}
 ```
+
+`ability.weaponDamage` comes from the ability's client effects (17, 58, 121 or 31); the class
+docs list it.
 
 Edge cases:
 
@@ -676,13 +726,22 @@ profile.
 | Crit | 25 − 0.6 − 1.8 = **22.60** | 25 − 3.0 − 1.8 = **20.20** |
 | Hit | 100 − 21 − 6.5 − 40 − 22.6 = **9.90** | **11.30** |
 
-**WE-2: yellow special, same character (behind)**
+**WE-2: yellow specials, same character (behind)**
+
+A weapon-damage special (e.g. Heroic Strike or Mortal Strike): one roll.
 
 | | `forever` | `classicEra` |
 | --- | --- | --- |
-| Roll 1 miss | 8 − 6 = **2.00** | 8 − (6 − 1) = **3.00** |
-| Roll 1 dodge | 6.50 | 6.50 |
-| Lands | 91.50 | 90.50 |
+| Miss | 8 − 6 = **2.00** | 8 − (6 − 1) = **3.00** |
+| Dodge | 6.50 | 6.50 |
+| Crit (same roll, no glancing; cap 91.50 / 90.50) | **22.60** | **20.20** |
+| Hit | 100 − 2 − 6.5 − 22.6 = **68.90** | **70.30** |
+
+A melee spell (Bloodthirst): two rolls.
+
+| | `forever` | `classicEra` |
+| --- | --- | --- |
+| Roll 1 lands | 100 − 2 − 6.5 = 91.50 | 90.50 |
 | Roll 2 crit (of landed) | 22.60 | 20.20 |
 | Crit (of all attempts) | 91.5 × 0.226 = **20.679** | 90.5 × 0.202 = **18.281** |
 
@@ -690,7 +749,8 @@ profile.
 
 miss 0, dodge 6.5, glance 40 → white crit cap = 100 − 0 − 6.5 − 40 = **53.50**. Table crit
 = 58 − 2.4 = 55.6, truncated to **53.50**, so hit = **0**. Sheet crit beyond 53.5 + 2.4 =
-**55.9%** is wasted on white swings but still counts for specials (roll 2).
+**55.9%** is wasted on white swings but still counts for specials: a weapon-damage special's cap
+is 100 − 0 − 6.5 = 93.5 (no glancing), and a melee spell's roll 2 isn't capped.
 
 **WE-4: attacking from the front (tank-style), 1H + shield, 300 skill, 5% hit (50 rating), sheet crit 10%, expertise 1.2% (12 rating; hypothesis A, [§7](#7-expertise-forever))**
 
@@ -758,8 +818,10 @@ with 17% miss and 0% hit: resist chance = 0.17 + 0.83 × 0.06 = **0.2198**.
 
 ## Open questions
 
-Each item names the test that would settle it. The beta is capped at level 20 (rising to
-30) ([wowsod.pro recap][wowsod]), so level-60 values can't be measured yet. The `+3`
+Each item names the test that would settle it. Items 1–5 and 7 are the `forever` profile's
+client-UI values: [F] for what the client shows, [?] in combat until one of these tests settles
+them (doctrine §2). The beta is capped at level 20 (rising to 30)
+([wowsod.pro recap][wowsod]), so level-60 values can't be measured yet. The `+3`
 relationship can be tested by any character against mobs 3 levels higher, whose defense is
 `5 × level`. Magey's group is running exactly this sweep ([magey/forever-warrior#1][fw-1]);
 adopt its results when they land.
@@ -779,9 +841,12 @@ adopt its results when they land.
 5. **Crit suppression** [?]. The skill part (0.6% vs 3%) and the 1.8% aura part are both
    unverified in Forever. Test: white crit rate vs +3 mobs with known sheet crit (Magey's
    crit-suppression method, [magey-crit]).
-6. **Special attack crit: two rolls vs one** [?]. We default to Classic's two rolls; WarriorSim
-   uses one roll for weapon-damage specials. Test: Heroic Strike crit rate vs +3 mobs with a
-   high avoidance total.
+6. **Special attack rolls** [?] for Forever. The default is the Classic Era split [C]: one roll
+   for weapon-damage specials, two for melee spells (Bloodthirst, Execute, Shield Slam, Revenge).
+   Open: does Forever keep it; and how do other classes' non-weapon specials (Ferocious Bite,
+   Swipe, Rake's initial hit, damage judgements) map onto it? Test: Heroic
+   Strike vs Bloodthirst crit rate from the front vs +3 mobs with a high avoidance total: one
+   roll gives crits ÷ attempts ≈ table crit; two rolls give crits ÷ landed ≈ table crit.
 7. **Spell miss floor** [?]. Does 17% spell hit give 0% miss (tooltip) or 1% (Classic Era)?
    Only testable at 60 with 17% hit; low priority for these specs.
 8. **Level-based spell resistance** [?]. Classic sources say 24 (WarriorSim) or ~15 for a
@@ -802,11 +867,15 @@ adopt its results when they land.
     wowsims reports no item carrying the expertise stat index ([wf-34]). Recheck when the item
     snapshot is refreshed.
 16. **What expertise does in combat** [?]: hypothesis A (dodge/parry −E points, the sim
-    default) vs hypothesis B (acts like weapon skill). Test: with the Adaptive Combat Assistant
-    (+20 rating = 2%) on vs off, log dodges (from behind) and parries (from the front) vs +3
-    mobs. A predicts −2.0 points on each; B predicts a small change in miss and glancing too.
+    default per D12) vs hypothesis B (acts like weapon skill). Test at 60: with the Adaptive
+    Combat Assistant (+20 rating = 2%; it requires level 60) on vs off, log dodges (from behind)
+    and parries (from the front) vs +3 mobs. A predicts −2.0 points on each; B predicts a small
+    change in miss and glancing too. Under the beta cap, the Dwarven Tree Chopper (+6 rating,
+    item level 20, no level requirement in its Forever tooltip) predicts −0.6 points, which
+    needs a much larger sample.
 17. **Do the displayed rating conversions hold in combat?** [?] (14 crit / 10 hit / 12 dodge /
-    15 parry / 5 block per 1%; 1 defense rating = 1 defense.) Test: compare the character-sheet
+    15 parry / 5 block per 1%; 1 defense rating = 1 defense; and the gametable-only 10 haste and
+    10 expertise per 1%.) Test: compare the character-sheet
     crit/hit/dodge/parry/block % before and after equipping a rating item. The sheet reads
     server values. Then spot-check the crit rate vs +3 mobs.
 18. **Does one hit rating apply fully to the spell table?** [?] Test: a caster's resist rate
@@ -815,6 +884,13 @@ adopt its results when they land.
 19. **How much weapon skill does Forever pre-raid gear carry?** Most Classic weapon-skill
     pre-raid items have no Forever data yet ([items dataset][items-ratings]). Refresh the item
     snapshot as the server sends them.
+20. **Negative resistance in combat** [?]: the "Spell Vulnerability" tooltip is client text;
+    [damage-and-timing OQ 12](damage-and-timing.md#open-questions) has the matching armor test.
+    Only magic procs and paladin Holy damage care.
+21. **Heroic Strike queue and the off-hand penalty in Forever** [?]. A third-party beta test
+    (77 queued vs 394 unqueued off-hand swings) found the Classic rule still in place
+    ([fw-2]); both profiles keep it. Test: a guild repeat with ≥1,000 off-hand swings per state
+    vs +3 mobs.
 
 ---
 
@@ -822,23 +898,26 @@ adopt its results when they land.
 
 | Ref | Source | Covers | Ruleset |
 | --- | --- | --- | --- |
-| [ui-forever] | Gethe/wow-ui-source, branch `forever` (1.60.1.69913), <https://github.com/Gethe/wow-ui-source/tree/forever> | Forever client Lua (character sheet, skills panel) | [F] client data |
-| [ui-stats] | `Camelot/PaperDollFrameStats.lua`, <https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_UIPanels_Game/Camelot/PaperDollFrameStats.lua> | enemy miss, crit and crushing vs defense; boss dodge base; spell miss by level; block value per Strength | [F] |
-| [ui-skills] | `Camelot/SkillsFrame.lua`, <https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_UIPanels_Game/Camelot/SkillsFrame.lua> | weapon skill → hit/dodge/parry/crit, glancing chance and penalty | [F] |
-| [gs-forever] | Ketho/BlizzardInterfaceResources `forever` GlobalStrings enUS, <https://github.com/Ketho/BlizzardInterfaceResources/blob/forever/Resources/GlobalStrings/enUS.lua> | hit-cap, expertise, defense, crit, dodge, parry, block, armor-pen and spell-pen tooltips | [F] |
+| [ui-forever] | Gethe/wow-ui-source, branch `forever` (1.60.1.69913), <https://github.com/Gethe/wow-ui-source/tree/forever> | Forever client Lua (character sheet, skills panel) | [F] client data (verbatim mirror): what the client displays or computes; combat behaviour [?] until measured |
+| [ui-stats] | `Camelot/PaperDollFrameStats.lua`, <https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_UIPanels_Game/Camelot/PaperDollFrameStats.lua> | enemy miss, crit and crushing vs defense; boss dodge base; spell miss by level; block value per Strength | [F] client data (verbatim mirror): what the client displays or computes; combat behaviour [?] until measured |
+| [ui-skills] | `Camelot/SkillsFrame.lua`, <https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_UIPanels_Game/Camelot/SkillsFrame.lua> | weapon skill → hit/dodge/parry/crit, glancing chance and penalty | [F] client data (verbatim mirror): what the client displays or computes; combat behaviour [?] until measured |
+| [gs-forever] | Ketho/BlizzardInterfaceResources `forever` GlobalStrings enUS, <https://github.com/Ketho/BlizzardInterfaceResources/blob/forever/Resources/GlobalStrings/enUS.lua> | hit-cap, expertise, defense, crit, dodge, parry, block, armor-pen and spell-pen tooltips | [F] client data (verbatim mirror): what the client displays or computes; combat behaviour [?] until measured |
 | [gs-era] | same repo, branch `classic_era`, <https://github.com/Ketho/BlizzardInterfaceResources/blob/classic_era/Resources/GlobalStrings/enUS.lua> | control: Classic Era 1.15.9 has none of the Forever tooltip numbers | [C] |
-| [wf-cr] | wowsims/forever `assets/db_inputs/basestats/combatratings.txt` (commit c65434c), <https://github.com/wowsims/forever/blob/master/assets/db_inputs/basestats/combatratings.txt> | Forever CombatRatings gametable | [F] client data (extraction by wowsims) |
-| [wf-34] | wowsims/forever issue #34, <https://github.com/wowsims/forever/issues/34> | expertise sources and aura types in the Forever client | [F] client data (their core is TBC-based; only the client findings are used) |
-| [wf-spelldata] | wowsims/forever generated spell data, e.g. <https://github.com/wowsims/forever/blob/master/sim/warrior/spell_data_auto_gen.go> | per-spell DefenseType, GCD, effects | [F] client data |
-| [fw-1] | magey/forever-warrior issue #1 "Attack table", <https://github.com/magey/forever-warrior/issues/1> | Forever test plan; glancing damage broken on beta; Classic two-roll specials | [F] measured (in progress) / [C] |
-| [fw-2] | magey/forever-warrior issue #2, <https://github.com/magey/forever-warrior/issues/2> | HS/Cleave queue removes the OH DW penalty in Forever (beta test) | [F] measured |
+| [wf-cr] | wowsims/forever `assets/db_inputs/basestats/combatratings.txt` (commit c65434c), <https://github.com/wowsims/forever/blob/master/assets/db_inputs/basestats/combatratings.txt> | Forever CombatRatings gametable | [?] secondary (client gametable extracted by wowsims) |
+| [wf-34] | wowsims/forever issue #34, <https://github.com/wowsims/forever/issues/34> | expertise sources and aura types in the Forever client | [?] secondary (their core is TBC-based; only the client findings are used) |
+| [wf-spelldata] | wowsims/forever generated spell data, e.g. <https://github.com/wowsims/forever/blob/master/sim/warrior/spell_data_auto_gen.go> | per-spell DefenseType, GCD, effects | [?] secondary (corroboration of the class docs' own reads) |
+| [fw-1] | magey/forever-warrior issue #1 "Attack table", <https://github.com/magey/forever-warrior/issues/1> | Forever test plan; glancing damage reported broken on beta; asks whether crit is still two-roll | [?] third-party (in progress) |
+| [fw-2] | magey/forever-warrior issue #2, <https://github.com/magey/forever-warrior/issues/2> | HS/Cleave queue removes the OH DW penalty in Forever (beta test) | [?] third-party measurement |
+| [bnet-hsq] | Blizzard forums, "Off-hand swings with HS/Cleave queued don't suffer DW miss penalty" (2019), <https://us.forums.blizzard.com/en/wow/t/off-hand-swings-with-hs-cleave-queued-dont-suffer-dw-miss-penalty/309417> | classified "not a bug" for Classic | [C] |
 | [magey-at] | Magey et al., Classic warrior wiki "Attack table", <https://github.com/magey/classic-warrior/wiki/Attack-table> | miss, dodge, parry, block, glancing, crit, DW, hit suppression (1.13 tests plus Blizzard quotes) | [C] |
 | [magey-crit] | Magey, "Crit aura suppression", <https://github.com/magey/classic-warrior/wiki/Crit-aura-suppression> | 1.8% aura-crit suppression vs +3 | [C] |
 | [marrow-mech] | Marrow's Compendium of Dragonslaying, ch. 3, <https://bookdown.org/marrowwar/marrow_compendium/mechanics.html> | Classic white/yellow table, glancing, weapon skill table | [C] |
 | [amr-hit] | Ask Mr. Robot, "Hit Rating and Hit Caps in WoW Classic" (2020), <https://forums.askmrrobot.com/t/hit-rating-and-hit-caps-in-wow-classic/8614> | Classic caps, dodge/parry/block vs boss, spell miss | [C] |
-| [zam-hit] | ZAM wiki "Hit Table", <https://wow.allakhazam.com/wiki/Hit_Table_(WoW)> | two-roll specials, block + crit on specials | [C] (vanilla-era wiki; consistent with Magey) |
-| [ws-repo] | GuybrushGit/WarriorSim (Classic mode), <https://github.com/GuybrushGit/WarriorSim> | Classic Era warrior sim defaults (target resistance 24, armor presets) | [C] (the repo also has SoD mode; only Classic mode is used) |
-| [ws-player] | WarriorSim `js/classes/player.js`, <https://github.com/GuybrushGit/WarriorSim/blob/master/js/classes/player.js> | roll functions, glance, miss, crit suppression implementation | [C] |
+| [zam-hit] | ZAM wiki "Hit Table", <https://wow.allakhazam.com/wiki/Hit_Table_(WoW)> | two-roll specials, block + crit on specials | **Forbidden** (vanilla-era wiki); cited only to explain the refusal |
+| [ws-repo] | GuybrushGit/WarriorSim `index.html` at pre-SoD commit `180a3cc` (2021-05-11), <https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/index.html> | Classic warrior sim defaults (target resistance 24) | [C] (pre-SoD) |
+| [ws-player] | WarriorSim `js/classes/player.js` at `180a3cc`, <https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/player.js> | roll functions (`rollspell`: one roll for weapon spells, two for Bloodthirst and Execute; `magicproc`), glance, miss, crit suppression | [C] (pre-SoD) |
+| [ws-issue20] | WarriorSim issue #20, "Special Attack Crit Rate lower than White Attack Crit Rate" (2020-05), <https://github.com/GuybrushGit/WarriorSim/issues/20> | relays the Fight Club #dps-tc log finding: only Bloodthirst, Execute, Shield Slam and Revenge roll twice | [C] (Classic 2020, community logs) |
+| [ws-singleroll] | WarriorSim commit 474f8b8, "Weapon spells single roll" (2020-05-08), <https://github.com/GuybrushGit/WarriorSim/commit/474f8b8913> | implements the finding | [C] (pre-SoD) |
 | [bz-deepdive] | Blizzard, "World of Warcraft: Forever Deep Dive Panel Recap", <https://news.blizzard.com/en-us/article/24303313/world-of-warcraft-forever-deep-dive-panel-recap> | unified hit/crit, weapon skill, expertise-like stat | [F] official |
 | [fc-racials] | foreverchanges.pro racials, <https://foreverchanges.pro/racials> | weapon-skill racials → crit | [F] |
 | [fc-items] | foreverchanges.pro items, <https://foreverchanges.pro/items> (changed.json) | rating values replacing Classic % stats | [F] |
@@ -864,8 +943,11 @@ adopt its results when they land.
 [marrow-mech]: https://bookdown.org/marrowwar/marrow_compendium/mechanics.html
 [amr-hit]: https://forums.askmrrobot.com/t/hit-rating-and-hit-caps-in-wow-classic/8614
 [zam-hit]: https://wow.allakhazam.com/wiki/Hit_Table_(WoW)
-[ws-repo]: https://github.com/GuybrushGit/WarriorSim
-[ws-player]: https://github.com/GuybrushGit/WarriorSim/blob/master/js/classes/player.js
+[ws-repo]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/index.html
+[ws-player]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/player.js
+[ws-issue20]: https://github.com/GuybrushGit/WarriorSim/issues/20
+[ws-singleroll]: https://github.com/GuybrushGit/WarriorSim/commit/474f8b8913
+[bnet-hsq]: https://us.forums.blizzard.com/en/wow/t/off-hand-swings-with-hs-cleave-queued-dont-suffer-dw-miss-penalty/309417
 [bz-deepdive]: https://news.blizzard.com/en-us/article/24303313/world-of-warcraft-forever-deep-dive-panel-recap
 [fc-racials]: https://foreverchanges.pro/racials
 [fc-items]: https://foreverchanges.pro/items

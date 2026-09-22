@@ -44,8 +44,9 @@ disallows automated access. That download should not have happened
   Sunder uses the Forever client value. Everything else uses Classic Era values flagged `[?]`
   for Forever.
 - **Non-damage threat** ([healing, power gains and buffs](#threat-from-healing-power-gains-and-buffs)):
-  - healing: 0.5 per point of effective healing, split across enemies;
-  - power gains: 5 per rage or energy and 0.5 per mana, split, with no multipliers;
+  - healing: 0.5 per point of effective healing, split across enemies [C];
+  - power gains: 5 per rage [C], and 5 per energy and 0.5 per mana [?], split, with no
+    multipliers;
   - buffs: a fixed amount per recipient, split;
   - debuffs: to each debuffed target only.
 - **Taunts**: raise your threat to match the highest on the target, and force its attacks for
@@ -137,10 +138,10 @@ Resulting tank multipliers:
 - Exorcism, Holy Wrath, Hammer of Wrath, Holy Shock.
 
 It does **not** amplify physical white hits, Reckoning's extra attacks, or rage/mana gain threat.
-[C] [LTC2 Paladin.lua](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Paladin.lua)
+[LTC2 Paladin.lua](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Paladin.lua)
 applies RF by school to Holy damage, **Holy heals** and **blessing casts** too. That follows from
-a school-filtered threat aura, but no Classic test confirms it for heals and buffs. Confidence:
-medium for damage, low for heals and buffs.
+a school-filtered threat aura (the DB2 school mask is [F]), but no Classic test confirms it for
+heals and buffs, and LTC2 alone is not a [C] source: RF on heals and buffs is [?].
 
 ---
 
@@ -169,6 +170,13 @@ All values are **before** global multipliers. "dmg" is the damage dealt by that 
   ([Magey table](https://github.com/magey/classic-warrior/wiki/Threat-Mechanics),
   [raw spreadsheet](https://docs.google.com/spreadsheets/d/1VLmhdNX_hZcud8Q0n2I1fPv7y8g8BHYhH_cmIkmd_-s)).
   Where LTC2's older code disagrees, **Magey's measured value wins**.
+- **Values only LibThreatClassic2 supplies are [?]**, not [C]. LTC2 is a 1.13 addon "partly
+  inherited from the TBC ThreatLib", so it is mixed-lineage (doctrine §2). A Classic Era
+  corroboration was looked for on 2026-09-22: Warcraft Tavern's
+  [Classic threat reference table](https://www.warcrafttavern.com/wow-classic/guides/threat-guide-reference-table/)
+  and an Icy Veins summary list the same numbers, but uncited and digit for digit, so they look
+  like the same lineage and aren't counted as independent. The engine still uses these values as
+  defaults.
 - **Forever:** only Sunder Armor's threat is in the client. For every other value, Forever threat
   is server-side and untested. The engine uses the Classic value, and `[?]` in the Forever column
   means "Classic value assumed".
@@ -202,10 +210,10 @@ All values are **before** global multipliers. "dmg" is the damage dealt by that 
 
 | Ability (rank, spell id) | Classic Era threat | Forever | Notes and sources |
 | --- | --- | --- | --- |
-| Maul (r7, 9881; +128 dmg) | **1.75 × dmg** [C] | [?] | [LTC2 Druid.lua](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Druid.lua). Icy Veins' Classic spell summary also gives "Maul has a 1.75x threat modifier" ([Icy Veins](https://www.icy-veins.com/wow-classic/feral-druid-tank-pve-spell-summary)). Spell unchanged [F]. |
-| Swipe (r5, 9908; 83 dmg, 3 targets) | **1.75 × dmg** per target [C] (LTC2) | [?] | Forever: Feral Instinct is +10% / +20% / +30% Swipe damage [F]. Savage Fury is +10% at 2/2. |
-| Demoralizing Roar (r5, 9898) | **39** per enemy [C] (LTC2 only, low confidence) | [?] | Forever: −193 AP [F] |
-| Faerie Fire (r4, 9907) | **108** [C] (LTC2 only, low confidence; same value for Faerie Fire (Feral) r4) | [?] | **Forever: Faerie Fire (Feral) is removed.** Plain Faerie Fire r4 can now be cast in Cat, Bear and Dire Bear Form [F] ([spellbook/druid](https://foreverchanges.pro/spellbook/druid)). The caster tooltip shows 115 mana. [druid.md](../classes/druid.md) models it in bear as free with a 6 s CD; that doc owns cost and cooldown. |
+| Maul (r7, 9881; +128 dmg) | **1.75 × dmg** [?] (LTC2 only) | [?] | [LTC2 Druid.lua](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Druid.lua). Icy Veins' Classic spell summary ([Icy Veins](https://www.icy-veins.com/wow-classic/feral-druid-tank-pve-spell-summary)) and Warcraft Tavern's Classic threat table repeat "1.75x" without a source. Spell unchanged [F]. |
+| Swipe (r5, 9908; 83 dmg, 3 targets) | **1.75 × dmg** per target [?] (LTC2 only) | [?] | Forever: Feral Instinct is +10% / +20% / +30% Swipe damage [F]. Savage Fury is +10% at 2/2. |
+| Demoralizing Roar (r5, 9898) | **39** per enemy [?] (LTC2 only) | [?] | Forever: −193 AP [F] |
+| Faerie Fire (r4, 9907) | **108** [?] (LTC2 only; same value for Faerie Fire (Feral) r4) | [?] | **Forever: Faerie Fire (Feral) is removed.** Plain Faerie Fire r4 can now be cast in Cat, Bear and Dire Bear Form [F] ([spellbook/druid](https://foreverchanges.pro/spellbook/druid)). The caster tooltip shows 115 mana. [druid.md](../classes/druid.md) models it in bear as free with a 6 s CD; that doc owns cost and cooldown. |
 | Growl (6795) | [see taunts](#taunts-and-forced-attacks) | 8 s CD [F] | — |
 | Challenging Roar (5209) | Forced attacks for 6 s | [F] unchanged | — |
 | **Mangle (Bear)** (Forever talent; 407995 / 1238069 / 1238070 / 1238073) | — | **unknown** [?]. Default: dmg × 1. | 20 rage, 6 s CD, 100% weapon damage + 77 at level 60 [F]. Hits 3 targets under Berserk. |
@@ -225,10 +233,10 @@ All values are **before** global multipliers. "dmg" is the damage dealt by that 
 | **Holy Strike** (Forever, r8 10333; 40% weapon + 81–105) | — | dmg × RF × (1 + 0.05 × Iron Creed rank) | The whole strike is Holy school (SpellMisc 2) [F] |
 | **Hammer of the Righteous** (Forever, 407632) | — | Holy dmg to up to 4 targets × RF. Any flat bonus: [?] | Holy school [F] |
 | Retribution Aura (r5) | 20 Holy per attacker hit × RF [C] | 30 × RF [F] damage | — |
-| Blessings (cast) | ≈ **spell level** per recipient, split across enemies, × RF: Might r7 / Wisdom r6 / Light r3 = 60, Kings 20, Salvation 26, Greater blessings 60 per recipient [C] (LTC2 only, low) | [?] | Matches the warrior shout pattern (Battle Shout = spell level). Out-of-combat buffing produces none. |
+| Blessings (cast) | ≈ **spell level** per recipient, split across enemies, × RF: Might r7 / Wisdom r6 / Light r3 = 60, Kings 20, Salvation 26, Greater blessings 60 per recipient [?] (LTC2 only) | [?] | Matches the warrior shout pattern (Battle Shout = spell level). Out-of-combat buffing produces none. |
 | Blessing of Sanctuary | Holy damage when the target blocks, × RF [C] | **Removed** [F] | Not in the Forever talent tree, spellbook or SpellName table |
 | Reckoning | Extra white attacks, physical × 1 [C] | Also procs on blocks (8% per rank, 40% at 5/5) [F] | — |
-| Healing (Holy Light, Flash of Light, Lay on Hands, Light's Vigil) | 0.5 × effective heal, **halved again for paladins** (0.25) × RF? [C] (LTC2 only, low) | [?] | Self-healing threat is small for a tank. See [healing](#threat-from-healing-power-gains-and-buffs). |
+| Healing (Holy Light, Flash of Light, Lay on Hands, Light's Vigil) | 0.5 × effective heal [C] (Magey), **halved again for paladins** (0.25) [?] (LTC2 only) × RF? [?] | [?] | Self-healing threat is small for a tank. See [healing](#threat-from-healing-power-gains-and-buffs). |
 | Exorcism, Holy Wrath, Hammer of Wrath | Holy dmg × RF | [F] rule | — |
 
 ---
@@ -238,12 +246,12 @@ All values are **before** global multipliers. "dmg" is the damage dealt by that 
 | Source | Threat | Split | Multipliers | Tag | Source |
 | --- | --- | --- | --- | --- | --- |
 | Healing | 0.5 per point of **effective** healing (overheal excluded) | Evenly across every enemy the healer is in combat with | Global multipliers apply (stance, Salvation, RF for Holy heals) | [C] | [Magey](https://github.com/magey/classic-warrior/wiki/Threat-Mechanics) (0.5 per point; used in its aggro-threshold tests), LTC2 `parseHeal` |
-| Paladin heals | Additional ×0.5 (0.25 per point) | same | same | [C] low | LTC2 Paladin.lua `healMod` only |
+| Paladin heals | Additional ×0.5 (0.25 per point) | same | same | [?] | LTC2 Paladin.lua `healMod` only |
 | Rage gained from a spell effect (Bloodrage, Unbridled Wrath, Shield Specialization, Master of Defense, Improved Berserker Rage, potion, Charge, Furor, Enrage, Primal Fury, Natural Reaction) | **5 per rage** actually gained (capped at the pool maximum) | Evenly across enemies in combat | **None**: not affected by stance. Assumed unaffected by all other multipliers. | [C] | Magey (1 rage → 3.6–6.4 in Battle Stance and 4.6–5.5 in Defensive Stance, so no stance factor), LTC2 `parseGain`, [Magey issue #22](https://github.com/magey/classic-warrior/issues/22) |
-| Energy gained from a spell effect | 5 per energy | same | none | [C] | LTC2 |
-| Mana gained from a spell effect (Forever paladin Shield Specialization: 6% of max mana on a block, at most every 3 s; Sanctified Judgement; potions) | 0.5 per mana | same | none | [C] | LTC2 |
+| Energy gained from a spell effect | 5 per energy | same | none | [?] | LTC2 only; Magey confirms that energy gains cause split threat with no stance factor, but gives no value |
+| Mana gained from a spell effect (Forever paladin Shield Specialization: 6% of max mana on a block, at most every 3 s; Sanctified Judgement; potions) | 0.5 per mana | same | none | [?] | LTC2 only (Warcraft Tavern's table repeats it, uncited); Magey confirms mana gains cause split threat, with no value |
 | Regeneration (mp5, Spirit, Blessing of Wisdom ticks), rage from dealing or taking damage, Anger Management | 0 | — | — | [C]; Anger Management [?] | Magey: "does not include hp5 or mp5 effects". Anger Management is a regen aura (aura 85), so assumed 0. |
-| Buffs (Battle Shout, blessings) | Per recipient, per ability (see tables) | Evenly across enemies in combat | Global multipliers apply | [C] | Magey Battle Shout tests (2 mobs → halved; 6 targets → 6×) |
+| Buffs (Battle Shout, blessings) | Per recipient, per ability (see tables) | Evenly across enemies in combat | Global multipliers apply | [C] rule; blessing values [?] | Magey Battle Shout tests (2 mobs → halved; 6 targets → 6×) |
 | Debuffs (Sunder, Demoralizing Shout, Faerie Fire, Thunder Clap's slow) | Per ability, to each debuffed enemy only | No split | Global multipliers apply | [C] | Magey |
 | Damage | To the damaged enemy only | No split. Area abilities apply to each target separately. | Global multipliers apply | [C] | Magey |
 
@@ -399,8 +407,8 @@ Each of these becomes a unit test.
 | T5 | Warrior ×1.495; Revenge hits for 150 (Classic formula) | (2.25 × 150 + 270) × 1.495 = **908.2125** |
 | T6 | Warrior ×1.495; Thunder Clap hits 4 targets for 90 each | **336.375** per target, 1345.5 total |
 | T7 | Warrior ×1.495; Shield Bash hits for 45 | (1.5 × 45 + 156) × 1.495 = **334.1325** |
-| T8 | Forever bear (×1.3); Maul hits for 400 | 400 × 1.75 × 1.3 = **910** |
-| T9 | Classic bear, 5/5 Feral Instinct (×1.45); Maul for 400 | **1015** |
+| T8 | Forever bear (×1.3); Maul hits for 400 (Maul ×1.75 [?]) | 400 × 1.75 × 1.3 = **910** |
+| T9 | Classic bear, 5/5 Feral Instinct (×1.45); Maul for 400 (Maul ×1.75 [?]) | **1015** |
 | T10 | Forever paladin with RF; Holy Shield proc for 221 | 221 × 1.2 × 1.9 = **503.88** |
 | T11 | Classic paladin with RF, 0/3 and 3/3 Improved RF; Holy Shield proc for 130 | **249.6** / **296.4** |
 | T12 | Forever paladin with RF, 5/5 Iron Creed; Holy Strike hits for 250 | 250 × 1.25 × 1.9 = **593.75** |
@@ -435,18 +443,20 @@ threat-value scale with a plain white hit in a known stance.
 3. **Defiance with Defensive Stance**: ×1.495 (multiplicative) or ×1.45 (additive)? Compare a
    plain white hit in Defensive Stance with 0/3 and 3/3 Defiance. Also confirm it gives nothing
    without a shield.
-4. **Bear**: Maul and Swipe multipliers in Forever (Classic 1.75, from LTC2 and Icy Veins, not
-   measured by us). **Lacerate** and **Mangle (Bear)** threat are unknown. The only numbers found
-   are Season of Discovery values and are **not adopted**. Demoralizing Roar (39) and Faerie Fire
-   (108) come from LTC2 code only.
-5. **Righteous Fury scope**: does it amplify Holy heals and blessing casts? Is paladin healing
-   threat still halved?
+4. **Bear** [?]: Maul and Swipe multipliers (1.75), Demoralizing Roar (39) and Faerie Fire (108)
+   come from LTC2 code only, in Classic Era as well as Forever; no independent Classic Era
+   measurement was found. **Lacerate** and **Mangle (Bear)** threat are unknown. The only numbers
+   found are Season of Discovery values and are **not adopted**.
+5. **Righteous Fury scope and paladin non-damage threat** [?]: does RF amplify Holy heals and
+   blessing casts? Is paladin healing threat halved? What does each blessing cast generate (LTC2's
+   spell-level values)? All three are LTC2-only.
 6. **Judgement of Fury's taunt**: does it match threat like Taunt? What is the scripted value
    1607 + 42.3 per level (bonus threat or absorb)? Is there a flat bonus on Hammer of the
    Righteous?
-7. **Power-gain threat in Forever**: still 5 per rage and 0.5 per mana, with no multipliers? This
-   matters much more now, because Shield Specialization and Master of Defense give 5 rage (25
-   threat) per proc. Does Anger Management generate threat?
+7. **Power-gain threat in Forever**: still 5 per rage (Magey, Classic) and 0.5 per mana and 5 per
+   energy (LTC2 only [?]), with no multipliers? This matters much more now, because Shield
+   Specialization and Master of Defense give 5 rage (25 threat) per proc. Does Anger Management
+   generate threat?
 8. **Execute** (×1.25?) and **Mocking Blow** bonus: Classic Era values unverified.
 9. **Aggro thresholds** (110% / 130%) in Forever.
 10. **Forever threat items**: confirm the tooltips of items linked to the ±1–4% threat spells.
@@ -462,7 +472,8 @@ threat-value scale with a plain white hit in a known stance.
 | [docs/classes/warrior.md](../classes/warrior.md) §1, §2.1, §5.4, W16, Q1 | Warrior stance and threat assumptions and the Sunder question, reconciled above | Project doc |
 | [magey/classic-warrior wiki › Threat Mechanics](https://github.com/magey/classic-warrior/wiki/Threat-Mechanics) and [test spreadsheet](https://docs.google.com/spreadsheets/d/1VLmhdNX_hZcud8Q0n2I1fPv7y8g8BHYhH_cmIkmd_-s) | Measured warrior threat values (1.13.6.37497), stance multipliers, 110/130% thresholds, healing 0.5, buff/power-gain rules | Classic Era |
 | [magey/classic-warrior issue #22](https://github.com/magey/classic-warrior/issues/22) | Rage-gain threat is not affected by stance (1.13.2) | Classic Era |
-| [dfherr/LibThreatClassic2](https://github.com/dfherr/LibThreatClassic2) ([Warrior](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Warrior.lua), [Druid](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Druid.lua), [Paladin](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Paladin.lua), [core](https://github.com/dfherr/LibThreatClassic2/blob/master/ThreatClassModuleCore.lua)) | Classic threat-meter code: Maul/Swipe 1.75, Demoralizing Roar, Faerie Fire, RF by school, Holy Shield 1.2, blessings, taunt logic, heal/power-gain threat and splitting, global buff multipliers. Values marked "NEED MORE INFO" are not trusted. | Classic Era (1.13 addon, partly inherited from the TBC ThreatLib; used only where Magey is silent) |
-| [Icy Veins › Classic Feral Tank Spell Summary](https://www.icy-veins.com/wow-classic/feral-druid-tank-pve-spell-summary) | "Maul has a 1.75x threat modifier" (read via a search summary; the page blocks direct fetches) | Classic Era |
+| [dfherr/LibThreatClassic2](https://github.com/dfherr/LibThreatClassic2) ([Warrior](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Warrior.lua), [Druid](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Druid.lua), [Paladin](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Paladin.lua), [core](https://github.com/dfherr/LibThreatClassic2/blob/master/ThreatClassModuleCore.lua)) | Classic threat-meter code: Maul/Swipe 1.75, Demoralizing Roar, Faerie Fire, RF by school, Holy Shield 1.2, blessings, taunt logic, heal/power-gain threat and splitting, global buff multipliers. Values marked "NEED MORE INFO" are not trusted. | Mixed lineage (1.13 addon, partly inherited from the TBC ThreatLib): values only it supplies are [?]; used where Magey is silent |
+| [Warcraft Tavern: WoW Classic threat reference table](https://www.warcrafttavern.com/wow-classic/guides/threat-guide-reference-table/) | Maul/Swipe ×1.75, Demoralizing Roar 39, Faerie Fire 108, paladin heals ×0.5, mana 0.5, Execute ×1.25: the LTC2 numbers, with no sources or date | Classic (uncited; not counted as independent corroboration) |
+| [Icy Veins › Classic Feral Tank Spell Summary](https://www.icy-veins.com/wow-classic/feral-druid-tank-pve-spell-summary) | "Maul has a 1.75x threat modifier" (read via a search summary; the page blocks direct fetches) | Classic (uncited; not counted as independent corroboration) |
 | [ElliotWood/Forever › docs/beta-pass/warrior.md](https://github.com/ElliotWood/Forever/blob/master/docs/beta-pass/warrior.md) | An independent reading of Forever's Sunder threat effect (1013) | Forever (third-party) |
 | [Blizzard forums: Forever beta rage thread](https://us.forums.blizzard.com/en/wow/t/warrior-rage-normalization-auto-attack-crits-dont-generate-extra-rage/2355684) | Player report that low-rank Sunder is bugged (≈10× too low) | Forever beta (community) |

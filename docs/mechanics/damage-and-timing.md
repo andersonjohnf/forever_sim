@@ -2,12 +2,14 @@
 
 How much damage a landed attack does, and when attacks happen. Armor uses Classic Era's
 formula (constant 5,500 for a level-60 attacker, capped at 75%). Forever adds two things: flat
-**armor penetration** on gear, and **armor below 0 increases damage**. White damage is weapon
-damage + AP/14 × weapon speed. Instant attacks that the Forever client marks as *normalized*
-(Mortal Strike, Overpower, Whirlwind, Holy Strike, Spearing Strike) use 2.4/1.7/3.3 instead of
-the real speed. Swing timers, parry haste, extra attacks and the 1.5 s / 1.0 s GCD work as in
-Classic Era, plus a new **haste** stat (10 rating = 1%). Forever lets **periodic effects crit**
-(Rend, Rake, Rip, Pounce and Lacerate carry the flag; Deep Wounds doesn't). Procs use Classic's
+**armor penetration** on gear, and, per its tooltip, **armor below 0 increases damage**. White
+damage is weapon damage + AP/14 × weapon speed. Instant attacks that the Forever client marks as
+*normalized* (Mortal Strike, Overpower, Whirlwind, Holy Strike, Spearing Strike) use 2.4/1.7/3.3
+instead of the real speed. Swing timers, parry haste, extra attacks and the 1.5 s / 1.0 s GCD
+work as in Classic Era, plus a new **haste** stat (10 rating = 1%, applied by hypothesis per
+[D12](../decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
+Forever's tooltip says **periodic effects can crit**; a secondary read of the client flags puts
+the flag on Rend, Rake, Rip, Pounce and Lacerate but not Deep Wounds [?]. Procs use Classic's
 PPM formula; Forever's PPM table is Classic Era's plus one new 2.3 PPM row.
 
 Status: researched 2026-09-22 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
@@ -19,7 +21,8 @@ Client builds: Forever beta 1.60.1.69913 · Classic Era 1.15.9.69722
 
 - **Armor:** `DR = A / (A + 5500)` for our level-60 attacker, capped at 0.75 and applied to
   physical direct damage only. Armor reductions subtract from armor. `classicEra` floors armor
-  at 0; `forever` lets it go negative (damage > 100%) ([§1](#1-armor)).
+  at 0; `forever` lets it go negative (damage > 100%), per the client tooltip [F text; ? in
+  combat] ([§1](#1-armor)).
 - **Weapon damage:** `uniform(min, max) + flatWeaponBonus + AP/14 × speed`, where `speed` is
   the real speed for white swings, on-next-swing attacks and Slam, and the normalized speed for
   abilities whose client effect is *normalized weapon damage* ([§2](#2-weapon-damage)).
@@ -34,11 +37,15 @@ Client builds: Forever beta 1.60.1.69913 · Classic Era 1.15.9.69722
 - **GCD:** 1.5 s; 1.0 s for cat-form abilities; not reduced by haste ([§3.5](#35-global-cooldown)).
 - **No spell-batching model** ([§3.6](#36-server-tick-and-spell-batching)).
 - **DoTs/bleeds:** fixed tick intervals from the client. Ticks never miss. Bleeds ignore armor.
-  In `forever`, ticks can crit when the spell has the periodic-crit flag, and AP, modifiers and
-  crit are read **at each tick** (no snapshot; reported for Rend) ([§4](#4-dots-and-bleeds)).
+  Both profiles snapshot AP and caster modifiers when the DoT is applied [?], except Deep
+  Wounds, which recomputes each tick [C]. In `forever`, each tick can crit when the spell has
+  the periodic-crit flag [?]; in `classicEra` ticks never crit [C] ([§4](#4-dots-and-bleeds)).
 - **Procs:** `chance = PPM × baseWeaponSpeed / 60` per landed hit, or a flat % per landed hit.
-  Extra attacks can chain other procs, but Windfury can't proc off its own chain
-  ([§5](#5-procs)).
+  Extra attacks can chain other procs, but Windfury can't proc off its own chain, and no
+  Windfury internal cooldown is modelled ([§5](#5-procs)).
+- **New ratings** (haste, armor penetration) apply by hypothesis in `forever`, behind the
+  `unmeasuredRatings: 'apply' | 'ignore'` switch
+  ([D12](../decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
 
 ---
 
@@ -47,7 +54,7 @@ Client builds: Forever beta 1.60.1.69913 · Classic Era 1.15.9.69722
 ### 1.1 Formula
 
 For physical damage dealt by an attacker of level `L` to a target with armor `A` [C]
-([WarriorSim `getArmorReduction`][ws-player]):
+([WarriorSim `getArmorReduction`, pre-SoD commit 180a3cc][ws-player]):
 
 ```
 K  = 400 + 85 × L            // 5500 for L = 60 (player → boss); 5755 for L = 63 (boss → tank)
@@ -74,27 +81,34 @@ damage_after_armor = damage × (1 − DR)
 - Debuffs **add up** and are subtracted from the boss's armor:
   `A = baseArmor − Σ debuffs − armorPen` [C] ([WarriorSim][ws-player]). The values are owned by
   [buffs-debuffs-consumables.md](buffs-debuffs-consumables.md). The examples here use Sunder
-  Armor 450 × 5 = 2,250 [F] (client: spell 11597 `A_MOD_RESISTANCE` −450,
-  [wowsims spell data][wf-spell-warrior]), Faerie Fire rank 4 505 [F] (spell 9907, −505,
-  [wowsims spell data][wf-spell-druid]) and Curse of Recklessness rank 4 640 [C].
+  Armor 450 × 5 = 2,250 [F], Faerie Fire rank 4 505 [F] and Curse of Recklessness rank 4 **505**
+  with no AP bonus [F] (Classic Era: 640 [C]), all from the Forever spellbook tooltips on
+  foreverchanges ([buffs §4.1](buffs-debuffs-consumables.md#41-armor-reduction)).
 - **Floor.** `classicEra`: armor can't go below 0 [C] (WarriorSim clamps with
   `Math.max(…, 0)`, [ws-player]; a player on the Blizzard forum reached the same conclusion,
-  [bf-armor]). `forever`: **negative armor is allowed and increases damage** [F]
-  (`ARMOR_PENETRATION_TOOLTIP`: "Reducing an enemies armor below 0 will increase your damage
-  against them", [gs][gs-forever]). With `A < 0`, `DR` is negative and `1 − DR > 1`.
+  [bf-armor]). `forever`: **negative armor is allowed and increases damage**. The evidence is the
+  Forever client's own tooltip text, `ARMOR_PENETRATION_TOOLTIP`: "Reducing an enemies armor
+  below 0 will increase your damage against them" [F text] ([gs][gs-forever]). It is checkable
+  client data (the same string mirror as the combat-tables `forever` profile), but it isn't
+  shown on foreverchanges.pro and nobody has measured it, so the combat effect is **[?]**
+  ([Open questions](#open-questions)). With `A < 0`, `DR` is negative and `1 − DR > 1`.
 - **Armor penetration** (Forever): a new item stat, "Your attacks pierce up to X Armor", shown
-  on the sheet as a flat number ("Your Attacks ignore %d of your enemies Armor") [F]
-  ([gs][gs-forever]; example item: Leafre's Ring of Armor Piercing,
-  [foreverchanges items][fc-items]). Treat it as flat armor removed from the target for the
-  player's own attacks only. Talent sources, such as Weaponmaster with a mace or staff, are
-  owned by [classes/warrior.md](../classes/warrior.md).
+  on the sheet as a flat number ("Your Attacks ignore %d of your enemies Armor") [F text]
+  ([gs][gs-forever]; example item: Leafre's Ring of Armor Piercing, "+50 Armor Penetration",
+  [foreverchanges items][fc-items]). The `forever` profile treats it as flat armor removed from
+  the target for the player's own attacks only [?], by hypothesis per
+  [D12](../decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)
+  (`unmeasuredRatings: 'ignore'` turns it off). Talent sources, such as Weaponmaster with a mace
+  or staff, are owned by [classes/warrior.md](../classes/warrior.md).
 
 ### 1.3 What ignores armor
 
 - All non-physical schools (Holy, Fire, Nature, …) [C].
 - **Physical bleeds and other periodic physical damage**, e.g. Rend, Deep Wounds, and the
-  Rake/Rip/Pounce ticks [C] (WarriorSim applies no armor to Deep Wounds or Rend ticks,
-  [ws-spell]). The initial hit of Rake or Pounce is a normal physical hit and *is* mitigated.
+  Rake/Rip/Pounce ticks [C] (the pre-SoD WarriorSim applies no armor to Deep Wounds ticks,
+  [ws-spell]; a Classic Era feral guide: "bleed damage is not discounted by armor",
+  [wowhead Classic feral rotation][wh-feral]). The initial hit of Rake or Pounce is a normal
+  physical hit and *is* mitigated.
 - Direct physical hits (white swings, Heroic Strike, Shred, …) are mitigated.
 
 ---
@@ -117,7 +131,8 @@ base = uniform(weaponMin, weaponMax) + flatWeaponBonus + AP / 14 × weaponSpeed
 
 ### 2.2 Normalization for instant attacks
 
-Normalized speeds [C] ([WarriorSim `normSpeed`][ws-weapon]):
+Normalized speeds [C] ([WarriorSim `normSpeed`][ws-weapon]; Marrow's Classic compendium uses
+the same 2.4 and 3.3 for Whirlwind, [marrow-ab]):
 
 | Weapon | Normalized speed |
 | --- | --- |
@@ -127,20 +142,24 @@ Normalized speeds [C] ([WarriorSim `normSpeed`][ws-weapon]):
 
 Which abilities use them. The Forever client marks each weapon effect's type in `SpellEffect`:
 effect **121** `NORMALIZED_WEAPON_DMG` is normalized, while **17** `WEAPON_DAMAGE_NOSCHOOL`,
-**58** `WEAPON_DAMAGE` and **31** `WEAPON_PERCENT_DAMAGE` use the real speed [F]
-([wowsims spell data, warrior][wf-spell-warrior], [paladin][wf-spell-paladin],
-[druid][wf-spell-druid]):
+**58** `WEAPON_DAMAGE` and **31** `WEAPON_PERCENT_DAMAGE` use the real speed. The effect types
+are [F] from the class docs' own `SpellEffect` reads (wago.tools, to be confirmed by a person in
+a browser: [warrior §3.1](../classes/warrior.md#31-damage-abilities),
+[paladin § other abilities](../classes/paladin.md#other-abilities),
+[druid §1.1](../classes/druid.md#11-spells)). The wowsims/forever spell data
+([warrior][wf-spell-warrior], [paladin][wf-spell-paladin], [druid][wf-spell-druid]) reads the
+same types and is corroboration only.
 
 | Ability (top rank) | Effect type | Speed used | Tag |
 | --- | --- | --- | --- |
 | Mortal Strike (21553) | 121 | normalized | [F]; [C] same in Classic Era ([ws-spell]) |
-| Overpower (11585) | 121 | normalized | [F]; [C] |
-| Whirlwind (1680) | 121 | normalized | [F]; [C] |
+| Overpower (11585) | 121 | normalized | [F]; [C] ([ws-spell]) |
+| Whirlwind (1680) | 121 | normalized | [F]; [C] ([ws-spell]; [marrow-ab]) |
 | Spearing Strike (1310222, new) | 121 + 31 | normalized | [F] |
 | Holy Strike (10333, new baseline) | 121 + 31 | normalized | [F] |
-| Heroic Strike (25286) | 17 | real | [F]; [C] |
-| Cleave (20569) | 17 | real | [F]; [C] |
-| Slam (11605) | 17 | real | [F]; [C] |
+| Heroic Strike (25286) | 17 | real | [F]; [C] ([ws-weapon]) |
+| Cleave (20569) | 17 | real | [F]; [C] (it replaces the main-hand swing, [marrow-ab]) |
+| Slam (11605) | 17 | real | [F] tooltip "weapon damage plus 87"; [C] "Slam is not speed normalized" ([marrow-ab]) |
 | Cat/bear attacks (Shred, Claw, Rake, Ravage, Maul, …) | 58 (+31) | form weapon | [F]; see the druid doc |
 
 Rule for the engine: read the effect type from the class data. Don't hard-code the list.
@@ -159,7 +178,9 @@ Rule for the engine: read the effect type from the class data. Don't hard-code t
   each `dmgmod` source, [ws-player]). Example: two-handed spec 1.05 × a 20% cooldown 1.20 =
   1.26.
 - Flat "damage done" bonuses add before multipliers. Flat "damage taken" bonuses on the target
-  add after them [C] ([ws-weapon]).
+  (e.g. Gift of Arthas' +8) add after them [?]. Only WarriorSim's post-SoD code has these terms
+  (`moddmgdone`, `moddmgtaken`, [ws-post-weapon]); its pre-SoD commit has flat *weapon* damage
+  only (§2.1). See [Open questions](#open-questions).
 - Forever: no change found. Class docs note any talent that says "additively".
 
 ### 2.5 Crit, glancing, crushing and block multipliers
@@ -170,9 +191,9 @@ Rule for the engine: read the effect type from the class data. Don't hard-code t
 | Spell or heal crit | ×1.5 ("50% more effective") | [F] ([gs][gs-forever]); [C] |
 | Periodic crit (Forever only) | ×2.0 physical / ×1.5 magic | [?] (assumed to follow the school's multiplier) |
 | Glancing | per [combat-tables §2.3](combat-tables.md#23-glancing-blows) | [F]/[C] |
-| Creature crit on a player | ×2.0 | [F] `DEFAULT_STATDEFENSE_TOOLTIP` ([gs][gs-forever]) |
-| Crushing blow | ×1.5 | [F] ([gs][gs-forever]) |
-| Blocked hit on a player | − block value (min 0) | [F] `STAT_BLOCK_VALUE_FLAT_TOOLTIP` ([gs][gs-forever]) |
+| Creature crit on a player | ×2.0 | [F] tooltip `DEFAULT_STATDEFENSE_TOOLTIP` ([gs][gs-forever]); in combat [C] (unchanged) |
+| Crushing blow | ×1.5 | [F] tooltip ([gs][gs-forever]); in combat [C] (unchanged) |
+| Blocked hit on a player | − block value (min 0) | [F] tooltip `STAT_BLOCK_VALUE_FLAT_TOOLTIP` ([gs][gs-forever]); in combat [C] (unchanged) |
 
 Talents that raise the crit *bonus* (Impale, Predatory Instincts, …) scale the "+100%" part.
 Their values are in the class docs.
@@ -199,12 +220,17 @@ The game rounds to integers; the sim keeps floats (<0.1% effect).
 - **Stacking:** `swing = baseSpeed / Π(1 + h_i)` over all active attack-speed increases
   (Flurry, trinkets, racials, …). They multiply rather than add [C]
   ([WarriorSim `stats.haste *= (1 + x/100)`][ws-player]).
-- **Forever haste stat:** Haste rating converts at **10 rating = 1%** at every level [F]
-  ([wowsims/forever `combatratings.txt`][wf-cr]). Examples: the Flask of Natural Swiftness
-  (5% haste, Hyjal zones only) [F] ([foreverchanges items][fc-items]), the Skyborne racial
-  Wind Blessed (+1% haste) [F] ([foreverchanges racials][fc-racials]), and set bonuses that
-  "increase your attack speed and casting speed by X%" [F] ([fc-items]). The sim treats
-  rating haste as one more multiplicative factor `(1 + rating/1000)` [?].
+- **Forever haste stat:** Haste Rating is on Forever gear ([foreverchanges items][fc-items];
+  every haste-rating item in the snapshot needs level 60). Its conversion, **10 rating = 1%** at
+  every level, is [?]: no foreverchanges tooltip shows a haste percentage, and the only source is
+  the client `CombatRatings` gametable as extracted by wowsims ([wf-cr], secondary). Haste as a
+  percentage exists in Forever: the Flask of Natural Swiftness (5% haste, Hyjal zones only) [F]
+  ([fc-items]), the Skyborne racial Wind Blessed (+1% haste) [F]
+  ([foreverchanges racials][fc-racials]), and set bonuses that "increase your attack speed and
+  casting speed by X%" [F] ([fc-items]). Per
+  [D12](../decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22),
+  the `forever` profile applies rating haste as one more multiplicative factor
+  `(1 + rating/1000)` [?]; `unmeasuredRatings: 'ignore'` drops it.
 - **When haste changes mid-swing,** the new speed applies from the **next** swing. The current
   timer isn't rescaled [?] (this is WarriorSim's behaviour, [ws-weapon]; no Classic Era
   measurement found).
@@ -214,9 +240,9 @@ The game rounds to integers; the sim keeps floats (<0.1% effect).
 
 ### 3.2 Attack-speed debuffs on the boss (tank modeling)
 
-- Examples: Thunder Clap is **−20%** attack speed in Forever [F] (spell 11581
-  `A_MOD_MELEE_HASTE_3` −20, [wowsims spell data][wf-spell-warrior]), vs −10% in Classic Era
-  [C]. The values are owned by the warrior and buffs docs.
+- Examples: Thunder Clap is **−20%** attack speed in Forever [F] (spell 11581 tooltip,
+  "increasing the time between their attacks by 20%", [foreverchanges spellbook][fc-sb-warrior]),
+  vs −10% in Classic Era [C]. The values are owned by the warrior and buffs docs.
 - Applying a slow: `bossSwing = base × (1 + slow)` [?], the engine's convention for negative
   haste. The alternative `base / (1 − slow)` gives 2.5 s instead of 2.4 s for a 20% slow on
   2.0 s. Listed in [Open questions](#open-questions).
@@ -227,18 +253,19 @@ The game rounds to integers; the sim keeps floats (<0.1% effect).
 | --- | --- | --- |
 | On-next-swing ability (Heroic Strike, Cleave, Maul) | Replaces the next main-hand white swing when the timer fires. The timer is unchanged. If the resource isn't there when the swing fires, a normal white swing happens. | [C] ([Magey Windfury][magey-wf]; [WarriorSim][ws-player]) |
 | Instant ability (Bloodthirst, Shred, …) | No effect on either timer | [C] |
-| Ability with a cast time (Slam) | No auto-attacks during the cast; **both** timers restart from full when the cast completes | [C] ([WarriorSim simulation loop][ws-sim]) |
+| Ability with a cast time (Slam) | No auto-attacks during the cast; **both** timers restart from full when the cast completes | [C] (Marrow: a mistimed Slam "clip[s] your next auto", so it is used right after a white hit, [marrow-ab]; only WarriorSim's post-SoD code models it, so it is not cited) |
 | Other casts with a cast time (paladin, druid) | Same as Slam | [?] (no Classic Era measurement found; class docs may override) |
 | Extra attack (Windfury, Hand of Justice, Sword Specialization, Thrash Blade, …) | The main hand swings **immediately** and its timer restarts from full, so an extra attack is worth less than a whole swing | [C] ([Magey Windfury][magey-wf]) |
 | Parry by the defender | Parry haste on the defender, [below](#parry-haste) | [C]; [F] tooltip |
 | Stance or form change | Owned by the class docs | – |
 
-Forever's Slam has a 1.5 s cast and a 15 s cooldown in the client [F]
-([wowsims spell data][wf-spell-warrior]). A Forever warrior sim reports, from user testing,
+Forever's Slam has a 1.5 s cast and a 15 s cooldown [F] (tooltip,
+[foreverchanges spellbook][fc-sb-warrior]). A Forever warrior sim reports, from user testing,
 that Forever Slam **pauses** the swing timers during the cast and resumes them afterwards,
 rather than restarting them as Classic does. With Improved Slam, the timers keep running but
-due swings wait for the cast to end [F reported] ([tz-forever]). The warrior doc owns Slam;
-the generic rule above stays Classic's until that doc says otherwise.
+due swings wait for the cast to end [?] ([tz-forever]: third-party notes from a Classic-sim
+fork, anecdotal, so not adopted). The warrior doc owns Slam; the generic rule above stays
+Classic's until that doc says otherwise.
 
 <a id="parry-haste"></a>
 ### 3.4 Parry haste
@@ -261,11 +288,14 @@ it on NPCs and players on the 1.13 client.
 
 | Case | GCD | Tag / source |
 | --- | --- | --- |
-| Warrior and paladin abilities | 1.5 s | [F] client `StartRecoveryTime` 1500 ms (e.g. Bloodthirst, Mortal Strike, Holy Strike, [wowsims spell data][wf-spell-warrior]); [C] |
-| Cat-form abilities (Shred, Claw, Rake, Rip, Ferocious Bite, Ravage) | **1.0 s** | [F] client 1000 ms ([wowsims spell data][wf-spell-druid]); [C] |
-| Bear-form abilities (Swipe, Lacerate, …) | 1.5 s | [F] client 1500 ms ([wf-spell-druid]) |
-| On-next-swing abilities (HS, Cleave, Maul) | none | [F] client (no GCD, [wf-spell-warrior]); [C] |
-| Haste reduces the GCD? | no | [C] (WarriorSim uses a fixed 1.5 s, [ws-player]); Forever unknown [?] |
+| Warrior and paladin abilities | 1.5 s | [F] client `StartRecoveryTime` 1500 ms, read by the class docs (e.g. Bloodthirst, Mortal Strike: [warrior §2.2](../classes/warrior.md#22-global-cooldown-and-off-gcd-actions); Holy Strike: [paladin](../classes/paladin.md#other-abilities); confirm on wago.tools); [C] |
+| Cat-form abilities (Shred, Claw, Rake, Rip, Ferocious Bite, Ravage) | **1.0 s** | [F] client 1000 ms ([druid §2.6](../classes/druid.md#26-global-cooldowns)); [C] |
+| Bear-form abilities (Swipe, Lacerate, …) | 1.5 s | [F] client 1500 ms ([druid §2.6](../classes/druid.md#26-global-cooldowns)) |
+| On-next-swing abilities (HS, Cleave, Maul) | none | [F] client (no GCD: [warrior §2.2](../classes/warrior.md#22-global-cooldown-and-off-gcd-actions), [druid §2.6](../classes/druid.md#26-global-cooldowns)); [C] |
+| Haste reduces the GCD? | no | [C] (the pre-SoD WarriorSim uses a fixed 1500 ms GCD, [ws-spell]); Forever unknown [?] |
+
+The wowsims/forever spell data ([warrior][wf-spell-warrior], [druid][wf-spell-druid]) reads the
+same GCDs; it is corroboration only.
 
 Per-ability GCD exceptions (e.g. abilities with no GCD, or a 1.0 s GCD on a paladin spell) come
 from the class data, not from this table.
@@ -290,26 +320,30 @@ from the class data, not from this table.
 | Tick interval and count | per spell, from client data (table below) | [F] |
 | Can a tick miss? | no. The application rolls its table once; ticks always hit | [C] |
 | Armor | physical periodic damage ignores armor | [C] (§1.3) |
-| Can a tick crit? | `classicEra`: never. `forever`: yes if the spell carries SpellMisc attribute `PERIODIC_CAN_CRIT` (Attributes[8]) | [C]; [F] (`STAT_CRIT_BONUS` "Most periodic effects can critically strike", [gs][gs-forever]; per-spell flag via [wowsims spell data][wf-spelldata-doc]) |
-| Crit chance of a tick | `forever`: rolled **per tick** from the caster's crit chance *at that tick* (not snapshotted), with crit suppression vs +3 [?]; multipliers in §2.5 | [F reported] for Rend: a Blizzard staff member confirmed on Discord (as relayed by a Forever warrior-sim author) that tick crit is evaluated per tick ([tzcnt Forever notes][tz-forever]); suppression on ticks [?] |
-| Damage snapshot | `classicEra`: per-tick damage fixed when the DoT is applied. `forever`: **not snapshotted**: AP, damage modifiers and crit are evaluated on each tick (Rend gains ~0.02 × AP per tick, measured at level ~10) | [C] (WarriorSim computes Rend's tick at application, [ws-spell]); [F reported] ([tz-forever]); other Forever DoTs [?] |
+| Can a tick crit? | `classicEra`: never [C] (the pre-SoD WarriorSim's Deep Wounds has no crit roll, [ws-spell]; the Classic feral guide contrasts Bite, which "can crit", with Rip, [wh-feral]). `forever`: yes, **if** the spell carries the SpellMisc attribute `PERIODIC_CAN_CRIT` (Attributes[8]) [?] | The Forever tooltip says "Most periodic effects can critically strike" [F text] (`STAT_CRIT_BONUS`, [gs][gs-forever]). Which spells carry the flag was read only by wowsims/forever from the client ([wf-spelldata-doc]), a secondary source, so the per-spell flags are [?] until a person confirms them on wago.tools |
+| Crit chance of a tick | `forever`: each flagged tick rolls crit separately, with the caster's crit chance **snapshotted at application** like the damage (default) [?]; crit suppression vs +3 on ticks [?]; multipliers in §2.5 | A Forever warrior-sim author relays a Discord statement that Rend's tick crit is evaluated at each tick ([tzcnt Forever notes][tz-forever]). That is anecdotal secondary evidence, so it is **not adopted**; it is an open question |
+| Damage snapshot | **Both profiles (default):** AP and the caster's damage modifiers are fixed when the DoT is applied; target-side modifiers apply per tick [?]. **Exception: Deep Wounds** recomputes each tick from current AP and modifiers [C] (pre-SoD WarriorSim `DeepWounds.step`, [ws-spell]; see [warrior §2.5](../classes/warrior.md#25-crits-impale-flurry-deep-wounds)) | The snapshot default is [?]: the only Classic code for it (WarriorSim's Rend) is post-SoD, and no Classic Era measurement was found. `forever`: the same tzcnt notes report Rend reading AP, modifiers and crit per tick (~0.02 × AP per tick at level ~10) [?]; anecdotal, so not adopted; see [Open questions](#open-questions) |
 | Refresh | reapplying restarts the duration **and** the tick timer; the partial tick in progress is lost; the damage is re-snapshotted | [?] |
 | Stacking | one instance per caster per target unless the spell stacks (Lacerate, …) | [C]; class docs |
 
-Client values for the DoTs in scope (top ranks) [F] ([wowsims spell data][wf-spelldata-doc]):
+Client values for the DoTs in scope (top ranks). Durations are [F] from the foreverchanges
+tooltips; tick periods are [F] from the class docs' own `SpellEffect` reads (confirm on
+wago.tools); the periodic-crit flags are [?] (wowsims/forever's read, [wf-spelldata-doc]):
 
-| DoT | Tick | Ticks | Duration | Periodic crit flag |
+| DoT | Tick | Ticks | Duration | Periodic crit flag [?] |
 | --- | --- | --- | --- | --- |
 | Rend (11574) | 3 s | 7 | 21 s | yes |
-| Deep Wounds (412609) | 3 s | 4 | 12 s | **no** |
+| Deep Wounds (candidate id 412609 [?]) | 3 s | 4 | 12 s | **no** |
 | Rake (9904) | 3 s | 3 | 9 s | yes |
 | Rip (9896) | 2 s | 6 | 12 s | yes |
 | Pounce bleed (9826) | 3 s | 6 | 18 s | yes |
 | Lacerate (1235827, new) | 3 s | 5 | 15 s | yes |
 | Consecration (20924) | 1 s | 8 | 8 s | no (on the ranked spell) |
 
-Damage values, AP scaling and special cases (Deep Wounds' rollover, Lacerate stacks) are
-owned by the class docs.
+Deep Wounds' id comes only from wowsims/forever's read of the Forever client; the Classic bleed
+spell 12721 has no name in the Forever client
+([warrior Q21](../classes/warrior.md#9-open-questions)). Damage values, AP scaling and special
+cases (Deep Wounds' per-tick recomputation, Lacerate stacks) are owned by the class docs.
 
 ---
 
@@ -335,11 +369,11 @@ unless Forever data says otherwise. The new 2.3 PPM row's user is unknown.
 
 | Effect | Model | Value | Tag / source |
 | --- | --- | --- | --- |
-| Crusader enchant | PPM | 1 | [C] ([WarriorSim enchants][ws-ench]) |
-| Fiery Weapon enchant | PPM | 6 | [C] ([ws-ench]) |
-| Lifestealing enchant | PPM | 6 | [C] ([ws-ench]) |
+| Crusader enchant | PPM | 1 | [C] (enchant list in the pre-SoD WarriorSim's `gear.js`, [ws-gear]) |
+| Fiery Weapon enchant | PPM | 6 | [C] ([ws-gear]) |
+| Lifestealing enchant | PPM | 6 | [C] ([ws-gear]) |
 | Weapon chance-on-hit (e.g. Ironfoe 0.8, Thrash Blade 1, Flurry Axe 1.8, Deathbringer 0.8, Perdition's Blade 1, Empyrean Demolisher 1) | PPM | as listed | [C] ([WarriorSim gear][ws-gear]) |
-| Hand of Justice, Blackhand's Breadth | flat | 2% per landed hit | [C] ([ws-gear]) |
+| Hand of Justice | flat | 2% per landed hit | [C] ([ws-gear]). (Blackhand's Breadth, listed here before, is a +2% crit trinket with no proc, [ws-gear].) |
 | Windfury Totem | flat | 20% per main-hand landed hit | [C] ([Magey Windfury][magey-wf]); Forever values → [buffs doc](buffs-debuffs-consumables.md) |
 | Talent procs (Flurry, Unbridled Wrath, Sword Spec, Omen of Clarity, Seal of Command, …) | per class doc | – | class docs |
 
@@ -353,9 +387,12 @@ supports both.
 - **White and yellow** melee hits both roll weapon procs at the same per-hit chance [C]
   ([ws-player]). Each weapon's procs roll only on that weapon's hits. Windfury only procs from
   main-hand attacks [C] ([magey-wf]).
-- **Multi-target** attacks (Whirlwind, Cleave): weapon procs roll per target hit, but
-  extra-attack procs roll **once per cast**. Windfury procs on cast [C] ([magey-wf];
-  [ws-player] "Extra attacks roll only once per multi target attack").
+- **Multi-target** attacks (Whirlwind, Cleave): Windfury procs **once per cast** [C]
+  ([magey-wf]: "the proc is on-cast meaning only a single extra attack can be gained even when
+  e.g. Whirlwind hits 4 targets"). The sim assumes the same for every other extra-attack proc,
+  while ordinary weapon procs roll per target hit [?]: only WarriorSim's post-SoD code encodes
+  that split ("Extra attacks roll only once per multi target attack", [ws-post-player]). See
+  [Open questions](#open-questions).
 - Spells and periodic ticks don't roll weapon procs [C].
 - Procs with an internal cooldown carry it in their data.
 
@@ -364,12 +401,13 @@ supports both.
 - An extra attack is a real main-hand swing (§3.3). It can trigger procs, including **other**
   extra-attack procs [C] ([magey-wf]: "Other extra attacks (e.g. Ironfoe, Sword
   Specialization, etc.)" can proc Windfury).
-- Windfury **can't proc itself** or proc twice in one chain of extra attacks [C] ([magey-wf]).
-  The sim applies the same rule to every extra-attack source: a source can't proc from its own
-  extra attack [?].
-- Magey's page also notes a 1.5 s internal cooldown on Windfury, citing a 2023 statement that
-  also mentions *Wild Strikes*, an SoD rune. That's SoD-era evidence, so it is **not adopted**
-  for Classic Era. See [Open questions](#open-questions).
+- Windfury **can't proc itself** or proc twice in one chain of extra attacks [C] ([magey-wf];
+  the line dates from the page's first version, 2019-11-04, well before SoD). The sim applies
+  the same rule to every extra-attack source: a source can't proc from its own extra attack [?].
+- Magey's page also notes a 1.5 s internal cooldown on Windfury, added in 2024 and citing a
+  2023-12-01 statement that also mentions *Wild Strikes*, an SoD rune. That's SoD-era evidence,
+  so it is **not adopted** in either profile: the sim models **no Windfury internal cooldown**
+  [?]. See [Open questions](#open-questions).
 - For safety, the engine caps a chain at 10 extra attacks.
 
 ---
@@ -378,12 +416,12 @@ supports both.
 
 | Topic | Classic Era | Forever | Tag / source |
 | --- | --- | --- | --- |
-| Armor below 0 | floored at 0 | allowed; increases damage | [F] [gs][gs-forever] |
-| Armor penetration | none on gear | flat "pierce up to X armor" stat | [F] [gs][gs-forever]; [fc-items] |
-| Periodic crits | never | "Most periodic effects can critically strike"; per-spell flag | [F] [gs][gs-forever]; [wf-spelldata-doc] |
-| Haste stat | only from specific effects | Haste rating, 10 per 1% | [F] [wf-cr] |
-| Thunder Clap attack-speed slow | 10% | 20% | [F] [wf-spell-warrior] |
-| Normalized abilities | MS, OP, WW | MS, OP, WW + Spearing Strike, Holy Strike (new abilities) | [F] [wf-spelldata-doc] |
+| Armor below 0 | floored at 0 | allowed; increases damage | [F] tooltip text [gs][gs-forever]; in combat [?] |
+| Armor penetration | none on gear | flat "pierce up to X armor" stat | [F] stat on items [fc-items]; flat-armor model [?] (D12) |
+| Periodic crits | never | "Most periodic effects can critically strike"; per-spell flag | [F] tooltip text [gs][gs-forever]; per-spell flags [?] [wf-spelldata-doc] |
+| Haste stat | only from specific effects | Haste Rating on gear; 10 per 1% by hypothesis | stat [F] [fc-items]; conversion [?] [wf-cr] (D12) |
+| Thunder Clap attack-speed slow | 10% | 20% | [F] tooltip [fc-sb-warrior] |
+| Normalized abilities | MS, OP, WW | MS, OP, WW + Spearing Strike, Holy Strike (new abilities) | [F] class docs' client reads (§2.2) |
 | PPM table | 1–10 PPM rows | the same plus ID 479 = 2.3 PPM | [F] [wago-ppm-f] |
 | Crit multipliers, AP/14, 75% armor cap, parry haste 40%, GCD 1.5/1.0 | – | unchanged | [F] tooltips and client data |
 
@@ -409,7 +447,11 @@ damage-modifier stacking, the off-hand 50%, swing-reset rules, or the PPM formul
 - **Armor per target** is recomputed when a debuff changes. Cache `1 − DR` per target and
   profile.
 - **DoTs** are auras with a tick event every `tickLength` from application. On refresh,
-  cancel the pending tick and restart.
+  cancel the pending tick and restart. Store the snapshot (AP, caster multipliers, crit chance)
+  on the aura at application; Deep Wounds reads the live values instead (§4). In `forever`, a
+  tick rolls crit only when the spell's periodic-crit flag is set.
+- **`unmeasuredRatings`** (`'apply'` in `forever` by default, per D12): haste rating and armor
+  penetration go through the stat pipeline only when it is `'apply'`.
 - **Skipped (documented):** spell batching (§3.6), integer rounding of damage (§2.6), and mob
   block value (combat-tables §2.4).
 
@@ -429,38 +471,41 @@ function physicalDamage(attacker, target, src):     // src: white swing or abili
 
 ## Worked examples
 
-All use player level 60, so `K = 5500`.
+All use player level 60, so `K = 5500`. Where the profiles differ, the example names them.
 
 **WE-1: armor mitigation at boss armor 3,731**
 
-| Armor after debuffs | DR | Damage factor |
-| --- | --- | --- |
-| 3,731 (none) | 3731 / 9231 = **40.418%** | 0.59582 |
-| 1,481 (− 5 × 450 Sunder) | 1481 / 6981 = **21.215%** | 0.78785 |
-| 976 (− Faerie Fire 505) | 976 / 6476 = **15.071%** | 0.84929 |
-| 336 (− Curse of Recklessness 640) | 336 / 5836 = **5.757%** | 0.94243 |
-| −264 (`forever`, 600 more reduction) | −264 / 5236 = **−5.042%** | 1.05042 |
-| −264 (`classicEra`) | clamped to 0 → **0%** | 1.00000 |
-| 16,500 | **75.000%** (cap) | 0.25 |
+| Profile | Armor after debuffs | DR | Damage factor |
+| --- | --- | --- | --- |
+| both | 3,731 (none) | 3731 / 9231 = **40.418%** | 0.59582 |
+| both | 1,481 (− 5 × 450 Sunder) | 1481 / 6981 = **21.215%** | 0.78785 |
+| both | 976 (− Faerie Fire 505) | 976 / 6476 = **15.071%** | 0.84929 |
+| `forever` | 471 (− Curse of Recklessness 505) | 471 / 5971 = **7.888%** | 0.92112 |
+| `forever` | −129 (600 more reduction, e.g. armor penetration) | −129 / 5371 = **−2.402%** | 1.02402 |
+| `classicEra` | 336 (− Curse of Recklessness 640 [C]) | 336 / 5836 = **5.757%** | 0.94243 |
+| `classicEra` | −264 (600 more reduction) | clamped to 0 → **0%** | 1.00000 |
+| both | 16,500 | **75.000%** (cap) | 0.25 |
 
 Tank vs a level-63 boss: 10,000 armor → 10000 / 15755 = **63.472%**; the cap is at 17,265
 armor.
 
 **WE-2: white 2H swing**
 
-Weapon 150–230 (mean 190), speed 3.60, AP 1500, multipliers ×1.05, boss armor 336:
-- base mean = 190 + 1500/14 × 3.6 = **575.714**
-- × 1.05 = 604.500; × (1 − 0.057574) = **569.697** (normal hit)
-- crit ×2 = **1139.393**; glancing mean `forever` ×0.75 = **427.273**, `classicEra` ×0.65 =
-  **370.303**
+Weapon 150–230 (mean 190), speed 3.60, AP 1500, multipliers ×1.05:
+- base mean = 190 + 1500/14 × 3.6 = **575.714**; × 1.05 = 604.500
+- `forever`, boss armor 471 (Sunder ×5, Faerie Fire, Curse of Recklessness 505):
+  × (1 − 0.078881) = **556.816** (normal hit); crit ×2 = **1113.633**; glancing mean ×0.75 =
+  **417.612**
+- `classicEra`, boss armor 336 (Curse of Recklessness 640): × (1 − 0.057574) = **569.697**;
+  crit ×2 = **1139.393**; glancing mean ×0.65 = **370.303**
 
-**WE-3: normalization (same weapon and AP, before multipliers and armor)**
+**WE-3: normalization (same weapon and AP, before multipliers and armor; both profiles)**
 
 - Whirlwind (normalized 3.3): 190 + 1500/14 × 3.3 = **543.571**
 - Mortal Strike (+160 flat in the Forever client, rank 4; value owned by the warrior doc):
   543.571 + 160 = **703.571**
-- Heroic Strike (+138, the level-60 value reported in game; value owned by the warrior doc;
-  real speed 3.6): 575.714 + 138 = **713.714**
+- Heroic Strike (rank 9, +157 in both clients' tooltips; value owned by the warrior doc; real
+  speed 3.6): 575.714 + 157 = **732.714**
 
 **WE-4: off-hand**
 
@@ -469,8 +514,9 @@ before talents.
 
 **WE-5: haste stacking**
 
-3.60 s weapon with a 30% attack-speed buff and 50 haste rating (5%): 3.6 / (1.30 × 1.05) =
-2.63736 s → **2637 ms**.
+3.60 s weapon with a 30% attack-speed buff and 50 haste rating: `forever` with
+`unmeasuredRatings: 'apply'` (5%): 3.6 / (1.30 × 1.05) = 2.63736 s → **2637 ms**. With
+`'ignore'`, or in `classicEra` (no rating haste): 3.6 / 1.30 = 2.76923 s → **2769 ms**.
 
 **WE-6: parry haste on a 2.0 s boss swing**
 
@@ -511,16 +557,20 @@ Shred at t = 0 can Shred again at 1.0 s if it has the energy.
    client gametable's 1,059? Test: with a known total armor (e.g. 3,000), read the character
    sheet's armor tooltip. The Classic formula vs a level-60 attacker gives 35.29%; 1,059 would
    give 73.9%.
-2. **Periodic crit details** [?]: the multiplier (assumed ×2.0 physical, ×1.5 magic), whether
-   the crit chance is snapshotted, and whether crit suppression applies to ticks. Test:
-   Rend/Rip tick crits in the combat log vs +3 mobs.
-3. **DoT refresh and snapshot rules in Forever** [?]. Is there any pandemic-style carry-over?
-   The "no snapshot, per-tick crit" report covers only Rend ([tz-forever]). Do Rake, Rip,
-   Pounce and Lacerate behave the same? Test: reapply Rend mid-duration and log tick times.
-   Then pop a crit/AP cooldown mid-DoT and check whether later ticks change.
-4. **Haste rating stacking** [?]: multiplicative with other haste (assumed) or additive? Test:
-   the character-sheet "Haste" with a haste buff plus rating haste (the sheet shows the combined
-   melee haste %).
+2. **Periodic crits in Forever** [?]: which spells carry `PERIODIC_CAN_CRIT` (Rend, Rake, Rip,
+   Pounce and Lacerate yes, Deep Wounds and Consecration no, per wowsims/forever's read; a person
+   should confirm SpellMisc Attributes[8] on wago.tools), the multiplier (assumed ×2.0 physical,
+   ×1.5 magic), whether Deep Wounds really is 412609, and whether crit suppression applies to
+   ticks. Test: Rend/Rip tick crits in the combat log vs +3 mobs.
+3. **DoT snapshot and refresh rules** [?]. Both profiles snapshot AP, caster modifiers and crit
+   chance at application by default; Deep Wounds recomputes each tick. A third-party Forever
+   sim's notes say Rend reads AP, modifiers and crit **per tick** ([tz-forever]; anecdotal, not
+   adopted). Is there any pandemic-style carry-over? Do Rake, Rip, Pounce and Lacerate behave the
+   same? Test: reapply Rend mid-duration and log tick times. Then pop a crit/AP cooldown mid-DoT
+   and check whether later ticks change.
+4. **Haste rating** [?]: does 10 rating give 1% (the gametable, as extracted by wowsims), and
+   does it multiply with other haste (the D12 hypothesis) or add? Test: the character-sheet
+   "Haste" with a haste buff plus rating haste (the sheet shows the combined melee haste %).
 5. **Does haste reduce the GCD in Forever?** [?] Test: with the 5% haste flask in Hyjal, time
    GCDs with the built-in swing timer and cooldown manager.
 6. **Mid-swing haste changes** [?]: rescale the current timer, or apply at the next swing?
@@ -528,13 +578,25 @@ Shred at t = 0 can Shred again at 1.0 s if it has the energy.
 7. **Casts with a cast time and the swing timer** for paladins and druids [?].
 8. **How attack-speed slows apply** (`× (1 + s)` vs `÷ (1 − s)`) [?]. Test: time the boss's
    (or a mob's) swings with Thunder Clap up.
-9. **Windfury internal cooldown** [?]. The only source (a 2023 statement quoted on Magey's
-   page) mentions an SoD rune, so it's refused as SoD-era evidence. It matters only with
-   extra-attack chains or very fast haste.
+9. **Windfury internal cooldown** [?]. The sim models none. The only source (a 2023 statement
+   quoted on Magey's page) mentions an SoD rune, so it's refused as SoD-era evidence. It
+   matters only with extra-attack chains or very fast haste. Test: minimum gap between
+   Windfury procs over 500+ main-hand swings.
 10. **Per-proc PPM values in Forever** [?]. The client doesn't link procs to PPM rows. Which
     effect uses the new 2.3 PPM row? Verify both PPM tables on wago.tools manually in a
     browser (we no longer fetch wago.tools automatically).
 11. **Off-hand first-swing offset** [?]: a modelling choice, not a measured rule.
+12. **Negative armor and armor penetration in combat (`forever`)** [?]. The client tooltip says
+    armor below 0 increases damage, and the `forever` profile applies it; armor penetration is
+    modelled as flat armor removed (D12). Nobody has measured either. The same holds for
+    resistance below 0 ("Spell Vulnerability", [combat-tables §9](combat-tables.md#9-spell-hit-and-crit-generic)).
+    Test: with armor penetration or armor debuffs that exceed a low-armor mob's armor, compare
+    average white damage against the same mob at exactly 0 effective armor.
+13. **Classic rules only a post-SoD sim encodes** [?]: flat "damage taken" bonuses added after
+    multipliers (§2.4), and on multi-target attacks ordinary weapon procs rolling per target
+    while extra-attack procs other than Windfury roll once per cast (§5.3). Test: a mob with a
+    flat damage-taken debuff (Gift of Arthas' +8), and weapon-enchant procs per Cleave that hits
+    two mobs.
 
 ---
 
@@ -542,24 +604,27 @@ Shred at t = 0 can Shred again at 1.0 s if it has the energy.
 
 | Ref | Source | Covers | Ruleset |
 | --- | --- | --- | --- |
-| [gs-forever] | Forever client GlobalStrings (enUS), <https://github.com/Ketho/BlizzardInterfaceResources/blob/forever/Resources/GlobalStrings/enUS.lua> | armor cap, armor pen, crit multipliers, parry haste, periodic crits, block | [F] client |
+| [gs-forever] | Forever client GlobalStrings (enUS), <https://github.com/Ketho/BlizzardInterfaceResources/blob/forever/Resources/GlobalStrings/enUS.lua> | armor cap, armor pen, crit multipliers, parry haste, periodic crits, block | [F] client (verbatim mirror, doctrine §2): what the client displays; combat [?] until measured, or [C] where unchanged from Classic |
 | [ui-stats] | Forever `Camelot/PaperDollFrameStats.lua`, <https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_UIPanels_Game/Camelot/PaperDollFrameStats.lua> | AP/14, block value per Strength | [F] client |
 | [ui-pdf] | Forever `Camelot/PaperDollFrame.lua`, <https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_UIPanels_Game/Camelot/PaperDollFrame.lua> | armor tooltip uses `C_PaperDollInfo.GetArmorEffectiveness` | [F] client |
-| [wf-cr] | wowsims/forever CombatRatings extraction, <https://github.com/wowsims/forever/blob/master/assets/db_inputs/basestats/combatratings.txt> | haste 10 rating per 1% | [F] client (via wowsims) |
+| [wf-cr] | wowsims/forever CombatRatings extraction, <https://github.com/wowsims/forever/blob/master/assets/db_inputs/basestats/combatratings.txt> | haste 10 rating per 1% | [?] secondary (Forever client gametable read by wowsims; not on foreverchanges) |
 | [wf-armor] | wowsims/forever `basestats-forever/ArmorMitigationByLvl.txt`, <https://github.com/wowsims/forever/blob/master/assets/db_inputs/basestats-forever/ArmorMitigationByLvl.txt> | client armor gametable (retail leftover; not adopted) | [?] |
-| [wf-spell-warrior] | wowsims/forever `sim/warrior/spell_data_auto_gen.go`, <https://github.com/wowsims/forever/blob/master/sim/warrior/spell_data_auto_gen.go> | effect types, GCDs, Sunder −450, Thunder Clap −20%, DoT ticks, Slam | [F] client (via wowsims) |
-| [wf-spell-druid] | wowsims/forever `sim/druid/spell_data_auto_gen.go`, <https://github.com/wowsims/forever/blob/master/sim/druid/spell_data_auto_gen.go> | cat 1.0 s GCD, bleed ticks, Faerie Fire −505 | [F] client (via wowsims) |
-| [wf-spell-paladin] | wowsims/forever `sim/paladin/spell_data_auto_gen.go`, <https://github.com/wowsims/forever/blob/master/sim/paladin/spell_data_auto_gen.go> | Holy Strike normalized, Consecration ticks | [F] client (via wowsims) |
-| [wf-spelldata-doc] | wowsims/forever `docs/spell_data.md`, <https://github.com/wowsims/forever/blob/master/docs/spell_data.md> | how PeriodicCanCrit, GCD and effect types are read from the client | [F] (method) |
+| [wf-spell-warrior] | wowsims/forever `sim/warrior/spell_data_auto_gen.go`, <https://github.com/wowsims/forever/blob/master/sim/warrior/spell_data_auto_gen.go> | effect types, GCDs, DoT ticks (corroboration of the class docs' own reads) | [?] secondary (client data read by wowsims) |
+| [wf-spell-druid] | wowsims/forever `sim/druid/spell_data_auto_gen.go`, <https://github.com/wowsims/forever/blob/master/sim/druid/spell_data_auto_gen.go> | cat 1.0 s GCD, bleed ticks (corroboration) | [?] secondary (client data read by wowsims) |
+| [wf-spell-paladin] | wowsims/forever `sim/paladin/spell_data_auto_gen.go`, <https://github.com/wowsims/forever/blob/master/sim/paladin/spell_data_auto_gen.go> | Holy Strike normalized, Consecration ticks (corroboration) | [?] secondary (client data read by wowsims) |
+| [wf-spelldata-doc] | wowsims/forever `docs/spell_data.md`, <https://github.com/wowsims/forever/blob/master/docs/spell_data.md> | how PeriodicCanCrit, GCD and effect types are read from the client; the only source for the per-spell periodic-crit flags and Deep Wounds' id 412609 | [?] secondary (client data read by wowsims) |
 | [wago-ppm-f] | wago.tools `SpellProcsPerMinute`, Forever build, <https://wago.tools/db2/SpellProcsPerMinute?build=1.60.1.69913> | PPM rows incl. new 479 = 2.3 (**confirm manually in a browser**) | [F] client |
 | [wago-ppm-c] | wago.tools `SpellProcsPerMinute`, Classic Era build, <https://wago.tools/db2/SpellProcsPerMinute?build=1.15.9.69722> | Classic PPM rows (**confirm manually**) | [C] client |
 | [wago-sao-f] | wago.tools `SpellAuraOptions`, Forever build, <https://wago.tools/db2/SpellAuraOptions?build=1.60.1.69913> | no PPM references (**confirm manually**) | [F] client |
-| [ws-player] | GuybrushGit/WarriorSim `js/classes/player.js` (Classic mode), <https://github.com/GuybrushGit/WarriorSim/blob/master/js/classes/player.js> | armor formula, haste stacking, proc triggers, damage mods | [C] |
-| [ws-weapon] | WarriorSim `js/classes/weapon.js`, <https://github.com/GuybrushGit/WarriorSim/blob/master/js/classes/weapon.js> | normalized speeds, off-hand 0.5, PPM chance | [C] |
-| [ws-spell] | WarriorSim `js/classes/spell.js`, <https://github.com/GuybrushGit/WarriorSim/blob/master/js/classes/spell.js> | which abilities are normalized; bleed ticks | [C] |
-| [ws-sim] | WarriorSim `js/classes/simulation.js`, <https://github.com/GuybrushGit/WarriorSim/blob/master/js/classes/simulation.js> | Slam pauses and restarts swings; extra attacks | [C] |
-| [ws-ench] | WarriorSim `js/data/enchants.js`, <https://github.com/GuybrushGit/WarriorSim/blob/master/js/data/enchants.js> | Crusader 1 PPM, Fiery 6, Lifestealing 6 | [C] |
-| [ws-gear] | WarriorSim `js/data/gear.js`, <https://github.com/GuybrushGit/WarriorSim/blob/master/js/data/gear.js> | item PPM / flat proc values | [C] (Classic items only) |
+| [ws-player] | GuybrushGit/WarriorSim `js/classes/player.js` at pre-SoD commit `180a3cc` (2021-05-11), <https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/player.js> | armor formula and floor, haste stacking, proc triggers, damage mods | [C] (pre-SoD) |
+| [ws-weapon] | WarriorSim `js/classes/weapon.js` at `180a3cc`, <https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/weapon.js> | normalized speeds, off-hand 0.5, flat weapon damage, PPM chance, swing timer | [C] (pre-SoD) |
+| [ws-spell] | WarriorSim `js/classes/spell.js` at `180a3cc`, <https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/spell.js> | normalized abilities, fixed 1500 ms GCD, Deep Wounds (per-tick, no armor, no crit) | [C] (pre-SoD) |
+| [ws-gear] | WarriorSim `js/data/gear.js` at `180a3cc`, <https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/data/gear.js> | enchant PPMs (Crusader 1, Fiery 6, Lifestealing 6), item PPM and flat proc values, Blackhand's Breadth +2% crit | [C] (pre-SoD; Classic items only) |
+| [ws-post-player] | WarriorSim `js/classes/player.js` at post-SoD commit `ad5ac8b` (2024-12), <https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/classes/player.js> | "Extra attacks roll only once per multi target attack" | not a [C] source (post-SoD); cited only to show where a [?] assumption comes from |
+| [ws-post-weapon] | WarriorSim `js/classes/weapon.js` at `ad5ac8b`, <https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/classes/weapon.js> | `moddmgdone` / `moddmgtaken` flat terms | not a [C] source (post-SoD) |
+| [marrow-ab] | Marrow's Compendium of Dragonslaying, ch. 4, <https://bookdown.org/marrowwar/marrow_compendium/abilities.html> | Whirlwind normalized (2.4 / 3.3), Slam not normalized and clipping the next auto, HS/Cleave replace the next swing | [C] (WoW Classic 2019–2020) |
+| [wh-feral] | Wowhead Classic feral DPS rotation (NerdEgghead, patch 1.15.8), <https://www.wowhead.com/classic/guide/classes/druid/feral/dps-rotation-cooldowns-abilities-pve> | bleeds ignore armor; Rip doesn't crit (Bite can) | [C] (Classic Era page; the site also hosts SoD guides, not used) |
+| [fc-sb-warrior] | foreverchanges.pro warrior spellbook, <https://foreverchanges.pro/spellbook/warrior> | Thunder Clap 20% slow; Slam 1.5 s cast, 15 s cooldown | [F] |
 | [magey-wf] | Magey, "Windfury Totem", <https://github.com/magey/classic-warrior/wiki/Windfury-Totem> | 20% chance, extra-attack mechanics, proc triggers | [C] (ICD note refused: SoD-era) |
 | [magey-ph] | Magey, "Parry haste", <https://github.com/magey/classic-warrior/wiki/Parry-haste> | parry-haste rule | [C] |
 | [magey-batch] | Magey, "Spell batching", <https://github.com/magey/classic-warrior/wiki/Spell-batching> | 400 ms batching (pre-1.13.7) | [C] (historical) |
@@ -569,7 +634,7 @@ Shred at t = 0 can Shred again at 1.0 s if it has the energy.
 | [fc-racials] | foreverchanges.pro racials, <https://foreverchanges.pro/racials> | Wind Blessed haste | [F] |
 | [fc-changes] | foreverchanges.pro changes, <https://foreverchanges.pro/changes> | Dual Wield Specialization keeps off-hand damage | [F] |
 | [wt-stats] | Warcraft Tavern, Forever stats guide, <https://www.warcrafttavern.com/forever/guides/stats/> | 17,265 armor for the cap vs bosses | [F] reported |
-| [tz-forever] | tzcnt/WarriorSim, Forever notes `data/forever/ABILITY_MECHANICS.md` and `README.md`, <https://github.com/tzcnt/WarriorSim/tree/master/data/forever> | Rend ticks: per-tick crit and AP (no snapshot); Forever Slam timer behaviour; in-game flat damage values | [F] reported (user tests and a relayed Discord statement; a Classic-sim fork with a Forever mode, whose baseline hit and glancing are still Classic) |
+| [tz-forever] | tzcnt/WarriorSim, Forever notes `data/forever/ABILITY_MECHANICS.md` and `README.md`, <https://github.com/tzcnt/WarriorSim/tree/master/data/forever> | Rend ticks: per-tick crit and AP (no snapshot); Forever Slam timer behaviour; in-game flat damage values | [?] secondary (user tests and a relayed Discord statement, in a Classic-sim fork with a Forever mode whose baseline hit and glancing are still Classic; anecdotal, not adopted) |
 
 [gs-forever]: https://github.com/Ketho/BlizzardInterfaceResources/blob/forever/Resources/GlobalStrings/enUS.lua
 [gs]: https://github.com/Ketho/BlizzardInterfaceResources/blob/forever/Resources/GlobalStrings/enUS.lua
@@ -584,12 +649,15 @@ Shred at t = 0 can Shred again at 1.0 s if it has the energy.
 [wago-ppm-f]: https://wago.tools/db2/SpellProcsPerMinute?build=1.60.1.69913
 [wago-ppm-c]: https://wago.tools/db2/SpellProcsPerMinute?build=1.15.9.69722
 [wago-sao-f]: https://wago.tools/db2/SpellAuraOptions?build=1.60.1.69913
-[ws-player]: https://github.com/GuybrushGit/WarriorSim/blob/master/js/classes/player.js
-[ws-weapon]: https://github.com/GuybrushGit/WarriorSim/blob/master/js/classes/weapon.js
-[ws-spell]: https://github.com/GuybrushGit/WarriorSim/blob/master/js/classes/spell.js
-[ws-sim]: https://github.com/GuybrushGit/WarriorSim/blob/master/js/classes/simulation.js
-[ws-ench]: https://github.com/GuybrushGit/WarriorSim/blob/master/js/data/enchants.js
-[ws-gear]: https://github.com/GuybrushGit/WarriorSim/blob/master/js/data/gear.js
+[ws-player]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/player.js
+[ws-weapon]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/weapon.js
+[ws-spell]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/spell.js
+[ws-gear]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/data/gear.js
+[ws-post-player]: https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/classes/player.js
+[ws-post-weapon]: https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/classes/weapon.js
+[marrow-ab]: https://bookdown.org/marrowwar/marrow_compendium/abilities.html
+[wh-feral]: https://www.wowhead.com/classic/guide/classes/druid/feral/dps-rotation-cooldowns-abilities-pve
+[fc-sb-warrior]: https://foreverchanges.pro/spellbook/warrior
 [magey-wf]: https://github.com/magey/classic-warrior/wiki/Windfury-Totem
 [magey-ph]: https://github.com/magey/classic-warrior/wiki/Parry-haste
 [magey-batch]: https://github.com/magey/classic-warrior/wiki/Spell-batching

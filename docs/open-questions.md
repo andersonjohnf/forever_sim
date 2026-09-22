@@ -11,8 +11,13 @@ and then by the milestone that needs them. Nothing here answers a question: each
 the docs' current assumption, and the linked doc sections own the value. Record every result in
 the owning doc ([Recording results](#recording-results)), then tick it off here.
 
-Status: consolidated 2026-09-22 · Forever beta 1.60.1.69913 · Classic Era 1.15.9.69722 ·
-beta capped at level 20 (rising to 30), launch 2026-11-04, raids unlock 2026-12-09
+Status: consolidated 2026-09-22, reconciled with the cross-doc review the same day
+([D13](decisions.md#d13-cross-doc-reconciliation-rules-2026-09-22)) · Forever beta 1.60.1.69913 ·
+Classic Era 1.15.9.69722 · beta capped at level 20 (rising to 30), launch 2026-11-04, raids
+unlock 2026-12-09
+
+**132 entries:** Route A 7 (High 1, Medium 2, Low 4) · Route B 70 (20 / 25 / 25) · Route C 32
+(8 / 13 / 11) · Route D 23 (7 / 11 / 5), plus 6 items settled by the sim or a guild decision.
 
 ---
 
@@ -27,11 +32,15 @@ beta capped at level 20 (rising to 30), launch 2026-11-04, raids unlock 2026-12-
   30. Forever trainer levels can differ from Classic's: if an ability isn't trainable yet, the
   entry waits.
 - **Tags** follow [doctrine](doctrine.md#tagging): [F] Forever, [C] Classic Era, [?] unverified.
+  Values read from the Forever client's UI code or strings (a verbatim mirror) are [F] for what
+  the client displays or computes and [?] in combat until measured
+  ([doctrine §2](doctrine.md#2-where-numbers-come-from-non-negotiable)). The `forever` profile
+  uses them as defaults; the B and C entries below say what to measure.
 - **Boss conditions without a boss.** Attack mobs **three levels above you**: their defense is
   5 × level, the same +3 gap as a level-60 player vs a level-63 boss. The beta has **no target
   dummies** ([system-changes OQ 8](mechanics/forever-system-changes.md#open-questions)), so
-  "dummy" in a doc means any suitable mob. DPS tests attack from **behind** (no parry or
-  block); tank tests attack from the **front**.
+  every test uses mobs. DPS tests attack from **behind** (no parry or block); tank tests attack
+  from the **front**.
 - **Logging.** `/combatlog` and the log file, the built-in swing timer, an addon on
   `UNIT_POWER_UPDATE` for rage and Energy, and Magey's threat macro
   `/run local _,_,_,_,t=UnitDetailedThreatSituation("player","target") print(t)`. The modern
@@ -122,12 +131,15 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### A2. Warrior naked sheets: base health, avoidance, rounding
 **Medium · M2 (avoidance: M3)**
-- **Assumes:** warrior base attributes from WarriorSim's Classic rows and additive race offsets
-  [C]; base health [?]; base dodge [?], base parry 5% and block 5% [?]; attributes floored once
-  after all multipliers [?]; the first 20 Stamina and Intellect give 1 HP or mana each [C].
+- **Assumes:** warrior Str, Agi, Sta and Int from WarriorSim's pre-SoD Classic rows and additive
+  race offsets [C]; warrior Spirit [?] (only WarriorSim's post-SoD data has it); base health
+  [?]; base dodge [?], base parry 5% and block 5% [?]; attributes floored once after all
+  multipliers [?]; the first 20 Stamina and Intellect give 1 HP or mana each (the Forever sheet
+  code does this [F client UI; ? on the server]; no genuine Classic Era source [?]).
 - **Test:** standard naked sheet for a Human or Night Elf warrior and an Orc or Tauren warrior
-  (shield on for block). Rounding: a naked Gnome warrior's Int reads 34 if truncated, 35 if
-  rounded; a Night Elf warrior with Blessing of Kings reads Str 128 or 129, AP 416 or 418.
+  (shield on for block), including Spirit. Rounding: a naked Gnome warrior's Int reads 34 if
+  truncated, 35 if rounded; a Night Elf warrior with Blessing of Kings reads Str 128 or 129, AP
+  416 or 418.
 - **Samples:** one sheet per character.
 - **Changes:** confirms or corrects the warrior rows; fills base HP (tank survival and the
   `forever-hp` rage model) and base avoidance; sets the rounding rule.
@@ -225,8 +237,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **High · M2 · ≤20**
 - **Assumes** (`forever` profile, the default): no hit suppression; caps of 8% for specials and
   single-weapon white swings and 27% for dual-wield white swings, from the client tooltip [F
-  tooltip, untested]. `classicEra`: the first 1% of +hit is ignored at 300 skill (caps 9% and
-  28%).
+  client strings; ? in combat]. `classicEra`: the first 1% of +hit is ignored at 300 skill
+  (caps 9% and 28%).
 - **Test:** a character with exactly 1% hit (Tauren Endurance gives +1%, or a +1% hit talent),
   300 skill, one two-hander, from behind vs mobs three levels higher. Count white misses.
   Expect 7% with no suppression, 8% with it.
@@ -240,8 +252,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B3. Crit suppression against a +3 target
 **High · M2 · ≤20**
 - **Assumes** (`forever`): table crit = sheet crit − 0.04% × (315 − skill) − min(aura crit,
-  1.8%), so −2.4% at 300 skill. The 0.6% is [F] client UI; the 1.8% aura part is [?] (carried
-  over from Classic Era). `classicEra`: −3.0% − 1.8%. Whether rating crit counts as aura crit
+  1.8%), so −2.4% at 300 skill. The 0.6% is [F client UI; ? in combat]; the 1.8% aura part is
+  [?] (carried over from Classic Era). `classicEra`: −3.0% − 1.8%. Whether rating crit counts as aura crit
   is open [?] (moot at 60).
 - **Test:** Magey's crit-suppression method: note sheet crit and how much of it is aura crit,
   then white swings from behind vs mobs three levels higher; compare the crit rate with
@@ -289,14 +301,15 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B6. Heroic Strike queue and the off-hand miss penalty
 **High · M2 · ≤20**
 - **Assumes:** while Heroic Strike or Cleave is queued, off-hand white swings use the
-  single-weapon miss chance (no +19%) [C Classic Era; F from a third-party beta test: 5.19% vs
-  18.27% over 77 and 394 swings].
+  single-weapon miss chance (no +19%), in both profiles [C Classic Era]. For Forever, a
+  third-party beta test agrees (5.19% vs 18.27% over 77 and 394 swings) [? until the guild
+  repeats it].
 - **Test:** dual-wielding warrior from behind vs mobs three levels higher; alternate stretches
   with Heroic Strike always queued and never queued; count off-hand misses separately.
 - **Samples:** ≥1,000 off-hand swings per state.
 - **Changes:** the `dwPenalty` flag; Fury off-hand hit and Heroic Strike's value.
 - **Docs:** [combat-tables §5](mechanics/combat-tables.md#5-dual-wield-and-on-next-swing-queues),
-  [§6](mechanics/combat-tables.md#6-hit-caps);
+  [§6](mechanics/combat-tables.md#6-hit-caps), [OQ 21](mechanics/combat-tables.md#open-questions);
   [system-changes §2](mechanics/forever-system-changes.md#2-combat-rules);
   [warrior §2.4](classes/warrior.md#24-heroic-strike-and-cleave-on-next-swing),
   [Q6](classes/warrior.md#9-open-questions)
@@ -304,8 +317,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B7. Glancing-blow damage
 **High · M2 · ≤20 · blocked until glancing damage is fixed on the beta**
 - **Assumes** (`forever`): glancing chance 40%; damage ×0.65–0.85, mean ×0.75 at 300 skill,
-  from the client UI formula [F client UI]. `classicEra`: mean ×0.65. The UI formula jumps
-  non-monotonically at 305 skill [?]. Beta glancing damage vs higher-level mobs is reported
+  from the client UI formula [F client UI; ? in combat]. `classicEra`: mean ×0.65. The UI
+  formula jumps non-monotonically at 305 skill [?]. Beta glancing damage vs higher-level mobs is reported
   broken.
 - **Test** (after the fix): white swings from behind vs mobs three levels higher at 300 skill;
   average glancing damage ÷ average normal hit.
@@ -328,16 +341,18 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B9. Rage from damage taken: which formula
 **High · M3 (bears: M4) · ≤20**
-- **Assumes:** default `forever`: `1.5 × health lost / 230.6` [?]; alternative `forever-hp`:
-  `10 × damage / max health` [?]. system-changes and encounter describe the second fit on
-  **pre-armor** damage.
+- **Assumes:** default `forever`: `1.5 × health lost / 230.6` [?]; alternatives `forever-hp`,
+  `10 × health lost / max health` [?], and `forever-hp-prearmor`, `10 × pre-armor damage / max
+  health` [?], which is what the third-party logs actually fit (with a doubling below ~130–170
+  armor that the tester suspects is a bug). rage.md owns all three.
 - **Test:** take hits from one mob type in four conditions: two max-health values with the same
   armor (swap Stamina gear or buffs), and two armor values with the same max health. Log rage
   per hit, health lost, max health and armor; note blocked and absorbed amounts.
 - **Samples:** ≥50 hits per condition.
-- **Changes:** rage per damage that moves with max health → `forever-hp` (and pre- vs post-armor);
-  moves only with health lost → `1.5/c`, and fit the constant. The largest single input to tank
-  rage. Confirm at 60 in [C2](#c2-rage-formulas-at-level-60).
+- **Changes:** rage per damage that moves with max health → `forever-hp` or
+  `forever-hp-prearmor` (the armor comparison tells them apart); moves only with health lost →
+  `1.5/c`, and fit the constant. The largest single input to tank rage. Confirm at 60 in
+  [C2](#c2-rage-formulas-at-level-60).
 - **Docs:** [rage § damage taken](mechanics/rage.md#rage-from-damage-taken),
   [rage OQ 1](mechanics/rage.md#open-questions);
   [system-changes §2, OQ 5](mechanics/forever-system-changes.md#open-questions);
@@ -373,8 +388,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B12. Boss parry from the front
 **High · M3 (all tanks) · ≤20**
-- **Assumes:** 16.5% parry vs a +3 target at 300 skill, from the client tooltip [F tooltip,
-  untested]; Classic Era 14%, and another client string still says 14%. Mob block 5% [C].
+- **Assumes:** 16.5% parry vs a +3 target at 300 skill, from the client tooltip [F client
+  strings; ? in combat]; Classic Era 14%, and another client string still says 14%. Mob block
+  5% [C].
 - **Test:** white swings from the front vs mobs three levels higher that can parry; count
   parries and blocks.
 - **Samples:** ≥3,500 front swings.
@@ -411,8 +427,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B15. Bear ability threat
 **High · M4 · ≤20** (Mangle ≤30; Lacerate: [C8](#c8-lacerate))
-- **Assumes:** Maul and Swipe 1.75 × dmg, Demoralizing Roar 39, Faerie Fire 108 [C, threat-meter
-  code only]; Mangle dmg × 1 [?]; bear form ×1.3 with no Feral Instinct threat [F].
+- **Assumes:** Maul and Swipe 1.75 × dmg, Demoralizing Roar 39, Faerie Fire 108 [?: threat-meter
+  code (LibThreatClassic2) only, in Classic as well as Forever; a Classic guide repeats them
+  uncited]; Mangle dmg × 1 [?]; bear form ×1.3 with no Feral Instinct threat [F].
 - **Test:** threat macro in bear form: fit mult × dmg + bonus over several damage rolls for Maul,
   Swipe and Mangle; flat values for Demoralizing Roar and Faerie Fire; calibrate with a white
   hit (×1.3).
@@ -483,25 +500,34 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 ### Medium
 
-#### B21. Special attacks: two rolls or one?
+#### B21. Special attacks: one roll or two?
 **Medium · M2 · ≤20**
-- **Assumes:** roll 1 decides miss, dodge, parry and block; roll 2 decides crit on anything that
-  landed [C]. A Classic warrior sim uses one roll for weapon-damage specials (not adopted); the
-  druid doc describes cat abilities as single-roll.
-- **Test:** Heroic Strike crit rate from the front vs mobs three levels higher (dodge, parry and
-  block give high avoidance); compare crits ÷ landed with crits ÷ attempts.
-- **Samples:** ≥2,000 Heroic Strikes.
+- **Assumes** (both profiles): the Classic Era split [C]. Weapon-damage specials (Heroic Strike,
+  Mortal Strike, Whirlwind, Shred, …) make one roll with crit on the same table; "melee spells"
+  without a weapon-damage effect (Bloodthirst, Execute, Shield Slam, Revenge) roll hit first,
+  then crit on a landed hit (2020 Classic log analysis; the pre-SoD WarriorSim). Whether Forever
+  keeps it, and how other classes' non-weapon specials (Ferocious Bite, Swipe, Rake's hit,
+  judgements) map onto it, is [?]. Two rolls for every special is the vanilla-era model and is
+  not adopted.
+- **Test:** from the front vs mobs three levels higher (dodge, parry and block give high
+  avoidance), compare Heroic Strike and a two-roll ability (Revenge, or Shield Slam or
+  Bloodthirst once trainable): one roll gives crits ÷ attempts ≈ table crit; two rolls give
+  crits ÷ landed ≈ table crit. A druid can do the same with Claw vs Ferocious Bite.
+- **Samples:** ≥2,000 casts per ability.
 - **Changes:** yellow crit for every special (~10% relative at ~10% avoidance).
 - **Docs:** [combat-tables §3](mechanics/combat-tables.md#3-special-yellow-attacks),
-  [OQ 6](mechanics/combat-tables.md#open-questions)
+  [OQ 6](mechanics/combat-tables.md#open-questions);
+  [druid §3](classes/druid.md#3-feral-cat-sim-model), [Q33](classes/druid.md#10-open-questions)
 
 #### B22. DoTs: periodic crits, snapshots and refresh
 **Medium · M2 (Rend, Deep Wounds), M4 (Rip, Rake) · ≤20**
-- **Assumes** (`forever`): ticks crit when the spell has the periodic-crit flag (Rend, Rake,
-  Rip, Pounce, Lacerate; not Deep Wounds), ×2.0 for physical [F tooltip; multiplier ?]; crit
-  and AP read at each tick, no snapshot (reported for Rend only) [?]; crit suppression on ticks
-  [?]; a refresh restarts duration and tick timer and loses the partial tick [?]. The druid doc
-  instead assumes bleeds snapshot and can't crit [?]. Deep Wounds: 4 ticks over 12 s [?].
+- **Assumes:** in `forever`, ticks crit when the spell has the periodic-crit flag (Rend, Rake,
+  Rip, Pounce, Lacerate; not Deep Wounds) [? the tooltip text is F, the per-spell flags are a
+  secondary read, see D14], ×2.0 for physical [?]; in `classicEra`, ticks never crit [C]. Both
+  profiles snapshot AP, caster modifiers and crit chance at application [?], except Deep
+  Wounds, which recomputes each tick [C]; a third-party report that Forever's Rend reads them
+  per tick is not adopted [?]. Crit suppression on ticks [?]; a refresh restarts duration and
+  tick timer and loses the partial tick [?]. Deep Wounds: 4 ticks over 12 s [C].
 - **Test:** vs mobs three levels higher, log Rend, Deep Wounds (1/3), Rip and Rake ticks: count
   crits and their size. Reapply Rend mid-duration and log tick times. Apply a DoT, then gain AP
   or a damage buff mid-DoT (Battle Shout; Tiger's Fury if trainable) and see whether later ticks
@@ -516,8 +542,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B23. Weapon-enchant proc rates
 **Medium · M2 · ≤20**
-- **Assumes:** Crusader 1 PPM, Fiery Weapon 6, Icy Chill 1.6, Lifestealing 6, Unholy Weapon 3,
-  from base weapon speed [C / ?]. Forever's new 2.3 PPM row has no known user [?].
+- **Assumes:** Crusader 1 PPM, Fiery Weapon 6 and Lifestealing 6 [C, the pre-SoD WarriorSim];
+  Icy Chill 1.6 and Unholy Weapon 3 [?, an unversioned wiki only]; all from base weapon speed.
+  None is measured in Forever, and its new 2.3 PPM row has no known user [?].
 - **Test:** Crusader (and any other enchant you can get) on a known-speed weapon; procs per
   landed hit; repeat with a second weapon speed.
 - **Samples:** ≥1,000 landed hits per weapon.
@@ -542,8 +569,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B25. Rage refunds on avoided abilities
 **Medium · M2 · ≤20 (Execute ≤30)**
 - **Assumes:** 80% refund on a miss, dodge or parry; Whirlwind and Cleave none; a failed Execute
-  loses only its base cost [C]; Maul refunds like Heroic Strike [?]. The warrior doc lists
-  Whirlwind and Execute as the only exceptions.
+  loses only its base cost [C]; Maul refunds like Heroic Strike [?]. The warrior doc now lists
+  Whirlwind, Cleave and Execute as the exceptions, as rage.md does.
 - **Test:** read rage before and after avoided Heroic Strikes, Cleaves, Mauls (bear) and, once
   trainable, a dodged Execute at a known rage.
 - **Samples:** ≥10 avoided casts per ability.
@@ -552,28 +579,36 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [rage OQ 4](mechanics/rage.md#open-questions);
   [warrior §2.3](classes/warrior.md#23-rage-warrior-specific)
 
-#### B26. Haste rating, armor penetration and health regeneration
-**Medium · M2 · ≤20 (if such items exist under the cap)**
-- **Assumes:** damage-and-timing: 10 haste rating = 1%, multiplicative with other haste [F
-  gametable; ?]; armor penetration is flat armor removed from the target for your own attacks
-  [F tooltip]. character-stats: these ratings (and expertise) have no combat effect until
-  measured [?].
-- **Test:** sheet attack speed with and without a haste-rating item, and together with another
-  haste buff (product vs sum); average white hit on the same mob with and without an
-  armor-penetration item; out-of-combat health ticks with and without Health Regeneration.
-- **Samples:** sheet reads; ≥500 hits per state for armor penetration; ≥20 health ticks.
-- **Changes:** how the stat pipeline treats the new ratings.
+#### B26. Armor penetration, negative armor, haste rating and health regeneration
+**Medium · M2 · ≤20 (armor penetration and negative armor; haste rating needs level 60: C1)**
+- **Assumes** (`forever`, per
+  [D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22),
+  with the `unmeasuredRatings: 'apply' | 'ignore'` switch): armor penetration is flat armor
+  removed from the target for your own attacks [?]; 10 haste rating = 1%, multiplicative with
+  other haste [? gametable read by wowsims only]; Health Regeneration has no combat effect.
+  Armor below 0 increases damage in `forever` (client tooltip text [F]; in combat [?]), and is
+  floored at 0 in `classicEra` [C]; resistance below 0 likewise ("Spell Vulnerability").
+- **Test:** under the cap, the only armor-penetration item in foreverchanges' data is Leafre's
+  Ring of Armor Piercing (+50, requires level 1; source unknown). If it can be had: average
+  white hit on the same mob with and without it, and on a low-armor mob whose armor it exceeds
+  (negative armor), compared with the same mob at 0 effective armor. Haste rating (every item
+  requires level 60): sheet attack speed with and without the item, and together with another
+  haste buff (product vs sum). Health Regeneration: out-of-combat health ticks with and without
+  the item.
+- **Samples:** ≥500 hits per state for armor penetration; sheet reads; ≥20 health ticks.
+- **Changes:** how the stat pipeline treats the new ratings, and the `forever` armor floor.
 - **Docs:** [stats OQ-14](mechanics/character-stats.md#oq-14-combat-ratings-in-play);
   [damage §1.2](mechanics/damage-and-timing.md#12-armor-reduction-debuffs-and-penetration),
   [§3.1](mechanics/damage-and-timing.md#31-haste),
-  [OQ 4](mechanics/damage-and-timing.md#open-questions);
+  [OQ 4, 12](mechanics/damage-and-timing.md#open-questions);
+  [combat-tables OQ 20](mechanics/combat-tables.md#open-questions);
   [items § ratings](data/items.md#forevers-ratings-f-with-open-questions)
 
 #### B27. Race/class combinations
 **Medium · M2 · ≤20**
 - **Assumes:** Undead paladins (Horde) and Dwarf shamans (Alliance) exist, so both factions get
-  Blessings and Windfury [F client table; the buffs doc treats the matrix as community-reported
-  ?].
+  Blessings and Windfury [F client `CharBaseInfo`, owned by character-stats; confirm on
+  wago.tools, D11]. This is a cheap confirmation, not an open [?].
 - **Test:** character creation: Undead paladin, Dwarf shaman, and a Skyborne warrior and druid
   on each faction.
 - **Samples:** one attempt each.
@@ -619,10 +654,12 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B31. Weaponmaster details
 **Medium · M2 · ≤30 (Arms tier 5)**
 - **Assumes:** mace or staff ignores 3% of armor per rank, applied after all flat reductions
-  [?]; sword extra attacks at 1% per rank with a 200 ms internal cooldown [F data]; axe crit
-  counts only for that weapon's attacks when dual wielding [?].
+  [?]; sword extra attacks at 1% per rank with a 200 ms internal cooldown [F data], rolled once
+  per cast on multi-target abilities [?] (only a post-SoD sim does this); axe crit counts only
+  for that weapon's attacks when dual wielding [?].
 - **Test:** mace hits on a mob of known armor with and without Sunder; the minimum gap between
-  sword extra attacks; crit per hand with an axe in one hand only.
+  sword extra attacks, and sword procs per Cleave that hits two mobs; crit per hand with an axe
+  in one hand only.
 - **Samples:** ≥300 hits per state.
 - **Changes:** armor-penetration order, the sword ICD and axe crit per hand.
 - **Docs:** [warrior §2.7](classes/warrior.md#27-weaponmaster-extra-attacks-and-windfury),
@@ -654,8 +691,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B34. Threat from rage and mana gains
 **Medium · M3 · ≤20**
-- **Assumes:** 5 threat per rage and 0.5 per mana from spell effects, split across enemies, with
-  no multipliers; Anger Management none [C; ?].
+- **Assumes:** 5 threat per rage from spell effects [C, Magey], and 0.5 per mana and 5 per
+  energy [?, threat-meter code only], split across enemies, with no multipliers; Anger
+  Management none [?].
 - **Test:** threat macro before and after Bloodrage (and Shield Specialization procs when
   available) in Battle and Defensive Stance, with a known number of enemies in combat.
 - **Samples:** ≥5 per stance.
@@ -798,8 +836,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B46. Weapon skill per point
 **Low · M2 · ≤20**
-- **Assumes:** 0.04% per point for hit, dodge, parry and crit (client UI) [F]; Classic 0.1–0.2%.
-  Matters only with +skill items; 300–302 skill is the norm.
+- **Assumes:** 0.04% per point for hit, dodge, parry and crit [F client UI; ? in combat];
+  Classic 0.1–0.2%. Matters only with +skill items; 300–302 skill is the norm.
 - **Test:** Magey's proxy: compare miss, dodge and crit rates vs +2 and +3 mobs (one level is
   5 defense points).
 - **Samples:** ≥3,000 swings per mob level.
@@ -820,9 +858,10 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B48. Haste and swing-timer details
 **Low · M2 · ≤20**
-- **Assumes:** haste doesn't shorten the GCD [C; Forever ?]; a haste change mid-swing applies
-  from the next swing [?]; paladin and druid cast-time spells pause and restart swings like
-  Slam [?]; the first off-hand swing comes at half its speed (a modelling choice) [?].
+- **Assumes:** haste doesn't shorten the GCD [C, the pre-SoD WarriorSim; Forever ?]; a haste
+  change mid-swing applies from the next swing [?]; paladin and druid cast-time spells pause and
+  restart swings like Slam [?]; the first off-hand swing comes at half its speed (a modelling
+  choice) [?].
 - **Test:** built-in swing timer and cooldown display: time GCDs with and without a haste
   effect; gain haste mid-swing and time that swing; cast a spell with a cast time mid-melee
   and time the next swings; log the first off-hand swing after a pull.
@@ -906,11 +945,13 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B56. Minor character-sheet checks
 **Low · M2 · ≤20**
-- **Assumes:** the "first 20 Stamina and Intellect count as 1" rule holds in Forever [C];
-  warrior ranged AP is 2 per Agi in Forever data (1 in Classic), irrelevant to melee [?]; the
-  two unnamed `PlayerExpectedStat` columns are unused [?].
-- **Test:** naked sheet at the cap: HP and mana against Stamina and Intellect; ranged AP
-  against Agility.
+- **Assumes:** the "first 20 Stamina and Intellect count as 1" rule holds in Forever [F client
+  UI: the sheet code uses `STAMINA_BREAK = INTELLECT_BREAK = 20`; ? on the server; Classic Era
+  ?]; warrior ranged AP is 2 per Agi in Forever data (1 in Classic), irrelevant to melee [?];
+  the two unnamed `PlayerExpectedStat` columns are unused [?].
+- **Test:** naked sheet at the cap: maximum HP and mana (the server's values) against Stamina
+  and Intellect at two totals each, compared with `min(20, x) + 10 or 15 × (x − 20)`; ranged
+  AP against Agility.
 - **Samples:** one sheet.
 - **Changes:** HP and mana formulas.
 - **Docs:** [stats OQ-12](mechanics/character-stats.md#oq-12-minor-items)
@@ -1005,9 +1046,10 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B65. Righteous Fury scope and paladin healing threat
 **Low · M5 · ≤20**
 - **Assumes:** Righteous Fury ×1.9 on Holy damage [F]; whether it also scales Holy heals and
-  blessing casts, and whether paladin healing threat is halved [? threat-meter code].
+  blessing casts, whether paladin healing threat is halved, and each blessing cast's threat
+  (about its spell level per recipient) [? threat-meter code only].
 - **Test:** threat macro before and after a self-heal and a blessing cast, with and without
-  Righteous Fury, in combat with one mob.
+  Righteous Fury, in combat with one mob; the blessing value from the cast without RF.
 - **Samples:** ≥5 each.
 - **Changes:** paladin non-damage threat.
 - **Docs:** [threat § Righteous Fury](mechanics/threat.md#paladin-righteous-fury),
@@ -1058,6 +1100,21 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Changes:** minor Ret and Prot details.
 - **Docs:** [paladin OQ 22](classes/paladin.md#open-questions)
 
+#### B70. Classic rules that only a post-SoD sim encodes
+**Low · M2 · ≤20**
+- **Assumes** [?]: flat "damage taken" bonuses on a target (e.g. Gift of Arthas' +8) add after
+  damage multipliers; on multi-target attacks, ordinary weapon procs roll per target hit while
+  extra-attack procs other than Windfury roll once per cast. Only WarriorSim's post-SoD code has
+  these; its pre-SoD commit, the doctrine's Classic Era source, doesn't model them.
+- **Test:** white hits on a mob carrying Gift of Arthas' debuff vs the same mob without it
+  (flat +8 on every hit, or scaled by your multipliers?); Cleave with a weapon enchant on two
+  mobs: procs per Cleave.
+- **Samples:** ≥100 hits per state; ≥200 Cleaves.
+- **Changes:** two small rules in the damage and proc engine.
+- **Docs:** [damage §2.4](mechanics/damage-and-timing.md#24-damage-modifier-stacking),
+  [§5.3](mechanics/damage-and-timing.md#53-what-can-trigger-a-chance-on-hit-proc),
+  [OQ 13](mechanics/damage-and-timing.md#open-questions)
+
 ---
 
 ## Route C: Forever at level 60
@@ -1091,8 +1148,11 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 #### C3. Flurry: 25% or 30%?
 **High · M2 (Fury tier 6)**
 - **Assumes:** 25% at 5/5 (tooltip and rank curve) [F]; the buff row still has base 30 [?].
-- **Test:** swing interval with Flurry up vs down.
-- **Samples:** ≥100 swings with Flurry up.
+  Heroic Strike and Cleave swings don't consume Flurry charges [F data: the buff's proc mask is
+  auto attacks only]; for Classic Era the pre-SoD WarriorSim says they do [?].
+- **Test:** swing interval with Flurry up vs down; count the hasted swings after a crit while
+  Heroic Strike is queued on every swing.
+- **Samples:** ≥100 swings with Flurry up; ≥20 crits with Heroic Strike queued.
 - **Changes:** Fury haste (~2–3% DPS).
 - **Docs:** [warrior §2.5](classes/warrior.md#25-crits-impale-flurry-deep-wounds),
   [Q7](classes/warrior.md#9-open-questions)
@@ -1173,8 +1233,8 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 #### C10. Slam and the swing timer
 **Medium · M2**
 - **Assumes:** without Improved Slam, Classic behaviour (no swings during the cast, both timers
-  restart) [C]; with it, timers untouched [F tooltip]. A Forever warrior sim reports that Slam
-  pauses and resumes the timers [? reported].
+  restart) [C]; with it, timers untouched [F tooltip]. A third-party Forever sim's notes say
+  Slam pauses and resumes the timers [?, anecdotal, not adopted].
 - **Test:** swing timestamps around Slam casts in the combat log, with and without Improved Slam.
 - **Samples:** ≥20 Slams each.
 - **Changes:** Arms Slam value.
@@ -1185,9 +1245,10 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 #### C11. Windfury Totem
 **Medium · M2**
 - **Assumes:** a party aura rather than a weapon enchant, so a main-hand stone coexists [?];
-  20% per main-hand hit, +246 AP [F]; it can't proc itself (damage-and-timing, warrior) or that
-  is unsettled (buffs) [C/?]; a 1.5 s internal cooldown (warrior) vs none (damage-and-timing
-  refuses the SoD-era source) [?]; twisting with Grace of Air and procs from feral attacks [?].
+  20% per main-hand hit, +246 AP [F]; it can't proc itself or twice in one chain [C, Magey's
+  2019 text; every doc agrees]; **no internal cooldown** modelled [?], because the only source
+  for 1.5 s is a 2023 statement about SoD's Wild Strikes (forbidden); twisting with Grace of Air
+  and procs from feral attacks [?].
 - **Test:** a main-hand stone next to a Windfury Totem (does the enchant stay?); log Windfury
   procs, chains and the minimum gap between procs; repeat in cat and bear form.
 - **Samples:** ≥500 swings.
@@ -1196,7 +1257,8 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
   [buffs OQ 3](mechanics/buffs-debuffs-consumables.md#open-questions);
   [damage §5.4](mechanics/damage-and-timing.md#54-extra-attacks-and-chaining),
   [OQ 9](mechanics/damage-and-timing.md#open-questions);
-  [warrior §2.7](classes/warrior.md#27-weaponmaster-extra-attacks-and-windfury)
+  [warrior §2.7](classes/warrior.md#27-weaponmaster-extra-attacks-and-windfury),
+  [Q27](classes/warrior.md#9-open-questions)
 
 #### C12. New elixirs and Frenzy potions
 **Medium · M2**
@@ -1243,12 +1305,16 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 
 #### C16. Expertise in combat
 **Medium · M3 (tanks; under 1% for DPS)**
-- **Assumes:** combat-tables: hypothesis A, E percentage points off the boss's dodge and parry
-  [?]; character-stats: no combat effect until measured [?]; which items carry it (foreverchanges
-  and wowsims disagree) [?].
-- **Test:** Adaptive Combat Assistant (+20 rating, 2%) on and off: dodges from behind and parries
-  from the front vs mobs three levels higher. Earlier if a lower-level expertise item
-  (Servomechanic Sledgehammer +10, Dwarven Tree Chopper +6) is usable under the cap.
+- **Assumes:** hypothesis A, E percentage points off the boss's dodge and parry, at 10 rating
+  per 1% [?]; every doc applies it in `forever` per
+  [D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22),
+  with the `unmeasuredRatings` switch; which items carry it (foreverchanges and wowsims
+  disagree) [?].
+- **Test:** Adaptive Combat Assistant (+20 rating, 2%; it requires level 60) on and off: dodges
+  from behind and parries from the front vs mobs three levels higher. It can start under the cap
+  (Route B) with the Dwarven Tree Chopper (+6 rating; item level 20, no level requirement in its
+  Forever tooltip), which predicts −0.6 points and so needs about four times the sample; the
+  Servomechanic Sledgehammer (+10) needs Engineering 100.
 - **Samples:** ≥3,000 swings per state and position.
 - **Changes:** the expertise model.
 - **Docs:** [combat-tables §7](mechanics/combat-tables.md#7-expertise-forever),
@@ -1353,16 +1419,21 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 - **Docs:** [combat-tables OQ 11](mechanics/combat-tables.md#open-questions);
   [encounter OQ 6](mechanics/encounter.md#open-questions)
 
-#### C27. Demoralizing Shout and Roar at 60
-**Low · M3**
-- **Assumes:** the docs disagree: Shout −196 (tooltip) or about −204 with the data's −1.4 per
-  level; Roar −193 or −204 [F / ?].
-- **Test:** at 60, read the AP reduction in the debuff's tooltip on the target.
+#### C27. Demoralizing Shout and Roar level scaling
+**Low · M3 · Route D first**
+- **Assumes:** every doc uses the tooltips: Shout r5 −196 and Roar r5 −193 [F] (tooltip beats
+  derived, doctrine §2). The client data's per-level term (−1.4 per level, from 54 and 52) would
+  give about −204.4 and −204.2 at 60 if the server applies it uncapped [?].
+- **Test:** **Route D** (a person, in a browser): on wago.tools, `SpellLevels` for 11556 and 9898
+  (is `MaxLevel` set, capping the scaling?) and `SpellEffect` (`EffectRealPointsPerLevel`).
+  **Route C** if that's inconclusive: at 60, read the AP reduction in the debuff's tooltip on
+  the target.
 - **Samples:** one read each.
 - **Changes:** boss AP reduction (tank damage taken only).
-- **Docs:** [warrior Q22](classes/warrior.md#9-open-questions);
-  [druid §1.1](classes/druid.md#11-spells);
-  [buffs §4.2](mechanics/buffs-debuffs-consumables.md#42-other-debuffs)
+- **Docs:** [buffs §4.2](mechanics/buffs-debuffs-consumables.md#42-other-debuffs),
+  [buffs OQ 19](mechanics/buffs-debuffs-consumables.md#open-questions);
+  [warrior Q22](classes/warrior.md#9-open-questions);
+  [druid §1.1](classes/druid.md#11-spells), [Q32](classes/druid.md#10-open-questions)
 
 #### C28. Berserk and Primal Fury
 **Low · M4 (tier 7)**
@@ -1384,7 +1455,8 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 
 #### C30. Spell miss floor
 **Low · M5**
-- **Assumes:** 0% miss at 17% spell hit (tooltip) [F tooltip]; Classic keeps a 1% floor.
+- **Assumes:** 0% miss at 17% spell hit [F client strings; ? in combat]; Classic keeps a 1%
+  floor.
 - **Test:** a character with 17% spell hit vs level-63 targets; count spell misses.
 - **Samples:** ≥2,000 spells.
 - **Changes:** the spell-miss floor.
@@ -1433,20 +1505,21 @@ wago.tools" note (‡ in the buffs doc) in the owning doc. Sorted by impact, the
 | D6 | Cat damage values | `SpellEffect` · both; `SpellDescriptionVariables` · 1.15.9 | Shred 9830 flat 80 / 155%; Claw 9850 115 / 110%; Rake 9904 61 / 34 per 3 s; Rip 9896 15 + 25.5 per CP (Classic 16+1 / 28; SDV 865 `$ticks=6`, `$mult=1.0`); Ferocious Bite 31018 base 82, variance 0.7317, 147 per CP, dummy 270; Tiger's Fury 5217 15%, 30,000 ms, no GCD | High · M4 | [druid Q27](classes/druid.md#10-open-questions) |
 | D7 | Ret damage coefficients | `SpellEffect` · Forever | SoC proc 20424 70% weapon, 0.29; JoC 20966 0.429; JoR 20286 0.5; SoR proc 25713 0.1; Holy Strike 10333 effect 121 (+93) then 31 (40%), 0.429; Consecration 1280349 12 + 27 at 0.095; Vengeance 20050 5 stacks, 30 s; 2HWS 20111 / 1HWS 20196 Physical only; Improved Seals 20224 spell masks | High · M5 | [paladin OQ 21](classes/paladin.md#open-questions), [§ DB2 links](classes/paladin.md#db2-links-per-spell) |
 | D8 | Rage talent curves | `TraitDefinitionEffectPoints` + `CurvePoint` · Forever | Boundless Rage 1310236 aura 418 = 100/200/300; Improved Bloodrage 25/50; Shield Specialization 20…100; Master of Defense 50/100; Improved Tactical Mastery 12295 = 3/6/9/12/15 and Tactical Mastery 1310185 dummy 10; Furor 20…100; Natural Reaction 417051 | Medium · M2 | [rage § sources](mechanics/rage.md#warrior-rage-sources-and-sinks), [§ stances](mechanics/rage.md#stance-changes-and-tactical-mastery) |
-| D9 | Warrior timing, procs and masks | `SpellCooldowns`, `SpellCategories`, `SpellShapeshift`, `SpellPower`, `SpellMisc`, `SpellAuraOptions`, `SpellClassOptions`, `SpellName` · Forever | Slam 15 s CD on every rank; stance swap 1.0 s shared, off GCD; racial `StartRecoveryTime` 0; Thunder Clap defense type 1, usable in Defensive; Overpower window 1282733 = 5,000 ms, second cost power type 4 stacking to 3; Bloodthrill proc mask 4; Enrage proc mask 0x222A8; Berserker Stance aura 290 (Classic 52) plus an empty aura 166; Recklessness has its own recovery; Improved Slam spells 1310196–1310200; Battle Shout 25289 base 139 + 0.6/level; Demoralizing Shout 11556 −1.4/level above 54; Focused Rage and Impale class masks; Deep Wounds 12721 has no name; Victory Rush dummy 15 | Medium · M2 | [warrior §2](classes/warrior.md#2-warrior-mechanics), [Q19, Q21, Q22](classes/warrior.md#9-open-questions) |
+| D9 | Warrior timing, procs and masks | `SpellCooldowns`, `SpellCategories`, `SpellShapeshift`, `SpellPower`, `SpellMisc`, `SpellAuraOptions`, `SpellClassOptions`, `SpellName` · Forever | Slam 15 s CD on every rank; stance swap 1.0 s shared, off GCD; racial `StartRecoveryTime` 0; Thunder Clap defense type 1, usable in Defensive; Overpower window 1282733 = 5,000 ms, second cost power type 4 stacking to 3; Bloodthrill proc mask 4; Enrage proc mask 0x222A8; Berserker Stance aura 290 (Classic 52) plus an empty aura 166; Recklessness has its own recovery; Improved Slam spells 1310196–1310200; Battle Shout 25289 base 139 + 0.6/level; weapon-damage effect types (121 normalized: Mortal Strike, Overpower, Whirlwind, Spearing Strike; 17: Heroic Strike, Cleave, Slam); Focused Rage and Impale class masks; Deep Wounds 12721 has no name; Victory Rush dummy 15. (Demoralizing Shout's per-level term: [C27](#c27-demoralizing-shout-and-roar-level-scaling)) | Medium · M2 | [warrior §2](classes/warrior.md#2-warrior-mechanics), [Q19, Q21, Q22](classes/warrior.md#9-open-questions) |
 | D10 | Racials | `SpellEffect`, `SpellMisc`, `SpellDuration`, `SpellPower` · Forever | 20597 (+2% crit, aura 290), 20598, 20572 (+10% AP, RAP, SP; 15 s), 20574, 1259719, 1259721, 20594, 20582, 1259799 (+10%, 15 s), 1259802, 1259813 (15 s), 1260189, 20550 (+5% HP; +1% hit via auras 54 and 55), 20554 (10 s, no cost), 20557 | Medium · M2 | [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser) |
 | D11 | Race/class pairs | `CharBaseInfo`, `ChrRaces` · Forever | 56 pairs including Undead paladin; High Order Skyborne = race 95, Windshaper = 96 | Medium · M2 | [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser) |
 | D12 | Windfury Totem | `SpellEffect`, `SpellAuraOptions` · both | Forever: 10612 is a party dummy aura, 20% proc into 10610 (+246 AP, 1 extra attack), 10611 absent. Classic: 10612 pulses 10611 every 5 s → enchant 564 (10 s) | Medium · M2 | [buffs OQ 17](mechanics/buffs-debuffs-consumables.md#open-questions) |
 | D13 | Consumable mechanics | `ItemEffect`, `ItemXItemEffect`, `SpellEffect` · Forever | cooldown categories: elixirs 79, potions 4, runes 1153, explosives 24, Blasted Lands 103 (3,600 s); Frenzy potions aura 13 (school mask 1), no category; all-crit aura on Leader of the Pack 24932 and Mongoose 17538; Hyjal flasks = dummy + zero-valued aura | Medium · M2 | [buffs OQ 17](mechanics/buffs-debuffs-consumables.md#open-questions) |
-| D14 | Threat auras | `SpellEffect` · both; `SpellClassOptions` · 1.15.9 | Battle 21156 −20, Berserker 7381 −20, Defensive 7376 +30; Bear Passive2 21178 +30; Cat 3025 −29; Defiance 12792 curve 5/10/15; Righteous Fury 25780 = 90 (Classic 59+1), school mask 2; Improved RF 20468 −2/−4/−6 (curve 82954); Instrument of Law 1311085 10/20; Iron Creed 1311034 aura 108, modifier 2, 5…25; Salvation 1038 / 25895 −30; Feral Instinct 16947 (Classic: aura 107 on mask 0x2000000) | Medium · M3 | [threat § stances](mechanics/threat.md#stance-and-form-modifiers), [§ Righteous Fury](mechanics/threat.md#paladin-righteous-fury) |
-| D15 | Bear and form values | `SpellEffect`, `SpellShapeshiftForm`, `SpellShapeshift`, `SpellLevels`, `SpellCooldowns`, `SpellPower`, `SpellAuraOptions` · both | Mangle 407995 / 1238069 / 1238070 / 1238073 = 26/38/59/77, 20 rage, 6 s, shapeshift mask 144; Lacerate 1235827 15 per 3 s, 5 stacks; Cat 3025 12 + 2/level from 6, Faerie Fire cost −100%, CD +6,000, GCD −500, aura 598 = 100 on Agility; Dire Bear 9635; forms 1/5/8 = 1,000/2,500 ms, variance 0.4; cat `StartRecoveryTime` 1,000; Berserk 417141 masks, 180,000 ms; Omen of Clarity 16864 `ProcCategoryRecovery` 10,000; Demoralizing Roar 9898 −193, −1.4/level; Cower 9892 −1200 − 1/level; `SpellLevels` 3025 base 6 (Classic 20), 1178 10–40, 9635 40–70 | Medium · M4 | [druid Q27](classes/druid.md#10-open-questions), [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser) |
-| D16 | Feral talent auras | `SpellEffect`, `CurvePoint` · Forever | Genesis, Savage Fury, Predatory Instincts, Nature's Reach (auras 54/55), Nature's Majesty, Naturalist (aura 79) values and class masks; King of the Jungle 20/40/60 plus a hidden 5/10/15 | Medium · M4 | [druid Q7, Q27](classes/druid.md#10-open-questions) |
-| D17 | Paladin attributes, cooldowns and procs | `SpellMisc`, `SpellCategories`, `SpellAuraOptions`, `SpellCooldowns`, `SpellEffect` · Forever | JoC/JoR/JotC melee class with No Active Defense / Always Hit (20966, 20968, 20286, 20303 for 40 s); SoR and SoF proc attributes (25713, 20418); SoC 1 s ICD (20920); seal proc masks 0x4 (damage) vs 0x14 (utility); Holy Strike and HotR category 2404 (12 s / 6 s); Holy Strike SpellMisc school 2; Holy Shield 20928 4 charges, 0.08; SoF 20418 35 at 0.1; JoF 20414 0.45; SotC 20308 +2.4/level; JoF scripted value 1607 + 42.3/level, coefficient 0.18 | Medium · M5 | [paladin OQ 17, 21](classes/paladin.md#open-questions), [threat OQ 6](mechanics/threat.md#open-questions) |
-| D18 | Item → buff spells | `ItemEffect`, `ItemXItemEffect` · Forever | the spell IDs after "→" in buffs §3; Distilled Firewater → 17038; Smoked Desert Dumplings → 1248401 (the Well Fed family) | Low · M2 | [buffs §3](mechanics/buffs-debuffs-consumables.md#3-consumables) |
-| D19 | Enchant and minor consumable values | `SpellItemEnchantment`, `SpellEffect` · Forever | enchant 2618 → spell 19989 (+9 Agi); enchant 925 → spell 13930 (+2 defense); Rivenspike 17315 −100 per stack; Consecrated Sharpening Stone reads 99; Gift of Arthas 11374 +8; Blood Pact 11767 = 49 + 0.5/level; Trueshot Aura r5 = 50 (possible data bug) | Low · M2 | [buffs OQ 16, 17](mechanics/buffs-debuffs-consumables.md#open-questions) |
-| D20 | World buffs (context only) | `SpellEffect` · both | 22888, 15366, 16609 are dummy auras in Forever | Low · M2 | [buffs §2](mechanics/buffs-debuffs-consumables.md#2-world-buffs-excluded) |
-| D21 | Threat items and enchants | `SpellItemEnchantment`, `ItemEffect`, `ItemXItemEffect`, `SpellEffect` · Forever | Gloves – Threat 2613 → 25063 (+2); Cloak – Subtlety 2621 → 25070 (−2); Fetish of the Sand Reaver 26400 −70, 20 s, CD 180 s; Eye of Diminution 28862 −35, 20 s, CD 120 s; Increase/Decrease Threat All 01–04 linked to 278540, 279493, 278929, 278299, 14576, 13959, 18308; Enhanced Sunder 23561 | Low · M3 | [threat § global](mechanics/threat.md#global-threat-modifiers), [threat OQ 10](mechanics/threat.md#open-questions) |
-| D22 | Taunts and forced attacks | `SpellEffect`, `SpellDuration` · Forever | Taunt 355 and Growl 6795: effect 114 + aura 11, 3 s; Mocking Blow 20560 aura 11, 6 s; Challenging Shout 1161 and Roar 5209 6 s | Low · M3 | [threat § taunts](mechanics/threat.md#taunts-and-forced-attacks) |
+| D14 | Periodic-crit flags and Deep Wounds (read so far only by wowsims/forever, a secondary source) | `SpellMisc` (Attributes[8], `PERIODIC_CAN_CRIT`), `SpellName`, `SpellEffect` · Forever | flag set on Rend 11574, Rake 9904, Rip 9896, Pounce bleed 9826 and Lacerate 1235827; not set on Deep Wounds and Consecration 20924 / 1280349; Forever's Deep Wounds bleed is spell 412609 (4 ticks, 3 s) | Medium · M2 | [damage §4](mechanics/damage-and-timing.md#4-dots-and-bleeds), [OQ 2](mechanics/damage-and-timing.md#open-questions); [warrior Q21](classes/warrior.md#9-open-questions); [druid Q21](classes/druid.md#10-open-questions) |
+| D15 | Threat auras | `SpellEffect` · both; `SpellClassOptions` · 1.15.9 | Battle 21156 −20, Berserker 7381 −20, Defensive 7376 +30; Bear Passive2 21178 +30; Cat 3025 −29; Defiance 12792 curve 5/10/15; Righteous Fury 25780 = 90 (Classic 59+1), school mask 2; Improved RF 20468 −2/−4/−6 (curve 82954); Instrument of Law 1311085 10/20; Iron Creed 1311034 aura 108, modifier 2, 5…25; Salvation 1038 / 25895 −30; Feral Instinct 16947 (Classic: aura 107 on mask 0x2000000) | Medium · M3 | [threat § stances](mechanics/threat.md#stance-and-form-modifiers), [§ Righteous Fury](mechanics/threat.md#paladin-righteous-fury) |
+| D16 | Bear and form values | `SpellEffect`, `SpellShapeshiftForm`, `SpellShapeshift`, `SpellLevels`, `SpellCooldowns`, `SpellPower`, `SpellAuraOptions` · both | Mangle 407995 / 1238069 / 1238070 / 1238073 = 26/38/59/77, 20 rage, 6 s, shapeshift mask 144; Lacerate 1235827 15 per 3 s, 5 stacks; Cat 3025 12 + 2/level from 6, Faerie Fire cost −100%, CD +6,000, GCD −500, aura 598 = 100 on Agility; Dire Bear 9635; forms 1/5/8 = 1,000/2,500 ms, variance 0.4; cat `StartRecoveryTime` 1,000; Berserk 417141 masks, 180,000 ms; Omen of Clarity 16864 `ProcCategoryRecovery` 10,000; Cower 9892 −1200 − 1/level (Demoralizing Roar's per-level term: [C27](#c27-demoralizing-shout-and-roar-level-scaling)); `SpellLevels` 3025 base 6 (Classic 20), 1178 10–40, 9635 40–70 | Medium · M4 | [druid Q27](classes/druid.md#10-open-questions), [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser) |
+| D17 | Feral talent auras | `SpellEffect`, `CurvePoint` · Forever | Genesis, Savage Fury, Predatory Instincts, Nature's Reach (auras 54/55), Nature's Majesty, Naturalist (aura 79) values and class masks; King of the Jungle 20/40/60 plus a hidden 5/10/15 | Medium · M4 | [druid Q7, Q27](classes/druid.md#10-open-questions) |
+| D18 | Paladin attributes, cooldowns and procs | `SpellMisc`, `SpellCategories`, `SpellAuraOptions`, `SpellCooldowns`, `SpellEffect` · Forever | JoC/JoR/JotC melee class with No Active Defense / Always Hit (20966, 20968, 20286, 20303 for 40 s); SoR and SoF proc attributes (25713, 20418); SoC 1 s ICD (20920); seal proc masks 0x4 (damage) vs 0x14 (utility); Holy Strike and HotR category 2404 (12 s / 6 s); Holy Strike SpellMisc school 2; Holy Shield 20928 4 charges, 0.08; SoF 20418 35 at 0.1; JoF 20414 0.45; SotC 20308 +2.4/level; JoF scripted value 1607 + 42.3/level, coefficient 0.18 | Medium · M5 | [paladin OQ 17, 21](classes/paladin.md#open-questions), [threat OQ 6](mechanics/threat.md#open-questions) |
+| D19 | Item → buff spells | `ItemEffect`, `ItemXItemEffect` · Forever | the spell IDs after "→" in buffs §3; Distilled Firewater → 17038; Smoked Desert Dumplings → 1248401 (the Well Fed family) | Low · M2 | [buffs §3](mechanics/buffs-debuffs-consumables.md#3-consumables) |
+| D20 | Enchant and minor consumable values | `SpellItemEnchantment`, `SpellEffect` · Forever | enchant 2618 → spell 19989 (+9 Agi); enchant 925 → spell 13930 (+2 defense); Rivenspike 17315 −100 per stack; Consecrated Sharpening Stone reads 99; Gift of Arthas 11374 +8; Blood Pact 11767 = 49 + 0.5/level; Trueshot Aura r5 = 50 (possible data bug) | Low · M2 | [buffs OQ 16, 17](mechanics/buffs-debuffs-consumables.md#open-questions) |
+| D21 | World buffs (context only) | `SpellEffect` · both | 22888, 15366, 16609 are dummy auras in Forever | Low · M2 | [buffs §2](mechanics/buffs-debuffs-consumables.md#2-world-buffs-excluded) |
+| D22 | Threat items and enchants | `SpellItemEnchantment`, `ItemEffect`, `ItemXItemEffect`, `SpellEffect` · Forever | Gloves – Threat 2613 → 25063 (+2); Cloak – Subtlety 2621 → 25070 (−2); Fetish of the Sand Reaver 26400 −70, 20 s, CD 180 s; Eye of Diminution 28862 −35, 20 s, CD 120 s; Increase/Decrease Threat All 01–04 linked to 278540, 279493, 278929, 278299, 14576, 13959, 18308; Enhanced Sunder 23561 | Low · M3 | [threat § global](mechanics/threat.md#global-threat-modifiers), [threat OQ 10](mechanics/threat.md#open-questions) |
+| D23 | Taunts and forced attacks | `SpellEffect`, `SpellDuration` · Forever | Taunt 355 and Growl 6795: effect 114 + aura 11, 3 s; Mocking Blow 20560 aura 11, 6 s; Challenging Shout 1161 and Roar 5209 6 s | Low · M3 | [threat § taunts](mechanics/threat.md#taunts-and-forced-attacks) |
 
 ---
 
@@ -1455,7 +1528,8 @@ wago.tools" note (‡ in the buffs doc) in the owning doc. Sorted by impact, the
 - **Warrior build variants** (Fury 17/34 vs "Fury + Precision" 15/36; the Prot "TPS" variant) and
   **Arms base stance** (Battle vs Berserker): simulate once M2 and M3 exist
   ([warrior Q23, Q24](classes/warrior.md#9-open-questions)).
-- **Rip vs Bite as the default finisher**: simulate after B17, C17, C18 and B38
+- **Rip vs Bite as the default finisher**: simulate after B17, C17, C18, B38 and B22 (whether
+  Rip ticks crit in `forever`; the default already differs by profile)
   ([druid Q26](classes/druid.md#10-open-questions)).
 - **Bear rotation thresholds** (Maul every swing, Swipe at 60+ spare rage, Enrage pre-pull only):
   sim sensitivity plus tank feedback ([druid Q31](classes/druid.md#10-open-questions)).

@@ -43,7 +43,7 @@ Client builds: Forever beta 1.60.1.69913 · Classic Era 1.15.9.69722
 | Defense skill | 315 (= 5 × level) | [F] `GetEnemySkillDifference` uses `(level + 3) × 5` ([stats Lua][ui-stats]); [C] ([AMR][amr-hit]) |
 | Weapon skill (for its melee) | 315 | [F] ([stats Lua][ui-stats]) |
 | Armor | **3,731** | [C], see [§2](#2-boss-armor) |
-| Can dodge / parry / block | yes / yes (front only) / yes (front only) | [F] tooltips ([gs][gs-forever]); per-boss flags [?] |
+| Can dodge / parry / block | yes / yes (front only) / yes (front only) | [F] tooltips ([gs][gs-forever]); in combat [C] (unchanged); per-boss flags [?] |
 | Magic resistance | 0 base + level-based 24 | [?] ([combat-tables §9](combat-tables.md#9-spell-hit-and-crit-generic)) |
 | Creature type | none selected (no type bonuses) | modelling default, [§6](#6-creature-type-biome-and-zone-forever) |
 | Health | not modeled; time-based | [§3](#3-fight-length-and-execute-phase) |
@@ -57,9 +57,9 @@ Classic Era raid bosses use a few fixed armor values, often described as "warrio
 
 | Armor | Which bosses | Tag / source |
 | --- | --- | --- |
-| **3,731** | most raid bosses: every AQ40 boss except Skeram; the Classic Era sim's default "Warrior Boss" | [C] ([AMR forum][amr-armor]; [WarriorSim presets][ws-classic]) |
+| **3,731** | most raid bosses: every AQ40 boss except Skeram | [C] ([AMR forum][amr-armor]; the pre-SoD WarriorSim defaults to 336 target armor, which is 3,731 after Sunder ×5, Faerie Fire and Classic's Curse of Recklessness, [ws-classic]) |
 | ~3,740 | measured via Swipe damage on MC bosses (2020) | [C] ([Blizzard forums][bf-armor]); consistent with 3,731 |
-| 3,009 | lighter bosses (e.g. AQ40 Skeram); the WarriorSim "Paladin Boss" preset | [C] ([amr-armor]; [ws-classic]) |
+| 3,009 | lighter bosses (e.g. AQ40 Skeram) | [C] ([amr-armor]) |
 
 **Default: 3,731** [C]. It's the value Classic Era sims and measurements agree on for most
 bosses, and Onyxia, the one Classic raid in Forever's launch lineup, is commonly treated as
@@ -75,7 +75,7 @@ and their values are in [buffs-debuffs-consumables.md](buffs-debuffs-consumables
 - **Default fight length: 180 s, varied ±10% per iteration** (uniform 162–198 s) [?].
   Rationale: the guild raids new Forever content (10- and 20-player, single difficulty) in
   pre-raid gear with **no world buffs** ([doctrine §1](../doctrine.md#1-what-were-building)).
-  Classic Era sims default to 50–60 s (WarriorSim, [ws-classic]) because they assume world
+  Classic Era sims default to 50–60 s (WarriorSim's pre-SoD default, [ws-classic]) because they assume world
   buffs and speed-run gear, which doesn't fit here. The variation spreads cooldown alignment
   across iterations.
 - **Execute phase:** the last **20%** of boss health (Execute, Hammer of Wrath) [C]
@@ -118,7 +118,7 @@ and their values are in [buffs-debuffs-consumables.md](buffs-debuffs-consumables
 | Swing speed | **2.0 s** | [?] (typical raid-boss swing; no Forever data; tune from logs) |
 | Pre-armor damage per swing | **uniform 4,500–5,500** (mean 5,000) | [?], see below |
 | Attack table vs the tank | [combat-tables §8](combat-tables.md#8-boss--player-tanks): miss, dodge, parry, block, crit 5.6% at 300 defense, crushing 15% | [F]/[C] |
-| Crit / crushing multiplier | ×2.0 / ×1.5 | [F] ([gs][gs-forever]) |
+| Crit / crushing multiplier | ×2.0 / ×1.5 | [F] tooltip ([gs][gs-forever]); in combat [C] (unchanged) |
 | Parry haste (when the tank parries the boss's swings, and when the boss parries the tank) | on | [F] tooltip; [C] ([damage-and-timing §3.4](damage-and-timing.md#parry-haste)) |
 | Armor constant vs the tank | 400 + 85 × 63 = 5,755 | [C] ([damage-and-timing §1.1](damage-and-timing.md#11-formula)) |
 | Attack-speed debuffs (Thunder Clap, …) | per buffs doc | [damage-and-timing §3.2](damage-and-timing.md#32-attack-speed-debuffs-on-the-boss-tank-modeling) |
@@ -127,10 +127,11 @@ and their values are in [buffs-debuffs-consumables.md](buffs-debuffs-consumables
 
 **Why 5,000 pre-armor per swing** [?]. Classic-era raid bosses hit a well-geared tank for
 about 1,500–2,500 after armor. At 10,000 armor vs a level-63 attacker, mitigation is 63.5%, so
-5,000 pre-armor ≈ 1,826 after armor. The value matters for tank survivability outputs and,
-under Forever's new rage formula (a share of **pre-armor** damage ÷ max health,
-[rage.md](rage.md)), for tank rage. Replace it with measured values once Forever raid logs
-exist.
+5,000 pre-armor ≈ 1,826 after armor. The value matters for tank survivability outputs and for
+tank rage. [rage.md](rage.md#rage-from-damage-taken) owns the damage-taken rage model: its
+Forever default is `1.5 × health lost / 230.6` [?], so rage follows the post-armor hit; its
+`forever-hp-prearmor` variant, a third-party fit, uses pre-armor damage ÷ max health.
+Replace the stand-in with measured values once Forever raid logs exist.
 
 ---
 
@@ -264,8 +265,9 @@ threshold as a boss property.
 | Crushing (×1.5) | **2739.6** |
 | Blocked hit, block value 150 | 1826.4 − 150 = **1676.4** |
 
-**WE-4: Demoralizing Shout on the boss.** −205 AP (Forever rank 11556, owned by the warrior
-doc) × 2.0 / 14 = −29.29 per swing → 4,970.7 pre-armor.
+**WE-4: Demoralizing Shout on the boss (`forever`).** −196 AP (the Forever rank-5 tooltip
+[F]; value owned by the [buffs doc](buffs-debuffs-consumables.md#42-other-debuffs)) × 2.0 / 14 =
+**−28.00** per swing → **4,972.0** pre-armor. (`classicEra`, −140: −20.00 → 4,980.0.)
 
 **WE-5: Thunder Clap slow.** 2.0 s × (1 + 0.20) = **2.4 s** between swings
 ([damage-and-timing §3.2](damage-and-timing.md#32-attack-speed-debuffs-on-the-boss-tank-modeling),
@@ -280,8 +282,9 @@ convention [?]).
    gives armor, as Classic players did.
 2. **Default fight length** [?]: 180 s is a judgment call for pre-raid guilds. Revisit with
    the guild's first Forever kill times.
-3. **Boss pre-armor damage** [?]: 5,000 per 2.0 s is a stand-in. Forever's rage formula
-   depends on pre-armor damage ([rage.md](rage.md)), so tank rage depends on it too.
+3. **Boss pre-armor damage** [?]: 5,000 per 2.0 s is a stand-in. Tank rage depends on it
+   under every rage model: through health lost in rage.md's default, and directly in its
+   pre-armor variant ([rage.md open questions](rage.md#open-questions)).
 4. **Level-based magic resistance of a +3 boss** [?]: 24 vs ~15; see
    [combat-tables open questions](combat-tables.md#open-questions).
 5. **Onyxia's armor** [?]: assumed 3,731 (a common Classic value); not directly sourced.
@@ -298,12 +301,12 @@ convention [?]).
 | Ref | Source | Covers | Ruleset |
 | --- | --- | --- | --- |
 | [ui-stats] | Forever `Camelot/PaperDollFrameStats.lua`, <https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_UIPanels_Game/Camelot/PaperDollFrameStats.lua> | boss = level + 3, skill 315 | [F] client |
-| [gs-forever] | Forever GlobalStrings enUS, <https://github.com/Ketho/BlizzardInterfaceResources/blob/forever/Resources/GlobalStrings/enUS.lua> | crit/crushing multipliers, position rules | [F] client |
+| [gs-forever] | Forever GlobalStrings enUS, <https://github.com/Ketho/BlizzardInterfaceResources/blob/forever/Resources/GlobalStrings/enUS.lua> | crit/crushing multipliers, position rules | [F] client (verbatim mirror): what the client displays |
 | [magey-at] | Magey, "Attack table", <https://github.com/magey/classic-warrior/wiki/Attack-table> | +3 boss = defense 315 | [C] |
 | [amr-hit] | Ask Mr. Robot, Classic hit caps, <https://forums.askmrrobot.com/t/hit-rating-and-hit-caps-in-wow-classic/8614> | raid bosses have 315 defense | [C] |
 | [amr-armor] | Ask Mr. Robot, "Armor Values - IEA/Sunder Armor" (2020), <https://forums.askmrrobot.com/t/armor-values-iea-sunder-armor/10277> | AQ40 bosses 3,731, Skeram 3,009 | [C] |
 | [bf-armor] | Blizzard forums, "Boss armor value question" (2020), <https://us.forums.blizzard.com/en/wow/t/boss-armor-value-question/444825> | ~3,740 measured via Swipe | [C] |
-| [ws-classic] | GuybrushGit/WarriorSim `classic.html`, <https://github.com/GuybrushGit/WarriorSim/blob/master/classic.html> | presets 3,731 / 3,009; 50–60 s fights; execute 20% | [C] |
+| [ws-classic] | GuybrushGit/WarriorSim `index.html` at pre-SoD commit `180a3cc` (2021-05-11), <https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/index.html> | default target armor 336 (3,731 after the Classic debuffs); 50–60 s fights; execute 20% | [C] (pre-SoD) |
 | [fc-legacy] | foreverchanges.pro legacy perks (raid challenges), <https://foreverchanges.pro/legacy-perks> | Forever raid encounter lists | [F] client |
 | [fc-items] | foreverchanges.pro items, <https://foreverchanges.pro/items> | creature-type and zone-gated effects | [F] |
 | [bz-deepdive] | Blizzard, Deep Dive recap, <https://news.blizzard.com/en-us/article/24303313/world-of-warcraft-forever-deep-dive-panel-recap> | biome/creature effects, Consecration targets, racials | [F] official |
@@ -318,7 +321,7 @@ convention [?]).
 [amr-hit]: https://forums.askmrrobot.com/t/hit-rating-and-hit-caps-in-wow-classic/8614
 [amr-armor]: https://forums.askmrrobot.com/t/armor-values-iea-sunder-armor/10277
 [bf-armor]: https://us.forums.blizzard.com/en/wow/t/boss-armor-value-question/444825
-[ws-classic]: https://github.com/GuybrushGit/WarriorSim/blob/master/classic.html
+[ws-classic]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/index.html
 [fc-legacy]: https://foreverchanges.pro/legacy-perks
 [fc-items]: https://foreverchanges.pro/items
 [bz-deepdive]: https://news.blizzard.com/en-us/article/24303313/world-of-warcraft-forever-deep-dive-panel-recap

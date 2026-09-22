@@ -75,7 +75,8 @@ enchanting-spell / SpellItemEnchantment IDs for enchants.
     spell or Holy damage (paladins).
   - Proc effects: Windfury Totem's extra attack; weapon enchants (Crusader and similar,
     PPM-based); target debuffs applied on hit (Annihilator).
-  - **Target debuffs**: armor reduction (summed, floored at 0), +Holy damage taken,
+  - **Target debuffs**: armor reduction (summed; floored at 0 in `classicEra`, allowed to go
+    negative in `forever`, per [damage-and-timing §1.2](damage-and-timing.md#12-armor-reduction-debuffs-and-penetration)), +Holy damage taken,
     +magic damage taken %, and reductions to boss AP, attack speed and physical damage done.
     The last three matter only for tank rage and survival.
 - **Cooldown categories for on-use items**: potions (shared 2 min), runes (shared 2 min,
@@ -119,12 +120,14 @@ only.
 ## 1. Raid and party buffs
 
 Both factions can field paladins and shamans in Forever: Undead paladins on the Horde and
-Dwarf shamans on the Alliance are new
+Dwarf shamans on the Alliance are new **[F]**. The Forever client's `CharBaseInfo` table lists
+these pairs; [character-stats](character-stats.md#legal-races-for-the-sims-classes) owns the
+matrix, and a person should confirm the table on wago.tools. foreverchanges' racials page marks
+its own copy community-reported (`reported_compatibility`, transcribed from BlizzCon footage;
+see [data/races.md](../data/races.md)), but the client table is the primary source
 [[fc-racials]](https://foreverchanges.pro/racials) [[fc-beta]](https://foreverchanges.pro/beta).
-The site marks the race/class matrix as community-reported (`reported_compatibility`), so
-this is **[?]-level confidence** until checked in the beta (see
-[data/races.md](../data/races.md)). **Do not gate any buff by faction.** Gate it by the
-composition flags in [§6.1](#61-composition-flags-not-factions).
+**Do not gate any buff by faction.** Gate it by the composition flags in
+[§6.1](#61-composition-flags-not-factions).
 
 ### 1.1 Attack power, stats and crit
 
@@ -217,8 +220,11 @@ which doesn't matter inside one fight [F] [[fc-camping]].
 - **Consequence [?]:** in Forever, a main-hand sharpening stone or weightstone should
   coexist with Windfury Totem. The sim should allow it, flagged as an assumption until the
   beta confirms. Twisting Windfury with Grace of Air probably no longer works, because the
-  aura disappears with the totem. Whether a Windfury extra attack can itself proc Windfury
-  is not settled in either ruleset. See [Open questions](#open-questions).
+  aura disappears with the totem. See [Open questions](#open-questions).
+- **Extra-attack rules [C]:** a Windfury extra attack can't proc Windfury, and Windfury can't
+  proc twice in one chain of extra attacks ([Magey › Windfury Totem][magey-wf], text from 2019).
+  No internal cooldown is modelled: the only source for one is SoD-era. Both rules are owned by
+  [damage-and-timing §5.4](damage-and-timing.md#54-extra-attacks-and-chaining).
 
 ---
 
@@ -396,12 +402,16 @@ All explosives share a **1-minute cooldown** (category 24‡). The Sapper also h
 | Annihilator: Armor Shatter | item 12798 → 16928 | **−165** armor per stack, 3 stacks = −495 (C: −200 / −600) | 45 s | Stacks with the major armor debuffs [C] | Forever item is now **One-Hand, 2.40 speed, +14 AP** (C: Main Hand 1.70) | [F] | [fc/12798](https://foreverchanges.pro/item/12798) · [DB2][wF-SE] |
 | Rivenspike: Puncture Armor | item 13286 → 17315 | Forever DB2‡: **−100** per stack ×3 (C: −200 ×3, tooltip "lowering it by 200") | 30 s | As Annihilator; does it stack with Armor Shatter? [?] | Item has **no Forever row yet** ("missing") | [?] | [fc/13286](https://foreverchanges.pro/item/13286) · [DB2][wF-SE] |
 
-**Stacking and floor.** Active reductions are summed, and target armor can't go below 0.
-Sunder Armor and Expose Armor occupy the same slot, so only one applies; FF and CoR stack
-with either [C: "with 5 stacks of Sunder, Curse of Recklessness and Faerie Fire" a
-3731-armor boss drops to 336 [crc-ea]]. In Forever, Expose Armor and 5× Sunder are both
-−2250, so the choice no longer matters for armor, only for who spends the GCDs. Armor math
-itself is in [damage-and-timing](damage-and-timing.md).
+**Stacking and floor.** Active reductions are summed. The floor depends on the rules
+profile, and [damage-and-timing §1.2](damage-and-timing.md#12-armor-reduction-debuffs-and-penetration)
+owns it and its open question: in `classicEra` target armor can't go below 0 [C]; in
+`forever` it can, and armor below 0 increases damage (per the client tooltip). Sunder Armor and
+Expose
+Armor occupy the same slot, so only one applies; FF and CoR stack with either [C: "with 5
+stacks of Sunder, Curse of Recklessness and Faerie Fire" a 3731-armor boss drops to 336
+[crc-ea]]. In Forever, Expose Armor and 5× Sunder are both −2250, so the choice no longer
+matters for armor, only for who spends the GCDs. Armor math itself is in
+[damage-and-timing](damage-and-timing.md).
 
 ### 4.2 Other debuffs
 
@@ -412,8 +422,8 @@ itself is in [damage-and-timing](damage-and-timing.md).
 | Judgement of Light (r4) | 20346‡ | Melee attacks against the target may heal the attacker for 61 | **40 s** (C: 10 s) | One per paladin; always hits | Paladin | [F] | [fc-sb-paladin] |
 | Curse of the Elements (r4) | 1311680 | −75 resistance to **all magic schools**, **+10% magic damage taken, Holy included** (C: r3, 11722, Fire and Frost only) | 5 min | One curse per warlock | Warlock; new rank 4 at level 50. **Curse of Shadow removed** (merged in) | [F] | [fc-sb-warlock] · [DB2][wF-SE] |
 | Hunter's Mark (r4) | 14325 | **+71 ranged AP** for all attackers (C: 110). **No melee component in Classic Era or Forever** | 2 min | — | Hunter. Improved Hunter's Mark removed (C: +15% ranged only) | [F] | [fc-sb-hunter] · [fc-changes] |
-| Demoralizing Shout (r5) | 11556 | Enemy melee AP **−196** (C: −140) | **45 s** (C: 30 s) | Probably exclusive with Demoralizing Roar. Improved Demoralizing Shout removed | Warrior | [F] value · [?] stacking | [fc-sb-warrior] |
-| Demoralizing Roar (r5) | 9898 | Enemy melee AP **−193** (C: −130) | 30 s | As above | Druid (bear) | [F] value · [?] stacking | [fc-sb-druid] |
+| Demoralizing Shout (r5) | 11556 | Enemy melee AP **−196** (C: −140). The tooltip value is used; a per-level term in the client data would give about −204 at 60 [?] ([OQ 19](#open-questions)) | **45 s** (C: 30 s) | Probably exclusive with Demoralizing Roar. Improved Demoralizing Shout removed | Warrior | [F] value · [?] stacking | [fc-sb-warrior] |
+| Demoralizing Roar (r5) | 9898 | Enemy melee AP **−193** (C: −130). Tooltip value; the data's per-level term would give −204.2 at 60 [?] ([OQ 19](#open-questions)) | 30 s | As above | Druid (bear) | [F] value · [?] stacking | [fc-sb-druid] |
 | Thunder Clap (r6) | 11581 | 103 damage; enemy attack speed **−20%** (C: −10%) | 30 s; **6 s cooldown** (C: 4 s); also usable in Defensive Stance | — | Warrior | [F] | [fc-sb-warrior] |
 | Curse of Weakness (r6) | 11708 | Target's **physical** damage done −37 (C: −31, all damage) | 2 min | One curse per warlock. Improved Curse of Weakness removed | Warlock | [F] | [fc-sb-warlock] |
 | Stormstrike | 17364 | Forever: **self only**, +20% to the shaman's own next Lightning Bolt, Chain Lightning or Earth Shock (C: target takes +20% from the next 2 Nature damage sources, 12 s) | 12 s | — | Shaman talent. No longer a raid debuff | [F] | [fc-changes] |
@@ -447,13 +457,13 @@ foreverchanges' item data [[fc-items]]. Classic values come from foreverchanges'
 
 | Name | IDs (spell / enchant) | Effect | Duration / proc | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- |
-| Crusader | 20034 / 1900 → 20007 | On hit: +100 Str for 15 s and heals 75–125 | 1 PPM [?] | Formula (Same) | [F] effect | [fc-ench] · [DB2][wF-SIE] · [wiki-ppm] |
+| Crusader | 20034 / 1900 → 20007 | On hit: +100 Str for 15 s and heals 75–125 | 1 PPM [C] | Formula (Same) | [F] effect · [C] rate | [fc-ench] · [DB2][wF-SIE] · [ws-gear] |
 | Weapon – Agility | 23800 / 2564 | +15 Agi | Permanent | Formula (Same) | [F] | [fc-ench] |
 | Weapon – Strength | 23799 / 2563 | +15 Str | Permanent | Formula (Same) | [F] | [fc-ench] |
 | Superior Striking | 20031 / 1897 | +5 weapon damage | Permanent | Formula (Same) | [F] | [fc-ench] |
-| Fiery Weapon | 13898 / 803 → 13897 | On hit: 40 Fire damage | 6 PPM [?] | Formula (Same) | [F] effect | [fc-ench] · [wiki-ppm] |
+| Fiery Weapon | 13898 / 803 → 13897 | On hit: 40 Fire damage | 6 PPM [C] | Formula (Same) | [F] effect · [C] rate | [fc-ench] · [ws-gear] |
 | Icy Chill | 20029 / 1894 → 20005 | On hit: target attack speed −25% and movement speed −30% | 1.6 PPM [?] | Formula (Same) | [F] effect | [fc-ench] · [wiki-ppm] |
-| Lifestealing | 20032 / 1898 → 20004 | On hit: drains 30 Shadow health | 6 PPM [?] | Formula (Same) | [F] effect | [fc-ench] · [wiki-ppm] |
+| Lifestealing | 20032 / 1898 → 20004 | On hit: drains 30 Shadow health | 6 PPM [C] | Formula (Same) | [F] effect · [C] rate | [fc-ench] · [ws-gear] |
 | Unholy Weapon | 20033 / 1899 → 20006 | On hit: target's physical damage done −15 | 3 PPM [?] | Formula (Same) | [F] effect | [fc-ench] · [wiki-ppm] |
 | Weapon – Spell Power | 22749 / 2504 | +30 spell damage and healing | Permanent | Formula (Same). A paladin option | [F] | [fc-ench] |
 | Recovery *(new)* | 1248760 / 8721 | When parried or dodged: heal 5% of max health (10 s cooldown) | — | New formula | [F] | [fc-ench] |
@@ -556,8 +566,8 @@ arcanum on the same item [C].
 
 ### 6.1 Composition flags (not factions)
 
-Forever gives both factions paladins and shamans ([§1](#1-raid-and-party-buffs), [?]
-confidence), so **Alliance and Horde defaults are identical.** The UI exposes
+Forever gives both factions paladins and shamans ([§1](#1-raid-and-party-buffs), [F] client
+table), so **Alliance and Horde defaults are identical.** The UI exposes
 composition flags; each buff toggle is enabled only if its flag is set.
 
 | Flag | Meaning | Unlocks | Default (Standard raid) |
@@ -623,7 +633,7 @@ their stacking group is verified; the UI offers them as options.
 | Prot warrior | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude (+200); Mongoose; Giants; Smoked Desert Dumplings; Dense stone; Mighty Rage Potion | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum Black Label; Elemental stone; Greater Stoneshield Potion (on use) |
 | Feral cat | Flank au Poivre (+20 Agi) | Mongoose; Giants; Flank au Poivre | Juju Power; Juju Might; Ground Scorpok Assay; Mighty Rage Potion (for its +60 Str; the rage is wasted in cat) |
 | Feral bear | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude; Mongoose; Giants; Smoked Desert Dumplings; Mighty Rage Potion (druids can use it in Forever) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum; Greater Stoneshield Potion |
-| Retribution | Smoked Desert Dumplings; Dense stone | Mongoose; Giants; Smoked Desert Dumplings; Dense stone; Major Mana Potion | Juju Power; Juju Might; R.O.I.D.S.; Elixir of Holy Power; Elemental stone; Demonic / Dark Rune; Flask of Supreme Power (whether it pays off depends on Ret's Holy-damage scaling, see [paladin](../classes/paladin.md)) |
+| Retribution | Smoked Desert Dumplings; Dense stone | Mongoose; Giants; **Greater Arcane Elixir** (per-spec entry: Forever Ret's seals, judgements and Holy Strike scale with spell power, see [paladin](../classes/paladin.md#retribution-defaults)); Smoked Desert Dumplings; Dense stone; Major Mana Potion | Juju Power; Juju Might; R.O.I.D.S.; Elixir of Holy Power; Elemental stone; Demonic / Dark Rune; Flask of Supreme Power (whether it pays off depends on Ret's Holy-damage scaling, see [paladin](../classes/paladin.md)) |
 | Prot paladin | Nightfin Soup | Elixir of Greater Defense; Elixir of Fortitude; Elixir of Holy Power; Nightfin Soup (+22 spell damage); Wizard Oil; Major Mana Potion | Flask of Supreme Power; Greater Arcane Elixir; Brilliant Wizard Oil (replaces Wizard Oil); Demonic / Dark Rune |
 
 Druids in forms and weapon temporary enchants: whether stones or oils do anything in cat or
@@ -670,7 +680,8 @@ come from harder-to-get formulas. Offer them as options; don't default to them.
   315 → **246** AP and now a **party aura** instead of a weapon enchant. Enhancing Totems,
   Improved Weapon Totems, Totemic Mastery and **Tranquil Air** removed.
 - Sanctity Aura and Improved Devotion Aura removed. Retribution Aura 20 → 30.
-- Both factions have paladins and shamans ([?], community-reported matrix).
+- Both factions have paladins and shamans ([F] client `CharBaseInfo`; the site's own list is
+  community-reported).
 - **New: camp buffs.** Profession objects at a campfire give 1-hour copies of class buffs
   (Lodestone +90 AP, Sharpening Wheel +34 Str, Camp Chair +2% crit, Fish Bowl +8% stats, …),
   each exclusive with the class buff it copies.
@@ -776,11 +787,13 @@ tooltips [F]; which items *share* a category comes from DB2 ItemEffect‡.
 - **Stat order**: flat buffs are added first, then Blessing of Kings multiplies. Rounding
   and conversions are in [character-stats](character-stats.md).
 - **Windfury Totem (Forever)**: on each main-hand melee hit, roll 20%. On success, queue
-  one extra main-hand attack that gets +246 AP. The totem aura is not a weapon enchant, so
-  a main-hand temporary enchant is allowed ([?]). Classic mode (if ever needed): +315 AP,
-  and it replaces the main-hand temporary enchant.
+  one extra main-hand attack that gets +246 AP. The extra attack can't proc Windfury again,
+  and there is no internal cooldown ([damage-and-timing §5.4](damage-and-timing.md#54-extra-attacks-and-chaining)).
+  The totem aura is not a weapon enchant, so a main-hand temporary enchant is allowed ([?]).
+  Classic mode (if ever needed): +315 AP, and it replaces the main-hand temporary enchant.
 - **Weapon enchant procs** use PPM (`chance = PPM × weaponSpeed / 60`, see
-  [glossary](../glossary.md)). The PPM values here are [?].
+  [glossary](../glossary.md)). Crusader 1, Fiery 6 and Lifestealing 6 are [C] (the pre-SoD
+  WarriorSim, [ws-gear]); Icy Chill 1.6 and Unholy 3 are [?] (an unversioned wiki only).
 - **Holy-damage modifiers** (Judgement of the Crusader, Curse of the Elements, Elixir of
   Holy Power, Flask of Supreme Power, spell-damage food and oils) only matter to paladin
   specs. How "up to 161" applies to each Holy source belongs to
@@ -806,7 +819,10 @@ These become unit tests. Boss armor 3731 is an *input* here; its value is owned 
 2. **Same set in Classic Era** (regression check against a published number). Sunder ×5
    (−2250) + Faerie Fire (−505) + Curse of Recklessness (−640): 3731 − 3395 = **336**,
    which matches [crc-ea].
-3. **Floor at zero.** Example 1 plus Armor Shatter ×3 (−495): 471 − 495 = −24 → **0**.
+3. **Below zero (profile-dependent).** `forever`: Example 1 plus Armor Shatter ×3 (−495):
+   471 − 495 = **−24**, not floored, so DR = −24 / 5476 = −0.438% and physical damage is
+   ×**1.00438** ([damage-and-timing §1.2](damage-and-timing.md#12-armor-reduction-debuffs-and-penetration)).
+   `classicEra`: Example 2 plus Armor Shatter ×3 (Classic −600): 336 − 600 = −264 → **0**.
 4. **Sunder vs Expose Armor, Forever.** Sunder ×5 and a 5-CP Expose Armor both selected →
    one `armor-major` slot → **−2250** (not −4500).
 5. **External melee AP, Forever standard raid.** Battle Shout 139 + Blessing of Might 133 =
@@ -819,7 +835,7 @@ These become unit tests. Boss armor 3731 is an *input* here; its value is owned 
    attack is an ordinary main-hand swing, so with the AP-to-damage rule in
    [damage-and-timing](damage-and-timing.md) (AP / 14 × weapon speed), a 3.8-speed weapon
    gains 246 / 14 × 3.8 = **66.8** damage on that swing (Classic: 315 / 14 × 3.8 = 85.5).
-8. **Crusader proc chance** [?]: 1 PPM on a 3.6-speed weapon → 3.6 / 60 = **6.0%** per hit.
+8. **Crusader proc chance** [C]: 1 PPM on a 3.6-speed weapon → 3.6 / 60 = **6.0%** per hit.
 9. **Blasted Lands cooldown.** Using R.O.I.D.S. at t = 0 blocks Ground Scorpok Assay
    until t = 3600 s. The sim must not allow both.
 10. **Distilled + Winterfall Firewater.** Both apply spell 17038 → one buff, +35 AP total.
@@ -837,10 +853,11 @@ Each item says what was found and how the guild can check it on the Forever beta
    −2250. *Check:* 5 Sunders, then a 5-CP Expose Armor, then inspect the target's debuffs
    (one replaces the other, or both stay).
 3. **Windfury Totem as a party aura.** Does a main-hand sharpening stone stay active with
-   Windfury Totem up? Can a Windfury extra attack proc Windfury? Does twisting with Grace of
-   Air still work, and does the totem proc on feral cat and bear attacks? *Check:* apply a
-   stone to the main hand next to a Windfury Totem and watch the enchant; combat-log 500+
-   swings.
+   Windfury Totem up? Does twisting with Grace of Air still work, and does the totem proc on
+   feral cat and bear attacks? (That an extra attack can't proc Windfury is Classic [C]; the
+   internal-cooldown question is [damage-and-timing OQ 9](damage-and-timing.md#open-questions).)
+   *Check:* apply a stone to the main hand next to a Windfury Totem and watch the enchant;
+   combat-log 500+ swings.
 4. **Stacking groups for the new Forever elixirs** (Grizzly, Ferocity, Cunning, Phalanx,
    Strength, Fortitude / Greater Fortitude) against Mongoose, Giants, Juju Power, Greater
    Defense and each other. *Check:* drink each pair and see whether both buffs stay.
@@ -856,10 +873,11 @@ Each item says what was found and how the guild can check it on the Forever beta
 8. **Enchant tooltip vs spell conflicts.** 2H Weapon – Lesser Agility (tooltip +15, spell
    19989 = +9); Bracer – Lesser Deflection and Necklace – Deflection (tooltip +5, spell
    13930 = +2). *Check:* apply the enchant and read the character sheet.
-9. **Weapon-enchant PPM.** Crusader 1, Fiery 6, Icy Chill 1.6, Lifestealing 6, Unholy 3
-   come from an unversioned warcraft.wiki.gg section [[wiki-ppm]]; PPM is server-side and
-   absent from the DB2. *Check:* log 1000+ hits with a known weapon speed and fit the proc
-   rate.
+9. **Weapon-enchant PPM.** Crusader 1, Fiery 6 and Lifestealing 6 are [C] from the pre-SoD
+   WarriorSim ([ws-gear]); Icy Chill 1.6 and Unholy 3 come only from an unversioned
+   warcraft.wiki.gg section [[wiki-ppm]] [?]. PPM is server-side and absent from the DB2, so
+   all five are unverified in Forever. *Check:* log 1000+ hits with a known weapon speed and fit
+   the proc rate.
 10. **Availability.** ZG (Signets, idols, Zanza), Naxxramas-era Scourge shoulder enchants,
     and the SoD-origin enchants with "No recipe item" in Forever (Grand Crusader, Grand
     Inquisitor, Living Stats, the +9 Bracer – Agility, and also Minor Haste gloves). Which
@@ -870,15 +888,18 @@ Each item says what was found and how the guild can check it on the Forever beta
     drops in the beta.
 12. **Blood Pact exact value** (DB2 base 49 + 0.5/level). *Check:* an Imp's buff on the
     party's character sheets.
-13. **Race/class matrix** is community-reported (Undead paladin, Dwarf shaman). *Check:*
-    character creation in the beta.
+13. **Race/class matrix.** [F] from the client's `CharBaseInfo`
+    ([character-stats](character-stats.md#legal-races-for-the-sims-classes)); a person should
+    confirm the table on wago.tools. *Check* (cheap confirmation): character creation in the
+    beta (Undead paladin, Dwarf shaman).
 14. **World buffs (context, not adopted).** The Forever client turns Rallying Cry,
     Songflower and Warchief's Blessing into dummy auras, consistent with the directive.
     Spirit of Zandalar and Fengus' Ferocity keep real stat auras in the client (Fengus now
     also +230 spell damage). This does not contradict the directive, because raid
     availability is server behaviour. No action; reported for completeness.
 15. **Demoralizing Shout vs Roar** exclusivity is assumed from Classic lore, not a cited
-    source. *Check:* apply both to a target dummy.
+    source. *Check:* apply both to a mob (the beta has no target dummies) and inspect its
+    debuffs.
 16. **Trueshot Aura rank 5** reads 50, lower than rank 4's 75, in both tooltip and DB2.
     Irrelevant for melee; flagged in case it is a data bug.
 17. **Verify on wago.tools manually (‡ values).** These facts come only from DB2 reads made
@@ -906,6 +927,13 @@ Each item says what was found and how the guild can check it on the Forever beta
     Aura? *Check:* build a camp outside a raid, zone in, and inspect the buffs. Also, does
     the world-buff directive also cover event consumables such as Dark Desire and
     Fire-toasted Bun (+2% hit)? That is a guild decision. Both are default off here.
+19. **Demoralizing Shout and Roar at level 60** [?]. The Forever tooltips say −196 (Shout r5)
+    and −193 (Roar r5), and the sim uses them (tooltip beats derived, doctrine §2). The client
+    data adds a per-level term (−1.4 per level, from 54 for the Shout and 52 for the Roar), which
+    would give about −204.4 and −204.2 at 60 if the server applies it without a cap. *Check,
+    Route D:* a person reads `SpellLevels` (is `MaxLevel` set?) and `SpellEffect`
+    (`EffectRealPointsPerLevel`) for 11556 and 9898 on wago.tools in a browser. *Route C:* read
+    the debuff tooltip on a target at 60.
 
 ---
 
@@ -929,7 +957,9 @@ Each item says what was found and how the guild can check it on the Forever beta
 | crc-ea | https://classicroguecraft.com/expose-armor-guide-aq40/ | Expose Armor and Sunder don't stack; Sunder ×5 + CoR + FF takes a boss to 336 armor | Classic 2019–2020 [C] |
 | almar-tank | https://almarsguides.com/WoW/GettingStarted/EndGame/Classic/Consumables/Warrior/Tank/ | "Juju Power or Elixir of Giants", "Juju Might or Winterfall Firewater" groupings; the Elemental stone goes off-hand under Windfury | Classic [C] |
 | bnet-cons | https://us.forums.blizzard.com/en/wow/t/warrior-dps-consumables-current-phase-4/2126143 | Player posts: "JuJu Power and Elixir of Giants override"; the stone goes off-hand because Windfury overrides the main hand; R.O.I.D.S. used alongside Juju Power | Classic Era (community) [C] |
-| wiki-ppm | https://warcraft.wiki.gg/wiki/Procs_per_minute | Weapon enchant PPM values (unversioned "original WoW" section) | Unclear, so [?] |
+| wiki-ppm | https://warcraft.wiki.gg/wiki/Procs_per_minute | Weapon enchant PPM values (unversioned "original WoW" section) | Unclear, so [?] (Icy Chill, Unholy) |
+| ws-gear | https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/data/gear.js | Enchant PPMs at WarriorSim's pre-SoD commit `180a3cc` (2021): Crusader 1, Fiery 6, Lifestealing 6 | Classic Era [C] (pre-SoD) |
+| magey-wf | https://github.com/magey/classic-warrior/wiki/Windfury-Totem | Windfury can't proc itself or twice in one chain (2019 text) | Classic Era [C] |
 | turtle-salad | https://database.turtlecraft.gg/?item=83309 | The only "Herbal Salad" found | **Forbidden** (Turtle WoW private server); cited only to explain why it isn't adopted |
 
 Related docs: [character-stats](character-stats.md) (stat pipeline, Kings ordering) ·
@@ -971,4 +1001,6 @@ multipliers) · [forever-system-changes](forever-system-changes.md) ·
 [almar-tank]: https://almarsguides.com/WoW/GettingStarted/EndGame/Classic/Consumables/Warrior/Tank/
 [bnet-cons]: https://us.forums.blizzard.com/en/wow/t/warrior-dps-consumables-current-phase-4/2126143
 [wiki-ppm]: https://warcraft.wiki.gg/wiki/Procs_per_minute
+[ws-gear]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/data/gear.js
+[magey-wf]: https://github.com/magey/classic-warrior/wiki/Windfury-Totem
 [turtle-salad]: https://database.turtlecraft.gg/?item=83309

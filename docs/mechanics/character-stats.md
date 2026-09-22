@@ -36,8 +36,9 @@ Forever build `1.60.1.69913`, Classic Era baseline `1.15.9.69722`
 - **Conversion ratios** at level 60: Str→AP and block value, Agi→crit/dodge/armor (and AP in Cat
   Form), Sta→HP, Int→mana and spell crit, Spirit→mana regen, defense→avoidance.
 - **Rating conversions** for Forever items (crit, hit, dodge, parry, block, defense), and a
-  policy for ratings whose combat effect is unknown (expertise, haste, armor penetration, health
-  regeneration).
+  policy for ratings whose combat effect is unmeasured: expertise, haste and armor penetration
+  apply by hypothesis behind `unmeasuredRatings` ([D12](../decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22));
+  health regeneration has no combat effect.
 - **Druid form modifiers**: form AP, armor multipliers, form health, Heart of the Wild, Thick Hide,
   Predatory Strikes.
 - **The pipeline**: flat adds → % attribute multipliers → rounding → conversions → derived-stat
@@ -65,10 +66,11 @@ Cross-doc consistency, checked 2026-09-22:
   Specialization moved to Dwarves (+1% crit). Its earlier Human Mace Specialization wording was
   corrected on 2026-09-22.
 - [druid.md](../classes/druid.md) matches the form data below (Cat 120 AP at 60, Dire Bear 180,
-  tooltip artefacts). **Disagreement:** it takes the druid AP offset (−20) and base melee crit (0.9%)
-  as [C] from `wowsims/classic`, but that repository describes itself as a *Season of Discovery*
-  sim, which the doctrine forbids. This doc keeps both [?] ([OQ-3](#oq-3-base-melee-and-spell-crit),
-  [OQ-7](#oq-7-base-attack-power-formulas)).
+  tooltip artefacts). It tags the druid AP offset (−20) and base melee crit (0.9%) [?], as this
+  doc does ([OQ-3](#oq-3-base-melee-and-spell-crit), [OQ-7](#oq-7-base-attack-power-formulas)):
+  their only source, `wowsims/classic`, is a secondary sim with Season of Discovery lineage. It
+  takes 2 AP per Strength and 20 Agility per 1% crit as [F] from this doc (reconciled
+  2026-09-22).
 - [paladin.md](../classes/paladin.md) uses base mana 1512, matching the [F] value below.
 
 ---
@@ -79,7 +81,11 @@ Cross-doc consistency, checked 2026-09-22:
 
 The Forever client's `CharBaseInfo` table lists every valid race/class pair: 56 rows. The table
 below is read from it, and it matches the community-reported class lists on foreverchanges.pro and
-[`src/data/races/races.json`][races-json]. **[F]** [wago CharBaseInfo][w-cbi], [racials page][fc-racials]
+[`src/data/races/races.json`][races-json]. **[F]** [wago CharBaseInfo][w-cbi] (a person should
+confirm it in a browser, [OQ-13](#oq-13-confirm-wagotools-values-in-a-browser)),
+[racials page][fc-racials]. This doc owns the matrix; the site's racials page marks its own list
+community-reported because it was transcribed from BlizzCon footage, but the client table is the
+primary source.
 
 | Race | ChrRaces ID | Faction | Warrior | Paladin | Druid | Versus Classic Era |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -175,7 +181,7 @@ conclusion from its own client extraction [wsf-base].
 | `CharBaseInfo` | race × class validity only | race table above **[F]** [w-cbi] |
 | `RaceStat` (new in 1.60.1.69876) | one row per race, single unnamed field, 0 everywhere | nothing usable [w-racestat] |
 | `ChrRaces` | no stat columns | names, IDs, factions [w-chrraces] |
-| GameTables | the beta ships `CombatRatings` and `ArmorMitigationByLvl`, but no base-crit, base-HP or regen tables | `CombatRatings` holds the rating costs used by Forever items, identical at every level: see [Combat ratings](#combat-ratings-forever-items) **[F]** ([wsf-cr], [wsf-parser], [wsf-armor]) |
+| GameTables | the beta ships `CombatRatings` and `ArmorMitigationByLvl`, but no base-crit, base-HP or regen tables | `CombatRatings` holds the rating costs used by Forever items, identical at every level: see [Combat ratings](#combat-ratings-forever-items). **[?]**: known only from wowsims/forever's extraction ([wsf-cr], [wsf-parser], [wsf-armor]), a secondary source; the item ratios on foreverchanges are the [F] evidence for the old stats |
 
 **Consequence:** per-race base attributes, base health and base dodge/parry/block/crit are
 server-side. The sim takes them from Classic Era sources where they exist; the rest are
@@ -185,7 +191,9 @@ server-side. The sim takes them from Classic Era sources where they exist; the r
 
 Classic Era base attributes decompose into a **class row** plus a **race offset** that is the same
 for every class. The offsets below come from the eight Classic level-60 warrior rows (the class
-row cancels out). **[C]** [WarriorSim levelstats][ws-levelstats]
+row cancels out). **[C]** for Str, Agi, Sta and Int ([WarriorSim `races.js` at pre-SoD commit
+180a3cc][ws-races]); **[?]** for Spi, whose rows appear only in WarriorSim's post-SoD
+`levelstats.js` ([ws-levelstats]; [OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)).
 
 | Race | Str | Agi | Sta | Int | Spi | Attribute racial |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -206,9 +214,11 @@ naked Classic Era sheets per class, from different races, confirm it
 ### Warrior base attributes
 
 Classic Era level-60 warrior rows from WarriorSim, a Classic Era ("1.12/Classic") warrior sim.
-Spirit in its data is the *sheet* value, which already includes The Human Spirit; the engine
-stores the raw value (column **Spi raw**) and applies ×1.05 as a multiplier. **[C]**
-[WarriorSim levelstats][ws-levelstats], [WarriorSim races][ws-races]
+Str, Agi, Sta and Int are **[C]** from its pre-SoD commit ([`races.js` at 180a3cc][ws-races],
+2021; Gnome Int there is the sheet value 35). Spirit is **[?]**: only the post-SoD
+`levelstats.js` has it ([ws-levelstats]), so the Spi columns need the OQ-1 sheets. Spirit in
+that data is the *sheet* value, which already includes The Human Spirit; the engine stores the
+raw value (column **Spi raw**) and applies ×1.05 as a multiplier.
 
 | Race | Str | Agi | Sta | Int | Spi raw | Sheet Spi |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -249,14 +259,14 @@ druid specs can't compute base attributes. OQ-1 gives the way to measure them on
 | --- | --- | --- | --- | --- |
 | Base health (before Stamina) | ? | ? | ? | [?] [OQ-2](#oq-2-base-health) |
 | Base mana (before Intellect) | 0 (uses Rage) | **1512** | **1244** | [F] `PlayerExpectedStat.BaseMana` [w-pes] |
-| Base melee crit (before Agility) | **0%** | ? | ? | warrior [C] ([WarriorSim][ws-player]: base crit 0; [Magey][magey-at]: a level-20 warrior's 4.49% spellbook crit equals Agi × 0.1282 exactly); others [?] [OQ-3](#oq-3-base-melee-and-spell-crit) |
+| Base melee crit (before Agility) | **0%** | ? | ? | warrior [C] (the pre-SoD WarriorSim: base crit 0, [ws-player]; [Magey][magey-at]: a level-20 warrior's 4.49% spellbook crit equals Agi × 0.1282 exactly); others [?] [OQ-3](#oq-3-base-melee-and-spell-crit) |
 | Base spell crit (before Intellect) | — | ? | ? | [?] [OQ-3](#oq-3-base-melee-and-spell-crit) |
 | Base dodge (before Agility and defense) | ? | ? | ? | [?] [OQ-5](#oq-5-base-dodge-parry-and-block) |
 | Base parry | 5% | 5% | none (druids can't parry) | [?] [OQ-5](#oq-5-base-dodge-parry-and-block) |
 | Base block (shield equipped) | 5% | 5% | none (no shields) | [?] [OQ-5](#oq-5-base-dodge-parry-and-block); shields [F] [w-chrclasses] |
 | Defense skill | 300 (5 × level) | 300 | 300 | [C] [Magey][magey-at] (defense = 5 × level), [Blizzard forum][bnet-def] |
 | Weapon skill | 300 (+items only) | 300 | 300 (feral forms: see [druid.md](../classes/druid.md)) | [C] 5 × level; [F] no racial skill |
-| Base melee AP | 3 × 60 − 20 = **160** | 160 | −20 (caster form) | warrior [C] [WarriorSim][ws-player]; paladin and druid [?] [OQ-7](#oq-7-base-attack-power-formulas) |
+| Base melee AP | 3 × 60 − 20 = **160** | 160 | −20 (caster form) | warrior [C] (the pre-SoD WarriorSim gives every race `ap: 160` at 60, [ws-races]; the `3 × level − 20` formula itself appears only in its post-SoD code); paladin and druid [?] [OQ-7](#oq-7-base-attack-power-formulas) |
 
 ---
 
@@ -267,7 +277,7 @@ druid specs can't compute base attributes. OQ-1 gives the way to measure them on
 | Effect | Warrior | Paladin | Druid | Tag · source |
 | --- | --- | --- | --- | --- |
 | Melee AP per Str | 2 | 2 | 2 (every form) | [F] `ChrClasses.AttackPowerPerStrength` = 2 [w-chrclasses]; [C] [Warcraft Tavern calculator][wt-basestats] |
-| Block value per Str | 1 per 20 Str | 1 per 20 Str | — | [C] [WarriorSim][ws-player] (`block + floor(Str/20)`), [calculator][wt-basestats] (Str/20 "to Block") |
+| Block value per Str | 1 per 20 Str | 1 per 20 Str | — | [C] [calculator][wt-basestats] (Str/20 "to Block"); [F] Forever client UI `BLOCK_VALUE_PER_STRENGTH = 20` ([combat-tables §8](combat-tables.md#8-boss--player-tanks)). Rounding (`floor`) [?]: only WarriorSim's post-SoD code floors it ([OQ-6](#oq-6-rounding)) |
 
 Block value = shield's block value + flat block value from items + `floor(Str / 20)`, then block
 value % modifiers (Forever paladin Shield Specialization: +30% "damage absorbed by your shield"
@@ -292,16 +302,25 @@ paladin Intellect (below).
 
 `HP = baseHP + min(Sta, 20) + 10 × max(Sta − 20, 0) + flat HP`, then × health % modifiers
 (Tauren Endurance ×1.05). **[C]** 10 HP per Stamina: [calculator][wt-basestats],
-[tankadin guide][wt-tankadin]. The "first 20 Stamina give 1 HP each" term is **[C]** from the
-Classic Era gear planner Sixty Upgrades, whose client code computes
-`min(20, Sta) + max(0, Sta − 20) × 10` [sixty]; the simpler calculator omits it. Base HP is [?]
-[OQ-2](#oq-2-base-health).
+[tankadin guide][wt-tankadin]. The "first 20 Stamina give 1 HP each" term is **[F] client UI;
+[?] on the server**: the Forever character sheet computes its Stamina tooltip as `min(STAMINA_BREAK, Sta) +
+(Sta − STAMINA_BREAK) × UnitHPPerStamina`, with `STAMINA_BREAK = 20`
+([PaperDollFrameConstants][ui-pdfconst], [PaperDollFrameStats][ui-stats]), a verbatim mirror of
+the client's UI code (doctrine §2). Whether the server's maximum health follows it is unmeasured.
+For Classic Era it is
+**[?]**: the only source is the gear planner Sixty Upgrades [sixty], which has SoD and Forever
+modes, and the Classic Era client's own sheet prints no formula
+([Classic Era PaperDollFrame][ui-era-pdf]). The simpler calculator omits it. The sheet check is
+[OQ-12](#oq-12-minor-items). Base HP is [?] [OQ-2](#oq-2-base-health).
 
 ### Intellect
 
 - `Mana = baseMana + min(Int, 20) + 15 × max(Int − 20, 0)`. **[C]** 15 mana per Int
-  [calculator][wt-basestats], [tankadin guide][wt-tankadin]; the first-20 term is from Sixty
-  Upgrades' client code [sixty]. Base mana **[F]** (table above).
+  [calculator][wt-basestats], [tankadin guide][wt-tankadin]; the Forever sheet uses
+  `INTELLECT_BREAK = 20` and `MANA_PER_INTELLECT = 15` **[F] client UI; [?] on the server**
+  ([ui-pdfconst]). The
+  first-20 term is [?] for Classic Era (Sixty Upgrades only, [sixty]). Base mana **[F]** (table
+  above).
 - Spell crit per Int, Forever client: paladin **0.0167% (59.88 Int = 1%)**, druid
   **0.0167% (59.88 Int = 1%)**. **[F]** `PlayerExpectedStat.SpellCritPerIntellect` [w-pes]
 - **Confidence note (paladin):** Classic Era sources give paladins roughly double that
@@ -352,36 +371,49 @@ Anticipation gives +20 defense at 5/5 for warriors and paladins (Classic +10). *
 Forever rewrites Classic's percentage bonuses on items as ratings. The items scrape measured the
 ratio of Forever rating to Classic percentage across 4,271 changed items
 ([items.md, "Forever's ratings"](../data/items.md#forevers-ratings-f-with-open-questions)).
-The client's `CombatRatings` GameTable has the same costs, flat across every level from 1
-upward [wsf-cr].
+The client's `CombatRatings` GameTable, as extracted by wowsims (a secondary source), has the
+same costs, flat across every level from 1 upward [wsf-cr].
 
 | Rating on a Forever item | Converts to | Cost | Replaces (Classic item text) | Tag |
 | --- | --- | --- | --- | --- |
-| Critical Strike Rating | melee, ranged **and** spell crit, all at once | **14 per 1%** | "critical strike by N%" and "critical strike with spells by N%" | [F] tooltip ratio (349 samples) and `CombatRatings` Crit 14; in-combat [?] |
-| Hit Rating | melee **and** spell hit, all at once | **10 per 1%** | "chance to hit by N%" and "chance to hit with spells by N%" | [F] tooltip ratio (152 samples) and `CombatRatings` Hit 10; in-combat [?] |
-| Dodge Rating | dodge | **12 per 1%** | "chance to dodge … by N%" | [F] (46 samples) and `CombatRatings` Dodge 12; in-combat [?] |
-| Parry Rating | parry | **15 per 1%** | "chance to parry … by N%" | [F] (7 samples) and `CombatRatings` Parry 15; in-combat [?] |
-| Block Rating | shield block chance | **5 per 1%** | "chance to block … by N%" | [F] (11 samples) and `CombatRatings` Block 5; in-combat [?] |
-| Defense Rating | defense skill | **1 per point** | "Increased Defense +N" | [F] (69 samples) and `CombatRatings` Defense 1; in-combat [?] |
+| Critical Strike Rating | melee, ranged **and** spell crit, all at once | **14 per 1%** | "critical strike by N%" and "critical strike with spells by N%" | [F] tooltip ratio (349 samples); `CombatRatings` Crit 14 agrees (secondary, [wsf-cr]); in-combat [?] |
+| Hit Rating | melee **and** spell hit, all at once | **10 per 1%** | "chance to hit by N%" and "chance to hit with spells by N%" | [F] tooltip ratio (152 samples); `CombatRatings` Hit 10 agrees (secondary, [wsf-cr]); in-combat [?] |
+| Dodge Rating | dodge | **12 per 1%** | "chance to dodge … by N%" | [F] (46 samples); `CombatRatings` Dodge 12 agrees (secondary, [wsf-cr]); in-combat [?] |
+| Parry Rating | parry | **15 per 1%** | "chance to parry … by N%" | [F] (7 samples); `CombatRatings` Parry 15 agrees (secondary, [wsf-cr]); in-combat [?] |
+| Block Rating | shield block chance | **5 per 1%** | "chance to block … by N%" | [F] (11 samples); `CombatRatings` Block 5 agrees (secondary, [wsf-cr]); in-combat [?] |
+| Defense Rating | defense skill | **1 per point** | "Increased Defense +N" | [F] (69 samples); `CombatRatings` Defense 1 agrees (secondary, [wsf-cr]); in-combat [?] |
 
 - One Forever crit rating raises melee and spell crit together. A Classic item's melee crit
   (or spell crit) raised only that one. Warriors and ferals don't care; for paladins every point
   of crit rating is also Holy spell crit. **[F]**
 - "Mana Regeneration" on Forever items replaces "mana per 5 sec" with the same numbers. Treat it
   as mp5. **[F]** wording, **[?]** unit ([items.md](../data/items.md#how-heavily-forever-re-itemized-the-pool)).
-- **Ratings whose combat effect is unknown:** Expertise Rating, Haste Rating, Armor Penetration
-  and Health Regeneration are new on Forever items. `CombatRatings` lists Expertise 10, Haste 10
-  (melee, ranged and spell) and Armor Penetration 10, but not what a point does in combat.
-  Expertise replaced weapon skill at inconsistent ratios on two items, and Health Regeneration
-  replaced hp5 at inconsistent ratios. **Don't borrow TBC formulas.** Default engine behaviour:
-  parse and display them, give them no combat effect, and show a [?] warning in the UI whenever the
-  selected gear has any. [OQ-14](#oq-14-combat-ratings-in-play)
+- **Ratings whose combat effect is unmeasured:** Expertise Rating, Haste Rating, Armor
+  Penetration and Health Regeneration are new on Forever items. `CombatRatings`, as extracted by
+  wowsims (secondary), lists Expertise 10, Haste 10 (melee, ranged and spell) and Armor
+  Penetration 10, but not what a point does in combat. Expertise replaced weapon skill at
+  inconsistent ratios on two items, and Health Regeneration replaced hp5 at inconsistent ratios.
+  **Don't borrow TBC formulas.** Per
+  [D12](../decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22),
+  the `forever` profile applies three of them by hypothesis, each [?]:
+  - **haste rating:** 10 per 1% haste, multiplicative with other haste
+    ([damage-and-timing §3.1](damage-and-timing.md#31-haste));
+  - **expertise:** 10 per 1%, subtracted from the boss's dodge and parry (hypothesis A,
+    [combat-tables §7](combat-tables.md#7-expertise-forever));
+  - **armor penetration:** flat armor removed from the target
+    ([damage-and-timing §1.2](damage-and-timing.md#12-armor-reduction-debuffs-and-penetration)).
+
+  A rules switch, `unmeasuredRatings: 'apply' | 'ignore'` (default `'apply'` in `forever`;
+  `classicEra` has none of these stats), lets the guild see how much a result depends on them.
+  Health Regeneration is parsed and displayed with no combat effect (out-of-combat regen isn't
+  modelled). The UI shows a [?] warning whenever the selected gear has any of the four.
+  [OQ-14](#oq-14-combat-ratings-in-play)
 
 ### Attack power formulas
 
 | Class / form | Melee AP at level 60 | Tag |
 | --- | --- | --- |
-| Warrior | `160 + 2 × Str + flat AP` | [C] [WarriorSim][ws-player] (`level × 3 − 20`); Str ratio [F] |
+| Warrior | `160 + 2 × Str + flat AP` | [C] (the pre-SoD WarriorSim's level-60 `ap: 160`, [ws-races]); Str ratio [F] |
 | Paladin | `160 + 2 × Str + flat AP` | Str ratio [F]; 160 term [?] [OQ-7](#oq-7-base-attack-power-formulas) |
 | Druid, caster form | `2 × Str − 20 + flat AP` | Str ratio [F]; −20 term [?] [OQ-7](#oq-7-base-attack-power-formulas) |
 | Druid, Cat Form | `2 × Str + Agi − 20 + 120 + PS + flat AP` | form AP [F] (below); Agi term [F] tooltip; −20 [?] |
@@ -485,14 +517,15 @@ Blood Fury, Elune's Light, Kings, trinkets).
    - **Classic percentage stats (gear with no Forever data)** add directly, each to its own pool:
      melee crit and spell crit separately, hit, spell hit, dodge, parry, block and defense skill.
    - The pipeline has to accept both forms at once, because about 39% of the item pool still
-     carries Classic percentages. Expertise, Haste Rating, Armor Penetration and Health
-     Regeneration are carried through with no combat effect.
+     carries Classic percentages. Haste Rating (`/10` → haste %), Expertise Rating (`/10` →
+     expertise %) and Armor Penetration (flat) are applied when `unmeasuredRatings = 'apply'`
+     (D12, [?]); Health Regeneration is carried through with no combat effect.
 3. **Attribute % multipliers:** `A[attr] = (B + F) × Π(1 + p_i)` over every % modifier on that
    attribute: Kings, The Human Spirit, Divine Strength, Divine Intellect, Heart of the Wild,
    Sacred Duty, Living Spirit.
    - The modifiers multiply each other, and they apply to base **and** flat bonuses, so Kings
-     multiplies Mark of the Wild. **[C]** [WarriorSim][ws-player] (buff `strmod` values multiply;
-     one multiplier applied to total Str).
+     multiplies Mark of the Wild. **[C]** (the pre-SoD WarriorSim: buff `strmod` values
+     multiply, and one multiplier applies to total Str, [ws-player]).
    - Rounding: take `floor` once, after all multipliers. **[?]** WarriorSim truncates. A Classic
      Gnome sheet (33 × 1.05 shown as 35) suggests rounding to nearest instead
      ([OQ-6](#oq-6-rounding)). The DPS effect is well under 0.1%.
@@ -530,13 +563,17 @@ Blood Fury, Elune's Light, Kings, trinkets).
      adds any in Forever **[F]**.
 5. **Sheet vs combat.** The sim's stat panel should show what the in-game character sheet shows,
    so the guild can compare them. Combat then applies target-dependent adjustments from
-   [combat-tables.md](combat-tables.md). **[C]** [Magey][magey-at] unless marked.
+   [combat-tables.md](combat-tables.md), which owns them and whose rules differ by profile.
    - *Crit*: the sheet shows `meleeCrit%` against an equal-level target. Against a level-63 boss,
-     combat subtracts 3.0% for the 300-vs-315 skill gap, and a flat 1.8% from aura crit when you
-     have at least that much aura crit (Classic; whether Forever keeps it is for
-     combat-tables.md).
+     combat subtracts a weapon-skill part and `min(aura crit, 1.8%)`. The skill part is **0.6%**
+     at 300 skill in `forever` (the default; [F] client UI, [?] in combat) and **3.0%** in
+     `classicEra` ([C]
+     [Magey][magey-at]); the 1.8% is [C] and unverified in Forever
+     ([combat-tables §4.4](combat-tables.md#44-crit-suppression)).
    - *Hit*: the sheet shows gear and talent +hit only. Combat uses an 8% base miss against a +3
-     boss, with the first 1% of +hit ignored when the skill gap is over 10.
+     boss. `classicEra` ignores the first 1% of +hit when the skill gap is over 10 [C];
+     `forever` has no hit suppression ([F] tooltip; [?] in combat)
+     ([combat-tables §4.3](combat-tables.md#43-hit-suppression)).
    - *Weapon skill*: the sheet shows "300 + bonus". For crit against mobs, skill above 5 × level
      is ignored.
    - *AP*: the sheet includes form AP and Predatory Strikes. It excludes creature-type AP and
@@ -586,7 +623,8 @@ Stat-relevant changes versus Classic Era 1.15.9, all **[F]**:
 18. **Items use combat ratings.** Costs are level-independent: crit 14, hit 10, dodge 12, parry 15
     and block 5 per 1%, and defense 1 per point. One crit rating covers melee, ranged and spell
     crit; one hit rating covers melee and spell hit. Expertise, Haste Rating, Armor Penetration
-    and Health Regeneration are new, and their combat effects are unknown.
+    and Health Regeneration are new, and their combat effects are unmeasured; the first three
+    apply by hypothesis (D12).
     ([items.md](../data/items.md#forevers-ratings-f-with-open-questions), [wsf-cr])
 
 Checked, **no Forever change found** (these values aren't in the client, so the Classic values
@@ -621,9 +659,11 @@ value per Strength, Spirit regen, the five-second rule, and the defense conversi
   such as 1820 × 1.05 can't land on 1910.999… because of floating-point error.
 - **Ratings:** the item model carries both forms, Forever ratings (`critRating`, `hitRating`, …;
   see [items.md](../data/items.md)) and Classic percentages. Put the rating costs in one constants
-  table tagged [F] so a beta measurement can change them in one place. The unknown ratings
-  (expertise, haste, armor penetration, health regeneration) get a zero-effect default plus a UI
-  warning; don't approximate them with TBC rules.
+  table (the old stats tagged [F], haste and expertise [?]) so a beta measurement can change them
+  in one place. Haste, expertise and armor penetration follow their D12 hypotheses when
+  `unmeasuredRatings = 'apply'` (the `forever` default) and are ignored when it is `'ignore'`;
+  health regeneration has no combat effect. Show a UI warning whenever gear carries any of them,
+  and don't approximate them with TBC rules.
 
 ---
 
@@ -640,8 +680,8 @@ each example next to the synthetic one.
 ### Example 1: naked Human warrior
 
 Inputs: Human warrior, no gear, no weapon (Sword Specialization inactive), no talents, no buffs,
-Battle Stance. Base attributes **[C]** [WarriorSim levelstats][ws-levelstats]: Str 120, Agi 80,
-Sta 110, Int 30, Spi raw 45.
+Battle Stance. Base attributes: Str 120, Agi 80, Sta 110, Int 30 **[C]** ([ws-races]); Spi raw 45
+**[?]** ([ws-levelstats], post-SoD only).
 
 | Stat | Computation | Result |
 | --- | --- | --- |
@@ -657,16 +697,19 @@ Sta 110, Int 30, Spi raw 45.
 | Max HP | baseHP + 20 + 90 × 10 | **baseHP + 920** ([OQ-2](#oq-2-base-health)) |
 | Weapon skill | no racial bonus in Forever | **300** |
 
-Against a level-63 boss ([combat-tables.md](combat-tables.md) governs): crit 4.00 − 3.00 =
-**1.00%** (no aura crit, so no 1.8% suppression); miss 8%.
+Against a level-63 boss ([combat-tables.md](combat-tables.md) governs; no aura crit, so no 1.8%
+suppression):
+- `forever` (default): crit 4.00 − 0.60 = **3.40%**; miss 8%, hit cap 8%.
+- `classicEra`: crit 4.00 − 3.00 = **1.00%**; miss 8%, hit cap 9% (the first 1% of +hit is
+  ignored).
 
 **Variant 1b: plus Blessing of Kings** (×1.10, [F]): Str floor(132.0) = **132**, Agi **88**,
 Sta **121** → AP 160 + 264 = **424**, crit 88 × 0.05 = **4.40%**, armor **176**, HP
 baseHP + 20 + 101 × 10 = **baseHP + 1030**.
 
 **Variant 1c: holding a one-handed sword, no Kings:** sheet crit 4.00 + 2.00 (Sword
-Specialization, aura crit) = **6.00%**. Against a +3 boss, with Classic suppression:
-6.00 − 3.00 − 1.80 = **1.20%**.
+Specialization, aura crit) = **6.00%**. Against a +3 boss: `forever` 6.00 − 0.60 − 1.80 =
+**3.60%**; `classicEra` 6.00 − 3.00 − 1.80 = **1.20%**.
 
 ### Example 2: Tauren druid in Cat Form
 
@@ -781,7 +824,7 @@ fixtures. The paladin and druid specs wait for this measurement.
 | Dwarf paladin | confirms the race-offset rule for paladins | the same fields |
 | Night Elf druid | druid class row | the five attributes, health, mana (expect 1244 plus Int), caster-form AP, melee crit, Nature spell crit, dodge, defense. Then shift to Cat, Bear and Dire Bear and read AP, crit, armor and health in each |
 | Tauren druid | confirms the race-offset rule for druids | the same fields (health includes Endurance's ×1.05) |
-| Human or Night Elf warrior, and Orc or Tauren warrior | confirm the [C] WarriorSim rows and the offset rule on a live Era realm | the five attributes, health, AP, melee crit, dodge, parry, block with a shield, defense |
+| Human or Night Elf warrior, and Orc or Tauren warrior | confirm the [C] WarriorSim rows and the offset rule on a live Era realm, and supply the [?] Spirit values (post-SoD source only) | the five attributes, health, AP, melee crit, dodge, parry, block with a shield, defense |
 | Gnome warrior (optional) | settles rounding: Era still has +5% Int, 33 × 1.05 = 34.65 ([OQ-6](#oq-6-rounding)) | Intellect |
 
 - **Undead paladin:** Classic Era doesn't have one. Derive it as the paladin class row plus the
@@ -803,8 +846,8 @@ the Route A screenshots once they arrive.
 
 ### OQ-2: base health
 **Route A:** read maximum health from the OQ-1 sheets (divide the Tauren value by 1.05). Then
-`baseHP = HP − 20 − 10 × (Sta − 20)`. *Forbidden-source candidates, not adopted*
-[mz-classlevelstats]: warrior 1689, paladin 1381, druid 1483. The druid value also appears in an
+`baseHP = HP − 20 − 10 × (Sta − 20)`. *Forbidden-source candidates, not adopted*, from
+the emulator's class table [mz-classlevelstats]: warrior 1689, paladin 1381, druid 1483. The druid value also appears in an
 old Classic-branded sim that mixes in TBC formulas, so it doesn't count as a Classic source.
 
 ### OQ-3: base melee and spell crit
@@ -858,8 +901,8 @@ kept Classic's "base AP" behaviour.
 ### OQ-10: Touch of the Grave
 We don't know the drain amount (5% of whose health, and is "up to" a cap or a range), its school,
 whether it can miss, crit or cause threat, or whether auto-attacks and abilities proc it equally.
-**Route B:** combat log of an Undead warrior hitting a training dummy for 5 minutes; count the
-procs and read their amounts.
+**Route B:** combat log of an Undead warrior hitting mobs three levels above them for 5 minutes
+(the beta has no target dummies); count the procs and read their amounts.
 
 ### OQ-11: Feral Swiftness dodge scope
 **Route B, if the talent is reachable under the cap:** the sheet's dodge in Bear Form with
@@ -871,7 +914,11 @@ These are all Route B unless marked.
 - Whether the server uses `PlayerExpectedStat` at all. OQ-4 answers this for paladins.
 - Warrior ranged AP per Agi: 2 in Forever data, 1 in Classic.
 - The two unnamed `PlayerExpectedStat` columns (10 and 287 at level 60).
-- Whether the Classic "first 20 Stamina and Intellect count as 1" rule still holds.
+- Whether the "first 20 Stamina and Intellect count as 1" rule holds on the server: the Forever
+  sheet code uses it ([F] client UI; [?] on the server), and no genuine Classic Era source was
+  found ([?] for `classicEra`). Read maximum HP and mana (the server's values) against Stamina
+  and Intellect on a naked sheet, at two Stamina and Intellect totals, and compare with
+  `min(20, x) + 10 or 15 × (x − 20)`.
 - For the [damage-and-timing.md](damage-and-timing.md) owner: the beta ships an
   `ArmorMitigationByLvl` GameTable whose level-60 constant is 1059, far from Classic's
   400 + 85 × level. It is probably an unused engine table, but check that armor mitigation matches
@@ -893,7 +940,8 @@ wago.tools and compare. Don't script it.
 | [SpellShapeshiftForm][w-ssf] | combat round time 1000 ms (Cat) and 2500 ms (bears); damage variance 0.4 |
 
 ### OQ-14: combat ratings in play
-**Route B.** The rating costs are the same at every level, so the beta cap doesn't matter.
+**Route B** for the old ratings: their costs are the same at every level, so the beta cap doesn't
+matter.
 
 - **Sheet test:** equip a Forever item with a known rating and read the sheet.
   - N Critical Strike Rating should raise melee *and* spell crit by N/14 %.
@@ -901,12 +949,20 @@ wago.tools and compare. Don't script it.
   - N Defense Rating should raise defense skill by N.
   - Dodge, parry and block should rise by N/12, N/15 and N/5 %.
 - Whether these hold against a level-63 boss belongs to [combat-tables.md](combat-tables.md).
-- **Unknown effects:**
-  - *Haste Rating:* compare the sheet's attack speed with and without the item.
-  - *Expertise Rating:* compare dodge and parry counts against a training dummy with and without
-    +20 (Adaptive Combat Assistant), and check whether the sheet shows an expertise or skill
-    value.
-  - *Armor Penetration:* compare average hit size against a dummy of known armor.
+- **The D12 hypotheses** (haste, expertise, armor penetration; [?]). The beta has no target
+  dummies, so combat tests use mobs three levels above you. The only rating items usable under
+  the cap, found in foreverchanges' item data (as cached by the scraper), are the Dwarven Tree
+  Chopper (+6 Expertise Rating, item level 20, no level requirement in its Forever tooltip) and
+  Leafre's Ring of Armor Piercing (+50 Armor Penetration, requires level 1; its source is
+  unknown). Every haste-rating item requires level 60.
+  - *Expertise Rating, Route B:* with the Dwarven Tree Chopper on and off, count dodges (from
+    behind) and parries (from the front) against mobs three levels above you, and check whether
+    the sheet shows an expertise value. Hypothesis A predicts −0.6 points, so this needs a large
+    sample. *Route C:* repeat with the Adaptive Combat Assistant (+20, 2%; it requires level 60).
+  - *Armor Penetration, Route B if the ring can be obtained:* compare average white-hit size
+    against the same mob with and without it.
+  - *Haste Rating, Route C:* compare the sheet's attack speed with and without a haste-rating
+    item.
   - *Health Regeneration:* compare out-of-combat health ticks with and without the item.
 
 ---
@@ -923,14 +979,17 @@ wago.tools and compare. Don't script it.
 | wago.tools DB2, build 1.60.1.69913: [PlayerExpectedStat][w-pes], [ChrClasses][w-chrclasses], [CharBaseInfo][w-cbi], [ChrRaces][w-chrraces], [RaceStat][w-racestat], [SkillLineAbility][w-sla], SpellEffect (per spell, linked in the tables), [SpellLevels][w-sl], [SpellMisc][w-misc-20572], [SpellDuration][w-dur], [SpellShapeshiftForm][w-ssf], [SpellPower][w-power] | Exact Forever client values | Forever (client) |
 | wago.tools DB2, build 1.15.9.69722: [ChrClasses][w-chrclasses-c], [PlayerExpectedStat (absent)][w-pes-c], SpellEffect for 3025, 1178, 9635, 20572 ([1][w-se-c-3025], [2][w-se-c-1178], [3][w-se-c-9635], [4][w-se-c-20572]), [SpellShapeshiftForm][w-ssf-c] | Classic Era client baseline | Classic Era |
 | [`src/data/races/races.json`][races-json] | Project snapshot of the racials page | Forever |
-| [GuybrushGit/WarriorSim levelstats.js][ws-levelstats], [races.js][ws-races], [player.js][ws-player] | Classic warrior level-60 base attributes per race; base AP `3 × level − 20`; warrior base crit 0; block `floor(Str/20)`; multiplicative stat mods | Classic Era ("1.12/Classic"; the repo also has an SoD mode, which we didn't use) |
+| GuybrushGit/WarriorSim at pre-SoD commit `180a3cc` (2021-05-11): [races.js][ws-races], [player.js][ws-player] | Classic warrior level-60 Str, Agi, Sta, Int and base AP 160 per race; warrior base crit 0; multiplicative stat mods; truncation | Classic Era (pre-SoD) |
+| WarriorSim post-SoD `levelstats.js` ([ws-levelstats], `ad5ac8b`) | Warrior Spirit per race; `3 × level − 20` | **Not a [C] source** (post-SoD); the Spirit values it alone supplies are [?] |
+| Forever `Camelot/PaperDollFrameConstants.lua` ([ui-pdfconst]) and `PaperDollFrameStats.lua` ([ui-stats]) | `STAMINA_BREAK = 20`, `INTELLECT_BREAK = 20`, `MANA_PER_INTELLECT = 15`; how the sheet computes HP and mana bonuses | Forever client UI [F] (verbatim mirror): what the sheet computes; server behaviour [?] |
+| Classic Era `Vanilla/PaperDollFrame.lua` ([ui-era-pdf], build 1.15.9.69722) | control: the Classic Era sheet prints no Stamina or Intellect formula | Classic Era client |
 | [magey/classic-warrior wiki: Attack table][magey-at] | Classic Era crit, miss and skill mechanics; aura-crit suppression; level-20 crit datapoint | Classic Era (2019+ tests, Blizzard blue posts) |
 | [Warcraft Tavern: Classic Base Stats Calculator][wt-basestats] | Classic conversions: 10 HP/Sta, 2 AP/Str, 20 Agi per 1% crit and dodge, 2 armor/Agi, 15 mana/Int, spell crit per Int by class, Spirit regen per tick | Classic Era |
 | [Warcraft Tavern: Tankadin guide][wt-tankadin] | Classic paladin conversions, defense 0.04% per point | Classic Era |
 | [Warcraft Tavern: Mana Management guide][wt-mana] | Five-second rule, mp5, paladin ~30 Int per 1% crit | Classic Era |
-| [Sixty Upgrades][sixty] (Classic Era gear planner; client bundle `assets/index-*.js`) | HP = min(20, Sta) + (Sta − 20) × 10 and mana = min(20, Int) + (Int − 20) × 15 | Classic Era (the planner also has SoD and Forever modes; only its Era formulas were used) |
+| [Sixty Upgrades][sixty] (gear planner; client bundle `assets/index-*.js`) | HP = min(20, Sta) + (Sta − 20) × 10 and mana = min(20, Int) + (Int − 20) × 15 | Secondary (the planner has SoD and Forever modes): [?] for Classic Era; the Forever client UI supplies the [F] evidence |
 | [Blizzard forums: +dodge vs +defense (Oct 2019)][bnet-def] | Defense 0.04% per point to avoidance and crit reduction | Classic Era (community) |
-| [wowsims/forever base_stats.go][wsf-base], [base_stats_auto_gen.go][wsf-autogen], [base_stats_parser.py][wsf-parser], [racials.go][wsf-racials], [ArmorMitigationByLvl.txt][wsf-armor], [CombatRatings.txt][wsf-cr] | Independent confirmation of what the Forever client does and doesn't ship; the beta's `CombatRatings` GameTable. **Its attribute rows are TBC level-70 values and its racials are TBC: not used.** | Forever sim, TBC-derived (partly forbidden); the GameTable files are Forever client extractions |
+| [wowsims/forever base_stats.go][wsf-base], [base_stats_auto_gen.go][wsf-autogen], [base_stats_parser.py][wsf-parser], [racials.go][wsf-racials], [ArmorMitigationByLvl.txt][wsf-armor], [CombatRatings.txt][wsf-cr] | Independent confirmation of what the Forever client does and doesn't ship; the beta's `CombatRatings` GameTable. **Its attribute rows are TBC level-70 values and its racials are TBC: not used.** | Secondary [?]: a Forever sim, TBC-derived (partly forbidden); the GameTable files are Forever client extractions read through it (doctrine §2) |
 | [docs/data/items.md, "Forever's ratings"](../data/items.md#forevers-ratings-f-with-open-questions) | Measured tooltip ratio of rating to percentage across 4,271 changed items; new rating stats | Forever (project scrape of foreverchanges.pro) |
 | [mangoszero player_levelstats.sql][mz-levelstats], [player_classlevelstats.sql][mz-classlevelstats] | Candidate values for the open questions only | **Forbidden** (vanilla emulator): not adopted |
 
@@ -988,9 +1047,12 @@ because its `robots.txt` disallows Anthropic agents.
 [w-se-20550]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A20550
 [w-se-20554]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A20554
 [w-se-20557]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A20557
-[ws-levelstats]: https://github.com/GuybrushGit/WarriorSim/blob/master/js/data/levelstats.js
-[ws-races]: https://github.com/GuybrushGit/WarriorSim/blob/master/js/data/races.js
-[ws-player]: https://github.com/GuybrushGit/WarriorSim/blob/master/js/classes/player.js
+[ws-levelstats]: https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/data/levelstats.js
+[ws-races]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/data/races.js
+[ws-player]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/player.js
+[ui-pdfconst]: https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_UIPanels_Game/Camelot/PaperDollFrameConstants.lua
+[ui-stats]: https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_UIPanels_Game/Camelot/PaperDollFrameStats.lua
+[ui-era-pdf]: https://github.com/Gethe/wow-ui-source/blob/classic_era/Interface/AddOns/Blizzard_CharacterFrame/Vanilla/PaperDollFrame.lua
 [magey-at]: https://github.com/magey/classic-warrior/wiki/Attack-table
 [wt-basestats]: https://www.warcrafttavern.com/wow-classic/tools/basestats/
 [wt-tankadin]: https://www.warcrafttavern.com/wow-classic/guides/tankadin-guide-playing-as-a-protection-paladin/

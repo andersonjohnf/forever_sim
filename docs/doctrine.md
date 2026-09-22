@@ -84,6 +84,11 @@ adopts it only when it is client data a person can check (a spell attribute, a t
 value). Tag it **[?]** and list it for confirmation. Anecdotal secondary evidence doesn't
 override Classic Era in the default profile; it becomes an open question.
 
+**Verbatim mirrors of client files are client data.** A mirror of the Forever client's UI code
+or text strings is **[F]** for what the client *displays or computes*, such as a
+character-sheet formula or a tooltip string. The combat behavior that implies is **[?]** until
+measured: the server may disagree with the client's display.
+
 **Tooltip values beat derived values.** When a Forever tooltip shows a number and a value
 derived from raw client tables disagrees with it (e.g. per-level scaling), use the tooltip
 number as **[F]** and record the derived one as an open question.

@@ -41,7 +41,9 @@ disallows automated access. That download should not have happened
 - **Rage from damage taken**, also switchable ([rage-from-damage-taken](#rage-from-damage-taken)):
   - `forever` (default, `[?]`): `1.5 × damageTaken / 230.6`.
   - `classic` `[C]`: `2.5 × damageTaken / 230.6`.
-  - `forever-hp` (`[?]` alternative): `10 × damage / maxHealth`.
+  - `forever-hp` (`[?]` alternative): `10 × healthLost / maxHealth`.
+  - `forever-hp-prearmor` (`[?]` alternative): `10 × preArmorDamage / maxHealth`, the fit the
+    third-party tester actually reported.
 
   In every model, avoided or fully absorbed attacks give 0.
 - **Refunds.** A special ability that misses or is dodged or parried refunds 80% of its cost.
@@ -226,7 +228,7 @@ settled ([forever-bugs#72](https://github.com/ClassicWoWCommunity/forever-bugs/i
 | "Roughly a single point of rage per 5% health lost" (with videos) | issue #72 body |
 | ~0.02 rage per damage taken at level 20, against mobs hitting for 1–2, 16–18 and 80–90 | issue #72, sebwib |
 | Level 1: 106 health lost → ~21 rage (Classic predicts 35.3). The tester fits `damageTaken / c × 1.5`. | issue #72, Atsumito |
-| Rage per pre-armor damage point falls ~50% as armor rises from 52 to 170+. The tester fits a Cataclysm-style `10 × preArmorDamage / maxHealth`, with no rage from avoided hits. | issue #72, 1337LutZ |
+| Rage per pre-armor damage point falls ~50% as armor rises from 52 to 170+. The tester fits a Cataclysm-style `10 × preArmorDamage / maxHealth`, with no rage from avoided hits, and the same fit (doubled below ~130–170 armor, "possibly a bug") in a second write-up with logs. | issue #72, 1337LutZ; [magey/forever-warrior#3](https://github.com/magey/forever-warrior/issues/3) |
 | Hits absorbed by Power Word: Shield give 0 rage | [forever-bugs#78](https://github.com/ClassicWoWCommunity/forever-bugs/issues/78) |
 
 Both fits agree at level 20 (about 0.02 rage per damage). At 60 they are far apart. A tank with
@@ -235,8 +237,15 @@ Both fits agree at level 20 (about 0.02 rage per damage). At 60 they are far apa
 - **Engine default `forever`:** `rage = 1.5 × damageTaken / c(L)`, using health actually lost.
   This is the smallest change that fits the data: all low-level reports come out at about 0.6 ×
   Classic.
-- **Engine alternative `forever-hp`:** `rage = 10 × damageTaken / maxHealth`. A UI toggle lets the
-  guild see how much prot TPS depends on this choice.
+- **Engine alternative `forever-hp`:** `rage = 10 × damageTaken / maxHealth`, using health lost.
+  A UI toggle lets the guild see how much prot TPS depends on this choice.
+- **Engine alternative `forever-hp-prearmor`:** `rage = 10 × preArmorDamage / maxHealth`. This is
+  what the evidence actually says: both of 1337LutZ's write-ups fit **pre-armor** damage
+  (checked 2026-09-22 against [forever-bugs#72](https://github.com/ClassicWoWCommunity/forever-bugs/issues/72)
+  and [magey/forever-warrior#3](https://github.com/magey/forever-warrior/issues/3)). The reported
+  doubling below ~130–170 armor is not modelled: tanks at 60 are far above it, and the tester
+  suspects a bug. Blocked hits count only their unblocked part [?]. See
+  [Open questions](#open-questions).
 - Attacks you avoid give 0 in all models.
 
 Rage from damage taken is the least certain number in this doc for Forever tanks. It is the first
@@ -250,7 +259,7 @@ item under [Open questions](#open-questions).
 | --- | --- | --- | --- |
 | Special ability misses, or is dodged or parried | Refund 80% of the rage cost (you pay 20%) | [C] | [Magey issue #27](https://github.com/magey/classic-warrior/issues/27) (Pyte's 1.13 beta tests: "special abilities refund rage on a whiff except for Whirlwind and Cleave"). WarriorSim and Aurana use 0.8. |
 | Whirlwind | No refund | [C] | Magey issue #27 (video analysis), and WarriorSim (`refund = false`) |
-| Cleave | **No refund** | [C] | Magey issue #27: a dodged Cleave cost its full 20 rage in the video. **Disagreement:** WarriorSim ([ad5ac8b spell.js](https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/classes/spell.js)) leaves Cleave on the default 80% refund. We follow Magey's observation. [warrior.md §2.3](../classes/warrior.md#23-rage-warrior-specific) lists only Whirlwind and Execute as exceptions and defers the details here. |
+| Cleave | **No refund** | [C] | Magey issue #27: a dodged Cleave cost its full 20 rage in the video. **Disagreement:** WarriorSim's post-SoD code ([ad5ac8b spell.js](https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/classes/spell.js)) leaves Cleave on the default 80% refund; its 2021 revision has no Cleave. We follow Magey's observation, and [warrior.md §2.3](../classes/warrior.md#23-rage-warrior-specific) lists Cleave among the exceptions. |
 | Heroic Strike | Refund 80% | [C] | Magey issue #27 (video shows HS and Hamstring cost "only a fraction on whiffs"), WarriorSim |
 | Execute | **The base cost is spent with no refund. The extra rage is not consumed**, so only the cost is lost. | [C], medium | Same rule as [warrior.md §3.1 "Execute details"](../classes/warrior.md#31-damage-abilities) and WarriorSim (`refund = false`). Magey issue #27 reports that "Execute refunds 84%". That fits this rule if it means the rage the tester still had after a miss (e.g. 79 of 94 left after losing the 15 cost). It does not fit if 84% of the cost came back. Q4 |
 | Maul | Assumed to work like Heroic Strike: 80% | [?] | No Classic test found |
@@ -349,7 +358,7 @@ where rage comes from. With a boss swing interval `T_boss` (after Thunder Clap's
 ```
 per boss swing (warrior):
   R_taken  = Σ_o P(o) × f(D_o)          // o ∈ {hit, crit, crush, block}; D_o = health lost
-                                        // f = damage-taken model (Forever 1.5/c · Classic 2.5/c · forever-hp)
+                                        // f = damage-taken model (Forever 1.5/c · Classic 2.5/c · forever-hp · forever-hp-prearmor)
   R_block  = P(block) × 5 × 0.2 × rank_ShieldSpec          // Forever; Classic: × 1 rage
   R_avoid  = (P(dodge) + P(parry)) × 5 × 0.5 × rank_MoD     // Forever, shield equipped
 rage_per_sec_boss = (R_taken + R_block + R_avoid) / T_boss
@@ -414,8 +423,8 @@ owns the warrior-specific modifiers. The two docs were checked against each othe
 
 | Topic | warrior.md | This doc | Resolution |
 | --- | --- | --- | --- |
-| Cleave refund | Not listed as an exception, so it implicitly refunds 80% like WarriorSim | No refund (Magey issue #27 video) | This doc owns refunds, so **Cleave does not refund**. warrior.md should add Cleave to its exceptions. |
-| Rage from white hits and damage taken in Forever | Not covered. It defers to this doc and uses the Classic damage-based model in examples such as W22 and W23. §5.4 expects Forever tanks to "run far richer in rage than Classic tanks". | Forever white-hit rage is **normalized per swing**, and damage-taken rage is **~0.6× Classic or lower** (evidence from 2026-09-18 to 09-22, after warrior.md was researched) | The 5-rage procs are real [F], but the rage from white hits and damage taken is lower. Whether Forever tanks end up richer or poorer in rage than Classic depends on gear and avoidance. warrior.md §5.4's claim should be treated as unverified until the sim runs both models. |
+| Cleave refund | Now lists Whirlwind, Cleave and Execute as exceptions (2026-09-22) | No refund (Magey issue #27 video) | This doc owns refunds, so **Cleave does not refund**. Resolved in warrior.md §2.3. |
+| Rage from white hits and damage taken in Forever | Defers to this doc. §5.4 used to expect Forever tanks to "run far richer in rage than Classic tanks"; it now links here and calls the outlook unverified (2026-09-22). | Forever white-hit rage is **normalized per swing**, and damage-taken rage is **~0.6× Classic or lower** (evidence from 2026-09-18 to 09-22, after warrior.md was researched) | The 5-rage procs are real [F], but the rage from white hits and damage taken is lower. Whether Forever tanks end up richer or poorer in rage than Classic depends on gear and avoidance, and stays unverified until the sim runs both models. Resolved in warrior.md. |
 | Dodge rage for the off hand | "including dodge rage" (Classic mode) | Classic: dodged white swings give 75%. Forever: 0 | Consistent: dodge rage exists only in `classic` mode. |
 
 ---
@@ -472,12 +481,13 @@ function whiteHitRage(o: Outcome, hand: Hand, w: Weapon, dmgDealt: number, would
 }
 
 // docs/mechanics/rage.md#rage-from-damage-taken
-function damageTakenRage(healthLost: number, cfg: RageCfg, maxHealth: number): number {
+function damageTakenRage(healthLost: number, preArmorDamage: number, cfg: RageCfg, maxHealth: number): number {
   if (healthLost <= 0) return 0;                     // avoided or fully absorbed
   const c = rageConversion(cfg.level);
   switch (cfg.takenModel) {
     case 'forever':    return 1.5 * healthLost / c;          // [?] default
     case 'forever-hp': return 10 * healthLost / maxHealth;   // [?] alternative
+    case 'forever-hp-prearmor': return 10 * preArmorDamage / maxHealth; // [?] alternative (the reported fit)
     case 'classic':    return 2.5 * healthLost / c * cfg.berserkerRageMult; // [C]; mult [?] = 1.0
   }
 }
@@ -514,6 +524,7 @@ Each of these becomes a unit test. Use level 60 and `c = 230.6` unless stated ot
 | R10 | Classic: 1,000 health lost to a boss hit | 1000 × 2.5 / 230.6 = **10.841** |
 | R11 | Forever default: 1,000 health lost | 1000 × 1.5 / 230.6 = **6.505** |
 | R12 | Forever `forever-hp`: 1,000 health lost, maximum health 7,000 | 10 × 1000 / 7000 = **1.429** |
+| R12b | Forever `forever-hp-prearmor`: a 2,000 pre-armor hit that costs 1,000 health, maximum health 7,000 | 10 × 2000 / 7000 = **2.857** |
 | R13 | Heroic Strike queued with rage = 14 and cost = 15 at swing time | HS dequeued; white swing resolves and gives normal white rage |
 | R14 | Heroic Strike (cost 12) dodged | Rage after = rage before − 12 + 9.6 (net −2.4); no white rage |
 | R15 | Cleave (cost 20) parried | Net −20 (no refund) |
@@ -540,8 +551,12 @@ sample size (doctrine §2, tier 2).
    one mob type and log `UNIT_POWER_UPDATE` and combat-log damage.
    - Repeat at two different maximum health values (swap Stamina gear or buffs, same armor) and
      two armor values (same maximum health).
-   - Rage per damage changes with maximum health → the `forever-hp` model.
+   - Rage per damage changes with maximum health → a `forever-hp` model. Then check whether it
+     follows the hit's **pre-armor** size (`forever-hp-prearmor`, what the third-party logs fit)
+     or the health actually lost (`forever-hp`): compare two armor values at the same maximum
+     health.
    - It changes only with health actually lost → the `1.5/c` model. Also measure the constant.
+   - Note whether the reported doubling below ~130–170 armor still happens.
 2. **White-hit rage at level 60.**
    - Confirm `k = 3.5 / 4.5` and pin down the 1H constant (3.45 vs 3.5).
    - Hasted or base speed: log with and without Flurry or a haste effect.

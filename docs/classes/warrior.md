@@ -12,7 +12,7 @@ off-hand rage. Fury gains Precision, Boundless Rage and Raging Blows. Enrage now
 you are hit, not when you are crit. Shield Slam and Revenge do almost twice their Classic damage, and in the
 client data Sunder Armor now carries a large flat threat effect of its own. Where Forever is
 silent, this doc uses Classic Era (1.13–1.15) behaviour, mostly from Magey's tested wiki and
-guybrush's WarriorSim in its Classic mode.
+guybrush's WarriorSim at its pre-SoD revision.
 
 Status: researched 2026-09-22 · Forever beta build 1.60.1.69913 vs Classic Era 1.15.9.69722 ·
 ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
@@ -186,7 +186,8 @@ Shield Slam, Spearing Strike, Victory Rush, Death Wish, Bloodrage, the shouts an
 ### 2.2 Global cooldown and off-GCD actions
 
 - **GCD length.** The GCD is 1.5 s for every warrior ability and is not reduced by haste [C];
-  see [damage-and-timing.md](../mechanics/damage-and-timing.md). The one exception is Slam:
+  [damage-and-timing §3.5](../mechanics/damage-and-timing.md#35-global-cooldown) owns the rule
+  and its source. The one exception is Slam:
   Improved Slam cuts Slam's own GCD by 0.25 s per rank, to 1.0 s at 2/2 [F] [tal] [db-eff].
 - **On the GCD** (`StartRecoveryTime` 1500 in [db-cd]; category 133 in [db-cat]):
   - attacks: Bloodthirst, Mortal Strike, Whirlwind, Slam, Execute, Overpower, Hamstring, Rend,
@@ -211,7 +212,7 @@ This section adds the warrior's own sources and sinks.
 | Source or modifier | Rule | Tag |
 | --- | --- | --- |
 | Max rage | 100 + 10 × Boundless Rage rank, so 130 at 3/3. Gnomes get +5% max rage from Expansive Mind; how the two combine is Q17 | [F] [tal] [rac] [db-eff] (aura 418) |
-| Unbridled Wrath | On every **white** melee hit that deals damage (hit, crit, glance or block; not miss, dodge or parry), a 12% per rank chance to gain 1 rage, or 2 with a two-hander. The Forever data's proc mask is "melee auto attack" only. WarriorSim (Classic mode) also lets Heroic Strike and Cleave swings proc it. **Default: white swings, extra attacks and HS/Cleave swings.** See Q5 | [F] [tal] [db-aura]; HS/Cleave [C] [ws-player] [?] |
+| Unbridled Wrath | On every **white** melee hit that deals damage (hit, crit, glance or block; not miss, dodge or parry), a 12% per rank chance to gain 1 rage, or 2 with a two-hander. The Forever data's proc mask is "melee auto attack" only. The pre-SoD WarriorSim also lets Heroic Strike swings proc it (it has no Cleave). **Default: white swings, extra attacks and HS/Cleave swings.** See Q5 | [F] [tal] [db-aura]; HS/Cleave [C] [ws-player] [?] |
 | Dual Wield Specialization | Rage from off-hand auto attacks × (1 + 0.20 × rank), so ×2.0 at 5/5. Applied to the rage [rage.md](../mechanics/rage.md) computes for that off-hand swing, including dodge rage | [F] [tal] [db-trait] |
 | Anger Management | +1 rage every 3 s in combat, on a fixed 3 s tick from combat start | [F] [tal]; [C] |
 | Bloodrage | +10 rage at once, then +1 per second for 10 s. Improved Bloodrage multiplies all of it by 1 + 0.25 × rank (15 + 15 at 2/2). 60 s cooldown, off the GCD, puts the warrior in combat, so it can be used before the pull | [F] [sb] [tal] [db-eff] |
@@ -221,7 +222,7 @@ This section adds the warrior's own sources and sinks.
 | Charge (opener) | Charge rank 3 generates 15 rage, +3 per rank of Improved Charge. Out of combat only; Battle Stance, or Defensive with Vanguard. It is modelled only as an optional pre-pull rage grant | [F] [sb] [tal] |
 | Stance swap | Keeps min(rage, 10 + 3 × Improved Tactical Mastery rank); see [§2.1](#21-stances) | [F] |
 | Execute | Spends all remaining rage on a successful hit; see [§3.1](#31-damage-abilities) | [F]/[C] |
-| Refunds | WarriorSim refunds 80% of the cost when an ability misses or is dodged, **except Whirlwind and Execute**, which refund nothing. A missed Execute costs only its base cost. Details are in [rage.md](../mechanics/rage.md) | [C] [ws-spell] [ws-player] |
+| Refunds | An ability that misses or is dodged or parried refunds 80% of its cost, **except Whirlwind, Cleave and Execute**, which refund nothing. A missed Execute costs only its base cost. [rage.md](../mechanics/rage.md) owns refunds; Cleave's exception comes from Magey's 1.13 video test (rage.md's [refund table](../mechanics/rage.md#rage-refunds-on-avoided-abilities)) | [C] ([rage.md](../mechanics/rage.md#rage-refunds-on-avoided-abilities); the pre-SoD WarriorSim for Whirlwind and Execute, [ws-spell]) |
 
 **Cost reductions.** All are flat and stack additively:
 
@@ -257,12 +258,17 @@ This section adds the warrior's own sources and sinks.
 4. **Off-hand swings while queued.** While Heroic Strike or Cleave is queued, off-hand white
    swings use the **single-wield** miss chance: the 19% dual-wield penalty does not apply.
    Blizzard lists this as intended Classic Era behaviour ("Not a bug") [C] [bnet-hsq]
-   [wh-fury] [marrow]. Dual Wield Specialization's off-hand hit still applies on top. Another
-   community Forever sim removed this behaviour in its own code [ew]; nothing Forever-specific
-   supports that. Q6.
-5. **Flurry.** Heroic Strike and Cleave swings **do not consume Flurry charges**; only white
-   swings do. They can **proc** Flurry, Deep Wounds and on-hit effects like any yellow attack
-   [C] [ws-player]; [F] [db-aura] (the Flurry buff's proc mask is auto attacks only).
+   [wh-fury] [marrow]; the pre-SoD WarriorSim does the same [ws-player]. Dual Wield
+   Specialization's off-hand hit still applies on top. For Forever, a third-party beta test
+   found the rule still in place (5.19% vs 18.27% off-hand miss, 77 and 394 swings) [?]
+   ([magey/forever-warrior#2][fw-2]; [combat-tables §5](../mechanics/combat-tables.md#5-dual-wield-and-on-next-swing-queues)).
+   Another community Forever sim removed this behaviour in its own code [ew]; nothing supports
+   that. Q6.
+5. **Flurry.** In Forever, Heroic Strike and Cleave swings **do not consume Flurry charges**;
+   only white swings do [F] [db-aura] (the Flurry buff's proc mask is auto attacks only). For
+   Classic Era this is [?]: the pre-SoD WarriorSim consumes a charge on a Heroic Strike swing
+   [ws-player], while its post-SoD code doesn't. Q7. Either way they can **proc** Flurry, Deep
+   Wounds and on-hit effects like any yellow attack [C] [ws-player].
 6. **Swing timer.** The replaced swing resets the main-hand swing timer like a normal swing
    [C] [ws-player].
 7. **Extra attacks.** If an extra attack (Windfury, Weaponmaster's sword proc, Hand of
@@ -281,9 +287,11 @@ class mask covers these attacks [db-cls]:
 - Revenge, Shield Slam, Thunder Clap, Hamstring, Spearing Strike, Victory Rush, Intercept,
   Pummel, Shield Bash, Mocking Blow and Concussion Blow
 
-Impale does **not** affect white swings, extra attacks, Deep Wounds or Rend; the last two
-can't crit anyway. Crit-damage bonuses from items, if any, are covered in
-[damage-and-timing.md](../mechanics/damage-and-timing.md).
+Impale does **not** affect white swings, extra attacks, Deep Wounds or Rend. Deep Wounds can't
+crit in either profile. Rend can't crit in `classicEra` [C]; in `forever` its ticks may crit
+through the periodic-crit flag [?] (a 2.0× tick crit, since Rend isn't in Impale's class mask;
+[damage-and-timing §4](../mechanics/damage-and-timing.md#4-dots-and-bleeds)). Crit-damage
+bonuses from items, if any, are covered in [damage-and-timing.md](../mechanics/damage-and-timing.md).
 
 **Flurry** [F] [tal] [db-trait] [db-aura]:
 
@@ -300,7 +308,8 @@ can't crit anyway. Crit-damage bonuses from items, if any, are covered in
   talent's rank curve (5/10/15/20/25) and the tooltip give 25 at 5/5. **Use 25** [F]
   [db-trait]; the leftover base value is Q7.
 
-**Deep Wounds** [F] [tal]; mechanics [C] [ws-spell]:
+**Deep Wounds** [F] [tal]; mechanics [C] (the pre-SoD WarriorSim's `DeepWounds` aura,
+[ws-spell]):
 
 - **Trigger.** Every crit (white or yellow, main or off hand) applies or refreshes a bleed on
   the target.
@@ -308,15 +317,18 @@ can't crit anyway. Crit-damage bonuses from items, if any, are covered in
   s**, where `MH_avg = (MH_min + MH_max) / 2 + flat weapon damage + AP / 14 × MH_speed`. This
   uses the **main hand's real speed (not normalized)**, and uses the main hand even when the
   off hand crits [C].
-- **Ticks.** Each tick deals a quarter of the total, recomputed at tick time with current AP
-  and modifiers.
+- **Ticks.** Each tick deals a quarter of the total, **recomputed at tick time** with current
+  AP and modifiers [C] (the pre-SoD commit's `DeepWounds.step` reads current AP and damage
+  modifiers at every tick, [ws-spell]). This is the documented exception to the snapshot
+  default in [damage-and-timing §4](../mechanics/damage-and-timing.md#4-dots-and-bleeds).
 - **Refresh.** A refresh restarts the 12 s, with the next tick 3 s after the refresh. Old
-  damage does not roll over. That rolling behaviour is WarriorSim's SoD `DeepWounds` class,
-  which we don't use [C] [ws-spell].
+  damage does not roll over. That rolling behaviour is WarriorSim's later SoD `DeepWounds`
+  class, which we don't use [C] [ws-spell].
 - **Modifiers.** The bleed ignores armor. Physical damage-done modifiers apply (Death Wish,
-  Enrage, Two-Handed Weapon Specialization, stance) [C] [ws-spell]. It cannot crit and
-  doesn't proc on-hit effects. Whether Forever still uses Classic's separate bleed spell
-  (12721) is Q21.
+  Enrage, Two-Handed Weapon Specialization, stance) [C] [ws-spell]. It cannot crit (its
+  Forever periodic-crit flag is off, per a secondary read, [?]) and doesn't proc on-hit
+  effects. Whether Forever still uses Classic's separate bleed spell (12721) is Q21; the
+  candidate Forever id 412609 comes only from wowsims/forever's read of the client [?].
 
 ### 2.6 Enrage, Death Wish, Recklessness
 
@@ -356,7 +368,7 @@ Weaponmaster replaces Classic's Sword, Axe, Polearm and Mace Specialization with
 
 | Weapon | Effect per rank (5/5) | Model | Tag |
 | --- | --- | --- | --- |
-| **Sword** (1H or 2H) | 1% (5%) chance on a successful melee attack (white or yellow) made with the sword to gain **1 extra attack** | Proc mask 0x14 (auto attack + melee ability). There is a **200 ms internal cooldown** (`ProcCategoryRecovery` 200), so an extra attack can't chain-proc itself. Roll once per ability cast, even for multi-target abilities [C] [ws-player]. The extra attack is an immediate main-hand white swing: it resets the main-hand swing timer, consumes a Flurry charge, and becomes the queued Heroic Strike if one is queued [C] [magey-wf] | [F] [db-aura] (spell 12281; Classic has the same 200 ms) [C-aura] |
+| **Sword** (1H or 2H) | 1% (5%) chance on a successful melee attack (white or yellow) made with the sword to gain **1 extra attack** | Proc mask 0x14 (auto attack + melee ability). There is a **200 ms internal cooldown** (`ProcCategoryRecovery` 200), so an extra attack can't chain-proc itself. Roll once per ability cast, even for multi-target abilities [?] (only WarriorSim's post-SoD code does this; Magey establishes it for Windfury only; Q9). The extra attack is an immediate main-hand white swing: it resets the main-hand swing timer, consumes a Flurry charge, and becomes the queued Heroic Strike if one is queued [C] [magey-wf] | [F] [db-aura] (spell 12281; Classic has the same 200 ms) [C-aura] |
 | **Axe or polearm** | +1% (5%) crit chance | Applies to attacks made with that weapon. It is aura crit (aura 290), so suppression against a +3-level target applies [magey-crit] | [F] [db-eff] (spell 12700) |
 | **Mace or staff** | Attacks ignore 3% (15%) of the target's armor | Effective armor = armor after all flat reductions × (1 − 0.03 × rank). The order is an assumption [?] (Q9) | [F] [tal] [db-trait] |
 
@@ -370,11 +382,15 @@ Weaponmaster replaces Classic's Sword, Axe, Polearm and Mace Specialization with
   involve warriors [C] [magey-wf]:
   - It procs only from the main hand, and from Heroic Strike, Cleave, Slam, instant attacks
     and extra attacks.
-  - It can't proc itself or twice in the same chain of extra attacks, and has a 1.5 s
-    internal cooldown.
+  - It can't proc itself or twice in the same chain of extra attacks [C] ([magey-wf], 2019
+    text).
+  - **No internal cooldown is modelled** [?]. Magey's page adds a 1.5 s ICD, but its source is
+    a 2023 statement about SoD's Wild Strikes, which is forbidden evidence
+    ([damage-and-timing §5.4](../mechanics/damage-and-timing.md#54-extra-attacks-and-chaining);
+    Q27).
   - A queued Heroic Strike fires on the Windfury extra attack.
   - A Weaponmaster extra attack can proc Windfury, and a Windfury extra attack can proc
-    Weaponmaster, as long as each one's internal cooldown is ready.
+    Weaponmaster, as long as Weaponmaster's 200 ms internal cooldown is ready.
 
 ### 2.8 Reactive abilities: Overpower, Bloodthrill, Revenge
 
@@ -450,7 +466,8 @@ for daggers. `weapon` means the real speed. Both are defined in
 
 - **Without Improved Slam**, the Classic behaviour applies. No white swings land during the
   cast, and when the cast completes the main-hand timer resets, and so does the off-hand's if
-  there is one [C] [ws-spell] [marrow].
+  there is one [C] ([marrow]: a mistimed Slam clips the next auto;
+  [damage-and-timing §3.3](../mechanics/damage-and-timing.md#33-swing-reset-rules)).
 - **With Improved Slam 1/2 or 2/2**, the cast and the Slam GCD shrink by 0.25 s per rank, and
   **swing timers are unaffected**: white swings keep landing during the cast, and nothing
   resets afterwards [F] [tal]. The Improved Slam versions of Slam (1310196–1310200) replace
@@ -479,7 +496,7 @@ buffs. It is physical, so armor applies, and it uses the special attack table [F
 | Ability (rank, spell id) | Cost | Cooldown | GCD | Stance | Effect | Tag |
 | --- | --- | --- | --- | --- | --- | --- |
 | Battle Shout (7, 25289) | 10 | none | yes | any | +139 melee AP to the party (20 yd) for 3 min | [F] [sb] [db-eff] |
-| Demoralizing Shout (5, 11556) | 10 | none | yes | any | −196 AP to enemies within 10 yd for 45 s. The client data scales it by −1.4 per level above 54 (Q22) | [F] [sb] [db-eff] |
+| Demoralizing Shout (5, 11556) | 10 | none | yes | any | −196 AP to enemies within 10 yd for 45 s. The tooltip value is used (tooltip beats derived, doctrine §2); the client data's −1.4 per level above 54 would give about −204.4 at 60 and is an open question (Q22) | [F] [sb]; derived value [?] [db-eff] |
 | Sunder Armor (5, 11597) | 15 | none | yes | any | −450 armor per stack, 5 stacks, 30 s. The client data also carries a THREAT effect of 1013 | [F] [sb] [db-eff] (Q1) |
 | Bloodrage (2687) | 0 (costs health) | 60 s | off | any | +10 rage, then +10 over 10 s | [F] [sb] [db-eff] |
 | Berserker Rage (18499) | 0 | 30 s | **yes** | Berserker | For 10 s, immune to fear and incapacitate, and extra rage from damage taken. Improved Berserker Rage: +5 / +10 rage | [F] [sb] [db-cd] [tal] |
@@ -655,9 +672,10 @@ Forever:
 Notes:
 
 - **Why these thresholds.** The Heroic Strike default of 42 is Bloodthirst's 30 plus Heroic
-  Strike's 12, so a landed Heroic Strike never leaves too little rage for Bloodthirst. Classic
-  sims default to 30 [ws-spells]. Forever's extra off-hand rage and Unbridled Wrath make Fury
-  richer in rage, so the extra margin is cheap. The sim itself should tune this.
+  Strike's 12, so a landed Heroic Strike never leaves too little rage for Bloodthirst.
+  WarriorSim's Classic default was 40 in its 2021 revision [ws-spells] (30 in its post-SoD
+  code). Forever's extra off-hand rage and Unbridled Wrath make Fury richer in rage, so the
+  extra margin is cheap. The sim itself should tune this.
 - **Hamstring.** The Classic Era guide uses Hamstring "as a filler at excess rage when both
   Bloodthirst and Whirlwind are on cooldown". It can crit (Flurry) and proc Windfury and
   weapon effects [wh-fury].
@@ -781,8 +799,12 @@ Notes:
   measurements [magey-thr].
 - **What Forever changes for tanks.** Shield Slam and Revenge do about 1.7–1.9× their Classic
   damage. Focused Rage makes Revenge cost 2 and Sunder 10. Shield Specialization and Master
-  of Defense add 5 rage per avoidance event. Forever tanks should run far richer in rage than
-  Classic tanks, so Heroic Strike dumping carries more of the TPS.
+  of Defense add 5 rage per avoidance event [F]. But Forever's white-hit rage is normalized and
+  its damage-taken rage looks lower than Classic's, so whether Forever tanks end up richer or
+  poorer in rage is **unverified**: see
+  [rage.md's reconciliation](../mechanics/rage.md#reconciliation-with-the-warrior-class-doc) and
+  its damage-taken question ([rage OQ 1](../mechanics/rage.md#open-questions)). The sim will
+  show how much Heroic Strike dumping carries of the TPS.
 - **Boss swing model.** The rage and Revenge procs depend on how often the boss attacks and
   what the attacks do. That model is in [encounter.md](../mechanics/encounter.md), including
   avoidance, crushing blows and blocks.
@@ -863,8 +885,9 @@ parts:
   event, and resolve cost and table at swing time ([§2.4](#24-heroic-strike-and-cleave-on-next-swing)).
   While the flag is set, the off-hand's attack table uses single-wield miss.
 - **Extra attacks.** Weaponmaster and Windfury schedule an immediate main-hand swing (0 ms
-  delay) and reset the main-hand timer. The 200 ms Weaponmaster internal cooldown and the
-  1.5 s Windfury internal cooldown are aura cooldowns.
+  delay) and reset the main-hand timer. The 200 ms Weaponmaster internal cooldown is an aura
+  cooldown. Windfury has no internal cooldown in the sim [?] (§2.7, Q27); its chain rule (it
+  can't proc from its own extra attack) is enforced per chain.
 - **Reactive windows** (Overpower, Revenge, Bloodthrill) are auras on the warrior, with
   duration and charges. Stance-dance entries check `rage ≤ tacticalMasteryCap +
   ability cost` so the dance doesn't waste rage.
@@ -1028,8 +1051,10 @@ If [rage.md](../mechanics/rage.md) gives R rage for an off-hand hit, the warrior
 ### W24: Off-hand white miss chance against a level-63 boss
 
 The inputs are 300 weapon skill, 5% hit from gear, and no Precision. Using the rules in
-[combat-tables.md](../mechanics/combat-tables.md): 8% base, +19% dual-wield penalty, and the
-first 1% of +hit suppressed at a skill gap over 10 [magey-at].
+[combat-tables.md](../mechanics/combat-tables.md): 8% base and +19% dual-wield penalty in both
+profiles.
+
+`classicEra` (the first 1% of +hit is suppressed at a skill gap over 10 [magey-at]):
 
 - Dual Wield Specialization adds +10% off-hand hit, so the miss chance is
   `27 − (5 + 10 − 1) = 13.0%`.
@@ -1037,10 +1062,15 @@ first 1% of +hit suppressed at a skill gap over 10 [magey-at].
   `max(0, 8 − 14) = 0%`.
 - The main-hand white miss chance is `27 − 4 = 23.0%`.
 
+`forever` (the default; no hit suppression): off-hand `27 − (5 + 10) = 12.0%`; queued
+`max(0, 8 − 15) = 0%`; main hand `27 − 5 = 22.0%`.
+
 ### W25: Weaponmaster, mace
 
-Take 3731 boss armor, reduced by 5 Sunders (2250), Faerie Fire (505) and Curse of Recklessness
-(640), to 336. Weaponmaster 5/5 with a mace brings it to `336 × 0.85 = 285.60` [?] (Q9).
+Forever values: take 3731 boss armor, reduced by 5 Sunders (2250), Faerie Fire (505) and
+Curse of Recklessness (505 in Forever, no AP bonus; see
+[buffs §4.1](../mechanics/buffs-debuffs-consumables.md#41-armor-reduction)), to 471.
+Weaponmaster 5/5 with a mace brings it to `471 × 0.85 = 400.35` [?] (Q9).
 
 ## 9. Open questions
 
@@ -1071,24 +1101,29 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
    separately over 500+ swings each, with and without the talent. Also record rage per
    off-hand hit.
 5. **Unbridled Wrath.** Does it proc from Heroic Strike and Cleave swings and from extra
-   attacks? The data's mask is "auto attack". WarriorSim's Classic mode says HS and Cleave
-   count [ws-player]. **Test:** rage gains logged while spamming Heroic Strike with a low-rage
+   attacks? The data's mask is "auto attack". The pre-SoD WarriorSim counts Heroic Strike
+   swings [ws-player]. **Test:** rage gains logged while spamming Heroic Strike with a low-rage
    setup.
 6. **Heroic Strike queue and off-hand miss.** Does a queued Heroic Strike still lift the
    dual-wield miss penalty from off-hand swings, as in Classic Era's "not a bug" [bnet-hsq]?
-   Another Forever sim assumes it doesn't [ew]. **Test:** off-hand miss rate with Heroic
-   Strike always queued versus never queued.
-7. **Flurry.** Is it 25% (tooltip and rank curve) or 30% (the buff's base in the data)?
-   **Test:** swing interval with Flurry up versus down.
+   A third-party beta test says yes (5.19% vs 18.27% off-hand miss over 77 and 394 swings,
+   [fw-2]); another Forever sim assumes it doesn't [ew]. The sim keeps the Classic rule.
+   **Test:** a guild repeat with ≥1,000 off-hand swings per state, Heroic Strike always queued
+   versus never queued.
+7. **Flurry.** Is it 25% (tooltip and rank curve) or 30% (the buff's base in the data)? And
+   does a Heroic Strike or Cleave swing consume a Flurry charge (Forever data: no; the pre-SoD
+   WarriorSim: yes, for Classic)? **Test:** swing interval with Flurry up versus down, and the
+   number of hasted swings after a crit when Heroic Strike is queued.
 8. **Enrage triggers.** Which events count as a "damaging attack": periodic damage, AoE,
    fully absorbed hits, blocked hits? Does a new proc refresh the duration? And how many such
    events does a DPS warrior see in a raid? **Test:** Enrage uptime while being hit by mobs;
    in raids later, from WarcraftLogs-style logs.
 9. **Weaponmaster.** When a mace ignores armor, is the 15% applied before or after Sunder,
    Faerie Fire and Curse of Recklessness? For a sword, is there really a 200 ms internal
-   cooldown? For an axe, does the crit apply only to attacks with the axe when dual wielding
-   mixed types? **Test:** mace hit damage against a mob of known armor, with and without
-   Sunder.
+   cooldown, and does a multi-target ability (Whirlwind, Cleave) roll the extra attack once
+   per cast or once per target hit? For an axe, does the crit apply only to attacks with the axe
+   when dual wielding mixed types? **Test:** mace hit damage against a mob of known armor, with
+   and without Sunder; sword procs per Cleave on two mobs.
 10. **Overpower window.** The data suggests a combo-point-like counter that stacks to 3.
     Can several dodges bank several Overpowers? How long is the window, 5 s?
 11. **Bloodthrill.** Does it trigger only from white swings (data mask) or from all melee
@@ -1118,11 +1153,16 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
 20. **Berserker Rage's extra rage from damage taken.** The Classic formula is for
     [rage.md](../mechanics/rage.md) to settle. Does Forever change it?
 21. **Deep Wounds implementation.** The Classic bleed spell 12721 no longer has a name in the
-    Forever client, so Forever may have reimplemented Deep Wounds. Check tick count, the 3 s
-    interval, whether it recomputes on each tick, and refresh behaviour.
-22. **Demoralizing Shout scaling.** Is it −196 at level 60, or −204.4 with the −1.4 per level
-    from the client data? Owner:
-    [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md).
+    Forever client, so Forever may have reimplemented Deep Wounds. wowsims/forever reads it as
+    spell **412609** (a candidate id only, [?]; a person should confirm it on wago.tools). Check
+    tick count, the 3 s interval, whether it still recomputes on each tick (Classic: yes, [C]),
+    its periodic-crit flag, and refresh behaviour. Also confirm Rend's periodic-crit flag, which
+    lets its ticks crit in the `forever` profile [?]
+    ([damage-and-timing OQ 2](../mechanics/damage-and-timing.md#open-questions)).
+22. **Demoralizing Shout scaling.** The sim uses the tooltip's −196 [F]; the client data's −1.4
+    per level above 54 would give about −204.4 at 60 [?]. Owner:
+    [buffs-debuffs-consumables OQ 19](../mechanics/buffs-debuffs-consumables.md#open-questions)
+    (Route D: `SpellLevels` `MaxLevel` on wago.tools; Route C: read it at 60).
 23. **Build variants.** "Fury + Precision" (15/36) versus the popular 17/34, and the
     Protection "TPS" variant. Settle these with the sim once M2 and M3 exist.
 24. **Arms base stance.** Battle, with Rend, Bloodthrill and Overpower, or Berserker, with
@@ -1132,6 +1172,10 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     trainable at launch (November 4)?
 26. **Recklessness, Retaliation and Shield Wall.** Do they still share a cooldown? The data
     suggests not. This doesn't matter for DPS.
+27. **Windfury internal cooldown.** The sim models none (§2.7). The only source for 1.5 s is a
+    2023 statement about SoD's Wild Strikes, which is forbidden. Owner:
+    [damage-and-timing OQ 9](../mechanics/damage-and-timing.md#open-questions). **Test:** the
+    minimum gap between Windfury procs over 500+ main-hand swings.
 
 ## 10. Sources
 
@@ -1199,18 +1243,21 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     rules, and Heroic Strike with Windfury.
   - [magey-crit]: <https://github.com/magey/classic-warrior/wiki/Crit-aura-suppression>. The
     1.8% suppression of crit from auras.
-- **guybrush's WarriorSim**, **Classic mode only** (`classic.html`); it also has an SoD mode,
-  which we did not use. Commit `ad5ac8b`, 2024-12-16. [C]
+- **guybrush's WarriorSim**, pinned to its **pre-SoD commit `180a3cc`** (2021-05-11), which
+  doctrine §2 lets back a [C] value. Its later commits (from November 2023) add an SoD mode;
+  values found only there are [?] and are marked where they occur. [C]
   - [ws-spell]:
-    <https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/classes/spell.js>.
-    Abilities, Deep Wounds (`OldDeepWounds` is the Classic one), Flurry, Slam and Execute.
+    <https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/spell.js>.
+    Abilities, refund flags (Whirlwind and Execute none), Deep Wounds (per-tick, 4 ticks,
+    3 s), Flurry charges, Execute, the fixed 1500 ms GCD. It has no Slam, Cleave or Rend.
   - [ws-player]:
-    <https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/classes/player.js>.
-    Heroic Strike queue, off-hand miss while queued, proc rules, Unbridled Wrath, crit
-    multiplier and refunds.
+    <https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/player.js>.
+    Heroic Strike queue, off-hand miss while queued, proc rules, Unbridled Wrath on Heroic
+    Strike, crit multiplier with Impale, refunds, the 5 s Overpower window, Flurry charges
+    consumed by Heroic Strike swings.
   - [ws-spells]:
-    <https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/data/spells.js>.
-    Default rotation thresholds.
+    <https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/data/spells.js>.
+    Default rotation thresholds (Heroic Strike 40 rage, `maincd`).
 - [marrow]: Marrow's Compendium of Dragonslaying,
   <https://bookdown.org/marrowwar/marrow_compendium/abilities.html>. Also used:
   [marrow-mech](https://bookdown.org/marrowwar/marrow_compendium/mechanics.html) and
@@ -1228,6 +1275,12 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
   <https://us.forums.blizzard.com/en/wow/t/off-hand-swings-with-hs-cleave-queued-dont-suffer-dw-miss-penalty/309417>.
   Blizzard classifies off-hand swings avoiding the dual-wield penalty while Heroic Strike is
   queued as "not a bug" (2019-10-03). [C]
+
+**Third-party Forever measurement:**
+
+- [fw-2]: <https://github.com/magey/forever-warrior/issues/2>. A level-20 beta test with a
+  custom addon: 5.19% off-hand miss with Heroic Strike queued (77 swings) vs 18.27% without
+  (394). [?] until the guild repeats it.
 
 **Not authoritative:**
 
@@ -1259,9 +1312,10 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
 [magey-thr]: https://github.com/magey/classic-warrior/wiki/Threat-Mechanics
 [magey-wf]: https://github.com/magey/classic-warrior/wiki/Windfury-Totem
 [magey-crit]: https://github.com/magey/classic-warrior/wiki/Crit-aura-suppression
-[ws-spell]: https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/classes/spell.js
-[ws-player]: https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/classes/player.js
-[ws-spells]: https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/data/spells.js
+[ws-spell]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/spell.js
+[ws-player]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/player.js
+[ws-spells]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/data/spells.js
+[fw-2]: https://github.com/magey/forever-warrior/issues/2
 [marrow]: https://bookdown.org/marrowwar/marrow_compendium/abilities.html
 [marrow-mech]: https://bookdown.org/marrowwar/marrow_compendium/mechanics.html
 [marrow-cd]: https://bookdown.org/marrowwar/marrow_compendium/cds.html

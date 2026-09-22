@@ -12,6 +12,7 @@ documents: if the code and a doc disagree, one of them is a bug.
 | [architecture.md](architecture.md) | App layout, data flow, engine design, testing, deployment |
 | [decisions.md](decisions.md) | Log of significant decisions and their reasons |
 | [glossary.md](glossary.md) | Quick definitions of WoW and project terms |
+| [open-questions.md](open-questions.md) | **The guild's testing checklist**: every unverified assumption, grouped by how to test it |
 
 ## Data snapshot
 
@@ -45,6 +46,10 @@ documents: if the code and a doc disagree, one of them is a bug.
 | [classes/paladin.md](classes/paladin.md) | Retribution (DPS) · Protection (TPS) |
 
 ## Conventions for research docs
+
+**One owner per topic.** The doc listed for a topic in the tables above owns its values. Other
+docs give a one-line summary and link to the owner instead of restating numbers. If you find
+two docs disagreeing, the owner wins; fix the other one.
 
 Every mechanics and class doc follows the same shape: a summary and status line, **What the
 sim needs**, the topic sections (every value tagged `[F]`/`[C]`/`[?]` with a source),

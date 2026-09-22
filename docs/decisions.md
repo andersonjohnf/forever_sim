@@ -72,3 +72,29 @@ those items at any quality or level, and tags every listed item with `preRaidBis
 picker can offer them as default sets. Forever re-itemized many items and added new dungeons,
 so these lists are a Classic Era starting point. Replace them when Forever level-60 BiS data
 exists.
+
+### D12: Unmeasured Forever ratings apply by hypothesis, with a switch (2026-09-22)
+Forever gear carries Expertise Rating, Haste Rating and Armor Penetration, and nobody has
+measured what they do in combat yet. Ignoring them would undervalue every item that has
+them; guessing silently would hide the uncertainty. So the `forever` profile applies each
+one by its documented hypothesis, tagged [?]:
+- haste rating: 10 per 1% haste, multiplicative with other haste
+  ([damage-and-timing](mechanics/damage-and-timing.md))
+- expertise: reduces the boss's dodge and parry
+  ([combat-tables](mechanics/combat-tables.md))
+- armor penetration: flat armor removed
+  ([damage-and-timing](mechanics/damage-and-timing.md))
+
+A profile switch, `unmeasuredRatings: 'apply' | 'ignore'`, lets the guild see how much each
+result depends on them. When the guild measures one, the hypothesis becomes data.
+
+### D13: Cross-doc reconciliation rules (2026-09-22)
+A consistency review of the M0 research found 18 cross-doc contradictions and 9
+mis-tagged sources. They were resolved as follows:
+- the doc that owns a topic sets the value, and other docs summarize and link to it
+  ([docs/README.md](README.md))
+- the new source rules in [doctrine §2](doctrine.md#2-where-numbers-come-from-non-negotiable)
+  settle what counts as secondary, pre-SoD pinned commits, and tooltip vs derived values
+- D12 settles the new ratings
+
+Every changed value keeps its reasoning in its doc.

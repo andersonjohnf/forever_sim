@@ -59,10 +59,34 @@ Forever-specific facts but are tagged **[?]** until client data or a guild measu
 confirms them. Never adopt a value they carried over from a forbidden ruleset: both are
 built on wowsims code with Season of Discovery or TBC lineage.
 
+Two more kinds of evidence are secondary and tagged **[?]**:
+
+- **Third-party Forever measurements**, such as beta tests posted by other theorycrafters
+  or community combat logs, until the guild reproduces them (tier 2 is *guild*
+  measurement).
+- **Forever client data read through a secondary source**, such as tables extracted in
+  wowsims/forever, unless the same value appears on foreverchanges.pro. In that case, cite
+  foreverchanges and tag it **[F]**.
+
 **Mixed-lineage Classic sims are secondary too.** For example,
 [wowsims/classic](https://github.com/wowsims/classic) describes itself as a Season of
-Discovery sim and still contains SoD rune code. A value supported only by such a sim is
-**[?]**, not **[C]**, until a genuine Classic Era source corroborates it.
+Discovery sim and still contains SoD rune code. The same goes for tools with SoD or TBC
+modes or ancestry (WarriorSim, LibThreatClassic2, Sixty Upgrades). A value supported only
+by such a source is **[?]**, not **[C]**, until a genuine Classic Era source corroborates
+it. Exception: code pinned to a commit from **before Season of Discovery launched
+(2023-11-30)** is Classic Era and can back a **[C]** value.
+
+**When secondary Forever evidence contradicts Classic Era,** the `forever` rule profile
+adopts it only when it is client data a person can check (a spell attribute, a table
+value). Tag it **[?]** and list it for confirmation. Anecdotal secondary evidence doesn't
+override Classic Era in the default profile; it becomes an open question.
+
+**Tooltip values beat derived values.** When a Forever tooltip shows a number and a value
+derived from raw client tables disagrees with it (e.g. per-level scaling), use the tooltip
+number as **[F]** and record the derived one as an open question.
+
+**Worked examples name their rule profile** (`forever` or `classicEra`) whenever the
+profiles differ on anything the example uses.
 
 Common traps: wowhead.com/classic mixes in SoD data and runes, `wowsims/sod` is an SoD sim,
 many "vanilla" wiki pages describe behaviour that changed by 1.12, and warcraft.wiki.gg

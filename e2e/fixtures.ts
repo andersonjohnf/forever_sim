@@ -1,5 +1,11 @@
 import { test as base, expect } from '@playwright/test'
 
+// 1×1 transparent PNG: game icons come from Wowhead's CDN, which tests must not depend on.
+const PIXEL = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+  'base64',
+)
+
 /**
  * Every test fails if the page logs a console error, throws, or gets an HTTP error for any
  * request (e.g. an asset missing the /forever_sim/ base path).
@@ -7,6 +13,7 @@ import { test as base, expect } from '@playwright/test'
 export const test = base.extend<{ pageProblems: string[] }>({
   pageProblems: [
     async ({ page }, use) => {
+      await page.route('https://wow.zamimg.com/**', (route) => route.fulfill({ contentType: 'image/png', body: PIXEL }))
       const problems: string[] = []
       page.on('console', (msg) => {
         if (msg.type() === 'error') problems.push(`console.error: ${msg.text()}`)

@@ -108,6 +108,31 @@ work is in slices:
 - Compare against guild beta logs and target-dummy tests
 - Resolve open questions, promote `[C]`/`[?]` values to `[F]` as they're verified
 
+## Known gaps and follow-ups
+
+Found while building. Each should go to the owning doc or `open-questions.md` when its
+slice is worked:
+- **Encounter settings the contract lacks:** `biome`, `extraTargetUptimePct` and
+  `bossExtraDtps` ([encounter.md](mechanics/encounter.md#encounter-settings)).
+- **Engine choices where the docs are silent (made in M1):**
+  - Incoming damage for DPS players arrives as one hit every 2 s.
+  - The boss first swings at t = 0.
+  - Elemental Sharpening Stones don't stack.
+  - Magic procs can't crit.
+  - Racial weapon crit applies per hand (character-stats.md), while warrior.md §2.9 says
+    "either hand".
+- **Data gaps:** the items have no shield block value (block value counts Strength only).
+  Warrior base health and dodge are unknown and left off the sheet. Skyborne, paladin and
+  druid base stats are unknown, so those sims refuse with a plain message (character-stats
+  OQ-1: needs Classic Era naked character sheets).
+- **The buffs doc says Hyjal flasks are "added automatically"** but not which flask.
+- **Bundle size:** 1.73 MB (272 KB gzipped), mostly item data. Consider lazy-loading
+  talents per class.
+- **Draft M2 plan types** from a stopped agent: `.cache/handoff/m2-plan-types-draft.patch`
+  (local only). M2.1 may have used it; delete it once M2.1 lands.
+- **Pushes:** nothing has been pushed yet; `origin/main` is still the first commit. The first
+  push happens at M2.4, after the full review gate.
+
 ## Later
 
 - Raid gear (Epic quality): widen the scraper filter

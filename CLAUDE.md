@@ -33,6 +33,14 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
    dispositions in `docs/reviews/<YYYY-MM-DD>-<topic>.md` and commit the log before pushing.
    The author never signs off on their own change.
 
+## Git workflow
+
+- **Commit as each task or slice completes,** in logical commits with descriptive messages
+  (what and why), on `main`.
+- **Push only when the user asks** (usually at the end of a session, or to verify a deploy),
+  and only after the review gate below has passed for everything since the last push.
+  Pushing `main` deploys to GitHub Pages.
+
 ## Working with agents: small slices, fresh contexts
 
 Large work is split into **slices** listed under each milestone in `docs/milestones.md`.

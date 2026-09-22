@@ -100,7 +100,7 @@ export function GearSection() {
                     disabled={lockedByTwoHand}
                     onClick={() => setPicking(slot)}
                     className={cn(
-                      'flex min-h-16 w-full flex-1 items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors outline-none',
+                      'flex min-h-16 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors outline-none',
                       'hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60',
                       item && enchantsFor(slot, item).length > 0 && 'rounded-b-none',
                     )}

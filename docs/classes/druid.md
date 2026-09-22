@@ -1,0 +1,1068 @@
+# Druid: Feral cat (DPS) and Feral bear (TPS)
+
+WoW Forever rebuilds the feral tree rather than tuning it. Shred falls from 225% to 155% weapon
+damage and Claw rises to 110%. Tiger's Fury becomes a free, off-GCD +15% physical-damage cooldown,
+and the new King of the Jungle makes it grant up to 60 Energy. Furor now **keeps** your Energy
+across a shift instead of setting it to 40, and Wolfshead Helm moved its 20 Energy onto Tiger's
+Fury, so **powershifting no longer gains anything**. Omen of Clarity is trained by every druid.
+Blood Frenzy's combo-point-on-crit effect moved into Primal Fury. Natural Weapons, Feral Aggression
+and Faerie Fire (Feral) are gone. The Forever tree adds Mangle (bear only), Berserk, Predatory
+Instincts, Rend and Tear, Natural Reaction and Lacerate, and a feral can pick up +4% hit, +4% crit,
++5% bleed damage and +5% all damage from the Balance and Restoration trees. Several diffs on
+foreverchanges are tooltip artefacts: Rip, Cat Form AP and Bear Form health. This doc sorts the
+real changes from those artefacts using the client DB2 tables, and specifies every formula,
+rotation setting and default the engine needs for cat DPS and bear TPS at level 60.
+
+Status: researched 2026-09-22 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
+
+Forever client build `1.60.1.69913`, Classic Era client build `1.15.9.69722`. Source links use
+short labels, which are resolved under [Sources](#sources).
+
+> **wago.tools values need a human check.** Every value cited to a wago.tools DB2 label (`se-f`,
+> `se-c`, `sp-f`, `scd-f`, `sao-f`, `ssf-f`, `ss-f`, `sl-f`, `sm-f`, `spell-f`, `trait-f`,
+> `sdv-c`, …) was read from wago.tools CSV exports on 2026-09-22, before we learned that
+> wago.tools' `robots.txt` disallows automated access (`Disallow: /`). The values stay, cited, but
+> **a human should confirm each one in a browser** before code relies on it
+> ([Q27](#10-open-questions)). Nobody should script wago.tools again. For new values use
+> foreverchanges.pro (which reads the same tables), Classic Era sources, or a manual wago.tools
+> lookup.
+
+---
+
+## Contents
+
+1. [What the sim needs](#what-the-sim-needs)
+2. [WoW Forever changes that matter to a feral sim](#1-wow-forever-changes-that-matter-to-a-feral-sim)
+3. [Shared feral mechanics](#2-shared-feral-mechanics)
+4. [Feral cat: sim model](#3-feral-cat-sim-model)
+5. [Feral bear: sim model](#4-feral-bear-sim-model)
+6. [Talents](#5-talents)
+7. [Rotation and priority](#6-rotation-and-priority)
+8. [Sensible defaults](#7-sensible-defaults)
+9. [Implementation notes](#8-implementation-notes)
+10. [Worked examples](#9-worked-examples)
+11. [Open questions](#10-open-questions)
+12. [Appendix: Balance in Forever](#appendix-balance-in-forever)
+13. [Sources](#sources)
+
+---
+
+## What the sim needs
+
+**Both specs**
+
+- Form-based auto attack: a **fixed form "weapon"** with the equipped weapon's damage and speed
+  ignored. Cat swings every 1.0 s and bear every 2.5 s (§2.1). Only the weapon's stats, feral
+  attack power and procs apply.
+- Form attack power: `2×Str − 20 + (Agi in cat) + form bonus + Predatory Strikes + AP from gear and buffs + feral AP` (§2.2).
+- Talent auras: flat crit, % crit damage on abilities, % damage on abilities and on bleeding targets, % periodic damage, and cost reductions (§5).
+- Omen of Clarity procs from melee hits, with a PPM, an internal cooldown and a free next ability (§2.7).
+- A per-target bleed flag, own bleeds or other players' (e.g. Deep Wounds), for Rend and Tear (§5).
+- Leader of the Pack as a party buff owned by the druid; the buffs doc lists it too.
+
+**Cat**
+
+- Energy: 10/s delivered in ~2 s ticks on a player-global timer, capped at 100 [?] (§2.4). Builders
+  refund 80% on a miss, dodge or parry [?].
+- Combo points 0–5, with Primal Fury adding an extra point on a builder crit (§2.5).
+- A 1.0 s cat GCD for abilities and 1.5 s for shapeshifts (§2.6).
+- Abilities: Shred, Claw, Rake (hit plus bleed), Rip (snapshot bleed), Ferocious Bite (converts
+  extra Energy), Tiger's Fury (off-GCD, Energy plus a damage buff), Berserk, and Faerie Fire in
+  form (free, 6 s CD). Details in §3.
+- Positional flag: behind the target or not (Shred needs behind; Claw is the fallback).
+- Shapeshifting is optional and off by default. If enabled, use the Forever Furor re-entry rule
+  and the mana model (§2.8).
+
+**Bear**
+
+- Rage: see [rage.md](../mechanics/rage.md). This doc covers the druid-specific sources: Enrage,
+  Furor, Primal Fury, Natural Reaction and Wolfshead.
+- Maul on next swing, Mangle (6 s CD), Lacerate (5-stack bleed), Swipe (3 targets),
+  Demoralizing Roar, Faerie Fire (free, 6 s CD), and Berserk (Mangle hits 3 targets with no
+  cooldown). Details in §4.
+- Threat: bear form ×1.3, and **no Feral Instinct threat in Forever**. Per-ability multipliers
+  are in §4.8; [threat.md](../mechanics/threat.md) owns the shared rules.
+
+---
+
+## 1. WoW Forever changes that matter to a feral sim
+
+Everything below was checked against the Forever and Classic client DB2 rows (`SpellEffect`,
+`SpellPower`, `SpellCooldowns`, `SpellShapeshift`, `TraitDefinitionEffectPoints` …) as well as the
+foreverchanges tooltips. "Tooltip artefact" means the diff shown on foreverchanges does not change
+the value at level 60.
+
+### 1.1 Spells
+
+| Spell (max rank at 60) | Forever | Classic Era | Sim impact | Tag, source |
+| --- | --- | --- | --- | --- |
+| **Shred** r5 (9830) | 155% weapon + flat 80 (bonus added before the %) | 225% weapon + 80 | ~−31% Shred. Tooltip still says "plus 180", a stale hard-coded string (§3.1) | [F] [se-f] [fc-book]; [C] [se-c] |
+| **Claw** r5 (9850) | **110%** weapon + 115 | 100% weapon + 115 | +10% Claw | [F] [se-f]; [C] [se-c] |
+| **Rake** r4 (9904) | 61 + 34 per 3 s × 3 | 58 + 32 per 3 s × 3 | Small buff | [F] [se-f]; [C] [se-c] |
+| **Rip** r6 (9896) | 6 × (15 + 25.5×CP): **855 at 5 CP** | 6 × (17 + 28×CP): **942 at 5 CP** | **~9% nerf.** foreverchanges' "243 instead of 45" compares a Forever total with a Classic per-tick value, because the Classic tooltip uses `$<ticks>` = 6 and `$<mult>` = 1 ([sdv-c]) | [F] [se-f]; [C] [se-c] |
+| **Ferocious Bite** r5 (31018) | 52–112 + 147×CP, +2.7 per extra Energy | Same | Unchanged, but Feral Aggression (+15% [?]) is gone | [F] [se-f] [fc-book]; [C] [se-c] [fc-book] (rank 5 Classic tooltip: 787–847 at 5 CP, 2.7 per Energy) |
+| **Tiger's Fury** (5217, only rank) | **+15% physical damage** for 6 s, **free**, **30 s CD**, no GCD, cat only | r4: +40 damage per hit for 6 s, 30 Energy, 1 s CD | Now a real cooldown. With King of the Jungle it is the main Energy source | [F] [se-f] [scd-f] [fc-book]; [C] [se-c] [scd-c] [fc-book] (9846: +40 flat damage, 30 Energy, 1000 ms) |
+| **Faerie Fire** r4 (9907) | −505 armor for 40 s. Castable in cat and bear; **in form it costs nothing, has a 6 s CD and a 1.0 s GCD in cat** (cat passive 3025: −100% cost, +6 s CD, −0.5 s GCD) | Caster only. The feral version was a talent | Replaces Faerie Fire (Feral) for every druid | [F] [se-f] (3025, 1178, 9635) [ss-f] |
+| **Cat Form** AP | 12 + 2/level from level 6 = **120 at 60**, plus 100% of Agility (aura 598) | 40 + 2/level from level 20 = **120 at 60**, plus Agility | **Tooltip artefact**: identical at 60 | [F] [se-f] [sl-f]; [C] [se-c] [fc-book] ("40 plus Agility" is the level-20 value of the 3025 aura) |
+| **Bear Form** "health 180 instead of 20" | Forever tooltip reads `$1178s2`, which is now the armor effect. Real health bonus is still effect 2: 20 + 18/level | 20 + 18/level | **Tooltip artefact** (and irrelevant at 60 in Dire Bear) | [F] [se-f] |
+| **Dire Bear Form** | +360% item armor, +600+32/lvl HP, +120+3/lvl AP (180 at 60) | Same | Unchanged | [F]/[C] [se-f] [se-c] |
+| **Maul** r7 (9881) | +128 on next swing, 15 Rage | Same | Unchanged | [F]/[C] [se-f] |
+| **Swipe** r5 (9908) | 83 to 3 targets, 20 Rage, 1.5 s GCD, no AP scaling | Same | Unchanged, but Feral Instinct now adds +30% damage | [F]/[C] [se-f] |
+| **Demoralizing Roar** r5 (9898) | −193 − 1.4/level from 52 = **−204 AP at 60** | −130 − 1/level = −138 at 60 | ~+48% stronger. The "−1.4/level" is DB2-only | [F] [se-f]; [C] [se-c] |
+| **Growl** | 8 s CD | 10 s CD | Not simmed | [F] [scd-f] |
+| **Enrage** | **10 Rage instantly** + 20 over 10 s, 1 min CD, no GCD | 20 over 10 s | Pre-pull Rage | [F] [se-f] [fc-class] |
+| **Cower** r3 (9892) | Threat −1200 − 1/level: **−1208 at 60** | −600 − 1/level: −608 | Doubled, DB2-only | [F] [se-f]; [C] [se-c] |
+| **Frenzied Regeneration** | 1 rank: up to 10 Rage/s → 1% max HP per Rage, 10 s, 3 min CD | 3 ranks, 10 HP per Rage | Not simmed | [F] [fc-class] |
+| **Omen of Clarity** (16864) | **Trained at 20, passive**, procs from spells and attacks, 10 s proc cooldown in DB2 | Tier-3 Balance talent, 10 min self-buff, melee only | Every feral has it (§2.7) | [F] [sao-f] [spell-f]; [C] [sao-c] [wiki-ooc] |
+| **Lacerate** (new, r3 at 58: 1235827) | 15 Rage, 1.5 s GCD, bleed 15 per 3 s for 15 s, stacks to 5, "plus 10% weapon damage per existing application", "high threat" | n/a | New bear threat tool (§4.3) | [F] [se-f] [fc-book] |
+| **Mangle** (talent 407995; ranks 1238069/70/73) | **Bear/Dire Bear only** (wowsims/forever reads the same shapeshift mask 144: secondary [?] [wsf-mangle]). 100% weapon + 26/38/59/**77** (levels 25/36/48/60), 20 Rage, **6 s CD**, 1.5 s GCD | Not in Classic (Classic's 407995 is SoD data) | New bear ability (§4.2) | [F] [se-f] [scd-f] [ss-f] |
+| **Berserk** (talent 417141) | 15 s, 3 min CD, no GCD: +100% crit chance to Claw/Rake/Shred/Ravage/Pounce, and Mangle loses its CD and hits up to 3 targets | n/a | Cat burst and bear AoE (§3.7, §4.6) | [F] [se-f] [scd-f] |
+| **Wolfshead Helm** (item 8345) | +5 Rage from Enrage, **+20 Energy from Tiger's Fury** | +20 Energy on shifting to cat, +5 Rage on shifting to bear | Powershift bonus removed | [F] [fc-wolf] [se-f]; [C] [fc-wolf] |
+
+### 1.2 Talents (feral-relevant)
+
+| Talent | Forever (max rank) | Classic Era (max rank) | Tag, source |
+| --- | --- | --- | --- |
+| Heart of the Wild (tier 1 now) | Int +10%, bear Stamina +20%, **cat Strength +10%** | Int +20%, bear Stamina +20%, cat Strength +20% | [F] [fc-tal] [trait-f] |
+| Sharpened Claws | 2 ranks: +6% crit in forms | 3 ranks: +6% | [F] [fc-tal] |
+| Savage Fury | 2 ranks: **+10%** Claw, Rake (incl. its bleed), **Shred**, Maul, Swipe | +20% Claw, Rake, Maul, Swipe | [F] [se-f] (spell-class masks) |
+| Shredding Attacks (was Improved Shred) | 3 ranks: Shred −18 Energy (→ 42), Lacerate −3 Rage | 2 ranks: Shred −12 | [F] [fc-tal] |
+| Ferocity | Maul, **Mangle**, Swipe −5 Rage; Claw, Rake −5 Energy | Same, without Mangle | [F] [fc-tal] |
+| Predatory Strikes | +150% of level as AP in forms (+90 at 60) | Same | [F]/[C] [fc-tal] |
+| Primal Fury | 100%: +5 Rage on a bear crit **and +1 CP on a non-periodic crit by a cat CP builder** | Rage part only (the CP part was Blood Frenzy) | [F] [fc-tal] |
+| Feral Instinct | 3 ranks: **Swipe +30% damage**, stealth. **No threat bonus** | 5 ranks: +15% bear threat | [F] [fc-tal] [se-f] |
+| Thick Hide | 3 ranks: +3 base armor per level, +2.00 per defense point above 5×level, in forms | 5 ranks: +10% item armor | [F] [fc-tal] |
+| Leader of the Pack | +3% crit, **all crit** (aura 290), exclusive with Moonkin aura | +3% melee and ranged crit | [F] [se-f]; [C] [se-c] |
+| Furor | 100% chance of 10 Rage on shifting to bear. **Cat: regain 100% of the Energy you had when last in cat + 10 Energy/s spent out of forms, max 100** | 100% chance of 40 Energy (cat) or 10 Rage (bear) | [F] [fc-tal] [trait-f] |
+| Natural Shapeshifter (moved to Resto) | −30% shapeshift mana | Same | [F] [fc-tal] |
+| **Naturalist** (was Improved Healing Touch) | **+5% all damage** (aura 79, all schools) | Healing Touch only | [F] [se-f] |
+| **New:** Predatory Instincts | +20% crit **damage bonus** on melee abilities (specials only) | n/a | [F] [se-f] |
+| **New:** King of the Jungle | Tiger's Fury grants **60 Energy** (20/40/60) | n/a | [F] [trait-f] |
+| **New:** Rend and Tear | +10% damage by melee abilities on **bleeding** targets | n/a | [F] [fc-tal] |
+| **New:** Berserk | see §1.1 | n/a | [F] |
+| **New:** Mangle | see §1.1 | n/a | [F] |
+| **New:** Natural Reaction | +5% dodge; 100% chance of +5 Rage on dodge | n/a | [F] [fc-tal] |
+| **New (Balance):** Genesis | **+5% periodic damage**, incl. Rip, Rake bleed and Lacerate (class masks match) | n/a | [F] [se-f] |
+| **New (Balance):** Nature's Majesty | **+4% crit, spells and melee** (aura 290) | n/a | [F] [se-f] |
+| Nature's Reach | **+4% melee hit** (aura 54) and +4% spell hit, +20% Balance range | Range only | [F] [se-f] |
+| **Removed:** Blood Frenzy, Feral Aggression, Natural Weapons, Faerie Fire (Feral), Improved Enrage, Omen of Clarity (now trained) | Not in the Forever trees | Feral Aggression: FB +15%, Demo Roar +40%; Natural Weapons: +10% physical damage. These Classic values are informational only (secondary source [ws-fb] [ws-talents]) | [F] [fc-class]; Classic values [?] |
+
+---
+
+## 2. Shared feral mechanics
+
+### 2.1 Form attacks: swing timer and damage
+
+- **Swing time** comes from `SpellShapeshiftForm.CombatRoundTime`. **Cat 1000 ms; Bear and Dire
+  Bear 2500 ms.** Both have `DamageVariance` 0.40, and both are identical in Forever and Classic.
+  [F] [ssf-f] · [C] [ssf-c]
+- The equipped weapon's **damage and speed are ignored in form**. Its stats (Str, Agi, AP, crit,
+  hit, "+X Attack Power in Cat, Bear, and Dire Bear forms") still apply. foreverchanges says so
+  for Forever ("A weapon's own damage does nothing while you are in a form") [F] [fc-bis]. The
+  swing speeds above are form data, not weapon data [F]/[C] [ssf-f] [ssf-c]; wowsims/classic
+  swaps the MH for a form weapon too (secondary, [ws-forms]).
+- **Form weapon at level 60** [?]:
+  - Cat: 43.84–65.76 damage, speed 1.0 (average 54.8 DPS)
+  - Dire Bear: 109.6–164.4, speed 2.5 (54.8 × 2.5 = 137 average)
+  - The only source for the 54.8 DPS base is wowsims/classic [ws-forms], a secondary source (see
+    Sources). It hard-codes the cat numbers; the bear numbers are commented-out code. The *shape*
+    is corroborated by client data: both are exactly ±20% of the average, which is what
+    `DamageVariance` 0.40 in `SpellShapeshiftForm` means (min = 0.8×avg, max = 1.2×avg) [F]/[C]
+    [ssf-f] [ssf-c]. The base value must be measured (Q5).
+- **Damage of a white swing, or of the "weapon damage" W used by abilities:**
+  `W = uniform(formMin, formMax) + AP × speed / 14`, i.e. `AP/14` in cat and `AP×2.5/14` in bear.
+  Instant abilities use the same speed as the swing: there is **no normalization** in Classic
+  [?] (secondary [ws-shred]; the rule belongs to
+  [damage-and-timing.md](../mechanics/damage-and-timing.md), and for cat it makes no difference
+  because the form speed is already 1.0).
+- Haste (Manual Crowd Pummeler, Skyborne Wind Blessed, the Forever T1 2-piece) shortens the form
+  swing timer [?] (the MCP on-use is "+50% attack speed" [F] [fc-mcp]; that it hastes form swings
+  is supported only by secondary sources [ws-presets] [ws-apl]) (Q28).
+- Procs that use PPM take the **form's** swing speed (cat 1.0, bear 2.5) as the weapon speed [?]
+  (secondary [ws-talents]; Q28).
+
+### 2.2 Attack power in forms
+
+Coordinate with [character-stats.md](../mechanics/character-stats.md), which owns base stats and
+racials. The druid-specific terms at level 60:
+
+```
+AP_cat  = 2×Str − 20 + 1×Agi + 120 (Cat Form) + 90 (Predatory Strikes 3/3) + AP_gear/buffs + AP_feral
+AP_bear = 2×Str − 20         + 180 (Dire Bear) + 90 (Predatory Strikes 3/3) + AP_gear/buffs + AP_feral
+```
+
+| Term | Value | Tag, source |
+| --- | --- | --- |
+| Druid AP per Str, base offset | 2 AP per Str, −20 | [?] (secondary [ws-base]); **owned by [character-stats.md](../mechanics/character-stats.md)**, which should supply the Classic Era source |
+| Agility → AP | 1 per Agi, **cat only** (Forever makes it data: aura 598, 100% of Agility) | [F] [se-f] (3025 eff 5); [C] [fc-book] (Classic Cat Form tooltip "…by 40 plus Agility") |
+| Cat Form | 2 × level = 120 | [F] [se-f] [sl-f]; [C] [se-c] |
+| Dire Bear Form | 120 + 3×(level − 40) = 180 | [F]/[C] [se-f] [se-c] |
+| Predatory Strikes 1/2/3 | 0.5/1.0/1.5 × level = 30/60/90 | [F] [trait-f] [fc-tal]; [C] [fc-tal] (Classic text "…by 150% of your level") |
+| "Attack Power in Cat, Bear, and Dire Bear forms" on items | Added 1:1, only in those forms. No talent multiplies it | [?] (the item text reads as flat AP; secondary [ws-forms]) (Q28) |
+| Heart of the Wild (cat) | Strength ×1.10 at 5/5 (Forever), applied to total Strength before the conversion | [F] [fc-tal]; [?] on stacking order with Blessing of Kings |
+| Agility → crit | 20 Agi per 1% melee crit (0.05%/Agi); base melee crit 0.9% | [?] (secondary [ws-base]); **owned by [character-stats.md](../mechanics/character-stats.md)** |
+
+There are no druid AP% multipliers in Forever: Protector of the Pack and similar talents don't
+exist.
+
+### 2.3 Crit, hit and damage modifiers from druid sources (level 60)
+
+| Source | Effect | Applies to | Tag |
+| --- | --- | --- | --- |
+| Sharpened Claws 2/2 | +6% crit | All attacks in cat or bear | [F] [fc-tal] |
+| Leader of the Pack | +3% crit (all crit) to the party, self included | Party-wide | [F] [se-f] |
+| Nature's Majesty 2/2 | +4% crit (spells and melee) | Always | [F] [se-f] |
+| Nature's Reach 2/2 | +4% melee hit, +4% spell hit | Always | [F] [se-f] |
+| Predatory Instincts 2/2 | Crit damage bonus ×1.2, so specials crit for **2.2×** instead of 2.0×. **White hits excluded** | Claw, Rake, Shred, Ravage, Pounce, Rip/FB, Maul, Swipe, Mangle, Lacerate (DB2 class masks) | [F] [se-f]; interpretation [?] |
+| Savage Fury 2/2 | ×1.10 damage | Claw, Rake (hit and bleed), Shred, Maul, Swipe. **Not** Mangle, Rip, FB, Lacerate | [F] [se-f] |
+| Feral Instinct 3/3 | ×1.30 damage | Swipe | [F] [se-f] |
+| Genesis 5/5 | ×1.05 periodic damage | Rip, Rake bleed, Lacerate bleed | [F] [se-f] |
+| Rend and Tear 5/5 | ×1.10 | "Melee abilities" vs a **bleeding** target | [F] [fc-tal]; scope [?] (Q9) |
+| Naturalist 5/5 | ×1.05 all damage | Everything | [F] [se-f] |
+| Tiger's Fury | ×1.15 physical damage for 6 s | White, specials, bleeds (physical school) | [F] [se-f] |
+| Berserk | +100% crit chance | Claw, Rake, Shred, Ravage, Pounce | [F] [se-f] |
+
+**Stacking.** Modifiers from different sources multiply. Two `SPELLMOD` percentages on the same
+spell (e.g. Savage Fury and Genesis on the Rake bleed, or Savage Fury and Feral Instinct on Swipe)
+also multiply, because the modern engine multiplies percentage spell mods. [?] (engine behaviour,
+not verified in game; the difference from additive is under 0.5% for the combinations here).
+
+### 2.4 Energy (cat)
+
+| Rule | Value | Tag, source |
+| --- | --- | --- |
+| Regeneration | **20 Energy per tick, ticks 2 s apart** (10 Energy/s) | [C] [wh-rot] (its powershift cycle table shows +20 Energy at t = 1 s and t = 3 s) |
+| Tick refinement | wowsims/classic models **20.2 Energy every 2020 ms** (same 10/s). Default to 20 per 2000 ms until measured | [?] (secondary [ws-energy]) (Q6) |
+| First tick | Random phase in [0, 2000) ms relative to the start of the fight | [?] (secondary [ws-energy]) |
+| Tick cadence across shifts | The tick timer is player-global and **does not reset** when shifting: in the Classic cycle the first tick comes 1 s after the powershift, not 2 s, so the shift didn't restart the timer | [C] [wh-rot] |
+| Cap | 100. Energy above 100 is lost | [?] (standard value, not found in a Classic Era text or client table at hand; secondary [ws-energy]) (Q29) |
+| Start of fight | 100 Energy (the player comes in full) | [?] (standard assumption; [encounter.md](../mechanics/encounter.md) may override) |
+| Miss, dodge or parry refund | **Builders (Shred, Claw, Rake) refund 80%** of their cost. **Finishers (Rip, FB) refund 0 and keep their combo points** | [?] (secondary [ws-shred] [ws-rip] [ws-fb]) (Q29) |
+| Haste | Does **not** change Energy regeneration | [?] (Q6) |
+| Tiger's Fury + King of the Jungle 3/3 | +60 Energy instantly (+20 more with Wolfshead Helm) | [F] [trait-f] [fc-wolf] |
+| Entering Cat Form without Furor | Energy set to **0** | [C] [wh-rot] (inferred: in Classic a powershift *sets* Energy to Furor 40 + Wolfshead 20 = 60 whatever you had, e.g. 4 → 60, so with neither it sets 0); secondary [ws-forms] |
+| Entering Cat Form with Furor, Forever | See §2.8 | [F] |
+
+### 2.5 Combo points
+
+- 0 to 5, awarded by builders on a hit: Shred, Claw, Rake, Ravage and Pounce give 1 each. Forever
+  awards them through an energize effect on the spell (`Effect 30`, power type 4) instead of
+  Classic's effect 328; the result is the same. [F] [se-f]
+- **Primal Fury 2/2:** a **non-periodic crit** from a cat CP builder adds **+1 more** (so a crit
+  Shred gives 2). With Berserk active every landed builder crits, so every landed builder gives
+  2 CP. [F] [fc-tal] [se-f]
+- Finishers (Rip, Ferocious Bite) consume **all** points on a hit [C] (Classic tooltips scale
+  with "combo points" [fc-book]). They **keep** them on a miss or dodge [?] (secondary [ws-fb]
+  [ws-rip]; Q29).
+- Forever gives Rip and FB a `SpellPower` row that costs combo points (1 plus up to 4 optional),
+  like the modern client. Whether points now live on the player rather than the target is Q18.
+  It doesn't matter for single-target sims. [F] [sp-f]
+
+### 2.6 Global cooldowns
+
+| Action | GCD | Tag, source |
+| --- | --- | --- |
+| Cat abilities (Shred, Claw, Rake, Rip, FB, Cower) | **1.0 s** (`StartRecoveryTime` 1000) | [F] [scd-f]; [C] [scd-c]; the Classic cycle table (Shred at t = 1.5, GCD ends at t = 2.5) agrees [wh-rot] |
+| Faerie Fire in Cat Form | 1.0 s (1.5 − 0.5 from the cat passive) | [F] [se-f] |
+| Faerie Fire in bear / caster | 1.5 s | [F] [scd-f] |
+| Shapeshift (Cat, Bear, Dire Bear) | 1.5 s | [F]/[C] [scd-f] |
+| Bear abilities (Swipe, Demo Roar, Mangle, Lacerate, Frenzied Regeneration) | 1.5 s | [F] [scd-f] |
+| Maul (on next swing), Tiger's Fury, Berserk, Enrage | **None** (no `StartRecoveryTime`) | [F] [scd-f] |
+
+The GCD is **not** shortened by haste [?] ([damage-and-timing.md](../mechanics/damage-and-timing.md)
+owns this rule and its source).
+
+### 2.7 Omen of Clarity and Clearcasting
+
+| Rule | Value | Tag, source |
+| --- | --- | --- |
+| Availability | Forever: trained at 20, passive, every druid has it. Classic: Balance talent and a 10 min self-buff | [F] [fc-class] [sm-f] |
+| Proc rate | **2 PPM**: chance per landed melee hit (white or special) = 2 × speed / 60, i.e. **3.33% in cat, 8.33% in bear** | [?] (secondary only [ws-talents]; Q4) |
+| Internal cooldown | **10 s**, from `SpellAuraOptions.ProcCategoryRecovery` = 10000 on 16864 in **both** clients | [F] [sao-f]; [C] [sao-c] |
+| Triggers in Forever | Tooltip: "Your spells and attacks". The client proc-type mask is unchanged from Classic (81940), so which spells can proc it is decided server-side. Model: melee white and special hits; spells [?] (irrelevant in form except Faerie Fire) | [F] [spell-f] [sao-f] |
+| Clearcasting | Next damage or healing spell or offensive ability costs 0; 1 charge; 15 s | [F] [se-f] (16870, duration index 8 = 15 s); [C] [wiki-ooc] |
+| Not consumed by | Abilities that cost nothing, e.g. Faerie Fire in form and Tiger's Fury (Forever tooltip) | [F] [spell-f] |
+| Ferocious Bite under Clearcasting | Costs 0 and still converts **all** current Energy into extra damage | [?] (secondary [ws-fb]; Q20). That Bite always empties the Energy bar is [C] [wh-rot] ("Bite consumes the entirety of your Energy pool") |
+| Moonkin Form | +100% proc chance (not relevant to ferals) | [F] [fc-tal] |
+
+Confidence: **low** for the rate, **medium** for the ICD. The PPM isn't in client data, and the
+only value found is wowsims/classic's 2 PPM, a secondary source, hence [?]. Pre-1.12 wiki text says
+"about 6% per hit, no ICD"; that is forbidden and was not adopted. Both clients carry the 10 s ICD
+field. Measure both on the beta (Q4).
+
+### 2.8 Shapeshifting, Furor, Wolfshead Helm, powershifting, mana
+
+**Classic Era powershifting.** Shifting out of and back into cat costs 55% of base mana
+([C] [fc-book] Classic Cat Form cost) and a 1.5 s GCD ([C] [scd-c]). It **sets** Energy to 40
+(Furor 5/5) + 20 (Wolfshead) = 60, whatever you had. The Era rotation is built around it (shift
+when more than 20 Energy short of the next action, about once per 4 s cycle), fuelled by Major
+Mana Potions, Demonic/Dark Runes and Innervate. [C] [wh-rot] (secondary: [ws-forms] [ws-rot])
+
+**Forever.**
+
+- Furor (cat part), rank r (1–5): on entering cat,
+  `E = min(20·r, (0.2·r)·E_left + (2·r)·t_out)`, where `E_left` is the Energy you had when you
+  last left cat and `t_out` is the seconds spent in **no** animal form (caster, travel …). At 5/5:
+  `E = min(100, E_left + 10·t_out)`. [F] [fc-tal] [se-f] (17056); rounding [?]
+- Wolfshead Helm gives nothing on shift. [F] [fc-wolf]
+- Without Furor, entering cat sets Energy to 0. [C] [wh-rot] (inferred, see §2.4); secondary
+  [ws-forms]
+
+**Consequence:** a Forever powershift (cat → caster → cat) returns the Energy you left with, plus
+the 10/s you would have regenerated anyway, **and** costs a 1.5 s GCD plus mana. It never gains
+Energy, so **the default cat rotation never powershifts** [F, inference from the two tooltips]. If
+the guild finds a reason to shift (e.g. Innervate, decurse, Rebirth), Furor 5/5 makes the trip
+Energy-neutral.
+
+**Mana model** (only needed if shifting is enabled):
+
+- Cat Form / Dire Bear Form cost `55% × BaseMana(60) × (1 − 0.10 × Natural Shapeshifter rank)`.
+  [F] [sp-f] (`PowerCostPct` 55) [trait-f] (Natural Shapeshifter −10/−20/−30%)
+- BaseMana, Int → mana (15 per Int above 20), spirit regen and mp5 are owned by
+  [character-stats.md](../mechanics/character-stats.md). The druid spirit rule used by
+  wowsims/classic is `15 + Spirit/5` per 2 s tick outside the five-second rule, and any cast (a
+  shapeshift included) restarts the five-second rule [?] (secondary [ws-mana]; take the value
+  from character-stats.md once it cites a Classic Era source).
+- Mana potions and runes belong to
+  [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md).
+
+### 2.9 Snapshotting
+
+- **Bleeds snapshot** attack power and the caster's damage multipliers (Tiger's Fury, Naturalist,
+  Genesis …) **when applied**. Target-side modifiers (e.g. a debuff that raises physical damage
+  taken) apply per tick. [?] (secondary [ws-rip] [ws-rake], which snapshot at application; Q21)
+- Bleeds ignore armor and cannot crit. [C] [wh-rot] ("bleed damage is not discounted by armor";
+  "[Bite] can crit" is contrasted with Rip)
+- Refreshing a bleed recomputes the snapshot. [?] (secondary [ws-rip]; Q21)
+
+---
+
+## 3. Feral cat: sim model
+
+Definitions: `W` = the cat weapon roll + AP/14 (§2.1); "SF" = Savage Fury multiplier (1.10 at 2/2).
+All abilities are yellow, single-roll melee attacks. From behind the table is miss, dodge, crit,
+hit (no parry, no block). See [combat-tables.md](../mechanics/combat-tables.md).
+
+### 3.1 Shred (r5, 9830)
+
+| Field | Value | Tag |
+| --- | --- | --- |
+| Cost | 60 Energy − 6/rank Shredding Attacks → **42** at 3/3 | [F] [sp-f] [trait-f] |
+| Requirement | Behind the target; cat | [F] [spell-f] |
+| Damage | `1.55 × (W + 80) × SF × (other multipliers)` | [F] [se-f]; order of flat and % [C] (Q1) |
+| Crit | 2.2× with Predatory Instincts 2/2 | [F] |
+| CP | +1 (+1 more on a crit with Primal Fury) | [F] |
+
+**The flat bonus is added before the percentage**, as in Classic. The Classic Era client's own
+Shred tooltip says "225% damage plus 180" at rank 5, and 180 = 80 (the flat `WEAPON_DAMAGE`
+effect) × 2.25. The same holds at every rank: 24 × 2.25 = 54, 32 × 2.25 = 72, 44 × 2.25 = 99,
+64 × 2.25 = 144. [C] [fc-book] [se-c] (wowsims/classic computes it the same way, secondary
+[ws-shred].) The Forever tooltip still says "155% damage plus 180". That string is hard-coded, not
+a variable, so it tells us nothing. (wowsims/forever also reads 155% from the Forever client,
+secondary [?] [wsf-shred].) Under the Classic rule the Forever flat part is 124; if Forever
+adds the flat after the percentage it is 80. Test in Q1.
+
+### 3.2 Claw (r5, 9850)
+
+`1.10 × (W + 115) × SF`, 45 − 5 (Ferocity 5/5) = **40 Energy**, +1 CP. Used only when not behind
+the target. [F] [se-f] [trait-f]
+
+### 3.3 Rake (r4, 9904)
+
+- Initial hit: **61** × SF (no AP scaling), can crit (2.2×), +1 CP.
+- Bleed: **34 per 3 s × 3 ticks** (9 s) × SF × Genesis. It can't crit, ignores armor and has no
+  AP scaling. The ticks can't miss once applied.
+- Cost 40 − 5 = **35 Energy**.
+- [F] [se-f] (61/34, period 3000, duration index 105 = 9 s). No AP scaling: [C] [fc-book] (the
+  Classic and Forever Rake tooltips give fixed numbers and, unlike Rip and Bite, don't say
+  "increased by your Attack Power"); secondary [ws-rake]
+
+### 3.4 Rip (r6, 9896)
+
+- `tick = 15 + 25.5 × CP + 0.01 × min(CP, 4) × AP`, **6 ticks, one every 2 s** (12 s), ×
+  Genesis × TF (snapshot).
+  - Base values: [F] [se-f] (`EffectBasePointsF` 15, `EffectPointsPerResource` 25.5, period 2000,
+    duration index 29 = 12 s).
+  - AP term: [?] (6% of AP per CP over the whole Rip, capped at 4 CP, so 24% of AP at 4–5 CP).
+    The only source is secondary [ws-rip]. The Classic and Forever tooltips confirm only that
+    "damage increases … by your Attack Power" [fc-book], and the scaling isn't in client data
+    (Q3).
+- Cost **30 Energy** plus all combo points. No crit, no armor, no Savage Fury.
+
+### 3.5 Ferocious Bite (r5, 31018)
+
+- `dmg = uniform(52, 112) + 147 × CP + 0.03 × CP × AP + 2.7 × (Energy − 35)`, then × multipliers
+  (Naturalist, TF, Rend and Tear [?]). Physical, so armor applies. It can crit (2.2× with
+  Predatory Instincts), and consumes all Energy.
+  - Base, per-CP and 2.7/Energy: [F] [se-f] (base 82 ± 30 via `Variance` 0.7317, PPR 147, dummy
+    270 → 2.7).
+  - AP term (3% per CP): [?] (secondary [ws-fb]; the tooltips confirm only that "damage is
+    increased by your Attack Power" [fc-book]; Q3).
+  - "Consumes all Energy": [C] [wh-rot] ("Bite consumes the entirety of your Energy pool").
+- Cost 35 Energy (no Ferocity reduction). No Feral Aggression in Forever.
+- Rank availability: rank 5 is listed at level 60 [F] [fc-book]. If it turns out to be a book
+  (in Classic Era it's a book: [wh-rot] "once you acquire" it; that it arrives with AQ is
+  secondary [ws-fb]), the fallback rank 4 (22829) is
+  `uniform(45, 95) + 128×CP + 2.5/Energy` [F] [se-f] (Q17).
+
+### 3.6 Tiger's Fury (5217)
+
+- **+15% physical damage done for 6 s**, free, **30 s cooldown**, no GCD, cat only. [F] [se-f]
+  [scd-f] [spell-f]
+- King of the Jungle 1/2/3: instantly **+20/40/60 Energy**. [F] [trait-f] (curve on 417046
+  effect 0)
+- Wolfshead Helm: +20 Energy more. [F] [fc-wolf]
+- King of the Jungle also has a hidden second value, 5/10/15 per rank (effect 1, dummy), that no
+  tooltip mentions. Model nothing for it until measured (Q7).
+- Forever T1 feral 5-piece: TF cooldown −3 s (`1301247`). [F] [se-f] (set bonuses belong to the
+  items doc)
+
+### 3.7 Berserk (417141, cat use)
+
+15 s, 3 min cooldown, no GCD, usable in cat or bear. **+100% crit chance** on Claw, Rake, Shred,
+Ravage and Pounce (class mask 0x39000), so every landed builder crits and, with Primal Fury 2/2,
+awards 2 CP. It also clears and grants immunity to fear. [F] [se-f] [scd-f]
+
+### 3.8 Faerie Fire in cat (9907 r4)
+
+−505 armor for 40 s. **Free in form, 6 s cooldown, 1.0 s GCD in cat.** It's a spell (Nature),
+and the hit table is owned by [combat-tables.md](../mechanics/combat-tables.md). If this druid
+maintains it, the sim applies the raid debuff from this source and doesn't double-count a
+"Faerie Fire" debuff toggle. [F] [se-f] (3025 effects 2–4) [ss-f]
+
+### 3.9 Not used in the default cat rotation
+
+- **Ravage** (r4 9867): `3.50 × (W + 98)`, must be prowling and behind. [F] [se-f]
+- **Pounce** (r3 9827): stun plus bleed, prowling only. PvE openers are skipped. [C] [wh-rot]
+- **Cower** (r3): −1208 threat, 20 Energy, 10 s CD. Threat is owned by [threat.md](../mechanics/threat.md).
+  [F] [se-f]
+
+### 3.10 Auto attack
+
+Cat white swing: `uniform(43.84, 65.76) + AP/14` [?] (form base damage, Q5) every **1.0 s / (1 + haste)** [F] [ssf-f] (haste: Q28). It can glance
+(see [combat-tables.md](../mechanics/combat-tables.md)) and crits for 2.0× (Predatory Instincts
+doesn't apply). Physical, so armor applies, and Tiger's Fury and Naturalist apply.
+
+### 3.11 Cat threat
+
+Cat Form's threat modifier is **×0.71** (−29%). [F] [se-f] (3025 effect 1: −29); [C] [ltc2]
+
+---
+
+## 4. Feral bear: sim model
+
+`W_b` = dire bear weapon roll + AP × 2.5 / 14 (§2.1). Rage generation and spending are owned by
+[rage.md](../mechanics/rage.md); threat constants by [threat.md](../mechanics/threat.md). Below
+are only the druid-specific numbers.
+
+### 4.1 Maul (r7, 9881)
+
+On next swing: replaces the white swing with a yellow attack for `(W_b + 128) × SF`. It can't
+glance, and crits for 2.2× with Predatory Instincts. Cost 15 − 5 (Ferocity) = **10 Rage**, spent
+when the swing lands. No GCD. [F] [se-f] [sp-f]
+
+Threat ×1.75 before the form modifier. [C] [ltc2]; Forever [?] (Q15)
+
+### 4.2 Mangle (bear only; 1238073 at level 60)
+
+- `1.00 × (W_b + 77)`. Savage Fury does **not** apply (the mask excludes it); crits for 2.2×.
+- 20 − 5 = **15 Rage**, **6 s cooldown**, 1.5 s GCD.
+- Requires Bear or Dire Bear (shapeshift mask 0x90). The Forever wiki page also lists the talent
+  as "Mangle (Bear)" [wiki-forever].
+- Rank ladder: 26 (talent rank, level 25), 38 (36), 59 (48), 77 (60). Assume the trainer teaches
+  ranks 2–4 (Q17).
+- [F] [se-f] [scd-f] [sp-f] [ss-f]
+- Threat multiplier unknown; assume ×1.0 before the form modifier (Q15).
+
+### 4.3 Lacerate (r3, 1235827)
+
+- 15 − 3 (Shredding Attacks 3/3, if taken) Rage, 1.5 s GCD, bleed.
+- Bleed: **15 per 3 s × 5 ticks (15 s) per stack, up to 5 stacks** (75 per tick at 5 stacks), ×
+  Genesis. The tooltip adds "plus 10% weapon damage per existing application of Lacerate on the
+  target" (effect 1, dummy 10).
+- **Assumption [?]:** each application also deals an immediate physical hit of
+  `0.10 × W_b × (stacks already on the target)`, can crit, and refreshes the bleed's duration. A
+  separate spell, 414647, carries a 20% weapon-damage effect whose role is unknown.
+- "Causes a high amount of threat": the value is unknown (Q15, Q16).
+- [F] [se-f] (period 3000, duration index 8 = 15 s, `CumulativeAura` 5)
+
+### 4.4 Swipe (r5, 9908)
+
+83 × SF × Feral Instinct (×1.10 × ×1.30) to up to **3** targets. No AP scaling
+(`BonusCoefficientFromAP` 0), 20 − 5 = **15 Rage**, 1.5 s GCD. [F] [se-f] [sp-f]
+
+Threat ×1.75. [C] [ltc2]; Forever [?]
+
+### 4.5 Other bear abilities
+
+| Ability | Numbers | Tag |
+| --- | --- | --- |
+| Demoralizing Roar r5 | −204 melee AP on nearby enemies, 30 s, 10 Rage, 1.5 s GCD. Classic threat 39 per target | [F] [se-f]; threat [C] [ltc2] |
+| Faerie Fire (bear) | −505 armor, free, 6 s CD, 1.5 s GCD. Classic threat 108 | [F] [se-f]; threat [C] [ltc2] |
+| Growl | Taunt, 8 s CD. Not simmed | [F] [scd-f] |
+| Enrage | +10 Rage now, +2 Rage/s for 10 s, 1 min CD, no GCD. −27% (bear) / −16% (dire bear) base armor for 10 s; +5 Rage with Wolfshead | [F] [se-f] [fc-wolf] |
+| Frenzied Regeneration | Not simmed (TPS only) | [F] |
+| Bash | Not simmed | |
+
+### 4.6 Berserk (bear use)
+
+For 15 s, Mangle has **no cooldown** and hits **up to 3 targets**. 3 min cooldown. The crit part
+doesn't affect bear abilities (its mask holds only cat builders). [F] [se-f]
+
+### 4.7 Bear armor (low priority: TPS doesn't need it)
+
+- Dire Bear: item armor × (1 + 3.60) [F]/[C] [se-f]. Forever adds a second aura (466, "bonus
+  armor %", +360%) next to Classic's aura 142 on the same passive, so it may also multiply bonus
+  armor [?].
+- Thick Hide 3/3: +3 × level base armor, +2.00 × (defense − 5×level), "further increased by form
+  multipliers" [F] [fc-tal].
+- A passive 1306459 ("additional base Armor equal to 100% of your Defense skill", with a −600
+  flat effect) exists in the Forever client, but no talent or spell grants it [?].
+- Model armor only if [rage.md](../mechanics/rage.md) needs damage taken.
+
+### 4.8 Bear threat and druid rage numbers (summary for the shared docs)
+
+| Item | Value | Tag |
+| --- | --- | --- |
+| Bear/Dire Bear threat modifier | **×1.3** (Bear Form Passive2 21178: +30%). **Feral Instinct adds nothing in Forever**, where Classic 5/5 made it ×1.45 | [F] [se-f] [fc-tal]; [C] [ltc2] |
+| Maul, Swipe | ×1.75 damage-to-threat | [C] [ltc2] |
+| Faerie Fire | 108 threat (rank 4) | [C] [ltc2] |
+| Demoralizing Roar | 39 threat per target (rank 5) | [C] [ltc2] |
+| Cower | −1208 (Forever) vs −608 (Classic) at 60 | [F] [se-f] |
+| Mangle, Lacerate | unknown (Lacerate "high threat") | [?] Q15 |
+| Enrage | +10 Rage immediately, 20 over 10 s | [F] [se-f] |
+| Furor 5/5 | +10 Rage on shifting into bear (100%) | [F] [se-f] (17057) |
+| Primal Fury 2/2 | +5 Rage on any crit in bear (100%) | [F] [se-f] (16959) |
+| Natural Reaction 5/5 | +5% dodge; +5 Rage on each dodge (100%) | [F] [fc-tal] |
+| Wolfshead Helm | +5 Rage from Enrage | [F] [fc-wolf] |
+
+---
+
+## 5. Talents
+
+Build codes follow [docs/data/talents.md](../data/talents.md#build-codes-verified). Forever
+tooltips are quoted from [fc-tal]; per-rank values come from
+`TraitDefinitionEffectPoints` curves [trait-f]. Only talents that touch damage, threat or
+resources are listed. Movement, stun and stealth talents are skipped.
+
+### 5.1 Feral Combat
+
+| Talent (tier·col, 1-based) | Ranks: Forever tooltip (max rank) | Sim model | Tag |
+| --- | --- | --- | --- |
+| Ferocity (1·2) | 5: "Reduces the cost of your Maul, Mangle, Swipe, Claw, and Rake abilities by 5 Rage or Energy." | −1/rank cost | [F] |
+| Heart of the Wild (1·3) | 5: "Increases your Intellect by 10%. In addition, while in Bear Form or Dire Bear Form your Stamina is increased by 20% and while in Cat Form your Strength is increased by 10%." | Cat: Str ×(1 + 0.02·r); bear: Sta ×(1 + 0.04·r); Int ×(1 + 0.02·r) | [F] |
+| Feral Swiftness (2·1) | 2: "…movement speed while in Cat Form by 30%, and increases your chance to Dodge by 4%." | +2%/rank dodge (TPS: none) | [F] |
+| Feral Instinct (2·2) | 3: "Increases damage done by your Swipe ability by 30% …" | Swipe ×(1 + 0.10·r). **No threat** | [F] |
+| Thick Hide (2·4) | 3: see §4.7 | Armor only | [F] |
+| Savage Fury (3·2) | 2: "Increases the damage caused by your Claw, Rake, Shred, Maul, and Swipe abilities by 10%." | ×(1 + 0.05·r) on those abilities and on Rake's bleed | [F] |
+| Feral Charge (3·3) | 1: bear charge plus cat leap | Not simmed | [F] |
+| Sharpened Claws (3·4) | 2: "…critical strike chance while in Bear Form, Dire Bear Form, or Cat Form by 6%." | +3%/rank crit in forms | [F] |
+| Shredding Attacks (4·1) | 3: "Reduces the Energy cost of your Shred ability by 18 and reduces the Rage cost of your Lacerate ability by 3." | −6 Energy / −1 Rage per rank | [F] |
+| Mangle (4·2, needs Savage Fury 2/2) | 1: "Mangle the target for 100% normal damage plus 26." | Teaches bear Mangle (§4.2) | [F] |
+| Predatory Strikes (4·3) | 3: "…melee Attack Power in Cat Form, Bear Form, and Dire Bear Form by 150% of your level." | +0.5·level·r AP in forms | [F]/[C] |
+| Primal Fury (4·4, needs Sharpened Claws 2/2) | 2: "…100% chance to gain an additional 5 Rage any time you get a critical strike while in Bear Form or Dire Bear Form. In addition, your non-periodic critical strikes from Cat Form abilities that generate Combo Points have a 100% chance to add an additional Combo Point." | 50%·r chance: +5 Rage per bear crit (white or yellow); +1 CP per builder crit | [F] |
+| Predatory Instincts (5·1) | 2: "Increases the critical strike damage bonus of your melee abilities by 20%." | Special crits ×(2 + 0.1·r) … see note below | [F]; [?] interpretation |
+| Leader of the Pack (5·2) | 1: "…increases the critical strike chance of all party members within 45 yards by 3%, exclusive with Moonkin Aura." | +3% crit, party | [F] |
+| King of the Jungle (5·4) | 3: "Tiger's Fury now instantly grants you 60 Energy." | +20·r Energy on TF | [F] |
+| Natural Reaction (6·1) | 5: "Increases your dodge chance by 5%, and gives you a 100% chance to gain 5 Rage each time you dodge." | Bear TPS via [rage.md](../mechanics/rage.md) | [F] |
+| Rend and Tear (6·3, needs Predatory Strikes 3/3) | 5: "Increases damage done by your melee abilities on Bleeding targets by 10%." | ×(1 + 0.02·r) on **abilities** (not white) when the target has **any** bleed; excludes periodic ticks | [F]; scope [?] Q9 |
+| Berserk (7·2, needs Leader of the Pack) | 1: see §3.7 and §4.6 | | [F] |
+
+**Predatory Instincts.** "Critical strike damage bonus … by 20%" is a percentage modifier on the
+crit bonus (`SPELLMOD_CRIT_DAMAGE_BONUS`), so the +100% bonus becomes +120%: a **2.2×** crit. The
+mask covers every cat and bear special but not auto attacks. [F] [se-f]; [?] until measured
+(Q10). If the game instead adds the 20% to the whole 2.0× multiplier (2.4×), the difference shows
+up at once in the Q10 dummy test.
+
+### 5.2 Balance and Restoration talents a feral takes
+
+| Talent | Forever tooltip (max rank) | Sim model | Tag |
+| --- | --- | --- | --- |
+| Genesis (Balance 1·3) | 5: "Increases the periodic damage and healing done by your spells and abilities by 5%." | Rip, Rake bleed, Lacerate ×(1 + 0.01·r) | [F] (class masks verified) |
+| Nature's Majesty (Balance 2·3) | 2: "Increases your critical strike chance with spells and melee attacks by 4%." | +2%·r crit | [F] |
+| Nature's Reach (Balance 2·4) | 2: "…range of your offensive Balance spells by 20% and improves your chance to hit by 4%." | **+2%·r melee hit** and spell hit | [F] (aura 54 and aura 55) |
+| Furor (Resto 1·3) | 5: see §2.8 | Rage on bear shift; Energy kept on cat shift | [F] |
+| Naturalist (Resto 2·1) | 5: "Reduces the cast time of your Healing Touch spell by 0.5 sec and increases all damage you deal by 5%." | ×(1 + 0.01·r) all damage | [F] |
+| Natural Shapeshifter (Resto 2·3) | 3: "Reduces the mana cost of all shapeshifting by 30%." | Mana only | [F] |
+
+---
+
+## 6. Rotation and priority
+
+### 6.1 Classic Era community reference (not what Forever should run)
+
+**Cat.** The Classic Era raid rotation is built on powershifting. The wowhead Classic guide by
+NerdEgghead (druid-Discord moderator, patch 1.15.8) [wh-rot] gives this decision tree, checked in
+order whenever a GCD ends or an Energy tick arrives:
+
+1. ≥ 63 Energy or Clearcasting → Shred.
+2. First Shred of the cycle landed and < 12 s left on Faerie Fire → refresh Faerie Fire (Feral).
+3. ≥ 4 CP and ≥ 35 Energy → Ferocious Bite (biting at 4 CP sims higher than waiting for 5, because
+   crits overflow combo points).
+4. ≥ 48 Energy → Shred.
+5. More than 20 Energy short of the next action → powershift.
+6. Otherwise wait for the tick.
+
+Rip, Rake and Claw (except when forced to the front) are not used. Tiger's Fury is only a pre-pull
+button. [C] [wh-rot]. (wowsims/classic's APL does the same: Shred, Bite, powershift, no Rip
+[ws-apl]; secondary.)
+
+**Bear.** The commonly described practice is Maul on every swing, Swipe only with spare rage, and
+Faerie Fire (Feral) as a free filler [?]. The only detailed write-up found (wowhead's tank rotation
+page) is labelled *Season of Mastery*, so it is **not** cited as a source, and the bear thresholds
+below are [?] (Q31). The underlying numbers (Maul
+×1.75, flat Swipe) are [C] from [ltc2] and client data.
+
+### 6.2 Forever cat priority
+
+Why Forever differs from the Era rotation:
+
+- There's no powershifting (§2.8).
+- Tiger's Fury is a +15%, 30 s, +60 Energy cooldown.
+- Shred is cheaper (42) but weaker per Energy.
+- Berserk exists.
+- Rend and Tear rewards keeping the target bleeding.
+
+The Shred/Bite core of the Era tree carries over. Everything below is a **Forever derivation**
+[?] that the sim should verify by comparing settings. It's evaluated at every decision point: GCD
+ready, Energy tick, Clearcasting gained, cooldown ready, debuff expiry.
+
+**Off-GCD (checked first, may fire alongside a GCD action):**
+
+1. **Berserk** if ready and in cat.
+2. **Tiger's Fury** if ready and `Energy ≤ tfMaxEnergy`.
+
+**On the GCD:**
+
+3. **Faerie Fire** if `maintainFaerieFire`, FF is off cooldown, and either the debuff is missing,
+   or remains < `ffRefreshAt` while Energy < Shred cost (so the GCD comes out of waiting time).
+4. **Clearcasting** active → **Shred** (Claw if not behind).
+5. **Combo points ≥ `biteMinCP`**:
+   1. **Rip** if `useRip`, CP ≥ `ripMinCP`, Rip isn't on the target, fight time remaining ≥
+      `ripMinRemaining`, and (unless `ripOnlyIfNoOtherBleed` is off) the target isn't already
+      bleeding from another source.
+   2. Otherwise, if Energy ≥ `shredBeforeBiteEnergy` → **Shred** first (Bite converts surplus
+      Energy at only 2.7 per point).
+   3. Otherwise, if Energy ≥ 35 and `useBite` → **Ferocious Bite**.
+6. **Rake** if `useRake`, Rake isn't on the target, the target isn't bleeding, and ≥ 9 s remain.
+7. **Shred** if behind, else **Claw** (if `allowClaw`), when affordable.
+8. Otherwise wait for the next event.
+
+**Tunable settings (these are the UI's "abilities used"):**
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `behindTarget` | **on** | Shred allowed. Off → Claw builder |
+| `useShred` | **on** | Primary builder |
+| `allowClaw` | **on** | Claw used when not behind (only then) |
+| `useBite`, `biteMinCP` | **on**, **4** | Bite threshold ([C] 4 CP from [wh-rot]; Primal Fury keeps the same overflow logic) |
+| `shredBeforeBiteEnergy` | **67** (= Shred cost 42 + Bite 35 − 10 regenerated during the 1 s GCD) | Energy at or above which to Shred before biting |
+| `useRip`, `ripMinCP`, `ripMinRemaining` | **on**, **5**, **10 s** | Rip policy |
+| `ripOnlyIfNoOtherBleed` | **on** | With a raid bleed (Deep Wounds) on the target, Bite beats Rip (§9, example 12), so Rip is used only to enable Rend and Tear |
+| `targetBleedingFromOthers` | **on** for raid presets, off for "solo / no warriors" | Encounter flag feeding Rend and Tear and the Rip condition. Default is [?]: it assumes warriors keep Deep Wounds up |
+| `useRake` | **off** | Low damage per Energy ([C] [wh-rot]); try it only when nothing else bleeds |
+| `useTigersFury`, `tfMaxEnergy` | **on**, **100 − (20 × King of the Jungle rank) − (20 if Wolfshead)** (= 40 with the default build) | Use TF without capping Energy |
+| `useBerserk` | **on** | On cooldown |
+| `maintainFaerieFire`, `ffRefreshAt` | **on**, **12 s** ([C] [wh-rot] refresh window) | Off if another druid owns FF |
+| `powershift` | **off** | Forever gains nothing (§2.8). If on: shift when Energy + next tick < next cost, using the Forever Furor rule |
+| `useCower` | **off** | Threat utility |
+| `useMCP` (item on-use) | **on** if equipped | Use on cooldown |
+
+### 6.3 Forever bear priority (TPS)
+
+This is derived for Forever [?]. Mangle and Lacerate have no Classic analogue, and their threat
+multipliers are unknown (Q15).
+
+**Off-GCD:**
+
+1. **Berserk** if ready and `useBerserk` (single target: Mangle without a cooldown for 15 s; with
+   2+ targets it also cleaves).
+2. **Enrage** if `enragePrepull` at −1.5 s, or `enrageInCombat` and Rage < `enrageBelowRage`.
+3. **Maul** queued on the next swing when Rage ≥ `maulMinRage` (default: Maul cost + Mangle cost
+   when Mangle comes off cooldown within the swing, otherwise Maul cost). Classic practice is to
+   Maul every swing ([?], §6.1, Q31).
+
+**On the GCD:**
+
+4. **Demoralizing Roar** if `maintainDemoRoar` and the debuff is missing or < 3 s.
+5. **Mangle** if ready.
+6. **Lacerate** if `useLacerate` and (stacks < 5 or remaining < `lacerateRefreshAt`).
+7. **Swipe** if targets ≥ `swipeMinTargets`, or Rage ≥ `swipeSpareRage` (the Classic "spare rage"
+   rule).
+8. **Faerie Fire** if off cooldown (free threat and debuff upkeep) and `useFaerieFire`.
+
+| Setting | Default | Notes |
+| --- | --- | --- |
+| `useMaul`, `maulMinRage` | **on**, **auto** (above) | |
+| `useMangle` | **on** | Needs the talent |
+| `useLacerate`, `lacerateRefreshAt` | **on**, **3 s** | |
+| `swipeMinTargets`, `swipeSpareRage` | **2**, **60** ([?] rule of thumb, see §6.1, Q31) | |
+| `useFaerieFire` | **on** | Free in form, 6 s CD |
+| `maintainDemoRoar` | **off** | Usually a warrior's Demoralizing Shout. Turn on if the bear owns the AP debuff |
+| `useBerserk` | **on** | |
+| `enragePrepull`, `enrageInCombat`, `enrageBelowRage` | **on**, **off**, 20 | In-combat Enrage costs armor ([F] [se-f] tooltip: −27%/−16% base armor); keeping it pre-pull only is [?] practice (Q31) |
+
+---
+
+## 7. Sensible defaults
+
+### 7.1 Talents
+
+| Spec | Default build | Source |
+| --- | --- | --- |
+| **Cat** | **9/37/5 `050022-5520002123032213051-05`**: Genesis 5, Nature's Majesty 2, Nature's Reach 2 / Ferocity 5, HotW 5, Feral Swiftness 2, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Shredding Attacks 3, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, LotP 1, King of the Jungle 3, Rend and Tear 5, Berserk 1 / Furor 5 | Site's `popular` Feral build [F] [fc-tal]; decode verified in [talents.md](../data/talents.md#build-codes-verified) |
+| **Bear** | **8/43/0 `050012-5523032120132210551-`**: Genesis 5, Nature's Majesty 1, Nature's Reach 2 / Ferocity 5, HotW 5, Feral Swiftness 2, Feral Instinct 3, Thick Hide 3, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Mangle 1, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, LotP 1, Natural Reaction 5, Rend and Tear 5, Berserk 1 | [?] **Proposed here**: the site has no bear build. It follows the tier gates and arrows (Mangle ← Savage Fury, Primal Fury ← Sharpened Claws, Rend and Tear ← Predatory Strikes, Berserk ← LotP) |
+
+The 5 Restoration points in the cat build (Furor) have ~0 sim value, because cat never shifts by
+default. The site's players take them anyway. Moving them to Naturalist isn't possible (it needs
+5 points above it), and 4/37/10 (Furor 5 + Naturalist 5) loses Nature's Majesty and Nature's
+Reach. The sim should keep the popular build as the default.
+
+### 7.2 Race
+
+| Faction | Default | Why | Tag |
+| --- | --- | --- | --- |
+| Horde | **Tauren** | Endurance: +5% health **and +1% melee and spell hit** in Forever; higher Strength | [F] [fc-race] [se-f] (20550) |
+| Alliance | **Night Elf** | Elune's Light: **+10% crit for 15 s, 3 min cooldown** (model as an on-use, used with Berserk); +1% dodge | [F] [fc-race] [se-f] (1259799) |
+| Either | Skyborne (+1% haste): not default | Needs a paid pack; +1% haste is weaker than the above | [F] [fc-race] |
+
+The sim default is **Tauren**. Racial base stats come from
+[character-stats.md](../mechanics/character-stats.md).
+
+### 7.3 Weapon
+
+**Manual Crowd Pummeler** (item 9449: +16 Str, +5 Agi, on-use +50% attack speed for 30 s) exists
+unchanged in Forever (now Unique) [F] [fc-mcp]. That it is *the* feral weapon comes only from a
+secondary source: it is the main hand in every wowsims/classic feral preset from P2 pre-BiS to P3
+BiS [?] [ws-presets] (Q28).
+
+It is required level 29, so it falls **outside** the guild's "Rare, required level 55–60"
+pre-raid pool ([decisions.md D5](../decisions.md)). Recommendation:
+
+- Offer MCP as an explicit exception in the gear picker, for cat and bear, pending Q28. The
+  on-use needs modelling: +50% attack speed for 30 s. wowsims/classic gives it a 30 s cooldown and
+  no charge limit, but its APL stops using it after 90 s, which fits the commonly cited 3 charges
+  [?] (secondary [ws-apl]). The charge count is [?] in both clients (Q24).
+- Otherwise the default is the best Rare 55–60 two-hander by Str/Agi/feral AP, chosen by the
+  items doc owner. Weapon DPS is irrelevant.
+
+### 7.4 Rotation settings
+
+As in the default column of §6.2 (cat) and §6.3 (bear).
+
+### 7.5 Consumables tier ("standard raid night", no world buffs)
+
+The consumable definitions and their Forever availability are owned by
+[buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md). Recommended tiers for
+ferals:
+
+| Tier | Cat | Bear (TPS) |
+| --- | --- | --- |
+| None | nothing | nothing |
+| **Standard (default)** | Elixir of the Mongoose, Elixir of Giants, Winterfall Firewater, Grilled Squid (Agi food) | Same offensive set |
+| Full | Standard + Juju Power (instead of Giants), Juju Might (instead of Firewater), Ground Scorpok Assay, Goblin Sapper Charge (engineers) | Same |
+
+- **No mana consumables and no Flask of Distilled Wisdom by default.** Classic ferals needed
+  them only to powershift [C] [wh-rot] (secondary: [ws-presets]).
+- No world buffs: Songflower, Zandalar, Rallying Cry, Warchief's Blessing, DM tribute and DMF are
+  excluded ([doctrine §1](../doctrine.md#1-what-were-building)).
+- Weapon stones and oils are left to the buffs doc: whether they apply in form is Q25.
+
+---
+
+## 8. Implementation notes
+
+- **Reading DB2 values** (for manual wago.tools lookups in a browser; never script it, see the
+  note at the top). Classic 1.15 rows use `EffectBasePoints + EffectDieSides` (a die of 1
+  adds 1: Shred's 79 + 1 = 80). Forever 1.60 rows use `EffectBasePointsF` directly, with a
+  symmetric `Variance` for ranges: FB 82 ± 82×0.7317/2 = 52–112. `EffectRealPointsPerLevel`
+  scales from `SpellLevels.BaseLevel` to `min(level, MaxLevel)`. Per-rank talent values come from
+  `TraitDefinitionEffectPoints` → `CurvePoint`, not the talent spell's base points (e.g. King of
+  the Jungle's spell row says 60, and the curve says 20/40/60).
+- **Form swap.** When in cat or bear, replace the main-hand weapon with the form weapon (§2.1).
+  Keep the item's stats and procs, and use the form speed for PPM.
+- **Events for the cat APL:** GCD end, Energy tick, Clearcasting gained, a cooldown ready (Tiger's
+  Fury, Berserk, Faerie Fire), a bleed or debuff expiring, and fight-time thresholds.
+  Reaction/latency modelling follows [damage-and-timing.md](../mechanics/damage-and-timing.md).
+- **Faerie Fire ownership.** If `maintainFaerieFire` is on, the FF armor debuff comes from the
+  druid's casts (uptime modelled). Otherwise it comes from the raid-debuff toggle. Never both.
+- **Bleed state per target:** own Rip, Rake and Lacerate stacks, plus the encounter flag
+  `targetBleedingFromOthers`. Rend and Tear and the Rip condition read the union.
+- **Maul** is a queued next-swing replacement. Rage is checked and spent when the swing lands, and
+  if Rage is short the swing stays white. Swing and rage interplay is in
+  [rage.md](../mechanics/rage.md).
+- **Skipped effects (< 0.5% or out of scope):** Ravage/Pounce openers, Feral Charge,
+  Bash/Growl/Frenzied Regeneration, Cower, movement, stealth, and Thick Hide armor (unless rage
+  from damage taken is modelled).
+- **Uncertainty surfacing:** the UI should flag, when they're active, the [?] assumptions that
+  move DPS most:
+  - flat-before-% on Shred/Claw (Q1)
+  - Rip/FB AP scaling (Q3)
+  - OoC rate (Q4)
+  - form base damage (Q5)
+  - Energy tick refinement (Q6), Energy cap and refunds (Q29)
+  - Rend and Tear scope (Q9)
+  - Predatory Instincts value (Q10)
+  - bleed snapshotting (Q21)
+  - form haste, PPM speed and feral AP on items (Q28)
+
+---
+
+## 9. Worked examples
+
+Common setup: level 60, target level 63, no multipliers unless stated, averages of uniform rolls,
+no rounding (the engine rounds per [damage-and-timing.md](../mechanics/damage-and-timing.md)).
+Each example states which tags it depends on. **Every example that uses the form weapon `W` or
+`W_b` (2–4, 12–15) inherits the [?] form base damage (43.84–65.76 cat, 109.6–164.4 bear; Q5).**
+If Q5 changes those numbers, recompute the examples; the formulas stay.
+
+1. **Cat AP.** Str 200 (after HotW), Agi 300, +310 AP from gear and buffs, Predatory Strikes 3/3:
+   `2×200 − 20 + 300 + 120 + 90 + 310 = 1200`. [F] form terms; [?] `2×Str − 20` (character-stats.md)
+2. **Cat white swing at 1200 AP.** 43.84 + 85.714 = **129.554** to 65.76 + 85.714 = **151.474**;
+   average **140.514**; a crit is **281.029** (2.0×, no Predatory Instincts on white). [?] (form
+   base damage, Q5)
+3. **Shred at 1200 AP, no talents.** `1.55 × (W + 80)`: min **324.809**, max **358.785**, average
+   **341.797**. With Savage Fury 2/2, average **375.977**; a crit with Predatory Instincts 2/2 is
+   375.977 × 2.2 = **827.149**. Comparisons:
+   - Classic Shred at the same AP: 2.25 × 220.514 = **496.157**.
+   - The flat-after-% alternative (Q1): 1.55 × 140.514 + 80 = **297.797**.
+4. **Claw at 1200 AP.** `1.10 × (140.514 + 115)` = **281.066** (min 269.010, max 293.122); with
+   Savage Fury 2/2, **309.172**. Classic Claw: 255.514.
+5. **Rake with Savage Fury 2/2 and Genesis 5/5.** Initial 61 × 1.10 = **67.10**; bleed tick 34 ×
+   1.10 × 1.05 = **39.27**; bleed total **117.81**.
+6. **Rip at 1200 AP (Forever base [F], AP term [?]).**
+
+   | CP | Per tick | Total | With Genesis 5/5 | Classic total (comparison) |
+   | --- | --- | --- | --- | --- |
+   | 1 | 52.5 | 315 | 330.75 | 342 |
+   | 3 | 127.5 | 765 | 803.25 | 822 |
+   | 5 | 190.5 | **1143** | **1200.15** | 1230 |
+
+   Applied under Tiger's Fury (snapshot), 5 CP with Genesis gives **1380.17**.
+7. **Ferocious Bite at 1200 AP.**
+   - 5 CP with exactly 35 Energy: **967 to 1027**, average **997** (= 52–112 + 735 + 180).
+   - 5 CP with 60 Energy (25 extra): **1034.5 to 1094.5**.
+   - 4 CP with 35 Energy: average **814**.
+8. **Tiger's Fury Energy.** King of the Jungle 3/3 with Wolfshead Helm, pressed at 30 Energy:
+   30 + 60 + 20 = 110, capped at **100** (10 wasted). `tfMaxEnergy` for this setup is 100 − 80 =
+   **20**; without Wolfshead it is **40**.
+9. **Forever Furor re-entry.** Left cat at 37 Energy, 1.5 s in caster form:
+   - Furor 5/5: min(100, 37 + 15) = **52**.
+   - Furor 2/5: min(40, 0.4 × 37 + 4 × 1.5) = **20.8** (rounding [?]).
+   - No Furor: **0**.
+10. **Omen of Clarity chance per landed hit.** Cat 2 × 1.0 / 60 = **3.33%**; bear 2 × 2.5 / 60 =
+    **8.33%**. No proc within 10 s of the last one. [?] PPM, [F] ICD.
+11. **Energy per 30 s** (TF on cooldown, King of the Jungle 3/3, no Wolfshead, before
+    Clearcasting): 300 regenerated + 60 = **360** (380 with Wolfshead). That is ≈ **8.6 Shreds**
+    at 42 Energy.
+12. **Rip vs Bite per 5-CP finisher** (1200 AP, 35% crit, Predatory Instincts 2/2, target already
+    bleeding from Deep Wounds so Rend and Tear applies to Bite, 6% armor mitigation, both landed):
+    - Bite: 997 × (1 + 0.35 × 1.2) × 1.10 × 0.94 = **1463.88**.
+    - Rip: **1200.15** (Genesis; no crit, no armor, no Rend and Tear under the default scope).
+    - Bite wins by ~22%, which is why `ripOnlyIfNoOtherBleed` defaults on. [?] (depends on Q3, Q9,
+      Q10)
+13. **Dire bear white swing at 1200 AP.** 109.6 + 214.286 = **323.886** to 164.4 + 214.286 =
+    **378.686**; average **351.286**.
+14. **Maul at 1200 AP.** (351.286 + 128) × 1.10 = **527.214**. Threat × 1.75 × 1.3 =
+    **1199.41**. [F] damage, [C] threat
+15. **Mangle at 1200 AP.** 351.286 + 77 = **428.286** (no Savage Fury). Threat with an assumed
+    ×1.0 ability multiplier: × 1.3 = **556.77**. [?] threat
+16. **Swipe.** 83 × 1.10 × 1.30 = **118.69** per target; threat × 1.75 × 1.3 = **270.02** per
+    target.
+17. **Bear AP.** Str 250, +150 AP from gear and buffs, Predatory Strikes 3/3:
+    `2 × 250 − 20 + 180 + 90 + 150` = **900**.
+18. **Demoralizing Roar r5 at 60.** Forever −(193 + 1.4 × 8) = **−204.2 AP**; Classic −(130 + 8) =
+    −138.
+19. **Lacerate at 5 stacks** (bleed only): 15 × 5 = **75 per 3 s** (25 DPS); with Genesis 5/5,
+    **78.75** per tick. [F] bleed, [?] stack model
+
+---
+
+## 10. Open questions
+
+Each question lists what's known and how the guild can check it on the Forever beta. The beta
+opened on 2026-09-17 and ends on 2026-10-21 ([fc-beta]); some tests work at low level with low
+ranks.
+
+| # | Question | What we have | How to verify in game |
+| --- | --- | --- | --- |
+| Q1 | Is the flat bonus of Shred and Claw added **before** the weapon % (`1.55×(W+80)`) or after (`1.55×W + 80`)? | Classic: before [C] [fc-book] [se-c] (tooltip arithmetic, §3.1; secondary [ws-shred]). Forever tooltips say "X% normal damage plus Y" and Shred's "plus 180" is stale | At ~22+, Shred rank 1 (155% + 24) from behind on a dummy. Record the character-sheet cat damage range, then 30+ non-crit Shreds: before-% gives `1.55×min + 37.2 … 1.55×max + 37.2`, after gives `… + 24` |
+| Q2 | Shred tooltip "plus 180" at rank 5 | Hard-coded string in the Forever description [F] [spell-f] | Resolved by Q1 |
+| Q3 | Rip and Ferocious Bite AP scaling in Forever | Not in DB2 (server-side). Rip 1% AP per CP per tick (max 4) and Bite 3% AP per CP come only from a secondary source [?] [ws-rip] [ws-fb]. Forever Rip gained a dummy effect (index 1) | Two sets of 5-CP Rips/Bites at two AP levels (e.g. ±200 AP from gear/buffs); fit the slope |
+| Q4 | Omen of Clarity rate and ICD in Forever | ICD 10 s in the client [F]; 2 PPM only from a secondary source [?] [ws-talents] | Count Clearcasting procs over ≥ 30 min of cat auto-attack + Shred on a dummy; check the minimum gap between procs |
+| Q5 | Form base damage (cat 43.84–65.76, bear 109.6–164.4 at 60) | Secondary source only [?] [ws-forms]; the ±20% shape matches `DamageVariance` 0.4 [F]/[C] | At level 60 (or the highest available level), note the character-sheet damage in cat form and subtract AP/14 |
+| Q6 | Energy tick (2.0 vs 2.02 s; 20 vs 20.2) and whether haste speeds Energy | 20 per 2 s [C] [wh-rot]; 2.02 s / 20.2 only from a secondary source [?] [ws-energy] | Log Energy over time with an addon; with and without MCP/haste |
+| Q7 | King of the Jungle hidden value (5/10/15 per rank, dummy effect 1); does TF persist out of cat? | [F] curve only | Compare TF damage bonus and duration with 0 vs 3 points |
+| Q8 | Berserk: do crits it forces trigger Primal Fury? | Expected yes [?] | Shred under Berserk and count CP |
+| Q9 | Rend and Tear scope: which bleeds count (others' Deep Wounds?), and does it affect white hits and periodic ticks? | Tooltip only | Shred damage on a dummy with and without a warrior's Rend on it; white-hit averages; Rip ticks |
+| Q10 | Predatory Instincts: crit = 2.2×? | `SPELLMOD_CRIT_DAMAGE_BONUS` +20% [F] | Ratio of crit to non-crit Shred on a dummy |
+| Q11 | Genesis applies to Rip, Rake, Lacerate | Class masks match [F] | Rip ticks with 0 vs 5 Genesis |
+| Q12 | Savage Fury on Rake's bleed (10%) | Mask on the periodic mod [F] | Rake ticks with 0 vs 2 points |
+| Q13 | Furor re-entry formula and rounding; Energy on entering cat without Furor | Tooltip [F]; 0 without Furor [C] [wh-rot] (inferred) | Shift at known Energy, time the caster phase |
+| Q14 | Wolfshead +20 on Tiger's Fury stacks with King of the Jungle | Tooltip [F] | Press TF at 0 Energy with the helm |
+| Q15 | Threat: Maul/Swipe still ×1.75? Mangle, Lacerate ("high threat"), FF, Demo Roar values in Forever | [C] only for Maul, Swipe, FF, Demo Roar | Threat-meter addon (ThreatClassic2-style) or `UnitDetailedThreatSituation` with a two-player test |
+| Q16 | Lacerate: per-stack bleed and the "10% weapon damage per existing application" hit | Tooltip [F]; the SoD precedent is forbidden | Apply 1→5 stacks on a dummy; log hits and ticks |
+| Q17 | Ranks available from the trainer: Mangle ranks 2–4, Ferocious Bite rank 5 (Classic: an AQ book) | [F] spellbook lists ranks | Trainer window at 36/48/56/60 |
+| Q18 | Combo points on the player or on the target | Forever uses modern CP costs [F] | Build CP, swap target, check |
+| Q19 | Bear armor: does the new aura 466 (+360% "bonus armor") also scale non-item armor? Is passive 1306459 live? | [F] data only | Character-sheet armor in and out of Dire Bear with an armor buff |
+| Q20 | Ferocious Bite under Clearcasting: all Energy converted? | Secondary only [?] [ws-fb]; that Bite empties the bar normally is [C] [wh-rot] | Bite with a proc at high Energy |
+| Q21 | Do bleeds snapshot TF, AP and multipliers (Classic and Forever)? | Secondary only [?] [ws-rip] | Rip under TF, compare ticks after TF ends |
+| Q22 | Nature's Reach +4% applies to melee | Aura 54 [F] | Miss rate on a level-63 dummy with 0 vs 2 points (large sample) |
+| Q23 | HotW Str ×1.10 before or after Blessing of Kings | [?] | Character-sheet Str in cat with and without Kings |
+| Q24 | MCP charges and cooldown in Forever | foreverchanges' tooltip lists no charges [F] [fc-mcp]; wowsims/classic's APL uses it only in the first 90 s (≈ 3 charges) [?] [ws-apl] | Item tooltip in game; use it 4 times |
+| Q25 | Crusader, weapon stones and oils in form | Buffs doc | Combat log in cat form |
+| Q26 | Rip vs Bite as default finisher | Example 12 [?] | Sim both after Q3/Q9/Q10 |
+| Q27 | **Confirm the wago.tools DB2 readings manually** (they were scripted before the robots.txt ruling) | Values cited to `se-f`, `se-c`, `sp-f`, `scd-f`, `scd-c`, `sao-f`, `sao-c`, `ssf-f`, `ssf-c`, `ss-f`, `sl-f`, `sm-f`, `spell-f`, `trait-f`, `sdv-c` | **Verify on wago.tools manually** in a browser (build selector 1.60.1.69913 or 1.15.9.69722, filter by `SpellID`). Priority rows: Rip 9896 (15 / 25.5 per CP; Classic 16+1 / 28 and `SpellDescriptionVariables` 865 `$ticks=6`, `$mult=1.0`); Shred 9830 and Claw 9850 (80/155%, 115/110%); Rake 9904 (61/34); Ferocious Bite 31018 (82, variance 0.7317, 147, dummy 270); Mangle 407995/1238069/1238070/1238073 (26/38/59/77, 20 Rage, 6 s CD, shapeshift mask 144); Lacerate 1235827 (15 per 3 s, 5 stacks); Cat Form (Passive) 3025 (12 + 2/level from level 6; −29% threat; Faerie Fire cost −100%, CD +6000, GCD −500; aura 598 with 100 on Agility); Dire Bear passive 9635 and Bear Form Passive2 21178 (+30% threat); Tiger's Fury 5217 (15%, 30000 ms, no GCD); King of the Jungle curve 20/40/60 and hidden 5/10/15; Berserk 417141 (masks, 180000 ms); Omen of Clarity 16864 `ProcCategoryRecovery` 10000; Demoralizing Roar 9898 (−193, −1.4/level); Cower 9892 (−1200); Genesis, Savage Fury, Predatory Instincts, Nature's Reach (auras 54/55), Nature's Majesty, Naturalist (aura 79) values and class masks; `SpellShapeshiftForm` 1/5/8 (1000/2500 ms, variance 0.4); `StartRecoveryTime` 1000 on the cat abilities; Tauren Endurance 20550 (+1% hit); Elune's Light 1259799 (10%, 180000 ms) |
+| Q28 | Form attacks and items (secondary source only): does haste (MCP, Wind Blessed, T1 2-piece) speed form swings; do PPM procs use the form speed (1.0 / 2.5); is "+X Attack Power in Cat, Bear, and Dire Bear forms" added 1:1; is there no normalization; is MCP the right default weapon? | [?] (secondary [ws-forms] [ws-talents] [ws-presets] [ws-apl] [ws-shred]) | Swing timer with MCP active (addon or combat log); Crusader proc count in cat vs caster; character-sheet AP with and without a feral-AP item |
+| Q29 | Energy cap 100; builders refund 80% on miss/dodge/parry; finishers refund nothing and keep combo points | [?] (standard values; secondary [ws-energy] [ws-shred] [ws-rip] [ws-fb]) | Energy bar maximum; log Energy before and after a dodged Shred and a dodged Bite, and CP after a missed finisher |
+| Q30 | Druid stat conversions used here: 2 AP per Str − 20, 20 Agi per 1% crit, 0.9% base melee crit, spirit regen 15 + Spirit/5 per 2 s | [?] (secondary [ws-base] [ws-mana]) | Owned by [character-stats.md](../mechanics/character-stats.md): take its sourced values; check character-sheet AP and crit at two Str/Agi levels |
+| Q31 | Bear rotation thresholds: Maul every swing, Swipe with ≥ 60 spare Rage, Enrage pre-pull only | [?] (the only Classic write-up is Season of Mastery-labelled, not usable) | Sim sensitivity plus guild tank feedback; threat-meter test once Q15 is answered |
+
+---
+
+## Appendix: Balance in Forever
+
+Out of scope for now, listed so the guild can judge whether to add it. All [F] [fc-class]
+[fc-tal] [se-f].
+
+- **Spells are much weaker at base** (level 60 max ranks): Wrath r8 58–64 (Classic 236–264,
+  coefficient unchanged at 0.571), Starfire r7 350–412 (496–584), Moonfire r10 124–146 + 240 over
+  12 s (189–221 + 384), Insect Swarm r5 186 over 12 s (324). Hurricane has no cooldown and 132
+  per second. Wrath costs 120 mana (180).
+- **New talents:**
+  - Genesis: +5% periodic.
+  - Nature's Majesty: +4% crit.
+  - Nature's Splendor: longer Moonfire, Rejuvenation, Regrowth and Insect Swarm.
+  - Eclipse: Wrath shortens the next 2 Starfires by 0.17/0.33/0.5 s, storing up to 4 charges for
+    15 s.
+- **Reworked talents:**
+  - Improved Wrath also takes −50% mana.
+  - Moonglow: −25% mana on damaging spells.
+  - Improved Moonfire: +10% damage and crit.
+  - Nature's Reach: +4% hit.
+  - Vengeance: now all Arcane and Nature crits.
+  - Moonfury: all Arcane and Nature damage +10%.
+  - Nature's Grace: +10% cast speed and GCD reduction for 3 s after a non-periodic crit.
+  - Insect Swarm moved into Balance.
+- **Moonkin Form:** 3% crit (all crit) to the party, exclusive with LotP; +100% Omen of Clarity
+  chance; can cast any non-healing spell.
+- **Restoration talents a caster might take:** Naturalist (+5% all damage) and Reflection (17/33/50%).
+- The popular Balance build is 41/5/0 `5532220115501351-05-` [fc-tal].
+
+---
+
+## Sources
+
+wago.tools rows (`se-f` … `sdv-c`) were read from CSV exports on 2026-09-22. wago.tools'
+`robots.txt` disallows automated access, so **confirm them manually in a browser** (Q27), and
+never fetch them by script. foreverchanges.pro reads the same client tables and may be fetched
+politely (it disallows only `/api/`, `/spell/`, `/search`, `/admin`).
+
+**Secondary sources: `ws-*` rows (wowsims/classic) and `wsf-*` rows (wowsims/forever).**
+
+- **wowsims/classic** describes itself on GitHub as "World of Warcraft Classic Season of Discovery
+  simulations". Its `sim/druid` folder has no rune files, but the repo still contains SoD rune
+  code elsewhere (code search finds SavageRoar, Lacerate and WildStrikes). Treat it as a
+  secondary source, not a clean Classic Era one: any value supported **only** by wowsims/classic
+  is tagged [?] and listed under Open questions (Q3–Q6, Q20, Q21, Q24, Q28–Q30). Where this doc
+  keeps [C], it cites a Classic Era source ([wh-rot], [fc-book], the Classic client tables) and
+  wowsims/classic only as corroboration.
+- **wowsims/forever** (<https://github.com/wowsims/forever>, "World of Warcraft Forever
+  simulations", created 2026-09-19, active). At the time of writing its druid code is a TBC port
+  with "To be implemented" stubs. It may be cited as [?] corroboration of Forever facts it reads
+  from the Forever client (e.g. Mangle's shapeshift mask, Shred's 155%). **Its TBC-derived values
+  (TBC Rip, Mangle, Lacerate, Omen of Clarity, Predatory Instincts code kept "for the port") are
+  never adopted.**
+
+| Label | URL | Covers | Ruleset |
+| --- | --- | --- | --- |
+| fc-class | <https://foreverchanges.pro/class/druid> | Every druid talent and spell change with Forever/Classic texts | Forever vs Classic Era |
+| fc-book | <https://foreverchanges.pro/spellbook/druid> | Per-rank Forever and Classic tooltips, costs, levels (RSC payload) | Forever vs Classic Era |
+| fc-tal | <https://foreverchanges.pro/talents/druid> | Per-rank talent texts, tree layout, `popular` builds | Forever (TraitNode) vs Classic Era |
+| fc-race | <https://foreverchanges.pro/racials> | Forever racials (Tauren Endurance hit, Elune's Light, Skyborne) | Forever |
+| fc-mcp | <https://foreverchanges.pro/item/9449> | Manual Crowd Pummeler in Forever | Forever |
+| fc-wolf | <https://foreverchanges.pro/item/8345> | Wolfshead Helm, Forever vs Classic tooltip | Forever vs Classic Era |
+| fc-bis | <https://foreverchanges.pro/bis/druid> | "Weapon damage does nothing in form" note (level-20 BiS) | Forever |
+| fc-beta | <https://foreverchanges.pro/beta> | Beta dates and builds | Forever |
+| se-f | <https://wago.tools/db2/SpellEffect?build=1.60.1.69913> | Effect values, auras, class masks for every spell cited | Forever client |
+| se-c | <https://wago.tools/db2/SpellEffect?build=1.15.9.69722> | Same for Classic | Classic Era client |
+| sp-f | <https://wago.tools/db2/SpellPower?build=1.60.1.69913> | Costs (Energy/Rage/mana %, CP cost rows) | Forever client |
+| scd-f / scd-c | <https://wago.tools/db2/SpellCooldowns?build=1.60.1.69913> / <https://wago.tools/db2/SpellCooldowns?build=1.15.9.69722> | GCDs (`StartRecoveryTime`), cooldowns | Forever / Classic Era |
+| sao-f / sao-c | <https://wago.tools/db2/SpellAuraOptions?build=1.60.1.69913> / <https://wago.tools/db2/SpellAuraOptions?build=1.15.9.69722> | Omen of Clarity proc mask and 10 s `ProcCategoryRecovery` | Forever / Classic Era |
+| ssf-f / ssf-c | <https://wago.tools/db2/SpellShapeshiftForm?build=1.60.1.69913> / <https://wago.tools/db2/SpellShapeshiftForm?build=1.15.9.69722> | Form swing times (1000/2500 ms), `DamageVariance` 0.4 | Forever / Classic Era |
+| ss-f | <https://wago.tools/db2/SpellShapeshift?build=1.60.1.69913> | Form requirements (Mangle bear-only, FF castable in forms) | Forever client |
+| sl-f | <https://wago.tools/db2/SpellLevels?build=1.60.1.69913> | Base/max levels for per-level scaling | Forever client |
+| sm-f | <https://wago.tools/db2/SpellMisc?build=1.60.1.69913> | Durations, passive flags | Forever client |
+| spell-f | <https://wago.tools/db2/Spell?build=1.60.1.69913> | Raw tooltip templates (e.g. hard-coded "plus 180") | Forever client |
+| trait-f | <https://wago.tools/db2/TraitDefinitionEffectPoints?build=1.60.1.69913> (with TraitNode, TraitNodeEntry, TraitDefinition, CurvePoint) | Per-rank talent values | Forever client |
+| sdv-c | <https://wago.tools/db2/SpellDescriptionVariables?build=1.15.9.69722> | Classic Rip `$ticks=6`, `$mult=1.0` | Classic Era client |
+| ws-forms | <https://github.com/wowsims/classic/blob/master/sim/druid/forms.go> | Cat form weapon 43.84–65.76 at 1.0 s, 2×level AP, Agi→AP, 0.71 threat, powershift energy | Secondary [?] (see note above) |
+| ws-rip | <https://github.com/wowsims/classic/blob/master/sim/druid/rip.go> | Rip ticks and AP scaling, snapshot | Secondary [?] (see note above) |
+| ws-fb | <https://github.com/wowsims/classic/blob/master/sim/druid/ferocious_bite.go> | Bite formula, 3%/CP AP, all-Energy conversion | Secondary [?] (see note above) |
+| ws-shred | <https://github.com/wowsims/classic/blob/master/sim/druid/shred.go> | `(W + flat) × %` ordering, 1 s GCD, 80% refund | Secondary [?] (see note above) |
+| ws-rake | <https://github.com/wowsims/classic/blob/master/sim/druid/rake.go> | Rake without AP scaling | Secondary [?] (see note above) |
+| ws-tf | <https://github.com/wowsims/classic/blob/master/sim/druid/tigers_fury.go> | Classic Tiger's Fury | Secondary [?] (see note above) |
+| ws-talents | <https://github.com/wowsims/classic/blob/master/sim/druid/talents.go> | OoC 2 PPM + 10 s ICD, 15 s Clearcasting | Secondary [?] (see note above) |
+| ws-energy | <https://github.com/wowsims/classic/blob/master/sim/core/energy.go> | Energy 20.2 per 2020 ms, cap, random first tick | Secondary [?] (see note above) |
+| ws-mana | <https://github.com/wowsims/classic/blob/master/sim/core/mana.go> | Spirit regen 15 + Spi/5 per 2 s | Secondary [?] (see note above) |
+| ws-base | <https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go> | Druid AP per Str, −20, crit per Agi | Secondary [?] (see note above) |
+| ws-rot | <https://github.com/wowsims/classic/blob/master/sim/druid/feral/rotation.go> | Era powershift rotation logic | Secondary [?] (see note above) |
+| ws-presets | <https://github.com/wowsims/classic/blob/master/ui/feral_druid/presets.ts> | Era default talents, consumables, MCP in gear sets | Secondary [?] (see note above) |
+| ws-apl | <https://github.com/wowsims/classic/blob/master/ui/feral_druid/apls/feral.apl.json> | Era cat APL (Shred/Bite/powershift, no Rip) | Secondary [?] (see note above) |
+| ltc2 | <https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Druid.lua> | Bear ×1.3 (+3%/rank Feral Instinct), cat ×0.71, Maul/Swipe ×1.75, FF 108, Demo Roar 39, Cower 600 | Classic (1.13, 2019–20 addon library) |
+| wsf-repo | <https://github.com/wowsims/forever> | Forever sim in progress (druid mostly TBC-port stubs) | Secondary [?] for Forever facts only; TBC values never adopted |
+| wsf-mangle | <https://github.com/wowsims/forever/blob/master/sim/druid/mangle.go> | Comment: Forever ships one Mangle (407995, 1238069/70/73), shapeshift mask 144 = Bear/Dire Bear | Secondary [?] corroboration of [F] client data |
+| wsf-shred | <https://github.com/wowsims/forever/blob/master/sim/druid/shred.go> | Comment: every Forever Shred rank has `WEAPON_PERCENT_DAMAGE` 155 | Secondary [?] corroboration of [F] client data |
+| wh-rot | <https://www.wowhead.com/classic/guide/classes/druid/feral/dps-rotation-cooldowns-abilities-pve> | Era cat decision tree (63/48/35 Energy, 4 CP Bite), no Rip/Rake, MCP, mana consumables | Classic Era (NerdEgghead, patch 1.15.8). The site also hosts SoD guides; only this Era page is used |
+| wiki-ooc | <https://warcraft.wiki.gg/wiki/Omen_of_Clarity> | Classic Clearcasting 15 s (Classic section only; retail/pre-1.12 history not used) | Classic Era section |
+| wiki-forever | <https://warcraft.wiki.gg/wiki/Druid_abilities_(Forever)> | Forever trainer levels, "Mangle (Bear)" naming | Forever |
+
+Not used (forbidden ruleset, recorded only as leads): wowhead's Classic *tank* rotation page is
+labelled Season of Mastery; the vanilla-wiki "6% Omen of Clarity, no ICD" claim describes pre-1.12
+behaviour; SoD Lacerate/Mangle/Berserk/King of the Jungle data sits in the same 1.15.9 client under
+the same spell ids and was ignored except where Forever reuses the id with Forever values.
+
+<!-- Reference-link definitions: the short labels used throughout the doc render as links. -->
+[fc-class]: https://foreverchanges.pro/class/druid
+[fc-book]: https://foreverchanges.pro/spellbook/druid
+[fc-tal]: https://foreverchanges.pro/talents/druid
+[fc-race]: https://foreverchanges.pro/racials
+[fc-mcp]: https://foreverchanges.pro/item/9449
+[fc-wolf]: https://foreverchanges.pro/item/8345
+[fc-bis]: https://foreverchanges.pro/bis/druid
+[fc-beta]: https://foreverchanges.pro/beta
+[se-f]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913
+[se-c]: https://wago.tools/db2/SpellEffect?build=1.15.9.69722
+[sp-f]: https://wago.tools/db2/SpellPower?build=1.60.1.69913
+[scd-f]: https://wago.tools/db2/SpellCooldowns?build=1.60.1.69913
+[scd-c]: https://wago.tools/db2/SpellCooldowns?build=1.15.9.69722
+[sao-f]: https://wago.tools/db2/SpellAuraOptions?build=1.60.1.69913
+[sao-c]: https://wago.tools/db2/SpellAuraOptions?build=1.15.9.69722
+[ssf-f]: https://wago.tools/db2/SpellShapeshiftForm?build=1.60.1.69913
+[ssf-c]: https://wago.tools/db2/SpellShapeshiftForm?build=1.15.9.69722
+[ss-f]: https://wago.tools/db2/SpellShapeshift?build=1.60.1.69913
+[sl-f]: https://wago.tools/db2/SpellLevels?build=1.60.1.69913
+[sm-f]: https://wago.tools/db2/SpellMisc?build=1.60.1.69913
+[spell-f]: https://wago.tools/db2/Spell?build=1.60.1.69913
+[trait-f]: https://wago.tools/db2/TraitDefinitionEffectPoints?build=1.60.1.69913
+[sdv-c]: https://wago.tools/db2/SpellDescriptionVariables?build=1.15.9.69722
+[ws-forms]: https://github.com/wowsims/classic/blob/master/sim/druid/forms.go
+[ws-rip]: https://github.com/wowsims/classic/blob/master/sim/druid/rip.go
+[ws-fb]: https://github.com/wowsims/classic/blob/master/sim/druid/ferocious_bite.go
+[ws-shred]: https://github.com/wowsims/classic/blob/master/sim/druid/shred.go
+[ws-rake]: https://github.com/wowsims/classic/blob/master/sim/druid/rake.go
+[ws-tf]: https://github.com/wowsims/classic/blob/master/sim/druid/tigers_fury.go
+[ws-talents]: https://github.com/wowsims/classic/blob/master/sim/druid/talents.go
+[ws-energy]: https://github.com/wowsims/classic/blob/master/sim/core/energy.go
+[ws-mana]: https://github.com/wowsims/classic/blob/master/sim/core/mana.go
+[ws-base]: https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go
+[ws-rot]: https://github.com/wowsims/classic/blob/master/sim/druid/feral/rotation.go
+[ws-presets]: https://github.com/wowsims/classic/blob/master/ui/feral_druid/presets.ts
+[ws-apl]: https://github.com/wowsims/classic/blob/master/ui/feral_druid/apls/feral.apl.json
+[ltc2]: https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Druid.lua
+[wh-rot]: https://www.wowhead.com/classic/guide/classes/druid/feral/dps-rotation-cooldowns-abilities-pve
+[wiki-ooc]: https://warcraft.wiki.gg/wiki/Omen_of_Clarity
+[wiki-forever]: https://warcraft.wiki.gg/wiki/Druid_abilities_(Forever)
+[wsf-repo]: https://github.com/wowsims/forever
+[wsf-mangle]: https://github.com/wowsims/forever/blob/master/sim/druid/mangle.go
+[wsf-shred]: https://github.com/wowsims/forever/blob/master/sim/druid/shred.go

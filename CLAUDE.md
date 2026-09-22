@@ -17,7 +17,10 @@ static Vite + React + TypeScript + shadcn/ui app on GitHub Pages with no server.
 npm run dev | build | preview
 npm run lint          # oxlint
 npm run typecheck     # tsc -b
-npm test              # vitest run
+npm test              # vitest run (unit + data-integrity tests in src/)
+npm run test:e2e      # Playwright, headless Chromium, against the production build under /forever_sim/
+npm run snap          # build, open a page headless, print console errors + failed requests, screenshot
+                      #   -- --dark --width 390 --path '#/…' --out .cache/snaps/x.png
 npm run scrape        # re-scrape foreverchanges.pro → src/data (cached; -- --refresh to bypass)
 ```
 
@@ -38,6 +41,12 @@ npm run scrape        # re-scrape foreverchanges.pro → src/data (cached; -- --
   the scraper and re-run it, or add a documented override in the engine.
 - **Engine (`src/sim`) is pure TypeScript.** No React/DOM, no `Math.random()`/`Date.now()`;
   use the seeded RNG so runs are reproducible. Time is integer milliseconds.
+- **Verify UI changes in a real browser before calling them done:** run `npm run test:e2e`,
+  then `npm run snap` (light, desktop) and `npm run snap -- --dark --width 390` (dark, phone),
+  and look at the screenshots in `.cache/snaps/`. Add an e2e test for each new user-facing
+  flow. Import `test` from `e2e/fixtures.ts`, which fails any test that logs a console error,
+  throws, or gets an HTTP error. Navigate with relative paths (`page.goto('./')`) so the
+  base path is kept.
 - **UI** uses shadcn/ui: `npx shadcn@latest add <component>`. Avoid hand-editing
   `src/components/ui/*`. `cn` comes from the `cn` npm package (shadcn's official
   clsx + tailwind-merge replacement), not a typo.

@@ -81,10 +81,17 @@ UI state ──► SimConfig (plain, serializable) ──► Worker(s) ──►
   Vitest case next to the code that implements it.
 - **Data integrity:** schema and count checks over `src/data` (e.g. no unresolved `$`
   references from the RSC payload, expected spell and talent counts).
+- **End to end:** Playwright drives headless Chromium against the production build, served
+  by `vite preview` under `/forever_sim/`, exactly as deployed (`e2e/`, `npm run test:e2e`). A
+  shared fixture fails any test with a console error, an uncaught exception, or an HTTP error.
+  Vite runs with `appType: 'mpa'`, so missing assets 404 as they would on GitHub Pages instead
+  of falling back to `index.html`. For quick visual checks, `npm run snap` screenshots a page
+  (light or dark, any width) and lists problems.
 - **Golden runs:** fixed config + seed → exact result snapshot. Update one only with an
   explanation in the commit.
 
 ## Deployment
 
-1. Push to `main`. The workflow runs lint → test → build, then deploys `dist/`.
+1. Push to `main`. The workflow runs lint → unit tests → e2e tests → build, then deploys
+   `dist/`.
 2. One-time setup: repository **Settings → Pages → Source: GitHub Actions**.

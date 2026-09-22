@@ -46,7 +46,9 @@ npm install
 npm run dev          # local dev server
 npm run build        # type-check + production build to dist/
 npm run lint         # oxlint
-npm test             # vitest
+npm test             # vitest: unit and data-integrity tests
+npm run test:e2e     # Playwright: headless Chromium against the production build
+npm run snap         # screenshot + console/network check (add -- --dark --width 390 for phone/dark)
 ```
 
 ### Data

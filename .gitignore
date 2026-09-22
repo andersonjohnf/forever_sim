@@ -25,3 +25,8 @@ dist-ssr
 
 # One-time scraper cache (raw HTML/JSON from foreverchanges.pro)
 .cache
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/

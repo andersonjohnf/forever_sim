@@ -20,7 +20,7 @@ import type {
 
 export * from './types'
 export { CLASS_COLOR, SPEC_IDS, SPEC_META } from './specs'
-export { defaultConfig, FULL_RAID, TALENT_DATA } from './defaults'
+export { defaultConfig, FULL_RAID, TALENT_DATA, talentPresets, type TalentPreset } from './defaults'
 export { canUse, fitsSlot, isTwoHand, PROFICIENCY } from './equip'
 
 /** Every spec with its engine-declared options. `available` flips when the spec is complete. */

@@ -33,6 +33,32 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'paladin-protection': '2-4530513321301551-502', // docs/classes/paladin.md
 }
 
+export interface TalentPreset {
+  name: string
+  code: string
+}
+
+/** Documented presets beyond the site's popular builds (class docs §Sensible defaults). */
+const EXTRA_TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
+  warrior: [{ name: 'Fury + Precision', code: '30305013-050520035150310051-' }],
+  druid: [{ name: 'Feral (bear)', code: '050012-5523032120132210551-' }],
+  paladin: [],
+}
+
+/** Popular builds for the trees this sim covers, relabelled for display. */
+const POPULAR_TREES: Record<ClassId, Record<string, string>> = {
+  warrior: { Arms: 'Arms', Fury: 'Fury', Protection: 'Protection' },
+  druid: { 'Feral Combat': 'Feral (cat)' },
+  paladin: { Retribution: 'Retribution', Protection: 'Protection' },
+}
+
+export function talentPresets(classId: ClassId): TalentPreset[] {
+  const popular = TALENT_DATA[classId].popularBuilds
+    .filter((b) => b.tree in POPULAR_TREES[classId])
+    .map((b) => ({ name: `Popular ${POPULAR_TREES[classId][b.tree]}`, code: b.code }))
+  return [...popular, ...EXTRA_TALENT_PRESETS[classId]]
+}
+
 /** Default race per class: the doc recommendations (class docs §Sensible defaults). */
 const DEFAULT_RACE: Record<ClassId, string> = {
   warrior: 'alliance-human',
@@ -122,12 +148,28 @@ export function defaultConfig(spec: SpecId): SimConfig {
     // The engine fills `enabled` from the "raid" buff preset when it normalizes the config.
     buffs: { raid: [...FULL_RAID], enabled: [] },
     rotation: {},
+    // docs/mechanics/encounter.md#encounter-settings
     fight: {
       durationSec: 180,
+      durationVariationPct: 10,
+      bossLevel: 63,
       bossArmor: 3731,
-      executePhase: true,
-      targets: 1,
+      executePct: 20,
+      extraTargets: 0,
       position: tank ? 'front' : 'behind',
+      creatureType: 'none',
+      zone: 'hyjal',
+      damageTakenPerSec: 0,
+      boss: {
+        swingSpeedSec: 2,
+        damageMin: 4500,
+        damageMax: 5500,
+        canDodge: true,
+        canParry: true,
+        canBlock: true,
+        parryHaste: true,
+        canCrush: true,
+      },
     },
     rules: { profile: 'forever', unmeasuredRatings: 'apply' },
     run: { iterations: 3000, seed: 1 },

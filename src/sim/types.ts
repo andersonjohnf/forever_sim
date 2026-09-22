@@ -39,17 +39,49 @@ export interface EquippedItem {
 /** docs/mechanics: rules where Forever and Classic Era disagree live in a profile (D12, architecture). */
 export type RuleProfileId = 'forever' | 'classicEra'
 
+export type CreatureType =
+  | 'none'
+  | 'beast'
+  | 'demon'
+  | 'dragonkin'
+  | 'elemental'
+  | 'giant'
+  | 'humanoid'
+  | 'mechanical'
+  | 'undead'
+
+/** Encounter settings (docs/mechanics/encounter.md#encounter-settings owns defaults and ranges). */
 export interface FightConfig {
   /** Fight length in seconds. */
   durationSec: number
-  /** Boss armor before debuffs (docs/mechanics/encounter.md). */
+  /** Each iteration's length varies by up to ± this percentage. */
+  durationVariationPct: number
+  bossLevel: number
+  /** Boss armor before debuffs. */
   bossArmor: number
-  /** Simulate the execute phase (last 20% of the boss's health). */
-  executePhase: boolean
-  /** Enemies in range for cleave/AoE abilities. 1 = single target. */
-  targets: number
-  /** DPS attack from behind (no parry/block); tanks from the front. */
+  /** The execute phase is the last this-many percent of boss health; 0 = none. */
+  executePct: number
+  /** Extra enemies in range for cleave and AoE abilities (0 = single target). */
+  extraTargets: number
+  /** DPS attack from behind (no parry or block); tanks from the front. */
   position: 'behind' | 'front'
+  creatureType: CreatureType
+  /** Forever zone-specific effects (e.g. Hyjal-only flasks). */
+  zone: 'hyjal' | 'barrowDeeps' | 'onyxia' | 'other'
+  /** Damage per second a DPS player takes, for damage-taken procs (e.g. Forever's Enrage). */
+  damageTakenPerSec: number
+  /** Boss melee against the player (tank specs). */
+  boss: {
+    swingSpeedSec: number
+    /** Pre-armor damage per swing. */
+    damageMin: number
+    damageMax: number
+    canDodge: boolean
+    canParry: boolean
+    canBlock: boolean
+    parryHaste: boolean
+    canCrush: boolean
+  }
 }
 
 export interface SimConfig {

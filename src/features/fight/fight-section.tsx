@@ -41,6 +41,8 @@ export function FightSection() {
   const update = useSetup((s) => s.update)
   const set = (patch: Partial<FightConfig>) => update((c) => ({ ...c, fight: { ...c.fight, ...patch } }))
   const setBoss = (patch: Partial<FightConfig['boss']>) => set({ boss: { ...fight.boss, ...patch } })
+  const run = useSetup((s) => s.config.run)
+  const setRun = (patch: Partial<typeof run>) => update((c) => ({ ...c, run: { ...c.run, ...patch } }))
   const isPreset = ARMOR_PRESETS.some((p) => p.value === fight.bossArmor)
   const tank = meta.role === 'tank'
 
@@ -130,6 +132,36 @@ export function FightSection() {
       </div>
 
       <Advanced>
+        <Field
+          label="Precision"
+          help={
+            run.mode === 'adaptive'
+              ? 'Runs until the result is within about ±0.25% (95% confidence), between 1,000 and 50,000 fights.'
+              : 'Always runs exactly this many fights.'
+          }
+        >
+          <div className="flex flex-wrap items-center gap-3">
+            <ToggleGroup
+              type="single"
+              variant="outline"
+              value={run.mode}
+              onValueChange={(v) => v && setRun({ mode: v as typeof run.mode })}
+            >
+              <ToggleGroupItem value="adaptive" className="h-11 px-4">
+                Adaptive
+              </ToggleGroupItem>
+              <ToggleGroupItem value="fixed" className="h-11 px-4">
+                Fixed
+              </ToggleGroupItem>
+            </ToggleGroup>
+            {run.mode === 'fixed' && (
+              <NumberField value={run.iterations} onChange={(iterations) => setRun({ iterations })} min={100} max={100000} step={100} aria-label="Number of fights" />
+            )}
+          </div>
+        </Field>
+        <Field label="Seed" help="The same setup and seed give exactly the same result on any device.">
+          <NumberField value={run.seed} onChange={(seed) => setRun({ seed })} min={0} max={4294967295} step={1} aria-label="Random seed" />
+        </Field>
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Length variation" help="Each simulated fight varies by up to this much.">
             <NumberField value={fight.durationVariationPct} onChange={(v) => set({ durationVariationPct: v })} min={0} max={25} unit="%" aria-label="Length variation" />

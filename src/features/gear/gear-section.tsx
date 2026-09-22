@@ -11,6 +11,8 @@ import { SectionHeader } from '@/features/section'
 import { itemsById } from '@/lib/items'
 import { cn } from '@/lib/utils'
 import { defaultConfig, isTwoHand, type GearSlot, type SimConfig } from '@/sim'
+import { EnchantPicker } from './enchant-picker'
+import { enchantsFor } from './enchants'
 import { ItemPicker } from './item-picker'
 import { ItemSummary } from './item-row'
 import { bisRank, EMPTY_SLOT_ICON, PAIRED_SLOT, SLOT_GROUPS, SLOT_LABEL } from './slots'
@@ -24,7 +26,10 @@ function equip(config: SimConfig, slot: GearSlot, item: Item | null): SimConfig 
   // A unique item moves rather than being duplicated.
   const paired = PAIRED_SLOT[slot]
   if (paired && item.unique && gear[paired]?.itemId === item.id) delete gear[paired]
-  gear[slot] = { itemId: item.id }
+  // Keep the slot's enchant if it still applies to the new item.
+  const enchantId = gear[slot]?.enchantId
+  const keep = enchantId && enchantsFor(slot, item).some((e) => e.id === enchantId)
+  gear[slot] = keep ? { itemId: item.id, enchantId } : { itemId: item.id }
   if (slot === 'mainHand' && isTwoHand(item)) delete gear.offHand
   return { ...config, gear }
 }
@@ -89,14 +94,15 @@ export function GearSection() {
               const item = equipped ? itemsById.get(equipped.itemId) : undefined
               const lockedByTwoHand = slot === 'offHand' && twoHanded
               return (
-                <li key={slot}>
+                <li key={slot} className="flex flex-col rounded-xl border">
                   <button
                     type="button"
                     disabled={lockedByTwoHand}
                     onClick={() => setPicking(slot)}
                     className={cn(
-                      'flex min-h-16 w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors outline-none',
+                      'flex min-h-16 w-full flex-1 items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors outline-none',
                       'hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60',
+                      item && enchantsFor(slot, item).length > 0 && 'rounded-b-none',
                     )}
                     aria-label={`${SLOT_LABEL[slot]}: ${item?.name ?? (lockedByTwoHand ? 'two-handed weapon equipped' : 'empty')}`}
                   >
@@ -115,6 +121,21 @@ export function GearSection() {
                     )}
                     {!lockedByTwoHand && <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
                   </button>
+                  {item && enchantsFor(slot, item).length > 0 && (
+                    <div className="border-t">
+                      <EnchantPicker
+                        slot={slot}
+                        item={item}
+                        enchantId={equipped?.enchantId}
+                        onChange={(enchantId) =>
+                          update((c) => ({
+                            ...c,
+                            gear: { ...c.gear, [slot]: enchantId ? { itemId: item.id, enchantId } : { itemId: item.id } },
+                          }))
+                        }
+                      />
+                    </div>
+                  )}
                 </li>
               )
             })}

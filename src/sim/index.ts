@@ -74,10 +74,11 @@ export function presetBuffs(preset: BuffPreset['id'], spec: SpecId, raid: ClassS
 }
 
 /** Enchants per slot (docs/mechanics/buffs-debuffs-consumables.md#5-enchants-and-item-enhancements). */
-export const enchantCatalogue: EnchantDefinition[] = ENCHANTS.map(({ id, name, slots, summary, docRef }) => ({
+export const enchantCatalogue: EnchantDefinition[] = ENCHANTS.map(({ id, name, slots, requires, summary, docRef }) => ({
   id,
   name,
   slots,
+  requires,
   summary,
   docRef,
 }))

@@ -172,6 +172,7 @@ function Breakdown({ result, tank }: { result: SimResult; tank: boolean }) {
 
 function Sheet({ result }: { result: SimResult }) {
   const s = result.sheet
+  const unknown = s.unknown ?? []
   const rows: [string, string][] = [
     ['Attack power', formatInt(s.attackPower)],
     ['Crit', formatPct(s.critPct)],
@@ -195,14 +196,21 @@ function Sheet({ result }: { result: SimResult }) {
       : []),
   ]
   return (
-    <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
-      {rows.map(([label, value]) => (
-        <div key={label} className="flex justify-between gap-2">
-          <dt className="text-muted-foreground">{label}</dt>
-          <dd className="tabular-nums">{value}</dd>
-        </div>
-      ))}
-    </dl>
+    <div className="flex flex-col gap-3">
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex justify-between gap-2">
+            <dt className="text-muted-foreground">{label}</dt>
+            <dd className="tabular-nums">{value}</dd>
+          </div>
+        ))}
+      </dl>
+      {unknown.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          Not known for Forever yet, so left out: {unknown.join(', ')}.
+        </p>
+      )}
+    </div>
   )
 }
 

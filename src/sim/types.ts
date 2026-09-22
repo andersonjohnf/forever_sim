@@ -200,6 +200,8 @@ export interface EnchantDefinition {
   name: string
   /** Gear slots it can be applied to (finger1/finger2 etc. listed individually). */
   slots: GearSlot[]
+  /** What the item in the slot must be: any weapon, a two-hander, or a shield. */
+  requires?: 'weapon' | 'twoHand' | 'shield'
   summary: string
   docRef: string
 }

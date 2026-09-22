@@ -1,0 +1,2715 @@
+{
+  "meta": {
+    "source": "https://foreverchanges.pro/talents/druid",
+    "scrapedAt": "2026-09-22T20:30:48.720Z",
+    "foreverBuild": "1.60.1.69913",
+    "classicBuild": "1.15.9.69722",
+    "scraper": "scripts/scrape/talents.mjs"
+  },
+  "class": "druid",
+  "rules": {
+    "maxPoints": 51,
+    "pointsPerTier": 5,
+    "maxTier": 6,
+    "maxCol": 3
+  },
+  "codeFormat": "Wowhead-style string of three \"-\"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank) for the talents with inForeverTree=true, in `order` = sorted by tier, then col (both 0-based); talents with order -1 are not encoded. Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two \"-\" (e.g. \"30305213132515201-05050103-\"). Matches the site calculator, which reads it from ?b=<code>. Verified by decoding every popular build: per-tree points match, total <= 51, 5 points per tier, prerequisites at max rank, the main tree's tier-7 talent is taken, and re-encoding reproduces the code.",
+  "popularBuilds": [
+    {
+      "tree": "Balance",
+      "points": [
+        41,
+        5,
+        0
+      ],
+      "code": "5532220115501351-05-"
+    },
+    {
+      "tree": "Feral Combat",
+      "points": [
+        9,
+        37,
+        5
+      ],
+      "code": "050022-5520002123032213051-05"
+    },
+    {
+      "tree": "Restoration",
+      "points": [
+        11,
+        5,
+        35
+      ],
+      "code": "05302001-05-5050035103113251"
+    }
+  ],
+  "trees": [
+    {
+      "id": "Balance",
+      "name": "Balance",
+      "icon": "spell_nature_starfall",
+      "index": 0,
+      "clientTreeId": "283",
+      "talents": [
+        {
+          "id": "calc-druid-balance-improved-wrath",
+          "name": "Improved Wrath",
+          "icon": "spell_nature_abolishmagic",
+          "tree": "Balance",
+          "tier": 0,
+          "col": 1,
+          "order": 0,
+          "maxRank": 5,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Moved from column 1 to column 2. Numbers and wording changed.",
+          "changes": [
+            "Moved from column 1 to column 2"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Reduces the cast time of your Wrath spell by 0.1 sec and its Mana cost by 10%.",
+              "Reduces the cast time of your Wrath spell by 0.2 sec and its Mana cost by 20%.",
+              "Reduces the cast time of your Wrath spell by 0.3 sec and its Mana cost by 30%.",
+              "Reduces the cast time of your Wrath spell by 0.4 sec and its Mana cost by 40%.",
+              "Reduces the cast time of your Wrath spell by 0.5 sec and its Mana cost by 50%."
+            ],
+            "classic": [
+              "Reduces the cast time of your Wrath spell by 0.1 sec.",
+              "Reduces the cast time of your Wrath spell by 0.2 sec.",
+              "Reduces the cast time of your Wrath spell by 0.3 sec.",
+              "Reduces the cast time of your Wrath spell by 0.4 sec.",
+              "Reduces the cast time of your Wrath spell by 0.5 sec."
+            ]
+          },
+          "classic": {
+            "name": "Improved Wrath",
+            "maxRank": 5,
+            "tier": 0,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 16814,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16814",
+              "title": "Classic Era client, build 1.15.9.69722: Improved Wrath",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-genesis",
+          "name": "Genesis",
+          "icon": "spell_arcane_arcane03",
+          "tree": "Balance",
+          "tier": 0,
+          "col": 2,
+          "order": 1,
+          "maxRank": 5,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "added",
+          "summary": "Increases the periodic damage and healing done by your spells and abilities by 1%.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases the periodic damage and healing done by your spells and abilities by 1%.",
+              "Increases the periodic damage and healing done by your spells and abilities by 2%.",
+              "Increases the periodic damage and healing done by your spells and abilities by 3%.",
+              "Increases the periodic damage and healing done by your spells and abilities by 4%.",
+              "Increases the periodic damage and healing done by your spells and abilities by 5%."
+            ],
+            "classic": null
+          },
+          "classic": null,
+          "classicSpellId": null,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-moonglow",
+          "name": "Moonglow",
+          "icon": "spell_nature_sentinal",
+          "tree": "Balance",
+          "tier": 1,
+          "col": 0,
+          "order": 2,
+          "maxRank": 3,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Moved from tier 5 to tier 2. Effect rewritten.",
+          "changes": [
+            "Moved from tier 5 to tier 2"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Reduces the Mana cost of your damaging spells by 8%.",
+              "Reduces the Mana cost of your damaging spells by 17%.",
+              "Reduces the Mana cost of your damaging spells by 25%."
+            ],
+            "classic": [
+              "Reduces the Mana cost of your Moonfire, Starfire, Wrath, Healing Touch, Regrowth and Rejuvenation spells by 3%.",
+              "Reduces the Mana cost of your Moonfire, Starfire, Wrath, Healing Touch, Regrowth and Rejuvenation spells by 6%.",
+              "Reduces the Mana cost of your Moonfire, Starfire, Wrath, Healing Touch, Regrowth and Rejuvenation spells by 9%."
+            ]
+          },
+          "classic": {
+            "name": "Moonglow",
+            "maxRank": 3,
+            "tier": 4,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 16845,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16845",
+              "title": "Classic Era client, build 1.15.9.69722: Moonglow",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-balance-improved-moonfire",
+          "name": "Improved Moonfire",
+          "icon": "spell_nature_starfall",
+          "tree": "Balance",
+          "tier": 1,
+          "col": 1,
+          "order": 3,
+          "maxRank": 2,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "2 ranks (Classic: 5). Rank 2: 10% instead of 4%.",
+          "changes": [
+            "2 ranks (Classic: 5)"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases the damage and critical strike chance of your Moonfire spell by 5%.",
+              "Increases the damage and critical strike chance of your Moonfire spell by 10%."
+            ],
+            "classic": [
+              "Increases the damage and critical strike chance of your Moonfire spell by 2%.",
+              "Increases the damage and critical strike chance of your Moonfire spell by 4%.",
+              "Increases the damage and critical strike chance of your Moonfire spell by 6%.",
+              "Increases the damage and critical strike chance of your Moonfire spell by 8%.",
+              "Increases the damage and critical strike chance of your Moonfire spell by 10%."
+            ]
+          },
+          "classic": {
+            "name": "Improved Moonfire",
+            "maxRank": 5,
+            "tier": 1,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 16821,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16821",
+              "title": "Classic Era client, build 1.15.9.69722: Improved Moonfire",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-nature-s-majesty",
+          "name": "Nature's Majesty",
+          "icon": "inv_staff_01",
+          "tree": "Balance",
+          "tier": 1,
+          "col": 2,
+          "order": 4,
+          "maxRank": 2,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "added",
+          "summary": "Increases your critical strike chance with spells and melee attacks by 2%.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases your critical strike chance with spells and melee attacks by 2%.",
+              "Increases your critical strike chance with spells and melee attacks by 4%."
+            ],
+            "classic": null
+          },
+          "classic": null,
+          "classicSpellId": null,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-balance-nature-s-reach",
+          "name": "Nature's Reach",
+          "icon": "spell_nature_naturetouchgrow",
+          "tree": "Balance",
+          "tier": 1,
+          "col": 3,
+          "order": 5,
+          "maxRank": 2,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Moved from tier 3 to tier 2. Effect rewritten.",
+          "changes": [
+            "Moved from tier 3 to tier 2"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases the range of your offensive Balance spells by 10% and improves your chance to hit by 2%.",
+              "Increases the range of your offensive Balance spells by 20% and improves your chance to hit by 4%."
+            ],
+            "classic": [
+              "Increases the range of your Wrath, Entangling Roots, Faerie Fire, Moonfire, Starfire, and Hurricane spells by 10%.",
+              "Increases the range of your Wrath, Entangling Roots, Faerie Fire, Moonfire, Starfire, and Hurricane spells by 20%."
+            ]
+          },
+          "classic": {
+            "name": "Nature's Reach",
+            "maxRank": 2,
+            "tier": 2,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 16819,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16819",
+              "title": "Classic Era client, build 1.15.9.69722: Nature's Reach",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-balance-improved-entangling-roots",
+          "name": "Improved Entangling Roots",
+          "icon": "spell_nature_stranglevines",
+          "tree": "Balance",
+          "tier": 2,
+          "col": 0,
+          "order": 6,
+          "maxRank": 3,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Moved from tier 2 to tier 3. Effect rewritten.",
+          "changes": [
+            "Moved from tier 2 to tier 3"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases the damage done by your Entangling Roots spell by 25%, and its victims can take up to 25% more damage without interrupting the effect.",
+              "Increases the damage done by your Entangling Roots spell by 50%, and its victims can take up to 50% more damage without interrupting the effect.",
+              "Increases the damage done by your Entangling Roots spell by 75%, and its victims can take up to 75% more damage without interrupting the effect."
+            ],
+            "classic": [
+              "Gives you a 40% chance to avoid interruption caused by damage while casting Entangling Roots.",
+              "Gives you a 70% chance to avoid interruption caused by damage while casting Entangling Roots.",
+              "Gives you a 100% chance to avoid interruption caused by damage while casting Entangling Roots."
+            ]
+          },
+          "classic": {
+            "name": "Improved Entangling Roots",
+            "maxRank": 3,
+            "tier": 1,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 16918,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16918",
+              "title": "Classic Era client, build 1.15.9.69722: Improved Entangling Roots",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-nature-s-splendor",
+          "name": "Nature's Splendor",
+          "icon": "spell_nature_natureresistancetotem",
+          "tree": "Balance",
+          "tier": 2,
+          "col": 2,
+          "order": 7,
+          "maxRank": 1,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "added",
+          "summary": "Increases the duration of your Moonfire and Rejuvenation spells by 3 sec, your Regrowth spell by 6 sec, and your Insect Swarm spell by 2 sec.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases the duration of your Moonfire and Rejuvenation spells by 3 sec, your Regrowth spell by 6 sec, and your Insect Swarm spell by 2 sec."
+            ],
+            "classic": null
+          },
+          "classic": null,
+          "classicSpellId": null,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-insect-swarm",
+          "name": "Insect Swarm",
+          "icon": "spell_nature_insectswarm",
+          "tree": "Balance",
+          "tier": 3,
+          "col": 0,
+          "order": 8,
+          "maxRank": 1,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Moved from Restoration to Balance. 48 instead of 66, reworded.",
+          "changes": [
+            "Moved from Restoration to Balance"
+          ],
+          "passive": false,
+          "tooltip": {
+            "resourceCost": "45 Mana",
+            "range": "30 yd range",
+            "castTime": "Instant"
+          },
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "The enemy target is swarmed by insects, decreasing their chance to hit with attacks by 2% and causing 48 Nature damage over 12 sec."
+            ],
+            "classic": [
+              "The enemy target is swarmed by insects, decreasing their chance to hit by 2% and causing 66 Nature damage over 12 sec."
+            ]
+          },
+          "classic": {
+            "name": "Insect Swarm",
+            "maxRank": 1,
+            "tier": 2,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 5570,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=5570",
+              "title": "Classic Era client, build 1.15.9.69722: Insect Swarm",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-balance-vengeance",
+          "name": "Vengeance",
+          "icon": "spell_nature_purge",
+          "tree": "Balance",
+          "tier": 3,
+          "col": 1,
+          "order": 9,
+          "maxRank": 5,
+          "prerequisite": {
+            "talentId": "calc-druid-balance-improved-moonfire",
+            "rank": 2
+          },
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Same numbers, reworded.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases the critical strike damage bonus of your Arcane and Nature spells by 20%.",
+              "Increases the critical strike damage bonus of your Arcane and Nature spells by 40%.",
+              "Increases the critical strike damage bonus of your Arcane and Nature spells by 60%.",
+              "Increases the critical strike damage bonus of your Arcane and Nature spells by 80%.",
+              "Increases the critical strike damage bonus of your Arcane and Nature spells by 100%."
+            ],
+            "classic": [
+              "Increases the critical strike damage bonus of your Starfire, Moonfire, and Wrath spells by 20%.",
+              "Increases the critical strike damage bonus of your Starfire, Moonfire, and Wrath spells by 40%.",
+              "Increases the critical strike damage bonus of your Starfire, Moonfire, and Wrath spells by 60%.",
+              "Increases the critical strike damage bonus of your Starfire, Moonfire, and Wrath spells by 80%.",
+              "Increases the critical strike damage bonus of your Starfire, Moonfire, and Wrath spells by 100%."
+            ]
+          },
+          "classic": {
+            "name": "Vengeance",
+            "maxRank": 5,
+            "tier": 3,
+            "matchStatus": "same_name",
+            "prerequisite": "Improved Moonfire"
+          },
+          "classicSpellId": 16909,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16909",
+              "title": "Classic Era client, build 1.15.9.69722: Vengeance",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-balance-improved-starfire",
+          "name": "Improved Starfire",
+          "icon": "spell_arcane_starfire",
+          "tree": "Balance",
+          "tier": 3,
+          "col": 2,
+          "order": 10,
+          "maxRank": 5,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Same numbers, reworded.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Reduces the cast time of Starfire by 0.1 sec and Starfire has a 3% chance to stun its target for 3 sec.",
+              "Reduces the cast time of Starfire by 0.2 sec and Starfire has a 6% chance to stun its target for 3 sec.",
+              "Reduces the cast time of Starfire by 0.3 sec and Starfire has a 9% chance to stun its target for 3 sec.",
+              "Reduces the cast time of Starfire by 0.4 sec and Starfire has a 12% chance to stun its target for 3 sec.",
+              "Reduces the cast time of Starfire by 0.5 sec and Starfire has a 15% chance to stun its target for 3 sec."
+            ],
+            "classic": [
+              "Reduces the cast time of Starfire by 0.1 sec and has a 3% chance to stun the target for 3 sec.",
+              "Reduces the cast time of Starfire by 0.2 sec and has a 6% chance to stun the target for 3 sec.",
+              "Reduces the cast time of Starfire by 0.3 sec and has a 9% chance to stun the target for 3 sec.",
+              "Reduces the cast time of Starfire by 0.4 sec and has a 12% chance to stun the target for 3 sec.",
+              "Reduces the cast time of Starfire by 0.5 sec and has a 15% chance to stun the target for 3 sec."
+            ]
+          },
+          "classic": {
+            "name": "Improved Starfire",
+            "maxRank": 5,
+            "tier": 3,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 16850,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16850",
+              "title": "Classic Era client, build 1.15.9.69722: Improved Starfire",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-balance-overgrowth",
+          "name": "Overgrowth",
+          "icon": "inv_misc_herb_15",
+          "tree": "Balance",
+          "tier": 4,
+          "col": 0,
+          "order": 11,
+          "maxRank": 2,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Replaces Improved Nature's Grasp. 2 ranks (Classic: 4). Moved from tier 1 to tier 5. No longer requires Nature's Grasp.",
+          "changes": [
+            "Replaces Improved Nature's Grasp",
+            "2 ranks (Classic: 4)",
+            "Moved from tier 1 to tier 5",
+            "No longer requires Nature's Grasp"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": "Improved Nature's Grasp",
+          "ranks": {
+            "forever": [
+              "Increases the maximum number of targets you may have affected by Entangling Roots by 1.",
+              "Increases the maximum number of targets you may have affected by Entangling Roots by 2."
+            ],
+            "classic": [
+              "Increases the chance for your Nature's Grasp to entangle an enemy by 15%.",
+              "Increases the chance for your Nature's Grasp to entangle an enemy by 30%.",
+              "Increases the chance for your Nature's Grasp to entangle an enemy by 45%.",
+              "Increases the chance for your Nature's Grasp to entangle an enemy by 65%."
+            ]
+          },
+          "classic": {
+            "name": "Improved Nature's Grasp",
+            "maxRank": 4,
+            "tier": 0,
+            "matchStatus": "same_spell",
+            "prerequisite": "Nature's Grasp"
+          },
+          "classicSpellId": 17245,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=17245",
+              "title": "Classic Era client, build 1.15.9.69722: Improved Nature's Grasp",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-nature-s-grace",
+          "name": "Nature's Grace",
+          "icon": "spell_nature_naturesblessing",
+          "tree": "Balance",
+          "tier": 4,
+          "col": 1,
+          "order": 12,
+          "maxRank": 1,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Effect rewritten.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "All non-periodic spell criticals grace you with a blessing of nature, increasing your spellcasting speed and reducing your global cooldown by 10% for 3 sec."
+            ],
+            "classic": [
+              "All spell criticals grace you with a blessing of nature, reducing the casting time of your next spell by 0.5 sec."
+            ]
+          },
+          "classic": {
+            "name": "Nature's Grace",
+            "maxRank": 1,
+            "tier": 4,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 16880,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16880",
+              "title": "Classic Era client, build 1.15.9.69722: Nature's Grace",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-balance-eclipse",
+          "name": "Eclipse",
+          "icon": "ability_druid_eclipse",
+          "tree": "Balance",
+          "tier": 4,
+          "col": 2,
+          "order": 13,
+          "maxRank": 3,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "added",
+          "summary": "17 sec. Stores up to 4 charges. Lasts 15 sec.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Your Wrath spell reduces the cast time of your next 2 Starfire spells by 0.17 sec. Stores up to 4 charges. Lasts 15 sec.",
+              "Your Wrath spell reduces the cast time of your next 2 Starfire spells by 0.33 sec. Stores up to 4 charges. Lasts 15 sec.",
+              "Your Wrath spell reduces the cast time of your next 2 Starfire spells by 0.50 sec. Stores up to 4 charges. Lasts 15 sec."
+            ],
+            "classic": null
+          },
+          "classic": null,
+          "classicSpellId": null,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-balance-moonfury",
+          "name": "Moonfury",
+          "icon": "spell_nature_moonglow",
+          "tree": "Balance",
+          "tier": 5,
+          "col": 1,
+          "order": 14,
+          "maxRank": 5,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "No longer requires Nature's Grace. Same numbers, reworded.",
+          "changes": [
+            "No longer requires Nature's Grace"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases the damage done by your Arcane and Nature spells by 2%.",
+              "Increases the damage done by your Arcane and Nature spells by 4%.",
+              "Increases the damage done by your Arcane and Nature spells by 6%.",
+              "Increases the damage done by your Arcane and Nature spells by 8%.",
+              "Increases the damage done by your Arcane and Nature spells by 10%."
+            ],
+            "classic": [
+              "Increases the damage done by your Starfire, Moonfire and Wrath spells by 2%.",
+              "Increases the damage done by your Starfire, Moonfire and Wrath spells by 4%.",
+              "Increases the damage done by your Starfire, Moonfire and Wrath spells by 6%.",
+              "Increases the damage done by your Starfire, Moonfire and Wrath spells by 8%.",
+              "Increases the damage done by your Starfire, Moonfire and Wrath spells by 10%."
+            ]
+          },
+          "classic": {
+            "name": "Moonfury",
+            "maxRank": 5,
+            "tier": 5,
+            "matchStatus": "same_name",
+            "prerequisite": "Nature's Grace"
+          },
+          "classicSpellId": 16896,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16896",
+              "title": "Classic Era client, build 1.15.9.69722: Moonfury",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-balance-moonkin-form",
+          "name": "Moonkin Form",
+          "icon": "spell_nature_forceofnature",
+          "tree": "Balance",
+          "tier": 6,
+          "col": 1,
+          "order": 15,
+          "maxRank": 1,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Numbers and wording changed.",
+          "changes": [],
+          "passive": false,
+          "tooltip": {
+            "resourceCost": "35% of base mana",
+            "castTime": "Instant"
+          },
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Transforms the Druid into Moonkin Form. While in this form, the armor contribution from items is increased by 360%, Omen of Clarity gains 100% increased chance to trigger, and all party members within 45 yards have their critical strike chance increased by 3%, exclusive with Leader of the Pack. The Moonkin cannot cast healing spells while shapeshifted.\n\nThe act of shapeshifting frees the caster of Polymorph and Movement Impairing effects."
+            ],
+            "classic": [
+              "Transforms the Druid into Moonkin Form. While in this form the armor contribution from items is increased by 360% and all party members within 30 yards have their spell critical chance increased by 3%. The Moonkin can only cast Balance spells while shapeshifted.\n\nThe act of shapeshifting frees the caster of Polymorph and Movement Impairing effects."
+            ]
+          },
+          "classic": {
+            "name": "Moonkin Form",
+            "maxRank": 1,
+            "tier": 6,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 24858,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=24858",
+              "title": "Classic Era client, build 1.15.9.69722: Moonkin Form",
+              "type": "classic_client_data"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Feral Combat",
+      "name": "Feral Combat",
+      "icon": "ability_racial_bearform",
+      "index": 1,
+      "clientTreeId": "281",
+      "talents": [
+        {
+          "id": "druid-ferocity",
+          "name": "Ferocity",
+          "icon": "ability_hunter_pet_hyena",
+          "tree": "Feral Combat",
+          "tier": 0,
+          "col": 1,
+          "order": 0,
+          "maxRank": 5,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Same numbers, reworded.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Reduces the cost of your Maul, Mangle, Swipe, Claw, and Rake abilities by 1 Rage or Energy.",
+              "Reduces the cost of your Maul, Mangle, Swipe, Claw, and Rake abilities by 2 Rage or Energy.",
+              "Reduces the cost of your Maul, Mangle, Swipe, Claw, and Rake abilities by 3 Rage or Energy.",
+              "Reduces the cost of your Maul, Mangle, Swipe, Claw, and Rake abilities by 4 Rage or Energy.",
+              "Reduces the cost of your Maul, Mangle, Swipe, Claw, and Rake abilities by 5 Rage or Energy."
+            ],
+            "classic": [
+              "Reduces the cost of your Maul, Swipe, Claw, and Rake abilities by 1 Rage or Energy.",
+              "Reduces the cost of your Maul, Swipe, Claw, and Rake abilities by 2 Rage or Energy.",
+              "Reduces the cost of your Maul, Swipe, Claw, and Rake abilities by 3 Rage or Energy.",
+              "Reduces the cost of your Maul, Swipe, Claw, and Rake abilities by 4 Rage or Energy.",
+              "Reduces the cost of your Maul, Swipe, Claw, and Rake abilities by 5 Rage or Energy."
+            ]
+          },
+          "classic": {
+            "name": "Ferocity",
+            "maxRank": 5,
+            "tier": 0,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 16934,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16934",
+              "title": "Classic Era client, build 1.15.9.69722: Ferocity",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-feral-combat-heart-of-the-wild",
+          "name": "Heart of the Wild",
+          "icon": "spell_holy_blessingofagility",
+          "tree": "Feral Combat",
+          "tier": 0,
+          "col": 2,
+          "order": 1,
+          "maxRank": 5,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Moved from tier 6 to tier 1. No longer requires Predatory Strikes. Rank 5: 10% instead of 20%, 10% instead of 20%, reworded.",
+          "changes": [
+            "Moved from tier 6 to tier 1",
+            "No longer requires Predatory Strikes"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases your Intellect by 2%. In addition, while in Bear Form or Dire Bear Form your Stamina is increased by 4% and while in Cat Form your Strength is increased by 2%.",
+              "Increases your Intellect by 4%. In addition, while in Bear Form or Dire Bear Form your Stamina is increased by 8% and while in Cat Form your Strength is increased by 4%.",
+              "Increases your Intellect by 6%. In addition, while in Bear Form or Dire Bear Form your Stamina is increased by 12% and while in Cat Form your Strength is increased by 6%.",
+              "Increases your Intellect by 8%. In addition, while in Bear Form or Dire Bear Form your Stamina is increased by 16% and while in Cat Form your Strength is increased by 8%.",
+              "Increases your Intellect by 10%. In addition, while in Bear Form or Dire Bear Form your Stamina is increased by 20% and while in Cat Form your Strength is increased by 10%."
+            ],
+            "classic": [
+              "Increases your Intellect by 4%. In addition, while in Bear or Dire Bear Form your Stamina is increased by 4% and while in Cat Form your Strength is increased by 4%.",
+              "Increases your Intellect by 8%. In addition, while in Bear or Dire Bear Form your Stamina is increased by 8% and while in Cat Form your Strength is increased by 8%.",
+              "Increases your Intellect by 12%. In addition, while in Bear or Dire Bear Form your Stamina is increased by 12% and while in Cat Form your Strength is increased by 12%.",
+              "Increases your Intellect by 16%. In addition, while in Bear or Dire Bear Form your Stamina is increased by 16% and while in Cat Form your Strength is increased by 16%.",
+              "Increases your Intellect by 20%. In addition, while in Bear or Dire Bear Form your Stamina is increased by 20% and while in Cat Form your Strength is increased by 20%."
+            ]
+          },
+          "classic": {
+            "name": "Heart of the Wild",
+            "maxRank": 5,
+            "tier": 5,
+            "matchStatus": "same_name",
+            "prerequisite": "Predatory Strikes"
+          },
+          "classicSpellId": 17003,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=17003",
+              "title": "Classic Era client, build 1.15.9.69722: Heart of the Wild",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-feral-combat-feral-swiftness",
+          "name": "Feral Swiftness",
+          "icon": "spell_nature_spiritwolf",
+          "tree": "Feral Combat",
+          "tier": 1,
+          "col": 0,
+          "order": 2,
+          "maxRank": 2,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Renamed from Feline Swiftness. Moved from tier 3 to tier 2. Same numbers, reworded.",
+          "changes": [
+            "Renamed from Feline Swiftness",
+            "Moved from tier 3 to tier 2"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": "Feline Swiftness",
+          "ranks": {
+            "forever": [
+              "Increases your movement speed while in Cat Form by 15%, and increases your chance to Dodge by 2%.",
+              "Increases your movement speed while in Cat Form by 30%, and increases your chance to Dodge by 4%."
+            ],
+            "classic": [
+              "Increases your movement speed by 15% while outdoors in Cat Form and increases your chance to dodge while in Cat Form by 2%.",
+              "Increases your movement speed by 30% while outdoors in Cat Form and increases your chance to dodge while in Cat Form by 4%."
+            ]
+          },
+          "classic": {
+            "name": "Feline Swiftness",
+            "maxRank": 2,
+            "tier": 2,
+            "matchStatus": "same_spell",
+            "prerequisite": null
+          },
+          "classicSpellId": 17002,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=17002",
+              "title": "Classic Era client, build 1.15.9.69722: Feline Swiftness",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-feral-instinct",
+          "name": "Feral Instinct",
+          "icon": "ability_ambush",
+          "tree": "Feral Combat",
+          "tier": 1,
+          "col": 1,
+          "order": 3,
+          "maxRank": 3,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "3 ranks (Classic: 5). Moved from column 1 to column 2. Effect rewritten.",
+          "changes": [
+            "3 ranks (Classic: 5)",
+            "Moved from column 1 to column 2"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases damage done by your Swipe ability by 10% and reduces the chance enemies have to detect you while Prowling as if you were 1 level higher.",
+              "Increases damage done by your Swipe ability by 20% and reduces the chance enemies have to detect you while Prowling as if you were 2 levels higher.",
+              "Increases damage done by your Swipe ability by 30% and reduces the chance enemies have to detect you while Prowling as if you were 3 levels higher."
+            ],
+            "classic": [
+              "Increases threat caused in Bear and Dire Bear Form by 3% and reduces the chance enemies have to detect you while Prowling.",
+              "Increases threat caused in Bear and Dire Bear Form by 6% and reduces the chance enemies have to detect you while Prowling.",
+              "Increases threat caused in Bear and Dire Bear Form by 9% and reduces the chance enemies have to detect you while Prowling.",
+              "Increases threat caused in Bear and Dire Bear Form by 12% and reduces the chance enemies have to detect you while Prowling.",
+              "Increases threat caused in Bear and Dire Bear Form by 15% and reduces the chance enemies have to detect you while Prowling."
+            ]
+          },
+          "classic": {
+            "name": "Feral Instinct",
+            "maxRank": 5,
+            "tier": 1,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 16947,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16947",
+              "title": "Classic Era client, build 1.15.9.69722: Feral Instinct",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-brutal-impact",
+          "name": "Brutal Impact",
+          "icon": "ability_druid_bash",
+          "tree": "Feral Combat",
+          "tier": 1,
+          "col": 2,
+          "order": 4,
+          "maxRank": 2,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Moved from column 2 to column 3. Numbers and wording changed.",
+          "changes": [
+            "Moved from column 2 to column 3"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases the stun duration of your Bash and Pounce abilities by 0.5 sec and reduces the cooldown of Bash by 15 sec.",
+              "Increases the stun duration of your Bash and Pounce abilities by 1 sec and reduces the cooldown of Bash by 30 sec."
+            ],
+            "classic": [
+              "Increases the stun duration of your Bash and Pounce abilities by 0.5 sec.",
+              "Increases the stun duration of your Bash and Pounce abilities by 1 sec."
+            ]
+          },
+          "classic": {
+            "name": "Brutal Impact",
+            "maxRank": 2,
+            "tier": 1,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 16940,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16940",
+              "title": "Classic Era client, build 1.15.9.69722: Brutal Impact",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-thick-hide",
+          "name": "Thick Hide",
+          "icon": "inv_misc_pelt_bear_03",
+          "tree": "Feral Combat",
+          "tier": 1,
+          "col": 3,
+          "order": 5,
+          "maxRank": 3,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "3 ranks (Classic: 5). Moved from column 3 to column 4. Effect rewritten.",
+          "changes": [
+            "3 ranks (Classic: 5)",
+            "Moved from column 3 to column 4"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "While in Bear Form, Cat Form, Dire Bear Form, or Moonkin Form, you gain 1 additional base Armor per level and another 0.67 base Armor for each point of defense skill beyond five times your level. This amount can be further increased by multipliers from those forms.",
+              "While in Bear Form, Cat Form, Dire Bear Form, or Moonkin Form, you gain 2 additional base Armor per level and another 1.33 base Armor for each point of defense skill beyond five times your level. This amount can be further increased by multipliers from those forms.",
+              "While in Bear Form, Cat Form, Dire Bear Form, or Moonkin Form, you gain 3 additional base Armor per level and another 2.00 base Armor for each point of defense skill beyond five times your level. This amount can be further increased by multipliers from those forms."
+            ],
+            "classic": [
+              "Increases your Armor contribution from items by 2%.",
+              "Increases your Armor contribution from items by 4%.",
+              "Increases your Armor contribution from items by 6%.",
+              "Increases your Armor contribution from items by 8%.",
+              "Increases your Armor contribution from items by 10%."
+            ]
+          },
+          "classic": {
+            "name": "Thick Hide",
+            "maxRank": 5,
+            "tier": 1,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 16929,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16929",
+              "title": "Classic Era client, build 1.15.9.69722: Thick Hide",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-feral-combat-savage-fury",
+          "name": "Savage Fury",
+          "icon": "ability_druid_ravage",
+          "tree": "Feral Combat",
+          "tier": 2,
+          "col": 1,
+          "order": 6,
+          "maxRank": 2,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Moved from tier 5 to tier 3. Rank 2: 10% instead of 20%, reworded.",
+          "changes": [
+            "Moved from tier 5 to tier 3"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases the damage caused by your Claw, Rake, Shred, Maul, and Swipe abilities by 5%.",
+              "Increases the damage caused by your Claw, Rake, Shred, Maul, and Swipe abilities by 10%."
+            ],
+            "classic": [
+              "Increases the damage caused by your Claw, Rake, Maul and Swipe abilities by 10%.",
+              "Increases the damage caused by your Claw, Rake, Maul and Swipe abilities by 20%."
+            ]
+          },
+          "classic": {
+            "name": "Savage Fury",
+            "maxRank": 2,
+            "tier": 4,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 16998,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16998",
+              "title": "Classic Era client, build 1.15.9.69722: Savage Fury",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-feral-charge",
+          "name": "Feral Charge",
+          "icon": "ability_hunter_pet_bear",
+          "tree": "Feral Combat",
+          "tier": 2,
+          "col": 2,
+          "order": 7,
+          "maxRank": 1,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Moved from column 2 to column 3. Effect rewritten.",
+          "changes": [
+            "Moved from column 2 to column 3"
+          ],
+          "passive": false,
+          "tooltip": {
+            "resourceCost": "5 Rage",
+            "range": "25 yd range",
+            "castTime": "Instant",
+            "cooldown": "15 sec cooldown"
+          },
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Requires Bear Form, Dire Bear Form\nCharge an enemy, immobilizing them and interrupting any spell they are casting for 4 sec.\n\nLeap behind an enemy."
+            ],
+            "classic": [
+              "Causes you to charge an enemy, immobilizing and interrupting any spell being cast for 4 sec."
+            ]
+          },
+          "classic": {
+            "name": "Feral Charge",
+            "maxRank": 1,
+            "tier": 2,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 16979,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16979",
+              "title": "Classic Era client, build 1.15.9.69722: Feral Charge",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-feral-combat-sharpened-claws",
+          "name": "Sharpened Claws",
+          "icon": "inv_misc_monsterclaw_04",
+          "tree": "Feral Combat",
+          "tier": 2,
+          "col": 3,
+          "order": 8,
+          "maxRank": 2,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "2 ranks (Classic: 3). Moved from column 3 to column 4. Rank 2: 6% instead of 4%, reworded.",
+          "changes": [
+            "2 ranks (Classic: 3)",
+            "Moved from column 3 to column 4"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases your critical strike chance while in Bear Form, Dire Bear Form, or Cat Form by 3%.",
+              "Increases your critical strike chance while in Bear Form, Dire Bear Form, or Cat Form by 6%."
+            ],
+            "classic": [
+              "Increases your critical strike chance while in Bear, Dire Bear or Cat Form by 2%.",
+              "Increases your critical strike chance while in Bear, Dire Bear or Cat Form by 4%.",
+              "Increases your critical strike chance while in Bear, Dire Bear or Cat Form by 6%."
+            ]
+          },
+          "classic": {
+            "name": "Sharpened Claws",
+            "maxRank": 3,
+            "tier": 2,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 16942,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16942",
+              "title": "Classic Era client, build 1.15.9.69722: Sharpened Claws",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-feral-combat-shredding-attacks",
+          "name": "Shredding Attacks",
+          "icon": "spell_shadow_vampiricaura",
+          "tree": "Feral Combat",
+          "tier": 3,
+          "col": 0,
+          "order": 9,
+          "maxRank": 3,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Replaces Improved Shred. 3 ranks (Classic: 2).",
+          "changes": [
+            "Replaces Improved Shred",
+            "3 ranks (Classic: 2)"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": "Improved Shred",
+          "ranks": {
+            "forever": [
+              "Reduces the Energy cost of your Shred ability by 6 and reduces the Rage cost of your Lacerate ability by 1.",
+              "Reduces the Energy cost of your Shred ability by 12 and reduces the Rage cost of your Lacerate ability by 2.",
+              "Reduces the Energy cost of your Shred ability by 18 and reduces the Rage cost of your Lacerate ability by 3."
+            ],
+            "classic": [
+              "Reduces the Energy cost of your Shred ability by 6.",
+              "Reduces the Energy cost of your Shred ability by 12."
+            ]
+          },
+          "classic": {
+            "name": "Improved Shred",
+            "maxRank": 2,
+            "tier": 3,
+            "matchStatus": "same_spell",
+            "prerequisite": null
+          },
+          "classicSpellId": 16966,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16966",
+              "title": "Classic Era client, build 1.15.9.69722: Improved Shred",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-feral-combat-mangle",
+          "name": "Mangle",
+          "icon": "ability_druid_mangle2",
+          "tree": "Feral Combat",
+          "tier": 3,
+          "col": 1,
+          "order": 10,
+          "maxRank": 1,
+          "prerequisite": {
+            "talentId": "calc-druid-feral-combat-savage-fury",
+            "rank": 2
+          },
+          "inForeverTree": true,
+          "changeKind": "added",
+          "summary": "Mangle the target for 100% normal damage plus 26. A trained spell in Classic (level 6), a talent now.",
+          "changes": [
+            "A trained spell in Classic (level 6), a talent now"
+          ],
+          "passive": false,
+          "tooltip": {
+            "resourceCost": "20 Rage",
+            "range": "Melee range",
+            "castTime": "Instant",
+            "cooldown": "6 sec cooldown"
+          },
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Mangle the target for 100% normal damage plus 26."
+            ],
+            "classic": null
+          },
+          "classic": null,
+          "classicSpellId": null,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-feral-combat-predatory-strikes",
+          "name": "Predatory Strikes",
+          "icon": "ability_hunter_pet_cat",
+          "tree": "Feral Combat",
+          "tier": 3,
+          "col": 2,
+          "order": 11,
+          "maxRank": 3,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Moved from column 2 to column 3. Same numbers, reworded.",
+          "changes": [
+            "Moved from column 2 to column 3"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases your melee Attack Power in Cat Form, Bear Form, and Dire Bear Form by 50% of your level.",
+              "Increases your melee Attack Power in Cat Form, Bear Form, and Dire Bear Form by 100% of your level.",
+              "Increases your melee Attack Power in Cat Form, Bear Form, and Dire Bear Form by 150% of your level."
+            ],
+            "classic": [
+              "Increases your melee attack power in Cat, Bear and Dire Bear Forms by 50% of your level.",
+              "Increases your melee attack power in Cat, Bear and Dire Bear Forms by 100% of your level.",
+              "Increases your melee attack power in Cat, Bear and Dire Bear Forms by 150% of your level."
+            ]
+          },
+          "classic": {
+            "name": "Predatory Strikes",
+            "maxRank": 3,
+            "tier": 3,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 16972,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16972",
+              "title": "Classic Era client, build 1.15.9.69722: Predatory Strikes",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-primal-fury",
+          "name": "Primal Fury",
+          "icon": "ability_racial_cannibalize",
+          "tree": "Feral Combat",
+          "tier": 3,
+          "col": 3,
+          "order": 12,
+          "maxRank": 2,
+          "prerequisite": {
+            "talentId": "calc-druid-feral-combat-sharpened-claws",
+            "rank": 2
+          },
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Effect rewritten.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Gives you a 50% chance to gain an additional 5 Rage any time you get a critical strike while in Bear Form or Dire Bear Form. In addition, your non-periodic critical strikes from Cat Form abilities that generate Combo Points have a 50% chance to add an additional Combo Point.",
+              "Gives you a 100% chance to gain an additional 5 Rage any time you get a critical strike while in Bear Form or Dire Bear Form. In addition, your non-periodic critical strikes from Cat Form abilities that generate Combo Points have a 100% chance to add an additional Combo Point."
+            ],
+            "classic": [
+              "Gives you a 50% chance to gain an additional 5 Rage anytime you get a critical strike while in Bear and Dire Bear Form.",
+              "Gives you a 100% chance to gain an additional 5 Rage anytime you get a critical strike while in Bear and Dire Bear Form."
+            ]
+          },
+          "classic": {
+            "name": "Primal Fury",
+            "maxRank": 2,
+            "tier": 3,
+            "matchStatus": "same_name",
+            "prerequisite": "Sharpened Claws"
+          },
+          "classicSpellId": 16958,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16958",
+              "title": "Classic Era client, build 1.15.9.69722: Primal Fury",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-feral-combat-predatory-instincts",
+          "name": "Predatory Instincts",
+          "icon": "ability_druid_predatoryinstincts",
+          "tree": "Feral Combat",
+          "tier": 4,
+          "col": 0,
+          "order": 13,
+          "maxRank": 2,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "added",
+          "summary": "Increases the critical strike damage bonus of your melee abilities by 10%.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases the critical strike damage bonus of your melee abilities by 10%.",
+              "Increases the critical strike damage bonus of your melee abilities by 20%."
+            ],
+            "classic": null
+          },
+          "classic": null,
+          "classicSpellId": null,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-feral-combat-leader-of-the-pack",
+          "name": "Leader of the Pack",
+          "icon": "spell_nature_unyeildingstamina",
+          "tree": "Feral Combat",
+          "tier": 4,
+          "col": 1,
+          "order": 14,
+          "maxRank": 1,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Moved from tier 7 to tier 5. Same numbers, reworded.",
+          "changes": [
+            "Moved from tier 7 to tier 5"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "While in Cat Form, Bear Form, or Dire Bear Form, the Leader of the Pack increases the critical strike chance of all party members within 45 yards by 3%, exclusive with Moonkin Aura."
+            ],
+            "classic": [
+              "While in Cat, Bear or Dire Bear Form, the Leader of the Pack increases ranged and melee critical chance of all party members within 45 yards by 3%."
+            ]
+          },
+          "classic": {
+            "name": "Leader of the Pack",
+            "maxRank": 1,
+            "tier": 6,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 17007,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=17007",
+              "title": "Classic Era client, build 1.15.9.69722: Leader of the Pack",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-king-of-the-jungle",
+          "name": "King of the Jungle",
+          "icon": "ability_druid_kingofthejungle",
+          "tree": "Feral Combat",
+          "tier": 4,
+          "col": 3,
+          "order": 15,
+          "maxRank": 3,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "added",
+          "summary": "Tiger's Fury now instantly grants you 20 Energy.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Tiger's Fury now instantly grants you 20 Energy.",
+              "Tiger's Fury now instantly grants you 40 Energy.",
+              "Tiger's Fury now instantly grants you 60 Energy."
+            ],
+            "classic": null
+          },
+          "classic": null,
+          "classicSpellId": null,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-natural-reaction",
+          "name": "Natural Reaction",
+          "icon": "ability_bullrush",
+          "tree": "Feral Combat",
+          "tier": 5,
+          "col": 0,
+          "order": 16,
+          "maxRank": 5,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "added",
+          "summary": "Increases your dodge chance by 1%, and gives you a 20% chance to gain 5 Rage each time you dodge.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases your dodge chance by 1%, and gives you a 20% chance to gain 5 Rage each time you dodge.",
+              "Increases your dodge chance by 2%, and gives you a 40% chance to gain 5 Rage each time you dodge.",
+              "Increases your dodge chance by 3%, and gives you a 60% chance to gain 5 Rage each time you dodge.",
+              "Increases your dodge chance by 4%, and gives you a 80% chance to gain 5 Rage each time you dodge.",
+              "Increases your dodge chance by 5%, and gives you a 100% chance to gain 5 Rage each time you dodge."
+            ],
+            "classic": null
+          },
+          "classic": null,
+          "classicSpellId": null,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-feral-combat-rend-and-tear",
+          "name": "Rend and Tear",
+          "icon": "ability_druid_primalagression",
+          "tree": "Feral Combat",
+          "tier": 5,
+          "col": 2,
+          "order": 17,
+          "maxRank": 5,
+          "prerequisite": {
+            "talentId": "calc-druid-feral-combat-predatory-strikes",
+            "rank": 3
+          },
+          "inForeverTree": true,
+          "changeKind": "added",
+          "summary": "Increases damage done by your melee abilities on Bleeding targets by 2%.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases damage done by your melee abilities on Bleeding targets by 2%.",
+              "Increases damage done by your melee abilities on Bleeding targets by 4%.",
+              "Increases damage done by your melee abilities on Bleeding targets by 6%.",
+              "Increases damage done by your melee abilities on Bleeding targets by 8%.",
+              "Increases damage done by your melee abilities on Bleeding targets by 10%."
+            ],
+            "classic": null
+          },
+          "classic": null,
+          "classicSpellId": null,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-berserk",
+          "name": "Berserk",
+          "icon": "ability_druid_berserk",
+          "tree": "Feral Combat",
+          "tier": 6,
+          "col": 1,
+          "order": 18,
+          "maxRank": 1,
+          "prerequisite": {
+            "talentId": "calc-druid-feral-combat-leader-of-the-pack",
+            "rank": 1
+          },
+          "inForeverTree": true,
+          "changeKind": "added",
+          "summary": "Requires Cat Form, Bear Form, Dire Bear Form Causes your Mangle ability to strike up to 3 targets, removes its cooldown, and increases the critical strike chance of your Combo Point-generating abilities by 100%.",
+          "changes": [],
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "3 min cooldown"
+          },
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Requires Cat Form, Bear Form, Dire Bear Form\nCauses your Mangle ability to strike up to 3 targets, removes its cooldown, and increases the critical strike chance of your Combo Point-generating abilities by 100%. Clears and grants immunity to Fear effects for the duration. Lasts 15 sec."
+            ],
+            "classic": null
+          },
+          "classic": null,
+          "classicSpellId": null,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Restoration",
+      "name": "Restoration",
+      "icon": "spell_nature_healingtouch",
+      "index": 2,
+      "clientTreeId": "282",
+      "talents": [
+        {
+          "id": "druid-nature-s-focus",
+          "name": "Nature's Focus",
+          "icon": "spell_nature_healingwavegreater",
+          "tree": "Restoration",
+          "tier": 0,
+          "col": 1,
+          "order": 0,
+          "maxRank": 5,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Moved from tier 2 to tier 1. Same numbers, reworded.",
+          "changes": [
+            "Moved from tier 2 to tier 1"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Gives you a 14% chance to avoid interruption caused by damage while casting Arcane and Nature spells.",
+              "Gives you a 28% chance to avoid interruption caused by damage while casting Arcane and Nature spells.",
+              "Gives you a 42% chance to avoid interruption caused by damage while casting Arcane and Nature spells.",
+              "Gives you a 56% chance to avoid interruption caused by damage while casting Arcane and Nature spells.",
+              "Gives you a 70% chance to avoid interruption caused by damage while casting Arcane and Nature spells."
+            ],
+            "classic": [
+              "Gives you a 14% chance to avoid interruption caused by damage while casting the Healing Touch, Regrowth and Tranquility spells.",
+              "Gives you a 28% chance to avoid interruption caused by damage while casting the Healing Touch, Regrowth and Tranquility spells.",
+              "Gives you a 42% chance to avoid interruption caused by damage while casting the Healing Touch, Regrowth and Tranquility spells.",
+              "Gives you a 56% chance to avoid interruption caused by damage while casting the Healing Touch, Regrowth and Tranquility spells.",
+              "Gives you a 70% chance to avoid interruption caused by damage while casting the Healing Touch, Regrowth and Tranquility spells."
+            ]
+          },
+          "classic": {
+            "name": "Nature's Focus",
+            "maxRank": 5,
+            "tier": 1,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 17063,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=17063",
+              "title": "Classic Era client, build 1.15.9.69722: Nature's Focus",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-restoration-furor",
+          "name": "Furor",
+          "icon": "spell_holy_blessingofstamina",
+          "tree": "Restoration",
+          "tier": 0,
+          "col": 2,
+          "order": 1,
+          "maxRank": 5,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Effect rewritten.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Gives you a 20% chance to gain 10 Rage when you shapeshift into Bear Form or Dire Bear Form. When you shift into Cat Form, you will regain 20% of the Energy you had when you were last in Cat Form, plus 2 Energy for each second you spent not in Bear Form, Cat Form, or Dire Bear Form, up to a maximum of 20 Energy.",
+              "Gives you a 40% chance to gain 10 Rage when you shapeshift into Bear Form or Dire Bear Form. When you shift into Cat Form, you will regain 40% of the Energy you had when you were last in Cat Form, plus 4 Energy for each second you spent not in Bear Form, Cat Form, or Dire Bear Form, up to a maximum of 40 Energy.",
+              "Gives you a 60% chance to gain 10 Rage when you shapeshift into Bear Form or Dire Bear Form. When you shift into Cat Form, you will regain 60% of the Energy you had when you were last in Cat Form, plus 6 Energy for each second you spent not in Bear Form, Cat Form, or Dire Bear Form, up to a maximum of 60 Energy.",
+              "Gives you a 80% chance to gain 10 Rage when you shapeshift into Bear Form or Dire Bear Form. When you shift into Cat Form, you will regain 80% of the Energy you had when you were last in Cat Form, plus 8 Energy for each second you spent not in Bear Form, Cat Form, or Dire Bear Form, up to a maximum of 80 Energy.",
+              "Gives you a 100% chance to gain 10 Rage when you shapeshift into Bear Form or Dire Bear Form. When you shift into Cat Form, you will regain 100% of the Energy you had when you were last in Cat Form, plus 10 Energy for each second you spent not in Bear Form, Cat Form, or Dire Bear Form, up to a maximum of 100 Energy."
+            ],
+            "classic": [
+              "Gives you 20% chance to gain 10 Rage when you shapeshift into Bear and Dire Bear Form or 40 Energy when you shapeshift into Cat Form.",
+              "Gives you 40% chance to gain 10 Rage when you shapeshift into Bear and Dire Bear Form or 40 Energy when you shapeshift into Cat Form.",
+              "Gives you 60% chance to gain 10 Rage when you shapeshift into Bear and Dire Bear Form or 40 Energy when you shapeshift into Cat Form.",
+              "Gives you 80% chance to gain 10 Rage when you shapeshift into Bear and Dire Bear Form or 40 Energy when you shapeshift into Cat Form.",
+              "Gives you 100% chance to gain 10 Rage when you shapeshift into Bear and Dire Bear Form or 40 Energy when you shapeshift into Cat Form."
+            ]
+          },
+          "classic": {
+            "name": "Furor",
+            "maxRank": 5,
+            "tier": 0,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 17056,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=17056",
+              "title": "Classic Era client, build 1.15.9.69722: Furor",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-restoration-naturalist",
+          "name": "Naturalist",
+          "icon": "spell_nature_healingtouch",
+          "tree": "Restoration",
+          "tier": 1,
+          "col": 0,
+          "order": 2,
+          "maxRank": 5,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Renamed from Improved Healing Touch. Numbers and wording changed.",
+          "changes": [
+            "Renamed from Improved Healing Touch"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": "Improved Healing Touch",
+          "ranks": {
+            "forever": [
+              "Reduces the cast time of your Healing Touch spell by 0.1 sec and increases all damage you deal by 1%.",
+              "Reduces the cast time of your Healing Touch spell by 0.2 sec and increases all damage you deal by 2%.",
+              "Reduces the cast time of your Healing Touch spell by 0.3 sec and increases all damage you deal by 3%.",
+              "Reduces the cast time of your Healing Touch spell by 0.4 sec and increases all damage you deal by 4%.",
+              "Reduces the cast time of your Healing Touch spell by 0.5 sec and increases all damage you deal by 5%."
+            ],
+            "classic": [
+              "Reduces the cast time of your Healing Touch spell by 0.1 sec.",
+              "Reduces the cast time of your Healing Touch spell by 0.2 sec.",
+              "Reduces the cast time of your Healing Touch spell by 0.3 sec.",
+              "Reduces the cast time of your Healing Touch spell by 0.4 sec.",
+              "Reduces the cast time of your Healing Touch spell by 0.5 sec."
+            ]
+          },
+          "classic": {
+            "name": "Improved Healing Touch",
+            "maxRank": 5,
+            "tier": 1,
+            "matchStatus": "same_spell",
+            "prerequisite": null
+          },
+          "classicSpellId": 17069,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=17069",
+              "title": "Classic Era client, build 1.15.9.69722: Improved Healing Touch",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-subtlety",
+          "name": "Subtlety",
+          "icon": "ability_eyeoftheowl",
+          "tree": "Restoration",
+          "tier": 1,
+          "col": 1,
+          "order": 3,
+          "maxRank": 3,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "3 ranks (Classic: 5). Moved from tier 3 to tier 2. Rank 3: 30% instead of 12%, reworded.",
+          "changes": [
+            "3 ranks (Classic: 5)",
+            "Moved from tier 3 to tier 2"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Reduces the threat generated by your Nature and Arcane spells by 10%.",
+              "Reduces the threat generated by your Nature and Arcane spells by 20%.",
+              "Reduces the threat generated by your Nature and Arcane spells by 30%."
+            ],
+            "classic": [
+              "Reduces the threat generated by your Healing spells by 4%.",
+              "Reduces the threat generated by your Healing spells by 8%.",
+              "Reduces the threat generated by your Healing spells by 12%.",
+              "Reduces the threat generated by your Healing spells by 16%.",
+              "Reduces the threat generated by your Healing spells by 20%."
+            ]
+          },
+          "classic": {
+            "name": "Subtlety",
+            "maxRank": 5,
+            "tier": 2,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 17118,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=17118",
+              "title": "Classic Era client, build 1.15.9.69722: Subtlety",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-natural-shapeshifter",
+          "name": "Natural Shapeshifter",
+          "icon": "spell_nature_wispsplode",
+          "tree": "Restoration",
+          "tier": 1,
+          "col": 2,
+          "order": 4,
+          "maxRank": 3,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "moved",
+          "summary": "Moved from Balance to Restoration.",
+          "changes": [
+            "Moved from Balance to Restoration"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Reduces the mana cost of all shapeshifting by 10%.",
+              "Reduces the mana cost of all shapeshifting by 20%.",
+              "Reduces the mana cost of all shapeshifting by 30%."
+            ],
+            "classic": [
+              "Reduces the mana cost of all shapeshifting by 10%.",
+              "Reduces the mana cost of all shapeshifting by 20%.",
+              "Reduces the mana cost of all shapeshifting by 30%."
+            ]
+          },
+          "classic": {
+            "name": "Natural Shapeshifter",
+            "maxRank": 3,
+            "tier": 1,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 16833,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=16833",
+              "title": "Classic Era client, build 1.15.9.69722: Natural Shapeshifter",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-restoration-reflection",
+          "name": "Reflection",
+          "icon": "spell_frost_windwalkon",
+          "tree": "Restoration",
+          "tier": 2,
+          "col": 1,
+          "order": 5,
+          "maxRank": 3,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Rank 3: 50% instead of 15%.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Allows 17% of your Mana regeneration to continue while casting.",
+              "Allows 33% of your Mana regeneration to continue while casting.",
+              "Allows 50% of your Mana regeneration to continue while casting."
+            ],
+            "classic": [
+              "Allows 5% of your Mana regeneration to continue while casting.",
+              "Allows 10% of your Mana regeneration to continue while casting.",
+              "Allows 15% of your Mana regeneration to continue while casting."
+            ]
+          },
+          "classic": {
+            "name": "Reflection",
+            "maxRank": 3,
+            "tier": 2,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 17106,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=17106",
+              "title": "Classic Era client, build 1.15.9.69722: Reflection",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-gift-of-nature",
+          "name": "Gift of Nature",
+          "icon": "spell_nature_protectionformnature",
+          "tree": "Restoration",
+          "tier": 2,
+          "col": 2,
+          "order": 6,
+          "maxRank": 5,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Moved from tier 5 to tier 3. No longer requires Insect Swarm. Same numbers, reworded.",
+          "changes": [
+            "Moved from tier 5 to tier 3",
+            "No longer requires Insect Swarm"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases the effect of all your healing spells by 2%.",
+              "Increases the effect of all your healing spells by 4%.",
+              "Increases the effect of all your healing spells by 6%.",
+              "Increases the effect of all your healing spells by 8%.",
+              "Increases the effect of all your healing spells by 10%."
+            ],
+            "classic": [
+              "Increases the effect of all healing spells by 2%.",
+              "Increases the effect of all healing spells by 4%.",
+              "Increases the effect of all healing spells by 6%.",
+              "Increases the effect of all healing spells by 8%.",
+              "Increases the effect of all healing spells by 10%."
+            ]
+          },
+          "classic": {
+            "name": "Gift of Nature",
+            "maxRank": 5,
+            "tier": 4,
+            "matchStatus": "same_name",
+            "prerequisite": "Insect Swarm"
+          },
+          "classicSpellId": 17104,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=17104",
+              "title": "Classic Era client, build 1.15.9.69722: Gift of Nature",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-restoration-gift-of-the-earthmother",
+          "name": "Gift of the Earthmother",
+          "icon": "spell_nature_spiritarmor",
+          "tree": "Restoration",
+          "tier": 2,
+          "col": 3,
+          "order": 7,
+          "maxRank": 1,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "added",
+          "summary": "5 seconds on your Rejuvenation, Swiftmend, and Wild Growth spells.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Reduces the global cooldown by 0.5 seconds on your Rejuvenation, Swiftmend, and Wild Growth spells."
+            ],
+            "classic": null
+          },
+          "classic": null,
+          "classicSpellId": null,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-restoration-tranquil-spirit",
+          "name": "Tranquil Spirit",
+          "icon": "spell_holy_elunesgrace",
+          "tree": "Restoration",
+          "tier": 3,
+          "col": 1,
+          "order": 8,
+          "maxRank": 5,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "unchanged",
+          "summary": "Same as Classic.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Reduces the mana cost of your Healing Touch and Tranquility spells by 2%.",
+              "Reduces the mana cost of your Healing Touch and Tranquility spells by 4%.",
+              "Reduces the mana cost of your Healing Touch and Tranquility spells by 6%.",
+              "Reduces the mana cost of your Healing Touch and Tranquility spells by 8%.",
+              "Reduces the mana cost of your Healing Touch and Tranquility spells by 10%."
+            ],
+            "classic": [
+              "Reduces the mana cost of your Healing Touch and Tranquility spells by 2%.",
+              "Reduces the mana cost of your Healing Touch and Tranquility spells by 4%.",
+              "Reduces the mana cost of your Healing Touch and Tranquility spells by 6%.",
+              "Reduces the mana cost of your Healing Touch and Tranquility spells by 8%.",
+              "Reduces the mana cost of your Healing Touch and Tranquility spells by 10%."
+            ]
+          },
+          "classic": {
+            "name": "Tranquil Spirit",
+            "maxRank": 5,
+            "tier": 3,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 24968,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=24968",
+              "title": "Classic Era client, build 1.15.9.69722: Tranquil Spirit",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-improved-rejuvenation",
+          "name": "Improved Rejuvenation",
+          "icon": "spell_nature_rejuvenation",
+          "tree": "Restoration",
+          "tier": 3,
+          "col": 2,
+          "order": 9,
+          "maxRank": 3,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "moved",
+          "summary": "Moved from column 4 to column 3.",
+          "changes": [
+            "Moved from column 4 to column 3"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases the effect of your Rejuvenation spell by 5%.",
+              "Increases the effect of your Rejuvenation spell by 10%.",
+              "Increases the effect of your Rejuvenation spell by 15%."
+            ],
+            "classic": [
+              "Increases the effect of your Rejuvenation spell by 5%.",
+              "Increases the effect of your Rejuvenation spell by 10%.",
+              "Increases the effect of your Rejuvenation spell by 15%."
+            ]
+          },
+          "classic": {
+            "name": "Improved Rejuvenation",
+            "maxRank": 3,
+            "tier": 3,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 17111,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=17111",
+              "title": "Classic Era client, build 1.15.9.69722: Improved Rejuvenation",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-restoration-swiftmend",
+          "name": "Swiftmend",
+          "icon": "inv_relics_idolofrejuvenation",
+          "tree": "Restoration",
+          "tier": 3,
+          "col": 3,
+          "order": 10,
+          "maxRank": 1,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Moved from tier 7 to tier 4. No longer requires Tranquil Spirit. Effect rewritten.",
+          "changes": [
+            "Moved from tier 7 to tier 4",
+            "No longer requires Tranquil Spirit"
+          ],
+          "passive": false,
+          "tooltip": {
+            "resourceCost": "20% of base mana",
+            "range": "40 yd range",
+            "castTime": "Instant",
+            "cooldown": "15 sec cooldown"
+          },
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Instantly heals a target with an active Rejuvenation or Regrowth effect for an amount equal to the full duration of the periodic effect of one of those spells."
+            ],
+            "classic": [
+              "Consumes a Rejuvenation or Regrowth effect on a friendly target to instantly heal them an amount equal to 12 sec. of Rejuvenation or 18 sec. of Regrowth."
+            ]
+          },
+          "classic": {
+            "name": "Swiftmend",
+            "maxRank": 1,
+            "tier": 6,
+            "matchStatus": "same_name",
+            "prerequisite": "Tranquil Spirit"
+          },
+          "classicSpellId": 18562,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=18562",
+              "title": "Classic Era client, build 1.15.9.69722: Swiftmend",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-restoration-nature-s-swiftness",
+          "name": "Nature's Swiftness",
+          "icon": "spell_nature_ravenform",
+          "tree": "Restoration",
+          "tier": 4,
+          "col": 0,
+          "order": 11,
+          "maxRank": 1,
+          "prerequisite": {
+            "talentId": "calc-druid-restoration-naturalist",
+            "rank": 5
+          },
+          "inForeverTree": true,
+          "changeKind": "unchanged",
+          "summary": "Same as Classic.",
+          "changes": [],
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "3 min cooldown"
+          },
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "When activated, your next Nature spell becomes an instant cast spell."
+            ],
+            "classic": [
+              "When activated, your next Nature spell becomes an instant cast spell."
+            ]
+          },
+          "classic": {
+            "name": "Nature's Swiftness",
+            "maxRank": 1,
+            "tier": 4,
+            "matchStatus": "same_name",
+            "prerequisite": "Improved Healing Touch"
+          },
+          "classicSpellId": 17116,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=17116",
+              "title": "Classic Era client, build 1.15.9.69722: Nature's Swiftness",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-living-spirit",
+          "name": "Living Spirit",
+          "icon": "spell_nature_giftofthewaterspirit",
+          "tree": "Restoration",
+          "tier": 4,
+          "col": 1,
+          "order": 12,
+          "maxRank": 3,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "added",
+          "summary": "Increases your Spirit by 5%.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases your Spirit by 5%.",
+              "Increases your Spirit by 10%.",
+              "Increases your Spirit by 15%."
+            ],
+            "classic": null
+          },
+          "classic": null,
+          "classicSpellId": null,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            }
+          ]
+        },
+        {
+          "id": "druid-improved-tranquility",
+          "name": "Improved Tranquility",
+          "icon": "spell_nature_tranquility",
+          "tree": "Restoration",
+          "tier": 4,
+          "col": 3,
+          "order": 13,
+          "maxRank": 2,
+          "prerequisite": null,
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Numbers and wording changed.",
+          "changes": [],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Reduces threat caused by Tranquility by 50% and its cooldown by 30%.",
+              "Reduces threat caused by Tranquility by 100% and its cooldown by 60%."
+            ],
+            "classic": [
+              "Reduces threat caused by Tranquility by 50%.",
+              "Reduces threat caused by Tranquility by 100%."
+            ]
+          },
+          "classic": {
+            "name": "Improved Tranquility",
+            "maxRank": 2,
+            "tier": 4,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 17123,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=17123",
+              "title": "Classic Era client, build 1.15.9.69722: Improved Tranquility",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-restoration-improved-regrowth",
+          "name": "Improved Regrowth",
+          "icon": "spell_nature_resistnature",
+          "tree": "Restoration",
+          "tier": 5,
+          "col": 2,
+          "order": 14,
+          "maxRank": 5,
+          "prerequisite": {
+            "talentId": "druid-improved-rejuvenation",
+            "rank": 3
+          },
+          "inForeverTree": true,
+          "changeKind": "modified",
+          "summary": "Requires Improved Rejuvenation.",
+          "changes": [
+            "Requires Improved Rejuvenation"
+          ],
+          "passive": true,
+          "tooltip": null,
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Increases the critical effect chance of your Regrowth spell by 10%.",
+              "Increases the critical effect chance of your Regrowth spell by 20%.",
+              "Increases the critical effect chance of your Regrowth spell by 30%.",
+              "Increases the critical effect chance of your Regrowth spell by 40%.",
+              "Increases the critical effect chance of your Regrowth spell by 50%."
+            ],
+            "classic": [
+              "Increases the critical effect chance of your Regrowth spell by 10%.",
+              "Increases the critical effect chance of your Regrowth spell by 20%.",
+              "Increases the critical effect chance of your Regrowth spell by 30%.",
+              "Increases the critical effect chance of your Regrowth spell by 40%.",
+              "Increases the critical effect chance of your Regrowth spell by 50%."
+            ]
+          },
+          "classic": {
+            "name": "Improved Regrowth",
+            "maxRank": 5,
+            "tier": 5,
+            "matchStatus": "same_name",
+            "prerequisite": null
+          },
+          "classicSpellId": 17074,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=17074",
+              "title": "Classic Era client, build 1.15.9.69722: Improved Regrowth",
+              "type": "classic_client_data"
+            }
+          ]
+        },
+        {
+          "id": "calc-druid-restoration-wild-growth",
+          "name": "Wild Growth",
+          "icon": "ability_druid_flourish",
+          "tree": "Restoration",
+          "tier": 6,
+          "col": 1,
+          "order": 15,
+          "maxRank": 1,
+          "prerequisite": {
+            "talentId": "druid-living-spirit",
+            "rank": 3
+          },
+          "inForeverTree": true,
+          "changeKind": "added",
+          "summary": "Heals the target and their party for 280 over 7 sec.5 yards of target.",
+          "changes": [],
+          "passive": false,
+          "tooltip": {
+            "resourceCost": "550 Mana",
+            "range": "40 yd range",
+            "castTime": "Instant",
+            "cooldown": "6 sec cooldown"
+          },
+          "previousName": null,
+          "ranks": {
+            "forever": [
+              "Heals the target and their party for 280 over 7 sec. Party members must be within 43.5 yards of target. The amount healed is applied quickly at first, and slows down as Wild Growth reaches its full duration."
+            ],
+            "classic": null
+          },
+          "classic": null,
+          "classicSpellId": null,
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "client",
+          "discoveredAt": "2026-09-18",
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
+              "title": "WoW Forever beta client, build 1.60.1.69913",
+              "type": "client_data"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

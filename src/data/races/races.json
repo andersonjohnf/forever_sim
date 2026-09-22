@@ -1,0 +1,2383 @@
+{
+  "meta": {
+    "source": "https://foreverchanges.pro/racials",
+    "scrapedAt": "2026-09-22T20:31:35.756Z",
+    "foreverBuild": "1.60.1.69913",
+    "classicBuild": null,
+    "scraper": "scripts/scrape/races.mjs"
+  },
+  "research": {
+    "updatedAt": "2026-09-14",
+    "sources": [
+      {
+        "id": "racial_reference",
+        "url": "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+        "label": "Wowhead: racial changes",
+        "status": "secondary_report"
+      },
+      {
+        "id": "whats_next_recap",
+        "url": "https://news.blizzard.com/en-us/article/24303862/world-of-warcraft-forever-whats-next-panel-recap",
+        "label": "Blizzard's What's Next panel recap",
+        "status": "official_article"
+      }
+    ],
+    "coverage": {
+      "profiles": 10,
+      "uniqueAbilities": 37,
+      "preservedRaceClassPairs": 56,
+      "conflictingAdditionalPair": 1
+    },
+    "notes": [
+      "The competitor lists 57 class/race pairs; our preserved profiles contain 56.",
+      "Reported Classic comparisons and removals are not promoted to independently verified Vanilla baselines."
+    ]
+  },
+  "classOrder": [
+    "warrior",
+    "hunter",
+    "mage",
+    "rogue",
+    "priest",
+    "warlock",
+    "paladin",
+    "druid",
+    "shaman"
+  ],
+  "simClassAvailability": {
+    "warrior": {
+      "forever": [
+        "horde-orc",
+        "horde-undead",
+        "horde-tauren",
+        "horde-troll",
+        "horde-skyborne-windshaper",
+        "alliance-human",
+        "alliance-dwarf",
+        "alliance-night-elf",
+        "alliance-gnome",
+        "alliance-skyborne-high-order"
+      ],
+      "classic": [
+        "horde-orc",
+        "horde-undead",
+        "horde-tauren",
+        "horde-troll",
+        "alliance-human",
+        "alliance-dwarf",
+        "alliance-night-elf",
+        "alliance-gnome"
+      ]
+    },
+    "druid": {
+      "forever": [
+        "horde-tauren",
+        "horde-skyborne-windshaper",
+        "alliance-night-elf",
+        "alliance-skyborne-high-order"
+      ],
+      "classic": [
+        "horde-tauren",
+        "alliance-night-elf"
+      ]
+    },
+    "paladin": {
+      "forever": [
+        "horde-undead",
+        "alliance-human",
+        "alliance-dwarf"
+      ],
+      "classic": [
+        "alliance-human",
+        "alliance-dwarf"
+      ]
+    }
+  },
+  "newCombos": [
+    {
+      "raceId": "alliance-human",
+      "race": "Human",
+      "faction": "Alliance",
+      "class": "hunter"
+    },
+    {
+      "raceId": "alliance-dwarf",
+      "race": "Dwarf",
+      "faction": "Alliance",
+      "class": "shaman"
+    },
+    {
+      "raceId": "alliance-gnome",
+      "race": "Gnome",
+      "faction": "Alliance",
+      "class": "priest"
+    },
+    {
+      "raceId": "horde-orc",
+      "race": "Orc",
+      "faction": "Horde",
+      "class": "mage"
+    },
+    {
+      "raceId": "horde-undead",
+      "race": "Undead",
+      "faction": "Horde",
+      "class": "paladin"
+    },
+    {
+      "raceId": "horde-troll",
+      "race": "Troll",
+      "faction": "Horde",
+      "class": "warlock"
+    }
+  ],
+  "races": [
+    {
+      "id": "horde-orc",
+      "name": "Orc",
+      "baseName": "Orc",
+      "faction": "Horde",
+      "icon": "race_orc_male",
+      "newInForever": false,
+      "classes": {
+        "forever": [
+          "warrior",
+          "hunter",
+          "mage",
+          "rogue",
+          "warlock",
+          "shaman"
+        ],
+        "classic": [
+          "warrior",
+          "hunter",
+          "rogue",
+          "warlock",
+          "shaman"
+        ],
+        "addedInForever": [
+          "mage"
+        ],
+        "removedInForever": []
+      },
+      "classAvailabilityStatus": "reported_compatibility",
+      "compatibilityConflicts": [],
+      "racials": [
+        {
+          "id": "racial-orc-axe-specialization",
+          "name": "Axe Specialization",
+          "icon": "inv_axe_06",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Increases your critical strike chance with all spells and abilities by 1% while you have an axe or a two-handed axe equipped.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Axe Specialization",
+            "text": "Skill with Axes and Two-Handed Axes increased by 5.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20574,
+          "races": [
+            "horde-orc"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+              "type": "secondary_news_text"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2872270491?t=4h52m13s",
+              "type": "stream_capture",
+              "title": "Savix's stream, Axe Specialization tooltip",
+              "author": "Savix",
+              "videoTimestamp": "4:52:13"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20574",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Axe Specialization"
+            }
+          ]
+        },
+        {
+          "id": "racial-orc-blood-fury",
+          "name": "Blood Fury",
+          "icon": "racial_orc_berserkerstrength",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "2 min cooldown"
+          },
+          "forever": "Increases Attack Power and Spell Power by 10% for 15 sec.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Blood Fury",
+            "text": "Instant, 2 min cooldown. Increases base melee attack power by 25% for 15 sec and reduces healing effects on you by 50% for 25 sec.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20572,
+          "races": [
+            "horde-orc"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2872270491?t=4h51m53s",
+              "type": "stream_capture",
+              "title": "Savix's stream, Blood Fury tooltip",
+              "author": "Savix",
+              "videoTimestamp": "4:51:53"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20572",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Blood Fury"
+            }
+          ]
+        },
+        {
+          "id": "racial-orc-shatter-curse",
+          "name": "Shatter Curse",
+          "icon": "spell_shadow_curseofachimonde",
+          "changeKind": "reported",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "3 min cooldown"
+          },
+          "forever": "Instantly removes and grants immunity to all Curses and Banes, and reduces all Magical damage taken by 15% for 8 sec.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "not_listed",
+            "name": null,
+            "text": null,
+            "otherRaces": []
+          },
+          "classicSpellId": null,
+          "races": [
+            "horde-orc"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2872270491?t=4h51m44s",
+              "type": "stream_capture",
+              "title": "Savix's stream, Shatter Curse tooltip",
+              "author": "Savix",
+              "videoTimestamp": "4:51:44"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/race=2/orc",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Orc racials"
+            }
+          ]
+        },
+        {
+          "id": "racial-orc-hardiness",
+          "name": "Hardiness",
+          "icon": "inv_helmet_23",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Duration of Stun effects on you reduced by 20%.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Hardiness",
+            "text": "Chance to resist Stun effects increased by an additional 25%.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20573,
+          "races": [
+            "horde-orc"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2872270491?t=4h53m40s",
+              "type": "stream_capture",
+              "title": "Savix's stream, Hardiness tooltip",
+              "author": "Savix",
+              "videoTimestamp": "4:53:40"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20573",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Hardiness"
+            }
+          ]
+        }
+      ],
+      "reportedRemovals": [
+        {
+          "name": "Command",
+          "status": "secondary_report_not_directly_verified",
+          "sources": [
+            "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+          "type": "secondary_report",
+          "author": "Wowhead",
+          "retrievedAt": "2026-09-13"
+        }
+      ]
+    },
+    {
+      "id": "horde-undead",
+      "name": "Undead",
+      "baseName": "Undead",
+      "faction": "Horde",
+      "icon": "race_scourge_male",
+      "newInForever": false,
+      "classes": {
+        "forever": [
+          "warrior",
+          "mage",
+          "rogue",
+          "priest",
+          "warlock",
+          "paladin"
+        ],
+        "classic": [
+          "warrior",
+          "mage",
+          "rogue",
+          "priest",
+          "warlock"
+        ],
+        "addedInForever": [
+          "paladin"
+        ],
+        "removedInForever": []
+      },
+      "classAvailabilityStatus": "reported_compatibility",
+      "compatibilityConflicts": [],
+      "racials": [
+        {
+          "id": "racial-undead-will-of-the-forsaken",
+          "name": "Will of the Forsaken",
+          "icon": "spell_shadow_raisedead",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "2 min cooldown"
+          },
+          "forever": "Instantly removes all Charm, Fear and Sleep effects.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Will of the Forsaken",
+            "text": "Instant, 2 min cooldown. Provides immunity to Charm, Fear and Sleep while active. May also be used while already afflicted by Charm, Fear or Sleep. Lasts 5 sec.",
+            "otherRaces": []
+          },
+          "classicSpellId": 7744,
+          "races": [
+            "horde-undead"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2873254366?t=1h08m25s",
+              "type": "stream_capture",
+              "title": "Deep Dive panel slide (Blizzard VOD, 13 Sep), Will of the Forsaken tooltip",
+              "author": "Blizzard",
+              "videoTimestamp": "1:08:25"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=7744",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Will of the Forsaken"
+            }
+          ]
+        },
+        {
+          "id": "racial-undead-cannibalize",
+          "name": "Cannibalize",
+          "icon": "ability_racial_cannibalize",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": false,
+          "tooltip": {
+            "range": "5 yd range",
+            "castTime": "Instant",
+            "cooldown": "2 min cooldown"
+          },
+          "forever": "When activated, regenerates 7% of total Health and 7% of total Mana every 2 sec for 10 sec. Only works on Humanoid or Undead corpses within 5 yds. Any movement, action, or damage taken while Cannibalizing will cancel the effect.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Cannibalize",
+            "text": "Instant, 2 min cooldown. When activated, regenerates 7% of total health every 2 sec for 10 sec. Only works on Humanoid or Undead corpses within 5 yds. Any movement, action, or damage taken while Cannibalizing will cancel the effect.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20577,
+          "races": [
+            "horde-undead"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2873254366?t=1h08m25s",
+              "type": "stream_capture",
+              "title": "Deep Dive panel slide (Blizzard VOD, 13 Sep), Cannibalize tooltip",
+              "author": "Blizzard",
+              "videoTimestamp": "1:08:25"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20577",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Cannibalize"
+            }
+          ]
+        },
+        {
+          "id": "racial-undead-underwater-breathing",
+          "name": "Underwater Breathing",
+          "icon": "spell_shadow_demonbreath",
+          "changeKind": "unchanged",
+          "displayKind": "unchanged",
+          "changeLabel": "Unchanged",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Underwater breath lasts 300% longer than normal.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Underwater Breathing",
+            "text": "Underwater breath lasts 300% longer than normal.",
+            "otherRaces": []
+          },
+          "classicSpellId": 5227,
+          "races": [
+            "horde-undead"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=5227",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Underwater Breathing"
+            }
+          ]
+        },
+        {
+          "id": "racial-undead-touch-of-the-grave",
+          "name": "Touch of the Grave",
+          "icon": "spell_shadow_deathpact",
+          "changeKind": "reported",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Warrior, Paladin, Rogue: Your spells and attacks have a 5% chance to drain Health from the target, up to 5% of your maximum Health.\nPriest, Mage, Warlock: Your spells and attacks have a 10% chance to drain Health from the target, up to 5% of your maximum Health.",
+          "foreverByClass": {
+            "warrior": "Your spells and attacks have a 5% chance to drain Health from the target, up to 5% of your maximum Health.",
+            "mage": "Your spells and attacks have a 10% chance to drain Health from the target, up to 5% of your maximum Health.",
+            "rogue": "Your spells and attacks have a 5% chance to drain Health from the target, up to 5% of your maximum Health.",
+            "priest": "Your spells and attacks have a 10% chance to drain Health from the target, up to 5% of your maximum Health.",
+            "warlock": "Your spells and attacks have a 10% chance to drain Health from the target, up to 5% of your maximum Health.",
+            "paladin": "Your spells and attacks have a 5% chance to drain Health from the target, up to 5% of your maximum Health."
+          },
+          "classic": {
+            "status": "not_listed",
+            "name": null,
+            "text": null,
+            "otherRaces": []
+          },
+          "classicSpellId": null,
+          "races": [
+            "horde-undead"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2873254366?t=1h08m25s",
+              "type": "stream_capture",
+              "title": "Deep Dive panel slide (Blizzard VOD, 13 Sep), Touch of the Grave tooltip",
+              "author": "Blizzard",
+              "videoTimestamp": "1:08:25"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/race=5/undead",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Undead racials"
+            }
+          ]
+        }
+      ],
+      "reportedRemovals": [
+        {
+          "name": "Shadow Resistance",
+          "status": "secondary_report_not_directly_verified",
+          "sources": [
+            "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+          "type": "secondary_report",
+          "author": "Wowhead",
+          "retrievedAt": "2026-09-13"
+        }
+      ]
+    },
+    {
+      "id": "horde-tauren",
+      "name": "Tauren",
+      "baseName": "Tauren",
+      "faction": "Horde",
+      "icon": "race_tauren_male",
+      "newInForever": false,
+      "classes": {
+        "forever": [
+          "warrior",
+          "hunter",
+          "druid",
+          "shaman"
+        ],
+        "classic": [
+          "warrior",
+          "hunter",
+          "druid",
+          "shaman"
+        ],
+        "addedInForever": [],
+        "removedInForever": []
+      },
+      "classAvailabilityStatus": "reported_compatibility",
+      "compatibilityConflicts": [],
+      "racials": [
+        {
+          "id": "racial-tauren-cultivation",
+          "name": "Cultivation",
+          "icon": "inv_misc_flower_02",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "1 hr cooldown"
+          },
+          "forever": "Cultivate a nearby herb, growing a duplicate you can harvest without requiring Herbalism skill. Each herb may only be cultivated once.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Cultivation",
+            "text": "Herbalism skill increased by 15.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20552,
+          "races": [
+            "horde-tauren"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+              "type": "secondary_news_text"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20552",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Cultivation"
+            }
+          ]
+        },
+        {
+          "id": "racial-tauren-war-stomp",
+          "name": "War Stomp",
+          "icon": "ability_warstomp",
+          "changeKind": "unchanged",
+          "displayKind": "unchanged",
+          "changeLabel": "Unchanged",
+          "passive": false,
+          "tooltip": {
+            "castTime": "0.5 sec cast",
+            "cooldown": "2 min cooldown"
+          },
+          "forever": "Stuns up to 5 enemies within 8 yds for 2 sec.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "War Stomp",
+            "text": "0.5 sec cast, 2 min cooldown. Stuns up to 5 enemies within 8 yds for 2 sec.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20549,
+          "races": [
+            "horde-tauren"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20549",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · War Stomp"
+            }
+          ]
+        },
+        {
+          "id": "racial-tauren-plainsrunning",
+          "name": "Plainsrunning",
+          "icon": "inv_misc_foot_centaur",
+          "changeKind": "reported",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Gain 1% increased movement speed every 5 sec spent moving, up to a maximum of 30% increase. Taking damage or standing still will reduce this effect.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "not_listed",
+            "name": null,
+            "text": null,
+            "otherRaces": []
+          },
+          "classicSpellId": null,
+          "races": [
+            "horde-tauren"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/race=6/tauren",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Tauren racials"
+            }
+          ]
+        },
+        {
+          "id": "racial-tauren-endurance",
+          "name": "Endurance",
+          "icon": "spell_nature_unyeildingstamina",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Total Health increased by 5% and chance to hit increased by 1%.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Endurance",
+            "text": "Total Health increased by 5%.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20550,
+          "races": [
+            "horde-tauren"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20550",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Endurance"
+            }
+          ]
+        }
+      ],
+      "reportedRemovals": [
+        {
+          "name": "Nature Resistance",
+          "status": "secondary_report_not_directly_verified",
+          "sources": [
+            "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+          "type": "secondary_report",
+          "author": "Wowhead",
+          "retrievedAt": "2026-09-13"
+        }
+      ]
+    },
+    {
+      "id": "horde-troll",
+      "name": "Troll",
+      "baseName": "Troll",
+      "faction": "Horde",
+      "icon": "race_troll_male",
+      "newInForever": false,
+      "classes": {
+        "forever": [
+          "warrior",
+          "hunter",
+          "mage",
+          "rogue",
+          "priest",
+          "warlock",
+          "shaman"
+        ],
+        "classic": [
+          "warrior",
+          "hunter",
+          "mage",
+          "rogue",
+          "priest",
+          "shaman"
+        ],
+        "addedInForever": [
+          "warlock"
+        ],
+        "removedInForever": []
+      },
+      "classAvailabilityStatus": "reported_compatibility",
+      "compatibilityConflicts": [],
+      "racials": [
+        {
+          "id": "racial-troll-berserking",
+          "name": "Berserking",
+          "icon": "racial_troll_berserk",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "3 min cooldown"
+          },
+          "forever": "Increases your spellcasting and attack speed by 10%.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Berserking",
+            "text": "Instant, 3 min cooldown. Increases your casting and attack speed by 10% to 30%. At full health the speed increase is 10% with a greater effect up to 30% if you are badly hurt when you activate Berserking. Lasts 10 sec.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20554,
+          "races": [
+            "horde-troll"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20554",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Berserking"
+            }
+          ]
+        },
+        {
+          "id": "racial-troll-rapid-regeneration",
+          "name": "Rapid Regeneration",
+          "icon": "spell_nature_regenerate",
+          "changeKind": "reported",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": false,
+          "tooltip": {
+            "castTime": "Channeled",
+            "cooldown": "3 min cooldown"
+          },
+          "forever": "Regenerate 50% of your maximum Health over 6 sec. Any movement, action, or damage taken will cancel the effect.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "not_listed",
+            "name": null,
+            "text": null,
+            "otherRaces": []
+          },
+          "classicSpellId": null,
+          "races": [
+            "horde-troll"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/race=8/troll",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Troll racials"
+            }
+          ]
+        },
+        {
+          "id": "racial-troll-beast-slaying",
+          "name": "Beast Slaying",
+          "icon": "inv_misc_pelt_bear_03",
+          "changeKind": "unchanged",
+          "displayKind": "unchanged",
+          "changeLabel": "Unchanged",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Damage dealt versus Beasts increased by 5%.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Beast Slaying",
+            "text": "Damage dealt versus Beasts increased by 5%.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20557,
+          "races": [
+            "horde-troll"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20557",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Beast Slaying"
+            }
+          ]
+        },
+        {
+          "id": "racial-troll-regeneration",
+          "name": "Regeneration",
+          "icon": "spell_nature_regeneration",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Health regeneration rate increased by 10%. In addition, 10% of total Health regeneration will continue during combat.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Regeneration",
+            "text": "Health regeneration rate increased by 10%. 10% of total Health regeneration may continue during combat.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20555,
+          "races": [
+            "horde-troll"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20555",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Regeneration"
+            }
+          ]
+        }
+      ],
+      "reportedRemovals": [
+        {
+          "name": "Bow Specialization",
+          "status": "secondary_report_not_directly_verified",
+          "sources": [
+            "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847"
+          ]
+        },
+        {
+          "name": "Throwing Specialization",
+          "status": "secondary_report_not_directly_verified",
+          "sources": [
+            "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+          "type": "secondary_report",
+          "author": "Wowhead",
+          "retrievedAt": "2026-09-13"
+        }
+      ]
+    },
+    {
+      "id": "horde-skyborne-windshaper",
+      "name": "Skyborne (Windshaper)",
+      "baseName": "Skyborne",
+      "faction": "Horde",
+      "icon": "inv_misc_head_elf_02",
+      "newInForever": true,
+      "classes": {
+        "forever": [
+          "warrior",
+          "hunter",
+          "rogue",
+          "druid",
+          "shaman"
+        ],
+        "classic": null,
+        "addedInForever": [
+          "warrior",
+          "hunter",
+          "rogue",
+          "druid",
+          "shaman"
+        ],
+        "removedInForever": []
+      },
+      "classAvailabilityStatus": "reported_compatibility",
+      "compatibilityConflicts": [],
+      "racials": [
+        {
+          "id": "racial-skyborne-both-factions-walk-on-air",
+          "name": "Walk on Air",
+          "icon": "ability_druid_flightform",
+          "changeKind": "added",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "2 min cooldown"
+          },
+          "forever": "Glide downward through the air for 10 sec while controlling your direction of travel.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "absent",
+            "name": null,
+            "text": null,
+            "otherRaces": []
+          },
+          "classicSpellId": null,
+          "races": [
+            "horde-skyborne-windshaper",
+            "alliance-skyborne-high-order"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+              "type": "secondary_news_text"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2872270491?t=5h22m01s",
+              "type": "stream_capture",
+              "title": "Savix's stream, Walk on Air tooltip",
+              "author": "Savix",
+              "videoTimestamp": "5:22:01"
+            }
+          ]
+        },
+        {
+          "id": "racial-windshaper-skyborne-skysight",
+          "name": "Skysight",
+          "icon": "ability_hunter_pathfinding",
+          "changeKind": "added",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": false,
+          "tooltip": {
+            "castTime": "0.5 sec cast",
+            "cooldown": "2 min cooldown"
+          },
+          "forever": "Attempt to draw power from a convergence of elements and receive its blessing, increasing your movement and mounted movement speeds by 10%. Lasts 30 sec if no elemental convergence is nearby, and 15 min if one is found.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "absent",
+            "name": null,
+            "text": null,
+            "otherRaces": []
+          },
+          "classicSpellId": null,
+          "races": [
+            "horde-skyborne-windshaper"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+              "type": "secondary_news_text"
+            }
+          ]
+        },
+        {
+          "id": "racial-skyborne-both-factions-wind-blessed",
+          "name": "Wind Blessed",
+          "icon": "spell_nature_windfury",
+          "changeKind": "added",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Increases your spellcasting, melee, and ranged Haste by 1%.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "absent",
+            "name": null,
+            "text": null,
+            "otherRaces": []
+          },
+          "classicSpellId": null,
+          "races": [
+            "horde-skyborne-windshaper",
+            "alliance-skyborne-high-order"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+              "type": "secondary_news_text"
+            }
+          ]
+        },
+        {
+          "id": "racial-skyborne-both-factions-elemental-insight",
+          "name": "Elemental Insight",
+          "icon": "spell_nature_elementalabsorption",
+          "changeKind": "added",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Damage dealt versus Elementals increased by 5%.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "absent",
+            "name": null,
+            "text": null,
+            "otherRaces": []
+          },
+          "classicSpellId": null,
+          "races": [
+            "horde-skyborne-windshaper",
+            "alliance-skyborne-high-order"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+              "type": "secondary_news_text"
+            }
+          ]
+        }
+      ],
+      "reportedRemovals": [],
+      "sources": [
+        {
+          "url": "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+          "type": "secondary_report",
+          "author": "Wowhead",
+          "retrievedAt": "2026-09-13"
+        }
+      ]
+    },
+    {
+      "id": "alliance-human",
+      "name": "Human",
+      "baseName": "Human",
+      "faction": "Alliance",
+      "icon": "race_human_male",
+      "newInForever": false,
+      "classes": {
+        "forever": [
+          "warrior",
+          "hunter",
+          "mage",
+          "rogue",
+          "priest",
+          "warlock",
+          "paladin"
+        ],
+        "classic": [
+          "warrior",
+          "mage",
+          "rogue",
+          "priest",
+          "warlock",
+          "paladin"
+        ],
+        "addedInForever": [
+          "hunter"
+        ],
+        "removedInForever": []
+      },
+      "classAvailabilityStatus": "reported_compatibility",
+      "compatibilityConflicts": [],
+      "racials": [
+        {
+          "id": "racial-human-will-to-survive",
+          "name": "Will to Survive",
+          "icon": "spell_holy_blessingofprotection",
+          "changeKind": "reported",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "3 min cooldown"
+          },
+          "forever": "Instantly removes all Stun effects.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "not_listed",
+            "name": null,
+            "text": null,
+            "otherRaces": []
+          },
+          "classicSpellId": null,
+          "races": [
+            "alliance-human"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2872270491?t=5h07m04s",
+              "type": "stream_capture",
+              "title": "Savix's stream, Will to Survive tooltip",
+              "author": "Savix",
+              "videoTimestamp": "5:07:04"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/race=1/human",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Human racials"
+            }
+          ]
+        },
+        {
+          "id": "racial-human-perception",
+          "name": "Perception",
+          "icon": "spell_nature_sleep",
+          "changeKind": "unchanged",
+          "displayKind": "unchanged",
+          "changeLabel": "Unchanged",
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "3 min cooldown"
+          },
+          "forever": "Dramatically increases stealth detection for 20 sec.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Perception",
+            "text": "Instant, 3 min cooldown. Dramatically increases stealth detection for 20 sec.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20600,
+          "races": [
+            "alliance-human"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2872270491?t=5h07m07s",
+              "type": "stream_capture",
+              "title": "Savix's stream, Perception tooltip",
+              "author": "Savix",
+              "videoTimestamp": "5:07:07"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20600",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Perception"
+            }
+          ]
+        },
+        {
+          "id": "racial-human-sword-specialization",
+          "name": "Sword Specialization",
+          "icon": "inv_sword_27",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Increases your critical strike chance with all spells and attacks by 2% while you have a sword or two-handed sword equipped.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Sword Specialization",
+            "text": "Skill with Swords and Two-Handed Swords increased by 5.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20597,
+          "races": [
+            "alliance-human"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20597",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Sword Specialization"
+            }
+          ]
+        },
+        {
+          "id": "racial-human-the-human-spirit",
+          "name": "The Human Spirit",
+          "icon": "inv_enchant_shardbrilliantsmall",
+          "changeKind": "unchanged",
+          "displayKind": "unchanged",
+          "changeLabel": "Unchanged",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Spirit increased by 5%.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "The Human Spirit",
+            "text": "Spirit increased by 5%.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20598,
+          "races": [
+            "alliance-human"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20598",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · The Human Spirit"
+            }
+          ]
+        }
+      ],
+      "reportedRemovals": [
+        {
+          "name": "Diplomacy",
+          "status": "secondary_report_not_directly_verified",
+          "sources": [
+            "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847"
+          ]
+        },
+        {
+          "name": "Mace Specialization",
+          "status": "secondary_report_not_directly_verified",
+          "sources": [
+            "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+          "type": "secondary_report",
+          "author": "Wowhead",
+          "retrievedAt": "2026-09-13"
+        }
+      ]
+    },
+    {
+      "id": "alliance-dwarf",
+      "name": "Dwarf",
+      "baseName": "Dwarf",
+      "faction": "Alliance",
+      "icon": "race_dwarf_male",
+      "newInForever": false,
+      "classes": {
+        "forever": [
+          "warrior",
+          "hunter",
+          "rogue",
+          "priest",
+          "paladin",
+          "shaman"
+        ],
+        "classic": [
+          "warrior",
+          "hunter",
+          "rogue",
+          "priest",
+          "paladin"
+        ],
+        "addedInForever": [
+          "shaman"
+        ],
+        "removedInForever": []
+      },
+      "classAvailabilityStatus": "reported_compatibility",
+      "compatibilityConflicts": [],
+      "racials": [
+        {
+          "id": "racial-dwarf-stoneform",
+          "name": "Stoneform",
+          "icon": "spell_shadow_unholystrength",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "3 min cooldown"
+          },
+          "forever": "Instantly removes and grants immunity to all Bleed, Poison, and Disease effects, and reduces all Physical damage taken by 10% for 8 sec.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Stoneform",
+            "text": "Instant, 3 min cooldown. While active, grants immunity to Bleed, Poison, and Disease effects. In addition, Armor increased by 10%. Lasts 8 sec.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20594,
+          "races": [
+            "alliance-dwarf"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2873254366?t=1h06m50s",
+              "type": "stream_capture",
+              "title": "Deep Dive panel slide (Blizzard VOD, 13 Sep), Stoneform tooltip",
+              "author": "Blizzard",
+              "videoTimestamp": "1:06:50"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20594",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Stoneform"
+            }
+          ]
+        },
+        {
+          "id": "racial-dwarf-find-treasure",
+          "name": "Find Treasure",
+          "icon": "racial_dwarf_findtreasure",
+          "changeKind": "unchanged",
+          "displayKind": "unchanged",
+          "changeLabel": "Unchanged",
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant"
+          },
+          "forever": "Allows the dwarf to sense nearby treasure, making it appear on the minimap. Lasts until cancelled.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Find Treasure",
+            "text": "Instant. Allows the dwarf to sense nearby treasure, making it appear on the minimap. Lasts until cancelled.",
+            "otherRaces": []
+          },
+          "classicSpellId": 2481,
+          "races": [
+            "alliance-dwarf"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2873254366?t=1h06m50s",
+              "type": "stream_capture",
+              "title": "Deep Dive panel slide (Blizzard VOD, 13 Sep), Find Treasure tooltip",
+              "author": "Blizzard",
+              "videoTimestamp": "1:06:50"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=2481",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Find Treasure"
+            }
+          ]
+        },
+        {
+          "id": "racial-dwarf-mace-specialization",
+          "name": "Mace Specialization",
+          "icon": "inv_mace_01",
+          "changeKind": "reported",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Increases your critical strike chance with all spells and attacks by 1% while you have a mace or two-handed mace equipped.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "not_listed",
+            "name": null,
+            "text": null,
+            "otherRaces": [
+              {
+                "race": "Human",
+                "text": "Skill with Maces and Two-Handed Maces increased by 5."
+              }
+            ]
+          },
+          "classicSpellId": null,
+          "races": [
+            "alliance-dwarf"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/race=3/dwarf",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Dwarf racials"
+            }
+          ]
+        },
+        {
+          "id": "racial-dwarf-big-game-hunter",
+          "name": "Big Game Hunter",
+          "icon": "inv_misc_pelt_wolf_01",
+          "changeKind": "reported",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Damage dealt versus Beasts increased by 5%.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "not_listed",
+            "name": null,
+            "text": null,
+            "otherRaces": []
+          },
+          "classicSpellId": null,
+          "races": [
+            "alliance-dwarf"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/race=3/dwarf",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Dwarf racials"
+            }
+          ]
+        }
+      ],
+      "reportedRemovals": [
+        {
+          "name": "Frost Resistance",
+          "status": "secondary_report_not_directly_verified",
+          "sources": [
+            "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847"
+          ]
+        },
+        {
+          "name": "Gun Specialization",
+          "status": "secondary_report_not_directly_verified",
+          "sources": [
+            "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+          "type": "secondary_report",
+          "author": "Wowhead",
+          "retrievedAt": "2026-09-13"
+        }
+      ]
+    },
+    {
+      "id": "alliance-night-elf",
+      "name": "Night Elf",
+      "baseName": "Night Elf",
+      "faction": "Alliance",
+      "icon": "race_nightelf_male",
+      "newInForever": false,
+      "classes": {
+        "forever": [
+          "warrior",
+          "hunter",
+          "rogue",
+          "priest",
+          "druid"
+        ],
+        "classic": [
+          "warrior",
+          "hunter",
+          "rogue",
+          "priest",
+          "druid"
+        ],
+        "addedInForever": [],
+        "removedInForever": []
+      },
+      "classAvailabilityStatus": "reported_compatibility",
+      "compatibilityConflicts": [],
+      "racials": [
+        {
+          "id": "racial-night-elf-elune-s-light",
+          "name": "Elune's Light",
+          "icon": "spell_holy_elunesgrace",
+          "changeKind": "reported",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "3 min cooldown"
+          },
+          "forever": "Increases your critical strike chance with all spells and attacks by 10% for 15 sec.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "not_listed",
+            "name": null,
+            "text": null,
+            "otherRaces": []
+          },
+          "classicSpellId": null,
+          "races": [
+            "alliance-night-elf"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2872270491?t=5h13m12s",
+              "type": "stream_capture",
+              "title": "Savix's stream, Elune's Light tooltip",
+              "author": "Savix",
+              "videoTimestamp": "5:13:12"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/race=4/night-elf",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Night Elf racials"
+            }
+          ]
+        },
+        {
+          "id": "racial-night-elf-shadowmeld",
+          "name": "Shadowmeld",
+          "icon": "ability_ambush",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "10 sec cooldown"
+          },
+          "forever": "Activate to slip into the shadows, reducing the chance for enemies to detect your presence. Lasts until cancelled or upon moving. Using this ability in combat discourages enemies from attacking you, but increases the cooldown to 2 min.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Shadowmeld",
+            "text": "Instant, 10 sec cooldown. Activate to slip into the shadows, reducing the chance for enemies to detect your presence. Lasts until cancelled or upon moving. Night Elf Rogues and Druids with Shadowmeld are more difficult to detect while stealthed or prowling.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20580,
+          "races": [
+            "alliance-night-elf"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [
+            {
+              "type": "additional_report",
+              "reported": "Threat returns when the effect ends if enemies remain in combat.",
+              "sources": [
+                "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847"
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2872270491?t=5h01m30s",
+              "type": "stream_capture",
+              "title": "Savix's stream, Shadowmeld tooltip",
+              "author": "Savix",
+              "videoTimestamp": "5:01:30"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20580",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Shadowmeld"
+            }
+          ]
+        },
+        {
+          "id": "racial-night-elf-quickness",
+          "name": "Quickness",
+          "icon": "spell_magic_lesserinvisibilty",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Dodge chance increased by 1% and movement speed increased by 2%. Night Elf Rogues and Druids are harder to detect in Stealth as if they were 1 level higher.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Quickness",
+            "text": "Dodge chance increased by 1%.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20582,
+          "races": [
+            "alliance-night-elf"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20582",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Quickness"
+            }
+          ]
+        },
+        {
+          "id": "racial-night-elf-wisp-spirit",
+          "name": "Wisp Spirit",
+          "icon": "spell_nature_wispsplode",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Transform into a wisp upon death, increasing movement speed by 75%.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Wisp Spirit",
+            "text": "Transform into a wisp upon death, increasing speed by 50%.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20585,
+          "races": [
+            "alliance-night-elf"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20585",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Wisp Spirit"
+            }
+          ]
+        }
+      ],
+      "reportedRemovals": [
+        {
+          "name": "Nature Resistance",
+          "status": "secondary_report_not_directly_verified",
+          "sources": [
+            "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+          "type": "secondary_report",
+          "author": "Wowhead",
+          "retrievedAt": "2026-09-13"
+        }
+      ]
+    },
+    {
+      "id": "alliance-gnome",
+      "name": "Gnome",
+      "baseName": "Gnome",
+      "faction": "Alliance",
+      "icon": "race_gnome_male",
+      "newInForever": false,
+      "classes": {
+        "forever": [
+          "warrior",
+          "mage",
+          "rogue",
+          "priest",
+          "warlock"
+        ],
+        "classic": [
+          "warrior",
+          "mage",
+          "rogue",
+          "warlock"
+        ],
+        "addedInForever": [
+          "priest"
+        ],
+        "removedInForever": []
+      },
+      "classAvailabilityStatus": "reported_compatibility",
+      "compatibilityConflicts": [],
+      "racials": [
+        {
+          "id": "racial-gnome-expansive-mind",
+          "name": "Expansive Mind",
+          "icon": "inv_enchant_essenceeternallarge",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Priest, Mage, Warlock: Maximum Mana increased by 5%.\nRogue: Maximum Energy increased by 5%.\nWarrior: Maximum Rage increased by 5%.",
+          "foreverByClass": {
+            "warrior": "Maximum Rage increased by 5%.",
+            "mage": "Maximum Mana increased by 5%.",
+            "rogue": "Maximum Energy increased by 5%.",
+            "priest": "Maximum Mana increased by 5%.",
+            "warlock": "Maximum Mana increased by 5%."
+          },
+          "classic": {
+            "status": "verified",
+            "name": "Expansive Mind",
+            "text": "Intelligence increased by 5%.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20591,
+          "races": [
+            "alliance-gnome"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+              "type": "secondary_news_text"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20591",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Expansive Mind"
+            }
+          ]
+        },
+        {
+          "id": "racial-gnome-eureka",
+          "name": "Eureka!",
+          "icon": "inv_gizmo_02",
+          "changeKind": "added",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "2 min cooldown"
+          },
+          "forever": "Rogue: Your next 3 damaging abilities have their Energy cost reduced by 20% and deal 10% more damage.\nWarlock, Mage: Your next 3 damaging abilities have their Mana cost reduced by 50% and deal 10% more damage.\nPriest: Your next 3 damaging or healing abilities have their Mana cost reduced by 15% and deal 10% more damage or healing.\nWarrior: Your next 3 damaging abilities have their Rage cost reduced by 40% and deal 10% more damage.",
+          "foreverByClass": {
+            "warrior": "Your next 3 damaging abilities have their Rage cost reduced by 40% and deal 10% more damage.",
+            "mage": "Your next 3 damaging abilities have their Mana cost reduced by 50% and deal 10% more damage.",
+            "rogue": "Your next 3 damaging abilities have their Energy cost reduced by 20% and deal 10% more damage.",
+            "priest": "Your next 3 damaging or healing abilities have their Mana cost reduced by 15% and deal 10% more damage or healing.",
+            "warlock": "Your next 3 damaging abilities have their Mana cost reduced by 50% and deal 10% more damage."
+          },
+          "classic": {
+            "status": "not_listed",
+            "name": null,
+            "text": null,
+            "otherRaces": []
+          },
+          "classicSpellId": null,
+          "races": [
+            "alliance-gnome"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+              "type": "secondary_news_text"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2872270692?t=6h08m44s",
+              "type": "stream_capture",
+              "title": "Xaryu's stream, Eureka! tooltip",
+              "author": "Xaryu",
+              "videoTimestamp": "6:08:44"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/race=7/gnome",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Gnome racials"
+            }
+          ]
+        },
+        {
+          "id": "racial-gnome-escape-artist",
+          "name": "Escape Artist",
+          "icon": "ability_rogue_trip",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "2 min cooldown"
+          },
+          "forever": "Instantly escape the effects of any movement impairing effect and gain immunity to those effects for 3 sec.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Escape Artist",
+            "text": "0.5 sec cast, 1 min cooldown. Escape the effects of any immobilization or movement speed reduction effect.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20589,
+          "races": [
+            "alliance-gnome"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [
+            {
+              "type": "conflict",
+              "reported": "Removes roots and movement slows.",
+              "existing": "Brief immunity to Roots and Snares.",
+              "sources": [
+                "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847"
+              ]
+            }
+          ],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20589",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Escape Artist"
+            }
+          ]
+        },
+        {
+          "id": "racial-gnome-engineering-specialization",
+          "name": "Engineering Specialization",
+          "icon": "inv_misc_gear_01",
+          "changeKind": "modified",
+          "displayKind": "modified",
+          "changeLabel": "Changed",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Your gnomish ingenuity reduces the rate of engineering devices failing or backfiring when you use them by 20%.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "verified",
+            "name": "Engineering Specialization",
+            "text": "Engineering skill increased by 15.",
+            "otherRaces": []
+          },
+          "classicSpellId": 20593,
+          "races": [
+            "alliance-gnome"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "verified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/classic/spell=20593",
+              "type": "classic_baseline",
+              "label": "Wowhead Classic · Engineering Specialization"
+            }
+          ]
+        }
+      ],
+      "reportedRemovals": [
+        {
+          "name": "Arcane Resistance",
+          "status": "secondary_report_not_directly_verified",
+          "sources": [
+            "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847"
+          ]
+        }
+      ],
+      "sources": [
+        {
+          "url": "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+          "type": "secondary_report",
+          "author": "Wowhead",
+          "retrievedAt": "2026-09-13"
+        }
+      ]
+    },
+    {
+      "id": "alliance-skyborne-high-order",
+      "name": "Skyborne (High Order)",
+      "baseName": "Skyborne",
+      "faction": "Alliance",
+      "icon": "inv_misc_head_elf_01",
+      "newInForever": true,
+      "classes": {
+        "forever": [
+          "warrior",
+          "hunter",
+          "mage",
+          "rogue",
+          "druid"
+        ],
+        "classic": null,
+        "addedInForever": [
+          "warrior",
+          "hunter",
+          "mage",
+          "rogue",
+          "druid"
+        ],
+        "removedInForever": []
+      },
+      "classAvailabilityStatus": "reported_compatibility",
+      "compatibilityConflicts": [],
+      "racials": [
+        {
+          "id": "racial-skyborne-both-factions-walk-on-air",
+          "name": "Walk on Air",
+          "icon": "ability_druid_flightform",
+          "changeKind": "added",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": false,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "2 min cooldown"
+          },
+          "forever": "Glide downward through the air for 10 sec while controlling your direction of travel.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "absent",
+            "name": null,
+            "text": null,
+            "otherRaces": []
+          },
+          "classicSpellId": null,
+          "races": [
+            "horde-skyborne-windshaper",
+            "alliance-skyborne-high-order"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+              "type": "secondary_news_text"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2872270491?t=5h22m01s",
+              "type": "stream_capture",
+              "title": "Savix's stream, Walk on Air tooltip",
+              "author": "Savix",
+              "videoTimestamp": "5:22:01"
+            }
+          ]
+        },
+        {
+          "id": "racial-high-order-skyborne-read-ley-line",
+          "name": "Read Ley Line",
+          "icon": "spell_arcane_arcane04",
+          "changeKind": "added",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": false,
+          "tooltip": {
+            "castTime": "2 sec cast",
+            "cooldown": "2 min cooldown"
+          },
+          "forever": "Attempt to tap into the power of a nearby ley line, increasing your Health and Mana regeneration by 100%. Lasts 15 sec if no ley line is nearby, and 15 min if one is found.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "absent",
+            "name": null,
+            "text": null,
+            "otherRaces": []
+          },
+          "classicSpellId": null,
+          "races": [
+            "alliance-skyborne-high-order"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+              "type": "secondary_news_text"
+            },
+            {
+              "url": "https://www.twitch.tv/videos/2872270491?t=5h22m07s",
+              "type": "stream_capture",
+              "title": "Savix's stream, Read Ley Line tooltip",
+              "author": "Savix",
+              "videoTimestamp": "5:22:07"
+            }
+          ]
+        },
+        {
+          "id": "racial-skyborne-both-factions-wind-blessed",
+          "name": "Wind Blessed",
+          "icon": "spell_nature_windfury",
+          "changeKind": "added",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Increases your spellcasting, melee, and ranged Haste by 1%.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "absent",
+            "name": null,
+            "text": null,
+            "otherRaces": []
+          },
+          "classicSpellId": null,
+          "races": [
+            "horde-skyborne-windshaper",
+            "alliance-skyborne-high-order"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+              "type": "secondary_news_text"
+            }
+          ]
+        },
+        {
+          "id": "racial-skyborne-both-factions-elemental-insight",
+          "name": "Elemental Insight",
+          "icon": "spell_nature_elementalabsorption",
+          "changeKind": "added",
+          "displayKind": "added",
+          "changeLabel": "New",
+          "passive": true,
+          "tooltip": null,
+          "forever": "Damage dealt versus Elementals increased by 5%.",
+          "foreverByClass": null,
+          "classic": {
+            "status": "absent",
+            "name": null,
+            "text": null,
+            "otherRaces": []
+          },
+          "classicSpellId": null,
+          "races": [
+            "horde-skyborne-windshaper",
+            "alliance-skyborne-high-order"
+          ],
+          "evidenceStatus": "client_data",
+          "comparisonStatus": "unverified",
+          "discoveredAt": "2026-09-13",
+          "notes": [],
+          "sources": [
+            {
+              "url": "https://wago.tools/db2/SkillLineAbility?build=1.60.1.69913",
+              "type": "client_data",
+              "title": "WoW Forever beta client, build 1.60.1.69913"
+            },
+            {
+              "url": "https://www.wowhead.com/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+              "type": "secondary_news_text"
+            }
+          ]
+        }
+      ],
+      "reportedRemovals": [],
+      "sources": [
+        {
+          "url": "https://www.wowhead.com/forever/news/racials-for-skyborne-in-forever-and-racial-changes-to-existing-races-382847",
+          "type": "secondary_report",
+          "author": "Wowhead",
+          "retrievedAt": "2026-09-13"
+        }
+      ]
+    }
+  ]
+}

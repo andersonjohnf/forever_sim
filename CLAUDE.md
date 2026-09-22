@@ -1,12 +1,42 @@
 # forever_sim
 
-DPS/TPS simulator for level-60 Warriors, Feral Druids and Paladins in **WoW Forever**, used by
-one guild during the beta until wowsims supports Forever. Keep it **simple-ish**. It's a
+DPS/TPS simulator for level-60 Warriors, Feral Druids and Paladins in **WoW Forever**. It's a
 static Vite + React + TypeScript + shadcn/ui app on GitHub Pages with no server.
+
+**The bar:** the best Forever sim we can build with the data we have, with a clean, modern UX
+that works great on mobile and desktop. wowsims may ship Forever support one day; that is
+never a reason for half measures. The app doesn't describe itself as temporary.
+
+## Core doctrine: adversarial review before every push
+
+**Nothing is pushed until every change since the last push has passed an adversarial logic
+review *and* an adversarial UX review.** Commit freely; push only through this gate.
+
+1. **Green checks:** `npm run lint`, `npm run typecheck`, `npm test` and `npm run test:e2e`.
+2. **Adversarial logic review.** An independent reviewer (a fresh subagent that didn't write
+   the change) is briefed to *break* it, not approve it. It checks the diff against
+   `docs/doctrine.md` and the owning mechanics/class docs:
+   - formulas and constants match their cited doc section, and tags follow the doctrine
+   - edge cases: hit cap, 0% and 100% crit, empty slots, 2H vs dual wield, execute
+     boundaries, zero resources
+   - determinism: same config + seed → same result
+   - statistical sanity: iterations and confidence interval
+   - performance, data integrity, and test gaps
+3. **Adversarial UX review.** An independent reviewer inspects `npm run snap` screenshots of
+   every changed screen at **390 px and 1280 px, light and dark**. It covers the default,
+   empty, long-content, running and error states, and tries to find:
+   - confusing copy or flows, and unclear defaults
+   - unreachable controls, horizontal scroll or broken layout
+   - touch targets under 44 px, poor contrast, missing focus or keyboard access
+   - inconsistency with `docs/ux.md`
+4. **Every finding is fixed, or waived with a written reason.** Log the findings and their
+   dispositions in `docs/reviews/<YYYY-MM-DD>-<topic>.md` and commit the log before pushing.
+   The author never signs off on their own change.
 
 ## Read before changing things
 
 - `docs/doctrine.md`: scope, sourcing rules, engineering rules. **Binding.**
+- `docs/ux.md`: UX principles, layout, states and the UX review checklist. **Binding for UI.**
 - `docs/milestones.md`: current milestone and what's next.
 - `docs/architecture.md`: layout, data flow, engine design.
 - `docs/mechanics/*.md` and `docs/classes/*.md`: the formulas the engine implements.

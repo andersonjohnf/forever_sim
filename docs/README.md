@@ -7,7 +7,9 @@ documents: if the code and a doc disagree, one of them is a bug.
 
 | Doc | What it's for |
 | --- | --- |
-| [doctrine.md](doctrine.md) | Scope, **where numbers come from**, tagging, and engineering rules |
+| [doctrine.md](doctrine.md) | Scope, **where numbers come from**, tagging, engineering rules, and the **review gate** |
+| [ux.md](ux.md) | UX principles, layout, sections, states, and the **UX review checklist** |
+| [reviews/](reviews/README.md) | Adversarial review logs, one per push |
 | [milestones.md](milestones.md) | The plan and current status |
 | [architecture.md](architecture.md) | App layout, data flow, engine design, testing, deployment |
 | [decisions.md](decisions.md) | Log of significant decisions and their reasons |

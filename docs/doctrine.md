@@ -5,9 +5,12 @@ this file wins, or it gets changed on purpose in a reviewed commit.
 
 ## 1. What we're building
 
-A DPS/TPS simulator for **WoW Forever**, used by one guild during the beta. It is a
-stopgap until [wowsims](https://github.com/wowsims) ships a Forever sim, so it should be
-**simple-ish**: correct where it matters, and cheap where it doesn't.
+A DPS/TPS simulator for **WoW Forever**, built for our guild. The bar is **the best Forever
+sim we can build with the data we have**, with a clean, modern UX that works great on mobile
+and desktop ([ux.md](ux.md)). [wowsims](https://github.com/wowsims) may support Forever one
+day; that's never a reason for half measures, and the app doesn't describe itself as
+temporary. Precision goes where it moves results ([§4](#4-engine)). Everything the user
+touches is finished work.
 
 | In scope | Out of scope (for now) |
 | --- | --- |
@@ -149,7 +152,16 @@ theoretical maximum:
 
 The default for each setting is documented in the class doc that owns it.
 
-## 6. Change management
+## 6. Review gate (before every push)
+
+Nothing is pushed until every change since the last push has passed an **adversarial logic
+review** and an **adversarial UX review** by an independent reviewer, not the author. Every
+finding is fixed or waived with a written reason, and the log is committed as
+`docs/reviews/<YYYY-MM-DD>-<topic>.md`. The procedure and checklists are in
+[CLAUDE.md](../CLAUDE.md#core-doctrine-adversarial-review-before-every-push) and
+[ux.md](ux.md#ux-review-checklist).
+
+## 7. Change management
 
 - The beta client changes. When foreverchanges.pro updates, re-scrape, diff, and update any
   doc whose numbers moved (bump the build in its status line).

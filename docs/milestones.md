@@ -2,8 +2,10 @@
 
 Status legend: ✅ done · 🚧 in progress · ⏳ next · 💤 later
 
-The order favours getting **one class in front of the guild quickly** (warrior DPS, the
-best-documented spec), then widening. Each milestone ends with a deploy to GitHub Pages.
+The order favours getting **one complete spec in front of the guild quickly** (warrior DPS, the
+best-documented spec), then widening. A spec ships only when its sim and UI are complete
+([D14](decisions.md#d14-a-finished-product-ux-first-behind-a-review-gate-2026-09-22)). Every
+push passes the adversarial review gate ([doctrine §6](doctrine.md#6-review-gate-before-every-push)).
 
 ## M0: Foundation 🚧
 
@@ -48,17 +50,21 @@ sources, worked examples, and open questions.
 **Exit:** a white-swings-only warrior matches a hand calculation within tolerance; the
 mechanics docs' worked examples all pass as tests.
 
-## M2: Warrior DPS + first usable UI ⏳
+## M2: Warrior DPS with the production UX ⏳
 
 - Fury (dual-wield) and Arms (2H) rotations from [classes/warrior.md](classes/warrior.md)
-- UI:
-  - **Character**: race, spec, talents (popular builds, or paste a build code)
-  - **Gear**: per-slot picker over `src/data/items/pre-bis.json` with search and enchants
-  - **Buffs/debuffs/consumables**: toggles with presets
-  - **Rotation**: ability toggles and thresholds, with sensible defaults
-  - **Encounter**: fight length, boss armor, execute phase
-- Results panel; the setup is saved to localStorage and shareable by URL
-- Deploy, and collect the guild's first round of feedback
+- The full app shell per [ux.md](ux.md): header and spec switcher, section tabs, the sticky
+  results panel (desktop) or bottom bar (mobile), and the About sheet
+- **Character**: race, rule profile (Advanced)
+- **Talents**: interactive trees, presets, build-code import/export
+- **Gear**: per-slot picker over `src/data/items/pre-bis.json` with search, BiS filter,
+  "Classic stats" badges, enchants, and a pre-raid BiS default set
+- **Buffs**: presets, raid composition, grouped toggles
+- **Rotation**: ability toggles and thresholds with defaults
+- **Fight**: duration, boss armor, execute phase, targets, position
+- Results: headline ± CI, breakdown, character sheet, assumptions, stale and running states
+- The setup is saved to localStorage and shareable by URL
+- Adversarial review, deploy, and the guild's first feedback round
 
 ## M3: Warrior Protection (TPS) 💤
 

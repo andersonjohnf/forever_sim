@@ -98,3 +98,14 @@ mis-tagged sources. They were resolved as follows:
 - D12 settles the new ratings
 
 Every changed value keeps its reasoning in its doc.
+
+### D14: A finished product, UX-first, behind a review gate (2026-09-22)
+Guild direction: this isn't a half-built stopgap. The bar is the best Forever sim the data
+allows, with a clean, modern UX that works great on mobile and desktop. The app doesn't call
+itself temporary, and it doesn't show internals like the scrape inventory; provenance goes
+in an About sheet. The screen *is* the sim: spec, talents, gear, buffs, rotation, fight and
+results ([ux.md](ux.md)). A spec appears only when its sim and UI are complete. Every push
+passes an adversarial logic review and an adversarial UX review by an independent reviewer
+first, with findings logged in `docs/reviews/` ([doctrine §6](doctrine.md#6-review-gate-before-every-push)).
+Game icons come from Wowhead's CDN by icon name, lazy-loaded with a placeholder, so the app
+works without them.

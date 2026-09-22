@@ -73,7 +73,7 @@ export default function App() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Dataset</TableHead>
-                  <TableHead>Forever build</TableHead>
+                  <TableHead className="hidden sm:table-cell">Forever build</TableHead>
                   <TableHead>Scraped</TableHead>
                 </TableRow>
               </TableHeader>
@@ -81,7 +81,7 @@ export default function App() {
                 {rows.map(([path, meta]) => (
                   <TableRow key={path}>
                     <TableCell className="font-mono text-xs">{path.replace('./data/', '')}</TableCell>
-                    <TableCell>{meta.foreverBuild}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{meta.foreverBuild}</TableCell>
                     <TableCell>{meta.scrapedAt.slice(0, 10)}</TableCell>
                   </TableRow>
                 ))}

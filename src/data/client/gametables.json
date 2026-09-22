@@ -1,0 +1,167 @@
+{
+  "meta": {
+    "build": "1.60.1.69913",
+    "buildCreatedAt": "2026-09-18 03:02:04",
+    "product": "wow_classic_beta",
+    "scrapedAt": "2026-09-22T23:11:37Z",
+    "scraper": "scripts/scrape/client.mjs",
+    "source": "https://wago.tools/api/casc",
+    "tables": {
+      "ChrClasses": 1361031,
+      "PlayerExpectedStat": 7667204,
+      "gametables/armormitigationbylvl.txt": 1385707,
+      "gametables/basemp.txt": 1391664,
+      "gametables/combatratings.txt": 1391669,
+      "gametables/hppersta.txt": 1391642
+    },
+    "wowDbDefs": {
+      "commit": "2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e",
+      "repository": "https://github.com/wowdev/WoWDBDefs"
+    }
+  },
+  "armorMitigation": {
+    "byLevel": {
+      "60": 1059,
+      "61": 1079,
+      "62": 1099,
+      "63": 1120
+    }
+  },
+  "baseMana": {
+    "level60": {
+      "adventurer": 0,
+      "deathKnight": 0,
+      "demonHunter": 0,
+      "druid": 1244,
+      "evoker": 50000,
+      "hunter": 1720,
+      "mage": 1213,
+      "monk": 50000,
+      "paladin": 1512,
+      "priest": 1376,
+      "rogue": 0,
+      "shaman": 1520,
+      "traveler": 0,
+      "warlock": 1373,
+      "warrior": 0
+    }
+  },
+  "combatRatings": {
+    "level60": {
+      "armorPenetration": 10,
+      "avoidance": 10,
+      "block": 5,
+      "corruption": 10,
+      "corruptionResistance": 10,
+      "critMelee": 14,
+      "critRanged": 14,
+      "critSpell": 14,
+      "defenseSkill": 1,
+      "dodge": 12,
+      "expertise": 10,
+      "hasteMelee": 10,
+      "hasteRanged": 10,
+      "hasteSpell": 10,
+      "hitMelee": 10,
+      "hitRanged": 10,
+      "hitSpell": 10,
+      "lifesteal": 10,
+      "mastery": 10,
+      "parry": 15,
+      "pvpPower": 10,
+      "resilienceCritTaken": 10,
+      "resiliencePlayerDamage": 10,
+      "speed": 10,
+      "sturdiness": 10,
+      "unused0": 1,
+      "unused12": 10,
+      "unused27": 0,
+      "unused7": 0,
+      "versatilityDamageDone": 10,
+      "versatilityDamageTaken": 10,
+      "versatilityHealingDone": 10
+    },
+    "levels": 123,
+    "sameAtEveryLevel": true
+  },
+  "hpPerStamina": {
+    "level60": 10
+  },
+  "level": 60,
+  "playerExpectedStat": {
+    "level60": {
+      "druid": {
+        "baseMana": 1244,
+        "classId": 11,
+        "critPerAgility": 0.0005,
+        "field5": 10,
+        "field6": 287,
+        "spellCritPerIntellect": 0.000167
+      },
+      "hunter": {
+        "baseMana": 1720,
+        "classId": 3,
+        "critPerAgility": 0.000189,
+        "field5": 10,
+        "field6": 287,
+        "spellCritPerIntellect": 0.000165
+      },
+      "mage": {
+        "baseMana": 1213,
+        "classId": 8,
+        "critPerAgility": 0.000514,
+        "field5": 10,
+        "field6": 287,
+        "spellCritPerIntellect": 0.000168
+      },
+      "paladin": {
+        "baseMana": 1512,
+        "classId": 2,
+        "critPerAgility": 0.000506,
+        "field5": 10,
+        "field6": 287,
+        "spellCritPerIntellect": 0.000167
+      },
+      "priest": {
+        "baseMana": 1376,
+        "classId": 5,
+        "critPerAgility": 0.0005,
+        "field5": 10,
+        "field6": 287,
+        "spellCritPerIntellect": 0.000168
+      },
+      "rogue": {
+        "baseMana": 0,
+        "classId": 4,
+        "critPerAgility": 0.000345,
+        "field5": 10,
+        "field6": 287,
+        "spellCritPerIntellect": 0
+      },
+      "shaman": {
+        "baseMana": 1520,
+        "classId": 7,
+        "critPerAgility": 0.000508,
+        "field5": 10,
+        "field6": 287,
+        "spellCritPerIntellect": 0.000169
+      },
+      "warlock": {
+        "baseMana": 1373,
+        "classId": 9,
+        "critPerAgility": 0.0005,
+        "field5": 10,
+        "field6": 287,
+        "spellCritPerIntellect": 0.000165
+      },
+      "warrior": {
+        "baseMana": 0,
+        "classId": 1,
+        "critPerAgility": 0.0005,
+        "field5": 10,
+        "field6": 287,
+        "spellCritPerIntellect": 0
+      }
+    }
+  }
+}

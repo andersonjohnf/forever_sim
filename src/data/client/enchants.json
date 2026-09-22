@@ -1,0 +1,2250 @@
+{
+  "meta": {
+    "build": "1.60.1.69913",
+    "buildCreatedAt": "2026-09-18 03:02:04",
+    "product": "wow_classic_beta",
+    "scrapedAt": "2026-09-22T23:09:33Z",
+    "scraper": "scripts/scrape/client.mjs",
+    "source": "https://wago.tools/api/casc",
+    "tables": {
+      "ItemEffect": 969941,
+      "ItemXItemEffect": 3177687,
+      "SpellEffect": 1140088,
+      "SpellItemEnchantment": 1362771
+    },
+    "wowDbDefs": {
+      "commit": "2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e",
+      "repository": "https://github.com/wowdev/WoWDBDefs"
+    }
+  },
+  "counts": {
+    "docEnchants": 79,
+    "inClient": 79,
+    "notInClient": 0
+  },
+  "docMismatches": [],
+  "enchants": {
+    "247": {
+      "appliedByItemIds": [6377, 11039, 273470, 273479, 273482],
+      "appliedBySpellIds": [7779, 7867, 13419],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Cloak – Minor Agility",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [7778, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 247,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Agility +3",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [7778]
+    },
+    "803": {
+      "appliedByItemIds": [11207, 23725, 273531],
+      "appliedBySpellIds": [13898, 19927, 30183],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Fiery Weapon",
+          "section": "5.1 Weapon"
+        }
+      ],
+      "duration": 0,
+      "effect": [1, 0, 0],
+      "effectArg": [13897, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 803,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Fiery Weapon",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [13897]
+    },
+    "849": {
+      "appliedByItemIds": [11206, 273528],
+      "appliedBySpellIds": [13882],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Cloak – Lesser Agility",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [13364, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 849,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Agility +3",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [13364]
+    },
+    "856": {
+      "appliedByItemIds": [249496, 273510, 273630],
+      "appliedBySpellIds": [13661, 1249019],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Bracers – Strength",
+          "section": "5.5 Armor slots (enchanting)"
+        },
+        {
+          "name": "Necklace – Strength",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [13372, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 856,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Strength +5",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [13372]
+    },
+    "863": {
+      "appliedByItemIds": [11168, 22038, 273513],
+      "appliedBySpellIds": [13689, 27117],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Shield – Lesser Block",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [13690, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 863,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Blocking +2%",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [13690]
+    },
+    "884": {
+      "appliedByItemIds": [273518],
+      "appliedBySpellIds": [13746],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Cloak – Greater Defense",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [4, 0, 0],
+      "effectArg": [0, 0, 0],
+      "effectPointsMin": [60, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 884,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Armor +$k1",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "904": {
+      "appliedByItemIds": [249488, 249504, 273537, 273614, 273633],
+      "appliedBySpellIds": [13935, 1248497, 1249059],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Boots – Agility",
+          "section": "5.5 Armor slots (enchanting)"
+        },
+        {
+          "name": "Necklace – Agility",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [13365, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 904,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Agility +5",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [13365]
+    },
+    "908": {
+      "appliedByItemIds": [273526],
+      "appliedBySpellIds": [13858],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Chest – Superior Stamina",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [13862, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 908,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Stamina +8",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [13862]
+    },
+    "911": {
+      "appliedByItemIds": [22587, 273530],
+      "appliedBySpellIds": [13890, 26019],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Boots – Minor Speed",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [13889, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 911,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Minor Speed Increase",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [13889]
+    },
+    "912": {
+      "appliedByItemIds": [11208, 215140, 273533],
+      "appliedBySpellIds": [13915],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Demonslaying",
+          "section": "5.1 Weapon"
+        }
+      ],
+      "duration": 0,
+      "effect": [1, 0, 0],
+      "effectArg": [13907, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 912,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Demonslaying",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [13907]
+    },
+    "923": {
+      "appliedByItemIds": [11223, 273535],
+      "appliedBySpellIds": [13931],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Bracers – Deflection",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [13922, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 923,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Defense +7",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [13922]
+    },
+    "925": {
+      "appliedByItemIds": [11163, 249505, 273504, 273634],
+      "appliedBySpellIds": [13646, 1249060],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Bracers – Lesser Deflection",
+          "section": "5.5 Armor slots (enchanting)"
+        },
+        {
+          "name": "Necklace – Deflection",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [13930, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 925,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Defense +5",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [13930]
+    },
+    "927": {
+      "appliedByItemIds": [17897, 273529, 273539],
+      "appliedBySpellIds": [13887, 13939, 22104],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Bracers – Greater Strength",
+          "section": "5.5 Armor slots (enchanting)"
+        },
+        {
+          "name": "Gloves – Strength / Agility",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [13828, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 927,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Strength +7",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [13828]
+    },
+    "928": {
+      "appliedByItemIds": [273540],
+      "appliedBySpellIds": [13941],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Chest – Stats",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [13824, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 928,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "All Stats +3",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [13824]
+    },
+    "929": {
+      "appliedByItemIds": [11202, 11225, 16215, 17891, 17896, 273521, 273542, 273555],
+      "appliedBySpellIds": [13817, 13945, 20020, 22098, 22103],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Boots – Greater Stamina",
+          "section": "5.5 Armor slots (enchanting)"
+        },
+        {
+          "name": "Shield – Stamina",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [13827, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 929,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Stamina +7",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [13827]
+    },
+    "930": {
+      "appliedByItemIds": [11226, 23728, 273543],
+      "appliedBySpellIds": [13947, 30190],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Gloves – Riding Skill",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [13927, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 930,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Minor Mount Speed Increase",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [13927]
+    },
+    "931": {
+      "appliedByItemIds": [17899, 273544],
+      "appliedBySpellIds": [13948, 22106],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Gloves – Minor Haste",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [13928, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 931,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Haste +1%",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [13928]
+    },
+    "1503": {
+      "appliedByItemIds": [11642],
+      "appliedBySpellIds": [15389],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Lesser Arcanum of Constitution",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [15388, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1503,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "HP +100",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [15388]
+    },
+    "1504": {
+      "appliedByItemIds": [11643],
+      "appliedBySpellIds": [15391],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Lesser Arcanum of Tenacity",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [15390, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1504,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Armor +125",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [15390]
+    },
+    "1506": {
+      "appliedByItemIds": [11645],
+      "appliedBySpellIds": [15397],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Lesser Arcanum of Voracity",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [15396, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1506,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Strength +8",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [15396]
+    },
+    "1507": {
+      "appliedByItemIds": [11646],
+      "appliedBySpellIds": [15400],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Lesser Arcanum of Voracity",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [15399, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1507,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Stamina +8",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [15399]
+    },
+    "1508": {
+      "appliedByItemIds": [11647],
+      "appliedBySpellIds": [15402],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Lesser Arcanum of Voracity",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [15401, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1508,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Agility +8",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [15401]
+    },
+    "1509": {
+      "appliedByItemIds": [11648],
+      "appliedBySpellIds": [15404],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Lesser Arcanum of Voracity",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [15403, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1509,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Intellect +8",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [15403]
+    },
+    "1510": {
+      "appliedByItemIds": [11649],
+      "appliedBySpellIds": [15406],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Lesser Arcanum of Voracity",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [15405, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1510,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Spirit +8",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [15405]
+    },
+    "1643": {
+      "appliedByItemIds": [12404],
+      "appliedBySpellIds": [16138],
+      "charges": 0,
+      "doc": [],
+      "duration": 1800,
+      "effect": [2, 0, 0],
+      "effectArg": [0, 0, 0],
+      "effectPointsMin": [8, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1643,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Sharpened +8",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "1703": {
+      "appliedByItemIds": [12643],
+      "appliedBySpellIds": [16622],
+      "charges": 0,
+      "doc": [],
+      "duration": 1800,
+      "effect": [2, 0, 0],
+      "effectArg": [0, 0, 0],
+      "effectPointsMin": [8, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1703,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Weighted +8",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "1885": {
+      "appliedByItemIds": [16246, 17827, 273547],
+      "appliedBySpellIds": [20010, 22051],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Bracers – Superior Strength",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [19984, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1885,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Strength +9",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [19984]
+    },
+    "1886": {
+      "appliedByItemIds": [16217, 16251, 17828, 273548, 273554],
+      "appliedBySpellIds": [20011, 20017, 22052],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Bracers – Superior Stamina",
+          "section": "5.5 Armor slots (enchanting)"
+        },
+        {
+          "name": "Shield – Greater Stamina",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [19985, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1886,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Stamina +9",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [19985]
+    },
+    "1887": {
+      "appliedByItemIds": [16245, 17894, 17898, 249514, 273520, 273556, 273616],
+      "appliedBySpellIds": [13815, 20023, 22101, 22105, 1248500],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Boots – Greater Agility",
+          "section": "5.5 Armor slots (enchanting)"
+        },
+        {
+          "name": "Bracers – Greater Agility",
+          "section": "5.5 Armor slots (enchanting)"
+        },
+        {
+          "name": "Gloves – Strength / Agility",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [13823, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1887,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Agility +7",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [13823]
+    },
+    "1889": {
+      "appliedByItemIds": [16224, 17885, 273552],
+      "appliedBySpellIds": [20015, 22092],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Cloak – Superior Defense",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [4, 0, 0],
+      "effectArg": [0, 0, 0],
+      "effectPointsMin": [70, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1889,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Armor +$k1",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "1891": {
+      "appliedByItemIds": [16253, 22028, 273558],
+      "appliedBySpellIds": [20025, 27107],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Chest – Greater Stats",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [19988, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1891,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "All Stats +4",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [19988]
+    },
+    "1892": {
+      "appliedByItemIds": [16221, 17882, 273559],
+      "appliedBySpellIds": [20026, 22089],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Chest – Major Stamina",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [5, 0, 0],
+      "effectArg": [7, 0, 0],
+      "effectPointsMin": [10, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1892,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "+$k1 Stamina",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "1894": {
+      "appliedByItemIds": [16223, 18667, 273561],
+      "appliedBySpellIds": [20029, 23142],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Icy Chill",
+          "section": "5.1 Weapon"
+        }
+      ],
+      "duration": 0,
+      "effect": [1, 0, 0],
+      "effectArg": [20005, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1894,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Icy Weapon",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [20005]
+    },
+    "1896": {
+      "appliedByItemIds": [16247, 17887, 273562],
+      "appliedBySpellIds": [20030, 22094],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "2H Weapon – Superior Impact",
+          "section": "5.2 Two-handed weapon"
+        }
+      ],
+      "duration": 0,
+      "effect": [2, 0, 0],
+      "effectArg": [0, 0, 0],
+      "effectPointsMin": [9, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1896,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Weapon Damage +9",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "1897": {
+      "appliedByItemIds": [16250, 17888, 273489, 273563],
+      "appliedBySpellIds": [13529, 20031, 22095],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Superior Striking",
+          "section": "5.1 Weapon"
+        }
+      ],
+      "duration": 0,
+      "effect": [2, 0, 0],
+      "effectArg": [0, 0, 0],
+      "effectPointsMin": [5, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1897,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Weapon Damage +5",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "1898": {
+      "appliedByItemIds": [16254, 22025, 273564],
+      "appliedBySpellIds": [20032, 27104],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Lifestealing",
+          "section": "5.1 Weapon"
+        }
+      ],
+      "duration": 0,
+      "effect": [1, 0, 0],
+      "effectArg": [20004, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1898,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Lifestealing",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [20004]
+    },
+    "1899": {
+      "appliedByItemIds": [16248, 22024, 273565],
+      "appliedBySpellIds": [20033, 27102],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Unholy Weapon",
+          "section": "5.1 Weapon"
+        }
+      ],
+      "duration": 0,
+      "effect": [1, 0, 0],
+      "effectArg": [20006, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1899,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Unholy Weapon",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [20006]
+    },
+    "1900": {
+      "appliedByItemIds": [16252, 18666, 273566],
+      "appliedBySpellIds": [20034, 23141],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Crusader",
+          "section": "5.1 Weapon"
+        }
+      ],
+      "duration": 0,
+      "effect": [1, 3, 0],
+      "effectArg": [20007, 458112, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 1900,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Crusader",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [20007, 458112]
+    },
+    "2503": {
+      "appliedByItemIds": [18251],
+      "appliedBySpellIds": [22725],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Core Armor Kit",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [7516, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2503,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Defense +3",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [7516]
+    },
+    "2504": {
+      "appliedByItemIds": [18259, 18668, 273570],
+      "appliedBySpellIds": [22749, 23143],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Weapon – Spell Power",
+          "section": "5.1 Weapon"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [22747, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2504,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Spell Power +30",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [22747]
+    },
+    "2506": {
+      "appliedByItemIds": [18262, 215128],
+      "appliedBySpellIds": [22756, 399699],
+      "charges": 0,
+      "doc": [],
+      "duration": 1800,
+      "effect": [3, 0, 0],
+      "effectArg": [22755, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2506,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Critical +2%",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [22755]
+    },
+    "2543": {
+      "appliedByItemIds": [18329],
+      "appliedBySpellIds": [22840],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Arcanum of Rapidity",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [22841, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2543,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Attack Speed +1%",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [22841]
+    },
+    "2544": {
+      "appliedByItemIds": [18330],
+      "appliedBySpellIds": [22844],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Arcanum of Focus",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [22843, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2544,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Healing and Spell Damage +8",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [22843]
+    },
+    "2545": {
+      "appliedByItemIds": [18331],
+      "appliedBySpellIds": [22846],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Arcanum of Protection",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [22847, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2545,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Dodge +1%",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [22847]
+    },
+    "2563": {
+      "appliedByItemIds": [19444, 249513, 249533, 273572, 273603, 273618, 273623, 274398],
+      "appliedBySpellIds": [23799, 1248511, 1248640],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Weapon – Strength",
+          "section": "5.1 Weapon"
+        },
+        {
+          "name": "2H Weapon – Lesser Strength",
+          "section": "5.2 Two-handed weapon"
+        },
+        {
+          "name": "Gloves – Superior Strength",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [23793, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2563,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Strength +15",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [23793]
+    },
+    "2564": {
+      "appliedByItemIds": [19445, 20731, 22033, 273573, 273583],
+      "appliedBySpellIds": [23800, 25080, 27112],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Weapon – Agility",
+          "section": "5.1 Weapon"
+        },
+        {
+          "name": "Gloves – Superior Agility",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [23794, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2564,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Agility +15",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [23794]
+    },
+    "2583": {
+      "appliedByItemIds": [19782],
+      "appliedBySpellIds": [24149],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Presence of Might (ZG, warrior)",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [24148, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 1,
+      "id": 2583,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Defense +7/Stamina +10/Block Value +15",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [24148]
+    },
+    "2584": {
+      "appliedByItemIds": [19783],
+      "appliedBySpellIds": [24160],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Syncretist's Sigil (ZG, paladin)",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [24151, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 1,
+      "id": 2584,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Defense +7/Stamina +10/Healing Spells +24",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [24151]
+    },
+    "2591": {
+      "appliedByItemIds": [19790],
+      "appliedBySpellIds": [24168],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Animist's Caress (ZG, druid)",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [24159, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 1,
+      "id": 2591,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Intellect +10/Stamina +10/Healing Spells +24",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [24159]
+    },
+    "2604": {
+      "appliedByItemIds": [20078],
+      "appliedBySpellIds": [24420],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Zandalar Signet of Serenity",
+          "section": "5.4 Shoulders"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [9318, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 1,
+      "id": 2604,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "+33 Healing Spells",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [9318]
+    },
+    "2605": {
+      "appliedByItemIds": [20076],
+      "appliedBySpellIds": [24421],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Zandalar Signet of Mojo",
+          "section": "5.4 Shoulders"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [9346, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 1,
+      "id": 2605,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "+18 Spell Damage and Healing",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [9346]
+    },
+    "2606": {
+      "appliedByItemIds": [20077],
+      "appliedBySpellIds": [24422],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Zandalar Signet of Might",
+          "section": "5.4 Shoulders"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [9336, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 1,
+      "id": 2606,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "+30 Attack Power",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [9336]
+    },
+    "2613": {
+      "appliedByItemIds": [20726, 22034, 273578],
+      "appliedBySpellIds": [25072, 27113],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Gloves – Threat",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [25063, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2613,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Threat +2%",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [25063]
+    },
+    "2618": {
+      "appliedByItemIds": [249511, 273617],
+      "appliedBySpellIds": [1248510],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "2H Weapon – Lesser Agility",
+          "section": "5.2 Two-handed weapon"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [19989, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2618,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Agility +15",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [19989]
+    },
+    "2621": {
+      "appliedByItemIds": [20735, 22042, 273587],
+      "appliedBySpellIds": [25084, 27121],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Cloak – Subtlety (context)",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [25070, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2621,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Subtlety",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [25070]
+    },
+    "2622": {
+      "appliedByItemIds": [20736, 22043, 273588],
+      "appliedBySpellIds": [25086, 27122],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Cloak – Dodge",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [25071, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2622,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Dodge +1%",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [25071]
+    },
+    "2627": {
+      "appliedByItemIds": [20750],
+      "appliedBySpellIds": [25121],
+      "charges": 0,
+      "doc": [],
+      "duration": 1800,
+      "effect": [3, 0, 0],
+      "effectArg": [25111, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2627,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Wizard Oil",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [25111]
+    },
+    "2628": {
+      "appliedByItemIds": [20749],
+      "appliedBySpellIds": [25122],
+      "charges": 0,
+      "doc": [],
+      "duration": 1800,
+      "effect": [3, 0, 0],
+      "effectArg": [25113, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2628,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Brilliant Wizard Oil",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [25113]
+    },
+    "2629": {
+      "appliedByItemIds": [20748],
+      "appliedBySpellIds": [25123],
+      "charges": 0,
+      "doc": [],
+      "duration": 1800,
+      "effect": [3, 0, 0],
+      "effectArg": [25116, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2629,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Brilliant Mana Oil",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [25116]
+    },
+    "2646": {
+      "appliedByItemIds": [18599, 22392, 273589],
+      "appliedBySpellIds": [27837, 30229],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "2H Weapon – Agility",
+          "section": "5.2 Two-handed weapon"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [27836, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2646,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Agility +25",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [27836]
+    },
+    "2684": {
+      "appliedByItemIds": [23122, 238241],
+      "appliedBySpellIds": [28891, 1224422],
+      "charges": 0,
+      "doc": [],
+      "duration": 3600,
+      "effect": [3, 0, 0],
+      "effectArg": [28893, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2684,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "+100 Attack Power vs Undead",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [28893]
+    },
+    "2716": {
+      "appliedByItemIds": [23549],
+      "appliedBySpellIds": [29480],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Fortitude of the Scourge",
+          "section": "5.4 Shoulders"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [29481, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2716,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Stamina +16 and Armor +100",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [29481]
+    },
+    "2717": {
+      "appliedByItemIds": [23548],
+      "appliedBySpellIds": [29483],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Might of the Scourge",
+          "section": "5.4 Shoulders"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [29482, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2717,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Attack Power +26 and +1% Critical Strike",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [29482]
+    },
+    "2721": {
+      "appliedByItemIds": [23545],
+      "appliedBySpellIds": [29467],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Power of the Scourge",
+          "section": "5.4 Shoulders"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [29468, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 2721,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Spell Damage +15 and +1% Spell Critical Strike",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [29468]
+    },
+    "7645": {
+      "appliedByItemIds": [233997, 273593],
+      "appliedBySpellIds": [1213616],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Chest – Living Stats",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [1213613, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 7645,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Living Stats",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [1213613]
+    },
+    "7656": {
+      "appliedByItemIds": [235528, 249524, 273597, 273620],
+      "appliedBySpellIds": [1217203, 1248599],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Bracers – Superior Agility",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [5, 0, 0],
+      "effectArg": [3, 0, 0],
+      "effectPointsMin": [9, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 7656,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "+$k1 Agility",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "7663": {
+      "appliedByItemIds": [273602, 274395],
+      "appliedBySpellIds": [1219581],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Shield – Excellent Stamina",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [5, 0, 0],
+      "effectArg": [7, 0, 0],
+      "effectPointsMin": [12, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 7663,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "+$k1 Stamina",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "7664": {
+      "appliedByItemIds": [273605, 274400],
+      "appliedBySpellIds": [1220623],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Shield – Critical Strike",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [1220596, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 7664,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "+$1220596M1% Critical Strike Chance",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [1220596]
+    },
+    "7667": {
+      "appliedByItemIds": [273604, 274399],
+      "appliedBySpellIds": [1219587],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Cloak – Agility",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [5, 0, 0],
+      "effectArg": [3, 0, 0],
+      "effectPointsMin": [5, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 7667,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "+$k1 Agility",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "7940": {
+      "appliedByItemIds": [241191, 273607],
+      "appliedBySpellIds": [1231128],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Grand Crusader",
+          "section": "5.1 Weapon"
+        }
+      ],
+      "duration": 0,
+      "effect": [1, 3, 0],
+      "effectArg": [1231124, 1231126, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 7940,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Grand Crusader",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [1231124, 1231126]
+    },
+    "7943": {
+      "appliedByItemIds": [242361, 273610],
+      "appliedBySpellIds": [1232172],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "2H Weapon – Grand Inquisitor",
+          "section": "5.2 Two-handed weapon"
+        }
+      ],
+      "duration": 0,
+      "effect": [1, 3, 0],
+      "effectArg": [1232169, 1232170, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 7943,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Grand Inquisitor",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [1232169, 1232170]
+    },
+    "8206": {
+      "appliedByItemIds": [16219, 273549],
+      "appliedBySpellIds": [20012],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Gloves – Greater Agility",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [5, 0, 0],
+      "effectArg": [3, 0, 0],
+      "effectPointsMin": [10, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 8206,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Agility +$k1",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "8207": {
+      "appliedByItemIds": [16244, 273550],
+      "appliedBySpellIds": [20013],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Gloves – Greater Strength",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [5, 0, 0],
+      "effectArg": [4, 0, 0],
+      "effectPointsMin": [10, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 8207,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Strength +$k1",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "8214": {
+      "appliedByItemIds": [249539, 273626],
+      "appliedBySpellIds": [1248665],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Bracers – Superior Deflection",
+          "section": "5.5 Armor slots (enchanting)"
+        }
+      ],
+      "duration": 0,
+      "effect": [5, 0, 0],
+      "effectArg": [12, 0, 0],
+      "effectPointsMin": [9, 6, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 8214,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Defense +$k2",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "8215": {
+      "appliedByItemIds": [249523],
+      "appliedBySpellIds": [1248668],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "2H Weapon – Strength",
+          "section": "5.2 Two-handed weapon"
+        }
+      ],
+      "duration": 0,
+      "effect": [5, 0, 0],
+      "effectArg": [4, 0, 0],
+      "effectPointsMin": [25, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 8215,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Strength +$k1",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "8490": {
+      "appliedByItemIds": [15564, 252489],
+      "appliedBySpellIds": [19057, 1254771],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Rugged Armor Kit",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [4, 5, 0],
+      "effectArg": [0, 7, 0],
+      "effectPointsMin": [40, 5, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 8490,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Stamina +$k2 and Armor +$k1",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "8491": {
+      "appliedByItemIds": [252488],
+      "appliedBySpellIds": [1254772],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Forceful Rugged Armor Kit",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [4, 5, 5],
+      "effectArg": [0, 38, 39],
+      "effectPointsMin": [40, 10, 10],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 8491,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Attack Power +$k2 and Armor +$k1",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "8719": {
+      "appliedByItemIds": [279258],
+      "appliedBySpellIds": [1306907],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Wild Leather Armor Kit",
+          "section": "5.3 Head and legs (arcanums, ZG idols, armor kits)"
+        }
+      ],
+      "duration": 0,
+      "effect": [5, 5, 0],
+      "effectArg": [12, 7, 0],
+      "effectPointsMin": [4, 10, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 8719,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Defense +$k1 and Stamina +$k2",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": []
+    },
+    "8721": {
+      "appliedByItemIds": [249480, 273628],
+      "appliedBySpellIds": [1248760],
+      "charges": 0,
+      "doc": [
+        {
+          "name": "Recovery",
+          "section": "5.1 Weapon"
+        }
+      ],
+      "duration": 0,
+      "effect": [3, 0, 0],
+      "effectArg": [1248761, 0, 0],
+      "effectPointsMin": [0, 0, 0],
+      "effectScalingPoints": [0, 0, 0],
+      "flags": 0,
+      "id": 8721,
+      "itemLevel": 1,
+      "itemLevelMax": 0,
+      "itemLevelMin": 0,
+      "maxLevel": 0,
+      "minLevel": 0,
+      "name": "Recovery",
+      "requiredSkillId": 0,
+      "requiredSkillRank": 0,
+      "scalingClass": 0,
+      "spellIds": [1248761]
+    }
+  },
+  "notInClient": []
+}

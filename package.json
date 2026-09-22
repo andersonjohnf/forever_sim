@@ -17,6 +17,7 @@
     "scrape:talents": "node scripts/scrape/talents.mjs",
     "scrape:races": "node scripts/scrape/races.mjs",
     "scrape:items": "node scripts/scrape/items.mjs",
+    "scrape:client": "node scripts/scrape/client.mjs",
     "scrape": "npm run scrape:spells && npm run scrape:talents && npm run scrape:races && npm run scrape:items"
   },
   "dependencies": {

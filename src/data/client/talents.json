@@ -1,0 +1,5142 @@
+{
+  "meta": {
+    "build": "1.60.1.69913",
+    "buildCreatedAt": "2026-09-18 03:02:04",
+    "product": "wow_classic_beta",
+    "scrapedAt": "2026-09-22T23:10:58Z",
+    "scraper": "scripts/scrape/client.mjs",
+    "source": "https://wago.tools/api/casc",
+    "tables": {
+      "CurvePoint": 892586,
+      "SpellName": 1990283,
+      "TraitDefinition": 4420327,
+      "TraitDefinitionEffectPoints": 4536895,
+      "TraitEdge": 4420308,
+      "TraitNode": 4420297,
+      "TraitNodeEntry": 4420298,
+      "TraitNodeXTraitNodeEntry": 4420304,
+      "TraitTree": 4420305
+    },
+    "wowDbDefs": {
+      "commit": "2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e",
+      "repository": "https://github.com/wowdev/WoWDBDefs"
+    }
+  },
+  "classes": {
+    "druid": {
+      "tabs": [
+        {
+          "index": 0,
+          "posX": [1020, 2820],
+          "tree": "Balance"
+        },
+        {
+          "index": 1,
+          "posX": [5020, 6820],
+          "tree": "Feral Combat"
+        },
+        {
+          "index": 2,
+          "posX": [9080, 10880],
+          "tree": "Restoration"
+        }
+      ],
+      "talents": [
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Wrath",
+          "col": 1,
+          "id": "calc-druid-balance-improved-wrath",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Improved Wrath",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85324,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-100, -200, -300, -400, -500]
+            },
+            {
+              "curveId": 108163,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-10, -20, -30, -40, -50]
+            }
+          ],
+          "rankSpellIds": [16814, 16814, 16814, 16814, 16814],
+          "spellId": 16814,
+          "tier": 0,
+          "traitDefinitionId": 134384,
+          "traitNodeEntryId": 129583,
+          "traitNodeId": 104923,
+          "tree": "Balance",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Genesis",
+          "col": 2,
+          "id": "druid-genesis",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Genesis",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85325,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            },
+            {
+              "curveId": 97153,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [1223081, 1223081, 1223081, 1223081, 1223081],
+          "spellId": 1223081,
+          "tier": 0,
+          "traitDefinitionId": 134385,
+          "traitNodeEntryId": 129584,
+          "traitNodeId": 104924,
+          "tree": "Balance",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Moonglow",
+          "col": 0,
+          "id": "druid-moonglow",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Moonglow",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85328,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-8, -17, -25]
+            }
+          ],
+          "rankSpellIds": [16845, 16845, 16845],
+          "spellId": 16845,
+          "tier": 1,
+          "traitDefinitionId": 134386,
+          "traitNodeEntryId": 129585,
+          "traitNodeId": 104925,
+          "tree": "Balance",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Moonfire",
+          "col": 1,
+          "id": "calc-druid-balance-improved-moonfire",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Moonfire",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85327,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10]
+            },
+            {
+              "curveId": 111699,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [5, 10]
+            },
+            {
+              "curveId": 111698,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [5, 10]
+            }
+          ],
+          "rankSpellIds": [16821, 16821],
+          "spellId": 16821,
+          "tier": 1,
+          "traitDefinitionId": 134392,
+          "traitNodeEntryId": 129591,
+          "traitNodeId": 104931,
+          "tree": "Balance",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Nature's Majesty",
+          "col": 2,
+          "id": "druid-nature-s-majesty",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Nature's Majesty",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85326,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4]
+            }
+          ],
+          "rankSpellIds": [1223082, 1223082],
+          "spellId": 1223082,
+          "tier": 1,
+          "traitDefinitionId": 134388,
+          "traitNodeEntryId": 129587,
+          "traitNodeId": 104927,
+          "tree": "Balance",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Nature's Reach",
+          "col": 3,
+          "id": "calc-druid-balance-nature-s-reach",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Nature's Reach",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85330,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20]
+            },
+            {
+              "curveId": 85329,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [2, 4]
+            },
+            {
+              "curveId": 102877,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [2, 4]
+            }
+          ],
+          "rankSpellIds": [16819, 16819],
+          "spellId": 16819,
+          "tier": 1,
+          "traitDefinitionId": 134390,
+          "traitNodeEntryId": 129589,
+          "traitNodeId": 104929,
+          "tree": "Balance",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Improved Entangling Roots",
+          "col": 0,
+          "id": "calc-druid-balance-improved-entangling-roots",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Entangling Roots",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85331,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [25, 50, 75]
+            }
+          ],
+          "rankSpellIds": [16918, 16918, 16918],
+          "spellId": 16918,
+          "tier": 2,
+          "traitDefinitionId": 134387,
+          "traitNodeEntryId": 129586,
+          "traitNodeId": 104926,
+          "tree": "Balance",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [104927],
+            "prerequisiteTalentIds": ["druid-nature-s-majesty"],
+            "tier": 2
+          },
+          "clientName": "Nature's Splendor",
+          "col": 2,
+          "id": "druid-nature-s-splendor",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": ["prerequisite: scraped none, client druid-nature-s-majesty"],
+          "name": "Nature's Splendor",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1223083],
+          "spellId": 1223083,
+          "tier": 2,
+          "traitDefinitionId": 134389,
+          "traitNodeEntryId": 129588,
+          "traitNodeId": 104928,
+          "tree": "Balance",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Insect Swarm",
+          "col": 0,
+          "id": "druid-insect-swarm",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Insect Swarm",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [5570],
+          "spellId": 5570,
+          "tier": 3,
+          "traitDefinitionId": 134391,
+          "traitNodeEntryId": 129590,
+          "traitNodeId": 104930,
+          "tree": "Balance",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [104931],
+            "prerequisiteTalentIds": ["calc-druid-balance-improved-moonfire"],
+            "tier": 3
+          },
+          "clientName": "Vengeance",
+          "col": 1,
+          "id": "calc-druid-balance-vengeance",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Vengeance",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85334,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            }
+          ],
+          "rankSpellIds": [16909, 16909, 16909, 16909, 16909],
+          "spellId": 16909,
+          "tier": 3,
+          "traitDefinitionId": 134393,
+          "traitNodeEntryId": 129592,
+          "traitNodeId": 104932,
+          "tree": "Balance",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Starfire",
+          "col": 2,
+          "id": "calc-druid-balance-improved-starfire",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Improved Starfire",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85333,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-100, -200, -300, -400, -500]
+            },
+            {
+              "curveId": 109039,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [3, 6, 9, 12, 15]
+            }
+          ],
+          "rankSpellIds": [16850, 16850, 16850, 16850, 16850],
+          "spellId": 16850,
+          "tier": 3,
+          "traitDefinitionId": 134394,
+          "traitNodeEntryId": 129593,
+          "traitNodeId": 104933,
+          "tree": "Balance",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Overgrowth",
+          "col": 0,
+          "id": "calc-druid-balance-overgrowth",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Overgrowth",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 108304,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2]
+            }
+          ],
+          "rankSpellIds": [17245, 17245],
+          "spellId": 17245,
+          "tier": 4,
+          "traitDefinitionId": 142590,
+          "traitNodeEntryId": 137836,
+          "traitNodeId": 110844,
+          "tree": "Balance",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Nature's Grace",
+          "col": 1,
+          "id": "druid-nature-s-grace",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Nature's Grace",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [16880],
+          "spellId": 16880,
+          "tier": 4,
+          "traitDefinitionId": 134395,
+          "traitNodeEntryId": 129594,
+          "traitNodeId": 104934,
+          "tree": "Balance",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Eclipse",
+          "col": 2,
+          "id": "calc-druid-balance-eclipse",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Eclipse",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85336,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [0, 0, 0]
+            },
+            {
+              "curveId": 108156,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-170, -330, -500]
+            }
+          ],
+          "rankSpellIds": [408248, 408248, 408248],
+          "spellId": 408248,
+          "tier": 4,
+          "traitDefinitionId": 134396,
+          "traitNodeEntryId": 129595,
+          "traitNodeId": 104935,
+          "tree": "Balance",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Moonfury",
+          "col": 1,
+          "id": "calc-druid-balance-moonfury",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Moonfury",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85335,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [16896, 16896, 16896, 16896, 16896],
+          "spellId": 16896,
+          "tier": 5,
+          "traitDefinitionId": 134397,
+          "traitNodeEntryId": 129596,
+          "traitNodeId": 104936,
+          "tree": "Balance",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 6
+          },
+          "clientName": "Moonkin Form",
+          "col": 1,
+          "id": "calc-druid-balance-moonkin-form",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Moonkin Form",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [24858],
+          "spellId": 24858,
+          "tier": 6,
+          "traitDefinitionId": 134398,
+          "traitNodeEntryId": 129597,
+          "traitNodeId": 104937,
+          "tree": "Balance",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Ferocity",
+          "col": 1,
+          "id": "druid-ferocity",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Ferocity",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85339,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-10, -20, -30, -40, -50]
+            },
+            {
+              "curveId": 85338,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-1, -2, -3, -4, -5]
+            }
+          ],
+          "rankSpellIds": [16934, 16934, 16934, 16934, 16934],
+          "spellId": 16934,
+          "tier": 0,
+          "traitDefinitionId": 134399,
+          "traitNodeEntryId": 129598,
+          "traitNodeId": 104938,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Heart of the Wild",
+          "col": 2,
+          "id": "calc-druid-feral-combat-heart-of-the-wild",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Heart of the Wild",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85337,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            },
+            {
+              "curveId": 112809,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [4, 8, 12, 16, 20]
+            },
+            {
+              "curveId": 112808,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [17003, 17003, 17003, 17003, 17003],
+          "spellId": 17003,
+          "tier": 0,
+          "traitDefinitionId": 134400,
+          "traitNodeEntryId": 129599,
+          "traitNodeId": 104939,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Feral Swiftness",
+          "col": 0,
+          "id": "calc-druid-feral-combat-feral-swiftness",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Feral Swiftness",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85345,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4]
+            },
+            {
+              "curveId": 85344,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [15, 30]
+            }
+          ],
+          "rankSpellIds": [17002, 17002],
+          "spellId": 17002,
+          "tier": 1,
+          "traitDefinitionId": 134404,
+          "traitNodeEntryId": 129603,
+          "traitNodeId": 104943,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Feral Instinct",
+          "col": 1,
+          "id": "druid-feral-instinct",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Feral Instinct",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85343,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            },
+            {
+              "curveId": 85342,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20, 30]
+            }
+          ],
+          "rankSpellIds": [16947, 16947, 16947],
+          "spellId": 16947,
+          "tier": 1,
+          "traitDefinitionId": 134401,
+          "traitNodeEntryId": 129600,
+          "traitNodeId": 104940,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Brutal Impact",
+          "col": 2,
+          "id": "druid-brutal-impact",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Brutal Impact",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85341,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [500, 1000]
+            },
+            {
+              "curveId": 85340,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-15000, -30000]
+            }
+          ],
+          "rankSpellIds": [16940, 16940],
+          "spellId": 16940,
+          "tier": 1,
+          "traitDefinitionId": 134402,
+          "traitNodeEntryId": 129601,
+          "traitNodeId": 104941,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Thick Hide",
+          "col": 3,
+          "id": "druid-thick-hide",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Thick Hide",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85346,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [67, 133, 200]
+            },
+            {
+              "curveId": 111990,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [1, 2, 3]
+            }
+          ],
+          "rankSpellIds": [16929, 16929, 16929],
+          "spellId": 16929,
+          "tier": 1,
+          "traitDefinitionId": 134403,
+          "traitNodeEntryId": 129602,
+          "traitNodeId": 104942,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Savage Fury",
+          "col": 1,
+          "id": "calc-druid-feral-combat-savage-fury",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Savage Fury",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85347,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10]
+            },
+            {
+              "curveId": 110556,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [5, 10]
+            }
+          ],
+          "rankSpellIds": [16998, 16998],
+          "spellId": 16998,
+          "tier": 2,
+          "traitDefinitionId": 134409,
+          "traitNodeEntryId": 129608,
+          "traitNodeId": 104948,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Feral Charge",
+          "col": 2,
+          "id": "druid-feral-charge",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Feral Charge",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1238122],
+          "spellId": 1238122,
+          "tier": 2,
+          "traitDefinitionId": 134405,
+          "traitNodeEntryId": 129604,
+          "traitNodeId": 104944,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Sharpened Claws",
+          "col": 3,
+          "id": "calc-druid-feral-combat-sharpened-claws",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Sharpened Claws",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85348,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 6]
+            }
+          ],
+          "rankSpellIds": [16942, 16942],
+          "spellId": 16942,
+          "tier": 2,
+          "traitDefinitionId": 134407,
+          "traitNodeEntryId": 129606,
+          "traitNodeId": 104946,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Shredding Attacks",
+          "col": 0,
+          "id": "calc-druid-feral-combat-shredding-attacks",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Shredding Attacks",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85350,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-6, -12, -18]
+            },
+            {
+              "curveId": 85349,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-10, -20, -30]
+            }
+          ],
+          "rankSpellIds": [16966, 16966, 16966],
+          "spellId": 16966,
+          "tier": 3,
+          "traitDefinitionId": 134406,
+          "traitNodeEntryId": 129605,
+          "traitNodeId": 104945,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [104948],
+            "prerequisiteTalentIds": ["calc-druid-feral-combat-savage-fury"],
+            "tier": 3
+          },
+          "clientName": "Mangle",
+          "col": 1,
+          "id": "calc-druid-feral-combat-mangle",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Mangle",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [407995],
+          "spellId": 407995,
+          "tier": 3,
+          "traitDefinitionId": 134410,
+          "traitNodeEntryId": 129609,
+          "traitNodeId": 104949,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Predatory Strikes",
+          "col": 2,
+          "id": "calc-druid-feral-combat-predatory-strikes",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Predatory Strikes",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85353,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [50, 100, 150]
+            }
+          ],
+          "rankSpellIds": [16972, 16972, 16972],
+          "spellId": 16972,
+          "tier": 3,
+          "traitDefinitionId": 134413,
+          "traitNodeEntryId": 129612,
+          "traitNodeId": 104952,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [104946],
+            "prerequisiteTalentIds": ["calc-druid-feral-combat-sharpened-claws"],
+            "tier": 3
+          },
+          "clientName": "Primal Fury",
+          "col": 3,
+          "id": "druid-primal-fury",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Primal Fury",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85352,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [50, 100]
+            },
+            {
+              "curveId": 85351,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [50, 100]
+            }
+          ],
+          "rankSpellIds": [16958, 16958],
+          "spellId": 16958,
+          "tier": 3,
+          "traitDefinitionId": 134408,
+          "traitNodeEntryId": 129607,
+          "traitNodeId": 104947,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Predatory Instincts",
+          "col": 0,
+          "id": "calc-druid-feral-combat-predatory-instincts",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Predatory Instincts",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85354,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20]
+            }
+          ],
+          "rankSpellIds": [1223242, 1223242],
+          "spellId": 1223242,
+          "tier": 4,
+          "traitDefinitionId": 134411,
+          "traitNodeEntryId": 129610,
+          "traitNodeId": 104950,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Leader of the Pack",
+          "col": 1,
+          "id": "calc-druid-feral-combat-leader-of-the-pack",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Leader of the Pack",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [17007],
+          "spellId": 17007,
+          "tier": 4,
+          "traitDefinitionId": 134416,
+          "traitNodeEntryId": 129615,
+          "traitNodeId": 104955,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "King of the Jungle",
+          "col": 3,
+          "id": "druid-king-of-the-jungle",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "King of the Jungle",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85356,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40, 60]
+            },
+            {
+              "curveId": 85355,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            }
+          ],
+          "rankSpellIds": [417046, 417046, 417046],
+          "spellId": 417046,
+          "tier": 4,
+          "traitDefinitionId": 134412,
+          "traitNodeEntryId": 129611,
+          "traitNodeId": 104951,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Natural Reaction",
+          "col": 0,
+          "id": "druid-natural-reaction",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Natural Reaction",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85359,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            },
+            {
+              "curveId": 85358,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            }
+          ],
+          "rankSpellIds": [417051, 417051, 417051, 417051, 417051],
+          "spellId": 417051,
+          "tier": 5,
+          "traitDefinitionId": 134415,
+          "traitNodeEntryId": 129614,
+          "traitNodeId": 104954,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [104952],
+            "prerequisiteTalentIds": ["calc-druid-feral-combat-predatory-strikes"],
+            "tier": 5
+          },
+          "clientName": "Rend and Tear",
+          "col": 2,
+          "id": "calc-druid-feral-combat-rend-and-tear",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Rend and Tear",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85357,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [1223246, 1223246, 1223246, 1223246, 1223246],
+          "spellId": 1223246,
+          "tier": 5,
+          "traitDefinitionId": 134414,
+          "traitNodeEntryId": 129613,
+          "traitNodeId": 104953,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [104955],
+            "prerequisiteTalentIds": ["calc-druid-feral-combat-leader-of-the-pack"],
+            "tier": 6
+          },
+          "clientName": "Berserk",
+          "col": 1,
+          "id": "druid-berserk",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Berserk",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [417141],
+          "spellId": 417141,
+          "tier": 6,
+          "traitDefinitionId": 134417,
+          "traitNodeEntryId": 129616,
+          "traitNodeId": 104956,
+          "tree": "Feral Combat",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Nature's Focus",
+          "col": 1,
+          "id": "druid-nature-s-focus",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Nature's Focus",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85362,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [14, 28, 42, 56, 70]
+            }
+          ],
+          "rankSpellIds": [17063, 17063, 17063, 17063, 17063],
+          "spellId": 17063,
+          "tier": 0,
+          "traitDefinitionId": 134418,
+          "traitNodeEntryId": 129617,
+          "traitNodeId": 104957,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Furor",
+          "col": 2,
+          "id": "calc-druid-restoration-furor",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Furor",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85361,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            },
+            {
+              "curveId": 85360,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            }
+          ],
+          "rankSpellIds": [17056, 17056, 17056, 17056, 17056],
+          "spellId": 17056,
+          "tier": 0,
+          "traitDefinitionId": 134419,
+          "traitNodeEntryId": 129618,
+          "traitNodeId": 104958,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Naturalist",
+          "col": 0,
+          "id": "calc-druid-restoration-naturalist",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Naturalist",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85364,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-100, -200, -300, -400, -500]
+            },
+            {
+              "curveId": 85363,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [17069, 17069, 17069, 17069, 17069],
+          "spellId": 17069,
+          "tier": 1,
+          "traitDefinitionId": 134383,
+          "traitNodeEntryId": 129582,
+          "traitNodeId": 104922,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Subtlety",
+          "col": 1,
+          "id": "druid-subtlety",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Subtlety",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85365,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-10, -20, -30]
+            }
+          ],
+          "rankSpellIds": [17118, 17118, 17118],
+          "spellId": 17118,
+          "tier": 1,
+          "traitDefinitionId": 134381,
+          "traitNodeEntryId": 129580,
+          "traitNodeId": 104920,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Natural Shapeshifter",
+          "col": 2,
+          "id": "druid-natural-shapeshifter",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Natural Shapeshifter",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85366,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-10, -20, -30]
+            }
+          ],
+          "rankSpellIds": [16833, 16833, 16833],
+          "spellId": 16833,
+          "tier": 1,
+          "traitDefinitionId": 134380,
+          "traitNodeEntryId": 129579,
+          "traitNodeId": 104919,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Reflection",
+          "col": 1,
+          "id": "calc-druid-restoration-reflection",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Reflection",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85389,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [17, 33, 50]
+            }
+          ],
+          "rankSpellIds": [17106, 17106, 17106],
+          "spellId": 17106,
+          "tier": 2,
+          "traitDefinitionId": 134378,
+          "traitNodeEntryId": 129577,
+          "traitNodeId": 104917,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Gift of Nature",
+          "col": 2,
+          "id": "druid-gift-of-nature",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Gift of Nature",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85390,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            },
+            {
+              "curveId": 97152,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [17104, 17104, 17104, 17104, 17104],
+          "spellId": 17104,
+          "tier": 2,
+          "traitDefinitionId": 134377,
+          "traitNodeEntryId": 129576,
+          "traitNodeId": 104916,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Gift of the Earthmother",
+          "col": 3,
+          "id": "calc-druid-restoration-gift-of-the-earthmother",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Gift of the Earthmother",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [414673],
+          "spellId": 414673,
+          "tier": 2,
+          "traitDefinitionId": 134379,
+          "traitNodeEntryId": 129578,
+          "traitNodeId": 104918,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Tranquil Spirit",
+          "col": 1,
+          "id": "calc-druid-restoration-tranquil-spirit",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Tranquil Spirit",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85404,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-2, -4, -6, -8, -10]
+            }
+          ],
+          "rankSpellIds": [24968, 24968, 24968, 24968, 24968],
+          "spellId": 24968,
+          "tier": 3,
+          "traitDefinitionId": 134376,
+          "traitNodeEntryId": 129575,
+          "traitNodeId": 104915,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Rejuvenation",
+          "col": 2,
+          "id": "druid-improved-rejuvenation",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Rejuvenation",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85403,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            }
+          ],
+          "rankSpellIds": [17111, 17111, 17111],
+          "spellId": 17111,
+          "tier": 3,
+          "traitDefinitionId": 134375,
+          "traitNodeEntryId": 129574,
+          "traitNodeId": 104914,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Swiftmend",
+          "col": 3,
+          "id": "calc-druid-restoration-swiftmend",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Swiftmend",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [18562],
+          "spellId": 18562,
+          "tier": 3,
+          "traitDefinitionId": 134373,
+          "traitNodeEntryId": 129572,
+          "traitNodeId": 104912,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [104922],
+            "prerequisiteTalentIds": ["calc-druid-restoration-naturalist"],
+            "tier": 4
+          },
+          "clientName": "Nature's Swiftness",
+          "col": 0,
+          "id": "calc-druid-restoration-nature-s-swiftness",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Nature's Swiftness",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [17116],
+          "spellId": 17116,
+          "tier": 4,
+          "traitDefinitionId": 134382,
+          "traitNodeEntryId": 129581,
+          "traitNodeId": 104921,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Living Spirit",
+          "col": 1,
+          "id": "druid-living-spirit",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Living Spirit",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85407,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            }
+          ],
+          "rankSpellIds": [1309631, 1309631, 1309631],
+          "spellId": 1309631,
+          "tier": 4,
+          "traitDefinitionId": 134372,
+          "traitNodeEntryId": 129571,
+          "traitNodeId": 104911,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Improved Tranquility",
+          "col": 3,
+          "id": "druid-improved-tranquility",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Tranquility",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85409,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-50, -100]
+            },
+            {
+              "curveId": 85408,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-30, -60]
+            }
+          ],
+          "rankSpellIds": [17123, 17123],
+          "spellId": 17123,
+          "tier": 4,
+          "traitDefinitionId": 134370,
+          "traitNodeEntryId": 129569,
+          "traitNodeId": 104909,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [104914],
+            "prerequisiteTalentIds": ["druid-improved-rejuvenation"],
+            "tier": 5
+          },
+          "clientName": "Improved Regrowth",
+          "col": 2,
+          "id": "calc-druid-restoration-improved-regrowth",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Improved Regrowth",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 85410,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20, 30, 40, 50]
+            }
+          ],
+          "rankSpellIds": [17074, 17074, 17074, 17074, 17074],
+          "spellId": 17074,
+          "tier": 5,
+          "traitDefinitionId": 134374,
+          "traitNodeEntryId": 129573,
+          "traitNodeId": 104913,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [104911],
+            "prerequisiteTalentIds": ["druid-living-spirit"],
+            "tier": 6
+          },
+          "clientName": "Wild Growth",
+          "col": 1,
+          "id": "calc-druid-restoration-wild-growth",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Wild Growth",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [408120],
+          "spellId": 408120,
+          "tier": 6,
+          "traitDefinitionId": 134371,
+          "traitNodeEntryId": 129570,
+          "traitNodeId": 104910,
+          "tree": "Restoration",
+          "visibleSpellId": 0
+        }
+      ],
+      "traitTreeId": 1089
+    },
+    "paladin": {
+      "tabs": [
+        {
+          "index": 0,
+          "posX": [1020, 2820],
+          "tree": "Holy"
+        },
+        {
+          "index": 1,
+          "posX": [5020, 6820],
+          "tree": "Protection"
+        },
+        {
+          "index": 2,
+          "posX": [9080, 10880],
+          "tree": "Retribution"
+        }
+      ],
+      "talents": [
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Holy Strike",
+          "col": 0,
+          "id": "calc-paladin-holy-improved-holy-strike",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Holy Strike",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82970,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-1000, -2000]
+            }
+          ],
+          "rankSpellIds": [1310902, 1310902],
+          "spellId": 1310902,
+          "tier": 0,
+          "traitDefinitionId": 134823,
+          "traitNodeEntryId": 130022,
+          "traitNodeId": 105328,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Divine Strength",
+          "col": 1,
+          "id": "calc-paladin-holy-divine-strength",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Divine Strength",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82959,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [20262, 20262, 20262, 20262, 20262],
+          "spellId": 20262,
+          "tier": 0,
+          "traitDefinitionId": 135164,
+          "traitNodeEntryId": 130363,
+          "traitNodeId": 105639,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Divine Intellect",
+          "col": 2,
+          "id": "calc-paladin-holy-divine-intellect",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Divine Intellect",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82973,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [20257, 20257, 20257, 20257, 20257],
+          "spellId": 20257,
+          "tier": 0,
+          "traitDefinitionId": 134827,
+          "traitNodeEntryId": 130026,
+          "traitNodeId": 105332,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Healing Light",
+          "col": 0,
+          "id": "calc-paladin-holy-healing-light",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Healing Light",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82974,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [4, 8, 12]
+            }
+          ],
+          "rankSpellIds": [20237, 20237, 20237],
+          "spellId": 20237,
+          "tier": 1,
+          "traitDefinitionId": 134828,
+          "traitNodeEntryId": 130027,
+          "traitNodeId": 105333,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Spiritual Focus",
+          "col": 1,
+          "id": "calc-paladin-holy-spiritual-focus",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Spiritual Focus",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82976,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [35, 70]
+            }
+          ],
+          "rankSpellIds": [20205, 20205],
+          "spellId": 20205,
+          "tier": 1,
+          "traitDefinitionId": 134830,
+          "traitNodeEntryId": 130029,
+          "traitNodeId": 105335,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Seals",
+          "col": 2,
+          "id": "calc-paladin-holy-improved-seals",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Seals",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82975,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            }
+          ],
+          "rankSpellIds": [20224, 20224, 20224],
+          "spellId": 20224,
+          "tier": 1,
+          "traitDefinitionId": 134829,
+          "traitNodeEntryId": 130028,
+          "traitNodeId": 105334,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Unyielding Faith",
+          "col": 3,
+          "id": "calc-paladin-holy-unyielding-faith",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Unyielding Faith",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82972,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-15, -30]
+            },
+            {
+              "curveId": 87383,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-15, -30]
+            }
+          ],
+          "rankSpellIds": [9453, 9453],
+          "spellId": 9453,
+          "tier": 1,
+          "traitDefinitionId": 134826,
+          "traitNodeEntryId": 130025,
+          "traitNodeId": 105331,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Voice of Truth",
+          "col": 0,
+          "id": "calc-paladin-holy-voice-of-truth",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Voice of Truth",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1310897],
+          "spellId": 1310897,
+          "tier": 2,
+          "traitDefinitionId": 134825,
+          "traitNodeEntryId": 130024,
+          "traitNodeId": 105330,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Reverence",
+          "col": 1,
+          "id": "calc-paladin-holy-reverence",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Reverence",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 110321,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20, 30]
+            }
+          ],
+          "rankSpellIds": [1310899, 1310899, 1310899],
+          "spellId": 1310899,
+          "tier": 2,
+          "traitDefinitionId": 142623,
+          "traitNodeEntryId": 137869,
+          "traitNodeId": 110871,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Purifying Power",
+          "col": 2,
+          "id": "calc-paladin-holy-purifying-power",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Purifying Power",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82968,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-10, -20]
+            },
+            {
+              "curveId": 82967,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-17, -33]
+            }
+          ],
+          "rankSpellIds": [429144, 429144],
+          "spellId": 429144,
+          "tier": 2,
+          "traitDefinitionId": 134822,
+          "traitNodeEntryId": 130021,
+          "traitNodeId": 105327,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Infusion of Light",
+          "col": 0,
+          "id": "calc-paladin-holy-infusion-of-light",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Infusion of Light",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 110323,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-500, -1000]
+            }
+          ],
+          "rankSpellIds": [426065, 426065],
+          "spellId": 426065,
+          "tier": 3,
+          "traitDefinitionId": 142625,
+          "traitNodeEntryId": 137871,
+          "traitNodeId": 110873,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [110871],
+            "prerequisiteTalentIds": ["calc-paladin-holy-reverence"],
+            "tier": 3
+          },
+          "clientName": "Illumination",
+          "col": 1,
+          "id": "calc-paladin-holy-illumination",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Illumination",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82971,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            },
+            {
+              "curveId": 85182,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20, 30, 40, 50]
+            }
+          ],
+          "rankSpellIds": [20210, 20210, 20210, 20210, 20210],
+          "spellId": 20210,
+          "tier": 3,
+          "traitDefinitionId": 134824,
+          "traitNodeEntryId": 130023,
+          "traitNodeId": 105329,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Divine Favor",
+          "col": 2,
+          "id": "calc-paladin-holy-divine-favor",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Divine Favor",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [20216],
+          "spellId": 20216,
+          "tier": 3,
+          "traitDefinitionId": 134820,
+          "traitNodeEntryId": 130019,
+          "traitNodeId": 105325,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [105323],
+            "prerequisiteTalentIds": ["calc-paladin-holy-holy-shock"],
+            "tier": 4
+          },
+          "clientName": "Divine Precision",
+          "col": 0,
+          "id": "calc-paladin-holy-divine-precision",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Divine Precision",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82964,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [6, 12, 18]
+            }
+          ],
+          "rankSpellIds": [1310904, 1310904, 1310904],
+          "spellId": 1310904,
+          "tier": 4,
+          "traitDefinitionId": 134819,
+          "traitNodeEntryId": 130018,
+          "traitNodeId": 105324,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Holy Shock",
+          "col": 1,
+          "id": "calc-paladin-holy-holy-shock",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Holy Shock",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1311606],
+          "spellId": 1311606,
+          "tier": 4,
+          "traitDefinitionId": 134818,
+          "traitNodeEntryId": 130017,
+          "traitNodeId": 105323,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Consecrated Ground",
+          "col": 2,
+          "id": "calc-paladin-holy-consecrated-ground",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Consecrated Ground",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 110322,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10]
+            }
+          ],
+          "rankSpellIds": [1310905, 1310905],
+          "spellId": 1310905,
+          "tier": 4,
+          "traitDefinitionId": 142624,
+          "traitNodeEntryId": 137870,
+          "traitNodeId": 110872,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Holy Power",
+          "col": 2,
+          "id": "calc-paladin-holy-holy-power",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Holy Power",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82962,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            },
+            {
+              "curveId": 110324,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [5923, 5923, 5923, 5923, 5923],
+          "spellId": 5923,
+          "tier": 5,
+          "traitDefinitionId": 134816,
+          "traitNodeEntryId": 130015,
+          "traitNodeId": 105321,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105323],
+            "prerequisiteTalentIds": ["calc-paladin-holy-holy-shock"],
+            "tier": 6
+          },
+          "clientName": "Light's Vigil",
+          "col": 1,
+          "id": "calc-paladin-holy-light-s-vigil",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Light's Vigil",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1310911],
+          "spellId": 1310911,
+          "tier": 6,
+          "traitDefinitionId": 134815,
+          "traitNodeEntryId": 130014,
+          "traitNodeId": 105320,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Toughness",
+          "col": 1,
+          "id": "calc-paladin-protection-toughness",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Toughness",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82950,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            },
+            {
+              "curveId": 103189,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [20143, 20143, 20143, 20143, 20143],
+          "spellId": 20143,
+          "tier": 0,
+          "traitDefinitionId": 135155,
+          "traitNodeEntryId": 130354,
+          "traitNodeId": 105630,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Redoubt",
+          "col": 2,
+          "id": "paladin-redoubt",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Redoubt",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82946,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [6, 12, 18, 24, 30]
+            },
+            {
+              "curveId": 82945,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [20127, 20127, 20127, 20127, 20127],
+          "spellId": 20127,
+          "tier": 0,
+          "traitDefinitionId": 135151,
+          "traitNodeEntryId": 130350,
+          "traitNodeId": 105626,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Precision",
+          "col": 0,
+          "id": "calc-paladin-protection-precision",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Precision",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82958,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3]
+            },
+            {
+              "curveId": 104822,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [1, 2, 3]
+            }
+          ],
+          "rankSpellIds": [20189, 20189, 20189],
+          "spellId": 20189,
+          "tier": 1,
+          "traitDefinitionId": 135163,
+          "traitNodeEntryId": 130362,
+          "traitNodeId": 105638,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Guardian's Favor",
+          "col": 1,
+          "id": "calc-paladin-protection-guardian-s-favor",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Guardian's Favor",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82957,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-60000, -120000]
+            },
+            {
+              "curveId": 82956,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [3000, 6000]
+            }
+          ],
+          "rankSpellIds": [20174, 20174],
+          "spellId": 20174,
+          "tier": 1,
+          "traitDefinitionId": 135162,
+          "traitNodeEntryId": 130361,
+          "traitNodeId": 105637,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Anticipation",
+          "col": 3,
+          "id": "calc-paladin-protection-anticipation",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Anticipation",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82955,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [4, 8, 12, 16, 20]
+            }
+          ],
+          "rankSpellIds": [20096, 20096, 20096, 20096, 20096],
+          "spellId": 20096,
+          "tier": 1,
+          "traitDefinitionId": 135161,
+          "traitNodeEntryId": 130360,
+          "traitNodeId": 105636,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Improved Seal of Fury",
+          "col": 0,
+          "id": "calc-paladin-protection-improved-seal-of-fury",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Improved Seal of Fury",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1314103],
+          "spellId": 1314103,
+          "tier": 2,
+          "traitDefinitionId": 142627,
+          "traitNodeEntryId": 137873,
+          "traitNodeId": 110875,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Improved Righteous Fury",
+          "col": 1,
+          "id": "calc-paladin-protection-improved-righteous-fury",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Righteous Fury",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82954,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-2, -4, -6]
+            }
+          ],
+          "rankSpellIds": [20468, 20468, 20468],
+          "spellId": 20468,
+          "tier": 2,
+          "traitDefinitionId": 135159,
+          "traitNodeEntryId": 130358,
+          "traitNodeId": 105634,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [105626],
+            "prerequisiteTalentIds": ["paladin-redoubt"],
+            "tier": 2
+          },
+          "clientName": "Shield Specialization",
+          "col": 2,
+          "id": "calc-paladin-protection-shield-specialization",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Shield Specialization",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 110326,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20, 30]
+            },
+            {
+              "curveId": 110325,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [33, 66, 100]
+            }
+          ],
+          "rankSpellIds": [20150, 20150, 20150],
+          "spellId": 20150,
+          "tier": 2,
+          "traitDefinitionId": 142626,
+          "traitNodeEntryId": 137872,
+          "traitNodeId": 110874,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Sacred Duty",
+          "col": 3,
+          "id": "calc-paladin-protection-sacred-duty",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Sacred Duty",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82952,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4]
+            },
+            {
+              "curveId": 82951,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-30000, -60000]
+            }
+          ],
+          "rankSpellIds": [1224697, 1224697],
+          "spellId": 1224697,
+          "tier": 2,
+          "traitDefinitionId": 135157,
+          "traitNodeEntryId": 130356,
+          "traitNodeId": 105632,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [110875],
+            "prerequisiteTalentIds": ["calc-paladin-protection-improved-seal-of-fury"],
+            "tier": 3
+          },
+          "clientName": "Swift Judgement",
+          "col": 0,
+          "id": "calc-paladin-protection-swift-judgement",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Swift Judgement",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1310994],
+          "spellId": 1310994,
+          "tier": 3,
+          "traitDefinitionId": 142630,
+          "traitNodeEntryId": 137876,
+          "traitNodeId": 110878,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "One-Handed Weapon Specialization",
+          "col": 1,
+          "id": "calc-paladin-protection-one-handed-weapon-specialization",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "One-Handed Weapon Specialization",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82949,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 7, 10]
+            }
+          ],
+          "rankSpellIds": [20196, 20196, 20196],
+          "spellId": 20196,
+          "tier": 3,
+          "traitDefinitionId": 135154,
+          "traitNodeEntryId": 130353,
+          "traitNodeId": 105629,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Hammer of Justice",
+          "col": 2,
+          "id": "calc-paladin-protection-improved-hammer-of-justice",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Hammer of Justice",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82953,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-5000, -10000, -15000]
+            }
+          ],
+          "rankSpellIds": [20487, 20487, 20487],
+          "spellId": 20487,
+          "tier": 3,
+          "traitDefinitionId": 135158,
+          "traitNodeEntryId": 130357,
+          "traitNodeId": 105633,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Templar's Bulwark",
+          "col": 1,
+          "id": "calc-paladin-protection-templar-s-bulwark",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Templar's Bulwark",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1311015],
+          "spellId": 1311015,
+          "tier": 4,
+          "traitDefinitionId": 135150,
+          "traitNodeEntryId": 130349,
+          "traitNodeId": 105625,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Reckoning",
+          "col": 2,
+          "id": "calc-paladin-protection-reckoning",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Reckoning",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82947,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [8, 16, 24, 32, 40]
+            }
+          ],
+          "rankSpellIds": [20177, 20177, 20177, 20177, 20177],
+          "spellId": 20177,
+          "tier": 4,
+          "traitDefinitionId": 135152,
+          "traitNodeEntryId": 130351,
+          "traitNodeId": 105627,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Iron Creed",
+          "col": 2,
+          "id": "calc-paladin-protection-iron-creed",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Iron Creed",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 110346,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15, 20, 25]
+            },
+            {
+              "curveId": 110345,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [1311034, 1311034, 1311034, 1311034, 1311034],
+          "spellId": 1311034,
+          "tier": 5,
+          "traitDefinitionId": 142631,
+          "traitNodeEntryId": 137877,
+          "traitNodeId": 110879,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105625],
+            "prerequisiteTalentIds": ["calc-paladin-protection-templar-s-bulwark"],
+            "tier": 6
+          },
+          "clientName": "Holy Shield",
+          "col": 1,
+          "id": "calc-paladin-protection-holy-shield",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Holy Shield",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [20925],
+          "spellId": 20925,
+          "tier": 6,
+          "traitDefinitionId": 135153,
+          "traitNodeEntryId": 130352,
+          "traitNodeId": 105628,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Deflection",
+          "col": 1,
+          "id": "calc-paladin-retribution-deflection",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Deflection",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82991,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [20060, 20060, 20060, 20060, 20060],
+          "spellId": 20060,
+          "tier": 0,
+          "traitDefinitionId": 135237,
+          "traitNodeEntryId": 130436,
+          "traitNodeId": 105707,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Benediction",
+          "col": 2,
+          "id": "calc-paladin-retribution-benediction",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Benediction",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82990,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-2, -4, -6, -8, -10]
+            }
+          ],
+          "rankSpellIds": [20101, 20101, 20101, 20101, 20101],
+          "spellId": 20101,
+          "tier": 0,
+          "traitDefinitionId": 135236,
+          "traitNodeEntryId": 130435,
+          "traitNodeId": 105706,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Judgement",
+          "col": 0,
+          "id": "calc-paladin-retribution-improved-judgement",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Judgement",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82988,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-1000, -2000]
+            }
+          ],
+          "rankSpellIds": [25956, 25956],
+          "spellId": 25956,
+          "tier": 1,
+          "traitDefinitionId": 135235,
+          "traitNodeEntryId": 130434,
+          "traitNodeId": 105705,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Holy Conduit",
+          "col": 1,
+          "id": "calc-paladin-retribution-holy-conduit",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Holy Conduit",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82987,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-20, -40]
+            }
+          ],
+          "rankSpellIds": [1237268, 1237268],
+          "spellId": 1237268,
+          "tier": 1,
+          "traitDefinitionId": 135234,
+          "traitNodeEntryId": 130433,
+          "traitNodeId": 105704,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Conviction",
+          "col": 2,
+          "id": "calc-paladin-retribution-conviction",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Conviction",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82985,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [20117, 20117, 20117, 20117, 20117],
+          "spellId": 20117,
+          "tier": 1,
+          "traitDefinitionId": 135233,
+          "traitNodeEntryId": 130432,
+          "traitNodeId": 105703,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Vindication",
+          "col": 0,
+          "id": "calc-paladin-retribution-vindication",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Vindication",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82984,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3]
+            }
+          ],
+          "rankSpellIds": [9452, 9452, 9452],
+          "spellId": 9452,
+          "tier": 2,
+          "traitDefinitionId": 135232,
+          "traitNodeEntryId": 130431,
+          "traitNodeId": 105702,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Sanctified Judgement",
+          "col": 1,
+          "id": "calc-paladin-retribution-sanctified-judgement",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Sanctified Judgement",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82983,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [33, 66, 100]
+            },
+            {
+              "curveId": 110347,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [20, 40, 60]
+            }
+          ],
+          "rankSpellIds": [1311074, 1311074, 1311074],
+          "spellId": 1311074,
+          "tier": 2,
+          "traitDefinitionId": 135231,
+          "traitNodeEntryId": 130430,
+          "traitNodeId": 105701,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Seal of Command",
+          "col": 2,
+          "id": "calc-paladin-retribution-seal-of-command",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Seal of Command",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [20375],
+          "spellId": 20375,
+          "tier": 2,
+          "traitDefinitionId": 135226,
+          "traitNodeEntryId": 130425,
+          "traitNodeId": 105696,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Pursuit of Justice",
+          "col": 3,
+          "id": "calc-paladin-retribution-pursuit-of-justice",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Pursuit of Justice",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82982,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [8, 15]
+            },
+            {
+              "curveId": 87390,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [8, 15]
+            }
+          ],
+          "rankSpellIds": [26022, 26022],
+          "spellId": 26022,
+          "tier": 2,
+          "traitDefinitionId": 135229,
+          "traitNodeEntryId": 130428,
+          "traitNodeId": 105699,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Eye for an Eye",
+          "col": 0,
+          "id": "calc-paladin-retribution-eye-for-an-eye",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Eye for an Eye",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82981,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10]
+            }
+          ],
+          "rankSpellIds": [9799, 9799],
+          "spellId": 9799,
+          "tier": 3,
+          "traitDefinitionId": 135228,
+          "traitNodeEntryId": 130427,
+          "traitNodeId": 105698,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Sacred Arbiter",
+          "col": 2,
+          "id": "calc-paladin-retribution-sacred-arbiter",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Sacred Arbiter",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1311087],
+          "spellId": 1311087,
+          "tier": 3,
+          "traitDefinitionId": 135230,
+          "traitNodeEntryId": 130429,
+          "traitNodeId": 105700,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Crusade",
+          "col": 3,
+          "id": "calc-paladin-retribution-crusade",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Crusade",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 110354,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2]
+            },
+            {
+              "curveId": 110353,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [1, 2]
+            }
+          ],
+          "rankSpellIds": [1311083, 1311083],
+          "spellId": 1311083,
+          "tier": 3,
+          "traitDefinitionId": 142635,
+          "traitNodeEntryId": 137881,
+          "traitNodeId": 110883,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Two-Handed Weapon Specialization",
+          "col": 0,
+          "id": "calc-paladin-retribution-two-handed-weapon-specialization",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Two-Handed Weapon Specialization",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82980,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 6, 9]
+            }
+          ],
+          "rankSpellIds": [20111, 20111, 20111],
+          "spellId": 20111,
+          "tier": 4,
+          "traitDefinitionId": 135227,
+          "traitNodeEntryId": 130426,
+          "traitNodeId": 105697,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105701],
+            "prerequisiteTalentIds": ["calc-paladin-retribution-sanctified-judgement"],
+            "tier": 4
+          },
+          "clientName": "Vengeance",
+          "col": 1,
+          "id": "calc-paladin-retribution-vengeance",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Vengeance",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 82978,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3]
+            }
+          ],
+          "rankSpellIds": [20049, 20049, 20049],
+          "spellId": 20049,
+          "tier": 4,
+          "traitDefinitionId": 135223,
+          "traitNodeEntryId": 130422,
+          "traitNodeId": 105693,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Repentance",
+          "col": 2,
+          "id": "calc-paladin-retribution-repentance",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Repentance",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [20066],
+          "spellId": 20066,
+          "tier": 4,
+          "traitDefinitionId": 135224,
+          "traitNodeEntryId": 130423,
+          "traitNodeId": 105694,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Champion of the Light",
+          "col": 1,
+          "id": "calc-paladin-retribution-champion-of-the-light",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Champion of the Light",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 110350,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [33, 66, 100]
+            }
+          ],
+          "rankSpellIds": [1311084, 1311084, 1311084],
+          "spellId": 1311084,
+          "tier": 5,
+          "traitDefinitionId": 142634,
+          "traitNodeEntryId": 137880,
+          "traitNodeId": 110882,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Instrument of Law",
+          "col": 2,
+          "id": "calc-paladin-retribution-instrument-of-law",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Instrument of Law",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 110349,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-500, -1000]
+            },
+            {
+              "curveId": 110348,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20]
+            }
+          ],
+          "rankSpellIds": [1311085, 1311085],
+          "spellId": 1311085,
+          "tier": 5,
+          "traitDefinitionId": 142632,
+          "traitNodeEntryId": 137878,
+          "traitNodeId": 110880,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 6
+          },
+          "clientName": "Twist of Light",
+          "col": 1,
+          "id": "calc-paladin-retribution-twist-of-light",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Twist of Light",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1310735],
+          "spellId": 1310735,
+          "tier": 6,
+          "traitDefinitionId": 135222,
+          "traitNodeEntryId": 130421,
+          "traitNodeId": 105692,
+          "tree": "Retribution",
+          "visibleSpellId": 0
+        }
+      ],
+      "traitTreeId": 1100
+    },
+    "warrior": {
+      "tabs": [
+        {
+          "index": 0,
+          "posX": [1020, 2820],
+          "tree": "Arms"
+        },
+        {
+          "index": 1,
+          "posX": [5020, 6820],
+          "tree": "Fury"
+        },
+        {
+          "index": 2,
+          "posX": [9080, 10880],
+          "tree": "Protection"
+        }
+      ],
+      "talents": [
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Heroic Strike",
+          "col": 0,
+          "id": "calc-warrior-arms-improved-heroic-strike",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Heroic Strike",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83317,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-10, -20, -30]
+            }
+          ],
+          "rankSpellIds": [12282, 12282, 12282],
+          "spellId": 12282,
+          "tier": 0,
+          "traitDefinitionId": 135489,
+          "traitNodeEntryId": 130688,
+          "traitNodeId": 105958,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Deflection",
+          "col": 1,
+          "id": "calc-warrior-arms-deflection",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Deflection",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83316,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [16462, 16462, 16462, 16462, 16462],
+          "spellId": 16462,
+          "tier": 0,
+          "traitDefinitionId": 135488,
+          "traitNodeEntryId": 130687,
+          "traitNodeId": 105957,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Rend",
+          "col": 2,
+          "id": "calc-warrior-arms-improved-rend",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Rend",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83315,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [12, 23, 35]
+            }
+          ],
+          "rankSpellIds": [12286, 12286, 12286],
+          "spellId": 12286,
+          "tier": 0,
+          "traitDefinitionId": 135487,
+          "traitNodeEntryId": 130686,
+          "traitNodeId": 105956,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Charge",
+          "col": 0,
+          "id": "calc-warrior-arms-improved-charge",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Charge",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83314,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [30, 60]
+            }
+          ],
+          "rankSpellIds": [12285, 12285],
+          "spellId": 12285,
+          "tier": 1,
+          "traitDefinitionId": 135486,
+          "traitNodeEntryId": 130685,
+          "traitNodeId": 105955,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Tactical Mastery",
+          "col": 1,
+          "id": "calc-warrior-arms-improved-tactical-mastery",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Improved Tactical Mastery",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83313,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 6, 9, 12, 15]
+            }
+          ],
+          "rankSpellIds": [12295, 12295, 12295, 12295, 12295],
+          "spellId": 12295,
+          "tier": 1,
+          "traitDefinitionId": 135485,
+          "traitNodeEntryId": 130684,
+          "traitNodeId": 105954,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Overpower",
+          "col": 3,
+          "id": "calc-warrior-arms-improved-overpower",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Overpower",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83310,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [25, 50]
+            }
+          ],
+          "rankSpellIds": [12290, 12290],
+          "spellId": 12290,
+          "tier": 1,
+          "traitDefinitionId": 135483,
+          "traitNodeEntryId": 130682,
+          "traitNodeId": 105952,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105954],
+            "prerequisiteTalentIds": ["calc-warrior-arms-improved-tactical-mastery"],
+            "tier": 2
+          },
+          "clientName": "Anger Management",
+          "col": 1,
+          "id": "calc-warrior-arms-anger-management",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Anger Management",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [12296],
+          "spellId": 12296,
+          "tier": 2,
+          "traitDefinitionId": 135482,
+          "traitNodeEntryId": 130681,
+          "traitNodeId": 105951,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [105956],
+            "prerequisiteTalentIds": ["calc-warrior-arms-improved-rend"],
+            "tier": 2
+          },
+          "clientName": "Deep Wounds",
+          "col": 2,
+          "id": "calc-warrior-arms-deep-wounds",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Deep Wounds",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83309,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40, 60]
+            }
+          ],
+          "rankSpellIds": [12834, 12834, 12834],
+          "spellId": 12834,
+          "tier": 2,
+          "traitDefinitionId": 135481,
+          "traitNodeEntryId": 130680,
+          "traitNodeId": 105950,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Spearing Strike",
+          "col": 0,
+          "id": "calc-warrior-arms-spearing-strike",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Spearing Strike",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1310222],
+          "spellId": 1310222,
+          "tier": 3,
+          "traitDefinitionId": 135480,
+          "traitNodeEntryId": 130679,
+          "traitNodeId": 105949,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Two-Handed Weapon Specialization",
+          "col": 1,
+          "id": "calc-warrior-arms-two-handed-weapon-specialization",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Two-Handed Weapon Specialization",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83308,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3]
+            }
+          ],
+          "rankSpellIds": [12163, 12163, 12163],
+          "spellId": 12163,
+          "tier": 3,
+          "traitDefinitionId": 135479,
+          "traitNodeEntryId": 130678,
+          "traitNodeId": 105948,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Impale",
+          "col": 2,
+          "id": "calc-warrior-arms-impale",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Impale",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83307,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20]
+            }
+          ],
+          "rankSpellIds": [16493, 16493],
+          "spellId": 16493,
+          "tier": 3,
+          "traitDefinitionId": 135478,
+          "traitNodeEntryId": 130677,
+          "traitNodeId": 105947,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Bloodthrill",
+          "col": 0,
+          "id": "calc-warrior-arms-bloodthrill",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Bloodthrill",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109366,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [1289682, 1289682, 1289682, 1289682, 1289682],
+          "spellId": 1289682,
+          "tier": 4,
+          "traitDefinitionId": 141974,
+          "traitNodeEntryId": 137214,
+          "traitNodeId": 110524,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Sweeping Strikes",
+          "col": 1,
+          "id": "calc-warrior-arms-sweeping-strikes",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Sweeping Strikes",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [12292],
+          "spellId": 12292,
+          "tier": 4,
+          "traitDefinitionId": 135476,
+          "traitNodeEntryId": 130675,
+          "traitNodeId": 105945,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Weaponmaster",
+          "col": 2,
+          "id": "calc-warrior-arms-weaponmaster",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Weaponmaster",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83305,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            },
+            {
+              "curveId": 100832,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [3, 6, 9, 12, 15]
+            },
+            {
+              "curveId": 100831,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [1290261, 1290261, 1290261, 1290261, 1290261],
+          "spellId": 1290261,
+          "tier": 4,
+          "traitDefinitionId": 135475,
+          "traitNodeEntryId": 130674,
+          "traitNodeId": 105944,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Improved Slam",
+          "col": 0,
+          "id": "calc-warrior-arms-improved-slam",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Slam",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109365,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-250, -500]
+            },
+            {
+              "curveId": 109364,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-250, -500]
+            }
+          ],
+          "rankSpellIds": [12862, 12862],
+          "spellId": 12862,
+          "tier": 5,
+          "traitDefinitionId": 142604,
+          "traitNodeEntryId": 137850,
+          "traitNodeId": 110858,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Improved Hamstring",
+          "col": 2,
+          "id": "calc-warrior-arms-improved-hamstring",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Hamstring",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83303,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            }
+          ],
+          "rankSpellIds": [12289, 12289, 12289],
+          "spellId": 12289,
+          "tier": 5,
+          "traitDefinitionId": 135473,
+          "traitNodeEntryId": 130672,
+          "traitNodeId": 105942,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105945],
+            "prerequisiteTalentIds": ["calc-warrior-arms-sweeping-strikes"],
+            "tier": 6
+          },
+          "clientName": "Mortal Strike",
+          "col": 1,
+          "id": "calc-warrior-arms-mortal-strike",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Mortal Strike",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [12294],
+          "spellId": 12294,
+          "tier": 6,
+          "traitDefinitionId": 135472,
+          "traitNodeEntryId": 130671,
+          "traitNodeId": 105941,
+          "tree": "Arms",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Booming Voice",
+          "col": 1,
+          "id": "calc-warrior-fury-booming-voice",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Booming Voice",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83300,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20, 30, 40, 50]
+            }
+          ],
+          "rankSpellIds": [12321, 12321, 12321, 12321, 12321],
+          "spellId": 12321,
+          "tier": 0,
+          "traitDefinitionId": 135469,
+          "traitNodeEntryId": 130668,
+          "traitNodeId": 105938,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Cruelty",
+          "col": 2,
+          "id": "calc-warrior-fury-cruelty",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Cruelty",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83301,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [12320, 12320, 12320, 12320, 12320],
+          "spellId": 12320,
+          "tier": 0,
+          "traitDefinitionId": 135470,
+          "traitNodeEntryId": 130669,
+          "traitNodeId": 105939,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Iron Will",
+          "col": 1,
+          "id": "calc-warrior-fury-iron-will",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Iron Will",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109363,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-3, -6, -9, -12, -15]
+            },
+            {
+              "curveId": 109362,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-3, -6, -9, -12, -15]
+            }
+          ],
+          "rankSpellIds": [12962, 12962, 12962, 12962, 12962],
+          "spellId": 12962,
+          "tier": 1,
+          "traitDefinitionId": 142603,
+          "traitNodeEntryId": 137849,
+          "traitNodeId": 110857,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Unbridled Wrath",
+          "col": 2,
+          "id": "calc-warrior-fury-unbridled-wrath",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Unbridled Wrath",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83299,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [12, 24, 36, 48, 60]
+            }
+          ],
+          "rankSpellIds": [12322, 12322, 12322, 12322, 12322],
+          "spellId": 12322,
+          "tier": 1,
+          "traitDefinitionId": 135468,
+          "traitNodeEntryId": 130667,
+          "traitNodeId": 105937,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Improved Cleave",
+          "col": 0,
+          "id": "calc-warrior-fury-improved-cleave",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Cleave",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83298,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-10, -20, -30]
+            }
+          ],
+          "rankSpellIds": [12329, 12329, 12329],
+          "spellId": 12329,
+          "tier": 2,
+          "traitDefinitionId": 135467,
+          "traitNodeEntryId": 130666,
+          "traitNodeId": 105936,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Piercing Howl",
+          "col": 1,
+          "id": "calc-warrior-fury-piercing-howl",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Piercing Howl",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [12323],
+          "spellId": 12323,
+          "tier": 2,
+          "traitDefinitionId": 135466,
+          "traitNodeEntryId": 130665,
+          "traitNodeId": 105935,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Blood Craze",
+          "col": 2,
+          "id": "calc-warrior-fury-blood-craze",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Blood Craze",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83297,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3]
+            }
+          ],
+          "rankSpellIds": [16487, 16487, 16487],
+          "spellId": 16487,
+          "tier": 2,
+          "traitDefinitionId": 135465,
+          "traitNodeEntryId": 130664,
+          "traitNodeId": 105934,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Boundless Rage",
+          "col": 3,
+          "id": "calc-warrior-fury-boundless-rage",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Boundless Rage",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83312,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [100, 200, 300]
+            }
+          ],
+          "rankSpellIds": [1310236, 1310236, 1310236],
+          "spellId": 1310236,
+          "tier": 2,
+          "traitDefinitionId": 135484,
+          "traitNodeEntryId": 130683,
+          "traitNodeId": 105953,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Dual Wield Specialization",
+          "col": 0,
+          "id": "calc-warrior-fury-dual-wield-specialization",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Dual Wield Specialization",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83296,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15, 20, 25]
+            },
+            {
+              "curveId": 111755,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            },
+            {
+              "curveId": 112760,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [23584, 23584, 23584, 23584, 23584],
+          "spellId": 23584,
+          "tier": 3,
+          "traitDefinitionId": 135464,
+          "traitNodeEntryId": 130663,
+          "traitNodeId": 105933,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Raging Blows",
+          "col": 1,
+          "id": "warrior-raging-blows",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Raging Blows",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1310315],
+          "spellId": 1310315,
+          "tier": 3,
+          "traitDefinitionId": 135508,
+          "traitNodeEntryId": 130707,
+          "traitNodeId": 105977,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Enrage",
+          "col": 2,
+          "id": "calc-warrior-fury-enrage",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Enrage",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83294,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [12317, 12317, 12317, 12317, 12317],
+          "spellId": 12317,
+          "tier": 3,
+          "traitDefinitionId": 135462,
+          "traitNodeEntryId": 130661,
+          "traitNodeId": 105931,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Execute",
+          "col": 3,
+          "id": "calc-warrior-fury-improved-execute",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Execute",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83295,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-30, -50]
+            }
+          ],
+          "rankSpellIds": [20502, 20502],
+          "spellId": 20502,
+          "tier": 3,
+          "traitDefinitionId": 135463,
+          "traitNodeEntryId": 130662,
+          "traitNodeId": 105932,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Precision",
+          "col": 0,
+          "id": "calc-warrior-fury-precision",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Precision",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83293,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3]
+            },
+            {
+              "curveId": 109361,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [1, 2, 3]
+            }
+          ],
+          "rankSpellIds": [1225295, 1225295, 1225295],
+          "spellId": 1225295,
+          "tier": 4,
+          "traitDefinitionId": 135460,
+          "traitNodeEntryId": 130659,
+          "traitNodeId": 105929,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Death Wish",
+          "col": 1,
+          "id": "calc-warrior-fury-death-wish",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Death Wish",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [12328],
+          "spellId": 12328,
+          "tier": 4,
+          "traitDefinitionId": 135458,
+          "traitNodeEntryId": 130657,
+          "traitNodeId": 105927,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Improved Intercept",
+          "col": 3,
+          "id": "calc-warrior-fury-improved-intercept",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Intercept",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83291,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-5000, -10000]
+            }
+          ],
+          "rankSpellIds": [20504, 20504],
+          "spellId": 20504,
+          "tier": 4,
+          "traitDefinitionId": 135457,
+          "traitNodeEntryId": 130656,
+          "traitNodeId": 105926,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Improved Berserker Rage",
+          "col": 0,
+          "id": "warrior-improved-berserker-rage",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Berserker Rage",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83290,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [50, 100]
+            },
+            {
+              "curveId": 109360,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [50, 100]
+            }
+          ],
+          "rankSpellIds": [20500, 20500],
+          "spellId": 20500,
+          "tier": 5,
+          "traitDefinitionId": 135509,
+          "traitNodeEntryId": 130708,
+          "traitNodeId": 105978,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [105931],
+            "prerequisiteTalentIds": ["calc-warrior-fury-enrage"],
+            "tier": 5
+          },
+          "clientName": "Flurry",
+          "col": 2,
+          "id": "calc-warrior-fury-flurry",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Flurry",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83289,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15, 20, 25]
+            }
+          ],
+          "rankSpellIds": [12319, 12319, 12319, 12319, 12319],
+          "spellId": 12319,
+          "tier": 5,
+          "traitDefinitionId": 135459,
+          "traitNodeEntryId": 130658,
+          "traitNodeId": 105928,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105927],
+            "prerequisiteTalentIds": ["calc-warrior-fury-death-wish"],
+            "tier": 6
+          },
+          "clientName": "Bloodthirst",
+          "col": 1,
+          "id": "warrior-bloodthirst",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Bloodthirst",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [23881],
+          "spellId": 23881,
+          "tier": 6,
+          "traitDefinitionId": 135461,
+          "traitNodeEntryId": 130660,
+          "traitNodeId": 105930,
+          "tree": "Fury",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Shield Specialization",
+          "col": 1,
+          "id": "warrior-shield-specialization",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Shield Specialization",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83288,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            },
+            {
+              "curveId": 83287,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            }
+          ],
+          "rankSpellIds": [12298, 12298, 12298, 12298, 12298],
+          "spellId": 12298,
+          "tier": 0,
+          "traitDefinitionId": 135507,
+          "traitNodeEntryId": 130706,
+          "traitNodeId": 105976,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Anticipation",
+          "col": 2,
+          "id": "calc-warrior-protection-anticipation",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Anticipation",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83286,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [4, 8, 12, 16, 20]
+            }
+          ],
+          "rankSpellIds": [12297, 12297, 12297, 12297, 12297],
+          "spellId": 12297,
+          "tier": 0,
+          "traitDefinitionId": 135506,
+          "traitNodeEntryId": 130705,
+          "traitNodeId": 105975,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Bloodrage",
+          "col": 0,
+          "id": "calc-warrior-protection-improved-bloodrage",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Bloodrage",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83285,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [25, 50]
+            }
+          ],
+          "rankSpellIds": [12301, 12301],
+          "spellId": 12301,
+          "tier": 1,
+          "traitDefinitionId": 135505,
+          "traitNodeEntryId": 130704,
+          "traitNodeId": 105974,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Toughness",
+          "col": 2,
+          "id": "calc-warrior-protection-toughness",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Toughness",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83284,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            },
+            {
+              "curveId": 103188,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [12299, 12299, 12299, 12299, 12299],
+          "spellId": 12299,
+          "tier": 1,
+          "traitDefinitionId": 135504,
+          "traitNodeEntryId": 130703,
+          "traitNodeId": 105973,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Thunder Clap",
+          "col": 3,
+          "id": "calc-warrior-protection-improved-thunder-clap",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Thunder Clap",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83283,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-20, -40, -60]
+            }
+          ],
+          "rankSpellIds": [12287, 12287, 12287],
+          "spellId": 12287,
+          "tier": 1,
+          "traitDefinitionId": 135503,
+          "traitNodeEntryId": 130702,
+          "traitNodeId": 105972,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [105974],
+            "prerequisiteTalentIds": ["calc-warrior-protection-improved-bloodrage"],
+            "tier": 2
+          },
+          "clientName": "Last Stand",
+          "col": 0,
+          "id": "calc-warrior-protection-last-stand",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Last Stand",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83282,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5]
+            }
+          ],
+          "rankSpellIds": [12975],
+          "spellId": 12975,
+          "tier": 2,
+          "traitDefinitionId": 135501,
+          "traitNodeEntryId": 130700,
+          "traitNodeId": 105970,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105976],
+            "prerequisiteTalentIds": ["warrior-shield-specialization"],
+            "tier": 2
+          },
+          "clientName": "Master of Defense",
+          "col": 1,
+          "id": "calc-warrior-protection-master-of-defense",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Master of Defense",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109359,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [50, 100]
+            }
+          ],
+          "rankSpellIds": [1310316, 1310316],
+          "spellId": 1310316,
+          "tier": 2,
+          "traitDefinitionId": 135502,
+          "traitNodeEntryId": 130701,
+          "traitNodeId": 105971,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Improved Revenge",
+          "col": 2,
+          "id": "calc-warrior-protection-improved-revenge",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Revenge",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83281,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40, 60]
+            }
+          ],
+          "rankSpellIds": [12797, 12797, 12797],
+          "spellId": 12797,
+          "tier": 2,
+          "traitDefinitionId": 135500,
+          "traitNodeEntryId": 130699,
+          "traitNodeId": 105969,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Defiance",
+          "col": 3,
+          "id": "calc-warrior-protection-defiance",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Defiance",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109358,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            }
+          ],
+          "rankSpellIds": [12792, 12792, 12792],
+          "spellId": 12792,
+          "tier": 2,
+          "traitDefinitionId": 142602,
+          "traitNodeEntryId": 137848,
+          "traitNodeId": 110856,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Sunder Armor",
+          "col": 0,
+          "id": "calc-warrior-protection-improved-sunder-armor",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Sunder Armor",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83280,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-10, -20, -30]
+            }
+          ],
+          "rankSpellIds": [12308, 12308, 12308],
+          "spellId": 12308,
+          "tier": 3,
+          "traitDefinitionId": 135499,
+          "traitNodeEntryId": 130698,
+          "traitNodeId": 105968,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Disarm",
+          "col": 1,
+          "id": "calc-warrior-protection-improved-disarm",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Disarm",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83279,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-7000, -13000, -20000]
+            }
+          ],
+          "rankSpellIds": [12313, 12313, 12313],
+          "spellId": 12313,
+          "tier": 3,
+          "traitDefinitionId": 135498,
+          "traitNodeEntryId": 130697,
+          "traitNodeId": 105967,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Vanguard",
+          "col": 2,
+          "id": "calc-warrior-protection-vanguard",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Vanguard",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1310317],
+          "spellId": 1310317,
+          "tier": 3,
+          "traitDefinitionId": 135497,
+          "traitNodeEntryId": 130696,
+          "traitNodeId": 105966,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Improved Shield Wall",
+          "col": 0,
+          "id": "calc-warrior-protection-improved-shield-wall",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Shield Wall",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109357,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-330000, -660000]
+            }
+          ],
+          "rankSpellIds": [12312, 12312],
+          "spellId": 12312,
+          "tier": 4,
+          "traitDefinitionId": 135495,
+          "traitNodeEntryId": 130694,
+          "traitNodeId": 105964,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Concussion Blow",
+          "col": 1,
+          "id": "calc-warrior-protection-concussion-blow",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Concussion Blow",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [12809],
+          "spellId": 12809,
+          "tier": 4,
+          "traitDefinitionId": 135496,
+          "traitNodeEntryId": 130695,
+          "traitNodeId": 105965,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Improved Shield Bash",
+          "col": 2,
+          "id": "calc-warrior-protection-improved-shield-bash",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Shield Bash",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83277,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [50, 100]
+            }
+          ],
+          "rankSpellIds": [12311, 12311],
+          "spellId": 12311,
+          "tier": 4,
+          "traitDefinitionId": 135494,
+          "traitNodeEntryId": 130693,
+          "traitNodeId": 105963,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Bastion",
+          "col": 3,
+          "id": "calc-warrior-protection-bastion",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Bastion",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83276,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [16538, 16538, 16538, 16538, 16538],
+          "spellId": 16538,
+          "tier": 4,
+          "traitDefinitionId": 135493,
+          "traitNodeEntryId": 130692,
+          "traitNodeId": 105962,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Focused Rage",
+          "col": 2,
+          "id": "calc-warrior-protection-focused-rage",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Focused Rage",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83274,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-10, -20, -30]
+            }
+          ],
+          "rankSpellIds": [29787, 29787, 29787],
+          "spellId": 29787,
+          "tier": 5,
+          "traitDefinitionId": 135492,
+          "traitNodeEntryId": 130691,
+          "traitNodeId": 105961,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105965],
+            "prerequisiteTalentIds": ["calc-warrior-protection-concussion-blow"],
+            "tier": 6
+          },
+          "clientName": "Shield Slam",
+          "col": 1,
+          "id": "calc-warrior-protection-shield-slam",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Shield Slam",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [23922],
+          "spellId": 23922,
+          "tier": 6,
+          "traitDefinitionId": 135490,
+          "traitNodeEntryId": 130689,
+          "traitNodeId": 105959,
+          "tree": "Protection",
+          "visibleSpellId": 0
+        }
+      ],
+      "traitTreeId": 1117
+    }
+  },
+  "counts": {
+    "byName": 156,
+    "byPosition": 0,
+    "mapped": 156,
+    "talents": 156,
+    "unmapped": 0
+  },
+  "unmapped": []
+}

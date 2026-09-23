@@ -132,6 +132,21 @@ test.describe('the desktop results panel', () => {
 })
 
 test.describe('result details', () => {
+  test('Character sheet names the Classic-based placeholders the Assumptions name (D24)', async ({ page }) => {
+    // Arms with a one-hander and a shield: the sheet shows its defensive rows (it has block value),
+    // but the boss never attacks it, so neither the sheet nor the Assumptions name its avoidance.
+    await seed(page, { spec: 'warrior-arms', gear: { mainHand: { itemId: 11784 }, offHand: { itemId: 16998 } } })
+    await page.goto('./')
+    const panel = results(page)
+    await simulate(panel)
+    await panel.getByRole('button', { name: 'Character sheet' }).click()
+    await expect(panel.getByRole('term').filter({ hasText: /^Parry$/ })).toBeVisible()
+    await expect(panel.getByText('Classic-based values until they’re measured: base health.')).toBeVisible()
+    await panel.getByRole('button', { name: /^Assumptions \(\d+\)$/ }).click()
+    await expect(panel.getByText(/placeholders until they are: base health 1,689\.$/)).toBeVisible()
+    await expect(panel.getByText(/base parry|base block/)).toHaveCount(0)
+  })
+
   test('Cooldowns and buffs explains Enrage while you take no damage, under short column headers', async ({ page }) => {
     await page.goto('./')
     const panel = results(page)

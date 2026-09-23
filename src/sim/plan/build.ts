@@ -241,10 +241,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // Decision D24: an unmeasured base value takes its Classic-based placeholder, listed in the
   // assumptions (docs/mechanics/character-stats.md#other-base-values-at-level-60).
   const stand = BASE_PLACEHOLDERS[classId]
-  const baseValue = (known: number | null, placeholder: number | undefined, name: string) => {
+  // Avoidance matters only when the boss attacks you, so only a tank lists its avoidance
+  // placeholders: the sheet's footnote and the assumptions below name the same values.
+  const baseValue = (known: number | null, placeholder: number | undefined, name: string, listed = true) => {
     if (known !== null) return known
     if (placeholder !== undefined) {
-      placeholders.push(name)
+      if (listed) placeholders.push(name)
       return placeholder
     }
     // Neither measured nor a placeholder: left out of the sheet, which says so.
@@ -252,15 +254,15 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     return 0
   }
   block.baseHealth = baseValue(base.baseHealth, stand.baseHealth, 'base health')
-  block.baseDodge = baseValue(base.baseDodge, stand.baseDodge, 'base dodge')
+  block.baseDodge = baseValue(base.baseDodge, stand.baseDodge, 'base dodge', tank)
   // A player parries with a melee weapon in hand; druids can't parry (character-stats §other base values).
   block.canParry = base.baseParry > 0 && weapons[HAND.main] !== null
   block.baseParry = base.baseParry
   block.canBlock = hasShield
   block.baseBlock = base.baseBlock
-  // Base parry and block, 5% [?], are unmeasured too (character-stats OQ-5).
-  if (block.canParry) placeholders.push('base parry')
-  if (block.canBlock) placeholders.push('base block')
+  // Base parry and block, 5% [?], are unmeasured too (character-stats OQ-5): a tank's placeholders.
+  if (tank && block.canParry) placeholders.push('base parry')
+  if (tank && block.canBlock) placeholders.push('base block')
   block.baseCrit = baseValue(base.baseCrit, stand.baseCrit, 'base crit')
   block.critPerAgi = base.critPerAgi
   block.spellCritPerInt = base.spellCritPerInt
@@ -772,11 +774,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     const dividesByHealth = takesDamage && plan.rage.fromDamageTaken && (takenModel === 'forever' || takenModel === 'foreverHealthLost')
     standIns.push(`base health ${block.baseHealth.toLocaleString('en-US')}${dividesByHealth ? ', which rage from damage taken divides by' : ''}`)
   }
-  if (tank) {
-    if (placeholders.includes('base dodge')) standIns.push(`base dodge ${block.baseDodge}% before Agility`)
-    if (block.canParry) standIns.push(`base parry ${block.baseParry}%`)
-    if (block.canBlock) standIns.push(`base block ${block.baseBlock}%`)
-  }
+  // Avoidance: a tank's only (the sheet's placeholders above).
+  if (placeholders.includes('base dodge')) standIns.push(`base dodge ${block.baseDodge}% before Agility`)
+  if (placeholders.includes('base parry')) standIns.push(`base parry ${block.baseParry}%`)
+  if (placeholders.includes('base block')) standIns.push(`base block ${block.baseBlock}%`)
   if (placeholders.includes('base crit')) standIns.push(`base melee crit ${block.baseCrit}%`)
   if (placeholders.includes('base spell crit')) standIns.push(`base spell crit ${block.baseSpellCrit}%`)
   if (standIns.length > 0) notes.add('baseStatPlaceholders', standIns.join('; '))

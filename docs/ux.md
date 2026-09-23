@@ -321,7 +321,12 @@ Era's) start in view rather than under the tabs.
   under its name; the Fight tab's "Damage you take" help names Enrage too, and stays 0 by
   default.
 - **Character sheet:** the final AP, crit, hit, haste, weapon skill and armor, the way the
-  sim computed them.
+  sim computed them. Up to two footnotes under it name base values that aren't measured yet:
+  "Not known for Forever yet, so left out: …" for ones the numbers leave out, and
+  "Classic-based values until they're measured: …" for the
+  [D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23) placeholders in the
+  numbers shown, each also named in the Assumptions. Avoidance placeholders (base parry and
+  block) are a tank's only, and listed only while the defensive rows they're in are shown.
 - **Assumptions:** the `[?]` items that affect this setup, each a full-width row linking to its
   doc section on GitHub (a new tab, so the result stays open), with the doc's name under the
   text. The sim can't measure how much each one moves a result yet, so they're grouped by what

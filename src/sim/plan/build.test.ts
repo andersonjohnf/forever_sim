@@ -105,6 +105,24 @@ describe('character-stats Example 4 and the tank’s sheet (combat-tables §8, D
     expect(ids).not.toContain('classicShieldBlockValue')
   })
 
+  it('lists avoidance placeholders for a tank only, on the sheet and in the assumptions alike (D24, OQ-5)', () => {
+    const stated = (spec: SpecId) => {
+      const { sheet, assumptions } = buildPlan(bare(spec, { gear }))
+      const note = assumptions.find((a) => a.id === 'baseStatPlaceholders')!
+      return { sheet: sheet.placeholders, note: note.text, rows: sheet.blockValue > 0 }
+    }
+    // Protection: base parry and block 5% in both lists.
+    const prot = stated('warrior-protection')
+    expect(prot.sheet).toEqual(['base health', 'base parry', 'base block'])
+    expect(prot.note).toMatch(/: base health 1,689, which rage from damage taken divides by; base parry 5%; base block 5%\.$/)
+    // Arms with the same one-hander and shield: the sheet shows its defensive rows (it has block
+    // value), but the boss never attacks it, so neither list names its avoidance.
+    const arms = stated('warrior-arms')
+    expect(arms.rows).toBe(true)
+    expect(arms.sheet).toEqual(['base health'])
+    expect(arms.note).toMatch(/: base health 1,689\.$/)
+  })
+
   it('a Classic Era fallback shield counts its Classic block value, flagged; a Forever one has none (items.md)', () => {
     const classic = buildPlan(bare('warrior-protection', { gear: { mainHand: { itemId: 11784 }, offHand: { itemId: 12602 } } }))
     // Draconian Deflector: classicShieldBlockValue 40, + floor(120 / 20).

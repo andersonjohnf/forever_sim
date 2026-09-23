@@ -545,7 +545,8 @@ function CharacterSheet({ result }: { result: SimResult }) {
   const unknown = s.unknown ?? []
   const dualWield = s.weaponSkill.offHand !== null && s.weaponSkill.offHand > 0
   const defensive = s.defense > 300 || s.blockValue > 0
-  // Decision D24: the unmeasured base values in the numbers shown (avoidance only with its rows).
+  // Decision D24: the unmeasured base values in the numbers shown, the ones the assumptions name
+  // (a tank's avoidance placeholders only with their rows).
   const placeholders = (s.placeholders ?? []).filter((p) => defensive || !AVOIDANCE_BASES.has(p))
   const rows: [string, string][] = [
     ['Attack power', formatInt(s.attackPower)],

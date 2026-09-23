@@ -373,7 +373,8 @@ export interface CharacterSheet {
   /**
    * Base values that aren't measured for Forever yet, in the numbers above as Classic-based
    * placeholders or other unmeasured [?] values (decision D24; e.g. "base health"). The
-   * assumptions say which values they are.
+   * assumptions name the same ones. Avoidance ones (base dodge, parry and block) are a tank's
+   * only: they matter only when the boss attacks you.
    */
   placeholders: string[]
 }

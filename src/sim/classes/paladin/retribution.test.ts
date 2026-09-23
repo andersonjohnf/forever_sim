@@ -282,17 +282,25 @@ describe('mana (paladin.md#mana-model; buffs doc §3.5)', () => {
     return plan
   }
 
-  it('worked example 22: the Major Mana Potion restores 1,350–2,250 once you’re missing at least 2,250, every 2 minutes', () => {
+  it('worked example 22: the Major Mana Potion restores 1,350–2,250, once you’re missing 2,250, or 1,500 while another fits, every 2 minutes', () => {
     const plan = noRegen({ buffs: ['majorManaPotion'], fight: { durationSec: 300 } })
     const max = 10 * new Sim(plan).inspect().maxMana
+    let early = 0
     for (let fight = 0; fight < 10; fight++) {
-      const potions = casts(plan, fight).casts.filter((c) => c.id === 'majorManaPotion')
+      const { casts: list, sim } = casts(plan, fight)
+      const potions = list.filter((c) => c.id === 'majorManaPotion')
       expect(potions.length).toBeGreaterThan(1)
-      for (const p of potions) expect(p.mana).toBeLessThanOrEqual(max - 22500)
+      for (const p of potions) {
+        // With at least its 2 min cooldown left, from 1,500 missing; after that, from 2,250.
+        const another = sim.fightMs - p.t >= 120000
+        expect(p.mana).toBeLessThanOrEqual(max - (another ? 15000 : 22500))
+        if (another && p.mana > max - 22500) early++
+      }
       for (let k = 1; k < potions.length; k++) expect(potions[k].t - potions[k - 1].t).toBeGreaterThanOrEqual(120000)
     }
-    // One potion a fight: never capped (it waits until its most fits), so the mana gained is its roll.
-    const once = noRegen({ buffs: ['majorManaPotion'] })
+    expect(early).toBeGreaterThan(0)
+    // Without the early line, never capped (it waits until its most fits), so the mana gained is its roll.
+    const once = noRegen({ buffs: ['majorManaPotion'], rotation: { [ID.manaPotionEarly]: 0 } })
     once.abilities.find((a) => a.id === 'majorManaPotion')!.cooldownMs = 1e9
     const gains: number[] = []
     for (let fight = 0; fight < 200; fight++) {

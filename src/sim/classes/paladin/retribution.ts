@@ -152,7 +152,7 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     help: 'Against Undead and Demons (set under Fight), use Exorcism whenever it’s ready. It can’t be cast on anything else.',
     default: true,
   },
-  manaOption(ID.exorcismMana, 'Exorcism from', 'Use it only at or above this much of your maximum mana.', 20, ID.exorcism, 'Core abilities'),
+  manaOption(ID.exorcismMana, 'Exorcism from', 'Use it only at or above this much of your maximum mana.', 40, ID.exorcism, 'Core abilities'),
   {
     kind: 'toggle',
     id: ID.consecration,
@@ -161,7 +161,7 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     help: 'Put down Consecration (rank 5, 508 mana) when you have the mana: 8 ticks of Holy damage over 8 s.',
     default: true,
   },
-  manaOption(ID.consecrationMana, 'Consecration from', 'Use rank 5 only at or above this much of your maximum mana.', 60, ID.consecration, 'Fillers'),
+  manaOption(ID.consecrationMana, 'Consecration from', 'Use rank 5 only at or above this much of your maximum mana.', 65, ID.consecration, 'Fillers'),
   {
     kind: 'toggle',
     id: ID.consecrationRank1,
@@ -170,7 +170,7 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     help: 'Below that, put down rank 1 (121 mana). Every rank has the full spell damage bonus, so it’s the most damage for the mana.',
     default: true,
   },
-  manaOption(ID.consecrationRank1Mana, 'Consecration (Rank 1) from', 'Use rank 1 only at or above this much of your maximum mana.', 30, ID.consecrationRank1, 'Fillers'),
+  manaOption(ID.consecrationRank1Mana, 'Consecration (Rank 1) from', 'Use rank 1 only at or above this much of your maximum mana.', 20, ID.consecrationRank1, 'Fillers'),
   {
     kind: 'toggle',
     id: ID.hammerOfWrath,
@@ -212,7 +212,7 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     min: 0,
     max: 5000,
     step: 50,
-    default: 0,
+    default: 1500,
     dependsOn: ID.manaPotion,
   },
   {

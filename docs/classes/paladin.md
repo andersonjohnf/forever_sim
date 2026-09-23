@@ -524,7 +524,9 @@ Wrath in execute, Exorcism against Undead and Demons. Advanced players twisted S
 Evaluate top to bottom whenever the paladin is free (off GCD). **Judgement is off the GCD**,
 so check it between GCD actions too. Setting ids are `paladin.retribution.<ability>.<param>`
 (written without the prefix below), in the Rotation tab's groups. A mana threshold is a share
-of maximum mana: "mana ≥ 60%" is mana ≥ 0.6 × the sheet's maximum.
+of maximum mana: "mana ≥ 65%" is mana ≥ 0.65 × the sheet's maximum. The defaults are the best
+rotation found for the default setup ([D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
+[Tuning the defaults](#tuning-the-defaults-c2) below).
 
 | # | Action | Condition (setting, default) | Default |
 | --- | --- | --- | --- |
@@ -534,12 +536,12 @@ of maximum mana: "mana ≥ 60%" is mana ≥ 0.6 × the sheet's maximum.
 | 3 | Judgement (the seal's) | `judgement.enabled`; ready, with the seal up | on |
 | 4 | Hammer of Wrath | `hammerOfWrath.enabled`; the execute phase (target ≤ 20% health) and mana ≥ `hammerOfWrath.minManaPct` (0%) | on |
 | 5 | Holy Strike | `holyStrike.enabled`; ready | on |
-| 6 | Exorcism | `exorcism.enabled`; target Undead or Demon and mana ≥ `exorcism.minManaPct` (20%) | on (gated by target type) |
-| 7 | Consecration (rank 5) | `consecration.enabled`; mana ≥ `consecration.minManaPct` (60%) | on |
-| 8 | Consecration (rank 1) | `consecrationRank1.enabled`; mana ≥ `consecrationRank1.minManaPct` (30%). The ranks share one 8 s cooldown | on |
+| 6 | Exorcism | `exorcism.enabled`; target Undead or Demon and mana ≥ `exorcism.minManaPct` (40%) | on (gated by target type) |
+| 7 | Consecration (rank 5) | `consecration.enabled`; mana ≥ `consecration.minManaPct` (65%) | on |
+| 8 | Consecration (rank 1) | `consecrationRank1.enabled`; mana ≥ `consecrationRank1.minManaPct` (20%). The ranks share one 8 s cooldown | on |
 | 9 | Twist: SoR, then after the next swing SoC | talent taken and `mana% ≥ twistMinManaPct` (80). Cast SoR when the swing lands within `twistWindowMs` (≤ 1500 ms) so the echo is used at once; recast SoC after that swing | **off**; not simulated yet |
-| — | Major Mana Potion | selected in Buffs, `manaPotion.enabled`; missing at least `manaPotion.missingMana` (2,250, its most, so none is lost) | on (Standard raid) |
-| — | Demonic / Dark Rune | selected in Buffs, `rune.enabled`; missing at least `rune.missingMana` (1,500, its most); its own cooldown, apart from the potion's | on (Max consumables) |
+| — | Major Mana Potion | selected in Buffs, `manaPotion.enabled`; missing at least `manaPotion.earlyMissingMana` (1,500) while the fight has at least its 2 min cooldown left, so another will be ready before the end; after that, missing at least `manaPotion.missingMana` (2,250, its most, so none is lost) | on (Standard raid) |
+| — | Demonic / Dark Rune | selected in Buffs, `rune.enabled`; the same pair: `rune.earlyMissingMana` (0, never early) and `rune.missingMana` (1,500, its most); its own cooldown, apart from the potion's | on (Max consumables) |
 | — | Holy Wrath | Undead/Demon AoE | off; not simulated |
 
 `judgementOfTheCrusader.bonusRule` (By spell coefficient, the default, or Flat on melee hits)
@@ -572,7 +574,69 @@ Notes:
 | Seal / judgement | SoC; JotC maintained by you | [F] rotation above |
 | Aura | Retribution Aura (no DPS effect unless you're hit); raid aura choice lives in the buffs doc | — |
 | Buffs | standard raid buffs from the buffs doc: Kings and Might (133) from paladins, Windfury and totems in a melee group, both factions | [F] factions |
-| Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of the Mongoose, Elixir of Greater Strength (Classic: Giants), Greater Arcane Elixir (the buffs doc's per-spec entry for Ret: spell power matters now), Smoked Desert Dumplings, a Dense Sharpening Stone, Major Mana Potion. The Max-consumables preset adds Juju Power, Juju Might, R.O.I.D.S., Elixir of Holy Power, an Elemental stone, Demonic/Dark Rune and Flask of Supreme Power. **No world buffs** ([doctrine §1](../doctrine.md#1-what-were-building)) | buffs doc owns names, values and presets |
+| Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of the Mongoose, Elixir of Greater Strength (Classic: Giants), Greater Arcane Elixir (the buffs doc's per-spec entry for Ret: spell power matters now), Smoked Desert Dumplings, a Dense Sharpening Stone, Major Mana Potion. The Max-consumables preset adds Juju Power, Juju Might, R.O.I.D.S., Elixir of Holy Power, an Elemental stone, Demonic/Dark Rune and Flask of Supreme Power. The Standard raid's paladin-only buffs are Blessing of Wisdom and Mana Spring Totem ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset), "Pal"). **No world buffs** ([doctrine §1](../doctrine.md#1-what-were-building)) | buffs doc owns names, values and presets |
+| Rotation | the [priority list](#forever-priority-list-default) with its tuned defaults: Judgement of the Crusader, Seal of Command, Consecration from 65% mana and rank 1 from 20%, Exorcism from 40%, Hammer of Wrath at any mana, the potion early from 1,500 missing | [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23): the best found, [below](#tuning-the-defaults-c2) |
+
+#### Tuning the defaults (C2)
+
+The defaults are the best rotation found on 2026-09-23 per
+[D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23), with the
+method of [warrior §5.3 "Tuning the defaults"](warrior.md#tuning-the-defaults-m25a): paired
+comparisons on the real engine with `scripts/tune/rotation.mjs --spec paladin-retribution`, the
+same fights for every candidate (common random numbers), and a candidate adopted only when the 95%
+confidence interval of its per-fight difference lies above zero. The setup is the default
+Retribution setup (Human, the 10/8/33 build, pre-raid BiS, the Standard raid buffs, 180 s ± 10%,
+20% execute, armor 3,731, no creature type), on C1's engine with its review fixes (PC1–PC8).
+Against the documented priority (Consecration from 60% and rank 1 from 30%, the potion only when
+missing 2,250), the result is **+7.99 DPS (+1.33%, 95% CI +7.86 to +8.11)**, 600.61 → 608.60, over
+400,000 paired fights on seed 7919, which no search used.
+
+- **Search** on seed 1 (40,000 fights a candidate), option by option with re-sweeps on top of each
+  change (coordinate descent), then finer grids on seed 3 (100,000). Exorcism's threshold was
+  searched against Undead, the only setup that uses it.
+- **Freeze, then confirm** on seed 7919 (400,000 fights): the winner against the old defaults,
+  and against itself with each change reverted in turn ("in the winner"):
+
+| Setting | Old → new | In the winner, Δ DPS (95% CI) |
+| --- | --- | --- |
+| `manaPotion.earlyMissingMana` | (none) → 1,500 | +7.25 (+7.12 to +7.37) |
+| `consecrationRank1.minManaPct` | 30% → 20% | +0.36 (+0.33 to +0.40) |
+| `consecration.minManaPct` | 60% → 65% | +0.03 (+0.02 to +0.03) |
+| `exorcism.minManaPct` | 20% → 40% | against Undead: +3.10 (+2.99 to +3.21) |
+
+- **Why they win.** Mana, not the global cooldown, limits Retribution: the default build's 2,882
+  mana runs dry in a 180 s fight. In the default fight, Hammer of Wrath and Consecration rank 1
+  deal about 2.5 damage per mana, Exorcism (against Undead) about 2.3, and rank 5 about 1.2, so
+  rank 5 waits for more mana and rank 1 goes down lower; Exorcism from 40% leaves the last of the
+  mana to rank 1 and Hammer of Wrath. The early potion is the big one: the first goes about 30 s
+  in, once a Consecration has left you 1,500 short, so a second is ready in the execute phase for
+  its Hammers of Wrath. At 2,250 missing there was one potion a fight, late. The early line needs
+  at least the potion's 2 minute cooldown left, so a short fight doesn't drink early for
+  nothing.
+- **Robustness** (the winner against the old defaults, 100,000 paired fights on seed 11): 60 s
+  +0.04%, 120 s −0.03% (−0.19 DPS, −0.33 to −0.06), 180 s +1.30%, 240 s +1.35%, 300 s +2.27%;
+  no execute phase +0.91% (300 s +0.72%); against Undead or Demons +0.71% (60 s +0.05%, 300 s
+  +0.90%, no execute phase −0.09%).
+- **Kept** (each against the new defaults on seed 1, 40,000 fights, unless it says otherwise).
+  Seal of Righteousness in place of Command: −52.78 DPS (−8.68%). Judgement of the Crusader off:
+  −45.27 (−7.44%). The seal recast at 1.5 s left (0 to 3 s: none clears; 0 s −0.94). Hammer of
+  Wrath at any mana (from 15%: −0.19). The potion's no-waste 2,250 after the early line (1,750 to
+  2,500: none clears). Against the old defaults, turning a row off costs: Judgement −86.14, Holy
+  Strike −66.29, Hammer of Wrath −29.81, the potion −22.92, Consecration rank 1 −13.26, rank 5
+  −2.30.
+- **Tried and dropped.** Consecration at any mana in the fight's last 5 to 60 s (each worse, up
+  to −2.13%: the execute phase's Hammers of Wrath need that mana), Consecration waiting for Holy
+  Strike's cooldown (worse, on the engine before C1's fixes), and a reserve of mana per minute
+  left before rank 5 (every reserve worse or level). One lower threshold for every potion, without
+  the "another will be ready" condition (missing 1,125, with Consecration from 70% and rank 1 from
+  20%), won +0.87% in the default fight but lost 0.55% in a 120 s fight and 0.23% against Undead:
+  it drank early whatever the fight's length.
+- **Not tuned:** the rune's pair (not in the default Standard raid preset), the Judgement of the
+  Crusader rule (an engine switch for [open question 5](#open-questions), not a rotation choice:
+  flat adds +46.24 DPS, +7.60%), and seal twisting (not simulated).
+- Rerun with, for example, `node scripts/tune/rotation.mjs --spec paladin-retribution --fights
+  400000 --seed 7919 manaPotion.earlyMissingMana=0` (a candidate against the defaults) or
+  `--sweep consecration.minManaPct=50:90:5`.
 
 ---
 
@@ -808,12 +872,13 @@ which come with the rotations that use them, and 20–22 (the Retribution rotati
     Seal of the Crusader and its judgement come once a fight: every landed auto attack restarts
     the debuff's 40 s.
 21. **Mana thresholds** are shares of maximum mana, in tenths: at 2,882 maximum mana,
-    "Consecration from 60%" needs 1,729.2 mana (17,292 tenths) and "rank 1 from 30%" 864.6
-    (8,646). A Major Mana Potion "when missing 2,250" goes at 632 mana or less.
+    "Consecration from 65%" needs 1,873.3 mana (18,733 tenths) and "rank 1 from 20%" 576.4
+    (5,764). A Major Mana Potion "early, when missing 1,500" goes at 1,382 mana or less while the
+    fight has at least 2 minutes left; "when missing 2,250", at 632 or less.
 22. **Major Mana Potion**: 1800 mana with variance 0.5, so 1,350–2,250, drawn as 13,500 + a
-    whole 0…9,000 tenths. At its default it's drunk only when missing at least 2,250, so none is
-    lost to the cap, and at most every 2 minutes. A Demonic or Dark Rune: 900–1,500, its own
-    2 minute cooldown.
+    whole 0…9,000 tenths, at most every 2 minutes. Early (missing 1,500, with 2 minutes left) up to
+    750 of it can be lost to the cap; after that it waits until it's missing 2,250, so none is. A
+    Demonic or Dark Rune: 900–1,500, its own 2 minute cooldown.
 
 ---
 

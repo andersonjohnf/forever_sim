@@ -73,6 +73,20 @@ describe('snapToStep', () => {
     }
   })
 
+  it('rounds exact halves up evenly (RV7)', () => {
+    for (const [n, snapped] of [
+      [0.15, 0.2],
+      [0.25, 0.3],
+      [0.35, 0.4],
+      [1.25, 1.3],
+      [1.45, 1.5],
+      [2.05, 2.1],
+    ]) {
+      expect(snapToStep(n, 0.1), String(n)).toBe(snapped)
+    }
+    expect(snapToStep(1.25, 0.5)).toBe(1.5)
+  })
+
   it('snaps to whole steps', () => {
     expect(snapToStep(2.5, 1)).toBe(3)
     expect(snapToStep(12549, 100)).toBe(12500)

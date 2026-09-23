@@ -127,13 +127,17 @@ test('Fixed precision gives the number of fights its own labelled field, with se
 
   await fights.fill('12,500')
   await fights.press('Enter')
-  await expect(fights).toHaveValue('12,500')
+  // Still editing: the plain number (M2.4e). Its separators come back once you leave.
+  await expect(fights).toHaveValue('12500')
   await expect(fights).toHaveAccessibleDescription('Changed. Default: 3,000')
   await tab.getByRole('button', { name: 'Increase Number of fights' }).click()
   await expect(fights).toHaveValue('12,600')
   await tab.getByRole('button', { name: 'Reset Number of fights to 3,000' }).click()
-  await expect(fights).toHaveValue('3,000')
+  // Reset hands focus to the field, which shows the plain number while it has focus.
   await expect(fights).toBeFocused()
+  await expect(fights).toHaveValue('3000')
+  await fights.blur()
+  await expect(fights).toHaveValue('3,000')
 })
 
 test('number fields read what’s typed in the typist’s own style (PV2, FV3)', async ({ page }) => {
@@ -144,12 +148,40 @@ test('number fields read what’s typed in the typist’s own style (PV2, FV3)',
   await fight.getByRole('radio', { name: 'Fixed' }).click()
   const fights = fight.getByRole('textbox', { name: 'Number of fights', exact: true })
   for (const typed of ['5.000', '5 000', '5,000']) {
+    // Focused first, as a person would: fill() selects before it focuses, and focusing swaps
+    // "3,000" for "3000".
+    await fights.focus()
     await fights.fill(typed)
     await fights.press('Enter')
+    await expect(fights, typed).toHaveValue('5000')
+    await fights.blur()
     await expect(fights, typed).toHaveValue('5,000')
+    await fights.focus()
     await fights.fill('3000')
     await fights.press('Enter')
   }
+  // Editing shows the plain number, so deleting a digit or adding one never meets the field's
+  // own separators (RV1: "3,00" had read as 3).
+  await fights.blur()
+  await expect(fights).toHaveValue('3,000')
+  await fights.focus()
+  await expect(fights).toHaveValue('3000')
+  await fights.press('End')
+  await fights.press('Backspace')
+  await fights.blur()
+  await expect(fights).toHaveValue('300')
+  await fights.focus()
+  await fights.press('End')
+  await fights.pressSequentially('00')
+  await fights.blur()
+  await expect(fights).toHaveValue('30,000')
+  // Tab into it, which selects the whole field, and type: the new number replaces the old one.
+  await page.getByRole('button', { name: 'Decrease Number of fights' }).focus()
+  await page.keyboard.press('Tab')
+  await expect(fights).toBeFocused()
+  await page.keyboard.type('4500')
+  await fights.blur()
+  await expect(fights).toHaveValue('4,500')
   // A whole-number field reads a decimal comma as the decimal point too, and rounds (QV3).
   const variation = fight.getByRole('textbox', { name: 'Length variation', exact: true })
   await variation.fill('2,5')

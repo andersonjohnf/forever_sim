@@ -38,9 +38,10 @@ export function parseNumber(text: string, { step, max }: { step: number; max: nu
 
 /**
  * Snaps a number to a multiple of `step`, with no float noise: 1.5 − 0.1 is 1.4, not
- * 1.4000000000000001, which a field would show and a saved setup would keep.
+ * 1.4000000000000001, which a field would show and a saved setup would keep. Halves round up
+ * evenly: 0.15 / 0.1 is 1.4999999999999998 in floating point, so the quotient is tidied first.
  */
 export function snapToStep(n: number, step: number): number {
   const decimals = String(step).split('.')[1]?.length ?? 0
-  return Number((Math.round(n / step) * step).toFixed(decimals))
+  return Number((Math.round(Number((n / step).toFixed(9))) * step).toFixed(decimals))
 }

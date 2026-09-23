@@ -10,7 +10,8 @@ import { cn } from '@/lib/utils'
  * A number input with − / + steppers (44 px touch targets). Commits on blur or Enter and
  * clamps to [min, max], so typing a partial number never pushes an invalid value.
  *
- * `grouping` shows thousands separators ("10,000"), as the rest of the app writes counts. What's
+ * `grouping` shows thousands separators ("10,000") while the field isn't being edited, as the rest
+ * of the app writes counts; while it has focus it shows the plain number ("10000"). What's
  * typed is read in the typist's locale style either way (`parseNumber`): "5.000" and "5 000" are
  * 5000, and "1,5" is 1.5, snapped to the step. Leave it off for an identifier such as a seed.
  *
@@ -45,17 +46,31 @@ export function NumberField({
   'aria-label'?: string
   'aria-describedby'?: string
 }) {
-  // While typing, the draft is shown; otherwise the committed value. No effect needed.
+  // While typing, the draft is shown. Otherwise the value: plain while the field has focus
+  // (editing), grouped if asked when it hasn't. So an edit never has to tell the field's own
+  // separators from the typist's (docs/ux.md, Sections, "Fight"). No effect needed.
   const [draft, setDraft] = useState<string | null>(null)
+  const [editing, setEditing] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const decreaseRef = useRef<HTMLButtonElement>(null)
   const increaseRef = useRef<HTMLButtonElement>(null)
   const stepName = stepLabel ?? ariaLabel
 
   const clamp = (n: number) => Math.min(max, Math.max(min, snapToStep(n, step)))
+  // On focus the field swaps "3,000" for "3000". The selection or caret comes along, placed by
+  // the digits before it, so Tab (which selects the whole field) then typing still replaces it.
+  const startEditing = () => {
+    const input = inputRef.current
+    if (!input || input.value === String(value)) return setEditing(true)
+    const shown = input.value
+    const at = (i: number | null) => (i === null ? null : shown.slice(0, i).replace(/,/g, '').length)
+    const [start, end] = [at(input.selectionStart), at(input.selectionEnd)]
+    flushSync(() => setEditing(true))
+    if (start !== null && end !== null) input.setSelectionRange(start, end)
+  }
+  /** Commits the draft, if it reads as a number, and drops it. */
   const commit = () => {
-    if (draft === null) return
-    const n = parseNumber(draft, { step, max })
+    const n = draft === null ? null : parseNumber(draft, { step, max })
     if (n !== null && clamp(n) !== value) onChange(clamp(n))
     setDraft(null)
   }
@@ -96,9 +111,14 @@ export function NumberField({
           inputMode="decimal"
           aria-label={ariaLabel}
           aria-describedby={describedBy}
-          value={draft ?? (grouping ? value.toLocaleString('en-US') : String(value))}
+          value={draft ?? (grouping && !editing ? value.toLocaleString('en-US') : String(value))}
+          onFocus={startEditing}
           onChange={(e) => setDraft(e.target.value)}
-          onBlur={commit}
+          onBlur={() => {
+            commit()
+            setEditing(false)
+          }}
+          // Enter commits and keeps editing, the plain number showing.
           onKeyDown={(e) => e.key === 'Enter' && commit()}
           className={cn('h-11 w-24 text-center tabular-nums', unit && 'pr-9')}
         />

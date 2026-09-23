@@ -5,7 +5,8 @@
 // the same fight lengths and random streams (common random numbers). Each fight gives a paired
 // difference, candidate DPS − baseline DPS, and the report is the mean difference with its 95%
 // confidence interval (± 1.96 standard errors of the paired differences). A candidate clears D23's
-// bar when the whole interval is above zero. Tank specs are compared on TPS (--metric tps).
+// bar when the whole interval is above zero. Tank specs are compared on TPS by default (D23), and the
+// report adds each candidate's paired Δ DPS beside it, since tanks report both (D18).
 //
 // The engine is bundled from src/ with Vite (the same modules the app and the tests run, with the
 // full data) into .cache/tune/<hash>/engine.mjs, where <hash> is a digest of every file under src/.
@@ -47,7 +48,7 @@
 //   --creature <type>     target creature type (default none)
 //   --position <side>     behind or front (default: the spec's, behind for DPS)
 //   --profile <id>        the rules profile, forever or classicEra (default forever)
-//   --metric dps|tps      what to compare (default dps)
+//   --metric dps|tps      what to compare (default: tps for a tank spec, dps otherwise)
 //   --workers <n>         worker threads (default: available cores − 1)
 //   --against <commit>    the baseline is that commit's engine and defaults (see above)
 //   --help                this text
@@ -78,7 +79,7 @@ export { buildPlan } from '@/sim/plan/build'
 export { Sim } from '@/sim/engine/sim'
 export { rotationOptions } from '@/sim/classes/rotation'
 export { normalizeConfig } from '@/sim/config/normalize'
-export { SPEC_IDS } from '@/sim/specs'
+export { SPEC_IDS, SPEC_META } from '@/sim/specs'
 `
 
 /** What a baseline from another commit needs (`--against`): the modules every version has. */
@@ -195,29 +196,39 @@ if (!isMainThread) {
     if (bundle.blockers.length > 0) throw new Error(bundle.blockers[0])
     return new engine.Sim(bundle.plan)
   })
-  const read = metric === 'tps' ? (sim) => sim.fightThreat / (sim.fightMs / 1000) : (sim) => sim.fightDamage / (sim.fightMs / 1000)
+  const tps = (sim) => sim.fightThreat / (sim.fightMs / 1000)
+  const dps = (sim) => sim.fightDamage / (sim.fightMs / 1000)
+  // The compared metric, and the other one beside it (a tank's Δ DPS, D18).
+  const [read, other] = metric === 'tps' ? [tps, dps] : [dps, tps]
   parentPort.on('message', ({ from, to }) => {
-    // Per config: sum of its metric, and (candidates) sum and sum of squares of the paired difference.
+    // Per config: sum of its metric, and (candidates) sum and sum of squares of the paired difference,
+    // of the metric and of the other one.
     const sum = new Float64Array(configs.length)
     const sumSq = new Float64Array(configs.length)
     const dSum = new Float64Array(configs.length)
     const dSq = new Float64Array(configs.length)
+    const oSum = new Float64Array(configs.length)
+    const oSq = new Float64Array(configs.length)
     for (let i = from; i < to; i++) {
       sims[0].runFight(i)
       const base = read(sims[0])
+      const baseOther = other(sims[0])
       sum[0] += base
       sumSq[0] += base * base
       for (let c = 1; c < sims.length; c++) {
         sims[c].runFight(i)
         const x = read(sims[c])
         const d = x - base
+        const o = other(sims[c]) - baseOther
         sum[c] += x
         sumSq[c] += x * x
         dSum[c] += d
         dSq[c] += d * d
+        oSum[c] += o
+        oSq[c] += o * o
       }
     }
-    parentPort.postMessage({ n: to - from, sum, sumSq, dSum, dSq })
+    parentPort.postMessage({ n: to - from, sum, sumSq, dSum, dSq, oSum, oSq })
   })
   parentPort.postMessage({ ready: true })
 }
@@ -313,7 +324,7 @@ async function main() {
       creature: { type: 'string' },
       position: { type: 'string' },
       profile: { type: 'string' },
-      metric: { type: 'string', default: 'dps' },
+      metric: { type: 'string' },
       base: { type: 'string', default: '' },
       sweep: { type: 'string', multiple: true, default: [] },
       workers: { type: 'string', default: String(Math.max(1, availableParallelism() - 1)) },
@@ -363,8 +374,11 @@ async function main() {
   const requested = flagNumber('fights', args.fights, { min: 1, whole: true })
   const seed = flagNumber('seed', args.seed, { min: 0, max: 0xffffffff, whole: true })
   const workerCount = flagNumber('workers', args.workers, { min: 1, whole: true })
-  const metric = args.metric
+  // A tank spec's default metric is TPS (D23), a DPS spec's DPS.
+  const metric = args.metric ?? (engine.SPEC_META[specId].role === 'tank' ? 'tps' : 'dps')
   if (metric !== 'dps' && metric !== 'tps') throw new Error(`--metric must be dps or tps, got "${metric}"`)
+  const otherMetric = metric === 'tps' ? 'dps' : 'tps'
+  const showOther = engine.SPEC_META[specId].role === 'tank'
 
   const d = engine.defaultConfig(specId, args.race)
   const fight = { ...d.fight }
@@ -392,7 +406,8 @@ async function main() {
 
   const fights = Math.ceil(requested / JOB) * JOB
   const workers = Math.min(workerCount, fights / JOB)
-  const totals = { n: 0, sum: new Float64Array(configs.length), sumSq: new Float64Array(configs.length), dSum: new Float64Array(configs.length), dSq: new Float64Array(configs.length) }
+  const zeros = () => new Float64Array(configs.length)
+  const totals = { n: 0, sum: zeros(), sumSq: zeros(), dSum: zeros(), dSq: zeros(), oSum: zeros(), oSq: zeros() }
 
   const setup = [
     `${specId}, ${d.race}`,
@@ -431,6 +446,8 @@ async function main() {
               totals.sumSq[c] += m.sumSq[c]
               totals.dSum[c] += m.dSum[c]
               totals.dSq[c] += m.dSq[c]
+              totals.oSum[c] += m.oSum[c]
+              totals.oSq[c] += m.oSq[c]
             }
           }
           dispatch()
@@ -446,14 +463,17 @@ async function main() {
   const baseMean = mean(0)
   console.log(`baseline ${metric.toUpperCase()}: ${baseMean.toFixed(2)} ± ${halfWidth(totals.sum[0], totals.sumSq[0]).toFixed(2)} (95% CI)`)
   console.log('')
-  console.log(`| Candidate | ${metric.toUpperCase()} | Δ | 95% CI of Δ | Δ % | Clears |`)
-  console.log('| --- | --- | --- | --- | --- | --- |')
+  const O = otherMetric.toUpperCase()
+  console.log(`| Candidate | ${metric.toUpperCase()} | Δ | 95% CI of Δ | Δ % | Clears |${showOther ? ` Δ ${O} (95% CI) |` : ''}`)
+  console.log(`| --- | --- | --- | --- | --- | --- |${showOther ? ' --- |' : ''}`)
   for (let c = 1; c < configs.length; c++) {
     const delta = totals.dSum[c] / n
     const hw = halfWidth(totals.dSum[c], totals.dSq[c])
     const clears = delta - hw > 0 ? 'yes' : delta + hw < 0 ? 'worse' : 'no'
+    const o = totals.oSum[c] / n
+    const ohw = halfWidth(totals.oSum[c], totals.oSq[c])
     console.log(
-      `| ${label(candidates[c - 1], prefix) || 'the defaults'} | ${mean(c).toFixed(2)} | ${fmt(delta)} | ${fmt(delta - hw)} to ${fmt(delta + hw)} | ${fmt((100 * delta) / baseMean)}% | ${clears} |`,
+      `| ${label(candidates[c - 1], prefix) || 'the defaults'} | ${mean(c).toFixed(2)} | ${fmt(delta)} | ${fmt(delta - hw)} to ${fmt(delta + hw)} | ${fmt((100 * delta) / baseMean)}% | ${clears} |${showOther ? ` ${fmt(o)} (${fmt(o - ohw)} to ${fmt(o + ohw)}) |` : ''}`,
     )
   }
   console.log('')

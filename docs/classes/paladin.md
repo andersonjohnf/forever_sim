@@ -179,10 +179,10 @@ and the docs it links; this list only summarizes them, with the same tags.
   [combat-tables §3](../mechanics/combat-tables.md#3-special-yellow-attacks)'s "melee spells"
   split by effect type, applied to the paladin by inference [?]. It matters only for spells that
   can miss or be avoided and have no weapon share, JoR and JoF: their crits come from the landed
-  ones (with 5% miss and 25% crit, 23.75% of casts rather than 25%). JoC and the seals' procs
-  have nothing to roll first, so the two models agree.
+  ones (with 5% miss and 25% crit, 23.75% of casts rather than 25%). JoC and SoR's and SoF's
+  procs have nothing to roll first (Always Hit and No Active Defense), so the two models agree.
 - **Which spells trigger procs.** A spell you cast (Holy Strike, Exorcism, Hammer of Wrath)
-  triggers on-hit and crit procs as any attack does. A spell that another spell or an aura
+  triggers procs as any attack or spell does. A spell that another spell or an aura
   triggers (a seal's proc, a judgement's damage spell, Consecration's ticks) triggers them only if
   it carries **NOT_A_PROC** (SpellMisc Attr3 `0x200`). Seal of Command's proc 20424 and the
   judgements' damage spells 20966, 20286 and 20414 carry it. Seal of Righteousness's proc 25713

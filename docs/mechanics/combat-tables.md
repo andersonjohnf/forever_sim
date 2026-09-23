@@ -308,8 +308,8 @@ Bloodthirst, Mortal Strike, Shred, Holy Strike and so on.
   - `None`: always hits (may still crit if the ability says so).
   - Which abilities are unblockable, undodgeable and so on is owned by the class docs.
   - Two spell attributes change a table [F] [client] (SpellMisc): **No Active Defense** (Attr0
-    `0x200000`) removes dodge, parry and block, so a melee-class spell rolls `miss → crit → hit`,
-    like Overpower; **Always Hit** (Attr3 `0x40000`) removes the miss slice (for a magic spell, the
+    `0x200000`) removes dodge, parry and block, so a melee-class spell can only miss before it
+    lands, like Overpower; **Always Hit** (Attr3 `0x40000`) removes the miss slice (for a magic spell, the
     miss roll). The engine drops those slices and keeps the rest in order. In a weapon-damage
     spell's one roll the crit slice still follows the last one left; a melee spell's roll 1 just
     has fewer slices, and its roll 2 is unchanged. With both attributes nothing is left to roll

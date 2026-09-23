@@ -188,9 +188,8 @@ export interface BasePlaceholders {
  * (the vanilla emulator's class table, which wowsims/classic's `base_stats.go` copies), not
  * evidence". No Classic Era measurement exists, and the 1.15.9 client has no base-health table
  * (OQ-2). Left out, Forever's rage from damage taken (10 × the hit ÷ maximum health) comes out
- * 20–40% high. Off by ±100, it moves the default Protection warrior's TPS by about 0.001% today,
- * because nothing spends rage yet; once a rotation spends it, by about ±0.3–0.7% (rage from
- * damage taken is about 44% of that warrior's rage; OQ-2 has the numbers).
+ * 20–40% high. Off by ±100, it moves the default Protection warrior's TPS by about ∓0.15% (OQ-2
+ * has the numbers).
  *
  * The druid's other base values (character-stats.md OQ-1, which has each one's estimated effect):
  * "[?] placeholder (D24); origin: RatingBuster's Classic Era table at its last commit before

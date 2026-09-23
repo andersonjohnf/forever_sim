@@ -436,10 +436,9 @@ reverse. The sim's sheet computes the crit part as the defense's **crit reductio
 "-5.60% Critical Strike chance", [combat-tables §8](combat-tables.md#8-boss--player-tanks)). For
 a tank it also computes the boss's table against the sheet (miss, dodge, parry, block, crit,
 crushing and hit, [Example 4](#example-4-a-naked-human-warriors-defensive-sheet)). **[C]**
-[Blizzard forum, Oct 2019][bnet-def], [tankadin guide][wt-tankadin]. *Coming with the tank
-results UI* ([slice T2](../milestones.md#parallel-tracks-the-tank-specs-first-and-every-remaining-spec-user-priority-2026-09-23)):
-the results show the crit reduction and the boss's table then; today the character sheet in the
-results shows defense, dodge, parry, block and block value. How the boss's
+[Blizzard forum, Oct 2019][bnet-def], [tankadin guide][wt-tankadin]. A tank's character sheet in
+the results shows defense, dodge, parry, block and block value, the crit reduction on a row of its
+own, and the boss's table ([ux.md](../ux.md#results) "Character sheet"). How the boss's
 315 weapon skill interacts with player defense (crits, crushing blows) belongs to
 [combat-tables.md](combat-tables.md). Forever changes the sources of defense, not the conversion:
 Anticipation gives +20 defense at 5/5 for warriors and paladins (Classic +10). **[F]**
@@ -1033,14 +1032,12 @@ the emulator's class table [mz-classlevelstats], not evidence". The only other s
 wowsims/classic's `base_stats.go` [wsc-base] (and an old Classic-branded sim for the druid), copy
 it. No Classic Era measurement exists, and the Classic Era 1.15.9 client has no base-health table
 either. The sheets below replace them; the results list them among their assumptions.
-**What it moves:** today, almost nothing. Nothing spends rage yet (Protection has no rotation),
-so the bar sits full: off by ±100, base health moves the default Protection warrior's TPS by about
-0.001% (20,000 fights on common seeds), and leaving it out altogether moved it 0.02%. Once a
-rotation spends its rage, it matters more. Rage from damage taken is about 44% of that warrior's
-rage (540 of 1,225 a fight). 100 more base health cuts it 1.6% (100 less adds 1.7%), so the rage
-moves about 0.7%, and TPS moves that much times the share of its threat that comes from spending
-rage: about 0.3–0.7% for a share between 40% and 100%. Left out, as the engine did before D24,
-base health inflated that rage by 20–40%. DPS specs take no damage and don't notice it.
+**What it moves:** off by ±100, base health moves the default Protection warrior's TPS by
+−0.17% and +0.13% (100 more and 100 less; ± 0.02, 40,000 fights on common seeds), and its Max TPS
+rotation's by ∓0.15% ([warrior.md §5.4](../classes/warrior.md#54-protection-tps)): 100 more cuts
+its rage from damage taken 1.6%, and the rotation spends that rage on threat. Left out altogether,
+as the engine did before D24, base health inflated that rage by 20–40%, and the default warrior's
+TPS by 3.5%. DPS specs take no damage and don't notice it.
 **Route A:** read maximum health from the OQ-1 sheets (divide the Tauren value by 1.05). Then
 `baseHP = HP − 20 − 10 × (Sta − 20)`.
 

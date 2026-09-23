@@ -107,16 +107,16 @@ work is in slices:
   - Sweeping Strikes waits for multi-target support ([Later](#later)); Deep Wounds and
     Weaponmaster are already simulated.
 - [ ] **M2.4 Results and review**, in slices:
-  - [ ] **M2.4a Results and rotation polish:**
+  - [x] **M2.4a Results and rotation polish:**
     - show cooldown casts and aura uptimes in the results
     - split Rend's application avoidance from its ticks
     - group the Rotation tab (Fury 27 rows, Arms about 42)
     - make the choice control's selected state clearer
     - the Buffs tab reads maintained buffs through `rotationValues`
-  - [ ] **M2.4b Adversarial logic review:** fresh reviewers, briefed to break the engine and
+  - [x] **M2.4b Adversarial logic review:** fresh reviewers, briefed to break the engine and
         the data pipeline, check everything since the first commit against doctrine and the
         owning docs. Every finding is fixed or waived, logged in `docs/reviews/`.
-  - [ ] **M2.4c Adversarial UX review:** a fresh reviewer works through the ux.md checklist
+  - [x] **M2.4c Adversarial UX review:** a fresh reviewer works through the ux.md checklist
         on every screen at 390 and 1280 px, light and dark. Findings logged and resolved.
   - [ ] **M2.4d First deploy:** push when the user asks, and check the Pages deploy.
 
@@ -202,18 +202,9 @@ slice is worked:
 - **The buffs doc says Hyjal flasks are "added automatically"** but not which flask.
 - **Bundle size:** 1.78 MB (300 KB gzipped) after M1.5c, mostly item data. Consider
   lazy-loading talents per class, and slimming item fields the app doesn't read.
-- **Rotation UX:** indent dependent inputs under their toggle, e.g. "Heroic Strike from"
-  under "Heroic Strike". Raise it in the M2.4 UX review. `dependsOn` works only for number
-  options, so dependent toggles ("Whirlwind in the execute phase" under "Execute") aren't
-  dimmed when their parent is off.
 - **Fury's `btOverExecuteAp` default is a fixed 2220** (W11 at Execute cost 15). Rotation
   options have one default per spec, not per build, so an Improved Execute build has to set
   2434 itself. A per-build default needs an API in `sim/index.ts` and the Rotation UI.
-- **Impale's client class mask also covers Rend and Sunder Armor.** warrior.md §2.5 omits them
-  and says Rend isn't in the mask, and damage-and-timing §4's 2.0× Rend tick crit relies on
-  that. Fix both docs in M2.3, with Rend.
-- **GCD-safe ignores stances:** it counts an ability the current stance refuses as ready.
-  Fix it when stance dancing arrives (M2.3).
 - **Cleave isn't built yet,** so W21's Cleave costs (Improved Cleave, Raging Blows) are
   untested.
 - **Diamond Flask changed in Forever:** its use spell is now a 5 s heal ("CHUG!"), so it isn't
@@ -223,11 +214,6 @@ slice is worked:
   Prefer Forever's spell data (tier 1) there, and revisit the BiS lists.
 - ~~Snap can't capture a finished run~~: `--click Simulate` now waits for the result, and
   `--click "Show results"` opens the phone's results sheet.
-- **The Rotation tab is 27 rows for Fury** (about 3,800 px on a phone). Group it (cooldowns,
-  execute phase, core, fillers) in the M2.4 UX review.
-- **Casts don't show in the results:** their breakdown rows deal no damage, so
-  `run/aggregate.ts` hides them, and aura uptimes aren't in the results model. Show
-  cooldown casts and uptimes in M2.4's results UX.
 - **Arms tuning findings** (20,000 fights, default setup, 630 DPS): Heroic Strike from 55 rage
   gives 638 (+1.2%), the Whirlwind dance 635, and Spearing Strike from 40 rage 634. The
   documented defaults stay for now; see warrior.md §5.3's notes.

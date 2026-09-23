@@ -475,6 +475,15 @@ describe('Execute (warrior.md §3.1 "Execute details", W10)', () => {
     expect(hits.map((d) => Math.round(d * 1e6) / 1e6)).toEqual([2325, 675, 675])
   })
 
+  it('§7 "Execute’s rage": it converts the tenths too: 27.3 rage at cost 15 deals 600 + 15 × 12.3 = 784.5 [?] (Q28)', () => {
+    const plan = executePlan([{ periodMs: 16000, tenths: 273, source: -1 }])
+    expect(plan.abilities[abilityIndex(plan, 'execute')].costTenths).toBe(150)
+    const { casts, hits } = run(plan)
+    expect(casts).toEqual([[16000, 273]])
+    expect(hits).toHaveLength(1)
+    expect(hits[0]).toBeCloseTo(784.5, 9)
+  })
+
   it('a dodged Execute loses only its cost, with no refund, and keeps the rest', () => {
     const grants = [{ periodMs: 1000, tenths: 50, source: -1 }]
     // Landed: 75 rage at 16 s is all spent; the next cast waits for 15 rage at 18 s.
@@ -758,9 +767,10 @@ describe('Recklessness (warrior.md §2.6, §5.2 row 4)', () => {
       expect(times).toHaveLength(1)
       const [t] = times
       expect(t).toBeGreaterThanOrEqual(end - 15000)
-      // It waits for a GCD already running, and for Death Wish (row 2) if that's due as well.
-      const dw = timesOf(casts, 'deathWish').filter((x) => x >= end - 15000 && x < t)
-      expect(t - (end - 15000)).toBeLessThanOrEqual(1500 * (1 + dw.length))
+      // It waits for a GCD already running, and for Battle Shout (row 1) and Death Wish (row 2) if
+      // they're due as well.
+      const before = [...timesOf(casts, 'battleShout'), ...timesOf(casts, 'deathWish')].filter((x) => x >= end - 15000 && x < t)
+      expect(t - (end - 15000)).toBeLessThanOrEqual(1500 * (1 + before.length))
     }
     const early = abilityPlan(only('recklessness', { 'warrior.fury.recklessness.lastSec': 40 }), 100000)
     expect(timesOf(castsPerFight(early, 1)[0].casts, 'recklessness')).toEqual([60000])
@@ -1145,6 +1155,94 @@ describe('Weakness Analyzer (warrior.md §5.2 row 3, §7)', () => {
     const [{ casts }] = castsPerFight(plan, 1)
     expect(timesOf(casts, 'deathWish')).toEqual([120000])
     expect(timesOf(casts, 'weaknessAnalyzer')).toEqual([0, 120000])
+  })
+})
+
+describe('Fury rows 9 and 12 settings in the engine (warrior.md §5.2)', () => {
+  it('row 9: Whirlwind waits for its 25 rage plus `reserve`', () => {
+    const rageAtWhirlwind = (reserve: number) => {
+      const d = defaultConfig('warrior-fury')
+      const plan = buildPlan({ ...d, rotation: { 'warrior.fury.whirlwind.reserve': reserve }, run: { ...d.run, seed: 9 } }).plan
+      return castsPerFight(plan, 40).flatMap(({ casts }) => casts.filter(([id]) => id === 'whirlwind').map(([, , rage]) => rage))
+    }
+    const plain = rageAtWhirlwind(0)
+    const reserved = rageAtWhirlwind(30)
+    expect(Math.min(...plain)).toBeGreaterThanOrEqual(250)
+    expect(plain.some((r) => r < 550)).toBe(true)
+    expect(reserved.length).toBeGreaterThan(40)
+    expect(Math.min(...reserved)).toBeGreaterThanOrEqual(550)
+  })
+
+  it('row 12: with `onlyWhenFlurryDown`, Hamstring waits while Flurry is up', () => {
+    /** Hamstring alone at any rage, with Flurry the only proc; every white swing that can crit does (or none). */
+    const run = (flurryDown: boolean, crits: boolean) => {
+      const d = defaultConfig('warrior-fury')
+      const plan = buildPlan({
+        ...d,
+        rotation: { ...OFF, 'warrior.fury.hamstring.enabled': true, 'warrior.fury.hamstring.minRage': 0, 'warrior.fury.hamstring.onlyWhenFlurryDown': flurryDown },
+        buffs: { raid: d.buffs.raid, enabled: [] },
+        fight: { ...d.fight, durationVariationPct: 0, executePct: 0 },
+      }).plan
+      plan.procs = plan.procs.filter((p) => p.id === 'flurry')
+      plan.triggers = Array.from({ length: TRIGGER_COUNT }, () => [])
+      plan.procs.forEach((p, i) => plan.triggers[p.trigger].push(i))
+      plan.stats.hit = 100
+      plan.fight.bossCanDodge = false
+      plan.stats.crit = crits ? 100 : -100
+      const flurry = plan.auras.findIndex((a) => a.id === 'flurry')
+      const sim = new Sim(plan)
+      let hamstrings = 0
+      sim.castTrace = (a) => {
+        if (plan.abilities[a].id === 'hamstring') hamstrings++
+      }
+      for (let i = 0; i < 10; i++) sim.runFight(i)
+      return { hamstrings: hamstrings / 10, flurryUptime: sim.auraUpMs[flurry] / (10 * sim.fightMs), damage: Array.from(sim.counters) }
+    }
+    // With Flurry up nearly all fight, Hamstring waits for the few moments it's down.
+    const up = run(true, true)
+    const always = run(false, true)
+    expect(up.flurryUptime).toBeGreaterThan(0.9)
+    expect(always.hamstrings).toBeGreaterThan(50)
+    expect(up.hamstrings).toBeLessThan(always.hamstrings / 5)
+    // With no crits Flurry never comes up, and the setting changes nothing.
+    const down = run(true, false)
+    expect(down.flurryUptime).toBe(0)
+    expect(down.hamstrings).toBeGreaterThan(50)
+    expect(down).toEqual(run(false, false))
+  })
+})
+
+describe('without a main-hand weapon (warrior.md §7)', () => {
+  it('uses no ability that attacks, so it spends no rage on one; casts are still used', () => {
+    const d = defaultConfig('warrior-fury')
+    for (const gear of [{ ...d.gear, mainHand: undefined, offHand: undefined }, { ...d.gear, mainHand: undefined }]) {
+      const { plan, assumptions } = buildPlan({ ...d, gear, run: { ...d.run, seed: 5 } })
+      expect(assumptions.map((a) => a.id)).toContain('noWeapon')
+      // The rotation still has its attacks, which the engine refuses.
+      expect(plan.abilities.map((a) => a.id)).toEqual(expect.arrayContaining(['bloodthirst', 'whirlwind', 'heroicStrike', 'hamstring', 'execute']))
+      const used = new Set<string>()
+      let damage = 0
+      const sim = new Sim(plan)
+      sim.castTrace = (a) => used.add(plan.abilities[a].id)
+      for (let i = 0; i < 20; i++) {
+        sim.runFight(i)
+        damage += sim.fightDamage
+      }
+      expect(damage).toBe(0)
+      for (const id of used) expect(plan.abilities.find((a) => a.id === id)!.kind, id).toBe('cast')
+      expect([...used]).toEqual(expect.arrayContaining(['battleShout', 'bloodrage', 'deathWish', 'recklessness']))
+    }
+  })
+
+  it('Arms: no Rend, Execute or Heroic Strike either', () => {
+    const d = defaultConfig('warrior-arms')
+    const plan = buildPlan({ ...d, gear: { ...d.gear, mainHand: undefined }, run: { ...d.run, seed: 5 } }).plan
+    expect(plan.abilities.map((a) => a.id)).toEqual(expect.arrayContaining(['rend', 'overpower', 'slam', 'mortalStrike', 'execute', 'heroicStrike']))
+    const used = new Set<string>()
+    const sim = new Sim(plan)
+    sim.castTrace = (a) => used.add(plan.abilities[a].kind)
+    for (let i = 0; i < 20; i++) sim.runFight(i)
+    expect([...used]).toEqual(['cast'])
   })
 })
 

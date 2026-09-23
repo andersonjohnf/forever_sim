@@ -329,6 +329,12 @@ describe('golden run (fixed config and seed)', () => {
   //   at 177 s, so fights longer than that refresh it at 174 s for a GCD and 10 rage. No new
   //   breakdown rows (the casts deal no damage); the random potion rage shifts the proc stream,
   //   so every row's counts move a little.
+  // - F1b (review L3): Sword Specialization is +2% crit on every attack while the off hand's sword
+  //   is equipped, no longer on the sword's swings only (warrior.md §2.9, Q15): DPS 684.2 → 692.4
+  //   (+1.2%). The main hand's white table is now crit-capped (its 1,074 plain hits became crits;
+  //   the rest of the +2% is lost to the cap), its specials crit more (Bloodthirst 7,348 → 7,847
+  //   crits), and more crits refresh Deep Wounds more often, so it loses more ticks (18,062 →
+  //   17,393). Arms (a two-handed sword) and Protection (a sword) already had it.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

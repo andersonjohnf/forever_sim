@@ -403,6 +403,33 @@ describe('stance swaps and dancing (warrior.md §2.1, §7)', () => {
     // With the dance, Whirlwind is ready: it goes first, and Hamstring when it's on cooldown.
     expect(firstUses(true)).toEqual([1500, 0])
   })
+
+  it('GCD-safe counts a dance only while it could happen at this rage: the swap keeps its cost, and rage is within its line’s maxRage (§7)', () => {
+    /** Hamstring, GCD-safe for Whirlwind, which a line after it dances for (with `maxRage` in tenths). */
+    const hamstringAndWhirlwind = (keepTenths: number, danceMaxRage?: number) => {
+      const plan = armsPlan(5000)
+      plan.stanceSwap.keepTenths = keepTenths
+      const ham = addAbility(plan, HAMSTRING)
+      const ww = addAbility(plan, WHIRLWIND)
+      line(plan, ham, [{ code: COND.gcdSafe, a: 1 << ww, b: 1500 }])
+      line(plan, ww, danceMaxRage === undefined ? [] : [{ code: COND.maxRage, a: danceMaxRage, b: 0 }], STANCE.berserker)
+      alwaysLandNoCrit(plan)
+      rageAtPull(plan, 100)
+      const { uses } = timeline(plan)
+      return [uses[ham], uses[ww]]
+    }
+    // The swap keeps 25, Whirlwind's cost, at 100 rage: the dance can happen, so it goes first and
+    // Hamstring waits for its GCD (then for rage, since the swap kept only 25).
+    const dance = hamstringAndWhirlwind(250)
+    expect(dance[1]).toEqual([0])
+    expect(dance[0][0]).toBe(1500)
+    // The swap keeps only 10: the dance can't pay, Whirlwind isn't coming up, and Hamstring doesn't wait.
+    expect(hamstringAndWhirlwind(100)).toEqual([[0, 1500, 3000, 4500], []])
+    // Its line dances only at ≤ 30 rage: at 100 it isn't coming up either (it used to block Hamstring for good).
+    expect(hamstringAndWhirlwind(250, 300)).toEqual([[0, 1500, 3000, 4500], []])
+    // At ≤ 110 it can dance now, and goes first.
+    expect(hamstringAndWhirlwind(250, 1100)).toEqual(dance)
+  })
 })
 
 describe('a line that stays in the stance it dances to (warrior.md §5.3 row 4, §7)', () => {

@@ -344,10 +344,31 @@ describe('talents, racials and stances', () => {
     expect(assumptions.map((a) => a.id)).not.toContain('bloodthrill')
   })
 
-  it('gives racial weapon crit only to that weapon’s hand', () => {
-    const { plan } = buildPlan(defaultConfig('warrior-fury')) // Human: Ironfoe (mace) + Mirah's Song (sword)
-    expect(plan.weapons[0]!.critBonus).toBe(0)
-    expect(plan.weapons[1]!.critBonus).toBe(2)
+  it('gives a weapon racial’s crit to all attacks and spells while either hand holds that weapon (warrior.md §2.9) [?] (Q15)', () => {
+    const d = defaultConfig('warrior-fury') // Human: Ironfoe (mace) + Mirah's Song (sword)
+    const bundle = (race: string, gear: Partial<SimConfig['gear']> = {}) => buildPlan({ ...d, race, gear: { ...d.gear, ...gear } })
+    const human = bundle('alliance-human')
+    const gnome = bundle('alliance-gnome') // no weapon racial
+    // Aura crit on the sheet, not a per-hand bonus: both hands, the sheet and spells get +2.
+    expect(human.plan.weapons.map((w) => w!.critBonus)).toEqual([0, 0])
+    expect(human.plan.stats.crit - gnome.plan.stats.crit).toBeCloseTo(2, 9)
+    expect(human.plan.stats.spellCrit - gnome.plan.stats.spellCrit).toBeCloseTo(2, 9)
+    const [mh, oh] = new Sim(human.plan).inspect().crit
+    expect(oh).toBeCloseTo(mh, 9)
+    expect(human.assumptions.map((a) => a.id)).toContain('racialWeaponCrit')
+    expect(gnome.assumptions.map((a) => a.id)).not.toContain('racialWeaponCrit')
+    // A sword in the main hand counts the same as one in the off hand.
+    const swapped = bundle('alliance-human', { mainHand: d.gear.offHand, offHand: d.gear.mainHand })
+    expect(swapped.plan.stats.crit).toBeCloseTo(human.plan.stats.crit, 9)
+    // No sword, no Sword Specialization; an Orc gets +1 from an axe in either hand, a Dwarf +1 from its mace.
+    const crit = (race: string, gear: Partial<SimConfig['gear']> = {}) => bundle(race, gear).plan.stats.crit
+    const axes = { mainHand: { itemId: 17016 }, offHand: { itemId: 18498 } } // Dark Iron Destroyer and Hedgecutter
+    expect(crit('alliance-human', axes)).toBeCloseTo(gnome.plan.stats.crit, 9)
+    expect(crit('horde-orc', axes) - crit('alliance-human', axes)).toBeCloseTo(1, 9)
+    const maceAndAxe = { offHand: { itemId: 18498 } }
+    expect(crit('horde-orc', maceAndAxe) - crit('alliance-human', maceAndAxe)).toBeCloseTo(1, 9)
+    expect(crit('alliance-dwarf') - gnome.plan.stats.crit).toBeCloseTo(1, 9)
+    expect(bundle('alliance-human', axes).assumptions.map((a) => a.id)).not.toContain('racialWeaponCrit')
   })
 })
 
@@ -460,6 +481,27 @@ describe('assumptions', () => {
     // Fury's default uses none of them.
     const fury = ids(defaultConfig('warrior-fury'))
     for (const id of ['overpowerWindow', 'bloodthrill', 'slamCast', 'spearingStrike', 'rendTickCrits', 'rendOnHit']) expect(fury).not.toContain(id)
+  })
+
+  it('surfaces Execute’s rage tenths whenever Execute is used, and Improved Bloodrage’s rounding only at 1/2 (warrior.md §7, Q28, Q29)', () => {
+    const ids = (config: SimConfig) => buildPlan(config).assumptions.map((a) => a.id)
+    const fury = defaultConfig('warrior-fury')
+    const arms = defaultConfig('warrior-arms')
+    expect(ids(fury)).toContain('executeRageTenths')
+    expect(ids(arms)).toContain('executeRageTenths')
+    expect(ids({ ...fury, rotation: { 'warrior.fury.execute.enabled': false } })).not.toContain('executeRageTenths')
+    // No execute phase: Execute isn't in the rotation.
+    expect(ids({ ...fury, fight: { ...fury.fight, executePct: 0 } })).not.toContain('executeRageTenths')
+    // Improved Bloodrage: 0/2 in the default Fury build; 1/2 rounds, 2/2 is exact.
+    const data = TALENT_DATA.warrior
+    const ib = data.trees.flatMap((t) => t.talents).find((t) => t.name === 'Improved Bloodrage')!.id
+    const withRank = (rank: number) => ({ ...fury, talents: encodeTalentCode(data, { ...decodeTalentCode(data, fury.talents), [ib]: rank }) })
+    expect(ids(fury)).not.toContain('improvedBloodrageRounding')
+    expect(ids(withRank(1))).toContain('improvedBloodrageRounding')
+    expect(ids(withRank(2))).not.toContain('improvedBloodrageRounding')
+    // Without Bloodrage in the rotation (nor before the pull), nothing to round.
+    const noBloodrage = { 'warrior.fury.bloodrage.enabled': false, 'warrior.fury.prepull.bloodrage': false }
+    expect(ids({ ...withRank(1), rotation: noBloodrage })).not.toContain('improvedBloodrageRounding')
   })
 
   it('names unmodelled item effects', () => {

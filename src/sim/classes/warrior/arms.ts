@@ -234,7 +234,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
     default: false,
   },
   rageOption(ID.hamMinRage, 'Hamstring from', 'Use it at or above this much rage.', 60, ID.hamEnabled, 'Fillers'),
-  ...consumableOptions(ID),
+  ...consumableOptions(ID, 'in the last 20 s if there’s none; from Battle Stance, after Recklessness’s swap, which caps your rage'),
 ]
 
 /** The stance Arms fights in with these settings (warrior.md §5.3, Q24): Battle unless set to Berserker. */
@@ -307,7 +307,7 @@ export function armsRotation(
 
   // Row 4: Recklessness once, at ≤ lastSec left. From Battle Stance it swaps to Berserker Stance
   // (keeping at most the swap's cap) and stays there for the rest of the fight.
-  recklessnessLine(b, v, ID, home === STANCE.battle ? STANCE.berserker : 0)
+  const reckSwap = recklessnessLine(b, v, ID, home === STANCE.battle ? STANCE.berserker : 0)
 
   // Row 5: Bloodrage on cooldown (off the GCD) at rage ≤ maxRage.
   bloodrageLine(b, v, ID)
@@ -390,8 +390,9 @@ export function armsRotation(
   }
 
   // Rows 17 and 18: the Mighty Rage Potion from the start of the execute phase, and Juju Flurry on
-  // cooldown, when they're selected in Buffs (shared.ts).
-  consumableLines(b, v, ID, ctx)
+  // cooldown, when they're selected in Buffs (shared.ts). Without an execute phase the potion waits
+  // for Recklessness's swap, which would cap its rage at 25 (§5.3 notes).
+  consumableLines(b, v, ID, ctx, reckSwap)
 
   // Row 0: the pre-pull (shared.ts). Charge is a Battle Stance ability: fighting in Berserker
   // Stance, the swap after it keeps at most the swap's cap.

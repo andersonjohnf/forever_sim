@@ -274,14 +274,17 @@ export const heroicStrikeOptions = (ids: SharedIds, minRage: number): RotationOp
   rageOption(ids.hsUnqueueBelow, 'Cancel Heroic Strike below', 'Unqueue it when rage falls below this.', 20, ids.hsUnqueue, 'Fillers'),
 ]
 
-/** The Mighty Rage Potion and Juju Flurry, when they're selected in Buffs (Fury rows 16 and 17, Arms rows 17 and 18). */
-export const consumableOptions = (ids: SharedIds): RotationOption[] => [
+/**
+ * The Mighty Rage Potion and Juju Flurry, when they're selected in Buffs (Fury rows 16 and 17, Arms
+ * rows 17 and 18). `noExecute` says when the potion goes without an execute phase.
+ */
+export const consumableOptions = (ids: SharedIds, noExecute = 'in the last 20 s if there’s none'): RotationOption[] => [
   {
     kind: 'toggle',
     id: ids.potionEnabled,
     group: 'Consumables',
     label: 'Mighty Rage Potion',
-    help: 'Drink it once, at the start of the execute phase (in the last 20 s if there’s none): 45–75 rage and +60 Strength for 20 s.',
+    help: `Drink it once, at the start of the execute phase (${noExecute}): 45–75 rage and +60 Strength for 20 s.`,
     default: true,
     requiresBuff: RAGE_POTION,
   },
@@ -328,6 +331,8 @@ export const maxRage = (rage: number): RotationCondition => ({ code: COND.maxRag
 /** GCD-safe for the abilities in `mask` over `gcdMs` (warrior.md §5.1), or no condition when there are none. */
 export const gcdSafe = (mask: number, gcdMs = GCD_MS): RotationCondition[] => (mask ? [{ code: COND.gcdSafe, a: mask, b: gcdMs }] : [])
 export const bit = (ability: number) => (ability >= 0 ? 1 << ability : 0)
+/** The ability has been used this fight: its cooldown is running (Recklessness's 30 min outlasts any fight), or no condition for −1. */
+export const usedAlready = (ability: number): RotationCondition[] => (ability >= 0 ? [{ code: COND.cooldownAtLeast, a: ability, b: 1 }] : [])
 export const seconds = (v: Reader, id: string) => Math.round(v.num(id) * 1000)
 
 /**
@@ -444,13 +449,15 @@ export function cooldownLines(b: RotationBuilder, v: Reader, ids: SharedIds, ctx
 /**
  * Recklessness once, at ≤ lastSec left (row 4; its 30 min cooldown outlasts any fight; Berserker
  * Stance only, which the engine checks). From another stance it's a dance to Berserker Stance that
- * stays there for the rest of the fight (Arms, §5.3 row 4).
+ * stays there for the rest of the fight (Arms, §5.3 row 4). Returns that dance's ability, whose
+ * swap caps rage (the Mighty Rage Potion waits for it, `consumableLines`), or −1 without one.
  */
-export function recklessnessLine(b: RotationBuilder, v: Reader, ids: SharedIds, danceAndStay = 0): void {
-  if (!v.on(ids.reckEnabled)) return
+export function recklessnessLine(b: RotationBuilder, v: Reader, ids: SharedIds, danceAndStay = 0): number {
+  if (!v.on(ids.reckEnabled)) return -1
   const when = [timeLeftAtMost(seconds(v, ids.reckLastSec))]
-  if (danceAndStay) b.dance(RECKLESSNESS, danceAndStay, when, true)
-  else b.add(RECKLESSNESS, when)
+  if (danceAndStay) return b.dance(RECKLESSNESS, danceAndStay, when, true)
+  b.add(RECKLESSNESS, when)
+  return -1
 }
 
 /** Bloodrage on cooldown (off the GCD) at rage ≤ maxRage (row 5). */
@@ -468,12 +475,14 @@ export function heroicStrikeLine(b: RotationBuilder, v: Reader, ids: SharedIds, 
  * The Mighty Rage Potion (off the GCD), once a fight, from the start of the execute phase (or in
  * the last 20 s without one), at rage ≤ maxRage so its 45–75 rage fits under the cap; then Juju
  * Flurry (off the GCD) on cooldown from the pull. Each only when it's selected in Buffs.
+ * `swapFirst` is a dance that stays in its stance (Arms Recklessness, row 4): without an execute
+ * phase, the potion waits until it's been used, since its swap keeps at most 25 rage (§5.3 notes).
  */
-export function consumableLines(b: RotationBuilder, v: Reader, ids: SharedIds, ctx: RotationContext): void {
+export function consumableLines(b: RotationBuilder, v: Reader, ids: SharedIds, ctx: RotationContext, swapFirst = -1): void {
   const potion = ctx.consumables.find((c) => c.id === RAGE_POTION)
   if (potion && v.on(ids.potionEnabled)) {
-    const when = ctx.executePhase ? IN_EXECUTE : timeLeftAtMost(POTION_NO_EXECUTE_LAST_MS)
-    b.add({ ...onUseAbility(potion), usesPerFight: 1 }, [when, maxRage(v.num(ids.potionMaxRage))])
+    const when = ctx.executePhase ? [IN_EXECUTE] : [timeLeftAtMost(POTION_NO_EXECUTE_LAST_MS), ...usedAlready(swapFirst)]
+    b.add({ ...onUseAbility(potion), usesPerFight: 1 }, [...when, maxRage(v.num(ids.potionMaxRage))])
   }
   const juju = ctx.consumables.find((c) => c.id === JUJU_FLURRY)
   if (juju && v.on(ids.jujuEnabled)) b.add(onUseAbility(juju), [])

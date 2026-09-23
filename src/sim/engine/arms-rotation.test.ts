@@ -1,9 +1,12 @@
 // The Arms rotation in the engine, from the default setup (docs/classes/warrior.md §5.3, §7):
 // Rend kept up, Overpower from dodges and Bloodthrill, Slam in and out of the execute phase,
 // Execute, Recklessness swapping to Berserker Stance for the rest of the fight, the Whirlwind
-// dance, Spearing Strike by creature type, the Berserker base stance (Q24), and determinism.
+// dance, Spearing Strike by creature type, Hamstring (row 14, with and without the Whirlwind
+// dance), Death Wish with the talent (row 16), the Mighty Rage Potion without an execute phase
+// (row 17), the Berserker base stance (Q24), and determinism.
 import { describe, expect, it } from 'vitest'
-import { defaultConfig } from '../defaults'
+import { decodeTalentCode, encodeTalentCode } from '@/data/talents/types'
+import { defaultConfig, TALENT_DATA } from '../defaults'
 import { buildPlan } from '../plan/build'
 import { type Plan, STANCE } from '../plan/types'
 import type { SimConfig } from '../types'
@@ -190,6 +193,83 @@ describe('Arms options in the engine (warrior.md §5.3)', () => {
       }
     }
     expect(dances).toBeGreaterThan(50 * 10)
+  })
+
+  it('row 14: Hamstring at rage ≥ 60, outside the execute phase, only while Mortal Strike, Slam and Spearing Strike have a GCD of cooldown left', () => {
+    const plan = armsPlan({ 'warrior.arms.hamstring.enabled': true })
+    expect(armsPlan().abilities.map((a) => a.id)).not.toContain('hamstring') // off by default
+    const ability = (id: string) => plan.abilities.find((a) => a.id === id)!
+    const { out } = fights(plan, 200)
+    let count = 0
+    for (const f of out) {
+      // When each ability is ready again, from its uses: Slam's cooldown starts when its cast ends.
+      const readyAt = new Map<string, number>()
+      for (const c of f.casts) {
+        if (c.id === 'hamstring') {
+          count++
+          expect(c.rage).toBeGreaterThanOrEqual(600)
+          expect(c.t).toBeLessThan(f.executeAt)
+          for (const id of ['mortalStrike', 'slam', 'spearingStrike']) expect((readyAt.get(id) ?? 0) - c.t, id).toBeGreaterThanOrEqual(1500)
+        }
+        if (c.id === 'mortalStrike' || c.id === 'spearingStrike' || c.id === 'slam') {
+          const a = ability(c.id)
+          readyAt.set(c.id, c.t + a.castMs + a.cooldownMs)
+        }
+      }
+    }
+    expect(count).toBeGreaterThan(20)
+  })
+
+  it('row 14 with the Whirlwind dance (row 12): a dance waiting for rage ≤ 30 doesn’t hold back Hamstring at 60 (§7 "GCD-safe and stances")', () => {
+    const hamstrings = (rotation: SimConfig['rotation']) => fights(armsPlan(rotation), 200).out.reduce((n, f) => n + uses(f, 'hamstring').length, 0)
+    const withDance = hamstrings({ 'warrior.arms.hamstring.enabled': true, 'warrior.arms.whirlwind.enabled': true })
+    const alone = hamstrings({ 'warrior.arms.hamstring.enabled': true })
+    // Whirlwind spends rage Hamstring would have had, but no longer blocks it (0.01 a fight before).
+    expect(withDance).toBeGreaterThan(alone / 3)
+  })
+
+  it('row 16: with the Death Wish talent, Death Wish is used as Fury’s: once in a 180 s fight, held to the last 30 s; Blood Fury waits for it', () => {
+    const data = TALENT_DATA.warrior
+    const deathWish = data.trees.flatMap((t) => t.talents).find((t) => t.name === 'Death Wish')!
+    const talents = encodeTalentCode(data, { ...decodeTalentCode(data, ARMS.talents), [deathWish.id]: 1 })
+    const plan = armsPlan({}, { talents, race: 'horde-orc', fight: { ...ARMS.fight, durationVariationPct: 0 } })
+    expect(plan.auras.find((a) => a.id === 'deathWish')).toMatchObject({ damage: 20, durationMs: 30000 })
+    for (const f of fights(plan, 30).out) {
+      expect(f.ms).toBe(180000)
+      const dw = uses(f, 'deathWish')
+      expect(dw).toHaveLength(1)
+      expect(f.ms - dw[0].t).toBeLessThanOrEqual(30000)
+      // Then as soon as the GCD and its 10 rage allow, well before the end.
+      expect(f.ms - dw[0].t).toBeGreaterThan(20000)
+      // Blood Fury (2 min): at the pull, since Death Wish is more than a cooldown away, then with it.
+      expect(uses(f, 'bloodFury').map((c) => c.t)).toEqual([0, dw[0].t])
+    }
+    // Without the talent it's never used, whatever the setting.
+    expect(armsPlan({ 'warrior.arms.deathWish.enabled': true }).abilities.map((a) => a.id)).not.toContain('deathWish')
+  })
+
+  it('row 17 without an execute phase: the Mighty Rage Potion follows Recklessness’s swap, whose cap would take its rage', () => {
+    const noExecute = { fight: { ...ARMS.fight, executePct: 0 } }
+    const { out } = fights(armsPlan({}, noExecute), 50)
+    for (const f of out) {
+      const reck = uses(f, 'recklessness')
+      const potion = uses(f, 'mightyRagePotion')
+      expect(reck).toHaveLength(1)
+      expect(potion).toHaveLength(1)
+      // The same moment, after the swap (at most 25 rage kept): all 45–75 of its rage fits.
+      expect(potion[0].t).toBe(reck[0].t)
+      expect(f.swaps.map((s) => s.t)).toEqual([reck[0].t])
+      expect(potion[0].rage).toBeLessThanOrEqual(250)
+    }
+    // With Recklessness off, or fighting in Berserker Stance (no swap), it's the last 20 s, as Fury's.
+    const noSwap: SimConfig['rotation'][] = [{ 'warrior.arms.recklessness.enabled': false }, { 'warrior.arms.baseStance': 'berserker' }]
+    for (const rotation of noSwap) {
+      const times = fights(armsPlan(rotation, noExecute), 30).out.map((f) => f.ms - uses(f, 'mightyRagePotion')[0].t)
+      for (const left of times) expect(left).toBeLessThanOrEqual(20000)
+      expect(Math.max(...times)).toBeGreaterThan(15000)
+    }
+    // With an execute phase, from its start as before.
+    for (const f of fights(armsPlan(), 30).out) expect(uses(f, 'mightyRagePotion')[0].t).toBeGreaterThanOrEqual(f.executeAt)
   })
 
   it('is deterministic: the same seed gives the same result, another seed a different one, and a fight depends only on its index', () => {

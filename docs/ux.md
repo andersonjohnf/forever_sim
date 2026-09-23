@@ -110,8 +110,11 @@ About & data, Reset setup, and Theme (system, light, dark).
   - A consumable's row needs its Buffs switch. While that's off, the row says so
     ("Not used: turn on … in Buffs first").
 - **Fight.**
-  - Duration (default 180 s), boss armor preset, execute phase, number of targets, and
-    whether you attack from the front (tanks) or behind (DPS).
+  - Duration (default 180 s), boss armor preset, execute phase, and whether you attack from the
+    front (tanks) or behind (DPS).
+  - No number of targets yet: the sim has one target, so the control waits for multi-target
+    support ([warrior §5.5](classes/warrior.md#55-multi-target-options-light)). A control that
+    changes nothing isn't shown. Saved setups keep the value (`extraTargets`), unused.
   - Advanced: iterations and seed.
 
 ## Results

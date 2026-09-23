@@ -893,11 +893,13 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B49. Human Sword Specialization while dual wielding
 **Low · M2 · ≤20**
-- **Assumes:** +2% crit when a sword is in either hand, applied to the sword's swings only [?].
-- **Test:** Human warrior with a sword in the main hand only, then the off hand only; read sheet
-  crit and, if unclear, log crits per hand.
+- **Assumes** [?]: as the tooltip reads, +2% crit to all attacks (both hands, white and special)
+  and spells while a sword is in either hand; Orc Axe and Dwarf Mace Specialization likewise.
+  With a mace and a sword (the default Human Fury), a per-hand answer would cost about 1.2%.
+- **Test:** Human warrior with a sword in the main hand only, then the off hand only, and a mace
+  in the other hand; read sheet crit and, if unclear, log crits per hand.
 - **Samples:** sheet reads; ≥1,000 swings per hand if needed.
-- **Changes:** the racial's per-hand scope.
+- **Changes:** the racial's scope (all attacks, or the matching weapon's).
 - **Docs:** [warrior §2.9](classes/warrior.md#29-racials-for-warriors),
   [Q15](classes/warrior.md#9-open-questions)
 

@@ -278,6 +278,21 @@ describe('armsRotation (warrior.md §5.3)', () => {
     expect(ids(r).at(-1)).toBe('hamstring')
   })
 
+  it('row 17: the Mighty Rage Potion from the execute phase; without one, in the last 20 s and after Recklessness’s swap from Battle Stance', () => {
+    const potion = (values: Record<string, RotationValue>, executePhase: boolean) => {
+      const r = armsRotation(values, TALENTS, noAura, { consumables: [MIGHTY_RAGE_POTION], executePhase })
+      return { r, lines: linesOf(r, 'mightyRagePotion') }
+    }
+    const withPhase = potion({}, true)
+    expect(withPhase.lines.map((e) => e.conditions)).toEqual([[inExec, maxRage(550)]])
+    const last20 = { code: COND.timeLeftAtMost, a: 20000, b: 0 }
+    const none = potion({}, false)
+    expect(none.lines.map((e) => e.conditions)).toEqual([[last20, { code: COND.cooldownAtLeast, a: at(none.r, 'recklessness'), b: 1 }, maxRage(550)]])
+    // No swap to wait for: Recklessness off, or fighting in Berserker Stance.
+    expect(potion({ 'warrior.arms.recklessness.enabled': false }, false).lines.map((e) => e.conditions)).toEqual([[last20, maxRage(550)]])
+    expect(potion(berserker, false).lines.map((e) => e.conditions)).toEqual([[last20, maxRage(550)]])
+  })
+
   it('row 16: with the talent, Death Wish before the racial, which waits for it as Fury’s does', () => {
     const talents = new Map([...TALENTS, ['Death Wish', 1]])
     const r = armsRotation({}, talents, noAura, { race: 'horde-orc' })

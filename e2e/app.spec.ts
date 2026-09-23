@@ -314,6 +314,23 @@ test.describe('rotation groups', () => {
   })
 })
 
+test.describe('fight', () => {
+  test('offers no number of enemies while the sim has one target, and a saved setup with more still loads', async ({ page }) => {
+    await page.addInitScript(() => {
+      if (sessionStorage.getItem('seeded')) return
+      sessionStorage.setItem('seeded', '1')
+      const state = { config: { version: 1, spec: 'warrior-fury', fight: { extraTargets: 2 } }, bySpec: {}, section: 'fight' }
+      localStorage.setItem('forever-sim:setup', JSON.stringify({ state, version: 1 }))
+    })
+    await page.goto('./')
+    await expect(page.getByRole('tab', { name: 'Fight', exact: true })).toHaveAttribute('aria-selected', 'true')
+    const fight = page.getByRole('tabpanel', { name: 'Fight' })
+    await expect(fight.getByRole('radio', { name: 'Behind' })).toBeVisible()
+    await expect(fight.getByText('Enemies', { exact: true })).toHaveCount(0)
+    await expect(fight.getByRole('textbox', { name: 'Number of enemies' })).toHaveCount(0)
+  })
+})
+
 test.describe('Arms rotation', () => {
   test('fighting in Berserker Stance turns Whirlwind on and Rend and Overpower off, until you set them', async ({ page }) => {
     await page.goto('./')

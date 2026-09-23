@@ -73,7 +73,8 @@ in [encounter.md](../mechanics/encounter.md), and non-class Forever changes in
 - **Inputs from the encounter model** ([encounter.md](../mechanics/encounter.md)):
   - target health % over time, for Execute;
   - target creature type (Giant, Dragonkin or other), for Spearing Strike;
-  - number of targets, for Cleave, Whirlwind and Sweeping Strikes;
+  - number of targets, for Cleave, Whirlwind and Sweeping Strikes (not simulated yet,
+    [§5.5](#55-multi-target-options-light));
   - incoming damage events: boss swings for tanks, and optional raid damage for DPS. These
     drive Enrage, Revenge, Shield Specialization, Master of Defense and Berserker Rage.
 
@@ -453,9 +454,9 @@ every weapon, and weapon skill only comes from items; the hit and glancing conse
 
 | Race | Racial (Forever) | Sim model | Tag |
 | --- | --- | --- | --- |
-| Human | Sword Specialization: +2% crit with all attacks while a sword or two-handed sword is equipped (Classic: +5 sword and mace skill) | +2% aura crit. For dual wield, "equipped" is read as "either hand" [?] (Q15) | [F] [rac] [client] (SpellEffect, 1.60.1.69913) (spell 20597) |
-| Orc | Axe Specialization: +1% crit while an axe is equipped. **Blood Fury: +10% AP** (and spell power) for 15 s, 2 min cooldown, off the GCD (Classic: +25% of base AP) | +1% aura crit; AP ×1.10 | [F] [rac] [client] (SpellEffect, SpellDuration, SpellCooldowns, 1.60.1.69913) (20574, 20572) |
-| Dwarf | Mace Specialization: +1% crit while a mace is equipped. Stoneform: −10% physical damage taken for 8 s, 3 min cooldown, **on the GCD** | +1% aura crit | [F] [rac] [client] (SpellEffect, SpellCooldowns, 1.60.1.69913) (1259719, 20594) |
+| Human | Sword Specialization: +2% crit with all attacks while a sword or two-handed sword is equipped (Classic: +5 sword and mace skill) | +2% aura crit on all attacks (and spells) while a sword is in either hand: with a mace and a sword, both hands' attacks get it [?] (Q15) | [F] [rac] [client] (SpellEffect, 1.60.1.69913) (spell 20597) |
+| Orc | Axe Specialization: +1% crit while an axe is equipped. **Blood Fury: +10% AP** (and spell power) for 15 s, 2 min cooldown, off the GCD (Classic: +25% of base AP) | +1% aura crit on all attacks while an axe is in either hand [?] (Q15); AP ×1.10 | [F] [rac] [client] (SpellEffect, SpellDuration, SpellCooldowns, 1.60.1.69913) (20574, 20572) |
+| Dwarf | Mace Specialization: +1% crit while a mace is equipped. Stoneform: −10% physical damage taken for 8 s, 3 min cooldown, **on the GCD** | +1% aura crit on all attacks while a mace is in either hand [?] (Q15) | [F] [rac] [client] (SpellEffect, SpellCooldowns, 1.60.1.69913) (1259719, 20594) |
 | Night Elf | **Elune's Light: +10% crit for 15 s, 3 min cooldown**. Quickness: +1% dodge | 10% crit cooldown | [F] [rac] [client] (SpellEffect, SpellDuration, 1.60.1.69913) (1259799) |
 | Gnome | Expansive Mind: **+5% max rage**. **Eureka!: the next 3 damaging abilities cost 40% less rage and deal +10% damage**, 15 s, 2 min cooldown | See Q17 and Q18 | [F] [rac] [client] (SpellEffect, SpellDuration, 1.60.1.69913) (1259802, 1259813) |
 | Troll | **Berserking: +10% attack speed for 10 s, 3 min cooldown** (Classic: 10–30%, scaling with missing health). Beast Slaying: +5% vs Beasts | ×1.10 haste | [F] [rac] [client] (SpellEffect, SpellDuration, SpellPower, 1.60.1.69913) (20554) |
@@ -655,8 +656,9 @@ Two more were replaced:
 - **GCD-safe** means that spending the next GCD won't delay a higher-priority ability: every
   higher-priority ability in the list still has at least one GCD of cooldown left.
   WarriorSim implements this idea as its `maincd` option [C] [ws-spell]. An ability the current
-  stance refuses isn't coming up, so it doesn't count, unless a line dances for it
-  ([§7](#7-implementation-notes) "Stance dancing"). Arms measures "one GCD" as the line's own:
+  stance refuses isn't coming up, so it doesn't count, unless a line dances for it and that dance
+  could happen at the current rage ([§7](#7-implementation-notes) "Stance dancing", "GCD-safe and
+  stances"). Arms measures "one GCD" as the line's own:
   1 s for Slam with Improved Slam 2/2 ([§5.3](#53-arms-two-hander)); Fury's lines all have 1.5 s.
 - **Defaults can follow the setup.** A switch's default can depend on a talent or on another
   setting (Arms: Rend is on by default only with Bloodthrill; the base stance moves Rend,
@@ -708,10 +710,10 @@ Forever:
 | 8 | Bloodthirst | Off cooldown; rage ≥ cost | `fury.bloodthirst.enabled` (on) | yes |
 | 9 | Whirlwind | Off cooldown; rage ≥ 25 + `reserve`; Bloodthirst cooldown ≥ `btCdMinSec` | `fury.whirlwind.enabled` (on), `.reserve` (0), `.btCdMinSec` (1.5) | yes |
 | 10 | Overpower (stance dance) | Window open; rage ≤ `maxRage`, since the swap keeps only 25; Bloodthirst and Whirlwind are GCD-safe. Swap to Battle, Overpower, swap back; see the notes | `fury.overpower.enabled` (off), `.maxRage` (25) | no |
-| 11 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`; unqueue if rage falls below `unqueueBelow` before the swing | `fury.heroicStrike.enabled` (on), `.minRage` (42), `.unqueueBelow` (off; 20 if enabled) | yes |
+| 11 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`; with `unqueue` on, unqueue if rage falls below `unqueueBelow` before the swing | `fury.heroicStrike.enabled` (on), `.minRage` (42), `.unqueue` (off), `.unqueueBelow` (20) | yes |
 | 12 | Hamstring (filler to fish for procs) | Rage ≥ `minRage`; Bloodthirst and Whirlwind are GCD-safe; optionally only when Flurry is down | `fury.hamstring.enabled` (on), `.minRage` (60), `.onlyWhenFlurryDown` (off) | yes |
 | 13 | Berserker Rage | With Improved Berserker Rage: on cooldown, when GCD-safe and rage ≤ max − 10. Without it: not used (its only other effect is Q20's extra rage from damage taken) | `fury.berserkerRage.enabled` (on; the plan skips it without Improved Berserker Rage), `.maxRage` (max − 10) | with the talent |
-| 14 | Sunder Armor | Keep `stacks` stacks up, when no one else in the raid applies them | `fury.sunder.enabled` (off), `.stacks` (5) | no |
+| 14 | Sunder Armor | Keep `stacks` stacks up, when no one else in the raid applies them. **Not simulated** until Protection (M3) brings Sunder Armor; until then the Buffs tab's Sunder Armor debuff stands for the raid's | none yet (planned: `fury.sunder.enabled` (off), `.stacks` (5)) | no |
 | 15 | Slam | Not used by dual wield: without Improved Slam it resets both swing timers. When on: Bloodthirst and Whirlwind are GCD-safe; outside the execute phase | `fury.slam.enabled` (off) | no |
 | 16 | Mighty Rage Potion (consumable, off the GCD) | Once, from the start of the execute phase, at rage ≤ `maxRage` (max − 75); in the last 20 s without an execute phase. Only when it's selected in Buffs | `fury.ragePotion.enabled` (on), `.maxRage` (55), `.when` (`executeStart`: its only value, so it isn't a control) | with the consumable |
 | 17 | Juju Flurry (consumable, off the GCD) | On cooldown from the pull. Only when it's selected in Buffs | `fury.jujuFlurry.enabled` (on) | with the consumable |
@@ -828,8 +830,8 @@ Notes:
   cooldown would allow one. Its rage is 450 plus a whole 0–300 tenths drawn uniformly from the
   proc stream (the client's 600 with variance 0.5; Classic Era's 449 + 1d301), an energize (5
   threat per rage). **Without an execute phase** (0%) it's used in the last 20 s, as long as its
-  +60 Strength lasts, so its rage and buff land where the phase would have been. An engine
-  choice.
+  +60 Strength lasts, so its rage and buff land where the phase would have been (Arms also waits
+  for Recklessness's stance swap, [§5.3](#53-arms-two-hander) notes). An engine choice.
 - **Juju Flurry** (row 17) is used on cooldown from the pull: no source ties it to Death Wish,
   and it's off the GCD (no start recovery in the client). Each use is +3% attack speed for 20 s,
   multiplied with other haste from the next swing (W17).
@@ -886,7 +888,7 @@ rows 0, 1, 3, 5, 13 and 16–18 share their code and settings' wording with Fury
 | 14 | Hamstring | Rage ≥ `minRage`; GCD-safe for Mortal Strike, Slam, Spearing Strike and Whirlwind (useful with Weaponmaster swords or Windfury); outside the execute phase | `arms.hamstring.enabled` (off), `.minRage` (60) | no |
 | 15 | Sweeping Strikes (off the GCD) | 2 or more targets: on cooldown. **Not simulated** until multi-target support ([§5.5](#55-multi-target-options-light)): the sim has one target | none yet | multi-target |
 | 16 | Death Wish | Only with the talent: as Fury's row 2, including `alignToEnd`. Its line sits before row 3's, so the racial can wait for it | `arms.deathWish.enabled` (on with the talent), `.alignToEnd` (on) | with the talent |
-| 17 | Mighty Rage Potion (off the GCD) | As Fury's row 16: once, from the start of the execute phase (the last 20 s without one), at rage ≤ `maxRage` | `arms.ragePotion.enabled` (on), `.maxRage` (55) | with the consumable |
+| 17 | Mighty Rage Potion (off the GCD) | As Fury's row 16: once, from the start of the execute phase (the last 20 s without one, and after row 4's swap from Battle Stance; see the notes), at rage ≤ `maxRage` | `arms.ragePotion.enabled` (on), `.maxRage` (55) | with the consumable |
 | 18 | Juju Flurry (off the GCD) | As Fury's row 17: on cooldown from the pull | `arms.jujuFlurry.enabled` (on) | with the consumable |
 
 Notes:
@@ -924,9 +926,23 @@ Notes:
   the swap keeps at most 25, and delaying Recklessness costs more of its 15 s than the rage is
   worth. In the execute phase it usually follows an Execute that spent the rage; the default
   setup loses about 1 rage a fight to it.
+- **The Mighty Rage Potion without an execute phase** (row 17). Fury drinks it in the last 20 s
+  ([§5.2](#52-fury-dual-wield) notes). From Battle Stance, Arms' Recklessness (row 4) swaps to
+  Berserker Stance at 15 s left, and that swap keeps at most 25 rage, so a potion drunk at 20 s
+  lost about 12 of its rage to it. With Recklessness in the rotation from Battle Stance, the
+  potion waits until Recklessness has been used, and follows its swap in the same moment: its
+  +60 Strength still lasts to the end, and its 45–75 rage lands on top of the 25 the swap kept.
+  With the default setup at 0% execute, the swap's loss fell from 17.6 rage a fight to 5.9, and
+  DPS rose from 599.9 to 605.2 (20,000 fights, ± 0.6). With Recklessness off, or fighting in
+  Berserker Stance (no swap), it's the last 20 s, as Fury's. With an execute phase nothing
+  changes: the potion comes at its start, and the Executes spend its rage before the swap. An
+  engine choice.
 - **The Whirlwind dance** (row 12). Whirlwind costs 25 and the swap keeps 25, so the dance needs
   25–`maxRage` rage; 30 gives it a 5-rage window, where 25 would allow exactly 25. After
-  Recklessness the line still waits for rage ≤ `maxRage`, though it no longer swaps.
+  Recklessness the line still waits for rage ≤ `maxRage`, though it no longer swaps. It counts
+  in Hamstring's GCD-safe check (row 14) only at rage its dance could use (25–30): above
+  `maxRage` it isn't coming up ([§7](#7-implementation-notes) "GCD-safe and stances"), so it no
+  longer holds Hamstring back at 60 rage.
 - **GCD-safe for Mortal Strike** (rows 9–12) is checked over the line's own GCD: 1 s for Slam
   with Improved Slam 2/2, 1.5 s for the rest ([§5.1](#51-conventions-for-rotation-settings)).
   Hamstring (row 14) is GCD-safe for every ability above it with a cooldown. Rend and Overpower
@@ -940,10 +956,22 @@ Notes:
   the rage. The rotation reads the creature type set under Fight
   ([encounter.md](../mechanics/encounter.md)); raid bosses aren't mounted, so there's no setting
   for that.
+- **Rend's refresh** (row 2). Rend ticks every 3 s for 21 s, so with `refreshBelowSec` 1.5 its
+  window opens after the 6th tick, 1.5 s before the 7th, and the refresh restarts the ticks
+  ([§7](#7-implementation-notes) "Rend is a bleed ability"): the default always drops the 7th
+  tick. A landed Rend gets 6.21 ticks on average; the rest come from Rends that aren't refreshed
+  (the last one before Recklessness leaves Battle Stance, one that lasts to the end) and from
+  refreshes a GCD or Slam's cast holds past the 7th tick. A refresh at 0 s (once Rend has run out)
+  gets all 7 ticks, but leaves Rend, and with it Bloodthrill's proc, down until the next GCD:
+  6.93 ticks a Rend, 630.4 DPS. At 3 s the window opens at the 6th tick, which lands first; the
+  7th is dropped too, but the wider window keeps Rend up through a busy GCD: 6.10 ticks, 631.6
+  DPS. The default 1.5 s gave 629.5 (the default setup, 20,000 fights, ± 0.6). So Rend's worth is
+  mostly Bloodthrill's uptime, not its 28-damage ticks.
 - **Tuning the defaults.** The defaults above are this table's, not the sim's best. With the
   default setup (20,000 fights, ± 0.6), Heroic Strike from 55 rage gave 638 DPS against 630,
   Spearing Strike from 40 rage 634, and the Whirlwind dance 635; Heroic Strike from 40 gave 624.
-  Whether to move them is a guild call.
+  Rend's refresh at 3 s gave 631.6 against the default 1.5 s's 629.5 (the note above). Whether to
+  move them is a guild call.
 
 ### 5.4 Protection (TPS)
 
@@ -1009,7 +1037,9 @@ Notes:
 
 ### 5.5 Multi-target options (light)
 
-When [encounter.md](../mechanics/encounter.md) sets 2 or more targets:
+**Not simulated yet**: the sim has one target. Until it has more, the Fight tab offers no number
+of targets ([ux.md](../ux.md#sections) "Fight"), and a saved `extraTargets` changes nothing.
+The plan, for when [encounter.md](../mechanics/encounter.md) sets 2 or more targets:
 
 - Cleave replaces Heroic Strike (`<spec>.cleave.enabled`, on at 2+ targets; same `minRage`
   logic).
@@ -1044,7 +1074,7 @@ Wield Specialization, 26 before Precision, 30 before Flurry and 35 before Bloodt
 
 | Spec | Alliance default | Horde default | Weapon default | Why |
 | --- | --- | --- | --- | --- |
-| Fury | **Human**, with a sword in either hand (+2% crit) | **Orc**, with axes (+1% crit, Blood Fury +10% AP) | Slowest good one-hander in the main hand and a one-hander in the off hand, from [pre-bis items](../data/items.md) | Night Elf (Elune's Light), Troll (Berserking) and Tauren (+1% hit) are close alternatives. **Weapon skill racials no longer exist** ([§2.9](#29-racials-for-warriors)) |
+| Fury | **Human**, with a sword in either hand (+2% crit on all attacks, Q15) | **Orc**, with axes (+1% crit, Blood Fury +10% AP) | Slowest good one-hander in the main hand and a one-hander in the off hand, from [pre-bis items](../data/items.md) | Night Elf (Elune's Light), Troll (Berserking) and Tauren (+1% hit) are close alternatives. **Weapon skill racials no longer exist** ([§2.9](#29-racials-for-warriors)) |
 | Arms | **Human**, with a two-handed sword (+2% crit and Weaponmaster extra attacks) | **Orc**, with a two-handed axe (+1% racial and +5% Weaponmaster crit) | Slowest good two-hander (3.5–3.8 s) | Maces and staves (15% armor ignored) are worth simulating (Q9) |
 | Protection | **Human** (sword) | **Orc** (axe; Blood Fury helps threat) | One-hander and shield. The shield is required for Defiance, Bastion, Shield Slam and Shield Block | Tauren (+1% hit, +5% health) and Dwarf (Stoneform) are defensive alternatives |
 
@@ -1129,8 +1159,9 @@ parts:
 - **Talented cooldown rage.** Improved Bloodrage multiplies each of Bloodrage's gains by
   `1 + 0.25 × rank`, and each gain is floored to a tenth
   ([rage.md](../mechanics/rage.md#implementation-notes) "Rounding"). At 1/2 that gives 12.5 at
-  once and 1.2 per tick (1.25 floored) [?] (Q29); 2/2 is exact (15 + 1.5). Improved Berserker
-  Rage adds 5 rage per rank.
+  once and 1.2 per tick (1.25 floored) [?] (Q29), and a result with Improved Bloodrage 1/2 and
+  Bloodrage in the rotation lists it among its assumptions; 2/2 is exact (15 + 1.5). Improved
+  Berserker Rage adds 5 rage per rank.
 - **What the cooldowns' buffs do in the sim.** Death Wish is ×1.20 physical damage, like any
   damage-done aura (white, yellow and bleeds). Recklessness's +100% and Elune's Light's +10% are
   aura crit (aura 290, like Berserker Stance): the white table still truncates crit at its crit
@@ -1155,8 +1186,9 @@ parts:
   condition becomes true.
 - **Execute's rage.** Rage is kept in tenths, and Execute converts everything left after its
   cost, tenths included: at 27.3 rage and cost 15 it deals `600 + 15 × 12.3 = 784.5` before
-  modifiers. Whether the server converts only whole rage points is Q28 [?]. A blocked Execute
-  has landed, so it spends the rage too.
+  modifiers. Whether the server converts only whole rage points is Q28 [?]; a result whose
+  rotation uses Execute lists it among its assumptions. A blocked Execute has landed, so it spends
+  the rage too.
 - **Stances.** Each ability carries the stances it can be used in ([§3.1](#31-damage-abilities)
   "Stance", from the client's `ShapeshiftMask`), and the engine refuses it in any other. Each spec
   fights in its base stance ([§5](#5-spec-models-and-rotations); Arms in the one its
@@ -1192,7 +1224,13 @@ parts:
   back, and later dances return to it. Each fight starts in the plan's base stance again. These
   timings are engine choices; no source covers them.
 - **GCD-safe and stances.** An ability the current stance refuses isn't coming up, so a GCD-safe
-  condition skips it, unless one of its lines dances for it; then it counts as usual.
+  condition skips it, unless one of its lines dances for it and that dance could happen at the
+  current rage: the rage the swap keeps pays for it (`min(rage, cap) ≥ cost`), and rage is at most
+  the highest `maxRage` of its dance lines (none: no limit). Then it counts as usual. Otherwise its
+  dance waits for rage, and a GCD spent meanwhile delays nothing. So Arms' Whirlwind dance (at
+  25–30 rage, [§5.3](#53-arms-two-hander) row 12) no longer holds Hamstring (at 60 or more,
+  row 14) back whenever Whirlwind is off cooldown: with both on, the default setup used
+  Hamstring 0.01 times a fight, 0.18 with this rule. An engine choice; no source covers it.
 - **Slam's cast.** An ability can have a cast time (`castMs`: Slam's 1500 ms, 250 less per
   Improved Slam rank). The GCD starts with the cast, and no GCD ability starts before the cast
   completes: the engine holds the GCD until then. Off-GCD lines (the Heroic Strike queue,
@@ -1212,6 +1250,11 @@ parts:
   - **With Improved Slam** the timers are untouched: white swings, a queued Heroic Strike and
     extra attacks land during the cast as usual. A Heroic Strike swing during the cast spends
     its rage first, so it can leave too little for Slam, which then fails.
+- **Without a main-hand weapon** the engine refuses every ability that attacks: weapon strikes,
+  melee spells (Bloodthirst), bleeds (Rend), Execute and the on-next-swing queue (Heroic Strike).
+  It has no unarmed attacks, white or special (the result says so), and none of these may spend
+  rage without an attack to land. Casts, which roll nothing (Bloodrage, Battle Shout, Death Wish,
+  Recklessness, the racials, trinkets and potions), are still used. An engine choice.
 - **Spearing Strike's target.** The plan resolves its weapon share once, from the encounter's
   creature type: 1.20 against Giants and Dragonkin, 0.40 against anything else
   ([encounter §6](../mechanics/encounter.md#6-creature-type-biome-and-zone-forever)). There's no
@@ -1530,8 +1573,16 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     [F] [client] (SpellEffect, 1.60.1.69913), perhaps 15% of AP (the server scripts what a dummy
     does). SoD's version (45% AP, 30% heal) is a forbidden source. Low priority: it isn't used on
     bosses.
-15. **Human Sword Specialization with dual wield.** Is one sword in either hand enough, or
-    must it be in the main hand?
+15. **Weapon racials with dual wield.** The sim reads the tooltips ("+2% crit with all spells and
+    attacks while you have a sword or two-handed sword equipped"): one sword in either hand gives
+    Human Sword Specialization's +2% to every attack, both hands'
+    ([§2.9](#29-racials-for-warriors),
+    [character-stats](../mechanics/character-stats.md#implementation-notes)); Orc Axe and Dwarf
+    Mace Specialization likewise. Is that so, or does the crit apply only to the matching weapon's
+    attacks, or need it in the main hand? The answer moves the default Human Fury (a mace and a
+    sword) by about 1.2%. **Test:** a Human with a sword in the main hand only, then in the off hand
+    only, with a mace in the other hand: read the sheet's crit, and if it's unclear, log crits per
+    hand.
 16. **Touch of the Grave (Undead).** Does it deal damage, or only heal? If it deals damage,
     it should be modelled.
 17. **Max rage for Gnomes with Boundless Rage.** Is it (100 + 30) × 1.05 = 136.5, or

@@ -4,8 +4,24 @@
 // Fury, Berserking and Elune's Light are `cast` abilities of the Fury rotation
 // (classes/warrior/abilities.ts, warrior.md §5.2 row 3); Eureka! isn't simulated yet (warrior.md
 // §7, Q18); Touch of the Grave, Stoneform and Shatter Curse aren't simulated (warrior.md §2.9, Q16).
+import type { WeaponType } from '@/data/items/types'
 import type { ClassId } from '../types'
 import type { Effect } from './types'
+
+/**
+ * Sword, Axe and Mace Specialization (aura 290): +`value`% crit with all spells and attacks while a
+ * weapon of one of `types` is equipped in either hand, as the Forever tooltips read ("while you have
+ * a sword or two-handed sword equipped"), so it's aura crit for every attack, both hands and spells
+ * alike (character-stats.md#racials-that-matter-to-the-sim, warrior.md §2.9). Whether one matching
+ * weapon in either hand is enough when dual wielding is [?] (warrior Q15).
+ */
+const weaponRacial = (value: number, types: WeaponType[], equipped: readonly WeaponType[]): Effect[] =>
+  types.some((t) => equipped.includes(t))
+    ? [
+        { kind: 'stat', stat: 'crit', value },
+        { kind: 'stat', stat: 'spellCrit', value },
+      ]
+    : []
 
 const SKYBORNE: Effect[] = [
   // Wind Blessed: +1% melee, ranged and spell haste [F] (character-stats racials table)
@@ -14,19 +30,23 @@ const SKYBORNE: Effect[] = [
   { kind: 'damage', pct: 5, when: { creature: ['elemental'] } },
 ]
 
-export function racialEffects(race: string, classId: ClassId): Effect[] {
+/**
+ * A race's passive racials for this class. `weapons` are the types of the weapons equipped in
+ * either hand, for the weapon racials.
+ */
+export function racialEffects(race: string, classId: ClassId, weapons: readonly WeaponType[]): Effect[] {
   switch (race) {
     case 'alliance-human':
       return [
-        // Sword Specialization (20597): +2% crit with a sword; per hand [?] (character-stats implementation notes)
-        { kind: 'weaponCrit', value: 2, weapons: ['sword'] },
+        // Sword Specialization (20597): +2% crit while a sword is equipped [F]; either hand [?] (warrior Q15)
+        ...weaponRacial(2, ['sword'], weapons),
         // The Human Spirit (20598): Spirit +5% [F]
         { kind: 'mult', stat: 'spi', pct: 5 },
       ]
     case 'alliance-dwarf':
       return [
-        // Mace Specialization (1259719): +1% crit with a mace [F]
-        { kind: 'weaponCrit', value: 1, weapons: ['mace'] },
+        // Mace Specialization (1259719): +1% crit while a mace is equipped [F]; either hand [?] (warrior Q15)
+        ...weaponRacial(1, ['mace'], weapons),
         // Big Game Hunter (1259721): +5% damage vs Beasts [F]
         { kind: 'damage', pct: 5, when: { creature: ['beast'] } },
       ]
@@ -37,8 +57,8 @@ export function racialEffects(race: string, classId: ClassId): Effect[] {
       // Expansive Mind, warrior version (1259802): maximum Rage +5% [F]; how it combines with Boundless Rage is [?] (warrior Q17)
       return classId === 'warrior' ? [{ kind: 'maxRagePct', pct: 5 }] : []
     case 'horde-orc':
-      // Axe Specialization (20574): +1% crit with an axe [F]
-      return [{ kind: 'weaponCrit', value: 1, weapons: ['axe'] }]
+      // Axe Specialization (20574): +1% crit while an axe is equipped [F]; either hand [?] (warrior Q15)
+      return weaponRacial(1, ['axe'], weapons)
     case 'horde-tauren':
       return [
         // Endurance (20550): total health +5% and +1% hit with melee, ranged and spells [F]

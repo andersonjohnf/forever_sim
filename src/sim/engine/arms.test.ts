@@ -1,17 +1,20 @@
 // The Arms abilities in the engine, from hand-built rotations (docs/classes/warrior.md §3.1, §7):
-// worked examples W2, W4, W6 and W13; Slam's cast and the swing timers with and without Improved
-// Slam (damage-and-timing §3.3); Spearing Strike by creature type and only with a two-hander;
+// worked examples W2, W4, W6, W12 (Deep Wounds) and W13; Slam's cast and the swing timers with
+// and without Improved Slam (damage-and-timing §3.3); Spearing Strike by creature type and only
+// with a two-hander;
 // Rend's bleed: its ticks, refresh (WE-9), Improved Rend, armor, snapshot, tick crits
 // (damage-and-timing §4) and the "Rend missing or under x s" condition; refunds on avoidance
 // (rage.md#rage-refunds-on-avoided-abilities); stances; determinism.
 import { describe, expect, it } from 'vitest'
 import { BLOODRAGE, DEATH_WISH, HEROIC_STRIKE, MORTAL_STRIKE, REND, SLAM, SPEARING_STRIKE } from '../classes/warrior/abilities'
+import { TALENT_EFFECTS } from '../classes/warrior/talents'
 import { type AbilityDef, ACTION, COND, type Plan, type RotationCondition, STANCE, TRIGGER, TRIGGER_COUNT, type WeaponPlan } from '../plan/types'
 import { CLASSIC_ERA } from '../rules/profiles'
 import type { CreatureType } from '../types'
 import { FIELD, FIELD_COUNT, SOURCE_MAIN_HAND, Sim } from './sim'
 import {
   addAbility,
+  addProc,
   alwaysLandNoCrit,
   armsPlan,
   at,
@@ -104,6 +107,50 @@ describe('Arms worked examples in the engine (1800 AP, pre-armor, two-hander T)'
     expect(uses([T, null])).toEqual([0, 20000, 40000])
     expect(uses([O, null])).toEqual([])
     expect(uses([O, O])).toEqual([])
+  })
+})
+
+describe('Deep Wounds 3/3 (warrior.md §2.5, W12)', () => {
+  /**
+   * White swings that always land, and Deep Wounds 3/3 as the talent defines it, from crits with
+   * the hands in `hands` (bit 0 main, bit 1 off). Returns its ticks' damage.
+   */
+  function ticks(weapons: [Partial<WeaponPlan>, Partial<WeaponPlan> | null], hands: number, physicalMult = 1): number[] {
+    const effect = TALENT_EFFECTS['Deep Wounds'](3)[0]
+    const action = effect.kind === 'proc' && effect.proc.action.kind === 'weaponBleed' ? effect.proc.action : null
+    expect(action).toMatchObject({ ticks: 4, periodMs: 3000 })
+    expect(action!.share).toBeCloseTo(0.6, 12)
+    const plan = armsPlan(30000)
+    plan.weapons = [{ ...plan.weapons[0]!, ...weapons[0] }, weapons[1] ? { ...plan.weapons[0]!, name: 'Off hand', handMult: 0.5, ...weapons[1] } : null]
+    plan.stats.hit = 100
+    plan.fight.bossCanDodge = false
+    plan.physicalMult = physicalMult
+    setAttackPower(plan, 1800)
+    plan.sources.push({ id: 'deepWounds', name: 'Deep Wounds', icon: 'x' })
+    const row = plan.sources.length - 1
+    addProc(plan, { id: 'deepWounds', trigger: TRIGGER.meleeCrit, chance: [1, 1], hands, action: ACTION.weaponBleed, amount: 4, a: action!.share, b: 3000, source: row })
+    const out = damages(plan, row, 10)
+    expect(out.length).toBeGreaterThan(20)
+    return out
+  }
+  const round2 = (x: number) => Math.round(x * 100) / 100
+
+  it('two-hander T: 0.6 × (131 + 488.57) = 371.74 over 4 ticks of 92.94, or 95.72 with Two-Handed Weapon Specialization ×1.03', () => {
+    const tick = (0.6 * (W + AP_REAL)) / 4
+    expect(round2(tick)).toBe(92.94)
+    expect(round2(tick * 1.03)).toBe(95.72)
+    for (const d of ticks([{ ...T, min: W, max: W }, null], 1)) expect(d).toBeCloseTo(tick, 9)
+    // The average swing, not a roll: the same with the weapon's real 105–157 range.
+    for (const d of ticks([T, null], 1)) expect(d).toBeCloseTo(tick, 9)
+    for (const d of ticks([T, null], 1, 1.03)) expect(d).toBeCloseTo(tick * 1.03, 9)
+  })
+
+  it('one-hander O in the main hand: 0.6 × 486.29 = 291.77 over 4 ticks of 72.94, the same when the off hand crits', () => {
+    const tick = (0.6 * (152 + (1800 / 14) * 2.6)) / 4
+    expect(round2(tick)).toBe(72.94)
+    for (const d of ticks([O, null], 1)) expect(d).toBeCloseTo(tick, 9)
+    // Only the off hand's crits apply it; the ticks still use the main hand's swing.
+    for (const d of ticks([O, { ...O, min: 50, max: 60, speedSec: 1.5 }], 2)) expect(d).toBeCloseTo(tick, 9)
   })
 })
 

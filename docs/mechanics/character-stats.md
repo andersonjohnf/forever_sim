@@ -123,11 +123,11 @@ matters for tanking survival (not modelled for DPS/TPS unless noted); *ignore* =
 
 | Race | Racial (spell ID) | Forever effect | Classic Era effect | Sim handling | Tag · source |
 | --- | --- | --- | --- | --- | --- |
-| Human | Sword Specialization (20597) | +2% crit chance with all spells and attacks while a sword or two-handed sword is equipped (aura 290, value 2) | +5 Sword and Two-Handed Sword skill | cond: crit aura (counts as *aura crit*, see [combat-tables.md](combat-tables.md)) | [F] [racials][fc-racials], [client] (SpellEffect, 1.60.1.69913) |
+| Human | Sword Specialization (20597) | +2% crit chance with all spells and attacks while a sword or two-handed sword is equipped (aura 290, value 2) | +5 Sword and Two-Handed Sword skill | cond: crit aura (counts as *aura crit*, see [combat-tables.md](combat-tables.md)) for all attacks and spells while a sword is in either hand; either hand is [?] ([warrior Q15](../classes/warrior.md#9-open-questions)) | [F] [racials][fc-racials], [client] (SpellEffect, 1.60.1.69913) |
 | Human | The Human Spirit (20598) | Spirit +5% (aura 137, misc 4 = Spirit) | same | stat: ×1.05 Spirit | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Human | Mace Specialization | **removed** | +5 Mace skill | — | [F] [racials][fc-racials] |
 | Human | Will to Survive (1259718), Perception | stun break; stealth detection | Perception only | ignore | [F] [racials][fc-racials] |
-| Dwarf | Mace Specialization (1259719) | +1% crit chance with all spells and attacks while a mace or two-handed mace is equipped (aura 290, value 1) | did not exist (Dwarves had Gun Specialization) | cond: crit aura | [F] [client] (SpellEffect, 1.60.1.69913) |
+| Dwarf | Mace Specialization (1259719) | +1% crit chance with all spells and attacks while a mace or two-handed mace is equipped (aura 290, value 1) | did not exist (Dwarves had Gun Specialization) | cond: crit aura, as Human Sword Specialization (a mace in either hand) | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Dwarf | Stoneform (20594) | −10% physical damage taken for 8 s (aura 87, school Physical), removes and grants immunity to bleed, poison and disease; 3 min cooldown; **on the GCD** (1.5 s, unlike the damage racials) | +10% armor for 8 s, immunities; 3 min | tank CD (optional) | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Dwarf | Big Game Hunter (1259721) | +5% damage vs Beasts (aura 168, creature mask Beast) | did not exist | cond: target type | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Dwarf | Gun Specialization, Frost Resistance | **removed** | +1% gun crit; +10 Frost resistance | — | [F] [racials][fc-racials] |
@@ -138,7 +138,7 @@ matters for tanking survival (not modelled for DPS/TPS unless noted); *ignore* =
 | Gnome | Expansive Mind, warrior version (1259802) | Warrior: maximum Rage +5% (aura 178, misc 1 = Rage) → 105 | Intellect +5% (all classes) | stat: see [rage.md](rage.md) | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Gnome | Eureka!, warrior version (1259813) | Next 3 damaging abilities cost 40% less Rage and deal 10% more damage; 15 s window; 2 min cooldown; no cost | did not exist | CD (charges) | [F] [client] (SpellEffect, SpellMisc, SpellPower, 1.60.1.69913) |
 | Gnome | Arcane Resistance | **removed** | +10 Arcane resistance | — | [F] [racials][fc-racials] |
-| Orc | Axe Specialization (20574) | +1% crit chance with all spells and abilities while an axe or two-handed axe is equipped (aura 290, value 1) | +5 Axe and Two-Handed Axe skill | cond: crit aura | [F] [client] (SpellEffect, 1.60.1.69913) |
+| Orc | Axe Specialization (20574) | +1% crit chance with all spells and abilities while an axe or two-handed axe is equipped (aura 290, value 1) | +5 Axe and Two-Handed Axe skill | cond: crit aura, as Human Sword Specialization (an axe in either hand) | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Orc | Blood Fury (20572) | +10% melee attack power (aura 166), +10% ranged attack power (167) and +10% spell power (317) for 15 s; 2 min cooldown | +25% *base* melee AP for 15 s (a scripted effect), −50% healing received for 25 s; 2 min | CD (AP multiplier; scope [?], see [OQ-9](#oq-9-blood-fury-scope)) | [F] [client] (SpellEffect, SpellMisc, 1.60.1.69913); Classic [C] [client] (SpellEffect, 1.15.9.69722: a dummy, 25) |
 | Orc | Shatter Curse (1299026) | removes curses; −15% magic damage taken for 8 s; 3 min cooldown | did not exist | tank CD | [F] [racials][fc-racials] |
 | Orc | Hardiness, Command | stun duration −20%; Command **removed** | stun resist; pet damage | ignore | [F] [racials][fc-racials] |
@@ -162,9 +162,19 @@ Consequences for the rest of the sim:
 - The weapon racials (Human sword, Orc axe, Dwarf mace) and Elune's Light use aura 290, which
   raises *all* crit including spell crit (the tooltips say "all spells and attacks"). A Human
   paladin with a sword gets +2% to Seal/Judgement/Consecration crits too. **[F]**
+- **A weapon racial counts for every attack while its weapon is equipped in either hand.** The
+  tooltip reads "while you have a sword or two-handed sword equipped", so a dual-wielding Human
+  with a mace and a sword gets +2% on both hands' attacks, white and special, and on spells. The
+  tooltip wins over a per-hand reading
+  ([doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable)); whether the server
+  agrees for mixed weapons is **[?]** ([warrior Q15](../classes/warrior.md#9-open-questions)).
 - Classic Era suppresses crit from auras by 1.8% against +3-level targets, and these racials are
   auras. Whether Forever keeps that suppression belongs to [combat-tables.md](combat-tables.md).
-  **[C]** [Magey attack table][magey-at]
+  **[C]** [Magey attack table][magey-at] The sim counts them in the aura-crit total that
+  [combat-tables §4.4](combat-tables.md#44-crit-suppression) suppresses: `min(aura crit, 1.8%)`.
+  A warrior's talents and stance already fill that 1.8%, so the racial adds its full value to the
+  table; as the only aura crit (a naked Human with a sword,
+  [Example 1](#example-1-naked-human-warrior) variant 1c) it's suppressed like any other.
 - The wowsims Forever sim still implements the TBC racials (Human Spirit ×1.10, weapon skill as
   expertise, level-scaled Blood Fury) [wsf-racials]. Don't copy them.
 
@@ -538,8 +548,8 @@ Blood Fury, Elune's Light, Kings, trinkets).
      `AP = floor(AP × Π(1 + apPct))` (Blood Fury) **[?]** on the scope of the multiplier.
      Creature-type AP ("+X AP vs Undead") is added only against that target type.
    - `meleeCrit% = baseCrit + Agi × critPerAgi + critRating/14 + Σ flat crit` (Classic-form gear
-     "+x% crit", talents, stance, racial weapon auras when that weapon is equipped, Leader of the
-     Pack, consumables).
+     "+x% crit", talents, stance, racial weapon auras when that weapon is in either hand, Leader of
+     the Pack, consumables).
      **Keep the aura-crit total separately**: [combat-tables.md](combat-tables.md) suppresses it
      against +3 bosses.
    - `hit% = hitRating/10 + Σ flat hit` (Classic-form gear, Precision, Tauren Endurance). Spell
@@ -651,10 +661,13 @@ the five-second rule, and the defense conversion.
   substitute the OQ-1 candidates. A spec whose base row is missing reports that instead of
   simulating.
 - **Racials:** implement by spell ID. Weapon-conditional crit (20597, 20574, 1259719) checks the
-  equipped weapon subtype, per hand, for the hand that swings. A dual-wield warrior with one sword
-  gets the +2% on the sword's swings only. That split is **[?]**; the Forever tooltip says "while
-  you have a sword equipped". Creature-type racials (Beast Slaying, Big Game Hunter, Elemental
-  Insight) multiply damage only when the target type matches: see [encounter.md](encounter.md).
+  subtypes of the weapons equipped in either hand; when one matches, the racial is flat aura crit
+  (melee and spell) for the whole character, as the tooltip reads ("while you have a sword
+  equipped"). A dual-wield warrior with a mace and a sword gets the +2% on both hands' attacks.
+  That reading is **[?]** ([warrior Q15](../classes/warrior.md#9-open-questions)), and a result
+  with a matching weapon and a different one lists it among its assumptions. Creature-type
+  racials (Beast Slaying, Big Game Hunter, Elemental Insight) multiply damage only when the target
+  type matches: see [encounter.md](encounter.md).
 - **Cooldown racials** (Blood Fury, Berserking, Elune's Light, Eureka!) are rotation options with
   sensible defaults in the class docs. They are off the GCD (`StartRecoveryTime` 0); Stoneform is
   on it (1,500 ms) **[F]** [client] (SpellCooldowns, 1.60.1.69913). Tank-only racials (Stoneform,

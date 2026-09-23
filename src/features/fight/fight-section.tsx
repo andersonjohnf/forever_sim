@@ -93,33 +93,24 @@ export function FightSection() {
         )}
       </Field>
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        <Field label="Position" help={tank ? 'Tanks face the boss: it can parry and block.' : 'Behind the boss, it can’t parry or block.'}>
-          <ToggleGroup
-            type="single"
-            variant="outline"
-            value={fight.position}
-            onValueChange={(v) => v && set({ position: v as FightConfig['position'] })}
-            className="w-full"
-          >
-            <ToggleGroupItem value="behind" className={cn('h-11 flex-1', CHOICE_ITEM)}>
-              Behind
-            </ToggleGroupItem>
-            <ToggleGroupItem value="front" className={cn('h-11 flex-1', CHOICE_ITEM)}>
-              In front
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </Field>
-        <Field label="Enemies" help="Extra enemies in range of cleaves and area attacks.">
-          <NumberField
-            value={fight.extraTargets + 1}
-            onChange={(n) => set({ extraTargets: n - 1 })}
-            min={1}
-            max={5}
-            aria-label="Number of enemies"
-          />
-        </Field>
-      </div>
+      {/* No "Enemies" control until multi-target is simulated (warrior.md §5.5, docs/ux.md "Fight"): the
+          sim has one target. The config keeps `extraTargets`, so saved setups still load. */}
+      <Field label="Position" help={tank ? 'Tanks face the boss: it can parry and block.' : 'Behind the boss, it can’t parry or block.'}>
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          value={fight.position}
+          onValueChange={(v) => v && set({ position: v as FightConfig['position'] })}
+          className="w-full"
+        >
+          <ToggleGroupItem value="behind" className={cn('h-11 flex-1', CHOICE_ITEM)}>
+            Behind
+          </ToggleGroupItem>
+          <ToggleGroupItem value="front" className={cn('h-11 flex-1', CHOICE_ITEM)}>
+            In front
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </Field>
 
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1">

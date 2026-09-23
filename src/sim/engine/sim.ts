@@ -219,8 +219,13 @@ export class Sim {
   private readonly abUnavoidable: Uint8Array
   /** The aura it needs and ends, or −1 (the Overpower window, warrior.md §2.8). */
   private readonly abWindow: Int32Array
-  /** Some line dances for it (warrior.md §7): GCD-safe counts it as coming up even while the stance refuses it. */
+  /**
+   * Some line dances for it (warrior.md §7): GCD-safe counts it as coming up even while the stance
+   * refuses it, as long as that dance could happen at the current rage (§7 "GCD-safe and stances").
+   */
   private readonly abDances: Uint8Array
+  /** The highest `maxRage` (tenths) of its dance lines; Infinity when one has none. */
+  private readonly abDanceMaxRage: Float64Array
   private readonly abWeaponPct: Float64Array
   private readonly abNormalized: Uint8Array
   private readonly abFlat: Float64Array
@@ -574,6 +579,7 @@ export class Sim {
     this.abUnavoidable = new Uint8Array(nb)
     this.abWindow = new Int32Array(nb)
     this.abDances = new Uint8Array(nb)
+    this.abDanceMaxRage = new Float64Array(nb).fill(-Infinity)
     this.abWeaponPct = new Float64Array(nb)
     this.abNormalized = new Uint8Array(nb)
     this.abFlat = new Float64Array(nb)
@@ -617,8 +623,9 @@ export class Sim {
       this.abGcd[i] = a.gcdMs
       this.abCastMs[i] = a.castMs
       this.abCastStopsSwings[i] = a.castStopsSwings ? 1 : 0
-      // warrior.md §3.1: Spearing Strike needs a two-hander.
-      this.abNeverReady[i] = a.twoHandOnly && !this.wTwoHand[HAND.main] ? 1 : 0
+      // warrior.md §3.1: Spearing Strike needs a two-hander. §7 "Without a main-hand weapon": every
+      // ability that attacks (strikes, melee spells, bleeds, the on-next-swing queue) needs one; casts don't.
+      this.abNeverReady[i] = (a.twoHandOnly && !this.wTwoHand[HAND.main]) || (a.kind !== 'cast' && !this.hasWeapon[HAND.main]) ? 1 : 0
       this.abUnavoidable[i] = a.unavoidable ? 1 : 0
       this.abWindow[i] = a.window
       this.abWeaponPct[i] = a.weaponPercent
@@ -694,6 +701,10 @@ export class Sim {
       if (to !== 0 && (ability.stances & to) !== 0 && plan.stances.length > 0) {
         this.entryDance[e] = to
         this.abDances[entry.ability] = 1
+        // The rage up to which this line dances (its maxRage: the Whirlwind dance's 30, §5.3 row 12).
+        let upTo = Infinity
+        for (const cond of entry.conditions) if (cond.code === COND.maxRage) upTo = Math.min(upTo, cond.a)
+        this.abDanceMaxRage[entry.ability] = Math.max(this.abDanceMaxRage[entry.ability], upTo)
         // warrior.md §5.3 row 4: a line can stay in the stance it danced to.
         if (entry.stay) this.entryStay[e] = 1
       }
@@ -1272,16 +1283,15 @@ export class Sim {
       // The line's time-left conditions, as this fight's window (warrior.md §5.2 rows 2–4).
       if (now < this.entryFrom[e] || now > this.entryTo[e]) continue
       const a = this.rotAbility[e]
+      // Off cooldown (never ready when used up, or needing a weapon the setup lacks: the
+      // constructor's `abNeverReady`), with the rage for it.
       if (this.abReadyAt[a] > now || this.rage < this.abCost[a]) continue
       // warrior.md §3.1 "Stance": only in the stances it's usable in, or by dancing to one (§7).
       let dance = 0
       if ((this.abStances[a] & this.stance) === 0 && (dance = this.danceFor(e, a)) === 0) continue
       if (this.abKind[a] === KIND_ON_NEXT_SWING) {
-        if (this.queued >= 0 || !this.hasWeapon[HAND.main]) continue
-      } else {
-        if (this.abGcd[a] > 0 && this.gcdEnd > now) continue
-        if (this.abWeaponPct[a] > 0 && !this.hasWeapon[HAND.main]) continue
-      }
+        if (this.queued >= 0) continue
+      } else if (this.abGcd[a] > 0 && this.gcdEnd > now) continue
       if (!this.conditionsHold(e)) continue
       if (dance !== 0) this.swapStance(dance)
       if (this.entryStay[e] !== 0) this.home = this.stance
@@ -1352,9 +1362,14 @@ export class Sim {
           break
         case COND.gcdSafe:
           // docs/classes/warrior.md#51-conventions-for-rotation-settings: each has ≥ one GCD of cooldown
-          // left. One the current stance refuses isn't coming up, unless a line dances for it (§7).
+          // left. One the current stance refuses isn't coming up, unless a line dances for it and that
+          // dance could happen at this rage: the swap keeps enough to pay for it, and rage is within
+          // the line's maxRage (§7 "GCD-safe and stances").
           for (let i = 0, mask = a; mask !== 0; i++, mask >>>= 1) {
-            if (mask & 1 && this.abReadyAt[i] - now < b && ((this.abStances[i] & this.stance) !== 0 || this.abDances[i] === 1)) return false
+            if ((mask & 1) === 0 || this.abReadyAt[i] - now >= b) continue
+            if ((this.abStances[i] & this.stance) !== 0) return false
+            const rage = this.rage
+            if (this.abDances[i] === 1 && Math.min(rage, this.swapKeep) >= this.abCost[i] && rage <= this.abDanceMaxRage[i]) return false
           }
           break
         case COND.auraDown:

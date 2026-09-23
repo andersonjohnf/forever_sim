@@ -115,7 +115,7 @@ const REGISTRY = {
     docRef: `${STATS}#oq-1-paladin-druid-and-skyborne-base-attributes`,
   },
   racialWeaponCrit: {
-    text: 'Weapon racials (Sword, Axe and Mace Specialization) add crit only to swings made with that weapon type.',
+    text: 'Weapon racials (Sword, Axe and Mace Specialization) add their crit to all your attacks while either hand holds that weapon type, as the Forever tooltip reads; untested with two different weapons.',
     docRef: `${STATS}#implementation-notes`,
   },
   gnomeRage: {
@@ -242,6 +242,14 @@ const REGISTRY = {
     text: 'Rend’s ticks can crit, at your special-attack crit chance when it landed, with the same bonus as your abilities’ crits (×2.2 with Impale 2/2); untested in Forever.',
     docRef: `${WAR}#25-crits-impale-flurry-deep-wounds`,
   },
+  executeRageTenths: {
+    text: 'Execute turns all the rage left after its cost into damage, tenths of a rage point included (15 damage per rage); the server may count whole points only.',
+    docRef: `${WAR}#7-implementation-notes`,
+  },
+  improvedBloodrageRounding: {
+    text: 'Improved Bloodrage 1/2 gives 12.5 rage at once and 1.2 per tick (1.25 rounded down to a tenth), 24.5 in all; how the server rounds is untested.',
+    docRef: `${WAR}#7-implementation-notes`,
+  },
   rendOnHit: {
     text: 'A Rend that lands triggers on-hit effects such as Windfury and Crusader, though it deals no damage itself; untested.',
     docRef: `${WAR}#7-implementation-notes`,
@@ -251,8 +259,8 @@ const REGISTRY = {
     docRef: `${BUFFS}#31-flasks`,
   },
   noWeapon: {
-    text: 'No main-hand weapon: unarmed attacks aren’t simulated.',
-    docRef: `${DT}#2-weapon-damage`,
+    text: 'No main-hand weapon: unarmed attacks aren’t simulated, so neither is any ability that attacks; only cooldowns and buffs are used.',
+    docRef: `${WAR}#7-implementation-notes`,
   },
 } satisfies Record<string, { text: string; docRef: string }>
 

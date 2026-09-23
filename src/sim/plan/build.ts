@@ -338,8 +338,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     apply(enchant.effects, origin)
   }
 
-  // Racials, talents and stance.
-  apply(racialEffects(config.race, classId), null)
+  // Racials, talents and stance. The weapon racials read the weapons in either hand (warrior.md §2.9).
+  apply(racialEffects(config.race, classId, weapons.flatMap((w) => (w ? [w.type] : []))), null)
   apply(setup.effects, null)
   // The base stance's effects are in the static numbers, as above; each stance's factors turn them
   // into its own, so a stance dance can switch them (warrior.md §2.1, §7 "Stances").
@@ -678,6 +678,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   }
   if (unknown.includes('base health')) notes.add('unknownBaseHealth')
   if (unknown.includes('base dodge') && (tank || front)) notes.add('unknownBaseDodge')
+  // A weapon racial with one matching weapon and one other: all attacks get it [?] (warrior Q15).
   const racialWeapons: Partial<Record<string, WeaponType>> = { 'alliance-human': 'sword', 'horde-orc': 'axe', 'alliance-dwarf': 'mace' }
   const racialWeapon = racialWeapons[config.race]
   if (racialWeapon && weapons.some((w) => w?.type === racialWeapon) && weapons.some((w) => w && w.type !== racialWeapon))
@@ -725,6 +726,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const bleeds = abilities.filter((a) => a.kind === 'bleed')
   if (bleeds.some((a) => a.periodicCanCrit) && profile.combat.periodicCrits) notes.add('rendTickCrits')
   if (bleeds.length > 0 && mh) notes.add('rendOnHit')
+  // warrior.md §7 and Q28, Q29: Execute's rage tenths, and Improved Bloodrage 1/2's rounding.
+  if (mh && fight.executePct > 0 && abilities.some((a) => a.damagePerExtraRage > 0)) notes.add('executeRageTenths')
+  if (setup.talents.get('Improved Bloodrage') === 1 && abilities.some((a) => a.id === 'bloodrage')) notes.add('improvedBloodrageRounding')
   if (c.zoneGatedUnmet) notes.add('hyjalFlask')
 
   return { plan, sheet, assumptions: notes.toArray(), blockers }

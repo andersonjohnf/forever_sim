@@ -11,6 +11,7 @@ import { CRIT_MULTIPLIER, negativeArmorFloor, NORMALIZED_SPEED, OFF_HAND_DAMAGE,
 import { classSetup } from '../classes'
 import { DRUID_FORMS, FORM_INDEX, FORM_NAME, formWeapon } from '../classes/druid/forms'
 import { druidPlan } from '../classes/druid/plan'
+import { protectionAssumptions, swiftJudgementPlan } from '../classes/paladin/protection'
 import { paladinAssumptions, paladinManaPlan } from '../classes/paladin/setup'
 import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance } from '../classes/rotation'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
@@ -744,6 +745,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         consumables: c.onUse.flatMap((u) => (u.use ? [u.use] : [])),
         executePhase: fight.executePct > 0,
         profile,
+        // paladin.md#protection-model-and-rotation: Holy Shield needs a shield.
+        hasShield,
         creatureType: fight.creatureType,
         mainHand: mh ? { speedSec: mh.plan.speedSec, twoHand: mh.twoHand } : null,
         equipped: new Set([...equipped.values()].map((i) => i.id)),
@@ -915,6 +918,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...(spells.length > 0 ? { spells } : {}),
     // docs/classes/paladin.md#mana-model: its mana, from the sheet's maximum and Spirit.
     ...(classId === 'paladin' ? { mana: paladinManaPlan(derived, block.mp5, setup.talents) } : {}),
+    // paladin.md#protection-tree: Swift Judgement's free next Judgement is the free-cast aura.
+    ...(classId === 'paladin' ? swiftJudgementPlan(auras) : {}),
     ...(c.holyThreatMult !== 1 ? { holyThreatMult: c.holyThreatMult } : {}),
   }
 
@@ -1126,6 +1131,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   }
   // docs/classes/paladin.md#open-questions: what the paladin's seals, judgements and mana rely on.
   for (const id of paladinAssumptions(plan)) notes.add(id)
+  for (const id of protectionAssumptions(plan)) notes.add(id)
 
   return { plan, sheet, assumptions: notes.toArray(), blockers }
 }

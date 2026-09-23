@@ -8,7 +8,8 @@ import type { RotationGroup, RotationOption, RotationValue, SpecId } from '../ty
 import { CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from './druid/cat'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
 import { RETRIBUTION_OPTIONS, retributionRotation } from './paladin/retribution'
-import { paladinCore, type PaladinContext } from './paladin/setup'
+import { PROTECTION_OPTIONS as PALADIN_PROTECTION_OPTIONS, protectionRotation as paladinProtectionRotation } from './paladin/protection'
+import type { PaladinContext } from './paladin/setup'
 import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
 import { PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation } from './warrior/protection'
@@ -49,6 +50,7 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   if (spec === 'warrior-protection') return PROTECTION_OPTIONS
   if (spec === 'druid-feral-cat') return CAT_OPTIONS
   if (spec === 'paladin-retribution') return RETRIBUTION_OPTIONS
+  if (spec === 'paladin-protection') return PALADIN_PROTECTION_OPTIONS
   return []
 }
 
@@ -150,7 +152,7 @@ export function classRotation(
   if (spec === 'druid-feral-cat') return catRotation(values, talents, auraIndex, context)
   // docs/classes/paladin.md "Retribution: model and rotation".
   if (spec === 'paladin-retribution') return retributionRotation(values, talents, auraIndex, context)
-  // docs/classes/paladin.md: the seal and its judgement both specs share; Protection's rows come with its slice.
-  if (spec === 'paladin-protection') return paladinCore(spec, talents, context)
+  // docs/classes/paladin.md "Protection: model and rotation".
+  if (spec === 'paladin-protection') return paladinProtectionRotation(values, talents, auraIndex, context)
   return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
 }

@@ -23,14 +23,15 @@
 //   node scripts/tune/rotation.mjs --against main                           # the defaults against main's
 //   node scripts/tune/rotation.mjs --spec druid-feral-cat --sweep ferociousBite.minComboPoints=3:5:1
 //   node scripts/tune/rotation.mjs --spec paladin-retribution --creature undead exorcism.minManaPct=40
+//   node scripts/tune/rotation.mjs --spec paladin-protection --metric tps consecration.minManaPct=50
 //
 // A setting is `id=value`. An id is either a full setting id of the spec, or one without the spec's
 // prefix, which the tool works out from the spec's own setting ids (`warrior.arms.` for Arms, so
 // `heroicStrike.minRage` is `warrior.arms.heroicStrike.minRage`; `warrior.protection.` for
-// Protection, `druid.cat.` for the Feral cat, `paladin.retribution.` for Retribution). Values are
-// numbers, true/false, or a choice's value. A candidate's settings are separated by commas.
-// `--base` changes the baseline from the spec's defaults, and each candidate is applied on top of
-// it.
+// Protection, `druid.cat.` for the Feral cat, `paladin.retribution.` for Retribution,
+// `paladin.protection.` for Protection paladins). Values are numbers, true/false, or a choice's
+// value. A candidate's settings are separated by commas. `--base` changes the baseline from the
+// spec's defaults, and each candidate is applied on top of it.
 //
 // `--against <commit>` runs the baseline on the engine and defaults of another commit (any git
 // ref, bundled from its src/), so a change of semantics can be compared with the rotation it
@@ -40,7 +41,7 @@
 //
 // Options (numbers are checked against the app's own limits):
 //   --spec warrior-arms   the spec (a SpecId with rotation settings: warrior-fury, warrior-arms, warrior-protection, druid-feral-cat,
-//                         paladin-retribution)
+//                         paladin-retribution, paladin-protection)
 //   --fights 40000        fights per candidate, a whole number (rounded up to a multiple of the job size, 500)
 //   --seed 1              the config seed, 0 to 4294967295 (fight i uses the seed and i, so a new seed gives new fights)
 //   --race <id>           the race (default: the spec's default, e.g. alliance-human); its faction's gear

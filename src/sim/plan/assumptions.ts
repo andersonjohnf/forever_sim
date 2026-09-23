@@ -450,6 +450,27 @@ const REGISTRY = {
     text: 'Attack speed bonuses (the Manual Crowd Pummeler, Juju Flurry) speed up your form’s swings, as other sims have it; untested in Forever.',
     docRef: `${DRUID}#21-form-attacks-swing-timer-and-damage`,
   },
+  // Protection (paladin.md "Protection: model and rotation", #protection-tree, OQ 8, 9, 16, 22).
+  holyShieldDamage: {
+    text: 'Holy Shield’s damage on each block always lands and never crits, and its 20% more threat multiplies Righteous Fury’s (×2.28, not ×2.1); untested.',
+    docRef: `${PAL}#threat-paladin-specific`,
+  },
+  retributionAura: {
+    text: 'Retribution Aura’s 30 Holy damage comes from every boss swing that lands on you, a blocked one too, always lands and never crits; untested.',
+    docRef: `${PAL}#other-abilities`,
+  },
+  reckoning: {
+    text: 'Reckoning’s extra attack swings at once, from 40% of your blocks and every crit you take at 5/5, as its tooltip reads; how many Forever stores is untested.',
+    docRef: `${PAL}#protection-tree`,
+  },
+  redoubt: {
+    text: 'Redoubt has a 10% chance at every rank, as its tooltips read, from every boss swing that lands on you; one reading of the client data gives 2% a rank. Untested.',
+    docRef: `${PAL}#protection-tree`,
+  },
+  improvedSealOfFury: {
+    text: 'Seal of Fury’s absorb is one shield, replaced by each of its procs and used up by the next hit that costs you health, which restores Improved Seal of Fury’s mana (87 against a level-63 boss); the absorb itself isn’t taken off the hit. Untested.',
+    docRef: `${PAL}#seal-of-fury-sof-new-the-protection-seal`,
+  },
   noWeapon: {
     text: 'No main-hand weapon: unarmed attacks aren’t simulated, and neither is any ability that needs one; only cooldowns and buffs are used.',
     docRef: `${WAR}#7-implementation-notes`,

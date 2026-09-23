@@ -550,7 +550,8 @@ describe('the default setups', () => {
     // Instrument of Law 2/2 without Righteous Fury: all threat × 0.8.
     expect(ret.threatMult).toBeCloseTo(0.8, 12)
     const prot = buildPlan({ ...defaultConfig('paladin-protection'), buffs: noBuffs }).plan
-    expect(prot.abilities.map((a) => a.id)).toEqual(['sealOfFury', 'judgementOfFury'])
+    // Abilities 0 and 1 are the seal and its judgement; Protection's other rows follow (protection.test.ts).
+    expect(prot.abilities.slice(0, 2).map((a) => a.id)).toEqual(['sealOfFury', 'judgementOfFury'])
     expect(prot.holyThreatMult).toBeCloseTo(1.9, 12)
     // Improved Righteous Fury 3/3: −6% damage taken with Righteous Fury up.
     expect(prot.damageTakenMult).toBeCloseTo(0.94, 12)

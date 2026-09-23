@@ -1,0 +1,514 @@
+// The Protection priority list and its settings (docs/classes/paladin.md "Protection: model and
+// rotation": "Forever priority list (default)", rows 0–8, and "Protection defaults").
+//
+// Rows: Righteous Fury is up all fight (row 0, the plan's static Holy threat, setup.ts); the seal
+// (row 1: Seal of Fury, or Seal of Righteousness) before the pull and whenever it's missing or about
+// to end; Holy Shield whenever its buff is gone (row 2); the seal's judgement (row 3) and Swift
+// Judgement right after it (row 4); Holy Strike (row 5); Exorcism against Undead and Demons (row 6);
+// Consecration rank 5 and rank 1 by mana (row 7); Hammer of Wrath in the execute phase (row 8); and
+// Retribution Aura in place of Devotion Aura. A Priority choice at the top picks the tank's duties
+// first (the default) or Max TPS (decision D26), which moves defaults the way Warrior Protection's
+// does. Setting ids are `paladin.protection.<ability>.<param>`; mana thresholds are percentages of
+// maximum mana. Abilities are resolved with the build's talents (talents.ts) before their costs or
+// spells feed anything. Hammer of the Righteous (row 5b) is off by default and not simulated yet.
+import type { AuraSpec, ProcSpec } from '../../effects/types'
+import { type AbilityDef, COND, type Plan, type RotationCondition, type RotationEntry, type SpellDef } from '../../plan/types'
+import type { AssumptionId } from '../../plan/assumptions'
+import type { RotationOption, RotationValue } from '../../types'
+import { NO_CONTEXT, reader, seconds, type ClassRotation } from '../warrior/shared'
+import {
+  CONSECRATION,
+  CONSECRATION_RANK1,
+  EXORCISM_ABILITY,
+  HAMMER_OF_WRATH_ABILITY,
+  HOLY_STRIKE_ABILITY,
+  JUDGEMENT_OF,
+  PALADIN,
+  SEAL_OF_FURY,
+  SEAL_OF_RIGHTEOUSNESS,
+} from './abilities'
+import { type PaladinContext, paladinProcs, PREPULL_SEAL_MS } from './setup'
+import { type TalentRanks, withTalents } from './talents'
+
+const DOC = 'docs/classes/paladin.md'
+
+const P = 'paladin.protection'
+const ID = {
+  priority: `${P}.priority`,
+  seal: `${P}.seal.primary`,
+  sealRefresh: `${P}.seal.refreshBelowSec`,
+  holyShield: `${P}.holyShield.enabled`,
+  swiftJudgement: `${P}.swiftJudgement.enabled`,
+  swiftJudgementCooldown: `${P}.swiftJudgement.minCooldownSec`,
+  retributionAura: `${P}.retributionAura.enabled`,
+  judgement: `${P}.judgement.enabled`,
+  holyStrike: `${P}.holyStrike.enabled`,
+  exorcism: `${P}.exorcism.enabled`,
+  exorcismMana: `${P}.exorcism.minManaPct`,
+  consecration: `${P}.consecration.enabled`,
+  consecrationMana: `${P}.consecration.minManaPct`,
+  consecrationRank1: `${P}.consecrationRank1.enabled`,
+  consecrationRank1Mana: `${P}.consecrationRank1.minManaPct`,
+  hammerOfWrath: `${P}.hammerOfWrath.enabled`,
+  hammerOfWrathMana: `${P}.hammerOfWrath.minManaPct`,
+}
+export const PROTECTION_IDS = ID
+
+/**
+ * The priority choice's values (paladin.md "Max TPS", decision D26): the default keeps the tank's
+ * duties; Max TPS gives them up for threat alone.
+ */
+export const PROTECTION_PRIORITY = { duties: 'duties', maxTps: 'maxTps' } as const
+const MAX_TPS = { option: ID.priority, is: PROTECTION_PRIORITY.maxTps } as const
+
+/**
+ * Protection recasts its seal with 2 s left, half a second earlier than the core's 1.5 s, so a
+ * global cooldown on Holy Shield never lets it drop (paladin.md "Tuning the defaults").
+ */
+const PROT_SEAL_REFRESH_SEC = 2
+
+/** The creature types Exorcism can be cast on (paladin.md#other-abilities). */
+const EXORCISM_TARGETS: readonly string[] = ['undead', 'demon']
+
+// --- Abilities, spells and procs (paladin.md#other-abilities, #protection-tree) -----------------
+
+/**
+ * Holy Shield's buff (20928, paladin.md#other-abilities): +20% block chance for 10 s or 4 blocks,
+ * whichever ends first [F] [client] (SpellEffect aura 51, SpellAuraOptions procCharges 4, 1.60.1.69913).
+ */
+export const HOLY_SHIELD_AURA: AuraSpec = {
+  id: 'holyShield',
+  name: 'Holy Shield',
+  durationMs: 10000,
+  blockCharges: 4,
+  mods: { block: 20 },
+}
+
+/**
+ * Holy Shield r3 (20928, the 31-point Protection talent; paladin.md#other-abilities): 240 mana, a
+ * 10 s cooldown (category 931), GCD 1.5 s; it needs a shield equipped [F] [client] (SpellPower,
+ * SpellCooldowns, SpellEquippedItems, 1.60.1.69913). A `cast` that puts its buff up.
+ */
+export const HOLY_SHIELD: AbilityDef = {
+  ...PALADIN,
+  id: 'holyShield',
+  name: 'Holy Shield',
+  icon: 'spell_holy_blessingofprotection',
+  kind: 'cast',
+  costTenths: 10 * 240,
+  cooldownMs: 10000,
+  aura: HOLY_SHIELD_AURA,
+}
+
+/**
+ * The damage of each block while Holy Shield is up (20928 effect 1, aura 43 `PROC_TRIGGER_DAMAGE`,
+ * paladin.md#other-abilities): 221 Holy + 0.08 × SP [F] [client] (SpellEffect, 1.60.1.69913), with
+ * 20% more threat, multiplied with Righteous Fury's (×1.9 × 1.2 = ×2.28) [?]
+ * (paladin.md#threat-paladin-specific, OQ 16). Like a damage shield it always lands and never
+ * crits [?] (OQ 16). Its share of Judgement of the Crusader's bonus is its coefficient's, the
+ * default rule. It's triggered by the aura and lacks NOT_A_PROC, so it triggers no procs [?].
+ */
+export const HOLY_SHIELD_DAMAGE: SpellDef = {
+  id: 'holyShieldProc',
+  name: 'Holy Shield',
+  icon: 'spell_holy_blessingofprotection',
+  school: 'holy',
+  defense: 'none',
+  noActiveDefense: true,
+  alwaysHit: true,
+  triggersProcs: false,
+  min: 221,
+  max: 221,
+  weaponPercent: 0,
+  normalized: false,
+  spCoefficient: 0.08,
+  takenScale: 0.08,
+  critMultiplier: 1.5,
+  bonusCrit: 0,
+  damageMult: 1,
+  threatMult: 1.2,
+  threatBonus: 0,
+  cannotCrit: true,
+}
+
+/** Each block while Holy Shield is up deals its damage; the block that uses its last charge too (combat-tables §8, "The engine"). */
+export const HOLY_SHIELD_PROC: ProcSpec = {
+  id: 'holyShieldProc',
+  name: 'Holy Shield',
+  icon: 'spell_holy_blessingofprotection',
+  trigger: 'block',
+  from: 'any',
+  chance: { pct: 100 },
+  action: { kind: 'spell', spell: HOLY_SHIELD_DAMAGE },
+  requiresAura: HOLY_SHIELD_AURA.id,
+  docRef: `${DOC}#other-abilities`,
+}
+
+/**
+ * Seal of Fury's absorb (20423 effect 1, 50; paladin.md#seal-of-fury-sof-new-the-protection-seal):
+ * with a shield equipped, each landed Seal of Fury proc shields you for half its Holy damage [F].
+ * How it stacks and how long it lasts are the server's: the sim keeps one, which each proc replaces
+ * and the next hit you take that costs health uses up, and which ends with the seal's 30 s [?]
+ * (OQ 10). A boss's hit is thousands, so it always takes all of it, which is when Improved Seal of
+ * Fury restores mana (talents.ts). The absorb itself isn't taken off the hit: about 20 damage.
+ */
+export const SEAL_OF_FURY_SHIELD_AURA: AuraSpec = {
+  id: 'sealOfFuryShield',
+  name: 'Seal of Fury’s absorb',
+  durationMs: 30000,
+  takenCharges: 1,
+  mods: {},
+}
+
+/** Each landed Seal of Fury proc puts its absorb up, with a shield equipped (the rotation adds it only then). */
+export const SEAL_OF_FURY_SHIELD_PROC: ProcSpec = {
+  id: 'sealOfFuryShield',
+  name: 'Seal of Fury’s absorb',
+  icon: 'spell_holy_retributionaura',
+  trigger: 'whiteResolved',
+  from: 'mainHand',
+  chance: { pct: 100 },
+  action: { kind: 'aura', aura: SEAL_OF_FURY_SHIELD_AURA },
+  requiresAura: SEAL_OF_FURY.id,
+  docRef: `${DOC}#seal-of-fury-sof-new-the-protection-seal`,
+}
+
+/**
+ * Swift Judgement's buff (1310994, paladin.md#protection-tree): the next Judgement costs no mana
+ * (aura 108, cost −100% on Judgement's class mask, 1 charge) [F] [client] (SpellEffect,
+ * SpellAuraOptions, 1.60.1.69913). The client's lasts until used; the rotation judges at once, so
+ * its duration here only has to outlast that.
+ */
+export const SWIFT_JUDGEMENT_AURA: AuraSpec = {
+  id: 'swiftJudgement',
+  name: 'Swift Judgement',
+  durationMs: 60000,
+  mods: {},
+}
+
+/**
+ * Swift Judgement (1310994, the Protection talent; paladin.md#protection-tree): off the GCD, a 1 min
+ * cooldown, no cost [F] [client] (SpellCooldowns, 1.60.1.69913). It "finishes the remaining
+ * cooldown on your Judgement ability" [F] (tooltip), so the rotation's line sets `endsCooldownOf`
+ * to its judgement, and puts up the buff that makes that judgement free.
+ */
+export const SWIFT_JUDGEMENT: AbilityDef = {
+  ...PALADIN,
+  id: 'swiftJudgement',
+  name: 'Swift Judgement',
+  icon: 'ability_paladin_judgementred',
+  kind: 'cast',
+  gcdMs: 0,
+  cooldownMs: 60000,
+  aura: SWIFT_JUDGEMENT_AURA,
+}
+
+/**
+ * Retribution Aura r5 (10301, paladin.md#other-abilities): 30 Holy damage to each attacker that
+ * hits you (aura 15, a damage shield; no spell damage coefficient) [F] [client] (SpellEffect,
+ * 1.60.1.69913), × Righteous Fury for its threat. Like every damage shield it always lands and
+ * never crits [?]; each of the boss's swings that lands on you (a hit, crit, crushing blow or block)
+ * triggers it [?].
+ */
+export const RETRIBUTION_AURA_DAMAGE: SpellDef = {
+  ...HOLY_SHIELD_DAMAGE,
+  id: 'retributionAura',
+  name: 'Retribution Aura',
+  icon: 'spell_holy_auraoflight',
+  min: 30,
+  max: 30,
+  spCoefficient: 0,
+  takenScale: 0,
+  threatMult: 1,
+}
+
+/** Retribution Aura, up from before the pull: its damage on each of the boss's swings that lands on you. */
+export const RETRIBUTION_AURA_PROC: ProcSpec = {
+  id: 'retributionAura',
+  name: 'Retribution Aura',
+  icon: 'spell_holy_auraoflight',
+  trigger: 'meleeTaken',
+  from: 'any',
+  chance: { pct: 100 },
+  action: { kind: 'spell', spell: RETRIBUTION_AURA_DAMAGE },
+  docRef: `${DOC}#other-abilities`,
+}
+
+/**
+ * The plan aura of Swift Judgement's free Judgement, as the engine's free-cast aura (Clearcasting's
+ * path, druid.md §2.7): the next judgement row pays nothing and uses it up. None without it.
+ */
+export function swiftJudgementPlan(auras: readonly { id: string }[]): Pick<Plan, 'freeCastAura'> {
+  const i = auras.findIndex((a) => a.id === SWIFT_JUDGEMENT_AURA.id)
+  return i >= 0 ? { freeCastAura: i } : {}
+}
+
+// --- Settings (paladin.md "Forever priority list (default)") -------------------------------------
+
+/** A mana threshold input: 0 to 100% of maximum mana, in its parent's group. */
+const manaOption = (id: string, label: string, help: string, def: number, dependsOn: string, group: RotationOption['group']): RotationOption => ({
+  kind: 'number',
+  id,
+  label,
+  group,
+  help,
+  unit: '%',
+  min: 0,
+  max: 100,
+  step: 5,
+  default: def,
+  dependsOn,
+})
+
+/**
+ * Defaults from paladin.md's "Forever priority list (default)" for Protection, in priority order.
+ * They're the best rotation found for the default setup, keeping the tank's duties (decisions D23
+ * and D26; paladin.md "Tuning the defaults", measured on TPS with scripts/tune/rotation.mjs).
+ */
+export const PROTECTION_OPTIONS: RotationOption[] = [
+  {
+    kind: 'choice',
+    id: ID.priority,
+    label: 'Priority',
+    help: 'Tank duties first keeps Devotion Aura’s armor for your survival. Max TPS runs Retribution Aura instead, for its threat: the boss takes 30 Holy damage each time it hits you. The Buffs tab’s Devotion Aura then counts as another paladin’s.',
+    choices: [
+      { value: PROTECTION_PRIORITY.duties, label: 'Tank duties first' },
+      { value: PROTECTION_PRIORITY.maxTps, label: 'Max TPS' },
+    ],
+    default: PROTECTION_PRIORITY.duties,
+  },
+  {
+    kind: 'toggle',
+    id: ID.holyShield,
+    group: 'Cooldowns and buffs',
+    label: 'Holy Shield',
+    help: 'Keep Holy Shield up: +20% block chance for 10 s or 4 blocks, and each block deals 221 Holy damage plus 8% of your spell damage, with 20% more threat. Needs the talent and a shield. 240 mana.',
+    default: true,
+  },
+  {
+    kind: 'toggle',
+    id: ID.swiftJudgement,
+    group: 'Cooldowns and buffs',
+    label: 'Swift Judgement',
+    help: 'Use Swift Judgement while Judgement is cooling down, then judge again for free: one more Judgement a minute. Needs the talent. It’s off the global cooldown.',
+    default: true,
+  },
+  {
+    kind: 'number',
+    id: ID.swiftJudgementCooldown,
+    group: 'Cooldowns and buffs',
+    label: 'Swift Judgement with',
+    help: 'Use it only while Judgement has at least this much cooldown left, so it saves at least that much. Otherwise it waits for the next Judgement, and saves all of its cooldown.',
+    unit: 's left',
+    min: 0,
+    max: 10,
+    step: 0.5,
+    default: 4.5,
+    dependsOn: ID.swiftJudgement,
+  },
+  {
+    kind: 'toggle',
+    id: ID.retributionAura,
+    group: 'Cooldowns and buffs',
+    label: 'Retribution Aura',
+    help: 'Run Retribution Aura instead of Devotion Aura: the boss takes 30 Holy damage each time it hits you, with Righteous Fury’s threat. While this is on, the Buffs tab’s Devotion Aura counts as another paladin’s. On by default with Max TPS.',
+    default: false,
+    defaultWhen: [{ ...MAX_TPS, default: true }],
+  },
+  {
+    kind: 'choice',
+    id: ID.seal,
+    group: 'Core abilities',
+    label: 'Seal',
+    help: 'Seal of Fury adds 35 Holy damage to each of your auto attacks, and its judgement taunts. Seal of Righteousness adds 85% of 18.8 × your weapon’s speed with a one-hander, so it wins only with a slow one.',
+    choices: [
+      { value: 'fury', label: 'Fury' },
+      { value: 'righteousness', label: 'Righteousness' },
+    ],
+    default: 'fury',
+  },
+  {
+    kind: 'number',
+    id: ID.sealRefresh,
+    group: 'Core abilities',
+    label: 'Seal again with',
+    help: 'Recast your seal when this much of it is left, so Judgement always has one. It lasts 30 s.',
+    unit: 's left',
+    min: 0,
+    max: 29,
+    step: 0.5,
+    default: PROT_SEAL_REFRESH_SEC,
+  },
+  {
+    kind: 'toggle',
+    id: ID.judgement,
+    group: 'Core abilities',
+    label: 'Judgement',
+    help: 'Judge your seal whenever Judgement is ready. It’s off the global cooldown and keeps the seal up.',
+    default: true,
+  },
+  {
+    kind: 'toggle',
+    id: ID.holyStrike,
+    group: 'Core abilities',
+    label: 'Holy Strike',
+    help: 'Use Holy Strike whenever it’s ready: 40% of a normalized swing plus spell damage, all Holy, with 25% more threat from Iron Creed 5/5. 20 mana.',
+    default: true,
+  },
+  {
+    kind: 'toggle',
+    id: ID.exorcism,
+    group: 'Core abilities',
+    label: 'Exorcism',
+    help: 'Against Undead and Demons (set under Fight), use Exorcism whenever it’s ready. It can’t be cast on anything else.',
+    default: true,
+  },
+  manaOption(ID.exorcismMana, 'Exorcism from', 'Use it only at or above this much of your maximum mana. It costs 345.', 40, ID.exorcism, 'Core abilities'),
+  {
+    kind: 'toggle',
+    id: ID.consecration,
+    group: 'Fillers',
+    label: 'Consecration',
+    help: 'Put down Consecration (rank 5, 565 mana) when you have the mana: 8 ticks of Holy damage over 8 s.',
+    default: true,
+  },
+  manaOption(
+    ID.consecrationMana,
+    'Consecration from',
+    'Use rank 5 only at or above this much of your maximum mana. At 95, it goes down at the pull and seldom after: the mana is worth more to Holy Shield and your seal.',
+    95,
+    ID.consecration,
+    'Fillers',
+  ),
+  {
+    kind: 'toggle',
+    id: ID.consecrationRank1,
+    group: 'Fillers',
+    label: 'Consecration (Rank 1)',
+    help: 'Below that, put down rank 1 (135 mana). Every rank has the full spell damage bonus, so with enough spell damage it’s the most threat for the mana.',
+    default: false,
+  },
+  manaOption(ID.consecrationRank1Mana, 'Consecration (Rank 1) from', 'Use rank 1 only at or above this much of your maximum mana.', 10, ID.consecrationRank1, 'Fillers'),
+  {
+    kind: 'toggle',
+    id: ID.hammerOfWrath,
+    group: 'Execute phase',
+    label: 'Hammer of Wrath',
+    help: 'In the execute phase, use Hammer of Wrath whenever it’s ready: a 1 s cast, 425 mana.',
+    default: true,
+  },
+  manaOption(ID.hammerOfWrathMana, 'Hammer of Wrath from', 'Use it only at or above this much of your maximum mana.', 0, ID.hammerOfWrath, 'Execute phase'),
+]
+
+/** The seal the settings choose (paladin.md "Protection defaults": Seal of Fury, Seal of Righteousness selectable). */
+export const protectionSeal = (values: Record<string, RotationValue>): AbilityDef =>
+  reader(PROTECTION_OPTIONS, values).str(ID.seal) === 'righteousness' ? SEAL_OF_RIGHTEOUSNESS : SEAL_OF_FURY
+
+/**
+ * The Protection priority list from the settings (paladin.md "Forever priority list (default)").
+ * `talents` gates Holy Shield and Swift Judgement and resolves costs and cooldowns; `context` gives
+ * the main hand (Seal of Righteousness), whether a shield is equipped (Holy Shield), the maximum
+ * mana (the mana thresholds are shares of it), the creature type (Exorcism) and whether the fight
+ * has an execute phase (Hammer of Wrath). Abilities 0 and 1 are the seal and its judgement, as in
+ * `paladinCore`.
+ */
+export function protectionRotation(
+  values: Record<string, RotationValue>,
+  talents: TalentRanks,
+  _auraIndex: (id: string) => number,
+  context: Partial<PaladinContext> = {},
+): ClassRotation {
+  const ctx: PaladinContext = { ...NO_CONTEXT, ...context }
+  const v = reader(PROTECTION_OPTIONS, values, talents)
+  const abilities: AbilityDef[] = []
+  const rotation: RotationEntry[] = []
+  /** The ability's index, resolved with the build's talents on first use. */
+  const index = (def: AbilityDef): number => {
+    const i = abilities.findIndex((a) => a.id === def.id)
+    if (i >= 0) return i
+    abilities.push(withTalents(def, talents))
+    return abilities.length - 1
+  }
+  const add = (def: AbilityDef, conditions: RotationCondition[]) => {
+    const a = index(def)
+    rotation.push({ ability: a, conditions, unqueueBelowTenths: 0 })
+    return a
+  }
+  const maxManaTenths = 10 * (ctx.maxMana ?? 0)
+  /** Mana ≥ the setting's share of the maximum. */
+  const manaFrom = (id: string): RotationCondition[] => {
+    const pct = v.num(id)
+    return pct > 0 ? [{ code: COND.minMana, a: Math.round((pct / 100) * maxManaTenths), b: 0 }] : []
+  }
+  const auraUp = (a: number): RotationCondition => ({ code: COND.abilityAuraUp, a, b: 0 })
+  const procs: ProcSpec[] = []
+
+  // Abilities 0 and 1: the seal and its judgement. Seal of Fury's absorb needs a shield.
+  const sealDef = protectionSeal(values)
+  const seal = index(sealDef)
+  const judge = index(JUDGEMENT_OF[sealDef.id])
+  if (sealDef.id === SEAL_OF_FURY.id && ctx.hasShield) procs.push(SEAL_OF_FURY_SHIELD_PROC)
+
+  // Row 1: the seal when it's missing or has at most refreshBelowSec left.
+  add(sealDef, [{ code: COND.abilityAuraRefresh, a: seal, b: seconds(v, ID.sealRefresh) }])
+
+  // Row 2: Holy Shield (the talent, with a shield) whenever its buff is gone: its 4 blocks used or
+  // its 10 s over. Its cooldown is its duration, so that's on cooldown unless blocks end it early.
+  if (talents.has('Holy Shield') && ctx.hasShield && v.on(ID.holyShield)) {
+    const shield = index(HOLY_SHIELD)
+    add(HOLY_SHIELD, [{ code: COND.abilityAuraRefresh, a: shield, b: 0 }])
+    procs.push(HOLY_SHIELD_PROC)
+  }
+
+  if (v.on(ID.judgement)) {
+    // Row 3: the seal's judgement whenever Judgement is ready, while the seal is up (it stays up).
+    rotation.push({ ability: judge, conditions: [auraUp(seal)], unqueueBelowTenths: 0 })
+    // Row 4: Swift Judgement (the talent, off the GCD) while Judgement has at least x s of cooldown
+    // left and the seal is up: it ends that cooldown, and the judgement it frees costs nothing.
+    if (talents.has('Swift Judgement') && v.on(ID.swiftJudgement)) {
+      add({ ...SWIFT_JUDGEMENT, endsCooldownOf: judge }, [{ code: COND.cooldownAtLeast, a: judge, b: seconds(v, ID.swiftJudgementCooldown) }, auraUp(seal)])
+      abilities[judge] = { ...abilities[judge], clearcastable: true }
+    }
+  }
+
+  // Row 5: Holy Strike on cooldown.
+  if (v.on(ID.holyStrike)) add(HOLY_STRIKE_ABILITY, [])
+
+  // Row 6: Exorcism on cooldown against Undead and Demons, at mana ≥ x%.
+  if (v.on(ID.exorcism) && EXORCISM_TARGETS.includes(ctx.creatureType)) add(EXORCISM_ABILITY, manaFrom(ID.exorcismMana))
+
+  // Row 7: Consecration rank 5 at mana ≥ x%, else rank 1 at mana ≥ y%. The ranks share one cooldown.
+  if (v.on(ID.consecration)) add(CONSECRATION, manaFrom(ID.consecrationMana))
+  if (v.on(ID.consecrationRank1)) add(CONSECRATION_RANK1, manaFrom(ID.consecrationRank1Mana))
+
+  // Row 8: Hammer of Wrath, only in the execute phase (the ability says so), at mana ≥ x%.
+  if (v.on(ID.hammerOfWrath) && ctx.executePhase) add(HAMMER_OF_WRATH_ABILITY, manaFrom(ID.hammerOfWrathMana))
+
+  // Retribution Aura in place of Devotion Aura: up from before the pull, it needs no line.
+  if (v.on(ID.retributionAura)) procs.push(RETRIBUTION_AURA_PROC)
+
+  return {
+    abilities,
+    rotation,
+    prepull: { casts: [{ ability: seal, atMs: PREPULL_SEAL_MS }], chargeTenths: 0, keepTenths: -1 },
+    onUse: [],
+    procs: [...paladinProcs(abilities, talents, ctx), ...procs],
+  }
+}
+
+/**
+ * The [?] assumptions a Protection plan relies on (paladin.md#open-questions), by what it has:
+ * Holy Shield's block damage, Retribution Aura's, Reckoning's extra attacks, Redoubt, and Seal of
+ * Fury's absorb for Improved Seal of Fury's mana.
+ */
+export function protectionAssumptions(plan: Plan): AssumptionId[] {
+  if (plan.spec !== 'paladin-protection') return []
+  const procs = new Set(plan.procs.map((p) => p.id))
+  const ids: AssumptionId[] = []
+  if (procs.has(HOLY_SHIELD_PROC.id)) ids.push('holyShieldDamage')
+  if (procs.has(RETRIBUTION_AURA_PROC.id)) ids.push('retributionAura')
+  if (procs.has('reckoning')) ids.push('reckoning')
+  if (procs.has('redoubt')) ids.push('redoubt')
+  if (procs.has('improvedSealOfFury')) ids.push('improvedSealOfFury')
+  return ids
+}

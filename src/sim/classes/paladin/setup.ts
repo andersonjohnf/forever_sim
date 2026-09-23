@@ -48,12 +48,15 @@ export function paladinEffects(spec: SpecId, talents: TalentRanks): Effect[] {
 /**
  * The main-hand weapon, for the seals whose procs scale with it (Seal of Righteousness), the
  * maximum mana, which the "mana% ≥ x" settings are shares of (paladin.md#forever-priority-list-default),
- * and the Judgement of the Crusader rule (Character → Advanced, `rules.jotcBonus`; OQ 5).
+ * the Judgement of the Crusader rule (Character → Advanced, `rules.jotcBonus`; OQ 5), and whether a
+ * shield is equipped (Protection).
  */
 export interface PaladinContext extends RotationContext {
   mainHand?: { speedSec: number; twoHand: boolean } | null
   maxMana?: number
   jotcRule?: JotcRule
+  /** A shield is equipped: Holy Shield and Seal of Fury's absorb need one (paladin.md#protection-model-and-rotation). */
+  hasShield?: boolean
 }
 
 /** Each spec's seal (paladin.md#retribution-defaults, #protection-defaults). */

@@ -3,9 +3,10 @@
 //
 // Talents are keyed by name and read their rank from the build code (classes/index.ts
 // talentRanksByName), as the warrior's are. Rank values are the Forever client's rank tooltips
-// (src/data/talents/paladin.json); talents.test.ts checks them. Tank-only talents (Redoubt,
-// Reckoning, Iron Creed's damage reduction, Eye for an Eye) come with the Protection rotation, and
-// Twist of Light with seal twisting.
+// (src/data/talents/paladin.json); talents.test.ts checks them. The tank talents Redoubt and
+// Reckoning are procs on the boss's swings (the Protection slice); Iron Creed's damage reduction and
+// Eye for an Eye aren't modelled (paladin.md#implementation-notes), and Twist of Light comes with
+// seal twisting.
 import type { Effect } from '../../effects/types'
 import type { AbilityDef, SpellDef } from '../../plan/types'
 import {
@@ -65,6 +66,68 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
       },
     },
   ],
+  // Protection (the tank talents, with the Protection rotation): each damaging melee swing that lands
+  // on you has a 10% chance at every rank (the rank texts; the community's read of the trait curve
+  // is 2% a rank [?], OQ 8) to give +6% block per rank for 10 s or 5 blocks (20127 → 20128)
+  Redoubt: (r) => [
+    {
+      kind: 'proc',
+      when: { shield: true },
+      proc: {
+        id: 'redoubt',
+        name: 'Redoubt',
+        icon: 'ability_defend',
+        trigger: 'meleeTaken',
+        from: 'any',
+        chance: { pct: 10 },
+        action: { kind: 'aura', aura: { id: 'redoubt', name: 'Redoubt', durationMs: 10000, blockCharges: 5, mods: { block: 6 * r } } },
+        docRef: `${DOC}#protection-tree`,
+      },
+    },
+  ],
+  // Protection: when Seal of Fury's absorb is used up, 60 mana (0 + 1 per level), 15% more per level
+  // the boss is above you, up to 45% more: 87 against a level-63 boss (1314103, the rank text) [F].
+  // The absorb's rules are the sim's (protection.ts `SEAL_OF_FURY_SHIELD_AURA`) [?] (OQ 10)
+  'Improved Seal of Fury': () => [
+    {
+      kind: 'proc',
+      proc: {
+        id: 'improvedSealOfFury',
+        name: 'Improved Seal of Fury',
+        icon: 'spell_holy_righteousnessaura',
+        trigger: 'damageTaken',
+        from: 'any',
+        chance: { pct: 100 },
+        action: { kind: 'manaFlat', amount: 60, perLevelPct: 15, maxLevelPct: 45 },
+        requiresAura: 'sealOfFuryShield',
+        docRef: `${DOC}#protection-tree`,
+      },
+    },
+  ],
+  // Protection: an extra main-hand attack at once after 8% per rank of your blocks and 20% per rank
+  // of the crits you take (the rank texts; 20177 → 20178, `ADD_EXTRA_ATTACKS` 1). In combat it swings
+  // at once, so how many Classic could store doesn't arise [?] (OQ 9)
+  Reckoning: (r) =>
+    (
+      [
+        ['block', 8],
+        ['critTaken', 20],
+      ] as const
+    ).map(
+      ([trigger, pct]): Effect => ({
+        kind: 'proc',
+        proc: {
+          id: 'reckoning',
+          name: 'Reckoning',
+          icon: 'spell_holy_blessingofstrength',
+          trigger,
+          from: 'any',
+          chance: { pct: pct * r },
+          action: { kind: 'extraAttacks', count: 1 },
+          docRef: `${DOC}#protection-tree`,
+        },
+      }),
+    ),
   // Retribution: +1% parry per rank; +1% melee crit per rank (aura 52: melee only, which covers the
   // melee-class seal procs, judgements and Holy Strike)
   Deflection: (r) => [{ kind: 'stat', stat: 'parry', value: r }],

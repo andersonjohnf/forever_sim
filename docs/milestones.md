@@ -57,7 +57,7 @@ Slices ([CLAUDE.md](../CLAUDE.md#working-with-agents-small-slices-fresh-contexts
 - [x] **M1.5d Talents from client:** layout, prerequisite arrows (including the client-only
       Nature's Splendor arrow), ranks and rendered rank texts. Popular builds become our own
       documented presets.
-- [ ] **M1.5e Spells and races from client:** class spellbooks via SkillLineAbility, and
+- [x] **M1.5e Spells and races from client:** class spellbooks via SkillLineAbility, and
       races and racials via ChrRaces and CharBaseInfo, with Classic comparisons from the Era
       build
 - [ ] **M1.5f Retire foreverchanges (D17):** delete its scrapers and attribution, and make

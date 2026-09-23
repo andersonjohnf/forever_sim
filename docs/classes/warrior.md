@@ -1669,10 +1669,12 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     9](../mechanics/damage-and-timing.md#open-questions). **Test:** the minimum gap between
     Windfury procs over 500+ main-hand swings.
 28. **Execute and fractional rage.** Forever's normalized white rage leaves fractions (a 2.6 s
-    main hand gives 9.1 rage). Does Execute convert them (15 per rage, tenths included), or only
-    whole rage points? The sim converts tenths ([§7](#7-implementation-notes)); the difference is
-    at most 13.5 damage per Execute. **Test:** Executes at a known fractional rage, if the combat
-    log or a rage display with decimals shows it.
+    main hand gives 3.46 × 2.6 = 8.996 rage, which the pool shows as 8.9 or 9.0;
+    [rage.md](../mechanics/rage.md#rounding)). Does Execute convert them (15 per rage, tenths
+    included), or only whole rage points? The sim converts tenths
+    ([§7](#7-implementation-notes)); the difference is at most 13.5 damage per Execute.
+    **Test:** Executes at a known fractional rage, if the combat log or a rage display with
+    decimals shows it.
 29. **Improved Bloodrage 1/2.** Its +25% makes Bloodrage 12.5 rage at once and 1.25 per tick.
     Does the server keep the hundredths, round each tick, or round the curve value? The sim
     floors each gain to a tenth, as [rage.md](../mechanics/rage.md#rounding) does for

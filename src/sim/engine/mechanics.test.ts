@@ -3,10 +3,10 @@
 // magic-proc crits (combat-tables §9), white and off-hand damage and haste (damage-and-timing WE-2,
 // WE-4, WE-5), the negative-armor floor (§1.1), boss parry haste (§3.4), the fight-length draw and
 // execute start (encounter WE-1, WE-2), rage from damage taken in every model, Classic Era's
-// dodge and parry rage, the block's procs after the damage-taken rage (rage.md), R13, R14, and
-// energize threat (threat.md T15, T16).
+// dodge and parry rage, the block's procs after the damage-taken rage (rage.md), R13, R14, rage's
+// fractions of a tenth (rage.md#rounding, R27-R33), and energize threat (threat.md T15, T16).
 import { describe, expect, it } from 'vitest'
-import { BLOODRAGE, HAMSTRING, HEROIC_STRIKE, MORTAL_STRIKE } from '../classes/warrior/abilities'
+import { BERSERKER_RAGE, BLOODRAGE, EXECUTE, HAMSTRING, HEROIC_STRIKE, MORTAL_STRIKE } from '../classes/warrior/abilities'
 import { armorReduction, damageTakenRage, rageConversion } from '../core/formulas'
 import { defaultConfig } from '../defaults'
 import { buildPlan } from '../plan/build'
@@ -414,15 +414,22 @@ describe('fractions of a tenth (rage.md#rounding)', () => {
     return plan
   }
 
-  it('R27: a white hit’s fraction carries in `forever`: two 15.75-rage swings give 31.5, not 31.4', () => {
-    const plan = swingPlan('forever', 7000, 1e9) // swings at 0 and 3.5 s
+  /** The pool as each main-hand swing lands, before its own rage, over one fight; `watch` adds traces. */
+  function poolAtSwings(plan: Plan, watch: (sim: Sim) => void = () => {}): { pool: number[]; sim: Sim } {
     const sim = new Sim(plan)
-    // The pool as each swing lands, before its own rage: whole tenths, 15.7 after the first.
     const pool: number[] = []
     sim.damageTrace = (source) => {
       if (source === SOURCE_MAIN_HAND) pool.push((sim as unknown as { rage: number }).rage)
     }
+    watch(sim)
     sim.runFight(0)
+    return { pool, sim }
+  }
+
+  it('R27: a white hit’s fraction carries in `forever`: two 15.75-rage swings give 31.5, not 31.4', () => {
+    const plan = swingPlan('forever', 7000, 1e9) // swings at 0 and 3.5 s
+    // The pool as each swing lands, before its own rage: whole tenths, 15.7 after the first.
+    const { pool, sim } = poolAtSwings(plan)
     expect(pool).toEqual([0, 157])
     expect(sim.totalRageGainedTenths).toBe(315)
   })
@@ -458,6 +465,59 @@ describe('fractions of a tenth (rage.md#rounding)', () => {
     const sim = new Sim(plan)
     sim.runFight(0)
     expect(sim.totalRageGainedTenths).toBe(59 * Math.floor(perHit))
+  })
+
+  it('R31: a stance swap’s limit drops the fraction: the swing after it gives 15.7, not 15.8', () => {
+    // Swings at 0, 3.5 and 7 s. At 1 s the rotation dances to Berserker Stance for Berserker Rage
+    // (no cost, no rage), keeping 10 of the 15.7 rage; the 0.05 carried from the first swing goes too.
+    const plan = swingPlan('forever', 7500, 1e9)
+    plan.stanceSwap = { cooldownMs: 1000, keepTenths: 100 }
+    line(plan, addAbility(plan, BERSERKER_RAGE), at(plan, 1000), STANCE.berserker)
+    const swaps: { time: number; before: number; after: number }[] = []
+    const { pool } = poolAtSwings(plan, (sim) => (sim.stanceTrace = (_stance, time, before, after) => swaps.push({ time, before, after })))
+    expect(swaps).toEqual([
+      { time: 1000, before: 157, after: 100 },
+      { time: 2000, before: 100, after: 100 },
+    ])
+    // 10 + 15.75 = 25.75, shown as 25.7. Had the fraction stayed, 10 + 15.8 = 25.8.
+    expect(pool).toEqual([0, 100, 257])
+  })
+
+  it('R32: Execute spending all the rage drops the fraction: the swing after it gives 15.7, not 15.8', () => {
+    // Swings at 0, 3.5 and 7 s, the execute phase from the pull. Execute at 1 s spends 15 of the
+    // 15.7 rage and, landing, the rest; the 0.05 carried from the first swing goes with it.
+    const plan = swingPlan('forever', 7500, 1e9)
+    plan.fight.executePct = 100
+    const execute = addAbility(plan, EXECUTE)
+    line(plan, execute, at(plan, 1000))
+    const { pool, sim } = poolAtSwings(plan)
+    expect(counter(sim, plan.abilities[execute].source, FIELD.hits)).toBe(1)
+    expect(pool).toEqual([0, 0, 157])
+  })
+
+  it('R33: a refund that reaches the cap sets the pool to it and drops the fraction, as a gain does', () => {
+    // A refund is 80% of the cost at most, so a real one can't reach the cap: the pool was below
+    // it by the cost. This test ability refunds 3 × its 1-rage cost, and a second one spends the
+    // capped pool. Every attack is dodged (no white rage in Forever); the rage is from hits taken of
+    // 10 × 21 ÷ 200 = 1.05 rage, at 1 s and 2 s, so each carries 0.05.
+    const plan = barePlan('warrior-arms', 'forever', { mainHand: { itemId: 12784 } }, 2500)
+    plan.stats.hit = 100
+    plan.stats.crit = -100
+    plan.stats.expertise = -1000
+    plan.fight.damageTakenPerHit = 21
+    plan.fight.damageTakenIntervalMs = 1000
+    plan.rage.maxHealth = 200
+    plan.rage.maxTenths = 30
+    const refunds = addAbility(plan, { ...HAMSTRING, id: 'refunds', costTenths: 10, refundShare: 3, gcdMs: 0 })
+    const spends = addAbility(plan, { ...HAMSTRING, id: 'spends', costTenths: 30, refundShare: 0, gcdMs: 0 })
+    line(plan, refunds, at(plan, 1500))
+    line(plan, spends, at(plan, 1500))
+    const { sim, uses, rageAtUse } = timeline(plan)
+    expect(new Sim(plan).inspect().specialThresholds[1]).toBe(100)
+    // 1.0 at 1 s; at 1.5 s 1.0 − 1 + 3 reaches the cap of 3, then all 3 is spent.
+    expect([uses[refunds], rageAtUse[refunds], uses[spends], rageAtUse[spends]]).toEqual([[1500], [10], [1500], [30]])
+    // The hit at 2 s gives 1.0 (its 1.05, with nothing carried). Had the fraction stayed, 1.1.
+    expect(sim.totalRageGainedTenths).toBe(10 + 10)
   })
 })
 

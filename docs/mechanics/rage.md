@@ -310,8 +310,19 @@ tenth it gives 0.2, and a stream of hits worth under 0.1 each gives nothing.
 **Forever [?]: the fraction counts.** The logs show whole tenths, and each gain's fraction
 counts in full on average. The engine carries a white hit's or a hit taken's fraction to the
 next such gain: the pool holds whole tenths, and the fractions add up, so none is lost. The
-fraction is lost when the pool is set rather than added to: at the cap (with the rest of the
-gain), by a stance swap's limit, and when Execute spends all the rage.
+fraction is lost when the pool is set rather than added to (worked examples R29, R31–R33):
+- at the cap, with the rest of the gain (R29). A refund that reached the cap would lose it too
+  (R33), but none can: a refund is at most 80% of its cost, so the pool it returns to is below
+  where it was before the cost;
+- by a stance swap's limit (R31): the swap keeps whole tenths;
+- when Execute spends all the rage (R32).
+
+**Hits taken, by extension [?].** The carried fraction rests on the white swings: 848 of them,
+from 34 characters (evidence 1). A hit taken is a gain the same server rule makes, so the engine
+carries its fraction too. The hits-taken evidence agrees (evidence 2), but it's one tester's
+identical hits and a few single windows, which can't set a default by themselves
+([D22](../decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23)).
+To confirm it, log a stream of identical small hits taken (open question 9).
 
 **Classic Era [?]: floored.** Nothing measures it, so `classicEra` floors each gain to a tenth,
 as the engine always has.
@@ -581,10 +592,10 @@ owns the warrior-specific modifiers. The two docs were checked against each othe
 **Rounding.** Keep rage as integer tenths, and never truncate the pool to whole rage. In
 `forever`, keep a white hit's or a hit taken's fraction of a tenth, `0 ≤ f < 1`, and add it to
 the next such gain: `whole = ⌊f + gain⌋`, `f = f + gain − whole`. Drop `f` whenever the pool is
-set rather than added to: at the cap, a stance swap's limit, or Execute spending it all. In
-`classicEra`, floor each gain. Energizes are whole tenths, except a talent-scaled one, which is
-floored ([rounding](#rounding)). The per-fight reset sets `f = 0`, so each fight is reproducible
-from its seed alone.
+set rather than added to: at the cap, a stance swap's limit, or Execute spending it all (R29,
+R31–R33). In `classicEra`, floor each gain. Energizes are whole tenths, except a talent-scaled
+one, which is floored ([rounding](#rounding)). The per-fight reset sets `f = 0`, so each fight
+is reproducible from its seed alone.
 
 **Spell batching / latency.** The Forever batching window is not known. See
 [damage-and-timing.md](damage-and-timing.md). This doc assumes rage updates are visible
@@ -680,6 +691,9 @@ Each of these becomes a unit test. Use level 60 and `c = 230.6` unless stated ot
 | R28 | Forever: a hit of 5 before mitigation every second, maximum health 990 (10 × 5 / 990 = 0.0505 rage each), 59 hits | **2.9** rage (29.8 tenths, floored once). Floored per hit it would be 0. |
 | R29 | Forever, cap 100: the swings of R27 from 0, ten of them | 15.7, 31.5, 47.2, 63.0, 78.7, 94.5, then **100**: the 7th's 15.7 loses 10.2 over the cap, and its 0.05 with it. At the cap each later swing wastes 15.7, never 15.8: **57.3** wasted in all. |
 | R30 | Classic Era: a 10-damage hit every second (2.5 × 10 / 230.6 = 0.108 rage each), 59 hits | Each floored to 0.1: **5.9** rage |
+| R31 | Forever: the swings of R27, a stance swap between them that keeps 10 rage | 15.7 (0.05 carried), then the swap sets **10.0** and drops the 0.05, so the next swing gives 15.7: **25.7**. Carried, it would be 25.8. |
+| R32 | Forever, in the execute phase: the swings of R27, an Execute between them that lands | 15.7 (0.05 carried), then Execute spends it all: **0**, the 0.05 gone. The next swing gives **15.7**, not 15.8. |
+| R33 | Forever, cap 3: a hit taken of 1.05 rage (10 × 21 / 200), a refund that reaches the cap, all 3 spent, then another 1.05 hit | 1.0 (0.05 carried); the refund sets **3.0**, the cap, and drops the 0.05; spent to 0, the next hit gives **1.0**, not 1.1. A real refund can't reach the cap ([rounding](#rounding)): the test's refunds 3 × its 1-rage cost. |
 
 ---
 
@@ -750,10 +764,20 @@ sample size (doctrine §2, tier 2).
    from the cap): log 50 or more landed swings in a row and compare the rage gained with
    `swings × k × speed`. A carried fraction keeps the total within 0.1 of it all the way; random
    rounding wanders about ±0.35 after 50 swings at a fraction of 0.5; flooring each swing falls
-   behind by the fraction every swing (2.5 after 50). Then take a stream of small hits (a weak
-   mob, no swings of your own) and do the same with `10 × D_pre / maxHealth` per hit. Also note
-   back-to-back swings: with a fraction under 0.5, a carried fraction never gives two higher
-   swings in a row. Classic Era: the same test with a Classic Era warrior.
+   behind by the fraction every swing (2.5 after 50). Also note back-to-back swings: with a
+   fraction under 0.5, a carried fraction never gives two higher swings in a row. Classic Era:
+   the same test with a Classic Era warrior.
+
+   **Hits taken** carry their fraction only by extension of the white swings (848 swings, 34
+   characters); their own evidence is mostly one tester's ([rounding](#rounding),
+   [D22](../decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23)).
+   To confirm it, on two or more characters: stand against one weak mob with no swings of your
+   own, no rage talents and the pool far from the cap, and log 50 or more hits in a row with
+   advanced combat logging and `UNIT_POWER_UPDATE`. For each hit, record its unmitigated amount,
+   any blocked or absorbed part, and your maximum health. Compare the rage gained with the sum
+   of `10 × D_pre / maxHealth`: a carried fraction stays within 0.1 of it, and identical hits
+   take the two neighbouring tenths in the share their fraction predicts; flooring each hit
+   falls behind by the fraction every hit.
 
 ---
 

@@ -1199,8 +1199,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B71. Execute and fractional rage
 **Low · M2 · ≤30 (Execute)**
 - **Assumes** [?]: Execute converts all the rage left after its cost, tenths included (15
-  damage per rage). Forever's normalized white rage leaves fractions, e.g. 9.1 rage from a
-  2.6 s main hand. The difference is at most 13.5 damage per Execute.
+  damage per rage). Forever's normalized white rage leaves fractions: a 2.6 s main hand gives
+  3.46 × 2.6 = 8.996 rage, which the pool shows as 8.9 or 9.0. The difference is at most 13.5
+  damage per Execute.
 - **Test:** Execute a mob at a known fractional rage (read with an addon on
   `UNIT_POWER_UPDATE`), and compare the damage with `600 + 15 × (rage − cost)` with and
   without the fraction. Use non-crits only, at a known armor.
@@ -1278,13 +1279,22 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   neighbouring values, in the share its fraction predicts. They lean towards random rounding
   over a carried fraction (2 of 36 back-to-back pairs are ones a carried fraction can't give);
   both have the same mean. `classicEra` floors each gain (unmeasured).
+- **Hits taken, by extension:** the white swings set the rule (848 swings, 34 characters). A
+  hit taken carries its fraction because the same server gain rule makes it; its own evidence
+  is mostly one tester's, which can't set a default by itself
+  ([D22](decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23)).
 - **Test:** log many hits and see whether the totals drift. One weapon, auto attack only, no
   rage talents, a target that can't hit back, the pool far from the cap: log 50 or more landed
   swings in a row and compare the rage gained with `swings × k × speed`. A carried fraction
   stays within 0.1 of it; random rounding wanders about ±0.35 after 50 swings at a fraction of
-  0.5; flooring each swing falls 2.5 behind. Repeat with a stream of small hits taken and no
-  swings of your own.
-- **Samples:** 50 or more swings in a row, twice; 50 or more hits taken.
+  0.5; flooring each swing falls 2.5 behind. Then hits taken, on two or more characters: one
+  weak mob, no swings of your own, advanced combat logging with `UNIT_POWER_UPDATE`, and for
+  each hit its unmitigated amount, any blocked or absorbed part, and your maximum health.
+  Compare the rage gained with the sum of `10 × D_pre / maxHealth`: a carried fraction stays
+  within 0.1, and identical hits take the two neighbouring tenths in the share their fraction
+  predicts.
+- **Samples:** 50 or more swings in a row, twice; 50 or more hits taken in a row, on each of two
+  or more characters.
 - **Changes:** how the rage model rounds. Flooring would cost Arms' 3.5 s two-hander 0.05 rage a
   swing and a tank about 0.05 a boss hit; carried and random rounding differ only in spread.
 - **Docs:** [rage § Rounding](mechanics/rage.md#rounding),

@@ -15,8 +15,8 @@ async function openProtectionRotation(page: Page) {
   return page.getByRole('tabpanel', { name: 'Rotation' })
 }
 
-/** The switches Max TPS turns off by default. */
-const DUTIES = ['Shield Block', 'Shield Slam', 'Thunder Clap', 'Demoralizing Shout']
+/** The switches Max TPS turns off by default: the tank's duties (D26). */
+const DUTIES = ['Shield Block', 'Thunder Clap', 'Demoralizing Shout']
 /** What a screen reader hears of a change from the last run (docs/ux.md#results). */
 const HEARD_CHANGE = /^(up|down) [\d,]+\.\d from the last run, (better|worse)$/
 
@@ -29,7 +29,7 @@ test.describe('Protection rotation', () => {
     await expect(priority.getByRole('radio', { name: 'Max TPS' })).not.toBeChecked()
     // Its help says what Max TPS drops, why the default keeps it, and what it costs.
     await expect(priority).toHaveAccessibleDescription(
-      /^Tank duties first keeps up Shield Block, for your survival, and Thunder Clap’s slow and Demoralizing Shout, for the raid, and uses Shield Slam for its damage\. Max TPS drops all four for threat alone: about 12% more TPS and 28% less DPS/,
+      /^Tank duties first keeps up Shield Block, for your survival, and Thunder Clap’s slow and Demoralizing Shout, for the raid\. Max TPS drops all three for threat: about 12% more TPS/,
     )
     expect((await priority.boundingBox())!.y).toBeLessThan((await tab.getByRole('heading', { name: 'Before the pull' }).boundingBox())!.y)
     // Execute is the tank's only execute-phase setting, so it sits under Core abilities: no heading over one setting.
@@ -106,12 +106,13 @@ test.describe('Protection rotation', () => {
     const heard = (metric: string) => results.getByRole('group', { name: metric }).getByText(HEARD_CHANGE)
     await expect(heard('TPS')).toHaveText(/^up [\d,]+\.\d from the last run, better$/)
     await expect(heard('DPS')).toHaveText(/^down [\d,]+\.\d from the last run, worse$/)
-    // The rows it dropped are gone from the threat breakdown; Sunder Armor and Revenge are there.
+    // The rows it dropped are gone from the threat breakdown; Sunder Armor, Revenge and Shield Slam are there.
     const breakdown = results.getByRole('region', { name: 'Threat by ability' })
     const row = (name: string) => breakdown.getByRole('listitem').filter({ hasText: name })
     await expect(row('Sunder Armor')).toHaveCount(1)
     await expect(row('Revenge')).toHaveCount(1)
-    for (const name of ['Shield Slam', 'Thunder Clap', 'Demoralizing Shout']) await expect(row(name)).toHaveCount(0)
+    await expect(row('Shield Slam')).toHaveCount(1)
+    for (const name of ['Thunder Clap', 'Demoralizing Shout']) await expect(row(name)).toHaveCount(0)
   })
 })
 

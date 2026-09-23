@@ -239,9 +239,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     (Protection's Execute, under Core abilities).
   - **A tank's priority** ([D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
     a choice at the top, **Tank duties first** (the default) or **Max TPS**. Its help names the
-    duties Max TPS drops (Shield Block, Thunder Clap's slow and Demoralizing Shout for a warrior,
-    and Shield Slam), why the default keeps them (your survival, the raid's debuffs on the boss
-    and your damage), what Max TPS gains and costs in the default setup, and that the Buffs tab's
+    duties Max TPS drops (Shield Block, Thunder Clap and Demoralizing Shout for a warrior), why
+    the default keeps them (you take less damage), what Max TPS gains and costs in the default
+    setup, when to pick it, and that the Buffs tab's
     Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another
     player's (Buffs, above). Choosing it moves only
     defaults, like Arms' stance below: the dropped switches show off and unmarked, each one's
@@ -267,7 +267,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     (a toggle group, like the Fight tab's position), full width on a phone, labelled by its row.
   - A setting's default can follow the talents or another setting (Arms: Rend is on by default
     with Bloodthrill; Berserker Stance turns Whirlwind on and Rend and Overpower off; Protection's
-    Max TPS turns four switches off and moves Heroic Strike's threshold). The tab
+    Max TPS turns three switches off and moves Heroic Strike's threshold). The tab
     shows the value the sim will use, the help says what it follows, and a value you set stays
     set until you reset it.
   - **Changed settings are marked.** A setting that differs from its default for this setup

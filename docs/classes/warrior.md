@@ -1451,13 +1451,13 @@ best rotation found for the default setup that keeps the tank's toolkit
 **Priority** (`warrior.protection.priority`, a choice at the top of the Rotation tab), per
 [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23):
 
-- **Tank duties first** (`duties`, the default) keeps Shield Block, Thunder Clap's slow and
-  Demoralizing Shout up, for the tank's survival and the raid's debuffs on the boss, and Shield
-  Slam, whose damage [D18](../decisions.md#d18-tank-specs-report-tps-and-dps-as-equals-2026-09-22)
-  counts as much as its threat. The table's defaults are this choice's.
-- **Max TPS** (`maxTps`) drops all four, tuned on TPS alone: rows 1, 5, 9 and 10 are off by default
-  and Heroic Strike (row 12) comes from 50 rage. It makes about 12% more TPS and 28% less DPS in the
-  default setup ([Max TPS](#max-tps-p2) below). The Buffs tab's Thunder Clap and Demoralizing
+- **Tank duties first** (`duties`, the default) keeps the tank's duties up: Shield Block, for its
+  survival, and Thunder Clap's slow and Demoralizing Shout, the raid's debuffs on the boss. The
+  table's defaults are this choice's.
+- **Max TPS** (`maxTps`) drops the duties and nothing else (rows 1, 9 and 10 are off by default),
+  and is tuned on TPS alone ([Max TPS](#max-tps-p2) below). It keeps Shield Slam (row 5): dropping
+  it wins on TPS only at Classic Era's threat value, which Forever's tooltip raised (D26's
+  amendment; [Max TPS](#max-tps-p2)). The Buffs tab's Thunder Clap and Demoralizing
   Shout are the tank's own too, so no preset turns them on for a Protection warrior (the buffs
   doc's [§6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)): with
   Max TPS the boss goes unslowed and at full attack power, unless you turn them on there because
@@ -1473,7 +1473,7 @@ a value you set yourself still wins.
 | 2 | Bloodrage (off the GCD) | On cooldown at rage ≤ `maxRage` | `warrior.protection.bloodrage.enabled` (on), `.maxRage` (70: the 100 cap minus its 30) | yes |
 | 3 | Racial or trinket cooldowns (off the GCD) | On cooldown: there's no Death Wish to sync them with. Blood Fury, Berserking, Elune's Light; Weakness Analyzer | `warrior.protection.racial.enabled` (on), `.trinkets.enabled` (on) | yes |
 | 4 | Mighty Rage Potion; Juju Flurry (off the GCD) | The potion once, the first time rage ≤ `maxRage`, so its 45–75 rage fits under the cap: early in the fight. Juju Flurry on cooldown. Each only when it's selected in Buffs | `warrior.protection.ragePotion.enabled` (on), `.maxRage` (25: the cap minus 75); `.jujuFlurry.enabled` (on) | with the consumable |
-| 5 | Shield Slam | Off cooldown at rage ≥ `minRage`; the talent and a shield | `warrior.protection.shieldSlam.enabled` (on; off with Max TPS), `.minRage` (17: its cost) | yes |
+| 5 | Shield Slam | Off cooldown at rage ≥ `minRage`; the talent and a shield | `warrior.protection.shieldSlam.enabled` (on, with Max TPS too), `.minRage` (17: its cost) | yes |
 | 6 | Revenge | Its window is open ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)) | `warrior.protection.revenge.enabled` (on) | yes |
 | 7 | Battle Shout | As Fury's row 1: missing, or at most `refreshBelowSec` left and it would run out before the fight ends. It replaces the Buffs tab's Battle Shout | `warrior.protection.battleShout.enabled` (on), `.refreshBelowSec` (0: once it has run out) | yes |
 | 8 | Sunder Armor | Fewer than 5 stacks on the boss, or at most `refreshBelowSec` left and they'd run out before the fight ends. It replaces the Buffs tab's Sunder Armor ×5 | `warrior.protection.sunder.enabled` (on), `.refreshBelowSec` (3) | yes |

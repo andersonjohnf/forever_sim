@@ -233,12 +233,14 @@ describe('Protection rotation options (warrior.md §5.1, §5.4)', () => {
 
 describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
   const MAX = { [ID.priority]: PROTECTION_PRIORITY.maxTps }
-  const DUTIES = [ID.sbEnabled, ID.slamEnabled, ID.tcEnabled, ID.demoEnabled]
+  const DUTIES = [ID.sbEnabled, ID.tcEnabled, ID.demoEnabled]
 
-  it('drops Shield Block, Shield Slam, Thunder Clap and Demoralizing Shout by default, and queues Heroic Strike from 50', () => {
+  it('drops the duties, Shield Block, Thunder Clap and Demoralizing Shout, by default, keeps Shield Slam, and queues Heroic Strike from 50', () => {
     const duties = resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)
     const max = resolveRotationValues(PROTECTION_OPTIONS, MAX, TALENTS)
     for (const id of DUTIES) expect([id, duties[id], max[id]]).toEqual([id, true, false])
+    // D26's amendment: Max TPS drops only the duties.
+    expect([duties[ID.slamEnabled], max[ID.slamEnabled]]).toEqual([true, true])
     expect([duties[ID.hsMinRage], max[ID.hsMinRage]]).toEqual([65, 50])
     // Nothing else moves: the search found no other setting better (§5.4 "Max TPS").
     const moved = Object.keys(duties).filter((id) => duties[id] !== max[id])
@@ -259,6 +261,7 @@ describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
     const r = protectionRotation(MAX, TALENTS, noAura, { race: 'alliance-human' })
     expect(r.rotation.map((e) => r.abilities[e.ability].id)).toEqual([
       'bloodrage',
+      'shieldSlam',
       'revenge',
       'battleShout',
       'sunderArmor',

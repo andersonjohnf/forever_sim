@@ -499,19 +499,20 @@ describe('Max TPS in the engine (warrior.md §5.4 "Max TPS", D26)', () => {
     expect(others(MAX).fight.bossSwing!.slow).toBeCloseTo(0.2, 12)
     expect(others(MAX).fight.bossSwing!.minDamage).toBeCloseTo(4500 - (204 * 2) / 14, 9)
     expect([others({}).fight.bossSwing!.slow, others({}).fight.bossSwing!.minDamage]).toEqual([0, 4500])
-    // Its rows: no Shield Block, Shield Slam, Thunder Clap or Demoralizing Shout.
+    // Its rows: no Shield Block, Thunder Clap or Demoralizing Shout; Shield Slam stays (D26).
     const used = new Set(max.rotation.map((e) => max.abilities[e.ability].id))
-    for (const id of ['shieldBlock', 'shieldSlam', 'thunderClap', 'demoralizingShout']) expect(used.has(id), id).toBe(false)
+    for (const id of ['shieldBlock', 'thunderClap', 'demoralizingShout']) expect(used.has(id), id).toBe(false)
+    expect(used.has('shieldSlam')).toBe(true)
   })
 
   it('makes more threat and less damage than the default, on the same fights', () => {
     const duties = runFights(buildPlan(config({})).plan, 2000)
     const max = runFights(buildPlan(config(MAX)).plan, 2000)
-    // §5.4 "Max TPS": about +15% TPS and −24% DPS in the default setup, with nobody's Thunder Clap
-    // or Demoralizing Shout on the boss.
-    expect(max.tps.mean / duties.tps.mean).toBeGreaterThan(1.12)
-    expect(max.tps.mean / duties.tps.mean).toBeLessThan(1.17)
-    expect(max.dps.mean / duties.dps.mean).toBeGreaterThan(0.72)
-    expect(max.dps.mean / duties.dps.mean).toBeLessThan(0.79)
+    // §5.4 "Max TPS": about +12% TPS and +4% DPS in the default setup, with nobody's Thunder Clap or
+    // Demoralizing Shout on the boss: the faster, harder boss gives more rage, and Shield Slam stays.
+    expect(max.tps.mean / duties.tps.mean).toBeGreaterThan(1.09)
+    expect(max.tps.mean / duties.tps.mean).toBeLessThan(1.15)
+    expect(max.dps.mean / duties.dps.mean).toBeGreaterThan(1.01)
+    expect(max.dps.mean / duties.dps.mean).toBeLessThan(1.07)
   })
 })

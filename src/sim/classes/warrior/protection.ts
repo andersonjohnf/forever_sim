@@ -83,7 +83,8 @@ const PROT_MAX_RAGE = 100
 
 /**
  * The priority choice's values (warrior.md §5.4 "Max TPS", decision D26): the default keeps the
- * tank's duties; Max TPS drops them, and Shield Slam, for threat alone.
+ * tank's duties (Shield Block, Thunder Clap, Demoralizing Shout); Max TPS drops them for threat, and
+ * keeps the rest, Shield Slam included.
  */
 export const PROTECTION_PRIORITY = { duties: 'duties', maxTps: 'maxTps' } as const
 const MAX_TPS = { option: ID.priority, is: PROTECTION_PRIORITY.maxTps } as const
@@ -115,7 +116,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     kind: 'choice',
     id: ID.priority,
     label: 'Priority',
-    help: 'Tank duties first keeps up Shield Block, for your survival, and Thunder Clap’s slow and Demoralizing Shout, for the raid, and uses Shield Slam for its damage. Max TPS drops all four for threat alone: about 12% more TPS and 28% less DPS in the default setup. The Buffs tab’s Thunder Clap and Demoralizing Shout then count, as another warrior’s.',
+    help: 'Tank duties first keeps up Shield Block, for your survival, and Thunder Clap’s slow and Demoralizing Shout, for the raid. Max TPS drops all three for threat: about 12% more TPS in the default setup. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there.',
     choices: [
       { value: PROTECTION_PRIORITY.duties, label: 'Tank duties first' },
       { value: PROTECTION_PRIORITY.maxTps, label: 'Max TPS' },
@@ -155,9 +156,8 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.slamEnabled,
     group: 'Core abilities',
     label: 'Shield Slam',
-    help: 'Use Shield Slam whenever it’s ready, for its damage. Needs the Shield Slam talent and a shield. Off by default with Max TPS: its global cooldowns make more threat as Sunder Armor.',
+    help: 'Use Shield Slam whenever it’s ready, for its damage and threat. Needs the Shield Slam talent and a shield.',
     default: true,
-    defaultWhen: [{ ...MAX_TPS, default: false }],
   },
   rageOption(ID.slamMinRage, 'Shield Slam from', 'Use it only at or above this much rage. It costs 17 with the default talents.', 17, ID.slamEnabled, 'Core abilities'),
   {
@@ -240,7 +240,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     o.id === ID.hsMinRage && o.kind === 'number'
       ? {
           ...o,
-          help: `Queue it at or above this much rage. With Max TPS it’s ${MAX_TPS_HS_MIN_RAGE} by default: with no duties or Shield Slam to pay for, there’s more rage to spend.`,
+          help: `Queue it at or above this much rage. With Max TPS it’s ${MAX_TPS_HS_MIN_RAGE} by default: with no duties to pay for, there’s more rage to spend.`,
           defaultWhen: [{ ...MAX_TPS, default: MAX_TPS_HS_MIN_RAGE }],
         }
       : o,

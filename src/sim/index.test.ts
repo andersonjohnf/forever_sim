@@ -243,10 +243,10 @@ describe('rotationValues', () => {
     const prot = defaultConfig('warrior-protection')
     expect(rotationValues(prot)['warrior.protection.prepull.charge']).toBe(true)
     expect(rotationValues({ ...prot, talents: '' })['warrior.protection.prepull.charge']).toBe(false)
-    // Its priority moves switches and a number: Max TPS drops the duties and Shield Slam (§5.4, D26).
+    // Its priority moves switches and a number: Max TPS drops the duties and keeps Shield Slam (§5.4, D26).
     expect(rotationValues({ ...prot, rotation: { 'warrior.protection.priority': 'maxTps' } })).toMatchObject({
       'warrior.protection.shieldBlock.enabled': false,
-      'warrior.protection.shieldSlam.enabled': false,
+      'warrior.protection.shieldSlam.enabled': true,
       'warrior.protection.heroicStrike.minRage': 50,
     })
     expect(rotationValues(defaultConfig('druid-feral-bear'))).toEqual({})

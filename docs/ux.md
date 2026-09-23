@@ -414,9 +414,9 @@ Every view handles these states:
   never cover the header.
   - A change gets a notice only when it happens out of sight or needs saying: a shared link
     loaded, **Reset setup** (it changes every tab), a race change that swapped faction gear
-    (on the Gear tab), and a setup saved, loaded or deleted ([Setups](#setups)). A change you
-    watch happen, like gear, a talent build or Reset rotation, gets none, but screen readers
-    still hear it ([Accessibility](#accessibility)).
+    (on the Gear tab), and a setup saved, loaded, deleted or imported ([Setups](#setups)). A
+    change you watch happen, like gear, a talent build or Reset rotation, gets none, but screen
+    readers still hear it ([Accessibility](#accessibility)).
   - A newer notice of the same kind replaces the last, rather than stacking.
 - **A toast never hides the focused control** (WCAG 2.4.11), on the page, in a sheet under it
   (the results sheet, About, the item and enchant pickers) or in a select's list, with one
@@ -430,7 +430,8 @@ Every view handles these states:
   - The bottom padding doesn't grow for a toast, so nothing moves when one goes. The exception:
     the last control at the very end of the page or of a sheet can't scroll any higher, so it
     can stay partly or wholly under a notice until the notice goes. On a phone that's the
-    footer's link.
+    footer's link, and the end of the Setups sheet (Import's field and **Open a file…**) after a
+    notice the sheet raised, such as a copy's or a download's. A swipe sends the notice away.
   - A select's list (`src/components/select-content.tsx`) always drops from its trigger, and
     flips above it or gets shorter and scrolls, so no option is ever under a toast. It doesn't
     move when a toast goes while it's open.
@@ -452,7 +453,8 @@ Every view handles these states:
 **Setups…** in the header's overflow menu opens a sheet of named copies of setups
 ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)). It
 follows About: a side sheet (full width on a phone), focus on its title when it opens, and back
-to the menu's button when it closes.
+to the menu's button when it closes. Saving and the list come first, then **Export** and
+**Import**, each under a rule with a heading and a line on what it does.
 - **Save** keeps a copy of the current setup, its spec included, under a name. A name is
   required, trimmed, and at most 60 characters. The field starts on the spec and the day ("Fury
   Warrior · 23 Sep"), counting on ("… (2)") so the default never saves over anything, and the
@@ -475,6 +477,34 @@ to the menu's button when it closes.
   the previous row's at the end of the list, or the name field once the list is empty. A held
   Enter doesn't delete a second one.
 - A name that breaks the rules gets its reason under the field, which describes the field.
+- **Export:**
+  - **Copy setup code** copies the current setup as a code: a share link's part after `#s=`. It
+    writes to the clipboard as Share does, within the tap, and its notice says it was copied, or
+    that the browser refused and how to allow it.
+  - **Download all setups** saves `forever-sim-setups-2026-09-23.json`, which holds
+    `{ app: "forever-sim", version: 1, exportedAt, current, setups }`: the current setup, and every
+    save as it's stored, shown or not. Its notice names the file and what it holds, or says it holds
+    the current setup only because the saves couldn't be read.
+- **Import:**
+  - **Setup code or share link** takes a code, or anything with `#s=…`: a share link, with other
+    hash parameters or words around it. Whitespace doesn't count, so a wrapped code still works.
+  - **Import** (or Enter) makes it the current setup, with no prompt, as Load does: it switches
+    spec if needed, and your setup for the spec you were on is kept. The sheet closes, and a notice
+    says "Imported a setup", with the spec it switched to and any parts that were out of date.
+  - A code that can't be used gets its reason under the field, which describes the field, and
+    focus goes back to it, with no notice: nothing pasted; not a code or a link; damaged or cut
+    short; over a share link's size caps; or for a spec the sim doesn't cover.
+  - **Open a file…** takes a setups file. Its setups join the list, and none of yours is replaced.
+    Each keeps its name, date and setup; a name that's taken gets a number ("Raid night (2)"). One
+    that's saved already, with the same name and setup, isn't added again. The file's current
+    setup is added too, as "Imported · 23 Sep", unless a save has it already. A notice says
+    "Imported 3 setups" (or "Nothing new to import"), and how many were saved already, couldn't be
+    read, or are kept but not shown. The sheet stays open, with focus on the list's heading, so
+    the list is in view.
+  - A file that can't be used gets its reason under the button, which it describes, with no
+    notice: not a Forever Sim setups file; from a newer version; damaged; empty; too large (over
+    5 MB, about all a browser keeps for a site, or 1,000 setups); or none of its setups could be
+    read. A setup over a share link's 16 KB cap is left out, and counted in the notice.
 - **Storage.** Saves stay in this browser, under their own versioned key
   (`forever-sim:saved-setups`, `src/app/saved-setups.ts`), apart from the automatic save. The
   sheet reads them afresh each time it opens, and shows another tab's changes as they happen.
@@ -483,8 +513,8 @@ to the menu's button when it closes.
   - Empty: "No saved setups yet", and a sentence on what a save is.
   - A save that can't be read is left out, and a notice says how many. A save for a spec the app
     doesn't offer, or from a newer version of the app, is kept but not shown (principle 8).
-  - Storage the browser blocks: the list says so, and Save raises a notice saying how to allow
-    it. Storage that's full: a notice asks you to delete a save you don't need. Storage that
+  - Storage the browser blocks: the list says so, and Save (or a file's import) raises a notice
+    saying how to allow it. Storage that's full: a notice asks you to delete a save you don't need. Storage that
     can't be read: a notice says so, and the next save starts a new list. Saves that a newer
     version of the app wrote, in another tab, are left alone until you reload.
 

@@ -28,6 +28,7 @@ import {
   type StorageProblem,
 } from './saved-setups'
 import { useSetup } from './setup-store'
+import { ExportSection, ImportSection } from './setups-transfer'
 import type { useSheetFocus } from './sheet-focus'
 import { CLASS_TEXT, useSpecMeta } from './specs'
 
@@ -35,8 +36,9 @@ type SheetFocus = ReturnType<typeof useSheetFocus>
 
 /**
  * Setups (docs/ux.md#setups, decision D21): save the current setup under a name, and load, rename
- * or delete a saved one. Opened from the header's overflow menu; titleRef and contentProps come
- * from the header's useSheetFocus, which hands focus back to the menu's button when it closes.
+ * or delete a saved one; then export and import (src/app/setups-transfer.tsx). Opened from the
+ * header's overflow menu; titleRef and contentProps come from the header's useSheetFocus, which
+ * hands focus back to the menu's button when it closes.
  */
 export function SetupsSheet({
   open,
@@ -91,9 +93,9 @@ const STORAGE_PROBLEMS: Record<StorageProblem, string> = {
   corrupt: 'Your saved setups couldn’t be read. Try again.',
 }
 
-/** Why storage refused a change, as a notice. */
-function sayStorageProblem(problem: StorageProblem, action: 'save' | 'rename' | 'delete') {
-  toast.error(`Couldn’t ${action} the setup`, { id: 'saved-setups-storage', description: STORAGE_PROBLEMS[problem] })
+/** Why storage refused a change, as a notice: "Couldn’t save the setup", and why. */
+function sayStorageProblem(problem: StorageProblem, title: string) {
+  toast.error(title, { id: 'saved-setups-storage', description: STORAGE_PROBLEMS[problem] })
 }
 
 /** What reading the saves found that's worth a notice: a problem the sheet doesn't show itself. */
@@ -121,6 +123,7 @@ function SetupsBody({ onLoaded }: { onLoaded: () => void }) {
   const [error, setError] = useState<string | null>(null)
   const [renaming, setRenaming] = useState<string | null>(null)
   const nameRef = useRef<HTMLInputElement>(null)
+  const listHeadingRef = useRef<HTMLHeadingElement>(null)
   const nameId = useId()
   const errorId = useId()
   const listHeadingId = useId()
@@ -145,7 +148,7 @@ function SetupsBody({ onLoaded }: { onLoaded: () => void }) {
       if ('error' in result) {
         setError(result.error)
         nameRef.current?.focus()
-      } else sayStorageProblem(result.problem, 'save')
+      } else sayStorageProblem(result.problem, 'Couldn’t save the setup')
       return
     }
     setDraft(null)
@@ -167,7 +170,7 @@ function SetupsBody({ onLoaded }: { onLoaded: () => void }) {
     const result = renameInStorage(setup.id, next)
     if (!result.ok) {
       if ('error' in result) return result.error
-      sayStorageProblem(result.problem, 'rename')
+      sayStorageProblem(result.problem, 'Couldn’t rename the setup')
       return null
     }
     // No visible notice: the name changes in front of you. Focus goes back to its Rename button.
@@ -198,7 +201,7 @@ function SetupsBody({ onLoaded }: { onLoaded: () => void }) {
       () => (neighbour && rowButton(neighbour.id, 'delete')) || nameRef.current,
     )
     if (!result?.ok) {
-      if (result && 'problem' in result) sayStorageProblem(result.problem, 'delete')
+      if (result && 'problem' in result) sayStorageProblem(result.problem, 'Couldn’t delete the setup')
       return
     }
     toast(`Deleted “${setup.name}”`, { id: 'setup-deleted' })
@@ -238,7 +241,8 @@ function SetupsBody({ onLoaded }: { onLoaded: () => void }) {
 
       <section aria-labelledby={listHeadingId} className="flex flex-col gap-2">
         <div className="flex flex-col gap-1">
-          <h3 id={listHeadingId} className="font-medium">
+          {/* A file's import brings focus here, to the list it added to (tabIndex -1: not a tab stop). */}
+          <h3 ref={listHeadingRef} id={listHeadingId} tabIndex={-1} className="scroll-mt-4 font-medium outline-none">
             Saved setups
           </h3>
           {setups.length > 0 && <p className="text-sm text-muted-foreground">Loading one replaces your current setup for its spec.</p>}
@@ -270,6 +274,14 @@ function SetupsBody({ onLoaded }: { onLoaded: () => void }) {
           </ul>
         )}
       </section>
+
+      {/* Then, set apart under a rule each: Export and Import. A code's import closes the sheet as Load does. */}
+      <ExportSection />
+      <ImportSection
+        onImported={onLoaded}
+        onFileImported={() => listHeadingRef.current?.focus()}
+        sayStorageProblem={sayStorageProblem}
+      />
     </div>
   )
 }

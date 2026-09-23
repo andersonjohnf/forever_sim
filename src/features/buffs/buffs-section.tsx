@@ -7,7 +7,7 @@ import { WowIcon } from '@/components/wow-icon'
 import type { ClassSlug } from '@/data/races/types'
 import { EmptyState } from '@/features/empty-state'
 import { Field, SectionHeader } from '@/features/section'
-import { CHOICE_ITEM } from '@/lib/choice'
+import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
 import {
   buffCatalogue,
@@ -93,16 +93,22 @@ export function BuffsSection() {
           variant="outline"
           value={activePreset ?? ''}
           onValueChange={(v) => v && applyPreset(v as BuffPreset['id'])}
-          className="grid w-full grid-cols-2 sm:grid-cols-4"
+          aria-label="Preset"
+          className="grid w-full grid-cols-2 items-stretch sm:grid-cols-4"
         >
+          {/* Each preset says what it brings in visible text, never a hover-only title (docs/ux.md "Accessibility"). */}
           {buffPresets.map((p) => (
             <ToggleGroupItem
               key={p.id}
               value={p.id}
-              className={cn('h-auto min-h-11 flex-col items-start px-3 py-2 text-left', CHOICE_ITEM)}
-              title={p.description}
+              aria-labelledby={`buff-preset-${p.id}-name`}
+              aria-describedby={`buff-preset-${p.id}`}
+              className={cn('h-auto min-h-11 flex-col items-start justify-start gap-0.5 px-3 py-2 text-left', CHOICE_ITEM)}
             >
-              <span>{p.name}</span>
+              <span id={`buff-preset-${p.id}-name`}>{p.name}</span>
+              <span id={`buff-preset-${p.id}`} className={cn('text-xs font-normal whitespace-normal', CHOICE_HINT)}>
+                {p.description}
+              </span>
             </ToggleGroupItem>
           ))}
         </ToggleGroup>

@@ -2,13 +2,14 @@ import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
 import { NumberField } from '@/components/number-field'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Advanced, Field, SectionHeader } from '@/features/section'
 import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
-import type { CreatureType, FightConfig } from '@/sim'
+import type { ClassId, CreatureType, FightConfig } from '@/sim'
+import { formatDuration } from './duration'
+import { LengthSlider } from './length-slider'
 
 // docs/mechanics/encounter.md#2-boss-armor
 const ARMOR_PRESETS = [
@@ -35,7 +36,8 @@ const ZONES: { value: FightConfig['zone']; label: string }[] = [
   { value: 'other', label: 'Other' },
 ]
 
-const formatDuration = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`
+/** The ability the execute phase unlocks, per class (docs/mechanics/encounter.md#3-fight-length-and-execute-phase). */
+const EXECUTE_ABILITY: Partial<Record<ClassId, string>> = { warrior: 'Execute', paladin: 'Hammer of Wrath' }
 
 export function FightSection() {
   const meta = useSpecMeta()
@@ -47,26 +49,30 @@ export function FightSection() {
   const setRun = (patch: Partial<typeof run>) => update((c) => ({ ...c, run: { ...c.run, ...patch } }))
   const isPreset = ARMOR_PRESETS.some((p) => p.value === fight.bossArmor)
   const tank = meta.role === 'tank'
+  const executeAbility = EXECUTE_ABILITY[meta.classId]
 
   return (
     <div className="flex flex-col gap-6">
-      <SectionHeader title="Fight" description="A level 63 raid boss, and how the fight plays out." />
+      <SectionHeader
+        title="Fight"
+        description={`A level ${fight.bossLevel} ${fight.bossLevel === 63 ? 'raid boss' : 'boss'}, and how the fight plays out.`}
+      />
 
       <Field
         label={
           <span className="flex items-baseline justify-between">
-            Fight length <span className="tabular-nums text-muted-foreground">{formatDuration(fight.durationSec)}</span>
+            <span id="fight-length-label">Fight length</span>
+            <span className="tabular-nums text-muted-foreground">{formatDuration(fight.durationSec)}</span>
           </span>
         }
       >
-        <Slider
+        <LengthSlider
           min={30}
           max={600}
           step={15}
-          value={[fight.durationSec]}
-          onValueChange={([durationSec]) => set({ durationSec })}
-          aria-label="Fight length in seconds"
-          className="py-3"
+          value={fight.durationSec}
+          onChange={(durationSec) => set({ durationSec })}
+          labelledBy="fight-length-label"
         />
       </Field>
 
@@ -76,6 +82,7 @@ export function FightSection() {
           variant="outline"
           value={isPreset ? String(fight.bossArmor) : 'custom'}
           onValueChange={(v) => v && v !== 'custom' && set({ bossArmor: Number(v) })}
+          aria-label="Boss armor"
           className="w-full items-stretch"
         >
           {ARMOR_PRESETS.map((p) => (
@@ -101,6 +108,7 @@ export function FightSection() {
           variant="outline"
           value={fight.position}
           onValueChange={(v) => v && set({ position: v as FightConfig['position'] })}
+          aria-label="Position"
           className="w-full"
         >
           <ToggleGroupItem value="behind" className={cn('h-11 flex-1', CHOICE_ITEM)}>
@@ -112,17 +120,21 @@ export function FightSection() {
         </ToggleGroup>
       </Field>
 
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="execute" className="text-sm font-medium">
-            Execute phase
-          </label>
-          <p className="text-xs text-muted-foreground">
-            The last {fight.executePct || 20}% of the boss’s health, when Execute and Hammer of Wrath work.
-          </p>
-        </div>
-        <Switch id="execute" checked={fight.executePct > 0} onCheckedChange={(on) => set({ executePct: on ? 20 : 0 })} />
-      </div>
+      {/* The whole row is the switch's label, so it's one 44 px target (docs/ux.md "Accessibility"). */}
+      <label className="flex min-h-11 cursor-pointer items-center justify-between gap-4">
+        <span className="flex flex-col gap-1">
+          <span className="text-sm font-medium">Execute phase</span>
+          <span id="execute-help" className="text-xs text-muted-foreground">
+            The last {fight.executePct || 20}% of the boss’s health{executeAbility ? `, when ${executeAbility} can be used` : ''}.
+          </span>
+        </span>
+        <Switch
+          aria-label="Execute phase"
+          aria-describedby="execute-help"
+          checked={fight.executePct > 0}
+          onCheckedChange={(on) => set({ executePct: on ? 20 : 0 })}
+        />
+      </label>
 
       <Advanced>
         <Field
@@ -139,6 +151,7 @@ export function FightSection() {
               variant="outline"
               value={run.mode}
               onValueChange={(v) => v && setRun({ mode: v as typeof run.mode })}
+              aria-label="Precision"
             >
               <ToggleGroupItem value="adaptive" className={cn('h-11 px-4', CHOICE_ITEM)}>
                 Adaptive
@@ -152,43 +165,44 @@ export function FightSection() {
             )}
           </div>
         </Field>
-        <Field label="Seed" help="The same setup and seed give exactly the same result on any device.">
-          <NumberField value={run.seed} onChange={(seed) => setRun({ seed })} min={0} max={4294967295} step={1} aria-label="Random seed" />
+        <Field label="Seed" htmlFor="fight-seed" help="The same setup and seed give exactly the same result on any device.">
+          <NumberField id="fight-seed" value={run.seed} onChange={(seed) => setRun({ seed })} min={0} max={4294967295} step={1} aria-label="Random seed" />
         </Field>
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Length variation" help="Each simulated fight varies by up to this much.">
-            <NumberField value={fight.durationVariationPct} onChange={(v) => set({ durationVariationPct: v })} min={0} max={25} unit="%" aria-label="Length variation" />
+          <Field label="Length variation" htmlFor="fight-length-variation" help="Each simulated fight varies by up to this much.">
+            <NumberField id="fight-length-variation" value={fight.durationVariationPct} onChange={(v) => set({ durationVariationPct: v })} min={0} max={25} unit="%" aria-label="Length variation" />
           </Field>
           {fight.executePct > 0 && (
-            <Field label="Execute phase starts at" help="Boss health remaining.">
-              <NumberField value={fight.executePct} onChange={(v) => set({ executePct: v })} min={1} max={50} unit="%" aria-label="Execute phase threshold" />
+            <Field label="Execute phase starts at" htmlFor="fight-execute-pct" help="Boss health remaining.">
+              <NumberField id="fight-execute-pct" value={fight.executePct} onChange={(v) => set({ executePct: v })} min={1} max={50} unit="%" aria-label="Execute phase threshold" />
             </Field>
           )}
-          <Field label="Boss level">
-            <NumberField value={fight.bossLevel} onChange={(v) => set({ bossLevel: v })} min={60} max={63} aria-label="Boss level" />
+          <Field label="Boss level" htmlFor="fight-boss-level">
+            <NumberField id="fight-boss-level" value={fight.bossLevel} onChange={(v) => set({ bossLevel: v })} min={60} max={63} aria-label="Boss level" />
           </Field>
-          <Field label="Creature type" help="Some racials and items only work against certain types.">
+          <Field label="Creature type" htmlFor="fight-creature-type" help="Some racials and items only work against certain types.">
             <Select value={fight.creatureType} onValueChange={(v) => set({ creatureType: v as CreatureType })}>
-              <SelectTrigger className="h-11 w-full">
+              {/* The trigger's size attribute sets its height, so the 44 px target overrides that. */}
+              <SelectTrigger id="fight-creature-type" className="w-full data-[size=default]:h-11">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {CREATURE_TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value} className="min-h-10">
+                  <SelectItem key={t.value} value={t.value} className="min-h-11">
                     {t.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Zone" help="Some Forever consumables only work in certain zones.">
+          <Field label="Zone" htmlFor="fight-zone" help="Some Forever consumables only work in certain zones.">
             <Select value={fight.zone} onValueChange={(v) => set({ zone: v as FightConfig['zone'] })}>
-              <SelectTrigger className="h-11 w-full">
+              <SelectTrigger id="fight-zone" className="w-full data-[size=default]:h-11">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {ZONES.map((z) => (
-                  <SelectItem key={z.value} value={z.value} className="min-h-10">
+                  <SelectItem key={z.value} value={z.value} className="min-h-11">
                     {z.label}
                   </SelectItem>
                 ))}

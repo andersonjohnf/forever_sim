@@ -47,7 +47,7 @@ export function NumberField({
         variant="outline"
         size="icon"
         className="size-11"
-        aria-label="Decrease"
+        aria-label={ariaLabel ? `Decrease ${ariaLabel}` : 'Decrease'}
         disabled={value <= min}
         onClick={() => onChange(clamp(value - step))}
       >
@@ -75,7 +75,7 @@ export function NumberField({
         variant="outline"
         size="icon"
         className="size-11"
-        aria-label="Increase"
+        aria-label={ariaLabel ? `Increase ${ariaLabel}` : 'Increase'}
         disabled={value >= max}
         onClick={() => onChange(clamp(value + step))}
       >

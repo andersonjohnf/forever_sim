@@ -53,27 +53,49 @@ tabs past it (none at an end), and the chosen tab scrolls into view.
 
 ## Sections
 
-- **Character.** Race: only races that can be the selected class in Forever, grouped by
-  faction. Level is fixed at 60 and not shown. Advanced: the rule profile (`Forever`, the
-  default, or `Classic Era`) and the switch for unmeasured ratings
-  ([D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
+- **Character.**
+  - Race: only races that can be the selected class in Forever, grouped by faction (Alliance,
+    then Horde) in one radio group. Arrow keys move between races and pick them, and the
+    selected race is the group's only tab stop. Level is fixed at 60 and not shown.
+  - A race the sim can't simulate yet (a Skyborne warrior: its level-60 base stats aren't
+    known, [character-stats OQ-1](mechanics/character-stats.md#oq-1-paladin-druid-and-skyborne-base-attributes))
+    stays in the list with a dashed border and the reason in its tile, which is also its
+    description for screen readers: "Can't be simulated yet: its base stats at level 60 aren't
+    known." It can still be picked, to see its racials, and a run then says why it can't go
+    (see [States](#states)). It isn't hidden: a Skyborne player should see why, not wonder where
+    their race went.
+  - A race on the other side swaps the faction-bound gear (PvP, battleground and reputation
+    rewards, [items.md](data/items.md#equipping-rules)) for the new faction's twin, which has
+    the same stats, and keeps the slot's enchant. A toast with **Undo** names the new items.
+    An item with no twin stays, and the toast says so.
+  - Advanced: the rule profile (`Forever`, the default, or `Classic Era`) and the switch for
+    unmeasured ratings
+    ([D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
+    A switch's whole row, with its help, is its label, as in Buffs.
 - **Talents.**
   - A preset menu with each spec's documented builds (its class doc); the spec default is
     selected.
-  - Interactive trees: three side by side on desktop, one tab per tree on mobile. Tap to add
-    a point, long-press or right-click to remove one. Tier gates and prerequisites are
-    enforced visibly.
-  - A points counter (x / 51) and **Import / Copy build code**.
+  - Interactive trees: three side by side on desktop, one tab per tree on mobile. With a
+    mouse, click to add a point and right-click to remove one; on a touch screen, a tap opens
+    the talent's details with − and + buttons. On a focused talent, Enter adds a point and
+    Backspace removes one (Delete and − work too); the hint above the trees and each talent's
+    tooltip say so. Tier gates and prerequisites are enforced visibly.
+  - A points counter (x / 51) and **Import / Copy build code**. A pasted code that doesn't
+    work gets a plain reason: "That isn't a talent code", with an example code for the class;
+    a code for another class; more than 51 points; or the talent a tier gate or arrow blocks.
 - **Gear.**
   - Slots in paper-doll order. Each row shows the item icon, its name in its quality color,
     a one-line summary of its key stats, and an enchant chip. Empty slots have their own
-    state.
-  - Tapping a slot opens the **item picker**: a full-height sheet on mobile, a dialog on
-    desktop. It has a search box (name, type or stat) and filter chips (**BiS for this spec**,
-    usable by class), and sorts by name or item level (sim value, once stat weights exist).
-    Each row's second line says what the item is and its levels, e.g. "Two-hand sword · Item
-    level 63 · Requires level 58"; on a phone it wraps between those parts. The client data
-    has no drop sources (its Encounter Journal is empty), so the picker shows none.
+    state. The columns are `minmax(0, 1fr)`, so a long name or enchant truncates rather than
+    widening the page, down to 320 px.
+  - Choosing a slot opens the **item picker**: a full-height sheet on mobile, a dialog on
+    desktop. It has a search box (name, type or stat) with a clear button, filter chips
+    (**Best in slot** for this spec, or **All items** the class can use), and a sort menu: BiS
+    rank (the default where the slot has BiS items), item level or name (sim value, once stat
+    weights exist). Each row's second line says what the item is and its levels, e.g.
+    "Two-hand sword · Item level 63 · Requires level 58"; on a phone it wraps between those
+    parts. The client data has no drop sources (its Encounter Journal is empty), so the picker
+    shows none.
   - The picker offers only what the character can wear together
     ([items.md, "Equipping rules"](data/items.md#equipping-rules)):
     - It leaves out the other faction's PvP and battleground items, except the one equipped.
@@ -82,12 +104,22 @@ tabs past it (none at an end), and the chosen tab scrolls into view.
     - An item that would break a Unique-Equipped group is dimmed and can't be picked. A line
       at full contrast says why, e.g. "Unique-Equipped (Undermine Trinkets): you're wearing
       Weakness Analyzer in trinket 2." It stays focusable, so the reason is read out.
-  - Badges: BiS rank, and **Classic stats** for items with no Forever data yet, with a
-    tooltip explaining why.
+  - Badges, on slot rows and picker rows alike:
+    - the BiS rank;
+    - **Classic stats** for items with no Forever data yet;
+    - **Effect not simulated** for items with an equip, chance-on-hit or use effect the sim
+      leaves out (Blackblade of Shahram's summon), the same items the result's assumptions
+      list.
+
+    The two flags open a popover on tap, click or Enter that explains them and, for effects,
+    quotes each one. They sit over the row's button, never inside it, with 44 px hit areas. The
+    row's button covers the row: its name is the slot and item ("Main hand: Blackblade of
+    Shahram"), and its description carries what the row shows: stats, BiS rank and flags.
   - A gear-set menu: "Pre-raid BiS" (the spec default, in the race's faction's PvP gear),
     "Empty", and later saved sets.
 - **Buffs.**
-  - Presets: Self only, Dungeon group, Standard raid (the default), Max consumables.
+  - Presets: Self only, Dungeon group, Standard raid (the default), Max consumables. Each
+    shows what it brings in a line under its name, in the tile, not in a hover title.
   - Composition switches: which classes are in the raid. These drive which raid buffs are
     available; buffs never depend on faction.
   - Grouped switches for raid buffs, target debuffs and consumables.
@@ -136,12 +168,18 @@ tabs past it (none at an end), and the chosen tab scrolls into view.
     locked, whatever it's set to, and the row says so ("Not used: turn on … in Buffs first"),
     with **Buffs** a link to that tab. Turning it on in Buffs brings back its setting.
 - **Fight.**
+  - The header names the boss's level ("A level 63 raid boss"), following Boss level.
   - Duration (default 180 s), boss armor preset, execute phase, and whether you attack from the
     front (tanks) or behind (DPS).
+  - The duration slider's track and thumb are 44 px targets. Its thumb is named "Fight length"
+    and says its value in words ("3 minutes"). The execute phase's help names the class's
+    execute ability (Execute for warriors), and its whole row is the switch's label.
   - No number of targets yet: the sim has one target, so the control waits for multi-target
     support ([warrior §5.5](classes/warrior.md#55-multi-target-options-light)). A control that
     changes nothing isn't shown. Saved setups keep the value (`extraTargets`), unused.
-  - Advanced: iterations and seed.
+  - Advanced: iterations and seed, then the fight's details. Every field is labelled, the
+    Creature type and Zone menus included, and a stepper's buttons name their field
+    ("Decrease Boss level").
 
 ## Results
 

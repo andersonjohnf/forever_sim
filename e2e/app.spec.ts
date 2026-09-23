@@ -23,7 +23,7 @@ test.describe('setup', () => {
     await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
     await page.getByRole('menuitem', { name: /Arms/ }).click()
     await expect(page.getByRole('button', { name: /Spec: Arms Warrior/ })).toBeVisible()
-    await expect(page.getByRole('button', { name: /^Main hand: / })).toContainText('Blackblade of Shahram')
+    await expect(page.getByRole('button', { name: 'Main hand: Blackblade of Shahram' })).toBeVisible()
     await page.reload()
     await expect(page.getByRole('button', { name: /Spec: Arms Warrior/ })).toBeVisible()
   })
@@ -97,7 +97,7 @@ test.describe('talents', () => {
     const dialog = page.getByRole('dialog', { name: 'Paste a build code' })
     await dialog.getByRole('textbox').fill('99999')
     await dialog.getByRole('button', { name: 'Use this build' }).click()
-    await expect(dialog.getByText(/exceeds max rank|bad rank|not a valid/i)).toBeVisible()
+    await expect(dialog.getByRole('alert')).toHaveText(/^That isn’t a Warrior code: .* Is it for another class\?$/)
 
     await dialog.getByRole('textbox').fill('30305213132515201-05050103-')
     await dialog.getByRole('button', { name: 'Use this build' }).click()

@@ -2,9 +2,9 @@
 // #prerequisite-arrows): arrows need the prerequisite at max rank, tier N needs 5·N points in
 // lower tiers of the same tree, and the cap is 51 points.
 import { describe, expect, it } from 'vitest'
-import { decodeTalentCode, type Talent, type TalentData } from '@/data/talents/types'
+import { decodeTalentCode, talentsInCodeOrder, type Talent, type TalentData } from '@/data/talents/types'
 import { TALENT_DATA } from '@/sim/defaults'
-import { canAdd, canRemove, lockReason, withRank } from './logic'
+import { canAdd, canRemove, lockReason, readBuildCode, withRank } from './logic'
 
 const find = (data: TalentData, name: string): Talent => data.trees.flatMap((t) => t.talents).find((t) => t.name === name)!
 
@@ -46,5 +46,53 @@ describe('talent calculator rules', () => {
     const bloodthirst = find(warrior, 'Bloodthirst')
     expect(bloodthirst.tier).toBe(6)
     expect(lockReason(warrior, ranks, bloodthirst)).toBe('Requires 30 points in Fury.')
+  })
+})
+
+describe('pasting a build code (plain-language errors)', () => {
+  const warrior = TALENT_DATA.warrior
+  const example = '30305213132515201-05050103-'
+  const read = (text: string) => readBuildCode(warrior, text, example)
+
+  it('reads a bare code or a calculator link ending in one, in canonical form', () => {
+    expect(read(' 30305213132515201-05050103- ')).toEqual({ ok: true, code: '30305213132515201-05050103-' })
+    expect(read('https://example.com/talent-calc/warrior/30305213132515201-05050103')).toEqual({
+      ok: true,
+      code: '30305213132515201-05050103-',
+    })
+  })
+
+  it('says when the text isn’t a talent code at all, with an example', () => {
+    for (const text of ['hello', '1-2-3-4', '--', 'https://example.com/']) {
+      expect(read(text)).toEqual({
+        ok: false,
+        error: `That isn’t a talent code. A code has a digit for each talent and a dash between trees, like ${example}`,
+      })
+    }
+  })
+
+  it('says when a code is for another class', () => {
+    expect(read('99999')).toEqual({
+      ok: false,
+      error: 'That isn’t a Warrior code: it puts 9 points in Improved Heroic Strike, which has 3 ranks. Is it for another class?',
+    })
+    expect(read('1'.repeat(30))).toMatchObject({ ok: false, error: expect.stringMatching(/more talents than the Arms tree/) })
+  })
+
+  it('says when a build breaks the rules, naming the talent', () => {
+    // One point in Fury's last talent, with nothing above it.
+    const fury = talentsInCodeOrder(warrior)[1]
+    expect(read(`-${'0'.repeat(fury.length - 1)}1`)).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/^That build can’t be made in the game: \S.* requires \d+ points in Fury\.$/),
+    })
+    // Every talent at max rank.
+    const everything = talentsInCodeOrder(warrior)
+      .map((tree) => tree.map((t) => t.maxRank).join(''))
+      .join('-')
+    expect(read(everything)).toMatchObject({
+      ok: false,
+      error: expect.stringMatching(/^That build spends \d+ points, and a level 60 character has 51\.$/),
+    })
   })
 })

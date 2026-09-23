@@ -14,6 +14,7 @@ import { defaultConfig, isTwoHand, uniqueConflicts, type GearSlot, type SimConfi
 import { EnchantPicker } from './enchant-picker'
 import { enchantsFor } from './enchants'
 import { ItemPicker } from './item-picker'
+import { itemDescription } from './item-flags'
 import { ItemSummary } from './item-row'
 import { bisRank, EMPTY_SLOT_ICON, SLOT_GROUPS, SLOT_LABEL } from './slots'
 
@@ -69,7 +70,7 @@ export function GearSection() {
     <div className="flex flex-col gap-6">
       <SectionHeader
         title="Gear"
-        description={`Starts as ${meta.name} ${meta.className} pre-raid best in slot. Tap a slot to change it.`}
+        description={`Starts as ${meta.name} ${meta.className} pre-raid best in slot. Choose a slot to change its item.`}
         action={
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -78,10 +79,10 @@ export function GearSection() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem className="min-h-10" onSelect={loadBis}>
+              <DropdownMenuItem className="min-h-11" onSelect={loadBis}>
                 Equip pre-raid best in slot
               </DropdownMenuItem>
-              <DropdownMenuItem className="min-h-10" onSelect={clearAll}>
+              <DropdownMenuItem className="min-h-11" onSelect={clearAll}>
                 Remove all gear
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -90,30 +91,44 @@ export function GearSection() {
       />
 
       {SLOT_GROUPS.map((group) => (
-        <section key={group.label} className="flex flex-col gap-2">
+        <section key={group.label} className="flex min-w-0 flex-col gap-2">
           <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{group.label}</h3>
-          <ul className="grid gap-2 md:grid-cols-2">
+          {/* minmax(0, 1fr) columns: a long enchant or item name truncates instead of widening the page. */}
+          <ul className="grid grid-cols-[minmax(0,1fr)] gap-2 md:grid-cols-[repeat(2,minmax(0,1fr))]">
             {group.slots.map((slot) => {
               const equipped = config.gear[slot]
               const item = equipped ? itemsById.get(equipped.itemId) : undefined
               const lockedByTwoHand = slot === 'offHand' && twoHanded
+              const bis = item ? bisRank(item, config.spec, slot) : null
               return (
-                <li key={slot} className="flex flex-col rounded-xl border">
-                  <button
-                    type="button"
-                    disabled={lockedByTwoHand}
-                    onClick={() => setPicking(slot)}
+                <li key={slot} className="flex min-w-0 flex-col rounded-xl border">
+                  {/* The slot's button covers the row; the flag badges sit above it, so a tap on one
+                      explains it rather than opening the picker (docs/ux.md "Gear"). */}
+                  <div
                     className={cn(
-                      'flex min-h-16 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors outline-none',
-                      'hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60',
+                      'relative flex min-h-16 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors',
+                      lockedByTwoHand ? 'opacity-60' : 'hover:bg-muted',
                       item && enchantsFor(slot, item).length > 0 && 'rounded-b-none',
                     )}
-                    aria-label={`${SLOT_LABEL[slot]}: ${item?.name ?? (lockedByTwoHand ? 'two-handed weapon equipped' : 'empty')}`}
                   >
+                    <button
+                      type="button"
+                      disabled={lockedByTwoHand}
+                      onClick={() => setPicking(slot)}
+                      className="absolute inset-0 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed"
+                      aria-label={`${SLOT_LABEL[slot]}: ${item?.name ?? (lockedByTwoHand ? 'two-handed weapon equipped' : 'empty')}`}
+                      aria-describedby={item ? `slot-${slot}-description` : undefined}
+                    >
+                      {item && (
+                        <span id={`slot-${slot}-description`} className="sr-only">
+                          {itemDescription(item, { bis })}
+                        </span>
+                      )}
+                    </button>
                     {item ? (
-                      <ItemSummary item={item} bis={bisRank(item, config.spec, slot)} meta={SLOT_LABEL[slot]} />
+                      <ItemSummary item={item} bis={bis} meta={SLOT_LABEL[slot]} />
                     ) : (
-                      <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <div aria-hidden className="flex min-w-0 flex-1 items-center gap-3">
                         <WowIcon icon={EMPTY_SLOT_ICON[slot]} size="lg" grayscale />
                         <div className="flex flex-col">
                           <span className="text-sm font-medium text-muted-foreground">{SLOT_LABEL[slot]}</span>
@@ -124,7 +139,7 @@ export function GearSection() {
                       </div>
                     )}
                     {!lockedByTwoHand && <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
-                  </button>
+                  </div>
                   {item && enchantsFor(slot, item).length > 0 && (
                     <div className="border-t">
                       <EnchantPicker

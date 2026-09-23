@@ -15,7 +15,6 @@ import {
   decodeTalentCode,
   encodeTalentCode,
   pointsPerTree,
-  validateTalentBuild,
   type Talent,
   type TalentData,
   type TalentRanksById,
@@ -26,7 +25,7 @@ import { useIsDesktop, useMediaQuery } from '@/hooks/use-media-query'
 import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
 import { TALENT_DATA, talentPresets } from '@/sim'
-import { canAdd, canRemove, lockReason, totalPoints, withRank } from './logic'
+import { canAdd, canRemove, lockReason, readBuildCode, totalPoints, withRank } from './logic'
 
 export function TalentsSection() {
   const meta = useSpecMeta()
@@ -69,12 +68,13 @@ export function TalentsSection() {
             if (preset) withUndo(`${preset.name} build loaded`, () => update((c) => ({ ...c, talents: preset.code })))
           }}
         >
-          <SelectTrigger className="col-span-3 h-11 w-full sm:w-auto sm:min-w-48" aria-label="Talent build presets">
+          {/* The trigger's size attribute sets its height, so the 44 px target overrides that (docs/ux.md "Accessibility"). */}
+          <SelectTrigger className="col-span-3 w-full data-[size=default]:h-11 sm:w-auto sm:min-w-48" aria-label="Talent build presets">
             <SelectValue placeholder="Custom build" />
           </SelectTrigger>
           <SelectContent>
             {presets.map((p) => (
-              <SelectItem key={p.code} value={p.code} className="min-h-10">
+              <SelectItem key={p.code} value={p.code} className="min-h-11">
                 {p.name}
               </SelectItem>
             ))}
@@ -109,7 +109,7 @@ export function TalentsSection() {
 
       <p className="text-xs text-muted-foreground">
         {finePointer
-          ? 'Click a talent to add a point. Right-click to remove one.'
+          ? 'Click a talent to add a point, right-click to remove one. On a focused talent, Enter adds a point and Backspace removes one.'
           : 'Tap a talent to see what it does and add or remove points.'}
       </p>
 
@@ -150,6 +150,7 @@ export function TalentsSection() {
         open={importOpen}
         onOpenChange={setImportOpen}
         data={data}
+        example={presets[0]?.code ?? code}
         onImport={(next) => withUndo('Build imported', () => update((c) => ({ ...c, talents: next })))}
       />
     </div>
@@ -224,10 +225,18 @@ function TalentCell({
     <button
       type="button"
       aria-label={label}
+      aria-keyshortcuts="Backspace"
       onClick={finePointer ? add : undefined}
       onContextMenu={(e) => {
         e.preventDefault()
         remove()
+      }}
+      // Keyboard removal (docs/ux.md "Talents"): Backspace, or Delete and − as aliases.
+      onKeyDown={(e) => {
+        if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '-') {
+          e.preventDefault()
+          remove()
+        }
       }}
       className={cn(
         'relative rounded-lg border-2 p-0.5 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
@@ -260,7 +269,12 @@ function TalentCell({
       <Tooltip>
         <TooltipTrigger asChild>{cell}</TooltipTrigger>
         <TooltipContent side="top" className="max-w-72">
-          {details}
+          <div className="flex flex-col gap-2">
+            {details}
+            <p className="border-t border-current/20 pt-2 text-xs opacity-80">
+              Click or Enter adds a point. Right-click or Backspace removes one.
+            </p>
+          </div>
         </TooltipContent>
       </Tooltip>
     )
@@ -313,38 +327,41 @@ function ImportDialog({
   open,
   onOpenChange,
   data,
+  example,
   onImport,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   data: TalentData
+  /** A code for this class, shown as the example. */
+  example: string
   onImport: (code: string) => void
 }) {
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const apply = () => {
-    // Accept a bare code or a URL ending in one.
-    const candidate = text.trim().split(/[/#?=]/).at(-1) ?? ''
-    try {
-      const ranks = decodeTalentCode(data, candidate)
-      const problems = validateTalentBuild(data, ranks)
-      if (problems.length) throw new Error(problems[0])
-      onImport(encodeTalentCode(data, ranks))
-      setText('')
-      setError(null)
-      onOpenChange(false)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'That isn’t a valid build code.')
+    const result = readBuildCode(data, text, example)
+    if (!result.ok) {
+      setError(result.error)
+      return
     }
+    onImport(result.code)
+    setText('')
+    setError(null)
+    onOpenChange(false)
   }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      {/* No stock 28 px close button: Cancel (44 px) and Escape close it. */}
+      <DialogContent showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>Paste a build code</DialogTitle>
-          <DialogDescription>A talent code like 30305013002-050530035150010051-, or a talent calculator link.</DialogDescription>
+          <DialogDescription>
+            A talent code like <span className="font-mono break-all">{example}</span>, or a talent calculator link that ends in one.
+          </DialogDescription>
         </DialogHeader>
         <Input
+          aria-label="Build code or link"
           value={text}
           onChange={(e) => {
             setText(e.target.value)
@@ -357,7 +374,7 @@ function ImportDialog({
           autoFocus
         />
         {error && (
-          <p id="import-error" className="text-sm text-destructive">
+          <p id="import-error" role="alert" className="text-sm break-words text-destructive">
             {error}
           </p>
         )}

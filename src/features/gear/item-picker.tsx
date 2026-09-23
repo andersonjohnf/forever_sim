@@ -1,9 +1,10 @@
 import { Ban, Check, Search, X } from 'lucide-react'
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import type { Item } from '@/data/items/types'
 import { useIsDesktop } from '@/hooks/use-media-query'
@@ -11,10 +12,12 @@ import { CHOICE_ITEM } from '@/lib/choice'
 import { itemData, summarizeItem } from '@/lib/items'
 import { cn } from '@/lib/utils'
 import { fitsFaction, fitsSlot, SPEC_META, uniqueConflicts, type GearSlot, type SpecId, type UniqueConflict } from '@/sim'
+import { itemDescription } from './item-flags'
 import { ItemSummary } from './item-row'
 import { bisRank, itemDetails, itemKind, SLOT_LABEL } from './slots'
 
 type Filter = 'bis' | 'all'
+type Sort = 'bis' | 'itemLevel' | 'name'
 
 interface PickerProps {
   open: boolean
@@ -41,6 +44,17 @@ function uniqueState(worn: PickerProps['worn'], slot: GearSlot, item: Item): { m
   return { blocked: `Unique-Equipped (${group}${max > 1 ? `, up to ${max}` : ''}): you’re wearing ${wearing}.` }
 }
 
+/** The dialog's close button at 44 px (the stock one is 28; docs/ux.md "Accessibility"). */
+function CloseButton() {
+  return (
+    <DialogClose asChild>
+      <Button variant="ghost" size="icon" className="absolute top-1.5 right-1.5 size-11" aria-label="Close">
+        <X />
+      </Button>
+    </DialogClose>
+  )
+}
+
 /** The item picker: a dialog on desktop, a full-height drawer on phones (docs/ux.md#sections). */
 export function ItemPicker(props: PickerProps) {
   const isDesktop = useIsDesktop()
@@ -49,12 +63,13 @@ export function ItemPicker(props: PickerProps) {
   if (isDesktop) {
     return (
       <Dialog open={props.open} onOpenChange={props.onOpenChange}>
-        <DialogContent className="flex h-[min(85vh,52rem)] max-w-2xl flex-col gap-0 p-0 sm:max-w-2xl">
-          <DialogHeader className="border-b p-4">
+        <DialogContent showCloseButton={false} className="flex h-[min(85vh,52rem)] max-w-2xl flex-col gap-0 p-0 sm:max-w-2xl">
+          <DialogHeader className="border-b p-4 pr-14">
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
           <PickerBody {...props} autoFocus />
+          <CloseButton />
         </DialogContent>
       </Dialog>
     )
@@ -72,10 +87,28 @@ export function ItemPicker(props: PickerProps) {
   )
 }
 
+/** The picker's orders (docs/ux.md "Gear"): the spec's BiS ranks first, item level, or name. */
+const SORTS: { value: Sort; label: string }[] = [
+  { value: 'bis', label: 'BiS rank' },
+  { value: 'itemLevel', label: 'Item level' },
+  { value: 'name', label: 'Name' },
+]
+
+type Candidate = { item: Item; bis: number | null; text: string }
+
+const byName = (a: Candidate, b: Candidate) => a.item.name.localeCompare(b.item.name)
+const byItemLevel = (a: Candidate, b: Candidate) => b.item.itemLevel - a.item.itemLevel || byName(a, b)
+const COMPARE: Record<Sort, (a: Candidate, b: Candidate) => number> = {
+  bis: (a, b) => (a.bis ?? 99) - (b.bis ?? 99) || byItemLevel(a, b),
+  itemLevel: byItemLevel,
+  name: byName,
+}
+
 function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: PickerProps & { autoFocus?: boolean }) {
   const { classId } = SPEC_META[spec]
   const [query, setQuery] = useState('')
   const deferredQuery = useDeferredValue(query)
+  const searchRef = useRef<HTMLInputElement>(null)
   const candidates = useMemo(
     () =>
       itemData.items
@@ -85,21 +118,23 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
           item,
           bis: bisRank(item, spec, slot),
           text: `${item.name} ${itemKind(item) ?? ''} ${summarizeItem(item)}`.toLowerCase(),
-        }))
-        .sort(
-          (a, b) =>
-            (a.bis ?? 99) - (b.bis ?? 99) || b.item.itemLevel - a.item.itemLevel || a.item.name.localeCompare(b.item.name),
-        ),
+        })),
     [classId, slot, spec, race, equippedId],
   )
   const hasBis = candidates.some((c) => c.bis)
   const [filter, setFilter] = useState<Filter>(hasBis ? 'bis' : 'all')
+  const [sort, setSort] = useState<Sort>(hasBis ? 'bis' : 'itemLevel')
+  const sorts = hasBis ? SORTS : SORTS.filter((s) => s.value !== 'bis')
 
   const words = deferredQuery.toLowerCase().split(/\s+/).filter(Boolean)
   const searching = words.length > 0
-  const shown = candidates.filter(
-    (c) => (searching || filter === 'all' || c.bis) && words.every((w) => c.text.includes(w)),
-  )
+  const shown = candidates
+    .filter((c) => (searching || filter === 'all' || c.bis) && words.every((w) => c.text.includes(w)))
+    .sort(COMPARE[sort])
+  const clearSearch = () => {
+    setQuery('')
+    searchRef.current?.focus()
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -107,31 +142,60 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
+            ref={searchRef}
             autoFocus={autoFocus}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name, type or stat, e.g. “crit”"
             aria-label="Search items"
-            className="h-11 pl-9"
+            className={cn('h-11 pl-9', query && 'pr-11')}
           />
+          {query && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="absolute top-0 right-0 size-11 rounded-l-none"
+              aria-label="Clear search"
+              onClick={clearSearch}
+            >
+              <X />
+            </Button>
+          )}
         </div>
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <ToggleGroup
             type="single"
             variant="outline"
-            size="sm"
             value={searching ? 'all' : filter}
             disabled={searching}
             onValueChange={(v) => v && setFilter(v as Filter)}
+            aria-label="Show"
           >
-            <ToggleGroupItem value="bis" disabled={!hasBis} className={cn('h-9 px-3', CHOICE_ITEM)}>
+            <ToggleGroupItem value="bis" disabled={!hasBis} className={cn('h-11 px-3', CHOICE_ITEM)}>
               Best in slot
             </ToggleGroupItem>
-            <ToggleGroupItem value="all" className={cn('h-9 px-3', CHOICE_ITEM)}>
+            <ToggleGroupItem value="all" className={cn('h-11 px-3', CHOICE_ITEM)}>
               All items
             </ToggleGroupItem>
           </ToggleGroup>
-          <span className="text-xs text-muted-foreground tabular-nums" aria-live="polite">
+          <Select value={sort} onValueChange={(v) => setSort(v as Sort)}>
+            {/* A combobox takes no name from its content, so it says the order in its label. */}
+            <SelectTrigger aria-label={`Sort by ${sorts.find((s) => s.value === sort)?.label ?? ''}`} className="data-[size=default]:h-11">
+              <span aria-hidden className="text-muted-foreground">
+                Sort:
+              </span>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {sorts.map((s) => (
+                <SelectItem key={s.value} value={s.value} className="min-h-11">
+                  {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="ml-auto text-xs text-muted-foreground tabular-nums" aria-live="polite">
             {shown.length} {shown.length === 1 ? 'item' : 'items'}
           </span>
         </div>
@@ -152,25 +216,38 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
         {shown.map(({ item, bis }) => {
           const equipped = item.id === equippedId
           const { moves, blocked } = uniqueState(worn, slot, item)
+          const details = itemDetails(item, moves)
           return (
             <li key={item.id}>
-              {/* A blocked item stays focusable (aria-disabled), so its reason is read out. */}
-              <button
-                type="button"
-                aria-current={equipped || undefined}
-                aria-disabled={blocked ? true : undefined}
-                onClick={() => !blocked && onPick(item)}
+              {/* The item's button covers the row, with the whole item as its name; the flag badges sit
+                  above it (docs/ux.md "Gear"). A blocked item stays focusable (aria-disabled), so its
+                  reason is read out. */}
+              <div
                 className={cn(
-                  'flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left outline-none',
-                  'focus-visible:ring-3 focus-visible:ring-ring/50',
+                  'relative flex w-full items-start gap-3 rounded-lg px-3 py-2.5',
                   blocked ? 'cursor-not-allowed' : 'hover:bg-muted',
                   equipped && 'bg-muted',
                 )}
               >
+                <button
+                  type="button"
+                  aria-current={equipped || undefined}
+                  aria-disabled={blocked ? true : undefined}
+                  onClick={() => !blocked && onPick(item)}
+                  className={cn(
+                    'absolute inset-0 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+                    blocked && 'cursor-not-allowed',
+                  )}
+                >
+                  <span className="sr-only">
+                    {item.name}. {itemDescription(item, { bis, meta: details, note: blocked })}
+                    {equipped && '. Equipped'}
+                  </span>
+                </button>
                 <ItemSummary
                   item={item}
                   bis={bis}
-                  meta={itemDetails(item, moves)}
+                  meta={details}
                   dimmed={Boolean(blocked)}
                   note={
                     blocked && (
@@ -181,15 +258,15 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
                     )
                   }
                 />
-                {equipped && <Check className="mt-1 size-4 shrink-0" aria-label="Equipped" />}
-              </button>
+                {equipped && <Check className="mt-1 size-4 shrink-0" aria-hidden />}
+              </div>
             </li>
           )
         })}
         {shown.length === 0 && (
           <li className="flex flex-col items-center gap-3 px-4 py-12 text-center text-sm text-muted-foreground">
             No items match “{deferredQuery}”.
-            <Button variant="outline" onClick={() => setQuery('')}>
+            <Button variant="outline" className="h-11" onClick={clearSearch}>
               Clear search
             </Button>
           </li>

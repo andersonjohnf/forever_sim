@@ -17,9 +17,12 @@ export function presetBuffIds(preset: BuffPreset['id'], spec: SpecId, raid: read
   if (preset === 'self') return []
   const ids: string[] = []
   const taken = new Set<string>()
+  // The spec's own buffs (the cat's Faerie Fire): its rotation keeps them up, so no preset adds the
+  // Buffs tab's, which then means someone else's (SpecMeta.ownBuffs; buffs doc §6.2).
+  const own = SPEC_META[spec].ownBuffs ?? []
   for (const buff of BUFFS) {
     const audience = buff.presets[preset]
-    if (!audience || !reaches(audience, spec)) continue
+    if (!audience || !reaches(audience, spec) || own.includes(buff.id)) continue
     if (buff.providedBy && !raid.includes(buff.providedBy)) continue
     if (buff.exclusiveGroup) {
       if (taken.has(buff.exclusiveGroup)) continue

@@ -245,6 +245,8 @@ export interface SpecDefinition {
   rotationOptions: RotationOption[]
   /** What the Rotation tab says about the defaults: tuned for the default setup, or the common priority (D23). */
   rotationDefaults?: string
+  /** Buffs the Buffs tab assumes are the spec's own, kept up by its rotation (SpecMeta.ownBuffs). */
+  ownBuffs?: readonly string[]
 }
 
 export type BuffCategory = 'raidBuff' | 'targetDebuff' | 'consumable'

@@ -266,6 +266,15 @@ describe('catalogues and presets', () => {
     expect(buffPresets.map((p) => p.id)).toEqual(['self', 'dungeon', 'raid', 'max'])
   })
 
+  it('leaves out a spec’s own buffs: the cat’s Faerie Fire is its rotation’s, a warrior’s the raid’s', () => {
+    for (const preset of ['raid', 'max'] as const) {
+      expect(presetBuffs(preset, 'druid-feral-cat', FULL_RAID)).not.toContain('faerieFire')
+      expect(presetBuffs(preset, 'warrior-fury', FULL_RAID)).toContain('faerieFire')
+    }
+    expect(getSpec('druid-feral-cat').ownBuffs).toEqual(['faerieFire'])
+    expect(getSpec('warrior-arms').ownBuffs).toBeUndefined()
+  })
+
   it('never lets a preset pick two buffs from one exclusive group', () => {
     for (const spec of SPEC_IDS) {
       for (const preset of buffPresets) {

@@ -97,6 +97,30 @@ test.describe('Feral cat', () => {
     await expect(fight.getByText(/In Cat Form it gives no rage, but a hit can trigger effects that fire when you’re hit\./)).toBeVisible()
   })
 
+  test('with its own Faerie Fire off, the Buffs tab’s is off and unlocked, for another druid’s; what you set stays', async ({ page }) => {
+    await switchToCat(page)
+    const setOwn = async () => {
+      await openTab(page, 'Rotation')
+      await page.getByRole('tabpanel', { name: 'Rotation' }).getByRole('switch', { name: 'Faerie Fire', exact: true }).click()
+      await openTab(page, 'Buffs')
+    }
+    const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
+    const faerieFire = buffs.getByRole('switch', { name: 'Faerie Fire' })
+    await setOwn()
+    await expect(faerieFire).not.toBeChecked()
+    await expect(faerieFire).toBeEnabled()
+    await expect(faerieFire).toHaveAccessibleDescription(/You’re not keeping it up \(see Rotation\); turn this on if another druid does\./)
+    await faerieFire.click()
+    await expect(faerieFire).toBeChecked()
+    // Your own again: on and locked. Off once more, another druid's is still on, as you set it.
+    await setOwn()
+    await expect(faerieFire).toBeChecked()
+    await expect(faerieFire).toBeDisabled()
+    await setOwn()
+    await expect(faerieFire).toBeChecked()
+    await expect(faerieFire).toBeEnabled()
+  })
+
   test('simulates, and its results name its abilities, cooldowns and assumptions', { tag: '@smoke' }, async ({ page }) => {
     await switchToCat(page)
     const results = page.getByRole('complementary', { name: 'Results' })

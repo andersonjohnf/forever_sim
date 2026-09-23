@@ -650,13 +650,20 @@ describe('the default cat (druid.md §6.2, §7)', () => {
     expect(result.abilities.find((x) => x.id === 'rip')?.bleed?.uptimePct).toBeGreaterThan(25)
   })
 
-  it('drops the Buffs tab’s Faerie Fire while it keeps its own, and keeps it with the setting off', () => {
+  it('its Faerie Fire is its own: no preset adds the Buffs tab’s, which counts only when you turn it on with yours off', () => {
     const d = defaultConfig('druid-feral-cat')
-    expect(d.buffs.enabled).toContain('faerieFire')
-    const own = buildPlan(d).plan
-    const off = buildPlan({ ...d, rotation: { 'druid.cat.faerieFire.enabled': false } }).plan
-    expect(own.fight.targetArmor - off.fight.targetArmor).toBe(FAERIE_FIRE_ARMOR)
-    expect(off.abilities.some((a) => a.id === 'faerieFire')).toBe(false)
+    // The raid's Faerie Fire is assumed to be yours (druid.md §6.2): the default raid leaves it out.
+    expect(d.buffs.enabled).not.toContain('faerieFire')
+    const off = { ...d, rotation: { 'druid.cat.faerieFire.enabled': false } }
+    const none = buildPlan(off).plan
+    expect(none.abilities.some((a) => a.id === 'faerieFire')).toBe(false)
+    // Another druid's, turned on in Buffs: the static debuff.
+    const other = buildPlan({ ...off, buffs: { ...d.buffs, enabled: [...d.buffs.enabled, 'faerieFire'] } }).plan
+    expect(none.fight.targetArmor - other.fight.targetArmor).toBe(FAERIE_FIRE_ARMOR)
+    // With yours on, the Buffs tab's adds nothing more, turned on or not.
+    const own = buildPlan({ ...d, buffs: { ...d.buffs, enabled: [...d.buffs.enabled, 'faerieFire'] } }).plan
+    expect(own.fight.targetArmor).toBe(none.fight.targetArmor)
+    expect(own.auras.find((a) => a.id === 'faerieFire')?.targetArmor).toBe(FAERIE_FIRE_ARMOR)
   })
 
   it('counts its own Faerie Fire when it judges negative armor: 3,009 armor under the Standard raid goes below 0', () => {

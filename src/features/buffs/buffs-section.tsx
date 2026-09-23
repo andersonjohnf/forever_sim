@@ -66,6 +66,9 @@ export function BuffsSection() {
   // Buffs the talents bring (a druid's Leader of the Pack): on and locked the same way, since the
   // plan leaves the Buffs copy out too (druid.md §2.3).
   const fromTalents = useMemo(() => new Set(talentBuffs({ spec: meta.id, talents })), [meta.id, talents])
+  // The spec's own buffs (the cat's Faerie Fire): while the rotation doesn't keep one up, the tab's
+  // switch is someone else's, off unless you turn it on (SpecMeta.ownBuffs, druid.md §6.2).
+  const ownBuffs = useMemo(() => new Set(getSpec(meta.id).ownBuffs ?? []), [meta.id])
 
   const activePreset = buffPresets.find((p) => sameSet(presetBuffs(p.id, meta.id, buffs.raid), buffs.enabled))?.id
   // The spec's default preset, marked like the talent presets' "(default)" (docs/ux.md "Buffs", checklist 3).
@@ -174,7 +177,10 @@ export function BuffsSection() {
                     .map((def) => {
                       const talent = !maintained.has(def.id) && fromTalents.has(def.id)
                       const own = maintained.has(def.id) || talent
+                      // Yours, but the rotation doesn't keep it up: the switch means another player's.
+                      const dropped = !own && ownBuffs.has(def.id)
                       const missing = !own && def.providedBy && !buffs.raid.includes(def.providedBy)
+                      const providerName = def.providedBy ? CLASS_LABEL[def.providedBy].toLowerCase() : ''
                       return (
                         // A buff nobody in the raid brings is dimmed by colour, never opacity: its
                         // text turns to the muted colour (AA) and its icon to gray (docs/ux.md "Buffs").
@@ -195,8 +201,10 @@ export function BuffsSection() {
                                 : own
                                   ? `${def.summary}. You keep it up yourself (see Rotation), so it isn’t added twice.`
                                   : missing
-                                    ? `Needs a ${CLASS_LABEL[def.providedBy!].toLowerCase()} in the raid`
-                                    : def.summary}
+                                    ? `Needs ${dropped ? 'another' : 'a'} ${providerName} in the raid`
+                                    : dropped
+                                      ? `${def.summary}. You’re not keeping it up (see Rotation); turn this on if another ${providerName} does.`
+                                      : def.summary}
                             </span>
                           </span>
                           <Switch

@@ -521,10 +521,12 @@ maintains it, the sim applies the raid debuff from this source and doesn't doubl
 "Faerie Fire" debuff toggle. [F] [client] (SpellEffect 3025 effects 2–4, 1.60.1.69913) [ss-f]
 
 **In the engine:** a `cast` that rolls spell hit ([combat-tables §9](../mechanics/combat-tables.md#9-spell-hit-and-crit-generic)):
-17% against a level-63 boss, less your spell hit (Nature's Reach's 4% among it). A miss applies
-nothing, and the 6 s cooldown runs either way. Its aura takes 505 off the boss's armor while it's up. With
-the rotation's Faerie Fire on (the default), the Buffs tab's Faerie Fire adds nothing more, as a
-warrior's own Battle Shout replaces the Buffs one. Its threat (108 [?], Q15) isn't counted.
+17% against a level-63 boss, less your spell hit (Nature's Reach's 4% among it; 9% for the
+default cat). A miss applies nothing, and the 6 s cooldown runs either way. Its aura takes 505 off
+the boss's armor while it's up. With the rotation's Faerie Fire on (the default), the Buffs tab's
+Faerie Fire adds nothing more, as a warrior's own Battle Shout replaces the Buffs one; with it off,
+the Buffs tab's is off by default too, the raid's being assumed yours (§6.2). Its threat (108 [?],
+Q15) isn't counted.
 
 ### 3.9 Not used in the default cat rotation
 
@@ -821,7 +823,7 @@ isn't shown, [ux.md](../ux.md) "Fight").
 | `racial.enabled` | **on** | Elune's Light on cooldown (Night Elf) |
 | `onUseItems.enabled` | **on** | The Manual Crowd Pummeler and Weakness Analyzer on cooldown, if worn |
 | `tigersFury.enabled`, `tigersFury.maxEnergyLost` | **on**, **20** | Tiger's Fury once at most this much of its Energy would be lost at the cap. The doc's `tfMaxEnergy` = 100 − its Energy is the 0 of this setting; tuning prefers 20 (below) |
-| `faerieFire.enabled`, `faerieFire.refreshBelowSec` | **on**, **12 s** ([C] [wh-rot] refresh window) | Keep your own Faerie Fire up (the Buffs tab's then adds nothing). Off if another druid owns it: then the Buffs tab's applies |
+| `faerieFire.enabled`, `faerieFire.refreshBelowSec` | **on**, **12 s** ([C] [wh-rot] refresh window) | Keep your own Faerie Fire up (the Buffs tab's then adds nothing). The raid's Faerie Fire is assumed to be yours, so with this off the Buffs tab's is off by default too; turn it on there if another druid keeps it up (below) |
 | `shred.enabled` | **on** | Shred builds, from behind (the Fight tab's position) |
 | `claw.enabled` | **on** | Claw builds where Shred can't: from the front, or with Shred off |
 | `rip.enabled`, `rip.minComboPoints`, `rip.minFightLeftSec`, `rip.refreshBelowSec` | **on**, **5**, **8 s**, **0 s** | Rip policy. The doc's 10 s is `ripMinRemaining`; tuning prefers 8 |
@@ -831,6 +833,19 @@ isn't shown, [ux.md](../ux.md) "Fight").
 | `ferociousBite.onlyWhileRipUp` | **off** | Hold combo points for Rip while it's down. With both thresholds at 5 it changes nothing |
 | `rake.enabled`, `rake.onlyWithoutBleeds` | **off**, **on** | Low damage per Energy ([C] [wh-rot]); try it only when nothing else bleeds |
 | `ragePotion.enabled`, `jujuFlurry.enabled` | **on**, **on** | Only when selected in Buffs (the Max consumables preset has the potion) |
+
+**Your Faerie Fire or another druid's.** The Standard raid's Faerie Fire is assumed to be the
+cat's own, the way [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)'s
+amendment treats a tank's duties: no preset adds the Buffs tab's for the cat
+(`SpecMeta.ownBuffs`). With `faerieFire.enabled` on, the Buffs tab shows it on and locked, since
+you keep it up yourself. With it off, the Buffs tab's is off by default and unlocked, and its help
+says to turn it on if another druid keeps it up. What you set there stays set. In the default
+setup, turning your Faerie Fire off loses **32.92 DPS (−5.80%), 95% CI −33.14 to −32.70** (seed 1,
+40,000 paired fights), and 32.85 (−32.95 to −32.76) on a fresh seed (20260923, 200,000 fights).
+With another druid's Faerie Fire on in Buffs instead, it gains +2.38 (+2.16 to +2.61, seed 1),
+since the cat spends no GCDs on it and it's up from the pull. That gain is the raid's composition,
+not the rotation, so under D23 it doesn't change the default, as
+[warrior.md §5.3](warrior.md#53-arms-two-hander) records for Arms' own Battle Shout.
 
 **Others' bleeds.** The doc's `targetBleedingFromOthers` isn't a setting: the plan reads it from
 the Buffs tab's raid. With warriors in it (the default raid), the boss bleeds from their Deep

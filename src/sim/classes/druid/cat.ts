@@ -137,7 +137,7 @@ export const CAT_OPTIONS: RotationOption[] = [
     id: ID.ffEnabled,
     group: 'Cooldowns and buffs',
     label: 'Faerie Fire',
-    help: 'Keep your Faerie Fire on the boss: −505 armor for 40 s, free in Cat Form, with a 1 s global cooldown and a 6 s cooldown. It can miss. While this is on, the Buffs tab’s Faerie Fire adds nothing more, since it’s the same debuff.',
+    help: 'Keep your Faerie Fire on the boss: −505 armor for 40 s, free in Cat Form, with a 1 s global cooldown and a 6 s cooldown. It can miss. The Buffs tab’s Faerie Fire is the same debuff, so it counts once; with this off, turn that one on if another druid keeps it up.',
     default: true,
     maintainsBuff: 'faerieFire',
   },

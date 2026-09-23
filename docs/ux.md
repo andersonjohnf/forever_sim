@@ -191,6 +191,13 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     shows its switch on and locked, with a note saying the rotation keeps it up, so it's never
     counted twice. One the talents bring (a druid's Leader of the Pack) is on and locked the same
     way, and its note says the talents bring it.
+  - Some of these are the spec's own: the raid's version is assumed to be yours (a cat's Faerie
+    Fire, [druid §6.2](classes/druid.md#62-forever-cat-priority)). When the rotation drops one,
+    its Buffs switch is off by default and unlocked, and its note says so: "You're not keeping it
+    up (see Rotation); turn this on if another druid does." Turned on, it's another player's, and
+    it stays on until you turn it off. Without that class in the raid it reads "Needs another
+    druid in the raid". (A warrior's Battle Shout isn't one of these: the Buffs tab's is another
+    warrior's, and stays on when the rotation drops yours.)
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
   with units, one line of help, and the default marked. **Reset rotation** (in the section
   header, enabled once you've set anything) puts every setting back to its default. It disables

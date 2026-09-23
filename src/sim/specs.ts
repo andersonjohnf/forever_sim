@@ -9,6 +9,13 @@ export interface SpecMeta {
   name: string
   role: Role
   icon: string
+  /**
+   * Buff catalogue ids the Buffs tab assumes are this spec's own: its rotation keeps them up by
+   * default (the cat's Faerie Fire, druid.md §6.2). No preset adds them for the spec, so when the
+   * rotation drops one, the Buffs tab's is off until you turn it on there because someone else
+   * keeps it up (docs/ux.md "Buffs"). The tank's duties under D26 work the same way.
+   */
+  ownBuffs?: readonly string[]
 }
 
 export const SPEC_META: Record<SpecId, SpecMeta> = {
@@ -43,6 +50,7 @@ export const SPEC_META: Record<SpecId, SpecMeta> = {
     name: 'Feral (Cat)',
     role: 'dps',
     icon: 'ability_druid_catform',
+    ownBuffs: ['faerieFire'],
   },
   'druid-feral-bear': {
     id: 'druid-feral-bear',

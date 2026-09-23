@@ -649,7 +649,7 @@ specs only (the effect does nothing for the others) · `all` = every spec.
 | Mana Spring Totem | — | — | Pal | Pal |
 | Devotion Aura | — | — | Tank | Tank |
 | Sunder Armor ×5 | — | DPS | all | all |
-| Faerie Fire | — | — | all | all |
+| Faerie Fire | — | — | all (not the Feral cat's: see below) | all (the same) |
 | Curse of Recklessness | — | — | all | all |
 | Curse of the Elements | — | — | Pal | Pal |
 | Judgement of Wisdom | — | — | Pal | Pal |
@@ -658,6 +658,11 @@ specs only (the effect does nothing for the others) · `all` = every spec.
 | Trueshot Aura, Hunter's Mark | never (no melee effect in Forever) | — | — | — |
 | Camp buffs ([§1.3](#13-camp-buffs-new-forever-system)) | — | off (option: fill in for a missing class) | off (option) | off (option) |
 | World buffs | **never** | **never** | **never** | **never** |
+
+A buff a spec keeps up itself by default is that spec's own, and no preset adds it for the spec:
+the Feral cat's Faerie Fire ([druid §6.2](../classes/druid.md#62-forever-cat-priority)). Its
+rotation keeps it up; when the rotation doesn't, the Buffs tab's is off by default and means
+another player's, on only if you turn it on ([ux.md](../ux.md) "Buffs").
 
 Judgement of the Crusader is not a raid toggle: Ret and Prot paladins apply it themselves
 (see [paladin](../classes/paladin.md)), and it does nothing for warriors or druids.

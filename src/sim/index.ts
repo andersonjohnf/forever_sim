@@ -3,7 +3,8 @@
 import type { ClassSlug } from '@/data/races/types'
 import { classSetup, talentRanksByName } from './classes'
 import { resolveRotationValues } from './classes/options'
-import { ROTATION_GROUPS, rotationDefaultsNote, rotationOptions } from './classes/rotation'
+import { othersKeepBleeding, ROTATION_GROUPS, rotationDefaultsNote, rotationOptions, unusedSettings } from './classes/rotation'
+import { raceName } from './equip'
 import { normalizeConfig } from './config/normalize'
 import { TALENT_DATA } from './defaults'
 import { BUFFS } from './effects/buffs'
@@ -78,6 +79,20 @@ export const rotationGroups: readonly RotationGroup[] = ROTATION_GROUPS
 export function rotationValues(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation'>): Record<string, RotationValue> {
   const classId = SPEC_META[config.spec].classId
   return resolveRotationValues(rotationOptions(config.spec), config.rotation, talentRanksByName(TALENT_DATA[classId], config.talents))
+}
+
+/**
+ * Rotation settings that can't do anything in this setup, each with the note the Rotation tab shows
+ * under it, "Not used: …" (docs/ux.md "Rotation"): the racial cooldown for a race without one the
+ * sim uses, and the cat's Rake or Rip when "only when nothing else bleeds" meets a raid whose
+ * warriors keep the boss bleeding.
+ */
+export function unusedRotationSettings(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'race' | 'buffs'>): Record<string, string> {
+  return unusedSettings(config.spec, rotationValues(config), {
+    race: config.race,
+    raceName: raceName(config.race),
+    othersBleed: othersKeepBleeding(config.buffs.raid),
+  })
 }
 
 /**

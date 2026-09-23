@@ -60,6 +60,21 @@ test.describe('Feral cat', () => {
       await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
     }
     await expect(tab.getByRole('switch', { name: 'Rake', exact: true })).not.toBeChecked()
+    // What the rest of the setup leaves unused says why, dimmed: the Tauren's racial, and Rake in a
+    // raid whose warriors keep the boss bleeding, whose note names the way to use it anyway.
+    const racial = tab.getByRole('switch', { name: 'Racial cooldown', exact: true })
+    await expect(racial).toHaveAccessibleDescription(/Not used: Tauren has no racial cooldown that adds damage\./)
+    const inactiveRow = (name: string) => tab.locator('[data-inactive]').filter({ has: page.getByRole('switch', { name, exact: true }) })
+    await expect(inactiveRow('Racial cooldown')).toHaveCount(1)
+    const rake = tab.getByRole('switch', { name: 'Rake', exact: true })
+    await rake.click()
+    await expect(rake).toBeChecked()
+    await expect(rake).toHaveAccessibleDescription(/Not used in this raid: its warriors keep the boss bleeding\. Turn off “Rake only when nothing else bleeds” to use it anyway\./)
+    await expect(inactiveRow('Rake')).toHaveCount(1)
+    await expect(inactiveRow('Rake only when nothing else bleeds')).toHaveCount(0)
+    await tab.getByRole('switch', { name: 'Rake only when nothing else bleeds' }).click()
+    await expect(rake).not.toHaveAccessibleDescription(/Not used/)
+    await expect(inactiveRow('Rake')).toHaveCount(0)
 
     // The tuned thresholds wait behind Advanced, in Energy and combo points (druid.md §6.2).
     const core = tab.getByRole('region', { name: 'Core abilities' })

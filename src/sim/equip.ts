@@ -235,6 +235,11 @@ export function raceFaction(race: string): Faction | null {
   return RACE_FACTION.get(race) ?? null
 }
 
+const RACE_NAME = new Map<string, string>(raceData.races.map((r) => [r.id, r.name]))
+
+/** A race's name ("Night Elf"), or its id if it's unknown. */
+export const raceName = (race: string): string => RACE_NAME.get(race) ?? race
+
 /** The only faction that can equip the item, or null when both can. */
 export function itemFaction(item: Item): Faction | null {
   if (item.races) {

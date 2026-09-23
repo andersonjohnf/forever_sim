@@ -43,6 +43,20 @@ test.describe('rotation tab', () => {
     await expect(inactiveRow(page, 'Hamstring only without Flurry')).toHaveCount(0)
   })
 
+  test('the racial cooldown says it isn’t used, dimmed, for a race without one; not for an Orc', async ({ page }) => {
+    const tab = await openRotation(page)
+    // Fury's default race is Human.
+    const racial = tab.getByRole('switch', { name: 'Racial cooldown', exact: true })
+    await expect(racial).toHaveAccessibleDescription(/Not used: Human has no racial cooldown that adds damage\./)
+    await expect(inactiveRow(page, 'Racial cooldown')).toHaveCount(1)
+    await expect(racial).toBeEnabled()
+    await page.getByRole('tab', { name: 'Character', exact: true }).click()
+    await page.getByRole('radio', { name: 'Orc', exact: true }).click()
+    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+    await expect(racial).not.toHaveAccessibleDescription(/Not used/)
+    await expect(inactiveRow(page, 'Racial cooldown')).toHaveCount(0)
+  })
+
   test('timings before the execute phase and the potion’s limit dim while Execute, under another heading, is off', async ({ page }) => {
     const tab = await openRotation(page)
     const cooldowns = tab.getByRole('region', { name: 'Cooldowns and buffs' })

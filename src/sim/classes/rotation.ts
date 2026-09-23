@@ -5,10 +5,11 @@
 // abilities, priority list and pre-pull. Specs without a rotation yet simulate white swings only.
 import { NO_PREPULL } from '../plan/types'
 import type { RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
-import { CAT_OPTIONS, catMaintainedBuffs, catRotation } from './druid/cat'
+import { CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from './druid/cat'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
 import { paladinCore, type PaladinContext } from './paladin/setup'
 import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
+import { RACIAL_COOLDOWNS } from './warrior/abilities'
 import type { TalentRanks } from './warrior/modifiers'
 import type { ClassRotation } from './warrior/shared'
 import type { Stance } from './warrior/talents'
@@ -71,6 +72,45 @@ export function renamedRotationOptions(spec: SpecId): Readonly<Record<string, st
  * Buff catalogue ids the spec's rotation keeps up itself with these settings: the plan leaves
  * their static Buffs effects out, so each counts once (Battle Shout, warrior.md §5.2 and §5.3 row 1).
  */
+/**
+ * A raid with warriors keeps the boss bleeding all fight from their Deep Wounds [?]: Rend and Tear,
+ * and the cat's "only when nothing else bleeds" settings, read it (druid.md §5.1, §6.2, Q9).
+ */
+export const othersKeepBleeding = (raid: readonly string[]) => raid.includes('warrior')
+
+/** Each spec's racial cooldown setting (warrior.md §5.2 row 3, druid.md §6.2 row 2). */
+export const RACIAL_SETTING: Partial<Record<SpecId, string>> = {
+  'warrior-fury': 'warrior.fury.racial.enabled',
+  'warrior-arms': 'warrior.arms.racial.enabled',
+  'druid-feral-cat': 'druid.cat.racial.enabled',
+}
+
+/** What the setup around a rotation decides about its settings: the race (and its name) and the raid. */
+export interface UnusedSetup {
+  race: string
+  raceName: string
+  othersBleed: boolean
+}
+
+/**
+ * Settings that can't do anything in this setup, each with the note the Rotation tab shows under
+ * it (docs/ux.md "Rotation"): the racial cooldown for a race without one the sim uses (Orc, Troll
+ * and Night Elf have one; Gnome's Eureka! isn't simulated), and the cat's Rake and Rip when "only
+ * when nothing else bleeds" meets a raid with warriors.
+ */
+export function unusedSettings(spec: SpecId, values: Record<string, RotationValue>, setup: UnusedSetup): Record<string, string> {
+  const out: Record<string, string> = {}
+  const racial = RACIAL_SETTING[spec]
+  if (racial && !RACIAL_COOLDOWNS[setup.race]) {
+    out[racial] =
+      setup.race === 'alliance-gnome'
+        ? 'Not used: the Gnome’s Eureka! isn’t simulated.'
+        : `Not used: ${setup.raceName} has no racial cooldown that adds damage.`
+  }
+  if (spec === 'druid-feral-cat') Object.assign(out, catUnusedSettings(values, setup.othersBleed))
+  return out
+}
+
 export function maintainedBuffs(spec: SpecId, values: Record<string, RotationValue>): string[] {
   if (spec === 'warrior-fury') return furyMaintainedBuffs(values)
   if (spec === 'warrior-arms') return armsMaintainedBuffs(values)

@@ -278,6 +278,23 @@ export const CAT_OPTIONS: RotationOption[] = [
   },
 ]
 
+/**
+ * The cat's settings that do nothing in this raid, with why (docs/ux.md "Rotation"): Rake and Rip
+ * when their "only when nothing else bleeds" switch meets a raid whose warriors keep the boss
+ * bleeding, where the priority list leaves them out (druid.md §6.2 rows 7 and 9).
+ */
+export function catUnusedSettings(values: Record<string, RotationValue>, othersBleed: boolean): Record<string, string> {
+  if (!othersBleed) return {}
+  const v = reader(CAT_OPTIONS, values)
+  const out: Record<string, string> = {}
+  const label = (id: string) => CAT_OPTIONS.find((o) => o.id === id)!.label
+  const unused = (id: string) =>
+    `Not used in this raid: its warriors keep the boss bleeding. Turn off “${label(id)}” to use it anyway.`
+  if (v.on(ID.rakeNoBleed)) out[ID.rakeEnabled] = unused(ID.rakeNoBleed)
+  if (v.on(ID.ripNoOtherBleeds)) out[ID.ripEnabled] = unused(ID.ripNoOtherBleeds)
+  return out
+}
+
 /** Buff catalogue ids the cat keeps up itself with these settings: its Faerie Fire (druid.md §3.8). */
 export function catMaintainedBuffs(values: Record<string, RotationValue>): string[] {
   return reader(CAT_OPTIONS, values).on(ID.ffEnabled) ? ['faerieFire'] : []

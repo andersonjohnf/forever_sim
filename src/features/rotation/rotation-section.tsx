@@ -14,7 +14,7 @@ import { EmptyState } from '@/features/empty-state'
 import { SectionHeader } from '@/features/section'
 import { CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
-import { getSpec, rotationGroups, type RotationGroup, type RotationOption, type RotationValue } from '@/sim'
+import { getSpec, rotationGroups, unusedRotationSettings, type RotationGroup, type RotationOption, type RotationValue } from '@/sim'
 import { formatSetting, isAdvanced, rotationRows, type RowState } from './logic'
 
 /** What every row needs: its state, and setting or resetting a value. */
@@ -30,6 +30,7 @@ const rowIds = (id: string) => ({
   help: `rot-${id}-help`,
   default: `rot-${id}-default`,
   missing: `rot-${id}-missing`,
+  notUsed: `rot-${id}-not-used`,
 })
 
 /** A setting's control as it is now: its switch or input, or a choice's selected option. */
@@ -53,16 +54,19 @@ export function RotationSection() {
   const talents = useSetup((s) => s.config.talents)
   const enabledBuffs = useSetup((s) => s.config.buffs.enabled)
   const executePct = useSetup((s) => s.config.fight.executePct)
+  const race = useSetup((s) => s.config.race)
+  const raid = useSetup((s) => s.config.buffs.raid)
   const update = useSetup((s) => s.update)
   const spec = getSpec(meta.id)
   const options = spec.rotationOptions
   // Each setting's value, its default for this setup (a default can follow the talents or another
   // setting), whether it's changed, and whether it can apply: the execute phase's settings need one
   // under Fight (docs/ux.md "Rotation").
-  const rows = useMemo(
-    () => rotationRows({ spec: meta.id, talents, rotation, fight: { executePct } }, options, enabledBuffs),
-    [meta.id, talents, rotation, executePct, options, enabledBuffs],
-  )
+  // A setting the rest of the setup leaves unused says why: the race's, or the raid's (docs/ux.md "Rotation").
+  const rows = useMemo(() => {
+    const unused = unusedRotationSettings({ spec: meta.id, talents, rotation, race, buffs: { raid, enabled: enabledBuffs } })
+    return rotationRows({ spec: meta.id, talents, rotation, fight: { executePct } }, options, enabledBuffs, unused)
+  }, [meta.id, talents, rotation, executePct, options, enabledBuffs, race, raid])
   const ctx: RowContext = {
     rows,
     set: (id, value) => update((c) => ({ ...c, rotation: { ...c.rotation, [id]: value } })),
@@ -262,7 +266,7 @@ function OptionRow({ option, ctx, nested = false }: { option: RotationOption; ct
 function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOption, { kind: 'toggle' }>; row: RowState; ctx: RowContext; nested: boolean }) {
   const setSection = useSetup((s) => s.setSection)
   const ids = rowIds(option.id)
-  const notes = row.missingBuff !== undefined || row.changed
+  const notes = row.missingBuff !== undefined || row.notUsed !== undefined || row.changed
   return (
     // Dimmed by colour, never opacity, so its text stays AA (docs/ux.md "Visual language").
     <div data-inactive={row.inactive || undefined} className={cn(row.inactive && 'text-muted-foreground')}>
@@ -288,7 +292,7 @@ function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOptio
           disabled={row.missingBuff !== undefined}
           className={cn(row.inactive && INACTIVE_SWITCH)}
           aria-labelledby={ids.label}
-          aria-describedby={[ids.help, row.missingBuff && ids.missing, row.changed && ids.default].filter(Boolean).join(' ')}
+          aria-describedby={[ids.help, row.missingBuff && ids.missing, row.notUsed && ids.notUsed, row.changed && ids.default].filter(Boolean).join(' ')}
           onCheckedChange={(on) => ctx.set(option.id, on)}
         />
       </label>
@@ -315,6 +319,11 @@ function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOptio
                 Buffs
               </button>{' '}
               first.
+            </p>
+          )}
+          {row.notUsed && (
+            <p id={ids.notUsed} className="text-xs text-muted-foreground">
+              {row.notUsed}
             </p>
           )}
           {row.changed && <DefaultHint option={option} row={row} ctx={ctx} />}

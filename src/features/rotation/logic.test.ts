@@ -2,7 +2,7 @@
 // changed mark, a consumable switch without its Buffs switch, settings whose parent is off, and
 // those that need an execute phase.
 import { describe, expect, it } from 'vitest'
-import { defaultConfig, getSpec, type SimConfig } from '@/sim'
+import { defaultConfig, getSpec, type SimConfig, unusedRotationSettings } from '@/sim'
 import { formatSetting, isAdvanced, rotationRows } from './logic'
 
 const rows = (config: SimConfig, rotation: SimConfig['rotation'] = {}, enabled = config.buffs.enabled) =>
@@ -11,6 +11,19 @@ const rows = (config: SimConfig, rotation: SimConfig['rotation'] = {}, enabled =
 describe('rotation rows', () => {
   const fury = defaultConfig('warrior-fury')
   const arms = defaultConfig('warrior-arms')
+
+  it('dims a setting the setup leaves unused and says why, leaving the settings under it active', () => {
+    const cat = { ...defaultConfig('druid-feral-cat'), rotation: { 'druid.cat.rake.enabled': true } }
+    const unused = unusedRotationSettings(cat)
+    const r = rotationRows({ ...cat }, getSpec(cat.spec).rotationOptions, cat.buffs.enabled, unused)
+    // The default cat is a Tauren, and the default raid's warriors keep the boss bleeding.
+    expect(r.get('druid.cat.racial.enabled')).toMatchObject({ inactive: true, notUsed: 'Not used: Tauren has no racial cooldown that adds damage.' })
+    expect(r.get('druid.cat.rake.enabled')).toMatchObject({ on: true, inactive: true })
+    expect(r.get('druid.cat.rake.enabled')?.notUsed).toMatch(/^Not used in this raid: its warriors keep the boss bleeding\. Turn off “Rake only when nothing else bleeds”/)
+    // The way to use it stays active.
+    expect(r.get('druid.cat.rake.onlyWithoutBleeds')).toMatchObject({ inactive: false })
+    expect(r.get('druid.cat.rake.onlyWithoutBleeds')?.notUsed).toBeUndefined()
+  })
 
   it('marks nothing changed by default, and shows each value as its default', () => {
     for (const config of [fury, arms, defaultConfig('druid-feral-cat')]) {

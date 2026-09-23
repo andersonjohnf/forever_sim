@@ -16,10 +16,12 @@ import {
   rotationValues,
   type SimConfig,
   type SimProgress,
+  type SpecId,
   simulate,
   SPEC_IDS,
   specs,
   talentBuffs,
+  unusedRotationSettings,
 } from './index'
 
 const quick = (config: SimConfig, iterations = 250): SimConfig => ({ ...config, run: { ...config.run, mode: 'fixed', iterations } })
@@ -171,6 +173,34 @@ describe('rotation groups (docs/ux.md "Rotation")', () => {
       }
     })
   }
+})
+
+describe('unusedRotationSettings (docs/ux.md "Rotation")', () => {
+  it('names a racial cooldown setting the race can’t use, in every spec with one', () => {
+    const note = (spec: SpecId, race: string) => unusedRotationSettings({ ...defaultConfig(spec), race })
+    expect(note('warrior-fury', 'alliance-human')).toEqual({ 'warrior.fury.racial.enabled': 'Not used: Human has no racial cooldown that adds damage.' })
+    expect(note('warrior-arms', 'alliance-gnome')).toEqual({ 'warrior.arms.racial.enabled': 'Not used: the Gnome’s Eureka! isn’t simulated.' })
+    expect(note('warrior-fury', 'horde-orc')).toEqual({})
+    expect(note('warrior-arms', 'horde-troll')).toEqual({})
+    expect(Object.keys(note('druid-feral-cat', 'alliance-night-elf'))).not.toContain('druid.cat.racial.enabled')
+    expect(note('druid-feral-cat', 'horde-skyborne-windshaper')).toMatchObject({
+      'druid.cat.racial.enabled': 'Not used: Skyborne (Windshaper) has no racial cooldown that adds damage.',
+    })
+    // Every one of them is a setting of its spec.
+    for (const spec of SPEC_IDS) {
+      for (const id of Object.keys(note(spec, 'alliance-human'))) expect(getSpec(spec).rotationOptions.map((o) => o.id)).toContain(id)
+    }
+  })
+
+  it('names the cat’s Rake and Rip when "only when nothing else bleeds" meets a raid with warriors, and not without them', () => {
+    const cat = { ...defaultConfig('druid-feral-cat'), race: 'alliance-night-elf' }
+    const both = { 'druid.cat.rip.onlyWithoutOtherBleeds': true }
+    // Rake's "only when nothing else bleeds" is on by default, so its note shows whether Rake is on or off.
+    expect(Object.keys(unusedRotationSettings(cat))).toEqual(['druid.cat.rake.enabled'])
+    expect(Object.keys(unusedRotationSettings({ ...cat, rotation: both }))).toEqual(['druid.cat.rake.enabled', 'druid.cat.rip.enabled'])
+    const noWarriors = { ...cat, rotation: both, buffs: { ...cat.buffs, raid: cat.buffs.raid.filter((c) => c !== 'warrior') } }
+    expect(unusedRotationSettings(noWarriors)).toEqual({})
+  })
 })
 
 describe('rotationValues', () => {

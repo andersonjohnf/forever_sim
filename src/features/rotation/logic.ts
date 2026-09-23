@@ -17,8 +17,15 @@ export interface RowState {
   /** Whether a switch shows on: only while it's on and any consumable it needs is selected. */
   on: boolean
   /**
+   * Why it can't do anything in this setup, as the row's note says it ("Not used: Tauren has no
+   * racial cooldown that adds damage."), from `unusedRotationSettings`. The row is dimmed, and its
+   * switch stays usable: it takes effect once the setup lets it.
+   */
+  notUsed?: string
+  /**
    * A switch it depends on is off, or can't apply itself, so this setting changes nothing; or it
-   * needs an execute phase itself (Execute) and the fight has none.
+   * needs an execute phase itself (Execute) and the fight has none; or the setup leaves it unused
+   * (`notUsed`).
    */
   inactive: boolean
 }
@@ -31,12 +38,14 @@ export const isAdvanced = (option: RotationOption) => option.kind === 'number'
 
 /**
  * Every setting's row state for this setup. The fight's execute phase decides whether the settings
- * that need one can apply: at 0% there's none (docs/ux.md "Rotation").
+ * that need one can apply: at 0% there's none (docs/ux.md "Rotation"). `unused` gives the settings
+ * the rest of the setup leaves unused, with why (`unusedRotationSettings`).
  */
 export function rotationRows(
   config: Pick<SimConfig, 'spec' | 'talents' | 'rotation'> & { fight: Pick<SimConfig['fight'], 'executePct'> },
   options: readonly RotationOption[],
   enabledBuffs: readonly string[],
+  unused: Readonly<Record<string, string>> = {},
 ): Map<string, RowState> {
   const { spec, talents, rotation } = config
   const values = rotationValues({ spec, talents, rotation })
@@ -60,13 +69,20 @@ export function rotationRows(
     const { [option.id]: saved, ...others } = rotation
     const def = saved === undefined ? values[option.id] : rotationValues({ spec, talents, rotation: others })[option.id]
     const missingBuff = missing(option)
+    const notUsed = unused[option.id]
     rows.set(option.id, {
       value: values[option.id],
       default: def,
       changed: saved !== undefined && saved !== def,
       missingBuff,
       on: Boolean(values[option.id]) && missingBuff === undefined,
-      inactive: noPhase(option) || [option.dependsOn, option.kind === 'number' ? option.alsoDependsOn : undefined].some((id) => id !== undefined && !applies(id)),
+      ...(notUsed !== undefined ? { notUsed } : {}),
+      // An unused setting dims itself only: the settings under it may be how to use it (Rake's
+      // "only when nothing else bleeds").
+      inactive:
+        notUsed !== undefined ||
+        noPhase(option) ||
+        [option.dependsOn, option.kind === 'number' ? option.alsoDependsOn : undefined].some((id) => id !== undefined && !applies(id)),
     })
   }
   return rows

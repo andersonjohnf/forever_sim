@@ -254,6 +254,14 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     says it needs an execute phase under Fight. A dimmed setting is dimmed by colour, never
     opacity: its label and inputs take the muted text colour, which is AA, and a switch that's on
     shows a neutral gray track rather than the primary colour. It stays usable.
+  - A setting the rest of the setup leaves unused is dimmed, with a note under it saying why, in
+    the consumables' words: the racial cooldown for a race without one the sim uses ("Not used:
+    Tauren has no racial cooldown that adds damage.", and the Gnome's Eureka!, which isn't
+    simulated), and a cat's Rake or Rip while its "only when nothing else bleeds" meets a raid
+    whose warriors keep the boss bleeding ("Not used in this raid: its warriors keep the boss
+    bleeding. Turn off … to use it anyway."). Its switch stays usable, since it takes effect once
+    the setup lets it, and the settings under it aren't dimmed with it: one may be the way to use
+    it.
   - A consumable's row needs its Buffs switch. While that's off, its own switch shows off and
     locked, whatever it's set to, and the row says so ("Not used: turn on … in Buffs first"),
     with **Buffs** a link to that tab (a 44 px hit area, like a row's Reset). The link opens

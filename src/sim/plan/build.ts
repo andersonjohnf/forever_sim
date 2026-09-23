@@ -12,7 +12,7 @@ import { classSetup } from '../classes'
 import { DRUID_FORMS, FORM_INDEX, FORM_NAME, formWeapon } from '../classes/druid/forms'
 import { druidPlan } from '../classes/druid/plan'
 import { paladinAssumptions, paladinManaPlan } from '../classes/paladin/setup'
-import { classRotation, maintainedBuffs, rotationBaseStance } from '../classes/rotation'
+import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance } from '../classes/rotation'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
 import { BUFFS_BY_ID } from '../effects/buffs'
@@ -706,7 +706,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // --- Abilities and the priority list (docs/classes/warrior.md §5) ------------------------------
   // A raid with warriors keeps their Deep Wounds on the boss, so it bleeds from others all fight: an
   // assumption for Rend and Tear and the cat's Rip (druid.md §5.1, §6.2, Q9 [?]).
-  const othersBleed = config.buffs.raid.includes('warrior')
+  const othersBleed = othersKeepBleeding(config.buffs.raid)
   const classRot = setup.simulated
     ? classRotation(config.spec, config.rotation, setup.talents, (id) => auras.findIndex((a) => a.id === id), {
         race: config.race,

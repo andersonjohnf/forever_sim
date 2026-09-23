@@ -38,9 +38,9 @@
     "bySource": {
       "buffsDoc": 47,
       "consumable": 78,
-      "docs": 262,
+      "docs": 285,
       "enchant": 125,
-      "item": 409,
+      "item": 407,
       "racial": 44,
       "spellbook": 493,
       "talent": 156,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 872,
     "notInClient": 0,
-    "seeds": 1357,
-    "spells": 1470
+    "seeds": 1362,
+    "spells": 1475
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -23555,7 +23555,7 @@
         "spellIconFileDataId": 136235
       },
       "name": "Lesser Agility",
-      "sources": ["enchant"]
+      "sources": ["docs", "enchant"]
     },
     "13365": {
       "duration": {
@@ -23579,7 +23579,7 @@
         "spellIconFileDataId": 136235
       },
       "name": "Agility",
-      "sources": ["enchant"]
+      "sources": ["docs", "enchant"]
     },
     "13372": {
       "duration": {
@@ -23602,7 +23602,7 @@
         "spellIconFileDataId": 136235
       },
       "name": "Strength",
-      "sources": ["enchant"]
+      "sources": ["docs", "enchant"]
     },
     "13383": {
       "auraOptions": {
@@ -24345,7 +24345,7 @@
         "spellIconFileDataId": 136235
       },
       "name": "Greater Agility",
-      "sources": ["enchant"]
+      "sources": ["docs", "enchant"]
     },
     "13824": {
       "duration": {
@@ -24369,7 +24369,7 @@
         "spellIconFileDataId": 136235
       },
       "name": "Stats",
-      "sources": ["enchant"]
+      "sources": ["docs", "enchant"]
     },
     "13827": {
       "duration": {
@@ -24393,7 +24393,7 @@
         "spellIconFileDataId": 136235
       },
       "name": "Greater Stamina",
-      "sources": ["enchant"]
+      "sources": ["docs", "enchant"]
     },
     "13828": {
       "duration": {
@@ -24780,7 +24780,7 @@
         "spellIconFileDataId": 136235
       },
       "name": "Deflection",
-      "sources": ["enchant"]
+      "sources": ["docs", "enchant"]
     },
     "13927": {
       "duration": {
@@ -26028,7 +26028,7 @@
         "spellIconFileDataId": 135990
       },
       "name": "Hand of Justice",
-      "sources": ["item"]
+      "sources": ["docs", "item"]
     },
     "15601": {
       "effects": [
@@ -31163,6 +31163,72 @@
       },
       "sources": ["docs", "trigger"]
     },
+    "18191": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "classOptions": {
+        "spellClassSet": 13
+      },
+      "duration": {
+        "duration": 600000,
+        "maxDuration": 600000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 29,
+          "effectBasePointsF": 10,
+          "effectIndex": 0,
+          "effectMiscValue": [2, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18191,
+      "levels": {
+        "spellLevel": 16
+      },
+      "misc": {
+        "attributes": [671088640, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132584
+      },
+      "name": "Increased Stamina",
+      "sources": ["docs"]
+    },
+    "18192": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "classOptions": {
+        "spellClassSet": 13
+      },
+      "duration": {
+        "duration": 600000,
+        "maxDuration": 600000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 29,
+          "effectBasePointsF": 10,
+          "effectIndex": 0,
+          "effectMiscValue": [1, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18192,
+      "levels": {
+        "spellLevel": 16
+      },
+      "misc": {
+        "attributes": [671088640, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132953
+      },
+      "name": "Increased Agility",
+      "sources": ["docs"]
+    },
     "18196": {
       "auraOptions": {
         "procChance": 101
@@ -34700,7 +34766,7 @@
         "spellIconFileDataId": 136235
       },
       "name": "Superior Stamina",
-      "sources": ["enchant"]
+      "sources": ["docs", "enchant"]
     },
     "19988": {
       "duration": {
@@ -46243,6 +46309,30 @@
       "name": "Pagle's Broken Reel",
       "sources": ["item"]
     },
+    "24799": {
+      "duration": {
+        "duration": 900000,
+        "maxDuration": 900000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 29,
+          "effectBasePointsF": 20,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 24799,
+      "misc": {
+        "attributes": [134217984, 32, -1879031808, 5242880, 0, 0, 4, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136000
+      },
+      "name": "Well Fed",
+      "sources": ["docs"]
+    },
     "24858": {
       "auraOptions": {
         "procChance": 101
@@ -46750,7 +46840,7 @@
         "spellIconFileDataId": 136235
       },
       "name": "Dodge",
-      "sources": ["enchant"]
+      "sources": ["docs", "enchant"]
     },
     "25072": {
       "castTime": {
@@ -47585,6 +47675,40 @@
       ],
       "sources": ["buffsDoc", "docs"]
     },
+    "25360": {
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1
+      },
+      "classOptions": {
+        "spellClassMask": [131072, 0, 0, 16777216],
+        "spellClassSet": 11
+      },
+      "effects": [
+        {
+          "effect": 35,
+          "effectAura": 29,
+          "effectBasePointsF": 89,
+          "effectIndex": 0,
+          "effectMiscValue": [1, 0],
+          "effectRadiusIndex": [10, 10],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 25360,
+      "levels": {
+        "baseLevel": 60,
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [320, 0, 0, 256, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136046
+      },
+      "name": "Grace of Air",
+      "nameSubtext": "Rank 3",
+      "sources": ["docs"]
+    },
     "25361": {
       "categories": {
         "defenseType": 1,
@@ -47629,6 +47753,39 @@
         }
       ],
       "sources": ["buffsDoc", "docs"]
+    },
+    "25362": {
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1
+      },
+      "classOptions": {
+        "spellClassMask": [65536, 0, 0, 134217728],
+        "spellClassSet": 11
+      },
+      "effects": [
+        {
+          "effect": 35,
+          "effectAura": 29,
+          "effectBasePointsF": 53,
+          "effectIndex": 0,
+          "effectRadiusIndex": [10, 10],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 25362,
+      "levels": {
+        "baseLevel": 60,
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [320, 0, 0, 256, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136023
+      },
+      "name": "Strength of Earth",
+      "nameSubtext": "Rank 5",
+      "sources": ["docs"]
     },
     "25660": {
       "categories": {
@@ -50187,7 +50344,7 @@
         "spellIconFileDataId": 132788
       },
       "name": "CHUG! CHUG! CHUG! CHUG!",
-      "sources": ["docs", "item"]
+      "sources": ["docs"]
     },
     "402927": {
       "auraOptions": {
@@ -51514,7 +51671,7 @@
         "spellIconFileDataId": 135913
       },
       "name": "Enchant Shield - Excellent Stamina",
-      "sources": ["enchant"],
+      "sources": ["docs", "enchant"],
       "targetRestrictions": {
         "targets": 16
       }
@@ -51599,7 +51756,7 @@
         "spellIconFileDataId": 135913
       },
       "name": "Enchant Shield - Critical Strike",
-      "sources": ["enchant"],
+      "sources": ["docs", "enchant"],
       "targetRestrictions": {
         "targets": 16
       }
@@ -53163,7 +53320,7 @@
         "spellIconFileDataId": 135913
       },
       "name": "Enchant 2H Weapon - Lesser Strength",
-      "sources": ["enchant"],
+      "sources": ["docs", "enchant"],
       "targetRestrictions": {
         "targets": 16
       }
@@ -53192,7 +53349,7 @@
         "spellIconFileDataId": 135913
       },
       "name": "Enchant Bracer - Superior Agility",
-      "sources": ["enchant"],
+      "sources": ["docs", "enchant"],
       "targetRestrictions": {
         "targets": 16
       }
@@ -53250,7 +53407,7 @@
         "spellIconFileDataId": 135913
       },
       "name": "Enchant Bracer - Superior Deflection",
-      "sources": ["enchant"],
+      "sources": ["docs", "enchant"],
       "targetRestrictions": {
         "targets": 16
       }
@@ -53278,7 +53435,7 @@
         "spellIconFileDataId": 135913
       },
       "name": "Enchant 2H Weapon - Strength",
-      "sources": ["enchant"],
+      "sources": ["docs", "enchant"],
       "targetRestrictions": {
         "targets": 16
       }
@@ -53380,7 +53537,7 @@
         "spellIconFileDataId": 135913
       },
       "name": "Enchant Necklace - Strength",
-      "sources": ["enchant"],
+      "sources": ["docs", "enchant"],
       "targetRestrictions": {
         "targets": 16
       }
@@ -53409,7 +53566,7 @@
         "spellIconFileDataId": 135913
       },
       "name": "Enchant Necklace - Agility",
-      "sources": ["enchant"],
+      "sources": ["docs", "enchant"],
       "targetRestrictions": {
         "targets": 16
       }
@@ -60291,7 +60448,7 @@
       "range": {
         "rangeMax": [50000, 50000]
       },
-      "sources": ["docs", "item"]
+      "sources": ["docs"]
     },
     "1318325": {
       "effects": [

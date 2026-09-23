@@ -12,7 +12,7 @@ import type { CreatureType, RotationGroup, RotationOption, RotationValue } from 
 import { resolveRotationValues } from '../options'
 import {
   type AbilityDef,
-  BATTLE_SHOUT,
+  battleShout,
   BLOODRAGE,
   CHARGE_RAGE_TENTHS,
   DEATH_WISH,
@@ -146,7 +146,9 @@ export const battleShoutOptions = (ids: SharedIds): RotationOption[] => [
     id: ids.bsEnabled,
     group: 'Cooldowns and buffs',
     label: 'Battle Shout',
-    help: 'Keep your own Battle Shout up: +139 attack power for 10 rage a shout. While this is on, the Buffs tab’s Battle Shout adds nothing more, since it’s the same buff.',
+    // No number here: the options are the same in both rule profiles, and the shout isn't
+    // (+139 in Forever, +232 in Classic Era; the Buffs tab shows the setup's).
+    help: 'Keep your own Battle Shout up, for 10 rage a shout; the Buffs tab shows its attack power. While this is on, the Buffs tab’s Battle Shout adds nothing more, since it’s the same buff.',
     default: true,
     maintainsBuff: 'battleShout',
   },
@@ -396,11 +398,12 @@ export class RotationBuilder {
 /**
  * Battle Shout's upkeep line: when it's down, or has at most `refreshBelowSec` left and would end
  * before the fight does (the engine wakes the rotation then). With it on, the plan leaves out the
- * Buffs switch's static +139, so the buff counts once (warrior.md §5.2 notes). True when it's on.
+ * Buffs switch's static +139 (`classicEra`: +232), so the buff counts once (warrior.md §5.2
+ * notes). The shout is the profile's (`battleShout`). True when it's on.
  */
-export function battleShoutLine(b: RotationBuilder, v: Reader, ids: SharedIds): boolean {
+export function battleShoutLine(b: RotationBuilder, v: Reader, ids: SharedIds, ctx: RotationContext): boolean {
   if (!v.on(ids.bsEnabled)) return false
-  const bs = b.ability(BATTLE_SHOUT)
+  const bs = b.ability(battleShout(ctx.profile))
   b.rotation.push({ ability: bs, conditions: [{ code: COND.abilityAuraRefresh, a: bs, b: seconds(v, ids.bsRefresh) }], unqueueBelowTenths: 0 })
   return true
 }
@@ -499,7 +502,7 @@ export function consumableLines(b: RotationBuilder, v: Reader, ids: SharedIds, c
  * rank (§2.1, §2.3).
  */
 export function prepullCasts(b: RotationBuilder, v: Reader, ids: SharedIds, ctx: RotationContext, shout: boolean, swapAfterCharge: boolean): void {
-  if (shout && v.on(ids.prepullShout)) b.prepull.casts.push({ ability: b.ability(BATTLE_SHOUT), atMs: PREPULL_SHOUT_MS })
+  if (shout && v.on(ids.prepullShout)) b.prepull.casts.push({ ability: b.ability(battleShout(ctx.profile)), atMs: PREPULL_SHOUT_MS })
   if (v.on(ids.prepullBloodrage)) b.prepull.casts.push({ ability: b.ability(BLOODRAGE), atMs: PREPULL_BLOODRAGE_MS })
   if (v.on(ids.prepullCharge)) {
     b.prepull.chargeTenths = CHARGE_RAGE_TENTHS + IMPROVED_CHARGE_TENTHS_PER_RANK * (b.talents.get('Improved Charge') ?? 0)

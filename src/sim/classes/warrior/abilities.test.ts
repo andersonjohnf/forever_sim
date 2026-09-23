@@ -14,9 +14,12 @@ import type { CreatureType } from '../../types'
 import { talentRanksByName } from '../index'
 import { BUFFS_BY_ID, JUJU_FLURRY, MIGHTY_RAGE_POTION } from '../../effects/buffs'
 import { ITEM_EFFECTS } from '../../effects/items'
+import { catalogueEffects } from '../../effects/types'
 import {
   type AbilityDef,
   BATTLE_SHOUT,
+  BATTLE_SHOUT_CLASSIC_ERA,
+  battleShout,
   BERSERKER_RAGE,
   BERSERKING,
   BLOOD_FURY,
@@ -162,8 +165,10 @@ describe('warrior abilities match src/data/client/spells.json', () => {
       if (weapon) {
         expect(ability.flatDamage, 'weapon damage bonus').toBe(weapon.effectBasePointsF ?? 0)
       } else if (ability.damagePerExtraRage > 0) {
-        // Execute: the DUMMY effect is its base damage; the 15 per rage is server-side (warrior.md §3.1).
+        // Execute: the DUMMY effect is its base damage, and its `effectChainAmplitude` × 10 the
+        // damage per extra rage, as the tooltip's `$*10;F1` shows it (warrior.md §3.1).
         expect(ability.flatDamage, 'Execute base damage').toBe(dummy?.effectBasePointsF)
+        expect(ability.damagePerExtraRage, 'damage per extra rage').toBe((dummy?.effectChainAmplitude ?? 0) * 10)
         expect(ability.apCoefficient).toBe(0)
       } else {
         const damage = spell.effects.find((e) => e.effect === EFFECT.schoolDamage)
@@ -386,9 +391,15 @@ const TRIGGER_SPELL = 64
 const PERIODIC_ENERGIZE = 24
 /** The aura effects the sim models, by SpellAuraName: damage done %, all crit, attack power %, melee haste %, melee attack power. */
 const AURA_MOD: Record<number, string> = { 79: 'damage', 290: 'crit', 166: 'apPct', 319: 'haste', 99: 'ap' }
-/** An effect's points at level 60: base + per level above `baseLevel`, up to `maxLevel` (Battle Shout: 139 + 0.6 × 0). */
+/**
+ * An effect's points at level 60, by the spell-text renderer's rule (scripts/scrape/lib/spell-text.mjs
+ * `scalingLevels`, `effectRange`; docs/data/items.md#per-level-values): base + the per-level term ×
+ * the levels from `spellLevel` to 60 (or to `maxLevel` when lower), never below 0, truncated toward
+ * zero (Battle Shout: 139 + 0.6 × 0).
+ */
 const pointsAt60 = (spell: (typeof spells)[string], e: (typeof spells)[string]['effects'][number]) =>
-  (e.effectBasePointsF ?? 0) + (e.effectRealPointsPerLevel ?? 0) * (Math.min(60, spell.levels?.maxLevel || 60) - (spell.levels?.baseLevel ?? 60))
+  (e.effectBasePointsF ?? 0) +
+  Math.trunc((e.effectRealPointsPerLevel ?? 0) * Math.max(0, Math.min(60, spell.levels?.maxLevel || 60) - (spell.levels?.spellLevel ?? 60)))
 
 describe('cast abilities match src/data/client/spells.json (warrior.md §2.3, §2.6, §2.9, §3.2)', () => {
   for (const ability of CASTS) {
@@ -432,6 +443,51 @@ describe('cast abilities match src/data/client/spells.json (warrior.md §2.3, §
     expect(withTalents(BATTLE_SHOUT, new Map([['Focused Rage', 3]])).costTenths).toBe(100)
     // The same 139 as the Buffs tab's Battle Shout, which the rotation's upkeep replaces.
     expect(BUFFS_BY_ID.get('battleShout')!.effects).toEqual([{ kind: 'stat', stat: 'ap', value: 139 }])
+  })
+
+  it('Battle Shout per profile: Classic Era’s is 232 attack power for 2 min, the catalogue’s Classic Era value (warrior.md §1.1, §3.2)', () => {
+    expect(battleShout(FOREVER)).toBe(BATTLE_SHOUT)
+    expect(battleShout(CLASSIC_ERA)).toBe(BATTLE_SHOUT_CLASSIC_ERA)
+    // Only the aura differs: the cost, cooldown, GCD and stances are the same in both clients.
+    const { aura, ...rest } = BATTLE_SHOUT_CLASSIC_ERA
+    const { aura: foreverAura, ...foreverRest } = BATTLE_SHOUT
+    expect(rest).toEqual(foreverRest)
+    expect(aura).toEqual({ ...foreverAura, durationMs: 120000, mods: { ap: 232 } })
+    for (const profile of [FOREVER, CLASSIC_ERA]) {
+      expect(catalogueEffects(BUFFS_BY_ID.get('battleShout')!, profile)).toEqual([{ kind: 'stat', stat: 'ap', value: battleShout(profile).aura!.mods.ap }])
+    }
+  })
+
+  // The committed client data is Forever's only; with the raw Classic Era tables cached locally
+  // (.cache/client/1.15.9.69722/tables, from `npm run scrape:client`), check Classic Era's 25289.
+  const CLASSIC_TABLES = import.meta.glob<string>('/.cache/client/1.15.9.69722/tables/{SpellEffect,SpellLevels,SpellMisc,SpellDuration,SpellPower,SpellCooldowns}.ndjson', {
+    query: '?raw',
+    import: 'default',
+  })
+  it.skipIf(Object.keys(CLASSIC_TABLES).length !== 6)('Classic Era’s Battle Shout matches the Classic Era client’s 25289 (1.15.9.69722, cached locally)', async () => {
+    /** The spell's rows in a table, found by line so the large tables aren't parsed whole. */
+    const rows = async (table: string, key: string, id: number) => {
+      const raw = await CLASSIC_TABLES[`/.cache/client/1.15.9.69722/tables/${table}.ndjson`]()
+      const pattern = new RegExp(`"${key}":${id}[,}]`)
+      return raw
+        .split('\n')
+        .filter((line) => pattern.test(line))
+        .map((line) => JSON.parse(line) as Record<string, number>)
+        .filter((r) => (r.DifficultyID ?? 0) === 0)
+    }
+    const [effect] = (await rows('SpellEffect', 'SpellID', 25289)).filter((r) => r.Effect === APPLY_AURA && r.EffectAura === 99)
+    const [levels] = await rows('SpellLevels', 'SpellID', 25289)
+    const [misc] = await rows('SpellMisc', 'SpellID', 25289)
+    const [duration] = await rows('SpellDuration', 'ID', misc.DurationIndex)
+    const [power] = await rows('SpellPower', 'SpellID', 25289)
+    const [cooldowns] = await rows('SpellCooldowns', 'SpellID', 25289)
+    // Classic Era's layout: EffectBasePoints + 1 (EffectDieSides 1), + the per-level term at 60.
+    const scaled = Math.trunc(effect.EffectRealPointsPerLevel * Math.max(0, Math.min(60, levels.MaxLevel || 60) - levels.SpellLevel))
+    expect(effect.EffectDieSides).toBe(1)
+    expect(BATTLE_SHOUT_CLASSIC_ERA.aura?.mods).toEqual({ ap: effect.EffectBasePoints + 1 + scaled })
+    expect(BATTLE_SHOUT_CLASSIC_ERA.aura?.durationMs).toBe(duration.Duration)
+    expect([power.PowerType, power.ManaCost]).toEqual([RAGE, BATTLE_SHOUT_CLASSIC_ERA.costTenths])
+    expect([cooldowns.RecoveryTime, cooldowns.StartRecoveryTime]).toEqual([BATTLE_SHOUT_CLASSIC_ERA.cooldownMs, BATTLE_SHOUT_CLASSIC_ERA.gcdMs])
   })
 
   it('Charge rank 3 gives 15 rage, +3 per Improved Charge rank (warrior.md §2.3)', () => {

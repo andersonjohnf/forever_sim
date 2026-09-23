@@ -353,6 +353,12 @@ describe('golden run (fixed config and seed)', () => {
   //   them. Blackhand's Breadth (default trinket 2) is +1% crit in Forever, not +2%: alone, Fury
   //   684.2 → 676.3 and Arms 630.7 → 626.0, Protection unchanged. With F1a and F1b on main: Fury
   //   675.2, Arms 610.7, Protection 217.0 TPS (142.1 DPS).
+  // - Cleanup (review L9): Demoralizing Shout is its level-60 tooltip value, −204 boss AP (−196
+  //   before), so each boss swing loses 29.14 pre-armor damage instead of 28.00 (encounter.md WE-4).
+  //   Only Protection has it: the tank takes a little less damage, so a little less rage from damage
+  //   taken, and fewer of Shield Specialization's and Master of Defense's rage gains are clipped at the
+  //   rage cap (threat 7,231 → 7,232.5 and 16,385.5 → 16,387.5 over 500 fights). TPS 216.97977 →
+  //   216.97981; DPS unchanged. Fury and Arms are unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

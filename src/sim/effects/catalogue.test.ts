@@ -6,7 +6,7 @@
 // The committed client data (src/data/client) is Forever's only, so the Classic Era values are
 // pinned by the table below, which cites each client row. When the raw client tables are cached
 // locally (.cache/client/<build>/tables, from `npm run scrape:client`), the last test also checks
-// every cited row in both clients; without the cache it's skipped.
+// every cited row in both clients, at level 60; without the cache it's skipped.
 import { describe, expect, it } from 'vitest'
 import { defaultConfig } from '../defaults'
 import { buildPlan } from '../plan/build'
@@ -136,8 +136,9 @@ const ROWS: Record<string, Row> = {
     classicRows: [S(11717, 1), S(11717, 0)],
   },
   armorShatter: { forever: [['targetArmor', 495]], classicEra: [['targetArmor', 600]], rows: [S(16928, 0, { times: 3 })] },
-  // The base points; the per-level term is OQ 19's.
-  demoralizingShout: { forever: [['bossAp', -196]], classicEra: [['bossAp', -140]], rows: [S(11556)] },
+  // Level 60: the base points and the per-level term from 54 (−196 − 1.4 × 6; Classic −140 − 6).
+  // Whether combat applies the per-level term is OQ 19's.
+  demoralizingShout: { forever: [['bossAp', -204]], classicEra: [['bossAp', -146]], rows: [S(11556)] },
   thunderClap: { forever: [['bossSlow', 20]], classicEra: [['bossSlow', 10]], rows: [S(11581, 1)] },
   // Consumables
   elixirOfTheMongoose: { rows: [S(17538, 0), S(17538, 1)] },
@@ -371,6 +372,8 @@ describe('a plan per profile', () => {
         withRules({ ...fury, rotation: { 'warrior.fury.battleShout.enabled': false }, buffs: { ...fury.buffs, enabled: fury.buffs.enabled.filter((id) => id !== 'battleShout') } }, profile),
       )
       const aura = own.plan.auras.find((a) => a.id === 'battleShout')!
+      // The profile's own shout (warrior.md §1.1): Forever 139 for 3 min, Classic Era 232 for 2 min.
+      expect([aura.ap, aura.durationMs], profile).toEqual(profile === 'forever' ? [139, 180000] : [232, 120000])
       expect(own.plan.stats.apMult).toBe(1)
       expect(own.sheet.attackPower - none.sheet.attackPower, profile).toBe(aura.ap)
     }
@@ -419,8 +422,8 @@ const FOREVER_BUILD = '1.60.1.69913'
 const CLASSIC_BUILD = '1.15.9.69722'
 const TABLES = import.meta.glob<string>(
   [
-    '/.cache/client/1.60.1.69913/tables/{SpellEffect,SpellItemEnchantment}.ndjson',
-    '/.cache/client/1.15.9.69722/tables/{SpellEffect,SpellItemEnchantment}.ndjson',
+    '/.cache/client/1.60.1.69913/tables/{SpellEffect,SpellItemEnchantment,SpellLevels}.ndjson',
+    '/.cache/client/1.15.9.69722/tables/{SpellEffect,SpellItemEnchantment,SpellLevels}.ndjson',
   ],
   { query: '?raw', import: 'default' },
 )
@@ -436,6 +439,7 @@ class Client {
   readonly build: string
   private readonly effects = new Map<number, ClientRow[]>()
   private readonly enchants = new Map<number, ClientRow>()
+  private readonly levels = new Map<number, ClientRow>()
 
   private constructor(build: string) {
     this.build = build
@@ -450,6 +454,7 @@ class Client {
       client.effects.set(r.SpellID as number, list)
     }
     for (const r of await load(build, 'SpellItemEnchantment')) client.enchants.set(r.ID as number, r)
+    for (const r of await load(build, 'SpellLevels')) if (r.DifficultyID === 0) client.levels.set(r.SpellID as number, r)
     return client
   }
 
@@ -459,17 +464,33 @@ class Client {
     return row
   }
 
-  /** The value a row gives at level 60 before any per-level term (see `Ref`). */
+  /**
+   * The per-level term a spell's effect adds at level 60, as the spell-text renderer reads it
+   * (scripts/scrape/lib/spell-text.mjs `scalingLevels`, `effectRange`; docs/data/items.md#per-level-values):
+   * `EffectRealPointsPerLevel` × the levels from `SpellLevel` to 60 (or to `MaxLevel` when that's
+   * lower), truncated toward zero. Demoralizing Shout 11556: −1.4 × 6 → −8.
+   */
+  private perLevel(spell: number, r: ClientRow): number {
+    const perLevel = (r.EffectRealPointsPerLevel as number) ?? 0
+    const levels = this.levels.get(spell)
+    if (!perLevel || !levels) return 0
+    const max = levels.MaxLevel as number
+    const top = max > 0 ? Math.min(60, max) : 60
+    return Math.trunc(perLevel * Math.max(0, top - ((levels.SpellLevel as number) ?? 0)))
+  }
+
+  /** The value a row gives at level 60, per-level term included (see `Ref`). */
   value(ref: Exclude<Ref, null>): number {
     if ('spell' in ref) {
       const r = this.effect(ref.spell, ref.effect ?? 0)
+      const perLevel = this.perLevel(ref.spell, r)
       let v: number
       if (this.build === FOREVER_BUILD) {
         const spread = ((r.Variance as number) ?? 0) / 2
         const bpf = r.EffectBasePointsF as number
-        v = ref.bound === 'min' ? bpf * (1 - spread) : ref.bound === 'max' ? bpf * (1 + spread) : bpf
+        v = (ref.bound === 'min' ? bpf * (1 - spread) : ref.bound === 'max' ? bpf * (1 + spread) : bpf) + perLevel
       } else {
-        const bp = r.EffectBasePoints as number
+        const bp = (r.EffectBasePoints as number) + perLevel
         const die = r.EffectDieSides as number
         if (!ref.bound && die > 1) throw new Error(`${this.build}: SpellEffect ${ref.spell} is a roll`)
         v = ref.bound === 'max' ? bp + die : die > 0 ? bp + 1 : bp
@@ -490,7 +511,7 @@ class Client {
 }
 
 describe('the cited client rows', () => {
-  const cached = Object.keys(TABLES).length === 4
+  const cached = Object.keys(TABLES).length === 6
   it.skipIf(!cached)(`match the raw client tables (${FOREVER_BUILD} and ${CLASSIC_BUILD}, cached locally)`, async () => {
     const [forever, classic] = await Promise.all([Client.open(FOREVER_BUILD), Client.open(CLASSIC_BUILD)])
     const check = (client: Client, profile: RulesProfile, id: string, entry: CatalogueEntry, refs: Ref[]) => {

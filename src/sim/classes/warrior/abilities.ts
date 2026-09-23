@@ -188,8 +188,9 @@ export const HAMSTRING: AbilityDef = {
 /**
  * Execute rank 5 (spells.json 20662): cost 150, no cooldown, GCD 1500, Battle or Berserker Stance
  * (`shapeshiftMask` 0x50000), only on a target at or below 20% health (`targetAuraState` 2).
- * Damage `DUMMY` 600 plus 15 per rage left after the cost [F] [sb]; the 15 is server-side, not in
- * the client data (warrior.md §3.1 "Execute details", W10). A melee spell: two rolls
+ * Damage `DUMMY` 600 plus 15 per rage left after the cost [F] [sb]. The 15 is client data: the
+ * effect's `effectChainAmplitude` 1.5, which the tooltip's `$*10;F1` shows as 15 [F] [client]
+ * (spells.json 20662; warrior.md §3.1 "Execute details", W10). A melee spell: two rolls
  * (combat-tables §3). A miss, dodge or parry loses only the cost, with no refund [C]
  * (rage.md#rage-refunds-on-avoided-abilities). Threat dmg × 1.25 [?] (threat.md#warrior).
  */
@@ -476,6 +477,7 @@ export const BLOODRAGE: AbilityDef = {
  * for 180000 ms aura 99 (melee attack power) at base 139 + 0.6 per level above `baseLevel` 60, so
  * 139 at 60 (warrior.md §1.1, §3.2). Focused Rage doesn't reduce it (§2.3). Its threat (60 per
  * party member buffed, threat.md) isn't counted: the party isn't modelled (warrior.md §7).
+ * Forever's; `battleShout(profile)` picks the rule profile's.
  */
 export const BATTLE_SHOUT: AbilityDef = {
   id: 'battleShout',
@@ -488,6 +490,26 @@ export const BATTLE_SHOUT: AbilityDef = {
   stances: STANCE_ANY,
   aura: { id: 'battleShout', name: 'Battle Shout', durationMs: 180000, mods: { ap: 139 } },
   ...NO_CAST_RAGE,
+}
+
+/**
+ * Classic Era's Battle Shout rank 7 (25289 in 1.15.9.69722): the same cost, cooldown, GCD and
+ * stances, and aura 99 at 231 + 1, +1 per level above 60, so 232 at 60, for 120000 ms
+ * (`DurationIndex` 4) (warrior.md §1.1, §3.2) [C] [client] (SpellEffect, SpellLevels, SpellMisc,
+ * SpellDuration, 1.15.9.69722). The catalogue's Classic Era Battle Shout has the same 232
+ * (buffs doc, Classic Era values).
+ */
+export const BATTLE_SHOUT_CLASSIC_ERA: AbilityDef = {
+  ...BATTLE_SHOUT,
+  aura: { id: 'battleShout', name: 'Battle Shout', durationMs: 120000, mods: { ap: 232 } },
+}
+
+/**
+ * The warrior's own Battle Shout under a rule profile: Classic Era's where the profile reads the
+ * catalogue's Classic Era column, as `catalogueEffects` does for a buff, Forever's otherwise.
+ */
+export function battleShout(profile: RulesProfile): AbilityDef {
+  return profile.catalogue.column === 'classicEra' ? BATTLE_SHOUT_CLASSIC_ERA : BATTLE_SHOUT
 }
 
 /**

@@ -175,8 +175,9 @@ export const FOREVER: RulesProfile = {
     curseOfRecklessnessBossAp: 0,
     armorShatterPerStack: 165,
     exposeArmor: 2250,
-    // docs/mechanics/buffs-debuffs-consumables.md#42-other-debuffs
-    demoralizingShoutAp: 196,
+    // docs/mechanics/buffs-debuffs-consumables.md#42-other-debuffs: rank 5's level-60 tooltip, base −196
+    // and −1.4 per level from 54 (11556); whether combat applies the per-level term is OQ 19
+    demoralizingShoutAp: 204,
     thunderClapSlow: 0.2,
     // docs/mechanics/buffs-debuffs-consumables.md#11-attack-power-stats-and-crit (Windfury Totem r3)
     windfuryAp: 246,
@@ -232,8 +233,9 @@ export const CLASSIC_ERA: RulesProfile = {
     curseOfRecklessnessBossAp: 90,
     armorShatterPerStack: 200,
     exposeArmor: 1700,
-    // docs/mechanics/buffs-debuffs-consumables.md#42-other-debuffs (Classic Era columns)
-    demoralizingShoutAp: 140,
+    // docs/mechanics/buffs-debuffs-consumables.md#42-other-debuffs (Classic Era columns): rank 5 at
+    // level 60, −140 − 1 per level from 54 (11556, 1.15.9)
+    demoralizingShoutAp: 146,
     thunderClapSlow: 0.1,
     windfuryAp: 315,
     // docs/mechanics/damage-and-timing.md#54-extra-attacks-and-chaining: none in Classic Era

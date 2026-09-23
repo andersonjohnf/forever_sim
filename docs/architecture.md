@@ -111,7 +111,8 @@ A spec is data plus small ability modules, never its own loop.
   ([buffs doc, Classic Era values](mechanics/buffs-debuffs-consumables.md#classic-era-values)).
   `classicEra` also makes Windfury Totem a main-hand enchant that replaces a stone there. Class
   abilities, such as the warrior's own Battle Shout, take their numbers from the class code, not
-  the catalogue.
+  the catalogue; one whose Classic Era value differs picks it the same way (`battleShout(profile)`).
+  The UI shows the profile's summaries through `buffCatalogueFor` and `enchantCatalogueFor`.
 - **Stats pipeline** (`sim/stats/`): a `StatBlock` of base values, flat additions and multipliers,
   and one pure `deriveStats` in the documented order (flat adds → % multipliers → floor →
   conversions). Forever ratings and Classic percentages feed the same pipeline; haste rating,

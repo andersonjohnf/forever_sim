@@ -272,9 +272,10 @@ threshold as a boss property.
 | Crushing (×1.5) | **2739.6** |
 | Blocked hit, block value 150 | 1826.4 − 150 = **1676.4** |
 
-**WE-4: Demoralizing Shout on the boss (`forever`).** −196 AP (the Forever rank-5 tooltip
-[F]; value owned by the [buffs doc](buffs-debuffs-consumables.md#42-other-debuffs)) × 2.0 / 14 =
-**−28.00** per swing → **4,972.0** pre-armor. (`classicEra`, −140: −20.00 → 4,980.0.)
+**WE-4: Demoralizing Shout on the boss (`forever`).** −204 AP (the Forever rank-5 tooltip at
+level 60 [F]; whether combat applies it is [?]; value owned by the [buffs
+doc](buffs-debuffs-consumables.md#42-other-debuffs)) × 2.0 / 14 = **−29.14** per swing →
+**4,970.86** pre-armor. (`classicEra`, −146 at 60: −20.86 → 4,979.14.)
 
 **WE-5: Thunder Clap slow.** 2.0 s × (1 + 0.20) = **2.4 s** between swings
 ([damage-and-timing §3.2](damage-and-timing.md#32-attack-speed-debuffs-on-the-boss-tank-modeling),

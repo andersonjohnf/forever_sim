@@ -2,11 +2,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   buffCatalogue,
+  buffCatalogueFor,
   buffPresets,
   computeSheet,
   defaultConfig,
   enchantCatalogue,
+  enchantCatalogueFor,
   FULL_RAID,
+  modelledItemEffects,
   getSpec,
   presetBuffs,
   rotationGroups,
@@ -144,6 +147,29 @@ describe('catalogues and presets', () => {
     for (const b of [...buffCatalogue, ...enchantCatalogue]) expect(b.docRef).toMatch(/^docs\/mechanics\/buffs-debuffs-consumables\.md#/)
     const names = buffCatalogue.map((b) => b.name.toLowerCase()).join(' ')
     for (const world of ['rallying cry', 'zandalar', 'songflower', 'warchief', 'fengus', 'mol’dar', 'slip’kik', 'darkmoon']) expect(names).not.toContain(world)
+  })
+
+  it('shows each rule profile’s numbers in the summaries (buffs doc, Classic Era values)', () => {
+    const summary = (list: { id: string; summary: string }[], id: string) => list.find((e) => e.id === id)!.summary
+    expect(buffCatalogueFor('forever')).toBe(buffCatalogue)
+    expect(enchantCatalogueFor('forever')).toBe(enchantCatalogue)
+    expect(buffCatalogueFor('classicEra')).toBe(buffCatalogueFor('classicEra'))
+    expect(summary(buffCatalogueFor('forever'), 'battleShout')).toBe('+139 attack power')
+    expect(summary(buffCatalogueFor('classicEra'), 'battleShout')).toBe('+232 attack power')
+    expect(summary(buffCatalogueFor('classicEra'), 'blessingOfKings')).toBe('+10% all stats')
+    expect(summary(enchantCatalogueFor('forever'), 'gloveGreaterStrength')).toBe('+10 Strength')
+    expect(summary(enchantCatalogueFor('classicEra'), 'gloveGreaterStrength')).toBe('+7 Strength')
+    // Everything but the summary is the same in both.
+    const rest = (list: { summary: string }[]) => list.map((e) => JSON.stringify({ ...e, summary: null }))
+    expect(rest(buffCatalogueFor('classicEra'))).toEqual(rest(buffCatalogue))
+    expect(rest(enchantCatalogueFor('classicEra'))).toEqual(rest(enchantCatalogue))
+  })
+
+  it('says which item effects the engine models', () => {
+    // Hand of Justice: its extra attack; Weakness Analyzer: its use too; Blackblade of Shahram: neither.
+    expect(modelledItemEffects(11815)).toEqual({ equip: true, use: false })
+    expect(modelledItemEffects(272438)).toEqual({ equip: true, use: true })
+    expect(modelledItemEffects(12592)).toEqual({ equip: false, use: false })
   })
 
   it('makes Standard raid the default and matches the doc’s Fury preset', () => {

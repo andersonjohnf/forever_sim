@@ -4763,9 +4763,9 @@
     "consumablesWithEffects": 85,
     "foreverDataFalseWithItemSparseRow": 0,
     "foreverDataTrueWithoutItemSparseRow": 0,
-    "items": 1630,
-    "withEffects": 237,
-    "withItemRow": 1630,
+    "items": 1629,
+    "withEffects": 236,
+    "withItemRow": 1629,
     "withItemSparseRow": 884
   },
   "items": {
@@ -26115,44 +26115,6 @@
         "statModifierBonusStat": [7, -1, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [4444, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       }
-    },
-    "20130": {
-      "effects": [
-        {
-          "categoryCoolDownMSec": 60000,
-          "charges": 0,
-          "chrSpecializationId": 0,
-          "coolDownMSec": 360000,
-          "id": 101630,
-          "legacySlotIndex": 0,
-          "playerConditionId": 0,
-          "spellCategoryId": 1153,
-          "spellId": 363881,
-          "triggerType": 0
-        },
-        {
-          "categoryCoolDownMSec": -1,
-          "charges": 0,
-          "chrSpecializationId": 0,
-          "coolDownMSec": -1,
-          "id": 237901,
-          "legacySlotIndex": 1,
-          "playerConditionId": 0,
-          "spellCategoryId": 0,
-          "spellId": 1318073,
-          "triggerType": 1
-        }
-      ],
-      "id": 20130,
-      "item": {
-        "classId": 4,
-        "iconFileDataId": 132788,
-        "inventoryType": 12,
-        "material": 3,
-        "sheatheType": 0,
-        "subclassId": 0
-      },
-      "itemSparse": null
     },
     "20150": {
       "effects": [],

@@ -116,7 +116,7 @@ utility are covered in [§4](#4-talents).
 | Improved Thunder Clap | −1 / −2 / −4 rage, Arms tree | −2 / −4 / −6 rage, **Protection** tree [tal] | None |
 | Battle Shout (rank 7) | +232 AP, 2 min | **+139 AP, 3 min** [sb] | −93 AP to the party. See [§1.1](#11-battle-shout-a-nerf-not-a-re-ranking) |
 | Improved Battle Shout and Improved Demoralizing Shout | Fury talents | **Removed** [cls] | No way to raise shout values |
-| Demoralizing Shout (rank 5) | −140 AP, 30 s | **−196 AP, 45 s** [sb] | Details belong in [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md) |
+| Demoralizing Shout (rank 5) | −146 AP at 60, 30 s | **−204 AP at 60, 45 s** [sb] [client] (SpellEffect, SpellLevels, 1.60.1.69913) | Details belong in [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md) |
 | Thunder Clap | 4 s cooldown, 10% attack-speed slow, Battle Stance only | **6 s cooldown, 20% slow, Battle or Defensive Stance** [sb] [client] (SpellShapeshift, 1.60.1.69913) | Protection can use it without dancing |
 | Sunder Armor | No threat effect in client data [client] (SpellEffect, 1.15.9.69722) (Classic threat of 261 is set server side [magey-thr]) | Client data adds a **THREAT effect of 1013 at rank 5** (405/608/810 at ranks 2–4, which is 2.25 × the armor removed) [F] [client] (SpellEffect, 1.60.1.69913); the in-game threat is [?] | Possibly a large TPS change. Flagged for [threat.md](../mechanics/threat.md); see Q1 |
 | Victory Rush | Does not exist in Classic Era | New baseline spell: 1 damage, heals 10% of max health, 30 s cooldown, only within 20 s of killing a non-trivial enemy [sb] | Not used against bosses |
@@ -138,7 +138,8 @@ re-ranking**. Nothing restores the old value:
 
 The duration went up from 2 to 3 minutes [sb]. Classic raids ran 5/5 Improved Battle Shout
 for 290 AP, so a Forever party gets 151 AP less from its warrior. Demoralizing Shout went the
-other way: ×1.40 at every rank (49/35 … 196/140) and 45 s instead of 30 s [sb].
+other way: ×1.40 at every rank (63/45 … 204/146 at level 60) and 45 s instead of 30 s [sb]
+[client] (SpellEffect, SpellLevels, 1.60.1.69913; 1.15.9.69722).
 
 ### 1.2 What did not change
 
@@ -528,8 +529,8 @@ buffs. It is physical, so armor applies, and it uses the special attack table [F
 
 | Ability (rank, spell id) | Cost | Cooldown | GCD | Stance | Effect | Tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| Battle Shout (7, 25289) | 10 | none | yes | any | +139 melee AP to the party (20 yd) for 3 min | [F] [sb] [client] (SpellEffect, 1.60.1.69913) |
-| Demoralizing Shout (5, 11556) | 10 | none | yes | any | −196 AP to enemies within 10 yd for 45 s. The tooltip value is used (tooltip beats derived, doctrine §2); the client data's −1.4 per level above 54 (levels 54–64, so `MaxLevel` doesn't cap it below 60) would give −204.4 at 60; whether the server applies it is an open question (Q22) | [F] [sb]; client values [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913); derived −204.4 in game [?] |
+| Battle Shout (7, 25289) | 10 | none | yes | any | +139 melee AP to the party (20 yd) for 3 min. `classicEra`: Classic Era's rank 7, +232 for 2 min (231 + 1, +1 per level from 60; `DurationIndex` 4), the same cost and GCD | [F] [sb] [client] (SpellEffect, 1.60.1.69913); `classicEra` [C] [client] (SpellEffect, SpellLevels, SpellMisc, SpellDuration, 1.15.9.69722) |
+| Demoralizing Shout (5, 11556) | 10 | none | yes | any | −204 AP to enemies within 10 yd for 45 s: the level-60 tooltip, base −196 and −1.4 per level above 54 (levels 54–64, so `MaxLevel` doesn't cap it below 60), −204.4 shown as 204. Whether the debuff applies −204 in combat is an open question (Q22) | tooltip [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913); in combat [?] |
 | Sunder Armor (5, 11597) | 15 | none | yes | any | −450 armor per stack, 5 stacks, 30 s. The client data also carries a THREAT effect of 1013 | [F] [sb] [client] (SpellEffect, 1.60.1.69913) (Q1) |
 | Bloodrage (2687) | 0 (costs health) | 60 s | off | any | +10 rage, then +10 over 10 s | [F] [sb] [client] (SpellEffect, 1.60.1.69913) |
 | Berserker Rage (18499) | 0 | 30 s | **yes** | Berserker | For 10 s, immune to fear and incapacitate, and extra rage from damage taken. Improved Berserker Rage: +5 / +10 rage | [F] [sb] [db-cd] [tal] |
@@ -703,7 +704,7 @@ Forever:
 | 0 | Pre-pull | Battle Shout at −3 s (with row 1 on); Bloodrage at −1 s. No Charge; the warrior walks in, as in [wh-fury] | `fury.prepull.battleShout` (on; needs `fury.battleShout.enabled`), `fury.prepull.bloodrage` (on), `fury.prepull.charge` (off; adds 15 rage, +3 per Improved Charge rank, and needs a swap to Berserker Stance that keeps only 25) | yes |
 | 1 | Battle Shout | Buff missing, or at most `refreshBelowSec` left and it would run out before the fight ends; rage ≥ 10. It replaces the Buffs tab's Battle Shout; see the notes | `fury.battleShout.enabled` (on), `.refreshBelowSec` (3) | yes |
 | 2 | Death Wish | On cooldown from the pull. If `alignToEnd` is on, delay the final use so that it lasts until the fight ends | `fury.deathWish.enabled` (on), `.alignToEnd` (on) | yes |
-| 3 | Racial or trinket cooldowns | Use together with Death Wish, then on cooldown; see the notes. Blood Fury, Berserking and Elune's Light ([§2.9](#29-racials-for-warriors)), and Weakness Analyzer, the pool's one on-use trinket that helps a warrior's damage in Forever. Eureka! and Diamond Flask aren't simulated (Q18, Q30) | `fury.racial.enabled` (on), `fury.trinkets.enabled` (on), `fury.cooldowns.syncWithDeathWish` (on; `fury.racial.syncWithDeathWish` before M2.2c, carried over) | yes |
+| 3 | Racial or trinket cooldowns | Use together with Death Wish, then on cooldown; see the notes. Blood Fury, Berserking and Elune's Light ([§2.9](#29-racials-for-warriors)), and Weakness Analyzer, the pool's one on-use trinket that helps a warrior's damage in Forever. Eureka! isn't simulated (Q18); Diamond Flask, now a heal, left the pool (Q30) | `fury.racial.enabled` (on), `fury.trinkets.enabled` (on), `fury.cooldowns.syncWithDeathWish` (on; `fury.racial.syncWithDeathWish` before M2.2c, carried over) | yes |
 | 4 | Recklessness | Once, when the fight has ≤ `lastSec` seconds left. It needs Berserker Stance | `fury.recklessness.enabled` (on), `.lastSec` (15) | yes |
 | 5 | Bloodrage (off the GCD) | On cooldown, if it won't push rage over the cap: rage ≤ max − 20 | `fury.bloodrage.enabled` (on), `.maxRage` (max − 20) | yes |
 | 6 | **Execute phase** (target ≤ 20%): Bloodthirst | AP ≥ `btOverExecuteAp` and rage ≥ 30 | `fury.execute.btOverExecuteAp`, default **2220**: [W11](#w11-bloodthirst-versus-execute-break-even) at the default build's Execute cost 15. The default doesn't follow the build: with Improved Execute 2/2 (cost 10) set 2434 | yes |
@@ -796,6 +797,8 @@ Notes:
   shout is an aura in the fight, so it counts once whether the switch is on or off (it's the
   same spell, which doesn't stack). The Buffs tab shows the switch on and locked, and the
   character sheet counts the +139, since the shout is up for all but a moment of the fight.
+  In `classicEra` the switch and the warrior's own shout are both Classic Era's +232, and the
+  own shout lasts 2 min, so a 180 s fight refreshes it once (§3.2).
   With the setting off, the switch decides, and the rotation never shouts. Both places' help
   text says so. This is an engine choice; no source covers it.
 - **When Battle Shout is refreshed** (row 1). It's shouted when it's missing, or when it has at
@@ -818,13 +821,13 @@ Notes:
   in the breakdown's casts.
 - **On-use trinkets** (row 3). A trinket the sim models is used with the same sync with Death
   Wish as the racial (the note above), with its own cooldown in place of the racial's; off the
-  GCD, both are used in the same moment as Death Wish. The pool's warrior-relevant on-use
-  trinkets are two. **Weakness Analyzer** (new in Forever): +5% crit (aura 290) for 20 s or
+  GCD, both are used in the same moment as Death Wish. The pool's one warrior-relevant on-use
+  trinket is **Weakness Analyzer** (new in Forever): +5% crit (aura 290) for 20 s or
   until you deal a non-periodic crit, 90 s cooldown [F] [client] (ItemEffect, SpellEffect,
   SpellAuraOptions, 1.60.1.69913); an older foreverchanges tooltip said 2 min (Q31). The sim
   ends it on the first crit you deal, white or special, including the crit it helped make.
-  **Diamond Flask** isn't simulated: Forever replaced its use (Q30). Unsimulated on-use items
-  are listed in the result's assumptions.
+  **Diamond Flask** left the pool: Forever made its use a heal, so it's off the pre-raid lists
+  (Q30). Unsimulated on-use items are listed in the result's assumptions.
 - **The Mighty Rage Potion** (row 16) is used once a fight, at the first moment in the execute
   phase when rage ≤ `maxRage`; with rage capped when the phase starts, that's right after the
   first Execute spends it. A long execute phase doesn't get a second potion, though its 2 min
@@ -837,7 +840,8 @@ Notes:
   and it's off the GCD (no start recovery in the client). Each use is +3% attack speed for 20 s,
   multiplied with other haste from the next swing (W17).
 - **Consumables and on-use items not simulated:** EZ-Thro Dark Bomb, Greater Stoneshield Potion
-  and Diamond Flask (Q30). If selected or equipped, the result lists them.
+  and on-use items with no damage use (Counterattack Lodestone's disarm, for one). If selected
+  or equipped, the result lists them.
 - **2H Fury** (Fury talents with a two-hander) is supported by the engine but has no default
   preset. Unbridled Wrath's 2 rage per proc suits it, but Dual Wield Specialization and Raging
   Blows are wasted, and Improved Slam is out of reach in the Arms tree. Use it only if a guild
@@ -1139,7 +1143,8 @@ parts:
   the numbers from the client ([§3.2](#32-buffs-debuffs-and-cooldowns), §2.9), checked by the
   tests.
 - **Battle Shout, on-use items and consumables are `cast` abilities too.** Battle Shout's
-  aura is +139 attack power for 180 s (§1.1). An on-use item's use effect sits next to its
+  aura is +139 attack power for 180 s (§1.1); `battleShout(profile)` gives `classicEra`
+  Classic Era's +232 for 120 s, as the catalogue does for the Buffs switch (§3.2). An on-use item's use effect sits next to its
   other effects in `sim/effects/items.ts` (Weakness Analyzer), a consumable's on its Buffs entry
   (`sim/effects/buffs.ts`: the Mighty Rage Potion and Juju Flurry), each with its numbers from
   the client, checked by the tests; the rotation turns them into casts. A cast can draw a random
@@ -1655,12 +1660,16 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     first. If finished, gain $s2 Strength for $d." Its cooldown is still 6 min, now sharing 60 s
     with category 1153 (runes), and the item gained an equip dummy, spell 1318073 "Diamond
     Flask", with no description [F] [client] (ItemEffect, ItemXItemEffect, SpellName,
-    SpellEffect, SpellMisc, 1.60.1.69913). The Forever client has no `ItemSparse` row for it,
-    so there's no Forever tooltip, and the app shows Classic Era's (D6). What does the Forever
-    flask do: 20 Strength for 5 s after the channel, or something the equip dummy scripts? Until
-    that's known the sim doesn't use it, and the Fury and Arms pre-raid lists' rank-3 trinket may
-    be out of date. **Test:** read the tooltip in game; use it and watch Strength on the sheet
-    during and after the channel.
+    SpellEffect, SpellMisc, 1.60.1.69913). The Forever client has no `ItemSparse` row for it, so
+    its stats are Classic Era's (D6); since review finding L5 the app showed Forever's use line,
+    "Restores 1120 Health over 5 sec. … If finished, gain 20 Strength for 5 sec."
+    ([items.md](../data/items.md#effects-of-fallback-items)). A heal isn't a damage trinket, so
+    the flask is off the Fury and Arms pre-raid lists, where it was the guides' rank 3, and with
+    that out of the item pool, which it was in only for those lists
+    ([items.md](../data/items.md#pre-raid-bis-lists)). What does the Forever flask do: 20
+    Strength for 5 s after the channel, or something the equip dummy scripts? Until that's known
+    the sim doesn't use it. **Test:** read the tooltip in game; use it and watch Strength on the
+    sheet during and after the channel.
 31. **Weakness Analyzer.** Its cooldown is 90 s in the client's item effect (plus 20 s shared
     by category 1141, "Burst Trinket") [F] [client] (ItemEffect, 1.60.1.69913); the tooltip
     foreverchanges showed before M1.5c-2 said 2 min, which may be a hotfix the raw client

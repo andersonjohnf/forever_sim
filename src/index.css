@@ -73,7 +73,13 @@
     --destructive: oklch(0.577 0.245 27.325);
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
+    /*
+     * The focus ring. shadcn draws it at half strength (ring-ring/50), so the token is dark enough
+     * that the ring clears 3:1 at 50% over the page, cards and muted rows (WCAG 1.4.11, U33): here
+     * about 3.7:1 over white, where the stock oklch(0.708) gave 1.5:1. At full strength it's also a
+     * focused field's border.
+     */
+    --ring: oklch(0.145 0 0);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
@@ -121,7 +127,8 @@
     --destructive: oklch(0.704 0.191 22.216);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
+    /* Light enough that the half-strength ring clears 3:1 on the page, cards and muted rows (about 3.7–3.9:1). */
+    --ring: oklch(0.87 0 0);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
@@ -155,6 +162,13 @@
     }
   html {
     @apply font-sans;
+    /*
+     * Keyboard focus and in-page scrolling stop clear of the sticky header (3.5rem and its border)
+     * and the phone's fixed sim bar, whose height App keeps in --sim-bar-height, so a focused
+     * control is never hidden behind them (WCAG 2.4.11, docs/ux.md#accessibility).
+     */
+    scroll-padding-top: 4rem;
+    scroll-padding-bottom: calc(var(--sim-bar-height, 0px) + 0.5rem);
     }
   /*
    * The shadcn switch paints its off track with --input, which input borders share and which is

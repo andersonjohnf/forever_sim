@@ -286,7 +286,7 @@ export function armsRotation(
   // Rows 1–5 and 16 apply in both phases, Rend included (§5.3 notes).
 
   // Row 1: Battle Shout (shared.ts).
-  const shout = battleShoutLine(b, v, ID)
+  const shout = battleShoutLine(b, v, ID, ctx)
 
   // Row 2: Rend when your Rend is missing or has at most refreshBelowSec of ticks left, unless it
   // lasts to the end of the fight (the upkeep condition, §7 "Rend is a bleed ability"). On by

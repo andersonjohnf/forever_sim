@@ -19,9 +19,9 @@ Interfaces are in [`src/data/client/types.ts`](../../src/data/client/types.ts); 
 
 | File | Size | What |
 | --- | --: | --- |
-| `spells.json` | 1.5 MB | 1,470 merged spell records (the interest set below), plus racials, radii and spell categories |
+| `spells.json` | 1.5 MB | 1,475 merged spell records (the interest set below), plus racials, radii and spell categories |
 | `talents.json` | 145 KB | every Forever talent of the three classes, mapped to its Trait node, spell and per-rank values |
-| `items.json` | 1.2 MB | ItemEffect rows and ItemSparse/Item fields for the 1,630 pre-raid items, plus 85 consumables |
+| `items.json` | 1.2 MB | ItemEffect rows and ItemSparse/Item fields for the 1,629 pre-raid items, plus 85 consumables |
 | `enchants.json` | 56 KB | the 79 SpellItemEnchantment rows the buffs doc names, with the spells and items that apply them |
 | `gametables.json` | 4 KB | level-60 rows of combat ratings, base mana, HP per Stamina, armor mitigation, PlayerExpectedStat |
 
@@ -211,7 +211,7 @@ overrides, or disagree with the tooltip a hotfix may already have fixed:
 | Consecrated Sharpening Stone (28893) | 99 AP vs Undead | tooltip says 100 |
 | Frenzy potions (1251937/8/40) | aura 13, flat physical damage done | tooltip says Attack Power |
 | Trueshot Aura r5 (20906) | 50, below rank 4's 75 | possible data bug |
-| Demoralizing Shout 11556 / Roar 9898 | −196 / −193 with −1.4 per level up to level 64 / 62 | −204.4 / −204.2 at 60 if the server applies it; the tooltip says −196 / −193 |
+| Demoralizing Shout 11556 / Roar 9898 | −196 / −193 with −1.4 per level up to level 64 / 62 | the level-60 tooltip shows the scaled −204 / −204 (−204.4 / −204.2); whether the server applies the per-level term in combat is open ([buffs OQ 19](../mechanics/buffs-debuffs-consumables.md#open-questions)) |
 | Hyjal flasks (1293740–1293743) | a dummy with the value plus a zero-valued hit/crit/haste aura | the zone bonus is filled in server-side |
 | World buffs 22888, 15366, 16609 | dummy auras only | effects are server-side (and excluded anyway, D8) |
 | Dummy-effect talents and abilities (Flurry talent aura 4 = 1, Tiger's Fury aura 4 = 15, King of the Jungle's hidden 5/10/15, …) | the dummy's points | the server scripts what a dummy does |
@@ -290,21 +290,21 @@ ClientSpell    id, name, nameSubtext ("Rank 5"), sources[]
   (meaning unverified), and `SpellProcsPerMinuteMod` is empty. No `SpellAuraOptions` row
   references a PPM id, so every `ppm` in the file is absent: proc rates are server-side.
 
-**Interest set: 1,470 spells** (1,357 before the trigger closure), every one in the client:
+**Interest set: 1,475 spells** (1,362 before the trigger closure), every one in the client:
 
 | Source | Spells | What |
 | --- | --: | --- |
 | `spellbook` | 493 | every Forever rank in `src/data/spells/{warrior,druid,paladin}.json` |
 | `talent` | 156 | each talent's TraitDefinition spell |
 | `racial` | 44 | the racials of `src/data/races/races.json`, resolved through `SkillLineAbility` race masks and names, per-class variants included (e.g. Eureka!: 1259813 for warriors) |
-| `item` | 409 | ItemEffect spells the Forever client links to the pre-raid items, and every spell the pool names: its effect lines' and set bonuses' `spellId` and its `statSpellIds` (fallback items' Classic Era effects read Forever spells that Forever doesn't link to them) |
+| `item` | 407 | ItemEffect spells the Forever client links to the pre-raid items, and every spell the pool names: its effect lines' and set bonuses' `spellId` and its `statSpellIds` (fallback items' Classic Era effects read Forever spells that Forever doesn't link to them) |
 | `consumable` | 78 | ItemEffect spells of the consumables in the buffs doc, and the doc's own `→` spell ids |
 | `enchant` | 125 | enchanting spells, the spells each enchant casts (combat, equip, use), doc proc spells |
 | `buffsDoc` | 47 | buff and debuff spell ids in the buffs doc's §1 and §4 tables |
-| `docs` | 262 | spell ids cited in `docs/classes`, `docs/mechanics` and `docs/open-questions.md`, either with a marker ("spell 12966", "[F 20128]", "proc 25713", "DB2 21184", "(3025, 1178, 9635)", backticks) or with the client's name earlier on the same line; Classic "(C: …)" ids are skipped |
+| `docs` | 285 | spell ids cited in `docs/classes`, `docs/mechanics` and `docs/open-questions.md`, either with a marker ("spell 12966", "[F 20128]", "proc 25713", "DB2 21184", "(3025, 1178, 9635)", backticks) or with the client's name earlier on the same line; Classic "(C: …)" ids are skipped |
 | `trigger` | 130 | reached through another extracted spell's `effectTriggerSpell`, transitively |
 
-A spell can have several sources, so the column sums to more than 1,470. The docs source was
+A spell can have several sources, so the column sums to more than 1,475. The docs source was
 added beyond the brief because the engine needs proc and passive spells that no spellbook lists:
 the Flurry buff 12966, the stance passives 21156/7376/7381, the Overpower window 1282733,
 Consecration's tick spells, Weaponmaster's procs, the Forever Deep Wounds bleed 412609 and the
@@ -366,9 +366,9 @@ effects[]   { id, legacySlotIndex, triggerType (0 use, 1 equip, 2 chance on hit)
               chrSpecializationId, playerConditionId }
 ```
 
-- Counts: 1,630 items; all have an `Item` row; **884 have an `ItemSparse` row**, exactly the
+- Counts: 1,629 items; all have an `Item` row; **884 have an `ItemSparse` row**, exactly the
   pool items with `foreverData: true` (the others use their Classic Era row, see
-  [items.md](items.md#items-with-no-forever-data-d6)); 237 have item effects. All 85
+  [items.md](items.md#items-with-no-forever-data-d6)); 236 have item effects. All 85
   consumables have item effects.
 - `statPercentEditor` holds stat **budget allocations**, not amounts (Lionheart Helm: Strength
   4000, crit rating 6222, hit rating 4444). The game derives the amounts from the item-level
@@ -901,9 +901,10 @@ M1.5c-2 does with items that have no Forever row.*
 | **No Forever row, Classic Era row present** (would fall back to Classic stats, flagged, per D6/D17) | **744** |
 | **No row in either client** (would leave the pool) | **16** |
 
-M1.5c-2 applied this: the client pool has 1,630 items, the 1,644 less those 16, plus two
-Classic Era rows foreverchanges never listed; 746 fall back to Classic Era
-([items.md](items.md#from-foreverchanges-to-the-client)).
+M1.5c-2 applied this: the client pool had 1,630 items, the 1,644 less those 16, plus two
+Classic Era rows foreverchanges never listed; 746 fell back to Classic Era
+([items.md](items.md#from-foreverchanges-to-the-client)). Since Diamond Flask left the pre-raid
+lists ([warrior Q30](../classes/warrior.md#9-open-questions)) it's 1,629 and 745.
 
 The 744 Classic fallbacks are the 650 "missing" items and the 60 seen-in-game items (both
 described in [items.md](items.md)), plus 34 of the 50 hotfix-only items:
@@ -928,8 +929,8 @@ Cloak, 272414 Howler's Furs, 272415 Stalwart Cloak, 284261 Magically Fortified L
 Insurgent's Spellblade, 272091 Darkspear Skirmisher's Bludgeon, 271932 Insurgent's Manifesto
 and 272087 Tome of the Darkspear Prophecy.
 
-**Pre-raid BiS lists** ([`pre-raid-bis.json`](../../scripts/scrape/pre-raid-bis.json), 159
-items): **none lacks a row in both clients**. 117 have no Forever row: 103 "missing", 6 seen in
+**Pre-raid BiS lists** ([`pre-raid-bis.json`](../../scripts/scrape/pre-raid-bis.json), 158
+items): **none lacks a row in both clients**. 116 have no Forever row: 102 "missing", 6 seen in
 game, 4 unchanged hotfix-only (Deepfury Bracers, Flurry Axe, Widowmaker, Serathil) and 4 changed
 hotfix-only (Stonegrip Gauntlets, Boots of Avoidance, Smoking Heart of the Mountain, Ardent
 Custodian).

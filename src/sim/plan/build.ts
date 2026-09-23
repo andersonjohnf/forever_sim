@@ -357,9 +357,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const sheetOnly: Effect[] = []
   for (const id of maintained) {
     const buff = BUFFS_BY_ID.get(id)
-    // The entry's own effects, not its Classic Era column: the fight's aura is the class ability's
-    // (classes/warrior/abilities.ts, Forever's numbers in both profiles), and the sheet shows that.
-    if (buff) sheetOnly.push(...(typeof buff.effects === 'function' ? buff.effects(profile) : buff.effects))
+    // The profile's column, as the fight's aura is the profile's class ability
+    // (classes/warrior/abilities.ts `battleShout`: +139, `classicEra` +232), and the sheet shows that.
+    if (buff) sheetOnly.push(...catalogueEffects(buff, profile))
   }
   for (const id of config.buffs.enabled) {
     const buff = BUFFS_BY_ID.get(id)
@@ -736,7 +736,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (procs.some((p) => p.id === 'enrage') && (tank || plan.fight.damageTakenPerHit > 0)) notes.add('enrageTrigger')
   // rage.md: Berserker Rage's damage-taken rage multiplier is ×1.0 [?] (warrior Q20).
   if (abilities.some((a) => a.id === 'berserkerRage') && (tank || plan.fight.damageTakenPerHit > 0)) notes.add('berserkerRageTaken')
-  // On-use items and consumables no rotation presses (bombs, Diamond Flask, …; warrior.md §7).
+  // On-use items and consumables no rotation presses (bombs, Counterattack Lodestone, …; warrior.md §7).
   const pressed = new Set(classRot.onUse)
   const notPressed = [
     ...c.onUse.filter((u) => !pressed.has(u.id)).map((u) => u.name),

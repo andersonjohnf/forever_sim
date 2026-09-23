@@ -19,8 +19,8 @@ client-data check the same day ([client.md](data/client.md)) · Forever beta 1.6
 Classic Era 1.15.9.69722 · beta capped at level 20 (rising to 30), launch 2026-11-04, raids
 unlock 2026-12-09
 
-**139 entries, 116 open:** Route A 8 (High 1, Medium 2, Low 5) · Route B 73 (20 / 25 / 28) ·
-Route C 35 (8 / 13 / 14) · Route D 23, all ✅ resolved from client data (was 7 / 11 / 5), plus
+**142 entries, 119 open:** Route A 8 (High 1, Medium 2, Low 5) · Route B 75 (20 / 27 / 28) ·
+Route C 36 (8 / 14 / 14) · Route D 23, all ✅ resolved from client data (was 7 / 11 / 5), plus
 7 items settled by the sim or a guild decision. The client-data check added in-game checks to
 B41, C11 and C12 rather than new entries.
 
@@ -723,6 +723,19 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Docs:** [warrior §3.1](classes/warrior.md#31-damage-abilities),
   [Q13](classes/warrior.md#9-open-questions)
 
+#### B49. Human Sword Specialization while dual wielding
+**Medium · M2 · ≤20**
+- **Assumes** [?]: as the tooltip reads, +2% crit to all attacks (both hands, white and special)
+  and spells while a sword is in either hand; Orc Axe and Dwarf Mace Specialization likewise.
+  With a mace and a sword (the default Human Fury), a per-hand answer would cost about 1.2%, so
+  this is Medium (re-rated from Low after review finding L3).
+- **Test:** Human warrior with a sword in the main hand only, then the off hand only, and a mace
+  in the other hand; read sheet crit and, if unclear, log crits per hand.
+- **Samples:** sheet reads; ≥1,000 swings per hand if needed.
+- **Changes:** the racial's scope (all attacks, or the matching weapon's).
+- **Docs:** [warrior §2.9](classes/warrior.md#29-racials-for-warriors),
+  [Q15](classes/warrior.md#9-open-questions)
+
 #### B34. Threat from rage and mana gains
 **Medium · M3 · ≤20**
 - **Assumes:** 5 threat per rage from spell effects [C, Magey], and 0.5 per mana and 5 per
@@ -924,18 +937,6 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Docs:** [damage §3.3](mechanics/damage-and-timing.md#33-swing-reset-rules),
   [§3.5](mechanics/damage-and-timing.md#35-global-cooldown),
   [OQ 5, 6, 7, 11](mechanics/damage-and-timing.md#open-questions)
-
-#### B49. Human Sword Specialization while dual wielding
-**Low · M2 · ≤20**
-- **Assumes** [?]: as the tooltip reads, +2% crit to all attacks (both hands, white and special)
-  and spells while a sword is in either hand; Orc Axe and Dwarf Mace Specialization likewise.
-  With a mace and a sword (the default Human Fury), a per-hand answer would cost about 1.2%.
-- **Test:** Human warrior with a sword in the main hand only, then the off hand only, and a mace
-  in the other hand; read sheet crit and, if unclear, log crits per hand.
-- **Samples:** sheet reads; ≥1,000 swings per hand if needed.
-- **Changes:** the racial's scope (all attacks, or the matching weapon's).
-- **Docs:** [warrior §2.9](classes/warrior.md#29-racials-for-warriors),
-  [Q15](classes/warrior.md#9-open-questions)
 
 #### B50. Gnome maximum rage and Eureka!
 **Low · M2 · ≤20**
@@ -1508,7 +1509,7 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 
 #### C35. Fallback items with Forever effects
 **Medium · M2**
-- **Assumes** [?]: for the 746 items with no Forever `ItemSparse` row, stats are Classic Era's
+- **Assumes** [?]: for the 745 items with no Forever `ItemSparse` row, stats are Classic Era's
   (D6) and effects the Forever client's: the item effects Forever links to the item, and every
   spell read from Forever; a Classic Era stat spell stays unless Forever's effects give that stat
   ([items.md](data/items.md#effects-of-fallback-items)). Where Forever moved a bonus into the
@@ -1517,8 +1518,8 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
   dodge and Forever's health use). The Fury and Arms defaults' Blackhand's Breadth reads +1%
   crit (Forever's spell 1318954) with Forever's new use.
 - **Test:** read these items' tooltips in game (an item link is enough; the server sends the
-  row): Blackhand's Breadth, Hand of Justice, Savage Gladiator Chain, Mark of Tyranny, Counterattack
-  Lodestone, Diamond Flask. Re-scrape when a build ships their rows.
+  row): Blackhand's Breadth, Hand of Justice, Savage Gladiator Chain, Mark of Tyranny and
+  Counterattack Lodestone. Re-scrape when a build ships their rows.
 - **Samples:** one read per item.
 - **Changes:** fallback items' stats and effects; the Fury and Arms default trinket (about 1%
   DPS per 1% crit).
@@ -1573,10 +1574,10 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 #### C27. Demoralizing Shout and Roar level scaling
 **Low · M3**
 - **Assumes:** Shout r5 is **−204** at 60 [F]: the level-60 tooltip, −196 plus −1.4 per level
-  from 54 (−204.4, shown as 204; review finding L9). The −196 the docs used before was the base
-  value, rendered without the term. The Roar r5 row of the buffs doc and the druid doc still say
-  −193, the same unscaled base (−204.2 at 60). Whether the debuff applies the tooltip's value in
-  combat is [?].
+  from 54 (−204.4, shown as 204; review finding L9). Roar r5 is **−204** too: −193 plus −1.4 per
+  level from 52 (−204.2). The −196 and −193 the docs used before were the base values, rendered
+  without the term. The sim's Demoralizing Shout debuff uses −204 (`classicEra`: −146, which
+  scales the same way). Whether the debuff applies the tooltip's value in combat is [?].
 - ✅ **Client half resolved** ([client.md](data/client.md#doc-claims-checked-against-the-raw-client),
   row C27): `SpellEffect` has −196 / −193 with −1.4 per level, and `SpellLevels` runs 54–64 /
   52–62, so `MaxLevel` doesn't cap the term below 60 [F client]. Only the server's behaviour is
@@ -1641,13 +1642,15 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
   +75 Strength for 60 s with "CHUG! CHUG! CHUG! CHUG!" (363881): a 5 s channel healing 224 a
   second, "If finished, gain $s2 Strength for $d" ($s2 = 20, $d = 5 s), 6 min cooldown, 60 s
   shared with runes. The item also gained an equip dummy (1318073) with no description. It has
-  no Forever `ItemSparse` row, so its stats are Classic Era's, but since review finding L5 the
-  app shows Forever's use line ([items.md](data/items.md#effects-of-fallback-items)).
+  no Forever `ItemSparse` row, so its stats are Classic Era's; since review finding L5 its use
+  line was Forever's ([items.md](data/items.md#effects-of-fallback-items)). As a heal it's no
+  longer a damage trinket, so it's off the Fury and Arms pre-raid lists (the guides' rank 3),
+  and with them out of the item pool, which it was in only for those lists.
 - **Test:** read the tooltip; use it, and watch Strength on the character sheet during the
   channel, after it, and with the flask merely equipped.
 - **Samples:** one use, sheet read every second for 10 s.
-- **Changes:** whether it's a DPS trinket at all (it's rank 3 on the Fury and Arms pre-raid
-  lists), and its use in the rotation.
+- **Changes:** whether it goes back on the pre-raid lists as a damage trinket, and its use in
+  the rotation.
 - **Docs:** [warrior §5.2 notes, Q30](classes/warrior.md#9-open-questions)
 
 #### C34. Weakness Analyzer: cooldown and what ends it
@@ -1661,7 +1664,7 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 - **Changes:** the trinket's uses per fight and its value.
 - **Docs:** [warrior §5.2 notes, Q31](classes/warrior.md#9-open-questions)
 
-#### C35. Toughness and bonus armor
+#### C36. Toughness and bonus armor
 **Low · M3**
 - **Assumes** [?]: Toughness multiplies an item's base armor, not Forever's stat-50 bonus armor;
   a Classic Era fallback item's stored armor is multiplied whole.

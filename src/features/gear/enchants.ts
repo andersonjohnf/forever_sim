@@ -1,5 +1,5 @@
 import type { Item } from '@/data/items/types'
-import { enchantCatalogue, isTwoHand, type EnchantDefinition, type GearSlot } from '@/sim'
+import { enchantCatalogueFor, isTwoHand, type EnchantDefinition, type GearSlot, type RuleProfileId } from '@/sim'
 
 /** Does the enchant apply to this item in this slot (e.g. a two-hander enchant needs a 2H)? */
 export function enchantFits(enchant: EnchantDefinition, slot: GearSlot, item: Item): boolean {
@@ -16,6 +16,7 @@ export function enchantFits(enchant: EnchantDefinition, slot: GearSlot, item: It
   }
 }
 
-export function enchantsFor(slot: GearSlot, item: Item): EnchantDefinition[] {
-  return enchantCatalogue.filter((e) => enchantFits(e, slot, item))
+/** The enchants that fit, with their summaries in the setup's rule profile (Classic Era's numbers where they differ). */
+export function enchantsFor(slot: GearSlot, item: Item, profile: RuleProfileId): EnchantDefinition[] {
+  return enchantCatalogueFor(profile).filter((e) => enchantFits(e, slot, item))
 }

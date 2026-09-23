@@ -19,7 +19,7 @@ Interfaces are in [`src/data/items/types.ts`](../../src/data/items/types.ts); th
 | Definitions | WoWDBDefs commit [`2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e`](https://github.com/wowdev/WoWDBDefs/tree/2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e) |
 | BiS lists | [`scripts/scrape/pre-raid-bis.json`](../../scripts/scrape/pre-raid-bis.json), hand-curated from Wowhead's 2019–2021 WoW Classic guides (see [Pre-raid BiS lists](#pre-raid-bis-lists)) |
 | Scraped | 2026-09-23 01:16 UTC (`meta.scrapedAt`: the latest download time of the 43 Forever and 35 Classic Era files read) |
-| Size | 1,630 items, 102 item sets; 2.1 MB JSON (1.4 MB minified, 101 KB gzipped) |
+| Size | 1,629 items, 102 item sets; 2.1 MB JSON (1.4 MB minified, 101 KB gzipped) |
 
 Until M1.5c-2 the pool came from foreverchanges.pro's item pages. What moved in the switch is
 recorded, as history, in [From foreverchanges to the client](#from-foreverchanges-to-the-client).
@@ -120,18 +120,18 @@ remakes (Shadowcraft, Wildheart, Valor, Feralheart, Heroism, …), 202254 Bracer
 Redirection, 208196 Moa'kin Band, and a few SoD items the Forever client also carries (211940
 Ecks'av's Tribal Guardian, 211941 Windwalker's Yari, 220606 Idol of the Dream). The highest
 non-new id in the pool is 23319 (Lieutenant Commander's Silk Mantle); new items run
-249385–281637. All 159 BiS-listed ids are original Classic ids (highest 23315).
+249385–281637. All 158 BiS-listed ids are original Classic ids (highest 23315).
 
 Checked against the foreverchanges pool: the client rule gives exactly its 328 surviving
 `new` items, and every other kept item has a Classic Era row and an id below 25000.
 
 ## Items with no Forever data (D6)
 
-**746 items have no Forever `ItemSparse` row** and use their Classic Era row:
+**745 items have no Forever `ItemSparse` row** and use their Classic Era row:
 `foreverData: false`, `foreverSource: null`, `statsFrom: "classic"`, `tab: "missing"`. The UI
 badges them ("Classic stats"), and the engine lists them with each result. They are:
 
-- **650** Classic items the beta client has never had data for: Classic dungeon drops "not
+- **649** Classic items the beta client has never had data for: Classic dungeon drops "not
   seen in the beta yet", Zul'Gurub and Ruins of Ahn'Qiraj loot, Silithus and Scourge-invasion
   rewards, PvP gear, quest rewards (Blackhand's Breadth, Mark of Fordring) and world drops.
   Most Classic pre-raid staples are here: the beta is level-capped, so nobody has looted them.
@@ -157,13 +157,12 @@ weapon and set, and takes its effects from Forever wherever Forever has them
 (`createFallbackContext` in `lib/item-stats.mjs`, review finding L5) `[F]`:
 
 1. **Every spell the Forever client has is read from Forever's tables**: its auras (the stats
-   an equip spell gives), cooldown, conditions, name and tooltip text. All 626 spells the 501
+   an equip spell gives), cooldown, conditions, name and tooltip text. All 624 spells the 500
    fallback items with effects use are in the Forever client, so none is read from Classic Era
    (`meta.fallbackEffects`).
-2. **When Forever links item effects to the item, they are its effects** (109 items): Forever's
-   redesigns, such as Diamond Flask's use casting 363881 "CHUG! CHUG! CHUG! CHUG!" and Ironfoe's
-   proc becoming an equip spell, and Forever's own equip stat spells (Blackhand's Breadth's +1%
-   crit, 1318954). Otherwise (392 items) the Classic Era row's item effects stay, with their
+2. **When Forever links item effects to the item, they are its effects** (108 items): Forever's
+   redesigns, such as Ironfoe's proc becoming an equip spell and Blackhand's Breadth's new use
+   (1318944), and Forever's own equip stat spells (Blackhand's Breadth's +1% crit, 1318954). Otherwise (392 items) the Classic Era row's item effects stay, with their
    spells read from Forever.
 3. **A Classic Era equip spell whose every aura is a stat stays, unless Forever's effects give
    one of its stats.** Forever moved most such bonuses into `ItemSparse` stats, which the client
@@ -179,7 +178,7 @@ row); effects are the Forever client's item effects; spells … read from the Fo
 and every effect line and set bonus names its spell (`spellId`). Whether Forever's mix of
 `ItemSparse` stats and effects matches this reading is an open question ([Caveats](#caveats)).
 
-**Before and after** (the dataset of `be7bb9c` against this one). 13 items' stats moved:
+**Before and after** (the dataset of `be7bb9c` against the one review fix F2 generated). 13 items' stats moved:
 
 | Item | Before (Classic Era spells) | After | Why |
 | --- | --- | --- | --- |
@@ -198,7 +197,7 @@ and every effect line and set bonus names its spell (`spellId`). Whether Forever
 | --- | --- | --- |
 | Hand of Justice (11815) | Equip: 2% chance on melee hit to gain 1 extra attack. | Equip: 1% chance on Melee hit to gain 1 extra attack. Attacks against Dwarves are 3 times as likely to activate this effect. |
 | Ironfoe (11684) | Chance on hit: Grants 2 extra attacks on your next swing. | Equip: Attacks have a chance to grant 2 extra attacks on your next swing. Attacks against Orcs are 2 times as likely to activate this effect. |
-| Diamond Flask (20130) | Use: Restores 9 health every 5 sec and increases your Strength by 75. Lasts 1 min. (6 Min Cooldown) | Use: Restores 1120 Health over 5 sec. This healing is strongest at first. If finished, gain 20 Strength for 5 sec. (6 Min Cooldown) |
+| Diamond Flask (20130) | Use: Restores 9 health every 5 sec and increases your Strength by 75. Lasts 1 min. (6 Min Cooldown) | Use: Restores 1120 Health over 5 sec. This healing is strongest at first. If finished, gain 20 Strength for 5 sec. (6 Min Cooldown). Since then it has left the pool, as a heal is no longer a damage trinket ([warrior Q30](../classes/warrior.md#9-open-questions)) |
 | Mark of the Chosen (17774) | …increasing all stats by 25 for 1 min. | …increasing all stats by **21** for 1 min, with a 120 s internal cooldown (`ProcCategoryRecovery`, not in the text) |
 | Bashguuder (13204), Rivenspike (13286) | …lowering it by 200. Can be applied up to 3 times. | …lowering it by **100**… |
 | Blackhand Doomsaw (12583) | Wounds the target for 324 to 540 damage. | Delivers a fatal wound for 373 to 523 Physical damage. Deals 50% increased damage to targets below 25% health. |
@@ -231,8 +230,8 @@ Prophecy.
 
 ## Counts
 
-By tab: **new 328 · changed 346 · unchanged 210 · missing 746**. Stats come from Forever for
-884 items and from Classic Era for 746. By quality: 1,605 Rare, 19 Epic and 6 Uncommon; the
+By tab: **new 328 · changed 346 · unchanged 210 · missing 745**. Stats come from Forever for
+884 items and from Classic Era for 745. By quality: 1,604 Rare, 19 Epic and 6 Uncommon; the
 Epic and Uncommon items all come from the BiS lists.
 
 `tab` compares the two clients' rows: `new` has only a Forever row, `missing` only a Classic
@@ -248,7 +247,7 @@ foreverchanges called changed are `unchanged` here.
 | Rule: item level ≥ 58, required level 53–54 | 168 | 28 | 16 | 4 | 120 |
 | Rule: item level ≥ 58, required level 1–52 | 5 | 3 | 1 | 1 | 0 |
 | Rule: item level ≥ 58, **no** required level (`reqLevel: 0`) | 188 | 11 | 64 | 57 | 56 |
-| **BiS list only** (fails the rule) | **50** | 0 | 10 | 0 | 40 |
+| **BiS list only** (fails the rule) | **49** | 0 | 10 | 0 | 39 |
 
 | Slot (`slot`) | Total | new | changed | unchanged | missing | BiS list only |
 | --- | --: | --: | --: | --: | --: | --: |
@@ -263,7 +262,7 @@ foreverchanges called changed are `unchanged` here.
 | legs | 149 | 31 | 46 | 13 | 59 | 2 |
 | feet | 157 | 38 | 40 | 17 | 62 | 2 |
 | finger | 82 | 18 | 10 | 11 | 43 | 4 |
-| trinket | 62 | 5 | 14 | 5 | 38 | 7 |
+| trinket | 61 | 5 | 14 | 5 | 37 | 6 |
 | twoHand | 71 | 5 | 7 | 5 | 54 | 5 |
 | mainHand | 35 | 1 | 3 | 2 | 29 | 5 |
 | oneHand | 58 | 2 | 6 | 10 | 40 | 3 |
@@ -281,7 +280,7 @@ foreverchanges called changed are `unchanged` here.
 | mail | 252 | 71 | 60 | 30 | 91 |
 | plate | 245 | 57 | 61 | 25 | 102 |
 
-Other armor-class items: 82 rings, 67 necks, 62 trinkets, 23 shields, 19 held-in-off-hand,
+Other armor-class items: 82 rings, 67 necks, 61 trinkets, 23 shields, 19 held-in-off-hand,
 7 idols, 6 librams, 6 totems.
 
 | Weapon type (`weaponType`) | Total | Slots | new / changed / unchanged / missing |
@@ -416,10 +415,10 @@ Attack Power.") or its name. **Coverage in this snapshot** (`meta.descriptionCov
 
 | | Lines |
 | --- | --: |
-| Rendered cleanly | 535 |
+| Rendered cleanly | 534 |
 | Generated from the spell's auras (conditional stat bonus with an empty description) | 2 |
 | Fallback (a variable couldn't be rendered) | **0** |
-| Hidden (empty description, which the game doesn't show either) | 9 |
+| Hidden (empty description, which the game doesn't show either) | 8 |
 
 The two generated lines are Rune of the Guard Captain's area-restricted spell 1287704: "Equip:
 +28 Attack Power in certain areas." (its always-on +14 AP is a stat; together they are the
@@ -427,7 +426,7 @@ tooltip's "tripled in Forest and Grassland areas") and Briarwood Reed's Marsh an
 doubling (1318327, "+15 Spell Power in certain areas."). The hidden spells are Seal of
 Ascension's use and equip spells (16349, 16372) and Forever equip dummies (Arcanite
 Dragonling 1318325, Cannonball Runner 1300668, Blackhand's Breadth 1318945, Eye of the Beast
-1318846, Barov Peasant Caller 1298508, Diamond Flask 1318073).
+1318846 and Barov Peasant Caller 1298508).
 
 <a id="per-level-values"></a>**Per-level values** (review finding L9). Effect points are read at
 level 60: an effect with `EffectRealPointsPerLevel` adds that much per level from its spell's
@@ -569,26 +568,33 @@ counterpart is added at the same rank, as is the Frostwolf twin of Stormpike Ins
 Slot keys are the paperdoll slots plus `twoHand` and `relic`; tanks' shields are under
 `offHand`.
 
+**Left out for Forever.** An item Forever redesigned out of the spec's role is taken off the
+list, and the spec's `note` says why; the other entries keep the guide's rank. So far that's
+**Diamond Flask** (20130), the Fury and Arms guides' rank-3 trinket: Forever made its use a 5 s
+heal ([warrior Q30](../classes/warrior.md#9-open-questions)). No other list has it and the
+filter doesn't keep it, so it's out of the pool; the lists' trinket ranks run 1, 2 and 4. The
+default gear is unchanged, since it wears ranks 1 and 2.
+
 ### Coverage
 
-159 distinct items are listed. **All 159 have a client row and are in the pool**
-(`meta.preRaidBis.notInData` is empty). **50** are in the pool only because of the lists: 6
-Uncommon, 25 Rare and 19 Epic (Lionheart Helm, Savage Gladiator Chain, Ironfoe, Blackblade of
+158 distinct items are listed. **All 158 have a client row and are in the pool**
+(`meta.preRaidBis.notInData` is empty). **49** are in the pool only because of the lists: 6
+Uncommon, 24 Rare and 19 Epic (Lionheart Helm, Savage Gladiator Chain, Ironfoe, Blackblade of
 Shahram, The Unstoppable Force, Don Julio's Band, Wolfshead Helm, Manual Crowd Pummeler, Rune
 of the Guard Captain, …).
 
 | Spec | Items | new | changed | unchanged | no Forever data | Rank-1 items without Forever data |
 | --- | --: | --: | --: | --: | --: | --- |
-| `warrior-fury` | 50 | 0 | 13 | 4 | 33 | 9 of 17: Mark of Fordring, Cape of the Black Baron, Savage Gladiator Chain, Battleborn Armbraces, Brigam Girdle, Hand of Justice, Ironfoe, Mirah's Song, Satyr's Bow |
-| `warrior-arms` | 48 | 0 | 14 | 4 | 30 | 8 of 16: as Fury, with Blackblade of Shahram instead of Ironfoe and Mirah's Song |
+| `warrior-fury` | 49 | 0 | 13 | 4 | 32 | 9 of 17: Mark of Fordring, Cape of the Black Baron, Savage Gladiator Chain, Battleborn Armbraces, Brigam Girdle, Hand of Justice, Ironfoe, Mirah's Song, Satyr's Bow |
+| `warrior-arms` | 47 | 0 | 14 | 4 | 29 | 8 of 16: as Fury, with Blackblade of Shahram instead of Ironfoe and Mirah's Song |
 | `warrior-protection` | 50 | 0 | 8 | 3 | 39 | 10 of 18: Medallion of Grand Marshal Morris, Stoneskin Gargoyle Cape, Bracers of Valor, Boneclenched Gauntlets, Brigam Girdle, Cloudkeeper Legplates, Hand of Justice, Mirah's Song, Draconian Deflector, Satyr's Bow |
 | `druid-feral-cat` | 39 | 0 | 6 | 0 | 33 | 12 of 16, including Manual Crowd Pummeler and Widowmaker |
 | `druid-feral-bear` | 50 | 0 | 15 | 3 | 32 | 14 of 17, including Breastplate of Bloodthirst, Smoking Heart of the Mountain and Warden Staff |
 | `paladin-retribution` | 36 | 0 | 5 | 1 | 30 | 10 of 14 |
 | `paladin-protection` | 46 | 0 | 9 | 1 | 36 | 13 of 14, including the whole Deathbone set, Naglering, Force of Will and Flurry Axe |
 
-Across the 159 listed items: **0 new, 33 changed, 9 unchanged, 117 with no Forever data**
-(103 never had any, 6 seen in game, 8 hotfix-only: Deepfury Bracers, Flurry Axe, Widowmaker,
+Across the 158 listed items: **0 new, 33 changed, 9 unchanged, 116 with no Forever data**
+(102 never had any, 6 seen in game, 8 hotfix-only: Deepfury Bracers, Flurry Axe, Widowmaker,
 Serathil, Stonegrip Gauntlets, Boots of Avoidance, Smoking Heart of the Mountain, Ardent
 Custodian).
 
@@ -746,8 +752,12 @@ PvP pieces to both factions, since their rows carry no requirement to go by `[?]
 - The default gear takes the race's own twin: an Alliance warrior wears Lieutenant
   Commander's Plate Shoulders where a Horde one wears Champion's.
 - The picker leaves out the other faction's items, except the one equipped.
-- `normalizeConfig` leaves them alone. A race change keeps the gear, and the twins' stats and
-  set bonuses are identical.
+- `normalizeConfig` leaves them alone.
+- A race change on the Character tab that crosses factions swaps each item the new race can't
+  wear for its twin: the other faction's item with the same slot, level, stats and effects (the
+  closest name when several match), keeping the slot's enchant. An item with no twin, or whose
+  twin would break a Unique rule, stays. A toast with Undo names the items swapped and those
+  kept (`src/features/character/faction-gear.ts`, [ux.md](../ux.md#sections) "Character").
 
 ## Caveats
 

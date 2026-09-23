@@ -192,7 +192,7 @@ All values are **before** global multipliers. "dmg" is the damage dealt by that 
 | Shield Bash (r3, 1672) | **1.5 × dmg + 156** [C] (Magey) | [?] | Unchanged spell |
 | Cleave (r5, 20569) | dmg + **100** per target hit, not split [C] (Magey) | [?] | Hits 2 targets |
 | Battle Shout (r7, 25289) | **60** per party member (and pet) buffed, split across enemies in combat [C] (Magey tests: r2 ≈ 12, r6 52, r7 60; not capped at 5) | [?] | Forever: 139 AP, 3 min [F] |
-| Demoralizing Shout (r5, 11556) | **43.2** per enemy debuffed [C] (Magey sheet). Improved Demoralizing Shout doesn't change it. | [?] | Forever: −196 AP, 45 s [F] |
+| Demoralizing Shout (r5, 11556) | **43.2** per enemy debuffed [C] (Magey sheet). Improved Demoralizing Shout doesn't change it. | [?] | Forever: −204 AP at 60, 45 s [F] |
 | Thunder Clap (r6, 11581) | **2.5 × dmg** per target, no flat bonus [C] (Magey, 16 points) | [?] | Forever: **usable in Defensive Stance**, 6 s CD, 20% attack-speed slow, 14 rage with 3/3 Improved TC [F]. LTC2's flat 130 is superseded. |
 | Hamstring (r3, 7373) | **1.25 × dmg + 135** [C] (Magey) | [?] | — |
 | Overpower (r4) | **0.75 × dmg** [C] (Magey) | [?] | DPS context |
@@ -212,7 +212,7 @@ All values are **before** global multipliers. "dmg" is the damage dealt by that 
 | --- | --- | --- | --- |
 | Maul (r7, 9881; +128 dmg) | **1.75 × dmg** [?] (LTC2 only) | [?] | [LTC2 Druid.lua](https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Druid.lua). Icy Veins' Classic spell summary ([Icy Veins](https://www.icy-veins.com/wow-classic/feral-druid-tank-pve-spell-summary)) and Warcraft Tavern's Classic threat table repeat "1.75x" without a source. Spell unchanged [F]. |
 | Swipe (r5, 9908; 83 dmg, 3 targets) | **1.75 × dmg** per target [?] (LTC2 only) | [?] | Forever: Feral Instinct is +10% / +20% / +30% Swipe damage [F]. Savage Fury is +10% at 2/2. |
-| Demoralizing Roar (r5, 9898) | **39** per enemy [?] (LTC2 only) | [?] | Forever: −193 AP [F] |
+| Demoralizing Roar (r5, 9898) | **39** per enemy [?] (LTC2 only) | [?] | Forever: −204 AP at 60 [F] |
 | Faerie Fire (r4, 9907) | **108** [?] (LTC2 only; same value for Faerie Fire (Feral) r4) | [?] | **Forever: Faerie Fire (Feral) is removed.** Plain Faerie Fire r4 can now be cast in Cat, Bear and Dire Bear Form [F] ([spellbook/druid](https://foreverchanges.pro/spellbook/druid)). The caster tooltip shows 115 mana. [druid.md](../classes/druid.md) models it in bear as free with a 6 s CD; that doc owns cost and cooldown. |
 | Growl (6795) | [see taunts](#taunts-and-forced-attacks) | 8 s CD [F] | — |
 | Challenging Roar (5209) | Forced attacks for 6 s | [F] unchanged | — |

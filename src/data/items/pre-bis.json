@@ -5,14 +5,14 @@
     "counts": {
       "byTab": {
         "changed": 346,
-        "missing": 746,
+        "missing": 745,
         "new": 328,
         "unchanged": 210
       },
-      "items": 1630,
+      "items": 1629,
       "sets": 102,
       "statsFrom": {
-        "classic": 746,
+        "classic": 745,
         "forever": 884
       }
     },
@@ -20,7 +20,7 @@
       "fallback": 0,
       "fallbackSpells": [],
       "generated": 2,
-      "hidden": 9,
+      "hidden": 8,
       "hiddenSpells": [
         {
           "build": "forever",
@@ -56,20 +56,15 @@
           "build": "forever",
           "spellId": 1318325,
           "usedBy": ["item 16022"]
-        },
-        {
-          "build": "forever",
-          "spellId": 1318073,
-          "usedBy": ["item 20130"]
         }
       ],
-      "rendered": 535
+      "rendered": 534
     },
     "fallbackEffects": {
-      "effectsFromForever": 109,
-      "items": 501,
-      "spells": 626,
-      "spellsFromForever": 626
+      "effectsFromForever": 108,
+      "items": 500,
+      "spells": 624,
+      "spellsFromForever": 624
     },
     "filter": {
       "equippableOnly": true,
@@ -154,10 +149,10 @@
       }
     ],
     "preRaidBis": {
-      "addedByList": 50,
+      "addedByList": 49,
       "file": "scripts/scrape/pre-raid-bis.json",
-      "inPool": 159,
-      "listedItems": 159,
+      "inPool": 158,
+      "listedItems": 158,
       "notInData": [],
       "specs": {
         "druid-feral-bear": {
@@ -200,7 +195,7 @@
         },
         "warrior-arms": {
           "name": "Arms Warrior (two-hander)",
-          "note": "Same Warrior DPS guide as Fury: armor rows plus its Two-Hand row.",
+          "note": "Same Warrior DPS guide as Fury: armor rows plus its Two-Hand row. Diamond Flask (the guide's rank-3 trinket) is left out, as for Fury (docs/classes/warrior.md Q30).",
           "source": {
             "archivedUrl": "https://web.archive.org/web/20210517121139/https://classic.wowhead.com/guides/wow-classic-fury-warrior-dps-pre-raid-best-in-slot-gear",
             "snapshot": "2021-05-17",
@@ -210,7 +205,7 @@
         },
         "warrior-fury": {
           "name": "Fury Warrior (dual wield)",
-          "note": "The guide's Main Hand and Off-Hand rows; its Two-Hand row is used for Arms.",
+          "note": "The guide's Main Hand and Off-Hand rows; its Two-Hand row is used for Arms. Its rank-3 trinket, Diamond Flask (20130), is left out: Forever changed its use to a 5 s heal (docs/classes/warrior.md Q30), so it is no longer a damage trinket.",
           "source": {
             "archivedUrl": "https://web.archive.org/web/20210517121139/https://classic.wowhead.com/guides/wow-classic-fury-warrior-dps-pre-raid-best-in-slot-gear",
             "snapshot": "2021-05-17",
@@ -67164,62 +67159,6 @@
           "cooldownSec": 180,
           "raw": "Use: Absorbs 554 to 678 physical damage. Lasts 15 sec. (3 Min Cooldown)",
           "spellId": 23991
-        }
-      ],
-      "weapon": null,
-      "weaponSkill": null,
-      "weaponType": null
-    },
-    {
-      "armorType": null,
-      "binding": "BoP",
-      "classes": null,
-      "classic": null,
-      "classicName": null,
-      "equipSlots": ["trinket"],
-      "flavor": "Served on the rocks.",
-      "foreverData": false,
-      "foreverSource": null,
-      "icon": "inv_drink_01",
-      "id": 20130,
-      "itemClass": "Armor",
-      "itemLevel": 52,
-      "itemSubclass": "Miscellaneous",
-      "name": "Diamond Flask",
-      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spells 363881, 1318073 read from the Forever client."],
-      "otherEquip": [],
-      "preRaidBis": [
-        {
-          "rank": 3,
-          "slot": "trinket",
-          "spec": "warrior-fury"
-        },
-        {
-          "rank": 3,
-          "slot": "trinket",
-          "spec": "warrior-arms"
-        }
-      ],
-      "procs": [],
-      "quality": 3,
-      "races": null,
-      "reqLevel": 0,
-      "requirements": [],
-      "sellPrice": null,
-      "setId": null,
-      "slot": "trinket",
-      "source": null,
-      "statSpellIds": [],
-      "stats": {},
-      "statsFrom": "classic",
-      "tab": "missing",
-      "unique": false,
-      "uniqueEquipped": null,
-      "useEffects": [
-        {
-          "cooldownSec": 360,
-          "raw": "Use: Restores 1120 Health over 5 sec. This healing is strongest at first. If finished, gain 20 Strength for 5 sec. (6 Min Cooldown)",
-          "spellId": 363881
         }
       ],
       "weapon": null,

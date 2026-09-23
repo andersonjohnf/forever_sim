@@ -81,15 +81,16 @@ describe('on-use trinkets match src/data/client (warrior.md §5.2 row 3)', () =>
     expect(use.aura?.critCharges).toBe(1)
   })
 
-  it('Diamond Flask (20130) isn’t simulated: Forever replaced its +75 Strength use (warrior.md §7, Q30)', () => {
+  it('Diamond Flask (20130) isn’t simulated, or in the pool: Forever replaced its +75 Strength use (warrior.md §7, Q30)', () => {
     expect(ITEM_EFFECTS[20130]).toBeUndefined()
-    const { effect, spell } = useOf(20130, false)
-    // Forever's use spell is a 5 s heal ("CHUG! CHUG! CHUG! CHUG!"), with no Strength aura.
+    // Off the pre-raid lists, the only reason it was in the pool, so the client data has no row for
+    // it; its item effects are checked on real client rows in scripts/scrape/lib/item-stats.test.mjs.
+    expect(items.items['20130']).toBeUndefined()
+    // Forever's use spell (which warrior.md Q30 cites) is a 5 s heal ("CHUG! CHUG! CHUG! CHUG!"),
+    // with no Strength aura.
+    const spell = spells['363881']
     expect(spell.name).toBe('CHUG! CHUG! CHUG! CHUG!')
     expect(spell.effects.some((e) => e.effect === APPLY_AURA && e.effectAura === AURA.modStat)).toBe(false)
     expect(spell.duration?.duration).toBe(5000)
-    expect([effect.coolDownMSec, effect.spellCategoryId, effect.categoryCoolDownMSec]).toEqual([360000, 1153, 60000])
-    // …and it gained an equip dummy, whose effect isn't described.
-    expect(items.items['20130'].effects.find((e) => e.triggerType === 1)?.spellId).toBe(1318073)
   })
 })

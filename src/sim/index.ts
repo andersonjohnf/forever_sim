@@ -8,12 +8,15 @@ import { normalizeConfig } from './config/normalize'
 import { TALENT_DATA } from './defaults'
 import { BUFFS } from './effects/buffs'
 import { ENCHANTS } from './effects/enchants'
+import { ITEM_EFFECTS } from './effects/items'
 import { presetBuffIds } from './effects/presets'
+import { catalogueSummary } from './effects/types'
 import { buildPlan, UnsupportedSetupError } from './plan/build'
 import { toResult } from './run/aggregate'
 import { type ChunkExecutor, drive } from './run/driver'
 import { localExecutor } from './run/local'
 import { WorkerPool } from './run/pool'
+import { PROFILES } from './rules/profiles'
 import { SPEC_IDS, SPEC_META } from './specs'
 import type {
   BuffDefinition,
@@ -22,6 +25,7 @@ import type {
   EnchantDefinition,
   RotationGroup,
   RotationValue,
+  RuleProfileId,
   SimConfig,
   SimProgress,
   SimResult,
@@ -70,20 +74,38 @@ export function rotationValues(config: Pick<SimConfig, 'spec' | 'talents' | 'rot
   return resolveRotationValues(rotationOptions(config.spec), config.rotation, talentRanksByName(TALENT_DATA[classId], config.talents))
 }
 
-/** Raid buffs, target debuffs and consumables (docs/mechanics/buffs-debuffs-consumables.md). */
-export const buffCatalogue: BuffDefinition[] = BUFFS.map(
-  ({ id, name, icon, category, group, summary, providedBy, exclusiveGroup, docRef }) => ({
-    id,
-    name,
-    icon,
-    category,
-    group,
-    summary,
-    ...(providedBy ? { providedBy } : {}),
-    ...(exclusiveGroup ? { exclusiveGroup } : {}),
-    docRef,
-  }),
+/** A catalogue per rule profile: each entry's summary is the profile's (`catalogueSummary`). */
+function perProfile<T>(build: (profile: RuleProfileId) => T): Record<RuleProfileId, T> {
+  return { forever: build('forever'), classicEra: build('classicEra') }
+}
+
+const BUFF_CATALOGUES = perProfile((profile): BuffDefinition[] =>
+  BUFFS.map((b) => ({
+    id: b.id,
+    name: b.name,
+    icon: b.icon,
+    category: b.category,
+    group: b.group,
+    summary: catalogueSummary(b, PROFILES[profile]),
+    ...(b.providedBy ? { providedBy: b.providedBy } : {}),
+    ...(b.exclusiveGroup ? { exclusiveGroup: b.exclusiveGroup } : {}),
+    docRef: b.docRef,
+  })),
 )
+
+/**
+ * Raid buffs, target debuffs and consumables (docs/mechanics/buffs-debuffs-consumables.md), with
+ * Forever's summaries. To show a setup's numbers, use `buffCatalogueFor(config.rules.profile)`.
+ */
+export const buffCatalogue: BuffDefinition[] = BUFF_CATALOGUES.forever
+
+/**
+ * The buff catalogue with each entry's summary under a rule profile: Classic Era's numbers where
+ * they differ (buffs doc, Classic Era values). The same array for a profile every time.
+ */
+export function buffCatalogueFor(profile: RuleProfileId): BuffDefinition[] {
+  return BUFF_CATALOGUES[profile]
+}
 
 export const buffPresets: BuffPreset[] = [
   { id: 'self', name: 'Self only', description: 'Your own buffs, no group.' },
@@ -97,15 +119,31 @@ export function presetBuffs(preset: BuffPreset['id'], spec: SpecId, raid: ClassS
   return presetBuffIds(preset, spec, raid)
 }
 
-/** Enchants per slot (docs/mechanics/buffs-debuffs-consumables.md#5-enchants-and-item-enhancements). */
-export const enchantCatalogue: EnchantDefinition[] = ENCHANTS.map(({ id, name, slots, requires, summary, docRef }) => ({
-  id,
-  name,
-  slots,
-  requires,
-  summary,
-  docRef,
-}))
+const ENCHANT_CATALOGUES = perProfile((profile): EnchantDefinition[] =>
+  ENCHANTS.map((e) => ({ id: e.id, name: e.name, slots: e.slots, requires: e.requires, summary: catalogueSummary(e, PROFILES[profile]), docRef: e.docRef })),
+)
+
+/**
+ * Enchants per slot (docs/mechanics/buffs-debuffs-consumables.md#5-enchants-and-item-enhancements),
+ * with Forever's summaries. To show a setup's numbers, use `enchantCatalogueFor(config.rules.profile)`.
+ */
+export const enchantCatalogue: EnchantDefinition[] = ENCHANT_CATALOGUES.forever
+
+/** The enchant catalogue with each summary under a rule profile, as `buffCatalogueFor`. */
+export function enchantCatalogueFor(profile: RuleProfileId): EnchantDefinition[] {
+  return ENCHANT_CATALOGUES[profile]
+}
+
+/**
+ * Which of an item's effects the engine models, read the way the plan builder reads its item-effect
+ * overrides (`sim/effects/items.ts`): `equip`, its equip and chance-on-hit effects and extra weapon
+ * damage (an override replaces what the tooltip says); `use`, its use effect, as a cast a rotation
+ * can press. The plan lists every other effect as not simulated.
+ */
+export function modelledItemEffects(itemId: number): { equip: boolean; use: boolean } {
+  const override = ITEM_EFFECTS[itemId]
+  return { equip: override !== undefined, use: override?.use !== undefined }
+}
 
 /** Final character stats for a config, synchronously (docs/mechanics/character-stats.md). */
 export function computeSheet(config: SimConfig): CharacterSheet | null {

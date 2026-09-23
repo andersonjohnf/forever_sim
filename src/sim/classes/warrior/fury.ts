@@ -282,7 +282,7 @@ export function furyRotation(
   // becomes true.
 
   // Row 1: Battle Shout (shared.ts).
-  const shout = battleShoutLine(b, v, ID)
+  const shout = battleShoutLine(b, v, ID, ctx)
 
   // Row 2: Death Wish, and row 3: the racial and on-use trinkets synced with it (shared.ts).
   cooldownLines(b, v, ID, ctx, deathWishLines(b, v, ID))

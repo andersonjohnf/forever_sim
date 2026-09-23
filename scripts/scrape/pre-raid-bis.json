@@ -12,6 +12,8 @@
     "Selection: the guide's order is the rank (1 = BiS, 2+ = alternatives). Each slot keeps the top pick plus",
     "two alternatives; finger and trinket keep four, since two are worn. The guides link Horde PvP items;",
     "the Alliance counterpart is added at the same rank. PvP items are Rank 10 or lower. No raid drops.",
+    "An item Forever redesigned out of the spec's role is left out and keeps no rank; the other entries keep",
+    "the guide's rank, and the spec's note says why (Diamond Flask, docs/classes/warrior.md Q30).",
     "These are Classic Era lists. Forever re-itemized many of these items and added level-55+ dungeons with",
     "no recorded drops yet, so Forever's real pre-raid BiS will differ. The only Forever BiS lists found on",
     "2026-09-22 were for level 20; replace these lists when a level-60 Forever one exists."
@@ -32,7 +34,7 @@
         "archivedUrl": "https://web.archive.org/web/20210517121139/https://classic.wowhead.com/guides/wow-classic-fury-warrior-dps-pre-raid-best-in-slot-gear",
         "snapshot": "2021-05-17"
       },
-      "note": "The guide's Main Hand and Off-Hand rows; its Two-Hand row is used for Arms.",
+      "note": "The guide's Main Hand and Off-Hand rows; its Two-Hand row is used for Arms. Its rank-3 trinket, Diamond Flask (20130), is left out: Forever changed its use to a 5 s heal (docs/classes/warrior.md Q30), so it is no longer a damage trinket.",
       "slots": {
         "head": [
           {
@@ -301,12 +303,6 @@
             "id": 13965,
             "name": "Blackhand's Breadth",
             "rank": 2,
-            "notes": "Quest"
-          },
-          {
-            "id": 20130,
-            "name": "Diamond Flask",
-            "rank": 3,
             "notes": "Quest"
           },
           {
@@ -374,7 +370,7 @@
         "archivedUrl": "https://web.archive.org/web/20210517121139/https://classic.wowhead.com/guides/wow-classic-fury-warrior-dps-pre-raid-best-in-slot-gear",
         "snapshot": "2021-05-17"
       },
-      "note": "Same Warrior DPS guide as Fury: armor rows plus its Two-Hand row.",
+      "note": "Same Warrior DPS guide as Fury: armor rows plus its Two-Hand row. Diamond Flask (the guide's rank-3 trinket) is left out, as for Fury (docs/classes/warrior.md Q30).",
       "slots": {
         "head": [
           {
@@ -643,12 +639,6 @@
             "id": 13965,
             "name": "Blackhand's Breadth",
             "rank": 2,
-            "notes": "Quest"
-          },
-          {
-            "id": 20130,
-            "name": "Diamond Flask",
-            "rank": 3,
             "notes": "Quest"
           },
           {

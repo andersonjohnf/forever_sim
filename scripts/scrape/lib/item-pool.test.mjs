@@ -65,10 +65,13 @@ describe("fallback items read their spells from the Forever client (L5)", () => 
     expect(hoj.stats.attackPower).toBe(points(9331, 99));
   });
 
-  it("and Forever's item effects: Diamond Flask's use is 363881 (CHUG!), Mark of the Chosen's proc +21 all stats", () => {
-    const flask = fallback.find((i) => i.id === 20130);
-    expect(flask.useEffects.map((e) => [e.spellId, e.cooldownSec])).toEqual([[363881, 360]]);
-    expect(spells["363881"].name).toBe("CHUG! CHUG! CHUG! CHUG!");
+  it("and Forever's item effects: Blackhand's Breadth gains a use (1318944), Mark of the Chosen's proc +21 all stats", () => {
+    const breadth = fallback.find((i) => i.id === 13965);
+    expect(breadth.useEffects.map((e) => [e.spellId, e.cooldownSec])).toEqual([[1318944, 300]]);
+    expect(breadth.stats.crit).toBe(1);
+    // Diamond Flask, whose use Forever made a 5 s heal ("CHUG!"), is off the pre-raid lists and so
+    // out of the pool (docs/classes/warrior.md Q30).
+    expect(itemJson.items.some((i) => i.id === 20130)).toBe(false);
     const mark = fallback.find((i) => i.id === 17774);
     expect(mark.procs.map((e) => e.spellId)).toEqual([21969]);
     expect(mark.procs[0].raw).toContain("all stats by 21");

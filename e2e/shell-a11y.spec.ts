@@ -12,10 +12,10 @@ const expectTouchTargets = async (locator: Locator) => {
 }
 
 /**
- * WCAG contrast of an element's text (or, for `fill`, its background) against what's behind it,
- * compositing translucent backgrounds and ancestors' opacity.
+ * WCAG contrast of an element's text (or, for `fill`, its background; for `ring`, its 3 px focus
+ * ring) against what's behind it, compositing translucent colors and ancestors' opacity.
  */
-const contrast = (locator: Locator, what: 'text' | 'fill' = 'text') =>
+const contrast = (locator: Locator, what: 'text' | 'fill' | 'ring' = 'text') =>
   locator.first().evaluate((el, what) => {
     const canvas = document.createElement('canvas')
     canvas.width = canvas.height = 1
@@ -45,7 +45,18 @@ const contrast = (locator: Locator, what: 'text' | 'fill' = 'text') =>
       const f = (v: number) => ((v /= 255) <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)
       return 0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2])
     }
-    const [fg, bg] = what === 'text' ? [paint(el, true), paint(el, false)] : [paint(el, false), paint(el.parentElement!, false)]
+    /** The color of the element's 3 px ring (Tailwind's `ring-3`), from its box shadows; none yet (mid-transition): transparent. */
+    const ring = () => {
+      const shadows = getComputedStyle(el).boxShadow.split(/,(?![^(]*\))/)
+      const found = shadows.map((s) => s.trim()).find((s) => /\b0px 0px 0px 3px\b/.test(s))
+      return found ? parse(found.replace(/\s*-?[\d.]+px/g, '').trim()) : [0, 0, 0, 0]
+    }
+    const [fg, bg] =
+      what === 'text'
+        ? [paint(el, true), paint(el, false)]
+        : what === 'ring'
+          ? [over(ring(), paint(el.parentElement!, false)), paint(el.parentElement!, false)]
+          : [paint(el, false), paint(el.parentElement!, false)]
     const [hi, lo] = [lum(fg), lum(bg)].sort((a, b) => b - a)
     return (hi + 0.05) / (lo + 0.05)
   }, what)
@@ -156,6 +167,28 @@ test.describe('phone', () => {
     await expect(bar).toHaveAttribute('data-fade', 'right')
   })
 
+  test('keyboard focus stays clear of the sticky header and the sim bar (WCAG 2.4.11)', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+    const header = (await page.locator('header').boundingBox())!
+    const bar = (await page.locator('[data-sim-bar]').boundingBox())!
+    await page.getByRole('switch').first().focus()
+    let checked = 0
+    for (let i = 0; i < 40; i++) {
+      await page.keyboard.press('Tab')
+      const focused = page.locator(':focus')
+      if ((await focused.getAttribute('role')) !== 'switch') continue
+      await expect
+        .poll(async () => {
+          const box = (await focused.boundingBox())!
+          return box.y >= header.y + header.height && box.y + box.height <= bar.y
+        }, { message: `${await focused.getAttribute('aria-label')} is clear of the header and the bar` })
+        .toBe(true)
+      checked++
+    }
+    expect(checked).toBeGreaterThan(20)
+  })
+
   test('the chosen tab scrolls into view', async ({ page }) => {
     await page.addInitScript(() => {
       if (sessionStorage.getItem('seeded')) return
@@ -190,6 +223,23 @@ for (const colorScheme of ['light', 'dark'] as const) {
       // Controls: 3:1 for the track (WCAG 1.4.11), off and on.
       expect(await contrast(page.locator('[role=switch][data-state=unchecked]:not([disabled])'), 'fill')).toBeGreaterThanOrEqual(3)
       expect(await contrast(page.locator('[role=switch][data-state=checked]:not([disabled])'), 'fill')).toBeGreaterThanOrEqual(3)
+    })
+
+    test('the focus ring meets 3:1 on the page and in a dialog (U33)', async ({ page }) => {
+      await page.goto('./')
+      await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+      // Keyboard modality, so programmatic focus shows the ring (:focus-visible).
+      await page.keyboard.press('Shift')
+      for (const control of [page.getByRole('switch', { name: 'Blessing of Might' }), page.getByRole('button', { name: 'Warrior', exact: true })]) {
+        await control.focus()
+        await expect(control).toBeFocused()
+        await expect.poll(() => contrast(control, 'ring')).toBeGreaterThanOrEqual(3)
+      }
+      await page.getByRole('tab', { name: 'Gear', exact: true }).click()
+      await page.getByRole('button', { name: 'Head: Lionheart Helm' }).click()
+      const search = page.getByRole('dialog', { name: 'Choose head' }).getByLabel('Search items')
+      await expect(search).toBeFocused()
+      await expect.poll(() => contrast(search, 'ring')).toBeGreaterThanOrEqual(3)
     })
 
     test('the "Setup changed" badge isn’t dimmed with the stale result', async ({ page }) => {

@@ -108,7 +108,7 @@ foreverchanges tooltips; [client] marks the rows confirmed against the raw clien
 | **Dire Bear Form** | +360% item armor, +600+32/lvl HP, +120+3/lvl AP (180 at 60) | Same | Unchanged | [F]/[C] [se-f] [se-c] |
 | **Maul** r7 (9881) | +128 on next swing, 15 Rage | Same | Unchanged | [F]/[C] [se-f] |
 | **Swipe** r5 (9908) | 83 to 3 targets, 20 Rage, 1.5 s GCD, no AP scaling | Same | Unchanged, but Feral Instinct now adds +30% damage | [F]/[C] [se-f] |
-| **Demoralizing Roar** r5 (9898) | **−193 AP** (tooltip). The DB2 row adds −1.4/level from 52 with `MaxLevel` 62, so nothing caps it below 60: −204.2 at 60 if the server applies it, an open question (Q32), since the tooltip beats the derived value (doctrine §2) | −130 (tooltip; the DB2's −1/level would give −138) | ~+48% stronger | [F] [fc-book]; row [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913); derived value [?]; [C] [se-c] |
+| **Demoralizing Roar** r5 (9898) | **−204 AP at 60**, the level-60 tooltip: base −193 and −1.4/level from 52, which `MaxLevel` 62 doesn't cap below 60, so −204.2, shown as 204. The −193 foreverchanges shows is the base, rendered without the per-level term. Whether the debuff applies −204 in combat is Q32 | −138 at 60 (base −130, −1/level from 52) | ~+48% stronger | tooltip [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913); base [fc-book]; in combat [?]; [C] [client] (SpellEffect, SpellLevels, 1.15.9.69722) [se-c] |
 | **Growl** | 8 s CD | 10 s CD | Not simmed | [F] [scd-f] |
 | **Enrage** | **10 Rage instantly** + 20 over 10 s, 1 min CD, no GCD | 20 over 10 s | Pre-pull Rage | [F] [client] (SpellEffect, 1.60.1.69913) [fc-class] |
 | **Cower** r3 (9892) | Threat −1200 − 1/level: **−1208 at 60** | −600 − 1/level: −608 | Doubled, DB2-only | [F] [client] (SpellEffect, 1.60.1.69913); [C] [se-c] |
@@ -523,7 +523,7 @@ Threat ×1.75 [?] (LibThreatClassic2 only, [ltc2]; Q15).
 
 | Ability | Numbers | Tag |
 | --- | --- | --- |
-| Demoralizing Roar r5 | −193 melee AP on nearby enemies (tooltip; the DB2's per-level term is Q32), 30 s, 10 Rage, 1.5 s GCD. Threat 39 per target | [F] [fc-book] [se-f]; threat [?] [ltc2] |
+| Demoralizing Roar r5 | −204 melee AP on nearby enemies at 60 (the level-60 tooltip; in combat, Q32), 30 s, 10 Rage, 1.5 s GCD. Threat 39 per target | [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913) [fc-book] [se-f]; in combat [?] (Q32); threat [?] [ltc2] |
 | Faerie Fire (bear) | −505 armor, free, 6 s CD, 1.5 s GCD. Threat 108 | [F] [se-f]; threat [?] [ltc2] |
 | Growl | Taunt, 8 s CD. Not simmed | [F] [scd-f] |
 | Enrage | +10 Rage now, +2 Rage/s for 10 s, 1 min CD, no GCD. −27% (bear) / −16% (dire bear) base armor for 10 s; +5 Rage with Wolfshead | [F] [client] (SpellEffect, 1.60.1.69913) [fc-wolf] |
@@ -918,9 +918,10 @@ If Q5 changes those numbers, recompute the examples; the formulas stay.
     per target.
 17. **Bear AP.** Str 250, +150 AP from gear and buffs, Predatory Strikes 3/3:
     `2 × 250 − 20 + 180 + 90 + 150` = **900**.
-18. **Demoralizing Roar r5 at 60.** Forever **−193 AP** (tooltip [F]); Classic −130 (tooltip
-    [C]). The per-level terms in the DB2 rows would give −(193 + 1.4 × 8) = −204.2 and
-    −(130 + 8) = −138 if the server applied them; that is Q32, and the sim uses the tooltips.
+18. **Demoralizing Roar r5 at 60.** Forever −(193 + 1.4 × 8) = −204.2, shown as **−204 AP**
+    (the level-60 tooltip [F]); Classic −(130 + 8) = **−138** [C]. The per-level term runs from
+    `SpellLevel` 52, capped at `MaxLevel` 62 [client] (SpellEffect, SpellLevels, 1.60.1.69913;
+    1.15.9.69722). Whether combat applies it is [?] (Q32).
 19. **Lacerate at 5 stacks** (bleed only): 15 × 5 = **75 per 3 s** (25 DPS); with Genesis 5/5,
     **78.75** per tick. [F] bleed, [?] stack model
 
@@ -965,7 +966,7 @@ ranks.
 | Q29 | Energy cap 100; builders refund 80% on miss/dodge/parry; finishers refund nothing and keep combo points | [?] (standard values; secondary [ws-energy] [ws-shred] [ws-rip] [ws-fb]) | Energy bar maximum; log Energy before and after a dodged Shred and a dodged Bite, and CP after a missed finisher |
 | Q30 | Druid base terms: the −20 AP offset and 0.9% base melee crit | [?] (secondary [ws-base]). The conversions themselves (2 AP per Str, 20 Agi per 1% crit [F]; spirit regen 15 + Spirit/5 per 2 s [C]) come from [character-stats.md](../mechanics/character-stats.md) | Owned by character-stats ([OQ-3](../mechanics/character-stats.md#oq-3-base-melee-and-spell-crit), [OQ-7](../mechanics/character-stats.md#oq-7-base-attack-power-formulas)): check character-sheet AP and crit at two Str/Agi levels |
 | Q31 | Bear rotation thresholds: Maul every swing, Swipe with ≥ 60 spare Rage, Enrage pre-pull only | [?] (the only Classic write-up is Season of Mastery-labelled, not usable) | Sim sensitivity plus guild tank feedback; threat-meter test once Q15 is answered |
-| Q32 | Demoralizing Roar at 60: −193 (tooltip) or −204.2 (the DB2's −1.4/level from 52, if uncapped)? | Tooltip [F]; derived value [?] | Owned by [buffs-debuffs-consumables OQ 19](../mechanics/buffs-debuffs-consumables.md#open-questions). The client row is −193 − 1.4/level with `SpellLevels` 52–62, so `MaxLevel` doesn't cap it below 60 [F] [client]; what's left is reading the debuff at 60 |
+| Q32 | Demoralizing Roar at 60: does the debuff apply the level-60 tooltip's −204 in combat? | Tooltip −204 [F] [client]: −193 − 1.4/level with `SpellLevels` 52–62, so `MaxLevel` doesn't cap it below 60 (the −193 read before was the unscaled base). In combat [?] | Owned by [buffs-debuffs-consumables OQ 19](../mechanics/buffs-debuffs-consumables.md#open-questions): read the debuff on a target at 60 |
 | Q33 | Cat and bear special-attack rolls: weapon-damage abilities one roll; Rake's initial hit, Ferocious Bite and Swipe two rolls? | The split is Classic Era [C] for warrior abilities ([combat-tables §3](../mechanics/combat-tables.md#3-special-yellow-attacks)); mapping the druid's non-weapon specials onto it is [?] | Owned by [combat-tables OQ 6](../mechanics/combat-tables.md#open-questions): crit rate per attempt vs per landed hit for Shred and Ferocious Bite from the front vs mobs three levels above you |
 
 ---

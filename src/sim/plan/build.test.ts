@@ -220,9 +220,10 @@ describe('encounter worked examples on the plan', () => {
     )
     return buildPlan(config).plan.fight.bossSwing!
   }
-  it('WE-4: Demoralizing Shout takes 28 (Classic 20) off each 2.0 s swing', () => {
-    expect(tank(['demoralizingShout']).minDamage).toBeCloseTo(4972, 9)
-    expect(tank(['demoralizingShout'], 'classicEra').maxDamage).toBeCloseTo(4980, 9)
+  it('WE-4: Demoralizing Shout takes 29.14 (Classic 20.86) off each 2.0 s swing', () => {
+    // −204 × 2.0 / 14 and −146 × 2.0 / 14, the level-60 values (encounter.md WE-4).
+    expect(tank(['demoralizingShout']).minDamage).toBeCloseTo(4970.857, 3)
+    expect(tank(['demoralizingShout'], 'classicEra').maxDamage).toBeCloseTo(4979.143, 3)
   })
   it('WE-5: Thunder Clap slows the boss to 2.4 s (Classic 2.2 s)', () => {
     expect(tank(['thunderClap']).speedSec).toBeCloseTo(2.4, 9)
@@ -454,9 +455,9 @@ describe('assumptions', () => {
     const max = { ...d, buffs: { raid: d.buffs.raid, enabled: presetBuffIds('max', 'warrior-fury', d.buffs.raid) } }
     expect(max.buffs.enabled).toEqual(expect.arrayContaining(['jujuFlurry', 'ezThroDarkBomb']))
     expect(note(max)).toBe("Some on-use items and consumables aren’t simulated: EZ-Thro Dark Bomb, Blackhand's Breadth.")
-    // Weakness Analyzer is used (with its own note); Diamond Flask isn't.
-    const trinkets = { ...d, gear: { ...d.gear, trinket1: { itemId: 272438 }, trinket2: { itemId: 20130 } } }
-    expect(note(trinkets)).toBe('Some on-use items and consumables aren’t simulated: Diamond Flask.')
+    // Weakness Analyzer is used (with its own note); Counterattack Lodestone's disarm isn't.
+    const trinkets = { ...d, gear: { ...d.gear, trinket1: { itemId: 272438 }, trinket2: { itemId: 18537 } } }
+    expect(note(trinkets)).toBe('Some on-use items and consumables aren’t simulated: Counterattack Lodestone.')
     expect(ids(trinkets)).toContain('weaknessAnalyzer')
     expect(ids(d)).not.toContain('weaknessAnalyzer')
     // Arms uses them too (warrior.md §5.3 rows 3 and 17); a spec without a rotation uses none of them.

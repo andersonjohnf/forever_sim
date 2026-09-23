@@ -1,5 +1,6 @@
 import { Check, Sparkles } from 'lucide-react'
 import { useState } from 'react'
+import { useSetup } from '@/app/setup-store'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import type { Item } from '@/data/items/types'
 import { cn } from '@/lib/utils'
@@ -19,7 +20,8 @@ export function EnchantPicker({
   onChange: (enchantId: string | undefined) => void
 }) {
   const [open, setOpen] = useState(false)
-  const options = enchantsFor(slot, item)
+  const profile = useSetup((s) => s.config.rules.profile)
+  const options = enchantsFor(slot, item, profile)
   const current = options.find((e) => e.id === enchantId)
   if (options.length === 0) return null
   const pick = (id: string | undefined) => {
@@ -35,7 +37,7 @@ export function EnchantPicker({
           className={cn(
             'flex min-h-11 w-full items-center gap-2 rounded-b-xl px-3 text-left text-xs outline-none',
             'hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
-            current ? 'text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground',
+            current ? 'text-positive' : 'text-muted-foreground',
           )}
         >
           <Sparkles className="size-3.5 shrink-0" aria-hidden />

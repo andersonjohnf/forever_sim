@@ -39,7 +39,7 @@ function equip(config: SimConfig, slot: GearSlot, item: Item | null): SimConfig 
   for (const conflict of uniqueConflicts(wornItems(gear), slot, item)) delete gear[conflict.slot]
   // Keep the slot's enchant if it still applies to the new item.
   const enchantId = gear[slot]?.enchantId
-  const keep = enchantId && enchantsFor(slot, item).some((e) => e.id === enchantId)
+  const keep = enchantId && enchantsFor(slot, item, config.rules.profile).some((e) => e.id === enchantId)
   gear[slot] = keep ? { itemId: item.id, enchantId } : { itemId: item.id }
   if (slot === 'mainHand' && isTwoHand(item)) delete gear.offHand
   return { ...config, gear }
@@ -109,7 +109,7 @@ export function GearSection() {
                     className={cn(
                       'relative flex min-h-16 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors',
                       lockedByTwoHand ? 'opacity-60' : 'hover:bg-muted',
-                      item && enchantsFor(slot, item).length > 0 && 'rounded-b-none',
+                      item && enchantsFor(slot, item, config.rules.profile).length > 0 && 'rounded-b-none',
                     )}
                   >
                     <button
@@ -141,7 +141,7 @@ export function GearSection() {
                     )}
                     {!lockedByTwoHand && <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
                   </div>
-                  {item && enchantsFor(slot, item).length > 0 && (
+                  {item && enchantsFor(slot, item, config.rules.profile).length > 0 && (
                     <div className="border-t">
                       <EnchantPicker
                         slot={slot}

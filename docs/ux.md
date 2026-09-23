@@ -267,6 +267,10 @@ switches the tab.
   - Color never carries meaning alone; always pair it with a label, sign or icon.
 - **Controls** meet 3:1 against what's behind them (WCAG 1.4.11), in both themes. An unchecked
   switch's track uses its own token, `--switch-off`, rather than the input border color.
+- **The focus ring** meets 3:1 too. The shadcn components draw it at half strength
+  (`ring-ring/50`), so the `--ring` token is near-black in light mode and light gray in dark
+  mode, which puts the composited ring at about 3.7:1 or more on the page, on cards and
+  dialogs, and on muted rows in both themes.
 - **Stale results** (and a kept result during a re-run) are dimmed by color, not opacity: their
   text turns to the muted text color, and bars and icons fade to gray (`data-dimmed` in
   `src/features/results/results-panel.tsx`). Muted text at 60% opacity would fall to about
@@ -332,7 +336,9 @@ Every view handles these states:
 ## Accessibility
 
 - WCAG 2.2 AA contrast in both themes.
-- Visible focus on everything interactive, and labels on icon-only buttons.
+- Visible focus on everything interactive, and labels on icon-only buttons. A focused control
+  is never hidden behind the sticky header or the phone's sim bar: the page's scroll padding
+  keeps it clear of both (WCAG 2.4.11).
 - Logical tab order. Sheets and dialogs trap focus and close with Escape.
 - When a sheet or dialog opens, focus moves into it: to its title when the content is long
   (About, the phone's results), or to its first field (a search box). When it closes, focus

@@ -99,10 +99,12 @@ describe('reading a file', () => {
 
   // LX5: a config nested deeper than any setup crashed the import, which compares configs.
   test('a setup nested deeper than any real one is left out, and counted', () => {
-    let deep: unknown = 0
-    for (let i = 0; i < 5000; i++) deep = [deep]
+    // 5,000 levels, spliced in as text: JSON.stringify of them overflows a smaller stack, such as
+    // a Linux CI runner's test worker, while the parser under test handles them.
+    const deep = `${'['.repeat(5000)}0${']'.repeat(5000)}`
     const good = stored('a', 'Good', 20)
-    const parsed = parseSetupsFile(file({ setups: [good, stored('b', 'Deep', 21, { ...fresh('warrior-fury'), deep })], current: { ...fresh('warrior-arms'), deep } }))
+    const withDeep = file({ setups: [good, stored('b', 'Deep', 21, { ...fresh('warrior-fury'), deep: 'DEEP' })], current: { ...fresh('warrior-arms'), deep: 'DEEP' } })
+    const parsed = parseSetupsFile(withDeep.replaceAll('"DEEP"', deep))
     expect(parsed).toEqual({ ok: true, setups: [good], current: null, skipped: 2 })
     if (!parsed.ok) return
     expect(() => importSetups([], parsed.setups, parsed.current, NOW, () => 'new')).not.toThrow()

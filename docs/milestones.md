@@ -218,10 +218,14 @@ placeholders, and M9 replaces them.
 - TPS output (plus damage taken as context)
 - Shields' block value, which the item data lacks and M7's stat boosts need too
 
-## M4: Feral Druid 💤
+## M4: Feral Druid 🚧
 
-- Cat DPS: energy ticks, combo points, powershifting and mana, Omen of Clarity
-- Bear TPS: Maul, Swipe, rage, bear avoidance
+- [x] **B1 druid foundation:** forms, Energy, combo points, mana and the power tick, shifting and
+      Furor, Omen of Clarity, form weapons and attack power, bear armor, talents
+      ([review](reviews/2026-09-23-druid-foundation.md)). No druid spec is offered yet.
+- [ ] **B2 Cat DPS:** its rotation (powershifting, bleeds, finishers), tuned under D23, and shipped
+- [ ] **B3 Bear TPS:** Maul, Swipe, Mangle, Lacerate, its duties first by default (D26), tuned
+- [ ] **B4 Bear:** the Max TPS rotation (D26), and shipped
 
 ## M5: Paladin 💤
 
@@ -341,6 +345,11 @@ slice is worked:
   Heroic Strike from 90 beats off at every length (+0.1% to +2.2%); taking it needs a switch's
   default to follow the Fight tab's execute phase.
 - **Gnome Eureka! isn't simulated** (warrior Q18); the result says so.
+- **Bearweaving:** rage from damage taken divides by the maximum health of the form the fight
+  started in, which only holds while no rotation shifts into bear to take hits. A cat that did
+  would gain about 47% too much; divide by the current form's health first
+  ([druid.md §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana),
+  BV3 in [the druid foundation's review](reviews/2026-09-23-druid-foundation.md)).
 - **Multi-target isn't simulated** until [M6](#m6-multi-target-). The Fight tab's Enemies
   control is hidden until then; `extraTargets` stays in the config
   ([encounter.md §4](mechanics/encounter.md)).

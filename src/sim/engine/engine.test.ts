@@ -498,6 +498,13 @@ describe('golden run (fixed config and seed)', () => {
   //   or power tick, so the druid's paths (Energy, mana, combo points, Clearcasting, shapeshifts)
   //   never run. The default and Max TPS Protection rotations on two seeds, and Fury and Arms, give
   //   results identical to P2's branch over 2,000 fights each.
+  // - P1 and P2 rebased onto main's paladin foundation (C1): all three unchanged, re-run rather than
+  //   re-snapshotted. The paladin's `spell` kind is a different one from Thunder Clap's and
+  //   Demoralizing Shout's, which became `spellTable` with its own engine code (architecture.md
+  //   "Spells"); a warrior plan has no plan spells, mana, Holy multipliers, cooldown categories or
+  //   aura groups, so those paths never run. Every spec's default, 60 s, no-execute and "Self only"
+  //   setups, and Protection's Max TPS and Expose Armor ones, give whole results identical to main's
+  //   (Fury, Arms' fights, the druids and the paladins) or the branch's (Protection).
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

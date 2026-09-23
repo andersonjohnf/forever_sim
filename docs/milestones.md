@@ -192,6 +192,18 @@ slice is worked:
   Prefer Forever's spell data (tier 1) there, and revisit the BiS lists.
 - ~~Snap can't capture a finished run~~: `--click Simulate` now waits for the result, and
   `--click "Show results"` opens the phone's results sheet.
+- **The Rotation tab is 27 rows for Fury** (about 3,800 px on a phone). Group it (cooldowns,
+  execute phase, core, fillers) in the M2.4 UX review.
+- **Casts don't show in the results:** their breakdown rows deal no damage, so
+  `run/aggregate.ts` hides them, and aura uptimes aren't in the results model. Show
+  cooldown casts and uptimes in M2.4's results UX.
+- **Gnome Eureka! isn't simulated** (warrior Q18); the result says so.
+- **Items:** 18320 Demonheart Spaulders may not be obtainable; PvP rank requirements show as
+  numbers (the rank title depends on faction); whether a bear-form armor multiplier applies
+  to stat-50 bonus armor is open (M4). Fallback shields carry `classicShieldBlockValue`,
+  and Forever shields have no innate block value in the client (M3).
+- **Pushes:** nothing has been pushed yet; `origin/main` is still the first commit. The first
+  push happens at M2.4, after the full review gate.
 
 ## Later
 

@@ -5,19 +5,29 @@
 // chunk boundary of that ordered prefix. So the fights that count, and the merged numbers, are
 // identical whether one lane ran everything or many lanes raced; extra chunks dispatched ahead of
 // the stopping point are discarded.
-import { ci95 } from '../core/welford'
+import { ci95, type Moments } from '../core/welford'
 import { CHUNK_SIZE, type ChunkResult } from '../engine/chunk'
 import type { Plan } from '../plan/types'
 import type { SimProgress } from '../types'
 import { type Aggregate, emptyAggregate, mergeChunk } from './aggregate'
 
-/** Adaptive precision target and bounds (decision D15, docs/architecture.md#engine-design-m1). */
+/** Adaptive precision target and bounds (decision D15, docs/architecture.md#iterations-determinism-and-workers). */
 export const ADAPTIVE = {
-  /** Stop when the 95% CI half-width of the headline metric is at most this share of its mean. */
+  /** Stop when the 95% CI half-width of every headline metric is at most this share of its mean. */
   targetRelativeCi: 0.0025,
   minFights: 1000,
   maxFights: 50000,
 } as const
+
+export type Metric = 'dps' | 'tps'
+
+/**
+ * The headline metrics an adaptive run must pin down: DPS for DPS specs, and both TPS and DPS
+ * for tanks, which report the two as equals (decision D18).
+ */
+export function headlineMetrics(plan: Pick<Plan, 'headline' | 'role'>): readonly Metric[] {
+  return plan.headline === 'tps' || plan.role === 'tank' ? ['tps', 'dps'] : [plan.headline]
+}
 
 export interface ChunkExecutor {
   /** How many chunks can run at once. */
@@ -37,21 +47,30 @@ export function abortError(): DOMException {
   return new DOMException('The simulation was cancelled.', 'AbortError')
 }
 
-/** Whether the ordered prefix in `agg` is precise enough to stop (adaptive mode). */
-export function preciseEnough(agg: Aggregate, headline: 'dps' | 'tps'): boolean {
+/** The largest 95% CI half-width the precision target allows for these moments. */
+const allowedHalfWidth = (m: Moments) => ADAPTIVE.targetRelativeCi * Math.abs(m.mean)
+
+/**
+ * Whether the ordered prefix in `agg` is precise enough to stop (adaptive mode): every metric in
+ * `metrics` must meet the target (decision D18), within the fight bounds.
+ */
+export function preciseEnough(agg: Aggregate, metrics: readonly Metric[]): boolean {
   if (agg.fights < ADAPTIVE.minFights) return false
   if (agg.fights >= ADAPTIVE.maxFights) return true
-  const m = headline === 'dps' ? agg.dps : agg.tps
-  return ci95(m) <= ADAPTIVE.targetRelativeCi * Math.abs(m.mean)
+  return metrics.every((k) => ci95(agg[k]) <= allowedHalfWidth(agg[k]))
 }
 
-/** Projected total fights for the progress bar (adaptive): n × (half-width / target)². */
-function projectedFights(agg: Aggregate, headline: 'dps' | 'tps'): number {
-  const m = headline === 'dps' ? agg.dps : agg.tps
-  const target = ADAPTIVE.targetRelativeCi * Math.abs(m.mean)
-  const hw = ci95(m)
-  const projected = target > 0 && agg.fights > 1 ? Math.ceil(agg.fights * (hw / target) ** 2) : ADAPTIVE.minFights
-  const clamped = Math.min(ADAPTIVE.maxFights, Math.max(ADAPTIVE.minFights, projected, agg.fights))
+/**
+ * Projected total fights for the progress bar (adaptive): n × (half-width / target)², for
+ * whichever metric needs the most fights.
+ */
+export function projectedFights(agg: Aggregate, metrics: readonly Metric[]): number {
+  let projected: number = ADAPTIVE.minFights
+  for (const k of metrics) {
+    const target = allowedHalfWidth(agg[k])
+    if (target > 0 && agg.fights > 1) projected = Math.max(projected, Math.ceil(agg.fights * (ci95(agg[k]) / target) ** 2))
+  }
+  const clamped = Math.min(ADAPTIVE.maxFights, Math.max(projected, agg.fights))
   return Math.ceil(clamped / CHUNK_SIZE) * CHUNK_SIZE
 }
 
@@ -62,6 +81,7 @@ export function drive(plan: Plan, executor: ChunkExecutor, options: DriveOptions
   const fightsIn = (k: number) => Math.min(CHUNK_SIZE, totalFights - k * CHUNK_SIZE)
   const maxInFlight = Math.max(1, executor.lanes * 2)
   const { signal, onProgress } = options
+  const metrics = headlineMetrics(plan)
 
   return new Promise<Aggregate>((resolve, reject) => {
     if (signal?.aborted) {
@@ -92,8 +112,8 @@ export function drive(plan: Plan, executor: ChunkExecutor, options: DriveOptions
         agg = mergeChunk(agg, pending.get(nextToMerge)!)
         pending.delete(nextToMerge)
         nextToMerge++
-        const done = fixed ? nextToMerge === totalChunks : preciseEnough(agg, plan.headline) || nextToMerge === totalChunks
-        let total = done ? agg.fights : fixed ? totalFights : projectedFights(agg, plan.headline)
+        const done = fixed ? nextToMerge === totalChunks : preciseEnough(agg, metrics) || nextToMerge === totalChunks
+        let total = done ? agg.fights : fixed ? totalFights : projectedFights(agg, metrics)
         if (!done && agg.fights / total < shownRatio) total = Math.ceil(agg.fights / shownRatio)
         shownRatio = agg.fights / total
         onProgress?.({ completedIterations: agg.fights, totalIterations: total })

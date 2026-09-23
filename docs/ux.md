@@ -84,11 +84,19 @@ About & data, Reset setup, and Theme (system, light, dark).
 
 ## Results
 
-- **Headline:** DPS, or TPS for tank specs with DPS alongside, with ± 95% CI, plus the
-  iterations and rule profile. After a re-run, show the change from the previous result
-  (▲/▼ with color *and* sign).
-- **Breakdown:** a per-ability damage (or threat) share bar, then casts, hit/crit/miss/dodge/
-  glance percentages and average hit.
+- **Headline:** DPS with its ± 95% CI, plus the iterations and rule profile. After a re-run,
+  show the change from the previous result (▲/▼ with color *and* sign).
+  - **Tank specs** headline TPS and DPS as equals
+    ([D18](decisions.md#d18-tank-specs-report-tps-and-dps-as-equals-2026-09-22)): side by side
+    in the results panel, TPS first, each with its own ± CI and its own change from the
+    previous run. The phone's bottom bar stacks them in two rows next to the Simulate button;
+    below 375 px wide it leaves out the ± values, which the results sheet still shows.
+- **Breakdown:** a per-ability damage share bar, then casts, hit/crit/miss/dodge/glance
+  percentages and average hit.
+  - **Tank specs** get a **Threat / Damage** switch above it. Threat is the default, and the
+    choice is remembered for the browser session. The heading, the order, the share bars and
+    the per-second values follow the chosen metric. Abilities that add nothing to it are left
+    out: a talent that only gives rage makes threat but no damage.
 - **Character sheet:** the final AP, crit, hit, haste, weapon skill and armor, the way the
   sim computed them.
 - **Assumptions:** the `[?]` items that affect this setup, each linking to its doc.

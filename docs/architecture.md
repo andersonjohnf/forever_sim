@@ -185,9 +185,12 @@ A spec is data plus small ability modules, never its own loop.
   (`sim/run/driver.ts`) dispatches chunks in index order to any number of lanes, merges results
   strictly in index order with Welford/Chan combination, and checks the stopping rule at every
   chunk boundary of that ordered prefix. Results are bit-identical for any worker count.
-- **Adaptive** (default): stop when the 95% CI half-width of the headline metric (DPS, or TPS for
-  tanks) is at most 0.25% of its mean, between 1,000 and 50,000 fights. **Fixed:** exactly
-  `run.iterations` fights (100–100,000).
+- **Adaptive** (default): stop when the 95% CI half-width of each headline metric is at most
+  0.25% of its mean, between 1,000 and 50,000 fights. That's DPS for DPS specs. Tanks report TPS
+  and DPS as equals, so they run until **both** meet the target
+  ([D18](decisions.md#d18-tank-specs-report-tps-and-dps-as-equals-2026-09-22)), and progress is
+  projected from whichever needs more fights. **Fixed:** exactly `run.iterations` fights
+  (100–100,000).
 - **Workers:** a persistent pool of `navigator.hardwareConcurrency − 1` module workers (at least
   one), created on the first run and kept warm. Each run sends its plan once per worker, then
   chunks; cancelling stops dispatch and ignores chunks still running. Where workers don't exist

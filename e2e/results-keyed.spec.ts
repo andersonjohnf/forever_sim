@@ -100,13 +100,16 @@ test.describe('a re-run on desktop (RU17)', () => {
   test.use({ viewport: { width: 1280, height: 900 } })
 
   test('isn’t marked "Setup changed" while it applies the change, and is once the setup changes again', async ({ page }) => {
+    // A full 100,000-fight run first: about 8 s on 16 cores, but on a 4-core CI runner it can take
+    // over a minute, past the 30 s test timeout.
+    test.setTimeout(180_000)
     // 100,000 fights of 10 minutes: long enough to watch the run.
     await seed(page, { run: { mode: 'fixed', iterations: 100000, seed: 1 }, fight: { durationSec: 600 } })
     await page.goto('./')
     const panel = page.getByRole('complementary', { name: 'Results' })
     const dps = panel.getByRole('group', { name: 'DPS' })
     await panel.getByRole('button', { name: 'Simulate' }).click()
-    await expect(panel.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 60_000 })
+    await expect(panel.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 150_000 })
 
     await chooseRace(page, 'Dwarf')
     await expect(dps).toContainText('Setup changed')

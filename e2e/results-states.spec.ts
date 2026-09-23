@@ -18,9 +18,9 @@ async function seed(page: Page, config: Record<string, unknown>, section = 'gear
   )
 }
 
-async function simulate(scope: Locator | Page) {
+async function simulate(scope: Locator | Page, timeout = 60_000) {
   await scope.getByRole('button', { name: /^(Simulate|Run again)$/ }).click()
-  await expect(scope.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 60_000 })
+  await expect(scope.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout })
 }
 
 const results = (page: Page) => page.getByRole('complementary', { name: 'Results' })
@@ -28,6 +28,9 @@ const status = (page: Page) => page.getByRole('status', { name: 'Simulation stat
 
 test.describe('run states', () => {
   test('a re-run shows its progress over the dimmed result, and announces the outcome', async ({ page }) => {
+    // A full 100,000-fight run first: about 8 s on 16 cores, but on a 4-core CI runner it can take
+    // over a minute, past the 30 s test timeout.
+    test.setTimeout(180_000)
     // 100,000 fights of 10 minutes: long enough to watch the run.
     await seed(page, { run: { mode: 'fixed', iterations: 100000, seed: 1 }, fight: { durationSec: 600 } })
     await page.goto('./')
@@ -35,7 +38,7 @@ test.describe('run states', () => {
     const dps = panel.getByRole('group', { name: 'DPS' })
     await panel.getByRole('button', { name: 'Simulate' }).click()
     await expect(status(page)).toHaveText('Simulating…')
-    await expect(panel.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 60_000 })
+    await expect(panel.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 150_000 })
     await expect(status(page)).toHaveText(/^Done: [\d,]+\.\d DPS$/)
     await expect(dps.locator('[data-dimmed="true"]')).toHaveCount(0)
 
@@ -204,9 +207,12 @@ test.describe('on a phone', () => {
   })
 
   test('a re-run shows its progress in the bar', async ({ page }) => {
+    // A full 100,000-fight run first: about 8 s on 16 cores, but on a 4-core CI runner it can take
+    // over a minute, past the 30 s test timeout.
+    test.setTimeout(180_000)
     await seed(page, { run: { mode: 'fixed', iterations: 100000, seed: 1 }, fight: { durationSec: 600 } })
     await page.goto('./')
-    await simulate(page)
+    await simulate(page, 150_000)
     await page.getByRole('button', { name: 'Run again' }).click()
     const bar = page.getByRole('button', { name: 'Show results' })
     await expect(bar).toContainText(/Simulating\s*\d+%/)

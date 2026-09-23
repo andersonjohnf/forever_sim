@@ -294,8 +294,10 @@ test.describe('rotation groups', () => {
     await expect(headings).toHaveText(['Before the pull', 'Cooldowns and buffs', 'Core abilities', 'Fillers', 'Execute phase', 'Consumables'])
     const core = page.getByRole('region', { name: 'Core abilities' })
     await expect(core.getByRole('switch', { name: 'Bloodthirst', exact: true })).toBeVisible()
-    // Whirlwind's reserve sits in Whirlwind's own list item, under it.
+    // Whirlwind's reserve waits behind the heading's Advanced button, then sits in Whirlwind's own list item, under it.
     const whirlwind = core.getByRole('listitem').filter({ has: page.getByRole('switch', { name: 'Whirlwind', exact: true }) })
+    await expect(whirlwind.getByRole('textbox', { name: 'Whirlwind rage reserve' })).toHaveCount(0)
+    await core.getByRole('button', { name: /^Advanced/ }).click()
     await expect(whirlwind.getByRole('textbox', { name: 'Whirlwind rage reserve' })).toBeVisible()
     await expect(page.getByRole('region', { name: 'Execute phase' }).getByRole('switch', { name: 'Execute', exact: true })).toBeVisible()
   })
@@ -351,10 +353,10 @@ test.describe('Arms rotation', () => {
     await expect(whirlwind).toBeChecked()
     await expect(rend).not.toBeChecked()
     await expect(overpower).not.toBeChecked()
-    // A setting you choose sticks; the defaults come back with Defaults.
+    // A setting you choose sticks; the defaults come back with Reset rotation.
     await overpower.click()
     await expect(overpower).toBeChecked()
-    await page.getByRole('button', { name: 'Defaults' }).click()
+    await page.getByRole('button', { name: 'Reset rotation' }).click()
     await expect(stance.getByRole('radio', { name: 'Battle' })).toBeChecked()
     await expect(whirlwind).not.toBeChecked()
     await expect(overpower).toBeChecked()

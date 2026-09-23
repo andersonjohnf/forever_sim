@@ -183,6 +183,7 @@ export const deathWishOptions = (ids: SharedIds, enabled: Partial<Extract<Rotati
     label: 'Save the last Death Wish for the end',
     help: 'When no later Death Wish would fit in the fight, hold the last one until 30 s are left. Earlier ones go on cooldown.',
     default: true,
+    dependsOn: ids.dwEnabled,
   },
 ]
 
@@ -211,6 +212,7 @@ export const cooldownOptions = (ids: SharedIds): RotationOption[] => [
     label: 'Racial and trinkets with Death Wish',
     help: 'Save them for Death Wish, unless Death Wish is too far off for them to be ready again by then.',
     default: true,
+    dependsOn: ids.dwEnabled,
   },
 ]
 
@@ -270,6 +272,7 @@ export const heroicStrikeOptions = (ids: SharedIds, minRage: number): RotationOp
     label: 'Cancel Heroic Strike on low rage',
     help: 'Unqueue Heroic Strike if rage drops below a threshold before the swing.',
     default: false,
+    dependsOn: ids.hsEnabled,
   },
   rageOption(ids.hsUnqueueBelow, 'Cancel Heroic Strike below', 'Unqueue it when rage falls below this.', 20, ids.hsUnqueue, 'Fillers'),
 ]

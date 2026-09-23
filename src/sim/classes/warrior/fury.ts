@@ -142,6 +142,7 @@ export const FURY_OPTIONS: RotationOption[] = [
     label: 'Whirlwind in the execute phase',
     help: 'Keep Whirlwind in the execute phase. It gets a global cooldown only while Execute waits for extra rage.',
     default: false,
+    dependsOn: ID.exEnabled,
   },
   {
     kind: 'toggle',
@@ -150,6 +151,7 @@ export const FURY_OPTIONS: RotationOption[] = [
     label: 'Heroic Strike in the execute phase',
     help: 'Keep queueing Heroic Strike in the execute phase. Off: a queued one is cancelled when the phase starts.',
     default: false,
+    dependsOn: ID.exEnabled,
   },
   {
     kind: 'toggle',
@@ -214,6 +216,7 @@ export const FURY_OPTIONS: RotationOption[] = [
     label: 'Hamstring only without Flurry',
     help: 'Use Hamstring only while Flurry is down.',
     default: false,
+    dependsOn: ID.hamEnabled,
   },
   {
     kind: 'toggle',

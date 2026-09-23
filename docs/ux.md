@@ -86,8 +86,9 @@ About & data, Reset setup, and Theme (system, light, dark).
   - A buff the rotation keeps up itself (a warrior's own Battle Shout) shows its switch on and
     locked, with a note saying the rotation keeps it up, so it's never counted twice.
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
-  with units, one line of help, and the default marked. **Reset to defaults** is always
-  available.
+  with units, one line of help, and the default marked. **Reset rotation** (in the section
+  header, enabled once you've set anything) puts every setting back to its default, with an
+  Undo toast like the other bulk changes. Undo restores that spec's settings only.
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
     **Consumables**, in that order. Under each heading the settings keep the spec's priority
@@ -95,20 +96,36 @@ About & data, Reset setup, and Theme (system, light, dark).
     (`RotationOption.group`). The few settings that shape the rest (Arms' stance) have no
     heading and come first.
   - A setting that depends on another under the same heading sits under it, indented on a
-    rule (Heroic Strike's rage threshold under Heroic Strike). One whose parent is under
-    another heading stays with its own heading, and its help names the parent ("Needs Battle
-    Shout on").
-  - A switch sits beside its label at every width. Number inputs and choices go under the
-    label on a phone.
+    rule (Heroic Strike's rage threshold under Heroic Strike, "Save the last Death Wish for
+    the end" under Death Wish). A dependent switch works the same way as a dependent number
+    (`RotationOption.dependsOn`, on any kind of setting). One whose parent is under another
+    heading stays with its own heading, and its help names the parent ("Needs Battle Shout
+    on").
+  - **Advanced** (principle 2): switches and choices are always in view, and each heading's
+    number settings (rage and timing thresholds) wait behind an **Advanced** button on the
+    heading's right. Opening it shows them in place, under the switch each one tunes, so a
+    label like "Shout again with" keeps its context. A heading opens by itself when one of its
+    hidden settings differs from its default, and its button counts them ("1 changed") even
+    while closed. It opens afresh on each visit to the tab.
+  - A switch's whole row is its label, so a tap anywhere on it flips the switch (44 px or
+    more, as on the Buffs tab). A switch sits beside its label at every width. Number inputs
+    and choices go under the label on a phone.
   - A choice between a few named values (Arms: the stance it fights in) is a segmented control
     (a toggle group, like the Fight tab's position), full width on a phone, labelled by its row.
   - A setting's default can follow the talents or another setting (Arms: Rend is on by default
     with Bloodthrill; Berserker Stance turns Whirlwind on and Rend and Overpower off). The tab
     shows the value the sim will use, the help says what it follows, and a value you set stays
-    set until **Reset to defaults**.
-  - A setting that depends on a switch is dimmed while that switch is off.
-  - A consumable's row needs its Buffs switch. While that's off, the row says so
-    ("Not used: turn on … in Buffs first").
+    set until you reset it.
+  - **Changed settings are marked.** A setting that differs from its default for this setup
+    gets a line under its help: a dot, its default ("Default: 42 rage", "Default: on") and a
+    **Reset** for that row alone, which moves focus back to the row's control. A value you set
+    that equals the default isn't marked. Screen readers hear "Changed. Default: …" as the
+    switch's description.
+  - A setting that depends on a switch is dimmed while that switch is off, or can't apply
+    itself (a potion's threshold while the potion isn't selected in Buffs), down the tree.
+  - A consumable's row needs its Buffs switch. While that's off, its own switch shows off and
+    locked, whatever it's set to, and the row says so ("Not used: turn on … in Buffs first"),
+    with **Buffs** a link to that tab. Turning it on in Buffs brings back its setting.
 - **Fight.**
   - Duration (default 180 s), boss armor preset, execute phase, and whether you attack from the
     front (tanks) or behind (DPS).

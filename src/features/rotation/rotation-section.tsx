@@ -1,5 +1,6 @@
-import { RotateCcw } from 'lucide-react'
-import { useMemo } from 'react'
+import { ChevronRight, RotateCcw } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
 import { NumberField } from '@/components/number-field'
@@ -10,18 +11,51 @@ import { EmptyState } from '@/features/empty-state'
 import { SectionHeader } from '@/features/section'
 import { CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
-import { buffCatalogue, getSpec, rotationGroups, rotationValues, type RotationOption, type RotationValue } from '@/sim'
+import { getSpec, rotationGroups, type RotationGroup, type RotationOption, type RotationValue } from '@/sim'
+import { formatSetting, isAdvanced, rotationRows, type RowState } from './logic'
+
+/** What every row needs: its state, and setting or resetting a value. */
+interface RowContext {
+  rows: Map<string, RowState>
+  set: (id: string, value: RotationValue) => void
+  reset: (id: string) => void
+}
+
+const rowIds = (id: string) => ({
+  control: `rot-${id}`,
+  label: `rot-${id}-label`,
+  help: `rot-${id}-help`,
+  default: `rot-${id}-default`,
+  missing: `rot-${id}-missing`,
+})
 
 export function RotationSection() {
   const meta = useSpecMeta()
   const rotation = useSetup((s) => s.config.rotation)
   const talents = useSetup((s) => s.config.talents)
+  const enabledBuffs = useSetup((s) => s.config.buffs.enabled)
   const update = useSetup((s) => s.update)
   const options = getSpec(meta.id).rotationOptions
-  // Each setting's saved value, or its default for this setup: a default can follow the talents
-  // or another setting (docs/ux.md "Rotation").
-  const values = useMemo(() => rotationValues({ spec: meta.id, talents, rotation }), [meta.id, talents, rotation])
-  const changed = Object.keys(rotation).length > 0
+  // Each setting's value, its default for this setup (a default can follow the talents or another
+  // setting), whether it's changed, and whether it can apply (docs/ux.md "Rotation").
+  const rows = useMemo(() => rotationRows({ spec: meta.id, talents, rotation }, options, enabledBuffs), [meta.id, talents, rotation, options, enabledBuffs])
+  const ctx: RowContext = {
+    rows,
+    set: (id, value) => update((c) => ({ ...c, rotation: { ...c.rotation, [id]: value } })),
+    reset: (id) =>
+      update((c) => {
+        const { [id]: _, ...rest } = c.rotation
+        return { ...c, rotation: rest }
+      }),
+  }
+  // Undo restores this spec's settings only, and only while that spec is still the one shown.
+  const resetAll = () => {
+    const { spec, rotation: previous } = useSetup.getState().config
+    update((c) => ({ ...c, rotation: {} }))
+    toast('Rotation reset to its defaults', {
+      action: { label: 'Undo', onClick: () => update((c) => (c.spec === spec ? { ...c, rotation: previous } : c)) },
+    })
+  }
   // The few settings without a heading (Arms' stance) come first, then each heading's settings in
   // the spec's priority order (docs/ux.md "Rotation").
   const ungrouped = options.filter((o) => o.group === undefined)
@@ -33,8 +67,8 @@ export function RotationSection() {
         title="Rotation"
         description="Which abilities the sim uses, and when. The defaults follow the community priority."
         action={
-          <Button variant="ghost" className="h-11" disabled={!changed} onClick={() => update((c) => ({ ...c, rotation: {} }))}>
-            <RotateCcw /> Defaults
+          <Button variant="ghost" className="h-11 shrink-0" disabled={Object.keys(rotation).length === 0} onClick={resetAll}>
+            <RotateCcw /> Reset rotation
           </Button>
         }
       />
@@ -42,18 +76,11 @@ export function RotationSection() {
         <EmptyState title="No rotation options yet">{meta.name} options come with its simulation.</EmptyState>
       ) : (
         <>
-          {ungrouped.length > 0 && <OptionList options={ungrouped} values={values} />}
-          {groups.map(({ group, options: grouped }) => {
-            const headingId = `rot-group-${group.toLowerCase().replace(/\W+/g, '-')}`
-            return (
-              <section key={group} aria-labelledby={headingId} className="flex flex-col gap-3">
-                <h3 id={headingId} className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                  {group}
-                </h3>
-                <OptionList options={grouped} values={values} />
-              </section>
-            )
-          })}
+          {ungrouped.length > 0 && <OptionList options={ungrouped} ctx={ctx} />}
+          {groups.map(({ group, options: grouped }) => (
+            // Keyed by spec, so a switch of spec starts each heading's disclosure afresh.
+            <GroupSection key={`${meta.id}:${group}`} group={group} options={grouped} ctx={ctx} />
+          ))}
         </>
       )}
     </div>
@@ -61,11 +88,54 @@ export function RotationSection() {
 }
 
 /**
- * One heading's settings. A setting that depends on another under the same heading sits under it,
- * indented on a rule (docs/ux.md "Rotation").
+ * One heading's settings. Its switches are always in view; its thresholds wait behind the
+ * heading's Advanced button and appear in place, under the switch they tune. A heading opens by
+ * itself when one of them differs from its default, and its button counts them (docs/ux.md
+ * principle 2 and "Rotation").
  */
-function OptionList({ options, values }: { options: RotationOption[]; values: Record<string, RotationValue> }) {
-  const ids = new Set(options.map((o) => o.id))
+function GroupSection({ group, options, ctx }: { group: RotationGroup; options: RotationOption[]; ctx: RowContext }) {
+  const advanced = options.filter(isAdvanced)
+  const changed = advanced.filter((o) => ctx.rows.get(o.id)?.changed).length
+  const [open, setOpen] = useState(changed > 0)
+  const headingId = `rot-group-${group.toLowerCase().replace(/\W+/g, '-')}`
+  const shown = open ? options : options.filter((o) => !isAdvanced(o))
+  return (
+    <section aria-labelledby={headingId} className="flex flex-col gap-2">
+      <div className="flex min-h-11 items-center justify-between gap-3">
+        <h3 id={headingId} className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          {group}
+        </h3>
+        {advanced.length > 0 && (
+          <Button
+            variant="ghost"
+            className="h-11 px-3"
+            aria-expanded={open}
+            aria-label={`Advanced settings for ${group}${changed > 0 ? `, ${changed} changed` : ''}`}
+            onClick={() => setOpen(!open)}
+          >
+            <ChevronRight className={cn('transition-transform motion-reduce:transition-none', open && 'rotate-90')} />
+            Advanced
+            {changed > 0 && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-0.5 text-xs font-medium tabular-nums">
+                <span aria-hidden className="size-1.5 rounded-full bg-primary" />
+                {changed} changed
+              </span>
+            )}
+          </Button>
+        )}
+      </div>
+      <OptionList options={shown} all={options} ctx={ctx} />
+    </section>
+  )
+}
+
+/**
+ * Settings in a card. A setting that depends on another under the same heading sits under it,
+ * indented on a rule (docs/ux.md "Rotation"). `all` is every setting under the heading, shown or
+ * not, so a hidden parent's children don't come up to the top level.
+ */
+function OptionList({ options, all = options, ctx }: { options: RotationOption[]; all?: RotationOption[]; ctx: RowContext }) {
+  const ids = new Set(all.map((o) => o.id))
   const childrenOf = (id: string) => options.filter((o) => o.dependsOn === id)
   const renderChildren = (id: string) => {
     const children = childrenOf(id)
@@ -74,7 +144,7 @@ function OptionList({ options, values }: { options: RotationOption[]; values: Re
       <ul className="mb-2 ml-4 flex flex-col border-l">
         {children.map((child) => (
           <li key={child.id}>
-            <OptionRow option={child} values={values} nested />
+            <OptionRow option={child} ctx={ctx} nested />
             {renderChildren(child.id)}
           </li>
         ))}
@@ -82,12 +152,12 @@ function OptionList({ options, values }: { options: RotationOption[]; values: Re
     )
   }
   return (
-    <ul className="flex flex-col divide-y rounded-xl border">
+    <ul className="flex flex-col divide-y overflow-hidden rounded-xl border">
       {options
         .filter((o) => o.dependsOn === undefined || !ids.has(o.dependsOn))
         .map((option) => (
           <li key={option.id}>
-            <OptionRow option={option} values={values} />
+            <OptionRow option={option} ctx={ctx} />
             {renderChildren(option.id)}
           </li>
         ))}
@@ -95,44 +165,38 @@ function OptionList({ options, values }: { options: RotationOption[]; values: Re
   )
 }
 
-function OptionRow({ option, values, nested = false }: { option: RotationOption; values: Record<string, RotationValue>; nested?: boolean }) {
-  const enabledBuffs = useSetup((s) => s.config.buffs.enabled)
-  const update = useSetup((s) => s.update)
-  const set = (id: string, v: RotationValue) => update((c) => ({ ...c, rotation: { ...c.rotation, [id]: v } }))
-  // A consumable the rotation uses only when it's selected in Buffs (Mighty Rage Potion, Juju Flurry).
-  const needs = option.kind === 'toggle' && option.requiresBuff ? buffCatalogue.find((b) => b.id === option.requiresBuff) : undefined
-  const missing = needs !== undefined && !enabledBuffs.includes(needs.id)
-  const inactive = (option.dependsOn !== undefined && !values[option.dependsOn]) || missing
-  const labelId = `rot-${option.id}-label`
+function OptionRow({ option, ctx, nested = false }: { option: RotationOption; ctx: RowContext; nested?: boolean }) {
+  const row = ctx.rows.get(option.id)!
+  const pad = nested ? 'px-4 py-3' : 'p-4'
+  if (option.kind === 'toggle') return <ToggleRow option={option} row={row} ctx={ctx} nested={nested} />
+  const ids = rowIds(option.id)
   return (
     <div
+      data-inactive={row.inactive || undefined}
       className={cn(
-        // A switch sits beside its label at every width; wider controls go under it on a phone.
-        option.kind === 'toggle' ? 'flex items-center justify-between gap-4' : 'flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between',
-        nested ? 'py-3 pr-4 pl-4' : 'p-4',
-        inactive && 'opacity-60',
+        // Number inputs and choices go under their label on a phone.
+        'flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between',
+        pad,
+        row.inactive && 'opacity-60',
       )}
     >
       <div className="flex min-w-0 flex-col gap-1">
-        <label id={labelId} htmlFor={option.kind === 'choice' ? undefined : `rot-${option.id}`} className="text-sm font-medium">
+        <label id={ids.label} htmlFor={option.kind === 'choice' ? undefined : ids.control} className="text-sm font-medium">
           {option.label}
         </label>
-        <p className="text-xs text-muted-foreground">{option.help}</p>
-        {missing && (
-          <p className="text-xs text-muted-foreground">
-            Not used: turn on {needs.name} in <span className="font-medium text-foreground">Buffs</span> first.
-          </p>
-        )}
+        <p id={ids.help} className="text-xs text-muted-foreground">
+          {option.help}
+        </p>
+        {row.changed && <DefaultHint option={option} row={row} ctx={ctx} className="mt-1" />}
       </div>
-      {option.kind === 'toggle' ? (
-        <Switch id={`rot-${option.id}`} checked={Boolean(values[option.id])} onCheckedChange={(on) => set(option.id, on)} />
-      ) : option.kind === 'choice' ? (
+      {option.kind === 'choice' ? (
         <ToggleGroup
           type="single"
           variant="outline"
-          aria-labelledby={labelId}
-          value={String(values[option.id])}
-          onValueChange={(v) => v && set(option.id, v)}
+          aria-labelledby={ids.label}
+          aria-describedby={ids.help}
+          value={String(row.value)}
+          onValueChange={(v) => v && ctx.set(option.id, v)}
           className="w-full shrink-0 sm:w-auto"
         >
           {option.choices.map((choice) => (
@@ -143,9 +207,9 @@ function OptionRow({ option, values, nested = false }: { option: RotationOption;
         </ToggleGroup>
       ) : (
         <NumberField
-          id={`rot-${option.id}`}
-          value={Number(values[option.id])}
-          onChange={(v) => set(option.id, v)}
+          id={ids.control}
+          value={Number(row.value)}
+          onChange={(v) => ctx.set(option.id, v)}
           min={option.min}
           max={option.max}
           step={option.step}
@@ -154,5 +218,100 @@ function OptionRow({ option, values, nested = false }: { option: RotationOption;
         />
       )}
     </div>
+  )
+}
+
+/**
+ * A switch row. The whole row is its label, so any tap on it flips the switch (a 44 px target, as
+ * on the Buffs tab). A consumable whose Buffs switch is off shows its own switch off and locked,
+ * with a note saying why. The notes sit outside the label, since one of them has a button.
+ */
+function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOption, { kind: 'toggle' }>; row: RowState; ctx: RowContext; nested: boolean }) {
+  const setSection = useSetup((s) => s.setSection)
+  const ids = rowIds(option.id)
+  const notes = row.missingBuff !== undefined || row.changed
+  return (
+    <div data-inactive={row.inactive || undefined} className={cn(row.inactive && 'opacity-60')}>
+      <label
+        className={cn(
+          'flex min-h-14 items-center gap-4 px-4',
+          nested ? 'py-3' : 'py-4',
+          notes && 'pb-2',
+          row.missingBuff ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50',
+        )}
+      >
+        <span className="flex min-w-0 flex-1 flex-col gap-1">
+          <span id={ids.label} className="text-sm font-medium">
+            {option.label}
+          </span>
+          <span id={ids.help} className="text-xs text-muted-foreground">
+            {option.help}
+          </span>
+        </span>
+        <Switch
+          id={ids.control}
+          checked={row.on}
+          disabled={row.missingBuff !== undefined}
+          aria-labelledby={ids.label}
+          aria-describedby={[ids.help, row.missingBuff && ids.missing, row.changed && ids.default].filter(Boolean).join(' ')}
+          onCheckedChange={(on) => ctx.set(option.id, on)}
+        />
+      </label>
+      {notes && (
+        <div className={cn('flex flex-col gap-2 px-4', nested ? 'pb-3' : 'pb-4')}>
+          {row.missingBuff && (
+            <p id={ids.missing} className="text-xs text-muted-foreground">
+              Not used: turn on {row.missingBuff.name} in{' '}
+              <button
+                type="button"
+                className="rounded-sm font-medium text-foreground underline underline-offset-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                onClick={() => setSection('buffs')}
+              >
+                Buffs
+              </button>{' '}
+              first.
+            </p>
+          )}
+          {row.changed && <DefaultHint option={option} row={row} ctx={ctx} />}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Marks a changed setting: a dot, its default for this setup, and a reset for this row alone.
+ * Resetting moves focus to the row's control, since the button goes away.
+ */
+function DefaultHint({ option, row, ctx, className }: { option: RotationOption; row: RowState; ctx: RowContext; className?: string }) {
+  const ids = rowIds(option.id)
+  const def = formatSetting(option, row.default)
+  const reset = () => {
+    const control =
+      option.kind === 'choice'
+        ? document.querySelector<HTMLElement>(`[aria-labelledby="${ids.label}"] [data-state="on"]`)
+        : document.getElementById(ids.control)
+    ctx.reset(option.id)
+    control?.focus()
+  }
+  return (
+    <p className={cn('flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground', className)}>
+      <span id={ids.default} className="inline-flex items-center gap-1.5">
+        <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-primary" />
+        <span>
+          <span className="sr-only">Changed. </span>Default: {def}
+        </span>
+      </span>
+      <button
+        type="button"
+        aria-label={`Reset ${option.label} to ${def}`}
+        onClick={reset}
+        // A small link with a 44 px hit area around it.
+        className="relative inline-flex items-center gap-1 rounded-sm font-medium text-foreground outline-none after:absolute after:-inset-x-2 after:-inset-y-3.5 hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+        <RotateCcw aria-hidden className="size-3" />
+        Reset
+      </button>
+    </p>
   )
 }

@@ -315,11 +315,12 @@ slice is worked:
   - The boss first swings at t = 0.
   - Elemental Sharpening Stones stack: +2% crit to all melee attacks per stone [?]
     ([buffs §3.6](mechanics/buffs-debuffs-consumables.md#36-weapon-enhancements-temporary)).
-- **Data gaps:** the items have no shield block value (block value counts Strength only).
-  Warrior base health and dodge are unknown and left off the sheet. Rage from damage taken
-  divides by maximum health, so it reads high until base health is known: about 39% at the
-  default Protection's numbers if base health is near 1,700
-  ([rage.md](mechanics/rage.md#rage-from-damage-taken)).
+- **Data gaps:**
+  - Forever shields have no block value in the client; a Classic Era fallback shield's block
+    value counts, flagged (`classicShieldBlockValue`).
+  - Base health (warrior 1,689, paladin 1,381, druid 1,483) and base parry and block (5%) are
+    D24 placeholders; warrior base dodge is 0 [C]. OQ-5 still needs a TPS estimate for the
+    parry and block placeholders.
 - **The buffs doc says Hyjal flasks are "added automatically"** but not which flask.
 - **Bundle size:** 1.78 MB (300 KB gzipped) after M1.5c, mostly item data. Consider
   lazy-loading talents per class, and slimming item fields the app doesn't read.

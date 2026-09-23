@@ -491,6 +491,14 @@ describe('golden run (fixed config and seed)', () => {
   //   priority: Berserk, the Manual Crowd Pummeler and Tiger's Fury off the GCD; its own Faerie Fire,
   //   a Clearcasting Shred, Rip at 5 combo points, a Shred first from 67 Energy, Ferocious Bite at 4,
   //   and Shred.
+  // - B2 tuning (decision D23): the default cat rotation is the best one a paired search found
+  //   (druid.md §6.2 "Tuning the defaults"): Ferocious Bite at 5 combo points (4 before), a Shred
+  //   first whenever there's the Energy for one (from 35 Energy; 67), Rip with 8 s of the fight left
+  //   (10) and Tiger's Fury once at most 20 of its Energy would be lost (0). Over 400,000 paired
+  //   fights on a seed the search never used, +20.39 DPS (+3.73%, 547.05 → 567.44, 95% CI ± 0.08).
+  //   On this seed's 1,000 fights: Rip 5,605 → 11,833 casts (it's now the only finisher most of the
+  //   time), Ferocious Bite 9,690 → 1,044 (only at 35–41 Energy with Rip up), Shred 50,487 → 54,799;
+  //   DPS 547.22 → 566.83, TPS 286.14 → 295.02. The warriors are unchanged.
   it('keeps the default Feral cat’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('druid-feral-cat'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

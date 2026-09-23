@@ -771,8 +771,8 @@ Why Forever differs from the Era rotation:
 - Berserk exists.
 - Rend and Tear rewards keeping the target bleeding.
 
-The Shred/Bite core of the Era tree carries over. Everything below is a **Forever derivation**
-[?] that the sim should verify by comparing settings. It's evaluated
+The Shred/Bite core of the Era tree carries over. The list below was first a **Forever
+derivation** [?]; the sim then tuned its thresholds ("Tuning the defaults" below). It's evaluated
 at every decision point: GCD ready, Energy tick, Clearcasting gained, a cooldown ready, a debuff
 or bleed expiring, a fight-time threshold. Each line is used when its ability is usable (off
 cooldown, the Energy and combo points for it, the GCD free if it needs it) and its conditions
@@ -810,22 +810,22 @@ hold.
 No powershifting: in Forever it gains nothing (§2.8), so the rotation offers none. Cower and
 the Prowl openers aren't simulated (§3.9).
 
-**Settings** (the Rotation tab; ids `druid.cat.<ability>.<param>`):
+**Settings** (the Rotation tab; ids `druid.cat.<ability>.<param>`), with the tuned defaults:
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
 | `berserk.enabled` | **on** | Berserk on cooldown (needs the talent) |
 | `racial.enabled` | **on** | Elune's Light on cooldown (Night Elf) |
 | `onUseItems.enabled` | **on** | The Manual Crowd Pummeler and Weakness Analyzer on cooldown, if worn |
-| `tigersFury.enabled`, `tigersFury.maxEnergyLost` | **on**, **0** | Tiger's Fury once at most this much of its Energy would be lost at the cap. The doc's `tfMaxEnergy` = 100 − its Energy (20 with the default build and Wolfshead Helm) is the 0 of this setting, whatever the build and helm |
+| `tigersFury.enabled`, `tigersFury.maxEnergyLost` | **on**, **20** | Tiger's Fury once at most this much of its Energy would be lost at the cap. The doc's `tfMaxEnergy` = 100 − its Energy is the 0 of this setting; tuning prefers 20 (below) |
 | `faerieFire.enabled`, `faerieFire.refreshBelowSec` | **on**, **12 s** ([C] [wh-rot] refresh window) | Keep your own Faerie Fire up (the Buffs tab's then adds nothing). Off if another druid owns it: then the Buffs tab's applies |
 | `shred.enabled` | **on** | Shred builds, from behind (the Fight tab's position) |
 | `claw.enabled` | **on** | Claw builds where Shred can't: from the front, or with Shred off |
-| `rip.enabled`, `rip.minComboPoints`, `rip.minFightLeftSec`, `rip.refreshBelowSec` | **on**, **5**, **10 s**, **0 s** | Rip policy (the doc's `ripMinCP`, `ripMinRemaining`, and a refresh before it runs out) |
+| `rip.enabled`, `rip.minComboPoints`, `rip.minFightLeftSec`, `rip.refreshBelowSec` | **on**, **5**, **8 s**, **0 s** | Rip policy. The doc's 10 s is `ripMinRemaining`; tuning prefers 8 |
 | `rip.onlyWithoutOtherBleeds` | **off** | The doc's `ripOnlyIfNoOtherBleed`. Off in `forever`, where Rip's ticks can crit [?] (W12). In `classicEra` W12 favours on (with a raid bleed, Bite beats a Rip that can't crit); a setting's default can't follow the profile, so a Classic Era run sets it by hand. Q26 |
-| `ferociousBite.enabled`, `ferociousBite.minComboPoints` | **on**, **4** | Bite threshold ([C] 4 CP from [wh-rot]; Primal Fury keeps the same overflow logic) |
-| `ferociousBite.shredFirstFrom` | **67** (= Shred cost 42 + Bite 35 − 10 regenerated during the 1 s GCD) | Energy at or above which to Shred before biting. 35 to 42 mean the same (Shred costs 42): Bite only when there isn't Energy for a Shred |
-| `ferociousBite.onlyWhileRipUp` | **off** | Hold combo points for Rip while it's down |
+| `ferociousBite.enabled`, `ferociousBite.minComboPoints` | **on**, **5** | Bite threshold. The Era's 4 (Primal Fury's overflow) is the doc's first default; tuning prefers 5 |
+| `ferociousBite.shredFirstFrom` | **35** | Energy at or above which to Shred before biting. 35 to 42 mean the same (Shred costs 42): Bite only when there isn't Energy for a Shred. The doc's first default was 67 (42 + 35 − 10) |
+| `ferociousBite.onlyWhileRipUp` | **off** | Hold combo points for Rip while it's down. With both thresholds at 5 it changes nothing |
 | `rake.enabled`, `rake.onlyWithoutBleeds` | **off**, **on** | Low damage per Energy ([C] [wh-rot]); try it only when nothing else bleeds |
 | `ragePotion.enabled`, `jujuFlurry.enabled` | **on**, **on** | Only when selected in Buffs (the Max consumables preset has the potion) |
 
@@ -833,6 +833,45 @@ the Prowl openers aren't simulated (§3.9).
 the Buffs tab's raid. With warriors in it (the default raid), the boss bleeds from their Deep
 Wounds all fight [?], which feeds Rend and Tear and the two "only when nothing else bleeds"
 settings. A raid without warriors turns it off.
+
+**Tuning the defaults** (decision D23; `scripts/tune/rotation.mjs --spec druid-feral-cat`, the
+engine of this commit). The search started from the priority above with the doc's first defaults
+(Bite at 4, Shred first from 67 Energy, Rip with 10 s left, Tiger's Fury without losing Energy),
+on the default setup (Tauren, pre-raid BiS, the Standard raid preset, a 180 s ± 10% fight, 3,731
+armor, execute 20%). Coordinate descent over every setting, 40,000 paired fights per candidate on
+seed 1, adopting a value only when its 95% interval was above zero:
+
+| Step | Change | Δ DPS (95% CI), seed 1 |
+| --- | --- | --- |
+| 1 | `ferociousBite.minComboPoints` 4 → 5 | +16.93 (+16.68 to +17.18) |
+| 2 | `ferociousBite.shredFirstFrom` 67 → 35 | +2.54 (+2.35 to +2.73) |
+| 3 | `rip.minFightLeftSec` 10 → 8 | +0.31 (+0.29 to +0.34) |
+| 4 | `tigersFury.maxEnergyLost` 0 → 20 | +0.94 (+0.73 to +1.15) |
+
+A second pass changed nothing. No other setting cleared the bar. Against the tuned set on seed 1
+(40,000 fights; every interval below zero): Rip at 4 −0.52, Rip again with 1 s left −0.91, Faerie
+Fire only once it has run out −0.40, Rake kept up whatever bleeds −19.12 (with the default raid,
+"only when nothing else bleeds" gives it no line), and without Berserk −18.43, the on-use items
+−23.16, Rip −56.22, Tiger's Fury −78.35 or Ferocious Bite −0.65. Bite does little in the tuned
+rotation: at 5 combo points the cat Shreds whenever it can afford one, so it bites only at 35–41
+Energy with Rip up.
+
+**Confirmation on a fresh seed** (20260923, never used by the search), 400,000 paired fights: the
+tuned defaults against the doc's first ones, **+20.39 DPS (+3.73%, 547.05 → 567.44), 95% CI
++20.31 to +20.47**. Each change alone, reverted from the tuned set on that seed, loses: Bite at 4
+−4.43 (−4.49 to −4.38), Shred first from 67 −3.38 (−3.44 to −3.31), Rip with 10 s −0.28 (−0.29 to
+−0.27), Tiger's Fury without loss −0.95 (−1.02 to −0.89).
+
+**Robustness** (the fresh seed, 200,000 paired fights each): the tuned defaults gain +20.14
+(+3.25%) at 60 s, +20.44 (+3.74%) at 180 s and +20.52 (+3.78%) at 300 s, each 95% CI above
++19.9. The execute phase changes nothing for a cat (no line reads it): 0% and 20% give identical
+fights. Reverting each change still loses at 60 s and 300 s (Rip with 10 s: −0.66 and −0.12; Tiger's
+Fury without loss: −3.59 and −0.62; all intervals below zero).
+
+Why they win: Energy, not the GCD, limits a cat, and a Bite turns spare Energy into 2.7 damage a
+point where a Shred makes about 11. So the tuned cat Shreds whenever it can afford to and bites at
+exactly 35–41 Energy, at 5 combo points, with Rip kept up in between; and a Tiger's Fury a little
+early is worth more than its lost Energy, since its cooldown starts sooner.
 
 ### 6.3 Forever bear priority (TPS)
 
@@ -923,7 +962,10 @@ results. The bear's rotation will press it too.
 
 ### 7.4 Rotation settings
 
-As in the default column of §6.2 (cat) and §6.3 (bear).
+As in the default column of §6.2 (cat) and §6.3 (bear). The cat's are the best rotation a paired
+search found for the default setup (decision D23, §6.2 "Tuning the defaults"): Bite and Rip at 5
+combo points, a Shred first whenever there's the Energy for one, Rip only with 8 s of the fight
+left, and Tiger's Fury once at most 20 of its Energy would be lost.
 
 ### 7.5 Consumables tier ("standard raid night", no world buffs)
 

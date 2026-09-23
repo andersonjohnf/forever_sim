@@ -48,12 +48,11 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
 /**
  * What the Rotation tab's intro says about the spec's defaults (docs/ux.md "Rotation"): tuned for
  * the default setup once a paired search has tuned them (decision D23; Arms since M2.5a, Fury since
- * M2.5b), the common priority until then (the Feral cat, until its tuning). None for a spec without
- * rotation settings.
+ * M2.5b, the Feral cat since B2), the common priority until then. None for a spec without rotation
+ * settings.
  */
 export function rotationDefaultsNote(spec: SpecId): string | undefined {
-  if (spec === 'warrior-arms' || spec === 'warrior-fury') return 'The defaults are tuned for the default setup.'
-  if (spec === 'druid-feral-cat') return 'The defaults follow the common priority.'
+  if (spec === 'warrior-arms' || spec === 'warrior-fury' || spec === 'druid-feral-cat') return 'The defaults are tuned for the default setup.'
   return undefined
 }
 

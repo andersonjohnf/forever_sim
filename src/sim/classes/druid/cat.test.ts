@@ -205,15 +205,15 @@ describe('the cat priority list (druid.md §6.2)', () => {
     const rot = catRotation({}, CAT, auraIndex, ctx)
     expect(names(rot)).toEqual(['berserk', 'tigersFury', 'faerieFire', 'faerieFire', 'shred', 'claw', 'rip', 'shred', 'claw', 'ferociousBite', 'shred', 'claw'])
     const line = (i: number) => rot.rotation[i].conditions
-    // Tiger's Fury at ≤ 100 − 80 Energy.
-    expect(line(1)).toEqual([{ code: COND.maxEnergy, a: 200, b: 0 }])
+    // Tiger's Fury at ≤ 100 − 80 + 20 Energy (the default loss allowed).
+    expect(line(1)).toEqual([{ code: COND.maxEnergy, a: 400, b: 0 }])
     // The Clearcasting Shred reads the aura.
     expect(line(4)).toEqual([{ code: COND.windowOpen, a: clearcasting, b: 0 }])
-    // Rip at 5, when it's off the boss, with 10 s of the fight left.
+    // Rip at 5, when it's off the boss, with 8 s of the fight left.
     expect(line(6)).toEqual([
       { code: COND.minComboPoints, a: 5, b: 0 },
       { code: COND.abilityAuraRefresh, a: rot.rotation[6].ability, b: 0 },
-      { code: COND.timeLeftAtLeast, a: 10000, b: 0 },
+      { code: COND.timeLeftAtLeast, a: 8000, b: 0 },
     ])
     // Faerie Fire's early refresh waits until there's no Energy for a Shred (42).
     expect(line(3)).toContainEqual({ code: COND.maxEnergy, a: 419, b: 0 })
@@ -223,10 +223,10 @@ describe('the cat priority list (druid.md §6.2)', () => {
     expect(rot.prepull.casts).toEqual([])
   })
 
-  it('Tiger’s Fury without Wolfshead Helm waits for 100 − 60', () => {
+  it('Tiger’s Fury without Wolfshead Helm waits for 100 − 60 + 20', () => {
     const rot = catRotation({}, CAT, auraIndex, { ...ctx, equipped: new Set() })
     const tf = rot.rotation.find((e) => rot.abilities[e.ability].id === 'tigersFury')!
-    expect(tf.conditions).toEqual([{ code: COND.maxEnergy, a: 400, b: 0 }])
+    expect(tf.conditions).toEqual([{ code: COND.maxEnergy, a: 600, b: 0 }])
     expect(rot.abilities[tf.ability].rageTenths).toBe(600)
   })
 
@@ -252,7 +252,7 @@ describe('the cat priority list (druid.md §6.2)', () => {
     const rip = rot.abilities.findIndex((a) => a.id === 'rip')
     expect(bites.map((e) => e.conditions[1])).toEqual([
       { code: COND.abilityAuraUp, a: rip, b: 0 },
-      { code: COND.timeLeftAtMost, a: 10000, b: 0 },
+      { code: COND.timeLeftAtMost, a: 8000, b: 0 },
     ])
   })
 

@@ -87,7 +87,10 @@ const comboPointOption = (id: string, label: string, help: string, def: number, 
   dependsOn,
 })
 
-/** Defaults from druid.md §6.2's table, in priority order: the doc's first priority. */
+/**
+ * Defaults from druid.md §6.2's table, in priority order. They're the best rotation found for the
+ * default setup (decision D23; §6.2 "Tuning the defaults", measured with scripts/tune/rotation.mjs).
+ */
 export const CAT_OPTIONS: RotationOption[] = [
   {
     kind: 'toggle',
@@ -124,8 +127,8 @@ export const CAT_OPTIONS: RotationOption[] = [
   energyOption(
     ID.tfWaste,
     'Tiger’s Fury losing up to',
-    'Use it only when at most this much of its Energy would be lost at the 100 cap. At 0 it waits until all of it fits.',
-    0,
+    'Use it only when at most this much of its Energy would be lost at the 100 cap. At 0 it waits until all of it fits; a little sooner does more.',
+    20,
     ID.tfEnabled,
     'Cooldowns and buffs',
   ),
@@ -186,7 +189,7 @@ export const CAT_OPTIONS: RotationOption[] = [
     min: 0,
     max: 60,
     step: 1,
-    default: 10,
+    default: 8,
     dependsOn: ID.ripEnabled,
   },
   {
@@ -219,12 +222,12 @@ export const CAT_OPTIONS: RotationOption[] = [
     help: 'Spend combo points on Ferocious Bite: 52–112 plus 147 per point, and 2.7 per point of Energy left after its 35, which it all spends.',
     default: true,
   },
-  comboPointOption(ID.biteCp, 'Ferocious Bite at', 'Use it at or above this many combo points, when Rip doesn’t take them.', 4, ID.biteEnabled),
+  comboPointOption(ID.biteCp, 'Ferocious Bite at', 'Use it at or above this many combo points, when Rip doesn’t take them.', 5, ID.biteEnabled),
   energyOption(
     ID.biteShredFirst,
     'Shred before Ferocious Bite from',
     'With the combo points for a Bite, Shred first while you have at least this much Energy: Bite turns extra Energy into only 2.7 damage a point. At 35, you Bite only when there isn’t Energy for a Shred.',
-    67,
+    35,
     ID.biteEnabled,
     'Core abilities',
     35,

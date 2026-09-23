@@ -194,3 +194,17 @@ threat in every fight; the results now treat both as first-class for tank specs:
 - the per-ability breakdown switches between threat and damage
 
 DPS specs keep DPS as their one headline number.
+
+### D19: Stat boosts model gear that doesn't exist yet (2026-09-23)
+User request: see how a spec scales with better itemization than exists today, such as 20% better
+gear, 50 more attack power or 10% more block value.
+- **The boosts:** one percent for every stat from items, and per-stat bonuses for stats items can
+  carry, each a raw amount or a percent of that stat from items.
+- **User input, not game values:** they're like choosing gear, so doctrine's sourcing rules
+  don't apply to them. But a boosted result must say so plainly: in the headline and in the
+  assumptions. Saved setups and share links carry the boosts.
+- **Where they apply:** to stats from items and enchants, before talents', racials' and buffs'
+  percentages, so a boosted point is worth what an item's point is. Forever ratings follow D12.
+- **Off by default.** They never change a default or a golden.
+
+Plan: [M2.5](milestones.md#m25-stat-boosts-gear-that-doesnt-exist-yet-).

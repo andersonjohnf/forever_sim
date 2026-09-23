@@ -120,6 +120,44 @@ work is in slices:
         on every screen at 390 and 1280 px, light and dark. Findings logged and resolved.
   - [ ] **M2.4d First deploy:** push when the user asks, and check the Pages deploy.
 
+## M2.5: Stat boosts: gear that doesn't exist yet 💤
+
+How a spec scales with better itemization than today's (user request, 2026-09-23;
+[D19](decisions.md#d19-stat-boosts-model-gear-that-doesnt-exist-yet-2026-09-23)). For example: 20% better
+gear, 50 more attack power, or 10% more block value. Off by default. Run once without it and
+once with it: the headline's change from the previous run is the scaling.
+
+- [ ] **M2.5a Engine and config:**
+  - `statBoost` in the config: `itemPct` (one percent for every stat from items) and `add`
+    (per-stat bonuses, each a raw amount or a percent of that stat from items)
+  - applied to the stats from items and enchants, before talents', racials' and buffs'
+    percentages, so a boosted point is worth what an item's point is; documented in a new
+    section of [character-stats.md](mechanics/character-stats.md)
+  - not applied to base stats, buffs, consumables, proc and on-use effects, or set bonuses
+  - Forever ratings follow D12's switch, as they do from items
+  - validated and bounded in `normalize`; saved setups and share links carry it
+  - tests:
+    - no boost leaves every golden unchanged
+    - a boost scales item stats only, in the documented order
+    - same config and seed give the same result
+    - boosted share links round-trip
+- [ ] **M2.5b UI:**
+  - one slider for all item stats, plus a per-stat list. Each row shows the stat from items,
+    the bonus, and the total
+  - lives under an Advanced disclosure (Gear or Character; decide against ux.md). Its
+    "Default: none · Reset" shows when it's on
+  - the character sheet shows boosted values
+  - the results say a boost is on (headline badge, and an entry in the assumptions)
+  - ux.md section, and e2e tests for the flow at 390 and 1280 px
+- [ ] **M2.5c Tank stats**, with M3: block value from items needs shields' block value,
+      which the item data lacks ([known gaps](#known-gaps-and-follow-ups)). Add block value,
+      block chance, defense, dodge and parry to the per-stat list once Protection simulates them.
+- **To decide in M2.5a:**
+  - whether the percent also scales weapon damage ("better gear" suggests yes, at the same
+    speed)
+  - the range: −50% to +100%, say, so worse gear can be modelled too
+- M6's stat weights can build on the per-stat bonuses.
+
 ## Session handoff (2026-09-23)
 
 State: `main` is green (lint, typecheck, 942 unit, 182 e2e with 3 deferred to M3). Nothing is
@@ -144,7 +182,8 @@ Golden runs: Fury 673.8 DPS, Arms 610.7 DPS, Protection 217.0 TPS.
 **Next:**
 1. Have a fresh reviewer check the QV fixes, resolve what it finds, and set the log's verdict.
 2. **M2.4d:** push when the user asks, then check the Pages deploy.
-3. **M3 Protection**, in a fresh session. Enable the 3 `test.fixme` tests in
+3. **M2.5 Stat boosts**, in a fresh session.
+4. **M3 Protection**, in a fresh session. Enable the 3 `test.fixme` tests in
    `e2e/tank-results.spec.ts` when Protection ships.
 
 **Open decision for the user:** whether the Arms defaults follow the tuning findings (Heroic

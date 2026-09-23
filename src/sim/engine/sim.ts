@@ -2333,10 +2333,11 @@ export class Sim {
   /**
    * A `spellTable` ability (DefenseType Magic: Thunder Clap, Demoralizing Shout; warrior.md §7
    * "Spell-table abilities" [?]): roll 1 against the spell table's miss (combat-tables §9), so no
-   * dodge, parry or block, and a miss refunds 80% of the cost as a melee special's does [?]; roll 2 for
-   * crit at the main hand's special crit chance, × the ability's crit multiplier (Impale's class mask
-   * has Thunder Clap). Damage and threat as a special's; a landed one puts its debuff on the boss. It
-   * fires no melee procs; a crit uses the charges crits end (Weakness Analyzer).
+   * dodge, parry or block, and a miss refunds as a melee special's does: 80% of the cost [?], or a
+   * druid row's share of what it paid, in its own pool; roll 2 for crit at the main hand's special
+   * crit chance, × the ability's crit multiplier (Impale's class mask has Thunder Clap). Damage and
+   * threat as a special's; a landed one puts its debuff on the boss. It fires no melee procs; a crit
+   * uses the charges crits end (Weakness Analyzer).
    */
   private spellStrike(a: number): void {
     const source = this.abSource[a]
@@ -2345,10 +2346,15 @@ export class Sim {
     c[row + FIELD.casts]++
     if (this.rngTable.roll100() < this.spellMissPct) {
       c[row + FIELD.misses]++
-      const refund = Math.floor(this.abRefund[a] * this.abCost[a] + 1e-9)
-      if (this.rage + refund >= this.maxRage) this.setRage(this.maxRage)
-      else this.rage += refund
-      this.actPending = this.hasRotation
+      if (this.abPlainRage[a] === 1) {
+        const refund = Math.floor(this.abRefund[a] * this.abCost[a] + 1e-9)
+        if (this.rage + refund >= this.maxRage) this.setRage(this.maxRage)
+        else this.rage += refund
+        this.actPending = this.hasRotation
+      } else {
+        // A druid's row, as its avoided specials: a share of what it paid, in its own pool (druid.md §2.4).
+        this.refundPaid(a)
+      }
       return
     }
     const damages = this.abNoDamage[a] === 0

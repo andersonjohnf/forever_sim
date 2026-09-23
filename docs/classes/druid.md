@@ -1119,8 +1119,14 @@ The cat added, generically (plan/types.ts `AbilityPlan`, §3.12):
   can miss (Faerie Fire, §3.8).
 - `charges` on an on-use item: uses a fight (the Manual Crowd Pummeler, §7.3).
 
-The bear still needs a stacking bleed (Lacerate, §4.3), Swipe's extra targets (§4.4) and
-Demoralizing Roar's attack power on the boss (§4.5).
+What Warrior Protection added serves these rows too: an aura's `bossAp`, the attack power a debuff
+takes off the boss (Demoralizing Roar's, §4.5; [warrior.md §7](warrior.md#7-implementation-notes)
+"Debuffs on the boss"); and `kind: 'spell'`, the spell table (warrior.md §7 "Spell-table
+abilities"), whose miss refunds a druid row's share of what it paid, as above (§2.4). A row with no
+damage of its own never crits (warrior.md §7), except a combo-point row: a finisher's damage is per
+point, and a builder's crit awards Primal Fury's point (§2.5).
+
+The bear still needs a stacking bleed (Lacerate, §4.3) and Swipe's extra targets (§4.4).
 
 ---
 

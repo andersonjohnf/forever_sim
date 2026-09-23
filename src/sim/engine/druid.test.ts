@@ -670,3 +670,20 @@ describe('determinism and the default druids', () => {
     expect(fightOne(reused)).toEqual(fresh)
   })
 })
+
+describe('a druid row on the spell table (warrior.md §7 "Spell-table abilities")', () => {
+  it('a miss refunds its share of what it paid, in its own pool, as an avoided builder does (druid.md §2.4)', () => {
+    const plan = druidPlan('druid-feral-cat', 1000)
+    landAll(plan)
+    // Every spell-table roll misses (spell hit far below zero).
+    plan.stats.spellHit = -1000
+    for (const form of plan.forms!) form.stats.spellHit = -1000
+    const spell = addDruidAbility(plan, testRow('testSpell', { kind: 'spellTable', resource: 'energy', costTenths: 400, refundShare: 0.8 }))
+    line(plan, spell)
+    const { sim, rageAtUse } = timeline(plan)
+    // Each missed use costs 8 Energy net: 100, 92, 84, … while at least 40 is left; no rage.
+    expect(rageAtUse[spell]).toEqual([1000, 920, 840, 760, 680, 600, 520, 440])
+    expect(counter(sim, plan.abilities[spell].source, FIELD.misses)).toBe(8)
+    expect(sim.resources().rage).toBe(0)
+  })
+})

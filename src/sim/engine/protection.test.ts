@@ -473,6 +473,27 @@ describe('the default Protection warrior (warrior.md §5.4)', () => {
     expect(uptime('demoralizingShout')).toBeGreaterThan(75)
   })
 
+  it('blocks about 65% of the boss’s swings with Shield Block on cooldown, pushing crushing blows and crits off its table (§5.4 notes, PL10)', () => {
+    const outcomes = toResult(bundle, agg, 0).tank!.outcomes
+    // Shield Block's +75% for two blocks: the sheet's 11% block becomes about 65% of the swings,
+    // and crushing blows (15% of the table without it) and crits fall to about 1.3% and 0.3%.
+    expect(outcomes.block).toBeGreaterThan(60)
+    expect(outcomes.block).toBeLessThan(70)
+    expect(outcomes.crush).toBeLessThan(2.5)
+    expect(outcomes.crit).toBeLessThan(1)
+    // Without it, the table's own shares: about 11% blocked, 15% crushing blows, 3.7% crits.
+    const d = defaultConfig('warrior-protection')
+    const off = buildPlan({ ...d, rotation: { 'warrior.protection.shieldBlock.enabled': false }, run: { mode: 'fixed', iterations: 1000, seed: 21 } })
+    const without = toResult(off, runFights(off.plan, 1000), 0).tank!.outcomes
+    expect(without.block).toBeGreaterThan(9)
+    expect(without.block).toBeLessThan(13)
+    expect(without.crush).toBeGreaterThan(13)
+    expect(without.crush).toBeLessThan(17)
+    expect(without.crit).toBeGreaterThan(2.5)
+    // Shield Block moves swings from crushing blows, crits and hits to blocks; the avoidance is the same.
+    for (const k of ['miss', 'dodge', 'parry'] as const) expect(Math.abs(outcomes[k] - without[k]), k).toBeLessThan(1)
+  })
+
   it('is deterministic: the same config and seed give the same result', () => {
     const a = runFights(buildPlan({ ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 300, seed: 5 } }).plan, 300)
     const b = runFights(buildPlan({ ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 300, seed: 5 } }).plan, 300)

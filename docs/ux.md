@@ -297,8 +297,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - **Damage you take** (DPS specs; 0 by default) says what the number is and what it does:
     "What the boss deals you per second, before your armor. Each hit gives rage and can trigger
     Enrage. At 0 you're never hit." It's before armor because Forever's rage from a hit reads the
-    hit before mitigation ([rage.md](mechanics/rage.md#forever-)). A cat's says a hit gives no
-    rage in Cat Form but can trigger effects that fire when you're hit.
+    hit before mitigation ([rage.md](mechanics/rage.md#forever-)). A class with nothing that
+    reacts to being hit has no such field: a cat gains no rage in Cat Form, and none of its
+    talents, items or buffs fires on a hit, so its Fight tab leaves the field out, as it does the
+    execute phase. A setup keeps the value, unused.
   - Precision is Adaptive or Fixed. **Fixed** shows its own field under it, "Number of fights",
     with its own help and default. Counts are written with thousands separators, in a field as
     in its "Default: 3,000" (boss armor, damage per swing); a seed is an identifier and has none.

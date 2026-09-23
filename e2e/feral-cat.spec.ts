@@ -108,8 +108,9 @@ test.describe('Feral cat', () => {
     await expect(fight.getByText('In front of the boss, it can parry and block your attacks. You can’t Shred there, so Claw builds instead.')).toBeVisible()
     await fight.getByRole('button', { name: /^Advanced/ }).click()
     await expect(fight.getByRole('textbox', { name: 'Execute phase starts at' })).toHaveCount(0)
-    await expect(fight.getByRole('textbox', { name: 'Damage you take' })).toBeVisible()
-    await expect(fight.getByText(/In Cat Form it gives no rage, but a hit can trigger effects that fire when you’re hit\./)).toBeVisible()
+    // Nothing a cat has reacts to being hit, so there's no damage to take either.
+    await expect(fight.getByRole('textbox', { name: 'Boss level' })).toBeVisible()
+    await expect(fight.getByRole('textbox', { name: 'Damage you take' })).toHaveCount(0)
   })
 
   test('with its own Faerie Fire off, the Buffs tab’s is off and unlocked, for another druid’s; what you set stays', async ({ page }) => {

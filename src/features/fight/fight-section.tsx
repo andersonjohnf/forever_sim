@@ -62,10 +62,14 @@ const EXECUTE_ABILITY: Partial<Record<ClassId, string>> = { warrior: 'Execute', 
 /** What a DPS spec loses in front of the boss besides its parry and block (the cat's Shred, druid.md §3.1). */
 const FRONT_NOTE: Partial<Record<SpecId, string>> = { 'druid-feral-cat': ' You can’t Shred there, so Claw builds instead.' }
 
-/** What the damage a DPS player takes does, per class (docs/ux.md "Fight"): a cat's hits give no rage (druid.md §8). */
+/**
+ * What the damage a DPS player takes does, per class (docs/ux.md "Fight"). A class without an entry
+ * has nothing that reacts to being hit (a cat: no rage in Cat Form, and no talent, item or buff of
+ * its fires on a hit; druid.md §8), so its Fight tab leaves the field out: a control that changes
+ * nothing isn't shown. Saved setups keep the value.
+ */
 const DAMAGE_TAKEN_HELP: Partial<Record<ClassId, string>> = {
   warrior: 'What the boss deals you per second, before your armor. Each hit gives rage and can trigger Enrage. At 0 you’re never hit.',
-  druid: 'What the boss deals you per second, before your armor. In Cat Form it gives no rage, but a hit can trigger effects that fire when you’re hit. At 0 you’re never hit.',
 }
 
 const number = (n: number) => n.toLocaleString('en-US')
@@ -86,6 +90,7 @@ export function FightSection() {
   const tank = meta.role === 'tank'
   const executeAbility = EXECUTE_ABILITY[meta.classId]
   const usesExecute = executeAbility !== undefined
+  const damageTakenHelp = tank ? undefined : DAMAGE_TAKEN_HELP[meta.classId]
 
   // Each setting that differs from the spec's default says so, with a Reset (docs/ux.md "Fight",
   // checklist 3). A reset moves focus to the setting's control, since the Reset button goes away.
@@ -109,7 +114,7 @@ export function FightSection() {
     bossLevel: fight.bossLevel !== def.bossLevel,
     creatureType: fight.creatureType !== def.creatureType,
     zone: fight.zone !== def.zone,
-    damageTaken: !tank && fight.damageTakenPerSec !== def.damageTakenPerSec,
+    damageTaken: damageTakenHelp !== undefined && fight.damageTakenPerSec !== def.damageTakenPerSec,
     swingSpeed: tank && fight.boss.swingSpeedSec !== def.boss.swingSpeedSec,
     swingDamage: tank && (fight.boss.damageMin !== def.boss.damageMin || fight.boss.damageMax !== def.boss.damageMax),
     ...(Object.fromEntries(BOSS_SWITCHES.map(([key]) => [key, tank && fight.boss[key] !== def.boss[key]])) as Record<BossSwitch, boolean>),
@@ -391,12 +396,12 @@ export function FightSection() {
               </SelectContent>
             </Select>
           </Field>
-          {!tank && (
+          {damageTakenHelp !== undefined && (
             // Its accessible name is its visible label (WCAG 2.5.3).
             <Field
               label="Damage you take"
               htmlFor={ids('damageTaken').control}
-              help={DAMAGE_TAKEN_HELP[meta.classId] ?? 'What the boss deals you per second, before your armor, for effects that fire when you’re hit. At 0 you’re never hit.'}
+              help={damageTakenHelp}
               changed={hint('damageTaken', 'Damage you take', changed.damageTaken, `${def.damageTakenPerSec}/s`, () => set({ damageTakenPerSec: def.damageTakenPerSec }))}
             >
               <NumberField

@@ -249,3 +249,20 @@ net they need. Its waiting toasts also drew findings three review rounds running
 
 This replaces the Undo parts of [ux.md](ux.md#persistence-and-sharing).
 
+### D22: Reproducible log analyses can set server-side Forever defaults (2026-09-23)
+User decision, from the first release's logic review (LX3). Doctrine §2 let the `forever` profile
+contradict Classic Era only with client data. Rules the server computes, such as rage from
+white hits and from damage taken, can never be client data, so that rule would have forced
+Classic Era's rage formulas, which about 2,000 logged Forever hits contradict.
+
+Now a server-side rule can also take its Forever default from a **reproducible analysis of
+public beta combat logs**:
+- the raw logs are public, so anyone can re-run the analysis
+- the method is documented in the owning doc
+- the result holds across many independent characters, not one tester
+
+The value stays **[?]**, keeps an open question saying how to confirm it at level 60, and moves
+to **[F]** when the guild measures it. Anecdotes and single-tester fits still can't set a default.
+This covers the white-hit rage normalization and the damage-taken formula
+([rage.md](mechanics/rage.md)).
+

@@ -91,9 +91,15 @@ it. Exception: code pinned to a commit from **before Season of Discovery launche
 (2023-11-30)** is Classic Era and can back a **[C]** value.
 
 **When secondary Forever evidence contradicts Classic Era,** the `forever` rule profile
-adopts it only when it is client data a person can check (a spell attribute, a table
-value). Tag it **[?]** and list it for confirmation. Anecdotal secondary evidence doesn't
-override Classic Era in the default profile; it becomes an open question.
+adopts it in two cases:
+- It's client data a person can check (a spell attribute, a table value).
+- It's a server-side rule the client can't hold, such as rage from white hits or from damage
+  taken, and a **reproducible analysis of public beta combat logs** supports it. That needs
+  raw logs anyone can re-run, a documented method, and many independent characters
+  ([D22](decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23)).
+
+Either way, tag it **[?]** and list it for confirmation. Anecdotes, and one tester's fit to their
+own logs, don't override Classic Era in the default profile; they become open questions.
 
 **Verbatim mirrors of client files are client data.** A mirror of the Forever client's UI code
 or text strings is **[F]** for what the client *displays or computes*, such as a

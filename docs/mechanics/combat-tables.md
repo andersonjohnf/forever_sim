@@ -565,9 +565,11 @@ miss → dodge → parry → block → crit → crushing → hit
   the tank's stats change. A swing then gives rage from damage taken, and fires the class
   hooks in this order: for a dodge or parry, "dodge or parry", then "dodge" or "parry" (and the
   tank's own parry haste); for a landed swing, "damage taken" (if it cost health), "melee
-  taken", then "block" (and each block-charged aura, such as Holy Shield or Redoubt, loses a
-  charge) or "crit taken". Auras can add dodge, parry, block, block value, armor and a
-  damage-taken modifier. Druids never parry or block; a warrior or paladin parries only with a
+  taken", then "block" or "crit taken". After a block's hooks, each block-charged aura (Holy
+  Shield, Redoubt) loses a charge, so the block that uses the last one still fires Holy Shield's
+  damage. Only an aura that was up before the swing pays: one this swing's own hooks applied or
+  refreshed (Redoubt from the swing it blocks) keeps every charge. Auras can add dodge, parry,
+  block, block value, armor and a damage-taken modifier. Druids never parry or block; a warrior or paladin parries only with a
   weapon in hand and blocks only with a shield.
 - **Results:** damage taken per second (health lost, with its 95% CI over fights), the boss's
   swings per fight, and the share of them each outcome took. The sheet carries the table

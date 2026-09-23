@@ -208,11 +208,14 @@ describe('edge cases (combat-tables §8)', () => {
   })
 })
 
-/** A counting proc on `trigger`: a 0-damage spell, whose casts its own breakdown row counts. */
-function probeRow(plan: Plan, trigger: number): number {
+/**
+ * A counting proc on `trigger`: a 0-damage spell, whose casts its own breakdown row counts; with
+ * `requiresAura`, rolled only while that aura is up (Holy Shield's damage).
+ */
+function probeRow(plan: Plan, trigger: number, requiresAura = -1): number {
   plan.sources.push({ id: `probe${trigger}`, name: 'Probe', icon: 'x' })
   const row = plan.sources.length - 1
-  addProc(plan, { trigger, chance: [1, 1], hands: 0, action: ACTION.spellDamage, amount: 0, b: 0, source: row })
+  addProc(plan, { trigger, chance: [1, 1], hands: 0, action: ACTION.spellDamage, amount: 0, b: 0, source: row, requiresAura })
   return row
 }
 
@@ -236,23 +239,27 @@ describe('class hooks (combat-tables §8)', () => {
     for (const k of [BOSS_OUTCOME.dodge, BOSS_OUTCOME.parry, BOSS_OUTCOME.crit, BOSS_OUTCOME.block]) expect(o[k]).toBeGreaterThan(0)
   })
 
-  it('a block aura with block charges: each block uses one, and the aura drops after the last (Holy Shield, Redoubt)', () => {
+  it('a block aura with block charges: each block uses one, and the aura drops after the last, whose damage still fires (Holy Shield)', () => {
     const plan = tankBundle().plan
     // No block without the aura; with it, every swing that isn't missed or dodged is blocked.
     plan.stats.baseBlock = -1000
-    // Longer than a fight, so only its charges end it.
+    // Longer than a fight, so only its 4 charges end it.
     const aura = addAura(plan, { id: 'wall', name: 'Wall', durationMs: 600000, mods: {} })
-    Object.assign(plan.auras[aura], { block: 2000, blockCharges: 2 })
+    Object.assign(plan.auras[aura], { block: 2000, blockCharges: 4 })
     addProc(plan, { trigger: TRIGGER.dodge, chance: [1, 1], hands: 0, action: ACTION.aura, amount: aura, b: 0 })
+    // Holy Shield's damage: a block proc that needs the aura, rolled before the block uses a charge.
+    const damage = probeRow(plan, TRIGGER.block, aura)
     const sim = new Sim(plan)
     let blocks = 0
     let unblocked = 0
+    let lastCharge = 0
     for (const fight of swingsByFight(plan, 20, sim)) {
-      // Each fight starts without the aura; a dodge puts it up with 2 charges (or refreshes them).
+      // Each fight starts without the aura; a dodge puts it up with 4 charges (or refreshes them).
       let charges = 0
       for (const [o] of fight) {
-        if (o === BOSS_OUTCOME.dodge) charges = 2
+        if (o === BOSS_OUTCOME.dodge) charges = 4
         else if (o === BOSS_OUTCOME.block) {
+          if (charges === 1) lastCharge++
           expect(charges).toBeGreaterThan(0)
           charges--
           blocks++
@@ -265,6 +272,50 @@ describe('class hooks (combat-tables §8)', () => {
     }
     expect(blocks).toBeGreaterThan(20)
     expect(unblocked).toBeGreaterThan(20)
+    expect(lastCharge).toBeGreaterThan(5)
+    // Every block, the last charge's included, fired the damage.
+    expect(sim.counters[damage * FIELD_COUNT + FIELD.casts]).toBe(blocks)
+    expect(sim.auraUpMs[aura]).toBeGreaterThan(0)
+  })
+
+  it('a blocked swing’s own procs don’t use a charge of the aura they apply (Redoubt: 5 blocks)', () => {
+    const plan = tankBundle().plan
+    plan.stats.baseBlock = 40
+    // Redoubt: up by the first landed swing (once a fight), 5 blocks, longer than a fight.
+    const aura = addAura(plan, { id: 'redoubt', name: 'Redoubt', durationMs: 600000, mods: {} })
+    Object.assign(plan.auras[aura], { block: 30, blockCharges: 5 })
+    addProc(plan, { trigger: TRIGGER.meleeTaken, chance: [1, 1], hands: 0, icdMs: 1e9, action: ACTION.aura, amount: aura, b: 0 })
+    // Counts the blocks while it's up, the one on the swing that applied it included.
+    const probe = probeRow(plan, TRIGGER.block, aura)
+    const sim = new Sim(plan)
+    let expected = 0
+    let appliedByABlock = 0
+    for (const fight of swingsByFight(plan, 200, sim)) {
+      const landed = fight.filter(([o]) => o !== BOSS_OUTCOME.miss && o !== BOSS_OUTCOME.dodge && o !== BOSS_OUTCOME.parry)
+      if (landed.length === 0) continue
+      const [first, ...rest] = landed
+      const firstBlocked = first[0] === BOSS_OUTCOME.block
+      if (firstBlocked) appliedByABlock++
+      // The swing that applied it blocks with its 5 charges intact; the next 5 blocks use them.
+      expected += (firstBlocked ? 1 : 0) + Math.min(5, rest.filter(([o]) => o === BOSS_OUTCOME.block).length)
+    }
+    expect(appliedByABlock).toBeGreaterThan(40)
+    expect(sim.counters[probe * FIELD_COUNT + FIELD.casts]).toBe(expected)
+  })
+
+  it('a block that applies or refreshes a one-block aura leaves it up: the aura drops only on a later block', () => {
+    const plan = tankBundle().plan
+    plan.stats.baseBlock = 40
+    // Every block puts it up again with 1 charge; if that block used the charge, it would never be up.
+    const aura = addAura(plan, { id: 'once', name: 'Once', durationMs: 600000, mods: {} })
+    Object.assign(plan.auras[aura], { blockCharges: 1 })
+    addProc(plan, { trigger: TRIGGER.block, chance: [1, 1], hands: 0, action: ACTION.aura, amount: aura, b: 0 })
+    const probe = probeRow(plan, TRIGGER.block, aura)
+    const sim = new Sim(plan)
+    const blocks = swingsTaken(plan, 50, sim).filter(([o]) => o === BOSS_OUTCOME.block).length
+    // Each block's own procs apply or refresh it, so it's up for every block's damage.
+    expect(sim.counters[probe * FIELD_COUNT + FIELD.casts]).toBe(blocks)
+    expect(blocks).toBeGreaterThan(500)
     expect(sim.auraUpMs[aura]).toBeGreaterThan(0)
   })
 

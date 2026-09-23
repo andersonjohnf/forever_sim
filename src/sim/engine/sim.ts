@@ -230,6 +230,8 @@ export class Sim {
   private readonly aTaken: Float64Array
   private readonly aBlockCharges: Int32Array
   private readonly blockChargeAuras: Int32Array
+  /** Each block-charged aura's `auraGen` as a blocked swing lands, before its procs (`useBlockCharges`). */
+  private readonly blockChargeGen: Int32Array
   /**
    * Lines that refresh an aura (COND.abilityAuraRefresh, Battle Shout's upkeep, warrior.md §5.2
    * row 1): aura a's are watchLine[watchStart[a] … watchStart[a + 1] − 1], each with its lead (ms
@@ -670,6 +672,7 @@ export class Sim {
     this.chargeAuras = Int32Array.from(chargeAuras)
     this.critChargeAuras = Int32Array.from(critChargeAuras)
     this.blockChargeAuras = Int32Array.from(blockChargeAuras)
+    this.blockChargeGen = new Int32Array(blockChargeAuras.length)
 
     const abilities = plan.abilities
     const nb = abilities.length
@@ -2109,7 +2112,7 @@ export class Sim {
    * outcome's multiplier and a block's block value (damage-and-timing §2.6), and gives rage from its
    * size before all of them (rage.md#forever-). Then the class hooks: `dodgeParry` and `dodge` or
    * `parry` for an avoided swing; for a landed one `damageTaken` (if it cost health), `meleeTaken`,
-   * and `block` (then the blocks that end auras) or `critTaken`.
+   * and `block` (then the blocks that end auras, of the auras up before these procs) or `critTaken`.
    */
   private onBossSwing(): void {
     const boss = this.plan.fight.bossSwing!
@@ -2164,21 +2167,34 @@ export class Sim {
     }
     out[outcome]++
     if (this.swingTakenTrace !== null) this.swingTakenTrace(outcome, lost, pre)
+    const blocked = outcome === BOSS_OUTCOME.block
+    if (blocked) this.markBlockChargeAuras()
     // rage.md#implementation-notes item 4: the damage-taken rage first, then the procs (Shield Specialization).
     this.takeHit(lost, pre)
     this.fireProcs(TRIGGER.meleeTaken, -1)
-    if (outcome === BOSS_OUTCOME.block) {
+    if (blocked) {
       this.fireProcs(TRIGGER.block, -1)
       this.useBlockCharges()
     } else if (outcome === BOSS_OUTCOME.crit) this.fireProcs(TRIGGER.critTaken, -1)
   }
 
-  /** A block uses a charge of each aura blocks end (Holy Shield, Redoubt), after the block's procs. */
+  /** Notes each block-charged aura's generation before a blocked swing's procs can apply or refresh it. */
+  private markBlockChargeAuras(): void {
+    const list = this.blockChargeAuras
+    for (let i = 0; i < list.length; i++) this.blockChargeGen[i] = this.auraGen[list[i]]
+  }
+
+  /**
+   * A block uses a charge of each aura blocks end (Holy Shield, Redoubt), after the block's procs,
+   * so the last charge's block still fires Holy Shield's damage (combat-tables §8, "The engine").
+   * Only an aura up before this swing's procs pays: one they applied or refreshed (Redoubt from the
+   * very swing it blocks) has a new generation and keeps every charge.
+   */
   private useBlockCharges(): void {
     const list = this.blockChargeAuras
     for (let i = 0; i < list.length; i++) {
       const a = list[i]
-      if (this.auraActive[a] && --this.auraBlockCharges[a] <= 0) this.removeAura(a)
+      if (this.auraActive[a] && this.auraGen[a] === this.blockChargeGen[i] && --this.auraBlockCharges[a] <= 0) this.removeAura(a)
     }
   }
 

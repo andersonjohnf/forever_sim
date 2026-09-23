@@ -98,8 +98,9 @@ export default function App() {
       <Header />
       {/*
        * The bottom padding clears the phone's sim bar. While a toast that waits for Dismiss is up,
-       * it grows to clear that toast too, so the page's last control (the footer's link) can
-       * scroll clear of it; a toast that goes by itself leaves it as it is (pb-toast-*,
+       * it grows to clear the toasts too (that toast, or a taller one in front of it), so the
+       * page's last control (the footer's link) can scroll clear of them. It only shrinks once the
+       * waiting toast goes, so nothing moves when a 10 s toast times out (pb-toast-*,
        * src/index.css; docs/ux.md#persistence-and-sharing).
        */}
       <main className="mx-auto max-w-7xl px-4 pb-toast-32 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10 lg:pb-toast-12">

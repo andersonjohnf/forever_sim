@@ -27,7 +27,10 @@ export const TRIGGER = {
   dodge: 8,
   /** The player parried. `dodgeParry` fires too. */
   parry: 9,
-  /** A swing landed on the player: a hit, crit, crushing blow or block, before `damageTaken` (Redoubt). */
+  /**
+   * A swing landed on the player: a hit, crit, crushing blow or block, whatever it costs (Redoubt).
+   * Fires after `damageTaken` (if the swing cost health) and before `block` or `critTaken`.
+   */
   meleeTaken: 10,
   /** The player took a crit (Reckoning). */
   critTaken: 11,

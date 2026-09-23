@@ -239,6 +239,34 @@ describe('class hooks (combat-tables §8)', () => {
     for (const k of [BOSS_OUTCOME.dodge, BOSS_OUTCOME.parry, BOSS_OUTCOME.crit, BOSS_OUTCOME.block]) expect(o[k]).toBeGreaterThan(0)
   })
 
+  it('fire in order: dodge or parry then dodge or parry; damage taken, melee taken, then block or crit taken', () => {
+    const plan = tankBundle({ gear: SWORD_AND_BOARD }).plan
+    const sim = new Sim(plan)
+    const hooks = new Set<number>([TRIGGER.dodgeParry, TRIGGER.dodge, TRIGGER.parry, TRIGGER.damageTaken, TRIGGER.meleeTaken, TRIGGER.block, TRIGGER.critTaken])
+    // The triggers each boss swing fires, in order (a spy on the engine's private fireProcs).
+    const swings: [outcome: number, lost: number, fired: number[]][] = []
+    const spy = sim as unknown as { fireProcs: (trigger: number, hand: number) => void }
+    const fire = spy.fireProcs.bind(sim)
+    spy.fireProcs = (trigger, hand) => {
+      if (hooks.has(trigger)) swings[swings.length - 1][2].push(trigger)
+      fire(trigger, hand)
+    }
+    sim.swingTakenTrace = (o, lost) => swings.push([o, lost, []])
+    for (let i = 0; i < 20; i++) sim.runFight(i)
+    const T = TRIGGER
+    const seen = new Set<number>()
+    for (const [o, lost, fired] of swings) {
+      seen.add(o)
+      const expected =
+        o === BOSS_OUTCOME.miss ? []
+        : o === BOSS_OUTCOME.dodge ? [T.dodgeParry, T.dodge]
+        : o === BOSS_OUTCOME.parry ? [T.dodgeParry, T.parry]
+        : [...(lost > 0 ? [T.damageTaken] : []), T.meleeTaken, ...(o === BOSS_OUTCOME.block ? [T.block] : o === BOSS_OUTCOME.crit ? [T.critTaken] : [])]
+      expect(fired, `outcome ${o}`).toEqual(expected)
+    }
+    expect(seen.size).toBe(7)
+  })
+
   it('a block aura with block charges: each block uses one, and the aura drops after the last, whose damage still fires (Holy Shield)', () => {
     const plan = tankBundle().plan
     // No block without the aura; with it, every swing that isn't missed or dodged is blocked.

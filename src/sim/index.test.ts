@@ -247,7 +247,7 @@ describe('rotationValues', () => {
     expect(rotationValues({ ...prot, rotation: { 'warrior.protection.priority': 'maxTps' } })).toMatchObject({
       'warrior.protection.shieldBlock.enabled': false,
       'warrior.protection.shieldSlam.enabled': true,
-      'warrior.protection.heroicStrike.minRage': 50,
+      'warrior.protection.heroicStrike.minRage': 45,
     })
     expect(rotationValues(defaultConfig('druid-feral-bear'))).toEqual({})
   })

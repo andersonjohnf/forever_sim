@@ -51,13 +51,13 @@ test.describe('Protection rotation', () => {
       await expect(control).not.toHaveAccessibleDescription(/Changed/)
       await expect(control).toHaveAccessibleDescription(/Off by default with Max TPS/)
     }
-    // Heroic Strike's threshold follows it too: 50 rage.
+    // Heroic Strike's threshold follows it too: 45 rage.
     const fillers = tab.getByRole('region', { name: 'Fillers' })
     await expect(fillers.getByRole('button', { name: 'Advanced settings for Fillers' })).toBeVisible()
     await fillers.getByRole('button', { name: 'Advanced settings for Fillers' }).click()
     const heroicStrike = fillers.getByRole('textbox', { name: 'Heroic Strike from' })
-    await expect(heroicStrike).toHaveValue('50')
-    await expect(heroicStrike).toHaveAccessibleDescription(/^Queue it at or above this much rage\. With Max TPS it’s 50 by default/)
+    await expect(heroicStrike).toHaveValue('45')
+    await expect(heroicStrike).toHaveAccessibleDescription(/^Queue it at or above this much rage\. With Max TPS it’s 45 by default/)
 
     // The Buffs tab's Thunder Clap is the tank's own as well: off with Max TPS, and unlocked, to turn
     // on for another warrior's (D26; SpecMeta.ownBuffs).

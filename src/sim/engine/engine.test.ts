@@ -516,6 +516,13 @@ describe('golden run (fixed config and seed)', () => {
   //   Strikes (1,881 → 2,412 parried), so their threat 8.30 M → 10.99 M and the main hand's 12.10 M
   //   → 11.07 M as they take its swings; TPS 985.63 → 1,004.67, DPS 305.98 → 313.29. Fury and Arms
   //   are unchanged.
+  // - P2's review, the re-tune on the new build (D23, PL5): the Sunder Armor filler from 9 rage, its
+  //   cost (10), and Heroic Strike with any rage in the fight's last 10 s (7); every other default
+  //   still wins in the winner (warrior.md §5.4 "Tuning the defaults"). Over 400,000 paired fights on
+  //   a seed the search never used, +0.89 TPS (+0.09%, 95% CI +0.86 to +0.92), DPS level. On this
+  //   seed's 500 fights Heroic Strike's threat 10.99 M → 11.18 M (2,412 → 2,462 parried), Sunder
+  //   Armor's 27.61 M → 27.68 M; TPS 1,004.67 → 1,005.29, DPS 313.29 → 312.89. Max TPS queues Heroic
+  //   Strike from 45 (50), which the default run doesn't use. Fury and Arms are unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

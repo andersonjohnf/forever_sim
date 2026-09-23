@@ -508,11 +508,11 @@ describe('Max TPS in the engine (warrior.md §5.4 "Max TPS", D26)', () => {
   it('makes more threat and less damage than the default, on the same fights', () => {
     const duties = runFights(buildPlan(config({})).plan, 2000)
     const max = runFights(buildPlan(config(MAX)).plan, 2000)
-    // §5.4 "Max TPS": about +12% TPS and +4% DPS in the default setup, with nobody's Thunder Clap or
+    // §5.4 "Max TPS": about +13% TPS and +5.5% DPS in the default setup, with nobody's Thunder Clap or
     // Demoralizing Shout on the boss: the faster, harder boss gives more rage, and Shield Slam stays.
-    expect(max.tps.mean / duties.tps.mean).toBeGreaterThan(1.09)
+    expect(max.tps.mean / duties.tps.mean).toBeGreaterThan(1.11)
     expect(max.tps.mean / duties.tps.mean).toBeLessThan(1.15)
-    expect(max.dps.mean / duties.dps.mean).toBeGreaterThan(1.01)
-    expect(max.dps.mean / duties.dps.mean).toBeLessThan(1.07)
+    expect(max.dps.mean / duties.dps.mean).toBeGreaterThan(1.03)
+    expect(max.dps.mean / duties.dps.mean).toBeLessThan(1.08)
   })
 })

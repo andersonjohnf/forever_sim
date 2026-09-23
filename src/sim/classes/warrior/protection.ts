@@ -88,8 +88,8 @@ const PROT_MAX_RAGE = 100
  */
 export const PROTECTION_PRIORITY = { duties: 'duties', maxTps: 'maxTps' } as const
 const MAX_TPS = { option: ID.priority, is: PROTECTION_PRIORITY.maxTps } as const
-/** Max TPS's Heroic Strike threshold (§5.4 "Max TPS"): 50, where the duties' default is 65. */
-const MAX_TPS_HS_MIN_RAGE = 50
+/** Max TPS's Heroic Strike threshold (§5.4 "Max TPS"): 45, where the duties' default is 65. */
+const MAX_TPS_HS_MIN_RAGE = 45
 
 /** A debuff's refresh input, in seconds left (rows 8–10). */
 const refreshOption = (id: string, what: string, dependsOn: string, def = 3): RotationOption => ({
@@ -218,7 +218,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     default: true,
     maintainsBuff: 'sunderArmor',
   },
-  rageOption(ID.fillerMinRage, 'Sunder Armor filler from', 'Use it only at or above this much rage. It costs 10 with the default talents.', 10, ID.fillerEnabled, 'Fillers'),
+  rageOption(ID.fillerMinRage, 'Sunder Armor filler from', 'Use it only at or above this much rage. It costs 9 with the default talents.', 9, ID.fillerEnabled, 'Fillers'),
   {
     kind: 'toggle',
     id: ID.fillerSafe,
@@ -255,7 +255,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     min: 0,
     max: 60,
     step: 1,
-    default: 7,
+    default: 10,
     dependsOn: ID.hsEnabled,
   },
   {

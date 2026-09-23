@@ -235,13 +235,13 @@ describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
   const MAX = { [ID.priority]: PROTECTION_PRIORITY.maxTps }
   const DUTIES = [ID.sbEnabled, ID.tcEnabled, ID.demoEnabled]
 
-  it('drops the duties, Shield Block, Thunder Clap and Demoralizing Shout, by default, keeps Shield Slam, and queues Heroic Strike from 50', () => {
+  it('drops the duties, Shield Block, Thunder Clap and Demoralizing Shout, by default, keeps Shield Slam, and queues Heroic Strike from 45', () => {
     const duties = resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)
     const max = resolveRotationValues(PROTECTION_OPTIONS, MAX, TALENTS)
     for (const id of DUTIES) expect([id, duties[id], max[id]]).toEqual([id, true, false])
     // D26's amendment: Max TPS drops only the duties.
     expect([duties[ID.slamEnabled], max[ID.slamEnabled]]).toEqual([true, true])
-    expect([duties[ID.hsMinRage], max[ID.hsMinRage]]).toEqual([65, 50])
+    expect([duties[ID.hsMinRage], max[ID.hsMinRage]]).toEqual([65, 45])
     // Nothing else moves: the search found no other setting better (§5.4 "Max TPS").
     const moved = Object.keys(duties).filter((id) => duties[id] !== max[id])
     expect(moved.sort()).toEqual([ID.priority, ...DUTIES, ID.hsMinRage].sort())
@@ -270,7 +270,7 @@ describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
       'heroicStrike',
       'heroicStrike',
     ])
-    expect(linesOf(r, 'heroicStrike')[0].conditions).toEqual([{ code: COND.minRage, a: 500, b: 0 }])
+    expect(linesOf(r, 'heroicStrike')[0].conditions).toEqual([{ code: COND.minRage, a: 450, b: 0 }])
   })
 })
 
@@ -303,7 +303,8 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
       [ID.bsRefresh]: 0,
       [ID.fillerSafe]: false,
       [ID.hsMinRage]: 65,
-      [ID.hsLastSec]: 7,
+      [ID.hsLastSec]: 10,
+      [ID.fillerMinRage]: 9,
     })
     // Charge in Defensive Stance with Vanguard: its 15 rage, no swap.
     expect([r.prepull.chargeTenths, r.prepull.keepTenths]).toEqual([150, -1])
@@ -322,15 +323,15 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
     expect(linesOf(r, 'sunderArmor').map((e) => e.conditions)).toEqual([
       [{ code: COND.abilityAuraStacksBelow, a: sunder, b: 5 }],
       [{ code: COND.abilityAuraRefresh, a: sunder, b: 3000 }],
-      [{ code: COND.minRage, a: 100, b: 0 }],
+      [{ code: COND.minRage, a: 90, b: 0 }],
     ])
     expect(linesOf(r, 'thunderClap')[0].conditions).toEqual([{ code: COND.abilityAuraRefresh, a: at(r, 'thunderClap'), b: 3000 }])
     expect(linesOf(r, 'demoralizingShout')[0].conditions).toEqual([{ code: COND.abilityAuraRefresh, a: at(r, 'demoralizingShout'), b: 3000 }])
-    // From 65 rage, and in the fight's last 7 s from its cost: rage left at the end is wasted.
+    // From 65 rage, and in the fight's last 10 s from its cost: rage left at the end is wasted.
     expect(linesOf(r, 'heroicStrike').map((e) => e.conditions)).toEqual([
       [{ code: COND.minRage, a: 650, b: 0 }],
       [
-        { code: COND.timeLeftAtMost, a: 7000, b: 0 },
+        { code: COND.timeLeftAtMost, a: 10000, b: 0 },
         { code: COND.minRage, a: 0, b: 0 },
       ],
     ])

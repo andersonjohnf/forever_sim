@@ -7,7 +7,7 @@ import spellsJson from '@/data/client/spells.json'
 import type { ClientSpells } from '@/data/client/types'
 import { defaultConfig, TALENT_DATA } from '../../defaults'
 import { buildPlan } from '../../plan/build'
-import { COND } from '../../plan/types'
+import { COND, SCHOOL } from '../../plan/types'
 import { CLASSIC_ERA, FOREVER } from '../../rules/profiles'
 import type { RotationOption } from '../../types'
 import { talentRanksByName } from '../index'
@@ -104,6 +104,9 @@ describe('the bear’s abilities against the client (druid.md §4)', () => {
     // `DefenseType` Magic: it rolls spell hit.
     expect(s.categories?.defenseType).toBe(1)
     expect(demoralizingRoar(FOREVER)).toMatchObject({ kind: 'cast', spellHit: true, threatBonus: DEMORALIZING_ROAR_THREAT, refundShare: 0.8 })
+    // Physical (`SchoolMask` 1): no resistance.
+    expect(s.misc?.schoolMask).toBe(1)
+    expect(demoralizingRoar(FOREVER).spellSchool).toBeUndefined()
   })
 
   it('Faerie Fire r4 (9907) in bear: −505 armor for 40 s, GCD 1500, a spell; free with a 6 s cooldown from Dire Bear Form (Passive)', () => {
@@ -116,6 +119,9 @@ describe('the bear’s abilities against the client (druid.md §4)', () => {
     // aren't in the committed dataset, only in the raw client (druid.md §4.5).
     expect((s.shapeshift?.shapeshiftMask ?? [0])[0] & 144).toBe(144)
     expect(FAERIE_FIRE_BEAR).toMatchObject({ kind: 'cast', costTenths: 0, cooldownMs: 6000, spellHit: true, threatBonus: FAERIE_FIRE_THREAT })
+    // A Nature spell (`SchoolMask` 8), so the boss's resistance applies to it (combat-tables §9).
+    expect(s.misc?.schoolMask).toBe(8)
+    expect(FAERIE_FIRE_BEAR.spellSchool).toBe(SCHOOL.nature)
   })
 
   it('Berserk (417141): 15 s, 3 min, no GCD; its Mangle part is a −100% cooldown modifier on Mangle’s class mask', () => {

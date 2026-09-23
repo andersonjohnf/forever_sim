@@ -140,8 +140,6 @@ const feralAp = (value: number): Effect => ({ kind: 'stat', stat: 'ap', value, w
 
 const ATTRIBUTE_MULT = { str: 'strMult', agi: 'agiMult', sta: 'staMult', int: 'intMult', spi: 'spiMult' } as const
 
-const SPELL_SCHOOL = { fire: 0, frost: 1, shadow: 2, nature: 3, arcane: 4, holy: 5 } as const
-
 /** Base rage cap (rage.md#rage-pool-cap-and-decay). */
 const BASE_MAX_RAGE = 100
 
@@ -689,7 +687,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         proc.action = ACTION.spellDamage
         proc.a = action.min
         proc.b = action.max
-        proc.school = SPELL_SCHOOL[action.school]
+        proc.school = SCHOOL[action.school]
         proc.source = sourceIndex(spec.id, spec.name, spec.icon)
         notes.add('magicProcs')
         break

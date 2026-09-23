@@ -161,7 +161,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.ffEnabled,
     group: 'Cooldowns and buffs',
     label: 'Faerie Fire',
-    help: 'Keep your Faerie Fire on the boss: −505 armor for 40 s, free in Dire Bear Form with a 6 s cooldown. It can miss. While this is on, the Buffs tab’s Faerie Fire adds nothing more, since it’s the same debuff.',
+    help: 'Keep your Faerie Fire on the boss: −505 armor for 40 s, free in Dire Bear Form with a 6 s cooldown. It can miss, or the boss can resist it. While this is on, the Buffs tab’s Faerie Fire adds nothing more, since it’s the same debuff.',
     default: true,
     maintainsBuff: 'faerieFire',
   },

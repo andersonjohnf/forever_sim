@@ -579,6 +579,12 @@ export class Sim {
   /** A `cast` that rolls spell hit on the target (Faerie Fire, §3.8; Demoralizing Roar, §4.5). */
   private readonly abSpellHit: Uint8Array
   // And the bear's (druid.md §4), 0 or −1 on every other row:
+  /**
+   * The boss's average resistance to a `spellHit` cast, 0–1: a binary spell of a resistible school
+   * (the bear's Faerie Fire, Nature) is resisted whole that share of the time it would land
+   * (combat-tables §9); 0 without a school, and for Physical and Holy.
+   */
+  private readonly abResist: Float64Array
   /** Weapon share per stack of its own bleed already on the target (Lacerate, §4.3). */
   private readonly abPctPerStack: Float64Array
   /** The aura while which it starts no cooldown (Berserk's Mangle, §4.6), or −1. */
@@ -1060,6 +1066,7 @@ export class Sim {
     this.abBleedPct = new Float64Array(nb)
     this.abDotSource = new Int32Array(nb)
     this.abSpellHit = new Uint8Array(nb)
+    this.abResist = new Float64Array(nb)
     this.abPctPerStack = new Float64Array(nb)
     this.abNoCdAura = new Int32Array(nb).fill(-1)
     this.othersBleed = plan.fight.othersBleed === true
@@ -1096,7 +1103,11 @@ export class Sim {
       this.abBleedPct[i] = a.bleedingTargetPct ?? 0
       this.abDotSource[i] = a.dotSource ?? a.source
       this.abSpellHit[i] = a.spellHit ? 1 : 0
-      // druid.md §4: Lacerate's per-stack hit, and Berserk's Mangle.
+      // druid.md §4: the bear's Faerie Fire's resist (combat-tables §9: a binary spell's, at the boss's
+      // level-based resistance; Physical and Holy have none), Lacerate's per-stack hit, and Berserk's Mangle.
+      const school = a.spellSchool
+      this.abResist[i] =
+        a.spellHit && school !== undefined && school !== SCHOOL.holy && school !== SCHOOL.physical ? averageResist(this.bossLevelResist, plan.playerLevel) : 0
       this.abPctPerStack[i] = a.weaponPercentPerStack ?? 0
       this.abNoCdAura[i] = a.noCooldownAura ?? -1
       this.abPlainRage[i] = this.abRes[i] === RES_RAGE && this.abForms[i] === 0 && !a.finisher && !this.abCp[i] && !this.abFree[i] ? 1 : 0
@@ -2219,7 +2230,10 @@ export class Sim {
     // threat, and refunds its share of what it paid [?]; a landed one makes its threat (threat.md: a
     // debuff's, × the global multipliers). Faerie Fire (druid.md §3.8, §4.5), Demoralizing Roar (§4.5).
     if (this.abSpellHit[a] === 1) {
-      if (this.rngTable.roll100() < this.spellMissPct) {
+      // A binary spell of a resistible school is also resisted whole at the boss's average
+      // resistance (the bear's Faerie Fire, druid.md §4.5): one roll against miss + (1 − miss) × resist.
+      const miss = this.spellMissPct
+      if (this.rngTable.roll100() < miss + (100 - miss) * this.abResist[a]) {
         this.counters[source * FIELD_COUNT + FIELD.misses]++
         this.refundPaid(a)
         return
@@ -2723,7 +2737,7 @@ export class Sim {
       c[row + FIELD.misses]++
       return
     }
-    const holy = this.pSchool[p] === 5
+    const holy = this.pSchool[p] === SCHOOL.holy
     const resist = holy ? 0 : averageResist(this.bossLevelResist, this.plan.playerLevel)
     let damage = this.rngDamage.uniform(this.pA[p], this.pB[p]) * (1 - resist) * this.magicMult
     const crit = this.rngProc.roll100() < this.spellCritPct

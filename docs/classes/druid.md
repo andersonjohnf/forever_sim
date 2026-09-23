@@ -527,7 +527,9 @@ default cat). A miss applies nothing, and the 6 s cooldown runs either way. Its 
 the boss's armor while it's up. With the rotation's Faerie Fire on (the default), the Buffs tab's
 Faerie Fire adds nothing more, as a warrior's own Battle Shout replaces the Buffs one; with it off,
 the Buffs tab's is off by default too, the raid's being assumed yours (§6.2). Its threat (108 [?],
-Q15) isn't counted.
+Q15) isn't counted. The bear's Faerie Fire also rolls the boss's Nature resistance (§4.5); the
+cat's doesn't yet, so the shipped cat's numbers stay as they were until a change of its own (the
+boss would resist about 6% of the ones that land).
 
 ### 3.9 Not used in the default cat rotation
 
@@ -674,7 +676,10 @@ One target: 118.69 a Swipe with the default build (W16).
 
 - **Faerie Fire and Demoralizing Roar** are casts on the boss that roll spell hit
   ([combat-tables §9](../mechanics/combat-tables.md#9-spell-hit-and-crit-generic); `DefenseType`
-  Magic [F]). A landed one puts its debuff on the boss (Faerie Fire's armor, the roar's attack
+  Magic [F]). Faerie Fire is a binary Nature spell (`SchoolMask` 8 [F]), so the boss's
+  resistance also resists it whole: one roll against `miss + (1 − miss) × 6%` at +3 levels
+  (resistance 24 [?]), about 16% for the default bear's 11% spell miss. The roar is Physical
+  (`SchoolMask` 1 [F]), with no resistance. A landed one puts its debuff on the boss (Faerie Fire's armor, the roar's attack
   power: AP ÷ 14 × the boss's unslowed swing speed off each swing, as the Buffs tab's AP debuffs,
   [encounter §5](../mechanics/encounter.md#5-boss-melee-tank-modeling)) and makes its threat × the
   form's. A miss applies nothing and makes no threat; a missed roar refunds 80% of its 10 rage, as

@@ -295,19 +295,55 @@ describe('Faerie Fire and Demoralizing Roar on the boss (druid.md §4.5, W18)', 
     const { sim, uses } = timeline(plan)
     expect(uses[ff]).toEqual([10000, 16000])
     expect(counter(sim, row(plan, ff), FIELD.threat)).toBeCloseTo(2 * 108 * plan.threatMult, 9)
-    // White swings meet 3,000 armor, then 2,495 once it's up.
+    // White swings meet 3,000 armor, then 2,495 once it's up: swing by swing, against the same fight
+    // with Faerie Fire's armor taken out of its aura (the same rolls, since a cast rolls no damage),
+    // each lands for factor(2,495) ÷ factor(3,000) as much from 10 s (a swing at 10 s comes after the
+    // cast), and the same before (BL6).
     const factor = (armor: number) => 1 - armorReduction(armor, 60, FOREVER)
-    const white: [number, number][] = []
-    const s = new Sim(plan)
-    s.trace = (_source, hand, time) => hand >= 0 && white.push([time, NaN])
-    s.damageTrace = (source, damage) => {
-      if (source === SOURCE_MAIN_HAND) white[white.length - 1][1] = damage
+    const whites = (p: Plan) => {
+      const white: [number, number][] = []
+      const s = new Sim(p)
+      s.trace = (_source, hand, time) => hand >= 0 && white.push([time, NaN])
+      s.damageTrace = (source, damage) => {
+        if (source === SOURCE_MAIN_HAND) white[white.length - 1][1] = damage
+      }
+      s.runFight(0)
+      return white
     }
-    s.runFight(0)
-    const before = white.filter(([t]) => t < 10000).map(([, d]) => d / factor(3000))
-    const after = white.filter(([t]) => t > 10000).map(([, d]) => d / factor(2495))
-    for (const d of [...before, ...after]) expect(d).toBeGreaterThanOrEqual(109.6 + (new Sim(plan).inspect().attackPower * 2.5) / 14 - 1e-6)
-    for (const d of [...before, ...after]) expect(d).toBeLessThanOrEqual(164.4 + (new Sim(plan).inspect().attackPower * 2.5) / 14 + 1e-6)
+    const bare = structuredClone(plan)
+    delete bare.auras[plan.abilities[ff].aura].targetArmor
+    const withFf = whites(plan)
+    const without = whites(bare)
+    expect(withFf.map(([t]) => t)).toEqual(without.map(([t]) => t))
+    expect(withFf.filter(([t]) => t >= 10000).length).toBeGreaterThanOrEqual(3)
+    withFf.forEach(([t, d], i) => expect(d / without[i][1], String(t)).toBeCloseTo(t >= 10000 ? factor(2495) / factor(3000) : 1, 12))
+    expect(factor(2495) / factor(3000)).toBeGreaterThan(1.05)
+  })
+
+  it('Faerie Fire, a binary Nature spell, is also resisted: miss + (1 − miss) × 6% against a +3 boss (combat-tables §9, BL5)', () => {
+    const rate = (spellHit: number, def: AbilityDef) => {
+      const plan = bearPlan(600000)
+      plan.fight.targetLevel = 63
+      for (const form of plan.forms!) form.stats.spellHit = spellHit
+      const a = addBearAbility(plan, def, { free: true })
+      line(plan, a)
+      const sim = new Sim(plan)
+      for (let i = 0; i < 40; i++) sim.runFight(i)
+      return counter(sim, row(plan, a), FIELD.misses) / counter(sim, row(plan, a), FIELD.casts)
+    }
+    // Resistance 24 at +3 levels: 0.75 × 24 ÷ 300 = 6% (combat-tables §9).
+    const resist = (0.75 * 24) / 300
+    // 17% spell miss at +3, less the hit: at 100 none, so only the resist; at 6, 11% and the resist.
+    for (const [hit, miss] of [
+      [100, 0],
+      [6, 0.11],
+    ]) {
+      const expected = miss + (1 - miss) * resist
+      const n = 40 * (600000 / 6000)
+      expect(Math.abs(rate(hit, FAERIE_FIRE_BEAR) - expected), `hit ${hit}`).toBeLessThan(4 * Math.sqrt((expected * (1 - expected)) / n))
+    }
+    // The roar is Physical: no resistance, so with the hit it never misses.
+    expect(rate(100, demoralizingRoar(FOREVER))).toBe(0)
   })
 
   it('a Faerie Fire that misses applies nothing and makes no threat', () => {

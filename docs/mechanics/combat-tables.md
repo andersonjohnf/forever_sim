@@ -621,8 +621,12 @@ covers the generic table.
   resistance − spell penetration, plus the target's level-based resistance. The formula is
   [F] (`ExpectedSpellResistance`, [stats Lua][ui-stats]) and [C].
 - Level-based resistance for a +3 boss: **24** (8 per level) [?]. That's WarriorSim's
-  default target resistance for Classic ([WarriorSim][ws-repo]); other sources say ~15. This
-  only affects nature/fire/shadow procs (e.g. item procs) in these specs.
+  default target resistance for Classic ([WarriorSim][ws-repo]); other sources say ~15. In these
+  specs it affects nature, fire and shadow procs (item procs), and the bear's Faerie Fire, a
+  binary Nature spell: at 24 the boss resists 0.75 × 24 ÷ 300 = 6% of the ones that would land
+  ([druid §4.5](../classes/druid.md#45-other-bear-abilities)). Demoralizing Roar is Physical, so
+  only its spell hit rolls. The cat's Faerie Fire, the same spell, rolls only its spell hit so far
+  ([druid §3.8](../classes/druid.md#38-faerie-fire-in-cat-9907-r4)).
 - Resistance reduction caps at 75% (`R = 5 × level`) [C]; [F] ([Warcraft Tavern stats][wt-stats]).
 - **Forever:** spell penetration can push a target **below 0** resistance ("Spell
   Vulnerability"), which increases the spell damage it takes [F] tooltip text

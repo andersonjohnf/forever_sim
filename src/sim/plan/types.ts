@@ -254,7 +254,7 @@ export interface ProcPlan {
   a: number
   /** spellDamage: max; weaponBleed: tick period in ms. */
   b: number
-  /** spellDamage: school code (0 fire, 1 frost, 2 shadow, 3 nature, 4 arcane, 5 holy). */
+  /** spellDamage: school code (`SCHOOL`: 0 fire, 1 frost, 2 shadow, 3 nature, 4 arcane, 5 holy). */
   school: number
   /** Breakdown row for what it does, or −1. */
   source: number
@@ -555,6 +555,12 @@ export interface AbilityPlan {
   endsCooldownOf?: number
   // --- Fields the bear's abilities brought (docs/classes/druid.md §4). All optional: absent, a row
   // behaves as before. ---
+  /**
+   * With `spellHit`: its school (`SCHOOL`), absent for one no resistance applies to. A binary spell
+   * of a school the boss resists (not Physical or Holy) is resisted whole at its average resistance,
+   * rolled with the hit (combat-tables §9): the bear's Faerie Fire, Nature (druid.md §4.5).
+   */
+  spellSchool?: number
   /**
    * Weapon share per stack of its own bleed already on the target when it lands (Lacerate's "10%
    * weapon damage per existing application", druid.md §4.3 [?]); with none on it, the attack deals

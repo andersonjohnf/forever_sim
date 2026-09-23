@@ -567,6 +567,23 @@ describe('assumptions', () => {
     }
   })
 
+  it('surfaces Protection’s Revenge window and spell-table rolls under their own ids, only while its rotation uses them (warrior.md §2.8, §7, Q12, Q33)', () => {
+    const notes = (rotation: SimConfig['rotation']) => buildPlan({ ...defaultConfig('warrior-protection'), rotation }).assumptions
+    const prot = notes({})
+    expect(prot.find((a) => a.id === 'revengeWindow')!.text).toMatch(/^A block, dodge or parry of the boss’s swings opens Revenge for 5 s/)
+    expect(prot.find((a) => a.id === 'spellTable')!.text).toMatch(/^Thunder Clap and Demoralizing Shout: the spell table, as the Forever client marks it, with one roll for a spell miss/)
+    // Neither rides on another's text any more.
+    expect(prot.map((a) => a.id)).not.toContain('overpowerWindow')
+    expect(prot.find((a) => a.id === 'foreverHitTable')!.text).not.toMatch(/spell table/)
+    // Max TPS drops both spells; one of them back names only it. Without Revenge, no window.
+    const max = notes({ 'warrior.protection.priority': 'maxTps' })
+    expect(max.map((a) => a.id)).not.toContain('spellTable')
+    expect(notes({ 'warrior.protection.priority': 'maxTps', 'warrior.protection.thunderClap.enabled': true }).find((a) => a.id === 'spellTable')!.text).toMatch(
+      /^Thunder Clap: the spell table/,
+    )
+    expect(notes({ 'warrior.protection.revenge.enabled': false }).map((a) => a.id)).not.toContain('revengeWindow')
+  })
+
   it('surfaces Unbridled Wrath on Heroic Strike swings and Raging Blows only when the build relies on them', () => {
     const ids = (config: SimConfig) => buildPlan(config).assumptions.map((a) => a.id)
     const fury = defaultConfig('warrior-fury')

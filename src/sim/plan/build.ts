@@ -919,15 +919,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (setup.talents.has('Unbridled Wrath') && mh) notes.add('unbridledWrathSwings')
   if (abilities.some((a) => a.offHandSource >= 0)) notes.add('ragingBlows')
   if (!mh) notes.add(classId === 'paladin' ? 'noWeaponSpells' : 'noWeapon')
+  // Thunder Clap and Demoralizing Shout roll the spell table (warrior.md §7 "Spell-table abilities", Q33).
+  const spellTableRows = abilities.filter((a) => a.kind === 'spellTable')
+  if (spellTableRows.length > 0) notes.add('spellTable', spellTableRows.map((a) => a.name).join(' and '))
   if (profile.id === 'forever') {
-    // Thunder Clap and Demoralizing Shout roll the spell table instead (warrior.md §7 "Spell-table abilities").
-    const spells = abilities.filter((a) => a.kind === 'spellTable')
-    notes.add(
-      'foreverHitTable',
-      spells.length > 0
-        ? `${spells.map((a) => a.name).join(' and ')} roll the spell table instead, a ${profile.combat.spellMiss[3]}% miss chance against a raid boss before spell hit, with no dodge, parry or block, and crit at your special-attack crit chance`
-        : undefined,
-    )
+    notes.add('foreverHitTable')
     if (front && fight.boss.canParry) notes.add('foreverBossParry')
     if (mh) notes.add('foreverGlancing')
   }
@@ -1054,15 +1050,15 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   ]
   if (setup.simulated && notPressed.length) notes.add('onUseConsumables', notPressed.join(', '))
   if (abilities.some((a) => a.id === 'weaknessAnalyzer')) notes.add(classId === 'paladin' ? 'weaknessAnalyzerPaladin' : 'weaknessAnalyzer')
-  // warrior.md §2.8: the reactive windows this rotation waits for.
+  // warrior.md §2.8: the reactive windows this rotation waits for, Q10 and Q12.
   const windows = new Set(abilities.filter((a) => a.window >= 0).map((a) => auras[a.window].id))
-  const windowNotes = [
-    ...(windows.has('overpowerWindow')
-      ? ['a dodge opens Overpower for 5 s and each new dodge refreshes it, so windows aren’t banked (the Forever data can bank 3); an Overpower that misses still closes it']
-      : []),
-    ...(windows.has('revengeWindow') ? ['a block, dodge or parry of the boss’s swings opens Revenge for 5 s'] : []),
-  ]
-  if (windowNotes.length > 0) notes.add('overpowerWindow', windowNotes.join('; '))
+  if (windows.has('overpowerWindow')) {
+    notes.add(
+      'overpowerWindow',
+      'a dodge opens Overpower for 5 s and each new dodge refreshes it, so windows aren’t banked (the Forever data can bank 3); an Overpower that misses still closes it',
+    )
+  }
+  if (windows.has('revengeWindow')) notes.add('revengeWindow')
   if (procIds.has('bloodthrill')) notes.add('bloodthrill')
   // warrior.md §7 and Q3, Q13, Q32: Slam's cast, Spearing Strike's weapon share, Rend's tick crits and on-hit procs.
   if (abilities.some((a) => a.castMs > 0)) notes.add('slamCast')

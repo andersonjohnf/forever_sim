@@ -270,9 +270,18 @@ const REGISTRY = {
     docRef: `${PAL}#conventions-used-below`,
   },
   overpowerWindow: {
-    // The reactive windows (warrior.md §2.8); the plan names each one the rotation waits for.
-    text: 'Reactive abilities wait for their window, as in Classic Era; untested in Forever.',
+    // warrior.md §2.8, Q10; the plan says how the window opens and closes.
+    text: 'Overpower waits for its window, as in Classic Era; untested in Forever.',
     docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
+  },
+  revengeWindow: {
+    text: 'A block, dodge or parry of the boss’s swings opens Revenge for 5 s, and using it closes the window, as in Classic Era; untested in Forever.',
+    docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
+  },
+  spellTable: {
+    // warrior.md §7 "Spell-table abilities" and Q33; the plan names the abilities ({detail}).
+    text: '{detail}: the spell table, as the Forever client marks it, with one roll for a spell miss (17% against a raid boss before spell hit) and no dodge, parry or block. What lands crits at your special-attack crit chance, and a miss refunds 80% of its cost, as a melee ability’s does; both untested.',
+    docRef: `${WAR}#7-implementation-notes`,
   },
   bloodthrill: {
     text: 'Bloodthrill procs only from your white swings while your own Rend is on the target, and opens the same Overpower window as a dodge, for 6 s.',
@@ -448,11 +457,12 @@ export class Assumptions {
   private readonly list: Assumption[] = []
   private readonly seen = new Set<string>()
 
+  /** Adds an assumption once. Its `detail` fills the text's `{detail}`, or follows the text after a colon. */
   add(id: AssumptionId, detail?: string): void {
     if (this.seen.has(id)) return
     this.seen.add(id)
-    const entry = REGISTRY[id]
-    const text = detail ? `${entry.text.replace(/\.$/, '')}: ${detail}.` : entry.text
+    const entry: { text: string; docRef: string } = REGISTRY[id]
+    const text = !detail ? entry.text : entry.text.includes('{detail}') ? entry.text.replace('{detail}', detail) : `${entry.text.replace(/\.$/, '')}: ${detail}.`
     this.list.push({ id, text, docRef: entry.docRef })
   }
 

@@ -104,6 +104,8 @@ export const ASSUMPTION_GROUP = {
   deepWounds: 'class',
   rendTickCrits: 'class',
   overpowerWindow: 'class',
+  revengeWindow: 'class',
+  spellTable: 'class',
   bloodthrill: 'class',
   slamCast: 'class',
   ragingBlows: 'class',

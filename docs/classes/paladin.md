@@ -661,6 +661,11 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
   spells; Judgement of the Crusader puts its debuff on the target (the judgement debuffs are an
   exclusive group too), and your landed auto attacks restart its 40 s while it's up.
   Sanctified Judgement's mana comes when the judgement lands.
+- **Consecration's ticks** come from its cast: one tick spell a second for 8 s, each with its own
+  rolls. Recast on its 8 s cooldown, the old cast's 8th tick is due at the moment of the recast:
+  it lands first, then the new cast's ticks start, the tie-break Rend's refresh uses
+  ([damage-and-timing §4 "Refresh"](../mechanics/damage-and-timing.md#4-dots-and-bleeds)) [?].
+  So every cast deals all 8 ticks.
 - **Righteous Fury** is up for the whole fight when the spec fights with it (Protection) and
   down otherwise (Retribution): ×1.9 on Holy threat, Improved Righteous Fury's damage taken
   with it, and Instrument of Law's ×0.8 on all threat without it.

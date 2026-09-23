@@ -187,6 +187,28 @@ describe('worked example 7: Consecration on one target', () => {
   })
 })
 
+describe('Consecration recast on its cooldown', () => {
+  it('keeps all 8 ticks of each cast: the 8th lands at the recast, before the new ticks start', () => {
+    const plan = examplePlan({ core: false, sp: 0, durationMs: 60000 })
+    const a = addPaladinAbility(plan, CONSECRATION)
+    line(plan, a)
+    plan.mana = { ...plan.mana!, maxTenths: 1e9 }
+    const sim = new Sim(plan)
+    const casts: number[] = []
+    const ticks: number[] = []
+    sim.castTrace = (ab, t) => ab === a && casts.push(t)
+    sim.trace = (source, _hand, t) => source === row(plan, 'consecration') && ticks.push(t)
+    sim.runFight(0)
+    // The real 8 s cooldown: casts at 0, 8, …, 56 s; a tick every second from 1 s to 59 s.
+    expect(casts).toEqual([0, 8000, 16000, 24000, 32000, 40000, 48000, 56000])
+    expect(ticks).toEqual(Array.from({ length: 59 }, (_, k) => 1000 * (k + 1)))
+    for (const c of casts.slice(0, -1)) expect(ticks.filter((t) => t > c && t <= c + 8000).length, `cast at ${c}`).toBe(8)
+    // Each tick rolled once: 7 whole casts and the last one's 3 before the fight ends.
+    const r = row(plan, 'consecration') * FIELD_COUNT
+    expect(sim.counters[r + FIELD.hits] + sim.counters[r + FIELD.crits] + sim.counters[r + FIELD.misses]).toBe(7 * 8 + 3)
+  })
+})
+
 describe('worked example 8: the Retribution mana cycle', () => {
   const RET = { Benediction: 5, 'Sanctified Judgement': 3, 'Improved Judgement': 2, 'Improved Holy Strike': 2 }
   it('Judgement costs 81 and returns 126 (+45); Seal of Command 189; Holy Strike 18: 74.25 mana over 30 s', () => {

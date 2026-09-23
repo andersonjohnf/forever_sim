@@ -175,7 +175,7 @@ export class Sim {
   /** Mana spent on abilities, and gained from regeneration and spell effects, in tenths, summed over every fight run. */
   totalManaSpentTenths = 0
   totalManaGainedTenths = 0
-  /** Test hook: called for every white swing (source row, hand, time) and bleed tick (source, −1, time). */
+  /** Test hook: called for every white swing (source row, hand, time), and bleed tick and spell tick (source, −1, time). */
   trace: ((source: number, hand: number, time: number) => void) | null = null
   /**
    * Test hook: called when an ability is used, before its cost is paid (ability index, time, the
@@ -571,9 +571,10 @@ export class Sim {
   private readonly bleedProc: Int32Array
   private gcdEnd = 0
   private readonly abReadyAt: Float64Array
-  /** `cast` rage ticks still to come, and their generation (a recast restarts them). */
+  /** `cast` rage ticks still to come, their generation (a recast restarts them), and when the next is due. */
   private readonly abTicksLeft: Int32Array
   private readonly abTickGen: Int32Array
+  private readonly abTickAt: Float64Array
   /**
    * `bleed` abilities on the target: ticks still to come, their generation (a refresh restarts
    * them), the next tick's time, and the damage and crit chance snapshotted at the application
@@ -924,6 +925,7 @@ export class Sim {
     this.abShiftTo = new Int32Array(nb).fill(-1)
     this.abPlainRage = new Uint8Array(nb)
     this.freeAura = plan.freeCastAura ?? -1
+    this.abTickAt = new Float64Array(nb)
     this.abSpell = Int32Array.from(abilities, (a) => a.spell ?? -1)
     this.abTickSpell = Int32Array.from(abilities, (a) => a.tickSpell ?? -1)
     this.abManaReturn = Float64Array.from(abilities, (a) => a.manaReturnTenths ?? 0)
@@ -1441,6 +1443,7 @@ export class Sim {
           continue
         }
         this.abTicksLeft[a] = ticks - k + 1
+        this.abTickAt[a] = t
         this.q.push(t, EV_CAST_RAGE, a, ++this.abTickGen[a])
         break
       }
@@ -1992,19 +1995,36 @@ export class Sim {
     this.startTicks(a)
   }
 
-  /** A cast's ticks from now; a recast restarts them (none of the warrior's recasts before they end). */
+  /**
+   * A cast's ticks from now. A recast restarts them, but a tick due this very moment lands first,
+   * as Rend's refresh does (damage-and-timing §4 "Refresh"): Consecration recast on its 8 s
+   * cooldown keeps its 8th tick (paladin.md#other-abilities). None of the warrior's casts is recast
+   * before its ticks end.
+   */
   private startTicks(a: number): void {
     if (this.abTicks[a] > 0) {
+      if (this.abTicksLeft[a] > 0 && this.abTickAt[a] === this.now) this.castTick(a)
       this.abTicksLeft[a] = this.abTicks[a]
-      this.q.push(this.now + this.abTickMs[a], EV_CAST_RAGE, a, ++this.abTickGen[a])
+      this.abTickAt[a] = this.now + this.abTickMs[a]
+      this.q.push(this.abTickAt[a], EV_CAST_RAGE, a, ++this.abTickGen[a])
     }
   }
 
   private onCastRageTick(a: number): void {
+    this.castTick(a)
+    if (--this.abTicksLeft[a] > 0) {
+      this.abTickAt[a] = this.now + this.abTickMs[a]
+      this.q.push(this.abTickAt[a], EV_CAST_RAGE, a, this.abTickGen[a])
+    }
+  }
+
+  /** One tick of a cast: its rage, and its spell if it has one (Consecration, paladin.md#other-abilities), each with its own rolls [?]. */
+  private castTick(a: number): void {
     this.gainPower(this.abRes[a], this.abTickRage[a], this.abSource[a])
-    // A spell per tick (Consecration, paladin.md#other-abilities), each with its own rolls [?].
-    if (this.abTickSpell[a] >= 0) this.castSpell(this.abTickSpell[a], false)
-    if (--this.abTicksLeft[a] > 0) this.q.push(this.now + this.abTickMs[a], EV_CAST_RAGE, a, this.abTickGen[a])
+    if (this.abTickSpell[a] >= 0) {
+      if (this.trace !== null) this.trace(this.abSource[a], -1, this.now)
+      this.castSpell(this.abTickSpell[a], false)
+    }
   }
 
   /**

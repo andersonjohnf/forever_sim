@@ -172,33 +172,44 @@ Fix slices:
 
 | # | Severity | Finding | Disposition |
 | --- | --- | --- | --- |
-| RL1 | high | **Ironfoe (the default Fury main hand) still runs Classic Era's 0.8 PPM main-hand-only proc.** The Forever client rewrote it to an equip aura (1301046): `ProcChance` 6 with "×$s2 against Orcs" (`$s2` = 2), a 100 ms internal cooldown, and white and yellow melee from either hand, the same model as Hand of Justice (L1). About +2.5% for default Fury. | fix, R-logic |
-| RL2 | low | **F2's fallback rule keeps Mark of Tyranny's +1% dodge** although Forever re-pointed that ItemEffect (99949) to a Use spell. | fix, R-logic: a re-pointed ItemEffect id counts as replaced |
-| RL3 | low | **`classicEra` uses Forever's racials,** and the profile help doesn't say so. It is also wrong about abilities since the warrior's own Battle Shout became per profile. | fix, R-logic (architecture.md) and R-UX-b (help copy): racials stay Forever's, stated plainly |
-| RL4 | low | **The "keep the largest" exclusive-group rule reads Forever effects under `classicEra`** (latent; no pair differs today). | fix, R-logic |
-| RL5 | low | **All-crit (aura 290) buffs don't raise spell crit** (Recklessness, Elune's Light, Weakness Analyzer, Leader of the Pack, Mongoose in `forever`), so magic procs under-crit. | fix, R-logic |
-| RL6 | low | **Weaponmaster's axe and polearm crit (per hand) and the weapon racials (all attacks) read identical client data two ways.** | fix, R-logic: one documented rule, or Q15/B49 extended |
-| RL7 | low | **Warsong Gulch rewards aren't faction-restricted.** | fix, R-logic |
-| RL8 | low | **The rank-5 plate bracers never swap on a race change** (the twin key compares class lists). | fix, R-UX-b |
-| RL9 | low | **The catalogue test compares absolute values**, so a flipped sign passes. | fix, R-logic |
-| RL10 | low | **Stale lines in damage-and-timing:** Blackhand's Breadth is "+2%, no proc", and Ironfoe is 0.8 PPM. | fix, R-logic |
-| RU1 | high | **An Undo toast over an open sheet can't be tapped:** the tap falls through to the sheet, and the focus trap blocks the keyboard. | fix, R-UX-a |
-| RU2 | high | **The item picker doesn't move focus in (drawer), drops focus to `<body>` on Escape (dialog), and does the same after picking.** | fix, R-UX-a |
-| RU3 | high | **U34 is only half fixed:** `scroll-padding-top` clears the header but not the sticky tab bar, so Shift+Tab hides focus under it. | fix, R-UX-a |
-| RU4 | medium | **A failed run's error outlives the fix and follows you to the other spec.** | fix, R-UX-a: key the error to its spec and config like results |
-| RU5 | medium | **Dimmed dependent Rotation rows, unavailable Buffs rows and locked talent badges use `opacity-60`**, putting help text at 2.3:1. | fix, R-UX-b: dim by colour |
-| RU6 | medium | **Focus falls to `<body>` after:** the talent code dialog, Clear, Reset rotation, a stepper at its limit, the talent "−" at 0, the Rotation "Buffs" link, and Open Gear. | fix, R-UX-a (Open Gear), R-UX-b (the rest) |
-| RU7 | medium | **Targets under 44 px:** the Rotation "Buffs" link (29×16), phone Share (42), the footer link (32), and the About links (20). | fix, R-UX-a (Share, footer, About), R-UX-b (Buffs link) |
-| RU8 | medium | **Undo toasts are hard to reach by keyboard** (26–60 Tabs; Alt+T isn't shown). | fix, R-UX-a |
-| RU9 | medium | **The talent popover gives no reason when "−" is disabled**, and a right-click is silent. | fix, R-UX-b |
-| RU10 | medium | **Enchant picker:** invalid listbox semantics (axe critical), no arrow keys, unnamed popovers, and a popover rather than a sheet on phones. | fix, R-UX-b |
-| RU11 | low | **Two Fight fields' accessible names don't include their visible labels** (WCAG 2.5.3). | fix, R-UX-b |
-| RU12 | low | **Phone sheets (item picker, results) have no close button.** | fix, R-UX-a |
-| RU13 | low | **Arrow-key focus on section tabs isn't scrolled clear of the edge fade.** | fix, R-UX-a |
-| RU14 | low | **Defaults aren't marked on Buffs (Standard raid), Fight or Character.** | fix, R-UX-b |
-| RU15 | low | **Nothing on Buffs or Gear says Classic Era values are on.** | fix, R-UX-b |
-| RU16 | low | **Talent presets offer Protection builds** the app doesn't ship. | fix, R-UX-b |
-| RU17 | low | **The phone talent tree switcher is unnamed** (R-UX-b), and the desktop re-run shows "Setup changed" beside the progress for the run applying it (R-UX-a). | fix, R-UX-b / R-UX-a |
+| RL1 | high | **Ironfoe (the default Fury main hand) still runs Classic Era's 0.8 PPM main-hand-only proc.** The Forever client rewrote it to an equip aura (1301046): `ProcChance` 6 with "×$s2 against Orcs" (`$s2` = 2), a 100 ms internal cooldown, and white and yellow melee from either hand, the same model as Hand of Justice (L1). About +2.5% for default Fury. | fixed, R-logic |
+| RL2 | low | **F2's fallback rule keeps Mark of Tyranny's +1% dodge** although Forever re-pointed that ItemEffect (99949) to a Use spell. | fixed, R-logic: a re-pointed ItemEffect id counts as replaced |
+| RL3 | low | **`classicEra` uses Forever's racials,** and the profile help doesn't say so. It is also wrong about abilities since the warrior's own Battle Shout became per profile. | fixed, R-logic (architecture.md) and R-UX-b (help copy): racials stay Forever's, stated plainly |
+| RL4 | low | **The "keep the largest" exclusive-group rule reads Forever effects under `classicEra`** (latent; no pair differs today). | fixed, R-logic |
+| RL5 | low | **All-crit (aura 290) buffs don't raise spell crit** (Recklessness, Elune's Light, Weakness Analyzer, Leader of the Pack, Mongoose in `forever`), so magic procs under-crit. | fixed, R-logic |
+| RL6 | low | **Weaponmaster's axe and polearm crit (per hand) and the weapon racials (all attacks) read identical client data two ways.** | fixed, R-logic: one documented rule, or Q15/B49 extended |
+| RL7 | low | **Warsong Gulch rewards aren't faction-restricted.** | fixed, R-logic |
+| RL8 | low | **The rank-5 plate bracers never swap on a race change** (the twin key compares class lists). | fixed, R-UX-b |
+| RL9 | low | **The catalogue test compares absolute values**, so a flipped sign passes. | fixed, R-logic |
+| RL10 | low | **Stale lines in damage-and-timing:** Blackhand's Breadth is "+2%, no proc", and Ironfoe is 0.8 PPM. | fixed, R-logic |
+| RU1 | high | **An Undo toast over an open sheet can't be tapped:** the tap falls through to the sheet, and the focus trap blocks the keyboard. | fixed, R-UX-a |
+| RU2 | high | **The item picker doesn't move focus in (drawer), drops focus to `<body>` on Escape (dialog), and does the same after picking.** | fixed, R-UX-a |
+| RU3 | high | **U34 is only half fixed:** `scroll-padding-top` clears the header but not the sticky tab bar, so Shift+Tab hides focus under it. | fixed, R-UX-a |
+| RU4 | medium | **A failed run's error outlives the fix and follows you to the other spec.** | fixed, R-UX-a: key the error to its spec and config like results |
+| RU5 | medium | **Dimmed dependent Rotation rows, unavailable Buffs rows and locked talent badges use `opacity-60`**, putting help text at 2.3:1. | fixed, R-UX-b: dim by colour |
+| RU6 | medium | **Focus falls to `<body>` after:** the talent code dialog, Clear, Reset rotation, a stepper at its limit, the talent "−" at 0, the Rotation "Buffs" link, and Open Gear. | fixed, R-UX-a (Open Gear), R-UX-b (the rest) |
+| RU7 | medium | **Targets under 44 px:** the Rotation "Buffs" link (29×16), phone Share (42), the footer link (32), and the About links (20). | fixed, R-UX-a (Share, footer, About), R-UX-b (Buffs link) |
+| RU8 | medium | **Undo toasts are hard to reach by keyboard** (26–60 Tabs; Alt+T isn't shown). | fixed, R-UX-a |
+| RU9 | medium | **The talent popover gives no reason when "−" is disabled**, and a right-click is silent. | fixed, R-UX-b |
+| RU10 | medium | **Enchant picker:** invalid listbox semantics (axe critical), no arrow keys, unnamed popovers, and a popover rather than a sheet on phones. | fixed, R-UX-b |
+| RU11 | low | **Two Fight fields' accessible names don't include their visible labels** (WCAG 2.5.3). | fixed, R-UX-b |
+| RU12 | low | **Phone sheets (item picker, results) have no close button.** | fixed, R-UX-a |
+| RU13 | low | **Arrow-key focus on section tabs isn't scrolled clear of the edge fade.** | fixed, R-UX-a |
+| RU14 | low | **Defaults aren't marked on Buffs (Standard raid), Fight or Character.** | fixed, R-UX-b |
+| RU15 | low | **Nothing on Buffs or Gear says Classic Era values are on.** | fixed, R-UX-b |
+| RU16 | low | **Talent presets offer Protection builds** the app doesn't ship. | fixed, R-UX-b |
+| RU17 | low | **The phone talent tree switcher is unnamed** (R-UX-b), and the desktop re-run shows "Setup changed" beside the progress for the run applying it (R-UX-a). | fixed, R-UX-b / R-UX-a |
+
+Second-pass fix commits, cherry-picked onto `main`:
+
+| Slice | Commit | Findings |
+| --- | --- | --- |
+| R-UX-a | `b6fb012` | RU1, RU2, RU3, RU4, RU6 (Open Gear), RU7 (shell), RU8, RU12, RU13, RU17 (desktop) |
+| R-UX-b | `f31c69a`, `fa08bf0` | RU5, RU6, RU7 (Rotation), RU9, RU10, RU11, RU14, RU15, RU16, RU17 (phone), RL3 (copy), RL8 |
+| R-logic | `2aca6bf`, plus the Ironfoe assumption follow-up | RL1–RL7, RL9, RL10 |
+
+Golden runs after the second pass: Fury 692.7 DPS (Ironfoe's Forever proc: 3% from either hand,
+[?] C37), Arms 610.7, Protection 217.0 TPS.
 
 ## Verdict
 

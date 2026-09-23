@@ -444,7 +444,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     stacks on average": the bear's "Lacerate (bleed)"), and its marker stays out of Cooldowns
     and buffs.
   - A **spell on the boss** that can't crit (the bear's Faerie Fire and Demoralizing Roar) shows
-    only the share of its casts that missed ("16.1% missed"), resists included.
+    only the share of its casts that missed ("16.4% missed"), resists included.
   - Casts that deal no damage (Death Wish, Recklessness, Bloodrage, racials, the potion) stay
     out of the breakdown. They're under **Cooldowns and buffs**.
   - A row that can neither crit nor be avoided (Holy Shield's damage, Retribution Aura's) shows

@@ -19,8 +19,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { WowIcon } from '@/components/wow-icon'
 import { cn } from '@/lib/utils'
-import { SPEC_META, type ClassId, type SimConfig } from '@/sim'
+import { SPEC_META, type ClassId } from '@/sim'
 import { AboutSheet } from './about-sheet'
+import { copyText } from './clipboard'
 import { useSetup } from './setup-store'
 import { SetupsSheet } from './setups-sheet'
 import { shareUrl } from './share'
@@ -96,25 +97,11 @@ function SpecSwitcher() {
   )
 }
 
-/**
- * Copies a link to the setup (docs/ux.md#persistence-and-sharing). The clipboard write starts
- * inside the tap itself, with the link still being compressed, because Safari refuses a write
- * that follows an await. Browsers without ClipboardItem write the text once it's ready.
- */
-async function copyShareLink(config: SimConfig) {
-  const url = shareUrl(config)
-  if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
-    const text = url.then((link) => new Blob([link], { type: 'text/plain' }))
-    await navigator.clipboard.write([new ClipboardItem({ 'text/plain': text })])
-  } else {
-    await navigator.clipboard.writeText(await url)
-  }
-}
-
+/** Copies a link to the setup (docs/ux.md#persistence-and-sharing), within the tap (copyText). */
 function ShareButton() {
   // One notice at a time: sharing again replaces the last one's.
   const share = () => {
-    copyShareLink(useSetup.getState().config).then(
+    copyText(shareUrl(useSetup.getState().config)).then(
       () => toast.success('Link copied', { id: 'share', description: 'Anyone with the link gets this exact setup.' }),
       () =>
         toast.error('Couldn’t copy the link', {

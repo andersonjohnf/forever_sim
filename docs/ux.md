@@ -307,9 +307,12 @@ Era's) start in view rather than under the tabs.
     change from the previous run, as in the headline but smaller. Less is better here, so a drop
     is green (▼ −12.3) and a rise red (▲ +12.3); the arrow and sign still say which way it went,
     and a screen reader hears "down 12.3 from the last run, better".
-  - A line says what it counts and what drove it: "After your armor, block and other mitigation.
-    The boss swung 80.5 times a fight, set to hit for 4,500 to 5,500 before armor (Fight →
-    Advanced)." The swings include parry-hastened ones; a fixed swing size reads "5,000".
+  - A line says what it counts and what drove it: "The health the boss's melee swings cost you,
+    after avoidance, armor, block and other reductions. It swung 80.5 times a fight on average,
+    set to 4,500 to 5,500 a swing before armor (Fight → Advanced). Debuffs on it (Buffs), such as
+    Demoralizing Shout and Thunder Clap, lower its damage and slow its swings." The swings
+    include parry-hastened ones; a fixed swing size reads "5,000". Its "(Fight → Advanced)", and
+    the crushing line's, have non-breaking spaces around the arrow, so they never split at 390 px.
 - **Breakdown:** a per-ability damage share bar, then casts, hit/crit/miss/dodge/glance
   percentages and average hit.
   - A **bleed's** row counts its applications and its ticks apart, so its outcomes read
@@ -324,12 +327,12 @@ Era's) start in view rather than under the tabs.
     the per-second values follow the chosen metric. Abilities that add nothing to it are left
     out: a talent that only gives rage makes threat but no damage.
 - **How the boss's swings landed** (tank specs): the section after the breakdown. The seven
-  outcomes of its one roll (miss, dodge, parry, block, crit, crushing, hit;
+  outcomes of its one roll (miss, dodge, parry, block, crit, crushing, normal hit;
   [combat-tables §8](mechanics/combat-tables.md#8-boss--player-tanks)) as shares of its swings in
   the fights run, each with a share bar like the breakdown's. They sit in two columns filled
   downwards, so what spares you (miss, dodge, parry, block) is on the left and what lands in full
-  (crit, crushing, hit) on the right, and a screen reader hears them in the roll's order. Its
-  heading names the list, so the list has no name of its own to read twice.
+  (crit, crushing, normal hit) on the right, and a screen reader hears them in the roll's order.
+  Its heading names the list, so the list has no name of its own to read twice.
 - **Cooldowns and buffs:** a collapsed section, like the character sheet. It's a table with
   one row per cast the rotation can press (Battle Shout if you keep it up, Death Wish,
   Recklessness, Bloodrage, racials, on-use trinkets, consumables), in the rotation's order, and
@@ -347,20 +350,27 @@ Era's) start in view rather than under the tabs.
 - **Character sheet:** the final AP, crit, hit, haste, weapon skill and armor, the way the
   sim computed them.
   - Defense, dodge, parry, block and block value join them for a tank, and for anyone with
-    defense above 300 or block value. A tank's add **Crit reduction** after Defense: how much
-    defense lowers the boss's crit chance, 0.04% a point above 300 ("5.6%" at 440, where a raid
-    boss can't crit you; a minus sign below 300, where it raises it;
+    defense above 300 or block value. A tank's add **Crit reduction (boss's crits)** after
+    Defense, on a row of its own, since your own Crit is a few rows above: how much defense lowers
+    the boss's crit chance, 0.04% a point above 300 ("5.6%" at 440, where a raid boss can't crit
+    you; a minus sign below 300, where it raises it;
     [character-stats](mechanics/character-stats.md#defense-skill)).
   - **Boss's attack table** (tanks): its chances on each swing at you as the fight starts, from
-    the stats above, in the same two columns as the swings that landed. How the swings landed in
-    the fights can differ from it, since cooldowns and procs change your stats.
+    the stats above, in the same two columns as the swings that landed. Its last row is "Normal
+    hit", apart from the sheet's Hit, your own chance to hit. The line under its heading explains
+    why its numbers aren't the sheet's: "Its 315 weapon skill takes 0.6 points off your dodge,
+    parry and block." (0.04 a point of the boss's skill above 300, naming only the avoidance you
+    have: a bear's reads "your dodge"; none for a level 60 boss), and "The swings that landed can
+    differ a little, by chance and as cooldowns and procs change your stats in the fight."
   - A line under the table says whether the boss can crush you. With crushing blows on the
-    table, how much more avoidance or block would push them off, which is the crushing and hit
-    slices together, since crushing blows come before hits ("55.4% more avoidance or block would
-    make you uncrushable.", never "0.0%"). With none left, "You're uncrushable: there's no room
-    left on its table for crushing blows." A boss that can't crush says why instead: "Crushing
-    blows are off for this fight (Fight → Advanced)." or "A level 62 boss can't land crushing
-    blows." (`crushingState` in `src/features/results/tank-logic.ts`).
+    table, how many more points of avoidance would push them off, which is the crushing and hit
+    slices together, since crushing blows come before hits: "Another 55.4 points of miss, dodge,
+    parry or block would push crushing blows off the table." It names miss and the avoidance you
+    have, and never says "0.0". With none left, "You're uncrushable: there's no room left on its
+    table for crushing blows." A boss that can't crush says why instead, before anything else:
+    "Crushing blows are off for this fight (Fight → Advanced)." or "A level 62 boss can't land
+    crushing blows.", even for a tank with no room left for hits (`crushingState` in
+    `src/features/results/tank-logic.ts`).
   - Lines at the end name the base values that aren't known yet, in two kinds: those left out
     of the numbers ("Not known for Forever yet, so left out: base attributes."), and the
     Classic-based placeholders in them until they're measured

@@ -38,6 +38,8 @@ export { CLASS_COLOR, SPEC_IDS, SPEC_META } from './specs'
 export { defaultConfig, FULL_RAID, TALENT_DATA, talentPresets, type TalentPreset } from './defaults'
 export { canUse, fitsFaction, fitsSlot, isTwoHand, itemFaction, PROFICIENCY, uniqueConflicts, type UniqueConflict } from './equip'
 export { normalizeConfig } from './config/normalize'
+// The boss → player table's constants, for the results to explain it (docs/mechanics/combat-tables.md#8-boss--player-tanks).
+export { CRUSH_MIN_LEVEL_GAP, DEFENSE_PER_POINT, mobSkill, PLAYER_LEVEL } from './core/attack-table'
 
 /** Specs whose sim and UI are complete (docs/ux.md principle 8): Fury from M2.2c, Arms from M2.3c. */
 const AVAILABLE: ReadonlySet<SpecId> = new Set(['warrior-fury', 'warrior-arms'])

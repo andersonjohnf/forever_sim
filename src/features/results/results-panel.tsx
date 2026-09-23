@@ -15,8 +15,8 @@ import { AssumptionList } from './assumption-list'
 import { Delta } from './delta'
 import { DIM_FILL, DIM_ICON, DIM_ROOT } from './dim'
 import { isSetupError, neverHit } from './run-logic'
+import { avoidanceOf, CRIT_REDUCTION_LABEL, formatCritReduction } from './tank-logic'
 import { BossTable, DamageTaken, SwingOutcomes } from './tank-results'
-import { formatCritReduction } from './tank-logic'
 import { useScrollEdges } from './use-scroll-edges'
 import { type Metric, METRIC_LABEL, metricsFor, useBreakdownMetric, useRunState } from './use-run-state'
 
@@ -544,7 +544,7 @@ function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: S
     ...(defensive
       ? ([
           ['Defense', formatInt(s.defense)],
-          ...(bossTable ? ([['Crit reduction', formatCritReduction(s.critReductionPct)]] as [string, string][]) : []),
+          ...(bossTable ? ([[CRIT_REDUCTION_LABEL, formatCritReduction(s.critReductionPct)]] as [string, string][]) : []),
           ['Dodge', formatPct(s.dodgePct)],
           ['Parry', formatPct(s.parryPct)],
           ['Block', formatPct(s.blockPct)],
@@ -555,15 +555,18 @@ function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: S
   return (
     <div className="flex flex-col gap-3">
       <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">
-        {rows.map(([label, value]) => (
-          // Both hands' weapon skills need the row to themselves at the panel's width.
-          <div key={label} className={cn('flex justify-between gap-2', label === 'Weapon skill' && dualWield && 'col-span-2')}>
-            <dt className="text-muted-foreground">{label}</dt>
-            <dd className="text-right tabular-nums">{value}</dd>
-          </div>
-        ))}
+        {rows.map(([label, value]) => {
+          // Both hands' weapon skills, and crit reduction's longer label, need the row to themselves at the panel's width.
+          const wide = (label === 'Weapon skill' && dualWield) || label === CRIT_REDUCTION_LABEL
+          return (
+            <div key={label} className={cn('flex justify-between gap-2', wide && 'col-span-2')}>
+              <dt className="text-muted-foreground">{label}</dt>
+              <dd className="text-right tabular-nums">{value}</dd>
+            </div>
+          )
+        })}
       </dl>
-      {bossTable && <BossTable table={bossTable} fight={runConfig?.fight ?? null} />}
+      {bossTable && <BossTable table={bossTable} avoidance={avoidanceOf(s)} fight={runConfig?.fight ?? null} />}
       {unknown.length > 0 && (
         <p className="text-xs text-muted-foreground">
           Not known for Forever yet, so left out: {unknown.join(', ')}.

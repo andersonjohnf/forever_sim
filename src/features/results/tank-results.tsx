@@ -7,11 +7,11 @@ import { cn } from '@/lib/utils'
 import type { BossOutcomes, FightConfig, TankResult } from '@/sim'
 import { Delta } from './delta'
 import { DIM_FILL } from './dim'
-import { BOSS_OUTCOMES, crushingState, crushingText, swingDamageText } from './tank-logic'
+import { type Avoidance, BOSS_OUTCOMES, bossTableIntro, crushingState, crushingText, damageTakenText } from './tank-logic'
 
 /**
  * Seven outcomes in two columns, filled down: miss, dodge, parry and block on the left, then
- * crit, crushing and hit, in the table's roll order for anyone reading them in turn.
+ * crit, crushing and normal hit, in the table's roll order for anyone reading them in turn.
  */
 const OUTCOME_GRID = 'grid grid-flow-col grid-cols-2 grid-rows-4 gap-x-6 text-sm'
 
@@ -43,10 +43,7 @@ export function DamageTaken({
         <Delta value={tank.dtps.mean} previous={previous} lowerIsBetter className="text-sm" />
       </span>
       {/* The swing size is the Fight setting's; attack-power debuffs on the boss lower it in the fight. */}
-      <p className="text-xs text-muted-foreground tabular-nums">
-        After your armor, block and other mitigation. The boss swung {formatOne(tank.bossSwingsPerFight)} times a fight
-        {fight ? `, set to hit for ${swingDamageText(fight.boss)} before armor (Fight → Advanced)` : ''}.
-      </p>
+      <p className="text-xs text-muted-foreground tabular-nums">{damageTakenText(tank.bossSwingsPerFight, fight?.boss ?? null)}</p>
     </section>
   )
 }
@@ -84,9 +81,10 @@ export function SwingOutcomes({ tank }: { tank: TankResult }) {
 
 /**
  * The character sheet's view of the boss (docs/ux.md#results): its chances against your stats as
- * the fight starts, and whether it can land crushing blows on you.
+ * the fight starts, and whether it can land crushing blows on you. `avoidance` is what the sheet
+ * above it shows you have, for the lines that name it.
  */
-export function BossTable({ table, fight }: { table: BossOutcomes; fight: FightConfig | null }) {
+export function BossTable({ table, avoidance, fight }: { table: BossOutcomes; avoidance: readonly Avoidance[]; fight: FightConfig | null }) {
   const headingId = useId()
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-2">
@@ -94,7 +92,7 @@ export function BossTable({ table, fight }: { table: BossOutcomes; fight: FightC
         <h4 id={headingId} className="text-sm font-medium">
           Boss’s attack table
         </h4>
-        <p className="text-xs text-muted-foreground">Its chances on each swing at you as the fight starts, from the stats above.</p>
+        <p className="text-xs text-muted-foreground">{bossTableIntro(fight?.bossLevel ?? null, avoidance)}</p>
       </div>
       <dl className={cn(OUTCOME_GRID, 'gap-y-1.5')}>
         {BOSS_OUTCOMES.map(([key, label]) => (
@@ -104,7 +102,7 @@ export function BossTable({ table, fight }: { table: BossOutcomes; fight: FightC
           </div>
         ))}
       </dl>
-      <p className="text-xs text-muted-foreground">{crushingText(crushingState(table, fight))}</p>
+      <p className="text-xs text-muted-foreground">{crushingText(crushingState(table, fight), avoidance)}</p>
     </section>
   )
 }

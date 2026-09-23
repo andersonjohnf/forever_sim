@@ -15,7 +15,7 @@ const VALUE_WITH_CI = /\d[\d,]*\.\d\s*± \d[\d,]*\.\d/
 /** …followed by a change from the previous run: a sign and a value. */
 const WITH_CHANGE = /± \d[\d,]*\.\d\s*[+−]\d[\d,]*\.\d/
 /** The boss's outcomes, in its table's roll order (docs/mechanics/combat-tables.md#8-boss--player-tanks). */
-const OUTCOMES = ['Miss', 'Dodge', 'Parry', 'Block', 'Crit', 'Crushing', 'Hit']
+const OUTCOMES = ['Miss', 'Dodge', 'Parry', 'Block', 'Crit', 'Crushing', 'Normal hit']
 /** What a screen reader hears of a change from the last run (docs/ux.md#results). */
 const HEARD_CHANGE = /^(up|down) [\d,]+\.\d from the last run, (better|worse)$/
 /** The section after the breakdown with the boss's swings as they landed. */
@@ -37,7 +37,13 @@ const pct = (text: string | null) => Number(/(\d+\.\d)%/.exec(text ?? '')![1])
 
 /** The seven outcomes a list or table shows, as [label, share] in its order. */
 async function outcomes(items: Locator): Promise<[string, number][]> {
-  return (await items.allTextContents()).map((text) => [/^[A-Za-z]+/.exec(text.trim())![0], pct(text)])
+  return (await items.allTextContents()).map((text) => [/^[A-Za-z ]*[A-Za-z]/.exec(text.trim())![0], pct(text)])
+}
+
+/** A regex matching exactly this text. */
+function exactly(text: string) {
+  const escaped = text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`^${escaped}$`)
 }
 
 /** Weakens the boss: every swing at 4,500, the bottom of the default range (Fight → Advanced). */
@@ -97,8 +103,13 @@ test.describe('tank results', () => {
 
     await simulate(results)
     await expect(taken).toContainText(VALUE_WITH_CI)
+    // What it counts, and what sets the swings (TU4). The arrow has non-breaking spaces around it.
     await expect(taken).toContainText(
-      /After your armor, block and other mitigation\. The boss swung \d+\.\d times a fight, set to hit for 4,500 to 5,500 before armor \(Fight → Advanced\)\./,
+      new RegExp(
+        'The health the boss’s melee swings cost you, after avoidance, armor, block and other reductions\\. ' +
+          'It swung \\d+\\.\\d times a fight on average, set to 4,500 to 5,500 a swing before armor \\(Fight\\s→\\sAdvanced\\)\\. ' +
+          'Debuffs on it \\(Buffs\\), such as Demoralizing Shout and Thunder Clap, lower its damage and slow its swings\\.',
+      ),
     )
     // Damage taken comes first, above the breakdown, and how the swings landed after it (TU6).
     const breakdown = results.getByRole('region', { name: /by ability$/ })
@@ -132,7 +143,7 @@ test.describe('tank results', () => {
     await expect(max).toHaveValue('9000')
     await simulate(results)
     await expect(taken).toContainText(WITH_CHANGE)
-    await expect(taken).toContainText('set to hit for 4,500 to 9,000 before armor')
+    await expect(taken).toContainText('set to 4,500 to 9,000 a swing before armor')
     const heard = taken.getByText(HEARD_CHANGE)
     await expect(heard).toHaveText(/^up [\d,]+\.\d from the last run, worse$/)
     const shown = heard.locator('..')
@@ -167,20 +178,33 @@ test.describe('tank results', () => {
     await results.getByRole('button', { name: 'Character sheet' }).click()
 
     // Defense takes 0.04% a point above 300 off the boss's crit chance (character-stats#defense-skill).
-    const stat = (name: string) => results.locator('dl > div').filter({ has: page.locator('dt', { hasText: new RegExp(`^${name}$`) }) }).locator('dd')
+    const stat = (name: string) => results.locator('dl > div').filter({ has: page.locator('dt', { hasText: exactly(name) }) }).locator('dd')
     const defense = Number(await stat('Defense').textContent())
     expect(defense).toBeGreaterThan(300)
-    await expect(stat('Crit reduction')).toHaveText(`${(Math.round((defense - 300) * 0.4) / 10).toFixed(1)}%`)
+    await expect(stat('Crit reduction (boss’s crits)')).toHaveText(`${(Math.round((defense - 300) * 0.4) / 10).toFixed(1)}%`)
+    // Your own Crit and Hit keep their names; the boss's crits and plain hits say whose they are (TU5).
+    const sheetLabels = await results.locator('dl').first().locator('dt').allTextContents()
+    expect(sheetLabels).toEqual(expect.arrayContaining(['Crit', 'Hit', 'Crit reduction (boss’s crits)']))
+    expect(sheetLabels).not.toContain('Crit reduction')
 
     const table = results.getByRole('region', { name: 'Boss’s attack table' })
-    await expect(table).toContainText('Its chances on each swing at you as the fight starts, from the stats above.')
+    // Why its numbers aren't the sheet's (TU1).
+    await expect(table).toContainText(
+      'Its chances on each swing at you as the fight starts, from the stats above. ' +
+        'Its 315 weapon skill takes 0.6 points off your dodge, parry and block. ' +
+        'The swings that landed can differ a little, by chance and as cooldowns and procs change your stats in the fight.',
+    )
     const rows = await outcomes(table.locator('dl > div'))
     expect(rows.map(([label]) => label)).toEqual(OUTCOMES)
+    // …and the numbers bear it out, to the tenth they're shown to.
+    for (const [i, name] of [[1, 'Dodge'], [2, 'Parry'], [3, 'Block']] as const) {
+      expect(Math.abs(pct(await stat(name).first().textContent()) - rows[i][1] - 0.6), name).toBeLessThan(0.11)
+    }
     const [, crush] = rows[5]
     const [, hit] = rows[6]
     expect(crush).toBe(15)
-    // Crushing blows sit before hits, so pushing them off takes both slices.
-    await expect(table).toContainText(`${(crush + hit).toFixed(1)}% more avoidance or block would make you uncrushable.`)
+    // Crushing blows sit before hits, so pushing them off takes both slices, in points (TU2).
+    await expect(table).toContainText(`Another ${(crush + hit).toFixed(1)} points of miss, dodge, parry or block would push crushing blows off the table.`)
     // The unmeasured base values in these numbers (decision D24).
     await expect(results).toContainText('Classic-based values until they’re measured: base health, base parry, base block.')
 
@@ -281,9 +305,11 @@ test.describe('tank results on a phone', () => {
 
     const taken = sheet.getByRole('region', { name: 'Damage taken per second' })
     await expect(taken).toContainText(VALUE_WITH_CI)
+    // "(Fight → Advanced)" never splits across lines: non-breaking spaces around the arrow (TU10).
+    expect(await taken.textContent()).toContain('(Fight\u00a0→\u00a0Advanced)')
     const landed = sheet.getByRole('region', { name: LANDED }).getByRole('listitem')
     expect((await outcomes(landed)).map(([label]) => label)).toEqual(OUTCOMES)
-    // Two columns, filled down: the four that spare you on the left, then crit, crushing and hit.
+    // Two columns, filled down: the four that spare you on the left, then crit, crushing and normal hit.
     const boxes = await Promise.all((await landed.all()).map((item) => item.boundingBox()))
     for (const box of boxes) expect(box!.x + box!.width).toBeLessThanOrEqual(390 - 16)
     expect(boxes[4]!.x).toBeGreaterThan(boxes[3]!.x + boxes[3]!.width)
@@ -294,7 +320,7 @@ test.describe('tank results on a phone', () => {
     const table = sheet.getByRole('region', { name: 'Boss’s attack table' })
     await table.scrollIntoViewIfNeeded()
     await expect(table).toBeInViewport()
-    await expect(table).toContainText(/more avoidance or block would make you uncrushable\./)
+    await expect(table).toContainText(/Another \d+\.\d points of miss, dodge, parry or block would push crushing blows off the table\./)
     for (const row of await table.locator('dl > div').all()) {
       const box = await row.boundingBox()
       expect(box!.x + box!.width).toBeLessThanOrEqual(390 - 16)

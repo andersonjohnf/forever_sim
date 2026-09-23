@@ -384,8 +384,11 @@ Energy-neutral.
 - Wolfshead Helm adds nothing on a shift in Forever.
 - The form's stat block, main hand and threat multiplier swap in (§2.2). The swing in progress
   keeps its time and the next uses the new speed; the power tick keeps its phase [?] (Q34).
-  Armor and maximum health stay those of the form the fight started in, since only a bear tanks
-  and a bear never leaves bear in any rotation.
+  The boss's swings meet the new form's armor, dodge and damage-taken modifiers, since the
+  boss's table and the armor against it follow the stats
+  ([combat-tables §8](../mechanics/combat-tables.md#8-boss--player-tanks)). Maximum health, which
+  rage from damage taken divides by, stays that of the form the fight started in; only a bear
+  tanks, and a bear never leaves bear in any rotation.
 - **Mana**: the pool is base mana plus Intellect. Every power tick gives spirit regeneration,
   `15 + Spirit / 5` per 2 s, unless mana was spent in the last 5 s. Mp5 from items isn't read
   yet (no pre-raid feral item has it).

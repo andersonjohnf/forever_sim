@@ -288,7 +288,7 @@ const REGISTRY = {
     docRef: `${DRUID}#24-energy-cat`,
   },
   shapeshifts: {
-    text: 'A shapeshift keeps the swing and Energy timers running, Furor keeps your Energy (Forever’s tooltip), and your armor and health stay your starting form’s.',
+    text: 'A shapeshift keeps the swing and Energy timers running, Furor keeps your Energy (Forever’s tooltip), and the health that rage from damage taken divides by stays your starting form’s.',
     docRef: `${DRUID}#28-shapeshifting-furor-wolfshead-helm-powershifting-mana`,
   },
   bearWhiteRage: {

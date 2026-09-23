@@ -592,8 +592,8 @@ export interface Plan {
   /**
    * A druid's forms (docs/classes/druid.md §2.1, §2.2, §2.8), or absent for classes without them.
    * The plan's static stats, main hand and threat multiplier are those of `forms[form]`, the form it
-   * fights in; a `shift` ability swaps in another's. Armor and maximum health stay the starting
-   * form's (druid.md §8).
+   * fights in; a `shift` ability swaps in another's, and the boss's swings then meet its armor and
+   * dodge. `armor` and `rage.maxHealth` stay the starting form's (druid.md §2.8).
    */
   forms?: FormPlan[]
   /** The index into `forms` of the form the fight starts in. */

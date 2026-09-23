@@ -6,12 +6,14 @@
 // src/sim/stats/base-stats.ts (D24 placeholders among them); the examples set their own attack power.
 import { describe, expect, it } from 'vitest'
 import { NO_STRIKE, shapeshift, spiritRegenTickTenths } from '../classes/druid/abilities'
+import { armorReduction } from '../core/formulas'
 import { FORM_INDEX, formBit } from '../classes/druid/forms'
 import { type TalentRanks, withDruidTalents } from '../classes/druid/modifiers'
 import { defaultConfig } from '../defaults'
 import { buildPlan } from '../plan/build'
 import { ACTION, type AbilityDef, COND, NO_PREPULL, type Plan, POWER_TICK_MS, STANCE_ANY, TRIGGER, TRIGGER_COUNT } from '../plan/types'
 import { simulate } from '../index'
+import { DerivedStats, deriveStats } from '../stats/stat-block'
 import type { GearSlot, RuleProfileId, SimConfig, SpecId } from '../types'
 import { runChunk } from './chunk'
 import { BOSS_OUTCOME, FIELD, SOURCE_MAIN_HAND, Sim } from './sim'
@@ -340,6 +342,34 @@ describe('shapeshifts, Furor and mana (druid.md §2.8)', () => {
     const later = shifted(20000)
     const ticks = (later.sim.resources().mana - (plan.mana!.maxTenths - 6840)) / plan.mana!.regenTickTenths
     expect([7, 8]).toContain(ticks)
+  })
+
+  it('after a shift the boss’s swings meet the new form’s armor; maximum health, which rage divides by, stays the plan’s', () => {
+    const plan = druidPlan('druid-feral-bear', 30000)
+    line(plan, addDruidAbility(plan, shapeshift('cat', 0)), at(plan, 15000))
+    const sim = new Sim(plan)
+    let now = 0
+    const hits: [number, number][] = []
+    sim.bossTrace = (time) => (now = time)
+    // A plain hit costs damage-taken mods × (1 − armor reduction) of its size: none here but armor.
+    sim.swingTakenTrace = (outcome, lost, pre) => {
+      if (outcome === BOSS_OUTCOME.hit) hits.push([now, lost / pre])
+    }
+    sim.runFight(0)
+    const derived = (form: keyof typeof FORM_INDEX) =>
+      deriveStats(plan.forms![FORM_INDEX[form]].stats, { profile: plan.profile, applyUnmeasured: plan.applyUnmeasured, level: 60 }, new DerivedStats())
+    const factor = (form: keyof typeof FORM_INDEX) => 1 - armorReduction(derived(form).armor, plan.fight.targetLevel, plan.profile)
+    expect(factor('cat')).toBeGreaterThan(factor('bear'))
+    const before = hits.filter(([t]) => t < 15000)
+    const after = hits.filter(([t]) => t > 15000)
+    expect(before.length).toBeGreaterThan(0)
+    expect(after.length).toBeGreaterThan(0)
+    for (const [, r] of before) expect(r).toBeCloseTo(factor('bear'), 12)
+    for (const [, r] of after) expect(r).toBeCloseTo(factor('cat'), 12)
+    // The plan's static numbers stay the starting form's: its armor, and the health rage divides by.
+    expect(1 - armorReduction(plan.armor, plan.fight.targetLevel, plan.profile)).toBeCloseTo(factor('bear'), 12)
+    expect(derived('cat').health).toBeLessThan(derived('bear').health)
+    expect(plan.rage.maxHealth).toBe(derived('bear').health)
   })
 
   it('a shift the mana can’t pay for isn’t used: the druid stays in its form', () => {

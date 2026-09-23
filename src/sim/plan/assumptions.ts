@@ -276,7 +276,7 @@ const REGISTRY = {
     docRef: `${BUFFS}#31-flasks`,
   },
   druidBaseStats: {
-    text: 'Druid base health (1,483), base crit and dodge (0.9%), base spell crit (1.8%) and caster attack power (−20) are placeholders that Classic sims copied from a private server; Skyborne druids also use a placeholder for their base attributes. A level-60 druid’s character sheet will replace them.',
+    text: 'Druid base attributes, base health (1,483), base crit and dodge (0.9%), base spell crit (1.8%) and caster attack power (−20) are placeholders from a private server’s tables, which Classic sims copied; Skyborne druids get no race adjustment, as theirs is unknown. A level-60 druid’s character sheet will replace them.',
     docRef: `${STATS}#oq-1-paladin-druid-and-skyborne-base-attributes`,
   },
   formWeapon: {

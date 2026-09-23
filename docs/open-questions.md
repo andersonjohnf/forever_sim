@@ -115,11 +115,13 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### A1. Paladin and druid base stats (naked sheets)
 **High · M4, M5 · blocks the paladin; the druid runs on placeholders (D24)**
 - **Assumes:** the paladin class row (Str, Agi, Sta, Int, Spi) is unknown and the engine has no
-  fallback, so the paladin can't compute stats [?]. The druid's Night Elf and Tauren rows are
-  ClassicSim's pre-SoD rows [C]; its base health 1483, base melee crit and dodge 0.9%, base
-  spell crit 1.8% and caster AP −20 are D24 placeholders [?] that two sims copied from a private
-  server, not evidence (about 1.5% and 0.7% of cat DPS for the crit and the AP), and Skyborne
-  druids use the class row. Also unknown for the paladin: base health, base melee and spell
+  fallback, so the paladin can't compute stats [?]. Every druid base value is a D24
+  placeholder [?], not evidence: the Night Elf and Tauren rows are the mangos emulator's 1.12
+  rows (ClassicSim's pre-SoD rows reproduce them: corroboration only), Skyborne druids use the
+  class row, and base health 1483, base melee crit and dodge 0.9%, base spell crit 1.8% and
+  caster AP −20 are values two sims copied from a private server. The base crit comes first: its
+  plausible range, 0–1%, moves cat DPS by up to about 1.5%, over D24's 1%; the AP's −20 is
+  about 0.7% of cat DPS. Also unknown for the paladin: base health, base melee and spell
   crit, base dodge, parry and block, and the AP term `160 + 2 × Str` [?]. The druid's spirit
   regen `15 + Spirit/5` per 2 s comes only from a secondary sim [?].
 - **Test:** standard naked sheet for a Human paladin, Dwarf paladin, Night Elf druid and Tauren

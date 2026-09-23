@@ -4,10 +4,11 @@
 // (docs/decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23), which are tagged [?]
 // and listed in the results' assumptions. Anything else unknown is `null` and reported as missing.
 // CLASS_BASE holds the supported values (`null` there means nobody has measured it), and
-// BASE_PLACEHOLDERS below holds the placeholders, in one replaceable table. The druid's base
-// health, crit, spell crit, dodge and caster attack power are D24 placeholders too, in their own
-// table (DRUID_PLACEHOLDERS) so a measured sheet replaces them. The paladin attribute rows (OQ-1)
-// may stand in the same way under D24; its spec's track adds them.
+// BASE_PLACEHOLDERS below holds the placeholders, in one replaceable table. Every druid base value
+// is a D24 placeholder: the attribute rows (DRUID_ROWS: 1.12 rows only an emulator recorded, which
+// agree with the [C] race offsets, D24 rule 2) and the rest in their own table
+// (DRUID_PLACEHOLDERS), so a measured sheet replaces them. The paladin attribute rows (OQ-1) may
+// stand in the same way under D24; its spec's track adds them.
 import type { ClassId } from '../types'
 
 export interface Attributes {
@@ -38,13 +39,14 @@ const WARRIOR_ROWS: Record<string, Attributes | null> = {
 }
 
 /**
- * Druid base attributes by race at level 60, as the character sheet shows them [C]: ClassicSim at
- * its last commit before Season of Discovery, whose rows came in PR #103 (2020-01-05)
- * (docs/mechanics/character-stats.md#paladin-and-druid-base-attributes):
- * https://github.com/timhul/ClassicSim/tree/f9cb48dcf177575c383d03ec23554ce5ef5b50cc,
- * https://github.com/timhul/ClassicSim/pull/103. Both rows are the class row Str 65, Agi 60, Sta 70,
- * Int 100, Spi 110 plus the [C] race offsets. Skyborne has no known offsets, so both Skyborne rows
- * are that class row, with neutral offsets: a [?] placeholder (D24), not evidence (OQ-1).
+ * Druid base attributes by race at level 60, as the character sheet shows them: [?] placeholders
+ * (D24); origin: mangos, not evidence
+ * (docs/mechanics/character-stats.md#paladin-and-druid-base-attributes, OQ-1):
+ * https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_levelstats.sql.
+ * Both rows are the class row Str 65, Agi 60, Sta 70, Int 100, Spi 110 plus the [C] race offsets.
+ * ClassicSim's pre-SoD rows reproduce them (corroboration, not evidence: they came from a guide
+ * whose method is unknown). Skyborne has no known offsets, so both Skyborne rows are that class
+ * row, with neutral offsets.
  */
 export const DRUID_ROWS: Readonly<Record<string, Attributes>> = {
   'alliance-night-elf': { str: 62, agi: 65, sta: 69, int: 100, spi: 110 },
@@ -64,7 +66,7 @@ export const DRUID_ROWS: Readonly<Record<string, Attributes>> = {
 export const DRUID_PLACEHOLDERS = {
   /** Base health before Stamina (origin: wowsims/classic; OQ-2). */
   baseHealth: 1483,
-  /** Base melee crit before Agility, % (origin: RatingBuster, wowsims/classic; OQ-3): about 1.5% of cat DPS. */
+  /** Base melee crit before Agility, % (origin: RatingBuster, wowsims/classic; OQ-3): plausibly 0–1%, cat DPS −1.5% to +0.2%, so measured first. */
   baseCrit: 0.9,
   /** Base spell crit before Intellect, % (origin: RatingBuster, wowsims/classic; OQ-3): nothing for cat or bear. */
   baseSpellCrit: 1.8,
@@ -140,7 +142,7 @@ export const CLASS_BASE: Record<ClassId, ClassBase> = {
     baseMana: 1512,
   },
   druid: {
-    // docs/mechanics/character-stats.md#paladin-and-druid-base-attributes [C] (Skyborne [?] placeholders)
+    // docs/mechanics/character-stats.md#paladin-and-druid-base-attributes: [?] placeholders (D24)
     attributes: (race) => DRUID_ROWS[race] ?? null,
     // The rest are [?] placeholders (D24): DRUID_PLACEHOLDERS.
     baseAp: DRUID_PLACEHOLDERS.baseAp,

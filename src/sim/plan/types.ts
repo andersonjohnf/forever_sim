@@ -621,8 +621,9 @@ export interface FormPlan {
   /**
    * White hits and hits taken give rage in this form: only in bear, whose power is rage (druid.md
    * §2.4, §8 "Rage from hits"; rage.md#bear-druid-rage). Hits taken also need the plan's
-   * `rage.fromDamageTaken`, which is set when the fight can be in such a form. Spell energizes
-   * (Furor, Primal Fury, Natural Reaction, a potion) give it in any.
+   * `rage.fromDamageTaken`, which is set when the fight can be in such a form. An energize adds
+   * rage in whatever form it fires in: Furor's and Primal Fury's fire only in bear, so outside it
+   * that's Natural Reaction and a potion.
    */
   rage: boolean
 }

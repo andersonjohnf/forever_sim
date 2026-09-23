@@ -384,11 +384,13 @@ Energy-neutral.
 - Wolfshead Helm adds nothing on a shift in Forever.
 - The form's stat block, main hand and threat multiplier swap in (§2.2). The swing in progress
   keeps its time and the next uses the new speed; the power tick keeps its phase [?] (Q34).
-  The boss's swings meet the new form's armor, dodge and damage-taken modifiers, since the
-  boss's table and the armor against it follow the stats
+  The boss's swings meet the new form's armor and dodge, since the boss's table and the armor
+  against it follow the stats
   ([combat-tables §8](../mechanics/combat-tables.md#8-boss--player-tanks)). Maximum health, which
   rage from damage taken divides by, stays that of the form the fight started in; only a bear
-  tanks, and a bear never leaves bear in any rotation.
+  tanks, and a bear never leaves bear in any rotation. A rotation that shifts into bear to take
+  hits (a cat bearweaving) must divide by the current form's health first: a Tauren cat's 3,835
+  would give about 47% more rage than its bear's 5,631.
 - **Mana**: the pool is base mana plus Intellect. Every power tick gives spirit regeneration,
   `15 + Spirit / 5` per 2 s, unless mana was spent in the last 5 s. Mp5 from items isn't read
   yet (no pre-raid feral item has it).
@@ -634,7 +636,7 @@ doesn't affect bear abilities (its mask holds only cat builders). [F] [client] (
 | Primal Fury 2/2 | +5 Rage on any crit in bear (100%) | [F] [client] (SpellEffect 16959, 1.60.1.69913) |
 | Natural Reaction 5/5 | +5% dodge; +5 Rage on each dodge (100%) | [F] [fc-tal]; [client] (SpellEffect 417053, 1.60.1.69913) |
 | Wolfshead Helm | +5 Rage from Enrage | [F] [fc-wolf] |
-| Rage in the other forms | White hits and hits taken give rage only in bear, whose power is rage; spell energizes (Furor, Primal Fury, Natural Reaction, a Mighty Rage Potion) give it in any form ([§8](#8-implementation-notes) "Rage from hits") | [?] (the engine's model; [rage.md](../mechanics/rage.md#bear-druid-rage)) |
+| Rage in the other forms | White hits and hits taken give rage only in bear, whose power is rage; an energize adds rage in whatever form it fires in (Furor's and Primal Fury's fire only in bear) ([§8](#8-implementation-notes) "Rage from hits") | [?] (the engine's model; [rage.md](../mechanics/rage.md#bear-druid-rage)) |
 
 ---
 
@@ -914,8 +916,9 @@ the buffs doc as a per-spec entry.
   be in Bear Form (the bear, or a cat whose rotation can shift into bear), and off otherwise, so
   the results list the damage-taken rage assumptions only then. The engine gives a hit taken rage
   only when the switch is on and the druid is in bear. A hit that costs health fires the
-  damage-taken procs in any form, and spell energizes (Furor, Primal Fury, Natural Reaction, a
-  Mighty Rage Potion) add rage in any form.
+  damage-taken procs in any form, and an energize adds rage in whatever form it fires in. Furor's
+  rage and Primal Fury's fire only in bear, so outside it that's Natural Reaction and a Mighty Rage
+  Potion.
 - **Events for the cat APL:** GCD end, Energy tick, Clearcasting gained, a cooldown ready (Tiger's
   Fury, Berserk, Faerie Fire), a bleed or debuff expiring, and fight-time thresholds.
   Reaction/latency modelling follows [damage-and-timing.md](../mechanics/damage-and-timing.md).

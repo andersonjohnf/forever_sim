@@ -130,6 +130,21 @@ test.describe('notices', () => {
     await expect(more).toBeFocused()
   })
 
+  test('a click on one over the item picker lands on the notice and leaves the picker open', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('button', { name: 'Head: Lionheart Helm' }).click()
+    const picker = await opened(page, 'Choose head')
+    const notice = await sharedLinkNotice(page)
+    await notice.click()
+    await expect(notice).toBeVisible()
+    await frames(page)
+    await expect(picker).toBeVisible()
+    // Escape still closes the picker, and focus goes back to its slot.
+    await page.keyboard.press('Escape')
+    await expect(picker).toBeHidden()
+    await expect(page.getByRole('button', { name: 'Head: Lionheart Helm' })).toBeFocused()
+  })
+
   test('a tab clicked right after a notice stays open', async ({ page }) => {
     // Leaving the toasts hands focus back to the control focused before (here the Buffs tab),
     // which mustn't switch the tab back.

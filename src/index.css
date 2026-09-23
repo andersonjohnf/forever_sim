@@ -188,14 +188,16 @@
  * Clearance from the toasts for anything that scrolls under them: the page, a sheet, a drawer's
  * or a dialog's list (docs/ux.md#persistence-and-sharing; WCAG 2.4.11). src/app/toaster.tsx keeps
  * both measures, from the window's bottom edge, so they fit a scroller that ends there and leave
- * extra room in one that ends higher (the item picker's dialog on desktop).
+ * extra room in one that ends higher (the item picker's dialog on desktop). A select's list keeps
+ * clear of the toasts itself (src/components/select-content.tsx).
  *
  * scroll-pb-toast: keyboard focus in it scrolls clear of any toast that's up, with 0.5rem to
  * spare (--toast-clearance), and none when no toast is up.
  * pb-toast-<n>: bottom padding of n spacing steps (pb-toast-8 is pb-8), grown while a toast waits
- * for Dismiss, so the last control has room to scroll clear of it (--toast-wait-clearance). Only
- * a waiting toast grows it: padding that followed every toast would shrink when a 10 s one timed
- * out, and the content at the end of the page would drop by itself.
+ * for Dismiss, so the last control has room to scroll clear of the toasts
+ * (--toast-wait-clearance). Only a waiting toast grows it, and it only rises until that toast
+ * goes: if it shrank when a 10 s toast timed out, the content at the end of the page would drop
+ * by itself.
  */
 @utility scroll-pb-toast {
   scroll-padding-bottom: calc(var(--toast-clearance, -0.5rem) + 0.5rem);

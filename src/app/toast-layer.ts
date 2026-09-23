@@ -101,7 +101,8 @@ let installed = false
  *   sheet under it: capture phase, ahead of Radix's own Escape listener.
  * - Sonner hands focus back from the toasts without scrolling to it (preventScroll), so after an
  *   Undo that lengthened the page it could land off-screen. On the next frame, once the page has
- *   re-rendered and while the toast still counts in the scroll padding, it's scrolled into view.
+ *   re-rendered and while the toast still counts in the scroll padding, keyboard focus is
+ *   scrolled into view (revealFocus). After a tap or click nothing scrolls.
  *
  * The shortcut itself is the toaster's (src/app/toaster.tsx).
  */

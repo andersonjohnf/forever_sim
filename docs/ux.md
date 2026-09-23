@@ -420,24 +420,33 @@ Every view handles these states:
   A new undo toast replaces the one that's up, and any other change to the setup (another
   edit, a spec switch, a shared link) takes it away. This covers every undo toast: gear, a race
   and its faction swap, talents, Reset rotation, Reset setup and shared links.
-- **A toast never hides the focused control** (WCAG 2.4.11), on the page or in a sheet under it
-  (the results sheet, About, the item and enchant pickers). `src/app/toaster.tsx` measures how
-  far up the toasts reach, and `src/index.css` explains how each scroller uses it.
+- **A toast never hides the focused control** (WCAG 2.4.11), on the page, in a sheet under it
+  (the results sheet, About, the item and enchant pickers) or in a select's list.
+  `src/app/toaster.tsx` measures how far up the toasts reach, and `src/index.css` explains how
+  each scroller uses it.
   - While toasts are up, the bottom scroll padding clears them, as the page's does the phone's
     bar (`--toast-clearance`), so focus moving on under a toast that waits for Dismiss scrolls
     clear of it.
   - While a toast that waits is up, the bottom padding grows to match
     (`--toast-wait-clearance`), so there's room to scroll even the last control in the
-    scrolling page or sheet clear of it. A toast that goes by itself leaves the padding alone,
-    so nothing moves when it times out.
-  - When the toasts reach higher, say the toast in front of a waiting one times out and the
+    scrolling page or sheet clear of the toasts. It's the highest the toasts have reached
+    meanwhile, and it only rises until the waiting one goes: a taller toast in front of it is
+    cleared too, and nothing moves when a toast times out. Only a waiting toast grows it, and a
+    new window width starts it afresh.
+  - When the toasts settle higher, say the toast in front of a waiting one times out and the
     waiting one comes to the front at full size, keyboard focus they now cover scrolls clear of
-    them. Focus stays where it is, and after a tap or click nothing scrolls.
+    them. Focus stays where it is. Nothing scrolls after a tap or click, or when the mouse over
+    the toasts spreads them out.
+  - A select's list (`src/components/select-content.tsx`) keeps clear of the toasts itself. With
+    no toast up, it opens over its trigger, as shadcn's does. Opened while one is up, it drops
+    from its trigger instead, and flips above it or gets shorter and scrolls, so no option is
+    ever under a toast.
 - **Alt+T** (Option+T) is the keyboard's way to the toasts: it moves focus to the newest toast's
   Undo (sonner's hotkey focuses the toast list and spreads the toasts out, and
   `src/app/toaster.tsx` moves focus on to Undo). Escape in a toast dismisses an undo toast, and
-  leaving the toasts, by Undo, Dismiss, Escape or Tab, hands focus back to where it was,
-  scrolled into view: after an Undo that lengthened the page it could otherwise be off-screen.
+  leaving the toasts, by Undo, Dismiss, Escape or Tab, hands focus back to where it was. From
+  the keyboard it's scrolled into view: after an Undo that lengthened the page it could
+  otherwise be off-screen.
 - **A toast stays usable over an open sheet or dialog** (the results sheet, the item picker,
   About): a tap on Undo reaches the toast, not the sheet under it, and neither the tap nor
   focus on the toast closes the sheet or is pulled back into its focus trap. Undo changes the

@@ -227,10 +227,14 @@ placeholders, and M9 replaces them.
 - [ ] **B3 Bear TPS:** Maul, Swipe, Mangle, Lacerate, its duties first by default (D26), tuned
 - [ ] **B4 Bear:** the Max TPS rotation (D26), and shipped
 
-## M5: Paladin 💤
+## M5: Paladin 🚧
 
-- Retribution DPS: seals, judgements, mana model
-- Protection TPS: Righteous Fury, Holy Shield, Reckoning, Consecration
+- [x] **C1 paladin foundation:** spells and the Holy school, seals, Judgement, Consecration,
+      Righteous Fury, talents, and mana on the druid's model
+      ([review](reviews/2026-09-23-paladin-foundation.md)). No paladin spec is offered yet.
+- [ ] **C2 Retribution DPS:** its rotation, mana potions and runes, tuned under D23, and shipped
+- [ ] **C3 Protection TPS:** Holy Shield, Reckoning, Redoubt, Consecration; duties first by
+      default and a Max TPS priority (D26), tuned, and shipped
 
 ## M6: Multi-target 💤
 
@@ -345,6 +349,9 @@ slice is worked:
   Heroic Strike from 90 beats off at every length (+0.1% to +2.2%); taking it needs a switch's
   default to follow the Fight tab's execute phase.
 - **Gnome Eureka! isn't simulated** (warrior Q18); the result says so.
+- **The paladin's mana plan** (`paladinManaPlan`) has no test pinning how mp5 and Reverence
+  feed the plan; the engine side is tested (CV3 in
+  [the paladin foundation's review](reviews/2026-09-23-paladin-foundation.md)).
 - **Bearweaving:** rage from damage taken divides by the maximum health of the form the fight
   started in, which only holds while no rotation shifts into bear to take hits. A cat that did
   would gain about 47% too much; divide by the current form's health first

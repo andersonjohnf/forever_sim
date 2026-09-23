@@ -312,6 +312,8 @@ slice is worked:
   - The character sheet shows only the main hand's crit, so Weaponmaster on an off-hand axe
     doesn't show there, though the sim applies it.
   - `Field`'s help text has no id, so it isn't in any control's `aria-describedby`.
+  - Bad input in a number field gives no feedback: "abc" reverts and 99999 clamps silently
+    (UX15).
   - Each arrow key press between the sticky section tabs scrolls the page up by about 360 px
     (390) or 420 px (1280), because the tabs lie inside the top scroll padding. Peeking at a tab
     without choosing it loses your place.

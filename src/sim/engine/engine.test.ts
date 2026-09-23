@@ -505,6 +505,10 @@ describe('golden run (fixed config and seed)', () => {
   //   aura groups, so those paths never run. Every spec's default, 60 s, no-execute and "Self only"
   //   setups, and Protection's Max TPS and Expose Armor ones, give whole results identical to main's
   //   (Fury, Arms' fights, the druids and the paladins) or the branch's (Protection).
+  // - P1 and P2 rebased onto main's M2.5b (Fury's tuned rotation): all three unchanged, re-run.
+  //   Protection's own potion line, Heroic Strike queue and pre-pull keep their conditions through
+  //   the shared code's changes, and the same identity probe gives Protection's whole results as
+  //   before the rebase, and Fury's and Arms' as main's once PU9 restored the Overpower assumption.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

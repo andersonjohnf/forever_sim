@@ -493,6 +493,11 @@ describe('golden run (fixed config and seed)', () => {
   //   still uses a charge. Damage-taken factors are floored at 0 (TA7), and nothing here comes near
   //   −100%. Avoidance placeholders are listed for tanks only (TA8), which changes the assumptions,
   //   not the fights.
+  // - P1 and P2 rebased onto main's druid foundation (B1): all three unchanged, re-run rather than
+  //   re-snapshotted. A warrior's rows all pay plain rage (`abPlainRage`) and its plan has no forms
+  //   or power tick, so the druid's paths (Energy, mana, combo points, Clearcasting, shapeshifts)
+  //   never run. The default and Max TPS Protection rotations on two seeds, and Fury and Arms, give
+  //   results identical to P2's branch over 2,000 fights each.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

@@ -179,3 +179,13 @@ Classic Era rows and are flagged, as D6 describes. Their Forever changes are mos
 percentages restated as ratings. The 16 new Forever items with no row in either client leave
 the pool until a client build ships them. We don't freeze their old foreverchanges values:
 the simpler dependency is worth that loss ([items.md](data/items.md)).
+
+### D18: Tank specs report TPS and DPS as equals (2026-09-22)
+Guild request: tank specs simulate both TPS and DPS. The engine already records damage and
+threat in every fight; the results now treat both as first-class for tank specs:
+- the headline shows TPS and DPS side by side, each with its ± 95% CI and its change from
+  the previous run
+- adaptive runs continue until **both** reach the precision target (D15), not just TPS
+- the per-ability breakdown switches between threat and damage
+
+DPS specs keep DPS as their one headline number.

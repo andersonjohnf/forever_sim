@@ -498,7 +498,7 @@ const REGISTRY = {
     docRef: `${RAGE}#bear-druid-rage`,
   },
   demoralizingRoar: {
-    text: 'Demoralizing Roar lowers the boss’s attack power by 204, its level-60 tooltip; whether combat applies all of it is untested. It rolls to hit as a spell does, and a roar that misses refunds 80% of its rage, as a warrior’s shout does in the sim; untested.',
+    text: 'Demoralizing Roar lowers the boss’s attack power by 204, its level-60 tooltip; whether combat applies all of it is untested. It rolls to hit as a spell does, and a roar that misses refunds 80% of its rage, as a missed melee ability does; untested.',
     docRef: `${DRUID}#45-other-bear-abilities`,
   },
   berserkMangle: {

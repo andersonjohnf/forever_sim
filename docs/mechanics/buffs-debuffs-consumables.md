@@ -681,6 +681,7 @@ and its Faerie Fire is free in Cat Form. So they're `Pal`, like Blessing of Wisd
 | Judgement of Wisdom | — | — | Pal | Pal |
 | Armor Shatter ×3 (Annihilator) | — | — | — | all |
 | Demoralizing Shout / Thunder Clap | — | — | — (a warrior tank's own: see below) | — |
+| Demoralizing Roar | — | — | Feral bear, in place of Demoralizing Shout (self-applied: [druid §6.3](../classes/druid.md#63-forever-bear-priority-tps)) | Feral bear |
 | Trueshot Aura, Hunter's Mark | never (no melee effect in Forever) | — | — | — |
 | Camp buffs ([§1.3](#13-camp-buffs-new-forever-system)) | — | off (option: fill in for a missing class) | off (option) | off (option) |
 | World buffs | **never** | **never** | **never** | **never** |

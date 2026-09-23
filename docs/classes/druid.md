@@ -588,7 +588,8 @@ are only the druid-specific numbers.
 `bear.test.ts`) each ability below is a row with the talents of §5 applied by `withDruidTalents`,
 and Rend and Tear (+2% a rank on the direct damage of Maul, Swipe, Mangle and Lacerate against a
 bleeding target, §5.1) by the bear's rotation builder. A bear attack that's missed, dodged or
-parried refunds 80% of its rage [?] ([rage.md](../mechanics/rage.md#rage-refunds-on-avoided-abilities)).
+parried refunds 80% of its rage, Swipe nothing (§4.4) [?]
+([rage.md](../mechanics/rage.md#rage-refunds-on-avoided-abilities)).
 The sim has one target, so Swipe's and Berserk's Mangle's extra targets add nothing.
 Clearcasting pays for Maul, Swipe, Mangle, Lacerate and Demoralizing Roar: 16870's class mask
 covers all five and leaves out Faerie Fire, which is free in form anyway [F] [client]

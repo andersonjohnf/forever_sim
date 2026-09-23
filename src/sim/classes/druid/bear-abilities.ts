@@ -162,8 +162,8 @@ export const FAERIE_FIRE_BEAR: AbilityDef = {
 /**
  * Demoralizing Roar rank 5 (spells.json 9898): 10 rage, GCD 1500; the boss's attack power −204 for
  * 30000 ms in `forever` (the level-60 tooltip; in combat, Q32 [?]), −138 in `classicEra` [F] [C]
- * (druid.md §4.5, W18). `DefenseType` Magic: it rolls spell hit, and refunds 80% when it misses, as
- * the warrior's Demoralizing Shout does [?]. Threat 39 [?]. Clearcasting's class mask covers it.
+ * (druid.md §4.5, W18). `DefenseType` Magic: it rolls spell hit, and refunds 80% when it misses, as a
+ * missed melee ability does [?]. Threat 39 [?]. Clearcasting's class mask covers it.
  * The aura is named after its Buffs entry, which the bear's upkeep replaces.
  */
 export function demoralizingRoar(profile: RulesProfile): AbilityDef {

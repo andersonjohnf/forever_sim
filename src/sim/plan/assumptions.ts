@@ -288,7 +288,7 @@ const REGISTRY = {
     docRef: `${DRUID}#27-omen-of-clarity-and-clearcasting`,
   },
   energyTicks: {
-    text: 'Energy comes 20 at a time every 2 s from a random start, up to 100, and you start the fight with 100; an ability that misses or is dodged refunds 80% of its Energy, a finisher nothing. Classic Era values, untested in Forever.',
+    text: 'Energy comes 20 every 2 s, as in Classic Era. The rest is untested: a cap of 100, a full bar at the pull, the first tick at a random moment in the first 2 s, and 80% of a builder’s Energy back when it misses or is dodged or parried (a finisher gets none back).',
     docRef: `${DRUID}#24-energy-cat`,
   },
   shapeshifts: {

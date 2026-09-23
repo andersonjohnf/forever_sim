@@ -47,6 +47,13 @@ describe('assumption groups', () => {
     expect(ids.slice(ids.indexOf('damageTakenRage'), ids.indexOf('damageTakenRage') + 3)).toEqual(['damageTakenRage', 'dpsDamageTaken', 'enrageTrigger'])
   })
 
+  it('puts a druid’s base values with your race and stats, beside the other base values', () => {
+    const { assumptions } = buildPlan(normalizeConfig(defaultConfig('druid-feral-cat')).config)
+    const groups = groupAssumptions(assumptions)
+    expect(groups.find((g) => g.items.some((i) => i.id === 'druidBaseStats'))!.group).toBe('character')
+    expect(ASSUMPTION_GROUP.druidBaseStats).toBe(ASSUMPTION_GROUP.unknownBaseAttributes)
+  })
+
   it('groups the default Fury setup’s assumptions without losing any', () => {
     const { assumptions } = buildPlan(normalizeConfig(defaultConfig('warrior-fury')).config)
     const grouped = groupAssumptions(assumptions)

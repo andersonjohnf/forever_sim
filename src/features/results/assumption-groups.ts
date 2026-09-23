@@ -54,6 +54,7 @@ export const ASSUMPTION_GROUP = {
   classicShieldBlockValue: 'gear',
   // Your race and stats.
   unknownBaseAttributes: 'character',
+  druidBaseStats: 'character',
   racialWeaponCrit: 'character',
   gnomeRage: 'character',
   cooldownRacial: 'character',
@@ -62,7 +63,6 @@ export const ASSUMPTION_GROUP = {
   // How the sim plays the class: rage, abilities and talents.
   whiteSwingsOnly: 'class',
   formWeapon: 'class',
-  druidBaseStats: 'class',
   omenOfClarity: 'class',
   energyTicks: 'class',
   bearWhiteRage: 'class',

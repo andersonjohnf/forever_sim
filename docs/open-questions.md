@@ -124,7 +124,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   moves cat DPS by up to about 1.5%, over D24's 1%; the AP's −20 is about 0.7% of cat DPS. The
   paladin's attributes are [C] (ClassicSim, pre-SoD; Undead derived with the [C] offset), and its
   base health 1,381, dodge 0.7%, melee crit 0.7% and spell crit 3.5% are D24 placeholders [?].
-  Base melee crit's sources conflict (0 to 1.7%), about 1–1.5% of Ret DPS. Also unknown for the
+  Base melee crit's sources conflict (0 to 1.7%): its likely error moves Ret DPS by
+  −0.62% to +0.92%. Also unknown for the
   paladin: base parry and block (5% [?]), and the AP term `160 + 2 × Str` [?]. The druid's spirit regen `15 + Spirit/5` per 2 s
   comes only from a secondary sim [?].
 - **Test:** standard naked sheet for a Human paladin, Dwarf paladin, Night Elf druid and Tauren

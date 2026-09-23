@@ -1053,8 +1053,9 @@ among its assumptions:
   **Sources conflict:** [RatingBuster][rb-vanilla] (pre-SoD, but its table copies the emulator's
   for most classes) gives 1.7%, and a second-hand report of a naked level-60 Human paladin showing
   about 3% crit ([Blizzard forums][bnet-base], 2020) implies about 0 (65 Agi × 0.0506 = 3.29%).
-  The spread, 0 to 1.7%, moves Ret DPS by about 1–1.5%, **above D24's ±1% line**: the Human
-  paladin sheet (OQ-1) should settle it first.
+  The likely error is the distance from 0.7% to either end, −0.7 to +1.0 points, and it moves
+  default Ret DPS by **−0.62% to +0.92%** (6,000 fights each way). That's within D24 rule 1's
+  line of about 1%, so the placeholder stands; the Human paladin sheet (OQ-1) settles it.
 - **Base spell crit 3.5%.** Origin: [RatingBuster][rb-vanilla] and [wowsims/classic][wsc-base];
   not evidence. It touches only the magic-class spells (Consecration, Exorcism): about 0.2–0.5% of
   Ret DPS against 0%.

@@ -206,7 +206,7 @@ export const BASE_PLACEHOLDERS: Record<ClassId, BasePlaceholders> = {
     baseHealth: 1381,
     /**
      * Base melee crit before Agility, % (OQ-3): origin the emulator via wowsims/classic. Sources
-     * conflict (0 to 1.7%), about 1–1.5% of Ret DPS, so measured first.
+     * conflict (0 to 1.7%); the likely error moves Ret DPS by −0.62% to +0.92%, within D24's 1%.
      */
     baseCrit: 0.7,
     /** Base spell crit before Intellect, % (OQ-3): origin RatingBuster and wowsims/classic. */

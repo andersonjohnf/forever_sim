@@ -259,6 +259,39 @@ Golden runs after the third pass:
 Versus the start of the review, Fury 684.2 → 673.8, Arms 630.7 → 610.7, Protection 219.1 → 217.0.
 Each change is explained in `src/sim/engine/engine.test.ts`.
 
+## Final verification of the third-pass fixes
+
+A fresh verifier checked `3951257` and `43f371f` and found nothing blocking: no wrong numbers,
+data loss, crashes, accessibility blockers or regressions.
+
+**Confirmed:**
+- lint ✓ · typecheck ✓ · unit ✓ (934) · e2e ✓ (154, 3 deferred to M3)
+- the Fury golden reproduces exactly (673.8 DPS, 409.0 TPS). Ironfoe from either hand would
+  give 692.7 (+2.8%; 691.3 against 673.2 over 40,000 fights)
+- Arms 610.7 DPS and Protection 217.0 TPS are unchanged
+- Weaponmaster adds exactly +5% crit to the axe's hand only, with no spell crit, while the
+  weapon racials still apply to every attack. Checked for Orc, Human and Troll under both
+  rule profiles
+- a waiting Undo survives everything that isn't a change (tab switches, a number field
+  focused without an edit, a run, a resize) and goes on a real change. Undo on a shared link
+  restores the previous spec and gear
+- the toast listeners are released when a toast is replaced, dismissed or times out
+- axe finds no violations on any tab at 390 and 1280 px, light and dark, with or without a
+  toast up
+
+| # | Severity | Finding | Disposition |
+| --- | --- | --- | --- |
+| FV1 | low | **The page's last control can't scroll clear of a waiting toast.** On a phone the footer's wago.tools link stays 41 of its 44 px under a toast that waits for Dismiss, because the page can't scroll further, so ux.md's "A toast never hides the focused control" isn't quite true. | fixed, `4a1cad3`: main's bottom padding grows to the toast's clearance. The new e2e test also found the same fault on desktop (60 px) and fails without the change at both widths |
+| FV2 | low | **iPad with a hardware keyboard:** Enter after typing in the talent paste dialog gives a 10 s toast with no Option+T hint, because touch is detected by `(pointer: coarse)` alone. | deferred: a hardware keyboard on a touch screen is rare, and the toast's Undo still works for 10 s by touch and by Option+T. The fix is per-event input modality, a small design change of its own. Listed in the milestones' known gaps |
+| FV3 | low | **Integer fields ignore locale separators:** "5.000" in Number of fights gives 100 (read as 5, raised to the minimum), and "5 000" is ignored. Predates these commits. | deferred: it needs one parsing rule for every integer field that reads grouping separators without mistaking "1.5" for 15. The field shows the value it took, so nothing changes unseen. Listed in the known gaps |
+| FV4 | low | **The Ironfoe assumption doesn't say that "its own hits" is itself unconfirmed,** a reading worth about 2.7% of Fury DPS. | fixed, `d8d76c3`: the text says both the chance and the hand reading are unmeasured ([?] C37) |
+| FV5 | low | **The character sheet shows only the main hand's crit,** so Weaponmaster's +5% on an off-hand axe doesn't appear there. | deferred, documented: the sim applies it. A per-hand crit line belongs with the sheet's off-hand stats. Listed in the known gaps |
+| FV6 | low | **The help under "Number of fights" isn't announced with the field** (not in `aria-describedby`). Seed and the other fields have the same older pattern. | deferred: `Field` never gives its help an id, so this is an app-wide pattern rather than one field, and it predates the review. The help is visible and is read in order right after the control. Listed in the known gaps |
+| FV7 | low | **Arrowing between the section tabs scrolls the page to the top** when scrolled down, because the sticky tabs lie inside the page's top scroll padding. Predates these commits. | deferred: choosing a tab starts its section at the top anyway, so only the jump while arrowing is lost. A fix has to keep focus clear of the sticky header for every other control. Listed in the known gaps |
+
+**Post-verification commits:** FV4's copy (`d8d76c3`) and FV1's fix (`4a1cad3`) are changes
+after the last review, so a fresh reviewer checks both before the push (below).
+
 ## Verdict
 
-Ready to push: not yet. The logic and UX fixes are open.
+Ready to push: not yet. `d8d76c3` and `4a1cad3` await their independent review.

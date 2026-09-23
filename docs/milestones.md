@@ -122,31 +122,28 @@ work is in slices:
 
 ## Session handoff (2026-09-23)
 
-State: `main` is green (lint, typecheck, 909 unit, 91 e2e with 3 deferred to M3). Nothing is
+State: `main` is green (lint, typecheck, 934 unit, 156 e2e with 3 deferred to M3). Nothing is
 pushed. Fury and Arms are available.
 
-**Review gate for the first release**, in
+**The review gate for the first release is complete**, in
 [reviews/2026-09-23-first-release.md](reviews/2026-09-23-first-release.md):
-- First pass: 38 logic and 34 UX findings, all fixed, with commits in "Fix commits".
-- Second pass (a review of the fixes): 10 logic (RL) and 17 UX (RU) findings, logged; fixes
-  in flight.
+- **First pass:** 38 logic and 34 UX findings.
+- **Second pass** (a review of the fixes): 10 logic and 17 UX findings.
+- **Third pass:** 6 logic and 12 UX findings.
+- All of those are fixed.
+- **Final verification:** nothing blocking. Of its 7 polish findings, 2 are fixed and 5 are
+  deferred with reasons (listed under known gaps below).
 
-**In flight** (one agent per slice, each in a `.claude/worktrees/` worktree, uncommitted until
-the lead verifies):
-- **R-logic** (RL1–RL7, RL9, RL10): Ironfoe's Forever proc is the big one. It moves the
-  Fury golden.
-- **R-UX-a:** app shell, results, gear picker and focus.
-- **R-UX-b:** setup screens, RL3's help copy, and RL8.
+Golden runs: Fury 673.8 DPS, Arms 610.7 DPS, Protection 217.0 TPS.
 
-**Then:**
-1. Verify each slice, cherry-pick it onto `main`, and resolve conflicts (the golden snapshot,
-   docs).
-2. Fill in the second-pass dispositions and set the verdict. A further review pass is needed
-   only if the fixes are large.
-3. Push only when the user asks.
+**Next:**
+1. **M2.4d:** push when the user asks, then check the Pages deploy.
+2. **M3 Protection**, in a fresh session. Enable the 3 `test.fixme` tests in
+   `e2e/tank-results.spec.ts` when Protection ships.
 
-**Open decision for the user:** whether Arms defaults follow the tuning findings (Heroic
-Strike 55, the Whirlwind dance, Spearing Strike 40, Rend refresh 3 s).
+**Open decision for the user:** whether the Arms defaults follow the tuning findings (Heroic
+Strike 55, the Whirlwind dance, Spearing Strike 40, Rend refresh 3 s). They were measured
+before the review moved Arms from 630.7 to 610.7, so re-measure them before deciding.
 
 ## M3: Warrior Protection (TPS) 💤
 
@@ -205,7 +202,8 @@ slice is worked:
   `--click "Show results"` opens the phone's results sheet.
 - **Arms tuning findings** (20,000 fights, default setup, 630 DPS): Heroic Strike from 55 rage
   gives 638 (+1.2%), the Whirlwind dance 635, and Spearing Strike from 40 rage 634. The
-  documented defaults stay for now; see warrior.md §5.3's notes.
+  documented defaults stay for now; see warrior.md §5.3's notes. They predate the
+  first-release review (Arms is now 610.7), so re-measure before changing the defaults.
 - **Gnome Eureka! isn't simulated** (warrior Q18); the result says so.
 - **Multi-target isn't simulated.** The Fight tab's Enemies control is hidden until it is;
   `extraTargets` stays in the config ([encounter.md §4](mechanics/encounter.md)).
@@ -214,7 +212,20 @@ slice is worked:
   to stat-50 bonus armor is open (M4). Fallback shields carry `classicShieldBlockValue`,
   and Forever shields have no innate block value in the client (M3).
 - **Pushes:** nothing has been pushed yet; `origin/main` is still the first commit. The first
-  push happens at M2.4, after the full review gate.
+  push is M2.4d; the review gate before it is complete.
+- **Deferred from the first-release review** (FV2, FV3, FV5, FV6, FV7 in
+  [its log](reviews/2026-09-23-first-release.md#final-verification-of-the-third-pass-fixes)):
+  - Touch is detected by `(pointer: coarse)` alone, so a touch screen with a hardware keyboard
+    gets no Option+T hint and a 10 s toast.
+    - The fix is per-event input modality.
+  - Integer fields don't read locale separators: "5.000" becomes 5 and then the minimum, and
+    "5 000" is ignored.
+    - The fix needs one parsing rule for every integer field.
+  - The character sheet shows only the main hand's crit, so Weaponmaster on an off-hand axe
+    doesn't show there, though the sim applies it.
+  - `Field`'s help text has no id, so it isn't in any control's `aria-describedby`.
+  - Arrowing between the sticky section tabs scrolls the page to the top, because the tabs lie
+    inside the top scroll padding.
 
 ## Later
 

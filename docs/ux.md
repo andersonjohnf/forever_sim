@@ -513,13 +513,15 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
     anything is replaced: "Saves over “Raid night” · Arms Warrior · 22 Sep, 20:15". It's a polite
     live region, and it describes the field. **Save** reads **Replace**, and replacing keeps the
     save's place in the list, takes the name as typed, and says "Replaced “Raid night”". Otherwise
-    the notice says "Saved “Raid night”".
-- **The list**, newest first: each save's name (up to two lines, then an ellipsis), its spec's
-  icon and name in the class colour, and when it was saved ("23 Sep, 14:05", or "19 Aug 2025"
-  from another year). On a phone a row's **Load**, **Rename** and **Delete** sit under its name,
-  with their words; on wider screens they sit on its right, Rename and Delete as icons. Each is
-  44 px, and its accessible name adds the save's ("Load Raid night"). A line above the list says
-  "Loading one switches to its spec and replaces your setup for that spec."
+    the notice says "Saved “Raid night”". The button is as wide as "Replace" either way, so the
+    field doesn't narrow as you type.
+- **The list**, newest first, except just after a file's import (below): each save's name (up to
+  two lines, then an ellipsis), its spec's icon and name in the class colour, and when it was
+  saved ("23 Sep, 14:05", or "19 Aug 2025" from another year). On a phone a row's **Load**,
+  **Rename** and **Delete** sit under its name, with their words; on wider screens they sit on its
+  right, Rename and Delete as icons. Each is 44 px, and its accessible name adds the save's ("Load
+  Raid night"). A line above the list says "Loading one switches to its spec and replaces your
+  setup for that spec."
 - **Load** replaces the current setup, switching to its spec if needed, with no prompt. Your
   setup for the spec you were on is kept, as switching spec does. The sheet closes, and a notice
   says "Loaded “Raid night”", whose setup it replaced and the spec it switched to ("It replaced
@@ -547,7 +549,10 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
     any browser to get this exact setup.", or that the browser refused the clipboard and how to
     allow it, in the error colour; "Downloaded forever-sim-setups-2026-09-23.json. It holds the
     current setup and 3 saved setups.", or the current setup only because the saves couldn't be
-    read. Saying the same again is a new line, so it's read out again.
+    read. Saves the list doesn't show (for a spec the sim doesn't offer, from a newer version, or
+    unreadable) are counted apart, so the numbers agree with the list: "… and 8 saved setups (2
+    not shown here).", or "(not shown here)" when none is. Saying the same again is a new line, so
+    it's read out again.
 - **Import:** its line says "A code or a share link switches to its spec and replaces your setup
   for that spec. A file from Download all setups adds its setups to your saved ones."
   - **Setup code or share link** takes a code, or anything with `#s=…`: a share link, with other
@@ -571,9 +576,10 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
     id. The file's current setup is added too, as "Imported · 23 Sep", unless a save has it
     already; a file with none (no `current`, or `null`) adds its saves alone. A notice says
     "Imported 3 setups" (or "Nothing new to import"), and how many were saved already, couldn't be
-    read, or are kept but not shown. The sheet stays open, with focus on
-    the list's heading, so the list is in view, and the rows it added are marked **New** until the
-    sheet closes.
+    read, or are kept but not shown. The sheet stays open, with focus on the list's heading, so the
+    list is in view. Until the sheet closes, the rows it added come first, whatever their dates,
+    marked **New**, and a line under the heading says so: "The 3 setups you just imported come
+    first, marked New." It describes the heading, so it's read out with it.
   - A file that can't be used gets its reason under the button, which it describes, with no
     notice: not a Forever Sim setups file; from a newer version; damaged (one that names the app
     but doesn't parse, such as a download cut short, is damaged, not someone else's); empty; too

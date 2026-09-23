@@ -252,6 +252,70 @@ for (const [label, device] of [
       await expectSetup(page, 'Fury', /Troll/)
     })
 
+    // VF9: Download counted saves the list doesn't show, so its line said 4 where the list showed 2.
+    test('download’s line counts the saves the list doesn’t show apart', async ({ page }) => {
+      await seed(page, [
+        entry('beta', 'Beta', { version: 1, spec: 'warrior-arms' }, 5),
+        entry('alpha', 'Alpha', { version: 1, spec: 'warrior-fury' }, 10),
+        // For a spec the sim doesn't offer yet, and one that can't be read (no name).
+        entry('bear', 'Bear', { version: 1, spec: 'druid-feral-bear' }, 15),
+        { id: 'broken', savedAt: new Date().toISOString(), config: { version: 1, spec: 'warrior-fury' } },
+      ])
+      await page.goto('./')
+      const sheet = await openSetups(page)
+      await expect(sheet.getByRole('listitem')).toHaveCount(2)
+      const downloading = page.waitForEvent('download')
+      await sheet.getByRole('button', { name: 'Download all setups' }).click()
+      const download = await downloading
+      await expect(exportStatus(sheet)).toHaveText(`Downloaded ${download.suggestedFilename()}. It holds the current setup and 4 saved setups (2 not shown here).`)
+      const file = JSON.parse(readFileSync(await download.path(), 'utf8'))
+      expect(file.setups).toHaveLength(4)
+    })
+
+    // VF7: the rows a file added sorted by their own dates, so older ones landed below the fold,
+    // away from the list's heading, where focus goes. VF10: `"current": null` counted as a setup
+    // that couldn't be read.
+    test('a file’s setups come first in the list, marked New, under the heading focus goes to', async ({ page }) => {
+      await seed(
+        page,
+        ['One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight'].map((name, i) => entry(name.toLowerCase(), name, { version: 1, spec: 'warrior-fury' }, i)),
+      )
+      await page.goto('./')
+      const sheet = await openSetups(page)
+      const lastYear = (days: number) => new Date(Date.now() - (365 + days) * 86_400_000).toISOString()
+      await openFile(
+        sheet,
+        jsonFile({
+          app: 'forever-sim',
+          version: 1,
+          exportedAt: lastYear(0),
+          current: null,
+          setups: [
+            { id: 'old-arms', name: 'Old Arms', savedAt: lastYear(1), config: { version: 1, spec: 'warrior-arms' } },
+            { id: 'old-fury', name: 'Old Fury', savedAt: lastYear(2), config: { version: 1, spec: 'warrior-fury', race: 'horde-orc' } },
+          ],
+        }),
+      )
+      const notice = toast(page, 'Imported 2 setups')
+      await expect(notice).toBeVisible()
+      await expect(notice).not.toContainText('couldn’t be read')
+      const heading = sheet.getByRole('heading', { name: 'Saved setups' })
+      await expect(heading).toBeFocused()
+      await expect(heading).toHaveAccessibleDescription('The 2 setups you just imported come first, marked New.')
+      const rows = sheet.getByRole('listitem')
+      await expect(rows).toHaveCount(10)
+      await expect(rows.nth(0)).toHaveText(/^Old ArmsNewArms Warrior/)
+      await expect(rows.nth(1)).toHaveText(/^Old FuryNewFury Warrior/)
+      await expect(rows.nth(2)).toHaveText(/^OneFury Warrior/)
+      await expect(rows.nth(0)).toBeInViewport({ ratio: 1 })
+      // Until the sheet closes: then the list is newest first again, with nothing marked.
+      await closeSetups(page)
+      await openSetups(page)
+      await expect(rows.nth(0)).toHaveText(/^OneFury Warrior/)
+      await expect(rows.last()).toHaveText(/^Old FuryFury Warrior/)
+      await expect(sheet.getByText('you just imported')).toHaveCount(0)
+    })
+
     // LX2: a save renamed on the way in ("Raid night (2)") came in again with each import of the file.
     test('a file whose save took a number on the way in adds nothing the second time', async ({ page }) => {
       await seed(page, [entry('mine', 'Raid night', { version: 1, spec: 'warrior-fury' }, 5)])
@@ -265,7 +329,8 @@ for (const [label, device] of [
       })
       await openFile(sheet, file)
       await expect(toast(page, 'Imported 1 setup')).toBeVisible()
-      await expect(sheet.getByRole('listitem')).toHaveText([/^Raid nightFury Warrior/, /^Raid night \(2\)NewArms Warrior/])
+      // The file's save comes first while the sheet is open, though it's older.
+      await expect(sheet.getByRole('listitem')).toHaveText([/^Raid night \(2\)NewArms Warrior/, /^Raid nightFury Warrior/])
       await openFile(sheet, file, 'keyboard')
       await expect(toast(page, 'Nothing new to import')).toBeVisible()
       await expect(sheet.getByRole('listitem')).toHaveCount(2)

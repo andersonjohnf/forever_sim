@@ -111,11 +111,15 @@ for (const [label, device] of [
       await expect(field).toHaveValue(`${today} (2)`)
 
       // Typing a saved name (case doesn't count) says which save it is, and Save becomes Replace.
+      // VF8: the button is as wide as "Replace" either way, so the field doesn't narrow as you type.
+      const width = async () => (await field.boundingBox())!.width
+      const before = await width()
       await field.fill(today.toUpperCase())
       const clash = new RegExp(`^Saves over “${today}” · Fury Warrior · \\d{1,2} [A-Z][a-z]{2}, \\d{2}:\\d{2}$`)
       await expect(sheet.getByRole('status').filter({ hasText: 'Saves over' })).toHaveText(clash)
       await expect(field).toHaveAccessibleDescription(clash)
       await expect(sheet.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0)
+      expect(await width()).toBe(before)
       await sheet.getByRole('button', { name: 'Replace', exact: true }).click()
       await expect(toast(page, `Replaced “${today.toUpperCase()}”`)).toBeVisible()
       await expect(sheet.getByRole('listitem')).toHaveCount(1)

@@ -85,13 +85,17 @@ export function ExportSection() {
     const { setups, unreadable, problem } = readStoredSetups()
     const name = setupsFileName(now)
     downloadText(name, serializeSetupsFile(buildSetupsFile(useSetup.getState().config, setups, now, unreadable)), 'application/json')
-    // Said, since the browser may show nothing of it, and to say what it holds.
+    // Said, since the browser may show nothing of it, and to say what it holds. Saves the list
+    // doesn't show (for a spec the sim doesn't offer, from a newer version, or unreadable) are
+    // counted apart, so the numbers agree with the list.
     const saves = setups.length + unreadable.length
+    const notShown = saves - setups.filter(isShown).length
+    const apart = notShown === 0 ? '' : notShown === saves ? ' (not shown here)' : ` (${notShown} not shown here)`
     const holds = problem
       ? 'the current setup only: your saved setups couldn’t be read.'
       : saves === 0
         ? 'the current setup.'
-        : `the current setup and ${count(saves, 'saved setup', 'saved setups')}.`
+        : `the current setup and ${count(saves, 'saved setup', 'saved setups')}${apart}.`
     say(`Downloaded ${name}. It holds ${holds}`)
   }
 

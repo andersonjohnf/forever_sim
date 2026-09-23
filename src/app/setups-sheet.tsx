@@ -126,7 +126,7 @@ function SetupsBody({ onLoaded }: { onLoaded: () => void }) {
   const [draft, setDraft] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState<Pending>(null)
-  // The saves a file's import added, marked "New" until the sheet closes.
+  // The saves a file's import added, marked "New" and listed first until the sheet closes.
   const [added, setAdded] = useState<ReadonlySet<string>>(() => new Set())
   const nameRef = useRef<HTMLInputElement>(null)
   const listHeadingRef = useRef<HTMLHeadingElement>(null)
@@ -134,6 +134,11 @@ function SetupsBody({ onLoaded }: { onLoaded: () => void }) {
   const errorId = useId()
   const clashId = useId()
   const listHeadingId = useId()
+  const newLineId = useId()
+  // A file's setups come first until the sheet closes, whatever their dates, so they're in view
+  // under the list's heading, where focus goes after the import.
+  const ordered = added.size === 0 ? setups : [...setups.filter((s) => added.has(s.id)), ...setups.filter((s) => !added.has(s.id))]
+  const newCount = setups.filter((s) => added.has(s.id)).length
   const suggested = uniqueName(`${meta.name} ${meta.className} · ${formatDay(new Date())}`, setups)
   const name = draft ?? suggested
   // The save this name would save over, if one has it (case and extra spaces don't count, as for
@@ -215,8 +220,8 @@ function SetupsBody({ onLoaded }: { onLoaded: () => void }) {
     // Focus moves to the next row's Delete, or the one before if this was the last, or the list's
     // heading once the list is empty, so it never falls to the page (and a phone's keyboard stays
     // down, as it wouldn't in the name field).
-    const index = setups.findIndex((s) => s.id === setup.id)
-    const neighbour = setups[index + 1] ?? setups[index - 1]
+    const index = ordered.findIndex((s) => s.id === setup.id)
+    const neighbour = ordered[index + 1] ?? ordered[index - 1]
     let result: ReturnType<typeof deleteFromStorage> | undefined
     changeAndFocus(
       () => {
@@ -255,8 +260,17 @@ function SetupsBody({ onLoaded }: { onLoaded: () => void }) {
             aria-describedby={error ? errorId : clash ? clashId : undefined}
             className="h-11 min-w-0 flex-1"
           />
+          {/*
+           * As wide as "Replace" whichever it says, so the field doesn't narrow as a typed name
+           * comes to match a save: the hidden word sizes it, and isn't part of its name.
+           */}
           <Button type="submit" className="h-11 px-4">
-            {clash ? 'Replace' : 'Save'}
+            <span className="grid justify-items-center">
+              <span className="invisible col-start-1 row-start-1" aria-hidden>
+                Replace
+              </span>
+              <span className="col-start-1 row-start-1">{clash ? 'Replace' : 'Save'}</span>
+            </span>
           </Button>
         </div>
         {error && (
@@ -276,10 +290,22 @@ function SetupsBody({ onLoaded }: { onLoaded: () => void }) {
            * A file's import, or deleting the last save, brings focus here, to the list (tabIndex -1:
            * not a tab stop).
            */}
-          <h3 ref={listHeadingRef} id={listHeadingId} tabIndex={-1} className="scroll-mt-4 font-medium outline-none">
+          <h3
+            ref={listHeadingRef}
+            id={listHeadingId}
+            tabIndex={-1}
+            aria-describedby={newCount > 0 ? newLineId : undefined}
+            className="scroll-mt-4 font-medium outline-none"
+          >
             Saved setups
           </h3>
           {setups.length > 0 && <p className="text-sm text-muted-foreground">Loading one switches to its spec and replaces your setup for that spec.</p>}
+          {/* Why the list isn't newest first for now; read with the heading, which focus comes to. */}
+          {newCount > 0 && (
+            <p id={newLineId} className="text-sm text-muted-foreground">
+              {newCount === 1 ? 'The setup you just imported comes first, marked New.' : `The ${newCount} setups you just imported come first, marked New.`}
+            </p>
+          )}
         </div>
         {problem === 'blocked' ? (
           <EmptyState title="Saved setups aren’t available">
@@ -298,7 +324,7 @@ function SetupsBody({ onLoaded }: { onLoaded: () => void }) {
           </EmptyState>
         ) : (
           <ul className="flex flex-col divide-y">
-            {setups.map((setup) => (
+            {ordered.map((setup) => (
               <SetupRow
                 key={setup.id}
                 setup={setup}
@@ -321,10 +347,13 @@ function SetupsBody({ onLoaded }: { onLoaded: () => void }) {
       <ExportSection />
       <ImportSection
         onImported={onLoaded}
-        onFileImported={(ids) => {
-          setAdded((before) => new Set([...before, ...ids]))
-          listHeadingRef.current?.focus()
-        }}
+        onFileImported={(ids) =>
+          // Rendered first, so the heading takes focus with its line about the new rows.
+          changeAndFocus(
+            () => setAdded((before) => new Set([...before, ...ids])),
+            () => listHeadingRef.current,
+          )
+        }
         sayStorageProblem={(problem) => sayStorageProblem(problem, 'Couldn’t import the setups', 'import')}
       />
     </div>

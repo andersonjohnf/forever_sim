@@ -172,3 +172,10 @@ What we give up:
 
 Research docs may keep citing foreverchanges pages as historical sources until each claim is
 confirmed against client data.
+
+**Confirmed for items (2026-09-22, M1.5c).** About 50 items exist in Forever only as server
+hotfix rows, which raw client files lack. The 34 of them that exist in Classic Era use their
+Classic Era rows and are flagged, as D6 describes. Their Forever changes are mostly Classic
+percentages restated as ratings. The 16 new Forever items with no row in either client leave
+the pool until a client build ships them. We don't freeze their old foreverchanges values:
+the simpler dependency is worth that loss ([items.md](data/items.md)).

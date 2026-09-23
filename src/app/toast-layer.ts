@@ -47,13 +47,16 @@ export function leaveToasts() {
  * Scrolls keyboard focus into view, e.g. once a toast hands it back or grows over it
  * (docs/ux.md#persistence-and-sharing). block: 'nearest', so the scroll padding keeps it clear of
  * the toasts, the sticky header and the phone's bar (src/index.css), and a control already clear
- * of them doesn't move. `when` gets the control's box and can rule it out. Only keyboard focus
- * (:focus-visible) outside the toasts: after a tap or click the page doesn't scroll by itself.
- * Focus stays where it is.
+ * of them doesn't move. `when` gets the control's box and can rule it out. Focus stays where it
+ * is.
+ *
+ * Only keyboard focus outside the toasts: after a tap or click the page doesn't scroll by itself.
+ * That takes both the last input being a key press and :focus-visible, which Chromium matches on
+ * any focused text field, even one just clicked.
  */
 export function revealFocus(when: (box: DOMRect) => boolean = () => true) {
   const focused = document.activeElement
-  if (!(focused instanceof HTMLElement) || focused === document.body || focused.closest(TOASTER)) return
+  if (!keyboard || !(focused instanceof HTMLElement) || focused === document.body || focused.closest(TOASTER)) return
   if (focused.matches(':focus-visible') && when(focused.getBoundingClientRect())) focused.scrollIntoView({ block: 'nearest' })
 }
 

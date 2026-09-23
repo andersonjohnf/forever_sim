@@ -1,15 +1,40 @@
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // docs/ux.md#persistence-and-sharing: a toast never hides the focused control. A waiting toast
 // clears every control in a sheet or drawer, not just on the page (PV1); only a waiting toast
 // grows the bottom padding, so nothing moves when a 10 s toast goes (PV5); focus a toast hands
-// back is scrolled into view (PV6); and focus a toast grows over scrolls clear of it (PV7).
+// back is scrolled into view (PV6); focus a toast grows over scrolls clear of it (PV7); and
+// neither scrolls anything after a click (QV4).
 
 const PHONE = { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }
 const DESKTOP = { viewport: { width: 1280, height: 900 } }
 
 const toasts = (page: Page) => page.locator('[data-sonner-toast]')
+
+/** Waits `n` animation frames, so the toaster has measured whatever just changed. */
+const frames = (page: Page, n = 2) =>
+  page.evaluate(
+    (n) =>
+      new Promise<void>((resolve) => {
+        const step = (left: number) => (left === 0 ? resolve() : requestAnimationFrame(() => step(left - 1)))
+        step(n)
+      }),
+    n,
+  )
+
+/** Scrolls the page so `target`'s bottom edge rests `gap` px above the top of the toasts (under it, if negative). */
+async function restAboveToasts(target: Locator, gap: number) {
+  // How far it is from resting there.
+  const off = () =>
+    target.evaluate((el, gap) => {
+      const top = Math.min(...[...document.querySelectorAll("[data-sonner-toast][data-removed='false']")].map((t) => t.getBoundingClientRect().top))
+      return el.getBoundingClientRect().bottom - (top - gap)
+    }, gap)
+  const by = await off()
+  await target.page().evaluate((by) => window.scrollBy(0, by), by)
+  expect(Math.abs(await off()), 'the page scrolls far enough').toBeLessThan(1)
+}
 
 /** Chooses a Gear menu item with the keyboard, so its toast waits for Dismiss. */
 async function gearMenuByKeyboard(page: Page, item: 'Remove all gear' | 'Equip pre-raid best in slot') {
@@ -33,6 +58,20 @@ async function waitingToast(page: Page, item: 'Remove all gear' | 'Equip pre-rai
   await expect(toast).toBeVisible()
   await settled(page)
   return toast
+}
+
+/**
+ * Raises a 10 s toast shorter than a waiting one, and waits for it to slide in: Enter on a talent
+ * when every point is spent says so.
+ */
+async function talentRefusal(page: Page) {
+  await page.getByRole('tab', { name: 'Talents', exact: true }).click()
+  await page.getByRole('button', { name: /, 0 of \d+$/ }).first().focus()
+  await page.keyboard.press('Enter')
+  const refusal = toasts(page).filter({ hasText: 'points are spent' })
+  await expect(refusal).toBeVisible()
+  await settled(page)
+  return refusal
 }
 
 /** Waits until no toast is moving. */
@@ -241,22 +280,12 @@ for (const [name, device] of [
       await page.clock.install()
       await page.goto('./')
       const waiting = await waitingToast(page)
-      // A shorter 10 s toast in front of it: Enter on a talent when every point is spent says so.
-      await page.getByRole('tab', { name: 'Talents', exact: true }).click()
-      await page.getByRole('button', { name: /, 0 of \d+$/ }).first().focus()
-      await page.keyboard.press('Enter')
-      const refusal = toasts(page).filter({ hasText: 'points are spent' })
-      await expect(refusal).toBeVisible()
-      await settled(page)
+      const refusal = await talentRefusal(page)
 
       // The footer's link, focused from the keyboard and just clear of the stack.
       const link = page.getByRole('link', { name: 'wago.tools' })
       await link.focus()
-      await page.evaluate(() => {
-        const box = document.activeElement!.getBoundingClientRect()
-        const top = Math.min(...[...document.querySelectorAll("[data-sonner-toast][data-removed='false']")].map((t) => t.getBoundingClientRect().top))
-        window.scrollBy(0, box.bottom - (top - 2))
-      })
+      await restAboveToasts(link, 2)
       expect(await covered(page)).toBe(0)
       const before = await page.evaluate(() => window.scrollY)
 
@@ -269,6 +298,32 @@ for (const [name, device] of [
       await expect(link).toBeFocused()
       expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(before)
       await expect(waiting).toBeVisible()
+    })
+
+    test('after a click, a toast that hands focus back scrolls nothing, even to a text field (QV4)', async ({ page }) => {
+      await page.goto('./')
+      await gearMenuByPointer(page, 'Remove all gear')
+      const toast = toasts(page).filter({ hasText: 'All gear removed' })
+      await expect(toast.getByRole('button', { name: 'Undo' })).toBeVisible()
+      await page.getByRole('tab', { name: 'Fight', exact: true }).click()
+      await page.getByRole('button', { name: 'Advanced', exact: true }).click()
+      await settled(page)
+
+      // Seed, partly under the toast, clicked where it's clear of it. Chromium counts any focused
+      // text field as :focus-visible, however it was focused.
+      const seed = page.getByRole('textbox', { name: 'Random seed' })
+      await restAboveToasts(seed, -12)
+      const box = (await seed.boundingBox())!
+      await page.mouse.click(box.x + box.width / 2, box.y + 8)
+      await expect(seed).toBeFocused()
+      expect(await covered(page)).toBeGreaterThan(0)
+      const before = await page.evaluate(() => window.scrollY)
+
+      await toast.getByRole('button', { name: 'Undo' }).click()
+      await expect(toast).toHaveCount(0)
+      await expect(seed).toBeFocused()
+      await frames(page)
+      expect(await page.evaluate(() => window.scrollY)).toBe(before)
     })
   })
 }

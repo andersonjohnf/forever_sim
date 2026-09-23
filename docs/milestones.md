@@ -120,7 +120,7 @@ work is in slices:
         on every screen at 390 and 1280 px, light and dark. Findings logged and resolved.
   - [x] **M2.4e Number fields** (RV1, RV7): the field shows the plain number while you edit
         it and its separators once you leave, and half steps snap evenly.
-  - [ ] **M2.4f Remove Undo**
+  - [x] **M2.4f Remove Undo**
         ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)):
         changes happen without an Undo toast. Toasts become plain notices that go after
         10 s, and the waiting toasts go, with the code that made room for them (RV2–RV6).
@@ -305,12 +305,8 @@ slice is worked:
   and Forever shields have no innate block value in the client (M3).
 - **Pushes:** nothing has been pushed yet; `origin/main` is still the first commit. The first
   push is M2.4j, once the review log's verdict says "Ready to push: yes".
-- **Deferred from the first-release review** (FV2, FV5, FV6, FV7 in
+- **Deferred from the first-release review** (FV5, FV6, FV7 in
   [its log](reviews/2026-09-23-first-release.md#final-verification-of-the-third-pass-fixes)):
-  - Touch is detected by `(pointer: coarse)` alone, so on a touch screen with a hardware
-    keyboard, Enter after typing in a text field (the talent paste dialog) gives a toast with
-    no Option+T hint that goes in 10 s.
-    - The fix is per-event input modality.
   - The character sheet shows only the main hand's crit, so Weaponmaster on an off-hand axe
     doesn't show there, though the sim applies it.
   - `Field`'s help text has no id, so it isn't in any control's `aria-describedby`.

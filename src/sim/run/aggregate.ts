@@ -3,7 +3,7 @@ import { ci95, combine, emptyMoments, type Moments, stdev } from '../core/welfor
 import type { ChunkResult } from '../engine/chunk'
 import { BOSS_OUTCOME, BOSS_OUTCOME_COUNT, FIELD, FIELD_COUNT } from '../engine/sim'
 import type { Plan, PlanBundle } from '../plan/types'
-import type { AbilityResult, BossOutcomes, CooldownResult, ManaResult, SimResult, Summary, TankResult } from '../types'
+import type { AbilityResult, BossOutcomes, CooldownResult, ManaRestored, ManaResult, SimResult, Summary, TankResult } from '../types'
 
 export interface Aggregate {
   fights: number
@@ -21,6 +21,8 @@ export interface Aggregate {
   manaSpentTenths: number
   manaGainedTenths: number
   manaRegenTenths: number
+  /** Mana gained per source row, tenths (Sim.manaBySource). */
+  manaBySource: Float64Array
   /** Health lost per second to hits taken, per fight (the tank results' damage taken). */
   damageTaken: Moments
   /** The boss's swings by outcome, over every fight merged (Sim.bossOutcomes). */
@@ -40,6 +42,7 @@ export const emptyAggregate = (sources: number, auras = 0): Aggregate => ({
   manaSpentTenths: 0,
   manaGainedTenths: 0,
   manaRegenTenths: 0,
+  manaBySource: new Float64Array(sources),
   damageTaken: emptyMoments(),
   bossOutcomes: new Float64Array(BOSS_OUTCOME_COUNT),
 })
@@ -54,6 +57,8 @@ export function mergeChunk(agg: Aggregate, chunk: ChunkResult): Aggregate {
   for (let i = 0; i < auraApplications.length; i++) auraApplications[i] += chunk.auraApplications[i]
   const bossOutcomes = agg.bossOutcomes
   for (let i = 0; i < bossOutcomes.length; i++) bossOutcomes[i] += chunk.bossOutcomes[i]
+  const manaBySource = agg.manaBySource
+  for (let i = 0; i < manaBySource.length; i++) manaBySource[i] += chunk.manaBySource[i]
   return {
     fights: agg.fights + chunk.fights,
     dps: combine(agg.dps, chunk.dps),
@@ -67,6 +72,7 @@ export function mergeChunk(agg: Aggregate, chunk: ChunkResult): Aggregate {
     manaSpentTenths: agg.manaSpentTenths + chunk.manaSpentTenths,
     manaGainedTenths: agg.manaGainedTenths + chunk.manaGainedTenths,
     manaRegenTenths: agg.manaRegenTenths + chunk.manaRegenTenths,
+    manaBySource,
     damageTaken: combine(agg.damageTaken, chunk.damageTaken),
     bossOutcomes,
   }
@@ -88,18 +94,21 @@ export function cooldownResults(plan: Plan, agg: Aggregate): CooldownResult[] {
   const c = agg.counters
   const rows: CooldownResult[] = []
   const shown = new Set<number>()
-  for (const ability of plan.abilities) {
+  const prepull = new Set(plan.prepull.casts.map((p) => p.ability))
+  for (const [index, ability] of plan.abilities.entries()) {
     // An attack that also bleeds (Rake) has its bleed's marker too (druid.md §3.3).
     if ((ability.kind === 'bleed' || ability.dotSource !== undefined) && ability.aura >= 0) shown.add(ability.aura)
     // A druid's shapeshift is listed like a cast: its casts per fight, no buff (druid.md §2.8).
     if (ability.kind !== 'cast' && ability.kind !== 'shift') continue
     if (ability.aura >= 0) shown.add(ability.aura)
+    const uptime = ability.aura >= 0 ? uptimePct(agg, ability.aura) : null
     rows.push({
       id: ability.id,
       name: ability.name,
       icon: ability.icon,
-      uptimePct: ability.aura >= 0 ? uptimePct(agg, ability.aura) : null,
+      uptimePct: uptime,
       castsPerFight: agg.fights > 0 ? c[ability.source * FIELD_COUNT + FIELD.casts] / agg.fights : 0,
+      ...(prepull.has(index) && uptime !== null && uptime < 0.05 && agg.fights > 0 ? { beforePull: true as const } : {}),
     })
   }
   plan.auras.forEach((aura, i) => {
@@ -139,17 +148,33 @@ export function tankResult(plan: Plan, agg: Aggregate): TankResult | null {
 }
 
 /**
- * The paladin's mana over a fight (docs/ux.md#results "Mana"): the pool at the pull, what the power
- * ticks regenerated, what spells and consumables restored (Sanctified Judgement, a mana potion or
- * rune), and what the rotation spent, each per fight. Only for a plan that casts spells from mana
- * (paladin.md#mana-model); a druid's mana is left out until its results say what it's for.
+ * The paladin's mana over a fight (docs/ux.md#results "Mana per fight"): the pool at the pull, what
+ * the power ticks regenerated, what restored it, and what the rotation spent, each per fight. What
+ * restored it is one line each: Sanctified Judgement's returns (paladin.md#judgement), then each mana
+ * potion or rune, then any other spell effect, in plan order, only those that restored something.
+ * Only a paladin's: a druid's mana is left out until its results say what it's for.
  */
 export function manaResult(plan: Plan, agg: Aggregate): ManaResult | null {
-  if (!plan.mana || !plan.spells?.length || agg.fights === 0) return null
+  if (plan.classId !== 'paladin' || !plan.mana || agg.fights === 0) return null
   const perFight = (tenths: number) => tenths / 10 / agg.fights
+  // A source row's ability: the judgements return mana (Sanctified Judgement), a potion or rune restores it.
+  const returns = new Set(plan.abilities.filter((a) => (a.manaReturnTenths ?? 0) > 0).map((a) => a.source))
+  let returned = 0
+  const others: ManaRestored[] = []
+  plan.sources.forEach((source, i) => {
+    const tenths = agg.manaBySource[i] ?? 0
+    if (tenths <= 0) return
+    if (returns.has(i)) returned += tenths
+    else others.push({ id: source.id, name: source.name, perFight: perFight(tenths) })
+  })
+  const restored: ManaRestored[] = [
+    ...(returned > 0 ? [{ id: 'sanctifiedJudgement', name: 'Sanctified Judgement', perFight: perFight(returned) }] : []),
+    ...others,
+  ]
   return {
     max: plan.mana.maxTenths / 10,
     regeneratedPerFight: perFight(agg.manaRegenTenths),
+    restored,
     restoredPerFight: perFight(agg.manaGainedTenths - agg.manaRegenTenths),
     spentPerFight: perFight(agg.manaSpentTenths),
   }

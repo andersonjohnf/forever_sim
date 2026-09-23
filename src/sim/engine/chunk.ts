@@ -30,6 +30,8 @@ export interface ChunkResult {
   manaSpentTenths: number
   manaGainedTenths: number
   manaRegenTenths: number
+  /** Mana gained per source row, tenths (Sim.manaBySource). */
+  manaBySource: Float64Array
   /** Health lost per second to hits taken, one sample per fight (the tank results' damage taken). */
   damageTaken: Moments
   /** The boss's swings by outcome (Sim.bossOutcomes: miss, dodge, parry, block, crit, crush, hit). */
@@ -40,6 +42,7 @@ export function runChunk(plan: Plan, chunk: number, fights: number, sim: Sim = n
   sim.counters.fill(0)
   sim.auraUpMs.fill(0)
   sim.auraApplications.fill(0)
+  sim.manaBySource.fill(0)
   sim.bossOutcomes.fill(0)
   sim.totalRageGainedTenths = 0
   sim.totalRageWastedTenths = 0
@@ -75,6 +78,7 @@ export function runChunk(plan: Plan, chunk: number, fights: number, sim: Sim = n
     manaSpentTenths: sim.totalManaSpentTenths,
     manaGainedTenths: sim.totalManaGainedTenths,
     manaRegenTenths: sim.totalManaRegenTenths,
+    manaBySource: sim.manaBySource.slice(),
     damageTaken,
     bossOutcomes: sim.bossOutcomes.slice(),
   }

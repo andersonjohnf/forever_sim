@@ -182,6 +182,12 @@ export class Sim {
   totalManaGainedTenths = 0
   /** The part of the mana gained that the power ticks regenerated (Spirit and mp5), in tenths. */
   totalManaRegenTenths = 0
+  /**
+   * Mana gained per source row, in tenths, summed over every fight run: what each spell effect or
+   * consumable restored (Sanctified Judgement on its judgement's row, a mana potion or rune on its
+   * own), for the results' mana ledger. The power ticks have no row.
+   */
+  readonly manaBySource: Float64Array
   /** Test hook: called for every white swing (source row, hand, time), and bleed tick and spell tick (source, −1, time). */
   trace: ((source: number, hand: number, time: number) => void) | null = null
   /**
@@ -725,6 +731,7 @@ export class Sim {
     this.scratch = new StatBlock().copyFrom(this.base)
     this.deriveOptions = { profile: plan.profile, applyUnmeasured: plan.applyUnmeasured, level: plan.playerLevel }
     this.counters = new Float64Array(plan.sources.length * FIELD_COUNT)
+    this.manaBySource = new Float64Array(plan.sources.length)
 
     const w = plan.weapons
     this.hasWeapon = new Uint8Array(2)
@@ -1501,7 +1508,7 @@ export class Sim {
     for (let i = 0; i < this.preAbility.length; i++) {
       const a = this.preAbility[i]
       const at = this.preAt[i]
-      if (this.castTrace !== null) this.castTrace(a, at, this.rage)
+      if (this.castTrace !== null) this.castTrace(a, at, this.pool(this.abRes[a]))
       this.counters[this.abSource[a] * FIELD_COUNT + FIELD.casts]++
       if (!this.countUse(a) && this.abCd[a] > 0) {
         this.abReadyAt[a] = at + this.abCd[a]
@@ -2847,6 +2854,7 @@ export class Sim {
     this.totalManaGainedTenths += gained
     if (gained > 0) this.actPending = this.hasRotation
     if (source >= 0 && gained > 0) {
+      this.manaBySource[source] += gained
       const threat = gained * THREAT_PER_MANA_TENTH
       this.counters[source * FIELD_COUNT + FIELD.threat] += threat
       this.fightThreat += threat

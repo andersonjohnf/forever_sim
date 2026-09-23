@@ -51,6 +51,7 @@ function syntheticExecutor(plan: Plan, lanes: number, spread: Record<Metric, num
           manaSpentTenths: 0,
           manaGainedTenths: 0,
           manaRegenTenths: 0,
+          manaBySource: new Float64Array(plan.sources.length),
           damageTaken: emptyMoments(),
           bossOutcomes: new Float64Array(7),
         }

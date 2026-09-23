@@ -233,8 +233,10 @@ type Navigate = (then: () => void) => void
 function NoDamage({ result, variant, onNavigate }: { result: SimResult; variant: 'panel' | 'sheet'; onNavigate?: Navigate }) {
   const section = useSetup((s) => s.section)
   const setSection = useSetup((s) => s.setSection)
-  const noWeapon = result.assumptions.some((a) => a.id === 'noWeapon')
+  const noWeapon = result.assumptions.some((a) => a.id === 'noWeapon' || a.id === 'noWeaponSpells')
   if (!noWeapon && result.abilities.length > 0) return null
+  // A paladin's spells don't need a weapon, so they still deal damage (docs/ux.md#states).
+  const spellsOnly = noWeapon && result.abilities.length > 0
   // Beside the desktop panel, the tab you're on is already in view; the phone's sheet covers it.
   const offer = (target: Section) => variant === 'sheet' || section !== target
   const open = (target: Section) => {
@@ -249,7 +251,9 @@ function NoDamage({ result, variant, onNavigate }: { result: SimResult; variant:
       <p className="font-medium">{noWeapon ? 'No main-hand weapon' : 'Nothing deals damage'}</p>
       <p className="text-muted-foreground">
         {noWeapon
-          ? 'Unarmed attacks aren’t simulated. Add a weapon in Gear, then simulate again.'
+          ? spellsOnly
+            ? 'Only your spells were simulated: unarmed attacks aren’t. Add a weapon in Gear, then simulate again.'
+            : 'Unarmed attacks aren’t simulated. Add a weapon in Gear, then simulate again.'
           : 'Nothing in this setup deals damage. Check your weapons in Gear and your abilities in Rotation.'}
       </p>
       {(offer('gear') || (!noWeapon && offer('rotation'))) && (
@@ -463,10 +467,14 @@ function Outcomes({ ability: a, fights }: { ability: SimResult['abilities'][numb
   )
 }
 
+/** What a cast before the pull is for, when its buff is gone by the pull (`beforePull`). */
+const BEFORE_PULL: Record<string, string> = { sealOfTheCrusader: 'Before the pull, for its judgement' }
+
 /**
  * Cooldowns and buffs (docs/ux.md#results): each cast and buff on you, with the share of the fight
  * it was up and its casts per fight. A dash marks what doesn't apply: no buff (Bloodrage), nothing
- * to cast (Flurry), or a buff that needs you to be hit when the run took no damage (Enrage).
+ * to cast (Flurry), a buff that needs you to be hit when the run took no damage (Enrage), or one
+ * cast before the pull and gone by it (Seal of the Crusader), which says so.
  */
 function Cooldowns({ result, runConfig }: { result: SimResult; runConfig: SimConfig | null }) {
   const none = (
@@ -509,10 +517,11 @@ function Cooldowns({ result, runConfig }: { result: SimResult; runConfig: SimCon
                     {c.procsPerFight !== undefined && (
                       <span className="text-xs text-muted-foreground">{formatOne(c.procsPerFight)} a fight, each spent by your next ability</span>
                     )}
+                    {c.beforePull && <span className="text-xs text-muted-foreground">{BEFORE_PULL[c.id] ?? 'Before the pull'}</span>}
                   </span>
                 </span>
               </th>
-              <td className="py-1 pl-3 text-right align-top tabular-nums">{c.uptimePct === null || unhit ? none : formatPct(c.uptimePct)}</td>
+              <td className="py-1 pl-3 text-right align-top tabular-nums">{c.uptimePct === null || unhit || c.beforePull ? none : formatPct(c.uptimePct)}</td>
               <td className="py-1 pl-3 text-right align-top tabular-nums">{c.castsPerFight === null ? none : formatOne(c.castsPerFight)}</td>
             </tr>
           )
@@ -535,39 +544,44 @@ function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: S
   // Decision D24: the unmeasured base values in the numbers shown, the ones the assumptions name
   // (a tank's avoidance placeholders only with their rows).
   const placeholders = (s.placeholders ?? []).filter((p) => defensive || !AVOIDANCE_BASES.has(p))
-  // A paladin's spell stats and mana (docs/ux.md#results): each next to its melee or base counterpart.
+  // A paladin's spell stats and mana (docs/ux.md#results): two columns of counterparts, melee on the
+  // left and spells on the right, row by row (Attack power | Spell damage, Crit | Spell crit, …).
   const spell = s.spell
-  const rows: [string, string][] = [
-    ['Attack power', formatInt(s.attackPower)],
-    ['Crit', formatPct(s.critPct)],
-    ['Hit', formatPct(s.hitPct)],
-    ['Haste', formatPct(s.hastePct)],
-    ['Weapon skill', dualWield ? `${s.weaponSkill.mainHand} main hand / ${s.weaponSkill.offHand} off hand` : String(s.weaponSkill.mainHand)],
-    ['Expertise', formatInt(s.expertise)],
-    ...(spell
-      ? ([
-          // Holy: every paladin spell is (Champion of the Light's share of Intellect included).
-          ['Spell damage', formatInt(spell.holyDamage)],
-          ['Spell crit', formatPct(spell.critPct)],
-          ['Spell hit', formatPct(spell.hitPct)],
-        ] as [string, string][])
-      : []),
-    ['Strength', formatInt(s.strength)],
-    ['Agility', formatInt(s.agility)],
-    ['Stamina', formatInt(s.stamina)],
-    ...(spell
-      ? ([
-          ['Intellect', formatInt(s.intellect)],
-          ['Spirit', formatInt(s.spirit)],
-        ] as [string, string][])
-      : []),
-    ['Health', formatInt(s.health)],
-    ...(spell && s.mana !== null
-      ? ([
-          ['Mana', formatInt(s.mana)],
-          ['Mana per 5 s', formatInt(spell.mp5)],
-        ] as [string, string][])
-      : []),
+  const weaponSkill = dualWield ? `${s.weaponSkill.mainHand} main hand / ${s.weaponSkill.offHand} off hand` : String(s.weaponSkill.mainHand)
+  const rows: [string, string][] = spell
+    ? [
+        ['Attack power', formatInt(s.attackPower)],
+        // Holy: every paladin spell is (Champion of the Light's share of Intellect included).
+        ['Spell damage', formatInt(spell.holyDamage)],
+        ['Crit', formatPct(s.critPct)],
+        ['Spell crit', formatPct(spell.critPct)],
+        ['Hit', formatPct(s.hitPct)],
+        ['Spell hit', formatPct(spell.hitPct)],
+        ['Weapon skill', weaponSkill],
+        ['Expertise', formatInt(s.expertise)],
+        ['Strength', formatInt(s.strength)],
+        ['Agility', formatInt(s.agility)],
+        ['Stamina', formatInt(s.stamina)],
+        ['Intellect', formatInt(s.intellect)],
+        ['Health', formatInt(s.health)],
+        ['Mana', formatInt(s.mana ?? 0)],
+        ['Spirit', formatInt(s.spirit)],
+        ['Mana per 5 s', formatInt(spell.mp5)],
+        ['Haste', formatPct(s.hastePct)],
+      ]
+    : [
+        ['Attack power', formatInt(s.attackPower)],
+        ['Crit', formatPct(s.critPct)],
+        ['Hit', formatPct(s.hitPct)],
+        ['Haste', formatPct(s.hastePct)],
+        ['Weapon skill', weaponSkill],
+        ['Expertise', formatInt(s.expertise)],
+        ['Strength', formatInt(s.strength)],
+        ['Agility', formatInt(s.agility)],
+        ['Stamina', formatInt(s.stamina)],
+        ['Health', formatInt(s.health)],
+      ]
+  rows.push(
     ['Armor', formatInt(s.armor)],
     ...(defensive
       ? ([
@@ -579,7 +593,7 @@ function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: S
           ['Block value', formatInt(s.blockValue)],
         ] as [string, string][])
       : []),
-  ]
+  )
   return (
     <div className="flex flex-col gap-3">
       <dl className="grid grid-cols-2 gap-x-6 gap-y-1.5 text-sm">

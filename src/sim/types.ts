@@ -117,6 +117,13 @@ export interface SimConfig {
      * normalizing (`LEGACY_DAMAGE_TAKEN_RAGE` in rules/profiles.ts).
      */
     damageTakenRage?: DamageTakenRageModel
+    /**
+     * How much of Judgement of the Crusader's +161 Holy damage taken each Holy hit gets, a
+     * paladin's untested-mechanic switch (docs/classes/paladin.md open question 5, Character →
+     * Advanced). Omitted: `coefficient`, a share by the spell's damage coefficient; `flat`, all of
+     * it on melee-class hits (seal procs, judgements, Holy Strike). Kept for paladins only.
+     */
+    jotcBonus?: 'coefficient' | 'flat'
   }
   run: {
     /**
@@ -198,6 +205,11 @@ export type RotationOption =
        * apply, and the settings that need it are dimmed with it (Execute, docs/ux.md "Rotation").
        */
       needsExecutePhase?: boolean
+      /**
+       * It can only be used on these creature types (Exorcism: Undead and Demons), so with the
+       * Fight tab's creature type another it can't apply, and it's dimmed with the settings under it.
+       */
+      needsCreatureType?: readonly CreatureType[]
     }
   | {
       kind: 'number'
@@ -356,6 +368,12 @@ export interface CooldownResult {
    * up. Its uptime is only the moments until the next ability, so this says what it did.
    */
   procsPerFight?: number
+  /**
+   * Cast before the pull, with its buff all but gone by the pull (under 0.05% of the fight): Seal of
+   * the Crusader, up only until its judgement at the pull. Its uptime says nothing, so the results
+   * show when it's cast instead.
+   */
+  beforePull?: true
 }
 
 /** Final stats as the sim computed them (docs/mechanics/character-stats.md). */
@@ -476,14 +494,24 @@ export interface SimResult {
 /**
  * Mana over a fight, averaged over the fights run (docs/classes/paladin.md#mana-model): the pool
  * at the pull, what the power ticks regenerated (Spirit and mana per 5 s), what spells and
- * consumables restored (Sanctified Judgement, a mana potion or rune), and what the rotation spent.
- * What's left at the end is the pool plus both gains, less what was spent.
+ * consumables restored, and what the rotation spent. What's left at the end is the pool plus both
+ * gains, less what was spent.
  */
 export interface ManaResult {
   max: number
   regeneratedPerFight: number
+  /** What restored mana, one line each: Sanctified Judgement, a mana potion, a rune (only those that did). */
+  restored: ManaRestored[]
+  /** All of it: `restored`'s lines together. */
   restoredPerFight: number
   spentPerFight: number
+}
+
+/** One line of what restored mana over a fight, per fight. */
+export interface ManaRestored {
+  id: string
+  name: string
+  perFight: number
 }
 
 export interface SimProgress {

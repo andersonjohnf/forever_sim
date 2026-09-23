@@ -43,7 +43,7 @@ export const manaCostOf = (def: { costTenths: number }) => def.costTenths / 10
  * The fields of a paladin ability that the warrior's abilities use and it doesn't: no rage, no
  * stance, no weapon strike of its own (its spell does the rolling), no bleed, no refund.
  */
-const PALADIN = {
+export const PALADIN = {
   resource: 'mana',
   costTenths: 0,
   cooldownMs: 0,
@@ -310,9 +310,13 @@ export const HAMMER_OF_WRATH_ABILITY: AbilityDef = {
   spellDef: HAMMER_OF_WRATH,
 }
 
+/** Consecration's ranks share its cooldown, as every rank of one spell does [C]. */
+export const CONSECRATION_CATEGORY = 'consecration'
+
 /**
  * Consecration r5 (20924): 565 mana, 8 s cooldown, GCD 1.5 s; a tick every second for 8 s
- * (paladin.md#other-abilities). Rank 1 (26573, ticks 1280345): 135 mana, the same timing.
+ * (paladin.md#other-abilities). Rank 1 (26573, ticks 1280345): 135 mana, the same timing and the
+ * same cooldown, so one rank or the other goes down every 8 s at most.
  */
 const consecration = (id: string, name: string, manaCost: number, tick: SpellDef): AbilityDef => ({
   ...PALADIN,
@@ -322,6 +326,7 @@ const consecration = (id: string, name: string, manaCost: number, tick: SpellDef
   kind: 'spell',
   ...mana(manaCost),
   cooldownMs: 8000,
+  category: CONSECRATION_CATEGORY,
   rageTicks: 8,
   rageTickMs: 1000,
   tickSpellDef: tick,

@@ -118,7 +118,7 @@ work is in slices:
         owning docs. Every finding is fixed or waived, logged in `docs/reviews/`.
   - [x] **M2.4c Adversarial UX review:** a fresh reviewer works through the ux.md checklist
         on every screen at 390 and 1280 px, light and dark. Findings logged and resolved.
-  - [ ] **M2.4e Number fields** (RV1, RV7): the field shows the plain number while you edit
+  - [x] **M2.4e Number fields** (RV1, RV7): the field shows the plain number while you edit
         it and its separators once you leave, and half steps snap evenly.
   - [ ] **M2.4f Remove Undo**
         ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)):

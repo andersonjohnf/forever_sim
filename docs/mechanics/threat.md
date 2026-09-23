@@ -229,7 +229,7 @@ All values are **before** global multipliers. "dmg" is the damage dealt by that 
 | Seal of Righteousness (r8, 20293) procs; Judgement of Righteousness | Holy dmg × RF [C] | [F] unchanged spell | — |
 | Consecration (r5, 20924) | Holy dmg × RF [C] | [F] rule | Forever: 96 over 8 s to everyone in it, plus an extra 216 over 8 s to the first 4 enemies [F] |
 | **Seal of Fury** (Forever, r7 20423) | — | Holy dmg (+35 per melee hit) × RF | New tanking seal [F]. It also grants an absorb shield with a shield equipped (no threat). |
-| **Judgement of Fury** (20414) | — | 146–160 Holy × RF, and **taunts the target for 4 s** [F] | [paladin.md](../classes/paladin.md#threat-paladin-specific) models the taunt like Taunt: it raises you to top threat, and does nothing if you are already there. We use that as the default, but the mechanism is untested [?]. The client carries an unexplained scripted value (a dummy effect of 1607 + 42.3 per level, coefficient 0.18, [F] [client] (SpellEffect, 1.60.1.69913)). It may be the absorb, or may be bonus threat [?]. |
+| **Judgement of Fury** (20414) | — | 146–160 Holy (153.7–167.1 at level 60, + 0.45 × SP) × RF, and **taunts the target for 4 s** [F] | [paladin.md](../classes/paladin.md#threat-paladin-specific) models the taunt like Taunt: it raises you to top threat, and does nothing if you are already there. We use that as the default, but the mechanism is untested [?]. The client carries an unexplained scripted value (a dummy effect of 1607 + 42.3 per level, coefficient 0.18, [F] [client] (SpellEffect, 1.60.1.69913)). It may be the absorb, or may be bonus threat [?]. |
 | **Holy Strike** (Forever, r8 10333; 40% weapon + 81–105) | — | dmg × RF × (1 + 0.05 × Iron Creed rank) | The whole strike is Holy school (SpellMisc 2) [F] |
 | **Hammer of the Righteous** (Forever, 407632) | — | Holy dmg to up to 4 targets × RF. Any flat bonus: [?] | Holy school [F] |
 | Retribution Aura (r5) | 20 Holy per attacker hit × RF [C] | 30 × RF [F] damage | — |
@@ -382,7 +382,9 @@ function globalMultiplier(a: Actor, school: SchoolMask): number {
 - **Defiance (Forever)** needs Defensive Stance **and** an equipped shield. Check both each time
   the multiplier is recomputed (stance change, weapon swap).
 - **Righteous Fury** is a Holy-only aura, so put it in `threatAuras` with `schoolMask = Holy`.
-  Instrument of Law's −20% is active only when RF is not.
+  Instrument of Law's −20% is active only when RF is not. The engine keeps RF up or down for a
+  whole fight (Protection up, Retribution down), so both are static multipliers: a Holy-only one
+  and a global one ([paladin.md › How the engine does it](../classes/paladin.md#how-the-engine-does-it)).
 - **Misses, dodges and parries** do no damage and produce no damage threat. A flat bonus on an
   avoided ability is also lost: LTC2 reverses the bonus on a miss. [C] That matches Magey's method
   of measuring landed casts only.

@@ -84,8 +84,18 @@ describe('simulate', () => {
   })
 
   it('explains setups it can’t simulate yet instead of guessing', async () => {
-    await expect(simulate(quick(defaultConfig('paladin-retribution')))).rejects.toThrow(/Paladin simulation/)
     await expect(simulate(quick({ ...defaultConfig('warrior-arms'), race: 'alliance-skyborne-high-order' }))).rejects.toThrow(/Skyborne/)
+  })
+})
+
+describe('paladin (hidden until its specs ship)', () => {
+  it('simulates both specs on the placeholder base stats of D24, and says so', async () => {
+    for (const spec of ['paladin-retribution', 'paladin-protection'] as const) {
+      const result = await simulate(quick(defaultConfig(spec)))
+      expect(result.dps.mean).toBeGreaterThan(0)
+      expect(result.assumptions.map((a) => a.id)).toContain('baseStatPlaceholders')
+      expect(getSpec(spec).available).toBe(false)
+    }
   })
 })
 

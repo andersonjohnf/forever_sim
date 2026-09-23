@@ -8,6 +8,7 @@ import type { DruidForm, Effect } from '../effects/types'
 import type { RulesProfile } from '../rules/profiles'
 import type { ClassId, SpecId } from '../types'
 import { druidSetup } from './druid/setup'
+import { paladinEffects } from './paladin/setup'
 import { stanceEffects, TALENT_EFFECTS, type Stance } from './warrior/talents'
 
 export interface ClassSetup {
@@ -59,6 +60,8 @@ export function talentRanksByName(data: TalentData, code: string): Map<string, n
 export function classSetup(classId: ClassId, spec: SpecId, talentCode: string, profile: RulesProfile, stance?: Stance): ClassSetup {
   const talents = talentRanksByName(TALENT_DATA[classId], talentCode)
   if (classId === 'druid') return { ...druidSetup(spec, talents, profile), stance: null, talents, simulated: true }
+  // docs/classes/paladin.md: talents, Righteous Fury and mana; no stances.
+  if (classId === 'paladin') return { effects: paladinEffects(spec, talents), stance: null, talents, simulated: true }
   if (classId !== 'warrior') return { effects: [], stance: null, talents, simulated: false }
   stance ??= WARRIOR_STANCE[spec] ?? 'battle'
   const effects: Effect[] = [...stanceEffects(profile)[stance]]

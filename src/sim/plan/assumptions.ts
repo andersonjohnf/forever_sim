@@ -13,6 +13,7 @@ const BUFFS = 'docs/mechanics/buffs-debuffs-consumables.md'
 const ENC = 'docs/mechanics/encounter.md'
 const WAR = 'docs/classes/warrior.md'
 const DRUID = 'docs/classes/druid.md'
+const PAL = 'docs/classes/paladin.md'
 
 const REGISTRY = {
   whiteSwingsOnly: {
@@ -298,6 +299,46 @@ const REGISTRY = {
   bearArmor: {
     text: 'Dire Bear Form multiplies bonus armor (enchants, buffs, Forever’s green armor) by 4.6 as well as item armor, as a second armor aura in the Forever client suggests; unmeasured.',
     docRef: `${DRUID}#47-bear-armor-low-priority-tps-doesnt-need-it`,
+  },
+  sealOfCommandRate: {
+    text: 'Seal of Command procs 7 times a minute from your weapon’s base speed, with a 1 s internal cooldown: Classic Era’s rate. Forever sets it on the server, and it’s unmeasured.',
+    docRef: `${PAL}#open-questions`,
+  },
+  sealOfCommandScaling: {
+    text: 'Seal of Command’s proc adds its 0.29 spell damage coefficient inside its 70% of weapon damage (0.203 × spell damage), and like a special attack it can miss or be dodged, parried or blocked; untested.',
+    docRef: `${PAL}#seal-of-command-soc`,
+  },
+  judgementOfCommand: {
+    text: 'Judgement of Command deals half its damage, since a boss can’t be stunned, but gets its full spell damage bonus, and never misses; untested.',
+    docRef: `${PAL}#seal-of-command-soc`,
+  },
+  sealOfRighteousness: {
+    text: 'Seal of Righteousness deals 1.2 × 18.8 × your weapon’s speed with a two-hander (0.85 × with a one-hander) plus 0.1 × spell damage on each landed auto attack; the formula is untested in Forever.',
+    docRef: `${PAL}#seal-of-righteousness-sor`,
+  },
+  sealOfFury: {
+    text: 'Seal of Fury deals a flat 35 Holy plus 0.1 × spell damage on each landed auto attack, as its tooltip reads; untested.',
+    docRef: `${PAL}#seal-of-fury-sof-new-the-protection-seal`,
+  },
+  meleeSpellProcs: {
+    text: 'Seal procs and judgements are melee attacks: they crit for double at your melee crit, and trigger Vengeance, Vindication and on-hit effects such as Crusader; untested.',
+    docRef: `${PAL}#open-questions`,
+  },
+  jotcBonus: {
+    text: 'Judgement of the Crusader’s +161 Holy damage is scaled by each hit’s spell damage coefficient and added after your own damage bonuses; untested, and the biggest uncertainty in Retribution damage.',
+    docRef: `${PAL}#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc`,
+  },
+  manaRegen: {
+    text: 'Mana regenerates every 2 s, from a random moment in the first 2 s of the fight: 15 + Spirit / 5 when you’ve spent none for 5 s, and your mp5 always. A seal cast before the pull costs nothing.',
+    docRef: `${PAL}#mana-model`,
+  },
+  sanctifiedJudgement: {
+    text: 'Sanctified Judgement returns its share of the judged seal’s base cost, not the cost after talents, and only when the judgement lands; each mana it returns makes 0.5 threat. Untested.',
+    docRef: `${PAL}#judgement`,
+  },
+  vindication: {
+    text: 'Vindication procs from every landed melee attack, as its data reads, so its attack power bonus is up almost all fight; untested.',
+    docRef: `${PAL}#retribution-tree`,
   },
   noWeapon: {
     text: 'No main-hand weapon: unarmed attacks aren’t simulated, so neither is any ability that attacks; only cooldowns and buffs are used.',

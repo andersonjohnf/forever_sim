@@ -93,8 +93,8 @@ A spec is data plus small ability modules, never its own loop.
   use as an `OnUseSpec`, which the rotation turns into a cast; any it doesn't press are listed
   as not simulated.
 - It also collects the **assumptions**: every `[?]` the setup relies on, each with a doc link
-  (`sim/plan/assumptions.ts`), and the setups it refuses to guess (the paladin until M5,
-  Skyborne warriors until their base stats are known).
+  (`sim/plan/assumptions.ts`), and the setups it refuses to guess (Skyborne warriors until their
+  base stats are known).
 
 ### Rules and stats
 
@@ -188,6 +188,15 @@ A spec is data plus small ability modules, never its own loop.
   Tank specs also get the fight from the tank's side (`SimResult.tank`): damage taken per
   second, one sample per fight with its CI like DPS, and the boss's swings by outcome, summed per
   chunk and merged in chunk order like the breakdown counters (encounter §5).
+- **Spells** (the paladin; [paladin.md › How the engine does it](classes/paladin.md#how-the-engine-does-it)):
+  `Plan.spells` are damaging spells as data (school, damage class, No Active Defense, Always Hit,
+  a range or a weapon share, a spell damage coefficient, their own multipliers), which one
+  function resolves on the table their damage class picks (combat-tables §3, §9). Abilities of
+  kind `spell` cast one (and one per tick: Consecration), and procs can too (the seals', on a
+  trigger after a white swing's own procs). The paladin pays them from the mana pool below, with
+  mp5 and Reverence's share on its power tick, and gets mana back when an ability lands (Sanctified
+  Judgement); abilities can share a cooldown category, and auras can form an exclusive group (one
+  seal). Warrior and druid plans have none of these.
 - **Rage** is integer tenths with a cap; energizes make 5 threat per rage. Abilities pay their cost
   when used (an on-next-swing one when its swing happens, one with a cast time when the cast
   completes) and refund their share of it on a miss,

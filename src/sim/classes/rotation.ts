@@ -6,12 +6,14 @@
 import { NO_PREPULL } from '../plan/types'
 import type { RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
+import { paladinCore, type PaladinContext } from './paladin/setup'
 import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import type { TalentRanks } from './warrior/modifiers'
-import type { ClassRotation, RotationContext } from './warrior/shared'
+import type { ClassRotation } from './warrior/shared'
 import type { Stance } from './warrior/talents'
 
 export type { ClassRotation, RotationContext } from './warrior/shared'
+export type { PaladinContext } from './paladin/setup'
 
 /**
  * The Rotation tab's headings, in the order it shows them (docs/ux.md "Rotation"): the pre-pull,
@@ -73,9 +75,12 @@ export function classRotation(
   values: Record<string, RotationValue>,
   talents: TalentRanks,
   auraIndex: (id: string) => number,
-  context: RotationContext,
+  /** RotationContext, and for the paladin its main-hand weapon (Seal of Righteousness scales with it). */
+  context: PaladinContext,
 ): ClassRotation {
   if (spec === 'warrior-fury') return furyRotation(values, talents, auraIndex, context)
   if (spec === 'warrior-arms') return armsRotation(values, talents, auraIndex, context)
+  // docs/classes/paladin.md: the seal and its judgement both specs share; the specs' rows come with C2 and the Protection slice.
+  if (spec === 'paladin-retribution' || spec === 'paladin-protection') return paladinCore(spec, talents, context)
   return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
 }

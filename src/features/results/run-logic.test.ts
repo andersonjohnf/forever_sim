@@ -12,10 +12,10 @@ const config = (spec: SpecId, change: (c: SimConfig) => SimConfig = (c) => c) =>
 describe('isSetupError', () => {
   it('recognises every way the engine refuses a setup, so those errors skip the retry advice', () => {
     const skyborne = buildPlan(config('warrior-fury', (c) => ({ ...c, race: 'alliance-skyborne-high-order' }))).blockers
-    const paladin = buildPlan(config('paladin-retribution')).blockers
     expect(skyborne.length).toBeGreaterThan(0)
-    expect(paladin.length).toBeGreaterThan(0)
-    for (const message of [...skyborne, ...paladin]) expect(isSetupError(message), message).toBe(true)
+    for (const message of skyborne) expect(isSetupError(message), message).toBe(true)
+    // Every class simulates now; one without a class module would get build.ts's other blocker.
+    expect(isSetupError('Paladin simulation isn’t available yet.')).toBe(true)
   })
 
   it('treats other failures as ones a retry may fix', () => {

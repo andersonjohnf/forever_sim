@@ -530,11 +530,12 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B18. Judgement of the Crusader: flat or coefficient-scaled bonus
 **High · M5 · ≤20**
-- **Assumes:** each Holy hit gets `161 × c`, where `c` is its spell-power coefficient [?]. The
-  alternative, a flat +161 per Holy hit, roughly doubles JotC's value. The paladin doc calls
-  this the biggest single uncertainty for Ret DPS.
+- **Assumes:** each Holy hit gets `161 × c`, where `c` is its spell-power coefficient [?], added
+  after your own damage multipliers and before a crit's [?]. The alternative, a flat +161 per
+  Holy hit, roughly doubles JotC's value. The paladin doc calls this the biggest single
+  uncertainty for Ret DPS.
 - **Test:** JoC, Seal of Command proc and Holy Strike damage with and without your own JotC on
-  the target (any rank available).
+  the target (any rank available), then the same with Vengeance stacked.
 - **Samples:** ≥30 non-crit hits of each, with and without.
 - **Changes:** the JotC engine switch; Ret DPS and every player's Holy damage.
 - **Docs:** [paladin § JotC](classes/paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc),
@@ -556,7 +557,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **High · M5 · ≤20 (ranks from level 10)**
 - **Assumes:** flat +35 Holy per landed white hit at rank 7, 0.1 × SP [F tooltip]. The aura
   also carries an SoR-style weapon-speed value (1607 + 42/level) that the sim ignores [?].
-  Absorb stacking [?]; Improved Seal of Fury "restore 0 Mana" [?].
+  Absorb stacking [?]; Improved Seal of Fury's mana (the client's rank text reads 60, which
+  foreverchanges printed as 0) [?].
 - **Test:** highest rank available, two weapons of different speed: average proc damage vs the
   tooltip's flat value; watch absorb stacking and mana on a full absorb.
 - **Samples:** ≥30 procs per weapon.
@@ -912,8 +914,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B44. Paladin Intellect to spell crit
 **Medium · M5 · ≤20** (plus a Classic Era paladin of the same level)
-- **Assumes:** 59.88 Int per 1% spell crit, from the client's `PlayerExpectedStat` [F]; Classic
-  sources say about 29.5 [C]; whether the server uses the table at all [?].
+- **Assumes:** 59.88 Int per 1% spell crit, from the client's `PlayerExpectedStat` [F]; RatingBuster's
+  pre-SoD Classic Era logic gives 59.9 too, and the "about 29.5" in some Classic guides traces back
+  to 2005 addon text; whether the server uses the table at all [?].
 - **Test:** a beta paladin reads Holy spell crit, gains a known amount of Int (item or buff) and
   reads again: slope = Δcrit / ΔInt. Repeat exactly on a Classic Era paladin of the same level.
 - **Samples:** two Int changes per character.
@@ -1203,12 +1206,14 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B69. Paladin minor mechanics
 **Low · M5 · ≤20**
 - **Assumes:** Seal of the Crusader divides weapon damage per swing by 1.4 [?]; Eye for an Eye's
-  school and threat [?]; SoC procs trigger weapon and equip procs [?].
+  school and threat [?]; the seals' procs and the damage judgements trigger weapon and equip
+  procs such as Crusader, like other melee attacks [?]; mana regenerates on 2 s ticks from a
+  random phase, and a seal cast before the pull costs nothing [?].
 - **Test:** swing damage with and without SotC; crits taken with Eye for an Eye; item procs from
-  SoC hits.
+  SoC hits and judgements; a paladin's mana over the first 20 s of a pull.
 - **Samples:** ≥50 of each.
 - **Changes:** minor Ret and Prot details.
-- **Docs:** [paladin OQ 22](classes/paladin.md#open-questions)
+- **Docs:** [paladin OQ 22, 24](classes/paladin.md#open-questions)
 
 #### B70. Classic rules that only a post-SoD sim encodes
 **Low · M2 · ≤20**

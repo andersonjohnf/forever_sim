@@ -11,6 +11,7 @@ import { negativeArmorFloor, NORMALIZED_SPEED, OFF_HAND_DAMAGE, ppmChance, slowe
 import { classSetup } from '../classes'
 import { DRUID_FORMS, FORM_INDEX, FORM_NAME, formWeapon } from '../classes/druid/forms'
 import { druidPlan } from '../classes/druid/plan'
+import { paladinAssumptions, paladinManaPlan } from '../classes/paladin/setup'
 import { classRotation, maintainedBuffs, rotationBaseStance } from '../classes/rotation'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
@@ -708,6 +709,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         executePhase: fight.executePct > 0,
         profile,
         creatureType: fight.creatureType,
+        mainHand: mh ? { speedSec: mh.plan.speedSec, twoHand: mh.twoHand } : null,
       })
     : { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
   // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), a
@@ -831,6 +833,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     prepull: classRot.prepull,
     ...(forms && setup.form ? druidPlan(forms, setup.form, setup.talents, derived, auras) : {}),
     ...(spells.length > 0 ? { spells } : {}),
+    // docs/classes/paladin.md#mana-model: its mana, from the sheet's maximum and Spirit.
+    ...(classId === 'paladin' ? { mana: paladinManaPlan(derived, block.mp5, setup.talents) } : {}),
     ...(c.holyThreatMult !== 1 ? { holyThreatMult: c.holyThreatMult } : {}),
   }
 
@@ -986,6 +990,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (abilities.some((a) => a.kind === 'shift')) notes.add('shapeshifts')
     if (setup.form === 'bear' && profile.catalogue.column === 'forever') notes.add('bearArmor')
   }
+  // docs/classes/paladin.md#open-questions: what the paladin's seals, judgements and mana rely on.
+  for (const id of paladinAssumptions(plan)) notes.add(id)
 
   return { plan, sheet, assumptions: notes.toArray(), blockers }
 }

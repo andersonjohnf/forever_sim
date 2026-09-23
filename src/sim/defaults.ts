@@ -124,7 +124,8 @@ function rank(item: Item, spec: SpecId, slot: PreRaidBisSlot): number {
 /**
  * Default enchants per spec (docs/mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec).
  * Shoulder enchants (Zandalar, Scourge) are defaults only if the guild confirms that content
- * exists in Forever, so their fallback, none, applies. Paladin enchants come with that spec.
+ * exists in Forever, so their fallback, none, applies. The Protection paladin's Arcanum of Focus
+ * and +30 Spell Power weapon aren't in the enchant catalogue yet, so those slots fall back to none.
  */
 const WARRIOR_DPS_ENCHANTS: Partial<Record<GearSlot, string>> = {
   head: 'arcanumVoracityStrength',
@@ -162,6 +163,18 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
   },
   'druid-feral-cat': FERAL_ENCHANTS,
   'druid-feral-bear': { ...FERAL_ENCHANTS, hands: 'gloveThreat' },
+  // §6.4 Retribution: the warrior DPS column with a two-hander (no off hand).
+  'paladin-retribution': { ...WARRIOR_DPS_ENCHANTS, offHand: undefined },
+  // §6.4 Prot paladin: Superior Defense cloak, Greater Stats, Superior Stamina bracers, Threat
+  // gloves, Greater Agility boots and Greater Stamina shield.
+  'paladin-protection': {
+    back: 'cloakSuperiorDefense',
+    chest: 'chestGreaterStats',
+    wrist: 'bracerSuperiorStamina',
+    hands: 'gloveThreat',
+    feet: 'bootsGreaterAgility',
+    offHand: 'shieldGreaterStamina',
+  },
 }
 
 /**
@@ -207,9 +220,9 @@ export function defaultGear(spec: SpecId, race = DEFAULT_RACE[SPEC_META[spec].cl
   }
   // Paladins and druids equip a relic in the ranged slot.
   if (!gear.ranged) put('ranged', bisFor(spec, 'relic'))
-  for (const [slot, enchantId] of Object.entries(DEFAULT_ENCHANTS[spec] ?? {}) as [GearSlot, string][]) {
+  for (const [slot, enchantId] of Object.entries(DEFAULT_ENCHANTS[spec] ?? {}) as [GearSlot, string | undefined][]) {
     const equipped = gear[slot]
-    if (equipped) gear[slot] = { ...equipped, enchantId }
+    if (equipped && enchantId) gear[slot] = { ...equipped, enchantId }
   }
   return gear
 }

@@ -1,0 +1,486 @@
+// The paladin's worked examples through the engine (docs/classes/paladin.md#worked-examples), and
+// its seals, judgements, mana, threat and determinism. The examples' inputs are synthetic test
+// inputs (test-helpers.ts `examplePlan`), not base stats. Example 12 (Holy Shield) needs the
+// tank's Holy Shield row and example 17 (Twist of Light) seal twisting; they come with the
+// Protection slice and C2.
+import { describe, expect, it } from 'vitest'
+import { defaultConfig } from '../../defaults'
+import { runChunk } from '../../engine/chunk'
+import { FIELD, FIELD_COUNT, Sim } from '../../engine/sim'
+import { expectMean } from '../../engine/test-helpers'
+import { buildPlan } from '../../plan/build'
+import { type AbilityDef, COND, type Plan, type RotationCondition } from '../../plan/types'
+import {
+  CONSECRATION,
+  CONSECRATION_RANK1,
+  EXORCISM_ABILITY,
+  HAMMER_OF_WRATH_ABILITY,
+  HOLY_STRIKE_ABILITY,
+  JOTC_REFRESH,
+  JUDGE_COMMAND,
+  JUDGE_CRUSADER,
+  JUDGE_FURY,
+  JUDGE_RIGHTEOUSNESS,
+  SEAL_OF_COMMAND,
+  SEAL_OF_RIGHTEOUSNESS,
+  SEAL_OF_THE_CRUSADER,
+  manaCostOf,
+  sealProcs,
+} from './abilities'
+import { withTalents, withSpellTalents } from './talents'
+import { addPaladinAbility, addProcSpec, damagesOf, examplePlan, row } from './test-helpers'
+
+const IMPROVED_SEALS = { 'Improved Seals': 3 }
+const ranks = (r: Record<string, number>) => new Map(Object.entries(r))
+
+const line = (plan: Plan, ability: number, conditions: RotationCondition[] = []) => plan.rotation.push({ ability, conditions, unqueueBelowTenths: 0 })
+/** An ability used once, at the start of the fight, off the GCD. */
+function once(plan: Plan, def: AbilityDef): number {
+  const a = addPaladinAbility(plan, { ...def, cooldownMs: 1e9, gcdMs: 0, castMs: 0 })
+  line(plan, a)
+  return a
+}
+/**
+ * A seal up from 1.5 s before the pull (and, with `keepUp`, recast 1.5 s before it ends, as the
+ * core rotation does), and its procs for the plan's weapon (setup.ts paladinProcs).
+ */
+function withSeal(plan: Plan, seal: AbilityDef, talents: Record<string, number> = {}, keepUp = true): number {
+  const a = addPaladinAbility(plan, seal)
+  plan.prepull = { casts: [...plan.prepull.casts, { ability: a, atMs: -1500 }], chargeTenths: 0, keepTenths: -1 }
+  if (keepUp) line(plan, a, [{ code: COND.abilityAuraRefresh, a, b: 1500 }])
+  const w = plan.weapons[0]!
+  for (const p of sealProcs({ speedSec: w.speedSec, twoHand: w.twoHand }, (s) => withSpellTalents(s, ranks(talents)))) {
+    if (p.requiresAura === seal.id) addProcSpec(plan, p)
+  }
+  return a
+}
+const counter = (sim: Sim, plan: Plan, id: string, field: number) => sim.counters[row(plan, id) * FIELD_COUNT + field]
+const sealProc = (plan: Plan) => plan.procs.find((p) => p.id === 'sealOfCommandProc')!
+
+describe('worked example 1: Seal of Command procs 7 times a minute from base weapon speed', () => {
+  it('has a 40.83% chance per landed white hit at 3.5 speed and a 1 s internal cooldown; haste doesn’t change it', () => {
+    const plan = examplePlan()
+    expect(sealProc(plan).chance[0]).toBeCloseTo(0.40833, 5)
+    expect(sealProc(plan).icdMs).toBe(1000)
+    // The plan builder's chance for the default weapon: 7 × its base speed / 60.
+    const real = buildPlan(defaultConfig('paladin-retribution')).plan
+    expect(sealProc(real).chance[0]).toBeCloseTo((7 * real.weapons[0]!.speedSec) / 60, 12)
+  })
+
+  it('procs from 40.83% of landed white hits, 10% haste or not', () => {
+    for (const haste of [1, 1.1]) {
+      const plan = examplePlan({ durationMs: 180000 })
+      plan.stats.haste = haste
+      const sim = new Sim(plan)
+      for (let i = 0; i < 100; i++) sim.runFight(i)
+      // Landed white hits: hits and glancing blows (no crits, dodges or blocks here).
+      const whites = sim.counters[FIELD.hits] + sim.counters[FIELD.glances]
+      const procs = counter(sim, plan, 'sealOfCommandProc', FIELD.casts)
+      expect(Math.abs(procs / whites - 0.40833)).toBeLessThan(4 * Math.sqrt((0.40833 * 0.59167) / whites))
+    }
+  })
+})
+
+describe('worked example 2: Seal of Command’s proc damage', () => {
+  it('is 0.70 × (weapon + AP × speed / 14 + 0.29 × SP): 370.3 to 440.3, 405.3 on average', () => {
+    const procs = damagesOf(examplePlan(), 'sealOfCommandProc', 40)
+    expect(Math.min(...procs)).toBeGreaterThanOrEqual(370.3 - 1e-9)
+    expect(Math.max(...procs)).toBeLessThanOrEqual(440.3 + 1e-9)
+    expectMean(procs, 405.3)
+  })
+
+  it('is ×1.15 with Improved Seals 3/3 (466.09), ×2 on a crit (932.18), and Two-Handed Weapon Specialization doesn’t touch it', () => {
+    const fixed = { min: 250, max: 250, speedSec: 3.5 }
+    expect(damagesOf(examplePlan({ weapon: fixed, talents: IMPROVED_SEALS }), 'sealOfCommandProc')[0]).toBeCloseTo(466.095, 9)
+    const twoHander = examplePlan({ weapon: fixed, talents: { ...IMPROVED_SEALS, 'Two-Handed Weapon Specialization': 3 } })
+    expect(twoHander.physicalMult).toBeCloseTo(1.09, 12)
+    expect(damagesOf(twoHander, 'sealOfCommandProc')[0]).toBeCloseTo(466.095, 9)
+    const crits = examplePlan({ weapon: fixed, talents: IMPROVED_SEALS })
+    crits.stats.crit = 100
+    expect(damagesOf(crits, 'sealOfCommandProc')[0]).toBeCloseTo(932.19, 9)
+  })
+})
+
+describe('worked examples 3 and 4: Judgement of Command and Judgement of Righteousness', () => {
+  it('JoC: (339–373)/2 + 0.429 × SP, 220.9 on average and 254.04 with Improved Seals; it can’t miss', () => {
+    const plan = examplePlan()
+    plan.stats.hit = -100 // every special that can miss would
+    const joc = damagesOf(plan, 'judgementOfCommand', 40)
+    expect(Math.min(...joc)).toBeGreaterThanOrEqual(169.5 + 42.9 - 1e-6)
+    expect(Math.max(...joc)).toBeLessThanOrEqual(186.5 + 42.9 + 1e-6)
+    expectMean(joc, 220.9)
+    const sim = new Sim(plan)
+    sim.runFight(0)
+    expect(counter(sim, plan, 'judgementOfCommand', FIELD.misses)).toBe(0)
+    expect(counter(sim, plan, 'judgementOfCommand', FIELD.casts)).toBeGreaterThan(5)
+    expectMean(damagesOf(examplePlan({ talents: IMPROVED_SEALS }), 'judgementOfCommand', 40), 254.035)
+  })
+
+  it('JoR r8 at 60: (170.2–186.2) + 0.5 × SP, 228.2 on average and 262.43 with Improved Seals; it can miss', () => {
+    const jorPlan = (talents: Record<string, number> = {}) => {
+      const plan = examplePlan({ core: false, talents })
+      const seal = withSeal(plan, SEAL_OF_RIGHTEOUSNESS, talents)
+      line(plan, addPaladinAbility(plan, withTalents(JUDGE_RIGHTEOUSNESS, ranks(talents))), [{ code: COND.abilityAuraUp, a: seal, b: 0 }])
+      return plan
+    }
+    const jor = damagesOf(jorPlan(), 'judgementOfRighteousness', 40)
+    expect(Math.min(...jor)).toBeGreaterThanOrEqual(170.2 + 50 - 1e-6)
+    expect(Math.max(...jor)).toBeLessThanOrEqual(186.2 + 50 + 1e-6)
+    expectMean(jor, 228.2)
+    expectMean(damagesOf(jorPlan(IMPROVED_SEALS), 'judgementOfRighteousness', 40), 262.43)
+    const missing = jorPlan()
+    missing.stats.hit = -100
+    const sim = new Sim(missing)
+    sim.runFight(0)
+    expect(counter(sim, missing, 'judgementOfRighteousness', FIELD.misses)).toBe(counter(sim, missing, 'judgementOfRighteousness', FIELD.casts))
+  })
+})
+
+describe('worked example 5: Holy Strike', () => {
+  it('is 0.40 × (normalized main hand + 81–105) + 0.429 × SP = 293.24; with Sacred Arbiter 322.57, from 295.45 to 349.68; armor doesn’t touch it', () => {
+    const fixed = examplePlan({ core: false, weapon: { min: 250, max: 250, speedSec: 3.5 } })
+    once(fixed, HOLY_STRIKE_ABILITY)
+    expectMean(damagesOf(fixed, 'holyStrike', 400), 293.24)
+    const arbiter = (armor: number) => {
+      const plan = examplePlan({ core: false, talents: { 'Sacred Arbiter': 1 } })
+      plan.fight.targetArmor = armor
+      once(plan, withTalents(HOLY_STRIKE_ABILITY, ranks({ 'Sacred Arbiter': 1 })))
+      return damagesOf(plan, 'holyStrike', 400)
+    }
+    const hs = arbiter(0)
+    expect(Math.min(...hs)).toBeGreaterThanOrEqual(295.45 - 0.01)
+    expect(Math.max(...hs)).toBeLessThanOrEqual(349.68 + 0.01)
+    expectMean(hs, 322.57)
+    expect(arbiter(5000)).toEqual(hs)
+  })
+})
+
+describe('worked example 6: Seal of Righteousness', () => {
+  const sor = (twoHand: boolean, talents: Record<string, number> = {}) => {
+    const plan = examplePlan({ core: false, talents, weapon: { min: 200, max: 300, speedSec: 3.5, twoHand } })
+    withSeal(plan, SEAL_OF_RIGHTEOUSNESS, talents)
+    return damagesOf(plan, 'sealOfRighteousnessProc')
+  }
+  it('deals 1.2 × 18.80 × 3.5 + 0.1 × SP = 88.96 on every landed swing with a two-hander, 102.30 with Improved Seals, 65.93 one-handed', () => {
+    const twoHand = sor(true)
+    expect(twoHand.length).toBe(Math.ceil(60000 / 3500))
+    for (const d of twoHand) expect(d).toBeCloseTo(88.96, 9)
+    expect(sor(true, IMPROVED_SEALS)[0]).toBeCloseTo(102.304, 9)
+    expect(sor(false)[0]).toBeCloseTo(65.93, 9)
+  })
+})
+
+describe('worked example 7: Consecration on one target', () => {
+  it('rank 5 at SP 300: 67.5 a tick, 540 over 8 s; rank 1: 276', () => {
+    for (const [def, tick, total] of [
+      [CONSECRATION, 67.5, 540],
+      [CONSECRATION_RANK1, 34.5, 276],
+    ] as const) {
+      const plan = examplePlan({ core: false, sp: 300, durationMs: 9000 })
+      once(plan, def)
+      const ticks = damagesOf(plan, def.id)
+      expect(ticks.length).toBe(8)
+      for (const d of ticks) expect(d).toBeCloseTo(tick, 9)
+      expect(ticks.reduce((a, b) => a + b, 0)).toBeCloseTo(total, 9)
+    }
+  })
+})
+
+describe('worked example 8: the Retribution mana cycle', () => {
+  const RET = { Benediction: 5, 'Sanctified Judgement': 3, 'Improved Judgement': 2, 'Improved Holy Strike': 2 }
+  it('Judgement costs 81 and returns 126 (+45); Seal of Command 189; Holy Strike 18: 74.25 mana over 30 s', () => {
+    const t = ranks(RET)
+    const judge = withTalents(JUDGE_COMMAND, t)
+    expect(manaCostOf(judge)).toBe(81)
+    expect(judge.manaReturnTenths).toBe(1260)
+    expect(judge.manaReturnChance).toBe(1)
+    expect(judge.cooldownMs).toBe(8000)
+    const seal = withTalents(SEAL_OF_COMMAND, t)
+    expect(manaCostOf(seal)).toBe(189)
+    const strike = withTalents(HOLY_STRIKE_ABILITY, t)
+    expect(manaCostOf(strike)).toBe(18)
+    expect(strike.cooldownMs).toBe(10000)
+    expect(manaCostOf(seal) + 3 * manaCostOf(strike) - 3.75 * (judge.manaReturnTenths! / 10 - manaCostOf(judge))).toBeCloseTo(74.25, 9)
+  })
+
+  it('in a fight: each landed Judgement of Command pays 81 and gets 126 back', () => {
+    const plan = examplePlan({ talents: RET, durationMs: 25000 })
+    plan.mana = { ...plan.mana!, regenTickTenths: 0, mp5TickTenths: 0 }
+    // A 1000-mana sink at the pull, so the returns aren't capped at the maximum.
+    const sink = addPaladinAbility(plan, { ...SEAL_OF_THE_CRUSADER, id: 'sink', aura: null, costTenths: 10000, gcdMs: 0, cooldownMs: 1e9 })
+    plan.rotation.unshift({ ability: sink, conditions: [], unqueueBelowTenths: 0 })
+    const sim = new Sim(plan)
+    sim.runFight(0)
+    // Judgements at 0, 8, 16 and 24 s; the seal went up before the pull (free) and needs no recast in 25 s.
+    expect(counter(sim, plan, 'judgementOfCommand', FIELD.casts)).toBe(4)
+    expect(sim.totalManaSpentTenths).toBe(10 * (1000 + 4 * 81))
+    expect(sim.totalManaGainedTenths).toBe(10 * 4 * 126)
+  })
+})
+
+describe('worked example 9: damage multipliers', () => {
+  it('a white hit: 2HWS 3/3 × Vengeance 3/3 at 5 stacks × Crusade 2/2 = ×1.27857; a Seal of Command proc ×1.34895', () => {
+    const talents = { 'Two-Handed Weapon Specialization': 3, Vengeance: 3, Crusade: 2, ...IMPROVED_SEALS }
+    const plan = examplePlan({ talents, weapon: { min: 250, max: 250, speedSec: 3.5 } })
+    plan.stats.crit = 100
+    // A target below your level: no glancing blows, so every white hit crits (×2).
+    plan.fight.targetLevel = 59
+    const white = damagesOf(plan, 'mainHand')
+    // By the sixth white hit, the crits before it (white hits, seal procs, judgements) have given five stacks.
+    expect(white[5]).toBeCloseTo((250 + 300) * 2 * 1.09 * 1.15 * 1.02, 9)
+    expect(white[6]).toBeCloseTo(white[5], 9)
+    expect(1.09 * 1.15 * 1.02).toBeCloseTo(1.27857, 5)
+    const procs = damagesOf(plan, 'sealOfCommandProc')
+    const base = 0.7 * (250 + 300) + 0.203 * 100
+    expect(Math.max(...procs)).toBeCloseTo(base * 2 * 1.34895, 1)
+  })
+})
+
+describe('worked example 10: Hammer of Wrath', () => {
+  it('is 498 + 0.429 × SP on average (626.7 at SP 300), and instant with Instrument of Law 2/2 but still on a 1 s GCD', () => {
+    const law = withTalents(HAMMER_OF_WRATH_ABILITY, ranks({ 'Instrument of Law': 2 }))
+    expect(law.castMs).toBe(0)
+    expect(law.gcdMs).toBe(1000)
+    expect(withTalents(HAMMER_OF_WRATH_ABILITY, ranks({ 'Instrument of Law': 1 })).castMs).toBe(500)
+    const plan = examplePlan({ core: false, sp: 300 })
+    const how = addPaladinAbility(plan, { ...law, cooldownMs: 0 })
+    line(plan, how)
+    // Only in the execute phase (the last 20% of the fight).
+    const sim = new Sim(plan)
+    const times: number[] = []
+    sim.castTrace = (a, t) => a === how && times.push(t)
+    sim.runFight(0)
+    expect(Math.min(...times)).toBeGreaterThanOrEqual(0.8 * 60000 - 1)
+    expectMean(damagesOf(plan, 'hammerOfWrath', 100), 626.7)
+  })
+})
+
+describe('worked example 11: Judgement of the Crusader’s bonus (the default coefficient rule)', () => {
+  it('adds 161 × 0.429 = 69.07 to an Exorcism and 161 × 0.203 = 32.68 to a Seal of Command proc', () => {
+    const fixed = { min: 250, max: 250, speedSec: 3.5 }
+    const plan = (jotc: boolean) => {
+      const p = examplePlan({ weapon: fixed, core: false })
+      withSeal(p, SEAL_OF_COMMAND)
+      if (jotc) once(p, JUDGE_CRUSADER)
+      once(p, EXORCISM_ABILITY)
+      return p
+    }
+    const exo = (jotc: boolean) => avg(damagesOf(plan(jotc), 'exorcism', 200))
+    expect(exo(true) - exo(false)).toBeCloseTo(161 * 0.429, 0)
+    const soc = (jotc: boolean) => damagesOf(plan(jotc), 'sealOfCommandProc')[0]
+    expect(soc(true) - soc(false)).toBeCloseTo(161 * 0.203, 9)
+  })
+
+  it('lasts 40 s, always lands, is one per paladin with the other judgement debuffs, and your auto attacks refresh it', () => {
+    const plan = examplePlan({ core: false, durationMs: 120000 })
+    once(plan, JUDGE_CRUSADER)
+    const aura = plan.auras.findIndex((a) => a.id === 'judgementOfTheCrusader')
+    expect(plan.auras[aura]).toMatchObject({ durationMs: 40000, holyTaken: 161, group: 'judgementDebuff' })
+    // Without its refresh, it's up for 40 s; with it, the whole fight.
+    expect(upMs(plan, aura)).toBe(40000)
+    addProcSpec(plan, JOTC_REFRESH)
+    expect(upMs(plan, aura)).toBe(120000)
+  })
+})
+
+describe('worked example 13: Seal of Fury and Judgement of Fury (Protection)', () => {
+  it('at SP 300: 35 + 30 = 65 Holy a landed swing, 123.5 threat with Righteous Fury; JoF 295.38 on average, 339.69 with Improved Seals', () => {
+    const plan = examplePlan({ spec: 'paladin-protection', sp: 300, weapon: { min: 150, max: 150, speedSec: 2.7, twoHand: false } })
+    expect(plan.holyThreatMult).toBeCloseTo(1.9, 12)
+    const sim = new Sim(plan)
+    sim.runFight(0)
+    const procs = counter(sim, plan, 'sealOfFuryProc', FIELD.hits)
+    expect(counter(sim, plan, 'sealOfFuryProc', FIELD.damage) / procs).toBeCloseTo(65, 9)
+    expect(counter(sim, plan, 'sealOfFuryProc', FIELD.threat) / procs).toBeCloseTo(123.5, 9)
+    expectMean(damagesOf(plan, 'judgementOfFury', 40), 160.38 + 135)
+    const improved = examplePlan({ spec: 'paladin-protection', sp: 300, talents: IMPROVED_SEALS })
+    expectMean(damagesOf(improved, 'judgementOfFury', 40), 339.69)
+  })
+})
+
+describe('worked example 14: Holy Strike threat with Righteous Fury and Iron Creed 5/5', () => {
+  it('is damage × 1.9 × 1.25', () => {
+    const plan = examplePlan({ spec: 'paladin-protection', core: false, talents: { 'Iron Creed': 5 } })
+    once(plan, withTalents(HOLY_STRIKE_ABILITY, ranks({ 'Iron Creed': 5 })))
+    const sim = new Sim(plan)
+    sim.runFight(0)
+    expect(counter(sim, plan, 'holyStrike', FIELD.threat) / counter(sim, plan, 'holyStrike', FIELD.damage)).toBeCloseTo(2.375, 12)
+  })
+})
+
+describe('worked example 15: Shield Specialization', () => {
+  it('restores 6% of maximum mana on a block, at most every 3 s', () => {
+    const withShield = buildPlan({ ...defaultConfig('paladin-protection'), buffs: { raid: [], enabled: [] } }).plan
+    const shieldSpec = withShield.procs.find((p) => p.id === 'shieldSpecialization')!
+    expect(shieldSpec).toMatchObject({ icdMs: 3000, amount: 6, chance: [1, 1] })
+    // Blocks at 0, 1, 2 and 3 s with 6000 mana: the ones at 0 and 3 s restore 360 each.
+    const s = withShield.stats
+    withShield.mana = { ...withShield.mana!, maxTenths: 60000, regenTickTenths: 0, mp5TickTenths: 0 }
+    s.dodge = -100
+    s.parry = -100
+    s.block = 100
+    // Defense 190: the boss never misses (combat-tables §8).
+    s.defense = -110
+    s.defenseRating = 0
+    withShield.fight.durationMs = 3500
+    withShield.fight.variation = 0
+    withShield.fight.bossSwing = { ...withShield.fight.bossSwing!, speedSec: 1, parryHaste: false, canCrush: false }
+    withShield.abilities = []
+    withShield.rotation = []
+    withShield.prepull = { casts: [], chargeTenths: 0, keepTenths: -1 }
+    // A 3000-mana sink at the pull, so the blocks' mana isn't capped.
+    const sink = addPaladinAbility(withShield, { ...JUDGE_FURY, category: undefined, costTenths: 30000, cooldownMs: 1e9 })
+    withShield.abilities[sink].kind = 'cast'
+    line(withShield, sink)
+    expect(new Sim(withShield).inspect().maxMana).toBe(6000)
+    const sim = new Sim(withShield)
+    const blocks: number[] = []
+    sim.bossTrace = (t) => blocks.push(t)
+    sim.runFight(0)
+    expect(blocks).toEqual([0, 1000, 2000, 3000])
+    expect(sim.totalManaGainedTenths).toBe(7200)
+  })
+})
+
+describe('worked example 16: Seal of Command’s internal cooldown with Windfury', () => {
+  it('a Windfury extra attack right after a proc can’t proc it again; the next white hit can', () => {
+    const plan = examplePlan({ weapon: { min: 250, max: 250, speedSec: 3.5 }, durationMs: 3600 })
+    sealProc(plan).chance = [1, 1]
+    // Windfury on every hit: an extra attack at once, its own chain bit.
+    plan.sources.push({ id: 'windfury', name: 'Windfury', icon: 'x' })
+    plan.procs.push({ id: 'windfury', name: 'Windfury', trigger: 0, chance: [1, 1], hands: 1, icdMs: 100, action: 0, amount: 1, a: 0, b: 0, school: 0, source: plan.sources.length - 1, chainBit: 1 })
+    plan.triggers[0].push(plan.procs.length - 1)
+    const sim = new Sim(plan)
+    sim.runFight(0)
+    // White hits at 0 and 3.5 s, each with a Windfury attack: two procs, not four.
+    expect(counter(sim, plan, 'windfury', FIELD.casts)).toBe(2)
+    expect(counter(sim, plan, 'sealOfCommandProc', FIELD.casts)).toBe(2)
+  })
+})
+
+describe('worked example 18: Judgement doesn’t consume the seal', () => {
+  it('Seal of Command stays up through each Judgement, and the next white hit can proc it', () => {
+    const plan = examplePlan({ durationMs: 25000 })
+    const seal = plan.auras.findIndex((a) => a.id === 'sealOfCommand')
+    const sim = new Sim(plan)
+    sim.runFight(0)
+    expect(counter(sim, plan, 'judgementOfCommand', FIELD.casts)).toBe(Math.ceil(25000 / 10000))
+    expect(sim.auraUpMs[seal]).toBe(25000)
+    // The seal went up before the pull and needed no recast: its only cast is the pre-pull one.
+    expect(counter(sim, plan, 'sealOfCommand', FIELD.casts)).toBe(1)
+    expect(counter(sim, plan, 'sealOfCommandProc', FIELD.casts)).toBeGreaterThan(0)
+  })
+})
+
+describe('worked example 19: Vengeance', () => {
+  it('3/3: each crit adds a stack of +3% Physical and Holy damage for 30 s, up to 5', () => {
+    const plan = examplePlan({ core: false, talents: { Vengeance: 3 }, weapon: { min: 250, max: 250, speedSec: 3.5 } })
+    plan.stats.crit = 100
+    plan.fight.targetLevel = 59 // no glancing blows: every white hit crits
+    const white = damagesOf(plan, 'mainHand')
+    for (let k = 0; k < 7; k++) expect(white[k] / white[0]).toBeCloseTo(1 + 0.03 * Math.min(k, 5), 12)
+    const aura = plan.auras.find((a) => a.id === 'vengeance')!
+    expect(aura).toMatchObject({ durationMs: 30000, maxStacks: 5, damage: 3, holy: 3 })
+  })
+
+  it('drops 30 s after the last crit', () => {
+    const plan = examplePlan({ core: false, talents: { Vengeance: 3 }, weapon: { min: 250, max: 250, speedSec: 3.5 }, durationMs: 60000 })
+    // Crits only on the first swing (t = 0): the buff is up 30 s.
+    plan.stats.crit = 100
+    const aura = plan.auras.findIndex((a) => a.id === 'vengeance')
+    plan.weapons[0] = { ...plan.weapons[0]!, speedSec: 100 }
+    expect(upMs(plan, aura)).toBe(30000)
+  })
+})
+
+describe('seals and judgements (paladin.md#seals, #judgement)', () => {
+  it('one seal at a time: casting another ends it; the seals’ procs fire only while theirs is up', () => {
+    const plan = examplePlan({ core: false, durationMs: 20000 })
+    const soc = withSeal(plan, SEAL_OF_COMMAND, {}, false)
+    const sor = addPaladinAbility(plan, SEAL_OF_RIGHTEOUSNESS)
+    line(plan, sor, [{ code: COND.timeLeftAtMost, a: 10000, b: 0 }])
+    for (const p of sealProcs({ speedSec: 3.5, twoHand: true })) if (p.requiresAura === SEAL_OF_RIGHTEOUSNESS.id) addProcSpec(plan, p)
+    const sim = new Sim(plan)
+    sim.runFight(0)
+    expect(sim.auraUpMs[plan.abilities[soc].aura]).toBe(10000)
+    expect(sim.auraUpMs[plan.abilities[sor].aura]).toBe(10000)
+    // Swings at 0, 3.5, 7 (Command) and 10.5, 14, 17.5 (Righteousness).
+    expect(counter(sim, plan, 'sealOfRighteousnessProc', FIELD.casts)).toBe(3)
+  })
+
+  it('every seal’s judgement shares Judgement’s cooldown, and needs its seal', () => {
+    const plan = examplePlan({ core: false, durationMs: 30000 })
+    const soc = withSeal(plan, SEAL_OF_COMMAND)
+    const joc = addPaladinAbility(plan, JUDGE_COMMAND)
+    const jor = addPaladinAbility(plan, JUDGE_RIGHTEOUSNESS)
+    line(plan, joc, [{ code: COND.abilityAuraUp, a: soc, b: 0 }])
+    line(plan, jor)
+    const sim = new Sim(plan)
+    const uses: [number, number][] = []
+    sim.castTrace = (a, t) => uses.push([a, t])
+    sim.runFight(0)
+    expect(uses.filter(([a]) => a === joc).map(([, t]) => t)).toEqual([0, 10000, 20000])
+    expect(uses.filter(([a]) => a === jor)).toEqual([])
+    // Without a seal up, a judgement line with the condition waits.
+    const none = examplePlan({ core: false, durationMs: 30000 })
+    const sealless = addPaladinAbility(none, SEAL_OF_COMMAND)
+    line(none, addPaladinAbility(none, JUDGE_COMMAND), [{ code: COND.abilityAuraUp, a: sealless, b: 0 }])
+    const s2 = new Sim(none)
+    s2.runFight(0)
+    expect(s2.counters[row(none, 'judgementOfCommand') * FIELD_COUNT + FIELD.casts]).toBe(0)
+  })
+
+  it('Seal of the Crusader: +325 AP [?], +40% attack speed and each swing ÷ 1.4 [?]', () => {
+    expect(SEAL_OF_THE_CRUSADER.aura!.mods).toMatchObject({ ap: 325.2, haste: 40 })
+    expect(1 + SEAL_OF_THE_CRUSADER.aura!.mods.damage! / 100).toBeCloseTo(1 / 1.4, 12)
+  })
+})
+
+describe('the default setups', () => {
+  it('Retribution judges Seal of Command and Protection Seal of Fury with Righteous Fury; mana is tracked, rage isn’t', () => {
+    const noBuffs = { raid: [], enabled: [] }
+    const ret = buildPlan({ ...defaultConfig('paladin-retribution'), buffs: noBuffs }).plan
+    expect(ret.abilities.map((a) => a.id)).toEqual(['sealOfCommand', 'judgementOfCommand'])
+    expect(ret.mana).toBeTruthy()
+    expect(ret.rage.maxTenths).toBe(0)
+    expect(ret.holyThreatMult ?? 1).toBe(1)
+    // Instrument of Law 2/2 without Righteous Fury: all threat × 0.8.
+    expect(ret.threatMult).toBeCloseTo(0.8, 12)
+    const prot = buildPlan({ ...defaultConfig('paladin-protection'), buffs: noBuffs }).plan
+    expect(prot.abilities.map((a) => a.id)).toEqual(['sealOfFury', 'judgementOfFury'])
+    expect(prot.holyThreatMult).toBeCloseTo(1.9, 12)
+    // Improved Righteous Fury 3/3: −6% damage taken with Righteous Fury up.
+    expect(prot.damageTakenMult).toBeCloseTo(0.94, 12)
+  })
+
+  it('list the [?] assumptions their seals, judgements and mana rely on', () => {
+    const ids = (spec: 'paladin-retribution' | 'paladin-protection') => buildPlan(defaultConfig(spec)).assumptions.map((a) => a.id)
+    expect(ids('paladin-retribution')).toEqual(
+      expect.arrayContaining(['baseStatPlaceholders', 'manaRegen', 'sealOfCommandRate', 'sealOfCommandScaling', 'judgementOfCommand', 'meleeSpellProcs', 'sanctifiedJudgement', 'vindication']),
+    )
+    expect(ids('paladin-retribution')).not.toContain('foreverWhiteRage')
+    expect(ids('paladin-protection')).toEqual(expect.arrayContaining(['sealOfFury', 'meleeSpellProcs', 'manaRegen']))
+    expect(ids('paladin-protection')).not.toContain('damageTakenRage')
+  })
+
+  it('are deterministic: the same config and seed give the same result, another seed a different one', () => {
+    for (const spec of ['paladin-retribution', 'paladin-protection'] as const) {
+      const plan = buildPlan(defaultConfig(spec)).plan
+      const a = runChunk(plan, 0, 50)
+      const b = runChunk(plan, 0, 50)
+      expect(Array.from(b.counters)).toEqual(Array.from(a.counters))
+      expect(b.dps).toEqual(a.dps)
+      const other = runChunk({ ...plan, seed: plan.seed + 1 }, 0, 50)
+      expect(other.dps.mean).not.toBe(a.dps.mean)
+    }
+  })
+})
+
+/** How long aura `a` was up in fight 0. */
+function upMs(plan: Plan, a: number): number {
+  const sim = new Sim(plan)
+  sim.runFight(0)
+  return sim.auraUpMs[a]
+}
+
+const avg = (xs: number[]) => xs.reduce((s, x) => s + x, 0) / xs.length

@@ -495,12 +495,12 @@ describe('talents, racials and stances', () => {
 })
 
 describe('setups the engine can’t run yet', () => {
-  it('gives paladins their Classic Era base attributes and the placeholders of D24, and says so, but blocks their simulation', () => {
+  it('gives paladins their Classic Era base attributes and the placeholders of D24, and says so', () => {
     for (const race of ['alliance-human', 'alliance-dwarf', 'horde-undead']) {
       const bundle = buildPlan({ ...defaultConfig('paladin-retribution'), race })
       expect(bundle.sheet.unknown).toEqual([])
       expect(bundle.sheet.placeholders).toEqual(expect.arrayContaining(['base health', 'base crit', 'base spell crit']))
-      expect(bundle.blockers.length).toBeGreaterThan(0)
+      expect(bundle.blockers).toEqual([])
       const ids = bundle.assumptions.map((a) => a.id)
       expect(ids).toContain('baseStatPlaceholders')
       expect(ids).not.toContain('unknownBaseAttributes')

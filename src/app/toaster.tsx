@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Toaster } from '@/components/ui/sonner'
 import { focusNewestUndo } from './toast-layer'
-import { UNDO_TOAST_MS } from './undo-toast'
+import { UNDO_TOAST_MS, WAITING_TOAST } from './undo-toast'
 
 /**
  * Sonner's hotkey, Alt+T (Option+T on a Mac). A constant, so sonner registers its listener once,
@@ -13,11 +13,17 @@ const HOTKEY = ['altKey', 'KeyT']
 const TOAST_GAP = 14
 
 /**
- * Keeps how far up from the bottom of the window the toasts reach in --toast-clearance, while any
- * are up, so keyboard focus scrolls clear of them (the page's scroll padding, src/index.css; WCAG
- * 2.4.11). A toast raised from the keyboard waits until it's dismissed, and focus moves on under
- * it meanwhile. Measured again as toasts come, go and spread out; while one is still sliding in,
- * it counts where it will stop, so focus moving on at once clears it too.
+ * Keeps how far up from the bottom of the window the toasts reach, so keyboard focus scrolls clear
+ * of them (WCAG 2.4.11): a toast raised from the keyboard waits until it's dismissed, and focus
+ * moves on under it meanwhile. Measured again as toasts come, go and spread out.
+ *
+ * - --toast-clearance, while any toast is up, sets the bottom scroll padding of the page and of
+ *   each sheet (src/index.css). While a toast is still sliding in, it counts where it will stop, so
+ *   focus moving on at once clears it too.
+ * - --toast-wait-clearance, while a toast that waits for Dismiss is up, grows the bottom padding
+ *   of the page and of each sheet, so the last control in them has room to scroll clear of it.
+ *   It's that toast's own reach at the front of the stack, so a 10 s toast coming or going doesn't
+ *   change it: content never moves by itself when one times out.
  */
 function useToastClearance() {
   const ref = useRef<HTMLDivElement>(null)
@@ -35,13 +41,26 @@ function useToastClearance() {
         const list = container.querySelector('[data-sonner-toaster]')
         if (toasts.length === 0 || !list) {
           root.style.removeProperty('--toast-clearance')
+          root.style.removeProperty('--toast-wait-clearance')
           return
         }
         // Where they are now (spread out, say), and where they settle: the front toast on the
         // list's bottom edge, the rest a gap above it each.
+        const edge = list.getBoundingClientRect()
         const now = Math.min(...toasts.map((toast) => toast.getBoundingClientRect().top))
-        const settled = list.getBoundingClientRect().bottom - Math.max(...toasts.map((toast) => toast.offsetHeight)) - TOAST_GAP * (toasts.length - 1)
-        root.style.setProperty('--toast-clearance', `${Math.max(0, Math.ceil(window.innerHeight - Math.min(now, settled)))}px`)
+        const settled = edge.bottom - Math.max(...toasts.map((toast) => toast.offsetHeight)) - TOAST_GAP * (toasts.length - 1)
+        const clearance = Math.max(0, Math.ceil(window.innerHeight - Math.min(now, settled)))
+        root.style.setProperty('--toast-clearance', `${clearance}px`)
+
+        // A toast behind the front one is cut to its height, so this reads the waiting toast's own
+        // height, which sonner keeps in --initial-height.
+        const waiting = toasts.filter((toast) => toast.classList.contains(WAITING_TOAST))
+        if (waiting.length > 0) {
+          const height = Math.max(...waiting.map((toast) => Number.parseFloat(toast.style.getPropertyValue('--initial-height')) || toast.offsetHeight))
+          root.style.setProperty('--toast-wait-clearance', `${Math.max(0, Math.ceil(window.innerHeight - edge.bottom + height))}px`)
+        } else {
+          root.style.removeProperty('--toast-wait-clearance')
+        }
       })
     }
     const observer = new MutationObserver(measure)
@@ -59,6 +78,7 @@ function useToastClearance() {
       container.removeEventListener('transitionend', measure)
       window.removeEventListener('resize', measure)
       root.style.removeProperty('--toast-clearance')
+      root.style.removeProperty('--toast-wait-clearance')
     }
   }, [])
   return ref

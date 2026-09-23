@@ -161,14 +161,16 @@ function EnchantList({
   const [active, setActive] = useState(() => Math.max(0, choices.indexOf(current)))
   const optionId = (index: number) => `${baseId}-${index}`
   // Keep the active option in view as the keys move it, scrolling the list only, never the page.
+  // In a drawer that's also clear of the toasts over it: the list's bottom scroll padding.
   useEffect(() => {
     const list = listRef.current
     const option = document.getElementById(`${baseId}-${active}`)
     if (!list || !option) return
     const pad = 4
+    const clear = Number.parseFloat(getComputedStyle(list).scrollPaddingBottom) || 0
     if (option.offsetTop < list.scrollTop) list.scrollTop = option.offsetTop - pad
-    else if (option.offsetTop + option.offsetHeight > list.scrollTop + list.clientHeight) {
-      list.scrollTop = option.offsetTop + option.offsetHeight - list.clientHeight + pad
+    else if (option.offsetTop + option.offsetHeight > list.scrollTop + list.clientHeight - clear) {
+      list.scrollTop = option.offsetTop + option.offsetHeight - list.clientHeight + clear + pad
     }
   }, [active, baseId, listRef])
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -192,7 +194,8 @@ function EnchantList({
       onKeyDown={onKeyDown}
       className={cn(
         'relative flex max-h-80 flex-col overflow-y-auto rounded-md p-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
-        'in-data-[slot=drawer-content]:max-h-none in-data-[slot=drawer-content]:p-2',
+        // In a drawer, room at its end and scroll padding to clear the toasts (src/index.css).
+        'in-data-[slot=drawer-content]:max-h-none in-data-[slot=drawer-content]:scroll-pb-toast in-data-[slot=drawer-content]:px-2 in-data-[slot=drawer-content]:pt-2 in-data-[slot=drawer-content]:pb-toast-2',
         className,
       )}
     >

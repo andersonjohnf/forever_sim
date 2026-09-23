@@ -420,11 +420,16 @@ Every view handles these states:
   A new undo toast replaces the one that's up, and any other change to the setup (another
   edit, a spec switch, a shared link) takes it away. This covers every undo toast: gear, a race
   and its faction swap, talents, Reset rotation, Reset setup and shared links.
-- **A toast never hides the focused control.** While toasts are up, the page's bottom scroll
-  padding clears them as it does the phone's bar (`--toast-clearance`, measured by
-  `src/app/toaster.tsx`), so focus moving on under a toast that waits for Dismiss scrolls clear
-  of it (WCAG 2.4.11). The page's bottom padding grows to match, so there's room to scroll even
-  its last control, the footer's link, clear.
+- **A toast never hides the focused control** (WCAG 2.4.11), on the page or in a sheet under it
+  (the results sheet, About, the item and enchant pickers). `src/app/toaster.tsx` measures how
+  far up the toasts reach, and `src/index.css` explains how each scroller uses it.
+  - While toasts are up, the bottom scroll padding clears them, as the page's does the phone's
+    bar (`--toast-clearance`), so focus moving on under a toast that waits for Dismiss scrolls
+    clear of it.
+  - While a toast that waits is up, the bottom padding grows to match
+    (`--toast-wait-clearance`), so there's room to scroll even the last control in the
+    scrolling page or sheet clear of it. A toast that goes by itself leaves the padding alone,
+    so nothing moves when it times out.
 - **Alt+T** (Option+T) is the keyboard's way to the toasts: it moves focus to the newest toast's
   Undo (sonner's hotkey focuses the toast list and spreads the toasts out, and
   `src/app/toaster.tsx` moves focus on to Undo). Escape in a toast dismisses an undo toast, and

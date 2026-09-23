@@ -35,7 +35,8 @@ export function AboutSheet({
 }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-md" showCloseButton={false} {...contentProps}>
+      {/* Focus in it scrolls clear of the toasts, which sit over the sheet (src/index.css). */}
+      <SheetContent className="w-full scroll-pb-toast overflow-y-auto sm:max-w-md" showCloseButton={false} {...contentProps}>
         <SheetHeader className="pr-14">
           <SheetTitle ref={titleRef} tabIndex={-1} className="outline-none">
             About Forever Sim
@@ -49,7 +50,7 @@ export function AboutSheet({
             <span className="sr-only">Close</span>
           </Button>
         </SheetClose>
-        <div className="flex flex-col gap-6 px-4 pb-8 text-sm">
+        <div className="flex flex-col gap-6 px-4 pb-toast-8 text-sm">
           <Section title="Where the numbers come from">
             <p>
               WoW Forever values come first. Where Forever data doesn&apos;t exist yet, the sim falls back to Classic

@@ -14,6 +14,9 @@ import { lastInputWasKeyboard, leaveToasts, TOAST_HOTKEY } from './toast-layer'
 /** How long a toast with Undo stays up, not counting pauses. Also the Toaster's default. */
 export const UNDO_TOAST_MS = 10_000
 
+/** The class of a toast that waits for Dismiss: the page makes room for it (src/app/toaster.tsx). */
+export const WAITING_TOAST = 'toast-waits'
+
 type Hold = 'pointer' | 'focus' | 'hidden'
 let count = 0
 /** Takes away the undo toast that's up, if there is one. */
@@ -31,7 +34,8 @@ let dismissCurrent: (() => void) | undefined
 export function undoToast(title: string, onUndo: () => void, { description }: { description?: string } = {}) {
   dismissCurrent?.()
   // Sonner puts a toast's className on its <li>, which is how events are matched to this toast;
-  // it's the toast's id too, so Escape can dismiss it (src/app/toast-layer.ts).
+  // it's the toast's id too, so Escape can dismiss it (src/app/toast-layer.ts). A toast that waits
+  // is also marked WAITING_TOAST.
   const marker = `undo-toast-${++count}`
   const inside = (node: EventTarget | null) => node instanceof Element && node.closest(`.${marker}`) !== null
   const persistent = lastInputWasKeyboard()
@@ -94,7 +98,7 @@ export function undoToast(title: string, onUndo: () => void, { description }: { 
   toast(title, {
     id: marker,
     description: [description, hint].filter(Boolean).join(' ') || undefined,
-    className: marker,
+    className: persistent ? `${marker} ${WAITING_TOAST}` : marker,
     duration: Infinity,
     cancel: persistent
       ? {

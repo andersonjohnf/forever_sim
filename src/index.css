@@ -167,9 +167,10 @@
      * bottom edge App keeps in --sticky-top, and of the phone's fixed sim bar, whose height it keeps
      * in --sim-bar-height, so a focused control is never hidden behind them, with 0.5rem to spare
      * (WCAG 2.4.11, docs/ux.md#accessibility). The fallback is the header's 3.5rem and the tabs'
-     * 51 px, before the first measurement. While toasts are up, the bottom clears them too: they
+     * 51 px, before the first measurement. While any toast is up, the bottom clears it too: toasts
      * sit above the sim bar, and the toaster keeps how far up they reach in --toast-clearance
-     * (src/app/toaster.tsx).
+     * (src/app/toaster.tsx). The page's own bottom padding makes room for a waiting toast (App's
+     * <main>, pb-toast-* below).
      */
     scroll-padding-top: calc(var(--sticky-top, 6.75rem) + 0.5rem);
     scroll-padding-bottom: calc(max(var(--sim-bar-height, 0px), var(--toast-clearance, 0px)) + 0.5rem);
@@ -181,6 +182,26 @@
   [data-slot='switch'] {
     --input: var(--switch-off);
   }
+}
+
+/*
+ * Clearance from the toasts for anything that scrolls under them: the page, a sheet, a drawer's
+ * or a dialog's list (docs/ux.md#persistence-and-sharing; WCAG 2.4.11). src/app/toaster.tsx keeps
+ * both measures, from the window's bottom edge, so they fit a scroller that ends there and leave
+ * extra room in one that ends higher (the item picker's dialog on desktop).
+ *
+ * scroll-pb-toast: keyboard focus in it scrolls clear of any toast that's up, with 0.5rem to
+ * spare (--toast-clearance), and none when no toast is up.
+ * pb-toast-<n>: bottom padding of n spacing steps (pb-toast-8 is pb-8), grown while a toast waits
+ * for Dismiss, so the last control has room to scroll clear of it (--toast-wait-clearance). Only
+ * a waiting toast grows it: padding that followed every toast would shrink when a 10 s one timed
+ * out, and the content at the end of the page would drop by itself.
+ */
+@utility scroll-pb-toast {
+  scroll-padding-bottom: calc(var(--toast-clearance, -0.5rem) + 0.5rem);
+}
+@utility pb-toast-* {
+  padding-bottom: max(calc(var(--spacing) * --value(integer)), calc(var(--toast-wait-clearance, 0px) + 0.5rem));
 }
 
 /*

@@ -148,8 +148,9 @@ test.describe('sharing', () => {
       for (const b of packed) binary += String.fromCharCode(b)
       return '#s=' + btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
     })
+    // A fresh load of the link (e2e/shell-sharing.spec.ts covers one pasted into an open tab).
+    await page.goto('about:blank')
     await page.goto(`./${hash}`)
-    await page.reload()
     await expect(page.getByText('That link is for a Retribution Paladin')).toBeVisible()
     await expect(page.getByRole('button', { name: /Spec: Fury Warrior/ })).toBeVisible()
     expect(new URL(page.url()).hash).toBe('')

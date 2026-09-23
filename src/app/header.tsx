@@ -1,6 +1,6 @@
 import { ChevronDown, Info, Link2, MoreHorizontal, Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { useState } from 'react'
+import { type Ref, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,25 +18,31 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { WowIcon } from '@/components/wow-icon'
-import { CLASS_COLOR, SPEC_META, type ClassId } from '@/sim'
+import { cn } from '@/lib/utils'
+import { SPEC_META, type ClassId, type SimConfig } from '@/sim'
 import { AboutSheet } from './about-sheet'
 import { useSetup } from './setup-store'
 import { shareUrl } from './share'
-import { useSpecMeta, visibleSpecs } from './specs'
+import { useSheetFocus } from './sheet-focus'
+import { CLASS_TEXT, useSpecMeta, visibleSpecs } from './specs'
+import { undoToast } from './undo-toast'
 
 export function Header() {
   const [aboutOpen, setAboutOpen] = useState(false)
+  // About opens from the overflow menu, and focus goes back to the menu's button when it closes.
+  const { returnRef, titleRef, contentProps } = useSheetFocus<HTMLButtonElement>()
   return (
     <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4">
-        <span className="mr-1 hidden font-semibold tracking-tight sm:inline">Forever Sim</span>
+        {/* The page's one heading 1 (docs/ux.md#accessibility); phones show only the spec switcher. */}
+        <h1 className="mr-1 font-semibold tracking-tight max-sm:sr-only">Forever Sim</h1>
         <SpecSwitcher />
         <div className="ml-auto flex items-center gap-1">
           <ShareButton />
-          <MoreMenu onAbout={() => setAboutOpen(true)} />
+          <MoreMenu onAbout={() => setAboutOpen(true)} triggerRef={returnRef} />
         </div>
       </div>
-      <AboutSheet open={aboutOpen} onOpenChange={setAboutOpen} />
+      <AboutSheet open={aboutOpen} onOpenChange={setAboutOpen} titleRef={titleRef} contentProps={contentProps} />
     </header>
   )
 }
@@ -54,9 +60,7 @@ function SpecSwitcher() {
           <WowIcon icon={meta.icon} size="sm" />
           <span className="flex flex-col items-start leading-tight">
             <span className="text-sm font-semibold">{meta.name}</span>
-            <span className="text-xs font-medium" style={{ color: CLASS_COLOR[meta.classId] }}>
-              {meta.className}
-            </span>
+            <span className={cn('text-xs font-medium', CLASS_TEXT[meta.classId])}>{meta.className}</span>
           </span>
           <ChevronDown className="text-muted-foreground" />
         </Button>
@@ -65,9 +69,9 @@ function SpecSwitcher() {
         {[...byClass.entries()].map(([classId, classSpecs], index) => (
           <DropdownMenuGroup key={classId}>
             {index > 0 && <DropdownMenuSeparator />}
-            <DropdownMenuLabel style={{ color: CLASS_COLOR[classId] }}>{SPEC_META[classSpecs[0].id].className}</DropdownMenuLabel>
+            <DropdownMenuLabel className={CLASS_TEXT[classId]}>{SPEC_META[classSpecs[0].id].className}</DropdownMenuLabel>
             {classSpecs.map((spec) => (
-              <DropdownMenuItem key={spec.id} onSelect={() => setSpec(spec.id)} className="min-h-10 gap-3">
+              <DropdownMenuItem key={spec.id} onSelect={() => setSpec(spec.id)} className="min-h-11 gap-3">
                 <WowIcon icon={spec.icon} size="xs" />
                 <span className="flex-1">{spec.name}</span>
                 <span className="text-xs text-muted-foreground">{spec.role === 'tank' ? 'Tank' : 'DPS'}</span>
@@ -80,16 +84,30 @@ function SpecSwitcher() {
   )
 }
 
+/**
+ * Copies a link to the setup (docs/ux.md#persistence-and-sharing). The clipboard write starts
+ * inside the tap itself, with the link still being compressed, because Safari refuses a write
+ * that follows an await. Browsers without ClipboardItem write the text once it's ready.
+ */
+async function copyShareLink(config: SimConfig) {
+  const url = shareUrl(config)
+  if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+    const text = url.then((link) => new Blob([link], { type: 'text/plain' }))
+    await navigator.clipboard.write([new ClipboardItem({ 'text/plain': text })])
+  } else {
+    await navigator.clipboard.writeText(await url)
+  }
+}
+
 function ShareButton() {
-  const config = useSetup((s) => s.config)
-  const share = async () => {
-    try {
-      const url = await shareUrl(config)
-      await navigator.clipboard.writeText(url)
-      toast.success('Link copied', { description: 'Anyone with the link gets this exact setup.' })
-    } catch {
-      toast.error("Couldn't copy the link", { description: 'Your browser blocked clipboard access.' })
-    }
+  const share = () => {
+    copyShareLink(useSetup.getState().config).then(
+      () => toast.success('Link copied', { description: 'Anyone with the link gets this exact setup.', duration: 4000 }),
+      () =>
+        toast.error('Couldn’t copy the link', {
+          description: 'Your browser blocked the clipboard. Allow clipboard access for this site, then try Share again.',
+        }),
+    )
   }
   return (
     <Button variant="ghost" className="h-11 gap-2 px-3" onClick={share}>
@@ -100,52 +118,59 @@ function ShareButton() {
   )
 }
 
-function MoreMenu({ onAbout }: { onAbout: () => void }) {
+function MoreMenu({ onAbout, triggerRef }: { onAbout: () => void; triggerRef: Ref<HTMLButtonElement> }) {
   const reset = useSetup((s) => s.reset)
-  const replace = useSetup((s) => s.replace)
   const meta = useSpecMeta()
   const { theme, setTheme } = useTheme()
+  // About opens once the menu has closed, so the menu doesn't hand focus back to its button
+  // after the sheet has taken it.
+  const aboutChosen = useRef(false)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="size-11" aria-label="More">
+        <Button ref={triggerRef} variant="ghost" size="icon" className="size-11" aria-label="More">
           <MoreHorizontal />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem onSelect={onAbout} className="min-h-10">
+      <DropdownMenuContent
+        align="end"
+        className="w-56"
+        onCloseAutoFocus={(event) => {
+          if (!aboutChosen.current) return
+          aboutChosen.current = false
+          event.preventDefault()
+          onAbout()
+        }}
+      >
+        <DropdownMenuItem
+          onSelect={() => {
+            aboutChosen.current = true
+          }}
+          className="min-h-11"
+        >
           <Info /> About &amp; data
         </DropdownMenuItem>
         <DropdownMenuSub>
-          <DropdownMenuSubTrigger className="min-h-10">
+          <DropdownMenuSubTrigger className="min-h-11">
             <Sun className="dark:hidden" />
             <Moon className="hidden dark:block" /> Theme
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-              <DropdownMenuRadioItem value="system" className="min-h-10">
+              <DropdownMenuRadioItem value="system" className="min-h-11">
                 <Monitor /> System
               </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="light" className="min-h-10">
+              <DropdownMenuRadioItem value="light" className="min-h-11">
                 <Sun /> Light
               </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="dark" className="min-h-10">
+              <DropdownMenuRadioItem value="dark" className="min-h-11">
                 <Moon /> Dark
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="min-h-10"
-          onSelect={() => {
-            const previous = useSetup.getState().config
-            reset()
-            toast(`${meta.name} ${meta.className} reset to defaults`, {
-              action: { label: 'Undo', onClick: () => replace(previous) },
-            })
-          }}
-        >
+        <DropdownMenuItem className="min-h-11" onSelect={() => undoToast(`${meta.name} ${meta.className} reset to defaults`, reset())}>
           <RotateCcw /> Reset {meta.name} to defaults
         </DropdownMenuItem>
       </DropdownMenuContent>

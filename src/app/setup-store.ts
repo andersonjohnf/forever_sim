@@ -8,18 +8,27 @@ import { defaultSpec, isVisibleSpec } from './specs'
 
 export type Section = 'character' | 'talents' | 'gear' | 'buffs' | 'rotation' | 'fight'
 
+/** Puts the setup back as it was before a change: the current config and every spec's saved setup. */
+export type Undo = () => void
+
 interface SetupState {
   config: SimConfig
+  /** The last setup of each spec other than the current one (the current spec's entry is stale). */
   bySpec: Partial<Record<SpecId, SimConfig>>
   section: Section
   setSection: (section: Section) => void
+  /** Switches spec, saving the current setup for its spec and restoring the other spec's own. */
   setSpec: (spec: SpecId) => void
   /** Applies a change to the current config. */
   update: (change: (config: SimConfig) => SimConfig) => void
   /** Resets the current spec to its defaults. */
-  reset: () => void
-  /** Replaces the setup (a shared link). Returns the previous config, for Undo. */
-  replace: (config: SimConfig) => SimConfig
+  reset: () => Undo
+  /**
+   * Replaces the current setup (a shared link, or putting one back). A setup for another spec
+   * switches to it, saving the current one as setSpec does. The Undo restores the saved setups
+   * too, so undoing a shared link for your other spec gives you back your own setup for it.
+   */
+  replace: (config: SimConfig) => Undo
 }
 
 function fresh(spec: SpecId): SimConfig {
@@ -42,11 +51,11 @@ export const useSetup = create<SetupState>()(
         })
       },
       update: (change) => set({ config: change(get().config) }),
-      reset: () => set({ config: fresh(get().config.spec) }),
+      reset: () => get().replace(fresh(get().config.spec)),
       replace: (config) => {
-        const previous = get().config
-        set({ config, bySpec: { ...get().bySpec, [previous.spec]: previous } })
-        return previous
+        const { config: previous, bySpec } = get()
+        set({ config, bySpec: config.spec === previous.spec ? bySpec : { ...bySpec, [previous.spec]: previous } })
+        return () => set({ config: previous, bySpec })
       },
     }),
     {

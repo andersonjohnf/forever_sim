@@ -1,9 +1,8 @@
-import { useEffect } from 'react'
-import { toast } from 'sonner'
+import { useEffect, useRef } from 'react'
 import { Header } from '@/app/header'
+import { useScrollFade } from '@/app/scroll-fade'
 import { useSetup, type Section } from '@/app/setup-store'
-import { readSharedSetup } from '@/app/share'
-import { isVisibleSpec } from '@/app/specs'
+import { useSharedLink } from '@/app/shared-link'
 import { DataAttribution } from '@/components/data-attribution'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BuffsSection } from '@/features/buffs/buffs-section'
@@ -14,7 +13,6 @@ import { MobileSimBar } from '@/features/results/mobile-sim-bar'
 import { ResultsPanel } from '@/features/results/results-panel'
 import { RotationSection } from '@/features/rotation/rotation-section'
 import { TalentsSection } from '@/features/talents/talents-section'
-import { normalizeConfig, SPEC_META } from '@/sim'
 
 const SECTIONS: { id: Section; label: string; content: () => React.JSX.Element }[] = [
   { id: 'character', label: 'Character', content: CharacterSection },
@@ -25,36 +23,30 @@ const SECTIONS: { id: Section; label: string; content: () => React.JSX.Element }
   { id: 'fight', label: 'Fight', content: FightSection },
 ]
 
-/**
- * Loads a setup from a share link (#s=…), with Undo (docs/ux.md#persistence-and-sharing).
- * Reading the link also clears it from the URL, before decoding it.
- */
-function useSharedLink() {
+/** Keeps the phone bar's height in --sim-bar-height, so toasts sit just above it (src/app/toaster.tsx). */
+function useSimBarHeight() {
+  const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
-    readSharedSetup()
-      .then((raw) => {
-        if (raw === null) return
-        const { config, warnings } = normalizeConfig(raw)
-        if (!isVisibleSpec(config.spec)) {
-          const { name, className } = SPEC_META[config.spec]
-          toast.error(`That link is for a ${name} ${className}`, { description: 'This sim doesn’t cover that spec, so your own setup is unchanged.' })
-          return
-        }
-        const previous = useSetup.getState().replace(config)
-        toast('Loaded a shared setup', {
-          description: warnings.length ? `${warnings.length} part(s) were out of date and reset to defaults.` : undefined,
-          action: { label: 'Undo', onClick: () => useSetup.getState().replace(previous) },
-        })
-      })
-      .catch(() => {
-        toast.error('That share link is broken', { description: 'Your own setup is unchanged.' })
-      })
+    // The bar marks itself: MobileSimBar also renders the run's live region beside it.
+    const bar = ref.current?.querySelector('[data-sim-bar]')
+    if (!bar) return
+    const root = document.documentElement
+    // Hidden on desktop, where it measures 0.
+    const observer = new ResizeObserver(() => root.style.setProperty('--sim-bar-height', `${bar.getBoundingClientRect().height}px`))
+    observer.observe(bar)
+    return () => {
+      observer.disconnect()
+      root.style.removeProperty('--sim-bar-height')
+    }
   }, [])
+  return ref
 }
 
 export default function App() {
   const section = useSetup((s) => s.section)
   const setSection = useSetup((s) => s.setSection)
+  const { ref: tabsRef, fade } = useScrollFade<HTMLDivElement>(section)
+  const simBar = useSimBarHeight()
   useSharedLink()
 
   return (
@@ -63,13 +55,18 @@ export default function App() {
       <main className="mx-auto max-w-7xl px-4 pb-32 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10 lg:pb-12">
         <Tabs value={section} onValueChange={(v) => setSection(v as Section)} className="min-w-0 gap-0">
           <div className="sticky top-14 z-30 -mx-4 border-b bg-background/95 px-4 backdrop-blur lg:mx-0 lg:px-0">
-            {/* On narrow screens the tabs scroll; the fade on the right says there's more. */}
+            {/*
+             * On narrow screens the tabs scroll sideways, and a fade marks each edge with more past
+             * it. Tabs are 44 px tall (docs/ux.md principle 4), their underline on the bar's edge.
+             */}
             <TabsList
+              ref={tabsRef}
               variant="line"
-              className="h-12 w-full justify-start gap-1 overflow-x-auto [scrollbar-width:none] max-sm:[mask-image:linear-gradient(to_right,black_85%,transparent)]"
+              data-fade={fade}
+              className="w-full justify-start gap-1 overflow-x-auto [scrollbar-width:none] group-data-horizontal/tabs:h-[50px] data-[fade=both]:[mask-image:linear-gradient(to_right,transparent,black_3rem,black_calc(100%-3rem),transparent)] data-[fade=left]:[mask-image:linear-gradient(to_left,black_calc(100%-3rem),transparent)] data-[fade=right]:[mask-image:linear-gradient(to_right,black_calc(100%-3rem),transparent)]"
             >
               {SECTIONS.map((s) => (
-                <TabsTrigger key={s.id} value={s.id} className="h-10 flex-none px-3">
+                <TabsTrigger key={s.id} value={s.id} className="h-11 flex-none px-3 group-data-horizontal/tabs:after:bottom-[-3px]">
                   {s.label}
                 </TabsTrigger>
               ))}
@@ -90,7 +87,9 @@ export default function App() {
           </div>
         </aside>
       </main>
-      <MobileSimBar />
+      <div ref={simBar} className="contents">
+        <MobileSimBar />
+      </div>
     </div>
   )
 }

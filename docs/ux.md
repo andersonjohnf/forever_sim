@@ -36,9 +36,18 @@ When a design decision isn't covered here, make it, then add it here.
 | **640–1023 px** | One column of setup sections. A sticky bottom bar shows the latest result and the Simulate button; tapping the result opens the full results as a sheet. |
 | **< 640 px** | A compact header. The section tabs are a horizontally scrollable segmented bar, sticky under the header. The sticky bottom bar works as above. Pickers open as full-height sheets. |
 
-**Header:** the app mark and the **spec switcher**, which shows the class icon and spec in
-the class color. Then **Share** (copies a link to this setup) and an overflow menu with
-About & data, Reset setup, and Theme (system, light, dark).
+**Header:** the app mark, "Forever Sim" (the page's one `<h1>`, visually hidden on phones),
+and the **spec switcher**, which shows the class icon and spec in the class color. Then
+**Share** (copies a link to this setup) and an overflow menu with About & data, Reset setup,
+and Theme (system, light, dark). Menu items are 44 px tall.
+
+**About & data** opens a sheet that starts with what the sim covers, worded from the specs it
+offers ("A DPS simulator for Fury and Arms Warriors in WoW Forever"), so it grows as specs ship
+(principle 8). The page's meta and Open Graph descriptions in `index.html` say the same and are
+updated with each spec; an e2e test compares them.
+
+**Section tabs** are 44 px tall. When they scroll sideways, a fade marks each edge with more
+tabs past it (none at an end), and the chosen tab scrolls into view.
 
 **Setup sections**, in this order: **Character · Talents · Gear · Buffs · Rotation · Fight**.
 
@@ -202,9 +211,27 @@ About & data, Reset setup, and Theme (system, light, dark).
 - **Color:**
   - Neutral tokens for surfaces and text.
   - **Class colors** as accents only: Warrior `#C69B6D`, Druid `#FF7C0A`, Paladin `#F48CBA`.
+    As text on light surfaces they're darkened in OKLCH, keeping the hue, to meet AA:
+    Warrior `#92642D`, Druid `#C54600`, Paladin `#AB4B79` (the `--class-*` tokens in
+    `src/index.css`, used through `CLASS_TEXT` in `src/app/specs.ts`). Dark mode uses the class
+    colors themselves.
+  - **Status text** uses tokens, never raw palette classes: `text-positive` (emerald: better,
+    a partly ranked talent), `text-negative` (red: worse) and `text-notice` (amber: a maxed
+    talent, a warning). Light mode takes Tailwind's -700 shades and dark mode the -400 shades,
+    so each is AA at small sizes. The one exception is the stale results' "Setup changed"
+    badge: a solid amber chip with amber-900 text (a translucent chip with amber-300 in dark
+    mode), 8:1 or more, because it's the smallest text there and the phone bar behind it is
+    translucent.
   - **Item quality** colors: Uncommon `#1EFF00`, Rare `#0070DD`, Epic `#A335EE`, darkened as
     needed to meet AA contrast on light backgrounds.
   - Color never carries meaning alone; always pair it with a label, sign or icon.
+- **Controls** meet 3:1 against what's behind them (WCAG 1.4.11), in both themes. An unchecked
+  switch's track uses its own token, `--switch-off`, rather than the input border color.
+- **Stale results** (and a kept result during a re-run) are dimmed by color, not opacity: their
+  text turns to the muted text color, and bars and icons fade to gray (`data-dimmed` in
+  `src/features/results/results-panel.tsx`). Muted text at 60% opacity would fall to about
+  2.3:1, below AA. The "Setup changed" badge sits outside the dimmed parts, so it's never
+  dimmed.
 - **Game icons:** WoW icons by icon name from Wowhead's CDN, lazy-loaded at a fixed size with
   a neutral placeholder on error. Nothing depends on them loading.
 - **Motion:** short and purposeful (sheets, disclosure). Respect `prefers-reduced-motion`.
@@ -243,8 +270,17 @@ Every view handles these states:
 ## Persistence and sharing
 
 - The setup is saved to `localStorage` automatically and restored on the next visit.
-- **Share** copies a URL with the compressed setup in the hash (`#s=…`). Opening one loads it
-  and shows a toast with **Undo**, which restores the previous setup.
+- **Share** copies a URL with the compressed setup in the hash (`#s=…`). The clipboard write
+  starts within the tap itself, with the link as a promise (`ClipboardItem`), because Safari
+  refuses one that follows an await. A toast says the link was copied, or that the browser
+  refused and how to allow it.
+- Opening a link loads it, whether it opens a new tab or is pasted into a tab that already has
+  the app open (only the hash changes). A toast says so, and which spec it switched you to, with
+  **Undo**. Undo restores the whole previous setup, including your own saved setup for the
+  link's spec, so undoing a link for your other spec gives that spec's setup back.
+- **Toasts** sit at the bottom, just above the phone's sticky bar, so they never cover the
+  header. A toast with Undo stays up 10 s, paused while it's hovered, touched or focused
+  (`undoToast` in `src/app/undo-toast.ts`). Its buttons are 44 px tall.
 - Setups are versioned, so an old link still loads, or explains why it can't.
 - A link to a spec the app doesn't offer yet shows an error toast and leaves the current setup
   alone. A saved setup for such a spec is kept for later, and the default spec opens.
@@ -258,6 +294,11 @@ Every view handles these states:
 - WCAG 2.2 AA contrast in both themes.
 - Visible focus on everything interactive, and labels on icon-only buttons.
 - Logical tab order. Sheets and dialogs trap focus and close with Escape.
+- When a sheet or dialog opens, focus moves into it: to its title when the content is long
+  (About, the phone's results), or to its first field (a search box). When it closes, focus
+  goes back to the control that opened it. Radix does this only for its own Trigger, so one
+  opened from state uses `useSheetFocus` (`src/app/sheet-focus.ts`).
+- The page has one `<h1>`, "Forever Sim"; sections, sheets and groups use lower levels.
 - Nothing is hover-only: every tooltip's content is reachable by tap or focus.
 
 ## UX review checklist

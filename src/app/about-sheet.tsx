@@ -1,8 +1,11 @@
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, XIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { DataAttribution } from '@/components/data-attribution'
 import { Badge } from '@/components/ui/badge'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import type { useSheetFocus } from './sheet-focus'
+import { coverageSentence } from './specs'
 
 const REPO = 'https://github.com/andersonjohnf/forever_sim'
 
@@ -16,17 +19,36 @@ const DATASETS = Object.entries(metas).map(([path, meta]) => ({
   meta,
 }))
 
-export function AboutSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+type SheetFocus = ReturnType<typeof useSheetFocus>
+
+/** titleRef and contentProps come from the header's useSheetFocus, which returns focus to its menu. */
+export function AboutSheet({
+  open,
+  onOpenChange,
+  titleRef,
+  contentProps,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  titleRef: SheetFocus['titleRef']
+  contentProps: SheetFocus['contentProps']
+}) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full overflow-y-auto sm:max-w-md">
-        <SheetHeader>
-          <SheetTitle>About Forever Sim</SheetTitle>
-          <SheetDescription>
-            A DPS and TPS simulator for Warriors, Feral Druids and Paladins in WoW Forever. Everything runs in
-            your browser.
-          </SheetDescription>
+      <SheetContent className="w-full overflow-y-auto sm:max-w-md" showCloseButton={false} {...contentProps}>
+        <SheetHeader className="pr-14">
+          <SheetTitle ref={titleRef} tabIndex={-1} className="outline-none">
+            About Forever Sim
+          </SheetTitle>
+          {/* The specs it covers grow as they ship (docs/ux.md principle 8). */}
+          <SheetDescription>{coverageSentence()} Everything runs in your browser.</SheetDescription>
         </SheetHeader>
+        <SheetClose asChild>
+          <Button variant="ghost" size="icon" className="absolute top-2 right-2 size-11">
+            <XIcon />
+            <span className="sr-only">Close</span>
+          </Button>
+        </SheetClose>
         <div className="flex flex-col gap-6 px-4 pb-8 text-sm">
           <Section title="Where the numbers come from">
             <p>

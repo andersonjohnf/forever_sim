@@ -14,10 +14,13 @@ async function linkFor(page: Page, value: unknown): Promise<string> {
   }, value)
 }
 
+/**
+ * A fresh page load of the link, as from a click elsewhere. (A link pasted into an open tab
+ * loads on hashchange, before any reload; e2e/shell-sharing.spec.ts covers that.)
+ */
 async function open(page: Page, hash: string) {
+  await page.goto('about:blank')
   await page.goto(`./${hash}`)
-  // A hash-only navigation keeps the page; reload so the app reads the link as it would from a click.
-  await page.reload()
 }
 
 test.describe('oversized share links', () => {

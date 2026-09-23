@@ -244,7 +244,7 @@ function TalentCell({
       <span
         className={cn(
           'absolute -right-1.5 -bottom-1.5 rounded-md border bg-background px-1 text-[0.7rem] leading-4 font-semibold tabular-nums',
-          rank === talent.maxRank ? 'text-amber-600 dark:text-amber-400' : rank > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground',
+          rank === talent.maxRank ? 'text-notice' : rank > 0 ? 'text-positive' : 'text-muted-foreground',
           locked && 'opacity-60',
         )}
       >
@@ -304,7 +304,7 @@ function TalentDetails({ data, talent, ranks }: { data: TalentData; talent: Tale
           {next}
         </p>
       )}
-      {reason && <p className="font-medium text-amber-600 dark:text-amber-400">{reason}</p>}
+      {reason && <p className="font-medium text-notice">{reason}</p>}
     </div>
   )
 }

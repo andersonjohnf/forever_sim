@@ -199,7 +199,7 @@ function Delta({ value, previous, className }: { value: number; previous: number
     <span
       className={cn(
         'flex items-center font-medium tabular-nums',
-        delta > 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400',
+        delta > 0 ? 'text-positive' : 'text-negative',
         DIM_TEXT,
         className,
       )}

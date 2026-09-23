@@ -76,6 +76,11 @@ export async function shareUrl(config: SimConfig): Promise<string> {
   return `${location.origin}${import.meta.env.BASE_URL}${PREFIX}${await packSetup(config)}`
 }
 
+/** Whether the current URL holds a share link. */
+export function hasSharedSetup(): boolean {
+  return location.hash.startsWith(PREFIX)
+}
+
 /**
  * The raw (unvalidated) setup in the current URL, or null if there is none. Throws if it's
  * corrupt or too large. The link leaves the URL before it's decoded, so one that breaks the
@@ -83,7 +88,7 @@ export async function shareUrl(config: SimConfig): Promise<string> {
  */
 export async function readSharedSetup(): Promise<unknown | null> {
   const hash = location.hash
-  if (!hash.startsWith(PREFIX)) return null
+  if (!hasSharedSetup()) return null
   clearSharedSetupFromUrl()
   return unpackSetup(hash.slice(PREFIX.length))
 }

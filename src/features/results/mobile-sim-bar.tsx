@@ -1,5 +1,6 @@
 import { ChevronUp, TriangleAlert } from 'lucide-react'
 import { useId, useState } from 'react'
+import { useSheetFocus } from '@/app/sheet-focus'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Progress } from '@/components/ui/progress'
 import { Headline, ResultsPanel, SimulateButton } from './results-panel'
@@ -15,14 +16,21 @@ export function MobileSimBar() {
   const { result, running, progressPct, error } = useRunState()
   const summaryId = useId()
   const canOpen = result !== null || running || error !== null
+  // Focus moves to the sheet's title when it opens, and back to "Show results" when it closes.
+  const { returnRef, titleRef, contentProps } = useSheetFocus<HTMLButtonElement>()
   return (
     <>
       {/* The run's live region lives here because this component is mounted once at every width. */}
       <RunAnnouncer />
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+      {/* data-sim-bar: App measures this bar so toasts sit above it (src/App.tsx). */}
+      <div
+        data-sim-bar
+        className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
+      >
         {running && <Progress value={progressPct ?? 0} aria-hidden className="absolute inset-x-0 top-0 h-0.5 rounded-none" />}
         <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-2">
           <button
+            ref={returnRef}
             type="button"
             onClick={() => setOpen(true)}
             disabled={!canOpen}
@@ -39,9 +47,11 @@ export function MobileSimBar() {
         </div>
       </div>
       <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerContent className="max-h-[92svh]">
+        <DrawerContent className="max-h-[92svh]" {...contentProps}>
           <DrawerHeader className="text-left">
-            <DrawerTitle>Results</DrawerTitle>
+            <DrawerTitle ref={titleRef} tabIndex={-1} className="outline-none">
+              Results
+            </DrawerTitle>
             <DrawerDescription className="sr-only">Simulation results for your setup.</DrawerDescription>
           </DrawerHeader>
           <div className="overflow-y-auto px-4 pb-8">

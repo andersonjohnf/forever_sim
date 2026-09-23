@@ -1,8 +1,37 @@
 // Which specs the app offers (docs/ux.md principles 1 and 8). setup-store imports these while
 // it's being created, and this module imports the store for useSpecMeta: the helpers are
 // function declarations, so the import cycle is safe in either load order.
-import { SPEC_META, specs, type SpecDefinition, type SpecId } from '@/sim'
+import { SPEC_META, specs, type ClassId, type SpecDefinition, type SpecId } from '@/sim'
 import { useSetup } from './setup-store'
+
+/**
+ * A class's colour as text (docs/ux.md#visual-language): darker on light surfaces so it meets
+ * AA, the class colour itself on dark ones (tokens in src/index.css).
+ */
+export const CLASS_TEXT: Record<ClassId, string> = {
+  warrior: 'text-class-warrior',
+  druid: 'text-class-druid',
+  paladin: 'text-class-paladin',
+}
+
+const list = (words: string[]) => (words.length < 3 ? words.join(' and ') : `${words.slice(0, -1).join(', ')} and ${words.at(-1)}`)
+
+/**
+ * What the sim covers, from the specs it offers (docs/ux.md principle 8), so the wording grows
+ * as specs ship: "A DPS simulator for Fury and Arms Warriors in WoW Forever."
+ */
+export function coverageSentence(): string {
+  const visible = visibleSpecs()
+  // Spec names per class, in the switcher's order: { Warrior: ['Fury', 'Arms'] }.
+  const byClass = new Map<string, string[]>()
+  for (const spec of visible) {
+    const { className, name } = SPEC_META[spec.id]
+    byClass.set(className, [...(byClass.get(className) ?? []), name])
+  }
+  const classes = [...byClass].map(([className, names]) => `${list(names)} ${className}s`)
+  const metrics = visible.some((s) => s.role === 'tank') ? 'DPS and TPS' : 'DPS'
+  return `A ${metrics} simulator for ${list(classes)} in WoW Forever.`
+}
 
 /**
  * Specs shown in the spec switcher: only finished ones (docs/ux.md principle 8). Until the

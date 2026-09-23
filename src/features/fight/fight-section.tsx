@@ -380,7 +380,7 @@ export function FightSection() {
             <Field
               label="Damage you take"
               htmlFor={ids('damageTaken').control}
-              help="For effects that trigger when you’re hit, such as Enrage. At 0 they never trigger."
+              help="What the boss deals you per second, before your armor. Each hit gives rage and can trigger Enrage. At 0 you’re never hit."
               changed={hint('damageTaken', 'Damage you take', changed.damageTaken, `${def.damageTakenPerSec}/s`, () => set({ damageTakenPerSec: def.damageTakenPerSec }))}
             >
               <NumberField

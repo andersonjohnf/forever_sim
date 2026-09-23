@@ -252,6 +252,10 @@ Era's) start in view rather than under the tabs.
     field ("Decrease Boss level"). A stepper that reaches its limit disables itself, so, if it
     held focus, it hands focus to the other stepper, the way back. Never to the text field,
     which on a phone would open the on-screen keyboard.
+  - **Damage you take** (DPS specs; 0 by default) says what the number is and what it does:
+    "What the boss deals you per second, before your armor. Each hit gives rage and can trigger
+    Enrage. At 0 you're never hit." It's before armor because Forever's rage from a hit reads the
+    hit before mitigation ([rage.md](mechanics/rage.md#forever-)).
   - Precision is Adaptive or Fixed. **Fixed** shows its own field under it, "Number of fights",
     with its own help and default. Counts are written with thousands separators, in a field as
     in its "Default: 3,000" (boss armor, damage per swing); a seed is an identifier and has none.

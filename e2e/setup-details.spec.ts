@@ -3,7 +3,8 @@ import { expect, test } from './fixtures.ts'
 
 // Third-pass UX fixes on the setup tabs (docs/ux.md "Sections", "Layout"): the enchant listbox's
 // active option (TU6), a Reset's hit area clear of the control above (TU7), the fixed number of
-// fights (TU8) and the scroll after a tab switch (TU11).
+// fights (TU8) and the scroll after a tab switch (TU11); and from the M2.4i review, the "Damage you
+// take" help (LX10, UX5).
 
 const PHONE = { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }
 
@@ -242,4 +243,15 @@ test.describe('a tab switch from further down the page (TU11)', () => {
       expect(fightTab.x + fightTab.width).toBeLessThanOrEqual(390)
     })
   }
+})
+
+test('the Damage you take help says it’s before armor, and that each hit gives rage and can trigger Enrage (LX10, UX5)', async ({ page }) => {
+  await page.goto('./')
+  await page.getByRole('tab', { name: 'Fight', exact: true }).click()
+  const tab = page.getByRole('tabpanel', { name: 'Fight' })
+  await tab.getByRole('button', { name: 'Advanced' }).click()
+  await expect(tab.getByRole('textbox', { name: 'Damage you take', exact: true })).toBeVisible()
+  await expect(
+    tab.getByText('What the boss deals you per second, before your armor. Each hit gives rage and can trigger Enrage. At 0 you’re never hit.', { exact: true }),
+  ).toBeVisible()
 })

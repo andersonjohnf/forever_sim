@@ -260,7 +260,9 @@ Era's) start in view rather than under the tabs.
     with its own help and default. Counts are written with thousands separators, in a field as
     in its "Default: 3,000" (boss armor, damage per swing); a seed is an identifier and has none.
     While you edit a field it shows the plain number ("3000"), with the selection or caret kept,
-    so an edit never meets its separators; they come back when you leave it.
+    so an edit never meets its separators; they come back when you leave it. A click or tap
+    puts the caret where it lands in the number you see, "5|,000" giving "5|000": the field
+    swaps once the browser has placed it, not before.
     A number field reads what's typed in the typist's own style (`src/lib/parse-number.ts`):
     "5.000" and "5 000" are 5,000, and "1,5" is 1.5, as a comma-decimal phone's keypad types it.
     Only a sign, digits and separators count: "1e3", "0x10" and "Infinity" aren't numbers, so the

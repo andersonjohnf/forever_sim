@@ -3,8 +3,8 @@ import { expect, test } from './fixtures.ts'
 
 // Third-pass UX fixes on the setup tabs (docs/ux.md "Sections", "Layout"): the enchant listbox's
 // active option (TU6), a Reset's hit area clear of the control above (TU7), the fixed number of
-// fights (TU8) and the scroll after a tab switch (TU11); and from the M2.4i review, the "Damage you
-// take" help (LX10, UX5).
+// fights (TU8) and the scroll after a tab switch (TU11); and from the M2.4i review, the caret a
+// click or tap places in a grouped number field (UX14) and the "Damage you take" help (LX10, UX5).
 
 const PHONE = { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }
 
@@ -244,6 +244,97 @@ test.describe('a tab switch from further down the page (TU11)', () => {
     })
   }
 })
+
+/**
+ * A point in a centred text field's shown text, as a person would click it: the boundary before
+ * character `i`, or with `side`, a quarter of a comma's width right (1) or left (−1) of character
+ * `i`'s middle. That is where the comma's going moves the nearest boundary: the text re-centres
+ * half a comma to the right, and what follows the comma moves half a comma left.
+ */
+const spot = (field: Locator, i: number, side = 0) =>
+  field.evaluate(
+    (el, [index, towards]) => {
+      const input = el as HTMLInputElement
+      const cs = getComputedStyle(input)
+      const span = document.createElement('span')
+      Object.assign(span.style, { fontFamily: cs.fontFamily, fontSize: cs.fontSize, fontWeight: cs.fontWeight, fontStyle: cs.fontStyle, fontVariantNumeric: cs.fontVariantNumeric, fontFeatureSettings: cs.fontFeatureSettings, letterSpacing: cs.letterSpacing, position: 'absolute', whiteSpace: 'pre', visibility: 'hidden' })
+      document.body.append(span)
+      const width = (text: string) => {
+        span.textContent = text
+        return span.getBoundingClientRect().width
+      }
+      const full = width(input.value)
+      const before = width(input.value.slice(0, index))
+      const offset = towards === 0 ? 0 : width(input.value[index]) / 2 + (towards * width(',')) / 4
+      span.remove()
+      const box = input.getBoundingClientRect()
+      const left = box.left + Number.parseFloat(cs.borderLeftWidth) + Number.parseFloat(cs.paddingLeft)
+      const inner = input.clientWidth - Number.parseFloat(cs.paddingLeft) - Number.parseFloat(cs.paddingRight)
+      return { x: left + (inner - full) / 2 + before + offset, y: box.top + box.height / 2 }
+    },
+    [i, side] as const,
+  )
+
+/** The field's text and its selection. */
+const caret = (field: Locator) =>
+  field.evaluate((el) => {
+    const input = el as HTMLInputElement
+    return [input.value, input.selectionStart, input.selectionEnd]
+  })
+
+for (const device of ['mouse', 'touch'] as const) {
+  test(`a ${device === 'mouse' ? 'click' : 'tap'} in a grouped number field puts the caret where it lands, the comma gone (UX14)`, async ({ browser }) => {
+    const context = await browser.newContext(device === 'touch' ? PHONE : {})
+    const page = await context.newPage()
+    await page.goto('./')
+    await page.getByRole('tab', { name: 'Fight', exact: true }).click()
+    await page.getByRole('radio', { name: /Custom/ }).click()
+    const armor = page.getByRole('textbox', { name: 'Custom boss armor', exact: true })
+    // Tab in, which selects the whole field, and type: the new number replaces the old one.
+    await page.getByRole('button', { name: 'Decrease Custom boss armor' }).focus()
+    await page.keyboard.press('Tab')
+    await expect(armor).toBeFocused()
+    await page.keyboard.type('5000')
+    await page.keyboard.press('Tab')
+    await expect(armor).toHaveValue('5,000')
+
+    const tap = async (i: number, side = 0) => {
+      const at = await spot(armor, i, side)
+      if (device === 'mouse') await page.mouse.click(at.x, at.y)
+      else {
+        // Apart enough that the taps aren't a double tap, which selects the number.
+        await page.waitForTimeout(600)
+        await page.touchscreen.tap(at.x, at.y)
+      }
+      await expect(armor).toBeFocused()
+    }
+    const press = async (i: number, side = 0) => {
+      await tap(i, side)
+      const state = await caret(armor)
+      await armor.blur()
+      await expect(armor).toHaveValue('5,000')
+      return state
+    }
+    // "5,000" becomes "5000", and the caret goes where it landed in "5,000", counted in digits:
+    // between "5" and ",", just after the comma, and before the last "0".
+    expect(await press(1)).toEqual(['5000', 1, 1])
+    expect(await press(2)).toEqual(['5000', 1, 1])
+    expect(await press(4)).toEqual(['5000', 3, 3])
+    // Just right of the middle of "5": after it. Just left of the middle of the first and the
+    // last "0": before each. Placed after the swap, these landed a place off.
+    expect(await press(0, 1)).toEqual(['5000', 1, 1])
+    expect(await press(2, -1)).toEqual(['5000', 1, 1])
+    expect(await press(4, -1)).toEqual(['5000', 3, 3])
+
+    // What's typed goes in at the caret: "5" then "4", so 54,000, which the field's 10,000 caps.
+    await tap(1)
+    await page.keyboard.type('4')
+    await expect(armor).toHaveValue('54000')
+    await armor.blur()
+    await expect(armor).toHaveValue('10,000')
+    await context.close()
+  })
+}
 
 test('the Damage you take help says it’s before armor, and that each hit gives rage and can trigger Enrage (LX10, UX5)', async ({ page }) => {
   await page.goto('./')

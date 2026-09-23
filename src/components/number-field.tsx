@@ -1,5 +1,5 @@
 import { Minus, Plus } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { type PointerEvent, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -54,12 +54,15 @@ export function NumberField({
   const inputRef = useRef<HTMLInputElement>(null)
   const decreaseRef = useRef<HTMLButtonElement>(null)
   const increaseRef = useRef<HTMLButtonElement>(null)
+  /** A press that is focusing the field, until the swap below: a mouse or pen's, or a touch's. */
+  const pointerFocus = useRef<'mouse' | 'touch' | null>(null)
   const stepName = stepLabel ?? ariaLabel
 
   const clamp = (n: number) => Math.min(max, Math.max(min, snapToStep(n, step)))
   // On focus the field swaps "3,000" for "3000". The selection or caret comes along, placed by
   // the digits before it, so Tab (which selects the whole field) then typing still replaces it.
   const startEditing = () => {
+    pointerFocus.current = null
     const input = inputRef.current
     if (!input || input.value === String(value)) return setEditing(true)
     const shown = input.value
@@ -67,6 +70,34 @@ export function NumberField({
     const [start, end] = [at(input.selectionStart), at(input.selectionEnd)]
     flushSync(() => setEditing(true))
     if (start !== null && end !== null) input.setSelectionRange(start, end)
+  }
+  // A click or tap that focuses the field places the caret itself, after the focus event, where
+  // the pointer is in the text shown then. Swapping on focus would move the text under it (the
+  // comma goes, and the centred number shifts), so the caret would land a place off. Instead the
+  // swap waits until the browser has placed it, grouped, and then carries it over like Tab's
+  // selection: at the pointer's release for a mouse or pen, at the click for a tap, which focuses
+  // the field after its release. A key pressed first swaps too, so typing never meets the commas.
+  const pointerDown = (e: PointerEvent<HTMLInputElement>) => {
+    if (document.activeElement === inputRef.current) return
+    const kind = e.pointerType === 'touch' ? 'touch' : 'mouse'
+    pointerFocus.current = kind
+    const release = () => {
+      window.removeEventListener('pointerup', release, true)
+      window.removeEventListener('pointercancel', cancel, true)
+      if (pointerFocus.current !== 'mouse') return
+      if (document.activeElement === inputRef.current) startEditing()
+      else pointerFocus.current = null // the press didn't focus the field
+    }
+    const cancel = () => {
+      window.removeEventListener('pointerup', release, true)
+      window.removeEventListener('pointercancel', cancel, true)
+      pointerFocus.current = null // a scroll or other gesture took the pointer
+    }
+    window.addEventListener('pointerup', release, true)
+    window.addEventListener('pointercancel', cancel, true)
+  }
+  const pointerDone = () => {
+    if (pointerFocus.current && document.activeElement === inputRef.current) startEditing()
   }
   /** Commits the draft, if it reads as a number, and drops it. */
   const commit = () => {
@@ -112,14 +143,20 @@ export function NumberField({
           aria-label={ariaLabel}
           aria-describedby={describedBy}
           value={draft ?? (grouping && !editing ? value.toLocaleString('en-US') : String(value))}
-          onFocus={startEditing}
+          onPointerDown={pointerDown}
+          onFocus={() => pointerFocus.current === null && startEditing()}
+          onClick={pointerDone}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={() => {
+            pointerFocus.current = null
             commit()
             setEditing(false)
           }}
           // Enter commits and keeps editing, the plain number showing.
-          onKeyDown={(e) => e.key === 'Enter' && commit()}
+          onKeyDown={(e) => {
+            pointerDone()
+            if (e.key === 'Enter') commit()
+          }}
           className={cn('h-11 w-24 text-center tabular-nums', unit && 'pr-9')}
         />
         {unit && (

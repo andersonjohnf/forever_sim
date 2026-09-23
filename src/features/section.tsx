@@ -55,10 +55,11 @@ export function Field({
  * Rotation tab's headings, it opens by itself when `changed` settings inside it differ from their
  * defaults, and counts them even while closed.
  */
-export function Advanced({ children, label = 'Advanced', changed = 0 }: { children: ReactNode; label?: string; changed?: number }) {
+export function Advanced({ children, label = 'Advanced', changed = 0, id }: { children: ReactNode; label?: string; changed?: number; id?: string }) {
   return (
     <Collapsible className="rounded-lg border" defaultOpen={changed > 0}>
       <CollapsibleTrigger
+        id={id}
         aria-label={changed > 0 ? `${label}, ${changed} changed` : undefined}
         className="group flex min-h-11 w-full items-center gap-2 px-4 text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >

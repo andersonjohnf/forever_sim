@@ -43,7 +43,7 @@ async function expectRetributionResult(results: Locator) {
   }
   // Mana per fight: the ledger, from the pull to the end.
   const mana = results.getByRole('region', { name: 'Mana per fight' })
-  for (const label of ['At the pull', 'Regenerated', 'Restored', 'Spent', 'Left at the end']) await expect(mana.getByText(label, { exact: true })).toBeVisible()
+  for (const label of ['At the pull', 'Regenerated', 'Sanctified Judgement', 'Major Mana Potion', 'Spent', 'Left at the end']) await expect(mana.getByText(label, { exact: true })).toBeVisible()
   await expect(mana).toContainText(/Spent\s*−[\d,]+/)
   // The seals, Judgement of the Crusader and the potion under Cooldowns and buffs.
   await openDetails(results, /^Cooldowns and buffs/)
@@ -51,6 +51,10 @@ async function expectRetributionResult(results: Locator) {
   for (const name of ['Seal of Command', 'Seal of the Crusader', 'Judgement of the Crusader', 'Major Mana Potion']) {
     await expect(cooldowns.getByRole('rowheader', { name: new RegExp(`^${name}`) })).toBeVisible()
   }
+  // Seal of the Crusader is up only until its judgement at the pull: a dash, and when it's cast (RU4).
+  const sotc = cooldowns.getByRole('row', { name: /^Seal of the Crusader/ })
+  await expect(sotc).toContainText('Before the pull, for its judgement')
+  await expect(sotc.getByRole('cell').first()).toHaveText(/—\s*none/)
   // The character sheet's spell stats and mana.
   await openDetails(results, /^Character sheet/)
   for (const label of ['Spell damage', 'Spell crit', 'Spell hit', 'Intellect', 'Spirit', 'Mana', 'Mana per 5 s']) {
@@ -81,16 +85,74 @@ test.describe('Retribution', () => {
     await switchToRetribution(page)
     const tab = await openTab(page, 'Rotation')
     await expect(tab.getByText('The defaults are tuned for the default setup.')).toBeVisible()
-    for (const heading of ['Before the pull', 'Core abilities', 'Fillers', 'Execute phase', 'Consumables']) {
+    for (const heading of ['Before the pull', 'Cooldowns and buffs', 'Core abilities', 'Fillers', 'Execute phase', 'Consumables']) {
       await expect(tab.getByRole('heading', { name: heading, exact: true })).toBeVisible()
     }
-    for (const name of ['Judgement of the Crusader', 'Judgement', 'Holy Strike', 'Exorcism', 'Consecration', 'Consecration (Rank 1)', 'Hammer of Wrath', 'Major Mana Potion']) {
+    for (const name of ['Judgement of the Crusader', 'Blessing of Might on yourself', 'On-use trinkets', 'Judgement', 'Holy Strike', 'Exorcism', 'Consecration', 'Consecration (Rank 1)', 'Hammer of Wrath', 'Major Mana Potion']) {
       await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
     }
     await expect(tab.getByRole('radio', { name: 'Command' })).toBeChecked()
     // The rune isn't in the Standard raid preset, so its row says so and links to Buffs.
-    await expect(tab.getByText(/Not used: turn on Demonic Rune \/ Dark Rune in/)).toBeVisible()
+    await expect(tab.getByText(/Not used: turn on Demonic Rune in/)).toBeVisible()
     await expect(tab).not.toContainText(OTHER_CLASS)
+  })
+
+  test('Exorcism waits for an Undead or Demon target, and its note opens Fight on the creature type (RU7)', async ({ page }) => {
+    await switchToRetribution(page)
+    const tab = await openTab(page, 'Rotation')
+    const note = tab.getByText(/Not used: set Creature type to Undead or Demon in/)
+    await expect(note).toBeVisible()
+    await expect(tab.getByRole('switch', { name: 'Exorcism', exact: true })).toHaveAccessibleDescription(/Not used: set Creature type to Undead or Demon in Fight/)
+    await note.getByRole('button', { name: 'Fight' }).click()
+    const fight = page.getByRole('tabpanel', { name: 'Fight' })
+    const creature = fight.getByRole('combobox', { name: 'Creature type' })
+    await expect(creature).toBeFocused()
+    await page.keyboard.press('Enter')
+    await page.getByRole('option', { name: 'Undead' }).click()
+    await expect(creature).toHaveText('Undead')
+    const rotation = await openTab(page, 'Rotation')
+    await expect(rotation.getByText(/Not used: set Creature type/)).toHaveCount(0)
+  })
+
+  test('Judgement of the Crusader’s bonus is an untested switch under Character → Advanced (RU1)', async ({ page }) => {
+    await switchToRetribution(page)
+    const character = await openTab(page, 'Character')
+    await character.getByRole('button', { name: /^Advanced/ }).click()
+    const bonus = character.getByRole('radiogroup', { name: 'Judgement of the Crusader’s bonus' })
+    await expect(bonus.getByRole('radio', { name: 'A share' })).toBeChecked()
+    await expect(bonus).toHaveAccessibleDescription(/Untested in Forever: how much of the \+161/)
+    await bonus.getByRole('radio', { name: 'All of it' }).click()
+    await expect(character.getByText(/Default: A share/)).toBeVisible()
+    await character.getByRole('button', { name: /^Reset Judgement of the Crusader’s bonus/ }).click()
+    await expect(bonus.getByRole('radio', { name: 'A share' })).toBeFocused()
+    await expect(character.getByText(/Default: A share/)).toHaveCount(0)
+    // With Judgement of the Crusader off in Rotation, it changes nothing, and says so.
+    const rotation = await openTab(page, 'Rotation')
+    await expect(rotation.getByText('Judgement of the Crusader’s bonus')).toHaveCount(0)
+    await rotation.getByRole('switch', { name: 'Judgement of the Crusader', exact: true }).click()
+    const again = await openTab(page, 'Character')
+    await again.getByRole('button', { name: /^Advanced/ }).click()
+    await expect(again.getByText('Not used: Judgement of the Crusader is off in Rotation.')).toBeVisible()
+  })
+
+  test('a warrior’s Character tab has no Judgement of the Crusader rule', async ({ page }) => {
+    await page.goto('./')
+    const character = await openTab(page, 'Character')
+    await character.getByRole('button', { name: /^Advanced/ }).click()
+    await expect(character.getByText('Count untested ratings')).toBeVisible()
+    await expect(character.getByText('Judgement of the Crusader’s bonus')).toHaveCount(0)
+  })
+
+  test('with no other paladin in the raid, the blessings need one, and yours is still on (RU9)', async ({ page }) => {
+    await switchToRetribution(page)
+    const buffs = await openTab(page, 'Buffs')
+    await buffs.getByRole('button', { name: 'Paladin', exact: true }).click()
+    await expect(buffs.getByRole('switch', { name: 'Blessing of Kings' })).toBeDisabled()
+    await expect(buffs.getByRole('switch', { name: 'Blessing of Kings' })).toHaveAccessibleDescription('Needs another paladin in the raid')
+    const might = buffs.getByRole('switch', { name: 'Blessing of Might' })
+    await expect(might).toBeChecked()
+    await expect(might).toBeDisabled()
+    await expect(might).toHaveAccessibleDescription(/You keep it up yourself \(see Rotation\)/)
   })
 
   test('its Fight and Buffs tabs: Hammer of Wrath’s execute phase, Exorcism’s creature types, and a paladin’s buffs', async ({ page }) => {
@@ -104,7 +166,7 @@ test.describe('Retribution', () => {
     await expect(fight).not.toContainText(OTHER_CLASS)
 
     const buffs = await openTab(page, 'Buffs')
-    for (const name of ['Blessing of Wisdom', 'Mana Spring Totem', 'Greater Arcane Elixir', 'Major Mana Potion']) await expect(buffs.getByRole('switch', { name })).toBeChecked()
+    for (const name of ['Prayer of Spirit', 'Arcane Brilliance', 'Blessing of Wisdom', 'Mana Spring Totem', 'Greater Arcane Elixir', 'Major Mana Potion']) await expect(buffs.getByRole('switch', { name })).toBeChecked()
     await expect(buffs.getByRole('switch', { name: 'Mighty Rage Potion' })).toHaveCount(0)
   })
 

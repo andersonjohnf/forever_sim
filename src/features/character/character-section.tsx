@@ -11,9 +11,9 @@ import { racesForClass, racialEffectForClass, type Faction, type Race, type Race
 import { ChangedHint } from '@/features/changed-hint'
 import { changeAndFocus, selectedOption } from '@/features/refocus'
 import { Advanced, Field, SectionHeader } from '@/features/section'
-import { CHOICE_ITEM } from '@/lib/choice'
+import { CHOICE_ITEM, CHOICE_ITEM_INACTIVE } from '@/lib/choice'
 import { cn } from '@/lib/utils'
-import { defaultConfig, type RuleProfileId, type SimConfig } from '@/sim'
+import { defaultConfig, rotationValues, type RuleProfileId, type SimConfig } from '@/sim'
 import { RULE_PROFILE_ID } from './classic-era-note'
 import { changeRace, factionOf } from './faction-gear'
 import { raceChangeMessage, raceSimulatable } from './races'
@@ -25,6 +25,12 @@ const FACTIONS: Faction[] = ['Alliance', 'Horde']
 
 const PROFILE_LABEL: Record<RuleProfileId, string> = { forever: 'Forever', classicEra: 'Classic Era' }
 const RATINGS_ID = 'unmeasured-ratings'
+const JOTC_ID = 'jotc-bonus'
+
+type JotcBonus = NonNullable<SimConfig['rules']['jotcBonus']>
+const JOTC_LABEL: Record<JotcBonus, string> = { coefficient: 'A share', flat: 'All of it' }
+/** Retribution's switch for Judgement of the Crusader: while it's off, the rule changes nothing. */
+const CRUSADER_SETTING = 'paladin.retribution.judgementOfTheCrusader.enabled'
 
 /** The selected race's tile, the race picker's one tab stop. */
 const selectedRace = () => document.querySelector<HTMLElement>('[aria-labelledby="race-label"] [aria-checked="true"]')
@@ -42,6 +48,21 @@ export function CharacterSection() {
   const setRules = (patch: Partial<SimConfig['rules']>) => update((c) => ({ ...c, rules: { ...c.rules, ...patch } }))
   const profileChanged = config.rules.profile !== defaults.rules.profile
   const ratingsChanged = config.rules.unmeasuredRatings !== defaults.rules.unmeasuredRatings
+  // A paladin's Judgement of the Crusader rule (paladin.md open question 5): an untested mechanic,
+  // so it sits with the untested ratings. It changes nothing while the rotation doesn't judge the
+  // Crusader, and is dimmed then (docs/ux.md "Rotation": what can't apply is dimmed).
+  const paladin = meta.classId === 'paladin'
+  const jotc: JotcBonus = config.rules.jotcBonus ?? 'coefficient'
+  const jotcChanged = paladin && jotc !== (defaults.rules.jotcBonus ?? 'coefficient')
+  const crusaderOff = useMemo(
+    () => paladin && meta.id === 'paladin-retribution' && rotationValues({ spec: meta.id, talents: config.talents, rotation: config.rotation })[CRUSADER_SETTING] === false,
+    [paladin, meta.id, config.talents, config.rotation],
+  )
+  const setJotc = (value: JotcBonus) =>
+    update((c) => {
+      const { jotcBonus: _, ...rules } = c.rules
+      return { ...c, rules: value === 'coefficient' ? rules : { ...rules, jotcBonus: value } }
+    })
 
   const pick = (race: Race) => {
     if (race.id === config.race) return
@@ -90,7 +111,7 @@ export function CharacterSection() {
       </div>
 
       {/* Opens by itself while a setting in it differs from its default, so Classic Era rules are never out of sight. */}
-      <Advanced changed={Number(profileChanged) + Number(ratingsChanged)}>
+      <Advanced changed={Number(profileChanged) + Number(ratingsChanged) + Number(jotcChanged)}>
         <div className="flex flex-col gap-2">
           <Field
             label="Rules"
@@ -172,6 +193,53 @@ export function CharacterSection() {
             />
           )}
         </div>
+        {paladin && (
+          // Dimmed by colour, never opacity, while the rotation doesn't judge the Crusader.
+          <div data-inactive={crusaderOff || undefined} className={cn('flex flex-col gap-2', crusaderOff && 'text-muted-foreground')}>
+            <span id="jotc-label" className="text-sm font-medium">
+              Judgement of the Crusader’s bonus
+            </span>
+            <ToggleGroup
+              id={JOTC_ID}
+              type="single"
+              variant="outline"
+              value={jotc}
+              onValueChange={(value) => value && setJotc(value as JotcBonus)}
+              aria-labelledby="jotc-label"
+              aria-describedby={['jotc-help', crusaderOff && 'jotc-off', jotcChanged && 'jotc-default'].filter(Boolean).join(' ')}
+              className="w-full"
+            >
+              {(['coefficient', 'flat'] as const).map((value) => (
+                <ToggleGroupItem key={value} value={value} className={cn('h-11 flex-1', CHOICE_ITEM, crusaderOff && CHOICE_ITEM_INACTIVE)}>
+                  {JOTC_LABEL[value]}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+            <p id="jotc-help" className="text-xs text-muted-foreground">
+              Untested in Forever: how much of the +161 Holy damage each Holy hit gets. A share (the default), by the spell’s
+              coefficient: a Seal of Command proc about 20%, Judgement of Command and Holy Strike 43%. Or all of it on seal
+              procs, judgements and Holy Strike. Consecration, Exorcism and Hammer of Wrath get their share either way.
+            </p>
+            {crusaderOff && (
+              <p id="jotc-off" className="text-xs text-muted-foreground">
+                Not used: Judgement of the Crusader is off in Rotation.
+              </p>
+            )}
+            {jotcChanged && (
+              <ChangedHint
+                id="jotc-default"
+                label="Judgement of the Crusader’s bonus"
+                value={JOTC_LABEL.coefficient}
+                onReset={() =>
+                  changeAndFocus(
+                    () => setJotc('coefficient'),
+                    () => selectedOption(JOTC_ID),
+                  )
+                }
+              />
+            )}
+          </div>
+        )}
       </Advanced>
     </div>
   )

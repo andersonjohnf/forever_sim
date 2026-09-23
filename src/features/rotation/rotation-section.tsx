@@ -8,14 +8,15 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { buffSwitchId } from '@/features/buffs/ids'
+import { CREATURE_TYPES, openCreatureType } from '@/features/fight/ids'
 import { ChangedHint, LINK_HIT_AREA } from '@/features/changed-hint'
 import { changeAndFocus } from '@/features/refocus'
 import { EmptyState } from '@/features/empty-state'
 import { SectionHeader } from '@/features/section'
-import { CHOICE_ITEM } from '@/lib/choice'
+import { CHOICE_ITEM, CHOICE_ITEM_INACTIVE } from '@/lib/choice'
 import { cn } from '@/lib/utils'
 import { getSpec, rotationGroups, unusedRotationSettings, type RotationGroup, type RotationOption, type RotationValue } from '@/sim'
-import { formatSetting, isAdvanced, rotationRows, type RowState } from './logic'
+import { formatSetting, groupsThousands, isAdvanced, rotationRows, type RowState } from './logic'
 
 /** What every row needs: its state, and setting or resetting a value. */
 interface RowContext {
@@ -31,6 +32,7 @@ const rowIds = (id: string) => ({
   default: `rot-${id}-default`,
   missing: `rot-${id}-missing`,
   notUsed: `rot-${id}-not-used`,
+  creature: `rot-${id}-creature`,
 })
 
 /** A setting's control as it is now: its switch or input, or a choice's selected option. */
@@ -56,17 +58,18 @@ export function RotationSection() {
   const executePct = useSetup((s) => s.config.fight.executePct)
   const race = useSetup((s) => s.config.race)
   const raid = useSetup((s) => s.config.buffs.raid)
+  const creatureType = useSetup((s) => s.config.fight.creatureType)
   const update = useSetup((s) => s.update)
   const spec = getSpec(meta.id)
   const options = spec.rotationOptions
   // Each setting's value, its default for this setup (a default can follow the talents or another
   // setting), whether it's changed, and whether it can apply: the execute phase's settings need one
-  // under Fight (docs/ux.md "Rotation").
+  // under Fight, and Exorcism an Undead or Demon target (docs/ux.md "Rotation").
   // A setting the rest of the setup leaves unused says why: the race's, or the raid's (docs/ux.md "Rotation").
   const rows = useMemo(() => {
     const unused = unusedRotationSettings({ spec: meta.id, talents, rotation, race, buffs: { raid, enabled: enabledBuffs } })
-    return rotationRows({ spec: meta.id, talents, rotation, fight: { executePct } }, options, enabledBuffs, unused)
-  }, [meta.id, talents, rotation, executePct, options, enabledBuffs, race, raid])
+    return rotationRows({ spec: meta.id, talents, rotation, fight: { executePct, creatureType } }, options, enabledBuffs, unused)
+  }, [meta.id, talents, rotation, executePct, creatureType, options, enabledBuffs, race, raid])
   const ctx: RowContext = {
     rows,
     set: (id, value) => update((c) => ({ ...c, rotation: { ...c.rotation, [id]: value } })),
@@ -236,7 +239,7 @@ function OptionRow({ option, ctx, nested = false }: { option: RotationOption; ct
           className="w-full shrink-0 sm:w-auto"
         >
           {option.choices.map((choice) => (
-            <ToggleGroupItem key={choice.value} value={choice.value} className={cn('h-11 flex-1 px-4 sm:flex-none', CHOICE_ITEM)}>
+            <ToggleGroupItem key={choice.value} value={choice.value} className={cn('h-11 flex-1 px-4 sm:flex-none', CHOICE_ITEM, row.inactive && CHOICE_ITEM_INACTIVE)}>
               {choice.label}
             </ToggleGroupItem>
           ))}
@@ -250,6 +253,7 @@ function OptionRow({ option, ctx, nested = false }: { option: RotationOption; ct
           max={option.max}
           step={option.step}
           unit={option.unit}
+          grouping={groupsThousands(option)}
           aria-label={option.label}
           aria-describedby={[ids.help, row.changed && ids.default].filter(Boolean).join(' ')}
         />
@@ -258,15 +262,25 @@ function OptionRow({ option, ctx, nested = false }: { option: RotationOption; ct
   )
 }
 
+/** "Undead or Demon": the creature types a switch needs, as the Fight tab names them. */
+const creatureList = (types: readonly string[]) => {
+  const names = types.map((t) => CREATURE_TYPES.find((c) => c.value === t)?.label ?? t)
+  return names.length < 3 ? names.join(' or ') : `${names.slice(0, -1).join(', ')} or ${names.at(-1)}`
+}
+
+/** A small link with a 44 px hit area around it, like a row's Reset (LINK_HIT_AREA). */
+const NOTE_LINK = cn('rounded-sm font-medium text-foreground underline underline-offset-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50', LINK_HIT_AREA)
+
 /**
  * A switch row. The whole row is its label, so any tap on it flips the switch (a 44 px target, as
  * on the Buffs tab). A consumable whose Buffs switch is off shows its own switch off and locked,
- * with a note saying why. The notes sit outside the label, since one of them has a button.
+ * with a note saying why; a switch that needs another creature type is dimmed, with a note that
+ * links to Fight. The notes sit outside the label, since they have buttons.
  */
 function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOption, { kind: 'toggle' }>; row: RowState; ctx: RowContext; nested: boolean }) {
   const setSection = useSetup((s) => s.setSection)
   const ids = rowIds(option.id)
-  const notes = row.missingBuff !== undefined || row.notUsed !== undefined || row.changed
+  const notes = row.missingBuff !== undefined || row.notUsed !== undefined || row.needsCreature !== undefined || row.changed
   return (
     // Dimmed by colour, never opacity, so its text stays AA (docs/ux.md "Visual language").
     <div data-inactive={row.inactive || undefined} className={cn(row.inactive && 'text-muted-foreground')}>
@@ -292,21 +306,20 @@ function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOptio
           disabled={row.missingBuff !== undefined}
           className={cn(row.inactive && INACTIVE_SWITCH)}
           aria-labelledby={ids.label}
-          aria-describedby={[ids.help, row.missingBuff && ids.missing, row.notUsed && ids.notUsed, row.changed && ids.default].filter(Boolean).join(' ')}
+          aria-describedby={[ids.help, row.missingBuff && ids.missing, row.notUsed && ids.notUsed, row.needsCreature && ids.creature, row.changed && ids.default].filter(Boolean).join(' ')}
           onCheckedChange={(on) => ctx.set(option.id, on)}
         />
       </label>
       {notes && (
         // Spaced so each link's hit area (LINK_HIT_AREA: 10 px above its line, 18 px below) stays
         // clear of the row's label, of the other link, and of the next row.
-        <div className={cn('flex flex-col px-4 pt-3 pb-5', row.missingBuff && row.changed ? 'gap-6' : 'gap-2')}>
+        <div className={cn('flex flex-col px-4 pt-3 pb-5', (row.missingBuff || row.needsCreature) && row.changed ? 'gap-6' : 'gap-2')}>
           {row.missingBuff && (
             <p id={ids.missing} className="text-xs text-muted-foreground">
               Not used: turn on {row.missingBuff.name} in{' '}
               <button
                 type="button"
-                // A small link with a 44 px hit area around it, like a row's Reset.
-                className={cn('rounded-sm font-medium text-foreground underline underline-offset-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50', LINK_HIT_AREA)}
+                className={NOTE_LINK}
                 onClick={() => {
                   // Opens Buffs on that consumable's switch, so the next key press turns it on.
                   const buff = row.missingBuff!.id
@@ -324,6 +337,15 @@ function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOptio
           {row.notUsed && (
             <p id={ids.notUsed} className="text-xs text-muted-foreground">
               {row.notUsed}
+            </p>
+          )}
+          {row.needsCreature && (
+            <p id={ids.creature} className="text-xs text-muted-foreground">
+              Not used: set Creature type to {creatureList(row.needsCreature)} in{' '}
+              <button type="button" className={NOTE_LINK} onClick={() => openCreatureType(setSection)}>
+                Fight
+              </button>
+              .
             </p>
           )}
           {row.changed && <DefaultHint option={option} row={row} ctx={ctx} />}

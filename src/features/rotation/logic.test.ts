@@ -3,7 +3,7 @@
 // those that need an execute phase.
 import { describe, expect, it } from 'vitest'
 import { defaultConfig, getSpec, type SimConfig, unusedRotationSettings } from '@/sim'
-import { formatSetting, isAdvanced, rotationRows } from './logic'
+import { formatSetting, groupsThousands, isAdvanced, rotationRows } from './logic'
 
 const rows = (config: SimConfig, rotation: SimConfig['rotation'] = {}, enabled = config.buffs.enabled) =>
   rotationRows({ ...config, rotation }, getSpec(config.spec).rotationOptions, enabled)
@@ -143,6 +143,30 @@ describe('rotation rows', () => {
     expect(rows({ ...fury, fight: { ...fury.fight, executePct: 0.5 } }).get('warrior.fury.execute.enabled')?.inactive).toBe(false)
   })
 
+  it('dims Retribution’s Exorcism and its threshold unless the target is Undead or a Demon, and Hammer of Wrath without an execute phase (RU7)', () => {
+    const ret = defaultConfig('paladin-retribution')
+    const exo = 'paladin.retribution.exorcism.enabled'
+    const exoMana = 'paladin.retribution.exorcism.minManaPct'
+    const fight = (f: Partial<SimConfig['fight']>) => ({ ...ret, fight: { ...ret.fight, ...f } })
+    // No creature type (the default): dimmed, and the switch says which types it needs.
+    const none = rows(ret)
+    expect(none.get(exo)).toMatchObject({ inactive: true, needsCreature: ['undead', 'demon'], on: true })
+    expect(none.get(exoMana)?.inactive).toBe(true)
+    for (const creatureType of ['undead', 'demon'] as const) {
+      const r = rows(fight({ creatureType }))
+      expect(r.get(exo)?.inactive, creatureType).toBe(false)
+      expect(r.get(exo)?.needsCreature, creatureType).toBeUndefined()
+      expect(r.get(exoMana)?.inactive, creatureType).toBe(false)
+    }
+    expect(rows(fight({ creatureType: 'beast' })).get(exo)?.inactive).toBe(true)
+    // Hammer of Wrath and its threshold need an execute phase.
+    const how = 'paladin.retribution.hammerOfWrath.enabled'
+    expect(none.get(how)?.inactive).toBe(false)
+    const noPhase = rows(fight({ executePct: 0 }))
+    expect(noPhase.get(how)?.inactive).toBe(true)
+    expect(noPhase.get('paladin.retribution.hammerOfWrath.minManaPct')?.inactive).toBe(true)
+  })
+
   it('puts the number settings behind Advanced and keeps switches and choices in view', () => {
     const options = [...getSpec('warrior-fury').rotationOptions, ...getSpec('warrior-arms').rotationOptions, ...getSpec('druid-feral-cat').rotationOptions]
     for (const o of options) expect(isAdvanced(o), o.id).toBe(o.kind === 'number')
@@ -155,9 +179,13 @@ describe('rotation rows', () => {
     expect(formatSetting(bsRefresh, 3)).toBe('3 s left')
     expect(formatSetting(stance, 'battle')).toBe('Battle')
     expect(formatSetting(charge, false)).toBe('off')
-    // A percentage sits against its number, and a unitless number stands alone.
+    // A percentage sits against its number, a unitless number stands alone, and thousands are grouped.
     const number = { kind: 'number', id: 'x', label: 'X', help: '', min: 0, max: 100, step: 5, default: 0 } as const
     expect(formatSetting({ ...number, unit: '%' }, 65)).toBe('65%')
-    expect(formatSetting({ ...number, unit: '' }, 1500)).toBe('1500')
+    expect(formatSetting({ ...number, unit: '% mana' }, 65)).toBe('65% mana')
+    expect(formatSetting({ ...number, unit: '' }, 1500)).toBe('1,500')
+    expect(formatSetting({ ...number, unit: 'mana' }, 1500)).toBe('1,500 mana')
+    expect(formatSetting({ ...number, unit: 's left' }, 1.5)).toBe('1.5 s left')
+    expect([groupsThousands({ ...number, unit: '', max: 5000 }), groupsThousands({ ...number, unit: '%' })]).toEqual([true, false])
   })
 })

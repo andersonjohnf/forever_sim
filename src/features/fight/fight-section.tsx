@@ -9,6 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { ChangedHint } from '@/features/changed-hint'
 import { changeAndFocus, selectedOption } from '@/features/refocus'
 import { Advanced, Field, SectionHeader } from '@/features/section'
+import { CREATURE_TYPES, FIGHT_ADVANCED_ID } from './ids'
 import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
 import { defaultConfig, type ClassId, type CreatureType, type FightConfig, type SimConfig, type SpecId } from '@/sim'
@@ -19,18 +20,6 @@ import { LengthSlider } from './length-slider'
 const ARMOR_PRESETS = [
   { value: 3731, label: '3,731', help: 'Most raid bosses' },
   { value: 3009, label: '3,009', help: 'Lightly armored bosses' },
-]
-
-const CREATURE_TYPES: { value: CreatureType; label: string }[] = [
-  { value: 'none', label: 'Unspecified' },
-  { value: 'beast', label: 'Beast' },
-  { value: 'demon', label: 'Demon' },
-  { value: 'dragonkin', label: 'Dragonkin' },
-  { value: 'elemental', label: 'Elemental' },
-  { value: 'giant', label: 'Giant' },
-  { value: 'humanoid', label: 'Humanoid' },
-  { value: 'mechanical', label: 'Mechanical' },
-  { value: 'undead', label: 'Undead' },
 ]
 
 const ZONES: { value: FightConfig['zone']; label: string }[] = [
@@ -240,7 +229,7 @@ export function FightSection() {
         </div>
       )}
 
-      <Advanced changed={advancedChanged}>
+      <Advanced changed={advancedChanged} id={FIGHT_ADVANCED_ID}>
         <Field
           label="Precision"
           help={

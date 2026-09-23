@@ -3,7 +3,7 @@
 // Wrath in the execute phase, Exorcism against Undead and Demons, Consecration by mana, the mana
 // potion and rune, running out of mana, and determinism. The worked examples 20–22 run here too.
 import { describe, expect, it } from 'vitest'
-import { defaultConfig } from '../../defaults'
+import { defaultConfig, FULL_RAID } from '../../defaults'
 import { runChunk } from '../../engine/chunk'
 import { FIELD, FIELD_COUNT, Sim } from '../../engine/sim'
 import { buildPlan } from '../../plan/build'
@@ -17,16 +17,21 @@ import { withTalents } from './talents'
 
 const RET = 'paladin-retribution'
 
-/** The default Retribution setup, with these settings, fight and buffs changes. */
-function config(o: { rotation?: Record<string, RotationValue>; fight?: Partial<SimConfig['fight']>; buffs?: string[] } = {}): SimConfig {
+/** The default Retribution setup, with these settings, fight, buffs and rules changes. */
+function config(
+  o: { rotation?: Record<string, RotationValue>; fight?: Partial<SimConfig['fight']>; buffs?: string[]; raid?: SimConfig['buffs']['raid']; rules?: Partial<SimConfig['rules']> } = {},
+): SimConfig {
   const d = defaultConfig(RET)
   return {
     ...d,
     rotation: o.rotation ?? {},
     fight: { ...d.fight, ...o.fight },
-    buffs: o.buffs ? { raid: d.buffs.raid, enabled: o.buffs } : d.buffs,
+    buffs: { raid: o.raid ?? d.buffs.raid, enabled: o.buffs ?? d.buffs.enabled },
+    rules: { ...d.rules, ...o.rules },
   }
 }
+/** Judgement of the Crusader's bonus in full on melee-class hits (Character → Advanced; OQ 5). */
+const FLAT = { rules: { jotcBonus: 'flat' } } as const
 const planOf = (o: Parameters<typeof config>[0] = {}) => buildPlan(config(o)).plan
 
 interface Cast {
@@ -91,10 +96,10 @@ describe('the Retribution settings (paladin.md "Forever priority list (default)"
     expect(plan.procs.map((p) => p.id)).not.toContain('sealOfCommandProc')
   })
 
-  it('apply the Judgement of the Crusader rule: flat gives melee-class hits all of the +161, spells keep their coefficient (OQ 5)', () => {
+  it('apply the Judgement of the Crusader rule from Character → Advanced: flat gives melee-class hits all of the +161, spells keep their coefficient (OQ 5)', () => {
     const share = (plan: Plan, id: string) => plan.spells!.find((s) => plan.sources[s.source].id === id)!.takenScale
     const coefficient = planOf()
-    const flat = planOf({ rotation: { [ID.jotcRule]: 'flat' } })
+    const flat = planOf(FLAT)
     for (const id of ['sealOfCommandProc', 'judgementOfCommand', 'holyStrike']) expect(share(flat, id), id).toBe(1)
     expect(share(coefficient, 'sealOfCommandProc')).toBeCloseTo(0.203, 12)
     expect(share(coefficient, 'judgementOfCommand')).toBe(0.429)
@@ -107,12 +112,70 @@ describe('the Retribution settings (paladin.md "Forever priority list (default)"
   })
 })
 
+describe('on-use trinkets and Juju Flurry (RU2)', () => {
+  const withAnalyzer = (rotation: Record<string, RotationValue> = {}, buffs = defaultConfig(RET).buffs.enabled) => {
+    const c = config({ rotation, buffs })
+    return buildPlan({ ...c, gear: { ...c.gear, trinket2: { itemId: 272438 } } })
+  }
+
+  it('uses Weakness Analyzer on its 90 s cooldown from the pull, off the GCD, when worn', () => {
+    const { plan, assumptions } = withAnalyzer()
+    const list = casts(plan).casts
+    const uses = times(list, 'weaknessAnalyzer')
+    expect(uses[0]).toBe(0)
+    for (let k = 1; k < uses.length; k++) expect(uses[k] - uses[k - 1]).toBeGreaterThanOrEqual(90000)
+    expect(plan.abilities.find((a) => a.id === 'weaknessAnalyzer')!.gcdMs).toBe(0)
+    const ids = assumptions.map((a) => a.id)
+    expect(ids).toContain('weaknessAnalyzerPaladin')
+    expect(ids).not.toContain('weaknessAnalyzer')
+    expect(assumptions.find((a) => a.id === 'onUseConsumables')?.text ?? '').not.toContain('Weakness Analyzer')
+    // Off: never used, and still not listed as unsimulated.
+    const off = withAnalyzer({ [ID.trinkets]: false })
+    expect(off.plan.abilities.map((a) => a.id)).not.toContain('weaknessAnalyzer')
+    expect(off.assumptions.find((a) => a.id === 'onUseConsumables')?.text ?? '').not.toContain('Weakness Analyzer')
+  })
+
+  it('uses Juju Flurry every minute from the pull when it’s selected in Buffs, and not otherwise', () => {
+    const plan = planOf({ buffs: [...defaultConfig(RET).buffs.enabled, 'jujuFlurry'] })
+    const uses = times(casts(plan).casts, 'jujuFlurry')
+    expect(uses[0]).toBe(0)
+    expect(uses.length).toBeGreaterThanOrEqual(3)
+    for (let k = 1; k < uses.length; k++) expect(uses[k] - uses[k - 1]).toBeGreaterThanOrEqual(60000)
+    expect(planOf().abilities.map((a) => a.id)).not.toContain('jujuFlurry')
+    expect(planOf({ buffs: ['jujuFlurry'], rotation: { [ID.juju]: false } }).abilities.map((a) => a.id)).not.toContain('jujuFlurry')
+    expect(buildPlan(config({ buffs: ['jujuFlurry'], rotation: { [ID.juju]: false } })).assumptions.find((a) => a.id === 'onUseConsumables')?.text ?? '').not.toContain('Juju')
+  })
+})
+
+describe('your own Blessing of Might (RU9)', () => {
+  const ap = (o: Parameters<typeof config>[0]) => buildPlan(config(o)).sheet.attackPower
+  const noPaladin = FULL_RAID.filter((c) => c !== 'paladin')
+
+  it('counts once: the raid’s Might adds nothing more, and with no other paladin yours is still there', () => {
+    const standard = ap({})
+    expect(ap({ raid: noPaladin, buffs: defaultConfig(RET).buffs.enabled.filter((id) => id !== 'blessingOfKings') })).toBe(
+      ap({ buffs: defaultConfig(RET).buffs.enabled.filter((id) => id !== 'blessingOfKings') }),
+    )
+    // Off, and no paladin in the raid: no Might at all (133, before Kings).
+    const off = { [ID.might]: false }
+    expect(ap({ rotation: off, raid: noPaladin, buffs: [] })).toBe(ap({ buffs: [] }) - 133)
+    // Off with the raid's Might: the same as yours.
+    expect(ap({ rotation: off })).toBe(standard)
+  })
+
+  it('is there in Self only, at the profile’s value', () => {
+    expect(ap({ buffs: [] }) - ap({ buffs: [], rotation: { [ID.might]: false } })).toBe(133)
+    const classic = { buffs: [] as string[], rules: { profile: 'classicEra' as const } }
+    expect(ap(classic) - ap({ ...classic, rotation: { [ID.might]: false } })).toBe(185)
+  })
+})
+
 describe('the [?] assumptions the rotation rests on (paladin.md#open-questions)', () => {
   const ids = (o: Parameters<typeof config>[0] = {}) => buildPlan(config(o)).assumptions.map((a) => a.id)
   it('lists Holy Strike’s formula, Consecration’s ticks, Hammer of Wrath’s table and the JotC rule in use', () => {
     expect(ids()).toEqual(expect.arrayContaining(['jotcBonus', 'holyStrike', 'consecrationTicks', 'hammerOfWrath', 'sanctifiedJudgement']))
     expect(ids()).not.toContain('jotcBonusFlat')
-    const flat = ids({ rotation: { [ID.jotcRule]: 'flat' } })
+    const flat = ids(FLAT)
     expect(flat).toContain('jotcBonusFlat')
     expect(flat).not.toContain('jotcBonus')
     expect(ids({ fight: { executePct: 0 } })).not.toContain('hammerOfWrath')
@@ -258,15 +321,18 @@ describe('Exorcism against Undead and Demons (paladin.md row 6)', () => {
     }
   })
 
-  it('is used on its 15 s cooldown against Undead and Demons, only at or above 20% mana', () => {
-    for (const creatureType of ['undead', 'demon'] as CreatureType[]) {
-      const plan = planOf({ fight: { creatureType } })
-      const floor = 0.2 * 10 * new Sim(plan).inspect().maxMana
-      const { casts: list } = casts(plan)
-      const exo = list.filter((c) => c.id === 'exorcism')
-      expect(exo.length, creatureType).toBeGreaterThan(3)
-      for (const c of exo) expect(c.mana).toBeGreaterThanOrEqual(floor)
-      for (let k = 1; k < exo.length; k++) expect(exo[k].t - exo[k - 1].t).toBeGreaterThanOrEqual(15000)
+  it('is used on its 15 s cooldown against Undead and Demons, only at or above its mana setting', () => {
+    const option = RETRIBUTION_OPTIONS.find((o) => o.id === ID.exorcismMana)!
+    for (const pct of [Number(option.default), 50]) {
+      for (const creatureType of ['undead', 'demon'] as CreatureType[]) {
+        const plan = planOf({ fight: { creatureType }, rotation: { [ID.exorcismMana]: pct } })
+        const floor = (pct / 100) * 10 * new Sim(plan).inspect().maxMana
+        const { casts: list } = casts(plan)
+        const exo = list.filter((c) => c.id === 'exorcism')
+        expect(exo.length, `${creatureType} ${pct}%`).toBeGreaterThan(3)
+        for (const c of exo) expect(c.mana).toBeGreaterThanOrEqual(floor)
+        for (let k = 1; k < exo.length; k++) expect(exo[k].t - exo[k - 1].t).toBeGreaterThanOrEqual(15000)
+      }
     }
   })
 })
@@ -355,6 +421,30 @@ describe('mana (paladin.md#mana-model; buffs doc §3.5)', () => {
     expect(noRegen({ buffs: [] }).abilities.map((a) => a.id)).not.toContain('majorManaPotion')
   })
 
+  it('the cast trace gives the pre-pull seal the mana pool it’s cast from, full at the pull (RL6)', () => {
+    const plan = planOf()
+    const sim = new Sim(plan)
+    const seen: [string, number, number][] = []
+    sim.castTrace = (a, t, pool) => seen.push([plan.abilities[a].id, t, pool])
+    sim.runFight(0)
+    expect(seen[0]).toEqual(['sealOfTheCrusader', -1500, plan.mana!.maxTenths])
+  })
+
+  it('never drinks when told to wait for more missing mana than the maximum: that much is never missing (RL4)', () => {
+    const plan = noRegen({ buffs: ['majorManaPotion', 'demonicRune'], fight: { durationSec: 300 }, rotation: { [ID.manaPotionMissing]: 5000, [ID.manaPotionEarly]: 5000, [ID.runeMissing]: 5000 } })
+    const max = 10 * new Sim(plan).inspect().maxMana
+    expect(max).toBeLessThan(50000)
+    // Each line's maxMana is the maximum less 5,000 mana: below zero, so it never holds.
+    const lines = plan.rotation.filter((e) => ['majorManaPotion', 'demonicRune'].includes(plan.abilities[e.ability].id))
+    expect(lines).toHaveLength(3)
+    for (const e of lines) expect(e.conditions.find((c) => c.code === COND.maxMana)!.a).toBe(max - 50000)
+    for (let fight = 0; fight < 20; fight++) {
+      const { casts: list, sim } = casts(plan, fight)
+      expect(list.filter((c) => c.id === 'majorManaPotion' || c.id === 'demonicRune'), `fight ${fight}`).toEqual([])
+      expect(sim.resources().mana).toBeGreaterThanOrEqual(0)
+    }
+  })
+
   it('running out of mana: nothing is cast without its mana, the seal drops, and mana never goes below zero', () => {
     const plan = noRegen({ buffs: [], fight: { durationSec: 300 } })
     const { casts: list, sim } = casts(plan)
@@ -392,21 +482,37 @@ describe('the mana the results report (docs/ux.md#results "Mana per fight")', ()
     const mana = manaResult(plan, agg)!
     expect(mana.max).toBe(plan.mana!.maxTenths / 10)
     expect(mana.regeneratedPerFight).toBeGreaterThan(0)
-    // Sanctified Judgement's returns and the potion and rune.
-    expect(mana.restoredPerFight).toBeGreaterThan(0)
+    // Sanctified Judgement's returns, then the potion and the rune, each on its own line, together all of it.
+    expect(mana.restored.map((r) => r.name)).toEqual(['Sanctified Judgement', 'Major Mana Potion', 'Demonic Rune'])
+    for (const r of mana.restored) expect(r.perFight, r.id).toBeGreaterThan(0)
+    expect(mana.restored.reduce((sum, r) => sum + r.perFight, 0)).toBeCloseTo(mana.restoredPerFight, 6)
+    // The potion's line is what it restored: between 1,350 and 2,250 a drink.
+    const potions = chunk.counters[plan.sources.findIndex((x) => x.id === 'majorManaPotion') * FIELD_COUNT + FIELD.casts] / fights
+    expect(potions).toBeGreaterThan(1)
+    const potion = mana.restored.find((r) => r.id === 'majorManaPotion')!.perFight
+    expect(potion).toBeGreaterThanOrEqual(1350 * potions * 0.99)
+    expect(potion).toBeLessThanOrEqual(2250 * potions)
     expect(mana.max + mana.regeneratedPerFight + mana.restoredPerFight - mana.spentPerFight).toBeCloseTo(left / 10 / fights, 6)
     // With no potion, rune or Sanctified Judgement, nothing is restored.
     const bare = planOf({ buffs: [] })
     for (const a of bare.abilities) a.manaReturnTenths = 0
     const none = manaResult(bare, { ...emptyAggregate(bare.sources.length, bare.auras.length), ...runChunk(bare, 0, 50), fights: 50 })!
     expect(none.restoredPerFight).toBe(0)
+    expect(none.restored).toEqual([])
   })
 
-  it('is only a paladin’s: a warrior’s and a druid’s results have none', () => {
-    for (const spec of ['warrior-fury', 'druid-feral-cat'] as const) {
+  it('is only a paladin’s, by its class: a warrior’s and a druid’s results have none (RL5)', () => {
+    // The ledger of 10 fights run on `plan`, read as `as` would read it.
+    const ledger = (plan: Plan, as: Plan = plan) => manaResult(as, { ...emptyAggregate(plan.sources.length, plan.auras.length), ...runChunk(plan, 0, 10), fights: 10 })
+    for (const spec of ['warrior-fury', 'druid-feral-cat', 'druid-feral-bear'] as const) {
       const plan = buildPlan(defaultConfig(spec)).plan
-      expect(manaResult(plan, { ...emptyAggregate(plan.sources.length, plan.auras.length), ...runChunk(plan, 0, 10), fights: 10 })).toBeNull()
+      expect(ledger(plan), spec).toBeNull()
+      // A druid's plan with spells would still have none: the class decides, not the spells.
+      expect(ledger(plan, { ...plan, spells: planOf().spells }), spec).toBeNull()
     }
+    // A paladin's has one even with no spells in the plan.
+    const ret = planOf()
+    expect(ledger(ret, { ...ret, spells: [] })).not.toBeNull()
   })
 })
 

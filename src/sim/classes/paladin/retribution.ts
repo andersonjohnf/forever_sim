@@ -5,13 +5,14 @@
 // main seal (row 1: Seal of Command, or Seal of Righteousness), its judgement (row 3), Hammer of
 // Wrath in the execute phase (row 4), Holy Strike (row 5), Exorcism against Undead and Demons
 // (row 6), Consecration rank 5 and rank 1 by mana (rows 7 and 8), and the mana potion and rune.
-// Seal twisting (row 9) is off by default and not simulated yet, nor is Holy Wrath. Setting ids are
-// `paladin.retribution.<ability>.<param>`; mana thresholds are percentages of maximum mana. Abilities
-// are resolved with the build's talents (talents.ts) and the Judgement of the Crusader rule
-// (spells.ts) before their costs or spells feed anything.
+// Your own Blessing of Might goes up before the pull. Seal twisting (row 9) is off by default and
+// not simulated yet, nor is Holy Wrath. Setting ids are `paladin.retribution.<ability>.<param>`;
+// mana thresholds are percentages of maximum mana. Abilities are resolved with the build's talents
+// (talents.ts) and the Judgement of the Crusader rule (spells.ts; Character → Advanced, OQ 5)
+// before their costs or spells feed anything.
 import type { OnUseSpec } from '../../effects/types'
 import { type AbilityDef, COND, type RotationCondition, type RotationEntry } from '../../plan/types'
-import type { RotationOption, RotationValue } from '../../types'
+import type { CreatureType, RotationOption, RotationValue } from '../../types'
 import { NO_CONTEXT, reader, seconds, type ClassRotation } from '../warrior/shared'
 import {
   CONSECRATION,
@@ -34,7 +35,9 @@ const P = 'paladin.retribution'
 const ID = {
   seal: `${P}.seal.primary`,
   crusader: `${P}.judgementOfTheCrusader.enabled`,
-  jotcRule: `${P}.judgementOfTheCrusader.bonusRule`,
+  might: `${P}.blessingOfMight.enabled`,
+  trinkets: `${P}.trinkets.enabled`,
+  juju: `${P}.jujuFlurry.enabled`,
   sealRefresh: `${P}.seal.refreshBelowSec`,
   judgement: `${P}.judgement.enabled`,
   holyStrike: `${P}.holyStrike.enabled`,
@@ -55,21 +58,24 @@ const ID = {
 }
 export const RETRIBUTION_IDS = ID
 
-/** Buff catalogue ids of the mana consumables the rotation uses (effects/buffs.ts). */
+/** Buff catalogue ids of the consumables the rotation uses (effects/buffs.ts): the mana potion and rune, and Juju Flurry. */
 export const MANA_POTION = 'majorManaPotion'
 export const MANA_RUNE = 'demonicRune'
+export const JUJU_FLURRY = 'jujuFlurry'
+/** The catalogue's Blessing of Might: your own, when you bless yourself (effects/buffs.ts). */
+export const BLESSING_OF_MIGHT = 'blessingOfMight'
 
 /** The creature types Exorcism can be cast on (paladin.md#other-abilities). */
-export const EXORCISM_TARGETS: readonly string[] = ['undead', 'demon']
+export const EXORCISM_TARGETS: readonly CreatureType[] = ['undead', 'demon']
 
-/** A mana threshold input: 0 to 100% of maximum mana, in its parent's group. */
+/** A mana threshold input: 0 to 100% of maximum mana ("65% mana"), in its parent's group. */
 const manaOption = (id: string, label: string, help: string, def: number, dependsOn: string, group: RotationOption['group']): RotationOption => ({
   kind: 'number',
   id,
   label,
   group,
   help,
-  unit: '%',
+  unit: '% mana',
   min: 0,
   max: 100,
   step: 5,
@@ -104,17 +110,30 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     default: true,
   },
   {
-    kind: 'choice',
-    id: ID.jotcRule,
+    kind: 'toggle',
+    id: ID.might,
     group: 'Before the pull',
-    label: 'Judgement of the Crusader’s bonus',
-    help: 'Untested in Forever. By spell coefficient: each Holy hit gets its spell damage coefficient’s share of the +161 (a Seal of Command proc 20%, Judgement of Command and Holy Strike 43%). Flat: melee-class hits (seal procs, judgements, Holy Strike) get all of it.',
-    choices: [
-      { value: 'coefficient', label: 'By spell coefficient' },
-      { value: 'flat', label: 'Flat on melee hits' },
-    ],
-    default: 'coefficient',
-    dependsOn: ID.crusader,
+    label: 'Blessing of Might on yourself',
+    help: 'Bless yourself with Might before the pull, so its attack power is there for the fight with or without another paladin in the raid. Another paladin’s Might is the same blessing, so it counts once.',
+    default: true,
+    maintainsBuff: BLESSING_OF_MIGHT,
+  },
+  {
+    kind: 'toggle',
+    id: ID.trinkets,
+    group: 'Cooldowns and buffs',
+    label: 'On-use trinkets',
+    help: 'Use Weakness Analyzer on cooldown if you wear it: +5% crit and spell crit until your next crit, for up to 20 s. Other on-use trinkets aren’t simulated.',
+    default: true,
+  },
+  {
+    kind: 'toggle',
+    id: ID.juju,
+    group: 'Cooldowns and buffs',
+    label: 'Juju Flurry',
+    help: 'Use it on cooldown from the pull: +3% attack speed for 20 s, every minute. More swings are more Seal of Command procs.',
+    default: true,
+    requiresBuff: JUJU_FLURRY,
   },
   {
     kind: 'number',
@@ -151,6 +170,7 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     label: 'Exorcism',
     help: 'Against Undead and Demons (set under Fight), use Exorcism whenever it’s ready. It can’t be cast on anything else.',
     default: true,
+    needsCreatureType: EXORCISM_TARGETS,
   },
   manaOption(ID.exorcismMana, 'Exorcism from', 'Use it only at or above this much of your maximum mana.', 40, ID.exorcism, 'Core abilities'),
   {
@@ -178,6 +198,7 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     label: 'Hammer of Wrath',
     help: 'In the execute phase, use Hammer of Wrath whenever it’s ready, ahead of Holy Strike. Instant with Instrument of Law 2/2.',
     default: true,
+    needsExecutePhase: true,
   },
   manaOption(ID.hammerOfWrathMana, 'Hammer of Wrath from', 'Use it only at or above this much of your maximum mana.', 0, ID.hammerOfWrath, 'Execute phase'),
   {
@@ -195,7 +216,7 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     group: 'Consumables',
     label: 'Major Mana Potion early, when missing',
     help: 'While another would be ready before the fight ends, drink it once you’re missing this much mana, so you get one more. At 0, never early.',
-    unit: '',
+    unit: 'mana',
     min: 0,
     max: 5000,
     step: 50,
@@ -208,7 +229,7 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     group: 'Consumables',
     label: 'Major Mana Potion when missing',
     help: 'Once the fight has less than 2 minutes left, or with early use off, drink it when you’re missing at least this much mana. 2,250 is the most it restores.',
-    unit: '',
+    unit: 'mana',
     min: 0,
     max: 5000,
     step: 50,
@@ -230,7 +251,7 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     group: 'Consumables',
     label: 'Demonic Rune early, when missing',
     help: 'While another would be ready before the fight ends, use it once you’re missing this much mana, so you get one more. At 0, never early.',
-    unit: '',
+    unit: 'mana',
     min: 0,
     max: 5000,
     step: 50,
@@ -243,7 +264,7 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     group: 'Consumables',
     label: 'Demonic Rune when missing',
     help: 'Once the fight has less than 2 minutes left, or with early use off, use it when you’re missing at least this much mana. 1,500 is the most it restores.',
-    unit: '',
+    unit: 'mana',
     min: 0,
     max: 5000,
     step: 50,
@@ -256,11 +277,14 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
 export const retributionSeal = (values: Record<string, RotationValue>): AbilityDef =>
   reader(RETRIBUTION_OPTIONS, values).str(ID.seal) === 'righteousness' ? SEAL_OF_RIGHTEOUSNESS : SEAL_OF_COMMAND
 
-/** The Judgement of the Crusader rule the settings choose (paladin.md OQ 5). */
-export const retributionJotcRule = (values: Record<string, RotationValue>): JotcRule =>
-  reader(RETRIBUTION_OPTIONS, values).str(ID.jotcRule) === 'flat' ? 'flat' : 'coefficient'
+/**
+ * Buff catalogue ids you put on yourself before the pull and keep for the fight: your own Blessing
+ * of Might. The plan applies them whoever is in the raid, in place of their Buffs switches.
+ */
+export const retributionSelfBuffs = (values: Record<string, RotationValue>): string[] =>
+  reader(RETRIBUTION_OPTIONS, values).on(ID.might) ? [BLESSING_OF_MIGHT] : []
 
-/** An on-use consumable as a paladin `cast`: no cost, its cooldown and GCD, its mana at once (buffs doc §3.5). */
+/** An on-use item or consumable as a paladin `cast`: no cost, its cooldown, GCD and buff, its mana at once (buffs doc §3.5). */
 const consumable = (use: OnUseSpec): AbilityDef => ({
   ...PALADIN,
   id: use.id,
@@ -288,7 +312,7 @@ export function retributionRotation(
 ): ClassRotation {
   const ctx: PaladinContext = { ...NO_CONTEXT, ...context }
   const v = reader(RETRIBUTION_OPTIONS, values, talents)
-  const rule = retributionJotcRule(values)
+  const rule: JotcRule = ctx.jotcRule ?? 'coefficient'
   const abilities: AbilityDef[] = []
   const rotation: RotationEntry[] = []
   /** The ability's index, resolved with the build's talents and the JotC rule on first use. */
@@ -359,9 +383,18 @@ export function retributionRotation(
   if (v.on(ID.consecration)) add(CONSECRATION, manaFrom(ID.consecrationMana))
   if (v.on(ID.consecrationRank1)) add(CONSECRATION_RANK1, manaFrom(ID.consecrationRank1Mana))
 
+  // On-use trinkets (Weakness Analyzer) and Juju Flurry (off the GCD), on cooldown from the pull:
+  // nothing in the rotation is worth saving them for (paladin.md "Forever priority list (default)").
+  const pressed: string[] = ctx.items.map((i) => i.id)
+  if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item), [])
+  const juju = ctx.consumables.find((c) => c.id === JUJU_FLURRY)
+  if (juju) {
+    pressed.push(JUJU_FLURRY)
+    if (v.on(ID.juju)) add(consumable(juju), [])
+  }
+
   // The mana potion and rune (off the GCD), when selected in Buffs: whenever the most they restore
   // fits under the maximum.
-  const pressed: string[] = []
   for (const [id, setting, missing, early] of [
     [MANA_POTION, ID.manaPotion, ID.manaPotionMissing, ID.manaPotionEarly],
     [MANA_RUNE, ID.rune, ID.runeMissing, ID.runeEarly],

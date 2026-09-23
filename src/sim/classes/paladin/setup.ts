@@ -46,12 +46,14 @@ export function paladinEffects(spec: SpecId, talents: TalentRanks): Effect[] {
 }
 
 /**
- * The main-hand weapon, for the seals whose procs scale with it (Seal of Righteousness), and the
- * maximum mana, which the "mana% ≥ x" settings are shares of (paladin.md#forever-priority-list-default).
+ * The main-hand weapon, for the seals whose procs scale with it (Seal of Righteousness), the
+ * maximum mana, which the "mana% ≥ x" settings are shares of (paladin.md#forever-priority-list-default),
+ * and the Judgement of the Crusader rule (Character → Advanced, `rules.jotcBonus`; OQ 5).
  */
 export interface PaladinContext extends RotationContext {
   mainHand?: { speedSec: number; twoHand: boolean } | null
   maxMana?: number
+  jotcRule?: JotcRule
 }
 
 /** Each spec's seal (paladin.md#retribution-defaults, #protection-defaults). */
@@ -88,7 +90,7 @@ export function paladinProcs(
  * ready, which needs the seal up and leaves it up. Abilities 0 and 1 are the seal and its
  * judgement; a spec's rotation adds its rows after them.
  */
-export function paladinCore(spec: SpecId, talents: TalentRanks, context: PaladinContext, jotcRule: JotcRule = 'coefficient'): ClassRotation {
+export function paladinCore(spec: SpecId, talents: TalentRanks, context: PaladinContext, jotcRule: JotcRule = context.jotcRule ?? 'coefficient'): ClassRotation {
   const seal = SPEC_SEAL[spec]
   if (!seal) return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
   const rule = (a: AbilityDef): AbilityDef => (a.spellDef ? { ...a, spellDef: withJotcRule(a.spellDef, jotcRule) } : a)
@@ -120,7 +122,7 @@ export function paladinAssumptions(plan: Plan): AssumptionId[] {
   if (procs.has('sealOfFuryProc')) ids.push('sealOfFury')
   if (abilities.has('judgementOfCommand')) ids.push('judgementOfCommand')
   if ((plan.spells ?? []).some((s) => s.defense === DEFENSE.melee)) ids.push('meleeSpellProcs')
-  // The Judgement of the Crusader rule (Retribution's setting): flat gives melee-class hits all of it.
+  // The Judgement of the Crusader rule (Character → Advanced): flat gives melee-class hits all of it.
   if (plan.auras.some((a) => (a.holyTaken ?? 0) > 0)) {
     const flat = (plan.spells ?? []).some((s) => s.defense === DEFENSE.melee && s.takenScale === 1)
     ids.push(flat ? 'jotcBonusFlat' : 'jotcBonus')

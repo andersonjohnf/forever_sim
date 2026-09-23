@@ -175,6 +175,10 @@ function normalize(input: unknown): { config: SimConfig; warnings: string[] } {
     if (model) rules.damageTakenRage = model
     else r.add('The damage-taken rage model wasn’t recognised, so the profile’s default is used.')
   }
+  // A paladin's Judgement of the Crusader rule (paladin.md OQ 5): kept only when it isn't the default.
+  if (rulesIn.jotcBonus !== undefined && meta.classId === 'paladin') {
+    if (oneOf(rulesIn.jotcBonus, ['coefficient', 'flat'] as const, 'coefficient', 'The Judgement of the Crusader rule', r) === 'flat') rules.jotcBonus = 'flat'
+  }
 
   const gear = normalizeGear(input.gear, spec, race, meta.classId, r)
   const buffs = normalizeBuffs(input.buffs, spec, PROFILES[rules.profile], isObj(input.run) && input.run.mode === undefined, r)

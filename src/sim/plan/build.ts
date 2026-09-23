@@ -12,7 +12,7 @@ import { classSetup } from '../classes'
 import { DRUID_FORMS, FORM_INDEX, FORM_NAME, formWeapon } from '../classes/druid/forms'
 import { druidPlan } from '../classes/druid/plan'
 import { paladinAssumptions, paladinManaPlan } from '../classes/paladin/setup'
-import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance } from '../classes/rotation'
+import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance, selfBuffs } from '../classes/rotation'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
 import { BUFFS_BY_ID } from '../effects/buffs'
@@ -461,10 +461,17 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // (classes/warrior/abilities.ts `battleShout`: +139, `classicEra` +232), and the sheet shows that.
     if (buff) sheetOnly.push(...catalogueEffects(buff, profile))
   }
+  // A buff you put on yourself before the pull for the whole fight (the paladin's own Blessing of
+  // Might) is a static effect whoever is in the raid, in place of its Buffs switch, so it counts once.
+  const own = setup.simulated ? selfBuffs(config.spec, config.rotation) : []
+  for (const id of own) {
+    const buff = BUFFS_BY_ID.get(id)
+    if (buff) apply(catalogueEffects(buff, profile), null)
+  }
   for (const id of config.buffs.enabled) {
     const buff = BUFFS_BY_ID.get(id)
     if (!buff || !forSpecClass(buff, config.spec) || !buffProvided(buff, config.buffs.raid, config.spec) || buffUnusedReason(buff, config.spec)) continue
-    if (maintained.includes(id) || setup.replacesBuffs?.includes(id)) continue
+    if (maintained.includes(id) || own.includes(id) || setup.replacesBuffs?.includes(id)) continue
     const effects = catalogueEffects(buff, profile)
     apply(effects, null)
     for (const e of effects) {
@@ -728,6 +735,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         othersBleed,
         front: fight.position === 'front',
         maxMana: block.hasMana ? derived.mana : 0,
+        jotcRule: config.rules.jotcBonus ?? 'coefficient',
       })
     : { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
   // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), a
@@ -893,7 +901,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (queues && weapons[HAND.off]) notes.add('onNextSwingOffHand')
   if (setup.talents.has('Unbridled Wrath') && mh) notes.add('unbridledWrathSwings')
   if (abilities.some((a) => a.offHandSource >= 0)) notes.add('ragingBlows')
-  if (!mh) notes.add('noWeapon')
+  if (!mh) notes.add(classId === 'paladin' ? 'noWeaponSpells' : 'noWeapon')
   if (profile.id === 'forever') {
     notes.add('foreverHitTable')
     if (front && fight.boss.canParry) notes.add('foreverBossParry')
@@ -1012,7 +1020,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...onUseItems,
   ]
   if (setup.simulated && notPressed.length) notes.add('onUseConsumables', notPressed.join(', '))
-  if (abilities.some((a) => a.id === 'weaknessAnalyzer')) notes.add('weaknessAnalyzer')
+  if (abilities.some((a) => a.id === 'weaknessAnalyzer')) notes.add(classId === 'paladin' ? 'weaknessAnalyzerPaladin' : 'weaknessAnalyzer')
   if (abilities.some((a) => a.window >= 0)) notes.add('overpowerWindow')
   if (procIds.has('bloodthrill')) notes.add('bloodthrill')
   // warrior.md §7 and Q3, Q13, Q32: Slam's cast, Spearing Strike's weapon share, Rend's tick crits and on-hit procs.

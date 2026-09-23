@@ -258,6 +258,11 @@ const REGISTRY = {
     text: 'Weakness Analyzer’s +5% crit ends on your next crit, white or special, and it’s ready again after 90 s, as the Forever client says; an older tooltip said 2 minutes.',
     docRef: `${WAR}#9-open-questions`,
   },
+  // The same for the paladin, whose seal procs and Consecration ticks can crit too.
+  weaknessAnalyzerPaladin: {
+    text: 'Weakness Analyzer’s +5% crit and spell crit ends on your next crit: a white hit, a judgement, Holy Strike, Exorcism or Hammer of Wrath, but not a seal’s proc or a Consecration tick. It’s ready again after 90 s, as the Forever client says; an older tooltip said 2 minutes.',
+    docRef: `${PAL}#conventions-used-below`,
+  },
   overpowerWindow: {
     text: 'A dodge opens Overpower for 5 s and each new dodge refreshes it, so windows aren’t banked (the Forever data can bank 3); an Overpower that misses still closes it.',
     docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
@@ -422,6 +427,11 @@ const REGISTRY = {
   noWeapon: {
     text: 'No main-hand weapon: unarmed attacks aren’t simulated, so neither is any ability that attacks; only cooldowns and buffs are used.',
     docRef: `${WAR}#7-implementation-notes`,
+  },
+  // The paladin's spells don't need a weapon, so they're still cast.
+  noWeaponSpells: {
+    text: 'No main-hand weapon: unarmed attacks aren’t simulated, so neither is anything that needs them, such as your seal’s procs and Holy Strike; your other spells are.',
+    docRef: `${PAL}#conventions-used-below`,
   },
 } satisfies Record<string, { text: string; docRef: string }>
 

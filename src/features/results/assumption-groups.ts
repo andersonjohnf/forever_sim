@@ -33,6 +33,7 @@ export function groupTitle(group: AssumptionGroup, classId: ClassId): string {
 export const ASSUMPTION_GROUP = {
   // Your gear and consumables: items, enchants, consumables and the ratings on your gear.
   noWeapon: 'gear',
+  noWeaponSpells: 'gear',
   classicItems: 'gear',
   unmodelledProcs: 'gear',
   unmodelledSetBonuses: 'gear',
@@ -48,6 +49,7 @@ export const ASSUMPTION_GROUP = {
   magicProcs: 'gear',
   weaknessAnalyzer: 'gear',
   formHaste: 'gear',
+  weaknessAnalyzerPaladin: 'gear',
   expertise: 'gear',
   hasteRating: 'gear',
   armorPen: 'gear',

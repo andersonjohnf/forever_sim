@@ -7,7 +7,7 @@ import { NO_PREPULL } from '../plan/types'
 import type { RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
 import { CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from './druid/cat'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
-import { RETRIBUTION_OPTIONS, retributionRotation } from './paladin/retribution'
+import { RETRIBUTION_OPTIONS, retributionRotation, retributionSelfBuffs } from './paladin/retribution'
 import { paladinCore, type PaladinContext } from './paladin/setup'
 import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
@@ -118,6 +118,16 @@ export function maintainedBuffs(spec: SpecId, values: Record<string, RotationVal
   if (spec === 'warrior-arms') return armsMaintainedBuffs(values)
   if (spec === 'druid-feral-cat') return catMaintainedBuffs(values)
   return []
+}
+
+/**
+ * Buff catalogue ids the spec puts on itself before the pull, for the whole fight, with these
+ * settings: the plan applies their effects whoever is in the raid, in place of their Buffs
+ * switches (the paladin's own Blessing of Might, paladin.md "Forever priority list (default)").
+ * The Buffs tab shows them on and locked, like `maintainedBuffs`.
+ */
+export function selfBuffs(spec: SpecId, values: Record<string, RotationValue>): string[] {
+  return spec === 'paladin-retribution' ? retributionSelfBuffs(values) : []
 }
 
 /**

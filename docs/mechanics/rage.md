@@ -277,7 +277,8 @@ rage is unchanged by this analysis ([above](#forever-normalized-rage-per-swing-)
   - A crit counts at 2 × and a crushing blow at 1.5 × the hit's `D_pre`.
   - Several attackers still count in full on later builds.
 - **The sim's maximum health uses a placeholder for base health** (1,689 for a warrior),
-  which isn't measured at 60 (decision D24,
+  which isn't measured at 60
+  ([D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23),
   [character-stats OQ-2](character-stats.md#oq-2-base-health)). Since `forever` divides by it,
   its rage per hit moves with that placeholder until base health is measured. The result says so.
 - **At level 60** this gives much less than Classic Era. A 5,000 boss hit before armor gives a

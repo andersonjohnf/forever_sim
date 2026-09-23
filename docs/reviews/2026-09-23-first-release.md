@@ -480,7 +480,27 @@ A fresh verifier checked the fix commits (`569eea2`, `7b931de`, `1269107`, `0e81
 Checks after fix slice C (`9a28166`): lint ✓ · typecheck ✓ · unit ✓ (1050) · e2e ✓ (224, 3 deferred
 to M3). The goldens didn't move.
 
+## Quick check of fix slice C
+
+A fresh reviewer checked `8df1bf9`..`9a28166` only (D20).
+
+**Confirmed:**
+- VF1–VF12 are fixed. The contrast figures were re-measured and match: Delete's text is
+  6.91 / 5.65:1 in light and 6.20 / 4.78:1 in dark, and its ring 3.74 / 3.91:1
+- each of R31–R33 fails when its drop is removed
+- the outline widening changes only the Delete confirm, "Gear options" in light, and badges
+  that are buttons. This was a computed-style diff of every tab, menu, popover and sheet, in
+  both themes and at both widths
+- ordinary names in many scripts load unchanged
+- lint ✓ · typecheck ✓ · unit ✓ (1050) · e2e ✓ (224, 3 deferred to M3)
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| QC1 | low | introduced (`b434cd3`) | **A name field takes more than 60 characters** (its `maxLength` is 960 UTF-16 units, room for 60 of the longest emoji), and says so only at Save. | waived: the refusal is explicit ("Keep the name to 60 characters or fewer.") and clears as you edit. A live count is polish, listed in the known gaps |
+| QC2 | nit | introduced (`b434cd3`) | **A single character over 960 units gets the 60-character message.** | waived: reachable only with adversarial input |
+| QC3 | nit | introduced (`9a28166`) | **A setup saved while imported rows come first lands below them.** | waived: the line under the heading explains the order, and the save's notice confirms it |
+
 ## Verdict
 
-Ready to push: not yet. Fix slice C's commits (`8df1bf9`..`9a28166`) await a quick fresh check
-(D20).
+**Ready to push: yes.** Every finding since the first commit is fixed, waived with a reason, or
+deferred to the known gaps with one. Each round of fixes has passed its verification (D20).

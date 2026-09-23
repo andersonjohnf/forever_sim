@@ -134,7 +134,7 @@ work is in slices:
         maximum health` the Forever default, from about 2,000 logged beta hits (research
         2026-09-23, [rage.md](mechanics/rage.md#rage-from-damage-taken)). Blocks and absorbs
         don't reduce it, and hits from several attackers each count.
-  - [ ] **M2.4i Review of e–h:** the full logic and UX reviews for new work, then a
+  - [x] **M2.4i Review of e–h:** the full logic and UX reviews for new work, then a
         verification pass (D20).
   - [ ] **M2.4j First deploy:** push when the user asks, and check the Pages deploy.
 
@@ -143,9 +143,9 @@ work is in slices:
 State: `main` is green (lint, typecheck, 1,050 unit, 224 e2e with 3 deferred to M3). Nothing is
 pushed. Fury and Arms are available.
 
-**The review gate for the first release is still open**, in
-[reviews/2026-09-23-first-release.md](reviews/2026-09-23-first-release.md). Its log's verdict
-decides; the push waits for "Ready to push: yes" there.
+**The review gate for the first release has passed**: the verdict in
+[reviews/2026-09-23-first-release.md](reviews/2026-09-23-first-release.md) says "Ready to push:
+yes". The push waits for the user.
 - **First pass:** 38 logic and 34 UX findings.
 - **Second pass** (a review of the fixes): 10 logic and 17 UX findings.
 - **Third pass:** 6 logic and 12 UX findings.
@@ -159,16 +159,18 @@ decides; the push waits for "Ready to push: yes" there.
 - **Review of the QV fixes:** 8 findings (RV1–RV8), one blocking (RV1: editing a grouped
   number field's display misread it). Number fields get a simpler design (M2.4e), and Undo
   goes (D21), which retires the toast findings.
+- **Full review of M2.4e–h** (new work): 13 logic and 15 UX findings, one blocking (UX1: Save
+  overwrote a same-named save across specs). All fixed, except UX2's safety net (waived, D21)
+  and UX15 (deferred). Its verification found 12 more (VF1 blocking: the Delete confirm's
+  contrast), all fixed, and the quick check of those fixes passed, waiving 3 nits (QC1–QC3).
 
 Golden runs: Fury 668.6 DPS, Arms 611.9 DPS, Protection 217.0 TPS.
 
 **Next:**
-1. **M2.4e–i:** number fields, remove Undo, Setups, rage from damage taken, then their
-   reviews (D20, D21).
-2. **M2.4j:** push when the user asks, then check the Pages deploy.
-3. **M3 Protection**, in a fresh session. Enable the 3 `test.fixme` tests in
+1. **M2.4j:** push when the user asks, then check the Pages deploy.
+2. **M3 Protection**, in a fresh session. Enable the 3 `test.fixme` tests in
    `e2e/tank-results.spec.ts` when Protection ships.
-4. Then M4 Feral Druid, M5 Paladin, M6 Multi-target and M7 Stat boosts, in that order.
+3. Then M4 Feral Druid, M5 Paladin, M6 Multi-target and M7 Stat boosts, in that order.
 
 **Open decision for the user:** whether the Arms defaults follow the tuning findings (Heroic
 Strike 55, the Whirlwind dance, Spearing Strike 40, Rend refresh 3 s). They were measured
@@ -314,6 +316,8 @@ slice is worked:
   - `Field`'s help text has no id, so it isn't in any control's `aria-describedby`.
   - Bad input in a number field gives no feedback: "abc" reverts and 99999 clamps silently
     (UX15).
+  - A setup's name field takes more than 60 characters and says so only at Save; a live count
+    would be clearer (QC1).
   - Each arrow key press between the sticky section tabs scrolls the page up by about 360 px
     (390) or 420 px (1280), because the tabs lie inside the top scroll padding. Peeking at a tab
     without choosing it loses your place.

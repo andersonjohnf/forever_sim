@@ -142,9 +142,10 @@ test.describe('About', () => {
     expect(og).toBe(about)
     expect(about).toMatch(hasTank ? /^A DPS and TPS simulator for WoW Forever\./ : /^A DPS simulator for WoW Forever\./)
     for (const spec of specs) expect(about).not.toContain(spec)
-    // The specs it covers are listed on their own line.
+    // The specs it covers are listed on their own line, each name kept whole with non-breaking
+    // spaces ("Feral (Cat)" never wraps between its words).
     const coverage = await sheet.getByText(/^Covers /).innerText()
-    for (const spec of specs) expect(coverage).toContain(spec)
+    for (const spec of specs) expect(coverage).toContain(spec.replace(/ /g, '\u00a0'))
     expect(about + coverage).not.toMatch(/coming soon/i)
   })
 })

@@ -14,7 +14,7 @@ import { CRIT_MULTIPLIER, furorCatEnergyTenths } from '../../core/formulas'
 import { defaultConfig, TALENT_DATA } from '../../defaults'
 import { BUFFS_BY_ID } from '../../effects/buffs'
 import type { Effect } from '../../effects/types'
-import { buildPlan } from '../../plan/build'
+import { buildPlan, rageFromHits } from '../../plan/build'
 import type { AbilityDef } from '../../plan/types'
 import { STANCE_ANY } from '../../plan/types'
 import { CLASSIC_ERA, FOREVER } from '../../rules/profiles'
@@ -391,6 +391,25 @@ describe('the druid plan (druid.md §2, §7)', () => {
     expect(cat.procs.map((p) => p.id)).not.toContain('primalFury')
     expect(bear.procs.find((p) => p.id === 'primalFury')).toMatchObject({ chance: [1, 1] })
     expect(bear.procs.find((p) => p.id === 'primalFury')?.forms).toBeUndefined()
+  })
+
+  it('takes rage from hits only if its fight can be in bear (§8 "Rage from hits"): the bear, or a cat that can shift into bear', () => {
+    const cat = buildPlan(bare(defaultConfig('druid-feral-cat')))
+    const bear = buildPlan(bare(defaultConfig('druid-feral-bear')))
+    expect([cat.plan.rage.fromDamageTaken, bear.plan.rage.fromDamageTaken]).toEqual([false, true])
+    // Only Dire Bear Form's power is rage.
+    expect(bear.plan.forms!.map((f) => f.rage)).toEqual([false, false, true])
+    const bit = (form: keyof typeof FORM_INDEX) => 1 << FORM_INDEX[form]
+    expect(rageFromHits('druid', cat.plan.forms, bit('cat'))).toBe(false)
+    expect(rageFromHits('druid', cat.plan.forms, bit('cat') | bit('caster'))).toBe(false)
+    expect(rageFromHits('druid', cat.plan.forms, bit('cat') | bit('bear'))).toBe(true)
+    expect(rageFromHits('warrior', undefined, 0)).toBe(true)
+    expect(rageFromHits('paladin', undefined, 0)).toBe(false)
+    // Its white-rage and damage-taken assumptions follow: none for the cat, even when it takes damage.
+    const hit = (d: SimConfig): SimConfig => ({ ...d, fight: { ...d.fight, damageTakenPerSec: 300 } })
+    const ids = (d: SimConfig) => buildPlan(hit(bare(d))).assumptions.map((a) => a.id)
+    expect(ids(defaultConfig('druid-feral-cat')).filter((id) => /WhiteRage|^damageTakenRage/.test(id))).toEqual([])
+    expect(ids(defaultConfig('druid-feral-bear'))).toEqual(expect.arrayContaining(['bearWhiteRage', 'damageTakenRage']))
   })
 })
 

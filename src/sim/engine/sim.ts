@@ -2489,7 +2489,8 @@ export class Sim {
    * add up and none is lost; `floor` drops it. At the cap the fraction is lost with the rest.
    */
   private gainRageFraction(tenths: number): void {
-    // Only a form whose power is rage gains it from hits (a druid's bear; every warrior): druid.md §2.4, rage.md#bear-druid-rage.
+    // White hits give rage only in a form whose power is rage (a druid's bear; every warrior):
+    // druid.md §8 "Rage from hits", rage.md#bear-druid-rage. `takeHit` checks the same before it.
     if (!this.gainsRage) return
     if (!this.carryRageFraction) {
       this.gainRage(Math.floor(tenths + 1e-9), -1)
@@ -2718,8 +2719,9 @@ export class Sim {
   private takeHit(healthLost: number, pre: number): void {
     const plan = this.plan
     this.fightDamageTaken += healthLost
-    // rage.md#rage-from-damage-taken: rage users only (warriors, druids in Bear Form).
-    if (!plan.rage.fromDamageTaken) {
+    // rage.md#rage-from-damage-taken, #bear-druid-rage: rage users only: the plan's switch (warriors,
+    // a druid that can be in Bear Form), and a druid's current form (bear). The procs fire either way.
+    if (!plan.rage.fromDamageTaken || !this.gainsRage) {
       if (healthLost > 0) this.fireProcs(TRIGGER.damageTaken, -1)
       return
     }

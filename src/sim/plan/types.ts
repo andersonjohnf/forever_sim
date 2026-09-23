@@ -571,8 +571,11 @@ export interface Plan {
      */
     maxHealth: number
     /**
-     * Hits that land on the player give rage (rage.md#rage-from-damage-taken): warriors, and
-     * druids in Bear Form (rage.md#bear-druid-rage). False for classes without rage.
+     * Hits that land on the player can give rage (rage.md#rage-from-damage-taken): true for
+     * warriors, and for a druid whose fight can be in Bear Form (its start form or a shapeshift's;
+     * rage.md#bear-druid-rage). False for classes without rage. A druid gains it only while in a
+     * form whose `FormPlan.rage` is set. Either way, a hit that costs health fires the damage-taken
+     * procs.
      */
     fromDamageTaken: boolean
   }
@@ -617,7 +620,9 @@ export interface FormPlan {
   threatMult: number
   /**
    * White hits and hits taken give rage in this form: only in bear, whose power is rage (druid.md
-   * §2.4, rage.md#bear-druid-rage). Spell energizes (Furor, Primal Fury, a potion) give it in any.
+   * §2.4, §8 "Rage from hits"; rage.md#bear-druid-rage). Hits taken also need the plan's
+   * `rage.fromDamageTaken`, which is set when the fight can be in such a form. Spell energizes
+   * (Furor, Primal Fury, Natural Reaction, a potion) give it in any.
    */
   rage: boolean
 }

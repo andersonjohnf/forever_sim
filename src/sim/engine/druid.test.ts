@@ -471,6 +471,43 @@ describe('bear rage (rage.md#bear-druid-rage)', () => {
   })
 })
 
+describe('rage from hits (druid.md §8 "Rage from hits", rage.md#bear-druid-rage)', () => {
+  /**
+   * A stand-in hit of 21 before mitigation every second (encounter §4) in a 4.5 s fight, with no
+   * weapon in any form, so no white rage. In bear each hit gives 10 × 21 ÷ 200 = 1.05 rage
+   * (rage.md#forever-), the fraction carried: 10, then 11 tenths. A counting proc on the
+   * damage-taken trigger. `shiftTo` shifts at 2.5 s, with no Furor rage on entering bear.
+   */
+  function hits(spec: SpecId, shiftTo?: 'cat' | 'bear', fromDamageTaken?: boolean) {
+    const plan = druidPlan(spec, 4500)
+    plan.fight.bossSwing = null
+    plan.fight.damageTakenPerHit = 21
+    plan.fight.damageTakenIntervalMs = 1000
+    plan.rage.maxHealth = 200
+    plan.weapons = [null, null]
+    for (const form of plan.forms!) form.mainHand = null
+    plan.shapeshift!.bearRageChance = 0
+    if (fromDamageTaken !== undefined) plan.rage.fromDamageTaken = fromDamageTaken
+    if (shiftTo) line(plan, addDruidAbility(plan, shapeshift(shiftTo, 0)), at(plan, 2500))
+    const probe = plan.sources.push({ id: 'probe', name: 'Probe', icon: 'x' }) - 1
+    addProc(plan, { trigger: TRIGGER.damageTaken, chance: [1, 1], hands: 0, action: ACTION.spellDamage, amount: 0, b: 0, source: probe })
+    const sim = new Sim(plan)
+    sim.runFight(0)
+    return { fromDamageTaken: plan.rage.fromDamageTaken, rage: sim.totalRageGainedTenths, procs: counter(sim, probe, FIELD.casts), form: sim.resources().form }
+  }
+
+  it('hits taken give rage only in bear, and fire the damage-taken procs in every form', () => {
+    // Bear: all four hits, 10 + 11 + 10 + 11 tenths.
+    expect(hits('druid-feral-bear')).toEqual({ fromDamageTaken: true, rage: 42, procs: 4, form: FORM_INDEX.bear })
+    // Cat: the plan's switch is off, since its fight can't be in bear; the procs still fire.
+    expect(hits('druid-feral-cat')).toEqual({ fromDamageTaken: false, rage: 0, procs: 4, form: FORM_INDEX.cat })
+    // A bear that shifts into cat: the switch is on, but the hits at 3 and 4 s land in cat.
+    expect(hits('druid-feral-bear', 'cat')).toEqual({ fromDamageTaken: true, rage: 21, procs: 4, form: FORM_INDEX.cat })
+    // A cat whose fight can be in bear, which sets the switch (rageFromHits): only the hits in bear.
+    expect(hits('druid-feral-cat', 'bear', true)).toEqual({ fromDamageTaken: true, rage: 21, procs: 4, form: FORM_INDEX.bear })
+  })
+})
+
 describe('determinism and the default druids', () => {
   const fixed = (config: SimConfig): SimConfig => ({ ...config, run: { ...config.run, mode: 'fixed', iterations: 250 } })
 

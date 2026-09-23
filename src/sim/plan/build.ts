@@ -24,7 +24,7 @@ import { currentDamageTakenRageModel, PROFILES, type RulesProfile } from '../rul
 import { SPEC_META } from '../specs'
 import { BASE_PLACEHOLDERS, CLASS_BASE } from '../stats/base-stats'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
-import type { CharacterSheet, GearSlot, SimConfig } from '../types'
+import type { CharacterSheet, ClassId, GearSlot, SimConfig } from '../types'
 import { Assumptions } from './assumptions'
 import {
   type AbilityPlan,
@@ -113,8 +113,6 @@ const SPELL_SCHOOL = { fire: 0, frost: 1, shadow: 2, nature: 3, arcane: 4, holy:
 /** Base rage cap (rage.md#rage-pool-cap-and-decay). */
 const BASE_MAX_RAGE = 100
 
-/** Specs whose hits taken give rage: warriors, and druids in Bear Form (rage.md#bear-druid-rage). */
-const RAGE_FROM_DAMAGE_TAKEN: ReadonlySet<SimConfig['spec']> = new Set(['warrior-fury', 'warrior-arms', 'warrior-protection', 'druid-feral-bear'])
 
 /**
  * Interval of the stand-in incoming hits for DPS specs (encounter §4, [?]). Each hit carries
@@ -682,6 +680,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const reachable = forms
     ? classRot.abilities.reduce((mask, a) => (a.kind === 'shift' && a.shiftTo !== undefined ? mask | (1 << a.shiftTo) : mask), 1 << FORM_INDEX[setup.form!])
     : 0
+  const hitsGiveRage = rageFromHits(classId, forms, reachable)
   procs = procs.flatMap((p, i) => {
     let resolved = p
     const need = procNeeds[i]
@@ -758,8 +757,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       // docs/mechanics/rage.md#rage-from-damage-taken; a legacy id maps to its new name
       damageTakenModel: currentDamageTakenRageModel(config.rules.damageTakenRage) ?? profile.rage.damageTaken,
       maxHealth: derived.health,
-      // rage.md#rage-from-damage-taken, #bear-druid-rage: rage users only.
-      fromDamageTaken: RAGE_FROM_DAMAGE_TAKEN.has(config.spec),
+      // rage.md#rage-from-damage-taken, #bear-druid-rage: rage users only (`rageFromHits`).
+      fromDamageTaken: hitsGiveRage,
     },
     periodicRage,
     auras,
@@ -816,10 +815,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   }
   if (weapons[HAND.off]) notes.add('offHandFirstSwing')
   if (auras.some((a) => a.haste)) notes.add('hasteNextSwing')
-  // Rage matters to warriors and bears; a cat's pool is Energy (druid.md §2.4).
-  const usesRage = classId !== 'druid' || setup.form === 'bear'
-  if (setup.simulated && profile.rage.white === 'normalized' && usesRage) {
-    if (setup.form === 'bear') notes.add('bearWhiteRage')
+  // White rage matters where hits give rage (`rageFromHits`): a warrior, or a druid that can be in
+  // Bear Form; a cat's pool is Energy (druid.md §2.4).
+  if (setup.simulated && profile.rage.white === 'normalized' && hitsGiveRage) {
+    if (forms) notes.add('bearWhiteRage')
     else notes.add('foreverWhiteRage')
     if (weapons[HAND.off]) notes.add('foreverOffHandRage')
   }
@@ -1046,6 +1045,18 @@ function stancePlans(
       spellCrit: m.spellCrit - b.spellCrit,
     }
   })
+}
+
+/**
+ * Whether white hits and hits taken can give the plan rage (rage.md#bear-druid-rage; druid.md §8
+ * "Rage from hits"): only in a form whose power is rage. A warrior always; a druid if its fight can
+ * be in Bear Form, `reachable` being the bit mask of the forms it can be in (its starting form and
+ * those its shapeshifts enter); other classes never. It sets `plan.rage.fromDamageTaken`; in the
+ * fight, a druid gains that rage only while in such a form (`FormPlan.rage`).
+ */
+export function rageFromHits(classId: ClassId, forms: readonly FormPlan[] | undefined, reachable: number): boolean {
+  if (forms) return forms.some((f, i) => f.rage && (reachable & (1 << i)) !== 0)
+  return classId === 'warrior'
 }
 
 /** The effect kinds a druid form can bind (druid.md §2.2): anything else can't be switched by a shapeshift. */

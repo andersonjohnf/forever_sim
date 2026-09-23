@@ -631,7 +631,7 @@ doesn't affect bear abilities (its mask holds only cat builders). [F] [client] (
 | Primal Fury 2/2 | +5 Rage on any crit in bear (100%) | [F] [client] (SpellEffect 16959, 1.60.1.69913) |
 | Natural Reaction 5/5 | +5% dodge; +5 Rage on each dodge (100%) | [F] [fc-tal]; [client] (SpellEffect 417053, 1.60.1.69913) |
 | Wolfshead Helm | +5 Rage from Enrage | [F] [fc-wolf] |
-| Rage in the other forms | White hits and hits taken give rage only in bear, whose power is rage; spell energizes (Furor, Primal Fury, a Mighty Rage Potion) give it in any form | [?] (the engine's model; [rage.md](../mechanics/rage.md#bear-druid-rage)) |
+| Rage in the other forms | White hits and hits taken give rage only in bear, whose power is rage; spell energizes (Furor, Primal Fury, Natural Reaction, a Mighty Rage Potion) give it in any form ([§8](#8-implementation-notes) "Rage from hits") | [?] (the engine's model; [rage.md](../mechanics/rage.md#bear-druid-rage)) |
 
 ---
 
@@ -904,6 +904,15 @@ the buffs doc as a per-spec entry.
   the Jungle's spell row says 60, and the curve says 20/40/60).
 - **Form swap.** When in cat or bear, replace the main-hand weapon with the form weapon (§2.1).
   Keep the item's stats and procs, and use the form speed for PPM.
+- **Rage from hits** (one rule for white hits and hits taken). They give rage only in a form whose
+  power is rage: Dire Bear Form (`FormPlan.rage`), never in cat or caster form [?]
+  ([rage.md](../mechanics/rage.md#bear-druid-rage)). A warrior always gains it. The plan's switch
+  for hits taken, `plan.rage.fromDamageTaken`, is on for a warrior and for a druid whose fight can
+  be in Bear Form (the bear, or a cat whose rotation can shift into bear), and off otherwise, so
+  the results list the damage-taken rage assumptions only then. The engine gives a hit taken rage
+  only when the switch is on and the druid is in bear. A hit that costs health fires the
+  damage-taken procs in any form, and spell energizes (Furor, Primal Fury, Natural Reaction, a
+  Mighty Rage Potion) add rage in any form.
 - **Events for the cat APL:** GCD end, Energy tick, Clearcasting gained, a cooldown ready (Tiger's
   Fury, Berserk, Faerie Fire), a bleed or debuff expiring, and fight-time thresholds.
   Reaction/latency modelling follows [damage-and-timing.md](../mechanics/damage-and-timing.md).

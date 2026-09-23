@@ -179,8 +179,8 @@ export class Sim {
   trace: ((source: number, hand: number, time: number) => void) | null = null
   /**
    * Test hook: called when an ability is used, before its cost is paid (ability index, time, the
-   * pool it pays from in tenths: rage, or a druid's Energy or mana); for an ability with a cast
-   * time, when the cast starts.
+   * pool it pays from in tenths: rage, a druid's Energy, or a druid's or paladin's mana); for an
+   * ability with a cast time, when the cast starts.
    */
   castTrace: ((ability: number, time: number, rageTenths: number) => void) | null = null
   /** Test hook: every damage event (source row, damage). */
@@ -475,8 +475,9 @@ export class Sim {
   private readonly staticHolyMult: number
   private readonly holyThreatMult: number
 
-  // Druid resources and forms (docs/classes/druid.md §2), flattened. A plan without them has every
-  // ability `abPlainRage` and no power tick, forms or free-cast aura, so none of this runs for it.
+  // Resources and forms (docs/classes/druid.md §2; the paladin's mana, paladin.md#mana-model),
+  // flattened. A plan without them has every ability `abPlainRage` and no power tick, forms or
+  // free-cast aura, so none of this runs for it.
   /** The pool each ability pays from (RES_*). */
   private readonly abRes: Int32Array
   /** Form bits it can be used in (0: any), and its combo-point rules (druid.md §2.5). */
@@ -524,7 +525,7 @@ export class Sim {
   private readonly manaInFsrShare: number
 
   // Per-fight state.
-  /** Energy, mana (tenths) and combo points (druid.md §2.4, §2.5, §2.8). */
+  /** Energy, mana (tenths) and combo points (druid.md §2.4, §2.5, §2.8; paladin.md#mana-model). */
   private energy = 0
   private mana = 0
   private comboPoints = 0
@@ -532,9 +533,12 @@ export class Sim {
   private form = -1
   /** What the last ability used paid (tenths of its pool; 0 when Clearcasting paid): refunds are a share of it. */
   private lastPaid = 0
-  /** When mana was last spent (the five-second rule, druid.md §2.8). */
+  /** When mana was last spent (the five-second rule, druid.md §2.8, paladin.md#mana-model). */
   private manaSpentAt = -Infinity
-  /** White hits and hits taken give rage: always without forms, and in a druid's bear form (FormPlan.rage). */
+  /**
+   * White hits and hits taken give rage: for a warrior, in a druid's bear form (FormPlan.rage), and
+   * never for a class without a rage pool (the paladin).
+   */
   private gainsRage = true
   /** Furor's inputs (druid.md §2.8): Energy when last leaving cat, and time since in no animal form. */
   private catEnergyLeft = 0

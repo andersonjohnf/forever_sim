@@ -137,7 +137,8 @@ A spec is data plus small ability modules, never its own loop.
   removed: events carry the generation of their timer and stale ones are skipped.
 - **Events:** main-hand and off-hand swings, boss swings (tank specs), aura expiry, bleed ticks
   (Deep Wounds, Rend), the end of an ability's cast time (Slam), periodic rage (Anger
-  Management), a cast's rage ticks (Bloodrage), the power tick (Energy and mana, druids),
+  Management), a cast's ticks (Bloodrage's rage, Consecration's spell), the power tick (Energy
+  and mana: druids and paladins),
   stand-in incoming hits for DPS specs, "the rotation may act" events when a GCD, an ability's
   cooldown or the stance swap cooldown ends, a time-left condition becomes true or an upkeep line's refresh window opens, and
   the start of the execute phase at `t_exec` (specs with a rotation). Fights end at a per-fight length drawn
@@ -193,10 +194,11 @@ A spec is data plus small ability modules, never its own loop.
   a range or a weapon share, a spell damage coefficient, their own multipliers), which one
   function resolves on the table their damage class picks (combat-tables §3, §9). Abilities of
   kind `spell` cast one (and one per tick: Consecration), and procs can too (the seals', on a
-  trigger after a white swing's own procs). The paladin pays them from the mana pool below, with
-  mp5 and Reverence's share on its power tick, and gets mana back when an ability lands (Sanctified
-  Judgement); abilities can share a cooldown category, and auras can form an exclusive group (one
-  seal). Warrior and druid plans have none of these.
+  trigger after a white swing's own procs). The paladin pays for them from the one mana pool (the
+  resources below), and gets mana back when an ability lands (Sanctified Judgement); abilities can
+  share a cooldown category, and auras can form an exclusive group (one seal). Holy damage and Holy
+  threat have their own multipliers (Vengeance, Righteous Fury). Warrior and druid plans have none
+  of these, and the paladin has no rage pool, so its hits give no rage.
 - **Rage** is integer tenths with a cap; energizes make 5 threat per rage. Abilities pay their cost
   when used (an on-next-swing one when its swing happens, one with a cast time when the cast
   completes) and refund their share of it on a miss,
@@ -204,8 +206,9 @@ A spec is data plus small ability modules, never its own loop.
   the global multiplier: the static one (Salvation, enchants, the base stance and Defiance) times
   the current stance's factor.
 - **Resources, forms and power ticks** (the druid's hooks,
-  [druid.md §2, §8](classes/druid.md#8-implementation-notes)). An ability's `resource` is the pool,
-  in tenths, it pays from and refunds to: rage (the default), Energy or mana. A row that pays
+  [druid.md §2, §8](classes/druid.md#8-implementation-notes), and the paladin's mana). An ability's
+  `resource` is the pool, in tenths, it pays from and refunds to: rage (the default), Energy or
+  mana. A row that pays
   rage in any form with no combo points or free cast (every warrior row) stays on the plain rage
   checks; the others go through `affordable` and `payCost`, which add forms, combo points (builders
   award them, finishers read and spend them) and Clearcasting's free cast. `Plan.forms` has one
@@ -213,9 +216,14 @@ A spec is data plus small ability modules, never its own loop.
   chances follow the new swing speed; Furor sets Energy or rage), and a proc can be bound to forms.
   White hits and hits taken give rage only in a form whose power is rage, and hits taken only
   under `plan.rage.fromDamageTaken` (warriors, a druid that can be in bear). One player-global
-  power tick every 2 s, from a random phase, adds Energy and spirit mana regeneration. Rotation
-  conditions `minEnergy`, `maxEnergy` and `minComboPoints` (codes 14–16) join the rage ones. A
-  plan without forms, Energy or mana never enters these paths.
+  power tick every 2 s, from a random phase, adds Energy and mana. Mana is one model for druids
+  and paladins (`Plan.mana`, [character-stats](mechanics/character-stats.md#spirit-and-mana-regeneration)):
+  the pool starts full, a cost starts the five-second rule, and each tick adds the plan's mp5
+  always and spirit regeneration outside the rule, or the plan's share of it inside (the paladin
+  sets mp5 and Reverence's share; the druid neither yet). Rotation conditions `minEnergy`,
+  `maxEnergy` and `minComboPoints` (codes 14–16) and `minMana` (18) join the rage ones; 17 and
+  19 are reserved (`abilityAuraDown`, `maxMana`). A plan without forms, Energy or mana never
+  enters these paths.
 - **Hot-loop discipline:** one monomorphic `Sim` class over typed arrays, no allocation per event,
   per-fight state reset rather than reallocated, and a plan flattened once in the constructor.
   The default Fury warrior (with its M2.2c rotation: the pre-pull, Battle Shout's upkeep and the

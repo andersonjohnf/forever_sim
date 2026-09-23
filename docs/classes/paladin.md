@@ -465,7 +465,7 @@ and aren't modelled.
 | Sanctified Judgement 3/3 | +126 per SoC judgement, +120 per SoR/SoF judgement | [F] |
 | Spirit regen | the class formula with the five-second rule; any mana spent starts a 5 s window with no spirit regen (Reverence lets some continue) | [C] → [character-stats.md](../mechanics/character-stats.md) |
 | mp5 | gear mp5 and Blessing of Wisdom (40 mp5) tick through the five-second rule | [F]/[C] |
-| The sim's ticks | every 2 s from a random phase in the first 2 s (the power tick the druid's Energy shares), each `mp5 × 2/5` plus, 5 s or more after the last mana spent, `15 + Spirit / 5` from the sheet's Spirit (Reverence: 10% per rank of it inside the rule). The fight starts with full mana, and a seal cast before the pull costs nothing and starts no five-second rule | [?] engine choices (the tick's phase and the pre-pull) |
+| The sim's ticks | every 2 s from a random phase in the first 2 s (the one power tick, which the druid's Energy and mana share), each `mp5 × 2/5` plus, 5 s or more after the last mana spent, `15 + Spirit / 5` from the sheet's Spirit, rounded down to a tenth (Reverence: 10% per rank of it inside the rule). The fight starts with full mana, and a seal cast before the pull costs nothing and starts no five-second rule | [?] engine choices (the tick's phase and the pre-pull) |
 | Mana from a spell effect | Sanctified Judgement, Shield Specialization: 0.5 threat per mana gained ([threat.md](../mechanics/threat.md#threat-from-healing-power-gains-and-buffs)) | [?] |
 | Shield Specialization (Prot 3/3) | **+6% max mana per block**, at most every 3 s | [F] |
 | Judgement of Wisdom (another paladin's) | chance on each of your hits to restore 59 mana (Classic 50% [?]) | [F]/[?] |
@@ -677,6 +677,17 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
   it lands first, then the new cast's ticks start, the tie-break Rend's refresh uses
   ([damage-and-timing §4 "Refresh"](../mechanics/damage-and-timing.md#4-dots-and-bleeds)) [?].
   So every cast deals all 8 ticks.
+- **Mana** is the engine's one mana model, the druid's too
+  ([character-stats.md](../mechanics/character-stats.md#spirit-and-mana-regeneration),
+  [architecture](../architecture.md#the-event-loop)). A paladin row pays its cost in tenths from
+  `resource: 'mana'`, which starts the five-second rule. The plan's `ManaPlan` (`setup.ts`
+  `paladinManaPlan`) is the sheet's maximum mana, spirit regeneration `15 + Spirit / 5` per tick
+  and the rule, plus the two fields only the paladin sets: mp5 × 2/5 per tick, and Reverence's
+  share of the spirit regeneration inside the rule. The player-global power tick adds them every
+  2 s. The rotation's mana threshold is condition `minMana` (code 18). Mana a spell effect returns
+  (Sanctified Judgement, Shield Specialization) goes through the same pool and makes 0.5 threat per
+  mana. The paladin has no rage pool, so its white hits and hits taken give no rage and none of
+  the rage assumptions apply.
 - **Righteous Fury** is up for the whole fight when the spec fights with it (Protection) and
   down otherwise (Retribution): ×1.9 on Holy threat, Improved Righteous Fury's damage taken
   with it, and Instrument of Law's ×0.8 on all threat without it.
@@ -692,8 +703,10 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
   Wrath, Judgement of the Crusader's upkeep, seal twisting; Holy Shield, Swift Judgement,
   Hammer of the Righteous) and their settings come next; their ability rows already exist.
 - **Base stats** follow [character-stats](../mechanics/character-stats.md#paladin-and-druid-base-attributes):
-  the attributes, base health, dodge and crits are all [?] placeholders under D24, which the
-  results list.
+  the attributes, base health, dodge and crits are all [?] placeholders under
+  [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23), kept with the
+  druid's in `BASE_PLACEHOLDERS` (`src/sim/stats/base-stats.ts`), which the results list on the
+  sheet and in the assumptions (`baseStatPlaceholders`).
 - **Not modelled yet:** Twist of Light, Holy Shield's block damage, Reckoning, Redoubt, Swift
   Judgement, Hammer of the Righteous, Holy Wrath, Judgement of Fury's taunt, Sacred Arbiter's
   judgement refresh, the utility seals, the T1 5-piece's −0.5 s Judgement, and Blessing of Wisdom

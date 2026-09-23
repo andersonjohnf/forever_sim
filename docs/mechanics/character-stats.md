@@ -417,6 +417,16 @@ from Spirit. Mana regeneration matters for paladins (seals, judgements, Consecra
   only. **[?]**
 - Warriors and bears use Rage: see [rage.md](rage.md).
 
+**In the engine** there is one mana model, for paladins and druids alike
+([architecture](../architecture.md#the-event-loop)). The pool is the sheet's maximum mana in
+tenths and starts full. Costs are paid from it and start the five-second rule. One player-global
+power tick every 2 s, from a random phase in the first 2 s [?], brings the plan's mp5 × 2/5 always,
+and `15 + Spirit / 5` from the sheet's Spirit, rounded down to a tenth [?], outside the rule, or
+the plan's share of it inside (Reverence). The formulas are in `src/sim/core/formulas.ts`. The
+paladin's plan sets mp5 and Reverence's share ([paladin.md](../classes/paladin.md#mana-model)); the
+druid's reads neither yet, since no pre-raid feral item has mp5 and no feral build takes Reflection
+([druid.md §2.8](../classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)).
+
 ### Defense skill
 
 Each point of defense above 5 × level adds **0.04%** to the chance to be missed and to dodge,
@@ -1036,7 +1046,7 @@ base health inflated that rage by 20–40%. DPS specs take no damage and don't n
 
 ### OQ-3: base melee and spell crit
 Warrior base melee crit is 0% **[C]**. Paladin and druid base melee and spell crit are unknown.
-The engine uses **placeholders [?]** for the paladin's under [D24](../decisions.md), and lists them
+The engine uses **placeholders [?]** for the paladin's under [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23), and lists them
 among its assumptions:
 - **Base melee crit 0.7%.** Origin: the emulator, via [wowsims/classic][wsc-base]; not evidence.
   **Sources conflict:** [RatingBuster][rb-vanilla] (pre-SoD, but its table copies the emulator's

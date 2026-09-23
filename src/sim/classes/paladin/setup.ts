@@ -3,6 +3,7 @@
 // own rows (Retribution: Holy Strike, Consecration, Exorcism, Hammer of Wrath, Judgement of the
 // Crusader; Protection: Holy Shield, Swift Judgement, Righteous Fury's upkeep) and their settings
 // build on `paladinCore`.
+import { FIVE_SECOND_RULE_MS, mp5TickTenths, spiritRegenTickTenths } from '../../core/formulas'
 import type { Effect, ProcSpec } from '../../effects/types'
 import type { AssumptionId } from '../../plan/assumptions'
 import { type AbilityDef, COND, DEFENSE, type ManaPlan, NO_PREPULL, type Plan, POWER_TICK_MS, type RotationEntry } from '../../plan/types'
@@ -13,24 +14,19 @@ import { JOTC_REFRESH, JUDGE_CRUSADER, JUDGEMENT_OF, SEAL_OF_COMMAND, SEAL_OF_FU
 import { type JotcRule, withJotcRule } from './spells'
 import { reverenceShare, righteousFuryEffects, TALENT_EFFECTS, type TalentRanks, withSpellTalents, withTalents } from './talents'
 
-/** The five-second rule (character-stats.md#spirit-and-mana-regeneration) [C]. */
-export const FIVE_SECOND_RULE_MS = 5000
-
-/** Spirit regeneration per 2 s tick, in tenths of mana: 15 + Spirit / 5 [C] (character-stats.md#spirit-and-mana-regeneration). */
-export const spiritRegenTickTenths = (spirit: number) => 10 * (15 + spirit / 5)
-
 /**
  * The paladin's mana, in tenths (paladin.md#mana-model; character-stats.md#spirit-and-mana-regeneration):
- * the sheet's maximum; every power tick, mp5 × 2/5 and, outside the five-second rule, Spirit regen
- * (Reverence keeps 10% per rank of it inside the rule). Spell-effect mana makes 0.5 threat per mana
- * [?] (threat.md#threat-from-healing-power-gains-and-buffs; the engine's).
+ * the engine's one mana model, the druid's pool, five-second rule and spirit regeneration
+ * (core/formulas.ts), plus what only the paladin's plan sets: mp5 every power tick, and Reverence's
+ * 10% per rank of the spirit regeneration inside the rule. Spell-effect mana makes 0.5 threat per
+ * mana [?] (threat.md#threat-from-healing-power-gains-and-buffs; the engine's).
  */
 export function paladinManaPlan(derived: Pick<DerivedStats, 'mana' | 'spirit'>, mp5: number, talents: TalentRanks): ManaPlan {
   return {
     maxTenths: 10 * derived.mana,
     regenTickTenths: spiritRegenTickTenths(derived.spirit),
     fiveSecondRuleMs: FIVE_SECOND_RULE_MS,
-    mp5TickTenths: (10 * mp5 * POWER_TICK_MS) / 5000,
+    mp5TickTenths: mp5TickTenths(mp5, POWER_TICK_MS),
     inFsrShare: reverenceShare(talents),
   }
 }

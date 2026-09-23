@@ -392,8 +392,10 @@ Energy-neutral.
   hits (a cat bearweaving) must divide by the current form's health first: a Tauren cat's 3,835
   would give about 47% more rage than its bear's 5,631.
 - **Mana**: the pool is base mana plus Intellect. Every power tick gives spirit regeneration,
-  `15 + Spirit / 5` per 2 s, unless mana was spent in the last 5 s. Mp5 from items isn't read
-  yet (no pre-raid feral item has it).
+  `15 + Spirit / 5` per 2 s, unless mana was spent in the last 5 s. That's the engine's one mana
+  model, the paladin's too ([character-stats.md](../mechanics/character-stats.md#spirit-and-mana-regeneration)),
+  but the druid's plan doesn't set its mp5 or a share of spirit regeneration inside the rule yet
+  (no pre-raid feral item has mp5, and no feral build takes Reflection).
 
 ### 2.9 Snapshotting
 

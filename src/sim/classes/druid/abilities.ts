@@ -89,13 +89,10 @@ export const FUROR_BEAR_RAGE_TENTHS = 100
 export const FUROR_BEAR_CHANCE_PER_RANK = 0.2
 
 /**
- * Spirit regeneration per 2 s power tick outside the five-second rule: 15 + Spirit / 5 for druids
- * [C] (character-stats.md#spirit-and-mana-regeneration, druid.md §2.8). In tenths.
+ * Spirit regeneration per 2 s power tick outside the five-second rule, and the rule itself (druid.md
+ * §2.8): the paladin's too, so core/formulas.ts holds them (character-stats.md#spirit-and-mana-regeneration).
  */
-export const spiritRegenTickTenths = (spirit: number) => Math.floor((15 + spirit / 5) * 10 + 1e-9)
-
-/** The five-second rule: no spirit regeneration for 5 s after spending mana [C] (druid.md §2.8). */
-export const FIVE_SECOND_RULE_MS = 5000
+export { FIVE_SECOND_RULE_MS, spiritRegenTickTenths } from '../../core/formulas'
 
 /** The fields of a row that rolls nothing and deals nothing (a shapeshift, a cast). */
 export const NO_STRIKE = {

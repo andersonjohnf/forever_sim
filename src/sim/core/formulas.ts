@@ -134,6 +134,22 @@ export function furorCatEnergyTenths(rank: number, energyLeftTenths: number, out
 }
 
 // ---------------------------------------------------------------------------------------------
+// Mana: docs/mechanics/character-stats.md#spirit-and-mana-regeneration (paladins and druids)
+// ---------------------------------------------------------------------------------------------
+
+/** The five-second rule: no spirit regeneration for 5 s after spending mana [C]. */
+export const FIVE_SECOND_RULE_MS = 5000
+
+/**
+ * Spirit regeneration per 2 s power tick outside the five-second rule, in tenths of mana:
+ * `15 + Spirit / 5` for paladins and druids [C], rounded down to a tenth [?].
+ */
+export const spiritRegenTickTenths = (spirit: number) => Math.floor((15 + spirit / 5) * 10 + 1e-9)
+
+/** Mana per 5 s from gear and buffs, per power tick of `tickMs`, in tenths: mp5 × tick / 5 s [C]; it ticks inside the five-second rule too. */
+export const mp5TickTenths = (mp5: number, tickMs: number) => (10 * mp5 * tickMs) / 5000
+
+// ---------------------------------------------------------------------------------------------
 // Rage: docs/mechanics/rage.md
 // ---------------------------------------------------------------------------------------------
 

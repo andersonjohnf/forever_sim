@@ -221,9 +221,12 @@ A spec is data plus small ability modules, never its own loop.
   the pool starts full, a cost starts the five-second rule, and each tick adds the plan's mp5
   always and spirit regeneration outside the rule, or the plan's share of it inside (the paladin
   sets mp5 and Reverence's share; the druid neither yet). Rotation conditions `minEnergy`,
-  `maxEnergy` and `minComboPoints` (codes 14–16) and `minMana` (18) join the rage ones; 17 and
-  19 are reserved (`abilityAuraDown`, `maxMana`). A plan without forms, Energy or mana never
-  enters these paths.
+  `maxEnergy` and `minComboPoints` (codes 14–16) and `minMana` and `maxMana` (18, 19) join the
+  rage ones, with `abilityAuraDown` (17): the aura an ability puts up is down, checked on every
+  walk: a buff, a debuff it keeps on the target (Retribution's opener), or for a bleed or an
+  attack that bleeds, its bleed (the cat's Rake waits while Rip bleeds). A `cast` can restore mana at
+  once, a fixed amount plus a roll from the proc stream (a mana potion or rune). A plan without
+  forms, Energy or mana never enters these paths.
 - **Hot-loop discipline:** one monomorphic `Sim` class over typed arrays, no allocation per event,
   per-fight state reset rather than reallocated, and a plan flattened once in the constructor.
   The default Fury warrior (with its M2.2c rotation: the pre-pull, Battle Shout's upkeep and the

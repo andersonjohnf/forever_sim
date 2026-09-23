@@ -38,7 +38,7 @@ interface Cast {
 function casts(plan: Plan, index = 0): { casts: Cast[]; sim: Sim } {
   const sim = new Sim(plan)
   const out: Cast[] = []
-  sim.castTrace = (a, t, _rage, mana) => out.push({ id: plan.abilities[a].id, t, mana })
+  sim.castTrace = (a, t) => out.push({ id: plan.abilities[a].id, t, mana: sim.resources().mana })
   sim.runFight(index)
   return { casts: out, sim }
 }

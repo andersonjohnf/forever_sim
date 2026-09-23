@@ -68,7 +68,7 @@ describe('rotation conditions', () => {
     plan.rotation.push({ ability: s, conditions: [], unqueueBelowTenths: 0 })
     const sim = new Sim(plan)
     const uses: [string, number, number][] = []
-    sim.castTrace = (a, t, _rage, mana) => uses.push([plan.abilities[a].id, t, mana])
+    sim.castTrace = (a, t) => uses.push([plan.abilities[a].id, t, sim.resources().mana])
     sim.runFight(0)
     // The sink spends 100 mana a second: 5,000 → 4,600 at 4 s, when the restore goes.
     const restoreUse = uses.find(([id]) => id === 'restore')!

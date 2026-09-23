@@ -670,7 +670,7 @@ Forever:
 | 0 | Pre-pull | Battle Shout at −3 s; Bloodrage at −1 s. No Charge; the warrior walks in, as in [wh-fury] | `fury.prepull.battleShout` (on), `fury.prepull.bloodrage` (on), `fury.prepull.charge` (off; adds 15 rage and needs a swap to Berserker Stance that keeps only 25) | yes |
 | 1 | Battle Shout | Buff missing or under 3 s left; rage ≥ 10 | `fury.battleShout.enabled` (on), `.refreshBelowSec` (3) | yes |
 | 2 | Death Wish | On cooldown from the pull. If `alignToEnd` is on, delay the final use so that it lasts until the fight ends | `fury.deathWish.enabled` (on), `.alignToEnd` (on) | yes |
-| 3 | Racial or trinket cooldowns | Use together with Death Wish, then on cooldown | `fury.racial.enabled` (on), `.syncWithDeathWish` (on) | yes |
+| 3 | Racial or trinket cooldowns | Use together with Death Wish, then on cooldown; see the notes. Blood Fury, Berserking and Elune's Light ([§2.9](#29-racials-for-warriors)); Eureka! and trinkets aren't simulated yet | `fury.racial.enabled` (on), `.syncWithDeathWish` (on) | yes |
 | 4 | Recklessness | Once, when the fight has ≤ `lastSec` seconds left. It needs Berserker Stance | `fury.recklessness.enabled` (on), `.lastSec` (15) | yes |
 | 5 | Bloodrage (off the GCD) | On cooldown, if it won't push rage over the cap: rage ≤ max − 20 | `fury.bloodrage.enabled` (on), `.maxRage` (max − 20) | yes |
 | 6 | **Execute phase** (target ≤ 20%): Bloodthirst | AP ≥ `btOverExecuteAp` and rage ≥ 30 | `fury.execute.btOverExecuteAp`, default **2220**: [W11](#w11-bloodthirst-versus-execute-break-even) at the default build's Execute cost 15. The default doesn't follow the build: with Improved Execute 2/2 (cost 10) set 2434 | yes |
@@ -680,7 +680,7 @@ Forever:
 | 10 | Overpower (stance dance) | Window open; rage ≤ `maxRage`, since the swap keeps only 25; Bloodthirst and Whirlwind are GCD-safe. Swap to Battle, Overpower, swap back | `fury.overpower.enabled` (off), `.maxRage` (25) | no |
 | 11 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`; unqueue if rage falls below `unqueueBelow` before the swing | `fury.heroicStrike.enabled` (on), `.minRage` (42), `.unqueueBelow` (off; 20 if enabled) | yes |
 | 12 | Hamstring (filler to fish for procs) | Rage ≥ `minRage`; Bloodthirst and Whirlwind are GCD-safe; optionally only when Flurry is down | `fury.hamstring.enabled` (on), `.minRage` (60), `.onlyWhenFlurryDown` (off) | yes |
-| 13 | Berserker Rage | With Improved Berserker Rage: on cooldown, when GCD-safe and rage ≤ max − 10. Without it: only when the warrior takes damage (off) | `fury.berserkerRage.enabled` (on only if Improved Berserker Rage is talented) | depends |
+| 13 | Berserker Rage | With Improved Berserker Rage: on cooldown, when GCD-safe and rage ≤ max − 10. Without it: not used (its only other effect is Q20's extra rage from damage taken) | `fury.berserkerRage.enabled` (on; the plan skips it without Improved Berserker Rage), `.maxRage` (max − 10) | with the talent |
 | 14 | Sunder Armor | Keep `stacks` stacks up, when no one else in the raid applies them | `fury.sunder.enabled` (off), `.stacks` (5) | no |
 | 15 | Slam | Not used by dual wield: without Improved Slam it resets both swing timers | `fury.slam.enabled` (off) | no |
 | 16 | Mighty Rage Potion (consumable) | Once, at the start of the execute phase, if rage ≤ max − 75 | `fury.ragePotion.enabled` (follows the consumables tier), `.when` (`executeStart`) | with consumables |
@@ -713,6 +713,35 @@ Notes:
   `heroicStrikeInExecute` is on. Its 12 rage is worth 180 damage in the next Execute, more than
   the 157 it adds to a swing that also gives up that swing's white rage. This is an engine
   choice; no source covers it.
+- **The cooldowns apply in both phases.** Rows 2–5 and 13 keep running in the execute phase.
+  Recklessness (row 4) and the final Death Wish (row 2) usually land there, ahead of Execute.
+- **Death Wish's `alignToEnd`** (row 2). A use is the **final** one when no further use could
+  start before the fight ends: `now + cooldown ≥ fight end`, i.e. at most 180 s left. The final
+  use waits until at most its 30 s duration is left, so it lasts to the end. Every other use goes
+  on cooldown. So a fight of 180 s or less gets one use, in the last 30 s. A 300 s fight gets one
+  at the pull and a final one at 270 s. The fight's drawn length is known to the sim, as the
+  execute phase's start is ([encounter.md](../mechanics/encounter.md#implementation-notes)).
+  With the setting off, every use goes on cooldown. This is an engine choice; no source covers
+  it.
+- **The racial with Death Wish** (row 3, `syncWithDeathWish`). The racial is used while Death
+  Wish is up. It's also used whenever Death Wish's next use is at least the racial's cooldown
+  away, because then it will be ready again by then and waiting would cost a use. "Next use"
+  is Death Wish's remaining cooldown, or, while `alignToEnd` holds the final use, the time until
+  30 s are left. In a 150 s fight, Blood Fury (2 min) goes at the pull and again with the
+  aligned Death Wish at 120 s; in a 140 s fight it waits for Death Wish at 110 s. With no Death
+  Wish in the rotation (no talent, or switched off) or the setting off, the racial is used on
+  cooldown. The racials are off the GCD, so they're used in the same moment as Death Wish.
+  This is an engine choice; no source covers it.
+- **Bloodrage and Berserker Rage wait for room** (rows 5 and 13). Their `maxRage` is absolute
+  ([§5.1](#51-conventions-for-rotation-settings)): 110 for Bloodrage (130 − 20) and 120 for
+  Berserker Rage (130 − 10). Spending rage is a decision point, so either is used the moment a
+  cast brings rage down to its threshold.
+- **Berserker Rage in the execute phase** (row 13). It stays GCD-safe for the abilities the
+  phase uses, as Whirlwind's wait does (row 9): Bloodthirst only while row 6 uses it (AP ≥
+  `btOverExecuteAp`), and Whirlwind only with `whirlwindInExecute`. Execute has no cooldown, so
+  it isn't part of the check. Berserker Rage comes after Execute, so it gets a GCD in the
+  phase only while Execute waits for rage, which its 10 rage then shortens. Without Improved
+  Berserker Rage it does nothing the sim models, so the plan leaves it out.
 - **2H Fury** (Fury talents with a two-hander) is supported by the engine but has no default
   preset. Unbridled Wrath's 2 rage per proc suits it, but Dual Wield Specialization and Raging
   Blows are wasted, and Improved Slam is out of reach in the Arms tree. Use it only if a guild
@@ -930,6 +959,42 @@ parts:
   the engine to the phase's priority list. The engine sorts the lines into two lists up front,
   one per phase, from their execute-phase conditions and Execute's own restriction, so neither
   phase walks lines that can't apply. Only specs with a rotation get the event.
+- **Cooldowns are `cast` abilities** (`sim/classes/warrior/abilities.ts`). Bloodrage, Death
+  Wish, Recklessness, Berserker Rage and the racial cooldowns roll nothing. Each puts its buff
+  on the warrior as an aura and grants its rage, at once and then on ticks: Bloodrage 10, then
+  1 a second for 10 s, the first tick 1 s after the cast (W19). The rage is an energize, so it's
+  capped at max rage and makes 5 threat per rage gained
+  ([threat.md](../mechanics/threat.md#threat-from-healing-power-gains-and-buffs)), on the
+  ability's own breakdown row. Costs, cooldowns, the GCD and stances work as for strikes, with
+  the numbers from the client ([§3.2](#32-buffs-debuffs-and-cooldowns), §2.9), checked by the
+  tests.
+- **Talented cooldown rage.** Improved Bloodrage multiplies each of Bloodrage's gains by
+  `1 + 0.25 × rank`, and each gain is floored to a tenth
+  ([rage.md](../mechanics/rage.md#implementation-notes) "Rounding"). At 1/2 that gives 12.5 at
+  once and 1.2 per tick (1.25 floored) [?] (Q29); 2/2 is exact (15 + 1.5). Improved Berserker
+  Rage adds 5 rage per rank.
+- **What the cooldowns' buffs do in the sim.** Death Wish is ×1.20 physical damage, like any
+  damage-done aura (white, yellow and bleeds). Recklessness's +100% and Elune's Light's +10% are
+  aura crit (aura 290, like Berserker Stance): the white table still truncates crit at its crit
+  cap, specials at theirs, and melee spells' second roll takes it as is
+  ([combat-tables §2.2, §3](../mechanics/combat-tables.md#3-special-yellow-attacks)). The +3-boss
+  suppression takes `min(auraCrit, 1.8)`, which talents and stance already fill, so it doesn't
+  change ([§4.4](../mechanics/combat-tables.md#44-crit-suppression)). Blood Fury's +10% attack
+  power multiplies the stat block's AP multiplier. Berserking's +10% attack speed multiplies
+  other haste from the next swing (W17). Their fear immunity and Bloodrage's health cost aren't
+  simulated.
+- **Damage taken by the cooldowns isn't simulated.** Death Wish (+5%) and Recklessness (+20%)
+  raise damage taken. The DPS stand-in's incoming damage is health lost, which ignores the
+  stance's +10% too, and no tank rotation uses them yet.
+- **Berserker Rage's extra rage from damage taken** uses rage.md's ×1.0 default [?] (Q20), so
+  its aura would change nothing and isn't applied. The result flags this when damage is taken.
+- **Eureka! isn't simulated** (Gnome). Its 3 charges would need a per-cast cost and damage
+  modifier on damaging abilities, and three unknowns from Q18: how the 40% rounds, whether it
+  cuts Execute's extra rage, and whether a miss spends a charge. The result says so for Gnomes.
+- **Time-left conditions.** The fight's drawn length is known, so "time left ≤ x" and "≥ x"
+  become a window of times per line for each fight: the engine compares the time with it,
+  without evaluating a condition, and wakes the rotation at `fight end − x`, when a "≤ x"
+  condition becomes true.
 - **Execute's rage.** Rage is kept in tenths, and Execute converts everything left after its
   cost, tenths included: at 27.3 rage and cost 15 it deals `600 + 15 × 12.3 = 784.5` before
   modifiers. Whether the server converts only whole rage points is Q28 [?]. A blocked Execute
@@ -948,9 +1013,9 @@ parts:
 - **Reactive windows** (Overpower, Revenge, Bloodthrill) are auras on the warrior, with
   duration and charges. Stance-dance entries check `rage ≤ tacticalMasteryCap +
   ability cost` so the dance doesn't waste rage.
-- **Enrage and incoming damage.** Enrage, Master of Defense, Shield Specialization and
-  Berserker Rage consume incoming-damage events from the encounter model. With no events
-  (the DPS default), those auras never trigger.
+- **Enrage and incoming damage.** Enrage, Master of Defense and Shield Specialization consume
+  incoming-damage events from the encounter model (Berserker Rage would too, with a known
+  multiplier; Q20). With no events (the DPS default), those auras never trigger.
 - **Skipped, with no measurable DPS or TPS effect.** Victory Rush, Blood Craze and other
   healing, Iron Will, Piercing Howl, Booming Voice, Improved Hamstring, crowd-control and
   utility abilities, Last Stand, Shield Wall, Retaliation, Taunt and Mocking Blow; also Deep
@@ -1247,6 +1312,12 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     whole rage points? The sim converts tenths ([§7](#7-implementation-notes)); the difference is
     at most 13.5 damage per Execute. **Test:** Executes at a known fractional rage, if the combat
     log or a rage display with decimals shows it.
+29. **Improved Bloodrage 1/2.** Its +25% makes Bloodrage 12.5 rage at once and 1.25 per tick.
+    Does the server keep the hundredths, round each tick, or round the curve value? The sim
+    floors each gain to a tenth, as [rage.md](../mechanics/rage.md#implementation-notes) does
+    for every gain, so 1/2 gives 12.5 + 10 × 1.2 = 24.5 rather than 25 ([§7](#7-implementation-notes)).
+    2/2 (the only rank the presets use) is exact. **Test:** rage before and after each tick with
+    1/2, in a combat log that shows tenths.
 
 ## 10. Sources
 

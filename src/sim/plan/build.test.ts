@@ -1,8 +1,9 @@
 // The plan builder and computeSheet against the docs' worked examples: character-stats
 // Example 1, warrior W8/W16/W24/W25, threat T3/T20, buffs examples 1–5, encounter WE-4/WE-5.
 import { describe, expect, it } from 'vitest'
+import { decodeTalentCode, encodeTalentCode } from '@/data/talents/types'
 import { meleeChances } from '../core/attack-table'
-import { defaultConfig } from '../defaults'
+import { defaultConfig, TALENT_DATA } from '../defaults'
 import { Sim } from '../engine/sim'
 import { computeSheet, normalizeConfig } from '../index'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
@@ -258,11 +259,26 @@ describe('talents, racials and stances', () => {
     const byId = Object.fromEntries(plan.abilities.map((a) => [a.id, a]))
     expect(byId.heroicStrike.costTenths).toBe(120) // Improved Heroic Strike 3/3
     expect(byId.execute.costTenths).toBe(150) // no Improved Execute
-    for (const a of plan.abilities) expect(a.critMultiplier, a.id).toBeCloseTo(2.2, 12) // Impale 2/2
+    for (const a of plan.abilities.filter((x) => x.kind !== 'cast')) expect(a.critMultiplier, a.id).toBeCloseTo(2.2, 12) // Impale 2/2
     // Raging Blows: Whirlwind's off-hand strike has its own breakdown row, right after Whirlwind's.
     expect(byId.whirlwind.offHandSource).toBe(byId.whirlwind.source + 1)
     expect(plan.sources[byId.whirlwind.offHandSource].id).toBe('whirlwindOffHand')
     for (const a of plan.abilities.filter((x) => x.id !== 'whirlwind')) expect(a.offHandSource).toBe(-1)
+  })
+
+  it('adds the casts’ buffs to the plan’s auras, and the racial cooldown for its race (warrior.md §3.2, §2.9)', () => {
+    const { plan } = buildPlan({ ...defaultConfig('warrior-fury'), race: 'horde-orc' })
+    const aura = (id: string) => plan.auras[plan.abilities.find((a) => a.id === id)!.aura]
+    expect(aura('deathWish')).toMatchObject({ id: 'deathWish', durationMs: 30000, damage: 20 })
+    expect(aura('recklessness')).toMatchObject({ id: 'recklessness', durationMs: 15000, crit: 100 })
+    expect(aura('bloodFury')).toMatchObject({ id: 'bloodFury', durationMs: 15000, apPct: 10 })
+    expect(plan.abilities.find((a) => a.id === 'bloodrage')!.aura).toBe(-1)
+    // Casts get breakdown rows like any ability.
+    for (const a of plan.abilities) expect(plan.sources[a.source].id).toBe(a.id)
+    const races = (race: string) => buildPlan({ ...defaultConfig('warrior-fury'), race }).plan.abilities.map((a) => a.id)
+    expect(races('horde-troll')).toContain('berserking')
+    expect(races('alliance-night-elf')).toContain('elunesLight')
+    for (const id of ['bloodFury', 'berserking', 'elunesLight']) expect(races('alliance-human')).not.toContain(id)
   })
 
   it('records the stance each spec fights in, and any stance for classes without one', () => {
@@ -327,6 +343,25 @@ describe('assumptions', () => {
     expect(twoHander).not.toContain('ragingBlows')
     expect(twoHander).toContain('unbridledWrathSwings')
     expect(ids({ ...fury, rotation: { 'warrior.fury.whirlwind.enabled': false } })).not.toContain('ragingBlows')
+  })
+
+  it('flags Eureka! as not simulated, and no other racial cooldown (warrior.md §2.9, Q18)', () => {
+    const ids = (race: string) => buildPlan({ ...defaultConfig('warrior-fury'), race }).assumptions.map((a) => a.id)
+    expect(ids('alliance-gnome')).toContain('cooldownRacial')
+    for (const race of ['horde-orc', 'horde-troll', 'alliance-night-elf', 'alliance-human']) expect(ids(race)).not.toContain('cooldownRacial')
+  })
+
+  it('flags Berserker Rage’s unknown damage-taken rage only when it’s used and damage is taken (rage.md, Q20)', () => {
+    const fury = defaultConfig('warrior-fury')
+    // Improved Berserker Rage 2/2 on top of the default build.
+    const data = TALENT_DATA.warrior
+    const ibr = data.trees.flatMap((t) => t.talents).find((t) => t.name === 'Improved Berserker Rage')!.id
+    const talents = encodeTalentCode(data, { ...decodeTalentCode(data, fury.talents), [ibr]: 2 })
+    const ids = (config: SimConfig) => buildPlan(config).assumptions.map((a) => a.id)
+    expect(buildPlan({ ...fury, talents }).plan.abilities.map((a) => a.id)).toContain('berserkerRage')
+    expect(ids({ ...fury, talents })).not.toContain('berserkerRageTaken')
+    expect(ids({ ...fury, talents, fight: { ...fury.fight, damageTakenPerSec: 100 } })).toContain('berserkerRageTaken')
+    expect(ids({ ...fury, fight: { ...fury.fight, damageTakenPerSec: 100 } })).not.toContain('berserkerRageTaken')
   })
 
   it('names unmodelled item effects', () => {

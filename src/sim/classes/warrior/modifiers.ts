@@ -1,6 +1,7 @@
-// Talents that modify warrior abilities (docs/classes/warrior.md §2.3 "Cost reductions", §2.5
-// Impale, §3.1 Raging Blows). The plan applies them once, when it resolves the rotation's
-// abilities from the build's talent ranks; the engine only sees the resolved numbers.
+// Talents that modify warrior abilities (docs/classes/warrior.md §2.3 "Cost reductions" and the
+// Bloodrage and Berserker Rage rows, §2.5 Impale, §3.1 Raging Blows). The plan applies them once,
+// when it resolves the rotation's abilities from the build's talent ranks; the engine only sees
+// the resolved numbers.
 //
 // Abilities are keyed by the ids in abilities.ts. The class-mask lists name abilities the engine
 // doesn't simulate yet, so each list is complete and the cost tables (W20, W21) are pure functions
@@ -115,14 +116,34 @@ export function abilityCritMultiplier(id: string, talents: TalentRanks): number 
 }
 
 /**
- * The ability as this build uses it: cost reductions, Impale's crit multiplier, and Raging Blows'
- * off-hand strike on Whirlwind (warrior.md §3.1 "Raging Blows"; [?] Q13).
+ * Improved Bloodrage multiplies all of Bloodrage's rage by `1 + 0.25 × rank` [F] (warrior.md §2.3,
+ * W19): 15 + 1.5/s at 2/2. Each gain is floored to a tenth (rage.md#implementation-notes
+ * "Rounding"), so 1/2's 1.25-rage ticks give 1.2.
+ */
+export function bloodrageRage(tenths: number, talents: TalentRanks): number {
+  return Math.floor(tenths * (1 + 0.25 * rank(talents, 'Improved Bloodrage')) + 1e-9)
+}
+
+/** Improved Berserker Rage: +5 rage per rank when Berserker Rage is used [F] (warrior.md §2.3). */
+export const IMPROVED_BERSERKER_RAGE_PER_RANK = 5
+
+/**
+ * The ability as this build uses it: cost reductions, Impale's crit multiplier, Raging Blows'
+ * off-hand strike on Whirlwind (warrior.md §3.1 "Raging Blows"; [?] Q13), and the rage of
+ * Improved Bloodrage and Improved Berserker Rage (§2.3).
  */
 export function withTalents(def: AbilityDef, talents: TalentRanks): AbilityDef {
-  return {
+  const resolved: AbilityDef = {
     ...def,
     costTenths: Math.max(0, def.costTenths - 10 * costReduction(def.id, talents)),
     critMultiplier: abilityCritMultiplier(def.id, talents),
     offHand: def.offHand || (def.id === 'whirlwind' && rank(talents, 'Raging Blows') > 0),
   }
+  if (def.id === 'bloodrage') {
+    resolved.rageTenths = bloodrageRage(def.rageTenths, talents)
+    resolved.rageTickTenths = bloodrageRage(def.rageTickTenths, talents)
+  } else if (def.id === 'berserkerRage') {
+    resolved.rageTenths = def.rageTenths + 10 * IMPROVED_BERSERKER_RAGE_PER_RANK * rank(talents, 'Improved Berserker Rage')
+  }
+  return resolved
 }

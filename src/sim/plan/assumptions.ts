@@ -19,7 +19,7 @@ const REGISTRY = {
     docRef: 'docs/milestones.md#m2-warrior-dps-with-the-production-ux',
   },
   partialRotation: {
-    text: 'The rotation uses Bloodthirst, Whirlwind, Heroic Strike, Hamstring and Execute for now: cooldowns, shouts and on-use items come next.',
+    text: 'The rotation uses Bloodthirst, Whirlwind, Heroic Strike, Hamstring, Execute, Bloodrage, Death Wish, Recklessness, Berserker Rage and racial cooldowns for now: Battle Shout, the pre-pull, potions and on-use items come next.',
     docRef: 'docs/milestones.md#m2-warrior-dps-with-the-production-ux',
   },
   gcdHaste: {
@@ -127,8 +127,8 @@ const REGISTRY = {
     docRef: `${WAR}#9-open-questions`,
   },
   cooldownRacial: {
-    text: 'Your racial cooldown is pressed by the rotation, which isn’t simulated yet.',
-    docRef: `${WAR}#29-racials-for-warriors`,
+    text: 'Eureka! isn’t simulated yet: how its 40% cost cut rounds, and what spends its charges, are open questions.',
+    docRef: `${WAR}#9-open-questions`,
   },
   touchOfTheGrave: {
     text: 'Touch of the Grave isn’t simulated: whether it deals damage is unknown.',
@@ -205,6 +205,10 @@ const REGISTRY = {
   dpsDamageTaken: {
     text: 'Incoming damage for a DPS player arrives as one hit every 2 seconds.',
     docRef: `${ENC}#4-targets-and-position`,
+  },
+  berserkerRageTaken: {
+    text: 'Berserker Rage adds no extra rage from damage taken: the amount is unknown, so it’s taken as none.',
+    docRef: `${RAGE}#rage-from-damage-taken`,
   },
   enrageTrigger: {
     text: 'Enrage triggers on any hit that costs health, including blocked hits.',

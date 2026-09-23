@@ -4,6 +4,7 @@
 // conditions resolved, profile values copied in. The plan is plain data, so it posts to workers
 // by structured clone, and the engine that runs it imports no datasets. Everything the engine
 // needs per event is a number here.
+import type { AuraSpec } from '../effects/types'
 import type { RulesProfile } from '../rules/profiles'
 import type { StatBlock } from '../stats/stat-block'
 import type { Assumption, CharacterSheet, ClassId, DamageTakenRageModel, Role, SpecId } from '../types'
@@ -75,6 +76,8 @@ export interface AuraPlan {
   str: number
   agi: number
   ap: number
+  /** Attack power %, multiplicative with the stat block's AP multiplier (Blood Fury, warrior.md §2.9). */
+  apPct: number
   crit: number
   /** Attack speed %, multiplicative. */
   haste: number
@@ -130,9 +133,12 @@ export interface AbilityPlan {
    * `meleeSpell`: roll 1 for miss, dodge, parry, block, roll 2 for crit (Bloodthirst, Execute,
    * Shield Slam, Revenge);
    * `onNextSwing`: queued off the GCD, replaces the next main-hand swing and rolls like a
-   * `weaponStrike` (Heroic Strike, Cleave; warrior.md §2.4).
+   * `weaponStrike` (Heroic Strike, Cleave; warrior.md §2.4);
+   * `cast`: no attack: it puts `aura` on the warrior and grants its rage (Bloodrage, Death Wish,
+   * Recklessness, Berserker Rage, racial cooldowns; warrior.md §3.2, §2.9). The damage fields
+   * are unused.
    */
-  kind: 'weaponStrike' | 'meleeSpell' | 'onNextSwing'
+  kind: 'weaponStrike' | 'meleeSpell' | 'onNextSwing' | 'cast'
   /** Rage cost in tenths after the build's talent reductions (warrior.md §2.3 "Cost reductions"). */
   costTenths: number
   cooldownMs: number
@@ -171,7 +177,26 @@ export interface AbilityPlan {
    * off hand's speed and hand multiplier; it costs nothing more and refunds nothing.
    */
   offHandSource: number
+  /** `cast`: the plan aura it puts on the warrior, or −1 (Death Wish, Recklessness, Blood Fury, …). */
+  aura: number
+  /**
+   * `cast`: rage in tenths, `rageTenths` at once and then `rageTicks` ticks of `rageTickTenths`
+   * every `rageTickMs` from the cast (Bloodrage: 100, then 10 × 10 every 1000 ms; warrior.md
+   * §2.3). These are energizes: capped at max rage, with 5 threat per rage gained
+   * (rage.md#rage-pool-cap-and-decay, threat.md#threat-from-healing-power-gains-and-buffs).
+   */
+  rageTenths: number
+  rageTickTenths: number
+  rageTicks: number
+  rageTickMs: number
 }
+
+/**
+ * An ability before the plan gives it breakdown rows and resolves its aura. `offHand` asks for a
+ * second strike with the off hand (Raging Blows' Whirlwind, warrior.md §3.1); `aura` is the buff a
+ * `cast` puts on the warrior, which the plan adds to its auras.
+ */
+export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura'> & { offHand: boolean; aura: AuraSpec | null }
 
 /** Rotation condition codes (docs/classes/warrior.md#51-conventions-for-rotation-settings). */
 export const COND = {
@@ -192,6 +217,18 @@ export const COND = {
   apAtLeast: 5,
   /** attack power < a */
   apBelow: 6,
+  /** rage ≤ a (tenths): Bloodrage and Berserker Rage wait so their rage isn't lost at the cap (warrior.md §5.2) */
+  maxRage: 7,
+  /**
+   * the fight has at most a ms left (each fight's drawn length is known; encounter §3). Like the
+   * phase, the engine resolves it up front: into a window of times per line for each fight, and
+   * a wake-up of the rotation when it becomes true.
+   */
+  timeLeftAtMost: 8,
+  /** the fight has at least a ms left (resolved the same way; it only becomes false, so no wake-up) */
+  timeLeftAtLeast: 9,
+  /** the aura that ability a puts on the warrior is up (the racial synced with Death Wish, warrior.md §5.2) */
+  abilityAuraUp: 10,
 } as const
 
 export interface RotationCondition {

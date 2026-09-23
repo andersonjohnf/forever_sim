@@ -17,6 +17,11 @@ import { Sim } from './sim'
 
 /** Every Fury ability switched off (warrior.md §5.2 settings): white swings only. */
 const NO_ABILITIES: SimConfig['rotation'] = {
+  'warrior.fury.deathWish.enabled': false,
+  'warrior.fury.racial.enabled': false,
+  'warrior.fury.recklessness.enabled': false,
+  'warrior.fury.bloodrage.enabled': false,
+  'warrior.fury.berserkerRage.enabled': false,
   'warrior.fury.bloodthirst.enabled': false,
   'warrior.fury.whirlwind.enabled': false,
   'warrior.fury.heroicStrike.enabled': false,
@@ -150,7 +155,7 @@ describe('timing worked examples in the engine', () => {
   it('warrior W17: Flurry 5/5 turns a 2.6 s swing into 2.080 s from the next swing', () => {
     const flurry = proc({ action: ACTION.aura, amount: 0, chainBit: 0, hands: 1 })
     const plan = timingPlan(2.6, null, [flurry], 7000)
-    plan.auras = [{ id: 'flurry', name: 'Flurry', durationMs: 15000, maxStacks: 1, whiteSwingCharges: 3, str: 0, agi: 0, ap: 0, crit: 0, haste: 25, damage: 0 }]
+    plan.auras = [{ id: 'flurry', name: 'Flurry', durationMs: 15000, maxStacks: 1, whiteSwingCharges: 3, str: 0, agi: 0, ap: 0, apPct: 0, crit: 0, haste: 25, damage: 0 }]
     const times = trace(plan).map(([, , t]) => t)
     expect(times).toEqual([0, 2080, 4160, 6240])
   })
@@ -285,6 +290,10 @@ describe('golden run (fixed config and seed)', () => {
   // - M2.2a: Execute and the execute phase (new row; Bloodthirst, Whirlwind, Heroic Strike and
   //   Hamstring stop there), Impale 2/2 (ability crits ×2.2), Improved Heroic Strike 3/3 (12 rage),
   //   Unbridled Wrath on Heroic Strike swings, and Raging Blows' off-hand Whirlwind (new row).
+  // - M2.2b: the cooldowns. Death Wish (+20% physical, its one use in a ~180 s fight held to the
+  //   last 30 s), Recklessness in the last 15 s (+100% crit: Execute's crits nearly double) and
+  //   Bloodrage's 20 rage a minute (more Heroic Strikes and Hamstrings): DPS 623.9 → 676.7. The
+  //   casts deal no damage, so no new breakdown rows; the Human default has no racial cooldown.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

@@ -412,6 +412,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       str: spec.mods.str ?? 0,
       agi: spec.mods.agi ?? 0,
       ap: spec.mods.ap ?? 0,
+      apPct: spec.mods.apPct ?? 0,
       crit: spec.mods.crit ?? 0,
       haste: spec.mods.haste ?? 0,
       damage: spec.mods.damage ?? 0,
@@ -471,13 +472,15 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
 
   // --- Abilities and the priority list (docs/classes/warrior.md §5) ------------------------------
   const classRot = setup.simulated
-    ? classRotation(config.spec, config.rotation, setup.talents, (id) => auras.findIndex((a) => a.id === id))
+    ? classRotation(config.spec, config.rotation, setup.talents, (id) => auras.findIndex((a) => a.id === id), config.race)
     : { abilities: [], rotation: [] }
-  // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1).
-  const abilities: AbilityPlan[] = classRot.abilities.map(({ offHand, ...a }) => ({
+  // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), and a
+  // cast's buff joins the plan's auras (Death Wish, Recklessness, racial cooldowns).
+  const abilities: AbilityPlan[] = classRot.abilities.map(({ offHand, aura, ...a }) => ({
     ...a,
     source: sourceIndex(a.id, a.name, a.icon),
     offHandSource: offHand && weapons[HAND.off] ? sourceIndex(`${a.id}OffHand`, `${a.name} (off hand)`, a.icon) : -1,
+    aura: aura ? auraIndex(aura, aura.id) : -1,
   }))
 
   // --- Fight ------------------------------------------------------------------------------------
@@ -586,7 +589,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (racialWeapon && weapons.some((w) => w?.type === racialWeapon) && weapons.some((w) => w && w.type !== racialWeapon))
     notes.add('racialWeaponCrit')
   if (config.race === 'alliance-gnome' && c.maxRageFlat > 0) notes.add('gnomeRage')
-  if (setup.simulated && COOLDOWN_RACIALS[config.race]) notes.add('cooldownRacial')
+  // A racial cooldown no rotation presses yet (Eureka!, warrior.md §7); specs without a rotation have `whiteSwingsOnly`.
+  if (setup.simulated && COOLDOWN_RACIALS[config.race]?.simulated === false) notes.add('cooldownRacial')
   if (config.race === 'horde-undead') notes.add('touchOfTheGrave')
   if (classicItems.length) notes.add('classicItems', classicItems.join(', '))
   if (unmodelled.length) notes.add('unmodelledProcs', unmodelled.join(', '))
@@ -607,6 +611,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (tank && hasDebuffs.boss) notes.add('bossApDebuff')
   if (plan.fight.damageTakenPerHit > 0) notes.add('dpsDamageTaken')
   if (procs.some((p) => p.id === 'enrage') && (tank || plan.fight.damageTakenPerHit > 0)) notes.add('enrageTrigger')
+  // rage.md: Berserker Rage's damage-taken rage multiplier is ×1.0 [?] (warrior Q20).
+  if (abilities.some((a) => a.id === 'berserkerRage') && (tank || plan.fight.damageTakenPerHit > 0)) notes.add('berserkerRageTaken')
   const onUse = [...c.onUse, ...onUseItems]
   if (setup.simulated && onUse.length) notes.add('onUseConsumables', onUse.join(', '))
   if (c.zoneGatedUnmet) notes.add('hyjalFlask')

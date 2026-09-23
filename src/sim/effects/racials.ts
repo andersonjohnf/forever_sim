@@ -1,8 +1,9 @@
 // Racials as effects (docs/mechanics/character-stats.md#racials-that-matter-to-the-sim).
 //
-// Passive racials only. Cooldown racials (Blood Fury, Berserking, Elune's Light, Eureka!) are
-// rotation actions the class rotation presses (M2); Touch of the Grave, Stoneform and Shatter
-// Curse aren't simulated (warrior.md §2.9, Q16).
+// Passive racials only. Cooldown racials are rotation actions the class rotation presses: Blood
+// Fury, Berserking and Elune's Light are `cast` abilities of the Fury rotation
+// (classes/warrior/abilities.ts, warrior.md §5.2 row 3); Eureka! isn't simulated yet (warrior.md
+// §7, Q18); Touch of the Grave, Stoneform and Shatter Curse aren't simulated (warrior.md §2.9, Q16).
 import type { ClassId } from '../types'
 import type { Effect } from './types'
 
@@ -56,10 +57,14 @@ export function racialEffects(race: string, classId: ClassId): Effect[] {
   }
 }
 
-/** Racial cooldowns a rotation presses (M2), for the assumptions list. */
-export const COOLDOWN_RACIALS: Record<string, string> = {
-  'horde-orc': 'Blood Fury',
-  'horde-troll': 'Berserking',
-  'alliance-night-elf': "Elune's Light",
-  'alliance-gnome': 'Eureka!',
+/**
+ * Racial cooldowns (warrior.md §2.9), for the assumptions list: whether a rotation can press them
+ * yet. Blood Fury, Berserking and Elune's Light are in the Fury rotation (row 3); Eureka! isn't
+ * simulated (its charges and cost rounding are Q18).
+ */
+export const COOLDOWN_RACIALS: Record<string, { name: string; simulated: boolean }> = {
+  'horde-orc': { name: 'Blood Fury', simulated: true },
+  'horde-troll': { name: 'Berserking', simulated: true },
+  'alliance-night-elf': { name: 'Elune’s Light', simulated: true },
+  'alliance-gnome': { name: 'Eureka!', simulated: false },
 }

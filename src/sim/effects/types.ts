@@ -103,7 +103,7 @@ export type Effect = (
   | { kind: 'onUse'; id: string; name: string }
 ) & { when?: Condition }
 
-/** Timed buff applied by a proc. Mods apply per stack. */
+/** Timed buff applied by a proc or a `cast` ability (plan/types.ts AbilityPlan). Mods apply per stack. */
 export interface AuraSpec {
   id: string
   name: string
@@ -115,6 +115,8 @@ export interface AuraSpec {
     str?: number
     agi?: number
     ap?: number
+    /** Attack power %, multiplicative (Blood Fury). */
+    apPct?: number
     crit?: number
     /** Attack speed %, multiplicative. */
     haste?: number

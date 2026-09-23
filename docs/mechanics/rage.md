@@ -454,7 +454,9 @@ owns the warrior-specific modifiers. The two docs were checked against each othe
 
 **Rounding.** Keep rage as integer tenths. Round each gain down to the nearest tenth. The
 server-side rounding is not known; Forever logs show tenths ([#252](https://github.com/ElliotWood/Forever/issues/252)).
-Keep the running total exact, and never truncate the pool to whole rage.
+Keep the running total exact, and never truncate the pool to whole rage. Energizes scaled by a
+talent round the same way: Improved Bloodrage 1/2's 1.25-rage ticks give 1.2
+([warrior Q29](../classes/warrior.md#9-open-questions)).
 
 **Spell batching / latency.** The Forever batching window is not known. See
 [damage-and-timing.md](damage-and-timing.md). This doc assumes rage updates are visible

@@ -8,8 +8,8 @@
 //
 // It simulates white swings, procs, auras, rage, threat, boss melee, and abilities driven by a
 // priority-list rotation: GCD and cooldown events on the same queue, one-roll strikes, two-roll
-// melee spells, on-next-swing queues, off-hand strikes, stance limits and the execute phase
-// (docs/architecture.md#engine-design-m1).
+// melee spells, on-next-swing queues, off-hand strikes, casts that buff the warrior or grant rage,
+// stance limits, the execute phase and time-left conditions (docs/architecture.md#engine-design-m1).
 import {
   bossSlices,
   meleeChances,
@@ -37,12 +37,15 @@ const EV_DAMAGE_TAKEN = 7
 const EV_ACT = 8
 /** The execute phase begins (encounter.md#implementation-notes). */
 const EV_EXECUTE = 9
+/** A `cast` ability's rage tick (Bloodrage; data = ability index). */
+const EV_CAST_RAGE = 10
 
 /** Ability kinds (AbilityPlan.kind). */
 const KIND_STRIKE = 0
 const KIND_MELEE_SPELL = 1
 const KIND_ON_NEXT_SWING = 2
-const KIND_CODE = { weaponStrike: KIND_STRIKE, meleeSpell: KIND_MELEE_SPELL, onNextSwing: KIND_ON_NEXT_SWING } as const
+const KIND_CAST = 3
+const KIND_CODE = { weaponStrike: KIND_STRIKE, meleeSpell: KIND_MELEE_SPELL, onNextSwing: KIND_ON_NEXT_SWING, cast: KIND_CAST } as const
 
 /** Breakdown columns per source. */
 export const FIELD = {
@@ -153,6 +156,7 @@ export class Sim {
   private readonly aStr: Float64Array
   private readonly aAgi: Float64Array
   private readonly aAp: Float64Array
+  private readonly aApPct: Float64Array
   private readonly aCrit: Float64Array
   private readonly aHaste: Float64Array
   private readonly aDamage: Float64Array
@@ -180,6 +184,12 @@ export class Sim {
   private readonly abUnqueueBelow: Int32Array
   /** On-next-swing abilities whose line stops in the execute phase: cancelled when it starts (warrior.md §7). */
   private readonly abUnqueueAtExecute: Uint8Array
+  /** `cast` abilities: the aura they apply (−1 none) and their rage, at once and per tick (tenths). */
+  private readonly abAura: Int32Array
+  private readonly abRage: Int32Array
+  private readonly abTickRage: Int32Array
+  private readonly abTicks: Int32Array
+  private readonly abTickMs: Float64Array
   private readonly rotAbility: Int32Array
   /**
    * The priority list per phase, in order: the entries that can apply outside and inside the
@@ -196,6 +206,22 @@ export class Sim {
   private readonly condCode: Int32Array
   private readonly condA: Float64Array
   private readonly condB: Float64Array
+  /**
+   * Time-left conditions per entry (ms): time left ≤ `entryLeftAtMost` (∞ = none) and ≥
+   * `entryLeftAtLeast` (−∞ = none). Each fight turns them into the window `entryFrom` ≤ now ≤
+   * `entryTo`, so a walk checks them with two comparisons.
+   */
+  private readonly entryLeftAtMost: Float64Array
+  private readonly entryLeftAtLeast: Float64Array
+  private readonly entryFrom: Float64Array
+  private readonly entryTo: Float64Array
+  /**
+   * The distinct thresholds of `timeLeftAtMost` conditions (ms): each fight wakes the rotation at
+   * `fightEnd − x`, when that condition becomes true.
+   */
+  private readonly wakeTimeLeft: Float64Array
+  /** Some line waits for rage ≤ x, so spending rage is a decision point. */
+  private readonly hasMaxRage: boolean
   private readonly hasRotation: boolean
   private readonly hasAbilities: boolean
 
@@ -220,6 +246,9 @@ export class Sim {
   private readonly bleedProc: Int32Array
   private gcdEnd = 0
   private readonly abReadyAt: Float64Array
+  /** `cast` rage ticks still to come, and their generation (a recast restarts them). */
+  private readonly abTicksLeft: Int32Array
+  private readonly abTickGen: Int32Array
   /** The STANCE bit the warrior is in (plan.stance; no stance dancing yet). */
   private stance = 0
   /** The current phase's lists (rotNormal / rotExecute and their off-GCD entries). */
@@ -232,6 +261,8 @@ export class Sim {
   private dynStr = 0
   private dynAgi = 0
   private dynAp = 0
+  /** Product of the active attack-power % auras (Blood Fury). */
+  private dynApMult = 1
   private dynCrit = 0
   private auraHasteMult = 1
 
@@ -365,6 +396,7 @@ export class Sim {
     this.aStr = new Float64Array(na)
     this.aAgi = new Float64Array(na)
     this.aAp = new Float64Array(na)
+    this.aApPct = new Float64Array(na)
     this.aCrit = new Float64Array(na)
     this.aHaste = new Float64Array(na)
     this.aDamage = new Float64Array(na)
@@ -382,10 +414,11 @@ export class Sim {
       this.aStr[i] = a.str
       this.aAgi[i] = a.agi
       this.aAp[i] = a.ap
+      this.aApPct[i] = a.apPct
       this.aCrit[i] = a.crit
       this.aHaste[i] = a.haste
       this.aDamage[i] = a.damage
-      this.aStatful[i] = a.str || a.agi || a.ap || a.crit ? 1 : 0
+      this.aStatful[i] = a.str || a.agi || a.ap || a.apPct || a.crit ? 1 : 0
       if (a.whiteSwingCharges > 0) chargeAuras.push(i)
     }
     this.chargeAuras = Int32Array.from(chargeAuras)
@@ -411,7 +444,14 @@ export class Sim {
     this.abOffSource = new Int32Array(nb)
     this.abUnqueueBelow = new Int32Array(nb)
     this.abUnqueueAtExecute = new Uint8Array(nb)
+    this.abAura = new Int32Array(nb)
+    this.abRage = new Int32Array(nb)
+    this.abTickRage = new Int32Array(nb)
+    this.abTicks = new Int32Array(nb)
+    this.abTickMs = new Float64Array(nb)
     this.abReadyAt = new Float64Array(nb)
+    this.abTicksLeft = new Int32Array(nb)
+    this.abTickGen = new Int32Array(nb)
     for (let i = 0; i < nb; i++) {
       const a = abilities[i]
       this.abKind[i] = KIND_CODE[a.kind]
@@ -431,15 +471,26 @@ export class Sim {
       this.abStances[i] = a.stances
       this.abPerExtraRage[i] = a.damagePerExtraRage
       this.abOffSource[i] = a.offHandSource
+      this.abAura[i] = a.aura
+      this.abRage[i] = a.rageTenths
+      this.abTickRage[i] = a.rageTickTenths
+      this.abTicks[i] = a.rageTicks
+      this.abTickMs[i] = a.rageTickMs
     }
     const rotation = plan.rotation
     this.rotAbility = new Int32Array(rotation.length)
     this.condStart = new Int32Array(rotation.length + 1)
-    const isPhase = (c: { code: number }) => c.code === COND.executePhase
-    const nc = rotation.reduce((n, e) => n + e.conditions.filter((c) => !isPhase(c)).length, 0)
+    // Phase and time-left conditions are resolved up front, into the per-phase lists and a time
+    // window per line, so a walk never evaluates them.
+    const resolved = (c: { code: number }) => c.code === COND.executePhase || c.code === COND.timeLeftAtMost || c.code === COND.timeLeftAtLeast
+    const nc = rotation.reduce((n, e) => n + e.conditions.filter((c) => !resolved(c)).length, 0)
     this.condCode = new Int32Array(nc)
     this.condA = new Float64Array(nc)
     this.condB = new Float64Array(nc)
+    this.entryLeftAtMost = new Float64Array(rotation.length).fill(Infinity)
+    this.entryLeftAtLeast = new Float64Array(rotation.length).fill(-Infinity)
+    this.entryFrom = new Float64Array(rotation.length)
+    this.entryTo = new Float64Array(rotation.length)
     /** Bit 1: the entry can apply outside the execute phase; bit 2: inside it. */
     const phases: number[] = []
     let k = 0
@@ -452,10 +503,18 @@ export class Sim {
       // Execute is refused outside the execute phase (warrior.md §3.1): its lines are execute-only.
       let phase = ability.executePhaseOnly ? 2 : 3
       for (const cond of entry.conditions) {
-        if (isPhase(cond)) {
+        if (cond.code === COND.executePhase) {
           phase &= cond.a === 1 ? 2 : 1
           // warrior.md §7: a queued on-next-swing ability whose line stops in the phase is cancelled when it starts.
           if (cond.a === 0 && ability.kind === 'onNextSwing') this.abUnqueueAtExecute[entry.ability] = 1
+          continue
+        }
+        if (cond.code === COND.timeLeftAtMost) {
+          this.entryLeftAtMost[e] = Math.min(this.entryLeftAtMost[e], cond.a)
+          continue
+        }
+        if (cond.code === COND.timeLeftAtLeast) {
+          this.entryLeftAtLeast[e] = Math.max(this.entryLeftAtLeast[e], cond.a)
           continue
         }
         this.condCode[k] = cond.code
@@ -476,6 +535,10 @@ export class Sim {
     this.offGcdExecute = entries(2, true)
     this.rotList = this.rotNormal
     this.rotOffList = this.offGcdNormal
+    const wakes = new Set<number>()
+    for (const x of this.entryLeftAtMost) if (x !== Infinity) wakes.add(x)
+    this.wakeTimeLeft = Float64Array.from([...wakes].sort((x, y) => y - x))
+    this.hasMaxRage = this.condCode.includes(COND.maxRage)
     this.hasRotation = rotation.length > 0
     this.hasAbilities = nb > 0
   }
@@ -506,6 +569,14 @@ export class Sim {
     if (this.hasRotation) {
       q.push(0, EV_ACT, 0, 0)
       if (this.executeAtMs < this.fightEnd) q.push(this.executeAtMs, EV_EXECUTE, 0, 0)
+      // Time left ≤ x ⇔ now ≥ fightEnd − x; time left ≥ x ⇔ now ≤ fightEnd − x (warrior.md §5.2 rows 2–4).
+      for (let e = 0; e < this.entryFrom.length; e++) {
+        this.entryFrom[e] = this.fightEnd - this.entryLeftAtMost[e]
+        this.entryTo[e] = this.fightEnd - this.entryLeftAtLeast[e]
+      }
+      // "Time left ≤ x" becomes true at fightEnd − x: wake the rotation then.
+      const wakes = this.wakeTimeLeft
+      for (let i = 0; i < wakes.length; i++) if (this.fightEnd - wakes[i] > 0) q.push(this.fightEnd - wakes[i], EV_ACT, 0, 0)
     }
     // docs/mechanics/damage-and-timing.md#31-haste: main hand at 0, off hand at half its swing [?]
     if (this.hasWeapon[HAND.main]) this.scheduleSwing(HAND.main, 0)
@@ -558,6 +629,9 @@ export class Sim {
           break
         case EV_ACT:
           this.actPending = true
+          break
+        case EV_CAST_RAGE:
+          if (q.gen === this.abTickGen[data]) this.onCastRageTick(data)
           break
         case EV_EXECUTE:
           this.rotList = this.rotExecute
@@ -615,6 +689,7 @@ export class Sim {
     this.dynStr = 0
     this.dynAgi = 0
     this.dynAp = 0
+    this.dynApMult = 1
     this.dynCrit = 0
     this.auraHasteMult = 1
     this.exHead = 0
@@ -622,6 +697,8 @@ export class Sim {
     this.chainMask = 0
     this.gcdEnd = 0
     this.abReadyAt.fill(0)
+    this.abTicksLeft.fill(0)
+    for (let i = 0; i < this.abTickGen.length; i++) this.abTickGen[i]++
     this.queued = -1
     this.actPending = false
     this.stance = this.plan.stance
@@ -643,6 +720,7 @@ export class Sim {
     s.str = base.str + this.dynStr
     s.agi = base.agi + this.dynAgi
     s.ap = base.ap + this.dynAp
+    s.apMult = base.apMult * this.dynApMult
     s.crit = base.crit + this.dynCrit
     const d = deriveStats(s, this.deriveOptions, this.derived)
     this.ap = d.attackPower
@@ -893,6 +971,8 @@ export class Sim {
     const list = gcdBusy ? this.rotOffList : this.rotList
     for (let i = 0; i < list.length; i++) {
       const e = list[i]
+      // The line's time-left conditions, as this fight's window (warrior.md §5.2 rows 2–4).
+      if (now < this.entryFrom[e] || now > this.entryTo[e]) continue
       const a = this.rotAbility[e]
       if (this.abReadyAt[a] > now || this.rage < this.abCost[a]) continue
       // warrior.md §3.1 "Stance": only in the stances it's usable in.
@@ -935,12 +1015,20 @@ export class Sim {
         case COND.apBelow:
           if (this.ap >= a) return false
           break
+        case COND.maxRage:
+          if (this.rage > a) return false
+          break
+        case COND.abilityAuraUp: {
+          const aura = this.abAura[a]
+          if (aura < 0 || !this.auraActive[aura]) return false
+          break
+        }
       }
     }
     return true
   }
 
-  /** Uses an ability: queues an on-next-swing one, otherwise pays, starts the GCD and cooldown, and strikes. */
+  /** Uses an ability: queues an on-next-swing one, otherwise pays, starts the GCD and cooldown, and strikes or casts. */
   private use(a: number): void {
     if (this.abKind[a] === KIND_ON_NEXT_SWING) {
       // Queueing is free and off the GCD; rage is checked and spent at the swing (warrior.md §2.4).
@@ -959,11 +1047,37 @@ export class Sim {
       this.abReadyAt[a] = this.now + cd
       this.q.push(this.abReadyAt[a], EV_ACT, 0, 0)
     }
+    if (this.abKind[a] === KIND_CAST) {
+      this.cast(a)
+      return
+    }
     this.chainMask = 0
     this.special(a, HAND.main, 0)
     // Raging Blows: Whirlwind also strikes with the off hand (warrior.md §3.1) [?].
     if (this.abOffSource[a] >= 0 && this.hasWeapon[HAND.off]) this.special(a, HAND.off, 0)
     if (this.exCount > 0) this.drainExtraAttacks()
+  }
+
+  /**
+   * A `cast` ability (warrior.md §3.2): no roll. It puts its aura on the warrior and grants its
+   * rage, at once and then on ticks from the cast (Bloodrage, W19). The rage is an energize:
+   * capped, and 5 threat per rage gained, on the ability's row (rage.md, threat.md).
+   */
+  private cast(a: number): void {
+    const source = this.abSource[a]
+    this.counters[source * FIELD_COUNT + FIELD.casts]++
+    if (this.abAura[a] >= 0) this.applyAura(this.abAura[a])
+    this.gainRage(this.abRage[a], source)
+    if (this.abTicks[a] > 0) {
+      // A recast restarts the ticks (none of the abilities recasts before they end).
+      this.abTicksLeft[a] = this.abTicks[a]
+      this.q.push(this.now + this.abTickMs[a], EV_CAST_RAGE, a, ++this.abTickGen[a])
+    }
+  }
+
+  private onCastRageTick(a: number): void {
+    this.gainRage(this.abTickRage[a], this.abSource[a])
+    if (--this.abTicksLeft[a] > 0) this.q.push(this.now + this.abTickMs[a], EV_CAST_RAGE, a, this.abTickGen[a])
   }
 
   /**
@@ -1049,9 +1163,15 @@ export class Sim {
     return base * this.physMult * this.armorFactor[hand]
   }
 
-  /** Pays an ability's cost. */
+  /**
+   * Pays an ability's cost. Less rage can make a `maxRage` line usable (Bloodrage, Berserker
+   * Rage), so the rotation walks again if it has one.
+   */
   private spendRage(a: number): void {
-    this.rage -= this.abCost[a]
+    if (this.abCost[a] > 0) {
+      this.rage -= this.abCost[a]
+      if (this.hasMaxRage) this.actPending = true
+    }
     this.afterRageSpent()
   }
 
@@ -1145,6 +1265,14 @@ export class Sim {
       this.dynAgi += this.aAgi[a] * deltaStacks
       this.dynAp += this.aAp[a] * deltaStacks
       this.dynCrit += this.aCrit[a] * deltaStacks
+      if (this.aApPct[a]) {
+        // Attack power % auras multiply (character-stats step 4); recomputed from the active ones, so no drift.
+        let m = 1
+        for (let i = 0; i < this.auraActive.length; i++) {
+          if (this.auraActive[i] && this.aApPct[i]) m *= 1 + (this.aApPct[i] * this.auraStacks[i]) / 100
+        }
+        this.dynApMult = m
+      }
       this.recomputeStats()
     }
     if (this.aHaste[a] || this.aDamage[a]) this.recomputeMultipliers()

@@ -4,19 +4,37 @@
 // doc value as fallback. They're written out here rather than read from spells.json at runtime,
 // so the app bundle doesn't carry the 1.3 MB client dataset; abilities.test.ts checks every one
 // against the client data. Client units: rage costs in tenths (`manaCost` 300 = 30 rage), times
-// in ms. These are the base rows: talents (cost reductions, Impale, Raging Blows) are applied by
-// `withTalents` in modifiers.ts when the plan resolves the rotation.
+// in ms. These are the base rows: talents (cost reductions, Impale, Raging Blows, Improved
+// Bloodrage, Improved Berserker Rage) are applied by `withTalents` in modifiers.ts when the plan
+// resolves the rotation. Strikes roll the attack tables; `cast` rows (Bloodrage, Death Wish,
+// Recklessness, Berserker Rage, racial cooldowns) apply an aura and grant rage (warrior.md §3.2).
 import { CRIT_MULTIPLIER, GCD_MS } from '../../core/formulas'
-import { type AbilityPlan, STANCE, STANCE_ANY } from '../../plan/types'
+import { type AbilityDef, STANCE, STANCE_ANY } from '../../plan/types'
 
-/**
- * An ability before the plan gives it breakdown rows. `offHand` asks for a second strike with the
- * off hand (Raging Blows' Whirlwind, warrior.md §3.1); the plan gives it its own row.
- */
-export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource'> & { offHand: boolean }
+export type { AbilityDef } from '../../plan/types'
 
 /** A special that misses or is dodged or parried refunds 80% of its cost [C] (rage.md#rage-refunds-on-avoided-abilities). */
 const REFUND = 0.8
+
+/** The `cast` fields of an attack: no aura, no rage. */
+const NO_CAST = { aura: null, rageTenths: 0, rageTickTenths: 0, rageTicks: 0, rageTickMs: 0 } as const
+
+/** The attack fields of a `cast`: it rolls nothing, deals nothing and refunds nothing. */
+export const NO_STRIKE = {
+  kind: 'cast',
+  executePhaseOnly: false,
+  weaponPercent: 0,
+  normalized: false,
+  flatDamage: 0,
+  apCoefficient: 0,
+  damagePerExtraRage: 0,
+  bonusCrit: 0,
+  critMultiplier: CRIT_MULTIPLIER.melee,
+  refundShare: 0,
+  threatMult: 0,
+  threatBonus: 0,
+  offHand: false,
+} as const
 
 /**
  * Bloodthirst rank 4 (spells.json 23894): cost `manaCost` 300, cooldown `categoryRecoveryTime`
@@ -45,6 +63,7 @@ export const BLOODTHIRST: AbilityDef = {
   threatMult: 1,
   threatBonus: 0,
   offHand: false,
+  ...NO_CAST,
 }
 
 /**
@@ -76,6 +95,7 @@ export const WHIRLWIND: AbilityDef = {
   threatMult: 1,
   threatBonus: 0,
   offHand: false,
+  ...NO_CAST,
 }
 
 /**
@@ -104,6 +124,7 @@ export const HEROIC_STRIKE: AbilityDef = {
   threatMult: 1,
   threatBonus: 173,
   offHand: false,
+  ...NO_CAST,
 }
 
 /**
@@ -132,6 +153,7 @@ export const HAMSTRING: AbilityDef = {
   threatMult: 1.25,
   threatBonus: 135,
   offHand: false,
+  ...NO_CAST,
 }
 
 /**
@@ -163,6 +185,147 @@ export const EXECUTE: AbilityDef = {
   threatMult: 1.25,
   threatBonus: 0,
   offHand: false,
+  ...NO_CAST,
+}
+
+/**
+ * Bloodrage (spells.json 2687): no rage cost (its cost is 20% of base health, not simulated),
+ * `recoveryTime` 60000, no GCD, any stance. `ENERGIZE` 100 tenths at once, then its trigger 29131
+ * energizes 10 tenths every 1000 ms for 10000 ms: 10 ticks, the first 1 s after the cast
+ * (warrior.md §2.3, §3.2, W19). Improved Bloodrage multiplies all of it (modifiers.ts).
+ */
+export const BLOODRAGE: AbilityDef = {
+  id: 'bloodrage',
+  name: 'Bloodrage',
+  icon: 'ability_racial_bloodrage',
+  ...NO_STRIKE,
+  costTenths: 0,
+  cooldownMs: 60000,
+  gcdMs: 0,
+  stances: STANCE_ANY,
+  aura: null,
+  rageTenths: 100,
+  rageTickTenths: 10,
+  rageTicks: 10,
+  rageTickMs: 1000,
+}
+
+/**
+ * Death Wish (spells.json 12328): cost 100, `recoveryTime` 180000, GCD 1500, any stance; for
+ * 30000 ms aura 79 (damage done %) +20 on the physical school (warrior.md §2.6, §3.2). Its 5%
+ * more damage taken (aura 87) isn't simulated (warrior.md §7).
+ */
+export const DEATH_WISH: AbilityDef = {
+  id: 'deathWish',
+  name: 'Death Wish',
+  icon: 'spell_shadow_deathpact',
+  ...NO_STRIKE,
+  costTenths: 100,
+  cooldownMs: 180000,
+  gcdMs: GCD_MS,
+  stances: STANCE_ANY,
+  aura: { id: 'deathWish', name: 'Death Wish', durationMs: 30000, mods: { damage: 20 } },
+  rageTenths: 0,
+  rageTickTenths: 0,
+  rageTicks: 0,
+  rageTickMs: 0,
+}
+
+/**
+ * Recklessness (spells.json 1719): no cost, `recoveryTime` 1800000 (once per fight: fights are at
+ * most 900 s + 25%), GCD 1500, Berserker Stance only; for 15000 ms aura 290 (all crit) +100
+ * (warrior.md §2.6, §3.2). It's aura crit, so the white table still caps it (combat-tables §2.2)
+ * and the +3-boss suppression is unchanged (already at its 1.8% maximum, §4.4); its 20% more
+ * damage taken (aura 87) isn't simulated (warrior.md §7).
+ */
+export const RECKLESSNESS: AbilityDef = {
+  id: 'recklessness',
+  name: 'Recklessness',
+  icon: 'ability_criticalstrike',
+  ...NO_STRIKE,
+  costTenths: 0,
+  cooldownMs: 1800000,
+  gcdMs: GCD_MS,
+  stances: STANCE.berserker,
+  aura: { id: 'recklessness', name: 'Recklessness', durationMs: 15000, mods: { crit: 100 } },
+  rageTenths: 0,
+  rageTickTenths: 0,
+  rageTicks: 0,
+  rageTickMs: 0,
+}
+
+/**
+ * Berserker Rage (spells.json 18499): no cost, `recoveryTime` 30000, GCD 1500, Berserker Stance
+ * only (warrior.md §2.2, §3.2). Its own effects (fear immunity; extra rage from damage taken,
+ * ×1.0 by rage.md's default, Q20) change nothing in the sim; Improved Berserker Rage's +5/+10
+ * rage on use comes from modifiers.ts.
+ */
+export const BERSERKER_RAGE: AbilityDef = {
+  id: 'berserkerRage',
+  name: 'Berserker Rage',
+  icon: 'spell_nature_ancestralguardian',
+  ...NO_STRIKE,
+  costTenths: 0,
+  cooldownMs: 30000,
+  gcdMs: GCD_MS,
+  stances: STANCE.berserker,
+  aura: null,
+  rageTenths: 0,
+  rageTickTenths: 0,
+  rageTicks: 0,
+  rageTickMs: 0,
+}
+
+/**
+ * Racial cooldowns the Fury rotation presses (warrior.md §2.9, §5.2 row 3), by race id. All are
+ * off the GCD (`startRecoveryTime` 0), cost nothing (no `SpellPower` row) and work in any stance
+ * [F] [client] (SpellCooldowns, SpellDuration, SpellEffect, 1.60.1.69913):
+ * - Orc Blood Fury (20572): aura 166 (attack power %) +10 for 15000 ms, `recoveryTime` 120000;
+ *   its ranged-AP and spell-power parts don't matter to a warrior.
+ * - Troll Berserking (20554): aura 319 (melee haste %) +10 for 10000 ms, `recoveryTime` 180000,
+ *   multiplicative with other haste (W17).
+ * - Night Elf Elune's Light (1259799): aura 290 (all crit) +10 for 15000 ms, `recoveryTime` 180000.
+ * Gnome Eureka! (1259813) isn't simulated (warrior.md §7, Q18).
+ */
+const racialCooldown = (id: string, name: string, icon: string, cooldownMs: number, aura: AbilityDef['aura']): AbilityDef => ({
+  id,
+  name,
+  icon,
+  ...NO_STRIKE,
+  costTenths: 0,
+  cooldownMs,
+  gcdMs: 0,
+  stances: STANCE_ANY,
+  aura,
+  rageTenths: 0,
+  rageTickTenths: 0,
+  rageTicks: 0,
+  rageTickMs: 0,
+})
+
+export const BLOOD_FURY = racialCooldown('bloodFury', 'Blood Fury', 'racial_orc_berserkerstrength', 120000, {
+  id: 'bloodFury',
+  name: 'Blood Fury',
+  durationMs: 15000,
+  mods: { apPct: 10 },
+})
+export const BERSERKING = racialCooldown('berserking', 'Berserking', 'racial_troll_berserk', 180000, {
+  id: 'berserking',
+  name: 'Berserking',
+  durationMs: 10000,
+  mods: { haste: 10 },
+})
+export const ELUNES_LIGHT = racialCooldown('elunesLight', 'Elune’s Light', 'spell_holy_elunesgrace', 180000, {
+  id: 'elunesLight',
+  name: 'Elune’s Light',
+  durationMs: 15000,
+  mods: { crit: 10 },
+})
+
+export const RACIAL_COOLDOWNS: Readonly<Partial<Record<string, AbilityDef>>> = {
+  'horde-orc': BLOOD_FURY,
+  'horde-troll': BERSERKING,
+  'alliance-night-elf': ELUNES_LIGHT,
 }
 
 /** Execute's damage before modifiers: `600 + 15 × (rage − cost)`, rage read after paying the cost (warrior.md §3.1, W10). */

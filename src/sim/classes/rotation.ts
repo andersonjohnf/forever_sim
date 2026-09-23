@@ -19,7 +19,8 @@ export function classRotation(
   values: Record<string, number | boolean>,
   talents: TalentRanks,
   auraIndex: (id: string) => number,
+  race: string,
 ): ClassRotation {
-  if (spec === 'warrior-fury') return furyRotation(values, talents, auraIndex)
+  if (spec === 'warrior-fury') return furyRotation(values, talents, auraIndex, race)
   return { abilities: [], rotation: [] }
 }

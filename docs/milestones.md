@@ -195,8 +195,6 @@ slice is worked:
   - The boss first swings at t = 0.
   - Elemental Sharpening Stones don't stack.
   - Magic procs can't crit.
-  - Racial weapon crit applies per hand (character-stats.md), while warrior.md §2.9 says
-    "either hand".
 - **Data gaps:** the items have no shield block value (block value counts Strength only).
   Warrior base health and dodge are unknown and left off the sheet. Skyborne, paladin and
   druid base stats are unknown, so those sims refuse with a plain message (character-stats
@@ -234,6 +232,8 @@ slice is worked:
   gives 638 (+1.2%), the Whirlwind dance 635, and Spearing Strike from 40 rage 634. The
   documented defaults stay for now; see warrior.md §5.3's notes.
 - **Gnome Eureka! isn't simulated** (warrior Q18); the result says so.
+- **Multi-target isn't simulated.** The Fight tab's Enemies control is hidden until it is;
+  `extraTargets` stays in the config ([encounter.md §4](mechanics/encounter.md)).
 - **Items:** 18320 Demonheart Spaulders may not be obtainable; PvP rank requirements show as
   numbers (the rank title depends on faction); whether a bear-form armor multiplier applies
   to stat-50 bonus armor is open (M4). Fallback shields carry `classicShieldBlockValue`,

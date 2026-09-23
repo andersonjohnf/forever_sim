@@ -13,6 +13,7 @@ import { buildPlan } from '../plan/build'
 import { ACTION, type AbilityDef, COND, NO_PREPULL, type Plan, POWER_TICK_MS, STANCE_ANY, TRIGGER, TRIGGER_COUNT } from '../plan/types'
 import { simulate } from '../index'
 import type { GearSlot, RuleProfileId, SimConfig, SpecId } from '../types'
+import { runChunk } from './chunk'
 import { FIELD, SOURCE_MAIN_HAND, Sim } from './sim'
 import { addAura, addProc, at, counter, damages, expectMean, from, line, setAttackPower, timeline } from './test-helpers'
 
@@ -131,6 +132,27 @@ describe('Energy (druid.md §2.4)', () => {
     idle.runFight(0)
     expect(idle.totalEnergyGainedTenths).toBe(0)
     expect(idle.totalEnergyWastedTenths).toBe(3000)
+  })
+
+  it('the Energy totals count only Cat Form’s Energy, and each chunk counts its own', () => {
+    // A bear's tick brings no Energy it can use: nothing gained or lost.
+    const bear = new Sim(druidPlan('druid-feral-bear', 30000))
+    bear.runFight(0)
+    expect([bear.totalEnergyGainedTenths, bear.totalEnergyWastedTenths]).toEqual([0, 0])
+    // An idle cat at the cap shifts to bear at 10 s: the 5 ticks before it are lost (fight 0's
+    // phase isn't 0, so none falls at 10 s), and the 10 in bear aren't counted.
+    const shifted = druidPlan('druid-feral-cat', 30000)
+    line(shifted, addDruidAbility(shifted, shapeshift('bear', 0)), at(shifted, 10000))
+    const sim = new Sim(shifted)
+    sim.runFight(0)
+    expect(sim.resources().form).toBe(FORM_INDEX.bear)
+    expect([sim.totalEnergyGainedTenths, sim.totalEnergyWastedTenths]).toEqual([0, 1000])
+    // A worker's Sim runs chunk after chunk: each chunk's totals are its own, 15 lost ticks a fight.
+    const plan = druidPlan('druid-feral-cat', 30000)
+    const reused = new Sim(plan)
+    runChunk(plan, 0, 3, reused)
+    runChunk(plan, 1, 3, reused)
+    expect([reused.totalEnergyGainedTenths, reused.totalEnergyWastedTenths]).toEqual([0, 3 * 3000])
   })
 
   it('a builder that’s avoided refunds 80% of its Energy; a finisher refunds nothing and keeps its combo points', () => {

@@ -36,6 +36,8 @@ export function runChunk(plan: Plan, chunk: number, fights: number, sim: Sim = n
   sim.bossOutcomes.fill(0)
   sim.totalRageGainedTenths = 0
   sim.totalRageWastedTenths = 0
+  sim.totalEnergyGainedTenths = 0
+  sim.totalEnergyWastedTenths = 0
   const dps = emptyMoments()
   const tps = emptyMoments()
   const damageTaken = emptyMoments()

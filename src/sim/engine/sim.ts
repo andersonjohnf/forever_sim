@@ -145,7 +145,7 @@ export class Sim {
   totalRageWastedTenths = 0
   /** Rage lost to stance swaps' cap (warrior.md §2.1), in tenths, summed over every fight run. */
   totalSwapRageLostTenths = 0
-  /** Energy gained and lost to its cap, in tenths, summed over every fight run (druid.md §2.4). */
+  /** Energy gained and lost to its cap in Cat Form, in tenths, summed over every fight run (druid.md §2.4). */
   totalEnergyGainedTenths = 0
   totalEnergyWastedTenths = 0
   /** Test hook: called for every white swing (source row, hand, time) and bleed tick (source, −1, time). */
@@ -2379,14 +2379,20 @@ export class Sim {
     else this.gainMana(tenths, source)
   }
 
-  /** Adds Energy in tenths, capped (druid.md §2.4); an energize (`source` ≥ 0) makes 5 threat per Energy [?]. */
+  /**
+   * Adds Energy in tenths, capped (druid.md §2.4); an energize (`source` ≥ 0) makes 5 threat per Energy [?].
+   * The totals count it only in Cat Form, whose power it is: in another form the tick's Energy is
+   * replaced when the druid enters cat (§2.8), so none of it is gained or lost.
+   */
   private gainEnergy(tenths: number, source: number): void {
     if (tenths <= 0) return
     const gained = Math.min(tenths, this.energyMax - this.energy)
     this.energy += gained
     if (gained > 0) this.actPending = this.hasRotation
-    this.totalEnergyGainedTenths += gained
-    this.totalEnergyWastedTenths += tenths - gained
+    if (this.form === this.catForm) {
+      this.totalEnergyGainedTenths += gained
+      this.totalEnergyWastedTenths += tenths - gained
+    }
     if (source >= 0 && gained > 0) {
       const threat = gained * THREAT_PER_ENERGY_TENTH
       this.counters[source * FIELD_COUNT + FIELD.threat] += threat

@@ -15,6 +15,8 @@ export function RotationSection() {
   const update = useSetup((s) => s.update)
   const options = getSpec(meta.id).rotationOptions
   const value = (id: string, fallback: number | boolean) => rotation[id] ?? fallback
+  // A dependent option follows its toggle's current value, or that toggle's default when unset.
+  const toggleOn = (id: string) => Boolean(value(id, options.find((o) => o.id === id)?.default ?? true))
   const set = (id: string, v: number | boolean) => update((c) => ({ ...c, rotation: { ...c.rotation, [id]: v } }))
   const changed = Object.keys(rotation).length > 0
 
@@ -34,7 +36,7 @@ export function RotationSection() {
       ) : (
         <ul className="flex flex-col divide-y rounded-xl border">
           {options.map((option) => {
-            const inactive = option.kind === 'number' && option.dependsOn !== undefined && !value(option.dependsOn, true)
+            const inactive = option.kind === 'number' && option.dependsOn !== undefined && !toggleOn(option.dependsOn)
             return (
               <li key={option.id} className={cn('flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between', inactive && 'opacity-60')}>
                 <div className="flex flex-col gap-1">

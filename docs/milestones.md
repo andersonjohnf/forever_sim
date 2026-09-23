@@ -175,7 +175,7 @@ Arms fixes, then M2.5b Fury tuning.
 
 Per [D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23), each
 spec's default rotation is the best one we've found.
-- [ ] **M2.5a Arms:** re-measure the tuning findings on the current engine and adopt what beats
+- [x] **M2.5a Arms:** re-measure the tuning findings on the current engine and adopt what beats
       the default:
   - Heroic Strike from 55 rage
   - the Whirlwind dance

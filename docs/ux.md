@@ -422,7 +422,9 @@ Every view handles these states:
     loaded, **Reset setup** (it changes every tab), a race change that swapped faction gear
     (on the Gear tab), and a setup saved, loaded, deleted or imported ([Setups](#setups)). A
     change you watch happen, like gear, a talent build or Reset rotation, gets none, but screen
-    readers still hear it ([Accessibility](#accessibility)).
+    readers still hear it ([Accessibility](#accessibility)). Setups' **Copy setup code** and
+    **Download all setups** say what they did in a line under their buttons instead, since a
+    notice would sit over the end of the sheet, where Import is.
   - A newer notice of the same kind replaces the last, rather than stacking.
 - **A toast never hides the focused control** (WCAG 2.4.11), on the page, in a sheet under it
   (the results sheet, About, the item and enchant pickers) or in a select's list, with one
@@ -436,8 +438,9 @@ Every view handles these states:
   - The bottom padding doesn't grow for a toast, so nothing moves when one goes. The exception:
     the last control at the very end of the page or of a sheet can't scroll any higher, so it
     can stay partly or wholly under a notice until the notice goes. On a phone that's the
-    footer's link, and the end of the Setups sheet (Import's field and **Open a file…**) after a
-    notice the sheet raised, such as a copy's or a download's. A swipe sends the notice away.
+    footer's link, and the end of the Setups sheet (Import's field and **Add setups from a
+    file…**) after a notice the sheet raised: a save's, a delete's or a file's import. Copy and
+    Download raise none. A swipe sends the notice away.
   - A select's list (`src/components/select-content.tsx`) always drops from its trigger, and
     flips above it or gets shorter and scrolls, so no option is ever under a toast. It doesn't
     move when a toast goes while it's open.
@@ -472,68 +475,108 @@ Every view handles these states:
 follows About: a side sheet (full width on a phone), focus on its title when it opens, and back
 to the menu's button when it closes. Saving and the list come first, then **Export** and
 **Import**, each under a rule with a heading and a line on what it does.
-- **Save** keeps a copy of the current setup, its spec included, under a name. A name is
-  required, trimmed, and at most 60 characters. The field starts on the spec and the day ("Fury
-  Warrior · 23 Sep"), counting on ("… (2)") so the default never saves over anything, and the
-  default is selected, so typing replaces it. Saving under a name that's saved already (case
-  doesn't count) saves over it, and its notice says "Updated" rather than "Saved".
+- **Names.** Save and Rename keep the same rules (`src/app/saved-setups.ts`). A name is required,
+  trimmed, with each run of spaces as one, in Unicode's composed form (NFC, so an "é" typed either
+  way is one name), and at most 60 characters, counted so an emoji is one and never cut in half.
+  Names compare without case, the same in every locale. A name that breaks the rules gets its
+  reason under the field, which describes the field.
+- **Save** keeps a copy of the current setup, its spec included, under a name. The field starts on
+  the spec and the day ("Fury Warrior · 23 Sep"), counting on ("… (2)") so the default never
+  saves over anything, and the default is selected, so typing replaces it; after a save from the
+  field, the next default is selected too.
+  - While the typed name is one a save has, a line under the field says which save, before
+    anything is replaced: "Saves over “Raid night” · Arms Warrior · 22 Sep, 20:15". It's a polite
+    live region, and it describes the field. **Save** reads **Replace**, and replacing keeps the
+    save's place in the list, takes the name as typed, and says "Replaced “Raid night”". Otherwise
+    the notice says "Saved “Raid night”".
 - **The list**, newest first: each save's name (up to two lines, then an ellipsis), its spec's
   icon and name in the class colour, and when it was saved ("23 Sep, 14:05", or "19 Aug 2025"
   from another year). On a phone a row's **Load**, **Rename** and **Delete** sit under its name,
   with their words; on wider screens they sit on its right, Rename and Delete as icons. Each is
   44 px, and its accessible name adds the save's ("Load Raid night"). A line above the list says
-  that loading replaces your current setup for its spec.
+  "Loading one switches to its spec and replaces your setup for that spec."
 - **Load** replaces the current setup, switching to its spec if needed, with no prompt. Your
   setup for the spec you were on is kept, as switching spec does. The sheet closes, and a notice
-  says "Loaded “Raid night”", with the spec it switched to and any parts that were out of date,
-  as a shared link's does.
+  says "Loaded “Raid night”", whose setup it replaced and the spec it switched to ("It replaced
+  your Fury Warrior setup, and you're on Fury now."), and any parts that were out of date, as a
+  shared link's does.
 - **Rename** edits the name in place. Enter or Rename keeps it; Escape or Cancel doesn't, and
   leaves the sheet open. Focus goes back to the row's Rename. A name another save has is
-  refused, so a rename never replaces a save.
-- **Delete** removes the save at once, with a notice. Focus moves to the next row's Delete, or
-  the previous row's at the end of the list, or the name field once the list is empty. A held
-  Enter doesn't delete a second one.
-- A name that breaks the rules gets its reason under the field, which describes the field.
+  refused, so a rename never replaces a save. Below 640 px the field takes the row's width, with
+  Rename and Cancel under it.
+- **Delete** asks first, in the row, not in a dialog: the name becomes "Delete “Raid night”?",
+  and the actions **Delete** and **Keep**, a group the question names. Focus goes to Keep, which
+  on wider screens sits where the row's Delete was, so a second press, a double click or a held
+  Enter keeps the save. Keep or Escape puts the row back, with focus on its Delete, and leaves
+  the sheet open. Delete removes the save, with a notice, and focus moves to the next row's
+  Delete, or the previous row's at the end of the list, or the list's heading once it's empty
+  (not the name field, which would open a phone's keyboard). One row asks, or renames, at a time.
 - **Export:**
   - **Copy setup code** copies the current setup as a code: a share link's part after `#s=`. It
-    writes to the clipboard as Share does, within the tap, and its notice says it was copied, or
-    that the browser refused and how to allow it.
+    writes to the clipboard as Share does, within the tap.
   - **Download all setups** saves `forever-sim-setups-2026-09-23.json`, which holds
     `{ app: "forever-sim", version: 1, exportedAt, current, setups }`: the current setup, and every
-    save as it's stored, shown or not. Its notice names the file and what it holds, or says it holds
-    the current setup only because the saves couldn't be read.
-- **Import:**
+    save as it's stored, shown or not, those that couldn't be read included (after the rest).
+  - Each says what it did in a line under the buttons, a polite live region, not in a notice
+    (which would sit over Import, at the end of the sheet): "Copied the setup code. Import it in
+    any browser to get this exact setup.", or that the browser refused the clipboard and how to
+    allow it, in the error colour; "Downloaded forever-sim-setups-2026-09-23.json. It holds the
+    current setup and 3 saved setups.", or the current setup only because the saves couldn't be
+    read. Saying the same again is a new line, so it's read out again.
+- **Import:** its line says "A code or a share link switches to its spec and replaces your setup
+  for that spec. A file from Download all setups adds its setups to your saved ones."
   - **Setup code or share link** takes a code, or anything with `#s=…`: a share link, with other
     hash parameters or words around it. Whitespace doesn't count, so a wrapped code still works.
   - **Import** (or Enter) makes it the current setup, with no prompt, as Load does: it switches
     spec if needed, and your setup for the spec you were on is kept. The sheet closes, and a notice
-    says "Imported a setup", with the spec it switched to and any parts that were out of date.
+    says "Imported a setup", whose setup it replaced, the spec it switched to and any parts that
+    were out of date.
   - A code that can't be used gets its reason under the field, which describes the field, and
-    focus goes back to it, with no notice: nothing pasted; not a code or a link; damaged or cut
-    short; over a share link's size caps; or for a spec the sim doesn't cover.
-  - **Open a file…** takes a setups file. Its setups join the list, and none of yours is replaced.
-    Each keeps its name, date and setup; a name that's taken gets a number ("Raid night (2)"). One
-    that's saved already, with the same name and setup, isn't added again. The file's current
-    setup is added too, as "Imported · 23 Sep", unless a save has it already. A notice says
-    "Imported 3 setups" (or "Nothing new to import"), and how many were saved already, couldn't be
-    read, or are kept but not shown. The sheet stays open, with focus on the list's heading, so
-    the list is in view.
+    focus goes back to it, with no notice (`src/app/setup-code.ts`): nothing pasted; not a code or
+    a link (a bare word shorter than any setup code, too: "hello" isn't a damaged code); a talent
+    build code or a talent calculator's link ("That's a talent build code. Paste it in the Talents
+    tab instead."); damaged or cut short; over a share link's size caps; not a setup; from a newer
+    version ("Reload this page to update it, then try again", as for a file); for a spec the sim
+    doesn't know; or for one it doesn't cover yet. A code is checked before it's normalized, as a
+    link is ([above](#persistence-and-sharing)), so nothing replaces your setup with defaults.
+  - **Add setups from a file…** takes a setups file. Its setups join the list, and none of yours is
+    replaced. Each keeps its name, date and setup; a name that's taken gets a number ("Raid night
+    (2)"). One that's saved already isn't added again, so a second import of a file adds nothing: a
+    save with the same setup and the same name (without the number an import gave it) or the same
+    id. The file's current setup is added too, as "Imported · 23 Sep", unless a save has it
+    already. A notice says "Imported 3 setups" (or "Nothing new to import"), and how many were
+    saved already, couldn't be read, or are kept but not shown. The sheet stays open, with focus on
+    the list's heading, so the list is in view, and the rows it added are marked **New** until the
+    sheet closes.
   - A file that can't be used gets its reason under the button, which it describes, with no
-    notice: not a Forever Sim setups file; from a newer version; damaged; empty; too large (over
-    5 MB, about all a browser keeps for a site, or 1,000 setups); or none of its setups could be
-    read. A setup over a share link's 16 KB cap is left out, and counted in the notice.
+    notice: not a Forever Sim setups file; from a newer version; damaged (one that names the app
+    but doesn't parse, such as a download cut short, is damaged, not someone else's); empty; too
+    large (over 5 MB, about all a browser keeps for a site, or 1,000 setups); or none of its setups
+    could be read. A setup that can't be read is left out and counted in the notice: over a share
+    link's 16 KB cap, nested deeper than any setup (10 levels), or with an id over 64 characters.
+    A name is cut to 240 characters before it's tidied. Anything else that goes wrong reading a
+    file says it's damaged.
 - **Storage.** Saves stay in this browser, under their own versioned key
   (`forever-sim:saved-setups`, `src/app/saved-setups.ts`), apart from the automatic save. The
   sheet reads them afresh each time it opens, and shows another tab's changes as they happen.
   Each save is normalized as it's read, like a shared link, so an old save still loads.
 - **States:**
   - Empty: "No saved setups yet", and a sentence on what a save is.
-  - A save that can't be read is left out, and a notice says how many. A save for a spec the app
-    doesn't offer, or from a newer version of the app, is kept but not shown (principle 8).
+  - A save that can't be read is kept exactly as it's stored, after the others, through every
+    change, in case a later version can read it; a notice says how many, and that they're kept
+    but can't be shown. A copy (a save that repeats another's id) goes when that save is deleted.
+    A save for a spec the app doesn't offer, or from a newer version of the app, is kept but not
+    shown (principle 8).
   - Storage the browser blocks: the list says so, and Save (or a file's import) raises a notice
-    saying how to allow it. Storage that's full: a notice asks you to delete a save you don't need. Storage that
-    can't be read: a notice says so, and the next save starts a new list. Saves that a newer
-    version of the app wrote, in another tab, are left alone until you reload.
+    saying how to allow it. Saves that a newer version of the app wrote, in another tab: the list
+    says to reload, and they're left alone until you do.
+  - Storage that can't be read at all: the list says so ("Your saved setups couldn't be read")
+    and says plainly that saving a setup, or adding setups from a file, replaces what's there with
+    a new list.
+  - Storage that's full: the notice fits the case. With saves to delete, it asks you to delete
+    one you don't need; with none, it says the storage is full of something else, and that
+    clearing the site's data makes room but resets your setup too. A file's import that doesn't
+    fit says so, and suggests a file with fewer setups when there's nothing to delete.
 
 ## Accessibility
 

@@ -100,7 +100,7 @@ for (const [label, device] of [
       await expect(raceRadio(page, /Troll/)).toHaveAttribute('aria-checked', 'true')
     })
 
-    test('saving under a saved name updates that save, and the default name moves on', async ({ page }) => {
+    test('saving under a saved name says which save it replaces, first, and the default name moves on', async ({ page }) => {
       await page.goto('./')
       const sheet = await openSetups(page)
       const field = sheet.getByRole('textbox', { name: 'Save the current setup as' })
@@ -110,13 +110,49 @@ for (const [label, device] of [
       // The next default doesn't replace the last save.
       await expect(field).toHaveValue(`${today} (2)`)
 
-      await save(page, today.toUpperCase())
-      await expect(toast(page, `Updated “${today.toUpperCase()}”`)).toBeVisible()
+      // Typing a saved name (case doesn't count) says which save it is, and Save becomes Replace.
+      await field.fill(today.toUpperCase())
+      const clash = new RegExp(`^Saves over “${today}” · Fury Warrior · \\d{1,2} [A-Z][a-z]{2}, \\d{2}:\\d{2}$`)
+      await expect(sheet.getByRole('status').filter({ hasText: 'Saves over' })).toHaveText(clash)
+      await expect(field).toHaveAccessibleDescription(clash)
+      await expect(sheet.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0)
+      await sheet.getByRole('button', { name: 'Replace', exact: true }).click()
+      await expect(toast(page, `Replaced “${today.toUpperCase()}”`)).toBeVisible()
       await expect(sheet.getByRole('listitem')).toHaveCount(1)
       await expect(sheet.getByRole('listitem')).toContainText(today.toUpperCase())
+      // Back to a fresh default, which saves a new one.
+      await expect(sheet.getByText('Saves over')).toHaveCount(0)
+      await expect(sheet.getByRole('button', { name: 'Save', exact: true })).toBeVisible()
     })
 
-    test('renames in place, and deletes at once with a notice, keeping focus in the list', async ({ page }) => {
+    // UX1: typing an Arms save's name on Fury turned that Arms save into a Fury setup, unannounced.
+    test('a name another spec’s save has says so before it replaces it', async ({ page }) => {
+      await seed(page, [entry('arms', 'Arms PvP-ish test', { version: 1, spec: 'warrior-arms' }, 60)])
+      await page.goto('./')
+      const sheet = await openSetups(page)
+      const field = sheet.getByRole('textbox', { name: 'Save the current setup as' })
+      await field.fill('arms pvp-ish TEST')
+      await expect(sheet.getByRole('status').filter({ hasText: 'Saves over' })).toContainText('Saves over “Arms PvP-ish test” · Arms Warrior · ')
+      await field.press('Enter')
+      await expect(toast(page, 'Replaced “arms pvp-ish TEST”')).toBeVisible()
+      await expect(sheet.getByRole('listitem')).toHaveCount(1)
+      await expect(sheet.getByRole('listitem')).toContainText('Fury Warrior')
+    })
+
+    // UX8: typing after a save added to the new default, rather than replacing it.
+    test('after a save from the field, the new default is selected, so typing replaces it', async ({ page }) => {
+      await page.goto('./')
+      const sheet = await openSetups(page)
+      const field = sheet.getByRole('textbox', { name: 'Save the current setup as' })
+      await field.fill('First')
+      await field.press('Enter')
+      await expect(toast(page, 'Saved “First”')).toBeVisible()
+      await expect(field).toBeFocused()
+      await page.keyboard.type('Second')
+      await expect(field).toHaveValue('Second')
+    })
+
+    test('renames in place, and deletes after asking in the row, keeping focus in the list', async ({ page }) => {
       await page.goto('./')
       const sheet = await openSetups(page)
       for (const name of ['Alpha', 'Beta', 'Gamma']) {
@@ -151,17 +187,61 @@ for (const [label, device] of [
       await expect(sheet).toBeVisible()
       await expect(sheet.getByRole('button', { name: 'Rename Bravo' })).toBeFocused()
 
-      // Delete moves focus to the next row's Delete, or the one before at the end, then the name field.
+      // Delete asks in the row first, with focus on Keep; Keep, or Escape, leaves the save.
       await sheet.getByRole('button', { name: 'Delete Gamma' }).click()
+      const question = sheet.getByRole('group', { name: 'Delete “Gamma”?' })
+      await expect(question.getByRole('button', { name: 'Keep' })).toBeFocused()
+      await question.getByRole('button', { name: 'Keep' }).click()
+      await expect(question).toHaveCount(0)
+      await expect(sheet.getByRole('button', { name: 'Delete Gamma' })).toBeFocused()
+      await page.keyboard.press('Enter')
+      await expect(question.getByRole('button', { name: 'Keep' })).toBeFocused()
+      await page.keyboard.press('Escape')
+      await expect(sheet).toBeVisible()
+      await expect(sheet.getByRole('button', { name: 'Delete Gamma' })).toBeFocused()
+      await expect(sheet.getByRole('listitem')).toHaveCount(3)
+      await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Deleted' })).toHaveCount(0)
+
+      // Delete there deletes it. Focus moves to the next row's Delete, or the one before at the end,
+      // then the list's heading.
+      await sheet.getByRole('button', { name: 'Delete Gamma' }).click()
+      await question.getByRole('button', { name: 'Delete', exact: true }).click()
       await expect(toast(page, 'Deleted “Gamma”')).toBeVisible()
       await expect(sheet.getByRole('button', { name: 'Delete Bravo' })).toBeFocused()
       await sheet.getByRole('button', { name: 'Delete Alpha' }).click()
+      await sheet.getByRole('group', { name: 'Delete “Alpha”?' }).getByRole('button', { name: 'Delete', exact: true }).click()
       await expect(toast(page, 'Deleted “Alpha”')).toBeVisible()
       await expect(sheet.getByRole('button', { name: 'Delete Bravo' })).toBeFocused()
-      await sheet.getByRole('button', { name: 'Delete Bravo' }).click()
-      await expect(sheet.getByRole('textbox', { name: 'Save the current setup as' })).toBeFocused()
+      // From the keyboard: Delete, then Shift+Tab from Keep to the question's Delete.
+      await page.keyboard.press('Enter')
+      await page.keyboard.press('Shift+Tab')
+      await page.keyboard.press('Enter')
+      await expect(toast(page, 'Deleted “Bravo”')).toBeVisible()
+      // UX6: the list's heading, not the name field, which would open a phone's keyboard.
+      await expect(sheet.getByRole('heading', { name: 'Saved setups' })).toBeFocused()
       await expect(sheet.getByText('No saved setups yet')).toBeVisible()
       expect(await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!), KEY)).toEqual({ version: 1, setups: [] })
+    })
+
+    // UX3: Delete sat next to Rename on a phone, and deleted at once, for good.
+    test('a double click, or a held Enter, on Delete doesn’t delete', async ({ page }) => {
+      await seed(page, [entry('a', 'Raid night', { version: 1, spec: 'warrior-fury' }), entry('b', 'Other', { version: 1, spec: 'warrior-arms' }, 5)])
+      await page.goto('./')
+      const sheet = await openSetups(page)
+      // The second click lands on Keep, where Delete was, on wider screens; on a phone, on nothing.
+      await sheet.getByRole('button', { name: 'Delete Raid night' }).dblclick()
+      await expect(sheet.getByRole('listitem')).toHaveCount(2)
+      const question = sheet.getByRole('group', { name: 'Delete “Raid night”?' })
+      if (label === 'desktop') await expect(question).toHaveCount(0)
+      else await question.getByRole('button', { name: 'Keep' }).click()
+      await expect(sheet.getByRole('button', { name: 'Delete Raid night' })).toBeFocused()
+      await page.keyboard.down('Enter')
+      for (let i = 0; i < 5; i++) await page.keyboard.down('Enter')
+      await page.keyboard.up('Enter')
+      await expect(question).toBeVisible()
+      await expect(question.getByRole('button', { name: 'Keep' })).toBeFocused()
+      await expect(sheet.getByRole('listitem')).toHaveCount(2)
+      await expect(page.locator('[data-sonner-toast]')).toHaveCount(0)
     })
 
     test('works from the keyboard alone', async ({ page }) => {
@@ -195,7 +275,8 @@ for (const [label, device] of [
       await page.keyboard.press('Shift+Tab')
       await page.keyboard.press('Enter')
       await expect(sheet).toBeHidden()
-      await expect(toast(page, 'Loaded “Keyboard”')).toBeVisible()
+      // Whose setup it replaced: the spec you're on.
+      await expect(toast(page, 'Loaded “Keyboard”')).toContainText('It replaced your Fury Warrior setup.')
       await expect(moreButton(page)).toBeFocused()
 
       // Escape closes it, and focus goes back to the menu's button.
@@ -251,8 +332,60 @@ for (const [label, device] of [
       await page.goto('./')
       const sheet = await openSetups(page)
       await save(page, 'Too much')
-      await expect(toast(page, 'Couldn’t save the setup')).toContainText('storage for this site is full')
+      // With no saves to delete, it doesn't ask you to delete one.
+      const notice = toast(page, 'Couldn’t save the setup')
+      await expect(notice).toContainText('storage for this site is full, but not with saved setups')
+      await expect(notice).not.toContainText('Delete')
       await expect(sheet.getByText('No saved setups yet')).toBeVisible()
+    })
+
+    // UX10: once its notice went, corrupt storage read "No saved setups yet", and saving replaced it unsaid.
+    test('storage that can’t be read shows as a problem in the list, which says a save replaces it', async ({ page }) => {
+      await page.addInitScript((key) => {
+        if (!sessionStorage.getItem('seeded')) localStorage.setItem(key, '{not json')
+        sessionStorage.setItem('seeded', '1')
+      }, KEY)
+      await page.goto('./')
+      const sheet = await openSetups(page)
+      await expect(sheet.getByText('Your saved setups couldn’t be read')).toBeVisible()
+      await expect(sheet.getByText(/Saving a setup, or adding setups from a file, replaces it with a new list\./)).toBeVisible()
+      await expect(sheet.getByText('No saved setups yet')).toHaveCount(0)
+      await expect(page.locator('[data-sonner-toast]')).toHaveCount(0)
+      await save(page, 'Fresh start')
+      await expect(toast(page, 'Saved “Fresh start”')).toBeVisible()
+      await expect(sheet.getByRole('listitem')).toHaveText([/^Fresh start/])
+    })
+
+    // LX9: a save that can't be read was dropped at the next save.
+    test('a save that can’t be read is kept as it is when another is saved', async ({ page }) => {
+      const broken = { id: 'broken', name: 'Broken' }
+      await seed(page, [entry('a', 'Good', { version: 1, spec: 'warrior-fury' }), broken])
+      await page.goto('./')
+      const sheet = await openSetups(page)
+      await expect(toast(page, 'One saved setup couldn’t be read')).toContainText('It’s kept as it is, but can’t be shown.')
+      await save(page, 'Another')
+      await expect(sheet.getByRole('listitem')).toHaveCount(2)
+      const stored = await page.evaluate((key) => JSON.parse(localStorage.getItem(key)!), KEY)
+      expect(stored.setups.at(-1)).toEqual(broken)
+    })
+
+    // UX11: at 320 px the rename field was a sliver beside its buttons.
+    test('rename’s field takes the row’s width on a phone, with its buttons under it', async ({ page }) => {
+      await seed(page, [entry('a', 'Raid night: Onyxia', { version: 1, spec: 'warrior-fury' })])
+      await page.goto('./')
+      const sheet = await openSetups(page)
+      await sheet.getByRole('button', { name: 'Rename Raid night: Onyxia' }).click()
+      const field = (await sheet.getByRole('textbox', { name: 'New name for Raid night: Onyxia' }).boundingBox())!
+      const rename = (await sheet.getByRole('button', { name: 'Rename', exact: true }).boundingBox())!
+      const cancel = (await sheet.getByRole('button', { name: 'Cancel' }).boundingBox())!
+      if (label === 'phone') {
+        expect(rename.y).toBeGreaterThanOrEqual(field.y + field.height)
+        expect(cancel.y).toBe(rename.y)
+        expect(field.width).toBeGreaterThan(250)
+      } else {
+        expect(rename.y).toBe(field.y)
+        expect(rename.x).toBeGreaterThan(field.x + field.width)
+      }
     })
 
     test('says so when the browser blocks storage', async ({ page }) => {

@@ -413,6 +413,35 @@ export function newSetupId(): string {
 export type StorageProblem = 'blocked' | 'full' | 'corrupt' | 'newer'
 type ReadProblem = Exclude<StorageProblem, 'full'>
 
+/** What a change to the saves was, for the words when storage refuses it. */
+export type StorageAction = 'save' | 'rename' | 'delete' | 'import'
+
+/**
+ * Why storage refused a change, in words for what was being done and what's saved: full storage
+ * asks you to delete a save only when there's one to delete.
+ */
+export function storageMessage(problem: StorageProblem, action: StorageAction, hasSaves: boolean): string {
+  switch (problem) {
+    case 'blocked':
+      return 'Your browser is blocking storage for this site. Allow site data for it, then try again.'
+    case 'newer':
+      return 'A newer version of the app saved your setups in another tab. Reload this page, then try again.'
+    case 'corrupt':
+      return 'Your saved setups couldn’t be read. Try again.'
+    case 'full':
+      if (action === 'import') {
+        return hasSaves
+          ? 'Those setups don’t fit in your browser’s storage for this site. Delete saved setups you don’t need, then try again.'
+          : 'Those setups don’t fit in your browser’s storage for this site. Try a file with fewer setups.'
+      }
+      // Deleting frees room, so it's full only if something else filled it meanwhile.
+      if (action === 'delete') return 'Your browser’s storage for this site is full. Reload this page, then try again.'
+      return hasSaves
+        ? 'Your browser’s storage for this site is full. Delete a saved setup you don’t need, then try again.'
+        : 'Your browser’s storage for this site is full, but not with saved setups. Clearing this site’s data in your browser’s settings makes room, and resets your setup too.'
+  }
+}
+
 function readStorage(): ParsedSetups | { ok: false; problem: 'blocked' } {
   let text: string | null
   try {

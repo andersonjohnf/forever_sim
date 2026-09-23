@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs'
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
+import { linkFor } from './links.ts'
+
+/** A setup code for any JSON: a share link's part after #s=. */
+const codeFor = async (page: Page, value: unknown) => (await linkFor(page, value)).slice('#s='.length)
 
 // docs/ux.md#setups (decision D21): Export copies a setup code for the current setup, or downloads
 // a file of every saved setup and the current one. Import takes a code or a share link, which
@@ -9,8 +13,18 @@ import { expect, test } from './fixtures.ts'
 const PHONE = { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }
 const DESKTOP = { viewport: { width: 1280, height: 900 } }
 const CODE_FIELD = 'Setup code or share link'
+const FILE_BUTTON = 'Add setups from a file…'
 
 const toast = (page: Page, text: string) => page.locator('[data-sonner-toast]').filter({ hasText: text })
+/** The line under Export's buttons that says what Copy or Download did (a live region, not a notice). */
+const exportStatus = (sheet: Locator) => sheet.getByRole('region', { name: 'Export' }).getByRole('status')
+
+/** Deletes a save from its row: Delete, then Delete again in the row's question. */
+async function deleteSave(sheet: Locator, name: string) {
+  await sheet.getByRole('button', { name: `Delete ${name}` }).click()
+  await sheet.getByRole('group', { name: `Delete “${name}”?` }).getByRole('button', { name: 'Delete', exact: true }).click()
+  await expect(sheet.getByRole('button', { name: `Load ${name}` })).toHaveCount(0)
+}
 const moreButton = (page: Page) => page.getByRole('button', { name: 'More' })
 const setupsSheet = (page: Page) => page.getByRole('dialog', { name: 'Setups' })
 
@@ -45,13 +59,13 @@ async function expectSetup(page: Page, spec: 'Fury' | 'Arms', race: RegExp) {
 }
 
 /**
- * Chooses a file in the picker that Open a file… opens: with a click, or with Enter when a notice
- * may be up, which on a phone sits over the end of the sheet, where the button is, until it goes
- * (docs/ux.md#persistence-and-sharing).
+ * Chooses a file in the picker that Add setups from a file… opens: with a click, or with Enter
+ * when a notice may be up (another file's), which on a phone sits over the end of the sheet, where
+ * the button is, until it goes (docs/ux.md#persistence-and-sharing).
  */
 async function openFile(sheet: Locator, file: string | { name: string; mimeType: string; buffer: Buffer }, how: 'click' | 'keyboard' = 'click') {
   const chooser = sheet.page().waitForEvent('filechooser')
-  const button = sheet.getByRole('button', { name: 'Open a file…' })
+  const button = sheet.getByRole('button', { name: FILE_BUTTON })
   if (how === 'click') await button.click()
   else {
     await button.focus()
@@ -93,7 +107,9 @@ for (const [label, device] of [
       await chooseRace(page, /Troll/)
       const sheet = await openSetups(page)
       await sheet.getByRole('button', { name: 'Copy setup code' }).click()
-      await expect(toast(page, 'Setup code copied')).toBeVisible()
+      // UX7: said in a line under the buttons, not in a notice over the end of the sheet.
+      await expect(exportStatus(sheet)).toHaveText('Copied the setup code. Import it in any browser to get this exact setup.')
+      await expect(toast(page, 'copied')).toHaveCount(0)
       // The code alone, as a share link carries it after #s=.
       const code = await page.evaluate(() => navigator.clipboard.readText())
       expect(code).toMatch(/^[A-Za-z0-9_-]{100,}$/)
@@ -104,7 +120,7 @@ for (const [label, device] of [
       await switchSpec(page, 'Arms')
       await openSetups(page)
       await sheet.getByRole('textbox', { name: CODE_FIELD }).fill(code)
-      // Enter: on a phone, the notice about the copy is still over the Import button.
+      // Enter: on a phone, the race's notice (its gear swap) may still be over the Import button.
       await sheet.getByRole('textbox', { name: CODE_FIELD }).press('Enter')
       // No prompt: the sheet closes, and focus goes back to the menu's button.
       await expect(sheet).toBeHidden()
@@ -156,6 +172,25 @@ for (const [label, device] of [
       await field.press('Enter')
       await expect(sheet.getByRole('alert')).toHaveText('That code is damaged or cut short. Copy the whole code again.')
 
+      // UX4: a word is text, not a code cut short; a talent build goes in Talents.
+      await field.fill('hello world')
+      await field.press('Enter')
+      await expect(sheet.getByRole('alert')).toHaveText('That isn’t a setup code or a share link.')
+      await field.fill('30305213132515201-05050103-')
+      await field.press('Enter')
+      await expect(sheet.getByRole('alert')).toHaveText('That’s a talent build code. Paste it in the Talents tab instead.')
+
+      // LX1: a code that isn't a usable setup is refused, rather than replacing yours with defaults.
+      await field.fill(await codeFor(page, { version: 2, spec: 'warrior-arms', race: 'horde-orc' }))
+      await field.press('Enter')
+      await expect(sheet.getByRole('alert')).toHaveText('That code is from a newer version of Forever Sim. Reload this page to update it, then try again.')
+      await field.fill(await codeFor(page, { version: 1, spec: 'mage-fire', race: 'horde-orc', talents: '' }))
+      await field.press('Enter')
+      await expect(sheet.getByRole('alert')).toHaveText('That code is for a spec this sim doesn’t know.')
+      await field.fill(`#s=${await codeFor(page, {})}`)
+      await field.press('Enter')
+      await expect(sheet.getByRole('alert')).toHaveText('That code doesn’t hold a setup.')
+
       // No toast, and the sheet stays open on your own setup.
       await expect(page.locator('[data-sonner-toast]')).toHaveCount(0)
       await expect(sheet).toBeVisible()
@@ -184,27 +219,56 @@ for (const [label, device] of [
       expect(file).toMatchObject({ app: 'forever-sim', version: 1, current: { spec: 'warrior-arms', race: 'horde-tauren' } })
       expect(Date.parse(file.exportedAt)).not.toBeNaN()
       expect(file.setups.map((s: { name: string }) => s.name)).toEqual(['Beta', 'Alpha'])
-      await expect(toast(page, 'Setups downloaded')).toContainText(`${download.suggestedFilename()} holds the current setup and 2 saved setups.`)
+      // UX7: said under the buttons, not in a notice.
+      await expect(exportStatus(sheet)).toHaveText(`Downloaded ${download.suggestedFilename()}. It holds the current setup and 2 saved setups.`)
+      await expect(toast(page, 'Downloaded')).toHaveCount(0)
 
-      // Clear the saves, then open the file.
-      await sheet.getByRole('button', { name: 'Delete Beta' }).click()
-      await sheet.getByRole('button', { name: 'Delete Alpha' }).click()
+      // Clear the saves, then add them back from the file.
+      await deleteSave(sheet, 'Beta')
+      await deleteSave(sheet, 'Alpha')
       await expect(sheet.getByText('No saved setups yet')).toBeVisible()
       await openFile(sheet, path, 'keyboard')
       await expect(toast(page, 'Imported 3 setups')).toBeVisible()
-      // The sheet stays open, with focus on the list, which shows them: the current setup, saved now, first.
+      // The sheet stays open, with focus on the list, which shows them: the current setup, saved now,
+      // first. UX9: each is marked New, until the sheet closes.
       await expect(sheet).toBeVisible()
       await expect(sheet.getByRole('heading', { name: 'Saved setups' })).toBeFocused()
-      await expect(sheet.getByRole('listitem')).toHaveText([/^Imported · \d{1,2} [A-Z][a-z]{2}Arms Warrior/, /^BetaArms Warrior/, /^AlphaFury Warrior/])
+      await expect(sheet.getByRole('listitem')).toHaveText([
+        /^Imported · \d{1,2} [A-Z][a-z]{2}NewArms Warrior/,
+        /^BetaNewArms Warrior/,
+        /^AlphaNewFury Warrior/,
+      ])
 
       // The same file again adds nothing.
       await openFile(sheet, path, 'keyboard')
       await expect(toast(page, 'Nothing new to import')).toContainText('Every setup in that file is saved already.')
       await expect(sheet.getByRole('listitem')).toHaveCount(3)
+      await closeSetups(page)
+      await openSetups(page)
+      await expect(sheet.getByRole('listitem')).toHaveText([/^Imported · .*Arms Warrior/, /^BetaArms Warrior/, /^AlphaFury Warrior/])
 
       // And each loads as it was saved.
       await sheet.getByRole('button', { name: 'Load Alpha' }).click()
       await expectSetup(page, 'Fury', /Troll/)
+    })
+
+    // LX2: a save renamed on the way in ("Raid night (2)") came in again with each import of the file.
+    test('a file whose save took a number on the way in adds nothing the second time', async ({ page }) => {
+      await seed(page, [entry('mine', 'Raid night', { version: 1, spec: 'warrior-fury' }, 5)])
+      await page.goto('./')
+      const sheet = await openSetups(page)
+      const file = jsonFile({
+        app: 'forever-sim',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        setups: [entry('theirs', 'Raid night', { version: 1, spec: 'warrior-arms' }, 60)],
+      })
+      await openFile(sheet, file)
+      await expect(toast(page, 'Imported 1 setup')).toBeVisible()
+      await expect(sheet.getByRole('listitem')).toHaveText([/^Raid nightFury Warrior/, /^Raid night \(2\)NewArms Warrior/])
+      await openFile(sheet, file, 'keyboard')
+      await expect(toast(page, 'Nothing new to import')).toBeVisible()
+      await expect(sheet.getByRole('listitem')).toHaveCount(2)
     })
 
     test('a file that isn’t ours, or is from a newer version, says why under the button', async ({ page }) => {
@@ -216,7 +280,7 @@ for (const [label, device] of [
       ])
       await page.goto('./')
       const sheet = await openSetups(page)
-      const button = sheet.getByRole('button', { name: 'Open a file…' })
+      const button = sheet.getByRole('button', { name: FILE_BUTTON })
 
       await openFile(sheet, jsonFile({ hello: 'world' }, 'notes.json'))
       const notOurs = 'That isn’t a Forever Sim setups file. Choose one that Download all setups saved.'
@@ -231,6 +295,17 @@ for (const [label, device] of [
 
       await openFile(sheet, { name: 'photo.json', mimeType: 'image/png', buffer: Buffer.from([0x89, 0x50, 0x4e, 0x47]) })
       await expect(sheet.getByRole('alert')).toHaveText(notOurs)
+
+      // UX4: one of ours, cut short, is damaged, not someone else's.
+      const whole = JSON.stringify({ app: 'forever-sim', version: 1, exportedAt: new Date().toISOString(), setups: [entry('x', 'Cut', { version: 1, spec: 'warrior-fury' }, 1)] })
+      await openFile(sheet, { name: 'setups.json', mimeType: 'application/json', buffer: Buffer.from(whole.slice(0, whole.length / 2)) })
+      await expect(sheet.getByRole('alert')).toHaveText('That setups file is damaged, so nothing was imported.')
+
+      // LX5: a setup nested far deeper than any real one is left out, and the import doesn't crash.
+      const deep = `${'['.repeat(5000)}0${']'.repeat(5000)}`
+      const deepFile = `{"app":"forever-sim","version":1,"setups":[{"id":"d","name":"Deep","savedAt":"${new Date().toISOString()}","config":{"version":1,"spec":"warrior-fury","x":${deep}}}]}`
+      await openFile(sheet, { name: 'deep.json', mimeType: 'application/json', buffer: Buffer.from(deepFile) })
+      await expect(sheet.getByRole('alert')).toHaveText('None of the setups in that file could be read, so nothing was imported.')
 
       // Nothing was added, and there's no toast.
       await expect(sheet.getByRole('listitem')).toHaveCount(3)
@@ -250,7 +325,7 @@ for (const [label, device] of [
       for (let i = 0; i < 4; i++) await page.keyboard.press('Tab')
       await expect(sheet.getByRole('button', { name: 'Copy setup code' })).toBeFocused()
       await page.keyboard.press('Enter')
-      await expect(toast(page, 'Setup code copied')).toBeVisible()
+      await expect(exportStatus(sheet)).toHaveText(/^Copied the setup code\./)
       const code = await page.evaluate(() => navigator.clipboard.readText())
 
       await page.keyboard.press('Tab')
@@ -260,13 +335,15 @@ for (const [label, device] of [
       const download = await downloading
       const path = test.info().outputPath(download.suggestedFilename())
       await download.saveAs(path)
+      await expect(exportStatus(sheet)).toHaveText(/^Downloaded forever-sim-setups-.*\. It holds the current setup\.$/)
 
+      // The line isn't a tab stop.
       await page.keyboard.press('Tab')
       await expect(sheet.getByRole('textbox', { name: CODE_FIELD })).toBeFocused()
       await page.keyboard.press('Tab')
       await expect(sheet.getByRole('button', { name: 'Import', exact: true })).toBeFocused()
       await page.keyboard.press('Tab')
-      await expect(sheet.getByRole('button', { name: 'Open a file…' })).toBeFocused()
+      await expect(sheet.getByRole('button', { name: FILE_BUTTON })).toBeFocused()
       const chooser = page.waitForEvent('filechooser')
       await page.keyboard.press('Enter')
       await (await chooser).setFiles(path)
@@ -317,7 +394,7 @@ test.describe('Copy setup code', () => {
     await page.goto('./')
     const sheet = await openSetups(page)
     await sheet.getByRole('button', { name: 'Copy setup code' }).click()
-    await expect(toast(page, 'Setup code copied')).toBeVisible()
+    await expect(exportStatus(sheet)).toHaveText(/^Copied the setup code\./)
     expect(await page.evaluate(() => (window as unknown as { copied: Promise<string>[] }).copied[0])).toMatch(/^[A-Za-z0-9_-]+$/)
   })
 
@@ -331,6 +408,15 @@ test.describe('Copy setup code', () => {
     await page.goto('./')
     const sheet = await openSetups(page)
     await sheet.getByRole('button', { name: 'Copy setup code' }).click()
-    await expect(toast(page, 'Couldn’t copy the setup code')).toContainText('Allow clipboard access for this site')
+    // In the line under the buttons, as a copy that works is.
+    await expect(exportStatus(sheet)).toHaveText(
+      'Couldn’t copy the setup code: your browser blocked the clipboard. Allow clipboard access for this site, then try again.',
+    )
+    await expect(page.locator('[data-sonner-toast]')).toHaveCount(0)
+    // Saying it again is a new line, so it's read out again.
+    const line = exportStatus(sheet).locator('span')
+    const first = await line.elementHandle()
+    await sheet.getByRole('button', { name: 'Copy setup code' }).click()
+    await expect.poll(async () => (await line.elementHandle())?.evaluate((el, old) => el !== old, first)).toBe(true)
   })
 })

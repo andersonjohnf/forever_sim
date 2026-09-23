@@ -1,9 +1,10 @@
-import { Copy, Download, FolderOpen } from 'lucide-react'
+import { Copy, Download, FilePlus } from 'lucide-react'
 import { type ChangeEvent, type FormEvent, type ReactNode, useId, useLayoutEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 import { copyText } from './clipboard'
 import { replacedDescription } from './load-notice'
 import { importToStorage, isShown, readStoredSetups, type StorageProblem } from './saved-setups'
@@ -54,17 +55,27 @@ function downloadText(name: string, text: string, type: string) {
 
 const count = (n: number, one: string, many: string) => (n === 1 ? `1 ${one}` : `${n} ${many}`)
 
-/** Copy setup code (the current setup) and Download all setups (a file of them all). */
+/** What Copy or Download last did, said in a line under their buttons. */
+interface ExportStatus {
+  text: string
+  error: boolean
+  /** Counts up with each, so saying the same thing again is a new line, and read out again. */
+  n: number
+}
+
+/**
+ * Copy setup code (the current setup) and Download all setups (a file of them all). Each says what
+ * it did in a line under the buttons, a polite live region, rather than in a notice: a notice would
+ * sit over the end of the sheet, Import's field and all, for its 10 s.
+ */
 export function ExportSection() {
+  const [status, setStatus] = useState<ExportStatus | null>(null)
+  const say = (text: string, error = false) => setStatus((last) => ({ text, error, n: (last?.n ?? 0) + 1 }))
+
   const copyCode = () => {
-    // One notice at a time: copying again replaces the last one's.
     copyText(packSetup(useSetup.getState().config)).then(
-      () => toast.success('Setup code copied', { id: 'setup-code', description: 'Import it in any browser to get this exact setup.' }),
-      () =>
-        toast.error('Couldn’t copy the setup code', {
-          id: 'setup-code',
-          description: 'Your browser blocked the clipboard. Allow clipboard access for this site, then try again.',
-        }),
+      () => say('Copied the setup code. Import it in any browser to get this exact setup.'),
+      () => say('Couldn’t copy the setup code: your browser blocked the clipboard. Allow clipboard access for this site, then try again.', true),
     )
   }
 
@@ -81,18 +92,27 @@ export function ExportSection() {
       : saves === 0
         ? 'the current setup.'
         : `the current setup and ${count(saves, 'saved setup', 'saved setups')}.`
-    toast.success('Setups downloaded', { id: 'setups-exported', description: `${name} holds ${holds}` })
+    say(`Downloaded ${name}. It holds ${holds}`)
   }
 
   return (
     <Section title="Export" description="Copy a code for the current setup, or download a file with every saved setup and the current one.">
-      <div className="flex flex-wrap gap-2">
-        <Button variant="outline" className="h-11" onClick={copyCode}>
-          <Copy /> Copy setup code
-        </Button>
-        <Button variant="outline" className="h-11" onClick={download}>
-          <Download /> Download all setups
-        </Button>
+      <div>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" className="h-11" onClick={copyCode}>
+            <Copy /> Copy setup code
+          </Button>
+          <Button variant="outline" className="h-11" onClick={download}>
+            <Download /> Download all setups
+          </Button>
+        </div>
+        <p role="status" className={cn('text-sm break-words', status?.error ? 'text-destructive' : 'text-muted-foreground')}>
+          {status && (
+            <span key={status.n} className="mt-3 block">
+              {status.text}
+            </span>
+          )}
+        </p>
       </div>
     </Section>
   )
@@ -138,11 +158,11 @@ export function ImportSection({
   /** A code's setup is now the current one: the sheet closes, which hands focus back to the menu. */
   onImported: () => void
   /**
-   * A file's setups are in the list: focus goes up to it, so the list is in view. It grew, which
-   * would push Open a file… out of sight, focus and all.
+   * A file's setups are in the list, with these ids: they're marked, and focus goes up to the
+   * list, so it's in view. It grew, which would push the file's button out of sight, focus and all.
    */
-  onFileImported: () => void
-  sayStorageProblem: (problem: StorageProblem, title: string) => void
+  onFileImported: (ids: string[]) => void
+  sayStorageProblem: (problem: StorageProblem) => void
 }) {
   const [text, setText] = useState('')
   const [codeError, setCodeError] = useState<string | null>(null)
@@ -197,21 +217,21 @@ export function ImportSection({
       return setFileError(FILE_PROBLEMS.damaged)
     }
     if (!result.ok) {
-      if ('problem' in result) sayStorageProblem(result.problem, 'Couldn’t import the setups')
+      if ('problem' in result) sayStorageProblem(result.problem)
       return
     }
-    const shown = result.added.filter(isShown).length
-    const notice = importNotice({ shown, hidden: result.added.length - shown, duplicates: result.duplicates, skipped })
+    const shown = result.added.filter(isShown)
+    const notice = importNotice({ shown: shown.length, hidden: result.added.length - shown.length, duplicates: result.duplicates, skipped })
     if (!notice) return setFileError(FILE_PROBLEMS.noneRead)
     // The sheet stays open, on the list that shows them.
     toast(notice.title, { id: 'setups-imported', description: notice.description })
-    onFileImported()
+    onFileImported(shown.map((s) => s.id))
   }
 
   return (
     <Section
       title="Import"
-      description="A code or a share link replaces your current setup for its spec. A file from Download all setups adds its setups to your saved ones."
+      description="A code or a share link switches to its spec and replaces your setup for that spec. A file from Download all setups adds its setups to your saved ones."
     >
       <form className="flex flex-col gap-2" onSubmit={importCode} noValidate>
         <Label htmlFor={codeId}>Setup code or share link</Label>
@@ -241,7 +261,7 @@ export function ImportSection({
       </form>
       <div className="flex flex-col items-start gap-2">
         <Button variant="outline" className="h-11" onClick={() => fileRef.current?.click()} aria-describedby={fileError ? fileErrorId : undefined}>
-          <FolderOpen /> Open a file…
+          <FilePlus /> Add setups from a file…
         </Button>
         {/* The button opens it; it takes no focus of its own. */}
         <input ref={fileRef} type="file" accept=".json,application/json" hidden aria-label="Setups file" onChange={importFile} />

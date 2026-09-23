@@ -34,6 +34,7 @@ const {
   nameProblem,
   parseSavedSetups,
   readEntry,
+  storageMessage,
   withinDepth,
   refreshSavedSetups,
   renameInStorage,
@@ -493,6 +494,16 @@ describe('browser storage', () => {
     expect(refreshSavedSetups()).toEqual({ unreadable: 0, problem: 'newer' })
     expect(saveToStorage('Mine', fresh('warrior-fury'))).toEqual({ ok: false, problem: 'newer' })
     expect(memory.get(SAVED_SETUPS_KEY)).toBe(newer)
+  })
+
+  // UX10: full storage asks you to delete a save only when there's one to delete.
+  test('says why storage refused a change, in words for what was being done', () => {
+    expect(storageMessage('full', 'save', true)).toBe('Your browser’s storage for this site is full. Delete a saved setup you don’t need, then try again.')
+    expect(storageMessage('full', 'save', false)).toMatch(/^Your browser’s storage for this site is full, but not with saved setups\. Clearing/)
+    expect(storageMessage('full', 'import', true)).toMatch(/^Those setups don’t fit .* Delete saved setups you don’t need/)
+    expect(storageMessage('full', 'import', false)).toMatch(/Try a file with fewer setups\.$/)
+    expect(storageMessage('full', 'delete', true)).not.toMatch(/Delete/)
+    expect(storageMessage('blocked', 'save', false)).toMatch(/blocking storage/)
   })
 
   test('saves it doesn’t show are kept through changes', () => {

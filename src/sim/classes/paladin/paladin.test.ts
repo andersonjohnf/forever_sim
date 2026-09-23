@@ -365,7 +365,8 @@ describe('worked example 15: Shield Specialization', () => {
     const withShield = buildPlan({ ...defaultConfig('paladin-protection'), buffs: { raid: [], enabled: [] } }).plan
     const shieldSpec = withShield.procs.find((p) => p.id === 'shieldSpecialization')!
     expect(shieldSpec).toMatchObject({ icdMs: 3000, amount: 6, chance: [1, 1] })
-    // Blocks at 0, 1, 2 and 3 s with 6000 mana: the ones at 0 and 3 s restore 360 each.
+    // Blocks at 0, 1, 2 and 3 s with 6000 mana: the ones at 0 and 3 s restore 360 each (at exactly
+    // 3 s the ICD has ended), 720 in all.
     const s = withShield.stats
     withShield.mana = { ...withShield.mana!, maxTenths: 60000, regenTickTenths: 0, mp5TickTenths: 0 }
     s.dodge = -100

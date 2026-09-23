@@ -752,8 +752,9 @@ which come with the rotations that use them.
     0.45 × 300 = **295.38** (the default Prot build has no Improved Seals; with it,
     ×1.15 = 339.69).
 14. **Holy Strike threat (Prot)**: a 300-damage Holy Strike → 300 × 1.9 × 1.25 = **712.5**.
-15. **Shield Specialization**: with 6000 max mana, blocks at t = 0.0, 1.0, 3.2 s restore
-    360 mana at 0.0 and 3.2 only (3 s ICD).
+15. **Shield Specialization**: with 6000 max mana, blocks at t = 0, 1, 2 and 3 s restore
+    360 mana at 0 and 3 s only, 720 in all: the blocks at 1 and 2 s fall inside the 3 s ICD, and
+    at exactly 3 s it has ended.
 16. **SoC ICD with Windfury**: a white hit at t = 0 procs SoC; the Windfury extra attack at
     t = 0 can't proc SoC (ICD until t = 1.0). The next white hit at t = 3.5 can.
 17. **Twist of Light**: SoC active; cast SoR at t = 10.0; the white hit at t = 10.6 applies

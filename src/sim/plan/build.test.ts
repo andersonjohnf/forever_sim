@@ -6,6 +6,7 @@ import { meleeChances } from '../core/attack-table'
 import { defaultConfig, TALENT_DATA } from '../defaults'
 import { presetBuffIds } from '../effects/presets'
 import { Sim } from '../engine/sim'
+import { rotationOff } from '../engine/test-helpers'
 import { computeSheet, normalizeConfig } from '../index'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import type { SimConfig, SpecId } from '../types'
@@ -17,7 +18,9 @@ import { STANCE, STANCE_ANY, TRIGGER } from './types'
 /** A bare config: no gear, no talents, no buffs, and no Battle Shout of Arms's own (warrior.md §5.3 row 1). */
 function bare(spec: SpecId = 'warrior-arms', patch: Partial<SimConfig> = {}): SimConfig {
   const d = defaultConfig(spec)
-  const rotation: SimConfig['rotation'] = spec === 'warrior-arms' ? { 'warrior.arms.battleShout.enabled': false } : {}
+  // No Battle Shout of its own (Arms), and no Protection rotation: the Buffs tab's buffs and debuffs apply.
+  const rotation: SimConfig['rotation'] =
+    spec === 'warrior-arms' ? { 'warrior.arms.battleShout.enabled': false } : spec === 'warrior-protection' ? rotationOff(spec) : {}
   return { ...d, race: 'alliance-human', talents: '', gear: {}, buffs: { raid: d.buffs.raid, enabled: [] }, rotation, ...patch }
 }
 
@@ -296,6 +299,26 @@ describe('encounter worked examples on the plan', () => {
     expect(tank(['thunderClap']).speedSec).toBeCloseTo(2.4, 9)
     expect(tank(['thunderClap'], 'classicEra').speedSec).toBeCloseTo(2.2, 9)
   })
+  it('Protection’s own Sunder Armor, Thunder Clap and Demoralizing Shout take the Buffs tab’s place (warrior.md §5.4 notes)', () => {
+    const d = defaultConfig('warrior-protection')
+    const plan = buildPlan(d).plan
+    // The boss starts unslowed and at full attack power; the rotation's debuffs are auras.
+    expect(plan.fight.bossSwing).toMatchObject({ speedSec: 2, unslowedSec: 2, slow: 0, minDamage: 4500, maxDamage: 5500 })
+    expect(plan.fight.targetArmor).toBe(3731 - 505 - 505) // Faerie Fire and Curse of Recklessness only
+    const debuffs = Object.fromEntries(plan.auras.filter((a) => ['sunderArmor', 'thunderClap', 'demoralizingShout'].includes(a.id)).map((a) => [a.id, a]))
+    expect(debuffs.sunderArmor).toMatchObject({ targetArmor: 450, maxStacks: 5 })
+    expect(debuffs.thunderClap).toMatchObject({ bossSlow: 20 })
+    expect(debuffs.demoralizingShout).toMatchObject({ bossAp: -204 })
+    // The assumptions behind them are listed as the Buffs tab's are.
+    expect(buildPlan(d).assumptions.map((a) => a.id)).toEqual(expect.arrayContaining(['bossSlow', 'bossApDebuff']))
+    // With Expose Armor from the Buffs tab, only one of the two applies in game: the rotation's
+    // Sunder Armor removes no armor, and its threat still counts.
+    const expose = buildPlan({ ...d, buffs: { ...d.buffs, enabled: [...d.buffs.enabled.filter((id) => id !== 'sunderArmor'), 'exposeArmor'] } }).plan
+    expect(expose.fight.targetArmor).toBe(3731 - 2250 - 505 - 505)
+    expect(expose.auras.find((a) => a.id === 'sunderArmor')!.targetArmor).toBeUndefined()
+    expect(expose.abilities.find((a) => a.id === 'sunderArmor')!.threatBonus).toBe(1013)
+  })
+
   it('only tank specs get boss melee', () => {
     expect(buildPlan(defaultConfig('warrior-fury')).plan.fight.bossSwing).toBeNull()
     expect(buildPlan(defaultConfig('warrior-protection')).plan.fight.bossSwing).not.toBeNull()
@@ -627,14 +650,14 @@ describe('assumptions', () => {
     expect(note(trinkets)).toBe('Some on-use items and consumables aren’t simulated: Counterattack Lodestone.')
     expect(ids(trinkets)).toContain('weaknessAnalyzer')
     expect(ids(d)).not.toContain('weaknessAnalyzer')
-    // Arms uses them too (warrior.md §5.3 rows 3 and 17); a spec without a rotation uses none of them.
+    // Arms and Protection use them too (warrior.md §5.3 rows 3 and 17, §5.4 rows 3 and 4).
     const arms = defaultConfig('warrior-arms')
     // Weakness Analyzer is used; Blackhand's Breadth (trinket 2) keeps its not-simulated use (review L5).
     expect(note({ ...arms, gear: { ...arms.gear, trinket1: { itemId: 272438 } } })).toBe(
       "Some on-use items and consumables aren’t simulated: Blackhand's Breadth.",
     )
     const prot = defaultConfig('warrior-protection')
-    expect(note({ ...prot, gear: { ...prot.gear, trinket1: { itemId: 272438 } } })).toContain('Weakness Analyzer')
+    expect(note({ ...prot, gear: { ...prot.gear, trinket1: { itemId: 272438 } } })).not.toContain('Weakness Analyzer')
   })
 
   it('surfaces the Arms rotation’s assumptions: the Overpower window, Bloodthrill, Slam’s cast, Spearing Strike and Rend (warrior.md §7, Q3, Q10, Q11, Q13, Q32)', () => {

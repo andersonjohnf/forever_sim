@@ -1,6 +1,6 @@
 // Talents that modify warrior abilities (docs/classes/warrior.md §2.3 "Cost reductions" and the
 // Bloodrage and Berserker Rage rows, §2.5 Impale, §3.1 Raging Blows, §4.1 Improved Rend, Improved
-// Slam and Improved Overpower). The plan applies them once,
+// Slam and Improved Overpower; §4.3 Improved Revenge). The plan applies them once,
 // when it resolves the rotation's abilities from the build's talent ranks; the engine only sees
 // the resolved numbers.
 //
@@ -154,10 +154,18 @@ export const IMPROVED_BERSERKER_RAGE_PER_RANK = 5
 export const IMPROVED_OVERPOWER_CRIT_PER_RANK = 25
 
 /**
+ * Improved Revenge: +20% Revenge damage per rank, applied to its base and range before other
+ * modifiers (12797: aura 108, a percent modifier on Revenge's class mask, rank curve 20 / 40 / 60)
+ * [F] [tal] [client] (SpellEffect, CurvePoint, 1.60.1.69913) (warrior.md §4.3, §7 "Damage order", W14).
+ */
+export const IMPROVED_REVENGE_PCT_PER_RANK = 20
+
+/**
  * The ability as this build uses it: cost reductions, Impale's crit multiplier, Raging Blows'
  * off-hand strike on Whirlwind (warrior.md §3.1 "Raging Blows"; [?] Q13), the rage of
  * Improved Bloodrage and Improved Berserker Rage (§2.3), Improved Rend's bleed, Improved
- * Slam's cast, GCD and swing timers, and Improved Overpower's crit (§4.1).
+ * Slam's cast, GCD and swing timers, and Improved Overpower's crit (§4.1), and Improved Revenge's
+ * damage (§4.3).
  */
 export function withTalents(def: AbilityDef, talents: TalentRanks): AbilityDef {
   const resolved: AbilityDef = {
@@ -181,6 +189,10 @@ export function withTalents(def: AbilityDef, talents: TalentRanks): AbilityDef {
     resolved.castStopsSwings = def.castStopsSwings && r === 0
   } else if (def.id === 'overpower') {
     resolved.bonusCrit = def.bonusCrit + IMPROVED_OVERPOWER_CRIT_PER_RANK * rank(talents, 'Improved Overpower')
+  } else if (def.id === 'revenge') {
+    const m = 1 + (IMPROVED_REVENGE_PCT_PER_RANK * rank(talents, 'Improved Revenge')) / 100
+    resolved.flatDamage = def.flatDamage * m
+    resolved.flatSpread = (def.flatSpread ?? 0) * m
   }
   return resolved
 }

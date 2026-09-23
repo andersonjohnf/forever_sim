@@ -8,15 +8,17 @@
 //
 // It simulates white swings, procs, auras, rage, threat, boss melee, and abilities driven by a
 // priority-list rotation: GCD and cooldown events on the same queue, one-roll strikes, two-roll
-// melee spells, on-next-swing queues, off-hand strikes, casts that buff the warrior or grant rage,
-// abilities with a cast time (Slam), bleeds with a marker on the target (Rend), reactive windows
-// (Overpower), stances and stance dancing, the execute phase, time-left conditions, buff upkeep
-// and the pre-pull (docs/architecture.md#engine-design-m1). For druids it adds Energy and mana on a
-// power tick, combo points, Clearcasting's free ability, and forms a shapeshift swaps in
-// (docs/classes/druid.md §2). For the paladin it adds damaging spells on their own tables, mp5 and
-// a share of spirit regeneration inside the five-second rule, Holy damage and threat multipliers,
-// cooldown categories and exclusive auras (seals; docs/classes/paladin.md). A plan without them
-// never enters those paths.
+// melee spells, abilities on the spell table (Thunder Clap), on-next-swing queues, off-hand
+// strikes, casts that buff the warrior or grant rage, abilities with a cast time (Slam), bleeds
+// with a marker on the target (Rend), debuffs on the boss (Sunder Armor's stacks, Thunder Clap's
+// slow, Demoralizing Shout's attack power), reactive windows (Overpower, Revenge), stances and
+// stance dancing, the execute phase, time-left conditions, buff upkeep and the pre-pull
+// (docs/architecture.md#engine-design-m1). For druids it adds Energy and mana on a power tick,
+// combo points, Clearcasting's free ability, and forms a shapeshift swaps in (docs/classes/druid.md
+// §2). For the paladin it adds damaging spells on their own tables, mp5 and a share of spirit
+// regeneration inside the five-second rule, Holy damage and threat multipliers, cooldown
+// categories and exclusive auras (seals; docs/classes/paladin.md). A plan without them never
+// enters those paths.
 import {
   averageResist,
   bossSlices,
@@ -37,6 +39,7 @@ import {
   parryHasteRemaining,
   ppmChance,
   rageConversion,
+  slowedSwingSec,
   swingMs,
 } from '../core/formulas'
 import { EventQueue } from '../core/queue'
@@ -73,6 +76,7 @@ const KIND_CAST = 3
 const KIND_BLEED = 4
 const KIND_SHIFT = 5
 const KIND_SPELL = 6
+const KIND_SPELL_TABLE = 7
 const KIND_CODE = {
   weaponStrike: KIND_STRIKE,
   meleeSpell: KIND_MELEE_SPELL,
@@ -81,6 +85,7 @@ const KIND_CODE = {
   bleed: KIND_BLEED,
   shift: KIND_SHIFT,
   spell: KIND_SPELL,
+  spellTable: KIND_SPELL_TABLE,
 } as const
 
 /** The pool an ability pays from (AbilityPlan.resource). */
@@ -300,8 +305,6 @@ export class Sim {
   private readonly chargeAuras: Int32Array
   /** Crits dealt that end an aura (Weakness Analyzer), and the auras that have them. */
   private readonly aCritCharges: Int32Array
-  /** Armor an aura takes off the target while it's up (Faerie Fire, druid.md §3.8). */
-  private readonly aTargetArmor: Float64Array
   private readonly critChargeAuras: Int32Array
   /**
    * Defensive aura mods (combat-tables §8): dodge, parry and block %, block value, bonus armor and
@@ -317,6 +320,15 @@ export class Sim {
   private readonly blockChargeAuras: Int32Array
   /** Each block-charged aura's `auraGen` as a blocked swing lands, before its procs (`useBlockCharges`). */
   private readonly blockChargeGen: Int32Array
+  /**
+   * Debuffs a rotation keeps on the boss (Faerie Fire, druid.md §3.8; warrior.md §7 "Debuffs on the
+   * boss"), per stack: armor removed, attack-speed slow % and attack power; and whether an aura has
+   * either of the last two.
+   */
+  private readonly aTargetArmor: Float64Array
+  private readonly aBossSlow: Float64Array
+  private readonly aBossAp: Float64Array
+  private readonly aBossDebuff: Uint8Array
   /**
    * Lines that refresh an aura (COND.abilityAuraRefresh, Battle Shout's upkeep, warrior.md §5.2
    * row 1): aura a's are watchLine[watchStart[a] … watchStart[a + 1] − 1], each with its lead (ms
@@ -374,6 +386,15 @@ export class Sim {
   private readonly abWeaponPct: Float64Array
   private readonly abNormalized: Uint8Array
   private readonly abFlat: Float64Array
+  /** ± spread on the flat damage, and the share of block value added (Shield Slam, Revenge; warrior.md §3.1). */
+  private readonly abFlatSpread: Float64Array
+  private readonly abBlockValueCoef: Float64Array
+  /**
+   * Deals no damage (Sunder Armor, Demoralizing Shout): what lands is a hit, never a crit, so it
+   * fires no crit procs (warrior.md §7 "Debuffs on the boss"). A druid's combo-point row never is:
+   * a finisher's damage is per point, and a builder's crit awards Primal Fury's point (druid.md §2.5).
+   */
+  private readonly abNoDamage: Uint8Array
   private readonly abApCoef: Float64Array
   private readonly abBonusCrit: Float64Array
   private readonly abCritMult: Float64Array
@@ -575,8 +596,6 @@ export class Sim {
   private manaSpentAt = -Infinity
   /** The player's bleeds on the target now (`bleed` abilities' and Rake's; druid.md §5.1 Rend and Tear). */
   private activeDots = 0
-  /** Armor the active debuff auras take off the target (Faerie Fire, druid.md §3.8). */
-  private dynTargetArmor = 0
   /**
    * White hits and hits taken give rage: for a warrior, in a druid's bear form (FormPlan.rage), and
    * never for a class without a rage pool (the paladin).
@@ -672,6 +691,14 @@ export class Sim {
   private dynBlockValue = 0
   private dynArmor = 0
   private auraTakenMult = 1
+  /**
+   * Debuffs on the boss from the player's auras (Faerie Fire, druid.md §3.8; warrior.md §7 "Debuffs
+   * on the boss"): armor removed, the strongest slow as a fraction, and the swing damage the
+   * attack-power changes add.
+   */
+  private dynTargetArmor = 0
+  private dynBossSlow = 0
+  private dynBossDamage = 0
 
   // Derived per hand, refreshed on stat changes.
   private ap = 0
@@ -843,6 +870,9 @@ export class Sim {
     this.aTaken = new Float64Array(na)
     this.aBlockCharges = new Int32Array(na)
     this.aTargetArmor = new Float64Array(na)
+    this.aBossSlow = new Float64Array(na)
+    this.aBossAp = new Float64Array(na)
+    this.aBossDebuff = new Uint8Array(na)
     this.auraActive = new Uint8Array(na)
     this.auraStacks = new Int32Array(na)
     this.auraCharges = new Int32Array(na)
@@ -876,8 +906,12 @@ export class Sim {
       this.aTaken[i] = a.damageTaken ?? 0
       this.aBlockCharges[i] = a.blockCharges ?? 0
       this.aTargetArmor[i] = a.targetArmor ?? 0
+      this.aBossSlow[i] = a.bossSlow ?? 0
+      this.aBossAp[i] = a.bossAp ?? 0
+      this.aBossDebuff[i] = this.aBossSlow[i] || this.aBossAp[i] ? 1 : 0
       const defensive = this.aDodge[i] || this.aParry[i] || this.aBlock[i] || this.aBlockValue[i] || this.aArmor[i]
-      // A debuff's armor re-derives the armor factor with the stats (druid.md §3.8).
+      // A debuff's armor (Faerie Fire, druid.md §3.8; Sunder Armor, warrior.md §7) re-derives the
+      // armor factor with the stats.
       this.aStatful[i] = a.str || a.agi || a.ap || a.apPct || a.crit || a.spellCrit || defensive || this.aTargetArmor[i] ? 1 : 0
       this.aCritCharges[i] = a.critCharges
       if (a.whiteSwingCharges > 0) chargeAuras.push(i)
@@ -930,6 +964,9 @@ export class Sim {
     this.abWeaponPct = new Float64Array(nb)
     this.abNormalized = new Uint8Array(nb)
     this.abFlat = new Float64Array(nb)
+    this.abFlatSpread = new Float64Array(nb)
+    this.abBlockValueCoef = new Float64Array(nb)
+    this.abNoDamage = new Uint8Array(nb)
     this.abApCoef = new Float64Array(nb)
     this.abBonusCrit = new Float64Array(nb)
     this.abCritMult = new Float64Array(nb)
@@ -1025,17 +1062,34 @@ export class Sim {
       // warrior.md §3.1: Spearing Strike needs a two-hander. §7 "Without a main-hand weapon": every
       // ability that attacks (strikes, melee spells, bleeds, the on-next-swing queue) needs one; casts
       // don't, nor does a shapeshift (druid.md §2.8), nor a spell unless it deals weapon damage (Holy
-      // Strike, paladin.md).
+      // Strike, paladin.md). Shield Slam and Shield Block need a shield (§3.1, §3.2).
       const weaponSpell = a.kind === 'spell' && a.spell !== undefined && a.spell >= 0 && spells[a.spell].weaponPercent > 0
       const needsWeapon = a.kind === 'spell' ? weaponSpell : a.kind !== 'cast' && a.kind !== 'shift'
       // druid.md §3.1: Shred needs you behind the target, so from the front it's never used.
       this.abNeverReady[i] =
-        (a.twoHandOnly && !this.wTwoHand[HAND.main]) || (needsWeapon && !this.hasWeapon[HAND.main]) || (a.behindOnly && plan.fight.front) ? 1 : 0
+        (a.twoHandOnly && !this.wTwoHand[HAND.main]) ||
+        (a.shieldOnly === true && !plan.hasShield) ||
+        (needsWeapon && !this.hasWeapon[HAND.main]) ||
+        (a.behindOnly && plan.fight.front)
+          ? 1
+          : 0
       this.abUnavoidable[i] = a.unavoidable ? 1 : 0
       this.abWindow[i] = a.window
       this.abWeaponPct[i] = a.weaponPercent
       this.abNormalized[i] = a.normalized ? 1 : 0
       this.abFlat[i] = a.flatDamage
+      this.abFlatSpread[i] = a.flatSpread ?? 0
+      this.abBlockValueCoef[i] = a.blockValueCoefficient ?? 0
+      this.abNoDamage[i] =
+        a.weaponPercent === 0 &&
+        a.flatDamage === 0 &&
+        a.apCoefficient === 0 &&
+        a.damagePerExtraRage === 0 &&
+        (a.blockValueCoefficient ?? 0) === 0 &&
+        this.abCp[i] === 0 &&
+        this.abFinisher[i] === 0
+          ? 1
+          : 0
       this.abApCoef[i] = a.apCoefficient
       this.abBonusCrit[i] = a.bonusCrit
       this.abCritMult[i] = a.critMultiplier
@@ -1307,7 +1361,7 @@ export class Sim {
     if (this.hasWeapon[HAND.main]) this.scheduleSwing(HAND.main, 0)
     if (this.dualWield) this.scheduleSwing(HAND.off, Math.round(0.5 * this.swingMs[HAND.off]))
     if (f.bossSwing) {
-      this.bossSwingMs = Math.round(f.bossSwing.speedSec * 1000)
+      this.updateBossSpeed()
       this.bossNextAt = 0
       q.push(0, EV_BOSS, 0, this.bossGen)
     }
@@ -1597,7 +1651,8 @@ export class Sim {
         this.specCrit[h] = ch.crit
       }
       // docs/mechanics/damage-and-timing.md#12-armor-reduction-debuffs-and-penetration: flat reductions, then % ignored
-      // A debuff the player keeps up (Faerie Fire, druid.md §3.8) takes its armor off first.
+      // A debuff the player keeps up (Faerie Fire, druid.md §3.8; Sunder Armor's stacks, warrior.md
+      // §7) takes its armor off first.
       let armor = f.targetArmor - this.dynTargetArmor - d.armorPen
       if (armor > 0) armor *= 1 - this.wArmorPenPct[h]
       this.armorFactor[h] = 1 - armorReduction(armor, plan.playerLevel, plan.profile)
@@ -1951,6 +2006,12 @@ export class Sim {
         case COND.maxMana:
           if (this.mana > a) return false
           break
+        case COND.abilityAuraStacksBelow: {
+          // warrior.md §5.4 row 8: Sunder Armor's stacks below 5 (down counts as none).
+          const aura = this.abAura[a]
+          if (aura >= 0 && this.auraActive[aura] && this.auraStacks[aura] >= b) return false
+          break
+        }
       }
     }
     return true
@@ -2003,6 +2064,10 @@ export class Sim {
   /** An attack's strikes: the main hand's, and the off hand's if it has one (Raging Blows' Whirlwind, warrior.md §3.1) [?]. */
   private strike(a: number): void {
     this.chainMask = 0
+    if (this.abKind[a] === KIND_SPELL_TABLE) {
+      this.spellStrike(a)
+      return
+    }
     this.special(a, HAND.main, 0)
     if (this.abOffSource[a] >= 0 && this.hasWeapon[HAND.off]) this.special(a, HAND.off, 0)
   }
@@ -2178,12 +2243,13 @@ export class Sim {
     }
     const blocked = !unavoidable && r < th[o + 4]
     const critChance = this.specCrit[hand] + this.abBonusCrit[a] + this.auraCritPct(a)
-    // The crit slice follows the block slice, or the miss slice for an unavoidable attack.
+    // The crit slice follows the block slice, or the miss slice for an unavoidable attack. An ability
+    // that deals no damage (Sunder Armor) can't crit: what lands in the crit slice is a hit (§7).
     const critFrom = unavoidable ? th[o] : th[o + 4]
     const crit =
       this.abKind[a] === KIND_MELEE_SPELL
         ? this.rngTable.roll100() < critChance // roll 2, not truncated by roll 1
-        : !blocked && r < Math.min(100, critFrom + Math.max(0, critChance))
+        : !blocked && r < Math.min(100, critFrom + Math.max(0, critChance)) && this.abNoDamage[a] === 0
     let damage = this.abilityDamage(a, hand, bonusAp)
     if (crit) {
       damage *= this.abCritMult[a]
@@ -2210,6 +2276,8 @@ export class Sim {
     if (main && (this.abCp[a] !== 0 || this.abFinisher[a] === 1)) this.landComboPoints(a, crit)
     // docs/mechanics/threat.md#base-rule-and-how-modifiers-stack: (dmg × mult + bonus) × global
     this.addDamage(source, damage, (damage * this.abThreatMult[a] + this.abThreatBonus[a]) * this.threatMult)
+    // A landed strike puts its debuff on the boss: Sunder Armor adds a stack (warrior.md §7).
+    if (main && this.abAura[a] >= 0) this.applyAura(this.abAura[a])
     // An on-next-swing ability's swing counts as a landed swing (Unbridled Wrath, warrior.md §2.3 [?]).
     if (this.abKind[a] === KIND_ON_NEXT_SWING) this.fireProcs(TRIGGER.swingLanded, hand)
     this.fireProcs(TRIGGER.meleeLanded, hand)
@@ -2240,6 +2308,10 @@ export class Sim {
         if (this.abFlatRange[a] > 0) base += this.rngDamage.uniform(0, this.abFlatRange[a])
         if (this.abFinisher[a] === 1) base += this.comboPointDamage(a, ap)
       }
+      // Shield Slam and Revenge roll their range, and Shield Slam adds the block value (§3.1, W14, W15).
+      const spread = this.abFlatSpread[a]
+      if (spread > 0) base += this.rngDamage.uniform(-spread, spread)
+      if (this.abBlockValueCoef[a] > 0) base += this.abBlockValueCoef[a] * this.blockValue
     }
     // druid.md §5.1: Rend and Tear, on a bleeding target (the player's bleeds or others').
     if (this.abBleedPct[a] !== 0 && (this.othersBleed || this.activeDots > 0)) base *= 1 + this.abBleedPct[a] / 100
@@ -2256,6 +2328,41 @@ export class Sim {
   private comboPointDamage(a: number, ap: number): number {
     const cp = this.comboPoints
     return this.abPerCp[a] * cp + this.abApPerCp[a] * Math.min(cp, this.abCpApCap[a]) * ap
+  }
+
+  /**
+   * A `spellTable` ability (DefenseType Magic: Thunder Clap, Demoralizing Shout; warrior.md §7
+   * "Spell-table abilities" [?]): roll 1 against the spell table's miss (combat-tables §9), so no
+   * dodge, parry or block, and a miss refunds 80% of the cost as a melee special's does [?]; roll 2 for
+   * crit at the main hand's special crit chance, × the ability's crit multiplier (Impale's class mask
+   * has Thunder Clap). Damage and threat as a special's; a landed one puts its debuff on the boss. It
+   * fires no melee procs; a crit uses the charges crits end (Weakness Analyzer).
+   */
+  private spellStrike(a: number): void {
+    const source = this.abSource[a]
+    const row = source * FIELD_COUNT
+    const c = this.counters
+    c[row + FIELD.casts]++
+    if (this.rngTable.roll100() < this.spellMissPct) {
+      c[row + FIELD.misses]++
+      const refund = Math.floor(this.abRefund[a] * this.abCost[a] + 1e-9)
+      if (this.rage + refund >= this.maxRage) this.setRage(this.maxRage)
+      else this.rage += refund
+      this.actPending = this.hasRotation
+      return
+    }
+    const damages = this.abNoDamage[a] === 0
+    const crit = damages && this.rngTable.roll100() < this.specCrit[HAND.main] + this.abBonusCrit[a]
+    let damage = damages ? this.abilityDamage(a, HAND.main, 0) : 0
+    if (crit) {
+      damage *= this.abCritMult[a]
+      c[row + FIELD.crits]++
+    } else {
+      c[row + FIELD.hits]++
+    }
+    this.addDamage(source, damage, (damage * this.abThreatMult[a] + this.abThreatBonus[a]) * this.threatMult)
+    if (this.abAura[a] >= 0) this.applyAura(this.abAura[a])
+    if (crit) this.useCritCharges()
   }
 
   /**
@@ -2478,6 +2585,7 @@ export class Sim {
     }
     if (this.aHaste[a] || this.aDamage[a] || this.aHoly[a]) this.recomputeMultipliers()
     if (this.aTaken[a]) this.recomputeTakenMult()
+    if (this.aBossDebuff[a]) this.recomputeBossDebuffs()
   }
 
   /**
@@ -3020,7 +3128,9 @@ export class Sim {
     const boss = this.plan.fight.bossSwing!
     const rng = this.rngBoss
     const r = rng.roll100()
-    const raw = rng.uniform(boss.minDamage, boss.maxDamage)
+    let raw = rng.uniform(boss.minDamage, boss.maxDamage)
+    // The rotation's own attack-power debuff (Demoralizing Shout, warrior.md §7), never below 0.
+    if (this.dynBossDamage !== 0) raw = Math.max(0, raw + this.dynBossDamage)
     const th = this.thrBoss
     if (this.bossTrace !== null) this.bossTrace(this.now)
     this.bossNextAt = this.now + this.bossSwingMs
@@ -3171,6 +3281,40 @@ export class Sim {
     this.auraTakenMult = 1
     this.auraBlockCharges.fill(0)
     this.fightDamageTaken = 0
+    this.dynBossSlow = 0
+    this.dynBossDamage = 0
+  }
+
+  /**
+   * The rotation's debuffs on the boss's swings (warrior.md §7 "Debuffs on the boss"): the strongest
+   * active slow, and the attack power the active ones add, as damage per swing (encounter §5: AP ÷ 14
+   * × the unslowed swing speed). Recomputed from the active auras, so no drift.
+   */
+  private recomputeBossDebuffs(): void {
+    const boss = this.plan.fight.bossSwing
+    if (!boss) return
+    let slow = 0
+    let ap = 0
+    for (let i = 0; i < this.auraActive.length; i++) {
+      if (!this.auraActive[i] || !this.aBossDebuff[i]) continue
+      slow = Math.max(slow, this.aBossSlow[i] / 100)
+      ap += this.aBossAp[i] * this.auraStacks[i]
+    }
+    this.dynBossSlow = slow
+    this.dynBossDamage = (ap / 14) * boss.unslowedSec
+    this.updateBossSpeed()
+  }
+
+  /**
+   * The boss's time between swings: the plan's (the Buffs tab's slow in it), or a stronger slow the
+   * rotation keeps on it, as base × (1 + slow) (damage-and-timing §3.2). Like the player's haste it
+   * applies from the next swing: the one under way isn't rescaled [?] (§3.1).
+   */
+  private updateBossSpeed(): void {
+    const boss = this.plan.fight.bossSwing
+    if (!boss) return
+    const sec = this.dynBossSlow > boss.slow ? slowedSwingSec(boss.unslowedSec, this.dynBossSlow) : boss.speedSec
+    this.bossSwingMs = Math.round(sec * 1000)
   }
 
   /**

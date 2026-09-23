@@ -461,10 +461,13 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // (classes/warrior/abilities.ts `battleShout`: +139, `classicEra` +232), and the sheet shows that.
     if (buff) sheetOnly.push(...catalogueEffects(buff, profile))
   }
+  /** The exclusive groups the Buffs tab fills with a buff the rotation doesn't keep up (Expose Armor's `armor-major`). */
+  const filledGroups = new Set<string>()
   for (const id of config.buffs.enabled) {
     const buff = BUFFS_BY_ID.get(id)
     if (!buff || !forSpecClass(buff, config.spec) || !buffProvided(buff, config.buffs.raid, config.spec) || buffUnusedReason(buff, config.spec)) continue
     if (maintained.includes(id) || setup.replacesBuffs?.includes(id)) continue
+    if (buff.exclusiveGroup) filledGroups.add(buff.exclusiveGroup)
     const effects = catalogueEffects(buff, profile)
     apply(effects, null)
     for (const e of effects) {
@@ -617,8 +620,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spec.mods.holy ? { holy: spec.mods.holy } : {}),
       ...(spec.mods.holyTaken ? { holyTaken: spec.mods.holyTaken } : {}),
       ...(spec.group ? { group: spec.group } : {}),
-      // A debuff the player keeps on the target (Faerie Fire, druid.md §3.8).
+      // Debuffs the player keeps on the boss (Faerie Fire, druid.md §3.8; warrior.md §7 "Debuffs on
+      // the boss"), only when set.
       ...(spec.mods.targetArmor ? { targetArmor: spec.mods.targetArmor } : {}),
+      ...(spec.mods.bossSlow ? { bossSlow: spec.mods.bossSlow } : {}),
+      ...(spec.mods.bossAp ? { bossAp: spec.mods.bossAp } : {}),
     })
     return auras.length - 1
   }
@@ -797,6 +803,20 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   })
   const triggers: number[][] = Array.from({ length: TRIGGER_COUNT }, () => [])
   procs.forEach((p, i) => triggers[p.trigger].push(i))
+  // A debuff the rotation keeps on the boss is the aura named after its Buffs entry (Protection's
+  // Sunder Armor, Thunder Clap and Demoralizing Shout, warrior.md §5.4). When the Buffs tab fills its
+  // exclusive group with another (Expose Armor for Sunder Armor), only one applies in game, and the
+  // Buffs tab's stays: the rotation's changes nothing on the boss, and its threat still counts (§7).
+  for (const aura of auras) {
+    const group = maintained.includes(aura.id) ? BUFFS_BY_ID.get(aura.id)?.exclusiveGroup : undefined
+    if (group && filledGroups.has(group)) {
+      delete aura.targetArmor
+      delete aura.bossSlow
+      delete aura.bossAp
+    }
+    if (aura.bossSlow) hasDebuffs.slow = true
+    if (aura.bossAp) hasDebuffs.boss = true
+  }
 
   // --- Fight ------------------------------------------------------------------------------------
   const front = fight.position === 'front'
@@ -830,6 +850,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         ? {
             // docs/mechanics/damage-and-timing.md#32-attack-speed-debuffs-on-the-boss-tank-modeling: base × (1 + slow)
             speedSec: slowedSwingSec(bossSwingBase, c.bossSlowPct / 100),
+            unslowedSec: bossSwingBase,
+            slow: c.bossSlowPct / 100,
             minDamage: Math.max(0, fight.boss.damageMin + bossApDamage),
             maxDamage: Math.max(0, fight.boss.damageMax + bossApDamage),
             canCrush: fight.boss.canCrush,
@@ -898,7 +920,14 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (abilities.some((a) => a.offHandSource >= 0)) notes.add('ragingBlows')
   if (!mh) notes.add(classId === 'paladin' ? 'noWeaponSpells' : 'noWeapon')
   if (profile.id === 'forever') {
-    notes.add('foreverHitTable')
+    // Thunder Clap and Demoralizing Shout roll the spell table instead (warrior.md §7 "Spell-table abilities").
+    const spells = abilities.filter((a) => a.kind === 'spellTable')
+    notes.add(
+      'foreverHitTable',
+      spells.length > 0
+        ? `${spells.map((a) => a.name).join(' and ')} roll the spell table instead, a ${profile.combat.spellMiss[3]}% miss chance against a raid boss before spell hit, with no dodge, parry or block, and crit at your special-attack crit chance`
+        : undefined,
+    )
     if (front && fight.boss.canParry) notes.add('foreverBossParry')
     if (mh) notes.add('foreverGlancing')
   }
@@ -992,7 +1021,16 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (procIds.has('deepWounds')) notes.add('deepWounds')
   if (setup.talents.has('Anger Management')) notes.add('angerManagement')
   if (weapons.some((w) => w && w.plan.armorPenPct > 0)) notes.add('weaponmasterMace')
-  if (tank) notes.add('whiteThreat')
+  // threat.md#warrior: Sunder Armor's threat is the Forever client's; the rest are Classic Era's.
+  if (tank) {
+    const sunder = abilities.find((a) => a.id === 'sunderArmor')
+    notes.add(
+      'whiteThreat',
+      sunder
+        ? `Sunder Armor makes ${sunder.threatBonus.toLocaleString('en-US')} threat, the Forever client’s value, in place of Classic Era’s 261; the other abilities make Classic Era’s`
+        : undefined,
+    )
+  }
   if (setup.stance === 'defensive' && setup.talents.has('Defiance') && hasShield) notes.add('defiance')
   if (tank) notes.add('bossMelee')
   if (front) notes.add('bossFlags')
@@ -1016,7 +1054,15 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   ]
   if (setup.simulated && notPressed.length) notes.add('onUseConsumables', notPressed.join(', '))
   if (abilities.some((a) => a.id === 'weaknessAnalyzer')) notes.add(classId === 'paladin' ? 'weaknessAnalyzerPaladin' : 'weaknessAnalyzer')
-  if (abilities.some((a) => a.window >= 0)) notes.add('overpowerWindow')
+  // warrior.md §2.8: the reactive windows this rotation waits for.
+  const windows = new Set(abilities.filter((a) => a.window >= 0).map((a) => auras[a.window].id))
+  const windowNotes = [
+    ...(windows.has('overpowerWindow')
+      ? ['a dodge opens Overpower for 5 s and each new dodge refreshes it, so windows aren’t banked (the Forever data can bank 3); an Overpower that misses still closes it']
+      : []),
+    ...(windows.has('revengeWindow') ? ['a block, dodge or parry of the boss’s swings opens Revenge for 5 s'] : []),
+  ]
+  if (windowNotes.length > 0) notes.add('overpowerWindow', windowNotes.join('; '))
   if (procIds.has('bloodthrill')) notes.add('bloodthrill')
   // warrior.md §7 and Q3, Q13, Q32: Slam's cast, Spearing Strike's weapon share, Rend's tick crits and on-hit procs.
   if (abilities.some((a) => a.castMs > 0)) notes.add('slamCast')

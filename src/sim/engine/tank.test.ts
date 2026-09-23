@@ -16,18 +16,19 @@ import { localExecutor } from '../run/local'
 import type { SimConfig } from '../types'
 import { CHUNK_SIZE, type ChunkResult, runChunk } from './chunk'
 import { BOSS_OUTCOME, FIELD, FIELD_COUNT, Sim } from './sim'
-import { addAura, addProc } from './test-helpers'
+import { addAura, addProc, rotationOff } from './test-helpers'
 
 /**
- * A Protection warrior with no talents, no buffs and a shield only (no swings of its own, so no
- * parries and nothing for the boss to parry), fighting exactly 180 s against swings of exactly
- * 5,000 every 2.0 s: 90 swings a fight.
+ * A Protection warrior with no talents, no buffs, no rotation and a shield only (no swings of its
+ * own, so no parries and nothing for the boss to parry), fighting exactly 180 s against swings of
+ * exactly 5,000 every 2.0 s: 90 swings a fight.
  */
 function tankConfig(patch: Partial<SimConfig> = {}): SimConfig {
   const d = defaultConfig('warrior-protection')
   return {
     ...d,
     talents: '',
+    rotation: rotationOff('warrior-protection'),
     gear: { offHand: { itemId: 12602 } },
     buffs: { raid: d.buffs.raid, enabled: [] },
     fight: { ...d.fight, durationVariationPct: 0, boss: { ...d.fight.boss, damageMin: 5000, damageMax: 5000 } },
@@ -455,6 +456,7 @@ describe('parry haste follows the encounter’s setting both ways (encounter.md 
     const plan = buildPlan({
       ...d,
       talents: '',
+      rotation: rotationOff('warrior-protection'),
       gear: { mainHand: { itemId: 17016 } },
       buffs: { raid: d.buffs.raid, enabled: [] },
       fight: { ...d.fight, durationVariationPct: 0, boss: { ...d.fight.boss, parryHaste } },
@@ -489,8 +491,10 @@ function racingExecutor(plan: Plan, lanes: number): ChunkExecutor {
 }
 
 describe('tank results (D18, encounter.md §5)', () => {
-  it('the default Protection warrior: damage taken per second, and outcomes near the sheet’s table', () => {
-    const bundle = buildPlan({ ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 1000, seed: 11 } })
+  it('the default Protection warrior without its rotation: damage taken per second, and outcomes near the sheet’s table', () => {
+    // Its rotation's Shield Block raises the block share above the sheet's (warrior.md §5.4), so it's off here.
+    const d = defaultConfig('warrior-protection')
+    const bundle = buildPlan({ ...d, rotation: rotationOff('warrior-protection'), run: { mode: 'fixed', iterations: 1000, seed: 11 } })
     const tank = toResult(bundle, runFights(bundle.plan, 1000), 0).tank!
     const sheet = bundle.sheet.bossTable!
     // Parry haste from the boss's own parries adds swings to 180 s ÷ 2.4 s (Thunder Clap's slow).

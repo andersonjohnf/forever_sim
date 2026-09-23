@@ -230,8 +230,13 @@ export interface AuraSpec {
     holy?: number
     /** Flat Holy damage taken by the target (Judgement of the Crusader, paladin.md). */
     holyTaken?: number
-    /** Armor taken off the target while it's up: a debuff on the boss (Faerie Fire, druid.md §3.8). */
+    /**
+     * On the boss (a debuff a rotation keeps up: Faerie Fire, druid.md §3.8; warrior.md §7 "Debuffs
+     * on the boss"): armor removed, attack-speed slow % and attack power (+ raises it, − lowers it).
+     */
     targetArmor?: number
+    bossSlow?: number
+    bossAp?: number
   }
 }
 

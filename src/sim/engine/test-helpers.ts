@@ -2,6 +2,7 @@
 // warrior with two-hander T and nothing else, abilities added one by one as the plan builder adds
 // them, rotation lines and conditions, and traces of what a fight did. Test code only.
 import { expect } from 'vitest'
+import { rotationOptions } from '../classes/rotation'
 import { type TalentRanks, withTalents } from '../classes/warrior/modifiers'
 import { addSample, emptyMoments, stdev } from '../core/welford'
 import { defaultConfig } from '../defaults'
@@ -58,6 +59,14 @@ export function armsPlan(durationMs: number, spec: SpecId = 'warrior-arms'): Pla
   return plan
 }
 
+/**
+ * Every rotation switch of a spec off: its white swings, talents, buffs and procs only, and the Buffs
+ * tab's debuffs on the boss, not its own (Protection's tank tests of the boss's swings, which predate
+ * its rotation).
+ */
+export const rotationOff = (spec: SpecId): Record<string, boolean> =>
+  Object.fromEntries(rotationOptions(spec).flatMap((o) => (o.kind === 'toggle' ? [[o.id, false]] : [])))
+
 /** Fury's rotation switches, so its plan comes with no cooldown auras either. */
 const FURY_ROWS_OFF = [
   'warrior.fury.battleShout.enabled',
@@ -79,7 +88,7 @@ export function addAura(plan: Plan, spec: AuraSpec): number {
     name: spec.name,
     icon: 'x',
     durationMs: spec.durationMs,
-    maxStacks: 1,
+    maxStacks: spec.maxStacks ?? 1,
     whiteSwingCharges: 0,
     critCharges: 0,
     str: 0,
@@ -90,6 +99,12 @@ export function addAura(plan: Plan, spec: AuraSpec): number {
     spellCrit: m.spellCrit ?? 0,
     haste: m.haste ?? 0,
     damage: m.damage ?? 0,
+    // Tank auras (Shield Block) and debuffs on the boss (Sunder Armor, Thunder Clap, Demoralizing Shout).
+    ...(m.block ? { block: m.block } : {}),
+    ...(spec.blockCharges ? { blockCharges: spec.blockCharges } : {}),
+    ...(m.targetArmor ? { targetArmor: m.targetArmor } : {}),
+    ...(m.bossSlow ? { bossSlow: m.bossSlow } : {}),
+    ...(m.bossAp ? { bossAp: m.bossAp } : {}),
   })
   return plan.auras.length - 1
 }

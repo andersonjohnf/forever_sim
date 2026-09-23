@@ -1,15 +1,16 @@
-// What the warrior DPS priority lists share (docs/classes/warrior.md §5.1–§5.3): the builder that
+// What the warrior priority lists share (docs/classes/warrior.md §5.1–§5.4): the builder that
 // resolves abilities with the build's talents, condition helpers, and the rows Fury and Arms
 // both have, with their settings: the pre-pull, Battle Shout's upkeep, Death Wish, the racial and
 // on-use trinkets synced with it, Recklessness, Bloodrage, the Heroic Strike queue, the Mighty
-// Rage Potion and Juju Flurry. Setting ids are `warrior.<spec>.<ability>.<param>`, and every rage
-// threshold is in absolute rage points (§5.1).
+// Rage Potion and Juju Flurry. Protection shares the pre-pull, Battle Shout, the racial and
+// trinkets, Bloodrage, Heroic Strike and the consumables' settings. Setting ids are
+// `warrior.<spec>.<ability>.<param>`, and every rage threshold is in absolute rage points (§5.1).
 import { GCD_MS, toTenths } from '../../core/formulas'
 import type { OnUseSpec, ProcSpec } from '../../effects/types'
 import type { AssumptionId } from '../../plan/assumptions'
 import { COND, type PrepullPlan, type RotationCondition, type RotationEntry } from '../../plan/types'
 import { FOREVER, type RulesProfile } from '../../rules/profiles'
-import type { CreatureType, RotationGroup, RotationOption, RotationValue } from '../../types'
+import type { CreatureType, RotationDefaultWhen, RotationGroup, RotationOption, RotationValue } from '../../types'
 import { resolveRotationValues } from '../options'
 import {
   type AbilityDef,
@@ -131,8 +132,8 @@ export const rageOption = (
   dependsOn,
 })
 
-/** Setting ids of the rows both specs have, for `warrior.<spec>`. */
-export function sharedIds(spec: 'fury' | 'arms') {
+/** Setting ids of the rows the specs share, for `warrior.<spec>`. */
+export function sharedIds(spec: 'fury' | 'arms' | 'protection') {
   const p = `warrior.${spec}`
   return {
     prepullShout: `${p}.prepull.battleShout`,
@@ -160,8 +161,11 @@ export function sharedIds(spec: 'fury' | 'arms') {
 }
 export type SharedIds = ReturnType<typeof sharedIds>
 
-/** Row 0's settings: the pre-pull Battle Shout and Bloodrage, and Charge (whose help differs per spec). */
-export const prepullOptions = (ids: SharedIds, chargeHelp: string): RotationOption[] => [
+/**
+ * Row 0's settings: the pre-pull Battle Shout and Bloodrage, and Charge, whose help differs per spec
+ * and whose default can follow a talent (Protection: on with Vanguard, §5.4 row 0).
+ */
+export const prepullOptions = (ids: SharedIds, chargeHelp: string, chargeDefaultWhen?: RotationDefaultWhen[]): RotationOption[] => [
   {
     kind: 'toggle',
     id: ids.prepullShout,
@@ -179,7 +183,15 @@ export const prepullOptions = (ids: SharedIds, chargeHelp: string): RotationOpti
     help: 'Use Bloodrage 1 s before the pull: its 10 rage is there at the pull, and it’s ready again 59 s in.',
     default: true,
   },
-  { kind: 'toggle', id: ids.prepullCharge, group: 'Before the pull', label: 'Charge in', help: chargeHelp, default: false },
+  {
+    kind: 'toggle',
+    id: ids.prepullCharge,
+    group: 'Before the pull',
+    label: 'Charge in',
+    help: chargeHelp,
+    default: false,
+    ...(chargeDefaultWhen ? { defaultWhen: chargeDefaultWhen } : {}),
+  },
 ]
 
 /** Battle Shout's upkeep (Fury row 1, Arms row 1); `refreshBelowSec` is the spec's default (Fury 3 s, Arms 0 s). */
@@ -299,8 +311,17 @@ export const recklessnessOptions = (ids: SharedIds, help: string, lastSec = 15, 
   },
 ]
 
-/** Bloodrage on cooldown, with room under the cap (row 5 of both). */
-export const bloodrageOptions = (ids: SharedIds): RotationOption[] => [
+/**
+ * Bloodrage on cooldown, with room under the cap (row 5 of both; Protection's row 2). `maxRage` is
+ * the spec's rage limit: its default (the DPS specs' 130 cap minus 20) and help.
+ */
+export const bloodrageOptions = (
+  ids: SharedIds,
+  maxRage: { default: number; help: string } = {
+    default: WARRIOR_MAX_RAGE - 20,
+    help: `Use it only at or below this much rage, so its rage isn’t lost at the cap. ${WARRIOR_MAX_RAGE - 20} is the 130 cap minus 20.`,
+  },
+): RotationOption[] => [
   {
     kind: 'toggle',
     id: ids.brEnabled,
@@ -309,14 +330,7 @@ export const bloodrageOptions = (ids: SharedIds): RotationOption[] => [
     help: 'Use Bloodrage on cooldown: 10 rage, then 10 more over 10 s (50% more with Improved Bloodrage 2/2).',
     default: true,
   },
-  rageOption(
-    ids.brMaxRage,
-    'Bloodrage up to',
-    `Use it only at or below this much rage, so its rage isn’t lost at the cap. ${WARRIOR_MAX_RAGE - 20} is the 130 cap minus 20.`,
-    WARRIOR_MAX_RAGE - 20,
-    ids.brEnabled,
-    'Cooldowns and buffs',
-  ),
+  rageOption(ids.brMaxRage, 'Bloodrage up to', maxRage.help, maxRage.default, ids.brEnabled, 'Cooldowns and buffs'),
 ]
 
 /**
@@ -353,15 +367,16 @@ export const heroicStrikeOptions = (
 
 /**
  * The Mighty Rage Potion and Juju Flurry, when they're selected in Buffs (Fury rows 16 and 17, Arms
- * rows 17 and 18). `potionHelp` says when the spec drinks the potion, in and outside the execute
- * phase; `potionMaxRage` is its rage limit in the phase: its default (0 in both) and help. That limit
- * applies only in the phase, so it needs the spec's Execute switch (`executeId`) as well.
+ * rows 17 and 18, Protection row 4). `potionHelp` says when the spec drinks the potion, in and
+ * outside the execute phase; `potionMaxRage` is its rage limit: its default and help. Fury's and
+ * Arms' limit (0) applies only in the phase, so it needs the spec's Execute switch (`executeId`) as
+ * well; Protection's applies all fight, and it passes none.
  */
 export const consumableOptions = (
   ids: SharedIds,
   potionHelp: string,
   potionMaxRage: { default: number; help: string },
-  executeId: string,
+  executeId?: string,
 ): RotationOption[] => [
   {
     kind: 'toggle',
@@ -374,7 +389,7 @@ export const consumableOptions = (
   },
   {
     ...rageOption(ids.potionMaxRage, 'Mighty Rage Potion up to', potionMaxRage.help, potionMaxRage.default, ids.potionEnabled, 'Consumables'),
-    alsoDependsOn: executeId,
+    ...(executeId === undefined ? {} : { alsoDependsOn: executeId }),
   },
   {
     kind: 'toggle',
@@ -412,6 +427,10 @@ export const executeWithin = (ms: number): RotationCondition => ({ code: COND.ex
 export const executeNotWithin = (ms: number): RotationCondition => ({ code: COND.executeNotWithin, a: ms, b: 0 })
 export const minRage = (tenths: number): RotationCondition => ({ code: COND.minRage, a: tenths, b: 0 })
 export const maxRage = (rage: number): RotationCondition => ({ code: COND.maxRage, a: toTenths(rage), b: 0 })
+/** The aura ability a puts on the warrior or the boss is down, or has at most `ms` left and would end before the fight does. */
+export const auraRefresh = (ability: number, ms: number): RotationCondition => ({ code: COND.abilityAuraRefresh, a: ability, b: ms })
+/** The aura ability a puts on the boss has fewer than `n` stacks (Sunder Armor, warrior.md §5.4 row 8). */
+export const stacksBelow = (ability: number, n: number): RotationCondition => ({ code: COND.abilityAuraStacksBelow, a: ability, b: n })
 /** GCD-safe for the abilities in `mask` over `gcdMs` (warrior.md §5.1), or no condition when there are none. */
 export const gcdSafe = (mask: number, gcdMs = GCD_MS): RotationCondition[] => (mask ? [{ code: COND.gcdSafe, a: mask, b: gcdMs }] : [])
 export const bit = (ability: number) => (ability >= 0 ? 1 << ability : 0)

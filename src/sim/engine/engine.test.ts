@@ -14,6 +14,7 @@ import { localExecutor } from '../run/local'
 import type { SimConfig } from '../types'
 import { CHUNK_SIZE, type ChunkResult, runChunk } from './chunk'
 import { Sim } from './sim'
+import { rotationOff } from './test-helpers'
 
 /** Every Fury and Arms ability switched off (warrior.md §5.2, §5.3 settings): white swings only. */
 const NO_ABILITIES: SimConfig['rotation'] = {
@@ -190,6 +191,7 @@ describe('timing worked examples in the engine', () => {
     const config: SimConfig = {
       ...d,
       talents: '',
+      rotation: rotationOff('warrior-protection'),
       gear: { mainHand: { itemId: 17016 } },
       buffs: { raid: d.buffs.raid, enabled: [] },
       fight: { ...d.fight, durationVariationPct: 0 },
@@ -219,6 +221,7 @@ describe('tank rage from boss hits matches the closed form (rage.md tank model)'
     const config: SimConfig = {
       ...d,
       talents: '',
+      rotation: rotationOff('warrior-protection'),
       gear: { offHand: { itemId: 12602 } }, // shield only: no swings of our own, so only boss hits give rage
       buffs: { raid: d.buffs.raid, enabled: [] },
       fight: { ...d.fight, durationVariationPct: 0, boss: { ...d.fight.boss, damageMin: 5000, damageMax: 5000 } },
@@ -462,6 +465,19 @@ describe('golden run (fixed config and seed)', () => {
   //   19.56 M → 20.42 M with Death Wish and Recklessness up from the phase's start. DPS 668.63 →
   //   716.09, TPS 405.50 → 424.70. Arms and Protection are unchanged: their shared rows keep their
   //   defaults, and their lines are the same.
+  // - P1 (the Protection track, warrior.md §5.4): the default Protection warrior plays its rotation,
+  //   where it swung its weapon only. Charge, Battle Shout and Bloodrage before the pull; then Shield
+  //   Block on cooldown, Bloodrage, the Mighty Rage Potion early, Shield Slam, Revenge, Battle Shout,
+  //   Sunder Armor to 5 stacks, Thunder Clap and Demoralizing Shout kept up, Sunder Armor in every
+  //   free GCD, and Heroic Strike from 45 rage. Its own Battle Shout, Sunder Armor, Thunder Clap and
+  //   Demoralizing Shout replace the Buffs tab's, so the boss starts at full armor, speed and attack
+  //   power until they land. New rows: Bloodrage, the potion, Shield Slam, Revenge, Sunder Armor,
+  //   Thunder Clap, Demoralizing Shout and Heroic Strike (the main hand's threat 16.60 M → 12.10 M
+  //   as Heroic Strike takes swings). Shield Block's blocks raise Shield Specialization's threat
+  //   9,116 → 712,963 and Revenge uses the windows they open; Master of Defense's 20,083 → 257,368,
+  //   no longer clipped at the cap now that rage is spent. TPS 217.04 → 970.29, DPS 142.12 → 305.68.
+  //   Fury and Arms are unchanged: the engine's additions (debuffs on the boss, the spell table,
+  //   flat damage ranges and block value, shield-only abilities) change nothing they use.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

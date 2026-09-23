@@ -270,7 +270,8 @@ const REGISTRY = {
     docRef: `${PAL}#conventions-used-below`,
   },
   overpowerWindow: {
-    text: 'A dodge opens Overpower for 5 s and each new dodge refreshes it, so windows aren’t banked (the Forever data can bank 3); an Overpower that misses still closes it.',
+    // The reactive windows (warrior.md §2.8); the plan names each one the rotation waits for.
+    text: 'Reactive abilities wait for their window, as in Classic Era; untested in Forever.',
     docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
   },
   bloodthrill: {

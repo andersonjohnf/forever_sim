@@ -214,10 +214,14 @@ export interface AuraPlan {
    */
   group?: string
   /**
-   * Armor taken off the target while it's up: a debuff the player keeps on the boss (Faerie Fire's
-   * 505, druid.md §3.8). Absent: none.
+   * Debuffs the player keeps on the boss, as auras (Faerie Fire, druid.md §3.8; warrior.md §5.4, §7
+   * "Debuffs on the boss"), per stack, absent = 0: armor removed (Faerie Fire's 505, Sunder Armor's
+   * 450), attack-speed slow % (Thunder Clap 20; the strongest active one counts, with the Buffs
+   * tab's) and attack power (Demoralizing Shout −204).
    */
   targetArmor?: number
+  bossSlow?: number
+  bossAp?: number
 }
 
 export interface ProcPlan {
@@ -296,9 +300,19 @@ export interface AbilityPlan {
    * target (`dotTicks` ticks of `dotTickDamage`) and `aura` marks it there (Rend, warrior.md
    * §3.1; damage-and-timing §4). The direct-damage fields are unused;
    * `shift`: no attack: a druid's shapeshift into form `shiftTo`, with the form's entry rules for
-   * Energy and rage (Furor, druid.md §2.8). The damage fields are unused.
+   * Energy and rage (Furor, druid.md §2.8). The damage fields are unused;
+   * `spell`: casts its plan spell (`spell`), which rolls on the table its damage class picks and
+   * deals the spell's damage (the paladin's abilities, paladin.md#conventions-used-below). It rolls
+   * nothing itself, and its own damage fields are unused;
+   * `spellTable`: a warrior ability of the client's `DefenseType` Magic (Thunder Clap, Demoralizing
+   * Shout): roll 1 over the spell table's miss (combat-tables §9), so it can't be dodged, parried or
+   * blocked, and a miss refunds as a melee special's; roll 2 for crit at the main hand's special crit,
+   * × its own crit multiplier (warrior.md §7 "Spell-table abilities" [?]). Its damage and threat are
+   * its own fields, as a special's, and one that deals none never crits.
+   * A `weaponStrike`, `meleeSpell` or `spellTable` with an `aura` puts it on the target when it lands
+   * (Sunder Armor's stacks, Thunder Clap's slow, Demoralizing Shout's attack power; warrior.md §7).
    */
-  kind: 'weaponStrike' | 'meleeSpell' | 'onNextSwing' | 'cast' | 'bleed' | 'shift' | 'spell'
+  kind: 'weaponStrike' | 'meleeSpell' | 'onNextSwing' | 'cast' | 'bleed' | 'shift' | 'spell' | 'spellTable'
   /** Rage cost in tenths after the build's talent reductions (warrior.md §2.3 "Cost reductions"). */
   costTenths: number
   cooldownMs: number
@@ -318,6 +332,8 @@ export interface AbilityPlan {
   castStopsSwings: boolean
   /** Needs a two-handed weapon (Spearing Strike, warrior.md §3.1): never used with one-handers. */
   twoHandOnly: boolean
+  /** Needs a shield (Shield Slam, Shield Block; warrior.md §3.1, §3.2): never used without one. Absent = no. */
+  shieldOnly?: boolean
   /**
    * Can't be dodged, parried or blocked (Overpower, warrior.md §3.1): its one roll is miss, then
    * crit, then hit (combat-tables §3).
@@ -341,6 +357,13 @@ export interface AbilityPlan {
   weaponPercent: number
   normalized: boolean
   flatDamage: number
+  /**
+   * Not weapon-based: a uniform ± spread on `flatDamage` (Shield Slam 640–670, Revenge 138–168: the
+   * client's `Variance`), and a share of the block value added to it (Shield Slam's "increased by
+   * your Block Value", 1; warrior.md §3.1, W14, W15). Absent = 0: no draw, nothing added.
+   */
+  flatSpread?: number
+  blockValueCoefficient?: number
   apCoefficient: number
   /**
    * Execute: damage per point of rage left after paying the cost, read when it's cast; a landed
@@ -594,8 +617,12 @@ export const COND = {
   minMana: 18,
   /** mana ≤ a, in tenths: a mana potion or rune waits until its most mana fits (paladin.md#forever-priority-list-default) */
   maxMana: 19,
-  // 20 is Warrior Protection's, 21–24 the bear's, 25–28 the Protection paladin's: tracks that
-  // merge separately.
+  /**
+   * the aura that ability a puts on the target has fewer than b stacks (down counts as none): Sunder
+   * Armor's upkeep, "stacks below 5" (warrior.md §5.4 row 8)
+   */
+  abilityAuraStacksBelow: 20,
+  // 21–24 are the bear's, 25–28 the Protection paladin's: tracks that merge separately.
   /**
    * the execute phase starts in more than a ms: `executeWithin`'s opposite, always true in a fight
    * without one (Fury's potion with a Recklessness that came by its clock, warrior.md §5.2 row 16).
@@ -658,9 +685,15 @@ export const NO_PREPULL: PrepullPlan = { casts: [], chargeTenths: 0, keepTenths:
 
 /** The boss's melee on the player (combat-tables §8, encounter.md §5). */
 export interface BossSwingPlan {
-  /** Between swings, after attack-speed slows (damage-and-timing §3.2). */
+  /** Between swings, after the Buffs tab's attack-speed slows (damage-and-timing §3.2). */
   speedSec: number
-  /** Each swing's damage, uniform in [min, max], before the player's mitigation; AP debuffs included. */
+  /**
+   * Before any slow, and the Buffs tab's slow as a fraction (Thunder Clap 0.2): a slow the rotation
+   * puts on the boss counts instead while it's stronger (warrior.md §7 "Debuffs on the boss").
+   */
+  unslowedSec: number
+  slow: number
+  /** Each swing's damage, uniform in [min, max], before the player's mitigation; the Buffs tab's AP debuffs included. */
   minDamage: number
   maxDamage: number
   canCrush: boolean

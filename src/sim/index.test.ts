@@ -235,9 +235,13 @@ describe('rotationValues', () => {
       'warrior.arms.overpower.enabled': false,
       'warrior.arms.whirlwind.enabled': true,
     })
-    // Fury's are its plain defaults, and a spec without a rotation has none.
+    // Fury's are its plain defaults; Protection's Charge follows Vanguard (warrior.md §5.4 row 0); a spec
+    // without a rotation has none.
     expect(rotationValues(defaultConfig('warrior-fury'))['warrior.fury.bloodthirst.enabled']).toBe(true)
-    expect(rotationValues(defaultConfig('warrior-protection'))).toEqual({})
+    const prot = defaultConfig('warrior-protection')
+    expect(rotationValues(prot)['warrior.protection.prepull.charge']).toBe(true)
+    expect(rotationValues({ ...prot, talents: '' })['warrior.protection.prepull.charge']).toBe(false)
+    expect(rotationValues(defaultConfig('druid-feral-cat'))).toEqual({})
   })
 })
 

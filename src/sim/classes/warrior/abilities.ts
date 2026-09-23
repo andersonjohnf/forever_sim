@@ -5,13 +5,15 @@
 // so the app bundle doesn't carry the 1.3 MB client dataset; abilities.test.ts checks every one
 // against the client data. Client units: rage costs in tenths (`manaCost` 300 = 30 rage), times
 // in ms. These are the base rows: talents (cost reductions, Impale, Raging Blows, Improved
-// Bloodrage, Improved Berserker Rage, Improved Rend, Improved Slam, Improved Overpower) are
-// applied by `withTalents` in modifiers.ts when the plan resolves the rotation. Strikes roll the
-// attack tables (Slam after its cast time; Overpower only while its window is open, and only a
-// miss avoids it); Rend's `bleed` row lands a bleed; `cast` rows (Battle Shout, Bloodrage, Death
-// Wish, Recklessness, Berserker Rage, racial cooldowns, on-use items and consumables) apply an
-// aura and grant rage (warrior.md §3.1, §3.2, §2.8, §5.2). Stance swaps' cooldown and rage cap
-// are here too (§2.1).
+// Bloodrage, Improved Berserker Rage, Improved Rend, Improved Slam, Improved Overpower, Improved
+// Revenge) are applied by `withTalents` in modifiers.ts when the plan resolves the rotation.
+// Strikes roll the attack tables (Slam after its cast time; Overpower and Revenge only while their
+// window is open, and only a miss avoids Overpower); `spell` rows roll the spell table (Thunder
+// Clap, Demoralizing Shout); a landed strike or spell can put a debuff on the boss (Sunder Armor,
+// Thunder Clap, Demoralizing Shout); Rend's `bleed` row lands a bleed; `cast` rows (Battle Shout,
+// Bloodrage, Death Wish, Recklessness, Berserker Rage, Shield Block, racial cooldowns, on-use items
+// and consumables) apply an aura and grant rage (warrior.md §3.1, §3.2, §2.8, §5.2, §5.4, §7).
+// Stance swaps' cooldown and rage cap are here too (§2.1).
 import { CRIT_MULTIPLIER, GCD_MS } from '../../core/formulas'
 import type { AuraSpec, OnUseSpec, ProcSpec } from '../../effects/types'
 import { type AbilityDef, STANCE, STANCE_ANY } from '../../plan/types'
@@ -672,6 +674,241 @@ export const RACIAL_COOLDOWNS: Readonly<Partial<Record<string, AbilityDef>>> = {
   'horde-orc': BLOOD_FURY,
   'horde-troll': BERSERKING,
   'alliance-night-elf': ELUNES_LIGHT,
+}
+
+// ---------------------------------------------------------------------------------------------
+// Protection (warrior.md §3.1, §3.2, §5.4). Threat is threat.md's warrior rows.
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * The Revenge window (warrior.md §2.8): after the warrior blocks, dodges or parries, Revenge is
+ * usable for 5 s [?] (Q12). The client gates it on the caster's aura state 1 (spells.json 25288
+ * `casterAuraState`), which the server sets. With a 5 s cooldown as long as the window, closing it
+ * when Revenge is used changes nothing, so it reuses the Overpower window's mechanism (§7).
+ */
+export const REVENGE_WINDOW: AuraSpec = { id: 'revengeWindow', name: 'Revenge window', durationMs: 5000, mods: {} }
+
+/** The procs that open the Revenge window: the warrior's dodge or parry, and block, of the boss's swings (§2.8). */
+export function revengeWindowProcs(): ProcSpec[] {
+  const doc = 'docs/classes/warrior.md#28-reactive-abilities-overpower-bloodthrill-revenge'
+  const open = (id: string, trigger: 'dodgeParry' | 'block'): ProcSpec => ({
+    id,
+    name: 'Revenge',
+    icon: 'ability_warrior_revenge',
+    trigger,
+    from: 'any',
+    chance: { pct: 100 },
+    action: { kind: 'aura', aura: REVENGE_WINDOW },
+    docRef: doc,
+  })
+  return [open('revengeDodgeParry', 'dodgeParry'), open('revengeBlock', 'block')]
+}
+
+/**
+ * Revenge rank 6 (spells.json 25288): cost 50, cooldown `categoryRecoveryTime` 5000, GCD 1500,
+ * Defensive Stance only (`shapeshiftMask` 0x20000), `SCHOOL_DAMAGE` 153 with `Variance` 0.2, so
+ * 153 ± 15.3; the tooltip's 138–168 [F] [sb] wins (doctrine §2), 153 ± 15 (warrior.md §3.1, W14). A
+ * melee spell: two rolls (combat-tables §3). Needs the Revenge window. Improved Revenge adds 20% per
+ * rank (modifiers.ts). Threat 2.25 × dmg + 270 [C] (threat.md#warrior).
+ */
+export const REVENGE: AbilityDef = {
+  id: 'revenge',
+  name: 'Revenge',
+  icon: 'ability_warrior_revenge',
+  kind: 'meleeSpell',
+  costTenths: 50,
+  cooldownMs: 5000,
+  gcdMs: GCD_MS,
+  stances: STANCE.defensive,
+  executePhaseOnly: false,
+  weaponPercent: 0,
+  normalized: false,
+  flatDamage: 153,
+  flatSpread: 15,
+  apCoefficient: 0,
+  damagePerExtraRage: 0,
+  bonusCrit: 0,
+  critMultiplier: CRIT_MULTIPLIER.melee,
+  refundShare: REFUND,
+  threatMult: 2.25,
+  threatBonus: 270,
+  offHand: false,
+  ...INSTANT,
+  ...NO_CAST,
+  window: REVENGE_WINDOW,
+}
+
+/**
+ * Shield Slam rank 4 (spells.json 23925, the talent): cost 200, cooldown `categoryRecoveryTime`
+ * 6000, GCD 1500, any stance, a shield (`equippedItemSubclass` 64). `SCHOOL_DAMAGE` 655 with
+ * `Variance` 0.0457, 655 ± 15.0: the tooltip's 640–670 [F] [sb], 655 ± 15, plus the block value (the
+ * tooltip's "increased by your Block Value", ×1; warrior.md §3.1, W15). A melee spell: two rolls
+ * (combat-tables §3). Its dispel doesn't matter here. Threat dmg + 254 [C] (threat.md#warrior); the
+ * Forever tooltip's "very high" threat is unmeasured (threat.md OQ 1).
+ */
+export const SHIELD_SLAM: AbilityDef = {
+  id: 'shieldSlam',
+  name: 'Shield Slam',
+  icon: 'inv_shield_05',
+  kind: 'meleeSpell',
+  costTenths: 200,
+  cooldownMs: 6000,
+  gcdMs: GCD_MS,
+  stances: STANCE_ANY,
+  executePhaseOnly: false,
+  weaponPercent: 0,
+  normalized: false,
+  flatDamage: 655,
+  flatSpread: 15,
+  blockValueCoefficient: 1,
+  apCoefficient: 0,
+  damagePerExtraRage: 0,
+  bonusCrit: 0,
+  critMultiplier: CRIT_MULTIPLIER.melee,
+  refundShare: REFUND,
+  threatMult: 1,
+  threatBonus: 254,
+  offHand: false,
+  ...INSTANT,
+  shieldOnly: true,
+  ...NO_CAST,
+}
+
+/**
+ * Sunder Armor rank 5 (spells.json 11597): cost 150, no cooldown, GCD 1500, any stance, a melee
+ * weapon. On a landed hit (a block lands too) aura 22 −450 armor for `duration` 30000, stacking to 5
+ * (`cumulativeAura` 5), each application refreshing the stack's duration; and a THREAT effect (63) of
+ * 1013 [F], which replaces Classic Era's 261 [?] (threat.md#warrior, warrior.md Q1). It deals no
+ * damage: one roll over miss, dodge, parry and block (combat-tables §3), and what lands is a hit, not a
+ * crit (warrior.md §7). A miss, dodge or parry refunds 80% [C]. Its stacks on the boss take the place of
+ * the Buffs tab's Sunder Armor ×5 (warrior.md §5.4 notes).
+ */
+export const SUNDER_ARMOR: AbilityDef = {
+  id: 'sunderArmor',
+  name: 'Sunder Armor',
+  icon: 'ability_warrior_sunder',
+  kind: 'weaponStrike',
+  costTenths: 150,
+  cooldownMs: 0,
+  gcdMs: GCD_MS,
+  stances: STANCE_ANY,
+  executePhaseOnly: false,
+  weaponPercent: 0,
+  normalized: false,
+  flatDamage: 0,
+  apCoefficient: 0,
+  damagePerExtraRage: 0,
+  bonusCrit: 0,
+  critMultiplier: CRIT_MULTIPLIER.melee,
+  refundShare: REFUND,
+  threatMult: 0,
+  threatBonus: 1013,
+  offHand: false,
+  ...INSTANT,
+  ...NO_CAST,
+  aura: { id: 'sunderArmor', name: 'Sunder Armor', durationMs: 30000, maxStacks: 5, mods: { targetArmor: 450 } },
+}
+
+/**
+ * Thunder Clap rank 6 (spells.json 11581): cost 200, cooldown `categoryRecoveryTime` 6000, GCD 1500,
+ * Battle or Defensive Stance (`shapeshiftMask` 0x30000), `DefenseType` 1 (Magic): the spell table, so
+ * no dodge, parry or block (warrior.md §3.1, §7 "Spell-table abilities" [?]). `SCHOOL_DAMAGE` 103,
+ * physical, to up to 4 targets (the boss alone until multi-target, §5.5), and aura 319 (melee attack
+ * speed) −20 for `duration` 30000: the boss swings 20% slower (the profile's
+ * `thunderClapSlow`, as the Buffs tab's Thunder Clap reads it: Classic Era's is 10%). Threat 2.5 ×
+ * dmg [C] (threat.md#warrior). `thunderClap(profile)` is the profile's.
+ */
+export const THUNDER_CLAP: AbilityDef = {
+  id: 'thunderClap',
+  name: 'Thunder Clap',
+  icon: 'spell_nature_thunderclap',
+  kind: 'spellTable',
+  costTenths: 200,
+  cooldownMs: 6000,
+  gcdMs: GCD_MS,
+  stances: STANCE.battle | STANCE.defensive,
+  executePhaseOnly: false,
+  weaponPercent: 0,
+  normalized: false,
+  flatDamage: 103,
+  apCoefficient: 0,
+  damagePerExtraRage: 0,
+  bonusCrit: 0,
+  critMultiplier: CRIT_MULTIPLIER.melee,
+  refundShare: REFUND,
+  threatMult: 2.5,
+  threatBonus: 0,
+  offHand: false,
+  ...INSTANT,
+  ...NO_CAST,
+  aura: { id: 'thunderClap', name: 'Thunder Clap', durationMs: 30000, mods: { bossSlow: 20 } },
+}
+
+/** Thunder Clap under a rule profile: its slow is the profile's `thunderClapSlow` (Forever 20%, Classic Era 10%). */
+export function thunderClap(profile: RulesProfile): AbilityDef {
+  const slow = Math.round(100 * profile.values.thunderClapSlow)
+  return slow === THUNDER_CLAP.aura!.mods.bossSlow ? THUNDER_CLAP : { ...THUNDER_CLAP, aura: { ...THUNDER_CLAP.aura!, mods: { bossSlow: slow } } }
+}
+
+/**
+ * Demoralizing Shout rank 5 (spells.json 11556): cost 100, no cooldown, GCD 1500, any stance,
+ * `DefenseType` 1 (Magic): the spell table (warrior.md §7 "Spell-table abilities" [?]). Aura 99
+ * (melee attack power) on the boss for `duration` 45000: −204 at level 60 (base −196, −1.4 per level
+ * from 54; the profile's `demoralizingShoutAp`, as the Buffs tab's reads it; warrior.md §3.2, Q22). It
+ * deals no damage. Threat 43.2 per enemy debuffed [C] (threat.md#warrior). `demoralizingShout(profile)`
+ * is the profile's.
+ */
+export const DEMORALIZING_SHOUT: AbilityDef = {
+  id: 'demoralizingShout',
+  name: 'Demoralizing Shout',
+  icon: 'ability_warrior_warcry',
+  kind: 'spellTable',
+  costTenths: 100,
+  cooldownMs: 0,
+  gcdMs: GCD_MS,
+  stances: STANCE_ANY,
+  executePhaseOnly: false,
+  weaponPercent: 0,
+  normalized: false,
+  flatDamage: 0,
+  apCoefficient: 0,
+  damagePerExtraRage: 0,
+  bonusCrit: 0,
+  critMultiplier: CRIT_MULTIPLIER.melee,
+  refundShare: REFUND,
+  threatMult: 0,
+  threatBonus: 43.2,
+  offHand: false,
+  ...INSTANT,
+  ...NO_CAST,
+  aura: { id: 'demoralizingShout', name: 'Demoralizing Shout', durationMs: 45000, mods: { bossAp: -204 } },
+}
+
+/** Demoralizing Shout under a rule profile: its attack power is the profile's `demoralizingShoutAp` (Forever 204, Classic Era 146). */
+export function demoralizingShout(profile: RulesProfile): AbilityDef {
+  const ap = -profile.values.demoralizingShoutAp
+  const own = DEMORALIZING_SHOUT.aura!
+  return ap === own.mods.bossAp ? DEMORALIZING_SHOUT : { ...DEMORALIZING_SHOUT, aura: { ...own, mods: { bossAp: ap } } }
+}
+
+/**
+ * Shield Block (spells.json 2565): cost 100, `recoveryTime` 5000, no GCD, Defensive Stance only, a
+ * shield. Aura 51 (block chance) +75 for `duration` 7000, ending after 2 blocks (`procCharges` 2):
+ * Forever's baseline, Classic Era's Improved Shield Block (warrior.md §3.2). Focused Rage doesn't
+ * reduce it (§2.3). No threat of its own.
+ */
+export const SHIELD_BLOCK: AbilityDef = {
+  id: 'shieldBlock',
+  name: 'Shield Block',
+  icon: 'ability_defend',
+  ...NO_STRIKE,
+  costTenths: 100,
+  cooldownMs: 5000,
+  gcdMs: 0,
+  stances: STANCE.defensive,
+  shieldOnly: true,
+  aura: { id: 'shieldBlock', name: 'Shield Block', durationMs: 7000, blockCharges: 2, mods: { block: 75 } },
+  ...NO_CAST_RAGE,
 }
 
 /** Execute's damage before modifiers: `600 + 15 × (rage − cost)`, rage read after paying the cost (warrior.md §3.1, W10). */

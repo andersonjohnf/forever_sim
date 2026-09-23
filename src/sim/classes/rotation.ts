@@ -11,6 +11,7 @@ import { RETRIBUTION_OPTIONS, retributionRotation } from './paladin/retribution'
 import { paladinCore, type PaladinContext } from './paladin/setup'
 import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
+import { PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation } from './warrior/protection'
 import type { TalentRanks } from './warrior/modifiers'
 import type { ClassRotation } from './warrior/shared'
 import type { Stance } from './warrior/talents'
@@ -45,6 +46,7 @@ export const ROTATION_GROUPS: readonly RotationGroup[] = [
 export function rotationOptions(spec: SpecId): RotationOption[] {
   if (spec === 'warrior-fury') return FURY_OPTIONS
   if (spec === 'warrior-arms') return ARMS_OPTIONS
+  if (spec === 'warrior-protection') return PROTECTION_OPTIONS
   if (spec === 'druid-feral-cat') return CAT_OPTIONS
   if (spec === 'paladin-retribution') return RETRIBUTION_OPTIONS
   return []
@@ -72,7 +74,8 @@ export function renamedRotationOptions(spec: SpecId): Readonly<Record<string, st
 
 /**
  * Buff catalogue ids the spec's rotation keeps up itself with these settings: the plan leaves
- * their static Buffs effects out, so each counts once (Battle Shout, warrior.md §5.2 and §5.3 row 1).
+ * their static Buffs effects out, so each counts once (Battle Shout, warrior.md §5.2 and §5.3 row 1;
+ * Protection's Sunder Armor, Thunder Clap and Demoralizing Shout on the boss, §5.4).
  */
 /**
  * A raid with warriors keeps the boss bleeding all fight from their Deep Wounds [?]: Rend and Tear,
@@ -116,6 +119,7 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
 export function maintainedBuffs(spec: SpecId, values: Record<string, RotationValue>): string[] {
   if (spec === 'warrior-fury') return furyMaintainedBuffs(values)
   if (spec === 'warrior-arms') return armsMaintainedBuffs(values)
+  if (spec === 'warrior-protection') return protectionMaintainedBuffs(values)
   if (spec === 'druid-feral-cat') return catMaintainedBuffs(values)
   return []
 }
@@ -139,6 +143,7 @@ export function classRotation(
 ): ClassRotation {
   if (spec === 'warrior-fury') return furyRotation(values, talents, auraIndex, context)
   if (spec === 'warrior-arms') return armsRotation(values, talents, auraIndex, context)
+  if (spec === 'warrior-protection') return protectionRotation(values, talents, auraIndex, context)
   if (spec === 'druid-feral-cat') return catRotation(values, talents, auraIndex, context)
   // docs/classes/paladin.md "Retribution: model and rotation".
   if (spec === 'paladin-retribution') return retributionRotation(values, talents, auraIndex, context)

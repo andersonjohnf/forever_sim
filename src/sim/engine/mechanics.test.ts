@@ -14,7 +14,7 @@ import { ACTION, type Plan, STANCE, TRIGGER, TRIGGER_COUNT } from '../plan/types
 import { FOREVER } from '../rules/profiles'
 import type { DamageTakenRageModel, RuleProfileId, SimConfig, SpecId } from '../types'
 import { FIELD, SOURCE_MAIN_HAND, SOURCE_OFF_HAND, Sim } from './sim'
-import { addAbility, addAura, addProc, alwaysLandNoCrit, armsPlan, at, counter, damages, expectMean, line, rageAtPull, setAttackPower, timeline } from './test-helpers'
+import { addAbility, addAura, addProc, alwaysLandNoCrit, armsPlan, at, counter, damages, expectMean, line, rageAtPull, rotationOff, setAttackPower, timeline } from './test-helpers'
 
 /** A breakdown row for a test proc. */
 function row(plan: Plan, id: string): number {
@@ -280,7 +280,14 @@ describe('parry haste (damage-and-timing §3.4)', () => {
   it('the boss parrying the tank hastens the boss’s pending swing (WE-6)', () => {
     const bossSwings = (parryHaste: boolean) => {
       const d = defaultConfig('warrior-protection')
-      const plan = buildPlan({ ...d, talents: '', gear: { mainHand: { itemId: 17016 } }, buffs: { raid: d.buffs.raid, enabled: [] }, fight: { ...d.fight, durationVariationPct: 0 } }).plan
+      const plan = buildPlan({
+        ...d,
+        talents: '',
+        rotation: rotationOff('warrior-protection'),
+        gear: { mainHand: { itemId: 17016 } },
+        buffs: { raid: d.buffs.raid, enabled: [] },
+        fight: { ...d.fight, durationVariationPct: 0 },
+      }).plan
       plan.fight.durationMs = 9000
       plan.weapons[0]!.speedSec = 2.6
       plan.fight.bossSwing = { ...plan.fight.bossSwing!, speedSec: 2.0, parryHaste }
@@ -313,6 +320,7 @@ describe('rage from damage taken (rage.md#rage-from-damage-taken)', () => {
     const plan = buildPlan({
       ...d,
       talents: '',
+      rotation: rotationOff('warrior-protection'),
       gear: { offHand: { itemId: 12602 } },
       buffs: { raid: d.buffs.raid, enabled: [] },
       fight: { ...d.fight, durationVariationPct: 0, boss: { ...d.fight.boss, damageMin: 5000, damageMax: 5000 } },
@@ -554,6 +562,7 @@ describe('the block’s procs come after the damage-taken rage (rage.md implemen
       const d = defaultConfig('warrior-protection')
       const plan = buildPlan({
         ...d,
+        rotation: rotationOff('warrior-protection'),
         gear: { offHand: { itemId: 12602 } },
         buffs: { raid: d.buffs.raid, enabled: [] },
         fight: { ...d.fight, durationVariationPct: 0, boss: { ...d.fight.boss, damageMin: 5000, damageMax: 5000 } },

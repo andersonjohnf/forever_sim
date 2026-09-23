@@ -154,12 +154,16 @@ A spec is data plus small ability modules, never its own loop.
   block them. A landed swing costs health after damage-taken modifiers, armor, its multiplier and
   the block value, and gives rage from its size before them (rage users only: warriors, bears).
   Specials use their own table per hand (no glancing, no dual-wield penalty, combat-tables §3);
-  one that can't be dodged, parried or blocked (Overpower) rolls only miss, then crit. The off
+  one that can't be dodged, parried or blocked (Overpower) rolls only miss, then crit, and a
+  warrior's `spellTable` ability (Thunder Clap, Demoralizing Shout) rolls spell miss, then crit
+  (see Spells below for how it differs from a paladin's `spell`). The off
   hand keeps a second white table without the penalty for while Heroic Strike is queued (§5).
 - **Auras and procs** are generic: PPM or flat chance per hand, internal cooldowns, charges consumed
   by white swings (Flurry), by crits dealt (Weakness Analyzer) or by blocks (Holy Shield), stacks,
   stat, AP, AP %, crit, haste and damage mods, and defensive ones (dodge, parry, block, block
-  value, armor and damage taken), applied by a proc or a cast, and actions (extra attacks, auras, rage energizes, magic damage with its own
+  value, armor and damage taken), and debuffs a rotation keeps on the boss (armor removed per
+  stack, an attack-speed slow and attack power: Sunder Armor, Thunder Clap and Demoralizing Shout,
+  warrior.md §7), applied by a proc, a cast or a landed strike, and actions (extra attacks, auras, rage energizes, magic damage with its own
   hit and crit rolls, weapon bleeds such as Deep Wounds). Extra attacks follow one chain mask per
   root swing: an extra-attack source that procced from the swing, or from any extra attack after
   it, isn't rolled again in that chain (damage-and-timing §5.4).
@@ -202,6 +206,13 @@ A spec is data plus small ability modules, never its own loop.
   share a cooldown category, and auras can form an exclusive group (one seal). Holy damage and Holy
   threat have their own multipliers (Vengeance, Righteous Fury). Warrior and druid plans have none
   of these, and the paladin has no rage pool, so its hits give no rage.
+  A warrior's Thunder Clap and Demoralizing Shout roll the spell table too, but as their own kind,
+  `spellTable` ([warrior.md §7 "Spell-table abilities"](classes/warrior.md#7-implementation-notes)),
+  because their rules differ from a `spell`'s: their damage and threat are the ability's own fields,
+  as a melee special's; they crit at the main hand's special crit chance with the ability's crit
+  multiplier (Impale), not at spell crit; a miss refunds 80% of the rage, as a special's does; a
+  landed one puts its debuff on the boss; and one that deals no damage never rolls for a crit. A
+  `spell` ability rolls nothing itself and hands its `SpellDef` to the one resolver above.
 - **Rage** is integer tenths with a cap; energizes make 5 threat per rage. Abilities pay their cost
   when used (an on-next-swing one when its swing happens, one with a cast time when the cast
   completes) and refund their share of it on a miss,

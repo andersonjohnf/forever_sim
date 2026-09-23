@@ -34,6 +34,26 @@ Reviewer: a fresh agent, briefed to break it.
 Checks after the fixes: lint ✓ · typecheck ✓ · unit ✓ (1050) · e2e ✓ (225, 3 deferred to M3) ·
 smoke ✓ (219 unit, 9 e2e).
 
+## Quick check of `2ba6d03`
+
+A fresh reviewer checked the fix commit only (D20).
+
+**Confirmed:**
+- CI1–CI9 are fixed. The regression workflow can't block or cancel the deploy (no `needs`, no
+  shared concurrency group).
+- The smoke guard throws on a renamed file, and exactly 7 files run otherwise.
+- The every-section test fails on a console error.
+- `--grep @smoke` selects 9 tests.
+- Both workflows pass actionlint and action-validator.
+- lint ✓ · typecheck ✓ · unit ✓ (1050) · e2e ✓ (225, 3 deferred to M3) · smoke ✓ (219 unit,
+  9 e2e).
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| N1 | low | introduced (`2ba6d03`) | **A comment in `deploy.yml` and two lines in architecture.md still say the full suite runs only by hand,** and the smoke list there leaves out the every-section test. | fixed, FIXHASH: comment and doc lines only |
+| N2 | nit | introduced | **Doctrine §5's lead-in said "the best one a real player can execute"** where D23 says the best one "we've found", and a line in D23 wasn't wrapped. | fixed, FIXHASH |
+
 ## Verdict
 
-Ready to push: not yet. CI1 was medium, so `2ba6d03` awaits a quick fresh check (D20).
+**Ready to push: yes.** The quick check passed. N1 and N2 are comment and wording fixes that change
+no code, workflow step or test.

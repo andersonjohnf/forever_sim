@@ -303,16 +303,19 @@ A spec is data plus small ability modules, never its own loop.
 - **Two suites:**
   - The **smoke suite** (`npm run test:smoke`) is what the deploy workflow runs. It's seven
     core unit files (`vitest.smoke.config.ts`: data integrity, the goldens, normalize, defaults,
-    share codes and the sim's API) and the e2e tests tagged `@smoke`: the app opens, Fury and
-    Arms simulate, a share link restores, the phone layout, and Setups save and load.
+    share codes and the sim's API) and the e2e tests tagged `@smoke`: the app opens, every
+    section opens without an error, Fury and Arms simulate, a share link restores, the phone
+    layout, and Setups save and load.
   - The **full suite** (`npm run test:full`: lint, typecheck, every unit and e2e test) runs
-    before every push, as the review gate's first step. It also runs on Linux by hand, through
-    the **Full regression** workflow (Actions → Full regression → Run workflow).
+    before every push, as the review gate's first step. The **Full regression** workflow also
+    runs it on the deploy's platform (Linux x64, Node from `.nvmrc`), beside the deploy on every
+    push to `main`, and by hand (Actions → Full regression → Run workflow).
   - Tag an e2e test `{ tag: '@smoke' }` only if it covers a core flow, and keep the suite
     small.
 
 ## Deployment
 
-1. Push to `main`. The workflow runs lint → the smoke suite → build, then deploys `dist/`.
-   The full suite has passed locally before the push (CLAUDE.md).
+1. Push to `main`. The deploy workflow runs lint → the smoke suite → build, then deploys
+   `dist/`. The full suite has passed locally before the push (CLAUDE.md), and Full regression
+   runs it again beside the deploy, without holding it up.
 2. One-time setup: repository **Settings → Pages → Source: GitHub Actions**.

@@ -169,8 +169,8 @@ fix one of them in the same change.
 ## 5. Defaults
 
 Defaults describe a **typical guild raider in pre-raid gear** on a normal raid night, not a
-theoretical maximum. The exception is the rotation: it's the best one a real player can execute
-(D23). The defaults are:
+theoretical maximum. The exception is the rotation: it's the best one we've found that a real
+player can execute (D23). The defaults are:
 
 - the talent build is the spec's documented default in its class doc, a build a typical
   raider runs. The defaults began as the most popular Forever builds in September 2026

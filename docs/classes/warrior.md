@@ -1443,23 +1443,26 @@ This started from the Classic Era tank priority [wh-tank], adjusted for Forever'
 abilities, the Thunder Clap change and Shield Block's two blocks. The table is the list as built
 (`sim/classes/warrior/protection.ts`). Rows 0, 2, 3, 4, 7 and 12 share their code with Fury's and
 Arms' (`sim/classes/warrior/shared.ts`). Every row applies in both phases: a tank doesn't change
-its rotation in the execute phase, and only Execute (row 13) waits for it.
+its rotation in the execute phase, and only Execute (row 13) waits for it. The defaults are the
+best rotation found for the default setup that keeps the tank's toolkit
+([D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
+[Tuning the defaults](#tuning-the-defaults-p1) below).
 
 | # | Action | Condition (defaults) | Setting ids (default) | On by default |
 | --- | --- | --- | --- | --- |
-| 0 | Pre-pull | Battle Shout at −3 s (with row 7 on); Bloodrage at −1 s; Charge: 15 rage, +3 per Improved Charge rank. With Vanguard it's used in Defensive Stance; without it, the swap back keeps at most 10 + 3 per Improved Tactical Mastery rank | `warrior.protection.prepull.battleShout` (on; needs `.battleShout.enabled`), `.bloodrage` (on), `.charge` (on with Vanguard) | yes |
+| 0 | Pre-pull | Battle Shout at −3 s (with row 7 on); optionally Bloodrage at −1 s; Charge: 15 rage, +3 per Improved Charge rank. With Vanguard it's used in Defensive Stance; without it, the swap back keeps at most 10 + 3 per Improved Tactical Mastery rank | `warrior.protection.prepull.battleShout` (on; needs `.battleShout.enabled`), `.bloodrage` (off: at the pull instead, row 2), `.charge` (on with Vanguard) | yes |
 | 1 | Shield Block (off the GCD) | Off cooldown at rage ≥ `minRage`, in Defensive Stance with a shield: +75% block for 7 s or 2 blocks. Each block gives 5 rage (Shield Specialization) and opens Revenge | `warrior.protection.shieldBlock.enabled` (on), `.minRage` (10: its cost) | yes |
 | 2 | Bloodrage (off the GCD) | On cooldown at rage ≤ `maxRage` | `warrior.protection.bloodrage.enabled` (on), `.maxRage` (70: the 100 cap minus its 30) | yes |
 | 3 | Racial or trinket cooldowns (off the GCD) | On cooldown: there's no Death Wish to sync them with. Blood Fury, Berserking, Elune's Light; Weakness Analyzer | `warrior.protection.racial.enabled` (on), `.trinkets.enabled` (on) | yes |
 | 4 | Mighty Rage Potion; Juju Flurry (off the GCD) | The potion once, the first time rage ≤ `maxRage`, so its 45–75 rage fits under the cap: early in the fight. Juju Flurry on cooldown. Each only when it's selected in Buffs | `warrior.protection.ragePotion.enabled` (on), `.maxRage` (25: the cap minus 75); `.jujuFlurry.enabled` (on) | with the consumable |
 | 5 | Shield Slam | Off cooldown at rage ≥ `minRage`; the talent and a shield | `warrior.protection.shieldSlam.enabled` (on), `.minRage` (17: its cost) | yes |
 | 6 | Revenge | Its window is open ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)) | `warrior.protection.revenge.enabled` (on) | yes |
-| 7 | Battle Shout | As Fury's row 1: missing, or at most `refreshBelowSec` left and it would run out before the fight ends. It replaces the Buffs tab's Battle Shout | `warrior.protection.battleShout.enabled` (on), `.refreshBelowSec` (3) | yes |
+| 7 | Battle Shout | As Fury's row 1: missing, or at most `refreshBelowSec` left and it would run out before the fight ends. It replaces the Buffs tab's Battle Shout | `warrior.protection.battleShout.enabled` (on), `.refreshBelowSec` (0: once it has run out) | yes |
 | 8 | Sunder Armor | Fewer than 5 stacks on the boss, or at most `refreshBelowSec` left and they'd run out before the fight ends. It replaces the Buffs tab's Sunder Armor ×5 | `warrior.protection.sunder.enabled` (on), `.refreshBelowSec` (3) | yes |
 | 9 | Thunder Clap | With `maintainOnly`: its slow is missing from the boss, or has at most `refreshBelowSec` left. Without: on cooldown when Shield Slam is GCD-safe. It replaces the Buffs tab's Thunder Clap | `warrior.protection.thunderClap.enabled` (on), `.maintainOnly` (on), `.refreshBelowSec` (3) | yes |
 | 10 | Demoralizing Shout | Missing from the boss, or at most `refreshBelowSec` left. It replaces the Buffs tab's Demoralizing Shout | `warrior.protection.demoShout.enabled` (on), `.refreshBelowSec` (3) | yes |
-| 11 | Sunder Armor (filler) | Rage ≥ `minRage`; with `waitForShieldSlam`, Shield Slam (and Thunder Clap, when row 9 uses it on cooldown) GCD-safe. It fills every GCD the rows above leave | `warrior.protection.sunderFiller.enabled` (on), `.minRage` (10), `.waitForShieldSlam` (on) | yes |
-| 12 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`; optional unqueue | `warrior.protection.heroicStrike.enabled` (on), `.minRage` (45), `.unqueue` (off), `.unqueueBelow` (20) | yes |
+| 11 | Sunder Armor (filler) | Rage ≥ `minRage`; with `waitForShieldSlam`, Shield Slam (and Thunder Clap, when row 9 uses it on cooldown) GCD-safe. It fills every GCD the rows above leave | `warrior.protection.sunderFiller.enabled` (on), `.minRage` (10), `.waitForShieldSlam` (off) | yes |
+| 12 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`, or in the fight's last `anyRageLastSec` s whenever it can pay: rage left at the end is wasted; optional unqueue | `warrior.protection.heroicStrike.enabled` (on), `.minRage` (65), `.anyRageLastSec` (7), `.unqueue` (off), `.unqueueBelow` (20) | yes |
 | 13 | Execute | Execute phase only: a dance to Battle Stance and back, which loses Defensive Stance's threat. The swap keeps at most 10 rage, +3 per Improved Tactical Mastery rank, and that must pay Execute's cost (12), so the default build can never use it | `warrior.protection.execute.enabled` (off) | no |
 
 Notes:
@@ -1505,9 +1508,107 @@ Notes:
 - **Execute** (row 13) is off: in Battle Stance you lose Defensive Stance's ×1.3 and Defiance's
   ×1.15, and without Improved Tactical Mastery a swap can't keep the 12 rage it costs
   ([§7](#7-implementation-notes) "Stance dancing").
-- **The Mighty Rage Potion** (row 4) is drunk the first time rage is at most 25: the pull's
-  Bloodrage and Charge leave 30, so after the first Shield Block or Sunder Armor. Its rage turns
-  into threat at once; later, the cap would waste some of it.
+- **The Mighty Rage Potion** (row 4) is drunk the first time rage is at most 25: early in the
+  fight, once the pull's Charge and Bloodrage rage is spent. Its rage turns into threat at once;
+  later, the cap would waste some of it.
+
+#### Tuning the defaults (P1)
+
+The defaults above are the best rotation found on 2026-09-23, per
+[D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23), on TPS, the
+tank's headline ([D18](../decisions.md#d18-tank-specs-report-tps-and-dps-as-equals-2026-09-22)
+keeps DPS beside it). Against the starting defaults (the Classic Era priority as built, commit
+`8a9cc1d`), the result is **+14.83 TPS (+1.53%, 95% CI +14.72 to +14.94)**, 966.32 → 981.15, with
+DPS level (+0.05, −0.01 to +0.11), over 400,000 paired fights on seed 5051, which no search used.
+
+- **Method.** As Arms' ([§5.3](#tuning-the-defaults-m25a)): `scripts/tune/rotation.mjs --spec
+  warrior-protection` runs the real engine with common random numbers; for a tank spec it compares
+  TPS by default and prints each candidate's paired Δ DPS beside it. The setup is the default
+  Protection setup (Human, the 5/5/36 build, pre-raid BiS with the Draconian Deflector, the
+  Standard raid buffs, 180 s ± 10%, 20% execute, armor 3,731), the rotation aside. The search used
+  seeds 1–13 and 4041–4046 (40,000–400,000 fights a candidate), option by option with each adopted
+  change in the base (coordinate descent), and checked fights of 30–300 s as it went. The winner
+  was frozen and confirmed on seed 5051: against the starting defaults (`--against 8a9cc1d`), and
+  against itself with each change reverted.
+- **What the search may change.** The tank's toolkit stays in: Shield Block on cooldown, Thunder
+  Clap and Demoralizing Shout kept up, Shield Slam on cooldown, and Revenge. The sim scores threat
+  and damage, not survival, so a search on TPS alone drops the mitigation (below), and Shield Slam
+  with it, at 28% of the DPS. The search tunes how the rest is used: the filler, Heroic Strike, the
+  upkeep timings, Bloodrage and the potion.
+
+| Setting | Old → new | Alone, Δ TPS (95% CI) | In the winner, Δ TPS (95% CI) |
+| --- | --- | --- | --- |
+| `heroicStrike.anyRageLastSec` | none (0) → 7 s | −0.14 (−0.17 to −0.11) | +4.65 (+4.63 to +4.67) |
+| `heroicStrike.minRage` | 45 → 65 | +8.36 (+8.20 to +8.52) | +4.22 (+4.10 to +4.33) |
+| `sunderFiller.waitForShieldSlam` | on → off | +8.42 (+8.26 to +8.57) | +2.53 (+2.47 to +2.59) |
+| `prepull.bloodrage` | on → off | +0.35 (+0.26 to +0.44) | +0.30 (+0.26 to +0.33) |
+| `battleShout.refreshBelowSec` | 3 → 0 | +0.17 (+0.14 to +0.20) | +0.11 (+0.10 to +0.13) |
+
+"Alone" is each change against the starting defaults on seed 13 (200,000 fights); "in the winner"
+is the winner against a copy with that change reverted, on seed 5051 (400,000 fights). The changes
+interact: the last-seconds dump lets Heroic Strike's threshold rise without leaving rage unspent
+when the fight ends, which is what a high threshold cost in short fights.
+
+- **Heroic Strike.** From 65, and with any rage in the fight's last 7 s. Without the dump, 60–70
+  was best at 180 s but lost to 45 in short fights (−1.1% at 30 s): the rage it pools isn't spent
+  before the end. With it, 65 was best or level with the best at 30, 60, 180 and 300 s (70 was
+  +0.16 better at 180 s and −0.45 worse at 30 s; seeds 9 and 10), and a 7 s dump beat 3–10 s at 30
+  and 180 s (6 and 8 s within 0.25; seed 11).
+- **The filler doesn't wait for Shield Slam.** A GCD held for Shield Slam makes less threat than a
+  Sunder Armor in it (W26), and Shield Slam's cooldown then runs from the next GCD.
+- **Bloodrage at the pull**, where its rage makes 5 threat a point, beat its use before the pull,
+  whose rage comes out of combat and makes none ([threat.md](../mechanics/threat.md)).
+- **Battle Shout's refresh** once it has run out is small, as it was for Arms.
+- **Not adopted** (on search seeds, against the winner or its predecessor):
+  - The Mighty Rage Potion up to 15 rage: +0.20 to +0.45 at 180 s, but −0.9% to −1.5% at 30 s and
+    −0.3% at 60 s (seeds 5–7, 12, 4045), where it's drunk late or not at all. Up to 20–50: level
+    with 25; up to 5 or 0: worse (−0.9, −11.5; seed 2).
+  - The filler from 13 rage or more: all worse (−0.04% at 13 to −1.26% at 40; seeds 1, 12).
+  - Bloodrage up to 40 or 50 rage: −0.05 to −0.19; up to 60–100: level (seeds 2, 5, 6, 12).
+  - Sunder Armor's refresh at 0, 1.5 or 6 s: level (seeds 3, 12). Its upkeep rows off, leaving the
+    stacks to the filler: −16.86 (−1.73%, seed 3).
+  - Heroic Strike unqueued below 20, 40 or 50 rage: level or worse (seeds 3, 12).
+  - Revenge before Shield Slam: −1.22 (± 0.20), and the filler holding for Revenge as well as
+    Shield Slam: −10.54 (± 0.44) (code probes, seed 11, 20,000 fights).
+  - Your own Battle Shout off: +3.61, only because the Buffs tab's Battle Shout, another
+    warrior's, then applies at no cost: the raid's composition, not the rotation (as for Arms).
+  - No Charge in: −2.28; no pre-pull Battle Shout: −7.05 (seed 3).
+- **What the toolkit costs in TPS** (seed 5054, 200,000 fights, against the tuned defaults):
+
+  | Change | Δ TPS (95% CI) | Δ DPS |
+  | --- | --- | --- |
+  | Thunder Clap off | +33.42 (+33.23 to +33.60), +3.41% | −0.64 |
+  | Demoralizing Shout off | +28.06 (+27.88 to +28.23), +2.86% | +0.17 |
+  | Shield Block off | +25.54 (+25.35 to +25.74), +2.60% | +1.55 |
+  | All three off | +90.31 (+90.11 to +90.50), +9.20% | +0.76 |
+  | Shield Slam off | +20.36 (+20.18 to +20.55), +2.08% | −85.30 (−28%) |
+  | Thunder Clap refreshed once it has run out (0 s) | +0.87 (+0.74 to +0.99) | +0.06 |
+  | Demoralizing Shout refreshed once it has run out | +1.82 (+1.69 to +1.96) | +0.02 |
+  | Shield Block only from 30 rage | +2.59 (+2.46 to +2.72) | +1.04 |
+
+  Thunder Clap's slow and Demoralizing Shout make fewer and smaller boss swings, so fewer hits,
+  blocks and avoidances to give rage. Shield Block's blocks replace crushing blows and crits,
+  whose bigger swings give more rage, for 10 rage a use. Shield Slam's GCD and 17 rage make more
+  threat as a Sunder Armor and Heroic Strike ([W26](#w26-threat-per-global-cooldown-protection)).
+  They stay on by default: keeping the boss slowed and weakened and crushing blows off the table is
+  the tank's job (the buffs doc has the warrior tank apply Thunder Clap and Demoralizing Shout
+  itself, [§6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)), and
+  Shield Slam is its damage, which D18 weighs as much as its threat. How D23 weighs a tank's
+  survival and damage against its TPS is a decision to make; until then, each has its switch.
+- **Robustness** (seed 5052, and 5053 for the last two, 200,000 paired fights each): the tuned
+  defaults against the starting ones (`--against 8a9cc1d`).
+
+  | Fight | No execute phase | 20% execute phase | Δ DPS |
+  | --- | --- | --- | --- |
+  | 30 s | +16.26 (+16.07 to +16.46), +1.59% | the same | +2.92 |
+  | 60 s | +17.65 (+17.45 to +17.84), +1.77% | the same | +1.95 |
+  | 90 s | +14.44 (+14.26 to +14.63), +1.47% | the same | +0.61 |
+  | 180 s | +14.90 (+14.74 to +15.06), +1.54% | the same | +0.05 |
+  | 300 s | +14.46 (+14.32 to +14.59), +1.50% | the same | −0.37 |
+
+  With and without an execute phase the fights are identical: every row applies in both phases,
+  and Execute is off. An Orc (Blood Fury, the Horde's gear): +14.84 (+14.68 to +15.00), +1.55%.
+  Boss armor 3,009: +14.84 (+14.67 to +15.02), +1.43%.
 
 ### 5.5 Multi-target options (light)
 

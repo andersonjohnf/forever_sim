@@ -162,10 +162,15 @@ export function sharedIds(spec: 'fury' | 'arms' | 'protection') {
 export type SharedIds = ReturnType<typeof sharedIds>
 
 /**
- * Row 0's settings: the pre-pull Battle Shout and Bloodrage, and Charge, whose help differs per spec
- * and whose default can follow a talent (Protection: on with Vanguard, §5.4 row 0).
+ * Row 0's settings: the pre-pull Battle Shout and Bloodrage, and Charge, whose help differs per spec.
+ * A spec can set Bloodrage's default (Protection's is off: at the pull its rage makes threat, §5.4
+ * "Tuning the defaults") and make Charge's follow a talent (Protection: on with Vanguard, row 0).
  */
-export const prepullOptions = (ids: SharedIds, chargeHelp: string, chargeDefaultWhen?: RotationDefaultWhen[]): RotationOption[] => [
+export const prepullOptions = (
+  ids: SharedIds,
+  chargeHelp: string,
+  spec: { chargeDefaultWhen?: RotationDefaultWhen[]; bloodrage?: { default: boolean; help: string } } = {},
+): RotationOption[] => [
   {
     kind: 'toggle',
     id: ids.prepullShout,
@@ -180,8 +185,8 @@ export const prepullOptions = (ids: SharedIds, chargeHelp: string, chargeDefault
     id: ids.prepullBloodrage,
     group: 'Before the pull',
     label: 'Bloodrage before the pull',
-    help: 'Use Bloodrage 1 s before the pull: its 10 rage is there at the pull, and it’s ready again 59 s in.',
-    default: true,
+    help: spec.bloodrage?.help ?? 'Use Bloodrage 1 s before the pull: its 10 rage is there at the pull, and it’s ready again 59 s in.',
+    default: spec.bloodrage?.default ?? true,
   },
   {
     kind: 'toggle',
@@ -190,7 +195,7 @@ export const prepullOptions = (ids: SharedIds, chargeHelp: string, chargeDefault
     label: 'Charge in',
     help: chargeHelp,
     default: false,
-    ...(chargeDefaultWhen ? { defaultWhen: chargeDefaultWhen } : {}),
+    ...(spec.chargeDefaultWhen ? { defaultWhen: spec.chargeDefaultWhen } : {}),
   },
 ]
 
@@ -587,10 +592,14 @@ export function bloodrageLine(b: RotationBuilder, v: Reader, ids: SharedIds): vo
   if (v.on(ids.brEnabled)) b.add(BLOODRAGE, [maxRage(v.num(ids.brMaxRage))])
 }
 
-/** The Heroic Strike queue (off the GCD) at rage ≥ minRage, after `phase`; optional unqueue below a threshold. */
-export function heroicStrikeLine(b: RotationBuilder, v: Reader, ids: SharedIds, phase: RotationCondition[]): void {
+/**
+ * The Heroic Strike queue (off the GCD) at rage ≥ minRage, after `phase`; optional unqueue below a
+ * threshold. `fromTenths` replaces minRage's threshold (Protection's last seconds: from its cost).
+ */
+export function heroicStrikeLine(b: RotationBuilder, v: Reader, ids: SharedIds, phase: RotationCondition[], fromTenths?: number): void {
   if (!v.on(ids.hsEnabled)) return
-  b.add(HEROIC_STRIKE, [...phase, minRage(toTenths(v.num(ids.hsMinRage)))], v.on(ids.hsUnqueue) ? toTenths(v.num(ids.hsUnqueueBelow)) : 0)
+  const from = fromTenths ?? toTenths(v.num(ids.hsMinRage))
+  b.add(HEROIC_STRIKE, [...phase, minRage(from)], v.on(ids.hsUnqueue) ? toTenths(v.num(ids.hsUnqueueBelow)) : 0)
 }
 
 /**

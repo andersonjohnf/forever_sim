@@ -51,6 +51,7 @@ import {
   seconds,
   sharedIds,
   stacksBelow,
+  timeLeftAtMost,
 } from './shared'
 
 const P = 'warrior.protection'
@@ -71,6 +72,7 @@ const ID = {
   fillerEnabled: `${P}.sunderFiller.enabled`,
   fillerMinRage: `${P}.sunderFiller.minRage`,
   fillerSafe: `${P}.sunderFiller.waitForShieldSlam`,
+  hsLastSec: `${P}.heroicStrike.anyRageLastSec`,
   exEnabled: `${P}.execute.enabled`,
 }
 export const PROTECTION_IDS = ID
@@ -102,7 +104,13 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
   ...prepullOptions(
     ID,
     'Open with Charge for 15 rage (+3 per Improved Charge rank). With Vanguard you Charge in Defensive Stance, and it’s on by default; without it, the swap back keeps at most 10 rage, plus 3 per Improved Tactical Mastery rank.',
-    [{ talent: 'Vanguard', default: true }],
+    {
+      chargeDefaultWhen: [{ talent: 'Vanguard', default: true }],
+      bloodrage: {
+        default: false,
+        help: 'Use Bloodrage 1 s before the pull, so its rage is there at the pull. Off by default: used at the pull instead, its rage makes threat (5 a point), and it’s ready again 1 s later.',
+      },
+    },
   ),
   {
     kind: 'toggle',
@@ -117,7 +125,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     default: PROT_MAX_RAGE - 30,
     help: `Use it only at or below this much rage, so its rage isn’t lost at the cap. ${PROT_MAX_RAGE - 30} is the 100 cap minus its 30 with Improved Bloodrage 2/2.`,
   }),
-  ...battleShoutOptions(ID),
+  ...battleShoutOptions(ID, 0),
   // The racial and on-use trinkets on cooldown: Protection has no Death Wish to sync them with.
   ...cooldownOptions(ID).filter((o) => o.id !== ID.cdSync),
   {
@@ -191,19 +199,32 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.fillerSafe,
     group: 'Fillers',
     label: 'Sunder Armor filler waits for Shield Slam',
-    help: 'Hold the filler while Shield Slam will be ready within a global cooldown, so Sunder Armor doesn’t delay it.',
-    default: true,
+    help: 'Hold the filler while Shield Slam will be ready within a global cooldown, so Sunder Armor doesn’t delay it. Off by default: the global cooldown makes more threat as a Sunder Armor.',
+    default: false,
     dependsOn: ID.fillerEnabled,
   },
   ...heroicStrikeOptions(
     ID,
-    45,
+    65,
     {
       default: true,
       help: 'Queue Heroic Strike on the next main-hand swing when rage is high, to spend rage the global cooldowns can’t.',
     },
     { default: false, spenders: 'Shield Slam or Sunder Armor' },
   ),
+  {
+    kind: 'number',
+    id: ID.hsLastSec,
+    group: 'Fillers',
+    label: 'Heroic Strike with any rage in the last',
+    help: 'Near the end of the fight, queue it whenever you can pay for it: rage left at the end is wasted. 0 turns this off.',
+    unit: 's',
+    min: 0,
+    max: 60,
+    step: 1,
+    default: 7,
+    dependsOn: ID.hsEnabled,
+  },
   {
     kind: 'toggle',
     id: ID.exEnabled,
@@ -311,9 +332,12 @@ export function protectionRotation(
     b.add(SUNDER_ARMOR, [minRage(toTenths(v.num(ID.fillerMinRage))), ...(v.on(ID.fillerSafe) ? gcdSafe(bit(slam) | bit(tc)) : [])])
   }
 
-  // Row 12: the Heroic Strike queue (off the GCD) at rage ≥ minRage, in both phases.
+  // Row 12: the Heroic Strike queue (off the GCD) at rage ≥ minRage, in both phases; and in the fight's
+  // last anyRageLastSec s whenever it can pay (the engine checks its cost), since rage left is wasted.
   const none: RotationCondition[] = []
   heroicStrikeLine(b, v, ID, none)
+  const lastMs = seconds(v, ID.hsLastSec)
+  if (v.on(ID.hsEnabled) && lastMs > 0) heroicStrikeLine(b, v, ID, [timeLeftAtMost(lastMs)], 0)
 
   // Row 13: Execute (off by default), in the execute phase: a dance to Battle Stance and back. The
   // swap keeps at most 10 rage (+3 per Improved Tactical Mastery rank), which must pay its cost (§7).

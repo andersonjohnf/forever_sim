@@ -232,7 +232,7 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
   const rot = (values: Record<string, boolean | number> = {}, talents = TALENTS) =>
     protectionRotation(values, talents, noAura, { consumables: [potion], race: 'alliance-human' })
 
-  it('uses §5.4’s rows in priority order with the default settings', () => {
+  it('uses §5.4’s rows in priority order with the default settings: the best rotation found (D23, P1)', () => {
     const r = rot()
     expect(ids(r)).toEqual([
       'shieldBlock',
@@ -247,11 +247,17 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
       'demoralizingShout',
       'sunderArmor',
       'heroicStrike',
+      'heroicStrike',
     ])
-    expect(r.prepull.casts.map((c) => [r.abilities[c.ability].id, c.atMs])).toEqual([
-      ['battleShout', -3000],
-      ['bloodrage', -1000],
-    ])
+    // Bloodrage waits for the pull, where its rage makes threat (§5.4 "Tuning the defaults").
+    expect(r.prepull.casts.map((c) => [r.abilities[c.ability].id, c.atMs])).toEqual([['battleShout', -3000]])
+    expect(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)).toMatchObject({
+      [ID.prepullBloodrage]: false,
+      [ID.bsRefresh]: 0,
+      [ID.fillerSafe]: false,
+      [ID.hsMinRage]: 65,
+      [ID.hsLastSec]: 7,
+    })
     // Charge in Defensive Stance with Vanguard: its 15 rage, no swap.
     expect([r.prepull.chargeTenths, r.prepull.keepTenths]).toEqual([150, -1])
     expect(r.procs).toEqual(revengeWindowProcs())
@@ -264,32 +270,42 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
     expect(linesOf(r, 'bloodrage')[0].conditions).toEqual([{ code: COND.maxRage, a: 700, b: 0 }])
     expect(linesOf(r, 'mightyRagePotion')[0].conditions).toEqual([{ code: COND.maxRage, a: 250, b: 0 }])
     expect(r.abilities[at(r, 'mightyRagePotion')].usesPerFight).toBe(1)
+    expect(linesOf(r, 'shieldSlam')[0].conditions).toEqual([{ code: COND.minRage, a: 170, b: 0 }])
+    expect(linesOf(r, 'battleShout')[0].conditions).toEqual([{ code: COND.abilityAuraRefresh, a: at(r, 'battleShout'), b: 0 }])
     expect(linesOf(r, 'sunderArmor').map((e) => e.conditions)).toEqual([
       [{ code: COND.abilityAuraStacksBelow, a: sunder, b: 5 }],
       [{ code: COND.abilityAuraRefresh, a: sunder, b: 3000 }],
-      [
-        { code: COND.minRage, a: 100, b: 0 },
-        { code: COND.gcdSafe, a: 1 << at(r, 'shieldSlam'), b: 1500 },
-      ],
+      [{ code: COND.minRage, a: 100, b: 0 }],
     ])
     expect(linesOf(r, 'thunderClap')[0].conditions).toEqual([{ code: COND.abilityAuraRefresh, a: at(r, 'thunderClap'), b: 3000 }])
     expect(linesOf(r, 'demoralizingShout')[0].conditions).toEqual([{ code: COND.abilityAuraRefresh, a: at(r, 'demoralizingShout'), b: 3000 }])
-    expect(linesOf(r, 'heroicStrike')[0].conditions).toEqual([{ code: COND.minRage, a: 450, b: 0 }])
+    // From 65 rage, and in the fight's last 7 s from its cost: rage left at the end is wasted.
+    expect(linesOf(r, 'heroicStrike').map((e) => e.conditions)).toEqual([
+      [{ code: COND.minRage, a: 650, b: 0 }],
+      [
+        { code: COND.timeLeftAtMost, a: 7000, b: 0 },
+        { code: COND.minRage, a: 0, b: 0 },
+      ],
+    ])
+    expect(ids(rot({ [ID.hsLastSec]: 0 })).filter((id) => id === 'heroicStrike')).toHaveLength(1)
     // No line stops in the execute phase.
     for (const e of r.rotation) expect(e.conditions.some((c) => c.code === COND.executePhase)).toBe(false)
   })
 
-  it('follows its switches: Thunder Clap on cooldown, the filler without waiting, Execute’s dance, and rows off', () => {
-    const r = rot({ [ID.tcMaintainOnly]: false, [ID.fillerSafe]: false, [ID.exEnabled]: true })
+  it('follows its switches: Thunder Clap on cooldown, the filler waiting for Shield Slam, Execute’s dance, and rows off', () => {
+    const r = rot({ [ID.tcMaintainOnly]: false, [ID.fillerSafe]: true, [ID.exEnabled]: true, [ID.prepullBloodrage]: true })
     expect(linesOf(r, 'thunderClap')[0].conditions).toEqual([{ code: COND.gcdSafe, a: 1 << at(r, 'shieldSlam'), b: 1500 }])
-    expect(linesOf(r, 'sunderArmor')[2].conditions).toEqual([{ code: COND.minRage, a: 100, b: 0 }])
+    expect(r.prepull.casts.map((c) => [r.abilities[c.ability].id, c.atMs])).toEqual([
+      ['battleShout', -3000],
+      ['bloodrage', -1000],
+    ])
     const ex = linesOf(r, 'execute')
     expect(ex).toHaveLength(1)
     expect(ex[0].danceTo).toBe(STANCE.battle)
     expect(r.abilities[at(r, 'execute')].stances & STANCE.defensive).toBe(0)
     expect(EXECUTE.executePhaseOnly).toBe(true)
     // A Thunder Clap on cooldown counts in the filler's GCD-safe check when the filler waits.
-    const waits = rot({ [ID.tcMaintainOnly]: false })
+    const waits = rot({ [ID.tcMaintainOnly]: false, [ID.fillerSafe]: true })
     expect(linesOf(waits, 'sunderArmor')[2].conditions[1]).toEqual({ code: COND.gcdSafe, a: (1 << at(waits, 'shieldSlam')) | (1 << at(waits, 'thunderClap')), b: 1500 })
     const none = rot(Object.fromEntries(PROTECTION_OPTIONS.flatMap((o) => (o.kind === 'toggle' ? [[o.id, false]] : []))))
     expect(ids(none)).toEqual([])

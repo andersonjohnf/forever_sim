@@ -478,6 +478,15 @@ describe('golden run (fixed config and seed)', () => {
   //   no longer clipped at the cap now that rage is spent. TPS 217.04 → 970.29, DPS 142.12 → 305.68.
   //   Fury and Arms are unchanged: the engine's additions (debuffs on the boss, the spell table,
   //   flat damage ranges and block value, shield-only abilities) change nothing they use.
+  // - P1 tuning (decision D23, on TPS): the default Protection rotation is the best a paired search
+  //   found that keeps the tank's toolkit (warrior.md §5.4 "Tuning the defaults"): Heroic Strike
+  //   from 65 rage (45), and with any rage in the fight's last 7 s (a new setting); the Sunder Armor
+  //   filler no longer waits for Shield Slam; Battle Shout once it has run out (3 s left); Bloodrage
+  //   at the pull, not before it. Over 400,000 paired fights on a seed the search never used, +14.83
+  //   TPS (+1.53%, 95% CI +14.72 to +14.94), DPS level. On this seed's 500 fights: Sunder Armor's
+  //   threat 26.18 M → 27.66 M (more Sunders: 3,782 → 3,979 parried), Heroic Strike's 8.55 M →
+  //   8.30 M, Bloodrage's 220,676 → 255,610 (its rage at the pull makes threat); TPS 970.29 →
+  //   985.63, DPS 305.68 → 305.98.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

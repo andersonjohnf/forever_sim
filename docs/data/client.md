@@ -19,7 +19,7 @@ Interfaces are in [`src/data/client/types.ts`](../../src/data/client/types.ts); 
 
 | File | Size | What |
 | --- | --: | --- |
-| `spells.json` | 1.2 MB | 1,221 merged spell records (the interest set below), plus racials, radii and spell categories |
+| `spells.json` | 1.5 MB | 1,470 merged spell records (the interest set below), plus racials, radii and spell categories |
 | `talents.json` | 145 KB | every Forever talent of the three classes, mapped to its Trait node, spell and per-rank values |
 | `items.json` | 1.2 MB | ItemEffect rows and ItemSparse/Item fields for the 1,630 pre-raid items, plus 85 consumables |
 | `enchants.json` | 56 KB | the 79 SpellItemEnchantment rows the buffs doc names, with the spells and items that apply them |
@@ -27,7 +27,9 @@ Interfaces are in [`src/data/client/types.ts`](../../src/data/client/types.ts); 
 
 Every file starts with the usual `meta` envelope: `source`, `product`, `build`,
 `buildCreatedAt`, `tables` (table or game-table file → FileDataID), `wowDbDefs` (repository and
-commit), `scrapedAt` and `scraper`.
+commit), `scrapedAt` and `scraper`. `buildCreatedAt`, like the other datasets'
+`foreverBuildDate`, comes from wago.tools' build list (`/api/builds`, cached per build), so it
+is the same whichever build a machine has cached as "latest" (review finding L35).
 
 ## How the data was obtained
 
@@ -40,6 +42,7 @@ Only the documented API endpoints are called, and the fetch layer
 | Endpoint | Used for |
 | --- | --- |
 | `GET https://wago.tools/api/builds/wow_classic_beta/latest` | confirm the build (`1.60.1.69913`) |
+| `GET https://wago.tools/api/builds` | the build list (every product), for the requested build's creation date; cached per build |
 | `GET https://wago.tools/api/files?version=<build>&format=json` | the build's file list: FileDataIDs of the game tables, whether a DB2 ships in the build, icon file names |
 | `GET https://wago.tools/api/casc/<fdid>?version=<build>` | each raw DB2 and game-table file, once |
 | `GET https://api.github.com/repos/wowdev/WoWDBDefs/commits/master` | the WoWDBDefs commit to pin (cached, so later runs reuse it) |
@@ -69,7 +72,10 @@ Writing `pre-bis.json` (M1.5c-2) added **6 more**, all HTTP 200: `ItemSubClass`,
 **2 more**, both HTTP 200: the Classic Era `Talent` and `TalentTab` tables (their `.dbd` files
 were cached; [talents.md](talents.md#requests)). Rebuilding the spellbooks and races (M1.5e)
 added **4 more**, all HTTP 200: the Classic Era `SkillLineAbility`, `SkillLine`, `ChrRaces` and
-`ItemSubClass` tables (their `.dbd` files were cached; [spells.md](spells.md#requests)).
+`ItemSubClass` tables (their `.dbd` files were cached; [spells.md](spells.md#requests)). The
+first-release fixes (F2) added **1 more**, HTTP 200: wago.tools' build list, `/api/builds`
+(541 KB), for build dates that don't depend on the cached "latest" build. Every table they read
+(`SpellLevels`, `SpellEquippedItems` in both builds) was cached.
 
 A later run from the cache makes no requests. A fresh build costs 44 wago.tools requests for
 the datasets (38 DB2 files, 4 game tables, the build lookup and the file list), about 30 more
@@ -81,6 +87,7 @@ when WoWDBDefs is re-pinned.
 ```text
 .cache/client/
   builds/<product>_latest.json         /api/builds/<product>/latest
+  <build>/api/builds.json              /api/builds (the build list, for the build's date; once per build)
   <build>/api/files.json               the build's file list (108 MB for 1.60.1.69913)
   <build>/casc/<fdid>.bin (+ .meta.json)  raw files as served
   <build>/tables/<Table>.ndjson        every parsed table in full: line 1 = parse metadata
@@ -234,7 +241,8 @@ ClientSpell    id, name, nameSubtext ("Rank 5"), sources[]
                               effectBonusCoefficient (SP), bonusCoefficientFromAp (AP),
                               effectTriggerSpell, effectMiscValue[2], effectRadiusIndex[2],
                               effectAmplitude, effectAuraPeriod, effectChainTargets,
-                              effectMechanic, effectSpellClassMask[4], implicitTarget[2] }
+                              effectChainAmplitude (only when not 1), effectMechanic,
+                              effectSpellClassMask[4], implicitTarget[2] }
                auraOptions  { procChance, procCharges, procTypeMask[2], procCategoryRecovery (ICD),
                               cumulativeAura (max stacks), spellProcsPerMinuteId, ppm { baseProcRate, flags, mods[] } }
                cooldowns    { recoveryTime, categoryRecoveryTime, startRecoveryTime (GCD) }
@@ -255,7 +263,14 @@ ClientSpell    id, name, nameSubtext ("Rank 5"), sources[]
 - **Zero values are omitted** to keep the file small (it was 3.6 MB with them): an absent
   number is 0, an absent array is all zeros, an absent object means the spell has no row in
   that table. `id`, `name`, `effects`, `sources` and each effect's `effectIndex` and `effect`
-  are always present. Only `DifficultyID` 0 rows are used.
+  are always present. Only `DifficultyID` 0 rows are used. The one exception is
+  `effectChainAmplitude`, whose client default is 1: it's written only when it isn't 1, so an
+  absent one is 1 and a 0 is written (Ferocious Bite's).
+- **Execute's rage factor is client data.** `EffectChainAmplitude` of Execute's damage effect is
+  0.3, 0.6, 0.9, 1.2 and 1.5 at ranks 1–5 (5308, 20658, 20660, 20661, 20662), and its tooltip's
+  `$*10;F1` makes that 3 … 15 damage per extra point of rage `[F]` (review finding L33;
+  [warrior.md §3.1](../classes/warrior.md#31-damage-abilities)). Until F2 the column was
+  dropped as "chain spells only".
 - **Trimmed columns.** Left out because they were zero for every extracted spell (the scraper
   warns if one of them gains a value): `SpellEffect` `Coefficient`, `ResourceCoefficient`,
   `EffectAttributes`; `SpellMisc` `LaunchDelay`; `SpellPower` `ManaCostPerLevel`,
@@ -265,8 +280,7 @@ ClientSpell    id, name, nameSubtext ("Rank 5"), sources[]
   `SpellTargetRestrictions` `Width`; the four `…AuraType` columns of `SpellAuraRestrictions`;
   `SpellDuration` `DurationPerResource`. Left out as irrelevant to the engine: visual scripts,
   content tuning, `PvpMultiplier`, `GroupSizeBasePointsCoefficient`, `EffectPos_facing`,
-  `EffectItemType`, `StanceBarOrder`, and `EffectChainAmplitude` (1 everywhere except six
-  chain-spell effects). Lookup indexes (`castingTimeIndex`, `durationIndex`, `rangeIndex`) are
+  `EffectItemType` and `StanceBarOrder`. Lookup indexes (`castingTimeIndex`, `durationIndex`, `rangeIndex`) are
   replaced by the rows they point at; radius and category rows are the top-level maps.
 - **AP coefficients:** `bonusCoefficientFromAp` is 0 for every extracted spell. Forever puts
   attack-power scaling in dummy effects (Bloodthirst: `SCHOOL_DAMAGE` 48 plus `DUMMY` 35 = 35%
@@ -276,21 +290,21 @@ ClientSpell    id, name, nameSubtext ("Rank 5"), sources[]
   (meaning unverified), and `SpellProcsPerMinuteMod` is empty. No `SpellAuraOptions` row
   references a PPM id, so every `ppm` in the file is absent: proc rates are server-side.
 
-**Interest set: 1,221 spells** (1,134 before the trigger closure), every one in the client:
+**Interest set: 1,470 spells** (1,357 before the trigger closure), every one in the client:
 
 | Source | Spells | What |
 | --- | --: | --- |
 | `spellbook` | 493 | every Forever rank in `src/data/spells/{warrior,druid,paladin}.json` |
 | `talent` | 156 | each talent's TraitDefinition spell |
 | `racial` | 44 | the racials of `src/data/races/races.json`, resolved through `SkillLineAbility` race masks and names, per-class variants included (e.g. Eureka!: 1259813 for warriors) |
-| `item` | 182 | ItemEffect spells of the pre-raid items |
+| `item` | 409 | ItemEffect spells the Forever client links to the pre-raid items, and every spell the pool names: its effect lines' and set bonuses' `spellId` and its `statSpellIds` (fallback items' Classic Era effects read Forever spells that Forever doesn't link to them) |
 | `consumable` | 78 | ItemEffect spells of the consumables in the buffs doc, and the doc's own `→` spell ids |
 | `enchant` | 125 | enchanting spells, the spells each enchant casts (combat, equip, use), doc proc spells |
 | `buffsDoc` | 47 | buff and debuff spell ids in the buffs doc's §1 and §4 tables |
-| `docs` | 261 | spell ids cited in `docs/classes`, `docs/mechanics` and `docs/open-questions.md`, either with a marker ("spell 12966", "[F 20128]", "proc 25713", "DB2 21184", "(3025, 1178, 9635)", backticks) or with the client's name earlier on the same line; Classic "(C: …)" ids are skipped |
-| `trigger` | 104 | reached through another extracted spell's `effectTriggerSpell`, transitively |
+| `docs` | 262 | spell ids cited in `docs/classes`, `docs/mechanics` and `docs/open-questions.md`, either with a marker ("spell 12966", "[F 20128]", "proc 25713", "DB2 21184", "(3025, 1178, 9635)", backticks) or with the client's name earlier on the same line; Classic "(C: …)" ids are skipped |
+| `trigger` | 130 | reached through another extracted spell's `effectTriggerSpell`, transitively |
 
-A spell can have several sources, so the column sums to more than 1,221. The docs source was
+A spell can have several sources, so the column sums to more than 1,470. The docs source was
 added beyond the brief because the engine needs proc and passive spells that no spellbook lists:
 the Flurry buff 12966, the stance passives 21156/7376/7381, the Overpower window 1282733,
 Consecration's tick spells, Weaponmaster's procs, the Forever Deep Wounds bleed 412609 and the
@@ -791,6 +805,7 @@ table. Points are `EffectBasePointsF` (Forever) or `EffectBasePoints + 1` when
 | 30 | MOD_SKILL | 95 Defense, weapon skill lines (43 Swords, 44 Axes, 54 Maces, 173 Daggers, …) | defense, `weaponSkill` |
 | 47, 49, 51 | MOD_PARRY / DODGE / BLOCK_PERCENT | | parry, dodge, block |
 | 52 | MOD_WEAPON_CRIT_PERCENT | | crit (the tooltip's "with melee attacks" wording is `meleeCrit` in the snapshot; the engine adds both to melee crit) |
+| 290 | MOD_CRIT_PCT (all crit: attacks and spells) | | crit and spellCrit, as the engine counts a +1% crit enchant (The Gladiator 5-piece, 1314795) |
 | 54, 55 | MOD_HIT_CHANCE, MOD_SPELL_HIT_CHANCE | | hit, spellHit |
 | 57, 71, 552 | spell crit (552 is Classic Era 1.15's number) | 126 for 71 and 552 | spellCrit |
 | 99, 124 | MOD_ATTACK_POWER, MOD_RANGED_ATTACK_POWER | | attackPower (the melee value); ranged beyond it → rangedAttackPower |
@@ -799,12 +814,21 @@ table. Points are `EffectBasePointsF` (Forever) or `EffectBasePoints + 1` when
 | 123 | MOD_TARGET_RESISTANCE | school mask | spellPenetration (negated) |
 | 85 | MOD_POWER_REGEN | 0 mana | mp5 |
 | 84, 161 | MOD_REGEN, MOD_HEALTH_REGEN_IN_COMBAT | | hp5 ("Restores N health per 5 sec") |
-| 158, 564 | shield block value (564 is Classic Era 1.15's number) | | blockValue |
-| 189 | MOD_RATING | combat-rating mask | ratings `[?]` (no pool item uses it) |
+| 158, 564, 274 | shield block value (564 is Classic Era 1.15's number, 274 Forever's: Barrier Shield's 22912 "Increases the block value of your shield by 18") | | blockValue |
+| 189 | MOD_RATING | combat-rating mask | ratings: 224 (melee, ranged and spell hit) → hitRating, 1792 (crit) → critRating (Necropile Raiment and Bloodmail Regalia set bonuses) |
 
-Not stats: an equip spell with aura 15 (damage shield, "when struck"), 42 or 43 (proc
-triggers) is a **proc**. One with a `SpellCastingRequirements.RequiredAreasID` or a
-`SpellShapeshift.ShapeshiftMask` is a **conditional** effect, which carries its would-be stats.
+Not stats, listed in `NOT_STAT_AURAS` with the reason: 4 (dummy), 10 (threat %), 15, 42, 43
+(procs), 17 (stealth detection), 23 (periodic trigger), 31, 58, 129 (movement and swim speed),
+77, 117, 232, 255 (mechanic immunity, resistance, duration, damage taken), 107, 108, 112 (class
+ability tweaks), 120 (untrackable), 154 (stealth level), 168 (damage % against a creature type)
+and 593 (chance to be dodged or parried: Deathbone Guardian's 5-piece). Every aura on an equip
+spell or set bonus of the pool is in one of the two tables; a new one makes the item generator
+warn and `scripts/scrape/lib/item-pool.test.mjs` fail (review finding L8).
+
+An equip spell with aura 15 (damage shield, "when struck"), 42 or 43 (proc
+triggers) is a **proc**. One with a `SpellCastingRequirements.RequiredAreasID`, a
+`SpellShapeshift.ShapeshiftMask` or a weapon `SpellEquippedItems` row (item class 2: "hit with
+ranged weapons") is a **conditional** effect, which carries its would-be stats.
 For example, Rune of the Guard Captain's "tripled in Forest and Grassland areas" is spell
 1287704 (+28 AP, area group 9161), next to the always-on +14 AP of spell 1318000. Anything
 else, such as class-ability tweaks (auras 107/108), run speed, stealth detection or dummies, is

@@ -24,6 +24,7 @@ import {
   validateTalentBuild,
 } from './talents/types'
 import warriorTalentJson from './talents/warrior.json'
+import storedBuildsJson from '../../scripts/scrape/stored-builds.json'
 
 const spellBooks = {
   warrior: warriorSpellJson as unknown as SpellBook,
@@ -113,89 +114,37 @@ describe.each(Object.entries(spellBooks))('spells/%s', (cls, book) => {
   })
 })
 
-// Every build code the repo stores or documents: defaults and presets (src/sim/defaults.ts), the
-// class docs' builds (warrior.md §6.1, druid.md §7.1, paladin.md), a popular Restoration build
-// and the codes in tests. Share links and saved setups store codes, so a code must keep meaning
-// the same build: each entry lists, per tree, the ranks by talent name it decoded to when it was
-// written; every client build since has kept them. If a doc changes a build, change it here too.
-const STORED_BUILDS: Record<keyof typeof talentData, Record<string, [string, string, string]>> = {
+// Every build code the repo stores or documents, with the ranks by talent name each decoded to when
+// it was written: scripts/scrape/stored-builds.json, the one list the talent scraper checks too
+// (docs/data/talents.md#build-codes-verified). Share links and saved setups store codes, so a code
+// must keep meaning the same build. If a doc changes a build, change it there too.
+type StoredBuilds = Record<keyof typeof talentData, Record<string, { note: string; ranks: [string, string, string] }>>
+const STORED_BUILDS = Object.fromEntries(
+  (Object.keys(talentData) as (keyof typeof talentData)[]).map((cls) => [
+    cls,
+    Object.fromEntries(Object.entries((storedBuildsJson as unknown as StoredBuilds)[cls]).map(([code, b]) => [code, b.ranks])),
+  ]),
+) as Record<keyof typeof talentData, Record<string, [string, string, string]>>
+
+// Every position of every build code: the talent and max rank each digit stands for, per tree in
+// code order (tier, then column). Share links and saved setups store codes, so a position may never
+// change meaning; a new talent may only be appended at the end of a tree. The talent scraper refuses
+// a build that moves one (--accept-code-changes overrides it once the app handles the change).
+const CODE_ORDER: Record<keyof typeof talentData, Record<string, string>> = {
   warrior: {
-    // Fury default (17/34/0)
-    '30305013002-050530035150010051-': [
-      'Improved Heroic Strike 3, Improved Rend 3, Improved Tactical Mastery 5, Anger Management 1, Deep Wounds 3, Impale 2',
-      'Cruelty 5, Unbridled Wrath 5, Improved Cleave 3, Boundless Rage 3, Dual Wield Specialization 5, Raging Blows 1, Enrage 5, Death Wish 1, Flurry 5, Bloodthirst 1',
-      '',
-    ],
-    // Fury + Precision (15/36/0)
-    '30305013-050520035150310051-': [
-      'Improved Heroic Strike 3, Improved Rend 3, Improved Tactical Mastery 5, Anger Management 1, Deep Wounds 3',
-      'Cruelty 5, Unbridled Wrath 5, Improved Cleave 2, Boundless Rage 3, Dual Wield Specialization 5, Raging Blows 1, Enrage 5, Precision 3, Death Wish 1, Flurry 5, Bloodthirst 1',
-      '',
-    ],
-    // Arms default (37/14/0)
-    '30305213132515201-05050103-': [
-      'Improved Heroic Strike 3, Improved Rend 3, Improved Tactical Mastery 5, Improved Overpower 2, Anger Management 1, Deep Wounds 3, Spearing Strike 1, Two-Handed Weapon Specialization 3, Impale 2, Bloodthrill 5, Sweeping Strikes 1, Weaponmaster 5, Improved Slam 2, Mortal Strike 1',
-      'Cruelty 5, Unbridled Wrath 5, Piercing Howl 1, Boundless Rage 3',
-      '',
-    ],
-    // Protection default (5/5/36)
-    '05-05-552001233201210531': [
-      'Deflection 5',
-      'Cruelty 5',
-      'Shield Specialization 5, Anticipation 5, Improved Bloodrage 2, Last Stand 1, Master of Defense 2, Improved Revenge 3, Defiance 3, Improved Sunder Armor 2, Vanguard 1, Improved Shield Wall 2, Concussion Blow 1, Bastion 5, Focused Rage 3, Shield Slam 1',
-    ],
-    // Protection "TPS" variant (5/5/36)
-    '32-05-552001233201210531': [
-      'Improved Heroic Strike 3, Deflection 2',
-      'Cruelty 5',
-      'Shield Specialization 5, Anticipation 5, Improved Bloodrage 2, Last Stand 1, Master of Defense 2, Improved Revenge 3, Defiance 3, Improved Sunder Armor 2, Vanguard 1, Improved Shield Wall 2, Concussion Blow 1, Bastion 5, Focused Rage 3, Shield Slam 1',
-    ],
+    Arms: 'Improved Heroic Strike 3, Deflection 5, Improved Rend 3, Improved Charge 2, Improved Tactical Mastery 5, Improved Overpower 2, Anger Management 1, Deep Wounds 3, Spearing Strike 1, Two-Handed Weapon Specialization 3, Impale 2, Bloodthrill 5, Sweeping Strikes 1, Weaponmaster 5, Improved Slam 2, Improved Hamstring 3, Mortal Strike 1',
+    Fury: 'Booming Voice 5, Cruelty 5, Iron Will 5, Unbridled Wrath 5, Improved Cleave 3, Piercing Howl 1, Blood Craze 3, Boundless Rage 3, Dual Wield Specialization 5, Raging Blows 1, Enrage 5, Improved Execute 2, Precision 3, Death Wish 1, Improved Intercept 2, Improved Berserker Rage 2, Flurry 5, Bloodthirst 1',
+    Protection: 'Shield Specialization 5, Anticipation 5, Improved Bloodrage 2, Toughness 5, Improved Thunder Clap 3, Last Stand 1, Master of Defense 2, Improved Revenge 3, Defiance 3, Improved Sunder Armor 3, Improved Disarm 3, Vanguard 1, Improved Shield Wall 2, Concussion Blow 1, Improved Shield Bash 2, Bastion 5, Focused Rage 3, Shield Slam 1',
   },
   druid: {
-    // Feral cat default (9/37/5)
-    '050022-5520002123032213051-05': [
-      "Genesis 5, Nature's Majesty 2, Nature's Reach 2",
-      'Ferocity 5, Heart of the Wild 5, Feral Swiftness 2, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Shredding Attacks 3, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, Leader of the Pack 1, King of the Jungle 3, Rend and Tear 5, Berserk 1',
-      'Furor 5',
-    ],
-    // Feral bear default (8/43/0)
-    '050012-5523032120132210551-': [
-      "Genesis 5, Nature's Majesty 1, Nature's Reach 2",
-      'Ferocity 5, Heart of the Wild 5, Feral Swiftness 2, Feral Instinct 3, Thick Hide 3, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Mangle 1, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, Leader of the Pack 1, Natural Reaction 5, Rend and Tear 5, Berserk 1',
-      '',
-    ],
-    // Balance (41/5/0), druid.md
-    '5532220115501351-05-': [
-      "Improved Wrath 5, Genesis 5, Moonglow 3, Improved Moonfire 2, Nature's Majesty 2, Nature's Reach 2, Nature's Splendor 1, Insect Swarm 1, Vengeance 5, Improved Starfire 5, Nature's Grace 1, Eclipse 3, Moonfury 5, Moonkin Form 1",
-      'Heart of the Wild 5',
-      '',
-    ],
-    // Restoration (11/5/35), a popular build of September 2026
-    '05302001-05-5050035103113251': [
-      "Genesis 5, Moonglow 3, Nature's Majesty 2, Nature's Splendor 1",
-      'Heart of the Wild 5',
-      "Nature's Focus 5, Naturalist 5, Reflection 3, Gift of Nature 5, Gift of the Earthmother 1, Improved Rejuvenation 3, Swiftmend 1, Nature's Swiftness 1, Living Spirit 3, Improved Tranquility 2, Improved Regrowth 5, Wild Growth 1",
-    ],
+    Balance: "Improved Wrath 5, Genesis 5, Moonglow 3, Improved Moonfire 2, Nature's Majesty 2, Nature's Reach 2, Improved Entangling Roots 3, Nature's Splendor 1, Insect Swarm 1, Vengeance 5, Improved Starfire 5, Overgrowth 2, Nature's Grace 1, Eclipse 3, Moonfury 5, Moonkin Form 1",
+    'Feral Combat': 'Ferocity 5, Heart of the Wild 5, Feral Swiftness 2, Feral Instinct 3, Brutal Impact 2, Thick Hide 3, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Shredding Attacks 3, Mangle 1, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, Leader of the Pack 1, King of the Jungle 3, Natural Reaction 5, Rend and Tear 5, Berserk 1',
+    Restoration: "Nature's Focus 5, Furor 5, Naturalist 5, Subtlety 3, Natural Shapeshifter 3, Reflection 3, Gift of Nature 5, Gift of the Earthmother 1, Tranquil Spirit 5, Improved Rejuvenation 3, Swiftmend 1, Nature's Swiftness 1, Living Spirit 3, Improved Tranquility 2, Improved Regrowth 5, Wild Growth 1",
   },
   paladin: {
-    // Retribution default (10/8/33)
-    '250003-503-052052310012330321': [
-      'Improved Holy Strike 2, Divine Strength 5, Improved Seals 3',
-      'Toughness 5, Precision 3',
-      'Benediction 5, Improved Judgement 2, Conviction 5, Vindication 2, Sanctified Judgement 3, Seal of Command 1, Sacred Arbiter 1, Crusade 2, Two-Handed Weapon Specialization 3, Vengeance 3, Champion of the Light 3, Instrument of Law 2, Twist of Light 1',
-    ],
-    // Protection default (2/42/7)
-    '2-4530513321301551-502': [
-      'Improved Holy Strike 2',
-      "Toughness 4, Redoubt 5, Precision 3, Anticipation 5, Improved Seal of Fury 1, Improved Righteous Fury 3, Shield Specialization 3, Sacred Duty 2, Swift Judgement 1, One-Handed Weapon Specialization 3, Templar's Bulwark 1, Reckoning 5, Iron Creed 5, Holy Shield 1",
-      'Deflection 5, Improved Judgement 2',
-    ],
-    // Holy (36/10/5), paladin.md Sources
-    '005320213225131051-5032-05': [
-      "Divine Intellect 5, Healing Light 3, Spiritual Focus 2, Unyielding Faith 2, Voice of Truth 1, Reverence 3, Purifying Power 2, Infusion of Light 2, Illumination 5, Divine Favor 1, Divine Precision 3, Holy Shock 1, Holy Power 5, Light's Vigil 1",
-      "Toughness 5, Precision 3, Guardian's Favor 2",
-      'Benediction 5',
-    ],
+    Holy: "Improved Holy Strike 2, Divine Strength 5, Divine Intellect 5, Healing Light 3, Spiritual Focus 2, Improved Seals 3, Unyielding Faith 2, Voice of Truth 1, Reverence 3, Purifying Power 2, Infusion of Light 2, Illumination 5, Divine Favor 1, Divine Precision 3, Holy Shock 1, Consecrated Ground 2, Holy Power 5, Light's Vigil 1",
+    Protection: "Toughness 5, Redoubt 5, Precision 3, Guardian's Favor 2, Anticipation 5, Improved Seal of Fury 1, Improved Righteous Fury 3, Shield Specialization 3, Sacred Duty 2, Swift Judgement 1, One-Handed Weapon Specialization 3, Improved Hammer of Justice 3, Templar's Bulwark 1, Reckoning 5, Iron Creed 5, Holy Shield 1",
+    Retribution: 'Deflection 5, Benediction 5, Improved Judgement 2, Holy Conduit 2, Conviction 5, Vindication 3, Sanctified Judgement 3, Seal of Command 1, Pursuit of Justice 2, Eye for an Eye 2, Sacred Arbiter 1, Crusade 2, Two-Handed Weapon Specialization 3, Vengeance 3, Repentance 1, Champion of the Light 3, Instrument of Law 2, Twist of Light 1',
   },
 }
 
@@ -246,6 +195,12 @@ describe.each(Object.entries(talentData))('talents/%s', (cls, data) => {
 
   it('keeps `order` equal to the build-code position', () => {
     for (const talents of talentsInCodeOrder(data)) talents.forEach((t, i) => expect(t.order, t.name).toBe(i))
+  })
+
+  it('keeps every build-code position: the same talent and max rank, tree by tree', () => {
+    const order = talentsInCodeOrder(data)
+    const actual = Object.fromEntries(data.trees.map((tree, i) => [tree.name, order[i].map((t) => `${t.name} ${t.maxRank}`).join(', ')]))
+    expect(actual).toEqual(CODE_ORDER[cls as keyof typeof talentData])
   })
 
   it.each(Object.entries(STORED_BUILDS[cls as keyof typeof talentData]))(

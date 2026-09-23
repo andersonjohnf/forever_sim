@@ -57,6 +57,7 @@ const EFFECT = [
   "EffectAmplitude",
   "EffectAuraPeriod",
   "EffectChainTargets",
+  "EffectChainAmplitude",
   "EffectMechanic",
   "EffectSpellClassMask",
   "ImplicitTarget",
@@ -87,7 +88,7 @@ const AURA_RESTRICTIONS = [
 /** Columns not written (table -> columns), checked by `droppedColumnsInUse`. */
 export const DROPPED = {
   SpellMisc: ["LaunchDelay", "PvPDurationIndex", "ActiveIconFileDataID", "ContentTuningID", "ShowFutureSpellPlayerConditionID", "SpellVisualScript", "ActiveSpellVisualScript"],
-  SpellEffect: ["Coefficient", "ResourceCoefficient", "EffectAttributes", "EffectItemType", "EffectChainAmplitude", "PvpMultiplier", "GroupSizeBasePointsCoefficient", "EffectPos_facing", "ScalingClass"],
+  SpellEffect: ["Coefficient", "ResourceCoefficient", "EffectAttributes", "EffectItemType", "PvpMultiplier", "GroupSizeBasePointsCoefficient", "EffectPos_facing", "ScalingClass"],
   SpellCooldowns: ["AuraSpellID"],
   SpellCategories: ["ChargeCategory"],
   SpellPower: ["ManaCostPerLevel", "ManaPerSecond", "PowerCostMaxPct", "PowerPctPerSecond", "OptionalCostPct", "RequiredAuraSpellID", "PowerDisplayID", "AltPowerBarID"],
@@ -99,9 +100,7 @@ export const DROPPED = {
   SpellDuration: ["DurationPerResource"],
 };
 /** Dropped columns that are informational only (never numeric game rules). */
-// EffectChainAmplitude defaults to 1 (no falloff); it differs only for chain spells no
-// simulated class casts.
-const DROPPED_UNCHECKED = new Set(["EffectChainAmplitude", "ActiveIconFileDataID", "ContentTuningID", "ShowFutureSpellPlayerConditionID", "SpellVisualScript", "ActiveSpellVisualScript", "PvpMultiplier", "GroupSizeBasePointsCoefficient", "EffectPos_facing", "PowerDisplayID", "AltPowerBarID", "StanceBarOrder", "EffectItemType"]);
+const DROPPED_UNCHECKED = new Set(["ActiveIconFileDataID", "ContentTuningID", "ShowFutureSpellPlayerConditionID", "SpellVisualScript", "ActiveSpellVisualScript", "PvpMultiplier", "GroupSizeBasePointsCoefficient", "EffectPos_facing", "PowerDisplayID", "AltPowerBarID", "StanceBarOrder", "EffectItemType"]);
 
 function groupBySpell(table, { difficultyZero = true } = {}) {
   const map = new Map();
@@ -269,12 +268,18 @@ export function effectPoints(e) {
 }
 
 const KEEP_ALWAYS = new Set(["id", "name", "effects", "sources", "effectIndex", "effect"]);
+/**
+ * Fields whose client default is 1, not 0: written only when they differ from 1, a 0 included.
+ * EffectChainAmplitude is a chain spell's falloff, and Execute's rage-to-damage factor (5308 0.3 …
+ * 20662 1.5: "$*10;F1" = 3 … 15 damage per extra rage; docs/classes/warrior.md §3.1).
+ */
+const DEFAULT_ONE = new Set(["effectChainAmplitude"]);
 const isZero = (v) => v === 0 || v === "" || v === null || v === false || (Array.isArray(v) && v.every((x) => x === 0));
 
 /**
  * Drop zero-valued fields from a spell record to keep spells.json small: a number that is 0,
  * an empty array or an array of zeros, "", null, and objects left empty. Absent means zero
- * (or "no row").
+ * (or "no row"), except for the DEFAULT_ONE fields, where absent means 1.
  * `id`, `name`, `effects`, `sources`, and each effect's `effectIndex` and `effect` stay.
  */
 export function compactSpell(value) {
@@ -282,6 +287,10 @@ export function compactSpell(value) {
   if (value && typeof value === "object") {
     const out = {};
     for (const [k, v] of Object.entries(value)) {
+      if (DEFAULT_ONE.has(k)) {
+        if (v !== 1 && v !== undefined) out[k] = v;
+        continue;
+      }
       if (KEEP_ALWAYS.has(k)) {
         out[k] = compactSpell(v);
         continue;

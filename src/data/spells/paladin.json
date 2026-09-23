@@ -4,6 +4,332 @@
     "classicProduct": "wow_classic_era",
     "foreverBuild": "1.60.1.69913",
     "foreverBuildDate": "2026-09-18",
+    "noClientData": [
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Holy Power",
+          "rank": 2,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Holy",
+        "spellId": 5924,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Holy Power",
+          "rank": 3,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Holy",
+        "spellId": 5925,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Holy Power",
+          "rank": 4,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Holy",
+        "spellId": 5926,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Anticipation",
+          "rank": 2,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Protection",
+        "spellId": 20097,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Anticipation",
+          "rank": 3,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Protection",
+        "spellId": 20098,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Anticipation",
+          "rank": 4,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Protection",
+        "spellId": 20099,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Anticipation",
+          "rank": 5,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Protection",
+        "spellId": 20100,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Precision",
+          "rank": 2,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Protection",
+        "spellId": 20192,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Precision",
+          "rank": 3,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Protection",
+        "spellId": 20193,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Improved Concentration Aura",
+          "rank": 2,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Protection",
+        "spellId": 20255,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Improved Concentration Aura",
+          "rank": 3,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Protection",
+        "spellId": 20256,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Righteous Fury",
+          "rank": null,
+          "talentRank": false
+        },
+        "encrypted": false,
+        "skillLine": "Protection",
+        "spellId": 25781,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Holy Power",
+          "rank": 5,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Holy",
+        "spellId": 25829,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Unyielding Faith",
+          "rank": 2,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Holy",
+        "spellId": 25836,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Greater Blessing of Sanctuary",
+          "rank": 1,
+          "talentRank": false
+        },
+        "encrypted": false,
+        "skillLine": "Protection",
+        "spellId": 25899,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Improved Judgement",
+          "rank": 2,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Retribution",
+        "spellId": 25957,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Eye for an Eye",
+          "rank": 2,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Retribution",
+        "spellId": 25988,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Vindication",
+          "rank": 2,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Retribution",
+        "spellId": 26016,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Vindication",
+          "rank": 2,
+          "talentRank": false
+        },
+        "encrypted": false,
+        "skillLine": "Retribution",
+        "spellId": 26017,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Vindication",
+          "rank": 3,
+          "talentRank": false
+        },
+        "encrypted": false,
+        "skillLine": "Retribution",
+        "spellId": 26018,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Vindication",
+          "rank": 3,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Retribution",
+        "spellId": 26021,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Pursuit of Justice",
+          "rank": 2,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Retribution",
+        "spellId": 26023,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Avenger's Shield",
+          "rank": null,
+          "talentRank": false
+        },
+        "encrypted": false,
+        "skillLine": "Protection",
+        "spellId": 407669,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": null,
+        "encrypted": false,
+        "skillLine": "Protection",
+        "spellId": 1239550,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": null,
+        "encrypted": false,
+        "skillLine": "Protection",
+        "spellId": 1239551,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": null,
+        "encrypted": false,
+        "skillLine": "Protection",
+        "spellId": 1239552,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": null,
+        "encrypted": false,
+        "skillLine": "Protection",
+        "spellId": 1239553,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": null,
+        "encrypted": false,
+        "skillLine": "Holy",
+        "spellId": 1263893,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": null,
+        "encrypted": false,
+        "skillLine": "Holy",
+        "spellId": 1263894,
+        "supersedes": null
+      }
+    ],
     "product": "wow_classic_beta",
     "scrapedAt": "2026-09-23T02:51:35Z",
     "scraper": "scripts/scrape/spells-client.mjs",
@@ -231,7 +557,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 635,
-            "text": "Heals a friendly target for 39 to 47."
+            "text": "Heals a friendly target for 42 to 50."
           },
           "differences": [],
           "forever": {
@@ -258,7 +584,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 635,
-            "text": "Heals a friendly target for 39 to 47."
+            "text": "Heals a friendly target for 42 to 50."
           },
           "rank": 1
         },
@@ -287,7 +613,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 639,
-            "text": "Heals a friendly target for 76 to 90."
+            "text": "Heals a friendly target for 81 to 95."
           },
           "differences": [],
           "forever": {
@@ -314,7 +640,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 639,
-            "text": "Heals a friendly target for 76 to 90."
+            "text": "Heals a friendly target for 81 to 95."
           },
           "rank": 2
         },
@@ -343,12 +669,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 647,
-            "text": "Heals a friendly target for 159 to 187."
+            "text": "Heals a friendly target for 167 to 195."
           },
           "differences": [
             {
               "field": "value",
-              "text": "142 instead of 159, 168 instead of 187"
+              "text": "150 instead of 167, 176 instead of 195"
             }
           ],
           "forever": {
@@ -375,7 +701,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 647,
-            "text": "Heals a friendly target for 142 to 168."
+            "text": "Heals a friendly target for 150 to 176."
           },
           "rank": 3
         },
@@ -404,12 +730,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 1026,
-            "text": "Heals a friendly target for 310 to 356."
+            "text": "Heals a friendly target for 322 to 368."
           },
           "differences": [
             {
               "field": "value",
-              "text": "267 instead of 310, 307 instead of 356"
+              "text": "279 instead of 322, 319 instead of 368"
             }
           ],
           "forever": {
@@ -436,7 +762,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 1026,
-            "text": "Heals a friendly target for 267 to 307."
+            "text": "Heals a friendly target for 279 to 319."
           },
           "rank": 4
         },
@@ -465,12 +791,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 1042,
-            "text": "Heals a friendly target for 491 to 553."
+            "text": "Heals a friendly target for 506 to 568."
           },
           "differences": [
             {
               "field": "value",
-              "text": "425 instead of 491, 479 instead of 553"
+              "text": "440 instead of 506, 494 instead of 568"
             }
           ],
           "forever": {
@@ -497,7 +823,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 1042,
-            "text": "Heals a friendly target for 425 to 479."
+            "text": "Heals a friendly target for 440 to 494."
           },
           "rank": 5
         },
@@ -526,12 +852,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 3472,
-            "text": "Heals a friendly target for 698 to 780."
+            "text": "Heals a friendly target for 717 to 799."
           },
           "differences": [
             {
               "field": "value",
-              "text": "610 instead of 698, 682 instead of 780"
+              "text": "629 instead of 717, 701 instead of 799"
             }
           ],
           "forever": {
@@ -558,7 +884,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 3472,
-            "text": "Heals a friendly target for 610 to 682."
+            "text": "Heals a friendly target for 629 to 701."
           },
           "rank": 6
         },
@@ -587,12 +913,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 10328,
-            "text": "Heals a friendly target for 945 to 1053."
+            "text": "Heals a friendly target for 968 to 1076."
           },
           "differences": [
             {
               "field": "value",
-              "text": "850 instead of 945, 948 instead of 1053"
+              "text": "873 instead of 968, 971 instead of 1076"
             }
           ],
           "forever": {
@@ -619,7 +945,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 10328,
-            "text": "Heals a friendly target for 850 to 948."
+            "text": "Heals a friendly target for 873 to 971."
           },
           "rank": 7
         },
@@ -648,12 +974,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 10329,
-            "text": "Heals a friendly target for 1246 to 1388."
+            "text": "Heals a friendly target for 1272 to 1414."
           },
           "differences": [
             {
               "field": "value",
-              "text": "1151 instead of 1246, 1283 instead of 1388"
+              "text": "1177 instead of 1272, 1309 instead of 1414"
             }
           ],
           "forever": {
@@ -680,7 +1006,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 10329,
-            "text": "Heals a friendly target for 1151 to 1283."
+            "text": "Heals a friendly target for 1177 to 1309."
           },
           "rank": 8
         },
@@ -784,7 +1110,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20154,
-            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 1.24 to 4.32 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time."
+            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 2.48 to 8.64 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time."
           },
           "differences": [],
           "forever": {
@@ -807,7 +1133,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20154,
-            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 1.24 to 4.32 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time."
+            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 2.48 to 8.64 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time."
           },
           "rank": 1
         },
@@ -832,7 +1158,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20287,
-            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 2.48 to 8.64 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 25 to 27 Holy damage to an enemy."
+            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 3.66 to 12.72 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 36 to 38 Holy damage to an enemy."
           },
           "differences": [],
           "forever": {
@@ -855,7 +1181,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20287,
-            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 2.48 to 8.64 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 25 to 27 Holy damage to an enemy."
+            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 3.66 to 12.72 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 36 to 38 Holy damage to an enemy."
           },
           "rank": 2
         },
@@ -880,7 +1206,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20288,
-            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 4.05 to 14.08 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 39 to 43 Holy damage to an enemy."
+            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 5.63 to 19.6 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 53 to 57 Holy damage to an enemy."
           },
           "differences": [],
           "forever": {
@@ -903,7 +1229,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20288,
-            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 4.05 to 14.08 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 39 to 43 Holy damage to an enemy."
+            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 5.63 to 19.6 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 53 to 57 Holy damage to an enemy."
           },
           "rank": 3
         },
@@ -928,7 +1254,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20289,
-            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 6.22 to 21.64 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 57 to 63 Holy damage to an enemy."
+            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 8.36 to 29.08 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 73 to 79 Holy damage to an enemy."
           },
           "differences": [],
           "forever": {
@@ -951,7 +1277,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20289,
-            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 6.22 to 21.64 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 57 to 63 Holy damage to an enemy."
+            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 8.36 to 29.08 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 73 to 79 Holy damage to an enemy."
           },
           "rank": 4
         },
@@ -976,7 +1302,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20290,
-            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 9.02 to 31.4 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 78 to 86 Holy damage to an enemy."
+            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 11.57 to 40.28 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 96 to 104 Holy damage to an enemy."
           },
           "differences": [],
           "forever": {
@@ -999,7 +1325,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20290,
-            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 9.02 to 31.4 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 78 to 86 Holy damage to an enemy."
+            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 11.57 to 40.28 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 96 to 104 Holy damage to an enemy."
           },
           "rank": 5
         },
@@ -1024,7 +1350,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20291,
-            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 12.44 to 43.28 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 102 to 112 Holy damage to an enemy."
+            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 15.26 to 53.12 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 124 to 134 Holy damage to an enemy."
           },
           "differences": [],
           "forever": {
@@ -1047,7 +1373,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20291,
-            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 12.44 to 43.28 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 102 to 112 Holy damage to an enemy."
+            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 15.26 to 53.12 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 124 to 134 Holy damage to an enemy."
           },
           "rank": 6
         },
@@ -1072,7 +1398,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20292,
-            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 16.17 to 56.28 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 131 to 143 Holy damage to an enemy."
+            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 19.41 to 67.56 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 155 to 167 Holy damage to an enemy."
           },
           "differences": [],
           "forever": {
@@ -1095,7 +1421,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20292,
-            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 16.17 to 56.28 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 131 to 143 Holy damage to an enemy."
+            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 19.41 to 67.56 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 155 to 167 Holy damage to an enemy."
           },
           "rank": 7
         },
@@ -1120,7 +1446,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20293,
-            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 20.53 to 71.44 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 162 to 178 Holy damage to an enemy."
+            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 21.61 to 75.2 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 170 to 186 Holy damage to an enemy."
           },
           "differences": [],
           "forever": {
@@ -1143,7 +1469,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20293,
-            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 20.53 to 71.44 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 162 to 178 Holy damage to an enemy."
+            "text": "Fills the Paladin with holy spirit for 30 sec, granting each melee attack an additional 21.61 to 75.2 Holy damage. Slower weapons cause more Holy damage per swing. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will cause 170 to 186 Holy damage to an enemy."
           },
           "rank": 8
         }
@@ -2481,12 +2807,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 879,
-            "text": "Causes 84 to 96 Holy damage to an Undead or Demon target."
+            "text": "Causes 90 to 102 Holy damage to an Undead or Demon target."
           },
           "differences": [
             {
               "field": "value",
-              "text": "74 instead of 84, 84 instead of 96"
+              "text": "80 instead of 90, 90 instead of 102"
             }
           ],
           "forever": {
@@ -2516,7 +2842,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 879,
-            "text": "Causes 74 to 84 Holy damage to an Undead or Demon target."
+            "text": "Causes 80 to 90 Holy damage to an Undead or Demon target."
           },
           "rank": 1
         },
@@ -2548,12 +2874,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 5614,
-            "text": "Causes 152 to 172 Holy damage to an Undead or Demon target."
+            "text": "Causes 160 to 180 Holy damage to an Undead or Demon target."
           },
           "differences": [
             {
               "field": "value",
-              "text": "132 instead of 152, 150 instead of 172"
+              "text": "140 instead of 160, 158 instead of 180"
             }
           ],
           "forever": {
@@ -2583,7 +2909,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 5614,
-            "text": "Causes 132 to 150 Holy damage to an Undead or Demon target."
+            "text": "Causes 140 to 158 Holy damage to an Undead or Demon target."
           },
           "rank": 2
         },
@@ -2615,12 +2941,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 5615,
-            "text": "Causes 217 to 245 Holy damage to an Undead or Demon target."
+            "text": "Causes 227 to 255 Holy damage to an Undead or Demon target."
           },
           "differences": [
             {
               "field": "value",
-              "text": "190 instead of 217, 214 instead of 245"
+              "text": "200 instead of 227, 224 instead of 255"
             }
           ],
           "forever": {
@@ -2650,7 +2976,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 5615,
-            "text": "Causes 190 to 214 Holy damage to an Undead or Demon target."
+            "text": "Causes 200 to 224 Holy damage to an Undead or Demon target."
           },
           "rank": 3
         },
@@ -2682,12 +3008,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 10312,
-            "text": "Causes 304 to 342 Holy damage to an Undead or Demon target."
+            "text": "Causes 316 to 354 Holy damage to an Undead or Demon target."
           },
           "differences": [
             {
               "field": "value",
-              "text": "274 instead of 304, 308 instead of 342"
+              "text": "286 instead of 316, 320 instead of 354"
             }
           ],
           "forever": {
@@ -2717,7 +3043,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 10312,
-            "text": "Causes 274 to 308 Holy damage to an Undead or Demon target."
+            "text": "Causes 286 to 320 Holy damage to an Undead or Demon target."
           },
           "rank": 4
         },
@@ -2749,12 +3075,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 10313,
-            "text": "Causes 393 to 439 Holy damage to an Undead or Demon target."
+            "text": "Causes 407 to 453 Holy damage to an Undead or Demon target."
           },
           "differences": [
             {
               "field": "value",
-              "text": "363 instead of 393, 405 instead of 439"
+              "text": "377 instead of 407, 419 instead of 453"
             }
           ],
           "forever": {
@@ -2784,7 +3110,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 10313,
-            "text": "Causes 363 to 405 Holy damage to an Undead or Demon target."
+            "text": "Causes 377 to 419 Holy damage to an Undead or Demon target."
           },
           "rank": 5
         },
@@ -2898,12 +3224,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 19750,
-            "text": "Heals a friendly target for 62 to 72."
+            "text": "Heals a friendly target for 67 to 77."
           },
           "differences": [
             {
               "field": "value",
-              "text": "43 instead of 62, 49 instead of 72"
+              "text": "48 instead of 67, 54 instead of 77"
             }
           ],
           "forever": {
@@ -2930,7 +3256,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 19750,
-            "text": "Heals a friendly target for 43 to 49."
+            "text": "Heals a friendly target for 48 to 54."
           },
           "rank": 1
         },
@@ -2959,12 +3285,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 19939,
-            "text": "Heals a friendly target for 96 to 110."
+            "text": "Heals a friendly target for 102 to 116."
           },
           "differences": [
             {
               "field": "value",
-              "text": "62 instead of 96, 70 instead of 110"
+              "text": "68 instead of 102, 76 instead of 116"
             }
           ],
           "forever": {
@@ -2991,7 +3317,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 19939,
-            "text": "Heals a friendly target for 62 to 70."
+            "text": "Heals a friendly target for 68 to 76."
           },
           "rank": 2
         },
@@ -3020,12 +3346,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 19940,
-            "text": "Heals a friendly target for 145 to 163."
+            "text": "Heals a friendly target for 153 to 171."
           },
           "differences": [
             {
               "field": "value",
-              "text": "95 instead of 145, 107 instead of 163"
+              "text": "103 instead of 153, 115 instead of 171"
             }
           ],
           "forever": {
@@ -3052,7 +3378,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 19940,
-            "text": "Heals a friendly target for 95 to 107."
+            "text": "Heals a friendly target for 103 to 115."
           },
           "rank": 3
         },
@@ -3081,12 +3407,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 19941,
-            "text": "Heals a friendly target for 197 to 221."
+            "text": "Heals a friendly target for 206 to 230."
           },
           "differences": [
             {
               "field": "value",
-              "text": "142 instead of 197, 160 instead of 221"
+              "text": "151 instead of 206, 169 instead of 230"
             }
           ],
           "forever": {
@@ -3113,7 +3439,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 19941,
-            "text": "Heals a friendly target for 142 to 160."
+            "text": "Heals a friendly target for 151 to 169."
           },
           "rank": 4
         },
@@ -3142,12 +3468,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 19942,
-            "text": "Heals a friendly target for 267 to 299."
+            "text": "Heals a friendly target for 278 to 310."
           },
           "differences": [
             {
               "field": "value",
-              "text": "210 instead of 267, 236 instead of 299"
+              "text": "221 instead of 278, 247 instead of 310"
             }
           ],
           "forever": {
@@ -3174,7 +3500,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 19942,
-            "text": "Heals a friendly target for 210 to 236."
+            "text": "Heals a friendly target for 221 to 247."
           },
           "rank": 5
         },
@@ -3203,12 +3529,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 19943,
-            "text": "Heals a friendly target for 343 to 383."
+            "text": "Heals a friendly target for 348 to 388."
           },
           "differences": [
             {
               "field": "value",
-              "text": "286 instead of 343, 320 instead of 383"
+              "text": "291 instead of 348, 325 instead of 388"
             }
           ],
           "forever": {
@@ -3235,7 +3561,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 19943,
-            "text": "Heals a friendly target for 286 to 320."
+            "text": "Heals a friendly target for 291 to 325."
           },
           "rank": 6
         }
@@ -4443,7 +4769,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 1310911,
-            "text": "Applies Light's Vigil to the target for 30 sec. Your next Holy Shock cast on them triggers no cooldown and causes friendly targets to heal their party for 315 to 333, or enemy targets to suffer 175 to 189 Holy damage and refund 75% of Light's Vigil's Mana cost. You may only have 1 Light's Vigil active per Paladin, per party."
+            "text": "Applies Light's Vigil to the target for 30 sec. Your next Holy Shock cast on them triggers no cooldown and causes friendly targets to heal their party for 325 to 343, or enemy targets to suffer 175 to 189 Holy damage and refund 75% of Light's Vigil's Mana cost. You may only have 1 Light's Vigil active per Paladin, per party."
           },
           "rank": 1
         },
@@ -4477,7 +4803,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 1311590,
-            "text": "Applies Light's Vigil to the target for 30 sec. Your next Holy Shock cast on them triggers no cooldown and causes allied targets to heal their party for 473 to 501, or enemy targets to suffer 268 to 288 Holy damage and refund 75% of Light's Vigil's Mana cost. You may only have 1 Light's Vigil active per Paladin, per party."
+            "text": "Applies Light's Vigil to the target for 30 sec. Your next Holy Shock cast on them triggers no cooldown and causes allied targets to heal their party for 486 to 514, or enemy targets to suffer 268 to 288 Holy damage and refund 75% of Light's Vigil's Mana cost. You may only have 1 Light's Vigil active per Paladin, per party."
           },
           "rank": 2
         },
@@ -4637,12 +4963,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 24275,
-            "text": "Hurls a hammer that strikes an enemy for 304 to 336 Holy damage. Only usable on enemies that have 20% or less health."
+            "text": "Hurls a hammer that strikes an enemy for 316 to 348 Holy damage. Only usable on enemies that have 20% or less health."
           },
           "differences": [
             {
               "field": "value",
-              "text": "274 instead of 304, 302 instead of 336"
+              "text": "286 instead of 316, 314 instead of 348"
             }
           ],
           "forever": {
@@ -4672,7 +4998,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 24275,
-            "text": "Hurls a hammer that strikes an enemy for 274 to 302 Holy damage. Only usable on enemies that have 20% or less health."
+            "text": "Hurls a hammer that strikes an enemy for 286 to 314 Holy damage. Only usable on enemies that have 20% or less health."
           },
           "rank": 1
         },
@@ -4704,12 +5030,12 @@
             "requires": null,
             "school": "holy",
             "spellId": 24274,
-            "text": "Hurls a hammer that strikes an enemy for 399 to 441 Holy damage. Only usable on enemies that have 20% or less health."
+            "text": "Hurls a hammer that strikes an enemy for 412 to 454 Holy damage. Only usable on enemies that have 20% or less health."
           },
           "differences": [
             {
               "field": "value",
-              "text": "369 instead of 399, 407 instead of 441"
+              "text": "382 instead of 412, 420 instead of 454"
             }
           ],
           "forever": {
@@ -4739,7 +5065,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 24274,
-            "text": "Hurls a hammer that strikes an enemy for 369 to 407 Holy damage. Only usable on enemies that have 20% or less health."
+            "text": "Hurls a hammer that strikes an enemy for 382 to 420 Holy damage. Only usable on enemies that have 20% or less health."
           },
           "rank": 2
         },
@@ -4852,7 +5178,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 2812,
-            "text": "Sends bolts of holy power in all directions, causing 362 to 428 Holy damage to all Undead and Demon targets within 20 yds."
+            "text": "Sends bolts of holy power in all directions, causing 368 to 434 Holy damage to all Undead and Demon targets within 20 yds."
           },
           "differences": [
             {
@@ -4883,7 +5209,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 2812,
-            "text": "Sends bolts of holy power in all directions, causing 362 to 428 Holy damage to all Undead and Demon targets within 20 yds and stunning them for 2 sec."
+            "text": "Sends bolts of holy power in all directions, causing 368 to 434 Holy damage to all Undead and Demon targets within 20 yds and stunning them for 2 sec."
           },
           "rank": 1
         },
@@ -6239,7 +6565,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 1311649,
-            "text": "Fills the Paladin with divine fury for 30 sec, causing melee attacks to deal an additional 6 Holy damage. While a shield is equipped, each attack also grants an absorb shield equal to 50% of the Holy damage dealt. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy causes 22 to 24 Holy damage to an enemy and taunts the target to attack you for 4 sec."
+            "text": "Fills the Paladin with divine fury for 30 sec, causing melee attacks to deal an additional 6 Holy damage. While a shield is equipped, each attack also grants an absorb shield equal to 50% of the Holy damage dealt. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy causes 32 to 34 Holy damage to an enemy and taunts the target to attack you for 4 sec."
           },
           "rank": 1
         },
@@ -6266,7 +6592,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 1311656,
-            "text": "Fills the Paladin with divine fury for 30 sec, causing melee attacks to deal an additional 9 Holy damage. While a shield is equipped, each attack also grants an absorb shield equal to 50% of the Holy damage dealt. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy causes 35 to 39 Holy damage to an enemy and taunts the target to attack you for 4 sec."
+            "text": "Fills the Paladin with divine fury for 30 sec, causing melee attacks to deal an additional 9 Holy damage. While a shield is equipped, each attack also grants an absorb shield equal to 50% of the Holy damage dealt. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy causes 47 to 51 Holy damage to an enemy and taunts the target to attack you for 4 sec."
           },
           "rank": 2
         },
@@ -6293,7 +6619,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20163,
-            "text": "Fills the Paladin with divine fury for 30 sec, causing melee attacks to deal an additional 14 Holy damage. While a shield is equipped, each attack also grants an absorb shield equal to 50% of the Holy damage dealt. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy causes 51 to 57 Holy damage to an enemy and taunts the target to attack you for 4 sec."
+            "text": "Fills the Paladin with divine fury for 30 sec, causing melee attacks to deal an additional 14 Holy damage. While a shield is equipped, each attack also grants an absorb shield equal to 50% of the Holy damage dealt. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy causes 66 to 72 Holy damage to an enemy and taunts the target to attack you for 4 sec."
           },
           "rank": 3
         },
@@ -6320,7 +6646,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20419,
-            "text": "Fills the Paladin with divine fury for 30 sec, causing melee attacks to deal an additional 19 Holy damage. While a shield is equipped, each attack also grants an absorb shield equal to 50% of the Holy damage dealt. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy causes 70 to 78 Holy damage to an enemy and taunts the target to attack you for 4 sec."
+            "text": "Fills the Paladin with divine fury for 30 sec, causing melee attacks to deal an additional 19 Holy damage. While a shield is equipped, each attack also grants an absorb shield equal to 50% of the Holy damage dealt. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy causes 86 to 94 Holy damage to an enemy and taunts the target to attack you for 4 sec."
           },
           "rank": 4
         },
@@ -6347,7 +6673,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20421,
-            "text": "Fills the Paladin with divine fury for 30 sec, causing melee attacks to deal an additional 25 Holy damage. While a shield is equipped, each attack also grants an absorb shield equal to 50% of the Holy damage dealt. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy causes 91 to 101 Holy damage to an enemy and taunts the target to attack you for 4 sec."
+            "text": "Fills the Paladin with divine fury for 30 sec, causing melee attacks to deal an additional 25 Holy damage. While a shield is equipped, each attack also grants an absorb shield equal to 50% of the Holy damage dealt. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy causes 111 to 121 Holy damage to an enemy and taunts the target to attack you for 4 sec."
           },
           "rank": 5
         },
@@ -6374,7 +6700,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20422,
-            "text": "Fills the Paladin with divine fury for 30 sec, causing melee attacks to deal an additional 32 Holy damage. While a shield is equipped, each attack also grants an absorb shield equal to 50% of the Holy damage dealt. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy causes 118 to 128 Holy damage to an enemy and taunts the target to attack you for 4 sec."
+            "text": "Fills the Paladin with divine fury for 30 sec, causing melee attacks to deal an additional 32 Holy damage. While a shield is equipped, each attack also grants an absorb shield equal to 50% of the Holy damage dealt. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy causes 140 to 150 Holy damage to an enemy and taunts the target to attack you for 4 sec."
           },
           "rank": 6
         },
@@ -6401,7 +6727,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20423,
-            "text": "Fills the Paladin with divine fury for 30 sec, causing melee attacks to deal an additional 35 Holy damage. While a shield is equipped, each attack also grants an absorb shield equal to 50% of the Holy damage dealt. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy causes 146 to 160 Holy damage to an enemy and taunts the target to attack you for 4 sec."
+            "text": "Fills the Paladin with divine fury for 30 sec, causing melee attacks to deal an additional 35 Holy damage. While a shield is equipped, each attack also grants an absorb shield equal to 50% of the Holy damage dealt. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy causes 153 to 167 Holy damage to an enemy and taunts the target to attack you for 4 sec."
           },
           "rank": 7
         }
@@ -8785,7 +9111,7 @@
             "requires": "Melee Weapon",
             "school": "holy",
             "spellId": 1866,
-            "text": "An instant strike that causes 30% weapon damage plus an additional 17 to 21 as Holy damage."
+            "text": "An instant strike that causes 30% weapon damage plus an additional 18 to 22 as Holy damage."
           },
           "rank": 3
         },
@@ -8819,7 +9145,7 @@
             "requires": "Melee Weapon",
             "school": "holy",
             "spellId": 680,
-            "text": "An instant strike that causes 30% weapon damage plus an additional 21 to 27 as Holy damage."
+            "text": "An instant strike that causes 30% weapon damage plus an additional 22 to 28 as Holy damage."
           },
           "rank": 4
         },
@@ -8853,7 +9179,7 @@
             "requires": "Melee Weapon",
             "school": "holy",
             "spellId": 2495,
-            "text": "An instant strike that causes 35% weapon damage plus an additional 27 to 35 as Holy damage."
+            "text": "An instant strike that causes 35% weapon damage plus an additional 32 to 40 as Holy damage."
           },
           "rank": 5
         },
@@ -8887,7 +9213,7 @@
             "requires": "Melee Weapon",
             "school": "holy",
             "spellId": 5569,
-            "text": "An instant strike that causes 35% weapon damage plus an additional 46 to 60 as Holy damage."
+            "text": "An instant strike that causes 35% weapon damage plus an additional 53 to 67 as Holy damage."
           },
           "rank": 6
         },
@@ -8921,7 +9247,7 @@
             "requires": "Melee Weapon",
             "school": "holy",
             "spellId": 10332,
-            "text": "An instant strike that causes 40% weapon damage plus an additional 60 to 77 as Holy damage."
+            "text": "An instant strike that causes 40% weapon damage plus an additional 74 to 91 as Holy damage."
           },
           "rank": 7
         },
@@ -8998,7 +9324,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 21082,
-            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 31 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 10 sec, increasing Holy damage taken by up to 20. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
+            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 35 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 10 sec, increasing Holy damage taken by up to 20. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
           },
           "differences": [
             {
@@ -9026,7 +9352,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 21082,
-            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 31 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 40 sec, increasing Holy damage taken by up to 23. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
+            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 35 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 40 sec, increasing Holy damage taken by up to 23. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
           },
           "rank": 1
         },
@@ -9051,7 +9377,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20162,
-            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 51 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 10 sec, increasing Holy damage taken by up to 30. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
+            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 59 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 10 sec, increasing Holy damage taken by up to 30. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
           },
           "differences": [
             {
@@ -9079,7 +9405,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20162,
-            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 51 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 40 sec, increasing Holy damage taken by up to 35. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
+            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 59 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 40 sec, increasing Holy damage taken by up to 35. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
           },
           "rank": 2
         },
@@ -9104,7 +9430,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20305,
-            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 94 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 10 sec, increasing Holy damage taken by up to 50. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
+            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 107 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 10 sec, increasing Holy damage taken by up to 50. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
           },
           "differences": [
             {
@@ -9132,7 +9458,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20305,
-            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 94 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 40 sec, increasing Holy damage taken by up to 58. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
+            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 107 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 40 sec, increasing Holy damage taken by up to 58. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
           },
           "rank": 3
         },
@@ -9157,7 +9483,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20306,
-            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 145 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 10 sec, increasing Holy damage taken by up to 80. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
+            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 161 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 10 sec, increasing Holy damage taken by up to 80. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
           },
           "differences": [
             {
@@ -9185,7 +9511,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20306,
-            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 145 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 40 sec, increasing Holy damage taken by up to 92. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
+            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 161 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 40 sec, increasing Holy damage taken by up to 92. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
           },
           "rank": 4
         },
@@ -9210,7 +9536,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20307,
-            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 221 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 10 sec, increasing Holy damage taken by up to 110. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
+            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 238 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 10 sec, increasing Holy damage taken by up to 110. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
           },
           "differences": [
             {
@@ -9238,7 +9564,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20307,
-            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 221 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 40 sec, increasing Holy damage taken by up to 127. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
+            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 238 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 40 sec, increasing Holy damage taken by up to 127. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
           },
           "rank": 5
         },
@@ -9263,7 +9589,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20308,
-            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 306 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 10 sec, increasing Holy damage taken by up to 140. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
+            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 325 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 10 sec, increasing Holy damage taken by up to 140. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
           },
           "differences": [
             {
@@ -9291,7 +9617,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20308,
-            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 306 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 40 sec, increasing Holy damage taken by up to 161. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
+            "text": "Fills the Paladin with the spirit of a crusader for 30 sec, granting 325 melee attack power. The Paladin also attacks 40% faster, but deals less damage with each attack. Only one Seal can be active on the Paladin at any one time.\n\nUnleashing this Seal's energy will judge an enemy for 40 sec, increasing Holy damage taken by up to 161. Your melee strikes will refresh the spell's duration. Only one Judgement per Paladin can be active at any one time."
           },
           "rank": 6
         }
@@ -9577,7 +9903,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20375,
-            "text": "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 46.5 to 50.5 Holy damage, 93 to 101 if the target is stunned or incapacitated."
+            "text": "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 68.5 to 72.5 Holy damage, 137 to 145 if the target is stunned or incapacitated."
           },
           "differences": [],
           "forever": {
@@ -9600,7 +9926,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20375,
-            "text": "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 46.5 to 50.5 Holy damage, 93 to 101 if the target is stunned or incapacitated."
+            "text": "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 68.5 to 72.5 Holy damage, 137 to 145 if the target is stunned or incapacitated."
           },
           "rank": 1
         },
@@ -9625,7 +9951,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20915,
-            "text": "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 73 to 80 Holy damage, 146 to 160 if the target is stunned or incapacitated."
+            "text": "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 97 to 104 Holy damage, 194 to 208 if the target is stunned or incapacitated."
           },
           "differences": [],
           "forever": {
@@ -9648,7 +9974,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20915,
-            "text": "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 73 to 80 Holy damage, 146 to 160 if the target is stunned or incapacitated."
+            "text": "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 97 to 104 Holy damage, 194 to 208 if the target is stunned or incapacitated."
           },
           "rank": 2
         },
@@ -9673,7 +9999,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20918,
-            "text": "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 102 to 112 Holy damage, 204 to 224 if the target is stunned or incapacitated."
+            "text": "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 124 to 134 Holy damage, 248 to 268 if the target is stunned or incapacitated."
           },
           "differences": [],
           "forever": {
@@ -9696,7 +10022,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20918,
-            "text": "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 102 to 112 Holy damage, 204 to 224 if the target is stunned or incapacitated."
+            "text": "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 124 to 134 Holy damage, 248 to 268 if the target is stunned or incapacitated."
           },
           "rank": 3
         },
@@ -9721,7 +10047,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20919,
-            "text": "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 130.5 to 143.5 Holy damage, 261 to 287 if the target is stunned or incapacitated."
+            "text": "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 154.5 to 167.5 Holy damage, 309 to 335 if the target is stunned or incapacitated."
           },
           "differences": [],
           "forever": {
@@ -9744,7 +10070,7 @@
             "requires": null,
             "school": "holy",
             "spellId": 20919,
-            "text": "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 130.5 to 143.5 Holy damage, 261 to 287 if the target is stunned or incapacitated."
+            "text": "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 154.5 to 167.5 Holy damage, 309 to 335 if the target is stunned or incapacitated."
           },
           "rank": 4
         },

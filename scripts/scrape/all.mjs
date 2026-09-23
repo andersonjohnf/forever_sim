@@ -17,9 +17,10 @@
 //                        committed one (.cache/client/<build>/<dataset>-diff.md)
 //   --against            passed to steps 1–4: the git ref that counts as committed (default HEAD)
 //
-// A new build that changes a stored build code or a race's classes stops step 2 or 3; run that
-// generator on its own with --accept-code-changes or --accept-race-changes once the app handles
-// the change (docs/data/README.md#refreshing).
+// A new build that changes a build-code position, a stored build code or a race's classes stops
+// step 2 or 3; run that generator on its own with --accept-code-changes or --accept-race-changes
+// once the app handles the change. Steps 2 and 3 also stop when git can't show the committed
+// dataset; run them on their own with --skip-committed-check then (docs/data/README.md#refreshing).
 //
 // Stops at the first step that fails. Every download is cached under .cache/client/, so a run
 // from a warm cache makes no network requests; the run ends with the count, read from

@@ -448,11 +448,12 @@ describe('assumptions', () => {
     const ids = (config: SimConfig) => buildPlan(config).assumptions.map((a) => a.id)
     // Standard raid: the Mighty Rage Potion is used.
     expect(d.buffs.enabled).toContain('mightyRagePotion')
-    expect(note(d)).toBeUndefined()
+    // Blackhand's Breadth (default trinket 2) has Forever's use, which isn't simulated (review L5).
+    expect(note(d)).toBe("Some on-use items and consumables aren’t simulated: Blackhand's Breadth.")
     // Max consumables: Juju Flurry is used too; the bomb isn't.
     const max = { ...d, buffs: { raid: d.buffs.raid, enabled: presetBuffIds('max', 'warrior-fury', d.buffs.raid) } }
     expect(max.buffs.enabled).toEqual(expect.arrayContaining(['jujuFlurry', 'ezThroDarkBomb']))
-    expect(note(max)).toBe('Some on-use items and consumables aren’t simulated: EZ-Thro Dark Bomb.')
+    expect(note(max)).toBe("Some on-use items and consumables aren’t simulated: EZ-Thro Dark Bomb, Blackhand's Breadth.")
     // Weakness Analyzer is used (with its own note); Diamond Flask isn't.
     const trinkets = { ...d, gear: { ...d.gear, trinket1: { itemId: 272438 }, trinket2: { itemId: 20130 } } }
     expect(note(trinkets)).toBe('Some on-use items and consumables aren’t simulated: Diamond Flask.')
@@ -460,7 +461,10 @@ describe('assumptions', () => {
     expect(ids(d)).not.toContain('weaknessAnalyzer')
     // Arms uses them too (warrior.md §5.3 rows 3 and 17); a spec without a rotation uses none of them.
     const arms = defaultConfig('warrior-arms')
-    expect(note({ ...arms, gear: { ...arms.gear, trinket1: { itemId: 272438 } } })).toBeUndefined()
+    // Weakness Analyzer is used; Blackhand's Breadth (trinket 2) keeps its not-simulated use (review L5).
+    expect(note({ ...arms, gear: { ...arms.gear, trinket1: { itemId: 272438 } } })).toBe(
+      "Some on-use items and consumables aren’t simulated: Blackhand's Breadth.",
+    )
     const prot = defaultConfig('warrior-protection')
     expect(note({ ...prot, gear: { ...prot.gear, trinket1: { itemId: 272438 } } })).toContain('Weakness Analyzer')
   })

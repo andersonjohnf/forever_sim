@@ -29,7 +29,7 @@ export interface TalentSnapshotMeta {
   scrapedAt: string;
   /** WoW Forever beta client build the trees come from. */
   foreverBuild: string;
-  /** Date wago.tools lists for the Forever build, or null for an older build. */
+  /** The build's creation date in wago.tools' build list (YYYY-MM-DD), whichever build is cached as latest; null only if the list lacks the build. */
   foreverBuildDate: string | null;
   /** Classic Era client build used for the Classic comparison. */
   classicBuild: string;

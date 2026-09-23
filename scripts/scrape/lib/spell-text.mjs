@@ -23,6 +23,9 @@
 //   $@spelldesc123 / $@spelltooltip123 / $@spellname123 / $@auradesc123
 //   $AP $RAP $SP $SPH      player stats inside ${…}, only when the caller passes `stats`
 // Effect indexes run 1–9 (Forever spells have more than Classic's three effects).
+// Effect points are read at level 60: an effect with EffectRealPointsPerLevel adds that much per
+// level above the spell's SpellLevels.SpellLevel, up to its MaxLevel (scalingLevels below;
+// docs/data/items.md#per-level-values).
 // `$?cond[yes][no]` player conditions (auras, known spells) are reported in `unrendered`, unless
 // the caller passes `{ conditions: "unmet" }`: then every aura/spell test is taken as unmet (a
 // reader with no auras or talents), `!`, `|`, `&` and parentheses apply, and the matching branch
@@ -43,9 +46,10 @@ export const SPELL_TEXT_TABLES = [
   "SpellTargetRestrictions",
   "SpellDescriptionVariables",
   "SpellXDescriptionVariables",
+  "SpellLevels",
 ];
 
-/** Player level used for `$PL` in description variables (the sim is level 60). */
+/** Player level used for `$PL` and per-level effect points (the sim is level 60). */
 export const PLAYER_LEVEL = 60;
 
 const rowsOf = (t) => (Array.isArray(t) ? t : (t?.rows ?? []));
@@ -86,6 +90,7 @@ export function createSpellTextContext(tables, { stats = null } = {}) {
     radius: indexById(t("SpellRadius")),
     range: indexById(t("SpellRange")),
     targets: firstBySpell(t("SpellTargetRestrictions")),
+    levels: firstBySpell(t("SpellLevels")),
     descVars,
     stats,
   };
@@ -106,21 +111,40 @@ function parseVariables(text) {
 // ---------------------------------------------------------------------------
 
 /**
+ * How many levels an effect's EffectRealPointsPerLevel counts at `level` (60): from the spell's
+ * SpellLevels.SpellLevel up to `level`, or up to its MaxLevel when that is set and lower; never
+ * below 0. No SpellLevels row: 0. One rule for both clients (docs/data/items.md#per-level-values):
+ * Demoralizing Shout 11556 (SpellLevel 54, MaxLevel 64) counts 6, Bear Form (Passive) 1178
+ * (10–40) counts 30. SpellLevel, not BaseLevel: the Forever client zeroes BaseLevel on 743 of its
+ * 1,559 per-level spells and keeps the level in SpellLevel.
+ */
+export function scalingLevels(levelsRow, level = PLAYER_LEVEL) {
+  if (!levelsRow) return 0;
+  const top = levelsRow.MaxLevel > 0 ? Math.min(level, levelsRow.MaxLevel) : level;
+  return Math.max(0, top - (levelsRow.SpellLevel ?? 0));
+}
+
+/**
  * An effect's points as a signed { min, max }. Forever's layout stores the value in
  * EffectBasePointsF with a relative spread `Variance` (100 with 0.2 is 90 to 110). Classic Era
  * 1.15 keeps the old integer convention: min = EffectBasePoints + 1, max = EffectBasePoints +
  * EffectDieSides when EffectDieSides ≥ 1 (lib/item-stats.mjs rawEffectPoints reads the same).
+ * `levels` (scalingLevels) adds EffectRealPointsPerLevel × levels, truncated toward zero as a
+ * whole number: Demoralizing Shout 11556 is −196 − 1.4 × 6 = −204.4, which the level-60 tooltip
+ * shows as 204. It is added after a spread, which stays the base points' (Judgement of Command
+ * 20467: 97 ± 4 + 44, the 137 to 145 of Classic Era's die roll; docs/data/items.md#per-level-values).
  */
-export function effectRange(e) {
+export function effectRange(e, levels = 0) {
   if (!e) return null;
+  const perLevel = levels > 0 && e.EffectRealPointsPerLevel ? Math.trunc(e.EffectRealPointsPerLevel * levels) : 0;
   if (e.EffectBasePoints === undefined || e.EffectBasePointsF) {
     const v = e.EffectBasePointsF ?? 0;
-    if (!e.Variance) return { min: v, max: v };
+    if (!e.Variance) return { min: v + perLevel, max: v + perLevel };
     // The tooltip rounds a spread's ends: 616 with 0.2 is "554 to 678" (Talisman of Arathor).
     const spread = (v * e.Variance) / 2;
-    return { min: Math.round(v - spread), max: Math.round(v + spread) };
+    return { min: Math.round(v - spread) + perLevel, max: Math.round(v + spread) + perLevel };
   }
-  const bp = e.EffectBasePoints;
+  const bp = e.EffectBasePoints + perLevel;
   const die = e.EffectDieSides ?? 0;
   return die >= 1 ? { min: bp + 1, max: bp + die } : { min: bp, max: bp };
 }
@@ -169,12 +193,13 @@ export function formatCooldown(ms) {
 function variableValue(ctx, spellId, letter, index) {
   const e = ctx.effects.get(spellId)?.get(index - 1);
   const one = (v) => (v === null || v === undefined ? null : { min: v, max: v });
+  const levels = scalingLevels(ctx.levels?.get(spellId));
   switch (letter) {
     case "s":
     case "S":
     case "m":
     case "M": {
-      const r = effectRange(e);
+      const r = effectRange(e, levels);
       if (!r) return null;
       if (letter === "m") return one(r.min);
       if (letter === "M") return one(r.max);
@@ -182,7 +207,7 @@ function variableValue(ctx, spellId, letter, index) {
     }
     case "o":
     case "O": {
-      const r = effectRange(e);
+      const r = effectRange(e, levels);
       const duration = spellDurationMs(ctx, spellId);
       if (!r || !duration) return null;
       const ticks = e.EffectAuraPeriod > 0 ? Math.floor(duration / e.EffectAuraPeriod) : 1;
@@ -253,8 +278,13 @@ const SCALE = /^\$([/*])(-?\d+(?:\.\d+)?);(\d*)(proccooldown|[sSmMoOtTdDaAhHnNxX
  * (Description_lang or AuraDescription_lang). Line breaks become spaces; with
  * `paragraphs: true`, a blank line in the client text becomes one "\n" instead. With
  * `lines: true` the client's layout is kept: a blank line becomes "\n\n" and a single line
- * break "\n" (Rip's per-combo-point lines), each line trimmed. `wholeExpressions: true` shows a
- * `${…}` with no `.N` precision as a whole number, as the game's tooltips do (Rip's 44.4 is 44).
+ * break "\n" (Rip's per-combo-point lines), each line trimmed. Under either option a single line
+ * break is kept only where the line before it ends: after sentence punctuation (. ! ? :) or a
+ * colour reset (Feral Charge's "|CFFFF2020Requires Bear Form, Dire Bear Form|R"); anywhere else it
+ * wraps a sentence and becomes a space (Weaponmaster's "Increases your\r\n critical strike
+ * chance"). Under `paragraphs` a kept line break is a "\n" like a paragraph's.
+ * `wholeExpressions: true` shows a `${…}` with no `.N` precision as a whole number, as the game's
+ * tooltips do (Rip's 44.4 is 44).
  */
 export function renderSpellText(ctx, spellId, { field = "Description_lang", depth = 0, conditions = null, paragraphs = false, lines = false, wholeExpressions = false } = {}) {
   const raw = ctx.spell.get(spellId)?.[field] ?? "";
@@ -265,14 +295,13 @@ export function renderSpellText(ctx, spellId, { field = "Description_lang", dept
   if (lines)
     clean = text
       .split(PARAGRAPH_BREAK)
-      .map((p) => p.split(LINE_BREAK).map(cleanText).filter(Boolean).join(depth ? LINE : "\n"))
+      .map((p) => textLines(p).join(depth ? LINE : "\n"))
       .filter(Boolean)
       .join(depth ? PARAGRAPH : "\n\n");
   else if (paragraphs)
     clean = text
       .split(PARAGRAPH_BREAK)
-      .map(cleanText)
-      .filter(Boolean)
+      .flatMap(textLines)
       .join(depth ? PARAGRAPH : "\n");
   else clean = cleanText(text);
   return { text: clean, unrendered, assumed: state.assumed };
@@ -282,10 +311,28 @@ export function renderSpellText(ctx, spellId, { field = "Description_lang", dept
 const PARAGRAPH = "\u2029";
 /** A blank line in client text (or a nested render's paragraph separator). */
 const PARAGRAPH_BREAK = /[ \t]*\r?\n[ \t]*(?:\r?\n[ \t]*)+|[ \t]*\u2029[ \t]*/;
-/** Line separator inside nested renders under `lines: true`. */
+/** Line separator inside nested renders under `lines: true` (a line already found to end). */
 const LINE = "\u2028";
-/** A single line break in client text (or a nested render's line separator). */
-const LINE_BREAK = /\r?\n|\u2028/;
+/** A line that ends before its line break: sentence punctuation or a colour reset (|r). */
+const ENDS_LINE = /(?:[.!?:]|\|r)[ \t]*$/i;
+
+/**
+ * The lines of one paragraph, cleaned: a client line break is kept after a line that ends
+ * (ENDS_LINE), and anywhere else joins the two lines with a space. A nested render's kept lines
+ * (LINE) stay apart.
+ */
+function textLines(paragraph) {
+  const out = [];
+  for (const hard of paragraph.split(LINE)) {
+    const kept = [];
+    for (const line of hard.split(/\r?\n/)) {
+      if (kept.length && !ENDS_LINE.test(kept[kept.length - 1])) kept[kept.length - 1] += ` ${line}`;
+      else kept.push(line);
+    }
+    out.push(...kept);
+  }
+  return out.map(cleanText).filter(Boolean);
+}
 
 function cleanText(s) {
   return s

@@ -1,9 +1,11 @@
 // Builds the pre-raid item pool (src/data/items/pre-bis.json) from the client tables of two
 // builds: Forever (wow_classic_beta) first, Classic Era (wow_classic_era) for items the
-// Forever client has no row for (decision D17). Pure functions over the lookups the CLI
+// Forever client has no row for (decision D17), with their effects from Forever wherever it has
+// them (createFallbackContext). Pure functions over the lookups the CLI
 // (scripts/scrape/items-client.mjs) loads; no I/O. See docs/data/items.md.
 
-import { SLOT, deriveItem, deriveSet, spellStats } from "./item-stats.mjs";
+import { AURA_STAT, NOT_STAT_AURAS, SLOT, createFallbackContext, deriveItem, deriveSet, hasSpell, spellStats } from "./item-stats.mjs";
+import { compareText } from "./json.mjs";
 import { formatCooldown, renderSpellText } from "./spell-text.mjs";
 
 /** Normalized slot → paperdoll slots it can occupy (finger and trinket stand for two). */
@@ -73,7 +75,7 @@ export function isEquippable(item, row) {
   return Boolean(SLOT[row.InventoryType]); // no shirts, tabards, ammo, quivers or bags
 }
 
-const sortKeys = (o) => Object.fromEntries(Object.entries(o).sort(([a], [b]) => a.localeCompare(b)));
+const sortKeys = (o) => Object.fromEntries(Object.entries(o).sort(([a], [b]) => compareText(a, b)));
 const nonEmpty = (o) => (o && Object.keys(o).length ? sortKeys(o) : null);
 
 /** Bit `id - 1` of a class or race mask (race masks are two 32-bit words). */
@@ -127,12 +129,13 @@ const statText = (stats) =>
  * empty: the client doesn't show such spells.
  */
 export function effectText(bundle, spellId, { condition = null } = {}) {
-  const r = renderSpellText(bundle.text, spellId);
-  const name = bundle.text.spellName.get(spellId)?.Name_lang ?? `spell ${spellId}`;
+  const text = bundle.textFor ? bundle.textFor(spellId) : bundle.text;
+  const r = renderSpellText(text, spellId);
+  const name = text.spellName.get(spellId)?.Name_lang ?? `spell ${spellId}`;
   const stats = spellStats(bundle.ctx, spellId).stats;
   const plain = () => {
     const s = statText(stats);
-    const where = condition?.requiredAreasId ? " in certain areas" : condition?.shapeshiftMask ? " in certain forms" : "";
+    const where = condition?.requiredAreasId ? " in certain areas" : condition?.shapeshiftMask ? " in certain forms" : condition?.weaponSubclassMask ? " with certain weapons" : "";
     return s ? `${s}${where}.` : name;
   };
   if (!r.text && !r.unrendered.length) {
@@ -144,6 +147,44 @@ export function effectText(bundle, spellId, { condition = null } = {}) {
 }
 
 const PREFIX = { use: "Use: ", equip: "Equip: ", chanceOnHit: "Chance on hit: " };
+/** ItemEffect.TriggerType of the tooltip effects: use, equip, chance on hit. */
+const PREFIX_BY_TRIGGER = { 0: PREFIX.use, 1: PREFIX.equip, 2: PREFIX.chanceOnHit };
+/** The build a spell's text and values come from ("forever" or "classic"). */
+const buildOf = (bundle, spellId) => (bundle.buildOf ? bundle.buildOf(spellId) : bundle.key);
+
+/**
+ * The bundle fallback items are described with (decision D6): Classic Era item rows, effects from
+ * the Forever client wherever it has them (lib/item-stats.mjs createFallbackContext), each spell's
+ * text from its own client.
+ */
+export function createFallbackBundle(forever, classic) {
+  const fromForever = (id) => hasSpell(forever.ctx, id);
+  return {
+    ...classic,
+    ctx: createFallbackContext(classic.ctx, forever.ctx),
+    textFor: (id) => (fromForever(id) ? forever.text : classic.text),
+    buildOf: (id) => (fromForever(id) ? "forever" : "classic"),
+  };
+}
+
+/**
+ * Every aura on the equip spells (ItemEffect trigger 1) and set bonuses the pool uses that is
+ * neither a stat (AURA_STAT) nor listed as not one (NOT_STAT_AURAS): { aura, spellId, build, usedBy }.
+ * Empty when every aura is classified (docs/data/client.md#aura--stat).
+ */
+export function unclassifiedAuras(uses) {
+  const out = new Map();
+  for (const { ctx, spellId, build, where } of uses) {
+    for (const e of ctx.spellEffects.get(spellId) ?? []) {
+      if (e.Effect !== 6 || e.EffectAura in AURA_STAT || e.EffectAura in NOT_STAT_AURAS) continue;
+      const key = `${build}:${spellId}:${e.EffectAura}`;
+      const x = out.get(key) ?? { aura: e.EffectAura, spellId, build, usedBy: [] };
+      if (!x.usedBy.includes(where)) x.usedBy.push(where);
+      out.set(key, x);
+    }
+  }
+  return [...out.values()];
+}
 
 /** Turn derived effect records into the dataset's procs / useEffects / otherEquip lines. */
 function effectLines(bundle, derived, coverage, itemId) {
@@ -151,14 +192,15 @@ function effectLines(bundle, derived, coverage, itemId) {
   for (const e of derived.effects) {
     if (!(e.trigger in PREFIX)) continue; // learn, looted, soulstone: not tooltip effects of gear
     const t = effectText(bundle, e.spellId, { condition: e.condition ?? null });
-    coverage.record(t, { spellId: e.spellId, itemId, build: bundle.key });
+    coverage.record(t, { spellId: e.spellId, itemId, build: buildOf(bundle, e.spellId) });
     if (t.text === null) continue;
     const raw = `${PREFIX[e.trigger]}${t.text}`;
+    const { spellId } = e;
     if (e.kind === "use") {
       const ms = e.cooldownMs ?? e.categoryCooldownMs ?? null;
-      out.useEffects.push(ms ? { raw: `${raw} (${formatCooldown(ms)} Cooldown)`, cooldownSec: ms / 1000 } : { raw });
-    } else if (e.kind === "proc") out.procs.push({ raw });
-    else out.otherEquip.push({ raw });
+      out.useEffects.push(ms ? { raw: `${raw} (${formatCooldown(ms)} Cooldown)`, spellId, cooldownSec: ms / 1000 } : { raw, spellId });
+    } else if (e.kind === "proc") out.procs.push({ raw, spellId });
+    else out.otherEquip.push({ raw, spellId });
   }
   return out;
 }
@@ -261,6 +303,7 @@ export function describeRow(bundle, id, coverage) {
     stats: sortKeys(derived.stats),
     weapon: derived.weapon ? weapon : null,
     weaponSkill: nonEmpty(derived.weaponSkill),
+    statSpellIds: derived.statSpellIds,
     ...effects,
     setId: derived.setId === null ? null : String(derived.setId),
     icon: L.iconName(id, item),
@@ -281,9 +324,11 @@ function signature(d) {
   const { armor = 0, bonusArmor = 0, ...stats } = d.stats;
   if (armor + bonusArmor) stats.armor = armor + bonusArmor;
   const weapon = d.weapon && { min: d.weapon.min, max: d.weapon.max, speed: d.weapon.speed, school: d.weapon.school, extra: d.weapon.extraDamage ?? null };
+  // The tooltip lines, not the spells behind them.
+  const lines = (list) => list.map((e) => [e.raw, e.cooldownSec ?? null]);
   return JSON.stringify([
     d.name, d.quality, d.itemLevel, d.reqLevel, d.slot, d.itemSubclass, d.binding, d.unique, d.uniqueEquipped, d.classes,
-    d.races, d.requirements, sortKeys(stats), weapon, d.weaponSkill, d.procs, d.useEffects, d.otherEquip, d.setId,
+    d.races, d.requirements, sortKeys(stats), weapon, d.weaponSkill, lines(d.procs), lines(d.useEffects), lines(d.otherEquip), d.setId,
     d.setBonuses,
   ]);
 }
@@ -299,7 +344,10 @@ function signature(d) {
  */
 export function buildPool({ forever, classic, filter, bis, watch }) {
   const coverage = createCoverage();
-  const report = { excludedByName: [], excludedById: [], sod: [], notEquippable: [], missingItemRow: [], addedByList: [] };
+  const report = { excludedByName: [], excludedById: [], sod: [], notEquippable: [], missingItemRow: [], addedByList: [], unclassifiedAuras: [] };
+  const fallback = createFallbackBundle(forever, classic);
+  const fallbackEffects = { items: 0, effectsFromForever: 0, spells: 0, spellsFromForever: 0 };
+  const auraUses = [];
   const levelOk = (r) =>
     (r.RequiredLevel >= filter.reqLevel[0] && r.RequiredLevel <= filter.reqLevel[1]) ||
     (filter.minItemLevel !== null && r.ItemLevel >= filter.minItemLevel);
@@ -338,14 +386,35 @@ export function buildPool({ forever, classic, filter, bis, watch }) {
     }
     const f = fRow ? describeRow(forever, id, coverage) : null;
     // The Classic Era row is described without counting it: only the stat source's text counts.
-    const c = cRow ? describeRow(classic, id, fRow ? createCoverage() : coverage) : null;
+    // Without a Forever row it is the item's data, with its effects from Forever where it has them.
+    const c = cRow ? describeRow(fRow ? classic : fallback, id, fRow ? createCoverage() : coverage) : null;
     const d = f ?? c;
+    const dBundle = f ? forever : fallback;
+    for (const e of d.derived.effects) if (e.trigger === "equip") auraUses.push({ ctx: dBundle.ctx, spellId: e.spellId, build: buildOf(dBundle, e.spellId), where: `item ${id}` });
     const tab = !f ? "missing" : !c ? "new" : signature(f) === signature(c) ? "unchanged" : "changed";
     const notes = [];
     if (d.derived.unknownStatTypes.length)
       notes.push(`Unknown stat types left out: ${d.derived.unknownStatTypes.map((u) => `${u.type} (${u.amount})`).join(", ")}.`);
     for (const [k, v] of Object.entries(d.derived.other)) notes.push(`Not a sim stat: ${k} ${v}.`);
     if (listed && !byRule(row)) report.addedByList.push(id);
+    if (!f) {
+      // docs/data/items.md#effects-of-fallback-items: which effects are the Forever client's.
+      const rows = (fallback.ctx.itemEffects.get(id) ?? []).filter((e) => e.TriggerType in PREFIX_BY_TRIGGER);
+      const from = fallback.ctx.effectsFrom(id);
+      const spells = rows.map((e) => e.SpellID);
+      const classicOnly = spells.filter((s) => fallback.buildOf(s) !== "forever");
+      if (spells.length) {
+        fallbackEffects.items++;
+        if (from === "forever") fallbackEffects.effectsFromForever++;
+        fallbackEffects.spells += spells.length;
+        fallbackEffects.spellsFromForever += spells.length - classicOnly.length;
+        const parts = [
+          from === "forever" ? "effects are the Forever client's item effects" : from === "classic" ? "effects are Classic Era's item effects (the Forever client links none)" : null,
+          `spell${spells.length > 1 ? "s" : ""} ${spells.join(", ")} read from the Forever client${classicOnly.length ? `, except ${classicOnly.join(", ")} (Classic Era: not in the Forever client)` : ""}`,
+        ];
+        notes.push(`Stats from Classic Era (no Forever ItemSparse row); ${parts.filter(Boolean).join("; ")}.`);
+      }
+    }
     const out = {
       id,
       name: d.name,
@@ -373,6 +442,7 @@ export function buildPool({ forever, classic, filter, bis, watch }) {
       stats: d.stats,
       weapon: d.weapon,
       weaponSkill: d.weaponSkill,
+      statSpellIds: d.statSpellIds,
       procs: d.procs,
       useEffects: d.useEffects,
       otherEquip: d.otherEquip,
@@ -397,33 +467,36 @@ export function buildPool({ forever, classic, filter, bis, watch }) {
   const setIds = [...new Set(items.map((i) => i.setId).filter(Boolean))].sort((a, b) => Number(a) - Number(b));
   for (const setId of setIds) {
     const fromForever = deriveSet(forever.ctx, Number(setId));
-    const bundle = fromForever ? forever : classic;
-    const set = fromForever ?? deriveSet(classic.ctx, Number(setId));
+    const bundle = fromForever ? forever : fallback;
+    const set = fromForever ?? deriveSet(fallback.ctx, Number(setId));
     if (!set) {
       sets[setId] = { name: null, size: null, itemIds: [], bonuses: [], bonusesFrom: null };
       continue;
     }
     const bonuses = set.bonuses.map((b) => {
       const t = effectText(bundle, b.spellId);
-      coverage.record(t, { spellId: b.spellId, setId, build: bundle.key });
-      const out = { pieces: b.pieces, text: t.text ?? b.name ?? `spell ${b.spellId}` };
+      coverage.record(t, { spellId: b.spellId, setId, build: buildOf(bundle, b.spellId) });
+      auraUses.push({ ctx: bundle.ctx, spellId: b.spellId, build: buildOf(bundle, b.spellId), where: `set ${setId}` });
+      const out = { pieces: b.pieces, spellId: b.spellId, text: t.text ?? b.name ?? `spell ${b.spellId}` };
       if (b.stats && Object.keys(b.stats).length) out.parsed = sortKeys(b.stats);
       if (b.weaponSkill) out.weaponSkill = sortKeys(b.weaponSkill);
       return out;
     });
-    sets[setId] = { name: set.name, size: set.itemIds.length, itemIds: [...set.itemIds].sort((a, b) => a - b), bonuses, bonusesFrom: bundle.key };
+    sets[setId] = { name: set.name, size: set.itemIds.length, itemIds: [...set.itemIds].sort((a, b) => a - b), bonuses, bonusesFrom: fromForever ? "forever" : "classic" };
   }
 
   const inPool = new Set(items.map((i) => i.id));
   const noClientRow = [...watch].filter(([id]) => !inPool.has(id) && !forever.ctx.sparse.has(id) && !classic.ctx.sparse.has(id)).map(([id, name]) => ({ id, name }));
   const byTab = { new: 0, changed: 0, unchanged: 0, missing: 0 };
   for (const i of items) byTab[i.tab]++;
+  report.unclassifiedAuras = unclassifiedAuras(auraUses);
   return {
     items,
     sets,
     counts: { items: items.length, byTab, sets: Object.keys(sets).length },
     noClientRow,
     coverage: coverage.toJSON(),
+    fallbackEffects,
     report,
   };
 }

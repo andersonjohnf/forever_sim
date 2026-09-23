@@ -458,7 +458,7 @@ matters for armor, only for who spends the GCDs. Armor math itself is in
 | Judgement of Light (r4) | 20346 | Melee attacks against the target may heal the attacker for 61 | **40 s** (C: 10 s) | One per paladin; always hits | Paladin | [F] | [fc-sb-paladin] |
 | Curse of the Elements (r4) | 1311680 | −75 resistance to **all magic schools**, **+10% magic damage taken, Holy included** (C: r3, 11722, Fire and Frost only) | 5 min | One curse per warlock | Warlock; new rank 4 at level 50. **Curse of Shadow removed** (merged in) | [F] | [fc-sb-warlock] · [client] (SpellEffect, 1.60.1.69913) |
 | Hunter's Mark (r4) | 14325 | **+71 ranged AP** for all attackers (C: 110). **No melee component in Classic Era or Forever** | 2 min | — | Hunter. Improved Hunter's Mark removed (C: +15% ranged only) | [F] | [fc-sb-hunter] · [fc-changes] |
-| Demoralizing Shout (r5) | 11556 | Enemy melee AP **−196** (C: −140). The tooltip value is used; a per-level term in the client data would give about −204 at 60 [?] ([OQ 19](#open-questions)) | **45 s** (C: 30 s) | Probably exclusive with Demoralizing Roar. Improved Demoralizing Shout removed | Warrior | [F] value · [?] stacking | [fc-sb-warrior] |
+| Demoralizing Shout (r5) | 11556 | Enemy melee AP **−204** at level 60 (C: −146 at 60). The level-60 tooltip: base −196 and −1.4 per level from 54, not capped below 60 (`SpellLevels` 54–64), which the client shows as 204 [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913). The −196 read before was the base, unscaled. Whether the debuff applies the same in combat is [?] ([OQ 19](#open-questions)) | **45 s** (C: 30 s) | Probably exclusive with Demoralizing Roar. Improved Demoralizing Shout removed | Warrior | [F] value · [?] stacking | [fc-sb-warrior] |
 | Demoralizing Roar (r5) | 9898 | Enemy melee AP **−193** (C: −130). Tooltip value; the data's per-level term would give −204.2 at 60 [?] ([OQ 19](#open-questions)) | 30 s | As above | Druid (bear) | [F] value · [?] stacking | [fc-sb-druid] |
 | Thunder Clap (r6) | 11581 | 103 damage; enemy attack speed **−20%** (C: −10%) | 30 s; **6 s cooldown** (C: 4 s); also usable in Defensive Stance | — | Warrior | [F] | [fc-sb-warrior] |
 | Curse of Weakness (r6) | 11708 | Target's **physical** damage done −37 (C: −31, all damage) | 2 min | One curse per warlock. Improved Curse of Weakness removed | Warlock | [F] | [fc-sb-warlock] |
@@ -750,7 +750,7 @@ auras ([§2](#2-world-buffs-excluded)).
   Crusader removed.
 - Curse of the Elements now covers **all magic schools including Holy**; Curse of Shadow
   removed.
-- Demoralizing Shout −196 for 45 s, Demoralizing Roar −193, Thunder Clap −20% (6 s
+- Demoralizing Shout −204 at 60 (−196 base) for 45 s, Demoralizing Roar −193, Thunder Clap −20% (6 s
   cooldown), Curse of Weakness −37 physical. The improved versions of these were removed.
 - Hunter's Mark 110 → 71, still ranged-only; Improved Hunter's Mark removed. Stormstrike
   no longer debuffs the target.
@@ -1111,13 +1111,14 @@ Each item says what was found and how the guild can check it on the Forever beta
     Aura? *Check:* build a camp outside a raid, zone in, and inspect the buffs. Also, does
     the world-buff directive also cover event consumables such as Dark Desire and
     Fire-toasted Bun (+2% hit)? That is a guild decision. Both are default off here.
-19. **Demoralizing Shout and Roar at level 60** [?]. The Forever tooltips say −196 (Shout r5)
-    and −193 (Roar r5), and the sim uses them (tooltip beats derived, doctrine §2). The client
-    data adds a per-level term (−1.4 per level, from 54 for the Shout and 52 for the Roar), and
-    `MaxLevel` (64 / 62) doesn't cap it below 60 [F] [client] (SpellEffect, SpellLevels,
-    1.60.1.69913), so it would give about −204.4 and −204.2 at 60 if the server applies it. ✅
-    The client read is resolved; whether the server applies the term is still open. *Check,
-    Route C:* read the debuff tooltip on a target at 60.
+19. **Demoralizing Shout and Roar at level 60** [?]. **Shout r5: −204 [F]**, the level-60
+    tooltip: the client data's −196 plus −1.4 per level from 54, which `MaxLevel` 64 doesn't cap
+    below 60 [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913), is −204.4, shown as 204. The
+    "tooltip −196" this doc used before was the base value rendered without the per-level term
+    (by foreverchanges and by the sim's renderer until review finding L9), not the level-60
+    tooltip. The Roar r5 row still says −193, the same unscaled base (−1.4 per level from 52
+    gives −204.2 at 60). Still open: whether the debuff applies the tooltip's value in combat.
+    *Check, Route C:* read the debuff tooltip on a target at 60.
 20. **Elemental Sharpening Stone: all attacks, and two stack?** [?] Each stone's +2% melee crit
     is its own aura 52 on the warrior (enchant 2506 → 22755), with a weapon requirement that
     any melee weapon meets ([§3.6](#36-weapon-enhancements-temporary)). The sim counts it for

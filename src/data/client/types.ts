@@ -18,7 +18,8 @@
  *
  * **spells.json omits zero values** to stay small: a field that is absent is 0 (numbers), all
  * zeros (arrays) or "no row in that table" (objects). `id`, `name`, `effects` and `sources`
- * are always present, and so are each effect's `effectIndex` and `effect`.
+ * are always present, and so are each effect's `effectIndex` and `effect`. The one exception is
+ * `effectChainAmplitude`, whose default is 1: absent means 1, and a 0 is written.
  */
 
 /** The `meta` envelope every file in this folder starts with. */
@@ -28,7 +29,10 @@ export interface ClientDataMeta {
   product: string
   /** Client build, e.g. "1.60.1.69913". */
   build: string
-  /** When wago.tools recorded the build ("YYYY-MM-DD hh:mm:ss"), or null if not the latest. */
+  /**
+   * When wago.tools recorded the build ("YYYY-MM-DD hh:mm:ss"), from its build list, whichever
+   * build is cached as latest; null only if the list lacks the build.
+   */
   buildCreatedAt: string | null
   /** Tables and game-table files read → their FileDataID. */
   tables: Record<string, number>
@@ -92,6 +96,12 @@ export interface SpellEffect {
   /** Periodic tick interval, ms. */
   effectAuraPeriod?: number
   effectChainTargets?: number
+  /**
+   * EffectChainAmplitude, written only when it isn't the client's default 1 (so absent means 1,
+   * and a 0 is kept): a chain spell's falloff, and Execute's rage-to-damage factor (20662: 1.5;
+   * its tooltip's `$*10;F1` is 15 damage per extra rage; docs/classes/warrior.md §3.1).
+   */
+  effectChainAmplitude?: number
   effectMechanic?: number
   /** SpellClassMask of the spells this effect modifies (talents, set bonuses). */
   effectSpellClassMask?: number[]

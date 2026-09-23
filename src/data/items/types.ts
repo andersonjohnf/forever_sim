@@ -222,6 +222,11 @@ export interface VerbatimEffect {
    * target for 150 Frost damage." (docs/data/items.md#effect-and-set-bonus-text).
    */
   raw: string;
+  /**
+   * The spell behind the line (ItemEffect.SpellID). Read from the Forever client whenever it has
+   * the spell, fallback items included (docs/data/items.md#effects-of-fallback-items).
+   */
+  spellId: number;
 }
 
 export interface UseEffect extends VerbatimEffect {
@@ -242,6 +247,8 @@ export interface Requirement {
 
 export interface SetBonus {
   pieces: number;
+  /** The bonus spell (ItemSetSpell.SpellID). */
+  spellId: number;
   /** The bonus spell's description, without the "(N) Set: " prefix. */
   text: string;
   /** Present when the bonus spell's every aura is a flat stat. */
@@ -341,7 +348,7 @@ export interface ItemDataMeta {
   /** wago.tools product of the Forever client, `wow_classic_beta`. */
   product: string;
   foreverBuild: string;
-  /** The build's creation date on wago.tools, YYYY-MM-DD. */
+  /** The build's creation date in wago.tools' build list (YYYY-MM-DD), whichever build is cached as latest; null only if the list lacks the build. */
   foreverBuildDate: string | null;
   /** wago.tools product of the fallback client, `wow_classic_era`. */
   classicProduct: string;
@@ -408,6 +415,12 @@ export interface ItemDataMeta {
     hiddenSpells: DescriptionGap[];
   };
   ratingConversions: Partial<Record<StatKey, RatingConversion>>;
+  /**
+   * Fallback items' effects (decision D6, docs/data/items.md#effects-of-fallback-items): the
+   * `items` with effect or stat spells, how many take the Forever client's item effects, and
+   * how many of their `spells` are read from the Forever client.
+   */
+  fallbackEffects: { items: number; effectsFromForever: number; spells: number; spellsFromForever: number };
 }
 
 export interface Item {
@@ -427,7 +440,11 @@ export interface Item {
   foreverData: boolean;
   /** "client" when the values are the Forever client's; null without Forever data. */
   foreverSource: "client" | null;
-  /** Which client's row `stats`, `weapon`, effects and set come from. */
+  /**
+   * Which client's row `stats`, `weapon` and set come from. A "classic" item's effects are the
+   * Forever client's wherever it has them: its spells, and its item effects when Forever links
+   * any (docs/data/items.md#effects-of-fallback-items).
+   */
   statsFrom: "forever" | "classic";
   slot: ItemSlot;
   equipSlots: EquipSlot[];
@@ -449,6 +466,8 @@ export interface Item {
   stats: Partial<Stats>;
   weapon: Weapon | null;
   weaponSkill: Partial<Record<WeaponSkill, number>> | null;
+  /** Equip spells whose auras are part of `stats` and `weaponSkill` (sorted; [] for none). */
+  statSpellIds: number[];
   /** "Chance on hit:" effects, and Equip effects that fire on an event. */
   procs: VerbatimEffect[];
   useEffects: UseEffect[];

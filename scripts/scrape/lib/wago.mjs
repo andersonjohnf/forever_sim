@@ -4,6 +4,7 @@
 //
 // Cache layout (all under .cache/client/, git-ignored):
 //   builds/<product>_latest.json             /api/builds/<product>/latest
+//   <version>/api/builds.json                /api/builds (the build list, once per requested build)
 //   <version>/api/files.json                 /api/files?version=<version>&format=json
 //   <version>/casc/<fdid>.bin                /api/casc/<fdid>?version=<version>
 //   <version>/tables/<Table>.ndjson          parsed DB2: line 1 = meta, then one row per line
@@ -174,6 +175,25 @@ export function createClientSource({ fetcher, cacheDir, version, dbdefsSha }) {
 export async function latestBuild(fetcher, product) {
   const body = await fetcher.get(`${WAGO}/api/builds/${product}/latest`, `builds/${product}_latest.json`);
   return JSON.parse(body.toString("utf8"));
+}
+
+/**
+ * A build's wago.tools record ({ product, version, created_at, … }), read from the build list
+ * (`/api/builds`, every product's builds). The list is cached per requested build
+ * (<version>/api/builds.json), so it is fetched once per build and always lists that build, and
+ * the date a dataset records doesn't depend on which build the cache holds as "latest". Null
+ * when wago.tools doesn't list the build.
+ */
+export async function buildRecord(fetcher, product, version) {
+  const body = await fetcher.get(`${WAGO}/api/builds`, `${version}/api/builds.json`);
+  const all = JSON.parse(body.toString("utf8"));
+  const list = Array.isArray(all) ? all : (all[product] ?? []);
+  return list.find((b) => b.version === version && (b.product ?? product) === product) ?? null;
+}
+
+/** A build's creation date on wago.tools, YYYY-MM-DD (null when the list doesn't have it). */
+export async function buildDate(fetcher, product, version) {
+  return (await buildRecord(fetcher, product, version))?.created_at?.slice(0, 10) ?? null;
 }
 
 /** The WoWDBDefs commit to use: pinned, else the cached/latest head of master. */

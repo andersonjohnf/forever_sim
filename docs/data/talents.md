@@ -32,7 +32,7 @@ already cached. A later run makes no requests.
 
 | Build | Tables read |
 | --- | --- |
-| Forever 1.60.1.69913 | `TraitTree`, `TraitNode`, `TraitNodeEntry`, `TraitNodeXTraitNodeEntry`, `TraitDefinition`, `TraitDefinitionEffectPoints`, `CurvePoint`, `TraitEdge`, `TraitNodeGroupXTraitNode`, `TraitNodeGroupXTraitCond`, `TraitNodeXTraitCond`, `TraitCond`, `TraitCurrency`, `TraitTreeXTraitCurrency`, `TalentTab`, `ChrClasses`, `SpellClassOptions`, `SpellPower`, `SpellCooldowns`, `SpellCastTimes`, `SpellEquippedItems`, `ItemSubClass`, and the text renderer's `Spell`, `SpellName`, `SpellEffect`, `SpellMisc`, `SpellDuration`, `SpellAuraOptions`, `SpellRadius`, `SpellRange`, `SpellTargetRestrictions`, `SpellDescriptionVariables`, `SpellXDescriptionVariables` |
+| Forever 1.60.1.69913 | `TraitTree`, `TraitNode`, `TraitNodeEntry`, `TraitNodeXTraitNodeEntry`, `TraitDefinition`, `TraitDefinitionEffectPoints`, `CurvePoint`, `TraitEdge`, `TraitNodeGroupXTraitNode`, `TraitNodeGroupXTraitCond`, `TraitNodeXTraitCond`, `TraitCond`, `TraitCurrency`, `TraitTreeXTraitCurrency`, `TalentTab`, `ChrClasses`, `SpellClassOptions`, `SpellPower`, `SpellCooldowns`, `SpellCastTimes`, `SpellEquippedItems`, `ItemSubClass`, and the text renderer's `Spell`, `SpellName`, `SpellEffect`, `SpellMisc`, `SpellDuration`, `SpellAuraOptions`, `SpellRadius`, `SpellRange`, `SpellTargetRestrictions`, `SpellDescriptionVariables`, `SpellXDescriptionVariables`, `SpellLevels` |
 | Classic Era 1.15.9.69722 | `Talent`, `TalentTab`, `ChrClasses` and the text renderer's tables |
 
 Each file's `meta.tables` lists every table with its FileDataID, per build.
@@ -71,7 +71,16 @@ Each file's `meta.tables` lists every table with its FileDataID, per build.
    descriptions. For talents it takes `$?` player conditions as **unmet** (a reader with no
    auras or talents: Feral Charge and Berserk print "Requires Bear Form, Dire Bear Form" rather
    than the shapeshifted variant), keeps a blank line as one `\n` paragraph break (the UI shows
-   it), and includes `$@spelltooltip` texts. Every rank of every talent renders completely.
+   it), keeps a line break after a line that ends as one `\n` too (Feral Charge's "Requires Bear
+   Form, Dire Bear Form" line, not "… Dire Bear Form Charge an enemy"; a break inside a sentence,
+   as in Weaponmaster, is a space), shows a `${…}` without a `.N` precision as a whole number
+   (as the spellbook does), reads effect points at level 60 ([items.md § Per-level
+   values](items.md#per-level-values)), and includes `$@spelltooltip` texts. Every rank of every
+   talent renders completely. In F2 (review findings L9 and L37) the line-break rule changed
+   Feral Charge's and Berserk's texts, and the level-60 values four: Vindication's reduction is
+   67 / 133 / 200 (it read 2 / 4 / 6, its aura's base),
+   Improved Seal of Fury restores 60 mana (it read 0), Wild Growth heals 336 (280), Light's
+   Vigil 325 to 343 (315 to 333).
 8. **Tooltip header and passive flag.** `passive` is `SPELL_ATTR0_PASSIVE`. Active talents get
    `tooltip`: cost (`SpellPower`: rage in tenths, mana, or "% of base mana"), range
    (`SpellRange`, "Melee range" for the melee range), cast time (`SpellCastTimes`), cooldown
@@ -92,8 +101,9 @@ Each file's `meta.tables` lists every table with its FileDataID, per build.
 The generator fails (and writes nothing) on a problem: no or several class trees, a cluster
 that isn't four columns wide, two talents in one cell, an arrow from outside the tree or one
 pointing up, a gate that isn't "5 × tier points", a curve operation other than "set", a text
-token it can't render, an icon it can't name, a Classic talent matched twice, or a stored build
-code that decodes differently (see [Build codes](#build-codes-verified)).
+token it can't render, an icon it can't name, a Classic talent matched twice, a build-code
+position that changes, or a stored build code that decodes differently (see [Build
+codes](#build-codes-verified)).
 
 **The old scraper (history).** Until M1.5d the dataset came from the foreverchanges.pro
 talent calculator. Its scraper, `scripts/scrape/talents.mjs`, decoded the page's Next.js RSC
@@ -166,13 +176,22 @@ they meant.
 is its inverse; `validateTalentBuild(data, ranks)` lists rule violations (unknown talent, rank
 range, >51 points, 5·tier gate, prerequisite at max rank).
 
-**Compatibility.** Every build code the repo stores decodes to the same ranks by talent name
-under the client dataset as under the foreverchanges one it replaced, is legal, and re-encodes
-byte for byte. The generator checks this on every run against the committed dataset (`git
-show HEAD:src/data/talents/<class>.json`, or `--against=<ref>`) and refuses to write when a
-code changes meaning or becomes illegal. A build that really moves talents needs the stored
-codes updated first, then a run with `--accept-code-changes`. `src/data/data.test.ts` pins
-each code's ranks by name.
+**Compatibility.** Share links and saved setups store codes, including codes no file in the
+repo knows, so **every position** of a code must keep its meaning, not only the positions the
+stored codes use (review finding L10). On every run the generator compares each tree's talents
+in code order, talent name and `maxRank` at every position, with the committed dataset (`git
+show HEAD:src/data/talents/<class>.json`, or `--against=<ref>`; `lib/build-codes.mjs`
+`codePositionChanges`). A talent that moves, is renamed, changes its max rank or is removed
+fails the run; one appended at the end of a tree only warns, as old codes still decode the
+same. It also decodes every stored code, the one list in
+[`scripts/scrape/stored-builds.json`](../../scripts/scrape/stored-builds.json) with the ranks by
+name each had when it was written, and fails when one decodes to other ranks or becomes illegal.
+A build that really moves talents needs the app and the stored codes updated first, then a run
+with `--accept-code-changes`. **The guard fails closed** (review finding L36): when `git show`
+fails (git missing, or no such file at `--against`), the run says why and refuses to write
+unless `--skip-committed-check` is passed. `src/data/data.test.ts` pins the same two contracts:
+each stored code's ranks by name (read from `stored-builds.json`) and the full code order of
+every tree, talent and max rank, position by position.
 
 | Class | Code | Build | Points | Same ranks | Legal |
 | --- | --- | --- | --- | --- | --- |
@@ -385,7 +404,7 @@ Balance 16, Feral Combat 19, Restoration 16 (51 talents): 13 new, 34 changed, 2 
 | Feral Combat | 7·2 | Berserk (needs Leader of the Pack) | 1 | Requires Cat Form, Bear Form, Dire Bear Form Causes your Mangle ability to strike up to 3 targets, removes its cooldown, and increases the critical strike chan… |
 | Restoration | 3·4 | Gift of the Earthmother | 1 | Reduces the global cooldown by 0.5 seconds on your Rejuvenation, Swiftmend, and Wild Growth spells. |
 | Restoration | 5·2 | Living Spirit | 3 | Increases your Spirit by 15%. |
-| Restoration | 7·2 | Wild Growth (needs Living Spirit) | 1 | Heals the target and their party for 280 over 7 sec. Party members must be within 43.5 yards of target. The amount healed is applied quickly at first, and slow… |
+| Restoration | 7·2 | Wild Growth (needs Living Spirit) | 1 | Heals the target and their party for 336 over 7 sec. Party members must be within 43.5 yards of target. The amount healed is applied quickly at first, and slow… |
 
 **Changed or moved** (from the client comparison; tiers and columns are 1-based)
 
@@ -445,8 +464,8 @@ Holy 18, Protection 16, Retribution 18 (52 talents): 20 new, 25 changed, 4 moved
 | Holy | 4·1 | Infusion of Light | 2 | Your Holy Shock and Flash of Light critical hits reduce the cast time of your next Holy Light cast within 15 sec by 1.0 sec. |
 | Holy | 5·1 | Divine Precision (needs Holy Shock) | 3 | Improves your chance to hit with Holy spells by 18%. |
 | Holy | 5·3 | Consecrated Ground | 2 | Gives your Holy spells 10% increased damage against the first 4 enemies that enter your Consecration. |
-| Holy | 7·2 | Light's Vigil (needs Holy Shock) | 1 | Applies Light's Vigil to the target for 30 sec. Your next Holy Shock cast on them triggers no cooldown and causes friendly targets to heal their party for 315 … |
-| Protection | 3·1 | Improved Seal of Fury | 1 | When Seal of Fury's shield is fully absorbed, restore 0 Mana, increased by 15% per level the attacker is above you, up to 45%. |
+| Holy | 7·2 | Light's Vigil (needs Holy Shock) | 1 | Applies Light's Vigil to the target for 30 sec. Your next Holy Shock cast on them triggers no cooldown and causes friendly targets to heal their party for 325 … |
+| Protection | 3·1 | Improved Seal of Fury | 1 | When Seal of Fury's shield is fully absorbed, restore 60 Mana, increased by 15% per level the attacker is above you, up to 45%. |
 | Protection | 3·4 | Sacred Duty | 2 | Increases your total Stamina by 4% and reduces the cooldown of your Divine Shield, Divine Protection, and Templar's Bulwark spells by 60 sec. |
 | Protection | 4·1 | Swift Judgement (needs Improved Seal of Fury) | 1 | Finishes the remaining cooldown on your Judgement ability and reduces the Mana cost of your next Judgement by 100%. |
 | Protection | 5·2 | Templar's Bulwark | 1 | When activated, this ability grants you an absorb shield equal to 100% of your maximum health for 8 sec. Applies Forbearance for 1 min. Cannot be cast while Fo… |
@@ -514,8 +533,10 @@ Classic Era talents of the class with no Forever talent matched to them (by spel
   saw hotfixes, agreed with every cell, rank, text and every arrow but one, so no talent hotfix
   showed in this build. A later build's hotfixes can't be checked that way any more.
 - **Tooltip text is raw client data.** Some values look unresolved or mis-scaled, e.g. Improved
-  Shield Wall "by 11.0 min", Improved Seal of Fury "restore 0 Mana", Wild Growth "within
-  43.5 yards". Talents with dummy effects print numbers the server scripts (King of the Jungle,
+  Shield Wall "by 11.0 min", Wild Growth "within 43.5 yards". Per-level values are read at level
+  60 by a documented rule whose base level is `[?]` where `SpellLevel` and `BaseLevel` differ
+  (Vindication: 200 at 3/3 by `SpellLevel`, 204 by `BaseLevel`; [open questions
+  B74](../open-questions.md#b74-per-level-tooltip-values)). Talents with dummy effects print numbers the server scripts (King of the Jungle,
   Feral Instinct, Eclipse; [client.md](client.md#talentsjson)). Check suspicious numbers in
   game before the engine relies on them, and put corrections in the override layer.
 - **`$?` conditions are taken as unmet.** Feral Charge and Berserk show their "Requires … Form"
@@ -537,9 +558,11 @@ npm run diff:talents -- --version=<build>   # a new Forever beta build, diffed a
 ```
 
 It prints, per class, the Trait tree, counts, arrows, the Classic talents left out, notes (gates
-that count the whole tree, off-grid nodes, conditions taken as unmet) and each stored build
-code's check against the committed dataset, and exits 1 without writing if a check fails
-(`--accept-code-changes` lets a stored code change meaning, once the code is updated). The
+that count the whole tree, off-grid nodes, conditions taken as unmet), each stored build
+code's check and the number of code positions per tree, and exits 1 without writing if a check
+fails (`--accept-code-changes` lets a position or a stored code change meaning, once the app
+and `stored-builds.json` handle it; `--skip-committed-check` writes without a committed dataset
+to compare with). The
 diff (`.cache/client/<build>/talents-diff.md`) pairs talents by tree and name, then by cell,
 and lists every changed field, rank text and stored code. After a new build: re-run
 `npm run scrape:client` too (its `talents.json` maps these ids), review `git diff src/data`,

@@ -349,6 +349,10 @@ describe('golden run (fixed config and seed)', () => {
   //   re-derive's numbers are identical.
   // - F1b and F1a together on main: Fury 684.2 → 683.6 DPS (F1b +1.2%, then F1a −1.3%), Arms
   //   630.7 → 615.1, Protection 219.1 → 217.0 TPS (143.5 → 142.1 DPS).
+  // - F2 (review L5): items on Classic Era stats take Forever's item effects where the client has
+  //   them. Blackhand's Breadth (default trinket 2) is +1% crit in Forever, not +2%: alone, Fury
+  //   684.2 → 676.3 and Arms 630.7 → 626.0, Protection unchanged. With F1a and F1b on main: Fury
+  //   675.2, Arms 610.7, Protection 217.0 TPS (142.1 DPS).
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

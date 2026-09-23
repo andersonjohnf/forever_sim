@@ -36,7 +36,7 @@ The item, talent, spell and race datasets start with:
   "scrapedAt": "2026-09-23T…Z",               // latest download among the files read
   "product": "wow_classic_beta",
   "foreverBuild": "1.60.1.69913",             // Forever beta client build
-  "foreverBuildDate": "2026-09-18",
+  "foreverBuildDate": "2026-09-18",           // the build's date in wago.tools' build list
   "classicProduct": "wow_classic_era",
   "classicBuild": "1.15.9.69722",             // Classic Era build compared against
   "tables": { "forever": { … }, "classic": { … } },   // table → FileDataID
@@ -56,13 +56,22 @@ The item, talent, spell and race datasets start with:
   Every response is cached under `.cache/client/` (git-ignored) and never downloaded again
   unless `--refresh` is passed ([client.md § Requests](client.md#requests)).
 - **Deterministic output.** Stable ordering and formatting, so a re-scrape diffs cleanly. From
-  a warm cache, `npm run scrape` rewrites every dataset byte for byte with no requests.
+  a warm cache, `npm run scrape` rewrites every dataset byte for byte with no requests, on any
+  machine: text is sorted by `compareText` (`lib/json.mjs`: case-insensitive, then by code
+  unit), never by `localeCompare` or `Intl.Collator`, which follow the machine's locale, and a
+  build's date comes from wago.tools' build list for that build, not from whichever build the
+  cache holds as "latest" (review finding L35; `scripts/scrape/lib/json.test.mjs` sorts under a
+  Swedish and a Turkish locale).
 - **Keep both sides.** Where the Forever and Classic Era clients differ, we store both. The
   engine uses Forever values; Classic ones are there for comparison and fallback.
 - **Storage contracts hold across builds.** Share links and saved setups store build codes
-  and race ids. The talent and race scrapers refuse to write when a stored build code decodes
-  to other ranks, or a race's id, name, faction or classes change, against the committed
-  dataset ([talents.md](talents.md#build-codes-verified), [races.md](races.md#derivation)).
+  and race ids. The talent and race scrapers refuse to write when a build-code position (a
+  tree's talent and max rank, position by position) changes, a stored build code
+  ([`scripts/scrape/stored-builds.json`](../../scripts/scrape/stored-builds.json)) decodes to
+  other ranks, or a race's id, name, faction or classes change, against the committed dataset
+  ([talents.md](talents.md#build-codes-verified), [races.md](races.md#derivation)). They fail
+  closed: without a committed dataset to compare with, they write only with
+  `--skip-committed-check`.
 
 ## Refreshing
 
@@ -89,8 +98,10 @@ scrapers compare its fresh output with the committed one (`git show HEAD:<file>`
 `--against` names) and write `.cache/client/<build>/<dataset>-diff.md` (+ `.json`); the talent
 diff also writes `talents-changes.md`, the tables of
 [talents.md § Changes at a glance](talents.md#changes-at-a-glance). A new build that
-changes a stored build code or a race stops the run; once the app handles the change, re-run
-that scraper alone with `--accept-code-changes` or `--accept-race-changes`.
+changes a build-code position, a stored build code or a race stops the run; once the app
+handles the change, re-run that scraper alone with `--accept-code-changes` or
+`--accept-race-changes`. Where git can't show the committed dataset (a fresh clone without
+history, a new dataset), run those two scrapers alone with `--skip-committed-check`.
 
 Without `--version`, the scrapers use the cached answer to "latest `wow_classic_beta`
 build". To take a newer one, delete `.cache/client/builds/wow_classic_beta_latest.json` and

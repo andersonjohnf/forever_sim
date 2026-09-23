@@ -47,7 +47,9 @@ FileDataIDs.
   if the ids, a race's name or faction, or the classes of any race differ from the committed
   dataset (`git show HEAD:src/data/races/races.json`, or `--against=<ref>`): saved setups and
   share links store race ids. A build that really changes them needs
-  `--accept-race-changes`, once the app handles the change. Races are ordered Horde first, then
+  `--accept-race-changes`, once the app handles the change. The check fails closed (review
+  finding L36): when `git show` fails (git missing, or no such file at `--against`) the run says
+  why and refuses to write unless `--skip-committed-check` is passed. Races are ordered Horde first, then
   by `ChrRaces` id, which is the order the race picker has always shown.
 - **Classes** come from `CharBaseInfo` (race/class pairs), in `ChrClasses` id order: 56 pairs in
   Forever, 40 in Classic Era. `addedInForever` and `removedInForever` are the difference;
@@ -361,7 +363,8 @@ It prints the race, racial and pair counts, each simulated class's Forever and C
 races, the new pairs, each race's racials with their change kind and removed racials, and any
 tooltip clause it left out. It exits 1 without writing if the race ids, names, factions or class
 lists differ from the committed dataset (`--against=<ref>` for another commit;
-`--accept-race-changes` once the app handles a real change), or if a racial has an unrendered
+`--accept-race-changes` once the app handles a real change), if it can't read the committed
+dataset (`--skip-committed-check` to write anyway), or if a racial has an unrendered
 tooltip or no icon. The diff pairs races by id and racials by id, then name, and lists every
 changed field and text. After a new build: re-run `npm run scrape:client` (its racial
 resolution reads this file), review `git diff src/data`, and update this page and any doc whose

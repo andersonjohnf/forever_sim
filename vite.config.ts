@@ -15,8 +15,8 @@ const SLIMMERS: [RegExp, (data: Json) => Json][] = [
     /\/src\/data\/items\/pre-bis\.json$/,
     (data) => ({
       ...data,
-      meta: omit(data.meta as Json, ['tables', 'descriptionCoverage', 'preRaidBis', 'noClientRow']),
-      items: (data.items as Json[]).map((item) => omit(item, ['classic', 'flavor', 'sellPrice', 'notes'])),
+      meta: omit(data.meta as Json, ['tables', 'descriptionCoverage', 'preRaidBis', 'noClientRow', 'fallbackEffects']),
+      items: (data.items as Json[]).map((item) => omit(item, ['classic', 'flavor', 'sellPrice', 'notes', 'statSpellIds'])),
     }),
   ],
   [
@@ -36,7 +36,7 @@ const SLIMMERS: [RegExp, (data: Json) => Json][] = [
   [
     // The app reads only the spellbooks' `meta` (the About sheet's build and date).
     /\/src\/data\/spells\/\w+\.json$/,
-    (data) => ({ ...data, meta: omit(data.meta as Json, ['tables', 'wowDbDefs']) }),
+    (data) => ({ ...data, meta: omit(data.meta as Json, ['tables', 'wowDbDefs', 'noClientData']) }),
   ],
   [
     /\/src\/data\/races\/races\.json$/,

@@ -869,6 +869,23 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [threat OQ 6](mechanics/threat.md#open-questions);
   [paladin § threat](classes/paladin.md#threat-paladin-specific)
 
+#### B75. Trainer spells the client has no data for
+**Medium · M4 (paladin: M5) · ≤20 for the low ranks**
+- **Assumes:** 27 trainer rows of the druid and paladin `SkillLineAbility` point at spells the
+  Forever client has no data for at all (no `SpellName`, `Spell` or `SpellEffect` row, none
+  encrypted), so the spellbooks don't list them [F client]. Among them: Tiger's Fury ranks 2–4
+  (6793, 9845, 9846, a rank chain from 5217), Faerie Fire (Feral) ranks 2–4, Frenzied
+  Regeneration ranks 2–3, Mangle 22571 and its chain 1238074 → 1238075 → 1238077, Avenger's
+  Shield (407669), Righteous Fury 25781 and Greater Blessing of Sanctuary. They may exist only
+  as server hotfix rows, like the items no client carries, or be rows Forever abandoned [?].
+- **Test:** at a druid and a paladin trainer, list what they teach at each level up to the cap;
+  compare with the book (the spellbook tab) and with `meta.noClientData` in
+  `src/data/spells/<class>.json`. Read any such spell's tooltip.
+- **Samples:** one visit per class and level bracket.
+- **Changes:** the druid and paladin books, and Tiger's Fury's, Mangle's and Avenger's Shield's
+  values for M4 and M5.
+- **Docs:** [spells.md § Trainer rows with no client data](data/spells.md#trainer-rows-with-no-client-data)
+
 ### Low
 
 #### B46. Weapon skill per point
@@ -1195,6 +1212,27 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [Q32](classes/warrior.md#9-open-questions);
   [damage §4](mechanics/damage-and-timing.md#4-dots-and-bleeds)
 
+#### B74. Per-level tooltip values
+**Low · M3 · ≤20**
+- **Assumes** [?]: the datasets render every effect with a per-level term at level 60, counting
+  levels from `SpellLevels.SpellLevel` up to `MaxLevel`, truncating the term to a whole number
+  and adding it after the spread ([items.md § Per-level values](data/items.md#per-level-values)).
+  That gives the level-60 tooltips: Demoralizing Shout r5 −204 (base −196), Cat Form 120, Dire
+  Bear Form 1240 health. Where `BaseLevel` differs from `SpellLevel` the rule is a choice: the
+  Forever client zeroes `BaseLevel` on 743 of its 1,559 per-level spells, and Vindication's aura
+  440667 (`BaseLevel` 0, `SpellLevel` 1, −3.5 per level from 6) gives the talent 200 at 3/3
+  from `SpellLevel`, 204 from `BaseLevel`.
+- **Test:** at the current level, read tooltips whose values scale: Demoralizing Shout rank 1–2
+  and Battle Shout (warrior), Cat Form's attack power (druid), Vindication 1/3 (paladin, if the
+  cap allows the tier). Compare with the formula at that level: from `SpellLevel`, truncated,
+  and the `BaseLevel` alternative.
+- **Samples:** one read per spell, at two levels if possible.
+- **Changes:** the rendered tooltips, and the tank-side boss AP reduction of Demoralizing
+  Shout.
+- **Docs:** [items.md § Per-level values](data/items.md#per-level-values),
+  [spells.md § Caveats](data/spells.md#caveats), [talents.md § Caveats](data/talents.md#caveats);
+  [C27](#c27-demoralizing-shout-and-roar-level-scaling)
+
 ---
 
 ## Route C: Forever at level 60
@@ -1468,6 +1506,24 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 - **Changes:** the Horde paladin default and Skyborne rows.
 - **Docs:** [stats OQ-1](mechanics/character-stats.md#oq-1-paladin-druid-and-skyborne-base-attributes)
 
+#### C35. Fallback items with Forever effects
+**Medium · M2**
+- **Assumes** [?]: for the 746 items with no Forever `ItemSparse` row, stats are Classic Era's
+  (D6) and effects the Forever client's: the item effects Forever links to the item, and every
+  spell read from Forever; a Classic Era stat spell stays unless Forever's effects give that stat
+  ([items.md](data/items.md#effects-of-fallback-items)). Where Forever moved a bonus into the
+  missing `ItemSparse` row it is kept from Classic Era (Hand of Justice's +20 attack power);
+  where it replaced one with an effect of another kind both are kept (Mark of Tyranny's +1%
+  dodge and Forever's health use). The Fury and Arms defaults' Blackhand's Breadth reads +1%
+  crit (Forever's spell 1318954) with Forever's new use.
+- **Test:** read these items' tooltips in game (an item link is enough; the server sends the
+  row): Blackhand's Breadth, Hand of Justice, Savage Gladiator Chain, Mark of Tyranny, Counterattack
+  Lodestone, Diamond Flask. Re-scrape when a build ships their rows.
+- **Samples:** one read per item.
+- **Changes:** fallback items' stats and effects; the Fury and Arms default trinket (about 1%
+  DPS per 1% crit).
+- **Docs:** [items.md § Effects of fallback items, Caveats](data/items.md#caveats)
+
 ### Low
 
 #### C22. Weapon skill and expertise on Forever pre-raid gear
@@ -1516,9 +1572,11 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 
 #### C27. Demoralizing Shout and Roar level scaling
 **Low · M3**
-- **Assumes:** every doc uses the tooltips: Shout r5 −196 and Roar r5 −193 [F] (tooltip beats
-  derived, doctrine §2). The client data's per-level term (−1.4 per level, from 54 and 52) would
-  give about −204.4 and −204.2 at 60 if the server applies it [?].
+- **Assumes:** Shout r5 is **−204** at 60 [F]: the level-60 tooltip, −196 plus −1.4 per level
+  from 54 (−204.4, shown as 204; review finding L9). The −196 the docs used before was the base
+  value, rendered without the term. The Roar r5 row of the buffs doc and the druid doc still say
+  −193, the same unscaled base (−204.2 at 60). Whether the debuff applies the tooltip's value in
+  combat is [?].
 - ✅ **Client half resolved** ([client.md](data/client.md#doc-claims-checked-against-the-raw-client),
   row C27): `SpellEffect` has −196 / −193 with −1.4 per level, and `SpellLevels` runs 54–64 /
   52–62, so `MaxLevel` doesn't cap the term below 60 [F client]. Only the server's behaviour is
@@ -1582,8 +1640,9 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 - **Assumes:** nothing; the sim doesn't use it [?]. Forever's client replaced Classic Era's
   +75 Strength for 60 s with "CHUG! CHUG! CHUG! CHUG!" (363881): a 5 s channel healing 224 a
   second, "If finished, gain $s2 Strength for $d" ($s2 = 20, $d = 5 s), 6 min cooldown, 60 s
-  shared with runes. The item also gained an equip dummy (1318073) with no description, and it
-  has no Forever tooltip, so the app shows Classic Era's.
+  shared with runes. The item also gained an equip dummy (1318073) with no description. It has
+  no Forever `ItemSparse` row, so its stats are Classic Era's, but since review finding L5 the
+  app shows Forever's use line ([items.md](data/items.md#effects-of-fallback-items)).
 - **Test:** read the tooltip; use it, and watch Strength on the character sheet during the
   channel, after it, and with the flask merely equipped.
 - **Samples:** one use, sheet read every second for 10 s.

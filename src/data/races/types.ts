@@ -40,6 +40,7 @@ export interface RaceSnapshotMeta {
   product: string;
   /** WoW Forever beta client build the data was read from, e.g. "1.60.1.69913". */
   foreverBuild: string;
+  /** The build's creation date in wago.tools' build list (YYYY-MM-DD), whichever build is cached as latest; null only if the list lacks the build. */
   foreverBuildDate: string | null;
   classicProduct: string;
   /** Classic Era client build compared against, e.g. "1.15.9.69722". */

@@ -5,7 +5,8 @@
 // Talent/TalentTab trees (wow_classic_era).
 //
 //   node scripts/scrape/talents-client.mjs [--diff] [--against=<git ref>] [--accept-code-changes]
-//        [--refresh] [--version=<Forever build>] [--baseline=<Classic Era build>] [--dbdefs=<sha>]
+//        [--skip-committed-check] [--refresh] [--version=<Forever build>] [--baseline=<Classic Era build>]
+//        [--dbdefs=<sha>]
 //
 //   (default)  derive the three trees and write src/data/talents/<class>.json
 //   --diff     then diff the written trees against the committed ones, talent by talent; report
@@ -13,10 +14,13 @@
 //   --against  the git ref whose dataset is "committed" (default HEAD)
 //
 // Every run also checks build-code compatibility. Share links and saved setups store build
-// codes, so each code the repo stores (REPO_CODES) must decode to the same ranks by talent name
-// under the committed dataset and the new one, and be legal under the new one. The run exits
-// non-zero and writes nothing if that or any other check fails. A build that really moves
-// talents needs --accept-code-changes, after the stored codes are updated to match.
+// codes, so every position of the code (tree, then talent in tier/column order) must hold the
+// same talent with the same max rank as in the committed dataset; a talent may only be appended
+// at the end of a tree. Each code the repo stores (STORED_BUILDS_FILE) must decode to the ranks
+// it lists, and be legal. The run exits non-zero and writes nothing if that or any other check
+// fails. A build that really moves talents needs --accept-code-changes, after the app and the
+// stored codes handle the change. Without a committed dataset to compare with (git missing, or
+// no such file at --against) the run refuses to write unless --skip-committed-check says so.
 //
 // Downloads go through lib/wago.mjs (documented wago.tools API only, one request at a time,
 // cached under .cache/client/, once per build). Zero dependencies (Node >= 22). The tree
@@ -25,9 +29,9 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { committedJson, describeRef } from "./lib/committed.mjs";
+import { describeRef, readCommitted } from "./lib/committed.mjs";
 import { createFetcher } from "./lib/http.mjs";
-import { stableStringify } from "./lib/json.mjs";
+import { compareText, stableStringify } from "./lib/json.mjs";
 import { SPELL_TEXT_TABLES, createSpellTextContext } from "./lib/spell-text.mjs";
 import {
   CLASSIC_TREE_TABLES,
@@ -42,7 +46,8 @@ import {
   slug,
   tooltipHeader,
 } from "./lib/talent-tree.mjs";
-import { createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
+import { buildDate, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
+import { codeOrder, codePositionChanges, decodeByName, describeRanks, validate } from "./lib/build-codes.mjs";
 
 const CLASSES = ["warrior", "druid", "paladin"];
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
@@ -54,45 +59,28 @@ const BASELINE_PRODUCT = "wow_classic_era";
 const DEFAULT_BASELINE = "1.15.9.69722";
 
 /**
- * Every build code the repo stores (defaults, presets, the class docs' builds, tests), by class.
- * Each must decode to the same ranks by talent name under the committed dataset and the new one
- * (src/data/data.test.ts pins the ranks they had when they were written).
+ * Every build code the repo stores (defaults, presets, the class docs' builds, tests), by class,
+ * with the ranks by talent name each decoded to when it was written: the one list, which
+ * src/data/data.test.ts reads too.
  */
-const REPO_CODES = {
-  warrior: [
-    "30305013002-050530035150010051-", // Fury default (warrior.md §6.1)
-    "30305013-050520035150310051-", // Fury + Precision (warrior.md §6.1)
-    "30305213132515201-05050103-", // Arms (warrior.md §6.1)
-    "05-05-552001233201210531", // Protection (warrior.md §6.1)
-    "32-05-552001233201210531", // Protection, TPS variant (warrior.md §6.1)
-  ],
-  druid: [
-    "050022-5520002123032213051-05", // Feral cat (druid.md §7.1)
-    "050012-5523032120132210551-", // Feral bear (druid.md §7.1)
-    "5532220115501351-05-", // Balance (druid.md, Balance notes)
-    "05302001-05-5050035103113251", // Restoration (a popular build of September 2026)
-  ],
-  paladin: [
-    "250003-503-052052310012330321", // Retribution (paladin.md, Retribution defaults)
-    "2-4530513321301551-502", // Protection (paladin.md, Protection defaults)
-    "005320213225131051-5032-05", // Holy (paladin.md, Sources)
-  ],
-};
+const STORED_BUILDS_FILE = "scripts/scrape/stored-builds.json";
+const STORED_BUILDS = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, STORED_BUILDS_FILE), "utf8"));
+const storedCodes = (cls) => Object.keys(STORED_BUILDS[cls] ?? {});
 
 const CODE_FORMAT =
-  'Wowhead-style string of three "-"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank), in `order` = sorted by tier, then col (both 0-based). Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two "-" (e.g. "30305213132515201-05050103-"). Every code the repo stores decodes to the same ranks by talent name from build to build.';
+  'Wowhead-style string of three "-"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank), in `order` = sorted by tier, then col (both 0-based). Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two "-" (e.g. "30305213132515201-05050103-"). Every position keeps its talent and max rank from build to build (new talents only at the end of a tree), so every code keeps its meaning.';
 
-const opts = { diff: false, "accept-code-changes": false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
+const opts = { diff: false, "accept-code-changes": false, "skip-committed-check": false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
 for (const arg of process.argv.slice(2)) {
   const m = /^--([a-z-]+)(?:=(.*))?$/.exec(arg);
   if (!m) usage(`Unknown argument: ${arg}`);
   const [, key, value] = m;
-  if (["diff", "accept-code-changes", "refresh"].includes(key) && value === undefined) opts[key] = true;
+  if (["diff", "accept-code-changes", "skip-committed-check", "refresh"].includes(key) && value === undefined) opts[key] = true;
   else if (["version", "baseline", "dbdefs", "against"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
 function usage(msg) {
-  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--accept-code-changes] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
+  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--accept-code-changes] [--skip-committed-check] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
   process.exit(2);
 }
 
@@ -108,6 +96,8 @@ const warn = (msg) => warnings.push(msg);
 const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh });
 const latest = await latestBuild(fetcher, PRODUCT);
 const version = opts.version ?? latest.version;
+/** The build's creation date on wago.tools, from its build list (lib/wago.mjs buildRecord). */
+const foreverBuildDate = await buildDate(fetcher, PRODUCT, version);
 const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs);
 
 async function load(build, names) {
@@ -127,61 +117,41 @@ async function load(build, names) {
 const forever = await load(version, [...FOREVER_TREE_TABLES, ...SPELL_TEXT_TABLES]);
 const classic = await load(opts.baseline, [...CLASSIC_TREE_TABLES, ...SPELL_TEXT_TABLES]);
 
-/** The committed dataset of each class (git show <against>:src/data/talents/<class>.json), or null. */
-const committed = Object.fromEntries(CLASSES.map((cls) => [cls, committedJson(REPO_ROOT, `${OUT_DIR}/${cls}.json`, opts.against)]));
+/** The committed dataset of each class (git show <against>:src/data/talents/<class>.json): { data, error }. */
+const committedReads = Object.fromEntries(CLASSES.map((cls) => [cls, readCommitted(REPO_ROOT, `${OUT_DIR}/${cls}.json`, opts.against)]));
+const committed = Object.fromEntries(CLASSES.map((cls) => [cls, committedReads[cls].data]));
 const againstLabel = describeRef(REPO_ROOT, opts.against);
 
 // ---------------------------------------------------------------------------
 // Build codes (the same algorithm as src/data/talents/types.ts)
 // ---------------------------------------------------------------------------
 
-const codeOrder = (data) => data.trees.map((tree) => tree.talents.filter((t) => t.inForeverTree).sort((a, b) => a.tier - b.tier || a.col - b.col));
-
-/** A build code as ranks by talent name ("Tree/Name" → rank), or throws. */
-function decodeByName(data, code) {
-  const order = codeOrder(data);
-  const out = {};
-  code.split("-").forEach((segment, i) => {
-    if (segment.length > order[i].length) throw new Error(`segment ${i} has ${segment.length} digits for ${order[i].length} talents`);
-    [...segment].forEach((digit, k) => {
-      const t = order[i][k];
-      if (Number(digit) > t.maxRank) throw new Error(`${t.name}: rank ${digit} > ${t.maxRank}`);
-      if (Number(digit)) out[`${data.trees[i].name}/${t.name}`] = Number(digit);
-    });
-  });
-  return out;
-}
-
-/** The same checks as validateTalentBuild in src/data/talents/types.ts. */
-function validate(data, code) {
-  const order = codeOrder(data);
-  const ranks = new Map();
-  code.split("-").forEach((segment, i) => [...segment].forEach((d, k) => Number(d) && ranks.set(order[i][k].id, Number(d))));
-  const all = data.trees.flatMap((tree) => tree.talents);
-  const byId = new Map(all.map((t) => [t.id, t]));
-  const problems = [];
-  let total = 0;
-  for (const [id, rank] of ranks) {
-    const t = byId.get(id);
-    total += rank;
-    const below = all.filter((x) => x.tree === t.tree && x.tier < t.tier).reduce((n, x) => n + (ranks.get(x.id) ?? 0), 0);
-    if (below < data.rules.pointsPerTier * t.tier) problems.push(`${t.name} needs ${data.rules.pointsPerTier * t.tier} points above, has ${below}`);
-    if (t.prerequisite && (ranks.get(t.prerequisite.talentId) ?? 0) < t.prerequisite.rank) problems.push(`${t.name} requires ${byId.get(t.prerequisite.talentId).name} ${t.prerequisite.rank}`);
-  }
-  if (total > data.rules.maxPoints) problems.push(`${total} points`);
-  return problems;
-}
-
 /**
- * Each stored code of a class under the committed (`old`, may be null) and the new dataset. A code
- * that changes meaning fails the run unless --accept-code-changes; one illegal under the new
- * dataset always fails.
+ * The build-code contract of a class: every position holds the committed dataset's talent and max
+ * rank (`old`; null when it can't be read), and each stored code decodes to the ranks
+ * STORED_BUILDS_FILE lists, under the committed and the new dataset. A change fails the run unless
+ * --accept-code-changes; a code illegal under the new dataset always fails.
  */
 function checkCodes(cls, old, next) {
   const changed = opts["accept-code-changes"] ? warn : fail;
-  if (!old) warn(`${cls}: no committed dataset at ${againstLabel}; stored build codes are checked for legality only`);
+  if (!old) {
+    const why = `${cls}: can't read the committed dataset at ${againstLabel} (${committedReads[cls].error}), so build-code positions can't be checked`;
+    if (opts["skip-committed-check"]) warn(`${why}; writing anyway (--skip-committed-check)`);
+    else fail(`${why}. Not writing: pass --skip-committed-check to write without the check`);
+  } else {
+    const positions = codePositionChanges(old, next);
+    for (const p of positions.changed) changed(`${cls} build-code position changed: ${p}`);
+    for (const p of positions.appended) warn(`${cls} build-code position appended: ${p} (stored codes still decode the same)`);
+  }
   const results = [];
-  for (const code of REPO_CODES[cls]) {
+  for (const code of storedCodes(cls)) {
+    try {
+      const got = describeRanks(next, code);
+      const want = STORED_BUILDS[cls][code].ranks;
+      if (JSON.stringify(got) !== JSON.stringify(want)) changed(`${cls} ${code} (${STORED_BUILDS[cls][code].note}): decodes to ${JSON.stringify(got)}, not the ${JSON.stringify(want)} of ${STORED_BUILDS_FILE}`);
+    } catch (e) {
+      fail(`${cls} ${code}: ${e.message}`);
+    }
     let a = null;
     let b;
     if (old) {
@@ -373,7 +343,7 @@ async function write() {
     built = CLASSES.map((cls) => buildClass(cls, iconName));
     for (const u of unresolved) fail(`${u.what}: no icon name for FileDataID ${u.fdid}`);
   }
-  const tableMeta = (b) => Object.fromEntries([...b.used.entries()].sort(([a], [c]) => a.localeCompare(c)));
+  const tableMeta = (b) => Object.fromEntries([...b.used.entries()].sort(([a], [c]) => compareText(a, c)));
   const at = scrapedAt([forever, classic]);
   const codeResults = {};
   for (const b of built) {
@@ -384,7 +354,7 @@ async function write() {
       scrapedAt: at,
       product: PRODUCT,
       foreverBuild: version,
-      foreverBuildDate: latest.version === version ? latest.created_at.slice(0, 10) : null,
+      foreverBuildDate,
       classicProduct: BASELINE_PRODUCT,
       classicBuild: opts.baseline,
       traitTreeId: b.tree.traitTreeId,
@@ -422,6 +392,7 @@ function printSummary(built, codeResults) {
     for (const n of report.notes) console.log(`  note: ${n}`);
     for (const a of report.assumed) console.log(`  assumed: ${a}`);
     for (const r of codeResults[data.class] ?? []) console.log(`  code ${r.code}: ${r.points} points in ${r.talents} talents, ${r.sameRanks ? `same ranks by name as ${againstLabel}` : "DIFFERENT ranks (or no committed dataset)"}, ${r.legal ? "legal" : "ILLEGAL"}`);
+    console.log(`  build-code positions: ${data.trees.map((t, i) => `${t.name} ${codeOrder(data)[i].length}`).join(", ")}`);
   }
   for (const w of warnings) console.warn(`WARNING: ${w}`);
   console.log(`\nnetwork requests this run: ${fetcher.stats().requests}`);
@@ -440,5 +411,5 @@ if (opts.diff && !errors.length) {
   }
   const { diffTalents } = await import("./lib/talents-diff.mjs");
   const pairs = CLASSES.map((cls) => ({ cls, old: committed[cls], next: JSON.parse(fs.readFileSync(path.join(REPO_ROOT, OUT_DIR, `${cls}.json`), "utf8")) }));
-  diffTalents({ pairs, against: againstLabel, outDir: path.join(CACHE_DIR, version), repoRoot: REPO_ROOT, decodeByName, repoCodes: REPO_CODES });
+  diffTalents({ pairs, against: againstLabel, outDir: path.join(CACHE_DIR, version), repoRoot: REPO_ROOT, decodeByName, repoCodes: Object.fromEntries(CLASSES.map((cls) => [cls, storedCodes(cls)])) });
 }

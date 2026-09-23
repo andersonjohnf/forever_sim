@@ -8,8 +8,9 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { compareText } from "./json.mjs";
 
-const json = (v) => JSON.stringify(v ?? null, (_k, x) => (x && typeof x === "object" && !Array.isArray(x) ? Object.fromEntries(Object.entries(x).sort(([a], [b]) => a.localeCompare(b))) : x));
+const json = (v) => JSON.stringify(v ?? null, (_k, x) => (x && typeof x === "object" && !Array.isArray(x) ? Object.fromEntries(Object.entries(x).sort(([a], [b]) => compareText(a, b))) : x));
 const ws = (s) => (s ?? "").replace(/\s+/g, " ").trim();
 
 /** How two lists of rank texts differ: "same", "whitespace", or "text". */

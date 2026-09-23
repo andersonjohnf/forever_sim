@@ -4,6 +4,284 @@
     "classicProduct": "wow_classic_era",
     "foreverBuild": "1.60.1.69913",
     "foreverBuildDate": "2026-09-18",
+    "noClientData": [
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Tiger's Fury",
+          "rank": 2,
+          "talentRank": false
+        },
+        "encrypted": false,
+        "skillLine": "Feral Combat",
+        "spellId": 6793,
+        "supersedes": 5217
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Tiger's Fury",
+          "rank": 3,
+          "talentRank": false
+        },
+        "encrypted": false,
+        "skillLine": "Feral Combat",
+        "spellId": 9845,
+        "supersedes": 6793
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Tiger's Fury",
+          "rank": 4,
+          "talentRank": false
+        },
+        "encrypted": false,
+        "skillLine": "Feral Combat",
+        "spellId": 9846,
+        "supersedes": 9845
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Faerie Fire (Feral)",
+          "rank": 1,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Feral Combat",
+        "spellId": 16857,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Faerie Fire (Feral)",
+          "rank": 2,
+          "talentRank": false
+        },
+        "encrypted": false,
+        "skillLine": "Feral Combat",
+        "spellId": 17390,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Faerie Fire (Feral)",
+          "rank": 3,
+          "talentRank": false
+        },
+        "encrypted": false,
+        "skillLine": "Feral Combat",
+        "spellId": 17391,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Faerie Fire (Feral)",
+          "rank": 4,
+          "talentRank": false
+        },
+        "encrypted": false,
+        "skillLine": "Feral Combat",
+        "spellId": 17392,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Mangle",
+          "rank": 1,
+          "talentRank": false
+        },
+        "encrypted": false,
+        "skillLine": "Feral Combat",
+        "spellId": 22571,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Barkskin Effect (DND)",
+          "rank": null,
+          "talentRank": false
+        },
+        "encrypted": false,
+        "skillLine": "Balance",
+        "spellId": 22839,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Frenzied Regeneration",
+          "rank": 2,
+          "talentRank": false
+        },
+        "encrypted": false,
+        "skillLine": "Feral Combat",
+        "spellId": 22895,
+        "supersedes": 22842
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Frenzied Regeneration",
+          "rank": 3,
+          "talentRank": false
+        },
+        "encrypted": false,
+        "skillLine": "Feral Combat",
+        "spellId": 22896,
+        "supersedes": 22895
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Gift of Nature",
+          "rank": 2,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Restoration",
+        "spellId": 24943,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Gift of Nature",
+          "rank": 3,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Restoration",
+        "spellId": 24944,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Gift of Nature",
+          "rank": 4,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Restoration",
+        "spellId": 24945,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Gift of Nature",
+          "rank": 5,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Restoration",
+        "spellId": 24946,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Tranquil Spirit",
+          "rank": 2,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Restoration",
+        "spellId": 24969,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Tranquil Spirit",
+          "rank": 3,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Restoration",
+        "spellId": 24970,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Tranquil Spirit",
+          "rank": 4,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Restoration",
+        "spellId": 24971,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Tranquil Spirit",
+          "rank": 5,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Restoration",
+        "spellId": 24972,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 2,
+        "classic": null,
+        "encrypted": false,
+        "skillLine": "Restoration",
+        "spellId": 414854,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": null,
+        "encrypted": false,
+        "skillLine": "Feral Combat",
+        "spellId": 1238074,
+        "supersedes": 22571
+      },
+      {
+        "acquireMethod": 0,
+        "classic": null,
+        "encrypted": false,
+        "skillLine": "Feral Combat",
+        "spellId": 1238075,
+        "supersedes": 1238074
+      },
+      {
+        "acquireMethod": 0,
+        "classic": null,
+        "encrypted": false,
+        "skillLine": "Feral Combat",
+        "spellId": 1238077,
+        "supersedes": 1238075
+      },
+      {
+        "acquireMethod": 0,
+        "classic": null,
+        "encrypted": false,
+        "skillLine": "Feral Combat",
+        "spellId": 1263849,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": null,
+        "encrypted": false,
+        "skillLine": "Feral Combat",
+        "spellId": 1263850,
+        "supersedes": 1263849
+      }
+    ],
     "product": "wow_classic_beta",
     "scrapedAt": "2026-09-23T02:51:35Z",
     "scraper": "scripts/scrape/spells-client.mjs",
@@ -86,8 +364,8 @@
   },
   "class": "druid",
   "counts": {
-    "changed": 33,
-    "differentFromClassic": 35,
+    "changed": 32,
+    "differentFromClassic": 34,
     "new": 2,
     "notInForever": 1,
     "total": 60
@@ -168,7 +446,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5176,
-            "text": "Causes 12 to 14 Nature damage to the target."
+            "text": "Causes 13 to 15 Nature damage to the target."
           },
           "differences": [
             {
@@ -177,7 +455,7 @@
             },
             {
               "field": "value",
-              "text": "9 instead of 12, 11 instead of 14"
+              "text": "10 instead of 13, 12 instead of 15"
             }
           ],
           "forever": {
@@ -204,7 +482,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5176,
-            "text": "Causes 9 to 11 Nature damage to the target."
+            "text": "Causes 10 to 12 Nature damage to the target."
           },
           "rank": 1
         },
@@ -233,7 +511,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5177,
-            "text": "Causes 25 to 29 Nature damage to the target."
+            "text": "Causes 28 to 32 Nature damage to the target."
           },
           "differences": [
             {
@@ -242,7 +520,7 @@
             },
             {
               "field": "value",
-              "text": "14 instead of 25, 16 instead of 29"
+              "text": "16 instead of 28, 18 instead of 32"
             }
           ],
           "forever": {
@@ -269,7 +547,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5177,
-            "text": "Causes 14 to 16 Nature damage to the target."
+            "text": "Causes 16 to 18 Nature damage to the target."
           },
           "rank": 2
         },
@@ -298,7 +576,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5178,
-            "text": "Causes 44 to 52 Nature damage to the target."
+            "text": "Causes 48 to 56 Nature damage to the target."
           },
           "differences": [
             {
@@ -307,7 +585,7 @@
             },
             {
               "field": "value",
-              "text": "18 instead of 44, 22 instead of 52"
+              "text": "21 instead of 48, 25 instead of 56"
             }
           ],
           "forever": {
@@ -334,7 +612,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5178,
-            "text": "Causes 18 to 22 Nature damage to the target."
+            "text": "Causes 21 to 25 Nature damage to the target."
           },
           "rank": 3
         },
@@ -363,7 +641,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5179,
-            "text": "Causes 63 to 73 Nature damage to the target."
+            "text": "Causes 69 to 79 Nature damage to the target."
           },
           "differences": [
             {
@@ -372,7 +650,7 @@
             },
             {
               "field": "value",
-              "text": "23 instead of 63, 27 instead of 73"
+              "text": "26 instead of 69, 30 instead of 79"
             }
           ],
           "forever": {
@@ -399,7 +677,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5179,
-            "text": "Causes 23 to 27 Nature damage to the target."
+            "text": "Causes 26 to 30 Nature damage to the target."
           },
           "rank": 4
         },
@@ -428,7 +706,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5180,
-            "text": "Causes 101 to 115 Nature damage to the target."
+            "text": "Causes 108 to 122 Nature damage to the target."
           },
           "differences": [
             {
@@ -437,7 +715,7 @@
             },
             {
               "field": "value",
-              "text": "28 instead of 101, 32 instead of 115"
+              "text": "31 instead of 108, 35 instead of 122"
             }
           ],
           "forever": {
@@ -464,7 +742,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5180,
-            "text": "Causes 28 to 32 Nature damage to the target."
+            "text": "Causes 31 to 35 Nature damage to the target."
           },
           "rank": 5
         },
@@ -493,7 +771,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 6780,
-            "text": "Causes 139 to 157 Nature damage to the target."
+            "text": "Causes 148 to 166 Nature damage to the target."
           },
           "differences": [
             {
@@ -502,7 +780,7 @@
             },
             {
               "field": "value",
-              "text": "34 instead of 139, 38 instead of 157"
+              "text": "37 instead of 148, 41 instead of 166"
             }
           ],
           "forever": {
@@ -529,7 +807,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 6780,
-            "text": "Causes 34 to 38 Nature damage to the target."
+            "text": "Causes 37 to 41 Nature damage to the target."
           },
           "rank": 6
         },
@@ -558,7 +836,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8905,
-            "text": "Causes 188 to 210 Nature damage to the target."
+            "text": "Causes 198 to 220 Nature damage to the target."
           },
           "differences": [
             {
@@ -567,7 +845,7 @@
             },
             {
               "field": "value",
-              "text": "43 instead of 188, 47 instead of 210"
+              "text": "46 instead of 198, 50 instead of 220"
             }
           ],
           "forever": {
@@ -594,7 +872,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8905,
-            "text": "Causes 43 to 47 Nature damage to the target."
+            "text": "Causes 46 to 50 Nature damage to the target."
           },
           "rank": 7
         },
@@ -623,7 +901,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9912,
-            "text": "Causes 236 to 264 Nature damage to the target."
+            "text": "Causes 248 to 276 Nature damage to the target."
           },
           "differences": [
             {
@@ -632,7 +910,7 @@
             },
             {
               "field": "value",
-              "text": "58 instead of 236, 64 instead of 264"
+              "text": "62 instead of 248, 68 instead of 276"
             }
           ],
           "forever": {
@@ -659,7 +937,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9912,
-            "text": "Causes 58 to 64 Nature damage to the target."
+            "text": "Causes 62 to 68 Nature damage to the target."
           },
           "rank": 8
         }
@@ -706,7 +984,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8921,
-            "text": "Burns the enemy for 7 to 9 Arcane damage and then an additional 12 Arcane damage over 9 sec."
+            "text": "Burns the enemy for 9 to 11 Arcane damage and then an additional 12 Arcane damage over 9 sec."
           },
           "differences": [],
           "forever": {
@@ -733,7 +1011,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8921,
-            "text": "Burns the enemy for 7 to 9 Arcane damage and then an additional 12 Arcane damage over 9 sec."
+            "text": "Burns the enemy for 9 to 11 Arcane damage and then an additional 12 Arcane damage over 9 sec."
           },
           "rank": 1
         },
@@ -762,12 +1040,12 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8924,
-            "text": "Burns the enemy for 13 to 17 Arcane damage and then an additional 32 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 17 to 21 Arcane damage and then an additional 32 Arcane damage over 12 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "11 instead of 13, 15 instead of 17, 24 instead of 32"
+              "text": "15 instead of 17, 19 instead of 21, 24 instead of 32"
             }
           ],
           "forever": {
@@ -794,7 +1072,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8924,
-            "text": "Burns the enemy for 11 to 15 Arcane damage and then an additional 24 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 15 to 19 Arcane damage and then an additional 24 Arcane damage over 12 sec."
           },
           "rank": 2
         },
@@ -823,12 +1101,12 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8925,
-            "text": "Burns the enemy for 25 to 31 Arcane damage and then an additional 52 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 30 to 36 Arcane damage and then an additional 52 Arcane damage over 12 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "20 instead of 25, 24 instead of 31, 36 instead of 52"
+              "text": "25 instead of 30, 29 instead of 36, 36 instead of 52"
             }
           ],
           "forever": {
@@ -855,7 +1133,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8925,
-            "text": "Burns the enemy for 20 to 24 Arcane damage and then an additional 36 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 25 to 29 Arcane damage and then an additional 36 Arcane damage over 12 sec."
           },
           "rank": 3
         },
@@ -884,12 +1162,12 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8926,
-            "text": "Burns the enemy for 40 to 48 Arcane damage and then an additional 80 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 47 to 55 Arcane damage and then an additional 80 Arcane damage over 12 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "29 instead of 40, 35 instead of 48, 52 instead of 80"
+              "text": "36 instead of 47, 42 instead of 55, 52 instead of 80"
             }
           ],
           "forever": {
@@ -916,7 +1194,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8926,
-            "text": "Burns the enemy for 29 to 35 Arcane damage and then an additional 52 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 36 to 42 Arcane damage and then an additional 52 Arcane damage over 12 sec."
           },
           "rank": 4
         },
@@ -945,12 +1223,12 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8927,
-            "text": "Burns the enemy for 61 to 73 Arcane damage and then an additional 124 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 70 to 82 Arcane damage and then an additional 124 Arcane damage over 12 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "43 instead of 61, 51 instead of 73, 76 instead of 124"
+              "text": "50 instead of 70, 58 instead of 82, 76 instead of 124"
             }
           ],
           "forever": {
@@ -977,7 +1255,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8927,
-            "text": "Burns the enemy for 43 to 51 Arcane damage and then an additional 76 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 50 to 58 Arcane damage and then an additional 76 Arcane damage over 12 sec."
           },
           "rank": 5
         },
@@ -1006,12 +1284,12 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8928,
-            "text": "Burns the enemy for 81 to 97 Arcane damage and then an additional 164 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 91 to 107 Arcane damage and then an additional 164 Arcane damage over 12 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "54 instead of 81, 64 instead of 97, 92 instead of 164"
+              "text": "62 instead of 91, 72 instead of 107, 92 instead of 164"
             }
           ],
           "forever": {
@@ -1038,7 +1316,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8928,
-            "text": "Burns the enemy for 54 to 64 Arcane damage and then an additional 92 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 62 to 72 Arcane damage and then an additional 92 Arcane damage over 12 sec."
           },
           "rank": 6
         },
@@ -1067,12 +1345,12 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8929,
-            "text": "Burns the enemy for 105 to 125 Arcane damage and then an additional 212 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 117 to 137 Arcane damage and then an additional 212 Arcane damage over 12 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "67 instead of 105, 79 instead of 125, 124 instead of 212"
+              "text": "75 instead of 117, 87 instead of 137, 124 instead of 212"
             }
           ],
           "forever": {
@@ -1099,7 +1377,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8929,
-            "text": "Burns the enemy for 67 to 79 Arcane damage and then an additional 124 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 75 to 87 Arcane damage and then an additional 124 Arcane damage over 12 sec."
           },
           "rank": 7
         },
@@ -1128,12 +1406,12 @@
             "requires": null,
             "school": "arcane",
             "spellId": 9833,
-            "text": "Burns the enemy for 130 to 154 Arcane damage and then an additional 264 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 143 to 167 Arcane damage and then an additional 264 Arcane damage over 12 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "83 instead of 130, 99 instead of 154, 156 instead of 264"
+              "text": "96 instead of 143, 112 instead of 167, 156 instead of 264"
             }
           ],
           "forever": {
@@ -1160,7 +1438,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 9833,
-            "text": "Burns the enemy for 83 to 99 Arcane damage and then an additional 156 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 96 to 112 Arcane damage and then an additional 156 Arcane damage over 12 sec."
           },
           "rank": 8
         },
@@ -1189,12 +1467,12 @@
             "requires": null,
             "school": "arcane",
             "spellId": 9834,
-            "text": "Burns the enemy for 157 to 185 Arcane damage and then an additional 320 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 172 to 200 Arcane damage and then an additional 320 Arcane damage over 12 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "102 instead of 157, 120 instead of 185, 196 instead of 320"
+              "text": "112 instead of 172, 130 instead of 200, 196 instead of 320"
             }
           ],
           "forever": {
@@ -1221,7 +1499,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 9834,
-            "text": "Burns the enemy for 102 to 120 Arcane damage and then an additional 196 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 112 to 130 Arcane damage and then an additional 196 Arcane damage over 12 sec."
           },
           "rank": 9
         },
@@ -1250,12 +1528,12 @@
             "requires": null,
             "school": "arcane",
             "spellId": 9835,
-            "text": "Burns the enemy for 189 to 221 Arcane damage and then an additional 384 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 195 to 227 Arcane damage and then an additional 384 Arcane damage over 12 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "124 instead of 189, 146 instead of 221, 240 instead of 384"
+              "text": "128 instead of 195, 150 instead of 227, 240 instead of 384"
             }
           ],
           "forever": {
@@ -1282,7 +1560,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 9835,
-            "text": "Burns the enemy for 124 to 146 Arcane damage and then an additional 240 Arcane damage over 12 sec."
+            "text": "Burns the enemy for 128 to 150 Arcane damage and then an additional 240 Arcane damage over 12 sec."
           },
           "rank": 10
         }
@@ -3429,12 +3707,12 @@
             "requires": null,
             "school": "arcane",
             "spellId": 2912,
-            "text": "Causes 89 to 109 Arcane damage to the target."
+            "text": "Causes 95 to 115 Arcane damage to the target."
           },
           "differences": [
             {
               "field": "value",
-              "text": "73 instead of 89, 89 instead of 109"
+              "text": "79 instead of 95, 95 instead of 115"
             }
           ],
           "forever": {
@@ -3461,7 +3739,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 2912,
-            "text": "Causes 73 to 89 Arcane damage to the target."
+            "text": "Causes 79 to 95 Arcane damage to the target."
           },
           "rank": 1
         },
@@ -3490,12 +3768,12 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8949,
-            "text": "Causes 137 to 167 Arcane damage to the target."
+            "text": "Causes 146 to 176 Arcane damage to the target."
           },
           "differences": [
             {
               "field": "value",
-              "text": "99 instead of 137, 121 instead of 167"
+              "text": "108 instead of 146, 130 instead of 176"
             }
           ],
           "forever": {
@@ -3522,7 +3800,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8949,
-            "text": "Causes 99 to 121 Arcane damage to the target."
+            "text": "Causes 108 to 130 Arcane damage to the target."
           },
           "rank": 2
         },
@@ -3551,12 +3829,12 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8950,
-            "text": "Causes 201 to 241 Arcane damage to the target."
+            "text": "Causes 212 to 252 Arcane damage to the target."
           },
           "differences": [
             {
               "field": "value",
-              "text": "131 instead of 201, 157 instead of 241"
+              "text": "140 instead of 212, 166 instead of 252"
             }
           ],
           "forever": {
@@ -3583,7 +3861,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8950,
-            "text": "Causes 131 to 157 Arcane damage to the target."
+            "text": "Causes 140 to 166 Arcane damage to the target."
           },
           "rank": 3
         },
@@ -3612,12 +3890,12 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8951,
-            "text": "Causes 280 to 334 Arcane damage to the target."
+            "text": "Causes 293 to 347 Arcane damage to the target."
           },
           "differences": [
             {
               "field": "value",
-              "text": "181 instead of 280, 215 instead of 334"
+              "text": "191 instead of 293, 225 instead of 347"
             }
           ],
           "forever": {
@@ -3644,7 +3922,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 8951,
-            "text": "Causes 181 to 215 Arcane damage to the target."
+            "text": "Causes 191 to 225 Arcane damage to the target."
           },
           "rank": 4
         },
@@ -3673,12 +3951,12 @@
             "requires": null,
             "school": "arcane",
             "spellId": 9875,
-            "text": "Causes 362 to 428 Arcane damage to the target."
+            "text": "Causes 378 to 444 Arcane damage to the target."
           },
           "differences": [
             {
               "field": "value",
-              "text": "244 instead of 362, 288 instead of 428"
+              "text": "257 instead of 378, 301 instead of 444"
             }
           ],
           "forever": {
@@ -3705,7 +3983,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 9875,
-            "text": "Causes 244 to 288 Arcane damage to the target."
+            "text": "Causes 257 to 301 Arcane damage to the target."
           },
           "rank": 5
         },
@@ -3734,12 +4012,12 @@
             "requires": null,
             "school": "arcane",
             "spellId": 9876,
-            "text": "Causes 445 to 525 Arcane damage to the target."
+            "text": "Causes 451 to 531 Arcane damage to the target."
           },
           "differences": [
             {
               "field": "value",
-              "text": "309 instead of 445, 365 instead of 525"
+              "text": "313 instead of 451, 369 instead of 531"
             }
           ],
           "forever": {
@@ -3766,7 +4044,7 @@
             "requires": null,
             "school": "arcane",
             "spellId": 9876,
-            "text": "Causes 309 to 365 Arcane damage to the target."
+            "text": "Causes 313 to 369 Arcane damage to the target."
           },
           "rank": 6
         },
@@ -4063,7 +4341,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 16914,
-            "text": "Creates a violent storm in the target area causing 70 Nature damage to enemies every 1 sec, and increasing the time between attacks of enemies by 25%. Lasts 10 sec. Druid must channel to maintain the spell."
+            "text": "Creates a violent storm in the target area causing 71 Nature damage to enemies every 1 sec, and increasing the time between attacks of enemies by 25%. Lasts 10 sec. Druid must channel to maintain the spell."
           },
           "differences": [
             {
@@ -4072,7 +4350,7 @@
             },
             {
               "field": "value",
-              "text": "68 instead of 70, 20 instead of 25"
+              "text": "69 instead of 71, 20 instead of 25"
             }
           ],
           "forever": {
@@ -4099,7 +4377,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 16914,
-            "text": "Creates a violent storm in the target area causing 68 Nature damage to enemies every 1 sec, and increasing the time between attacks of enemies by 20%. Lasts 10 sec. Druid must channel to maintain the spell."
+            "text": "Creates a violent storm in the target area causing 69 Nature damage to enemies every 1 sec, and increasing the time between attacks of enemies by 20%. Lasts 10 sec. Druid must channel to maintain the spell."
           },
           "rank": 1
         },
@@ -4131,7 +4409,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 17401,
-            "text": "Creates a violent storm in the target area causing 100 Nature damage to enemies every 1 sec, and increasing the time between attacks by 25%. Lasts 10 sec. Druid must channel to maintain the spell."
+            "text": "Creates a violent storm in the target area causing 101 Nature damage to enemies every 1 sec, and increasing the time between attacks by 25%. Lasts 10 sec. Druid must channel to maintain the spell."
           },
           "differences": [
             {
@@ -4140,7 +4418,7 @@
             },
             {
               "field": "value",
-              "text": "98 instead of 100, 20 instead of 25"
+              "text": "99 instead of 101, 20 instead of 25"
             }
           ],
           "forever": {
@@ -4167,7 +4445,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 17401,
-            "text": "Creates a violent storm in the target area causing 98 Nature damage to enemies every 1 sec, and increasing the time between attacks by 20%. Lasts 10 sec. Druid must channel to maintain the spell."
+            "text": "Creates a violent storm in the target area causing 99 Nature damage to enemies every 1 sec, and increasing the time between attacks by 20%. Lasts 10 sec. Druid must channel to maintain the spell."
           },
           "rank": 2
         },
@@ -4434,12 +4712,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 5487,
-            "text": "Shapeshift into a bear, increasing melee attack power by 30, armor contribution from items by 180%, and health by 20. Also protects the caster from Polymorph effects and allows the use of various bear abilities.\n\nThe act of shapeshifting frees the caster of Polymorph and Movement Impairing effects."
+            "text": "Shapeshift into a bear, increasing melee attack power by 120, armor contribution from items by 180%, and health by 560. Also protects the caster from Polymorph effects and allows the use of various bear abilities.\n\nThe act of shapeshifting frees the caster of Polymorph and Movement Impairing effects."
           },
           "differences": [
             {
               "field": "value",
-              "text": "180 instead of 20"
+              "text": "180 instead of 560"
             }
           ],
           "forever": {
@@ -4463,7 +4741,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 5487,
-            "text": "Shapeshift into a bear, increasing melee attack power by 30, armor contribution from items by 180%, and health by 180. Also protects the caster from Polymorph effects and allows the use of various bear abilities.\n\nThe act of shapeshifting frees the caster of Polymorph and Movement Impairing effects."
+            "text": "Shapeshift into a bear, increasing melee attack power by 120, armor contribution from items by 180%, and health by 180. Also protects the caster from Polymorph effects and allows the use of various bear abilities.\n\nThe act of shapeshifting frees the caster of Polymorph and Movement Impairing effects."
           },
           "rank": null
         }
@@ -4506,12 +4784,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 99,
-            "text": "The druid roars, decreasing nearby enemies' melee attack power by 30. Lasts 30 sec."
+            "text": "The druid roars, decreasing nearby enemies' melee attack power by 40. Lasts 30 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "46 instead of 30"
+              "text": "56 instead of 40"
             }
           ],
           "forever": {
@@ -4534,7 +4812,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 99,
-            "text": "The druid roars, decreasing nearby enemies' melee attack power by 46. Lasts 30 sec."
+            "text": "The druid roars, decreasing nearby enemies' melee attack power by 56. Lasts 30 sec."
           },
           "rank": 1
         },
@@ -4559,12 +4837,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 1735,
-            "text": "The druid roars, decreasing nearby enemies' melee attack power by 50. Lasts 30 sec."
+            "text": "The druid roars, decreasing nearby enemies' melee attack power by 60. Lasts 30 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "74 instead of 50"
+              "text": "88 instead of 60"
             }
           ],
           "forever": {
@@ -4587,7 +4865,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 1735,
-            "text": "The druid roars, decreasing nearby enemies' melee attack power by 74. Lasts 30 sec."
+            "text": "The druid roars, decreasing nearby enemies' melee attack power by 88. Lasts 30 sec."
           },
           "rank": 2
         },
@@ -4612,12 +4890,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 9490,
-            "text": "The druid roars, decreasing nearby enemies' melee attack power by 65. Lasts 30 sec."
+            "text": "The druid roars, decreasing nearby enemies' melee attack power by 75. Lasts 30 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "95 instead of 65"
+              "text": "105 instead of 75"
             }
           ],
           "forever": {
@@ -4640,7 +4918,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 9490,
-            "text": "The druid roars, decreasing nearby enemies' melee attack power by 95. Lasts 30 sec."
+            "text": "The druid roars, decreasing nearby enemies' melee attack power by 105. Lasts 30 sec."
           },
           "rank": 3
         },
@@ -4665,12 +4943,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 9747,
-            "text": "The druid roars, decreasing nearby enemies' melee attack power by 100. Lasts 30 sec."
+            "text": "The druid roars, decreasing nearby enemies' melee attack power by 110. Lasts 30 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "144 instead of 100"
+              "text": "158 instead of 110"
             }
           ],
           "forever": {
@@ -4693,7 +4971,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 9747,
-            "text": "The druid roars, decreasing nearby enemies' melee attack power by 144. Lasts 30 sec."
+            "text": "The druid roars, decreasing nearby enemies' melee attack power by 158. Lasts 30 sec."
           },
           "rank": 4
         },
@@ -4718,12 +4996,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 9898,
-            "text": "The druid roars, decreasing nearby enemies' melee attack power by 130. Lasts 30 sec."
+            "text": "The druid roars, decreasing nearby enemies' melee attack power by 138. Lasts 30 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "193 instead of 130"
+              "text": "204 instead of 138"
             }
           ],
           "forever": {
@@ -4746,7 +5024,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 9898,
-            "text": "The druid roars, decreasing nearby enemies' melee attack power by 193. Lasts 30 sec."
+            "text": "The druid roars, decreasing nearby enemies' melee attack power by 204. Lasts 30 sec."
           },
           "rank": 5
         }
@@ -5916,14 +6194,9 @@
             "requires": null,
             "school": "physical",
             "spellId": 768,
-            "text": "Shapeshift into cat form, increasing melee attack power by 40 plus Agility. Also protects the caster from Polymorph effects and allows the use of various cat abilities.\n\nThe act of shapeshifting frees the caster of Polymorph and Movement Impairing effects."
+            "text": "Shapeshift into cat form, increasing melee attack power by 120 plus Agility. Also protects the caster from Polymorph effects and allows the use of various cat abilities.\n\nThe act of shapeshifting frees the caster of Polymorph and Movement Impairing effects."
           },
-          "differences": [
-            {
-              "field": "value",
-              "text": "12 instead of 40"
-            }
-          ],
+          "differences": [],
           "forever": {
             "castTime": {
               "channeled": false,
@@ -5945,12 +6218,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 768,
-            "text": "Shapeshift into cat form, increasing melee attack power by 12 plus Agility. Also protects the caster from Polymorph effects and allows the use of various cat abilities.\n\nThe act of shapeshifting frees the caster of Polymorph and Movement Impairing effects."
+            "text": "Shapeshift into cat form, increasing melee attack power by 120 plus Agility. Also protects the caster from Polymorph effects and allows the use of various cat abilities.\n\nThe act of shapeshifting frees the caster of Polymorph and Movement Impairing effects."
           },
           "rank": null
         }
       ],
-      "status": "changed",
+      "status": "same",
       "tab": "Feral Combat"
     },
     {
@@ -8069,7 +8342,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 22568,
-            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 1 additional damage. Damage is increased by your Attack Power.\n1 point : 50-66 damage\n2 points: 86-102 damage\n3 points: 122-138 damage\n4 points: 158-174 damage\n5 points: 194-210 damage"
+            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 1 additional damage. Damage is increased by your Attack Power.\n1 point : 50-66 damage 2 points: 86-102 damage 3 points: 122-138 damage 4 points: 158-174 damage 5 points: 194-210 damage"
           },
           "differences": [
             {
@@ -8101,7 +8374,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 22568,
-            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 1.0 additional damage. Damage is increased by your Attack Power.\n1 point : 50-66 damage\n2 points: 86-102 damage\n3 points: 122-138 damage\n4 points: 158-174 damage\n5 points: 194-210 damage"
+            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 1.0 additional damage. Damage is increased by your Attack Power.\n1 point : 50-66 damage 2 points: 86-102 damage 3 points: 122-138 damage 4 points: 158-174 damage 5 points: 194-210 damage"
           },
           "rank": 1
         },
@@ -8130,7 +8403,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 22827,
-            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 1.5 additional damage. Damage is increased by your Attack Power.\n1 point : 79-103 damage\n2 points: 138-162 damage\n3 points: 197-221 damage\n4 points: 256-280 damage\n5 points: 315-339 damage"
+            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 1.5 additional damage. Damage is increased by your Attack Power.\n1 point : 79-103 damage 2 points: 138-162 damage 3 points: 197-221 damage 4 points: 256-280 damage 5 points: 315-339 damage"
           },
           "differences": [],
           "forever": {
@@ -8157,7 +8430,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 22827,
-            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 1.5 additional damage. Damage is increased by your Attack Power.\n1 point : 79-103 damage\n2 points: 138-162 damage\n3 points: 197-221 damage\n4 points: 256-280 damage\n5 points: 315-339 damage"
+            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 1.5 additional damage. Damage is increased by your Attack Power.\n1 point : 79-103 damage 2 points: 138-162 damage 3 points: 197-221 damage 4 points: 256-280 damage 5 points: 315-339 damage"
           },
           "rank": 2
         },
@@ -8186,7 +8459,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 22828,
-            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 2 additional damage. Damage is increased by your Attack Power.\n1 point : 122-162 damage\n2 points: 214-254 damage\n3 points: 306-346 damage\n4 points: 398-438 damage\n5 points: 490-530 damage"
+            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 2 additional damage. Damage is increased by your Attack Power.\n1 point : 122-162 damage 2 points: 214-254 damage 3 points: 306-346 damage 4 points: 398-438 damage 5 points: 490-530 damage"
           },
           "differences": [
             {
@@ -8218,7 +8491,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 22828,
-            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 2.0 additional damage. Damage is increased by your Attack Power.\n1 point : 122-162 damage\n2 points: 214-254 damage\n3 points: 306-346 damage\n4 points: 398-438 damage\n5 points: 490-530 damage"
+            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 2.0 additional damage. Damage is increased by your Attack Power.\n1 point : 122-162 damage 2 points: 214-254 damage 3 points: 306-346 damage 4 points: 398-438 damage 5 points: 490-530 damage"
           },
           "rank": 3
         },
@@ -8247,7 +8520,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 22829,
-            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 2.5 additional damage. Damage is increased by your Attack Power.\n1 point : 173-223 damage\n2 points: 301-351 damage\n3 points: 429-479 damage\n4 points: 557-607 damage\n5 points: 685-735 damage"
+            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 2.5 additional damage. Damage is increased by your Attack Power.\n1 point : 173-223 damage 2 points: 301-351 damage 3 points: 429-479 damage 4 points: 557-607 damage 5 points: 685-735 damage"
           },
           "differences": [],
           "forever": {
@@ -8274,7 +8547,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 22829,
-            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 2.5 additional damage. Damage is increased by your Attack Power.\n1 point : 173-223 damage\n2 points: 301-351 damage\n3 points: 429-479 damage\n4 points: 557-607 damage\n5 points: 685-735 damage"
+            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 2.5 additional damage. Damage is increased by your Attack Power.\n1 point : 173-223 damage 2 points: 301-351 damage 3 points: 429-479 damage 4 points: 557-607 damage 5 points: 685-735 damage"
           },
           "rank": 4
         },
@@ -8303,7 +8576,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 31018,
-            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 2.7 additional damage. Damage is increased by your Attack Power.\n1 point : 199-259 damage\n2 points: 346-406 damage\n3 points: 493-553 damage\n4 points: 640-700 damage\n5 points: 787-847 damage"
+            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 2.7 additional damage. Damage is increased by your Attack Power.\n1 point : 199-259 damage 2 points: 346-406 damage 3 points: 493-553 damage 4 points: 640-700 damage 5 points: 787-847 damage"
           },
           "differences": [],
           "forever": {
@@ -8330,7 +8603,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 31018,
-            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 2.7 additional damage. Damage is increased by your Attack Power.\n1 point : 199-259 damage\n2 points: 346-406 damage\n3 points: 493-553 damage\n4 points: 640-700 damage\n5 points: 787-847 damage"
+            "text": "Finishing move that causes damage per combo point and converts each extra point of energy into 2.7 additional damage. Damage is increased by your Attack Power.\n1 point : 199-259 damage 2 points: 346-406 damage 3 points: 493-553 damage 4 points: 640-700 damage 5 points: 787-847 damage"
           },
           "rank": 5
         }
@@ -8981,7 +9254,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 9634,
-            "text": "Shapeshift into a dire bear, increasing melee attack power by 120, armor contribution from items by 360%, and health by 600. Also protects the caster from Polymorph effects and allows the use of various bear abilities.\n\nThe act of shapeshifting frees the caster of Polymorph and Movement Impairing effects."
+            "text": "Shapeshift into a dire bear, increasing melee attack power by 180, armor contribution from items by 360%, and health by 1240. Also protects the caster from Polymorph effects and allows the use of various bear abilities.\n\nThe act of shapeshifting frees the caster of Polymorph and Movement Impairing effects."
           },
           "differences": [],
           "forever": {
@@ -9005,7 +9278,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 9634,
-            "text": "Shapeshift into a dire bear, increasing melee attack power by 120, armor contribution from items by 360%, and health by 600. Also protects the caster from Polymorph effects and allows the use of various bear abilities.\n\nThe act of shapeshifting frees the caster of Polymorph and Movement Impairing effects."
+            "text": "Shapeshift into a dire bear, increasing melee attack power by 180, armor contribution from items by 360%, and health by 1240. Also protects the caster from Polymorph effects and allows the use of various bear abilities.\n\nThe act of shapeshifting frees the caster of Polymorph and Movement Impairing effects."
           },
           "rank": null
         }
@@ -9399,7 +9672,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5185,
-            "text": "Heals a friendly target for 37 to 51."
+            "text": "Heals a friendly target for 40 to 54."
           },
           "differences": [],
           "forever": {
@@ -9426,7 +9699,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5185,
-            "text": "Heals a friendly target for 37 to 51."
+            "text": "Heals a friendly target for 40 to 54."
           },
           "rank": 1
         },
@@ -9455,7 +9728,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5186,
-            "text": "Heals a friendly target for 88 to 112."
+            "text": "Heals a friendly target for 94 to 118."
           },
           "differences": [],
           "forever": {
@@ -9482,7 +9755,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5186,
-            "text": "Heals a friendly target for 88 to 112."
+            "text": "Heals a friendly target for 94 to 118."
           },
           "rank": 2
         },
@@ -9511,12 +9784,12 @@
             "requires": null,
             "school": "nature",
             "spellId": 5187,
-            "text": "Heals a friendly target for 195 to 243."
+            "text": "Heals a friendly target for 204 to 252."
           },
           "differences": [
             {
               "field": "value",
-              "text": "179 instead of 195, 223 instead of 243"
+              "text": "188 instead of 204, 232 instead of 252"
             }
           ],
           "forever": {
@@ -9543,7 +9816,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5187,
-            "text": "Heals a friendly target for 179 to 223."
+            "text": "Heals a friendly target for 188 to 232."
           },
           "rank": 3
         },
@@ -9572,7 +9845,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5188,
-            "text": "Heals a friendly target for 363 to 445."
+            "text": "Heals a friendly target for 376 to 458."
           },
           "differences": [
             {
@@ -9581,7 +9854,7 @@
             },
             {
               "field": "value",
-              "text": "325 instead of 363, 399 instead of 445"
+              "text": "338 instead of 376, 412 instead of 458"
             }
           ],
           "forever": {
@@ -9608,7 +9881,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5188,
-            "text": "Heals a friendly target for 325 to 399."
+            "text": "Heals a friendly target for 338 to 412."
           },
           "rank": 4
         },
@@ -9637,7 +9910,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5189,
-            "text": "Heals a friendly target for 572 to 694."
+            "text": "Heals a friendly target for 589 to 711."
           },
           "differences": [
             {
@@ -9646,7 +9919,7 @@
             },
             {
               "field": "value",
-              "text": "493 instead of 572, 599 instead of 694"
+              "text": "510 instead of 589, 616 instead of 711"
             }
           ],
           "forever": {
@@ -9673,7 +9946,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5189,
-            "text": "Heals a friendly target for 493 to 599."
+            "text": "Heals a friendly target for 510 to 616."
           },
           "rank": 5
         },
@@ -9702,7 +9975,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 6778,
-            "text": "Heals a friendly target for 742 to 894."
+            "text": "Heals a friendly target for 762 to 914."
           },
           "differences": [
             {
@@ -9711,7 +9984,7 @@
             },
             {
               "field": "value",
-              "text": "641 instead of 742, 773 instead of 894"
+              "text": "661 instead of 762, 793 instead of 914"
             }
           ],
           "forever": {
@@ -9738,7 +10011,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 6778,
-            "text": "Heals a friendly target for 641 to 773."
+            "text": "Heals a friendly target for 661 to 793."
           },
           "rank": 6
         },
@@ -9767,7 +10040,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8903,
-            "text": "Heals a friendly target for 936 to 1120."
+            "text": "Heals a friendly target for 958 to 1142."
           },
           "differences": [
             {
@@ -9776,7 +10049,7 @@
             },
             {
               "field": "value",
-              "text": "818 instead of 936, 978 instead of 1120"
+              "text": "840 instead of 958, 1000 instead of 1142"
             }
           ],
           "forever": {
@@ -9803,7 +10076,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8903,
-            "text": "Heals a friendly target for 818 to 978."
+            "text": "Heals a friendly target for 840 to 1000."
           },
           "rank": 7
         },
@@ -9832,7 +10105,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9758,
-            "text": "Heals a friendly target for 1199 to 1427."
+            "text": "Heals a friendly target for 1225 to 1453."
           },
           "differences": [
             {
@@ -9841,7 +10114,7 @@
             },
             {
               "field": "value",
-              "text": "1071 instead of 1199, 1275 instead of 1427"
+              "text": "1097 instead of 1225, 1301 instead of 1453"
             }
           ],
           "forever": {
@@ -9868,7 +10141,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9758,
-            "text": "Heals a friendly target for 1071 to 1275."
+            "text": "Heals a friendly target for 1097 to 1301."
           },
           "rank": 8
         },
@@ -9897,7 +10170,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9888,
-            "text": "Heals a friendly target for 1516 to 1796."
+            "text": "Heals a friendly target for 1545 to 1825."
           },
           "differences": [
             {
@@ -9906,7 +10179,7 @@
             },
             {
               "field": "value",
-              "text": "1388 instead of 1516, 1644 instead of 1796"
+              "text": "1417 instead of 1545, 1673 instead of 1825"
             }
           ],
           "forever": {
@@ -9933,7 +10206,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9888,
-            "text": "Heals a friendly target for 1388 to 1644."
+            "text": "Heals a friendly target for 1417 to 1673."
           },
           "rank": 9
         },
@@ -9962,7 +10235,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9889,
-            "text": "Heals a friendly target for 1890 to 2230."
+            "text": "Heals a friendly target for 1916 to 2256."
           },
           "differences": [
             {
@@ -9971,7 +10244,7 @@
             },
             {
               "field": "value",
-              "text": "1762 instead of 1890, 2078 instead of 2230"
+              "text": "1788 instead of 1916, 2104 instead of 2256"
             }
           ],
           "forever": {
@@ -9998,7 +10271,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9889,
-            "text": "Heals a friendly target for 1762 to 2078."
+            "text": "Heals a friendly target for 1788 to 2104."
           },
           "rank": 10
         },
@@ -11267,7 +11540,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8936,
-            "text": "Heals a friendly target for 84 to 98 and another 98 over 21 sec."
+            "text": "Heals a friendly target for 93 to 107 and another 98 over 21 sec."
           },
           "differences": [
             {
@@ -11276,7 +11549,7 @@
             },
             {
               "field": "value",
-              "text": "80 instead of 84, 94 instead of 98, 91 instead of 98"
+              "text": "89 instead of 93, 103 instead of 107, 91 instead of 98"
             }
           ],
           "forever": {
@@ -11303,7 +11576,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8936,
-            "text": "Heals a friendly target for 80 to 94 and another 91 over 21 sec."
+            "text": "Heals a friendly target for 89 to 103 and another 91 over 21 sec."
           },
           "rank": 1
         },
@@ -11332,7 +11605,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8938,
-            "text": "Heals a friendly target for 164 to 188 and another 175 over 21 sec."
+            "text": "Heals a friendly target for 176 to 200 and another 175 over 21 sec."
           },
           "differences": [
             {
@@ -11341,7 +11614,7 @@
             },
             {
               "field": "value",
-              "text": "153 instead of 164, 175 instead of 188, 154 instead of 175"
+              "text": "165 instead of 176, 187 instead of 200, 154 instead of 175"
             }
           ],
           "forever": {
@@ -11368,7 +11641,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8938,
-            "text": "Heals a friendly target for 153 to 175 and another 154 over 21 sec."
+            "text": "Heals a friendly target for 165 to 187 and another 154 over 21 sec."
           },
           "rank": 2
         },
@@ -11397,7 +11670,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8939,
-            "text": "Heals a friendly target for 240 to 274 and another 259 over 21 sec."
+            "text": "Heals a friendly target for 255 to 289 and another 259 over 21 sec."
           },
           "differences": [
             {
@@ -11406,7 +11679,7 @@
             },
             {
               "field": "value",
-              "text": "219 instead of 240, 251 instead of 274, 224 instead of 259"
+              "text": "234 instead of 255, 266 instead of 289, 224 instead of 259"
             }
           ],
           "forever": {
@@ -11433,7 +11706,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8939,
-            "text": "Heals a friendly target for 219 to 251 and another 224 over 21 sec."
+            "text": "Heals a friendly target for 234 to 266 and another 224 over 21 sec."
           },
           "rank": 3
         },
@@ -11462,7 +11735,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8940,
-            "text": "Heals a friendly target for 318 to 360 and another 343 over 21 sec."
+            "text": "Heals a friendly target for 336 to 378 and another 343 over 21 sec."
           },
           "differences": [
             {
@@ -11471,7 +11744,7 @@
             },
             {
               "field": "value",
-              "text": "292 instead of 318, 330 instead of 360, 294 instead of 343"
+              "text": "310 instead of 336, 348 instead of 378, 294 instead of 343"
             }
           ],
           "forever": {
@@ -11498,7 +11771,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8940,
-            "text": "Heals a friendly target for 292 to 330 and another 294 over 21 sec."
+            "text": "Heals a friendly target for 310 to 348 and another 294 over 21 sec."
           },
           "rank": 4
         },
@@ -11527,7 +11800,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8941,
-            "text": "Heals a friendly target for 405 to 457 and another 427 over 21 sec."
+            "text": "Heals a friendly target for 425 to 477 and another 427 over 21 sec."
           },
           "differences": [
             {
@@ -11536,7 +11809,7 @@
             },
             {
               "field": "value",
-              "text": "370 instead of 405, 418 instead of 457, 364 instead of 427"
+              "text": "390 instead of 425, 438 instead of 477, 364 instead of 427"
             }
           ],
           "forever": {
@@ -11563,7 +11836,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8941,
-            "text": "Heals a friendly target for 370 to 418 and another 364 over 21 sec."
+            "text": "Heals a friendly target for 390 to 438 and another 364 over 21 sec."
           },
           "rank": 5
         },
@@ -11592,7 +11865,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9750,
-            "text": "Heals a friendly target for 511 to 575 and another 546 over 21 sec."
+            "text": "Heals a friendly target for 534 to 598 and another 546 over 21 sec."
           },
           "differences": [
             {
@@ -11601,7 +11874,7 @@
             },
             {
               "field": "value",
-              "text": "474 instead of 511, 534 instead of 575, 476 instead of 546"
+              "text": "497 instead of 534, 557 instead of 598, 476 instead of 546"
             }
           ],
           "forever": {
@@ -11628,7 +11901,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9750,
-            "text": "Heals a friendly target for 474 to 534 and another 476 over 21 sec."
+            "text": "Heals a friendly target for 497 to 557 and another 476 over 21 sec."
           },
           "rank": 6
         },
@@ -11657,7 +11930,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9856,
-            "text": "Heals a friendly target for 646 to 724 and another 686 over 21 sec."
+            "text": "Heals a friendly target for 672 to 750 and another 686 over 21 sec."
           },
           "differences": [
             {
@@ -11666,7 +11939,7 @@
             },
             {
               "field": "value",
-              "text": "608 instead of 646, 682 instead of 724, 616 instead of 686"
+              "text": "634 instead of 672, 708 instead of 750, 616 instead of 686"
             }
           ],
           "forever": {
@@ -11693,7 +11966,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9856,
-            "text": "Heals a friendly target for 608 to 682 and another 616 over 21 sec."
+            "text": "Heals a friendly target for 634 to 708 and another 616 over 21 sec."
           },
           "rank": 7
         },
@@ -11722,7 +11995,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9857,
-            "text": "Heals a friendly target for 809 to 905 and another 861 over 21 sec."
+            "text": "Heals a friendly target for 839 to 935 and another 861 over 21 sec."
           },
           "differences": [
             {
@@ -11731,7 +12004,7 @@
             },
             {
               "field": "value",
-              "text": "771 instead of 809, 863 instead of 905, 791 instead of 861"
+              "text": "801 instead of 839, 893 instead of 935, 791 instead of 861"
             }
           ],
           "forever": {
@@ -11758,7 +12031,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9857,
-            "text": "Heals a friendly target for 771 to 863 and another 791 over 21 sec."
+            "text": "Heals a friendly target for 801 to 893 and another 791 over 21 sec."
           },
           "rank": 8
         },
@@ -12654,7 +12927,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 740,
-            "text": "Regenerates all nearby group members for 94 every 2 seconds for 10 sec. Druid must channel to maintain the spell."
+            "text": "Regenerates all nearby group members for 97 every 2 seconds for 10 sec. Druid must channel to maintain the spell."
           },
           "differences": [
             {
@@ -12685,7 +12958,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 740,
-            "text": "Regenerates all nearby party members within 20 yards for 87 every 2 sec for 10 sec. Druid must channel to maintain the spell."
+            "text": "Regenerates all nearby party members within 20 yards for 90 every 2 sec for 10 sec. Druid must channel to maintain the spell."
           },
           "rank": 1
         },
@@ -12713,7 +12986,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8918,
-            "text": "Regenerates all nearby group members for 138 every 2 seconds for 10 sec. Druid must channel to maintain the spell."
+            "text": "Regenerates all nearby group members for 142 every 2 seconds for 10 sec. Druid must channel to maintain the spell."
           },
           "differences": [
             {
@@ -12744,7 +13017,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8918,
-            "text": "Regenerates all nearby party members within 20 yards for 129 every 2 sec for 10 sec. Druid must channel to maintain the spell."
+            "text": "Regenerates all nearby party members within 20 yards for 133 every 2 sec for 10 sec. Druid must channel to maintain the spell."
           },
           "rank": 2
         },
@@ -12772,7 +13045,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9862,
-            "text": "Regenerates all nearby group members for 205 every 2 seconds for 10 sec. Druid must channel to maintain the spell."
+            "text": "Regenerates all nearby group members for 210 every 2 seconds for 10 sec. Druid must channel to maintain the spell."
           },
           "differences": [
             {
@@ -12803,7 +13076,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9862,
-            "text": "Regenerates all nearby party members within 20 yards for 196 every 2 sec for 10 sec. Druid must channel to maintain the spell."
+            "text": "Regenerates all nearby party members within 20 yards for 201 every 2 sec for 10 sec. Druid must channel to maintain the spell."
           },
           "rank": 3
         },
@@ -12998,7 +13271,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 408120,
-            "text": "Heals the target and their party for 280 over 7 sec. Party members must be within 43.5 yards of target. The amount healed is applied quickly at first, and slows down as Wild Growth reaches its full duration."
+            "text": "Heals the target and their party for 336 over 7 sec. Party members must be within 43.5 yards of target. The amount healed is applied quickly at first, and slows down as Wild Growth reaches its full duration."
           },
           "rank": 1
         },
@@ -13032,7 +13305,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 1238214,
-            "text": "Heals the target and their party for 420 over 7 sec. Party members must be within 43.5 yards of target. The amount healed is applied quickly at first, and slows down as Wild Growth reaches its full duration."
+            "text": "Heals the target and their party for 490 over 7 sec. Party members must be within 43.5 yards of target. The amount healed is applied quickly at first, and slows down as Wild Growth reaches its full duration."
           },
           "rank": 2
         },

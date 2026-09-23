@@ -55,7 +55,8 @@ A class's spellbook is built the same way from each client:
    "Runes") hold rune slots, not spells, and are skipped.
 2. **Left out**, with the reason recorded in `.cache/client/<build>/spells-left-out.json`: rows
    the game grants through another spell (`AcquireMethod` 3: rune abilities, Execute's damage
-   spell, Judgement effects), spells without a `SpellName` (encrypted or absent), spells hidden
+   spell, Judgement effects), spells without a `SpellName` (encrypted or absent; the book's
+   `meta.noClientData` lists them, [below](#trainer-rows-with-no-client-data)), spells hidden
    from the spellbook (`SPELL_ATTR0_DO_NOT_DISPLAY`: stance passives, talent effects), spells
    with no training level (`SpellLevels`), spells with no tooltip, and in Classic Era the
    Season of Discovery spells (below).
@@ -134,9 +135,17 @@ spell of the three books kept the status the site gave it when the client rebuil
 | `requires` | `SpellEquippedItems` | "Melee Weapon", "Shields", "Two-Handed Melee Weapon" |
 | `text` | `Spell.Description_lang`, rendered | see below |
 
-Tooltips are rendered with `$?` conditions taken as unmet (a reader with no auras or talents),
-the client's line layout kept (a blank line is "\n\n", a single line break "\n", as in Rip's
-per-combo-point lines), `${…}` without a `.N` precision shown as a whole number as the game does
+Tooltips are rendered at level 60: an effect's per-level points count from its
+`SpellLevels.SpellLevel` up to 60 or its `MaxLevel`, truncated to a whole number
+([items.md § Per-level values](items.md#per-level-values); review finding L9). Demoralizing
+Shout rank 5 reads 204, not its base 196; Cat Form 120 (its passive's 12 + 2 per level from 6),
+which is Classic Era's 120 too, so Cat Form is now `same`; Dire Bear Form 180 attack power and
+1240 health; Battle Shout's lower ranks and the druid's and paladin's damage and healing ranks
+read their level-60 values on both sides. They are rendered with `$?` conditions taken as unmet
+(a reader with no auras or talents), the client's line layout kept (a blank line is "\n\n", a
+single line break "\n" after a line that ends, as in Rip's per-combo-point lines and Tiger's
+Fury's "Requires Cat Form" line; a break inside a sentence is a space), `${…}` without a `.N`
+precision shown as a whole number as the game does
 (Rip's 44.4 is 44), `$f1` read as the effect's chain amplitude (Execute's "$*10;F1" rage
 factor), a duration of −1 shown as "until cancelled", description variables written as
 conditions evaluated (Classic Era Rip's `$ticks`), and `$AP` taken as 0 (Victory Rush reads
@@ -148,7 +157,9 @@ run.
 ```text
 SpellBook
   meta      { source, scraper, scrapedAt, product, foreverBuild, foreverBuildDate,
-              classicProduct, classicBuild, tables { forever, classic }, wowDbDefs }
+              classicProduct, classicBuild, tables { forever, classic }, wowDbDefs,
+              noClientData[{ spellId, skillLine, acquireMethod, supersedes, encrypted,
+                             classic { name, rank, talentRank } | null }] }
   class     "warrior" | "druid" | "paladin"
   counts    { total, new, changed, notInForever, differentFromClassic }
   tabs[]    { name, slug, icon, spellCount }
@@ -170,15 +181,16 @@ SpellRank (forever / classic side)
 MissingSpell { name, tab, icon, level, rank, wasTalent, classic: SpellRank & { name } }
 ```
 
-The app reads only `meta`, and the browser build drops its `tables` and `wowDbDefs`
-(`vite.config.ts` `SLIMMERS`).
+The app reads only `meta`, and the browser build drops its `tables`, `wowDbDefs` and
+`noClientData` (`vite.config.ts` `SLIMMERS`). `foreverBuildDate` is the build's creation date in
+wago.tools' build list, whichever build a machine has cached as "latest".
 
 ## Counts
 
 | Class | Spells | Tabs | same | changed | baseline | earlier | new | talent | Not in Forever |
 | --- | --: | --- | --: | --: | --: | --: | --: | --: | --: |
 | Warrior | 42 | Arms 14 · Fury 16 · Protection 12 | 17 | 13 | 1 | 1 | 1 | 9 | 0 |
-| Druid | 60 | Balance 15 · Feral Combat 30 · Restoration 15 | 17 | 31 | 2 | 0 | 2 | 8 | 1 |
+| Druid | 60 | Balance 15 · Feral Combat 30 · Restoration 15 | 18 | 30 | 2 | 0 | 2 | 8 | 1 |
 | Paladin | 56 | Holy 23 · Protection 23 · Retribution 8 · Mounts 2 | 13 | 29 | 2 | 0 | 3 | 9 | 3 |
 
 493 Forever ranks (117, 206, 170). `classic` is null on 40 rank pairs (new spells, new top
@@ -202,6 +214,36 @@ talent; the Forever client has its spell 20218 but no talent or trainer row teac
 - **Paladin:** Holy Strike (new, 8 ranks), Seal of Fury (new, 7 ranks) and Hammer of the
   Righteous (new, level 40). Light's Vigil, Voice of Truth, Swift Judgement and Templar's
   Bulwark are Forever talent spells. Consecration and Blessing of Kings are trained.
+
+### Trainer rows with no client data
+
+`SkillLineAbility` has 58 rows of the three classes, taught by a trainer or learned
+automatically, whose spell the Forever client has **no data for at all**: no `SpellName`,
+`Spell` or `SpellEffect` row, none of them encrypted. The book can't show them, so they used to
+be dropped with the other left-out rows (review finding L34). Each book now lists them in
+`meta.noClientData`, with the row's skill line, acquire method, the rank it supersedes and the
+Classic Era spell of that id. 31 are ranks of Classic Era talents that Forever's Trait trees
+replaced (Dual Wield Specialization 2–5, Anticipation 2–5, Holy Power 2–5, …), leftovers of the
+old tables. The other **27 look like spells a trainer teaches** `[?]`:
+
+| Class | Spell ids | Classic Era spell of that id |
+| --- | --- | --- |
+| Druid | 6793, 9845, 9846 (a rank chain from Tiger's Fury 5217) | Tiger's Fury ranks 2–4 |
+| Druid | 17390, 17391, 17392 | Faerie Fire (Feral) ranks 2–4 |
+| Druid | 22895, 22896 (a chain from Frenzied Regeneration 22842) | Frenzied Regeneration ranks 2–3 |
+| Druid | 22571 → 1238074 → 1238075 → 1238077 | Mangle rank 1 (22571); the rest none |
+| Druid | 1263849 → 1263850; 22839; 414854 (learned automatically) | none; Barkskin Effect (DND); none |
+| Paladin | 407669 | Avenger's Shield (a Season of Discovery spell in Classic Era) |
+| Paladin | 25781, 25899 | Righteous Fury, Greater Blessing of Sanctuary rank 1 |
+| Paladin | 26017, 26018 | Vindication ranks 2–3 (the debuff) |
+| Paladin | 1239550, 1239551, 1239552, 1239553, 1263893, 1263894 | none |
+
+Warriors have none (their four are Dual Wield Specialization ranks). Like the 16 items no client
+carries ([items.md](items.md#items-no-client-carries-yet)), these may exist only as server
+hotfix rows, which the raw files don't include ([client.md § Hotfix
+caveat](client.md#hotfix-caveat)); or they may be rows Forever abandoned. Flagged, never
+guessed (D17): the books don't show them, and the generator prints them each run. Whether a
+trainer teaches them is [open questions B75](../open-questions.md#b75-trainer-spells-the-client-has-no-data-for).
 
 ### Stances and forms
 
@@ -264,10 +306,17 @@ client `meta` envelope. **Changed:** `missing` adds Sanctity Aura, which the sit
   0) aren't in them; the engine keeps its own constants.
 - **Race masks.** Summon Charger's rows exclude Undead, the new Horde paladins; whether they get
   a charger in game is open.
+- `[?]` **Trainer rows with no client data** (Tiger's Fury ranks 2–4, Avenger's Shield, the
+  1238074 chain, …; [above](#trainer-rows-with-no-client-data)): possibly hotfix-only, or
+  abandoned rows ([open questions B75](../open-questions.md#b75-trainer-spells-the-client-has-no-data-for)).
+- `[?]` **Per-level values.** The tooltips count per-level points from `SpellLevel` and truncate
+  them, which gives the level-60 tooltip's 204 for Demoralizing Shout; where `BaseLevel` differs
+  (Vindication's aura 440667) the client's own rule is unconfirmed
+  ([open questions B74](../open-questions.md#b74-per-level-tooltip-values)).
 - **Classic Era rules are data rules.** The Season of Discovery id limit and the cut-content
   exclusion keep SoD spells and never-trained rows out of the Classic baseline; a spell that
   slipped through would show up as a Classic-only spell in `missing` or as an odd Classic rank.
-- Size: about 0.94 MB of JSON across the three files, most of it tooltip text on both sides.
+- Size: about 0.98 MB of JSON across the three files, most of it tooltip text on both sides.
 
 ## Re-running
 

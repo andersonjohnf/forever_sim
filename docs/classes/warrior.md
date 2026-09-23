@@ -482,7 +482,7 @@ for daggers. `weapon` means the real speed. Both are defined in
 | Mortal Strike (4, 21553) | 30 | 6 s | yes | any | MH `normalized` + 160. Also −50% healing on the target for 10 s | [F] [sb] [db-eff] |
 | Whirlwind (1680) | 25 | 10 s | yes | Berserker | MH `normalized` to up to 4 targets within 8 yd. With Raging Blows it also strikes with the off hand; see below | [F] [sb] [db-eff] |
 | Slam (5, 11605; Improved Slam version 1310200) | 15 | **15 s** | 1.5 s, −0.25 s per rank of Improved Slam | any | MH `weapon` + 87. **Cast 1.5 s**, −0.25 s per rank of Improved Slam. See the Slam notes below | [F] [sb] [client] (SpellCooldowns, SpellCastTimes, 1.60.1.69913) [tal] |
-| Execute (5, 20662) | 15 | none | yes | Battle, Berserker | Only on targets at or below 20% health. **600 + 15 × (rage − cost)**; a successful hit spends all rage | [F] [sb]; rage rules [C] [marrow] [ws-spell] |
+| Execute (5, 20662) | 15 | none | yes | Battle, Berserker | Only on targets at or below 20% health. **600 + 15 × (rage − cost)**; a successful hit spends all rage. The 15 per rage is client data, not a server script: the damage effect's `EffectChainAmplitude` 1.5, which the tooltip's `$*10;F1` shows as 15 (ranks 1–5: 3, 6, 9, 12, 15) | [F] [sb] [client] (SpellEffect, 1.60.1.69913); rage rules [C] [marrow] [ws-spell] |
 | Overpower (4, 11585) | 5 | 5 s | yes | Battle | MH `normalized` + 35. Can't be dodged, parried or blocked. Improved Overpower adds +25% crit chance per rank. Needs the Overpower window ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)), which it closes | [F] [sb] [tal] [client] (SpellPower, SpellEffect, 1.60.1.69913) |
 | Hamstring (3, 7373) | 10 | none | yes | Battle, Berserker | 45 physical damage (flat, rolls on the melee table) and a 50% snare. Used to fish for procs | [F] [sb] [db-eff] |
 | Rend (7, 11574) | 10 | none | yes | Battle, Defensive | Bleed: 147 over 21 s, 21 per 3 s tick. Improved Rend multiplies it by 1 + 0.12 / 0.23 / 0.35. The application rolls miss, dodge and parry and can't crit; the ticks ignore armor and, in `forever`, may crit ([§2.5](#25-crits-impale-flurry-deep-wounds)). It enables Bloodthrill | [F] [sb] [tal] [db-eff] [client] (SpellEffect, SpellMisc, 1.60.1.69913) |
@@ -1189,9 +1189,10 @@ parts:
   condition becomes true.
 - **Execute's rage.** Rage is kept in tenths, and Execute converts everything left after its
   cost, tenths included: at 27.3 rage and cost 15 it deals `600 + 15 × 12.3 = 784.5` before
-  modifiers. Whether the server converts only whole rage points is Q28 [?]; a result whose
-  rotation uses Execute lists it among its assumptions. A blocked Execute has landed, so it spends
-  the rage too.
+  modifiers. The 15 per rage is the client's `EffectChainAmplitude` 1.5 × 10 on 20662 [F]
+  [client] (SpellEffect, 1.60.1.69913; `src/data/client/spells.json` keeps it). Whether the
+  server converts only whole rage points is Q28 [?]; a result whose rotation uses Execute lists
+  it among its assumptions. A blocked Execute has landed, so it spends the rage too.
 - **Stances.** Each ability carries the stances it can be used in ([§3.1](#31-damage-abilities)
   "Stance", from the client's `ShapeshiftMask`), and the engine refuses it in any other. Each spec
   fights in its base stance ([§5](#5-spec-models-and-rotations); Arms in the one its
@@ -1607,10 +1608,11 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     the bleed recomputes on each tick (Classic: yes, [C]), its refresh behaviour, and whether
     Rend's ticks really crit in combat, as the `forever` profile assumes [?] ([damage-and-timing
     OQ 2](../mechanics/damage-and-timing.md#open-questions)).
-22. **Demoralizing Shout scaling.** The sim uses the tooltip's −196 [F]; the client data's −1.4
-    per level above 54 would give −204.4 at 60, and its `SpellLevels` (54–64) don't cap the term
-    below 60 [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913). Whether the server applies it
-    is [?]. Owner: [buffs-debuffs-consumables OQ
+22. **Demoralizing Shout scaling.** The level-60 tooltip is **−204** [F]: the client data's −196
+    plus −1.4 per level above 54, which its `SpellLevels` (54–64) don't cap below 60, is −204.4,
+    shown as 204 [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913). The −196 this doc called
+    the tooltip was the base value rendered without the per-level term (review finding L9).
+    Whether the debuff applies −204 in combat is [?]. Owner: [buffs-debuffs-consumables OQ
     19](../mechanics/buffs-debuffs-consumables.md#open-questions) (Route C: read it at 60).
 23. **Build variants.** "Fury + Precision" (15/36) versus the popular 17/34, and the
     Protection "TPS" variant. Settle these with the sim once M2 and M3 exist.

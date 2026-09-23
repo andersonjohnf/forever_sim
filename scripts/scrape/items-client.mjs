@@ -24,9 +24,9 @@ import { committedJson, describeRef } from "./lib/committed.mjs";
 import { createFetcher } from "./lib/http.mjs";
 import { buildPool, measureRatingConversions } from "./lib/item-pool.mjs";
 import { ITEM_GAMETABLES, ITEM_TABLES, createItemContext } from "./lib/item-stats.mjs";
-import { stableStringify } from "./lib/json.mjs";
+import { compareText, stableStringify } from "./lib/json.mjs";
 import { SPELL_TEXT_TABLES, createSpellTextContext } from "./lib/spell-text.mjs";
-import { createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
+import { buildDate, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
 
 // ---------------------------------------------------------------------------
 // Filter: edit these to widen the dataset (e.g. QUALITIES = [3, 4] for epics).
@@ -127,6 +127,8 @@ const warn = (msg) => warnings.push(msg);
 const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh });
 const latest = await latestBuild(fetcher, PRODUCT);
 const version = opts.version ?? latest.version;
+/** The build's creation date on wago.tools, from its build list (lib/wago.mjs buildRecord). */
+const foreverBuildDate = await buildDate(fetcher, PRODUCT, version);
 const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs);
 
 /** Tables beyond the derivation and the text renderer: names, limits, icons, races. */
@@ -183,7 +185,7 @@ function loadPreRaidBis() {
     }
   }
   for (const list of out.byId.values())
-    list.sort((a, b) => specOrder.indexOf(a.spec) - specOrder.indexOf(b.spec) || a.slot.localeCompare(b.slot) || a.rank - b.rank);
+    list.sort((a, b) => specOrder.indexOf(a.spec) - specOrder.indexOf(b.spec) || compareText(a.slot, b.slot) || a.rank - b.rank);
   return out;
 }
 
@@ -279,7 +281,8 @@ async function write() {
     pool = buildPool({ forever, classic, filter, bis, watch: WATCH_ITEMS });
     for (const u of unresolved) warn(`item ${u.id}: no icon name for FileDataID ${u.fdid}`);
   }
-  const { items, sets, counts, noClientRow, coverage, report } = pool;
+  const { items, sets, counts, noClientRow, coverage, fallbackEffects, report } = pool;
+  for (const u of report.unclassifiedAuras) warn(`aura ${u.aura} on ${u.build} spell ${u.spellId} (${u.usedBy.join(", ")}) is neither a stat (AURA_STAT) nor in NOT_STAT_AURAS; classify it in lib/item-stats.mjs`);
 
   // Checks: the pre-raid BiS lists, names, SoD and the statsFrom flags.
   const byId = new Map(items.map((i) => [i.id, i]));
@@ -302,14 +305,14 @@ async function write() {
     if (byId.has(id)) console.log(`NOTE: watched item ${id} ${name} now has a client row and is in the pool; remove it from WATCH_ITEMS`);
 
   const ratingConversions = measureRatingConversions(forever, classic, MAX_CLASSIC_ITEM_ID);
-  const tableMeta = (b) => Object.fromEntries([...b.used.entries()].sort(([a], [c]) => a.localeCompare(c)));
+  const tableMeta = (b) => Object.fromEntries([...b.used.entries()].sort(([a], [c]) => compareText(a, c)));
   const out = {
     meta: {
       source: "https://wago.tools/api/casc",
       scraper: SCRAPER,
       product: PRODUCT,
       foreverBuild: version,
-      foreverBuildDate: latest.version === version ? latest.created_at.slice(0, 10) : null,
+      foreverBuildDate,
       classicProduct: BASELINE_PRODUCT,
       classicBuild: opts.baseline,
       tables: { forever: tableMeta(forever), classic: tableMeta(classic) },
@@ -337,6 +340,7 @@ async function write() {
         notInData,
       },
       descriptionCoverage: coverage,
+      fallbackEffects,
       ratingConversions,
     },
     sets,
@@ -371,6 +375,8 @@ function printSummary(out, report) {
   console.log(`pre-raid BiS: ${preRaidBis.listedItems} listed, ${preRaidBis.inPool} in the pool, ${preRaidBis.addedByList} only because listed, ${preRaidBis.notInData.length} with no row`);
   console.log(`no client row (watched): ${noClientRow.length}`);
   console.log(`descriptions: ${dc.rendered} rendered, ${dc.generated} generated, ${dc.fallback} fallback, ${dc.hidden} hidden`);
+  const fe = out.meta.fallbackEffects;
+  console.log(`fallback items with effects: ${fe.items}; ${fe.effectsFromForever} take the Forever client's item effects; ${fe.spellsFromForever} of ${fe.spells} spells read from the Forever client`);
   for (const f of dc.fallbackSpells) console.log(`  fallback ${f.build} spell ${f.spellId} ${f.name}: ${f.tokens.join(" ")} (${f.usedBy.join(", ")})`);
   for (const w of warnings) console.warn(`WARNING: ${w}`);
   const { requests } = fetcher.stats();
@@ -387,17 +393,23 @@ const FIXTURES = {
   // Lionheart Helm, Annihilator (1H + chance on hit), Arcanite Reaper (2H), Whiteout and
   // Crackling Staff (caster weapons), Burrow Barricade (shield + bonus armor), Rune of the Guard
   // Captain (equip AP + area-restricted AP), Stormpike Insignia Rank 4 (category cooldown).
-  forever: { items: [12640, 12798, 12784, 19101, 19102, 274418, 19120, 17902], sets: [281] },
+  // The Gladiator (a set bonus with aura 290, all crit). For the fallback items below (no Forever
+  // ItemSparse row): the item effects Forever links to Hand of Justice, Blackhand's Breadth and
+  // Diamond Flask, and Forever's rows of their Classic Era spells (`spells`: +20 Attack Power
+  // 9331, +2% crit 7598, Seal of the Dawn 23930, Barrier Shield's block value 22912 (aura 274) and
+  // block chance 13675, Classic Era's Diamond Flask use 363880).
+  forever: { items: [12640, 12798, 12784, 19101, 19102, 274418, 19120, 17902, 11815, 13965, 20130], sets: [281, 1], spells: [9331, 7598, 23930, 22912, 13675, 363880] },
   // Lionheart Helm (equip crit/hit), Barrier Shield (block chance and value, innate block),
   // Hand of Justice (Classic Era only: AP + proc), Warblade of Caer Darrow (extra damage),
-  // Devilsaur Leggings (46 melee / 48 ranged AP).
-  classic: { items: [12640, 18499, 11815, 13982, 15062], sets: [1] },
+  // Devilsaur Leggings (46 melee / 48 ranged AP), and the fallback items Seal of the Dawn,
+  // Blackhand's Breadth and Diamond Flask.
+  classic: { items: [12640, 18499, 11815, 13982, 15062, 13209, 13965, 20130], sets: [1] },
 };
 
 function writeFixtures() {
   const out = { $comment: `Real client rows for scripts/scrape/lib/item-stats.test.mjs. Generated by scripts/scrape/items-client.mjs --fixtures from Forever ${version} and Classic Era ${opts.baseline}; don't edit by hand.` };
   for (const [key, { tables, gameTables, ctx }] of Object.entries({ forever, classic })) {
-    const { items, sets } = FIXTURES[key];
+    const { items, sets, spells = [] } = FIXTURES[key];
     const rowsOf = (name) => tables[name]?.rows ?? [];
     const pick = (name, pred) => rowsOf(name).filter(pred);
     const sparse = pick("ItemSparse", (r) => items.includes(r.ID));
@@ -405,7 +417,7 @@ function writeFixtures() {
     const effectIds = new Set(items.flatMap((id) => (ctx.itemEffects.get(id) ?? []).map((e) => e.ID)));
     const setRows = pick("ItemSet", (r) => sets.includes(r.ID));
     const setSpells = pick("ItemSetSpell", (r) => sets.includes(r.ItemSetID));
-    const spellIds = new Set([...pick("ItemEffect", (r) => effectIds.has(r.ID)).map((r) => r.SpellID), ...setSpells.map((r) => r.SpellID)]);
+    const spellIds = new Set([...pick("ItemEffect", (r) => effectIds.has(r.ID)).map((r) => r.SpellID), ...setSpells.map((r) => r.SpellID), ...spells]);
     const bySpell = (name) => pick(name, (r) => spellIds.has(r.SpellID));
     out[key] = {
       build: key === "forever" ? version : opts.baseline,
@@ -427,6 +439,7 @@ function writeFixtures() {
         SpellCooldowns: bySpell("SpellCooldowns"),
         SpellCastingRequirements: bySpell("SpellCastingRequirements"),
         SpellShapeshift: bySpell("SpellShapeshift"),
+        SpellEquippedItems: bySpell("SpellEquippedItems"),
       },
       gameTables: Object.fromEntries(Object.entries(gameTables).map(([k, rows]) => [k, rows.filter((r) => levels.has(r.Level))])),
     };

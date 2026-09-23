@@ -25,7 +25,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { committedJson, describeRef } from "./lib/committed.mjs";
 import { createFetcher } from "./lib/http.mjs";
-import { stableStringify } from "./lib/json.mjs";
+import { compareText, stableStringify } from "./lib/json.mjs";
 import { SPELL_TEXT_TABLES, createSpellTextContext } from "./lib/spell-text.mjs";
 import {
   CLASS_NAME,
@@ -33,14 +33,16 @@ import {
   createBookContext,
   idSlug,
   learnableBy,
+  NO_CLIENT_DATA,
   norm,
   pairRows,
   rankDifferences,
   rankFields,
+  rankNumber,
   readBook,
 } from "./lib/spellbook.mjs";
 import { CLASSIC_TREE_TABLES, FOREVER_TREE_TABLES, createTooltipContext, isPassive, readClassicTrees, readForeverTree } from "./lib/talent-tree.mjs";
-import { createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
+import { buildDate, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
 
 const CLASSES = ["warrior", "druid", "paladin"];
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
@@ -89,6 +91,8 @@ const fail = (msg) => errors.push(msg);
 const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh });
 const latest = await latestBuild(fetcher, PRODUCT);
 const version = opts.version ?? latest.version;
+/** The build's creation date on wago.tools, from its build list (lib/wago.mjs buildRecord). */
+const foreverBuildDate = await buildDate(fetcher, PRODUCT, version);
 const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs);
 
 async function load(build, names) {
@@ -166,6 +170,20 @@ function buildClass(cls, iconName) {
   const classicTabs = [...new Map(classicTrees.map((c) => [c.tab, { name: c.tabName, order: c.tabOrder, iconFileDataId: classic.tables.TalentTab.byId.get(c.tab).SpellIconID }])).values()].sort((a, b) => a.order - b.order);
   const bookC = readBook(cctx, cls, { talents: classicTalents, talentTabs: classicTabs, classic: true, skip: CLASSIC_CUT_CONTENT });
   report.excluded.forever = bookF.excluded;
+  // Trainer rows whose spell the Forever client has no data for (possibly hotfix-only; docs/data/spells.md).
+  const classicTalentRanks = new Set(classicTrees.flatMap((c) => c.spellIds));
+  const encrypted = forever.tables.SpellName.encryptedIds ?? new Set();
+  report.noClientData = bookF.excluded
+    .filter((x) => x.why === NO_CLIENT_DATA)
+    .map((x) => ({
+      spellId: x.id,
+      skillLine: x.line,
+      acquireMethod: x.acquireMethod,
+      supersedes: x.supersedes,
+      encrypted: encrypted.has(x.id),
+      classic: cctx.name(x.id) ? { name: cctx.name(x.id), rank: rankNumber(cctx.subtext(x.id)), talentRank: classicTalentRanks.has(x.id) } : null,
+    }))
+    .sort((a, b) => a.spellId - b.spellId);
   report.excluded.classic = bookC.excluded;
 
   // Races that can be the class in Forever (CharBaseInfo), for per-race spells.
@@ -220,7 +238,7 @@ function buildClass(cls, iconName) {
       ranks: pairs,
     });
   }
-  spells.sort((a, b) => tabOrder.get(a.tab) - tabOrder.get(b.tab) || (a.level ?? Infinity) - (b.level ?? Infinity) || a.name.localeCompare(b.name));
+  spells.sort((a, b) => tabOrder.get(a.tab) - tabOrder.get(b.tab) || (a.level ?? Infinity) - (b.level ?? Infinity) || compareText(a.name, b.name));
 
   const missing = [];
   for (const [key, c] of bookC.spells) {
@@ -239,7 +257,7 @@ function buildClass(cls, iconName) {
       classic: { ...cr, name: c.name },
     });
   }
-  missing.sort((a, b) => a.tab.localeCompare(b.tab) || (a.level ?? Infinity) - (b.level ?? Infinity) || a.name.localeCompare(b.name));
+  missing.sort((a, b) => compareText(a.tab, b.tab) || (a.level ?? Infinity) - (b.level ?? Infinity) || compareText(a.name, b.name));
 
   const tabs = bookF.tabs.map((t) => ({
     name: t.name,
@@ -289,7 +307,7 @@ async function write() {
     built = CLASSES.map((cls) => buildClass(cls, iconName));
     for (const u of unresolved) fail(`${u.what}: no icon name for FileDataID ${u.fdid}`);
   }
-  const tableMeta = (b) => Object.fromEntries([...b.used.entries()].sort(([a], [c]) => a.localeCompare(c)));
+  const tableMeta = (b) => Object.fromEntries([...b.used.entries()].sort(([a], [c]) => compareText(a, c)));
   const at = scrapedAt([forever, classic]);
   for (const b of built) {
     b.data.meta = {
@@ -298,11 +316,12 @@ async function write() {
       scrapedAt: at,
       product: PRODUCT,
       foreverBuild: version,
-      foreverBuildDate: latest.version === version ? latest.created_at.slice(0, 10) : null,
+      foreverBuildDate,
       classicProduct: BASELINE_PRODUCT,
       classicBuild: opts.baseline,
       tables: { forever: tableMeta(forever), classic: tableMeta(classic) },
       wowDbDefs: { repository: "https://github.com/wowdev/WoWDBDefs", commit: dbdefsSha },
+      noClientData: b.report.noClientData,
     };
   }
   printSummary(built);
@@ -335,6 +354,8 @@ function printSummary(built) {
     const why = (list) => Object.entries(list.reduce((m, x) => ((m[x.why] = (m[x.why] ?? 0) + 1), m), {})).map(([k, v]) => `${k} ${v}`).join(", ");
     console.log(`  left out (Forever): ${why(report.excluded.forever)}`);
     console.log(`  left out (Classic Era): ${why(report.excluded.classic)}`);
+    const trainer = report.noClientData.filter((x) => !x.classic?.talentRank);
+    console.log(`  trainer rows with no Forever client data: ${trainer.map((x) => `${x.spellId}${x.classic ? ` ${x.classic.name}${x.classic.rank ? ` ${x.classic.rank}` : ""}` : ""}`).join(", ") || "none"} (+ ${report.noClientData.length - trainer.length} Classic Era talent ranks)`);
   }
   for (const w of warnings) console.warn(`WARNING: ${w}`);
   console.log(`\nnetwork requests this run: ${fetcher.stats().requests}`);

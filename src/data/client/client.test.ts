@@ -129,6 +129,26 @@ describe('values the docs state, read from the raw client', () => {
     expect(points(byEffect(bt, DUMMY))).toBe(35) // % of attack power
   })
 
+  it('Execute converts rage at EffectChainAmplitude × 10 per point: 3 … 15 by rank, in the client (docs/classes/warrior.md §3.1)', () => {
+    const ranks = [1, 2, 3, 4, 5].map((r) => spell(rankId('warrior', 'Execute', r)))
+    expect(ranks.map((s) => s.id)).toEqual([5308, 20658, 20660, 20661, 20662])
+    expect(ranks.map((s) => points(byEffect(s, DUMMY)))).toEqual([125, 200, 325, 450, 600])
+    expect(ranks.map((s) => byEffect(s, DUMMY)?.effectChainAmplitude)).toEqual([0.3, 0.6, 0.9, 1.2, 1.5])
+    // The tooltip's "$*10;F1", rendered by the spellbook: 15 per extra rage at rank 5.
+    const text = spellBooks.warrior.spells.find((s) => s.name === 'Execute')?.ranks.at(-1)?.forever?.text
+    expect(text).toContain('600 damage and converting each extra point of rage into 15 additional damage')
+  })
+
+  it('Demoralizing Shout rank 5 is −204 at level 60: −196 − 1.4 per level above 54 (buffs §2, warrior Q22)', () => {
+    const shout = spell(rankId('warrior', 'Demoralizing Shout', 5))
+    const ap = byAura(shout, AURA_MOD_ATTACK_POWER)!
+    expect([points(ap), ap.effectRealPointsPerLevel]).toEqual([-196, -1.4])
+    expect(shout.levels).toMatchObject({ spellLevel: 54, maxLevel: 64 })
+    expect(Math.trunc(points(ap) + ap.effectRealPointsPerLevel! * (60 - shout.levels!.spellLevel!))).toBe(-204)
+    const text = spellBooks.warrior.spells.find((s) => s.name === 'Demoralizing Shout')?.ranks.find((r) => r.rank === 5)?.forever?.text
+    expect(text).toContain('by 204 for 45 sec')
+  })
+
   it('Shred deals 155% weapon damage plus 80 (docs/classes/druid.md)', () => {
     const shred = spell(rankId('druid', 'Shred', 5))
     expect(points(byEffect(shred, WEAPON_PERCENT_DAMAGE))).toBe(155)
@@ -312,11 +332,12 @@ describe('internal consistency', () => {
     for (const s of Object.values(spells.spells)) expect(s.name).not.toMatch(/Rallying Cry|Songflower|Warchief's Blessing|Spirit of Zandalar/)
   })
 
-  it('writes spells without zero values, as types.ts documents', () => {
+  it('writes spells without zero values, as types.ts documents (and effectChainAmplitude only when it isn’t 1)', () => {
     for (const s of Object.values(spells.spells)) {
       for (const e of s.effects) {
         for (const [k, v] of Object.entries(e)) {
-          if (k !== 'effectIndex' && k !== 'effect') expect(v === 0 || (Array.isArray(v) && v.every((x) => x === 0)), `${s.id} ${k}`).toBe(false)
+          if (k === 'effectChainAmplitude') expect(v, `${s.id} ${k}`).not.toBe(1)
+          else if (k !== 'effectIndex' && k !== 'effect') expect(v === 0 || (Array.isArray(v) && v.every((x) => x === 0)), `${s.id} ${k}`).toBe(false)
         }
       }
     }

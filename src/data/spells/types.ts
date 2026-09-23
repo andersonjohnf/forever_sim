@@ -41,7 +41,7 @@ export interface SpellBookMeta {
   product: string;
   /** WoW Forever beta client build, e.g. "1.60.1.69913". */
   foreverBuild: string;
-  /** Build date from wago.tools (YYYY-MM-DD), or null for a pinned older build. */
+  /** The build's creation date in wago.tools' build list (YYYY-MM-DD), whichever build is cached as latest; null only if the list lacks the build. */
   foreverBuildDate: string | null;
   /** "wow_classic_era". */
   classicProduct: string;
@@ -50,6 +50,26 @@ export interface SpellBookMeta {
   /** Table name → FileDataID, per build. */
   tables: { forever: Record<string, number>; classic: Record<string, number> };
   wowDbDefs: { repository: string; commit: string };
+  /**
+   * The class's trainer rows (SkillLineAbility, taught or learned automatically) whose spell the
+   * Forever client has no data for: no SpellName row, so no book entry. Possibly hotfix-only
+   * (docs/data/spells.md#trainer-rows-with-no-client-data). Sorted by spell id.
+   */
+  noClientData: NoClientDataRow[];
+}
+
+export interface NoClientDataRow {
+  spellId: number;
+  /** The row's skill line, e.g. "Feral Combat". */
+  skillLine: string;
+  /** SkillLineAbility.AcquireMethod: 0 taught by a trainer, 2 learned automatically. */
+  acquireMethod: number;
+  /** The spell the row supersedes (SkillLineAbility.SupercedesSpell): the previous rank. */
+  supersedes: number | null;
+  /** Whether the Forever client lists the spell's SpellName row as encrypted. */
+  encrypted: boolean;
+  /** The Classic Era client's spell of that id; `talentRank` when it is a Classic talent's rank. */
+  classic: { name: string; rank: number | null; talentRank: boolean } | null;
 }
 
 export interface SpellBookCounts {

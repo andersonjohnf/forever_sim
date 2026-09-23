@@ -5,7 +5,8 @@
 // Era client (wow_classic_era).
 //
 //   node scripts/scrape/races-client.mjs [--diff] [--against=<git ref>] [--accept-race-changes]
-//        [--refresh] [--version=<Forever build>] [--baseline=<Classic Era build>] [--dbdefs=<sha>]
+//        [--skip-committed-check] [--refresh] [--version=<Forever build>] [--baseline=<Classic Era build>]
+//        [--dbdefs=<sha>]
 //
 //   (default)  derive the races and write src/data/races/races.json
 //   --diff     then diff the written file against the committed one; report in
@@ -15,8 +16,9 @@
 // Saved setups and share links store race ids, so the run refuses to write if the race ids, a
 // race's name or faction, or the classes each race can be in Forever and in Classic Era differ
 // from the committed dataset's. A build that really changes them needs --accept-race-changes,
-// after the app handles the change. The run also fails on a racial without a rendered tooltip
-// or an icon.
+// after the app handles the change. Without a committed dataset to compare with (git missing, or
+// no such file at --against) it refuses to write unless --skip-committed-check says so. The run
+// also fails on a racial without a rendered tooltip or an icon.
 //
 // Downloads go through lib/wago.mjs (documented wago.tools API only, one request at a time,
 // cached under .cache/client/, once per build). Zero dependencies (Node >= 22). See
@@ -24,14 +26,14 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { committedJson, describeRef } from "./lib/committed.mjs";
+import { describeRef, readCommitted } from "./lib/committed.mjs";
 import { createFetcher } from "./lib/http.mjs";
-import { stableStringify } from "./lib/json.mjs";
+import { compareText, stableStringify } from "./lib/json.mjs";
 import { RACE_TABLES, classSlugs, classesOfMask, groupByText, isHidden, raceNames, racialId, racialRows } from "./lib/race-data.mjs";
 import { SPELL_TEXT_TABLES, createSpellTextContext, renderSpellText } from "./lib/spell-text.mjs";
 import { SPELLBOOK_TABLES, castTimeOf, cooldownOf, costOf, createBookContext, norm, rangeOf } from "./lib/spellbook.mjs";
 import { isPassive } from "./lib/talent-tree.mjs";
-import { createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
+import { buildDate, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
@@ -48,17 +50,17 @@ const SIM_CLASSES = ["warrior", "druid", "paladin"];
  */
 const RACE_ICON_OVERRIDES = { 95: "inv_misc_head_elf_01", 96: "inv_misc_head_elf_02" };
 
-const opts = { diff: false, "accept-race-changes": false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
+const opts = { diff: false, "accept-race-changes": false, "skip-committed-check": false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
 for (const arg of process.argv.slice(2)) {
   const m = /^--([a-z-]+)(?:=(.*))?$/.exec(arg);
   if (!m) usage(`Unknown argument: ${arg}`);
   const [, key, value] = m;
-  if (["diff", "accept-race-changes", "refresh"].includes(key) && value === undefined) opts[key] = true;
+  if (["diff", "accept-race-changes", "skip-committed-check", "refresh"].includes(key) && value === undefined) opts[key] = true;
   else if (["version", "baseline", "dbdefs", "against"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
 function usage(msg) {
-  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--accept-race-changes] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
+  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--accept-race-changes] [--skip-committed-check] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
   process.exit(2);
 }
 
@@ -74,6 +76,8 @@ const warn = (msg) => warnings.push(msg);
 const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh });
 const latest = await latestBuild(fetcher, PRODUCT);
 const version = opts.version ?? latest.version;
+/** The build's creation date on wago.tools, from its build list (lib/wago.mjs buildRecord). */
+const foreverBuildDate = await buildDate(fetcher, PRODUCT, version);
 const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs);
 
 async function load(build) {
@@ -277,7 +281,7 @@ async function build() {
     SIM_CLASSES.map((cls) => [cls, { forever: races.filter((r) => r.classes.forever.includes(cls)).map((r) => r.id), classic: races.filter((r) => r.classes.classic?.includes(cls)).map((r) => r.id) }]),
   );
   const newCombos = races.filter((r) => !r.newInForever).flatMap((r) => r.classes.addedInForever.map((c) => ({ raceId: r.id, race: r.name, faction: r.faction, class: c })));
-  const tableMeta = (b) => Object.fromEntries([...b.used.entries()].sort(([a], [c]) => a.localeCompare(c)));
+  const tableMeta = (b) => Object.fromEntries([...b.used.entries()].sort(([a], [c]) => compareText(a, c)));
   let at = "";
   for (const b of [forever, classic])
     for (const fdid of b.used.values()) {
@@ -291,7 +295,7 @@ async function build() {
       scrapedAt: at.replace(/\.\d+Z$/, "Z"),
       product: PRODUCT,
       foreverBuild: version,
-      foreverBuildDate: latest.version === version ? latest.created_at.slice(0, 10) : null,
+      foreverBuildDate,
       classicProduct: BASELINE_PRODUCT,
       classicBuild: opts.baseline,
       tables: { forever: tableMeta(forever), classic: tableMeta(classic) },
@@ -306,11 +310,14 @@ async function build() {
 
 /**
  * The contract with saved setups and share links: race ids, names, factions and classes as the
- * committed dataset has them. A change fails the run unless --accept-race-changes.
+ * committed dataset has them. A change fails the run unless --accept-race-changes. Without a
+ * committed dataset (`old` null, `error` why) the run fails unless --skip-committed-check.
  */
-function checkAgainstCommitted(next, old, against) {
+function checkAgainstCommitted(next, old, against, error) {
   if (!old) {
-    warn(`no committed dataset at ${against}; race ids and classes aren't checked`);
+    const why = `can't read the committed dataset at ${against} (${error}), so race ids and classes can't be checked`;
+    if (opts["skip-committed-check"]) warn(`${why}; writing anyway (--skip-committed-check)`);
+    else fail(`${why}. Not writing: pass --skip-committed-check to write without the check`);
     return;
   }
   const changed = opts["accept-race-changes"] ? warn : fail;
@@ -334,9 +341,9 @@ function checkAgainstCommitted(next, old, against) {
 // ---------------------------------------------------------------------------
 
 const against = describeRef(REPO_ROOT, opts.against);
-const old = committedJson(REPO_ROOT, OUT_FILE, opts.against);
+const { data: old, error: oldError } = readCommitted(REPO_ROOT, OUT_FILE, opts.against);
 const next = await build();
-checkAgainstCommitted(next, old, against);
+checkAgainstCommitted(next, old, against, oldError);
 console.log(`${next.races.length} races (${next.races.filter((r) => r.faction === "Horde").length} Horde), ${new Set(next.races.flatMap((r) => r.racials.map((x) => x.id))).size} racials, ${next.races.reduce((n, r) => n + r.classes.forever.length, 0)} race/class pairs (Classic Era ${next.races.reduce((n, r) => n + (r.classes.classic?.length ?? 0), 0)})`);
 for (const cls of SIM_CLASSES) console.log(`  ${cls}: Forever ${next.simClassAvailability[cls].forever.join(", ")}; Classic ${next.simClassAvailability[cls].classic.join(", ")}`);
 console.log(`  new pairs: ${next.newCombos.map((c) => `${c.race} ${c.class}`).join(", ")}`);

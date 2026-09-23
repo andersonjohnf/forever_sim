@@ -288,8 +288,10 @@ export function readForeverTree(t, cls) {
 /**
  * Per-rank Forever texts of a talent: the rank spell's description with the curve value of
  * each rank in place of the effect's base points. `$?` conditions are taken as unmet (a reader
- * with no auras or talents), and a blank line in the client text is kept as one "\n" (the UI
- * shows it as a paragraph break). Returns { texts, unrendered, assumed }.
+ * with no auras or talents), a blank line in the client text, or a line break after a line that
+ * ends ("Requires Bear Form, Dire Bear Form"), is kept as one "\n" (the UI shows it as a
+ * paragraph break), and a `${…}` without a `.N` precision is a whole number, as in the spellbook
+ * (lib/spell-text.mjs). Returns { texts, unrendered, assumed }.
  */
 export function renderForeverRanks(ctx, talent) {
   const texts = [];
@@ -303,7 +305,7 @@ export function renderForeverRanks(ctx, talent) {
     }
     const effects = new Map(ctx.effects);
     effects.set(talent.spellId, own);
-    const out = renderSpellText({ ...ctx, effects }, talent.spellId, { conditions: "unmet", paragraphs: true });
+    const out = renderSpellText({ ...ctx, effects }, talent.spellId, { conditions: "unmet", paragraphs: true, wholeExpressions: true });
     texts.push(out.text);
     for (const u of out.unrendered) unrendered.add(u);
     for (const a of out.assumed) assumed.add(a);
@@ -425,11 +427,11 @@ export function readClassicTrees(t, cls) {
     .sort((a, b) => a.tabOrder - b.tabOrder || a.tier - b.tier || a.col - b.col);
 }
 
-/** Classic Era rank texts: each rank spell's description. */
+/** Classic Era rank texts: each rank spell's description, rendered as the Forever ones are. */
 export function renderClassicRanks(ctx, classic) {
   const unrendered = new Set();
   const texts = classic.spellIds.map((id) => {
-    const out = renderSpellText(ctx, id, { conditions: "unmet", paragraphs: true });
+    const out = renderSpellText(ctx, id, { conditions: "unmet", paragraphs: true, wholeExpressions: true });
     for (const u of out.unrendered) unrendered.add(u);
     return out.text;
   });

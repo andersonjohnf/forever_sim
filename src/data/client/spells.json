@@ -38,18 +38,18 @@
     "bySource": {
       "buffsDoc": 47,
       "consumable": 78,
-      "docs": 261,
+      "docs": 262,
       "enchant": 125,
-      "item": 182,
+      "item": 409,
       "racial": 44,
       "spellbook": 493,
       "talent": 156,
-      "trigger": 104
+      "trigger": 130
     },
     "encryptedSpellNameRecords": 872,
     "notInClient": 0,
-    "seeds": 1134,
-    "spells": 1221
+    "seeds": 1357,
+    "spells": 1470
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -8009,6 +8009,7 @@
           "effect": 3,
           "effectBasePointsF": 125,
           "effectBonusCoefficient": 1,
+          "effectChainAmplitude": 0.3,
           "effectIndex": 0,
           "implicitTarget": [6, 0]
         },
@@ -11069,6 +11070,33 @@
       },
       "sources": ["spellbook"]
     },
+    "7503": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 29,
+          "effectBasePointsF": 5,
+          "effectIndex": 0,
+          "effectMiscValue": [2, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 7503,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Stamina 05",
+      "sources": ["item"]
+    },
     "7516": {
       "duration": {
         "duration": -1,
@@ -11091,7 +11119,288 @@
         "spellIconFileDataId": 136235
       },
       "name": "Increased Defense",
-      "sources": ["enchant"]
+      "sources": ["enchant", "item"]
+    },
+    "7518": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 5,
+          "effectIndex": 0,
+          "effectMiscValue": [95, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 7518,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Defense",
+      "sources": ["item"]
+    },
+    "7540": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 2,
+          "effectIndex": 0,
+          "effectMiscValue": [44, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 7540,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased 1H Axe",
+      "sources": ["item"]
+    },
+    "7546": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 2,
+          "effectIndex": 0,
+          "effectMiscValue": [54, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 7546,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased 1H Mace",
+      "sources": ["item"]
+    },
+    "7570": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 2,
+          "effectIndex": 0,
+          "effectMiscValue": [45, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 7570,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Bow",
+      "sources": ["item"]
+    },
+    "7576": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 5,
+          "effectIndex": 0,
+          "effectMiscValue": [173, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 7576,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Dagger",
+      "sources": ["item"]
+    },
+    "7582": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 2,
+          "effectIndex": 0,
+          "effectMiscValue": [46, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 7582,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Gun",
+      "sources": ["item"]
+    },
+    "7597": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 52,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 7597,
+      "misc": {
+        "attributes": [192, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Critical 1",
+      "sources": ["item"]
+    },
+    "7598": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 52,
+          "effectBasePointsF": 2,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 7598,
+      "misc": {
+        "attributes": [192, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Critical 2",
+      "sources": ["item"]
+    },
+    "7679": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 11,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 7679,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 11",
+      "sources": ["item"]
+    },
+    "7680": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 13,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 7680,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 13",
+      "sources": ["item"]
+    },
+    "7681": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 15,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 7681,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 15",
+      "sources": ["item"]
     },
     "7711": {
       "auraOptions": {
@@ -13587,6 +13896,327 @@
       },
       "sources": ["trigger"]
     },
+    "9139": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 8,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 8,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9139,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 08",
+      "sources": ["item"]
+    },
+    "9140": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 10,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 10,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9140,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 10",
+      "sources": ["item"]
+    },
+    "9141": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 12,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 12,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9141,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 12",
+      "sources": ["item"]
+    },
+    "9142": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 14,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 14,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9142,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 14",
+      "sources": ["item"]
+    },
+    "9298": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 21,
+          "effectIndex": 0,
+          "effectMiscValue": [4, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9298,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Fire Dam 21",
+      "sources": ["item"]
+    },
+    "9305": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 17,
+          "effectIndex": 0,
+          "effectMiscValue": [16, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9305,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 16,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Frost Dam 17",
+      "sources": ["item"]
+    },
+    "9307": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 20,
+          "effectIndex": 0,
+          "effectMiscValue": [16, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9307,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 16,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Frost Dam 20",
+      "sources": ["item"]
+    },
+    "9314": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 24,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9314,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 24",
+      "sources": ["item"]
+    },
+    "9315": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 26,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9315,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 26",
+      "sources": ["item"]
+    },
+    "9316": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 29,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9316,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 29",
+      "sources": ["item"]
+    },
+    "9317": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 31,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9317,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 31",
+      "sources": ["item"]
+    },
     "9318": {
       "duration": {
         "duration": -1,
@@ -13609,7 +14239,226 @@
         "spellIconFileDataId": 136235
       },
       "name": "Increase Healing 33",
-      "sources": ["enchant"]
+      "sources": ["enchant", "item"]
+    },
+    "9326": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 19,
+          "effectIndex": 0,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9326,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Shadow Dam 19",
+      "sources": ["item"]
+    },
+    "9327": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 20,
+          "effectIndex": 0,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9327,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Shadow Dam 20",
+      "sources": ["item"]
+    },
+    "9329": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 16,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 16,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9329,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 16",
+      "sources": ["item"]
+    },
+    "9331": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 20,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 20,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9331,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 20",
+      "sources": ["item"]
+    },
+    "9332": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 22,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 22,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9332,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 22",
+      "sources": ["item"]
+    },
+    "9334": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 26,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 26,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9334,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 26",
+      "sources": ["item"]
+    },
+    "9335": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 28,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 28,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9335,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 28",
+      "sources": ["item"]
     },
     "9336": {
       "duration": {
@@ -13639,7 +14488,151 @@
         "spellIconFileDataId": 136235
       },
       "name": "Attack Power 30",
-      "sources": ["enchant"]
+      "sources": ["enchant", "item"]
+    },
+    "9342": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 13,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 13,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9342,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 13",
+      "sources": ["item"]
+    },
+    "9343": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 14,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 14,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9343,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 14",
+      "sources": ["item"]
+    },
+    "9344": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 15,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 15,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9344,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 15",
+      "sources": ["item"]
+    },
+    "9345": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 16,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 16,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9345,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 16",
+      "sources": ["item"]
     },
     "9346": {
       "duration": {
@@ -13672,7 +14665,394 @@
         "spellIconFileDataId": 136235
       },
       "name": "Increase Spell Dam 18",
-      "sources": ["enchant"]
+      "sources": ["enchant", "item"]
+    },
+    "9395": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 5,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 5,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9395,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 5",
+      "sources": ["item"]
+    },
+    "9396": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 6,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 6,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9396,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 6",
+      "sources": ["item"]
+    },
+    "9397": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 7,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 7,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9397,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 7",
+      "sources": ["item"]
+    },
+    "9398": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 8,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 8,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9398,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 8",
+      "sources": ["item"]
+    },
+    "9401": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 14,
+          "effectIndex": 0,
+          "effectMiscValue": [4, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9401,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Fire Dam 14",
+      "sources": ["item"]
+    },
+    "9406": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 18,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9406,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 18",
+      "sources": ["item"]
+    },
+    "9407": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 20,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9407,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 20",
+      "sources": ["item"]
+    },
+    "9408": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 22,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9408,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 22",
+      "sources": ["item"]
+    },
+    "9413": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 13,
+          "effectIndex": 0,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9413,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Shadow Dam 13",
+      "sources": ["item"]
+    },
+    "9415": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 9,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 9,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9415,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 9",
+      "sources": ["item"]
+    },
+    "9416": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 11,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 11,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9416,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 11",
+      "sources": ["item"]
+    },
+    "9417": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 12,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 12,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9417,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 12",
+      "sources": ["item"]
     },
     "9452": {
       "auraOptions": {
@@ -22056,6 +23436,29 @@
       "name": "Last Stand",
       "sources": ["spellbook", "talent"]
     },
+    "13198": {
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 29,
+          "effectBasePointsF": 15,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13198,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Strength 15",
+      "sources": ["item"]
+    },
     "13241": {
       "auraOptions": {
         "procChance": 101
@@ -22201,6 +23604,222 @@
       "name": "Strength",
       "sources": ["enchant"]
     },
+    "13383": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 5,
+          "effectIndex": 0,
+          "effectMiscValue": [95, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13383,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Defense",
+      "sources": ["item"]
+    },
+    "13384": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 6,
+          "effectIndex": 0,
+          "effectMiscValue": [95, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13384,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Defense",
+      "sources": ["item"]
+    },
+    "13385": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 7,
+          "effectIndex": 0,
+          "effectMiscValue": [95, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13385,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Defense",
+      "sources": ["item"]
+    },
+    "13386": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 7,
+          "effectIndex": 0,
+          "effectMiscValue": [95, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13386,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Defense",
+      "sources": ["item"]
+    },
+    "13387": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 8,
+          "effectIndex": 0,
+          "effectMiscValue": [95, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13387,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Defense",
+      "sources": ["item"]
+    },
+    "13388": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 9,
+          "effectIndex": 0,
+          "effectMiscValue": [95, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13388,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Defense",
+      "sources": ["item"]
+    },
+    "13389": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 17,
+          "effectIndex": 0,
+          "effectMiscValue": [95, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13389,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Defense",
+      "sources": ["item"]
+    },
+    "13390": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 10,
+          "effectIndex": 0,
+          "effectMiscValue": [95, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13390,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Defense",
+      "sources": ["item"]
+    },
     "13419": {
       "castTime": {
         "base": 5000,
@@ -22302,6 +23921,33 @@
       "name": "Haste",
       "sources": ["item"]
     },
+    "13601": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 16,
+          "effectIndex": 0,
+          "effectMiscValue": [64, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13601,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Arcane Dam 16",
+      "sources": ["item"]
+    },
     "13646": {
       "castTime": {
         "base": 5000,
@@ -22359,6 +24005,136 @@
       "targetRestrictions": {
         "targets": 16
       }
+    },
+    "13665": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 47,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13665,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Parry 1",
+      "sources": ["item"]
+    },
+    "13669": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 49,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13669,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Dodge 1",
+      "sources": ["item"]
+    },
+    "13670": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 49,
+          "effectBasePointsF": 2,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13670,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Dodge 2",
+      "sources": ["item"]
+    },
+    "13674": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 51,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13674,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Block 1",
+      "sources": ["item"]
+    },
+    "13675": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 51,
+          "effectBasePointsF": 2,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13675,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Block 2",
+      "sources": ["item"]
     },
     "13689": {
       "castTime": {
@@ -22642,6 +24418,33 @@
       "name": "Greater Strength",
       "sources": ["enchant"]
     },
+    "13830": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 29,
+          "effectIndex": 0,
+          "effectMiscValue": [4, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13830,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Fire Dam 29",
+      "sources": ["item"]
+    },
     "13858": {
       "castTime": {
         "base": 5000,
@@ -22690,6 +24493,42 @@
       },
       "name": "Superior Stamina",
       "sources": ["enchant"]
+    },
+    "13881": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 29,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 29,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 13881,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 29",
+      "sources": ["item"]
     },
     "13882": {
       "castTime": {
@@ -23190,6 +25029,377 @@
         "targets": 16
       }
     },
+    "14027": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 24,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 24,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14027,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 24",
+      "sources": ["item"]
+    },
+    "14047": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 23,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 23,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14047,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 23",
+      "sources": ["item"]
+    },
+    "14049": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 40,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 40,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14049,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 40",
+      "sources": ["item"]
+    },
+    "14052": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 60,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 60,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14052,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 60",
+      "sources": ["item"]
+    },
+    "14054": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 27,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 27,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14054,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 27",
+      "sources": ["item"]
+    },
+    "14056": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 50,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 50,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14056,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 50",
+      "sources": ["item"]
+    },
+    "14098": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 102,
+          "effectBasePointsF": 117,
+          "effectIndex": 0,
+          "effectMiscValue": [4, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 131,
+          "effectBasePointsF": 117,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [4, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14098,
+      "levels": {
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [192, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136172
+      },
+      "name": "Demon Slaying 117",
+      "sources": ["item"]
+    },
+    "14127": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 28,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 28,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14127,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 28",
+      "sources": ["item"]
+    },
+    "14248": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 21,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 21,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14248,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 21",
+      "sources": ["item"]
+    },
+    "14249": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 13,
+          "effectIndex": 0,
+          "effectMiscValue": [95, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14249,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Defense",
+      "sources": ["item"]
+    },
+    "14254": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 19,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 19,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14254,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 19",
+      "sources": ["item"]
+    },
     "14325": {
       "auraOptions": {
         "procChance": 101
@@ -23246,6 +25456,213 @@
         "rangeMax": [100, 100]
       },
       "sources": ["buffsDoc", "docs"]
+    },
+    "14384": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 29,
+          "effectBasePointsF": 20,
+          "effectIndex": 0,
+          "effectMiscValue": [1, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14384,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Agility 20",
+      "sources": ["item"]
+    },
+    "14462": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 29,
+          "effectBasePointsF": 15,
+          "effectIndex": 0,
+          "effectMiscValue": [2, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14462,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Stamina 15",
+      "sources": ["item"]
+    },
+    "14467": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 29,
+          "effectBasePointsF": 20,
+          "effectIndex": 0,
+          "effectMiscValue": [2, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14467,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Stamina 20",
+      "sources": ["item"]
+    },
+    "14590": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectBasePointsF": 10,
+          "effectIndex": 0,
+          "effectMiscValue": [4, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14590,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Fire Resist 10",
+      "sources": ["item"]
+    },
+    "14798": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 30,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 30,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14798,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 30",
+      "sources": ["item"]
+    },
+    "14799": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 20,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 20,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14799,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 20",
+      "sources": ["item"]
+    },
+    "14803": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectBasePointsF": 200,
+          "effectIndex": 0,
+          "effectMiscValue": [1, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 14803,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Armor 200",
+      "sources": ["item"]
     },
     "15388": {
       "duration": {
@@ -23448,6 +25865,44 @@
       },
       "name": "Thorns",
       "nameSubtext": "Rank 1",
+      "sources": ["item"]
+    },
+    "15464": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 54,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 15464,
+      "misc": {
+        "attributes": [192, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Hit Chance 01",
+      "sources": ["item"]
+    },
+    "15465": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 54,
+          "effectBasePointsF": 2,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 15465,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Hit Chance 02",
       "sources": ["item"]
     },
     "15494": {
@@ -23657,6 +26112,390 @@
         "spellIconFileDataId": 133282
       },
       "name": "Burst of Knowledge",
+      "sources": ["item"]
+    },
+    "15693": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectBasePointsF": 150,
+          "effectIndex": 0,
+          "effectMiscValue": [1, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 15693,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Armor 150",
+      "sources": ["item"]
+    },
+    "15696": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 53,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 15696,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 53",
+      "sources": ["item"]
+    },
+    "15714": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 22,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 22,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 15714,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 22",
+      "sources": ["item"]
+    },
+    "15715": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 25,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 25,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 15715,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 25",
+      "sources": ["item"]
+    },
+    "15717": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 6,
+          "effectIndex": 0,
+          "effectMiscValue": [173, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 15717,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Dagger",
+      "sources": ["item"]
+    },
+    "15806": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 34,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 34,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 15806,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 34",
+      "sources": ["item"]
+    },
+    "15807": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 32,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 32,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 15807,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 32",
+      "sources": ["item"]
+    },
+    "15808": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 38,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 38,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 15808,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 38",
+      "sources": ["item"]
+    },
+    "15810": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 44,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 44,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 15810,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 44",
+      "sources": ["item"]
+    },
+    "15812": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 52,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 52,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 15812,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 52",
+      "sources": ["item"]
+    },
+    "15813": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 54,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 54,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 15813,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 54",
+      "sources": ["item"]
+    },
+    "15814": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 99,
+          "effectBasePointsF": 56,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 56,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 15814,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power 56",
       "sources": ["item"]
     },
     "16138": {
@@ -24408,6 +27247,27 @@
         }
       ],
       "sources": ["spellbook"]
+    },
+    "16718": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 10,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [393, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 16718,
+      "misc": {
+        "attributes": [192, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135342
+      },
+      "name": "Pip's Skinner",
+      "sources": ["item"]
     },
     "16739": {
       "auraOptions": {
@@ -25217,6 +28077,7 @@
         {
           "effect": 2,
           "effectBasePointsF": 125,
+          "effectChainAmplitude": 0.7,
           "effectChainTargets": 3,
           "effectIndex": 0,
           "implicitTarget": [6, 0],
@@ -26339,6 +29200,35 @@
       },
       "sources": ["consumable", "docs", "item"]
     },
+    "17319": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 102,
+          "effectBasePointsF": 81,
+          "effectIndex": 0,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 131,
+          "effectBasePointsF": 81,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 17319,
+      "misc": {
+        "attributes": [192, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135923
+      },
+      "name": "Undead Slayer 81",
+      "sources": ["item"]
+    },
     "17329": {
       "auraOptions": {
         "procChance": 100,
@@ -26443,6 +29333,77 @@
         "rangeMax": [100, 100]
       },
       "sources": ["item"]
+    },
+    "17332": {
+      "auraOptions": {
+        "procChance": 5,
+        "procTypeMask": [20, 0]
+      },
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectIndex": 0,
+          "effectTriggerSpell": 17333,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 17332,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [192, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 134321
+      },
+      "name": "Spider's Kiss",
+      "sources": ["item"]
+    },
+    "17333": {
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1
+      },
+      "duration": {
+        "duration": 10000,
+        "maxDuration": 10000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 26,
+          "effectIndex": 0,
+          "effectMechanic": 7,
+          "implicitTarget": [6, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectBasePointsF": -100,
+          "effectIndex": 1,
+          "effectMiscValue": [1, 0],
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 17333,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 134321
+      },
+      "name": "Spider's Kiss",
+      "range": {
+        "rangeMax": [20, 20]
+      },
+      "sources": ["trigger"]
     },
     "17350": {
       "auraOptions": {
@@ -26606,6 +29567,69 @@
         "rangeMax": [5, 5]
       },
       "sources": ["buffsDoc", "docs"]
+    },
+    "17367": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 32,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 32,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 17367,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 32",
+      "sources": ["item"]
+    },
+    "17371": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 44,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 17371,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 44",
+      "sources": ["item"]
     },
     "17401": {
       "auraOptions": {
@@ -26801,6 +29825,35 @@
         "flags": 1,
         "rangeMax": [5, 5]
       },
+      "sources": ["item"]
+    },
+    "17482": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 102,
+          "effectBasePointsF": 48,
+          "effectIndex": 0,
+          "effectMiscValue": [1, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 131,
+          "effectBasePointsF": 48,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [1, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 17482,
+      "misc": {
+        "attributes": [192, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Beast Slaying 48",
       "sources": ["item"]
     },
     "17483": {
@@ -27427,6 +30480,613 @@
       "name": "Wolfshead Helm",
       "sources": ["item"]
     },
+    "17818": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 8,
+          "effectIndex": 0,
+          "effectMiscValue": [45, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 17818,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Bow",
+      "sources": ["item"]
+    },
+    "17819": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 29,
+          "effectIndex": 0,
+          "effectMiscValue": [8, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 17819,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Nature Dam 29",
+      "sources": ["item"]
+    },
+    "17866": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 24,
+          "effectIndex": 0,
+          "effectMiscValue": [4, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 17866,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Fire Dam 24",
+      "sources": ["item"]
+    },
+    "17901": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 41,
+          "effectIndex": 0,
+          "effectMiscValue": [16, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 17901,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 16,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Frost Dam 41",
+      "sources": ["item"]
+    },
+    "17902": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 43,
+          "effectIndex": 0,
+          "effectMiscValue": [16, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 17902,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 16,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Frost Dam 43",
+      "sources": ["item"]
+    },
+    "17988": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 24,
+          "effectIndex": 0,
+          "effectMiscValue": [8, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 17988,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Nature Dam 24",
+      "sources": ["item"]
+    },
+    "18009": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 27,
+          "effectIndex": 0,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18009,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Shadow Dam 27",
+      "sources": ["item"]
+    },
+    "18014": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 34,
+          "effectIndex": 0,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18014,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Shadow Dam 34",
+      "sources": ["item"]
+    },
+    "18029": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 35,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18029,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 35",
+      "sources": ["item"]
+    },
+    "18030": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 37,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18030,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 37",
+      "sources": ["item"]
+    },
+    "18032": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 42,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18032,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 42",
+      "sources": ["item"]
+    },
+    "18035": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 51,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18035,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 51",
+      "sources": ["item"]
+    },
+    "18036": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 55,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18036,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 55",
+      "sources": ["item"]
+    },
+    "18041": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 66,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18041,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 66",
+      "sources": ["item"]
+    },
+    "18042": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 68,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18042,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Healing 68",
+      "sources": ["item"]
+    },
+    "18049": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 26,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 26,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18049,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 26",
+      "sources": ["item"]
+    },
+    "18052": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 34,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 34,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18052,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 34",
+      "sources": ["item"]
+    },
+    "18053": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 36,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 36,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18053,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 36",
+      "sources": ["item"]
+    },
+    "18057": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 41,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 41,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18057,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam 41",
+      "sources": ["item"]
+    },
+    "18067": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 102,
+          "effectBasePointsF": 45,
+          "effectIndex": 0,
+          "effectMiscValue": [1, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 131,
+          "effectBasePointsF": 45,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [1, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18067,
+      "misc": {
+        "attributes": [192, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Beast Slaying 45",
+      "sources": ["item"]
+    },
+    "18098": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 102,
+          "effectBasePointsF": 45,
+          "effectIndex": 0,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 131,
+          "effectBasePointsF": 45,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18098,
+      "misc": {
+        "attributes": [192, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136142
+      },
+      "name": "Undead Slayer 45",
+      "sources": ["item"]
+    },
     "18124": {
       "categories": {
         "category": 11
@@ -27503,6 +31163,33 @@
       },
       "sources": ["docs", "trigger"]
     },
+    "18196": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 15,
+          "effectIndex": 0,
+          "effectMiscValue": [95, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18196,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Defense",
+      "sources": ["item"]
+    },
     "18202": {
       "auraOptions": {
         "procChance": 101
@@ -27576,6 +31263,35 @@
         "flags": 1,
         "rangeMax": [5, 5]
       },
+      "sources": ["item"]
+    },
+    "18207": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 102,
+          "effectBasePointsF": 60,
+          "effectIndex": 0,
+          "effectMiscValue": [1, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 131,
+          "effectBasePointsF": 60,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [1, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18207,
+      "misc": {
+        "attributes": [192, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Beast Slaying 60",
       "sources": ["item"]
     },
     "18211": {
@@ -27761,6 +31477,116 @@
         "rangeMax": [50000, 50000]
       },
       "sources": ["trigger"]
+    },
+    "18369": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 9,
+          "effectIndex": 0,
+          "effectMiscValue": [95, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18369,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Defense",
+      "sources": ["item"]
+    },
+    "18378": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 8,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18378,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
+    },
+    "18379": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 6,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18379,
+      "misc": {
+        "attributes": [448, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
+    },
+    "18382": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 57,
+          "effectBasePointsF": 2,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18382,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Critical Spell",
+      "sources": ["item"]
+    },
+    "18384": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 57,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18384,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Critical Spell",
+      "sources": ["item"]
     },
     "18398": {
       "auraOptions": {
@@ -28220,6 +32046,80 @@
         "targetCreatureType": 3
       }
     },
+    "18675": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectBasePointsF": 4,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18675,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased All Resist 04",
+      "sources": ["item"]
+    },
+    "18676": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectBasePointsF": 5,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18676,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased All Resist 05",
+      "sources": ["item"]
+    },
+    "18679": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 22,
+          "effectBasePointsF": 8,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18679,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased All Resist 08",
+      "sources": ["item"]
+    },
     "18787": {
       "categories": {
         "defenseType": 1,
@@ -28441,6 +32341,68 @@
         }
       ],
       "sources": ["spellbook"]
+    },
+    "18979": {
+      "auraOptions": {
+        "procChance": 10,
+        "procTypeMask": [20, 0]
+      },
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectIndex": 0,
+          "effectTriggerSpell": 18980,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18979,
+      "levels": {
+        "spellLevel": 24
+      },
+      "misc": {
+        "attributes": [192, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 135934
+      },
+      "name": "Lightning",
+      "sources": ["item"]
+    },
+    "18980": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "categories": {
+        "defenseType": 1
+      },
+      "effects": [
+        {
+          "effect": 2,
+          "effectBasePointsF": 20,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0],
+          "variance": 0.5
+        }
+      ],
+      "id": 18980,
+      "levels": {
+        "spellLevel": 24
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 135990
+      },
+      "name": "Lightning",
+      "nameSubtext": "Rank 1",
+      "range": {
+        "rangeMax": [20, 20]
+      },
+      "sources": ["trigger"]
     },
     "19260": {
       "auraOptions": {
@@ -36211,6 +40173,7 @@
           "effect": 3,
           "effectBasePointsF": 200,
           "effectBonusCoefficient": 1,
+          "effectChainAmplitude": 0.6,
           "effectIndex": 0,
           "implicitTarget": [6, 0]
         },
@@ -36273,6 +40236,7 @@
           "effect": 3,
           "effectBasePointsF": 325,
           "effectBonusCoefficient": 1,
+          "effectChainAmplitude": 0.9,
           "effectIndex": 0,
           "implicitTarget": [6, 0]
         },
@@ -36335,6 +40299,7 @@
           "effect": 3,
           "effectBasePointsF": 450,
           "effectBonusCoefficient": 1,
+          "effectChainAmplitude": 1.2,
           "effectIndex": 0,
           "implicitTarget": [6, 0]
         },
@@ -36397,6 +40362,7 @@
           "effect": 3,
           "effectBasePointsF": 600,
           "effectBonusCoefficient": 1,
+          "effectChainAmplitude": 1.5,
           "effectIndex": 0,
           "implicitTarget": [6, 0]
         },
@@ -37615,6 +41581,32 @@
       },
       "sources": ["spellbook"]
     },
+    "20959": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 10,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 20959,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
+    },
     "20966": {
       "categories": {
         "defenseType": 2
@@ -37841,6 +41833,258 @@
       },
       "name": "Rogue Passive (DND)",
       "sources": ["docs"]
+    },
+    "21330": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 2,
+        "mechanic": 5
+      },
+      "duration": {
+        "duration": 2000,
+        "maxDuration": 2000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 33,
+          "effectBasePointsF": -25,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 7,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 21330,
+      "levels": {
+        "maxLevel": 60,
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 136183
+      },
+      "name": "Corrupted Fear",
+      "sources": ["trigger"]
+    },
+    "21347": {
+      "categories": {
+        "defenseType": 1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 161,
+          "effectBasePointsF": 15,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21347,
+      "levels": {
+        "spellLevel": 25
+      },
+      "misc": {
+        "attributes": [448, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 135953
+      },
+      "name": "Vitality",
+      "nameSubtext": "Rank 1",
+      "sources": ["item"]
+    },
+    "21361": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 3,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21361,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
+    },
+    "21362": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 4,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21362,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
+    },
+    "21363": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 5,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21363,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
+    },
+    "21364": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 7,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21364,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
+    },
+    "21366": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 11,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21366,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
+    },
+    "21416": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 20,
+          "effectIndex": 0,
+          "effectMiscValue": [95, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21416,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Defense",
+      "sources": ["item"]
+    },
+    "21445": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 48,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21445,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Attack Power Ranged 48",
+      "sources": ["item"]
     },
     "21551": {
       "categories": {
@@ -38088,6 +42332,290 @@
         "shapeshiftMask": [134217728, 0]
       },
       "sources": ["buffsDoc", "docs"]
+    },
+    "21596": {
+      "categories": {
+        "defenseType": 1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 161,
+          "effectBasePointsF": 18,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21596,
+      "levels": {
+        "spellLevel": 25
+      },
+      "misc": {
+        "attributes": [448, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 135953
+      },
+      "name": "Vitality",
+      "nameSubtext": "Rank 1",
+      "sources": ["item"]
+    },
+    "21598": {
+      "categories": {
+        "defenseType": 1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 161,
+          "effectBasePointsF": 21,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21598,
+      "levels": {
+        "spellLevel": 25
+      },
+      "misc": {
+        "attributes": [448, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 135953
+      },
+      "name": "Vitality",
+      "nameSubtext": "Rank 1",
+      "sources": ["item"]
+    },
+    "21601": {
+      "categories": {
+        "defenseType": 1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 161,
+          "effectBasePointsF": 27,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21601,
+      "levels": {
+        "spellLevel": 25
+      },
+      "misc": {
+        "attributes": [448, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 135953
+      },
+      "name": "Vitality",
+      "nameSubtext": "Rank 1",
+      "sources": ["item"]
+    },
+    "21618": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 4,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21618,
+      "misc": {
+        "attributes": [448, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
+    },
+    "21619": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 4,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21619,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
+    },
+    "21620": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 5,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21620,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
+    },
+    "21625": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 3,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21625,
+      "misc": {
+        "attributes": [448, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
+    },
+    "21626": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 6,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21626,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
+    },
+    "21627": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 6,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21627,
+      "misc": {
+        "attributes": [448, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
+    },
+    "21629": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 8,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21629,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
+    },
+    "21632": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 10,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21632,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
+    },
+    "21636": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 85,
+          "effectBasePointsF": 12,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 21636,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Mana Regen",
+      "sources": ["item"]
     },
     "21849": {
       "auraOptions": {
@@ -38392,6 +42920,33 @@
       "name": "Mark of the Chosen",
       "sources": ["trigger"]
     },
+    "22188": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 4,
+          "effectIndex": 0,
+          "effectMiscValue": [226, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 22188,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Crossbow",
+      "sources": ["item"]
+    },
     "22563": {
       "auraOptions": {
         "procChance": 101
@@ -38466,6 +43021,7 @@
           "effect": 2,
           "effectBasePointsF": 22,
           "effectBonusCoefficient": 1,
+          "effectChainAmplitude": 0,
           "effectIndex": 0,
           "effectPointsPerResource": 36,
           "implicitTarget": [6, 0],
@@ -38475,6 +43031,7 @@
           "effect": 3,
           "effectBasePointsF": 100,
           "effectBonusCoefficient": 1,
+          "effectChainAmplitude": 0,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         }
@@ -38536,6 +43093,39 @@
         "spellIconFileDataId": 136235
       },
       "name": "Onyxia Scale Cloak",
+      "sources": ["item"]
+    },
+    "22738": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "classOptions": {
+        "spellClassSet": 4
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 107,
+          "effectBasePointsF": -5000,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [11, 0],
+          "effectSpellClassMask": [1073741824, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 22738,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132307
+      },
+      "name": "Intercept Cooldown Reduction",
+      "nameSubtext": "Rank 1",
       "sources": ["item"]
     },
     "22747": {
@@ -38723,6 +43313,59 @@
       "nameSubtext": "Rank 1",
       "sources": ["item"]
     },
+    "22804": {
+      "classOptions": {
+        "spellClassSet": 11
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 107,
+          "effectBasePointsF": 2,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [7, 0],
+          "effectSpellClassMask": [-1877999616, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 22804,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136026
+      },
+      "name": "Shaman Shock Crit Bonus",
+      "nameSubtext": "Rank 1",
+      "sources": ["item"]
+    },
+    "22811": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 2,
+          "effectIndex": 0,
+          "effectMiscValue": [226, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 22811,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Crossbow",
+      "sources": ["item"]
+    },
     "22812": {
       "categories": {
         "defenseType": 1,
@@ -38791,6 +43434,7 @@
           "effect": 2,
           "effectBasePointsF": 32,
           "effectBonusCoefficient": 1,
+          "effectChainAmplitude": 0,
           "effectIndex": 0,
           "effectPointsPerResource": 59,
           "implicitTarget": [6, 0],
@@ -38800,6 +43444,7 @@
           "effect": 3,
           "effectBasePointsF": 150,
           "effectBonusCoefficient": 1,
+          "effectChainAmplitude": 0,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         }
@@ -38854,6 +43499,7 @@
           "effect": 2,
           "effectBasePointsF": 50,
           "effectBonusCoefficient": 1,
+          "effectChainAmplitude": 0,
           "effectIndex": 0,
           "effectPointsPerResource": 92,
           "implicitTarget": [6, 0],
@@ -38863,6 +43509,7 @@
           "effect": 3,
           "effectBasePointsF": 200,
           "effectBonusCoefficient": 1,
+          "effectChainAmplitude": 0,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         }
@@ -38917,6 +43564,7 @@
           "effect": 2,
           "effectBasePointsF": 70,
           "effectBonusCoefficient": 1,
+          "effectChainAmplitude": 0,
           "effectIndex": 0,
           "effectPointsPerResource": 128,
           "implicitTarget": [6, 0],
@@ -38926,6 +43574,7 @@
           "effect": 3,
           "effectBasePointsF": 250,
           "effectBonusCoefficient": 1,
+          "effectChainAmplitude": 0,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         }
@@ -38961,6 +43610,38 @@
         "shapeshiftMask": [1, 0]
       },
       "sources": ["spellbook"]
+    },
+    "22836": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 102,
+          "effectBasePointsF": 36,
+          "effectIndex": 0,
+          "effectMiscValue": [8, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 131,
+          "effectBasePointsF": 36,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [8, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 22836,
+      "levels": {
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [192, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136172
+      },
+      "name": "Elemental Slaying 36",
+      "sources": ["item"]
     },
     "22841": {
       "effects": [
@@ -39147,6 +43828,65 @@
       },
       "sources": ["item"]
     },
+    "22912": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 274,
+          "effectBasePointsF": 18,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 22912,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Block Value 18",
+      "sources": ["item"]
+    },
+    "23025": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "classOptions": {
+        "spellClassSet": 3
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 107,
+          "effectBasePointsF": -1500,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [11, 0],
+          "effectSpellClassMask": [65536, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 23025,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135736
+      },
+      "name": "Blink Cooldown Reduction",
+      "nameSubtext": "Rank 1",
+      "sources": ["item"]
+    },
     "23028": {
       "categories": {
         "defenseType": 1,
@@ -39264,6 +44004,38 @@
       "name": "Mind Blast Cast Pushback Reduction",
       "sources": ["item"]
     },
+    "23044": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "classOptions": {
+        "spellClassSet": 6
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 107,
+          "effectBasePointsF": 1000,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [1, 0],
+          "effectSpellClassMask": [65536, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 23044,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136184
+      },
+      "name": "Psychic Scream Duration Increase",
+      "sources": ["item"]
+    },
     "23046": {
       "auraOptions": {
         "procChance": 101
@@ -39294,6 +44066,73 @@
         "spellIconFileDataId": 135827
       },
       "name": "Searing Pain Cast Pushback Reduction",
+      "sources": ["item"]
+    },
+    "23047": {
+      "classOptions": {
+        "spellClassSet": 5
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 107,
+          "effectBasePointsF": -200,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [10, 0],
+          "effectSpellClassMask": [4, 65536, 0, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 107,
+          "effectBasePointsF": -200,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [21, 0],
+          "effectSpellClassMask": [4, 65536, 0, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 23047,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135817
+      },
+      "name": "Immolate Cast Time Reduction",
+      "sources": ["item"]
+    },
+    "23048": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "classOptions": {
+        "spellClassSet": 8
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 107,
+          "effectBasePointsF": -1000,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [11, 0],
+          "effectSpellClassMask": [8, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 23048,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132155
+      },
+      "name": "Gouge Cooldown Reduction",
       "sources": ["item"]
     },
     "23049": {
@@ -39456,6 +44295,91 @@
       "name": "Arcane Shot Mana Reduction",
       "sources": ["item"]
     },
+    "23158": {
+      "auraOptions": {
+        "procChance": 4,
+        "procTypeMask": [87376, 0]
+      },
+      "classOptions": {
+        "spellClassSet": 9
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 107,
+          "effectBasePointsF": -1000,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [11, 0],
+          "effectSpellClassMask": [512, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 23158,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135860
+      },
+      "name": "Concussive Shot Cooldown Reduction",
+      "sources": ["item"]
+    },
+    "23172": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 274,
+          "effectBasePointsF": 10,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 23172,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Block Value 10",
+      "sources": ["item"]
+    },
+    "23181": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 274,
+          "effectBasePointsF": 24,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 23181,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Block Value 24",
+      "sources": ["item"]
+    },
     "23214": {
       "castTime": {
         "base": 3000,
@@ -39528,6 +44452,31 @@
       "name": "Stealth Detection 10",
       "sources": ["item"]
     },
+    "23218": {
+      "classOptions": {
+        "spellClassSet": 7
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 129,
+          "effectBasePointsF": 15,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 23218,
+      "misc": {
+        "attributes": [33232, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136095
+      },
+      "name": "Feral Move Speed Increase",
+      "shapeshift": {
+        "shapeshiftMask": [149, 0]
+      },
+      "sources": ["item"]
+    },
     "23300": {
       "classOptions": {
         "spellClassSet": 10
@@ -39555,6 +44504,35 @@
         "spellIconFileDataId": 135924
       },
       "name": "Seal of the Crusader Judgement Increase",
+      "sources": ["item"]
+    },
+    "23302": {
+      "classOptions": {
+        "spellClassSet": 10
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 107,
+          "effectBasePointsF": -10000,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [11, 0],
+          "effectSpellClassMask": [2048, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 23302,
+      "misc": {
+        "attributes": [464, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135963
+      },
+      "name": "Hammer of Justice Cooldown Reduction",
       "sources": ["item"]
     },
     "23454": {
@@ -39594,6 +44572,32 @@
         "flags": 1,
         "rangeMax": [5, 5]
       },
+      "sources": ["item"]
+    },
+    "23516": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 274,
+          "effectBasePointsF": 27,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 23516,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Block Value 27",
       "sources": ["item"]
     },
     "23561": {
@@ -39804,6 +44808,25 @@
       },
       "sources": ["trigger"]
     },
+    "23727": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 55,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 23727,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Spell Hit Chance 1",
+      "sources": ["item"]
+    },
     "23793": {
       "duration": {
         "duration": -1,
@@ -39906,6 +44929,51 @@
       "targetRestrictions": {
         "targets": 16
       }
+    },
+    "23863": {
+      "auraOptions": {
+        "procChance": 4,
+        "procTypeMask": [20, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectIndex": 0,
+          "effectTriggerSpell": 23864,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 23863,
+      "misc": {
+        "attributes": [192, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 135934
+      },
+      "name": "Revitalize",
+      "sources": ["item"]
+    },
+    "23864": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "effects": [
+        {
+          "effect": 30,
+          "effectBasePointsF": 30,
+          "effectIndex": 0,
+          "effectMiscValue": [3, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 23864,
+      "misc": {
+        "attributes": [536870912, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 135990
+      },
+      "name": "Revitalize",
+      "sources": ["trigger"]
     },
     "23881": {
       "categories": {
@@ -40415,6 +45483,35 @@
       },
       "sources": ["docs", "spellbook"]
     },
+    "23930": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 102,
+          "effectBasePointsF": 78,
+          "effectIndex": 0,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 131,
+          "effectBasePointsF": 78,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 23930,
+      "misc": {
+        "attributes": [16777424, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 133440
+      },
+      "name": "Seal of the Dawn",
+      "sources": ["item"]
+    },
     "23990": {
       "effects": [
         {
@@ -40465,6 +45562,33 @@
         "spellIconFileDataId": 135893
       },
       "name": "Damage Absorb",
+      "sources": ["item"]
+    },
+    "24090": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 31,
+          "effectBasePointsF": 8,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 58,
+          "effectBasePointsF": 8,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 24090,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Minor Movement Speed",
       "sources": ["item"]
     },
     "24148": {
@@ -40594,6 +45718,46 @@
       },
       "name": "Animist's Caress",
       "sources": ["enchant"]
+    },
+    "24197": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 180,
+          "effectBasePointsF": 48,
+          "effectIndex": 0,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 24197,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam Undead 48",
+      "sources": ["item"]
+    },
+    "24198": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 180,
+          "effectBasePointsF": 46,
+          "effectIndex": 0,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 24198,
+      "misc": {
+        "attributes": [16777424, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 133440
+      },
+      "name": "Rune of the Dawn",
+      "sources": ["item"]
     },
     "24239": {
       "auraRestrictions": {
@@ -40856,6 +46020,67 @@
         "rangeMax": [30, 30]
       },
       "sources": ["spellbook"]
+    },
+    "24291": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 102,
+          "effectBasePointsF": 48,
+          "effectIndex": 0,
+          "effectMiscValue": [2, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 131,
+          "effectBasePointsF": 48,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [2, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 24291,
+      "misc": {
+        "attributes": [192, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Dragon Slaying 48",
+      "sources": ["item"]
+    },
+    "24292": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 102,
+          "effectBasePointsF": 117,
+          "effectIndex": 0,
+          "effectMiscValue": [2, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 131,
+          "effectBasePointsF": 117,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [2, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 24292,
+      "levels": {
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [192, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136172
+      },
+      "name": "Dragon Slaying 117",
+      "sources": ["item"]
     },
     "24347": {
       "categories": {
@@ -43164,6 +48389,26 @@
       "name": "Chitinous Spikes",
       "sources": ["item"]
     },
+    "26283": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 123,
+          "effectBasePointsF": -5,
+          "effectIndex": 0,
+          "effectMiscValue": [124, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 26283,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Spell Penetration 05",
+      "sources": ["item"]
+    },
     "26573": {
       "categories": {
         "category": 932,
@@ -43254,6 +48499,136 @@
       "shapeshift": {
         "shapeshiftMask": [1, 0]
       },
+      "sources": ["trigger"]
+    },
+    "27418": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "categories": {
+        "startRecoveryCategory": 133
+      },
+      "effects": [
+        {
+          "effect": 10,
+          "effectBasePointsF": 110,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0],
+          "variance": 0.4
+        }
+      ],
+      "id": 27418,
+      "levels": {
+        "spellLevel": 50
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 135953
+      },
+      "name": "Warrior's Resolve",
+      "sources": ["trigger"]
+    },
+    "27419": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [4, 0]
+      },
+      "categories": {
+        "startRecoveryCategory": 133
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 27418,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27419,
+      "levels": {
+        "spellLevel": 50
+      },
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 135953
+      },
+      "name": "Warrior's Resolve",
+      "sources": ["item"]
+    },
+    "27498": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [4, 0]
+      },
+      "classOptions": {
+        "spellClassSet": 10
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 27499,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27498,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Crusader's Wrath",
+      "sources": ["item"]
+    },
+    "27499": {
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1
+      },
+      "duration": {
+        "duration": 10000,
+        "maxDuration": 10000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 65,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 65,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27499,
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 136039
+      },
+      "name": "Crusader's Wrath",
       "sources": ["trigger"]
     },
     "27655": {
@@ -43401,6 +48776,381 @@
       "name": "Dark Desire",
       "sources": ["consumable"]
     },
+    "27733": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 117,
+          "effectBasePointsF": 10,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [26, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 117,
+          "effectBasePointsF": 10,
+          "effectIndex": 1,
+          "effectMiscValue": [9, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27733,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135933
+      },
+      "name": "Ironweave Battlesuit",
+      "sources": ["item"]
+    },
+    "27743": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 8,
+          "effectIndex": 0,
+          "effectMiscValue": [46, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27743,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Gun",
+      "sources": ["item"]
+    },
+    "27744": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 30,
+          "effectBasePointsF": 8,
+          "effectIndex": 0,
+          "effectMiscValue": [226, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27744,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Crossbow",
+      "sources": ["item"]
+    },
+    "27774": {
+      "auraOptions": {
+        "procChance": 4,
+        "procTypeMask": [81920, 0]
+      },
+      "classOptions": {
+        "spellClassSet": 10
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 27775,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27774,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "The Furious Storm",
+      "sources": ["item"]
+    },
+    "27775": {
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1
+      },
+      "duration": {
+        "duration": 10000,
+        "maxDuration": 10000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 65,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 65,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27775,
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 136014
+      },
+      "name": "The Furious Storm",
+      "sources": ["trigger"]
+    },
+    "27778": {
+      "auraOptions": {
+        "procCategoryRecovery": 60000,
+        "procChance": 2,
+        "procTypeMask": [139944, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 1,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 27779,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27778,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135923
+      },
+      "name": "Divine Protection",
+      "sources": ["item"]
+    },
+    "27779": {
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1
+      },
+      "classOptions": {
+        "spellClassMask": [1, 0, 0, 0],
+        "spellClassSet": 6
+      },
+      "duration": {
+        "duration": 30000,
+        "maxDuration": 30000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 69,
+          "effectBasePointsF": 488,
+          "effectIndex": 0,
+          "effectMiscValue": [127, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27779,
+      "misc": {
+        "attributes": [327680, 0, 2621440, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 135940
+      },
+      "name": "Divine Protection",
+      "shapeshift": {
+        "shapeshiftMask": [134217728, 0]
+      },
+      "sources": ["trigger"]
+    },
+    "27780": {
+      "auraOptions": {
+        "procCategoryRecovery": 60000,
+        "procChance": 2,
+        "procTypeMask": [139944, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 1,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 21330,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27780,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135923
+      },
+      "name": "Corrupted Fear",
+      "sources": ["item"]
+    },
+    "27781": {
+      "auraOptions": {
+        "procChance": 2,
+        "procTypeMask": [40, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 27798,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27781,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135923
+      },
+      "name": "Nature's Bounty",
+      "sources": ["item"]
+    },
+    "27785": {
+      "auraOptions": {
+        "procChance": 4,
+        "procTypeMask": [64, 0]
+      },
+      "classOptions": {
+        "spellClassSet": 10
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 27786,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27785,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Hunter Armor Energize",
+      "sources": ["item"]
+    },
+    "27786": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1
+      },
+      "effects": [
+        {
+          "effect": 30,
+          "effectBasePointsF": 200,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27786,
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 136039
+      },
+      "name": "Hunter Armor Energize",
+      "sources": ["trigger"]
+    },
+    "27787": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [4, 0]
+      },
+      "classOptions": {
+        "spellClassSet": 10
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 27788,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27787,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Rogue Armor Energize",
+      "sources": ["item"]
+    },
+    "27788": {
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1
+      },
+      "effects": [
+        {
+          "effect": 30,
+          "effectBasePointsF": 20,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [3, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27788,
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 136039
+      },
+      "name": "Rogue Armor Energize",
+      "sources": ["trigger"]
+    },
     "27797": {
       "classOptions": {
         "spellClassSet": 11
@@ -43424,6 +49174,33 @@
       },
       "name": "Reduced Riptide Cost",
       "sources": ["item"]
+    },
+    "27798": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "categories": {
+        "dispelType": 1
+      },
+      "effects": [
+        {
+          "effect": 3,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27798,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [384, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 133439
+      },
+      "name": "Nature's Bounty",
+      "sources": ["trigger"]
     },
     "27836": {
       "duration": {
@@ -43577,6 +49354,70 @@
       },
       "name": "Increased Regrowth Healing",
       "sources": ["item"]
+    },
+    "27867": {
+      "auraOptions": {
+        "procCategoryRecovery": 60000,
+        "procChance": 2,
+        "procTypeMask": [139944, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 1,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 27868,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 27867,
+      "levels": {
+        "spellLevel": 50
+      },
+      "misc": {
+        "attributes": [64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 16,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Freeze",
+      "sources": ["item"]
+    },
+    "27868": {
+      "categories": {
+        "defenseType": 1,
+        "diminishType": 4,
+        "dispelType": 1
+      },
+      "duration": {
+        "duration": 3000,
+        "maxDuration": 3000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 26,
+          "effectIndex": 0,
+          "effectMechanic": 13,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 27868,
+      "levels": {
+        "spellLevel": 50
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 16,
+        "spellIconFileDataId": 135852
+      },
+      "name": "Freeze",
+      "range": {
+        "flags": 1,
+        "rangeMax": [5, 5]
+      },
+      "sources": ["trigger"]
     },
     "27869": {
       "auraOptions": {
@@ -43806,6 +49647,26 @@
       "name": "Increased Lightning Damage",
       "sources": ["item"]
     },
+    "28876": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 180,
+          "effectBasePointsF": 26,
+          "effectIndex": 0,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 28876,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Spell Dam Undead 26",
+      "sources": ["item"]
+    },
     "28891": {
       "auraOptions": {
         "procChance": 101
@@ -43869,6 +49730,33 @@
       },
       "name": "Undead Slayer 99",
       "sources": ["docs", "enchant"]
+    },
+    "29068": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 168,
+          "effectBasePointsF": 2,
+          "effectIndex": 0,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 29068,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Damage 2",
+      "sources": ["item"]
     },
     "29131": {
       "classOptions": {
@@ -44189,6 +50077,7 @@
           "effect": 2,
           "effectBasePointsF": 82,
           "effectBonusCoefficient": 1,
+          "effectChainAmplitude": 0,
           "effectIndex": 0,
           "effectPointsPerResource": 147,
           "implicitTarget": [6, 0],
@@ -44198,6 +50087,7 @@
           "effect": 3,
           "effectBasePointsF": 270,
           "effectBonusCoefficient": 1,
+          "effectChainAmplitude": 0,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         }
@@ -44994,6 +50884,32 @@
       "name": "Purifying Power",
       "sources": ["talent"]
     },
+    "432639": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 54,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 55,
+          "effectBasePointsF": 1,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 432639,
+      "misc": {
+        "attributes": [192, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Hit Chance 01",
+      "sources": ["item"]
+    },
     "437138": {
       "castTime": {
         "base": 10000,
@@ -45065,6 +50981,308 @@
       "name": "Vindication",
       "sources": ["docs"]
     },
+    "450527": {
+      "auraOptions": {
+        "procChance": 5,
+        "procTypeMask": [81920, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 200,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 450554,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 450527,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135923
+      },
+      "name": "S03 - Mana Proc on Cast - Magister's Regalia",
+      "sources": ["item"]
+    },
+    "450554": {
+      "categories": {
+        "dispelType": 1
+      },
+      "effects": [
+        {
+          "effect": 30,
+          "effectBasePointsF": 200,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 450554,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 64,
+        "spellIconFileDataId": 133439
+      },
+      "name": "Sudden Insight",
+      "sources": ["trigger"]
+    },
+    "450576": {
+      "auraOptions": {
+        "procChance": 5,
+        "procTypeMask": [81920, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 200,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 450554,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 450576,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135923
+      },
+      "name": "S03 - Mana Proc on Cast - Vestments of the Devout",
+      "sources": ["item"]
+    },
+    "450577": {
+      "auraOptions": {
+        "procChance": 5,
+        "procTypeMask": [68, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 200,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 450554,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 450577,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135923
+      },
+      "name": "S03 - Mana Proc on Cast - Beaststalker Armor",
+      "sources": ["item"]
+    },
+    "450583": {
+      "categories": {
+        "startRecoveryCategory": 133
+      },
+      "effects": [
+        {
+          "effect": 10,
+          "effectBasePointsF": 300,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0],
+          "variance": 0.2
+        }
+      ],
+      "id": 450583,
+      "levels": {
+        "spellLevel": 50
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 135953
+      },
+      "name": "Dark Reward",
+      "sources": ["trigger"]
+    },
+    "450585": {
+      "auraOptions": {
+        "procChance": 5,
+        "procTypeMask": [81920, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 300,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 450583,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 450585,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135923
+      },
+      "name": "S03 - Heal Proc on Cast - Dreadmist Raiment",
+      "sources": ["item"]
+    },
+    "450587": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [4, 0]
+      },
+      "categories": {
+        "startRecoveryCategory": 133
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 450589,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 450587,
+      "levels": {
+        "spellLevel": 50
+      },
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 135953
+      },
+      "name": "S03 - Warrior Armor Heal Trigger - Battlegear of Valor",
+      "sources": ["item"]
+    },
+    "450589": {
+      "categories": {
+        "startRecoveryCategory": 133
+      },
+      "effects": [
+        {
+          "effect": 10,
+          "effectBasePointsF": 110,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0],
+          "variance": 0.4
+        },
+        {
+          "effect": 30,
+          "effectBasePointsF": 100,
+          "effectIndex": 1,
+          "effectMiscValue": [1, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 450589,
+      "levels": {
+        "spellLevel": 50
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135953
+      },
+      "name": "Warrior's Resolve",
+      "sources": ["trigger"]
+    },
+    "450608": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [81964, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 4,
+          "effectBasePointsF": 5,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 450608,
+      "levels": {
+        "spellLevel": 50
+      },
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 135953
+      },
+      "name": "S03 - Druid Energize Trigger - Wildheart Raiment",
+      "sources": ["item"]
+    },
+    "450625": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [81924, 0]
+      },
+      "classOptions": {
+        "spellClassSet": 10
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectIndex": 0,
+          "effectTriggerSpell": 27499,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 450625,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Item - Crusader's Wrath Proc - Lightforge Armor",
+      "sources": ["item"]
+    },
+    "450626": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [81924, 0]
+      },
+      "classOptions": {
+        "spellClassSet": 10
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectIndex": 0,
+          "effectTriggerSpell": 27775,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 450626,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Item - The Furious Storm Proc",
+      "sources": ["item"]
+    },
     "458112": {
       "auraOptions": {
         "procChance": 100,
@@ -45094,6 +51312,88 @@
       },
       "name": "Crusader",
       "sources": ["enchant"]
+    },
+    "460230": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 54,
+          "effectBasePointsF": 2,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 55,
+          "effectBasePointsF": 2,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 460230,
+      "misc": {
+        "attributes": [192, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Hit Chance 02",
+      "sources": ["item"]
+    },
+    "467550": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 44,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 15,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 467550,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Hybrid Healing/Spell Dam 44/15",
+      "sources": ["item"]
+    },
+    "1213289": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 593,
+          "effectBasePointsF": -2,
+          "effectIndex": 0,
+          "effectMiscValue": [2, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 593,
+          "effectBasePointsF": -2,
+          "effectIndex": 1,
+          "effectMiscValue": [4, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1213289,
+      "misc": {
+        "attributes": [192, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Expertise 2",
+      "sources": ["item"]
     },
     "1213613": {
       "effects": [
@@ -49715,6 +56015,34 @@
       "name": "Stealth Detection 05",
       "sources": ["item"]
     },
+    "1292546": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 232,
+          "effectBasePointsF": -10,
+          "effectIndex": 0,
+          "effectMiscValue": [11, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 232,
+          "effectBasePointsF": -10,
+          "effectIndex": 1,
+          "effectMiscValue": [7, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1292546,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135143
+      },
+      "name": "Reduce Mechanic Duration - Snare/Root 10",
+      "sources": ["item"]
+    },
     "1292574": {
       "effects": [
         {
@@ -50443,6 +56771,240 @@
       },
       "sources": ["item"]
     },
+    "1299734": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 189,
+          "effectBasePointsF": 5,
+          "effectIndex": 0,
+          "effectMiscValue": [224, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1299734,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Hit Chance 00.5",
+      "sources": ["item"]
+    },
+    "1299735": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "categories": {
+        "defenseType": 1
+      },
+      "effects": [
+        {
+          "effect": 9,
+          "effectAmplitude": 1,
+          "effectBasePointsF": 28,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 1299735,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 136203
+      },
+      "name": "Necrophile Drain",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["trigger"]
+    },
+    "1299737": {
+      "auraOptions": {
+        "procCategoryRecovery": 10,
+        "procChance": 100,
+        "procTypeMask": [65536, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectIndex": 0,
+          "effectTriggerSpell": 1299735,
+          "implicitTarget": [1, 0],
+          "variance": 0.6666667
+        }
+      ],
+      "id": 1299737,
+      "levels": {
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136130
+      },
+      "name": "Necrophile Drain",
+      "sources": ["item"]
+    },
+    "1299738": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 189,
+          "effectBasePointsF": 21,
+          "effectIndex": 0,
+          "effectMiscValue": [1792, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1299738,
+      "misc": {
+        "attributes": [192, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Critical 1.5 - All",
+      "sources": ["item"]
+    },
+    "1299739": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "categories": {
+        "defenseType": 2,
+        "mechanic": 15
+      },
+      "duration": {
+        "duration": 10000,
+        "maxDuration": 10000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 3,
+          "effectAuraPeriod": 1000,
+          "effectBasePointsF": 7,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 1299739,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [262144, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132155
+      },
+      "name": "Bloodmail",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["trigger"]
+    },
+    "1299740": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [4, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 7,
+          "effectIndex": 0,
+          "effectTriggerSpell": 1299739,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 1299740,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132155
+      },
+      "name": "Bloodmail",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["item"]
+    },
+    "1299743": {
+      "auraOptions": {
+        "procCategoryRecovery": 60000,
+        "procChance": 15,
+        "procTypeMask": [40, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 1299746,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1299743,
+      "misc": {
+        "attributes": [64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Deathbone Surge",
+      "sources": ["item"]
+    },
+    "1299746": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "categories": {
+        "defenseType": 1
+      },
+      "duration": {
+        "duration": 10000,
+        "maxDuration": 10000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 70,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 135,
+          "effectBasePointsF": 70,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1299746,
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 133730
+      },
+      "name": "Deathbone Surge",
+      "range": {
+        "rangeMax": [40, 40]
+      },
+      "sources": ["trigger"]
+    },
     "1300668": {
       "effects": [
         {
@@ -50572,6 +57134,99 @@
       },
       "name": "1.60.0 - Item - Tier 1 - Paladin - Protection 4P Bonus - Expertise",
       "sources": ["docs"]
+    },
+    "1301123": {
+      "auraOptions": {
+        "procChance": 100,
+        "procTypeMask": [20, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 5,
+          "effectIndex": 0,
+          "effectTriggerSpell": 1301124,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 4,
+          "effectBasePointsF": 2,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 4,
+          "effectBasePointsF": 20,
+          "effectIndex": 2,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1301123,
+      "levels": {
+        "spellLevel": 53
+      },
+      "misc": {
+        "attributes": [64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136243
+      },
+      "name": "Roar of the Crowd",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["item"]
+    },
+    "1301124": {
+      "duration": {
+        "duration": 10000,
+        "maxDuration": 10000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 319,
+          "effectBasePointsF": 5,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1301124,
+      "levels": {
+        "spellLevel": 53
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 1322720
+      },
+      "name": "Roar of the Crowd",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["trigger"]
+    },
+    "1301126": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 117,
+          "effectBasePointsF": 8,
+          "effectIndex": 0,
+          "effectMiscValue": [5, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1301126,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Resist Fear 08",
+      "sources": ["item"]
     },
     "1301127": {
       "effects": [
@@ -51356,6 +58011,103 @@
       "name": "Eidolon Ward",
       "sources": ["item"]
     },
+    "1302374": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 255,
+          "effectBasePointsF": 15,
+          "effectIndex": 0,
+          "effectMiscValue": [12, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1302374,
+      "misc": {
+        "attributes": [448, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135933
+      },
+      "name": "Ironweave Protection",
+      "sources": ["item"]
+    },
+    "1302376": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 31,
+          "effectBasePointsF": 8,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1302376,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136243
+      },
+      "name": "Run Speed +08%",
+      "sources": ["item"],
+      "targetRestrictions": {
+        "coneDegrees": 60
+      }
+    },
+    "1302378": {
+      "auraOptions": {
+        "procChance": 100,
+        "procCharges": 1,
+        "procTypeMask": [131072, 0]
+      },
+      "duration": {
+        "duration": 6000,
+        "maxDuration": 6000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAmplitude": 1,
+          "effectAura": 28,
+          "effectBasePointsF": 100,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1302378,
+      "misc": {
+        "attributes": [671088640, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 133460
+      },
+      "name": "Return to Sender",
+      "sources": ["trigger"]
+    },
+    "1302380": {
+      "auraOptions": {
+        "procCategoryRecovery": 180000,
+        "procChance": 100,
+        "procTypeMask": [-2146784600, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAmplitude": 1,
+          "effectAura": 42,
+          "effectBasePointsF": 25,
+          "effectIndex": 0,
+          "effectTriggerSpell": 1302378,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1302380,
+      "misc": {
+        "attributes": [-1476394560, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 133460
+      },
+      "name": "Return to Sender",
+      "sources": ["item"]
+    },
     "1302540": {
       "categories": {
         "preventionType": 1
@@ -51384,6 +58136,331 @@
         "rangeMax": [30, 30]
       },
       "sources": ["trigger"]
+    },
+    "1302698": {
+      "auraOptions": {
+        "procCategoryRecovery": 60000,
+        "procChance": 5,
+        "procTypeMask": [139944, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 1,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 1302700,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1302698,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135923
+      },
+      "name": "Crafted Shadows",
+      "sources": ["item"]
+    },
+    "1302700": {
+      "effects": [
+        {
+          "effect": 108,
+          "effectBasePointsF": 1,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [11, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1302700,
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132309
+      },
+      "name": "Crafted Shadows",
+      "sources": ["trigger"]
+    },
+    "1302707": {
+      "duration": {
+        "duration": 8000,
+        "maxDuration": 8000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 129,
+          "effectBasePointsF": 10,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1302707,
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 538771
+      },
+      "name": "Wild Heart",
+      "sources": ["trigger"]
+    },
+    "1302708": {
+      "auraOptions": {
+        "procCategoryRecovery": 60000,
+        "procChance": 5,
+        "procTypeMask": [139944, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 1302707,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1302708,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135923
+      },
+      "name": "Wild Heart",
+      "sources": ["item"]
+    },
+    "1302711": {
+      "effects": [
+        {
+          "effect": 108,
+          "effectBasePointsF": 1,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [7, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1302711,
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132309
+      },
+      "name": "Beast Unleashed",
+      "sources": ["trigger"]
+    },
+    "1302712": {
+      "auraOptions": {
+        "procCategoryRecovery": 60000,
+        "procChance": 8,
+        "procTypeMask": [139944, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 1,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 1302711,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1302712,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135923
+      },
+      "name": "Beast Unleashed",
+      "sources": ["item"]
+    },
+    "1302715": {
+      "categories": {
+        "defenseType": 1,
+        "diminishType": 64,
+        "dispelType": 1,
+        "mechanic": 9,
+        "preventionType": 1
+      },
+      "duration": {
+        "duration": 3000,
+        "maxDuration": 3000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 27,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 1302715,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 523893
+      },
+      "name": "Rebuked",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["trigger"]
+    },
+    "1302716": {
+      "auraOptions": {
+        "procCategoryRecovery": 60000,
+        "procChance": 7,
+        "procTypeMask": [131072, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 1,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 1302715,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1302716,
+      "levels": {
+        "spellLevel": 50
+      },
+      "misc": {
+        "attributes": [64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Rebuke",
+      "sources": ["item"]
+    },
+    "1302717": {
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1,
+        "mechanic": 3,
+        "preventionType": 1
+      },
+      "duration": {
+        "duration": 4000,
+        "maxDuration": 4000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 67,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 1302717,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 237587
+      },
+      "name": "Electrocute",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["trigger"]
+    },
+    "1302718": {
+      "auraOptions": {
+        "procCategoryRecovery": 60000,
+        "procChance": 5,
+        "procTypeMask": [40, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 1,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 1302717,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1302718,
+      "levels": {
+        "spellLevel": 50
+      },
+      "misc": {
+        "attributes": [64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Electrocute",
+      "sources": ["item"]
+    },
+    "1302720": {
+      "effects": [
+        {
+          "effect": 108,
+          "effectBasePointsF": 1,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [3, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1302720,
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132309
+      },
+      "name": "Moment of Valor",
+      "sources": ["trigger"]
+    },
+    "1302721": {
+      "auraOptions": {
+        "procCategoryRecovery": 60000,
+        "procChance": 10,
+        "procTypeMask": [139944, 0]
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 42,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "effectTriggerSpell": 1302720,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1302721,
+      "levels": {
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [64, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 135923
+      },
+      "name": "Moment of Valor",
+      "sources": ["item"]
     },
     "1306459": {
       "classOptions": {
@@ -53101,6 +60178,25 @@
       "name": "Ancestor's Vengeance",
       "sources": ["item"]
     },
+    "1314795": {
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 290,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1314795,
+      "misc": {
+        "attributes": [192, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increased Critical 1 - All - Gladiator Set",
+      "sources": ["item"]
+    },
     "1316101": {
       "classOptions": {
         "spellClassSet": 10
@@ -53655,7 +60751,7 @@
         "spellIconFileDataId": 136235
       },
       "name": "Increased Critical 1 - Melee and Ranged",
-      "sources": ["item"]
+      "sources": ["docs", "item"]
     },
     "1318956": {
       "effects": [

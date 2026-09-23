@@ -4,6 +4,19 @@
 
 const isPrimitive = (v) => v === null || typeof v !== "object";
 
+/**
+ * Locale-independent text order for everything the generators sort: case-insensitive first
+ * (String#toLowerCase is locale-independent), then by UTF-16 code unit. Never `localeCompare` or
+ * `Intl.Collator`: they follow the machine's locale (LANG, LC_ALL), so two machines could write
+ * different bytes (docs/data/README.md#rules).
+ */
+export function compareText(a, b) {
+  const x = String(a).toLowerCase();
+  const y = String(b).toLowerCase();
+  if (x !== y) return x < y ? -1 : 1;
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
 function compareKeys(a, b) {
   const na = /^-?\d+$/.test(a);
   const nb = /^-?\d+$/.test(b);

@@ -4,6 +4,56 @@
     "classicProduct": "wow_classic_era",
     "foreverBuild": "1.60.1.69913",
     "foreverBuildDate": "2026-09-18",
+    "noClientData": [
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Dual Wield Specialization",
+          "rank": 2,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Fury",
+        "spellId": 23585,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Dual Wield Specialization",
+          "rank": 3,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Fury",
+        "spellId": 23586,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Dual Wield Specialization",
+          "rank": 4,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Fury",
+        "spellId": 23587,
+        "supersedes": null
+      },
+      {
+        "acquireMethod": 0,
+        "classic": {
+          "name": "Dual Wield Specialization",
+          "rank": 5,
+          "talentRank": true
+        },
+        "encrypted": false,
+        "skillLine": "Fury",
+        "spellId": 23588,
+        "supersedes": null
+      }
+    ],
     "product": "wow_classic_beta",
     "scrapedAt": "2026-09-23T02:51:35Z",
     "scraper": "scripts/scrape/spells-client.mjs",
@@ -3079,12 +3129,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 6673,
-            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 15. Lasts 2 min."
+            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 20. Lasts 2 min."
           },
           "differences": [
             {
               "field": "value",
-              "text": "9 instead of 15, 3 instead of 2"
+              "text": "12 instead of 20, 3 instead of 2"
             }
           ],
           "forever": {
@@ -3107,7 +3157,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 6673,
-            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 9. Lasts 3 min."
+            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 12. Lasts 3 min."
           },
           "rank": 1
         },
@@ -3132,12 +3182,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 5242,
-            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 35. Lasts 2 min."
+            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 39. Lasts 2 min."
           },
           "differences": [
             {
               "field": "value",
-              "text": "21 instead of 35, 3 instead of 2"
+              "text": "23 instead of 39, 3 instead of 2"
             }
           ],
           "forever": {
@@ -3160,7 +3210,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 5242,
-            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 21. Lasts 3 min."
+            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 23. Lasts 3 min."
           },
           "rank": 2
         },
@@ -3185,12 +3235,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 6192,
-            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 55. Lasts 2 min."
+            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 59. Lasts 2 min."
           },
           "differences": [
             {
               "field": "value",
-              "text": "33 instead of 55, 3 instead of 2"
+              "text": "35 instead of 59, 3 instead of 2"
             }
           ],
           "forever": {
@@ -3213,7 +3263,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 6192,
-            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 33. Lasts 3 min."
+            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 35. Lasts 3 min."
           },
           "rank": 3
         },
@@ -3238,12 +3288,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 11549,
-            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 85. Lasts 2 min."
+            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 94. Lasts 2 min."
           },
           "differences": [
             {
               "field": "value",
-              "text": "51 instead of 85, 3 instead of 2"
+              "text": "56 instead of 94, 3 instead of 2"
             }
           ],
           "forever": {
@@ -3266,7 +3316,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 11549,
-            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 51. Lasts 3 min."
+            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 56. Lasts 3 min."
           },
           "rank": 4
         },
@@ -3291,12 +3341,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 11550,
-            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 130. Lasts 2 min."
+            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 139. Lasts 2 min."
           },
           "differences": [
             {
               "field": "value",
-              "text": "78 instead of 130, 3 instead of 2"
+              "text": "83 instead of 139, 3 instead of 2"
             }
           ],
           "forever": {
@@ -3319,7 +3369,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 11550,
-            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 78. Lasts 3 min."
+            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 83. Lasts 3 min."
           },
           "rank": 5
         },
@@ -3344,12 +3394,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 11551,
-            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 185. Lasts 2 min."
+            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 193. Lasts 2 min."
           },
           "differences": [
             {
               "field": "value",
-              "text": "111 instead of 185, 3 instead of 2"
+              "text": "115 instead of 193, 3 instead of 2"
             }
           ],
           "forever": {
@@ -3372,7 +3422,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 11551,
-            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 111. Lasts 3 min."
+            "text": "The warrior shouts, increasing the melee attack power of all party members within 20 yards by 115. Lasts 3 min."
           },
           "rank": 6
         },
@@ -3468,12 +3518,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 1160,
-            "text": "Reduces the melee attack power of all enemies within 10 yards by 35 for 30 sec."
+            "text": "Reduces the melee attack power of all enemies within 10 yards by 45 for 30 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "49 instead of 35, 45 instead of 30"
+              "text": "63 instead of 45, 45 instead of 30"
             }
           ],
           "forever": {
@@ -3496,7 +3546,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 1160,
-            "text": "Reduces the melee attack power of all enemies within 10 yards by 49 for 45 sec."
+            "text": "Reduces the melee attack power of all enemies within 10 yards by 63 for 45 sec."
           },
           "rank": 1
         },
@@ -3521,12 +3571,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 6190,
-            "text": "Reduces the melee attack power of all enemies within 10 yards by 55 for 30 sec."
+            "text": "Reduces the melee attack power of all enemies within 10 yards by 65 for 30 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "77 instead of 55, 45 instead of 30"
+              "text": "91 instead of 65, 45 instead of 30"
             }
           ],
           "forever": {
@@ -3549,7 +3599,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 6190,
-            "text": "Reduces the melee attack power of all enemies within 10 yards by 77 for 45 sec."
+            "text": "Reduces the melee attack power of all enemies within 10 yards by 91 for 45 sec."
           },
           "rank": 2
         },
@@ -3574,12 +3624,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 11554,
-            "text": "Reduces the melee attack power of all enemies within 10 yards by 70 for 30 sec."
+            "text": "Reduces the melee attack power of all enemies within 10 yards by 80 for 30 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "98 instead of 70, 45 instead of 30"
+              "text": "112 instead of 80, 45 instead of 30"
             }
           ],
           "forever": {
@@ -3602,7 +3652,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 11554,
-            "text": "Reduces the melee attack power of all enemies within 10 yards by 98 for 45 sec."
+            "text": "Reduces the melee attack power of all enemies within 10 yards by 112 for 45 sec."
           },
           "rank": 3
         },
@@ -3627,12 +3677,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 11555,
-            "text": "Reduces the melee attack power of all enemies within 10 yards by 105 for 30 sec."
+            "text": "Reduces the melee attack power of all enemies within 10 yards by 115 for 30 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "147 instead of 105, 45 instead of 30"
+              "text": "161 instead of 115, 45 instead of 30"
             }
           ],
           "forever": {
@@ -3655,7 +3705,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 11555,
-            "text": "Reduces the melee attack power of all enemies within 10 yards by 147 for 45 sec."
+            "text": "Reduces the melee attack power of all enemies within 10 yards by 161 for 45 sec."
           },
           "rank": 4
         },
@@ -3680,12 +3730,12 @@
             "requires": null,
             "school": "physical",
             "spellId": 11556,
-            "text": "Reduces the melee attack power of all enemies within 10 yards by 140 for 30 sec."
+            "text": "Reduces the melee attack power of all enemies within 10 yards by 146 for 30 sec."
           },
           "differences": [
             {
               "field": "value",
-              "text": "196 instead of 140, 45 instead of 30"
+              "text": "204 instead of 146, 45 instead of 30"
             }
           ],
           "forever": {
@@ -3708,7 +3758,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 11556,
-            "text": "Reduces the melee attack power of all enemies within 10 yards by 196 for 45 sec."
+            "text": "Reduces the melee attack power of all enemies within 10 yards by 204 for 45 sec."
           },
           "rank": 5
         }

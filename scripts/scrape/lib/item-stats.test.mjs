@@ -6,7 +6,7 @@
 // docs/data/client.md#items-from-the-client.
 import { describe, expect, it } from "vitest";
 import fixture from "./__fixtures__/item-stats.json";
-import { createItemContext, deriveItem, deriveSet, statAmount, statBudget, baseArmor } from "./item-stats.mjs";
+import { AURA_STAT, NOT_STAT_AURAS, baseArmor, createFallbackContext, createItemContext, deriveItem, deriveSet, statAmount, statBudget, statEquip } from "./item-stats.mjs";
 
 const forever = createItemContext(fixture.forever.tables, fixture.forever.gameTables);
 const classic = createItemContext(fixture.classic.tables, fixture.classic.gameTables);
@@ -126,5 +126,76 @@ describe("sets (ItemSet + ItemSetSpell)", () => {
       [4, { attackPower: 10 }],
       [5, { crit: 1 }],
     ]);
+  });
+
+  // L8: Forever's 5-piece is aura 290 (all crit), which adds to melee, ranged and spell crit.
+  it("The Gladiator (Forever): the 5-piece's aura 290 is 1% crit with attacks and spells", () => {
+    const five = deriveSet(forever, 1).bonuses.find((b) => b.pieces === 5);
+    expect(five).toMatchObject({ spellId: 1314795, stats: { crit: 1, spellCrit: 1 } });
+    expect(five.unmapped).toBeUndefined();
+  });
+});
+
+describe("the aura → stat table (docs/data/client.md#aura--stat)", () => {
+  it("maps all crit (290) and Forever's block value (274)", () => {
+    expect(AURA_STAT[290](3, 0)).toEqual([["crit", 3], ["spellCrit", 3]]);
+    expect(AURA_STAT[274](18, 0)).toEqual([["blockValue", 18]]);
+  });
+
+  it("lists an aura as a stat or as not one, never both", () => {
+    expect(Object.keys(NOT_STAT_AURAS).filter((a) => a in AURA_STAT)).toEqual([]);
+  });
+});
+
+// L5: items with no Forever ItemSparse row (decision D6) keep Classic Era's stats, and take their
+// effects from the Forever client wherever it has them (docs/data/items.md#effects-of-fallback-items).
+describe("fallback items: Classic Era stats, Forever effects", () => {
+  const fallback = createFallbackContext(classic, forever);
+
+  it("Seal of the Dawn: its equip spell 23930 is read from Forever (+78 AP against Undead, Classic Era 81)", () => {
+    expect(deriveItem(classic, 13209).stats).toEqual({ attackPowerVsUndead: 81 });
+    const item = deriveItem(fallback, 13209);
+    expect(item.stats).toEqual({ attackPowerVsUndead: 78 });
+    expect(item.statSpellIds).toEqual([23930]);
+    expect(fallback.spellFrom(23930)).toBe("forever");
+    expect(fallback.effectsFrom(13209)).toBe("classic"); // the Forever client links it no item effects
+  });
+
+  it("Hand of Justice: the Classic Era +20 AP spell stays (Forever moved it to ItemSparse); the proc is Forever's", () => {
+    const item = deriveItem(fallback, 11815);
+    expect(item.stats).toEqual({ attackPower: 20 });
+    expect(item.statSpellIds).toEqual([9331]);
+    expect(item.effects).toEqual([expect.objectContaining({ kind: "proc", trigger: "equip", spellId: 15600 })]);
+    expect(fallback.effectsFrom(11815)).toBe("forever");
+  });
+
+  it("Blackhand's Breadth: Forever's item effects, +1% crit (1318954) in place of Classic Era's +2% (7598), and its new use", () => {
+    expect(deriveItem(classic, 13965).stats).toEqual({ crit: 2 });
+    const item = deriveItem(fallback, 13965);
+    expect(item.stats).toEqual({ crit: 1 });
+    expect(item.statSpellIds).toEqual([1318954]);
+    expect(item.effects.map((e) => [e.kind, e.spellId])).toEqual(expect.arrayContaining([["use", 1318944]]));
+    expect(fallback.effectsFrom(13965)).toBe("forever");
+  });
+
+  it("Diamond Flask: Forever's item effect casts 363881 (CHUG!) with its 6 min cooldown and category 1153", () => {
+    expect(deriveItem(classic, 20130).effects).toEqual([expect.objectContaining({ kind: "use", spellId: 363880 })]);
+    const item = deriveItem(fallback, 20130);
+    expect(item.effects).toEqual(
+      expect.arrayContaining([expect.objectContaining({ kind: "use", spellId: 363881, cooldownMs: 360000, categoryCooldownMs: 60000, categoryId: 1153 })]),
+    );
+  });
+
+  it("Barrier Shield: block value comes from Forever's aura 274 (the same 18)", () => {
+    const item = deriveItem(fallback, 18499);
+    expect(item.stats).toEqual({ armor: 2121, block: 2, blockValue: 18 });
+    expect(item.statSpellIds).toEqual([13675, 22912]);
+    expect(fallback.spellEffects.get(22912).map((e) => e.EffectAura)).toEqual([274]);
+  });
+
+  it("statEquip: an equip spell whose every aura is a stat", () => {
+    expect(statEquip(fallback, { TriggerType: 1, SpellID: 23930 })).toBe(true);
+    expect(statEquip(fallback, { TriggerType: 1, SpellID: 15600 })).toBe(false); // a proc
+    expect(statEquip(fallback, { TriggerType: 0, SpellID: 9331 })).toBe(false); // not an equip
   });
 });

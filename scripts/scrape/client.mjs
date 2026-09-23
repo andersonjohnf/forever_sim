@@ -30,7 +30,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createFetcher } from "./lib/http.mjs";
-import { createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
+import { buildRecord, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
 import { createSpellIndex, compactSpell, SPELL_TABLES, pick, camel } from "./lib/spells.mjs";
 import { mapTalents, TALENT_TABLES } from "./lib/talents.mjs";
 import { parseBuffsDoc, docSpellMentions } from "./lib/docrefs.mjs";
@@ -83,6 +83,8 @@ if (opts.version && opts.version !== latest.version) {
   warn(`--version=${opts.version} is not the latest ${opts.product} build (${latest.version})`);
 }
 const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs);
+/** The build's creation time on wago.tools, from its build list (lib/wago.mjs buildRecord). */
+const buildCreatedAt = (await buildRecord(fetcher, opts.product, version))?.created_at ?? null;
 const source = createClientSource({ fetcher, cacheDir: CACHE_DIR, version, dbdefsSha });
 
 const TABLES = [
@@ -239,6 +241,13 @@ const ITEM_EFFECT_COLUMNS = ["LegacySlotIndex", "TriggerType", "SpellID", "Charg
 const itemEffects = (itemId) => (itemEffectsByItem.get(itemId) ?? []).map((e) => ({ id: e.ID, ...pick(e, ITEM_EFFECT_COLUMNS) }));
 
 for (const item of itemData.items) for (const e of itemEffectsByItem.get(item.id) ?? []) want(e.SpellID, "item");
+// The spells the pool's effect lines and set bonuses read (a fallback item's Classic Era effects
+// resolve to Forever spells its Forever item effects don't list; docs/data/items.md).
+for (const item of itemData.items) {
+  for (const e of [...item.procs, ...item.useEffects, ...item.otherEquip]) want(e.spellId, "item");
+  for (const id of item.statSpellIds) want(id, "item");
+}
+for (const set of Object.values(itemData.sets)) for (const b of set.bonuses) want(b.spellId, "item");
 for (const c of buffsDoc.consumables) {
   for (const e of itemEffectsByItem.get(c.itemId) ?? []) want(e.SpellID, "consumable");
   for (const s of c.spellIds) want(s, "consumable");
@@ -533,7 +542,7 @@ function meta(names) {
     source: "https://wago.tools/api/casc",
     product: opts.product,
     build: version,
-    buildCreatedAt: latest.version === version ? latest.created_at : null,
+    buildCreatedAt,
     tables,
     wowDbDefs: { repository: "https://github.com/wowdev/WoWDBDefs", commit: dbdefsSha },
     scrapedAt: scrapedAt(names),

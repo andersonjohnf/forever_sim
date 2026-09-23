@@ -42,6 +42,12 @@ const CLASS_SKILL_CATEGORY = 7;
 const ENGRAVING_LINES = new Set(["Engraving", "Runes"]);
 /** SkillLineAbility.AcquireMethod: 0 taught by a trainer, 2 learned automatically (3 = granted by another spell). */
 const LEARNED = new Set([0, 2]);
+/**
+ * Why a trainer row is left out when the build has no SpellName row for its spell: the client
+ * carries no data for it (possibly a server hotfix). spells-client.mjs lists these rows in the
+ * dataset's `meta.noClientData` (docs/data/spells.md#trainer-rows-with-no-client-data).
+ */
+export const NO_CLIENT_DATA = "no SpellName (encrypted or absent)";
 /** SPELL_ATTR0_DO_NOT_DISPLAY: kept out of the spellbook (stance passives, talent effects). */
 const ATTR0_HIDDEN = 0x80;
 /** SPELL_ATTR1_CHANNELED_1 | SPELL_ATTR1_CHANNELED_2. */
@@ -252,7 +258,7 @@ export function readBook(ctx, cls, { talents, talentTabs, classic = false, skip 
     const why = !LEARNED.has(r.AcquireMethod)
       ? `acquire method ${r.AcquireMethod}`
       : !name
-        ? "no SpellName (encrypted or absent)"
+        ? NO_CLIENT_DATA
         : attr(ctx, id, 0) & ATTR0_HIDDEN
           ? "hidden from the spellbook"
           : !trainedLevel(ctx, id)
@@ -263,7 +269,7 @@ export function readBook(ctx, cls, { talents, talentTabs, classic = false, skip 
                 ? "Season of Discovery id range"
                 : (skip.get(id) ?? null);
     if (why) {
-      excluded.push({ id, name, line: lineName(r.SkillLine), why });
+      excluded.push({ id, name, line: lineName(r.SkillLine), why, acquireMethod: r.AcquireMethod, supersedes: r.SupercedesSpell || null });
       continue;
     }
     const c = candidates.get(id) ?? { id, name, lineId: r.SkillLine, raceMasks: [], supersedes: new Set() };

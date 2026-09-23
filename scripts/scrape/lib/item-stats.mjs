@@ -39,6 +39,7 @@ export const ITEM_TABLES = [
   "SpellCooldowns",
   "SpellCastingRequirements", // RequiredAreasID: zone-restricted equip spells aren't flat stats
   "SpellShapeshift", // ShapeshiftMask: form-restricted equip spells aren't flat stats
+  "SpellEquippedItems", // weapon-restricted equip spells ("hit with ranged weapons") aren't flat stats
 ];
 
 /** Game tables the derivation reads when the build ships them (Classic Era only). */
@@ -208,7 +209,8 @@ const NOT_IN_STATS = new Set(["mana", "health", "holyResistance"]);
  * Equip-spell aura → stat, for SpellEffect rows with Effect 6 (APPLY_AURA). One documented
  * table (docs/data/client.md#aura--stat). `misc` is EffectMiscValue[0]. Returns a list of
  * [key, amount] pairs, `{ weaponSkill: [skill, amount] }`, or null when the aura isn't a
- * flat stat. Classic Era 1.15 numbers some auras differently from Forever (552, 564).
+ * flat stat. Classic Era 1.15 numbers some auras differently from Forever (552, 564 there; 274
+ * for block value here); no Classic Era spell of the pool uses 274 or 290.
  */
 export const AURA_STAT = {
   13: (v, misc) => spellDamageByMask(v, misc), // MOD_DAMAGE_DONE (school mask; 1 = physical → weapon damage)
@@ -219,6 +221,7 @@ export const AURA_STAT = {
   49: (v) => [["dodge", v]], // MOD_DODGE_PERCENT
   51: (v) => [["block", v]], // MOD_BLOCK_PERCENT
   52: (v) => [["crit", v]], // MOD_WEAPON_CRIT_PERCENT (melee and ranged)
+  290: (v) => [["crit", v], ["spellCrit", v]], // MOD_CRIT_PCT: all crit, attacks and spells (The Gladiator 5-piece)
   54: (v) => [["hit", v]], // MOD_HIT_CHANCE
   55: (v) => [["spellHit", v]], // MOD_SPELL_HIT_CHANCE
   57: (v) => [["spellCrit", v]], // MOD_SPELL_CRIT_CHANCE
@@ -236,14 +239,47 @@ export const AURA_STAT = {
   135: (v) => [["healing", v]], // MOD_HEALING_DONE
   158: (v) => [["blockValue", v]], // MOD_SHIELD_BLOCKVALUE
   564: (v) => [["blockValue", v]], // Classic Era 1.15: shield block value
+  274: (v) => [["blockValue", v]], // Forever: shield block value ("Increases the block value of your shield by N")
   189: (v, misc) => ratingsByMask(v, misc), // MOD_RATING (combat-rating mask)
+};
+
+/**
+ * Auras that equip spells and set bonuses of the pool carry but that aren't flat `Stats`, each
+ * with why. Every aura on an equip or set-bonus spell must be in AURA_STAT or here: the pool
+ * generator warns about any other, and scripts/scrape/lib/item-pool.test.mjs fails
+ * (docs/data/client.md#aura--stat).
+ */
+export const NOT_STAT_AURAS = {
+  4: "dummy: scripted, or no effect",
+  10: "MOD_THREAT: threat done %, not a Stats key",
+  15: "DAMAGE_SHIELD: damage to attackers (a proc)",
+  17: "MOD_STEALTH_DETECT",
+  23: "PERIODIC_TRIGGER_SPELL (a pet's mana regeneration)",
+  31: "MOD_INCREASE_SPEED: run speed",
+  42: "PROC_TRIGGER_SPELL (a proc)",
+  43: "PROC_TRIGGER_DAMAGE (a proc)",
+  58: "MOD_INCREASE_SWIM_SPEED",
+  77: "MECHANIC_IMMUNITY",
+  107: "ADD_FLAT_MODIFIER: a class ability tweak",
+  108: "ADD_PCT_MODIFIER: a class ability tweak",
+  112: "OVERRIDE_CLASS_SCRIPTS: a class ability tweak",
+  117: "MOD_MECHANIC_RESISTANCE",
+  120: "UNTRACKABLE",
+  129: "MOD_SPEED_ALWAYS: movement speed",
+  154: "MOD_STEALTH_LEVEL",
+  168: "MOD_DAMAGE_DONE_VERSUS: damage % against a creature type, not a Stats key",
+  232: "MECHANIC_DURATION_MOD",
+  255: "MOD_MECHANIC_DAMAGE_TAKEN_PERCENT",
+  593: "chance for your attacks to be dodged or parried (Deathbone Guardian 5-piece), not a Stats key",
 };
 
 const PRIMARY = ["strength", "agility", "stamina", "intellect", "spirit"];
 
 /**
  * CombatRating bit → `Stats` key for MOD_RATING auras (the melee bit of each rating; retail
- * enum). No pool item uses aura 189 in either client, so this is unverified `[?]`.
+ * enum). Two Forever set bonuses use aura 189, and their tooltips agree at the item ratings:
+ * Necropile Raiment's 2-piece, mask 224 (hit) 5 → "0.5%" at 10 per 1%; Bloodmail Regalia's
+ * 5-piece, mask 1792 (crit) 21 → "1.5%" at 14 per 1%. The other bits are unverified `[?]`.
  */
 const RATING_BIT = { 1: "defenseRating", 2: "dodgeRating", 3: "parryRating", 4: "blockRating", 5: "hitRating", 8: "critRating", 17: "hasteRating", 23: "expertiseRating", 24: "armorPenetration" };
 
@@ -338,6 +374,7 @@ export function createItemContext(tables, gameTables = {}) {
     spellCooldowns: groupBy(rowsOf(t("SpellCooldowns")).filter((r) => !r.DifficultyID), "SpellID"),
     castingRequirements: groupBy(rowsOf(t("SpellCastingRequirements")), "SpellID"),
     shapeshift: groupBy(rowsOf(t("SpellShapeshift")).filter((r) => !r.DifficultyID), "SpellID"),
+    equippedItems: groupBy(rowsOf(t("SpellEquippedItems")), "SpellID"),
     itemSet: indexById(t("ItemSet")),
     itemSetSpells: groupBy(rowsOf(t("ItemSetSpell")), "ItemSetID"),
     randPropPoints: indexById(t("RandPropPoints")),
@@ -348,6 +385,82 @@ export function createItemContext(tables, gameTables = {}) {
     damage,
     shieldBlock,
   };
+}
+
+/** Whether a build's tables have a spell: a SpellName or SpellEffect row. */
+export const hasSpell = (ctx, spellId) => ctx.spellName.has(spellId) || ctx.spellEffects.has(spellId);
+
+/**
+ * The context a fallback item (no Forever ItemSparse row, decision D6) is derived with: its Classic
+ * Era item row (stats, armor, weapon, set), with its item effects the Forever client's wherever
+ * Forever has them (tier 1, docs/data/items.md#effects-of-fallback-items):
+ *   - every spell Forever has is read from Forever's tables (auras, cooldown, conditions, name,
+ *     and in lib/item-pool.mjs its text): Seal of the Dawn's 23930 is +78 Attack Power against
+ *     Undead, not Classic Era's 81.
+ *   - when Forever links item effects to the item (ItemXItemEffect), they are the item's effects,
+ *     equip stat spells included: Forever's redesigns (Diamond Flask's use casts 363881 "CHUG!
+ *     CHUG! CHUG! CHUG!", Ironfoe's proc is an equip spell, 1301046) and Forever's own stat spells
+ *     (Blackhand's Breadth's +1% crit, 1318954, and its new use, 1318944).
+ *   - a Classic Era equip spell whose every aura is a stat (statEquip) stays, unless Forever's
+ *     effects give one of its stats: Forever moved most such bonuses into ItemSparse stats, which
+ *     the client doesn't carry for these items (Hand of Justice's +20 Attack Power, 9331, stays;
+ *     Blackhand's Breadth's +2% crit, 7598, gives way to Forever's +1%).
+ *   - without Forever links, the Classic Era row's item effects, their spells read from Forever.
+ * `spellFrom(spellId)` says which build a spell is read from, and `effectsFrom(itemId)` whose
+ * item effects the item has ("forever", "classic", or null with none).
+ */
+export function createFallbackContext(classic, forever) {
+  const fromForever = (id) => hasSpell(forever, id);
+  const bySpell = (name) => ({
+    get: (id) => (fromForever(id) ? forever : classic)[name].get(id),
+    has: (id) => (fromForever(id) ? forever : classic)[name].has(id),
+  });
+  const spells = {
+    spellEffects: bySpell("spellEffects"),
+    spellName: bySpell("spellName"),
+    spellCooldowns: bySpell("spellCooldowns"),
+    castingRequirements: bySpell("castingRequirements"),
+    shapeshift: bySpell("shapeshift"),
+    equippedItems: bySpell("equippedItems"),
+  };
+  const merged = { ...classic, ...spells };
+  /** The stats an equip spell adds to the item (none for a proc or a conditional spell). */
+  const statKeys = (e) => {
+    if (TRIGGER[e.TriggerType] !== "equip" || spellCondition(merged, e.SpellID)) return [];
+    if ((merged.spellEffects.get(e.SpellID) ?? []).some((x) => x.Effect === 6 && PROC_AURAS.has(x.EffectAura))) return [];
+    const s = spellStats(merged, e.SpellID);
+    return [...Object.keys(s.stats), ...Object.keys(s.weaponSkill).map((k) => `weaponSkill:${k}`)];
+  };
+  const effectsFrom = (itemId) => ((forever.itemEffects.get(itemId) ?? []).length ? "forever" : (classic.itemEffects.get(itemId) ?? []).length ? "classic" : null);
+  const itemEffects = {
+    get(itemId) {
+      const own = classic.itemEffects.get(itemId) ?? [];
+      const linked = forever.itemEffects.get(itemId) ?? [];
+      if (!linked.length) return own.length ? own : undefined;
+      const given = new Set(linked.flatMap(statKeys));
+      const kept = own.filter((e) => statEquip(merged, e) && !statKeys(e).some((k) => given.has(k)));
+      return [...kept, ...linked];
+    },
+    has: (itemId) => classic.itemEffects.has(itemId) || forever.itemEffects.has(itemId),
+  };
+  return {
+    ...merged,
+    itemEffects,
+    spellFrom: (id) => (fromForever(id) ? "forever" : "classic"),
+    effectsFrom,
+  };
+}
+
+/**
+ * Whether an item effect row is an equip spell that becomes plain stats (itemEffects below): no
+ * condition (area, form or weapon type), no proc aura, and every aura a stat.
+ */
+export function statEquip(ctx, e) {
+  if (TRIGGER[e.TriggerType] !== "equip") return false;
+  const auras = ctx.spellEffects.get(e.SpellID) ?? [];
+  if (!auras.length || spellCondition(ctx, e.SpellID)) return false;
+  if (auras.some((x) => x.Effect === 6 && PROC_AURAS.has(x.EffectAura))) return false;
+  return spellStats(ctx, e.SpellID).unmapped.length === 0;
 }
 
 /** True for the Classic Era layout (amounts stored), false for Forever (allocations). */
@@ -575,15 +688,21 @@ export function spellStats(ctx, spellId) {
 /**
  * Why an equip spell isn't always on: it needs an area (SpellCastingRequirements.
  * RequiredAreasID, e.g. Rune of the Guard Captain's "tripled in Forest and Grassland
- * areas") or a shapeshift form (SpellShapeshift.ShapeshiftMask). Null when unconditional.
+ * areas"), a shapeshift form (SpellShapeshift.ShapeshiftMask) or a type of weapon
+ * (SpellEquippedItems of item class 2: Forever's "Improves your chance to hit with ranged
+ * weapons", 1294769, is bows, guns and crossbows only). Null when unconditional.
  */
 export function spellCondition(ctx, spellId) {
   const area = ctx.castingRequirements.get(spellId)?.find((r) => r.RequiredAreasID)?.RequiredAreasID;
   if (area) return { requiredAreasId: area };
   const forms = ctx.shapeshift.get(spellId)?.find((r) => r.ShapeshiftMask?.some?.((m) => m))?.ShapeshiftMask;
   if (forms) return { shapeshiftMask: forms };
+  const weapons = ctx.equippedItems?.get(spellId)?.find((r) => r.EquippedItemClass === WEAPON_CLASS && r.EquippedItemSubclass > 0);
+  if (weapons) return { weaponSubclassMask: weapons.EquippedItemSubclass };
   return null;
 }
+/** Item.ClassID of weapons. */
+const WEAPON_CLASS = 2;
 
 const addStats = (into, stats) => {
   for (const [k, v] of Object.entries(stats)) if (v) into[k] = (into[k] ?? 0) + v;
@@ -610,6 +729,7 @@ export function itemEffects(ctx, itemId) {
   const stats = {};
   const weaponSkill = {};
   const effects = [];
+  const statSpellIds = [];
   for (const e of ctx.itemEffects.get(itemId) ?? []) {
     const trigger = TRIGGER[e.TriggerType] ?? `trigger${e.TriggerType}`;
     const base = {
@@ -632,19 +752,21 @@ export function itemEffects(ctx, itemId) {
       if (!isProc && s.unmapped.length === 0 && auras.length > 0) {
         addStats(stats, s.stats);
         addStats(weaponSkill, s.weaponSkill);
+        statSpellIds.push(e.SpellID);
         continue;
       }
       // Keep what does map (e.g. a stat riding along a class tweak), and record the rest.
-      if (!isProc) {
+      if (!isProc && Object.keys(s.stats).length + Object.keys(s.weaponSkill).length > 0) {
         addStats(stats, s.stats);
         addStats(weaponSkill, s.weaponSkill);
+        statSpellIds.push(e.SpellID);
       }
       effects.push({ ...base, kind: isProc ? "proc" : "equip", unmapped: s.unmapped });
       continue;
     }
     effects.push({ ...base, kind: trigger === "chanceOnHit" ? "proc" : trigger === "use" ? "use" : trigger });
   }
-  return { stats, weaponSkill, effects };
+  return { stats, weaponSkill, effects, statSpellIds };
 }
 
 // ---------------------------------------------------------------------------
@@ -709,6 +831,7 @@ export function deriveItem(ctx, id) {
     weaponSkill: Object.keys(weaponSkill).length ? weaponSkill : null,
     shieldBlockValue: shieldBlockValue(ctx, row, item),
     effects: fx.effects,
+    statSpellIds: [...new Set(fx.statSpellIds)].sort((a, b) => a - b),
     setId,
     other,
     unknownStatTypes,

@@ -14,6 +14,8 @@
 // OrderIndex order); tier = (PosY - top) / 600 and column = (PosX - tab left) / 600.
 // Talents are matched by name within their tab, then by tier and column for renamed ones.
 
+import { compareText } from "./json.mjs";
+
 const GRID = 600;
 const norm = (s) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
@@ -186,7 +188,7 @@ export function mapTalents(t, scraped) {
         rec.mismatches.push(`prerequisite: scraped ${want ?? "none"}, client ${have.length ? have.join(", ") : "none"}`);
       }
     }
-    out.talents.sort((a, b) => a.tree.localeCompare(b.tree) || a.tier - b.tier || a.col - b.col);
+    out.talents.sort((a, b) => compareText(a.tree, b.tree) || a.tier - b.tier || a.col - b.col);
     result.classes[cls] = out;
   }
   return result;

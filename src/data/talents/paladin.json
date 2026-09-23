@@ -16,6 +16,7 @@
         "SpellDescriptionVariables": 1140004,
         "SpellDuration": 1137828,
         "SpellEffect": 1140088,
+        "SpellLevels": 1140079,
         "SpellMisc": 1003144,
         "SpellName": 1990283,
         "SpellRadius": 1134584,
@@ -38,6 +39,7 @@
         "SpellDuration": 1137828,
         "SpellEffect": 1140088,
         "SpellEquippedItems": 1140011,
+        "SpellLevels": 1140079,
         "SpellMisc": 1003144,
         "SpellName": 1990283,
         "SpellPower": 982806,
@@ -69,7 +71,7 @@
     }
   },
   "class": "paladin",
-  "codeFormat": "Wowhead-style string of three \"-\"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank), in `order` = sorted by tier, then col (both 0-based). Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two \"-\" (e.g. \"30305213132515201-05050103-\"). Every code the repo stores decodes to the same ranks by talent name from build to build.",
+  "codeFormat": "Wowhead-style string of three \"-\"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank), in `order` = sorted by tier, then col (both 0-based). Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two \"-\" (e.g. \"30305213132515201-05050103-\"). Every position keeps its talent and max rank from build to build (new talents only at the end of a tree), so every code keeps its meaning.",
   "rules": {
     "maxCol": 3,
     "maxPoints": 51,
@@ -592,7 +594,7 @@
           "previousName": null,
           "ranks": {
             "classic": null,
-            "forever": ["Applies Light's Vigil to the target for 30 sec. Your next Holy Shock cast on them triggers no cooldown and causes friendly targets to heal their party for 315 to 333, or enemy targets to suffer 175 to 189 Holy damage and refund 75% of Light's Vigil's Mana cost. You may only have 1 Light's Vigil active per Paladin, per party."]
+            "forever": ["Applies Light's Vigil to the target for 30 sec. Your next Holy Shock cast on them triggers no cooldown and causes friendly targets to heal their party for 325 to 343, or enemy targets to suffer 175 to 189 Holy damage and refund 75% of Light's Vigil's Mana cost. You may only have 1 Light's Vigil active per Paladin, per party."]
           },
           "spellId": 1310911,
           "tier": 6,
@@ -784,7 +786,7 @@
           "previousName": null,
           "ranks": {
             "classic": null,
-            "forever": ["When Seal of Fury's shield is fully absorbed, restore 0 Mana, increased by 15% per level the attacker is above you, up to 45%."]
+            "forever": ["When Seal of Fury's shield is fully absorbed, restore 60 Mana, increased by 15% per level the attacker is above you, up to 45%."]
           },
           "spellId": 1314103,
           "tier": 2,
@@ -1270,7 +1272,7 @@
           "previousName": null,
           "ranks": {
             "classic": ["Gives the Paladin's damaging melee attacks a chance to reduce the target's Strength and Agility by 5%10 sec.", "Gives the Paladin's damaging melee attacks a chance to reduce the target's Strength and Agility by 10%10 sec.", "Gives the Paladin's damaging melee attacks a chance to reduce the target's Strength and Agility by 15%10 sec."],
-            "forever": ["Gives your damaging melee attacks a chance to reduce the target's Attack Power by 2, and increase your Attack Power by 1% for 30 sec.", "Gives your damaging melee attacks a chance to reduce the target's Attack Power by 4, and increase your Attack Power by 2% for 30 sec.", "Gives your damaging melee attacks a chance to reduce the target's Attack Power by 6, and increase your Attack Power by 3% for 30 sec."]
+            "forever": ["Gives your damaging melee attacks a chance to reduce the target's Attack Power by 67, and increase your Attack Power by 1% for 30 sec.", "Gives your damaging melee attacks a chance to reduce the target's Attack Power by 133, and increase your Attack Power by 2% for 30 sec.", "Gives your damaging melee attacks a chance to reduce the target's Attack Power by 200, and increase your Attack Power by 3% for 30 sec."]
           },
           "spellId": 9452,
           "tier": 2,
@@ -1323,8 +1325,8 @@
           "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "classic": ["Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\nUnleashing this Seal's energy will judge an enemy, instantly causing 46.5 to 50.5 Holy damage, 93 to 101 if the target is stunned or incapacitated."],
-            "forever": ["Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\nUnleashing this Seal's energy will judge an enemy, instantly causing 46.5 to 50.5 Holy damage, 93 to 101 if the target is stunned or incapacitated."]
+            "classic": ["Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\nUnleashing this Seal's energy will judge an enemy, instantly causing 68.5 to 72.5 Holy damage, 137 to 145 if the target is stunned or incapacitated."],
+            "forever": ["Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\nUnleashing this Seal's energy will judge an enemy, instantly causing 68.5 to 72.5 Holy damage, 137 to 145 if the target is stunned or incapacitated."]
           },
           "spellId": 20375,
           "tier": 2,

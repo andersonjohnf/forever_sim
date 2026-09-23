@@ -2,7 +2,7 @@
 // are shaped like the client's (Forever 1.60.1 and Classic Era 1.15.9 layouts); the descriptions
 // and values are the real ones of the named spells, trimmed to the columns the renderer reads.
 import { describe, expect, it } from "vitest";
-import { createSpellTextContext, effectRange, evaluate, formatCooldown, formatDuration, renderSpellText } from "./spell-text.mjs";
+import { createSpellTextContext, effectRange, evaluate, formatCooldown, formatDuration, renderSpellText, scalingLevels } from "./spell-text.mjs";
 
 /** Forever layout: EffectBasePointsF (+ Variance). */
 const fx = (SpellID, EffectIndex, EffectBasePointsF, extra = {}) => ({ SpellID, EffectIndex, DifficultyID: 0, Effect: 6, EffectAura: 0, EffectBasePointsF, Variance: 0, EffectAuraPeriod: 0, EffectRadiusIndex: [0, 0], EffectMiscValue: [0, 0], ...extra });
@@ -152,10 +152,25 @@ describe("renderSpellText", () => {
   });
 
   it("keeps a blank line as one paragraph break when asked, through $@ inclusions", () => {
-    const text = renderSpellText(ctx, 1238122, { conditions: "unmet", paragraphs: true }).text;
-    expect(text).toBe("Requires Bear Form, Dire Bear Form Charge an enemy.\nLeap behind an enemy.");
     expect(renderSpellText(ctx, 900004, { paragraphs: true }).text).toBe("Outer, wrapped.\nInner one.\nInner two.");
     expect(renderSpellText(ctx, 900004).text).toBe("Outer, wrapped. Inner one. Inner two.");
+  });
+
+  // L37: Feral Charge's "Requires" line is a line of its own, not the start of the sentence.
+  it("keeps a line break after a line that ends (a coloured header or a sentence), and wraps the rest", () => {
+    const text = renderSpellText(ctx, 1238122, { conditions: "unmet", paragraphs: true }).text;
+    expect(text).toBe("Requires Bear Form, Dire Bear Form\nCharge an enemy.\nLeap behind an enemy.");
+    expect(renderSpellText(ctx, 1238122, { conditions: "unmet", lines: true }).text).toBe("Requires Bear Form, Dire Bear Form\nCharge an enemy.\n\nLeap behind an enemy.");
+    // One-line texts (item effects) still join every line with a space.
+    expect(renderSpellText(ctx, 1238122, { conditions: "unmet" }).text).toBe("Requires Bear Form, Dire Bear Form Charge an enemy. Leap behind an enemy.");
+    // Weaponmaster (1290261) wraps sentences over lines: those breaks are spaces.
+    const wrapped = createSpellTextContext({
+      Spell: [{ ID: 1290261, Description_lang: "Gives your melee weapon attacks a benefit depending on the weapon.\r\n\r\n    |CFFFFFFFFAxe/Polearm:|R Increases your\r\n    critical strike chance by $s1%.\r\n\r\n    |CFFFFFFFFSword:|R Your successful melee \r\n    attacks have a $s3% chance to \r\n    trigger an extra attack on the \r\n    target." }],
+      SpellEffect: [fx(1290261, 0, 1), fx(1290261, 2, 1)],
+    });
+    expect(renderSpellText(wrapped, 1290261, { paragraphs: true }).text).toBe(
+      "Gives your melee weapon attacks a benefit depending on the weapon.\nAxe/Polearm: Increases your critical strike chance by 1%.\nSword: Your successful melee attacks have a 1% chance to trigger an extra attack on the target.",
+    );
   });
 
   it("applies !, &, | and parentheses, chains, and a missing else branch", () => {
@@ -260,5 +275,77 @@ describe("spellbook rendering", () => {
 
   it("reads a duration of −1 as until cancelled (Find Treasure)", () => {
     expect(renderSpellText(book, 2481, opts).text).toBe("Allows the dwarf to sense nearby treasure. Lasts until cancelled.");
+  });
+});
+
+// L9: per-level points at level 60 (docs/data/items.md#per-level-values). Real rows of the
+// Forever client 1.60.1.69913 (Demoralizing Shout, Cat and Dire Bear Form, Vindication,
+// Judgement of Command) and Classic Era 1.15.9.69722 (Demoralizing Shout, Judgement of Command).
+describe("per-level points", () => {
+  const lv = (SpellID, BaseLevel, SpellLevel, MaxLevel) => ({ SpellID, DifficultyID: 0, BaseLevel, SpellLevel, MaxLevel });
+
+  it("count the levels from SpellLevel to 60, capped by MaxLevel", () => {
+    expect(scalingLevels(lv(11556, 54, 54, 64))).toBe(6); // Demoralizing Shout rank 5
+    expect(scalingLevels(lv(3025, 6, 6, 0))).toBe(54); // Cat Form (Passive): no cap
+    expect(scalingLevels(lv(1178, 10, 10, 40))).toBe(30); // Bear Form (Passive): capped at 40
+    expect(scalingLevels(lv(440667, 0, 1, 60))).toBe(59); // SpellLevel, not Forever's zeroed BaseLevel
+    expect(scalingLevels(lv(1, 0, 99, 43))).toBe(0); // never negative
+    expect(scalingLevels(undefined)).toBe(0);
+  });
+
+  it("add the truncated per-level term after a spread", () => {
+    expect(effectRange(fx(11556, 0, -196, { EffectRealPointsPerLevel: -1.4 }), 6)).toEqual({ min: -204, max: -204 });
+    expect(effectRange(cx(11556, 0, -141, 1, { EffectRealPointsPerLevel: -1 }), 6)).toEqual({ min: -146, max: -146 });
+    // Judgement of Command 20467 at 60 (8 levels × 5.6 = 44.8): Forever's 97 ± 4 and Classic Era's
+    // 93–101 both become 137–145.
+    expect(effectRange(fx(20467, 0, 97, { Variance: 0.082474224, EffectRealPointsPerLevel: 5.6 }), 8)).toEqual({ min: 137, max: 145 });
+    expect(effectRange(cx(20467, 0, 92, 9, { EffectRealPointsPerLevel: 5.6 }), 8)).toEqual({ min: 137, max: 145 });
+    expect(effectRange(fx(1, 0, 12, { EffectRealPointsPerLevel: 2 }))).toEqual({ min: 12, max: 12 }); // no levels: base
+  });
+
+  const scaled = createSpellTextContext({
+    Spell: [
+      { ID: 11556, Description_lang: "Reduces the melee attack power of all enemies within $a1 yards by $s1 for $d." },
+      { ID: 768, Description_lang: "Shapeshift into cat form, increasing melee attack power by $3025s1 plus Agility." },
+      { ID: 9634, Description_lang: "Shapeshift into a dire bear, increasing melee attack power by $9635s4, armor contribution from items by $9635s1%, and health by $9635s3." },
+      { ID: 9452, Description_lang: "Gives your damaging melee attacks a chance to reduce the target's Attack Power by ${$m1/-3*$440667m1}, and increase your Attack Power by $m1% for $440667d." },
+    ],
+    SpellEffect: [
+      fx(11556, 0, -196, { EffectRealPointsPerLevel: -1.4, EffectRadiusIndex: [0, 8] }),
+      fx(3025, 0, 12, { EffectRealPointsPerLevel: 2 }),
+      fx(9635, 0, 360, { EffectAura: 466 }),
+      fx(9635, 1, 360, { EffectAura: 142 }),
+      fx(9635, 2, 600, { EffectAura: 230, EffectRealPointsPerLevel: 32 }),
+      fx(9635, 3, 120, { EffectAura: 99, EffectRealPointsPerLevel: 3 }),
+      fx(9452, 0, 3), // Vindication 3/3 (the talent's rank curve puts 3 here)
+      fx(440667, 0, 6, { EffectAura: 99, EffectRealPointsPerLevel: -3.5 }),
+    ],
+    SpellMisc: [
+      { SpellID: 11556, DifficultyID: 0, DurationIndex: 4 },
+      { SpellID: 440667, DifficultyID: 0, DurationIndex: 5 },
+    ],
+    SpellDuration: [
+      { ID: 4, Duration: 45000 },
+      { ID: 5, Duration: 30000 },
+    ],
+    SpellRadius: [{ ID: 8, Radius: 10 }],
+    SpellLevels: [lv(11556, 54, 54, 64), lv(3025, 6, 6, 0), lv(9635, 40, 40, 70), lv(440667, 0, 1, 60)],
+  });
+  const render = (id) => renderSpellText(scaled, id, { wholeExpressions: true }).text;
+
+  it("render Demoralizing Shout rank 5 as the level-60 tooltip does: −196 − 1.4 × 6 = −204.4, shown 204", () => {
+    expect(render(11556)).toBe("Reduces the melee attack power of all enemies within 10 yards by 204 for 45 sec.");
+  });
+
+  it("render Cat Form at 12 + 2 per level from 6: 120", () => {
+    expect(render(768)).toBe("Shapeshift into cat form, increasing melee attack power by 120 plus Agility.");
+  });
+
+  it("render Dire Bear Form's health at 600 + 32 per level from 40: 1240 (and its attack power 180)", () => {
+    expect(render(9634)).toBe("Shapeshift into a dire bear, increasing melee attack power by 180, armor contribution from items by 360%, and health by 1240.");
+  });
+
+  it("render Vindication 3/3 from its aura's scaled points: 6 − 3.5 × 59 = −200.5 → −200, and 3/3 of it", () => {
+    expect(render(9452)).toBe("Gives your damaging melee attacks a chance to reduce the target's Attack Power by 200, and increase your Attack Power by 3% for 30 sec.");
   });
 });

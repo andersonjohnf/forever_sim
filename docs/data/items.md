@@ -18,8 +18,8 @@ Interfaces are in [`src/data/items/types.ts`](../../src/data/items/types.ts); th
 | Classic Era build | `wow_classic_era` `1.15.9.69722` (fallback rows and comparisons) |
 | Definitions | WoWDBDefs commit [`2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e`](https://github.com/wowdev/WoWDBDefs/tree/2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e) |
 | BiS lists | [`scripts/scrape/pre-raid-bis.json`](../../scripts/scrape/pre-raid-bis.json), hand-curated from Wowhead's 2019–2021 WoW Classic guides (see [Pre-raid BiS lists](#pre-raid-bis-lists)) |
-| Scraped | 2026-09-23 01:16 UTC (`meta.scrapedAt`: the latest download time of the 41 Forever and 33 Classic Era files read) |
-| Size | 1,630 items, 102 item sets; 1.9 MB JSON (1.2 MB minified, 106 KB gzipped) |
+| Scraped | 2026-09-23 01:16 UTC (`meta.scrapedAt`: the latest download time of the 43 Forever and 35 Classic Era files read) |
+| Size | 1,630 items, 102 item sets; 2.1 MB JSON (1.4 MB minified, 101 KB gzipped) |
 
 Until M1.5c-2 the pool came from foreverchanges.pro's item pages. What moved in the switch is
 recorded, as history, in [From foreverchanges to the client](#from-foreverchanges-to-the-client).
@@ -44,8 +44,8 @@ with its FileDataID. Three libraries do the work, all zero-dependency pure funct
 | --- | --- |
 | `ItemSparse`, `Item` | the item row: name, quality, levels, slot, class and subclass, stats, binding, uniqueness, class and race masks, requirements, set, flavor text, sell price |
 | `RandPropPoints`, `ItemArmor*`, `ArmorLocation`, `ItemDamage*` | Forever's stat budget, armor and weapon damage |
-| `ItemEffect` (+ `ItemXItemEffect`), `SpellEffect`, `SpellName`, `SpellCooldowns`, `SpellCastingRequirements`, `SpellShapeshift` | use, equip and chance-on-hit spells; auras that are flat stats |
-| `Spell`, `SpellMisc`, `SpellDuration`, `SpellAuraOptions`, `SpellRadius`, `SpellRange`, `SpellTargetRestrictions`, `SpellDescriptionVariables`, `SpellXDescriptionVariables` | effect and set-bonus text |
+| `ItemEffect` (+ `ItemXItemEffect`), `SpellEffect`, `SpellName`, `SpellCooldowns`, `SpellCastingRequirements`, `SpellShapeshift`, `SpellEquippedItems` | use, equip and chance-on-hit spells; auras that are flat stats; area, form and weapon conditions |
+| `Spell`, `SpellMisc`, `SpellDuration`, `SpellAuraOptions`, `SpellRadius`, `SpellRange`, `SpellTargetRestrictions`, `SpellDescriptionVariables`, `SpellXDescriptionVariables`, `SpellLevels` | effect and set-bonus text |
 | `ItemSet`, `ItemSetSpell` | set pieces and bonuses |
 | `ItemSubClass`, `Faction`, `SkillLine`, `ItemLimitCategory`, `ChrClasses`, `ChrRaces`, `CharBaseInfo` (Forever) | subclass names, reputation and skill names, Unique-Equipped groups, class and race names |
 | `ItemModifiedAppearance`, `ItemAppearance` (Forever) and the build's file list | icon names |
@@ -146,6 +146,73 @@ badges them ("Classic stats"), and the engine lists them with each result. They 
 - **2** items foreverchanges didn't list at all ([Added](#from-foreverchanges-to-the-client)).
 
 They come back to Forever values on their own once a client build ships their rows.
+
+### Effects of fallback items
+
+A fallback item has no Forever `ItemSparse` row, but the Forever client still has its `Item`
+row, the item effects it links to it (`ItemXItemEffect` → `ItemEffect`) and the spells behind
+them. Those are tier-1 data ([doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable)),
+so a fallback item keeps `statsFrom: "classic"` and `foreverData: false` for its stats, armor,
+weapon and set, and takes its effects from Forever wherever Forever has them
+(`createFallbackContext` in `lib/item-stats.mjs`, review finding L5) `[F]`:
+
+1. **Every spell the Forever client has is read from Forever's tables**: its auras (the stats
+   an equip spell gives), cooldown, conditions, name and tooltip text. All 626 spells the 501
+   fallback items with effects use are in the Forever client, so none is read from Classic Era
+   (`meta.fallbackEffects`).
+2. **When Forever links item effects to the item, they are its effects** (109 items): Forever's
+   redesigns, such as Diamond Flask's use casting 363881 "CHUG! CHUG! CHUG! CHUG!" and Ironfoe's
+   proc becoming an equip spell, and Forever's own equip stat spells (Blackhand's Breadth's +1%
+   crit, 1318954). Otherwise (392 items) the Classic Era row's item effects stay, with their
+   spells read from Forever.
+3. **A Classic Era equip spell whose every aura is a stat stays, unless Forever's effects give
+   one of its stats.** Forever moved most such bonuses into `ItemSparse` stats, which the client
+   doesn't carry for these items, so dropping them would lose the stat: Hand of Justice keeps
+   its +20 Attack Power (9331), which Forever doesn't link. Where Forever's effects give the same
+   stat, Forever's value replaces Classic Era's (Blackhand's Breadth: +1% crit, not +2%).
+4. An equip spell restricted to a weapon type (`SpellEquippedItems`, item class 2) is a
+   conditional effect, not a flat stat: Forever's "Improves your chance to hit with ranged
+   weapons" (1294769, 1301127) is bows, guns and crossbows only.
+
+Each fallback item's `notes` say which applies ("Stats from Classic Era (no Forever ItemSparse
+row); effects are the Forever client's item effects; spells … read from the Forever client"),
+and every effect line and set bonus names its spell (`spellId`). Whether Forever's mix of
+`ItemSparse` stats and effects matches this reading is an open question ([Caveats](#caveats)).
+
+**Before and after** (the dataset of `be7bb9c` against this one). 13 items' stats moved:
+
+| Item | Before (Classic Era spells) | After | Why |
+| --- | --- | --- | --- |
+| Blackhand's Breadth (13965) | +2% crit (7598) | **+1% crit** (1318954), and a use: "Marks your target, increasing your Critical Strike chance against them by 5% for 20 sec" (5 min) | Forever's item effects. It is in the Fury and Arms default gear |
+| Seal of the Dawn (13209) | +81 Attack Power against Undead | **+78** | 23930 read from Forever |
+| Rune of the Dawn (19812) | +48 spell damage against Undead | **+46** | 24198 read from Forever |
+| Counterattack Lodestone (18537) | +22 Attack Power, +1% parry | +30 Attack Power, +30 against Mechanical, +1% parry, and a use (Magnetize) | Forever's +30 replaces the +22 (9332); the parry spell stays |
+| Eye of the Beast (13968) | +2% spell crit | +1% spell crit, and a use (+7% spell hit for 20 sec) | Forever's item effects |
+| Briarwood Reed (12930) | +29 spell power | +15 spell power (doubled in Marsh and Swamp areas) | Forever's item effects |
+| Royal Seal of Eldre'Thalas (18467, 18471) | +23 spell power | +18 spell power, +18 spell damage against Demons | Forever's item effects |
+| Fervent Helm, Fluctuating Cloak, Foresight Girdle, Ring of Demonic Potency, Milli's Shield | 7 / 4 / 5 / 6 / 4 health per 5 sec | 27 / 15 / 18 / 21 / 15 | the regeneration spells read from Forever (aura 161) |
+
+87 items' effect lines changed. The ones a melee sim cares about:
+
+| Item | Before | After |
+| --- | --- | --- |
+| Hand of Justice (11815) | Equip: 2% chance on melee hit to gain 1 extra attack. | Equip: 1% chance on Melee hit to gain 1 extra attack. Attacks against Dwarves are 3 times as likely to activate this effect. |
+| Ironfoe (11684) | Chance on hit: Grants 2 extra attacks on your next swing. | Equip: Attacks have a chance to grant 2 extra attacks on your next swing. Attacks against Orcs are 2 times as likely to activate this effect. |
+| Diamond Flask (20130) | Use: Restores 9 health every 5 sec and increases your Strength by 75. Lasts 1 min. (6 Min Cooldown) | Use: Restores 1120 Health over 5 sec. This healing is strongest at first. If finished, gain 20 Strength for 5 sec. (6 Min Cooldown) |
+| Mark of the Chosen (17774) | …increasing all stats by 25 for 1 min. | …increasing all stats by **21** for 1 min, with a 120 s internal cooldown (`ProcCategoryRecovery`, not in the text) |
+| Bashguuder (13204), Rivenspike (13286) | …lowering it by 200. Can be applied up to 3 times. | …lowering it by **100**… |
+| Blackhand Doomsaw (12583) | Wounds the target for 324 to 540 damage. | Delivers a fatal wound for 373 to 523 Physical damage. Deals 50% increased damage to targets below 25% health. |
+| Savage Gladiator Chain (11726) | (none) | Equip: Reduces the hit chance of Fear effects against you by 4%. (its +2% crit stays: Forever gives no crit spell) |
+| Ebon Hilt of Marduk (14576) | Chance on hit: …210 damage over 3 sec. | Chance on hit: …84 damage over 9 sec. Equip: Decreases all threat generated by 1%. |
+| Heart of Wyrmthalak (22321) | …120 to 180 Fire damage. | Melee and Ranged attacks have a chance to deal 112 to 168 Fire damage. Deals 3 times as much damage to Orcs. |
+| Mark of Tyranny (13966) | (none; +1% dodge) | Use: Increases maximum health by 620 for 15 sec. (5 min); the +1% dodge stays |
+
+Doombringer (13053) reads the same: Forever links it the same Shadow Bolt (18211, 125 to 275),
+now read from Forever. The other changes are chance-on-hit numbers and durations of Classic
+dungeon weapons (Gravestone War Axe, Demonfork, Skullforge Reaver, …), new Forever uses and
+equips on trinkets and neck pieces (Eidolon Talisman, Smoking Heart of the Mountain, Vigilance
+Charm, Mindtap Talisman, Flame Walkers, …) and class relics. `npm run diff:items -- --against=be7bb9c`
+lists them all.
 
 ### Items no client carries yet
 
@@ -250,8 +317,8 @@ ItemData
            counts { items, byTab, sets, statsFrom }, noClientRow[{ id, name }],
            preRaidBis { file, specs, listedItems, inPool, addedByList, notInData[] },
            descriptionCoverage { rendered, generated, fallback, hidden, fallbackSpells[], hiddenSpells[] },
-           ratingConversions }
-  sets   { [setId]: { name, size, itemIds[], bonuses[{ pieces, text, parsed?, weaponSkill? }], bonusesFrom } }
+           ratingConversions, fallbackEffects { items, effectsFromForever, spells, spellsFromForever } }
+  sets   { [setId]: { name, size, itemIds[], bonuses[{ pieces, spellId, text, parsed?, weaponSkill? }], bonusesFrom } }
   items[] sorted by slot (head … relic), then id
 
 Item
@@ -263,15 +330,19 @@ Item
   stats        Partial<Stats>
   weapon       { min, max, speed, dps, school, skill, extraDamage? } | null
   weaponSkill  { "Daggers": 5, … } | null
-  procs[], useEffects[{ raw, cooldownSec? }], otherEquip[]     // rendered tooltip lines
+  statSpellIds[]                                               // equip spells whose auras are in stats
+  procs[{ raw, spellId }], useEffects[{ raw, spellId, cooldownSec? }], otherEquip[{ raw, spellId }]
+                                                               // rendered tooltip lines
   setId, source (always null), preRaidBis [{ spec, slot, rank }]
   sellPrice (copper), flavor, classic { stats, weapon, weaponSkill } | null
   classicShieldBlockValue?, notes[]
 ```
 
-The browser build drops `classic`, `flavor`, `sellPrice`, `notes` and the bulky `meta` blocks
-(`tables`, `descriptionCoverage`, `preRaidBis`, `noClientRow`); see `SLIMMERS` in
-`vite.config.ts`.
+The browser build drops `classic`, `flavor`, `sellPrice`, `notes`, `statSpellIds` and the bulky
+`meta` blocks (`tables`, `descriptionCoverage`, `preRaidBis`, `noClientRow`, `fallbackEffects`);
+see `SLIMMERS` in `vite.config.ts`. `src/data/client/spells.json` extracts every spell the pool
+names (`statSpellIds`, the effect lines' and set bonuses' `spellId`), so the Forever values
+behind any line can be read there.
 
 | Field | From the client |
 | --- | --- |
@@ -283,7 +354,8 @@ The browser build drops `classic`, `flavor`, `sellPrice`, `notes` and the bulky 
 | `classes`, `races` | `AllowableClass` / `AllowableRace` against `ChrClasses` / the playable races (`CharBaseInfo`); null when every one is allowed. No pool item restricts races |
 | `requirements` | `MinFactionID` + `MinReputation` (`Faction` name, Hated … Exalted), `RequiredSkill` + `RequiredSkillRank` (`SkillLine`), `RequiredAbility` (spell name), `RequiredPVPRank` (the client counts four dishonorable ranks first, so 14 is rank 10, Lieutenant Commander or Champion) |
 | `stats`, `weapon`, `weaponSkill`, `setId` | the derivation, [client.md, "Items from the client"](client.md#items-from-the-client) |
-| `procs`, `useEffects`, `otherEquip` | `ItemEffect` spells, text [below](#effect-and-set-bonus-text) |
+| `procs`, `useEffects`, `otherEquip` | `ItemEffect` spells, text [below](#effect-and-set-bonus-text); fallback items' come from Forever where it has them ([above](#effects-of-fallback-items)) |
+| `statSpellIds` | the equip spells whose auras are part of `stats` ([below](#stats-armor-and-block-value)) |
 | `icon` | [above](#how-the-data-was-obtained) |
 | `sellPrice`, `flavor` | `SellPrice`, `Description_lang` |
 | `classicName` | the Classic Era row's name when Forever renamed the item (none in this pool) |
@@ -292,8 +364,13 @@ The browser build drops `classic`, `flavor`, `sellPrice`, `notes` and the bulky 
 ## Stats, armor and block value
 
 `stats` holds the item's stat columns plus every equip spell whose auras are all flat stats
-([client.md, "Aura → stat"](client.md#aura--stat)). Equip spells that aren't (procs, class
-tweaks, run speed, zone or form bonuses) stay effect lines.
+([client.md, "Aura → stat"](client.md#aura--stat)); `statSpellIds` names those spells. Equip
+spells that aren't (procs, class tweaks, run speed, zone, form or weapon-type bonuses) stay
+effect lines. Every aura on the pool's equip spells and set bonuses is either a stat or listed
+as not one (`NOT_STAT_AURAS`); the generator warns about any other, and
+`scripts/scrape/lib/item-pool.test.mjs` fails. Since review finding L8, all crit (aura 290, The
+Gladiator's 5-piece: `crit` and `spellCrit`) and Forever's shield block value (aura 274) are
+stats.
 
 **Armor is two fields.** `armor` is the base armor: Forever's formula for the item level,
 quality and slot, or the Classic Era row's stored armor. `bonusArmor` is Forever's stat 50
@@ -339,15 +416,47 @@ Attack Power.") or its name. **Coverage in this snapshot** (`meta.descriptionCov
 
 | | Lines |
 | --- | --: |
-| Rendered cleanly | 500 |
-| Generated from the spell's auras (conditional stat bonus with an empty description) | 1 |
+| Rendered cleanly | 535 |
+| Generated from the spell's auras (conditional stat bonus with an empty description) | 2 |
 | Fallback (a variable couldn't be rendered) | **0** |
-| Hidden (empty description, which the game doesn't show either) | 3 |
+| Hidden (empty description, which the game doesn't show either) | 9 |
 
-The one generated line is Rune of the Guard Captain's area-restricted spell 1287704: "Equip:
-+28 Attack Power in certain areas." (its always-on +14 AP is now a stat; together they are the
-tooltip's "tripled in Forest and Grassland areas"). The hidden spells are Seal of Ascension's
-use and equip spells (16349, 16372) and Arcanite Dragonling's Forever equip dummy (1318325).
+The two generated lines are Rune of the Guard Captain's area-restricted spell 1287704: "Equip:
++28 Attack Power in certain areas." (its always-on +14 AP is a stat; together they are the
+tooltip's "tripled in Forest and Grassland areas") and Briarwood Reed's Marsh and Swamp
+doubling (1318327, "+15 Spell Power in certain areas."). The hidden spells are Seal of
+Ascension's use and equip spells (16349, 16372) and Forever equip dummies (Arcanite
+Dragonling 1318325, Cannonball Runner 1300668, Blackhand's Breadth 1318945, Eye of the Beast
+1318846, Barov Peasant Caller 1298508, Diamond Flask 1318073).
+
+<a id="per-level-values"></a>**Per-level values** (review finding L9). Effect points are read at
+level 60: an effect with `EffectRealPointsPerLevel` adds that much per level from its spell's
+`SpellLevels.SpellLevel` up to 60, or up to its `MaxLevel` when that is set and lower, never
+below 0 levels (`scalingLevels` in `lib/spell-text.mjs`). The term is truncated toward zero to a
+whole number and added after a spread (which stays the base points'). The same rule renders
+the spellbooks, talents and racials:
+
+| Spell | Base | Per level | `SpellLevels` | At 60 |
+| --- | --: | --: | --- | --: |
+| Demoralizing Shout rank 5 (11556) | −196 | −1.4 | 54–64 | **−204** (−204.4), the level-60 tooltip `[F]` |
+| Cat Form (Passive) 3025 (Cat Form's AP) | 12 | +2 | 6, no cap | **120** (Classic Era's 40 + scaling gives 120 too, so Cat Form is now "same") |
+| Dire Bear Form (Passive) 9635 (health; AP) | 600; 120 | +32; +3 | 40–70 | **1240**; **180** |
+| Bear Form (Passive) 1178 (health; AP) | 20; 30 | +18; +3 | 10–40 | 560; 120 (capped at 40) |
+| Vindication's aura 440667 (the talent's AP reduction) | 6 | −3.5 | 1–60 (`BaseLevel` 0) | −200 (so 67 / 133 / 200 at 1–3/3) |
+| Judgement of Command 20467 | 97 ± 4 | +5.6 | 20–28 | 137–145 (Classic Era's die roll gives the same) |
+
+`SpellLevel`, not `BaseLevel`: the Forever client zeroes `BaseLevel` on 743 of its 1,559
+per-level spells and keeps the level in `SpellLevel` (Classic Era: 19 of 1,428 differ). How
+the client itself counts and rounds the term is `[?]`
+([open questions](../open-questions.md#b74-per-level-tooltip-values)): Vindication's reduction
+would be 204 at 3/3 counting from `BaseLevel` 0.
+
+**Line breaks** (review finding L37). Effect lines and set bonuses are one line. The
+spellbooks and racials (`lines`) and the talents (`paragraphs`) keep a client line break only
+after a line that ends: sentence punctuation (`.`, `!`, `?`, `:`) or a colour reset (`|r`) after
+a coloured header such as Feral Charge's "Requires Bear Form, Dire Bear Form". Anywhere else a
+line break wraps a sentence and becomes a space (Weaponmaster's "Increases your⏎critical strike
+chance"). No effect line or set bonus in the pool has such a header.
 
 Checked against the foreverchanges tooltips for items whose stats come from the same client:
 **190 of 201 effect lines read the same** (ignoring the cooldown suffix and final period), and
@@ -568,12 +677,17 @@ The run exits non-zero, and writes nothing, if:
 - a weapon has no damage range, or a set has no `ItemSet` row in either client;
 - a table fails to parse, or isn't in the build.
 
-It warns when an item has no icon, a listed item isn't in the pool, or an `ItemSparse` row has
-no `Item` row. It prints any unrendered description with the spell, its tokens and the items
+It warns when an item has no icon, a listed item isn't in the pool, an `ItemSparse` row has
+no `Item` row, or an equip spell or set bonus carries an aura that is neither a stat nor listed
+as not one. It prints any unrendered description with the spell, its tokens and the items
 using it. The integrity tests in `src/data/data.test.ts` check the counts, the filter, the SoD
 guard, the pre-raid BiS lists, the `statsFrom`/`foreverData`/`tab` flags, the set bonuses,
 the absence of drop sources and of leftover `$` variables, and that `meta.noClientRow` items
-aren't in the pool.
+aren't in the pool; `src/data/schema.test.ts` checks every record's keys against `types.ts`.
+`scripts/scrape/lib/item-pool.test.mjs` checks the pool against the Forever client's spells
+(every equip and set-bonus aura classified; fallback items' spells and values Forever's), and
+`item-stats.test.mjs` the fallback rule on real client rows (Seal of the Dawn, Hand of Justice,
+Blackhand's Breadth, Diamond Flask, Barrier Shield).
 
 `npm run diff:items` regenerates the pool and lists every item added or removed and every
 changed field against the committed dataset, sorted into kinds (an item gaining or losing its
@@ -641,6 +755,15 @@ PvP pieces to both factions, since their rows carry no requirement to go by `[?]
   aren't in the files at all ([client.md, "Hotfix caveat"](client.md#hotfix-caveat)): 16 items
   are missing and 34 fall back to Classic Era for that reason, and the Undermine trinkets'
   cooldowns may be hotfixed. Guild measurements win (doctrine §2).
+- `[?]` **Fallback items mix two clients.** Their stats are Classic Era's and their effects the
+  Forever client's ([above](#effects-of-fallback-items)). Where Forever moved a bonus from an
+  equip spell into its `ItemSparse` row the bonus is kept from Classic Era, and where it
+  replaced a bonus with an effect of another kind both are kept (Mark of Tyranny: Classic Era's
+  +1% dodge next to Forever's health use; Savage Gladiator Chain: +2% crit next to Forever's
+  fear resistance; Warblade of Caer Darrow and Iceblade Hacker: Classic Era's extra Frost damage
+  on the weapon next to Forever's equip spell that deals it). Either can be off until a build
+  ships the items' rows
+  ([open questions C35](../open-questions.md#c35-fallback-items-with-forever-effects)).
 - **Orb of Deception** is in the pool as a Classic Era trinket with no stats and a transform
   use. In Forever it's a "Binds when used" item that isn't equippable (the hotfix row
   foreverchanges showed), so it will leave the pool when a client build ships that row.
@@ -674,5 +797,6 @@ To add epics or change the level rule, edit `QUALITIES` / `REQ_LEVEL` / `MIN_ITE
 run it. To change the BiS lists, edit `scripts/scrape/pre-raid-bis.json` by hand, keep a source
 URL per spec, follow the selection rules above, and never take a list from a Season of
 Discovery, Season of Mastery, TBC+ or private-server guide. A new stat type or aura shows up
-as an item note or in `unknownStatTypes`: map it in `lib/item-stats.mjs` (`STAT_TYPE`,
-`AURA_STAT`) and add any new key to `Stats` in `types.ts`.
+as an item note or in `unknownStatTypes`, and a new aura on an equip spell or set bonus as a
+warning: map it in `lib/item-stats.mjs` (`STAT_TYPE`, `AURA_STAT`, or `NOT_STAT_AURAS` with the
+reason it isn't a stat) and add any new key to `Stats` in `types.ts`.

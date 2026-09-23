@@ -41,9 +41,14 @@ Slices ([CLAUDE.md](../CLAUDE.md#working-with-agents-small-slices-fresh-contexts
       ([data/client.md](data/client.md)).
 - [x] **M1.5b Doc sync:** apply the client-confirmed values to the docs, resolve the Route D
       entries in open-questions.md, and fix the 6 partial matches
-- [ ] **M1.5c Items from client:** rebuild `src/data/items/pre-bis.json` from ItemSparse, Item,
-      ItemSet and ItemEffect, with Classic Era rows for items whose Forever row is empty.
-      Same JSON shape; drop sources go away (the Encounter Journal ships empty).
+- [ ] **M1.5c Items from client**, in two slices:
+  - [ ] **c-1 Stats derivation:** turn `ItemSparse` budget allocations, the damage and armor
+        tables, equip spells and item sets into stats, for both builds, and validate every item
+        field by field against the current snapshot
+  - [ ] **c-2 Switch over:** rebuild `src/data/items/pre-bis.json` from the client (same JSON
+        shape), with Classic Era rows for items whose Forever row is empty (D6, D17). Tooltip
+        text comes from spell descriptions, and drop sources go away, since the Encounter
+        Journal ships empty.
 - [ ] **M1.5d Talents from client:** layout, prerequisite arrows (including the client-only
       Nature's Splendor arrow), ranks and rendered rank texts. Popular builds become our own
       documented presets.
@@ -65,27 +70,23 @@ work is in slices:
   - Bloodthirst, Whirlwind, Heroic Strike and Hamstring, with numbers from
     `src/data/client/spells.json` and doc fallback
   - tests W1, W3, W7, W24, and rotation sanity checks
-- [ ] **M2.2 Complete Fury.** M2.1 left this handoff list:
-  1. talent cost reductions (Heroic Strike 12 rage) and Impale (crit ×2.2)
-  2. Unbridled Wrath on Heroic Strike swings (warrior.md §2.3 default, Q5)
-  3. the execute phase: a phase-start event and the rage dump
-  4. Bloodrage, Berserker Rage, Death Wish, Recklessness (needs a time wake-up), Battle
-     Shout, racials, potion, trinkets and pre-pull actions, which need an aura/energize
-     ability kind
-  5. the remaining §5.2 options
-  6. stance gating, Whirlwind extra targets and Raging Blows
-  7. re-snapshot the goldens, then flip Fury to available
-  The original scope for this slice follows:
-  - Execute and the execute phase
-  - Bloodrage, Berserker Rage, Death Wish, Recklessness and Battle Shout upkeep
-  - racial cooldowns, Mighty Rage Potion and on-use trinkets
-  - the Fury talents (Flurry, Unbridled Wrath, Enrage, Dual Wield Specialization, Impale,
-    Precision, Boundless Rage, cost reductions)
-  - all Fury rotation options, and a golden snapshot. Then warrior-fury becomes
-    **available**.
+- [ ] **M2.2 Complete Fury**, in three slices (M2.1's handoff list, split):
+  - [ ] **M2.2a Talents on abilities and the execute phase:** cost reductions and Impale,
+        Unbridled Wrath on Heroic Strike swings (Q5), the execute-phase event, Execute (§5.2
+        rows 6–7), Raging Blows, and stance gating
+  - [ ] **M2.2b Cooldowns:** self-buff and energize ability kinds, and time-left conditions
+        with a wake-up event; Bloodrage, Berserker Rage, Death Wish (`alignToEnd`),
+        Recklessness (`lastSec`), and the racial cooldowns (§5.2 rows 2–5 and 13)
+  - [ ] **M2.2c Upkeep, pre-pull and consumables:** Battle Shout upkeep, the pre-pull actions,
+        Mighty Rage Potion, on-use trinkets (§5.2 rows 0, 1 and 16); re-snapshot the goldens,
+        then warrior-fury becomes **available**
+  - Later: §5.2 rows 10 (Overpower dance) and 15 (Slam) come with M2.3, which builds those
+    abilities and stance swaps. Row 14 (Sunder Armor) comes with M3. Whirlwind extra
+    targets wait for multi-target support ([Later](#later)).
 - [ ] **M2.3 Arms:**
   - Mortal Strike, Overpower (dodge trigger, stance dancing, Tactical Mastery), Slam
     (Forever rules), Rend with Bloodthrill, Spearing Strike and Sweeping Strikes
+  - Fury's Overpower dance and Slam options (§5.2 rows 10 and 15)
   - Deep Wounds (412609) and Weaponmaster
   - the Arms rotation options. Then warrior-arms becomes **available**.
 - [ ] **M2.4 Results and review:** results UX with real data, an e2e simulate test, the

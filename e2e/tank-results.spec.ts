@@ -3,12 +3,11 @@ import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // Tank specs report TPS and DPS as equals (decision D18), beside the damage the boss's swings
-// cost them. Tanks aren't in the spec switcher until they ship, and a share link to a spec the app
-// doesn't offer is refused (M2.2c), so these tests preview Protection: `?preview=` adds a spec
-// before it ships in a browser under automation, as Playwright's is (src/app/preview-specs.ts).
-// This is the share link (#s=…, deflated JSON; see docs/ux.md#persistence-and-sharing) for the
-// default Protection warrior.
-const PROTECTION = `./?preview=warrior-protection#s=${deflateRawSync(JSON.stringify({ version: 1, spec: 'warrior-protection' })).toString('base64url')}`
+// cost them. Protection, the first tank, ships (P2), so these tests load it from a plain share
+// link (#s=…, deflated JSON; see docs/ux.md#persistence-and-sharing) for the default Protection
+// warrior, as a visitor would.
+const shareLink = (spec: string) => `./#s=${deflateRawSync(JSON.stringify({ version: 1, spec })).toString('base64url')}`
+const PROTECTION = shareLink('warrior-protection')
 
 /** A value with its ± 95% CI, e.g. "212.9± 0.5" in the text of a headline group. */
 const VALUE_WITH_CI = /\d[\d,]*\.\d\s*± \d[\d,]*\.\d/
@@ -261,9 +260,9 @@ test.describe('tank results', () => {
     await expect(results.getByText('Crit reduction')).toHaveCount(0)
   })
 
-  test('without ?preview=, a Protection link is still refused', async ({ page }) => {
-    await page.goto(PROTECTION.replace('?preview=warrior-protection', ''))
-    await expect(page.getByText('That link is for a Protection Warrior')).toBeVisible()
+  test('a link to a tank the app doesn’t offer yet is still refused', async ({ page }) => {
+    await page.goto(shareLink('paladin-protection'))
+    await expect(page.getByText('That link is for a Protection Paladin')).toBeVisible()
     await expect(page.getByRole('button', { name: /Spec: Fury Warrior/ })).toBeVisible()
   })
 })

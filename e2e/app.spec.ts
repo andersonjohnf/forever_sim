@@ -24,11 +24,13 @@ test.describe('setup', () => {
     await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
     await expect(page.getByRole('menuitem', { name: /Fury/ })).toBeVisible()
     await expect(page.getByRole('menuitem', { name: /Arms/ })).toBeVisible()
+    // Protection, the first tank, since P2; its role reads "Tank" on the item's second line.
+    await expect(page.getByRole('menuitem', { name: /Protection/ })).toContainText('Tank')
     await expect(page.getByRole('menuitem', { name: /Feral \(Cat\)/ })).toBeVisible()
     // Retribution since C2, under its class's own heading.
     await expect(page.getByRole('menuitem', { name: /Retribution/ })).toBeVisible()
     await expect(page.getByRole('menu').getByText('Paladin', { exact: true })).toBeVisible()
-    await expect(page.getByRole('menuitem')).toHaveCount(4)
+    await expect(page.getByRole('menuitem')).toHaveCount(5)
   })
 
   test('switching to Arms keeps it across reloads, with its own setup', { tag: '@smoke' }, async ({ page }) => {
@@ -45,7 +47,7 @@ test.describe('setup', () => {
     await page.addInitScript(() => {
       if (sessionStorage.getItem('seeded')) return
       sessionStorage.setItem('seeded', '1')
-      const state = { config: { version: 1, spec: 'warrior-protection' }, bySpec: {}, section: 'rotation' }
+      const state = { config: { version: 1, spec: 'paladin-protection' }, bySpec: {}, section: 'rotation' }
       localStorage.setItem('forever-sim:setup', JSON.stringify({ state, version: 1 }))
     })
     await page.goto('./')
@@ -124,9 +126,9 @@ test.describe('talents', () => {
     const presets = page.getByRole('combobox', { name: 'Talent build presets' })
     await expect(presets).toHaveText('Fury (default)')
     await presets.click()
-    // Only the builds of specs the app offers (docs/ux.md principle 8): no Protection yet. One
-    // "(default)": the other spec's default reads plainly (TU10).
-    await expect(page.getByRole('option')).toHaveText(['Fury (default)', 'Fury + Precision', 'Arms default'])
+    // Only the builds of specs the app offers (docs/ux.md principle 8): Protection's since it
+    // shipped. One "(default)": another spec's default reads plainly (TU10).
+    await expect(page.getByRole('option')).toHaveText(['Fury (default)', 'Fury + Precision', 'Arms default', 'Protection default', 'Protection (TPS)'])
     await page.getByRole('option', { name: 'Fury + Precision' }).click()
     await expect(page.getByText('15 / 36 / 0')).toBeVisible()
     await expect(presets).toHaveText('Fury + Precision')

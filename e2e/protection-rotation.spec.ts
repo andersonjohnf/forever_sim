@@ -1,0 +1,148 @@
+import type { Page } from '@playwright/test'
+import { expect, test } from './fixtures.ts'
+
+// Protection's Rotation tab (docs/ux.md "Rotation"; docs/classes/warrior.md §5.4): its priority
+// choice first, "Tank duties first" by default or "Max TPS" (decision D26), which moves the
+// defaults of the switches it drops, as Arms' stance does; and a run with each.
+
+/** Protection's Rotation tab, from the spec switcher, as a visitor gets there. */
+async function openProtectionRotation(page: Page) {
+  await page.goto('./')
+  await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
+  await page.getByRole('menuitem', { name: /Protection/ }).click()
+  await expect(page.getByRole('button', { name: /Spec: Protection Warrior/ })).toBeVisible()
+  await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+  return page.getByRole('tabpanel', { name: 'Rotation' })
+}
+
+/** The switches Max TPS turns off by default. */
+const DUTIES = ['Shield Block', 'Shield Slam', 'Thunder Clap', 'Demoralizing Shout']
+/** What a screen reader hears of a change from the last run (docs/ux.md#results). */
+const HEARD_CHANGE = /^(up|down) [\d,]+\.\d from the last run, (better|worse)$/
+
+test.describe('Protection rotation', () => {
+  test('puts the priority first, tank duties by default, and its headings under it', async ({ page }) => {
+    const tab = await openProtectionRotation(page)
+    await expect(tab.getByText('Which abilities the sim uses, and when. The defaults are tuned for the default setup.', { exact: true })).toBeVisible()
+    const priority = tab.getByRole('radiogroup', { name: 'Priority' })
+    await expect(priority.getByRole('radio', { name: 'Tank duties first' })).toBeChecked()
+    await expect(priority.getByRole('radio', { name: 'Max TPS' })).not.toBeChecked()
+    // Its help says what Max TPS drops, why the default keeps it, and what it costs.
+    await expect(priority).toHaveAccessibleDescription(
+      /^Tank duties first keeps up Shield Block, for your survival, and Thunder Clap’s slow and Demoralizing Shout, for the raid, and uses Shield Slam for its damage\. Max TPS drops all four for threat alone: about 12% more TPS and 28% less DPS/,
+    )
+    expect((await priority.boundingBox())!.y).toBeLessThan((await tab.getByRole('heading', { name: 'Before the pull' }).boundingBox())!.y)
+    // Execute is the tank's only execute-phase setting, so it sits under Core abilities: no heading over one setting.
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Before the pull', 'Cooldowns and buffs', 'Core abilities', 'Fillers', 'Consumables'])
+    await expect(tab.getByRole('region', { name: 'Core abilities' }).getByRole('switch', { name: 'Execute', exact: true })).not.toBeChecked()
+    for (const name of DUTIES) await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+  })
+
+  test('Max TPS turns the duties off by default, and a switch you set stays set until Reset', async ({ page }) => {
+    const tab = await openProtectionRotation(page)
+    const priority = tab.getByRole('radiogroup', { name: 'Priority' })
+    await priority.getByRole('radio', { name: 'Max TPS' }).click()
+    await expect(priority.getByRole('radio', { name: 'Max TPS' })).toBeChecked()
+    await expect(priority).toHaveAccessibleDescription(/Changed\. Default: Tank duties first$/)
+    // Their defaults follow the choice: off, and not marked as changed.
+    for (const name of DUTIES) {
+      const control = tab.getByRole('switch', { name, exact: true })
+      await expect(control).not.toBeChecked()
+      await expect(control).not.toHaveAccessibleDescription(/Changed/)
+      await expect(control).toHaveAccessibleDescription(/Off by default with Max TPS/)
+    }
+    // Heroic Strike's threshold follows it too: 50 rage.
+    const fillers = tab.getByRole('region', { name: 'Fillers' })
+    await expect(fillers.getByRole('button', { name: 'Advanced settings for Fillers' })).toBeVisible()
+    await fillers.getByRole('button', { name: 'Advanced settings for Fillers' }).click()
+    const heroicStrike = fillers.getByRole('textbox', { name: 'Heroic Strike from' })
+    await expect(heroicStrike).toHaveValue('50')
+    await expect(heroicStrike).toHaveAccessibleDescription(/^Queue it at or above this much rage\. With Max TPS it’s 50 by default/)
+
+    // The Buffs tab's Thunder Clap counts again, as another warrior's: no longer kept up by you.
+    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+    const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
+    const thunderClap = buffs.getByRole('switch', { name: 'Thunder Clap', exact: true })
+    await expect(thunderClap).toBeChecked()
+    await expect(thunderClap).toBeEnabled()
+    await expect(thunderClap).not.toHaveAccessibleDescription(/You keep it up yourself/)
+    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+
+    // A switch you turn back on stays on, marked against its Max TPS default.
+    const shieldBlock = tab.getByRole('switch', { name: 'Shield Block', exact: true })
+    await shieldBlock.click()
+    await expect(shieldBlock).toBeChecked()
+    await expect(shieldBlock).toHaveAccessibleDescription(/Changed\. Default: off$/)
+    // The priority's own Reset brings the duties back, and keeps what you set.
+    await tab.getByRole('button', { name: 'Reset Priority, default Tank duties first' }).click()
+    await expect(priority.getByRole('radio', { name: 'Tank duties first' })).toBeChecked()
+    await expect(priority.getByRole('radio', { name: 'Tank duties first' })).toBeFocused()
+    for (const name of DUTIES) await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+    await expect(shieldBlock).not.toHaveAccessibleDescription(/Changed/)
+    // Advanced opens afresh on each visit to the tab (docs/ux.md "Rotation").
+    await fillers.getByRole('button', { name: 'Advanced settings for Fillers' }).click()
+    await expect(heroicStrike).toHaveValue('65')
+  })
+
+  test('a Max TPS run makes more threat and less damage than the default, and says so', async ({ page }) => {
+    const tab = await openProtectionRotation(page)
+    const results = page.getByRole('complementary', { name: 'Results' })
+    const run = async () => {
+      await results.getByRole('button', { name: /^(Simulate|Run again)$/ }).click()
+      await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
+    }
+    await run()
+    await tab.getByRole('radiogroup', { name: 'Priority' }).getByRole('radio', { name: 'Max TPS' }).click()
+    await expect(results.getByRole('group', { name: 'TPS' })).toContainText('Setup changed')
+    await run()
+    const heard = (metric: string) => results.getByRole('group', { name: metric }).getByText(HEARD_CHANGE)
+    await expect(heard('TPS')).toHaveText(/^up [\d,]+\.\d from the last run, better$/)
+    await expect(heard('DPS')).toHaveText(/^down [\d,]+\.\d from the last run, worse$/)
+    // The rows it dropped are gone from the threat breakdown; Sunder Armor and Revenge are there.
+    const breakdown = results.getByRole('region', { name: 'Threat by ability' })
+    const row = (name: string) => breakdown.getByRole('listitem').filter({ hasText: name })
+    await expect(row('Sunder Armor')).toHaveCount(1)
+    await expect(row('Revenge')).toHaveCount(1)
+    for (const name of ['Shield Slam', 'Thunder Clap', 'Demoralizing Shout']) await expect(row(name)).toHaveCount(0)
+  })
+})
+
+test.describe('Protection rotation on a phone', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
+
+  test('the priority is a full-width choice with 44 px targets, inside the screen', async ({ page }) => {
+    const tab = await openProtectionRotation(page)
+    const priority = tab.getByRole('radiogroup', { name: 'Priority' })
+    const group = (await priority.boundingBox())!
+    expect(group.x).toBeGreaterThanOrEqual(16)
+    expect(group.x + group.width).toBeLessThanOrEqual(390 - 16)
+    const [duties, max] = [priority.getByRole('radio', { name: 'Tank duties first' }), priority.getByRole('radio', { name: 'Max TPS' })]
+    for (const item of [duties, max]) {
+      const box = (await item.boundingBox())!
+      expect(box.height).toBeGreaterThanOrEqual(44)
+      expect(box.width).toBeGreaterThanOrEqual(44)
+    }
+    // Side by side, filling the row between them.
+    const [a, b] = [(await duties.boundingBox())!, (await max.boundingBox())!]
+    expect(a.y).toBeCloseTo(b.y, 0)
+    expect(b.x + b.width - a.x).toBeGreaterThan(group.width - 2)
+
+    await max.tap()
+    await expect(max).toBeChecked()
+    await expect(tab.getByRole('switch', { name: 'Thunder Clap', exact: true })).not.toBeChecked()
+    // Its default and Reset sit under the help: the Reset's hit area (its ::after) is 44 px tall
+    // and ends above the choice (docs/ux.md "Rotation", LINK_HIT_AREA).
+    const reset = tab.getByRole('button', { name: 'Reset Priority, default Tank duties first' })
+    await expect(reset).toBeVisible()
+    const area = await reset.evaluate((el) => {
+      el.scrollIntoView({ block: 'center' })
+      const box = el.getBoundingClientRect()
+      const after = getComputedStyle(el, '::after')
+      return { top: box.top + Number.parseFloat(after.top), bottom: box.bottom - Number.parseFloat(after.bottom) }
+    })
+    expect(area.bottom - area.top).toBeGreaterThanOrEqual(44)
+    expect(area.bottom).toBeLessThanOrEqual((await duties.boundingBox())!.y)
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+    expect(overflow, 'no horizontal page scroll').toBeLessThanOrEqual(0)
+  })
+})

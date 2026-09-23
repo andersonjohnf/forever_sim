@@ -44,9 +44,9 @@ export { CRUSH_MIN_LEVEL_GAP, DEFENSE_PER_POINT, mobSkill, PLAYER_LEVEL } from '
 
 /**
  * Specs whose sim and UI are complete (docs/ux.md principle 8): Fury from M2.2c, Arms from M2.3c,
- * the Feral cat from B2, Retribution from C2.
+ * Protection, the first tank, from P2, the Feral cat from B2, Retribution from C2.
  */
-const AVAILABLE: ReadonlySet<SpecId> = new Set(['warrior-fury', 'warrior-arms', 'druid-feral-cat', 'paladin-retribution'])
+const AVAILABLE: ReadonlySet<SpecId> = new Set(['warrior-fury', 'warrior-arms', 'warrior-protection', 'druid-feral-cat', 'paladin-retribution'])
 
 /**
  * Every spec with its engine-declared options. `available` flips when the spec's sim and UI are

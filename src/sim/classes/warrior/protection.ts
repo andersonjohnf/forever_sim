@@ -115,7 +115,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     kind: 'choice',
     id: ID.priority,
     label: 'Priority',
-    help: 'Tank duties first keeps Shield Block, Thunder Clap’s slow and Demoralizing Shout up, which keep you alive and weaken the boss for the raid, and Shield Slam for its damage. Max TPS drops all four for threat alone: about 12% more TPS and 28% less DPS in the default setup. The Buffs tab’s Thunder Clap and Demoralizing Shout then count, as another warrior’s.',
+    help: 'Tank duties first keeps up Shield Block, for your survival, and Thunder Clap’s slow and Demoralizing Shout, for the raid, and uses Shield Slam for its damage. Max TPS drops all four for threat alone: about 12% more TPS and 28% less DPS in the default setup. The Buffs tab’s Thunder Clap and Demoralizing Shout then count, as another warrior’s.',
     choices: [
       { value: PROTECTION_PRIORITY.duties, label: 'Tank duties first' },
       { value: PROTECTION_PRIORITY.maxTps, label: 'Max TPS' },
@@ -214,7 +214,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.fillerEnabled,
     group: 'Fillers',
     label: 'Sunder Armor filler',
-    help: 'Fill every other global cooldown with Sunder Armor for its threat.',
+    help: 'Fill each global cooldown the abilities above leave free with Sunder Armor, for its threat.',
     default: true,
     maintainsBuff: 'sunderArmor',
   },

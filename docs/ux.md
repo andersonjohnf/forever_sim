@@ -28,7 +28,7 @@ When a design decision isn't covered here, make it, then add it here.
 8. **Only finished specs ship.** A spec appears in the spec picker only when its sim and UI
    are complete. Nothing is visibly "coming soon". To see and test one before it ships, a dev
    build, or a browser under automation (the e2e tests, `npm run snap`), offers it too when the
-   URL names it: `?preview=warrior-protection` (`src/app/preview-specs.ts`). A visitor's browser
+   URL names it: `?preview=paladin-protection` (`src/app/preview-specs.ts`). A visitor's browser
    ignores the parameter.
 
 ## Layout
@@ -46,11 +46,12 @@ and the **spec switcher**, which shows the class icon and spec in the class colo
 44 px tall.
 
 **About & data** opens a sheet that starts with what the app is, without naming specs ("A DPS
-simulator for WoW Forever", and "A DPS and TPS simulator" once a tank spec ships), then the specs
-it covers on their own line, one class at a time ("Covers Warriors: Fury and Arms · Druids:
-Feral (Cat) · Paladins: Retribution"), which grows as specs ship (principle 8). The page's meta
-and Open Graph descriptions in `index.html` carry the same description line and change only when
-the first tank spec ships; an e2e test compares them.
+and TPS simulator for WoW Forever", since Protection, the first tank spec, shipped; "A DPS
+simulator" while only DPS specs did), then the specs it covers on their own line, one class at a
+time ("Covers Warriors: Fury, Arms and Protection · Druids: Feral (Cat) · Paladins:
+Retribution"), which grows as specs ship (principle 8). The page's meta and Open Graph
+descriptions in `index.html` carry the same description line, so they changed once, when the
+first tank spec shipped; an e2e test compares them.
 
 **Section tabs** are 44 px tall. When they scroll sideways, a fade marks each edge with more
 tabs past it (none at an end), and the chosen tab scrolls into view clear of the fades, as does
@@ -106,8 +107,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     ("Advanced, 1 changed"), so Classic Era rules are never out of sight.
 - **Talents.**
   - A preset menu with the documented builds (its class doc) of the specs the app offers, so it
-    grows as specs ship (principle 8): no Protection builds until Protection does, and a druid
-    sees the Feral cat's build but no bear build until the bear ships. The spec
+    grows as specs ship (principle 8): a druid sees the Feral cat's build but no bear build
+    until the bear ships, and a paladin sees Retribution's but not yet Protection's. The spec
     default is selected. Only the current spec's default is marked "(default)"; another spec's
     reads plainly ("Arms default"), so the menu never shows two defaults.
   - Interactive trees: three side by side on desktop, one tab per tree on mobile (a segmented
@@ -221,16 +222,26 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   itself, so it moves focus to the first setting, the next control after it.
   - The intro says what the defaults are, per spec: "tuned for the default setup" once a slice
     has tuned them ([D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
-    Arms since M2.5a, Fury since M2.5b, the Feral cat since B2, Retribution since C2), "the common
-    priority" for a spec until then. The cat's also says there's no powershifting, and why
-    ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
+    Arms since M2.5a, Fury since M2.5b, the Feral cat since B2, Protection since P1, Retribution
+    since C2), "the common priority" for a spec until then. The cat's also says there's no
+    powershifting, and why ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
     since a Classic Era feral would look for it.
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
     **Consumables**, in that order. Under each heading the settings keep the spec's priority
-    order (warrior.md §5.2, §5.3). The spec gives each setting its heading
-    (`RotationOption.group`). The few settings that shape the rest (Arms' stance) have no
-    heading and come first.
+    order (warrior.md §5.2–§5.4). The spec gives each setting its heading
+    (`RotationOption.group`). The few settings that shape the rest (Arms' stance, Protection's
+    priority) have no heading and come first. A heading holds at least two settings: a spec
+    with only one for a phase files it under another heading, its help naming the phase
+    (Protection's Execute, under Core abilities).
+  - **A tank's priority** ([D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
+    a choice at the top, **Tank duties first** (the default) or **Max TPS**. Its help names the
+    duties Max TPS drops (Shield Block, Thunder Clap's slow and Demoralizing Shout for a warrior,
+    and Shield Slam), why the default keeps them (your survival, the raid's debuffs on the boss
+    and your damage), what Max TPS gains and costs in the default setup, and that the Buffs tab's
+    Thunder Clap and Demoralizing Shout then count, as another warrior's. Choosing it moves only
+    defaults, like Arms' stance below: the dropped switches show off and unmarked, each one's
+    help says "Off by default with Max TPS", and a value you set yourself stays set.
   - A setting that depends on another under the same heading sits under it, indented on a
     rule (Heroic Strike's rage threshold under Heroic Strike, "Save the last Death Wish for
     the end" under Death Wish). A dependent switch works the same way as a dependent number
@@ -251,7 +262,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - A choice between a few named values (Arms: the stance it fights in) is a segmented control
     (a toggle group, like the Fight tab's position), full width on a phone, labelled by its row.
   - A setting's default can follow the talents or another setting (Arms: Rend is on by default
-    with Bloodthrill; Berserker Stance turns Whirlwind on and Rend and Overpower off). The tab
+    with Bloodthrill; Berserker Stance turns Whirlwind on and Rend and Overpower off; Protection's
+    Max TPS turns four switches off and moves Heroic Strike's threshold). The tab
     shows the value the sim will use, the help says what it follows, and a value you set stays
     set until you reset it.
   - **Changed settings are marked.** A setting that differs from its default for this setup
@@ -433,7 +445,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     Expertise, Strength | Agility, Stamina | Intellect, Health | Mana, Spirit | Mana per 5 s, then
     Haste | Armor. Each label fits on one line at 390 px.
   - Defense, dodge, parry, block and block value join them for a tank, and for anyone with
-    defense above 300 or block value. A tank's add **Crit reduction (boss's crits)** after
+    defense above 300 or block value. A tank's sheet adds **Crit reduction (boss's crits)** after
     Defense, on a row of its own, since your own Crit is a few rows above: how much defense lowers
     the boss's crit chance, 0.04% a point above 300 ("5.6%" at 440, where a raid boss can't crit
     you; a minus sign below 300, where it raises it;

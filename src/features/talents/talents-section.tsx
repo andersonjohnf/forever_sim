@@ -39,8 +39,8 @@ export function TalentsSection() {
   const ranks = useMemo(() => safeDecode(data, code), [data, code])
   const perTree = pointsPerTree(data, ranks)
   const spent = totalPoints(ranks)
-  // Only the builds of specs the app offers (docs/ux.md principle 8): no Protection builds until
-  // Protection ships, and the menu grows as specs do.
+  // Only the builds of specs the app offers (docs/ux.md principle 8): no paladin or druid builds
+  // until those specs ship, and the menu grows as specs do.
   // "(default)" marks only this spec's default build; another spec's reads plainly ("Arms
   // default"), so the menu has one default (TU10).
   const presets = useMemo(() => {

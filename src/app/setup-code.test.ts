@@ -137,9 +137,9 @@ describe('reading a code', () => {
   })
 
   test('a setup for a spec the sim doesn’t cover says so', async () => {
-    expect(await readSetupCode(await packSetup(fresh('warrior-protection')))).toEqual({
+    expect(await readSetupCode(await packSetup(fresh('paladin-protection')))).toEqual({
       ok: false,
-      error: 'That setup is for a Protection Warrior. This sim doesn’t cover that spec.',
+      error: 'That setup is for a Protection Paladin. This sim doesn’t cover that spec.',
     })
   })
 })

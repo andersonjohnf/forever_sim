@@ -300,8 +300,9 @@ Era's) start in view rather than under the tabs.
     below 375 px wide it leaves out the ± values, which the results sheet still shows.
 - **Damage taken** (tank specs, [encounter §5](mechanics/encounter.md#5-boss-melee-tank-modeling)):
   the first section under the headline card, above the breakdown, since it has no headline of
-  its own (`src/features/results/tank-results.tsx`). It shows for a tank whatever the result, "No
-  main-hand weapon" included, since the boss hits you either way.
+  its own (`src/features/results/tank-results.tsx`). It stays short, so the breakdown is still near
+  the top. It shows for a tank whatever the result, "No main-hand weapon" included, since the boss
+  hits you either way.
   - Its heading is "Damage taken per second", and under it the value with its ± 95% CI and its
     change from the previous run, as in the headline but smaller. Less is better here, so a drop
     is green (▼ −12.3) and a rise red (▲ +12.3); the arrow and sign still say which way it went,
@@ -309,12 +310,6 @@ Era's) start in view rather than under the tabs.
   - A line says what it counts and what drove it: "After your armor, block and other mitigation.
     The boss swung 80.5 times a fight, set to hit for 4,500 to 5,500 before armor (Fight →
     Advanced)." The swings include parry-hastened ones; a fixed swing size reads "5,000".
-  - **How the boss's swings landed:** the seven outcomes of its one roll (miss, dodge, parry,
-    block, crit, crushing, hit; [combat-tables §8](mechanics/combat-tables.md#8-boss--player-tanks))
-    as shares of its swings in the fights run, each with a share bar like the breakdown's. They sit
-    in two columns filled downwards, so what spares you (miss, dodge, parry, block) is on the left
-    and what lands in full (crit, crushing, hit) on the right, and a screen reader hears them in
-    the roll's order, as a list named by that label.
 - **Breakdown:** a per-ability damage share bar, then casts, hit/crit/miss/dodge/glance
   percentages and average hit.
   - A **bleed's** row counts its applications and its ticks apart, so its outcomes read
@@ -328,6 +323,13 @@ Era's) start in view rather than under the tabs.
     choice is remembered for the browser session. The heading, the order, the share bars and
     the per-second values follow the chosen metric. Abilities that add nothing to it are left
     out: a talent that only gives rage makes threat but no damage.
+- **How the boss's swings landed** (tank specs): the section after the breakdown. The seven
+  outcomes of its one roll (miss, dodge, parry, block, crit, crushing, hit;
+  [combat-tables §8](mechanics/combat-tables.md#8-boss--player-tanks)) as shares of its swings in
+  the fights run, each with a share bar like the breakdown's. They sit in two columns filled
+  downwards, so what spares you (miss, dodge, parry, block) is on the left and what lands in full
+  (crit, crushing, hit) on the right, and a screen reader hears them in the roll's order. Its
+  heading names the list, so the list has no name of its own to read twice.
 - **Cooldowns and buffs:** a collapsed section, like the character sheet. It's a table with
   one row per cast the rotation can press (Battle Shout if you keep it up, Death Wish,
   Recklessness, Bloodrage, racials, on-use trinkets, consumables), in the rotation's order, and

@@ -17,7 +17,8 @@ const OUTCOME_GRID = 'grid grid-flow-col grid-cols-2 grid-rows-4 gap-x-6 text-sm
 
 /**
  * Damage taken per second with its ± 95% CI and its change from the previous run (lower is
- * better), then how the boss's swings landed in the fights run, as shares with bars.
+ * better), and what it counts. It comes first under the headline card, since it has no headline
+ * of its own; how the swings landed follows the breakdown (`SwingOutcomes`).
  */
 export function DamageTaken({
   tank,
@@ -31,45 +32,52 @@ export function DamageTaken({
   fight: FightConfig | null
 }) {
   const headingId = useId()
-  const listId = useId()
   return (
-    <section aria-labelledby={headingId} className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1">
-        <h3 id={headingId} className="text-sm font-medium">
-          Damage taken per second
-        </h3>
-        <span className="flex flex-wrap items-baseline gap-x-2">
-          <span className="text-2xl font-semibold tracking-tight tabular-nums">{formatOne(tank.dtps.mean)}</span>
-          <span className="text-sm text-muted-foreground tabular-nums">± {formatOne(tank.dtps.ci95)}</span>
-          <Delta value={tank.dtps.mean} previous={previous} lowerIsBetter className="text-sm" />
-        </span>
-        {/* The swing size is the Fight setting's; attack-power debuffs on the boss lower it in the fight. */}
-        <p className="text-xs text-muted-foreground tabular-nums">
-          After your armor, block and other mitigation. The boss swung {formatOne(tank.bossSwingsPerFight)} times a fight
-          {fight ? `, set to hit for ${swingDamageText(fight.boss)} before armor (Fight → Advanced)` : ''}.
-        </p>
-      </div>
-      <div className="flex flex-col gap-2">
-        <p id={listId} className="text-xs font-medium text-muted-foreground">
-          How the boss’s swings landed
-        </p>
-        <ul aria-labelledby={listId} className={cn(OUTCOME_GRID, 'gap-y-2')}>
-          {BOSS_OUTCOMES.map(([key, label]) => {
-            const share = tank.outcomes[key]
-            return (
-              <li key={key} className="flex min-w-0 flex-col gap-1">
-                <span className="flex items-baseline justify-between gap-2">
-                  <span className="text-muted-foreground">{label}</span>
-                  <span className="tabular-nums">{formatPct(share)}</span>
-                </span>
-                <span className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
-                  <span className={cn('block h-full rounded-full bg-primary', DIM_FILL)} style={{ width: `${Math.min(100, share)}%` }} />
-                </span>
-              </li>
-            )
-          })}
-        </ul>
-      </div>
+    <section aria-labelledby={headingId} className="flex flex-col gap-1">
+      <h3 id={headingId} className="text-sm font-medium">
+        Damage taken per second
+      </h3>
+      <span className="flex flex-wrap items-baseline gap-x-2">
+        <span className="text-2xl font-semibold tracking-tight tabular-nums">{formatOne(tank.dtps.mean)}</span>
+        <span className="text-sm text-muted-foreground tabular-nums">± {formatOne(tank.dtps.ci95)}</span>
+        <Delta value={tank.dtps.mean} previous={previous} lowerIsBetter className="text-sm" />
+      </span>
+      {/* The swing size is the Fight setting's; attack-power debuffs on the boss lower it in the fight. */}
+      <p className="text-xs text-muted-foreground tabular-nums">
+        After your armor, block and other mitigation. The boss swung {formatOne(tank.bossSwingsPerFight)} times a fight
+        {fight ? `, set to hit for ${swingDamageText(fight.boss)} before armor (Fight → Advanced)` : ''}.
+      </p>
+    </section>
+  )
+}
+
+/**
+ * How the boss's swings landed in the fights run, as shares with bars, in the table's roll order.
+ * Its heading names the list, so the list itself carries no second name.
+ */
+export function SwingOutcomes({ tank }: { tank: TankResult }) {
+  const headingId = useId()
+  return (
+    <section aria-labelledby={headingId} className="flex flex-col gap-2">
+      <h3 id={headingId} className="text-sm font-medium">
+        How the boss’s swings landed
+      </h3>
+      <ul className={cn(OUTCOME_GRID, 'gap-y-2')}>
+        {BOSS_OUTCOMES.map(([key, label]) => {
+          const share = tank.outcomes[key]
+          return (
+            <li key={key} className="flex min-w-0 flex-col gap-1">
+              <span className="flex items-baseline justify-between gap-2">
+                <span className="text-muted-foreground">{label}</span>
+                <span className="tabular-nums">{formatPct(share)}</span>
+              </span>
+              <span className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
+                <span className={cn('block h-full rounded-full bg-primary', DIM_FILL)} style={{ width: `${Math.min(100, share)}%` }} />
+              </span>
+            </li>
+          )
+        })}
+      </ul>
     </section>
   )
 }

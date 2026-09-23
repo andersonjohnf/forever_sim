@@ -18,6 +18,8 @@ const WITH_CHANGE = /± \d[\d,]*\.\d\s*[+−]\d[\d,]*\.\d/
 const OUTCOMES = ['Miss', 'Dodge', 'Parry', 'Block', 'Crit', 'Crushing', 'Hit']
 /** What a screen reader hears of a change from the last run (docs/ux.md#results). */
 const HEARD_CHANGE = /^(up|down) [\d,]+\.\d from the last run, (better|worse)$/
+/** The section after the breakdown with the boss's swings as they landed. */
+const LANDED = 'How the boss’s swings landed'
 
 async function openProtection(page: Page) {
   await page.goto(PROTECTION)
@@ -98,12 +100,17 @@ test.describe('tank results', () => {
     await expect(taken).toContainText(
       /After your armor, block and other mitigation\. The boss swung \d+\.\d times a fight, set to hit for 4,500 to 5,500 before armor \(Fight → Advanced\)\./,
     )
-    // It comes first, above the breakdown.
+    // Damage taken comes first, above the breakdown, and how the swings landed after it (TU6).
     const breakdown = results.getByRole('region', { name: /by ability$/ })
+    const landedSection = results.getByRole('region', { name: LANDED })
     expect((await taken.boundingBox())!.y).toBeLessThan((await breakdown.boundingBox())!.y)
+    expect((await breakdown.boundingBox())!.y).toBeLessThan((await landedSection.boundingBox())!.y)
+    // Its heading names it once; the list has no second name to read (TU9).
+    await expect(landedSection.getByRole('heading', { name: LANDED, level: 3 })).toBeVisible()
+    await expect(landedSection.getByRole('list')).toHaveAccessibleName('')
 
     // Every outcome of the boss's one roll, in its order, as shares of its swings.
-    const landed = taken.getByRole('list', { name: 'How the boss’s swings landed' }).getByRole('listitem')
+    const landed = landedSection.getByRole('listitem')
     const shares = await outcomes(landed)
     expect(shares.map(([label]) => label)).toEqual(OUTCOMES)
     const total = shares.reduce((n, [, share]) => n + share, 0)
@@ -184,7 +191,7 @@ test.describe('tank results', () => {
     await simulate(results)
     await expect(table).toContainText('Crushing blows are off for this fight (Fight → Advanced).')
     expect((await outcomes(table.locator('dl > div')))[5]).toEqual(['Crushing', 0])
-    const landed = results.getByRole('list', { name: 'How the boss’s swings landed' }).getByRole('listitem')
+    const landed = results.getByRole('region', { name: LANDED }).getByRole('listitem')
     expect((await outcomes(landed))[5]).toEqual(['Crushing', 0])
   })
 
@@ -274,7 +281,7 @@ test.describe('tank results on a phone', () => {
 
     const taken = sheet.getByRole('region', { name: 'Damage taken per second' })
     await expect(taken).toContainText(VALUE_WITH_CI)
-    const landed = taken.getByRole('list', { name: 'How the boss’s swings landed' }).getByRole('listitem')
+    const landed = sheet.getByRole('region', { name: LANDED }).getByRole('listitem')
     expect((await outcomes(landed)).map(([label]) => label)).toEqual(OUTCOMES)
     // Two columns, filled down: the four that spare you on the left, then crit, crushing and hit.
     const boxes = await Promise.all((await landed.all()).map((item) => item.boundingBox()))

@@ -351,8 +351,12 @@ Era's) start in view rather than under the tabs.
   - **Item quality** colors: Uncommon `#1EFF00`, Rare `#0070DD`, Epic `#A335EE`, darkened as
     needed to meet AA contrast on light backgrounds.
   - Color never carries meaning alone; always pair it with a label, sign or icon.
-- **Controls** meet 3:1 against what's behind them (WCAG 1.4.11), in both themes. An unchecked
-  switch's track uses its own token, `--switch-off`, rather than the input border color.
+- **Controls** meet 3:1 against what's behind them (WCAG 1.4.11), in both themes. Text fields,
+  selects, segmented choices and outline buttons draw their edge with `--input`: a mid gray in
+  light mode (3.6:1 on the page and cards, 3.3:1 on muted rows) and white at 38% in dark mode
+  (3.5:1 and 3.4:1), whose fields fill with 30% of it. An unchecked switch's track uses its own
+  token, `--switch-off`, rather than the input border color. Cards and dividers keep the fainter
+  `--border`: they separate content and aren't controls.
 - **The focus ring** meets 3:1 too. The shadcn components draw it at half strength
   (`ring-ring/50`), so the `--ring` token is near-black in light mode and light gray in dark
   mode, which puts the composited ring at about 3.7:1 or more on the page, on cards and

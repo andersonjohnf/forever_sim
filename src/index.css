@@ -72,7 +72,12 @@
     --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.577 0.245 27.325);
     --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
+    /*
+     * The edge of a control: text fields, selects, segmented choices and (below) outline buttons.
+     * Dark enough to meet 3:1 on the page and cards (3.6:1) and on muted rows (3.3:1), where the
+     * stock oklch(0.922) gave 1.26:1 (WCAG 1.4.11, docs/ux.md#accessibility, UX13).
+     */
+    --input: oklch(0.62 0 0);
     /*
      * The focus ring. shadcn draws it at half strength (ring-ring/50), so the token is dark enough
      * that the ring clears 3:1 at 50% over the page, cards and muted rows (WCAG 1.4.11, U33): here
@@ -126,7 +131,11 @@
     --accent-foreground: oklch(0.985 0 0);
     --destructive: oklch(0.704 0.191 22.216);
     --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
+    /*
+     * White at 38%: 3.5:1 on the page and cards and 3.4:1 on muted rows, where 15% gave about
+     * 1.5:1. Fields fill with 30% of it, so their fill lightens too, to about the muted surface.
+     */
+    --input: oklch(1 0 0 / 38%);
     /* Light enough that the half-strength ring clears 3:1 on the page, cards and muted rows (about 3.7–3.9:1). */
     --ring: oklch(0.87 0 0);
     --chart-1: oklch(0.87 0 0);
@@ -180,6 +189,13 @@
    */
   [data-slot='switch'] {
     --input: var(--switch-off);
+  }
+  /*
+   * An outline button's edge is --border in light mode (shadcn's), too faint for a control. It
+   * takes the control edge instead, as it already does in dark mode, so a stepper matches its field.
+   */
+  [data-slot='button'][data-variant='outline'] {
+    --border: var(--input);
   }
 }
 

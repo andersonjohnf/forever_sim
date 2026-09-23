@@ -906,8 +906,9 @@ Notes:
   Strikes on every main-hand swing under Recklessness's crits, where a phase that short would
   leave it to a few Executes. It gains 5.2% in 30 s fights with a 10% phase, 3.5% with a 20% one,
   1.8–3.3% at 45 s, 0.8–2.3% at 60 s and 1.0% at 90 s with 10%, and 0.01–0.5% around the 14.5 s
-  line (70–80 s with a 20% phase, 120–150 s with 10%). It changes nothing elsewhere, the default
-  fight included (below). Drinking it with Recklessness whatever the phase lost from about 75 s
+  line (70–80 s with a 20% phase, 120–150 s with 10%). Elsewhere, the default fight included, it
+  changes only a few same-millisecond ties at 20 s left, in a handful of fights per 100,000, well
+  under 0.001 DPS (below). Drinking it with Recklessness whatever the phase lost from about 75 s
   with a 20% phase up: −0.75% at 180 s (the M2.5b review's probe).
   **Without an execute phase, or with Execute off**, no Execute will empty the bar, so it's drunk
   in the last 20 s at up to that same limit, as long as its +60 Strength lasts, where the phase
@@ -992,8 +993,8 @@ on seed 5201 (`node scripts/tune/rotation.mjs --spec warrior-fury --fights 40000
   | 300 s | +35.41 (+35.26 to +35.56), +5.67% | +38.81 (+38.66 to +38.97), +6.01% | +40.34 (+40.17 to +40.50), +6.09% |
 
   Before that rule, the frozen winner's 30–90 s cells with a 10% phase and 30–60 s cells with a
-  20% phase gained 4.1–5.0% (30 s and 10%: +37.49, +37.03 to +37.94, +4.10%); the other cells are
-  the same fights with the same result.
+  20% phase gained 4.1–5.0% (30 s and 10%: +37.49, +37.03 to +37.94, +4.10%); in the other cells
+  it changes only a few same-millisecond ties (below).
 
   In the default fight (seed 5203, 200,000 fights): Orc (Blood Fury, its faction's gear) +43.10
   (+42.90 to +43.31), +6.49%; Troll (Berserking) +42.42 (+42.22 to +42.63), +6.38%; Night Elf
@@ -1028,8 +1029,11 @@ on seed 5201 (`node scripts/tune/rotation.mjs --spec warrior-fury --fights 40000
   Around the 14.5 s line: 70, 75 and 80 s with a 20% phase +0.22%, +0.06%, +0.00% (+0.03, +0.01
   to +0.05), and 120, 135 and 150 s with 10% +0.51%, +0.17%, +0.01% (+0.07, +0.03 to +0.11);
   all clear the bar. Every other cell of the grid (no phase, 90 s with 20%, 180 and 300 s) and
-  165 s with 10% are the same fights with the same result, and so is the default setup: Δ 0.00
-  over 400,000 fights on seed 5303. The golden run doesn't move.
+  165 s with 10% differ only by a few same-millisecond ties, and so does the default setup: Δ 0.00
+  over 400,000 fights on seed 5303, where 7 fights differ, most by one rage moving between two
+  Executes (a mean of +0.00004 DPS). The potion line's
+  wake-up at 20 s left can land in the same millisecond as a Bloodrage tick, and then the
+  rotation walks first (the M2.5b verification's FV1). The golden run doesn't move.
 - **Not adopted** (on top of the frozen winner, seed 5206, 200,000 fights, unless it says
   otherwise):
   - **Charge in** (`prepull.charge`): +2.79 (+2.58 to +3.00), and **your own Battle Shout off**:

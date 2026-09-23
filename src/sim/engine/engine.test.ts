@@ -452,7 +452,8 @@ describe('golden run (fixed config and seed)', () => {
   //   3 s before the execute phase and Recklessness 1.5 s before it (they came with 30 s and 15 s
   //   left); the Mighty Rage Potion at 0 rage in the phase (55), once an
   //   Execute has emptied the bar. Recklessness's clock (16 s, was 15), the potion's last chance and
-  //   its wait for Recklessness without a phase don't act in the default fight. Over 400,000 paired
+  //   its wait for Recklessness without a phase don't act in the default fight, nor does the review's
+  //   potion with a Recklessness that came by its clock (FL1). Over 400,000 paired
   //   fights on a seed the search never used, +42.88 DPS (+6.39%, 670.62 → 713.50, 95% CI ± 0.15).
   //   On this seed's 1,000 fights: Overpower is a new row (12,279 casts, 590 damage each on
   //   average) and Hamstring's is gone (578 casts); Heroic Strike 17,815 → 13,450 casts, so more

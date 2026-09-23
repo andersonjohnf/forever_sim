@@ -32,4 +32,8 @@ describe('the plan’s code tables', () => {
     expect(TRIGGER_COUNT).toBe(14)
     expect([ACTION.spell, ACTION.mana]).toEqual([5, 6])
   })
+
+  it('executeWithin’s opposite, executeNotWithin (Fury’s potion, M2.5b), takes 29, after the codes the other tracks hold', () => {
+    expect(COND.executeNotWithin).toBe(29)
+  })
 })

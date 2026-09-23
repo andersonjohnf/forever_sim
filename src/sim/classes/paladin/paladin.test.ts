@@ -565,6 +565,22 @@ describe('the default setups', () => {
     expect(ids('paladin-protection')).not.toContain('damageTakenRage')
   })
 
+  it('have no rage: no pool, and no rage from hits dealt or taken, even while tanking (rage.md#rage-from-damage-taken)', () => {
+    for (const spec of ['paladin-retribution', 'paladin-protection'] as const) {
+      const { plan, assumptions } = buildPlan(defaultConfig(spec))
+      expect(plan.rage.maxTenths).toBe(0)
+      expect(plan.rage.fromDamageTaken).toBe(false)
+      const ids = assumptions.map((a) => a.id)
+      const rageNotes = ['foreverWhiteRage', 'foreverOffHandRage', 'bearWhiteRage', 'damageTakenRage', 'damageTakenRageFlat', 'damageTakenRageHealthLost', 'abilityRefunds'] as const
+      for (const id of rageNotes) expect(ids).not.toContain(id)
+      const chunk = runChunk(plan, 0, 20)
+      expect(chunk.rageGainedTenths).toBe(0)
+      // Not even rage lost to a cap of 0: the white swings and the boss's hits never reach the pool.
+      expect(chunk.rageWastedTenths).toBe(0)
+      if (spec === 'paladin-protection') expect(chunk.damageTaken.mean).toBeGreaterThan(0)
+    }
+  })
+
   it('are deterministic: the same config and seed give the same result, another seed a different one', () => {
     for (const spec of ['paladin-retribution', 'paladin-protection'] as const) {
       const plan = buildPlan(defaultConfig(spec)).plan

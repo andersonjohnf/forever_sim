@@ -1607,7 +1607,7 @@ export class Sim {
       const a = this.rotAbility[e]
       // Off cooldown (never ready when used up, or needing a weapon the setup lacks: the
       // constructor's `abNeverReady`), with the rage for it (a druid's: its form, combo points and cost).
-      if (this.abReadyAt[a] > now || !this.affordable(a)) continue
+      if (this.abReadyAt[a] > now || (this.abPlainRage[a] === 1 ? this.rage < this.abCost[a] : !this.affordable(a))) continue
       // warrior.md §3.1 "Stance": only in the stances it's usable in, or by dancing to one (§7).
       let dance = 0
       if ((this.abStances[a] & this.stance) === 0 && (dance = this.danceFor(e, a)) === 0) continue
@@ -1962,9 +1962,13 @@ export class Sim {
       const roll = this.rngDamage.uniform(this.wMin[hand], this.wMax[hand])
       base = (roll + this.wFlat[hand] + (ap / 14) * speed + this.abFlat[a]) * this.abWeaponPct[a] * this.wHandMult[hand]
     } else {
-      base = this.abFlat[a] + this.abApCoef[a] * ap + (this.abPerExtraRage[a] * this.pool(this.abRes[a])) / 10
-      // druid.md §3.5: a finisher's damage per combo point and attack power per combo point.
-      if (this.abFinisher[a] === 1) base += this.comboPointDamage(a, ap)
+      if (this.abPlainRage[a] === 1) {
+        base = this.abFlat[a] + this.abApCoef[a] * ap + (this.abPerExtraRage[a] * this.rage) / 10
+      } else {
+        base = this.abFlat[a] + this.abApCoef[a] * ap + (this.abPerExtraRage[a] * this.pool(this.abRes[a])) / 10
+        // druid.md §3.5: a finisher's damage per combo point and attack power per combo point.
+        if (this.abFinisher[a] === 1) base += this.comboPointDamage(a, ap)
+      }
     }
     return base * this.physMult * this.armorFactor[hand]
   }

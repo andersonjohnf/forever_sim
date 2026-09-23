@@ -323,7 +323,35 @@ A fresh reviewer checked `d8d76c3`, `4a1cad3` and the dispositions above (`9264d
 Checks after the PV fixes (`7f5a8a6`): lint ✓ · typecheck ✓ · unit ✓ (939) · e2e ✓ (169, 3
 deferred to M3).
 
+## Review of the PV fixes
+
+A fresh reviewer checked `3a898bb`, `ffe271f`, `37a9643` and `7f5a8a6`.
+
+**Confirmed:**
+- lint ✓ · typecheck ✓ · unit ✓ (939) · e2e ✓ (169, 3 deferred to M3), and the two new specs
+  pass 100 of 100 under `--repeat-each=5`
+- all 12 toast-clearance tests fail on `ffe271f`, and the PV2 test fails on `84eaa8a`
+- with a waiting toast up, every scroller's last control clears it (the page at 390, 768 and
+  1280 px, the results sheet, the enchant drawer, the item picker)
+- with no toast up, every padding matches the old values
+- sonner 2.0.8 sets the `--initial-height` the toaster reads
+- `parseNumber` handles the seed's maximum with every separator, and odd input ("1e3",
+  "Infinity", other scripts' digits) is clamped or ignored as before
+- FV7's corrected numbers hold, and the copy and doc fixes are right
+
+| # | Severity | Finding | Disposition |
+| --- | --- | --- | --- |
+| QV1 | medium, blocking (pre-existing) | **A select opened near the bottom edge lists its options under a waiting toast.** Fight → Advanced → Creature type, Enter, ArrowDown: at 390 px the active option is covered by up to 135 px of its 44; at 1280 px, entirely. Zone too. ux.md says a toast never hides the focused control. The enchant popovers flip above the toast and are fine. | open |
+| QV2 | medium (pre-existing) | **Fields with a 0.1 step show float noise:** one press of − on "Whirlwind: Bloodthirst cooldown left" (1.5) shows 1.4000000000000001, and a screen reader reads all of it. 22 of the 61 values from 0 to 6, and Swing speed. Saved setups and links carry the noise; results don't. | open |
+| QV3 | low | **Whole-number fields still read a decimal comma as a thousands separator:** "2,5" in Length variation gives 25%, "1,5" in "Recklessness in the last" 15 s, though "2.5" gives 3. | open |
+| QV4 | low (new in `7f5a8a6`) | **`revealFocus` scrolls after a click when focus is in a text field,** because Chromium matches `:focus-visible` on any focused text input: click Seed while it's partly under a 10 s toast, click Undo, and the page scrolls 32 px. | open |
+| QV5 | low (new in `7f5a8a6`) | **Hovering the toasts scrolls the page:** the mouse spreads the stack out, the clearance grows, and keyboard focus is scrolled 22 px, at 1280 px even though the toasts don't overlap it. | open |
+| QV6 | low | **`--toast-wait-clearance` goes stale after a resize,** because sonner re-measures `--initial-height` only on mount or a content change: 420 → 1280 px leaves the footer link 6 px under the toast. | open |
+| QV7 | low (a PV5 trade-off) | **A taller 10 s toast in front of a waiting one covers the last control:** with "Couldn't copy the link" in front at 390 px, the stack reaches 201 px but the padding 169, so the footer link is 21 of its 44 px under it for up to 10 s. | open |
+| QV8 | low | **Over-clearance:** About at 1280 px gets 116 px of bottom padding though the toast doesn't overlap the sheet, and the desktop item picker 116 px where about 49 would do. It reads as breathing room. | open |
+| QV9 | low | **"None goes above 21" has no guard:** a future fractional field with a maximum of 1000 or more would read "1,500" as 1.5. | open |
+| QV10 | low | **The handoff is stale:** the test counts, and PV1–PV9 "being fixed". | open |
+
 ## Verdict
 
-Ready to push: not yet. The PV fixes (`3a898bb`, `ffe271f`, `37a9643`, `7f5a8a6`) await their
-independent review.
+Ready to push: not yet. The review of the PV fixes has one blocking finding (QV1).

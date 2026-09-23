@@ -47,23 +47,17 @@ test.describe('race picker', () => {
 })
 
 test.describe('faction gear on a race change', () => {
-  test('swaps PvP twins for the new faction’s, says which, and undoes', async ({ page }) => {
+  test('swaps PvP twins for the new faction’s, and a notice says which', async ({ page }) => {
     await page.goto('./')
     await expect(page.getByRole('button', { name: 'Shoulders: Lieutenant Commander\'s Plate Shoulders' })).toBeVisible()
     await page.getByRole('tab', { name: 'Character', exact: true }).click()
     await page.getByRole('radio', { name: 'Orc' }).click()
-    const toast = page.locator('[data-sonner-toast]').filter({ hasText: 'Swapped 2 items for their Horde versions' })
-    await expect(toast).toContainText('Champion\'s Plate Shoulders and Blood Guard\'s Plate Greaves, with the same stats.')
+    const notice = page.locator('[data-sonner-toast]').filter({ hasText: 'Swapped 2 items for their Horde versions' })
+    await expect(notice).toContainText('Champion\'s Plate Shoulders and Blood Guard\'s Plate Greaves, with the same stats.')
 
     await page.getByRole('tab', { name: 'Gear', exact: true }).click()
     await expect(page.getByRole('button', { name: 'Shoulders: Champion\'s Plate Shoulders' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Feet: Blood Guard\'s Plate Greaves' })).toBeVisible()
-
-    await toast.getByRole('button', { name: 'Undo' }).click()
-    await expect(page.getByRole('button', { name: 'Shoulders: Lieutenant Commander\'s Plate Shoulders' })).toBeVisible()
-    // The toast hands focus back to the Gear tab as it goes, which doesn't switch tabs.
-    await page.getByRole('tab', { name: 'Character', exact: true }).click()
-    await expect(page.getByRole('radio', { name: 'Human' })).toHaveAttribute('aria-checked', 'true')
   })
 
   test('a race on the same side changes no gear and shows no toast', async ({ page }) => {

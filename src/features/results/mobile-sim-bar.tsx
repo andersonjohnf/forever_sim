@@ -66,7 +66,7 @@ export function MobileSimBar() {
             <DrawerCloseButton />
           </DrawerHeader>
           {/* Focus in it scrolls clear of the toasts, which sit over the sheet (src/index.css). */}
-          <div className="scroll-pb-toast overflow-y-auto px-4 pb-toast-8">
+          <div className="scroll-pb-toast overflow-y-auto px-4 pb-8">
             <ResultsPanel
               variant="sheet"
               onNavigate={(then) => {

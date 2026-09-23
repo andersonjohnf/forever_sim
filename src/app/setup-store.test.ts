@@ -35,31 +35,13 @@ describe('setup store', () => {
     expect(raceOf('warrior-arms')).toBe('horde-orc')
   })
 
-  test('undoing a shared link for your other spec gives your own setup for it back', () => {
-    store().setSpec('warrior-arms')
-    setRace('horde-orc')
-    store().setSpec('warrior-fury')
+  test('a shared link for your other spec switches to it, and keeps your own current setup for its spec', () => {
     setRace('horde-tauren')
-
-    const undo = store().replace(fresh('warrior-arms', 'horde-troll'))
+    store().replace(fresh('warrior-arms', 'horde-troll'))
     expect(store().config.spec).toBe('warrior-arms')
     expect(store().config.race).toBe('horde-troll')
-    undo()
-    expect(store().config.spec).toBe('warrior-fury')
-    expect(store().config.race).toBe('horde-tauren')
-    expect(raceOf('warrior-arms')).toBe('horde-orc')
-  })
-
-  test('undo still restores both specs after switching spec in between', () => {
-    store().setSpec('warrior-arms')
-    setRace('horde-orc')
-    store().setSpec('warrior-fury')
-
-    const undo = store().replace(fresh('warrior-arms', 'horde-troll'))
-    store().setSpec('warrior-fury')
-    undo()
-    expect(store().config.spec).toBe('warrior-fury')
-    expect(raceOf('warrior-arms')).toBe('horde-orc')
+    expect(raceOf('warrior-fury')).toBe('horde-tauren')
+    expect(raceOf('warrior-arms')).toBe('horde-troll')
   })
 
   test('a shared link for your current spec leaves your other spec alone', () => {
@@ -67,25 +49,19 @@ describe('setup store', () => {
     setRace('horde-orc')
     store().setSpec('warrior-fury')
 
-    const undo = store().replace(fresh('warrior-fury', 'horde-troll'))
+    store().replace(fresh('warrior-fury', 'horde-troll'))
     expect(store().config.race).toBe('horde-troll')
-    undo()
-    expect(store().config.race).toBe(fresh('warrior-fury').race)
     expect(raceOf('warrior-arms')).toBe('horde-orc')
   })
 
-  test('without Undo, the link’s setup is kept and your own current one is saved for its spec', () => {
-    setRace('horde-tauren')
-    store().replace(fresh('warrior-arms', 'horde-troll'))
-    expect(raceOf('warrior-fury')).toBe('horde-tauren')
-    expect(raceOf('warrior-arms')).toBe('horde-troll')
-  })
-
-  test('reset’s Undo puts your setup back', () => {
+  test('reset puts the current spec back to its defaults, and leaves your other spec alone', () => {
+    store().setSpec('warrior-arms')
+    setRace('horde-orc')
+    store().setSpec('warrior-fury')
     setRace('horde-troll')
-    const undo = store().reset()
-    expect(store().config.race).toBe(fresh('warrior-fury').race)
-    undo()
-    expect(store().config.race).toBe('horde-troll')
+
+    store().reset()
+    expect(store().config).toEqual(fresh('warrior-fury'))
+    expect(raceOf('warrior-arms')).toBe('horde-orc')
   })
 })

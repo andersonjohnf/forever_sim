@@ -2,7 +2,6 @@ import { ChevronRight, RotateCcw } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
-import { undoToast } from '@/app/undo-toast'
 import { NumberField } from '@/components/number-field'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -70,18 +69,16 @@ export function RotationSection() {
   // the spec's priority order (docs/ux.md "Rotation").
   const ungrouped = options.filter((o) => o.group === undefined)
   const groups = rotationGroups.map((group) => ({ group, options: options.filter((o) => o.group === group) })).filter((g) => g.options.length > 0)
-  // Undo restores this spec's settings only, and only while that spec is still the one shown. The
-  // button disables itself, so focus moves on to the first setting, the next control after it,
-  // rather than falling to the page (docs/ux.md#accessibility).
+  // No notice: the settings change in front of you. The button disables itself, so focus moves on
+  // to the first setting, the next control after it, rather than falling to the page
+  // (docs/ux.md#accessibility).
   const resetAll = () => {
-    const { spec, rotation: previous } = useSetup.getState().config
     // Headings' thresholds may be hidden behind Advanced; their switches never are.
     const first = [...ungrouped, ...groups.flatMap((g) => g.options.filter((o) => !isAdvanced(o)))][0]
     changeAndFocus(
       () => update((c) => ({ ...c, rotation: {} })),
       () => first && controlOf(first),
     )
-    undoToast('Rotation reset to its defaults', () => update((c) => (c.spec === spec ? { ...c, rotation: previous } : c)))
   }
 
   return (

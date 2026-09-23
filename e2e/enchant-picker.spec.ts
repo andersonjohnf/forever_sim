@@ -1,8 +1,9 @@
 import { expect, test } from './fixtures.ts'
+import { pasteLink } from './links.ts'
 
 // The enchant picker (docs/ux.md "Gear"): one listbox with arrow keys, a named popover on wider
-// screens and a full-height sheet on phones, and focus back on the chip when it closes. The gear
-// flags' popovers are named too.
+// screens and a full-height sheet on phones, and focus back on the chip when it closes, or on the
+// slot if the chip has gone. The gear flags' popovers are named too.
 
 test.describe('enchant picker', () => {
   test('is a named listbox: arrow keys move, Enter picks, and focus returns to the chip', async ({ page }) => {
@@ -70,6 +71,26 @@ test.describe('enchant picker on a phone', () => {
     await expect(page.getByRole('button', { name: /^Superior Strength · .*, Hands enchant$/ })).toBeVisible()
   })
 })
+
+for (const [name, device] of [
+  ['phone', { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }],
+  ['desktop', { viewport: { width: 1280, height: 900 } }],
+] as const) {
+  test.describe(`enchant picker, ${name}`, () => {
+    test.use(device)
+
+    test('a share link that takes the slot’s item away while it’s open leaves focus on the slot', async ({ page }) => {
+      await page.goto('./')
+      await page.getByRole('button', { name: /, Hands enchant$/ }).click()
+      const picker = page.getByRole('dialog', { name: 'Hands enchant' })
+      await expect(picker.getByRole('listbox', { name: 'Hands enchants' })).toBeFocused()
+      // A link to Fury with no gear, pasted into the tab.
+      await pasteLink(page, { version: 1, spec: 'warrior-fury', gear: {} })
+      await expect(picker).toBeHidden()
+      await expect(page.getByRole('button', { name: 'Hands: empty' })).toBeFocused()
+    })
+  })
+}
 
 test('the gear flags’ popovers are named', async ({ page }) => {
   await page.goto('./')

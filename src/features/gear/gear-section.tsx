@@ -2,7 +2,6 @@ import { ChevronRight, MoreHorizontal } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
-import { undoToast } from '@/app/undo-toast'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { WowIcon } from '@/components/wow-icon'
@@ -50,7 +49,6 @@ export function GearSection() {
   const meta = useSpecMeta()
   const config = useSetup((s) => s.config)
   const update = useSetup((s) => s.update)
-  const replace = useSetup((s) => s.replace)
   const [picking, setPicking] = useState<GearSlot | null>(null)
   // Each slot's button, which takes focus back when the picker closes (docs/ux.md#accessibility).
   const slotButtons = useRef(new Map<GearSlot, HTMLButtonElement>())
@@ -58,16 +56,9 @@ export function GearSection() {
   const mainHand = config.gear.mainHand ? itemsById.get(config.gear.mainHand.itemId) : undefined
   const twoHanded = mainHand ? isTwoHand(mainHand) : false
 
-  const loadBis = () => {
-    const previous = config
-    update((c) => ({ ...c, gear: defaultConfig(c.spec, c.race).gear }))
-    undoToast('Pre-raid best in slot equipped', () => replace(previous))
-  }
-  const clearAll = () => {
-    const previous = config
-    update((c) => ({ ...c, gear: {} }))
-    undoToast('All gear removed', () => replace(previous))
-  }
+  // No notice for these: the slots change in front of you.
+  const loadBis = () => update((c) => ({ ...c, gear: defaultConfig(c.spec, c.race).gear }))
+  const clearAll = () => update((c) => ({ ...c, gear: {} }))
 
   return (
     <div className="flex flex-col gap-6">

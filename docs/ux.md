@@ -73,8 +73,9 @@ Era's) start in view rather than under the tabs.
     rewards, [items.md](data/items.md#equipping-rules)) for the new faction's twin, which has
     the same stats, and keeps the slot's enchant. A twin's class restriction counts only as
     whether this class can wear it, so a warrior's Sergeant Major's Plate Wristguards (warriors
-    and paladins) swap for First Sergeant's Plate Bracers (warriors). A toast with **Undo** names
-    the new items. An item with no twin stays, and the toast says so.
+    and paladins) swap for First Sergeant's Plate Bracers (warriors). The swap happens out of
+    sight, on the Gear tab, so a notice names the new items. An item with no twin stays, and the
+    notice says so.
   - Advanced: the rule profile (`Forever`, the default, or `Classic Era`) and the switch for
     unmeasured ratings
     ([D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
@@ -159,8 +160,8 @@ Era's) start in view rather than under the tabs.
     does a tap. The active option has a muted fill and a bar on its left in the focus ring's
     colour, which is what meets 3:1 (the fill alone is about 1.1:1). The current enchant is the
     selected option, with a check. Focus goes back to the chip when it closes, or to the slot's
-    button if the chip has gone meanwhile (an Undo took the item away). Under Classic Era rules
-    it says its values are Classic Era's, as Buffs does.
+    button if the chip has gone meanwhile (a share link pasted into the tab took the item away).
+    Under Classic Era rules it says its values are Classic Era's, as Buffs does.
   - A gear-set menu: "Pre-raid BiS" (the spec default, in the race's faction's PvP gear),
     "Empty", and later saved sets.
 - **Buffs.**
@@ -180,8 +181,7 @@ Era's) start in view rather than under the tabs.
     locked, with a note saying the rotation keeps it up, so it's never counted twice.
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
   with units, one line of help, and the default marked. **Reset rotation** (in the section
-  header, enabled once you've set anything) puts every setting back to its default, with an
-  Undo toast like the other bulk changes. Undo restores that spec's settings only. It disables
+  header, enabled once you've set anything) puts every setting back to its default. It disables
   itself, so it moves focus to the first setting, the next control after it.
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
@@ -400,60 +400,43 @@ Every view handles these states:
 - The setup is saved to `localStorage` automatically and restored on the next visit.
 - **Share** copies a URL with the compressed setup in the hash (`#s=…`). The clipboard write
   starts within the tap itself, with the link as a promise (`ClipboardItem`), because Safari
-  refuses one that follows an await. A toast says the link was copied, or that the browser
+  refuses one that follows an await. A notice says the link was copied, or that the browser
   refused and how to allow it.
 - Opening a link loads it, whether it opens a new tab or is pasted into a tab that already has
-  the app open (only the hash changes). A toast says so, and which spec it switched you to, with
-  **Undo**. Undo restores the whole previous setup, including your own saved setup for the
-  link's spec, so undoing a link for your other spec gives that spec's setup back.
-- **Toasts** sit at the bottom, just above the phone's sticky bar, so they never cover the
-  header. Their buttons are 44 px tall. A toast with Undo (`undoToast` in
-  `src/app/undo-toast.ts`) depends on how you made the change:
-  - After a tap or click it stays up 10 s, paused while it's hovered, touched or focused.
-  - After a key press (a menu item chosen with Enter, a race picked with the arrow keys) it
-    says "Press Alt+T to reach Undo" ("Option+T" on a Mac) and stays until you dismiss it, with
-    Undo, **Dismiss** or Escape. The toasts sit at the end of the page's tab order, many key
-    presses away, and 10 s isn't long enough to get there.
-  - On a touch screen (a coarse pointer), typing in a text field is the on-screen keyboard, not
-    keyboard use: Enter in the talent paste dialog on a phone raises a toast that keeps its 10 s
-    and has no Alt+T hint.
-- **One Undo at a time, and never a stale one.** Undo puts back the setup from before its own
-  change, so offered later it would also revert everything changed since, or switch spec back.
-  A new undo toast replaces the one that's up, and any other change to the setup (another
-  edit, a spec switch, a shared link) takes it away. This covers every undo toast: gear, a race
-  and its faction swap, talents, Reset rotation, Reset setup and shared links.
+  the app open (only the hash changes). It replaces your setup for the link's spec without
+  asking ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)),
+  and a notice says so, and which spec it switched you to. A link for another spec keeps your
+  setup for the spec you were on, as switching spec does.
+- **Notices.** Toasts are plain notices, with no buttons. Each goes after 10 s, paused while
+  you hover over it, touch it or reach it with Alt+T, and while the page is hidden. A swipe
+  sends one away sooner. They sit at the bottom, just above the phone's sticky bar, so they
+  never cover the header.
+  - A change gets a notice only when it happens out of sight or needs saying: a shared link
+    loaded, **Reset setup** (it changes every tab) and a race change that swapped faction gear
+    (on the Gear tab). A change you watch happen, like gear, a talent build or Reset rotation,
+    gets none.
+  - A newer notice of the same kind replaces the last, rather than stacking.
 - **A toast never hides the focused control** (WCAG 2.4.11), on the page, in a sheet under it
-  (the results sheet, About, the item and enchant pickers) or in a select's list.
-  `src/app/toaster.tsx` measures how far up the toasts reach, and `src/index.css` explains how
-  each scroller uses it.
+  (the results sheet, About, the item and enchant pickers) or in a select's list, with one
+  exception below. `src/app/toaster.tsx` measures how far up the toasts reach, and
+  `src/index.css` explains how each scroller uses it.
   - While toasts are up, the bottom scroll padding clears them, as the page's does the phone's
-    bar (`--toast-clearance`), so focus moving on under a toast that waits for Dismiss scrolls
-    clear of it.
-  - While a toast that waits is up, the bottom padding grows to match
-    (`--toast-wait-clearance`), so there's room to scroll even the last control in the
-    scrolling page or sheet clear of the toasts. It's the highest the toasts have reached
-    meanwhile, and it only rises until the waiting one goes: a taller toast in front of it is
-    cleared too, and nothing moves when a toast times out. Only a waiting toast grows it, and a
-    new window width starts it afresh.
-  - When the toasts settle higher, say the toast in front of a waiting one times out and the
-    waiting one comes to the front at full size, keyboard focus they now cover scrolls clear of
-    them. Focus stays where it is. Nothing scrolls after a tap or click, or when the mouse over
-    the toasts spreads them out.
-  - A select's list (`src/components/select-content.tsx`) keeps clear of the toasts itself. With
-    no toast up, it opens over its trigger, as shadcn's does. Opened while one is up, it drops
-    from its trigger instead, and flips above it or gets shorter and scrolls, so no option is
-    ever under a toast. It doesn't move when a toast goes while it's open.
-- **Alt+T** (Option+T) is the keyboard's way to the toasts: it moves focus to the newest toast's
-  Undo (sonner's hotkey focuses the toast list and spreads the toasts out, and
-  `src/app/toaster.tsx` moves focus on to Undo). Escape in a toast dismisses an undo toast, and
-  leaving the toasts, by Undo, Dismiss, Escape or Tab, hands focus back to where it was. From
-  the keyboard it's scrolled into view: after an Undo that lengthened the page it could
-  otherwise be off-screen.
-- **A toast stays usable over an open sheet or dialog** (the results sheet, the item picker,
-  About): a tap on Undo reaches the toast, not the sheet under it, and neither the tap nor
-  focus on the toast closes the sheet or is pulled back into its focus trap. Undo changes the
-  setup under the sheet, which stays open as it was. Escape in the toast leaves the sheet
-  open too. (`src/app/toast-layer.ts` explains how.)
+    bar (`--toast-clearance`), so focus moving on under a toast scrolls clear of it, even while
+    the toast is still sliding in.
+  - A toast that comes up over keyboard focus scrolls it clear. Focus stays where it is.
+    Nothing scrolls after a tap or click, or when the mouse over the toasts spreads them out.
+  - The bottom padding doesn't grow for a toast, so nothing moves when one goes. The exception:
+    the last control at the very end of the page or of a sheet can't scroll any higher, so it
+    can stay partly or wholly under a notice until the notice goes. On a phone that's the
+    footer's link.
+  - A select's list (`src/components/select-content.tsx`) always drops from its trigger, and
+    flips above it or gets shorter and scrolls, so no option is ever under a toast. It doesn't
+    move when a toast goes while it's open.
+- **Alt+T** (Option+T on a Mac), sonner's shortcut, moves focus to the toasts, and Tab moves
+  through them. Leaving them hands focus back to where it was.
+- **A toast stays solid over an open sheet or dialog** (the results sheet, the item picker,
+  About): a tap on it lands on the toast, not on what's under it, and neither a tap nor a swipe
+  closes the sheet. (`src/app/toast-layer.ts` explains how.)
 - Setups are versioned, so an old link still loads, or explains why it can't.
 - A link to a spec the app doesn't offer yet shows an error toast and leaves the current setup
   alone. A saved setup for such a spec is kept for later, and the default spec opens.
@@ -468,7 +451,8 @@ Every view handles these states:
 - Visible focus on everything interactive, and labels on icon-only buttons. A focused control
   is never hidden behind the sticky header, the sticky section tabs, the phone's sim bar or a
   toast, going forwards or backwards: the page's scroll padding keeps it clear of them with
-  0.5rem to spare, from their measured heights (WCAG 2.4.11).
+  0.5rem to spare, from their measured heights (WCAG 2.4.11). A toast has one exception, at the
+  very end of the page or a sheet ([Persistence and sharing](#persistence-and-sharing)).
 - Logical tab order. Sheets and dialogs trap focus and close with Escape. Phone sheets (the
   results, the item picker) also have a 44 px close button in the header's corner, as the
   About sheet and the desktop dialogs do.
@@ -483,8 +467,8 @@ Every view handles these states:
   takes focus into that tab, never leaving it on `<body>`: Gear's main hand, the weapon to add,
   or the tab's panel. From the phone's results sheet, this replaces handing focus back to
   "Show results".
-- Toasts are reachable by keyboard; see Toasts under
-  [Persistence and sharing](#persistence-and-sharing).
+- Toasts are read out as they come (a polite live region), and Alt+T reaches them from the
+  keyboard; see Notices under [Persistence and sharing](#persistence-and-sharing).
 - The page has one `<h1>`, "Forever Sim"; sections, sheets and groups use lower levels.
 - Nothing is hover-only: every tooltip's content is reachable by tap or focus.
 

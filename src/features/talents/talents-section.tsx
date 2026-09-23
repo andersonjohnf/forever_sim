@@ -4,7 +4,6 @@ import { toast } from 'sonner'
 import { useSheetFocus } from '@/app/sheet-focus'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta, visibleSpecs } from '@/app/specs'
-import { undoToast } from '@/app/undo-toast'
 import { SelectContent } from '@/components/select-content'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -35,7 +34,6 @@ export function TalentsSection() {
   const meta = useSpecMeta()
   const code = useSetup((s) => s.config.talents)
   const update = useSetup((s) => s.update)
-  const replace = useSetup((s) => s.replace)
   const data = TALENT_DATA[meta.classId]
   const ranks = useMemo(() => safeDecode(data, code), [data, code])
   const perTree = pointsPerTree(data, ranks)
@@ -60,17 +58,14 @@ export function TalentsSection() {
   const presetsRef = useRef<HTMLButtonElement>(null)
   const { returnRef: pasteRef, contentProps: importFocusProps } = useSheetFocus<HTMLButtonElement>()
 
+  // No notice for a preset, a pasted build or Clear: the trees change in front of you.
   const setRanks = (next: TalentRanksById) => update((c) => ({ ...c, talents: encodeTalentCode(data, next) }))
-  const withUndo = (message: string, change: () => void) => {
-    const previous = useSetup.getState().config
-    change()
-    undoToast(message, () => replace(previous))
-  }
+  const setCode = (talents: string) => update((c) => ({ ...c, talents }))
   const clear = () => {
     // Clear disables itself, so focus moves to the preset menu first, which now reads "Custom
     // build" (docs/ux.md#accessibility: focus never falls to the page).
     presetsRef.current?.focus()
-    withUndo('All talent points removed', () => setRanks({}))
+    setRanks({})
   }
 
   return (
@@ -89,7 +84,7 @@ export function TalentsSection() {
           value={presets.find((p) => p.code === code)?.code ?? ''}
           onValueChange={(presetCode) => {
             const preset = presets.find((p) => p.code === presetCode)
-            if (preset) withUndo(`${preset.label} build loaded`, () => update((c) => ({ ...c, talents: preset.code })))
+            if (preset) setCode(preset.code)
           }}
         >
           {/* The trigger's size attribute sets its height, so the 44 px target overrides that (docs/ux.md "Accessibility"). */}
@@ -110,9 +105,9 @@ export function TalentsSection() {
           onClick={async () => {
             try {
               await navigator.clipboard.writeText(code)
-              toast.success('Build code copied', { description: code })
+              toast.success('Build code copied', { id: 'build-code', description: code })
             } catch {
-              toast.error("Couldn't copy the build code")
+              toast.error("Couldn't copy the build code", { id: 'build-code' })
             }
           }}
         >
@@ -171,7 +166,7 @@ export function TalentsSection() {
         onOpenChange={setImportOpen}
         data={data}
         example={presets[0]?.code ?? code}
-        onImport={(next) => withUndo('Build imported', () => update((c) => ({ ...c, talents: next })))}
+        onImport={setCode}
         contentProps={importFocusProps}
       />
     </div>

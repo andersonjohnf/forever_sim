@@ -19,8 +19,8 @@ import { SLOT_LABEL } from './slots'
  * listbox: focus goes to it with the current enchant active, arrow keys move, Enter picks, and
  * focus returns to the chip when it closes.
  *
- * If the chip goes while the picker is open (an Undo from a toast takes the slot's item away),
- * focus goes to `fallbackFocus`, the slot's button, rather than falling to the page.
+ * If the chip goes while the picker is open (a share link pasted into the tab takes the slot's
+ * item away), focus goes to `fallbackFocus`, the slot's button, rather than falling to the page.
  */
 export function EnchantPicker({
   slot,
@@ -194,8 +194,8 @@ function EnchantList({
       onKeyDown={onKeyDown}
       className={cn(
         'relative flex max-h-80 flex-col overflow-y-auto rounded-md p-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
-        // In a drawer, room at its end and scroll padding to clear the toasts (src/index.css).
-        'in-data-[slot=drawer-content]:max-h-none in-data-[slot=drawer-content]:scroll-pb-toast in-data-[slot=drawer-content]:px-2 in-data-[slot=drawer-content]:pt-2 in-data-[slot=drawer-content]:pb-toast-2',
+        // In a drawer, scroll padding to clear the toasts over it (src/index.css).
+        'in-data-[slot=drawer-content]:max-h-none in-data-[slot=drawer-content]:scroll-pb-toast in-data-[slot=drawer-content]:p-2',
         className,
       )}
     >

@@ -1,36 +1,41 @@
 import { useEffect, useRef } from 'react'
 import { Toaster } from '@/components/ui/sonner'
-import { focusNewestUndo, revealFocus, setToastClearance } from './toast-layer'
-import { UNDO_TOAST_MS, WAITING_TOAST } from './undo-toast'
+import { setToastClearance } from './toast-layer'
 
-/**
- * Sonner's hotkey, Alt+T (Option+T on a Mac). A constant, so sonner registers its listener once,
- * on mount, ahead of the one below.
- */
-const HOTKEY = ['altKey', 'KeyT']
+/** How long a toast stays up, paused while it's hovered or touched, or the page is hidden. */
+const TOAST_MS = 10_000
 
 /** Sonner's gap between stacked toasts, in px. */
 const TOAST_GAP = 14
 
 /**
+ * Scrolls keyboard focus clear of the toasts when they've come up over it (docs/ux.md
+ * #persistence-and-sharing). block: 'nearest', so the scroll padding keeps it clear of the toasts,
+ * the sticky header and the phone's bar (src/index.css), and a control already clear of them
+ * doesn't move. Focus stays where it is.
+ *
+ * Only keyboard focus, which :focus-visible marks: after a tap or click the page doesn't scroll by
+ * itself.
+ */
+function revealFocus(toastsTop: number) {
+  const focused = document.activeElement
+  if (!(focused instanceof HTMLElement) || !focused.matches(':focus-visible') || focused.closest('[data-sonner-toaster]')) return
+  const box = focused.getBoundingClientRect()
+  if (box.bottom > toastsTop && box.top < window.innerHeight) focused.scrollIntoView({ block: 'nearest' })
+}
+
+/**
  * Keeps how far up from the bottom of the window the toasts reach, so keyboard focus scrolls clear
- * of them (WCAG 2.4.11): a toast raised from the keyboard waits until it's dismissed, and focus
- * moves on under it meanwhile. Measured again as toasts come, go and spread out, and as the
- * window is resized.
+ * of them (WCAG 2.4.11). Measured again as toasts come, go and spread out, and as the window is
+ * resized.
  *
  * - --toast-clearance, while any toast is up, sets the bottom scroll padding of the page and of
  *   each sheet (src/index.css), and toastClearance() the bottom collision padding of a select's
  *   list (src/components/select-content.tsx). While a toast is still sliding in, it counts where
  *   it will stop, so focus moving on at once clears it too.
- * - --toast-wait-clearance, while a toast that waits for Dismiss is up, grows the bottom padding
- *   of the page and of each sheet, so the last control in them has room to scroll clear of the
- *   toasts. It's the highest the settled stack has reached meanwhile, counting that toast at its
- *   full height at the front, and it only rises until that toast goes: a taller 10 s toast in
- *   front of it is cleared too, and content never moves by itself when one times out. A new
- *   window width lays the page out afresh, and this starts afresh with it.
- * - When the settled stack reaches higher than before (one came, or one behind moved to the front
- *   at full size), keyboard focus the toasts now cover scrolls clear of them (revealFocus). The
- *   mouse or Alt+T spreading them out doesn't count, so hovering them scrolls nothing.
+ * - When the settled stack reaches higher than before (a toast came, or a taller one behind came
+ *   to the front), keyboard focus it now covers scrolls clear of it. The mouse or Alt+T spreading
+ *   the toasts out doesn't count, so hovering them scrolls nothing.
  */
 function useToastClearance() {
   const ref = useRef<HTMLDivElement>(null)
@@ -40,11 +45,8 @@ function useToastClearance() {
     const root = document.documentElement
     let frame = 0
     let resizeFrame = 0
-    // How far up the settled stack reached when last measured, and the highest it has reached
-    // while a waiting toast is up.
+    // How far up the settled stack reached when last measured.
     let reach = 0
-    let highest = 0
-    let width = window.innerWidth
     const measure = () => {
       cancelAnimationFrame(frame)
       frame = requestAnimationFrame(() => {
@@ -54,10 +56,8 @@ function useToastClearance() {
         const list = container.querySelector('[data-sonner-toaster]')
         if (toasts.length === 0 || !list) {
           root.style.removeProperty('--toast-clearance')
-          root.style.removeProperty('--toast-wait-clearance')
           setToastClearance(0)
           reach = 0
-          highest = 0
           return
         }
         // Where the stack settles: the front toast on the list's bottom edge, at its own height,
@@ -71,31 +71,7 @@ function useToastClearance() {
         const clearance = Math.max(0, now, settled)
         root.style.setProperty('--toast-clearance', `${clearance}px`)
         setToastClearance(clearance)
-
-        // At the front, a waiting toast counts in the stack's reach at its height as it is now. A
-        // waiting toast behind the front one is cut to that one's height, so there it counts at
-        // its own, which sonner keeps in --initial-height: measured when the toast came, so stale
-        // after a resize, until it's at the front.
-        const waiting = toasts.filter((toast) => toast.classList.contains(WAITING_TOAST))
-        if (waiting.length > 0) {
-          const behind = waiting
-            .filter((toast) => toast.dataset.front !== 'true')
-            .map((toast) => Math.ceil(window.innerHeight - edge.bottom + (Number.parseFloat(toast.style.getPropertyValue('--initial-height')) || toast.offsetHeight)))
-          highest = Math.max(highest, settled, ...behind)
-          root.style.setProperty('--toast-wait-clearance', `${highest}px`)
-        } else {
-          root.style.removeProperty('--toast-wait-clearance')
-          highest = 0
-        }
-
-        // Only when the settled stack reaches higher (a toast came, or one behind came to the front
-        // at full size), not when it spreads out: hovering it scrolls nothing. Covered as the
-        // scroll padding counts it: reaching into the band the toasts take across the bottom of
-        // the window, so focus ends up where moving it would have put it.
-        if (settled > reach) {
-          const top = window.innerHeight - clearance
-          revealFocus((box) => box.bottom > top && box.top < window.innerHeight)
-        }
+        if (settled > reach) revealFocus(window.innerHeight - clearance)
         reach = settled
       })
     }
@@ -109,17 +85,10 @@ function useToastClearance() {
     container.addEventListener('transitionend', measure)
     // After a resize, a frame later: the toasts sit on the phone's bar, which comes, goes or
     // changes height with the window, and App's ResizeObserver moves them onto it only once the
-    // frame's layout is done. Its own frame, so a measure meanwhile can't cancel it.
+    // frame's layout is done.
     const resized = () => {
-      cancelAnimationFrame(frame)
       cancelAnimationFrame(resizeFrame)
-      resizeFrame = requestAnimationFrame(() => {
-        if (window.innerWidth !== width) {
-          width = window.innerWidth
-          highest = 0
-        }
-        measure()
-      })
+      resizeFrame = requestAnimationFrame(measure)
     }
     window.addEventListener('resize', resized)
     return () => {
@@ -129,7 +98,6 @@ function useToastClearance() {
       container.removeEventListener('transitionend', measure)
       window.removeEventListener('resize', resized)
       root.style.removeProperty('--toast-clearance')
-      root.style.removeProperty('--toast-wait-clearance')
       setToastClearance(0)
     }
   }, [])
@@ -137,30 +105,17 @@ function useToastClearance() {
 }
 
 /**
- * Toasts (docs/ux.md#persistence-and-sharing) sit at the bottom, clear of the header's controls:
- * on phones and tablets just above the sticky bar, whose height App keeps in --sim-bar-height.
- * Any toast with Undo stays up 10 s (undoToast also pauses it while focused), or until dismissed
- * when a key press raised it.
- *
- * Alt+T is the keyboard's way to the toasts: sonner focuses the list and spreads the toasts out,
- * then this moves focus on to the newest toast's Undo, one keystroke from it.
+ * Toasts (docs/ux.md#persistence-and-sharing) are plain notices that go after 10 s. They sit at
+ * the bottom, clear of the header's controls: on phones and tablets just above the sticky bar,
+ * whose height App keeps in --sim-bar-height. Sonner's Alt+T moves focus to them.
  */
 export function AppToaster() {
   const ref = useToastClearance()
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey && !e.ctrlKey && !e.metaKey && e.code === 'KeyT') focusNewestUndo()
-    }
-    // Effects run child first, so this comes after sonner's listener and runs after it.
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [])
   return (
     <div ref={ref} className="contents">
       <Toaster
         position="bottom-center"
-        hotkey={HOTKEY}
-        duration={UNDO_TOAST_MS}
+        duration={TOAST_MS}
         offset={{ bottom: 'calc(var(--sim-bar-height, 0px) + 1rem)' }}
         mobileOffset={{ bottom: 'calc(var(--sim-bar-height, 0px) + 0.75rem)' }}
       />

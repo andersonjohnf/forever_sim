@@ -152,7 +152,7 @@ test.describe('sharing', () => {
     expect(new URL(page.url()).hash).toBe('')
   })
 
-  test('a share link restores the setup, with undo', async ({ page, context }) => {
+  test('a share link restores the setup, and says so', async ({ page, context }) => {
     await page.goto('./')
     await page.getByRole('tab', { name: 'Character', exact: true }).click()
     await page.getByRole('radio', { name: /Night Elf/ }).click()

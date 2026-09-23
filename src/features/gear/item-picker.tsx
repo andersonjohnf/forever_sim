@@ -220,7 +220,7 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
       </div>
 
       {/* Focus in it scrolls clear of the toasts, which sit over the picker (src/index.css). */}
-      <ul className="min-h-0 flex-1 scroll-pb-toast overflow-y-auto overscroll-contain px-2 pt-2 pb-toast-2" aria-label="Items">
+      <ul className="min-h-0 flex-1 scroll-pb-toast overflow-y-auto overscroll-contain p-2" aria-label="Items">
         {equippedId !== null && !searching && (
           <li>
             <button

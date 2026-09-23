@@ -1,8 +1,8 @@
 import { Check, CircleAlert } from 'lucide-react'
 import { useMemo, useRef, type KeyboardEvent } from 'react'
+import { toast } from 'sonner'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
-import { undoToast } from '@/app/undo-toast'
 import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { WowIcon } from '@/components/wow-icon'
@@ -33,7 +33,6 @@ export function CharacterSection() {
   const meta = useSpecMeta()
   const config = useSetup((s) => s.config)
   const update = useSetup((s) => s.update)
-  const replace = useSetup((s) => s.replace)
   const races = racesForClass(raceData, meta.classId)
   const selected = races.find((r) => r.id === config.race) ?? races[0]
   // What a changed setting shows as its default, and resets to (docs/ux.md "Character", checklist 3).
@@ -46,11 +45,12 @@ export function CharacterSection() {
 
   const pick = (race: Race) => {
     if (race.id === config.race) return
-    const previous = config
-    const change = changeRace(previous, race.id)
+    const change = changeRace(config, race.id)
     update(() => change.config)
+    // The swap happens on the Gear tab, out of sight, so a notice says what changed there. One at
+    // a time: the next race's replaces it.
     const message = raceChangeMessage(change, race.faction)
-    if (message) undoToast(message.title, () => replace(previous), { description: message.description })
+    if (message) toast(message.title, { id: 'race-gear', description: message.description })
   }
 
   return (

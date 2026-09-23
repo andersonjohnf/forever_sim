@@ -1,13 +1,12 @@
-// Share links, on the way in (docs/ux.md#persistence-and-sharing): a #s=… link loads its setup
-// with Undo, both when the page opens and when a link is pasted into a tab that already has the
-// app open (only the hash changes, so the page doesn't reload).
+// Share links, on the way in (docs/ux.md#persistence-and-sharing): a #s=… link loads its setup and
+// a notice says so, both when the page opens and when a link is pasted into a tab that already has
+// the app open (only the hash changes, so the page doesn't reload).
 import { useEffect } from 'react'
 import { toast } from 'sonner'
 import { normalizeConfig, SPEC_META } from '@/sim'
 import { useSetup } from './setup-store'
 import { hasSharedSetup, readSharedSetup } from './share'
 import { isVisibleSpec } from './specs'
-import { undoToast } from './undo-toast'
 
 /** Only the latest link applies, if two are pasted in quick succession. */
 let latest = 0
@@ -36,7 +35,7 @@ function apply(raw: unknown) {
     return
   }
   const switched = config.spec !== useSetup.getState().config.spec
-  const undo = useSetup.getState().replace(config)
+  useSetup.getState().replace(config)
   const outdated =
     warnings.length === 1
       ? 'One part was out of date and is back to its default.'
@@ -44,7 +43,8 @@ function apply(raw: unknown) {
         ? `${warnings.length} parts were out of date and are back to their defaults.`
         : ''
   const description = [switched ? `You’re on ${name} ${className} now.` : '', outdated].filter(Boolean).join(' ')
-  undoToast('Loaded a shared setup', undo, { description: description || undefined })
+  // One at a time: a newer link's notice replaces this one.
+  toast('Loaded a shared setup', { id: 'shared-link', description: description || undefined })
 }
 
 /** Loads share links on open and on hashchange. Call once, from App. */

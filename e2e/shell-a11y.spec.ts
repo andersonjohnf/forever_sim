@@ -76,8 +76,6 @@ test.describe('header', () => {
     await page.keyboard.press('Escape')
     await page.getByRole('button', { name: 'More' }).click()
     await expectTouchTargets(page.getByRole('menuitem'))
-    await page.getByRole('menuitem', { name: /Reset/ }).click()
-    await expectTouchTargets(page.getByRole('button', { name: 'Undo' }))
   })
 
   test('section tabs: arrow keys move between them, Enter or Space opens one', async ({ page }) => {

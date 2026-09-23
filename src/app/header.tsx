@@ -25,7 +25,6 @@ import { useSetup } from './setup-store'
 import { shareUrl } from './share'
 import { useSheetFocus } from './sheet-focus'
 import { CLASS_TEXT, useSpecMeta, visibleSpecs } from './specs'
-import { undoToast } from './undo-toast'
 
 export function Header() {
   const [aboutOpen, setAboutOpen] = useState(false)
@@ -100,11 +99,13 @@ async function copyShareLink(config: SimConfig) {
 }
 
 function ShareButton() {
+  // One notice at a time: sharing again replaces the last one's.
   const share = () => {
     copyShareLink(useSetup.getState().config).then(
-      () => toast.success('Link copied', { description: 'Anyone with the link gets this exact setup.', duration: 4000 }),
+      () => toast.success('Link copied', { id: 'share', description: 'Anyone with the link gets this exact setup.' }),
       () =>
         toast.error('Couldn’t copy the link', {
+          id: 'share',
           description: 'Your browser blocked the clipboard. Allow clipboard access for this site, then try Share again.',
         }),
     )
@@ -171,7 +172,14 @@ function MoreMenu({ onAbout, triggerRef }: { onAbout: () => void; triggerRef: Re
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="min-h-11" onSelect={() => undoToast(`${meta.name} ${meta.className} reset to defaults`, reset())}>
+        <DropdownMenuItem
+          className="min-h-11"
+          onSelect={() => {
+            reset()
+            // Said, since it changes every tab, most of them out of sight.
+            toast(`${meta.name} ${meta.className} reset to defaults`, { id: 'setup-reset' })
+          }}
+        >
           <RotateCcw /> Reset {meta.name} to defaults
         </DropdownMenuItem>
       </DropdownMenuContent>

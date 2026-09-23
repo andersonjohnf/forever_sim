@@ -17,8 +17,11 @@ const expectRace = async (page: Page, race: RegExp) => {
   await expect(page.getByRole('radio', { name: race })).toHaveAttribute('aria-checked', 'true')
 }
 
-/** Copies a link to an Arms Troll with the app's Share button, then saves your own Arms as an Orc and goes back to Fury. */
-async function armsTrollLinkWithOwnArmsOrc(page: Page) {
+/**
+ * Copies a link to an Arms Troll with the app's Share button, then saves your own Arms as an Orc,
+ * and goes back to Fury as a Gnome.
+ */
+async function armsTrollLinkFromFuryGnome(page: Page) {
   await page.goto('./')
   await switchSpec(page, 'Arms')
   await chooseRace(page, /Troll/)
@@ -27,37 +30,40 @@ async function armsTrollLinkWithOwnArmsOrc(page: Page) {
   const link = await page.evaluate(() => navigator.clipboard.readText())
   await chooseRace(page, /Orc/)
   await switchSpec(page, 'Fury')
+  await chooseRace(page, /Gnome/)
   return link
 }
 
-async function undoRestoresOwnArms(page: Page) {
-  const toast = page.locator('[data-sonner-toast]').filter({ hasText: 'Loaded a shared setup' })
-  await expect(toast).toContainText('You’re on Arms Warrior now.')
+/**
+ * The link's Arms Troll replaces your own Arms, and a notice says it switched you to Arms. Your
+ * Fury, the spec you were on, keeps its Gnome.
+ */
+async function loadedArmsKeepingOwnFury(page: Page) {
+  const notice = page.locator('[data-sonner-toast]').filter({ hasText: 'Loaded a shared setup' })
+  await expect(notice).toContainText('You’re on Arms Warrior now.')
   await expect(page.getByRole('button', { name: /^Spec: Arms Warrior/ })).toBeVisible()
   await expectRace(page, /Troll/)
-  await toast.getByRole('button', { name: 'Undo' }).click()
-  await expect(page.getByRole('button', { name: /^Spec: Fury Warrior/ })).toBeVisible()
-  await switchSpec(page, 'Arms')
-  await expectRace(page, /Orc/)
+  await switchSpec(page, 'Fury')
+  await expectRace(page, /Gnome/)
 }
 
 test.describe('share links', () => {
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] })
 
-  test('undoing a link for your other spec gives your own setup for that spec back', async ({ page }) => {
-    const link = await armsTrollLinkWithOwnArmsOrc(page)
+  test('a link for your other spec switches to it, and keeps your setup for the spec you were on', async ({ page }) => {
+    const link = await armsTrollLinkFromFuryGnome(page)
     // A fresh page load of the link.
     await page.goto('about:blank')
     await page.goto(link)
-    await undoRestoresOwnArms(page)
+    await loadedArmsKeepingOwnFury(page)
   })
 
-  test('a link pasted into a tab that already has the app open loads it, with Undo', async ({ page }) => {
-    const link = await armsTrollLinkWithOwnArmsOrc(page)
+  test('a link pasted into a tab that already has the app open loads it too', async ({ page }) => {
+    const link = await armsTrollLinkFromFuryGnome(page)
     // Only the hash changes, so the page doesn't reload.
     await page.evaluate(() => ((window as unknown as { stayed: boolean }).stayed = true))
     await page.evaluate((url) => (location.href = url), link)
-    await undoRestoresOwnArms(page)
+    await loadedArmsKeepingOwnFury(page)
     expect(await page.evaluate(() => (window as unknown as { stayed?: boolean }).stayed)).toBe(true)
     expect(new URL(page.url()).hash).toBe('')
   })
@@ -119,84 +125,5 @@ test.describe('Share button', () => {
     await page.getByRole('button', { name: /Share/ }).click()
     await expect(page.getByText('Couldn’t copy the link')).toBeVisible()
     await expect(page.getByText(/Allow clipboard access for this site/)).toBeVisible()
-  })
-})
-
-test.describe('undo toasts', () => {
-  const resetFury = async (page: Page) => {
-    await page.getByRole('button', { name: 'More' }).click()
-    await page.getByRole('menuitem', { name: /Reset Fury/ }).click()
-  }
-
-  test('stay up 10 s', async ({ page }) => {
-    await page.clock.install()
-    await page.goto('./')
-    await resetFury(page)
-    const undo = page.getByRole('button', { name: 'Undo' })
-    await expect(undo).toBeVisible()
-    await page.clock.runFor(8_000)
-    await expect(undo).toBeVisible()
-    await page.clock.runFor(3_000)
-    await expect(undo).toBeHidden()
-  })
-
-  test('wait while hovered or focused', async ({ page }) => {
-    await page.clock.install()
-    await page.goto('./')
-    await resetFury(page)
-    const undo = page.getByRole('button', { name: 'Undo' })
-    await undo.hover()
-    await page.clock.runFor(30_000)
-    await expect(undo).toBeVisible()
-    await page.mouse.move(1, 1)
-    await undo.focus()
-    await page.clock.runFor(30_000)
-    await expect(undo).toBeVisible()
-    await page.getByRole('button', { name: 'More' }).focus()
-    await page.clock.runFor(11_000)
-    await expect(undo).toBeHidden()
-  })
-
-  test('Undo puts the setup back', async ({ page }) => {
-    await page.goto('./')
-    // Orc changes sides, so its gear swap shows a toast with its own Undo too.
-    await chooseRace(page, /Orc/)
-    await resetFury(page)
-    await expectRace(page, /Human/)
-    await page.locator('[data-sonner-toast]').filter({ hasText: 'Fury Warrior reset to defaults' }).getByRole('button', { name: 'Undo' }).click()
-    await expectRace(page, /Orc/)
-    await page.getByRole('tab', { name: 'Gear', exact: true }).click()
-    await expect(page.getByRole('button', { name: 'Shoulders: Champion\'s Plate Shoulders' })).toBeVisible()
-  })
-
-  test('a tab clicked right after Undo stays open', async ({ page }) => {
-    // Leaving a toast hands focus back to the control focused before it (here the Buffs tab),
-    // which mustn't switch the tab back.
-    await page.goto('./')
-    await resetFury(page)
-    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
-    await page.getByRole('button', { name: 'Undo' }).click()
-    await page.getByRole('tab', { name: 'Fight', exact: true }).click()
-    await expect(page.getByRole('tab', { name: 'Fight', exact: true })).toHaveAttribute('aria-selected', 'true')
-    await expect(page.getByRole('button', { name: 'Undo' })).toHaveCount(0)
-    await expect(page.getByRole('tab', { name: 'Fight', exact: true })).toHaveAttribute('aria-selected', 'true')
-    await expect(page.getByRole('heading', { level: 2, name: 'Fight', exact: true })).toBeVisible()
-  })
-})
-
-test.describe('undo toasts on a phone', () => {
-  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
-
-  test('sit above the bottom bar, clear of the header', async ({ page }) => {
-    await page.goto('./')
-    await page.getByRole('button', { name: 'More' }).click()
-    await page.getByRole('menuitem', { name: /Reset Fury/ }).click()
-    const toast = page.locator('[data-sonner-toast]')
-    await expect(toast.getByRole('button', { name: 'Undo' })).toBeVisible()
-    const header = (await page.locator('header').boundingBox())!
-    const bar = (await page.getByRole('button', { name: 'Show results' }).boundingBox())!
-    // Wait out the slide-in.
-    await expect.poll(async () => (await toast.boundingBox())!.y + (await toast.boundingBox())!.height).toBeLessThanOrEqual(bar.y)
-    expect((await toast.boundingBox())!.y).toBeGreaterThanOrEqual(header.y + header.height)
   })
 })

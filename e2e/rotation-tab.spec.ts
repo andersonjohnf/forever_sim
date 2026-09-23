@@ -2,7 +2,7 @@ import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // The Rotation tab (docs/ux.md "Rotation"): dependent switches, changed settings and their
-// defaults, each heading's Advanced thresholds, Reset rotation with Undo, and consumables that
+// defaults, each heading's Advanced thresholds, Reset rotation, and consumables that
 // need their Buffs switch.
 
 const openRotation = async (page: Page) => {
@@ -86,7 +86,7 @@ test.describe('rotation tab', () => {
     await expect(advanced).toContainText('1 changed')
   })
 
-  test('Reset rotation restores every default, with Undo', async ({ page }) => {
+  test('Reset rotation restores every default', async ({ page }) => {
     const tab = await openRotation(page)
     const reset = tab.getByRole('button', { name: 'Reset rotation' })
     await expect(reset).toBeDisabled()
@@ -101,9 +101,6 @@ test.describe('rotation tab', () => {
     await expect(slam).not.toBeChecked()
     await expect(execute).toBeChecked()
     await expect(reset).toBeDisabled()
-    await page.getByRole('button', { name: 'Undo' }).click()
-    await expect(slam).toBeChecked()
-    await expect(execute).not.toBeChecked()
   })
 
   test('a consumable shows off and locked until it’s selected in Buffs, and links there', async ({ page }) => {

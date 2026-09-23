@@ -50,7 +50,7 @@ export function AboutSheet({
             <span className="sr-only">Close</span>
           </Button>
         </SheetClose>
-        <div className="flex flex-col gap-6 px-4 pb-toast-8 text-sm">
+        <div className="flex flex-col gap-6 px-4 pb-8 text-sm">
           <Section title="Where the numbers come from">
             <p>
               WoW Forever values come first. Where Forever data doesn&apos;t exist yet, the sim falls back to Classic

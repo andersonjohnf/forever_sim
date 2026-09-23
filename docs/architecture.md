@@ -102,8 +102,9 @@ A spec is data plus small ability modules, never its own loop.
 - **Time** is integer milliseconds. Events live in a binary min-heap over preallocated typed
   arrays, keyed by time then insertion sequence (`sim/core/queue.ts`). Cancelled timers aren't
   removed: events carry the generation of their timer and stale ones are skipped.
-- **Events:** main-hand and off-hand swings, boss swings (tank specs), aura expiry, bleed ticks,
-  periodic rage (Anger Management), a cast's rage ticks (Bloodrage), stand-in incoming hits for
+- **Events:** main-hand and off-hand swings, boss swings (tank specs), aura expiry, bleed ticks
+  (Deep Wounds, Rend), the end of an ability's cast time (Slam), periodic rage (Anger
+  Management), a cast's rage ticks (Bloodrage), stand-in incoming hits for
   DPS specs, "the rotation may act" events when a GCD or an ability's cooldown ends, a
   time-left condition becomes true or an upkeep line's refresh window opens, and the start of
   the execute phase at `t_exec` (specs with a rotation). Fights end at a per-fight length drawn
@@ -127,7 +128,8 @@ A spec is data plus small ability modules, never its own loop.
   re-derived only when an aura that changes attributes starts or ends; haste and damage
   multipliers update without a full re-derive.
 - **Rage** is integer tenths with a cap; energizes make 5 threat per rage. Abilities pay their cost
-  when used (an on-next-swing one when its swing happens) and refund their share of it on a miss,
+  when used (an on-next-swing one when its swing happens, one with a cast time when the cast
+  completes) and refund their share of it on a miss,
   dodge or parry, with no threat. Execute then converts the rage left and, if it lands, spends it. **Threat** is (damage × ability multiplier + ability bonus) ×
   the static global multiplier (stance, Defiance, Salvation, enchants).
 - **Hot-loop discipline:** one monomorphic `Sim` class over typed arrays, no allocation per event,
@@ -136,28 +138,43 @@ A spec is data plus small ability modules, never its own loop.
   Mighty Rage Potion included) runs about 9,800 fights per second on one core in the Vitest
   benchmark; M2.2b's rotation ran about 10,300 on the same machine the same day (10,200 when it
   was measured), and the default with the M2.2c rows switched off still does. M2.2a ran about
-  11,700, M2.1 about 12,300, and about 17,800 as bundled JavaScript in Node.
+  11,700, M2.1 about 12,300, and about 17,800 as bundled JavaScript in Node. M2.3a's cast times
+  and bleeds, which the Fury rotation doesn't use, left it unchanged: about 9,400 both before and
+  after, measured on a busier machine.
 - **Abilities** are rows of `Plan.abilities` (`AbilityPlan`), resolved by one switch on `kind`:
   `weaponStrike` (one roll: Whirlwind, Hamstring, …), `meleeSpell` (two rolls: Bloodthirst,
   Execute, …), `onNextSwing` (Heroic Strike: queued off the GCD, it replaces the next
   main-hand swing, or extra attack, if there's rage for it then; that swing makes no white rage
-  and uses no Flurry charge) and `cast` (no roll: it puts an aura on the player and grants rage
+  and uses no Flurry charge), `cast` (no roll: it puts an aura on the player and grants rage
   at once, with an optional random extra, and on ticks; Battle Shout, Bloodrage, Death Wish,
-  Recklessness, Berserker Rage, racial cooldowns, on-use items and consumables). A cast can
-  have a limit of uses per fight, after which it's never ready again (the Mighty Rage Potion).
-  Each row carries cost, cooldown, GCD, the stances it can be used in, whether it needs the
-  execute phase, weapon share and normalization, flat and AP damage, damage per extra rage
-  (Execute), bonus crit, crit multiplier, refund share, threat, an optional off-hand strike with
-  its own breakdown row (Raging Blows' Whirlwind), and for casts the aura (a plan aura index)
-  and the rage. A cast's rage is an energize: capped, with 5 threat per rage on its row. Numbers
+  Recklessness, Berserker Rage, racial cooldowns, on-use items and consumables) and `bleed`
+  (Rend: one roll for miss, dodge and parry and no crit; if it lands, a bleed whose ticks
+  snapshot the physical multiplier and crit chance, ignore armor and, in `forever`, may crit,
+  plus a marker aura on the target, up until the last tick, that rotation conditions read and
+  Bloodthrill's proc will). A cast can have a limit of uses per fight, after which it's never ready again (the
+  Mighty Rage Potion). Any ability can have a **cast time** (Slam): the GCD starts with the cast
+  and is held until it completes, so no GCD ability starts during it while off-GCD lines still
+  act; the ability pays, starts its cooldown and strikes when the cast completes, and fails if it
+  can't pay then. A cast can stop white swings, cancelling both pending swings and restarting
+  both timers from full when it completes (Slam without Improved Slam); extra attacks granted
+  meanwhile wait for it. Each row carries cost, cooldown, GCD, cast time and whether it stops
+  swings, the stances it can be used in, whether it needs the execute phase or a two-hander,
+  weapon share and normalization, flat and AP damage, damage per extra rage (Execute), bonus
+  crit, crit multiplier, refund share, threat, an optional off-hand strike with its own breakdown
+  row (Raging Blows' Whirlwind), for casts the aura (a plan aura index) and the rage, and for
+  bleeds the tick damage, count and period and the periodic-crit flag. A cast's rage is an
+  energize: capped, with 5 threat per rage on its row. Numbers
   come from the Forever client (`src/data/client/spells.json`), written out per ability in
   `sim/classes/warrior/abilities.ts` and checked against the client data by its tests, so the
   app bundle doesn't carry the dataset. The plan applies the build's talents to them
   (`sim/classes/warrior/modifiers.ts`: cost reductions, Impale, Raging Blows, Improved
-  Bloodrage, Improved Berserker Rage), so the engine sees only resolved numbers.
+  Bloodrage, Improved Berserker Rage, Improved Rend, Improved Slam), and resolves an ability's
+  weapon share against the encounter's creature type (Spearing Strike), so the engine sees only
+  resolved numbers.
 - **Rotation:** `Plan.rotation` is a priority list of `RotationEntry` lines (an ability plus
   conditions: rage at least or at most a value, another ability's cooldown, GCD-safe, aura down,
-  another ability's aura up, another ability's aura down or due for a refresh, in or out of the
+  another ability's aura up, another ability's aura down or due for a refresh (Battle Shout's
+  upkeep; for a bleed, its marker: "Rend missing or under x s"), in or out of the
   execute phase, AP at least or below a value, fight time left at most or at least a value;
   warrior.md §5.1). An ability can have several lines
   (Bloodthirst in and out of the execute phase; Death Wish before its final use and at the end).

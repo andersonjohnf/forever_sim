@@ -288,17 +288,24 @@ This section adds the warrior's own sources and sinks.
 
 **Crit damage.** Melee crits deal 2.0× damage [C]. For **abilities** the multiplier is
 `1 + 1.0 × (1 + 0.10 × Impale rank)`, which is 2.2 at 2/2 [F] [tal]; [C] [ws-player]. Impale's
-class mask covers these attacks [client] (SpellEffect, 1.60.1.69913):
+class mask covers these abilities [client] (SpellEffect, 1.60.1.69913):
 
 - Bloodthirst, Mortal Strike, Whirlwind, Slam, Heroic Strike, Cleave, Execute, Overpower
-- Revenge, Shield Slam, Thunder Clap, Hamstring, Spearing Strike, Victory Rush, Intercept,
-  Pummel, Shield Bash, Mocking Blow and Concussion Blow
+- Revenge, Shield Slam, Thunder Clap, Hamstring, **Rend**, Spearing Strike, **Sunder Armor**,
+  Victory Rush, Intercept, Pummel, Shield Bash, Mocking Blow and Concussion Blow
 
-Impale does **not** affect white swings, extra attacks, Deep Wounds or Rend. Deep Wounds can't
-crit in either profile. Rend can't crit in `classicEra` [C]; in `forever` its ticks may crit
-through the periodic-crit flag [?] (a 2.0× tick crit, since Rend isn't in Impale's class mask;
-[damage-and-timing §4](../mechanics/damage-and-timing.md#4-dots-and-bleeds)). Crit-damage
-bonuses from items, if any, are covered in [damage-and-timing.md](../mechanics/damage-and-timing.md).
+Classic Era's Impale has exactly the same mask [C] [client] (SpellEffect, 1.15.9.69722). There
+Rend's ticks can't crit and Sunder Armor deals no damage, so neither bit did anything.
+
+Impale does **not** affect white swings, extra attacks or Deep Wounds. Deep Wounds can't crit in
+either profile. Rend can't crit in `classicEra` [C]. In `forever` its ticks may crit through the
+periodic-crit flag [?], and **a Rend tick crit takes Impale too: ×2.2 at 2/2** [?]. That's the
+default because the mask covers Rend, the tooltip says "your abilities", and nothing in the
+client limits Impale to direct damage. The mask is inherited unchanged from Classic Era, where
+the Rend bit did nothing, so it shows no design intent either way (Q32;
+[damage-and-timing §2.5, §4](../mechanics/damage-and-timing.md#4-dots-and-bleeds)). Sunder
+Armor deals no damage, so Impale does nothing for it. Crit-damage bonuses from items, if any,
+are covered in [damage-and-timing.md](../mechanics/damage-and-timing.md).
 
 **Flurry** [F] [tal] [client] (SpellAuraOptions, CurvePoint, 1.60.1.69913):
 
@@ -470,7 +477,7 @@ for daggers. `weapon` means the real speed. Both are defined in
 | Execute (5, 20662) | 15 | none | yes | Battle, Berserker | Only on targets at or below 20% health. **600 + 15 × (rage − cost)**; a successful hit spends all rage | [F] [sb]; rage rules [C] [marrow] [ws-spell] |
 | Overpower (4, 11585) | 5 | 5 s | yes | Battle | MH `normalized` + 35. Can't be dodged, parried or blocked. Improved Overpower adds +25% crit chance per rank | [F] [sb] [tal] |
 | Hamstring (3, 7373) | 10 | none | yes | Battle, Berserker | 45 physical damage (flat, rolls on the melee table) and a 50% snare. Used to fish for procs | [F] [sb] [db-eff] |
-| Rend (7, 11574) | 10 | none | yes | Battle, Defensive | Bleed: 147 over 21 s, 21 per 3 s tick. Improved Rend multiplies it by 1 + 0.12 / 0.23 / 0.35. It enables Bloodthrill | [F] [sb] [tal] [db-eff] |
+| Rend (7, 11574) | 10 | none | yes | Battle, Defensive | Bleed: 147 over 21 s, 21 per 3 s tick. Improved Rend multiplies it by 1 + 0.12 / 0.23 / 0.35. The application rolls miss, dodge and parry and can't crit; the ticks ignore armor and, in `forever`, may crit ([§2.5](#25-crits-impale-flurry-deep-wounds)). It enables Bloodthrill | [F] [sb] [tal] [db-eff] [client] (SpellEffect, SpellMisc, 1.60.1.69913) |
 | Spearing Strike (1310222) | 15 | 20 s | yes | any, two-hander only | **0.40 × MH `normalized`**. Against **Giants, Dragonkin and mounted targets**, 1.20 × (+80%) | [F] [tal] [db-eff] (effect 121 + weapon-% effect 31 = 40) [?] (Q13) |
 | Thunder Clap (6, 11581) | 20 | **6 s** | yes | Battle, **Defensive** | 103 damage to up to 4 targets. Rolls as a spell-type attack (defense type 1), so it can't be dodged or parried. Also a −20% attack-speed debuff for 30 s | [F] [sb] [client] (SpellCategories, 1.60.1.69913). Threat is in [threat.md](../mechanics/threat.md) |
 | Revenge (6, 25288) | 5 | 5 s | yes | Defensive | **138–168** (153 ±10%) × (1 + 0.20 × Improved Revenge rank). Needs the Revenge window ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)) | [F] [sb] [db-eff] |
@@ -488,6 +495,9 @@ for daggers. `weapon` means the real speed. Both are defined in
   resets afterwards [F] [tal]. The Improved Slam versions of Slam (1310196–1310200) replace
   the action bar spells [client] (SpellName, 1.60.1.69913); see Q19.
 - Other GCD abilities can't start during the cast.
+- The docs don't say when Slam pays its cost, what else can happen during the cast, or how
+  haste affects it. The engine's choices are in [§7](#7-implementation-notes) ("Slam's cast"),
+  and the open parts are in Q3.
 
 **Raging Blows (off-hand Whirlwind).** Each Whirlwind target is also hit by an off-hand strike.
 Assumed damage: OH `normalized` × the off-hand damage multiplier `0.5 × (1 + 0.05 × Dual Wield
@@ -1073,6 +1083,54 @@ parts:
   "Stance", from the client's `ShapeshiftMask`), and the engine refuses it in any other. There's
   no stance dancing yet, so each spec stays in its base stance. A GCD-safe condition still
   counts an ability the stance refuses as ready. That matters only once stance dancing arrives.
+- **Slam's cast.** An ability can have a cast time (`castMs`: Slam's 1500 ms, 250 less per
+  Improved Slam rank). The GCD starts with the cast, and no GCD ability starts before the cast
+  completes: the engine holds the GCD until then. Off-GCD lines (the Heroic Strike queue,
+  Bloodrage, racials, potions) still act during the cast [?]. Rage is checked when the cast
+  starts, and Slam pays its cost, starts its 15 s cooldown and rolls when the cast completes; if
+  it can't pay then, it fails, costing nothing and starting no cooldown [?]. Haste doesn't shorten
+  the cast, as it doesn't shorten the GCD [?]
+  ([damage-and-timing §3.5](../mechanics/damage-and-timing.md#35-global-cooldown)). All three
+  are Q3.
+  - **Without Improved Slam** (`castStopsSwings`), the cast cancels both pending swings and both
+    timers restart from full when it completes
+    ([damage-and-timing §3.3](../mechanics/damage-and-timing.md#33-swing-reset-rules)). A queued
+    Heroic Strike stays queued and replaces the first main-hand swing after the cast. An extra
+    attack granted during the cast waits for it to complete and then swings at once; no warrior
+    source can grant one then, since nothing else lands during the cast. A tank's parry during
+    the cast hastens nothing, with no swing pending.
+  - **With Improved Slam** the timers are untouched: white swings, a queued Heroic Strike and
+    extra attacks land during the cast as usual. A Heroic Strike swing during the cast spends
+    its rage first, so it can leave too little for Slam, which then fails.
+- **Spearing Strike's target.** The plan resolves its weapon share once, from the encounter's
+  creature type: 1.20 against Giants and Dragonkin, 0.40 against anything else
+  ([encounter §6](../mechanics/encounter.md#6-creature-type-biome-and-zone-forever)). There's no
+  setting for mounted targets, since raid bosses aren't mounted. Without a two-hander the engine
+  never uses it.
+- **Rend is a bleed ability** (`bleed`). Its application rolls the special table once: a miss,
+  dodge or parry refunds 80% of the cost
+  ([rage.md](../mechanics/rage.md#rage-refunds-on-avoided-abilities)), and anything else (the
+  hit, block or crit slice) lands the bleed. The application deals no damage and can't crit,
+  but as a landed melee attack it fires on-hit procs (Windfury, Weaponmaster, weapon enchants)
+  [?] (Q32). A landed application snapshots the physical damage multiplier and the main hand's
+  special-attack crit chance, crit suppression included [?]
+  ([damage-and-timing §4](../mechanics/damage-and-timing.md#4-dots-and-bleeds)), and ticks 7
+  times, every 3 s. The ticks ignore armor, never miss, make threat at dmg × 1 and no rage. In
+  `forever` each tick rolls crit at that chance and deals the ability's crit multiplier (×2.2
+  with Impale 2/2, [§2.5](#25-crits-impale-flurry-deep-wounds)) [?]. A tick crit fires no crit
+  procs and doesn't end Weakness Analyzer: neither Flurry's nor Deep Wounds' proc mask (0x15554,
+  0x11154) has the bit for dealing periodic damage (0x40000) [F] [client] (SpellAuraOptions,
+  1.60.1.69913), and the trinket ends on a "non-periodic critical effect". A refresh restarts
+  the ticks and re-snapshots them; a tick due at the very moment of the refresh lands first, and
+  the partial tick in progress is lost (WE-9).
+  - **"Your Rend is on the target"** is an aura with no stat mods, the ability's `aura`, up from
+    the application to the last tick. The rotation reads it with the aura conditions it already
+    has: "Rend missing or under x s left" ([§5.3](#53-arms-two-hander) row 2) is the upkeep
+    condition Battle Shout's row uses, so it also skips a refresh while the running Rend lasts
+    past the end of the fight; "Rend up" gates a line. Bloodthrill (§2.8) will read the same
+    marker.
+  - **Its breakdown row, "Rend",** counts applications in casts, misses, dodges and parries, and
+    ticks in hits and crits.
 - **Raging Blows' off-hand strike** has its own breakdown row, "Whirlwind (off hand)". It comes
   right after the main-hand strike, whether or not that one landed, costs nothing more and
   refunds nothing [?] (Q13).
@@ -1285,8 +1343,13 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
    non-critical Bloodthirst hits at two AP values (with and without Battle Shout) against a
    low-armor target.
 3. **Slam without Improved Slam.** Is it still the Classic swing-reset behaviour? And with
-   Improved Slam, does it truly never touch the timer? **Test:** swing timestamps around Slam
-   casts in the combat log.
+   Improved Slam, does it truly never touch the timer? The engine also assumes that Slam pays
+   its cost and starts its cooldown when the cast completes, failing if rage fell below its cost
+   during the cast; that off-GCD actions (the Heroic Strike queue, Bloodrage, racials) work during
+   the cast; and that haste doesn't shorten the cast ([§7](#7-implementation-notes)). **Test:**
+   swing timestamps around Slam casts in the combat log; when the cooldown starts (cast start or
+   end); with Improved Slam and little rage, whether a Heroic Strike swing during the cast makes
+   Slam fail; the cast time with Berserking or Flurry up.
 4. **Dual Wield Specialization.** Does the +2% per rank hit apply to the off hand only, and does
    the rage bonus multiply the off-hand's rage from dodges too? The data shows a general hit aura
    (54) with no hand restriction (the spell as a whole requires a one-handed weapon) [F] [client]
@@ -1412,6 +1475,16 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     has one proc charge on every kind of damage you do; the sim spends it on the first white or
     special crit, including the crit it helped make [?]. **Test:** its cooldown in game; whether
     the buff drops on the first crit, and on a crit by a proc.
+32. **Rend's tick crits and Impale.** Impale's class mask covers Rend (and Sunder Armor), as
+    Classic Era's does, where Rend's ticks can't crit [F] [client] (SpellEffect, 1.60.1.69913;
+    1.15.9.69722). The sim assumes a Rend tick crit deals ×2.2 with Impale 2/2 (×2.0 without);
+    that a tick's crit chance is the main hand's special-attack crit chance, suppression
+    included, snapshotted at the application; and that a landed application procs on-hit effects
+    ([§2.5](#25-crits-impale-flurry-deep-wounds), [§7](#7-implementation-notes)) [?]. **Test:**
+    with Impale 0/2 and 2/2, log Rend's ticks against mobs three levels higher: crit ticks against
+    normal ones (×2.0 or ×2.2), and the crit rate against the sheet's; with Windfury or a Crusader
+    weapon, count procs right after Rend applications. Owner: [damage-and-timing
+    OQ 2](../mechanics/damage-and-timing.md#open-questions) for whether ticks crit at all.
 
 ## 10. Sources
 

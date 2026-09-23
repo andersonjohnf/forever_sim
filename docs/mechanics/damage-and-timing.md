@@ -38,7 +38,8 @@ such as PPM rates ([hotfix caveat](../data/client.md#hotfix-caveat)).
 - **Damage multipliers** multiply together. Crit is ×2.0 for melee and ranged, ×1.5 for
   spells. Glancing and crushing come from [combat-tables.md](combat-tables.md).
 - **Swing timers** in integer ms: `speed / Π(1 + haste_i)`. On-next-swing attacks don't touch
-  the timer. Casts with a cast time (Slam) pause swings and restart both timers when they end.
+  the timer. Casts with a cast time (Slam without Improved Slam) stop swings and restart both
+  timers when they end.
   An extra attack swings the main hand immediately and restarts its timer ([§3](#3-swing-timers)).
 - **Parry haste** on whoever parried: remove 40% of their swing speed from their remaining
   timer, but never below 20% remaining ([§3.4](#parry-haste)).
@@ -198,7 +199,7 @@ Rule for the engine: read the effect type from the class data. Don't hard-code t
 | --- | --- | --- |
 | Melee or ranged crit (player) | ×2.0 ("Melee critical strikes deal 100% increased damage") | [F] `STAT_CRIT_BONUS` ([gs][gs-forever]); [C] |
 | Spell or heal crit | ×1.5 ("50% more effective") | [F] ([gs][gs-forever]); [C] |
-| Periodic crit (Forever only) | ×2.0 physical / ×1.5 magic | [?] (assumed to follow the school's multiplier) |
+| Periodic crit (Forever only) | ×2.0 physical / ×1.5 magic, raised like a direct crit by crit-bonus talents whose class mask covers the spell (Impale on Rend: ×2.2 at 2/2) | [?] (assumed to follow the school's multiplier; Impale's mask covers Rend [F] [client], [warrior §2.5](../classes/warrior.md#25-crits-impale-flurry-deep-wounds)) |
 | Glancing | per [combat-tables §2.3](combat-tables.md#23-glancing-blows) | [F]/[C] |
 | Creature crit on a player | ×2.0 | [F] tooltip `DEFAULT_STATDEFENSE_TOOLTIP` ([gs][gs-forever]); in combat [C] (unchanged) |
 | Crushing blow | ×1.5 | [F] tooltip ([gs][gs-forever]); in combat [C] (unchanged) |
@@ -331,9 +332,9 @@ Eureka! have no GCD, while Stoneform has 1.5 s [F] [client] (SpellCooldowns, 1.6
 | Can a tick miss? | no. The application rolls its table once; ticks always hit | [C] |
 | Armor | physical periodic damage ignores armor | [C] (§1.3) |
 | Can a tick crit? | `classicEra`: never [C] (the pre-SoD WarriorSim's Deep Wounds has no crit roll, [ws-spell]; the Classic feral guide contrasts Bite, which "can crit", with Rip, [wh-feral]). `forever`: yes, **if** the spell carries the SpellMisc attribute `PERIODIC_CAN_CRIT` (Attributes[8] 0x200); the flag is [F], whether flagged ticks crit in combat is [?] | The Forever tooltip says "Most periodic effects can critically strike" [F text] (`STAT_CRIT_BONUS`, [gs][gs-forever]). The per-spell flags are [F] [client] (SpellMisc, 1.60.1.69913); wowsims/forever reads the same ([wf-spelldata-doc]) |
-| Crit chance of a tick | `forever`: each flagged tick rolls crit separately, with the caster's crit chance **snapshotted at application** like the damage (default) [?]; crit suppression vs +3 on ticks [?]; multipliers in §2.5 | A Forever warrior-sim author relays a Discord statement that Rend's tick crit is evaluated at each tick ([tzcnt Forever notes][tz-forever]). That is anecdotal secondary evidence, so it is **not adopted**; it is an open question |
+| Crit chance of a tick | `forever`: each flagged tick rolls crit separately, with the caster's crit chance **snapshotted at application** like the damage (default) [?]. For a melee bleed (Rend) that chance is the main hand's special-attack crit ([combat-tables §3](combat-tables.md#3-special-yellow-attacks)), crit suppression vs +3 included [?]. Multipliers in §2.5. A tick crit fires no melee crit procs ([warrior §7](../classes/warrior.md#7-implementation-notes)) | A Forever warrior-sim author relays a Discord statement that Rend's tick crit is evaluated at each tick ([tzcnt Forever notes][tz-forever]). That is anecdotal secondary evidence, so it is **not adopted**; it is an open question |
 | Damage snapshot | **Both profiles (default):** AP and the caster's damage modifiers are fixed when the DoT is applied; target-side modifiers apply per tick [?]. **Exception: Deep Wounds** recomputes each tick from current AP and modifiers [C] (pre-SoD WarriorSim `DeepWounds.step`, [ws-spell]; see [warrior §2.5](../classes/warrior.md#25-crits-impale-flurry-deep-wounds)) | The snapshot default is [?]: the only Classic code for it (WarriorSim's Rend) is post-SoD, and no Classic Era measurement was found. `forever`: the same tzcnt notes report Rend reading AP, modifiers and crit per tick (~0.02 × AP per tick at level ~10) [?]; anecdotal, so not adopted; see [Open questions](#open-questions) |
-| Refresh | reapplying restarts the duration **and** the tick timer; the partial tick in progress is lost; the damage is re-snapshotted | [?] |
+| Refresh | reapplying restarts the duration **and** the tick timer; the partial tick in progress is lost; the damage is re-snapshotted. A tick due at the very moment of the refresh lands first (an engine tie-break) | [?] |
 | Stacking | one instance per caster per target unless the spell stacks (Lacerate, …) | [C]; class docs |
 
 Client values for the DoTs in scope (top ranks). Durations are [F] from the foreverchanges
@@ -464,13 +465,17 @@ damage-modifier stacking, the off-hand 50%, swing-reset rules, or the PPM formul
 - **Parry haste:** when the defender parries, reschedule its pending swing event using the
   formula in §3.4. For the boss, that's the boss's swing on the tank.
 - **Cast-time abilities:** at cast start, cancel pending white swings. At cast end, apply the
-  ability, then schedule both hands at `now + speed`.
+  ability, then schedule both hands at `now + speed`. This is for casts that stop swings (Slam
+  without Improved Slam); Slam's cost, cooldown and what can happen during its cast are in
+  [warrior §7](../classes/warrior.md#7-implementation-notes).
 - **Armor per target** is recomputed when a debuff changes. Cache `1 − DR` per target and
   profile.
 - **DoTs** are auras with a tick event every `tickLength` from application. On refresh,
   cancel the pending tick and restart. Store the snapshot (AP, caster multipliers, crit chance)
   on the aura at application; Deep Wounds reads the live values instead (§4). In `forever`, a
-  tick rolls crit only when the spell's periodic-crit flag is set.
+  tick rolls crit only when the spell's periodic-crit flag is set. The warrior's own bleed
+  (Rend) also puts a marker aura on the target, up until its last tick, which rotation
+  conditions read (and Bloodthrill's proc will).
 - **`unmeasuredRatings`** (`'apply'` in `forever` by default, per D12): haste rating and armor
   penetration go through the stat pipeline only when it is `'apply'`.
 - **Skipped (documented):** spell batching (§3.6), integer rounding of damage (§2.6), and mob
@@ -581,8 +586,10 @@ Shred at t = 0 can Shred again at 1.0 s if it has the energy.
 2. **Periodic crits in Forever** [?]. ✅ The flags and Deep Wounds' id are resolved from client
    data ([client.md](../data/client.md#doc-claims-checked-against-the-raw-client)): `PERIODIC_CAN_CRIT` is set on Rend, Rake, Rip, Pounce and Lacerate, not on
    Deep Wounds (412609) or Consecration. Still open: whether flagged ticks crit in combat, the
-   multiplier (assumed ×2.0 physical, ×1.5 magic), and whether crit suppression applies to
-   ticks. Test: Rend/Rip tick crits in the combat log vs +3 mobs.
+   multiplier (assumed ×2.0 physical, ×1.5 magic, raised by crit-bonus talents whose mask covers
+   the spell: Impale on Rend, [warrior Q32](../classes/warrior.md#9-open-questions)), and
+   whether crit suppression applies to ticks (assumed yes). Test: Rend/Rip tick crits in the
+   combat log vs +3 mobs.
 3. **DoT snapshot and refresh rules** [?]. Both profiles snapshot AP, caster modifiers and crit
    chance at application by default; Deep Wounds recomputes each tick. A third-party Forever
    sim's notes say Rend reads AP, modifiers and crit **per tick** ([tz-forever]; anecdotal, not

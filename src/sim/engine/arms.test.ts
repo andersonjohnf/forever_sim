@@ -1,0 +1,539 @@
+// The Arms abilities in the engine, from hand-built rotations (docs/classes/warrior.md §3.1, §7):
+// worked examples W2, W4, W6 and W13; Slam's cast and the swing timers with and without Improved
+// Slam (damage-and-timing §3.3); Spearing Strike by creature type and only with a two-hander;
+// Rend's bleed: its ticks, refresh (WE-9), Improved Rend, armor, snapshot, tick crits
+// (damage-and-timing §4) and the "Rend missing or under x s" condition; refunds on avoidance
+// (rage.md#rage-refunds-on-avoided-abilities); stances; determinism.
+import { describe, expect, it } from 'vitest'
+import { BLOODRAGE, DEATH_WISH, HEROIC_STRIKE, MORTAL_STRIKE, REND, SLAM, SPEARING_STRIKE } from '../classes/warrior/abilities'
+import { type TalentRanks, withTalents } from '../classes/warrior/modifiers'
+import { addSample, emptyMoments, stdev } from '../core/welford'
+import { defaultConfig } from '../defaults'
+import { buildPlan } from '../plan/build'
+import {
+  type AbilityDef,
+  ACTION,
+  COND,
+  type Plan,
+  type RotationCondition,
+  STANCE,
+  TRIGGER,
+  TRIGGER_COUNT,
+  type WeaponPlan,
+  weaponPercentVs,
+} from '../plan/types'
+import { CLASSIC_ERA } from '../rules/profiles'
+import type { CreatureType } from '../types'
+import { FIELD, FIELD_COUNT, SOURCE_MAIN_HAND, Sim } from './sim'
+
+/** "Two-hander T" and "one-hander O" of warrior.md §8. */
+const T: Partial<WeaponPlan> = { min: 105, max: 157, speedSec: 3.8, twoHand: true, normalizedSpeed: 3.3 }
+const O: Partial<WeaponPlan> = { min: 106, max: 198, speedSec: 2.6, twoHand: false, normalizedSpeed: 2.4 }
+
+/**
+ * The default Arms warrior (Battle Stance) with two-hander T, no buffs, procs, periodic rage,
+ * armor or damage multipliers, a fight of exactly `durationMs`, and no abilities yet: each test
+ * adds its own with `addAbility` and `line`.
+ */
+function armsPlan(durationMs: number): Plan {
+  const d = defaultConfig('warrior-arms')
+  const plan = buildPlan({ ...d, buffs: { raid: d.buffs.raid, enabled: [] }, fight: { ...d.fight, durationVariationPct: 0 } }).plan
+  expect(plan.abilities).toEqual([])
+  expect(plan.stance).toBe(STANCE.battle)
+  plan.weapons = [{ ...plan.weapons[0]!, ...T }, null]
+  plan.procs = []
+  plan.triggers = Array.from({ length: TRIGGER_COUNT }, () => [])
+  plan.periodicRage = []
+  plan.fight.targetArmor = 0
+  plan.fight.durationMs = durationMs
+  plan.damageMult = 1
+  plan.physicalMult = 1
+  return plan
+}
+
+/**
+ * Adds an ability to a plan as the plan builder does (build.ts): the build's talents, a breakdown
+ * row, its aura or bleed marker, and its weapon share against the creature type. Returns its index.
+ */
+function addAbility(plan: Plan, def: AbilityDef, talents: TalentRanks = new Map(), creatureType: CreatureType = 'none'): number {
+  const resolved = withTalents(def, talents)
+  const { offHand: _, aura, vsCreature: __, ...a } = resolved
+  plan.sources.push({ id: a.id, name: a.name, icon: a.icon })
+  let auraIndex = -1
+  if (aura) {
+    const m = aura.mods
+    plan.auras.push({
+      id: aura.id,
+      name: aura.name,
+      durationMs: aura.durationMs,
+      maxStacks: 1,
+      whiteSwingCharges: 0,
+      critCharges: 0,
+      str: 0,
+      agi: 0,
+      ap: m.ap ?? 0,
+      apPct: 0,
+      crit: m.crit ?? 0,
+      haste: m.haste ?? 0,
+      damage: m.damage ?? 0,
+    })
+    auraIndex = plan.auras.length - 1
+  }
+  plan.abilities.push({ ...a, weaponPercent: weaponPercentVs(resolved, creatureType), source: plan.sources.length - 1, offHandSource: -1, aura: auraIndex })
+  return plan.abilities.length - 1
+}
+
+const line = (plan: Plan, ability: number, conditions: RotationCondition[] = []) => plan.rotation.push({ ability, conditions, unqueueBelowTenths: 0 })
+/** Usable from `t` ms into a fight of `durationMs` (time left ≤ durationMs − t). */
+const from = (plan: Plan, t: number): RotationCondition => ({ code: COND.timeLeftAtMost, a: plan.fight.durationMs - t, b: 0 })
+/** Usable only at `t` (time left ≥ and ≤ durationMs − t). */
+const at = (plan: Plan, t: number): RotationCondition[] => [from(plan, t), { code: COND.timeLeftAtLeast, a: plan.fight.durationMs - t, b: 0 }]
+/** Rend missing from the target, or under `ms` of ticks left. */
+const refresh = (ability: number, ms: number): RotationCondition => ({ code: COND.abilityAuraRefresh, a: ability, b: ms })
+/** Rage at the pull, in rage (Plan.prepull's Charge rage, with no stance cap). */
+const rageAtPull = (plan: Plan, rage: number) => (plan.prepull = { casts: [], chargeTenths: rage * 10, keepTenths: -1 })
+
+/** Every attack lands (100% hit, no dodge) and never crits. */
+function alwaysLandNoCrit(plan: Plan): void {
+  plan.stats.hit = 100
+  plan.stats.crit = -100
+  plan.fight.bossCanDodge = false
+}
+
+function setAttackPower(plan: Plan, ap: number): void {
+  plan.stats.ap += ap - new Sim(plan).inspect().attackPower
+  expect(new Sim(plan).inspect().attackPower).toBeCloseTo(ap, 9)
+}
+
+/** Damage events of one breakdown row over `fights` fights. */
+function damages(plan: Plan, row: number, fights: number): number[] {
+  const sim = new Sim(plan)
+  const out: number[] = []
+  sim.damageTrace = (s, damage) => {
+    if (s === row) out.push(damage)
+  }
+  for (let i = 0; i < fights; i++) sim.runFight(i)
+  return out
+}
+
+/** The sample mean is within 4 standard errors of `expected`. */
+function expectMean(xs: number[], expected: number) {
+  const m = emptyMoments()
+  for (const x of xs) addSample(m, x)
+  const se = stdev(m) / Math.sqrt(m.n)
+  expect(Math.abs(m.mean - expected), `mean ${m.mean} vs ${expected} (SE ${se})`).toBeLessThanOrEqual(4 * se)
+}
+
+/** One fight's white swings per hand, bleed ticks per row, and uses per ability, as times. */
+function timeline(plan: Plan, fight = 0) {
+  const sim = new Sim(plan)
+  const swings: [number[], number[]] = [[], []]
+  const ticks: number[] = []
+  const uses: number[][] = plan.abilities.map(() => [])
+  const rageAtUse: number[][] = plan.abilities.map(() => [])
+  sim.trace = (_source, hand, time) => (hand >= 0 ? swings[hand].push(time) : ticks.push(time))
+  sim.castTrace = (a, time, rage) => {
+    uses[a].push(time)
+    rageAtUse[a].push(rage)
+  }
+  sim.runFight(fight)
+  return { sim, swings, ticks, uses, rageAtUse }
+}
+
+const counter = (sim: Sim, row: number, field: number) => sim.counters[row * FIELD_COUNT + field]
+const W = 131 // two-hander T's average roll, fixed so a hit is exactly the average
+const AP_NORMALIZED = (1800 / 14) * 3.3 // 424.29
+const AP_REAL = (1800 / 14) * 3.8 // 488.57
+
+describe('Arms worked examples in the engine (1800 AP, pre-armor, two-hander T)', () => {
+  it('W2: Mortal Strike is normalized weapon damage + 160: 689.29–741.29, average 715.29; 736.74 with ×1.03; ×2.2 crits with Impale 2/2', () => {
+    const plan = armsPlan(180000)
+    const ms = addAbility(plan, MORTAL_STRIKE, new Map([['Impale', 2]]))
+    line(plan, ms)
+    alwaysLandNoCrit(plan)
+    setAttackPower(plan, 1800)
+    const hits = damages(plan, plan.abilities[ms].source, 20)
+    expect(hits.length).toBeGreaterThan(200)
+    expect(Math.min(...hits)).toBeGreaterThanOrEqual(105 + AP_NORMALIZED + 160 - 1e-9)
+    expect(Math.max(...hits)).toBeLessThanOrEqual(157 + AP_NORMALIZED + 160 + 1e-9)
+    expectMean(hits, 715.2857142857143)
+    plan.weapons[0] = { ...plan.weapons[0]!, min: W, max: W }
+    for (const d of damages(plan, plan.abilities[ms].source, 2)) expect(d).toBeCloseTo(715.2857142857143, 9)
+    // Two-Handed Weapon Specialization 3/3.
+    plan.physicalMult = 1.03
+    for (const d of damages(plan, plan.abilities[ms].source, 2)) expect(d).toBeCloseTo(715.2857142857143 * 1.03, 9) // 736.74
+    plan.physicalMult = 1
+    plan.stats.crit = 200
+    for (const d of damages(plan, plan.abilities[ms].source, 2)) expect(d).toBeCloseTo(715.2857142857143 * 2.2, 9)
+  })
+
+  it('W4: Slam is real-speed weapon damage + 87: average 706.57, 727.77 with ×1.03', () => {
+    const plan = armsPlan(180000)
+    const slam = addAbility(plan, SLAM)
+    line(plan, slam)
+    alwaysLandNoCrit(plan)
+    setAttackPower(plan, 1800)
+    const hits = damages(plan, plan.abilities[slam].source, 40)
+    expect(hits.length).toBeGreaterThan(300)
+    expect(Math.min(...hits)).toBeGreaterThanOrEqual(105 + AP_REAL + 87 - 1e-9)
+    expect(Math.max(...hits)).toBeLessThanOrEqual(157 + AP_REAL + 87 + 1e-9)
+    expectMean(hits, 706.5714285714286)
+    plan.weapons[0] = { ...plan.weapons[0]!, min: W, max: W }
+    plan.physicalMult = 1.03
+    for (const d of damages(plan, plan.abilities[slam].source, 2)) expect(d).toBeCloseTo(706.5714285714286 * 1.03, 9) // 727.77
+  })
+
+  it('W6: Spearing Strike deals 0.40 × 555.29 = 222.11 (228.78 with ×1.03), and 1.20 × = 666.34 (686.33) against Dragonkin and Giants', () => {
+    const strike = (creature: CreatureType, mult: number) => {
+      const plan = armsPlan(60000)
+      const ss = addAbility(plan, SPEARING_STRIKE, new Map(), creature)
+      line(plan, ss)
+      alwaysLandNoCrit(plan)
+      setAttackPower(plan, 1800)
+      plan.weapons[0] = { ...plan.weapons[0]!, min: W, max: W }
+      plan.physicalMult = mult
+      const hits = damages(plan, plan.abilities[ss].source, 2)
+      expect(hits.length).toBe(6) // at 0, 20 and 40 s in each fight
+      return hits
+    }
+    const whirlwind = W + AP_NORMALIZED // W3's 555.29
+    for (const d of strike('none', 1)) expect(d).toBeCloseTo(0.4 * whirlwind, 9)
+    for (const d of strike('none', 1.03)) expect(d).toBeCloseTo(0.4 * whirlwind * 1.03, 9)
+    for (const d of strike('beast', 1)) expect(d).toBeCloseTo(0.4 * whirlwind, 9)
+    for (const d of strike('dragonkin', 1)) expect(d).toBeCloseTo(1.2 * whirlwind, 9)
+    for (const d of strike('dragonkin', 1.03)) expect(d).toBeCloseTo(1.2 * whirlwind * 1.03, 9) // 686.33
+    for (const d of strike('giant', 1)) expect(d).toBeCloseTo(1.2 * whirlwind, 9) // 666.34
+  })
+
+  it('Spearing Strike is never used with one-handers, alone or dual wielding', () => {
+    const uses = (weapons: [Partial<WeaponPlan>, Partial<WeaponPlan> | null]) => {
+      const plan = armsPlan(60000)
+      const ss = addAbility(plan, SPEARING_STRIKE)
+      line(plan, ss)
+      rageAtPull(plan, 100)
+      plan.weapons = [{ ...plan.weapons[0]!, ...weapons[0] }, weapons[1] ? { ...plan.weapons[0]!, ...weapons[1] } : null]
+      return timeline(plan).uses[ss]
+    }
+    expect(uses([T, null])).toEqual([0, 20000, 40000])
+    expect(uses([O, null])).toEqual([])
+    expect(uses([O, O])).toEqual([])
+  })
+})
+
+describe('Slam’s cast and the swing timers (warrior.md §3.1 "Slam", damage-and-timing §3.3)', () => {
+  /** Slam alone with two-hander T; each landed swing gives 17.1 rage, so the first Slam follows the first swing. */
+  function slamPlan(improvedSlam: number, durationMs: number) {
+    const plan = armsPlan(durationMs)
+    const slam = addAbility(plan, SLAM, new Map([['Improved Slam', improvedSlam]]))
+    line(plan, slam)
+    alwaysLandNoCrit(plan)
+    return { plan, slam }
+  }
+
+  it('W4 without Improved Slam: a 1.5 s cast with no swings, then the timer restarts; the cooldown runs from the cast’s end', () => {
+    const { plan, slam } = slamPlan(0, 25000)
+    const { sim, swings, uses } = timeline(plan)
+    // Slam at 0 s after the first swing lands at 1.5 s: the swing due at 3.8 s moves to 1.5 + 3.8.
+    // Its 15 s cooldown ends at 16.5 s, so the swing due at 16.7 s moves to 18.0 + 3.8.
+    expect(uses[slam]).toEqual([0, 16500])
+    expect(swings[0]).toEqual([0, 5300, 9100, 12900, 21800])
+    expect(counter(sim, plan.abilities[slam].source, FIELD.casts)).toBe(2)
+  })
+
+  it('W4 with Improved Slam 2/2: a 1 s cast and GCD, and the swing timer untouched', () => {
+    const { plan, slam } = slamPlan(2, 25000)
+    const { sim, swings, uses } = timeline(plan)
+    expect(uses[slam]).toEqual([0, 16000])
+    expect(swings[0]).toEqual([0, 3800, 7600, 11400, 15200, 19000, 22800])
+    expect(counter(sim, plan.abilities[slam].source, FIELD.casts)).toBe(2)
+  })
+
+  it('dual wielding, without Improved Slam both timers stop and restart from full; with it, neither moves', () => {
+    const swingsAround = (improvedSlam: number) => {
+      const plan = armsPlan(15000)
+      const slam = addAbility(plan, SLAM, new Map([['Improved Slam', improvedSlam]]))
+      line(plan, slam, [from(plan, 2000)])
+      alwaysLandNoCrit(plan)
+      rageAtPull(plan, 100)
+      plan.weapons = [
+        { ...plan.weapons[0]!, ...O },
+        { ...plan.weapons[0]!, ...O, handMult: 0.5 },
+      ]
+      const { swings, uses } = timeline(plan)
+      expect(uses[slam]).toEqual([2000])
+      return swings
+    }
+    // The cast runs 2.0–3.5 s: the main hand due at 2.6 s and the off hand due at 3.9 s both wait
+    // until 3.5 + 2.6.
+    expect(swingsAround(0)).toEqual([
+      [0, 6100, 8700, 11300, 13900],
+      [1300, 6100, 8700, 11300, 13900],
+    ])
+    expect(swingsAround(1)).toEqual([
+      [0, 2600, 5200, 7800, 10400, 13000],
+      [1300, 3900, 6500, 9100, 11700, 14300],
+    ])
+  })
+
+  it('no other GCD ability starts during the cast; off-GCD ones still do', () => {
+    const firstUses = (improvedSlam: number) => {
+      const plan = armsPlan(10000)
+      const talents = new Map([['Improved Slam', improvedSlam]])
+      const slam = addAbility(plan, SLAM, talents)
+      const ms = addAbility(plan, MORTAL_STRIKE, talents)
+      const br = addAbility(plan, BLOODRAGE, talents)
+      line(plan, slam)
+      line(plan, ms)
+      line(plan, br, [from(plan, 500)])
+      alwaysLandNoCrit(plan)
+      rageAtPull(plan, 100)
+      const { uses } = timeline(plan)
+      return [uses[slam][0], uses[br][0], uses[ms][0]]
+    }
+    // Slam at 0; Bloodrage (off the GCD) at 0.5 s, during the cast; Mortal Strike when it ends.
+    expect(firstUses(0)).toEqual([0, 500, 1500])
+    expect(firstUses(2)).toEqual([0, 500, 1000])
+  })
+
+  it('without Improved Slam, a queued Heroic Strike waits for the first main-hand swing after the cast', () => {
+    const plan = armsPlan(12000)
+    const hs = addAbility(plan, HEROIC_STRIKE)
+    const slam = addAbility(plan, SLAM)
+    line(plan, hs)
+    line(plan, slam, [from(plan, 2000)])
+    alwaysLandNoCrit(plan)
+    rageAtPull(plan, 100)
+    const { swings, uses } = timeline(plan)
+    expect(uses[slam]).toEqual([2000])
+    // Every main-hand swing is a Heroic Strike: 0 s, then 3.5 + 3.8 s after the cast, then 11.1 s.
+    expect(uses[hs]).toEqual([0, 7300, 11100])
+    expect(swings[0]).toEqual([])
+  })
+
+  it('with Improved Slam, a Heroic Strike swing during the cast can leave too little rage: that Slam fails, costing nothing and starting no cooldown', () => {
+    const plan = armsPlan(10000)
+    const talents = new Map([['Improved Slam', 2]])
+    const hs = addAbility(plan, HEROIC_STRIKE, talents)
+    const slam = addAbility(plan, SLAM, talents)
+    line(plan, hs)
+    line(plan, slam, [from(plan, 3000)])
+    alwaysLandNoCrit(plan)
+    rageAtPull(plan, 40)
+    const { sim, uses, rageAtUse } = timeline(plan)
+    // 40 → Heroic Strike at 0 s (25) → Slam cast 3.0–4.0 s → Heroic Strike at 3.8 s (10) → at
+    // 4.0 s Slam can't pay its 15: it fails. A white swing at 7.6 s (27.1) starts it again, and
+    // that one lands at 8.6 s.
+    expect(uses[hs]).toEqual([0, 3800])
+    expect(uses[slam]).toEqual([3000, 7600])
+    expect(rageAtUse[slam]).toEqual([250, 271])
+    expect(counter(sim, plan.abilities[slam].source, FIELD.casts)).toBe(1)
+    expect(counter(sim, plan.abilities[slam].source, FIELD.hits)).toBe(1)
+  })
+
+  it('an extra attack granted during a cast that stops swings waits for the cast to end', () => {
+    const plan = armsPlan(8000)
+    const slam = addAbility(plan, SLAM)
+    line(plan, slam, [from(plan, 1000)])
+    alwaysLandNoCrit(plan)
+    rageAtPull(plan, 100)
+    // One extra attack whenever damage is taken, every 2 s.
+    plan.sources.push({ id: 'test', name: 'Test', icon: 'x' })
+    plan.procs = [
+      { id: 'test', name: 'Test', trigger: TRIGGER.damageTaken, chance: [1, 1], hands: 3, icdMs: 0, action: ACTION.extraAttacks, amount: 1, a: 0, b: 0, school: 0, source: plan.sources.length - 1, chainBit: 1 },
+    ]
+    plan.triggers = Array.from({ length: TRIGGER_COUNT }, (_, t) => (t === TRIGGER.damageTaken ? [0] : []))
+    plan.fight.damageTakenPerHit = 1
+    plan.fight.damageTakenIntervalMs = 2000
+    // The cast runs 1.0–2.5 s: the extra attack granted at 2.0 s swings at 2.5 s.
+    expect(timeline(plan).swings[0]).toEqual([0, 2500, 4000, 6000])
+  })
+})
+
+describe('Rend (warrior.md §3.1, damage-and-timing §4)', () => {
+  /** Rend in Battle Stance with Improved Rend 3/3 and Impale 2/2, and 100 rage at the pull; every attack lands. */
+  function rendPlan(durationMs: number, talents: [string, number][] = [['Improved Rend', 3], ['Impale', 2]]) {
+    const plan = armsPlan(durationMs)
+    const rend = addAbility(plan, REND, new Map(talents))
+    alwaysLandNoCrit(plan)
+    rageAtPull(plan, 100)
+    return { plan, rend, row: plan.abilities[rend].source }
+  }
+
+  it('W13: 7 ticks of 28.35 every 3 s, through armor; "missing" reapplies it as the last tick lands, which isn’t lost', () => {
+    const { plan, rend, row } = rendPlan(30000)
+    line(plan, rend, [refresh(rend, 0)])
+    plan.fight.targetArmor = 3731 // bleeds ignore armor (damage-and-timing §1.3)
+    const { sim, ticks, uses } = timeline(plan)
+    expect(uses[rend]).toEqual([0, 21000])
+    expect(ticks).toEqual([3000, 6000, 9000, 12000, 15000, 18000, 21000, 24000, 27000])
+    const d = damages(plan, row, 1)
+    expect(d.length).toBe(9)
+    for (const x of d) expect(x).toBeCloseTo(28.35, 9)
+    expect([counter(sim, row, FIELD.casts), counter(sim, row, FIELD.hits), counter(sim, row, FIELD.crits)]).toEqual([2, 9, 0])
+  })
+
+  it('"under 3 s" reapplies it with 3 s left: the tick due then lands first, the next is lost (WE-9)', () => {
+    const { plan, rend } = rendPlan(30000)
+    line(plan, rend, [refresh(rend, 3000)])
+    const { ticks, uses } = timeline(plan)
+    expect(uses[rend]).toEqual([0, 18000])
+    expect(ticks).toEqual([3000, 6000, 9000, 12000, 15000, 18000, 21000, 24000, 27000])
+  })
+
+  it('WE-9: reapplied at 10 s, it ticks at 13, 16, … 31 s; the tick due at 12 s is lost', () => {
+    const { plan, rend } = rendPlan(32000)
+    line(plan, rend, [refresh(rend, 0)])
+    line(plan, rend, at(plan, 10000))
+    const { ticks, uses } = timeline(plan)
+    expect(uses[rend]).toEqual([0, 10000, 31000])
+    expect(ticks).toEqual([3000, 6000, 9000, 13000, 16000, 19000, 22000, 25000, 28000, 31000])
+  })
+
+  it('Improved Rend 0–3: ticks of 21, 23.52, 25.83 and 28.35, times physical damage modifiers (×1.03)', () => {
+    const tick = (rank: number, mult: number) => {
+      const { plan, rend, row } = rendPlan(10000, [['Improved Rend', rank]])
+      line(plan, rend, [refresh(rend, 0)])
+      plan.physicalMult = mult
+      const d = damages(plan, row, 1)
+      expect(d.length).toBe(3)
+      return d[0]
+    }
+    const expected = [21, 23.52, 25.83, 28.35]
+    for (let r = 0; r <= 3; r++) {
+      expect(tick(r, 1)).toBeCloseTo(expected[r], 9)
+      expect(tick(r, 1.03)).toBeCloseTo(expected[r] * 1.03, 9)
+    }
+  })
+
+  it('snapshots damage modifiers at the application: Death Wish at 5 s changes only the next Rend’s ticks', () => {
+    const { plan, rend, row } = rendPlan(30000)
+    const dw = addAbility(plan, DEATH_WISH)
+    line(plan, rend, [refresh(rend, 0)])
+    line(plan, dw, at(plan, 5000))
+    const d = damages(plan, row, 1)
+    expect(d.length).toBe(9)
+    for (const x of d.slice(0, 7)) expect(x).toBeCloseTo(28.35, 9)
+    for (const x of d.slice(7)) expect(x).toBeCloseTo(28.35 * 1.2, 9)
+  })
+
+  it('in `forever` its ticks can crit, ×2.2 with Impale 2/2 (×2.0 without) [?]; in `classicEra` never', () => {
+    const ticks = (talents: [string, number][], classic: boolean) => {
+      const { plan, rend, row } = rendPlan(24000, talents)
+      line(plan, rend, [refresh(rend, 0)])
+      plan.stats.crit = 200
+      if (classic) plan.profile = CLASSIC_ERA
+      const d = damages(plan, row, 1)
+      expect(d.length).toBe(7)
+      return d
+    }
+    for (const x of ticks([['Improved Rend', 3], ['Impale', 2]], false)) expect(x).toBeCloseTo(28.35 * 2.2, 9)
+    for (const x of ticks([['Improved Rend', 3]], false)) expect(x).toBeCloseTo(28.35 * 2, 9)
+    for (const x of ticks([['Improved Rend', 3], ['Impale', 2]], true)) expect(x).toBeCloseTo(28.35, 9)
+  })
+
+  it('a tick crit fires no crit procs; the landed application fires on-hit procs, and can’t crit', () => {
+    const { plan, rend, row } = rendPlan(40000)
+    line(plan, rend, [refresh(rend, 0)])
+    plan.stats.crit = 50
+    // A crit proc and an on-hit proc, counted by their casts.
+    plan.sources.push({ id: 'onCrit', name: 'On crit', icon: 'x' }, { id: 'onHit', name: 'On hit', icon: 'x' })
+    const n = plan.sources.length
+    const proc = (id: string, trigger: number, source: number) => ({ id, name: id, trigger, chance: [1, 1] as [number, number], hands: 3, icdMs: 0, action: ACTION.spellDamage, amount: 0, a: 1, b: 1, school: 0, source, chainBit: 0 })
+    plan.procs = [proc('onCrit', TRIGGER.meleeCrit, n - 2), proc('onHit', TRIGGER.meleeLanded, n - 1)]
+    plan.triggers = Array.from({ length: TRIGGER_COUNT }, (_, t) => (t === TRIGGER.meleeCrit ? [0] : t === TRIGGER.meleeLanded ? [1] : []))
+    const sim = new Sim(plan)
+    for (let i = 0; i < 20; i++) sim.runFight(i)
+    const white = (f: number) => counter(sim, SOURCE_MAIN_HAND, f)
+    expect(counter(sim, row, FIELD.crits)).toBeGreaterThan(50)
+    expect(counter(sim, n - 2, FIELD.casts)).toBe(white(FIELD.crits))
+    const landedWhite = white(FIELD.hits) + white(FIELD.crits) + white(FIELD.glances) + white(FIELD.blocks)
+    expect(counter(sim, n - 1, FIELD.casts)).toBe(landedWhite + counter(sim, row, FIELD.casts))
+  })
+
+  it('needs Battle or Defensive Stance', () => {
+    const used = (stance: number) => {
+      const { plan, rend } = rendPlan(10000)
+      line(plan, rend, [refresh(rend, 0)])
+      plan.stance = stance
+      return timeline(plan).uses[rend].length > 0
+    }
+    expect([STANCE.battle, STANCE.defensive, STANCE.berserker].map(used)).toEqual([true, true, false])
+  })
+
+  it('its marker can gate other lines: Mortal Strike only while Rend is on the target', () => {
+    const { plan, rend } = rendPlan(40000)
+    const ms = addAbility(plan, MORTAL_STRIKE)
+    line(plan, rend, at(plan, 0))
+    line(plan, ms, [{ code: COND.abilityAuraUp, a: rend, b: 0 }])
+    const { uses } = timeline(plan)
+    expect(uses[rend]).toEqual([0])
+    expect(uses[ms]).toEqual([1500, 7500, 13500, 19500])
+  })
+})
+
+describe('rage refunds on avoidance (rage.md#rage-refunds-on-avoided-abilities)', () => {
+  /** Rage at each use when the boss dodges everything and 30 rage arrives every 10 s. */
+  function rageAtUses(def: AbilityDef, conditions: (a: number) => RotationCondition[] = () => []): number[] {
+    const plan = armsPlan(60000)
+    const a = addAbility(plan, def)
+    line(plan, a, conditions(a))
+    plan.stats.hit = 100
+    plan.stats.expertise = -1000 // every attack is dodged
+    plan.periodicRage = [{ periodMs: 10000, tenths: 300, source: -1 }]
+    const { sim, rageAtUse } = timeline(plan)
+    expect(sim.inspect().specialThresholds[1]).toBe(100)
+    return rageAtUse[a].slice(0, 4)
+  }
+
+  it('each dodged cast nets 20% of its cost: Mortal Strike −6, Slam −3, Spearing Strike −3, Rend −2', () => {
+    // Mortal Strike at 10 s (30 → 24), 20 s (54 → 48), 26 s (48 → 42), 30 s (72).
+    expect(rageAtUses(MORTAL_STRIKE)).toEqual([300, 540, 480, 720])
+    // Slam pays and refunds when its cast ends (11.5 s: 30 → 27); its cooldown ends at 26.5 s.
+    expect(rageAtUses(SLAM).slice(0, 2)).toEqual([300, 570])
+    // Spearing Strike's 20 s cooldown: 10 s (30 → 27), 30 s (27 + 30).
+    expect(rageAtUses(SPEARING_STRIKE).slice(0, 2)).toEqual([300, 570])
+    // A dodged Rend never lands, so "Rend missing" stays true: every GCD while there's rage.
+    expect(rageAtUses(REND, (a) => [refresh(a, 0)])).toEqual([300, 280, 260, 240])
+  })
+})
+
+describe('determinism with the Arms abilities in play (decision D15)', () => {
+  function arms(seed: number): Plan {
+    const plan = armsPlan(120000)
+    plan.seed = seed
+    const talents = new Map([
+      ['Impale', 2],
+      ['Improved Rend', 3],
+    ])
+    const rend = addAbility(plan, REND, talents)
+    line(plan, rend, [refresh(rend, 0)])
+    line(plan, addAbility(plan, MORTAL_STRIKE, talents))
+    line(plan, addAbility(plan, SPEARING_STRIKE, talents))
+    line(plan, addAbility(plan, SLAM, talents))
+    line(plan, addAbility(plan, HEROIC_STRIKE, talents), [{ code: COND.minRage, a: 600, b: 0 }])
+    plan.fight.targetArmor = 3000
+    // 5 rage a second on top of the white rage, so Heroic Strike's 60-rage line is reached too.
+    plan.periodicRage = [{ periodMs: 1000, tenths: 50, source: -1 }]
+    return plan
+  }
+  const run = (plan: Plan) => {
+    const sim = new Sim(plan)
+    for (let i = 0; i < 200; i++) sim.runFight(i)
+    return Array.from(sim.counters)
+  }
+
+  it('gives the same result for the same seed, and a fight depends only on its index', () => {
+    const a = run(arms(7))
+    expect(run(arms(7))).toEqual(a)
+    expect(run(arms(8))).not.toEqual(a)
+    const fresh = new Sim(arms(7))
+    fresh.runFight(5)
+    const used = new Sim(arms(7))
+    for (let i = 0; i < 5; i++) used.runFight(i)
+    used.runFight(5)
+    expect([used.fightDamage, used.fightThreat]).toEqual([fresh.fightDamage, fresh.fightThreat])
+    // Every ability did something.
+    const plan = arms(7)
+    for (const ab of plan.abilities) expect(a[ab.source * FIELD_COUNT + FIELD.damage], ab.id).toBeGreaterThan(0)
+  })
+})

@@ -19,7 +19,7 @@ client-data check the same day ([client.md](data/client.md)) · Forever beta 1.6
 Classic Era 1.15.9.69722 · beta capped at level 20 (rising to 30), launch 2026-11-04, raids
 unlock 2026-12-09
 
-**136 entries, 113 open:** Route A 7 (High 1, Medium 2, Low 4) · Route B 72 (20 / 25 / 27) ·
+**137 entries, 114 open:** Route A 7 (High 1, Medium 2, Low 4) · Route B 73 (20 / 25 / 28) ·
 Route C 34 (8 / 13 / 13) · Route D 23, all ✅ resolved from client data (was 7 / 11 / 5), plus
 6 items settled by the sim or a guild decision. The client-data check added in-game checks to
 B41, C11 and C12 rather than new entries.
@@ -530,12 +530,14 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **Medium · M2 (Rend, Deep Wounds), M4 (Rip, Rake) · ≤20**
 - **Assumes:** in `forever`, ticks crit when the spell has the periodic-crit flag (Rend, Rake,
   Rip, Pounce, Lacerate; not Deep Wounds) [the tooltip text and the per-spell flags are F
-  client, `SpellMisc` Attributes[8], ✅ D14; whether ticks crit in combat ?], ×2.0 for physical
+  client, `SpellMisc` Attributes[8], ✅ D14; whether ticks crit in combat ?], ×2.0 for physical,
+  raised by crit-bonus talents whose class mask covers the spell (Impale on Rend, [B73](#b73-rend-tick-crits-and-impale))
   [?]; in `classicEra`, ticks never crit [C]. Both
   profiles snapshot AP, caster modifiers and crit chance at application [?], except Deep
   Wounds, which recomputes each tick [C]; a third-party report that Forever's Rend reads them
-  per tick is not adopted [?]. Crit suppression on ticks [?]; a refresh restarts duration and
-  tick timer and loses the partial tick [?]. Deep Wounds: 4 ticks over 12 s [C; F client: the
+  per tick is not adopted [?]. A melee bleed's tick crits at the main hand's special-attack
+  crit chance, crit suppression included [?]; a refresh restarts duration and tick timer and
+  loses the partial tick [?]. Deep Wounds: 4 ticks over 12 s [C; F client: the
   Forever bleed is spell 412609, every 3 s for 12 s, and 12721 doesn't exist in the Forever
   client].
 - **Test:** vs mobs three levels higher, log Rend, Deep Wounds (1/3), Rip and Rake ticks: count
@@ -1155,6 +1157,23 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Docs:** [warrior §2.3](classes/warrior.md#23-rage-warrior-specific),
   [Q29](classes/warrior.md#9-open-questions)
 
+#### B73. Rend tick crits and Impale
+**Low · M2 · ≤30 (Impale, tier 4)**
+- **Assumes** [?]: a Rend tick crit deals ×2.2 with Impale 2/2 (×2.0 without), since Impale's
+  class mask covers Rend [F client] (the mask is Classic Era's, where Rend couldn't crit, so it
+  shows no intent); a tick's crit chance is the main hand's special-attack crit chance,
+  suppression included, snapshotted at the application; a tick crit fires no crit procs (Flurry,
+  Deep Wounds) [F client: their proc masks have no periodic bit]; a landed Rend application
+  fires on-hit procs (Windfury, Weaponmaster, weapon enchants).
+- **Test:** with Impale 0/2 and 2/2, log Rend's ticks against mobs three levels higher: the size
+  of crit ticks against normal ones (×2.0 or ×2.2) and their rate against the sheet's crit;
+  with Windfury or a Crusader weapon, count procs right after Rend applications.
+- **Samples:** ≥200 ticks per Impale rank; ≥100 Rend applications.
+- **Changes:** Rend's tick crits and its proc value in the Arms rotation.
+- **Docs:** [warrior §2.5, §7](classes/warrior.md#25-crits-impale-flurry-deep-wounds),
+  [Q32](classes/warrior.md#9-open-questions);
+  [damage §4](mechanics/damage-and-timing.md#4-dots-and-bleeds)
+
 ---
 
 ## Route C: Forever at level 60
@@ -1274,8 +1293,13 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 **Medium · M2**
 - **Assumes:** without Improved Slam, Classic behaviour (no swings during the cast, both timers
   restart) [C]; with it, timers untouched [F tooltip]. A third-party Forever sim's notes say
-  Slam pauses and resumes the timers [?, anecdotal, not adopted].
-- **Test:** swing timestamps around Slam casts in the combat log, with and without Improved Slam.
+  Slam pauses and resumes the timers [?, anecdotal, not adopted]. Slam pays its cost and starts
+  its cooldown when the cast completes, and fails if a Heroic Strike swing during an Improved
+  Slam cast left too little rage [?]; off-GCD actions (the Heroic Strike queue, Bloodrage,
+  racials) work during the cast [?]; haste doesn't shorten the cast [?].
+- **Test:** swing timestamps around Slam casts in the combat log, with and without Improved Slam;
+  when Slam's cooldown starts (cast start or end); with Improved Slam and little rage, a Heroic
+  Strike swing during the cast; the cast time with Berserking or Flurry up.
 - **Samples:** ≥20 Slams each.
 - **Changes:** Arms Slam value.
 - **Docs:** [warrior §3.1](classes/warrior.md#31-damage-abilities),

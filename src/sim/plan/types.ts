@@ -7,7 +7,7 @@
 import type { AuraSpec } from '../effects/types'
 import type { RulesProfile } from '../rules/profiles'
 import type { StatBlock } from '../stats/stat-block'
-import type { Assumption, CharacterSheet, ClassId, DamageTakenRageModel, Role, SpecId } from '../types'
+import type { Assumption, CharacterSheet, ClassId, CreatureType, DamageTakenRageModel, Role, SpecId } from '../types'
 
 export const HAND = { main: 0, off: 1 } as const
 
@@ -138,14 +138,31 @@ export interface AbilityPlan {
    * `weaponStrike` (Heroic Strike, Cleave; warrior.md §2.4);
    * `cast`: no attack: it puts `aura` on the warrior and grants its rage (Battle Shout,
    * Bloodrage, Death Wish, Recklessness, Berserker Rage, racial cooldowns, on-use items and
-   * consumables; warrior.md §3.2, §2.9, §5.2). The damage fields are unused.
+   * consumables; warrior.md §3.2, §2.9, §5.2). The damage fields are unused;
+   * `bleed`: one roll for miss, dodge and parry and no crit; if it lands it puts its bleed on the
+   * target (`dotTicks` ticks of `dotTickDamage`) and `aura` marks it there (Rend, warrior.md
+   * §3.1; damage-and-timing §4). The direct-damage fields are unused.
    */
-  kind: 'weaponStrike' | 'meleeSpell' | 'onNextSwing' | 'cast'
+  kind: 'weaponStrike' | 'meleeSpell' | 'onNextSwing' | 'cast' | 'bleed'
   /** Rage cost in tenths after the build's talent reductions (warrior.md §2.3 "Cost reductions"). */
   costTenths: number
   cooldownMs: number
   /** 0 = off the GCD (damage-and-timing §3.5). */
   gcdMs: number
+  /**
+   * Cast time in ms, 0 for an instant (Slam: 1500 − 250 per Improved Slam rank, warrior.md §3.1).
+   * The GCD starts with the cast, and no GCD ability starts before it completes; off-GCD lines
+   * still act. When it completes the ability pays its cost (it fails with too little rage then),
+   * starts its cooldown and strikes (warrior.md §7).
+   */
+  castMs: number
+  /**
+   * No white swings during the cast, and both swing timers restart from full when it completes
+   * (Slam without Improved Slam; damage-and-timing §3.3). Otherwise the timers are untouched.
+   */
+  castStopsSwings: boolean
+  /** Needs a two-handed weapon (Spearing Strike, warrior.md §3.1): never used with one-handers. */
+  twoHandOnly: boolean
   /** STANCE bits of the stances it can be used in (warrior.md §3.1 "Stance"); STANCE_ANY for any. */
   stances: number
   /** Usable only in the execute phase, at or below the target's execute health (Execute; encounter §3). */
@@ -179,8 +196,28 @@ export interface AbilityPlan {
    * off hand's speed and hand multiplier; it costs nothing more and refunds nothing.
    */
   offHandSource: number
-  /** `cast`: the plan aura it puts on the warrior, or −1 (Death Wish, Recklessness, Blood Fury, …). */
+  /**
+   * `cast`: the plan aura it puts on the warrior, or −1 (Death Wish, Recklessness, Blood Fury, …).
+   * `bleed`: the plan aura that marks the bleed on the target, with no stat mods: up from the
+   * application until its last tick, so rotation conditions can read it, as Bloodthrill's proc
+   * will (Rend).
+   */
   aura: number
+  /**
+   * `bleed`: damage per tick before physical damage modifiers, after the ability's own talents
+   * (Rend: 21 × Improved Rend's 1.12 / 1.23 / 1.35, W13), and `dotTicks` ticks every `dotTickMs`
+   * from the application. The ticks ignore armor, never miss, and snapshot the caster's
+   * multipliers and crit chance at the application (damage-and-timing §4).
+   */
+  dotTickDamage: number
+  dotTicks: number
+  dotTickMs: number
+  /**
+   * `bleed`: the spell's periodic-crit flag (SpellMisc Attributes[8] 0x200). Its ticks may crit
+   * only in a profile whose periodic effects can crit (`forever`), at `critMultiplier`
+   * (damage-and-timing §2.5, §4).
+   */
+  periodicCanCrit: boolean
   /**
    * `cast`: rage in tenths, `rageTenths` at once and then `rageTicks` ticks of `rageTickTenths`
    * every `rageTickMs` from the cast (Bloodrage: 100, then 10 × 10 every 1000 ms; warrior.md
@@ -201,11 +238,21 @@ export interface AbilityPlan {
 }
 
 /**
- * An ability before the plan gives it breakdown rows and resolves its aura. `offHand` asks for a
- * second strike with the off hand (Raging Blows' Whirlwind, warrior.md §3.1); `aura` is the buff a
- * `cast` puts on the warrior, which the plan adds to its auras.
+ * An ability before the plan gives it breakdown rows and resolves its aura and target. `offHand`
+ * asks for a second strike with the off hand (Raging Blows' Whirlwind, warrior.md §3.1); `aura`
+ * is the buff a `cast` puts on the warrior, or a bleed's marker on the target, which the plan adds
+ * to its auras; `vsCreature` is a different weapon share against some creature types (Spearing
+ * Strike), which the plan resolves against the encounter's creature type (encounter §6).
  */
-export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura'> & { offHand: boolean; aura: AuraSpec | null }
+export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura'> & {
+  offHand: boolean
+  aura: AuraSpec | null
+  vsCreature?: { types: readonly CreatureType[]; weaponPercent: number }
+}
+
+/** An ability's weapon share against the encounter's creature type (Spearing Strike ×3 vs Giants and Dragonkin, warrior.md §3.1). */
+export const weaponPercentVs = (def: AbilityDef, creatureType: CreatureType): number =>
+  def.vsCreature && def.vsCreature.types.includes(creatureType) ? def.vsCreature.weaponPercent : def.weaponPercent
 
 /** Rotation condition codes (docs/classes/warrior.md#51-conventions-for-rotation-settings). */
 export const COND = {
@@ -236,13 +283,17 @@ export const COND = {
   timeLeftAtMost: 8,
   /** the fight has at least a ms left (resolved the same way; it only becomes false, so no wake-up) */
   timeLeftAtLeast: 9,
-  /** the aura that ability a puts on the warrior is up (the racial synced with Death Wish, warrior.md §5.2) */
+  /**
+   * the aura that ability a puts on the warrior is up (the racial synced with Death Wish, warrior.md
+   * §5.2); for a bleed, its bleed is on the target (Rend)
+   */
   abilityAuraUp: 10,
   /**
    * the aura that ability a puts on the warrior is down, or has at most b ms left and would end
-   * before the fight does (Battle Shout's upkeep, warrior.md §5.2 row 1). Like the time-left
-   * conditions, the engine resolves it into the line's window of times, moved whenever the aura
-   * starts or ends, and wakes the rotation when the window opens.
+   * before the fight does (Battle Shout's upkeep, warrior.md §5.2 row 1); for a bleed, its bleed
+   * is missing from the target or has at most b ms of ticks left ("Rend missing or under x s").
+   * Like the time-left conditions, the engine resolves it into the line's window of times, moved
+   * whenever the aura starts or ends, and wakes the rotation when the window opens.
    */
   abilityAuraRefresh: 11,
 } as const

@@ -5,10 +5,11 @@
 // so the app bundle doesn't carry the 1.3 MB client dataset; abilities.test.ts checks every one
 // against the client data. Client units: rage costs in tenths (`manaCost` 300 = 30 rage), times
 // in ms. These are the base rows: talents (cost reductions, Impale, Raging Blows, Improved
-// Bloodrage, Improved Berserker Rage) are applied by `withTalents` in modifiers.ts when the plan
-// resolves the rotation. Strikes roll the attack tables; `cast` rows (Battle Shout, Bloodrage,
-// Death Wish, Recklessness, Berserker Rage, racial cooldowns, on-use items and consumables)
-// apply an aura and grant rage (warrior.md §3.2, §5.2).
+// Bloodrage, Improved Berserker Rage, Improved Rend, Improved Slam) are applied by `withTalents`
+// in modifiers.ts when the plan resolves the rotation. Strikes roll the attack tables (Slam after
+// its cast time); Rend's `bleed` row lands a bleed; `cast` rows (Battle Shout, Bloodrage, Death
+// Wish, Recklessness, Berserker Rage, racial cooldowns, on-use items and consumables) apply an
+// aura and grant rage (warrior.md §3.1, §3.2, §5.2).
 import { CRIT_MULTIPLIER, GCD_MS } from '../../core/formulas'
 import type { OnUseSpec } from '../../effects/types'
 import { type AbilityDef, STANCE, STANCE_ANY } from '../../plan/types'
@@ -23,6 +24,17 @@ const NO_CAST_RAGE = { rageTenths: 0, rageSpreadTenths: 0, rageTickTenths: 0, ra
 
 /** The `cast` fields of an attack: no aura, no rage, no limit on uses. */
 const NO_CAST = { aura: null, ...NO_CAST_RAGE } as const
+
+/** The fields of an instant ability with no weapon restriction beyond a melee weapon and no bleed. */
+const INSTANT = {
+  castMs: 0,
+  castStopsSwings: false,
+  twoHandOnly: false,
+  dotTickDamage: 0,
+  dotTicks: 0,
+  dotTickMs: 0,
+  periodicCanCrit: false,
+} as const
 
 /** The attack fields of a `cast`: it rolls nothing, deals nothing and refunds nothing. */
 export const NO_STRIKE = {
@@ -39,6 +51,7 @@ export const NO_STRIKE = {
   threatMult: 0,
   threatBonus: 0,
   offHand: false,
+  ...INSTANT,
 } as const
 
 /**
@@ -68,6 +81,7 @@ export const BLOODTHIRST: AbilityDef = {
   threatMult: 1,
   threatBonus: 0,
   offHand: false,
+  ...INSTANT,
   ...NO_CAST,
 }
 
@@ -100,6 +114,7 @@ export const WHIRLWIND: AbilityDef = {
   threatMult: 1,
   threatBonus: 0,
   offHand: false,
+  ...INSTANT,
   ...NO_CAST,
 }
 
@@ -129,6 +144,7 @@ export const HEROIC_STRIKE: AbilityDef = {
   threatMult: 1,
   threatBonus: 173,
   offHand: false,
+  ...INSTANT,
   ...NO_CAST,
 }
 
@@ -158,6 +174,7 @@ export const HAMSTRING: AbilityDef = {
   threatMult: 1.25,
   threatBonus: 135,
   offHand: false,
+  ...INSTANT,
   ...NO_CAST,
 }
 
@@ -190,7 +207,149 @@ export const EXECUTE: AbilityDef = {
   threatMult: 1.25,
   threatBonus: 0,
   offHand: false,
+  ...INSTANT,
   ...NO_CAST,
+}
+
+/**
+ * Mortal Strike rank 4 (spells.json 21553): cost 300, cooldown `categoryRecoveryTime` 6000, GCD
+ * 1500, any stance, effect 121 `NORMALIZED_WEAPON_DMG` +160 (warrior.md §3.1, W2;
+ * damage-and-timing §2.2). One roll (combat-tables §3). Its −50% healing on the target doesn't
+ * matter to damage. Threat dmg × 1 [C] (threat.md#warrior).
+ */
+export const MORTAL_STRIKE: AbilityDef = {
+  id: 'mortalStrike',
+  name: 'Mortal Strike',
+  icon: 'ability_warrior_savageblow',
+  kind: 'weaponStrike',
+  costTenths: 300,
+  cooldownMs: 6000,
+  gcdMs: GCD_MS,
+  stances: STANCE_ANY,
+  executePhaseOnly: false,
+  weaponPercent: 1,
+  normalized: true,
+  flatDamage: 160,
+  apCoefficient: 0,
+  damagePerExtraRage: 0,
+  bonusCrit: 0,
+  critMultiplier: CRIT_MULTIPLIER.melee,
+  refundShare: REFUND,
+  threatMult: 1,
+  threatBonus: 0,
+  offHand: false,
+  ...INSTANT,
+  ...NO_CAST,
+}
+
+/**
+ * Slam rank 5 (spells.json 11605, and its Improved Slam version 1310200 with the same numbers):
+ * cost 150, cooldown `categoryRecoveryTime` 15000, GCD 1500, cast `castTime` 1500, any stance,
+ * effect 17 `WEAPON_DAMAGE_NOSCHOOL` +87 at the real weapon speed (warrior.md §3.1, W4). One
+ * roll. Without Improved Slam no white swings land during the cast and both swing timers restart
+ * when it completes (§3.1 "Slam"; damage-and-timing §3.3); Improved Slam shortens the cast and
+ * the GCD and leaves the timers alone (modifiers.ts). Threat dmg × 1 [C] (threat.md#warrior).
+ */
+export const SLAM: AbilityDef = {
+  id: 'slam',
+  name: 'Slam',
+  icon: 'ability_warrior_decisivestrike',
+  kind: 'weaponStrike',
+  costTenths: 150,
+  cooldownMs: 15000,
+  gcdMs: GCD_MS,
+  stances: STANCE_ANY,
+  executePhaseOnly: false,
+  weaponPercent: 1,
+  normalized: false,
+  flatDamage: 87,
+  apCoefficient: 0,
+  damagePerExtraRage: 0,
+  bonusCrit: 0,
+  critMultiplier: CRIT_MULTIPLIER.melee,
+  refundShare: REFUND,
+  threatMult: 1,
+  threatBonus: 0,
+  offHand: false,
+  ...INSTANT,
+  castMs: 1500,
+  castStopsSwings: true,
+  ...NO_CAST,
+}
+
+/**
+ * Spearing Strike (spells.json 1310222, an Arms talent): cost 150, cooldown `recoveryTime` 20000,
+ * GCD 1500, any stance, two-handed weapons only (`equippedItemSubclass` 1378: two-handed axes,
+ * maces and swords, polearms and staves). Effect 121 `NORMALIZED_WEAPON_DMG` plus effect 31
+ * `WEAPON_PERCENT_DAMAGE` 40: 0.40 × normalized main-hand damage, AP included; against Giants
+ * and Dragonkin (and mounted targets, which bosses aren't) the tooltip's "additional 80%" makes
+ * it 1.20 [F] [?] (warrior.md §3.1, W6, Q13). One roll. Threat dmg × 1 [?] (threat.md#warrior).
+ */
+export const SPEARING_STRIKE: AbilityDef = {
+  id: 'spearingStrike',
+  name: 'Spearing Strike',
+  icon: 'inv_spear_01',
+  kind: 'weaponStrike',
+  costTenths: 150,
+  cooldownMs: 20000,
+  gcdMs: GCD_MS,
+  stances: STANCE_ANY,
+  executePhaseOnly: false,
+  weaponPercent: 0.4,
+  normalized: true,
+  flatDamage: 0,
+  apCoefficient: 0,
+  damagePerExtraRage: 0,
+  bonusCrit: 0,
+  critMultiplier: CRIT_MULTIPLIER.melee,
+  refundShare: REFUND,
+  threatMult: 1,
+  threatBonus: 0,
+  offHand: false,
+  ...INSTANT,
+  twoHandOnly: true,
+  ...NO_CAST,
+  vsCreature: { types: ['giant', 'dragonkin'], weaponPercent: 1.2 },
+}
+
+/**
+ * Rend rank 7 (spells.json 11574): cost 100, no cooldown, GCD 1500, Battle or Defensive Stance
+ * (`shapeshiftMask` 0x30000); aura 3 (periodic damage) 21 every `effectAuraPeriod` 3000 for
+ * `duration` 21000: 7 ticks, 147 in all, with the periodic-crit flag (SpellMisc Attributes[8]
+ * 0x200) (warrior.md §3.1, W13; damage-and-timing §4). The application rolls miss, dodge and
+ * parry and can't crit; a miss, dodge or parry refunds 80% [C]
+ * (rage.md#rage-refunds-on-avoided-abilities). Improved Rend multiplies the ticks (modifiers.ts).
+ * Its `aura` marks the bleed on the target for 21 s. Threat: each tick's dmg × 1 [C]
+ * (threat.md#warrior).
+ */
+export const REND: AbilityDef = {
+  id: 'rend',
+  name: 'Rend',
+  icon: 'ability_gouge',
+  kind: 'bleed',
+  costTenths: 100,
+  cooldownMs: 0,
+  gcdMs: GCD_MS,
+  stances: STANCE.battle | STANCE.defensive,
+  executePhaseOnly: false,
+  weaponPercent: 0,
+  normalized: false,
+  flatDamage: 0,
+  apCoefficient: 0,
+  damagePerExtraRage: 0,
+  bonusCrit: 0,
+  critMultiplier: CRIT_MULTIPLIER.melee,
+  refundShare: REFUND,
+  threatMult: 1,
+  threatBonus: 0,
+  offHand: false,
+  ...INSTANT,
+  dotTickDamage: 21,
+  dotTicks: 7,
+  dotTickMs: 3000,
+  periodicCanCrit: true,
+  ...NO_CAST,
+  aura: { id: 'rend', name: 'Rend', durationMs: 21000, mods: {} },
 }
 
 /**

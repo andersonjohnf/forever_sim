@@ -9,7 +9,8 @@
 // It simulates white swings, procs, auras, rage, threat, boss melee, and abilities driven by a
 // priority-list rotation: GCD and cooldown events on the same queue, one-roll strikes, two-roll
 // melee spells, on-next-swing queues, off-hand strikes, casts that buff the warrior or grant rage,
-// stance limits, the execute phase, time-left conditions, buff upkeep and the pre-pull
+// abilities with a cast time (Slam), bleeds with a marker on the target (Rend), stance limits, the
+// execute phase, time-left conditions, buff upkeep and the pre-pull
 // (docs/architecture.md#engine-design-m1).
 import {
   bossSlices,
@@ -40,13 +41,18 @@ const EV_ACT = 8
 const EV_EXECUTE = 9
 /** A `cast` ability's rage tick (Bloodrage; data = ability index). */
 const EV_CAST_RAGE = 10
+/** An ability's cast time is over (Slam; data = ability index). */
+const EV_CAST_END = 11
+/** A `bleed` ability's tick (Rend; data = ability index). */
+const EV_DOT_TICK = 12
 
 /** Ability kinds (AbilityPlan.kind). */
 const KIND_STRIKE = 0
 const KIND_MELEE_SPELL = 1
 const KIND_ON_NEXT_SWING = 2
 const KIND_CAST = 3
-const KIND_CODE = { weaponStrike: KIND_STRIKE, meleeSpell: KIND_MELEE_SPELL, onNextSwing: KIND_ON_NEXT_SWING, cast: KIND_CAST } as const
+const KIND_BLEED = 4
+const KIND_CODE = { weaponStrike: KIND_STRIKE, meleeSpell: KIND_MELEE_SPELL, onNextSwing: KIND_ON_NEXT_SWING, cast: KIND_CAST, bleed: KIND_BLEED } as const
 
 /** Breakdown columns per source. */
 export const FIELD = {
@@ -90,7 +96,10 @@ export class Sim {
   totalRageWastedTenths = 0
   /** Test hook: called for every white swing (source row, hand, time) and bleed tick (source, −1, time). */
   trace: ((source: number, hand: number, time: number) => void) | null = null
-  /** Test hook: called when an ability is used, before its cost is paid (ability index, time, rage in tenths). */
+  /**
+   * Test hook: called when an ability is used, before its cost is paid (ability index, time, rage
+   * in tenths); for an ability with a cast time, when the cast starts.
+   */
   castTrace: ((ability: number, time: number, rageTenths: number) => void) | null = null
   /** Test hook: every damage event (source row, damage). */
   damageTrace: ((source: number, damage: number) => void) | null = null
@@ -180,6 +189,11 @@ export class Sim {
   private readonly abCost: Int32Array
   private readonly abCd: Float64Array
   private readonly abGcd: Float64Array
+  /** Cast time (0 = instant), and whether the cast stops white swings and restarts the timers (Slam, warrior.md §3.1). */
+  private readonly abCastMs: Float64Array
+  private readonly abCastStopsSwings: Uint8Array
+  /** Abilities this setup can never use (Spearing Strike without a two-hander): never ready. */
+  private readonly abNeverReady: Uint8Array
   private readonly abWeaponPct: Float64Array
   private readonly abNormalized: Uint8Array
   private readonly abFlat: Float64Array
@@ -204,6 +218,14 @@ export class Sim {
   private readonly abTickMs: Float64Array
   /** `cast` abilities: a random extra of 0…this many tenths on the rage at once (Mighty Rage Potion). */
   private readonly abRageSpread: Int32Array
+  /**
+   * `bleed` abilities: damage per tick before physical multipliers, ticks, tick period, and
+   * whether a tick may crit (the spell's flag, in a profile whose periodic effects crit).
+   */
+  private readonly abDotTick: Float64Array
+  private readonly abDotTicks: Int32Array
+  private readonly abDotTickMs: Float64Array
+  private readonly abDotCanCrit: Uint8Array
   /** Uses per fight (0 = no limit), and this fight's uses so far. */
   private readonly abUsesPerFight: Int32Array
   private readonly abUses: Int32Array
@@ -274,6 +296,20 @@ export class Sim {
   /** `cast` rage ticks still to come, and their generation (a recast restarts them). */
   private readonly abTicksLeft: Int32Array
   private readonly abTickGen: Int32Array
+  /**
+   * `bleed` abilities on the target: ticks still to come, their generation (a refresh restarts
+   * them), the next tick's time, and the damage and crit chance snapshotted at the application
+   * (−1: the ticks can't crit).
+   */
+  private readonly dotTicksLeft: Int32Array
+  private readonly dotGen: Int32Array
+  private readonly dotNextAt: Float64Array
+  private readonly dotDamage: Float64Array
+  private readonly dotCrit: Float64Array
+  /** While an ability's cast runs, the GCD is held (gcdEnd = ∞); this is when the GCD would end on its own. */
+  private castGcdEnd = 0
+  /** A cast that stops white swings is running: no swing timers are pending (damage-and-timing §3.3). */
+  private swingsStopped = false
   /** The STANCE bit the warrior is in (plan.stance; no stance dancing yet). */
   private stance = 0
   /** The current phase's lists (rotNormal / rotExecute and their off-GCD entries). */
@@ -460,6 +496,9 @@ export class Sim {
     this.abCost = new Int32Array(nb)
     this.abCd = new Float64Array(nb)
     this.abGcd = new Float64Array(nb)
+    this.abCastMs = new Float64Array(nb)
+    this.abCastStopsSwings = new Uint8Array(nb)
+    this.abNeverReady = new Uint8Array(nb)
     this.abWeaponPct = new Float64Array(nb)
     this.abNormalized = new Uint8Array(nb)
     this.abFlat = new Float64Array(nb)
@@ -481,6 +520,15 @@ export class Sim {
     this.abTicks = new Int32Array(nb)
     this.abTickMs = new Float64Array(nb)
     this.abRageSpread = new Int32Array(nb)
+    this.abDotTick = new Float64Array(nb)
+    this.abDotTicks = new Int32Array(nb)
+    this.abDotTickMs = new Float64Array(nb)
+    this.abDotCanCrit = new Uint8Array(nb)
+    this.dotTicksLeft = new Int32Array(nb)
+    this.dotGen = new Int32Array(nb)
+    this.dotNextAt = new Float64Array(nb)
+    this.dotDamage = new Float64Array(nb)
+    this.dotCrit = new Float64Array(nb)
     this.abUsesPerFight = new Int32Array(nb)
     this.abUses = new Int32Array(nb)
     this.abReadyAt = new Float64Array(nb)
@@ -492,6 +540,10 @@ export class Sim {
       this.abCost[i] = a.costTenths
       this.abCd[i] = a.cooldownMs
       this.abGcd[i] = a.gcdMs
+      this.abCastMs[i] = a.castMs
+      this.abCastStopsSwings[i] = a.castStopsSwings ? 1 : 0
+      // warrior.md §3.1: Spearing Strike needs a two-hander.
+      this.abNeverReady[i] = a.twoHandOnly && !this.wTwoHand[HAND.main] ? 1 : 0
       this.abWeaponPct[i] = a.weaponPercent
       this.abNormalized[i] = a.normalized ? 1 : 0
       this.abFlat[i] = a.flatDamage
@@ -511,6 +563,11 @@ export class Sim {
       this.abTicks[i] = a.rageTicks
       this.abTickMs[i] = a.rageTickMs
       this.abRageSpread[i] = a.rageSpreadTenths
+      this.abDotTick[i] = a.dotTickDamage
+      this.abDotTicks[i] = a.dotTicks
+      this.abDotTickMs[i] = a.dotTickMs
+      // docs/mechanics/damage-and-timing.md#4-dots-and-bleeds: flagged ticks crit only in `forever`
+      this.abDotCanCrit[i] = a.periodicCanCrit && plan.profile.combat.periodicCrits ? 1 : 0
       this.abUsesPerFight[i] = a.usesPerFight
     }
     const prepull = plan.prepull
@@ -692,6 +749,12 @@ export class Sim {
         case EV_CAST_RAGE:
           if (q.gen === this.abTickGen[data]) this.onCastRageTick(data)
           break
+        case EV_CAST_END:
+          this.onCastEnd(data)
+          break
+        case EV_DOT_TICK:
+          if (q.gen === this.dotGen[data]) this.onDotTick(data)
+          break
         case EV_EXECUTE:
           this.rotList = this.rotExecute
           this.rotOffList = this.offGcdExecute
@@ -756,10 +819,14 @@ export class Sim {
     this.exCount = 0
     this.chainMask = 0
     this.gcdEnd = 0
-    this.abReadyAt.fill(0)
+    this.castGcdEnd = 0
+    this.swingsStopped = false
+    for (let i = 0; i < this.abReadyAt.length; i++) this.abReadyAt[i] = this.abNeverReady[i] ? Infinity : 0
     this.abUses.fill(0)
     this.abTicksLeft.fill(0)
     for (let i = 0; i < this.abTickGen.length; i++) this.abTickGen[i]++
+    this.dotTicksLeft.fill(0)
+    for (let i = 0; i < this.dotGen.length; i++) this.dotGen[i]++
     this.queued = -1
     this.actPending = false
     this.stance = this.plan.stance
@@ -1022,6 +1089,8 @@ export class Sim {
   }
 
   private drainExtraAttacks(): void {
+    // One granted during a cast that stops swings waits for the cast to complete (warrior.md §7).
+    if (this.swingsStopped) return
     let chain = 0
     while (this.exCount > 0 && chain < MAX_CHAIN) {
       const i = this.exHead
@@ -1136,6 +1205,10 @@ export class Sim {
       return
     }
     if (this.castTrace !== null) this.castTrace(a, this.now, this.rage)
+    if (this.abCastMs[a] > 0) {
+      this.startCast(a)
+      return
+    }
     this.spendRage(a)
     const gcd = this.abGcd[a]
     if (gcd > 0) {
@@ -1151,10 +1224,60 @@ export class Sim {
       this.cast(a)
       return
     }
+    this.strike(a)
+    if (this.exCount > 0) this.drainExtraAttacks()
+  }
+
+  /** An attack's strikes: the main hand's, and the off hand's if it has one (Raging Blows' Whirlwind, warrior.md §3.1) [?]. */
+  private strike(a: number): void {
     this.chainMask = 0
     this.special(a, HAND.main, 0)
-    // Raging Blows: Whirlwind also strikes with the off hand (warrior.md §3.1) [?].
     if (this.abOffSource[a] >= 0 && this.hasWeapon[HAND.off]) this.special(a, HAND.off, 0)
+  }
+
+  /**
+   * Starts an ability's cast (Slam, warrior.md §3.1 "Slam" and §7): the GCD runs from now, but no
+   * GCD ability starts until the cast completes, so the GCD is held until then; off-GCD lines
+   * still act. A cast that stops swings cancels both pending swings (damage-and-timing §3.3 and
+   * its implementation notes). The cost, cooldown and strike wait for the cast to complete.
+   */
+  private startCast(a: number): void {
+    const now = this.now
+    this.castGcdEnd = now + this.abGcd[a]
+    this.gcdEnd = Infinity
+    this.q.push(now + this.abCastMs[a], EV_CAST_END, a, 0)
+    if (this.abCastStopsSwings[a]) {
+      this.swingGen[HAND.main]++
+      this.swingGen[HAND.off]++
+      this.swingsStopped = true
+    }
+  }
+
+  /**
+   * A cast completes (warrior.md §7): the GCD ends when it would have on its own, and the ability
+   * pays its cost, starts its cooldown and strikes, unless rage fell below its cost during the
+   * cast (a Heroic Strike swing while Improved Slam keeps the timers running), when it fails and
+   * costs nothing. Swing timers a cast stopped restart from full now (damage-and-timing §3.3).
+   */
+  private onCastEnd(a: number): void {
+    const now = this.now
+    this.gcdEnd = this.castGcdEnd
+    if (this.gcdEnd > now) this.q.push(this.gcdEnd, EV_ACT, 0, 0)
+    this.actPending = this.hasRotation
+    if (this.rage >= this.abCost[a]) {
+      this.spendRage(a)
+      const cd = this.abCd[a]
+      if (!this.countUse(a) && cd > 0) {
+        this.abReadyAt[a] = now + cd
+        this.q.push(this.abReadyAt[a], EV_ACT, 0, 0)
+      }
+      this.strike(a)
+    }
+    if (this.swingsStopped) {
+      this.swingsStopped = false
+      if (this.hasWeapon[HAND.main]) this.scheduleSwing(HAND.main, now + this.swingMs[HAND.main])
+      if (this.dualWield) this.scheduleSwing(HAND.off, now + this.swingMs[HAND.off])
+    }
     if (this.exCount > 0) this.drainExtraAttacks()
   }
 
@@ -1226,6 +1349,13 @@ export class Sim {
         this.rage = Math.min(this.maxRage, this.rage + refund)
         this.actPending = this.hasRotation
       }
+      return
+    }
+    if (this.abKind[a] === KIND_BLEED) {
+      // warrior.md §3.1, §7: the application can't crit and deals nothing itself; it lands its
+      // bleed, and as a landed melee attack it can proc on-hit effects [?].
+      this.applyDot(a)
+      this.fireProcs(TRIGGER.meleeLanded, hand)
       return
     }
     const blocked = r < th[o + 4]
@@ -1452,6 +1582,49 @@ export class Sim {
     this.dealDamage(this.pSource[p], damage)
   }
 
+  /**
+   * A `bleed` ability lands (Rend; damage-and-timing §4): its ticks snapshot the physical damage
+   * multiplier and the main hand's special-attack crit chance now, and come every `dotTickMs` from
+   * now; its marker aura is up until the last one. Reapplying restarts it and re-snapshots: a
+   * tick due this very moment lands first, and the partial tick in progress is lost (WE-9).
+   */
+  private applyDot(a: number): void {
+    const now = this.now
+    if (this.dotTicksLeft[a] > 0 && this.dotNextAt[a] === now) this.onDotTick(a)
+    this.dotTicksLeft[a] = this.abDotTicks[a]
+    this.dotDamage[a] = this.abDotTick[a] * this.physMult
+    this.dotCrit[a] = this.abDotCanCrit[a] ? this.specCrit[HAND.main] + this.abBonusCrit[a] : -1
+    this.dotNextAt[a] = now + this.abDotTickMs[a]
+    this.q.push(this.dotNextAt[a], EV_DOT_TICK, a, ++this.dotGen[a])
+    if (this.abAura[a] >= 0) this.startAura(this.abAura[a], now + this.abDotTicks[a] * this.abDotTickMs[a])
+  }
+
+  /**
+   * One tick of a `bleed` ability: the snapshotted damage, no armor, never a miss. In `forever` a
+   * flagged tick rolls crit at the snapshotted chance and deals the ability's crit multiplier
+   * (Impale on Rend, 2.2 at 2/2) [?]; a tick crit fires no crit procs, since Flurry's and Deep
+   * Wounds' proc masks have no periodic bit (damage-and-timing §4, warrior.md §2.5, §7). Threat is
+   * damage × the ability's multiplier.
+   */
+  private onDotTick(a: number): void {
+    const source = this.abSource[a]
+    const row = source * FIELD_COUNT
+    let damage = this.dotDamage[a]
+    const chance = this.dotCrit[a]
+    if (chance > 0 && this.rngTable.roll100() < chance) {
+      damage *= this.abCritMult[a]
+      this.counters[row + FIELD.crits]++
+    } else {
+      this.counters[row + FIELD.hits]++
+    }
+    if (this.trace !== null) this.trace(source, -1, this.now)
+    this.addDamage(source, damage, damage * this.abThreatMult[a] * this.plan.threatMult)
+    if (--this.dotTicksLeft[a] > 0) {
+      this.dotNextAt[a] = this.now + this.abDotTickMs[a]
+      this.q.push(this.dotNextAt[a], EV_DOT_TICK, a, this.dotGen[a])
+    }
+  }
+
   /** Deep Wounds-style bleed tick: share × main-hand average swing / ticks, current AP, no armor (warrior.md §2.5). */
   private onBleedTick(slot: number): void {
     const p = this.bleedProc[slot]
@@ -1540,7 +1713,8 @@ export class Sim {
 
   /** The tank parried: parry haste on its own main-hand swing (damage-and-timing §3.4). */
   private onPlayerParried(): void {
-    if (!this.hasWeapon[HAND.main]) return
+    // During a cast that stops swings there is no pending swing to hasten.
+    if (!this.hasWeapon[HAND.main] || this.swingsStopped) return
     const remaining = this.nextSwingAt[HAND.main] - this.now
     const after = Math.round(parryHasteRemaining(remaining, this.swingMs[HAND.main]))
     if (after !== remaining) this.scheduleSwing(HAND.main, this.now + after)

@@ -262,6 +262,10 @@ Bloodthirst, Mortal Strike, Shred, Holy Strike and so on.
   lands`, and roll 2 for crit on anything that landed, including blocked hits.
 - Mapping other classes' non-weapon specials (Ferocious Bite, Swipe, Rake's initial hit, damage
   judgements) onto this split by effect type is an inference [?]; the class docs list them.
+- **Bleed applications with no direct damage** (Rend) roll once for miss, dodge and parry;
+  anything else lands the bleed, and there is no crit roll, since the application deals no
+  damage ([warrior §3.1, §7](../classes/warrior.md#7-implementation-notes)). Whether its ticks
+  crit is [damage-and-timing §4](damage-and-timing.md#4-dots-and-bleeds).
 - *Not adopted:* two rolls for **every** special, the vanilla-era model on the
   [ZAM hit table][zam-hit] page (a forbidden, pre-Classic source). Nothing Classic Era supports
   it. With ~10% avoidance, it gives ~10% fewer yellow crits than one roll. Magey's Forever test

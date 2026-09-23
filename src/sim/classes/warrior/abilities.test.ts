@@ -1,12 +1,14 @@
-// The warrior ability rows (strikes, and the cooldowns and racial cooldowns as casts) and talent
-// modifiers against the Forever client data, the cost tables and worked examples (W10, W11, W19,
-// W20, W21), and the Fury priority list built from its settings (docs/classes/warrior.md §2.3,
-// §2.5, §2.9, §3.1, §3.2, §5.2; docs/data/client.md).
+// The warrior ability rows (strikes, Rend's bleed, and the cooldowns and racial cooldowns as
+// casts) and talent modifiers against the Forever client data, the cost tables and worked
+// examples (W10, W11, W13, W19, W20, W21), and the Fury priority list built from its settings
+// (docs/classes/warrior.md §2.3, §2.5, §2.9, §3.1, §3.2, §4.1, §5.2; docs/data/client.md).
 import { describe, expect, it } from 'vitest'
 import spellsJson from '@/data/client/spells.json'
-import type { ClientSpells } from '@/data/client/types'
+import talentsJson from '@/data/client/talents.json'
+import type { ClientSpells, ClientTalents } from '@/data/client/types'
 import { TALENT_DATA } from '../../defaults'
-import { COND, STANCE, STANCE_ANY } from '../../plan/types'
+import { COND, STANCE, STANCE_ANY, weaponPercentVs } from '../../plan/types'
+import type { CreatureType } from '../../types'
 import { talentRanksByName } from '../index'
 import { BUFFS_BY_ID, JUJU_FLURRY, MIGHTY_RAGE_POTION } from '../../effects/buffs'
 import { ITEM_EFFECTS } from '../../effects/items'
@@ -27,15 +29,20 @@ import {
   HAMSTRING,
   HEROIC_STRIKE,
   IMPROVED_CHARGE_TENTHS_PER_RANK,
+  MORTAL_STRIKE,
   onUseAbility,
   RACIAL_COOLDOWNS,
   RECKLESSNESS,
+  REND,
+  SLAM,
+  SPEARING_STRIKE,
   WHIRLWIND,
 } from './abilities'
 import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation, PREPULL_BLOODRAGE_MS, PREPULL_SHOUT_MS } from './fury'
-import { abilityCritMultiplier, costReduction, FOCUSED_RAGE, IMPALE, rageCost, withTalents } from './modifiers'
+import { abilityCritMultiplier, costReduction, FOCUSED_RAGE, IMPALE, IMPROVED_REND_PCT, IMPROVED_SLAM_MS_PER_RANK, rageCost, withTalents } from './modifiers'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
+const clientTalents = (talentsJson as unknown as ClientTalents).classes.warrior.talents
 
 /** SpellEffectName codes (docs/data/client.md, src/data/client/types.ts). */
 const EFFECT = { schoolDamage: 2, dummy: 3, weaponDamageNoSchool: 17, weaponPercent: 31, weaponDamage: 58, normalized: 121 }
@@ -98,9 +105,17 @@ const inMask = (id: string, mask: number[]) => {
 const baseCost = (id: string) => (spells[String(SPELL_ID[id])].power?.find((p) => (p.powerType ?? 0) === RAGE)?.manaCost ?? 0) / 10
 
 const ABILITIES: AbilityDef[] = [BLOODTHIRST, WHIRLWIND, HEROIC_STRIKE, HAMSTRING, EXECUTE]
+/** The Arms strikes (warrior.md §3.1); Rend, a bleed, is checked on its own. */
+const ARMS_STRIKES: AbilityDef[] = [MORTAL_STRIKE, SLAM, SPEARING_STRIKE]
+/** `EquippedItemSubclass` bits of the two-handed melee weapons: axe 1, mace 5, polearm 6, sword 8, staff 10. */
+const TWO_HANDED = (1 << 1) | (1 << 5) | (1 << 6) | (1 << 8) | (1 << 10)
+/** SpellMisc Attributes[8] 0x200: the periodic-crit flag (damage-and-timing §4). */
+const PERIODIC_CAN_CRIT = 0x200
+/** SpellAuraName 3: periodic damage; 107/108: flat and percent spell modifiers (misc 10 cast time, 21 GCD, 22 periodic damage). */
+const PERIODIC_DAMAGE = 3
 
 describe('warrior abilities match src/data/client/spells.json', () => {
-  for (const ability of ABILITIES) {
+  for (const ability of [...ABILITIES, ...ARMS_STRIKES]) {
     const id = SPELL_ID[ability.id]
     it(`${ability.name} (${id})`, () => {
       const spell = spells[String(id)]
@@ -118,6 +133,12 @@ describe('warrior abilities match src/data/client/spells.json', () => {
       const weapon = spell.effects.find((e) => WEAPON_EFFECTS.includes(e.effect))
       expect(ability.weaponPercent > 0, 'weapon-based').toBe(weapon !== undefined)
       expect(ability.normalized, 'normalized (effect 121)').toBe(weapon?.effect === EFFECT.normalized)
+      // Effect 31 WEAPON_PERCENT_DAMAGE scales the weapon damage (Spearing Strike's 40%).
+      const percent = spell.effects.find((e) => e.effect === EFFECT.weaponPercent)
+      if (weapon) expect(ability.weaponPercent, 'weapon %').toBe(percent ? percent.effectBasePointsF! / 100 : 1)
+      expect(ability.castMs, 'cast time').toBe(spell.castTime?.base ?? 0)
+      const subclass = spell.equippedItems?.equippedItemSubclass ?? 0
+      expect(ability.twoHandOnly, 'two-handers only').toBe(subclass !== 0 && (subclass & ~TWO_HANDED) === 0)
       const dummy = spell.effects.find((e) => e.effect === EFFECT.dummy)
       if (weapon) {
         expect(ability.flatDamage, 'weapon damage bonus').toBe(weapon.effectBasePointsF ?? 0)
@@ -147,6 +168,106 @@ describe('warrior abilities match src/data/client/spells.json', () => {
 
   it('refunds 80% on a miss, dodge or parry except Whirlwind and Execute (rage.md#rage-refunds-on-avoided-abilities)', () => {
     expect([BLOODTHIRST, WHIRLWIND, HEROIC_STRIKE, HAMSTRING, EXECUTE].map((a) => a.refundShare)).toEqual([0.8, 0, 0.8, 0.8, 0])
+    expect([MORTAL_STRIKE, SLAM, SPEARING_STRIKE, REND].map((a) => a.refundShare)).toEqual([0.8, 0.8, 0.8, 0.8])
+  })
+
+  it('Mortal Strike, Slam and Spearing Strike are one-roll strikes (combat-tables §3); only Slam has a cast, stopping swings until Improved Slam', () => {
+    expect(ARMS_STRIKES.map((a) => [a.kind, a.castMs, a.castStopsSwings, a.twoHandOnly])).toEqual([
+      ['weaponStrike', 0, false, false],
+      ['weaponStrike', 1500, true, false],
+      ['weaponStrike', 0, false, true],
+    ])
+  })
+
+  it('Slam’s Improved Slam version (1310200) has the same cost, cooldown, cast, GCD and damage (warrior.md Q19)', () => {
+    const [plain, improved] = [spells['11605'], spells['1310200']]
+    expect(improved.name).toBe('Slam')
+    expect(improved.power).toEqual(plain.power)
+    expect(improved.cooldowns).toEqual(plain.cooldowns)
+    expect(improved.castTime).toEqual(plain.castTime)
+    expect(improved.effects).toEqual(plain.effects)
+    expect(improved.classOptions?.spellClassMask).toEqual(plain.classOptions?.spellClassMask)
+  })
+
+  it('Rend (11574): 21 every 3 s for 21 s, 7 ticks and 147 in all, with the periodic-crit flag (warrior.md §3.1, W13)', () => {
+    const spell = spells['11574']
+    expect(spell.name).toBe('Rend')
+    expect(REND.kind).toBe('bleed')
+    expect(spell.power?.find((p) => (p.powerType ?? 0) === RAGE)?.manaCost).toBe(REND.costTenths)
+    expect(spell.cooldowns?.categoryRecoveryTime ?? spell.cooldowns?.recoveryTime ?? 0).toBe(REND.cooldownMs)
+    expect(spell.cooldowns?.startRecoveryTime).toBe(REND.gcdMs)
+    expect(spell.categories?.defenseType).toBe(2)
+    expect(spell.shapeshift?.shapeshiftMask?.[0]).toBe(FORM.battle | FORM.defensive)
+    expect(REND.stances).toBe(STANCE.battle | STANCE.defensive)
+    const bleed = spell.effects.find((e) => e.effect === APPLY_AURA && e.effectAura === PERIODIC_DAMAGE)!
+    expect(REND.dotTickDamage).toBe(bleed.effectBasePointsF)
+    expect(REND.dotTickMs).toBe(bleed.effectAuraPeriod)
+    expect(REND.dotTicks).toBe(spell.duration!.duration! / bleed.effectAuraPeriod!)
+    expect(REND.dotTicks * REND.dotTickDamage).toBe(147)
+    // The marker on the target lasts as long as the bleed.
+    expect(REND.aura).toEqual({ id: 'rend', name: 'Rend', durationMs: spell.duration!.duration, mods: {} })
+    expect(REND.periodicCanCrit).toBe((spell.misc!.attributes![8] & PERIODIC_CAN_CRIT) !== 0)
+    expect(REND.weaponPercent).toBe(0)
+  })
+})
+
+describe('Arms talents on the abilities (warrior.md §4.1)', () => {
+  const t = (entries: [string, number][]) => new Map(entries)
+  const curve = (name: string) => clientTalents.find((c) => c.name === name)!.rankEffects
+
+  it('W13: Improved Rend multiplies Rend’s ticks by its 1.12 / 1.23 / 1.35 table: 3/3 is 28.35 a tick, 198.45 over 21 s', () => {
+    expect(curve('Improved Rend')).toMatchObject([{ effectIndex: 0, values: IMPROVED_REND_PCT.slice(1) }])
+    const ticks = [0, 1, 2, 3].map((r) => withTalents(REND, t([['Improved Rend', r]])).dotTickDamage)
+    expect(ticks[0]).toBe(21)
+    expect(ticks[1]).toBeCloseTo(23.52, 12)
+    expect(ticks[2]).toBeCloseTo(25.83, 12)
+    expect(ticks[3]).toBeCloseTo(28.35, 12)
+    expect(ticks[3] * REND.dotTicks).toBeCloseTo(198.45, 12)
+  })
+
+  it('W4: Improved Slam takes 0.25 s per rank off Slam’s cast and GCD, and any rank leaves the swing timers alone', () => {
+    // Effect 0 lowers the cast time (aura 107, misc 10), effect 1 the GCD (misc 21), −250 per rank.
+    const spell = spells['12862']
+    expect(spell.effects.slice(0, 2).map((e) => [e.effectAura, e.effectMiscValue?.[0]])).toEqual([
+      [107, 10],
+      [107, 21],
+    ])
+    const ms = [1, 2].map((r) => -IMPROVED_SLAM_MS_PER_RANK * r)
+    expect(curve('Improved Slam')).toMatchObject([
+      { effectIndex: 0, values: ms },
+      { effectIndex: 1, values: ms },
+    ])
+    // Its ranks replace Slam with 1310196–1310200 (Q19).
+    expect(spell.effects.slice(2).map((e) => e.effectBasePointsF)).toEqual([1310196, 1310197, 1310198, 1310199, 1310200])
+    const slam = [0, 1, 2].map((r) => withTalents(SLAM, t([['Improved Slam', r]])))
+    expect(slam.map((a) => [a.castMs, a.gcdMs, a.castStopsSwings])).toEqual([
+      [1500, 1500, true],
+      [1250, 1250, false],
+      [1000, 1000, false],
+    ])
+  })
+
+  it('Focused Rage takes 1 rage per rank off each, and Impale 2/2 makes their crits ×2.2, Rend’s tick crits included', () => {
+    const talents = t([
+      ['Focused Rage', 3],
+      ['Impale', 2],
+    ])
+    const resolved = [MORTAL_STRIKE, SLAM, SPEARING_STRIKE, REND].map((a) => withTalents(a, talents))
+    expect(resolved.map((a) => [a.id, a.costTenths, a.critMultiplier])).toEqual([
+      ['mortalStrike', 270, 2.2],
+      ['slam', 120, 2.2],
+      ['spearingStrike', 120, 2.2],
+      ['rend', 70, 2.2],
+    ])
+  })
+
+  it('W6: Spearing Strike deals 0.40 of normalized weapon damage, 1.20 against Giants and Dragonkin (Q13)', () => {
+    const types: CreatureType[] = ['none', 'beast', 'demon', 'dragonkin', 'elemental', 'giant', 'humanoid', 'mechanical', 'undead']
+    expect(types.map((c) => weaponPercentVs(SPEARING_STRIKE, c))).toEqual([0.4, 0.4, 0.4, 1.2, 0.4, 1.2, 0.4, 0.4, 0.4])
+    // Other abilities have one weapon share.
+    expect(weaponPercentVs(MORTAL_STRIKE, 'giant')).toBe(1)
+    // The client's weapon % is the 40; its tooltip adds 80% more against those types.
+    expect(spells['1310222'].effects.find((e) => e.effect === EFFECT.weaponPercent)?.effectBasePointsF).toBe(40)
   })
 })
 
@@ -267,9 +388,10 @@ describe('talent class masks match the client data (warrior.md §2.3, §2.5)', (
     for (const id of ['battleShout', 'shieldBlock', 'berserkerRage', 'bloodrage']) expect(FOCUSED_RAGE.has(id)).toBe(false)
   })
 
-  it('Impale covers every attack in its list and every simulated ability', () => {
-    for (const id of IMPALE) expect(inMask(id, TALENT_MASK.impale), id).toBe(true)
-    for (const a of ABILITIES) expect(IMPALE.has(a.id)).toBe(true)
+  it('Impale covers exactly its listed abilities: Rend and Sunder Armor too, not the shouts or cooldowns', () => {
+    for (const id of Object.keys(SPELL_ID)) expect(IMPALE.has(id), id).toBe(inMask(id, TALENT_MASK.impale))
+    for (const a of [...ABILITIES, ...ARMS_STRIKES, REND]) expect(IMPALE.has(a.id)).toBe(true)
+    expect(IMPALE.has('rend') && IMPALE.has('sunderArmor')).toBe(true)
   })
 
   it('Improved Heroic Strike and Improved Execute reduce only their own ability', () => {

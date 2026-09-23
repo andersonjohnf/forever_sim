@@ -1,5 +1,6 @@
 // Talents that modify warrior abilities (docs/classes/warrior.md §2.3 "Cost reductions" and the
-// Bloodrage and Berserker Rage rows, §2.5 Impale, §3.1 Raging Blows). The plan applies them once,
+// Bloodrage and Berserker Rage rows, §2.5 Impale, §3.1 Raging Blows, §4.1 Improved Rend and
+// Improved Slam). The plan applies them once,
 // when it resolves the rotation's abilities from the build's talent ranks; the engine only sees
 // the resolved numbers.
 //
@@ -51,8 +52,10 @@ export const FOCUSED_RAGE: ReadonlySet<string> = new Set([
 ])
 
 /**
- * Impale's class mask: the attacks whose crits it raises [F] [client] (SpellEffect, 1.60.1.69913)
- * (warrior.md §2.5). White swings, extra attacks, Deep Wounds and Rend aren't in it.
+ * Impale's class mask: the abilities whose crits it raises [F] [client] (SpellEffect, 1.60.1.69913)
+ * (warrior.md §2.5). It covers Rend, whose ticks can crit in `forever`, so a Rend tick crit takes
+ * Impale too [?] (damage-and-timing §4); and Sunder Armor, which deals no damage. White swings,
+ * extra attacks and Deep Wounds aren't in it.
  */
 export const IMPALE: ReadonlySet<string> = new Set([
   'bloodthirst',
@@ -67,7 +70,9 @@ export const IMPALE: ReadonlySet<string> = new Set([
   'shieldSlam',
   'thunderClap',
   'hamstring',
+  'rend',
   'spearingStrike',
+  'sunderArmor',
   'victoryRush',
   'intercept',
   'pummel',
@@ -78,6 +83,21 @@ export const IMPALE: ReadonlySet<string> = new Set([
 
 /** Improved Execute's reduction by rank: a table, not per rank (warrior.md §2.3, §7) [F]. */
 const IMPROVED_EXECUTE = [0, 3, 5]
+
+/**
+ * Improved Rend's bonus on Rend's bleed by rank, in %: a table, the talent's rank curve 12 / 23 /
+ * 35 [F] [tal] [client] (TraitDefinitionEffectPoints, CurvePoint, 1.60.1.69913) (warrior.md §4.1,
+ * §7, W13).
+ */
+export const IMPROVED_REND_PCT = [0, 12, 23, 35]
+
+/**
+ * Improved Slam: −250 ms per rank on Slam's cast time and on its GCD (its effects 0 and 1, aura
+ * 107 on the cast-time and GCD modifiers, curve −250 / −500) [F] [tal] [client] (SpellEffect,
+ * CurvePoint, 1.60.1.69913), and with any rank Slam no longer interrupts the swing timers
+ * (warrior.md §3.1 "Slam", §4.1, W4).
+ */
+export const IMPROVED_SLAM_MS_PER_RANK = 250
 
 /**
  * Rage the build's talents take off an ability's cost, in rage points. All reductions are flat
@@ -129,8 +149,9 @@ export const IMPROVED_BERSERKER_RAGE_PER_RANK = 5
 
 /**
  * The ability as this build uses it: cost reductions, Impale's crit multiplier, Raging Blows'
- * off-hand strike on Whirlwind (warrior.md §3.1 "Raging Blows"; [?] Q13), and the rage of
- * Improved Bloodrage and Improved Berserker Rage (§2.3).
+ * off-hand strike on Whirlwind (warrior.md §3.1 "Raging Blows"; [?] Q13), the rage of
+ * Improved Bloodrage and Improved Berserker Rage (§2.3), Improved Rend's bleed and Improved
+ * Slam's cast, GCD and swing timers (§4.1).
  */
 export function withTalents(def: AbilityDef, talents: TalentRanks): AbilityDef {
   const resolved: AbilityDef = {
@@ -144,6 +165,14 @@ export function withTalents(def: AbilityDef, talents: TalentRanks): AbilityDef {
     resolved.rageTickTenths = bloodrageRage(def.rageTickTenths, talents)
   } else if (def.id === 'berserkerRage') {
     resolved.rageTenths = def.rageTenths + 10 * IMPROVED_BERSERKER_RAGE_PER_RANK * rank(talents, 'Improved Berserker Rage')
+  } else if (def.id === 'rend') {
+    const r = Math.min(rank(talents, 'Improved Rend'), IMPROVED_REND_PCT.length - 1)
+    resolved.dotTickDamage = def.dotTickDamage * (1 + IMPROVED_REND_PCT[r] / 100)
+  } else if (def.id === 'slam') {
+    const r = rank(talents, 'Improved Slam')
+    resolved.castMs = Math.max(0, def.castMs - IMPROVED_SLAM_MS_PER_RANK * r)
+    resolved.gcdMs = Math.max(0, def.gcdMs - IMPROVED_SLAM_MS_PER_RANK * r)
+    resolved.castStopsSwings = def.castStopsSwings && r === 0
   }
   return resolved
 }

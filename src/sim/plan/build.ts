@@ -37,6 +37,7 @@ import {
   TRIGGER,
   TRIGGER_COUNT,
   type WeaponPlan,
+  weaponPercentVs,
 } from './types'
 
 const itemData = itemJson as unknown as ItemData
@@ -502,14 +503,19 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         executePhase: fight.executePct > 0,
       })
     : { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [] }
-  // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), and a
-  // cast's buff joins the plan's auras (Death Wish, Recklessness, racial cooldowns).
-  const abilities: AbilityPlan[] = classRot.abilities.map(({ offHand, aura, ...a }) => ({
-    ...a,
-    source: sourceIndex(a.id, a.name, a.icon),
-    offHandSource: offHand && weapons[HAND.off] ? sourceIndex(`${a.id}OffHand`, `${a.name} (off hand)`, a.icon) : -1,
-    aura: aura ? auraIndex(aura, aura.id) : -1,
-  }))
+  // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), a
+  // cast's buff or a bleed's marker joins the plan's auras (Death Wish, Recklessness, racial
+  // cooldowns; Rend), and the encounter's creature type picks the weapon share (Spearing Strike).
+  const abilities: AbilityPlan[] = classRot.abilities.map((def) => {
+    const { offHand, aura, vsCreature: _, ...a } = def
+    return {
+      ...a,
+      weaponPercent: weaponPercentVs(def, fight.creatureType),
+      source: sourceIndex(a.id, a.name, a.icon),
+      offHandSource: offHand && weapons[HAND.off] ? sourceIndex(`${a.id}OffHand`, `${a.name} (off hand)`, a.icon) : -1,
+      aura: aura ? auraIndex(aura, aura.id) : -1,
+    }
+  })
 
   // --- Fight ------------------------------------------------------------------------------------
   const front = fight.position === 'front'

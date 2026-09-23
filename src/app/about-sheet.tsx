@@ -35,8 +35,16 @@ export function AboutSheet({
 }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      {/* Focus in it scrolls clear of the toasts, which sit over the sheet (src/index.css). */}
-      <SheetContent className="w-full scroll-pb-toast overflow-y-auto sm:max-w-md" showCloseButton={false} {...contentProps}>
+      {/*
+       * Full width on a phone, as Setups is (the stock side sheet is three quarters wide, and its
+       * data-side classes outrank a plain w-full). Focus in it scrolls clear of the toasts, which
+       * sit over the sheet (src/index.css).
+       */}
+      <SheetContent
+        className="scroll-pb-toast overflow-y-auto data-[side=right]:w-full data-[side=right]:sm:max-w-md"
+        showCloseButton={false}
+        {...contentProps}
+      >
         <SheetHeader className="pr-14">
           <SheetTitle ref={titleRef} tabIndex={-1} className="outline-none">
             About Forever Sim

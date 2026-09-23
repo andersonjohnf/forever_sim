@@ -1,8 +1,9 @@
 import { Minus, Plus } from 'lucide-react'
-import { type PointerEvent, useRef, useState } from 'react'
+import { type ChangeEvent, type KeyboardEvent, type PointerEvent, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { parseNumber, snapToStep } from '@/lib/parse-number'
 import { cn } from '@/lib/utils'
 
@@ -18,6 +19,9 @@ import { cn } from '@/lib/utils'
  * `aria-label` names the input and, after "Decrease" / "Increase", the steppers; it should match
  * the field's visible label (WCAG 2.5.3). `stepLabel` names the steppers instead when the label
  * reads badly after "Decrease" ("Execute phase starts at").
+ *
+ * A `unit` ("Energy", "combo points", "s left") sits in the field after the value, in flow, so the
+ * field is as wide as its unit needs and the two never overlap.
  */
 export function NumberField({
   id,
@@ -121,6 +125,29 @@ export function NumberField({
     else inputRef.current?.focus()
   }
 
+  const inputProps = {
+    ref: inputRef,
+    id,
+    inputMode: 'decimal' as const,
+    'aria-label': ariaLabel,
+    'aria-describedby': describedBy,
+    value: draft ?? (grouping && !editing ? value.toLocaleString('en-US') : String(value)),
+    onPointerDown: pointerDown,
+    onFocus: () => pointerFocus.current === null && startEditing(),
+    onClick: pointerDone,
+    onChange: (e: ChangeEvent<HTMLInputElement>) => setDraft(e.target.value),
+    onBlur: () => {
+      pointerFocus.current = null
+      commit()
+      setEditing(false)
+    },
+    // Enter commits and keeps editing, the plain number showing.
+    onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => {
+      pointerDone()
+      if (e.key === 'Enter') commit()
+    },
+  }
+
   return (
     <div className={cn('flex items-center gap-1', className)}>
       <Button
@@ -135,36 +162,19 @@ export function NumberField({
       >
         <Minus />
       </Button>
-      <div className="relative">
-        <Input
-          ref={inputRef}
-          id={id}
-          inputMode="decimal"
-          aria-label={ariaLabel}
-          aria-describedby={describedBy}
-          value={draft ?? (grouping && !editing ? value.toLocaleString('en-US') : String(value))}
-          onPointerDown={pointerDown}
-          onFocus={() => pointerFocus.current === null && startEditing()}
-          onClick={pointerDone}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={() => {
-            pointerFocus.current = null
-            commit()
-            setEditing(false)
-          }}
-          // Enter commits and keeps editing, the plain number showing.
-          onKeyDown={(e) => {
-            pointerDone()
-            if (e.key === 'Enter') commit()
-          }}
-          className={cn('h-11 w-24 text-center tabular-nums', unit && 'pr-9')}
-        />
-        {unit && (
-          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
+      {unit ? (
+        // The value right-aligned beside its unit, both in flow: "100 Energy", "5 combo points". It's
+        // one field to a screen reader, the textbox its label names, as it was with the unit laid
+        // over it: the wrappers aren't groups.
+        <InputGroup role="presentation" className="h-11 w-auto">
+          <InputGroupInput {...inputProps} className="h-full w-14 flex-none pr-1 text-right tabular-nums" />
+          <InputGroupAddon role="presentation" align="inline-end" className="pl-0 text-xs font-normal whitespace-nowrap">
             {unit}
-          </span>
-        )}
-      </div>
+          </InputGroupAddon>
+        </InputGroup>
+      ) : (
+        <Input {...inputProps} className="h-11 w-24 text-center tabular-nums" />
+      )}
       <Button
         type="button"
         variant="outline"

@@ -228,3 +228,83 @@ test.describe('rotation tab', () => {
     await expect(tab.getByText(/Not used: turn on Juju Flurry/)).toHaveCount(0)
   })
 })
+
+// A section's header reads title, intro, then action (Reset rotation), in that order in the markup,
+// whatever the layout: beside each other from 640 px, the intro under both on a phone (CU14).
+for (const [width, phone] of [
+  [1280, false],
+  [390, true],
+] as const) {
+  test.describe(`the section header at ${width} px`, () => {
+    test.use({ viewport: { width, height: 900 } })
+
+    test('reads title, intro, then action, with the intro under the title', async ({ page }) => {
+      const tab = await openRotation(page)
+      const title = tab.getByRole('heading', { name: 'Rotation', level: 2 })
+      const intro = tab.getByText(/^Which abilities the sim uses, and when\./)
+      const reset = tab.getByRole('button', { name: 'Reset rotation' })
+      const order = await page.evaluate(
+        ([a, b, c]) => [a!.compareDocumentPosition(b!), b!.compareDocumentPosition(c!)].map((p) => (p & Node.DOCUMENT_POSITION_FOLLOWING) !== 0),
+        [await title.elementHandle(), await intro.elementHandle(), await reset.elementHandle()],
+      )
+      expect(order).toEqual([true, true])
+      const [t, i, r] = await Promise.all([title.boundingBox(), intro.boundingBox(), reset.boundingBox()])
+      expect(i!.y).toBeGreaterThan(t!.y)
+      if (phone) expect(i!.y).toBeGreaterThanOrEqual(r!.y + r!.height - 1)
+      else expect(r!.x).toBeGreaterThanOrEqual(i!.x + i!.width)
+    })
+  })
+}
+
+/**
+ * Every number field with a unit on the page: its value fits in its box and its unit sits after it,
+ * never over it (CU1: "com5o points", "100Energy").
+ */
+async function unitsClear(page: Page, atLeast: number) {
+  const fields = await page.evaluate(() =>
+    [...document.querySelectorAll<HTMLElement>('[data-slot="input-group"]')]
+      .filter((g) => g.offsetParent !== null)
+      .map((group) => {
+        const input = group.querySelector('input')!
+        const unit = group.querySelector<HTMLElement>('[data-slot="input-group-addon"]')!
+        const i = input.getBoundingClientRect()
+        const u = unit.getBoundingClientRect()
+        return { name: input.getAttribute('aria-label'), fits: input.scrollWidth <= input.clientWidth, clear: u.left >= i.right - 1, unitFits: unit.scrollWidth <= unit.clientWidth }
+      }),
+  )
+  expect(fields.length).toBeGreaterThanOrEqual(atLeast)
+  for (const f of fields) expect(f, f.name ?? '').toMatchObject({ fits: true, clear: true, unitFits: true })
+}
+
+for (const width of [1280, 390]) {
+  test.describe(`number fields with units at ${width} px`, () => {
+    test.use({ viewport: { width, height: 900 } })
+
+    test('keep the value and its unit apart: Fury’s rage, s and %, the cat’s Energy and combo points, the Fight tab’s', async ({ page }) => {
+      const tab = await openRotation(page)
+      for (const button of await tab.getByRole('button', { name: /^Advanced settings for/ }).all()) await button.click()
+      await tab.getByRole('textbox', { name: 'Heroic Strike from', exact: true }).fill('100')
+      await tab.getByRole('textbox', { name: 'Heroic Strike from', exact: true }).press('Enter')
+      await expect(tab.getByRole('textbox', { name: 'Heroic Strike from', exact: true })).toHaveValue('100')
+      await unitsClear(page, 10)
+
+      await page.getByRole('button', { name: /^Spec: / }).click()
+      await page.getByRole('menuitem', { name: /Feral \(Cat\)/ }).click()
+      await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+      for (const button of await tab.getByRole('button', { name: /^Advanced settings for/ }).all()) await button.click()
+      await tab.getByRole('textbox', { name: 'Shred before Ferocious Bite from', exact: true }).fill('100')
+      await tab.getByRole('textbox', { name: 'Shred before Ferocious Bite from', exact: true }).press('Enter')
+      await expect(tab.getByRole('textbox', { name: 'Shred before Ferocious Bite from', exact: true })).toHaveValue('100')
+      await unitsClear(page, 6)
+
+      // Fury's Fight tab: the execute phase's %, damage taken's /s, and the length variation's %.
+      await page.getByRole('button', { name: /^Spec: / }).click()
+      await page.getByRole('menuitem', { name: /Fury/ }).click()
+      await page.getByRole('tab', { name: 'Fight', exact: true }).click()
+      const fight = page.getByRole('tabpanel', { name: 'Fight' })
+      await fight.getByRole('button', { name: /^Advanced/ }).click()
+      await expect(fight.getByRole('textbox', { name: 'Length variation' })).toBeVisible()
+      await unitsClear(page, 3)
+    })
+  })
+}

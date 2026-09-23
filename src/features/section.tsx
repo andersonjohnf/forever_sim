@@ -6,14 +6,15 @@ import { cn } from '@/lib/utils'
 /**
  * A section's title, its intro and an action on the right (Reset rotation, the gear menu). On a
  * phone the intro takes the full width under the two, so a longer one (the cat's Rotation intro)
- * isn't squeezed into a narrow column beside the action; from 640 px it sits beside it.
+ * isn't squeezed into a narrow column beside the action; from 640 px it sits beside it. The markup
+ * keeps reading order, title, intro, then action, and the grid places each one.
  */
 export function SectionHeader({ title, description, action }: { title: string; description?: ReactNode; action?: ReactNode }) {
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-1">
-      <h2 className="self-center text-lg font-semibold tracking-tight sm:self-start">{title}</h2>
-      {action && <div className="sm:row-span-2">{action}</div>}
-      {description && <p className="col-span-2 col-start-1 text-sm text-muted-foreground sm:col-span-1">{description}</p>}
+      <h2 className="col-start-1 row-start-1 self-center text-lg font-semibold tracking-tight sm:self-start">{title}</h2>
+      {description && <p className="col-span-2 col-start-1 row-start-2 text-sm text-muted-foreground sm:col-span-1">{description}</p>}
+      {action && <div className="col-start-2 row-start-1 sm:row-end-3">{action}</div>}
     </div>
   )
 }

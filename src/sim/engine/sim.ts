@@ -2246,11 +2246,15 @@ export class Sim {
     this.dynArmor += this.aArmor[a] * deltaStacks
   }
 
-  /** Damage-taken aura mods multiply (Iron Creed −10%), recomputed from the active ones, so no drift. */
+  /**
+   * Damage-taken aura mods multiply (Iron Creed −10%), recomputed from the active ones, so no drift.
+   * Each aura's factor is floored at 0 (combat-tables §8, "What a landed swing costs"): stacks past
+   * −100% make a swing cost nothing, never heal.
+   */
   private recomputeTakenMult(): void {
     let m = 1
     for (let i = 0; i < this.auraActive.length; i++) {
-      if (this.auraActive[i] && this.aTaken[i]) m *= 1 + (this.aTaken[i] * this.auraStacks[i]) / 100
+      if (this.auraActive[i] && this.aTaken[i]) m *= Math.max(0, 1 + (this.aTaken[i] * this.auraStacks[i]) / 100)
     }
     this.auraTakenMult = m
   }

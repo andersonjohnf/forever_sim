@@ -556,7 +556,9 @@ miss → dodge → parry → block → crit → crushing → hit
 - **What a landed swing costs** ([damage-and-timing §2.6](damage-and-timing.md#26-order-of-operations-physical-direct-hit)):
   `swing × Π damage-taken modifiers × (1 − armor reduction vs the boss's level) × (2 crit |
   1.5 crushing | 1) − (block value if blocked)`, never below 0. Damage-taken modifiers are the
-  stance's (Defensive Stance −10%) and any aura's; they multiply [C]. A block whose block value
+  stance's (Defensive Stance −10%) and any aura's; they multiply [C]. The engine floors each
+  one's factor at 0, so an aura whose stacks reach −100% or more makes a swing cost nothing,
+  never heal. A block whose block value
   covers the rest costs nothing (a **full block**) but still gives its rage in `forever`, which
   reads the swing before armor, block and those modifiers ([rage.md](rage.md#forever-)).
   [WE-14](#worked-examples), [WE-15](#worked-examples).

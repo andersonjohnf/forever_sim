@@ -371,6 +371,39 @@ describe('class hooks (combat-tables §8)', () => {
     expect(before * after).toBeGreaterThan(0)
   })
 
+  it('damage-taken stacks past −100% make a swing cost nothing, never heal, and fire no damage-taken procs', () => {
+    const plan = tankBundle({ gear: {} }).plan
+    plan.stats.baseAgi = 0
+    plan.stats.dodge = 20
+    // −40% a stack, up to 3 (−120%), a stack per dodge.
+    const aura = addAura(plan, { id: 'wall', name: 'Wall', durationMs: 600000, mods: {} })
+    Object.assign(plan.auras[aura], { damageTaken: -40, maxStacks: 3 })
+    addProc(plan, { trigger: TRIGGER.dodge, chance: [1, 1], hands: 0, action: ACTION.aura, amount: aura, b: 0 })
+    const probe = probeRow(plan, TRIGGER.damageTaken)
+    const sim = new Sim(plan)
+    const full = 5000 * 0.9 * sim.inspect().bossArmorFactor
+    let costly = 0
+    let free = 0
+    let cost = 0
+    for (const fight of swingsByFight(plan, 20, sim)) {
+      let stacks = 0
+      for (const [o, lost, pre] of fight) {
+        expect(lost).toBeGreaterThanOrEqual(0)
+        if (lost > 0) cost++
+        if (o === BOSS_OUTCOME.dodge) stacks = Math.min(3, stacks + 1)
+        if (o !== BOSS_OUTCOME.hit) continue
+        expect(pre).toBe(5000)
+        const factor = Math.max(0, 1 - 0.4 * stacks)
+        expect(lost).toBeCloseTo(full * factor, 9)
+        if (factor > 0) costly++
+        else free++
+      }
+    }
+    expect(costly * free).toBeGreaterThan(0)
+    // Only the swings that cost health fire damage-taken procs.
+    expect(sim.counters[probe * FIELD_COUNT + FIELD.casts]).toBe(cost)
+  })
+
   it('armor, dodge and block value auras re-derive the table, the armor factor and the block value', () => {
     const plan = tankBundle().plan
     const aura = addAura(plan, { id: 'hide', name: 'Hide', durationMs: 600000, mods: {} })

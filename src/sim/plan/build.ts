@@ -236,7 +236,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const block = new StatBlock()
   // Decision D24: an unmeasured base value takes its Classic-based placeholder, listed in the
   // assumptions (docs/mechanics/character-stats.md#other-base-values-at-level-60); the attribute
-  // rows too (#paladin-and-druid-base-attributes: the druid's).
+  // rows too (#paladin-and-druid-base-attributes: the druid's and the paladin's).
   const stand = BASE_PLACEHOLDERS[classId]
   const measuredRow = base.attributes(config.race)
   const attributes = measuredRow ?? stand.attributes?.[config.race] ?? null

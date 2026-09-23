@@ -267,7 +267,9 @@ no Classic Era sim or guide publishes them, and the Forever client doesn't carry
 
 | Class | Str | Agi | Sta | Int | Spi raw | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| Paladin class row (= Human paladin) | ? | ? | ? | ? | ? | [?] [OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes) |
+| Human paladin (sheet Spi 78: 75 × 1.05, floored) | 105 | 65 | 100 | 70 | 75 | [?] placeholder (D24): the OQ-1 candidate row ([OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)) |
+| Dwarf paladin | 107 | 61 | 103 | 69 | 74 | [?] placeholder (D24): the OQ-1 candidate row ([OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)) |
+| Undead paladin | 104 | 63 | 101 | 68 | 80 | [?] placeholder (D24): the Human row + the [C] Undead offset |
 | Night Elf druid (sheet) | 62 | 65 | 69 | 100 | 110 | [?] placeholder (D24); origin: [mangos][mz-levelstats], not evidence ([OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)) |
 | Tauren druid (sheet) | 70 | 55 | 72 | 95 | 112 | [?] placeholder (D24); origin: [mangos][mz-levelstats], not evidence ([OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)) |
 | Druid class row (= Human-offset druid), used for Skyborne druids | 65 | 60 | 70 | 100 | 110 | [?] placeholder (D24): the Night Elf and Tauren rows minus their [C] offsets; Skyborne's own offsets are unknown ([OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)) |
@@ -280,11 +282,16 @@ before Season of Discovery ([f9cb48d][cs-druid]). That is corroboration, not evi
 rows came in [PR #103][cs-103] (2020-01-05) from a classicwow.live guide that is now offline,
 whose method is unknown, and they equal the emulator's exactly. D24 (2026-09-23) replaced the
 2026-09-22 rule "no forbidden-source placeholders", which kept the paladin and druid specs from
-computing base attributes. Candidate paladin values from the same emulator are recorded under
-[OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes); they may stand in the same way once the
-paladin's track adds them. The druid's other base values below are D24 placeholders too. The rows and those values are in the one table of placeholders
+computing base attributes. The druid's other base values below are D24 placeholders too. The rows and those values are in the one table of placeholders
 (`BASE_PLACEHOLDERS`, [below](#other-base-values-at-level-60)), and the results list the ones a
 setup uses. OQ-1 gives the way to measure the rows on Classic Era.
+
+**Paladin rows: [?] placeholders (D24).** The Human and Dwarf rows are the candidates recorded
+under [OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes), from the same emulator. They agree
+with the [C] race offsets (Dwarf = Human + 2/−4/+3/−1/−1), and 1.12's base stats carried over to
+Classic Era unchanged, so they're expected to be close. Undead is derived from the Human row with
+the [C] Undead offset (Classic Era has no Undead paladin), so it's a placeholder too. They're in
+`BASE_PLACEHOLDERS` with the druid's, and a Route A sheet replaces them.
 
 ### Other base values at level 60
 
@@ -293,8 +300,8 @@ Values in *italics* are **placeholders** the sim uses until they're measured
 each is tagged "[?] placeholder (D24); origin: <link>, not evidence", listed in the open
 questions and in the results' assumptions, and kept in one replaceable table
 (`BASE_PLACEHOLDERS` in `src/sim/stats/base-stats.ts`). The druid's base attributes stand in
-the same way, in the same table ([above](#paladin-and-druid-base-attributes)), and the paladin's
-may once its track adds them, so they don't block those specs. The results name every
+the same way, in the same table ([above](#paladin-and-druid-base-attributes)), and so do the
+paladin's, so they don't block those specs. The results name every
 placeholder a setup uses, on the character sheet and in the assumptions alike, except that only a
 tank's list names the avoidance ones (base dodge, parry and block): they matter only when the
 boss attacks you.
@@ -303,8 +310,8 @@ boss attacks you.
 | --- | --- | --- | --- | --- |
 | Base health (before Stamina) | *1,689* | *1,381* | *1,483* | [?] placeholder (D24); origin: [emulator class table][mz-classlevelstats], copied by [wowsims/classic][wsc-base], not evidence ([OQ-2](#oq-2-base-health)) |
 | Base mana (before Intellect) | 0 (uses Rage) | **1512** | **1244** | [F] [client] (PlayerExpectedStat, `basemp.txt`, 1.60.1.69913) |
-| Base melee crit (before Agility) | **0%** | ? | *0.9%* | warrior [C] (the pre-SoD WarriorSim: base crit 0, [ws-player]; [Magey][magey-at]: a level-20 warrior's 4.49% spellbook crit equals Agi × 0.1282 exactly; [RatingBuster][rb-vanilla]); druid [?] placeholder (D24); origin: [RatingBuster][rb-vanilla], [wowsims/classic][wsc-base], not evidence; paladin [?] [OQ-3](#oq-3-base-melee-and-spell-crit) |
-| Base spell crit (before Intellect) | — | ? | *1.8%* | druid [?] placeholder (D24); origin: [RatingBuster][rb-vanilla], [wowsims/classic][wsc-base], not evidence; paladin [?] [OQ-3](#oq-3-base-melee-and-spell-crit) |
+| Base melee crit (before Agility) | **0%** | *0%* | *0.9%* | warrior [C] (the pre-SoD WarriorSim: base crit 0, [ws-player]; [Magey][magey-at]: a level-20 warrior's 4.49% spellbook crit equals Agi × 0.1282 exactly; [RatingBuster][rb-vanilla]); druid [?] placeholder (D24); origin: [RatingBuster][rb-vanilla], [wowsims/classic][wsc-base], not evidence; paladin [?] placeholder (D24): the warrior's value ([OQ-3](#oq-3-base-melee-and-spell-crit)) |
+| Base spell crit (before Intellect) | — | *0%* | *1.8%* | druid [?] placeholder (D24); origin: [RatingBuster][rb-vanilla], [wowsims/classic][wsc-base], not evidence; paladin [?] placeholder (D24) ([OQ-3](#oq-3-base-melee-and-spell-crit)) |
 | Base dodge (before Agility and defense) | **0%** | ? | *0.9%* | warrior [C] ([RatingBuster][rb-vanilla]'s Classic Era table at its pre-SoD commit; WarriorSim; [Magey][magey-at]); druid [?] placeholder (D24); origin: [RatingBuster][rb-vanilla], [wowsims/classic][wsc-base], not evidence; paladin [?] [OQ-5](#oq-5-base-dodge-parry-and-block) |
 | Base parry | 5% | 5% | none (druids can't parry) | [?] ([a Blizzard Classic forum statement, 2020-01-21][bnet-base]: "Unlike Parry, Miss, and Block, Dodge does not start at a baseline of 5%") [OQ-5](#oq-5-base-dodge-parry-and-block) |
 | Base block (shield equipped) | 5% | 5% | none (no shields) | [?] ([bnet-base]) [OQ-5](#oq-5-base-dodge-parry-and-block); shields [F] [client] (ChrClasses, 1.60.1.69913) |
@@ -931,8 +938,8 @@ Against a level-63 boss ([combat-tables §8](combat-tables.md#8-boss--player-tan
 The class rows for paladin and druid, and all values for both Skyborne races, are unknown.
 Under [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23) (replacing the
 2026-09-22 rule "no forbidden-source placeholders"), the rows below may stand in as flagged `[?]`
-placeholders, so the paladin and druid specs no longer wait for this measurement. The druid's are
-in use; the paladin's come with its track.
+placeholders, so the paladin and druid specs no longer wait for this measurement. Both are in
+use.
 
 **Druids (2026-09-23).** Every druid base value in use is a [?] placeholder under D24, not
 evidence. The Night Elf and Tauren rows are the [mangos][mz-levelstats] emulator's 1.12 rows
@@ -954,6 +961,12 @@ not evidence) and its estimated effect:
 
 The sheets below still settle them all.
 
+**Paladins.** The Human and Dwarf rows below are in use as [?] placeholders under D24, not
+evidence, and the Undead row is derived from the Human one with the [C] Undead offset
+([Paladin and druid base attributes](#paladin-and-druid-base-attributes)). Until a sheet replaces
+them a paladin's absolute DPS carries their uncertainty (a few points of Strength or Intellect
+move it well under 1%).
+
 **Resolution, Route A (Classic Era, level 60, the standard naked sheet), sheets needed:**
 
 | Sheet | Why | Fields to read |
@@ -970,8 +983,8 @@ The sheets below still settle them all.
 - **Skyborne warriors and druids:** Route C only.
 
 *Found in a vanilla emulator database [mz-levelstats]. Under D24 these rows may stand in, tagged
-"[?] placeholder (D24)", and so may test fixtures, until a sheet replaces them. The druid rows do;
-the paladin rows wait for the paladin's track:*
+"[?] placeholder (D24)", and so may test fixtures, until a sheet replaces them. Both classes'
+rows do (Undead paladin derived from the Human row):*
 
 | Race and class | Str | Agi | Sta | Int | Spi (sheet) |
 | --- | --- | --- | --- | --- | --- |
@@ -1008,6 +1021,8 @@ base health inflated that rage by 20–40%. DPS specs take no damage and don't n
 
 ### OQ-3: base melee and spell crit
 Warrior base melee crit is 0% **[C]**. Paladin and druid base melee and spell crit are unknown.
+The engine uses **0%** for both of the paladin's as placeholders [?] under [D24](../decisions.md),
+and lists them among the paladin's assumptions.
 **Route A:** from the OQ-1 sheets, base melee crit = shown − Agi × slope, and base spell crit =
 shown − Int × slope. Use the Classic Era slopes here (20 Agi per 1%; about 29.5 Int per 1% for
 paladins and 60 for druids). TBC-era table values (paladin 0.65% melee and 3.34% spell; druid

@@ -5,8 +5,7 @@
 // and listed in the results' assumptions. Anything else unknown is `null` and reported as missing.
 // CLASS_BASE holds the supported values (`null` there means nobody has measured it), and
 // BASE_PLACEHOLDERS below holds the placeholders, in one replaceable table: every druid base value
-// is one, its attribute rows included. The paladin attribute rows (OQ-1) may stand in the same way
-// under D24; its spec's track adds them.
+// is one, and the paladin's unmeasured ones, their attribute rows included.
 import type { ClassId } from '../types'
 
 export interface Attributes {
@@ -52,6 +51,22 @@ const DRUID_ROWS: Readonly<Record<string, Attributes>> = {
   // [?] placeholder (D24): the class row, neutral race offsets (Skyborne's are unknown, OQ-1).
   'alliance-skyborne-high-order': { str: 65, agi: 60, sta: 70, int: 100, spi: 110 },
   'horde-skyborne-windshaper': { str: 65, agi: 60, sta: 70, int: 100, spi: 110 },
+}
+
+/**
+ * Paladin base attributes by race at level 60: [?] placeholders (D24;
+ * docs/mechanics/character-stats.md#paladin-and-druid-base-attributes, OQ-1). The Human and Dwarf
+ * rows are the candidates OQ-1 records from a vanilla emulator database. They agree with the [C]
+ * race offsets (Dwarf = Human + 2/−4/+3/−1/−1), and 1.12's base stats carried over to Classic Era
+ * unchanged, so they're expected to be close; a Classic Era sheet (OQ-1 Route A) replaces them.
+ * Spirit is raw, before The Human Spirit's ×1.05 (the sheet values are Human 78, Dwarf 74). Undead
+ * is derived: the Human row plus the [C] Undead offset (−1/−2/+1/−2/+5); Classic Era has no Undead
+ * paladin.
+ */
+const PALADIN_ROWS: Readonly<Record<string, Attributes>> = {
+  'alliance-human': { str: 105, agi: 65, sta: 100, int: 70, spi: 75 },
+  'alliance-dwarf': { str: 107, agi: 61, sta: 103, int: 69, spi: 74 },
+  'horde-undead': { str: 104, agi: 63, sta: 101, int: 68, spi: 80 },
 }
 
 export interface ClassBase {
@@ -102,7 +117,8 @@ export const CLASS_BASE: Record<ClassId, ClassBase> = {
     baseMana: null,
   },
   paladin: {
-    // OQ-1: the paladin class row isn't known from any allowed source.
+    // Unmeasured (OQ-1): the attribute rows, crit and spell crit are D24 placeholders, and so is
+    // health, in BASE_PLACEHOLDERS below.
     attributes: () => null,
     // 160 term [?] (OQ-7)
     baseAp: 160,
@@ -182,10 +198,19 @@ export interface BasePlaceholders {
  * https://github.com/raethkcj/RatingBuster/blob/d11164cf6de90688a635a6ff880b71ea9ea07367/libs/StatLogic/Vanilla_Logic.lua,
  * and wowsims/classic `base_stats.go`, https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go,
  * which both copy a private server's tables; not evidence". The attribute rows are DRUID_ROWS above.
+ *
+ * The paladin's attribute rows are PALADIN_ROWS above, and its base melee and spell crit are 0 (OQ-3).
  */
 export const BASE_PLACEHOLDERS: Record<ClassId, BasePlaceholders> = {
   warrior: { baseHealth: 1689 },
-  paladin: { baseHealth: 1381 },
+  paladin: {
+    attributes: PALADIN_ROWS,
+    baseHealth: 1381,
+    /** Base melee crit before Agility, % (OQ-3): 0, the warrior's [C] value. */
+    baseCrit: 0,
+    /** Base spell crit before Intellect, % (OQ-3). */
+    baseSpellCrit: 0,
+  },
   druid: {
     attributes: DRUID_ROWS,
     /** Caster-form attack power before Strength (origin: wowsims/classic; OQ-7): about 0.7% of cat DPS. */

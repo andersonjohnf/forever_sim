@@ -495,15 +495,21 @@ describe('talents, racials and stances', () => {
 })
 
 describe('setups the engine can’t run yet', () => {
-  it('flags paladin sheets and blocks their simulation', () => {
-    for (const spec of ['paladin-retribution'] as const) {
-      const bundle = buildPlan(defaultConfig(spec))
-      expect(bundle.sheet.unknown).toContain('base attributes')
+  it('gives paladins the placeholder base stats of D24, and says so, but blocks their simulation', () => {
+    for (const race of ['alliance-human', 'alliance-dwarf', 'horde-undead']) {
+      const bundle = buildPlan({ ...defaultConfig('paladin-retribution'), race })
+      expect(bundle.sheet.unknown).not.toContain('base attributes')
+      expect(bundle.sheet.unknown).not.toContain('base crit')
+      expect(bundle.sheet.placeholders).toEqual(expect.arrayContaining(['base attributes', 'base health', 'base crit', 'base spell crit']))
       expect(bundle.blockers.length).toBeGreaterThan(0)
-      expect(bundle.assumptions.map((a) => a.id)).toContain('unknownBaseAttributes')
-      expect(computeSheet(defaultConfig(spec))).not.toBeNull()
+      const ids = bundle.assumptions.map((a) => a.id)
+      expect(ids).toContain('baseStatPlaceholders')
+      expect(ids).not.toContain('unknownBaseAttributes')
     }
-    expect(computeSheet(defaultConfig('paladin-retribution'))!.mana).toBeGreaterThan(1512)
+    // docs/mechanics/character-stats.md#paladin-and-druid-base-attributes: naked Human sheet
+    // Spirit 78 (75 × 1.05, floored), mana 1512 + 20 + 15 × (70 − 20) = 2282.
+    const naked = buildPlan({ ...defaultConfig('paladin-retribution'), gear: {}, buffs: { raid: [], enabled: [] }, talents: '' })
+    expect(naked.sheet).toMatchObject({ strength: 105, agility: 65, stamina: 100, intellect: 70, spirit: 78, mana: 2282 })
   })
 
   it('blocks Skyborne warriors, whose base stats are unknown', () => {

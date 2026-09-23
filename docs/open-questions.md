@@ -122,9 +122,10 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   health 1,483, base melee crit and dodge 0.9%, base spell crit 1.8% and caster AP −20 are values
   two sims copied from a private server. The base crit comes first: its plausible range, 0–1%,
   moves cat DPS by up to about 1.5%, over D24's 1%; the AP's −20 is about 0.7% of cat DPS. The
-  paladin's rows come with its track; its base health is in use as a D24 placeholder (1,381) [?].
-  Also unknown for the paladin: base melee and spell crit, base dodge, base parry and block (5%
-  [?]), and the AP term `160 + 2 × Str` [?]. The druid's spirit regen `15 + Spirit/5` per 2 s
+  paladin's are in use too: the Human and Dwarf candidate rows recorded in stats OQ-1, Undead
+  derived with the [C] offset, base health 1,381 and 0% base melee and spell crit, all D24
+  placeholders [?]. Also unknown for the paladin: base dodge, base parry and block (5% [?]), and
+  the AP term `160 + 2 × Str` [?]. The druid's spirit regen `15 + Spirit/5` per 2 s
   comes only from a secondary sim [?].
 - **Test:** standard naked sheet for a Human paladin, Dwarf paladin, Night Elf druid and Tauren
   druid. Druids also shift to Cat, Bear and Dire Bear and read AP, crit, armor and health in

@@ -278,6 +278,35 @@ describe('worked example 10: Hammer of Wrath', () => {
   })
 })
 
+describe('Hammer of Wrath’s 1 s cast, without Instrument of Law [?] (paladin.md#other-abilities, OQ 22)', () => {
+  it('keeps the swing timer running, and lets the off-GCD Judgement act, during the cast', () => {
+    const plan = examplePlan({ core: false, weapon: { min: 200, max: 300, speedSec: 2.5 }, durationMs: 20000 })
+    plan.fight.executePct = 100 // the execute phase from the pull
+    plan.mana = { ...plan.mana!, maxTenths: 1e9 }
+    const how = addPaladinAbility(plan, HAMMER_OF_WRATH_ABILITY)
+    line(plan, how)
+    const seal = withSeal(plan, SEAL_OF_COMMAND)
+    // A 7.5 s Judgement: ready in the middle of the second cast.
+    const joc = addPaladinAbility(plan, { ...JUDGE_COMMAND, cooldownMs: 7500 })
+    line(plan, joc, [{ code: COND.abilityAuraUp, a: seal, b: 0 }])
+    const sim = new Sim(plan)
+    const casts: number[] = []
+    const judged: number[] = []
+    const swings: number[] = []
+    sim.castTrace = (a, t) => (a === how ? casts : a === joc ? judged : []).push(t)
+    sim.trace = (source, hand, t) => hand === 0 && source === row(plan, 'mainHand') && swings.push(t)
+    sim.runFight(0)
+    // The cooldown starts when the 1 s cast ends: casts at 0, 7 and 14 s.
+    expect(casts).toEqual([0, 7000, 14000])
+    const during = (t: number) => casts.some((c) => t > c && t < c + 1000)
+    // White swings every 2.5 s, one of them (7.5 s) in the middle of a cast.
+    expect(swings).toEqual(Array.from({ length: 8 }, (_, k) => 2500 * k))
+    expect(swings.filter(during)).toEqual([7500])
+    expect(judged).toEqual([0, 7500, 15000])
+    expect(judged.filter(during)).toEqual([7500])
+  })
+})
+
 describe('worked example 11: Judgement of the Crusader’s bonus (the default coefficient rule)', () => {
   it('adds 161 × 0.429 = 69.07 to an Exorcism and 161 × 0.203 = 32.68 to a Seal of Command proc', () => {
     const fixed = { min: 250, max: 250, speedSec: 3.5 }

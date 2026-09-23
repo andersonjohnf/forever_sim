@@ -292,7 +292,9 @@ export const EXORCISM_ABILITY: AbilityDef = {
 
 /**
  * Hammer of Wrath r3 (24239): 425 mana, 6 s, a 1.0 s cast and a 1.0 s GCD; only at or below 20%
- * target health, the execute phase (paladin.md#other-abilities; encounter §3).
+ * target health, the execute phase (paladin.md#other-abilities; encounter §3). During the cast,
+ * white swings go on and off-GCD lines (Judgement) still act [?] (OQ 22). The default Retribution
+ * build's Instrument of Law 2/2 makes it instant; the default Protection build casts it in 1 s.
  */
 export const HAMMER_OF_WRATH_ABILITY: AbilityDef = {
   ...PALADIN,

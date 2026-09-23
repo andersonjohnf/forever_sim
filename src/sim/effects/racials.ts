@@ -13,8 +13,9 @@ import type { Effect } from './types'
  * weapon of one of `types` is equipped in either hand, as the Forever tooltips read ("while you have
  * a sword or two-handed sword equipped"), so it's aura crit for every attack, both hands and spells
  * alike (character-stats.md#racials-that-matter-to-the-sim, warrior.md §2.9). Whether one matching
- * weapon in either hand is enough when dual wielding is [?] (warrior Q15); Weaponmaster's axe and
- * polearm crit reads the same client data the same way (warrior.md §2.7).
+ * weapon in either hand is enough when dual wielding is [?] (warrior Q15). Weaponmaster's axe and
+ * polearm crit is the same client data, but its tooltip says "with Axes and Polearms", so it counts
+ * only for that weapon's attacks (a `weaponCrit` effect, warrior.md §2.7).
  */
 const weaponRacial = (value: number, types: WeaponType[]): Effect[] => [
   { kind: 'stat', stat: 'crit', value, when: { weapons: types } },

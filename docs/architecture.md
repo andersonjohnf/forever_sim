@@ -115,7 +115,7 @@ A spec is data plus small ability modules, never its own loop.
   2 min), Recklessness (`recklessness(profile)`) and Berserker Stance (`stanceEffects(profile)`),
   whose crit is melee only in Classic Era (aura 52, not Forever's all-crit 290). Item effects whose
   Classic Era numbers differ read the profile's `values` (Hand of Justice's chance; Ironfoe's
-  chance, hands and internal cooldown). **Everything else stays Forever's in both profiles:** the
+  chance and internal cooldown). **Everything else stays Forever's in both profiles:** the
   talent trees, **the racials** (Forever's weapon racials are crit, not Classic Era's weapon skill,
   and Elune's Light and Eureka! exist only in Forever), the other abilities, the items and the
   spells new in Forever. `classicEra` is Classic Era's combat rules and spell values on a

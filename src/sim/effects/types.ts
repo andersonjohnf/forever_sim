@@ -91,9 +91,8 @@ export interface Condition {
   /** The boss is one of these creature types. */
   creature?: CreatureType[]
   /**
-   * A weapon of one of these types is equipped in either hand. An all-crit aura (290) that the
-   * client ties to weapon types (`SpellEquippedItems`) holds for every attack while one is: the
-   * weapon racials and Weaponmaster's axe and polearm crit [?] (warrior.md §2.7, §2.9, Q15).
+   * A weapon of one of these types is equipped in either hand: the weapon racials, whose tooltips
+   * give their crit to all attacks and spells while one is [?] (warrior.md §2.9, Q15).
    */
   weapons?: readonly WeaponType[]
 }
@@ -116,6 +115,8 @@ export type Effect = (
   | { kind: 'maxRagePct'; pct: number }
   /** Per-weapon effects: only weapons of these types (all weapons when omitted). */
   | { kind: 'weaponDamage'; value: number; weapons?: WeaponType[] }
+  /** Aura crit % on the attacks made with these weapons, not spells (Weaponmaster, axes and polearms). */
+  | { kind: 'weaponCrit'; value: number; weapons?: WeaponType[] }
   /** Armor ignored by attacks with these weapons, as a fraction of the target's armor (Weaponmaster, maces). */
   | { kind: 'weaponArmorPenPct'; pct: number; weapons?: WeaponType[] }
   /** Off-hand modifiers (Dual Wield Specialization). */

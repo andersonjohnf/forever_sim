@@ -705,8 +705,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   }
   if (unknown.includes('base health')) notes.add('unknownBaseHealth')
   if (unknown.includes('base dodge') && (tank || front)) notes.add('unknownBaseDodge')
-  // A weapon racial, or Weaponmaster's axe and polearm crit, with one matching weapon and one other:
-  // all attacks get it [?] (warrior.md §2.7, §2.9, Q15).
+  // A weapon racial with one matching weapon and one other: all attacks get it, as its tooltip reads;
+  // Weaponmaster's axe or polearm with another weapon: only that weapon's attacks, as its tooltip
+  // reads. Both are [?] (warrior.md §2.7, §2.9, Q15).
   const racialWeapons: Partial<Record<string, WeaponType>> = { 'alliance-human': 'sword', 'horde-orc': 'axe', 'alliance-dwarf': 'mace' }
   const mixed = (types: readonly WeaponType[]) => weapons.some((w) => w && types.includes(w.type)) && weapons.some((w) => w && !types.includes(w.type))
   const racialWeapon = racialWeapons[config.race]
@@ -721,7 +722,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const procIds = new Set(procs.map((p) => p.id))
   // PPM rates are server-side (damage-and-timing §5.1); Hand of Justice's and Ironfoe's flat chances are client data (§5.2).
   if (['crusader', 'fieryWeapon', 'flurryAxe'].some((id) => procIds.has(id))) notes.add('procRates')
-  // Ironfoe's Forever chance and hands are a reading of its equip aura [?] (damage-and-timing §5.2, OQ 15).
+  // Ironfoe's Forever chance is a reading of its equip aura, and its hands Classic Era's [?] (damage-and-timing §5.2, OQ 15).
   if (procIds.has('ironfoe') && 'pct' in profile.values.ironfoe.chance) notes.add('ironfoeChance')
   if (chainBits.size > 0) notes.add('extraAttackChains')
   if (procs.some((p) => p.id === 'windfury' && p.icdMs > 0)) notes.add('windfuryIcd')
@@ -813,6 +814,9 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
       return
     case 'weaponDamage':
       for (const w of matching(e.weapons)) if (origin === null || w.hand === origin) w.plan.flatDamage += e.value
+      return
+    case 'weaponCrit':
+      for (const w of matching(e.weapons)) w.plan.critBonus += e.value
       return
     case 'weaponArmorPenPct':
       for (const w of matching(e.weapons)) w.plan.armorPenPct += e.pct / 100

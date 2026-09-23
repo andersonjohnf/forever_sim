@@ -45,15 +45,18 @@ export const ITEM_EFFECTS: Record<number, ItemEffects> = {
       },
     ],
   },
-  // Ironfoe: 2 extra attacks (15494, EXTRA_ATTACKS 2 in both clients). Forever: an equip aura on the
-  // wielder, 1301046, proc mask 0x14 (white and yellow melee hits), ProcChance 6, "Attacks against
-  // Orcs are $s2 times as likely" with $s2 = 2 and no chance in the text, and ProcCategoryRecovery
-  // 100; read as Hand of Justice's, 3% against a boss that isn't an Orc, from either hand's hits,
-  // with a 100 ms internal cooldown [?]. Classic Era: chance on hit (ItemEffect 99055 → 15494), 0.8
-  // PPM on its own hits [C] (Spell, SpellEffect, SpellAuraOptions, ItemEffect, 1.60.1.69913 and
-  // 1.15.9.69722; damage-and-timing §5.2).
+  // Ironfoe: 2 extra attacks (15494, EXTRA_ATTACKS 2 in both clients) from Ironfoe's own hits, in
+  // both profiles. Forever: an equip aura, 1301046, otherwise a clone of Hand of Justice's 15600:
+  // proc mask 0x14 (white and yellow melee hits) plus a second word, 0x20, that only eight
+  // Forever-new item procs carry, two of whose texts say "with this weapon"; ProcChance 6, "Attacks
+  // against Orcs are $s2 times as likely" with $s2 = 2 and no chance in the text, read as Hand of
+  // Justice's: 3% against a boss that isn't an Orc [?]; ProcCategoryRecovery 100. The client
+  // doesn't settle which hand's hits roll it, so the hands are Classic Era's, the weapon's own
+  // (doctrine §2); either hand is the alternative to measure [?] (C37). Classic Era: chance on hit
+  // (ItemEffect 99055 → 15494), 0.8 PPM [C] (Spell, SpellEffect, SpellAuraOptions, ItemEffect,
+  // 1.60.1.69913 and 1.15.9.69722; damage-and-timing §5.2, OQ 15).
   11684: {
-    source: 'Forever and Classic Era clients: spell 1301046’s proc chance, description and internal cooldown; 0.8 PPM in Classic Era (WarriorSim gear.js, pre-SoD)',
+    source: 'Forever and Classic Era clients: spell 1301046’s proc chance, description and internal cooldown; Ironfoe’s own hits and 0.8 PPM in Classic Era (WarriorSim gear.js, pre-SoD)',
     effects: (p) => [
       {
         kind: 'proc',
@@ -62,7 +65,7 @@ export const ITEM_EFFECTS: Record<number, ItemEffects> = {
           name: 'Ironfoe',
           icon: 'inv_mace_10',
           trigger: 'meleeLanded',
-          from: p.values.ironfoe.from,
+          from: 'weapon',
           chance: p.values.ironfoe.chance,
           icdMs: p.values.ironfoe.icdMs,
           action: { kind: 'extraAttacks', count: 2 },

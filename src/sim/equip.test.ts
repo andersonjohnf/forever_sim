@@ -4,7 +4,7 @@ import type { Item, ItemData } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { RaceData } from '@/data/races/types'
 import { defaultConfig } from './defaults'
-import { canUse, fitsFaction, fitsSlot, itemFaction, raceFaction, uniqueConflicts } from './equip'
+import { canUse, fitsFaction, fitsSlot, itemFaction, raceFaction, uniqueConflicts, WARSONG_GULCH_PREFIX } from './equip'
 import { SPEC_IDS, SPEC_META } from './specs'
 import type { GearSlot } from './types'
 
@@ -170,6 +170,34 @@ describe('faction-bound items (docs/data/items.md#equipping-rules)', () => {
     expect(itemFaction(byId(272434))).toBeNull()
     // The Horde PvP rank-8 pieces also start "Legionnaire's": Horde either way.
     expect(itemFaction(byName("Legionnaire's Plate Armor"))).toBe('Horde')
+  })
+
+  // TL6: the prefixes are broad names, so an item that isn't a Warsong Gulch reward could match one.
+  it('finds a twin of the other faction for every item the Warsong Gulch names place, bar the listed exceptions', () => {
+    const byPrefix = (name: string) => WARSONG_GULCH_PREFIX.find(([pattern]) => pattern.test(name))?.[1] ?? null
+    // Items the names place: a match that no race, PvP rank or reputation requirement places first.
+    const placed = items.filter((i) => byPrefix(i.name) && !i.races && !i.requirements.some((r) => r.kind === 'pvpRank' || r.kind === 'reputation'))
+    const stats = (i: Item) => JSON.stringify(Object.entries(i.stats).sort())
+    const twin = (item: Item) =>
+      items.find(
+        (other) =>
+          byPrefix(other.name) !== null &&
+          byPrefix(other.name) !== byPrefix(item.name) &&
+          other.slot === item.slot &&
+          other.itemLevel === item.itemLevel &&
+          other.weaponType === item.weaponType &&
+          stats(other) === stats(item),
+      )
+    // No twin, so both factions ([?] B76): Forever's own Sentinel's Libram, left out of the rule.
+    const EXCEPTIONS = [272434]
+    expect(placed.filter((i) => !twin(i)).map((i) => i.id)).toEqual(EXCEPTIONS)
+    for (const id of EXCEPTIONS) expect(itemFaction(byId(id))).toBeNull()
+    const twinned = placed.filter((i) => !EXCEPTIONS.includes(i.id))
+    expect(twinned).toHaveLength(16)
+    for (const item of twinned) {
+      expect(itemFaction(item), item.name).toBe(byPrefix(item.name))
+      expect(placed, `${item.name}'s twin`).toContain(twin(item))
+    }
   })
 
   it('leaves everything else to both factions', () => {

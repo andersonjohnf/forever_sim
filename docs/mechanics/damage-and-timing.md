@@ -13,8 +13,8 @@ Rend, Rake, Rip, Pounce and Lacerate but not Deep Wounds [F]. Procs use Classic'
 Forever's PPM table is Classic Era's plus one new 2.3 PPM row, and no proc links to it in the
 client, so PPM rates are server-side. Flat proc chances and internal cooldowns are in the client:
 Hand of Justice procs 1% of the time against a boss in Forever (2% in Classic Era), and Ironfoe
-became an equip aura that the sim reads as 3% from either hand with a 100 ms cooldown [?]
-(Classic Era: 0.8 PPM on its own hits).
+became an equip aura that the sim reads as 3% of its own hits with a 100 ms cooldown [?]
+(Classic Era: 0.8 PPM).
 
 Status: researched 2026-09-22 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 Client builds: Forever beta 1.60.1.69913 · Classic Era 1.15.9.69722
@@ -56,8 +56,8 @@ such as PPM rates ([hotfix caveat](../data/client.md#hotfix-caveat)).
   ([§4](#4-dots-and-bleeds)).
 - **Procs:** `chance = PPM × baseWeaponSpeed / 60` per landed hit, or a flat % per landed hit,
   with the client's internal cooldown if it has one (Hand of Justice: 1% in `forever`, 2% in
-  `classicEra`, 2 s in both; Ironfoe: 3% from either hand with 100 ms in `forever` [?], 0.8 PPM
-  on its own hits in `classicEra`). Extra attacks can chain other procs, but each extra-attack source
+  `classicEra`, 2 s in both; Ironfoe, on its own hits: 3% with 100 ms in `forever` [?], 0.8 PPM
+  in `classicEra`). Extra attacks can chain other procs, but each extra-attack source
   procs at most once from one swing and the extra attacks it leads to, so Windfury can't proc
   off its own chain. `forever` applies the client's 100 ms Windfury internal cooldown;
   `classicEra` has none ([§5](#5-procs)).
@@ -413,7 +413,7 @@ otherwise. The new 2.3 PPM row's user is unknown.
 | Lifestealing enchant | PPM | 6 | [C] ([ws-gear]) |
 | Weapon chance-on-hit (e.g. Thrash Blade 1, Flurry Axe 1.8, Deathbringer 0.8, Perdition's Blade 1, Empyrean Demolisher 1) | PPM | as listed | [C] ([WarriorSim gear][ws-gear]) |
 | Hand of Justice (15600) | flat | `forever`: **1%** per landed melee hit, white or yellow (proc mask 0x14), with a **2 s** internal cooldown. The client's `ProcChance` is 3 and its description reads `${$h/3}%` … "Attacks against Dwarves are $s2 times as likely", with `$s2` = 3, so 1% against a boss that isn't a Dwarf (the sim treats every boss as one that isn't). `classicEra`: **2%**, the same 2 s | [F] [client] (Spell, SpellEffect, SpellAuraOptions, 1.60.1.69913); [C] [client] (SpellAuraOptions, 1.15.9.69722: `ProcChance` 2, `ProcCategoryRecovery` 2000). (Blackhand's Breadth, listed here before, has no proc: in Forever it's +1% melee crit with a use that marks the target, +5% crit against it for 20 s ([items.md](../data/items.md#effects-of-fallback-items)); Classic Era's +2% crit [ws-gear] is gone.) |
-| Ironfoe (11684) | `forever`: flat · `classicEra`: PPM | `forever`: **3%** per landed melee hit, white or yellow, **from either hand** (proc mask 0x14), for 2 extra attacks, with a **100 ms** internal cooldown. Forever made it an equip aura on the wielder, 1301046 "Fury of Forgewright": "Attacks have a chance to grant 2 extra attacks on your next swing. Attacks against Orcs are $s2 times as likely", with `$s2` = 2, `ProcChance` 6 and `ProcCategoryRecovery` 100. The text gives no chance, so the sim reads `ProcChance` as Hand of Justice's is read: the favoured race's chance, ÷ `$s2` for any other, 3% against a boss that isn't an Orc [?] (OQ 15). `classicEra`: **0.8 PPM** on Ironfoe's own hits, Classic Era's chance on hit (15494), no internal cooldown | [F] [client] (ItemEffect, Spell, SpellEffect, SpellAuraOptions, 1.60.1.69913: 99055 → 1301046, trigger "on equip"); the reading [?]; [C] (ItemEffect 99055 → 15494, "chance on hit", 1.15.9.69722; 0.8 PPM from [ws-gear]) |
+| Ironfoe (11684) | `forever`: flat · `classicEra`: PPM | Both profiles: **Ironfoe's own hits**, white or yellow, for 2 extra attacks. `forever`: **3%** per landed hit, with a **100 ms** internal cooldown. Forever made it an equip aura, 1301046 "Fury of Forgewright": "Attacks have a chance to grant 2 extra attacks on your next swing. Attacks against Orcs are $s2 times as likely", with `$s2` = 2, `ProcChance` 6 and `ProcCategoryRecovery` 100. Otherwise it is a clone of Hand of Justice's 15600 (the same attributes, icon and effect layout; its race dummy still names Hand of Justice's extra attack, 15601). The text gives no chance, so the sim reads `ProcChance` as Hand of Justice's is read: the favoured race's chance, ÷ `$s2` for any other, 3% against a boss that isn't an Orc [?]. Its proc mask is 0x14 (white and yellow melee) plus a second word, 0x20, that Hand of Justice lacks and only eight Forever-new item procs carry, two of whose texts say "with this weapon". The client doesn't settle which hand's hits roll it, so the sim keeps Classic Era's answer, the weapon's own (doctrine §2); either hand is the alternative to measure [?] (OQ 15). `classicEra`: **0.8 PPM**, Classic Era's chance on hit (15494), no internal cooldown | [F] [client] (ItemEffect, Spell, SpellEffect, SpellAuraOptions, 1.60.1.69913: 99055 → 1301046, trigger "on equip"); the chance and the hands [?]; [C] (ItemEffect 99055 → 15494, "chance on hit", 1.15.9.69722; 0.8 PPM from [ws-gear]) |
 | Windfury Totem | flat | 20% per main-hand landed hit | [C] ([Magey Windfury][magey-wf]); Forever values → [buffs doc](buffs-debuffs-consumables.md) |
 | Talent procs (Flurry, Unbridled Wrath, Sword Spec, Omen of Clarity, Seal of Command, …) | per class doc | – | class docs |
 
@@ -438,7 +438,9 @@ supports both.
   Justice 2 s, Weaponmaster's sword 200 ms, Windfury and Ironfoe 100 ms in `forever`). A proc
   that is on its cooldown, or barred from a chain (§5.4), isn't rolled.
 - A proc that is an aura on the wielder rather than a weapon's chance on hit rolls on either
-  hand's hits: Hand of Justice (a trinket) and, in `forever`, Ironfoe's equip aura [?] (OQ 15).
+  hand's hits: Hand of Justice (a trinket). Ironfoe's Forever equip aura is its weapon's, and the
+  client doesn't say it reaches the other hand, so it rolls on Ironfoe's own hits, as in Classic
+  Era [?] (OQ 15).
 
 ### 5.4 Extra attacks and chaining
 
@@ -480,7 +482,7 @@ supports both.
 | Normalized abilities | MS, OP, WW | MS, OP, WW + Spearing Strike, Holy Strike (new abilities) | [F] class docs' client reads (§2.2) |
 | PPM table | 1–10 PPM rows | the same plus ID 479 = 2.3 PPM; no proc references a row | [F] [client] (SpellProcsPerMinute, SpellAuraOptions, 1.60.1.69913) |
 | Hand of Justice | 2% per landed hit, 2 s internal cooldown | 1% against non-Dwarves (`ProcChance` 3, ÷3), 2 s | [F] [client] (SpellAuraOptions, Spell, 1.60.1.69913); [C] [client] (1.15.9.69722) |
-| Ironfoe | chance on hit, 0.8 PPM, its own hits | equip aura: `ProcChance` 6 (read as 3% against non-Orcs), either hand's white and yellow hits, 100 ms internal cooldown | [F] [client] (ItemEffect, SpellAuraOptions, Spell, 1.60.1.69913); the 3% and the hands [?]; [C] [ws-gear] |
+| Ironfoe | chance on hit, 0.8 PPM, its own hits | equip aura: `ProcChance` 6 (read as 3% against non-Orcs), 100 ms internal cooldown; its own white and yellow hits, as in Classic Era | [F] [client] (ItemEffect, SpellAuraOptions, Spell, 1.60.1.69913); the 3% and the hands [?]; [C] [ws-gear] |
 | Windfury internal cooldown | none modelled | 100 ms (10612 `ProcCategoryRecovery`) | [F] [client] (SpellAuraOptions, 1.60.1.69913); in combat [?] |
 | Crit multipliers, AP/14, 75% armor cap, parry haste 40%, GCD 1.5/1.0 | – | unchanged | [F] tooltips and client data |
 
@@ -682,16 +684,22 @@ Shred at t = 0 can Shred again at 1.0 s if it has the energy.
     reaction time; nobody has asked for one yet.
 15. **Ironfoe's chance and hands in Forever** [?]. The client makes it an equip aura (1301046)
     with `ProcChance` 6, "Attacks against Orcs are $s2 times as likely" (`$s2` = 2), proc mask
-    0x14 and a 100 ms `ProcCategoryRecovery` [F], but its text states no chance. The sim reads it
-    as Hand of Justice's `${$h/3}%` is read: 6% against Orcs, **3%** against anyone else (every
-    boss, in the sim), from **either hand's** white and yellow hits, as an aura on the wielder
-    would be (§5.3). Open: is 6% the chance against non-Orcs (12% against Orcs)? That reading is
-    about +6% DPS for the default Fury warrior. Does an off-hand hit proc it? Main-hand hits only
-    would cost about 2.6%. (Its mask's second word, 0x20, which Iceblade Hacker and Warblade of
-    Caer Darrow share and Hand of Justice lacks, is unexplained.) Test: Ironfoe in the main hand
-    and a slow one-hander in the off hand, on non-Orc mobs: count procs (2 extra attacks, "Fury of
-    Forgewright" in the log) per landed hit of each hand; ≥2,000 landed hits. Then the same against
-    Orcs.
+    0x14 and a 100 ms `ProcCategoryRecovery` [F], but its text states no chance. The aura is
+    otherwise a clone of Hand of Justice's 15600, so the sim reads the chance as Hand of Justice's
+    `${$h/3}%` is read: 6% against Orcs, **3%** against anyone else (every boss, in the sim).
+    **Hands:** the mask's second word, 0x20, is the one client signal that bears on them. Hand of
+    Justice lacks it, the Classic Era client has it nowhere, and in Forever only eight item procs,
+    all new, carry it: Adaptation 1253389, Dreadfrost Saber 1294939, Iceblade Hacker 1298413,
+    Warblade of Caer Darrow 1298500, Fury of Forgewright 1301046 (Ironfoe), Forge Blast 1312176,
+    Holy Smite 1312330 and Lash of the Dark Rider 1315077 [F] [client] (SpellAuraOptions,
+    1.60.1.69913; 1.15.9.69722). Two of their texts say "Melee attacks with this weapon"
+    (1298413, 1298500). That hints at the weapon's own hits without settling it, so the sim keeps
+    Classic Era's answer: Ironfoe's own white and yellow hits (doctrine §2). Open: does an
+    off-hand hit proc it? Either hand's hits would add about 2.7% for the default Fury warrior.
+    Is 6% the chance against non-Orcs (12% against Orcs)? That would add about 3.7%, and about 9%
+    with either hand's hits. Test: Ironfoe in the main hand and a slow one-hander in the off hand,
+    on non-Orc mobs: count procs (2 extra attacks, "Fury of Forgewright" in the log) per landed hit
+    of each hand; ≥2,000 landed hits. Then the same against Orcs.
 
 ---
 

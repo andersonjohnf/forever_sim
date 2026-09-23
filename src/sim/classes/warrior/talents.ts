@@ -138,12 +138,11 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
       },
     },
   ],
-  // Arms 5·3: axe/polearm +1% crit per rank with every attack and spell while one is in either hand
-  // (12700: aura 290 with an axe/polearm SpellEquippedItems mask, the weapon racials' rule [?], Q15),
-  // mace/staff ignore 3% armor, sword 1% extra attack (200 ms ICD) per rank (§2.7)
+  // Arms 5·3, per rank (§2.7): axe/polearm +1% crit on the attacks made with the axe or polearm, as
+  // 12700's tooltip reads ("…with Axes and Polearms"), so no spell crit (the racials' tooltips say
+  // "all spells and attacks"; Q15 [?]); mace/staff ignore 3% armor; sword 1% extra attack (200 ms ICD)
   Weaponmaster: (r) => [
-    { kind: 'stat', stat: 'crit', value: r, when: { weapons: ['axe', 'polearm'] } },
-    { kind: 'stat', stat: 'spellCrit', value: r, when: { weapons: ['axe', 'polearm'] } },
+    { kind: 'weaponCrit', value: r, weapons: ['axe', 'polearm'] },
     { kind: 'weaponArmorPenPct', pct: 3 * r, weapons: ['mace', 'staff'] },
     {
       kind: 'proc',

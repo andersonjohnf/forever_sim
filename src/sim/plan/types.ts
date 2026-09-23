@@ -77,7 +77,7 @@ export interface WeaponPlan {
   skill: number
   /** Hit % only this hand gets (Dual Wield Specialization's off-hand hit). */
   hitBonus: number
-  /** Aura crit % only this hand gets (racial and Weaponmaster weapon crit). */
+  /** Aura crit % only this hand's attacks get (Weaponmaster's axe and polearm crit, warrior.md §2.7). */
   critBonus: number
   /** Fraction of the target's armor this hand ignores (Weaponmaster, maces). */
   armorPenPct: number

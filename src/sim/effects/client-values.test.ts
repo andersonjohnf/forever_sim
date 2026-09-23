@@ -1,6 +1,6 @@
 // Item and buff effects whose numbers come from the client data, tied to src/data/client
-// (docs/data/client.md), and what the plan builder makes of them: Hand of Justice's chance and
-// internal cooldown per profile (damage-and-timing §5.2), Windfury Totem's internal cooldown
+// (docs/data/client.md), and what the plan builder makes of them: Hand of Justice's and Ironfoe's
+// chances and internal cooldowns per profile (damage-and-timing §5.2), Windfury Totem's internal cooldown
 // (§5.4), and the weapons an Elemental Sharpening Stone fits and how two of them stack (buffs doc
 // §3.6).
 import { describe, expect, it } from 'vitest'
@@ -92,18 +92,34 @@ describe('Ironfoe (item 11684 → spell 1301046; damage-and-timing §5.2)', () =
     const orcs = aura.effects.find((e) => e.effectIndex === 1)!
     expect(orcs).toMatchObject({ effect: APPLY_AURA, effectAura: AURA_DUMMY, effectBasePointsF: 2 })
     // Hand of Justice's reading: ProcChance is the favoured race's chance, ÷ $s2 for anyone else.
-    expect(FOREVER.values.ironfoe).toEqual({ chance: { pct: aura.auraOptions!.procChance! / orcs.effectBasePointsF! }, from: 'any', icdMs: aura.auraOptions!.procCategoryRecovery })
+    expect(FOREVER.values.ironfoe).toEqual({ chance: { pct: aura.auraOptions!.procChance! / orcs.effectBasePointsF! }, icdMs: aura.auraOptions!.procCategoryRecovery })
     expect(FOREVER.values.ironfoe.chance).toEqual({ pct: 3 })
   })
 
-  it('reaches the plan per profile: either hand at 3% with its cooldown in `forever`; the main hand at 0.8 PPM in `classicEra`', () => {
+  // TL1: why the chance is read as Hand of Justice's, and why the mask's second word is the one hint about hands.
+  it('is otherwise a clone of Hand of Justice’s 15600, bar the mask’s second word, 0x20 (C37)', () => {
+    const hoj = spells['15600']
+    expect(aura.misc).toEqual(hoj.misc)
+    expect(aura.levels).toEqual(hoj.levels)
+    const shape = (spell: typeof hoj) => spell.effects.map((e) => [e.effectIndex, e.effect, e.effectAura, e.implicitTarget])
+    expect(shape(aura)).toEqual(shape(hoj))
+    // Its race dummy still names Hand of Justice's extra attack (15601), a leftover of the copy.
+    expect(aura.effects.find((e) => e.effectIndex === 1)?.effectTriggerSpell).toBe(15601)
+    expect(hoj.effects.find((e) => e.effectIndex === 1)?.effectTriggerSpell).toBe(15601)
+    expect(hoj.auraOptions?.procTypeMask).toEqual([MELEE_HITS, 0])
+    expect(aura.auraOptions?.procTypeMask).toEqual([MELEE_HITS, 0x20])
+  })
+
+  it('reaches the plan per profile from Ironfoe’s own hits: 3% with its cooldown in `forever`, 0.8 PPM in `classicEra`', () => {
     expect(fury.gear.mainHand?.itemId).toBe(11684)
-    expect(procOf(fury, 'ironfoe')).toMatchObject({ chance: [0.03, 0.03], hands: 3, icdMs: 100, amount: 2 })
+    expect(fury.gear.offHand?.itemId).toBeDefined()
+    // Hands bit 1 is the main hand alone: the off hand's sword doesn't roll it.
+    expect(procOf(fury, 'ironfoe')).toMatchObject({ chance: [0.03, 0.03], hands: 1, icdMs: 100, amount: 2 })
     const speed = buildPlan(fury).plan.weapons[0]!.speedSec
     const classic = procOf(withRules(fury, 'classicEra'), 'ironfoe')!
     expect(classic).toMatchObject({ hands: 1, icdMs: 0, amount: 2 })
     expect(classic.chance[0]).toBeCloseTo((0.8 * speed) / 60, 12)
-    expect(CLASSIC_ERA.values.ironfoe).toEqual({ chance: { ppm: 0.8 }, from: 'weapon', icdMs: 0 })
+    expect(CLASSIC_ERA.values.ironfoe).toEqual({ chance: { ppm: 0.8 }, icdMs: 0 })
   })
 
   it('isn’t one of the server-side proc rates the `procRates` assumption lists', () => {
@@ -118,6 +134,25 @@ describe('Ironfoe (item 11684 → spell 1301046; damage-and-timing §5.2)', () =
     expect(assumptionIds(fury)).toContain('ironfoeChance')
     expect(assumptionIds(withRules(fury, 'classicEra'))).not.toContain('ironfoeChance')
     expect(assumptionIds({ ...fury, gear: { ...fury.gear, mainHand: { itemId: 17016 } } })).not.toContain('ironfoeChance')
+  })
+
+  // C37 lists every spell whose mask has 0x20 in its second word: checked in the raw tables when
+  // they're cached locally (.cache/client/<build>/tables, from `npm run scrape:client`).
+  const AURA_OPTIONS = import.meta.glob<string>(['/.cache/client/1.60.1.69913/tables/SpellAuraOptions.ndjson', '/.cache/client/1.15.9.69722/tables/SpellAuraOptions.ndjson'], {
+    query: '?raw',
+    import: 'default',
+  })
+  it.skipIf(Object.keys(AURA_OPTIONS).length !== 2)('0x20 in the mask’s second word is on eight Forever-new item procs only, and on none in Classic Era (cached locally)', async () => {
+    const with0x20 = async (build: string) => {
+      const raw = await AURA_OPTIONS[`/.cache/client/${build}/tables/SpellAuraOptions.ndjson`]()
+      // The first line is the parser's header, then one row per line.
+      const rows = raw.split('\n').slice(1).filter(Boolean).map((line) => JSON.parse(line) as { SpellID: number; ProcTypeMask?: number[] })
+      return rows.filter((r) => ((r.ProcTypeMask?.[1] ?? 0) & 0x20) !== 0).map((r) => r.SpellID).sort((a, b) => a - b)
+    }
+    // Adaptation, Dreadfrost Saber, Iceblade Hacker, Warblade of Caer Darrow, Fury of Forgewright
+    // (Ironfoe), Forge Blast, Holy Smite and Lash of the Dark Rider.
+    expect(await with0x20('1.60.1.69913')).toEqual([1253389, 1294939, 1298413, 1298500, 1301046, 1312176, 1312330, 1315077])
+    expect(await with0x20('1.15.9.69722')).toEqual([])
   })
 })
 

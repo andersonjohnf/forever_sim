@@ -5,9 +5,12 @@
 //
 // The committed client data (src/data/client) is Forever's only, so the Classic Era values are
 // pinned by the table below, which cites each client row. When the raw client tables are cached
-// locally (.cache/client/<build>/tables, from `npm run scrape:client`), the last test also checks
-// every cited row in both clients, at level 60; without the cache it's skipped.
+// locally (.cache/client/<build>/tables, from `npm run scrape:client`), the last tests also check
+// every cited row in both clients, at level 60, and the aura type of each crit source whose spell
+// crit differs by profile; without the cache they're skipped.
 import { describe, expect, it } from 'vitest'
+import { recklessness } from '../classes/warrior/abilities'
+import { stanceEffects } from '../classes/warrior/talents'
 import { defaultConfig } from '../defaults'
 import { buildPlan } from '../plan/build'
 import { CLASSIC_ERA, FOREVER, type RulesProfile } from '../rules/profiles'
@@ -480,6 +483,11 @@ class Client {
     return client
   }
 
+  /** A spell effect's aura type (SpellAuraName: 290 all crit, 52 melee and ranged crit, …). */
+  aura(spell: number, index: number): number {
+    return this.effect(spell, index).EffectAura as number
+  }
+
   private effect(spell: number, index: number): ClientRow {
     const row = this.effects.get(spell)?.find((r) => r.EffectIndex === index)
     if (!row) throw new Error(`${this.build}: no SpellEffect ${spell} #${index}`)
@@ -534,8 +542,11 @@ class Client {
 
 describe('the cited client rows', () => {
   const cached = Object.keys(TABLES).length === 6
+  /** Both clients, parsed once for the tests below. */
+  let clients: Promise<[Client, Client]> | undefined
+  const open = () => (clients ??= Promise.all([Client.open(FOREVER_BUILD), Client.open(CLASSIC_BUILD)]))
   it.skipIf(!cached)(`match the raw client tables (${FOREVER_BUILD} and ${CLASSIC_BUILD}, cached locally)`, async () => {
-    const [forever, classic] = await Promise.all([Client.open(FOREVER_BUILD), Client.open(CLASSIC_BUILD)])
+    const [forever, classic] = await open()
     const check = (client: Client, profile: RulesProfile, id: string, entry: CatalogueEntry, refs: Ref[]) => {
       const lines = digest(catalogueEffects(entry, profile))
       refs.forEach((ref, i) => {
@@ -549,6 +560,37 @@ describe('the cited client rows', () => {
       const row = ROWS[id]
       check(forever, FOREVER, id, entry, row.rows)
       if (!row.foreverOnly) check(classic, CLASSIC_ERA, id, entry, row.classicRows ?? row.rows)
+    }
+  })
+
+  // TL4: the RL5 split, crit source by crit source (character-stats.md#implementation-notes).
+  it.skipIf(!cached)('give spell crit in a profile exactly where its client row is all crit (aura 290), not Classic Era’s melee crit (aura 52)', async () => {
+    const [forever, classic] = await open()
+    const ALL_CRIT = 290
+    const MELEE_CRIT = 52
+    const labels = (entry: CatalogueEntry, profile: RulesProfile) => digest(catalogueEffects(entry, profile)).map(([label]) => label)
+    const inCatalogue = (id: string) => (profile: RulesProfile) => labels(ENTRIES.find(([e]) => e === id)![1], profile).includes('spellCrit')
+    /** Each crit source whose spell crit differs by profile: its spell's effect, and whether a profile's model gives spell crit. */
+    const sources: { id: string; spell: number; effect: number; spellCrit: (profile: RulesProfile) => boolean }[] = [
+      { id: 'recklessness', spell: 1719, effect: 0, spellCrit: (p) => (recklessness(p).aura?.mods.spellCrit ?? 0) > 0 },
+      { id: 'berserkerStance', spell: 7381, effect: 0, spellCrit: (p) => stanceEffects(p).berserker.some((e) => e.kind === 'stat' && e.stat === 'spellCrit') },
+      { id: 'leaderOfThePack', spell: 24932, effect: 0, spellCrit: inCatalogue('leaderOfThePack') },
+      { id: 'elixirOfTheMongoose', spell: 17538, effect: 1, spellCrit: inCatalogue('elixirOfTheMongoose') },
+    ]
+    for (const { id, spell, effect, spellCrit } of sources) {
+      expect([forever.aura(spell, effect), classic.aura(spell, effect)], `${id} (${spell} #${effect})`).toEqual([ALL_CRIT, MELEE_CRIT])
+      expect([spellCrit(FOREVER), spellCrit(CLASSIC_ERA)], id).toEqual([true, false])
+    }
+    // Every catalogue entry whose crit gives spell crit in Forever only is in the list, citing that row.
+    const differing = ENTRIES.filter(([, entry]) => {
+      const [f, c] = [labels(entry, FOREVER), labels(entry, CLASSIC_ERA)]
+      return f.includes('spellCrit') && !c.includes('spellCrit') && c.includes('crit')
+    }).map(([id]) => id)
+    expect(differing.sort()).toEqual(sources.filter((s) => s.id in ROWS).map((s) => s.id).sort())
+    for (const id of differing) {
+      const source = sources.find((s) => s.id === id)!
+      const crit = labels(ENTRIES.find(([e]) => e === id)![1], FOREVER).indexOf('crit')
+      expect(ROWS[id].rows[crit], id).toEqual(S(source.spell, source.effect))
     }
   })
 })

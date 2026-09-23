@@ -119,7 +119,7 @@ const REGISTRY = {
     docRef: `${STATS}#oq-1-paladin-druid-and-skyborne-base-attributes`,
   },
   racialWeaponCrit: {
-    text: 'Weapon racials (Sword, Axe and Mace Specialization) and Weaponmaster’s axe and polearm crit add their crit to all your attacks and spells while either hand holds that weapon type, as the racials’ Forever tooltips read; untested with two different weapons.',
+    text: 'Weapon racials (Sword, Axe and Mace Specialization) add their crit to all your attacks and spells while either hand holds that weapon type, as their Forever tooltips say. Weaponmaster’s axe and polearm crit counts only for attacks made with the axe or polearm, as its tooltip says. Neither is tested with two different weapons.',
     docRef: `${STATS}#implementation-notes`,
   },
   gnomeRage: {
@@ -151,7 +151,7 @@ const REGISTRY = {
     docRef: `${DT}#52-ppm-vs-flat-chance-classic-era-examples`,
   },
   ironfoeChance: {
-    text: 'Ironfoe procs on 3% of the hits you land with either hand and can’t proc again within 100 ms: the Forever client’s 6%, read as Hand of Justice’s chance is for a boss that isn’t an Orc. Its tooltip gives no chance, and nobody has measured it.',
+    text: 'Ironfoe procs on 3% of its own hits, at most once per 100 ms. The Forever client gives it a 6% chance and says it procs twice as often against Orcs, so, as for Hand of Justice, we read 6% as the chance against Orcs and 3% against other bosses. Nobody has measured it.',
     docRef: `${DT}#52-ppm-vs-flat-chance-classic-era-examples`,
   },
   extraAttackChains: {

@@ -372,28 +372,37 @@ describe('talents, racials and stances', () => {
     expect(bundle('alliance-human', axes).assumptions.map((a) => a.id)).not.toContain('racialWeaponCrit')
   })
 
-  // RL6: 12700 is the racials' client data (aura 290 and a SpellEquippedItems mask), so the same rule.
-  it('gives Weaponmaster’s axe and polearm crit to all attacks and spells while either hand holds one, as the weapon racials (warrior.md §2.7) [?] (Q15)', () => {
+  // TL2: 12700's own tooltip reads "…with Axes and Polearms", and tooltips beat derived values (doctrine §2).
+  it('gives Weaponmaster’s axe and polearm crit to that weapon’s attacks only, and not to spells, as its tooltip reads (warrior.md §2.7) [?] (Q15)', () => {
     const arms = defaultConfig('warrior-arms')
     const ranks = decodeTalentCode(TALENT_DATA.warrior, arms.talents)
     expect(ranks['warrior-arms-weaponmaster']).toBe(5)
     const four = encodeTalentCode(TALENT_DATA.warrior, { ...ranks, 'warrior-arms-weaponmaster': 4 })
-    const plan = (talents: string, gear: SimConfig['gear']) => buildPlan({ ...arms, race: 'alliance-gnome', talents, gear }).plan
-    const swordAndAxe = { mainHand: { itemId: 15806 }, offHand: { itemId: 18498 } } // Mirah's Song and Hedgecutter
-    const swords = { mainHand: { itemId: 15806 }, offHand: { itemId: 15806 } }
-    const [five, less] = [plan(arms.talents, swordAndAxe), plan(four, swordAndAxe)]
-    // One rank is +1% crit on the sheet and for spells, not a bonus on the axe's hand only.
-    expect(five.stats.crit - less.stats.crit).toBeCloseTo(1, 9)
-    expect(five.stats.spellCrit - less.stats.spellCrit).toBeCloseTo(1, 9)
-    expect(five.weapons.map((w) => w!.critBonus)).toEqual([0, 0])
-    const [mh, oh] = new Sim(five).inspect().crit
-    expect(mh - oh).toBeCloseTo(0, 9)
-    // No axe or polearm, no crit; a two-handed axe counts too.
-    expect(plan(arms.talents, swords).stats.crit - plan(four, swords).stats.crit).toBeCloseTo(0, 9)
-    const reaper = { mainHand: { itemId: 12784 } }
-    expect(plan(arms.talents, reaper).stats.crit - plan(four, reaper).stats.crit).toBeCloseTo(1, 9)
-    // An axe and another weapon: the result lists the reading, as it does for the racials.
-    const notes = (gear: SimConfig['gear']) => buildPlan({ ...arms, race: 'alliance-gnome', gear }).assumptions.map((a) => a.id)
+    const bundle = (talents: string, gear: SimConfig['gear']) => buildPlan({ ...arms, race: 'alliance-gnome', talents, gear })
+    const sword = { itemId: 15806 } // Mirah's Song
+    const axe = { itemId: 18498 } // Hedgecutter
+    const bonus = (gear: SimConfig['gear']) => bundle(arms.talents, gear).plan.weapons.map((w) => w?.critBonus ?? null)
+    // The axe's hand only, whichever hand it's in; a two-handed axe; nothing without one.
+    expect(bonus({ mainHand: sword, offHand: axe })).toEqual([0, 5])
+    expect(bonus({ mainHand: axe, offHand: sword })).toEqual([5, 0])
+    expect(bonus({ mainHand: axe, offHand: axe })).toEqual([5, 5])
+    const reaper = { mainHand: { itemId: 12784 } } // Arcanite Reaper, a two-handed axe
+    expect(bonus(reaper)).toEqual([5, null])
+    expect(bonus({ mainHand: sword, offHand: sword })).toEqual([0, 0])
+    // One rank moves the axe's hand by 1 and leaves the other hand, the stat block and spell crit alone.
+    const swordAndAxe = { mainHand: sword, offHand: axe }
+    const [five, less] = [bundle(arms.talents, swordAndAxe), bundle(four, swordAndAxe)]
+    expect(five.plan.stats.crit).toBe(less.plan.stats.crit)
+    expect(five.plan.stats.spellCrit).toBe(less.plan.stats.spellCrit)
+    const [[mh5, oh5], [mh4, oh4]] = [new Sim(five.plan).inspect().crit, new Sim(less.plan).inspect().crit]
+    expect(mh5).toBeCloseTo(mh4, 9)
+    expect(oh5 - oh4).toBeCloseTo(1, 9)
+    // The sheet's crit is the main hand's, so it shows the rank with an axe in the main hand only.
+    expect(five.sheet.critPct).toBeCloseTo(less.sheet.critPct, 9)
+    const axeAndSword = { mainHand: axe, offHand: sword }
+    expect(bundle(arms.talents, axeAndSword).sheet.critPct - bundle(four, axeAndSword).sheet.critPct).toBeCloseTo(1, 9)
+    // An axe and another weapon: the result lists the reading, with the racials' (Q15).
+    const notes = (gear: SimConfig['gear']) => bundle(arms.talents, gear).assumptions.map((a) => a.id)
     expect(notes(swordAndAxe)).toContain('racialWeaponCrit')
     expect(notes(reaper)).not.toContain('racialWeaponCrit')
   })

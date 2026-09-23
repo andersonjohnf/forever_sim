@@ -220,13 +220,15 @@ const AV_PREFIX: [RegExp, Faction][] = [
  * Warsong Gulch rewards, which the client also lists with no reputation requirement: the Silverwing
  * Sentinels' and the Warsong Outriders' quartermasters sell twins of the same stats under these
  * names [C] (docs/data/items.md#equipping-rules). Only Classic Era items: a Forever item with one of
- * these names (Sentinel's Libram, 272434) has no twin to go by, so it suits both factions [?].
+ * these names (Sentinel's Libram, 272434) has no twin to go by, so it suits both factions [?]. The
+ * names are broad ("Scout's", "Protector's"), so a test checks that every item in the pool they
+ * place has a twin of the other faction's.
  */
-const WSG_PREFIX: [RegExp, Faction][] = [
+export const WARSONG_GULCH_PREFIX: readonly (readonly [RegExp, Faction])[] = [
   [/^(Sentinel|Protector|Lorekeeper|Caretaker|Outrunner)'s /, 'Alliance'],
   [/^(Legionnaire|Outrider|Scout|Advisor|Battle Healer)'s /, 'Horde'],
 ]
-const BATTLEGROUND_PREFIX = [...AV_PREFIX, ...WSG_PREFIX]
+const BATTLEGROUND_PREFIX = [...AV_PREFIX, ...WARSONG_GULCH_PREFIX]
 
 /** The faction a race belongs to; null for an unknown race id. */
 export function raceFaction(race: string): Faction | null {

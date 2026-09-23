@@ -370,6 +370,15 @@ describe('golden run (fixed config and seed)', () => {
   //   and Protection don't wield it: unchanged. RL5 (all-crit auras add spell crit) and RL6
   //   (Weaponmaster's axe crit for every attack) move no golden: no default has a magic proc, and
   //   none has Weaponmaster with an axe or polearm.
+  // - TL1 (the third review pass): Ironfoe procs from its own hits only in `forever` too, with
+  //   Forever's 3% and 100 ms internal cooldown (damage-and-timing §5.2, OQ 15, C37 [?]): the client
+  //   doesn't settle the hands, so they're Classic Era's. Fury 692.7 → 673.8 DPS (−2.7%), TPS 420.7
+  //   → 409.0: its extra-attack swings 14,013 → 7,728, so fewer Windfury procs (22,243 → 21,543)
+  //   and Heroic Strikes (20,067 → 18,441: less rage from extra swings), and more timed main-hand
+  //   swings (66,021 → 68,475). Over 40,000 fights the change is −2.6% (673.2
+  //   against 691.3 from either hand). Arms and Protection don't wield it: unchanged. TL2
+  //   (Weaponmaster's axe and polearm crit on that weapon's attacks only, no spell crit) moves no
+  //   golden: no default has Weaponmaster with an axe or polearm.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

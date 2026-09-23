@@ -398,7 +398,7 @@ Weaponmaster replaces Classic's Sword, Axe, Polearm and Mace Specialization with
 | Weapon | Effect per rank (5/5) | Model | Tag |
 | --- | --- | --- | --- |
 | **Sword** (1H or 2H) | 1% (5%) chance on a successful melee attack (white or yellow) made with the sword to gain **1 extra attack** | Proc mask 0x14 (auto attack + melee ability). There is a **200 ms internal cooldown** (`ProcCategoryRecovery` 200), so an extra attack can't chain-proc itself. Roll once per ability cast, even for multi-target abilities [?] (only WarriorSim's post-SoD code does this; Magey establishes it for Windfury only; Q9). The extra attack is an immediate main-hand white swing: it resets the main-hand swing timer, consumes a Flurry charge, and becomes the queued Heroic Strike if one is queued [C] [magey-wf] | [F] [client] (SpellAuraOptions, 1.60.1.69913) (spell 12281, proc chance 5, mask 0x14); [C] [client] (SpellAuraOptions, 1.15.9.69722) (the same 200 ms) |
-| **Axe or polearm** | +1% (5%) crit chance | All crit (aura 290), with an axe-and-polearm `SpellEquippedItems` mask: the weapon racials' client data, so the sim reads it their way. **+1% per rank to every attack, both hands, and spells, while an axe or polearm is in either hand** [?] (Q15). It is aura crit, so suppression against a +3-level target applies [magey-crit]. Classic Era's Axe Specialization was aura 52 on the same spell id, crit for that weapon's attacks only [C] | [F] [client] (SpellEffect, SpellEquippedItems, 1.60.1.69913) (spell 12700); [C] [client] (SpellEffect, 1.15.9.69722) |
+| **Axe or polearm** | +1% (5%) crit chance | **+1% per rank on the attacks made with the axe or polearm, white and special, and not on spells**, as its own tooltip reads: "Increases your chance to get a critical strike with Axes and Polearms by $s1%." The client data is the same kind as the weapon racials' (all crit, aura 290, with an axe-and-polearm `SpellEquippedItems` mask), but their tooltips say "all spells and attacks" while this one names the weapons, and a tooltip beats a value derived from the tables (doctrine §2). With an axe and another weapon only the axe's hand gets it [?] (Q15). It is aura crit, so suppression against a +3-level target applies [magey-crit]. Classic Era's 12700 (Axe Specialization, "with Axes") was aura 52, crit for that weapon's attacks too [C] | [F] [client] (Spell, SpellEffect, SpellEquippedItems, 1.60.1.69913) (spell 12700); [C] [client] (Spell, SpellEffect, 1.15.9.69722) |
 | **Mace or staff** | Attacks ignore 3% (15%) of the target's armor | Effective armor = armor after all flat reductions × (1 − 0.03 × rank). The order is an assumption [?] (Q9) | [F] [tal] [db-trait] |
 
 - **What changed from Classic.** Sword, Axe and Polearm used the same numbers in Classic,
@@ -588,7 +588,7 @@ ranks from `src/data/talents/warrior.json`**; the "Model" column says what each 
 | 4·3 | Impale (2) | "Increases the critical strike damage bonus of your abilities by 20%." | 10%. No longer needs Deep Wounds | Ability crit multiplier 2.2 at 2/2 |
 | 5·1 | **Bloodthrill (5), new** | "Your melee attacks against targets afflicted by your Rend have a 10% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec." | 2% | [§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge) |
 | 5·2 | Sweeping Strikes (1) | "Your next 5 melee attacks strike an additional nearby opponent." | Unchanged | Multi-target only |
-| 5·3 | **Weaponmaster (5), new** | "Axe/Polearm: Increases your critical strike chance by 5%. Mace/Staff: Your attacks ignore 15% of your target's armor. Sword: Your successful melee attacks have a 5% chance to trigger an extra attack on the target." | 1% / 3% / 1% | [§2.7](#27-weaponmaster-extra-attacks-and-windfury) |
+| 5·3 | **Weaponmaster (5), new** | "Axe/Polearm: Increases your critical strike chance by 5%. Mace/Staff: Your attacks ignore 15% of your target's armor. Sword: Your successful melee attacks have a 5% chance to trigger an extra attack on the target." | 1% / 3% / 1% | Per weapon ([§2.7](#27-weaponmaster-extra-attacks-and-windfury)): the axe and polearm crit counts only for that weapon's attacks, not spells, as its spell's tooltip (12700, "…with Axes and Polearms") reads, unlike the weapon racials' "all spells and attacks" ([§2.9](#29-racials-for-warriors), Q15) |
 | 6·1 | Improved Slam (2) | "Reduces the global cooldown and cast time of your Slam ability by 0.50 sec. In addition, Slam no longer interrupts your melee swing time." | −0.25 s. **Rewritten, moved from Fury to Arms** (Classic: −0.1 s cast per rank, 5 ranks) | [§3.1](#31-damage-abilities) Slam notes |
 | 6·3 | Improved Hamstring (3) | "Gives your Hamstring ability a 15% chance to immobilize the target for 5 sec." | Unchanged | Not simulated |
 | 7·2 | Mortal Strike (1), needs Sweeping Strikes | "A vicious strike that deals weapon damage plus 85 and wounds the target…" (rank 1) | Unchanged; rank 4 is +160 | Ability |
@@ -1570,7 +1570,8 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
    Fire and Curse of Recklessness? For a sword, the client's 200 ms internal cooldown is [F]
    [client] (SpellAuraOptions, 1.60.1.69913); does the server honour it, and does a multi-target
    ability (Whirlwind, Cleave) roll the extra attack once per cast or once per target hit? (The
-   axe and polearm crit with mixed weapons is Q15's.)
+   axe and polearm crit with an axe and another weapon, which the sim gives to the axe's hand
+   only, is Q15's.)
    **Test:** mace hit damage against a mob of known armor, with and without Sunder; sword procs
    per Cleave on two mobs.
 10. **Overpower window.** The data has a combo-point-like counter that stacks to 3, on a 5,000 ms
@@ -1593,21 +1594,27 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     [F] [client] (SpellEffect, 1.60.1.69913), perhaps 15% of AP (the server scripts what a dummy
     does). SoD's version (45% AP, 30% heal) is a forbidden source. Low priority: it isn't used on
     bosses.
-15. **Weapon-conditional crit with dual wield: the racials and Weaponmaster's axe.** The sim reads
-    the racials' tooltips ("+2% crit with all spells and attacks while you have a sword or
-    two-handed sword equipped"): one sword in either hand gives Human Sword Specialization's +2% to
-    every attack, both hands', and to spells ([§2.9](#29-racials-for-warriors),
-    [character-stats](../mechanics/character-stats.md#implementation-notes)); Orc Axe and Dwarf
-    Mace Specialization likewise. Weaponmaster's axe and polearm crit (12700) is the same client
-    data (all crit, aura 290, with a weapon-type `SpellEquippedItems` mask), so the sim reads it the
-    same way, though its own tooltip says "with Axes and Polearms" ([§2.7](#27-weaponmaster-extra-attacks-and-windfury)):
-    one rule for one kind of data. Is that so, or does the crit apply only to the matching weapon's
-    attacks, or need it in the main hand? The answer moves the default Human Fury (a mace and a
-    sword) by about 1.2%; for Weaponmaster it only matters to a warrior with the talent dual
-    wielding an axe and another type (polearms are two-handed). **Test:** a Human with a sword in the main hand only, then in the
-    off hand only, with a mace in the other hand: read the sheet's crit, and if it's unclear, log
-    crits per hand. An Arms warrior with Weaponmaster, an axe and a sword, the same way; if the two
-    answers differ, the rule splits by spell.
+15. **Weapon-conditional crit with dual wield: the racials and Weaponmaster's axe.** The racials
+    and Weaponmaster's axe and polearm crit (12700) are the same kind of client data (all crit,
+    aura 290, with a weapon-type `SpellEquippedItems` mask), but their tooltips differ, and the sim
+    follows each tooltip (doctrine §2: tooltips beat derived values):
+    - **The racials:** "+2% crit with all spells and attacks while you have a sword or two-handed
+      sword equipped". One sword in either hand gives Human Sword Specialization's +2% to every
+      attack, both hands', and to spells ([§2.9](#29-racials-for-warriors),
+      [character-stats](../mechanics/character-stats.md#implementation-notes)); Orc Axe and Dwarf
+      Mace Specialization likewise.
+    - **Weaponmaster:** "Increases your chance to get a critical strike with Axes and Polearms".
+      Only the attacks made with the axe or polearm get it, and spells don't
+      ([§2.7](#27-weaponmaster-extra-attacks-and-windfury)).
+
+    Is that so? Does a racial's crit apply only to the matching weapon's attacks, or need it in
+    the main hand? Does Weaponmaster's reach the other hand, as the racials' does? The racials'
+    answer moves the default Human Fury (a mace and a sword) by about 1.2%; Weaponmaster's only
+    matters to a warrior with the talent dual wielding an axe and another type (polearms are
+    two-handed). **Test:** a Human with a sword in the main hand only, then in the off hand only,
+    with a mace in the other hand: read the sheet's crit, and if it's unclear, log crits per
+    hand. An Arms warrior with Weaponmaster, an axe in the off hand and a sword in the main hand,
+    the same way.
 16. **Touch of the Grave (Undead).** Does it deal damage, or only heal? If it deals damage,
     it should be modelled.
 17. **Max rage for Gnomes with Boundless Rage.** Is it (100 + 30) × 1.05 = 136.5, or

@@ -687,8 +687,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Assumes:** mace or staff ignores 3% of armor per rank, applied after all flat reductions
   [?]; sword extra attacks at 1% per rank with a 200 ms internal cooldown [F client
   `SpellAuraOptions`, ✅ D2; whether the server honours it ?], rolled once per cast on
-  multi-target abilities [?] (only a post-SoD sim does this). The axe and polearm crit with
-  mixed weapons is [B49](#b49-weapon-conditional-crit-while-dual-wielding)'s.
+  multi-target abilities [?] (only a post-SoD sim does this). The axe and polearm crit, on that
+  weapon's attacks only as its tooltip reads, is [B49](#b49-weapon-conditional-crit-while-dual-wielding)'s.
 - **Test:** mace hits on a mob of known armor with and without Sunder; the minimum gap between
   sword extra attacks, and sword procs per Cleave that hits two mobs.
 - **Samples:** ≥300 hits per state.
@@ -724,19 +724,19 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B49. Weapon-conditional crit while dual wielding
 **Medium · M2 · ≤20 (Weaponmaster ≤30)**
-- **Assumes** [?]: as the racials' tooltips read, +2% crit to all attacks (both hands, white and
-  special) and spells while a sword is in either hand; Orc Axe and Dwarf Mace Specialization
-  likewise. Weaponmaster's axe and polearm crit is the same client data (all crit, aura 290,
-  with a weapon-type `SpellEquippedItems` mask), so it follows the same rule: +1% per rank to
-  every attack and spell while an axe or polearm is in either hand. With a mace and a sword (the
-  default Human Fury), a per-hand answer would cost about 1.2%, so this is Medium (re-rated from
-  Low after review finding L3).
+- **Assumes** [?]: each as its tooltip reads, though the client data is the same kind (all
+  crit, aura 290, with a weapon-type `SpellEquippedItems` mask). The racials ("all spells and
+  attacks"): +2% crit to all attacks (both hands, white and special) and spells while a sword is
+  in either hand; Orc Axe and Dwarf Mace Specialization likewise. Weaponmaster ("with Axes and
+  Polearms"): +1% per rank only on the attacks made with the axe or polearm, and not on spells.
+  With a mace and a sword (the default Human Fury), a per-hand answer for the racial would cost
+  about 1.2%, so this is Medium (re-rated from Low after review finding L3).
 - **Test:** Human warrior with a sword in the main hand only, then the off hand only, and a mace
   in the other hand; read sheet crit and, if unclear, log crits per hand. Then an Arms warrior
-  with Weaponmaster, an axe and a sword, the same way.
+  with Weaponmaster, a sword in the main hand and an axe in the off hand, the same way.
 - **Samples:** sheet reads; ≥1,000 swings per hand if needed.
-- **Changes:** the scope of the racials and of Weaponmaster's axe crit (all attacks, or the
-  matching weapon's); if the two answers differ, the rule splits by spell.
+- **Changes:** the scope of the racials (all attacks, or the matching weapon's) and of
+  Weaponmaster's axe crit (the axe's attacks, or all attacks).
 - **Docs:** [warrior §2.7, §2.9](classes/warrior.md#29-racials-for-warriors),
   [Q15](classes/warrior.md#9-open-questions)
 
@@ -1357,15 +1357,22 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 **High · M2**
 - **Assumes** [?]: Forever's equip aura 1301046 (`ProcChance` 6; "Attacks against Orcs are
   $s2 times as likely", `$s2` = 2; proc mask 0x14; 100 ms `ProcCategoryRecovery` [F client])
-  procs **3%** of landed white and yellow hits against a non-Orc boss, read as Hand of Justice's
-  `${$h/3}%` is read, from **either hand's** hits, as an aura on the wielder would. Its text
-  states no chance. The default Fury main hand: 6% instead would add about 6% DPS; main-hand hits
-  only would cost about 2.6%.
+  procs **3%** of **Ironfoe's own** landed white and yellow hits against a non-Orc boss. Its text
+  states no chance; the aura is otherwise a clone of Hand of Justice's 15600, so the chance is
+  read as Hand of Justice's `${$h/3}%` is. The client doesn't settle the hands, so they're
+  Classic Era's (doctrine §2). Its one hint is the mask's second word, 0x20: Hand of Justice
+  lacks it, no Classic Era spell has it, and only eight Forever-new item procs carry it, two of
+  whose texts say "Melee attacks with this weapon" [F client]: Adaptation 1253389, Dreadfrost
+  Saber 1294939, Iceblade Hacker 1298413 ("with this weapon"), Warblade of Caer Darrow 1298500
+  ("with this weapon"), Fury of Forgewright 1301046, Forge Blast 1312176, Holy Smite 1312330 and
+  Lash of the Dark Rider 1315077. For the default Fury warrior, either hand's hits (the
+  alternative to measure) would add about 2.7% DPS, and 6% on its own hits about 3.7%.
 - **Test:** Ironfoe in the main hand and a slow one-hander in the off hand, on non-Orc mobs:
   count "Fury of Forgewright" procs (2 extra attacks) per landed hit of each hand; then the same
   against Orcs.
 - **Samples:** ≥2,000 landed hits per hand.
-- **Changes:** Ironfoe's chance and hands (the `ironfoe` rule-profile value); default Fury DPS.
+- **Changes:** Ironfoe's chance and internal cooldown (the `ironfoe` rule-profile value) and its
+  hands (the proc's `from`, `src/sim/effects/items.ts`); default Fury DPS.
 - **Docs:** [damage §5.2, OQ 15](mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples)
 
 ### Medium

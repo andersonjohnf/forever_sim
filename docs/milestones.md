@@ -193,7 +193,7 @@ copies of the boss. It comes after the tank specs (user decision, 2026-09-23).
 
 ## M7: Stat boosts: gear that doesn't exist yet 💤
 
-How a spec scales with better itemization than today's (user request, 2026-09-23;
+How a spec might scale with the next raid tier's itemization (user request, 2026-09-23;
 [D19](decisions.md#d19-stat-boosts-model-gear-that-doesnt-exist-yet-2026-09-23)). For example:
 20% better gear, 50 more attack power, or 10% more block value. Off by default. Run once
 without it and once with it: the headline's change from the previous run is the scaling.
@@ -225,7 +225,8 @@ stats are simulated by then, the tanks' included.
   - the character sheet shows boosted values
   - the results say a boost is on (headline badge, and an entry in the assumptions)
   - ux.md section, and e2e tests for the flow at 390 and 1280 px
-- **To decide in M7a:** the range: −50% to +100%, say, so worse gear can be modelled too.
+- **Only adds** (user decision, 2026-09-23): the percent runs from 0 to +100%, and per-stat
+  bonuses are 0 or more. The point is the next raid tier, not worse gear.
 - **Needs from M3:** shields' block value, which the item data lacks
   ([known gaps](#known-gaps-and-follow-ups)).
 - M8's stat weights can build on the per-stat bonuses.

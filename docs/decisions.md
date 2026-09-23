@@ -199,7 +199,9 @@ DPS specs keep DPS as their one headline number.
 User request: see how a spec scales with better itemization than exists today, such as 20% better
 gear, 50 more attack power or 10% more block value.
 - **The boosts:** one percent for every stat from items, and per-stat bonuses for stats items can
-  carry, each a raw amount or a percent of that stat from items.
+  carry, each a raw amount or a percent of that stat from items. They only add: the percent runs
+  from 0 to +100%, and bonuses are 0 or more, since the point is the next raid tier (user
+  decision).
 - **User input, not game values:** they're like choosing gear, so doctrine's sourcing rules
   don't apply to them. But a boosted result must say so plainly: in the headline and in the
   assumptions. Saved setups and share links carry the boosts.

@@ -355,7 +355,34 @@ A fresh reviewer checked `3a898bb`, `ffe271f`, `37a9643` and `7f5a8a6`.
 Checks after the QV fixes (`dd3b3bd`): lint ✓ · typecheck ✓ · unit ✓ (942) · e2e ✓ (182, 3
 deferred to M3).
 
+## Review of the QV fixes
+
+A fresh reviewer checked `21a5626` and `92ec269`..`4c16a35`. From here the gate follows D20:
+each finding says whether these commits introduced it.
+
+**Confirmed:**
+- lint ✓ · typecheck ✓ · unit ✓ (942) · e2e ✓ (182, 3 deferred to M3), and the new specs pass
+  130 of 130 under `--repeat-each=5`
+- all 12 new tests fail on `acff99b`, the commit before the fixes, with the log's numbers
+- steppers leave no float noise in any of the 15 number fields, and every value on the step
+  grid stays put when committed
+- with a waiting toast up, tabbing through all six tabs covers no control at 390, 768 and
+  1280 px, landscape 844×390 and 1280×500. No select ever showed an option under a toast, by
+  keyboard, mouse or touch
+- the room for a toast follows a rotation or resize, and clears on dismiss
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| RV1 | medium, blocking | introduced (`21a5626`) | **Editing a grouped field's own display misreads it.** The field shows "3,000"; Backspace gives "3,00", read as 3 and clamped to 100 fights. "10,000" plus a "0" gives 100 fights; boss armor "3,500" plus Backspace gives 4. | open: a simpler design, proposed to the user (CLAUDE.md step 6; number reading drew FV3, PV2, QV2/3/9 and now RV1) |
+| RV2 | low | introduced (`334af80`, `4c16a35`) | **An open list moves clear of a growing toast stack, but its active option can end up clipped** 36 of 44 px below the list's scroll edge until the next key press. | open: toast design, proposed to the user (step 6: PV, QV and RV all found problems here) |
+| RV3 | low | introduced | **A select's look depends on whether a toast is up,** even a 10 s one: over its trigger without, dropping from it with a slide with one. | open: toast design |
+| RV4 | low | introduced | **The flip ignores horizontal overlap and the sticky header:** at 1280 px, Zone flips above though the toast isn't under it; at 390 px, a list flipped to the top covers the header and tabs. | open: toast design |
+| RV5 | low | introduced (the `4c16a35` doc line) | **ux.md says an open list doesn't move when a toast goes,** but at the page's end the padding shrinks, the page scroll clamps, and the list moves 49 or 68 px with its trigger. | open: toast design |
+| RV6 | low | pre-existing, breaks a ux.md promise | **In landscape on a phone (844×390), the item picker sits under a waiting toast,** which keeps the bar's offset though the picker covers the bar: its controls 30 of 44 px covered, item rows 102 of 103. | open: toast design |
+| RV7 | low | pre-existing | **`snapToStep` rounds exact halves unevenly** in 0.1 fields ("0,15" to 0.1 but "0,25" to 0.3): float division. | open: with RV1's design |
+| RV8 | low | introduced (`e7ef259`) | **One waiting toast replacing another** leaves 14 px of extra room until it goes. | waived: extra room, never too little, as QV8 |
+
 ## Verdict
 
-Ready to push: not yet. The QV fixes (`21a5626`, `92ec269`..`4c16a35`, `dd3b3bd`) await their
-independent review.
+Ready to push: not yet. RV1 is blocking, and the number fields and the toasts each wait on a
+simpler design (CLAUDE.md step 6).

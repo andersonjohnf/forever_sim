@@ -1868,8 +1868,9 @@ new build, re-run `npm run scrape:client -- --claims` instead of checking in a b
   ([warrior Q23, Q24](classes/warrior.md#9-open-questions)). The base stance's first run (M2.3c):
   Battle 630 DPS, Berserker 604, Berserker dancing for Rend and Overpower 631, so Battle stays
   the default.
-- **Rip vs Bite as the default finisher**: simulate after B17, C17, C18, B38 and B22 (whether
-  Rip ticks crit in `forever`; the default already differs by profile)
+- **Rip vs Bite as the default finisher**: settled by the sim for now. Rip wins in both profiles,
+  with the default raid's bleed: Bite in its place loses 9.9% in `forever` and 4.4% in
+  `classicEra`. Re-run it after B17, C17, C18, B38 and B22 change the inputs
   ([druid Q26](classes/druid.md#10-open-questions)).
 - **Bear rotation thresholds** (Maul every swing, Swipe at 60+ spare rage, Enrage pre-pull only):
   sim sensitivity plus tank feedback ([druid Q31](classes/druid.md#10-open-questions)).

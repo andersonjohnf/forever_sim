@@ -44,6 +44,8 @@
 //   --armor <n>           boss armor before debuffs (default 3731)
 //   --execute <pct>       execute phase (default 20; 0 for none)
 //   --creature <type>     target creature type (default none)
+//   --position <side>     behind or front (default: the spec's, behind for DPS)
+//   --profile <id>        the rules profile, forever or classicEra (default forever)
 //   --metric dps|tps      what to compare (default dps)
 //   --workers <n>         worker threads (default: available cores − 1)
 //   --against <commit>    the baseline is that commit's engine and defaults (see above)
@@ -308,6 +310,8 @@ async function main() {
       armor: { type: 'string' },
       execute: { type: 'string' },
       creature: { type: 'string' },
+      position: { type: 'string' },
+      profile: { type: 'string' },
       metric: { type: 'string', default: 'dps' },
       base: { type: 'string', default: '' },
       sweep: { type: 'string', multiple: true, default: [] },
@@ -367,9 +371,12 @@ async function main() {
   if (args.armor !== undefined) fight.bossArmor = flagNumber('armor', args.armor)
   if (args.execute !== undefined) fight.executePct = flagNumber('execute', args.execute)
   if (args.creature !== undefined) fight.creatureType = args.creature
+  if (args.position !== undefined) fight.position = args.position
+  const rules = args.profile === undefined ? d.rules : { ...d.rules, profile: args.profile }
   const config = (settings) => ({
     ...d,
     fight,
+    rules,
     rotation: Object.fromEntries(settings),
     run: { mode: 'fixed', iterations: 0, seed },
   })
@@ -392,6 +399,8 @@ async function main() {
     `armor ${fight.bossArmor}`,
     `execute ${fight.executePct}%`,
     `creature ${fight.creatureType}`,
+    `${fight.position}`,
+    `profile ${rules.profile}`,
     `seed ${seed}`,
     `${fights} fights per candidate, paired`,
   ].join('; ')

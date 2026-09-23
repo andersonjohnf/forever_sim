@@ -210,7 +210,7 @@ export const CAT_OPTIONS: RotationOption[] = [
     id: ID.ripNoOtherBleeds,
     group: 'Core abilities',
     label: 'Rip only when nothing else bleeds',
-    help: 'Leave Rip out while warriors in the raid (the Buffs tab) keep their Deep Wounds on the boss: Rend and Tear then applies without it, and Ferocious Bite takes the combo points.',
+    help: 'Leave Rip out while warriors in the raid (the Buffs tab) keep their Deep Wounds on the boss: Rend and Tear then applies without it, and Ferocious Bite takes the combo points. It does less, under Classic Era’s rules too.',
     default: false,
     dependsOn: ID.ripEnabled,
   },

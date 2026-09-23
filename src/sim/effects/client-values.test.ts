@@ -113,6 +113,12 @@ describe('Ironfoe (item 11684 → spell 1301046; damage-and-timing §5.2)', () =
     expect(assumptionIds(config)).not.toContain('procRates')
     expect(buildPlan(fury).assumptions.find((a) => a.id === 'procRates')?.text).not.toContain('Ironfoe')
   })
+
+  it('surfaces its [?] reading in `forever` only (damage-and-timing OQ 15)', () => {
+    expect(assumptionIds(fury)).toContain('ironfoeChance')
+    expect(assumptionIds(withRules(fury, 'classicEra'))).not.toContain('ironfoeChance')
+    expect(assumptionIds({ ...fury, gear: { ...fury.gear, mainHand: { itemId: 17016 } } })).not.toContain('ironfoeChance')
+  })
 })
 
 describe('Windfury Totem’s internal cooldown (spell 10612; damage-and-timing §5.4)', () => {

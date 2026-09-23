@@ -150,6 +150,10 @@ const REGISTRY = {
     text: 'Procs-per-minute rates (Crusader 1, Fiery Weapon 6, Flurry Axe 1.8, …) are Classic Era’s: Forever sets them on the server, and nobody has measured them.',
     docRef: `${DT}#52-ppm-vs-flat-chance-classic-era-examples`,
   },
+  ironfoeChance: {
+    text: 'Ironfoe procs on 3% of the hits you land with either hand and can’t proc again within 100 ms: the Forever client’s 6%, read as Hand of Justice’s chance is for a boss that isn’t an Orc. Its tooltip gives no chance, and nobody has measured it.',
+    docRef: `${DT}#52-ppm-vs-flat-chance-classic-era-examples`,
+  },
   extraAttackChains: {
     text: 'Each extra-attack effect (Windfury, Hand of Justice, …) can proc only once from one swing and the extra attacks that follow it, so none procs from its own extra attack.',
     docRef: `${DT}#54-extra-attacks-and-chaining`,

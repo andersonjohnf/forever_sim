@@ -721,6 +721,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const procIds = new Set(procs.map((p) => p.id))
   // PPM rates are server-side (damage-and-timing §5.1); Hand of Justice's and Ironfoe's flat chances are client data (§5.2).
   if (['crusader', 'fieryWeapon', 'flurryAxe'].some((id) => procIds.has(id))) notes.add('procRates')
+  // Ironfoe's Forever chance and hands are a reading of its equip aura [?] (damage-and-timing §5.2, OQ 15).
+  if (procIds.has('ironfoe') && 'pct' in profile.values.ironfoe.chance) notes.add('ironfoeChance')
   if (chainBits.size > 0) notes.add('extraAttackChains')
   if (procs.some((p) => p.id === 'windfury' && p.icdMs > 0)) notes.add('windfuryIcd')
   if (procIds.has('windfury') && weapons[HAND.main] && c.tempEnchants.length && !windfuryHoldsMainHand) notes.add('windfuryStone')

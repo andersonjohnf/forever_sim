@@ -92,7 +92,7 @@ test.describe('Protection rotation', () => {
     await expect(thunderClap).toHaveAccessibleDescription(/You keep it up yourself \(see Rotation\)/)
   })
 
-  test('a Max TPS run makes more threat and less damage than the default, and says so', async ({ page }) => {
+  test('a Max TPS run makes more threat than the default, and says so', async ({ page }) => {
     const tab = await openProtectionRotation(page)
     const results = page.getByRole('complementary', { name: 'Results' })
     const run = async () => {
@@ -105,7 +105,8 @@ test.describe('Protection rotation', () => {
     await run()
     const heard = (metric: string) => results.getByRole('group', { name: metric }).getByText(HEARD_CHANGE)
     await expect(heard('TPS')).toHaveText(/^up [\d,]+\.\d from the last run, better$/)
-    await expect(heard('DPS')).toHaveText(/^down [\d,]+\.\d from the last run, worse$/)
+    // It keeps Shield Slam, and the boss's faster, harder swings give more rage: more damage too (§5.4).
+    await expect(heard('DPS')).toHaveText(/^up [\d,]+\.\d from the last run, better$/)
     // The rows it dropped are gone from the threat breakdown; Sunder Armor, Revenge and Shield Slam are there.
     const breakdown = results.getByRole('region', { name: 'Threat by ability' })
     const row = (name: string) => breakdown.getByRole('listitem').filter({ hasText: name })
@@ -113,6 +114,30 @@ test.describe('Protection rotation', () => {
     await expect(row('Revenge')).toHaveCount(1)
     await expect(row('Shield Slam')).toHaveCount(1)
     for (const name of ['Thunder Clap', 'Demoralizing Shout']) await expect(row(name)).toHaveCount(0)
+  })
+})
+
+test.describe('Expose Armor over your Sunder Armor (warrior.md §5.4 notes, Q35)', () => {
+  test('the Buffs row, the Rotation help and the result each say yours makes threat but removes no armor', async ({ page }) => {
+    const tab = await openProtectionRotation(page)
+    // The Rotation's Sunder Armor help says what Expose Armor does to it, whatever the Buffs tab holds.
+    await expect(tab.getByRole('switch', { name: 'Sunder Armor', exact: true })).toHaveAccessibleDescription(
+      /With Expose Armor on there, yours removes no armor, since only one applies, but still makes its threat \(untested\)\.$/,
+    )
+    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+    const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
+    const sunder = buffs.getByRole('switch', { name: 'Sunder Armor ×5', exact: true })
+    await expect(sunder).toHaveAccessibleDescription(/You keep it up yourself \(see Rotation\)/)
+    await buffs.getByRole('switch', { name: 'Expose Armor', exact: true }).click()
+    // Still yours and locked, and it says Expose Armor takes its place.
+    await expect(sunder).toBeChecked()
+    await expect(sunder).toBeDisabled()
+    await expect(sunder).toHaveAccessibleDescription(/\. Expose Armor takes its place on the boss, since only one applies; yours still makes its threat \(untested\)\.$/)
+    const results = page.getByRole('complementary', { name: 'Results' })
+    await results.getByRole('button', { name: 'Simulate' }).click()
+    await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
+    await results.getByRole('button', { name: /^Assumptions \(\d+\)$/ }).click()
+    await expect(results.getByText(/^Expose Armor \(Buffs\) takes the place of your Sunder Armor on the boss, since only one applies/)).toBeVisible()
   })
 })
 

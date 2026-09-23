@@ -283,6 +283,11 @@ const REGISTRY = {
     text: '{detail} the spell table, as the Forever client marks it: one roll for a spell miss (17% against a raid boss before spell hit), and no dodge, parry or block. A miss refunds 80% of the cost, as a melee ability’s does; untested.',
     docRef: `${WAR}#7-implementation-notes`,
   },
+  replacedDebuff: {
+    // warrior.md §5.4 notes, §7 "Debuffs on the boss", Q35; the plan names both ({detail}).
+    text: '{detail} on the boss, since only one applies: yours removes nothing, but still lands and makes its full threat. In Classic Era it may fail to apply over a stronger one, and then make none; untested.',
+    docRef: `${WAR}#54-protection-tps`,
+  },
   spellTableCrit: {
     // warrior.md §7 "Spell-table abilities" and Q33: the ones that deal damage ({detail}; Demoralizing Shout deals none).
     text: '{detail} at your special-attack crit chance, not your spell crit, as a melee ability does; untested.',

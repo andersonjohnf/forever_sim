@@ -98,6 +98,16 @@ export function BuffsSection() {
     setBuffs({ raid, enabled })
   }
 
+  /** The other entry of `def`'s exclusive group that's on and brought by the raid, if any. */
+  const rivalOn = (def: BuffDefinition) =>
+    buffCatalogue.find(
+      (b) =>
+        b.id !== def.id &&
+        b.exclusiveGroup === def.exclusiveGroup &&
+        buffs.enabled.includes(b.id) &&
+        buffProvided(b, buffs.raid, meta.id),
+    )
+
   const toggleBuff = (def: BuffDefinition, on: boolean) => {
     let enabled = buffs.enabled.filter((id) => id !== def.id)
     if (on) {
@@ -187,6 +197,9 @@ export function BuffsSection() {
                     .map((def) => {
                       const talent = !maintained.has(def.id) && fromTalents.has(def.id)
                       const own = maintained.has(def.id) || talent
+                      // Another entry of its exclusive group is on, and only one applies in game: yours
+                      // stays in the rotation for its threat (Expose Armor over your Sunder Armor, warrior.md Q35).
+                      const replacedBy = maintained.has(def.id) && def.exclusiveGroup ? rivalOn(def) : undefined
                       // Yours, but the rotation doesn't keep it up: the switch means another player's.
                       const dropped = !own && ownBuffs.has(def.id)
                       // A buff you cast on yourself needs no one else (a druid's Mark of the Wild).
@@ -194,6 +207,16 @@ export function BuffsSection() {
                       const unused = own ? undefined : inert[def.id]
                       const unavailable = missing || unused !== undefined
                       const providerName = def.providedBy ? CLASS_LABEL[def.providedBy].toLowerCase() : ''
+                      let help = def.summary
+                      if (talent) help = `${def.summary}. Your talents bring it (see Talents), so it isn’t added twice.`
+                      else if (replacedBy) help = `${def.summary}. ${replacedBy.name} takes its place on the boss, since only one applies; yours still makes its threat (untested).`
+                      else if (own) help = `${def.summary}. You keep it up yourself (see Rotation), so it isn’t added twice.`
+                      else if (unused !== undefined) help = `${def.summary}. ${unused}.`
+                      // You're one of your class yourself, so a buff your class brings that you don't count
+                      // for needs another (a paladin's Blessing of Kings, a cat's Faerie Fire when its
+                      // rotation drops it; docs/ux.md "Buffs").
+                      else if (missing) help = `Needs ${def.providedBy === meta.classId ? 'another' : 'a'} ${providerName} in the raid`
+                      else if (dropped) help = `${def.summary}. You’re not keeping it up (see Rotation); turn this on if another ${providerName} does.`
                       return (
                         // A buff nobody in the raid brings, or one that does nothing for you, is dimmed by
                         // colour, never opacity: its text turns to the muted colour (AA) and its icon to
@@ -210,20 +233,7 @@ export function BuffsSection() {
                           <span className="flex min-w-0 flex-1 flex-col">
                             <span className="text-sm font-medium">{def.name}</span>
                             <span id={`${buffSwitchId(def.id)}-help`} className="text-xs text-muted-foreground">
-                              {talent
-                                ? `${def.summary}. Your talents bring it (see Talents), so it isn’t added twice.`
-                                : own
-                                  ? `${def.summary}. You keep it up yourself (see Rotation), so it isn’t added twice.`
-                                  : unused !== undefined
-                                    ? `${def.summary}. ${unused}.`
-                                    : missing
-                                      ? // You're one of your class yourself, so a buff your class brings that you
-                                        // don't count for needs another (a paladin's Blessing of Kings, a cat's
-                                        // Faerie Fire when its rotation drops it; docs/ux.md "Buffs").
-                                        `Needs ${def.providedBy === meta.classId ? 'another' : 'a'} ${providerName} in the raid`
-                                      : dropped
-                                        ? `${def.summary}. You’re not keeping it up (see Rotation); turn this on if another ${providerName} does.`
-                                        : def.summary}
+                              {help}
                             </span>
                           </span>
                           <Switch

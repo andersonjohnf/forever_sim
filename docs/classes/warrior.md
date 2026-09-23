@@ -1497,7 +1497,10 @@ Notes:
   the boss's swings from its next one; Demoralizing Shout lowers its damage
   ([§7](#7-implementation-notes) "Debuffs on the boss"). Your Sunder Armor and the Buffs tab's
   Expose Armor don't stack in game: with Expose Armor selected, your Sunders remove no armor, and
-  still make their threat. A stronger slow from the Buffs tab counts instead of your own. The
+  still make their threat [?]. In Classic Era a Sunder Armor may fail to apply over a stronger
+  Expose Armor, and then makes none; if Forever does the same, a Protection warrior's TPS with
+  Expose Armor falls by about a quarter (Q35). The result lists this assumption while Expose Armor
+  is on, and the Buffs tab's Sunder Armor row and the Rotation tab's Sunder Armor help say so. A stronger slow from the Buffs tab counts instead of your own. The
   results list the three with their uptimes.
 - **Threat values** per ability, including the Forever Sunder question (Q1), live in
   [threat.md](../mechanics/threat.md#warrior). The engine uses the Forever client's 1013 for Sunder
@@ -2094,7 +2097,9 @@ parts:
   - **The Buffs tab.** A row that keeps one up replaces the Buffs tab's same entry (the aura has
     the entry's id), so it counts once. When the Buffs tab fills the entry's exclusive group with
     another (Expose Armor for Sunder Armor), only one applies in game, and the Buffs tab's stays:
-    the rotation's debuff changes nothing on the boss, and its threat still counts.
+    the rotation's debuff changes nothing on the boss, and its threat still counts [?]. In Classic
+    Era a Sunder Armor may fail to apply over a stronger Expose Armor, and then makes no threat
+    (Q35); the result lists the assumption whenever it applies.
   - The results list the three with their uptimes, next to the cooldowns and buffs. These are
     engine choices; no source covers them.
 - **Spell-table abilities** (Thunder Clap, Demoralizing Shout). The client's `DefenseType` Magic
@@ -2534,6 +2539,16 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     +449 keeping it wins; the default keeps it either way, for its damage. **Test:** the threat
     macro before and after a Shield Slam at 60, against its damage in the combat log, as C6 in
     [open-questions](../open-questions.md#c6-warrior-threat-at-max-rank).
+
+35. **Sunder Armor over Expose Armor.** They share one slot on the boss ([buffs §4.1](../mechanics/buffs-debuffs-consumables.md#41-armor-reduction)),
+    and in Forever both remove 2,250 armor. With the Buffs tab's Expose Armor on, the engine lets
+    your Sunders land, remove nothing and make their full 1013 threat [?]. In Classic Era a
+    Sunder Armor may fail to apply over a stronger Expose Armor ("A more powerful spell is already
+    active"), and a debuff that fails makes no threat. If Forever does that, the default
+    Protection warrior with Expose Armor makes about 25% less TPS: 1,013.84 → 759.37 without any
+    Sunder threat (seed 12345, 20,000 fights). **Test:** with a rogue's 5-point Expose Armor on a
+    mob, use Sunder Armor and watch for the error, the debuff, and the threat macro
+    ([open-questions B28](../open-questions.md#b28-sunder-armor-vs-expose-armor)).
 
 ## 10. Sources
 

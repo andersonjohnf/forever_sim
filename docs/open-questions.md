@@ -700,11 +700,16 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [system-changes §1](mechanics/forever-system-changes.md#1-ruleset-world-and-raids)
 
 #### B28. Sunder Armor vs Expose Armor
-**Medium · M2 · ≤20**
-- **Assumes:** they share one slot (−2250 either way) [C Classic; ? Forever].
-- **Test:** 5 Sunders, then a 5-point Expose Armor on one mob; inspect the target's debuffs.
+**Medium · M2 · ≤20** (High for M3: a Protection warrior's TPS with Expose Armor, below)
+- **Assumes:** they share one slot (−2250 either way) [C Classic; ? Forever], and a Sunder Armor
+  over an Expose Armor still lands and makes its threat [?]; in Classic Era it may fail to apply
+  over a stronger one, and make none.
+- **Test:** 5 Sunders, then a 5-point Expose Armor on one mob; inspect the target's debuffs. Then
+  Sunder Armor over the Expose Armor: an error or not, the debuff, and the threat macro.
 - **Samples:** 2 trials.
-- **Changes:** the `armor-major` group. If both stay, standard raid armor drops another 2,250.
+- **Changes:** the `armor-major` group. If both stay, standard raid armor drops another 2,250. If
+  a Sunder fails over Expose Armor, a Protection warrior with it loses about 25% of its TPS
+  (1,013.84 → 759.37; [warrior Q35](classes/warrior.md#9-open-questions)).
 - **Docs:** [buffs §4.1](mechanics/buffs-debuffs-consumables.md#41-armor-reduction),
   [buffs OQ 2](mechanics/buffs-debuffs-consumables.md#open-questions)
 

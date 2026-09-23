@@ -462,12 +462,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (buff) sheetOnly.push(...catalogueEffects(buff, profile))
   }
   /** The exclusive groups the Buffs tab fills with a buff the rotation doesn't keep up (Expose Armor's `armor-major`). */
-  const filledGroups = new Set<string>()
+  const filledGroups = new Map<string, string>()
   for (const id of config.buffs.enabled) {
     const buff = BUFFS_BY_ID.get(id)
     if (!buff || !forSpecClass(buff, config.spec) || !buffProvided(buff, config.buffs.raid, config.spec) || buffUnusedReason(buff, config.spec)) continue
     if (maintained.includes(id) || setup.replacesBuffs?.includes(id)) continue
-    if (buff.exclusiveGroup) filledGroups.add(buff.exclusiveGroup)
+    if (buff.exclusiveGroup) filledGroups.set(buff.exclusiveGroup, buff.name)
     const effects = catalogueEffects(buff, profile)
     apply(effects, null)
     for (const e of effects) {
@@ -806,13 +806,16 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // A debuff the rotation keeps on the boss is the aura named after its Buffs entry (Protection's
   // Sunder Armor, Thunder Clap and Demoralizing Shout, warrior.md §5.4). When the Buffs tab fills its
   // exclusive group with another (Expose Armor for Sunder Armor), only one applies in game, and the
-  // Buffs tab's stays: the rotation's changes nothing on the boss, and its threat still counts (§7).
+  // Buffs tab's stays: the rotation's changes nothing on the boss, and its threat still counts (§7),
+  // though in Classic Era a Sunder Armor may fail to apply over a stronger Expose Armor [?] (Q35).
   for (const aura of auras) {
     const group = maintained.includes(aura.id) ? BUFFS_BY_ID.get(aura.id)?.exclusiveGroup : undefined
-    if (group && filledGroups.has(group)) {
+    const by = group === undefined ? undefined : filledGroups.get(group)
+    if (by !== undefined) {
       delete aura.targetArmor
       delete aura.bossSlow
       delete aura.bossAp
+      notes.add('replacedDebuff', `${by} (Buffs) takes the place of your ${aura.name}`)
     }
     if (aura.bossSlow) hasDebuffs.slow = true
     if (aura.bossAp) hasDebuffs.boss = true

@@ -173,7 +173,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.sunderEnabled,
     group: 'Core abilities',
     label: 'Sunder Armor',
-    help: 'Build Sunder Armor to 5 stacks on the boss and keep it up. While this is on, the Buffs tab’s Sunder Armor adds nothing more, since it’s the same debuff.',
+    help: 'Build Sunder Armor to 5 stacks on the boss and keep it up. It replaces the Buffs tab’s Sunder Armor, the same debuff. With Expose Armor on there, yours removes no armor, since only one applies, but still makes its threat (untested).',
     default: true,
     maintainsBuff: 'sunderArmor',
   },

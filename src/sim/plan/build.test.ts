@@ -313,10 +313,19 @@ describe('encounter worked examples on the plan', () => {
     expect(buildPlan(d).assumptions.map((a) => a.id)).toEqual(expect.arrayContaining(['bossSlow', 'bossApDebuff']))
     // With Expose Armor from the Buffs tab, only one of the two applies in game: the rotation's
     // Sunder Armor removes no armor, and its threat still counts.
-    const expose = buildPlan({ ...d, buffs: { ...d.buffs, enabled: [...d.buffs.enabled.filter((id) => id !== 'sunderArmor'), 'exposeArmor'] } }).plan
+    const exposeConfig = { ...d, buffs: { ...d.buffs, enabled: [...d.buffs.enabled.filter((id) => id !== 'sunderArmor'), 'exposeArmor'] } }
+    const expose = buildPlan(exposeConfig).plan
     expect(expose.fight.targetArmor).toBe(3731 - 2250 - 505 - 505)
     expect(expose.auras.find((a) => a.id === 'sunderArmor')!.targetArmor).toBeUndefined()
     expect(expose.abilities.find((a) => a.id === 'sunderArmor')!.threatBonus).toBe(1013)
+    // The result says so, and that a Sunder may fail over it in Classic Era [?] (PL3, Q35); only then.
+    const note = (config: SimConfig) => buildPlan(config).assumptions.find((a) => a.id === 'replacedDebuff')?.text
+    expect(note(exposeConfig)).toBe(
+      'Expose Armor (Buffs) takes the place of your Sunder Armor on the boss, since only one applies: yours removes nothing, but still lands and makes its full threat. In Classic Era it may fail to apply over a stronger one, and then make none; untested.',
+    )
+    expect(note(d)).toBeUndefined()
+    const noSunder = { 'warrior.protection.sunder.enabled': false, 'warrior.protection.sunderFiller.enabled': false }
+    expect(note({ ...exposeConfig, rotation: noSunder })).toBeUndefined()
   })
 
   it('only tank specs get boss melee', () => {

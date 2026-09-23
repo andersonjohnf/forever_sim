@@ -208,7 +208,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - A buff the rotation keeps up itself (a warrior's own Battle Shout, a cat's own Faerie Fire)
     shows its switch on and locked, with a note saying the rotation keeps it up, so it's never
     counted twice. One the talents bring (a druid's Leader of the Pack) is on and locked the same
-    way, and its note says the talents bring it.
+    way, and its note says the talents bring it. If another entry of its group is on, of which
+    only one applies (Expose Armor over a Protection warrior's Sunder Armor), it stays on and
+    locked, and its note says so instead: "Expose Armor takes its place on the boss, since only
+    one applies; yours still makes its threat (untested)." The result lists the same assumption.
   - Some of these are the spec's own: the raid's version is assumed to be yours (a cat's Faerie
     Fire, [druid §6.2](classes/druid.md#62-forever-cat-priority); a Protection warrior's Thunder
     Clap and Demoralizing Shout, its duties under

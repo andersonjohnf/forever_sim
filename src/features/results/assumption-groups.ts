@@ -108,6 +108,7 @@ export const ASSUMPTION_GROUP = {
   revengeWindow: 'class',
   spellTable: 'class',
   spellTableCrit: 'class',
+  replacedDebuff: 'class',
   bloodthrill: 'class',
   slamCast: 'class',
   ragingBlows: 'class',

@@ -262,14 +262,33 @@ raw value (column **Spi raw**) and applies ×1.05 as a multiplier.
 ### Paladin and druid base attributes
 
 `base(race, class) = classRow(class) + raceOffset(race)`, with the race offsets above **[C]**.
-The class rows at level 60 are **not available from any tier-1 to tier-3 source** we could find:
-no Classic Era sim or guide publishes them, and the Forever client doesn't carry them. **[?]**
+
+**Paladin [C].** [ClassicSim][cs-druid], a Classic sim pinned to its last commit before Season of
+Discovery (`f9cb48d`, 2021-03-21), gives every race × class level-60 sheet. Its class rows came in
+[PR #103][cs-103] (2020-01-05), which cites a 2019 Classic community stat sheet. Doctrine §2
+counts pre-SoD Classic sims as [C], the standard the warrior rows meet with WarriorSim `180a3cc`.
+Its paladin rows match the [C] race offsets (Dwarf = Human + 2/−4/+3/−1/−1). The engine stores
+Spirit raw, before The Human Spirit's ×1.05: 75 × 1.05 = 78.75, floored to the sheet's 78, which
+also supports floor rounding ([OQ-6](#oq-6-rounding)). Undead is derived from the Human row with
+the [C] Undead offset (Classic Era has no Undead paladin). The rows live in `PALADIN_ROWS` in
+`src/sim/stats/base-stats.ts`. A naked Classic Era sheet would still confirm them
+([OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)): the one genuine naked sheet found, a
+Human rogue in October 2019, differs from ClassicSim's rogue row in Stamina (80 against 75).
+
+| Paladin | Str | Agi | Sta | Int | Spi raw | Sheet Spi | Tag · source |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Human | 105 | 65 | 100 | 70 | 75 | 78 | [C] [ClassicSim][cs-druid] |
+| Dwarf | 107 | 61 | 103 | 69 | 74 | 74 | [C] [ClassicSim][cs-druid] |
+| Undead | 104 | 63 | 101 | 68 | 80 | 80 | [C] rule: the Human row + the Undead offset |
+
+**Druid.** The druid class row is still **[?]** here: the engine has no values, and the druid
+specs can't compute base attributes ([OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)).
 
 | Class | Str | Agi | Sta | Int | Spi raw | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| Human paladin (sheet Spi 78: 75 × 1.05, floored) | 105 | 65 | 100 | 70 | 75 | [?] placeholder (D24): the OQ-1 candidate row ([OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)) |
-| Dwarf paladin | 107 | 61 | 103 | 69 | 74 | [?] placeholder (D24): the OQ-1 candidate row ([OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)) |
-| Undead paladin | 104 | 63 | 101 | 68 | 80 | [?] placeholder (D24): the Human row + the [C] Undead offset |
+| Human paladin (sheet Spi 78: 75 × 1.05, floored) | 105 | 65 | 100 | 70 | 75 | [C] [ClassicSim][cs-druid] (pre-SoD) |
+| Dwarf paladin | 107 | 61 | 103 | 69 | 74 | [C] [ClassicSim][cs-druid] (pre-SoD) |
+| Undead paladin | 104 | 63 | 101 | 68 | 80 | [C]: the Human row + the [C] Undead offset |
 | Night Elf druid (sheet) | 62 | 65 | 69 | 100 | 110 | [?] placeholder (D24); origin: [mangos][mz-levelstats], not evidence ([OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)) |
 | Tauren druid (sheet) | 70 | 55 | 72 | 95 | 112 | [?] placeholder (D24); origin: [mangos][mz-levelstats], not evidence ([OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)) |
 | Druid class row (= Human-offset druid), used for Skyborne druids | 65 | 60 | 70 | 100 | 110 | [?] placeholder (D24): the Night Elf and Tauren rows minus their [C] offsets; Skyborne's own offsets are unknown ([OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)) |
@@ -286,12 +305,14 @@ computing base attributes. The druid's other base values below are D24 placehold
 (`BASE_PLACEHOLDERS`, [below](#other-base-values-at-level-60)), and the results list the ones a
 setup uses. OQ-1 gives the way to measure the rows on Classic Era.
 
-**Paladin rows: [?] placeholders (D24).** The Human and Dwarf rows are the candidates recorded
-under [OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes), from the same emulator. They agree
-with the [C] race offsets (Dwarf = Human + 2/−4/+3/−1/−1), and 1.12's base stats carried over to
-Classic Era unchanged, so they're expected to be close. Undead is derived from the Human row with
-the [C] Undead offset (Classic Era has no Undead paladin), so it's a placeholder too. They're in
-`BASE_PLACEHOLDERS` with the druid's, and a Route A sheet replaces them.
+**Paladin rows: [C].** ClassicSim, a Classic Era sim, gives the Human and Dwarf paladin sheets at
+its last commit before Season of Discovery ([f9cb48d][cs-druid]); its rows came in
+[PR #103][cs-103] (2020-01-05). They agree with the [C] race offsets (Dwarf = Human +
+2/−4/+3/−1/−1). Undead is derived from the Human row with the [C] Undead offset (Classic Era has
+no Undead paladin). The engine stores Spirit raw, before The Human Spirit's ×1.05: 75 × 1.05 =
+78.75, floored to the sheet's 78, consistent with floor rounding ([OQ-6](#oq-6-rounding)). A naked
+Classic Era sheet ([OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)) would confirm them.
+The paladin's other unmeasured base values below are D24 placeholders, in `BASE_PLACEHOLDERS`.
 
 ### Other base values at level 60
 
@@ -310,9 +331,9 @@ boss attacks you.
 | --- | --- | --- | --- | --- |
 | Base health (before Stamina) | *1,689* | *1,381* | *1,483* | [?] placeholder (D24); origin: [emulator class table][mz-classlevelstats], copied by [wowsims/classic][wsc-base], not evidence ([OQ-2](#oq-2-base-health)) |
 | Base mana (before Intellect) | 0 (uses Rage) | **1512** | **1244** | [F] [client] (PlayerExpectedStat, `basemp.txt`, 1.60.1.69913) |
-| Base melee crit (before Agility) | **0%** | *0%* | *0.9%* | warrior [C] (the pre-SoD WarriorSim: base crit 0, [ws-player]; [Magey][magey-at]: a level-20 warrior's 4.49% spellbook crit equals Agi × 0.1282 exactly; [RatingBuster][rb-vanilla]); druid [?] placeholder (D24); origin: [RatingBuster][rb-vanilla], [wowsims/classic][wsc-base], not evidence; paladin [?] placeholder (D24): the warrior's value ([OQ-3](#oq-3-base-melee-and-spell-crit)) |
-| Base spell crit (before Intellect) | — | *0%* | *1.8%* | druid [?] placeholder (D24); origin: [RatingBuster][rb-vanilla], [wowsims/classic][wsc-base], not evidence; paladin [?] placeholder (D24) ([OQ-3](#oq-3-base-melee-and-spell-crit)) |
-| Base dodge (before Agility and defense) | **0%** | ? | *0.9%* | warrior [C] ([RatingBuster][rb-vanilla]'s Classic Era table at its pre-SoD commit; WarriorSim; [Magey][magey-at]); druid [?] placeholder (D24); origin: [RatingBuster][rb-vanilla], [wowsims/classic][wsc-base], not evidence; paladin [?] [OQ-5](#oq-5-base-dodge-parry-and-block) |
+| Base melee crit (before Agility) | **0%** | *0.7%* | *0.9%* | warrior [C] (the pre-SoD WarriorSim: base crit 0, [ws-player]; [Magey][magey-at]: a level-20 warrior's 4.49% spellbook crit equals Agi × 0.1282 exactly; [RatingBuster][rb-vanilla]); druid [?] placeholder (D24); origin: [RatingBuster][rb-vanilla], [wowsims/classic][wsc-base], not evidence; paladin [?] placeholder (D24); origin: the emulator via [wowsims/classic][wsc-base], not evidence; **sources conflict** ([OQ-3](#oq-3-base-melee-and-spell-crit)) |
+| Base spell crit (before Intellect) | — | *3.5%* | *1.8%* | druid [?] placeholder (D24); origin: [RatingBuster][rb-vanilla], [wowsims/classic][wsc-base], not evidence; paladin [?] placeholder (D24); origin: [RatingBuster][rb-vanilla], [wowsims/classic][wsc-base], not evidence ([OQ-3](#oq-3-base-melee-and-spell-crit)) |
+| Base dodge (before Agility and defense) | **0%** | *0.7%* | *0.9%* | warrior [C] ([RatingBuster][rb-vanilla]'s Classic Era table at its pre-SoD commit; WarriorSim; [Magey][magey-at]); paladin and druid [?] placeholders (D24); origin: [RatingBuster][rb-vanilla], [wowsims/classic][wsc-base], not evidence ([OQ-5](#oq-5-base-dodge-parry-and-block)) |
 | Base parry | 5% | 5% | none (druids can't parry) | [?] ([a Blizzard Classic forum statement, 2020-01-21][bnet-base]: "Unlike Parry, Miss, and Block, Dodge does not start at a baseline of 5%") [OQ-5](#oq-5-base-dodge-parry-and-block) |
 | Base block (shield equipped) | 5% | 5% | none (no shields) | [?] ([bnet-base]) [OQ-5](#oq-5-base-dodge-parry-and-block); shields [F] [client] (ChrClasses, 1.60.1.69913) |
 | Defense skill | 300 (5 × level) | 300 | 300 | [C] [Magey][magey-at] (defense = 5 × level), [Blizzard forum][bnet-def] |
@@ -381,7 +402,9 @@ modes, and the Classic Era client's own sheet prints no formula
   above).
 - Spell crit per Int, Forever client: paladin **0.0167% (59.88 Int = 1%)**, druid
   **0.0167% (59.88 Int = 1%)**. **[F]** `PlayerExpectedStat.SpellCritPerIntellect` [client] (PlayerExpectedStat, 1.60.1.69913)
-- **Confidence note (paladin):** Classic Era sources give paladins roughly double that
+- **Confidence note (paladin):** RatingBuster's Classic Era logic, pinned before SoD
+  ([`Vanilla_Logic.lua` @d11164c][rb-vanilla]), gives paladins the same 0.0167% per Int (59.9 Int
+  per 1%) as the Forever client. Some Classic Era guides give roughly double that
   (29.5 Int per 1% [calculator][wt-basestats]; "~30 Intellect to 1 Crit" [mana guide][wt-mana];
   0.02% per Int [tankadin guide][wt-tankadin]). The client value matches Classic for every other
   class, so either Forever halved paladin Int→spell crit or the server doesn't use this table for
@@ -935,11 +958,11 @@ Against a level-63 boss ([combat-tables §8](combat-tables.md#8-boss--player-tan
 - **Details to post:** realm, client build, date, race, class and level.
 
 ### OQ-1: paladin, druid and Skyborne base attributes
-The class rows for paladin and druid, and all values for both Skyborne races, are unknown.
+The druid class row and all values for both Skyborne races are unknown; the paladin's are [C].
 Under [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23) (replacing the
 2026-09-22 rule "no forbidden-source placeholders"), the rows below may stand in as flagged `[?]`
-placeholders, so the paladin and druid specs no longer wait for this measurement. Both are in
-use.
+placeholders, so the paladin and druid specs no longer wait for this measurement. The druid's
+are in use; the paladin's rows are [C] (below).
 
 **Druids (2026-09-23).** Every druid base value in use is a [?] placeholder under D24, not
 evidence. The Night Elf and Tauren rows are the [mangos][mz-levelstats] emulator's 1.12 rows
@@ -961,11 +984,14 @@ not evidence) and its estimated effect:
 
 The sheets below still settle them all.
 
-**Paladins.** The Human and Dwarf rows below are in use as [?] placeholders under D24, not
-evidence, and the Undead row is derived from the Human one with the [C] Undead offset
-([Paladin and druid base attributes](#paladin-and-druid-base-attributes)). Until a sheet replaces
-them a paladin's absolute DPS carries their uncertainty (a few points of Strength or Intellect
-move it well under 1%).
+**Paladins.** The attribute rows are [C] ([ClassicSim][cs-druid], pre-SoD;
+[Paladin and druid base attributes](#paladin-and-druid-base-attributes)). The Human and Dwarf
+paladin sheets below would still confirm them: ClassicSim's numbers equal the emulator table, and
+the one genuine naked Classic Era sheet found (a Human rogue) differs from its rogue row by 5
+Stamina. Effect: ±5 in one attribute moves Ret DPS about ±0.3% (Strength or Agility) and hardly
+at all (Intellect, Spirit). The paladin's base health, melee and spell crit and dodge are D24
+placeholders ([OQ-2](#oq-2-base-health), [OQ-3](#oq-3-base-melee-and-spell-crit),
+[OQ-5](#oq-5-base-dodge-parry-and-block)).
 
 **Resolution, Route A (Classic Era, level 60, the standard naked sheet), sheets needed:**
 
@@ -983,8 +1009,8 @@ move it well under 1%).
 - **Skyborne warriors and druids:** Route C only.
 
 *Found in a vanilla emulator database [mz-levelstats]. Under D24 these rows may stand in, tagged
-"[?] placeholder (D24)", and so may test fixtures, until a sheet replaces them. Both classes'
-rows do (Undead paladin derived from the Human row):*
+"[?] placeholder (D24)", and so may test fixtures, until a sheet replaces them. The druid rows do;
+the paladin rows equal ClassicSim's [C] rows, which the engine uses:*
 
 | Race and class | Str | Agi | Sta | Int | Spi (sheet) |
 | --- | --- | --- | --- | --- | --- |
@@ -1021,8 +1047,17 @@ base health inflated that rage by 20–40%. DPS specs take no damage and don't n
 
 ### OQ-3: base melee and spell crit
 Warrior base melee crit is 0% **[C]**. Paladin and druid base melee and spell crit are unknown.
-The engine uses **0%** for both of the paladin's as placeholders [?] under [D24](../decisions.md),
-and lists them among the paladin's assumptions.
+The engine uses **placeholders [?]** for the paladin's under [D24](../decisions.md), and lists them
+among its assumptions:
+- **Base melee crit 0.7%.** Origin: the emulator, via [wowsims/classic][wsc-base]; not evidence.
+  **Sources conflict:** [RatingBuster][rb-vanilla] (pre-SoD, but its table copies the emulator's
+  for most classes) gives 1.7%, and a second-hand report of a naked level-60 Human paladin showing
+  about 3% crit ([Blizzard forums][bnet-base], 2020) implies about 0 (65 Agi × 0.0506 = 3.29%).
+  The spread, 0 to 1.7%, moves Ret DPS by about 1–1.5%, **above D24's ±1% line**: the Human
+  paladin sheet (OQ-1) should settle it first.
+- **Base spell crit 3.5%.** Origin: [RatingBuster][rb-vanilla] and [wowsims/classic][wsc-base];
+  not evidence. It touches only the magic-class spells (Consecration, Exorcism): about 0.2–0.5% of
+  Ret DPS against 0%.
 **Route A:** from the OQ-1 sheets, base melee crit = shown − Agi × slope, and base spell crit =
 shown − Int × slope. Use the Classic Era slopes here (20 Agi per 1%; about 29.5 Int per 1% for
 paladins and 60 for druids). TBC-era table values (paladin 0.65% melee and 3.34% spell; druid
@@ -1037,7 +1072,10 @@ moves cat DPS by −1.5% to +0.2% (measured on today's white-swing model: −0.8
 naked Night Elf or Tauren druid sheet settles it: shown melee crit − Agi / 20.
 
 ### OQ-4: paladin Intellect to spell crit
-The Forever client says 59.88 Int per 1% at level 60; Classic sources say about 29.5.
+The Forever client says 59.88 Int per 1% at level 60. [RatingBuster's][rb-vanilla] pre-SoD
+Classic Era logic says 59.9 too, so the client agrees with it; the "about 29.5" in some Classic
+guides traces back to 2005 addon text ([TheorycraftClassic][tcc-formulas], [?]). Effect: small,
+since only magic-class spells (Consecration, Exorcism) use spell crit.
 **Route B:** on the beta, a paladin notes the sheet's Holy spell crit, gains a known amount of Int
 (an Int item or buff) and notes it again. The slope is Δcrit / ΔInt. Then repeat the exact test
 on a Classic Era paladin of the **same level**. The two slopes are the same if Forever kept
@@ -1048,8 +1086,10 @@ own paladin slope is in `PlayerExpectedStat`: 0.000417 per Int at level 20 (24.0
 
 ### OQ-5: base dodge, parry and block
 Warrior base dodge is 0% **[C]** ([RatingBuster][rb-vanilla]). Base parry and block 5% for
-warriors and paladins are [?] ([bnet-base]), and paladin base dodge is unknown; the druid's 0.9%
-is in use as a D24 placeholder, not evidence. A point
+warriors and paladins are [?] ([bnet-base]), and the paladin's 0.7% and the druid's 0.9% base dodge
+are in use as D24 placeholders (origin: [RatingBuster][rb-vanilla] and [wowsims/classic][wsc-base]),
+not evidence. A naked Human paladin reported about 3% dodge at 65 Agility, which implies about
+0 ([bnet-base]). A point
 of any of them moves a point of the boss's swings between that outcome and a hit
 ([combat-tables §8](combat-tables.md#8-boss--player-tanks)); base dodge moves a tank's TPS by
 under ±0.3%.
@@ -1197,10 +1237,12 @@ whole ([derived-stat pipeline](#derived-stat-pipeline), step 4).
 | [Blizzard forums: +dodge vs +defense (Oct 2019)][bnet-def] | Defense 0.04% per point to avoidance and crit reduction | Classic Era (community) |
 | [wowsims/forever base_stats.go][wsf-base], [base_stats_auto_gen.go][wsf-autogen], [base_stats_parser.py][wsf-parser], [racials.go][wsf-racials], [ArmorMitigationByLvl.txt][wsf-armor], [CombatRatings.txt][wsf-cr] | Corroboration of what the Forever client does and doesn't ship and of its game tables, which the project now reads directly ([client-gt]). **Its attribute rows are TBC level-70 values and its racials are TBC: not used.** | Secondary [?]: a Forever sim, TBC-derived (partly forbidden) |
 | [docs/data/items.md, "Forever's ratings"](../data/items.md#forevers-ratings-f-with-open-questions) | Measured tooltip ratio of rating to percentage across 4,271 changed items; new rating stats | Forever (project scrape of foreverchanges.pro) |
-| [mangoszero player_levelstats.sql][mz-levelstats], [player_classlevelstats.sql][mz-classlevelstats] | Candidate values for the open questions; they may stand in as D24 placeholders (the druid attribute rows do), never as evidence | **Forbidden** (vanilla emulator), except as a [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23) placeholder |
-| [raethkcj/RatingBuster `Vanilla_Logic.lua` at pre-SoD commit `d11164c`][rb-vanilla] (2023-11-29) | Classic Era base melee crit and base dodge per class (warrior 0 and 0); Bear and Dire Bear item-armor bonuses added to Thick Hide's; druid base crit, spell crit and dodge | Classic Era (pre-SoD addon): [C] for the warrior's values and the armor rule; its tables largely equal the emulator's, so not independent, and its druid base values are D24 placeholders, not evidence |
-| [Blizzard forums, Classic General, topic 419469][bnet-base] (2020-01-21) | Base parry, miss and block start at 5%; dodge doesn't | Classic Era (community statement) [?] |
-| [wowsims/classic `base_stats.go`][wsc-base] | Base health per class (copies the emulator); druid base crit, spell crit, dodge and caster AP −20 | Secondary, SoD lineage [?]: the D24 placeholders' origin only, not evidence |
+| [mangoszero player_levelstats.sql][mz-levelstats], [player_classlevelstats.sql][mz-classlevelstats] | Candidate values for the open questions; they may stand in as D24 placeholders (the druid attribute rows do), never as evidence; read also to test whether the other sources are independent | **Forbidden** (vanilla emulator), except as a [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23) placeholder |
+| [raethkcj/RatingBuster `Vanilla_Logic.lua` at pre-SoD commit `d11164c`][rb-vanilla] (2023-11-29) | Classic Era base melee crit and base dodge per class (warrior 0 and 0); Bear and Dire Bear item-armor bonuses added to Thick Hide's; druid and paladin base crit, spell crit and dodge; paladin 59.9 Int per 1% spell crit | Classic Era (pre-SoD addon): [C] for the warrior's values and the armor rule; its tables largely equal the emulator's, so not independent, and its druid and paladin base values are D24 placeholders, not evidence |
+| [Blizzard forums, Classic General, topic 419469][bnet-base] (2020-01-21) | Base parry, miss and block start at 5%; dodge doesn't; a naked level-60 Human paladin showing about 3% dodge and crit (second-hand) | Classic Era (community statement) [?] |
+| [wowsims/classic `base_stats.go`][wsc-base] | Base health per class (copies the emulator); druid base crit, spell crit, dodge and caster AP −20; paladin base melee crit | Secondary, SoD lineage [?]: the D24 placeholders' origin only, not evidence |
+| [timhul/ClassicSim][cs-druid] at pre-SoD commit `f9cb48d` (2021-03-21); class rows from [PR #103][cs-103] (2020-01-05) | Paladin level-60 sheet attributes by race | Classic Era (pre-SoD) [C] |
+| [JeffP07/TheorycraftClassic `formulasused.txt`][tcc-formulas] | Paladin 0% + Int/29.5 spell crit | [?]: 2005 addon text |
 
 Fetch notes: foreverchanges.pro was read through its RSC payload, respecting its `robots.txt`.
 About 50 wago.tools page lookups were made on 2026-09-22 before the project learned that its
@@ -1259,6 +1301,7 @@ was not fetched, because its `robots.txt` disallows Anthropic agents.
 [wsf-racials]: https://github.com/wowsims/forever/blob/master/sim/core/racials.go
 [wsf-armor]: https://github.com/wowsims/forever/blob/master/assets/db_inputs/basestats-forever/ArmorMitigationByLvl.txt
 [wsf-cr]: https://github.com/wowsims/forever/blob/master/assets/db_inputs/basestats-forever/CombatRatings.txt
+[tcc-formulas]: https://github.com/JeffP07/TheorycraftClassic/blob/master/formulasused.txt
 [mz-levelstats]: https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_levelstats.sql
 [mz-classlevelstats]: https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_classlevelstats.sql
 [rb-vanilla]: https://github.com/raethkcj/RatingBuster/blob/d11164cf6de90688a635a6ff880b71ea9ea07367/libs/StatLogic/Vanilla_Logic.lua

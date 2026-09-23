@@ -122,10 +122,10 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   health 1,483, base melee crit and dodge 0.9%, base spell crit 1.8% and caster AP −20 are values
   two sims copied from a private server. The base crit comes first: its plausible range, 0–1%,
   moves cat DPS by up to about 1.5%, over D24's 1%; the AP's −20 is about 0.7% of cat DPS. The
-  paladin's are in use too: the Human and Dwarf candidate rows recorded in stats OQ-1, Undead
-  derived with the [C] offset, base health 1,381 and 0% base melee and spell crit, all D24
-  placeholders [?]. Also unknown for the paladin: base dodge, base parry and block (5% [?]), and
-  the AP term `160 + 2 × Str` [?]. The druid's spirit regen `15 + Spirit/5` per 2 s
+  paladin's attributes are [C] (ClassicSim, pre-SoD; Undead derived with the [C] offset), and its
+  base health 1,381, dodge 0.7%, melee crit 0.7% and spell crit 3.5% are D24 placeholders [?].
+  Base melee crit's sources conflict (0 to 1.7%), about 1–1.5% of Ret DPS. Also unknown for the
+  paladin: base parry and block (5% [?]), and the AP term `160 + 2 × Str` [?]. The druid's spirit regen `15 + Spirit/5` per 2 s
   comes only from a secondary sim [?].
 - **Test:** standard naked sheet for a Human paladin, Dwarf paladin, Night Elf druid and Tauren
   druid. Druids also shift to Cat, Bear and Dire Bear and read AP, crit, armor and health in
@@ -136,7 +136,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   the cap (Route B): Cat AP at level L should be `2 × Str + Agi − 20 + 12 + 2 × (L − 6)`.
 - **Samples:** one sheet per race/class (two races per class confirm the race-offset rule);
   3+ regen ticks.
-- **Changes:** replaces the placeholder class rows and base values, and settles druid Q30.
+- **Changes:** replaces the placeholder class rows and base values, confirms the paladin rows
+  (the Human paladin's crit first), and settles druid Q30.
 - **Docs:** [stats OQ-1](mechanics/character-stats.md#oq-1-paladin-druid-and-skyborne-base-attributes),
   [OQ-2](mechanics/character-stats.md#oq-2-base-health),
   [OQ-3](mechanics/character-stats.md#oq-3-base-melee-and-spell-crit),

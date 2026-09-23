@@ -495,21 +495,24 @@ describe('talents, racials and stances', () => {
 })
 
 describe('setups the engine can’t run yet', () => {
-  it('gives paladins the placeholder base stats of D24, and says so, but blocks their simulation', () => {
+  it('gives paladins their Classic Era base attributes and the placeholders of D24, and says so, but blocks their simulation', () => {
     for (const race of ['alliance-human', 'alliance-dwarf', 'horde-undead']) {
       const bundle = buildPlan({ ...defaultConfig('paladin-retribution'), race })
-      expect(bundle.sheet.unknown).not.toContain('base attributes')
-      expect(bundle.sheet.unknown).not.toContain('base crit')
-      expect(bundle.sheet.placeholders).toEqual(expect.arrayContaining(['base attributes', 'base health', 'base crit', 'base spell crit']))
+      expect(bundle.sheet.unknown).toEqual([])
+      expect(bundle.sheet.placeholders).toEqual(expect.arrayContaining(['base health', 'base crit', 'base spell crit']))
       expect(bundle.blockers.length).toBeGreaterThan(0)
       const ids = bundle.assumptions.map((a) => a.id)
       expect(ids).toContain('baseStatPlaceholders')
       expect(ids).not.toContain('unknownBaseAttributes')
     }
-    // docs/mechanics/character-stats.md#paladin-and-druid-base-attributes: naked Human sheet
-    // Spirit 78 (75 × 1.05, floored), mana 1512 + 20 + 15 × (70 − 20) = 2282.
+    // docs/mechanics/character-stats.md#paladin-and-druid-base-attributes: the naked Human sheet
+    // 105/65/100/70/78 [C] (Spirit 75 × 1.05, floored); mana 1512 + 20 + 15 × (70 − 20) = 2282;
+    // health 1381 [?] + 20 + 10 × (100 − 20) = 2201; crit 0.7 [?] + 65 × 0.0506 = 3.989; dodge
+    // 0.7 [?] + 65 / 20 = 3.95.
     const naked = buildPlan({ ...defaultConfig('paladin-retribution'), gear: {}, buffs: { raid: [], enabled: [] }, talents: '' })
-    expect(naked.sheet).toMatchObject({ strength: 105, agility: 65, stamina: 100, intellect: 70, spirit: 78, mana: 2282 })
+    expect(naked.sheet).toMatchObject({ strength: 105, agility: 65, stamina: 100, intellect: 70, spirit: 78, mana: 2282, health: 2201 })
+    expect(naked.sheet.critPct).toBeCloseTo(0.7 + 65 * 0.0506, 9)
+    expect(naked.sheet.dodgePct).toBeCloseTo(0.7 + 65 / 20, 9)
   })
 
   it('blocks Skyborne warriors, whose base stats are unknown', () => {

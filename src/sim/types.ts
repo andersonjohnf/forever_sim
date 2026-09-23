@@ -193,6 +193,11 @@ export type RotationOption =
       maintainsBuff?: string
       /** The consumable (a BuffDefinition id) that must be selected in Buffs for this to do anything. */
       requiresBuff?: string
+      /**
+       * It does something only in an execute phase, so with Fight's execute phase at 0% it can't
+       * apply, and the settings that need it are dimmed with it (Execute, docs/ux.md "Rotation").
+       */
+      needsExecutePhase?: boolean
     }
   | {
       kind: 'number'

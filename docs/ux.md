@@ -204,8 +204,8 @@ Era's) start in view rather than under the tabs.
     (`RotationOption.dependsOn`, on any kind of setting). One whose parent is under another
     heading stays with its own heading, and its help names the parent ("Needs Battle Shout
     on"). A number setting can need a second switch under another heading as well
-    (`alsoDependsOn`: "Recklessness before the execute phase" needs Execute); it's dimmed while
-    either is off, and its help names the second.
+    (`alsoDependsOn`: "Recklessness before the execute phase" and "Mighty Rage Potion up to" need
+    Execute); it's dimmed while either is off, and its help names the second.
   - **Advanced** (principle 2): switches and choices are always in view, and each heading's
     number settings (rage and timing thresholds) wait behind an **Advanced** button on the
     heading's right. Opening it shows them in place, under the switch each one tunes, so a
@@ -222,7 +222,7 @@ Era's) start in view rather than under the tabs.
     shows the value the sim will use, the help says what it follows, and a value you set stays
     set until you reset it.
   - **Changed settings are marked.** A setting that differs from its default for this setup
-    gets a line under its help: a dot, its default ("Default: 42 rage", "Default: on") and a
+    gets a line under its help: a dot, its default ("Default: 40 rage", "Default: on") and a
     **Reset** for that row alone, which moves focus back to the row's control. A value you set
     that equals the default isn't marked. Screen readers hear the setting's help, then
     "Changed. Default: …", as its switch's or input's description, and the Reset is named
@@ -232,10 +232,12 @@ Era's) start in view rather than under the tabs.
     (`LINK_HIT_AREA` in `src/features/changed-hint.tsx`). Whatever holds one leaves that much
     room around it, so a row with a Reset is a little taller.
   - A setting that depends on a switch is dimmed while that switch is off, or can't apply
-    itself (a potion's threshold while the potion isn't selected in Buffs), down the tree. It's
-    dimmed by colour, never opacity: its label and inputs take the muted text colour, which is
-    AA, and a switch that's on shows a neutral gray track rather than the primary colour. It
-    stays usable.
+    itself (a potion's threshold while the potion isn't selected in Buffs), down the tree. A switch
+    that needs an execute phase (Execute, `needsExecutePhase`) can't apply while the Fight tab's
+    execute phase is 0%, so it's dimmed then too, with every setting that needs it, and its help
+    says it needs an execute phase under Fight. A dimmed setting is dimmed by colour, never
+    opacity: its label and inputs take the muted text colour, which is AA, and a switch that's on
+    shows a neutral gray track rather than the primary colour. It stays usable.
   - A consumable's row needs its Buffs switch. While that's off, its own switch shows off and
     locked, whatever it's set to, and the row says so ("Not used: turn on … in Buffs first"),
     with **Buffs** a link to that tab (a 44 px hit area, like a row's Reset). The link opens

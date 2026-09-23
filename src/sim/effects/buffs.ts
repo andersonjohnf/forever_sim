@@ -646,7 +646,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_potion_41',
     category: 'consumable',
     group: 'Potions and bombs',
-    summary: '45–75 rage and +60 Strength for 20 s, once at the start of the execute phase',
+    summary: '45–75 rage and +60 Strength for 20 s, once a fight, when the rotation times it (see Rotation)',
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'mightyRagePotion', name: 'Mighty Rage Potion', use: MIGHTY_RAGE_POTION }],
     presets: {

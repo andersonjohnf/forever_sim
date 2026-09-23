@@ -1,5 +1,6 @@
 // The Rotation tab's row states (docs/ux.md "Rotation"): each setting's default for the setup, the
-// changed mark, a consumable switch without its Buffs switch, and settings whose parent is off.
+// changed mark, a consumable switch without its Buffs switch, settings whose parent is off, and
+// those that need an execute phase.
 import { describe, expect, it } from 'vitest'
 import { defaultConfig, getSpec, type SimConfig } from '@/sim'
 import { formatSetting, isAdvanced, rotationRows } from './logic'
@@ -84,6 +85,49 @@ describe('rotation rows', () => {
       expect(rows(fury, { [parent]: false }).get(id)?.inactive, id).toBe(true)
       expect(rows(fury, { 'warrior.fury.execute.enabled': false }).get(id)?.inactive, id).toBe(true)
     }
+  })
+
+  it('dims the potion’s limit while Execute is off: it applies only in the execute phase (both specs)', () => {
+    for (const [config, spec] of [
+      [fury, 'fury'],
+      [arms, 'arms'],
+    ] as const) {
+      const id = `warrior.${spec}.ragePotion.maxRage`
+      const potion = ['mightyRagePotion']
+      expect(rows(config, {}, potion).get(id)?.inactive, id).toBe(false)
+      expect(rows(config, { [`warrior.${spec}.execute.enabled`]: false }, potion).get(id)?.inactive, id).toBe(true)
+    }
+  })
+
+  it('with no execute phase under Fight (0%), dims Execute and every setting that needs it, and nothing else (both specs)', () => {
+    const noPhase = (config: SimConfig) => ({ ...config, fight: { ...config.fight, executePct: 0 } })
+    const potion = ['mightyRagePotion']
+    const dimmed = (config: SimConfig) =>
+      [...rows(config, {}, potion)].filter(([, row]) => row.inactive).map(([id]) => id)
+    // With the phase, Fury dims only Hamstring's own settings (Hamstring is off by default); Arms'
+    // are those of its switches that are off (Heroic Strike, Whirlwind).
+    const furyBase = dimmed(fury)
+    const armsBase = dimmed(arms)
+    expect(furyBase).toEqual(['warrior.fury.hamstring.minRage', 'warrior.fury.hamstring.onlyWhenFlurryDown'])
+    expect(dimmed(noPhase(fury)).filter((id) => !furyBase.includes(id))).toEqual([
+      'warrior.fury.deathWish.beforeExecuteSec',
+      'warrior.fury.recklessness.beforeExecuteSec',
+      'warrior.fury.execute.enabled',
+      'warrior.fury.execute.minExtraRage',
+      'warrior.fury.execute.btOverExecuteAp',
+      'warrior.fury.execute.whirlwindInExecute',
+      'warrior.fury.execute.heroicStrikeInExecute',
+      'warrior.fury.ragePotion.maxRage',
+    ])
+    expect(dimmed(noPhase(arms)).filter((id) => !armsBase.includes(id))).toEqual([
+      'warrior.arms.recklessness.beforeExecuteSec',
+      'warrior.arms.execute.enabled',
+      'warrior.arms.execute.slamInExecute',
+      'warrior.arms.execute.mortalStrikeInExecute',
+      'warrior.arms.ragePotion.maxRage',
+    ])
+    // Any phase at all counts.
+    expect(rows({ ...fury, fight: { ...fury.fight, executePct: 0.5 } }).get('warrior.fury.execute.enabled')?.inactive).toBe(false)
   })
 
   it('puts the number settings behind Advanced and keeps switches and choices in view', () => {

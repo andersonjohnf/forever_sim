@@ -16,7 +16,10 @@ export interface RowState {
   missingBuff?: BuffDefinition
   /** Whether a switch shows on: only while it's on and any consumable it needs is selected. */
   on: boolean
-  /** A switch it depends on is off, or can't apply itself, so this setting changes nothing. */
+  /**
+   * A switch it depends on is off, or can't apply itself, so this setting changes nothing; or it
+   * needs an execute phase itself (Execute) and the fight has none.
+   */
   inactive: boolean
 }
 
@@ -26,9 +29,12 @@ export interface RowState {
  */
 export const isAdvanced = (option: RotationOption) => option.kind === 'number'
 
-/** Every setting's row state for this setup. */
+/**
+ * Every setting's row state for this setup. The fight's execute phase decides whether the settings
+ * that need one can apply: at 0% there's none (docs/ux.md "Rotation").
+ */
 export function rotationRows(
-  config: Pick<SimConfig, 'spec' | 'talents' | 'rotation'>,
+  config: Pick<SimConfig, 'spec' | 'talents' | 'rotation'> & { fight: Pick<SimConfig['fight'], 'executePct'> },
   options: readonly RotationOption[],
   enabledBuffs: readonly string[],
 ): Map<string, RowState> {
@@ -39,11 +45,14 @@ export function rotationRows(
     if (option?.kind !== 'toggle' || option.requiresBuff === undefined || enabledBuffs.includes(option.requiresBuff)) return undefined
     return buffCatalogue.find((b) => b.id === option.requiresBuff)
   }
-  // A switch applies while it's on, its consumable is selected, and the switch it depends on applies.
+  /** It needs an execute phase, and the fight has none. */
+  const noPhase = (option: RotationOption | undefined) => option?.kind === 'toggle' && option.needsExecutePhase === true && !(config.fight.executePct > 0)
+  // A switch applies while it's on, its consumable is selected, any execute phase it needs is there,
+  // and the switch it depends on applies.
   const applies = (id: string, depth = 0): boolean => {
     const option = byId.get(id)
     if (!option || depth > options.length) return false
-    if (Boolean(values[id]) === false || missing(option)) return false
+    if (Boolean(values[id]) === false || missing(option) || noPhase(option)) return false
     return option.dependsOn === undefined || applies(option.dependsOn, depth + 1)
   }
   const rows = new Map<string, RowState>()
@@ -57,13 +66,13 @@ export function rotationRows(
       changed: saved !== undefined && saved !== def,
       missingBuff,
       on: Boolean(values[option.id]) && missingBuff === undefined,
-      inactive: [option.dependsOn, option.kind === 'number' ? option.alsoDependsOn : undefined].some((id) => id !== undefined && !applies(id)),
+      inactive: noPhase(option) || [option.dependsOn, option.kind === 'number' ? option.alsoDependsOn : undefined].some((id) => id !== undefined && !applies(id)),
     })
   }
   return rows
 }
 
-/** A value as the row's default hint reads it: "on", "42 rage", "3 s left", "Battle". */
+/** A value as the row's default hint reads it: "on", "40 rage", "3 s left", "Battle". */
 export function formatSetting(option: RotationOption, value: RotationValue): string {
   if (option.kind === 'toggle') return value ? 'on' : 'off'
   if (option.kind === 'choice') return option.choices.find((c) => c.value === value)?.label ?? String(value)

@@ -173,8 +173,9 @@ export const ARMS_OPTIONS: RotationOption[] = [
     id: ID.exEnabled,
     group: 'Execute phase',
     label: 'Execute',
-    help: 'In the execute phase, use Execute whenever you have the rage, in place of Mortal Strike, Slam and the fillers.',
+    help: 'In the execute phase, use Execute whenever you have the rage, in place of Mortal Strike, Slam and the fillers. Needs an execute phase under Fight.',
     default: true,
+    needsExecutePhase: true,
   },
   {
     kind: 'toggle',
@@ -253,10 +254,15 @@ export const ARMS_OPTIONS: RotationOption[] = [
     ID.wwEnabled,
     'Core abilities',
   ),
-  ...heroicStrikeOptions(ID, 125, {
-    default: false,
-    help: 'Queue Heroic Strike on the next main-hand swing. Off by default: its swing is reported to give no rage (unmeasured), so the rage does more in Slam, Mortal Strike, Hamstring and Execute. If you turn it on, keep “Heroic Strike from” (under Advanced) at 125 or more, so it only spends rage the cap would waste.',
-  }),
+  ...heroicStrikeOptions(
+    ID,
+    125,
+    {
+      default: false,
+      help: 'Queue Heroic Strike on the next main-hand swing. Off by default: its swing is reported to give no rage (unmeasured), so the rage does more in Slam, Mortal Strike, Hamstring and Execute. If you turn it on, keep “Heroic Strike from” (under Advanced) at 125 or more, so it only spends rage the cap would waste.',
+    },
+    { default: false, spenders: 'Mortal Strike or Slam' },
+  ),
   {
     kind: 'toggle',
     id: ID.hamEnabled,
@@ -266,10 +272,15 @@ export const ARMS_OPTIONS: RotationOption[] = [
     default: true,
   },
   rageOption(ID.hamMinRage, 'Hamstring from', 'Use it at or above this much rage.', 40, ID.hamEnabled, 'Fillers'),
-  ...consumableOptions(ID, 'early in the execute phase (without one, or with Execute off, in the last 20 s; from Battle Stance, after Recklessness’s swap, which caps your rage)', {
-    default: 0,
-    help: 'In the execute phase, drink it only at or below this much rage: at 0, once an Execute has emptied your bar. In the phase’s last 4 s, without an execute phase, or with Execute off, it’s up to your rage cap minus 75 (55 with Boundless Rage 3/3).',
-  }),
+  ...consumableOptions(
+    ID,
+    'Drink it once: 45–75 rage and +60 Strength for 20 s. Early in the execute phase; without a phase, or with Execute off, in the last 20 s, and from Battle Stance after Recklessness’s swap, which caps your rage.',
+    {
+      default: 0,
+      help: 'In the execute phase, drink it only at or below this much rage: at 0, once an Execute has emptied your bar. Needs Execute on, and an execute phase under Fight. In the phase’s last 4 s, and outside it, the limit is your rage cap minus 75 (55 with Boundless Rage 3/3).',
+    },
+    ID.exEnabled,
+  ),
 ]
 
 /** The stance Arms fights in with these settings (warrior.md §5.3, Q24): Battle unless set to Berserker. */

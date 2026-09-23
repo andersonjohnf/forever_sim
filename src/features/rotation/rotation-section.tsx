@@ -52,12 +52,17 @@ export function RotationSection() {
   const rotation = useSetup((s) => s.config.rotation)
   const talents = useSetup((s) => s.config.talents)
   const enabledBuffs = useSetup((s) => s.config.buffs.enabled)
+  const executePct = useSetup((s) => s.config.fight.executePct)
   const update = useSetup((s) => s.update)
   const spec = getSpec(meta.id)
   const options = spec.rotationOptions
   // Each setting's value, its default for this setup (a default can follow the talents or another
-  // setting), whether it's changed, and whether it can apply (docs/ux.md "Rotation").
-  const rows = useMemo(() => rotationRows({ spec: meta.id, talents, rotation }, options, enabledBuffs), [meta.id, talents, rotation, options, enabledBuffs])
+  // setting), whether it's changed, and whether it can apply: the execute phase's settings need one
+  // under Fight (docs/ux.md "Rotation").
+  const rows = useMemo(
+    () => rotationRows({ spec: meta.id, talents, rotation, fight: { executePct } }, options, enabledBuffs),
+    [meta.id, talents, rotation, executePct, options, enabledBuffs],
+  )
   const ctx: RowContext = {
     rows,
     set: (id, value) => update((c) => ({ ...c, rotation: { ...c.rotation, [id]: value } })),

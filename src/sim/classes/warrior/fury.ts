@@ -120,7 +120,10 @@ export const FURY_OPTIONS: RotationOption[] = [
   ...deathWishOptions(
     ID,
     {},
-    'When no later Death Wish would fit in the fight, hold the last one for the execute phase, or until 30 s are left. Earlier ones go on cooldown.',
+    {
+      label: 'Save the last Death Wish for the execute phase or the end',
+      help: 'When no later Death Wish would fit in the fight, hold the last one for the execute phase, or until 30 s are left. Earlier ones go on cooldown.',
+    },
     {
       kind: 'number',
       id: ID.dwBeforeExecute,
@@ -162,8 +165,9 @@ export const FURY_OPTIONS: RotationOption[] = [
     id: ID.exEnabled,
     group: 'Execute phase',
     label: 'Execute',
-    help: 'In the execute phase, use Execute on every global cooldown in place of Bloodthirst, Whirlwind and Hamstring.',
+    help: 'In the execute phase, use Execute on every global cooldown in place of Bloodthirst, Whirlwind and Hamstring. Needs an execute phase under Fight.',
     default: true,
+    needsExecutePhase: true,
   },
   rageOption(
     ID.exMinExtraRage,
@@ -200,7 +204,7 @@ export const FURY_OPTIONS: RotationOption[] = [
     id: ID.exHeroicStrike,
     group: 'Execute phase',
     label: 'Heroic Strike in the execute phase',
-    help: 'Keep queueing Heroic Strike in the execute phase, at the rage it’s queued from outside it. Off: a queued one is cancelled when the phase starts.',
+    help: 'Keep queueing Heroic Strike in the execute phase, from the same rage as outside it (“Heroic Strike from”, and its cancel). Off, a queued one is cancelled when the phase starts.',
     default: true,
     dependsOn: ID.exEnabled,
   },
@@ -245,18 +249,23 @@ export const FURY_OPTIONS: RotationOption[] = [
   rageOption(
     ID.opMaxRage,
     'Overpower up to',
-    'Dance only at or below this much rage. A swap keeps at most 25 with Improved Tactical Mastery 5/5, so a dance above that loses the rest; up to 15 lost is worth an Overpower sooner.',
+    'Dance only at or below this much rage. At 40, a dance can lose up to 15 rage, which an Overpower sooner is worth. Lower it by 3 for each Improved Tactical Mastery rank you don’t have.',
     40,
     ID.opEnabled,
     'Fillers',
   ),
-  ...heroicStrikeOptions(ID, 40, undefined, true),
+  ...heroicStrikeOptions(
+    ID,
+    40,
+    { default: true, help: 'Queue Heroic Strike on the next main-hand swing when rage is high.' },
+    { default: true, spenders: 'Bloodthirst or Whirlwind' },
+  ),
   {
     kind: 'toggle',
     id: ID.hamEnabled,
     group: 'Fillers',
     label: 'Hamstring filler',
-    help: 'Use Hamstring to fish for procs while Bloodthirst and Whirlwind are cooling down. Off by default: the Overpower dance and Heroic Strike do more with the rage and the global cooldowns.',
+    help: 'Use Hamstring to fish for procs while Bloodthirst and Whirlwind are cooling down. The Overpower dance and Heroic Strike usually do more with that rage and those global cooldowns.',
     default: false,
   },
   rageOption(ID.hamMinRage, 'Hamstring from', 'Use it at or above this much rage.', 60, ID.hamEnabled, 'Fillers'),
@@ -293,10 +302,15 @@ export const FURY_OPTIONS: RotationOption[] = [
     help: 'Use Slam while Bloodthirst and Whirlwind are cooling down. Without Improved Slam (an Arms talent), its 1.5 s cast stops your swings and resets both swing timers, which usually costs a dual wielder damage.',
     default: false,
   },
-  ...consumableOptions(ID, 'early in the execute phase (without one, or with Execute off, in the last 20 s, with Recklessness)', {
-    default: 0,
-    help: 'In the execute phase, drink it only at or below this much rage: at 0, once an Execute has emptied your bar. In the phase’s last 2 s, without an execute phase, or with Execute off, it’s up to your rage cap minus 75 (55 with Boundless Rage 3/3).',
-  }),
+  ...consumableOptions(
+    ID,
+    'Drink it once: 45–75 rage and +60 Strength for 20 s. Early in the execute phase; or, when “Recklessness in the last” comes first (a short phase), without a phase, or with Execute off, in the last 20 s once Recklessness is used.',
+    {
+      default: 0,
+      help: 'In the execute phase, drink it only at or below this much rage: at 0, once an Execute has emptied your bar. Needs Execute on, and an execute phase under Fight. In the phase’s last 2 s, and outside it, the limit is your rage cap minus 75 (55 with Boundless Rage 3/3).',
+    },
+    ID.exEnabled,
+  ),
 ]
 
 /**

@@ -189,9 +189,9 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await page.goto('./')
       await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
       await page.getByRole('switch', { name: 'Death Wish', exact: true }).click()
-      const row = page.locator('[data-inactive]').filter({ has: page.getByRole('switch', { name: 'Save the last Death Wish for the end', exact: true }) })
+      const row = page.locator('[data-inactive]').filter({ has: page.getByRole('switch', { name: 'Save the last Death Wish for the execute phase or the end', exact: true }) })
       await expect(row).toHaveCSS('opacity', '1')
-      expect(await contrast(row.getByText('Save the last Death Wish for the end'))).toBeGreaterThanOrEqual(4.5)
+      expect(await contrast(row.getByText('Save the last Death Wish for the execute phase or the end'))).toBeGreaterThanOrEqual(4.5)
       expect(await contrast(row.getByText(/^When no later Death Wish/))).toBeGreaterThanOrEqual(4.5)
       // The dependent switch is on, on a neutral track rather than the primary colour.
       const dimmedSwitch = row.getByRole('switch')

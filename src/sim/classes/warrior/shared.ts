@@ -110,7 +110,14 @@ const RAGE_POTION_MAX_RAGE = 75
 export const potionFallbackMaxRage = (talents: TalentRanks): number => rageCap(talents) - RAGE_POTION_MAX_RAGE
 
 /** A rage threshold input: 0 to the default build's 130 cap, in its parent's group. */
-export const rageOption = (id: string, label: string, help: string, def: number, dependsOn: string, group: RotationGroup): RotationOption => ({
+export const rageOption = (
+  id: string,
+  label: string,
+  help: string,
+  def: number,
+  dependsOn: string,
+  group: RotationGroup,
+): Extract<RotationOption, { kind: 'number' }> => ({
   kind: 'number',
   id,
   label,
@@ -205,13 +212,17 @@ export const battleShoutOptions = (ids: SharedIds, refreshBelowSec = 3): Rotatio
 
 /**
  * Death Wish and its alignment with the fight's end (Fury row 2; Arms row 16, with the talent).
- * `enabled` overrides the switch's fields, `alignHelp` is the alignment's help, and `after` are the
- * spec's own settings after it (Fury: before the execute phase, §5.2 row 2).
+ * `enabled` overrides the switch's fields, `align` the alignment's label and help (Fury's also
+ * follows the execute phase), and `after` are the spec's own settings after it (Fury: before the
+ * execute phase, §5.2 row 2).
  */
 export const deathWishOptions = (
   ids: SharedIds,
   enabled: Partial<Extract<RotationOption, { kind: 'toggle' }>> = {},
-  alignHelp = 'When no later Death Wish would fit in the fight, hold the last one until 30 s are left. Earlier ones go on cooldown.',
+  align: { label: string; help: string } = {
+    label: 'Save the last Death Wish for the end',
+    help: 'When no later Death Wish would fit in the fight, hold the last one until 30 s are left. Earlier ones go on cooldown.',
+  },
   ...after: RotationOption[]
 ): RotationOption[] => [
   {
@@ -227,8 +238,8 @@ export const deathWishOptions = (
     kind: 'toggle',
     id: ids.dwAlign,
     group: 'Cooldowns and buffs',
-    label: 'Save the last Death Wish for the end',
-    help: alignHelp,
+    label: align.label,
+    help: align.help,
     default: true,
     dependsOn: ids.dwEnabled,
   },
@@ -310,14 +321,14 @@ export const bloodrageOptions = (ids: SharedIds): RotationOption[] => [
 
 /**
  * The Heroic Strike queue (Fury row 11, Arms row 13), from `minRage`. `enabled` is the toggle's
- * default and help: Fury's is on; Arms' is off (warrior.md §5.3 notes). `unqueue` is the cancel
- * switch's default: Fury's is on (§5.2), Arms' off.
+ * default and help: Fury's is on; Arms' is off (warrior.md §5.3 notes). `cancel` is the cancel
+ * switch's default (Fury's is on, §5.2; Arms' off) and the abilities whose rage it keeps, for its help.
  */
 export const heroicStrikeOptions = (
   ids: SharedIds,
   minRage: number,
-  enabled: { default: boolean; help: string } = { default: true, help: 'Queue Heroic Strike on the next main-hand swing when rage is high.' },
-  unqueue = false,
+  enabled: { default: boolean; help: string },
+  cancel: { default: boolean; spenders: string },
 ): RotationOption[] => [
   {
     kind: 'toggle',
@@ -333,8 +344,8 @@ export const heroicStrikeOptions = (
     id: ids.hsUnqueue,
     group: 'Fillers',
     label: 'Cancel Heroic Strike on low rage',
-    help: 'Unqueue Heroic Strike if rage drops below a threshold before the swing.',
-    default: unqueue,
+    help: `Unqueue a queued Heroic Strike if ${cancel.spenders} spends your rage first and it drops below “Cancel Heroic Strike below” (under Advanced), so your next ${cancel.spenders} isn’t left short.`,
+    default: cancel.default,
     dependsOn: ids.hsEnabled,
   },
   rageOption(ids.hsUnqueueBelow, 'Cancel Heroic Strike below', 'Unqueue it when rage falls below this.', 20, ids.hsUnqueue, 'Fillers'),
@@ -342,28 +353,29 @@ export const heroicStrikeOptions = (
 
 /**
  * The Mighty Rage Potion and Juju Flurry, when they're selected in Buffs (Fury rows 16 and 17, Arms
- * rows 17 and 18). `when` says when the potion is drunk, in and outside the execute phase; `potionMaxRage`
- * is the spec's rage limit for it: its default (Fury 55, the cap minus 75; Arms 0, in the phase) and
- * help.
+ * rows 17 and 18). `potionHelp` says when the spec drinks the potion, in and outside the execute
+ * phase; `potionMaxRage` is its rage limit in the phase: its default (0 in both) and help. That limit
+ * applies only in the phase, so it needs the spec's Execute switch (`executeId`) as well.
  */
 export const consumableOptions = (
   ids: SharedIds,
-  when = 'at the start of the execute phase (in the last 20 s if there’s none)',
-  potionMaxRage: { default: number; help: string } = {
-    default: WARRIOR_MAX_RAGE - 75,
-    help: `Drink it only at or below this much rage, so none of its rage is lost at the cap. ${WARRIOR_MAX_RAGE - 75} is the 130 cap minus 75.`,
-  },
+  potionHelp: string,
+  potionMaxRage: { default: number; help: string },
+  executeId: string,
 ): RotationOption[] => [
   {
     kind: 'toggle',
     id: ids.potionEnabled,
     group: 'Consumables',
     label: 'Mighty Rage Potion',
-    help: `Drink it once, ${when}: 45–75 rage and +60 Strength for 20 s.`,
+    help: potionHelp,
     default: true,
     requiresBuff: RAGE_POTION,
   },
-  rageOption(ids.potionMaxRage, 'Mighty Rage Potion up to', potionMaxRage.help, potionMaxRage.default, ids.potionEnabled, 'Consumables'),
+  {
+    ...rageOption(ids.potionMaxRage, 'Mighty Rage Potion up to', potionMaxRage.help, potionMaxRage.default, ids.potionEnabled, 'Consumables'),
+    alsoDependsOn: executeId,
+  },
   {
     kind: 'toggle',
     id: ids.jujuEnabled,

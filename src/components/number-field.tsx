@@ -166,8 +166,9 @@ export function NumberField({
         // The value right-aligned beside its unit, both in flow: "100 Energy", "5 combo points". It's
         // one field to a screen reader, the textbox its label names, as it was with the unit laid
         // over it: the wrappers aren't groups.
-        <InputGroup role="presentation" className="h-11 w-auto">
-          <InputGroupInput {...inputProps} className="h-full w-14 flex-none pr-1 text-right tabular-nums" />
+        // At least as wide as a field without a unit (w-24), so a short unit ("%", "s") lines up with them.
+        <InputGroup role="presentation" className="h-11 w-auto min-w-24">
+          <InputGroupInput {...inputProps} className="h-full w-14 flex-1 pr-1 text-right tabular-nums" />
           <InputGroupAddon role="presentation" align="inline-end" className="pl-0 text-xs font-normal whitespace-nowrap">
             {unit}
           </InputGroupAddon>

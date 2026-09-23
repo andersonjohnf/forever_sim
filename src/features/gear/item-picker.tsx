@@ -90,7 +90,7 @@ export function ItemPicker(props: PickerProps) {
   }
   return (
     <Drawer open={props.open} onOpenChange={props.onOpenChange}>
-      <DrawerContent className="h-[92svh] max-h-[92svh]" {...contentProps}>
+      <DrawerContent className="h-[92svh] max-h-[92svh] data-[vaul-drawer-direction=bottom]:max-h-[92svh]" {...contentProps}>
         <DrawerHeader className="relative border-b px-14 text-left">
           <DrawerTitle ref={titleRef} tabIndex={-1} className="outline-none">
             {title}

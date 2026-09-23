@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { WowIcon } from '@/components/wow-icon'
 import type { Item } from '@/data/items/types'
+import { ClassicEraNote } from '@/features/character/classic-era-note'
 import { SectionHeader } from '@/features/section'
 import { itemsById } from '@/lib/items'
 import { cn } from '@/lib/utils'
@@ -91,6 +92,7 @@ export function GearSection() {
           </DropdownMenu>
         }
       />
+      <ClassicEraNote what="Enchants" />
 
       {SLOT_GROUPS.map((group) => (
         <section key={group.label} className="flex min-w-0 flex-col gap-2">

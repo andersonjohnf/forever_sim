@@ -55,9 +55,10 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
 
 - **Commit as each task or slice completes,** in logical commits with descriptive messages
   (what and why), on `main`.
-- **Push only when the user asks** (usually at the end of a session, or to verify a deploy),
-  and only after the review gate above has passed for everything since the last push.
-  Pushing `main` deploys to GitHub Pages.
+- **Push at every new stable state** (user directive, 2026-09-23): as soon as the review gate
+  above has passed for everything since the last push, push `main`, so features land as soon as
+  they're ready. Pushing `main` deploys to GitHub Pages. After each push, watch the deploy and
+  the Full regression run through to green, and fix anything they catch.
 
 ## Working with agents: small slices, fresh contexts
 

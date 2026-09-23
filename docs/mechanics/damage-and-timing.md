@@ -231,9 +231,9 @@ Their values are in the class docs.
 ```
 1. base      = weapon roll + flatWeaponBonus + AP/14 × (real or normalized speed) + ability flat bonus
 2. ability % = base × abilityPercent            (e.g. 110% weapon damage)
-3. mods      = × Π damage multipliers            (talents, buffs, target debuffs)
+3. mods      = × Π damage multipliers            (talents, buffs, target debuffs; boss → player: damage-taken modifiers)
 4. armor     = × (1 − DR)                        (§1; skipped for bleeds and magic)
-5. outcome   = × 2.0 crit | × glance factor | × 1.0 hit
+5. outcome   = × 2.0 crit | × 1.5 crushing (boss → player) | × glance factor | × 1.0 hit
 6. block     = − block value, floor 0            (tanks being hit; mob block value is 0, see combat-tables §2.4)
 ```
 

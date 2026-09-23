@@ -198,10 +198,10 @@ without waiting for A; only the Bear and Paladin Protection slices need the tank
 
 | Track | Slices | Milestone | Depends on |
 | --- | --- | --- | --- |
-| A. Tank core | A1: the boss attacking the player, mitigation, tank stats, tank results | M3 (its first bullets) | – |
-| B. Druid | B1: druid foundation (forms, energy, combo points, rage, mana); B2: Cat; then Bear | M4 | Bear needs A1 |
-| C. Paladin | C1: paladin foundation (spells, mana, seals, Judgement, Righteous Fury); C2: Retribution; then Protection | M5 | Protection needs A1 |
-| Warrior Protection | its abilities, rotation and defaults | M3 | A1 |
+| A. Tank core | Tank core (T1): the boss attacking the player, mitigation, tank stats; tank results UI (T2) | M3 (its first bullets) | – |
+| B. Druid | B1: druid foundation (forms, energy, combo points, rage, mana); B2: Cat; then Bear | M4 | Bear needs T1 |
+| C. Paladin | C1: paladin foundation (spells, mana, seals, Judgement, Righteous Fury); C2: Retribution; then Protection | M5 | Protection needs T1 |
+| Warrior Protection | its abilities, rotation and defaults | M3 | T1 |
 | Fury tuning | search Fury's rotation options under D23, as M2.5a did for Arms | M2.5b | the M2.5a fixes, which change shared warrior options |
 
 Unknown base values don't gate any of it

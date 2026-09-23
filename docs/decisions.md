@@ -277,7 +277,10 @@ difference in DPS (TPS for tank specs) has to lie above zero. A search that trie
 turns up false wins at 95%, so the winner is run again on a fresh master seed, one the search
 never used, and adopted only if its interval is still above zero. The owning class doc records
 the change, the numbers and the method, and the goldens are re-snapshotted with the explanation. Talent builds and gear stay "what a typical raider runs"
-([doctrine §5](doctrine.md#5-defaults)). This decision is about rotations.
+([doctrine §5](doctrine.md#5-defaults)). This decision is about rotations: choices that belong to the
+encounter or the raid aren't rotation defaults even when they clear the bar. Charge needs you out
+of combat, where a DPS warrior usually walks in after the tank's pull, and your own Battle Shout's
+gain depends on the raid's composition (the Buffs tab).
 
 ### D24: Small assumptions don't gate features (2026-09-23)
 User directive: build with sensible defaults, track them, and fix them once every spec is built.

@@ -48,8 +48,10 @@ const ID = {
   hammerOfWrathMana: `${P}.hammerOfWrath.minManaPct`,
   manaPotion: `${P}.manaPotion.enabled`,
   manaPotionMissing: `${P}.manaPotion.missingMana`,
+  manaPotionEarly: `${P}.manaPotion.earlyMissingMana`,
   rune: `${P}.rune.enabled`,
   runeMissing: `${P}.rune.missingMana`,
+  runeEarly: `${P}.rune.earlyMissingMana`,
 }
 export const RETRIBUTION_IDS = ID
 
@@ -201,6 +203,19 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     dependsOn: ID.manaPotion,
   },
   {
+    kind: 'number',
+    id: ID.manaPotionEarly,
+    group: 'Consumables',
+    label: 'Major Mana Potion early, when missing',
+    help: 'While another would be ready before the fight ends, drink it once you’re missing this much, so you get one more. At 0, never early.',
+    unit: 'mana',
+    min: 0,
+    max: 5000,
+    step: 50,
+    default: 0,
+    dependsOn: ID.manaPotion,
+  },
+  {
     kind: 'toggle',
     id: ID.rune,
     group: 'Consumables',
@@ -220,6 +235,19 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     max: 5000,
     step: 50,
     default: 1500,
+    dependsOn: ID.rune,
+  },
+  {
+    kind: 'number',
+    id: ID.runeEarly,
+    group: 'Consumables',
+    label: 'Demonic Rune early, when missing',
+    help: 'While another would be ready before the fight ends, use it once you’re missing this much, so you get one more. At 0, never early.',
+    unit: 'mana',
+    min: 0,
+    max: 5000,
+    step: 50,
+    default: 0,
     dependsOn: ID.rune,
   },
 ]
@@ -334,15 +362,18 @@ export function retributionRotation(
   // The mana potion and rune (off the GCD), when selected in Buffs: whenever the most they restore
   // fits under the maximum.
   const pressed: string[] = []
-  for (const [id, setting, missing] of [
-    [MANA_POTION, ID.manaPotion, ID.manaPotionMissing],
-    [MANA_RUNE, ID.rune, ID.runeMissing],
+  for (const [id, setting, missing, early] of [
+    [MANA_POTION, ID.manaPotion, ID.manaPotionMissing, ID.manaPotionEarly],
+    [MANA_RUNE, ID.rune, ID.runeMissing, ID.runeEarly],
   ] as const) {
     const use = ctx.consumables.find((c) => c.id === id)
     if (!use) continue
     pressed.push(id)
     if (!v.on(setting)) continue
-    add(consumable(use), [{ code: COND.maxMana, a: maxManaTenths - 10 * v.num(missing), b: 0 }])
+    const missingAtLeast = (mana: number): RotationCondition => ({ code: COND.maxMana, a: maxManaTenths - 10 * mana, b: 0 })
+    // Early, while another would be ready before the fight ends: one more use in the fight.
+    if (v.num(early) > 0) add(consumable(use), [missingAtLeast(v.num(early)), { code: COND.timeLeftAtLeast, a: use.cooldownMs, b: 0 }])
+    add(consumable(use), [missingAtLeast(v.num(missing))])
   }
 
   return {

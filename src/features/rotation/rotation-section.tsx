@@ -1,5 +1,5 @@
 import { ChevronRight, RotateCcw } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
 import { announce } from '@/app/announce'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
@@ -59,17 +59,19 @@ export function RotationSection() {
   const race = useSetup((s) => s.config.race)
   const raid = useSetup((s) => s.config.buffs.raid)
   const creatureType = useSetup((s) => s.config.fight.creatureType)
+  const gear = useSetup((s) => s.config.gear)
   const update = useSetup((s) => s.update)
   const spec = getSpec(meta.id)
   const options = spec.rotationOptions
   // Each setting's value, its default for this setup (a default can follow the talents or another
   // setting), whether it's changed, and whether it can apply: the execute phase's settings need one
-  // under Fight, and Exorcism an Undead or Demon target (docs/ux.md "Rotation").
+  // under Fight, Exorcism an Undead or Demon target, and Shield Slam its talent and a shield
+  // (docs/ux.md "Rotation").
   // A setting the rest of the setup leaves unused says why: the race's, or the raid's (docs/ux.md "Rotation").
   const rows = useMemo(() => {
     const unused = unusedRotationSettings({ spec: meta.id, talents, rotation, race, buffs: { raid, enabled: enabledBuffs } })
-    return rotationRows({ spec: meta.id, talents, rotation, fight: { executePct, creatureType } }, options, enabledBuffs, unused)
-  }, [meta.id, talents, rotation, executePct, creatureType, options, enabledBuffs, race, raid])
+    return rotationRows({ spec: meta.id, talents, rotation, gear, fight: { executePct, creatureType } }, options, enabledBuffs, unused)
+  }, [meta.id, talents, rotation, gear, executePct, creatureType, options, enabledBuffs, race, raid])
   const ctx: RowContext = {
     rows,
     set: (id, value) => update((c) => ({ ...c, rotation: { ...c.rotation, [id]: value } })),
@@ -280,7 +282,8 @@ const NOTE_LINK = cn('rounded-sm font-medium text-foreground underline underline
 function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOption, { kind: 'toggle' }>; row: RowState; ctx: RowContext; nested: boolean }) {
   const setSection = useSetup((s) => s.setSection)
   const ids = rowIds(option.id)
-  const notes = row.missingBuff !== undefined || row.notUsed !== undefined || row.needsCreature !== undefined || row.changed
+  const locked = row.missingBuff !== undefined || row.unmet !== undefined
+  const notes = locked || row.notUsed !== undefined || row.needsCreature !== undefined || row.changed
   return (
     // Dimmed by colour, never opacity, so its text stays AA (docs/ux.md "Visual language").
     <div data-inactive={row.inactive || undefined} className={cn(row.inactive && 'text-muted-foreground')}>
@@ -289,7 +292,7 @@ function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOptio
           'flex min-h-14 items-center gap-4 px-4',
           nested ? 'py-3' : 'py-4',
           notes && 'pb-0',
-          row.missingBuff ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50',
+          locked ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50',
         )}
       >
         <span className="flex min-w-0 flex-1 flex-col gap-1">
@@ -303,17 +306,17 @@ function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOptio
         <Switch
           id={ids.control}
           checked={row.on}
-          disabled={row.missingBuff !== undefined}
+          disabled={locked}
           className={cn(row.inactive && INACTIVE_SWITCH)}
           aria-labelledby={ids.label}
-          aria-describedby={[ids.help, row.missingBuff && ids.missing, row.notUsed && ids.notUsed, row.needsCreature && ids.creature, row.changed && ids.default].filter(Boolean).join(' ')}
+          aria-describedby={[ids.help, locked && ids.missing, row.notUsed && ids.notUsed, row.needsCreature && ids.creature, row.changed && ids.default].filter(Boolean).join(' ')}
           onCheckedChange={(on) => ctx.set(option.id, on)}
         />
       </label>
       {notes && (
         // Spaced so each link's hit area (LINK_HIT_AREA: 10 px above its line, 18 px below) stays
         // clear of the row's label, of the other link, and of the next row.
-        <div className={cn('flex flex-col px-4 pt-3 pb-5', (row.missingBuff || row.needsCreature) && row.changed ? 'gap-6' : 'gap-2')}>
+        <div className={cn('flex flex-col px-4 pt-3 pb-5', (locked || row.needsCreature) && row.changed ? 'gap-6' : 'gap-2')}>
           {row.missingBuff && (
             <p id={ids.missing} className="text-xs text-muted-foreground">
               Not used: turn on {row.missingBuff.name} in{' '}
@@ -348,10 +351,55 @@ function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOptio
               .
             </p>
           )}
+          {row.unmet && (
+            <p id={ids.missing} className="text-xs text-muted-foreground">
+              Not used: needs{' '}
+              {row.unmet.talent !== undefined && (
+                <>
+                  the {row.unmet.talent} talent (
+                  <SectionLink section="talents" onOpen={() => setSection('talents')}>
+                    Talents
+                  </SectionLink>
+                  )
+                </>
+              )}
+              {row.unmet.talent !== undefined && row.unmet.shield && ' and '}
+              {row.unmet.shield && (
+                <>
+                  a shield (
+                  <SectionLink section="gear" onOpen={() => setSection('gear')}>
+                    Gear
+                  </SectionLink>
+                  )
+                </>
+              )}
+              .
+            </p>
+          )}
           {row.changed && <DefaultHint option={option} row={row} ctx={ctx} />}
         </div>
       )}
     </div>
+  )
+}
+
+/**
+ * A small link that opens another setup tab and focuses where the fix is: Gear's off hand (a shield;
+ * its main hand while a two-hander locks it), or the Talents panel. A 44 px hit area, like a row's Reset.
+ */
+function SectionLink({ section, onOpen, children }: { section: 'gear' | 'talents'; onOpen: () => void; children: ReactNode }) {
+  const target = () =>
+    section === 'gear'
+      ? (document.querySelector<HTMLButtonElement>('[data-gear-slot="offHand"]:not(:disabled)') ?? document.querySelector<HTMLElement>('[data-gear-slot="mainHand"]'))
+      : document.querySelector<HTMLElement>('[data-section="talents"]')
+  return (
+    <button
+      type="button"
+      className={cn('rounded-sm font-medium text-foreground underline underline-offset-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50', LINK_HIT_AREA)}
+      onClick={() => changeAndFocus(onOpen, target)}
+    >
+      {children}
+    </button>
   )
 }
 

@@ -55,6 +55,13 @@ import {
 const itemData = itemJson as unknown as ItemData
 const ITEMS = new Map<number, Item>(itemData.items.map((i) => [i.id, i]))
 
+/** Whether the gear blocks with a shield: one in the off hand, beside a one-hander (combat-tables §8), as the plan's `hasShield`. */
+export function wieldsShield(gear: SimConfig['gear']): boolean {
+  const mh = gear.mainHand && ITEMS.get(gear.mainHand.itemId)
+  const oh = gear.offHand && ITEMS.get(gear.offHand.itemId)
+  return !(mh && isTwoHand(mh)) && oh?.slot === 'shield'
+}
+
 /** Item stat → stat block field (character-stats.md#derived-stat-pipeline, step 2). */
 const ITEM_STAT: Partial<Record<keyof Stats, FlatStat>> = {
   strength: 'str',

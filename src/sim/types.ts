@@ -159,6 +159,14 @@ export type LegacyDamageTakenRageModel = 'foreverHp' | 'foreverHpPreArmor'
 /** A rotation setting's value: a toggle's boolean, a number input's number, a choice's value. */
 export type RotationValue = number | boolean | string
 
+/** What a rotation switch needs from the setup (RotationOption `requires`, docs/ux.md "Rotation"). */
+export interface RotationRequirement {
+  /** A shield in the off hand, beside a one-hander (Shield Block, Shield Slam; warrior.md §3.1, §3.2). */
+  shield?: boolean
+  /** A talent, by name (Shield Slam). */
+  talent?: string
+}
+
 /**
  * A default that depends on the setup (docs/classes/warrior.md §5.1, §5.3): used when the build has
  * `talent`, or when another option (declared earlier in the list) currently has the value `is`.
@@ -202,6 +210,12 @@ export type RotationOption =
       /** The consumable (a BuffDefinition id) that must be selected in Buffs for this to do anything. */
       requiresBuff?: string
       /**
+       * What it needs from the setup besides a consumable: a shield (Shield Block, Shield Slam) or a
+       * talent (Shield Slam). Without it the engine never uses the ability, so the Rotation tab shows
+       * the switch off and locked, and says where to get it (docs/ux.md "Rotation").
+       */
+      requires?: RotationRequirement
+      /**
        * It does something only in an execute phase, so with Fight's execute phase at 0% it can't
        * apply, and the settings that need it are dimmed with it (Execute, docs/ux.md "Rotation").
        */
@@ -211,6 +225,11 @@ export type RotationOption =
        * Fight tab's creature type another it can't apply, and it's dimmed with the settings under it.
        */
       needsCreatureType?: readonly CreatureType[]
+      /**
+       * Id of another toggle that must apply too, though this one sits under `dependsOn`: its help
+       * names it (Protection's filler waiting for Shield Slam needs Shield Slam).
+       */
+      alsoDependsOn?: string
     }
   | {
       kind: 'number'

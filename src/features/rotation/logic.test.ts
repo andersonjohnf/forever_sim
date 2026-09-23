@@ -181,6 +181,32 @@ describe('rotation rows', () => {
     expect(fury.help).toContain('2,220 is the break-even at Execute’s 15 rage cost; use 2,434 with Improved Execute 2/2.')
   })
 
+  it('locks Shield Block and Shield Slam off without a shield or the talent, and dims the filler’s wait for Shield Slam (Protection, PU4)', () => {
+    const prot = defaultConfig('warrior-protection')
+    const P = 'warrior.protection'
+    const on = rows(prot)
+    for (const id of [`${P}.shieldBlock.enabled`, `${P}.shieldSlam.enabled`]) {
+      expect(on.get(id)?.on, id).toBe(true)
+      expect(on.get(id)?.unmet, id).toBeUndefined()
+    }
+    // Without a shield, both need one; the filler's wait for Shield Slam then changes nothing.
+    const noShield = rows({ ...prot, gear: { ...prot.gear, offHand: undefined } })
+    expect(noShield.get(`${P}.shieldBlock.enabled`)).toMatchObject({ value: true, on: false, unmet: { shield: true } })
+    expect(noShield.get(`${P}.shieldSlam.enabled`)).toMatchObject({ on: false, unmet: { shield: true } })
+    expect(noShield.get(`${P}.shieldBlock.minRage`)?.inactive).toBe(true)
+    expect(noShield.get(`${P}.sunderFiller.waitForShieldSlam`)?.inactive).toBe(true)
+    // Without the talent, Shield Slam needs it; Shield Block still works.
+    const noTalent = rows({ ...prot, talents: '35-05-55210123330121053' })
+    expect(noTalent.get(`${P}.shieldSlam.enabled`)).toMatchObject({ on: false, unmet: { talent: 'Shield Slam' } })
+    expect(noTalent.get(`${P}.shieldBlock.enabled`)?.on).toBe(true)
+    expect(noTalent.get(`${P}.shieldBlock.enabled`)?.unmet).toBeUndefined()
+    // Both missing: both named.
+    expect(rows({ ...prot, talents: '', gear: { ...prot.gear, offHand: undefined } }).get(`${P}.shieldSlam.enabled`)?.unmet).toEqual({ talent: 'Shield Slam', shield: true })
+    // The wait is dimmed while Shield Slam is off, and not otherwise.
+    expect(on.get(`${P}.sunderFiller.waitForShieldSlam`)?.inactive).toBe(false)
+    expect(rows(prot, { [`${P}.shieldSlam.enabled`]: false }).get(`${P}.sunderFiller.waitForShieldSlam`)?.inactive).toBe(true)
+  })
+
   it('puts the number settings behind Advanced and keeps switches and choices in view', () => {
     const options = [...getSpec('warrior-fury').rotationOptions, ...getSpec('warrior-arms').rotationOptions, ...getSpec('druid-feral-cat').rotationOptions]
     for (const o of options) expect(isAdvanced(o), o.id).toBe(o.kind === 'number')

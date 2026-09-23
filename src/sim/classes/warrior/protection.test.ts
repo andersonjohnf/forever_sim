@@ -352,9 +352,10 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
     expect(ex[0].danceTo).toBe(STANCE.battle)
     expect(r.abilities[at(r, 'execute')].stances & STANCE.defensive).toBe(0)
     expect(EXECUTE.executePhaseOnly).toBe(true)
-    // A Thunder Clap on cooldown counts in the filler's GCD-safe check when the filler waits.
     const waits = rot({ [ID.tcMaintainOnly]: false, [ID.fillerSafe]: true })
-    expect(linesOf(waits, 'sunderArmor')[2].conditions[1]).toEqual({ code: COND.gcdSafe, a: (1 << at(waits, 'shieldSlam')) | (1 << at(waits, 'thunderClap')), b: 1500 })
+    // It waits for Shield Slam alone, even with Thunder Clap on cooldown, so without Shield Slam it's
+    // a setting that changes nothing (the Rotation tab dims it then, PU4).
+    expect(linesOf(waits, 'sunderArmor')[2].conditions[1]).toEqual({ code: COND.gcdSafe, a: 1 << at(waits, 'shieldSlam'), b: 1500 })
     const none = rot(Object.fromEntries(PROTECTION_OPTIONS.flatMap((o) => (o.kind === 'toggle' ? [[o.id, false]] : []))))
     expect(ids(none)).toEqual([])
     expect(none.procs).toEqual([])

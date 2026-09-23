@@ -311,6 +311,14 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     with **Buffs** a link to that tab (a 44 px hit area, like a row's Reset). The link opens
     Buffs with focus on that consumable's switch, so Space turns it on. Turning it on in Buffs
     brings back its setting.
+  - A switch that needs a talent or a shield works the same way (`RotationOption.requires`:
+    Protection's Shield Block needs a shield, Shield Slam the Shield Slam talent and a shield).
+    Without it the switch shows off and locked, and the row says what's missing, with a link to
+    where it's fixed: "Not used: needs the Shield Slam talent (Talents) and a shield (Gear)." The
+    Gear link opens Gear with focus on the off hand (the main hand while a two-hander locks it),
+    the Talents link on the talent trees. The settings that need it are dimmed with it, including
+    one under another switch that needs it too (`alsoDependsOn` on a switch: "Sunder Armor filler
+    waits for Shield Slam" while Shield Slam is off or can't be used).
 - **Fight.**
   - The header names the boss's level ("A level 63 raid boss"), following Boss level.
   - Duration (default 180 s), boss armor preset, execute phase, and whether you attack from the

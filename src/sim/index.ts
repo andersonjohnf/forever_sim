@@ -12,7 +12,7 @@ import { ENCHANTS } from './effects/enchants'
 import { ITEM_EFFECTS, itemEffectsApply } from './effects/items'
 import { presetBuffIds } from './effects/presets'
 import { catalogueSummary } from './effects/types'
-import { buildPlan, UnsupportedSetupError } from './plan/build'
+import { buildPlan, UnsupportedSetupError, wieldsShield } from './plan/build'
 import { toResult } from './run/aggregate'
 import { type ChunkExecutor, drive } from './run/driver'
 import { localExecutor } from './run/local'
@@ -25,6 +25,7 @@ import type {
   CharacterSheet,
   EnchantDefinition,
   RotationGroup,
+  RotationRequirement,
   RotationValue,
   RuleProfileId,
   SimConfig,
@@ -103,6 +104,22 @@ export function unusedRotationSettings(config: Pick<SimConfig, 'spec' | 'talents
 export function talentBuffs(config: Pick<SimConfig, 'spec' | 'talents'>): string[] {
   const classId = SPEC_META[config.spec].classId
   return classSetup(classId, config.spec, config.talents, PROFILES.forever).replacesBuffs ?? []
+}
+
+/**
+ * What a rotation switch needs (`RotationOption.requires`) that the setup lacks: its talent, a
+ * shield, or both; empty when it has them. The engine never uses such an ability (warrior.md §7),
+ * and the Rotation tab says where to get it (docs/ux.md "Rotation").
+ */
+export function unmetRequirements(
+  config: Pick<SimConfig, 'spec' | 'talents' | 'gear'>,
+  requires: RotationRequirement,
+): { talent?: string; shield?: boolean } {
+  const unmet: { talent?: string; shield?: boolean } = {}
+  const classId = SPEC_META[config.spec].classId
+  if (requires.talent !== undefined && !((talentRanksByName(TALENT_DATA[classId], config.talents).get(requires.talent) ?? 0) > 0)) unmet.talent = requires.talent
+  if (requires.shield && !wieldsShield(config.gear)) unmet.shield = true
+  return unmet
 }
 
 /** A catalogue per rule profile: each entry's summary is the profile's (`catalogueSummary`). */

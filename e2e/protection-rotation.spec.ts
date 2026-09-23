@@ -117,6 +117,30 @@ test.describe('Protection rotation', () => {
   })
 })
 
+test.describe('what Shield Block and Shield Slam need (docs/ux.md "Rotation", PU4)', () => {
+  test('without a shield they’re off and locked, say so, and the link opens Gear on the off hand; the filler’s wait is dimmed', async ({ page }) => {
+    // Protection with its sword and no shield, on the Rotation tab.
+    await page.addInitScript(() => {
+      if (sessionStorage.getItem('seeded')) return
+      sessionStorage.setItem('seeded', '1')
+      const config = { version: 1, spec: 'warrior-protection', gear: { mainHand: { itemId: 15806 } } }
+      localStorage.setItem('forever-sim:setup', JSON.stringify({ state: { config, bySpec: {}, section: 'rotation' }, version: 1 }))
+    })
+    await page.goto('./')
+    const tab = page.getByRole('tabpanel', { name: 'Rotation' })
+    for (const name of ['Shield Block', 'Shield Slam']) {
+      const control = tab.getByRole('switch', { name, exact: true })
+      await expect(control).not.toBeChecked()
+      await expect(control).toBeDisabled()
+      await expect(control).toHaveAccessibleDescription(/Not used: needs a shield \( ?Gear ?\)\.$/)
+    }
+    const wait = page.locator('[data-inactive]').filter({ has: page.getByRole('switch', { name: 'Sunder Armor filler waits for Shield Slam', exact: true }) })
+    await expect(wait).toHaveCount(1)
+    await tab.getByRole('button', { name: 'Gear', exact: true }).first().click()
+    await expect(page.getByRole('button', { name: 'Off hand: empty' })).toBeFocused()
+  })
+})
+
 test.describe('Expose Armor over your Sunder Armor (warrior.md §5.4 notes, Q35)', () => {
   test('the Buffs row, the Rotation help and the result each say yours makes threat but removes no armor', async ({ page }) => {
     const tab = await openProtectionRotation(page)

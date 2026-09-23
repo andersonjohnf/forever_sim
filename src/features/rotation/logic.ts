@@ -1,6 +1,6 @@
 // What the Rotation tab shows for each setting (docs/ux.md "Rotation"): its value, its default for
 // this setup, whether you've changed it, and whether it can apply at all.
-import { buffCatalogue, rotationValues, type BuffDefinition, type CreatureType, type RotationOption, type RotationValue, type SimConfig } from '@/sim'
+import { buffCatalogue, rotationValues, unmetRequirements, type BuffDefinition, type CreatureType, type RotationOption, type RotationValue, type SimConfig } from '@/sim'
 
 export interface RowState {
   /** The value the sim uses: the saved one, or the default for this setup. */
@@ -14,7 +14,9 @@ export interface RowState {
   changed: boolean
   /** A consumable this switch needs selected in Buffs, while it isn't. */
   missingBuff?: BuffDefinition
-  /** Whether a switch shows on: only while it's on and any consumable it needs is selected. */
+  /** What else it needs that the setup lacks: its talent (Talents) or a shield (Gear); absent when it has them. */
+  unmet?: { talent?: string; shield?: boolean }
+  /** Whether a switch shows on: only while it's on, and any consumable, talent or shield it needs is there. */
   on: boolean
   /** The creature types a switch needs (Exorcism: Undead and Demons), while the fight's is another. */
   needsCreature?: readonly CreatureType[]
@@ -45,7 +47,7 @@ export const isAdvanced = (option: RotationOption) => option.kind === 'number'
  * rest of the setup leaves unused, with why (`unusedRotationSettings`).
  */
 export function rotationRows(
-  config: Pick<SimConfig, 'spec' | 'talents' | 'rotation'> & { fight: Pick<SimConfig['fight'], 'executePct'> & Partial<Pick<SimConfig['fight'], 'creatureType'>> },
+  config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'gear'> & { fight: Pick<SimConfig['fight'], 'executePct'> & Partial<Pick<SimConfig['fight'], 'creatureType'>> },
   options: readonly RotationOption[],
   enabledBuffs: readonly string[],
   unused: Readonly<Record<string, string>> = {},
@@ -65,12 +67,18 @@ export function rotationRows(
     const creature = config.fight.creatureType
     return types && creature !== undefined && !types.includes(creature) ? types : undefined
   }
-  // A switch applies while it's on, its consumable is selected, any execute phase or creature type
-  // it needs is there, and the switch it depends on applies.
+  /** The talent or shield it needs that the setup lacks (Shield Slam, Shield Block), or undefined. */
+  const unmetOf = (option: RotationOption | undefined) => {
+    if (option?.kind !== 'toggle' || option.requires === undefined) return undefined
+    const unmet = unmetRequirements(config, option.requires)
+    return unmet.talent !== undefined || unmet.shield ? unmet : undefined
+  }
+  // A switch applies while it's on, its consumable is selected, any execute phase, creature type,
+  // talent or shield it needs is there, and the switch it depends on applies.
   const applies = (id: string, depth = 0): boolean => {
     const option = byId.get(id)
     if (!option || depth > options.length) return false
-    if (Boolean(values[id]) === false || missing(option) || noPhase(option) || wrongCreature(option)) return false
+    if (Boolean(values[id]) === false || missing(option) || noPhase(option) || wrongCreature(option) || unmetOf(option)) return false
     return option.dependsOn === undefined || applies(option.dependsOn, depth + 1)
   }
   const rows = new Map<string, RowState>()
@@ -80,12 +88,14 @@ export function rotationRows(
     const missingBuff = missing(option)
     const notUsed = unused[option.id]
     const needsCreature = wrongCreature(option)
+    const unmet = unmetOf(option)
     rows.set(option.id, {
       value: values[option.id],
       default: def,
       changed: saved !== undefined && saved !== def,
       missingBuff,
-      on: Boolean(values[option.id]) && missingBuff === undefined,
+      ...(unmet ? { unmet } : {}),
+      on: Boolean(values[option.id]) && missingBuff === undefined && unmet === undefined,
       ...(notUsed !== undefined ? { notUsed } : {}),
       ...(needsCreature ? { needsCreature } : {}),
       // An unused setting dims itself only: the settings under it may be how to use it (Rake's
@@ -94,7 +104,7 @@ export function rotationRows(
         notUsed !== undefined ||
         noPhase(option) ||
         needsCreature !== undefined ||
-        [option.dependsOn, option.kind === 'number' ? option.alsoDependsOn : undefined].some((id) => id !== undefined && !applies(id)),
+        [option.dependsOn, option.kind !== 'choice' ? option.alsoDependsOn : undefined].some((id) => id !== undefined && !applies(id)),
     })
   }
   return rows

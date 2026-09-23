@@ -142,6 +142,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     help: 'Use Shield Block on cooldown: +75% block chance for your next 2 blocks, up to 7 s. Each block gives 5 rage with Shield Specialization 5/5 and opens Revenge. Off by default with Max TPS.',
     default: true,
     defaultWhen: [{ ...MAX_TPS, default: false }],
+    requires: { shield: true },
   },
   rageOption(ID.sbMinRage, 'Shield Block from', 'Use it only at or above this much rage. It costs 10.', 10, ID.sbEnabled, 'Cooldowns and buffs'),
   ...bloodrageOptions(ID, {
@@ -156,8 +157,9 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.slamEnabled,
     group: 'Core abilities',
     label: 'Shield Slam',
-    help: 'Use Shield Slam whenever it’s ready, for its damage and threat. Needs the Shield Slam talent and a shield.',
+    help: 'Use Shield Slam whenever it’s ready, for its damage and threat. It stays on with Max TPS: its global cooldown and 17 rage make more threat as Sunder Armor and Heroic Strike only at Classic Era’s threat value, and Forever’s tooltip calls its threat very high.',
     default: true,
+    requires: { talent: 'Shield Slam', shield: true },
   },
   rageOption(ID.slamMinRage, 'Shield Slam from', 'Use it only at or above this much rage. It costs 17 with the default talents.', 17, ID.slamEnabled, 'Core abilities'),
   {
@@ -224,9 +226,10 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.fillerSafe,
     group: 'Fillers',
     label: 'Sunder Armor filler waits for Shield Slam',
-    help: 'Hold the filler while Shield Slam will be ready within a global cooldown, so Sunder Armor doesn’t delay it. Off by default: the global cooldown makes more threat as a Sunder Armor.',
+    help: 'Hold the filler while Shield Slam will be ready within a global cooldown, so Sunder Armor doesn’t delay it. Needs Shield Slam on. Off by default: the global cooldown makes more threat as a Sunder Armor.',
     default: false,
     dependsOn: ID.fillerEnabled,
+    alsoDependsOn: ID.slamEnabled,
   },
   ...heroicStrikeOptions(
     ID,
@@ -345,12 +348,9 @@ export function protectionRotation(
   }
 
   // Row 9: Thunder Clap, to keep its slow up (maintainOnly), or on cooldown.
-  let tc = -1
   if (v.on(ID.tcEnabled)) {
     const def = thunderClap(ctx.profile)
-    const maintain = v.on(ID.tcMaintainOnly)
-    const a = b.add(def, maintain ? [auraRefresh(b.ability(def), seconds(v, ID.tcRefresh))] : [...gcdSafe(bit(slam))])
-    if (!maintain) tc = a
+    b.add(def, v.on(ID.tcMaintainOnly) ? [auraRefresh(b.ability(def), seconds(v, ID.tcRefresh))] : [...gcdSafe(bit(slam))])
   }
 
   // Row 10: Demoralizing Shout, missing or with ≤ refreshBelowSec left.
@@ -360,10 +360,11 @@ export function protectionRotation(
   }
 
   // Row 11: the Sunder Armor filler at rage ≥ minRage; with waitForShieldSlam, GCD-safe for Shield Slam
-  // and a Thunder Clap on cooldown. Revenge waits for its window, so it isn't in the mask, as Overpower
-  // isn't in Arms' (§5.3): holding the filler for it measured worse (§5.4 "Tuning the defaults").
+  // only, so it's a setting that changes nothing without Shield Slam. Revenge waits for its window, so
+  // it isn't in the mask, as Overpower isn't in Arms' (§5.3): holding the filler for it measured worse
+  // (§5.4 "Tuning the defaults").
   if (v.on(ID.fillerEnabled)) {
-    b.add(SUNDER_ARMOR, [minRage(toTenths(v.num(ID.fillerMinRage))), ...(v.on(ID.fillerSafe) ? gcdSafe(bit(slam) | bit(tc)) : [])])
+    b.add(SUNDER_ARMOR, [minRage(toTenths(v.num(ID.fillerMinRage))), ...(v.on(ID.fillerSafe) ? gcdSafe(bit(slam)) : [])])
   }
 
   // Row 12: the Heroic Strike queue (off the GCD) at rage ≥ minRage, in both phases; and in the fight's

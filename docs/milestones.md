@@ -88,12 +88,22 @@ work is in slices:
   - Later: §5.2 rows 10 (Overpower dance) and 15 (Slam) come with M2.3, which builds those
     abilities and stance swaps. Row 14 (Sunder Armor) comes with M3. Whirlwind extra
     targets wait for multi-target support ([Later](#later)).
-- [ ] **M2.3 Arms:**
-  - Mortal Strike, Overpower (dodge trigger, stance dancing, Tactical Mastery), Slam
-    (Forever rules), Rend with Bloodthrill, Spearing Strike and Sweeping Strikes
-  - Fury's Overpower dance and Slam options (§5.2 rows 10 and 15)
-  - Deep Wounds (412609) and Weaponmaster
-  - the Arms rotation options. Then warrior-arms becomes **available**.
+- [ ] **M2.3 Arms**, in three slices:
+  - [ ] **M2.3a Arms abilities:** Mortal Strike, Slam (cast time; swing timers reset without
+        Improved Slam, untouched with it), Spearing Strike (creature types), and Rend (a bleed,
+        with Improved Rend and Forever's tick crits). Fix the docs on Impale's class mask,
+        which includes Rend and Sunder Armor (W2, W4, W6, W13).
+  - [ ] **M2.3b Stances and reactive windows:** stance swaps (1 s cooldown, rage kept per
+        Tactical Mastery, stance effects swapped), the Overpower window from dodges and
+        Bloodthrill, Improved Overpower, stance-dance lines, and GCD-safe that respects
+        stances. Then Fury's Overpower dance and Slam options (§5.2 rows 10 and 15)
+        (W5, W18).
+  - [ ] **M2.3c Arms rotation:** §5.3's priority list and options, including the Berserker
+        base-stance alternative (Q24), the Whirlwind dance, and Recklessness swapping to
+        Berserker Stance for the rest of the fight. Re-snapshot the goldens, then
+        warrior-arms becomes **available**.
+  - Sweeping Strikes waits for multi-target support ([Later](#later)); Deep Wounds and
+    Weaponmaster are already simulated.
 - [ ] **M2.4 Results and review:** results UX with real data, an e2e simulate test, the
       adversarial logic and UX review, and the first deploy
 

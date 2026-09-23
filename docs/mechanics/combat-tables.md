@@ -266,6 +266,10 @@ Bloodthirst, Mortal Strike, Shred, Holy Strike and so on.
   anything else lands the bleed, and there is no crit roll, since the application deals no
   damage ([warrior §3.1, §7](../classes/warrior.md#7-implementation-notes)). Whether its ticks
   crit is [damage-and-timing §4](damage-and-timing.md#4-dots-and-bleeds).
+- **Specials that can't be dodged, parried or blocked** (Overpower,
+  [warrior §3.1](../classes/warrior.md#31-damage-abilities)) make the same one roll with those
+  slices removed: `miss → crit → hit`. The crit slice follows the miss slice and is truncated at
+  100, so only a miss avoids them ([warrior §7](../classes/warrior.md#7-implementation-notes)).
 - *Not adopted:* two rolls for **every** special, the vanilla-era model on the
   [ZAM hit table][zam-hit] page (a forbidden, pre-Classic source). Nothing Classic Era supports
   it. With ~10% avoidance, it gives ~10% fewer yellow crits than one roll. Magey's Forever test

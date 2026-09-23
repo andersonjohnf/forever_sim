@@ -10,7 +10,7 @@ import { computeSheet, normalizeConfig } from '../index'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import type { SimConfig, SpecId } from '../types'
 import { buildPlan } from './build'
-import { STANCE, STANCE_ANY } from './types'
+import { STANCE, STANCE_ANY, TRIGGER } from './types'
 
 /** A bare config: no gear, no talents, no buffs. */
 function bare(spec: SpecId = 'warrior-arms', patch: Partial<SimConfig> = {}): SimConfig {
@@ -289,6 +289,55 @@ describe('talents, racials and stances', () => {
     expect(buildPlan(defaultConfig('warrior-arms')).plan.stance).toBe(STANCE.battle)
     expect(buildPlan(defaultConfig('warrior-protection')).plan.stance).toBe(STANCE.defensive)
     expect(buildPlan(defaultConfig('paladin-retribution')).plan.stance).toBe(STANCE_ANY)
+  })
+
+  it('turns each stance’s effects into factors on the base stance’s numbers, Defiance included (warrior.md §2.1, §7)', () => {
+    const factors = (config: SimConfig) =>
+      Object.fromEntries(buildPlan(config).plan.stances.map((s) => [s.stance, [s.damage, s.threat, s.damageTaken, s.crit]]))
+    const close = (got: number[], want: number[]) => want.forEach((w, i) => expect(got[i]).toBeCloseTo(w, 12))
+    // Fury fights in Berserker Stance: its factors are exactly 1, 1, 1 and 0.
+    const fury = factors(defaultConfig('warrior-fury'))
+    expect(fury[STANCE.berserker]).toEqual([1, 1, 1, 0])
+    close(fury[STANCE.battle], [1, 1, 1 / 1.1, -3])
+    close(fury[STANCE.defensive], [0.9, 1.3 / 0.8, 0.9 / 1.1, -3])
+    // Arms fights in Battle Stance.
+    const arms = factors(defaultConfig('warrior-arms'))
+    expect(arms[STANCE.battle]).toEqual([1, 1, 1, 0])
+    close(arms[STANCE.berserker], [1, 1, 1.1, 3])
+    // Protection with a shield: Defiance 3/3 is ×1.15 more in Defensive Stance only (W16).
+    const prot = defaultConfig('warrior-protection')
+    const shield = factors(bare('warrior-protection', { talents: prot.talents, gear: { mainHand: { itemId: 15806 }, offHand: { itemId: 12602 } } }))
+    expect(shield[STANCE.defensive]).toEqual([1, 1, 1, 0])
+    close(shield[STANCE.battle], [1 / 0.9, 0.8 / 1.495, 1 / 0.9, 0])
+    const twoHand = factors(bare('warrior-protection', { talents: prot.talents, gear: { mainHand: { itemId: 12784 } } }))
+    close(twoHand[STANCE.battle], [1 / 0.9, 0.8 / 1.3, 1 / 0.9, 0])
+    // Classes without stances have none.
+    expect(buildPlan(defaultConfig('paladin-retribution')).plan.stances).toEqual([])
+  })
+
+  it('keeps 10 + 3 per Improved Tactical Mastery rank on a swap in `forever`, 5 per rank in `classicEra` (W18, rage.md R16, R17)', () => {
+    const fury = defaultConfig('warrior-fury') // Improved Tactical Mastery 5/5
+    expect(buildPlan(fury).plan.stanceSwap).toEqual({ cooldownMs: 1000, keepTenths: 250 })
+    expect(buildPlan(withRules(fury, 'classicEra')).plan.stanceSwap.keepTenths).toBe(250)
+    expect(buildPlan(bare('warrior-fury')).plan.stanceSwap.keepTenths).toBe(100)
+    expect(buildPlan(withRules(bare('warrior-fury'), 'classicEra')).plan.stanceSwap.keepTenths).toBe(0)
+  })
+
+  it('adds the Overpower window’s dodge opener with the Overpower dance, and drops Bloodthrill without Rend (warrior.md §2.8)', () => {
+    const d = defaultConfig('warrior-fury')
+    expect(buildPlan(d).plan.procs.map((p) => p.id)).not.toContain('overpowerDodge')
+    // The Fury default with Bloodthrill 1/5 instead of a point of Improved Heroic Strike's.
+    const ranks = decodeTalentCode(TALENT_DATA.warrior, d.talents)
+    const withBloodthrill = encodeTalentCode(TALENT_DATA.warrior, { ...ranks, 'warrior-arms-bloodthrill': 1, 'warrior-arms-improved-heroic-strike': 2 })
+    const { plan, assumptions } = buildPlan({ ...d, talents: withBloodthrill, rotation: { 'warrior.fury.overpower.enabled': true } })
+    const op = plan.abilities.find((a) => a.id === 'overpower')!
+    expect(plan.auras[op.window].id).toBe('overpowerWindow')
+    const dodge = plan.procs.find((p) => p.id === 'overpowerDodge')!
+    expect(dodge).toMatchObject({ trigger: TRIGGER.targetDodge, chance: [1, 1], hands: 3, amount: op.window, b: 0 })
+    expect(plan.triggers[TRIGGER.targetDodge]).toEqual([plan.procs.indexOf(dodge)])
+    expect(plan.procs.map((p) => p.id)).not.toContain('bloodthrill')
+    expect(assumptions.map((a) => a.id)).toContain('overpowerWindow')
+    expect(assumptions.map((a) => a.id)).not.toContain('bloodthrill')
   })
 
   it('gives racial weapon crit only to that weapon’s hand', () => {

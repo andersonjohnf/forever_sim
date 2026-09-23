@@ -36,5 +36,5 @@ export function classRotation(
   context: RotationContext,
 ): ClassRotation {
   if (spec === 'warrior-fury') return furyRotation(values, talents, auraIndex, context)
-  return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [] }
+  return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
 }

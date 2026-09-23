@@ -10,6 +10,8 @@ import { glanceRange, PLAYER_LEVEL } from '../core/attack-table'
 import { NORMALIZED_SPEED, ppmChance, toTenths } from '../core/formulas'
 import { classSetup } from '../classes'
 import { classRotation, maintainedBuffs } from '../classes/rotation'
+import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
+import { type Stance, STANCE_EFFECTS } from '../classes/warrior/talents'
 import { BUFFS_BY_ID } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { ITEM_EFFECTS } from '../effects/items'
@@ -34,6 +36,7 @@ import {
   type SourcePlan,
   STANCE,
   STANCE_ANY,
+  type StancePlan,
   TRIGGER,
   TRIGGER_COUNT,
   type WeaponPlan,
@@ -251,11 +254,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     onUse: [],
     zoneGatedUnmet: false,
   }
-  const holds = (when: Condition | undefined): boolean => {
+  const holds = (when: Condition | undefined, stance = setup.stance): boolean => {
     if (!when) return true
     if (when.shield !== undefined && when.shield !== hasShield) return false
     if (when.twoHand !== undefined && when.twoHand !== twoHand) return false
-    if (when.stance !== undefined && when.stance !== setup.stance) return false
+    if (when.stance !== undefined && when.stance !== stance) return false
     if (when.creature && !when.creature.includes(fight.creatureType)) return false
     if (when.zones && !when.zones.includes(fight.zone)) {
       c.zoneGatedUnmet = true
@@ -322,6 +325,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // Racials, talents and stance.
   apply(racialEffects(config.race, classId), null)
   apply(setup.effects, null)
+  // The base stance's effects are in the static numbers, as above; each stance's factors turn them
+  // into its own, so a stance dance can switch them (warrior.md §2.1, §7 "Stances").
+  const stances: StancePlan[] = setup.stance ? stancePlans(setup.stance, setup.effects, holds) : []
 
   // Buffs, debuffs and consumables. A buff the rotation keeps up itself (the warrior's own Battle
   // Shout, warrior.md §5.2 row 1) is its aura in the fight, not a static effect, so it counts once;
@@ -443,11 +449,13 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     })
     return auras.length - 1
   }
-  const procs: ProcPlan[] = []
+  let procs: ProcPlan[] = []
+  /** The aura id each proc needs to be up (Bloodthrill: your Rend), resolved once the abilities' auras are in. */
+  const procNeeds: (string | undefined)[] = []
   const chainBits = new Map<string, number>()
-  for (const { spec, origin } of c.procs) {
+  const addProc = (spec: ProcSpec, origin: 0 | 1 | null) => {
     const proc = resolveProc(spec, origin, weapons)
-    if (!proc) continue
+    if (!proc) return
     const { action } = spec
     switch (action.kind) {
       case 'extraAttacks': {
@@ -466,6 +474,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       case 'aura':
         proc.action = ACTION.aura
         proc.amount = auraIndex(action.aura, spec.from === 'weapon' && origin !== null ? `${action.aura.id}.${origin}` : action.aura.id)
+        // Its own duration for this aura (the Overpower window: 6 s from Bloodthrill, warrior.md §2.8); 0 = the aura's.
+        proc.b = action.durationMs ?? 0
         break
       case 'rage':
         proc.action = ACTION.rage
@@ -489,9 +499,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         break
     }
     procs.push(proc)
+    procNeeds.push(spec.requiresAura)
   }
-  const triggers: number[][] = Array.from({ length: TRIGGER_COUNT }, () => [])
-  procs.forEach((p, i) => triggers[p.trigger].push(i))
+  for (const { spec, origin } of c.procs) addProc(spec, origin)
   const periodicRage = c.periodicRage.map((p) => ({ periodMs: p.periodMs, tenths: toTenths(p.amount), source: -1 }))
 
   // --- Abilities and the priority list (docs/classes/warrior.md §5) ------------------------------
@@ -501,21 +511,36 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         items: itemUses,
         consumables: c.onUse.flatMap((u) => (u.use ? [u.use] : [])),
         executePhase: fight.executePct > 0,
+        profile,
       })
-    : { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [] }
+    : { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
   // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), a
   // cast's buff or a bleed's marker joins the plan's auras (Death Wish, Recklessness, racial
   // cooldowns; Rend), and the encounter's creature type picks the weapon share (Spearing Strike).
+  // A reactive ability's window is an aura too (the Overpower window, warrior.md §2.8, §7).
   const abilities: AbilityPlan[] = classRot.abilities.map((def) => {
-    const { offHand, aura, vsCreature: _, ...a } = def
+    const { offHand, aura, vsCreature: _, window, ...a } = def
     return {
       ...a,
       weaponPercent: weaponPercentVs(def, fight.creatureType),
       source: sourceIndex(a.id, a.name, a.icon),
       offHandSource: offHand && weapons[HAND.off] ? sourceIndex(`${a.id}OffHand`, `${a.name} (off hand)`, a.icon) : -1,
       aura: aura ? auraIndex(aura, aura.id) : -1,
+      window: window ? auraIndex(window, window.id) : -1,
     }
   })
+  // The rotation's own procs (the Overpower window's openers, warrior.md §2.8). A proc that needs an
+  // aura (Bloodthrill: your Rend on the target) is rolled only while it's up, and left out if the plan
+  // has no such aura (no Rend in the rotation).
+  for (const spec of classRot.procs) addProc(spec, null)
+  procs = procs.flatMap((p, i) => {
+    const need = procNeeds[i]
+    if (need === undefined) return [p]
+    const aura = auras.findIndex((a) => a.id === need)
+    return aura < 0 ? [] : [{ ...p, requiresAura: aura }]
+  })
+  const triggers: number[][] = Array.from({ length: TRIGGER_COUNT }, () => [])
+  procs.forEach((p, i) => triggers[p.trigger].push(i))
 
   // --- Fight ------------------------------------------------------------------------------------
   const front = fight.position === 'front'
@@ -533,6 +558,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     seed: config.run.seed >>> 0,
     playerLevel: PLAYER_LEVEL,
     stance: setup.stance ? STANCE[setup.stance] : STANCE_ANY,
+    stances,
+    stanceSwap: { cooldownMs: STANCE_SWAP_COOLDOWN_MS, keepTenths: stanceSwapKeepTenths(setup.talents, profile) },
     fight: {
       durationMs: Math.round(fight.durationSec * 1000),
       variation: fight.durationVariationPct / 100,
@@ -657,6 +684,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   ]
   if (setup.simulated && notPressed.length) notes.add('onUseConsumables', notPressed.join(', '))
   if (abilities.some((a) => a.id === 'weaknessAnalyzer')) notes.add('weaknessAnalyzer')
+  if (abilities.some((a) => a.window >= 0)) notes.add('overpowerWindow')
+  if (procIds.has('bloodthrill')) notes.add('bloodthrill')
   if (c.zoneGatedUnmet) notes.add('hyjalFlask')
 
   return { plan, sheet, assumptions: notes.toArray(), blockers }
@@ -744,13 +773,44 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
   }
 }
 
+/**
+ * What each warrior stance changes relative to the base stance (warrior.md §2.1, §7 "Stances"):
+ * its own effects and the talents' stance-bound ones (Defiance) that hold in it, as factors on the
+ * base stance's damage, threat and damage taken and a crit delta, so the base stance's are exactly
+ * 1, 1, 1 and 0 and its static numbers are untouched.
+ */
+function stancePlans(base: Stance, effects: Effect[], holds: (when: Condition | undefined, stance: Stance) => boolean): StancePlan[] {
+  const bound = effects.filter((e) => e.when?.stance !== undefined)
+  const mods = (stance: Stance) => {
+    const m = { damage: 1, threat: 1, damageTaken: 1, crit: 0 }
+    for (const e of [...STANCE_EFFECTS[stance], ...bound]) {
+      if (!holds(e.when, stance)) continue
+      if (e.kind === 'damage' && !e.physicalOnly) m.damage *= 1 + e.pct / 100
+      else if (e.kind === 'threat') m.threat *= 1 + e.pct / 100
+      else if (e.kind === 'damageTaken') m.damageTaken *= 1 + e.pct / 100
+      else if (e.kind === 'stat' && e.stat === 'crit') m.crit += e.value
+      else throw new Error(`A stance effect the engine can't switch: ${e.kind}`)
+    }
+    return m
+  }
+  const b = mods(base)
+  return (['battle', 'defensive', 'berserker'] as const).map((stance) => {
+    const m = mods(stance)
+    return { stance: STANCE[stance], damage: m.damage / b.damage, threat: m.threat / b.threat, damageTaken: m.damageTaken / b.damageTaken, crit: m.crit - b.crit }
+  })
+}
+
 const TRIGGER_CODE: Record<ProcSpec['trigger'], number> = TRIGGER
 
 /** Resolves hands and chances for a proc; null when nothing can trigger it in this setup. */
 function resolveProc(spec: ProcSpec, origin: 0 | 1 | null, weapons: [Weapon | null, Weapon | null]): ProcPlan | null {
   const trigger = TRIGGER_CODE[spec.trigger]
   const onAttack =
-    trigger === TRIGGER.meleeLanded || trigger === TRIGGER.whiteLanded || trigger === TRIGGER.swingLanded || trigger === TRIGGER.meleeCrit
+    trigger === TRIGGER.meleeLanded ||
+    trigger === TRIGGER.whiteLanded ||
+    trigger === TRIGGER.swingLanded ||
+    trigger === TRIGGER.meleeCrit ||
+    trigger === TRIGGER.targetDodge
   let hands = 0
   if (onAttack) {
     for (const w of weapons) {

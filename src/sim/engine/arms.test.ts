@@ -6,142 +6,29 @@
 // (rage.md#rage-refunds-on-avoided-abilities); stances; determinism.
 import { describe, expect, it } from 'vitest'
 import { BLOODRAGE, DEATH_WISH, HEROIC_STRIKE, MORTAL_STRIKE, REND, SLAM, SPEARING_STRIKE } from '../classes/warrior/abilities'
-import { type TalentRanks, withTalents } from '../classes/warrior/modifiers'
-import { addSample, emptyMoments, stdev } from '../core/welford'
-import { defaultConfig } from '../defaults'
-import { buildPlan } from '../plan/build'
-import {
-  type AbilityDef,
-  ACTION,
-  COND,
-  type Plan,
-  type RotationCondition,
-  STANCE,
-  TRIGGER,
-  TRIGGER_COUNT,
-  type WeaponPlan,
-  weaponPercentVs,
-} from '../plan/types'
+import { type AbilityDef, ACTION, COND, type Plan, type RotationCondition, STANCE, TRIGGER, TRIGGER_COUNT, type WeaponPlan } from '../plan/types'
 import { CLASSIC_ERA } from '../rules/profiles'
 import type { CreatureType } from '../types'
 import { FIELD, FIELD_COUNT, SOURCE_MAIN_HAND, Sim } from './sim'
+import {
+  addAbility,
+  alwaysLandNoCrit,
+  armsPlan,
+  at,
+  counter,
+  damages,
+  expectMean,
+  from,
+  line,
+  O,
+  rageAtPull,
+  refresh,
+  setAttackPower,
+  T,
+  timeline,
+  W,
+} from './test-helpers'
 
-/** "Two-hander T" and "one-hander O" of warrior.md §8. */
-const T: Partial<WeaponPlan> = { min: 105, max: 157, speedSec: 3.8, twoHand: true, normalizedSpeed: 3.3 }
-const O: Partial<WeaponPlan> = { min: 106, max: 198, speedSec: 2.6, twoHand: false, normalizedSpeed: 2.4 }
-
-/**
- * The default Arms warrior (Battle Stance) with two-hander T, no buffs, procs, periodic rage,
- * armor or damage multipliers, a fight of exactly `durationMs`, and no abilities yet: each test
- * adds its own with `addAbility` and `line`.
- */
-function armsPlan(durationMs: number): Plan {
-  const d = defaultConfig('warrior-arms')
-  const plan = buildPlan({ ...d, buffs: { raid: d.buffs.raid, enabled: [] }, fight: { ...d.fight, durationVariationPct: 0 } }).plan
-  expect(plan.abilities).toEqual([])
-  expect(plan.stance).toBe(STANCE.battle)
-  plan.weapons = [{ ...plan.weapons[0]!, ...T }, null]
-  plan.procs = []
-  plan.triggers = Array.from({ length: TRIGGER_COUNT }, () => [])
-  plan.periodicRage = []
-  plan.fight.targetArmor = 0
-  plan.fight.durationMs = durationMs
-  plan.damageMult = 1
-  plan.physicalMult = 1
-  return plan
-}
-
-/**
- * Adds an ability to a plan as the plan builder does (build.ts): the build's talents, a breakdown
- * row, its aura or bleed marker, and its weapon share against the creature type. Returns its index.
- */
-function addAbility(plan: Plan, def: AbilityDef, talents: TalentRanks = new Map(), creatureType: CreatureType = 'none'): number {
-  const resolved = withTalents(def, talents)
-  const { offHand: _, aura, vsCreature: __, ...a } = resolved
-  plan.sources.push({ id: a.id, name: a.name, icon: a.icon })
-  let auraIndex = -1
-  if (aura) {
-    const m = aura.mods
-    plan.auras.push({
-      id: aura.id,
-      name: aura.name,
-      durationMs: aura.durationMs,
-      maxStacks: 1,
-      whiteSwingCharges: 0,
-      critCharges: 0,
-      str: 0,
-      agi: 0,
-      ap: m.ap ?? 0,
-      apPct: 0,
-      crit: m.crit ?? 0,
-      haste: m.haste ?? 0,
-      damage: m.damage ?? 0,
-    })
-    auraIndex = plan.auras.length - 1
-  }
-  plan.abilities.push({ ...a, weaponPercent: weaponPercentVs(resolved, creatureType), source: plan.sources.length - 1, offHandSource: -1, aura: auraIndex })
-  return plan.abilities.length - 1
-}
-
-const line = (plan: Plan, ability: number, conditions: RotationCondition[] = []) => plan.rotation.push({ ability, conditions, unqueueBelowTenths: 0 })
-/** Usable from `t` ms into a fight of `durationMs` (time left ≤ durationMs − t). */
-const from = (plan: Plan, t: number): RotationCondition => ({ code: COND.timeLeftAtMost, a: plan.fight.durationMs - t, b: 0 })
-/** Usable only at `t` (time left ≥ and ≤ durationMs − t). */
-const at = (plan: Plan, t: number): RotationCondition[] => [from(plan, t), { code: COND.timeLeftAtLeast, a: plan.fight.durationMs - t, b: 0 }]
-/** Rend missing from the target, or under `ms` of ticks left. */
-const refresh = (ability: number, ms: number): RotationCondition => ({ code: COND.abilityAuraRefresh, a: ability, b: ms })
-/** Rage at the pull, in rage (Plan.prepull's Charge rage, with no stance cap). */
-const rageAtPull = (plan: Plan, rage: number) => (plan.prepull = { casts: [], chargeTenths: rage * 10, keepTenths: -1 })
-
-/** Every attack lands (100% hit, no dodge) and never crits. */
-function alwaysLandNoCrit(plan: Plan): void {
-  plan.stats.hit = 100
-  plan.stats.crit = -100
-  plan.fight.bossCanDodge = false
-}
-
-function setAttackPower(plan: Plan, ap: number): void {
-  plan.stats.ap += ap - new Sim(plan).inspect().attackPower
-  expect(new Sim(plan).inspect().attackPower).toBeCloseTo(ap, 9)
-}
-
-/** Damage events of one breakdown row over `fights` fights. */
-function damages(plan: Plan, row: number, fights: number): number[] {
-  const sim = new Sim(plan)
-  const out: number[] = []
-  sim.damageTrace = (s, damage) => {
-    if (s === row) out.push(damage)
-  }
-  for (let i = 0; i < fights; i++) sim.runFight(i)
-  return out
-}
-
-/** The sample mean is within 4 standard errors of `expected`. */
-function expectMean(xs: number[], expected: number) {
-  const m = emptyMoments()
-  for (const x of xs) addSample(m, x)
-  const se = stdev(m) / Math.sqrt(m.n)
-  expect(Math.abs(m.mean - expected), `mean ${m.mean} vs ${expected} (SE ${se})`).toBeLessThanOrEqual(4 * se)
-}
-
-/** One fight's white swings per hand, bleed ticks per row, and uses per ability, as times. */
-function timeline(plan: Plan, fight = 0) {
-  const sim = new Sim(plan)
-  const swings: [number[], number[]] = [[], []]
-  const ticks: number[] = []
-  const uses: number[][] = plan.abilities.map(() => [])
-  const rageAtUse: number[][] = plan.abilities.map(() => [])
-  sim.trace = (_source, hand, time) => (hand >= 0 ? swings[hand].push(time) : ticks.push(time))
-  sim.castTrace = (a, time, rage) => {
-    uses[a].push(time)
-    rageAtUse[a].push(rage)
-  }
-  sim.runFight(fight)
-  return { sim, swings, ticks, uses, rageAtUse }
-}
-
-const counter = (sim: Sim, row: number, field: number) => sim.counters[row * FIELD_COUNT + field]
-const W = 131 // two-hander T's average roll, fixed so a hit is exactly the average
 const AP_NORMALIZED = (1800 / 14) * 3.3 // 424.29
 const AP_REAL = (1800 / 14) * 3.8 // 488.57
 

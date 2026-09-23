@@ -70,7 +70,10 @@ A spec is data plus small ability modules, never its own loop.
   sums gear and set bonuses, turns enchants, buffs, racials, talents and stance into **effects**
   (`sim/effects/types.ts`), resolves every condition once (shield, two-hander, stance, zone,
   creature type), derives the character sheet, and flattens procs and auras into a **plan**: a
-  plain object of numbers that posts to workers by structured clone. The engine and worker import
+  plain object of numbers that posts to workers by structured clone. The base stance's effects
+  are in the plan's static numbers; each stance's effects, with the talents bound to one
+  (Defiance), become factors on them and a crit delta (`Plan.stances`), which are exactly 1 and 0
+  for the base stance, so a warrior can swap stances in the fight. The engine and worker import
   no datasets, so the worker bundle stays small.
 - A buff the rotation keeps up itself (the warrior's own Battle Shout) is left out of the static
   effects and becomes an aura in the fight, so it counts once; the character sheet still shows
@@ -105,9 +108,9 @@ A spec is data plus small ability modules, never its own loop.
 - **Events:** main-hand and off-hand swings, boss swings (tank specs), aura expiry, bleed ticks
   (Deep Wounds, Rend), the end of an ability's cast time (Slam), periodic rage (Anger
   Management), a cast's rage ticks (Bloodrage), stand-in incoming hits for
-  DPS specs, "the rotation may act" events when a GCD or an ability's cooldown ends, a
-  time-left condition becomes true or an upkeep line's refresh window opens, and the start of
-  the execute phase at `t_exec` (specs with a rotation). Fights end at a per-fight length drawn
+  DPS specs, "the rotation may act" events when a GCD, an ability's cooldown or the stance swap
+  cooldown ends, a time-left condition becomes true or an upkeep line's refresh window opens, and
+  the start of the execute phase at `t_exec` (specs with a rotation). Fights end at a per-fight length drawn
   from the encounter's variation.
 - **The pre-pull** (`Plan.prepull`) runs before a fight's first event: casts at negative times
   that cost nothing (Battle Shout at −3 s, Bloodrage at −1 s), so their auras have part of
@@ -116,22 +119,27 @@ A spec is data plus small ability modules, never its own loop.
 - **Attack resolution:** the white table per hand is rebuilt only when stats change; a swing is one
   roll against its cumulative thresholds (combat-tables §2). Damage follows damage-and-timing §2.6.
   Boss swings roll the boss → player table (§8) with armor, block value, crushing and crits.
-  Specials use their own table per hand (no glancing, no dual-wield penalty, combat-tables §3),
-  and the off hand keeps a second white table without the penalty for while Heroic Strike is
-  queued (§5).
+  Specials use their own table per hand (no glancing, no dual-wield penalty, combat-tables §3);
+  one that can't be dodged, parried or blocked (Overpower) rolls only miss, then crit. The off
+  hand keeps a second white table without the penalty for while Heroic Strike is queued (§5).
 - **Auras and procs** are generic: PPM or flat chance per hand, internal cooldowns, charges consumed
   by white swings (Flurry) or by crits dealt (Weakness Analyzer), stacks, stat, AP, AP %, crit,
   haste and damage mods (applied by a proc or a cast), and actions (extra attacks with chain rules, auras, rage energizes, magic damage,
   weapon bleeds such as Deep Wounds).
   Triggers: melee landed, white landed, swing landed (white, extra attack or an on-next-swing
-  ability's swing), melee crit, damage taken, block, dodge or parry. Stats are
+  ability's swing), melee crit, damage taken, block, dodge or parry, and the target's dodge of
+  any attack (the Overpower window). A proc can need an aura to be up (Bloodthrill: your Rend on
+  the target); it isn't rolled while the aura is down, and a plan without that aura leaves it out.
+  A proc can give its aura its own duration (Bloodthrill's 6 s Overpower window against a dodge's
+  5 s); a refresh of such an aura keeps the later end. Stats are
   re-derived only when an aura that changes attributes starts or ends; haste and damage
   multipliers update without a full re-derive.
 - **Rage** is integer tenths with a cap; energizes make 5 threat per rage. Abilities pay their cost
   when used (an on-next-swing one when its swing happens, one with a cast time when the cast
   completes) and refund their share of it on a miss,
   dodge or parry, with no threat. Execute then converts the rage left and, if it lands, spends it. **Threat** is (damage × ability multiplier + ability bonus) ×
-  the static global multiplier (stance, Defiance, Salvation, enchants).
+  the global multiplier: the static one (Salvation, enchants, the base stance and Defiance) times
+  the current stance's factor.
 - **Hot-loop discipline:** one monomorphic `Sim` class over typed arrays, no allocation per event,
   per-fight state reset rather than reallocated, and a plan flattened once in the constructor.
   The default Fury warrior (with its M2.2c rotation: the pre-pull, Battle Shout's upkeep and the
@@ -140,7 +148,9 @@ A spec is data plus small ability modules, never its own loop.
   was measured), and the default with the M2.2c rows switched off still does. M2.2a ran about
   11,700, M2.1 about 12,300, and about 17,800 as bundled JavaScript in Node. M2.3a's cast times
   and bleeds, which the Fury rotation doesn't use, left it unchanged: about 9,400 both before and
-  after, measured on a busier machine.
+  after, measured on a busier machine. M2.3b's stances, dances and Overpower window, also unused
+  by the default, cost it about 2%: about 9,550 against 9,800 before, medians of five runs each,
+  measured back to back.
 - **Abilities** are rows of `Plan.abilities` (`AbilityPlan`), resolved by one switch on `kind`:
   `weaponStrike` (one roll: Whirlwind, Hamstring, …), `meleeSpell` (two rolls: Bloodthirst,
   Execute, …), `onNextSwing` (Heroic Strike: queued off the GCD, it replaces the next
@@ -160,16 +170,19 @@ A spec is data plus small ability modules, never its own loop.
   meanwhile wait for it. Each row carries cost, cooldown, GCD, cast time and whether it stops
   swings, the stances it can be used in, whether it needs the execute phase or a two-hander,
   weapon share and normalization, flat and AP damage, damage per extra rage (Execute), bonus
-  crit, crit multiplier, refund share, threat, an optional off-hand strike with its own breakdown
+  crit, crit multiplier, whether it can be dodged, parried and blocked, the window it needs and
+  ends (Overpower's), refund share, threat, an optional off-hand strike with its own breakdown
   row (Raging Blows' Whirlwind), for casts the aura (a plan aura index) and the rage, and for
   bleeds the tick damage, count and period and the periodic-crit flag. A cast's rage is an
-  energize: capped, with 5 threat per rage on its row. Numbers
+  energize: capped, with 5 threat per rage on its row. A **reactive** ability (Overpower) is
+  usable only while its window, an aura, is up, and using it ends the window; the procs that open
+  it (a dodge, Bloodthrill) come with the rotation that uses it. Numbers
   come from the Forever client (`src/data/client/spells.json`), written out per ability in
   `sim/classes/warrior/abilities.ts` and checked against the client data by its tests, so the
   app bundle doesn't carry the dataset. The plan applies the build's talents to them
   (`sim/classes/warrior/modifiers.ts`: cost reductions, Impale, Raging Blows, Improved
-  Bloodrage, Improved Berserker Rage, Improved Rend, Improved Slam), and resolves an ability's
-  weapon share against the encounter's creature type (Spearing Strike), so the engine sees only
+  Bloodrage, Improved Berserker Rage, Improved Rend, Improved Slam, Improved Overpower), and
+  resolves an ability's weapon share against the encounter's creature type (Spearing Strike), so the engine sees only
   resolved numbers.
 - **Rotation:** `Plan.rotation` is a priority list of `RotationEntry` lines (an ability plus
   conditions: rage at least or at most a value, another ability's cooldown, GCD-safe, aura down,
@@ -181,9 +194,16 @@ A spec is data plus small ability modules, never its own loop.
   The spec declares its settings as `RotationOption`s (`sim/classes/rotation.ts`), and the plan
   builder turns `config.rotation` plus those defaults into the list. Whenever something the list
   depends on changes (rage gained or spent, the GCD, a cooldown, an aura, the queue, the phase, a
-  time-left threshold), the engine walks it in order and uses every usable line whose
+  time-left threshold, the stance), the engine walks it in order and uses every usable line whose
   conditions hold: at most one GCD ability, plus off-GCD lines. A usable line's ability is off
-  cooldown, affordable, allowed in the current stance and, for Execute, in the execute phase.
+  cooldown, affordable, allowed in the current stance and, for Execute, in the execute phase; a
+  reactive ability's lines also need its window, a condition the engine puts first on them.
+  **Stances** (warrior.md §7): a line can **dance** to a stance its ability needs. If the swap
+  cooldown (1 s, shared, off the GCD) has ended and the rage the swap keeps still pays for the
+  ability, the engine swaps, which keeps at most the Tactical Mastery cap, and uses the ability at
+  once. Away from the base stance, each walk first swaps back if the cooldown has ended, so a
+  dance returns 1 s later. A GCD-safe condition skips an ability the current stance refuses
+  unless a line dances for it.
   The engine resolves two kinds of condition before any walk. It sorts the lines into one list
   per phase up front, so a walk skips the lines that can't apply in the current phase. And since
   each fight's drawn length is known, it turns time-left conditions into a window of times per

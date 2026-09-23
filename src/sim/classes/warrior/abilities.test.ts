@@ -1,13 +1,15 @@
-// The warrior ability rows (strikes, Rend's bleed, and the cooldowns and racial cooldowns as
-// casts) and talent modifiers against the Forever client data, the cost tables and worked
-// examples (W10, W11, W13, W19, W20, W21), and the Fury priority list built from its settings
-// (docs/classes/warrior.md §2.3, §2.5, §2.9, §3.1, §3.2, §4.1, §5.2; docs/data/client.md).
+// The warrior ability rows (strikes, Rend's bleed, Overpower and its window, and the cooldowns and
+// racial cooldowns as casts), stance swaps and talent modifiers against the Forever client data,
+// the cost tables and worked examples (W10, W11, W13, W18, W19, W20, W21; rage.md R16, R17), and
+// the Fury priority list built from its settings (docs/classes/warrior.md §2.1, §2.3, §2.5, §2.8,
+// §2.9, §3.1, §3.2, §4.1, §5.2; docs/data/client.md).
 import { describe, expect, it } from 'vitest'
 import spellsJson from '@/data/client/spells.json'
 import talentsJson from '@/data/client/talents.json'
 import type { ClientSpells, ClientTalents } from '@/data/client/types'
 import { TALENT_DATA } from '../../defaults'
 import { COND, STANCE, STANCE_ANY, weaponPercentVs } from '../../plan/types'
+import { CLASSIC_ERA, FOREVER } from '../../rules/profiles'
 import type { CreatureType } from '../../types'
 import { talentRanksByName } from '../index'
 import { BUFFS_BY_ID, JUJU_FLURRY, MIGHTY_RAGE_POTION } from '../../effects/buffs'
@@ -20,6 +22,8 @@ import {
   BLOOD_FURY,
   BLOODRAGE,
   BLOODTHIRST,
+  BLOODTHRILL_PCT_PER_RANK,
+  BLOODTHRILL_WINDOW_MS,
   CHARGE_RAGE_TENTHS,
   DEATH_WISH,
   ELUNES_LIGHT,
@@ -31,15 +35,30 @@ import {
   IMPROVED_CHARGE_TENTHS_PER_RANK,
   MORTAL_STRIKE,
   onUseAbility,
+  OVERPOWER,
+  OVERPOWER_WINDOW,
+  overpowerWindowProcs,
   RACIAL_COOLDOWNS,
   RECKLESSNESS,
   REND,
   SLAM,
   SPEARING_STRIKE,
+  STANCE_SWAP_COOLDOWN_MS,
+  stanceSwapKeepTenths,
   WHIRLWIND,
 } from './abilities'
 import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation, PREPULL_BLOODRAGE_MS, PREPULL_SHOUT_MS } from './fury'
-import { abilityCritMultiplier, costReduction, FOCUSED_RAGE, IMPALE, IMPROVED_REND_PCT, IMPROVED_SLAM_MS_PER_RANK, rageCost, withTalents } from './modifiers'
+import {
+  abilityCritMultiplier,
+  costReduction,
+  FOCUSED_RAGE,
+  IMPALE,
+  IMPROVED_OVERPOWER_CRIT_PER_RANK,
+  IMPROVED_REND_PCT,
+  IMPROVED_SLAM_MS_PER_RANK,
+  rageCost,
+  withTalents,
+} from './modifiers'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
 const clientTalents = (talentsJson as unknown as ClientTalents).classes.warrior.talents
@@ -115,7 +134,7 @@ const PERIODIC_CAN_CRIT = 0x200
 const PERIODIC_DAMAGE = 3
 
 describe('warrior abilities match src/data/client/spells.json', () => {
-  for (const ability of [...ABILITIES, ...ARMS_STRIKES]) {
+  for (const ability of [...ABILITIES, ...ARMS_STRIKES, OVERPOWER]) {
     const id = SPELL_ID[ability.id]
     it(`${ability.name} (${id})`, () => {
       const spell = spells[String(id)]
@@ -208,6 +227,83 @@ describe('warrior abilities match src/data/client/spells.json', () => {
     expect(REND.aura).toEqual({ id: 'rend', name: 'Rend', durationMs: spell.duration!.duration, mods: {} })
     expect(REND.periodicCanCrit).toBe((spell.misc!.attributes![8] & PERIODIC_CAN_CRIT) !== 0)
     expect(REND.weaponPercent).toBe(0)
+  })
+})
+
+describe('Overpower, its window and Bloodthrill (warrior.md §2.8, §3.1, §4.1)', () => {
+  it('Overpower (11585) is a Battle Stance strike for 5 rage and a point of the window (power type 4), unavoidable, refunding 80%, threat × 0.75', () => {
+    const spell = spells['11585']
+    expect(spell.power).toEqual([
+      { manaCost: OVERPOWER.costTenths, powerType: RAGE },
+      { manaCost: 1, optionalCost: 4, powerType: 4 },
+    ])
+    expect(OVERPOWER.stances).toBe(STANCE.battle)
+    expect([OVERPOWER.kind, OVERPOWER.unavoidable, OVERPOWER.refundShare, OVERPOWER.threatMult, OVERPOWER.threatBonus]).toEqual(['weaponStrike', true, 0.8, 0.75, 0])
+    expect(OVERPOWER.window).toBe(OVERPOWER_WINDOW)
+    // Every other strike can be dodged, parried and blocked.
+    for (const a of [...ABILITIES, ...ARMS_STRIKES, REND]) expect(a.unavoidable, a.id).toBe(false)
+  })
+
+  it('the window (1282733) lasts 5 s; the client stacks it to 3, the sim keeps one (Q10)', () => {
+    const spell = spells['1282733']
+    expect(spell.name).toBe('Overpower')
+    expect(spell.duration?.duration).toBe(OVERPOWER_WINDOW.durationMs)
+    expect(spell.auraOptions?.cumulativeAura).toBe(3)
+    expect(OVERPOWER_WINDOW.maxStacks ?? 1).toBe(1)
+    // It energizes the point of power type 4 that Overpower spends.
+    expect(spell.effects.find((e) => e.effect === ENERGIZE)?.effectMiscValue?.[0]).toBe(4)
+  })
+
+  it('Improved Overpower adds 25% crit per rank (12290: aura 107, misc 7); Focused Rage takes 1 rage per rank off it', () => {
+    const talent = spells['12290']
+    expect([talent.effects[0].effectAura, talent.effects[0].effectMiscValue?.[0]]).toEqual([107, 7])
+    expect(clientTalents.find((c) => c.name === 'Improved Overpower')!.rankEffects).toMatchObject([
+      { effectIndex: 0, values: [IMPROVED_OVERPOWER_CRIT_PER_RANK, 2 * IMPROVED_OVERPOWER_CRIT_PER_RANK] },
+    ])
+    expect(inMask('overpower', talent.effects[0].effectSpellClassMask!)).toBe(true)
+    expect([0, 1, 2].map((r) => withTalents(OVERPOWER, new Map([['Improved Overpower', r]])).bonusCrit)).toEqual([0, 25, 50])
+    expect(withTalents(OVERPOWER, new Map([['Focused Rage', 3], ['Impale', 2]]))).toMatchObject({ costTenths: 20, critMultiplier: 2.2 })
+  })
+
+  it('opens on any dodge for 5 s; Bloodthrill (1289682, proc mask 4: auto attacks) at 2% per rank for 6 s with your Rend up', () => {
+    const talent = spells['1289682']
+    expect(talent.auraOptions?.procTypeMask?.[0]).toBe(4)
+    expect(clientTalents.find((c) => c.name === 'Bloodthrill')!.rankEffects[0].values).toEqual([1, 2, 3, 4, 5].map((r) => BLOODTHRILL_PCT_PER_RANK * r))
+    expect(overpowerWindowProcs(new Map())).toEqual([
+      expect.objectContaining({ trigger: 'targetDodge', from: 'any', chance: { pct: 100 }, action: { kind: 'aura', aura: OVERPOWER_WINDOW } }),
+    ])
+    const [, bloodthrill] = overpowerWindowProcs(new Map([['Bloodthrill', 5]]))
+    expect(bloodthrill).toMatchObject({
+      trigger: 'whiteLanded',
+      chance: { pct: 10 },
+      action: { kind: 'aura', aura: OVERPOWER_WINDOW, durationMs: BLOODTHRILL_WINDOW_MS },
+      requiresAura: REND.aura!.id,
+    })
+    expect(BLOODTHRILL_WINDOW_MS).toBe(6000)
+  })
+})
+
+describe('stance swaps (warrior.md §2.1, W18; rage.md#stance-changes-and-tactical-mastery R16, R17)', () => {
+  it('share a 1 s cooldown, off the GCD (category 47)', () => {
+    for (const id of ['2457', '71', '2458']) {
+      expect(spells[id].cooldowns).toEqual({ categoryRecoveryTime: STANCE_SWAP_COOLDOWN_MS })
+      expect(spells[id].categories?.category).toBe(47)
+    }
+  })
+
+  it('keep 10 + 3 per Improved Tactical Mastery rank in `forever` (1310185 keeps 10; 12295’s curve 3–15), 5 per rank in `classicEra`', () => {
+    expect(spells['1310185'].effects[0].effectBasePointsF).toBe(10)
+    expect(clientTalents.find((c) => c.name === 'Improved Tactical Mastery')!.rankEffects[0].values).toEqual([3, 6, 9, 12, 15])
+    const keep = (profile: typeof FOREVER) => [0, 1, 2, 3, 4, 5].map((r) => stanceSwapKeepTenths(new Map([['Improved Tactical Mastery', r]]), profile))
+    expect(keep(FOREVER)).toEqual([100, 130, 160, 190, 220, 250])
+    expect(keep(CLASSIC_ERA)).toEqual([0, 50, 100, 150, 200, 250])
+    // W18: 60 rage keeps 25 at 5/5 and 10 at 0/5 (Classic 0/5 kept 0); R16: 3/5 keeps 19; R17: Classic 5/5 keeps 25.
+    expect(Math.min(600, keep(FOREVER)[5])).toBe(250)
+    expect(Math.min(600, keep(FOREVER)[0])).toBe(100)
+    expect(Math.min(600, keep(CLASSIC_ERA)[0])).toBe(0)
+    expect(Math.min(180, keep(FOREVER)[5])).toBe(180)
+    expect(Math.min(600, keep(FOREVER)[3])).toBe(190)
+    expect(Math.min(600, keep(CLASSIC_ERA)[5])).toBe(250)
   })
 })
 
@@ -557,9 +653,11 @@ describe('Fury rotation options (warrior.md §5.1, §5.2)', () => {
       'execute', // 6, 7
       'bloodthirst', // 8
       'whirlwind', // 9
+      'overpower', // 10
       'heroicStrike', // 11
       'hamstring', // 12
       'berserkerRage', // 13
+      'slam', // 15
       'ragePotion', // 16
       'jujuFlurry', // 17
     ])
@@ -861,5 +959,67 @@ describe('furyRotation: Battle Shout, the pre-pull, trinkets and consumables (wa
     expect(linesOf(r, 'jujuFlurry')).toEqual([[]])
     expect(r.onUse.sort()).toEqual(['jujuFlurry', 'mightyRagePotion', 'weaknessAnalyzer'])
     expect(ids(furyRotation({ 'warrior.fury.jujuFlurry.enabled': false }, talents, noAura, { consumables: [JUJU_FLURRY] }))).not.toContain('jujuFlurry')
+  })
+})
+
+describe('furyRotation: the Overpower dance and Slam (warrior.md §5.2 rows 10 and 15)', () => {
+  const noAura = () => -1
+  const talents = new Map([
+    ['Bloodthirst', 1],
+    ['Improved Berserker Rage', 2],
+  ])
+  type Rot = ReturnType<typeof furyRotation>
+  const ids = (r: Rot) => r.rotation.map((e) => r.abilities[e.ability].id)
+  const linesOf = (r: Rot, id: string) => r.rotation.filter((e) => r.abilities[e.ability].id === id)
+  const at = (r: Rot, id: string) => r.abilities.findIndex((a) => a.id === id)
+  const safe = (mask: number) => ({ code: COND.gcdSafe, a: mask, b: 1500 })
+  const inExec = { code: COND.executePhase, a: 1, b: 0 }
+  const notExec = { code: COND.executePhase, a: 0, b: 0 }
+
+  it('are off by default, so the default list, its abilities and its procs don’t change', () => {
+    const defaults = Object.fromEntries(FURY_OPTIONS.map((o) => [o.id, o.default]))
+    expect(defaults).toMatchObject({ 'warrior.fury.overpower.enabled': false, 'warrior.fury.overpower.maxRage': 25, 'warrior.fury.slam.enabled': false })
+    const r = furyRotation({}, talents, noAura)
+    expect(r.abilities.map((a) => a.id)).not.toContain('overpower')
+    expect(r.abilities.map((a) => a.id)).not.toContain('slam')
+    expect(r.procs).toEqual([])
+    expect(r.rotation.every((e) => e.danceTo === undefined)).toBe(true)
+  })
+
+  it('row 10: an Overpower dance to Battle Stance after Whirlwind, GCD-safe for Bloodthirst and Whirlwind at rage ≤ maxRage, in both phases as row 13', () => {
+    const r = furyRotation({ 'warrior.fury.overpower.enabled': true }, talents, noAura)
+    const [bt, ww, op] = [at(r, 'bloodthirst'), at(r, 'whirlwind'), at(r, 'overpower')]
+    const limit = { code: COND.maxRage, a: 250, b: 0 }
+    expect(ids(r).slice(ids(r).lastIndexOf('whirlwind') + 1, ids(r).indexOf('heroicStrike'))).toEqual(['overpower', 'overpower', 'overpower'])
+    const lines = linesOf(r, 'overpower')
+    expect(lines.map((e) => e.danceTo)).toEqual([STANCE.battle, STANCE.battle, STANCE.battle])
+    expect(lines.map((e) => e.conditions)).toEqual([
+      [notExec, safe((1 << bt) | (1 << ww)), limit],
+      [inExec, { code: COND.apAtLeast, a: 2220, b: 0 }, safe(1 << bt), limit],
+      [inExec, { code: COND.apBelow, a: 2220, b: 0 }, limit],
+    ])
+    expect(r.abilities[op]).toMatchObject({ costTenths: 50, stances: STANCE.battle, unavoidable: true, window: OVERPOWER_WINDOW })
+    // Its window's opener comes with it: a dodge; Bloodthrill too when talented (the plan drops it without Rend).
+    expect(r.procs).toEqual(overpowerWindowProcs(talents))
+    expect(furyRotation({ 'warrior.fury.overpower.enabled': true }, new Map([['Bloodthrill', 5]]), noAura).procs.map((p) => p.id)).toEqual(['overpowerDodge', 'bloodthrill'])
+    // Without the execute phase, one line; the rage limit follows the setting.
+    const noExec = furyRotation({ 'warrior.fury.overpower.enabled': true, 'warrior.fury.execute.enabled': false, 'warrior.fury.overpower.maxRage': 20 }, talents, noAura)
+    expect(linesOf(noExec, 'overpower').map((e) => e.conditions)).toEqual([[safe((1 << at(noExec, 'bloodthirst')) | (1 << at(noExec, 'whirlwind'))), { code: COND.maxRage, a: 200, b: 0 }]])
+  })
+
+  it('row 15: Slam outside the execute phase, GCD-safe for Bloodthirst and Whirlwind, after Berserker Rage; without Improved Slam its cast stops the swings', () => {
+    const r = furyRotation({ 'warrior.fury.slam.enabled': true }, talents, noAura)
+    expect(ids(r).slice(-2)).toEqual(['berserkerRage', 'slam'])
+    expect(linesOf(r, 'slam').map((e) => e.conditions)).toEqual([[notExec, safe((1 << at(r, 'bloodthirst')) | (1 << at(r, 'whirlwind')))]])
+    expect(r.abilities[at(r, 'slam')]).toMatchObject({ castMs: 1500, gcdMs: 1500, castStopsSwings: true, costTenths: 150 })
+    const noExec = furyRotation({ 'warrior.fury.slam.enabled': true, 'warrior.fury.execute.enabled': false }, talents, noAura)
+    expect(linesOf(noExec, 'slam').map((e) => e.conditions)).toEqual([[safe((1 << at(noExec, 'bloodthirst')) | (1 << at(noExec, 'whirlwind')))]])
+  })
+
+  it('the Charge opener’s swap keeps the profile’s amount: 5 per Tactical Mastery rank in `classicEra`', () => {
+    const values = { 'warrior.fury.prepull.charge': true }
+    const itm = new Map([['Improved Tactical Mastery', 3]])
+    expect(furyRotation(values, itm, noAura, { profile: FOREVER }).prepull.keepTenths).toBe(190)
+    expect(furyRotation(values, itm, noAura, { profile: CLASSIC_ERA }).prepull.keepTenths).toBe(150)
   })
 })

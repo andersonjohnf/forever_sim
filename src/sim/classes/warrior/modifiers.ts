@@ -1,6 +1,6 @@
 // Talents that modify warrior abilities (docs/classes/warrior.md §2.3 "Cost reductions" and the
-// Bloodrage and Berserker Rage rows, §2.5 Impale, §3.1 Raging Blows, §4.1 Improved Rend and
-// Improved Slam). The plan applies them once,
+// Bloodrage and Berserker Rage rows, §2.5 Impale, §3.1 Raging Blows, §4.1 Improved Rend, Improved
+// Slam and Improved Overpower). The plan applies them once,
 // when it resolves the rotation's abilities from the build's talent ranks; the engine only sees
 // the resolved numbers.
 //
@@ -148,10 +148,16 @@ export function bloodrageRage(tenths: number, talents: TalentRanks): number {
 export const IMPROVED_BERSERKER_RAGE_PER_RANK = 5
 
 /**
+ * Improved Overpower: +25% crit chance per rank on Overpower (12290: aura 107, misc 7 crit chance,
+ * rank curve 25 / 50) [F] [tal] [client] (SpellEffect, CurvePoint, 1.60.1.69913) (warrior.md §4.1, W5).
+ */
+export const IMPROVED_OVERPOWER_CRIT_PER_RANK = 25
+
+/**
  * The ability as this build uses it: cost reductions, Impale's crit multiplier, Raging Blows'
  * off-hand strike on Whirlwind (warrior.md §3.1 "Raging Blows"; [?] Q13), the rage of
- * Improved Bloodrage and Improved Berserker Rage (§2.3), Improved Rend's bleed and Improved
- * Slam's cast, GCD and swing timers (§4.1).
+ * Improved Bloodrage and Improved Berserker Rage (§2.3), Improved Rend's bleed, Improved
+ * Slam's cast, GCD and swing timers, and Improved Overpower's crit (§4.1).
  */
 export function withTalents(def: AbilityDef, talents: TalentRanks): AbilityDef {
   const resolved: AbilityDef = {
@@ -173,6 +179,8 @@ export function withTalents(def: AbilityDef, talents: TalentRanks): AbilityDef {
     resolved.castMs = Math.max(0, def.castMs - IMPROVED_SLAM_MS_PER_RANK * r)
     resolved.gcdMs = Math.max(0, def.gcdMs - IMPROVED_SLAM_MS_PER_RANK * r)
     resolved.castStopsSwings = def.castStopsSwings && r === 0
+  } else if (def.id === 'overpower') {
+    resolved.bonusCrit = def.bonusCrit + IMPROVED_OVERPOWER_CRIT_PER_RANK * rank(talents, 'Improved Overpower')
   }
   return resolved
 }

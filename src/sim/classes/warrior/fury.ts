@@ -2,15 +2,16 @@
 //
 // This covers the pre-pull (row 0), Battle Shout (row 1), the cooldowns (rows 2–5: Death Wish,
 // the racial and on-use trinkets, Recklessness, Bloodrage), the execute phase (rows 6 and 7),
-// Bloodthirst, Whirlwind, Heroic Strike and Hamstring (rows 8, 9, 11 and 12), Berserker Rage
-// (row 13), the Mighty Rage Potion (row 16) and Juju Flurry (row 17). The Overpower dance, Sunder
-// Armor and Slam (rows 10, 14 and 15, off by default) aren't simulated. Setting ids are
+// Bloodthirst, Whirlwind, the Overpower stance dance, Heroic Strike and Hamstring (rows 8–12),
+// Berserker Rage (row 13), Slam (row 15), the Mighty Rage Potion (row 16) and Juju Flurry (row 17).
+// Rows 10 and 15 are off by default; Sunder Armor (row 14) isn't simulated. Setting ids are
 // `warrior.fury.<ability>.<param>` and every rage threshold is in absolute rage points (§5.1).
 // Abilities are resolved with the build's talents (modifiers.ts) before their costs feed any
 // condition.
 import { GCD_MS, toTenths } from '../../core/formulas'
-import type { OnUseSpec } from '../../effects/types'
-import { COND, type PrepullPlan, type RotationCondition, type RotationEntry } from '../../plan/types'
+import type { OnUseSpec, ProcSpec } from '../../effects/types'
+import { COND, type PrepullPlan, type RotationCondition, type RotationEntry, STANCE } from '../../plan/types'
+import { FOREVER, type RulesProfile } from '../../rules/profiles'
 import type { RotationOption } from '../../types'
 import {
   type AbilityDef,
@@ -25,11 +26,13 @@ import {
   HAMSTRING,
   HEROIC_STRIKE,
   IMPROVED_CHARGE_TENTHS_PER_RANK,
-  IMPROVED_TACTICAL_MASTERY_TENTHS_PER_RANK,
   onUseAbility,
+  OVERPOWER,
+  overpowerWindowProcs,
   RACIAL_COOLDOWNS,
   RECKLESSNESS,
-  TACTICAL_MASTERY_TENTHS,
+  SLAM,
+  stanceSwapKeepTenths,
   WHIRLWIND,
 } from './abilities'
 import { type TalentRanks, withTalents } from './modifiers'
@@ -60,6 +63,8 @@ const ID = {
   wwEnabled: 'warrior.fury.whirlwind.enabled',
   wwReserve: 'warrior.fury.whirlwind.reserve',
   wwBtCdMin: 'warrior.fury.whirlwind.btCdMinSec',
+  opEnabled: 'warrior.fury.overpower.enabled',
+  opMaxRage: 'warrior.fury.overpower.maxRage',
   hsEnabled: 'warrior.fury.heroicStrike.enabled',
   hsMinRage: 'warrior.fury.heroicStrike.minRage',
   hsUnqueue: 'warrior.fury.heroicStrike.unqueue',
@@ -67,6 +72,7 @@ const ID = {
   hamEnabled: 'warrior.fury.hamstring.enabled',
   hamMinRage: 'warrior.fury.hamstring.minRage',
   hamFlurryDown: 'warrior.fury.hamstring.onlyWhenFlurryDown',
+  slamEnabled: 'warrior.fury.slam.enabled',
   potionEnabled: 'warrior.fury.ragePotion.enabled',
   potionMaxRage: 'warrior.fury.ragePotion.maxRage',
   jujuEnabled: 'warrior.fury.jujuFlurry.enabled',
@@ -119,7 +125,7 @@ const rage = (id: string, label: string, help: string, def: number, dependsOn: s
  */
 const BT_OVER_EXECUTE_AP = Math.round(executeBreakEvenAp(EXECUTE.costTenths / 10))
 
-/** Defaults from warrior.md §5.2's table (rows 0–9, 11–13, 16 and 17), in its priority order. */
+/** Defaults from warrior.md §5.2's table (rows 0–13 and 15–17), in its priority order. */
 export const FURY_OPTIONS: RotationOption[] = [
   {
     kind: 'toggle',
@@ -300,6 +306,20 @@ export const FURY_OPTIONS: RotationOption[] = [
   },
   {
     kind: 'toggle',
+    id: ID.opEnabled,
+    label: 'Overpower (stance dance)',
+    help: 'After the boss dodges, swap to Battle Stance for Overpower and back while Bloodthirst and Whirlwind are cooling down. Each swap keeps at most 10 rage, plus 3 per Improved Tactical Mastery rank.',
+    default: false,
+  },
+  rage(
+    ID.opMaxRage,
+    'Overpower up to',
+    'Dance only at or below this much rage, so the swap loses none. 25 is what a swap keeps with Improved Tactical Mastery 5/5.',
+    25,
+    ID.opEnabled,
+  ),
+  {
+    kind: 'toggle',
     id: ID.hsEnabled,
     label: 'Heroic Strike',
     help: 'Queue Heroic Strike on the next main-hand swing when rage is high.',
@@ -345,6 +365,13 @@ export const FURY_OPTIONS: RotationOption[] = [
   ),
   {
     kind: 'toggle',
+    id: ID.slamEnabled,
+    label: 'Slam',
+    help: 'Use Slam while Bloodthirst and Whirlwind are cooling down. Without Improved Slam (an Arms talent), its 1.5 s cast stops your swings and resets both swing timers, which usually costs a dual wielder damage.',
+    default: false,
+  },
+  {
+    kind: 'toggle',
     id: ID.potionEnabled,
     label: 'Mighty Rage Potion',
     help: 'Drink it once, at the start of the execute phase (in the last 20 s if there’s none): 45–75 rage and +60 Strength for 20 s.',
@@ -374,6 +401,8 @@ export interface ClassRotation {
   prepull: PrepullPlan
   /** Ids of the on-use items and consumables it knows how to use, whether or not its settings use them. */
   onUse: string[]
+  /** Procs the rotation needs: the Overpower window's openers when it uses Overpower (warrior.md §2.8). */
+  procs: ProcSpec[]
 }
 
 /** What the rotation needs from the rest of the setup. */
@@ -385,9 +414,11 @@ export interface RotationContext {
   consumables: OnUseSpec[]
   /** The fight has an execute phase (executePct > 0; encounter §3). */
   executePhase: boolean
+  /** The rules profile: how much rage a stance swap keeps (warrior.md §2.1). */
+  profile: RulesProfile
 }
 
-const NO_CONTEXT: RotationContext = { race: '', items: [], consumables: [], executePhase: true }
+const NO_CONTEXT: RotationContext = { race: '', items: [], consumables: [], executePhase: true, profile: FOREVER }
 
 /**
  * Buff catalogue ids the rotation keeps up itself with these settings, so the plan drops the
@@ -444,6 +475,12 @@ export function furyRotation(
   const add = (def: AbilityDef, conditions: RotationCondition[], unqueueBelowTenths = 0) => {
     const a = ability(def)
     rotation.push({ ability: a, conditions, unqueueBelowTenths })
+    return a
+  }
+  /** A stance-dance line: swap to `stance` for the ability, then back (warrior.md §7 "Stance dancing"). */
+  const dance = (def: AbilityDef, stance: number, conditions: RotationCondition[]) => {
+    const a = ability(def)
+    rotation.push({ ability: a, conditions, unqueueBelowTenths: 0, danceTo: stance })
     return a
   }
   const cost = (a: number) => abilities[a].costTenths
@@ -534,6 +571,38 @@ export function furyRotation(
     }
   }
 
+  /**
+   * Lines for an ability that must leave Bloodthirst and Whirlwind GCD-safe (rows 10 and 13), with
+   * `tail` after the GCD-safe condition. In the execute phase it stays GCD-safe for what the phase
+   * uses, as Whirlwind's wait does (row 9): Bloodthirst only at AP ≥ btOverExecuteAp, Whirlwind only
+   * with whirlwindInExecute (§5.2 notes). Execute has no cooldown, so it isn't part of it.
+   */
+  const safeInBothPhases = (tail: RotationCondition[]): RotationCondition[][] => {
+    if (!execute) return [[...gcdSafe(bit(bt) | bit(ww)), ...tail]]
+    const wwIn = v.on(ID.wwEnabled) && v.on(ID.exWhirlwind) ? bit(ww) : 0
+    const lines = [[NOT_IN_EXECUTE, ...gcdSafe(bit(bt) | bit(ww)), ...tail]]
+    if (bt >= 0) {
+      lines.push(
+        [IN_EXECUTE, { code: COND.apAtLeast, a: btOverAp, b: 0 }, ...gcdSafe(bit(bt) | wwIn), ...tail],
+        [IN_EXECUTE, { code: COND.apBelow, a: btOverAp, b: 0 }, ...gcdSafe(wwIn), ...tail],
+      )
+    } else {
+      lines.push([IN_EXECUTE, ...gcdSafe(wwIn), ...tail])
+    }
+    return lines
+  }
+
+  // Row 10: the Overpower stance dance (off by default): while the window a dodge opened is up,
+  // Bloodthirst and Whirlwind are GCD-safe and rage ≤ maxRage (so the swap in loses none), swap to
+  // Battle Stance, Overpower, and swap back when the swap cooldown allows (§2.1, §2.8, §7). It
+  // applies in both phases, GCD-safe as row 13 is; in the execute phase it gets a GCD only while
+  // Execute waits for rage. The window's openers come with it.
+  const procs: ProcSpec[] = []
+  if (v.on(ID.opEnabled)) {
+    for (const conditions of safeInBothPhases([maxRage(v.num(ID.opMaxRage))])) dance(OVERPOWER, STANCE.battle, conditions)
+    procs.push(...overpowerWindowProcs(talents))
+  }
+
   // Row 11: Heroic Strike queue (off the GCD), rage ≥ minRage; optional unqueue below a threshold.
   if (v.on(ID.hsEnabled)) {
     add(
@@ -559,20 +628,13 @@ export function furyRotation(
   // only at AP ≥ btOverExecuteAp, Whirlwind only with whirlwindInExecute. Execute has no cooldown,
   // so it isn't part of it; Berserker Rage gets a GCD there only while Execute waits for rage.
   if (talents.has('Improved Berserker Rage') && v.on(ID.bzEnabled)) {
-    const limit = maxRage(v.num(ID.bzMaxRage))
-    if (!execute) {
-      add(BERSERKER_RAGE, [...gcdSafe(bit(bt) | bit(ww)), limit])
-    } else {
-      add(BERSERKER_RAGE, [NOT_IN_EXECUTE, ...gcdSafe(bit(bt) | bit(ww)), limit])
-      const wwIn = v.on(ID.wwEnabled) && v.on(ID.exWhirlwind) ? bit(ww) : 0
-      if (bt >= 0) {
-        add(BERSERKER_RAGE, [IN_EXECUTE, { code: COND.apAtLeast, a: btOverAp, b: 0 }, ...gcdSafe(bit(bt) | wwIn), limit])
-        add(BERSERKER_RAGE, [IN_EXECUTE, { code: COND.apBelow, a: btOverAp, b: 0 }, ...gcdSafe(wwIn), limit])
-      } else {
-        add(BERSERKER_RAGE, [IN_EXECUTE, ...gcdSafe(wwIn), limit])
-      }
-    }
+    for (const conditions of safeInBothPhases([maxRage(v.num(ID.bzMaxRage))])) add(BERSERKER_RAGE, conditions)
   }
+
+  // Row 15: Slam (off by default), a filler like Hamstring: Bloodthirst and Whirlwind GCD-safe, and
+  // never in the execute phase, where the GCDs are Execute's. Without Improved Slam its cast stops
+  // the swings and resets both timers (§3.1 "Slam"); the engine checks its cost.
+  if (v.on(ID.slamEnabled)) add(SLAM, [...outsideExecute(false), ...gcdSafe(bit(bt) | bit(ww))])
 
   // Row 16: the Mighty Rage Potion (off the GCD), once a fight, from the start of the execute
   // phase (or in the last 20 s without one), at rage ≤ maxRage so its 45–75 rage fits under the
@@ -595,9 +657,9 @@ export function furyRotation(
   if (v.on(ID.prepullBloodrage)) prepull.casts.push({ ability: ability(BLOODRAGE), atMs: PREPULL_BLOODRAGE_MS })
   if (v.on(ID.prepullCharge)) {
     prepull.chargeTenths = CHARGE_RAGE_TENTHS + IMPROVED_CHARGE_TENTHS_PER_RANK * (talents.get('Improved Charge') ?? 0)
-    prepull.keepTenths = TACTICAL_MASTERY_TENTHS + IMPROVED_TACTICAL_MASTERY_TENTHS_PER_RANK * (talents.get('Improved Tactical Mastery') ?? 0)
+    prepull.keepTenths = stanceSwapKeepTenths(talents, ctx.profile)
   }
 
   const onUse = [...ctx.items.map((i) => i.id), ...ctx.consumables.filter((c) => c.id === RAGE_POTION || c.id === JUJU_FLURRY).map((c) => c.id)]
-  return { abilities, rotation, prepull, onUse }
+  return { abilities, rotation, prepull, onUse, procs }
 }

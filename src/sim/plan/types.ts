@@ -20,8 +20,10 @@ export const TRIGGER = {
   block: 4,
   dodgeParry: 5,
   swingLanded: 6,
+  /** The target dodged one of the player's attacks, white or special (the Overpower window, warrior.md §2.8). */
+  targetDodge: 7,
 } as const
-export const TRIGGER_COUNT = 7
+export const TRIGGER_COUNT = 8
 
 /**
  * Warrior stances as bits (docs/classes/warrior.md#21-stances). An ability's `stances` mask says
@@ -30,6 +32,25 @@ export const TRIGGER_COUNT = 7
  */
 export const STANCE = { battle: 1, defensive: 2, berserker: 4 } as const
 export const STANCE_ANY = 7
+
+/**
+ * What a stance changes, relative to the plan's base stance (warrior.md §2.1, §7 "Stances"). The
+ * plan's static numbers (`damageMult`, `threatMult`, `damageTakenMult`, the stat block's crit) are
+ * the base stance's, exactly as before stances could change; each stance carries the factors and
+ * the crit delta that turn them into its own, so the base stance's are 1, 1, 1 and 0.
+ */
+export interface StancePlan {
+  /** The STANCE bit. */
+  stance: number
+  /** Factor on all damage done (Defensive Stance −10%). */
+  damage: number
+  /** Factor on threat (the stance's own, and Defiance's in Defensive Stance with a shield). */
+  threat: number
+  /** Factor on damage taken (Defensive −10%, Berserker +10%). */
+  damageTaken: number
+  /** Aura crit %, added (Berserker Stance +3). */
+  crit: number
+}
 
 /** Proc actions as integer codes. */
 export const ACTION = {
@@ -109,6 +130,11 @@ export interface ProcPlan {
   source: number
   /** Chain bit for extra-attack procs (damage-and-timing §5.4), 0 otherwise. */
   chainBit: number
+  /**
+   * Rolled only while this plan aura is up (Bloodthrill: your Rend on the target, warrior.md §2.8);
+   * absent or −1 for none.
+   */
+  requiresAura?: number
 }
 
 export interface SourcePlan {
@@ -163,6 +189,16 @@ export interface AbilityPlan {
   castStopsSwings: boolean
   /** Needs a two-handed weapon (Spearing Strike, warrior.md §3.1): never used with one-handers. */
   twoHandOnly: boolean
+  /**
+   * Can't be dodged, parried or blocked (Overpower, warrior.md §3.1): its one roll is miss, then
+   * crit, then hit (combat-tables §3).
+   */
+  unavoidable: boolean
+  /**
+   * The plan aura that must be on the warrior for it to be usable, and that using it ends, or −1:
+   * the Overpower window a dodge or Bloodthrill opens (warrior.md §2.8, §7).
+   */
+  window: number
   /** STANCE bits of the stances it can be used in (warrior.md §3.1 "Stance"); STANCE_ANY for any. */
   stances: number
   /** Usable only in the execute phase, at or below the target's execute health (Execute; encounter §3). */
@@ -244,10 +280,12 @@ export interface AbilityPlan {
  * to its auras; `vsCreature` is a different weapon share against some creature types (Spearing
  * Strike), which the plan resolves against the encounter's creature type (encounter §6).
  */
-export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura'> & {
+export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura' | 'window'> & {
   offHand: boolean
   aura: AuraSpec | null
   vsCreature?: { types: readonly CreatureType[]; weaponPercent: number }
+  /** The reactive window it needs and ends (the Overpower window, warrior.md §2.8); the plan adds it to its auras. */
+  window?: AuraSpec
 }
 
 /** An ability's weapon share against the encounter's creature type (Spearing Strike ×3 vs Giants and Dragonkin, warrior.md §3.1). */
@@ -296,6 +334,12 @@ export const COND = {
    * whenever the aura starts or ends, and wakes the rotation when the window opens.
    */
   abilityAuraRefresh: 11,
+  /**
+   * aura a (an ability's window) is up. The engine puts it first on every line of an ability with a
+   * window (the Overpower window, warrior.md §2.8, §7), so a plan needn't, and lines without one pay
+   * nothing for it.
+   */
+  windowOpen: 12,
 } as const
 
 export interface RotationCondition {
@@ -316,6 +360,13 @@ export interface RotationEntry {
   conditions: RotationCondition[]
   /** On-next-swing only: cancel the queue if rage falls below this before the swing (tenths; 0 = never; warrior.md §2.4). */
   unqueueBelowTenths: number
+  /**
+   * A stance dance (warrior.md §7 "Stance dancing"): when the current stance refuses the ability,
+   * swap to this STANCE bit first (if the swap cooldown allows and the rage the swap keeps pays for
+   * it), then use it; the engine swaps back to the base stance once the swap cooldown allows.
+   * Absent or 0: no dance, so the line waits for a stance that allows the ability.
+   */
+  danceTo?: number
 }
 
 /**
@@ -353,8 +404,18 @@ export interface Plan {
   applyUnmeasured: boolean
   seed: number
   playerLevel: number
-  /** STANCE bit the warrior fights in (warrior.md §5), or STANCE_ANY for classes without stances. */
+  /**
+   * STANCE bit the warrior fights in, its base stance (warrior.md §5), or STANCE_ANY for classes
+   * without stances. Stance dances leave it and come back (warrior.md §7).
+   */
   stance: number
+  /** What each stance changes relative to the base stance (empty for classes without stances). */
+  stances: StancePlan[]
+  /**
+   * Stance swaps (warrior.md §2.1): the cooldown the three stances share, and the most rage a swap
+   * keeps (`forever`: 10 + 3 × Improved Tactical Mastery; `classicEra`: 5 × the rank; rage.md).
+   */
+  stanceSwap: { cooldownMs: number; keepTenths: number }
   fight: {
     durationMs: number
     /** Fight-length variation as a fraction (encounter §3). */
@@ -379,7 +440,11 @@ export interface Plan {
   /** [main hand, off hand]; the off hand is null unless dual wielding. */
   weapons: [WeaponPlan | null, WeaponPlan | null]
   hasShield: boolean
-  /** Multiplier on all damage (stance, creature-type racials) and on physical damage only (2H spec, Bastion). */
+  /**
+   * Multiplier on all damage (the base stance, creature-type racials) and on physical damage only
+   * (2H spec, Bastion). These, `damageTakenMult` and `threatMult` are the base stance's; `stances`
+   * changes them for the others.
+   */
   damageMult: number
   physicalMult: number
   damageTakenMult: number

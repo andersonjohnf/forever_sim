@@ -164,11 +164,17 @@ export type ProcTrigger =
   | 'block'
   /** The player dodges or parries. */
   | 'dodgeParry'
+  /** The target dodges one of the player's attacks, white or special, either hand (the Overpower window, warrior.md §2.8). */
+  | 'targetDodge'
 
 export type ProcAction =
   /** Extra main-hand swings, immediately (damage-and-timing §5.4); `bonusAp` applies to them only. */
   | { kind: 'extraAttacks'; count: number; bonusAp?: number }
-  | { kind: 'aura'; aura: AuraSpec }
+  /**
+   * Puts the aura on the player; `durationMs` overrides its duration for this proc (the Overpower
+   * window: 5 s from a dodge, 6 s from Bloodthrill, warrior.md §2.8). A refresh never shortens it.
+   */
+  | { kind: 'aura'; aura: AuraSpec; durationMs?: number }
   /** Magic damage on the spell table with an average partial resist (combat-tables §9). */
   | { kind: 'spellDamage'; school: 'fire' | 'frost' | 'shadow' | 'nature' | 'arcane' | 'holy'; min: number; max: number }
   /** Rage from a spell effect (an energize: it makes threat, threat.md). */
@@ -191,6 +197,12 @@ export interface ProcSpec {
   chance: { ppm: number } | { pct: number }
   icdMs?: number
   action: ProcAction
+  /**
+   * Only while this aura is up (an aura id of the plan: a buff, or a bleed's marker on the target,
+   * e.g. `rend` for Bloodthrill, warrior.md §2.8). A proc whose aura the plan doesn't have is left
+   * out; while the aura is down, the proc isn't rolled.
+   */
+  requiresAura?: string
   /** Doc section that owns the numbers. */
   docRef: string
 }

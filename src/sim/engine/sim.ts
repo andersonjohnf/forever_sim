@@ -9,9 +9,9 @@
 // It simulates white swings, procs, auras, rage, threat, boss melee, and abilities driven by a
 // priority-list rotation: GCD and cooldown events on the same queue, one-roll strikes, two-roll
 // melee spells, on-next-swing queues, off-hand strikes, casts that buff the warrior or grant rage,
-// abilities with a cast time (Slam), bleeds with a marker on the target (Rend), stance limits, the
-// execute phase, time-left conditions, buff upkeep and the pre-pull
-// (docs/architecture.md#engine-design-m1).
+// abilities with a cast time (Slam), bleeds with a marker on the target (Rend), reactive windows
+// (Overpower), stances and stance dancing, the execute phase, time-left conditions, buff upkeep
+// and the pre-pull (docs/architecture.md#engine-design-m1).
 import {
   bossSlices,
   meleeChances,
@@ -94,6 +94,8 @@ export class Sim {
   /** Diagnostics summed over every fight run (tests and tuning). */
   totalRageGainedTenths = 0
   totalRageWastedTenths = 0
+  /** Rage lost to stance swaps' cap (warrior.md §2.1), in tenths, summed over every fight run. */
+  totalSwapRageLostTenths = 0
   /** Test hook: called for every white swing (source row, hand, time) and bleed tick (source, −1, time). */
   trace: ((source: number, hand: number, time: number) => void) | null = null
   /**
@@ -103,6 +105,8 @@ export class Sim {
   castTrace: ((ability: number, time: number, rageTenths: number) => void) | null = null
   /** Test hook: every damage event (source row, damage). */
   damageTrace: ((source: number, damage: number) => void) | null = null
+  /** Test hook: every stance swap in a fight (the STANCE bit swapped to, time, rage before and after, in tenths). */
+  stanceTrace: ((stance: number, time: number, rageBefore: number, rageAfter: number) => void) | null = null
   /** When the last fight's execute phase started, ms (its end if there was none; encounter §3). */
   executeAtMs = 0
 
@@ -156,6 +160,12 @@ export class Sim {
   private readonly pSchool: Int32Array
   private readonly pSource: Int32Array
   private readonly pChainBit: Int32Array
+  /**
+   * The aura a proc needs to be up to roll, or −1 (Bloodthrill: your Rend, warrior.md §2.8). Such
+   * procs are in their own lists per trigger, so the others' loop doesn't check it.
+   */
+  private readonly pReqAura: Int32Array
+  private readonly gatedLists: Int32Array[]
   private readonly pBleedSlot: Int32Array
   private readonly triggerLists: Int32Array[]
 
@@ -171,6 +181,12 @@ export class Sim {
   private readonly aHaste: Float64Array
   private readonly aDamage: Float64Array
   private readonly aStatful: Uint8Array
+  /**
+   * Auras that procs apply for different durations (the Overpower window: 5 s from a dodge, 6 s from
+   * Bloodthrill, warrior.md §7), and when each ends: a refresh of one never shortens it.
+   */
+  private readonly aKeepsEnd: Uint8Array
+  private readonly auraEnd: Float64Array
   private readonly chargeAuras: Int32Array
   /** Crits dealt that end an aura (Weakness Analyzer), and the auras that have them. */
   private readonly aCritCharges: Int32Array
@@ -194,6 +210,12 @@ export class Sim {
   private readonly abCastStopsSwings: Uint8Array
   /** Abilities this setup can never use (Spearing Strike without a two-hander): never ready. */
   private readonly abNeverReady: Uint8Array
+  /** Can't be dodged, parried or blocked: only a miss avoids it (Overpower, combat-tables §3). */
+  private readonly abUnavoidable: Uint8Array
+  /** The aura it needs and ends, or −1 (the Overpower window, warrior.md §2.8). */
+  private readonly abWindow: Int32Array
+  /** Some line dances for it (warrior.md §7): GCD-safe counts it as coming up even while the stance refuses it. */
+  private readonly abDances: Uint8Array
   private readonly abWeaponPct: Float64Array
   private readonly abNormalized: Uint8Array
   private readonly abFlat: Float64Array
@@ -235,6 +257,8 @@ export class Sim {
   private readonly preChargeTenths: number
   private readonly preKeepTenths: number
   private readonly rotAbility: Int32Array
+  /** The STANCE bit a line dances to when the current stance refuses its ability, or 0 (warrior.md §7). */
+  private readonly entryDance: Int32Array
   /**
    * The priority list per phase, in order: the entries that can apply outside and inside the
    * execute phase, and of those the off-GCD ones (all that can act while the GCD runs). The phase
@@ -268,6 +292,21 @@ export class Sim {
   private readonly wakeTimeLeft: Float64Array
   /** Some line waits for rage ≤ x, so spending rage is a decision point. */
   private readonly hasMaxRage: boolean
+  /** Some proc listens for the target's dodges (the Overpower window); without one, a dodge fires nothing. */
+  private readonly hasDodgeProcs: boolean
+  /**
+   * Stances (warrior.md §2.1, §7 "Stances"), per STANCE bit: the factors on the plan's damage,
+   * threat and damage taken, and the aura crit added (1, 1, 1, 0 for the stance the plan's static
+   * numbers are for); the base stance the fight starts and ends dances in; and a swap's shared
+   * cooldown and the most rage it keeps.
+   */
+  private readonly sDamage = new Float64Array(8).fill(1)
+  private readonly sThreat = new Float64Array(8).fill(1)
+  private readonly sTaken = new Float64Array(8).fill(1)
+  private readonly sCrit = new Float64Array(8)
+  private readonly baseStance: number
+  private readonly swapCdMs: number
+  private readonly swapKeep: number
   private readonly hasRotation: boolean
   private readonly hasAbilities: boolean
 
@@ -310,8 +349,15 @@ export class Sim {
   private castGcdEnd = 0
   /** A cast that stops white swings is running: no swing timers are pending (damage-and-timing §3.3). */
   private swingsStopped = false
-  /** The STANCE bit the warrior is in (plan.stance; no stance dancing yet). */
+  /** The STANCE bit the warrior is in: the base stance, or the one a dance swapped to (warrior.md §7). */
   private stance = 0
+  /** When the stances' shared swap cooldown ends (warrior.md §2.1). */
+  private stanceReadyAt = 0
+  /** The current stance's factor on all damage and its aura crit, and the threat and damage-taken multipliers in it. */
+  private stanceDamage = 1
+  private stanceCrit = 0
+  private threatMult = 1
+  private damageTakenMult = 1
   /** The current phase's lists (rotNormal / rotExecute and their off-GCD entries). */
   private rotList: Int32Array
   private rotOffList: Int32Array
@@ -423,6 +469,7 @@ export class Sim {
     this.pSchool = new Int32Array(np)
     this.pSource = new Int32Array(np)
     this.pChainBit = new Int32Array(np)
+    this.pReqAura = new Int32Array(np).fill(-1)
     this.pBleedSlot = new Int32Array(np).fill(-1)
     this.procReadyAt = new Float64Array(np)
     let bleeds = 0
@@ -440,6 +487,7 @@ export class Sim {
       this.pSchool[i] = p.school
       this.pSource[i] = p.source
       this.pChainBit[i] = p.chainBit
+      this.pReqAura[i] = p.requiresAura ?? -1
       if (p.action === ACTION.weaponBleed) this.pBleedSlot[i] = bleeds++
     }
     this.bleedTicksLeft = new Int32Array(bleeds)
@@ -447,7 +495,12 @@ export class Sim {
     this.bleedProc = new Int32Array(bleeds)
     for (let i = 0; i < np; i++) if (this.pBleedSlot[i] >= 0) this.bleedProc[this.pBleedSlot[i]] = i
     this.triggerLists = []
-    for (let t = 0; t < TRIGGER_COUNT; t++) this.triggerLists.push(Int32Array.from(plan.triggers[t] ?? []))
+    this.gatedLists = []
+    for (let t = 0; t < TRIGGER_COUNT; t++) {
+      const list = plan.triggers[t] ?? []
+      this.triggerLists.push(Int32Array.from(list.filter((p) => this.pReqAura[p] < 0)))
+      this.gatedLists.push(Int32Array.from(list.filter((p) => this.pReqAura[p] >= 0)))
+    }
 
     const auras = plan.auras
     const na = auras.length
@@ -462,6 +515,9 @@ export class Sim {
     this.aHaste = new Float64Array(na)
     this.aDamage = new Float64Array(na)
     this.aStatful = new Uint8Array(na)
+    this.auraEnd = new Float64Array(na)
+    this.aKeepsEnd = new Uint8Array(na)
+    for (const p of plan.procs) if (p.action === ACTION.aura && p.b > 0) this.aKeepsEnd[p.amount] = 1
     this.aCritCharges = new Int32Array(na)
     this.auraActive = new Uint8Array(na)
     this.auraStacks = new Int32Array(na)
@@ -499,6 +555,9 @@ export class Sim {
     this.abCastMs = new Float64Array(nb)
     this.abCastStopsSwings = new Uint8Array(nb)
     this.abNeverReady = new Uint8Array(nb)
+    this.abUnavoidable = new Uint8Array(nb)
+    this.abWindow = new Int32Array(nb)
+    this.abDances = new Uint8Array(nb)
     this.abWeaponPct = new Float64Array(nb)
     this.abNormalized = new Uint8Array(nb)
     this.abFlat = new Float64Array(nb)
@@ -544,6 +603,8 @@ export class Sim {
       this.abCastStopsSwings[i] = a.castStopsSwings ? 1 : 0
       // warrior.md §3.1: Spearing Strike needs a two-hander.
       this.abNeverReady[i] = a.twoHandOnly && !this.wTwoHand[HAND.main] ? 1 : 0
+      this.abUnavoidable[i] = a.unavoidable ? 1 : 0
+      this.abWindow[i] = a.window
       this.abWeaponPct[i] = a.weaponPercent
       this.abNormalized[i] = a.normalized ? 1 : 0
       this.abFlat[i] = a.flatDamage
@@ -575,14 +636,25 @@ export class Sim {
     this.preAt = Float64Array.from(prepull.casts.map((c) => c.atMs))
     this.preChargeTenths = prepull.chargeTenths
     this.preKeepTenths = prepull.keepTenths
+    // Stances: the plan's static numbers are its base stance's; each stance's factors switch them.
+    for (const st of plan.stances) {
+      this.sDamage[st.stance] = st.damage
+      this.sThreat[st.stance] = st.threat
+      this.sTaken[st.stance] = st.damageTaken
+      this.sCrit[st.stance] = st.crit
+    }
+    this.baseStance = plan.stance
+    this.swapCdMs = plan.stanceSwap.cooldownMs
+    this.swapKeep = plan.stanceSwap.keepTenths
     const rotation = plan.rotation
     this.rotAbility = new Int32Array(rotation.length)
+    this.entryDance = new Int32Array(rotation.length)
     this.condStart = new Int32Array(rotation.length + 1)
     // Phase, time-left and aura-refresh conditions are resolved up front, into the per-phase lists
     // and a time window per line, so a walk never evaluates them.
     const resolved = (c: { code: number }) =>
       c.code === COND.executePhase || c.code === COND.timeLeftAtMost || c.code === COND.timeLeftAtLeast || c.code === COND.abilityAuraRefresh
-    const nc = rotation.reduce((n, e) => n + e.conditions.filter((c) => !resolved(c)).length, 0)
+    const nc = rotation.reduce((n, e) => n + e.conditions.filter((c) => !resolved(c)).length + (abilities[e.ability].window >= 0 ? 1 : 0), 0)
     this.condCode = new Int32Array(nc)
     this.condA = new Float64Array(nc)
     this.condB = new Float64Array(nc)
@@ -600,8 +672,21 @@ export class Sim {
       const entry = rotation[e]
       const ability = abilities[entry.ability]
       this.rotAbility[e] = entry.ability
+      // warrior.md §7: a dance goes to a stance that allows the ability, for a class with stances.
+      const to = entry.danceTo ?? 0
+      if (to !== 0 && (ability.stances & to) !== 0 && plan.stances.length > 0) {
+        this.entryDance[e] = to
+        this.abDances[entry.ability] = 1
+      }
       this.abUnqueueBelow[entry.ability] = entry.unqueueBelowTenths
       this.condStart[e] = k
+      // warrior.md §2.8: a reactive ability's lines need its window, checked first.
+      if (ability.window >= 0) {
+        this.condCode[k] = COND.windowOpen
+        this.condA[k] = ability.window
+        this.condB[k] = 0
+        k++
+      }
       // Execute is refused outside the execute phase (warrior.md §3.1): its lines are execute-only.
       let phase = ability.executePhaseOnly ? 2 : 3
       for (const cond of entry.conditions) {
@@ -653,6 +738,7 @@ export class Sim {
     for (const x of this.entryLeftAtMost) if (x !== Infinity) wakes.add(x)
     this.wakeTimeLeft = Float64Array.from([...wakes].sort((x, y) => y - x))
     this.hasMaxRage = this.condCode.includes(COND.maxRage)
+    this.hasDodgeProcs = (plan.triggers[TRIGGER.targetDodge] ?? []).length > 0
     this.hasRotation = rotation.length > 0
     this.hasAbilities = nb > 0
   }
@@ -829,7 +915,15 @@ export class Sim {
     for (let i = 0; i < this.dotGen.length; i++) this.dotGen[i]++
     this.queued = -1
     this.actPending = false
-    this.stance = this.plan.stance
+    // The fight starts in the base stance, with its factors (1, 1, 1 and 0 when the plan's static
+    // numbers are its own) and the swap cooldown ready.
+    const base = this.baseStance
+    this.stance = base
+    this.stanceReadyAt = 0
+    this.stanceDamage = this.sDamage[base]
+    this.stanceCrit = this.sCrit[base]
+    this.threatMult = this.plan.threatMult * this.sThreat[base]
+    this.damageTakenMult = this.plan.damageTakenMult * this.sTaken[base]
     this.rotList = this.rotNormal
     this.rotOffList = this.offGcdNormal
     this.recomputeStats()
@@ -871,6 +965,11 @@ export class Sim {
       this.gainRage(this.preChargeTenths, -1)
       // warrior.md §2.1: the swap to the fighting stance keeps at most 10 + 3 × Improved Tactical Mastery.
       if (this.preKeepTenths >= 0 && this.rage > this.preKeepTenths) this.rage = this.preKeepTenths
+      // The swap is at the pull, so the next can come after its cooldown (warrior.md §7, an engine choice).
+      if (this.preKeepTenths >= 0) {
+        this.stanceReadyAt = this.swapCdMs
+        if (this.hasRotation) this.q.push(this.stanceReadyAt, EV_ACT, 0, 0)
+      }
     }
   }
 
@@ -887,7 +986,8 @@ export class Sim {
     s.agi = base.agi + this.dynAgi
     s.ap = base.ap + this.dynAp
     s.apMult = base.apMult * this.dynApMult
-    s.crit = base.crit + this.dynCrit
+    // The stance's aura crit (Berserker Stance +3, relative to the base stance's in `base`).
+    s.crit = base.crit + this.dynCrit + this.stanceCrit
     const d = deriveStats(s, this.deriveOptions, this.derived)
     this.ap = d.attackPower
     this.blockValue = d.blockValue
@@ -955,8 +1055,9 @@ export class Sim {
       if (this.aDamage[i]) damage *= 1 + (this.aDamage[i] * stacks) / 100
     }
     this.auraHasteMult = haste
-    this.physMult = this.staticPhysMult * damage
-    this.magicMult = this.staticMagicMult
+    // The stance's damage factor (Defensive Stance −10% on all damage, warrior.md §2.1).
+    this.physMult = this.staticPhysMult * this.stanceDamage * damage
+    this.magicMult = this.staticMagicMult * this.stanceDamage
     this.hasteMult = this.derived.hasteMult * haste
     this.updateSwingSpeeds()
   }
@@ -1043,7 +1144,9 @@ export class Sim {
         const wouldBe = this.whiteDamage(hand, bonusAp)
         this.gainRage(this.whiteDamageRageTenths(hand, this.avoidedRageShare * wouldBe), -1)
       }
+      // warrior.md §2.8: the target's dodge opens the Overpower window.
       if (!dodged) this.onBossParried()
+      else if (this.hasDodgeProcs) this.fireProcs(TRIGGER.targetDodge, hand)
       return
     }
     let damage = this.whiteDamage(hand, bonusAp)
@@ -1108,7 +1211,7 @@ export class Sim {
   }
 
   private dealDamage(source: number, damage: number): void {
-    this.addDamage(source, damage, damage * this.plan.threatMult)
+    this.addDamage(source, damage, damage * this.threatMult)
   }
 
   private addDamage(source: number, damage: number, threat: number): void {
@@ -1126,13 +1229,16 @@ export class Sim {
 
   /**
    * Walks the priority list (warrior.md §5.1): uses every entry, in order, whose ability is
-   * usable now (off cooldown, rage, GCD, stance, execute phase) and whose conditions hold. A GCD
-   * ability blocks the later GCD entries through the GCD it starts; off-GCD entries (the Heroic
-   * Strike queue) are still checked after it.
+   * usable now (off cooldown, rage, GCD, stance, execute phase) and whose conditions hold, its
+   * window among them (the constructor adds it to the line). A GCD ability blocks the later GCD
+   * entries through the GCD it starts; off-GCD entries (the Heroic Strike queue) are still checked
+   * after it. Away from the base stance, the walk first swaps back if the swap cooldown allows; a
+   * dance line swaps to its stance just before its ability (warrior.md §7 "Stance dancing").
    */
   private act(): void {
     this.actPending = false
     const now = this.now
+    if (this.stance !== this.baseStance && this.stanceReadyAt <= now) this.swapStance(this.baseStance)
     // While the GCD runs only off-GCD entries can be used; skipping the others changes nothing.
     const gcdBusy = this.gcdEnd > now
     // The current phase's list: lines that can't apply in it (and Execute outside it) aren't in it.
@@ -1143,8 +1249,9 @@ export class Sim {
       if (now < this.entryFrom[e] || now > this.entryTo[e]) continue
       const a = this.rotAbility[e]
       if (this.abReadyAt[a] > now || this.rage < this.abCost[a]) continue
-      // warrior.md §3.1 "Stance": only in the stances it's usable in.
-      if ((this.abStances[a] & this.stance) === 0) continue
+      // warrior.md §3.1 "Stance": only in the stances it's usable in, or by dancing to one (§7).
+      let dance = 0
+      if ((this.abStances[a] & this.stance) === 0 && (dance = this.danceFor(e, a)) === 0) continue
       if (this.abKind[a] === KIND_ON_NEXT_SWING) {
         if (this.queued >= 0 || !this.hasWeapon[HAND.main]) continue
       } else {
@@ -1152,8 +1259,55 @@ export class Sim {
         if (this.abWeaponPct[a] > 0 && !this.hasWeapon[HAND.main]) continue
       }
       if (!this.conditionsHold(e)) continue
+      if (dance !== 0) this.swapStance(dance)
       this.use(a)
     }
+  }
+
+  /**
+   * The stance a line would dance to for its ability, which the current stance refuses, or 0: its
+   * dance stance, if the swap cooldown allows and the rage the swap keeps still pays for it (§7).
+   */
+  private danceFor(e: number, a: number): number {
+    const to = this.entryDance[e]
+    if (to === 0 || this.stanceReadyAt > this.now || Math.min(this.rage, this.swapKeep) < this.abCost[a]) return 0
+    return to
+  }
+
+  /**
+   * Swaps stance (warrior.md §2.1): off the GCD, the three stances' shared cooldown starts, and the
+   * warrior keeps at most `swapKeep` rage; the rest is lost, with no threat and no refund. The
+   * rotation wakes when the cooldown ends, to swap back or dance again (§7).
+   */
+  private swapStance(to: number): void {
+    const before = this.rage
+    if (before > this.swapKeep) {
+      this.rage = this.swapKeep
+      this.totalSwapRageLostTenths += before - this.rage
+      this.afterRageSpent()
+    }
+    this.stanceReadyAt = this.now + this.swapCdMs
+    this.q.push(this.stanceReadyAt, EV_ACT, 0, 0)
+    this.setStance(to)
+    // The stance and rage changed: lines it refused, or that wait for rage ≤ x, may be usable now.
+    this.actPending = true
+    if (this.stanceTrace !== null) this.stanceTrace(to, this.now, before, this.rage)
+  }
+
+  /**
+   * Puts the warrior in a stance: its factors on the plan's damage, threat and damage taken and its
+   * aura crit (warrior.md §2.1, §7 "Stances"). Crit re-derives the stats; the rest are multipliers.
+   */
+  private setStance(to: number): void {
+    this.stance = to
+    this.stanceDamage = this.sDamage[to]
+    this.threatMult = this.plan.threatMult * this.sThreat[to]
+    this.damageTakenMult = this.plan.damageTakenMult * this.sTaken[to]
+    if (this.sCrit[to] !== this.stanceCrit) {
+      this.stanceCrit = this.sCrit[to]
+      this.recomputeStats()
+    }
+    this.recomputeMultipliers()
   }
 
   private conditionsHold(e: number): boolean {
@@ -1162,6 +1316,9 @@ export class Sim {
       const a = this.condA[k]
       const b = this.condB[k]
       switch (this.condCode[k]) {
+        case COND.windowOpen:
+          if (!this.auraActive[a]) return false
+          break
         case COND.minRage:
           if (this.rage < a) return false
           break
@@ -1169,9 +1326,10 @@ export class Sim {
           if (this.abReadyAt[a] - now < b) return false
           break
         case COND.gcdSafe:
-          // docs/classes/warrior.md#51-conventions-for-rotation-settings: each has ≥ one GCD of cooldown left
+          // docs/classes/warrior.md#51-conventions-for-rotation-settings: each has ≥ one GCD of cooldown
+          // left. One the current stance refuses isn't coming up, unless a line dances for it (§7).
           for (let i = 0, mask = a; mask !== 0; i++, mask >>>= 1) {
-            if (mask & 1 && this.abReadyAt[i] - now < b) return false
+            if (mask & 1 && this.abReadyAt[i] - now < b && ((this.abStances[i] & this.stance) !== 0 || this.abDances[i] === 1)) return false
           }
           break
         case COND.auraDown:
@@ -1205,6 +1363,9 @@ export class Sim {
       return
     }
     if (this.castTrace !== null) this.castTrace(a, this.now, this.rage)
+    // warrior.md §2.8: using a reactive ability closes its window, whether or not it lands.
+    const w = this.abWindow[a]
+    if (w >= 0 && this.auraActive[w]) this.removeAura(w)
     if (this.abCastMs[a] > 0) {
       this.startCast(a)
       return
@@ -1335,10 +1496,15 @@ export class Sim {
     const o = 6 * hand
     const th = this.thrSpecial
     const r = this.rngTable.roll100()
-    if (r < th[o + 2]) {
+    // Overpower can't be dodged, parried or blocked: its roll is miss, crit, hit (combat-tables §3).
+    const unavoidable = this.abUnavoidable[a] === 1
+    if (r < (unavoidable ? th[o] : th[o + 2])) {
       if (r < th[o]) c[row + FIELD.misses]++
-      else if (r < th[o + 1]) c[row + FIELD.dodges]++
-      else {
+      else if (r < th[o + 1]) {
+        c[row + FIELD.dodges]++
+        // warrior.md §2.8: the target's dodge opens the Overpower window.
+        if (this.hasDodgeProcs) this.fireProcs(TRIGGER.targetDodge, hand)
+      } else {
         c[row + FIELD.parries]++
         this.onBossParried()
       }
@@ -1358,12 +1524,14 @@ export class Sim {
       this.fireProcs(TRIGGER.meleeLanded, hand)
       return
     }
-    const blocked = r < th[o + 4]
+    const blocked = !unavoidable && r < th[o + 4]
     const critChance = this.specCrit[hand] + this.abBonusCrit[a]
+    // The crit slice follows the block slice, or the miss slice for an unavoidable attack.
+    const critFrom = unavoidable ? th[o] : th[o + 4]
     const crit =
       this.abKind[a] === KIND_MELEE_SPELL
         ? this.rngTable.roll100() < critChance // roll 2, not truncated by roll 1
-        : !blocked && r < Math.min(100, th[o + 4] + Math.max(0, critChance))
+        : !blocked && r < Math.min(100, critFrom + Math.max(0, critChance))
     let damage = this.abilityDamage(a, hand, bonusAp)
     if (crit) {
       damage *= this.abCritMult[a]
@@ -1381,7 +1549,7 @@ export class Sim {
       this.actPending = this.hasRotation
     }
     // docs/mechanics/threat.md#base-rule-and-how-modifiers-stack: (dmg × mult + bonus) × global
-    this.addDamage(source, damage, (damage * this.abThreatMult[a] + this.abThreatBonus[a]) * this.plan.threatMult)
+    this.addDamage(source, damage, (damage * this.abThreatMult[a] + this.abThreatBonus[a]) * this.threatMult)
     // An on-next-swing ability's swing counts as a landed swing (Unbridled Wrath, warrior.md §2.3 [?]).
     if (this.abKind[a] === KIND_ON_NEXT_SWING) this.fireProcs(TRIGGER.swingLanded, hand)
     this.fireProcs(TRIGGER.meleeLanded, hand)
@@ -1447,13 +1615,31 @@ export class Sim {
     }
   }
 
-  /** Rolls every proc on this trigger (damage-and-timing §5). `hand` is −1 for non-attack triggers. */
+  /**
+   * Rolls every proc on this trigger (damage-and-timing §5), in the plan's order, then those that
+   * need an aura, while it's up. `hand` is −1 for non-attack triggers.
+   */
   private fireProcs(trigger: number, hand: number): void {
     const list = this.triggerLists[trigger]
     for (let k = 0; k < list.length; k++) {
       const p = list[k]
       if (hand >= 0 && (this.pHands[p] & (1 << hand)) === 0) continue
       if (this.procReadyAt[p] > this.now) continue
+      const chance = this.pChance[2 * p + (hand > 0 ? hand : 0)]
+      if (chance < 1 && this.rngProc.next() >= chance) continue
+      if (this.pIcd[p] > 0) this.procReadyAt[p] = this.now + this.pIcd[p]
+      this.doAction(p)
+    }
+    if (this.gatedLists[trigger].length > 0) this.fireGatedProcs(trigger, hand)
+  }
+
+  /** The procs on this trigger that need an aura: each rolls only while its aura is up (Bloodthrill: your Rend). */
+  private fireGatedProcs(trigger: number, hand: number): void {
+    const list = this.gatedLists[trigger]
+    for (let k = 0; k < list.length; k++) {
+      const p = list[k]
+      if (hand >= 0 && (this.pHands[p] & (1 << hand)) === 0) continue
+      if (this.procReadyAt[p] > this.now || !this.auraActive[this.pReqAura[p]]) continue
       const chance = this.pChance[2 * p + (hand > 0 ? hand : 0)]
       if (chance < 1 && this.rngProc.next() >= chance) continue
       if (this.pIcd[p] > 0) this.procReadyAt[p] = this.now + this.pIcd[p]
@@ -1477,9 +1663,12 @@ export class Sim {
         }
         return
       }
-      case ACTION.aura:
-        this.applyAura(this.pAmount[p])
+      case ACTION.aura: {
+        const a = this.pAmount[p]
+        if (this.aKeepsEnd[a]) this.extendAura(a, this.now + (this.pB[p] > 0 ? this.pB[p] : this.aDuration[a]))
+        else this.applyAura(a)
         return
+      }
       case ACTION.rage:
         this.gainRage(this.pAmount[p], this.pSource[p])
         return
@@ -1499,6 +1688,17 @@ export class Sim {
 
   private applyAura(a: number): void {
     this.startAura(a, this.now + this.aDuration[a])
+  }
+
+  /**
+   * An aura procs apply for different durations, until `end` or its current end if that's later:
+   * the Overpower window keeps a Bloodthrill's 6 s through a later dodge's 5 s (warrior.md §7).
+   * Every other aura has one duration, so a refresh always ends later.
+   */
+  private extendAura(a: number, end: number): void {
+    if (this.auraActive[a] && end < this.auraEnd[a]) end = this.auraEnd[a]
+    this.auraEnd[a] = end
+    this.startAura(a, end)
   }
 
   /** Puts aura a on the warrior (or refreshes it, adding a stack) until `end` (a pre-pull aura ends early). */
@@ -1618,7 +1818,7 @@ export class Sim {
       this.counters[row + FIELD.hits]++
     }
     if (this.trace !== null) this.trace(source, -1, this.now)
-    this.addDamage(source, damage, damage * this.abThreatMult[a] * this.plan.threatMult)
+    this.addDamage(source, damage, damage * this.abThreatMult[a] * this.threatMult)
     if (--this.dotTicksLeft[a] > 0) {
       this.dotNextAt[a] = this.now + this.abDotTickMs[a]
       this.q.push(this.dotNextAt[a], EV_DOT_TICK, a, this.dotGen[a])
@@ -1692,7 +1892,7 @@ export class Sim {
       return
     }
     // docs/mechanics/damage-and-timing.md#26-order-of-operations-physical-direct-hit, boss → tank
-    const mitigated = raw * (1 - armorReduction(this.plan.armor, this.plan.fight.targetLevel, this.plan.profile)) * this.plan.damageTakenMult
+    const mitigated = raw * (1 - armorReduction(this.plan.armor, this.plan.fight.targetLevel, this.plan.profile)) * this.damageTakenMult
     let lost: number
     let preArmor = raw
     if (r < th[3]) {

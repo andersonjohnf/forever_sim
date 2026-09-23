@@ -218,6 +218,14 @@ const REGISTRY = {
     text: 'Weakness Analyzer’s +5% crit ends on your next crit, white or special, and it’s ready again after 90 s, as the Forever client says; an older tooltip said 2 minutes.',
     docRef: `${WAR}#9-open-questions`,
   },
+  overpowerWindow: {
+    text: 'A dodge opens Overpower for 5 s and each new dodge refreshes it, so windows aren’t banked (the Forever data can bank 3); an Overpower that misses still closes it.',
+    docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
+  },
+  bloodthrill: {
+    text: 'Bloodthrill procs only from your white swings while your own Rend is on the target, and opens the same Overpower window as a dodge, for 6 s.',
+    docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
+  },
   hyjalFlask: {
     text: 'Your flask’s bonus works only in Mount Hyjal, Hyjal Summit and the Barrow Deeps; this fight is elsewhere.',
     docRef: `${BUFFS}#31-flasks`,

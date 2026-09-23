@@ -184,7 +184,8 @@ Shield Slam, Spearing Strike, Victory Rush, Death Wish, Bloodrage, the shouts an
   was `min(rage, 5 × Tactical Mastery rank)` [C]. The rest of the rage is lost.
 - **Stance-restricted abilities.** When an ability needs another stance, an APL may swap first
   ("stance dance"). The swap and its rage loss happen before the ability. The Classic
-  mechanics are implemented the same way in WarriorSim [ws-spell].
+  mechanics are implemented the same way in WarriorSim [ws-spell]. How the sim swaps, dances
+  and swaps back is in [§7](#7-implementation-notes) ("Stances", "Stance dancing").
 
 ### 2.2 Global cooldown and off-GCD actions
 
@@ -423,14 +424,20 @@ Weaponmaster replaces Classic's Sword, Axe, Polearm and Mace Specialization with
     of 1 point of power type 4, and the dodge aura grants 1 point, stacking to 3 [F]
     [client] (SpellPower, SpellAuraOptions, 1.60.1.69913).
   - **Default: one window, refreshed by each new dodge.** Whether windows can be banked is
-    Q10.
+    Q10. The rule has no stance condition, so a dodge opens it in any stance: that's what the
+    Overpower dance relies on.
+  - **Using Overpower closes it**, whether it lands or misses: the sim spends the window when
+    Overpower is used, as the client's second cost is paid on use [?] (Q10).
   - Overpower needs Battle Stance and has a 5 s cooldown.
 - **Bloodthrill** [F] [tal] [client] (SpellAuraOptions, 1.60.1.69913):
   - **Trigger.** When your melee attack hits a target that has **your** Rend, there is a 2%
     per rank chance (10% at 5/5) to open the Overpower window for **6 s**, for 1 use.
   - **Which attacks count.** The data's proc mask is 4, main-hand and off-hand **auto
-    attacks** only. The tooltip says "melee attacks". **Default: white swings only**, Q11.
-  - The window is the same one a dodge opens. If both are open, one Overpower uses it.
+    attacks** only. The tooltip says "melee attacks". **Default: white swings only**, Q11,
+    extra attacks included, since they are auto attacks (Windfury, Weaponmaster, Hand of Justice).
+  - The window is the same one a dodge opens. If both are open, one Overpower uses it. A dodge
+    while a Bloodthrill window is open doesn't shorten it: the window lasts until the later of
+    the two ends [?] (Q11).
 - **Revenge window.** After the warrior blocks, dodges or parries, Revenge is usable for
   **5 s** [?] (Q12). It needs Defensive Stance and has a 5 s cooldown [F] [sb].
 
@@ -475,7 +482,7 @@ for daggers. `weapon` means the real speed. Both are defined in
 | Whirlwind (1680) | 25 | 10 s | yes | Berserker | MH `normalized` to up to 4 targets within 8 yd. With Raging Blows it also strikes with the off hand; see below | [F] [sb] [db-eff] |
 | Slam (5, 11605; Improved Slam version 1310200) | 15 | **15 s** | 1.5 s, −0.25 s per rank of Improved Slam | any | MH `weapon` + 87. **Cast 1.5 s**, −0.25 s per rank of Improved Slam. See the Slam notes below | [F] [sb] [client] (SpellCooldowns, SpellCastTimes, 1.60.1.69913) [tal] |
 | Execute (5, 20662) | 15 | none | yes | Battle, Berserker | Only on targets at or below 20% health. **600 + 15 × (rage − cost)**; a successful hit spends all rage | [F] [sb]; rage rules [C] [marrow] [ws-spell] |
-| Overpower (4, 11585) | 5 | 5 s | yes | Battle | MH `normalized` + 35. Can't be dodged, parried or blocked. Improved Overpower adds +25% crit chance per rank | [F] [sb] [tal] |
+| Overpower (4, 11585) | 5 | 5 s | yes | Battle | MH `normalized` + 35. Can't be dodged, parried or blocked. Improved Overpower adds +25% crit chance per rank. Needs the Overpower window ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)), which it closes | [F] [sb] [tal] [client] (SpellPower, SpellEffect, 1.60.1.69913) |
 | Hamstring (3, 7373) | 10 | none | yes | Battle, Berserker | 45 physical damage (flat, rolls on the melee table) and a 50% snare. Used to fish for procs | [F] [sb] [db-eff] |
 | Rend (7, 11574) | 10 | none | yes | Battle, Defensive | Bleed: 147 over 21 s, 21 per 3 s tick. Improved Rend multiplies it by 1 + 0.12 / 0.23 / 0.35. The application rolls miss, dodge and parry and can't crit; the ticks ignore armor and, in `forever`, may crit ([§2.5](#25-crits-impale-flurry-deep-wounds)). It enables Bloodthrill | [F] [sb] [tal] [db-eff] [client] (SpellEffect, SpellMisc, 1.60.1.69913) |
 | Spearing Strike (1310222) | 15 | 20 s | yes | any, two-hander only | **0.40 × MH `normalized`**. Against **Giants, Dragonkin and mounted targets**, 1.20 × (+80%) | [F] [tal] [db-eff] (effect 121 + weapon-% effect 31 = 40) [?] (Q13) |
@@ -647,7 +654,12 @@ Two more were replaced:
   rage points**. Defaults assume the spec's default talents, including a 130 rage cap for Fury.
 - **GCD-safe** means that spending the next GCD won't delay a higher-priority ability: every
   higher-priority ability in the list still has at least one GCD of cooldown left.
-  WarriorSim implements this idea as its `maincd` option [C] [ws-spell].
+  WarriorSim implements this idea as its `maincd` option [C] [ws-spell]. An ability the current
+  stance refuses isn't coming up, so it doesn't count, unless a line dances for it
+  ([§7](#7-implementation-notes) "Stance dancing").
+- **Stance-dance lines** swap to the stance their ability needs, use it, and swap back. Each
+  swap keeps at most the Tactical Mastery cap ([§2.1](#21-stances)), so the line's `maxRage`
+  (default: the cap, 25 with the default build) stops the swap in from wasting rage.
 - **Reaction time and latency** are global settings in
   [damage-and-timing.md](../mechanics/damage-and-timing.md).
 - **Execute phase** starts when target health is at or below 20%. The encounter model supplies
@@ -688,12 +700,12 @@ Forever:
 | 7 | Execute phase: Execute | Rage ≥ cost + `minExtraRage`. Stops Heroic Strike queueing and uses Execute on every GCD | `fury.execute.enabled` (on), `.minExtraRage` (0), `.whirlwindInExecute` (off), `.heroicStrikeInExecute` (off) | yes |
 | 8 | Bloodthirst | Off cooldown; rage ≥ cost | `fury.bloodthirst.enabled` (on) | yes |
 | 9 | Whirlwind | Off cooldown; rage ≥ 25 + `reserve`; Bloodthirst cooldown ≥ `btCdMinSec` | `fury.whirlwind.enabled` (on), `.reserve` (0), `.btCdMinSec` (1.5) | yes |
-| 10 | Overpower (stance dance) | Window open; rage ≤ `maxRage`, since the swap keeps only 25; Bloodthirst and Whirlwind are GCD-safe. Swap to Battle, Overpower, swap back | `fury.overpower.enabled` (off), `.maxRage` (25) | no |
+| 10 | Overpower (stance dance) | Window open; rage ≤ `maxRage`, since the swap keeps only 25; Bloodthirst and Whirlwind are GCD-safe. Swap to Battle, Overpower, swap back; see the notes | `fury.overpower.enabled` (off), `.maxRage` (25) | no |
 | 11 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage`; unqueue if rage falls below `unqueueBelow` before the swing | `fury.heroicStrike.enabled` (on), `.minRage` (42), `.unqueueBelow` (off; 20 if enabled) | yes |
 | 12 | Hamstring (filler to fish for procs) | Rage ≥ `minRage`; Bloodthirst and Whirlwind are GCD-safe; optionally only when Flurry is down | `fury.hamstring.enabled` (on), `.minRage` (60), `.onlyWhenFlurryDown` (off) | yes |
 | 13 | Berserker Rage | With Improved Berserker Rage: on cooldown, when GCD-safe and rage ≤ max − 10. Without it: not used (its only other effect is Q20's extra rage from damage taken) | `fury.berserkerRage.enabled` (on; the plan skips it without Improved Berserker Rage), `.maxRage` (max − 10) | with the talent |
 | 14 | Sunder Armor | Keep `stacks` stacks up, when no one else in the raid applies them | `fury.sunder.enabled` (off), `.stacks` (5) | no |
-| 15 | Slam | Not used by dual wield: without Improved Slam it resets both swing timers | `fury.slam.enabled` (off) | no |
+| 15 | Slam | Not used by dual wield: without Improved Slam it resets both swing timers. When on: Bloodthirst and Whirlwind are GCD-safe; outside the execute phase | `fury.slam.enabled` (off) | no |
 | 16 | Mighty Rage Potion (consumable, off the GCD) | Once, from the start of the execute phase, at rage ≤ `maxRage` (max − 75); in the last 20 s without an execute phase. Only when it's selected in Buffs | `fury.ragePotion.enabled` (on), `.maxRage` (55), `.when` (`executeStart`: its only value, so it isn't a control) | with the consumable |
 | 17 | Juju Flurry (consumable, off the GCD) | On cooldown from the pull. Only when it's selected in Buffs | `fury.jujuFlurry.enabled` (on) | with the consumable |
 
@@ -721,6 +733,20 @@ Notes:
   `btOverExecuteAp`); below it Bloodthirst is never pressed, and waiting on it would block
   Whirlwind for good. With the setting off, the phase changes nothing and rows 8–12 run to the
   end.
+- **Rows 10 and 15 in the execute phase.** Slam (row 15) is a filler like Hamstring, so it
+  applies only outside the phase. The Overpower dance (row 10) isn't among the rows the phase
+  stops, so it applies in both, GCD-safe the way Berserker Rage is there (the row 13 note below):
+  Bloodthirst counts only while row 6 uses it, Whirlwind only with `whirlwindInExecute`. It comes
+  after Execute, so in the phase it gets a GCD only while Execute waits for rage. Both are engine
+  choices; no source covers them.
+- **The Overpower dance** (row 10). When a dodge has opened the window ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge))
+  and the row's conditions hold, the warrior swaps to Battle Stance (keeping at most 25 rage, so
+  `maxRage` 25 loses none), uses Overpower, and swaps back to Berserker Stance 1 s later, when the
+  shared swap cooldown ends ([§2.1](#21-stances)). That swap keeps at most 25 again, so rage
+  gained in that second above 25 is lost. For that second the warrior has Battle Stance's
+  numbers: no +3% crit. Whirlwind, Recklessness and Berserker Rage need Berserker Stance, but the
+  Overpower GCD outlasts the second. How the engine does it is in [§7](#7-implementation-notes)
+  ("Stance dancing").
 - **A Heroic Strike already queued when the phase starts is cancelled** unless
   `heroicStrikeInExecute` is on. Its 12 rage is worth 180 damage in the next Execute, more than
   the 157 it adds to a swing that also gives up that swing's white rage. This is an engine
@@ -1080,9 +1106,37 @@ parts:
   modifiers. Whether the server converts only whole rage points is Q28 [?]. A blocked Execute
   has landed, so it spends the rage too.
 - **Stances.** Each ability carries the stances it can be used in ([§3.1](#31-damage-abilities)
-  "Stance", from the client's `ShapeshiftMask`), and the engine refuses it in any other. There's
-  no stance dancing yet, so each spec stays in its base stance. A GCD-safe condition still
-  counts an ability the stance refuses as ready. That matters only once stance dancing arrives.
+  "Stance", from the client's `ShapeshiftMask`), and the engine refuses it in any other. Each spec
+  fights in its base stance ([§5](#5-spec-models-and-rotations)). The plan's static numbers (the
+  damage, threat and damage-taken multipliers and the stat block's crit) are the base stance's, as
+  they were before stances could change. Each stance carries what it changes relative to them: its
+  own effects ([§2.1](#21-stances)) and the talents' stance-bound ones that hold in it (Defiance),
+  as factors on damage (all schools), threat and damage taken, and a crit delta. The base
+  stance's factors are exactly 1 and its delta 0, so a spec that never swaps gets the same
+  results, bit for bit. A swap switches them: the crit delta (Berserker Stance's +3% is aura crit)
+  re-derives the stats, so crit suppression and the table caps apply as usual; the rest are
+  multipliers. A bleed snapshots the stance it was applied in (Rend). Only boss swings use damage
+  taken; the DPS stand-in's hits are health lost and ignore it (below).
+- **Stance swaps** are off the GCD and share a 1 s cooldown ([§2.1](#21-stances)). Each keeps at
+  most the plan's cap: in `forever` 10 + 3 × Improved Tactical Mastery rank, in `classicEra` 5 ×
+  the rank of the talent in the same place, Classic's Tactical Mastery
+  ([rage.md](../mechanics/rage.md#stance-changes-and-tactical-mastery), W18). The rest is lost,
+  with no threat and no refund, and it can cancel a queued Heroic Strike whose unqueue threshold
+  it drops below. The pre-pull Charge's swap is at the pull, so the next swap can come 1 s in.
+- **Stance dancing.** A priority-list line can name a stance to dance to. When the current
+  stance refuses its ability, the line is usable only if the swap cooldown has ended and the rage
+  the swap would keep still pays the ability's cost; then, if its other conditions hold, the
+  engine swaps and uses the ability in the same moment. The line's `maxRage` is what keeps the
+  swap in from wasting rage ([§5.1](#51-conventions-for-rotation-settings)): with the swap
+  before the ability, `rage ≤ cap` loses nothing (`cap + cost` would lose up to the cost). At every
+  decision point away from the base stance the engine first swaps back if the swap cooldown has
+  ended, so the warrior is back 1 s after the swap in; that swap keeps at most the cap too, and
+  nothing guards it. There's one swap per cooldown, so no second dance until it ends. Meanwhile,
+  abilities the other stance refuses wait, and a line without a dance waits for a stance that
+  allows its ability. The engine wakes the rotation when the swap cooldown ends. These timings are
+  engine choices; no source covers them.
+- **GCD-safe and stances.** An ability the current stance refuses isn't coming up, so a GCD-safe
+  condition skips it, unless one of its lines dances for it; then it counts as usual.
 - **Slam's cast.** An ability can have a cast time (`castMs`: Slam's 1500 ms, 250 less per
   Improved Slam rank). The GCD starts with the cast, and no GCD ability starts before the cast
   completes: the engine holds the GCD until then. Off-GCD lines (the Heroic Strike queue,
@@ -1138,9 +1192,25 @@ parts:
   delay) and reset the main-hand timer. The 200 ms Weaponmaster internal cooldown is an aura
   cooldown. Windfury has no internal cooldown in the sim [?] (§2.7, Q27); its chain rule (it
   can't proc from its own extra attack) is enforced per chain.
-- **Reactive windows** (Overpower, Revenge, Bloodthrill) are auras on the warrior, with
-  duration and charges. Stance-dance entries check `rage ≤ tacticalMasteryCap +
-  ability cost` so the dance doesn't waste rage.
+- **Reactive windows** are auras on the warrior; Overpower's lasts 5 s
+  ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)). Procs open it: a "the target
+  dodged" trigger on any of your attacks, white or special, either hand, and Bloodthrill's
+  white-swing proc with its own 6 s. A refresh keeps the later end, so a dodge doesn't cut a
+  Bloodthrill window short [?] (Q11). The ability's lines need the window (the engine puts that
+  condition in front of each line's own), and using the ability ends it, before its roll, so a
+  miss spends it too [?] (Q10). There's one window, not the client's 3 banked points [?] (Q10).
+  The rotation adds the openers only when it uses Overpower. The Revenge window (M3) can reuse
+  this.
+- **Procs that need an aura.** A proc can name an aura that must be up for it to roll:
+  Bloodthrill needs your Rend's marker on the target (above, "Rend is a bleed ability"). While the aura is down the
+  proc isn't rolled, so it draws no random number; a plan without that aura (no Rend in the
+  rotation) leaves the proc out.
+- **Overpower's table.** It can't be dodged, parried or blocked, so its one roll is miss, crit,
+  hit: the crit slice starts after the miss slice, and the table truncates it at 100
+  ([combat-tables §3](../mechanics/combat-tables.md#3-special-yellow-attacks)). Its crit chance is
+  the special crit plus Improved Overpower's 25% per rank (W5). A miss refunds 80%
+  ([rage.md](../mechanics/rage.md#rage-refunds-on-avoided-abilities)); threat is 0.75 × damage [C]
+  ([threat.md](../mechanics/threat.md#warrior)).
 - **Enrage and incoming damage.** Enrage, Master of Defense and Shield Specialization consume
   incoming-damage events from the encounter model (Berserker Rage would too, with a known
   multiplier; Q20). With no events (the DPS default), those auras never trigger.
@@ -1383,10 +1453,13 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
    per Cleave on two mobs.
 10. **Overpower window.** The data has a combo-point-like counter that stacks to 3, on a 5,000 ms
     window [F] [client] (SpellPower, SpellAuraOptions, SpellDuration, 1.60.1.69913). Can several
-    dodges bank several Overpowers in game?
+    dodges bank several Overpowers in game? The sim keeps one window that each dodge refreshes,
+    and a used Overpower spends it even when it misses ([§7](#7-implementation-notes) "Reactive
+    windows"): does a missed Overpower give the point back?
 11. **Bloodthrill.** Does it trigger only from white swings (data mask) or from all melee
-    attacks (tooltip)? Does it need your own Rend? Does its 6 s window stack with a dodge
-    window?
+    attacks (tooltip)? The sim takes white swings, extra attacks included. Does it need your own
+    Rend? Does its 6 s window stack with a dodge window? The sim keeps one window, which a dodge
+    refreshes but never shortens.
 12. **Revenge window.** Is it 5 s after a block, dodge or parry? The only source we found for
     a number (4 s) is Turtle WoW, which is forbidden. **Test:** time from a dodge to Revenge
     greying out.

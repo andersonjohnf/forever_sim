@@ -5,14 +5,17 @@
 // so the app bundle doesn't carry the 1.3 MB client dataset; abilities.test.ts checks every one
 // against the client data. Client units: rage costs in tenths (`manaCost` 300 = 30 rage), times
 // in ms. These are the base rows: talents (cost reductions, Impale, Raging Blows, Improved
-// Bloodrage, Improved Berserker Rage, Improved Rend, Improved Slam) are applied by `withTalents`
-// in modifiers.ts when the plan resolves the rotation. Strikes roll the attack tables (Slam after
-// its cast time); Rend's `bleed` row lands a bleed; `cast` rows (Battle Shout, Bloodrage, Death
+// Bloodrage, Improved Berserker Rage, Improved Rend, Improved Slam, Improved Overpower) are
+// applied by `withTalents` in modifiers.ts when the plan resolves the rotation. Strikes roll the
+// attack tables (Slam after its cast time; Overpower only while its window is open, and only a
+// miss avoids it); Rend's `bleed` row lands a bleed; `cast` rows (Battle Shout, Bloodrage, Death
 // Wish, Recklessness, Berserker Rage, racial cooldowns, on-use items and consumables) apply an
-// aura and grant rage (warrior.md §3.1, §3.2, §5.2).
+// aura and grant rage (warrior.md §3.1, §3.2, §2.8, §5.2). Stance swaps' cooldown and rage cap
+// are here too (§2.1).
 import { CRIT_MULTIPLIER, GCD_MS } from '../../core/formulas'
-import type { OnUseSpec } from '../../effects/types'
+import type { AuraSpec, OnUseSpec, ProcSpec } from '../../effects/types'
 import { type AbilityDef, STANCE, STANCE_ANY } from '../../plan/types'
+import type { RulesProfile } from '../../rules/profiles'
 
 export type { AbilityDef } from '../../plan/types'
 
@@ -25,11 +28,15 @@ const NO_CAST_RAGE = { rageTenths: 0, rageSpreadTenths: 0, rageTickTenths: 0, ra
 /** The `cast` fields of an attack: no aura, no rage, no limit on uses. */
 const NO_CAST = { aura: null, ...NO_CAST_RAGE } as const
 
-/** The fields of an instant ability with no weapon restriction beyond a melee weapon and no bleed. */
+/**
+ * The fields of an instant ability with no weapon restriction beyond a melee weapon, no bleed, and
+ * the whole attack table (it can be dodged, parried and blocked).
+ */
 const INSTANT = {
   castMs: 0,
   castStopsSwings: false,
   twoHandOnly: false,
+  unavoidable: false,
   dotTickDamage: 0,
   dotTicks: 0,
   dotTickMs: 0,
@@ -353,6 +360,94 @@ export const REND: AbilityDef = {
 }
 
 /**
+ * The Overpower window (spells.json 1282733, "Overpower"): a dodge of any of your attacks opens it
+ * for `duration` 5000 ms (warrior.md §2.8). In the client it grants 1 point of power type 4, which
+ * Overpower spends as its second cost, stacking to 3 (`cumulativeAura` 3); the sim keeps one window
+ * that each new dodge refreshes, and doesn't bank the stacks [?] (Q10). Bloodthrill opens the same
+ * window for 6 s, and a refresh never shortens it (warrior.md §7).
+ */
+export const OVERPOWER_WINDOW: AuraSpec = { id: 'overpowerWindow', name: 'Overpower window', durationMs: 5000, mods: {} }
+
+/** Bloodthrill opens the Overpower window for 6 s [F] [tal] (the tooltip; its client spell is a server-scripted dummy, warrior.md §2.8). */
+export const BLOODTHRILL_WINDOW_MS = 6000
+/** Bloodthrill's chance per rank, % (spells.json 1289682's rank curve 2 / 4 / 6 / 8 / 10). */
+export const BLOODTHRILL_PCT_PER_RANK = 2
+
+/**
+ * Overpower rank 4 (spells.json 11585): cost 50, cooldown `categoryRecoveryTime` 5000, GCD 1500,
+ * Battle Stance only (`shapeshiftMask` 0x10000), effect 121 `NORMALIZED_WEAPON_DMG` +35
+ * (warrior.md §3.1, W5; damage-and-timing §2.2). Usable only while the Overpower window is open,
+ * which using it closes (its second cost, 1 point of power type 4; §2.8). It can't be dodged,
+ * parried or blocked [F] [sb], so its one roll is miss, crit, hit (combat-tables §3). Improved
+ * Overpower adds 25% crit per rank (modifiers.ts). A miss refunds 80% [C]
+ * (rage.md#rage-refunds-on-avoided-abilities). Threat dmg × 0.75 [C] (threat.md#warrior).
+ */
+export const OVERPOWER: AbilityDef = {
+  id: 'overpower',
+  name: 'Overpower',
+  icon: 'ability_meleedamage',
+  kind: 'weaponStrike',
+  costTenths: 50,
+  cooldownMs: 5000,
+  gcdMs: GCD_MS,
+  stances: STANCE.battle,
+  executePhaseOnly: false,
+  weaponPercent: 1,
+  normalized: true,
+  flatDamage: 35,
+  apCoefficient: 0,
+  damagePerExtraRage: 0,
+  bonusCrit: 0,
+  critMultiplier: CRIT_MULTIPLIER.melee,
+  refundShare: REFUND,
+  threatMult: 0.75,
+  threatBonus: 0,
+  offHand: false,
+  ...INSTANT,
+  unavoidable: true,
+  ...NO_CAST,
+  window: OVERPOWER_WINDOW,
+}
+
+/**
+ * The procs that open the Overpower window, for a rotation that uses Overpower (warrior.md §2.8):
+ * a target's dodge of any of your attacks, white or special, either hand, for 5 s; and with
+ * Bloodthrill, 2% per rank on each landed white swing (the data's proc mask 4, auto attacks, so
+ * extra attacks too) while your Rend is on the target, for 6 s [F] [?] (Q11). Without Rend in the
+ * rotation the plan leaves Bloodthrill out.
+ */
+export function overpowerWindowProcs(talents: ReadonlyMap<string, number>): ProcSpec[] {
+  const doc = 'docs/classes/warrior.md#28-reactive-abilities-overpower-bloodthrill-revenge'
+  const procs: ProcSpec[] = [
+    {
+      id: 'overpowerDodge',
+      name: 'Overpower',
+      icon: OVERPOWER.icon,
+      trigger: 'targetDodge',
+      from: 'any',
+      chance: { pct: 100 },
+      action: { kind: 'aura', aura: OVERPOWER_WINDOW },
+      docRef: doc,
+    },
+  ]
+  const bloodthrill = talents.get('Bloodthrill') ?? 0
+  if (bloodthrill > 0) {
+    procs.push({
+      id: 'bloodthrill',
+      name: 'Bloodthrill',
+      icon: 'inv_sword_01',
+      trigger: 'whiteLanded',
+      from: 'any',
+      chance: { pct: BLOODTHRILL_PCT_PER_RANK * bloodthrill },
+      action: { kind: 'aura', aura: OVERPOWER_WINDOW, durationMs: BLOODTHRILL_WINDOW_MS },
+      requiresAura: REND.aura!.id,
+      docRef: doc,
+    })
+  }
+  return procs
+}
+
+/**
  * Bloodrage (spells.json 2687): no rage cost (its cost is 20% of base health, not simulated),
  * `recoveryTime` 60000, no GCD, any stance. `ENERGIZE` 100 tenths at once, then its trigger 29131
  * energizes 10 tenths every 1000 ms for 10000 ms: 10 ticks, the first 1 s after the cast
@@ -404,11 +499,20 @@ export const CHARGE_RAGE_TENTHS = 150
 export const IMPROVED_CHARGE_TENTHS_PER_RANK = 30
 
 /**
- * A stance swap keeps at most 10 rage (Tactical Mastery, trained) plus 3 per rank of Improved
- * Tactical Mastery (warrior.md §2.1) [F].
+ * The cooldown the three stances share: `categoryRecoveryTime` 1000 of category 47, off the GCD
+ * (warrior.md §2.1, §2.2) [F] [client] (SpellCooldowns, 1.60.1.69913).
  */
-export const TACTICAL_MASTERY_TENTHS = 100
-export const IMPROVED_TACTICAL_MASTERY_TENTHS_PER_RANK = 30
+export const STANCE_SWAP_COOLDOWN_MS = 1000
+
+/**
+ * The most rage a stance swap keeps, in tenths (warrior.md §2.1, rage.md#stance-changes-and-tactical-mastery,
+ * W18): in `forever` 10 (Tactical Mastery, trained) + 3 per rank of Improved Tactical Mastery [F];
+ * in `classicEra` 5 per rank of Tactical Mastery, the talent in the same place [C].
+ */
+export function stanceSwapKeepTenths(talents: ReadonlyMap<string, number>, profile: RulesProfile): number {
+  const r = talents.get('Improved Tactical Mastery') ?? 0
+  return 10 * (profile.rage.stanceRetainBase + profile.rage.stanceRetainPerRank * r)
+}
 
 /**
  * Death Wish (spells.json 12328): cost 100, `recoveryTime` 180000, GCD 1500, any stance; for

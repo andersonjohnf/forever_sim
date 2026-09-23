@@ -683,10 +683,12 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B32. Overpower windows and Bloodthrill
 **Medium · M2 · ≤20 (Bloodthrill ≤30)**
 - **Assumes:** one 5 s Overpower window, refreshed by each dodge (the data allows banking up to
-  3) [?]; Bloodthrill procs from white swings only, needs your own Rend, and opens the same
-  window [?].
+  3), and spent by any Overpower, even one that misses [?]; Bloodthrill procs from white swings
+  only (extra attacks included), needs your own Rend, and opens the same window for 6 s, which a
+  later dodge refreshes but doesn't shorten [?].
 - **Test:** time Overpower's availability after a dodge; get two dodges before using it and
-  count the Overpowers allowed; with Bloodthrill and Rend, log which attacks open the window.
+  count the Overpowers allowed; after a missed Overpower, check whether it lights up again before
+  the next dodge; with Bloodthrill and Rend, log which attacks open the window.
 - **Samples:** ≥20 windows; ≥200 attacks on a Rend target.
 - **Changes:** Arms Overpower frequency.
 - **Docs:** [warrior §2.8](classes/warrior.md#28-reactive-abilities-overpower-bloodthrill-revenge),

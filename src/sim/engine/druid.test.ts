@@ -249,6 +249,28 @@ describe('Clearcasting (druid.md §2.7)', () => {
     // Up from the swing at 0 until the builder at 500; Omen of Clarity then waits 10 s.
     expect(sim.auraUpMs[clearcasting]).toBe(500)
   })
+
+  it('survives a shapeshift, which pays its mana, and then pays a bear ability', () => {
+    const plan = druidPlan('druid-feral-cat', 3000, { keepProcs: true })
+    landAll(plan)
+    const clearcasting = plan.freeCastAura!
+    plan.procs.find((p) => p.id === 'omenOfClarity')!.chance = [1, 1]
+    const shift = addDruidAbility(plan, shapeshift('bear', 0))
+    // 50 rage: more than the bear has at 2 s (Furor's 10 and a swing's 8.65), so only Clearcasting pays it.
+    const bearAttack = addDruidAbility(plan, testRow('testBearAttack', { resource: 'rage', costTenths: 500, clearcastable: true, forms: formBit('bear'), gcdMs: 1000 }))
+    line(plan, shift, at(plan, 400))
+    line(plan, bearAttack, [from(plan, 2000)])
+    const mana0 = new Sim(plan).inspect().mana
+    const { sim, uses } = timeline(plan)
+    expect(uses[shift]).toEqual([400])
+    expect(sim.resources().form).toBe(FORM_INDEX.bear)
+    // The shift paid its 684 mana (druid.md §2.7: a shapeshift doesn't use Clearcasting) …
+    expect(mana0 - sim.resources().mana).toBe(6840)
+    // … so the charge from the swing at 0 was still there for the bear attack at 2 s.
+    expect(uses[bearAttack]).toEqual([2000])
+    expect(sim.resources().rage).toBeLessThan(500)
+    expect(sim.auraUpMs[clearcasting]).toBe(2000)
+  })
 })
 
 describe('shapeshifts, Furor and mana (druid.md §2.8)', () => {
@@ -318,6 +340,55 @@ describe('shapeshifts, Furor and mana (druid.md §2.8)', () => {
     const later = shifted(20000)
     const ticks = (later.sim.resources().mana - (plan.mana!.maxTenths - 6840)) / plan.mana!.regenTickTenths
     expect([7, 8]).toContain(ticks)
+  })
+
+  it('a shift the mana can’t pay for isn’t used: the druid stays in its form', () => {
+    const plan = druidPlan('druid-feral-cat', 5000)
+    // Mana for one 684-mana shift and 683 more, and no spirit regeneration.
+    plan.mana!.maxTenths = 6840 + 6830
+    plan.mana!.regenTickTenths = 0
+    const toBear = addDruidAbility(plan, shapeshift('bear', 0))
+    const toCat = addDruidAbility(plan, shapeshift('cat', 0))
+    line(plan, toBear, at(plan, 1000))
+    line(plan, toCat, [from(plan, 3000)])
+    const { sim, uses } = timeline(plan)
+    expect(uses[toBear]).toEqual([1000])
+    expect(uses[toCat]).toEqual([])
+    expect(counter(sim, plan.abilities[toCat].source, FIELD.casts)).toBe(0)
+    expect(sim.resources().form).toBe(FORM_INDEX.bear)
+    expect(sim.resources().mana).toBe(6830)
+  })
+
+  it('the power tick keeps its phase through a shapeshift: a powershift, and bear and back (druid.md §2.4)', () => {
+    /** A cat that spends 40 Energy on every tick that brings it to 40, as in the first Energy test. */
+    const spender = () => {
+      const plan = druidPlan('druid-feral-cat', 20000)
+      const spend = addDruidAbility(plan, testRow('testSpend', { kind: 'cast', resource: 'energy', costTenths: 400, forms: formBit('cat') }))
+      line(plan, spend)
+      return { plan, spend }
+    }
+    const alone = spender()
+    const phase = timeline(alone.plan).uses[alone.spend][1]
+    // Halfway between ticks, with 0 Energy (100 → 60 at the pull; 80 → 40, 60 → 20, 40 → 0 on the ticks).
+    const powershift = spender()
+    const shift = addDruidAbility(powershift.plan, shapeshift('cat', 0))
+    line(powershift.plan, shift, at(powershift.plan, phase + 5000))
+    const p = timeline(powershift.plan)
+    expect(p.uses[shift]).toEqual([phase + 5000])
+    // Furor 5/5 keeps the 0 Energy; the spends stay on the pull's ticks, every other one from 8 s on.
+    // A timer restarted by the shift would tick at phase + 7 s, 9 s, … instead.
+    expect(p.uses[powershift.spend]).toEqual(timeline(alone.plan).uses[alone.spend])
+    // Into bear and back: the spends after it are still on the pull's ticks.
+    const bearAndBack = spender()
+    const toBear = addDruidAbility(bearAndBack.plan, shapeshift('bear', 0))
+    const toCat = addDruidAbility(bearAndBack.plan, shapeshift('cat', 0))
+    line(bearAndBack.plan, toBear, at(bearAndBack.plan, phase + 5000))
+    line(bearAndBack.plan, toCat, at(bearAndBack.plan, phase + 9000))
+    const b = timeline(bearAndBack.plan)
+    expect([b.uses[toBear], b.uses[toCat]]).toEqual([[phase + 5000], [phase + 9000]])
+    const after = b.uses[bearAndBack.spend].filter((t) => t > phase + 9000)
+    expect(after.length).toBeGreaterThan(0)
+    for (const t of after) expect((t - phase) % POWER_TICK_MS).toBe(0)
   })
 
   it('cat into bear: rage to 0 then Furor’s 10, the bear’s swing and attack power, and bear-only procs', () => {
@@ -430,5 +501,25 @@ describe('determinism and the default druids', () => {
       return out
     }
     expect(run()).toEqual(run())
+  })
+
+  it('a reused Sim runs the next fight as a fresh one does, after a fight that ends in another form', () => {
+    const plan = druidPlan('druid-feral-cat', 20000, { keepProcs: true })
+    const spend = addDruidAbility(plan, testRow('testSpend', { resource: 'energy', costTenths: 400, forms: formBit('cat'), clearcastable: true, gcdMs: 1000 }))
+    line(plan, spend)
+    line(plan, addDruidAbility(plan, shapeshift('bear', 0)), at(plan, 12000))
+    /** Fight 1's damage events and its end state. */
+    const fightOne = (sim: Sim) => {
+      const events: [number, number][] = []
+      sim.damageTrace = (source, damage) => events.push([source, damage])
+      sim.runFight(1)
+      return { events, damage: sim.fightDamage, threat: sim.fightThreat, ms: sim.fightMs, end: sim.resources() }
+    }
+    const reused = new Sim(plan)
+    reused.runFight(0)
+    expect(reused.resources().form).toBe(FORM_INDEX.bear)
+    const fresh = fightOne(new Sim(plan))
+    expect(fresh.events.length).toBeGreaterThan(10)
+    expect(fightOne(reused)).toEqual(fresh)
   })
 })

@@ -183,7 +183,7 @@ const ROWS: Record<string, Row> = {
   mightfishSteak: { forever: [['ap', 40]], classicEra: [['sta', 10]], rows: [S(1249515, 1)], classicRows: [S(18191)] },
   // Forever: Well Fed 1249523 is all crit (aura 290), so spell crit too.
   grilledSquid: { forever: [['crit', 1], ['spellCrit', 1]], classicEra: [['agi', 10]], rows: [S(1249522, 1), S(1249523)], classicRows: [S(18192)] },
-  // New in Forever: Flank au Poivre (250069) → Nutritious Food 1248399, whose Well Fed 1248420 is Agility (aura 29, misc 1).
+  // New in Forever: Flank au Poivre (250069) → Nutritious Food 1248399, whose Well Fed 1248420 is Agility (aura 29, misc 1; checked below).
   flankAuPoivre: { foreverOnly: true, rows: [S(1248399, 1)] },
   denseSharpeningStone: { rows: [E(1643, 16138)] },
   elementalSharpeningStone: { rows: [E(2506, 22756)] },
@@ -490,6 +490,16 @@ class Client {
     return this.effect(spell, index).EffectAura as number
   }
 
+  /** A spell effect's first misc value (for aura 29, the stat: 0 Strength, 1 Agility, …). */
+  misc(spell: number, index: number): number {
+    return (this.effect(spell, index).EffectMiscValue as number[])[0]
+  }
+
+  /** The spell a spell effect triggers (a periodic trigger's, aura 227), or 0. */
+  triggers(spell: number, index: number): number {
+    return this.effect(spell, index).EffectTriggerSpell as number
+  }
+
   private effect(spell: number, index: number): ClientRow {
     const row = this.effects.get(spell)?.find((r) => r.EffectIndex === index)
     if (!row) throw new Error(`${this.build}: no SpellEffect ${spell} #${index}`)
@@ -563,6 +573,17 @@ describe('the cited client rows', () => {
       check(forever, FOREVER, id, entry, row.rows)
       if (!row.foreverOnly) check(classic, CLASSIC_ERA, id, entry, row.classicRows ?? row.rows)
     }
+  })
+
+  it.skipIf(!cached)('give Flank au Poivre’s Well Fed as Agility: Nutritious Food 1248399 #1 triggers 1248420, aura 29 (a stat) with misc 1 (Agility)', async () => {
+    const [forever] = await open()
+    const MOD_STAT = 29
+    const AGILITY = 1
+    // ROWS cites 1248399 #1 for the amount (its 20); the stat is in the spell it triggers.
+    expect(ROWS.flankAuPoivre.rows).toEqual([S(1248399, 1)])
+    expect(forever.triggers(1248399, 1)).toBe(1248420)
+    expect([forever.aura(1248420, 0), forever.misc(1248420, 0)]).toEqual([MOD_STAT, AGILITY])
+    expect(digest(catalogueEffects(BUFFS_BY_ID.get('flankAuPoivre')!, FOREVER))).toEqual([['agi', 20]])
   })
 
   // TL4: the RL5 split, crit source by crit source (character-stats.md#implementation-notes).

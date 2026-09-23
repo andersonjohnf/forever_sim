@@ -22,10 +22,13 @@ describe('the plan’s code tables', () => {
     expect([COND.executeWithin, COND.minEnergy, COND.maxEnergy, COND.minComboPoints]).toEqual([13, 14, 15, 16])
   })
 
-  it('the paladin’s codes follow: minMana 18, with 17 and 19 kept free for abilityAuraDown and maxMana', () => {
+  it('17 is abilityAuraDown, the cat’s, and Retribution’s when it comes: the aura an ability puts on the player is down', () => {
+    expect(COND.abilityAuraDown).toBe(17)
+  })
+
+  it('the paladin’s codes follow: minMana 18, with 19 kept free for maxMana', () => {
     expect(COND.minMana).toBe(18)
     const conditions: number[] = Object.values(COND)
-    expect(conditions).not.toContain(17)
     expect(conditions).not.toContain(19)
     // After the tank core's boss-swing triggers (8–11): the seals' swing trigger and Vengeance's spell crits.
     expect([TRIGGER.dodge, TRIGGER.parry, TRIGGER.meleeTaken, TRIGGER.critTaken, TRIGGER.whiteResolved, TRIGGER.spellCrit]).toEqual([8, 9, 10, 11, 12, 13])

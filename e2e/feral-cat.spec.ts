@@ -214,6 +214,31 @@ test.describe('Feral cat share link', () => {
   })
 })
 
+for (const [spec, width] of [
+  ['Feral (Cat)', 360],
+  ['Fury', 320],
+] as const) {
+  test.describe(`${spec}'s talent tree tabs at ${width} px`, () => {
+    test.use({ viewport: { width, height: 800 }, hasTouch: true, isMobile: true })
+
+    test('show every tree’s name and points in full', async ({ page }) => {
+      await page.goto('./')
+      if (spec !== 'Fury') {
+        await page.getByRole('button', { name: /^Spec: / }).click()
+        await page.getByRole('menuitem', { name: /Feral \(Cat\)/ }).click()
+      }
+      await openTab(page, 'Talents')
+      const tabs = page.getByRole('radiogroup', { name: 'Talent tree' }).getByRole('radio')
+      await expect(tabs).toHaveCount(3)
+      for (const tab of await tabs.all()) {
+        const name = tab.locator('span').first()
+        expect(await name.evaluate((el) => el.scrollWidth <= el.clientWidth), await tab.innerText()).toBe(true)
+      }
+      await noSideScroll(page)
+    })
+  })
+}
+
 test.describe('Feral cat on a phone', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 

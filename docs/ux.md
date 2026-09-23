@@ -106,8 +106,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     default is selected. Only the current spec's default is marked "(default)"; another spec's
     reads plainly ("Arms default"), so the menu never shows two defaults.
   - Interactive trees: three side by side on desktop, one tab per tree on mobile (a segmented
-    control named "Talent tree", each tab as wide as its name and points need, so "Feral Combat 37"
-    fits at 390 px). With a mouse, click to add a point and right-click to remove one; on a touch
+    control named "Talent tree", each tab as wide as its name and points need, with tight padding,
+    so "Feral Combat 37" fits beside Balance and Restoration down to 360 px, and a warrior's three
+    at 320 px). With a mouse, click to add a point and right-click to remove one; on a touch
     screen, a tap opens the talent's details with − and + buttons. On a focused talent, Enter adds a
     point and Backspace removes one (Delete and − work too); the hint above the trees and each
     talent's tooltip say so. Tier gates and prerequisites are enforced visibly: a locked talent's

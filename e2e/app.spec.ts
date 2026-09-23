@@ -24,7 +24,8 @@ test.describe('setup', () => {
     await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
     await expect(page.getByRole('menuitem', { name: /Fury/ })).toBeVisible()
     await expect(page.getByRole('menuitem', { name: /Arms/ })).toBeVisible()
-    await expect(page.getByRole('menuitem')).toHaveCount(2)
+    await expect(page.getByRole('menuitem', { name: /Feral \(Cat\)/ })).toBeVisible()
+    await expect(page.getByRole('menuitem')).toHaveCount(3)
   })
 
   test('switching to Arms keeps it across reloads, with its own setup', { tag: '@smoke' }, async ({ page }) => {

@@ -177,7 +177,9 @@ theoretical maximum:
 - raid buffs for a typical raid composition, and common consumables. Buffs are keyed to
   composition, not faction: both factions have paladins and shamans in Forever
 - never world buffs (they don't exist in Forever raids, see §1)
-- a rotation that a real player can execute
+- the best-performing rotation we've found that a real player can execute. When we find a
+  better one, it becomes the default, without asking first
+  ([D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23))
 
 The default for each setting is documented in the class doc that owns it.
 

@@ -168,13 +168,28 @@ Golden runs: Fury 668.6 DPS, Arms 611.9 DPS, Protection 217.0 TPS.
 
 **Next:**
 1. **M2.4j:** push when the user asks, then check the Pages deploy.
-2. **M3 Protection**, in a fresh session. Enable the 3 `test.fixme` tests in
+2. **M2.5 Best rotations as defaults** (Arms, then Fury), then **M3 Protection**, in fresh
+   sessions. Enable the 3 `test.fixme` tests in
    `e2e/tank-results.spec.ts` when Protection ships.
 3. Then M4 Feral Druid, M5 Paladin, M6 Multi-target and M7 Stat boosts, in that order.
 
-**Open decision for the user:** whether the Arms defaults follow the tuning findings (Heroic
-Strike 55, the Whirlwind dance, Spearing Strike 40, Rend refresh 3 s). They were measured
-before the review moved Arms from 630.7 to 610.7, so re-measure them before deciding.
+**Rotation defaults** follow D23: the best one found becomes the default (M2.5).
+
+## M2.5: Best rotations as defaults 💤
+
+Per [D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23), each
+spec's default rotation is the best one we've found.
+- [ ] **M2.5a Arms:** re-measure the tuning findings on the current engine and adopt what beats
+      the default:
+  - Heroic Strike from 55 rage
+  - the Whirlwind dance
+  - Spearing Strike from 40 rage
+  - Rend refresh at 3 s
+
+  Also search the other Arms options. The findings are in the known gaps and warrior.md §5.3.
+- [ ] **M2.5b Fury:** search Fury's rotation options the same way (warrior.md §5.2).
+- Each slice records its method and numbers in warrior.md, re-snapshots the goldens, and goes
+  through the review gate.
 
 ## M3: Warrior Protection (TPS) 💤
 

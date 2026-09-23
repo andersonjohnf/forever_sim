@@ -266,3 +266,14 @@ to **[F]** when the guild measures it. Anecdotes and single-tester fits still ca
 This covers the white-hit rage normalization and the damage-taken formula
 ([rage.md](mechanics/rage.md)).
 
+### D23: The default rotation is the best one we've found (2026-09-23)
+User directive. Each spec's default rotation is the best-performing one we can come up with that
+a real player can execute. When tuning finds a better one, it becomes the default without asking
+first.
+
+A better rotation has to show it with enough fights to be sure: a DPS gain (TPS for tank specs)
+beyond the 95% confidence interval, measured with common random numbers against the current
+default. The owning class doc records the change, the numbers and the method, and the goldens are
+re-snapshotted with the explanation. Talent builds and gear stay "what a typical raider runs"
+([doctrine §5](doctrine.md#5-defaults)). This decision is about rotations.
+

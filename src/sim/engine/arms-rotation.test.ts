@@ -58,9 +58,11 @@ describe('the default Arms rotation in the engine (warrior.md §5.3)', () => {
 
   it('fights in Battle Stance and uses every default row', () => {
     expect(plan.stance).toBe(STANCE.battle)
-    for (const id of ['battleShout', 'rend', 'recklessness', 'bloodrage', 'slam', 'execute', 'mortalStrike', 'overpower', 'spearingStrike', 'heroicStrike', 'mightyRagePotion'])
+    for (const id of ['battleShout', 'rend', 'recklessness', 'bloodrage', 'slam', 'execute', 'mortalStrike', 'overpower', 'spearingStrike', 'hamstring', 'mightyRagePotion'])
       expect(counter(sim, row(id), FIELD.casts), id).toBeGreaterThan(0)
-    for (const id of ['mortalStrike', 'slam', 'overpower', 'execute', 'heroicStrike']) expect(counter(sim, row(id), FIELD.damage), id).toBeGreaterThan(0)
+    for (const id of ['mortalStrike', 'slam', 'overpower', 'execute', 'hamstring']) expect(counter(sim, row(id), FIELD.damage), id).toBeGreaterThan(0)
+    // Heroic Strike is off by default (§5.3 row 13 and notes).
+    expect(plan.abilities.map((a) => a.id)).not.toContain('heroicStrike')
   })
 
   it('row 2: keeps Rend up until Recklessness leaves Battle Stance: each refresh comes within a GCD or two of its window opening', () => {
@@ -72,17 +74,27 @@ describe('the default Arms rotation in the engine (warrior.md §5.3)', () => {
       expect(ticks[0]).toBeLessThanOrEqual(6000) // applied at the pull, or a GCD or two later if it missed
       for (let k = 1; k < ticks.length; k++) {
         const gap = ticks[k] - ticks[k - 1]
-        // 3 s between ticks; across a refresh at 1.5 s left, 4.5 s plus however long the GCD, a
-        // Slam cast or rage for it held the refresh up; never so long that a tick was missed twice,
-        // unless an application in between missed or was dodged (a second Rend before the tick), or
-        // rage ran short: then nothing else is cast from the window's opening until Rend is (two
-        // avoided swings in a row can leave less than its 10 rage for 7 s).
+        // 3 s between ticks; across a refresh, 3 s plus however long the GCD, a Slam cast or rage for
+        // it held the refresh up past its window's opening; never so long that a tick was missed
+        // twice, unless an application in between missed or was dodged (a second Rend before the
+        // tick), or rage ran short: then nothing else is cast from the window's opening until Rend is
+        // (two avoided swings in a row can leave less than its 10 rage for 7 s).
         const attempts = f.casts.filter((c) => c.id === 'rend' && c.t > ticks[k - 1] && c.t < ticks[k]).length
         const waited = f.casts.filter((c) => c.t > ticks[k - 1] - 1500 && c.t < ticks[k] - 3000 && c.id !== 'rend')
         if (attempts < 2 && waited.length > 0) expect(gap).toBeLessThanOrEqual(7500)
-        if (gap <= 3000) continue
+      }
+      // Each landed Rend after the first (its ticks restart 3 s later; one that missed or was dodged
+      // restarts nothing): with refreshBelowSec 3 (the default), the window opens at the previous
+      // one's 6th tick of 7. A refresh is late when it lands more than two GCDs (3 s) after that, or
+      // after the 7th tick, when Rend had run out. A tick due at the refresh's millisecond lands
+      // first, so it counts. A Rend dodged at the 6th tick's millisecond looks landed (the 7th tick
+      // follows 3 s later), so fewer than 6 ticks before the next one means that: it's skipped.
+      const landed = uses(f, 'rend').filter((c) => c.t < leave && f.rendTicks.includes(c.t + 3000))
+      for (let k = 1; k < landed.length; k++) {
+        const since = ticks.filter((t) => t > landed[k - 1].t && t <= landed[k].t)
+        if (since.length < 6) continue
         refreshes++
-        if (gap > 6000) late++
+        if (since.length === 7 || landed[k].t - since[5] > 3000) late++
       }
     }
     expect(refreshes).toBeGreaterThan(out.length * 5)
@@ -102,9 +114,10 @@ describe('the default Arms rotation in the engine (warrior.md §5.3)', () => {
     expect(fights(noRend, 50).out.reduce((n, f) => n + uses(f, 'overpower').length, 0)).toBe(0)
   })
 
-  it('rows 6, 7 and 10: Slam in and out of the execute phase, Execute only in it, Mortal Strike only outside it', () => {
+  it('rows 6–8 and 10: Slam in and out of the execute phase, Execute only in it, Mortal Strike in both (mortalStrikeInExecute)', () => {
     let slamIn = 0
     let slamOut = 0
+    let msIn = 0
     for (const f of out) {
       for (const c of uses(f, 'slam')) {
         if (c.t >= f.executeAt) {
@@ -113,18 +126,22 @@ describe('the default Arms rotation in the engine (warrior.md §5.3)', () => {
         } else slamOut++
       }
       for (const c of uses(f, 'execute')) expect(c.t).toBeGreaterThanOrEqual(f.executeAt)
-      for (const c of uses(f, 'mortalStrike')) expect(c.t).toBeLessThan(f.executeAt)
+      msIn += uses(f, 'mortalStrike').filter((c) => c.t >= f.executeAt).length
       expect(uses(f, 'execute').length).toBeGreaterThan(0)
     }
     expect(slamIn).toBeGreaterThan(out.length)
     expect(slamOut).toBeGreaterThan(5 * out.length)
+    expect(msIn).toBeGreaterThan(out.length)
+    // With mortalStrikeInExecute off, Mortal Strike stops at the phase.
+    for (const f of fights(armsPlan({ 'warrior.arms.execute.mortalStrikeInExecute': false }), 30).out)
+      for (const c of uses(f, 'mortalStrike')) expect(c.t).toBeLessThan(f.executeAt)
   })
 
-  it('row 4: Recklessness swaps to Berserker Stance in the last 15 s and stays there: no swap back, no Rend or Overpower after it', () => {
+  it('row 4: Recklessness swaps to Berserker Stance in the last 39 s and stays there: no swap back, no Rend or Overpower after it', () => {
     for (const f of out) {
       const reck = uses(f, 'recklessness')
       expect(reck).toHaveLength(1)
-      expect(f.ms - reck[0].t).toBeLessThanOrEqual(15000)
+      expect(f.ms - reck[0].t).toBeLessThanOrEqual(39000)
       expect(reck[0].stance).toBe(STANCE.berserker)
       // The only swap in the fight is Recklessness's, at the moment it's used, and keeps at most 25 rage.
       expect(f.swaps).toHaveLength(1)
@@ -157,14 +174,16 @@ describe('Arms options in the engine (warrior.md §5.3)', () => {
   })
 
   it('row 11: Spearing Strike on cooldown against Dragonkin, only with rage to spare against anything else', () => {
-    const casts = (creatureType: 'dragonkin' | 'none') =>
-      fights(armsPlan({}, { fight: { ...ARMS.fight, creatureType } }), 50).out.reduce((n, f) => n + uses(f, 'spearingStrike').length, 0) / 50
+    const casts = (creatureType: 'dragonkin' | 'none') => fights(armsPlan({}, { fight: { ...ARMS.fight, creatureType } }), 50).out.flatMap((f) => uses(f, 'spearingStrike'))
     const dragonkin = casts('dragonkin')
     const other = casts('none')
     // About 144 s before the execute phase at a 20 s cooldown: at most 8 a fight.
-    expect(dragonkin).toBeGreaterThan(5)
-    expect(dragonkin).toBeLessThanOrEqual(8)
-    expect(other).toBeLessThan(dragonkin / 2)
+    expect(dragonkin.length / 50).toBeGreaterThan(5)
+    expect(dragonkin.length / 50).toBeLessThanOrEqual(8)
+    // Against anything else only at rage ≥ minRageOtherTargets (35), so less often.
+    for (const c of other) expect(c.rage).toBeGreaterThanOrEqual(350)
+    expect(dragonkin.some((c) => c.rage < 350)).toBe(true)
+    expect(other.length).toBeLessThan(dragonkin.length * 0.85)
   })
 
   it('Q24: fighting in Berserker Stance swaps to nothing by default: Whirlwind with +3% crit, and no Rend, Overpower or Bloodthrill', () => {
@@ -200,9 +219,9 @@ describe('Arms options in the engine (warrior.md §5.3)', () => {
     expect(dances).toBeGreaterThan(50 * 10)
   })
 
-  it('row 14: Hamstring at rage ≥ 60, outside the execute phase, only while Mortal Strike, Slam and Spearing Strike have a GCD of cooldown left', () => {
-    const plan = armsPlan({ 'warrior.arms.hamstring.enabled': true })
-    expect(armsPlan().abilities.map((a) => a.id)).not.toContain('hamstring') // off by default
+  it('row 14: Hamstring at rage ≥ 40, outside the execute phase, only while Mortal Strike, Slam and Spearing Strike have a GCD of cooldown left', () => {
+    const plan = armsPlan() // on by default
+    expect(armsPlan({ 'warrior.arms.hamstring.enabled': false }).abilities.map((a) => a.id)).not.toContain('hamstring')
     const ability = (id: string) => plan.abilities.find((a) => a.id === id)!
     const { out } = fights(plan, 200)
     let count = 0
@@ -212,7 +231,7 @@ describe('Arms options in the engine (warrior.md §5.3)', () => {
       for (const c of f.casts) {
         if (c.id === 'hamstring') {
           count++
-          expect(c.rage).toBeGreaterThanOrEqual(600)
+          expect(c.rage).toBeGreaterThanOrEqual(400)
           expect(c.t).toBeLessThan(f.executeAt)
           for (const id of ['mortalStrike', 'slam', 'spearingStrike']) expect((readyAt.get(id) ?? 0) - c.t, id).toBeGreaterThanOrEqual(1500)
         }
@@ -222,11 +241,11 @@ describe('Arms options in the engine (warrior.md §5.3)', () => {
         }
       }
     }
-    // Seeds 1–4 and 12345 give 19–43 in 200 fights; it's rare, not absent.
-    expect(count).toBeGreaterThan(10)
+    // Seeds 1–4 and 12345 give 1,733–1,877 in 200 fights, about 9 a fight: from 40 rage it's a regular filler.
+    expect(count).toBeGreaterThan(200 * 5)
   })
 
-  it('row 14 with the Whirlwind dance (row 12): a dance waiting for rage ≤ 30 doesn’t hold back Hamstring at 60 (§7 "GCD-safe and stances")', () => {
+  it('row 14 with the Whirlwind dance (row 12): a dance waiting for rage ≤ 30 doesn’t hold back Hamstring at 40 (§7 "GCD-safe and stances")', () => {
     const hamstrings = (rotation: SimConfig['rotation']) => fights(armsPlan(rotation), 200).out.reduce((n, f) => n + uses(f, 'hamstring').length, 0)
     const withDance = hamstrings({ 'warrior.arms.hamstring.enabled': true, 'warrior.arms.whirlwind.enabled': true })
     const alone = hamstrings({ 'warrior.arms.hamstring.enabled': true })
@@ -256,26 +275,42 @@ describe('Arms options in the engine (warrior.md §5.3)', () => {
 
   it('row 17 without an execute phase: the Mighty Rage Potion follows Recklessness’s swap, whose cap would take its rage', () => {
     const noExecute = { fight: { ...ARMS.fight, executePct: 0 } }
-    const { out } = fights(armsPlan({}, noExecute), 50)
+    // The settings §5.3 suggests without an execute phase: the potion up to 55 rage (at the default
+    // 0 it waits for an Execute, which never comes), and Recklessness in the last 15 s, inside the
+    // potion's last 20 s.
+    const suggested = { 'warrior.arms.ragePotion.maxRage': 55, 'warrior.arms.recklessness.lastSec': 15 }
+    const { out } = fights(armsPlan(suggested, noExecute), 50)
     for (const f of out) {
       const reck = uses(f, 'recklessness')
       const potion = uses(f, 'mightyRagePotion')
       expect(reck).toHaveLength(1)
       expect(potion).toHaveLength(1)
-      // The same moment, after the swap (at most 25 rage kept): all 45–75 of its rage fits.
+      // The same moment, after the swap (at most 25 rage kept), and after anything else that moment
+      // brings: Bloodrage's rage, if it comes off cooldown then. All 45–75 of its rage fits.
       expect(potion[0].t).toBe(reck[0].t)
       expect(f.swaps.map((s) => s.t)).toEqual([reck[0].t])
-      expect(potion[0].rage).toBeLessThanOrEqual(250)
+      expect(f.swaps[0].after).toBeLessThanOrEqual(250)
+      const between = f.casts.slice(f.casts.indexOf(reck[0]) + 1, f.casts.indexOf(potion[0])).map((c) => c.id)
+      expect(between.every((id) => id === 'bloodrage')).toBe(true)
+      expect(potion[0].rage).toBeLessThanOrEqual(f.swaps[0].after + (between.length > 0 ? 150 : 0))
     }
     // With Recklessness off, or fighting in Berserker Stance (no swap), it's the last 20 s, as Fury's.
-    const noSwap: SimConfig['rotation'][] = [{ 'warrior.arms.recklessness.enabled': false }, { 'warrior.arms.baseStance': 'berserker' }]
+    const noSwap: SimConfig['rotation'][] = [
+      { ...suggested, 'warrior.arms.recklessness.enabled': false },
+      { ...suggested, 'warrior.arms.baseStance': 'berserker' },
+    ]
     for (const rotation of noSwap) {
       const times = fights(armsPlan(rotation, noExecute), 30).out.map((f) => f.ms - uses(f, 'mightyRagePotion')[0].t)
       for (const left of times) expect(left).toBeLessThanOrEqual(20000)
       expect(Math.max(...times)).toBeGreaterThan(15000)
     }
-    // With an execute phase, from its start as before.
-    for (const f of fights(armsPlan(), 30).out) expect(uses(f, 'mightyRagePotion')[0].t).toBeGreaterThanOrEqual(f.executeAt)
+    // With an execute phase (the default), from its start, once an Execute has emptied the bar.
+    for (const f of fights(armsPlan(), 30).out) {
+      const potion = uses(f, 'mightyRagePotion')
+      expect(potion).toHaveLength(1)
+      expect(potion[0].t).toBeGreaterThanOrEqual(f.executeAt)
+      expect(potion[0].rage).toBe(0)
+    }
   })
 
   it('is deterministic: the same seed gives the same result, another seed a different one, and a fight depends only on its index', () => {

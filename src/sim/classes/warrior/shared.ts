@@ -139,8 +139,8 @@ export const prepullOptions = (ids: SharedIds, chargeHelp: string): RotationOpti
   { kind: 'toggle', id: ids.prepullCharge, group: 'Before the pull', label: 'Charge in', help: chargeHelp, default: false },
 ]
 
-/** Battle Shout's upkeep (Fury row 1, Arms row 1). */
-export const battleShoutOptions = (ids: SharedIds): RotationOption[] => [
+/** Battle Shout's upkeep (Fury row 1, Arms row 1); `refreshBelowSec` is the spec's default (Fury 3 s, Arms 0 s). */
+export const battleShoutOptions = (ids: SharedIds, refreshBelowSec = 3): RotationOption[] => [
   {
     kind: 'toggle',
     id: ids.bsEnabled,
@@ -162,7 +162,7 @@ export const battleShoutOptions = (ids: SharedIds): RotationOption[] => [
     min: 0,
     max: 30,
     step: 1,
-    default: 3,
+    default: refreshBelowSec,
     dependsOn: ids.bsEnabled,
   },
 ]
@@ -218,20 +218,27 @@ export const cooldownOptions = (ids: SharedIds): RotationOption[] => [
   },
 ]
 
-/** Recklessness once near the end (row 4 of both); its help says how the spec gets to Berserker Stance. */
-export const recklessnessOptions = (ids: SharedIds, help: string): RotationOption[] => [
+/**
+ * Recklessness once near the end (row 4 of both); its help says how the spec gets to Berserker
+ * Stance, and `lastSec` is the spec's timing: its default (Fury 15 s, Arms 39 s) and help.
+ */
+export const recklessnessOptions = (
+  ids: SharedIds,
+  help: string,
+  lastSec: { default: number; help: string } = { default: 15, help: 'Use it once this much of the fight is left.' },
+): RotationOption[] => [
   { kind: 'toggle', id: ids.reckEnabled, group: 'Cooldowns and buffs', label: 'Recklessness', help, default: true },
   {
     kind: 'number',
     id: ids.reckLastSec,
     group: 'Cooldowns and buffs',
     label: 'Recklessness in the last',
-    help: 'Use it once this much of the fight is left.',
+    help: lastSec.help,
     unit: 's',
     min: 1,
     max: 300,
     step: 1,
-    default: 15,
+    default: lastSec.default,
     dependsOn: ids.reckEnabled,
   },
 ]
@@ -256,15 +263,22 @@ export const bloodrageOptions = (ids: SharedIds): RotationOption[] => [
   ),
 ]
 
-/** The Heroic Strike queue (Fury row 11, Arms row 13), from `minRage`. */
-export const heroicStrikeOptions = (ids: SharedIds, minRage: number): RotationOption[] => [
+/**
+ * The Heroic Strike queue (Fury row 11, Arms row 13), from `minRage`. `enabled` is the toggle's
+ * default and help: Fury's is on; Arms' is off (warrior.md §5.3 notes).
+ */
+export const heroicStrikeOptions = (
+  ids: SharedIds,
+  minRage: number,
+  enabled: { default: boolean; help: string } = { default: true, help: 'Queue Heroic Strike on the next main-hand swing when rage is high.' },
+): RotationOption[] => [
   {
     kind: 'toggle',
     id: ids.hsEnabled,
     group: 'Fillers',
     label: 'Heroic Strike',
-    help: 'Queue Heroic Strike on the next main-hand swing when rage is high.',
-    default: true,
+    help: enabled.help,
+    default: enabled.default,
   },
   rageOption(ids.hsMinRage, 'Heroic Strike from', 'Queue it at or above this much rage.', minRage, ids.hsEnabled, 'Fillers'),
   {
@@ -281,9 +295,17 @@ export const heroicStrikeOptions = (ids: SharedIds, minRage: number): RotationOp
 
 /**
  * The Mighty Rage Potion and Juju Flurry, when they're selected in Buffs (Fury rows 16 and 17, Arms
- * rows 17 and 18). `noExecute` says when the potion goes without an execute phase.
+ * rows 17 and 18). `noExecute` says when the potion goes without an execute phase; `potionMaxRage`
+ * is the spec's rage limit for it: its default (Fury 55, the cap minus 75; Arms 0) and help.
  */
-export const consumableOptions = (ids: SharedIds, noExecute = 'in the last 20 s if there’s none'): RotationOption[] => [
+export const consumableOptions = (
+  ids: SharedIds,
+  noExecute = 'in the last 20 s if there’s none',
+  potionMaxRage: { default: number; help: string } = {
+    default: WARRIOR_MAX_RAGE - 75,
+    help: `Drink it only at or below this much rage, so none of its rage is lost at the cap. ${WARRIOR_MAX_RAGE - 75} is the 130 cap minus 75.`,
+  },
+): RotationOption[] => [
   {
     kind: 'toggle',
     id: ids.potionEnabled,
@@ -293,14 +315,7 @@ export const consumableOptions = (ids: SharedIds, noExecute = 'in the last 20 s 
     default: true,
     requiresBuff: RAGE_POTION,
   },
-  rageOption(
-    ids.potionMaxRage,
-    'Mighty Rage Potion up to',
-    `Drink it only at or below this much rage, so none of its rage is lost at the cap. ${WARRIOR_MAX_RAGE - 75} is the 130 cap minus 75.`,
-    WARRIOR_MAX_RAGE - 75,
-    ids.potionEnabled,
-    'Consumables',
-  ),
+  rageOption(ids.potionMaxRage, 'Mighty Rage Potion up to', potionMaxRage.help, potionMaxRage.default, ids.potionEnabled, 'Consumables'),
   {
     kind: 'toggle',
     id: ids.jujuEnabled,

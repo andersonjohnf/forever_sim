@@ -1235,10 +1235,12 @@ describe('without a main-hand weapon (warrior.md §7)', () => {
     }
   })
 
-  it('Arms: no Rend, Execute or Heroic Strike either', () => {
+  it('Arms: no Rend, Execute, Hamstring or Heroic Strike either', () => {
     const d = defaultConfig('warrior-arms')
-    const plan = buildPlan({ ...d, gear: { ...d.gear, mainHand: undefined }, run: { ...d.run, seed: 5 } }).plan
-    expect(plan.abilities.map((a) => a.id)).toEqual(expect.arrayContaining(['rend', 'overpower', 'slam', 'mortalStrike', 'execute', 'heroicStrike']))
+    // Heroic Strike is off by default for Arms (warrior.md §5.3 row 13): turned on here, so it's refused too.
+    const rotation = { 'warrior.arms.heroicStrike.enabled': true }
+    const plan = buildPlan({ ...d, rotation, gear: { ...d.gear, mainHand: undefined }, run: { ...d.run, seed: 5 } }).plan
+    expect(plan.abilities.map((a) => a.id)).toEqual(expect.arrayContaining(['rend', 'overpower', 'slam', 'mortalStrike', 'execute', 'hamstring', 'heroicStrike']))
     const used = new Set<string>()
     const sim = new Sim(plan)
     sim.castTrace = (a) => used.add(plan.abilities[a].kind)

@@ -411,6 +411,20 @@ describe('golden run (fixed config and seed)', () => {
   //   where it gave 6.3, so the bar fills a little later and clips less of Shield Specialization's
   //   and Master of Defense's rage: their threat 7,467.5 → 7,503 and 16,927.5 → 17,045 over 500
   //   fights, TPS 216.98833 → 216.99002; DPS unchanged. Arms' two-hander is unchanged.
+  // - M2.5a (decision D23): the default Arms rotation is the best one a paired search found
+  //   (warrior.md §5.3 "Tuning the defaults", scripts/tune/rotation.mjs): Heroic Strike off,
+  //   Hamstring on from 40 rage (60 before), Spearing Strike from 35 (50), a 5-rage Slam reserve
+  //   (0), Rend refreshed at 3 s left (1.5), Battle Shout once it has run out (3 s left),
+  //   Recklessness at 39 s left (15), Mortal Strike in the execute phase (off before) and the
+  //   Mighty Rage Potion at 0 rage (55). Over 400,000 paired fights on a seed the search never used,
+  //   +35.6 DPS (+5.8%, 610.1 → 645.8, 95% CI ± 0.16). On this seed's 1,000 fights: the Heroic Strike
+  //   row is gone and its swings are white again (main hand 42,467 → 45,343), so more Windfury
+  //   (18,736 → 22,865), Weaponmaster (5,578 → 6,745) and Hand of Justice (1,168 → 1,366) procs;
+  //   Hamstring is a new row (9,291 casts); Mortal Strike 20,740 → 23,729 casts (in the execute phase
+  //   too) and Spearing Strike 1,962 → 5,127. Recklessness's earlier swap to Berserker Stance ends
+  //   Rend and Overpower sooner: Rend 9,283 → 8,751 casts, yet Overpower 8,716 → 9,826 with the extra
+  //   rage. DPS 611.88 → 646.38, TPS 354.24 → 373.34. Fury and Protection are unchanged: their
+  //   shared settings keep their defaults.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

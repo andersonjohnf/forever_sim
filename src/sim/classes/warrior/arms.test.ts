@@ -75,41 +75,41 @@ describe('Arms rotation options (warrior.md §5.1, §5.3)', () => {
     ])
   })
 
-  it('uses the §5.3 defaults with the default build', () => {
+  it('uses the §5.3 defaults with the default build: the best rotation found (D23, M2.5a)', () => {
     expect(resolveRotationValues(ARMS_OPTIONS, {}, TALENTS)).toMatchObject({
       'warrior.arms.baseStance': 'battle',
       'warrior.arms.prepull.battleShout': true,
       'warrior.arms.prepull.bloodrage': true,
       'warrior.arms.prepull.charge': false,
       'warrior.arms.battleShout.enabled': true,
-      'warrior.arms.battleShout.refreshBelowSec': 3,
+      'warrior.arms.battleShout.refreshBelowSec': 0,
       'warrior.arms.rend.enabled': true,
-      'warrior.arms.rend.refreshBelowSec': 1.5,
+      'warrior.arms.rend.refreshBelowSec': 3,
       'warrior.arms.deathWish.enabled': false,
       'warrior.arms.racial.enabled': true,
       'warrior.arms.trinkets.enabled': true,
       'warrior.arms.recklessness.enabled': true,
-      'warrior.arms.recklessness.lastSec': 15,
+      'warrior.arms.recklessness.lastSec': 39,
       'warrior.arms.bloodrage.enabled': true,
       'warrior.arms.bloodrage.maxRage': 110,
       'warrior.arms.execute.enabled': true,
       'warrior.arms.execute.slamInExecute': true,
-      'warrior.arms.execute.mortalStrikeInExecute': false,
+      'warrior.arms.execute.mortalStrikeInExecute': true,
       'warrior.arms.mortalStrike.enabled': true,
       'warrior.arms.overpower.enabled': true,
       'warrior.arms.slam.enabled': true,
-      'warrior.arms.slam.reserve': 0,
+      'warrior.arms.slam.reserve': 5,
       'warrior.arms.spearingStrike.enabled': true,
-      'warrior.arms.spearingStrike.minRageOtherTargets': 50,
+      'warrior.arms.spearingStrike.minRageOtherTargets': 35,
       'warrior.arms.whirlwind.enabled': false,
       'warrior.arms.whirlwind.maxRage': 30,
-      'warrior.arms.heroicStrike.enabled': true,
-      'warrior.arms.heroicStrike.minRage': 45,
+      'warrior.arms.heroicStrike.enabled': false,
+      'warrior.arms.heroicStrike.minRage': 125,
       'warrior.arms.heroicStrike.unqueue': false,
-      'warrior.arms.hamstring.enabled': false,
-      'warrior.arms.hamstring.minRage': 60,
+      'warrior.arms.hamstring.enabled': true,
+      'warrior.arms.hamstring.minRage': 40,
       'warrior.arms.ragePotion.enabled': true,
-      'warrior.arms.ragePotion.maxRage': 55,
+      'warrior.arms.ragePotion.maxRage': 0,
       'warrior.arms.jujuFlurry.enabled': true,
     })
   })
@@ -146,16 +146,17 @@ describe('armsRotation (warrior.md §5.3)', () => {
       'recklessness', // 4
       'bloodrage', // 5
       'slam', // 6: in the execute phase
+      'mortalStrike', // 7: mortalStrikeInExecute, ahead of Execute
       'execute', // 7
       'mortalStrike', // 8
-      ...['overpower', 'overpower', 'overpower'], // 9: Mortal Strike GCD-safe or rage for both, and in the phase
+      ...['overpower', 'overpower', 'overpower', 'overpower'], // 9: Mortal Strike GCD-safe or rage for both, in each phase
       'slam', // 10
       'spearingStrike', // 11
-      'heroicStrike', // 13
+      'hamstring', // 14
       'mightyRagePotion', // 17
     ])
-    // Rows 12 and 14 (the Whirlwind dance and Hamstring) are off by default; Sweeping Strikes (15) isn't simulated.
-    for (const id of ['whirlwind', 'hamstring', 'sweepingStrikes', 'deathWish']) expect(ids(r)).not.toContain(id)
+    // Rows 12 and 13 (the Whirlwind dance and Heroic Strike) are off by default; Sweeping Strikes (15) isn't simulated.
+    for (const id of ['whirlwind', 'heroicStrike', 'sweepingStrikes', 'deathWish']) expect(ids(r)).not.toContain(id)
     expect(r.procs).toEqual(overpowerWindowProcs(TALENTS))
     expect(r.procs.map((p) => p.id)).toEqual(['overpowerDodge', 'bloodthrill'])
     expect(armsMaintainedBuffs({})).toEqual(['battleShout'])
@@ -163,7 +164,8 @@ describe('armsRotation (warrior.md §5.3)', () => {
   })
 
   it('resolves the abilities with the default build: Improved Slam 2/2, Improved Rend 3/3, Improved Overpower 2/2, Impale 2/2', () => {
-    const r = armsRotation({}, TALENTS, noAura)
+    // Heroic Strike is off by default (§5.3 row 13); turned on, Improved Heroic Strike 3/3 makes it 12 rage.
+    const r = armsRotation({ 'warrior.arms.heroicStrike.enabled': true }, TALENTS, noAura)
     expect(r.abilities[at(r, 'slam')]).toMatchObject({ castMs: 1000, gcdMs: 1000, castStopsSwings: false, costTenths: 150 })
     expect(r.abilities[at(r, 'rend')].dotTickDamage).toBeCloseTo(21 * 1.35, 12)
     expect(r.abilities[at(r, 'overpower')].bonusCrit).toBe(50)
@@ -172,12 +174,12 @@ describe('armsRotation (warrior.md §5.3)', () => {
   })
 
   it('row 2: Rend when missing or at ≤ refreshBelowSec left, in both phases; from Berserker Stance a dance at rage ≤ the swap’s cap', () => {
-    const r = armsRotation({ 'warrior.arms.rend.refreshBelowSec': 3 }, TALENTS, noAura)
+    const r = armsRotation({ 'warrior.arms.rend.refreshBelowSec': 1.5 }, TALENTS, noAura)
     const rend = at(r, 'rend')
-    expect(linesOf(r, 'rend')).toEqual([{ ability: rend, conditions: [{ code: COND.abilityAuraRefresh, a: rend, b: 3000 }], unqueueBelowTenths: 0 }])
+    expect(linesOf(r, 'rend')).toEqual([{ ability: rend, conditions: [{ code: COND.abilityAuraRefresh, a: rend, b: 1500 }], unqueueBelowTenths: 0 }])
     const b = armsRotation({ ...berserker, 'warrior.arms.rend.enabled': true }, TALENTS, noAura)
     expect(linesOf(b, 'rend')).toEqual([
-      { ability: at(b, 'rend'), conditions: [{ code: COND.abilityAuraRefresh, a: at(b, 'rend'), b: 1500 }, maxRage(250)], unqueueBelowTenths: 0, danceTo: STANCE.battle },
+      { ability: at(b, 'rend'), conditions: [{ code: COND.abilityAuraRefresh, a: at(b, 'rend'), b: 3000 }, maxRage(250)], unqueueBelowTenths: 0, danceTo: STANCE.battle },
     ])
     expect(ids(armsRotation({}, without('Bloodthrill'), noAura))).not.toContain('rend')
   })
@@ -188,18 +190,18 @@ describe('armsRotation (warrior.md §5.3)', () => {
       { ability: at(r, 'recklessness'), conditions: [{ code: COND.timeLeftAtMost, a: 20000, b: 0 }], unqueueBelowTenths: 0, danceTo: STANCE.berserker, stay: true },
     ])
     const b = armsRotation(berserker, TALENTS, noAura)
-    expect(linesOf(b, 'recklessness')).toEqual([{ ability: at(b, 'recklessness'), conditions: [{ code: COND.timeLeftAtMost, a: 15000, b: 0 }], unqueueBelowTenths: 0 }])
+    expect(linesOf(b, 'recklessness')).toEqual([{ ability: at(b, 'recklessness'), conditions: [{ code: COND.timeLeftAtMost, a: 39000, b: 0 }], unqueueBelowTenths: 0 }])
   })
 
-  it('rows 6–8: Slam in the phase at rage ≥ its cost + Execute’s, Execute, then Mortal Strike outside it; optionally Mortal Strike in it', () => {
+  it('rows 6–8: Slam in the phase at rage ≥ its cost + Execute’s, Mortal Strike in it by default, Execute, then Mortal Strike outside it', () => {
     const r = armsRotation({}, TALENTS, noAura)
     const slams = linesOf(r, 'slam').map((e) => e.conditions)
     expect(slams[0]).toEqual([inExec, minRage(300)])
     expect(linesOf(r, 'execute').map((e) => e.conditions)).toEqual([[]])
-    expect(linesOf(r, 'mortalStrike').map((e) => e.conditions)).toEqual([[notExec]])
-    const ms = armsRotation({ 'warrior.arms.execute.mortalStrikeInExecute': true }, TALENTS, noAura)
-    expect(ids(ms).slice(ids(ms).indexOf('slam'), ids(ms).indexOf('execute') + 2)).toEqual(['slam', 'mortalStrike', 'execute', 'mortalStrike'])
-    expect(linesOf(ms, 'mortalStrike').map((e) => e.conditions)).toEqual([[inExec], [notExec]])
+    expect(ids(r).slice(ids(r).indexOf('slam'), ids(r).indexOf('execute') + 2)).toEqual(['slam', 'mortalStrike', 'execute', 'mortalStrike'])
+    expect(linesOf(r, 'mortalStrike').map((e) => e.conditions)).toEqual([[inExec], [notExec]])
+    const msOut = armsRotation({ 'warrior.arms.execute.mortalStrikeInExecute': false }, TALENTS, noAura)
+    expect(linesOf(msOut, 'mortalStrike').map((e) => e.conditions)).toEqual([[notExec]])
     // Without Slam in the phase, or without Execute: no phase lines at all.
     expect(linesOf(armsRotation({ 'warrior.arms.execute.slamInExecute': false }, TALENTS, noAura), 'slam').map((e) => e.conditions[0])).toEqual([notExec])
     const noEx = armsRotation({ 'warrior.arms.execute.enabled': false }, TALENTS, noAura)
@@ -215,20 +217,18 @@ describe('armsRotation (warrior.md §5.3)', () => {
     expect(linesOf(r, 'overpower').map((e) => e.conditions)).toEqual([
       [notExec, safe(1 << ms)],
       [notExec, minRage(350)],
-      [inExec], // Mortal Strike isn't used in the phase
-    ])
-    const msIn = armsRotation({ 'warrior.arms.execute.mortalStrikeInExecute': true }, TALENTS, noAura)
-    expect(linesOf(msIn, 'overpower').map((e) => e.conditions).slice(2)).toEqual([
-      [inExec, safe(1 << at(msIn, 'mortalStrike'))],
+      [inExec, safe(1 << ms)], // Mortal Strike is used in the phase by default
       [inExec, minRage(350)],
     ])
+    const msOut = armsRotation({ 'warrior.arms.execute.mortalStrikeInExecute': false }, TALENTS, noAura)
+    expect(linesOf(msOut, 'overpower').map((e) => e.conditions).slice(2)).toEqual([[inExec]])
     // From Berserker Stance: a dance at rage ≤ 25, which leaves no room for the rage-for-both line.
     const b = armsRotation({ ...berserker, 'warrior.arms.overpower.enabled': true }, TALENTS, noAura)
     const lines = linesOf(b, 'overpower')
     expect(lines.map((e) => e.danceTo)).toEqual([STANCE.battle, STANCE.battle])
     expect(lines.map((e) => e.conditions)).toEqual([
       [notExec, safe(1 << at(b, 'mortalStrike')), maxRage(250)],
-      [inExec, maxRage(250)],
+      [inExec, safe(1 << at(b, 'mortalStrike')), maxRage(250)],
     ])
     // Off: no line and no window openers.
     const off = armsRotation({ 'warrior.arms.overpower.enabled': false }, TALENTS, noAura)
@@ -239,19 +239,19 @@ describe('armsRotation (warrior.md §5.3)', () => {
   it('row 10: Slam at rage ≥ 15 + reserve, Mortal Strike GCD-safe over Slam’s own 1 s GCD', () => {
     const r = armsRotation({ 'warrior.arms.slam.reserve': 10 }, TALENTS, noAura)
     expect(linesOf(r, 'slam').map((e) => e.conditions)[1]).toEqual([notExec, minRage(250), safe(1 << at(r, 'mortalStrike'), 1000)])
-    // Without Improved Slam, its GCD is 1.5 s.
+    // Without Improved Slam, its GCD is 1.5 s. The default reserve is 5: 15 + 5.
     const plain = armsRotation({}, without('Improved Slam'), noAura)
-    expect(linesOf(plain, 'slam').map((e) => e.conditions)[1]).toEqual([notExec, minRage(150), safe(1 << at(plain, 'mortalStrike'), 1500)])
+    expect(linesOf(plain, 'slam').map((e) => e.conditions)[1]).toEqual([notExec, minRage(200), safe(1 << at(plain, 'mortalStrike'), 1500)])
   })
 
-  it('row 11: Spearing Strike on cooldown against Giants and Dragonkin, otherwise at rage ≥ 50 with Mortal Strike GCD-safe', () => {
+  it('row 11: Spearing Strike on cooldown against Giants and Dragonkin, otherwise at rage ≥ 35 with Mortal Strike GCD-safe', () => {
     const vs = (creatureType: 'giant' | 'dragonkin' | 'none' | 'beast') => {
       const r = armsRotation({}, TALENTS, noAura, { creatureType })
       return { conditions: linesOf(r, 'spearingStrike').map((e) => e.conditions), ms: at(r, 'mortalStrike') }
     }
     expect(vs('giant').conditions).toEqual([[notExec]])
     expect(vs('dragonkin').conditions).toEqual([[notExec]])
-    for (const t of ['none', 'beast'] as const) expect(vs(t).conditions).toEqual([[notExec, minRage(500), safe(1 << vs(t).ms)]])
+    for (const t of ['none', 'beast'] as const) expect(vs(t).conditions).toEqual([[notExec, minRage(350), safe(1 << vs(t).ms)]])
     expect(ids(armsRotation({}, without('Spearing Strike'), noAura))).not.toContain('spearingStrike')
   })
 
@@ -270,12 +270,13 @@ describe('armsRotation (warrior.md §5.3)', () => {
     expect(b.abilities[at(b, 'whirlwind')].offHand).toBe(false)
   })
 
-  it('rows 13 and 14: Heroic Strike at 45 outside the phase; Hamstring at 60, GCD-safe for every ability above it with a cooldown', () => {
-    const r = armsRotation({ 'warrior.arms.hamstring.enabled': true, 'warrior.arms.whirlwind.enabled': true, 'warrior.arms.heroicStrike.unqueue': true }, TALENTS, noAura)
-    expect(linesOf(r, 'heroicStrike')).toEqual([{ ability: at(r, 'heroicStrike'), conditions: [notExec, minRage(450)], unqueueBelowTenths: 200 }])
+  it('rows 13 and 14: Heroic Strike (off by default) at 125 outside the phase; Hamstring at 40, GCD-safe for every ability above it with a cooldown', () => {
+    const r = armsRotation({ 'warrior.arms.heroicStrike.enabled': true, 'warrior.arms.whirlwind.enabled': true, 'warrior.arms.heroicStrike.unqueue': true }, TALENTS, noAura)
+    expect(linesOf(r, 'heroicStrike')).toEqual([{ ability: at(r, 'heroicStrike'), conditions: [notExec, minRage(1250)], unqueueBelowTenths: 200 }])
     const mask = (1 << at(r, 'mortalStrike')) | (1 << at(r, 'slam')) | (1 << at(r, 'spearingStrike')) | (1 << at(r, 'whirlwind'))
-    expect(linesOf(r, 'hamstring').map((e) => e.conditions)).toEqual([[notExec, minRage(600), safe(mask)]])
+    expect(linesOf(r, 'hamstring').map((e) => e.conditions)).toEqual([[notExec, minRage(400), safe(mask)]])
     expect(ids(r).at(-1)).toBe('hamstring')
+    expect(ids(armsRotation({ 'warrior.arms.hamstring.enabled': false }, TALENTS, noAura))).not.toContain('hamstring')
   })
 
   it('row 17: the Mighty Rage Potion from the execute phase; without one, in the last 20 s and after Recklessness’s swap from Battle Stance', () => {
@@ -283,14 +284,15 @@ describe('armsRotation (warrior.md §5.3)', () => {
       const r = armsRotation(values, TALENTS, noAura, { consumables: [MIGHTY_RAGE_POTION], executePhase })
       return { r, lines: linesOf(r, 'mightyRagePotion') }
     }
+    // By default at 0 rage: once an Execute has emptied the bar (§5.3 notes).
     const withPhase = potion({}, true)
-    expect(withPhase.lines.map((e) => e.conditions)).toEqual([[inExec, maxRage(550)]])
+    expect(withPhase.lines.map((e) => e.conditions)).toEqual([[inExec, maxRage(0)]])
     const last20 = { code: COND.timeLeftAtMost, a: 20000, b: 0 }
-    const none = potion({}, false)
+    const none = potion({ 'warrior.arms.ragePotion.maxRage': 55 }, false)
     expect(none.lines.map((e) => e.conditions)).toEqual([[last20, { code: COND.cooldownAtLeast, a: at(none.r, 'recklessness'), b: 1 }, maxRage(550)]])
     // No swap to wait for: Recklessness off, or fighting in Berserker Stance.
-    expect(potion({ 'warrior.arms.recklessness.enabled': false }, false).lines.map((e) => e.conditions)).toEqual([[last20, maxRage(550)]])
-    expect(potion(berserker, false).lines.map((e) => e.conditions)).toEqual([[last20, maxRage(550)]])
+    expect(potion({ 'warrior.arms.recklessness.enabled': false }, false).lines.map((e) => e.conditions)).toEqual([[last20, maxRage(0)]])
+    expect(potion(berserker, false).lines.map((e) => e.conditions)).toEqual([[last20, maxRage(0)]])
   })
 
   it('row 16: with the talent, Death Wish before the racial, which waits for it as Fury’s does', () => {

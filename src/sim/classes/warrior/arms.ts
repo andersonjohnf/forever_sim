@@ -85,7 +85,11 @@ const ID = {
 export const ARMS_BASE_STANCE_ID = ID.baseStance
 const BERSERKER = { option: ID.baseStance, is: 'berserker' } as const
 
-/** Defaults from warrior.md §5.3's table (rows 0–14, 16–18), in priority order, the base stance first. */
+/**
+ * Defaults from warrior.md §5.3's table (rows 0–14, 16–18), in priority order, the base stance
+ * first. They're the best rotation found for the default setup (decision D23; §5.3 "Tuning the
+ * defaults", measured with scripts/tune/rotation.mjs).
+ */
 export const ARMS_OPTIONS: RotationOption[] = [
   {
     kind: 'choice',
@@ -102,7 +106,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
     ID,
     'Open with Charge for 15 rage (+3 per Improved Charge rank). In Berserker Stance, the swap after it keeps at most 10 + 3 per Improved Tactical Mastery rank.',
   ),
-  ...battleShoutOptions(ID),
+  ...battleShoutOptions(ID, 0),
   {
     kind: 'toggle',
     id: ID.rendEnabled,
@@ -125,7 +129,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
     min: 0,
     max: 21,
     step: 0.5,
-    default: 1.5,
+    default: 3,
     dependsOn: ID.rendEnabled,
   },
   ...deathWishOptions(ID, {
@@ -137,6 +141,10 @@ export const ARMS_OPTIONS: RotationOption[] = [
   ...recklessnessOptions(
     ID,
     'Use Recklessness once, near the end of the fight, for +100% crit chance for 15 s. It needs Berserker Stance: from Battle Stance you swap and stay there, keeping at most 10 rage plus 3 per Improved Tactical Mastery rank.',
+    {
+      default: 39,
+      help: 'Use it once this much of the fight is left. 39 s is just before the default fight’s execute phase, so its crits land on the first Executes.',
+    },
   ),
   ...bloodrageOptions(ID),
   {
@@ -161,8 +169,8 @@ export const ARMS_OPTIONS: RotationOption[] = [
     id: ID.exMortalStrike,
     group: 'Execute phase',
     label: 'Mortal Strike in the execute phase',
-    help: 'Keep using Mortal Strike in the execute phase, ahead of Execute. An Execute with the same 30 rage usually hits harder.',
-    default: false,
+    help: 'Keep using Mortal Strike in the execute phase, ahead of Execute. With rage to spare, its 30 rage does more there than as an Execute’s extra rage.',
+    default: true,
     dependsOn: ID.exEnabled,
   },
   {
@@ -190,7 +198,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
     help: 'Use Slam whenever it’s ready and Mortal Strike isn’t about to be. Without Improved Slam its 1.5 s cast stops your swings and resets the swing timer.',
     default: true,
   },
-  rageOption(ID.slamReserve, 'Slam rage reserve', 'Rage to keep on top of Slam’s cost.', 0, ID.slamEnabled, 'Core abilities'),
+  rageOption(ID.slamReserve, 'Slam rage reserve', 'Rage to keep on top of Slam’s cost.', 5, ID.slamEnabled, 'Core abilities'),
   {
     kind: 'toggle',
     id: ID.ssEnabled,
@@ -203,7 +211,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
     ID.ssMinRage,
     'Spearing Strike from',
     'Against other targets, use it only at or above this much rage, when Mortal Strike isn’t about to be ready.',
-    50,
+    35,
     ID.ssEnabled,
     'Core abilities',
   ),
@@ -224,17 +232,23 @@ export const ARMS_OPTIONS: RotationOption[] = [
     ID.wwEnabled,
     'Core abilities',
   ),
-  ...heroicStrikeOptions(ID, 45),
+  ...heroicStrikeOptions(ID, 125, {
+    default: false,
+    help: 'Queue Heroic Strike on the next main-hand swing. Off by default: its swing gives no rage, so the rage does more in Slam, Mortal Strike, Hamstring and Execute. If you turn it on, 125 keeps it for rage that would hit the cap.',
+  }),
   {
     kind: 'toggle',
     id: ID.hamEnabled,
     group: 'Fillers',
     label: 'Hamstring filler',
     help: 'Use Hamstring to fish for procs, such as Weaponmaster’s extra attacks with a sword or Windfury, while the rest of the rotation is cooling down.',
-    default: false,
+    default: true,
   },
-  rageOption(ID.hamMinRage, 'Hamstring from', 'Use it at or above this much rage.', 60, ID.hamEnabled, 'Fillers'),
-  ...consumableOptions(ID, 'in the last 20 s if there’s none; from Battle Stance, after Recklessness’s swap, which caps your rage'),
+  rageOption(ID.hamMinRage, 'Hamstring from', 'Use it at or above this much rage.', 40, ID.hamEnabled, 'Fillers'),
+  ...consumableOptions(ID, 'in the last 20 s if there’s none; from Battle Stance, after Recklessness’s swap, which caps your rage', {
+    default: 0,
+    help: 'Drink it only at or below this much rage. At 0 it waits for an Execute to empty your bar. Without an execute phase, raise it to 55 (the 130 cap minus 75), or it may never be drunk.',
+  }),
 ]
 
 /** The stance Arms fights in with these settings (warrior.md §5.3, Q24): Battle unless set to Berserker. */

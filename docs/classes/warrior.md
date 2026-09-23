@@ -879,29 +879,32 @@ Weapon: a slow two-hander. The default talents are the popular 37/14/0 build ([�
 This priority is **derived for Forever**. Classic Era raid Arms leaned on Slam spam, which the
 15 s Slam cooldown removes. The table is the list as built (`sim/classes/warrior/arms.ts`);
 rows 0, 1, 3, 5, 13 and 16–18 share their code and settings' wording with Fury's
-(`sim/classes/warrior/shared.ts`).
+(`sim/classes/warrior/shared.ts`). The defaults are the best rotation found for the default
+setup ([D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
+[Tuning the defaults](#tuning-the-defaults-m25a) below), so where a shared row's default differs
+from Fury's (rows 1, 4, 13 and 17), Arms passes its own.
 
 | # | Action | Condition (defaults) | Setting ids (default) | On by default |
 | --- | --- | --- | --- | --- |
 | – | Base stance | Battle Stance, or Berserker Stance; see the notes (Q24) | `arms.baseStance` (`battle`; a choice of `battle` or `berserker`) | Battle |
 | 0 | Pre-pull | Battle Shout at −3 s (with row 1 on); Bloodrage at −1 s; optional Charge: 15 rage, +3 per Improved Charge rank, all kept in Battle Stance. Fighting in Berserker Stance, the swap after Charge keeps at most 10 + 3 per Improved Tactical Mastery rank | `arms.prepull.battleShout` (on; needs `arms.battleShout.enabled`), `.bloodrage` (on), `.charge` (off) | yes |
-| 1 | Battle Shout | As Fury's row 1: missing, or at most `refreshBelowSec` left and it would run out before the fight ends; rage ≥ 10. It replaces the Buffs tab's Battle Shout | `arms.battleShout.enabled` (on), `.refreshBelowSec` (3) | yes |
-| 2 | Rend | Your Rend is missing, or has at most `refreshBelowSec` of ticks left and would end before the fight does. Bloodthrill needs it. In Berserker Stance, a dance to Battle Stance at rage ≤ the swap's cap (25) | `arms.rend.enabled` (on with Bloodthrill in Battle Stance, off otherwise), `.refreshBelowSec` (1.5) | with Bloodthrill |
+| 1 | Battle Shout | As Fury's row 1: missing, or at most `refreshBelowSec` left and it would run out before the fight ends; rage ≥ 10. It replaces the Buffs tab's Battle Shout | `arms.battleShout.enabled` (on), `.refreshBelowSec` (0: once it has run out) | yes |
+| 2 | Rend | Your Rend is missing, or has at most `refreshBelowSec` of ticks left and would end before the fight does. Bloodthrill needs it. In Berserker Stance, a dance to Battle Stance at rage ≤ the swap's cap (25) | `arms.rend.enabled` (on with Bloodthrill in Battle Stance, off otherwise), `.refreshBelowSec` (3) | with Bloodthrill |
 | 3 | Racial or trinket cooldowns | As Fury's row 3: with Death Wish (row 16) when it's used; otherwise at the pull and on cooldown | `arms.racial.enabled` (on), `arms.trinkets.enabled` (on), `arms.cooldowns.syncWithDeathWish` (on) | yes |
-| 4 | Recklessness | Once, when ≤ `lastSec` s are left. From Battle Stance it swaps to Berserker Stance (keeping at most 25 rage) and stays there for the rest of the fight | `arms.recklessness.enabled` (on), `.lastSec` (15) | yes |
+| 4 | Recklessness | Once, when ≤ `lastSec` s are left. From Battle Stance it swaps to Berserker Stance (keeping at most 25 rage) and stays there for the rest of the fight | `arms.recklessness.enabled` (on), `.lastSec` (39: just before the default fight's execute phase; see the notes) | yes |
 | 5 | Bloodrage (off the GCD) | On cooldown if rage ≤ `maxRage` | `arms.bloodrage.enabled` (on), `.maxRage` (110: max − 20) | yes |
 | 6 | **Execute phase** (target ≤ 20%): Slam | Off cooldown; rage ≥ Slam's 15 + Execute's 15 | `arms.execute.slamInExecute` (on) | yes |
-| 7 | Execute phase: Execute | Rage ≥ cost. With `mortalStrikeInExecute`, Mortal Strike comes just before it | `arms.execute.enabled` (on), `.mortalStrikeInExecute` (off) | yes |
+| 7 | Execute phase: Execute | Rage ≥ cost. With `mortalStrikeInExecute`, Mortal Strike comes just before it | `arms.execute.enabled` (on), `.mortalStrikeInExecute` (on) | yes |
 | 8 | Mortal Strike | Off cooldown; rage ≥ 30; outside the execute phase | `arms.mortalStrike.enabled` (on; needs the talent) | yes |
 | 9 | Overpower | Window open (dodge or Bloodthrill); Mortal Strike is GCD-safe, or rage ≥ 35 (Mortal Strike's 30 + Overpower's 5). In both phases. In Berserker Stance, a dance to Battle Stance at rage ≤ 25 | `arms.overpower.enabled` (on in Battle Stance, off in Berserker) | Battle Stance |
-| 10 | Slam | Off cooldown; rage ≥ 15 + `reserve`; Mortal Strike is GCD-safe over Slam's own GCD (1 s with Improved Slam 2/2); outside the execute phase | `arms.slam.enabled` (on), `.reserve` (0) | yes |
-| 11 | Spearing Strike | Target is a Giant or Dragonkin: on cooldown. Otherwise: rage ≥ `minRageOtherTargets` and Mortal Strike is GCD-safe. Outside the execute phase | `arms.spearingStrike.enabled` (on; needs the talent and a two-hander), `.minRageOtherTargets` (50) | yes |
+| 10 | Slam | Off cooldown; rage ≥ 15 + `reserve`; Mortal Strike is GCD-safe over Slam's own GCD (1 s with Improved Slam 2/2); outside the execute phase | `arms.slam.enabled` (on), `.reserve` (5) | yes |
+| 11 | Spearing Strike | Target is a Giant or Dragonkin: on cooldown. Otherwise: rage ≥ `minRageOtherTargets` and Mortal Strike is GCD-safe. Outside the execute phase | `arms.spearingStrike.enabled` (on; needs the talent and a two-hander), `.minRageOtherTargets` (35) | yes |
 | 12 | Whirlwind | Mortal Strike is GCD-safe; outside the execute phase. From Battle Stance, a dance to Berserker Stance at rage ≤ `maxRage`; in Berserker Stance, no dance | `arms.whirlwind.enabled` (off in Battle Stance, on in Berserker), `.maxRage` (30) | Berserker Stance |
-| 13 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage` (45 ≈ Mortal Strike's 30 + Heroic Strike's 12, plus a little slack); optional unqueue; outside the execute phase | `arms.heroicStrike.enabled` (on), `.minRage` (45), `.unqueue` (off), `.unqueueBelow` (20) | yes |
-| 14 | Hamstring | Rage ≥ `minRage`; GCD-safe for Mortal Strike, Slam, Spearing Strike and Whirlwind (useful with Weaponmaster swords or Windfury); outside the execute phase | `arms.hamstring.enabled` (off), `.minRage` (60) | no |
+| 13 | Heroic Strike queue (off the GCD) | Off by default: its swing gives no rage ([§2.4](#24-heroic-strike-and-cleave-on-next-swing)), and Arms' rage does more elsewhere (notes). When it's on: rage ≥ `minRage` (125, near the 130 cap); optional unqueue; outside the execute phase | `arms.heroicStrike.enabled` (off), `.minRage` (125), `.unqueue` (off), `.unqueueBelow` (20) | no |
+| 14 | Hamstring | Rage ≥ `minRage`; GCD-safe for Mortal Strike, Slam, Spearing Strike and Whirlwind (useful with Weaponmaster swords or Windfury); outside the execute phase | `arms.hamstring.enabled` (on), `.minRage` (40) | yes |
 | 15 | Sweeping Strikes (off the GCD) | 2 or more targets: on cooldown. **Not simulated** until multi-target support ([§5.5](#55-multi-target-options-light)): the sim has one target | none yet | multi-target |
 | 16 | Death Wish | Only with the talent: as Fury's row 2, including `alignToEnd`. Its line sits before row 3's, so the racial can wait for it | `arms.deathWish.enabled` (on with the talent), `.alignToEnd` (on) | with the talent |
-| 17 | Mighty Rage Potion (off the GCD) | As Fury's row 16: once, from the start of the execute phase (the last 20 s without one, and after row 4's swap from Battle Stance; see the notes), at rage ≤ `maxRage` | `arms.ragePotion.enabled` (on), `.maxRage` (55) | with the consumable |
+| 17 | Mighty Rage Potion (off the GCD) | As Fury's row 16: once, from the start of the execute phase (the last 20 s without one, and after row 4's swap from Battle Stance; see the notes), at rage ≤ `maxRage` | `arms.ragePotion.enabled` (on), `.maxRage` (0: once an Execute has emptied the bar; raise it to 55 without an execute phase, notes) | with the consumable |
 | 18 | Juju Flurry (off the GCD) | As Fury's row 17: on cooldown from the pull | `arms.jujuFlurry.enabled` (on) | with the consumable |
 
 Notes:
@@ -912,8 +915,9 @@ Notes:
   available by setting `arms.baseStance = berserker`, which turns on #12 and turns off #2 and
   #9 unless you turn them back on, and then they dance. **What the sim shows** (Q24, M2.3c, the
   default setup, 20,000 fights, ± 0.6): Battle Stance 630 DPS; Berserker Stance with its defaults
-  604 (−4%); Berserker Stance dancing for Rend and Overpower 631, level with Battle Stance. So
-  Battle Stance stays the default.
+  604 (−4%); Berserker Stance dancing for Rend and Overpower 631, level with Battle Stance. With
+  the tuned defaults (M2.5a, below), Berserker Stance dancing for Rend and Overpower measured
+  −22.5 DPS (−3.5%, 95% CI ± 0.23, 200,000 paired fights). So Battle Stance stays the default.
 - **Defaults that follow the setup.** Rend's default is on only with Bloodthrill, and the base
   stance moves the defaults of Rend, Overpower and Whirlwind as above. Each setting's
   `defaultWhen` says so (the first match wins), the Rotation tab shows the resulting value, and a
@@ -921,9 +925,11 @@ Notes:
   follows its talent the same way; without the talent it's never used, whatever the setting.
 - **Execute phase.** Slam at 15 rage for about 728 damage
   ([W4](#w4-slam-with-the-same-two-hander)) beats a minimum Execute's 600 per GCD [marrow].
-  Mortal Strike (30 rage, about 737) loses to Execute at 30 rage (825), so it's off by
-  default; when it's on, its line comes just before Execute, since below it Execute would take
-  every GCD it could pay for.
+  Mortal Strike (30 rage, about 737) loses to an Execute at 30 rage (825) when that's all the
+  rage there is. With rage to spare (the Mighty Rage Potion's, and what Heroic Strike no longer
+  takes), its 30 rage does more as a Mortal Strike than as 15 damage a point of an Execute's
+  extra rage ([W10](#w10-execute)), so it's on by default since M2.5a (+0.14%, below). Its line
+  comes just before Execute, since below it Execute would take every GCD it could pay for.
 - **What the execute phase changes** (with `arms.execute.enabled` on). Rows 6 and 7 apply only
   in the phase; rows 8 and 10–14 only outside it, and a Heroic Strike already queued is
   cancelled when the phase starts, as Fury's is. Rows 1–5, 9 and 16–18 apply in both phases.
@@ -937,25 +943,37 @@ Notes:
   engine never swaps back ([§7](#7-implementation-notes) "Stance dancing"). Rend and Overpower
   then wait for good, and the Whirlwind line, if it's on, needs no dance. There's no rage guard:
   the swap keeps at most 25, and delaying Recklessness costs more of its 15 s than the rage is
-  worth. In the execute phase it usually follows an Execute that spent the rage; the default
-  setup loses about 1 rage a fight to it.
-- **The Mighty Rage Potion without an execute phase** (row 17). Fury drinks it in the last 20 s
+  worth. **When.** At the default 39 s left it comes just before the execute phase, which starts
+  32.4–39.6 s before the end of the default 180 s ± 10% fight: 2.4 s before it on average. Its
+  15 s of crits then land on the phase's first Executes, Slams and Mortal Strikes, with the rage
+  the rotation pooled for them, and the potion (row 17) follows the swap. The swap loses 16.5
+  rage a fight there (0.9 at 15 s left), and it's still +0.9% over 15 s (below). The best time
+  follows the phase, not the clock: in a 300 s fight (the phase starts 54–66 s before the end)
+  60–65 s measured best, +0.34% over 39 s, which is still +0.27% over 15 s; without an execute
+  phase, 15 s is best (+1.9% over 39 s). The default setup decides, so 39 s it is; set it for
+  other fights.
+- **The Mighty Rage Potion** (row 17). **With an execute phase** it's drunk from the phase's
+  start at rage ≤ `maxRage`. The default 0 waits until an Execute has emptied the bar: 1.8 s into
+  the phase on average, after Recklessness's swap (row 4). That measured +0.48% over 55, the
+  130 cap minus 75 (below). **Without an execute phase**, Fury drinks it in the last 20 s
   ([§5.2](#52-fury-dual-wield) notes). From Battle Stance, Arms' Recklessness (row 4) swaps to
-  Berserker Stance at 15 s left, and that swap keeps at most 25 rage, so a potion drunk at 20 s
-  lost about 12 of its rage to it. With Recklessness in the rotation from Battle Stance, the
-  potion waits until Recklessness has been used, and follows its swap in the same moment: its
-  +60 Strength still lasts to the end, and its 45–75 rage lands on top of the 25 the swap kept.
-  With the default setup at 0% execute, the swap's loss fell from 17.6 rage a fight to 5.9, and
-  DPS rose from 599.9 to 605.2 (20,000 fights, ± 0.6). With Recklessness off, or fighting in
-  Berserker Stance (no swap), it's the last 20 s, as Fury's. With an execute phase nothing
-  changes: the potion comes at its start, and the Executes spend its rage before the swap. An
-  engine choice.
+  Berserker Stance, and that swap keeps at most 25 rage, so a potion drunk just before it would
+  lose rage to it. With Recklessness in the rotation from Battle Stance, the potion waits until
+  Recklessness has been used; with Recklessness in the last 15 s, it follows the swap in the
+  same moment: its +60 Strength still lasts to the end, and its 45–75 rage lands on top of the
+  25 the swap kept. With the setup of the time at 0% execute (M2.3c, Recklessness at 15 s, the
+  potion up to 55), the swap's loss fell from 17.6 rage a fight to 5.9, and DPS rose from 599.9
+  to 605.2 (20,000 fights, ± 0.6). With Recklessness off, or fighting in Berserker Stance (no
+  swap), it's the last 20 s, as Fury's. An engine choice. **The defaults assume an execute
+  phase:** without one, rage seldom falls to 0, so at the default 0 the potion is almost never
+  drunk. Raise `maxRage` to 55 and Recklessness's `lastSec` to 15 there: +1.25% and +1.9%, +3.1%
+  together (614.5 DPS against 596.2).
 - **The Whirlwind dance** (row 12). Whirlwind costs 25 and the swap keeps 25, so the dance needs
   25–`maxRage` rage; 30 gives it a 5-rage window, where 25 would allow exactly 25. After
   Recklessness the line still waits for rage ≤ `maxRage`, though it no longer swaps. It counts
   in Hamstring's GCD-safe check (row 14) only at rage its dance could use (25–30): above
   `maxRage` it isn't coming up ([§7](#7-implementation-notes) "GCD-safe and stances"), so it no
-  longer holds Hamstring back at 60 rage.
+  longer holds Hamstring back at its 40 rage or more.
 - **GCD-safe for Mortal Strike** (rows 9–12) is checked over the line's own GCD: 1 s for Slam
   with Improved Slam 2/2, 1.5 s for the rest ([§5.1](#51-conventions-for-rotation-settings)).
   Hamstring (row 14) is GCD-safe for every ability above it with a cooldown. Rend and Overpower
@@ -969,22 +987,108 @@ Notes:
   the rage. The rotation reads the creature type set under Fight
   ([encounter.md](../mechanics/encounter.md)); raid bosses aren't mounted, so there's no setting
   for that.
-- **Rend's refresh** (row 2). Rend ticks every 3 s for 21 s, so with `refreshBelowSec` 1.5 its
-  window opens after the 6th tick, 1.5 s before the 7th, and the refresh restarts the ticks
-  ([§7](#7-implementation-notes) "Rend is a bleed ability"): the default always drops the 7th
-  tick. A landed Rend gets 6.21 ticks on average; the rest come from Rends that aren't refreshed
-  (the last one before Recklessness leaves Battle Stance, one that lasts to the end) and from
-  refreshes a GCD or Slam's cast holds past the 7th tick. A refresh at 0 s (once Rend has run out)
-  gets all 7 ticks, but leaves Rend, and with it Bloodthrill's proc, down until the next GCD:
-  6.93 ticks a Rend, 630.4 DPS. At 3 s the window opens at the 6th tick, which lands first; the
-  7th is dropped too, but the wider window keeps Rend up through a busy GCD: 6.10 ticks, 631.6
-  DPS. The default 1.5 s gave 629.5 (the default setup, 20,000 fights, ± 0.6). So Rend's worth is
-  mostly Bloodthrill's uptime, not its 28-damage ticks.
-- **Tuning the defaults.** The defaults above are this table's, not the sim's best. With the
-  default setup (20,000 fights, ± 0.6), Heroic Strike from 55 rage gave 638 DPS against 630,
-  Spearing Strike from 40 rage 634, and the Whirlwind dance 635; Heroic Strike from 40 gave 624.
-  Rend's refresh at 3 s gave 631.6 against the default 1.5 s's 629.5 (the note above). Whether to
-  move them is a guild call.
+- **Rend's refresh** (row 2). Rend ticks every 3 s for 21 s. With the default `refreshBelowSec`
+  of 3, its window opens at the 6th tick, which lands first, and the refresh restarts the ticks
+  ([§7](#7-implementation-notes) "Rend is a bleed ability"), so the 7th is dropped. The wide
+  window keeps Rend, and with it Bloodthrill's proc, up through a busy GCD. At 1.5 s the window
+  opens 1.5 s before the 7th tick, which a GCD or Slam's cast often holds the refresh past; at 0 s
+  (once Rend has run out) a Rend gets all 7 ticks (6.55 a cast against 5.74 at 3 s, counting the
+  ones that miss) but leaves Bloodthrill's proc down until the next GCD. With the tuned defaults,
+  1.5 s measured −0.32% and 2.5 s −0.12%, and 0 s −0.03%, its interval reaching zero (below).
+  So Rend's worth is mostly Bloodthrill's uptime, not its 28-damage ticks.
+- **Heroic Strike** (row 13) is off by default. Its swing replaces a white swing that would have
+  given 15.75 rage with the default 3.5 s two-hander, and gives none
+  ([§2.4](#24-heroic-strike-and-cleave-on-next-swing)), so it costs its 12 rage plus that swing's.
+  For about 157 more damage than the swing, that's the worst use of rage Arms has: Slam, Mortal
+  Strike, Overpower and Hamstring all do more with it, and Execute turns what's left into 15
+  damage a point. Against the tuned defaults, every threshold from 30 to 120 measured below off
+  (seed 10, 200,000 fights), and at 125 or 130, a dump for rage that would otherwise hit the cap,
+  it's within 0.03 DPS of off. If you turn it on, keep it that high: the old 45 is −3.0%.
+
+#### Tuning the defaults (M2.5a)
+
+The defaults above are the best rotation found on 2026-09-23, per
+[D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23): it beat
+the previous defaults by **+35.6 DPS (+5.8%, 95% CI +35.5 to +35.8)**, 610.1 → 645.8, over
+400,000 paired fights on a seed the search never used.
+
+- **Method.** `scripts/tune/rotation.mjs` runs the real engine (bundled from `src/` with Vite)
+  over worker threads. Every candidate plays the same fights as its baseline: the same config
+  seed and fight indices, so the same fight lengths and random streams (common random numbers).
+  Each fight gives a paired difference, and a candidate clears the bar when the 95% confidence
+  interval of the mean difference lies entirely above zero. The setup is the default Arms setup
+  (Human, the 37/14/0 build, pre-raid BiS, the Standard raid buffs, 180 s ± 10%, 20% execute,
+  armor 3,731), the rotation settings aside. The search went option by option, from coarse grids
+  to finer ones around the best values, re-sweeping every option on top of each change adopted
+  (coordinate descent), with 2-D grids where two fillers share rage (Spearing Strike and
+  Hamstring). It used 40,000 fights a candidate on seed 1, then 100,000–200,000 on seeds 2–5
+  and 7 for the small effects and the early robustness checks. **Confirmation:** the winning
+  combination against the old defaults, and against itself with each change reverted in turn,
+  on seed 6 (400,000 fights), a seed the search never used. Every change still cleared the bar. Every option was searched: Charge is left out (below), and
+  the Death Wish, trinket, Juju Flurry and racial settings do nothing for the default Human with
+  no Death Wish, on-use trinket or Juju Flurry. Rerun it with, for example:
+  `node scripts/tune/rotation.mjs --fights 400000 --seed 6 heroicStrike.enabled=true`
+  (a candidate against the defaults) or
+  `node scripts/tune/rotation.mjs --sweep spearingStrike.minRageOtherTargets=20:60:5` (a sweep).
+- **Adopted.** "Alone" is the change alone against the old defaults on search seed 1 (100,000
+  fights); "in the winner" is the winner against a copy of it with that one change reverted to
+  the old default, on the fresh seed 6 (400,000 fights). The changes interact: Hamstring only pays once
+  Heroic Strike stops taking its rage, and Mortal Strike in the execute phase only with the new
+  Recklessness and potion timings. So "in the winner" is the test that each one earns its place.
+
+| Setting | Old → new | Alone, Δ DPS (95% CI) | In the winner, Δ DPS (95% CI) |
+| --- | --- | --- | --- |
+| `heroicStrike.enabled` | on → off | +18.99 (+18.71 to +19.28) | +19.50 (+19.35 to +19.65) |
+| `hamstring.enabled`, `.minRage` | off, 60 → on, 40 | +0.69 (+0.49 to +0.89) | +5.85 (+5.71 to +5.99); 40 over 60: +0.90 (+0.75 to +1.04) |
+| `recklessness.lastSec` | 15 → 39 | +4.94 (+4.76 to +5.11) | +5.78 (+5.69 to +5.87); 39 over 40: +0.25 (+0.19 to +0.31) |
+| `ragePotion.maxRage` | 55 → 0 | +1.41 (+1.27 to +1.54) | +3.11 (+3.04 to +3.18) |
+| `rend.refreshBelowSec` | 1.5 → 3 | +2.42 (+2.14 to +2.71) | +2.08 (+1.93 to +2.23) |
+| `execute.mortalStrikeInExecute` | off → on | −0.15 (−0.28 to −0.02) | +0.88 (+0.82 to +0.94) |
+| `spearingStrike.minRageOtherTargets` | 50 → 35 | +3.62 (+3.34 to +3.91) | +0.81 (+0.66 to +0.95) |
+| `battleShout.refreshBelowSec` | 3 → 0 | +0.68 (+0.62 to +0.74) | +0.72 (+0.69 to +0.75) |
+| `slam.reserve` | 0 → 5 | −0.02 (−0.23 to +0.19) | +0.33 (+0.24 to +0.43) |
+
+- **Not adopted** (each on top of the winner, on seed 8, 200,000 fights, which the search never
+  used either; the old findings are measured alone against the old defaults on seed 1). Of the
+  four old findings, Rend's refresh at 3 s is adopted (the table); the other three aren't:
+  - **The Whirlwind dance**: alone +4.11 (+3.82 to +4.40), the old +0.8% finding, but on top of
+    the winner −3.13 (−3.33 to −2.92), and −0.06 (−0.15 to +0.04) with the dance at `maxRage` 25.
+    Heroic Strike's old rage now goes to Hamstring and Spearing Strike, which beat the dance's
+    swap.
+  - **Heroic Strike from 55** (the old +1.2% finding): alone +8.08 (+7.80 to +8.36), but off is
+    +18.99. Turned on from 130, it's −0.03 (−0.06 to −0.01) against off here, and level on
+    seed 10.
+  - **Spearing Strike from 40** (the old +0.6% finding): alone +3.39 (+3.13 to +3.66). In the
+    winner, 40 and 30 are level with 35 (−0.12 and −0.16, their intervals including zero): 35
+    was the best of the 2-D grid with Hamstring (seed 4).
+  - **Charge in** (`prepull.charge`): +3.44 (+3.21 to +3.67), but it's the encounter's call, not
+    the rotation's. Charge works only out of combat ([§2.3](#23-rage-warrior-specific)), and a DPS
+    warrior usually walks in after the tank's pull, as Fury's row 0 does
+    ([§5.2](#52-fury-dual-wield), [wh-fury]). Turn it on for a fight you can open with it.
+  - **Your own Battle Shout off** (`battleShout.enabled`): +1.76 (+1.73 to +1.79), but only
+    because the Buffs tab's Battle Shout, another warrior's, then applies without costing this
+    one a GCD or rage. That's the raid's composition, not the rotation.
+  - **Berserker Stance** dancing for Rend and Overpower: −22.51 (−22.74 to −22.28).
+  - Turning a row off costs: Overpower −64.78, Mortal Strike −60.42, Execute −49.55, Rend
+    −29.54, Slam −25.38, Recklessness −25.08, the potion −16.62, Bloodrage −9.25, Spearing Strike
+    −2.74.
+  - Neither better nor worse: Hamstring from 35 or 45, Slam's reserve at 10, Bloodrage up to 90
+    or 130, and Rend at 0 s. Worse: Recklessness at 38 s (−0.17), Rend at 2.5 s (−0.76), the
+    potion up to 5 (−0.13), Battle Shout at 1 s (−0.27), no Slam in the execute phase (−5.50), no
+    pre-pull Battle Shout (−1.82) or Bloodrage (−0.20).
+- **Robustness** (seed 9, 200,000 paired fights each, the winner against the old defaults):
+  - **Troll** (Berserking, its faction's gear): +35.90 (+35.68 to +36.12), +5.9%. Every change
+    holds, except that Heroic Strike from 125 is level with off.
+  - **5-minute fight** (300 s): +29.26 (+29.08 to +29.43), +4.9%. Every change holds except
+    three: Hamstring from 60 beats 40 by +0.22 (+0.05 to +0.39), Mortal Strike in the execute
+    phase is −0.14 (−0.22 to −0.06), and Battle Shout's refresh at 3 s is level with 0. And
+    Recklessness is best at 60–65 s there (row 4 notes).
+  - **Boss armor 3,009**: +40.73 (+40.48 to +40.98), +5.9%. Every change holds.
+  - **No execute phase** (0%, seed 9, 100,000 fights): +8.26 (+7.97 to +8.54), +1.4% only. The
+    potion at 0 is almost never drunk, and Recklessness at 39 s is worse than at 15 s. See the
+    potion note: change both there.
+
+  The default setup decides, so these stay the defaults.
 
 ### 5.4 Protection (TPS)
 

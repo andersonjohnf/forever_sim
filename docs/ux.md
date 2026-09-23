@@ -506,7 +506,8 @@ Every view handles these states:
     "Setup changed" badge beside the headline isn't dimmed.
   - A result for another spec is set aside rather than shown: after switching from Fury to
     Arms the panel is empty, ready to simulate Arms, and switching back to Fury brings Fury's
-    result back. A number under the Arms header that belongs to Fury is too easy to misread,
+    result back, even after you've run Arms: each spec keeps its latest result, and its ▲/▼
+    change, for as long as the page is open. A number under the Arms header that belongs to Fury is too easy to misread,
     especially in the phone bar, which has no room for a label; the ▲/▼ change never compares
     specs anyway.
 - **Error:** the worker failed or a shared link is invalid. Show a plain message and a way

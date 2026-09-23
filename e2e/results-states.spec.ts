@@ -81,6 +81,32 @@ test.describe('run states', () => {
     await expect(panel.getByRole('region', { name: 'Damage by ability' })).toBeVisible()
   })
 
+  test('each spec keeps its own result: running Arms doesn’t lose Fury’s, and the change compares each with its own', async ({ page }) => {
+    await page.goto('./')
+    const panel = results(page)
+    const dps = panel.getByRole('group', { name: 'DPS' })
+    await simulate(panel)
+    const fury = (await dps.textContent())!
+
+    await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
+    await page.getByRole('menuitem', { name: /Arms/ }).click()
+    await expect(panel).toContainText('Simulate to see your DPS.')
+    await simulate(panel)
+    const arms = (await dps.textContent())!
+    expect(arms).not.toBe(fury)
+
+    // Back on Fury, its own result, not stale and with no change from Arms's.
+    await page.getByRole('button', { name: /Spec: Arms Warrior/ }).click()
+    await page.getByRole('menuitem', { name: /Fury/ }).click()
+    await expect(dps).toHaveText(fury)
+    await expect(dps).not.toContainText('Setup changed')
+    await expect(panel.getByRole('region', { name: 'Damage by ability' })).toBeVisible()
+    // And Arms's is still there.
+    await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
+    await page.getByRole('menuitem', { name: /Arms/ }).click()
+    await expect(dps).toHaveText(arms)
+  })
+
   test('says how many fights of what length, and how long the run took', async ({ page }) => {
     await page.goto('./')
     const panel = results(page)

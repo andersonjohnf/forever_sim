@@ -1,18 +1,27 @@
 // Simulation runs (docs/ux.md#results): progress and cancel, the previous result for deltas,
 // and staleness when the setup changes after a run.
 import { create } from 'zustand'
-import { simulate, type SimConfig, type SimProgress, type SimResult } from '@/sim'
+import { simulate, type SimConfig, type SimProgress, type SimResult, type SpecId } from '@/sim'
 
 type Status = 'idle' | 'running' | 'done' | 'error'
+
+/** A spec's latest result, the one before it (for the ▲/▼ delta) and the config it was run for (JSON). */
+export interface SpecResult {
+  result: SimResult
+  previous: SimResult | null
+  resultKey: string
+}
 
 interface SimState {
   status: Status
   progress: SimProgress | null
+  /** The latest result, whatever its spec (the live region announces it). */
   result: SimResult | null
-  /** The result before the latest one, for the ▲/▼ delta. Only kept for the same spec. */
-  previous: SimResult | null
-  /** The config the current result was computed from (JSON), for staleness. */
-  resultKey: string | null
+  /**
+   * Each spec's latest result, kept while you switch specs: switching back to Fury brings Fury's
+   * back (docs/ux.md#states "Stale"). Kept for the page's life, not saved.
+   */
+  bySpec: Partial<Record<SpecId, SpecResult>>
   /** The config of the run under way (JSON), so a re-run that applies the setup isn't marked stale. */
   runKey: string | null
   error: string | null
@@ -33,8 +42,7 @@ export const useSim = create<SimState>()((set, get) => ({
   status: 'idle',
   progress: null,
   result: null,
-  previous: null,
-  resultKey: null,
+  bySpec: {},
   runKey: null,
   error: null,
   errorKey: null,
@@ -50,12 +58,11 @@ export const useSim = create<SimState>()((set, get) => ({
         onProgress: (progress) => set({ progress }),
       })
       if (controller !== current) return
-      const last = get().result
+      const { bySpec } = get()
       set({
         status: 'done',
         result,
-        previous: last && last.spec === result.spec ? last : null,
-        resultKey: key,
+        bySpec: { ...bySpec, [result.spec]: { result, previous: bySpec[result.spec]?.result ?? null, resultKey: key } },
         runKey: null,
         progress: null,
       })

@@ -11,9 +11,10 @@ export { headlineText, METRIC_LABEL, type Metric, metricsFor } from './run-logic
 /**
  * The run state everything results-related reads (docs/ux.md#results and #states).
  *
- * - `result` is the result to show: the latest one, unless it was run for another spec. A spec
- *   switch sets it aside rather than showing another spec's numbers under this one, and switching
- *   back brings it back unchanged. (The ▲/▼ change never compares specs either.)
+ * - `result` is the result to show: this spec's latest. Each spec keeps its own, so a spec switch
+ *   sets one aside rather than showing another spec's numbers under this one, and switching back
+ *   brings it back unchanged, even after running the other. `previous` is the one before it, for
+ *   the ▲/▼ change, which never compares specs.
  * - `stale`: the setup changed after that run. `dimmed`: stale, or a re-run is under way.
  * - `rerunning`: a run is under way for the current setup, so it's about to replace a stale result
  *   (no "Setup changed" beside its progress).
@@ -27,10 +28,12 @@ export function useRunState() {
   const meta = useSpecMeta()
   const tank = meta.role === 'tank'
   const key = useMemo(() => configKey(config), [config])
-  const result = sim.result && sim.result.spec === config.spec ? sim.result : null
-  const stale = result !== null && sim.resultKey !== key
+  const entry = sim.bySpec[config.spec]
+  const result = entry?.result ?? null
+  const resultKey = entry?.resultKey ?? null
+  const stale = result !== null && resultKey !== key
   const running = sim.status === 'running'
-  const runConfig = useMemo(() => (result ? runConfigFromKey(sim.resultKey) : null), [result, sim.resultKey])
+  const runConfig = useMemo(() => (result ? runConfigFromKey(resultKey) : null), [result, resultKey])
   const progressPct =
     running && sim.progress && sim.progress.totalIterations > 0
       ? Math.min(100, (100 * sim.progress.completedIterations) / sim.progress.totalIterations)
@@ -39,6 +42,7 @@ export function useRunState() {
     config,
     sim,
     result,
+    previous: entry?.previous ?? null,
     runConfig,
     stale,
     running,

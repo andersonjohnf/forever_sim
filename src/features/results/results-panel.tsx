@@ -64,7 +64,7 @@ function RunningBadge({ pct }: { pct: number | null }) {
 }
 
 export function Headline({ compact = false }: { compact?: boolean }) {
-  const { sim, result, stale, running, rerunning, progressPct, dimmed, config } = useRunState()
+  const { result, previous, stale, running, rerunning, progressPct, dimmed, config } = useRunState()
   // A result shows the metrics of the spec it was run for; only this spec's result is shown.
   const metrics = metricsFor(result?.spec ?? config.spec)
   if (running && !result) return <RunProgress pct={progressPct} compact={compact} />
@@ -72,7 +72,7 @@ export function Headline({ compact = false }: { compact?: boolean }) {
     key,
     label: METRIC_LABEL[key],
     value: result ? result[key] : null,
-    previous: sim.previous ? sim.previous[key].mean : null,
+    previous: previous ? previous[key].mean : null,
   }))
   // In the panel the progress sits above the headline; the phone bar has room only for a badge.
   // A run that applies the change isn't marked "Setup changed": its progress says it's coming.
@@ -275,13 +275,13 @@ function NoDamage({ result, variant, onNavigate }: { result: SimResult; variant:
  * sheet, which scrolls as a whole; `onNavigate` closes it when a link opens a setup tab.
  */
 export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'panel' | 'sheet'; onNavigate?: Navigate }) {
-  const { sim, result, runConfig, stale, running, error, dimmed, metricLabel } = useRunState()
+  const { result, previous, runConfig, stale, running, error, dimmed, metricLabel } = useRunState()
   const empty = result !== null && result.abilities.length === 0
   const body = result && (
     <div data-dimmed={dimmed} className={cn('flex flex-col gap-5', DIM_ROOT)}>
       {/* Tanks: what the boss's swings cost you comes first, since it has no headline of its own. How
           they landed follows the breakdown, so the breakdown stays near the top (docs/ux.md#results). */}
-      {result.tank && <DamageTaken tank={result.tank} previous={sim.previous?.tank?.dtps.mean ?? null} fight={runConfig?.fight ?? null} />}
+      {result.tank && <DamageTaken tank={result.tank} previous={previous?.tank?.dtps.mean ?? null} fight={runConfig?.fight ?? null} />}
       {!empty && <Breakdown result={result} />}
       {result.tank && <SwingOutcomes tank={result.tank} />}
       {result.cooldowns.length > 0 && (

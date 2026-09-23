@@ -122,37 +122,31 @@ work is in slices:
 
 ## Session handoff (2026-09-23)
 
-State: `main` is green (lint, typecheck, 585 unit, 26 e2e with 3 deferred to M3). Nothing is
-pushed. Fury and Arms are available. M2.4a is done; the review gate is in progress, logged in
-[reviews/2026-09-23-first-release.md](reviews/2026-09-23-first-release.md): 38 logic and 32 UX
-findings.
+State: `main` is green (lint, typecheck, 909 unit, 91 e2e with 3 deferred to M3). Nothing is
+pushed. Fury and Arms are available.
+
+**Review gate for the first release**, in
+[reviews/2026-09-23-first-release.md](reviews/2026-09-23-first-release.md):
+- First pass: 38 logic and 34 UX findings, all fixed, with commits in "Fix commits".
+- Second pass (a review of the fixes): 10 logic (RL) and 17 UX (RU) findings, logged; fixes
+  in flight.
 
 **In flight** (one agent per slice, each in a `.claude/worktrees/` worktree, uncommitted until
 the lead verifies):
-- Logic fixes:
-  - F1a engine and effects
-  - F1b warrior and rotations
-  - F1c config and gear
-  - F2 data pipeline
-  - F3 Classic Era profile values
-- UX fixes:
-  - UX-A results and run states
-  - UX-C app shell and accessibility
-
-**Merge plan:**
-- Verify and commit each slice on its branch, then cherry-pick onto `main` one at a time.
-- Resolve the golden snapshot once all logic slices are in: re-run it and explain every
-  change in the commit.
-- F2 reported edits for files it doesn't own (`profiles.ts` Demoralizing Shout, the
-  `abilities.ts` Execute comment); the lead applies them.
-- Then dispatch UX-B1 (Rotation) and UX-B2 (setup screens), which touch files F1b and F1c own.
+- **R-logic** (RL1–RL7, RL9, RL10): Ironfoe's Forever proc is the big one. It moves the
+  Fury golden.
+- **R-UX-a:** app shell, results, gear picker and focus.
+- **R-UX-b:** setup screens, RL3's help copy, and RL8.
 
 **Then:**
-- Re-review what changed since the review (a short logic and UX pass on the fixes).
-- Update each finding's disposition with its commit and set the verdict.
-- Push only when the user asks.
-- Open decision for the user: whether Arms defaults should follow the tuning findings
-  (Heroic Strike 55, Whirlwind dance, Spearing Strike 40, Rend refresh 3 s).
+1. Verify each slice, cherry-pick it onto `main`, and resolve conflicts (the golden snapshot,
+   docs).
+2. Fill in the second-pass dispositions and set the verdict. A further review pass is needed
+   only if the fixes are large.
+3. Push only when the user asks.
+
+**Open decision for the user:** whether Arms defaults follow the tuning findings (Heroic
+Strike 55, the Whirlwind dance, Spearing Strike 40, Rend refresh 3 s).
 
 ## M3: Warrior Protection (TPS) 💤
 

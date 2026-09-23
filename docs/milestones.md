@@ -140,7 +140,7 @@ work is in slices:
 
 ## Session handoff (2026-09-23)
 
-State: `main` is green (lint, typecheck, 1,043 unit, 216 e2e with 3 deferred to M3). Nothing is
+State: `main` is green (lint, typecheck, 1,050 unit, 224 e2e with 3 deferred to M3). Nothing is
 pushed. Fury and Arms are available.
 
 **The review gate for the first release is still open**, in

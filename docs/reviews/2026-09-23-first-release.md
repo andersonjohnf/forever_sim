@@ -464,20 +464,23 @@ A fresh verifier checked the fix commits (`569eea2`, `7b931de`, `1269107`, `0e81
 
 | # | Severity | Origin | Finding | Disposition |
 | --- | --- | --- | --- | --- |
-| VF1 | medium, blocking | introduced (UX3) | **The in-row confirm Delete button's text is 3.97:1 in light** (3.31:1 on hover; 4.64:1 and about 3.85:1 in dark), under AA's 4.5:1. | planned, fix slice C |
-| VF2 | low | introduced (UX13 incomplete) | **"Gear options" is still 1.26:1 in light:** as a menu trigger it misses the outline-button override. | planned, C |
-| VF3 | low | introduced (LX7) | **The automatic save's full-storage notice says to delete saves** even with none. | planned, C |
-| VF4 | low | introduced (LX4 tests) | **Dropping the carried fraction at a stance swap's limit, on Execute and on a refund at the cap** has no worked example or test. | planned, C |
-| VF5 | low | introduced (doc sync) | **warrior.md Q28 still says a 2.6 s main hand gives 9.1 rage.** | planned, C |
-| VF6 | low | introduced (D22 evidence) | **Carrying the fraction for hits taken rests on one tester's logs;** rage.md should say it extends the white-swing evidence. | planned, C |
-| VF7 | low | introduced (UX9) | **After a file import the New rows are often off-screen on a phone.** | planned, C |
-| VF8 | low | introduced (UX1) | **The name field narrows 21 px when Save becomes Replace.** | planned, C |
-| VF9 | low | introduced (LX9) | **Download's count includes saves the list doesn't show.** | planned, C |
-| VF10 | low | pre-existing | **A file's `"current": null` counts as an unreadable setup.** | planned, C |
-| VF11 | low | introduced (ux.md claim) | **Names are cut by code point, which can split a skin-toned or ZWJ emoji,** against ux.md's claim. | planned, C |
-| VF12 | low | pre-existing, breaks a ux.md promise | **The "Classic stats" and "Effect not simulated" badges open popovers, but their edge is 1.26:1 in light.** | planned, C |
+| VF1 | medium, blocking | introduced (UX3) | **The in-row confirm Delete button's text is 3.97:1 in light** (3.31:1 on hover; 4.64:1 and about 3.85:1 in dark), under AA's 4.5:1. | fixed, `55a72ed`: 6.91:1 light and 6.20:1 dark at rest, 5.65 and 4.78 on hover; its focus ring now meets 3:1 too |
+| VF2 | low | introduced (UX13 incomplete) | **"Gear options" is still 1.26:1 in light:** as a menu trigger it misses the outline-button override. | fixed, `55a72ed`: every outline control, whatever its slot; a sweep of every tab found no other edge under 3:1 |
+| VF3 | low | introduced (LX7) | **The automatic save's full-storage notice says to delete saves** even with none. | fixed, `b434cd3` |
+| VF4 | low | introduced (LX4 tests) | **Dropping the carried fraction at a stance swap's limit, on Execute and on a refund at the cap** has no worked example or test. | fixed, `8df1bf9`: worked examples R31–R33 with tests, each failing without its drop |
+| VF5 | low | introduced (doc sync) | **warrior.md Q28 still says a 2.6 s main hand gives 9.1 rage.** | fixed, `8df1bf9` |
+| VF6 | low | introduced (D22 evidence) | **Carrying the fraction for hits taken rests on one tester's logs;** rage.md should say it extends the white-swing evidence. | fixed, `8df1bf9`: "Hits taken, by extension", and what to log in open question 9 / B77 |
+| VF7 | low | introduced (UX9) | **After a file import the New rows are often off-screen on a phone.** | fixed, `9a28166`: imported rows come first until the sheet closes, and a line under the heading says so |
+| VF8 | low | introduced (UX1) | **The name field narrows 21 px when Save becomes Replace.** | fixed, `9a28166`: a hidden "Replace" sizes the button |
+| VF9 | low | introduced (LX9) | **Download's count includes saves the list doesn't show.** | fixed, `9a28166`: "… (2 not shown here)" |
+| VF10 | low | pre-existing | **A file's `"current": null` counts as an unreadable setup.** | fixed, `b434cd3` |
+| VF11 | low | introduced (ux.md claim) | **Names are cut by code point, which can split a skin-toned or ZWJ emoji,** against ux.md's claim. | fixed, `b434cd3`: names count and cut by grapheme |
+| VF12 | low | pre-existing, breaks a ux.md promise | **The "Classic stats" and "Effect not simulated" badges open popovers, but their edge is 1.26:1 in light.** | fixed, `55a72ed`: badges that are buttons get a 3:1 edge; static ones don't change |
+
+Checks after fix slice C (`9a28166`): lint ✓ · typecheck ✓ · unit ✓ (1050) · e2e ✓ (224, 3 deferred
+to M3). The goldens didn't move.
 
 ## Verdict
 
-Ready to push: not yet. VF1 is blocking; fix slice C covers VF1–VF12, then a quick fresh check
-of its commits (D20).
+Ready to push: not yet. Fix slice C's commits (`8df1bf9`..`9a28166`) await a quick fresh check
+(D20).

@@ -21,6 +21,7 @@ const NO_ABILITIES: SimConfig['rotation'] = {
   'warrior.fury.whirlwind.enabled': false,
   'warrior.fury.heroicStrike.enabled': false,
   'warrior.fury.hamstring.enabled': false,
+  'warrior.fury.execute.enabled': false,
 }
 
 /** No talents, no buffs, no enchants, no abilities: the pure white-swing baseline. */
@@ -259,6 +260,15 @@ describe('determinism (decision D15)', () => {
     expect(hw / agg.dps.mean).toBeLessThanOrEqual(0.0025)
   })
 
+  it('gives the same result for the same config and seed, with the execute phase and every ability in play', () => {
+    const config: SimConfig = { ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 500, seed: 4242 } }
+    const a = runFights(buildPlan(config).plan, 500)
+    const b = runFights(buildPlan(structuredClone(config)).plan, 500)
+    expect(b).toEqual(a)
+    const other = runFights(buildPlan({ ...config, run: { ...config.run, seed: 4243 } }).plan, 500)
+    expect(other.dps.mean).not.toBe(a.dps.mean)
+  })
+
   it('depends only on the fight index: a chunk is the same wherever it runs', () => {
     const a = runChunk(plan, 3, 50)
     const sim = new Sim(plan)
@@ -272,6 +282,9 @@ describe('golden run (fixed config and seed)', () => {
   // Snapshot history (update only deliberately, and say why here):
   // - M2.1: the default Fury warrior now uses Bloodthirst, Whirlwind, Heroic Strike and Hamstring
   //   (new breakdown rows; Heroic Strike replaces main-hand swings), so its numbers moved.
+  // - M2.2a: Execute and the execute phase (new row; Bloodthirst, Whirlwind, Heroic Strike and
+  //   Hamstring stop there), Impale 2/2 (ability crits ×2.2), Improved Heroic Strike 3/3 (12 rage),
+  //   Unbridled Wrath on Heroic Strike swings, and Raging Blows' off-hand Whirlwind (new row).
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

@@ -1,14 +1,22 @@
 // The Fury priority list and its settings (docs/classes/warrior.md §5.1, §5.2).
 //
-// M2.1 covers Bloodthirst, Whirlwind, Heroic Strike and Hamstring (§5.2 rows 8, 9, 11 and 12);
-// Execute, the cooldowns, Battle Shout and the rest of the list come in M2.2. Setting ids are
-// `warrior.fury.<ability>.<param>` and every rage threshold is in absolute rage points (§5.1).
+// This covers the execute phase (rows 6 and 7), Bloodthirst, Whirlwind, Heroic Strike and
+// Hamstring (rows 8, 9, 11 and 12); the cooldowns, Battle Shout and the rest of the list come in
+// M2.2b. Setting ids are `warrior.fury.<ability>.<param>` and every rage threshold is in absolute
+// rage points (§5.1). Abilities are resolved with the build's talents (modifiers.ts) before
+// their costs feed any condition.
 import { GCD_MS, toTenths } from '../../core/formulas'
 import { COND, type RotationCondition, type RotationEntry } from '../../plan/types'
 import type { RotationOption } from '../../types'
-import { type AbilityDef, BLOODTHIRST, HAMSTRING, HEROIC_STRIKE, WHIRLWIND } from './abilities'
+import { type AbilityDef, BLOODTHIRST, EXECUTE, executeBreakEvenAp, HAMSTRING, HEROIC_STRIKE, WHIRLWIND } from './abilities'
+import { type TalentRanks, withTalents } from './modifiers'
 
 const ID = {
+  exEnabled: 'warrior.fury.execute.enabled',
+  exMinExtraRage: 'warrior.fury.execute.minExtraRage',
+  exBtOverAp: 'warrior.fury.execute.btOverExecuteAp',
+  exWhirlwind: 'warrior.fury.execute.whirlwindInExecute',
+  exHeroicStrike: 'warrior.fury.execute.heroicStrikeInExecute',
   btEnabled: 'warrior.fury.bloodthirst.enabled',
   wwEnabled: 'warrior.fury.whirlwind.enabled',
   wwReserve: 'warrior.fury.whirlwind.reserve',
@@ -36,8 +44,55 @@ const rage = (id: string, label: string, help: string, def: number, dependsOn: s
   dependsOn,
 })
 
-/** Defaults from warrior.md §5.2's table (rows 8, 9, 11, 12). */
+/**
+ * Bloodthirst over Execute from this AP: W11's break-even at the default build's Execute cost
+ * (15, no Improved Execute), 2220. A static default: the option framework has no per-build
+ * defaults, so an Improved Execute build should set its own (2434 at cost 10; warrior.md §5.2).
+ */
+const BT_OVER_EXECUTE_AP = Math.round(executeBreakEvenAp(EXECUTE.costTenths / 10))
+
+/** Defaults from warrior.md §5.2's table (rows 6–9, 11, 12). */
 export const FURY_OPTIONS: RotationOption[] = [
+  {
+    kind: 'toggle',
+    id: ID.exEnabled,
+    label: 'Execute',
+    help: 'In the execute phase, use Execute on every global cooldown in place of the rest of the rotation.',
+    default: true,
+  },
+  rage(
+    ID.exMinExtraRage,
+    'Execute: wait for extra rage',
+    'Use Execute only with at least this much rage on top of its cost. Each extra rage adds 15 damage.',
+    0,
+    ID.exEnabled,
+  ),
+  {
+    kind: 'number',
+    id: ID.exBtOverAp,
+    label: 'Bloodthirst over Execute from',
+    help: `In the execute phase, keep using Bloodthirst at or above this attack power. ${BT_OVER_EXECUTE_AP} is the break-even at Execute’s 15 rage cost; use 2434 with Improved Execute 2/2.`,
+    unit: 'AP',
+    min: 0,
+    max: 5000,
+    step: 1,
+    default: BT_OVER_EXECUTE_AP,
+    dependsOn: ID.exEnabled,
+  },
+  {
+    kind: 'toggle',
+    id: ID.exWhirlwind,
+    label: 'Whirlwind in the execute phase',
+    help: 'Keep Whirlwind in the execute phase. It gets a global cooldown only while Execute waits for extra rage.',
+    default: false,
+  },
+  {
+    kind: 'toggle',
+    id: ID.exHeroicStrike,
+    label: 'Heroic Strike in the execute phase',
+    help: 'Keep queueing Heroic Strike in the execute phase. Off: a queued one is cancelled when the phase starts.',
+    default: false,
+  },
   {
     kind: 'toggle',
     id: ID.btEnabled,
@@ -112,48 +167,82 @@ function reader(options: RotationOption[], values: Record<string, number | boole
   }
 }
 
+const IN_EXECUTE: RotationCondition = { code: COND.executePhase, a: 1, b: 0 }
+const NOT_IN_EXECUTE: RotationCondition = { code: COND.executePhase, a: 0, b: 0 }
+
 /**
  * The Fury priority list from the settings (warrior.md §5.2). `talents` gates talent abilities
- * (Bloodthirst); `auraIndex` resolves an aura id in the plan (−1 if the setup has none).
+ * (Bloodthirst) and resolves costs, Impale and Raging Blows; `auraIndex` resolves an aura id in
+ * the plan (−1 if the setup has none).
  */
 export function furyRotation(
   values: Record<string, number | boolean>,
-  talents: Map<string, number>,
+  talents: TalentRanks,
   auraIndex: (id: string) => number,
 ): ClassRotation {
   const v = reader(FURY_OPTIONS, values)
   const abilities: AbilityDef[] = []
   const rotation: RotationEntry[] = []
-  const add = (ability: AbilityDef, conditions: RotationCondition[], unqueueBelowTenths = 0) => {
-    abilities.push(ability)
-    rotation.push({ ability: abilities.length - 1, conditions, unqueueBelowTenths })
+  /** The ability's index in `abilities`, resolved with the build's talents on first use. */
+  const ability = (def: AbilityDef) => {
+    const i = abilities.findIndex((a) => a.id === def.id)
+    if (i >= 0) return i
+    abilities.push(withTalents(def, talents))
     return abilities.length - 1
   }
+  const add = (def: AbilityDef, conditions: RotationCondition[], unqueueBelowTenths = 0) => {
+    const a = ability(def)
+    rotation.push({ ability: a, conditions, unqueueBelowTenths })
+    return a
+  }
+  const cost = (a: number) => abilities[a].costTenths
 
-  // Row 8: Bloodthirst on cooldown, rage ≥ cost (the engine checks cost and cooldown).
-  const bt = talents.has('Bloodthirst') && v.on(ID.btEnabled) ? add(BLOODTHIRST, []) : -1
+  const execute = v.on(ID.exEnabled)
+  const useBt = talents.has('Bloodthirst') && v.on(ID.btEnabled)
+  const btOverAp = v.num(ID.exBtOverAp)
+  /** Lines that stop in the execute phase get this condition while Execute is on. */
+  const outsideExecute = (keep: boolean): RotationCondition[] => (execute && !keep ? [NOT_IN_EXECUTE] : [])
 
-  // Row 9: Whirlwind, rage ≥ cost + reserve, Bloodthirst cooldown ≥ btCdMinSec.
+  // Row 6: in the execute phase, Bloodthirst only at AP ≥ btOverExecuteAp (the engine checks its cost).
+  let bt = -1
+  if (execute && useBt) bt = add(BLOODTHIRST, [IN_EXECUTE, { code: COND.apAtLeast, a: btOverAp, b: 0 }])
+
+  // Row 7: Execute on every GCD at rage ≥ cost + minExtraRage (the engine allows it only in the phase).
+  if (execute) add(EXECUTE, [{ code: COND.minRage, a: cost(ability(EXECUTE)) + toTenths(v.num(ID.exMinExtraRage)), b: 0 }])
+
+  // Row 8: Bloodthirst on cooldown outside the execute phase.
+  if (useBt) bt = add(BLOODTHIRST, outsideExecute(false))
+
+  // Row 9: Whirlwind, rage ≥ cost + reserve, Bloodthirst cooldown ≥ btCdMinSec. In the execute
+  // phase (if allowed) the Bloodthirst wait applies only while row 6 uses Bloodthirst (AP ≥ btOverExecuteAp).
   let ww = -1
   if (v.on(ID.wwEnabled)) {
-    const conditions: RotationCondition[] = [{ code: COND.minRage, a: WHIRLWIND.costTenths + toTenths(v.num(ID.wwReserve)), b: 0 }]
-    if (bt >= 0) conditions.push({ code: COND.cooldownAtLeast, a: bt, b: Math.round(v.num(ID.wwBtCdMin) * 1000) })
-    ww = add(WHIRLWIND, conditions)
+    const minRage: RotationCondition = { code: COND.minRage, a: cost(ability(WHIRLWIND)) + toTenths(v.num(ID.wwReserve)), b: 0 }
+    const btWait: RotationCondition[] = bt >= 0 ? [{ code: COND.cooldownAtLeast, a: bt, b: Math.round(v.num(ID.wwBtCdMin) * 1000) }] : []
+    const inExecute = execute && v.on(ID.exWhirlwind)
+    if (inExecute && bt >= 0) {
+      ww = add(WHIRLWIND, [NOT_IN_EXECUTE, minRage, ...btWait])
+      add(WHIRLWIND, [IN_EXECUTE, { code: COND.apAtLeast, a: btOverAp, b: 0 }, minRage, ...btWait])
+      add(WHIRLWIND, [IN_EXECUTE, { code: COND.apBelow, a: btOverAp, b: 0 }, minRage])
+    } else {
+      ww = add(WHIRLWIND, [...outsideExecute(inExecute), minRage, ...btWait])
+    }
   }
 
   // Row 11: Heroic Strike queue (off the GCD), rage ≥ minRage; optional unqueue below a threshold.
   if (v.on(ID.hsEnabled)) {
     add(
       HEROIC_STRIKE,
-      [{ code: COND.minRage, a: toTenths(v.num(ID.hsMinRage)), b: 0 }],
+      [...outsideExecute(v.on(ID.exHeroicStrike)), { code: COND.minRage, a: toTenths(v.num(ID.hsMinRage)), b: 0 }],
       v.on(ID.hsUnqueue) ? toTenths(v.num(ID.hsUnqueueBelow)) : 0,
     )
   }
 
-  // Row 12: Hamstring filler, rage ≥ minRage, Bloodthirst and Whirlwind GCD-safe, optionally Flurry down.
+  // Row 12: Hamstring filler, rage ≥ minRage, Bloodthirst and Whirlwind GCD-safe, optionally Flurry
+  // down; never in the execute phase, where the GCDs are Execute's.
   if (v.on(ID.hamEnabled)) {
     const mask = (bt >= 0 ? 1 << bt : 0) | (ww >= 0 ? 1 << ww : 0)
-    const conditions: RotationCondition[] = [{ code: COND.minRage, a: toTenths(v.num(ID.hamMinRage)), b: 0 }]
+    const conditions: RotationCondition[] = [...outsideExecute(false), { code: COND.minRage, a: toTenths(v.num(ID.hamMinRage)), b: 0 }]
     if (mask) conditions.push({ code: COND.gcdSafe, a: mask, b: GCD_MS })
     if (v.on(ID.hamFlurryDown)) conditions.push({ code: COND.auraDown, a: auraIndex('flurry'), b: 0 })
     add(HAMSTRING, conditions)

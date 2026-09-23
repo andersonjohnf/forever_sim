@@ -19,7 +19,7 @@ const REGISTRY = {
     docRef: 'docs/milestones.md#m2-warrior-dps-with-the-production-ux',
   },
   partialRotation: {
-    text: 'The rotation uses Bloodthirst, Whirlwind, Heroic Strike and Hamstring for now: Execute, cooldowns, shouts and on-use items come next.',
+    text: 'The rotation uses Bloodthirst, Whirlwind, Heroic Strike, Hamstring and Execute for now: cooldowns, shouts and on-use items come next.',
     docRef: 'docs/milestones.md#m2-warrior-dps-with-the-production-ux',
   },
   gcdHaste: {
@@ -27,7 +27,7 @@ const REGISTRY = {
     docRef: `${DT}#35-global-cooldown`,
   },
   abilityRefunds: {
-    text: 'An ability that misses or is dodged or parried refunds 80% of its rage cost (Whirlwind nothing), as in Classic Era; untested in Forever.',
+    text: 'An ability that misses or is dodged or parried refunds 80% of its rage cost (Whirlwind nothing; a missed Execute loses only its cost), as in Classic Era; untested in Forever.',
     docRef: `${RAGE}#rage-refunds-on-avoided-abilities`,
   },
   onNextSwingRage: {
@@ -37,6 +37,14 @@ const REGISTRY = {
   onNextSwingOffHand: {
     text: 'While Heroic Strike is queued, off-hand swings don’t take the 19% dual-wield miss penalty, as a small Forever beta test found.',
     docRef: `${CT}#5-dual-wield-and-on-next-swing-queues`,
+  },
+  unbridledWrathSwings: {
+    text: 'Unbridled Wrath can also proc from Heroic Strike swings and extra attacks, as in Classic Era sims; the Forever data lists only auto attacks.',
+    docRef: `${WAR}#23-rage-warrior-specific`,
+  },
+  ragingBlows: {
+    text: 'Raging Blows’ off-hand Whirlwind strike deals normalized off-hand weapon damage at the off-hand multiplier, rolls its own hit and crit, and procs on-hit effects; untested.',
+    docRef: `${WAR}#31-damage-abilities`,
   },
   foreverHitTable: {
     text: 'The boss’s miss and dodge chances (8% and 6.5% at 300 weapon skill, no hit suppression) are what the Forever client shows; nobody has measured them in combat yet.',

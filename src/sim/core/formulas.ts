@@ -64,6 +64,14 @@ export const GCD_MS = 1500
 /** Attack-speed slow on the boss: base × (1 + slow) (§3.2, convention [?]). */
 export const slowedSwingSec = (baseSec: number, slow: number) => baseSec * (1 + slow)
 
+/**
+ * When the execute phase starts, in integer ms: `t_exec = floor(L_i × (1 − executePct/100))`
+ * (docs/mechanics/encounter.md#implementation-notes, WE-1). Computed as L_i × (100 − pct) / 100
+ * so whole percentages floor exactly (41 000 × (1 − 0.3) floors to 28 699, not 28 700). At 0% it
+ * is the fight's end: no execute phase.
+ */
+export const executePhaseStart = (fightMs: number, executePct: number) => Math.floor((fightMs * (100 - executePct)) / 100)
+
 // ---------------------------------------------------------------------------------------------
 // Rage: docs/mechanics/rage.md
 // ---------------------------------------------------------------------------------------------

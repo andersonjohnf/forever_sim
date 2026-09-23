@@ -8,7 +8,8 @@
 //
 // It simulates white swings, procs, auras, rage, threat, boss melee, and abilities driven by a
 // priority-list rotation: GCD and cooldown events on the same queue, one-roll strikes, two-roll
-// melee spells and on-next-swing queues (docs/architecture.md#engine-design-m1).
+// melee spells, on-next-swing queues, off-hand strikes, stance limits and the execute phase
+// (docs/architecture.md#engine-design-m1).
 import {
   bossSlices,
   meleeChances,
@@ -18,7 +19,7 @@ import {
   whiteSlices,
   averageResist,
 } from '../core/attack-table'
-import { armorReduction, parryHasteRemaining, rageConversion } from '../core/formulas'
+import { armorReduction, executePhaseStart, parryHasteRemaining, rageConversion } from '../core/formulas'
 import { EventQueue } from '../core/queue'
 import { Rng, STREAM } from '../core/rng'
 import { ACTION, COND, HAND, TRIGGER, TRIGGER_COUNT, type Plan } from '../plan/types'
@@ -34,6 +35,8 @@ const EV_PERIODIC_RAGE = 6
 const EV_DAMAGE_TAKEN = 7
 /** The rotation may act: a GCD or cooldown ended. */
 const EV_ACT = 8
+/** The execute phase begins (encounter.md#implementation-notes). */
+const EV_EXECUTE = 9
 
 /** Ability kinds (AbilityPlan.kind). */
 const KIND_STRIKE = 0
@@ -87,6 +90,8 @@ export class Sim {
   castTrace: ((ability: number, time: number, rageTenths: number) => void) | null = null
   /** Test hook: every damage event (source row, damage). */
   damageTrace: ((source: number, damage: number) => void) | null = null
+  /** When the last fight's execute phase started, ms (its end if there was none; encounter §3). */
+  executeAtMs = 0
 
   private readonly q = new EventQueue(512)
   private readonly rngFight = new Rng()
@@ -169,11 +174,24 @@ export class Sim {
   private readonly abThreatMult: Float64Array
   private readonly abThreatBonus: Float64Array
   private readonly abSource: Int32Array
+  private readonly abStances: Int32Array
+  private readonly abPerExtraRage: Float64Array
+  private readonly abOffSource: Int32Array
   private readonly abUnqueueBelow: Int32Array
+  /** On-next-swing abilities whose line stops in the execute phase: cancelled when it starts (warrior.md §7). */
+  private readonly abUnqueueAtExecute: Uint8Array
   private readonly rotAbility: Int32Array
-  /** Entries whose ability is off the GCD, in priority order: all that can act while the GCD runs. */
-  private readonly rotOffGcd: Int32Array
-  /** Entry e's conditions are indices condStart[e] … condStart[e + 1] − 1. */
+  /**
+   * The priority list per phase, in order: the entries that can apply outside and inside the
+   * execute phase, and of those the off-GCD ones (all that can act while the GCD runs). The phase
+   * is resolved here, from the entries' execute-phase conditions and execute-only abilities, so a
+   * walk never visits a line that can't apply.
+   */
+  private readonly rotNormal: Int32Array
+  private readonly rotExecute: Int32Array
+  private readonly offGcdNormal: Int32Array
+  private readonly offGcdExecute: Int32Array
+  /** Entry e's conditions are indices condStart[e] … condStart[e + 1] − 1 (execute-phase conditions resolved into the lists). */
   private readonly condStart: Int32Array
   private readonly condCode: Int32Array
   private readonly condA: Float64Array
@@ -202,6 +220,11 @@ export class Sim {
   private readonly bleedProc: Int32Array
   private gcdEnd = 0
   private readonly abReadyAt: Float64Array
+  /** The STANCE bit the warrior is in (plan.stance; no stance dancing yet). */
+  private stance = 0
+  /** The current phase's lists (rotNormal / rotExecute and their off-GCD entries). */
+  private rotList: Int32Array
+  private rotOffList: Int32Array
   /** The queued on-next-swing ability, or −1. */
   private queued = -1
   /** Something the rotation depends on changed (rage, GCD, a cooldown, an aura, the queue). */
@@ -383,7 +406,11 @@ export class Sim {
     this.abThreatMult = new Float64Array(nb)
     this.abThreatBonus = new Float64Array(nb)
     this.abSource = new Int32Array(nb)
+    this.abStances = new Int32Array(nb)
+    this.abPerExtraRage = new Float64Array(nb)
+    this.abOffSource = new Int32Array(nb)
     this.abUnqueueBelow = new Int32Array(nb)
+    this.abUnqueueAtExecute = new Uint8Array(nb)
     this.abReadyAt = new Float64Array(nb)
     for (let i = 0; i < nb; i++) {
       const a = abilities[i]
@@ -401,29 +428,54 @@ export class Sim {
       this.abThreatMult[i] = a.threatMult
       this.abThreatBonus[i] = a.threatBonus
       this.abSource[i] = a.source
+      this.abStances[i] = a.stances
+      this.abPerExtraRage[i] = a.damagePerExtraRage
+      this.abOffSource[i] = a.offHandSource
     }
     const rotation = plan.rotation
     this.rotAbility = new Int32Array(rotation.length)
     this.condStart = new Int32Array(rotation.length + 1)
-    const nc = rotation.reduce((n, e) => n + e.conditions.length, 0)
+    const isPhase = (c: { code: number }) => c.code === COND.executePhase
+    const nc = rotation.reduce((n, e) => n + e.conditions.filter((c) => !isPhase(c)).length, 0)
     this.condCode = new Int32Array(nc)
     this.condA = new Float64Array(nc)
     this.condB = new Float64Array(nc)
+    /** Bit 1: the entry can apply outside the execute phase; bit 2: inside it. */
+    const phases: number[] = []
     let k = 0
     for (let e = 0; e < rotation.length; e++) {
       const entry = rotation[e]
+      const ability = abilities[entry.ability]
       this.rotAbility[e] = entry.ability
       this.abUnqueueBelow[entry.ability] = entry.unqueueBelowTenths
       this.condStart[e] = k
+      // Execute is refused outside the execute phase (warrior.md §3.1): its lines are execute-only.
+      let phase = ability.executePhaseOnly ? 2 : 3
       for (const cond of entry.conditions) {
+        if (isPhase(cond)) {
+          phase &= cond.a === 1 ? 2 : 1
+          // warrior.md §7: a queued on-next-swing ability whose line stops in the phase is cancelled when it starts.
+          if (cond.a === 0 && ability.kind === 'onNextSwing') this.abUnqueueAtExecute[entry.ability] = 1
+          continue
+        }
         this.condCode[k] = cond.code
         this.condA[k] = cond.a
         this.condB[k] = cond.b
         k++
       }
+      phases.push(phase)
     }
     this.condStart[rotation.length] = k
-    this.rotOffGcd = Int32Array.from(rotation.map((_, e) => e).filter((e) => abilities[rotation[e].ability].gcdMs === 0))
+    const entries = (phase: number, offGcdOnly: boolean) =>
+      Int32Array.from(
+        rotation.map((_, e) => e).filter((e) => phases[e] & phase && (!offGcdOnly || abilities[rotation[e].ability].gcdMs === 0)),
+      )
+    this.rotNormal = entries(1, false)
+    this.rotExecute = entries(2, false)
+    this.offGcdNormal = entries(1, true)
+    this.offGcdExecute = entries(2, true)
+    this.rotList = this.rotNormal
+    this.rotOffList = this.offGcdNormal
     this.hasRotation = rotation.length > 0
     this.hasAbilities = nb > 0
   }
@@ -449,7 +501,12 @@ export class Sim {
     this.reset()
 
     const q = this.q
-    if (this.hasRotation) q.push(0, EV_ACT, 0, 0)
+    // docs/mechanics/encounter.md#implementation-notes: t_exec = floor(L_i × (1 − executePct/100))
+    this.executeAtMs = executePhaseStart(this.fightEnd, f.executePct)
+    if (this.hasRotation) {
+      q.push(0, EV_ACT, 0, 0)
+      if (this.executeAtMs < this.fightEnd) q.push(this.executeAtMs, EV_EXECUTE, 0, 0)
+    }
     // docs/mechanics/damage-and-timing.md#31-haste: main hand at 0, off hand at half its swing [?]
     if (this.hasWeapon[HAND.main]) this.scheduleSwing(HAND.main, 0)
     if (this.dualWield) this.scheduleSwing(HAND.off, Math.round(0.5 * this.swingMs[HAND.off]))
@@ -502,6 +559,13 @@ export class Sim {
         case EV_ACT:
           this.actPending = true
           break
+        case EV_EXECUTE:
+          this.rotList = this.rotExecute
+          this.rotOffList = this.offGcdExecute
+          // warrior.md §7: a queued Heroic Strike whose line stops in the execute phase is cancelled.
+          if (this.queued >= 0 && this.abUnqueueAtExecute[this.queued]) this.queued = -1
+          this.actPending = true
+          break
       }
       // A decision point: the event changed rage, the GCD, a cooldown, an aura or the queue.
       while (this.actPending) this.act()
@@ -520,6 +584,7 @@ export class Sim {
       armorFactor: Array.from(this.armorFactor),
       swingMs: Array.from(this.swingMs),
       specialThresholds: Array.from(this.thrSpecial.subarray(0, 6)),
+      offHandSpecialThresholds: Array.from(this.thrSpecial.subarray(6, 12)),
       offHandQueuedThresholds: Array.from(this.thrOffQueued),
       physMult: this.physMult,
       maxRage: this.maxRage,
@@ -559,6 +624,9 @@ export class Sim {
     this.abReadyAt.fill(0)
     this.queued = -1
     this.actPending = false
+    this.stance = this.plan.stance
+    this.rotList = this.rotNormal
+    this.rotOffList = this.offGcdNormal
     this.recomputeStats()
     this.recomputeMultipliers()
   }
@@ -688,7 +756,7 @@ export class Sim {
         this.spendRage(a)
         // No white rage from the replaced swing (rage.md#yellow-damage-and-on-next-swing-attacks),
         // and it doesn't use Flurry charges in Forever (warrior.md §2.4 item 5).
-        this.special(a, bonusAp)
+        this.special(a, HAND.main, bonusAp)
         return
       }
     }
@@ -753,6 +821,7 @@ export class Sim {
     this.dealDamage(source, damage)
     if (this.normalizedRage) this.gainRage(this.wNormRageTenths[hand], -1)
     else this.gainRage(this.whiteDamageRageTenths(hand, damage), -1)
+    this.fireProcs(TRIGGER.swingLanded, hand)
     this.fireProcs(TRIGGER.whiteLanded, hand)
     this.fireProcs(TRIGGER.meleeLanded, hand)
     if (crit) this.fireProcs(TRIGGER.meleeCrit, hand)
@@ -811,19 +880,23 @@ export class Sim {
 
   /**
    * Walks the priority list (warrior.md §5.1): uses every entry, in order, whose ability is
-   * usable now and whose conditions hold. A GCD ability blocks the later GCD entries through the
-   * GCD it starts; off-GCD entries (the Heroic Strike queue) are still checked after it.
+   * usable now (off cooldown, rage, GCD, stance, execute phase) and whose conditions hold. A GCD
+   * ability blocks the later GCD entries through the GCD it starts; off-GCD entries (the Heroic
+   * Strike queue) are still checked after it.
    */
   private act(): void {
     this.actPending = false
     const now = this.now
     // While the GCD runs only off-GCD entries can be used; skipping the others changes nothing.
     const gcdBusy = this.gcdEnd > now
-    const n = gcdBusy ? this.rotOffGcd.length : this.rotAbility.length
-    for (let i = 0; i < n; i++) {
-      const e = gcdBusy ? this.rotOffGcd[i] : i
+    // The current phase's list: lines that can't apply in it (and Execute outside it) aren't in it.
+    const list = gcdBusy ? this.rotOffList : this.rotList
+    for (let i = 0; i < list.length; i++) {
+      const e = list[i]
       const a = this.rotAbility[e]
       if (this.abReadyAt[a] > now || this.rage < this.abCost[a]) continue
+      // warrior.md §3.1 "Stance": only in the stances it's usable in.
+      if ((this.abStances[a] & this.stance) === 0) continue
       if (this.abKind[a] === KIND_ON_NEXT_SWING) {
         if (this.queued >= 0 || !this.hasWeapon[HAND.main]) continue
       } else {
@@ -856,6 +929,12 @@ export class Sim {
         case COND.auraDown:
           if (a >= 0 && this.auraActive[a]) return false
           break
+        case COND.apAtLeast:
+          if (this.ap < a) return false
+          break
+        case COND.apBelow:
+          if (this.ap >= a) return false
+          break
       }
     }
     return true
@@ -881,42 +960,51 @@ export class Sim {
       this.q.push(this.abReadyAt[a], EV_ACT, 0, 0)
     }
     this.chainMask = 0
-    this.special(a, 0)
+    this.special(a, HAND.main, 0)
+    // Raging Blows: Whirlwind also strikes with the off hand (warrior.md §3.1) [?].
+    if (this.abOffSource[a] >= 0 && this.hasWeapon[HAND.off]) this.special(a, HAND.off, 0)
     if (this.exCount > 0) this.drainExtraAttacks()
   }
 
   /**
-   * A special attack with the main hand (combat-tables §3): one roll over miss, dodge, parry,
-   * block, crit, or for melee spells a second roll for crit. Damage per damage-and-timing §2.6;
-   * no rage from its damage (rage.md#yellow-damage-and-on-next-swing-attacks).
+   * A special attack (combat-tables §3): one roll over miss, dodge, parry, block, crit, or for
+   * melee spells a second roll for crit. Damage per damage-and-timing §2.6; no rage from its damage
+   * (rage.md#yellow-damage-and-on-next-swing-attacks). `hand` is the main hand, or the off hand
+   * for Raging Blows' Whirlwind strike: its own row and table (Dual Wield Specialization's hit),
+   * and it neither refunds nor spends rage (warrior.md §3.1).
    */
-  private special(a: number, bonusAp: number): void {
-    const source = this.abSource[a]
+  private special(a: number, hand: number, bonusAp: number): void {
+    const main = hand === HAND.main
+    const source = main ? this.abSource[a] : this.abOffSource[a]
     const row = source * FIELD_COUNT
     const c = this.counters
     c[row + FIELD.casts]++
-    const th = this.thrSpecial // main hand: indices 0–5
+    const o = 6 * hand
+    const th = this.thrSpecial
     const r = this.rngTable.roll100()
-    if (r < th[2]) {
-      if (r < th[0]) c[row + FIELD.misses]++
-      else if (r < th[1]) c[row + FIELD.dodges]++
+    if (r < th[o + 2]) {
+      if (r < th[o]) c[row + FIELD.misses]++
+      else if (r < th[o + 1]) c[row + FIELD.dodges]++
       else {
         c[row + FIELD.parries]++
         this.onBossParried()
       }
-      // docs/mechanics/rage.md#rage-refunds-on-avoided-abilities: no threat, not an energize
-      const refund = Math.floor(this.abRefund[a] * this.abCost[a] + 1e-9)
-      this.rage = Math.min(this.maxRage, this.rage + refund)
-      this.actPending = this.hasRotation
+      if (main) {
+        // docs/mechanics/rage.md#rage-refunds-on-avoided-abilities: no threat, not an energize.
+        // Execute refunds nothing, so a miss loses only its cost (warrior.md §3.1 "Execute details").
+        const refund = Math.floor(this.abRefund[a] * this.abCost[a] + 1e-9)
+        this.rage = Math.min(this.maxRage, this.rage + refund)
+        this.actPending = this.hasRotation
+      }
       return
     }
-    const blocked = r < th[4]
-    const critChance = this.specCrit[HAND.main] + this.abBonusCrit[a]
+    const blocked = r < th[o + 4]
+    const critChance = this.specCrit[hand] + this.abBonusCrit[a]
     const crit =
       this.abKind[a] === KIND_MELEE_SPELL
         ? this.rngTable.roll100() < critChance // roll 2, not truncated by roll 1
-        : !blocked && r < Math.min(100, th[4] + Math.max(0, critChance))
-    let damage = this.abilityDamage(a, bonusAp)
+        : !blocked && r < Math.min(100, th[o + 4] + Math.max(0, critChance))
+    let damage = this.abilityDamage(a, hand, bonusAp)
     if (crit) {
       damage *= this.abCritMult[a]
       c[row + FIELD.crits]++
@@ -926,35 +1014,49 @@ export class Sim {
     } else {
       c[row + FIELD.hits]++
     }
+    if (main && this.abPerExtraRage[a] > 0) {
+      // warrior.md §3.1 "Execute details": a landed Execute (a block lands too) spends all the rage.
+      this.rage = 0
+      this.afterRageSpent()
+      this.actPending = this.hasRotation
+    }
     // docs/mechanics/threat.md#base-rule-and-how-modifiers-stack: (dmg × mult + bonus) × global
     this.addDamage(source, damage, (damage * this.abThreatMult[a] + this.abThreatBonus[a]) * this.plan.threatMult)
-    this.fireProcs(TRIGGER.meleeLanded, HAND.main)
-    if (crit) this.fireProcs(TRIGGER.meleeCrit, HAND.main)
+    // An on-next-swing ability's swing counts as a landed swing (Unbridled Wrath, warrior.md §2.3 [?]).
+    if (this.abKind[a] === KIND_ON_NEXT_SWING) this.fireProcs(TRIGGER.swingLanded, hand)
+    this.fireProcs(TRIGGER.meleeLanded, hand)
+    if (crit) this.fireProcs(TRIGGER.meleeCrit, hand)
   }
 
   /**
    * A landed special's damage before the outcome multiplier (damage-and-timing §2.6, steps 1–4).
    * Weapon-based: (roll + flat weapon damage + AP/14 × real or normalized speed + ability flat)
-   * × weapon %. Otherwise flat + AP coefficient × AP (Bloodthirst, Hamstring). Main hand only;
-   * its hand multiplier is 1 and its armor factor applies.
+   * × weapon % × the hand's multiplier (1 main hand; 0.5 × (1 + DWS) off hand, warrior W9).
+   * Otherwise flat + AP coefficient × AP (Bloodthirst, Hamstring), plus Execute's damage per rage
+   * left after its cost, read now that the cost is paid (warrior.md §3.1, W10). The hand's armor
+   * factor applies.
    */
-  private abilityDamage(a: number, bonusAp: number): number {
-    const h = HAND.main
+  private abilityDamage(a: number, hand: number, bonusAp: number): number {
     const ap = this.ap + bonusAp
     let base: number
     if (this.abWeaponPct[a] > 0) {
-      const speed = this.abNormalized[a] ? this.wNormSpeed[h] : this.wSpeedSec[h]
-      const roll = this.rngDamage.uniform(this.wMin[h], this.wMax[h])
-      base = (roll + this.wFlat[h] + (ap / 14) * speed + this.abFlat[a]) * this.abWeaponPct[a]
+      const speed = this.abNormalized[a] ? this.wNormSpeed[hand] : this.wSpeedSec[hand]
+      const roll = this.rngDamage.uniform(this.wMin[hand], this.wMax[hand])
+      base = (roll + this.wFlat[hand] + (ap / 14) * speed + this.abFlat[a]) * this.abWeaponPct[a] * this.wHandMult[hand]
     } else {
-      base = this.abFlat[a] + this.abApCoef[a] * ap
+      base = this.abFlat[a] + this.abApCoef[a] * ap + (this.abPerExtraRage[a] * this.rage) / 10
     }
-    return base * this.physMult * this.armorFactor[h]
+    return base * this.physMult * this.armorFactor[hand]
   }
 
-  /** Pays an ability's cost; a queued on-next-swing ability is cancelled if rage drops below its threshold. */
+  /** Pays an ability's cost. */
   private spendRage(a: number): void {
     this.rage -= this.abCost[a]
+    this.afterRageSpent()
+  }
+
+  /** A queued on-next-swing ability is cancelled if rage drops below its threshold (warrior.md §2.4 item 8). */
+  private afterRageSpent(): void {
     const q = this.queued
     if (q >= 0 && this.rage < this.abUnqueueBelow[q]) {
       this.queued = -1

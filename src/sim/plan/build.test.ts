@@ -8,6 +8,7 @@ import { computeSheet, normalizeConfig } from '../index'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import type { SimConfig, SpecId } from '../types'
 import { buildPlan } from './build'
+import { STANCE, STANCE_ANY } from './types'
 
 /** A bare config: no gear, no talents, no buffs. */
 function bare(spec: SpecId = 'warrior-arms', patch: Partial<SimConfig> = {}): SimConfig {
@@ -252,6 +253,25 @@ describe('talents, racials and stances', () => {
     expect(tauren.hitPct).toBe(1)
   })
 
+  it('resolves the rotation’s abilities with the build’s talents (warrior.md §2.3, §2.5, §3.1)', () => {
+    const { plan } = buildPlan(defaultConfig('warrior-fury'))
+    const byId = Object.fromEntries(plan.abilities.map((a) => [a.id, a]))
+    expect(byId.heroicStrike.costTenths).toBe(120) // Improved Heroic Strike 3/3
+    expect(byId.execute.costTenths).toBe(150) // no Improved Execute
+    for (const a of plan.abilities) expect(a.critMultiplier, a.id).toBeCloseTo(2.2, 12) // Impale 2/2
+    // Raging Blows: Whirlwind's off-hand strike has its own breakdown row, right after Whirlwind's.
+    expect(byId.whirlwind.offHandSource).toBe(byId.whirlwind.source + 1)
+    expect(plan.sources[byId.whirlwind.offHandSource].id).toBe('whirlwindOffHand')
+    for (const a of plan.abilities.filter((x) => x.id !== 'whirlwind')) expect(a.offHandSource).toBe(-1)
+  })
+
+  it('records the stance each spec fights in, and any stance for classes without one', () => {
+    expect(buildPlan(defaultConfig('warrior-fury')).plan.stance).toBe(STANCE.berserker)
+    expect(buildPlan(defaultConfig('warrior-arms')).plan.stance).toBe(STANCE.battle)
+    expect(buildPlan(defaultConfig('warrior-protection')).plan.stance).toBe(STANCE.defensive)
+    expect(buildPlan(defaultConfig('paladin-retribution')).plan.stance).toBe(STANCE_ANY)
+  })
+
   it('gives racial weapon crit only to that weapon’s hand', () => {
     const { plan } = buildPlan(defaultConfig('warrior-fury')) // Human: Ironfoe (mace) + Mirah's Song (sword)
     expect(plan.weapons[0]!.critBonus).toBe(0)
@@ -293,6 +313,20 @@ describe('assumptions', () => {
       expect(a.docRef).toMatch(/^docs\//)
       expect(a.text.length).toBeGreaterThan(20)
     }
+  })
+
+  it('surfaces Unbridled Wrath on Heroic Strike swings and Raging Blows only when the build relies on them', () => {
+    const ids = (config: SimConfig) => buildPlan(config).assumptions.map((a) => a.id)
+    const fury = defaultConfig('warrior-fury')
+    expect(ids(fury)).toEqual(expect.arrayContaining(['unbridledWrathSwings', 'ragingBlows', 'partialRotation', 'abilityRefunds']))
+    const noTalents = ids({ ...fury, talents: '' })
+    expect(noTalents).not.toContain('unbridledWrathSwings')
+    expect(noTalents).not.toContain('ragingBlows')
+    // A two-hander has no off hand for Raging Blows.
+    const twoHander = ids({ ...fury, gear: { ...fury.gear, mainHand: { itemId: 12784 }, offHand: undefined } })
+    expect(twoHander).not.toContain('ragingBlows')
+    expect(twoHander).toContain('unbridledWrathSwings')
+    expect(ids({ ...fury, rotation: { 'warrior.fury.whirlwind.enabled': false } })).not.toContain('ragingBlows')
   })
 
   it('names unmodelled item effects', () => {

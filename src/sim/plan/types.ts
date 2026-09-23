@@ -18,8 +18,17 @@ export const TRIGGER = {
   damageTaken: 3,
   block: 4,
   dodgeParry: 5,
+  swingLanded: 6,
 } as const
-export const TRIGGER_COUNT = 6
+export const TRIGGER_COUNT = 7
+
+/**
+ * Warrior stances as bits (docs/classes/warrior.md#21-stances). An ability's `stances` mask says
+ * where it can be used; a plan's `stance` is the bit it fights in, or STANCE_ANY for a class
+ * without stances.
+ */
+export const STANCE = { battle: 1, defensive: 2, berserker: 4 } as const
+export const STANCE_ANY = 7
 
 /** Proc actions as integer codes. */
 export const ACTION = {
@@ -124,21 +133,31 @@ export interface AbilityPlan {
    * `weaponStrike` (Heroic Strike, Cleave; warrior.md §2.4).
    */
   kind: 'weaponStrike' | 'meleeSpell' | 'onNextSwing'
+  /** Rage cost in tenths after the build's talent reductions (warrior.md §2.3 "Cost reductions"). */
   costTenths: number
   cooldownMs: number
   /** 0 = off the GCD (damage-and-timing §3.5). */
   gcdMs: number
+  /** STANCE bits of the stances it can be used in (warrior.md §3.1 "Stance"); STANCE_ANY for any. */
+  stances: number
+  /** Usable only in the execute phase, at or below the target's execute health (Execute; encounter §3). */
+  executePhaseOnly: boolean
   /**
-   * Main-hand weapon damage share (0 = not weapon-based), and whether its AP bonus uses the
-   * normalized speed (damage-and-timing §2.2). Weapon-based damage is
-   * (roll + flat weapon damage + AP/14 × speed + `flatDamage`) × `weaponPercent`; otherwise it
-   * is `flatDamage` + `apCoefficient` × AP (damage-and-timing §2.6).
+   * Weapon damage share (0 = not weapon-based), and whether its AP bonus uses the normalized
+   * speed (damage-and-timing §2.2). Weapon-based damage is (roll + flat weapon damage + AP/14 ×
+   * speed + `flatDamage`) × `weaponPercent` × the hand's multiplier; otherwise it is
+   * `flatDamage` + `apCoefficient` × AP (+ `damagePerExtraRage` × rage; damage-and-timing §2.6).
    */
   weaponPercent: number
   normalized: boolean
   flatDamage: number
   apCoefficient: number
-  /** Extra crit % for this ability (Improved Overpower) and its crit multiplier (2.2 with Impale). */
+  /**
+   * Execute: damage per point of rage left after paying the cost, read when it's cast; a landed
+   * hit then spends all the rage (warrior.md §3.1 "Execute details"). 0 for everything else.
+   */
+  damagePerExtraRage: number
+  /** Extra crit % for this ability (Improved Overpower) and its crit multiplier (2.2 with Impale, warrior.md §2.5). */
   bonusCrit: number
   critMultiplier: number
   /** Share of the cost refunded on a miss, dodge or parry (rage.md#rage-refunds-on-avoided-abilities). */
@@ -146,6 +165,12 @@ export interface AbilityPlan {
   /** Threat = damage × mult + bonus on a landed hit (threat.md#per-ability-threat-at-max-rank). */
   threatMult: number
   threatBonus: number
+  /**
+   * Breakdown row of a second strike with the off hand, or −1: Raging Blows' off-hand Whirlwind
+   * (warrior.md §3.1). It rolls the off hand's special table and deals the weapon damage at the
+   * off hand's speed and hand multiplier; it costs nothing more and refunds nothing.
+   */
+  offHandSource: number
 }
 
 /** Rotation condition codes (docs/classes/warrior.md#51-conventions-for-rotation-settings). */
@@ -158,6 +183,15 @@ export const COND = {
   gcdSafe: 2,
   /** aura a is down (a = −1: always true) */
   auraDown: 3,
+  /**
+   * a = 1: in the execute phase; a = 0: not in it (encounter §3, warrior.md §5.1). The engine
+   * resolves it up front into one priority list per phase rather than checking it per walk.
+   */
+  executePhase: 4,
+  /** attack power ≥ a */
+  apAtLeast: 5,
+  /** attack power < a */
+  apBelow: 6,
 } as const
 
 export interface RotationCondition {
@@ -169,7 +203,9 @@ export interface RotationCondition {
 /**
  * One line of a spec's priority list (warrior.md §5.1). Whenever the warrior can act, the engine
  * uses every line in order whose ability is usable (off cooldown, enough rage, the GCD free if
- * it needs it) and whose conditions all hold; one GCD ability per decision, plus off-GCD ones.
+ * it needs it, the right stance, the execute phase if it needs it) and whose conditions all
+ * hold; one GCD ability per decision, plus off-GCD ones. An ability may have several lines
+ * (Bloodthirst in and out of the execute phase).
  */
 export interface RotationEntry {
   ability: number
@@ -195,10 +231,13 @@ export interface Plan {
   applyUnmeasured: boolean
   seed: number
   playerLevel: number
+  /** STANCE bit the warrior fights in (warrior.md §5), or STANCE_ANY for classes without stances. */
+  stance: number
   fight: {
     durationMs: number
     /** Fight-length variation as a fraction (encounter §3). */
     variation: number
+    /** The execute phase is the last `executePct`% of boss health, from t_exec (encounter §3). */
     executePct: number
     targetLevel: number
     front: boolean

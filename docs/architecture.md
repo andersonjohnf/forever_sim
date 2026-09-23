@@ -98,9 +98,10 @@ A spec is data plus small ability modules, never its own loop.
   arrays, keyed by time then insertion sequence (`sim/core/queue.ts`). Cancelled timers aren't
   removed: events carry the generation of their timer and stale ones are skipped.
 - **Events:** main-hand and off-hand swings, boss swings (tank specs), aura expiry, bleed ticks,
-  periodic rage (Anger Management), stand-in incoming hits for DPS specs, and "the rotation may
-  act" events when a GCD or an ability's cooldown ends. Fights end at a per-fight length drawn
-  from the encounter's variation.
+  periodic rage (Anger Management), stand-in incoming hits for DPS specs, "the rotation may
+  act" events when a GCD or an ability's cooldown ends, and the start of the execute phase at
+  `t_exec` (specs with a rotation). Fights end at a per-fight length drawn from the encounter's
+  variation.
 - **Attack resolution:** the white table per hand is rebuilt only when stats change; a swing is one
   roll against its cumulative thresholds (combat-tables §2). Damage follows damage-and-timing §2.6.
   Boss swings roll the boss → player table (§8) with armor, block value, crushing and crits.
@@ -110,31 +111,43 @@ A spec is data plus small ability modules, never its own loop.
 - **Auras and procs** are generic: PPM or flat chance per hand, internal cooldowns, charges consumed
   by white swings (Flurry), stacks, stat, AP, crit, haste and damage mods, and actions (extra
   attacks with chain rules, auras, rage energizes, magic damage, weapon bleeds such as Deep Wounds).
-  Triggers: melee landed, white landed, melee crit, damage taken, block, dodge or parry. Stats are
+  Triggers: melee landed, white landed, swing landed (white, extra attack or an on-next-swing
+  ability's swing), melee crit, damage taken, block, dodge or parry. Stats are
   re-derived only when an aura that changes attributes starts or ends; haste and damage
   multipliers update without a full re-derive.
 - **Rage** is integer tenths with a cap; energizes make 5 threat per rage. Abilities pay their cost
   when used (an on-next-swing one when its swing happens) and refund their share of it on a miss,
-  dodge or parry, with no threat. **Threat** is (damage × ability multiplier + ability bonus) ×
+  dodge or parry, with no threat. Execute then converts the rage left and, if it lands, spends it. **Threat** is (damage × ability multiplier + ability bonus) ×
   the static global multiplier (stance, Defiance, Salvation, enchants).
 - **Hot-loop discipline:** one monomorphic `Sim` class over typed arrays, no allocation per event,
   per-fight state reset rather than reallocated, and a plan flattened once in the constructor.
-  The default Fury warrior (with its M2.1 rotation) runs about 12,500 fights per second on one
-  core in the Vitest benchmark, and about 17,800 as bundled JavaScript in Node.
+  The default Fury warrior (with its M2.2a rotation, execute phase included) runs about 11,700
+  fights per second on one core in the Vitest benchmark (M2.1: about 12,300 on the same machine,
+  and about 17,800 as bundled JavaScript in Node).
 - **Abilities** are rows of `Plan.abilities` (`AbilityPlan`), resolved by one switch on `kind`:
-  `weaponStrike` (one roll: Whirlwind, Hamstring, …), `meleeSpell` (two rolls: Bloodthirst, …) and
-  `onNextSwing` (Heroic Strike: queued off the GCD, it replaces the next main-hand swing, or extra
-  attack, if there's rage for it then; that swing makes no white rage and uses no Flurry charge).
-  Each row carries cost, cooldown, GCD, weapon share and normalization, flat and AP damage, bonus
-  crit, crit multiplier, refund share and threat. Numbers come from the Forever client
-  (`src/data/client/spells.json`), written out per ability in `sim/classes/warrior/abilities.ts`
-  and checked against the client data by its tests, so the app bundle doesn't carry the dataset.
+  `weaponStrike` (one roll: Whirlwind, Hamstring, …), `meleeSpell` (two rolls: Bloodthirst,
+  Execute, …) and `onNextSwing` (Heroic Strike: queued off the GCD, it replaces the next
+  main-hand swing, or extra attack, if there's rage for it then; that swing makes no white rage
+  and uses no Flurry charge). Each row carries cost, cooldown, GCD, the stances it can be used
+  in, whether it needs the execute phase, weapon share and normalization, flat and AP damage,
+  damage per extra rage (Execute), bonus crit, crit multiplier, refund share, threat, and an
+  optional off-hand strike with its own breakdown row (Raging Blows' Whirlwind). Numbers come
+  from the Forever client (`src/data/client/spells.json`), written out per ability in
+  `sim/classes/warrior/abilities.ts` and checked against the client data by its tests, so the
+  app bundle doesn't carry the dataset. The plan applies the build's talents to them
+  (`sim/classes/warrior/modifiers.ts`: cost reductions, Impale, Raging Blows), so the engine
+  sees only resolved numbers.
 - **Rotation:** `Plan.rotation` is a priority list of `RotationEntry` lines (an ability plus
-  conditions: rage, another ability's cooldown, GCD-safe, aura down; warrior.md §5.1). The spec
-  declares its settings as `RotationOption`s (`sim/classes/rotation.ts`), and the plan builder
-  turns `config.rotation` plus those defaults into the list. Whenever something the list depends
-  on changes (rage, the GCD, a cooldown, an aura, the queue), the engine walks it in order and uses
-  every usable line whose conditions hold: at most one GCD ability, plus off-GCD lines.
+  conditions: rage, another ability's cooldown, GCD-safe, aura down, in or out of the execute
+  phase, AP at least or below a value; warrior.md §5.1). An ability can have several lines
+  (Bloodthirst in and out of the execute phase). The spec declares its settings as
+  `RotationOption`s (`sim/classes/rotation.ts`), and the plan builder turns `config.rotation`
+  plus those defaults into the list. Whenever something the list depends on changes (rage, the
+  GCD, a cooldown, an aura, the queue, the phase), the engine walks it in order and uses every
+  usable line whose conditions hold: at most one GCD ability, plus off-GCD lines. A usable line's
+  ability is off cooldown, affordable, allowed in the current stance and, for Execute, in the
+  execute phase. The engine sorts the lines into one list per phase up front, so a walk skips
+  the lines that can't apply in the current phase.
 
 ### Iterations, determinism and workers
 

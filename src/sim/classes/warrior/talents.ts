@@ -2,8 +2,8 @@
 //
 // Talents are keyed by name and read their rank from the build code, so a data refresh that
 // renames ids doesn't break them. Only passives that change white swings, stats, rage, threat
-// or tank avoidance are here; ability talents (Impale, cost reductions, Improved Slam, …) come
-// with the abilities in M2.
+// or tank avoidance are here; talents that modify abilities (cost reductions, Impale, Raging
+// Blows) are in modifiers.ts, and the rest (Improved Slam, …) come with their abilities.
 import type { Effect } from '../../effects/types'
 
 export type Stance = 'battle' | 'defensive' | 'berserker'
@@ -66,7 +66,8 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
       },
     },
   ],
-  // Fury 2·3: 12%/rank to gain 1 rage (2 with a two-hander) on a landed white swing (§2.3)
+  // Fury 2·3: 12%/rank to gain 1 rage (2 with a two-hander) on a landed swing: white swings, extra
+  // attacks and, by the §2.3 default, Heroic Strike swings too ([?] Q5)
   'Unbridled Wrath': (r) =>
     [false, true].map(
       (twoHand): Effect => ({
@@ -76,7 +77,7 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
           id: 'unbridledWrath',
           name: 'Unbridled Wrath',
           icon: 'spell_nature_stoneclawtotem',
-          trigger: 'whiteLanded',
+          trigger: 'swingLanded',
           from: 'any',
           chance: { pct: 12 * r },
           action: { kind: 'rage', amount: twoHand ? 2 : 1 },

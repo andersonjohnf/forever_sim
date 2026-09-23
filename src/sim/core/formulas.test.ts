@@ -7,6 +7,7 @@ import {
   armorReduction,
   averageWeaponDamage,
   damageTakenRage,
+  executePhaseStart,
   GCD_MS,
   NORMALIZED_SPEED,
   OFF_HAND_DAMAGE,
@@ -173,8 +174,16 @@ describe('encounter.md worked examples (formula level)', () => {
   it('WE-1 and WE-2: fight length and execute timing', () => {
     const length = (L: number, v: number, u: number) => Math.round(L * (1 + v * (2 * u - 1)))
     expect(length(180000, 0.1, 0.25)).toBe(171000)
-    expect(Math.floor(180000 * (1 - 0.2))).toBe(144000)
-    expect(Math.floor(171000 * (1 - 0.2))).toBe(136800)
+    expect(executePhaseStart(180000, 20)).toBe(144000)
+    expect(executePhaseStart(171000, 20)).toBe(136800)
+  })
+  it('execute phase start floors whole percentages exactly, and 0% means no phase', () => {
+    // 41,000 × (1 − 0.3) lands a hair below 28,700 in floating point.
+    expect(Math.floor(41000 * (1 - 0.3))).toBe(28699)
+    expect(executePhaseStart(41000, 30)).toBe(28700)
+    for (let L = 162000; L <= 198000; L++) expect(executePhaseStart(L, 20)).toBe(Math.floor((L * 4) / 5))
+    expect(executePhaseStart(180000, 35)).toBe(117000)
+    expect(executePhaseStart(180001, 0)).toBe(180001)
   })
   it('WE-3: a boss swing on a 10,000-armor tank', () => {
     const hit = 5000 * (1 - armorReduction(10000, 63, FOREVER))

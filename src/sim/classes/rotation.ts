@@ -5,6 +5,7 @@
 // without a rotation yet simulate white swings only.
 import type { RotationOption, SpecId } from '../types'
 import { type ClassRotation, FURY_OPTIONS, furyRotation } from './warrior/fury'
+import type { TalentRanks } from './warrior/modifiers'
 
 export type { ClassRotation } from './warrior/fury'
 
@@ -16,7 +17,7 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
 export function classRotation(
   spec: SpecId,
   values: Record<string, number | boolean>,
-  talents: Map<string, number>,
+  talents: TalentRanks,
   auraIndex: (id: string) => number,
 ): ClassRotation {
   if (spec === 'warrior-fury') return furyRotation(values, talents, auraIndex)

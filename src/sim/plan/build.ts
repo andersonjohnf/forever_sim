@@ -31,6 +31,8 @@ import {
   type PlanBundle,
   type ProcPlan,
   type SourcePlan,
+  STANCE,
+  STANCE_ANY,
   TRIGGER,
   TRIGGER_COUNT,
   type WeaponPlan,
@@ -471,7 +473,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const classRot = setup.simulated
     ? classRotation(config.spec, config.rotation, setup.talents, (id) => auras.findIndex((a) => a.id === id))
     : { abilities: [], rotation: [] }
-  const abilities: AbilityPlan[] = classRot.abilities.map((a) => ({ ...a, source: sourceIndex(a.id, a.name, a.icon) }))
+  // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1).
+  const abilities: AbilityPlan[] = classRot.abilities.map(({ offHand, ...a }) => ({
+    ...a,
+    source: sourceIndex(a.id, a.name, a.icon),
+    offHandSource: offHand && weapons[HAND.off] ? sourceIndex(`${a.id}OffHand`, `${a.name} (off hand)`, a.icon) : -1,
+  }))
 
   // --- Fight ------------------------------------------------------------------------------------
   const front = fight.position === 'front'
@@ -488,6 +495,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     applyUnmeasured,
     seed: config.run.seed >>> 0,
     playerLevel: PLAYER_LEVEL,
+    stance: setup.stance ? STANCE[setup.stance] : STANCE_ANY,
     fight: {
       durationMs: Math.round(fight.durationSec * 1000),
       variation: fight.durationVariationPct / 100,
@@ -537,10 +545,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // --- Assumptions ---------------------------------------------------------------------------------
   if (setup.simulated) notes.add(abilities.length > 0 ? 'partialRotation' : 'whiteSwingsOnly')
   if (abilities.some((a) => a.gcdMs > 0)) notes.add('gcdHaste')
-  if (abilities.some((a) => a.refundShare > 0)) notes.add('abilityRefunds')
+  if (abilities.some((a) => a.costTenths > 0)) notes.add('abilityRefunds')
   const queues = abilities.some((a) => a.kind === 'onNextSwing')
   if (queues && mh) notes.add('onNextSwingRage')
   if (queues && weapons[HAND.off]) notes.add('onNextSwingOffHand')
+  if (setup.talents.has('Unbridled Wrath') && mh) notes.add('unbridledWrathSwings')
+  if (abilities.some((a) => a.offHandSource >= 0)) notes.add('ragingBlows')
   if (!mh) notes.add('noWeapon')
   if (profile.id === 'forever') {
     notes.add('foreverHitTable')
@@ -691,7 +701,8 @@ const TRIGGER_CODE: Record<ProcSpec['trigger'], number> = TRIGGER
 /** Resolves hands and chances for a proc; null when nothing can trigger it in this setup. */
 function resolveProc(spec: ProcSpec, origin: 0 | 1 | null, weapons: [Weapon | null, Weapon | null]): ProcPlan | null {
   const trigger = TRIGGER_CODE[spec.trigger]
-  const onAttack = trigger === TRIGGER.meleeLanded || trigger === TRIGGER.whiteLanded || trigger === TRIGGER.meleeCrit
+  const onAttack =
+    trigger === TRIGGER.meleeLanded || trigger === TRIGGER.whiteLanded || trigger === TRIGGER.swingLanded || trigger === TRIGGER.meleeCrit
   let hands = 0
   if (onAttack) {
     for (const w of weapons) {

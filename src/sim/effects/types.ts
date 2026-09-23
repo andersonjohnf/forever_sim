@@ -128,6 +128,8 @@ export type ProcTrigger =
   | 'meleeLanded'
   /** A white swing (including extra attacks) that landed. */
   | 'whiteLanded'
+  /** A landed swing: a white swing, an extra attack, or an on-next-swing ability's replaced swing (warrior.md §2.4 item 3). */
+  | 'swingLanded'
   /** Any melee crit. */
   | 'meleeCrit'
   /** The player is hit by a damaging attack (not avoided). */

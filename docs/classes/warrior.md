@@ -673,7 +673,7 @@ Forever:
 | 3 | Racial or trinket cooldowns | Use together with Death Wish, then on cooldown | `fury.racial.enabled` (on), `.syncWithDeathWish` (on) | yes |
 | 4 | Recklessness | Once, when the fight has ≤ `lastSec` seconds left. It needs Berserker Stance | `fury.recklessness.enabled` (on), `.lastSec` (15) | yes |
 | 5 | Bloodrage (off the GCD) | On cooldown, if it won't push rage over the cap: rage ≤ max − 20 | `fury.bloodrage.enabled` (on), `.maxRage` (max − 20) | yes |
-| 6 | **Execute phase** (target ≤ 20%): Bloodthirst | AP ≥ `btOverExecuteAp` and rage ≥ 30 | `fury.execute.btOverExecuteAp`, default from [W11](#w11-bloodthirst-versus-execute-break-even): 2220 at Execute cost 15, 2434 at cost 10 | yes |
+| 6 | **Execute phase** (target ≤ 20%): Bloodthirst | AP ≥ `btOverExecuteAp` and rage ≥ 30 | `fury.execute.btOverExecuteAp`, default **2220**: [W11](#w11-bloodthirst-versus-execute-break-even) at the default build's Execute cost 15. The default doesn't follow the build: with Improved Execute 2/2 (cost 10) set 2434 | yes |
 | 7 | Execute phase: Execute | Rage ≥ cost + `minExtraRage`. Stops Heroic Strike queueing and uses Execute on every GCD | `fury.execute.enabled` (on), `.minExtraRage` (0), `.whirlwindInExecute` (off), `.heroicStrikeInExecute` (off) | yes |
 | 8 | Bloodthirst | Off cooldown; rage ≥ cost | `fury.bloodthirst.enabled` (on) | yes |
 | 9 | Whirlwind | Off cooldown; rage ≥ 25 + `reserve`; Bloodthirst cooldown ≥ `btCdMinSec` | `fury.whirlwind.enabled` (on), `.reserve` (0), `.btCdMinSec` (1.5) | yes |
@@ -697,7 +697,22 @@ Notes:
   weapon effects [wh-fury].
 - **Execute versus Bloodthirst.** The Classic rule is "Bloodthirst over Execute above 2000 AP"
   [wh-fury] [marrow]. The Forever Bloodthirst nerf moves the break-even up by 220–430 AP
-  ([W11](#w11-bloodthirst-versus-execute-break-even)).
+  ([W11](#w11-bloodthirst-versus-execute-break-even)). The setting's default is a fixed 2220:
+  rotation settings have one default per spec, not per build, so it can't follow Improved
+  Execute; the setting's help says to use 2434 at cost 10.
+- **What the execute phase changes** (with `fury.execute.enabled` on). Rows 6 and 7 apply only
+  in the phase. Rows 8, 11 and 12 (Bloodthirst without the AP condition, the Heroic Strike queue
+  and Hamstring) apply only outside it, and so does row 9 unless `whirlwindInExecute` is on.
+  Hamstring never takes Execute's GCDs. Execute is on every GCD at rage ≥ cost + `minExtraRage`,
+  so Whirlwind in the phase gets a GCD only while Execute waits for extra rage. There,
+  Whirlwind's Bloodthirst-cooldown condition applies only while row 6 uses Bloodthirst (AP ≥
+  `btOverExecuteAp`); below it Bloodthirst is never pressed, and waiting on it would block
+  Whirlwind for good. With the setting off, the phase changes nothing and rows 8–12 run to the
+  end.
+- **A Heroic Strike already queued when the phase starts is cancelled** unless
+  `heroicStrikeInExecute` is on. Its 12 rage is worth 180 damage in the next Execute, more than
+  the 157 it adds to a swing that also gives up that swing's white rage. This is an engine
+  choice; no source covers it.
 - **2H Fury** (Fury talents with a two-hander) is supported by the engine but has no default
   preset. Unbridled Wrath's 2 rage per proc suits it, but Dual Wield Specialization and Raging
   Blows are wasted, and Improved Slam is out of reach in the Arms tree. Use it only if a guild
@@ -900,6 +915,32 @@ parts:
 - **On-next-swing queue.** Model Heroic Strike and Cleave as a flag on the main-hand swing
   event, and resolve cost and table at swing time ([§2.4](#24-heroic-strike-and-cleave-on-next-swing)).
   While the flag is set, the off-hand's attack table uses single-wield miss.
+- **Talents on abilities** (`sim/classes/warrior/modifiers.ts`). The plan applies the cost
+  reductions ([§2.3](#23-rage-warrior-specific)), Impale ([§2.5](#25-crits-impale-flurry-deep-wounds))
+  and Raging Blows ([§3.1](#31-damage-abilities)) once, from the build's talent ranks, when it
+  resolves the rotation's abilities; the engine sees only resolved costs and crit multipliers.
+  Tests check each talent's list of abilities against its client class mask. Cleave's own
+  reductions (Improved Cleave, Raging Blows) arrive with Cleave, so W21's Cleave costs aren't
+  tested yet.
+- **Unbridled Wrath on Heroic Strike swings** ([§2.3](#23-rage-warrior-specific) default, Q5)
+  uses a "swing landed" trigger: a landed white swing, extra attack, or on-next-swing ability's
+  swing.
+- **The execute phase.** One event at `t_exec`
+  ([encounter.md implementation notes](../mechanics/encounter.md#implementation-notes)) switches
+  the engine to the phase's priority list. The engine sorts the lines into two lists up front,
+  one per phase, from their execute-phase conditions and Execute's own restriction, so neither
+  phase walks lines that can't apply. Only specs with a rotation get the event.
+- **Execute's rage.** Rage is kept in tenths, and Execute converts everything left after its
+  cost, tenths included: at 27.3 rage and cost 15 it deals `600 + 15 × 12.3 = 784.5` before
+  modifiers. Whether the server converts only whole rage points is Q28 [?]. A blocked Execute
+  has landed, so it spends the rage too.
+- **Stances.** Each ability carries the stances it can be used in ([§3.1](#31-damage-abilities)
+  "Stance", from the client's `ShapeshiftMask`), and the engine refuses it in any other. There's
+  no stance dancing yet, so each spec stays in its base stance. A GCD-safe condition still
+  counts an ability the stance refuses as ready. That matters only once stance dancing arrives.
+- **Raging Blows' off-hand strike** has its own breakdown row, "Whirlwind (off hand)". It comes
+  right after the main-hand strike, whether or not that one landed, costs nothing more and
+  refunds nothing [?] (Q13).
 - **Extra attacks.** Weaponmaster and Windfury schedule an immediate main-hand swing (0 ms
   delay) and reset the main-hand timer. The 200 ms Weaponmaster internal cooldown is an aura
   cooldown. Windfury has no internal cooldown in the sim [?] (§2.7, Q27); its chain rule (it
@@ -1201,6 +1242,11 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     enforces a longer one is the question. Owner: [damage-and-timing OQ
     9](../mechanics/damage-and-timing.md#open-questions). **Test:** the minimum gap between
     Windfury procs over 500+ main-hand swings.
+28. **Execute and fractional rage.** Forever's normalized white rage leaves fractions (a 2.6 s
+    main hand gives 9.1 rage). Does Execute convert them (15 per rage, tenths included), or only
+    whole rage points? The sim converts tenths ([§7](#7-implementation-notes)); the difference is
+    at most 13.5 damage per Execute. **Test:** Executes at a known fractional rage, if the combat
+    log or a rage display with decimals shows it.
 
 ## 10. Sources
 

@@ -1,12 +1,13 @@
-// Abilities and the rotation in the engine: warrior worked examples W1, W3 and W7 (docs/classes/
-// warrior.md §8), rotation sanity (never off cooldown, without rage or during the GCD), the
-// Heroic Strike queue (replaces a white swing, no white rage, the off hand's dual-wield penalty
-// lifted while queued, unqueueing) and rage refunds (rage.md#rage-refunds-on-avoided-abilities).
+// Abilities and the rotation in the engine: warrior worked examples W1, W3, W7, W9, W10 and W22
+// (docs/classes/warrior.md §8), rotation sanity (never off cooldown, without rage or during the
+// GCD), the Heroic Strike queue (replaces a white swing, no white rage, the off hand's dual-wield
+// penalty lifted while queued, unqueueing), rage refunds (rage.md#rage-refunds-on-avoided-abilities),
+// the execute phase (encounter.md §3, warrior.md §5.2 rows 6 and 7) and stance limits (§3.1).
 import { describe, expect, it } from 'vitest'
 import { addSample, emptyMoments, stdev } from '../core/welford'
 import { defaultConfig } from '../defaults'
 import { buildPlan } from '../plan/build'
-import { type Plan, TRIGGER_COUNT, type WeaponPlan } from '../plan/types'
+import { ACTION, type Plan, STANCE, TRIGGER, TRIGGER_COUNT, type WeaponPlan } from '../plan/types'
 import type { SimConfig } from '../types'
 import { FIELD, FIELD_COUNT, SOURCE_MAIN_HAND, SOURCE_OFF_HAND, Sim } from './sim'
 
@@ -15,22 +16,28 @@ const OFF: SimConfig['rotation'] = {
   'warrior.fury.whirlwind.enabled': false,
   'warrior.fury.heroicStrike.enabled': false,
   'warrior.fury.hamstring.enabled': false,
+  'warrior.fury.execute.enabled': false,
 }
-const only = (ability: 'bloodthirst' | 'whirlwind' | 'heroicStrike' | 'hamstring', extra: SimConfig['rotation'] = {}) => ({
+const only = (ability: 'bloodthirst' | 'whirlwind' | 'heroicStrike' | 'hamstring' | 'execute', extra: SimConfig['rotation'] = {}) => ({
   ...OFF,
   [`warrior.fury.${ability}.enabled`]: true,
   ...extra,
 })
 
+/** The popular Fury build without Impale: "Fury + Precision" (warrior.md §6.1). */
+const NO_IMPALE = '30305013-050520035150310051-'
+
 /**
- * A Fury plan with the default talents (so Bloodthirst is known) but no buffs, procs, auras,
- * periodic rage or armor, so every damage event is the ability's own and its numbers are exact.
+ * A Fury plan with the default talents (so Bloodthirst, Impale 2/2, Improved Heroic Strike 3/3 and
+ * Raging Blows are known) but no buffs, procs, auras, periodic rage or armor, so every damage
+ * event is the ability's own and its numbers are exact.
  */
-function abilityPlan(rotation: SimConfig['rotation'], durationMs = 60000): Plan {
+function abilityPlan(rotation: SimConfig['rotation'], durationMs = 60000, talents?: string): Plan {
   const d = defaultConfig('warrior-fury')
   const plan = buildPlan({
     ...d,
     race: 'alliance-human',
+    talents: talents ?? d.talents,
     // Dark Iron Destroyer and Hedgecutter (axes, no racial skill for a Human).
     gear: { mainHand: { itemId: 17016 }, offHand: { itemId: 18498 } },
     buffs: { raid: d.buffs.raid, enabled: [] },
@@ -87,20 +94,27 @@ const T: Partial<WeaponPlan> = { min: 105, max: 157, speedSec: 3.8, twoHand: tru
 const O: Partial<WeaponPlan> = { min: 106, max: 198, speedSec: 2.6, twoHand: false, normalizedSpeed: 2.4 }
 
 describe('warrior worked examples in the engine (1800 AP, pre-armor)', () => {
-  it('W1: Bloodthirst deals 0.35 × AP + 48 = 678, 1356 on a crit (no Impale); 748 at 2000 AP', () => {
-    const plan = abilityPlan(only('bloodthirst'))
-    plan.stats.hit = 100
-    plan.fight.bossCanDodge = false
-    setAttackPower(plan, 1800)
-    const hits = damages(plan, source(plan, 'bloodthirst'), 20)
-    expect(hits.length).toBeGreaterThan(100)
-    const normal = hits.filter((d) => d < 1000)
-    const crits = hits.filter((d) => d >= 1000)
-    expect(normal.length).toBeGreaterThan(0)
-    expect(crits.length).toBeGreaterThan(0)
-    for (const d of normal) expect(d).toBeCloseTo(678, 9)
-    for (const d of crits) expect(d).toBeCloseTo(1356, 9)
+  it('W1: Bloodthirst deals 0.35 × AP + 48 = 678; a crit 1491.60 with Impale 2/2, 1356 without; 748 at 2000 AP', () => {
+    const crits = (talents?: string) => {
+      const plan = abilityPlan(only('bloodthirst'), 60000, talents)
+      plan.stats.hit = 100
+      plan.fight.bossCanDodge = false
+      setAttackPower(plan, 1800)
+      const hits = damages(plan, source(plan, 'bloodthirst'), 20)
+      expect(hits.length).toBeGreaterThan(100)
+      const normal = hits.filter((d) => d < 1000)
+      expect(normal.length).toBeGreaterThan(0)
+      for (const d of normal) expect(d).toBeCloseTo(678, 9)
+      return hits.filter((d) => d >= 1000)
+    }
+    const impale = crits()
+    expect(impale.length).toBeGreaterThan(0)
+    for (const d of impale) expect(d).toBeCloseTo(1491.6, 9)
+    const plain = crits(NO_IMPALE)
+    expect(plain.length).toBeGreaterThan(0)
+    for (const d of plain) expect(d).toBeCloseTo(1356, 9)
 
+    const plan = abilityPlan(only('bloodthirst'))
     setAttackPower(plan, 2000)
     alwaysLandNoCrit(plan)
     for (const d of damages(plan, source(plan, 'bloodthirst'), 2)) expect(d).toBeCloseTo(748, 9)
@@ -294,5 +308,279 @@ describe('rage refunds (rage.md#rage-refunds-on-avoided-abilities)', () => {
   it('a dodged Whirlwind refunds nothing: each cast nets −25 rage', () => {
     // Every 10 s: 30 → 5, then +30 = 35 → 10, then 40 → 15, …
     expect(rageAtCasts('whirlwind')).toEqual([300, 350, 400, 450])
+  })
+})
+
+/** Landed attacks of a breakdown row: hits, crits, glances and blocks. */
+const landed = (sim: Sim, row: number) =>
+  [FIELD.hits, FIELD.crits, FIELD.glances, FIELD.blocks].reduce((n, f) => n + sim.counters[row * FIELD_COUNT + f], 0)
+
+describe('Raging Blows: Whirlwind also strikes with the off hand (warrior.md §3.1, W9) [?]', () => {
+  /** Whirlwind alone, one-hander O in both hands (fixed at its 152 average), 1800 AP. */
+  function wwPlan(): Plan {
+    const plan = abilityPlan(only('whirlwind'), 180000)
+    const fixed = { ...O, min: 152, max: 152 }
+    plan.weapons = [
+      { ...plan.weapons[0]!, ...fixed },
+      { ...plan.weapons[1]!, ...fixed },
+    ]
+    setAttackPower(plan, 1800)
+    return plan
+  }
+  const ww = (plan: Plan) => plan.abilities.find((a) => a.id === 'whirlwind')!
+  const mainStrike = 152 + (1800 / 14) * 2.4
+
+  it('W9: the main-hand strike deals 460.57, the off-hand strike 460.57 × 0.625 = 287.86, in its own row', () => {
+    const plan = wwPlan()
+    alwaysLandNoCrit(plan)
+    const { source: mainRow, offHandSource: offRow } = ww(plan)
+    expect(plan.sources[offRow]).toMatchObject({ id: 'whirlwindOffHand', name: 'Whirlwind (off hand)' })
+    expect(plan.weapons[1]!.handMult).toBe(0.625) // Dual Wield Specialization 5/5
+    const main = damages(plan, mainRow, 3)
+    const off = damages(plan, offRow, 3)
+    expect(main.length).toBeGreaterThan(20)
+    expect(off.length).toBe(main.length)
+    for (const d of main) expect(d).toBeCloseTo(mainStrike, 9)
+    for (const d of off) expect(d).toBeCloseTo(mainStrike * 0.625, 9)
+  })
+
+  it('crits with Impale (×2.2) like the main-hand strike', () => {
+    const plan = wwPlan()
+    alwaysLandNoCrit(plan)
+    plan.stats.crit = 200
+    const off = damages(plan, ww(plan).offHandSource, 2)
+    expect(off.length).toBeGreaterThan(0)
+    for (const d of off) expect(d).toBeCloseTo(mainStrike * 0.625 * 2.2, 9)
+  })
+
+  it('rolls its own table with Dual Wield Specialization’s off-hand hit: 8% main-hand misses, none off hand', () => {
+    const plan = wwPlan()
+    plan.fight.bossCanDodge = false
+    const sim = new Sim(plan)
+    const state = sim.inspect()
+    expect(state.specialThresholds[0]).toBe(8)
+    expect(state.offHandSpecialThresholds[0]).toBe(0)
+    for (let i = 0; i < 100; i++) sim.runFight(i)
+    const { source: mainRow, offHandSource: offRow } = ww(plan)
+    const c = sim.counters
+    expect(c[offRow * FIELD_COUNT + FIELD.casts]).toBe(c[mainRow * FIELD_COUNT + FIELD.casts])
+    expect(c[offRow * FIELD_COUNT + FIELD.misses]).toBe(0)
+    expect(Math.abs(c[mainRow * FIELD_COUNT + FIELD.misses] / c[mainRow * FIELD_COUNT + FIELD.casts] - 0.08)).toBeLessThan(0.01)
+  })
+
+  it('procs the off hand’s on-hit effects', () => {
+    const plan = wwPlan()
+    alwaysLandNoCrit(plan)
+    // An off-hand-only proc on landed melee attacks, counted by its casts.
+    plan.sources.push({ id: 'test', name: 'Test', icon: 'x' })
+    const row = plan.sources.length - 1
+    plan.procs = [
+      { id: 'test', name: 'Test', trigger: TRIGGER.meleeLanded, chance: [1, 1], hands: 2, icdMs: 0, action: ACTION.spellDamage, amount: 0, a: 1, b: 1, school: 0, source: row, chainBit: 0 },
+    ]
+    plan.triggers = Array.from({ length: TRIGGER_COUNT }, (_, t) => (t === TRIGGER.meleeLanded ? [0] : []))
+    const sim = new Sim(plan)
+    for (let i = 0; i < 20; i++) sim.runFight(i)
+    const strikes = landed(sim, ww(plan).offHandSource)
+    expect(strikes).toBeGreaterThan(100)
+    expect(sim.counters[row * FIELD_COUNT + FIELD.casts]).toBe(landed(sim, SOURCE_OFF_HAND) + strikes)
+  })
+
+  it('needs an off hand: none with a two-hander', () => {
+    const d = defaultConfig('warrior-fury')
+    const plan = buildPlan({ ...d, gear: { ...d.gear, mainHand: { itemId: 12784 }, offHand: undefined } }).plan
+    expect(ww(plan).offHandSource).toBe(-1)
+    expect(plan.sources.some((s) => s.id === 'whirlwindOffHand')).toBe(false)
+  })
+})
+
+describe('Execute (warrior.md §3.1 "Execute details", W10)', () => {
+  /**
+   * Execute alone in a 20 s fight whose execute phase starts at 16 s. White swings give no rage,
+   * so rage comes only from `grants`, and every attack lands without crits.
+   */
+  function executePlan(grants: Plan['periodicRage']): Plan {
+    const plan = abilityPlan(only('execute'), 20000)
+    alwaysLandNoCrit(plan)
+    for (const w of plan.weapons) w!.rageMult = 0
+    plan.periodicRage = grants
+    return plan
+  }
+  function run(plan: Plan) {
+    const sim = new Sim(plan)
+    const casts: [number, number][] = []
+    const hits: number[] = []
+    const row = source(plan, 'execute')
+    sim.castTrace = (_a, t, rage) => casts.push([t, rage])
+    sim.damageTrace = (s, damage) => {
+      if (s === row) hits.push(damage)
+    }
+    sim.runFight(0)
+    expect(sim.executeAtMs).toBe(16000)
+    return { casts, hits }
+  }
+
+  it('W10: the damage reads the rage left after the cost: 1125 at 50 rage (cost 15), 1200 at cost 10', () => {
+    // 50 rage arrives at 16 s, just after the phase starts.
+    const at50 = (cost: number) => {
+      const plan = executePlan([{ periodMs: 16000, tenths: 500, source: -1 }])
+      plan.abilities[abilityIndex(plan, 'execute')].costTenths = cost // Improved Execute 2/2: 10
+      return run(plan)
+    }
+    const popular = at50(150)
+    expect(popular.casts).toEqual([[16000, 500]])
+    expect(popular.hits).toHaveLength(1)
+    expect(popular.hits[0]).toBeCloseTo(1125, 9)
+    expect(at50(100).hits[0]).toBeCloseTo(1200, 9)
+  })
+
+  it('W10: a full 130-rage bar at cost 15 deals 2325, and each landed Execute leaves 0 rage', () => {
+    // 10 rage a second: the bar is full when the phase starts. After each hit rage restarts from
+    // 0, so the next Execute waits for 20 rage (at 17.5 s, then 19 s) and deals 600 + 15 × 5.
+    const { casts, hits } = run(executePlan([{ periodMs: 1000, tenths: 100, source: -1 }]))
+    expect(casts).toEqual([
+      [16000, 1300],
+      [17500, 200],
+      [19000, 200],
+    ])
+    expect(hits.map((d) => Math.round(d * 1e6) / 1e6)).toEqual([2325, 675, 675])
+  })
+
+  it('a dodged Execute loses only its cost, with no refund, and keeps the rest', () => {
+    const grants = [{ periodMs: 1000, tenths: 50, source: -1 }]
+    // Landed: 75 rage at 16 s is all spent; the next cast waits for 15 rage at 18 s.
+    expect(run(executePlan(grants)).casts).toEqual([
+      [16000, 750],
+      [18000, 150],
+    ])
+    // Dodged: 75 → 60, +5 +5 → 70 at 17.5 s → 55, +5 +5 → 65… each cast costs exactly 15.
+    const dodged = executePlan(grants)
+    dodged.fight.bossCanDodge = true
+    dodged.stats.expertise = -1000
+    const { casts, hits } = run(dodged)
+    expect(casts).toEqual([
+      [16000, 750],
+      [17500, 700],
+      [19000, 600],
+    ])
+    expect(hits).toEqual([])
+  })
+})
+
+describe('the execute phase (encounter.md §3, warrior.md §5.2 rows 6 and 7)', () => {
+  function fights(rotation: SimConfig['rotation'] = {}) {
+    const plan = buildPlan({ ...defaultConfig('warrior-fury'), rotation, run: { mode: 'fixed', iterations: 100, seed: 5 } }).plan
+    const sim = new Sim(plan)
+    const out: { executeAt: number; end: number; casts: [string, number][] }[] = []
+    let casts: [string, number][] = []
+    sim.castTrace = (a, t) => casts.push([plan.abilities[a].id, t])
+    for (let i = 0; i < 40; i++) {
+      casts = []
+      sim.runFight(i)
+      out.push({ executeAt: sim.executeAtMs, end: sim.fightMs, casts })
+    }
+    return { plan, out }
+  }
+
+  it('starts at floor(L × 0.8) of each drawn fight length (WE-1)', () => {
+    for (const { executeAt, end } of fights().out) expect(executeAt).toBe(Math.floor((end * 80) / 100))
+  })
+
+  it('uses Execute only in the phase, and only Execute there while AP is below btOverExecuteAp', () => {
+    const { plan, out } = fights()
+    expect(new Sim(plan).inspect().attackPower).toBeLessThan(2220)
+    for (const { executeAt, casts } of out) {
+      expect(casts.some(([id]) => id === 'execute')).toBe(true)
+      for (const [id, t] of casts) {
+        if (id === 'execute') expect(t).toBeGreaterThanOrEqual(executeAt)
+        // Bloodthirst, Whirlwind, Hamstring and Heroic Strike swings (a queued one is cancelled) stop.
+        else expect(t, `${id} at ${t}`).toBeLessThan(executeAt)
+      }
+    }
+  })
+
+  it('keeps Bloodthirst in the phase at or above btOverExecuteAp', () => {
+    const { out } = fights({ 'warrior.fury.execute.btOverExecuteAp': 0 })
+    // Rarely: a landed Execute spends all the rage, so Bloodthirst needs 30 to arrive within a GCD.
+    const inPhase = out.flatMap(({ executeAt, casts }) => casts.filter(([id, t]) => id === 'bloodthirst' && t >= executeAt))
+    expect(inPhase.length).toBeGreaterThan(10)
+  })
+
+  it('keeps Heroic Strike and Whirlwind in the phase when their toggles say so', () => {
+    const { out } = fights({ 'warrior.fury.execute.heroicStrikeInExecute': true, 'warrior.fury.execute.whirlwindInExecute': true, 'warrior.fury.execute.minExtraRage': 30 })
+    const inPhase = new Set(out.flatMap(({ executeAt, casts }) => casts.filter(([, t]) => t >= executeAt).map(([id]) => id)))
+    expect([...inPhase].sort()).toEqual(['execute', 'heroicStrike', 'whirlwind'])
+  })
+
+  it('has no execute phase at 0%', () => {
+    const d = defaultConfig('warrior-fury')
+    const plan = buildPlan({ ...d, fight: { ...d.fight, executePct: 0 } }).plan
+    const sim = new Sim(plan)
+    let executes = 0
+    sim.castTrace = (a) => {
+      if (plan.abilities[a].id === 'execute') executes++
+    }
+    for (let i = 0; i < 20; i++) sim.runFight(i)
+    expect(executes).toBe(0)
+    expect(sim.executeAtMs).toBe(sim.fightMs)
+  })
+})
+
+describe('stances (warrior.md §3.1 "Stance")', () => {
+  it('refuses an ability outside its stances', () => {
+    const used = (ability: 'bloodthirst' | 'whirlwind' | 'hamstring' | 'execute', stance: number) => {
+      const plan = abilityPlan(only(ability))
+      plan.stance = stance
+      const sim = new Sim(plan)
+      let casts = 0
+      sim.castTrace = () => casts++
+      for (let i = 0; i < 5; i++) sim.runFight(i)
+      return casts > 0
+    }
+    const { battle, defensive, berserker } = STANCE
+    expect([battle, defensive, berserker].map((s) => used('bloodthirst', s))).toEqual([true, true, true])
+    expect([battle, defensive, berserker].map((s) => used('whirlwind', s))).toEqual([false, false, true])
+    expect([battle, defensive, berserker].map((s) => used('hamstring', s))).toEqual([true, false, true])
+    expect([battle, defensive, berserker].map((s) => used('execute', s))).toEqual([true, false, true])
+  })
+})
+
+describe('Unbridled Wrath (warrior.md §2.3, W22)', () => {
+  /** Unbridled Wrath rage and landed swings over 100 fights, with only its proc and no rage cap. */
+  function measure(config: SimConfig, heroicStrike: boolean) {
+    const plan = buildPlan({ ...config, buffs: { raid: config.buffs.raid, enabled: [] } }).plan
+    plan.procs = plan.procs.filter((p) => p.id === 'unbridledWrath')
+    plan.triggers = Array.from({ length: TRIGGER_COUNT }, (_, t) => (t === TRIGGER.swingLanded ? plan.procs.map((_p, i) => i) : []))
+    plan.periodicRage = []
+    plan.rage.maxTenths = 1e9
+    const sim = new Sim(plan)
+    for (let i = 0; i < 100; i++) sim.runFight(i)
+    const uw = plan.procs[0].source
+    const rage = sim.counters[uw * FIELD_COUNT + FIELD.threat] / 0.5 / 10 // 5 threat per rage (threat.md)
+    const hs = heroicStrike ? landed(sim, source(plan, 'heroicStrike')) : 0
+    return { rage, white: landed(sim, SOURCE_MAIN_HAND) + landed(sim, SOURCE_OFF_HAND), hs }
+  }
+  /** 60% of `swings` procs of `amount` rage, within 4 standard errors (each swing is a Bernoulli(0.6) proc). */
+  const expectRate = (rage: number, swings: number, amount: number) => {
+    const expected = 0.6 * amount * swings
+    const se = amount * Math.sqrt(swings * 0.6 * 0.4)
+    expect(Math.abs(rage - expected), `${rage} vs ${expected} (SE ${se})`).toBeLessThanOrEqual(4 * se)
+  }
+
+  it('5/5 with one-handers: 60 rage per 100 landed white swings', () => {
+    const { rage, white } = measure({ ...defaultConfig('warrior-fury'), rotation: OFF }, false)
+    expect(white).toBeGreaterThan(10000)
+    expectRate(rage, white, 1)
+  })
+
+  it('5/5 with a two-hander: 120 rage per 100 landed swings (Arms default)', () => {
+    const { rage, white } = measure(defaultConfig('warrior-arms'), false)
+    expect(white).toBeGreaterThan(4000)
+    expectRate(rage, white, 2)
+  })
+
+  it('also procs from Heroic Strike swings, the §2.3 default [?] (Q5)', () => {
+    const { rage, white, hs } = measure({ ...defaultConfig('warrior-fury'), rotation: only('heroicStrike') }, true)
+    expect(hs).toBeGreaterThan(white / 4)
+    expectRate(rage, white + hs, 1)
   })
 })

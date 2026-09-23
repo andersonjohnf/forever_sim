@@ -235,7 +235,11 @@ threshold as a boss property.
   `L_i = round(L × (1 + v × (2u − 1)))` ms, where `u ∈ [0, 1)`.
 - `t_exec = floor(L_i × (1 − executePct/100))`. Schedule an "execute phase begins" event at
   `t_exec` so APL conditions such as `target.healthPct < 20` can read it. Report boss health %
-  as `100 × (1 − t / L_i)`.
+  as `100 × (1 − t / L_i)`. The engine computes it as `floor(L_i × (100 − executePct) / 100)`
+  (`core/formulas.ts` `executePhaseStart`), which floors whole percentages exactly:
+  `L_i × (1 − 0.30)` for 41,000 ms lands a hair below 28,700 and would floor to 28,699. It
+  schedules the event only for specs with a
+  rotation; at 0% `t_exec = L_i`, so there's no phase.
 - Extra targets are separate target objects with their own debuff lists, since Sunder is
   applied only to the primary unless the rotation says otherwise. Their armor starts at
   `bossArmor`.

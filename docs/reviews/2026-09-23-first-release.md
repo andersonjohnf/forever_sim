@@ -445,7 +445,39 @@ swing); Protection 217.0 TPS. Each change is explained in `src/sim/engine/engine
 Checks after the fixes (`a842078`): lint ✓ · typecheck ✓ · unit ✓ (1043) · e2e ✓ (216, 3
 deferred to M3).
 
+## Verification of the M2.4i fixes
+
+A fresh verifier checked the fix commits (`569eea2`, `7b931de`, `1269107`, `0e810c3`..`a842078`,
+`fe22bc7`), per CLAUDE.md step 5.
+
+**Confirmed:**
+- every LX and UX finding marked fixed is fixed, UX1 included:
+  - typing "  ARMS   pvp-ish test " on Fury names the Arms save it would replace, and the button reads Replace
+  - 18 bad codes and links were refused, leaving the setup unchanged
+- UX13 is fixed except one button (VF2)
+- carried rage fractions are in `forever` only, are dropped at the cap, a stance swap's limit and Execute, and are deterministic
+- 3.46 is applied as the doc says
+- the goldens match the history comment, and 40,000-fight reruns agree within noise
+- the D22 evidence meets its bar, and each value is [?] with an open question
+- a pixel diff shows changes only on controls
+- lint ✓ · typecheck ✓ · unit ✓ (1043) · e2e ✓ (216, 3 deferred to M3)
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| VF1 | medium, blocking | introduced (UX3) | **The in-row confirm Delete button's text is 3.97:1 in light** (3.31:1 on hover; 4.64:1 and about 3.85:1 in dark), under AA's 4.5:1. | planned, fix slice C |
+| VF2 | low | introduced (UX13 incomplete) | **"Gear options" is still 1.26:1 in light:** as a menu trigger it misses the outline-button override. | planned, C |
+| VF3 | low | introduced (LX7) | **The automatic save's full-storage notice says to delete saves** even with none. | planned, C |
+| VF4 | low | introduced (LX4 tests) | **Dropping the carried fraction at a stance swap's limit, on Execute and on a refund at the cap** has no worked example or test. | planned, C |
+| VF5 | low | introduced (doc sync) | **warrior.md Q28 still says a 2.6 s main hand gives 9.1 rage.** | planned, C |
+| VF6 | low | introduced (D22 evidence) | **Carrying the fraction for hits taken rests on one tester's logs;** rage.md should say it extends the white-swing evidence. | planned, C |
+| VF7 | low | introduced (UX9) | **After a file import the New rows are often off-screen on a phone.** | planned, C |
+| VF8 | low | introduced (UX1) | **The name field narrows 21 px when Save becomes Replace.** | planned, C |
+| VF9 | low | introduced (LX9) | **Download's count includes saves the list doesn't show.** | planned, C |
+| VF10 | low | pre-existing | **A file's `"current": null` counts as an unreadable setup.** | planned, C |
+| VF11 | low | introduced (ux.md claim) | **Names are cut by code point, which can split a skin-toned or ZWJ emoji,** against ux.md's claim. | planned, C |
+| VF12 | low | pre-existing, breaks a ux.md promise | **The "Classic stats" and "Effect not simulated" badges open popovers, but their edge is 1.26:1 in light.** | planned, C |
+
 ## Verdict
 
-Ready to push: not yet. Every finding is fixed, waived or deferred; the fixes await their
-verification pass (D20).
+Ready to push: not yet. VF1 is blocking; fix slice C covers VF1–VF12, then a quick fresh check
+of its commits (D20).

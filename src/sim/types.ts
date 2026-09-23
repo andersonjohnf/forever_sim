@@ -114,9 +114,9 @@ export interface SimConfig {
   }
   run: {
     /**
-     * `adaptive` (default): run until the 95% CI half-width of the headline metric is within
-     * 0.25% of its mean, between 1,000 and 50,000 fights. `fixed`: exactly `iterations` fights
-     * (decision D15).
+     * `adaptive` (default): run until the 95% CI half-width of every headline metric (DPS, or
+     * TPS and DPS for tank specs) is within 0.25% of its mean, between 1,000 and 50,000 fights.
+     * `fixed`: exactly `iterations` fights (decisions D15, D18).
      */
     mode: 'adaptive' | 'fixed'
     /** Fights to run in `fixed` mode (100–100,000). */

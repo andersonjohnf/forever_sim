@@ -114,14 +114,7 @@ Nothing is pushed. No agents are running. Done this session: M1.5c, M1.5d, M2.2a
 **available**), and D18 (tank specs report TPS and DPS as equals).
 
 Next, in order:
-1. **Small cleanups** (lead, one commit):
-   - two comments still describe a single headline metric: the `simulate` docstring in
-     `src/sim/index.ts` and the `run.mode` comment in `src/sim/types.ts`
-   - warrior.md §6.1 still says the default is "the site's most popular Forever build";
-     reword it to match doctrine §5
-   - `docs/ux.md` should describe three new UI states: the Buffs switch locked "kept up by
-     your rotation", the Rotation row "Not used: turn on … in Buffs first", and the error
-     for a share link to a spec the app doesn't offer
+1. ~~Small cleanups~~ (done: headline comments, warrior §6.1 wording, ux.md states)
 2. **M2.3a → M2.3b → M2.3c** (Arms), sequential, one fresh agent each.
 3. **M1.5e** spells and races from the client, which can run in parallel with M2.3 in a
    worktree. Then **M1.5f** retires foreverchanges: delete `scripts/scrape/{items,talents,…}.mjs`,

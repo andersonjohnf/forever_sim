@@ -936,8 +936,9 @@ Splitting threat across targets is out of scope ([doctrine §1](../doctrine.md#1
 
 ### 6.1 Talent builds
 
-Per [doctrine §5](../doctrine.md#5-defaults), the default is the site's most popular Forever
-build for each spec [tal]. All three decode and validate
+Per [doctrine §5](../doctrine.md#5-defaults), each spec's default is the build below. Each was
+the most popular Forever build for its spec when chosen (2026-09-22) [tal], and the app offers
+them as presets with the variants. All three decode and validate
 ([data/talents.md](../data/talents.md#build-codes-verified)).
 
 | Spec | Build (points) | Code | Fit | Alternative preset |

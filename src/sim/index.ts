@@ -113,7 +113,8 @@ const now = () => (typeof performance !== 'undefined' ? performance.now() : 0)
 
 /**
  * Runs the simulation in Web Workers (or on this thread where there are none). Adaptive by
- * default: it stops once the headline's 95% CI is within 0.25% of its mean (decision D15).
+ * default: it stops once every headline metric's 95% CI is within 0.25% of its mean: DPS, or TPS
+ * and DPS for tank specs (decisions D15, D18).
  * Rejects with an AbortError if the signal aborts, and with a plain message if the setup can't be
  * simulated yet.
  */

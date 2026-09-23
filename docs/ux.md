@@ -74,9 +74,14 @@ About & data, Reset setup, and Theme (system, light, dark).
     available; buffs never depend on faction.
   - Grouped switches for raid buffs, target debuffs and consumables.
   - World buffs don't exist here ([D8](decisions.md#d8-world-buffs-are-excluded-2026-09-22)).
+  - A buff the rotation keeps up itself (a warrior's own Battle Shout) shows its switch on and
+    locked, with a note saying the rotation keeps it up, so it's never counted twice.
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
   with units, one line of help, and the default marked. **Reset to defaults** is always
   available.
+  - A setting that depends on a switch is dimmed while that switch is off.
+  - A consumable's row needs its Buffs switch. While that's off, the row says so
+    ("Not used: turn on … in Buffs first").
 - **Fight.**
   - Duration (default 180 s), boss armor preset, execute phase, number of targets, and
     whether you attack from the front (tanks) or behind (DPS).
@@ -133,6 +138,8 @@ Every view handles these states:
 - **Share** copies a URL with the compressed setup in the hash (`#s=…`). Opening one loads it
   and shows a toast with **Undo**, which restores the previous setup.
 - Setups are versioned, so an old link still loads, or explains why it can't.
+- A link to a spec the app doesn't offer yet shows an error toast and leaves the current setup
+  alone. A saved setup for such a spec is kept for later, and the default spec opens.
 
 ## Accessibility
 

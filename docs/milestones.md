@@ -140,7 +140,7 @@ work is in slices:
 
 ## Session handoff (2026-09-23)
 
-State: `main` is green (lint, typecheck, 1,014 unit, 190 e2e with 3 deferred to M3). Nothing is
+State: `main` is green (lint, typecheck, 1,043 unit, 216 e2e with 3 deferred to M3). Nothing is
 pushed. Fury and Arms are available.
 
 **The review gate for the first release is still open**, in
@@ -160,7 +160,7 @@ decides; the push waits for "Ready to push: yes" there.
   number field's display misread it). Number fields get a simpler design (M2.4e), and Undo
   goes (D21), which retires the toast findings.
 
-Golden runs: Fury 673.8 DPS, Arms 610.7 DPS, Protection 217.0 TPS.
+Golden runs: Fury 668.6 DPS, Arms 611.9 DPS, Protection 217.0 TPS.
 
 **Next:**
 1. **M2.4e–i:** number fields, remove Undo, Setups, rage from damage taken, then their

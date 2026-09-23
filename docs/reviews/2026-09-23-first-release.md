@@ -412,33 +412,40 @@ Checks: lint ✓ · typecheck ✓ · unit ✓ (1014) · e2e ✓ (190, 3 deferred
 | LX1 | medium | introduced for codes, pre-existing for links | **A code or link that isn't a usable setup replaces yours with defaults:** version 2, an unknown spec, `{}`, or a link whose JSON is `42` or `[]`. A link of `null` is silently ignored. With Undo gone, the replaced setup is lost. | fixed, `7b931de`: refused before normalizing (not an object, empty, a version other than 1, an unknown spec, nesting over 10), inline for codes and with a notice for links, leaving your setup alone |
 | LX2 | medium | introduced | **Re-importing a file adds a copy each time** when a save was renamed to avoid a clash ("Raid night (2)", "(3)", …). | fixed, `569eea2`: a save with the same config and the same name (ignoring " (n)") or id counts as already there |
 | LX3 | medium | introduced (continues earlier practice) | **Doctrine §2 let a Forever default contradict Classic Era only with client data**, but rage.md takes its defaults from third-party logs. | fixed, `fe22bc7`: user decision D22 lets reproducible analyses of public beta logs set a server-side default, tagged [?] |
-| LX4 | low | introduced | **Rage from damage taken is floored to a tenth per hit,** where the logs fit rounding (an 8-damage hit gave +0.3 against 0.26 predicted). Small damage streams lose their rage (10/s: all of it). | planned, fix slice B |
+| LX4 | low | introduced | **Rage from damage taken is floored to a tenth per hit,** where the logs fit rounding (an 8-damage hit gave +0.3 against 0.26 predicted). Small damage streams lose their rage (10/s: all of it). | fixed, `0e810c3` and `1caec54`: in Forever a white hit's or a hit taken's fraction of a tenth carries to the next (848 swings rule out flooring and rounding each gain); the one-hander constant becomes 3.46 (777 swings, 23 characters; 3.5 can't give the logged 8.9–9.0 on a 2.6 s weapon). Both [?] under D22, with open question 9 |
 | LX5 | low | introduced | **A deeply nested config crashes a file import** unhandled (RangeError), with no reason shown. | fixed, `569eea2`: nesting over 10 makes an entry unreadable, and the whole import is caught |
 | LX6 | low | introduced | **1,000 same-named saves in a file block the page for about 25 s** (cubic name uniquing). | fixed, `569eea2`: linear naming (a set plus a counter per base name) |
 | LX7 | low | introduced | **Save ids have no length cap,** so a file can fill localStorage, and then the automatic save throws out of every change. | fixed, `569eea2`: ids capped at 64, raw names at 240, and the automatic save catches a full storage with one notice |
 | LX8 | low | introduced | **Names can split an emoji at 60 characters,** and compare without NFC and with the locale's lowercase. | fixed, `569eea2`: NFC, locale-independent lowercase, truncation by code point |
 | LX9 | low | introduced | **Unreadable saves are dropped at the next save,** which the notice and ux.md don't say. | fixed, `569eea2`: unreadable saves are kept as stored, and downloaded too |
-| LX10 | low | introduced | **The "Damage you take" help** doesn't say the number is before mitigation or that it gives rage. | planned, B (as UX5) |
+| LX10 | low | introduced | **The "Damage you take" help** doesn't say the number is before mitigation or that it gives rage. | fixed, `dd3adc1` (as UX5) |
 | LX11 | low | introduced | **Stale milestone text** (a closed gap, old counts). | fixed, `697c102` |
-| LX12 | low | introduced | **`parseNumber` accepts `0x10`, `1e3` and `Infinity`.** | planned, B: digits and separators only |
-| LX13 | low | pre-existing (tooling) | **`npm run snap` and `test:e2e` share `dist/`**, so running them together breaks the tests. | planned, B: snap builds into its own folder |
+| LX12 | low | introduced | **`parseNumber` accepts `0x10`, `1e3` and `Infinity`.** | fixed, `5cb6606`: a sign, digits, separators and one decimal point only |
+| LX13 | low | pre-existing (tooling) | **`npm run snap` and `test:e2e` share `dist/`**, so running them together breaks the tests. | fixed, `44abefa`: snaps build into `.cache/snap-dist` |
 | UX1 | high, blocking | introduced | **Save overwrites a same-named save without saying so, even one for another spec:** typing "arms pvp-ish TEST" on Fury turns the Arms save into a Fury setup. Rename refuses the same name, so the two disagree. | fixed, `1269107`: a live line names the save, spec and date it would replace, and the button reads Replace |
 | UX2 | medium | introduced (Undo removal) | **Nothing says your setup was replaced** when a link, Import, Load or Reset replaces it. The reviewer also asks for a "recently replaced" list as a safety net. | wording fixed, `7b931de`: "It replaced your Arms Warrior setup…"; Reset says the spec's setup is back to its defaults. The safety net stays waived (D21) |
 | UX3 | medium | introduced | **Delete is instant and permanent,** next to Rename on a phone. | fixed, `1269107`: confirms in the row, with focus on Keep |
 | UX4 | medium | introduced | **The code field gives the wrong reason:** "hello" or a talent code reads as a damaged setup code, and a cut-off setups file as "not ours". | fixed, `7b931de`: short text, talent codes and damaged files each get their own reason |
-| UX5 | medium | introduced | **The "Damage you take" help predates M2.4h:** it doesn't say before armor, or that it gives rage. | planned, B |
+| UX5 | medium | introduced | **The "Damage you take" help predates M2.4h:** it doesn't say before armor, or that it gives rage. | fixed, `dd3adc1`: "What the boss deals you per second, before your armor. Each hit gives rage and can trigger Enrage. At 0 you're never hit." |
 | UX6 | low–medium | introduced | **Deleting the last save focuses the name field,** which opens a phone's keyboard. | fixed, `1269107` |
 | UX7 | low | introduced; documented exception | **A notice from Copy or Download covers the end of the sheet** for 10 s, fully hiding a focused Import field on a phone. | fixed, `1269107`: Copy and Download report in a status line under Export |
 | UX8 | low | introduced | **After Save, typing appends to the new default name.** | fixed, `1269107` |
 | UX9 | low | introduced | **Unclear wording** for Load and Import across specs, and "Open a file…" doesn't say it adds. | fixed, `1269107`: new wording, "Add setups from a file…", and a "New" badge on added rows |
 | UX10 | low | introduced | **Corrupt storage reads "No saved setups yet"** once its notice goes, and a full-storage message suggests deleting saves when there are none. | fixed, `1269107`: corrupt storage is a problem state in the list; full-storage messages depend on the case |
 | UX11 | low | introduced | **Rename is cramped at 320 px.** | fixed, `1269107` |
-| UX12 | low | introduced | **The damage-taken assumptions are split across three groups,** and the rage one reads awkwardly. | planned, B |
-| UX13 | low | pre-existing, breaks a ux.md promise | **Text field borders are 1.26:1 (light), about 1.5:1 (dark),** against ux.md's 3:1 for controls. | planned, B |
-| UX14 | low | introduced | **A click in a grouped number field can put the caret one place off,** as the comma goes. | planned, B |
+| UX12 | low | introduced | **The damage-taken assumptions are split across three groups,** and the rage one reads awkwardly. | fixed, `1352d7a`: `dpsDamageTaken` sits next to the rage formula; plainer wording |
+| UX13 | low | pre-existing, breaks a ux.md promise | **Text field borders are 1.26:1 (light), about 1.5:1 (dark),** against ux.md's 3:1 for controls. | fixed, `a842078`: `--input` gives 3.64:1 (light) and 3.51:1 (dark) on fields, selects, outline buttons and choices; an e2e measures every control type |
+| UX14 | low | introduced | **A click in a grouped number field can put the caret one place off,** as the comma goes. | fixed, `4320550`: after a press the field swaps once the browser has placed the caret, then maps it |
 | UX15 | low | pre-existing | **Bad number input gives no feedback:** "abc" reverts, 99999 clamps silently. | deferred: pre-existing, breaks no documented promise; listed in the known gaps |
+
+Golden runs after the fixes: Fury 673.8 → 668.6 DPS (409.0 → 405.5 TPS), from the one-hander
+constant 3.46; Arms 610.7 → 611.9 DPS, from carried fractions (a 3.5 s two-hander gives 15.75 a
+swing); Protection 217.0 TPS. Each change is explained in `src/sim/engine/engine.test.ts`.
+
+Checks after the fixes (`a842078`): lint ✓ · typecheck ✓ · unit ✓ (1043) · e2e ✓ (216, 3
+deferred to M3).
 
 ## Verdict
 
-Ready to push: not yet. UX1 is blocking; fix slices A (Setups) and B (engine and fields) are
-next, then a verification pass (D20).
+Ready to push: not yet. Every finding is fixed, waived or deferred; the fixes await their
+verification pass (D20).

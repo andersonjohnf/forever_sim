@@ -438,3 +438,32 @@ describe('the default Protection warrior (warrior.md §5.4)', () => {
     expect(b).toEqual(a)
   })
 })
+
+describe('Max TPS in the engine (warrior.md §5.4 "Max TPS", D26)', () => {
+  const MAX: SimConfig['rotation'] = { 'warrior.protection.priority': 'maxTps' }
+  const config = (rotation: SimConfig['rotation']): SimConfig => ({ ...defaultConfig('warrior-protection'), rotation, run: { mode: 'fixed', iterations: 2000, seed: 33 } })
+
+  it('lets the Buffs tab’s Thunder Clap and Demoralizing Shout count, as another warrior’s, once the rotation drops its own', () => {
+    const duties = buildPlan(config({})).plan
+    const max = buildPlan(config(MAX)).plan
+    // The rotation's own debuffs replace the Buffs tab's: the boss starts unslowed, at full attack power.
+    expect([duties.fight.bossSwing!.slow, duties.fight.bossSwing!.minDamage]).toEqual([0, 4500])
+    // With Max TPS the Standard raid preset's Thunder Clap slows it 20%, and its Demoralizing Shout
+    // takes 204 × 2.0 / 14 off each swing, from the pull (WE-4, WE-5).
+    expect(max.fight.bossSwing!.slow).toBeCloseTo(0.2, 12)
+    expect(max.fight.bossSwing!.minDamage).toBeCloseTo(4500 - (204 * 2) / 14, 9)
+    // Its rows: no Shield Block, Shield Slam, Thunder Clap or Demoralizing Shout.
+    const used = new Set(max.rotation.map((e) => max.abilities[e.ability].id))
+    for (const id of ['shieldBlock', 'shieldSlam', 'thunderClap', 'demoralizingShout']) expect(used.has(id), id).toBe(false)
+  })
+
+  it('makes more threat and less damage than the default, on the same fights', () => {
+    const duties = runFights(buildPlan(config({})).plan, 2000)
+    const max = runFights(buildPlan(config(MAX)).plan, 2000)
+    // §5.4 "Max TPS": about +12% TPS and −28% DPS in the default setup.
+    expect(max.tps.mean / duties.tps.mean).toBeGreaterThan(1.1)
+    expect(max.tps.mean / duties.tps.mean).toBeLessThan(1.14)
+    expect(max.dps.mean / duties.dps.mean).toBeGreaterThan(0.69)
+    expect(max.dps.mean / duties.dps.mean).toBeLessThan(0.75)
+  })
+})

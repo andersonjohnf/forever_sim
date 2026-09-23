@@ -23,7 +23,7 @@ import {
   thunderClap,
 } from './abilities'
 import { IMPROVED_REVENGE_PCT_PER_RANK, withTalents } from './modifiers'
-import { PROTECTION_IDS as ID, PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation } from './protection'
+import { PROTECTION_IDS as ID, PROTECTION_OPTIONS, PROTECTION_PRIORITY, protectionMaintainedBuffs, protectionRotation } from './protection'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
 const RAGE = 1
@@ -190,7 +190,11 @@ describe('Protection rotation options (warrior.md §5.1, §5.4)', () => {
   it('declares valid, uniquely named settings in its spec’s namespace', () => {
     const optionIds = PROTECTION_OPTIONS.map((o) => o.id)
     expect(new Set(optionIds).size).toBe(optionIds.length)
-    for (const option of PROTECTION_OPTIONS) {
+    // The priority shapes the rest, so it comes first, without a heading (docs/ux.md "Rotation").
+    const [priority, ...rest] = PROTECTION_OPTIONS
+    expect(priority).toMatchObject({ kind: 'choice', id: 'warrior.protection.priority', default: 'duties' })
+    expect(priority.group).toBeUndefined()
+    for (const option of rest) {
       expect(option.id).toMatch(/^warrior\.protection\.[a-zA-Z]+\.[a-zA-Z]+$/)
       expect(option.label.length).toBeGreaterThan(0)
       expect(option.help.length).toBeGreaterThan(0)
@@ -224,6 +228,46 @@ describe('Protection rotation options (warrior.md §5.1, §5.4)', () => {
       [ID.demoEnabled, 'demoralizingShout'],
       [ID.fillerEnabled, 'sunderArmor'],
     ])
+  })
+})
+
+describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
+  const MAX = { [ID.priority]: PROTECTION_PRIORITY.maxTps }
+  const DUTIES = [ID.sbEnabled, ID.slamEnabled, ID.tcEnabled, ID.demoEnabled]
+
+  it('drops Shield Block, Shield Slam, Thunder Clap and Demoralizing Shout by default, and queues Heroic Strike from 50', () => {
+    const duties = resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)
+    const max = resolveRotationValues(PROTECTION_OPTIONS, MAX, TALENTS)
+    for (const id of DUTIES) expect([id, duties[id], max[id]]).toEqual([id, true, false])
+    expect([duties[ID.hsMinRage], max[ID.hsMinRage]]).toEqual([65, 50])
+    // Nothing else moves: the search found no other setting better (§5.4 "Max TPS").
+    const moved = Object.keys(duties).filter((id) => duties[id] !== max[id])
+    expect(moved.sort()).toEqual([ID.priority, ...DUTIES, ID.hsMinRage].sort())
+    // Each switch's help says it follows the choice.
+    for (const id of [...DUTIES, ID.hsMinRage]) expect(PROTECTION_OPTIONS.find((o) => o.id === id)!.help, id).toContain('Max TPS')
+  })
+
+  it('keeps a value you set yourself, and the tank-duties choice is the default', () => {
+    const own = resolveRotationValues(PROTECTION_OPTIONS, { ...MAX, [ID.sbEnabled]: true, [ID.hsMinRage]: 70 }, TALENTS)
+    expect([own[ID.sbEnabled], own[ID.hsMinRage], own[ID.tcEnabled]]).toEqual([true, 70, false])
+    const back = resolveRotationValues(PROTECTION_OPTIONS, { [ID.priority]: PROTECTION_PRIORITY.duties }, TALENTS)
+    expect(back).toEqual(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS))
+  })
+
+  it('leaves Thunder Clap and Demoralizing Shout to the Buffs tab, and its rows are the rest of the list', () => {
+    expect(protectionMaintainedBuffs(MAX)).toEqual(['battleShout', 'sunderArmor'])
+    const r = protectionRotation(MAX, TALENTS, noAura, { race: 'alliance-human' })
+    expect(r.rotation.map((e) => r.abilities[e.ability].id)).toEqual([
+      'bloodrage',
+      'revenge',
+      'battleShout',
+      'sunderArmor',
+      'sunderArmor',
+      'sunderArmor',
+      'heroicStrike',
+      'heroicStrike',
+    ])
+    expect(linesOf(r, 'heroicStrike')[0].conditions).toEqual([{ code: COND.minRage, a: 500, b: 0 }])
   })
 })
 

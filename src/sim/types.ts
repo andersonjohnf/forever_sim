@@ -160,11 +160,12 @@ export type LegacyDamageTakenRageModel = 'foreverHp' | 'foreverHpPreArmor'
 export type RotationValue = number | boolean | string
 
 /**
- * A default that depends on the setup (docs/classes/warrior.md §5.3): used when the build has
+ * A default that depends on the setup (docs/classes/warrior.md §5.1, §5.3): used when the build has
  * `talent`, or when another option (declared earlier in the list) currently has the value `is`.
- * The first entry that matches wins; with none, the option's `default` applies.
+ * The first entry that matches wins; with none, the option's `default` applies. A switch's is on or
+ * off; a number's is a number (Protection's Max TPS moves Heroic Strike's threshold, §5.4).
  */
-export type RotationDefaultWhen = ({ talent: string } | { option: string; is: RotationValue }) & { default: boolean }
+export type RotationDefaultWhen<V extends boolean | number = boolean> = ({ talent: string } | { option: string; is: RotationValue }) & { default: V }
 
 /**
  * The heading a rotation setting sits under on the Rotation tab (docs/ux.md "Rotation"). The tab
@@ -223,6 +224,8 @@ export type RotationOption =
       max: number
       step: number
       default: number
+      /** Defaults that follow another setting (Protection: Heroic Strike's threshold with Max TPS). */
+      defaultWhen?: RotationDefaultWhen<number>[]
       /** Id of a toggle that must be on for this input to apply. */
       dependsOn?: string
       /**

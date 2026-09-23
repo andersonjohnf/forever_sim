@@ -57,6 +57,7 @@ import {
 const P = 'warrior.protection'
 const ID = {
   ...sharedIds('protection'),
+  priority: `${P}.priority`,
   sbEnabled: `${P}.shieldBlock.enabled`,
   sbMinRage: `${P}.shieldBlock.minRage`,
   slamEnabled: `${P}.shieldSlam.enabled`,
@@ -80,6 +81,15 @@ export const PROTECTION_IDS = ID
 /** The default build's rage cap: no Boundless Rage (warrior.md §5.4). Rage thresholds are absolute (§5.1). */
 const PROT_MAX_RAGE = 100
 
+/**
+ * The priority choice's values (warrior.md §5.4 "Max TPS", decision D26): the default keeps the
+ * tank's duties; Max TPS drops them, and Shield Slam, for threat alone.
+ */
+export const PROTECTION_PRIORITY = { duties: 'duties', maxTps: 'maxTps' } as const
+const MAX_TPS = { option: ID.priority, is: PROTECTION_PRIORITY.maxTps } as const
+/** Max TPS's Heroic Strike threshold (§5.4 "Max TPS"): 50, where the duties' default is 65. */
+const MAX_TPS_HS_MIN_RAGE = 50
+
 /** A debuff's refresh input, in seconds left (rows 8–10). */
 const refreshOption = (id: string, what: string, dependsOn: string, def = 3): RotationOption => ({
   kind: 'number',
@@ -101,6 +111,17 @@ const refreshOption = (id: string, what: string, dependsOn: string, def = 3): Ro
  * scripts/tune/rotation.mjs).
  */
 export const PROTECTION_OPTIONS: RotationOption[] = [
+  {
+    kind: 'choice',
+    id: ID.priority,
+    label: 'Priority',
+    help: 'Tank duties first keeps Shield Block, Thunder Clap’s slow and Demoralizing Shout up, which keep you alive and weaken the boss for the raid, and Shield Slam for its damage. Max TPS drops all four for threat alone: about 12% more TPS and 28% less DPS in the default setup. The Buffs tab’s Thunder Clap and Demoralizing Shout then count, as another warrior’s.',
+    choices: [
+      { value: PROTECTION_PRIORITY.duties, label: 'Tank duties first' },
+      { value: PROTECTION_PRIORITY.maxTps, label: 'Max TPS' },
+    ],
+    default: PROTECTION_PRIORITY.duties,
+  },
   ...prepullOptions(
     ID,
     'Open with Charge for 15 rage (+3 per Improved Charge rank). With Vanguard you Charge in Defensive Stance, and it’s on by default; without it, the swap back keeps at most 10 rage, plus 3 per Improved Tactical Mastery rank.',
@@ -117,8 +138,9 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.sbEnabled,
     group: 'Cooldowns and buffs',
     label: 'Shield Block',
-    help: 'Use Shield Block on cooldown: +75% block chance for your next 2 blocks, up to 7 s. Each block gives 5 rage with Shield Specialization 5/5 and opens Revenge.',
+    help: 'Use Shield Block on cooldown: +75% block chance for your next 2 blocks, up to 7 s. Each block gives 5 rage with Shield Specialization 5/5 and opens Revenge. Off by default with Max TPS.',
     default: true,
+    defaultWhen: [{ ...MAX_TPS, default: false }],
   },
   rageOption(ID.sbMinRage, 'Shield Block from', 'Use it only at or above this much rage. It costs 10.', 10, ID.sbEnabled, 'Cooldowns and buffs'),
   ...bloodrageOptions(ID, {
@@ -133,8 +155,9 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.slamEnabled,
     group: 'Core abilities',
     label: 'Shield Slam',
-    help: 'Use Shield Slam whenever it’s ready. Needs the Shield Slam talent and a shield.',
+    help: 'Use Shield Slam whenever it’s ready, for its damage. Needs the Shield Slam talent and a shield. Off by default with Max TPS: its global cooldowns make more threat as Sunder Armor.',
     default: true,
+    defaultWhen: [{ ...MAX_TPS, default: false }],
   },
   rageOption(ID.slamMinRage, 'Shield Slam from', 'Use it only at or above this much rage. It costs 17 with the default talents.', 17, ID.slamEnabled, 'Core abilities'),
   {
@@ -160,8 +183,9 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.tcEnabled,
     group: 'Core abilities',
     label: 'Thunder Clap',
-    help: 'Keep Thunder Clap’s slow on the boss: it attacks 20% slower (10% in Classic Era rules). While this is on, the Buffs tab’s Thunder Clap adds nothing more.',
+    help: 'Keep Thunder Clap’s slow on the boss: it attacks 20% slower (10% in Classic Era rules). While this is on, the Buffs tab’s Thunder Clap adds nothing more. Off by default with Max TPS.',
     default: true,
+    defaultWhen: [{ ...MAX_TPS, default: false }],
     maintainsBuff: 'thunderClap',
   },
   {
@@ -179,8 +203,9 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.demoEnabled,
     group: 'Core abilities',
     label: 'Demoralizing Shout',
-    help: 'Keep Demoralizing Shout on the boss: its attack power is 204 lower (146 in Classic Era rules), so it hits you for less. While this is on, the Buffs tab’s Demoralizing Shout adds nothing more.',
+    help: 'Keep Demoralizing Shout on the boss: its attack power is 204 lower (146 in Classic Era rules), so it hits you for less. While this is on, the Buffs tab’s Demoralizing Shout adds nothing more. Off by default with Max TPS.',
     default: true,
+    defaultWhen: [{ ...MAX_TPS, default: false }],
     maintainsBuff: 'demoralizingShout',
   },
   refreshOption(ID.demoRefresh, 'Demoralizing Shout', ID.demoEnabled),
@@ -211,6 +236,14 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
       help: 'Queue Heroic Strike on the next main-hand swing when rage is high, to spend rage the global cooldowns can’t.',
     },
     { default: false, spenders: 'Shield Slam or Sunder Armor' },
+  ).map((o): RotationOption =>
+    o.id === ID.hsMinRage && o.kind === 'number'
+      ? {
+          ...o,
+          help: `Queue it at or above this much rage. With Max TPS it’s ${MAX_TPS_HS_MIN_RAGE} by default: with no duties or Shield Slam to pay for, there’s more rage to spend.`,
+          defaultWhen: [{ ...MAX_TPS, default: MAX_TPS_HS_MIN_RAGE }],
+        }
+      : o,
   ),
   {
     kind: 'number',
@@ -226,9 +259,10 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     dependsOn: ID.hsEnabled,
   },
   {
+    // Under Core abilities: a heading over one setting says nothing (docs/ux.md "Rotation").
     kind: 'toggle',
     id: ID.exEnabled,
-    group: 'Execute phase',
+    group: 'Core abilities',
     label: 'Execute',
     help: 'In the execute phase, swap to Battle Stance for Execute and back. Battle Stance loses Defensive Stance’s threat, and the swap keeps at most 10 rage (plus 3 per Improved Tactical Mastery rank), less than Execute’s cost without that talent.',
     default: false,

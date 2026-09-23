@@ -177,9 +177,11 @@ describe('rotation groups (docs/ux.md "Rotation")', () => {
     it(`puts every ${spec.name} setting under a heading, a dependent one with its parent or naming it`, () => {
       const options = spec.rotationOptions
       for (const [i, option] of options.entries()) {
-        // Only Arms' stance, which shapes the rest, comes first without a heading.
-        if (option.id === 'warrior.arms.baseStance') expect(option.group).toBeUndefined()
-        else expect(rotationGroups, option.id).toContain(option.group)
+        // Only Arms' stance and Protection's priority, which shape the rest, come first without a heading.
+        if (option.id === 'warrior.arms.baseStance' || option.id === 'warrior.protection.priority') {
+          expect(option.group).toBeUndefined()
+          expect(i, option.id).toBe(0)
+        } else expect(rotationGroups, option.id).toContain(option.group)
         if (option.dependsOn === undefined) continue
         const p = options.findIndex((o) => o.id === option.dependsOn)
         const parent = options[p]
@@ -241,6 +243,12 @@ describe('rotationValues', () => {
     const prot = defaultConfig('warrior-protection')
     expect(rotationValues(prot)['warrior.protection.prepull.charge']).toBe(true)
     expect(rotationValues({ ...prot, talents: '' })['warrior.protection.prepull.charge']).toBe(false)
+    // Its priority moves switches and a number: Max TPS drops the duties and Shield Slam (§5.4, D26).
+    expect(rotationValues({ ...prot, rotation: { 'warrior.protection.priority': 'maxTps' } })).toMatchObject({
+      'warrior.protection.shieldBlock.enabled': false,
+      'warrior.protection.shieldSlam.enabled': false,
+      'warrior.protection.heroicStrike.minRage': 50,
+    })
     expect(rotationValues(defaultConfig('druid-feral-cat'))).toEqual({})
   })
 })

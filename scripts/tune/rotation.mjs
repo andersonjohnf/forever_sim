@@ -48,6 +48,8 @@
 //   --creature <type>     target creature type (default none)
 //   --position <side>     behind or front (default: the spec's, behind for DPS)
 //   --profile <id>        the rules profile, forever or classicEra (default forever)
+//   --buffs-off <ids>     Buffs switches to turn off, comma-separated (e.g. thunderClap,demoralizingShout: nobody
+//                         else in the raid keeps them up); each must be on in the spec's default setup
 //   --metric dps|tps      what to compare (default: tps for a tank spec, dps otherwise)
 //   --workers <n>         worker threads (default: available cores − 1)
 //   --against <commit>    the baseline is that commit's engine and defaults (see above)
@@ -324,6 +326,7 @@ async function main() {
       creature: { type: 'string' },
       position: { type: 'string' },
       profile: { type: 'string' },
+      'buffs-off': { type: 'string', default: '' },
       metric: { type: 'string' },
       base: { type: 'string', default: '' },
       sweep: { type: 'string', multiple: true, default: [] },
@@ -388,8 +391,13 @@ async function main() {
   if (args.creature !== undefined) fight.creatureType = args.creature
   if (args.position !== undefined) fight.position = args.position
   const rules = args.profile === undefined ? d.rules : { ...d.rules, profile: args.profile }
+  // Raid composition, not the rotation (D23): the same Buffs for every config.
+  const buffsOff = args['buffs-off'] ? args['buffs-off'].split(',').map((b) => b.trim()) : []
+  for (const b of buffsOff) if (!d.buffs.enabled.includes(b)) throw new Error(`--buffs-off: ${b} isn't on in ${specId}'s default setup (${d.buffs.enabled.join(', ')})`)
+  const buffs = { ...d.buffs, enabled: d.buffs.enabled.filter((b) => !buffsOff.includes(b)) }
   const config = (settings) => ({
     ...d,
+    buffs,
     fight,
     rules,
     rotation: Object.fromEntries(settings),
@@ -417,6 +425,7 @@ async function main() {
     `creature ${fight.creatureType}`,
     `${fight.position}`,
     `profile ${rules.profile}`,
+    ...(buffsOff.length ? [`Buffs off: ${buffsOff.join(', ')}`] : []),
     `seed ${seed}`,
     `${fights} fights per candidate, paired`,
   ].join('; ')

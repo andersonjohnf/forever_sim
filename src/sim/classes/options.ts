@@ -2,7 +2,7 @@
 //
 // A saved value wins; otherwise the option's default for this setup: the first `defaultWhen`
 // entry that matches (a talent the build has, or another option's current value), else its
-// plain `default`. The plan builder and the Rotation tab both read settings through this, so what
+// plain `default`. Switches and numbers can follow the setup; a choice has one default. The plan builder and the Rotation tab both read settings through this, so what
 // the tab shows is what the sim uses.
 import type { RotationOption, RotationValue } from '../types'
 
@@ -20,7 +20,7 @@ export function resolveRotationValues(
     const option = byId.get(id)
     if (!option) return undefined
     let value: RotationValue = saved[id] ?? option.default
-    if (saved[id] === undefined && option.kind === 'toggle' && option.defaultWhen && depth < byId.size) {
+    if (saved[id] === undefined && option.kind !== 'choice' && option.defaultWhen && depth < byId.size) {
       const hit = option.defaultWhen.find((w) => ('talent' in w ? (talents.get(w.talent) ?? 0) > 0 : resolve(w.option, depth + 1) === w.is))
       if (hit) value = hit.default
     }

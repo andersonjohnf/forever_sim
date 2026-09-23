@@ -124,8 +124,7 @@ function rank(item: Item, spec: SpecId, slot: PreRaidBisSlot): number {
 /**
  * Default enchants per spec (docs/mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec).
  * Shoulder enchants (Zandalar, Scourge) are defaults only if the guild confirms that content
- * exists in Forever, so their fallback, none, applies. Paladin and druid enchants come with
- * those specs.
+ * exists in Forever, so their fallback, none, applies. Paladin enchants come with that spec.
  */
 const WARRIOR_DPS_ENCHANTS: Partial<Record<GearSlot, string>> = {
   head: 'arcanumVoracityStrength',
@@ -139,6 +138,20 @@ const WARRIOR_DPS_ENCHANTS: Partial<Record<GearSlot, string>> = {
   offHand: 'crusader',
   neck: 'neckStrength',
 }
+/**
+ * The feral enchants (buffs doc §6.4; docs/classes/druid.md §7): Agility everywhere it's offered,
+ * the two-hander's +25 Agility, and the bear's threat gloves. Shoulders stay empty ([none]).
+ */
+const FERAL_ENCHANTS: Partial<Record<GearSlot, string>> = {
+  head: 'arcanumVoracityAgility',
+  legs: 'arcanumVoracityAgility',
+  back: 'cloakAgility',
+  chest: 'chestGreaterStats',
+  wrist: 'bracerSuperiorAgility',
+  hands: 'gloveGreaterAgility',
+  feet: 'bootsGreaterAgility',
+  mainHand: 'twoHandAgility',
+}
 const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>>> = {
   'warrior-fury': WARRIOR_DPS_ENCHANTS,
   'warrior-arms': WARRIOR_DPS_ENCHANTS,
@@ -147,7 +160,16 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
     hands: 'gloveThreat',
     offHand: 'shieldGreaterStamina',
   },
+  'druid-feral-cat': FERAL_ENCHANTS,
+  'druid-feral-bear': { ...FERAL_ENCHANTS, hands: 'gloveThreat' },
 }
+
+/**
+ * Specs whose default weapon is the two-hander even when the lists also rank a one-hander: a
+ * feral's weapon damage does nothing in form, and the two-hander's enchant is the bigger one
+ * (docs/classes/druid.md §7.3).
+ */
+const TWO_HAND_SPECS: ReadonlySet<SpecId> = new Set(['druid-feral-cat', 'druid-feral-bear'])
 
 /**
  * The spec's pre-raid BiS gear for a character of this race: each slot takes its best-ranked item
@@ -177,7 +199,7 @@ export function defaultGear(spec: SpecId, race = DEFAULT_RACE[SPEC_META[spec].cl
 
   const twoHands = bisFor(spec, 'twoHand')
   const mainHands = bisFor(spec, 'mainHand')
-  if (twoHands.length > 0 && mainHands.length === 0) {
+  if (twoHands.length > 0 && (mainHands.length === 0 || TWO_HAND_SPECS.has(spec))) {
     put('mainHand', twoHands)
   } else {
     put('mainHand', mainHands)

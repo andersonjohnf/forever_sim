@@ -164,6 +164,16 @@ export interface ProcPlan {
    * absent or −1 for none.
    */
   requiresAura?: number
+  /**
+   * A PPM proc's rate (damage-and-timing §5.1), kept so a shapeshift can re-resolve its main-hand
+   * chance from the new form's swing speed (druid.md §2.1); absent for flat chances.
+   */
+  ppm?: number
+  /**
+   * Bit mask of the plan's forms (1 << index into `Plan.forms`) it can be rolled in (Primal Fury's
+   * rage: bear only, druid.md §4.8); absent or 0 for any form.
+   */
+  forms?: number
 }
 
 export interface SourcePlan {
@@ -201,9 +211,11 @@ export interface AbilityPlan {
    * consumables; warrior.md §3.2, §2.9, §5.2). The damage fields are unused;
    * `bleed`: one roll for miss, dodge and parry and no crit; if it lands it puts its bleed on the
    * target (`dotTicks` ticks of `dotTickDamage`) and `aura` marks it there (Rend, warrior.md
-   * §3.1; damage-and-timing §4). The direct-damage fields are unused.
+   * §3.1; damage-and-timing §4). The direct-damage fields are unused;
+   * `shift`: no attack: a druid's shapeshift into form `shiftTo`, with the form's entry rules for
+   * Energy and rage (Furor, druid.md §2.8). The damage fields are unused.
    */
-  kind: 'weaponStrike' | 'meleeSpell' | 'onNextSwing' | 'cast' | 'bleed'
+  kind: 'weaponStrike' | 'meleeSpell' | 'onNextSwing' | 'cast' | 'bleed' | 'shift'
   /** Rage cost in tenths after the build's talent reductions (warrior.md §2.3 "Cost reductions"). */
   costTenths: number
   cooldownMs: number
@@ -305,6 +317,40 @@ export interface AbilityPlan {
   rageTickMs: number
   /** Uses per fight, then never again (Mighty Rage Potion: once, warrior.md §5.2 row 16); 0 = no limit. */
   usesPerFight: number
+  // --- Druid resources and forms (docs/classes/druid.md §2). All optional: a row without them is
+  // a rage ability usable in any form, as every warrior row is. ---
+  /**
+   * The pool `costTenths` is paid from, refunds go back to, a `cast`'s `rageTenths` and ticks go to,
+   * and `damagePerExtraRage` reads and a landed hit then spends (Ferocious Bite's Energy, druid.md
+   * §3.5). All pools are in tenths. Absent: rage.
+   */
+  resource?: 'rage' | 'energy' | 'mana'
+  /** Bit mask of the plan's forms (1 << index into `Plan.forms`) it can be used in; absent or 0: any. */
+  forms?: number
+  /** Combo points it awards when it lands (a cat builder: 1, druid.md §2.5). */
+  comboPoints?: number
+  /** Chance of one more combo point on a non-periodic crit (Primal Fury: 0.5 per rank, druid.md §2.5). */
+  critComboPointChance?: number
+  /**
+   * A finisher (Rip, Ferocious Bite, druid.md §2.5): usable only with a combo point, and a landed hit
+   * spends them all; a miss, dodge or parry keeps them.
+   */
+  finisher?: boolean
+  /** Damage per combo point spent, and attack-power coefficient per combo point (Ferocious Bite, druid.md §3.5). */
+  damagePerComboPoint?: number
+  apCoefficientPerComboPoint?: number
+  /** The most combo points the attack-power terms count (Rip: 4, druid.md §3.4); absent: 5. */
+  comboPointApCap?: number
+  /**
+   * `bleed`: tick damage per combo point, and attack power per combo point per tick, snapshotted at
+   * the application (Rip, druid.md §3.4, §2.9).
+   */
+  dotTickPerComboPoint?: number
+  dotApCoefficientPerComboPoint?: number
+  /** A Clearcasting charge (`Plan.freeCastAura`) makes it cost nothing, and is used up (druid.md §2.7). */
+  clearcastable?: boolean
+  /** `shift`: the form it shifts into (an index into `Plan.forms`, druid.md §2.8). */
+  shiftTo?: number
 }
 
 /**
@@ -381,6 +427,12 @@ export const COND = {
    * a wake-up of the rotation at `execute start − a`.
    */
   executeWithin: 13,
+  /** Energy ≥ a (tenths; druid.md §6.2) */
+  minEnergy: 14,
+  /** Energy ≤ a (tenths): Tiger's Fury waits so its Energy isn't lost at the cap (druid.md §6.2) */
+  maxEnergy: 15,
+  /** combo points ≥ a (druid.md §2.5, §6.2) */
+  minComboPoints: 16,
 } as const
 
 export interface RotationCondition {
@@ -534,7 +586,78 @@ export interface Plan {
   abilities: AbilityPlan[]
   rotation: RotationEntry[]
   prepull: PrepullPlan
+  /**
+   * A druid's forms (docs/classes/druid.md §2.1, §2.2, §2.8), or absent for classes without them.
+   * The plan's static stats, main hand and threat multiplier are those of `forms[form]`, the form it
+   * fights in; a `shift` ability swaps in another's. Armor and maximum health stay the starting
+   * form's (druid.md §8).
+   */
+  forms?: FormPlan[]
+  /** The index into `forms` of the form the fight starts in. */
+  form?: number
+  /** What entering a form does to Energy and rage (druid.md §2.8); absent without forms. */
+  shapeshift?: ShapeshiftPlan
+  /** Energy (druid.md §2.4): absent for classes without it. */
+  energy?: EnergyPlan
+  /** Mana and its regeneration (druid.md §2.8): absent unless the plan can spend mana. */
+  mana?: ManaPlan
+  /** The plan aura that makes the next ability with a cost free (Clearcasting, druid.md §2.7), or absent. */
+  freeCastAura?: number
 }
+
+/** One druid form (druid.md §2.1, §2.2, §2.3): everything a shapeshift swaps in. */
+export interface FormPlan {
+  id: 'caster' | 'cat' | 'bear'
+  name: string
+  /** The stat block in the form: the shared one plus the form's own effects and form-bound talents. */
+  stats: StatBlock
+  /** The main hand in the form: the form's own weapon (cat, bear), the equipped one (caster), or none. */
+  mainHand: WeaponPlan | null
+  /** The global threat multiplier in the form (the plan's static sources × the form's own, threat.md). */
+  threatMult: number
+  /**
+   * White hits and hits taken give rage in this form: only in bear, whose power is rage (druid.md
+   * §2.4, rage.md#bear-druid-rage). Spell energizes (Furor, Primal Fury, a potion) give it in any.
+   */
+  rage: boolean
+}
+
+/** Entering a form (druid.md §2.8, rage.md#bear-druid-rage). */
+export interface ShapeshiftPlan {
+  /** Indices into `Plan.forms` (−1 when the plan has no such form). */
+  caster: number
+  cat: number
+  bear: number
+  /** Furor's rank: the Energy kept on entering cat (core/formulas.ts `furorCatEnergyTenths`). */
+  furorRank: number
+  /** Rage on entering bear, after rage is set to 0, and its chance (Furor: 10 rage at 20% per rank). */
+  bearRageTenths: number
+  bearRageChance: number
+}
+
+/** Energy (druid.md §2.4), in tenths. */
+export interface EnergyPlan {
+  maxTenths: number
+  /** At the pull. */
+  startTenths: number
+  /** Gained on every power tick. */
+  tickTenths: number
+}
+
+/** Mana (druid.md §2.8, character-stats.md#spirit-and-mana-regeneration), in tenths. */
+export interface ManaPlan {
+  maxTenths: number
+  /** Spirit regeneration per power tick, outside the five-second rule. */
+  regenTickTenths: number
+  /** How long after spending mana spirit regeneration stops (the five-second rule). */
+  fiveSecondRuleMs: number
+}
+
+/**
+ * The player-global power tick (druid.md §2.4): Energy and mana regenerate every this many ms,
+ * from a random phase in [0, tick) at the pull [?].
+ */
+export const POWER_TICK_MS = 2000
 
 /** What the main thread keeps next to the plan: the sheet and assumptions for the result. */
 export interface PlanBundle {

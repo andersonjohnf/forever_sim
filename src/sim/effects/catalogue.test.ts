@@ -183,6 +183,8 @@ const ROWS: Record<string, Row> = {
   mightfishSteak: { forever: [['ap', 40]], classicEra: [['sta', 10]], rows: [S(1249515, 1)], classicRows: [S(18191)] },
   // Forever: Well Fed 1249523 is all crit (aura 290), so spell crit too.
   grilledSquid: { forever: [['crit', 1], ['spellCrit', 1]], classicEra: [['agi', 10]], rows: [S(1249522, 1), S(1249523)], classicRows: [S(18192)] },
+  // New in Forever: Flank au Poivre (250069) → Nutritious Food 1248399, whose Well Fed 1248420 is Agility (aura 29, misc 1).
+  flankAuPoivre: { foreverOnly: true, rows: [S(1248399, 1)] },
   denseSharpeningStone: { rows: [E(1643, 16138)] },
   elementalSharpeningStone: { rows: [E(2506, 22756)] },
   mightyRagePotion: { rows: [S(17528, 0, { bound: 'min' }), S(17528, 0, { bound: 'max' }), S(17528, 1)] },
@@ -260,7 +262,7 @@ const ENTRIES: [string, CatalogueEntry][] = [...BUFFS.map((b) => [b.id, b] as [s
 describe('the catalogue in both profiles (buffs doc, Classic Era values)', () => {
   it('lists every entry once in the table, as the doc does', () => {
     expect(Object.keys(ROWS).sort()).toEqual(ENTRIES.map(([id]) => id).sort())
-    expect(ENTRIES).toHaveLength(98)
+    expect(ENTRIES).toHaveLength(99)
   })
 
   it.each(ENTRIES)('%s: Forever’s values, and Classic Era’s where they differ', (id, entry) => {

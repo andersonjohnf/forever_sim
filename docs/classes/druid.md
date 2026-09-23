@@ -13,7 +13,9 @@ foreverchanges are tooltip artefacts: Rip, Cat Form AP and Bear Form health. Thi
 real changes from those artefacts using the client DB2 tables, and specifies every formula,
 rotation setting and default the engine needs for cat DPS and bear TPS at level 60.
 
-Status: researched 2026-09-22 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
+Status: researched 2026-09-22 · foundation in the engine 2026-09-23 (forms, Energy, combo points,
+Clearcasting, shapeshifts, talents and defaults; the cat and bear abilities and rotations come
+next, [§8](#8-implementation-notes)) · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 
 Forever client build `1.60.1.69913`, Classic Era client build `1.15.9.69722`. Source links use
 short labels, which are resolved under [Sources](#sources).
@@ -182,6 +184,16 @@ foreverchanges tooltips; [client] marks the rows confirmed against the raw clien
   (secondary [ws-talents]; Q28). PPM values themselves are server-side: no `SpellAuraOptions` row
   in the client references a PPM row ([client]).
 
+**In the engine** (`src/sim/classes/druid/forms.ts`, `formWeapon`). In Cat and Dire Bear Form the
+main hand is the form's weapon above, whatever is equipped, and with no weapon equipped too:
+- The item's **flat weapon damage** (a sharpening stone, Superior Striking) is weapon damage, so
+  it's left out in form [?] (Q25). Its hit and crit bonuses, and every stat, still count.
+- Its attacks use the level's base **weapon skill**, 300: items' weapon skill doesn't apply in
+  form [?] (Q28).
+- They count as **one-handed** for Forever's normalized rage: 3.46 × 2.5 = 8.65 rage per landed
+  bear swing [?] ([rage.md](../mechanics/rage.md#bear-druid-rage)).
+- A shapeshift re-resolves each PPM proc's chance from the new form's speed (§2.8).
+
 ### 2.2 Attack power in forms
 
 Coordinate with [character-stats.md](../mechanics/character-stats.md), which owns base stats and
@@ -194,17 +206,24 @@ AP_bear = 2×Str − 20         + 180 (Dire Bear) + 90 (Predatory Strikes 3/3) +
 
 | Term | Value | Tag, source |
 | --- | --- | --- |
-| Druid AP per Str, base offset | 2 AP per Str, −20 | 2 AP per Str [F] (client `ChrClasses.AttackPowerPerStrength`, [character-stats § Strength](../mechanics/character-stats.md#strength), which owns it); −20 offset [?] (secondary [ws-base]; [character-stats OQ-7](../mechanics/character-stats.md#oq-7-base-attack-power-formulas)) |
+| Druid AP per Str, base offset | 2 AP per Str, −20 | 2 AP per Str [F] (client `ChrClasses.AttackPowerPerStrength`, [character-stats § Strength](../mechanics/character-stats.md#strength), which owns it); −20 offset [?] placeholder (D24); origin: [ws-base], not evidence ([character-stats OQ-7](../mechanics/character-stats.md#oq-7-base-attack-power-formulas); about 0.7% of cat DPS) |
 | Agility → AP | 1 per Agi, **cat only** (Forever makes it data: aura 598, 100% of Agility) | [F] [client] (SpellEffect 3025 effect 5, 1.60.1.69913); [C] [fc-book] (Classic Cat Form tooltip "…by 40 plus Agility") |
 | Cat Form | 2 × level = 120 | [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913); [C] [se-c] |
 | Dire Bear Form | 120 + 3×(level − 40) = 180 | [F]/[C] [se-f] [se-c] |
 | Predatory Strikes 1/2/3 | 0.5/1.0/1.5 × level = 30/60/90 | [F] [trait-f] [fc-tal]; [C] [fc-tal] (Classic text "…by 150% of your level") |
 | "Attack Power in Cat, Bear, and Dire Bear forms" on items | Added 1:1, only in those forms. No talent multiplies it | [?] (the item text reads as flat AP; secondary [ws-forms]) (Q28) |
 | Heart of the Wild (cat) | Strength ×1.10 at 5/5 (Forever), applied to total Strength before the conversion | [F] [fc-tal]; [?] on stacking order with Blessing of Kings |
-| Agility → crit | 20 Agi per 1% melee crit (0.05%/Agi); base melee crit 0.9% | 20 Agi per 1% [F] (client `PlayerExpectedStat.CritPerAgility`, [character-stats § Agility](../mechanics/character-stats.md#agility), which owns it); base crit 0.9% [?] (secondary [ws-base]; [character-stats OQ-3](../mechanics/character-stats.md#oq-3-base-melee-and-spell-crit)) |
+| Agility → crit | 20 Agi per 1% melee crit (0.05%/Agi); base melee crit 0.9% | 20 Agi per 1% [F] (client `PlayerExpectedStat.CritPerAgility`, [character-stats § Agility](../mechanics/character-stats.md#agility), which owns it); base crit 0.9% [?] placeholder (D24); origin: [rb-vanilla] and [ws-base], not evidence ([character-stats OQ-3](../mechanics/character-stats.md#oq-3-base-melee-and-spell-crit); about 1.5% of cat DPS) |
 
 There are no druid AP% multipliers in Forever: Protector of the Pack and similar talents don't
 exist.
+
+**In the engine**, each form has its own stat block: the shared one (gear, buffs, racials, the
+talents that hold in every form) plus the form's own effects and the talents bound to it (Cat
+Form's 120 AP and 1 AP per Agility, Dire Bear Form's 180 AP, armor and health, Heart of the Wild's
+Strength or Stamina, Sharpened Claws, Predatory Strikes, Leader of the Pack). The plan's sheet
+and static numbers are the spec's form: Cat Form for the cat, Dire Bear Form for the bear. A
+shapeshift swaps in another form's block (§2.8).
 
 ### 2.3 Crit, hit and damage modifiers from druid sources (level 60)
 
@@ -244,6 +263,15 @@ not verified in game; the difference from additive is under 0.5% for the combina
 | Entering Cat Form without Furor | Energy set to **0** | [C] [wh-rot] (inferred: in Classic a powershift *sets* Energy to Furor 40 + Wolfshead 20 = 60 whatever you had, e.g. 4 → 60, so with neither it sets 0); secondary [ws-forms] |
 | Entering Cat Form with Furor, Forever | See §2.8 | [F] |
 
+**In the engine**, Energy is kept in tenths, like rage. One player-global **power tick** every
+2 s, from a random phase in [0, 2 s) at the pull, brings both Energy and mana (§2.8) [?]: whether
+the two share a timer is unmeasured (Q34). It runs in every form and isn't reset by a
+shapeshift; entering cat then sets Energy by Furor's rule (§2.8). Energy from a spell (Tiger's
+Fury) is an energize: 5 threat per Energy [?]
+([threat.md](../mechanics/threat.md#threat-from-healing-power-gains-and-buffs)). An ability that
+misses, is dodged or is parried refunds its share of what it paid: 80% for a builder, nothing for
+a finisher, and nothing when Clearcasting paid (§2.7).
+
 ### 2.5 Combo points
 
 - 0 to 5, awarded by builders on a hit: Shred, Claw, Rake, Ravage and Pounce give 1 each. Forever
@@ -258,6 +286,10 @@ not verified in game; the difference from additive is under 0.5% for the combina
 - Forever gives Rip and FB a `SpellPower` row that costs combo points (1 plus up to 4 optional),
   like the modern client. Whether points now live on the player rather than the target is Q18.
   It doesn't matter for single-target sims. [F] [sp-f]
+- **In the engine**, a finisher is usable only with a combo point. Its damage (per point, and
+  attack power per point up to a cap: Rip's 4, §3.4) reads the points, then a landed hit spends
+  them all; a bleed finisher snapshots them with its ticks (§2.9). A builder's extra point on a
+  crit rolls Primal Fury's chance (100% at 2/2). Points persist through a shapeshift.
 
 ### 2.6 Global cooldowns
 
@@ -292,6 +324,12 @@ Confidence: **low** for the rate, **medium** for the ICD. The PPM isn't in clien
 only value found is wowsims/classic's 2 PPM, a secondary source, hence [?]. Pre-1.12 wiki text says
 "about 6% per hit, no ICD"; that is forbidden and was not adopted. Both clients carry the 10 s ICD
 field. Measure both on the beta (Q4).
+
+**In the engine**, Clearcasting is the plan's free-cast aura: while it's up, the next ability that
+can use it and has a cost costs nothing, and uses it up. An ability that costs nothing (Faerie
+Fire in form, Tiger's Fury) leaves it up. A shapeshift, a spell with a mana cost, doesn't use it:
+16870's class mask leaves out Cat Form's and Dire Bear Form's bits [F] [client] (SpellEffect,
+SpellClassOptions, 1.60.1.69913).
 
 ### 2.8 Shapeshifting, Furor, Wolfshead Helm, powershifting, mana
 
@@ -329,6 +367,26 @@ Energy-neutral.
   shapeshift included) restarts the five-second rule [C].
 - Mana potions and runes belong to
   [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md).
+
+**In the engine** (`shapeshift` in `src/sim/classes/druid/abilities.ts`; the `shift` ability kind):
+- A shapeshift is an ability with a mana cost and a 1.5 s GCD. Shifting into the form the druid
+  is already in is a powershift: cancel the form and shift again at once, so `t_out` = 0.
+- Its mana is `floor(0.55 × 1244 × (1 − 0.1 × Natural Shapeshifter rank))`: 684, or 478 at 3/3.
+  The rounding is [?].
+- **Entering cat** sets Energy by Furor's rule above, rounded down to a tenth of a point [?].
+  Before the druid has left cat in a fight, `E_left` is the full bar it pulled with [?] (Q13).
+  `t_out` counts only time in caster form since leaving cat: a bear is in an animal form.
+- **Entering bear** sets rage to 0, then Furor gives 10 rage at 20% per rank
+  ([rage.md](../mechanics/rage.md#bear-druid-rage)). That rage is an energize: 5 threat per rage,
+  on the shapeshift's row.
+- Wolfshead Helm adds nothing on a shift in Forever.
+- The form's stat block, main hand and threat multiplier swap in (§2.2). The swing in progress
+  keeps its time and the next uses the new speed; the power tick keeps its phase [?] (Q34).
+  Armor and maximum health stay those of the form the fight started in, since only a bear tanks
+  and a bear never leaves bear in any rotation.
+- **Mana**: the pool is base mana plus Intellect. Every power tick gives spirit regeneration,
+  `15 + Spirit / 5` per 2 s, unless mana was spent in the last 5 s. Mp5 from items isn't read
+  yet (no pre-raid feral item has it).
 
 ### 2.9 Snapshotting
 
@@ -549,6 +607,12 @@ doesn't affect bear abilities (its mask holds only cat builders). [F] [client] (
   Forever's rage from damage taken reads the hit before armor, `10 × D_pre ÷ max health`
   ([rage.md](../mechanics/rage.md#forever-), [?]; 33 logged hits on likely bears fit it), so bear
   armor matters for survival only. Maximum health does move bear rage.
+- **In the engine**, Dire Bear Form's +360% is added to the other item-armor bonuses, as
+  RatingBuster's Classic Era code does with Classic's Thick Hide ([C] [rb-vanilla];
+  character-stats.md OQ-8). In `forever` its second aura also
+  multiplies bonus armor by 4.6 [?] (OQ-8, Q19); `classicEra`'s Dire Bear Form has only the item
+  armor aura. Thick Hide's armor isn't modelled (§8). Armor matters to the `classic` damage-taken
+  rage model and to survival, not to `forever`'s rage.
 
 ### 4.8 Bear threat and druid rage numbers (summary for the shared docs)
 
@@ -565,6 +629,7 @@ doesn't affect bear abilities (its mask holds only cat builders). [F] [client] (
 | Primal Fury 2/2 | +5 Rage on any crit in bear (100%) | [F] [client] (SpellEffect 16959, 1.60.1.69913) |
 | Natural Reaction 5/5 | +5% dodge; +5 Rage on each dodge (100%) | [F] [fc-tal]; [client] (SpellEffect 417053, 1.60.1.69913) |
 | Wolfshead Helm | +5 Rage from Enrage | [F] [fc-wolf] |
+| Rage in the other forms | White hits and hits taken give rage only in bear, whose power is rage; spell energizes (Furor, Primal Fury, a Mighty Rage Potion) give it in any form | [?] (the engine's model; [rage.md](../mechanics/rage.md#bear-druid-rage)) |
 
 ---
 
@@ -785,6 +850,13 @@ pre-raid pool ([decisions.md D5](../decisions.md)). Recommendation:
 - Otherwise the default is the best Rare 55–60 two-hander by Str/Agi/feral AP, chosen by the
   items doc owner. Weapon DPS is irrelevant.
 
+The sim's default is the pre-raid list's top two-hander even where the list also ranks one-handers
+(D11): Manual Crowd Pummeler for the cat, Warden Staff for the bear, each with Enchant 2H Weapon -
+Major Agility (+25). The other enchants are the feral column of
+[buffs-debuffs-consumables §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec):
+Agility wherever it's offered, Greater Stats on the chest, and Threat on the bear's gloves. MCP's
+on-use isn't simulated yet; the results list it.
+
 ### 7.4 Rotation settings
 
 As in the default column of §6.2 (cat) and §6.3 (bear).
@@ -801,6 +873,11 @@ preset):
 | Pre-raid dungeon group | Flank au Poivre (+20 Agi) | Smoked Desert Dumplings (+20 Str) |
 | **Standard raid (default)** | Elixir of the Mongoose; Elixir of Greater Strength (Classic: Elixir of Giants); Flank au Poivre | Elixir of Greater Defense; Elixir of Fortitude (+200 health); Mongoose; Greater Strength; Smoked Desert Dumplings; Mighty Rage Potion (druids can use it in Forever) |
 | Max-consumables raid (adds / replaces) | Juju Power (replaces Greater Strength); Juju Might; Ground Scorpok Assay; Mighty Rage Potion (for its +60 Str) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum Black Label; Greater Stoneshield Potion |
+
+The sim's presets follow these rows. Flank au Poivre is in the buff catalogue for them: +20
+Agility from Nutritious Food 1248399, whose Well Fed 1248420 is Agility [F] [client] (SpellEffect,
+ItemEffect, 1.60.1.69913). A druid with Leader of the Pack provides its own, so the Buffs tab's
+Leader of the Pack adds nothing more (several don't stack).
 
 Grilled Squid, which Classic ferals ate for Agility, is **+1% crit** in Forever; the buffs doc's
 Agility food is Flank au Poivre. A feral-specific reason to differ from these rows would go into
@@ -850,6 +927,34 @@ the buffs doc as a per-spec entry.
   - bleed snapshotting, and bleed crits in `forever` (Q21)
   - form haste, PPM speed and feral AP on items (Q28)
 
+  The results list the ones in use today: the form weapon (Q5, Q25, Q28), Omen of Clarity's rate
+  (Q4), the D24 base-value placeholders, Energy's tick and refunds (Q6, Q29) once an ability pays
+  Energy, shapeshifts' timers (Q34) once a rotation shifts, bear white rage and the bonus-armor
+  aura (OQ-8).
+
+**What the engine provides** (`src/sim/classes/druid/`, and plan/types.ts `AbilityPlan`). A cat or
+bear ability is a row with these fields, and its talents come from `withDruidTalents`
+(`modifiers.ts`: Ferocity, Shredding Attacks, Savage Fury, Feral Instinct, Genesis, Predatory
+Instincts, Primal Fury's combo point):
+- `resource: 'energy' | 'rage' | 'mana'`: the pool its cost comes from, its refund goes back to,
+  a `cast`'s gain goes to (Tiger's Fury's Energy), and `damagePerExtraRage` converts (Ferocious
+  Bite's 2.7 per extra Energy, which also spends the pool on a landed hit).
+- `forms`: the forms it can be used in (`formBit('cat')`).
+- `comboPoints`, `critComboPointChance`, `finisher`, `damagePerComboPoint`,
+  `apCoefficientPerComboPoint`, `comboPointApCap`, and for a bleed finisher
+  `dotTickPerComboPoint` and `dotApCoefficientPerComboPoint` (§2.5, §3.4, §3.5).
+- `clearcastable`: Clearcasting pays for it (§2.7).
+- `kind: 'shift'` with `shiftTo` (§2.8).
+- Rotation conditions `minEnergy`, `maxEnergy` and `minComboPoints`, next to the rage ones.
+
+The cat and bear rotations still need, in the engine: a random flat range on a non-weapon ability
+(Ferocious Bite's 52–112, §3.5); a crit bonus from an aura for some abilities only (Berserk's
++100% on the builders, §3.7); Rend and Tear's multiplier while the target bleeds, from the
+encounter's `targetBleedingFromOthers` or the druid's own bleeds (§5.1, Q9); a hit plus a bleed in
+one ability (Rake, §3.3) and a stacking bleed (Lacerate, §4.3); Swipe's extra targets (§4.4); and
+debuffs the druid keeps up on the target (Faerie Fire's armor, Demoralizing Roar's attack power:
+§3.8, §4.5).
+
 ---
 
 ## 9. Worked examples
@@ -859,6 +964,10 @@ no rounding (the engine rounds per [damage-and-timing.md](../mechanics/damage-an
 Each example states which tags it depends on. **Every example that uses the form weapon `W` or
 `W_b` (2–4, 12–15) inherits the [?] form base damage (43.84–65.76 cat, 109.6–164.4 bear; Q5).**
 If Q5 changes those numbers, recompute the examples; the formulas stay.
+
+Unit tests: W1, W2, W9, W10, W13 and W17, the regeneration part of W11, and the talent arithmetic
+of W3, W5 and W6 (`src/sim/classes/druid/druid.test.ts`, `src/sim/engine/druid.test.ts`). The
+rest become tests with the abilities they need.
 
 1. **Cat AP.** Str 200 (after HotW), Agi 300, +310 AP from gear and buffs, Predatory Strikes 3/3:
    `2×200 − 20 + 300 + 120 + 90 + 310 = 1200`. [F] form terms; [?] `2×Str − 20` (character-stats.md)
@@ -967,10 +1076,11 @@ ranks.
 | Q27 | Confirm the wago.tools DB2 readings (scripted before the robots.txt ruling). **✅ Resolved from client data** ([client.md](../data/client.md#doc-claims-checked-against-the-raw-client)) | Every priority row matched the raw 1.60.1.69913 and 1.15.9.69722 files (claims D6, D10, D14–D17, C27): Rip 9896 and SDV 865, Shred, Claw, Rake, Ferocious Bite, Mangle, Lacerate, Cat Form (Passive) 3025, Bear Form Passive2 21178, Tiger's Fury, King of the Jungle, Berserk, Omen of Clarity's ICD, Demoralizing Roar's row, Cower, the Balance/Resto talent auras, form swing timers, the cat GCD, Endurance and Elune's Light. The remaining label-cited values match `src/data/client/*.json` | Nothing left in a browser. On a new build, re-run `npm run scrape:client -- --claims` |
 | Q28 | Form attacks and items (secondary source only): does haste (MCP, Wind Blessed, T1 2-piece) speed form swings; do PPM procs use the form speed (1.0 / 2.5); is "+X Attack Power in Cat, Bear, and Dire Bear forms" added 1:1; is there no normalization; is MCP the right default weapon? | [?] (secondary [ws-forms] [ws-talents] [ws-presets] [ws-apl] [ws-shred]) | Swing timer with MCP active (addon or combat log); Crusader proc count in cat vs caster; character-sheet AP with and without a feral-AP item |
 | Q29 | Energy cap 100; builders refund 80% on miss/dodge/parry; finishers refund nothing and keep combo points | [?] (standard values; secondary [ws-energy] [ws-shred] [ws-rip] [ws-fb]) | Energy bar maximum; log Energy before and after a dodged Shred and a dodged Bite, and CP after a missed finisher |
-| Q30 | Druid base terms: the −20 AP offset and 0.9% base melee crit | [?] (secondary [ws-base]). The conversions themselves (2 AP per Str, 20 Agi per 1% crit [F]; spirit regen 15 + Spirit/5 per 2 s [C]) come from [character-stats.md](../mechanics/character-stats.md) | Owned by character-stats ([OQ-3](../mechanics/character-stats.md#oq-3-base-melee-and-spell-crit), [OQ-7](../mechanics/character-stats.md#oq-7-base-attack-power-formulas)): check character-sheet AP and crit at two Str/Agi levels |
+| Q30 | Druid base terms: the −20 AP offset and 0.9% base melee crit | [?] placeholders in use (D24); origin: [ws-base] and [rb-vanilla], which copy a private server's tables, not evidence (about 0.7% and 1.5% of cat DPS). The conversions themselves (2 AP per Str, 20 Agi per 1% crit [F]; spirit regen 15 + Spirit/5 per 2 s [C]) come from [character-stats.md](../mechanics/character-stats.md) | Owned by character-stats ([OQ-3](../mechanics/character-stats.md#oq-3-base-melee-and-spell-crit), [OQ-7](../mechanics/character-stats.md#oq-7-base-attack-power-formulas)): check character-sheet AP and crit at two Str/Agi levels |
 | Q31 | Bear rotation thresholds: Maul every swing, Swipe with ≥ 60 spare Rage, Enrage pre-pull only | [?] (the only Classic write-up is Season of Mastery-labelled, not usable) | Sim sensitivity plus guild tank feedback; threat-meter test once Q15 is answered |
 | Q32 | Demoralizing Roar at 60: does the debuff apply the level-60 tooltip's −204 in combat? | Tooltip −204 [F] [client]: −193 − 1.4/level with `SpellLevels` 52–62, so `MaxLevel` doesn't cap it below 60 (the −193 read before was the unscaled base). In combat [?] | Owned by [buffs-debuffs-consumables OQ 19](../mechanics/buffs-debuffs-consumables.md#open-questions): read the debuff on a target at 60 |
 | Q33 | Cat and bear special-attack rolls: weapon-damage abilities one roll; Rake's initial hit, Ferocious Bite and Swipe two rolls? | The split is Classic Era [C] for warrior abilities ([combat-tables §3](../mechanics/combat-tables.md#3-special-yellow-attacks)); mapping the druid's non-weapon specials onto it is [?] | Owned by [combat-tables OQ 6](../mechanics/combat-tables.md#open-questions): crit rate per attempt vs per landed hit for Shred and Ferocious Bite from the front vs mobs three levels above you |
+| Q34 | Shapeshifting and the timers: does a shapeshift reset or keep the swing timer, and do Energy and mana regenerate on one shared 2 s tick? Does entering cat before ever leaving it in a fight keep a full bar under Furor? | The engine keeps the swing in progress and one power tick for both, running through shifts, and counts a full bar as the Energy last left in cat [?] (§2.4, §2.8) | Log swings and Energy and mana ticks with an addon around a powershift (Cat Form → Cat Form) and a cat → bear → cat shift |
 
 ---
 
@@ -1066,6 +1176,7 @@ only `/api/`, `/spell/`, `/search`, `/admin`).
 | ws-rot | <https://github.com/wowsims/classic/blob/master/sim/druid/feral/rotation.go> | Era powershift rotation logic | Secondary [?] (see note above) |
 | ws-presets | <https://github.com/wowsims/classic/blob/master/ui/feral_druid/presets.ts> | Era default talents, consumables, MCP in gear sets | Secondary [?] (see note above) |
 | ws-apl | <https://github.com/wowsims/classic/blob/master/ui/feral_druid/apls/feral.apl.json> | Era cat APL (Shred/Bite/powershift, no Rip) | Secondary [?] (see note above) |
+| rb-vanilla | <https://github.com/raethkcj/RatingBuster/blob/d11164cf6de90688a635a6ff880b71ea9ea07367/libs/StatLogic/Vanilla_Logic.lua> | Bear +180% and Dire Bear +360% item armor, added to Thick Hide's; druid base crit 0.9%, spell crit 1.8%, dodge 0.9% | Classic Era addon at its last commit before Season of Discovery: [C] for the armor rule; its base values copy a private server's tables, so they are D24 placeholders, not evidence |
 | ltc2 | <https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Druid.lua> | Bear ×1.3 (+3%/rank Feral Instinct), cat ×0.71, Maul/Swipe ×1.75, FF 108, Demo Roar 39, Cower 600 | Classic (1.13, 2019–20 addon library) |
 | wsf-repo | <https://github.com/wowsims/forever> | Forever sim in progress (druid mostly TBC-port stubs) | Secondary [?] for Forever facts only; TBC values never adopted |
 | wsf-mangle | <https://github.com/wowsims/forever/blob/master/sim/druid/mangle.go> | Comment: Forever ships one Mangle (407995, 1238069/70/73), shapeshift mask 144 = Bear/Dire Bear | Secondary [?] corroboration of [F] client data |
@@ -1118,6 +1229,7 @@ the same spell ids and was ignored except where Forever reuses the id with Forev
 [ws-rot]: https://github.com/wowsims/classic/blob/master/sim/druid/feral/rotation.go
 [ws-presets]: https://github.com/wowsims/classic/blob/master/ui/feral_druid/presets.ts
 [ws-apl]: https://github.com/wowsims/classic/blob/master/ui/feral_druid/apls/feral.apl.json
+[rb-vanilla]: https://github.com/raethkcj/RatingBuster/blob/d11164cf6de90688a635a6ff880b71ea9ea07367/libs/StatLogic/Vanilla_Logic.lua
 [ltc2]: https://github.com/dfherr/LibThreatClassic2/blob/master/ClassModules/Classic/Druid.lua
 [wh-rot]: https://www.wowhead.com/classic/guide/classes/druid/feral/dps-rotation-cooldowns-abilities-pve
 [wiki-ooc]: https://warcraft.wiki.gg/wiki/Omen_of_Clarity

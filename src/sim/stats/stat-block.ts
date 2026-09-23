@@ -67,6 +67,11 @@ export class StatBlock {
    */
   itemArmorPct = 0
   bonusArmor = 0
+  /**
+   * Sum of bonus-armor % bonuses, as a fraction: it multiplies `bonusArmor` only (Forever's Dire
+   * Bear Form aura 466, +360% [?]: docs/classes/druid.md §4.7, character-stats.md OQ-8).
+   */
+  bonusArmorPct = 0
   armorPerAgi = 2
   defense = 0
   defenseRating = 0
@@ -189,8 +194,9 @@ export function deriveStats(b: StatBlock, o: DeriveOptions, out: DerivedStats = 
   out.block = b.canBlock ? b.baseBlock + b.blockRating / r.block + b.block + defenseBonus : 0
   // Block value = (shield + flat + Str/20) × Π(1 + bv%) (character-stats §strength).
   out.blockValue = b.canBlock ? floorStat((b.blockValue + floorStat(out.strength / 20)) * b.blockValueMult) : 0
-  // Armor = item armor × (1 + Toughness) + bonus armor + 2 × Agi (character-stats step 4; OQ-15 [?]).
-  out.armor = floorStat(b.itemArmor * (1 + b.itemArmorPct) + b.bonusArmor + b.armorPerAgi * out.agility)
+  // Armor = item armor × (1 + Toughness) + bonus armor × (1 + bonus armor %) + 2 × Agi (character-stats
+  // step 4; OQ-15 [?]; the bonus armor % is the Dire Bear Form's, OQ-8 [?]).
+  out.armor = floorStat(b.itemArmor * (1 + b.itemArmorPct) + b.bonusArmor * (1 + b.bonusArmorPct) + b.armorPerAgi * out.agility)
 
   out.health = floorStat((b.baseHealth + healthFromStamina(out.stamina) + b.health) * b.healthMult)
   out.mana = b.hasMana ? b.baseMana + manaFromIntellect(out.intellect) + b.mana : 0

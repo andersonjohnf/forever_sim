@@ -11,7 +11,9 @@
 // melee spells, on-next-swing queues, off-hand strikes, casts that buff the warrior or grant rage,
 // abilities with a cast time (Slam), bleeds with a marker on the target (Rend), reactive windows
 // (Overpower), stances and stance dancing, the execute phase, time-left conditions, buff upkeep
-// and the pre-pull (docs/architecture.md#engine-design-m1).
+// and the pre-pull (docs/architecture.md#engine-design-m1). For druids it adds Energy and mana on a
+// power tick, combo points, Clearcasting's free ability, and forms a shapeshift swaps in
+// (docs/classes/druid.md §2); a plan without them never enters those paths.
 import {
   averageResist,
   bossSlices,
@@ -24,10 +26,19 @@ import {
   thresholds,
   whiteSlices,
 } from '../core/attack-table'
-import { armorReduction, CRIT_MULTIPLIER, executePhaseStart, parryHasteRemaining, rageConversion, swingMs } from '../core/formulas'
+import {
+  armorReduction,
+  CRIT_MULTIPLIER,
+  executePhaseStart,
+  furorCatEnergyTenths,
+  parryHasteRemaining,
+  ppmChance,
+  rageConversion,
+  swingMs,
+} from '../core/formulas'
 import { EventQueue } from '../core/queue'
 import { Rng, STREAM } from '../core/rng'
-import { ACTION, COND, HAND, TRIGGER, TRIGGER_COUNT, type Plan } from '../plan/types'
+import { ACTION, COND, HAND, POWER_TICK_MS, TRIGGER, TRIGGER_COUNT, type Plan, type WeaponPlan } from '../plan/types'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 
 /** Event kinds. */
@@ -48,6 +59,8 @@ const EV_CAST_RAGE = 10
 const EV_CAST_END = 11
 /** A `bleed` ability's tick (Rend; data = ability index). */
 const EV_DOT_TICK = 12
+/** The player-global power tick: Energy and mana (druid.md §2.4, §2.8). */
+const EV_POWER_TICK = 13
 
 /** Ability kinds (AbilityPlan.kind). */
 const KIND_STRIKE = 0
@@ -55,7 +68,31 @@ const KIND_MELEE_SPELL = 1
 const KIND_ON_NEXT_SWING = 2
 const KIND_CAST = 3
 const KIND_BLEED = 4
-const KIND_CODE = { weaponStrike: KIND_STRIKE, meleeSpell: KIND_MELEE_SPELL, onNextSwing: KIND_ON_NEXT_SWING, cast: KIND_CAST, bleed: KIND_BLEED } as const
+const KIND_SHIFT = 5
+const KIND_CODE = {
+  weaponStrike: KIND_STRIKE,
+  meleeSpell: KIND_MELEE_SPELL,
+  onNextSwing: KIND_ON_NEXT_SWING,
+  cast: KIND_CAST,
+  bleed: KIND_BLEED,
+  shift: KIND_SHIFT,
+} as const
+
+/** The pool an ability pays from (AbilityPlan.resource). */
+const RES_RAGE = 0
+const RES_ENERGY = 1
+const RES_MANA = 2
+const RESOURCE_CODE = { rage: RES_RAGE, energy: RES_ENERGY, mana: RES_MANA } as const
+
+/** At most 5 combo points (druid.md §2.5). */
+const MAX_COMBO_POINTS = 5
+
+/**
+ * Threat per tenth of Energy and of mana gained from a spell effect: 5 per Energy and 0.5 per mana
+ * [?] (threat.md#threat-from-healing-power-gains-and-buffs).
+ */
+const THREAT_PER_ENERGY_TENTH = 0.5
+const THREAT_PER_MANA_TENTH = 0.05
 
 /** Breakdown columns per source. */
 export const FIELD = {
@@ -108,11 +145,15 @@ export class Sim {
   totalRageWastedTenths = 0
   /** Rage lost to stance swaps' cap (warrior.md §2.1), in tenths, summed over every fight run. */
   totalSwapRageLostTenths = 0
+  /** Energy gained and lost to its cap, in tenths, summed over every fight run (druid.md §2.4). */
+  totalEnergyGainedTenths = 0
+  totalEnergyWastedTenths = 0
   /** Test hook: called for every white swing (source row, hand, time) and bleed tick (source, −1, time). */
   trace: ((source: number, hand: number, time: number) => void) | null = null
   /**
-   * Test hook: called when an ability is used, before its cost is paid (ability index, time, rage
-   * in tenths); for an ability with a cast time, when the cast starts.
+   * Test hook: called when an ability is used, before its cost is paid (ability index, time, the
+   * pool it pays from in tenths: rage, or a druid's Energy or mana); for an ability with a cast
+   * time, when the cast starts.
    */
   castTrace: ((ability: number, time: number, rageTenths: number) => void) | null = null
   /** Test hook: every damage event (source row, damage). */
@@ -366,7 +407,68 @@ export class Sim {
   private readonly hasRotation: boolean
   private readonly hasAbilities: boolean
 
+  // Druid resources and forms (docs/classes/druid.md §2), flattened. A plan without them has every
+  // ability `abPlainRage` and no power tick, forms or free-cast aura, so none of this runs for it.
+  /** The pool each ability pays from (RES_*). */
+  private readonly abRes: Int32Array
+  /** Form bits it can be used in (0: any), and its combo-point rules (druid.md §2.5). */
+  private readonly abForms: Int32Array
+  private readonly abCp: Int32Array
+  private readonly abCritCp: Float64Array
+  private readonly abFinisher: Uint8Array
+  private readonly abPerCp: Float64Array
+  private readonly abApPerCp: Float64Array
+  private readonly abCpApCap: Int32Array
+  private readonly abDotPerCp: Float64Array
+  private readonly abDotApPerCp: Float64Array
+  /** A Clearcasting charge makes it free (druid.md §2.7). */
+  private readonly abFree: Uint8Array
+  /** `shift`: the form it enters. */
+  private readonly abShiftTo: Int32Array
+  /** Pays rage, in any form, with no combo points and never free: every warrior row, on the unchanged path. */
+  private readonly abPlainRage: Uint8Array
+  /** PPM procs that can roll on the main hand, and their rates: a shapeshift re-resolves their chance (druid.md §2.1). */
+  private readonly pPpm: Float64Array
+  private readonly ppmProcs: Int32Array
+  /** Form bits a proc rolls in (0: any), in the gated lists (Primal Fury's rage: bear). */
+  private readonly pForms: Int32Array
+  /** The aura whose charge makes the next ability with a cost free (Clearcasting), or −1. */
+  private readonly freeAura: number
+  /** The form the fight starts in (−1: no forms), and the forms Furor's rules name (druid.md §2.8). */
+  private readonly startForm: number
+  private readonly catForm: number
+  private readonly bearForm: number
+  private readonly casterForm: number
+  private readonly furorRank: number
+  private readonly bearEntryRage: number
+  private readonly bearEntryRageChance: number
+  private readonly hasPowerTick: boolean
+  /** Some line waits for Energy ≤ x (Tiger's Fury, druid.md §6.2), so spending Energy is a decision point. */
+  private readonly hasMaxEnergy: boolean
+  private readonly energyMax: number
+  private readonly energyStart: number
+  private readonly energyTick: number
+  private readonly manaMax: number
+  private readonly manaRegen: number
+  private readonly fiveSecondRuleMs: number
+
   // Per-fight state.
+  /** Energy, mana (tenths) and combo points (druid.md §2.4, §2.5, §2.8). */
+  private energy = 0
+  private mana = 0
+  private comboPoints = 0
+  /** The form the druid is in (an index into `Plan.forms`; −1 without forms). */
+  private form = -1
+  /** What the last ability used paid (tenths of its pool; 0 when Clearcasting paid): refunds are a share of it. */
+  private lastPaid = 0
+  /** When mana was last spent (the five-second rule, druid.md §2.8). */
+  private manaSpentAt = -Infinity
+  /** White hits and hits taken give rage: always without forms, and in a druid's bear form (FormPlan.rage). */
+  private gainsRage = true
+  /** Furor's inputs (druid.md §2.8): Energy when last leaving cat, and time since in no animal form. */
+  private catEnergyLeft = 0
+  private outOfFormMs = 0
+  private formSince = 0
   private now = 0
   private fightEnd = 0
   private rage = 0
@@ -524,31 +626,8 @@ export class Sim {
     this.wNormRageTenths = new Float64Array(2)
     this.wRageMult = new Float64Array(2)
     this.wNormSpeed = new Float64Array(2)
+    for (let h = 0; h < 2; h++) this.loadHand(h, w[h])
     const rage = plan.profile.rage
-    for (let h = 0; h < 2; h++) {
-      const weapon = w[h]
-      if (!weapon) continue
-      this.hasWeapon[h] = 1
-      this.wMin[h] = weapon.min
-      this.wMax[h] = weapon.max
-      this.wSpeedSec[h] = weapon.speedSec
-      this.wFlat[h] = weapon.flatDamage
-      this.wHandMult[h] = weapon.handMult
-      this.wSkill[h] = weapon.skill
-      this.wHitBonus[h] = weapon.hitBonus
-      this.wCritBonus[h] = weapon.critBonus
-      this.wArmorPenPct[h] = weapon.armorPenPct
-      this.wGlanceLow[h] = weapon.glanceLow
-      this.wGlanceHigh[h] = weapon.glanceHigh
-      this.wTwoHand[h] = weapon.twoHand ? 1 : 0
-      this.wRageMult[h] = weapon.rageMult
-      this.wNormSpeed[h] = weapon.normalizedSpeed
-      // docs/mechanics/rage.md#forever-normalized-rage-per-swing-: k × base speed (× off-hand base), in
-      // tenths with its fraction, which rage.md#rounding carries or drops
-      const k = weapon.twoHand ? rage.normalizedTwoHand : rage.normalizedOneHand
-      const offBase = h === HAND.off ? rage.offHandBase : 1
-      this.wNormRageTenths[h] = k * weapon.speedSec * offBase * weapon.rageMult * 10
-    }
     this.dualWield = w[HAND.main] !== null && w[HAND.off] !== null
     this.normalizedRage = rage.white === 'normalized'
     this.carryRageFraction = rage.fraction === 'carry'
@@ -573,6 +652,8 @@ export class Sim {
     this.pSource = new Int32Array(np)
     this.pChainBit = new Int32Array(np)
     this.pReqAura = new Int32Array(np).fill(-1)
+    this.pPpm = new Float64Array(np)
+    this.pForms = new Int32Array(np)
     this.pBleedSlot = new Int32Array(np).fill(-1)
     this.procReadyAt = new Float64Array(np)
     let bleeds = 0
@@ -591,8 +672,12 @@ export class Sim {
       this.pSource[i] = p.source
       this.pChainBit[i] = p.chainBit
       this.pReqAura[i] = p.requiresAura ?? -1
+      this.pPpm[i] = p.ppm ?? 0
+      this.pForms[i] = p.forms ?? 0
       if (p.action === ACTION.weaponBleed) this.pBleedSlot[i] = bleeds++
     }
+    // Only a shapeshift changes a PPM proc's main-hand chance (druid.md §2.1), so only a plan with forms lists them.
+    this.ppmProcs = Int32Array.from(plan.forms ? procs.flatMap((p, i) => (p.ppm && p.hands & 1 ? [i] : [])) : [])
     this.bleedTicksLeft = new Int32Array(bleeds)
     this.bleedGen = new Int32Array(bleeds)
     this.bleedNextAt = new Float64Array(bleeds)
@@ -602,8 +687,10 @@ export class Sim {
     this.gatedLists = []
     for (let t = 0; t < TRIGGER_COUNT; t++) {
       const list = plan.triggers[t] ?? []
-      this.triggerLists.push(Int32Array.from(list.filter((p) => this.pReqAura[p] < 0)))
-      this.gatedLists.push(Int32Array.from(list.filter((p) => this.pReqAura[p] >= 0)))
+      // A proc that needs an aura or a form (druid.md §2.8) is gated; the rest roll with no check.
+      const gated = (p: number) => this.pReqAura[p] >= 0 || this.pForms[p] !== 0
+      this.triggerLists.push(Int32Array.from(list.filter((p) => !gated(p))))
+      this.gatedLists.push(Int32Array.from(list.filter(gated)))
     }
 
     const auras = plan.auras
@@ -722,8 +809,36 @@ export class Sim {
     this.abReadyAt = new Float64Array(nb)
     this.abTicksLeft = new Int32Array(nb)
     this.abTickGen = new Int32Array(nb)
+    this.abRes = new Int32Array(nb)
+    this.abForms = new Int32Array(nb)
+    this.abCp = new Int32Array(nb)
+    this.abCritCp = new Float64Array(nb)
+    this.abFinisher = new Uint8Array(nb)
+    this.abPerCp = new Float64Array(nb)
+    this.abApPerCp = new Float64Array(nb)
+    this.abCpApCap = new Int32Array(nb)
+    this.abDotPerCp = new Float64Array(nb)
+    this.abDotApPerCp = new Float64Array(nb)
+    this.abFree = new Uint8Array(nb)
+    this.abShiftTo = new Int32Array(nb).fill(-1)
+    this.abPlainRage = new Uint8Array(nb)
+    this.freeAura = plan.freeCastAura ?? -1
     for (let i = 0; i < nb; i++) {
       const a = abilities[i]
+      // docs/classes/druid.md §2.4–§2.8: the pool it pays from, its forms, combo points and Clearcasting.
+      this.abRes[i] = RESOURCE_CODE[a.resource ?? 'rage']
+      this.abForms[i] = a.forms ?? 0
+      this.abCp[i] = a.comboPoints ?? 0
+      this.abCritCp[i] = a.critComboPointChance ?? 0
+      this.abFinisher[i] = a.finisher ? 1 : 0
+      this.abPerCp[i] = a.damagePerComboPoint ?? 0
+      this.abApPerCp[i] = a.apCoefficientPerComboPoint ?? 0
+      this.abCpApCap[i] = a.comboPointApCap ?? MAX_COMBO_POINTS
+      this.abDotPerCp[i] = a.dotTickPerComboPoint ?? 0
+      this.abDotApPerCp[i] = a.dotApCoefficientPerComboPoint ?? 0
+      this.abFree[i] = a.clearcastable && this.freeAura >= 0 ? 1 : 0
+      this.abShiftTo[i] = a.shiftTo ?? -1
+      this.abPlainRage[i] = this.abRes[i] === RES_RAGE && this.abForms[i] === 0 && !a.finisher && !this.abCp[i] && !this.abFree[i] ? 1 : 0
       this.abKind[i] = KIND_CODE[a.kind]
       this.abCost[i] = a.costTenths
       this.abCd[i] = a.cooldownMs
@@ -732,7 +847,8 @@ export class Sim {
       this.abCastStopsSwings[i] = a.castStopsSwings ? 1 : 0
       // warrior.md §3.1: Spearing Strike needs a two-hander. §7 "Without a main-hand weapon": every
       // ability that attacks (strikes, melee spells, bleeds, the on-next-swing queue) needs one; casts don't.
-      this.abNeverReady[i] = (a.twoHandOnly && !this.wTwoHand[HAND.main]) || (a.kind !== 'cast' && !this.hasWeapon[HAND.main]) ? 1 : 0
+      // A shapeshift attacks nothing either (druid.md §2.8).
+      this.abNeverReady[i] = (a.twoHandOnly && !this.wTwoHand[HAND.main]) || (a.kind !== 'cast' && a.kind !== 'shift' && !this.hasWeapon[HAND.main]) ? 1 : 0
       this.abUnavoidable[i] = a.unavoidable ? 1 : 0
       this.abWindow[i] = a.window
       this.abWeaponPct[i] = a.weaponPercent
@@ -889,6 +1005,58 @@ export class Sim {
     this.hasDodgeProcs = (plan.triggers[TRIGGER.targetDodge] ?? []).length > 0
     this.hasRotation = rotation.length > 0
     this.hasAbilities = nb > 0
+    // docs/classes/druid.md §2.4, §2.8: forms, Furor, and the power tick's Energy and mana.
+    const shift = plan.shapeshift
+    this.startForm = plan.forms && plan.form !== undefined ? plan.form : -1
+    this.form = this.startForm
+    this.catForm = shift?.cat ?? -1
+    this.bearForm = shift?.bear ?? -1
+    this.casterForm = shift?.caster ?? -1
+    this.furorRank = shift?.furorRank ?? 0
+    this.bearEntryRage = shift?.bearRageTenths ?? 0
+    this.bearEntryRageChance = shift?.bearRageChance ?? 0
+    this.energyMax = plan.energy?.maxTenths ?? 0
+    this.energyStart = plan.energy?.startTenths ?? 0
+    this.energyTick = plan.energy?.tickTenths ?? 0
+    this.manaMax = plan.mana?.maxTenths ?? 0
+    this.manaRegen = plan.mana?.regenTickTenths ?? 0
+    this.fiveSecondRuleMs = plan.mana?.fiveSecondRuleMs ?? 0
+    this.hasPowerTick = plan.energy !== undefined || plan.mana !== undefined
+    this.hasMaxEnergy = this.condCode.includes(COND.maxEnergy)
+    if (this.startForm >= 0) this.gainsRage = plan.forms![this.startForm].rage
+  }
+
+  /**
+   * Puts a weapon in hand h (null: none): its damage, speed, skill and table inputs, and its white
+   * rage. The constructor loads the plan's weapons; a shapeshift loads the form's main hand
+   * (druid.md §2.1).
+   */
+  private loadHand(h: number, weapon: WeaponPlan | null): void {
+    if (!weapon) {
+      this.hasWeapon[h] = 0
+      return
+    }
+    const rage = this.plan.profile.rage
+    this.hasWeapon[h] = 1
+    this.wMin[h] = weapon.min
+    this.wMax[h] = weapon.max
+    this.wSpeedSec[h] = weapon.speedSec
+    this.wFlat[h] = weapon.flatDamage
+    this.wHandMult[h] = weapon.handMult
+    this.wSkill[h] = weapon.skill
+    this.wHitBonus[h] = weapon.hitBonus
+    this.wCritBonus[h] = weapon.critBonus
+    this.wArmorPenPct[h] = weapon.armorPenPct
+    this.wGlanceLow[h] = weapon.glanceLow
+    this.wGlanceHigh[h] = weapon.glanceHigh
+    this.wTwoHand[h] = weapon.twoHand ? 1 : 0
+    this.wRageMult[h] = weapon.rageMult
+    this.wNormSpeed[h] = weapon.normalizedSpeed
+    // docs/mechanics/rage.md#forever-normalized-rage-per-swing-: k × base speed (× off-hand base), in
+    // tenths with its fraction, which rage.md#rounding carries or drops
+    const k = weapon.twoHand ? rage.normalizedTwoHand : rage.normalizedOneHand
+    const offBase = h === HAND.off ? rage.offHandBase : 1
+    this.wNormRageTenths[h] = k * weapon.speedSec * offBase * weapon.rageMult * 10
   }
 
   // ------------------------------------------------------------------------------------------
@@ -945,6 +1113,8 @@ export class Sim {
       q.push(0, EV_BOSS, 0, this.bossGen)
     }
     if (f.damageTakenPerHit > 0) q.push(f.damageTakenIntervalMs, EV_DAMAGE_TAKEN, 0, 0)
+    // druid.md §2.4: the player-global power tick, from a random phase in [0, 2 s) [?].
+    if (this.hasPowerTick) q.push(Math.floor(this.rngFight.next() * POWER_TICK_MS), EV_POWER_TICK, 0, 0)
     const periodic = plan.periodicRage
     for (let i = 0; i < periodic.length; i++) q.push(periodic[i].periodMs, EV_PERIODIC_RAGE, i, 0)
 
@@ -1000,6 +1170,10 @@ export class Sim {
         case EV_DOT_TICK:
           if (q.gen === this.dotGen[data]) this.onDotTick(data)
           break
+        case EV_POWER_TICK:
+          this.onPowerTick()
+          q.push(t + POWER_TICK_MS, EV_POWER_TICK, 0, 0)
+          break
         case EV_EXECUTE:
           this.rotList = this.rotExecute
           this.rotOffList = this.offGcdExecute
@@ -1035,11 +1209,29 @@ export class Sim {
       blockValue: this.blockValue,
       bossArmorFactor: this.bossArmorFactor,
       damageTakenMult: this.damageTakenMult * this.auraTakenMult,
+      energy: this.energy,
+      mana: this.mana,
+      form: this.form,
     }
+  }
+
+  /** Test hook: the pools, combo points and form now (druid.md §2), e.g. from a trace or after a fight. */
+  resources() {
+    return { rage: this.rage, energy: this.energy, mana: this.mana, comboPoints: this.comboPoints, form: this.form }
   }
 
   private reset(): void {
     this.q.clear()
+    // A fight that ended in another form starts again in the plan's (druid.md §2.8).
+    if (this.form !== this.startForm) this.setForm(this.startForm)
+    this.energy = this.energyStart
+    this.mana = this.manaMax
+    this.comboPoints = 0
+    this.lastPaid = 0
+    this.manaSpentAt = -Infinity
+    this.catEnergyLeft = this.energyStart
+    this.outOfFormMs = 0
+    this.formSince = 0
     this.now = 0
     this.rage = 0
     this.rageFraction = 0
@@ -1117,12 +1309,12 @@ export class Sim {
       }
       const aura = this.abAura[a]
       if (aura >= 0 && at + this.aDuration[aura] > 0) this.startAura(aura, at + this.aDuration[aura])
-      this.gainRage(this.castRageTenths(a), -1)
+      this.gainPower(this.abRes[a], this.castRageTenths(a), -1)
       const ticks = this.abTicks[a]
       for (let k = 1; k <= ticks; k++) {
         const t = at + k * this.abTickMs[a]
         if (t < 0) {
-          this.gainRage(this.abTickRage[a], -1)
+          this.gainPower(this.abRes[a], this.abTickRage[a], -1)
           continue
         }
         this.abTicksLeft[a] = ticks - k + 1
@@ -1256,9 +1448,9 @@ export class Sim {
     if (a >= 0) {
       this.queued = -1
       this.actPending = this.hasRotation
-      if (this.rage >= this.abCost[a]) {
-        if (this.castTrace !== null) this.castTrace(a, this.now, this.rage)
-        this.spendRage(a)
+      if (this.affordable(a)) {
+        if (this.castTrace !== null) this.castTrace(a, this.now, this.pool(this.abRes[a]))
+        this.payCost(a)
         // No white rage from the replaced swing (rage.md#yellow-damage-and-on-next-swing-attacks),
         // and it doesn't use Flurry charges in Forever (warrior.md §2.4 item 5).
         this.special(a, HAND.main, bonusAp)
@@ -1414,8 +1606,8 @@ export class Sim {
       if (now < this.entryFrom[e] || now > this.entryTo[e]) continue
       const a = this.rotAbility[e]
       // Off cooldown (never ready when used up, or needing a weapon the setup lacks: the
-      // constructor's `abNeverReady`), with the rage for it.
-      if (this.abReadyAt[a] > now || this.rage < this.abCost[a]) continue
+      // constructor's `abNeverReady`), with the rage for it (a druid's: its form, combo points and cost).
+      if (this.abReadyAt[a] > now || !this.affordable(a)) continue
       // warrior.md §3.1 "Stance": only in the stances it's usable in, or by dancing to one (§7).
       let dance = 0
       if ((this.abStances[a] & this.stance) === 0 && (dance = this.danceFor(e, a)) === 0) continue
@@ -1521,6 +1713,16 @@ export class Sim {
           if (aura < 0 || !this.auraActive[aura]) return false
           break
         }
+        // docs/classes/druid.md §6.2: Energy and combo-point thresholds.
+        case COND.minEnergy:
+          if (this.energy < a) return false
+          break
+        case COND.maxEnergy:
+          if (this.energy > a) return false
+          break
+        case COND.minComboPoints:
+          if (this.comboPoints < a) return false
+          break
 
       }
     }
@@ -1534,7 +1736,7 @@ export class Sim {
       this.queued = a
       return
     }
-    if (this.castTrace !== null) this.castTrace(a, this.now, this.rage)
+    if (this.castTrace !== null) this.castTrace(a, this.now, this.pool(this.abRes[a]))
     // warrior.md §2.8: using a reactive ability closes its window, whether or not it lands.
     const w = this.abWindow[a]
     if (w >= 0 && this.auraActive[w]) this.removeAura(w)
@@ -1542,7 +1744,7 @@ export class Sim {
       this.startCast(a)
       return
     }
-    this.spendRage(a)
+    this.payCost(a)
     const gcd = this.abGcd[a]
     if (gcd > 0) {
       this.gcdEnd = this.now + gcd
@@ -1555,6 +1757,10 @@ export class Sim {
     }
     if (this.abKind[a] === KIND_CAST) {
       this.cast(a)
+      return
+    }
+    if (this.abKind[a] === KIND_SHIFT) {
+      this.shift(a)
       return
     }
     this.strike(a)
@@ -1597,8 +1803,8 @@ export class Sim {
     this.gcdEnd = this.castGcdEnd
     if (this.gcdEnd > now) this.q.push(this.gcdEnd, EV_ACT, 0, 0)
     this.actPending = this.hasRotation
-    if (this.rage >= this.abCost[a]) {
-      this.spendRage(a)
+    if (this.affordable(a)) {
+      this.payCost(a)
       const cd = this.abCd[a]
       if (!this.countUse(a) && cd > 0) {
         this.abReadyAt[a] = now + cd
@@ -1639,7 +1845,7 @@ export class Sim {
     const source = this.abSource[a]
     this.counters[source * FIELD_COUNT + FIELD.casts]++
     if (this.abAura[a] >= 0) this.applyAura(this.abAura[a])
-    this.gainRage(this.castRageTenths(a), source)
+    this.gainPower(this.abRes[a], this.castRageTenths(a), source)
     if (this.abTicks[a] > 0) {
       // A recast restarts the ticks (none of the abilities recasts before they end).
       this.abTicksLeft[a] = this.abTicks[a]
@@ -1648,7 +1854,7 @@ export class Sim {
   }
 
   private onCastRageTick(a: number): void {
-    this.gainRage(this.abTickRage[a], this.abSource[a])
+    this.gainPower(this.abRes[a], this.abTickRage[a], this.abSource[a])
     if (--this.abTicksLeft[a] > 0) this.q.push(this.now + this.abTickMs[a], EV_CAST_RAGE, a, this.abTickGen[a])
   }
 
@@ -1680,13 +1886,16 @@ export class Sim {
         c[row + FIELD.parries]++
         this.onBossParried()
       }
-      if (main) {
+      if (main && this.abPlainRage[a] === 1) {
         // docs/mechanics/rage.md#rage-refunds-on-avoided-abilities: no threat, not an energize.
         // Execute refunds nothing, so a miss loses only its cost (warrior.md §3.1 "Execute details").
         const refund = Math.floor(this.abRefund[a] * this.abCost[a] + 1e-9)
         if (this.rage + refund >= this.maxRage) this.setRage(this.maxRage)
         else this.rage += refund
         this.actPending = this.hasRotation
+      } else if (main) {
+        // druid.md §2.4, §2.5: a share of what it paid (none under Clearcasting), and a finisher keeps its combo points.
+        this.refundPaid(a)
       }
       return
     }
@@ -1694,6 +1903,8 @@ export class Sim {
       // warrior.md §3.1, §7: the application can't crit and deals nothing itself; it lands its
       // bleed, and as a landed melee attack it can proc on-hit effects [?].
       this.applyDot(a)
+      // druid.md §2.5: a bleed that builds or finishes moves combo points once it's snapshotted.
+      if (main && (this.abCp[a] !== 0 || this.abFinisher[a] === 1)) this.landComboPoints(a, false)
       this.fireProcs(TRIGGER.meleeLanded, hand)
       return
     }
@@ -1716,11 +1927,17 @@ export class Sim {
       c[row + FIELD.hits]++
     }
     if (main && this.abPerExtraRage[a] > 0) {
-      // warrior.md §3.1 "Execute details": a landed Execute (a block lands too) spends all the rage.
-      this.setRage(0)
-      this.afterRageSpent()
+      // warrior.md §3.1 "Execute details": a landed Execute (a block lands too) spends all the rage;
+      // Ferocious Bite all the Energy (druid.md §3.5).
+      if (this.abRes[a] === RES_RAGE) {
+        this.setRage(0)
+        this.afterRageSpent()
+      } else this.emptyPool(this.abRes[a])
       this.actPending = this.hasRotation
     }
+    // druid.md §2.5: a landed builder awards its combo points (Primal Fury one more on a crit), a
+    // finisher spends them, after its damage read them.
+    if (main && (this.abCp[a] !== 0 || this.abFinisher[a] === 1)) this.landComboPoints(a, crit)
     // docs/mechanics/threat.md#base-rule-and-how-modifiers-stack: (dmg × mult + bonus) × global
     this.addDamage(source, damage, (damage * this.abThreatMult[a] + this.abThreatBonus[a]) * this.threatMult)
     // An on-next-swing ability's swing counts as a landed swing (Unbridled Wrath, warrior.md §2.3 [?]).
@@ -1745,9 +1962,17 @@ export class Sim {
       const roll = this.rngDamage.uniform(this.wMin[hand], this.wMax[hand])
       base = (roll + this.wFlat[hand] + (ap / 14) * speed + this.abFlat[a]) * this.abWeaponPct[a] * this.wHandMult[hand]
     } else {
-      base = this.abFlat[a] + this.abApCoef[a] * ap + (this.abPerExtraRage[a] * this.rage) / 10
+      base = this.abFlat[a] + this.abApCoef[a] * ap + (this.abPerExtraRage[a] * this.pool(this.abRes[a])) / 10
+      // druid.md §3.5: a finisher's damage per combo point and attack power per combo point.
+      if (this.abFinisher[a] === 1) base += this.comboPointDamage(a, ap)
     }
     return base * this.physMult * this.armorFactor[hand]
+  }
+
+  /** A finisher's combo-point terms: damage per point, and attack power per point up to its cap (druid.md §3.4, §3.5). */
+  private comboPointDamage(a: number, ap: number): number {
+    const cp = this.comboPoints
+    return this.abPerCp[a] * cp + this.abApPerCp[a] * Math.min(cp, this.abCpApCap[a]) * ap
   }
 
   /**
@@ -1812,13 +2037,20 @@ export class Sim {
     if (this.gatedLists[trigger].length > 0) this.fireGatedProcs(trigger, hand)
   }
 
-  /** The procs on this trigger that need an aura: each rolls only while its aura is up (Bloodthrill: your Rend). */
+  /**
+   * The procs on this trigger that need an aura or a form: each rolls only while its aura is up
+   * (Bloodthrill: your Rend) and in its forms (Primal Fury's rage: bear).
+   */
   private fireGatedProcs(trigger: number, hand: number): void {
     const list = this.gatedLists[trigger]
     for (let k = 0; k < list.length; k++) {
       const p = list[k]
       if (hand >= 0 && (this.pHands[p] & (1 << hand)) === 0) continue
-      if (this.procReadyAt[p] > this.now || !this.auraActive[this.pReqAura[p]] || (this.pChainBit[p] & this.chainMask) !== 0) continue
+      const need = this.pReqAura[p]
+      const forms = this.pForms[p]
+      if (this.procReadyAt[p] > this.now || (need >= 0 && !this.auraActive[need]) || (this.pChainBit[p] & this.chainMask) !== 0) continue
+      // druid.md §2.8: a proc bound to forms (Primal Fury's rage: bear) rolls only in them.
+      if (forms !== 0 && (forms & (1 << this.form)) === 0) continue
       const chance = this.pChance[2 * p + (hand > 0 ? hand : 0)]
       if (chance < 1 && this.rngProc.next() >= chance) continue
       if (this.pIcd[p] > 0) this.procReadyAt[p] = this.now + this.pIcd[p]
@@ -1992,7 +2224,10 @@ export class Sim {
     const now = this.now
     if (this.dotTicksLeft[a] > 0 && this.dotNextAt[a] === now) this.onDotTick(a)
     this.dotTicksLeft[a] = this.abDotTicks[a]
-    this.dotDamage[a] = this.abDotTick[a] * this.physMult
+    // druid.md §2.9, §3.4: a finisher's bleed snapshots its combo points and attack power too (Rip).
+    const cp = this.comboPoints
+    const perCp = this.abFinisher[a] === 1 ? this.abDotPerCp[a] * cp + this.abDotApPerCp[a] * Math.min(cp, this.abCpApCap[a]) * this.ap : 0
+    this.dotDamage[a] = (this.abDotTick[a] + perCp) * this.physMult
     this.dotCrit[a] = this.abDotCanCrit[a] ? this.specCrit[HAND.main] + this.abBonusCrit[a] : -1
     this.dotNextAt[a] = now + this.abDotTickMs[a]
     this.q.push(this.dotNextAt[a], EV_DOT_TICK, a, ++this.dotGen[a])
@@ -2045,6 +2280,193 @@ export class Sim {
   }
 
   // ------------------------------------------------------------------------------------------
+  // Resources and forms (docs/classes/druid.md §2): every warrior row is `abPlainRage` and pays
+  // rage as before; the rest take these paths.
+  // ------------------------------------------------------------------------------------------
+
+  /**
+   * Whether an ability can be paid for now: rage for a plain rage row; otherwise it must be allowed
+   * in the current form, a finisher needs a combo point, a Clearcasting charge pays for a
+   * clearcastable one, and its pool must hold its cost (druid.md §2.4–§2.7).
+   */
+  private affordable(a: number): boolean {
+    if (this.abPlainRage[a] === 1) return this.rage >= this.abCost[a]
+    const forms = this.abForms[a]
+    if (forms !== 0 && (forms & (1 << this.form)) === 0) return false
+    if (this.abFinisher[a] === 1 && this.comboPoints === 0) return false
+    if (this.abFree[a] === 1 && this.auraActive[this.freeAura]) return true
+    return this.pool(this.abRes[a]) >= this.abCost[a]
+  }
+
+  /** The pool of a resource, in tenths. */
+  private pool(res: number): number {
+    return res === RES_RAGE ? this.rage : res === RES_ENERGY ? this.energy : this.mana
+  }
+
+  /**
+   * Pays an ability's cost from its pool. A Clearcasting charge pays a clearcastable ability that
+   * costs something, and is used up (druid.md §2.7); spending mana restarts the five-second rule
+   * (§2.8). `lastPaid` keeps what was paid, for a refund.
+   */
+  private payCost(a: number): void {
+    const cost = this.abCost[a]
+    this.lastPaid = cost
+    if (this.abPlainRage[a] === 1) {
+      this.spendRage(a)
+      return
+    }
+    if (cost > 0 && this.abFree[a] === 1 && this.auraActive[this.freeAura]) {
+      this.lastPaid = 0
+      this.removeAura(this.freeAura)
+      return
+    }
+    const res = this.abRes[a]
+    if (res === RES_RAGE) this.spendRage(a)
+    else if (res === RES_ENERGY) {
+      this.energy -= cost
+      if (cost > 0 && this.hasMaxEnergy) this.actPending = true
+    } else if (cost > 0) {
+      this.mana -= cost
+      this.manaSpentAt = this.now
+    }
+  }
+
+  /**
+   * A druid ability that missed or was dodged or parried gets back its refund share of what it paid
+   * (a builder 80%, a finisher nothing [?]; nothing when Clearcasting paid), and a finisher keeps its
+   * combo points (druid.md §2.4, §2.5, Q29). No threat.
+   */
+  private refundPaid(a: number): void {
+    const refund = Math.floor(this.abRefund[a] * this.lastPaid + 1e-9)
+    if (refund <= 0) return
+    const res = this.abRes[a]
+    if (res === RES_RAGE) this.rage = Math.min(this.maxRage, this.rage + refund)
+    else if (res === RES_ENERGY) this.energy = Math.min(this.energyMax, this.energy + refund)
+    else this.mana = Math.min(this.manaMax, this.mana + refund)
+    this.actPending = this.hasRotation
+  }
+
+  /** Empties a pool after a landed hit that converts all of it (Ferocious Bite's Energy, druid.md §3.5). */
+  private emptyPool(res: number): void {
+    if (res === RES_ENERGY) this.energy = 0
+    else if (res === RES_MANA) this.mana = 0
+  }
+
+  /**
+   * A landed builder or finisher (druid.md §2.5): a finisher spends every combo point; a builder
+   * adds its own, and one more on a non-periodic crit with Primal Fury's chance; at most 5.
+   */
+  private landComboPoints(a: number, crit: boolean): void {
+    if (this.abFinisher[a] === 1) this.comboPoints = 0
+    let gained = this.abCp[a]
+    const extra = this.abCritCp[a]
+    if (gained > 0 && crit && extra > 0 && (extra >= 1 || this.rngProc.next() < extra)) gained++
+    this.comboPoints = Math.min(MAX_COMBO_POINTS, this.comboPoints + gained)
+    this.actPending = this.hasRotation
+  }
+
+  /** Gains a resource from a cast or an energize (`source` ≥ 0: its threat goes on that row). */
+  private gainPower(res: number, tenths: number, source: number): void {
+    if (res === RES_RAGE) this.gainRage(tenths, source)
+    else if (res === RES_ENERGY) this.gainEnergy(tenths, source)
+    else this.gainMana(tenths, source)
+  }
+
+  /** Adds Energy in tenths, capped (druid.md §2.4); an energize (`source` ≥ 0) makes 5 threat per Energy [?]. */
+  private gainEnergy(tenths: number, source: number): void {
+    if (tenths <= 0) return
+    const gained = Math.min(tenths, this.energyMax - this.energy)
+    this.energy += gained
+    if (gained > 0) this.actPending = this.hasRotation
+    this.totalEnergyGainedTenths += gained
+    this.totalEnergyWastedTenths += tenths - gained
+    if (source >= 0 && gained > 0) {
+      const threat = gained * THREAT_PER_ENERGY_TENTH
+      this.counters[source * FIELD_COUNT + FIELD.threat] += threat
+      this.fightThreat += threat
+    }
+  }
+
+  /** Adds mana in tenths, capped (druid.md §2.8); an energize makes 0.5 threat per mana [?]. */
+  private gainMana(tenths: number, source: number): void {
+    if (tenths <= 0) return
+    const gained = Math.min(tenths, this.manaMax - this.mana)
+    this.mana += gained
+    if (gained > 0) this.actPending = this.hasRotation
+    if (source >= 0 && gained > 0) {
+      const threat = gained * THREAT_PER_MANA_TENTH
+      this.counters[source * FIELD_COUNT + FIELD.threat] += threat
+      this.fightThreat += threat
+    }
+  }
+
+  /**
+   * The player-global power tick (druid.md §2.4, §2.8): 20 Energy, and spirit regeneration unless
+   * mana was spent in the last 5 s. The tick doesn't reset on a shapeshift.
+   */
+  private onPowerTick(): void {
+    if (this.energyMax > 0) this.gainEnergy(this.energyTick, -1)
+    if (this.manaMax > 0 && this.now - this.manaSpentAt >= this.fiveSecondRuleMs) this.gainMana(this.manaRegen, -1)
+  }
+
+  /**
+   * Puts the druid in form f (plan/types.ts FormPlan): its stat block, its main hand, with the PPM
+   * procs' main-hand chance from the new swing speed [?] (druid.md §2.1, Q28), and its threat
+   * multiplier. A queued ability the form refuses is dropped. The swing in progress keeps its time;
+   * the next uses the new speed.
+   */
+  private setForm(f: number): void {
+    const form = this.plan.forms![f]
+    this.form = f
+    this.base.copyFrom(form.stats)
+    this.scratch.copyFrom(form.stats)
+    this.loadHand(HAND.main, form.mainHand)
+    for (let i = 0; i < this.ppmProcs.length; i++) {
+      const p = this.ppmProcs[i]
+      this.pChance[2 * p] = this.hasWeapon[HAND.main] ? ppmChance(this.pPpm[p], this.wSpeedSec[HAND.main]) : 0
+    }
+    this.threatMult = form.threatMult * this.sThreat[this.stance]
+    this.gainsRage = form.rage
+    const queued = this.queued
+    if (queued >= 0 && this.abForms[queued] !== 0 && (this.abForms[queued] & (1 << f)) === 0) this.queued = -1
+    this.recomputeStats()
+    this.recomputeMultipliers()
+  }
+
+  /**
+   * A shapeshift (druid.md §2.8): into its form, then the form's entry rules. Entering cat sets
+   * Energy by Furor from the Energy left in cat and the time since in no animal form (a powershift,
+   * cat into cat, keeps it); entering bear sets rage to 0, then Furor may add 10 (an energize, on the
+   * shapeshift's row). Wolfshead Helm adds nothing in Forever.
+   */
+  private shift(a: number): void {
+    const source = this.abSource[a]
+    this.counters[source * FIELD_COUNT + FIELD.casts]++
+    const now = this.now
+    const from = this.form
+    if (from === this.catForm) {
+      this.catEnergyLeft = this.energy
+      this.outOfFormMs = 0
+    } else if (from === this.casterForm) this.outOfFormMs += now - this.formSince
+    this.formSince = now
+    const armed = this.hasWeapon[HAND.main] === 1
+    const to = this.abShiftTo[a]
+    this.setForm(to)
+    // A form with a weapon when the last had none starts swinging; one without stops.
+    if (!armed && this.hasWeapon[HAND.main]) this.scheduleSwing(HAND.main, now + this.swingMs[HAND.main])
+    else if (armed && !this.hasWeapon[HAND.main]) this.swingGen[HAND.main]++
+    if (to === this.catForm) {
+      this.energy = Math.min(this.energyMax, furorCatEnergyTenths(this.furorRank, this.catEnergyLeft, this.outOfFormMs))
+    } else if (to === this.bearForm) {
+      this.setRage(0)
+      this.afterRageSpent()
+      const chance = this.bearEntryRageChance
+      if (chance > 0 && (chance >= 1 || this.rngProc.next() < chance)) this.gainRage(this.bearEntryRage, source)
+    }
+    this.actPending = this.hasRotation
+  }
+
+  // ------------------------------------------------------------------------------------------
   // Rage
   // ------------------------------------------------------------------------------------------
 
@@ -2054,6 +2476,8 @@ export class Sim {
    * add up and none is lost; `floor` drops it. At the cap the fraction is lost with the rest.
    */
   private gainRageFraction(tenths: number): void {
+    // Only a form whose power is rage gains it from hits (a druid's bear; every warrior): druid.md §2.4, rage.md#bear-druid-rage.
+    if (!this.gainsRage) return
     if (!this.carryRageFraction) {
       this.gainRage(Math.floor(tenths + 1e-9), -1)
       return

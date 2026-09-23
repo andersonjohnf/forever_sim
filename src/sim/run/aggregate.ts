@@ -74,7 +74,8 @@ export function cooldownResults(plan: Plan, agg: Aggregate): CooldownResult[] {
   const shown = new Set<number>()
   for (const ability of plan.abilities) {
     if (ability.kind === 'bleed' && ability.aura >= 0) shown.add(ability.aura)
-    if (ability.kind !== 'cast') continue
+    // A druid's shapeshift is listed like a cast: its casts per fight, no buff (druid.md §2.8).
+    if (ability.kind !== 'cast' && ability.kind !== 'shift') continue
     if (ability.aura >= 0) shown.add(ability.aura)
     rows.push({
       id: ability.id,

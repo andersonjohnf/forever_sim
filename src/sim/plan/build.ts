@@ -9,6 +9,8 @@ import type { Item, ItemData, Stats, WeaponSkill, WeaponType } from '@/data/item
 import { bossOutcomeShares, glanceRange, PLAYER_LEVEL } from '../core/attack-table'
 import { negativeArmorFloor, NORMALIZED_SPEED, OFF_HAND_DAMAGE, ppmChance, slowedSwingSec, toTenths } from '../core/formulas'
 import { classSetup } from '../classes'
+import { DRUID_FORMS, FORM_INDEX, FORM_NAME, formWeapon } from '../classes/druid/forms'
+import { druidPlan } from '../classes/druid/plan'
 import { classRotation, maintainedBuffs, rotationBaseStance } from '../classes/rotation'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
@@ -16,9 +18,9 @@ import { BUFFS_BY_ID } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { ITEM_EFFECTS } from '../effects/items'
 import { COOLDOWN_RACIALS, racialEffects } from '../effects/racials'
-import { type AuraSpec, catalogueEffects, type Condition, type Effect, type FlatStat, type OnUseSpec, type ProcSpec } from '../effects/types'
+import { type AuraSpec, catalogueEffects, type Condition, type DruidForm, type Effect, type FlatStat, type OnUseSpec, type ProcSpec } from '../effects/types'
 import { isTwoHand } from '../equip'
-import { currentDamageTakenRageModel, PROFILES } from '../rules/profiles'
+import { currentDamageTakenRageModel, PROFILES, type RulesProfile } from '../rules/profiles'
 import { SPEC_META } from '../specs'
 import { BASE_PLACEHOLDERS, CLASS_BASE } from '../stats/base-stats'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
@@ -28,6 +30,7 @@ import {
   type AbilityPlan,
   ACTION,
   type AuraPlan,
+  type FormPlan,
   HAND,
   NO_PREPULL,
   type Plan,
@@ -114,10 +117,14 @@ const DPS_DAMAGE_INTERVAL_MS = 2000
 
 interface Weapon {
   hand: 0 | 1
-  item: Item
+  /** The equipped item; null for a druid form's weapon with nothing equipped (druid.md §2.1). */
+  item: Item | null
+  /** The item's type ('fist' stands in for a form's weapon with nothing equipped). */
   type: WeaponType
   twoHand: boolean
   plan: WeaponPlan
+  /** A druid form's weapon, which replaces the item's damage and speed (druid.md §2.1). */
+  form?: boolean
 }
 
 interface Collected {
@@ -273,6 +280,20 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // --- Effects -------------------------------------------------------------------------------
   const setup = classSetup(classId, config.spec, config.talents, profile, rotationBaseStance(config.spec, config.rotation))
   if (!setup.simulated && attributes) blockers.push(`${meta.className} simulation isn’t available yet.`)
+  // A druid in an animal form attacks with the form's weapon, whatever is equipped; the item's
+  // other stats and effects still apply (druid.md §2.1, §8 "Form swap"). Its per-hand bonuses
+  // collect on the form's weapon, and the other forms' main hands are made from it (druidForms).
+  const equippedMain = weapons[HAND.main]
+  if (setup.form === 'cat' || setup.form === 'bear') {
+    weapons[HAND.main] = {
+      hand: HAND.main,
+      item: mhItem ?? null,
+      type: equippedMain?.type ?? 'fist',
+      twoHand: false,
+      plan: formWeapon(setup.form, null, profile, fight.bossLevel),
+      form: true,
+    }
+  }
   const c: Collected = {
     block,
     damageMult: 1,
@@ -376,7 +397,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
 
   // Racials, talents and stance. The weapon racials read the weapons in either hand (warrior.md §2.9).
   apply(racialEffects(config.race, classId), null)
-  apply(setup.effects, null)
+  // A druid's form-bound effects go into each form's own stat block (druid.md §2.2; druidForms below).
+  apply(setup.effects.filter((e) => !e.when?.form), null)
   // The base stance's effects are in the static numbers, as above; each stance's factors turn them
   // into its own, so a stance dance can switch them (warrior.md §2.1, §7 "Stances").
   const stances: StancePlan[] = setup.stance ? stancePlans(setup.stance, stanceEffects(profile), setup.effects, holds) : []
@@ -396,7 +418,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   for (const id of config.buffs.enabled) {
     const buff = BUFFS_BY_ID.get(id)
     if (!buff || (buff.providedBy && !config.buffs.raid.includes(buff.providedBy))) continue
-    if (maintained.includes(id)) continue
+    if (maintained.includes(id) || setup.replacesBuffs?.includes(id)) continue
     const effects = catalogueEffects(buff, profile)
     apply(effects, null)
     for (const e of effects) {
@@ -413,7 +435,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // A stone's crit is its own aura on the warrior, for every melee attack, so two stack [?].
   let elementalStones = 0
   for (const w of weapons) {
-    if (!w) continue
+    if (!w || !w.item) continue
     if (windfuryHoldsMainHand && w.hand === HAND.main) continue
     const best = c.tempEnchants
       .filter((t) => !t.weapons || t.weapons.includes(w.type))
@@ -430,7 +452,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const oh = c.offHand
   for (const w of weapons) {
     if (!w) continue
-    const skillName = w.item.weapon?.skill
+    // In a form, items' weapon skill doesn't apply [?] (druid.md §2.1, Q28).
+    const skillName = w.form ? undefined : w.item?.weapon?.skill
     w.plan.skill = 5 * PLAYER_LEVEL + (skillName ? (weaponSkill[skillName] ?? 0) : 0)
     ;[w.plan.glanceLow, w.plan.glanceHigh] = glanceRange(profile, fight.bossLevel, w.plan.skill)
     if (w.hand === HAND.off) {
@@ -441,6 +464,13 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     }
     w.plan.armorPenPct = Math.min(1, w.plan.armorPenPct)
   }
+
+  // --- Druid forms (docs/classes/druid.md §2.1, §2.2, §2.8) ----------------------------------------
+  // One stat block, main hand and threat multiplier per form, from the shared block and each form's
+  // own effects; the plan's static numbers become those of the form the spec fights in.
+  const forms = setup.form
+    ? druidForms(setup.form, setup.effects.filter((e) => e.when?.form), c, weapons[HAND.main], equippedMain, weaponSkill, profile, fight.bossLevel)
+    : undefined
 
   // --- Derived stats and the sheet -------------------------------------------------------------
   const deriveOptions = { profile, applyUnmeasured, level: PLAYER_LEVEL }
@@ -493,8 +523,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
 
   // --- Procs, auras and breakdown rows ------------------------------------------------------------
   const sources: SourcePlan[] = [
-    { id: 'mainHand', name: 'Main hand', icon: mh?.item.icon ?? 'inv_sword_04' },
-    { id: 'offHand', name: 'Off hand', icon: weapons[HAND.off]?.item.icon ?? 'inv_sword_04' },
+    { id: 'mainHand', name: 'Main hand', icon: (mh?.form ? mh.plan.icon : mh?.item?.icon) ?? 'inv_sword_04' },
+    { id: 'offHand', name: 'Off hand', icon: weapons[HAND.off]?.item?.icon ?? 'inv_sword_04' },
   ]
   const sourceIndex = (id: string, name: string, icon: string) => {
     const i = sources.findIndex((s) => s.id === id)
@@ -537,6 +567,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   let procs: ProcPlan[] = []
   /** The aura id each proc needs to be up (Bloodthrill: your Rend), resolved once the abilities' auras are in. */
   const procNeeds: (string | undefined)[] = []
+  /** The druid forms each proc is bound to (Primal Fury's rage: bear), resolved once the reachable forms are known. */
+  const procForms: (readonly DruidForm[] | undefined)[] = []
   const chainBits = new Map<string, number>()
   const addProc = (spec: ProcSpec, origin: 0 | 1 | null) => {
     const proc = resolveProc(spec, origin, weapons)
@@ -587,6 +619,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     }
     procs.push(proc)
     procNeeds.push(spec.requiresAura)
+    procForms.push(spec.forms)
   }
   for (const { spec, origin } of c.procs) addProc(spec, origin)
   // A weapon's own proc aura (Crusader's Holy Strength) is one per hand; with both, each names its hand.
@@ -632,11 +665,26 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // aura (Bloodthrill: your Rend on the target) is rolled only while it's up, and left out if the plan
   // has no such aura (no Rend in the rotation).
   for (const spec of classRot.procs) addProc(spec, null)
+  // A druid's proc bound to forms rolls only in them: always if it holds in every form the fight can
+  // be in (the starting one and those its shapeshifts enter), and left out if in none (druid.md §2.8).
+  const reachable = forms
+    ? classRot.abilities.reduce((mask, a) => (a.kind === 'shift' && a.shiftTo !== undefined ? mask | (1 << a.shiftTo) : mask), 1 << FORM_INDEX[setup.form!])
+    : 0
   procs = procs.flatMap((p, i) => {
+    let resolved = p
     const need = procNeeds[i]
-    if (need === undefined) return [p]
-    const aura = auras.findIndex((a) => a.id === need)
-    return aura < 0 ? [] : [{ ...p, requiresAura: aura }]
+    if (need !== undefined) {
+      const aura = auras.findIndex((a) => a.id === need)
+      if (aura < 0) return []
+      resolved = { ...resolved, requiresAura: aura }
+    }
+    const bound = procForms[i]
+    if (bound && forms) {
+      const mask = bound.reduce((m, f) => m | (1 << FORM_INDEX[f]), 0)
+      if ((mask & reachable) === 0) return []
+      if ((reachable & ~mask) !== 0) resolved = { ...resolved, forms: mask }
+    }
+    return [resolved]
   })
   const triggers: number[][] = Array.from({ length: TRIGGER_COUNT }, () => [])
   procs.forEach((p, i) => triggers[p.trigger].push(i))
@@ -709,6 +757,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     abilities,
     rotation: classRot.rotation,
     prepull: classRot.prepull,
+    ...(forms && setup.form ? druidPlan(forms, setup.form, setup.talents, derived, auras) : {}),
   }
 
   // --- Assumptions ---------------------------------------------------------------------------------
@@ -716,7 +765,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // docs/mechanics/damage-and-timing.md#36-server-tick-and-spell-batching: the rotation reacts in 0 ms [?].
   if (classRot.rotation.length > 0) notes.add('reactionTime')
   if (abilities.some((a) => a.gcdMs > 0)) notes.add('gcdHaste')
-  if (abilities.some((a) => a.costTenths > 0)) notes.add('abilityRefunds')
+  // Rage refunds; a druid's Energy refunds are in `energyTicks`.
+  if (abilities.some((a) => a.costTenths > 0 && (a.resource ?? 'rage') === 'rage')) notes.add('abilityRefunds')
   const queues = abilities.some((a) => a.kind === 'onNextSwing')
   if (queues && mh) notes.add('onNextSwingRage')
   // What the rotation's settings rest on without an ability that shows it (Arms' Heroic Strike off).
@@ -754,8 +804,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   }
   if (weapons[HAND.off]) notes.add('offHandFirstSwing')
   if (auras.some((a) => a.haste)) notes.add('hasteNextSwing')
-  if (setup.simulated && profile.rage.white === 'normalized') {
-    notes.add('foreverWhiteRage')
+  // Rage matters to warriors and bears; a cat's pool is Energy (druid.md §2.4).
+  const usesRage = classId !== 'druid' || setup.form === 'bear'
+  if (setup.simulated && profile.rage.white === 'normalized' && usesRage) {
+    if (setup.form === 'bear') notes.add('bearWhiteRage')
+    else notes.add('foreverWhiteRage')
     if (weapons[HAND.off]) notes.add('foreverOffHandRage')
   }
   // docs/mechanics/rage.md#forever-: the damage-taken model, when you take damage. `classic` is [C].
@@ -844,6 +897,15 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (mh && fight.executePct > 0 && abilities.some((a) => a.damagePerExtraRage > 0)) notes.add('executeRageTenths')
   if (setup.talents.get('Improved Bloodrage') === 1 && abilities.some((a) => a.id === 'bloodrage')) notes.add('improvedBloodrageRounding')
   if (c.zoneGatedUnmet) notes.add('hyjalFlask')
+  // docs/classes/druid.md §2, §8 "Uncertainty surfacing": the druid's [?] that this setup relies on.
+  if (classId === 'druid') {
+    notes.add('druidBaseStats')
+    if (setup.form === 'cat' || setup.form === 'bear') notes.add('formWeapon')
+    if (procIds.has('omenOfClarity')) notes.add('omenOfClarity')
+    if (abilities.some((a) => a.resource === 'energy')) notes.add('energyTicks')
+    if (abilities.some((a) => a.kind === 'shift')) notes.add('shapeshifts')
+    if (setup.form === 'bear' && profile.catalogue.column === 'forever') notes.add('bearArmor')
+  }
 
   return { plan, sheet, assumptions: notes.toArray(), blockers }
 }
@@ -872,6 +934,9 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
     }
     case 'itemArmorPct':
       b.itemArmorPct += e.pct / 100
+      return
+    case 'bonusArmorPct':
+      b.bonusArmorPct += e.pct / 100
       return
     case 'haste':
       b.haste *= 1 + e.pct / 100
@@ -971,6 +1036,64 @@ function stancePlans(
   })
 }
 
+/** The effect kinds a druid form can bind (druid.md §2.2): anything else can't be switched by a shapeshift. */
+const FORM_EFFECT_KINDS: ReadonlySet<Effect['kind']> = new Set(['stat', 'mult', 'itemArmorPct', 'bonusArmorPct', 'threat'])
+
+/**
+ * A druid's forms, in FORM_INDEX order (druid.md §2.1, §2.2, §2.8; plan/types.ts FormPlan): each
+ * the shared stat block plus its own bound effects, its main hand, and the threat multiplier in it.
+ * The per-hand bonuses the effects gave the starting form's main hand (crit, hit, armor
+ * penetration) go on every form's; the flat weapon damage goes only on the equipped weapon's, used
+ * in caster form, since a form ignores the weapon's damage [?] (Q25). Then the plan's static block,
+ * main hand and threat multiplier (`c`, `main`) become the starting form's.
+ */
+function druidForms(
+  start: DruidForm,
+  bound: Effect[],
+  c: Collected,
+  main: Weapon | null,
+  equipped: Weapon | null,
+  weaponSkill: Partial<Record<WeaponSkill, number>>,
+  profile: RulesProfile,
+  bossLevel: number,
+): FormPlan[] {
+  const shared = new StatBlock().copyFrom(c.block)
+  const bonuses = main?.plan ?? null
+  let caster: WeaponPlan | null = start === 'caster' ? (main?.plan ?? null) : null
+  if (start !== 'caster' && equipped) {
+    const skillName = equipped.item?.weapon?.skill
+    const skill = 5 * PLAYER_LEVEL + (skillName ? (weaponSkill[skillName] ?? 0) : 0)
+    const [glanceLow, glanceHigh] = glanceRange(profile, bossLevel, skill)
+    caster = {
+      ...equipped.plan,
+      skill,
+      glanceLow,
+      glanceHigh,
+      flatDamage: bonuses?.flatDamage ?? 0,
+      hitBonus: bonuses?.hitBonus ?? 0,
+      critBonus: bonuses?.critBonus ?? 0,
+      armorPenPct: bonuses?.armorPenPct ?? 0,
+    }
+  }
+  if (main?.form) main.plan.flatDamage = 0
+  const forms = DRUID_FORMS.map((f): FormPlan => {
+    const fc: Collected = { ...c, block: new StatBlock().copyFrom(shared), procs: [], periodicRage: [], onUse: [], tempEnchants: [] }
+    for (const e of bound) {
+      if (!e.when?.form?.includes(f)) continue
+      if (!FORM_EFFECT_KINDS.has(e.kind)) throw new Error(`A form effect a shapeshift can't switch: ${e.kind}`)
+      applyEffect(fc, e, null, [null, null])
+    }
+    const mainHand = f === start ? (main?.plan ?? null) : f === 'caster' ? caster : formWeapon(f, bonuses, profile, bossLevel)
+    return { id: f, name: FORM_NAME[f], stats: fc.block, mainHand, threatMult: fc.threatMult, rage: f === 'bear' }
+  })
+  // The starting form's block is the plan's own (one object), so a change to `plan.stats` is its too.
+  const own = forms[FORM_INDEX[start]]
+  c.block.copyFrom(own.stats)
+  own.stats = c.block
+  c.threatMult = own.threatMult
+  return forms
+}
+
 const TRIGGER_CODE: Record<ProcSpec['trigger'], number> = TRIGGER
 
 /** Resolves hands and chances for a proc; null when nothing can trigger it in this setup. */
@@ -1009,6 +1132,7 @@ function resolveProc(spec: ProcSpec, origin: 0 | 1 | null, weapons: [Weapon | nu
     name: spec.name,
     trigger,
     chance,
+    ...('ppm' in spec.chance ? { ppm: spec.chance.ppm } : {}),
     hands,
     icdMs: spec.icdMs ?? 0,
     action: 0,

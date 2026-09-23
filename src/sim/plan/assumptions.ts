@@ -12,6 +12,7 @@ const STATS = 'docs/mechanics/character-stats.md'
 const BUFFS = 'docs/mechanics/buffs-debuffs-consumables.md'
 const ENC = 'docs/mechanics/encounter.md'
 const WAR = 'docs/classes/warrior.md'
+const DRUID = 'docs/classes/druid.md'
 
 const REGISTRY = {
   whiteSwingsOnly: {
@@ -273,6 +274,34 @@ const REGISTRY = {
   hyjalFlask: {
     text: 'Your flask’s bonus works only in Mount Hyjal, Hyjal Summit and the Barrow Deeps; this fight is elsewhere.',
     docRef: `${BUFFS}#31-flasks`,
+  },
+  druidBaseStats: {
+    text: 'Druid base health (1,483), base crit and dodge (0.9%), base spell crit (1.8%) and caster attack power (−20) are placeholders that Classic sims copied from a private server; Skyborne druids also use a placeholder for their base attributes. A level-60 druid’s character sheet will replace them.',
+    docRef: `${STATS}#oq-1-paladin-druid-and-skyborne-base-attributes`,
+  },
+  formWeapon: {
+    text: 'In Cat and Bear Form you attack with the form’s own weapon: 54.8 damage per second (43.84–65.76 every 1.0 s in cat, 109.6–164.4 every 2.5 s in bear), a figure from another sim, not the game. Your weapon’s damage and weapon skill don’t count, its other stats do, and procs per minute use the form’s swing speed.',
+    docRef: `${DRUID}#21-form-attacks-swing-timer-and-damage`,
+  },
+  omenOfClarity: {
+    text: 'Omen of Clarity procs Clearcasting 2 times a minute (3.33% of landed hits in cat, 8.33% in bear), at most once every 10 s. The 10 s is client data; the rate comes from another sim.',
+    docRef: `${DRUID}#27-omen-of-clarity-and-clearcasting`,
+  },
+  energyTicks: {
+    text: 'Energy comes 20 at a time every 2 s from a random start, up to 100, and you start the fight with 100; an ability that misses or is dodged refunds 80% of its Energy, a finisher nothing. Classic Era values, untested in Forever.',
+    docRef: `${DRUID}#24-energy-cat`,
+  },
+  shapeshifts: {
+    text: 'A shapeshift keeps the swing and Energy timers running, Furor keeps your Energy (Forever’s tooltip), and your armor and health stay your starting form’s.',
+    docRef: `${DRUID}#28-shapeshifting-furor-wolfshead-helm-powershifting-mana`,
+  },
+  bearWhiteRage: {
+    text: 'Each landed bear swing gives 8.65 rage (3.46 per second of its 2.5 s swing, the one-handed rate); bear rage in Forever is unmeasured.',
+    docRef: `${RAGE}#bear-druid-rage`,
+  },
+  bearArmor: {
+    text: 'Dire Bear Form multiplies bonus armor (enchants, buffs, Forever’s green armor) by 4.6 as well as item armor, as a second armor aura in the Forever client suggests; unmeasured.',
+    docRef: `${DRUID}#47-bear-armor-low-priority-tps-doesnt-need-it`,
   },
   noWeapon: {
     text: 'No main-hand weapon: unarmed attacks aren’t simulated, so neither is any ability that attacks; only cooldowns and buffs are used.',

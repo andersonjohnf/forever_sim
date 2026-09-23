@@ -119,6 +119,21 @@ export const slowedSwingSec = (baseSec: number, slow: number) => baseSec * (1 + 
 export const executePhaseStart = (fightMs: number, executePct: number) => Math.floor((fightMs * (100 - executePct)) / 100)
 
 // ---------------------------------------------------------------------------------------------
+// Energy: docs/classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * Energy on entering Cat Form with Furor rank r, Forever (druid.md §2.8):
+ * `min(20·r, 0.2·r·E_left + 2·r·t_out)`, where `E_left` is the Energy held when last leaving cat
+ * and `t_out` the seconds since then in no animal form [F]; 0 without Furor [C]. In tenths,
+ * rounded down to a tenth [?] (W9).
+ */
+export function furorCatEnergyTenths(rank: number, energyLeftTenths: number, outOfFormMs: number): number {
+  if (rank <= 0) return 0
+  return Math.floor(Math.min(200 * rank, 0.2 * rank * energyLeftTenths + (20 * rank * outOfFormMs) / 1000) + 1e-9)
+}
+
+// ---------------------------------------------------------------------------------------------
 // Rage: docs/mechanics/rage.md
 // ---------------------------------------------------------------------------------------------
 

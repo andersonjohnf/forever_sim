@@ -61,6 +61,13 @@ export const ASSUMPTION_GROUP = {
   baseStatPlaceholders: 'character',
   // How the sim plays the class: rage, abilities and talents.
   whiteSwingsOnly: 'class',
+  formWeapon: 'class',
+  druidBaseStats: 'class',
+  omenOfClarity: 'class',
+  energyTicks: 'class',
+  bearWhiteRage: 'class',
+  bearArmor: 'class',
+  shapeshifts: 'class',
   foreverWhiteRage: 'class',
   foreverOffHandRage: 'class',
   onNextSwingRage: 'class',

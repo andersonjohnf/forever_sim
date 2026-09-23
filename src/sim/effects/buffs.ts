@@ -601,6 +601,19 @@ export const BUFFS: BuffSpec[] = [
     presets: {},
   },
   {
+    id: 'flankAuPoivre',
+    name: 'Flank au Poivre',
+    icon: 'inv_misc_food_48',
+    category: 'consumable',
+    group: 'Food',
+    summary: '+20 Agility',
+    exclusiveGroup: 'food',
+    docRef: `${DOC}#34-food`,
+    // New in Forever (item 250069, Well Fed +20 Agility), so both profiles use it; the feral cat's food (buffs doc §6.3).
+    effects: [{ kind: 'stat', stat: 'agi', value: 20 }],
+    presets: { dungeon: ['druid-feral-cat'], raid: ['druid-feral-cat'], max: ['druid-feral-cat'] },
+  },
+  {
     id: 'denseSharpeningStone',
     name: 'Dense Sharpening Stone / Weightstone',
     icon: 'inv_stone_sharpeningstone_05',

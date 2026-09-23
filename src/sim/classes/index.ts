@@ -4,9 +4,10 @@
 // priority-list rotation. The engine loop is shared by every spec.
 import { decodeTalentCode, type TalentData } from '@/data/talents/types'
 import { TALENT_DATA } from '../defaults'
-import type { Effect } from '../effects/types'
+import type { DruidForm, Effect } from '../effects/types'
 import type { RulesProfile } from '../rules/profiles'
 import type { ClassId, SpecId } from '../types'
+import { druidSetup } from './druid/setup'
 import { stanceEffects, TALENT_EFFECTS, type Stance } from './warrior/talents'
 
 export interface ClassSetup {
@@ -17,6 +18,13 @@ export interface ClassSetup {
   talents: Map<string, number>
   /** Whether the engine can simulate this class yet. */
   simulated: boolean
+  /**
+   * The druid form the spec fights in (druid.md §2); absent for classes without forms. Effects with
+   * `when.form` hold only in their forms: the plan builds a stat block per form.
+   */
+  form?: DruidForm
+  /** Buff catalogue ids the build provides itself (a druid's Leader of the Pack): the Buffs tab's copy adds nothing more. */
+  replacesBuffs?: string[]
 }
 
 /** Base stance per warrior spec (warrior.md §5.2–§5.4), unless its settings choose another. */
@@ -50,6 +58,7 @@ export function talentRanksByName(data: TalentData, code: string): Map<string, n
  */
 export function classSetup(classId: ClassId, spec: SpecId, talentCode: string, profile: RulesProfile, stance?: Stance): ClassSetup {
   const talents = talentRanksByName(TALENT_DATA[classId], talentCode)
+  if (classId === 'druid') return { ...druidSetup(spec, talents, profile), stance: null, talents, simulated: true }
   if (classId !== 'warrior') return { effects: [], stance: null, talents, simulated: false }
   stance ??= WARRIOR_STANCE[spec] ?? 'battle'
   const effects: Effect[] = [...stanceEffects(profile)[stance]]

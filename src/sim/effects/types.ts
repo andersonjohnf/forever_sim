@@ -17,6 +17,8 @@ export type FlatStat =
   | 'int'
   | 'spi'
   | 'ap'
+  /** Attack power per point of Agility (Cat Form's aura 598: 1, docs/classes/druid.md §2.2). */
+  | 'apPerAgi'
   | 'crit'
   | 'critRating'
   | 'hit'
@@ -95,13 +97,23 @@ export interface Condition {
    * give their crit to all attacks and spells while one is [?] (warrior.md §2.9, Q15).
    */
   weapons?: readonly WeaponType[]
+  /**
+   * The druid is in one of these forms (docs/classes/druid.md §2.2, §2.3): Heart of the Wild, Sharpened
+   * Claws, Predatory Strikes, Leader of the Pack. The plan builds one stat block per form with them.
+   */
+  form?: readonly DruidForm[]
 }
+
+/** A druid's forms at level 60 (bear is Dire Bear Form; docs/classes/druid.md §2.1). */
+export type DruidForm = 'caster' | 'cat' | 'bear'
 
 export type Effect = (
   | { kind: 'stat'; stat: FlatStat; value: number }
   | { kind: 'mult'; stat: MultStat; pct: number }
   /** Item armor % (Toughness), summed before multiplying (character-stats step 4). */
   | { kind: 'itemArmorPct'; pct: number }
+  /** Bonus armor % (Forever's Dire Bear Form, aura 466 [?]), summed before multiplying (druid.md §4.7). */
+  | { kind: 'bonusArmorPct'; pct: number }
   /** Attack speed, multiplicative with other haste (damage-and-timing §3.1). */
   | { kind: 'haste'; pct: number }
   /** Damage done (damage-and-timing §2.4); multiplicative. `physicalOnly` skips magic procs. */
@@ -258,6 +270,11 @@ export interface ProcSpec {
    * out; while the aura is down, the proc isn't rolled.
    */
   requiresAura?: string
+  /**
+   * Only in these druid forms (Primal Fury's rage: bear, druid.md §4.8). The plan resolves it against
+   * the forms the fight can be in: always rolled if it holds in all of them, left out if in none.
+   */
+  forms?: readonly DruidForm[]
   /** Doc section that owns the numbers. */
   docRef: string
 }

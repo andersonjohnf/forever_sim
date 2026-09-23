@@ -391,7 +391,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   dash, not 0.0%, when a DPS run took no damage, with "Needs damage taken (Fight → Advanced)"
   under its name; the Fight tab's "Damage you take" help names Enrage too, and stays 0 by
   default. A proc the next ability spends (a cat's Clearcasting) is up only until then, so its
-  uptime is tiny: the line under its name says how often it came, "7.4 a fight, each spent by
+  uptime is tiny: the line under its name says how often it came, "6.3 a fight, each spent by
   your next ability".
 - **Character sheet:** the final AP, crit, hit, haste, weapon skill and armor, the way the
   sim computed them.

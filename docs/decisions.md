@@ -313,3 +313,16 @@ the Full regression run are watched through to green, and anything they catch is
 parallel track's work is reviewed in its worktree, and the lead's merge onto `main` counts as a
 change too. After each merge, `npm run test:full` runs on `main`. A merge that resolved conflicts
 or re-snapshotted goldens gets a verification pass scoped to the merge before the push.
+
+### D26: A tank's default keeps its duties; Max TPS is a selectable rotation (2026-09-23)
+User decision, from Warrior Protection's tuning. On threat alone, the tuner would drop Shield
+Block, Thunder Clap and Demoralizing Shout (+9% TPS together), and Shield Slam (+2% TPS but
+−28% DPS). A real tank keeps them up, for its own survival and for the raid's debuffs. So:
+- **The default keeps the duties.** Each tank spec's default rotation keeps its survival and raid
+  duties: Shield Block, Thunder Clap's slow and Demoralizing Shout for a warrior, and their druid
+  and paladin equivalents. Within that, D23's search maximizes TPS. DPS counts too, per D18, so
+  Shield Slam stays.
+- **Max TPS is selectable.** Each tank spec also offers a **Max TPS** rotation in the Rotation
+  tab. It drops those duties, and D23's search tunes it on TPS alone. Its help says what it drops
+  and why the default keeps it.
+

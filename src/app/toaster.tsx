@@ -22,9 +22,11 @@ const TOAST_GAP = 14
  *   each sheet (src/index.css). While a toast is still sliding in, it counts where it will stop, so
  *   focus moving on at once clears it too.
  * - --toast-wait-clearance, while a toast that waits for Dismiss is up, grows the bottom padding
- *   of the page and of each sheet, so the last control in them has room to scroll clear of it.
- *   It's that toast's own reach at the front of the stack, so a 10 s toast coming or going doesn't
- *   change it: content never moves by itself when one times out.
+ *   of the page and of each sheet, so the last control in them has room to scroll clear of the
+ *   toasts. It's the highest the settled stack has reached meanwhile, counting that toast at its
+ *   full height at the front, and it only rises until that toast goes: a taller 10 s toast in
+ *   front of it is cleared too, and content never moves by itself when one times out. A new
+ *   window width lays the page out afresh, and this starts afresh with it.
  * - When the settled stack reaches higher than before (one came, or one behind moved to the front
  *   at full size), keyboard focus the toasts now cover scrolls clear of them (revealFocus). The
  *   mouse or Alt+T spreading them out doesn't count, so hovering them scrolls nothing.
@@ -36,8 +38,12 @@ function useToastClearance() {
     if (!container) return
     const root = document.documentElement
     let frame = 0
-    // How far up the settled stack reached when last measured.
+    let resizeFrame = 0
+    // How far up the settled stack reached when last measured, and the highest it has reached
+    // while a waiting toast is up.
     let reach = 0
+    let highest = 0
+    let width = window.innerWidth
     const measure = () => {
       cancelAnimationFrame(frame)
       frame = requestAnimationFrame(() => {
@@ -49,6 +55,7 @@ function useToastClearance() {
           root.style.removeProperty('--toast-clearance')
           root.style.removeProperty('--toast-wait-clearance')
           reach = 0
+          highest = 0
           return
         }
         // Where the stack settles: the front toast on the list's bottom edge, at its own height,
@@ -62,19 +69,20 @@ function useToastClearance() {
         const clearance = Math.max(0, now, settled)
         root.style.setProperty('--toast-clearance', `${clearance}px`)
 
-        // The waiting toast's own height: at the front of the stack, as it is now. A toast behind
-        // the front one is cut to that one's height, so there it's sonner's --initial-height,
-        // measured when the toast came, and stale after a resize until it's at the front.
+        // At the front, a waiting toast counts in the stack's reach at its height as it is now. A
+        // waiting toast behind the front one is cut to that one's height, so there it counts at
+        // its own, which sonner keeps in --initial-height: measured when the toast came, so stale
+        // after a resize, until it's at the front.
         const waiting = toasts.filter((toast) => toast.classList.contains(WAITING_TOAST))
         if (waiting.length > 0) {
-          const height = Math.max(
-            ...waiting.map((toast) =>
-              toast.dataset.front === 'true' ? toast.offsetHeight : Number.parseFloat(toast.style.getPropertyValue('--initial-height')) || toast.offsetHeight,
-            ),
-          )
-          root.style.setProperty('--toast-wait-clearance', `${Math.max(0, Math.ceil(window.innerHeight - edge.bottom + height))}px`)
+          const behind = waiting
+            .filter((toast) => toast.dataset.front !== 'true')
+            .map((toast) => Math.ceil(window.innerHeight - edge.bottom + (Number.parseFloat(toast.style.getPropertyValue('--initial-height')) || toast.offsetHeight)))
+          highest = Math.max(highest, settled, ...behind)
+          root.style.setProperty('--toast-wait-clearance', `${highest}px`)
         } else {
           root.style.removeProperty('--toast-wait-clearance')
+          highest = 0
         }
 
         // Only when the settled stack reaches higher (a toast came, or one behind came to the front
@@ -98,14 +106,22 @@ function useToastClearance() {
     container.addEventListener('transitionend', measure)
     // After a resize, a frame later: the toasts sit on the phone's bar, which comes, goes or
     // changes height with the window, and App's ResizeObserver moves them onto it only once the
-    // frame's layout is done.
+    // frame's layout is done. Its own frame, so a measure meanwhile can't cancel it.
     const resized = () => {
       cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(measure)
+      cancelAnimationFrame(resizeFrame)
+      resizeFrame = requestAnimationFrame(() => {
+        if (window.innerWidth !== width) {
+          width = window.innerWidth
+          highest = 0
+        }
+        measure()
+      })
     }
     window.addEventListener('resize', resized)
     return () => {
       cancelAnimationFrame(frame)
+      cancelAnimationFrame(resizeFrame)
       observer.disconnect()
       container.removeEventListener('transitionend', measure)
       window.removeEventListener('resize', resized)

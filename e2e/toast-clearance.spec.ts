@@ -3,10 +3,11 @@ import { expect, test } from './fixtures.ts'
 
 // docs/ux.md#persistence-and-sharing: a toast never hides the focused control. A waiting toast
 // clears every control in a sheet or drawer, not just on the page (PV1); only a waiting toast
-// grows the bottom padding, so nothing moves when a 10 s toast goes (PV5), and the padding
-// follows a resize (QV6); focus a toast hands back is scrolled into view (PV6); focus a toast
-// grows over scrolls clear of it (PV7); and neither scrolls anything after a click (QV4) or when
-// the mouse spreads the toasts out (QV5).
+// grows the bottom padding, so nothing moves when a 10 s toast goes (PV5), and while one is up the
+// padding only rises, so a taller 10 s toast in front is cleared too (QV7), and it follows a
+// resize (QV6); focus a toast hands back is scrolled into view (PV6); focus a toast grows over
+// scrolls clear of it (PV7); and neither scrolls anything after a click (QV4) or when the mouse
+// spreads the toasts out (QV5).
 
 const PHONE = { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }
 const DESKTOP = { viewport: { width: 1280, height: 900 } }
@@ -73,6 +74,17 @@ async function talentRefusal(page: Page) {
   await expect(refusal).toBeVisible()
   await settled(page)
   return refusal
+}
+
+/**
+ * A browser that refuses the clipboard, so Share raises "Couldn’t copy the link": a 10 s toast
+ * taller than a waiting one on a phone. Call it before page.goto.
+ */
+async function refuseClipboard(page: Page) {
+  await page.addInitScript(() => {
+    const refuse = () => Promise.reject(new DOMException('Denied', 'NotAllowedError'))
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { write: refuse, writeText: refuse } })
+  })
 }
 
 /** Waits until no toast is moving. */
@@ -349,6 +361,46 @@ for (const [name, device] of [
     })
   })
 }
+
+test.describe('a taller 10 s toast in front of a waiting one, phone (QV7)', () => {
+  test.use(PHONE)
+
+  test('leaves the page’s last control room to clear it, and nothing moves when it goes', async ({ page }) => {
+    await page.clock.install()
+    await refuseClipboard(page)
+    await page.goto('./')
+    const waiting = await waitingToast(page)
+    await page.getByRole('button', { name: /Share/ }).click()
+    const refusal = toasts(page).filter({ hasText: 'Couldn’t copy the link' })
+    await expect(refusal).toBeVisible()
+    await settled(page)
+    // It's taller than the waiting toast behind it would be at the front.
+    const [front, own] = await Promise.all([
+      refusal.evaluate((el: HTMLElement) => el.offsetHeight),
+      waiting.evaluate((el: HTMLElement) => Number.parseFloat(el.style.getPropertyValue('--initial-height'))),
+    ])
+    expect(front).toBeGreaterThan(own)
+
+    // The footer's link, the page's last control, clear of the stack.
+    const link = page.getByRole('link', { name: 'wago.tools' })
+    await link.focus()
+    await expect.poll(() => covered(page)).toBe(0)
+
+    // Scrolled to the end of the page as it times out: nothing moves.
+    const padding = () => page.locator('main').evaluate((el) => getComputedStyle(el).paddingBottom)
+    const before = await padding()
+    await page.mouse.move(0, 0)
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+    const end = await page.evaluate(() => window.scrollY)
+    await page.clock.fastForward(10_000)
+    await expect(refusal).toHaveCount(0)
+    await settled(page)
+    await frames(page)
+    expect(await padding()).toBe(before)
+    expect(await page.evaluate(() => window.scrollY)).toBe(end)
+    await expect(waiting).toBeVisible()
+  })
+})
 
 // The toast is 356 px wide on a desktop and the window's width less 2rem on a phone, so a resize
 // re-wraps it; and the phone's bar, which it sits on, comes or goes.

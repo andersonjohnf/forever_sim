@@ -1665,7 +1665,7 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     doesn't carry ([client.md][client] "Likely hotfix"). The sim uses 90 s, the value the app's
     item data shows. What ends it: the tooltip says a non-periodic crit you deal, and the spell
     has one proc charge on every kind of damage you do; the sim spends it on the first white or
-    special crit, including the crit it helped make [?]. **Test:** its cooldown in game; whether
+    special crit, or a magic proc's crit, including the crit it helped make [?]. **Test:** its cooldown in game; whether
     the buff drops on the first crit, and on a crit by a proc.
 32. **Rend's tick crits and Impale.** Impale's class mask covers Rend (and Sunder Armor), as
     Classic Era's does, where Rend's ticks can't crit [F] [client] (SpellEffect, 1.60.1.69913;

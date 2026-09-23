@@ -193,8 +193,8 @@ slice is worked:
 - **Engine choices where the docs are silent (made in M1):**
   - Incoming damage for DPS players arrives as one hit every 2 s.
   - The boss first swings at t = 0.
-  - Elemental Sharpening Stones don't stack.
-  - Magic procs can't crit.
+  - Elemental Sharpening Stones stack: +2% crit to all melee attacks per stone [?]
+    ([buffs §3.6](mechanics/buffs-debuffs-consumables.md#36-weapon-enhancements-temporary)).
 - **Data gaps:** the items have no shield block value (block value counts Strength only).
   Warrior base health and dodge are unknown and left off the sheet. Skyborne, paladin and
   druid base stats are unknown, so those sims refuse with a plain message (character-stats

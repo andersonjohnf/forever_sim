@@ -107,7 +107,7 @@ test.describe('tank results', () => {
       new RegExp(
         'The health the boss’s melee swings cost you, after avoidance, armor, block and other reductions\\. ' +
           'It swung \\d+\\.\\d times a fight on average, set to 4,500 to 5,500 a swing before armor \\(Fight\\s→\\sAdvanced\\)\\. ' +
-          'Debuffs on it \\(Buffs\\), such as Demoralizing Shout and Thunder Clap, lower its damage and slow its swings\\.',
+          'Debuffs on it, such as Demoralizing Shout and Thunder Clap, lower its damage and slow its swings, whether yours \\(Rotation\\) or the raid’s \\(Buffs\\)\\.',
       ),
     )
     // Damage taken comes first, above the breakdown, and how the swings landed after it (TU6).

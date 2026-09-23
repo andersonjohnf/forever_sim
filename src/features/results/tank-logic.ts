@@ -133,7 +133,7 @@ export function damageTakenText(swingsPerFight: number, boss: Pick<FightConfig['
   return [
     'The health the boss’s melee swings cost you, after avoidance, armor, block and other reductions.',
     boss ? `${swings}, set to ${swingDamageText(boss)} a swing before armor ${FIGHT_ADVANCED}.` : `${swings}.`,
-    'Debuffs on it (Buffs), such as Demoralizing Shout and Thunder Clap, lower its damage and slow its swings.',
+    'Debuffs on it, such as Demoralizing Shout and Thunder Clap, lower its damage and slow its swings, whether yours (Rotation) or the raid’s (Buffs).',
   ].join(' ')
 }
 

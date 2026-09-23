@@ -186,7 +186,7 @@ describe('damageTakenText', () => {
     expect(damageTakenText(80.46, protection().fight.boss)).toBe(
       'The health the boss’s melee swings cost you, after avoidance, armor, block and other reductions. ' +
         'It swung 80.5 times a fight on average, set to 4,500 to 5,500 a swing before armor (Fight\u00a0→\u00a0Advanced). ' +
-        'Debuffs on it (Buffs), such as Demoralizing Shout and Thunder Clap, lower its damage and slow its swings.',
+        'Debuffs on it, such as Demoralizing Shout and Thunder Clap, lower its damage and slow its swings, whether yours (Rotation) or the raid’s (Buffs).',
     )
   })
 

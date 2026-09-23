@@ -20,7 +20,7 @@ import { ACTION, type Plan, TRIGGER, TRIGGER_COUNT } from '../plan/types'
 import { emptyAggregate, mergeChunk, toResult } from '../run/aggregate'
 import type { SimConfig } from '../types'
 import { CHUNK_SIZE, runChunk } from './chunk'
-import { BOSS_OUTCOME, FIELD, Sim } from './sim'
+import { BOSS_OUTCOME, FIELD, FIELD_COUNT, Sim } from './sim'
 import { addAbility, addProc, at, counter, damages, expectMean, from, line, rageAtPull, rotationOff } from './test-helpers'
 
 /** The default Protection build's talents by name (8/5/38, warrior.md §6.1). */
@@ -471,6 +471,15 @@ describe('the default Protection warrior (warrior.md §5.4)', () => {
     expect(uptime('sunderArmor')).toBeGreaterThan(95)
     expect(uptime('thunderClap')).toBeGreaterThan(75)
     expect(uptime('demoralizingShout')).toBeGreaterThan(75)
+    // Each shows the casts per fight of the attack that puts it there (PU6): Sunder Armor's filler
+    // and upkeep together, one row.
+    const row = (id: string) => plan.abilities.find((a) => a.id === id)!.source
+    for (const id of ['sunderArmor', 'thunderClap', 'demoralizingShout']) {
+      expect(result.cooldowns.find((a) => a.id === id)!.castsPerFight, id).toBeCloseTo(agg.counters[row(id) * FIELD_COUNT + FIELD.casts] / 1000, 9)
+    }
+    expect(result.cooldowns.find((a) => a.id === 'sunderArmor')!.castsPerFight).toBeGreaterThan(40)
+    // A buff nothing casts has none.
+    expect(result.cooldowns.find((a) => a.id === 'revengeWindow')!.castsPerFight).toBeNull()
   })
 
   it('blocks about 65% of the boss’s swings with Shield Block on cooldown, pushing crushing blows and crits off its table (§5.4 notes, PL10)', () => {

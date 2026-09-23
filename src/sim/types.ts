@@ -383,7 +383,10 @@ export interface CooldownResult {
   icon: string
   /** Share of fight time its buff was up, 0–100; null for a cast without one (Bloodrage). */
   uptimePct: number | null
-  /** Casts per fight, pre-pull ones included; null for a buff nothing casts (Flurry, the Overpower window). */
+  /**
+   * Casts per fight, pre-pull ones included; for a debuff an attack puts on the boss, that attack's
+   * (Sunder Armor); null for a buff nothing casts (Flurry, the Overpower window).
+   */
   castsPerFight: number | null
   /**
    * For a proc the next ability spends (Clearcasting, druid.md §2.7): how many times a fight it came

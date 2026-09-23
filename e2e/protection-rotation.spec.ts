@@ -100,6 +100,11 @@ test.describe('Protection rotation', () => {
       await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
     }
     await run()
+    // The debuffs you keep on the boss show their uptime and their attack's casts per fight (PU6).
+    await results.getByRole('button', { name: 'Cooldowns and buffs' }).click()
+    for (const name of ['Sunder Armor', 'Thunder Clap', 'Demoralizing Shout']) {
+      await expect(results.getByRole('table').getByRole('row', { name: new RegExp(`^${name} \\d+\\.\\d% \\d+\\.\\d$`) })).toBeVisible()
+    }
     await tab.getByRole('radiogroup', { name: 'Priority' }).getByRole('radio', { name: 'Max TPS' }).click()
     await expect(results.getByRole('group', { name: 'TPS' })).toContainText('Setup changed')
     await run()

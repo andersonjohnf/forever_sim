@@ -85,19 +85,25 @@ const uptimePct = (agg: Aggregate, a: number) => (agg.durationMs > 0 ? (100 * ag
 
 /**
  * The results' "Cooldowns and buffs" (docs/ux.md#results): every cast the rotation can press, with
- * its casts per fight and its buff's uptime, in the rotation's order; then every other aura on the
- * player (procs such as Flurry, Enrage and Holy Strength, and reactive windows such as
- * Overpower's), with its uptime. A bleed's marker is on the target, so its uptime goes on the
- * bleed's breakdown row instead.
+ * its casts per fight and its buff's uptime, in the rotation's order; then every other aura (procs
+ * such as Flurry, Enrage and Holy Strength, reactive windows such as Overpower's, and the debuffs a
+ * rotation keeps on the boss), with its uptime. A debuff an attack puts on the boss (Sunder Armor,
+ * Thunder Clap, Demoralizing Shout; warrior.md §5.4) shows that attack's casts per fight too. A
+ * bleed's marker is on the target, so its uptime goes on the bleed's breakdown row instead.
  */
 export function cooldownResults(plan: Plan, agg: Aggregate): CooldownResult[] {
   const c = agg.counters
   const rows: CooldownResult[] = []
   const shown = new Set<number>()
   const prepull = new Set(plan.prepull.casts.map((p) => p.ability))
+  /** The attack that puts each debuff on the boss, by aura index: its casts go on the debuff's row. */
+  const appliedBy = new Map<number, number>()
   for (const [index, ability] of plan.abilities.entries()) {
     // An attack that also bleeds (Rake) has its bleed's marker too (druid.md §3.3).
     if ((ability.kind === 'bleed' || ability.dotSource !== undefined) && ability.aura >= 0) shown.add(ability.aura)
+    else if ((ability.kind === 'weaponStrike' || ability.kind === 'meleeSpell' || ability.kind === 'spellTable') && ability.aura >= 0) {
+      appliedBy.set(ability.aura, ability.source)
+    }
     // A druid's shapeshift is listed like a cast: its casts per fight, no buff (druid.md §2.8).
     if (ability.kind !== 'cast' && ability.kind !== 'shift') continue
     if (ability.aura >= 0) shown.add(ability.aura)
@@ -116,7 +122,9 @@ export function cooldownResults(plan: Plan, agg: Aggregate): CooldownResult[] {
     // A proc the next ability spends (Clearcasting, druid.md §2.7) is up only until then, so its
     // uptime is tiny: its procs per fight say what it did.
     const spent = plan.freeCastAura === i && agg.fights > 0 ? { procsPerFight: agg.auraApplications[i] / agg.fights } : {}
-    rows.push({ id: aura.id, name: aura.name, icon: aura.icon, uptimePct: uptimePct(agg, i), castsPerFight: null, ...spent })
+    const source = appliedBy.get(i)
+    const castsPerFight = source === undefined ? null : agg.fights > 0 ? c[source * FIELD_COUNT + FIELD.casts] / agg.fights : 0
+    rows.push({ id: aura.id, name: aura.name, icon: aura.icon, uptimePct: uptimePct(agg, i), castsPerFight, ...spent })
   })
   return rows
 }

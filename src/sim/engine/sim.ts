@@ -13,15 +13,18 @@
 // (Overpower), stances and stance dancing, the execute phase, time-left conditions, buff upkeep
 // and the pre-pull (docs/architecture.md#engine-design-m1).
 import {
+  averageResist,
   bossSlices,
+  type DefenderInputs,
+  emptyChances,
+  type MeleeInputs,
   meleeChances,
   specialSlices,
   spellMiss,
   thresholds,
   whiteSlices,
-  averageResist,
 } from '../core/attack-table'
-import { armorReduction, executePhaseStart, parryHasteRemaining, rageConversion } from '../core/formulas'
+import { armorReduction, CRIT_MULTIPLIER, executePhaseStart, parryHasteRemaining, rageConversion, swingMs } from '../core/formulas'
 import { EventQueue } from '../core/queue'
 import { Rng, STREAM } from '../core/rng'
 import { ACTION, COND, HAND, TRIGGER, TRIGGER_COUNT, type Plan } from '../plan/types'
@@ -112,6 +115,8 @@ export class Sim {
   damageTrace: ((source: number, damage: number) => void) | null = null
   /** Test hook: every stance swap in a fight (the STANCE bit swapped to, time, rage before and after, in tenths). */
   stanceTrace: ((stance: number, time: number, rageBefore: number, rageAfter: number) => void) | null = null
+  /** Test hook: every boss swing on the tank (its time). */
+  bossTrace: ((time: number) => void) | null = null
   /** When the last fight's execute phase started, ms (its end if there was none; encounter §3). */
   executeAtMs = 0
 
@@ -343,6 +348,8 @@ export class Sim {
   private readonly auraSince: Float64Array
   private readonly bleedTicksLeft: Int32Array
   private readonly bleedGen: Int32Array
+  /** When each weapon bleed's next tick is due (for the refresh tie-break, damage-and-timing §4). */
+  private readonly bleedNextAt: Float64Array
   private readonly bleedProc: Int32Array
   private gcdEnd = 0
   private readonly abReadyAt: Float64Array
@@ -409,8 +416,30 @@ export class Sim {
   private hasteMult = 1
   private blockValue = 0
   private spellMissPct = 0
+  /** Sheet spell crit %, for magic procs' second roll (combat-tables §9). */
+  private spellCritPct = 0
 
-  // Extra-attack FIFO and the chain mask of the attack being resolved.
+  // Scratch for recomputeStats, so re-deriving the tables allocates nothing (architecture.md).
+  private readonly meleeIn: MeleeInputs = {
+    attackerLevel: 0,
+    targetLevel: 0,
+    skill: 0,
+    hit: 0,
+    sheetCrit: 0,
+    auraCrit: 0,
+    expertise: 0,
+    front: false,
+    canDodge: false,
+    canParry: false,
+    canBlock: false,
+  }
+  private readonly defenderIn: DefenderInputs = { playerLevel: 0, bossLevel: 0, defense: 0, dodge: 0, parry: 0, block: 0, canCrush: false }
+  private readonly chances = emptyChances()
+  private readonly slices = new Float64Array(6)
+
+  // Extra-attack FIFO, and the chain mask of the root attack being resolved: the bit of every
+  // extra-attack source that has procced from it or from the extra attacks that followed
+  // (damage-and-timing §5.4). `exMask` keeps each queued attack's root mask for one that waits.
   private readonly exSource = new Int32Array(EXTRA_QUEUE)
   private readonly exBonusAp = new Float64Array(EXTRA_QUEUE)
   private readonly exMask = new Int32Array(EXTRA_QUEUE)
@@ -511,6 +540,7 @@ export class Sim {
     }
     this.bleedTicksLeft = new Int32Array(bleeds)
     this.bleedGen = new Int32Array(bleeds)
+    this.bleedNextAt = new Float64Array(bleeds)
     this.bleedProc = new Int32Array(bleeds)
     for (let i = 0; i < np; i++) if (this.pBleedSlot[i] >= 0) this.bleedProc[this.pBleedSlot[i]] = i
     this.triggerLists = []
@@ -837,6 +867,7 @@ export class Sim {
           break
         case EV_BOSS:
           if (q.gen === this.bossGen) {
+            this.chainMask = 0
             this.onBossSwing()
             // Extra attacks granted by defensive procs (e.g. Reckoning, M5) swing now too.
             if (this.exCount > 0) this.drainExtraAttacks()
@@ -855,6 +886,7 @@ export class Sim {
           break
         }
         case EV_DAMAGE_TAKEN:
+          this.chainMask = 0
           this.takeDamage(f.damageTakenPerHit, f.damageTakenPerHit)
           if (this.exCount > 0) this.drainExtraAttacks()
           q.push(t + f.damageTakenIntervalMs, EV_DAMAGE_TAKEN, 0, 0)
@@ -1026,33 +1058,35 @@ export class Sim {
     this.ap = d.attackPower
     this.blockValue = d.blockValue
     this.spellMissPct = spellMiss(plan.profile, plan.playerLevel, plan.fight.targetLevel, d.spellHit)
+    this.spellCritPct = d.spellCrit
     const f = plan.fight
+    const inputs = this.meleeIn
+    const ch = this.chances
+    const slices = this.slices
     for (let h = 0; h < 2; h++) {
       if (!this.hasWeapon[h]) continue
       const sheetCrit = d.crit + this.wCritBonus[h]
       this.critPct[h] = sheetCrit
       // docs/mechanics/combat-tables.md#2-melee-attack-table-white-swings
-      const inputs = {
-        attackerLevel: plan.playerLevel,
-        targetLevel: f.targetLevel,
-        skill: this.wSkill[h],
-        hit: d.hit + this.wHitBonus[h],
-        sheetCrit,
-        auraCrit: d.auraCrit + this.wCritBonus[h],
-        expertise: d.expertise,
-        front: f.front,
-        canDodge: f.bossCanDodge,
-        canParry: f.bossCanParry,
-        canBlock: f.bossCanBlock,
-      }
-      thresholds(whiteSlices(meleeChances(plan.profile, inputs, true, this.dualWield)), this.thrWhite.subarray(6 * h, 6 * h + 6))
+      inputs.attackerLevel = plan.playerLevel
+      inputs.targetLevel = f.targetLevel
+      inputs.skill = this.wSkill[h]
+      inputs.hit = d.hit + this.wHitBonus[h]
+      inputs.sheetCrit = sheetCrit
+      inputs.auraCrit = d.auraCrit + this.wCritBonus[h]
+      inputs.expertise = d.expertise
+      inputs.front = f.front
+      inputs.canDodge = f.bossCanDodge
+      inputs.canParry = f.bossCanParry
+      inputs.canBlock = f.bossCanBlock
+      thresholds(whiteSlices(meleeChances(plan.profile, inputs, true, this.dualWield, ch), slices), this.thrWhite, 6 * h)
       if (this.hasAbilities) {
         // docs/mechanics/combat-tables.md#5-dual-wield-and-on-next-swing-queues: dwPenalty = dualWielding && !queue.active
-        if (h === HAND.off && this.dualWield) thresholds(whiteSlices(meleeChances(plan.profile, inputs, true, false)), this.thrOffQueued)
+        if (h === HAND.off && this.dualWield) thresholds(whiteSlices(meleeChances(plan.profile, inputs, true, false, ch), slices), this.thrOffQueued)
         // docs/mechanics/combat-tables.md#3-special-yellow-attacks: no glancing, no dual-wield penalty
-        const special = meleeChances(plan.profile, inputs, false, false)
-        thresholds(specialSlices(special), this.thrSpecial.subarray(6 * h, 6 * h + 6))
-        this.specCrit[h] = special.crit
+        meleeChances(plan.profile, inputs, false, false, ch)
+        thresholds(specialSlices(ch, 0, slices), this.thrSpecial, 6 * h)
+        this.specCrit[h] = ch.crit
       }
       // docs/mechanics/damage-and-timing.md#12-armor-reduction-debuffs-and-penetration: flat reductions, then % ignored
       let armor = f.targetArmor - d.armorPen
@@ -1061,18 +1095,15 @@ export class Sim {
     }
     if (f.bossSwing) {
       // docs/mechanics/combat-tables.md#8-boss--player-tanks
-      thresholds(
-        bossSlices({
-          playerLevel: plan.playerLevel,
-          bossLevel: f.targetLevel,
-          defense: d.defense,
-          dodge: d.dodge,
-          parry: d.parry,
-          block: d.block,
-          canCrush: f.bossSwing.canCrush,
-        }),
-        this.thrBoss,
-      )
+      const tank = this.defenderIn
+      tank.playerLevel = plan.playerLevel
+      tank.bossLevel = f.targetLevel
+      tank.defense = d.defense
+      tank.dodge = d.dodge
+      tank.parry = d.parry
+      tank.block = d.block
+      tank.canCrush = f.bossSwing.canCrush
+      thresholds(bossSlices(tank, slices), this.thrBoss)
     }
     this.hasteMult = d.hasteMult * this.auraHasteMult
     this.updateSwingSpeeds()
@@ -1099,7 +1130,7 @@ export class Sim {
   /** New swing speeds apply from the next swing; the running timer isn't rescaled [?] (damage-and-timing §3.1). */
   private updateSwingSpeeds(): void {
     for (let h = 0; h < 2; h++) {
-      if (this.hasWeapon[h]) this.swingMs[h] = Math.round((this.wSpeedSec[h] * 1000) / this.hasteMult)
+      if (this.hasWeapon[h]) this.swingMs[h] = swingMs(this.wSpeedSec[h], this.hasteMult)
     }
   }
 
@@ -1225,6 +1256,11 @@ export class Sim {
     return Math.floor(rage * 10 + 1e-9)
   }
 
+  /**
+   * Swings the queued extra attacks, in order, and those they grant in turn. The chain shares its
+   * root's mask, so each source procs at most once from one root swing, even from another
+   * source's extra attack (damage-and-timing §5.4).
+   */
   private drainExtraAttacks(): void {
     // One granted during a cast that stops swings waits for the cast to complete (warrior.md §7).
     if (this.swingsStopped) return
@@ -1233,7 +1269,8 @@ export class Sim {
       const i = this.exHead
       this.exHead = (this.exHead + 1) % EXTRA_QUEUE
       this.exCount--
-      this.chainMask = this.exMask[i]
+      // Usually already in the mask; an attack that waited out a cast brings its own root's.
+      this.chainMask |= this.exMask[i]
       // docs/mechanics/damage-and-timing.md#33-swing-reset-rules: the main hand swings now and restarts its timer
       this.mainHandSwing(this.exSource[i], this.exBonusAp[i])
       chain++
@@ -1648,6 +1685,11 @@ export class Sim {
    */
   private onCrit(hand: number): void {
     this.fireProcs(TRIGGER.meleeCrit, hand)
+    this.useCritCharges()
+  }
+
+  /** A non-periodic crit dealt, melee or spell, uses a charge of each aura a crit ends (Weakness Analyzer). */
+  private useCritCharges(): void {
     const list = this.critChargeAuras
     for (let i = 0; i < list.length; i++) {
       const a = list[i]
@@ -1657,14 +1699,15 @@ export class Sim {
 
   /**
    * Rolls every proc on this trigger (damage-and-timing §5), in the plan's order, then those that
-   * need an aura, while it's up. `hand` is −1 for non-attack triggers.
+   * need an aura, while it's up. `hand` is −1 for non-attack triggers. An extra-attack source that
+   * already procced in this chain doesn't roll (§5.4), so it starts no internal cooldown either.
    */
   private fireProcs(trigger: number, hand: number): void {
     const list = this.triggerLists[trigger]
     for (let k = 0; k < list.length; k++) {
       const p = list[k]
       if (hand >= 0 && (this.pHands[p] & (1 << hand)) === 0) continue
-      if (this.procReadyAt[p] > this.now) continue
+      if (this.procReadyAt[p] > this.now || (this.pChainBit[p] & this.chainMask) !== 0) continue
       const chance = this.pChance[2 * p + (hand > 0 ? hand : 0)]
       if (chance < 1 && this.rngProc.next() >= chance) continue
       if (this.pIcd[p] > 0) this.procReadyAt[p] = this.now + this.pIcd[p]
@@ -1679,7 +1722,7 @@ export class Sim {
     for (let k = 0; k < list.length; k++) {
       const p = list[k]
       if (hand >= 0 && (this.pHands[p] & (1 << hand)) === 0) continue
-      if (this.procReadyAt[p] > this.now || !this.auraActive[this.pReqAura[p]]) continue
+      if (this.procReadyAt[p] > this.now || !this.auraActive[this.pReqAura[p]] || (this.pChainBit[p] & this.chainMask) !== 0) continue
       const chance = this.pChance[2 * p + (hand > 0 ? hand : 0)]
       if (chance < 1 && this.rngProc.next() >= chance) continue
       if (this.pIcd[p] > 0) this.procReadyAt[p] = this.now + this.pIcd[p]
@@ -1690,15 +1733,15 @@ export class Sim {
   private doAction(p: number): void {
     switch (this.pAction[p]) {
       case ACTION.extraAttacks: {
-        const bit = this.pChainBit[p]
-        // A source can't proc from its own chain of extra attacks (damage-and-timing §5.4).
-        if (this.chainMask & bit || !this.hasWeapon[HAND.main]) return
+        if (!this.hasWeapon[HAND.main]) return
+        // This source is used up for the rest of the root swing's chain (damage-and-timing §5.4).
+        this.chainMask |= this.pChainBit[p]
         const n = this.pAmount[p]
         for (let k = 0; k < n && this.exCount < EXTRA_QUEUE; k++) {
           const slot = (this.exHead + this.exCount) % EXTRA_QUEUE
           this.exSource[slot] = this.pSource[p]
           this.exBonusAp[slot] = this.pA[p]
-          this.exMask[slot] = this.chainMask | bit
+          this.exMask[slot] = this.chainMask
           this.exCount++
         }
         return
@@ -1717,9 +1760,13 @@ export class Sim {
         return
       case ACTION.weaponBleed: {
         const slot = this.pBleedSlot[p]
-        // Refresh restarts the ticks; old damage doesn't roll over (warrior.md §2.5).
+        // A tick due this very moment lands before the refresh, as Rend's does (damage-and-timing
+        // §4 "Refresh"); the refresh then restarts the ticks, and old damage doesn't roll over
+        // (warrior.md §2.5).
+        if (this.bleedTicksLeft[slot] > 0 && this.bleedNextAt[slot] === this.now) this.onBleedTick(slot)
         this.bleedTicksLeft[slot] = this.pAmount[p]
-        this.q.push(this.now + this.pB[p], EV_BLEED_TICK, slot, ++this.bleedGen[slot])
+        this.bleedNextAt[slot] = this.now + this.pB[p]
+        this.q.push(this.bleedNextAt[slot], EV_BLEED_TICK, slot, ++this.bleedGen[slot])
         this.counters[this.pSource[p] * FIELD_COUNT + FIELD.casts]++
         return
       }
@@ -1808,7 +1855,11 @@ export class Sim {
     if (this.aHaste[a] || this.aDamage[a]) this.recomputeMultipliers()
   }
 
-  /** A magic proc: spell hit roll, average partial resist, no crit [?] (combat-tables §9). */
+  /**
+   * A magic proc (combat-tables §9): roll 1 for spell hit, an average partial resist, then roll 2
+   * for crit at the sheet's spell crit, ×1.5, with no crit suppression [C]. A spell crit fires no
+   * melee crit procs, but as a non-periodic crit it uses a Weakness Analyzer charge (warrior.md §7).
+   */
   private spellProc(p: number): void {
     const row = this.pSource[p] * FIELD_COUNT
     const c = this.counters
@@ -1819,9 +1870,16 @@ export class Sim {
     }
     const holy = this.pSchool[p] === 5
     const resist = holy ? 0 : averageResist(this.bossLevelResist, this.plan.playerLevel)
-    const damage = this.rngDamage.uniform(this.pA[p], this.pB[p]) * (1 - resist) * this.magicMult
-    c[row + FIELD.hits]++
+    let damage = this.rngDamage.uniform(this.pA[p], this.pB[p]) * (1 - resist) * this.magicMult
+    const crit = this.rngProc.roll100() < this.spellCritPct
+    if (crit) {
+      damage *= CRIT_MULTIPLIER.spell
+      c[row + FIELD.crits]++
+    } else {
+      c[row + FIELD.hits]++
+    }
     this.dealDamage(this.pSource[p], damage)
+    if (crit) this.useCritCharges()
   }
 
   /**
@@ -1880,7 +1938,10 @@ export class Sim {
     this.counters[row + FIELD.hits]++
     if (this.trace !== null) this.trace(this.pSource[p], -1, this.now)
     this.dealDamage(this.pSource[p], damage)
-    if (--this.bleedTicksLeft[slot] > 0) this.q.push(this.now + this.pB[p], EV_BLEED_TICK, slot, this.bleedGen[slot])
+    if (--this.bleedTicksLeft[slot] > 0) {
+      this.bleedNextAt[slot] = this.now + this.pB[p]
+      this.q.push(this.bleedNextAt[slot], EV_BLEED_TICK, slot, this.bleedGen[slot])
+    }
   }
 
   // ------------------------------------------------------------------------------------------
@@ -1925,6 +1986,7 @@ export class Sim {
     const r = rng.roll100()
     const raw = rng.uniform(boss.minDamage, boss.maxDamage)
     const th = this.thrBoss
+    if (this.bossTrace !== null) this.bossTrace(this.now)
     this.bossNextAt = this.now + this.bossSwingMs
     this.q.push(this.bossNextAt, EV_BOSS, 0, ++this.bossGen)
     if (r < th[0]) return // miss
@@ -1937,10 +1999,10 @@ export class Sim {
     const mitigated = raw * (1 - armorReduction(this.plan.armor, this.plan.fight.targetLevel, this.plan.profile)) * this.damageTakenMult
     let lost: number
     let preArmor = raw
-    if (r < th[3]) {
+    const blocked = r < th[3]
+    if (blocked) {
       lost = Math.max(0, mitigated - this.blockValue)
       preArmor = mitigated > 0 ? raw * (lost / mitigated) : 0
-      this.fireProcs(TRIGGER.block, -1)
     } else if (r < th[4]) {
       lost = mitigated * 2
       preArmor = raw * 2
@@ -1950,7 +2012,9 @@ export class Sim {
     } else {
       lost = mitigated
     }
+    // rage.md#implementation-notes item 4: the damage-taken rage first, then the block's procs (Shield Specialization).
     this.takeDamage(lost, preArmor)
+    if (blocked) this.fireProcs(TRIGGER.block, -1)
   }
 
   /** The tank parried: parry haste on its own main-hand swing (damage-and-timing §3.4). */

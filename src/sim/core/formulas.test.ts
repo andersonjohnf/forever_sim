@@ -1,5 +1,8 @@
 // Worked examples from docs/mechanics/damage-and-timing.md, rage.md, threat.md and encounter.md
-// that are pure formulas. Examples that need the engine or the plan live next to those.
+// that are pure formulas the engine or the plan builder calls. Examples that need the engine or
+// the plan live next to those: damage-and-timing WE-2 and WE-4, encounter WE-1 and WE-2, threat
+// T15 and T16 in engine/mechanics.test.ts; warrior W22 in engine/abilities.test.ts; encounter
+// WE-4 and WE-5 in plan/build.test.ts.
 import { describe, expect, it } from 'vitest'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import {
@@ -10,14 +13,13 @@ import {
   executePhaseStart,
   GCD_MS,
   NORMALIZED_SPEED,
-  OFF_HAND_DAMAGE,
+  negativeArmorFloor,
   parryHasteRemaining,
   ppmChance,
   rageConversion,
   slowedSwingSec,
   swingMs,
   threat,
-  THREAT_PER_RAGE,
   toTenths,
   whiteHitRage,
 } from './formulas'
@@ -34,24 +36,15 @@ describe('damage-and-timing.md worked examples', () => {
     expect(f(-264, CLASSIC_ERA)).toBe(0)
     expect(f(16500)).toBeCloseTo(0.75, 10)
     expect(f(40000)).toBe(0.75)
+    // §1.1: `forever` holds armor at −K/2 = −2,750: −100%, so damage doubles, and no further.
+    expect(negativeArmorFloor(60)).toBe(-2750)
+    expect(f(-2750)).toBe(-1)
+    expect(f(-3000)).toBe(-1) // the table's −3,000 row: ×2.00000
+    expect(f(-50000)).toBe(-1)
+    expect(f(-2749)).toBeGreaterThan(-1)
     // Tank vs a level-63 boss.
     expect(armorReduction(10000, 63, FOREVER) * 100).toBeCloseTo(63.472, 3)
     expect(armorReduction(17265, 63, FOREVER)).toBeCloseTo(0.75, 10)
-  })
-
-  it('WE-2: white 2H swing (150–230, 3.60, 1500 AP, ×1.05)', () => {
-    const base = averageWeaponDamage(150, 230, 0, 1500, 3.6)
-    expect(base).toBeCloseTo(575.714, 3)
-    const modded = base * 1.05
-    expect(modded).toBeCloseTo(604.5, 3)
-    const forever = modded * (1 - armorReduction(471, 60, FOREVER))
-    expect(forever).toBeCloseTo(556.816, 3)
-    expect(forever * 2).toBeCloseTo(1113.633, 2)
-    expect(forever * 0.75).toBeCloseTo(417.612, 3)
-    const classic = modded * (1 - armorReduction(336, 60, CLASSIC_ERA))
-    expect(classic).toBeCloseTo(569.697, 3)
-    expect(classic * 2).toBeCloseTo(1139.393, 2)
-    expect(classic * 0.65).toBeCloseTo(370.303, 3)
   })
 
   it('WE-3: normalization', () => {
@@ -61,11 +54,7 @@ describe('damage-and-timing.md worked examples', () => {
     expect(averageWeaponDamage(150, 230, 0, 1500, 3.6) + 157).toBeCloseTo(732.714, 3)
   })
 
-  it('WE-4: off hand', () => {
-    expect(averageWeaponDamage(100, 100, 0, 1500, 2.0) * OFF_HAND_DAMAGE).toBeCloseTo(157.143, 3)
-  })
-
-  it('WE-5: haste stacking', () => {
+  it('WE-5: haste stacking (the engine’s swing timer; its inputs in engine/mechanics.test.ts)', () => {
     expect(swingMs(3.6, 1.3 * 1.05)).toBe(2637)
     expect(swingMs(3.6, 1.3)).toBe(2769)
   })
@@ -130,10 +119,6 @@ describe('rage.md worked examples', () => {
     expect(taken('forever')).toBeCloseTo(4.8298, 4)
     expect((taken('forever') + block + avoid) / 2).toBeCloseTo(3.7899, 4)
   })
-  it('W22: Unbridled Wrath 5/5 expected rage per 100 landed white hits', () => {
-    expect(100 * 0.6 * 1).toBe(60)
-    expect(100 * 0.6 * 2).toBe(120)
-  })
 })
 
 describe('threat.md worked examples (formula level)', () => {
@@ -159,10 +144,6 @@ describe('threat.md worked examples (formula level)', () => {
     expect(threat(300, 1, 0, 1)).toBe(300)
     expect(threat(1000, 1, 0, 0.71 * 0.7)).toBeCloseTo(497, 6)
   })
-  it('T15–T16: power-gain threat is 5 per rage gained, split, no multipliers', () => {
-    expect((10 * THREAT_PER_RAGE) / 2).toBe(25)
-    expect(Math.min(5, 100 - 98) * THREAT_PER_RAGE).toBe(10)
-  })
   it('T20–T21: enchant multipliers and aggro thresholds', () => {
     expect(threat(100, 1, 0, 1.3 * 1.02 * 0.98)).toBeCloseTo(129.948, 3)
     expect(10000 * AGGRO_THRESHOLD.melee).toBeCloseTo(11000, 6)
@@ -171,9 +152,7 @@ describe('threat.md worked examples (formula level)', () => {
 })
 
 describe('encounter.md worked examples (formula level)', () => {
-  it('WE-1 and WE-2: fight length and execute timing', () => {
-    const length = (L: number, v: number, u: number) => Math.round(L * (1 + v * (2 * u - 1)))
-    expect(length(180000, 0.1, 0.25)).toBe(171000)
+  it('WE-1: execute timing', () => {
     expect(executePhaseStart(180000, 20)).toBe(144000)
     expect(executePhaseStart(171000, 20)).toBe(136800)
   })
@@ -192,9 +171,7 @@ describe('encounter.md worked examples (formula level)', () => {
     expect(hit * 1.5).toBeCloseTo(2739.6, 1)
     expect(hit - 150).toBeCloseTo(1676.4, 1)
   })
-  it('WE-4 and WE-5: Demoralizing Shout and Thunder Clap', () => {
-    expect(5000 - (196 / 14) * 2.0).toBeCloseTo(4972, 9)
-    expect(5000 - (140 / 14) * 2.0).toBeCloseTo(4980, 9)
+  it('WE-5: Thunder Clap’s slow, as the plan builder applies it', () => {
     expect(slowedSwingSec(2.0, 0.2)).toBeCloseTo(2.4, 9)
   })
 })

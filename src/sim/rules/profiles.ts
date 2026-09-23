@@ -114,6 +114,10 @@ export interface RulesProfile {
     demoralizingShoutAp: number
     thunderClapSlow: number
     windfuryAp: number
+    /** Windfury Totem's internal cooldown, ms (damage-and-timing §5.4). */
+    windfuryIcdMs: number
+    /** Hand of Justice's chance per landed melee hit against a non-Dwarf target, % (damage-and-timing §5.2). */
+    handOfJusticePct: number
   }
 }
 
@@ -176,6 +180,10 @@ export const FOREVER: RulesProfile = {
     thunderClapSlow: 0.2,
     // docs/mechanics/buffs-debuffs-consumables.md#11-attack-power-stats-and-crit (Windfury Totem r3)
     windfuryAp: 246,
+    // docs/mechanics/damage-and-timing.md#54-extra-attacks-and-chaining: 10612 ProcCategoryRecovery 100
+    windfuryIcdMs: 100,
+    // docs/mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples: 15600 ProcChance 3, ÷ 3 unless the target is a Dwarf
+    handOfJusticePct: 1,
   },
 }
 
@@ -228,6 +236,10 @@ export const CLASSIC_ERA: RulesProfile = {
     demoralizingShoutAp: 140,
     thunderClapSlow: 0.1,
     windfuryAp: 315,
+    // docs/mechanics/damage-and-timing.md#54-extra-attacks-and-chaining: none in Classic Era
+    windfuryIcdMs: 0,
+    // docs/mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples: 15600 ProcChance 2 (1.15.9)
+    handOfJusticePct: 2,
   },
 }
 

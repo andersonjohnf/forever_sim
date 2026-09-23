@@ -377,13 +377,29 @@ differently named buffs, so whether they stack with a Well Fed buff is [?].
 
 ### 3.6 Weapon enhancements (temporary)
 
-One temporary enchant per weapon, 30 min. Sharpening stones fit bladed weapons and
+One temporary enchant per weapon, 30 min. Dense sharpening stones fit bladed weapons and
 weightstones fit blunt ones [C]. In Classic, Windfury Totem overwrote the main-hand slot;
 in Forever it probably doesn't ([Windfury Totem](#windfury-totem)).
 
+**Elemental Sharpening Stone.** It fits any melee weapon, blunt ones included: the item's spell
+22756 and the aura its enchant applies, 22755, both require an item of class 2 (weapon) with
+subclass mask **42483**, which is one- and two-handed axes, maces and swords, polearms, staves,
+fist weapons and daggers [F] [C] [client] (SpellEquippedItems, 1.60.1.69913 and 1.15.9.69722).
+Enchant 2506 applies 22755 as an equip spell (`SpellItemEnchantment` effect 3), and 22755 is
+aura 52, +2% melee crit, on the wearer (implicit target 1, the caster) [F] [client]
+(SpellItemEnchantment, SpellEffect, 1.60.1.69913). So each stone is its **own aura on the
+warrior**, from its own item: the sim adds +2% crit to **all melee attacks** for each weapon
+that has one, and two stones **stack** (+4%) [?]. The client doesn't settle it: the aura's
+weapon requirement matches the weapon the stone is on, so it can't say whether the server
+limits the crit to that weapon's attacks or refuses a second copy. The choice follows the aura's
+target and type and Classic Era practice: Horde warriors put their only stone on the off hand
+under Windfury ([bnet-cons], [almar-tank]), which is worth it when it counts for the main hand
+too. It is aura crit, so crit suppression against a +3 boss applies
+([combat-tables §4.4](combat-tables.md#44-crit-suppression)). [Open questions](#open-questions) 20.
+
 | Name | ID | Effect | Duration | Stacking | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Elemental Sharpening Stone | 18262 → enchant 2506 | +2% melee crit | 30 min | Temporary-enchant slot of that weapon | Blacksmithing (Same) | [F] | [fc-items] · [client] (SpellItemEnchantment, 1.60.1.69913) |
+| Elemental Sharpening Stone | 18262 → enchant 2506 | +2% melee crit to all melee attacks, on any melee weapon (above) | 30 min | Temporary-enchant slot of that weapon; one per weapon, and two stack [?] | Blacksmithing (Same) | [F] | [fc-items] · [client] (SpellItemEnchantment, SpellEquippedItems, 1.60.1.69913) |
 | Dense Sharpening Stone | 12404 → enchant 1643 | +8 weapon damage | 30 min | As above | Same | [F] | [fc-items] |
 | Dense Weightstone | 12643 → enchant 1703 | +8 weapon damage (blunt) | 30 min | As above | Same | [F] | [fc-items] |
 | Consecrated Sharpening Stone | 23122 → enchant 2684 | +100 AP vs Undead (tooltip unchanged; the Forever client's spell 28893 reads 99) | 30 min | As above | Argent Dawn (Same) | [F] | [fc-items] · [client] (SpellItemEnchantment, 1.60.1.69913) |
@@ -649,7 +665,7 @@ their stacking group is verified; the UI offers them as options.
 
 | Spec | Pre-raid dungeon group | Standard raid | Max-consumables raid (adds / replaces) |
 | --- | --- | --- | --- |
-| Arms / Fury | Smoked Desert Dumplings; Dense Sharpening Stone / Weightstone | Mongoose; Elixir of Greater Strength (Giants); Winterfall Firewater; Smoked Desert Dumplings; Dense stone on each weapon; Mighty Rage Potion | Juju Power (replaces Giants); Juju Might (replaces Firewater); R.O.I.D.S.; Juju Flurry (on use); Elemental Sharpening Stone (replaces Dense, bladed only); EZ-Thro Dark Bomb (or Sapper + Dense Dynamite if `engineer`) |
+| Arms / Fury | Smoked Desert Dumplings; Dense Sharpening Stone / Weightstone | Mongoose; Elixir of Greater Strength (Giants); Winterfall Firewater; Smoked Desert Dumplings; Dense stone on each weapon; Mighty Rage Potion | Juju Power (replaces Giants); Juju Might (replaces Firewater); R.O.I.D.S.; Juju Flurry (on use); Elemental Sharpening Stone (replaces Dense on each weapon); EZ-Thro Dark Bomb (or Sapper + Dense Dynamite if `engineer`) |
 | Prot warrior | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude (+200); Mongoose; Giants; Smoked Desert Dumplings; Dense stone; Mighty Rage Potion | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum Black Label; Elemental stone; Greater Stoneshield Potion (on use) |
 | Feral cat | Flank au Poivre (+20 Agi) | Mongoose; Giants; Flank au Poivre | Juju Power; Juju Might; Ground Scorpok Assay; Mighty Rage Potion (for its +60 Str; the rage is wasted in cat) |
 | Feral bear | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude; Mongoose; Giants; Smoked Desert Dumplings; Mighty Rage Potion (druids can use it in Forever) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum; Greater Stoneshield Potion |
@@ -826,6 +842,9 @@ food) are static: used before the pull and up all fight.
   The totem aura is not a weapon enchant, so a main-hand temporary enchant is allowed ([?]).
   `classicEra`: +315 AP, and the totem's enchant replaces the main-hand temporary enchant [C]
   ([Windfury Totem](#windfury-totem)).
+- **Temporary weapon enchants**: each weapon takes the best one it fits, Elemental over Dense.
+  Each Elemental Sharpening Stone adds +2% crit to all melee attacks, so a stone on each weapon
+  gives +4% [?] ([§3.6](#36-weapon-enhancements-temporary)).
 - **Weapon enchant procs** use PPM (`chance = PPM × weaponSpeed / 60`, see
   [glossary](../glossary.md)). Crusader 1, Fiery 6 and Lifestealing 6 are [C] (the pre-SoD
   WarriorSim, [ws-gear]); Icy Chill 1.6 and Unholy 3 are [?] (an unversioned wiki only).
@@ -1099,6 +1118,13 @@ Each item says what was found and how the guild can check it on the Forever beta
     1.60.1.69913), so it would give about −204.4 and −204.2 at 60 if the server applies it. ✅
     The client read is resolved; whether the server applies the term is still open. *Check,
     Route C:* read the debuff tooltip on a target at 60.
+20. **Elemental Sharpening Stone: all attacks, and two stack?** [?] Each stone's +2% melee crit
+    is its own aura 52 on the warrior (enchant 2506 → 22755), with a weapon requirement that
+    any melee weapon meets ([§3.6](#36-weapon-enhancements-temporary)). The sim counts it for
+    every melee attack, whichever weapon holds it, and counts two stones as +4%. *Check* (Classic
+    Era at 60 works too): dual wield, note the sheet's crit, put a stone on the off hand only and
+    read it again (+2% means the main hand gets it), then add a second stone to the main hand
+    (+4% in all means they stack).
 
 ---
 

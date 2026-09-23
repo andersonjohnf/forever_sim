@@ -11,7 +11,8 @@ work as in Classic Era, plus a new **haste** stat (10 rating = 1%, applied by hy
 Forever's tooltip says **periodic effects can crit**, and the client puts the per-spell flag on
 Rend, Rake, Rip, Pounce and Lacerate but not Deep Wounds [F]. Procs use Classic's PPM formula;
 Forever's PPM table is Classic Era's plus one new 2.3 PPM row, and no proc links to it in the
-client, so proc rates are server-side.
+client, so PPM rates are server-side. Flat proc chances and internal cooldowns are in the client:
+Hand of Justice procs 1% of the time against a boss in Forever (2% in Classic Era).
 
 Status: researched 2026-09-22 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 Client builds: Forever beta 1.60.1.69913 · Classic Era 1.15.9.69722
@@ -30,7 +31,7 @@ such as PPM rates ([hotfix caveat](../data/client.md#hotfix-caveat)).
 - **Armor:** `DR = A / (A + 5500)` for our level-60 attacker, capped at 0.75 and applied to
   physical direct damage only. Armor reductions subtract from armor. `classicEra` floors armor
   at 0; `forever` lets it go negative (damage > 100%), per the client tooltip [F text; ? in
-  combat] ([§1](#1-armor)).
+  combat], down to an engine floor of −2,750 armor, where damage doubles [?] ([§1](#1-armor)).
 - **Weapon damage:** `uniform(min, max) + flatWeaponBonus + AP/14 × speed`, where `speed` is
   the real speed for white swings, on-next-swing attacks and Slam, and the normalized speed for
   abilities whose client effect is *normalized weapon damage* ([§2](#2-weapon-damage)).
@@ -44,15 +45,19 @@ such as PPM rates ([hotfix caveat](../data/client.md#hotfix-caveat)).
 - **Parry haste** on whoever parried: remove 40% of their swing speed from their remaining
   timer, but never below 20% remaining ([§3.4](#parry-haste)).
 - **GCD:** 1.5 s; 1.0 s for cat-form abilities; not reduced by haste ([§3.5](#35-global-cooldown)).
-- **No spell-batching model** ([§3.6](#36-server-tick-and-spell-batching)).
+- **No spell-batching model, and no reaction time:** the rotation acts at the very millisecond
+  something changes ([§3.6](#36-server-tick-and-spell-batching)).
 - **DoTs/bleeds:** fixed tick intervals from the client. Ticks never miss. Bleeds ignore armor.
   Both profiles snapshot AP and caster modifiers when the DoT is applied [?], except Deep
   Wounds, which recomputes each tick [C]. In `forever`, each tick can crit when the spell has
   the periodic-crit flag (flag [F], in combat [?]); in `classicEra` ticks never crit [C]
   ([§4](#4-dots-and-bleeds)).
-- **Procs:** `chance = PPM × baseWeaponSpeed / 60` per landed hit, or a flat % per landed hit.
-  Extra attacks can chain other procs, but Windfury can't proc off its own chain. `forever`
-  applies the client's 100 ms Windfury internal cooldown; `classicEra` has none ([§5](#5-procs)).
+- **Procs:** `chance = PPM × baseWeaponSpeed / 60` per landed hit, or a flat % per landed hit,
+  with the client's internal cooldown if it has one (Hand of Justice: 1% in `forever`, 2% in
+  `classicEra`, 2 s in both). Extra attacks can chain other procs, but each extra-attack source
+  procs at most once from one swing and the extra attacks it leads to, so Windfury can't proc
+  off its own chain. `forever` applies the client's 100 ms Windfury internal cooldown;
+  `classicEra` has none ([§5](#5-procs)).
 - **New ratings** (haste, armor penetration) apply by hypothesis in `forever`, behind the
   `unmeasuredRatings: 'apply' | 'ignore'` switch
   ([D12](../decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
@@ -68,7 +73,9 @@ For physical damage dealt by an attacker of level `L` to a target with armor `A`
 
 ```
 K  = 400 + 85 × L            // 5500 for L = 60 (player → boss); 5755 for L = 63 (boss → tank)
-DR = clamp(A / (A + K), −∞, 0.75)
+A' = max(A, 0)               // classicEra
+A' = max(A, −K/2)            // forever: −2,750 for L = 60, the engine's floor [?]
+DR = min(A' / (A' + K), 0.75)
 damage_after_armor = damage × (1 − DR)
 ```
 
@@ -85,6 +92,13 @@ damage_after_armor = damage × (1 − DR)
   retail values (7,765 at level 120), wowsims doesn't use it, and a constant of 1,059 would put
   a 3,731-armor boss at 78% reduction. We treat it as a retail leftover and **don't adopt it**.
   See [Open questions](#open-questions).
+- **Negative-armor floor (`forever`) [?].** The formula has no sensible value far below 0:
+  `A / (A + K)` falls without bound as `A` nears `−K` (infinite damage at −5,500) and turns
+  positive again below it. No Forever source says what the server does there, so the engine
+  holds armor at **`−K/2` = −2,750**, where `DR = −100%` and damage doubles, an engine guard, not
+  a game rule. With every armor debuff in the catalogue (−3,755 in `forever`) a custom boss armor
+  of about 1,000 or less reaches it; the results then say so in their assumptions
+  ([Open questions](#open-questions) 12).
 
 ### 1.2 Armor-reduction debuffs and penetration
 
@@ -101,7 +115,8 @@ damage_after_armor = damage × (1 − DR)
   below 0 will increase your damage against them" [F text] ([gs][gs-forever]). It is checkable
   client data (the same string mirror as the combat-tables `forever` profile), but it isn't
   shown on foreverchanges.pro and nobody has measured it, so the combat effect is **[?]**
-  ([Open questions](#open-questions)). With `A < 0`, `DR` is negative and `1 − DR > 1`.
+  ([Open questions](#open-questions)). With `A < 0`, `DR` is negative and `1 − DR > 1`, up to
+  ×2.0 at the engine's floor ([§1.1](#11-formula)).
 - **Armor penetration** (Forever): a new item stat, "Your attacks pierce up to X Armor", shown
   on the sheet as a flat number ("Your Attacks ignore %d of your enemies Armor") [F text]
   ([gs][gs-forever]; example item: Leafre's Ring of Armor Piercing, "+50 Armor Penetration",
@@ -318,8 +333,15 @@ Eureka! have no GCD, while Stoneform has 1.5 s [F] [client] (SpellCooldowns, 1.6
   its Windfury uptime analysis describe the older 400 ms behaviour ([magey-batch]).
 - Forever: nothing announced. It runs on the modern client.
 - **Decision:** don't model batching. At 10 ms it's below the doctrine's 0.5% threshold, and
-  modelling 400 ms would contradict Classic Era's live behaviour. An optional reaction-time
-  delay for procs such as Overpower windows belongs to the rotation settings, not here.
+  modelling 400 ms would contradict Classic Era's live behaviour.
+- **Reaction time and latency: 0 ms [?].** The rotation acts at the very millisecond something
+  changes: a GCD or cooldown ends, rage arrives, a dodge or proc opens a window (Overpower), or
+  a swing lands (a Heroic Strike queued right after the swing that paid for it). No human
+  reaction time and no network latency are modelled, so the sim plays like a perfect player on
+  a zero-latency connection. That overstates reactive abilities and on-cooldown use a little; how
+  much depends on the player, so it's a modelling choice, not a measured rule. The class docs'
+  rotations follow it ([warrior §5.1](../classes/warrior.md#51-conventions-for-rotation-settings)).
+  There's no setting for it yet ([Open questions](#open-questions) 14).
 - Energy and mana ticks (2 s) are owned by the class docs and [rage.md](rage.md).
 
 ---
@@ -334,7 +356,7 @@ Eureka! have no GCD, while Stoneform has 1.5 s [F] [client] (SpellCooldowns, 1.6
 | Can a tick crit? | `classicEra`: never [C] (the pre-SoD WarriorSim's Deep Wounds has no crit roll, [ws-spell]; the Classic feral guide contrasts Bite, which "can crit", with Rip, [wh-feral]). `forever`: yes, **if** the spell carries the SpellMisc attribute `PERIODIC_CAN_CRIT` (Attributes[8] 0x200); the flag is [F], whether flagged ticks crit in combat is [?] | The Forever tooltip says "Most periodic effects can critically strike" [F text] (`STAT_CRIT_BONUS`, [gs][gs-forever]). The per-spell flags are [F] [client] (SpellMisc, 1.60.1.69913); wowsims/forever reads the same ([wf-spelldata-doc]) |
 | Crit chance of a tick | `forever`: each flagged tick rolls crit separately, with the caster's crit chance **snapshotted at application** like the damage (default) [?]. For a melee bleed (Rend) that chance is the main hand's special-attack crit ([combat-tables §3](combat-tables.md#3-special-yellow-attacks)), crit suppression vs +3 included [?]. Multipliers in §2.5. A tick crit fires no melee crit procs ([warrior §7](../classes/warrior.md#7-implementation-notes)) | A Forever warrior-sim author relays a Discord statement that Rend's tick crit is evaluated at each tick ([tzcnt Forever notes][tz-forever]). That is anecdotal secondary evidence, so it is **not adopted**; it is an open question |
 | Damage snapshot | **Both profiles (default):** AP and the caster's damage modifiers are fixed when the DoT is applied; target-side modifiers apply per tick [?]. **Exception: Deep Wounds** recomputes each tick from current AP and modifiers [C] (pre-SoD WarriorSim `DeepWounds.step`, [ws-spell]; see [warrior §2.5](../classes/warrior.md#25-crits-impale-flurry-deep-wounds)) | The snapshot default is [?]: the only Classic code for it (WarriorSim's Rend) is post-SoD, and no Classic Era measurement was found. `forever`: the same tzcnt notes report Rend reading AP, modifiers and crit per tick (~0.02 × AP per tick at level ~10) [?]; anecdotal, so not adopted; see [Open questions](#open-questions) |
-| Refresh | reapplying restarts the duration **and** the tick timer; the partial tick in progress is lost; the damage is re-snapshotted. A tick due at the very moment of the refresh lands first (an engine tie-break) | [?] |
+| Refresh | reapplying restarts the duration **and** the tick timer; the partial tick in progress is lost; the damage is re-snapshotted. A tick due at the very moment of the refresh lands first (an engine tie-break), for Rend and for Deep Wounds alike | [?] |
 | Stacking | one instance per caster per target unless the spell stacks (Lacerate, …) | [C]; class docs |
 
 Client values for the DoTs in scope (top ranks). Durations are [F] from the foreverchanges
@@ -387,7 +409,7 @@ otherwise. The new 2.3 PPM row's user is unknown.
 | Fiery Weapon enchant | PPM | 6 | [C] ([ws-gear]) |
 | Lifestealing enchant | PPM | 6 | [C] ([ws-gear]) |
 | Weapon chance-on-hit (e.g. Ironfoe 0.8, Thrash Blade 1, Flurry Axe 1.8, Deathbringer 0.8, Perdition's Blade 1, Empyrean Demolisher 1) | PPM | as listed | [C] ([WarriorSim gear][ws-gear]) |
-| Hand of Justice | flat | 2% per landed hit | [C] ([ws-gear]). (Blackhand's Breadth, listed here before, is a +2% crit trinket with no proc, [ws-gear].) |
+| Hand of Justice (15600) | flat | `forever`: **1%** per landed melee hit, white or yellow (proc mask 0x14), with a **2 s** internal cooldown. The client's `ProcChance` is 3 and its description reads `${$h/3}%` … "Attacks against Dwarves are $s2 times as likely", with `$s2` = 3, so 1% against a boss that isn't a Dwarf (the sim treats every boss as one that isn't). `classicEra`: **2%**, the same 2 s | [F] [client] (Spell, SpellEffect, SpellAuraOptions, 1.60.1.69913); [C] [client] (SpellAuraOptions, 1.15.9.69722: `ProcChance` 2, `ProcCategoryRecovery` 2000). (Blackhand's Breadth, listed here before, is a +2% crit trinket with no proc, [ws-gear].) |
 | Windfury Totem | flat | 20% per main-hand landed hit | [C] ([Magey Windfury][magey-wf]); Forever values → [buffs doc](buffs-debuffs-consumables.md) |
 | Talent procs (Flurry, Unbridled Wrath, Sword Spec, Omen of Clarity, Seal of Command, …) | per class doc | – | class docs |
 
@@ -408,7 +430,9 @@ supports both.
   that split ("Extra attacks roll only once per multi target attack", [ws-post-player]). See
   [Open questions](#open-questions).
 - Spells and periodic ticks don't roll weapon procs [C].
-- Procs with an internal cooldown carry it in their data.
+- Procs with an internal cooldown carry it in their data (`ProcCategoryRecovery`: Hand of
+  Justice 2 s, Weaponmaster's sword 200 ms, Windfury 100 ms in `forever`). A proc that is on
+  its cooldown, or barred from a chain (§5.4), isn't rolled.
 
 ### 5.4 Extra attacks and chaining
 
@@ -417,7 +441,13 @@ supports both.
   Specialization, etc.)" can proc Windfury).
 - Windfury **can't proc itself** or proc twice in one chain of extra attacks [C] ([magey-wf];
   the line dates from the page's first version, 2019-11-04, well before SoD). The sim applies
-  the same rule to every extra-attack source: a source can't proc from its own extra attack [?].
+  the same rule to every extra-attack source, over the whole chain of a **root** swing [?]: the
+  swing timer's, an ability's strike (both hands of Raging Blows' Whirlwind count as one), a boss
+  swing's or a hit taken. A source that procced anywhere in that chain can't proc again in it, so
+  when Windfury and Hand of Justice both proc from one swing, neither procs again from the
+  other's extra attack. The next root starts a new chain, even at the same millisecond (an
+  instant attack pressed right after the swing), which is where Windfury's internal cooldown
+  below matters.
 - **Windfury internal cooldown.** The Forever client gives Windfury Totem Passive 10612
   `ProcCategoryRecovery` 100: a **100 ms internal cooldown** [F] [client] (SpellAuraOptions,
   1.60.1.69913). `forever` models it, as data on the proc (§5.3). It is far shorter than any
@@ -443,6 +473,7 @@ supports both.
 | Thunder Clap attack-speed slow | 10% | 20% | [F] tooltip [fc-sb-warrior] |
 | Normalized abilities | MS, OP, WW | MS, OP, WW + Spearing Strike, Holy Strike (new abilities) | [F] class docs' client reads (§2.2) |
 | PPM table | 1–10 PPM rows | the same plus ID 479 = 2.3 PPM; no proc references a row | [F] [client] (SpellProcsPerMinute, SpellAuraOptions, 1.60.1.69913) |
+| Hand of Justice | 2% per landed hit, 2 s internal cooldown | 1% against non-Dwarves (`ProcChance` 3, ÷3), 2 s | [F] [client] (SpellAuraOptions, Spell, 1.60.1.69913); [C] [client] (1.15.9.69722) |
 | Windfury internal cooldown | none modelled | 100 ms (10612 `ProcCategoryRecovery`) | [F] [client] (SpellAuraOptions, 1.60.1.69913); in combat [?] |
 | Crit multipliers, AP/14, 75% armor cap, parry haste 40%, GCD 1.5/1.0 | – | unchanged | [F] tooltips and client data |
 
@@ -459,9 +490,10 @@ damage-modifier stacking, the off-hand 50%, swing-reset rules, or the PPM formul
   ([combat-tables.md](combat-tables.md#implementation-notes)), then schedule the next swing at
   `now + round(baseSpeed / hasteProduct)`.
 - **Extra attack:** push an immediate main-hand swing event at `now`, then reschedule the
-  main-hand timer from that swing. Keep a `chainSources` set on the event so a source can't
-  proc from its own chain. In `forever`, Windfury also respects its 100 ms internal cooldown
-  (§5.4).
+  main-hand timer from that swing. Keep one chain mask per root swing: every extra-attack source
+  that procs adds its bit, and every attack in the chain, siblings included, reads the same mask,
+  so no source procs twice from one root swing (§5.4). A barred source isn't rolled. In
+  `forever`, Windfury also respects its 100 ms internal cooldown.
 - **Parry haste:** when the defender parries, reschedule its pending swing event using the
   formula in §3.4. For the boss, that's the boss's swing on the tank.
 - **Cast-time abilities:** at cast start, cancel pending white swings. At cast end, apply the
@@ -469,13 +501,17 @@ damage-modifier stacking, the off-hand 50%, swing-reset rules, or the PPM formul
   without Improved Slam); Slam's cost, cooldown and what can happen during its cast are in
   [warrior §7](../classes/warrior.md#7-implementation-notes).
 - **Armor per target** is recomputed when a debuff changes. Cache `1 − DR` per target and
-  profile.
+  profile. In `forever`, hold armor at the −K/2 floor (§1.1) [?].
 - **DoTs** are auras with a tick event every `tickLength` from application. On refresh,
   cancel the pending tick and restart. Store the snapshot (AP, caster multipliers, crit chance)
   on the aura at application; Deep Wounds reads the live values instead (§4). In `forever`, a
   tick rolls crit only when the spell's periodic-crit flag is set. The warrior's own bleed
   (Rend) also puts a marker aura on the target, up until its last tick, which rotation
-  conditions read (and Bloodthrill's proc will).
+  conditions read (and Bloodthrill's proc will). Keep each DoT's next tick time: a refresh at
+  that very millisecond lets the tick land first (§4 "Refresh"), for a proc's bleed (Deep
+  Wounds) as for Rend.
+- **Reaction time:** none. The rotation walks its priority list in the same millisecond as the
+  event that changed something (§3.6).
 - **`unmeasuredRatings`** (`'apply'` in `forever` by default, per D12): haste rating and armor
   penetration go through the stat pipeline only when it is `'apply'`.
 - **Skipped (documented):** spell batching (§3.6), integer rounding of damage (§2.6), and mob
@@ -508,6 +544,7 @@ All use player level 60, so `K = 5500`. Where the profiles differ, the example n
 | both | 976 (− Faerie Fire 505) | 976 / 6476 = **15.071%** | 0.84929 |
 | `forever` | 471 (− Curse of Recklessness 505) | 471 / 5971 = **7.888%** | 0.92112 |
 | `forever` | −129 (600 more reduction, e.g. armor penetration) | −129 / 5371 = **−2.402%** | 1.02402 |
+| `forever` | −3,000 (past the engine's floor) | held at −2,750: −2750 / 2750 = **−100%** [?] | 2.00000 |
 | `classicEra` | 336 (− Curse of Recklessness 640 [C]) | 336 / 5836 = **5.757%** | 0.94243 |
 | `classicEra` | −264 (600 more reduction) | clamped to 0 → **0%** | 1.00000 |
 | both | 16,500 | **75.000%** (cap) | 0.25 |
@@ -610,15 +647,21 @@ Shred at t = 0 can Shred again at 1.0 s if it has the energy.
    `ProcCategoryRecovery`) [F], and `forever` models it; `classicEra` models none. The 1.5 s
    cooldown quoted on Magey's page (a 2023 statement that mentions an SoD rune) stays refused.
    Open: does the server apply the 100 ms, and does anything else limit chained extra attacks?
-   Test: minimum gap between Windfury procs over 500+ main-hand swings (expect ≥ 100 ms).
+   The sim bars every extra-attack source from procing twice in one root swing's chain, siblings
+   included [?] (§5.4); Classic's rule is stated for Windfury only.
+   Test: minimum gap between Windfury procs over 500+ main-hand swings (expect ≥ 100 ms); with
+   Hand of Justice and Windfury, look for a swing whose extra attacks include two from one source.
 10. **Per-proc PPM values in Forever** [?]. ✅ Confirmed from client data: no proc links to a
     PPM row, so per-proc rates are server-side and stay [C] or [?] as tagged. Which effect uses
     the new 2.3 PPM row? Test: fit proc rates from combat logs (weapon enchants:
-    [buffs OQ 9](buffs-debuffs-consumables.md#open-questions)).
+    [buffs OQ 9](buffs-debuffs-consumables.md#open-questions)). Flat chances are client data
+    (Hand of Justice 1% against non-Dwarves, 2 s cooldown [F]); a log of 2,000+ landed hits would
+    confirm the server uses them.
 11. **Off-hand first-swing offset** [?]: a modelling choice, not a measured rule.
 12. **Negative armor and armor penetration in combat (`forever`)** [?]. The client tooltip says
-    armor below 0 increases damage, and the `forever` profile applies it; armor penetration is
-    modelled as flat armor removed (D12). Nobody has measured either. The same holds for
+    armor below 0 increases damage, and the `forever` profile applies it, down to the engine's
+    −2,750 floor (×2.0 damage, §1.1); armor penetration is modelled as flat armor removed (D12).
+    Nobody has measured either. The same holds for
     resistance below 0 ("Spell Vulnerability", [combat-tables §9](combat-tables.md#9-spell-hit-and-crit-generic)).
     Test: with armor penetration or armor debuffs that exceed a low-armor mob's armor, compare
     average white damage against the same mob at exactly 0 effective armor.
@@ -627,6 +670,9 @@ Shred at t = 0 can Shred again at 1.0 s if it has the energy.
     while extra-attack procs other than Windfury roll once per cast (§5.3). Test: a mob with a
     flat damage-taken debuff (Gift of Arthas' +8), and weapon-enchant procs per Cleave that hits
     two mobs.
+14. **Reaction time and latency** [?]: the rotation reacts in 0 ms (§3.6), a modelling choice
+    for an ideal player, not a measurable game rule. A setting could let the guild model its own
+    reaction time; nobody has asked for one yet.
 
 ---
 

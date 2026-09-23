@@ -447,7 +447,9 @@ owns the warrior-specific modifiers. The two docs were checked against each othe
 3. **Dual wield.** Off-hand swings add rage when they land, so a later main-hand Heroic Strike
    check sees it.
 4. **Boss swing resolves.** Add rage from damage taken, then any procs (Shield Specialization,
-   Master of Defense, Natural Reaction), in the same event.
+   Master of Defense, Natural Reaction), in the same event. Near the cap the order decides which
+   rage is lost: a blocked hit's own rage fills the bar first, so Shield Specialization's 5 (an
+   energize, 5 threat per rage) gains, and threatens, only what room is left.
 5. **Periodic sources** (Bloodrage, Enrage, Anger Management) tick on their own timers. Anger
    Management ticks every 3000 ms from the start of combat. The phase is assumed, not measured.
 6. Changing stance applies `min(rage, retain)` at the moment you swap.

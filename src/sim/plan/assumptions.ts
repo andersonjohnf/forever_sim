@@ -18,6 +18,10 @@ const REGISTRY = {
     text: 'Only white swings, talents, procs and buffs are simulated for now: abilities, cooldowns and on-use items arrive with the rotation.',
     docRef: 'docs/milestones.md#m2-warrior-dps-with-the-production-ux',
   },
+  reactionTime: {
+    text: 'The rotation reacts instantly: it acts at the very moment a cooldown ends, rage arrives or a proc or dodge opens a window, with no reaction time or latency.',
+    docRef: `${DT}#36-server-tick-and-spell-batching`,
+  },
   gcdHaste: {
     text: 'The 1.5 s global cooldown isn’t shortened by haste, as in Classic Era; untested in Forever.',
     docRef: `${DT}#35-global-cooldown`,
@@ -75,7 +79,7 @@ const REGISTRY = {
     docRef: 'docs/decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22',
   },
   negativeArmor: {
-    text: 'The boss’s armor is below zero after debuffs, which increases your damage per the Forever tooltip; unmeasured in combat.',
+    text: 'The boss’s armor is below zero after debuffs, which increases your damage, as the Forever tooltip says; unmeasured in combat.',
     docRef: `${DT}#12-armor-reduction-debuffs-and-penetration`,
   },
   offHandFirstSwing: {
@@ -143,11 +147,15 @@ const REGISTRY = {
     docRef: 'docs/data/items.md#effect-and-set-bonus-text',
   },
   procRates: {
-    text: 'Proc rates (Crusader 1 per minute, Hand of Justice 2%, …) are Classic Era’s; Forever’s are server-side and unmeasured.',
+    text: 'Procs-per-minute rates (Crusader 1, Fiery Weapon 6, Ironfoe 0.8, …) are Classic Era’s: Forever sets them on the server, and nobody has measured them.',
     docRef: `${DT}#52-ppm-vs-flat-chance-classic-era-examples`,
   },
   extraAttackChains: {
-    text: 'An extra-attack effect can’t trigger from its own extra attacks, and Windfury has no internal cooldown.',
+    text: 'Each extra-attack effect (Windfury, Hand of Justice, …) can proc only once from one swing and the extra attacks that follow it, so none procs from its own extra attack.',
+    docRef: `${DT}#54-extra-attacks-and-chaining`,
+  },
+  windfuryIcd: {
+    text: 'Windfury can’t proc again within 100 ms of a proc, the internal cooldown the Forever client gives it; whether the server enforces it is untested.',
     docRef: `${DT}#54-extra-attacks-and-chaining`,
   },
   windfuryStone: {
@@ -155,11 +163,11 @@ const REGISTRY = {
     docRef: `${BUFFS}#windfury-totem`,
   },
   elementalStone: {
-    text: 'Each Elemental Sharpening Stone gives +2% crit to all attacks, so two stack.',
+    text: 'Each Elemental Sharpening Stone gives +2% crit to all your melee attacks, whichever weapon it’s on, so two stack; untested in Forever.',
     docRef: `${BUFFS}#36-weapon-enhancements-temporary`,
   },
   magicProcs: {
-    text: 'Magic weapon procs roll spell hit against a 24-resistance boss and don’t crit.',
+    text: 'Magic weapon procs roll spell hit against a 24-resistance boss, then crit at your spell crit chance for 150% damage, as in Classic Era.',
     docRef: `${CT}#9-spell-hit-and-crit-generic`,
   },
   deepWounds: {

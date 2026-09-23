@@ -767,10 +767,10 @@ describe('Recklessness (warrior.md §2.6, §5.2 row 4)', () => {
       expect(times).toHaveLength(1)
       const [t] = times
       expect(t).toBeGreaterThanOrEqual(end - 15000)
-      // It waits for a GCD already running, and for Battle Shout (row 1) and Death Wish (row 2) if
-      // they're due as well.
-      const before = [...timesOf(casts, 'battleShout'), ...timesOf(casts, 'deathWish')].filter((x) => x >= end - 15000 && x < t)
-      expect(t - (end - 15000)).toBeLessThanOrEqual(1500 * (1 + before.length))
+      // It waits for a GCD already running, and for Battle Shout's refresh (row 1) and Death Wish
+      // (row 2) if they're due as well.
+      const first = [...timesOf(casts, 'battleShout'), ...timesOf(casts, 'deathWish')].filter((x) => x >= end - 15000 && x < t)
+      expect(t - (end - 15000)).toBeLessThanOrEqual(1500 * (1 + first.length))
     }
     const early = abilityPlan(only('recklessness', { 'warrior.fury.recklessness.lastSec': 40 }), 100000)
     expect(timesOf(castsPerFight(early, 1)[0].casts, 'recklessness')).toEqual([60000])

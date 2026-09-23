@@ -3,7 +3,8 @@
 // Pure functions: they turn a profile plus the attacker's and defender's numbers into outcome
 // chances in percentage points, and those into cumulative thresholds for a single roll in
 // [0, 100). Every rule and constant is owned by combat-tables.md; the profile holds the numbers
-// where Forever and Classic Era differ.
+// where Forever and Classic Era differ. Each takes an optional `out` to write into, so the engine
+// re-derives its tables without allocating (docs/architecture.md, "Hot-loop discipline").
 import type { RulesProfile } from '../rules/profiles'
 
 /** Outcome codes, also used as breakdown columns. */
@@ -52,18 +53,25 @@ export interface MeleeChances {
   crit: number
 }
 
+/** A zeroed MeleeChances, for callers that reuse one. */
+export const emptyChances = (): MeleeChances => ({ miss: 0, dodge: 0, parry: 0, glance: 0, block: 0, crit: 0 })
+
+/** Slices for one roll, in roll order. */
+export type Slices = number[] | Float64Array
+
 const levelDiff = (i: MeleeInputs) => Math.max(0, Math.min(3, i.targetLevel - i.attackerLevel))
 
 /**
  * Chances for a melee attack by a player on a mob. `white` adds glancing and, when
  * `dualWieldPenalty` is set, the +19% dual-wield miss; specials never glance and never take the
- * penalty (combat-tables §2.2, §3, §5).
+ * penalty (combat-tables §2.2, §3, §5). Written into `out` and returned.
  */
 export function meleeChances(
   profile: RulesProfile,
   i: MeleeInputs,
   white: boolean,
   dualWieldPenalty: boolean,
+  out: MeleeChances = emptyChances(),
 ): MeleeChances {
   const c = profile.combat
   const d = levelDiff(i)
@@ -78,14 +86,13 @@ export function meleeChances(
   if (c.model === 'foreverUi') {
     // docs/mechanics/combat-tables.md#22-outcome-formulas (forever)
     const k = c.perSkillPoint * (D - S - 5 * d)
-    return {
-      miss: Math.max(0, c.missBase[d] + k + dw - i.hit),
-      dodge: i.canDodge ? Math.max(0, c.dodgeBase[d] + k - i.expertise) : 0,
-      parry: i.front && i.canParry ? Math.max(0, c.parryBase[d] + k - i.expertise) : 0,
-      glance,
-      block: i.front && i.canBlock ? c.mobBlock : 0,
-      crit: i.sheetCrit - c.perSkillPoint * (D - S) - suppression,
-    }
+    out.miss = Math.max(0, c.missBase[d] + k + dw - i.hit)
+    out.dodge = i.canDodge ? Math.max(0, c.dodgeBase[d] + k - i.expertise) : 0
+    out.parry = i.front && i.canParry ? Math.max(0, c.parryBase[d] + k - i.expertise) : 0
+    out.glance = glance
+    out.block = i.front && i.canBlock ? c.mobBlock : 0
+    out.crit = i.sheetCrit - c.perSkillPoint * (D - S) - suppression
+    return out
   }
 
   // docs/mechanics/combat-tables.md#22-outcome-formulas (classicEra)
@@ -93,39 +100,51 @@ export function meleeChances(
   const missBase = 5 + (diff > 10 ? 0.2 : 0.1) * diff
   // docs/mechanics/combat-tables.md#43-hit-suppression
   const hitSuppression = diff > 10 ? (diff - 10) * 0.2 : 0
-  return {
-    miss: Math.max(0, missBase + dw - Math.max(0, i.hit - hitSuppression)),
-    dodge: i.canDodge ? Math.max(0, 5 + 0.1 * diff) : 0,
-    parry: i.front && i.canParry ? c.parryBase[d] : 0,
-    glance,
-    block: i.front && i.canBlock ? Math.min(c.mobBlock, 5 + 0.1 * diff) : 0,
-    crit: i.sheetCrit - 0.2 * (D - Math.min(S, cap)) - suppression,
-  }
+  out.miss = Math.max(0, missBase + dw - Math.max(0, i.hit - hitSuppression))
+  out.dodge = i.canDodge ? Math.max(0, 5 + 0.1 * diff) : 0
+  out.parry = i.front && i.canParry ? c.parryBase[d] : 0
+  out.glance = glance
+  out.block = i.front && i.canBlock ? Math.min(c.mobBlock, 5 + 0.1 * diff) : 0
+  out.crit = i.sheetCrit - 0.2 * (D - Math.min(S, cap)) - suppression
+  return out
 }
 
 /**
  * Cumulative thresholds for a one-roll table in the given order, truncated at 100: each slice is
  * clamped at ≥ 0 first, then gets min(p, 100 − running total) (combat-tables §2.1). An outcome
  * is the first index whose threshold exceeds the roll; past the last threshold is a normal hit.
+ * Written to out[offset …].
  */
-export function thresholds(slices: readonly number[], out: Float64Array): Float64Array {
+export function thresholds(slices: ArrayLike<number>, out: Float64Array, offset = 0): Float64Array {
   let acc = 0
   for (let k = 0; k < slices.length; k++) {
     const p = Math.max(0, slices[k])
     acc += Math.min(p, 100 - acc)
-    out[k] = acc
+    out[offset + k] = acc
   }
   return out
 }
 
 /** Slices of the white table in roll order: miss, dodge, parry, glance, block, crit (combat-tables §2.1). */
-export function whiteSlices(ch: MeleeChances): number[] {
-  return [ch.miss, ch.dodge, ch.parry, ch.glance, ch.block, ch.crit]
+export function whiteSlices<T extends Slices = number[]>(ch: MeleeChances, out: T = [0, 0, 0, 0, 0, 0] as T): T {
+  out[0] = ch.miss
+  out[1] = ch.dodge
+  out[2] = ch.parry
+  out[3] = ch.glance
+  out[4] = ch.block
+  out[5] = ch.crit
+  return out
 }
 
 /** Weapon-damage specials: one roll over miss, dodge, parry, block, crit (combat-tables §3). */
-export function specialSlices(ch: MeleeChances, bonusCrit = 0): number[] {
-  return [ch.miss, ch.dodge, ch.parry, 0, ch.block, ch.crit + bonusCrit]
+export function specialSlices<T extends Slices = number[]>(ch: MeleeChances, bonusCrit = 0, out: T = [0, 0, 0, 0, 0, 0] as T): T {
+  out[0] = ch.miss
+  out[1] = ch.dodge
+  out[2] = ch.parry
+  out[3] = 0
+  out[4] = ch.block
+  out[5] = ch.crit + bonusCrit
+  return out
 }
 
 /** Truncated probabilities per outcome from cumulative thresholds (for tests and closed forms). */
@@ -162,7 +181,7 @@ export interface DefenderInputs {
 }
 
 /** Boss melee on a player, in roll order: miss, dodge, parry, block, crit, crushing (combat-tables §8). */
-export function bossSlices(i: DefenderInputs): number[] {
+export function bossSlices<T extends Slices = number[]>(i: DefenderInputs, out: T = [0, 0, 0, 0, 0, 0] as T): T {
   const bossSkill = 5 * i.bossLevel
   const skillGap = (bossSkill - 5 * i.playerLevel) * 0.04
   const miss = Math.max(0, 5 + (i.defense - bossSkill) * 0.04)
@@ -174,7 +193,13 @@ export function bossSlices(i: DefenderInputs): number[] {
     i.canCrush && i.bossLevel - i.playerLevel >= 3
       ? Math.max(0, (bossSkill - Math.min(i.defense, 5 * i.playerLevel)) * 2 - 15)
       : 0
-  return [miss, dodge, parry, block, crit, crush]
+  out[0] = miss
+  out[1] = dodge
+  out[2] = parry
+  out[3] = block
+  out[4] = crit
+  out[5] = crush
+  return out
 }
 
 /** Spell miss chance vs a target (combat-tables §9). */

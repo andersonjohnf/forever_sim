@@ -24,7 +24,13 @@ export interface BuffSpec extends BuffDefinition {
 
 const WARRIOR_DPS: SpecId[] = ['warrior-fury', 'warrior-arms']
 const MELEE_TANKS: SpecId[] = ['warrior-protection', 'druid-feral-bear']
-const BLADED = ['sword', 'axe', 'polearm', 'dagger'] as const
+/**
+ * The weapons an Elemental Sharpening Stone fits: 22756 and its enchant's aura 22755 need a weapon
+ * (item class 2) of subclass mask 42483, which is one- and two-handed axes, maces and swords,
+ * polearms, staves, fist weapons and daggers [F] [C] (SpellEquippedItems, 1.60.1.69913 and
+ * 1.15.9.69722; buffs doc §3.6). effects/client-values.test.ts ties this list to the client data.
+ */
+export const ELEMENTAL_STONE_WEAPONS = ['axe', 'mace', 'polearm', 'sword', 'staff', 'fist', 'dagger'] as const
 
 /**
  * Mighty Rage Potion (item 13442 → spell 17528; buffs doc §3.5): an energize of 600 tenths with
@@ -176,6 +182,8 @@ export const BUFFS: BuffSpec[] = [
           trigger: 'meleeLanded',
           from: 'mainHand',
           chance: { pct: 20 },
+          // docs/mechanics/damage-and-timing.md#54-extra-attacks-and-chaining: 100 ms in `forever`, none in `classicEra`
+          icdMs: p.values.windfuryIcdMs,
           action: { kind: 'extraAttacks', count: 1, bonusAp: p.values.windfuryAp },
           docRef: `${DOC}#windfury-totem`,
         },
@@ -593,9 +601,10 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_stone_02',
     category: 'consumable',
     group: 'Weapon',
-    summary: '+2% crit per bladed weapon (replaces the dense stone there)',
+    summary: '+2% crit for each weapon it’s on (replaces the dense stone there)',
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
-    effects: [{ kind: 'tempEnchant', id: 'elementalStone', priority: 2, weapons: [...BLADED], crit: 2 }],
+    // Each stone is its own +2% melee crit aura on the warrior, so two stack [?] (buffs doc §3.6).
+    effects: [{ kind: 'tempEnchant', id: 'elementalStone', priority: 2, weapons: [...ELEMENTAL_STONE_WEAPONS], crit: 2 }],
     presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'paladin-retribution'] },
   },
   {

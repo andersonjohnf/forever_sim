@@ -669,8 +669,9 @@ Two more were replaced:
 - **Stance-dance lines** swap to the stance their ability needs, use it, and swap back. Each
   swap keeps at most the Tactical Mastery cap ([§2.1](#21-stances)), so the line's `maxRage`
   (default: the cap, 25 with the default build) stops the swap in from wasting rage.
-- **Reaction time and latency** are global settings in
-  [damage-and-timing.md](../mechanics/damage-and-timing.md).
+- **Reaction time and latency** are zero: the rotation acts at the very millisecond a GCD or
+  cooldown ends, rage arrives or a window opens. [damage-and-timing §3.6](../mechanics/damage-and-timing.md#36-server-tick-and-spell-batching)
+  owns that assumption [?]; there's no setting for it.
 - **Execute phase** starts when target health is at or below 20%. The encounter model supplies
   the health curve.
 
@@ -1145,7 +1146,9 @@ parts:
   extra on its rage at once (the potion's 0–300 tenths, from the proc stream) and have a limit of
   uses per fight, after which it's never ready again (the potion's one).
 - **Auras a crit ends.** An aura can carry crit charges (Weakness Analyzer: one): every crit
-  you deal, white or special, uses one after its procs, and the aura ends when they run out.
+  you deal, white or special, uses one after its procs, and the aura ends when they run out. A
+  magic proc's crit (Fiery Weapon) is a non-periodic crit too, so it uses one
+  ([combat-tables §9](../mechanics/combat-tables.md#9-spell-hit-and-crit-generic)).
 - **Upkeep lines** (Battle Shout, row 1). Their condition, "the aura is down, or has at most
   `b` ms left and ends before the fight", is resolved like the time-left conditions: whenever
   the aura starts or ends, the engine moves the start of the line's window of times (to `b`
@@ -1292,8 +1295,10 @@ parts:
   refunds nothing [?] (Q13).
 - **Extra attacks.** Weaponmaster and Windfury schedule an immediate main-hand swing (0 ms
   delay) and reset the main-hand timer. The 200 ms Weaponmaster internal cooldown is an aura
-  cooldown. Windfury has no internal cooldown in the sim [?] (§2.7, Q27); its chain rule (it
-  can't proc from its own extra attack) is enforced per chain.
+  cooldown, and so is Windfury's 100 ms in `forever` (none in `classicEra`), the client's value
+  [F] (§2.7, Q27). The chain rule is per root swing: a source that procced from a swing, or
+  from any extra attack that followed it, can't proc again in that chain [?]
+  ([damage-and-timing §5.4](../mechanics/damage-and-timing.md#54-extra-attacks-and-chaining)).
 - **Reactive windows** are auras on the warrior; Overpower's lasts 5 s
   ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)). Procs open it: a "the target
   dodged" trigger on any of your attacks, white or special, either hand, and Bloodthrill's
@@ -1623,8 +1628,8 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     [client] (SpellCooldowns, SpellCategories, 1.60.1.69913). This doesn't matter for DPS.
 27. **Windfury internal cooldown.** The only source for 1.5 s is a 2023 statement about SoD's
     Wild Strikes, which is forbidden. The Forever client gives Windfury Totem's proc a 100 ms
-    internal cooldown [F] [client] (SpellAuraOptions, 1.60.1.69913) (§2.7); whether the server
-    enforces a longer one is the question. Owner: [damage-and-timing OQ
+    internal cooldown [F] [client] (SpellAuraOptions, 1.60.1.69913) (§2.7), which `forever`
+    models; whether the server enforces it, or a longer one, is the question. Owner: [damage-and-timing OQ
     9](../mechanics/damage-and-timing.md#open-questions). **Test:** the minimum gap between
     Windfury procs over 500+ main-hand swings.
 28. **Execute and fractional rage.** Forever's normalized white rage leaves fractions (a 2.6 s

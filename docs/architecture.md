@@ -143,16 +143,18 @@ A spec is data plus small ability modules, never its own loop.
   hand keeps a second white table without the penalty for while Heroic Strike is queued (§5).
 - **Auras and procs** are generic: PPM or flat chance per hand, internal cooldowns, charges consumed
   by white swings (Flurry) or by crits dealt (Weakness Analyzer), stacks, stat, AP, AP %, crit,
-  haste and damage mods (applied by a proc or a cast), and actions (extra attacks with chain rules, auras, rage energizes, magic damage,
-  weapon bleeds such as Deep Wounds).
+  haste and damage mods (applied by a proc or a cast), and actions (extra attacks, auras, rage energizes, magic damage with its own
+  hit and crit rolls, weapon bleeds such as Deep Wounds). Extra attacks follow one chain mask per
+  root swing: an extra-attack source that procced from the swing, or from any extra attack after
+  it, isn't rolled again in that chain (damage-and-timing §5.4).
   Triggers: melee landed, white landed, swing landed (white, extra attack or an on-next-swing
   ability's swing), melee crit, damage taken, block, dodge or parry, and the target's dodge of
   any attack (the Overpower window). A proc can need an aura to be up (Bloodthrill: your Rend on
   the target); it isn't rolled while the aura is down, and a plan without that aura leaves it out.
   A proc can give its aura its own duration (Bloodthrill's 6 s Overpower window against a dodge's
   5 s); a refresh of such an aura keeps the later end. Stats are
-  re-derived only when an aura that changes attributes starts or ends; haste and damage
-  multipliers update without a full re-derive.
+  re-derived only when an aura that changes attributes starts or ends, into scratch objects, so a
+  re-derive allocates nothing; haste and damage multipliers update without a full re-derive.
 - **Aura uptimes:** each plan aura's time up is summed per engine (`Sim.auraUpMs`, one
   `Float64Array` entry per aura). An aura notes when it comes up (a pre-pull one at the pull,
   0), and adds the span when it ends, by expiry, charges or use (the Overpower window), or
@@ -187,7 +189,9 @@ A spec is data plus small ability modules, never its own loop.
   unchanged (median 9,160 against 9,080 just before, on a busier machine), and the default Arms
   warrior, with its slow two-hander, runs about 14,400. M2.4a's aura uptimes cost nothing
   measurable: medians of five runs each, back to back, 9,428 against 9,449 (Fury) and 14,998
-  against 15,026 (Arms).
+  against 15,026 (Arms). The first release's review fixes (F1a: internal cooldowns on Hand of
+  Justice and Windfury, the chain mask, the allocation-free re-derive) left them where they
+  were: medians of five, 9,649 (Fury) and 15,253 (Arms), against 9,490 and 14,992 before.
 - **Abilities** are rows of `Plan.abilities` (`AbilityPlan`), resolved by one switch on `kind`:
   `weaponStrike` (one roll: Whirlwind, Hamstring, …), `meleeSpell` (two rolls: Bloodthirst,
   Execute, …), `onNextSwing` (Heroic Strike: queued off the GCD, it replaces the next

@@ -7,7 +7,7 @@
 import itemJson from '@/data/items/pre-bis.json'
 import type { Item, ItemData, Stats, WeaponSkill, WeaponType } from '@/data/items/types'
 import { glanceRange, PLAYER_LEVEL } from '../core/attack-table'
-import { NORMALIZED_SPEED, ppmChance, toTenths } from '../core/formulas'
+import { negativeArmorFloor, NORMALIZED_SPEED, OFF_HAND_DAMAGE, ppmChance, slowedSwingSec, toTenths } from '../core/formulas'
 import { classSetup } from '../classes'
 import { classRotation, maintainedBuffs, rotationBaseStance } from '../classes/rotation'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
@@ -53,6 +53,10 @@ const ITEM_STAT: Partial<Record<keyof Stats, FlatStat>> = {
   stamina: 'sta',
   intellect: 'int',
   spirit: 'spi',
+  // Item-armor % (Toughness) multiplies `armor` only: a Forever item's base armor, or a Classic
+  // Era fallback item's whole stored armor, including any extra armor Forever would store as
+  // stat 50; never Forever's stat-50 bonus armor [?] (character-stats.md#derived-stat-pipeline,
+  // step 4, and OQ-15).
   armor: 'itemArmor',
   bonusArmor: 'bonusArmor',
   defense: 'defense',
@@ -304,7 +308,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (setId) setCounts.set(setId, (setCounts.get(setId) ?? 0) + 1)
     if (!item.foreverData) classicItems.push(item.name)
     const override = ITEM_EFFECTS[item.id]
-    if (override) apply(override.effects, origin)
+    if (override) apply(typeof override.effects === 'function' ? override.effects(profile) : override.effects, origin)
     else if (item.procs.length > 0 || item.otherEquip.length > 0 || (item.weapon?.extraDamage?.length ?? 0) > 0)
       unmodelled.push(item.name)
     if (override?.use) itemUses.push(override.use)
@@ -374,6 +378,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // weapon's slot from a stone (buffs doc, Windfury Totem); Forever's is a party aura.
   const windfuryHoldsMainHand = profile.catalogue.windfuryMainHandEnchant && c.procs.some((p) => p.spec.id === 'windfury')
   // Temporary weapon enchants: each weapon takes the highest-priority one that fits it (buffs doc §3.6).
+  // A stone's crit is its own aura on the warrior, for every melee attack, so two stack [?].
   let elementalStones = 0
   for (const w of weapons) {
     if (!w) continue
@@ -398,7 +403,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ;[w.plan.glanceLow, w.plan.glanceHigh] = glanceRange(profile, fight.bossLevel, w.plan.skill)
     if (w.hand === HAND.off) {
       // docs/mechanics/damage-and-timing.md#23-off-hand: 50% before talents; DWS adds 5% per rank (warrior W8)
-      w.plan.handMult = 0.5 * (1 + oh.damagePct / 100)
+      w.plan.handMult = OFF_HAND_DAMAGE * (1 + oh.damagePct / 100)
       w.plan.hitBonus += oh.hit
       w.plan.rageMult = 1 + oh.ragePct / 100
     }
@@ -611,7 +616,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       bossSwing: tank
         ? {
             // docs/mechanics/damage-and-timing.md#32-attack-speed-debuffs-on-the-boss-tank-modeling: base × (1 + slow)
-            speedSec: bossSwingBase * (1 + c.bossSlowPct / 100),
+            speedSec: slowedSwingSec(bossSwingBase, c.bossSlowPct / 100),
             minDamage: Math.max(0, fight.boss.damageMin + bossApDamage),
             maxDamage: Math.max(0, fight.boss.damageMax + bossApDamage),
             canCrush: fight.boss.canCrush,
@@ -647,6 +652,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
 
   // --- Assumptions ---------------------------------------------------------------------------------
   if (setup.simulated && abilities.length === 0) notes.add('whiteSwingsOnly')
+  // docs/mechanics/damage-and-timing.md#36-server-tick-and-spell-batching: the rotation reacts in 0 ms [?].
+  if (classRot.rotation.length > 0) notes.add('reactionTime')
   if (abilities.some((a) => a.gcdMs > 0)) notes.add('gcdHaste')
   if (abilities.some((a) => a.costTenths > 0)) notes.add('abilityRefunds')
   const queues = abilities.some((a) => a.kind === 'onNextSwing')
@@ -670,7 +677,18 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (derived.expertise > 0 && block.expertiseRating > 0) notes.add('expertise')
   if (derived.hasteRatingPct > 0) notes.add('hasteRating')
   if (derived.armorPen > 0) notes.add('armorPen')
-  if (profile.armor.allowNegative && targetArmor - derived.armorPen < 0) notes.add('negativeArmor')
+  // docs/mechanics/damage-and-timing.md#11-formula: below −K/2 the engine holds armor at the floor [?].
+  const effectiveArmor = targetArmor - derived.armorPen
+  const armorFloor = negativeArmorFloor(PLAYER_LEVEL)
+  if (profile.armor.allowNegative && effectiveArmor < 0) {
+    const armorText = (a: number) => `−${Math.round(-a).toLocaleString('en-US')}`
+    notes.add(
+      'negativeArmor',
+      effectiveArmor < armorFloor
+        ? `below ${armorText(armorFloor)} (here ${armorText(effectiveArmor)}) the sim holds it at ${armorText(armorFloor)}, which doubles your physical damage`
+        : undefined,
+    )
+  }
   if (weapons[HAND.off]) notes.add('offHandFirstSwing')
   if (auras.some((a) => a.haste)) notes.add('hasteNextSwing')
   if (setup.simulated && profile.rage.white === 'normalized') {
@@ -697,10 +715,13 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (unmodelled.length) notes.add('unmodelledProcs', unmodelled.join(', '))
   if (unmodelledSetBonuses.length) notes.add('unmodelledSetBonuses', unmodelledSetBonuses.join(', '))
   const procIds = new Set(procs.map((p) => p.id))
-  if (['crusader', 'fieryWeapon', 'handOfJustice', 'ironfoe', 'flurryAxe'].some((id) => procIds.has(id))) notes.add('procRates')
+  // PPM rates are server-side (damage-and-timing §5.1); Hand of Justice's flat chance is client data (§5.2).
+  if (['crusader', 'fieryWeapon', 'ironfoe', 'flurryAxe'].some((id) => procIds.has(id))) notes.add('procRates')
   if (chainBits.size > 0) notes.add('extraAttackChains')
+  if (procs.some((p) => p.id === 'windfury' && p.icdMs > 0)) notes.add('windfuryIcd')
   if (procIds.has('windfury') && weapons[HAND.main] && c.tempEnchants.length && !windfuryHoldsMainHand) notes.add('windfuryStone')
-  if (elementalStones > 1) notes.add('elementalStone')
+  // buffs doc §3.6: two stones stack, and one on either hand counts for both [?].
+  if (elementalStones > 1 || (elementalStones === 1 && weapons[HAND.off])) notes.add('elementalStone')
   if (procIds.has('deepWounds')) notes.add('deepWounds')
   if (setup.talents.has('Anger Management')) notes.add('angerManagement')
   if (weapons.some((w) => w && w.plan.armorPenPct > 0)) notes.add('weaponmasterMace')

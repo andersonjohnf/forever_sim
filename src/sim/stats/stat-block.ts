@@ -58,8 +58,12 @@ export class StatBlock {
   armorPen = 0
 
   // Defense.
+  /** Item armor: a Forever item's base armor, or a Classic Era fallback item's stored armor. */
   itemArmor = 0
-  /** Sum of item-armor % bonuses (Toughness), as a fraction. */
+  /**
+   * Sum of item-armor % bonuses (Toughness), as a fraction. It multiplies `itemArmor` only, not
+   * `bonusArmor` (Forever's stat 50, enchants, buffs) [?] (character-stats.md#derived-stat-pipeline, OQ-15).
+   */
   itemArmorPct = 0
   bonusArmor = 0
   armorPerAgi = 2
@@ -175,6 +179,7 @@ export function deriveStats(b: StatBlock, o: DeriveOptions, out: DerivedStats = 
   out.block = b.canBlock ? b.baseBlock + b.blockRating / r.block + b.block + defenseBonus : 0
   // Block value = (shield + flat + Str/20) × Π(1 + bv%) (character-stats §strength).
   out.blockValue = b.canBlock ? floorStat((b.blockValue + floorStat(out.strength / 20)) * b.blockValueMult) : 0
+  // Armor = item armor × (1 + Toughness) + bonus armor + 2 × Agi (character-stats step 4; OQ-15 [?]).
   out.armor = floorStat(b.itemArmor * (1 + b.itemArmorPct) + b.bonusArmor + b.armorPerAgi * out.agility)
 
   out.health = floorStat((b.baseHealth + healthFromStamina(out.stamina) + b.health) * b.healthMult)

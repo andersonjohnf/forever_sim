@@ -1,12 +1,19 @@
 // Item effects the tooltip parser leaves as text: the engine's documented override layer
 // (docs/doctrine.md#3-data). Each entry cites where its numbers come from. An equipped item with a
 // proc or use effect that isn't here is reported as not simulated.
-import type { Effect, OnUseSpec } from './types'
+import type { EffectList, OnUseSpec } from './types'
 
 const PROC_DOC = 'docs/mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples'
 
+/**
+ * Hand of Justice's internal cooldown: 15600 `ProcCategoryRecovery` 2000 in both clients [F] [C]
+ * (SpellAuraOptions, 1.60.1.69913 and 1.15.9.69722; damage-and-timing §5.2).
+ */
+export const HAND_OF_JUSTICE_ICD_MS = 2000
+
 export interface ItemEffects {
-  effects: Effect[]
+  /** Its effects, or a function of the rule profile for values the two clients disagree on. */
+  effects: EffectList
   /** Its use effect, as a cast the rotation presses (warrior.md §5.2 row 3: on-use trinkets). */
   use?: OnUseSpec
   /** Why the entry exists and where the numbers come from. */
@@ -14,10 +21,14 @@ export interface ItemEffects {
 }
 
 export const ITEM_EFFECTS: Record<number, ItemEffects> = {
-  // Hand of Justice: "2% chance on melee hit to gain 1 extra attack"; flat 2% per landed hit [C].
+  // Hand of Justice (spell 15600, proc mask 0x14: white and yellow melee hits). Forever: ProcChance 3,
+  // and "${$h/3}% chance on Melee hit … Attacks against Dwarves are $s2 times as likely" with
+  // $s2 = 3, so 1% against a boss that isn't a Dwarf [F]; Classic Era: ProcChance 2, "2% chance on
+  // melee hit" [C]. Both have a 2 s internal cooldown (SpellEffect, SpellAuraOptions, Spell,
+  // 1.60.1.69913 and 1.15.9.69722; damage-and-timing §5.2).
   11815: {
-    source: 'Tooltip text; flat 2% per landed hit (WarriorSim gear.js, pre-SoD)',
-    effects: [
+    source: 'Forever and Classic Era clients: spell 15600’s proc chance, description and internal cooldown',
+    effects: (p) => [
       {
         kind: 'proc',
         proc: {
@@ -26,7 +37,8 @@ export const ITEM_EFFECTS: Record<number, ItemEffects> = {
           icon: 'inv_jewelry_talisman_01',
           trigger: 'meleeLanded',
           from: 'any',
-          chance: { pct: 2 },
+          chance: { pct: p.values.handOfJusticePct },
+          icdMs: HAND_OF_JUSTICE_ICD_MS,
           action: { kind: 'extraAttacks', count: 1 },
           docRef: PROC_DOC,
         },

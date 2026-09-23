@@ -335,6 +335,20 @@ describe('golden run (fixed config and seed)', () => {
   //   the rest of the +2% is lost to the cap), its specials crit more (Bloodthirst 7,348 → 7,847
   //   crits), and more crits refresh Deep Wounds more often, so it loses more ticks (18,062 →
   //   17,393). Arms (a two-handed sword) and Protection (a sword) already had it.
+  // - F1a (the first-release review's engine fixes, docs/reviews/2026-09-23-first-release.md): all
+  //   three goldens moved. Hand of Justice procs 1% with a 2 s internal cooldown in `forever`
+  //   (L1; it was 2% with none), Windfury has the client's 100 ms internal cooldown (L2), each
+  //   extra-attack source procs at most once per root swing (L16), a Deep Wounds tick due at a
+  //   refresh's millisecond lands first (L12), and Shield Specialization's rage comes after the
+  //   hit's own (L15). Fury 684.2 → 674.7 DPS, Arms 630.7 → 615.1, Protection 219.1 → 217.0 TPS
+  //   (143.5 → 142.1 DPS). Each fix's share, from 40,000 fights per step: Hand of Justice −1.0%
+  //   (Fury), −1.3% (Arms), −0.9% (Protection); Windfury's cooldown −0.5% and −1.3% (Protection
+  //   −0.02%); the chain rule −0.02% (Fury only); Deep Wounds +0.2% (Arms), +0.01% (Fury); the
+  //   block order −0.01 TPS. The rest is the fixed seed's noise. Magic-proc crits (L13) and the
+  //   allocation-free re-derive (L19) change nothing here: no default has a magic proc, and the
+  //   re-derive's numbers are identical.
+  // - F1b and F1a together on main: Fury 684.2 → 683.6 DPS (F1b +1.2%, then F1a −1.3%), Arms
+  //   630.7 → 615.1, Protection 219.1 → 217.0 TPS (143.5 → 142.1 DPS).
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

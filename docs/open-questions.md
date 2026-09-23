@@ -19,9 +19,9 @@ client-data check the same day ([client.md](data/client.md)) · Forever beta 1.6
 Classic Era 1.15.9.69722 · beta capped at level 20 (rising to 30), launch 2026-11-04, raids
 unlock 2026-12-09
 
-**137 entries, 114 open:** Route A 7 (High 1, Medium 2, Low 4) · Route B 73 (20 / 25 / 28) ·
-Route C 34 (8 / 13 / 13) · Route D 23, all ✅ resolved from client data (was 7 / 11 / 5), plus
-6 items settled by the sim or a guild decision. The client-data check added in-game checks to
+**139 entries, 116 open:** Route A 8 (High 1, Medium 2, Low 5) · Route B 73 (20 / 25 / 28) ·
+Route C 35 (8 / 13 / 14) · Route D 23, all ✅ resolved from client data (was 7 / 11 / 5), plus
+7 items settled by the sim or a guild decision. The client-data check added in-game checks to
 B41, C11 and C12 rather than new entries.
 
 ---
@@ -212,6 +212,20 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Changes:** Execute and Mocking Blow threat (the Forever values stay [?] until measured).
 - **Docs:** [threat § warrior](mechanics/threat.md#warrior),
   [threat OQ 8](mechanics/threat.md#open-questions)
+
+#### A8. Elemental Sharpening Stone: all attacks, and two stack?
+**Low · M2 (the Max consumables preset)**
+- **Assumes** [?]: each stone's +2% crit is its own aura on the warrior (enchant 2506 → spell
+  22755, aura 52 [F client]), so it counts for every melee attack whichever weapon holds it, and
+  a stone on each weapon gives +4%. The client doesn't settle either point. The stone fits any
+  melee weapon, maces included (`SpellEquippedItems` mask 42483 [F, C client]).
+- **Test:** dual wield and note the sheet's crit; put a stone on the off hand only and read it
+  again (+2% means the main hand gets it too); then add a stone to the main hand (+4% in all
+  means two stack). Repeat on Forever once the stone is usable.
+- **Samples:** one sheet per state.
+- **Changes:** the stone's crit per weapon, and the Max preset's value for dual wielders.
+- **Docs:** [buffs §3.6](mechanics/buffs-debuffs-consumables.md#36-weapon-enhancements-temporary),
+  [buffs OQ 20](mechanics/buffs-debuffs-consumables.md#open-questions)
 
 ---
 
@@ -556,7 +570,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **Medium · M2 · ≤20**
 - **Assumes:** Crusader 1 PPM, Fiery Weapon 6 and Lifestealing 6 [C, the pre-SoD WarriorSim];
   Icy Chill 1.6 and Unholy Weapon 3 [?, an unversioned wiki only]; all from base weapon speed.
-  None is measured in Forever, and its new 2.3 PPM row has no known user [?].
+  None is measured in Forever, and its new 2.3 PPM row has no known user [?]. Flat chances are
+  client data instead: Hand of Justice 1% against non-Dwarves (2% in Classic Era), 2 s
+  cooldown [F client].
 - **Test:** Crusader (and any other enchant you can get) on a known-speed weapon; procs per
   landed hit; repeat with a second weapon speed.
 - **Samples:** ≥1,000 landed hits per weapon.
@@ -599,8 +615,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   removed from the target for your own attacks [?]; 10 haste rating = 1%, multiplicative with
   other haste [F client `combatratings.txt` for the 10; ? in combat]; Health Regeneration has no
   combat effect.
-  Armor below 0 increases damage in `forever` (client tooltip text [F]; in combat [?]), and is
-  floored at 0 in `classicEra` [C]; resistance below 0 likewise ("Spell Vulnerability").
+  Armor below 0 increases damage in `forever` (client tooltip text [F]; in combat [?]), down to
+  the engine's floor of −2,750 armor, where damage doubles [?, an engine guard], and is floored
+  at 0 in `classicEra` [C]; resistance below 0 likewise ("Spell Vulnerability").
 - **Test:** under the cap, the only armor-penetration item in foreverchanges' data is Leafre's
   Ring of Armor Piercing (+50, requires level 1; source unknown). If it can be had: average
   white hit on the same mob with and without it, and on a low-armor mob whose armor it exceeds
@@ -1314,7 +1331,9 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 **Medium · M2**
 - **Assumes:** a party aura rather than a weapon enchant, so a main-hand stone coexists [?];
   20% per main-hand hit, +246 AP [F]; it can't proc itself or twice in one chain [C, Magey's
-  2019 text; every doc agrees]; the Forever client gives Windfury Totem Passive 10612 a
+  2019 text; every doc agrees], which the sim applies to every extra-attack source over a root
+  swing's whole chain, so two sources procced by one swing can't proc each other [?]; the
+  Forever client gives Windfury Totem Passive 10612 a
   **100 ms internal cooldown** (`ProcCategoryRecovery` 100) [F client `SpellAuraOptions`, found
   by the client-data check], which `forever` now models; whether the server applies it [?]; the
   SoD-era 1.5 s stays refused (forbidden source); the proc's +246 AP aura 10610 has 2 charges
@@ -1583,6 +1602,18 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 - **Changes:** the trinket's uses per fight and its value.
 - **Docs:** [warrior §5.2 notes, Q31](classes/warrior.md#9-open-questions)
 
+#### C35. Toughness and bonus armor
+**Low · M3**
+- **Assumes** [?]: Toughness multiplies an item's base armor, not Forever's stat-50 bonus armor;
+  a Classic Era fallback item's stored armor is multiplied whole.
+- **Test:** with Toughness 5/5, note the sheet's armor; equip a Forever item with bonus armor
+  (level-60 gear, PvP pieces among them) and read it again: `base × 1.10 + bonus` or
+  `(base + bonus) × 1.10`.
+- **Samples:** one sheet per item; two items.
+- **Changes:** tank armor.
+- **Docs:** [stats OQ-15](mechanics/character-stats.md#oq-15-toughness-and-bonus-armor),
+  [items § armor](data/items.md#stats-armor-and-block-value)
+
 ---
 
 ## Route D: wago.tools lookups in a browser
@@ -1656,3 +1687,6 @@ new build, re-run `npm run scrape:client -- --claims` instead of checking in a b
 - **Holiday consumables** (Dark Desire, Fire-toasted Bun): does the world-buff directive cover
   them? A guild call; both default off
   ([buffs OQ 18](mechanics/buffs-debuffs-consumables.md#open-questions)).
+- **Reaction time and latency**: the rotation reacts in 0 ms, an ideal player; a modelling
+  choice, not a game rule to measure. A setting can come if the guild wants its own
+  ([damage OQ 14](mechanics/damage-and-timing.md#open-questions)).

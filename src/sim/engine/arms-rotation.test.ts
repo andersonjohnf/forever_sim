@@ -73,8 +73,10 @@ describe('the default Arms rotation in the engine (warrior.md §5.3)', () => {
       for (let k = 1; k < ticks.length; k++) {
         const gap = ticks[k] - ticks[k - 1]
         // 3 s between ticks; across a refresh at 1.5 s left, 4.5 s plus however long the GCD, a
-        // Slam cast or rage for it held the refresh up; never so long that a tick was missed twice.
-        expect(gap).toBeLessThanOrEqual(7500)
+        // Slam cast or rage for it held the refresh up; never so long that a tick was missed twice,
+        // unless an application in between missed or was dodged (a second Rend before the tick).
+        const attempts = f.casts.filter((c) => c.id === 'rend' && c.t > ticks[k - 1] && c.t < ticks[k]).length
+        if (attempts < 2) expect(gap).toBeLessThanOrEqual(7500)
         if (gap <= 3000) continue
         refreshes++
         if (gap > 6000) late++

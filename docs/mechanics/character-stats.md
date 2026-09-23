@@ -498,7 +498,7 @@ Quick reference for the pipeline, all **[F]** from [changes][fc-changes] and the
 | Divine Intellect 5/5 (paladin) | +10% Int | attribute % multiplier |
 | Sacred Duty 2/2 (paladin, new) | +4% total Stamina | attribute % multiplier |
 | Living Spirit 3/3 (druid, new) | +15% Spirit | attribute % multiplier |
-| Toughness 5/5 (warrior, paladin) | +10% armor from items | item-armor multiplier |
+| Toughness 5/5 (warrior, paladin) | +10% armor from items | item-armor multiplier (base item armor only, not Forever's stat-50 bonus armor [?], [OQ-15](#oq-15-toughness-and-bonus-armor)) |
 | Cruelty 5/5 (warrior), Conviction 5/5 (paladin) | +5% melee crit | flat crit |
 | Berserker Stance | +3% crit | flat crit |
 | Weaponmaster 5/5 (warrior, new) | Axe/Polearm: +5% crit | flat crit (cond: weapon) |
@@ -566,6 +566,14 @@ Blood Fury, Elune's Light, Kings, trinkets).
      Toughness and the bear +180% or +360%, added together; Classic additive stacking is
      assumed **[?]**. Bonus armor covers armor enchants and kits, Mark of the Wild (+385 armor in
      Forever **[F]**), Devotion Aura and Forever Thick Hide.
+     - **What Toughness multiplies [?].** `itemArmor` is an item's base armor: for an item with
+       Forever data, the armor its item level, quality and slot give, **without** Forever's
+       stat-50 bonus armor, which goes to `bonusArmor` ([items.md](../data/items.md#stats-armor-and-block-value));
+       for a Classic Era fallback item, its whole stored armor, including any extra armor that
+       Forever would store as stat 50. So Toughness ("Increases your Armor value from items by
+       10%") multiplies a Classic-fallback item's extra armor but not a Forever item's. The two
+       cases are the data's, not a rule: whether the server's Toughness multiplies stat 50 is
+       unknown ([OQ-15](#oq-15-toughness-and-bonus-armor)).
      Whether bear aura 466 also multiplies bonus armor is **[?]**
      ([OQ-8](#oq-8-bear-armor-multipliers-and-thick-hide)).
    - `maxHP = floor((baseHP + min(Sta, 20) + 10 × max(Sta − 20, 0) + formHP + flatHP) × Π(1 + hpPct))`
@@ -668,6 +676,11 @@ the five-second rule, and the defense conversion.
   with a matching weapon and a different one lists it among its assumptions. Creature-type
   racials (Beast Slaying, Big Game Hunter, Elemental Insight) multiply damage only when the target
   type matches: see [encounter.md](encounter.md).
+- **Spell crit in the engine.** The engine's effects have one crit stat, melee crit, so aura-290
+  crit from Leader of the Pack, Berserker Stance and Weakness Analyzer isn't yet added to spell
+  crit as step 4 says (the weapon racials add both). For warriors spell crit only decides magic procs' crits
+  (Fiery Weapon, [combat-tables §9](combat-tables.md#9-spell-hit-and-crit-generic)), well under
+  0.1% of DPS; it must be fixed before the paladin (M5).
 - **Cooldown racials** (Blood Fury, Berserking, Elune's Light, Eureka!) are rotation options with
   sensible defaults in the class docs. They are off the GCD (`StartRecoveryTime` 0); Stoneform is
   on it (1,500 ms) **[F]** [client] (SpellCooldowns, 1.60.1.69913). Tank-only racials (Stoneform,
@@ -993,6 +1006,17 @@ matter.
   - *Haste Rating, Route C:* compare the sheet's attack speed with and without a haste-rating
     item.
   - *Health Regeneration:* compare out-of-combat health ticks with and without the item.
+
+### OQ-15: Toughness and bonus armor
+**Route C** (items with stat-50 bonus armor are level-60 gear). Does Toughness ("Increases your
+Armor value from items by 10%") multiply Forever's stat-50 bonus armor? The sim multiplies base
+item armor only, so it doesn't [?]; a Classic Era fallback item's stored armor is multiplied
+whole ([derived-stat pipeline](#derived-stat-pipeline), step 4).
+- **Sheet test:** a warrior with Toughness 5/5 notes the sheet armor, then equips a Forever item
+  with bonus armor (its tooltip's armor line minus the base armor for its item level, or a PvP
+  piece; [items.md](../data/items.md#stats-armor-and-block-value) lists them). The sheet rises by
+  `base × 1.10 + bonus` if Toughness skips bonus armor, by `(base + bonus) × 1.10` if not.
+- Matters only for tanks' armor, so M3.
 
 ---
 

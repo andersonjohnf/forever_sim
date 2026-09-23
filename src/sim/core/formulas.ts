@@ -11,13 +11,22 @@ import type { DamageTakenRageModel, RulesProfile } from '../rules/profiles'
 export const armorConstant = (attackerLevel: number) => 400 + 85 * attackerLevel
 
 /**
+ * The lowest armor the `forever` profile counts: −K/2 (−2,750 for a level-60 attacker), where the
+ * reduction is −100% and damage doubles. An engine guard [?] (§1.1): A / (A + K) grows without
+ * bound as A nears −K and flips sign below it, and no Forever source says what happens there.
+ */
+export const negativeArmorFloor = (attackerLevel: number) => -armorConstant(attackerLevel) / 2
+
+/**
  * Damage reduction from armor, capped at 75% (§1.1). `classicEra` floors armor at 0; `forever`
- * lets it go negative, so the reduction is negative and damage rises (§1.2). Armor far below
- * −K/2 is clamped there to keep the formula finite (no realistic setup gets close).
+ * lets it go negative, so the reduction is negative and damage rises (§1.2), down to the
+ * −K/2 floor (×2.0 damage). A custom boss armor of about 1,000 or less, under every armor
+ * debuff (−3,755 in all), reaches it; the plan builder then says so in the `negativeArmor`
+ * assumption.
  */
 export function armorReduction(armor: number, attackerLevel: number, profile: RulesProfile): number {
   const k = armorConstant(attackerLevel)
-  const a = profile.armor.allowNegative ? Math.max(armor, -k / 2) : Math.max(0, armor)
+  const a = profile.armor.allowNegative ? Math.max(armor, negativeArmorFloor(attackerLevel)) : Math.max(0, armor)
   return Math.min(a / (a + k), profile.armor.cap)
 }
 

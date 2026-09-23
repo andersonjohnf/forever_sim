@@ -98,6 +98,14 @@ const AP_VS: Partial<Record<keyof Stats, SimConfig['fight']['creatureType']>> = 
   attackPowerVsUndead: 'undead',
 }
 
+/**
+ * "+X Attack Power in Cat, Bear, and Dire Bear forms" (the item stat `feralAttackPower`): flat
+ * attack power in the animal forms only, added 1:1, which no talent multiplies [?]
+ * (docs/classes/druid.md#22-attack-power-in-forms, Q28). It goes into those forms' own stat blocks
+ * (druidForms); any other class, or a druid in caster form, gets nothing from it.
+ */
+const feralAp = (value: number): Effect => ({ kind: 'stat', stat: 'ap', value, when: { form: ['cat', 'bear'] } })
+
 const ATTRIBUTE_MULT = { str: 'strMult', agi: 'agiMult', sta: 'staMult', int: 'intMult', spi: 'spiMult' } as const
 
 const SPELL_SCHOOL = { fire: 0, frost: 1, shadow: 2, nature: 3, arcane: 4, holy: 5 } as const
@@ -337,6 +345,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   /** Equipped on-use items the sim can't press, and the use effects it can (effects/items.ts). */
   const onUseItems: string[] = []
   const itemUses: OnUseSpec[] = []
+  /** Item and set-bonus stats bound to a druid's forms (feral attack power). */
+  const formItemEffects: Effect[] = []
   for (const [slot, item] of equipped) {
     if (slot === 'offHand' && twoHand) continue
     const origin = slot === 'mainHand' ? HAND.main : slot === 'offHand' ? HAND.off : null
@@ -345,6 +355,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       const stat = ITEM_STAT[key]
       if (stat) block[stat] += value
       else if (key in AP_VS && AP_VS[key] === fight.creatureType) block.ap += value
+      else if (key === 'feralAttackPower') formItemEffects.push(feralAp(value))
       else if (key === 'weaponDamage') {
         for (const w of weapons) if (w && (origin === null || w.hand === origin)) w.plan.flatDamage += value
       }
@@ -380,6 +391,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       for (const [key, value] of Object.entries(bonus.parsed ?? {}) as [keyof Stats, number][]) {
         const stat = ITEM_STAT[key]
         if (stat && value) block[stat] += value
+        else if (key === 'feralAttackPower' && value) formItemEffects.push(feralAp(value))
       }
       for (const [skill, value] of Object.entries(bonus.weaponSkill ?? {}) as [WeaponSkill, number][]) {
         weaponSkill[skill] = (weaponSkill[skill] ?? 0) + value
@@ -469,7 +481,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // One stat block, main hand and threat multiplier per form, from the shared block and each form's
   // own effects; the plan's static numbers become those of the form the spec fights in.
   const forms = setup.form
-    ? druidForms(setup.form, setup.effects.filter((e) => e.when?.form), c, weapons[HAND.main], equippedMain, weaponSkill, profile, fight.bossLevel)
+    ? druidForms(setup.form, [...setup.effects.filter((e) => e.when?.form), ...formItemEffects], c, weapons[HAND.main], equippedMain, weaponSkill, profile, fight.bossLevel)
     : undefined
 
   // --- Derived stats and the sheet -------------------------------------------------------------

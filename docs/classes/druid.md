@@ -221,7 +221,9 @@ exist.
 **In the engine**, each form has its own stat block: the shared one (gear, buffs, racials, the
 talents that hold in every form) plus the form's own effects and the talents bound to it (Cat
 Form's 120 AP and 1 AP per Agility, Dire Bear Form's 180 AP, armor and health, Heart of the Wild's
-Strength or Stamina, Sharpened Claws, Predatory Strikes, Leader of the Pack). The plan's sheet
+Strength or Stamina, Sharpened Claws, Predatory Strikes, Leader of the Pack). An item's or set
+bonus's "Attack Power in Cat, Bear, and Dire Bear forms" (the item stat `feralAttackPower`) goes
+into the cat and bear blocks only, as flat AP. The plan's sheet
 and static numbers are the spec's form: Cat Form for the cat, Dire Bear Form for the bear. A
 shapeshift swaps in another form's block (§2.8).
 

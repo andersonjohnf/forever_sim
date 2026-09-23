@@ -8,6 +8,8 @@ import { describe, expect, it } from 'vitest'
 import spellsJson from '@/data/client/spells.json'
 import talentsJson from '@/data/client/talents.json'
 import type { ClientSpells, ClientTalents } from '@/data/client/types'
+import itemJson from '@/data/items/pre-bis.json'
+import type { ItemData } from '@/data/items/types'
 import { CRIT_MULTIPLIER, furorCatEnergyTenths } from '../../core/formulas'
 import { defaultConfig, TALENT_DATA } from '../../defaults'
 import { BUFFS_BY_ID } from '../../effects/buffs'
@@ -349,6 +351,38 @@ describe('the druid plan (druid.md §2, §7)', () => {
     const noTalent = { ...d, talents: '050022-5520002123032203051-05' }
     const lotp = ranks(noTalent.talents)
     expect(lotp.has('Leader of the Pack')).toBe(false)
+  })
+
+  it('adds an item’s “Attack Power in Cat, Bear, and Dire Bear forms” 1:1 in those forms only (§2.2, Q28)', () => {
+    // No item in the data carries the stat yet, so the test gives the cat's neck +100 for a moment.
+    const neck = defaultConfig('druid-feral-cat').gear.neck!.itemId
+    const item = (itemJson as unknown as ItemData).items.find((i) => i.id === neck)!
+    expect(item.stats.feralAttackPower ?? 0).toBe(0)
+    const plans = () => ({
+      cat: buildPlan(bare(defaultConfig('druid-feral-cat'))),
+      bear: buildPlan(bare({ ...defaultConfig('druid-feral-bear'), gear: { ...defaultConfig('druid-feral-bear').gear, neck: { itemId: neck } } })),
+      warrior: buildPlan(bare({ ...defaultConfig('warrior-fury'), gear: { ...defaultConfig('warrior-fury').gear, neck: { itemId: neck } } })),
+    })
+    const before = plans()
+    let after: ReturnType<typeof plans>
+    try {
+      item.stats.feralAttackPower = 100
+      after = plans()
+    } finally {
+      delete (item.stats as Partial<typeof item.stats>).feralAttackPower
+    }
+    const ap = (bundle: ReturnType<typeof buildPlan>, form: keyof typeof FORM_INDEX) => bundle.plan.forms![FORM_INDEX[form]].stats.ap
+    for (const spec of ['cat', 'bear'] as const) {
+      expect(ap(after[spec], 'cat') - ap(before[spec], 'cat'), spec).toBe(100)
+      expect(ap(after[spec], 'bear') - ap(before[spec], 'bear'), spec).toBe(100)
+      expect(ap(after[spec], 'caster') - ap(before[spec], 'caster'), spec).toBe(0)
+    }
+    // The sheet is the spec's form's: no Strength or talent scales it.
+    expect(after.cat.sheet.attackPower - before.cat.sheet.attackPower).toBe(100)
+    expect(after.bear.sheet.attackPower - before.bear.sheet.attackPower).toBe(100)
+    // A warrior has no forms: it gets nothing.
+    expect(after.warrior.plan.stats.ap).toBe(before.warrior.plan.stats.ap)
+    expect(after.warrior.sheet.attackPower).toBe(before.warrior.sheet.attackPower)
   })
 
   it('Primal Fury’s rage is left out of a cat plan and always rolled in a bear plan (no shapeshifts)', () => {

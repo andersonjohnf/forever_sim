@@ -718,6 +718,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         mainHand: mh ? { speedSec: mh.plan.speedSec, twoHand: mh.twoHand } : null,
         equipped: new Set([...equipped.values()].map((i) => i.id)),
         othersBleed,
+        front: fight.position === 'front',
       })
     : { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
   // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), a

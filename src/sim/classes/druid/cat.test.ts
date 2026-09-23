@@ -223,6 +223,15 @@ describe('the cat priority list (druid.md §6.2)', () => {
     expect(rot.prepull.casts).toEqual([])
   })
 
+  it('from the front, Faerie Fire’s early refresh waits for Claw’s Energy (40), since Shred can’t be used there', () => {
+    const rot = catRotation({}, CAT, auraIndex, { ...ctx, front: true })
+    const early = rot.rotation.filter((e) => rot.abilities[e.ability].id === 'faerieFire')[1]
+    expect(early.conditions).toContainEqual({ code: COND.maxEnergy, a: 399, b: 0 })
+    // With Claw off too, nothing builds from the front, so there's nothing to wait for: no early refresh.
+    const none = catRotation({ 'druid.cat.claw.enabled': false }, CAT, auraIndex, { ...ctx, front: true })
+    expect(none.rotation.filter((e) => none.abilities[e.ability].id === 'faerieFire')).toHaveLength(1)
+  })
+
   it('Tiger’s Fury without Wolfshead Helm waits for 100 − 60 + 20', () => {
     const rot = catRotation({}, CAT, auraIndex, { ...ctx, equipped: new Set() })
     const tf = rot.rotation.find((e) => rot.abilities[e.ability].id === 'tigersFury')!

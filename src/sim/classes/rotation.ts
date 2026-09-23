@@ -22,6 +22,8 @@ export interface ClassRotationContext extends PaladinContext {
   equipped: ReadonlySet<number>
   /** Others keep the target bleeding all fight: a raid with warriors (Rip's and Rake's settings, druid.md §6.2). */
   othersBleed: boolean
+  /** You attack from in front of the boss (the Fight tab's position), where a cat can't Shred (druid.md §3.1). */
+  front: boolean
 }
 
 /**

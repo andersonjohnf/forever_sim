@@ -832,7 +832,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
             front: true,
           }
         : null,
-      damageTakenPerHit: !tank && fight.damageTakenPerSec > 0 ? (fight.damageTakenPerSec * DPS_DAMAGE_INTERVAL_MS) / 1000 : 0,
+      // A DPS paladin has nothing that reacts to a hit (no rage, no on-hit procs), so the Fight tab
+      // leaves "Damage you take" out and a saved value goes unused (docs/ux.md "Fight").
+      damageTakenPerHit:
+        !tank && classId !== 'paladin' && fight.damageTakenPerSec > 0 ? (fight.damageTakenPerSec * DPS_DAMAGE_INTERVAL_MS) / 1000 : 0,
       damageTakenIntervalMs: DPS_DAMAGE_INTERVAL_MS,
       ...(abilities.some((a) => a.bleedingTargetPct) ? { othersBleed } : {}),
     },
@@ -871,9 +874,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // --- Assumptions ---------------------------------------------------------------------------------
   if (setup.simulated && abilities.length === 0) notes.add('whiteSwingsOnly')
   // docs/mechanics/damage-and-timing.md#36-server-tick-and-spell-batching: the rotation reacts in 0 ms [?].
-  // A cat's rotation waits on Energy and Clearcasting, and its GCD is 1 s (druid.md §2.4, §2.6).
+  // A cat's rotation waits on Energy and Clearcasting, and its GCD is 1 s (druid.md §2.4, §2.6); a
+  // paladin's on mana.
   const energy = abilities.some((a) => a.resource === 'energy')
-  if (classRot.rotation.length > 0) notes.add(energy ? 'reactionTimeEnergy' : 'reactionTime')
+  if (classRot.rotation.length > 0) notes.add(energy ? 'reactionTimeEnergy' : classId === 'paladin' ? 'reactionTimeMana' : 'reactionTime')
   if (abilities.some((a) => a.gcdMs > 0)) notes.add(setup.form === 'cat' ? 'gcdHasteCat' : 'gcdHaste')
   // Rage refunds; a druid's Energy refunds are in `energyTicks`.
   if (abilities.some((a) => a.costTenths > 0 && (a.resource ?? 'rage') === 'rage')) notes.add('abilityRefunds')

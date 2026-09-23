@@ -130,6 +130,7 @@ export const ASSUMPTION_GROUP = {
   gcdHasteCat: 'combat',
   reactionTime: 'combat',
   reactionTimeEnergy: 'combat',
+  reactionTimeMana: 'combat',
   negativeArmor: 'combat',
   offHandFirstSwing: 'combat',
   hasteNextSwing: 'combat',

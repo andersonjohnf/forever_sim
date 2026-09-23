@@ -33,6 +33,11 @@ const REGISTRY = {
     text: 'The rotation reacts instantly: it acts at the very moment a cooldown ends, Energy ticks in or Clearcasting procs, with no reaction time or latency.',
     docRef: `${DT}#36-server-tick-and-spell-batching`,
   },
+  // The same for a rotation that spends mana, with no rage or procs that open windows (the paladin's).
+  reactionTimeMana: {
+    text: 'The rotation reacts instantly: it acts at the very moment a cooldown or the global cooldown ends or you have the mana, with no reaction time or latency.',
+    docRef: `${DT}#36-server-tick-and-spell-batching`,
+  },
   gcdHaste: {
     text: 'The 1.5 s global cooldown isn’t shortened by haste, as in Classic Era; untested in Forever.',
     docRef: `${DT}#35-global-cooldown`,

@@ -214,8 +214,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   itself, so it moves focus to the first setting, the next control after it.
   - The intro says what the defaults are, per spec: "tuned for the default setup" once a slice
     has tuned them ([D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
-    Arms since M2.5a, Fury since M2.5b, the Feral cat since B2), "the common priority" for a spec
-    until then. The cat's also says there's no powershifting, and why
+    Arms since M2.5a, Fury since M2.5b, the Feral cat since B2, Retribution since C2), "the common
+    priority" for a spec until then. The cat's also says there's no powershifting, and why
     ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
     since a Classic Era feral would look for it.
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
@@ -289,7 +289,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     the value, unused.
   - The duration slider's track and thumb are 44 px targets. Its thumb is named "Fight length"
     and says its value in words ("3 minutes"). The execute phase's help names the class's
-    execute ability (Execute for warriors), and its whole row is the switch's label.
+    execute ability (Execute for warriors, Hammer of Wrath for paladins), and its whole row is
+    the switch's label.
   - **Changed settings are marked,** as on the Rotation tab: each one that differs from the
     spec's default gets a line under it with its default ("Default: 3:00", "Default: 63") and a
     **Reset** that moves focus back to its control; a screen reader hears "Changed. Default: …"
@@ -310,7 +311,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     hit before mitigation ([rage.md](mechanics/rage.md#forever-)). A class with nothing that
     reacts to being hit has no such field: a cat gains no rage in Cat Form, and none of its
     talents, items or buffs fires on a hit, so its Fight tab leaves the field out, as it does the
-    execute phase. A setup keeps the value, unused.
+    execute phase. A Retribution paladin has no rage either, and no talent, item or buff that
+    fires on a hit, so its Fight tab leaves the field out too. A setup keeps the value, unused.
+  - The creature type's help says what it decides: "Some racials and items only work against
+    certain types.", and for Retribution "Exorcism can only be cast on Undead and Demons."
   - Precision is Adaptive or Fixed. **Fixed** shows its own field under it, "Number of fights",
     with its own help and default. Counts are written with thousands separators, in a field as
     in its "Default: 3,000" (boss armor, damage per swing); a seed is an identifier and has none.

@@ -119,6 +119,28 @@ describe('the [?] assumptions the rotation rests on (paladin.md#open-questions)'
     // The potion is pressed, so it isn't listed as unsimulated.
     expect(buildPlan(config()).assumptions.find((a) => a.id === 'onUseConsumables')?.text ?? '').not.toContain('Mana Potion')
   })
+
+  it('speak paladin: no rage, stances or forms in any of them, whatever the setup (reactionTimeMana)', () => {
+    const d = defaultConfig(RET)
+    const setups: SimConfig[] = [
+      d,
+      { ...d, rules: { ...d.rules, profile: 'classicEra' } },
+      { ...d, race: 'horde-undead' },
+      { ...d, race: 'alliance-dwarf' },
+      config({ fight: { creatureType: 'demon', executePct: 0, position: 'front', damageTakenPerSec: 100 } }),
+    ]
+    for (const c of setups) {
+      const notes = buildPlan(c).assumptions
+      expect(notes.map((a) => a.id)).toContain('reactionTimeMana')
+      for (const a of notes) expect(a.text, a.id).not.toMatch(/\brage\b|stance|\bforms?\b|druid|energy/i)
+    }
+  })
+
+  it('leave out the stand-in hits a DPS player takes: nothing of a Retribution paladin’s reacts to them (docs/ux.md "Fight")', () => {
+    const { plan, assumptions } = buildPlan(config({ fight: { damageTakenPerSec: 100 } }))
+    expect(plan.fight.damageTakenPerHit).toBe(0)
+    expect(assumptions.map((a) => a.id)).not.toContain('dpsDamageTaken')
+  })
 })
 
 describe('worked example 20: the Retribution opener (paladin.md rows 0–3)', () => {

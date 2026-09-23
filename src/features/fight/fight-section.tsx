@@ -65,12 +65,16 @@ const FRONT_NOTE: Partial<Record<SpecId, string>> = { 'druid-feral-cat': ' You c
 /**
  * What the damage a DPS player takes does, per class (docs/ux.md "Fight"). A class without an entry
  * has nothing that reacts to being hit (a cat: no rage in Cat Form, and no talent, item or buff of
- * its fires on a hit; druid.md §8), so its Fight tab leaves the field out: a control that changes
- * nothing isn't shown. Saved setups keep the value.
+ * its fires on a hit, druid.md §8; a Retribution paladin: no rage, and no talent, item or buff that
+ * fires on a hit), so its Fight tab leaves the field out: a control that changes nothing isn't
+ * shown. Saved setups keep the value.
  */
 const DAMAGE_TAKEN_HELP: Partial<Record<ClassId, string>> = {
   warrior: 'What the boss deals you per second, before your armor. Each hit gives rage and can trigger Enrage. At 0 you’re never hit.',
 }
+
+/** What else the creature type decides, per spec: Retribution's Exorcism (paladin.md#other-abilities). */
+const CREATURE_NOTE: Partial<Record<SpecId, string>> = { 'paladin-retribution': ' Exorcism can only be cast on Undead and Demons.' }
 
 const number = (n: number) => n.toLocaleString('en-US')
 
@@ -360,7 +364,7 @@ export function FightSection() {
           <Field
             label="Creature type"
             htmlFor={ids('creatureType').control}
-            help="Some racials and items only work against certain types."
+            help={`Some racials and items only work against certain types.${CREATURE_NOTE[meta.id] ?? ''}`}
             changed={hint('creatureType', 'Creature type', changed.creatureType, CREATURE_TYPES.find((t) => t.value === def.creatureType)!.label, () => set({ creatureType: def.creatureType }))}
           >
             <Select value={fight.creatureType} onValueChange={(v) => set({ creatureType: v as CreatureType })}>

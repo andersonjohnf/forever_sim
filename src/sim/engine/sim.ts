@@ -25,6 +25,7 @@ import {
   bossSlices,
   type DefenderInputs,
   emptyChances,
+  levelResistance,
   type MeleeInputs,
   meleeChances,
   specialSlices,
@@ -127,9 +128,6 @@ export const SOURCE_OFF_HAND = 1
 /** Safety cap on one chain of extra attacks (damage-and-timing §5.4). */
 const MAX_CHAIN = 10
 const EXTRA_QUEUE = 16
-
-/** Level-based resistance of a +3 boss for magic procs [?] (combat-tables §9). */
-const BOSS_LEVEL_RESISTANCE_PER_LEVEL = 8
 
 /** Threat per rage from a spell effect (threat.md#threat-from-healing-power-gains-and-buffs). */
 const THREAT_PER_RAGE_TENTH = 0.5
@@ -826,7 +824,7 @@ export class Sim {
     this.rageConv = rageConversion(plan.playerLevel)
     this.staticPhysMult = plan.damageMult * plan.physicalMult
     this.staticMagicMult = plan.damageMult
-    this.bossLevelResist = BOSS_LEVEL_RESISTANCE_PER_LEVEL * Math.max(0, plan.fight.targetLevel - plan.playerLevel)
+    this.bossLevelResist = levelResistance(plan.fight.targetLevel, plan.playerLevel)
     this.maxRage = plan.rage.maxTenths
 
     const procs = plan.procs

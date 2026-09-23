@@ -248,6 +248,9 @@ export function spellMiss(profile: RulesProfile, attackerLevel: number, targetLe
   return Math.max(profile.combat.spellMissFloor, profile.combat.spellMiss[d] - hit)
 }
 
+/** A target's level-based resistance to non-Holy spells: 8 per level above the caster, 24 for a +3 boss [?] (combat-tables §9). */
+export const levelResistance = (targetLevel: number, casterLevel: number): number => 8 * Math.max(0, targetLevel - casterLevel)
+
 /** Average partial resist for a non-binary, non-Holy spell (combat-tables §9). */
 export function averageResist(resistance: number, casterLevel: number): number {
   return Math.min(0.75, (0.75 * resistance) / (5 * casterLevel))

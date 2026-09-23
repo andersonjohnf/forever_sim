@@ -486,7 +486,7 @@ const REGISTRY = {
     docRef: `${THREAT}#druid-bear`,
   },
   lacerate: {
-    text: 'Lacerate stacks to 5 on the boss. Each one hits for 10% of your weapon damage per stack already there (nothing for the first), and restarts its bleed for every stack, losing the tick under way, as a warrior’s Rend does. Its ticks keep your crit chance and damage bonuses from the last one and can crit in Forever. The hit and the restart are readings of its tooltip; untested.',
+    text: 'Lacerate stacks to 5 on the boss. Each one hits for 10% of your Dire Bear Form attack’s damage per stack already there (nothing for the first), and restarts its bleed for every stack, losing the tick under way, as a warrior’s Rend does. Its ticks keep your crit chance and damage bonuses from the last one and can crit in Forever. The hit and the restart are readings of its tooltip; untested.',
     docRef: `${DRUID}#43-lacerate-r3-1235827`,
   },
   bearTwoRolls: {
@@ -494,11 +494,11 @@ const REGISTRY = {
     docRef: `${DRUID}#44-swipe-r5-9908`,
   },
   bearRage: {
-    text: 'A Maul swing gives no rage: the white swing it replaces would give 8.65. A bear attack that misses or is dodged or parried refunds 80% of its rage (Swipe nothing, like a warrior’s area attacks), as in Classic Era; untested for bears in Forever.',
+    text: 'A Maul swing gives no rage: the white swing it replaces would give 8.65 rage. A bear attack that misses or is dodged or parried refunds 80% of its rage (Swipe nothing, like a warrior’s area attacks), as in Classic Era; untested for bears in Forever.',
     docRef: `${RAGE}#bear-druid-rage`,
   },
   demoralizingRoar: {
-    text: 'Demoralizing Roar lowers the boss’s attack power by 204, its level-60 tooltip; whether combat applies all of it is untested. It rolls to hit as a spell does, and a roar that misses refunds 80% of its rage, as a missed melee ability does; untested.',
+    text: 'Demoralizing Roar lowers the boss’s attack power by 204, its level-60 tooltip; whether combat applies all of it is untested. Demoralizing Roar and Faerie Fire roll to hit as spells do; the boss resists 6% of the Faerie Fires that would land, a Nature spell against its 24 resistance; a roar that misses refunds 80% of its rage, as a missed melee ability does; untested.',
     docRef: `${DRUID}#45-other-bear-abilities`,
   },
   berserkMangle: {
@@ -532,6 +532,72 @@ const REGISTRY = {
 
 export type AssumptionId = keyof typeof REGISTRY
 
+/** Items in prose: "a", "a and b", "a, b and c". */
+const prose = (items: readonly string[]) => (items.length <= 1 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`)
+
+/**
+ * The bear's texts follow the setup: the abilities it uses, the raid and the rule profile's numbers
+ * (druid.md §8 "Uncertainty surfacing"). The registry's are the default bear's in Forever.
+ */
+export const BEAR_TEXT = {
+  /** What its abilities' threat rests on, naming only the ones it uses. */
+  threat(uses: { maul: boolean; swipe: boolean; mangle: boolean; lacerate: boolean; faerieFire: boolean; roar: boolean }): string {
+    const multiplied = [...(uses.maul ? ['Maul'] : []), ...(uses.swipe ? ['Swipe'] : [])]
+    const flat = [...(uses.faerieFire ? ['Faerie Fire 108'] : []), ...(uses.roar ? ['Demoralizing Roar 39'] : [])]
+    const known = [...(multiplied.length ? [`${prose(multiplied)} ${multiplied.length > 1 ? 'make' : 'makes'} 1.75 threat per damage`] : []), ...flat]
+    if (multiplied.length === 0 && known.length > 0) known[0] = known[0].replace(/ (\d+)$/, ' makes $1 threat')
+    const unknown = [...(uses.mangle ? ['Mangle'] : []), ...(uses.lacerate ? ['Lacerate'] : [])]
+    const sentences = [
+      ...(known.length ? [`${prose(known)}, as a Classic Era threat library has them.`] : []),
+      ...(unknown.length
+        ? [
+            `${prose(unknown)} ${unknown.length > 1 ? 'make 1 threat per damage, since theirs is' : 'makes 1 threat per damage, since its threat is'} unknown` +
+              (uses.lacerate ? ' (Lacerate’s tooltip calls it high: each 50 more an application would add about 1% to TPS).' : '.'),
+          ]
+        : []),
+      'None is measured in Forever.',
+    ]
+    return sentences.join(' ')
+  },
+  /** Maul's swing and the refunds, in the profile's white rage. */
+  rage(o: { maul: boolean; swipe: boolean; normalizedRage: boolean }): string {
+    const maul = o.maul
+      ? `A Maul swing gives no rage: the white swing it replaces would give ${o.normalizedRage ? '8.65 rage' : 'rage for its damage'}. `
+      : ''
+    return `${maul}A bear attack that misses or is dodged or parried refunds 80% of its rage${o.swipe ? ' (Swipe nothing, like a warrior’s area attacks)' : ''}, as in Classic Era; untested for bears in Forever.`
+  },
+  /** Its spells on the boss: the roar's attack power in this profile, and their hit and resist rolls. */
+  spells(o: { roar: boolean; faerieFire: boolean; roarAp: number; classicEra: boolean; resistPct: number }): string {
+    const ap = o.classicEra
+      ? `Demoralizing Roar lowers the boss’s attack power by ${o.roarAp}, Classic Era’s rank 5 at level 60.`
+      : `Demoralizing Roar lowers the boss’s attack power by ${o.roarAp}, its level-60 tooltip; whether combat applies all of it is untested.`
+    const names = prose([...(o.roar ? ['Demoralizing Roar'] : []), ...(o.faerieFire ? ['Faerie Fire'] : [])])
+    const rolls = [
+      `${names} ${o.roar && o.faerieFire ? 'roll to hit as spells do' : 'rolls to hit as a spell does'}`,
+      ...(o.faerieFire && o.resistPct > 0 ? [`the boss resists ${o.resistPct}% of the Faerie Fires that would land, a Nature spell against its 24 resistance`] : []),
+      ...(o.roar ? ['a roar that misses refunds 80% of its rage, as a missed melee ability does'] : []),
+    ]
+    return `${o.roar ? `${ap} ` : ''}${rolls.join('; ')}; untested.`
+  },
+  /** Predatory Instincts, the registry's `predatoryInstincts` in the bear's terms: Lacerate's ticks, when it's used. */
+  predatoryInstincts(lacerate: boolean): string {
+    return `Predatory Instincts makes your abilities crit for 2.2× (the +100% bonus becomes +120%)${lacerate ? ', Lacerate’s ticks included' : ''}; 2.4× is the other reading. Untested.`
+  },
+  /** Rend and Tear's bonus, the registry's `rendAndTear` in the bear's terms, and whether the boss bleeds here. */
+  rendAndTear(o: { pct: number; othersBleed: boolean; lacerate: boolean }): string {
+    const when = o.othersBleed
+      ? 'while the boss bleeds: all fight here, since the warriors in your raid keep their Deep Wounds on it'
+      : o.lacerate
+        ? 'while the boss bleeds: here, while your Lacerate is on it (no warriors in your raid keep Deep Wounds on it)'
+        : 'while the boss bleeds, which it doesn’t here: no warriors in your raid keep Deep Wounds on it, and you don’t use Lacerate'
+    return `Rend and Tear adds ${o.pct}% to your abilities’ direct damage, not auto attacks or bleed ticks, ${when}. Untested.`
+  },
+  /** Berserk's Mangle, and the extra targets the sim leaves out. */
+  berserkMangle(swipe: boolean): string {
+    return `Under Berserk a Mangle starts no cooldown, and one already running when Berserk starts keeps running; untested. The sim has one target, so Mangle’s${swipe ? ' and Swipe’s' : ''} extra targets add nothing.`
+  },
+}
+
 export class Assumptions {
   private readonly list: Assumption[] = []
   private readonly seen = new Set<string>()
@@ -539,10 +605,16 @@ export class Assumptions {
   /** Adds an assumption once. Its `detail` fills the text's `{detail}`, or follows the text after a colon. */
   add(id: AssumptionId, detail?: string): void {
     if (this.seen.has(id)) return
-    this.seen.add(id)
     const entry: { text: string; docRef: string } = REGISTRY[id]
     const text = !detail ? entry.text : entry.text.includes('{detail}') ? entry.text.replace('{detail}', detail) : `${entry.text.replace(/\.$/, '')}: ${detail}.`
-    this.list.push({ id, text, docRef: entry.docRef })
+    this.addText(id, text)
+  }
+
+  /** Adds `id` with a text of its own, built from the setup (`BEAR_TEXT`); its doc link stays the registry's. */
+  addText(id: AssumptionId, text: string): void {
+    if (this.seen.has(id)) return
+    this.seen.add(id)
+    this.list.push({ id, text, docRef: REGISTRY[id].docRef })
   }
 
   toArray(): Assumption[] {

@@ -6,7 +6,7 @@
 // only the resulting plain object.
 import itemJson from '@/data/items/pre-bis.json'
 import type { Item, ItemData, Stats, WeaponSkill, WeaponType } from '@/data/items/types'
-import { bossOutcomeShares, glanceRange, PLAYER_LEVEL } from '../core/attack-table'
+import { averageResist, bossOutcomeShares, glanceRange, levelResistance, PLAYER_LEVEL } from '../core/attack-table'
 import { CRIT_MULTIPLIER, negativeArmorFloor, NORMALIZED_SPEED, OFF_HAND_DAMAGE, ppmChance, slowedSwingSec, toTenths } from '../core/formulas'
 import { classSetup } from '../classes'
 import { DRUID_FORMS, FORM_INDEX, FORM_NAME, formWeapon } from '../classes/druid/forms'
@@ -28,7 +28,7 @@ import { SPEC_META } from '../specs'
 import { BASE_PLACEHOLDERS, CLASS_BASE } from '../stats/base-stats'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 import type { CharacterSheet, ClassId, GearSlot, SimConfig } from '../types'
-import { Assumptions } from './assumptions'
+import { Assumptions, BEAR_TEXT } from './assumptions'
 import {
   type AbilityPlan,
   ACTION,
@@ -967,7 +967,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (abilities.some((a) => a.gcdMs > 0)) notes.add(setup.form === 'cat' ? 'gcdHasteCat' : 'gcdHaste')
   // Rage refunds; a druid's Energy refunds are in `energyTicks`, and a bear's rage refunds and
   // Maul's swing in `bearRage` (druid.md §4.1).
-  if (abilities.some((a) => a.costTenths > 0 && (a.resource ?? 'rage') === 'rage')) notes.add(setup.form === 'bear' ? 'bearRage' : 'abilityRefunds')
+  if (abilities.some((a) => a.costTenths > 0 && (a.resource ?? 'rage') === 'rage')) {
+    const uses = (id: string) => abilities.some((a) => a.id === id)
+    if (setup.form === 'bear') notes.addText('bearRage', BEAR_TEXT.rage({ maul: uses('maul'), swipe: uses('swipe'), normalizedRage: profile.rage.white === 'normalized' }))
+    else notes.add('abilityRefunds')
+  }
   const queues = abilities.some((a) => a.kind === 'onNextSwing')
   if (queues && mh && setup.form !== 'bear') notes.add('onNextSwingRage')
   // What the rotation's settings rest on without an ability that shows it (Arms' Heroic Strike off):
@@ -1155,23 +1159,38 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (setup.form === 'cat' && setup.simulated) notes.add('noPowershift')
     if (abilities.some((a) => a.resource === 'energy')) notes.add('energyTicks')
     if (abilities.some((a) => a.kind === 'shift')) notes.add('shapeshifts')
-    // druid.md §3, §8 "Uncertainty surfacing": the cat's abilities.
+    // druid.md §3, §4, §8 "Uncertainty surfacing": the cat's and the bear's abilities. The bear's
+    // texts name only what this setup uses, with the profile's numbers (BEAR_TEXT); the cat's are
+    // the registry's.
     const has = (id: string) => abilities.some((a) => a.id === id)
+    const bear = setup.form === 'bear'
+    const uses = { maul: has('maul'), swipe: has('swipe'), mangle: has('mangle'), lacerate: has('lacerate'), faerieFire: has('faerieFire'), roar: has('demoralizingRoar') }
+    if (bear && Object.values(uses).some(Boolean)) notes.addText('bearThreat', BEAR_TEXT.threat(uses))
+    if (bear && uses.lacerate) notes.add('lacerate')
     if (has('shred') || has('claw')) notes.add('catShredFlat')
     if (has('rip') || has('ferociousBite')) notes.add('catFinisherAp')
     if (has('rip') || has('rake')) notes.add('catBleeds')
     if (has('rake') || has('ferociousBite')) notes.add('catTwoRolls')
-    if (setup.talents.has('Predatory Instincts') && abilities.some((a) => a.critMultiplier > CRIT_MULTIPLIER.melee)) notes.add('predatoryInstincts')
-    if (abilities.some((a) => a.bleedingTargetPct)) notes.add('rendAndTear')
+    if (setup.talents.has('Predatory Instincts') && abilities.some((a) => a.critMultiplier > CRIT_MULTIPLIER.melee)) {
+      if (bear) notes.addText('predatoryInstincts', BEAR_TEXT.predatoryInstincts(uses.lacerate))
+      else notes.add('predatoryInstincts')
+    }
+    const rendAndTear = abilities.find((a) => a.bleedingTargetPct)?.bleedingTargetPct
+    if (rendAndTear && bear) notes.addText('rendAndTear', BEAR_TEXT.rendAndTear({ pct: rendAndTear, othersBleed, lacerate: uses.lacerate }))
+    else if (rendAndTear) notes.add('rendAndTear')
     if (setup.form === 'cat' && has('berserk') && setup.talents.has('Primal Fury')) notes.add('berserkCrits')
-    if ((setup.form === 'cat' || setup.form === 'bear') && (auras.some((a) => a.haste) || derived.hasteMult > 1)) notes.add('formHaste')
-    // druid.md §4, §8 "Uncertainty surfacing": the bear's abilities.
-    if (setup.form === 'bear') {
-      if (['maul', 'swipe', 'mangle', 'lacerate', 'faerieFire', 'demoralizingRoar'].some(has)) notes.add('bearThreat')
-      if (has('lacerate')) notes.add('lacerate')
-      if (has('swipe')) notes.add('bearTwoRolls')
-      if (has('demoralizingRoar')) notes.add('demoralizingRoar')
-      if (abilities.some((a) => (a.noCooldownAura ?? -1) >= 0)) notes.add('berserkMangle')
+    if ((setup.form === 'cat' || bear) && (auras.some((a) => a.haste) || derived.hasteMult > 1)) notes.add('formHaste')
+    if (bear) {
+      if (uses.swipe) notes.add('bearTwoRolls')
+      if (uses.roar || uses.faerieFire) {
+        // combat-tables §9: a binary Nature spell's resist at the boss's level-based resistance, in %.
+        const resist = abilities.some((a) => a.spellHit && a.spellSchool !== undefined) ? Math.round(100 * averageResist(levelResistance(fight.bossLevel, PLAYER_LEVEL), PLAYER_LEVEL)) : 0
+        notes.addText(
+          'demoralizingRoar',
+          BEAR_TEXT.spells({ roar: uses.roar, faerieFire: uses.faerieFire, roarAp: profile.values.demoralizingRoarAp, classicEra: profile.id === 'classicEra', resistPct: resist }),
+        )
+      }
+      if (abilities.some((a) => (a.noCooldownAura ?? -1) >= 0)) notes.addText('berserkMangle', BEAR_TEXT.berserkMangle(uses.swipe))
       if (auras.some((a) => a.itemArmorPct)) notes.add('enrageArmor')
     }
     if (setup.form === 'bear' && profile.catalogue.column === 'forever') notes.add('bearArmor')

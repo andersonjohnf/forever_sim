@@ -370,6 +370,37 @@ describe('the default bear’s plan', () => {
     expect(plan.fight.bossSwing!.minDamage).toBe(4500)
   })
 
+  it('its assumptions follow the setup: what it uses, the raid and the profile’s numbers (BL4, BU12)', () => {
+    const text = (config: SimConfig) => Object.fromEntries(buildPlan(config).assumptions.map((a) => [a.id, a.text]))
+    const d = defaultConfig('druid-feral-bear')
+    const forever = text(d)
+    expect(forever.bearRage).toBe(
+      'A Maul swing gives no rage: the white swing it replaces would give 8.65 rage. A bear attack that misses or is dodged or parried refunds 80% of its rage, as in Classic Era; untested for bears in Forever.',
+    )
+    expect(forever.bearThreat).toMatch(/^Maul makes 1\.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39, as a Classic Era threat library has them\. Mangle and Lacerate make 1 threat per damage, since theirs is unknown \(Lacerate’s tooltip calls it high/)
+    expect(forever.demoralizingRoar).toMatch(/^Demoralizing Roar lowers the boss’s attack power by 204, its level-60 tooltip; whether combat applies all of it is untested\. Demoralizing Roar and Faerie Fire roll to hit as spells do; the boss resists 6% of the Faerie Fires that would land/)
+    expect(forever.rendAndTear).toContain('all fight here, since the warriors in your raid keep their Deep Wounds on it')
+    expect(forever.berserkMangle).toMatch(/so Mangle’s extra targets add nothing\.$/)
+    // Classic Era: the roar's −138 [C], and white rage from damage.
+    const classic = text({ ...d, rules: { profile: 'classicEra', unmeasuredRatings: 'apply' } })
+    expect(classic.demoralizingRoar).toMatch(/^Demoralizing Roar lowers the boss’s attack power by 138, Classic Era’s rank 5 at level 60\./)
+    expect(classic.bearRage).toContain('would give rage for its damage')
+    // Swipe, no Lacerate and no roar, without warriors: each text names only what's used.
+    const other = text({
+      ...d,
+      rotation: { [BEAR_IDS.swipeEnabled]: true, [BEAR_IDS.lacerateEnabled]: false, [BEAR_IDS.roarEnabled]: false },
+      buffs: { ...d.buffs, raid: d.buffs.raid.filter((c) => c !== 'warrior') },
+    })
+    expect(other.bearThreat).toBe('Maul and Swipe make 1.75 threat per damage and Faerie Fire 108, as a Classic Era threat library has them. Mangle makes 1 threat per damage, since its threat is unknown. None is measured in Forever.')
+    expect(other.bearRage).toContain('(Swipe nothing, like a warrior’s area attacks)')
+    expect(other.demoralizingRoar).toMatch(/^Faerie Fire rolls to hit as a spell does;/)
+    expect(other.rendAndTear).toContain('which it doesn’t here')
+    expect(other.berserkMangle).toContain('Mangle’s and Swipe’s extra targets')
+    expect(other.lacerate).toBeUndefined()
+    expect(forever.bearThreat).not.toContain('Swipe')
+    expect(forever.bearRage).not.toContain('Swipe')
+  })
+
   it('a Demoralizing Shout in the Buffs tab takes the roar’s place on the boss, so the roar isn’t used (BL3)', () => {
     const d = defaultConfig('druid-feral-bear')
     const buffs = { ...d.buffs, enabled: [...d.buffs.enabled.filter((id) => id !== 'demoralizingRoar'), 'demoralizingShout'] }

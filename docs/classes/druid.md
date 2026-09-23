@@ -1299,9 +1299,14 @@ the buffs doc as a per-spec entry.
   (§2.8, an inference from the tooltips). The form weapon's and Omen of Clarity's lines give only
   the form's own figures: a cat's 1.0 s swing and 3.33% of landed hits. The bear's rotation adds
   its threat values (Q15), Lacerate's stacks and hit (Q16), Swipe's two rolls (Q33), Maul's swing
-  and the bear's refunds, Demoralizing Roar in combat (Q32), Berserk's running cooldown (Q36) and
-  Enrage's armor (Q35), with Rend and Tear (Q9) and Predatory Instincts (Q10) as the cat has them,
-  each only when the setup uses it.
+  and the bear's refunds, Demoralizing Roar in combat (Q32) with Faerie Fire's resist, Berserk's
+  running cooldown (Q36) and Enrage's armor (Q35), with Rend and Tear (Q9), Predatory Instincts
+  (Q10) and attack speed in form (Q28) under the cat's ids, each only when the setup uses it. The
+  bear's texts follow the setup (`BEAR_TEXT` in `plan/assumptions.ts`): they name only the
+  abilities in use, the roar's attack power is the profile's (204 in `forever`, 138 [C] in
+  `classicEra`), Maul's swing gives 8.65 rage in `forever` and rage from its damage in
+  `classicEra`, and Rend and Tear says whether the boss bleeds (the raid's warriors, your Lacerate,
+  or neither).
 
 **What the engine provides** (`src/sim/classes/druid/`, and plan/types.ts `AbilityPlan`). A cat or
 bear ability is a row with these fields, and its talents come from `withDruidTalents`

@@ -205,6 +205,8 @@ gear, 50 more attack power or 10% more block value.
   assumptions. Saved setups and share links carry the boosts.
 - **Where they apply:** to stats from items and enchants, before talents', racials' and buffs'
   percentages, so a boosted point is worth what an item's point is. Forever ratings follow D12.
+  The percent also scales weapon damage (minimum and maximum, at the same speed): better gear
+  means better weapons too (user decision).
 - **Off by default.** They never change a default or a golden.
 
 Plan: [M2.5](milestones.md#m25-stat-boosts-gear-that-doesnt-exist-yet-).

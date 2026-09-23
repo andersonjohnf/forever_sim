@@ -133,6 +133,8 @@ once with it: the headline's change from the previous run is the scaling.
   - applied to the stats from items and enchants, before talents', racials' and buffs'
     percentages, so a boosted point is worth what an item's point is; documented in a new
     section of [character-stats.md](mechanics/character-stats.md)
+  - the percent also scales weapon damage (minimum and maximum, at the same speed), as better
+    gear would (user decision, 2026-09-23)
   - not applied to base stats, buffs, consumables, proc and on-use effects, or set bonuses
   - Forever ratings follow D12's switch, as they do from items
   - validated and bounded in `normalize`; saved setups and share links carry it
@@ -152,10 +154,7 @@ once with it: the headline's change from the previous run is the scaling.
 - [ ] **M2.5c Tank stats**, with M3: block value from items needs shields' block value,
       which the item data lacks ([known gaps](#known-gaps-and-follow-ups)). Add block value,
       block chance, defense, dodge and parry to the per-stat list once Protection simulates them.
-- **To decide in M2.5a:**
-  - whether the percent also scales weapon damage ("better gear" suggests yes, at the same
-    speed)
-  - the range: −50% to +100%, say, so worse gear can be modelled too
+- **To decide in M2.5a:** the range: −50% to +100%, say, so worse gear can be modelled too.
 - M6's stat weights can build on the per-stat bonuses.
 
 ## Session handoff (2026-09-23)

@@ -19,6 +19,7 @@ import {
   getSpec,
   presetBuffs,
   rotationValues,
+  talentBuffs,
   type BuffCategory,
   type BuffDefinition,
   type BuffPreset,
@@ -62,6 +63,9 @@ export function BuffsSection() {
       getSpec(meta.id).rotationOptions.flatMap((o) => (o.kind === 'toggle' && o.maintainsBuff && Boolean(values[o.id]) ? [o.maintainsBuff] : [])),
     )
   }, [meta.id, talents, rotation])
+  // Buffs the talents bring (a druid's Leader of the Pack): on and locked the same way, since the
+  // plan leaves the Buffs copy out too (druid.md §2.3).
+  const fromTalents = useMemo(() => new Set(talentBuffs({ spec: meta.id, talents })), [meta.id, talents])
 
   const activePreset = buffPresets.find((p) => sameSet(presetBuffs(p.id, meta.id, buffs.raid), buffs.enabled))?.id
   // The spec's default preset, marked like the talent presets' "(default)" (docs/ux.md "Buffs", checklist 3).
@@ -168,7 +172,8 @@ export function BuffsSection() {
                   {defs
                     .filter((d) => d.group === group)
                     .map((def) => {
-                      const own = maintained.has(def.id)
+                      const talent = !maintained.has(def.id) && fromTalents.has(def.id)
+                      const own = maintained.has(def.id) || talent
                       const missing = !own && def.providedBy && !buffs.raid.includes(def.providedBy)
                       return (
                         // A buff nobody in the raid brings is dimmed by colour, never opacity: its
@@ -185,11 +190,13 @@ export function BuffsSection() {
                           <span className="flex min-w-0 flex-1 flex-col">
                             <span className="text-sm font-medium">{def.name}</span>
                             <span id={`${buffSwitchId(def.id)}-help`} className="text-xs text-muted-foreground">
-                              {own
-                                ? `${def.summary}. You keep it up yourself (see Rotation), so it isn’t added twice.`
-                                : missing
-                                  ? `Needs a ${CLASS_LABEL[def.providedBy!].toLowerCase()} in the raid`
-                                  : def.summary}
+                              {talent
+                                ? `${def.summary}. Your talents bring it (see Talents), so it isn’t added twice.`
+                                : own
+                                  ? `${def.summary}. You keep it up yourself (see Rotation), so it isn’t added twice.`
+                                  : missing
+                                    ? `Needs a ${CLASS_LABEL[def.providedBy!].toLowerCase()} in the raid`
+                                    : def.summary}
                             </span>
                           </span>
                           <Switch

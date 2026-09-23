@@ -28,8 +28,17 @@ const REGISTRY = {
     text: 'The rotation reacts instantly: it acts at the very moment a cooldown ends, rage arrives or a proc or dodge opens a window, with no reaction time or latency.',
     docRef: `${DT}#36-server-tick-and-spell-batching`,
   },
+  // The cat's two below say the same as reactionTime and gcdHaste, in its terms (druid.md §2.4, §2.6).
+  reactionTimeEnergy: {
+    text: 'The rotation reacts instantly: it acts at the very moment a cooldown ends, Energy ticks in or Clearcasting procs, with no reaction time or latency.',
+    docRef: `${DT}#36-server-tick-and-spell-batching`,
+  },
   gcdHaste: {
-    text: 'The global cooldown isn’t shortened by haste, as in Classic Era; untested in Forever.',
+    text: 'The 1.5 s global cooldown isn’t shortened by haste, as in Classic Era; untested in Forever.',
+    docRef: `${DT}#35-global-cooldown`,
+  },
+  gcdHasteCat: {
+    text: 'The global cooldown, 1 s in Cat Form, isn’t shortened by haste, as in Classic Era; untested in Forever.',
     docRef: `${DT}#35-global-cooldown`,
   },
   abilityRefunds: {

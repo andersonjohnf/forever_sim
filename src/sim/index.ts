@@ -1,7 +1,7 @@
 // The engine's public API: the only module the UI imports from src/sim
 // (docs/architecture.md#data-flow). Keep these signatures stable.
 import type { ClassSlug } from '@/data/races/types'
-import { talentRanksByName } from './classes'
+import { classSetup, talentRanksByName } from './classes'
 import { resolveRotationValues } from './classes/options'
 import { ROTATION_GROUPS, rotationDefaultsNote, rotationOptions } from './classes/rotation'
 import { normalizeConfig } from './config/normalize'
@@ -78,6 +78,16 @@ export const rotationGroups: readonly RotationGroup[] = ROTATION_GROUPS
 export function rotationValues(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation'>): Record<string, RotationValue> {
   const classId = SPEC_META[config.spec].classId
   return resolveRotationValues(rotationOptions(config.spec), config.rotation, talentRanksByName(TALENT_DATA[classId], config.talents))
+}
+
+/**
+ * Buff catalogue ids the talent build provides itself (a druid's Leader of the Pack, druid.md §2.3):
+ * the plan leaves the Buffs tab's copy out, so the tab shows it on and locked, as it does a buff the
+ * rotation keeps up (docs/ux.md "Buffs").
+ */
+export function talentBuffs(config: Pick<SimConfig, 'spec' | 'talents'>): string[] {
+  const classId = SPEC_META[config.spec].classId
+  return classSetup(classId, config.spec, config.talents, PROFILES.forever).replacesBuffs ?? []
 }
 
 /** A catalogue per rule profile: each entry's summary is the profile's (`catalogueSummary`). */

@@ -11,7 +11,7 @@ import { changeAndFocus, selectedOption } from '@/features/refocus'
 import { Advanced, Field, SectionHeader } from '@/features/section'
 import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
-import { defaultConfig, type ClassId, type CreatureType, type FightConfig, type SimConfig } from '@/sim'
+import { defaultConfig, type ClassId, type CreatureType, type FightConfig, type SimConfig, type SpecId } from '@/sim'
 import { formatDuration } from './duration'
 import { LengthSlider } from './length-slider'
 
@@ -52,8 +52,21 @@ const BOSS_SWITCHES = [
 ] as const
 type BossSwitch = (typeof BOSS_SWITCHES)[number][0]
 
-/** The ability the execute phase unlocks, per class (docs/mechanics/encounter.md#3-fight-length-and-execute-phase). */
+/**
+ * The ability the execute phase unlocks, per class (docs/mechanics/encounter.md#3-fight-length-and-execute-phase).
+ * A class without one reads nothing from the phase (a druid's rotations, druid.md §6.2), so its
+ * Fight tab leaves the phase out: a control that changes nothing isn't shown (docs/ux.md "Fight").
+ */
 const EXECUTE_ABILITY: Partial<Record<ClassId, string>> = { warrior: 'Execute', paladin: 'Hammer of Wrath' }
+
+/** What a DPS spec loses in front of the boss besides its parry and block (the cat's Shred, druid.md §3.1). */
+const FRONT_NOTE: Partial<Record<SpecId, string>> = { 'druid-feral-cat': ' You can’t Shred there, so Claw builds instead.' }
+
+/** What the damage a DPS player takes does, per class (docs/ux.md "Fight"): a cat's hits give no rage (druid.md §8). */
+const DAMAGE_TAKEN_HELP: Partial<Record<ClassId, string>> = {
+  warrior: 'What the boss deals you per second, before your armor. Each hit gives rage and can trigger Enrage. At 0 you’re never hit.',
+  druid: 'What the boss deals you per second, before your armor. In Cat Form it gives no rage, but a hit can trigger effects that fire when you’re hit. At 0 you’re never hit.',
+}
 
 const number = (n: number) => n.toLocaleString('en-US')
 
@@ -72,6 +85,7 @@ export function FightSection() {
   const isPreset = ARMOR_PRESETS.some((p) => p.value === fight.bossArmor)
   const tank = meta.role === 'tank'
   const executeAbility = EXECUTE_ABILITY[meta.classId]
+  const usesExecute = executeAbility !== undefined
 
   // Each setting that differs from the spec's default says so, with a Reset (docs/ux.md "Fight",
   // checklist 3). A reset moves focus to the setting's control, since the Reset button goes away.
@@ -85,13 +99,13 @@ export function FightSection() {
     length: fight.durationSec !== def.durationSec,
     armor: fight.bossArmor !== def.bossArmor,
     position: fight.position !== def.position,
-    execute: fight.executePct > 0 !== def.executePct > 0,
+    execute: usesExecute && fight.executePct > 0 !== def.executePct > 0,
     // Advanced
     precision: run.mode !== defaults.run.mode,
     iterations: run.mode === 'fixed' && run.iterations !== defaults.run.iterations,
     seed: run.seed !== defaults.run.seed,
     variation: fight.durationVariationPct !== def.durationVariationPct,
-    executePct: fight.executePct > 0 && fight.executePct !== def.executePct,
+    executePct: usesExecute && fight.executePct > 0 && fight.executePct !== def.executePct,
     bossLevel: fight.bossLevel !== def.bossLevel,
     creatureType: fight.creatureType !== def.creatureType,
     zone: fight.zone !== def.zone,
@@ -171,7 +185,7 @@ export function FightSection() {
             ? 'Behind the boss, it can’t parry or block.'
             : tank
               ? 'Tanks face the boss: it can parry and block.'
-              : 'In front of the boss, it can parry and block your attacks.'
+              : `In front of the boss, it can parry and block your attacks.${FRONT_NOTE[meta.id] ?? ''}`
         }
         changed={hint('position', 'Position', changed.position, POSITIONS[def.position], () => set({ position: def.position }), () => selectedOption(ids('position').control))}
       >
@@ -194,26 +208,28 @@ export function FightSection() {
         </ToggleGroup>
       </Field>
 
-      <div className="flex flex-col gap-2">
-        {/* The whole row is the switch's label, so it's one 44 px target (docs/ux.md "Accessibility"). */}
-        <label className="flex min-h-11 cursor-pointer items-center justify-between gap-4">
-          <span className="flex flex-col gap-1">
-            <span className="text-sm font-medium">Execute phase</span>
-            <span id="execute-help" className="text-xs text-muted-foreground">
-              The last {fight.executePct || 20}% of the boss’s health{executeAbility ? `, when ${executeAbility} can be used` : ''}.
+      {usesExecute && (
+        <div className="flex flex-col gap-2">
+          {/* The whole row is the switch's label, so it's one 44 px target (docs/ux.md "Accessibility"). */}
+          <label className="flex min-h-11 cursor-pointer items-center justify-between gap-4">
+            <span className="flex flex-col gap-1">
+              <span className="text-sm font-medium">Execute phase</span>
+              <span id="execute-help" className="text-xs text-muted-foreground">
+                The last {fight.executePct || 20}% of the boss’s health, when {executeAbility} can be used.
+              </span>
             </span>
-          </span>
-          <Switch
-            id={ids('execute').control}
-            aria-label="Execute phase"
-            aria-describedby={describedBy(changed.execute, 'execute', 'execute-help')}
-            checked={fight.executePct > 0}
-            onCheckedChange={(on) => set({ executePct: on ? 20 : 0 })}
-          />
-        </label>
-        {/* Outside the label, since it has a button. */}
-        {hint('execute', 'Execute phase', changed.execute, def.executePct > 0 ? 'on' : 'off', () => set({ executePct: def.executePct }))}
-      </div>
+            <Switch
+              id={ids('execute').control}
+              aria-label="Execute phase"
+              aria-describedby={describedBy(changed.execute, 'execute', 'execute-help')}
+              checked={fight.executePct > 0}
+              onCheckedChange={(on) => set({ executePct: on ? 20 : 0 })}
+            />
+          </label>
+          {/* Outside the label, since it has a button. */}
+          {hint('execute', 'Execute phase', changed.execute, def.executePct > 0 ? 'on' : 'off', () => set({ executePct: def.executePct }))}
+        </div>
+      )}
 
       <Advanced changed={advancedChanged}>
         <Field
@@ -300,7 +316,7 @@ export function FightSection() {
               aria-describedby={describedBy(changed.variation, 'variation')}
             />
           </Field>
-          {fight.executePct > 0 && (
+          {usesExecute && fight.executePct > 0 && (
             // Its accessible name is its visible label (WCAG 2.5.3); the steppers read better shorter.
             <Field
               label="Execute phase starts at"
@@ -380,7 +396,7 @@ export function FightSection() {
             <Field
               label="Damage you take"
               htmlFor={ids('damageTaken').control}
-              help="What the boss deals you per second, before your armor. Each hit gives rage and can trigger Enrage. At 0 you’re never hit."
+              help={DAMAGE_TAKEN_HELP[meta.classId] ?? 'What the boss deals you per second, before your armor, for effects that fire when you’re hit. At 0 you’re never hit.'}
               changed={hint('damageTaken', 'Damage you take', changed.damageTaken, `${def.damageTakenPerSec}/s`, () => set({ damageTakenPerSec: def.damageTakenPerSec }))}
             >
               <NumberField

@@ -19,6 +19,7 @@ import {
   simulate,
   SPEC_IDS,
   specs,
+  talentBuffs,
 } from './index'
 
 const quick = (config: SimConfig, iterations = 250): SimConfig => ({ ...config, run: { ...config.run, mode: 'fixed', iterations } })
@@ -65,10 +66,22 @@ describe('simulate', () => {
     expect(casts.tigersFury).toBeGreaterThan(4)
     expect(casts.berserk).toBeGreaterThanOrEqual(1)
     expect(casts.faerieFire).toBeGreaterThan(4)
-    // Energy's ticks and refunds, Omen of Clarity and the form weapon are listed; no rage refunds.
+    // The form's swings are named for what they are, not for the weapon, whose damage they don't use.
+    expect(result.abilities.find((a) => a.id === 'mainHand')?.name).toBe('Auto attack')
+    // Energy's ticks and refunds, Omen of Clarity and the form weapon are listed; no rage refunds,
+    // and the reaction time and GCD in the cat's terms (Energy, Clearcasting, a 1 s GCD).
     const notes = result.assumptions.map((a) => a.id)
-    expect(notes).toEqual(expect.arrayContaining(['energyTicks', 'omenOfClarity', 'formWeapon']))
-    expect(notes).not.toContain('abilityRefunds')
+    expect(notes).toEqual(expect.arrayContaining(['energyTicks', 'omenOfClarity', 'formWeapon', 'reactionTimeEnergy', 'gcdHasteCat']))
+    for (const id of ['abilityRefunds', 'reactionTime', 'gcdHaste']) expect(notes).not.toContain(id)
+    expect(result.assumptions.find((a) => a.id === 'gcdHasteCat')?.text).toMatch(/1 s in Cat Form/)
+  })
+
+  it('keeps a warrior’s reaction time and 1.5 s GCD assumptions, and its white swings as Main hand', async () => {
+    const result = await simulate(quick(defaultConfig('warrior-arms')))
+    const notes = result.assumptions.map((a) => a.id)
+    expect(notes).toEqual(expect.arrayContaining(['reactionTime', 'gcdHaste']))
+    expect(result.assumptions.find((a) => a.id === 'gcdHaste')?.text).toMatch(/^The 1\.5 s global cooldown/)
+    expect(result.abilities.find((a) => a.id === 'mainHand')?.name).toBe('Main hand')
   })
 
   it('headlines TPS for a tank and reports the boss parrying from the front', async () => {
@@ -124,6 +137,14 @@ describe('specs', () => {
     expect(specs.filter((s) => s.available).map((s) => s.id)).toEqual(['warrior-fury', 'warrior-arms', 'druid-feral-cat'])
     expect(getSpec('warrior-protection').role).toBe('tank')
     expect(() => getSpec('mage-fire' as never)).toThrow()
+  })
+})
+
+describe('buffs the talents bring (docs/ux.md "Buffs")', () => {
+  it('names a druid’s Leader of the Pack from its talent, and nothing for a build without it or a warrior', () => {
+    expect(talentBuffs(defaultConfig('druid-feral-cat'))).toEqual(['leaderOfThePack'])
+    expect(talentBuffs({ spec: 'druid-feral-cat', talents: '' })).toEqual([])
+    expect(talentBuffs(defaultConfig('warrior-fury'))).toEqual([])
   })
 })
 

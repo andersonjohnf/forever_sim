@@ -537,7 +537,8 @@ warrior's own Battle Shout replaces the Buffs one. Its threat (108 [?], Q15) isn
 
 Cat white swing: `uniform(43.84, 65.76) + AP/14` [?] (form base damage, Q5) every **1.0 s / (1 + haste)** [F] [client] (SpellShapeshiftForm, 1.60.1.69913) (haste: Q28). It can glance
 (see [combat-tables.md](../mechanics/combat-tables.md)) and crits for 2.0× (Predatory Instincts
-doesn't apply). Physical, so armor applies, and Tiger's Fury and Naturalist apply.
+doesn't apply). Physical, so armor applies, and Tiger's Fury and Naturalist apply. The results'
+breakdown names its row "Auto attack", since the swings are the form's, not the weapon's.
 
 ### 3.11 Cat threat
 
@@ -807,8 +808,10 @@ hold.
 10. The builder: **Shred** from behind, **Claw** from the front (or with Shred off).
 11. Otherwise wait for the next event.
 
-No powershifting: in Forever it gains nothing (§2.8), so the rotation offers none. Cower and
-the Prowl openers aren't simulated (§3.9).
+No powershifting: in Forever it gains nothing (§2.8), so the rotation offers none, and the
+Rotation tab's intro says so. Cower and the Prowl openers aren't simulated (§3.9). No line reads
+the execute phase, so the Fight tab leaves it out for a druid (a control that changes nothing
+isn't shown, [ux.md](../ux.md) "Fight").
 
 **Settings** (the Rotation tab; ids `druid.cat.<ability>.<param>`), with the tuned defaults:
 
@@ -983,7 +986,8 @@ preset):
 The sim's presets follow these rows. Flank au Poivre is in the buff catalogue for them: +20
 Agility from Nutritious Food 1248399, whose Well Fed 1248420 is Agility [F] [client] (SpellEffect,
 ItemEffect, 1.60.1.69913). A druid with Leader of the Pack provides its own, so the Buffs tab's
-Leader of the Pack adds nothing more (several don't stack).
+Leader of the Pack adds nothing more (several don't stack): the tab shows it on and locked, and
+says the talents bring it.
 
 Grilled Squid, which Classic ferals ate for Agility, is **+1% crit** in Forever; the buffs doc's
 Agility food is Flank au Poivre. A feral-specific reason to differ from these rows would go into

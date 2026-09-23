@@ -566,7 +566,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
 
   // --- Procs, auras and breakdown rows ------------------------------------------------------------
   const sources: SourcePlan[] = [
-    { id: 'mainHand', name: 'Main hand', icon: (mh?.form ? mh.plan.icon : mh?.item?.icon) ?? 'inv_sword_04' },
+    // In a form the swings are the form's own, not the weapon's: "Auto attack" (druid.md §3.10).
+    { id: 'mainHand', name: mh?.form ? 'Auto attack' : 'Main hand', icon: (mh?.form ? mh.plan.icon : mh?.item?.icon) ?? 'inv_sword_04' },
     { id: 'offHand', name: 'Off hand', icon: weapons[HAND.off]?.item?.icon ?? 'inv_sword_04' },
   ]
   const sourceIndex = (id: string, name: string, icon: string) => {
@@ -865,8 +866,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // --- Assumptions ---------------------------------------------------------------------------------
   if (setup.simulated && abilities.length === 0) notes.add('whiteSwingsOnly')
   // docs/mechanics/damage-and-timing.md#36-server-tick-and-spell-batching: the rotation reacts in 0 ms [?].
-  if (classRot.rotation.length > 0) notes.add('reactionTime')
-  if (abilities.some((a) => a.gcdMs > 0)) notes.add('gcdHaste')
+  // A cat's rotation waits on Energy and Clearcasting, and its GCD is 1 s (druid.md §2.4, §2.6).
+  const energy = abilities.some((a) => a.resource === 'energy')
+  if (classRot.rotation.length > 0) notes.add(energy ? 'reactionTimeEnergy' : 'reactionTime')
+  if (abilities.some((a) => a.gcdMs > 0)) notes.add(setup.form === 'cat' ? 'gcdHasteCat' : 'gcdHaste')
   // Rage refunds; a druid's Energy refunds are in `energyTicks`.
   if (abilities.some((a) => a.costTenths > 0 && (a.resource ?? 'rage') === 'rage')) notes.add('abilityRefunds')
   const queues = abilities.some((a) => a.kind === 'onNextSwing')

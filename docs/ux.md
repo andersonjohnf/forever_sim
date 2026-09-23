@@ -47,10 +47,10 @@ and the **spec switcher**, which shows the class icon and spec in the class colo
 
 **About & data** opens a sheet that starts with what the app is, without naming specs ("A DPS
 simulator for WoW Forever", and "A DPS and TPS simulator" once a tank spec ships), then the specs
-it covers on their own line, one class at a time ("Covers Warriors: Fury and Arms"), which grows
-as specs ship (principle 8). The page's meta and Open Graph descriptions in `index.html` carry
-the same description line and change only when the first tank spec ships; an e2e test compares
-them.
+it covers on their own line, one class at a time ("Covers Warriors: Fury and Arms · Druids:
+Feral (Cat)"), which grows as specs ship (principle 8). The page's meta and Open Graph
+descriptions in `index.html` carry the same description line and change only when the first
+tank spec ships; an e2e test compares them.
 
 **Section tabs** are 44 px tall. When they scroll sideways, a fade marks each edge with more
 tabs past it (none at an end), and the chosen tab scrolls into view clear of the fades, as does
@@ -98,7 +98,8 @@ Era's) start in view rather than under the tabs.
     ("Advanced, 1 changed"), so Classic Era rules are never out of sight.
 - **Talents.**
   - A preset menu with the documented builds (its class doc) of the specs the app offers, so it
-    grows as specs ship (principle 8): no Protection builds until Protection does. The spec
+    grows as specs ship (principle 8): no Protection builds until Protection does, and a druid
+    sees the Feral cat's build but no bear build until the bear ships. The spec
     default is selected. Only the current spec's default is marked "(default)"; another spec's
     reads plainly ("Arms default"), so the menu never shows two defaults.
   - Interactive trees: three side by side on desktop, one tab per tree on mobile (a segmented
@@ -183,15 +184,20 @@ Era's) start in view rather than under the tabs.
     Classic Era's, with a link to **Character → Advanced** that opens the rule profile with focus
     on it.
   - World buffs don't exist here ([D8](decisions.md#d8-world-buffs-are-excluded-2026-09-22)).
-  - A buff the rotation keeps up itself (a warrior's own Battle Shout) shows its switch on and
-    locked, with a note saying the rotation keeps it up, so it's never counted twice.
+  - A buff the rotation keeps up itself (a warrior's own Battle Shout, a cat's own Faerie Fire)
+    shows its switch on and locked, with a note saying the rotation keeps it up, so it's never
+    counted twice. One the talents bring (a druid's Leader of the Pack) is on and locked the same
+    way, and its note says the talents bring it.
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
   with units, one line of help, and the default marked. **Reset rotation** (in the section
   header, enabled once you've set anything) puts every setting back to its default. It disables
   itself, so it moves focus to the first setting, the next control after it.
   - The intro says what the defaults are, per spec: "tuned for the default setup" once a slice
     has tuned them ([D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
-    Arms since M2.5a, Fury since M2.5b), "the common priority" for a spec until then.
+    Arms since M2.5a, Fury since M2.5b, the Feral cat since B2), "the common priority" for a spec
+    until then. The cat's also says there's no powershifting, and why
+    ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
+    since a Classic Era feral would look for it.
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
     **Consumables**, in that order. Under each heading the settings keep the spec's priority
@@ -247,7 +253,12 @@ Era's) start in view rather than under the tabs.
   - The header names the boss's level ("A level 63 raid boss"), following Boss level.
   - Duration (default 180 s), boss armor preset, execute phase, and whether you attack from the
     front (tanks) or behind (DPS). The position's help follows the chosen side: in front, a DPS
-    spec reads that the boss can parry and block its attacks.
+    spec reads that the boss can parry and block its attacks, and a cat that Claw builds instead
+    of Shred.
+  - The execute phase shows only for a class with an execute ability (Execute, Hammer of Wrath).
+    A druid's rotations don't read it, so its Fight tab leaves out both the switch and, in
+    Advanced, where the phase starts: a control that changes nothing isn't shown. A setup keeps
+    the value, unused.
   - The duration slider's track and thumb are 44 px targets. Its thumb is named "Fight length"
     and says its value in words ("3 minutes"). The execute phase's help names the class's
     execute ability (Execute for warriors), and its whole row is the switch's label.
@@ -268,7 +279,8 @@ Era's) start in view rather than under the tabs.
   - **Damage you take** (DPS specs; 0 by default) says what the number is and what it does:
     "What the boss deals you per second, before your armor. Each hit gives rage and can trigger
     Enrage. At 0 you're never hit." It's before armor because Forever's rage from a hit reads the
-    hit before mitigation ([rage.md](mechanics/rage.md#forever-)).
+    hit before mitigation ([rage.md](mechanics/rage.md#forever-)). A cat's says a hit gives no
+    rage in Cat Form but can trigger effects that fire when you're hit.
   - Precision is Adaptive or Fixed. **Fixed** shows its own field under it, "Number of fights",
     with its own help and default. Counts are written with thousands separators, in a field as
     in its "Default: 3,000" (boss armor, damage per swing); a seed is an identifier and has none.
@@ -318,10 +330,12 @@ Era's) start in view rather than under the tabs.
     include parry-hastened ones; a fixed swing size reads "5,000". Its "(Fight → Advanced)", and
     the crushing line's, have non-breaking spaces around the arrow, so they never split at 390 px.
 - **Breakdown:** a per-ability damage share bar, then casts, hit/crit/miss/dodge/glance
-  percentages and average hit.
+  percentages and average hit. White swings are "Main hand" and "Off hand"; a druid's, in a form
+  with its own weapon, are "Auto attack".
   - A **bleed's** row counts its applications and its ticks apart, so its outcomes read
     "32.2% tick crit · 1.1% of applications avoided", with its uptime on the boss on a second
-    line (Rend). The tick crit shows only where ticks can crit (the Forever profile), and the
+    line (Rend, a cat's Rip; Rake's bleed has a row of its own, "Rake (bleed)", beside its
+    hit). The tick crit shows only where ticks can crit (the Forever profile), and the
     avoidance only for an application that rolls (Rend). A bleed that does neither, such as
     Deep Wounds (a crit applies it, and its ticks can't crit), shows its ticks per fight.
   - Casts that deal no damage (Death Wish, Recklessness, Bloodrage, racials, the potion) stay

@@ -155,5 +155,9 @@ describe('rotation rows', () => {
     expect(formatSetting(bsRefresh, 3)).toBe('3 s left')
     expect(formatSetting(stance, 'battle')).toBe('Battle')
     expect(formatSetting(charge, false)).toBe('off')
+    // A percentage sits against its number, and a unitless number stands alone.
+    const number = { kind: 'number', id: 'x', label: 'X', help: '', min: 0, max: 100, step: 5, default: 0 } as const
+    expect(formatSetting({ ...number, unit: '%' }, 65)).toBe('65%')
+    expect(formatSetting({ ...number, unit: '' }, 1500)).toBe('1500')
   })
 })

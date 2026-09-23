@@ -6,11 +6,12 @@
 // to end; Holy Shield whenever its buff is gone (row 2); the seal's judgement (row 3) and Swift
 // Judgement right after it (row 4); Holy Strike (row 5); Exorcism against Undead and Demons (row 6);
 // Consecration rank 5 and rank 1 by mana (row 7); Hammer of Wrath in the execute phase (row 8); and
-// Retribution Aura in place of Devotion Aura. A Priority choice at the top picks the tank's duties
-// first (the default) or Max TPS (decision D26), which moves defaults the way Warrior Protection's
-// does. Setting ids are `paladin.protection.<ability>.<param>`; mana thresholds are percentages of
-// maximum mana. Abilities are resolved with the build's talents (talents.ts) before their costs or
-// spells feed anything. Hammer of the Righteous (row 5b) is off by default and not simulated yet.
+// the paladin's aura, Devotion Aura (its duty) or Retribution Aura. A Priority choice at the top
+// picks the tank's duties first (the default) or Max TPS (decision D26), which moves defaults the
+// way Warrior Protection's does. Setting ids are `paladin.protection.<ability>.<param>`; mana
+// thresholds are percentages of maximum mana. Abilities are resolved with the build's talents
+// (talents.ts) before their costs or spells feed anything. Hammer of the Righteous (row 5b) is off
+// by default and not simulated yet.
 import type { AuraSpec, ProcSpec } from '../../effects/types'
 import { type AbilityDef, COND, type Plan, type RotationCondition, type RotationEntry, type SpellDef } from '../../plan/types'
 import type { AssumptionId } from '../../plan/assumptions'
@@ -40,7 +41,7 @@ const ID = {
   holyShield: `${P}.holyShield.enabled`,
   swiftJudgement: `${P}.swiftJudgement.enabled`,
   swiftJudgementCooldown: `${P}.swiftJudgement.minCooldownSec`,
-  retributionAura: `${P}.retributionAura.enabled`,
+  devotionAura: `${P}.devotionAura.enabled`,
   judgement: `${P}.judgement.enabled`,
   holyStrike: `${P}.holyStrike.enabled`,
   exorcism: `${P}.exorcism.enabled`,
@@ -203,6 +204,35 @@ export const SWIFT_JUDGEMENT: AbilityDef = {
   aura: SWIFT_JUDGEMENT_AURA,
 }
 
+/** A paladin runs one aura at a time (paladin.md#other-abilities). */
+export const PALADIN_AURA_GROUP = 'paladinAura'
+
+/** An aura lasts until you cancel it: longer than any fight (the Fight tab's longest is 15 min ± 10%). */
+const AURA_DURATION_MS = 60 * 60 * 1000
+
+/** Put up 3 s before the pull, a global cooldown before the seal (paladin.md "Forever priority list", row 0). */
+export const PREPULL_AURA_MS = -3000
+
+/** A paladin aura as a `cast` the rotation puts up before the pull: no GCD cost at the pull, no mana. */
+const paladinAura = (id: string, name: string, icon: string, mods: AuraSpec['mods']): AbilityDef => ({
+  ...PALADIN,
+  id,
+  name,
+  icon,
+  kind: 'cast',
+  aura: { id, name, durationMs: AURA_DURATION_MS, group: PALADIN_AURA_GROUP, mods },
+})
+
+/**
+ * Devotion Aura r7 (10293, paladin.md#other-abilities): +735 armor for the party [F] (the buff
+ * catalogue's `devotionAura`, the same buff). A Protection paladin's own, and its duty (D26): the
+ * rotation keeps it up while its setting is on, and the Buffs tab's switch shows it as yours.
+ */
+export const DEVOTION_AURA = paladinAura('devotionAura', 'Devotion Aura', 'spell_holy_devotionaura', { armor: 735 })
+
+/** Retribution Aura r5 (10301), in place of Devotion Aura: its damage is `RETRIBUTION_AURA_PROC`. */
+export const RETRIBUTION_AURA = paladinAura('retributionAura', 'Retribution Aura', 'spell_holy_auraoflight', {})
+
 /**
  * Retribution Aura r5 (10301, paladin.md#other-abilities): 30 Holy damage to each attacker that
  * hits you (aura 15, a damage shield; no spell damage coefficient) [F] [client] (SpellEffect,
@@ -212,7 +242,7 @@ export const SWIFT_JUDGEMENT: AbilityDef = {
  */
 export const RETRIBUTION_AURA_DAMAGE: SpellDef = {
   ...HOLY_SHIELD_DAMAGE,
-  id: 'retributionAura',
+  id: 'retributionAuraDamage',
   name: 'Retribution Aura',
   icon: 'spell_holy_auraoflight',
   min: 30,
@@ -222,15 +252,16 @@ export const RETRIBUTION_AURA_DAMAGE: SpellDef = {
   threatMult: 1,
 }
 
-/** Retribution Aura, up from before the pull: its damage on each of the boss's swings that lands on you. */
+/** Retribution Aura's damage on each of the boss's swings that lands on you, while it's up. */
 export const RETRIBUTION_AURA_PROC: ProcSpec = {
-  id: 'retributionAura',
+  id: 'retributionAuraDamage',
   name: 'Retribution Aura',
   icon: 'spell_holy_auraoflight',
   trigger: 'meleeTaken',
   from: 'any',
   chance: { pct: 100 },
   action: { kind: 'spell', spell: RETRIBUTION_AURA_DAMAGE },
+  requiresAura: RETRIBUTION_AURA.id,
   docRef: `${DOC}#other-abilities`,
 }
 
@@ -270,7 +301,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     kind: 'choice',
     id: ID.priority,
     label: 'Priority',
-    help: 'Tank duties first keeps Devotion Aura’s armor for your survival. Max TPS runs Retribution Aura instead, for its threat: the boss takes 30 Holy damage each time it hits you. The Buffs tab’s Devotion Aura then counts as another paladin’s.',
+    help: 'Tank duties first keeps your Devotion Aura up, for its 735 armor. Max TPS runs Retribution Aura instead, for its threat: the boss takes 30 Holy damage each time it hits you. That’s about 5% more TPS and DPS in the default setup, and 5% more damage taken. Devotion Aura is then off in the Buffs tab; turn it on there if another paladin in your group keeps it up.',
     choices: [
       { value: PROTECTION_PRIORITY.duties, label: 'Tank duties first' },
       { value: PROTECTION_PRIORITY.maxTps, label: 'Max TPS' },
@@ -287,33 +318,13 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
   },
   {
     kind: 'toggle',
-    id: ID.swiftJudgement,
+    id: ID.devotionAura,
     group: 'Cooldowns and buffs',
-    label: 'Swift Judgement',
-    help: 'Use Swift Judgement while Judgement is cooling down, then judge again for free: one more Judgement a minute. Needs the talent. It’s off the global cooldown.',
+    label: 'Devotion Aura',
+    help: 'Keep your Devotion Aura up: +735 armor. Off, you run Retribution Aura instead: the boss takes 30 Holy damage each time it hits you, with Righteous Fury’s threat. While this is on, the Buffs tab’s Devotion Aura is yours. Off by default with Max TPS.',
     default: true,
-  },
-  {
-    kind: 'number',
-    id: ID.swiftJudgementCooldown,
-    group: 'Cooldowns and buffs',
-    label: 'Swift Judgement with',
-    help: 'Use it only while Judgement has at least this much cooldown left, so it saves at least that much. Otherwise it waits for the next Judgement, and saves all of its cooldown.',
-    unit: 's left',
-    min: 0,
-    max: 10,
-    step: 0.5,
-    default: 4.5,
-    dependsOn: ID.swiftJudgement,
-  },
-  {
-    kind: 'toggle',
-    id: ID.retributionAura,
-    group: 'Cooldowns and buffs',
-    label: 'Retribution Aura',
-    help: 'Run Retribution Aura instead of Devotion Aura: the boss takes 30 Holy damage each time it hits you, with Righteous Fury’s threat. While this is on, the Buffs tab’s Devotion Aura counts as another paladin’s. On by default with Max TPS.',
-    default: false,
-    defaultWhen: [{ ...MAX_TPS, default: true }],
+    defaultWhen: [{ ...MAX_TPS, default: false }],
+    maintainsBuff: 'devotionAura',
   },
   {
     kind: 'choice',
@@ -349,6 +360,28 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
   },
   {
     kind: 'toggle',
+    id: ID.swiftJudgement,
+    group: 'Core abilities',
+    label: 'Swift Judgement',
+    help: 'Use Swift Judgement while Judgement is cooling down, then judge again for free: one more Judgement a minute. Needs the talent. It’s off the global cooldown.',
+    default: true,
+    dependsOn: ID.judgement,
+  },
+  {
+    kind: 'number',
+    id: ID.swiftJudgementCooldown,
+    group: 'Core abilities',
+    label: 'Swift Judgement with',
+    help: 'Use it only while Judgement has at least this much cooldown left, so it saves at least that much. Otherwise it waits for the next Judgement, and saves all of its cooldown.',
+    unit: 's left',
+    min: 0,
+    max: 10,
+    step: 0.5,
+    default: 4.5,
+    dependsOn: ID.swiftJudgement,
+  },
+  {
+    kind: 'toggle',
     id: ID.holyStrike,
     group: 'Core abilities',
     label: 'Holy Strike',
@@ -363,7 +396,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     help: 'Against Undead and Demons (set under Fight), use Exorcism whenever it’s ready. It can’t be cast on anything else.',
     default: true,
   },
-  manaOption(ID.exorcismMana, 'Exorcism from', 'Use it only at or above this much of your maximum mana. It costs 345.', 40, ID.exorcism, 'Core abilities'),
+  manaOption(ID.exorcismMana, 'Exorcism from', 'Use it only at or above this much of your maximum mana. It costs 345.', 0, ID.exorcism, 'Core abilities'),
   {
     kind: 'toggle',
     id: ID.consecration,
@@ -375,8 +408,8 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
   manaOption(
     ID.consecrationMana,
     'Consecration from',
-    'Use rank 5 only at or above this much of your maximum mana. At 95, it goes down at the pull and seldom after: the mana is worth more to Holy Shield and your seal.',
-    95,
+    'Use rank 5 only at or above this much of your maximum mana. At 90, it goes down at the pull and seldom after: the mana is worth more to Holy Shield and your seal.',
+    90,
     ID.consecration,
     'Fillers',
   ),
@@ -399,6 +432,14 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
   },
   manaOption(ID.hammerOfWrathMana, 'Hammer of Wrath from', 'Use it only at or above this much of your maximum mana.', 0, ID.hammerOfWrath, 'Execute phase'),
 ]
+
+/**
+ * Buff catalogue ids the rotation keeps up itself with these settings, so the plan drops the Buffs
+ * switch's static version: your own Devotion Aura (paladin.md "Priority", D26).
+ */
+export function protectionMaintainedBuffs(values: Record<string, RotationValue>): string[] {
+  return reader(PROTECTION_OPTIONS, values).on(ID.devotionAura) ? ['devotionAura'] : []
+}
 
 /** The seal the settings choose (paladin.md "Protection defaults": Seal of Fury, Seal of Righteousness selectable). */
 export const protectionSeal = (values: Record<string, RotationValue>): AbilityDef =>
@@ -484,13 +525,22 @@ export function protectionRotation(
   // Row 8: Hammer of Wrath, only in the execute phase (the ability says so), at mana ≥ x%.
   if (v.on(ID.hammerOfWrath) && ctx.executePhase) add(HAMMER_OF_WRATH_ABILITY, manaFrom(ID.hammerOfWrathMana))
 
-  // Retribution Aura in place of Devotion Aura: up from before the pull, it needs no line.
-  if (v.on(ID.retributionAura)) procs.push(RETRIBUTION_AURA_PROC)
+  // The aura, up from 3 s before the pull, a GCD before the seal: Devotion Aura, or Retribution
+  // Aura and its damage on the boss's swings. It needs no line.
+  const aura = index(v.on(ID.devotionAura) ? DEVOTION_AURA : RETRIBUTION_AURA)
+  if (!v.on(ID.devotionAura)) procs.push(RETRIBUTION_AURA_PROC)
 
   return {
     abilities,
     rotation,
-    prepull: { casts: [{ ability: seal, atMs: PREPULL_SEAL_MS }], chargeTenths: 0, keepTenths: -1 },
+    prepull: {
+      casts: [
+        { ability: aura, atMs: PREPULL_AURA_MS },
+        { ability: seal, atMs: PREPULL_SEAL_MS },
+      ],
+      chargeTenths: 0,
+      keepTenths: -1,
+    },
     onUse: [],
     procs: [...paladinProcs(abilities, talents, ctx), ...procs],
   }

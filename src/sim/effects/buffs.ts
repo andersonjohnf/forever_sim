@@ -334,7 +334,8 @@ export const BUFFS: BuffSpec[] = [
     providedBy: 'paladin',
     docRef: `${DOC}#12-threat-defense-and-mana`,
     effects: [{ kind: 'stat', stat: 'bonusArmor', value: 735 }],
-    presets: { raid: 'tank', max: 'tank' },
+    // A Protection paladin's own, which its rotation keeps up (paladin.md "Priority", D26): not in its presets.
+    presets: { raid: MELEE_TANKS, max: MELEE_TANKS },
   },
   {
     id: 'blessingOfWisdom',

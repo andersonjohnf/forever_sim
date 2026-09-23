@@ -669,7 +669,7 @@ and its Faerie Fire is free in Cat Form. So they're `Pal`, like Blessing of Wisd
 | Windfury Totem | — | — | all | all |
 | Strength of Earth Totem | — | — | all | all |
 | Mana Spring Totem | — | — | Pal | Pal |
-| Devotion Aura | — | — | Tank | Tank |
+| Devotion Aura | — | — | Tank, but a Prot paladin's is its own: its rotation keeps it up, and Max TPS drops it ([paladin](../classes/paladin.md#priority-tank-duties-first-or-max-tps)) | the same |
 | Sunder Armor ×5 | — | DPS | all | all |
 | Faerie Fire | — | — | all (not the Feral cat's: see below) | all (the same) |
 | Curse of Recklessness | — | — | all | all |

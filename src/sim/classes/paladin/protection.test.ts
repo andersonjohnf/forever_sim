@@ -1,14 +1,19 @@
 // The Protection paladin (docs/classes/paladin.md "Protection: model and rotation", #protection-tree,
 // #threat-paladin-specific): its settings and the Max TPS priority (D26), its priority list, Holy
 // Shield (worked example 12, its charges and its threat), Swift Judgement, Reckoning, Redoubt,
-// Retribution Aura, Seal of Fury's absorb with Improved Seal of Fury's mana, the threat of each
-// ability, mana over a long fight, and determinism.
+// Devotion Aura and Retribution Aura, Seal of Fury's absorb with Improved Seal of Fury's mana, the
+// threat of each ability, mana over a long fight, and determinism.
 import { describe, expect, it } from 'vitest'
 import { defaultConfig } from '../../defaults'
 import { runChunk } from '../../engine/chunk'
 import { BOSS_OUTCOME, FIELD, FIELD_COUNT, Sim } from '../../engine/sim'
 import { buildPlan } from '../../plan/build'
 import { ACTION, COND, type Plan, TRIGGER } from '../../plan/types'
+import { presetBuffIds } from '../../effects/presets'
+import { FULL_RAID } from '../../defaults'
+import { CHUNK_SIZE } from '../../engine/chunk'
+import { type Aggregate, emptyAggregate, mergeChunk, toResult } from '../../run/aggregate'
+import { maintainedBuffs } from '../rotation'
 import { rotationGroups } from '../../index'
 import type { SimConfig } from '../../types'
 import { resolveRotationValues } from '../options'
@@ -45,6 +50,13 @@ const auraOf = (plan: Plan, id: string) => plan.auras.findIndex((a) => a.id === 
 /** The engine's current time, for traces that don't pass it. */
 const nowOf = (sim: Sim) => (sim as unknown as { now: number }).now
 const LANDED: ReadonlySet<number> = new Set([BOSS_OUTCOME.block, BOSS_OUTCOME.crit, BOSS_OUTCOME.crush, BOSS_OUTCOME.hit])
+
+function runFights(plan: Plan, fights: number): Aggregate {
+  const sim = new Sim(plan)
+  let agg = emptyAggregate(plan.sources.length, plan.auras.length)
+  for (let k = 0; k * CHUNK_SIZE < fights; k++) agg = mergeChunk(agg, runChunk(plan, k, Math.min(CHUNK_SIZE, fights - k * CHUNK_SIZE), sim))
+  return agg
+}
 
 describe('Protection rotation options (paladin.md "Forever priority list (default)")', () => {
   it('declares valid, uniquely named settings in its spec’s namespace, the priority first without a heading', () => {
@@ -85,11 +97,12 @@ describe('Protection rotation options (paladin.md "Forever priority list (defaul
       [ID.holyShield]: true,
       [ID.swiftJudgement]: true,
       [ID.swiftJudgementCooldown]: 4.5,
-      [ID.retributionAura]: false,
+      [ID.devotionAura]: true,
       [ID.judgement]: true,
       [ID.holyStrike]: true,
       [ID.consecration]: true,
-      [ID.consecrationMana]: 95,
+      [ID.exorcismMana]: 0,
+      [ID.consecrationMana]: 90,
       [ID.consecrationRank1]: false,
       [ID.hammerOfWrath]: true,
       [ID.hammerOfWrathMana]: 0,
@@ -97,32 +110,65 @@ describe('Protection rotation options (paladin.md "Forever priority list (defaul
   })
 })
 
-describe('Max TPS (paladin.md "Max TPS", D26)', () => {
-  it('runs Retribution Aura instead of Devotion Aura, and moves nothing else', () => {
+describe('Max TPS (paladin.md "Priority: tank duties first, or Max TPS", D26)', () => {
+  it('drops Devotion Aura, the paladin’s duty, for Retribution Aura, and moves nothing else', () => {
     const duties = resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)
     const max = resolveRotationValues(PROTECTION_OPTIONS, MAX_TPS, TALENTS)
-    expect([duties[ID.retributionAura], max[ID.retributionAura]]).toEqual([false, true])
+    expect([duties[ID.devotionAura], max[ID.devotionAura]]).toEqual([true, false])
     const moved = Object.keys(duties).filter((id) => duties[id] !== max[id])
-    expect(moved.sort()).toEqual([ID.priority, ID.retributionAura].sort())
-    expect(PROTECTION_OPTIONS.find((o) => o.id === ID.retributionAura)!.help).toContain('Max TPS')
+    expect(moved.sort()).toEqual([ID.priority, ID.devotionAura].sort())
+    const devotion = PROTECTION_OPTIONS.find((o) => o.id === ID.devotionAura)!
+    expect(devotion).toMatchObject({ kind: 'toggle', maintainsBuff: 'devotionAura' })
+    expect(devotion.help).toContain('Max TPS')
   })
 
   it('keeps a value you set yourself, and the tank-duties choice is the default', () => {
-    const own = resolveRotationValues(PROTECTION_OPTIONS, { ...MAX_TPS, [ID.retributionAura]: false }, TALENTS)
-    expect(own[ID.retributionAura]).toBe(false)
+    const own = resolveRotationValues(PROTECTION_OPTIONS, { ...MAX_TPS, [ID.devotionAura]: true }, TALENTS)
+    expect(own[ID.devotionAura]).toBe(true)
     const back = resolveRotationValues(PROTECTION_OPTIONS, { [ID.priority]: PROTECTION_PRIORITY.duties }, TALENTS)
     expect(back).toEqual(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS))
   })
 
-  it('adds Retribution Aura’s damage on the boss’s landed swings, and keeps the Buffs tab’s Devotion Aura', () => {
+  it('your Devotion Aura is yours: the rotation puts it up, and the Buffs tab’s counts once; Max TPS leaves the Buffs tab’s off', () => {
     const d = defaultConfig(PROT)
-    expect(d.buffs.enabled).toContain('devotionAura')
-    const duties = buildPlan(d).plan
-    const max = buildPlan({ ...d, rotation: MAX_TPS }).plan
-    expect(duties.procs.some((p) => p.id === 'retributionAura')).toBe(false)
-    expect(max.procs.find((p) => p.id === 'retributionAura')).toMatchObject({ trigger: TRIGGER.meleeTaken, chance: [1, 1] })
-    // Devotion Aura's armor stays: another paladin's, as the setting's help says.
-    expect(max.armor).toBe(duties.armor)
+    // D26: the raid preset leaves out a Protection paladin's own Devotion Aura, and a warrior tank's
+    // Thunder Clap and Demoralizing Shout (you can add them in the Buffs tab).
+    for (const preset of ['raid', 'max'] as const) {
+      for (const id of ['devotionAura', 'thunderClap', 'demoralizingShout']) expect(presetBuffIds(preset, PROT, FULL_RAID), id).not.toContain(id)
+    }
+    expect(presetBuffIds('raid', 'warrior-protection', FULL_RAID)).toEqual(expect.arrayContaining(['devotionAura', 'thunderClap', 'demoralizingShout']))
+    expect(maintainedBuffs(PROT, {})).toEqual(['devotionAura'])
+    expect(maintainedBuffs(PROT, MAX_TPS)).toEqual([])
+    const duties = buildPlan(d)
+    const max = buildPlan({ ...d, rotation: MAX_TPS })
+    // The aura is a cast before the pull, a GCD before the seal: Devotion Aura's +735 armor, or Retribution Aura.
+    const aura = (b: typeof duties) => b.plan.abilities[b.plan.prepull.casts[0].ability]
+    expect(duties.plan.prepull.casts.map((c) => c.atMs)).toEqual([-3000, -1500])
+    expect(aura(duties).id).toBe('devotionAura')
+    expect(duties.plan.auras[aura(duties).aura]).toMatchObject({ armor: 735, group: 'paladinAura' })
+    expect(aura(max).id).toBe('retributionAura')
+    expect(max.plan.procs.find((p) => p.id === 'retributionAuraDamage')).toMatchObject({ trigger: TRIGGER.meleeTaken, chance: [1, 1] })
+    expect(duties.plan.procs.some((p) => p.id === 'retributionAuraDamage')).toBe(false)
+    // The sheet shows your own Devotion Aura's armor; the fight gets it from the aura, once.
+    expect(duties.sheet.armor - max.sheet.armor).toBe(735)
+    expect(duties.plan.armor).toBe(max.plan.armor)
+    // Another paladin's Devotion Aura, turned on in the Buffs tab: with tank duties it adds nothing
+    // more (the same aura); with Max TPS it counts.
+    const withBuff = (rotation: SimConfig['rotation']) => buildPlan({ ...d, rotation, buffs: { ...d.buffs, enabled: [...d.buffs.enabled, 'devotionAura'] } })
+    expect(withBuff({}).plan.armor).toBe(duties.plan.armor)
+    expect(withBuff(MAX_TPS).plan.armor - max.plan.armor).toBe(735)
+  })
+
+  it('Devotion Aura saves damage taken, and costs Retribution Aura’s threat', () => {
+    const d = defaultConfig(PROT)
+    const run = (rotation: SimConfig['rotation']) => {
+      const plan = buildPlan({ ...d, rotation }).plan
+      return toResult({ plan, sheet: buildPlan({ ...d, rotation }).sheet, assumptions: [] }, runFights(plan, 400), 0)
+    }
+    const duties = run({})
+    const max = run(MAX_TPS)
+    expect(max.tps.mean).toBeGreaterThan(duties.tps.mean * 1.04)
+    expect(max.tank!.dtps.mean).toBeGreaterThan(duties.tank!.dtps.mean * 1.03)
   })
 })
 
@@ -135,7 +181,12 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
     expect(ids(r)).toEqual(['sealOfFury', 'holyShield', 'judgementOfFury', 'swiftJudgement', 'holyStrike', 'consecration', 'hammerOfWrath'])
     // Abilities 0 and 1 are the seal and its judgement (paladinCore's order), the seal up 1.5 s before the pull.
     expect(r.abilities.slice(0, 2).map((a) => a.id)).toEqual(['sealOfFury', 'judgementOfFury'])
-    expect(r.prepull.casts).toEqual([{ ability: 0, atMs: -1500 }])
+    // Devotion Aura 3 s before the pull, then the seal.
+    const devotion = r.abilities.findIndex((a) => a.id === 'devotionAura')
+    expect(r.prepull.casts).toEqual([
+      { ability: devotion, atMs: -3000 },
+      { ability: 0, atMs: -1500 },
+    ])
     const lines = Object.fromEntries(r.rotation.map((e) => [r.abilities[e.ability].id, e.conditions]))
     const shield = r.abilities.findIndex((a) => a.id === 'holyShield')
     expect(lines.sealOfFury).toEqual([{ code: COND.abilityAuraRefresh, a: 0, b: 2000 }])
@@ -146,8 +197,8 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
       { code: COND.abilityAuraUp, a: 0, b: 0 },
     ])
     expect(lines.holyStrike).toEqual([])
-    // 95% of 2,000 mana, in tenths.
-    expect(lines.consecration).toEqual([{ code: COND.minMana, a: 19000, b: 0 }])
+    // 90% of 2,000 mana, in tenths.
+    expect(lines.consecration).toEqual([{ code: COND.minMana, a: 18000, b: 0 }])
     expect(lines.hammerOfWrath).toEqual([])
     // Swift Judgement ends the judgement's cooldown, and its buff makes that judgement free.
     const swift = r.abilities.find((a) => a.id === 'swiftJudgement')!
@@ -229,32 +280,49 @@ describe('Holy Shield’s charges (paladin.md#other-abilities; combat-tables §8
     expect(plan.auras[plan.abilities[holyShield].aura]).toMatchObject({ durationMs: 10000, blockCharges: 4, block: 20 })
     expect(plan.abilities[holyShield]).toMatchObject({ kind: 'cast', costTenths: 2400, cooldownMs: 10000, gcdMs: 1500 })
     const sim = new Sim(plan)
-    const casts: number[] = []
-    const blocks: number[] = []
-    const damage: number[] = []
+    // What happened, in the order it happened: casts of Holy Shield, blocks, and its damage.
+    const log: [event: 'cast' | 'block' | 'damage', time: number][] = []
     const damageRow = rowOf(plan, 'holyShieldProc')
     sim.castTrace = (a, t) => {
-      if (a === holyShield) casts.push(t)
+      if (a === holyShield) log.push(['cast', t])
     }
     sim.swingTakenTrace = (o) => {
-      if (o === BOSS_OUTCOME.block) blocks.push(nowOf(sim))
+      if (o === BOSS_OUTCOME.block) log.push(['block', nowOf(sim)])
     }
     sim.damageTrace = (s) => {
-      if (s === damageRow) damage.push(nowOf(sim))
+      if (s === damageRow) log.push(['damage', nowOf(sim)])
     }
     sim.runFight(0)
-    expect(casts.length).toBeGreaterThan(10)
-    expect(field(sim, plan, 'holyShield', FIELD.casts)).toBe(casts.length)
+    const casts = log.filter(([e]) => e === 'cast').length
+    expect(casts).toBeGreaterThan(10)
+    expect(field(sim, plan, 'holyShield', FIELD.casts)).toBe(casts)
     expect(shield).toBeGreaterThanOrEqual(0)
-    // Per cast: the first 4 blocks in its 10 s deal damage, no more.
-    let expected: number[] = []
-    for (const [k, c] of casts.entries()) {
-      const end = Math.min(c + 10000, casts[k + 1] ?? Infinity)
-      expected = expected.concat(blocks.filter((t) => t >= c && t < end).slice(0, 4))
+    // After each cast, the first 4 blocks within its 10 s deal its damage at once, and no other
+    // block does. (A block at the very millisecond it runs out may come just before or after.)
+    let charges = 0
+    let until = -Infinity
+    let dealt = 0
+    let lastCharge = 0
+    for (const [k, [event, t]] of log.entries()) {
+      if (event === 'cast') [charges, until] = [4, t + 10000]
+      if (event !== 'block') continue
+      const next = log[k + 1]
+      const damaged = next !== undefined && next[0] === 'damage' && next[1] === t
+      if (t === until) {
+        if (damaged) charges--
+        continue
+      }
+      expect(damaged, `block at ${t}`).toBe(charges > 0 && t < until)
+      if (damaged) {
+        if (charges === 1) lastCharge++
+        charges--
+        dealt++
+      }
     }
-    expect(damage).toEqual(expected)
+    expect(dealt).toBe(log.filter(([e]) => e === 'damage').length)
+    expect(lastCharge).toBeGreaterThan(5)
     // Its 4 charges end it early: it's recast only on its 10 s cooldown, so it's down a while each time.
-    expect(sim.auraUpMs[plan.abilities[holyShield].aura]).toBeLessThan(0.95 * casts.length * 10000)
+    expect(sim.auraUpMs[plan.abilities[holyShield].aura]).toBeLessThan(0.95 * casts * 10000)
   })
 })
 
@@ -407,6 +475,7 @@ describe('Seal of Fury’s absorb and Improved Seal of Fury (paladin.md#protecti
 
 describe('Retribution Aura (paladin.md#other-abilities)', () => {
   it('30 Holy to the boss on each of its swings that lands on you, blocked ones too, × 1.9 threat; it never crits', () => {
+    // Devotion Aura off: Retribution Aura instead.
     const plan = protPlan({ rotation: MAX_TPS })
     plan.stats.spellCrit = 100
     const sim = new Sim(plan)
@@ -414,14 +483,20 @@ describe('Retribution Aura (paladin.md#other-abilities)', () => {
     sim.swingTakenTrace = (o) => {
       if (LANDED.has(o)) landed++
     }
-    for (let i = 0; i < 10; i++) sim.runFight(i)
-    const hits = field(sim, plan, 'retributionAura', FIELD.hits)
+    let ms = 0
+    for (let i = 0; i < 10; i++) {
+      sim.runFight(i)
+      ms += sim.fightMs
+    }
+    const hits = field(sim, plan, 'retributionAuraDamage', FIELD.hits)
     expect(hits).toBe(landed)
-    expect(field(sim, plan, 'retributionAura', FIELD.crits)).toBe(0)
-    expect(field(sim, plan, 'retributionAura', FIELD.damage) / hits).toBeCloseTo(30, 9)
+    expect(field(sim, plan, 'retributionAuraDamage', FIELD.crits)).toBe(0)
+    expect(field(sim, plan, 'retributionAuraDamage', FIELD.damage) / hits).toBeCloseTo(30, 9)
     // × the Threat gloves' 2% (the default gear's enchant).
     expect(plan.threatMult).toBeCloseTo(1.02, 12)
-    expect(field(sim, plan, 'retributionAura', FIELD.threat) / hits).toBeCloseTo(57 * 1.02, 9)
+    expect(field(sim, plan, 'retributionAuraDamage', FIELD.threat) / hits).toBeCloseTo(57 * 1.02, 9)
+    // It's up all fight, from its cast before the pull.
+    expect(sim.auraUpMs[auraOf(plan, 'retributionAura')]).toBe(ms)
     expect(RETRIBUTION_AURA_DAMAGE).toMatchObject({ spCoefficient: 0, takenScale: 0, cannotCrit: true })
   })
 })
@@ -433,7 +508,7 @@ describe('threat per ability (paladin.md#threat-paladin-specific; threat.md)', (
     for (let i = 0; i < 20; i++) sim.runFight(i)
     // Everything also × the Threat gloves' 2% (the default gear's enchant).
     const ratio = (id: string) => field(sim, plan, id, FIELD.threat) / field(sim, plan, id, FIELD.damage) / plan.threatMult
-    for (const id of ['sealOfFuryProc', 'judgementOfFury', 'consecration', 'hammerOfWrath', 'retributionAura']) expect(ratio(id), id).toBeCloseTo(1.9, 12)
+    for (const id of ['sealOfFuryProc', 'judgementOfFury', 'consecration', 'hammerOfWrath', 'retributionAuraDamage']) expect(ratio(id), id).toBeCloseTo(1.9, 12)
     expect(ratio('holyStrike')).toBeCloseTo(1.9 * 1.25, 12)
     expect(ratio('holyShieldProc')).toBeCloseTo(1.9 * 1.2, 12)
     for (const id of ['mainHand', 'reckoning']) expect(ratio(id), id).toBeCloseTo(1, 12)
@@ -461,8 +536,8 @@ describe('mana over a long fight (paladin.md "Protection: model and rotation", #
     // Judgement every 8 s and twice at each of 10 Swift Judgements; Holy Strike every 10 s.
     expect(perFight('judgementOfFury')).toBeGreaterThan(0.97 * (600 / 8 + 10))
     expect(perFight('holyStrike')).toBeGreaterThan(0.97 * 60)
-    // Consecration from 95% of maximum mana: at the pull, and seldom after.
-    expect(perFight('consecration')).toBeLessThan(8)
+    // Consecration from 90% of maximum mana: at the pull, and seldom after; its cooldown allows 75.
+    expect(perFight('consecration')).toBeLessThan(15)
     expect(low).toBeGreaterThanOrEqual(0)
   })
 })

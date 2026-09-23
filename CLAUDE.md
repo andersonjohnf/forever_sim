@@ -54,7 +54,7 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
 ## Git workflow
 
 - **Commit as each task or slice completes,** in logical commits with descriptive messages
-  (what and why), on `main`.
+  (what and why): on `main`, or on a parallel track's worktree branch.
 - **Parallel tracks** work on worktree branches and are reviewed there. The lead merges them onto
   `main` one at a time and runs `npm run test:full` after each merge. A merge that resolved
   conflicts or re-snapshotted goldens gets a verification pass scoped to the merge (D25).
@@ -116,8 +116,8 @@ npm run scrape:client # just src/data/client, the raw client tables (cached; -- 
   1.13–1.15). **Never** use Season of Discovery, Season of Mastery, original Vanilla (2004–06 or
   private-server emulators), TBC+ or Retail values. Tag documented values `[F]`/`[C]`/`[?]`
   with a source link. If only a forbidden source has a value, add it to *Open questions*;
-  don't use it. **One exception (D24):** a value Classic Era kept unchanged from 1.12 (base
-  attributes, base health) may stand in as a flagged `[?]` placeholder until a tier 1–3 source
+  don't use it. **One exception (D24):** a value Classic Era kept unchanged from 1.12 (class base
+  attributes, base health), found only in an emulator database, may stand in as a flagged `[?]` placeholder until a tier 1–3 source
   replaces it; see D24 for the conditions.
 - **No world buffs.** They aren't available in WoW Forever raids: no toggles, presets or
   defaults for them (doctrine §1, decision D8).

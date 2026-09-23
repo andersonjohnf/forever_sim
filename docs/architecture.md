@@ -126,8 +126,9 @@ A spec is data plus small ability modules, never its own loop.
   and one pure `deriveStats` in the documented order (flat adds → % multipliers → floor →
   conversions). Forever ratings and Classic percentages feed the same pipeline; haste rating,
   expertise and armor penetration apply only with `unmeasuredRatings: 'apply'` in `forever` (D12).
-  Aura crit is kept separately for the +3 suppression. Unknown base values stay unknown: the sheet
-  lists them in `unknown` and never substitutes a forbidden-source number.
+  Aura crit is kept separately for the +3 suppression. A base value with no source stays unknown:
+  the sheet lists it in `unknown`, unless a D24 placeholder stands in for it, flagged `[?]` and
+  listed in the result's assumptions. A forbidden-source number is never used otherwise.
 
 ### The event loop
 

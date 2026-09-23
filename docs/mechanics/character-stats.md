@@ -270,8 +270,8 @@ no Classic Era sim or guide publishes them, and the Forever client doesn't carry
 | Paladin class row (= Human paladin) | ? | ? | ? | ? | ? | [?] [OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes) |
 | Druid class row (= Human-offset druid; derive Night Elf and Tauren with the offsets) | ? | ? | ? | ? | ? | [?] [OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes) |
 
-Candidate values were found in a forbidden source (a vanilla server emulator database). They are
-recorded, **not adopted**, under [OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes).
+Candidate values were found in a vanilla server emulator database, and a pre-SoD Classic sim
+reproduces them (see [OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes)).
 **Replaced by [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)
 (2026-09-23):** the 2026-09-22 rule "no forbidden-source placeholders" kept the paladin and druid
 specs from computing base attributes. Under D24 these 1.12 rows, which Classic Era kept and which
@@ -887,8 +887,8 @@ placeholders; the paladin and druid specs no longer wait for this measurement.
   Undead offset [C], and confirm on Forever (Route C).
 - **Skyborne warriors and druids:** Route C only.
 
-*Found in a forbidden source (vanilla emulator database [mz-levelstats]); recorded, not adopted,
-and not used as fixtures:*
+*Found in a vanilla emulator database [mz-levelstats]. Under D24 these rows may stand in, tagged
+"[?] placeholder (D24)", and so may test fixtures, until a sheet replaces them:*
 
 | Race and class | Str | Agi | Sta | Int | Spi (sheet) |
 | --- | --- | --- | --- | --- | --- |
@@ -906,8 +906,9 @@ this stays a sheet measurement. It now matters to tank rage too: Forever's rage 
 divides by maximum health ([rage.md](rage.md#forever-)), so while base health is left out, that
 rage comes out high.
 **Route A:** read maximum health from the OQ-1 sheets (divide the Tauren value by 1.05). Then
-`baseHP = HP − 20 − 10 × (Sta − 20)`. *Forbidden-source candidates, not adopted*, from
-the emulator's class table [mz-classlevelstats]: warrior 1689, paladin 1381, druid 1483. The druid value also appears in an
+`baseHP = HP − 20 − 10 × (Sta − 20)`. *Candidates from the emulator's class table
+[mz-classlevelstats], which may stand in as D24 placeholders:* warrior 1689, paladin 1381, druid
+1483. The druid value also appears in an
 old Classic-branded sim that mixes in TBC formulas, so it doesn't count as a Classic source.
 
 ### OQ-3: base melee and spell crit
@@ -1067,7 +1068,7 @@ whole ([derived-stat pipeline](#derived-stat-pipeline), step 4).
 | [Blizzard forums: +dodge vs +defense (Oct 2019)][bnet-def] | Defense 0.04% per point to avoidance and crit reduction | Classic Era (community) |
 | [wowsims/forever base_stats.go][wsf-base], [base_stats_auto_gen.go][wsf-autogen], [base_stats_parser.py][wsf-parser], [racials.go][wsf-racials], [ArmorMitigationByLvl.txt][wsf-armor], [CombatRatings.txt][wsf-cr] | Corroboration of what the Forever client does and doesn't ship and of its game tables, which the project now reads directly ([client-gt]). **Its attribute rows are TBC level-70 values and its racials are TBC: not used.** | Secondary [?]: a Forever sim, TBC-derived (partly forbidden) |
 | [docs/data/items.md, "Forever's ratings"](../data/items.md#forevers-ratings-f-with-open-questions) | Measured tooltip ratio of rating to percentage across 4,271 changed items; new rating stats | Forever (project scrape of foreverchanges.pro) |
-| [mangoszero player_levelstats.sql][mz-levelstats], [player_classlevelstats.sql][mz-classlevelstats] | Candidate values for the open questions only | **Forbidden** (vanilla emulator): not adopted |
+| [mangoszero player_levelstats.sql][mz-levelstats], [player_classlevelstats.sql][mz-classlevelstats] | Candidate values for the open questions; they may stand in as D24 placeholders, never as evidence | **Forbidden** (vanilla emulator), except as a [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23) placeholder |
 
 Fetch notes: foreverchanges.pro was read through its RSC payload, respecting its `robots.txt`.
 About 50 wago.tools page lookups were made on 2026-09-22 before the project learned that its

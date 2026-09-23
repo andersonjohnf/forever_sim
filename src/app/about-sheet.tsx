@@ -49,7 +49,7 @@ export function AboutSheet({
           <SheetTitle ref={titleRef} tabIndex={-1} className="outline-none">
             About Forever Sim
           </SheetTitle>
-          {/* What it is, then the specs it covers so far, which grow as they ship (docs/ux.md principle 8). */}
+          {/* What it is, then the specs it covers, which grow as they ship (docs/ux.md principle 8). */}
           <SheetDescription>{appSentence()} Everything runs in your browser.</SheetDescription>
           <p className="mt-1 text-sm text-muted-foreground">{coverageSentence()}</p>
         </SheetHeader>
@@ -64,8 +64,8 @@ export function AboutSheet({
             <p>
               WoW Forever values come first. Where Forever data doesn&apos;t exist yet, the sim falls back to Classic
               Era values. Season of Discovery, Season of Mastery, original Vanilla, TBC and Retail values are never
-              used. A few base values nobody has measured yet, such as class base health, use the Classic Era numbers
-              until someone does, and each result lists them.
+              used. A few base values nobody has measured yet, such as class base health, are left out or use the
+              value Classic Era is expected to have until someone measures them, and each result lists them.
             </p>
             <p>
               Anything the sim assumes but nobody has verified in game yet is listed with each result, so you know

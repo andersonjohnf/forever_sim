@@ -66,8 +66,9 @@ Rules come from four tiers. Use the highest tier that has an answer.
    later**, or **Retail**. If a forbidden source is the only one you can find, do not adopt
    the value. Record it as an open question, with how to verify it on the beta. **One
    exception ([D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)):** a
-   value Classic Era kept unchanged from 1.12 (class base attributes, base health) may stand in
-   when no tier 1–3 source has it and it agrees with the [C] values around it. It's tagged
+   value Classic Era kept unchanged from 1.12 (class base attributes, base health), found only
+   in an emulator database, may stand in when no tier 1–3 source has it and it agrees with the
+   [C] values around it. It's tagged
    `[?]` as a placeholder, never cited as evidence, listed in the open questions with its
    estimated effect and in the results' assumptions, and replaced as soon as a tier 1–3 source
    has it.

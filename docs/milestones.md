@@ -20,7 +20,7 @@ push passes the adversarial review gate ([doctrine §6](doctrine.md#6-review-gat
 - [ ] Consolidated open-questions list for the guild to test on the beta
 - [x] Data-integrity tests (counts, schema, no unresolved references, legal default builds)
 - [x] Pages source set to GitHub Actions
-- [ ] First deploy (placeholder page live)
+- [x] First deploy (done at M2.4j: the first release is live)
 
 **Exit:** build, lint and tests pass; every dataset validated; every research doc has
 sources, worked examples, and open questions.
@@ -195,8 +195,6 @@ The goal is every DPS and tank spec. The tracks run at the same time, each in it
 with its own review gate, and the lead merges them one at a time (D25). Tracks B and C start
 without waiting for A; only the Bear and Paladin Protection slices need A1.
 
-| Track | Slices | Depends on |
-| --- | --- | --- |
 | Track | Slices | Milestone | Depends on |
 | --- | --- | --- | --- |
 | A. Tank core | A1: the boss attacking the player, mitigation, tank stats, tank results | M3 (its first bullets) | – |

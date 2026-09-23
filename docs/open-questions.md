@@ -113,9 +113,10 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 ### High
 
 #### A1. Paladin and druid base stats (naked sheets)
-**High · M4, M5 · blocks both specs**
-- **Assumes:** nothing. The paladin and druid class rows (Str, Agi, Sta, Int, Spi) are unknown
-  and the engine has no fallback, so neither spec can compute stats [?]. Also unknown: base
+**High · M4, M5**
+- **Assumes:** the paladin and druid class rows (Str, Agi, Sta, Int, Spi) stand in as D24
+  placeholders until a sheet replaces them [?]; they no longer block either spec
+  ([D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)). Also unknown: base
   health, base melee and spell crit, base dodge, parry and block, and the AP terms (paladin
   `160 + 2 × Str`, druid `2 × Str − 20`) [?]. The druid's 0.9% base crit and spirit regen
   `15 + Spirit/5` per 2 s come only from a secondary sim [?].
@@ -128,7 +129,7 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   the cap (Route B): Cat AP at level L should be `2 × Str + Agi − 20 + 12 + 2 × (L − 6)`.
 - **Samples:** one sheet per race/class (two races per class confirm the race-offset rule);
   3+ regen ticks.
-- **Changes:** fills the class rows and base values, unblocks M4 and M5, and settles druid Q30.
+- **Changes:** replaces the placeholder class rows and base values, and settles druid Q30.
 - **Docs:** [stats OQ-1](mechanics/character-stats.md#oq-1-paladin-druid-and-skyborne-base-attributes),
   [OQ-2](mechanics/character-stats.md#oq-2-base-health),
   [OQ-3](mechanics/character-stats.md#oq-3-base-melee-and-spell-crit),

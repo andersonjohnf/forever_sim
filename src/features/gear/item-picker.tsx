@@ -11,7 +11,7 @@ import { itemData, summarizeItem } from '@/lib/items'
 import { cn } from '@/lib/utils'
 import { fitsSlot, SPEC_META, type GearSlot, type SpecId } from '@/sim'
 import { ItemSummary } from './item-row'
-import { bisRank, SLOT_LABEL, sourceLine } from './slots'
+import { bisRank, itemDetails, itemKind, SLOT_LABEL } from './slots'
 
 type Filter = 'bis' | 'all'
 
@@ -65,7 +65,11 @@ function PickerBody({ spec, slot, equippedId, pairedUnique, onPick, autoFocus }:
     () =>
       itemData.items
         .filter((item) => fitsSlot(classId, slot, item))
-        .map((item) => ({ item, bis: bisRank(item, spec, slot), text: `${item.name} ${summarizeItem(item)}`.toLowerCase() }))
+        .map((item) => ({
+          item,
+          bis: bisRank(item, spec, slot),
+          text: `${item.name} ${itemKind(item) ?? ''} ${summarizeItem(item)}`.toLowerCase(),
+        }))
         .sort(
           (a, b) =>
             (a.bis ?? 99) - (b.bis ?? 99) || b.item.itemLevel - a.item.itemLevel || a.item.name.localeCompare(b.item.name),
@@ -90,7 +94,7 @@ function PickerBody({ spec, slot, equippedId, pairedUnique, onPick, autoFocus }:
             autoFocus={autoFocus}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name or stat, e.g. “crit”"
+            placeholder="Search by name, type or stat, e.g. “crit”"
             aria-label="Search items"
             className="h-11 pl-9"
           />
@@ -147,12 +151,7 @@ function PickerBody({ spec, slot, equippedId, pairedUnique, onPick, autoFocus }:
                 <ItemSummary
                   item={item}
                   bis={bis}
-                  meta={[
-                    `Item level ${item.itemLevel}`,
-                    moves ? `Unique: moves from ${SLOT_LABEL[pairedUnique.slot].toLowerCase()}` : sourceLine(item),
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
+                  meta={itemDetails(item, moves ? `Unique: moves from ${SLOT_LABEL[pairedUnique.slot].toLowerCase()}` : null)}
                 />
                 {equipped && <Check className="mt-1 size-4 shrink-0" aria-label="Equipped" />}
               </button>

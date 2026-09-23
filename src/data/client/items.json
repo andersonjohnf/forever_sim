@@ -1851,9 +1851,9 @@
         "enchantIds": [],
         "name": "Blessed Sunfruit",
         "section": "3.4 Food",
-        "spellIds": [18125]
+        "spellIds": [18124]
       },
-      "docMismatches": ["doc says item 13810 → spell 18125; client item effects: 18124"],
+      "docMismatches": [],
       "effects": [
         {
           "categoryCoolDownMSec": -1,
@@ -4147,7 +4147,7 @@
         "enchantIds": [],
         "name": "Major / Superior / Greater Frenzy Potion",
         "section": "3.5 Potions and runes",
-        "spellIds": []
+        "spellIds": [1251937]
       },
       "docMismatches": [],
       "effects": [
@@ -4203,7 +4203,7 @@
         "enchantIds": [],
         "name": "Major / Superior / Greater Frenzy Potion",
         "section": "3.5 Potions and runes",
-        "spellIds": []
+        "spellIds": [1251938]
       },
       "docMismatches": [],
       "effects": [
@@ -4259,7 +4259,7 @@
         "enchantIds": [],
         "name": "Major / Superior / Greater Frenzy Potion",
         "section": "3.5 Potions and runes",
-        "spellIds": []
+        "spellIds": [1251940]
       },
       "docMismatches": [],
       "effects": [
@@ -4762,10 +4762,10 @@
     "consumables": 85,
     "consumablesWithEffects": 85,
     "foreverDataFalseWithItemSparseRow": 0,
-    "foreverDataTrueWithoutItemSparseRow": 110,
-    "items": 1644,
-    "withEffects": 236,
-    "withItemRow": 1644,
+    "foreverDataTrueWithoutItemSparseRow": 0,
+    "items": 1630,
+    "withEffects": 237,
+    "withItemRow": 1630,
     "withItemSparseRow": 884
   },
   "items": {
@@ -4856,6 +4856,32 @@
         "material": 1,
         "sheatheType": 4,
         "subclassId": 6
+      },
+      "itemSparse": null
+    },
+    "1973": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": 0,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": 1800000,
+          "id": 99437,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 16739,
+          "triggerType": 0
+        }
+      ],
+      "id": 1973,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 134334,
+        "inventoryType": 0,
+        "material": 3,
+        "sheatheType": 0,
+        "subclassId": 0
       },
       "itemSparse": null
     },
@@ -18155,6 +18181,19 @@
         "classId": 4,
         "iconFileDataId": 133140,
         "inventoryType": 1,
+        "material": 5,
+        "sheatheType": 0,
+        "subclassId": 3
+      },
+      "itemSparse": null
+    },
+    "18320": {
+      "effects": [],
+      "id": 18320,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 135054,
+        "inventoryType": 3,
         "material": 5,
         "sheatheType": 0,
         "subclassId": 3
@@ -36893,19 +36932,6 @@
         "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       }
     },
-    "271907": {
-      "effects": [],
-      "id": 271907,
-      "item": {
-        "classId": 4,
-        "iconFileDataId": 133772,
-        "inventoryType": 16,
-        "material": 7,
-        "sheatheType": 0,
-        "subclassId": 1
-      },
-      "itemSparse": null
-    },
     "271908": {
       "effects": [],
       "id": 271908,
@@ -37011,71 +37037,6 @@
         "statPercentEditor": [7601, 5066, 0, 0, 0, 0, 0, 0, 0, 0]
       }
     },
-    "271924": {
-      "effects": [],
-      "id": 271924,
-      "item": {
-        "classId": 2,
-        "iconFileDataId": 132409,
-        "inventoryType": 17,
-        "material": 1,
-        "sheatheType": 1,
-        "subclassId": 1
-      },
-      "itemSparse": null
-    },
-    "271928": {
-      "effects": [],
-      "id": 271928,
-      "item": {
-        "classId": 2,
-        "iconFileDataId": 135654,
-        "inventoryType": 21,
-        "material": 1,
-        "sheatheType": 3,
-        "subclassId": 15
-      },
-      "itemSparse": null
-    },
-    "271932": {
-      "effects": [],
-      "id": 271932,
-      "item": {
-        "classId": 4,
-        "iconFileDataId": 133738,
-        "inventoryType": 23,
-        "material": 8,
-        "sheatheType": 0,
-        "subclassId": 0
-      },
-      "itemSparse": null
-    },
-    "271936": {
-      "effects": [],
-      "id": 271936,
-      "item": {
-        "classId": 2,
-        "iconFileDataId": 133042,
-        "inventoryType": 21,
-        "material": 1,
-        "sheatheType": 3,
-        "subclassId": 4
-      },
-      "itemSparse": null
-    },
-    "272063": {
-      "effects": [],
-      "id": 272063,
-      "item": {
-        "classId": 4,
-        "iconFileDataId": 133772,
-        "inventoryType": 16,
-        "material": 7,
-        "sheatheType": 0,
-        "subclassId": 1
-      },
-      "itemSparse": null
-    },
     "272064": {
       "effects": [],
       "id": 272064,
@@ -37180,58 +37141,6 @@
         "statModifierBonusStat": [7, 5, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [7601, 5066, 0, 0, 0, 0, 0, 0, 0, 0]
       }
-    },
-    "272079": {
-      "effects": [],
-      "id": 272079,
-      "item": {
-        "classId": 2,
-        "iconFileDataId": 132409,
-        "inventoryType": 17,
-        "material": 1,
-        "sheatheType": 1,
-        "subclassId": 1
-      },
-      "itemSparse": null
-    },
-    "272083": {
-      "effects": [],
-      "id": 272083,
-      "item": {
-        "classId": 2,
-        "iconFileDataId": 135654,
-        "inventoryType": 21,
-        "material": 1,
-        "sheatheType": 3,
-        "subclassId": 15
-      },
-      "itemSparse": null
-    },
-    "272087": {
-      "effects": [],
-      "id": 272087,
-      "item": {
-        "classId": 4,
-        "iconFileDataId": 133738,
-        "inventoryType": 23,
-        "material": 8,
-        "sheatheType": 0,
-        "subclassId": 0
-      },
-      "itemSparse": null
-    },
-    "272091": {
-      "effects": [],
-      "id": 272091,
-      "item": {
-        "classId": 2,
-        "iconFileDataId": 133042,
-        "inventoryType": 21,
-        "material": 1,
-        "sheatheType": 3,
-        "subclassId": 4
-      },
-      "itemSparse": null
     },
     "272406": {
       "effects": [],
@@ -37373,19 +37282,6 @@
         "statPercentEditor": [4286, 4761, 3809, 0, 0, 0, 0, 0, 0, 0]
       }
     },
-    "272411": {
-      "effects": [],
-      "id": 272411,
-      "item": {
-        "classId": 4,
-        "iconFileDataId": 133757,
-        "inventoryType": 16,
-        "material": 7,
-        "sheatheType": 0,
-        "subclassId": 1
-      },
-      "itemSparse": null
-    },
     "272413": {
       "effects": [],
       "id": 272413,
@@ -37420,32 +37316,6 @@
         "statModifierBonusStat": [41, 42, 43, 7, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [14665, 4888, 1904, 3809, 0, 0, 0, 0, 0, 0]
       }
-    },
-    "272414": {
-      "effects": [],
-      "id": 272414,
-      "item": {
-        "classId": 4,
-        "iconFileDataId": 133762,
-        "inventoryType": 16,
-        "material": 7,
-        "sheatheType": 0,
-        "subclassId": 1
-      },
-      "itemSparse": null
-    },
-    "272415": {
-      "effects": [],
-      "id": 272415,
-      "item": {
-        "classId": 4,
-        "iconFileDataId": 133768,
-        "inventoryType": 16,
-        "material": 7,
-        "sheatheType": 0,
-        "subclassId": 1
-      },
-      "itemSparse": null
     },
     "272427": {
       "effects": [
@@ -39395,19 +39265,6 @@
         "statModifierBonusStat": [7, 3, 38, 5, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [5588, 4117, 4117, 2352, 0, 0, 0, 0, 0, 0]
       }
-    },
-    "272491": {
-      "effects": [],
-      "id": 272491,
-      "item": {
-        "classId": 4,
-        "iconFileDataId": 133071,
-        "inventoryType": 1,
-        "material": 5,
-        "sheatheType": 0,
-        "subclassId": 3
-      },
-      "itemSparse": null
     },
     "272492": {
       "effects": [],
@@ -48846,32 +48703,6 @@
         "statModifierBonusStat": [7, 12, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [8425, 5330, 0, 0, 0, 0, 0, 0, 0, 0]
       }
-    },
-    "284257": {
-      "effects": [],
-      "id": 284257,
-      "item": {
-        "classId": 2,
-        "iconFileDataId": 132456,
-        "inventoryType": 17,
-        "material": 1,
-        "sheatheType": 1,
-        "subclassId": 1
-      },
-      "itemSparse": null
-    },
-    "284261": {
-      "effects": [],
-      "id": 284261,
-      "item": {
-        "classId": 4,
-        "iconFileDataId": 134588,
-        "inventoryType": 7,
-        "material": 5,
-        "sheatheType": 0,
-        "subclassId": 4
-      },
-      "itemSparse": null
     }
   }
 }

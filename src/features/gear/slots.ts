@@ -1,4 +1,4 @@
-import type { Item, PreRaidBisSlot } from '@/data/items/types'
+import type { Item, PreRaidBisSlot, WeaponType } from '@/data/items/types'
 import type { GearSlot, SpecId } from '@/sim'
 
 export const SLOT_LABEL: Record<GearSlot, string> = {
@@ -75,11 +75,51 @@ export function bisRank(item: Item, spec: SpecId, slot: GearSlot): number | null
   return entry?.rank ?? null
 }
 
-/** "Magmus · Blackrock Depths · 20%", or null when the item's source isn't known. */
-export function sourceLine(item: Item): string | null {
-  const entry = item.source?.[0]?.entries[0]
-  if (!entry) return null
-  const parts = [entry.name, ...entry.details]
-  if (entry.chance) parts.push(`${entry.chance}%`)
-  return parts.join(' · ')
+const WEAPON_NOUN: Record<WeaponType, string> = {
+  axe: 'axe',
+  bow: 'bow',
+  crossbow: 'crossbow',
+  dagger: 'dagger',
+  fist: 'fist weapon',
+  gun: 'gun',
+  mace: 'mace',
+  polearm: 'polearm',
+  staff: 'staff',
+  sword: 'sword',
+  thrown: 'thrown weapon',
+  wand: 'wand',
+}
+
+const HAND: Partial<Record<Item['slot'], string>> = {
+  twoHand: 'Two-hand',
+  oneHand: 'One-hand',
+  mainHand: 'Main-hand',
+  offHand: 'Off-hand',
+}
+
+const capitalize = (s: string) => s[0].toUpperCase() + s.slice(1)
+
+/** What kind of item it is: "Plate", "Two-hand sword", "Shield", "Idol"; null for jewelry and cloaks. */
+export function itemKind(item: Item): string | null {
+  if (item.weaponType) {
+    const hand = HAND[item.slot]
+    return hand ? `${hand} ${WEAPON_NOUN[item.weaponType]}` : capitalize(WEAPON_NOUN[item.weaponType])
+  }
+  if (item.armorType && item.slot !== 'back') return capitalize(item.armorType)
+  if (item.slot === 'shield') return 'Shield'
+  if (item.slot === 'heldInOffHand') return 'Held in off hand'
+  if (item.slot === 'relic') return item.itemSubclass
+  return null
+}
+
+/**
+ * The picker's detail line, e.g. "Two-hand sword · Item level 63 · Requires level 58". Each part
+ * keeps its words together, so a narrow screen wraps the line only between parts.
+ */
+export function itemDetails(item: Item, extra?: string | null): string {
+  const req = item.reqLevel ? `Requires level ${item.reqLevel}` : null
+  return [itemKind(item), `Item level ${item.itemLevel}`, extra ?? req]
+    .filter((part): part is string => Boolean(part))
+    .map((part) => part.replaceAll(' ', ' '))
+    .join(' · ')
 }

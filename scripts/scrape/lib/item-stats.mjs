@@ -457,8 +457,8 @@ const SPELL_STAT_TYPES = new Set([41, 42, 45]); // healing, spell damage, spell 
  * The `Weapon` block. Forever: DPS = ItemDamage<table>[ItemLevel].Quality[quality] (minus
  * CASTER_DPS_PER_SPELL_POWER per caster spell power); average = DPS × speed; min =
  * floor(average × (1 − DmgVariance/2)); max = floor(average × (1 + DmgVariance/2) + 0.5).
- * Classic Era: MinDamage[0]/MaxDamage[0] (MinDamage[1]/MaxDamage[1] = extra damage, school
- * not stored). `dps` is rounded to 0.1 like the tooltip.
+ * Classic Era: MinDamage[0]/MaxDamage[0] (MinDamage[1]/MaxDamage[1] = extra damage, its school
+ * in Item.DamageType[1]). `dps` is rounded to 0.1 like the tooltip.
  */
 export function weapon(ctx, row, item) {
   if (!item || item.ClassID !== 2 || !row.ItemDelay) return null;
@@ -472,7 +472,9 @@ export function weapon(ctx, row, item) {
   if (storesAmounts(row)) {
     min = row.MinDamage[0];
     max = row.MaxDamage[0];
-    if (row.MaxDamage[1]) extraDamage = [{ min: row.MinDamage[1], max: row.MaxDamage[1], school: null }];
+    // The extra damage's school is Item.DamageType[1] (Classic Era's Item table keeps one
+    // school per damage range; ItemSparse.DamageType is only the first).
+    if (row.MaxDamage[1]) extraDamage = [{ min: row.MinDamage[1], max: row.MaxDamage[1], school: DAMAGE_SCHOOL[item.DamageType?.[1]] ?? null }];
     dpsSource = "stored";
   } else {
     const table = damageTable(row, item);

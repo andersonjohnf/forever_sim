@@ -39,6 +39,22 @@ test.describe('gear', () => {
     await expect(page.getByRole('button', { name: 'Head: Crown of Caer Darrow' })).toBeVisible()
   })
 
+  test('shows each item’s type and level, and finds items by type', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('button', { name: 'Head: Lionheart Helm' }).click()
+    const picker = page.getByRole('dialog', { name: 'Choose head' })
+    // "plate" is only in the item's type line, not its name or stats.
+    await picker.getByLabel('Search items').fill('plate lionheart')
+    await expect(picker.getByRole('button', { name: /Lionheart Helm/ })).toContainText('Plate · Item level 61 · Requires level 56')
+    await picker.getByLabel('Search items').fill('two-hand sword blackblade')
+    await expect(picker.getByText('No items match')).toBeVisible()
+    await page.keyboard.press('Escape')
+    await page.getByRole('button', { name: /^Main hand:/ }).click()
+    const weapons = page.getByRole('dialog', { name: 'Choose main hand' })
+    await weapons.getByLabel('Search items').fill('two-hand sword blackblade')
+    await expect(weapons.getByRole('button', { name: /Blackblade of Shahram/ })).toContainText('Two-hand sword · Item level')
+  })
+
   test('a two-handed weapon frees the off hand', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('button', { name: /^Main hand:/ }).click()

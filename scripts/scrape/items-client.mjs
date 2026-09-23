@@ -1,379 +1,422 @@
 #!/usr/bin/env node
-// Derive the pre-raid pool's item stats from the client tables and check them against the
-// current snapshot, src/data/items/pre-bis.json (milestone M1.5c-1, decision D17).
+// The pre-raid item pool, src/data/items/pre-bis.json, from the client files (milestones
+// M1.5c-1 and M1.5c-2, decision D17). Forever (wow_classic_beta) rows first; items the Forever
+// client has no row for fall back to their Classic Era (wow_classic_era) row, flagged.
 //
-//   node scripts/scrape/items-client.mjs --compare [--refresh] [--version=<Forever build>]
-//                                        [--baseline=<Classic Era build>] [--dbdefs=<sha>]
-//                                        [--fixtures]
+//   node scripts/scrape/items-client.mjs [--write] [--compare] [--diff] [--fixtures]
+//        [--refresh] [--version=<Forever build>] [--baseline=<Classic Era build>] [--dbdefs=<sha>]
+//        [--snapshot=<old pre-bis.json>]
 //
-// Forever-stat items are compared with the Forever (wow_classic_beta) client, and
-// `statsFrom: "classic"` items with the Classic Era (wow_classic_era) client, field by
-// field. Changed items' `classic` block is also checked against the Classic Era row, as a
-// test of the Classic path. The report goes to .cache/client/<version>/items-compare.md
-// (and .json, every mismatch); the summary is printed. The derivation itself is
-// scripts/scrape/lib/item-stats.mjs; see docs/data/client.md#items-from-the-client.
+//   --write     (default) derive the pool and write src/data/items/pre-bis.json
+//   --compare   derive every item of the saved foreverchanges snapshot and compare it field by
+//               field (the M1.5c-1 check); report in .cache/client/<build>/items-compare.md
+//   --diff      old dataset (the snapshot) vs the written one: items added and removed, and
+//               changed fields by class; report in .cache/client/<build>/items-diff.md
+//   --fixtures  regenerate scripts/scrape/lib/__fixtures__/item-stats.json (unit-test rows)
 //
-// --fixtures also writes scripts/scrape/lib/__fixtures__/item-stats.json: the real client
-// rows the unit tests derive from.
+// The snapshot is the last foreverchanges.pro dataset (git: b94a076:src/data/items/pre-bis.json).
+// --write saves the current pre-bis.json there before overwriting it when it is still the
+// foreverchanges one. Default path: .cache/client/items-foreverchanges-snapshot.json.
 //
 // Downloads go through lib/wago.mjs (documented wago.tools API only, one request at a time,
-// cached under .cache/client/). Zero dependencies (Node >= 22). Exits non-zero when an
-// engine-read field has a mismatch without a stated reason.
+// cached under .cache/client/, once per build). Zero dependencies (Node >= 22). The derivation
+// is lib/item-stats.mjs, the text renderer lib/spell-text.mjs and the pool lib/item-pool.mjs;
+// see docs/data/items.md and docs/data/client.md#items-from-the-client.
 
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { createFetcher } from "./lib/http.mjs";
+import { buildPool, measureRatingConversions } from "./lib/item-pool.mjs";
+import { ITEM_GAMETABLES, ITEM_TABLES, createItemContext } from "./lib/item-stats.mjs";
+import { stableStringify } from "./lib/json.mjs";
+import { SPELL_TEXT_TABLES, createSpellTextContext } from "./lib/spell-text.mjs";
 import { createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
-import { ITEM_TABLES, ITEM_GAMETABLES, createItemContext, deriveItem, deriveSet } from "./lib/item-stats.mjs";
+
+// ---------------------------------------------------------------------------
+// Filter: edit these to widen the dataset (e.g. QUALITIES = [3, 4] for epics).
+// ---------------------------------------------------------------------------
+
+// Kept: equippable AND quality in QUALITIES AND (REQ_LEVEL[0] <= required level <= REQ_LEVEL[1]
+// OR item level >= MIN_ITEM_LEVEL), OR listed in PRE_RAID_BIS_FILE at any quality or level.
+// Decided by the user, 2026-09-22 (decisions D10, D11; docs/data/items.md#filter).
+
+/** Item qualities to keep: 2 Uncommon, 3 Rare, 4 Epic, 5 Legendary. */
+const QUALITIES = [3];
+/** Inclusive required-level range. */
+const REQ_LEVEL = [55, 60];
+/** Items at or above this item level are kept whatever their required level. null = off. */
+const MIN_ITEM_LEVEL = 58;
+/**
+ * Season of Discovery guard. The Classic Era client also ships Season of Discovery items, so an
+ * item is eligible only if it is an original Classic item (id below this) or new in Forever (a
+ * Forever row and no Classic Era row). Original Classic ids end around 24300.
+ */
+const MAX_CLASSIC_ITEM_ID = 25000;
+/** Items that pass the rule but can't be obtained. Each needs a reason (meta.filter). */
+const EXCLUDED_ITEMS = new Map([
+  [20368, "Bland Bow of Steadiness: Classic test weapon, not obtainable"],
+  [24071, "Bland Dagger: Classic test weapon, not obtainable"],
+]);
+/** Client rows that are developer items, not loot: test, deprecated and monster items. */
+const JUNK_NAME = /\b(?:test|deprecated)\b|^monster\b|\bplaceholder\b|\[dnt\]|\(dnt\)/i;
+/** Hand-curated Classic Era pre-raid BiS lists (scraper input); every listed item joins the pool. */
+const PRE_RAID_BIS_FILE = "scripts/scrape/pre-raid-bis.json";
+/**
+ * New Forever items that no client build carries yet (foreverchanges showed them from server
+ * hotfixes, which the raw client files don't include). D17: flagged, never guessed. They join
+ * the pool on their own once a build ships their rows; delete them here then.
+ */
+const WATCH_ITEMS = new Map([
+  [272491, "Premier Chain Headguard"],
+  [271907, "Expeditionary's Cape"],
+  [272063, "Darkspear Raider's Cloak"],
+  [272411, "Arcanoweave Cloak"],
+  [272414, "Howler's Furs"],
+  [272415, "Stalwart Cloak"],
+  [284261, "Magically Fortified Legguards"],
+  [271924, "Rebels' Rugged Reaper"],
+  [272079, "Darkspear Raider's Reaper"],
+  [284257, "Icesworn Decapitator"],
+  [271928, "Clever Expeditionary's Spellblade"],
+  [271936, "Guerilla's Jagged Mace"],
+  [272083, "Darkspear Insurgent's Spellblade"],
+  [272091, "Darkspear Skirmisher's Bludgeon"],
+  [271932, "Insurgent's Manifesto"],
+  [272087, "Tome of the Darkspear Prophecy"],
+]);
+const OUT_FILE = "src/data/items/pre-bis.json";
+
+const FILTER_RULE =
+  `equippable AND ((quality in [${QUALITIES.join(", ")}] AND ` +
+  `(${REQ_LEVEL[0]} <= required level <= ${REQ_LEVEL[1]}` +
+  `${MIN_ITEM_LEVEL === null ? "" : ` OR item level >= ${MIN_ITEM_LEVEL} (any required level, including none)`}))` +
+  ` OR listed in ${PRE_RAID_BIS_FILE} (any quality or level))` +
+  ` AND (id < ${MAX_CLASSIC_ITEM_ID} OR new in Forever: a Forever row and no Classic Era row)`;
+
+// ---------------------------------------------------------------------------
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
-const POOL_FILE = "src/data/items/pre-bis.json";
-const BIS_FILE = "scripts/scrape/pre-raid-bis.json";
+const SCRAPER = "scripts/scrape/items-client.mjs";
 const FIXTURE_FILE = "scripts/scrape/lib/__fixtures__/item-stats.json";
+const DEFAULT_SNAPSHOT = ".cache/client/items-foreverchanges-snapshot.json";
+/** The last commit whose pre-bis.json came from foreverchanges.pro. */
+const SNAPSHOT_COMMIT = "b94a076";
 const PRODUCT = "wow_classic_beta";
+const BASELINE_PRODUCT = "wow_classic_era";
 const DEFAULT_BASELINE = "1.15.9.69722";
 
-const opts = { compare: false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, fixtures: false };
+const opts = { write: false, compare: false, diff: false, fixtures: false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, snapshot: DEFAULT_SNAPSHOT };
 for (const arg of process.argv.slice(2)) {
   const m = /^--([a-z]+)(?:=(.*))?$/.exec(arg);
   if (!m) usage(`Unknown argument: ${arg}`);
   const [, key, value] = m;
-  if ((key === "compare" || key === "refresh" || key === "fixtures") && value === undefined) opts[key] = true;
-  else if ((key === "version" || key === "baseline" || key === "dbdefs") && value) opts[key] = value;
+  if (["write", "compare", "diff", "fixtures", "refresh"].includes(key) && value === undefined) opts[key] = true;
+  else if (["version", "baseline", "dbdefs", "snapshot"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
-if (!opts.compare && !opts.fixtures) usage("Nothing to do: pass --compare (writing pre-bis.json from the client is M1.5c-2).");
+if (!opts.compare && !opts.diff && !opts.fixtures) opts.write = true;
 function usage(msg) {
-  console.error(`${msg}\nUsage: node scripts/scrape/items-client.mjs --compare [--fixtures] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
+  console.error(`${msg}\nUsage: node ${SCRAPER} [--write] [--compare] [--diff] [--fixtures] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>] [--snapshot=<file>]`);
   process.exit(2);
 }
+
+const errors = [];
+const warnings = [];
+const fail = (msg) => errors.push(msg);
+const warn = (msg) => warnings.push(msg);
 
 // ---------------------------------------------------------------------------
 // Tables
 // ---------------------------------------------------------------------------
 
 const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh });
-const version = opts.version ?? (await latestBuild(fetcher, PRODUCT)).version;
+const latest = await latestBuild(fetcher, PRODUCT);
+const version = opts.version ?? latest.version;
 const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs);
 
-async function load(build) {
+/** Tables beyond the derivation and the text renderer: names, limits, icons, races. */
+const LOOKUP_TABLES = ["ItemSubClass", "Faction", "SkillLine", "ItemLimitCategory", "ChrClasses", "ChrRaces", "CharBaseInfo", "ItemModifiedAppearance", "ItemAppearance"];
+
+async function load(key, build, { lookups = false } = {}) {
   const source = createClientSource({ fetcher, cacheDir: CACHE_DIR, version: build, dbdefsSha });
   const tables = {};
-  for (const name of ITEM_TABLES) {
+  const used = new Map(); // table → FileDataID
+  const names = [...new Set([...ITEM_TABLES, ...SPELL_TEXT_TABLES, ...(lookups ? LOOKUP_TABLES : ["ChrClasses"])])];
+  for (const name of names) {
     const t = await source.table(name);
     if (!t.present && name !== "ItemXItemEffect") throw new Error(`${name}: not in build ${build}`);
     if (t.warnings?.length) throw new Error(`${name} (${build}): ${t.warnings.join("; ")}`);
     tables[name] = t;
+    if (t.present) used.set(name, t.fdid);
   }
   const gameTables = {};
-  for (const [key, file] of Object.entries(ITEM_GAMETABLES)) {
-    if (!(await source.fdidByName(file))) continue; // Forever doesn't ship shieldblockregular.txt
-    gameTables[key] = (await source.gameTable(file)).rows;
+  for (const [k, file] of Object.entries(ITEM_GAMETABLES)) {
+    const fdid = await source.fdidByName(file);
+    if (!fdid) continue; // Forever doesn't ship shieldblockregular.txt
+    gameTables[k] = (await source.gameTable(file)).rows;
+    used.set(file, fdid);
   }
-  return { build, tables, gameTables, ctx: createItemContext(tables, gameTables) };
+  return { key, build, source, tables, gameTables, used, ctx: createItemContext(tables, gameTables), text: createSpellTextContext(tables) };
 }
 
-const forever = await load(version);
-const classic = await load(opts.baseline);
-const pool = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, POOL_FILE), "utf8"));
-const bis = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, BIS_FILE), "utf8"));
+const forever = await load("forever", version, { lookups: true });
+const classic = await load("classic", opts.baseline);
 
 // ---------------------------------------------------------------------------
-// Comparison
+// Pre-raid BiS lists
 // ---------------------------------------------------------------------------
 
-/** Stat keys the engine reads (src/sim/plan/build.ts ITEM_STAT and AP_VS, plus weaponDamage). */
-const ENGINE_STATS = new Set([
-  "strength", "agility", "stamina", "intellect", "spirit", "armor", "bonusArmor", "defense", "defenseRating",
-  "dodge", "dodgeRating", "parry", "parryRating", "block", "blockRating", "blockValue", "attackPower", "hit",
-  "crit", "meleeCrit", "spellHit", "spellCrit", "hitRating", "critRating", "hasteRating", "expertiseRating",
-  "armorPenetration", "weaponDamage", "attackPowerVsBeasts", "attackPowerVsDemons", "attackPowerVsDragonkin",
-  "attackPowerVsElementals", "attackPowerVsGiants", "attackPowerVsHumanoids", "attackPowerVsMechanical",
-  "attackPowerVsUndead",
-]);
-const ENGINE_FIELDS = new Set(["weapon.min", "weapon.max", "weapon.speed", "weaponSkill", "set.bonusStats"]);
-const isEngine = (field) => ENGINE_FIELDS.has(field) || ENGINE_STATS.has(field.replace(/^stats\./, ""));
+/** Read PRE_RAID_BIS_FILE: { specs, byId: Map<id, [{ spec, slot, rank }]>, names: Map<id, name> }. */
+function loadPreRaidBis() {
+  const data = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, PRE_RAID_BIS_FILE), "utf8"));
+  const out = { specs: {}, byId: new Map(), names: new Map() };
+  const specOrder = Object.keys(data.specs);
+  for (const [spec, s] of Object.entries(data.specs)) {
+    if (!s.name || !s.source?.url) fail(`${PRE_RAID_BIS_FILE}: spec ${spec} needs a name and source.url`);
+    out.specs[spec] = { name: s.name, source: s.source, ...(s.note ? { note: s.note } : {}) };
+    for (const [slot, entries] of Object.entries(s.slots)) {
+      for (const e of entries) {
+        if (!Number.isInteger(e.id) || !Number.isInteger(e.rank) || e.rank < 1 || !e.name) {
+          fail(`${PRE_RAID_BIS_FILE}: bad entry in ${spec}.${slot}: ${JSON.stringify(e)}`);
+          continue;
+        }
+        if (out.names.has(e.id) && out.names.get(e.id) !== e.name) fail(`${PRE_RAID_BIS_FILE}: ${e.id} is named both "${out.names.get(e.id)}" and "${e.name}"`);
+        out.names.set(e.id, e.name);
+        if (!out.byId.has(e.id)) out.byId.set(e.id, []);
+        out.byId.get(e.id).push({ spec, slot, rank: e.rank });
+      }
+    }
+  }
+  for (const list of out.byId.values())
+    list.sort((a, b) => specOrder.indexOf(a.spec) - specOrder.indexOf(b.spec) || a.slot.localeCompare(b.slot) || a.rank - b.rank);
+  return out;
+}
 
+// ---------------------------------------------------------------------------
+// Lookups: names, limit categories, classes, races and icons
+// ---------------------------------------------------------------------------
+
+let classicFiles = null;
 /**
- * Mismatches explained item by item after checking the rows by hand. Every entry says why;
- * `class` is one of the report's mismatch classes. Keys are "<id>:<field>" or "<id>:*".
+ * Icon name of a FileDataID from the build's own file list ("interface/icons/inv_helmet_36.blp"
+ * → "inv_helmet_36"). FileDataIDs are global, so the Forever list serves Classic Era rows too;
+ * the Classic Era list is read only for an id Forever's lacks.
  */
-const TRAILING_SENTENCE = "the tooltip line has a second sentence, so the old parser kept it as text; the client's aura is the stat";
-const KNOWN = new Map([
-  ["19120:stats.attackPower", { class: "parser", reason: `"+14 Attack Power. This effect is tripled in Forest and Grassland areas.": ${TRAILING_SENTENCE}; the tripling is a second spell (1287704) restricted to area group 9161, kept as a conditional effect` }],
-  ["13209:stats.attackPowerVsUndead", { class: "parser", reason: `"+81 Attack Power when fighting Undead. It also allows the acquisition of Scourgestones…": ${TRAILING_SENTENCE}` }],
-  ["13209:effects.otherEquip", { class: "parser", reason: "the same line: the client's spell 23930 is only the undead AP auras" }],
-  ["19812:stats.spellDamageVsUndead", { class: "parser", reason: `"…damage done to Undead by magical spells and effects by up to 48. It also allows…": ${TRAILING_SENTENCE}` }],
-  ["19812:effects.otherEquip", { class: "parser", reason: "the same line: the client's spell 24198 is only the undead spell-damage aura" }],
-  ["15062:stats.rangedAttackPower", { class: "parser", reason: "Classic Era spell 15811 gives 46 melee and 48 ranged AP; the tooltip prints only \"+46 Attack Power\"" }],
-  ["set 143:set.bonusStats", { class: "parser", reason: "Forever's bonus spell 460230 grants melee hit (aura 54) and spell hit (aura 55); the tooltip reads \"Improves your chance to hit by 2.0%\"" }],
-  ["19947:effects.useCooldown", { class: "parser", reason: "the Classic Era item effect's cooldown is 75,000 ms; the site's tooltip prints \"(1 Min Cooldown)\"" }],
-  ["22268:effects.useCooldown", { class: "parser", reason: "the Classic Era item effect's cooldown is 75,000 ms; the site's tooltip prints \"(1 Min Cooldown)\"" }],
-  ...[272437, 272438, 272439].map((id) => [`${id}:effects.useCooldown`, { class: "hotfix", reason: "Undermine trinket: the raw ItemEffect says 90,000 ms (15,000 ms shared category 1141); the tooltip says 2 min" }]),
-]);
-
-/** Mismatch classes, in report order. */
-const CLASSES = {
-  "no-row": "No client row: the build has no ItemSparse row for the item",
-  "formula-gap": "Formula gap: the derivation doesn't reproduce this yet",
-  rounding: "Rounding: off by one",
-  hotfix: "Likely hotfix: the raw row disagrees with the tooltip in a way no formula explains",
-  parser: "Old tooltip or parser error: the snapshot's value is wrong or incomplete, the client's is right",
-  equivalent: "Equivalent: a different key for the same engine stat",
-  "effect-kind": "Effect bucket: tooltip wording and client aura sort the same effect differently",
-  layout: "Client layout: the value isn't stored in this client's layout",
-  "forever-differs": "Stale Classic bonus: Forever's own client data differs from the Classic Era value the snapshot uses",
-  unclassified: "Unclassified",
-};
-
-const results = []; // { id, name, target, field, want, got, cls, reason, engine }
-const fieldTally = new Map(); // `${target}|${field}` -> { compared, matched, engine }
-
-function tally(target, field, ok) {
-  const k = `${target}|${field}`;
-  if (!fieldTally.has(k)) fieldTally.set(k, { target, field, compared: 0, matched: 0, engine: isEngine(field) });
-  const t = fieldTally.get(k);
-  t.compared++;
-  if (ok) t.matched++;
+async function createIconNamer() {
+  const files = await forever.source.files();
+  const appearance = forever.tables.ItemAppearance.byId;
+  const byItem = new Map();
+  for (const r of [...forever.tables.ItemModifiedAppearance.rows].sort((a, b) => a.OrderIndex - b.OrderIndex || a.ID - b.ID))
+    if (!byItem.has(r.ItemID)) byItem.set(r.ItemID, r.ItemAppearanceID);
+  const unresolved = [];
+  const name = (fdid) => {
+    let n = files[String(fdid)];
+    if (!n && classicFiles) n = classicFiles[String(fdid)];
+    const m = n && /^interface\/icons\/(.+)\.blp$/i.exec(n);
+    // Icon CDNs (Wowhead's, decision D14) spell a space in a file name as "-".
+    return m ? m[1].toLowerCase().replaceAll(" ", "-") : null;
+  };
+  const iconName = (id, item) => {
+    // Item.IconFileDataID, else the default icon of the item's first appearance.
+    const fdid = item?.IconFileDataID || appearance.get(byItem.get(id))?.DefaultIconFileDataID || null;
+    const n = fdid ? name(fdid) : null;
+    if (!n) unresolved.push({ id, fdid });
+    return n;
+  };
+  return { iconName, unresolved };
 }
 
-function classify(target, item, field, want, got, derived) {
-  const known = KNOWN.get(`${item.id}:${field}`) ?? KNOWN.get(`${item.id}:*`);
-  if (known) return known;
-  if (target === "set-classic-in-forever") return { class: "forever-differs", reason: "Forever's ItemSetSpell has other bonuses than the Classic Era ones the snapshot shows" };
-  if (/^effects\.(use|proc|otherEquip)$/.test(field)) return { class: "effect-kind", reason: "counts differ between buckets; see the item's effects" };
-  if (field === "set.bonusStats" && want.replaceAll('"meleeCrit"', '"crit"') === got) {
-    return { class: "equivalent", reason: "aura 52 (melee and ranged crit); the tooltip says \"with melee attacks\" (`meleeCrit`), and the engine adds both keys to melee crit" };
+function createLookups(bundle, iconName) {
+  const t = forever.tables;
+  const subclass = new Map(t.ItemSubClass.rows.map((r) => [`${r.ClassID}:${r.SubClassID}`, r]));
+  const shared = new Set();
+  const seen = new Set();
+  for (const r of t.ItemSubClass.rows) {
+    const k = `${r.ClassID}:${r.DisplayName_lang}`;
+    if (seen.has(k)) shared.add(k);
+    seen.add(k);
   }
-  if (typeof want === "number" && typeof got === "number" && Math.abs(want - got) === 1) return { class: "rounding", reason: "off by one" };
-  if (field === "weapon.extraDamage.school") return { class: "layout", reason: "Classic Era ItemSparse has one DamageType; the extra damage's school isn't stored" };
-  if (derived?.unknownStatTypes?.length) return { class: "formula-gap", reason: `unknown stat type(s) ${derived.unknownStatTypes.map((u) => u.type).join(", ")}` };
-  return { class: "unclassified", reason: "" };
+  const limit = t.ItemLimitCategory.byId;
+  const playableRaces = new Set(t.CharBaseInfo.rows.map((r) => r.RaceID));
+  return {
+    // The display name ("Plate", "Dagger", "Idol"), or the verbose one where two subclasses
+    // share it ("One-Handed Swords" / "Two-Handed Swords" for "Sword").
+    subclassName: (classId, subclassId) => {
+      const r = subclass.get(`${classId}:${subclassId}`);
+      if (!r) return null;
+      return shared.has(`${classId}:${r.DisplayName_lang}`) && r.VerboseName_lang ? r.VerboseName_lang : r.DisplayName_lang;
+    },
+    factionName: (id) => t.Faction.byId.get(id)?.Name_lang ?? null,
+    skillName: (id) => t.SkillLine.byId.get(id)?.DisplayName_lang ?? null,
+    limitCategory: (id) => limit.get(id) ?? null,
+    classes: bundle.tables.ChrClasses.rows.map((r) => ({ id: r.ID, name: r.Name_lang })),
+    races: t.ChrRaces.rows.filter((r) => playableRaces.has(r.ID)).map((r) => ({ id: r.ID, name: r.Name_lang })),
+    iconName,
+  };
 }
 
-function compareValue(target, item, field, want, got, derived) {
-  const ok = want === got || (want == null && got == null);
-  tally(target, field, ok);
-  if (ok) return;
-  const c = classify(target, item, field, want, got, derived);
-  results.push({ id: item.id, name: item.name, tab: item.tab, target, field, want, got, cls: c.class, reason: c.reason, engine: isEngine(field) });
+// ---------------------------------------------------------------------------
+// Write
+// ---------------------------------------------------------------------------
+
+function scrapedAt(bundles) {
+  let latestAt = "";
+  for (const b of bundles)
+    for (const fdid of b.used.values()) {
+      const meta = b.source.cascMeta(fdid);
+      if (meta?.fetchedAt && meta.fetchedAt > latestAt) latestAt = meta.fetchedAt;
+    }
+  return latestAt.replace(/\.\d+Z$/, "Z");
 }
 
-/** Stats as the snapshot's tooltip reads them: Forever's tooltip adds bonus armor to armor. */
-function comparableStats(derived, build) {
-  const s = { ...derived.stats };
-  if (build === "forever" && s.bonusArmor) {
-    s.armor = (s.armor ?? 0) + s.bonusArmor;
-    delete s.bonusArmor;
+async function write() {
+  const outPath = path.join(REPO_ROOT, OUT_FILE);
+  const snapshotPath = path.resolve(REPO_ROOT, opts.snapshot);
+  if (fs.existsSync(outPath) && !fs.existsSync(snapshotPath)) {
+    const current = JSON.parse(fs.readFileSync(outPath, "utf8"));
+    if (/foreverchanges\.pro/.test(current.meta?.source ?? "")) {
+      fs.mkdirSync(path.dirname(snapshotPath), { recursive: true });
+      fs.copyFileSync(outPath, snapshotPath);
+      console.log(`Saved the foreverchanges snapshot to ${path.relative(REPO_ROOT, snapshotPath)}`);
+    }
   }
-  return s;
-}
 
-function compareStats(target, item, want, derived, build) {
-  const got = comparableStats(derived, build);
-  const keys = new Set([...Object.keys(want), ...Object.keys(got)]);
-  for (const k of [...keys].sort()) compareValue(target, item, `stats.${k}`, want[k] ?? 0, got[k] ?? 0, derived);
-}
+  const bis = loadPreRaidBis();
+  const { iconName, unresolved } = await createIconNamer();
+  forever.lookups = createLookups(forever, iconName);
+  classic.lookups = createLookups(classic, iconName);
+  const filter = { qualities: QUALITIES, reqLevel: REQ_LEVEL, minItemLevel: MIN_ITEM_LEVEL, maxClassicItemId: MAX_CLASSIC_ITEM_ID, excludedItems: EXCLUDED_ITEMS, junkName: JUNK_NAME };
+  let pool = buildPool({ forever, classic, filter, bis, watch: WATCH_ITEMS });
+  if (unresolved.length) {
+    // Rare: an icon only the Classic Era file list names. Read it and build again.
+    classicFiles = await classic.source.files();
+    unresolved.length = 0;
+    pool = buildPool({ forever, classic, filter, bis, watch: WATCH_ITEMS });
+    for (const u of unresolved) warn(`item ${u.id}: no icon name for FileDataID ${u.fdid}`);
+  }
+  const { items, sets, counts, noClientRow, coverage, report } = pool;
 
-function compareWeapon(target, item, want, derived) {
-  const got = derived.weapon;
-  if (!want && !got) return;
-  if (!want || !got) {
-    compareValue(target, item, "weapon", want ? "weapon" : null, got ? "weapon" : null, derived);
+  // Checks: the pre-raid BiS lists, names, SoD and the statsFrom flags.
+  const byId = new Map(items.map((i) => [i.id, i]));
+  const notInData = [];
+  for (const [id, name] of bis.names) {
+    const item = byId.get(id);
+    const row = forever.ctx.sparse.get(id) ?? classic.ctx.sparse.get(id);
+    if (!row) notInData.push({ id, name });
+    else if (row.Display_lang !== name) fail(`${PRE_RAID_BIS_FILE}: ${id} is "${row.Display_lang}" in the client, not "${name}"`);
+    else if (!item) warn(`${PRE_RAID_BIS_FILE}: ${id} ${name} is listed but not in the pool (not equippable, excluded or not eligible)`);
+  }
+  for (const i of items) {
+    if (i.tab !== "new" && i.id >= MAX_CLASSIC_ITEM_ID) fail(`SoD guard: ${i.id} ${i.name} (${i.tab}) has a Classic Era row and id >= ${MAX_CLASSIC_ITEM_ID}`);
+    if (!i.icon) warn(`${i.id} ${i.name}: no icon`);
+    if (i.weapon && (i.weapon.min === null || i.weapon.max === null)) fail(`${i.id} ${i.name}: weapon without damage`);
+  }
+  for (const [id, s] of Object.entries(sets)) if (!s.name) fail(`set ${id}: no ItemSet row in either client`);
+  for (const w of noClientRow) console.log(`  still no client row: ${w.id} ${w.name}`);
+  for (const [id, name] of WATCH_ITEMS)
+    if (byId.has(id)) console.log(`NOTE: watched item ${id} ${name} now has a client row and is in the pool; remove it from WATCH_ITEMS`);
+
+  const ratingConversions = measureRatingConversions(forever, classic, MAX_CLASSIC_ITEM_ID);
+  const tableMeta = (b) => Object.fromEntries([...b.used.entries()].sort(([a], [c]) => a.localeCompare(c)));
+  const out = {
+    meta: {
+      source: "https://wago.tools/api/casc",
+      scraper: SCRAPER,
+      product: PRODUCT,
+      foreverBuild: version,
+      foreverBuildDate: latest.version === version ? latest.created_at.slice(0, 10) : null,
+      classicProduct: BASELINE_PRODUCT,
+      classicBuild: opts.baseline,
+      tables: { forever: tableMeta(forever), classic: tableMeta(classic) },
+      wowDbDefs: { repository: "https://github.com/wowdev/WoWDBDefs", commit: dbdefsSha },
+      scrapedAt: scrapedAt([forever, classic]),
+      filter: {
+        rule: FILTER_RULE,
+        qualities: QUALITIES,
+        reqLevel: REQ_LEVEL,
+        minItemLevel: MIN_ITEM_LEVEL,
+        equippableOnly: true,
+        maxClassicItemId: MAX_CLASSIC_ITEM_ID,
+        excludedItemIds: Object.fromEntries(EXCLUDED_ITEMS),
+        excludedNamePattern: JUNK_NAME.source,
+        includeList: PRE_RAID_BIS_FILE,
+      },
+      counts: { ...counts, statsFrom: { forever: items.filter((i) => i.statsFrom === "forever").length, classic: items.filter((i) => i.statsFrom === "classic").length } },
+      noClientRow,
+      preRaidBis: {
+        file: PRE_RAID_BIS_FILE,
+        specs: bis.specs,
+        listedItems: bis.names.size,
+        inPool: items.filter((i) => i.preRaidBis.length).length,
+        addedByList: report.addedByList.length,
+        notInData,
+      },
+      descriptionCoverage: coverage,
+      ratingConversions,
+    },
+    sets,
+    items,
+  };
+
+  printSummary(out, report);
+  if (errors.length) {
+    for (const e of errors) console.error(`ERROR: ${e}`);
+    console.error(`\nNot writing ${OUT_FILE}: ${errors.length} check(s) failed.`);
+    process.exitCode = 1;
     return;
   }
-  for (const k of ["min", "max", "speed", "dps", "school", "skill"]) compareValue(target, item, `weapon.${k}`, want[k], got[k], derived);
-  const we = want.extraDamage ?? [];
-  const ge = got.extraDamage ?? [];
-  if (we.length || ge.length) {
-    compareValue(target, item, "weapon.extraDamage.min", we[0]?.min ?? null, ge[0]?.min ?? null, derived);
-    compareValue(target, item, "weapon.extraDamage.max", we[0]?.max ?? null, ge[0]?.max ?? null, derived);
-    compareValue(target, item, "weapon.extraDamage.school", we[0]?.school ?? null, ge[0]?.school ?? null, derived);
-  }
+  const text = stableStringify(out);
+  fs.writeFileSync(outPath, text);
+  console.log(`\nWrote ${OUT_FILE}: ${items.length} items, ${Object.keys(sets).length} sets (${(text.length / 1024).toFixed(0)} KB)`);
 }
 
-const sortedJson = (o) => JSON.stringify(Object.fromEntries(Object.entries(o ?? {}).filter(([, v]) => v).sort()));
-
-function compareEffects(target, item, derived) {
-  const kinds = { use: 0, proc: 0, equip: 0 };
-  for (const e of derived.effects) if (e.kind in kinds) kinds[e.kind]++;
-  compareValue(target, item, "effects.use", item.useEffects.length, kinds.use, derived);
-  compareValue(target, item, "effects.proc", item.procs.length, kinds.proc, derived);
-  compareValue(target, item, "effects.otherEquip", item.otherEquip.length, kinds.equip, derived);
-  const uses = derived.effects.filter((e) => e.kind === "use");
-  item.useEffects.forEach((u, i) => {
-    if (u.cooldownSec === undefined || !uses[i]) return;
-    // The tooltip shows the item's own cooldown, else its category's (Stormpike Insignia).
-    compareValue(target, item, "effects.useCooldown", u.cooldownSec, (uses[i].cooldownMs ?? uses[i].categoryCooldownMs ?? 0) / 1000, derived);
-  });
+function printSummary(out, report) {
+  const { counts, descriptionCoverage: dc, preRaidBis, noClientRow } = out.meta;
+  const tally = (f) => {
+    const m = new Map();
+    for (const i of out.items) m.set(f(i), (m.get(f(i)) ?? 0) + 1);
+    return [...m].map(([k, v]) => `${k} ${v}`).join(", ");
+  };
+  console.log(`Filter: ${FILTER_RULE}`);
+  console.log(`items ${counts.items}: ${Object.entries(counts.byTab).map(([k, v]) => `${k} ${v}`).join(", ")}; stats from forever ${counts.statsFrom.forever}, classic ${counts.statsFrom.classic}; sets ${counts.sets}`);
+  console.log(`by slot: ${tally((i) => i.slot)}`);
+  console.log(`by quality: ${tally((i) => i.quality)}`);
+  console.log(`excluded by name ${report.excludedByName.length}, by id ${report.excludedById.length}, SoD guard ${report.sod.length}, no Item row ${report.missingItemRow.length}`);
+  for (const x of report.missingItemRow) warn(`${x.id} ${x.name}: an ItemSparse row but no Item row; left out`);
+  console.log(`pre-raid BiS: ${preRaidBis.listedItems} listed, ${preRaidBis.inPool} in the pool, ${preRaidBis.addedByList} only because listed, ${preRaidBis.notInData.length} with no row`);
+  console.log(`no client row (watched): ${noClientRow.length}`);
+  console.log(`descriptions: ${dc.rendered} rendered, ${dc.generated} generated, ${dc.fallback} fallback, ${dc.hidden} hidden`);
+  for (const f of dc.fallbackSpells) console.log(`  fallback ${f.build} spell ${f.spellId} ${f.name}: ${f.tokens.join(" ")} (${f.usedBy.join(", ")})`);
+  for (const w of warnings) console.warn(`WARNING: ${w}`);
+  const { requests } = fetcher.stats();
+  console.log(`network requests this run: ${requests}`);
 }
 
-/** Compare one item (or its `classic` block) with a derivation. */
-function compareItem(target, item, expected, derived, build) {
-  compareStats(target, item, expected.stats, derived, build);
-  compareWeapon(target, item, expected.weapon, derived);
-  compareValue(target, item, "weaponSkill", sortedJson(expected.weaponSkill), sortedJson(derived.weaponSkill), derived);
-  if (expected === item) {
-    compareValue(target, item, "setId", item.setId, derived.setId === null ? null : String(derived.setId), derived);
-    compareEffects(target, item, derived);
-  }
-}
+// ---------------------------------------------------------------------------
+// Snapshot (the last foreverchanges dataset)
+// ---------------------------------------------------------------------------
 
-const coverage = { noForeverRow: [], noRowAnywhere: [] };
-for (const item of pool.items) {
-  const f = deriveItem(forever.ctx, item.id);
-  const c = deriveItem(classic.ctx, item.id);
-  if (!f) (c ? coverage.noForeverRow : coverage.noRowAnywhere).push(item);
-
-  if (item.statsFrom === "forever") {
-    if (f) compareItem("forever", item, item, f, "forever");
-    else {
-      tally("forever", "row", false);
-      results.push({ id: item.id, name: item.name, tab: item.tab, target: "forever", field: "row", want: "row", got: null, cls: "no-row", reason: item.foreverSource === "seenInGame" ? "seen-in-game tooltip; the client has no row" : "hotfix-only row (docs/data/client.md#hotfix-caveat)", engine: true });
-      // Unchanged items read the same as in Classic Era: check them against that row instead.
-      if (item.tab === "unchanged" && c) compareItem("forever-via-classic", item, item, c, "classic");
+function readSnapshot() {
+  const file = path.resolve(REPO_ROOT, opts.snapshot);
+  if (!fs.existsSync(file)) {
+    // Recreate it from git history when the cache was cleared.
+    try {
+      const body = execFileSync("git", ["show", `${SNAPSHOT_COMMIT}:${OUT_FILE}`], { cwd: REPO_ROOT, maxBuffer: 1 << 28 });
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, body);
+      console.log(`Restored the foreverchanges snapshot from git (${SNAPSHOT_COMMIT}) to ${path.relative(REPO_ROOT, file)}`);
+    } catch {
+      console.error(`No snapshot at ${path.relative(REPO_ROOT, file)} and git show ${SNAPSHOT_COMMIT}:${OUT_FILE} failed.`);
+      process.exit(2);
     }
-  } else if (c) compareItem("classic", item, item, c, "classic");
-  else {
-    tally("classic", "row", false);
-    results.push({ id: item.id, name: item.name, tab: item.tab, target: "classic", field: "row", want: "row", got: null, cls: "no-row", reason: "no Classic Era row", engine: true });
   }
-  // The Classic Era path, checked on every changed item's Classic tooltip.
-  if (item.classic && c) compareItem("changed-classic", item, item.classic, c, "classic");
+  const data = JSON.parse(fs.readFileSync(file, "utf8"));
+  if (!/foreverchanges\.pro/.test(data.meta?.source ?? "")) console.warn(`WARNING: ${opts.snapshot} is not a foreverchanges dataset (meta.source ${data.meta?.source})`);
+  return data;
 }
 
-// Sets: the snapshot's bonuses (Forever tooltip, else Classic) against ItemSetSpell.
-for (const [setId, set] of Object.entries(pool.sets)) {
-  const ctx = set.bonusesFrom === "classic" ? classic.ctx : forever.ctx;
-  const target = set.bonusesFrom === "classic" ? "set-classic" : "set-forever";
-  const derived = deriveSet(ctx, Number(setId));
-  const pseudo = { id: `set ${setId}`, name: set.name, tab: set.bonusesFrom };
-  if (!derived) {
-    compareValue(target, pseudo, "set.row", "row", null, null);
-    continue;
-  }
-  compareValue(target, pseudo, "set.name", set.name, derived.name, null);
-  compareValue(target, pseudo, "set.pieces", set.bonuses.map((b) => b.pieces).join(","), derived.bonuses.map((b) => b.pieces).join(","), null);
-  const wantStats = set.bonuses.map((b) => bonusKey(b.pieces, b.parsed, b.weaponSkill)).join(" ");
-  compareValue(target, pseudo, "set.bonusStats", wantStats, derivedBonuses(derived), null);
-  // Sets the snapshot took from Classic Era (no piece has a Forever tooltip) may still have
-  // Forever rows: check what Forever's own ItemSetSpell says.
-  if (set.bonusesFrom === "classic") {
-    const f = deriveSet(forever.ctx, Number(setId));
-    compareValue("set-classic-in-forever", pseudo, "set.bonusStats", derivedBonuses(derived, true), f ? derivedBonuses(f, true) : null, null);
-  }
-}
-
-/** "pieces:{stats}" per bonus; `withText` marks bonuses that aren't flat stats. */
-function bonusKey(pieces, stats, weaponSkill, text = false) {
-  return `${pieces}:${text ? "(text)" : sortedJson(stats)}${weaponSkill ? sortedJson(weaponSkill) : ""}`;
-}
-function derivedBonuses(set, withText = false) {
-  return set.bonuses.map((b) => bonusKey(b.pieces, b.stats, b.weaponSkill, withText && Boolean(b.unmapped))).join(" ");
-}
-
-// ---------------------------------------------------------------------------
-// Report
-// ---------------------------------------------------------------------------
-
-const bisIds = new Map();
-for (const [spec, s] of Object.entries(bis.specs)) {
-  for (const [slot, list] of Object.entries(s.slots)) for (const e of list) {
-    if (!bisIds.has(e.id)) bisIds.set(e.id, []);
-    bisIds.get(e.id).push(`${spec} ${slot} #${e.rank}`);
-  }
-}
-const bisNoRow = coverage.noRowAnywhere.filter((i) => bisIds.has(i.id));
-const bisNoForever = coverage.noForeverRow.filter((i) => bisIds.has(i.id));
-
-const pct = (a, b) => (b ? `${((100 * a) / b).toFixed(1)}%` : "–");
-/** [matched, compared] over the fields of items that have a row ("row" itself is coverage). */
-const totals = (rows, engineOnly = false) =>
-  rows.filter((r) => r.field !== "row" && (!engineOnly || r.engine)).reduce((s, r) => [s[0] + r.matched, s[1] + r.compared], [0, 0]);
-const noRow = (rows) => {
-  const n = rows.find((r) => r.field === "row")?.compared ?? 0;
-  return n ? `; ${n} items without a row` : "";
-};
-const targets = ["forever", "forever-via-classic", "classic", "changed-classic", "set-forever", "set-classic", "set-classic-in-forever"];
-const TARGET_LABEL = {
-  forever: "Forever-stat items vs the Forever row",
-  "forever-via-classic": "Unchanged items with no Forever row vs the Classic Era row",
-  classic: "`statsFrom: \"classic\"` items vs the Classic Era row",
-  "changed-classic": "Changed items' `classic` block vs the Classic Era row",
-  "set-forever": "Sets with Forever bonuses vs Forever ItemSetSpell",
-  "set-classic": "Sets with Classic bonuses vs Classic Era ItemSetSpell",
-  "set-classic-in-forever": "Sets with Classic bonuses: Classic Era vs Forever ItemSetSpell (informational)",
-};
-
-const lines = [];
-lines.push(`# Items from the client: comparison with ${POOL_FILE}`, "");
-lines.push(`Forever \`${version}\`, Classic Era \`${opts.baseline}\`, WoWDBDefs \`${dbdefsSha.slice(0, 12)}\`. Generated by \`scripts/scrape/items-client.mjs --compare\`.`, "");
-lines.push("## Match rate per field", "");
-for (const target of targets) {
-  const rows = [...fieldTally.values()].filter((t) => t.target === target).sort((a, b) => (a.field < b.field ? -1 : 1));
-  if (!rows.length) continue;
-  const all = totals(rows);
-  lines.push(`### ${TARGET_LABEL[target]} (${all[0]}/${all[1]}, ${pct(all[0], all[1])}${noRow(rows)})`, "");
-  lines.push("| Field | Engine reads | Compared | Match | Rate |", "| --- | --- | --: | --: | --: |");
-  for (const r of rows) lines.push(`| \`${r.field}\` | ${r.engine ? "yes" : ""} | ${r.compared} | ${r.matched} | ${pct(r.matched, r.compared)} |`);
-  lines.push("");
-}
-lines.push("## Mismatches by class", "");
-const byClass = new Map();
-for (const r of results) {
-  if (!byClass.has(r.cls)) byClass.set(r.cls, []);
-  byClass.get(r.cls).push(r);
-}
-for (const cls of Object.keys(CLASSES)) {
-  const list = byClass.get(cls);
-  if (!list) continue;
-  lines.push(`### ${CLASSES[cls]} (${list.length}; ${list.filter((r) => r.engine).length} engine-read)`, "");
-  lines.push("| Item | Target | Field | Snapshot | Client | Reason |", "| --- | --- | --- | --- | --- | --- |");
-  for (const r of list) lines.push(`| ${r.id} ${r.name} (${r.tab}) | ${r.target} | \`${r.field}\` | ${JSON.stringify(r.want)} | ${JSON.stringify(r.got)} | ${r.reason} |`);
-  lines.push("");
-}
-lines.push("## Coverage", "");
-lines.push(`- Pool items: ${pool.items.length}; with a Forever ItemSparse row: ${pool.items.length - coverage.noForeverRow.length - coverage.noRowAnywhere.length}.`);
-lines.push(`- **No Forever row, Classic Era row present: ${coverage.noForeverRow.length}** (fall back to Classic stats, flagged, per D6/D17).`);
-lines.push(`- **No row in either client: ${coverage.noRowAnywhere.length}** (would leave the pool).`);
-lines.push(`- Pre-raid BiS items with no row in either client: **${bisNoRow.length}**${bisNoRow.length ? `: ${bisNoRow.map((i) => `${i.id} ${i.name} (${bisIds.get(i.id).join(", ")})`).join("; ")}` : ""}.`);
-lines.push(`- Pre-raid BiS items with no Forever row (Classic fallback): ${bisNoForever.length}.`, "");
-const listItems = (items) => items.map((i) => `${i.id} ${i.name} (${i.tab}${i.foreverSource === "seenInGame" ? ", seen in game" : ""})`).join("; ");
-lines.push("### No Forever row, Classic Era row present", "", listItems(coverage.noForeverRow) || "none", "");
-lines.push("### No row in either client", "", listItems(coverage.noRowAnywhere) || "none", "");
-
-const outDir = path.join(CACHE_DIR, version);
-fs.mkdirSync(outDir, { recursive: true });
-fs.writeFileSync(path.join(outDir, "items-compare.md"), `${lines.join("\n")}\n`);
-fs.writeFileSync(
-  path.join(outDir, "items-compare.json"),
-  `${JSON.stringify({ version, baseline: opts.baseline, fields: [...fieldTally.values()], mismatches: results, coverage: { noForeverRow: coverage.noForeverRow.map((i) => i.id), noRowAnywhere: coverage.noRowAnywhere.map((i) => i.id) } }, null, 1)}\n`,
-);
-
-// Summary
-for (const target of targets) {
-  const rows = [...fieldTally.values()].filter((t) => t.target === target);
-  if (!rows.length) continue;
-  const all = totals(rows);
-  const eng = totals(rows, true);
-  console.log(`${target.padEnd(22)} all fields ${all[0]}/${all[1]} (${pct(all[0], all[1])}), engine-read ${eng[0]}/${eng[1]} (${pct(eng[0], eng[1])})${noRow(rows)}`);
-}
-for (const cls of Object.keys(CLASSES)) {
-  const list = byClass.get(cls);
-  if (list) console.log(`  ${cls.padEnd(16)} ${list.length} mismatches (${list.filter((r) => r.engine).length} engine-read)`);
-}
-console.log(`coverage: ${coverage.noForeverRow.length} items fall back to Classic Era, ${coverage.noRowAnywhere.length} have no row anywhere (${bisNoRow.length} on the BiS lists)`);
-for (const i of bisNoRow) console.warn(`WARNING: pre-raid BiS item ${i.id} ${i.name} has no row in either client (${bisIds.get(i.id).join(", ")})`);
-console.log(`report: ${path.relative(REPO_ROOT, path.join(outDir, "items-compare.md"))}`);
-const { requests } = fetcher.stats();
-if (requests) console.log(`network requests this run: ${requests}`);
-
-const unexplained = results.filter((r) => r.engine && r.cls === "unclassified");
-if (unexplained.length) {
-  console.error(`${unexplained.length} engine-read mismatches have no stated reason (see the report)`);
-  process.exitCode = 1;
-}
 
 // ---------------------------------------------------------------------------
 // Test fixtures: the real rows behind the unit tests
@@ -441,4 +484,19 @@ function writeFixtures() {
   console.log(`fixtures: ${FIXTURE_FILE} (${fs.statSync(file).size} bytes)`);
 }
 
+// ---------------------------------------------------------------------------
+// Run
+// ---------------------------------------------------------------------------
+
+if (opts.write) await write();
+if (opts.compare) {
+  const { compare } = await import("./lib/items-compare.mjs");
+  const ok = compare({ forever, classic, pool: readSnapshot(), version, baseline: opts.baseline, dbdefsSha, outDir: path.join(CACHE_DIR, version), repoRoot: REPO_ROOT, bisFile: PRE_RAID_BIS_FILE });
+  if (!ok) process.exitCode = 1;
+}
+if (opts.diff) {
+  const { diff } = await import("./lib/items-diff.mjs");
+  diff({ old: readSnapshot(), next: JSON.parse(fs.readFileSync(path.join(REPO_ROOT, OUT_FILE), "utf8")), outDir: path.join(CACHE_DIR, version), repoRoot: REPO_ROOT });
+}
 if (opts.fixtures) writeFixtures();
+if (!opts.write) console.log(`network requests this run: ${fetcher.stats().requests}`);

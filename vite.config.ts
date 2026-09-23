@@ -15,16 +15,8 @@ const SLIMMERS: [RegExp, (data: Json) => Json][] = [
     /\/src\/data\/items\/pre-bis\.json$/,
     (data) => ({
       ...data,
-      items: (data.items as Json[]).map((item) => {
-        const source = item.source as { label: string; entries: Json[] }[] | null
-        return {
-          ...omit(item, ['tooltip', 'classic', 'unparsed', 'flavor', 'sellPrice', 'notes']),
-          // The picker shows one "where it drops" line.
-          source: source?.length
-            ? [{ label: source[0].label, entries: source[0].entries.slice(0, 1).map(({ name, details, chance }) => ({ name, details, chance })) }]
-            : null,
-        }
-      }),
+      meta: omit(data.meta as Json, ['tables', 'descriptionCoverage', 'preRaidBis', 'noClientRow']),
+      items: (data.items as Json[]).map((item) => omit(item, ['classic', 'flavor', 'sellPrice', 'notes'])),
     }),
   ],
   [

@@ -60,8 +60,11 @@ About & data, Reset setup, and Theme (system, light, dark).
     a one-line summary of its key stats, and an enchant chip. Empty slots have their own
     state.
   - Tapping a slot opens the **item picker**: a full-height sheet on mobile, a dialog on
-    desktop. It has a search box and filter chips (**BiS for this spec**, usable by class,
-    source), and sorts by name or item level (sim value, once stat weights exist).
+    desktop. It has a search box (name, type or stat) and filter chips (**BiS for this spec**,
+    usable by class), and sorts by name or item level (sim value, once stat weights exist).
+    Each row's second line says what the item is and its levels, e.g. "Two-hand sword · Item
+    level 63 · Requires level 58"; on a phone it wraps between those parts. The client data
+    has no drop sources (its Encounter Journal is empty), so the picker shows none.
   - Badges: BiS rank, and **Classic stats** for items with no Forever data yet, with a
     tooltip explaining why.
   - A gear-set menu: "Pre-raid BiS" (the spec default), "Empty", and later saved sets.

@@ -15,8 +15,8 @@ export function ClassicStatsBadge() {
         </Badge>
       </TooltipTrigger>
       <TooltipContent className="max-w-64">
-        The Forever beta hasn’t received this item’s data yet, so the sim uses its Classic Era stats. It
-        updates when the data does.
+        The Forever beta client has no data for this item yet, so the sim uses its Classic Era stats. It
+        updates when a client build ships the item.
       </TooltipContent>
     </Tooltip>
   )
@@ -39,7 +39,7 @@ export function ItemSummary({
 }: {
   item: Item
   bis?: number | null
-  /** An extra muted line, e.g. the slot name or where the item drops. */
+  /** An extra muted line, e.g. the slot name, or the item's type and level. */
   meta?: string | null
   className?: string
 }) {
@@ -48,7 +48,7 @@ export function ItemSummary({
       <WowIcon icon={item.icon} size="lg" />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className={cn('truncate text-sm font-medium', QUALITY_CLASS[item.quality])}>{item.name}</span>
-        {meta && <span className="truncate text-xs text-muted-foreground">{meta}</span>}
+        {meta && <span className="line-clamp-2 text-xs text-muted-foreground">{meta}</span>}
         <span className="line-clamp-2 text-xs text-muted-foreground tabular-nums">{summarizeItem(item) || 'No stats'}</span>
         {(bis || !item.foreverData) && (
           <span className="mt-1 flex flex-wrap gap-1">

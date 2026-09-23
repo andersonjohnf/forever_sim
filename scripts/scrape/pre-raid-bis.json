@@ -1,6 +1,6 @@
 {
   "$comment": [
-    "Hand-curated input for scripts/scrape/items.mjs: Classic Era pre-raid best-in-slot lists for the seven",
+    "Hand-curated input for scripts/scrape/items-client.mjs: Classic Era pre-raid best-in-slot lists for the seven",
     "simulated specs. Every item listed here joins src/data/items/pre-bis.json whatever its quality or level",
     "(it must still be equippable and pass the Season of Discovery id guard), and pool items get",
     "preRaidBis: [{ spec, slot, rank }]. Curated 2026-09-22 (user request: 'If there are some pre-raid BIS",

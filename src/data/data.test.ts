@@ -55,9 +55,10 @@ const allDatasets: Record<string, { meta: { source: string; scrapedAt: string; f
   items,
 }
 
-describe.each(Object.entries(allDatasets))('%s', (_name, data) => {
+describe.each(Object.entries(allDatasets))('%s', (name, data) => {
   it('has a meta envelope tied to a Forever build', () => {
-    expect(data.meta.source).toMatch(/^https:\/\/foreverchanges\.pro\//)
+    // Items come from the client files (decision D17); the rest still from foreverchanges.pro.
+    expect(data.meta.source).toMatch(name === 'items' ? /^https:\/\/wago\.tools\/api\// : /^https:\/\/foreverchanges\.pro\//)
     expect(Number.isNaN(Date.parse(data.meta.scrapedAt))).toBe(false)
     expect(data.meta.foreverBuild).toMatch(/^1\.60\.\d+\.\d+$/)
   })
@@ -134,15 +135,29 @@ describe('races', () => {
 })
 
 describe('items/pre-bis', () => {
+  const { meta } = items
+  const byId = new Map(items.items.map((i) => [i.id, i]))
+
+  it('matches its recorded counts', () => {
+    expect(items.items).toHaveLength(meta.counts.items)
+    expect(new Set(items.items.map((i) => i.id)).size).toBe(items.items.length)
+    for (const tab of ['new', 'changed', 'unchanged', 'missing'] as const)
+      expect(items.items.filter((i) => i.tab === tab), tab).toHaveLength(meta.counts.byTab[tab])
+    expect(Object.keys(items.sets)).toHaveLength(meta.counts.sets)
+    expect(items.items.filter((i) => i.statsFrom === 'forever')).toHaveLength(meta.counts.statsFrom.forever)
+  })
+
   it('is Rare equippable gear, apart from listed pre-raid BiS items (decisions D11)', () => {
     for (const item of items.items) {
       if (item.preRaidBis.length === 0) expect(item.quality, item.name).toBe(3)
       expect(item.slot, item.name).toBeTruthy()
+      expect(item.equipSlots.length, item.name).toBeGreaterThan(0)
+      expect(item.icon, item.name).toMatch(/^[a-z0-9_-]+$/)
     }
   })
 
   it('contains every item on the curated pre-raid BiS list (decisions D11)', () => {
-    const bis = items.meta.preRaidBis
+    const bis = meta.preRaidBis
     expect(bis.notInData).toEqual([])
     expect(bis.inPool).toBe(bis.listedItems)
     const tagged = items.items.filter((i) => i.preRaidBis.length > 0)
@@ -150,9 +165,11 @@ describe('items/pre-bis', () => {
   })
 
   it('matches its recorded filter (decisions D10)', () => {
-    const { qualities, reqLevel, minItemLevel, excludedItemIds } = items.meta.filter
+    const { qualities, reqLevel, minItemLevel, excludedItemIds, excludedNamePattern } = meta.filter
+    const junk = new RegExp(excludedNamePattern, 'i')
     for (const item of items.items) {
       expect(excludedItemIds[String(item.id)], item.name).toBeUndefined()
+      expect(junk.test(item.name), item.name).toBe(false)
       if (item.preRaidBis.length > 0) continue // listed items join at any quality or level
       const levelOk =
         (item.reqLevel >= reqLevel[0] && item.reqLevel <= reqLevel[1]) ||
@@ -163,20 +180,58 @@ describe('items/pre-bis', () => {
   })
 
   it('never contains Season of Discovery items (decisions D6)', () => {
-    // Forever-only items live in the "new" tab; everything else must be an original Classic id.
-    const suspicious = items.items.filter((i) => i.tab !== 'new' && i.id >= 25000)
+    // Only Forever-new items (a Forever row, no Classic Era row) may have ids past original Classic.
+    const suspicious = items.items.filter((i) => i.tab !== 'new' && i.id >= meta.filter.maxClassicItemId)
     expect(suspicious.map((i) => `${i.id} ${i.name}`)).toEqual([])
+    expect(meta.filter.maxClassicItemId).toBe(25000)
   })
 
-  it('flags items without Forever data as using Classic stats (decisions D6)', () => {
+  it('flags items without a Forever row as using Classic Era stats (decisions D6, D17)', () => {
     for (const item of items.items) {
       expect(item.statsFrom, item.name).toBe(item.foreverData ? 'forever' : 'classic')
+      expect(item.foreverSource, item.name).toBe(item.foreverData ? 'client' : null)
+      expect(item.tab === 'missing', item.name).toBe(!item.foreverData)
+      expect(item.classic !== null, item.name).toBe(item.tab === 'changed')
+      if (item.classicShieldBlockValue !== undefined) {
+        expect(item.slot, item.name).toBe('shield')
+        expect(item.statsFrom, item.name).toBe('classic')
+      }
     }
   })
 
-  it('resolves every set reference', () => {
+  it('leaves out the items no client build has a row for, and lists them', () => {
+    expect(meta.noClientRow.length).toBeGreaterThan(0)
+    for (const { id, name } of meta.noClientRow) expect(byId.has(id), name).toBe(false)
+  })
+
+  it('has no drop sources (the client Encounter Journal is empty)', () => {
+    for (const item of items.items) expect(item.source, item.name).toBeNull()
+  })
+
+  it('resolves every set and its bonuses', () => {
     for (const item of items.items) {
       if (item.setId) expect(items.sets[item.setId], `${item.name} → ${item.setId}`).toBeDefined()
     }
+    for (const [id, set] of Object.entries(items.sets)) {
+      expect(set.name, id).toBeTruthy()
+      expect(set.bonusesFrom, set.name).not.toBeNull()
+      expect(set.size, set.name).toBe(set.itemIds.length)
+      expect(set.bonuses.length, set.name).toBeGreaterThan(0)
+      for (const b of set.bonuses) {
+        expect(b.text, `${set.name} (${b.pieces})`).toBeTruthy()
+        expect(b.text, `${set.name} (${b.pieces})`).not.toMatch(/\$/)
+      }
+    }
+  })
+
+  it('renders every effect line without leftover variables', () => {
+    for (const item of items.items) {
+      for (const e of [...item.procs, ...item.useEffects, ...item.otherEquip]) {
+        expect(e.raw, item.name).toMatch(/^(Use|Equip|Chance on hit): \S/)
+        expect(e.raw, item.name).not.toMatch(/\$/)
+      }
+    }
+    const { fallback, fallbackSpells } = meta.descriptionCoverage
+    expect(fallbackSpells.reduce((n, s) => n + s.usedBy.length, 0)).toBe(fallback)
   })
 })

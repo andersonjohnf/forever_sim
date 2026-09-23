@@ -37,10 +37,10 @@
   "counts": {
     "bySource": {
       "buffsDoc": 47,
-      "consumable": 79,
-      "docs": 256,
+      "consumable": 78,
+      "docs": 257,
       "enchant": 125,
-      "item": 181,
+      "item": 182,
       "racial": 44,
       "spellbook": 494,
       "talent": 156,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 872,
     "notInClient": 0,
-    "seeds": 1134,
-    "spells": 1222
+    "seeds": 1133,
+    "spells": 1220
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -4430,80 +4430,6 @@
         }
       ],
       "sources": ["docs", "spellbook"]
-    },
-    "1178": {
-      "classOptions": {
-        "spellClassMask": [0, 0, 0, 67108864],
-        "spellClassSet": 7
-      },
-      "effects": [
-        {
-          "effect": 6,
-          "effectAura": 466,
-          "effectBasePointsF": 180,
-          "effectIndex": 0,
-          "implicitTarget": [1, 0]
-        },
-        {
-          "effect": 6,
-          "effectAura": 142,
-          "effectBasePointsF": 180,
-          "effectIndex": 1,
-          "effectMiscValue": [1, 0],
-          "implicitTarget": [1, 0]
-        },
-        {
-          "effect": 6,
-          "effectAura": 230,
-          "effectBasePointsF": 20,
-          "effectIndex": 2,
-          "effectRealPointsPerLevel": 18,
-          "implicitTarget": [1, 0]
-        },
-        {
-          "effect": 6,
-          "effectAura": 99,
-          "effectBasePointsF": 30,
-          "effectIndex": 3,
-          "effectRealPointsPerLevel": 3,
-          "implicitTarget": [1, 0]
-        },
-        {
-          "effect": 6,
-          "effectAura": 108,
-          "effectBasePointsF": -100,
-          "effectIndex": 4,
-          "effectMiscValue": [14, 0],
-          "effectSpellClassMask": [1024, 0, 0, 0],
-          "implicitTarget": [1, 0]
-        },
-        {
-          "effect": 6,
-          "effectAura": 107,
-          "effectBasePointsF": 6000,
-          "effectIndex": 5,
-          "effectMiscValue": [11, 0],
-          "effectSpellClassMask": [1024, 0, 0, 0],
-          "implicitTarget": [1, 0]
-        }
-      ],
-      "id": 1178,
-      "levels": {
-        "baseLevel": 10,
-        "maxLevel": 40,
-        "spellLevel": 10
-      },
-      "misc": {
-        "attributes": [80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
-        "schoolMask": 8,
-        "spellIconFileDataId": 132276
-      },
-      "name": "Bear Form (Passive)",
-      "nameSubtext": "Passive",
-      "shapeshift": {
-        "shapeshiftMask": [16, 0]
-      },
-      "sources": ["docs"]
     },
     "1430": {
       "auraOptions": {
@@ -14060,80 +13986,6 @@
       },
       "sources": ["spellbook"]
     },
-    "9635": {
-      "classOptions": {
-        "spellClassMask": [0, 0, 0, 67108864],
-        "spellClassSet": 7
-      },
-      "effects": [
-        {
-          "effect": 6,
-          "effectAura": 466,
-          "effectBasePointsF": 360,
-          "effectIndex": 0,
-          "implicitTarget": [1, 0]
-        },
-        {
-          "effect": 6,
-          "effectAura": 142,
-          "effectBasePointsF": 360,
-          "effectIndex": 1,
-          "effectMiscValue": [1, 0],
-          "implicitTarget": [1, 0]
-        },
-        {
-          "effect": 6,
-          "effectAura": 230,
-          "effectBasePointsF": 600,
-          "effectIndex": 2,
-          "effectRealPointsPerLevel": 32,
-          "implicitTarget": [1, 0]
-        },
-        {
-          "effect": 6,
-          "effectAura": 99,
-          "effectBasePointsF": 120,
-          "effectIndex": 3,
-          "effectRealPointsPerLevel": 3,
-          "implicitTarget": [1, 0]
-        },
-        {
-          "effect": 6,
-          "effectAura": 108,
-          "effectBasePointsF": -100,
-          "effectIndex": 4,
-          "effectMiscValue": [14, 0],
-          "effectSpellClassMask": [1024, 0, 0, 0],
-          "implicitTarget": [1, 0]
-        },
-        {
-          "effect": 6,
-          "effectAura": 107,
-          "effectBasePointsF": 6000,
-          "effectIndex": 5,
-          "effectMiscValue": [11, 0],
-          "effectSpellClassMask": [1024, 0, 0, 0],
-          "implicitTarget": [1, 0]
-        }
-      ],
-      "id": 9635,
-      "levels": {
-        "baseLevel": 40,
-        "maxLevel": 70,
-        "spellLevel": 40
-      },
-      "misc": {
-        "attributes": [80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
-        "schoolMask": 8,
-        "spellIconFileDataId": 132276
-      },
-      "name": "Dire Bear Form (Passive)",
-      "nameSubtext": "Passive",
-      "shapeshift": {
-        "shapeshiftMask": [128, 0]
-      },
-      "sources": ["docs"]
-    },
     "9745": {
       "categories": {
         "defenseType": 2,
@@ -18692,6 +18544,40 @@
       },
       "sources": ["buffsDoc", "docs"]
     },
+    "10612": {
+      "auraOptions": {
+        "procCategoryRecovery": 100,
+        "procChance": 20,
+        "procTypeMask": [20, 0]
+      },
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1
+      },
+      "effects": [
+        {
+          "effect": 35,
+          "effectAura": 4,
+          "effectBasePointsF": 10610,
+          "effectIndex": 0,
+          "effectRadiusIndex": [10, 10],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 10612,
+      "levels": {
+        "maxLevel": 60,
+        "spellLevel": 52
+      },
+      "misc": {
+        "attributes": [320, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 136114
+      },
+      "name": "Windfury Totem Passive",
+      "nameSubtext": "Rank 3",
+      "sources": ["docs"]
+    },
     "10614": {
       "categories": {
         "defenseType": 1,
@@ -21345,7 +21231,7 @@
         "spellIconFileDataId": 134952
       },
       "name": "Shield Specialization",
-      "sources": ["docs", "talent"]
+      "sources": ["talent"]
     },
     "12299": {
       "effects": [
@@ -24523,6 +24409,32 @@
       ],
       "sources": ["spellbook"]
     },
+    "16739": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": 300000,
+        "maxDuration": 300000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 56,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 16739,
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136121
+      },
+      "name": "Orb of Deception",
+      "sources": ["item"]
+    },
     "16810": {
       "auraOptions": {
         "procChance": 100,
@@ -27551,7 +27463,7 @@
         "spellIconFileDataId": 134062
       },
       "name": "Blessed Sunfruit",
-      "sources": ["consumable"]
+      "sources": ["consumable", "docs"]
     },
     "18125": {
       "auraOptions": {
@@ -27589,7 +27501,7 @@
       "shapeshift": {
         "shapeshiftMask": [134217728, 0]
       },
-      "sources": ["consumable", "docs", "trigger"]
+      "sources": ["docs", "trigger"]
     },
     "18202": {
       "auraOptions": {
@@ -43233,39 +43145,6 @@
       "name": "Chitinous Spikes",
       "sources": ["item"]
     },
-    "26400": {
-      "auraOptions": {
-        "procChance": 101
-      },
-      "categories": {
-        "defenseType": 1,
-        "dispelType": 1,
-        "preventionType": 1
-      },
-      "duration": {
-        "duration": 20000,
-        "maxDuration": 20000
-      },
-      "effects": [
-        {
-          "effect": 6,
-          "effectAura": 10,
-          "effectBasePointsF": -70,
-          "effectBonusCoefficient": 1,
-          "effectIndex": 0,
-          "effectMiscValue": [127, 0],
-          "implicitTarget": [1, 0]
-        }
-      ],
-      "id": 26400,
-      "misc": {
-        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
-        "schoolMask": 64,
-        "spellIconFileDataId": 135994
-      },
-      "name": "Arcane Shroud",
-      "sources": ["docs"]
-    },
     "26573": {
       "categories": {
         "category": 932,
@@ -43908,39 +43787,6 @@
       "name": "Increased Lightning Damage",
       "sources": ["item"]
     },
-    "28862": {
-      "auraOptions": {
-        "procChance": 101
-      },
-      "categories": {
-        "defenseType": 1,
-        "dispelType": 1,
-        "preventionType": 1
-      },
-      "duration": {
-        "duration": 20000,
-        "maxDuration": 20000
-      },
-      "effects": [
-        {
-          "effect": 6,
-          "effectAura": 10,
-          "effectBasePointsF": -35,
-          "effectBonusCoefficient": 1,
-          "effectIndex": 0,
-          "effectMiscValue": [127, 0],
-          "implicitTarget": [1, 0]
-        }
-      ],
-      "id": 28862,
-      "misc": {
-        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
-        "schoolMask": 64,
-        "spellIconFileDataId": 135994
-      },
-      "name": "The Eye of Diminution",
-      "sources": ["docs"]
-    },
     "28891": {
       "auraOptions": {
         "procChance": 101
@@ -44003,7 +43849,7 @@
         "spellIconFileDataId": 135923
       },
       "name": "Undead Slayer 99",
-      "sources": ["enchant"]
+      "sources": ["docs", "enchant"]
     },
     "29131": {
       "classOptions": {
@@ -46888,7 +46734,7 @@
         "spellIconFileDataId": 133943
       },
       "name": "Well Fed",
-      "sources": ["trigger"]
+      "sources": ["docs", "trigger"]
     },
     "1248500": {
       "castTime": {
@@ -47791,7 +47637,7 @@
         "spellIconFileDataId": 464024
       },
       "name": "Greater Frenzy Potion",
-      "sources": ["consumable"]
+      "sources": ["consumable", "docs"]
     },
     "1251938": {
       "categories": {
@@ -50142,7 +49988,7 @@
         "spellIconFileDataId": 463901
       },
       "name": "Flask of Natural Accuracy",
-      "sources": ["consumable"]
+      "sources": ["consumable", "docs"]
     },
     "1294769": {
       "effects": [

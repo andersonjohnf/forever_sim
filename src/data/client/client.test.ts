@@ -270,11 +270,12 @@ describe('internal consistency', () => {
     }
   })
 
-  it('has an ItemSparse row for every item foreverchanges read from the client, apart from the listed hotfix-only rows', () => {
-    const missing = preBis.items.filter((i) => i.foreverSource === 'client' && !items.items[String(i.id)].itemSparse)
-    // docs/data/client.md "Hotfix caveat": rows the raw 1.60.1.69913 file lacks.
-    expect(missing.length).toBe(50)
-    for (const i of preBis.items.filter((x) => !x.foreverData)) expect(items.items[String(i.id)].itemSparse, i.name).toBeNull()
+  it('has an ItemSparse row for exactly the pool items with Forever data (items.md, D17)', () => {
+    for (const i of preBis.items) {
+      const rec = items.items[String(i.id)]
+      if (i.foreverData) expect(rec.itemSparse, i.name).not.toBeNull()
+      else expect(rec.itemSparse, i.name).toBeNull()
+    }
   })
 
   it('has every enchant the buffs doc names, applied by the spells and items the doc says', () => {
@@ -285,10 +286,10 @@ describe('internal consistency', () => {
     }
   })
 
-  it('maps the buffs doc consumables to the doc\'s spells (one known trigger indirection)', () => {
+  it('maps the buffs doc consumables to the doc\'s spells', () => {
     const mismatched = Object.values(items.consumables).filter((c) => c.docMismatches.length > 0)
-    // Blessed Sunfruit casts 18124, which triggers the doc's buff 18125.
-    expect(mismatched.map((c) => c.id)).toEqual([13810])
+    expect(mismatched.map((c) => c.id)).toEqual([])
+    // Blessed Sunfruit casts 18124, which triggers the buff 18125 (the doc names both since M1.5b).
     expect(spell(18124).effects.some((e) => e.effectTriggerSpell === 18125)).toBe(true)
   })
 

@@ -53,7 +53,19 @@ describe('parseNumber', () => {
   })
 
   it('returns null for text that isn’t a number', () => {
-    for (const typed of ['', '   ', ',', '.', 'abc', '1.2.3', '1,5,5', '1,2,3']) expect(parseNumber(typed, WHOLE), typed).toBeNull()
+    for (const typed of ['', '   ', ',', '.', 'abc', '1.2.3', '1,5,5', '1,2,3', '-', '+', '-.']) expect(parseNumber(typed, WHOLE), typed).toBeNull()
+  })
+
+  it('takes only a sign, digits, separators and one decimal point, not the rest of what Number reads (LX12)', () => {
+    for (const typed of ['0x10', '0X1F', '0b101', '0o17', '1e3', '1E3', '5e-1', '.5e1', 'Infinity', '-Infinity', '+Infinity', 'NaN', '1_000', '1.234,5e3', '1,234.5e3']) {
+      for (const field of [WHOLE, COUNT, SECONDS]) expect(parseNumber(typed, field), typed).toBeNull()
+    }
+    // Digits past what a double holds read as Infinity, which isn't a number either.
+    expect(parseNumber('9'.repeat(400), COUNT)).toBeNull()
+    // What still reads: a trailing or leading point, and a sign.
+    expect(parseNumber('5.', WHOLE)).toBe(5)
+    expect(parseNumber('-.5', SECONDS)).toBe(-0.5)
+    expect(parseNumber('+1,5', SECONDS)).toBe(1.5)
   })
 })
 

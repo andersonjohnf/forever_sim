@@ -5,8 +5,16 @@ const SPACES = /[\s'’]/g
 const GROUPED = /^[-+]?\d{1,3}(?:[.,]\d{3})+$/
 
 /**
+ * What `Number` may read once the separators are resolved: a sign, digits and at most one decimal
+ * point, with a digit somewhere. `Number` alone also takes "0x10", "1e3" and "Infinity".
+ */
+const PLAIN = /^[-+]?(?:\d+\.?\d*|\.\d+)$/
+
+/**
  * Reads what someone typed into a number field in their own locale's style, or null if it isn't
  * a number (docs/ux.md, Sections, "Fight"). The field then snaps it to its step.
+ * - Only a sign, digits, separators and one decimal point count: "0x10", "1e3" and "Infinity"
+ *   aren't numbers here, and neither is one too long to be finite.
  * - Spaces and apostrophes group thousands ("5 000", "5'000").
  * - With both "." and ",", the last is the decimal point and the other groups thousands
  *   ("1,234.5", "1.234,5").
@@ -32,8 +40,9 @@ export function parseNumber(text: string, { step, max }: { step: number; max: nu
   } else {
     normal = t.replace(',', '.')
   }
+  if (!PLAIN.test(normal)) return null
   const n = Number(normal)
-  return normal === '' || normal === '.' || Number.isNaN(n) ? null : n
+  return Number.isFinite(n) ? n : null
 }
 
 /**

@@ -42,9 +42,13 @@ Slices ([CLAUDE.md](../CLAUDE.md#working-with-agents-small-slices-fresh-contexts
 - [x] **M1.5b Doc sync:** apply the client-confirmed values to the docs, resolve the Route D
       entries in open-questions.md, and fix the 6 partial matches
 - [ ] **M1.5c Items from client**, in two slices:
-  - [ ] **c-1 Stats derivation:** turn `ItemSparse` budget allocations, the damage and armor
+  - [x] **c-1 Stats derivation:** turn `ItemSparse` budget allocations, the damage and armor
         tables, equip spells and item sets into stats, for both builds, and validate every item
-        field by field against the current snapshot
+        field by field against the current snapshot. All engine-read fields match except two
+        old tooltip-parser errors (`npm run compare:items`,
+        [client.md](data/client.md#items-from-the-client)).
+        16 new Forever items exist only as server hotfixes, so they leave the pool (D17).
+        None is on a pre-raid BiS list.
   - [ ] **c-2 Switch over:** rebuild `src/data/items/pre-bis.json` from the client (same JSON
         shape), with Classic Era rows for items whose Forever row is empty (D6, D17). Tooltip
         text comes from spell descriptions, and drop sources go away, since the Encounter

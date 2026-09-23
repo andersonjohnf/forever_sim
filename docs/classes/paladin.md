@@ -528,7 +528,7 @@ Notes:
 
 | Setting | Default | Why / source |
 | --- | --- | --- |
-| Talents | **`250003-503-052052310012330321`** (Holy 10 / Prot 8 / Ret 33): Improved Holy Strike 2, Divine Strength 5, Improved Seals 3; Toughness 5, Precision 3; Benediction 5, Improved Judgement 2, Conviction 5, Vindication 2, Sanctified Judgement 3, Seal of Command, Sacred Arbiter, Crusade 2, 2HWS 3, Vengeance 3, Champion of the Light 3, Instrument of Law 2, Twist of Light | site's popular Ret build ([talents](https://foreverchanges.pro/talents/paladin)); decoded by tier-then-column order ([data/talents.md](../data/talents.md#build-codes-verified)) [F] |
+| Talents | **`250003-503-052052310012330321`** (Holy 10 / Prot 8 / Ret 33): Improved Holy Strike 2, Divine Strength 5, Improved Seals 3; Toughness 5, Precision 3; Benediction 5, Improved Judgement 2, Conviction 5, Vindication 2, Sanctified Judgement 3, Seal of Command, Sacred Arbiter, Crusade 2, 2HWS 3, Vengeance 3, Champion of the Light 3, Instrument of Law 2, Twist of Light | the most popular Forever Ret build when chosen, 2026-09-22 ([talents](https://foreverchanges.pro/talents/paladin)); decoded by tier-then-column order ([data/talents.md](../data/talents.md#build-codes-verified)) [F] |
 | Race | **Human** (Alliance) with a 2H sword; **Undead** for Horde presets | Sword Spec +2% crit to everything [F] |
 | Weapon | slowest high-DPS pre-raid 2H (speed ≥ 3.4 preferred; ties → sword for Human) from `src/data/items` | SoC scales with weapon damage per swing; the 7 PPM normalizes procs/min, so a slow weapon gives bigger procs and more procs per swing |
 | Seal / judgement | SoC; JotC maintained by you | [F] rotation above |
@@ -580,7 +580,7 @@ Iron Creed adds 25% threat; HotR has no SP coefficient in the data.
 
 | Setting | Default | Why / source |
 | --- | --- | --- |
-| Talents | **`2-4530513321301551-502`** (Holy 2 / Prot 42 / Ret 7): Improved Holy Strike 2; Toughness 4, Redoubt 5, Precision 3, Anticipation 5, Improved SoF, Improved RF 3, Shield Spec 3, Sacred Duty 2, Swift Judgement, 1HWS 3, Templar's Bulwark, Reckoning 5, Iron Creed 5, Holy Shield; Deflection 5, Improved Judgement 2 | site's popular Prot build [F] |
+| Talents | **`2-4530513321301551-502`** (Holy 2 / Prot 42 / Ret 7): Improved Holy Strike 2; Toughness 4, Redoubt 5, Precision 3, Anticipation 5, Improved SoF, Improved RF 3, Shield Spec 3, Sacred Duty 2, Swift Judgement, 1HWS 3, Templar's Bulwark, Reckoning 5, Iron Creed 5, Holy Shield; Deflection 5, Improved Judgement 2 | the most popular Forever Prot build when chosen, 2026-09-22 [F] |
 | Race | Human (1H sword) / Undead (Horde) | +2% crit; Dwarf is a close choice for Stoneform |
 | Weapon | best pre-raid 1H **sword, mace or axe** (so HotR is usable) + shield | [F] HotR requirement |
 | Seal | **Seal of Fury** (SoR selectable) | [F] |

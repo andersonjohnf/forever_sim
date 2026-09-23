@@ -152,7 +152,8 @@ fix one of them in the same change.
 Defaults describe a **typical guild raider in pre-raid gear** on a normal raid night, not a
 theoretical maximum:
 
-- the talent build is the most popular Forever build for the spec
+- the talent build is the spec's documented default in its class doc, a build a typical
+  raider runs. The defaults began as the most popular Forever builds in September 2026
 - the gear is the spec's pre-raid BiS set ([D11](decisions.md#d11-known-pre-raid-bis-items-are-always-in-the-pool-2026-09-22))
 - raid buffs for a typical raid composition, and common consumables. Buffs are keyed to
   composition, not faction: both factions have paladins and shamans in Forever

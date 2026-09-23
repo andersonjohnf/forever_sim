@@ -49,8 +49,8 @@ About & data, Reset setup, and Theme (system, light, dark).
   default, or `Classic Era`) and the switch for unmeasured ratings
   ([D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
 - **Talents.**
-  - A preset menu with the site's popular builds and the documented presets; the spec
-    default is selected.
+  - A preset menu with each spec's documented builds (its class doc); the spec default is
+    selected.
   - Interactive trees: three side by side on desktop, one tab per tree on mobile. Tap to add
     a point, long-press or right-click to remove one. Tier gates and prerequisites are
     enforced visibly.

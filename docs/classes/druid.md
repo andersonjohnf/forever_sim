@@ -746,13 +746,13 @@ multipliers are unknown (Q15).
 
 | Spec | Default build | Source |
 | --- | --- | --- |
-| **Cat** | **9/37/5 `050022-5520002123032213051-05`**: Genesis 5, Nature's Majesty 2, Nature's Reach 2 / Ferocity 5, HotW 5, Feral Swiftness 2, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Shredding Attacks 3, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, LotP 1, King of the Jungle 3, Rend and Tear 5, Berserk 1 / Furor 5 | Site's `popular` Feral build [F] [fc-tal]; decode verified in [talents.md](../data/talents.md#build-codes-verified) |
+| **Cat** | **9/37/5 `050022-5520002123032213051-05`**: Genesis 5, Nature's Majesty 2, Nature's Reach 2 / Ferocity 5, HotW 5, Feral Swiftness 2, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Shredding Attacks 3, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, LotP 1, King of the Jungle 3, Rend and Tear 5, Berserk 1 / Furor 5 | The most popular Forever Feral build when chosen, 2026-09-22 [fc-tal]; decode verified in [talents.md](../data/talents.md#build-codes-verified) |
 | **Bear** | **8/43/0 `050012-5523032120132210551-`**: Genesis 5, Nature's Majesty 1, Nature's Reach 2 / Ferocity 5, HotW 5, Feral Swiftness 2, Feral Instinct 3, Thick Hide 3, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Mangle 1, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, LotP 1, Natural Reaction 5, Rend and Tear 5, Berserk 1 | [?] **Proposed here**: the site has no bear build. It follows the tier gates and arrows (Mangle ← Savage Fury, Primal Fury ← Sharpened Claws, Rend and Tear ← Predatory Strikes, Berserk ← LotP) |
 
 The 5 Restoration points in the cat build (Furor) have ~0 sim value, because cat never shifts by
 default. The site's players take them anyway. Moving them to Naturalist isn't possible (it needs
 5 points above it), and 4/37/10 (Furor 5 + Naturalist 5) loses Nature's Majesty and Nature's
-Reach. The sim should keep the popular build as the default.
+Reach. The sim keeps this build as the default preset.
 
 ### 7.2 Race
 

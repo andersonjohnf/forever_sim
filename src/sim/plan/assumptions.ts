@@ -275,10 +275,6 @@ const REGISTRY = {
     text: 'Your flask’s bonus works only in Mount Hyjal, Hyjal Summit and the Barrow Deeps; this fight is elsewhere.',
     docRef: `${BUFFS}#31-flasks`,
   },
-  druidBaseStats: {
-    text: 'Druid base attributes, base health (1,483), base crit and dodge (0.9%), base spell crit (1.8%) and caster attack power (−20) are placeholders from a private server’s tables, which Classic sims copied; Skyborne druids get no race adjustment, as theirs is unknown. A level-60 druid’s character sheet will replace them.',
-    docRef: `${STATS}#oq-1-paladin-druid-and-skyborne-base-attributes`,
-  },
   formWeapon: {
     text: 'In Cat and Bear Form you attack with the form’s own weapon: 54.8 damage per second (43.84–65.76 every 1.0 s in cat, 109.6–164.4 every 2.5 s in bear), a figure from another sim, not the game. Your weapon’s damage and weapon skill don’t count, its other stats do, and procs per minute use the form’s swing speed.',
     docRef: `${DRUID}#21-form-attacks-swing-timer-and-damage`,

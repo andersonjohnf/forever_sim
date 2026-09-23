@@ -281,7 +281,9 @@ rows came in [PR #103][cs-103] (2020-01-05) from a classicwow.live guide that is
 whose method is unknown, and they equal the emulator's exactly. Candidate paladin values from the
 same emulator are recorded, **not adopted**, under
 [OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes). The druid's other base values below are
-D24 placeholders too. OQ-1 gives the way to measure the rows on Classic Era.
+D24 placeholders too. The rows and those values are in the one table of placeholders
+(`BASE_PLACEHOLDERS`, [below](#other-base-values-at-level-60)), and the results list the ones a
+setup uses. OQ-1 gives the way to measure the rows on Classic Era.
 
 ### Other base values at level 60
 
@@ -289,9 +291,12 @@ Values in *italics* are **placeholders** the sim uses until they're measured
 ([D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)):
 each is tagged "[?] placeholder (D24); origin: <link>, not evidence", listed in the open
 questions and in the results' assumptions, and kept in one replaceable table
-(`BASE_PLACEHOLDERS` in `src/sim/stats/base-stats.ts`). The paladin and druid base attributes
-may stand in the same way ([above](#paladin-and-druid-base-attributes)), so they don't block
-those specs.
+(`BASE_PLACEHOLDERS` in `src/sim/stats/base-stats.ts`). The druid's base attributes stand in
+the same way, in the same table ([above](#paladin-and-druid-base-attributes)), and the paladin's
+may once its track adds them, so they don't block those specs. The results name every
+placeholder a setup uses, on the character sheet and in the assumptions alike, except that only a
+tank's list names the avoidance ones (base dodge, parry and block): they matter only when the
+boss attacks you.
 
 | Quantity | Warrior | Paladin | Druid | Tag · source |
 | --- | --- | --- | --- | --- |
@@ -710,7 +715,8 @@ the five-second rule, and the defense conversion.
   neither (the paladin, for now) reports that instead of simulating. The placeholders live in one
   replaceable table (`BASE_PLACEHOLDERS`), which the results list among their assumptions
   ([Other base values](#other-base-values-at-level-60)); base health, unmeasured for every class,
-  is one.
+  is one, and every druid base value is (its attribute rows, caster attack power, crit, spell crit,
+  dodge and health). `CLASS_BASE` holds measured values only.
 - **Racials:** implement by spell ID. Weapon-conditional crit (20597, 20574, 1259719) checks the
   subtypes of the weapons equipped in either hand (the effect's `weapons` condition); when one
   matches, it is flat aura crit (melee and spell) for the whole character, as the racials'

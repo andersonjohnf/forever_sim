@@ -4,11 +4,9 @@
 // (docs/decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23), which are tagged [?]
 // and listed in the results' assumptions. Anything else unknown is `null` and reported as missing.
 // CLASS_BASE holds the supported values (`null` there means nobody has measured it), and
-// BASE_PLACEHOLDERS below holds the placeholders, in one replaceable table. Every druid base value
-// is a D24 placeholder: the attribute rows (DRUID_ROWS: 1.12 rows only an emulator recorded, which
-// agree with the [C] race offsets, D24 rule 2) and the rest in their own table
-// (DRUID_PLACEHOLDERS), so a measured sheet replaces them. The paladin attribute rows (OQ-1) may
-// stand in the same way under D24; its spec's track adds them.
+// BASE_PLACEHOLDERS below holds the placeholders, in one replaceable table: every druid base value
+// is one, its attribute rows included. The paladin attribute rows (OQ-1) may stand in the same way
+// under D24; its spec's track adds them.
 import type { ClassId } from '../types'
 
 export interface Attributes {
@@ -48,7 +46,7 @@ const WARRIOR_ROWS: Record<string, Attributes | null> = {
  * whose method is unknown). Skyborne has no known offsets, so both Skyborne rows are that class
  * row, with neutral offsets.
  */
-export const DRUID_ROWS: Readonly<Record<string, Attributes>> = {
+const DRUID_ROWS: Readonly<Record<string, Attributes>> = {
   'alliance-night-elf': { str: 62, agi: 65, sta: 69, int: 100, spi: 110 },
   'horde-tauren': { str: 70, agi: 55, sta: 72, int: 95, spi: 112 },
   // [?] placeholder (D24): the class row, neutral race offsets (Skyborne's are unknown, OQ-1).
@@ -56,31 +54,11 @@ export const DRUID_ROWS: Readonly<Record<string, Attributes>> = {
   'horde-skyborne-windshaper': { str: 65, agi: 60, sta: 70, int: 100, spi: 110 },
 }
 
-/**
- * The druid's other base values at level 60: each a [?] placeholder (D24), with its origin, which
- * is not evidence. Both origins copy a private server's tables (character-stats.md OQ-1 to OQ-7).
- * - RatingBuster's `Vanilla_Logic.lua` at its last commit before Season of Discovery,
- *   https://github.com/raethkcj/RatingBuster/blob/d11164cf6de90688a635a6ff880b71ea9ea07367/libs/StatLogic/Vanilla_Logic.lua
- * - wowsims/classic `base_stats.go`, https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go
- */
-export const DRUID_PLACEHOLDERS = {
-  /** Base health before Stamina (origin: wowsims/classic; OQ-2). */
-  baseHealth: 1483,
-  /** Base melee crit before Agility, % (origin: RatingBuster, wowsims/classic; OQ-3): plausibly 0–1%, cat DPS −1.5% to +0.2%, so measured first. */
-  baseCrit: 0.9,
-  /** Base spell crit before Intellect, % (origin: RatingBuster, wowsims/classic; OQ-3): nothing for cat or bear. */
-  baseSpellCrit: 1.8,
-  /** Base dodge before Agility, % (origin: RatingBuster, wowsims/classic; OQ-5). */
-  baseDodge: 0.9,
-  /** Caster-form attack power before Strength (origin: wowsims/classic; OQ-7): about 0.7% of cat DPS. */
-  baseAp: -20,
-} as const
-
 export interface ClassBase {
   /** Base attributes by race id; null = unknown (OQ-1). */
   attributes: (race: string) => Attributes | null
-  /** Melee AP at level 60 before Strength (character-stats §attack power formulas). */
-  baseAp: number
+  /** Melee AP at level 60 before Strength (character-stats §attack power formulas); null = unknown (OQ-7). */
+  baseAp: number | null
   /** Base melee crit % before Agility; null = unknown (OQ-3). */
   baseCrit: number | null
   /** Crit % per point of Agility (PlayerExpectedStat.CritPerAgility). */
@@ -142,21 +120,21 @@ export const CLASS_BASE: Record<ClassId, ClassBase> = {
     baseMana: 1512,
   },
   druid: {
-    // docs/mechanics/character-stats.md#paladin-and-druid-base-attributes: [?] placeholders (D24)
-    attributes: (race) => DRUID_ROWS[race] ?? null,
-    // The rest are [?] placeholders (D24): DRUID_PLACEHOLDERS.
-    baseAp: DRUID_PLACEHOLDERS.baseAp,
-    baseCrit: DRUID_PLACEHOLDERS.baseCrit,
+    // Unmeasured (OQ-1): the attribute rows, caster attack power, crit, spell crit, dodge and
+    // health are D24 placeholders, in BASE_PLACEHOLDERS below.
+    attributes: () => null,
+    baseAp: null,
+    baseCrit: null,
     // docs/mechanics/character-stats.md#agility: 20 Agility per 1% [F]
     critPerAgi: 0.05,
     // docs/mechanics/character-stats.md#intellect: 59.88 Int per 1% [F]
     spellCritPerInt: 0.0167,
-    baseSpellCrit: DRUID_PLACEHOLDERS.baseSpellCrit,
-    baseDodge: DRUID_PLACEHOLDERS.baseDodge,
+    baseSpellCrit: null,
+    baseDodge: null,
     // Druids can't parry or block (character-stats §other base values).
     baseParry: 0,
     baseBlock: 0,
-    baseHealth: DRUID_PLACEHOLDERS.baseHealth,
+    baseHealth: null,
     // docs/mechanics/character-stats.md#other-base-values-at-level-60: 1244 [F]
     baseMana: 1244,
   },
@@ -167,6 +145,10 @@ export const CLASS_BASE: Record<ClassId, ClassBase> = {
  * out here and unknown in CLASS_BASE is left out of the sheet (0) and listed in its `unknown`.
  */
 export interface BasePlaceholders {
+  /** Base attributes by race id, as the naked sheet shows them (character-stats OQ-1); a race left out has none. */
+  attributes?: Readonly<Record<string, Attributes>>
+  /** Melee attack power before Strength and Agility (character-stats OQ-7). */
+  baseAp?: number
   /** Base health before Stamina (character-stats OQ-2). */
   baseHealth?: number
   /** Base dodge %, before Agility, defense and gear (character-stats OQ-5). */
@@ -193,9 +175,27 @@ export interface BasePlaceholders {
  * 20–40% high. Off by ±100, it moves the default Protection warrior's TPS by about 0.001% today,
  * because nothing spends rage yet; once a rotation spends it, by about ±0.3–0.7% (rage from
  * damage taken is about 44% of that warrior's rage; OQ-2 has the numbers).
+ *
+ * The druid's other base values (character-stats.md OQ-1, which has each one's estimated effect):
+ * "[?] placeholder (D24); origin: RatingBuster's Classic Era table at its last commit before
+ * Season of Discovery,
+ * https://github.com/raethkcj/RatingBuster/blob/d11164cf6de90688a635a6ff880b71ea9ea07367/libs/StatLogic/Vanilla_Logic.lua,
+ * and wowsims/classic `base_stats.go`, https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go,
+ * which both copy a private server's tables; not evidence". The attribute rows are DRUID_ROWS above.
  */
 export const BASE_PLACEHOLDERS: Record<ClassId, BasePlaceholders> = {
   warrior: { baseHealth: 1689 },
   paladin: { baseHealth: 1381 },
-  druid: { baseHealth: 1483 },
+  druid: {
+    attributes: DRUID_ROWS,
+    /** Caster-form attack power before Strength (origin: wowsims/classic; OQ-7): about 0.7% of cat DPS. */
+    baseAp: -20,
+    baseHealth: 1483,
+    /** Base melee crit before Agility, % (OQ-3): plausibly 0–1%, cat DPS −1.5% to +0.2%, so measured first. */
+    baseCrit: 0.9,
+    /** Base spell crit before Intellect, % (OQ-3): nothing for cat or bear. */
+    baseSpellCrit: 1.8,
+    /** Base dodge before Agility, % (OQ-5): under ±0.3% of bear TPS. */
+    baseDodge: 0.9,
+  },
 }

@@ -16,7 +16,7 @@ function warrior(race = 'alliance-human') {
   b.baseSta = row.sta
   b.baseInt = row.int
   b.baseSpi = row.spi
-  b.baseAp = CLASS_BASE.warrior.baseAp
+  b.baseAp = CLASS_BASE.warrior.baseAp!
   b.critPerAgi = CLASS_BASE.warrior.critPerAgi
   b.spiMult = 1.05 // The Human Spirit
   // Base health is D24's placeholder (base-stats.ts BASE_PLACEHOLDERS); base dodge 0 is [C].
@@ -61,8 +61,8 @@ describe('Example 2: Tauren druid in Cat Form (synthetic fixture)', () => {
     // Synthetic fixture: tests pipeline arithmetic only, not real base stats.
     b.baseStr = b.baseAgi = b.baseSta = b.baseInt = b.baseSpi = 100
     b.baseHealth = 1000
-    // Real values: druid −20 AP [?], Cat Form +120 and Predatory Strikes +90 [F], Cat AP per Agi 1 [F].
-    b.baseAp = CLASS_BASE.druid.baseAp
+    // Real values: druid −20 AP [?] (a D24 placeholder), Cat Form +120 and Predatory Strikes +90 [F], Cat AP per Agi 1 [F].
+    b.baseAp = BASE_PLACEHOLDERS.druid.baseAp!
     b.apPerAgi = 1
     b.ap = 120 + 90
     b.critPerAgi = CLASS_BASE.druid.critPerAgi
@@ -92,7 +92,7 @@ describe('Example 3: geared Human Retribution paladin (synthetic fixture)', () =
     b.baseStr = b.baseAgi = b.baseSta = b.baseInt = b.baseSpi = 100
     b.baseHealth = 1000
     // Real values: paladin slopes and base mana [F]; 160 base AP [?].
-    b.baseAp = CLASS_BASE.paladin.baseAp
+    b.baseAp = CLASS_BASE.paladin.baseAp!
     b.critPerAgi = CLASS_BASE.paladin.critPerAgi
     b.spellCritPerInt = CLASS_BASE.paladin.spellCritPerInt
     b.hasMana = true

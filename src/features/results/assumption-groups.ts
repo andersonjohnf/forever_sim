@@ -54,7 +54,6 @@ export const ASSUMPTION_GROUP = {
   classicShieldBlockValue: 'gear',
   // Your race and stats.
   unknownBaseAttributes: 'character',
-  druidBaseStats: 'character',
   racialWeaponCrit: 'character',
   gnomeRage: 'character',
   cooldownRacial: 'character',

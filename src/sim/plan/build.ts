@@ -234,8 +234,14 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // --- Stat block: base ----------------------------------------------------------------------
   const base = CLASS_BASE[classId]
   const block = new StatBlock()
-  const attributes = base.attributes(config.race)
+  // Decision D24: an unmeasured base value takes its Classic-based placeholder, listed in the
+  // assumptions (docs/mechanics/character-stats.md#other-base-values-at-level-60); the attribute
+  // rows too (#paladin-and-druid-base-attributes: the druid's).
+  const stand = BASE_PLACEHOLDERS[classId]
+  const measuredRow = base.attributes(config.race)
+  const attributes = measuredRow ?? stand.attributes?.[config.race] ?? null
   if (attributes) {
+    if (!measuredRow) placeholders.push('base attributes')
     block.baseStr = attributes.str
     block.baseAgi = attributes.agi
     block.baseSta = attributes.sta
@@ -250,10 +256,6 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         : `${meta.className} simulation isn’t available yet.`,
     )
   }
-  block.baseAp = base.baseAp
-  // Decision D24: an unmeasured base value takes its Classic-based placeholder, listed in the
-  // assumptions (docs/mechanics/character-stats.md#other-base-values-at-level-60).
-  const stand = BASE_PLACEHOLDERS[classId]
   // Avoidance matters only when the boss attacks you, so only a tank lists its avoidance
   // placeholders: the sheet's footnote and the assumptions below name the same values.
   const baseValue = (known: number | null, placeholder: number | undefined, name: string, listed = true) => {
@@ -266,6 +268,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     unknown.push(name)
     return 0
   }
+  block.baseAp = baseValue(base.baseAp, stand.baseAp, 'base attack power')
   block.baseHealth = baseValue(base.baseHealth, stand.baseHealth, 'base health')
   block.baseDodge = baseValue(base.baseDodge, stand.baseDodge, 'base dodge', tank)
   // A player parries with a melee weapon in hand; druids can't parry (character-stats §other base values).
@@ -833,6 +836,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // Decision D24: the Classic-based placeholders in this setup's numbers (character-stats OQ-2,
   // OQ-3, OQ-5). Avoidance matters only when the boss attacks you.
   const standIns: string[] = []
+  if (placeholders.includes('base attributes')) {
+    // The druid's Skyborne rows are the class row: Skyborne's race offsets are unknown (OQ-1).
+    const neutral = config.race.includes('skyborne') ? ', the class row with no race adjustment, as Skyborne’s is unknown' : ''
+    standIns.push(`base attributes Str ${block.baseStr}, Agi ${block.baseAgi}, Sta ${block.baseSta}, Int ${block.baseInt}, Spi ${block.baseSpi}${neutral}`)
+  }
+  if (placeholders.includes('base attack power')) standIns.push(`base attack power ${signed(block.baseAp)} before Strength`)
   if (placeholders.includes('base health')) {
     // The `forever` and `foreverHealthLost` models divide by max health.
     const dividesByHealth = takesDamage && plan.rage.fromDamageTaken && (takenModel === 'forever' || takenModel === 'foreverHealthLost')
@@ -908,9 +917,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (mh && fight.executePct > 0 && abilities.some((a) => a.damagePerExtraRage > 0)) notes.add('executeRageTenths')
   if (setup.talents.get('Improved Bloodrage') === 1 && abilities.some((a) => a.id === 'bloodrage')) notes.add('improvedBloodrageRounding')
   if (c.zoneGatedUnmet) notes.add('hyjalFlask')
-  // docs/classes/druid.md §2, §8 "Uncertainty surfacing": the druid's [?] that this setup relies on.
+  // docs/classes/druid.md §2, §8 "Uncertainty surfacing": the druid's [?] that this setup relies on
+  // (its base values are D24 placeholders, in `baseStatPlaceholders` above).
   if (classId === 'druid') {
-    notes.add('druidBaseStats')
     if (setup.form === 'cat' || setup.form === 'bear') notes.add('formWeapon')
     if (procIds.has('omenOfClarity')) notes.add('omenOfClarity')
     if (abilities.some((a) => a.resource === 'energy')) notes.add('energyTicks')
@@ -1046,6 +1055,9 @@ function stancePlans(
     }
   })
 }
+
+/** A number with a true minus sign (−20), as the docs and assumptions write it. */
+const signed = (n: number) => (n < 0 ? `−${-n}` : `${n}`)
 
 /**
  * Whether white hits and hits taken can give the plan rage (rage.md#bear-druid-rage; druid.md §8

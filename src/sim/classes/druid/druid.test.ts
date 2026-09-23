@@ -18,7 +18,7 @@ import { buildPlan, rageFromHits } from '../../plan/build'
 import type { AbilityDef } from '../../plan/types'
 import { STANCE_ANY } from '../../plan/types'
 import { CLASSIC_ERA, FOREVER } from '../../rules/profiles'
-import { CLASS_BASE, DRUID_PLACEHOLDERS, DRUID_ROWS } from '../../stats/base-stats'
+import { BASE_PLACEHOLDERS, CLASS_BASE } from '../../stats/base-stats'
 import { DerivedStats, deriveStats, StatBlock } from '../../stats/stat-block'
 import type { SimConfig } from '../../types'
 import { talentRanksByName } from '../index'
@@ -231,7 +231,7 @@ describe('worked examples without cat or bear abilities (druid.md §9)', () => {
     b.str = str
     b.agi = agi
     b.ap = flatAp
-    b.baseAp = CLASS_BASE.druid.baseAp
+    b.baseAp = BASE_PLACEHOLDERS.druid.baseAp!
     const bound = [...formEffects(FOREVER), ...DRUID_TALENT_EFFECTS['Predatory Strikes'](3, FOREVER)]
     for (const e of bound) {
       if (!e.when?.form?.includes(form) || e.kind !== 'stat') continue
@@ -302,24 +302,46 @@ describe('the druid plan (druid.md §2, §7)', () => {
     expect(plan.freeCastAura).toBe(plan.auras.findIndex((a) => a.id === 'clearcasting'))
   })
 
-  it('uses the D24 placeholder rows and base values, listed as an assumption', () => {
+  it('uses the D24 placeholder rows and base values from BASE_PLACEHOLDERS, listed on the sheet and in the assumptions alike', () => {
+    const stand = BASE_PLACEHOLDERS.druid
     const { sheet, assumptions } = buildPlan({ ...bare(defaultConfig('druid-feral-cat')), gear: {}, talents: '' })
-    const row = DRUID_ROWS['horde-tauren']
+    const row = stand.attributes!['horde-tauren']
     // Cat form, no gear or talents: the attributes are the row's.
     expect([sheet.strength, sheet.agility, sheet.stamina, sheet.intellect, sheet.spirit]).toEqual([row.str, row.agi, row.sta, row.int, row.spi])
     // AP: 2 × 70 − 20 + 55 + 120 = 295 (Tauren, Cat Form)
     expect(sheet.attackPower).toBe(295)
     // Crit 0.9 + 55 / 20 = 3.65%; dodge 0.9 + 55 / 20 = 3.65%; health (1483 + 20 + 52 × 10) × 1.05 (Endurance)
-    expect(sheet.critPct).toBeCloseTo(DRUID_PLACEHOLDERS.baseCrit + 55 * 0.05, 9)
-    expect(sheet.dodgePct).toBeCloseTo(DRUID_PLACEHOLDERS.baseDodge + 55 * 0.05, 9)
+    expect(sheet.critPct).toBeCloseTo(stand.baseCrit! + 55 * 0.05, 9)
+    expect(sheet.dodgePct).toBeCloseTo(stand.baseDodge! + 55 * 0.05, 9)
     expect(sheet.health).toBe(Math.floor((1483 + 20 + 52 * 10) * 1.05))
-    expect(assumptions.map((a) => a.id)).toContain('druidBaseStats')
+    // One list on the sheet and in `baseStatPlaceholders` (D24, TA8): base dodge is an avoidance
+    // placeholder, so only the bear, whom the boss attacks, names it.
+    expect(sheet.unknown).toEqual([])
+    expect(sheet.placeholders).toEqual(['base attributes', 'base attack power', 'base health', 'base crit', 'base spell crit'])
+    const note = assumptions.find((a) => a.id === 'baseStatPlaceholders')!
+    expect(note.text).toMatch(
+      /: base attributes Str 70, Agi 55, Sta 72, Int 95, Spi 112; base attack power −20 before Strength; base health 1,483; base melee crit 0\.9%; base spell crit 1\.8%\.$/,
+    )
     expect(assumptions.map((a) => a.id)).not.toContain('unknownBaseAttributes')
+    const bear = buildPlan(bare(defaultConfig('druid-feral-bear')))
+    expect(bear.sheet.placeholders).toEqual(['base attributes', 'base attack power', 'base health', 'base dodge', 'base crit', 'base spell crit'])
+    expect(bear.assumptions.find((a) => a.id === 'baseStatPlaceholders')!.text).toMatch(
+      /; base health 1,483, which rage from damage taken divides by; base dodge 0\.9% before Agility; base melee crit 0\.9%;/,
+    )
+    // A Skyborne druid takes the class row, and the note says why.
+    const skyborne = buildPlan({ ...bare(defaultConfig('druid-feral-cat')), race: 'horde-skyborne-windshaper', gear: {}, talents: '' })
+    expect(skyborne.blockers).toEqual([])
+    expect(skyborne.assumptions.find((a) => a.id === 'baseStatPlaceholders')!.text).toContain(
+      'base attributes Str 65, Agi 60, Sta 70, Int 100, Spi 110, the class row with no race adjustment, as Skyborne’s is unknown;',
+    )
     // The rows agree with the [C] race offsets: Night Elf −3 Str, +5 Agi, −1 Sta; Tauren +5, −5, +2, −5, +2.
-    const classRow = DRUID_ROWS['alliance-skyborne-high-order']
-    const ne = DRUID_ROWS['alliance-night-elf']
+    const classRow = stand.attributes!['alliance-skyborne-high-order']
+    const ne = stand.attributes!['alliance-night-elf']
     expect([ne.str - classRow.str, ne.agi - classRow.agi, ne.sta - classRow.sta, ne.int - classRow.int, ne.spi - classRow.spi]).toEqual([-3, 5, -1, 0, 0])
     expect([row.str - classRow.str, row.agi - classRow.agi, row.sta - classRow.sta, row.int - classRow.int, row.spi - classRow.spi]).toEqual([5, -5, 2, -5, 2])
+    // CLASS_BASE holds only measured values: every druid placeholder is in the one table.
+    const druid = CLASS_BASE.druid
+    expect([druid.attributes('horde-tauren'), druid.baseAp, druid.baseHealth, druid.baseCrit, druid.baseSpellCrit, druid.baseDodge]).toEqual([null, null, null, null, null, null])
   })
 
   it('the bear’s Dire Bear armor: item armor × 4.6, and bonus armor × 4.6 in `forever` only [?] (OQ-8)', () => {

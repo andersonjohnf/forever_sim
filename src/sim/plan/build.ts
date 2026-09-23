@@ -7,8 +7,9 @@
 import itemJson from '@/data/items/pre-bis.json'
 import type { Item, ItemData, Stats, WeaponSkill, WeaponType } from '@/data/items/types'
 import { glanceRange, PLAYER_LEVEL } from '../core/attack-table'
-import { ppmChance, toTenths } from '../core/formulas'
+import { NORMALIZED_SPEED, ppmChance, toTenths } from '../core/formulas'
 import { classSetup } from '../classes'
+import { classRotation } from '../classes/rotation'
 import { BUFFS_BY_ID } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { ITEM_EFFECTS } from '../effects/items'
@@ -22,6 +23,7 @@ import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 import type { CharacterSheet, GearSlot, SimConfig } from '../types'
 import { Assumptions } from './assumptions'
 import {
+  type AbilityPlan,
   ACTION,
   type AuraPlan,
   HAND,
@@ -175,6 +177,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         rageMult: 1,
         glanceLow: 0,
         glanceHigh: 0,
+        // docs/mechanics/damage-and-timing.md#22-normalization-for-instant-attacks
+        normalizedSpeed: isTwoHand(item)
+          ? NORMALIZED_SPEED.twoHand
+          : item.weaponType === 'dagger'
+            ? NORMALIZED_SPEED.dagger
+            : NORMALIZED_SPEED.oneHand,
       },
     }
   }
@@ -459,6 +467,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   procs.forEach((p, i) => triggers[p.trigger].push(i))
   const periodicRage = c.periodicRage.map((p) => ({ periodMs: p.periodMs, tenths: toTenths(p.amount), source: -1 }))
 
+  // --- Abilities and the priority list (docs/classes/warrior.md §5) ------------------------------
+  const classRot = setup.simulated
+    ? classRotation(config.spec, config.rotation, setup.talents, (id) => auras.findIndex((a) => a.id === id))
+    : { abilities: [], rotation: [] }
+  const abilities: AbilityPlan[] = classRot.abilities.map((a) => ({ ...a, source: sourceIndex(a.id, a.name, a.icon) }))
+
   // --- Fight ------------------------------------------------------------------------------------
   const front = fight.position === 'front'
   const targetArmor = fight.bossArmor - c.targetArmor
@@ -516,13 +530,17 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     procs,
     triggers,
     sources,
-    // M2: the class module adds its abilities and the spec's priority list here.
-    abilities: [],
-    rotation: [],
+    abilities,
+    rotation: classRot.rotation,
   }
 
   // --- Assumptions ---------------------------------------------------------------------------------
-  if (setup.simulated) notes.add('whiteSwingsOnly')
+  if (setup.simulated) notes.add(abilities.length > 0 ? 'partialRotation' : 'whiteSwingsOnly')
+  if (abilities.some((a) => a.gcdMs > 0)) notes.add('gcdHaste')
+  if (abilities.some((a) => a.refundShare > 0)) notes.add('abilityRefunds')
+  const queues = abilities.some((a) => a.kind === 'onNextSwing')
+  if (queues && mh) notes.add('onNextSwingRage')
+  if (queues && weapons[HAND.off]) notes.add('onNextSwingOffHand')
   if (!mh) notes.add('noWeapon')
   if (profile.id === 'forever') {
     notes.add('foreverHitTable')

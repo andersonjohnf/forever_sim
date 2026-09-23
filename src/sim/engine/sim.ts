@@ -6,11 +6,13 @@
 // changes attributes starts or ends. Rules come from the plan's profile; constants cite their
 // doc in the pure reference functions (core/formulas.ts, core/attack-table.ts).
 //
-// M1 simulates white swings, procs, auras, rage, threat and boss melee. M2 adds abilities and a
-// priority-list rotation on the hooks marked "M2".
+// It simulates white swings, procs, auras, rage, threat, boss melee, and abilities driven by a
+// priority-list rotation: GCD and cooldown events on the same queue, one-roll strikes, two-roll
+// melee spells and on-next-swing queues (docs/architecture.md#engine-design-m1).
 import {
   bossSlices,
   meleeChances,
+  specialSlices,
   spellMiss,
   thresholds,
   whiteSlices,
@@ -19,7 +21,7 @@ import {
 import { armorReduction, parryHasteRemaining, rageConversion } from '../core/formulas'
 import { EventQueue } from '../core/queue'
 import { Rng, STREAM } from '../core/rng'
-import { ACTION, HAND, TRIGGER, TRIGGER_COUNT, type Plan } from '../plan/types'
+import { ACTION, COND, HAND, TRIGGER, TRIGGER_COUNT, type Plan } from '../plan/types'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 
 /** Event kinds. */
@@ -30,6 +32,14 @@ const EV_AURA_EXPIRE = 4
 const EV_BLEED_TICK = 5
 const EV_PERIODIC_RAGE = 6
 const EV_DAMAGE_TAKEN = 7
+/** The rotation may act: a GCD or cooldown ended. */
+const EV_ACT = 8
+
+/** Ability kinds (AbilityPlan.kind). */
+const KIND_STRIKE = 0
+const KIND_MELEE_SPELL = 1
+const KIND_ON_NEXT_SWING = 2
+const KIND_CODE = { weaponStrike: KIND_STRIKE, meleeSpell: KIND_MELEE_SPELL, onNextSwing: KIND_ON_NEXT_SWING } as const
 
 /** Breakdown columns per source. */
 export const FIELD = {
@@ -73,6 +83,10 @@ export class Sim {
   totalRageWastedTenths = 0
   /** Test hook: called for every white swing (source row, hand, time) and bleed tick (source, −1, time). */
   trace: ((source: number, hand: number, time: number) => void) | null = null
+  /** Test hook: called when an ability is used, before its cost is paid (ability index, time, rage in tenths). */
+  castTrace: ((ability: number, time: number, rageTenths: number) => void) | null = null
+  /** Test hook: every damage event (source row, damage). */
+  damageTrace: ((source: number, damage: number) => void) | null = null
 
   private readonly q = new EventQueue(512)
   private readonly rngFight = new Rng()
@@ -83,8 +97,10 @@ export class Sim {
 
   // Static inputs.
   private readonly base: StatBlock
-  private readonly scratch = new StatBlock()
+  /** The base block plus aura deltas; only the fields auras change are rewritten (deriveStats doesn't mutate it). */
+  private readonly scratch: StatBlock
   private readonly derived = new DerivedStats()
+  private readonly deriveOptions: { profile: Plan['profile']; applyUnmeasured: boolean; level: number }
   private readonly hasWeapon: Uint8Array
   private readonly wMin: Float64Array
   private readonly wMax: Float64Array
@@ -101,6 +117,7 @@ export class Sim {
   /** Normalized white rage per landed swing, in tenths (profile `normalized`). */
   private readonly wNormRageTenths: Int32Array
   private readonly wRageMult: Float64Array
+  private readonly wNormSpeed: Float64Array
   private readonly dualWield: boolean
   private readonly normalizedRage: boolean
   private readonly avoidedRageShare: number
@@ -137,6 +154,33 @@ export class Sim {
   private readonly aStatful: Uint8Array
   private readonly chargeAuras: Int32Array
 
+  // Abilities and the rotation, flattened.
+  private readonly abKind: Int32Array
+  private readonly abCost: Int32Array
+  private readonly abCd: Float64Array
+  private readonly abGcd: Float64Array
+  private readonly abWeaponPct: Float64Array
+  private readonly abNormalized: Uint8Array
+  private readonly abFlat: Float64Array
+  private readonly abApCoef: Float64Array
+  private readonly abBonusCrit: Float64Array
+  private readonly abCritMult: Float64Array
+  private readonly abRefund: Float64Array
+  private readonly abThreatMult: Float64Array
+  private readonly abThreatBonus: Float64Array
+  private readonly abSource: Int32Array
+  private readonly abUnqueueBelow: Int32Array
+  private readonly rotAbility: Int32Array
+  /** Entries whose ability is off the GCD, in priority order: all that can act while the GCD runs. */
+  private readonly rotOffGcd: Int32Array
+  /** Entry e's conditions are indices condStart[e] … condStart[e + 1] − 1. */
+  private readonly condStart: Int32Array
+  private readonly condCode: Int32Array
+  private readonly condA: Float64Array
+  private readonly condB: Float64Array
+  private readonly hasRotation: boolean
+  private readonly hasAbilities: boolean
+
   // Per-fight state.
   private now = 0
   private fightEnd = 0
@@ -156,6 +200,12 @@ export class Sim {
   private readonly bleedTicksLeft: Int32Array
   private readonly bleedGen: Int32Array
   private readonly bleedProc: Int32Array
+  private gcdEnd = 0
+  private readonly abReadyAt: Float64Array
+  /** The queued on-next-swing ability, or −1. */
+  private queued = -1
+  /** Something the rotation depends on changed (rage, GCD, a cooldown, an aura, the queue). */
+  private actPending = false
   private dynStr = 0
   private dynAgi = 0
   private dynAp = 0
@@ -166,6 +216,12 @@ export class Sim {
   private ap = 0
   private readonly critPct = new Float64Array(2)
   private readonly thrWhite = new Float64Array(12)
+  /** The off hand's white table while an on-next-swing ability is queued: no dual-wield penalty (combat-tables §5). */
+  private readonly thrOffQueued = new Float64Array(6)
+  /** Special-attack table per hand (combat-tables §3): miss, dodge, parry, 0 (no glancing), block, crit. */
+  private readonly thrSpecial = new Float64Array(12)
+  /** Special crit % per hand before truncation, for ability bonus crit and melee spells' second roll. */
+  private readonly specCrit = new Float64Array(2)
   private readonly thrBoss = new Float64Array(6)
   private readonly armorFactor = new Float64Array(2)
   private physMult = 1
@@ -185,6 +241,8 @@ export class Sim {
   constructor(plan: Plan) {
     this.plan = plan
     this.base = new StatBlock().copyFrom(plan.stats)
+    this.scratch = new StatBlock().copyFrom(this.base)
+    this.deriveOptions = { profile: plan.profile, applyUnmeasured: plan.applyUnmeasured, level: plan.playerLevel }
     this.counters = new Float64Array(plan.sources.length * FIELD_COUNT)
 
     const w = plan.weapons
@@ -203,6 +261,7 @@ export class Sim {
     this.wTwoHand = new Uint8Array(2)
     this.wNormRageTenths = new Int32Array(2)
     this.wRageMult = new Float64Array(2)
+    this.wNormSpeed = new Float64Array(2)
     const rage = plan.profile.rage
     for (let h = 0; h < 2; h++) {
       const weapon = w[h]
@@ -221,6 +280,7 @@ export class Sim {
       this.wGlanceHigh[h] = weapon.glanceHigh
       this.wTwoHand[h] = weapon.twoHand ? 1 : 0
       this.wRageMult[h] = weapon.rageMult
+      this.wNormSpeed[h] = weapon.normalizedSpeed
       // docs/mechanics/rage.md#forever-normalized-rage-per-swing-: k × base speed (× off-hand base), floored to tenths
       const k = weapon.twoHand ? rage.normalizedTwoHand : rage.normalizedOneHand
       const offBase = h === HAND.off ? rage.offHandBase : 1
@@ -306,6 +366,66 @@ export class Sim {
       if (a.whiteSwingCharges > 0) chargeAuras.push(i)
     }
     this.chargeAuras = Int32Array.from(chargeAuras)
+
+    const abilities = plan.abilities
+    const nb = abilities.length
+    this.abKind = new Int32Array(nb)
+    this.abCost = new Int32Array(nb)
+    this.abCd = new Float64Array(nb)
+    this.abGcd = new Float64Array(nb)
+    this.abWeaponPct = new Float64Array(nb)
+    this.abNormalized = new Uint8Array(nb)
+    this.abFlat = new Float64Array(nb)
+    this.abApCoef = new Float64Array(nb)
+    this.abBonusCrit = new Float64Array(nb)
+    this.abCritMult = new Float64Array(nb)
+    this.abRefund = new Float64Array(nb)
+    this.abThreatMult = new Float64Array(nb)
+    this.abThreatBonus = new Float64Array(nb)
+    this.abSource = new Int32Array(nb)
+    this.abUnqueueBelow = new Int32Array(nb)
+    this.abReadyAt = new Float64Array(nb)
+    for (let i = 0; i < nb; i++) {
+      const a = abilities[i]
+      this.abKind[i] = KIND_CODE[a.kind]
+      this.abCost[i] = a.costTenths
+      this.abCd[i] = a.cooldownMs
+      this.abGcd[i] = a.gcdMs
+      this.abWeaponPct[i] = a.weaponPercent
+      this.abNormalized[i] = a.normalized ? 1 : 0
+      this.abFlat[i] = a.flatDamage
+      this.abApCoef[i] = a.apCoefficient
+      this.abBonusCrit[i] = a.bonusCrit
+      this.abCritMult[i] = a.critMultiplier
+      this.abRefund[i] = a.refundShare
+      this.abThreatMult[i] = a.threatMult
+      this.abThreatBonus[i] = a.threatBonus
+      this.abSource[i] = a.source
+    }
+    const rotation = plan.rotation
+    this.rotAbility = new Int32Array(rotation.length)
+    this.condStart = new Int32Array(rotation.length + 1)
+    const nc = rotation.reduce((n, e) => n + e.conditions.length, 0)
+    this.condCode = new Int32Array(nc)
+    this.condA = new Float64Array(nc)
+    this.condB = new Float64Array(nc)
+    let k = 0
+    for (let e = 0; e < rotation.length; e++) {
+      const entry = rotation[e]
+      this.rotAbility[e] = entry.ability
+      this.abUnqueueBelow[entry.ability] = entry.unqueueBelowTenths
+      this.condStart[e] = k
+      for (const cond of entry.conditions) {
+        this.condCode[k] = cond.code
+        this.condA[k] = cond.a
+        this.condB[k] = cond.b
+        k++
+      }
+    }
+    this.condStart[rotation.length] = k
+    this.rotOffGcd = Int32Array.from(rotation.map((_, e) => e).filter((e) => abilities[rotation[e].ability].gcdMs === 0))
+    this.hasRotation = rotation.length > 0
+    this.hasAbilities = nb > 0
   }
 
   // ------------------------------------------------------------------------------------------
@@ -329,6 +449,7 @@ export class Sim {
     this.reset()
 
     const q = this.q
+    if (this.hasRotation) q.push(0, EV_ACT, 0, 0)
     // docs/mechanics/damage-and-timing.md#31-haste: main hand at 0, off hand at half its swing [?]
     if (this.hasWeapon[HAND.main]) this.scheduleSwing(HAND.main, 0)
     if (this.dualWield) this.scheduleSwing(HAND.off, Math.round(0.5 * this.swingMs[HAND.off]))
@@ -378,7 +499,12 @@ export class Sim {
           if (this.exCount > 0) this.drainExtraAttacks()
           q.push(t + f.damageTakenIntervalMs, EV_DAMAGE_TAKEN, 0, 0)
           break
+        case EV_ACT:
+          this.actPending = true
+          break
       }
+      // A decision point: the event changed rage, the GCD, a cooldown, an aura or the queue.
+      while (this.actPending) this.act()
     }
     this.fightMs = end
   }
@@ -393,6 +519,8 @@ export class Sim {
       bossThresholds: Array.from(this.thrBoss),
       armorFactor: Array.from(this.armorFactor),
       swingMs: Array.from(this.swingMs),
+      specialThresholds: Array.from(this.thrSpecial.subarray(0, 6)),
+      offHandQueuedThresholds: Array.from(this.thrOffQueued),
       physMult: this.physMult,
       maxRage: this.maxRage,
       blockValue: this.blockValue,
@@ -427,6 +555,10 @@ export class Sim {
     this.exHead = 0
     this.exCount = 0
     this.chainMask = 0
+    this.gcdEnd = 0
+    this.abReadyAt.fill(0)
+    this.queued = -1
+    this.actPending = false
     this.recomputeStats()
     this.recomputeMultipliers()
   }
@@ -438,12 +570,13 @@ export class Sim {
   /** Re-derives stats after an attribute aura changes (character-stats.md#derived-stat-pipeline). */
   private recomputeStats(): void {
     const plan = this.plan
-    const s = this.scratch.copyFrom(this.base)
-    s.str += this.dynStr
-    s.agi += this.dynAgi
-    s.ap += this.dynAp
-    s.crit += this.dynCrit
-    const d = deriveStats(s, { profile: plan.profile, applyUnmeasured: plan.applyUnmeasured, level: plan.playerLevel }, this.derived)
+    const s = this.scratch
+    const base = this.base
+    s.str = base.str + this.dynStr
+    s.agi = base.agi + this.dynAgi
+    s.ap = base.ap + this.dynAp
+    s.crit = base.crit + this.dynCrit
+    const d = deriveStats(s, this.deriveOptions, this.derived)
     this.ap = d.attackPower
     this.blockValue = d.blockValue
     this.spellMissPct = spellMiss(plan.profile, plan.playerLevel, plan.fight.targetLevel, d.spellHit)
@@ -453,25 +586,28 @@ export class Sim {
       const sheetCrit = d.crit + this.wCritBonus[h]
       this.critPct[h] = sheetCrit
       // docs/mechanics/combat-tables.md#2-melee-attack-table-white-swings
-      const ch = meleeChances(
-        plan.profile,
-        {
-          attackerLevel: plan.playerLevel,
-          targetLevel: f.targetLevel,
-          skill: this.wSkill[h],
-          hit: d.hit + this.wHitBonus[h],
-          sheetCrit,
-          auraCrit: d.auraCrit + this.wCritBonus[h],
-          expertise: d.expertise,
-          front: f.front,
-          canDodge: f.bossCanDodge,
-          canParry: f.bossCanParry,
-          canBlock: f.bossCanBlock,
-        },
-        true,
-        this.dualWield,
-      )
-      thresholds(whiteSlices(ch), this.thrWhite.subarray(6 * h, 6 * h + 6))
+      const inputs = {
+        attackerLevel: plan.playerLevel,
+        targetLevel: f.targetLevel,
+        skill: this.wSkill[h],
+        hit: d.hit + this.wHitBonus[h],
+        sheetCrit,
+        auraCrit: d.auraCrit + this.wCritBonus[h],
+        expertise: d.expertise,
+        front: f.front,
+        canDodge: f.bossCanDodge,
+        canParry: f.bossCanParry,
+        canBlock: f.bossCanBlock,
+      }
+      thresholds(whiteSlices(meleeChances(plan.profile, inputs, true, this.dualWield)), this.thrWhite.subarray(6 * h, 6 * h + 6))
+      if (this.hasAbilities) {
+        // docs/mechanics/combat-tables.md#5-dual-wield-and-on-next-swing-queues: dwPenalty = dualWielding && !queue.active
+        if (h === HAND.off && this.dualWield) thresholds(whiteSlices(meleeChances(plan.profile, inputs, true, false)), this.thrOffQueued)
+        // docs/mechanics/combat-tables.md#3-special-yellow-attacks: no glancing, no dual-wield penalty
+        const special = meleeChances(plan.profile, inputs, false, false)
+        thresholds(specialSlices(special), this.thrSpecial.subarray(6 * h, 6 * h + 6))
+        this.specCrit[h] = special.crit
+      }
       // docs/mechanics/damage-and-timing.md#12-armor-reduction-debuffs-and-penetration: flat reductions, then % ignored
       let armor = f.targetArmor - d.armorPen
       if (armor > 0) armor *= 1 - this.wArmorPenPct[h]
@@ -531,11 +667,32 @@ export class Sim {
 
   private onSwingTimer(hand: number): void {
     this.chainMask = 0
-    // M2: a queued on-next-swing ability (Heroic Strike, Cleave) replaces a main-hand swing here,
-    // and lifts the dual-wield penalty from the off hand while queued.
-    this.whiteSwing(hand, hand === HAND.main ? SOURCE_MAIN_HAND : SOURCE_OFF_HAND, 0)
+    if (hand === HAND.main) this.mainHandSwing(SOURCE_MAIN_HAND, 0)
+    else this.whiteSwing(hand, SOURCE_OFF_HAND, 0)
     this.scheduleSwing(hand, this.now + this.swingMs[hand])
     if (this.exCount > 0) this.drainExtraAttacks()
+  }
+
+  /**
+   * A main-hand swing, from its timer or an extra attack: a queued on-next-swing ability replaces
+   * it if there's rage for it when the swing happens, otherwise it's a white swing. Either way
+   * the queue is used up (warrior.md §2.4 items 1 and 7).
+   */
+  private mainHandSwing(source: number, bonusAp: number): void {
+    const a = this.queued
+    if (a >= 0) {
+      this.queued = -1
+      this.actPending = this.hasRotation
+      if (this.rage >= this.abCost[a]) {
+        if (this.castTrace !== null) this.castTrace(a, this.now, this.rage)
+        this.spendRage(a)
+        // No white rage from the replaced swing (rage.md#yellow-damage-and-on-next-swing-attacks),
+        // and it doesn't use Flurry charges in Forever (warrior.md §2.4 item 5).
+        this.special(a, bonusAp)
+        return
+      }
+    }
+    this.whiteSwing(HAND.main, source, bonusAp)
   }
 
   /**
@@ -555,8 +712,13 @@ export class Sim {
     c[row + FIELD.casts]++
     if (this.trace !== null) this.trace(source, hand, this.now)
     const r = this.rngTable.roll100()
-    const o = 6 * hand
-    const th = this.thrWhite
+    let o = 6 * hand
+    let th = this.thrWhite
+    if (hand === HAND.off && this.queued >= 0) {
+      // docs/mechanics/combat-tables.md#5-dual-wield-and-on-next-swing-queues
+      th = this.thrOffQueued
+      o = 0
+    }
     if (r < th[o]) {
       c[row + FIELD.misses]++
       return
@@ -621,7 +783,7 @@ export class Sim {
       this.exCount--
       this.chainMask = this.exMask[i]
       // docs/mechanics/damage-and-timing.md#33-swing-reset-rules: the main hand swings now and restarts its timer
-      this.whiteSwing(HAND.main, this.exSource[i], this.exBonusAp[i])
+      this.mainHandSwing(this.exSource[i], this.exBonusAp[i])
       chain++
     }
     this.exCount = 0
@@ -631,12 +793,173 @@ export class Sim {
   }
 
   private dealDamage(source: number, damage: number): void {
-    const threat = damage * this.plan.threatMult
+    this.addDamage(source, damage, damage * this.plan.threatMult)
+  }
+
+  private addDamage(source: number, damage: number, threat: number): void {
     const row = source * FIELD_COUNT
     this.counters[row + FIELD.damage] += damage
     this.counters[row + FIELD.threat] += threat
     this.fightDamage += damage
     this.fightThreat += threat
+    if (this.damageTrace !== null) this.damageTrace(source, damage)
+  }
+
+  // ------------------------------------------------------------------------------------------
+  // Abilities and the rotation
+  // ------------------------------------------------------------------------------------------
+
+  /**
+   * Walks the priority list (warrior.md §5.1): uses every entry, in order, whose ability is
+   * usable now and whose conditions hold. A GCD ability blocks the later GCD entries through the
+   * GCD it starts; off-GCD entries (the Heroic Strike queue) are still checked after it.
+   */
+  private act(): void {
+    this.actPending = false
+    const now = this.now
+    // While the GCD runs only off-GCD entries can be used; skipping the others changes nothing.
+    const gcdBusy = this.gcdEnd > now
+    const n = gcdBusy ? this.rotOffGcd.length : this.rotAbility.length
+    for (let i = 0; i < n; i++) {
+      const e = gcdBusy ? this.rotOffGcd[i] : i
+      const a = this.rotAbility[e]
+      if (this.abReadyAt[a] > now || this.rage < this.abCost[a]) continue
+      if (this.abKind[a] === KIND_ON_NEXT_SWING) {
+        if (this.queued >= 0 || !this.hasWeapon[HAND.main]) continue
+      } else {
+        if (this.abGcd[a] > 0 && this.gcdEnd > now) continue
+        if (this.abWeaponPct[a] > 0 && !this.hasWeapon[HAND.main]) continue
+      }
+      if (!this.conditionsHold(e)) continue
+      this.use(a)
+    }
+  }
+
+  private conditionsHold(e: number): boolean {
+    const now = this.now
+    for (let k = this.condStart[e]; k < this.condStart[e + 1]; k++) {
+      const a = this.condA[k]
+      const b = this.condB[k]
+      switch (this.condCode[k]) {
+        case COND.minRage:
+          if (this.rage < a) return false
+          break
+        case COND.cooldownAtLeast:
+          if (this.abReadyAt[a] - now < b) return false
+          break
+        case COND.gcdSafe:
+          // docs/classes/warrior.md#51-conventions-for-rotation-settings: each has ≥ one GCD of cooldown left
+          for (let i = 0, mask = a; mask !== 0; i++, mask >>>= 1) {
+            if (mask & 1 && this.abReadyAt[i] - now < b) return false
+          }
+          break
+        case COND.auraDown:
+          if (a >= 0 && this.auraActive[a]) return false
+          break
+      }
+    }
+    return true
+  }
+
+  /** Uses an ability: queues an on-next-swing one, otherwise pays, starts the GCD and cooldown, and strikes. */
+  private use(a: number): void {
+    if (this.abKind[a] === KIND_ON_NEXT_SWING) {
+      // Queueing is free and off the GCD; rage is checked and spent at the swing (warrior.md §2.4).
+      this.queued = a
+      return
+    }
+    if (this.castTrace !== null) this.castTrace(a, this.now, this.rage)
+    this.spendRage(a)
+    const gcd = this.abGcd[a]
+    if (gcd > 0) {
+      this.gcdEnd = this.now + gcd
+      this.q.push(this.gcdEnd, EV_ACT, 0, 0)
+    }
+    const cd = this.abCd[a]
+    if (cd > 0) {
+      this.abReadyAt[a] = this.now + cd
+      this.q.push(this.abReadyAt[a], EV_ACT, 0, 0)
+    }
+    this.chainMask = 0
+    this.special(a, 0)
+    if (this.exCount > 0) this.drainExtraAttacks()
+  }
+
+  /**
+   * A special attack with the main hand (combat-tables §3): one roll over miss, dodge, parry,
+   * block, crit, or for melee spells a second roll for crit. Damage per damage-and-timing §2.6;
+   * no rage from its damage (rage.md#yellow-damage-and-on-next-swing-attacks).
+   */
+  private special(a: number, bonusAp: number): void {
+    const source = this.abSource[a]
+    const row = source * FIELD_COUNT
+    const c = this.counters
+    c[row + FIELD.casts]++
+    const th = this.thrSpecial // main hand: indices 0–5
+    const r = this.rngTable.roll100()
+    if (r < th[2]) {
+      if (r < th[0]) c[row + FIELD.misses]++
+      else if (r < th[1]) c[row + FIELD.dodges]++
+      else {
+        c[row + FIELD.parries]++
+        this.onBossParried()
+      }
+      // docs/mechanics/rage.md#rage-refunds-on-avoided-abilities: no threat, not an energize
+      const refund = Math.floor(this.abRefund[a] * this.abCost[a] + 1e-9)
+      this.rage = Math.min(this.maxRage, this.rage + refund)
+      this.actPending = this.hasRotation
+      return
+    }
+    const blocked = r < th[4]
+    const critChance = this.specCrit[HAND.main] + this.abBonusCrit[a]
+    const crit =
+      this.abKind[a] === KIND_MELEE_SPELL
+        ? this.rngTable.roll100() < critChance // roll 2, not truncated by roll 1
+        : !blocked && r < Math.min(100, th[4] + Math.max(0, critChance))
+    let damage = this.abilityDamage(a, bonusAp)
+    if (crit) {
+      damage *= this.abCritMult[a]
+      c[row + FIELD.crits]++
+    } else if (blocked) {
+      // Mob block value is 0 [?] (combat-tables §2.4): a blocked special deals full damage.
+      c[row + FIELD.blocks]++
+    } else {
+      c[row + FIELD.hits]++
+    }
+    // docs/mechanics/threat.md#base-rule-and-how-modifiers-stack: (dmg × mult + bonus) × global
+    this.addDamage(source, damage, (damage * this.abThreatMult[a] + this.abThreatBonus[a]) * this.plan.threatMult)
+    this.fireProcs(TRIGGER.meleeLanded, HAND.main)
+    if (crit) this.fireProcs(TRIGGER.meleeCrit, HAND.main)
+  }
+
+  /**
+   * A landed special's damage before the outcome multiplier (damage-and-timing §2.6, steps 1–4).
+   * Weapon-based: (roll + flat weapon damage + AP/14 × real or normalized speed + ability flat)
+   * × weapon %. Otherwise flat + AP coefficient × AP (Bloodthirst, Hamstring). Main hand only;
+   * its hand multiplier is 1 and its armor factor applies.
+   */
+  private abilityDamage(a: number, bonusAp: number): number {
+    const h = HAND.main
+    const ap = this.ap + bonusAp
+    let base: number
+    if (this.abWeaponPct[a] > 0) {
+      const speed = this.abNormalized[a] ? this.wNormSpeed[h] : this.wSpeedSec[h]
+      const roll = this.rngDamage.uniform(this.wMin[h], this.wMax[h])
+      base = (roll + this.wFlat[h] + (ap / 14) * speed + this.abFlat[a]) * this.abWeaponPct[a]
+    } else {
+      base = this.abFlat[a] + this.abApCoef[a] * ap
+    }
+    return base * this.physMult * this.armorFactor[h]
+  }
+
+  /** Pays an ability's cost; a queued on-next-swing ability is cancelled if rage drops below its threshold. */
+  private spendRage(a: number): void {
+    this.rage -= this.abCost[a]
+    const q = this.queued
+    if (q >= 0 && this.rage < this.abUnqueueBelow[q]) {
+      this.queued = -1
+      this.actPending = true
+    }
   }
 
   // ------------------------------------------------------------------------------------------
@@ -714,6 +1037,7 @@ export class Sim {
   }
 
   private auraChanged(a: number, deltaStacks: number): void {
+    this.actPending = this.hasRotation
     if (this.aStatful[a]) {
       this.dynStr += this.aStr[a] * deltaStacks
       this.dynAgi += this.aAgi[a] * deltaStacks
@@ -765,6 +1089,7 @@ export class Sim {
     if (tenths <= 0) return
     const gained = Math.min(tenths, this.maxRage - this.rage)
     this.rage += gained
+    if (gained > 0) this.actPending = this.hasRotation
     this.totalRageGainedTenths += gained
     this.totalRageWastedTenths += tenths - gained
     if (source >= 0 && gained > 0) {
@@ -772,7 +1097,6 @@ export class Sim {
       this.counters[source * FIELD_COUNT + FIELD.threat] += threat
       this.fightThreat += threat
     }
-    // M2: rage changes are a decision point for the rotation.
   }
 
   // ------------------------------------------------------------------------------------------

@@ -86,7 +86,7 @@ describe('warrior worked examples on the plan', () => {
     expect(bareOff.handMult).toBe(0.5)
   })
 
-  it('W24: off-hand white miss with 5% hit and DWS 5/5 (forever 12%, classicEra 13%; main hand 22% / 23%)', () => {
+  it('W24: off-hand white miss with 5% hit and DWS 5/5 (forever 12%, classicEra 13%; main hand 22% / 23%; 0% queued)', () => {
     // Two Hit Rating items would muddy this; add 5% hit directly as a Classic-form item stat isn't possible,
     // so use Precision-free Fury talents plus Devilsaur Leggings + Gauntlets (+2% set hit, 28 crit rating)
     // and Battleborn Armbraces (+1% hit), Brigam Girdle (+1%), Satyr's Bow (+1%): 5% hit.
@@ -106,9 +106,14 @@ describe('warrior worked examples on the plan', () => {
     ] as const) {
       const bundle = buildPlan(withRules(fury({ gear, talents }), profile))
       expect(bundle.sheet.hitPct).toBeCloseTo(5, 9)
-      const t = new Sim(bundle.plan).inspect().whiteThresholds
+      const state = new Sim(bundle.plan).inspect()
+      const t = state.whiteThresholds
       expect(t[0][0]).toBeCloseTo(main, 9)
       expect(t[1][0]).toBeCloseTo(off, 9)
+      // With Heroic Strike queued the off hand uses the single-wield miss chance: max(0, 8 − 14 or 15) = 0.
+      expect(state.offHandQueuedThresholds[0]).toBe(0)
+      // Main-hand specials never take the dual-wield penalty (combat-tables §3): 19 below the white miss.
+      expect(state.specialThresholds[0]).toBeCloseTo(main - 19, 9)
     }
   })
 
@@ -158,7 +163,7 @@ describe('buffs-debuffs-consumables worked examples on the plan', () => {
     const forever = debuffs(['sunderArmor', 'faerieFire', 'curseOfRecklessness', 'armorShatter'])
     expect(forever.fight.targetArmor).toBe(-24)
     const f = forever
-    f.weapons[0] = { name: 'x', icon: 'x', min: 1, max: 1, speedSec: 2, twoHand: false, flatDamage: 0, handMult: 1, skill: 300, hitBonus: 0, critBonus: 0, armorPenPct: 0, rageMult: 1, glanceLow: 0.65, glanceHigh: 0.85 }
+    f.weapons[0] = { name: 'x', icon: 'x', min: 1, max: 1, speedSec: 2, twoHand: false, flatDamage: 0, handMult: 1, skill: 300, hitBonus: 0, critBonus: 0, armorPenPct: 0, rageMult: 1, glanceLow: 0.65, glanceHigh: 0.85, normalizedSpeed: 2.4 }
     expect(new Sim(f).inspect().armorFactor[0]).toBeCloseTo(1.00438, 5)
     const classic = debuffs(['sunderArmor', 'faerieFire', 'curseOfRecklessness', 'armorShatter'], 'classicEra')
     expect(classic.fight.targetArmor).toBe(-264)

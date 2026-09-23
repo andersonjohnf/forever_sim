@@ -53,6 +53,8 @@ export interface WeaponPlan {
   /** Glancing damage factor range at this hand's skill (combat-tables §2.3). */
   glanceLow: number
   glanceHigh: number
+  /** Speed for normalized abilities: 2.4 one-hand, 1.7 dagger, 3.3 two-hand (damage-and-timing §2.2). */
+  normalizedSpeed: number
 }
 
 export interface AuraPlan {
@@ -102,9 +104,9 @@ export interface SourcePlan {
 }
 
 /**
- * An active ability, as data (M2). The engine resolves abilities with one switch on `kind`, so
- * adding the warrior's Bloodthirst, Mortal Strike, Heroic Strike and so on adds rows, not code
- * paths. Numbers come from docs/classes/warrior.md §3 (and later src/data/client/spells.json).
+ * An active ability, as data. The engine resolves every ability with one switch on `kind`, so a
+ * new ability adds a row, not a code path. Numbers come from src/data/client/spells.json (doc
+ * fallback), per ability in classes/warrior/abilities.ts.
  */
 export interface AbilityPlan {
   id: string
@@ -113,43 +115,67 @@ export interface AbilityPlan {
   /** Breakdown row. */
   source: number
   /**
-   * `weaponStrike`: weapon damage, one roll (Mortal Strike, Whirlwind, Overpower, Slam);
-   * `meleeSpell`: two rolls (Bloodthirst, Execute, Shield Slam, Revenge; combat-tables §3);
-   * `onNextSwing`: replaces the next main-hand swing (Heroic Strike, Cleave; warrior.md §2.4);
-   * `aura`: a self-buff or target debuff (Battle Shout, Death Wish, Sunder Armor).
+   * How it rolls (docs/mechanics/combat-tables.md#3-special-yellow-attacks):
+   * `weaponStrike`: one roll over miss, dodge, parry, block, crit (every special except the
+   * melee spells: Whirlwind, Mortal Strike, Hamstring, …);
+   * `meleeSpell`: roll 1 for miss, dodge, parry, block, roll 2 for crit (Bloodthirst, Execute,
+   * Shield Slam, Revenge);
+   * `onNextSwing`: queued off the GCD, replaces the next main-hand swing and rolls like a
+   * `weaponStrike` (Heroic Strike, Cleave; warrior.md §2.4).
    */
-  kind: 'weaponStrike' | 'meleeSpell' | 'onNextSwing' | 'aura'
+  kind: 'weaponStrike' | 'meleeSpell' | 'onNextSwing'
   costTenths: number
   cooldownMs: number
   /** 0 = off the GCD (damage-and-timing §3.5). */
   gcdMs: number
-  /** Weapon strikes: normalized speed (damage-and-timing §2.2) and share of weapon damage. */
-  normalized: boolean
+  /**
+   * Main-hand weapon damage share (0 = not weapon-based), and whether its AP bonus uses the
+   * normalized speed (damage-and-timing §2.2). Weapon-based damage is
+   * (roll + flat weapon damage + AP/14 × speed + `flatDamage`) × `weaponPercent`; otherwise it
+   * is `flatDamage` + `apCoefficient` × AP (damage-and-timing §2.6).
+   */
   weaponPercent: number
-  /** Flat damage (+157 Heroic Strike) and AP coefficient (0.35 Bloodthirst). */
+  normalized: boolean
   flatDamage: number
   apCoefficient: number
   /** Extra crit % for this ability (Improved Overpower) and its crit multiplier (2.2 with Impale). */
   bonusCrit: number
   critMultiplier: number
-  /** 80% of the cost back on a miss, dodge or parry (rage.md#rage-refunds-on-avoided-abilities). */
-  refundOnAvoid: boolean
-  /** Threat = damage × mult + bonus (threat.md#per-ability-threat-at-max-rank). */
+  /** Share of the cost refunded on a miss, dodge or parry (rage.md#rage-refunds-on-avoided-abilities). */
+  refundShare: number
+  /** Threat = damage × mult + bonus on a landed hit (threat.md#per-ability-threat-at-max-rank). */
   threatMult: number
   threatBonus: number
-  /** Aura applied on use (abilities of kind `aura`), or −1. */
-  aura: number
 }
 
-/** One line of a spec's priority list (M2; docs/classes/warrior.md#51-conventions-for-rotation-settings). */
+/** Rotation condition codes (docs/classes/warrior.md#51-conventions-for-rotation-settings). */
+export const COND = {
+  /** rage ≥ a (tenths) */
+  minRage: 0,
+  /** ability a has at least b ms of cooldown left */
+  cooldownAtLeast: 1,
+  /** GCD-safe: every ability in bit mask a has at least b ms (one GCD) of cooldown left */
+  gcdSafe: 2,
+  /** aura a is down (a = −1: always true) */
+  auraDown: 3,
+} as const
+
+export interface RotationCondition {
+  code: number
+  a: number
+  b: number
+}
+
+/**
+ * One line of a spec's priority list (warrior.md §5.1). Whenever the warrior can act, the engine
+ * uses every line in order whose ability is usable (off cooldown, enough rage, the GCD free if
+ * it needs it) and whose conditions all hold; one GCD ability per decision, plus off-GCD ones.
+ */
 export interface RotationEntry {
   ability: number
-  minRageTenths: number
-  maxRageTenths: number
-  /** Only in, never in, or regardless of the execute phase. */
-  executePhase: 'any' | 'only' | 'never'
-  /** Skip if using it would delay a higher-priority ability ("GCD-safe"). */
-  gcdSafe: boolean
+  conditions: RotationCondition[]
+  /** On-next-swing only: cancel the queue if rage falls below this before the swing (tenths; 0 = never; warrior.md §2.4). */
+  unqueueBelowTenths: number
 }
 
 export interface BossSwingPlan {
@@ -211,7 +237,7 @@ export interface Plan {
   /** Proc indices per trigger code. */
   triggers: number[][]
   sources: SourcePlan[]
-  /** Active abilities and the priority list that uses them: empty until M2's rotations. */
+  /** Active abilities and the priority list that uses them (empty for specs without a rotation yet). */
   abilities: AbilityPlan[]
   rotation: RotationEntry[]
 }

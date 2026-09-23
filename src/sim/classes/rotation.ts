@@ -1,11 +1,24 @@
-// Rotation options per spec (docs/classes/warrior.md#51-conventions-for-rotation-settings).
+// Rotation options and priority lists per spec (docs/classes/warrior.md#51-conventions-for-rotation-settings).
 //
-// The rotation section of the UI renders these generically. M1 simulates white swings only, so
-// no spec has options yet; M2 adds the warrior priority lists (warrior.md §5.2–§5.3) here, with
-// setting ids `warrior.<spec>.<ability>.<param>`.
+// The rotation section of the UI renders the options generically; the plan builder turns the
+// config's values (or the declared defaults) into the spec's abilities and priority list. Specs
+// without a rotation yet simulate white swings only.
 import type { RotationOption, SpecId } from '../types'
+import { type ClassRotation, FURY_OPTIONS, furyRotation } from './warrior/fury'
+
+export type { ClassRotation } from './warrior/fury'
 
 export function rotationOptions(spec: SpecId): RotationOption[] {
-  void spec
-  return []
+  return spec === 'warrior-fury' ? FURY_OPTIONS : []
+}
+
+/** The spec's abilities and priority list for these settings; empty for specs without one yet. */
+export function classRotation(
+  spec: SpecId,
+  values: Record<string, number | boolean>,
+  talents: Map<string, number>,
+  auraIndex: (id: string) => number,
+): ClassRotation {
+  if (spec === 'warrior-fury') return furyRotation(values, talents, auraIndex)
+  return { abilities: [], rotation: [] }
 }

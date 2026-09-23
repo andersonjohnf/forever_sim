@@ -15,7 +15,15 @@ import type { SimConfig } from '../types'
 import { CHUNK_SIZE, type ChunkResult, runChunk } from './chunk'
 import { Sim } from './sim'
 
-/** No talents, no buffs, no enchants: the pure white-swing baseline. */
+/** Every Fury ability switched off (warrior.md §5.2 settings): white swings only. */
+const NO_ABILITIES: SimConfig['rotation'] = {
+  'warrior.fury.bloodthirst.enabled': false,
+  'warrior.fury.whirlwind.enabled': false,
+  'warrior.fury.heroicStrike.enabled': false,
+  'warrior.fury.hamstring.enabled': false,
+}
+
+/** No talents, no buffs, no enchants, no abilities: the pure white-swing baseline. */
 function whiteSwingConfig(spec: 'warrior-arms' | 'warrior-fury', gear: SimConfig['gear']): SimConfig {
   const d = defaultConfig(spec)
   return {
@@ -24,6 +32,7 @@ function whiteSwingConfig(spec: 'warrior-arms' | 'warrior-fury', gear: SimConfig
     talents: '',
     gear,
     buffs: { raid: d.buffs.raid, enabled: [] },
+    rotation: NO_ABILITIES,
     fight: { ...d.fight, durationVariationPct: 0 },
     run: { mode: 'fixed', iterations: 10000, seed: 7 },
   }
@@ -260,6 +269,9 @@ describe('determinism (decision D15)', () => {
 })
 
 describe('golden run (fixed config and seed)', () => {
+  // Snapshot history (update only deliberately, and say why here):
+  // - M2.1: the default Fury warrior now uses Bloodthirst, Whirlwind, Heroic Strike and Hamstring
+  //   (new breakdown rows; Heroic Strike replaces main-hand swings), so its numbers moved.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)
@@ -281,7 +293,7 @@ describe('golden run (fixed config and seed)', () => {
 })
 
 describe('benchmark', () => {
-  it('runs at least 5,000 white-swing warrior fights per second on one core', () => {
+  it('runs at least 5,000 default Fury warrior fights per second on one core', () => {
     const plan = buildPlan(defaultConfig('warrior-fury')).plan
     const sim = new Sim(plan)
     runChunk(plan, 0, 500, sim) // warm up the JIT

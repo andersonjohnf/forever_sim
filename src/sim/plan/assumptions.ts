@@ -18,6 +18,26 @@ const REGISTRY = {
     text: 'Only white swings, talents, procs and buffs are simulated for now: abilities, cooldowns and on-use items arrive with the rotation.',
     docRef: 'docs/milestones.md#m2-warrior-dps-with-the-production-ux',
   },
+  partialRotation: {
+    text: 'The rotation uses Bloodthirst, Whirlwind, Heroic Strike and Hamstring for now: Execute, cooldowns, shouts and on-use items come next.',
+    docRef: 'docs/milestones.md#m2-warrior-dps-with-the-production-ux',
+  },
+  gcdHaste: {
+    text: 'The 1.5 s global cooldown isn’t shortened by haste, as in Classic Era; untested in Forever.',
+    docRef: `${DT}#35-global-cooldown`,
+  },
+  abilityRefunds: {
+    text: 'An ability that misses or is dodged or parried refunds 80% of its rage cost (Whirlwind nothing), as in Classic Era; untested in Forever.',
+    docRef: `${RAGE}#rage-refunds-on-avoided-abilities`,
+  },
+  onNextSwingRage: {
+    text: 'A Heroic Strike swing generates no rage from its damage, as in Classic Era and as Forever players report; unmeasured.',
+    docRef: `${RAGE}#yellow-damage-and-on-next-swing-attacks`,
+  },
+  onNextSwingOffHand: {
+    text: 'While Heroic Strike is queued, off-hand swings don’t take the 19% dual-wield miss penalty, as a small Forever beta test found.',
+    docRef: `${CT}#5-dual-wield-and-on-next-swing-queues`,
+  },
   foreverHitTable: {
     text: 'The boss’s miss and dodge chances (8% and 6.5% at 300 weapon skill, no hit suppression) are what the Forever client shows; nobody has measured them in combat yet.',
     docRef: `${CT}#1-rules-profiles`,

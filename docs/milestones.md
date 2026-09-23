@@ -89,7 +89,7 @@ work is in slices:
     abilities and stance swaps. Row 14 (Sunder Armor) comes with M3. Whirlwind extra
     targets wait for multi-target support ([Later](#later)).
 - [ ] **M2.3 Arms**, in three slices:
-  - [ ] **M2.3a Arms abilities:** Mortal Strike, Slam (cast time; swing timers reset without
+  - [x] **M2.3a Arms abilities:** Mortal Strike, Slam (cast time; swing timers reset without
         Improved Slam, untouched with it), Spearing Strike (creature types), and Rend (a bleed,
         with Improved Rend and Forever's tick crits). Fix the docs on Impale's class mask,
         which includes Rend and Sunder Armor (W2, W4, W6, W13).

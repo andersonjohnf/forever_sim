@@ -71,6 +71,22 @@ message) comes back empty.
 | N2 | nit | pre-existing | **The About e2e read the menu without waiting for it.** | fixed, `e73e2b9` |
 | N3 | nit | pre-existing | **The tank-core slice was also called A1.** | fixed, `e73e2b9` |
 
+## Last quick check of `e73e2b9`
+
+Gate passes. The search for the old rule's wording (`grep -rn -i -E "no fallback|never
+substitute|no emulator placeholder|OQ-1 decision|blocks M4|blocks both|unblocks|forbidden-source
+placeholder|not used as fixtures|wait for this measurement|can't compute base|refuse"` over
+CLAUDE.md, README.md, docs, src, e2e, scripts and .claude/agents, excluding docs/reviews) finds
+only text saying the old rule was replaced and unrelated refusals. B1–B3 read correctly.
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| Q1 | nit | introduced | **Two new over-long lines** (character-stats.md:680, open-questions.md:96). | deferred to the next commit, reviewed with its batch: cosmetic |
+| Q2 | nit | pre-existing | **The milestones' track table still names the slice "A1".** N3 fixed only the sentence. | deferred to the next commit, reviewed with its batch: the table defines the name, so it reads correctly |
+| Q3 | nit | pre-existing | **`base-stats.ts:79`'s comment reads like the old rule.** | deferred to the next commit, reviewed with its batch; track C replaces that line |
+| Q4 | nit | the log | **The log didn't list the search's terms.** | fixed: listed above |
+
 ## Verdict
 
-Ready to push: not yet. `e73e2b9` gets a last quick check, of the search above and the three passages.
+**Ready to push: yes.** The gate passed at `e73e2b9`; the remaining four are nits, deferred with
+reasons.

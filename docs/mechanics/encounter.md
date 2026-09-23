@@ -145,7 +145,11 @@ beta logs, so tank rage follows this pre-armor number directly: armor, block and
 Stance don't change it. Replace the stand-in with measured values once Forever raid logs exist.
 
 **What a tank's results show** (beside TPS and DPS,
-[D18](../decisions.md#d18-tank-specs-report-tps-and-dps-as-equals-2026-09-22)): **damage taken
+[D18](../decisions.md#d18-tank-specs-report-tps-and-dps-as-equals-2026-09-22)). *Coming with the
+tank results UI*
+([slice T2](../milestones.md#parallel-tracks-the-tank-specs-first-and-every-remaining-spec-user-priority-2026-09-23)):
+the engine computes all of it today (`SimResult.tank` and the sheet), and the results panel shows
+it once T2 lands. **Damage taken
 per second**, the health the boss's swings cost after armor, block, stance and other
 damage-taken modifiers, with its 95% CI over fights; the boss's **swings per fight**, parry-hastened
 ones included; and the **share of its swings** each outcome took: miss, dodge, parry, block, crit,

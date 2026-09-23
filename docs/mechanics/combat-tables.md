@@ -575,7 +575,9 @@ miss → dodge → parry → block → crit → crushing → hit
   weapon in hand and blocks only with a shield.
 - **Results:** damage taken per second (health lost, with its 95% CI over fights), the boss's
   swings per fight, and the share of them each outcome took. The sheet carries the table
-  against the boss as the fight starts, and defense's crit reduction.
+  against the boss as the fight starts, and defense's crit reduction. The engine computes them
+  today; the results panel shows them with the tank results UI
+  ([slice T2](../milestones.md#parallel-tracks-the-tank-specs-first-and-every-remaining-spec-user-priority-2026-09-23)).
 
 ---
 

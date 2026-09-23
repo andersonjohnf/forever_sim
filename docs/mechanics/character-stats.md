@@ -400,11 +400,15 @@ from Spirit. Mana regeneration matters for paladins (seals, judgements, Consecra
 
 Each point of defense above 5 × level adds **0.04%** to the chance to be missed and to dodge,
 parry and block, and removes 0.04% from the attacker's crit chance. Points below it do the
-reverse. The sheet shows the crit part as the defense's **crit reduction**, `(Def − 300) × 0.04`:
-5.60% at 440, where a raid boss can't crit you (the Forever tooltip's "-5.60% Critical Strike
-chance", [combat-tables §8](combat-tables.md#8-boss--player-tanks)). For a tank the sim also
-shows the boss's table against the sheet (miss, dodge, parry, block, crit, crushing and hit,
-[Example 4](#example-4-a-naked-human-warriors-defensive-sheet)). **[C]** [Blizzard forum, Oct 2019][bnet-def], [tankadin guide][wt-tankadin]. How the boss's
+reverse. The sim's sheet computes the crit part as the defense's **crit reduction**,
+`(Def − 300) × 0.04`: 5.60% at 440, where a raid boss can't crit you (the Forever tooltip's
+"-5.60% Critical Strike chance", [combat-tables §8](combat-tables.md#8-boss--player-tanks)). For
+a tank it also computes the boss's table against the sheet (miss, dodge, parry, block, crit,
+crushing and hit, [Example 4](#example-4-a-naked-human-warriors-defensive-sheet)). **[C]**
+[Blizzard forum, Oct 2019][bnet-def], [tankadin guide][wt-tankadin]. *Coming with the tank
+results UI* ([slice T2](../milestones.md#parallel-tracks-the-tank-specs-first-and-every-remaining-spec-user-priority-2026-09-23)):
+the results show the crit reduction and the boss's table then; today the character sheet in the
+results shows defense, dodge, parry, block and block value. How the boss's
 315 weapon skill interacts with player defense (crits, crushing blows) belongs to
 [combat-tables.md](combat-tables.md). Forever changes the sources of defense, not the conversion:
 Anticipation gives +20 defense at 5/5 for warriors and paladins (Classic +10). **[F]**

@@ -31,6 +31,43 @@ export function armorReduction(armor: number, attackerLevel: number, profile: Ru
 }
 
 // ---------------------------------------------------------------------------------------------
+// Boss melee on the tank: docs/mechanics/combat-tables.md#8-boss--player-tanks and
+// docs/mechanics/damage-and-timing.md#26-order-of-operations-physical-direct-hit
+// ---------------------------------------------------------------------------------------------
+
+/** The boss's swing outcomes that land on the player (combat-tables §8). */
+export type BossHitOutcome = 'hit' | 'crit' | 'crush' | 'block'
+
+/** Damage multiplier of a landed boss swing: a crit ×2, a crushing blow ×1.5 (damage-and-timing §2.5). */
+export function bossOutcomeMultiplier(outcome: BossHitOutcome): number {
+  return outcome === 'crit' ? CRIT_MULTIPLIER.creature : outcome === 'crush' ? CRIT_MULTIPLIER.crushing : 1
+}
+
+/**
+ * Health one landed boss swing costs (damage-and-timing §2.6, boss → tank): the swing × the
+ * damage-taken modifiers (Defensive Stance's −10%, …) × (1 − armor reduction against the boss's
+ * level) × the outcome's multiplier, then a block removes the block value, never below 0. Crits
+ * and crushing blows can't be blocked: they're other outcomes of the one roll (combat-tables §8).
+ */
+export function bossHitHealthLost(
+  swing: number,
+  outcome: BossHitOutcome,
+  armorReductionPct: number,
+  damageTakenMult: number,
+  blockValue: number,
+): number {
+  const mitigated = swing * damageTakenMult * (1 - armorReductionPct) * bossOutcomeMultiplier(outcome)
+  return outcome === 'block' ? Math.max(0, mitigated - blockValue) : mitigated
+}
+
+/**
+ * The size of a landed boss swing that Forever's rage from damage taken reads, `D_pre`: before
+ * armor, block, absorbs and damage-taken modifiers, a crit or crushing blow at its multiplied size
+ * (rage.md#forever-). A block doesn't lower it.
+ */
+export const bossHitPreMitigation = (swing: number, outcome: BossHitOutcome) => swing * bossOutcomeMultiplier(outcome)
+
+// ---------------------------------------------------------------------------------------------
 // Weapon damage: docs/mechanics/damage-and-timing.md#2-weapon-damage
 // ---------------------------------------------------------------------------------------------
 

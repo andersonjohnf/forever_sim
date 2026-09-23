@@ -1,9 +1,9 @@
 // Merging chunk results and turning them into a SimResult (docs/architecture.md#engine-design-m1).
 import { ci95, combine, emptyMoments, type Moments, stdev } from '../core/welford'
 import type { ChunkResult } from '../engine/chunk'
-import { FIELD, FIELD_COUNT } from '../engine/sim'
+import { BOSS_OUTCOME, BOSS_OUTCOME_COUNT, FIELD, FIELD_COUNT } from '../engine/sim'
 import type { Plan, PlanBundle } from '../plan/types'
-import type { AbilityResult, CooldownResult, SimResult, Summary } from '../types'
+import type { AbilityResult, BossOutcomes, CooldownResult, SimResult, Summary, TankResult } from '../types'
 
 export interface Aggregate {
   fights: number
@@ -15,6 +15,10 @@ export interface Aggregate {
   auraUpMs: Float64Array
   rageGainedTenths: number
   rageWastedTenths: number
+  /** Health lost per second to hits taken, per fight (the tank results' damage taken). */
+  damageTaken: Moments
+  /** The boss's swings by outcome, over every fight merged (Sim.bossOutcomes). */
+  bossOutcomes: Float64Array
 }
 
 export const emptyAggregate = (sources: number, auras = 0): Aggregate => ({
@@ -26,6 +30,8 @@ export const emptyAggregate = (sources: number, auras = 0): Aggregate => ({
   auraUpMs: new Float64Array(auras),
   rageGainedTenths: 0,
   rageWastedTenths: 0,
+  damageTaken: emptyMoments(),
+  bossOutcomes: new Float64Array(BOSS_OUTCOME_COUNT),
 })
 
 /** Adds a chunk to the aggregate. Callers merge in chunk order, so the result is deterministic. */
@@ -34,6 +40,8 @@ export function mergeChunk(agg: Aggregate, chunk: ChunkResult): Aggregate {
   for (let i = 0; i < counters.length; i++) counters[i] += chunk.counters[i]
   const auraUpMs = agg.auraUpMs
   for (let i = 0; i < auraUpMs.length; i++) auraUpMs[i] += chunk.auraUpMs[i]
+  const bossOutcomes = agg.bossOutcomes
+  for (let i = 0; i < bossOutcomes.length; i++) bossOutcomes[i] += chunk.bossOutcomes[i]
   return {
     fights: agg.fights + chunk.fights,
     dps: combine(agg.dps, chunk.dps),
@@ -43,6 +51,8 @@ export function mergeChunk(agg: Aggregate, chunk: ChunkResult): Aggregate {
     auraUpMs,
     rageGainedTenths: agg.rageGainedTenths + chunk.rageGainedTenths,
     rageWastedTenths: agg.rageWastedTenths + chunk.rageWastedTenths,
+    damageTaken: combine(agg.damageTaken, chunk.damageTaken),
+    bossOutcomes,
   }
 }
 
@@ -81,6 +91,32 @@ export function cooldownResults(plan: Plan, agg: Aggregate): CooldownResult[] {
   return rows
 }
 
+/**
+ * What a tank reads from the fight (docs/mechanics/encounter.md#5-boss-melee-tank-modeling): damage
+ * taken per second with its CI, the boss's swings per fight, and the share of them each outcome
+ * took (combat-tables §8). Null when the boss attacks no one (DPS specs).
+ */
+export function tankResult(plan: Plan, agg: Aggregate): TankResult | null {
+  if (!plan.fight.bossSwing) return null
+  const o = agg.bossOutcomes
+  let swings = 0
+  for (let i = 0; i < o.length; i++) swings += o[i]
+  const share = (k: keyof BossOutcomes) => (swings > 0 ? (100 * o[BOSS_OUTCOME[k]]) / swings : 0)
+  return {
+    dtps: summary(agg.damageTaken),
+    bossSwingsPerFight: agg.fights > 0 ? swings / agg.fights : 0,
+    outcomes: {
+      miss: share('miss'),
+      dodge: share('dodge'),
+      parry: share('parry'),
+      block: share('block'),
+      crit: share('crit'),
+      crush: share('crush'),
+      hit: share('hit'),
+    },
+  }
+}
+
 export function toResult(bundle: PlanBundle, agg: Aggregate, elapsedMs: number): SimResult {
   const { plan } = bundle
   const c = agg.counters
@@ -113,6 +149,7 @@ export function toResult(bundle: PlanBundle, agg: Aggregate, elapsedMs: number):
     }
     abilities.push(result)
   })
+  const tank = tankResult(plan, agg)
   return {
     spec: plan.spec,
     profile: plan.profile.id,
@@ -122,6 +159,7 @@ export function toResult(bundle: PlanBundle, agg: Aggregate, elapsedMs: number):
     tps: summary(agg.tps),
     abilities,
     cooldowns: cooldownResults(plan, agg),
+    ...(tank ? { tank } : {}),
     sheet: bundle.sheet,
     assumptions: bundle.assumptions,
     elapsedMs,

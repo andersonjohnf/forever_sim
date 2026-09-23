@@ -441,6 +441,21 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [OQ 3](mechanics/combat-tables.md#open-questions);
   [system-changes §2](mechanics/forever-system-changes.md#2-combat-rules)
 
+#### B78. The mob → player table against a tank
+**High · M3 (all tanks) · ≤20**
+- **Assumes:** a mob 3 levels up misses a player `5% + (defense − its skill) × 0.04%` of the time,
+  crits `5% + (its skill − defense) × 0.04%`, crushes `(its skill − min(defense, 5 × level)) × 2% − 15%`,
+  and lowers the player's dodge, parry and block by 0.04% per skill point above `5 × level`
+  (combat-tables §8: the Forever client's UI formulas [F], Classic Era's rules in combat [C];
+  unlogged in Forever [?]). Crushing blows ×1.5, crits ×2; a block removes the block value.
+- **Test:** a tank in Defensive Stance with a shield, facing mobs three levels higher, logs every
+  swing it takes. Compare miss, dodge, parry, block, crit and crushing rates with the sheet
+  (dodge, parry and block less 0.04% per level of skill gap), and a blocked hit's damage with the
+  unblocked hits' less the block value.
+- **Samples:** ≥3,000 swings taken for ±1% on the big slices; crushing needs the full 3-level gap.
+- **Changes:** confirms or corrects §8's table and the damage a tank takes per second.
+- **Docs:** [combat-tables §8, OQ 22](mechanics/combat-tables.md#8-boss--player-tanks)
+
 #### B13. Warrior ability threat at low ranks
 **High · M3 · ≤20** (max ranks and Shield Slam: [C6](#c6-warrior-threat-at-max-rank))
 - **Assumes:** Classic Era values (Magey, 1.13.6) for everything except Sunder [?]: Heroic

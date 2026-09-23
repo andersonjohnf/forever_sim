@@ -24,15 +24,21 @@ export interface ChunkResult {
   /** Rage gained and lost to the cap, tenths (diagnostics). */
   rageGainedTenths: number
   rageWastedTenths: number
+  /** Health lost per second to hits taken, one sample per fight (the tank results' damage taken). */
+  damageTaken: Moments
+  /** The boss's swings by outcome (Sim.bossOutcomes: miss, dodge, parry, block, crit, crush, hit). */
+  bossOutcomes: Float64Array
 }
 
 export function runChunk(plan: Plan, chunk: number, fights: number, sim: Sim = new Sim(plan)): ChunkResult {
   sim.counters.fill(0)
   sim.auraUpMs.fill(0)
+  sim.bossOutcomes.fill(0)
   sim.totalRageGainedTenths = 0
   sim.totalRageWastedTenths = 0
   const dps = emptyMoments()
   const tps = emptyMoments()
+  const damageTaken = emptyMoments()
   let durationMs = 0
   const first = chunk * CHUNK_SIZE
   for (let i = 0; i < fights; i++) {
@@ -40,6 +46,7 @@ export function runChunk(plan: Plan, chunk: number, fights: number, sim: Sim = n
     const seconds = sim.fightMs / 1000
     addSample(dps, sim.fightDamage / seconds)
     addSample(tps, sim.fightThreat / seconds)
+    addSample(damageTaken, sim.fightDamageTaken / seconds)
     durationMs += sim.fightMs
   }
   return {
@@ -52,5 +59,7 @@ export function runChunk(plan: Plan, chunk: number, fights: number, sim: Sim = n
     auraUpMs: sim.auraUpMs.slice(),
     rageGainedTenths: sim.totalRageGainedTenths,
     rageWastedTenths: sim.totalRageWastedTenths,
+    damageTaken,
+    bossOutcomes: sim.bossOutcomes.slice(),
   }
 }

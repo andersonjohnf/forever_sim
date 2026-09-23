@@ -51,6 +51,7 @@ export const ASSUMPTION_GROUP = {
   hasteRating: 'gear',
   armorPen: 'gear',
   shieldBlockValue: 'gear',
+  classicShieldBlockValue: 'gear',
   // Your race and stats.
   unknownBaseAttributes: 'character',
   racialWeaponCrit: 'character',

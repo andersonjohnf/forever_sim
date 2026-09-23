@@ -148,19 +148,24 @@ A spec is data plus small ability modules, never its own loop.
   then an opener's rage (Charge) and the stance swap's cap. Its rage makes no threat.
 - **Attack resolution:** the white table per hand is rebuilt only when stats change; a swing is one
   roll against its cumulative thresholds (combat-tables §2). Damage follows damage-and-timing §2.6.
-  Boss swings roll the boss → player table (§8) with armor, block value, crushing and crits.
+  Boss swings roll the boss → player table (§8) with armor, block value, crushing and crits,
+  rebuilt with the tank's stats; the swings come from the front, so the tank can dodge, parry and
+  block them. A landed swing costs health after damage-taken modifiers, armor, its multiplier and
+  the block value, and gives rage from its size before them (rage users only: warriors, bears).
   Specials use their own table per hand (no glancing, no dual-wield penalty, combat-tables §3);
   one that can't be dodged, parried or blocked (Overpower) rolls only miss, then crit. The off
   hand keeps a second white table without the penalty for while Heroic Strike is queued (§5).
 - **Auras and procs** are generic: PPM or flat chance per hand, internal cooldowns, charges consumed
-  by white swings (Flurry) or by crits dealt (Weakness Analyzer), stacks, stat, AP, AP %, crit,
-  haste and damage mods (applied by a proc or a cast), and actions (extra attacks, auras, rage energizes, magic damage with its own
+  by white swings (Flurry), by crits dealt (Weakness Analyzer) or by blocks (Holy Shield), stacks,
+  stat, AP, AP %, crit, haste and damage mods, and defensive ones (dodge, parry, block, block
+  value, armor and damage taken), applied by a proc or a cast, and actions (extra attacks, auras, rage energizes, magic damage with its own
   hit and crit rolls, weapon bleeds such as Deep Wounds). Extra attacks follow one chain mask per
   root swing: an extra-attack source that procced from the swing, or from any extra attack after
   it, isn't rolled again in that chain (damage-and-timing §5.4).
   Triggers: melee landed, white landed, swing landed (white, extra attack or an on-next-swing
-  ability's swing), melee crit, damage taken, block, dodge or parry, and the target's dodge of
-  any attack (the Overpower window). A proc can need an aura to be up (Bloodthrill: your Rend on
+  ability's swing), melee crit, the target's dodge of any attack (the Overpower window), and the
+  boss's swings on the tank: dodge or parry, dodge, parry, damage taken (a hit that cost health),
+  melee taken (any landed swing), block and crit taken (combat-tables §8). A proc can need an aura to be up (Bloodthrill: your Rend on
   the target); it isn't rolled while the aura is down, and a plan without that aura leaves it out.
   A proc can give its aura its own duration (Bloodthrill's 6 s Overpower window against a dodge's
   5 s); a refresh of such an aura keeps the later end. Stats are
@@ -180,6 +185,9 @@ A spec is data plus small ability modules, never its own loop.
   fight and its buff's uptime, then every other aura on the player, uptime only. Uptime is
   time up over all simulated fight time. Plan auras carry a name and icon for this (the proc's
   or ability's that applies them), and a weapon's own proc aura on both hands names its hand.
+  Tank specs also get the fight from the tank's side (`SimResult.tank`): damage taken per
+  second, one sample per fight with its CI like DPS, and the boss's swings by outcome, summed per
+  chunk and merged in chunk order like the breakdown counters (encounter §5).
 - **Rage** is integer tenths with a cap; energizes make 5 threat per rage. Abilities pay their cost
   when used (an on-next-swing one when its swing happens, one with a cast time when the cast
   completes) and refund their share of it on a miss,

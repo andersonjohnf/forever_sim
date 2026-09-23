@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { CLASSIC_ERA, FOREVER, type RulesProfile } from '../rules/profiles'
 import {
   averageResist,
+  bossOutcomeShares,
   bossSlices,
+  type DefenderInputs,
   glanceRange,
   type MeleeInputs,
   meleeChances,
@@ -127,7 +129,7 @@ describe('WE-7: glancing damage range on a 1,000-damage hit', () => {
 })
 
 describe('WE-8 and WE-9: boss → warrior tank', () => {
-  const tank = { playerLevel: 60, bossLevel: 63, defense: 440, dodge: 12, parry: 14, block: 20, canCrush: true }
+  const tank = { playerLevel: 60, bossLevel: 63, defense: 440, dodge: 12, parry: 14, block: 20, canCrush: true, front: true }
   const boss = (i: typeof tank) => probabilities(thresholds(bossSlices(i), new Float64Array(6)), 6)
 
   it('WE-8: 440 defense', () => close(boss(tank), [10, 11.4, 13.4, 19.4, 0, 15, 30.8]))
@@ -138,6 +140,57 @@ describe('WE-8 and WE-9: boss → warrior tank', () => {
     expect(p[5]).toBeCloseTo(15, 6)
   })
   it('WE-9: uncrushable at 102.4% avoidance', () => close(boss({ ...tank, block: 66 }), [10, 11.4, 13.4, 65.2, 0, 0, 0]))
+})
+
+describe('boss → player edge cases (combat-tables §8)', () => {
+  const tank: DefenderInputs = { playerLevel: 60, bossLevel: 63, defense: 440, dodge: 12, parry: 14, block: 20, canCrush: true, front: true }
+  const shares = (i: DefenderInputs) => {
+    const s = bossOutcomeShares(i)
+    return [s.miss, s.dodge, s.parry, s.block, s.crit, s.crush, s.hit]
+  }
+
+  it('the shares are the truncated slices and add up to 100 (WE-8)', () => {
+    close(shares(tank), [10, 11.4, 13.4, 19.4, 0, 15, 30.8])
+    expect(shares({ ...tank, defense: 300 }).reduce((a, b) => a + b, 0)).toBeCloseTo(100, 12)
+  })
+
+  it('WE-12: facing away, a player can’t dodge, parry or block; miss, crit and crushing stay', () => {
+    close(shares({ ...tank, front: false }), [10, 0, 0, 0, 0, 15, 75])
+    close(shares({ ...tank, defense: 300, front: false }), [4.4, 0, 0, 0, 5.6, 15, 75])
+  })
+
+  it('WE-13: below 300 defense, crushing rises by 2% a point and crit by 0.04% (290 defense)', () => {
+    // The sheet's dodge, parry and block already carry the −0.4 of the missing 10 defense.
+    close(shares({ ...tank, defense: 290, dodge: 0, parry: 0, block: 0 }), [4, 0, 0, 0, 6, 35, 55])
+  })
+
+  it('crit is 0 from 440 defense up, and never negative', () => {
+    expect(bossOutcomeShares({ ...tank, defense: 440 }).crit).toBe(0)
+    expect(bossOutcomeShares({ ...tank, defense: 500 }).crit).toBe(0)
+    expect(bossOutcomeShares({ ...tank, defense: 439 }).crit).toBeCloseTo(0.04, 12)
+  })
+
+  it('truncates crushing blows first, then crits: 97% avoidance leaves crit 3, no crushing, no hits', () => {
+    // 300 defense: miss 4.4, crit 5.6. Dodge 93.2 on the sheet is 92.6 against the boss: 97 in all.
+    close(shares({ ...tank, defense: 300, dodge: 93.2, parry: 0, block: 0 }), [4.4, 92.6, 0, 0, 3, 0, 0])
+  })
+
+  it('0% and 100% avoidance', () => {
+    close(shares({ ...tank, defense: 300, dodge: 0, parry: 0, block: 0 }), [4.4, 0, 0, 0, 5.6, 15, 75])
+    close(shares({ ...tank, defense: 300, dodge: 150, parry: 0, block: 0 }), [4.4, 95.6, 0, 0, 0, 0, 0])
+  })
+
+  it('crushing blows need an attacker 3 or more levels above, and the setting', () => {
+    expect(bossOutcomeShares({ ...tank, bossLevel: 62 }).crush).toBe(0)
+    expect(bossOutcomeShares({ ...tank, canCrush: false }).crush).toBe(0)
+    // A level-60 attacker: 5% miss and crit at 300 defense, no skill gap on dodge, parry and block.
+    close(shares({ ...tank, bossLevel: 60, defense: 300 }), [5, 12, 14, 20, 5, 0, 44])
+  })
+
+  it('no shield or no weapon: a 0 sheet block or parry is 0 against the boss, never negative', () => {
+    const s = bossOutcomeShares({ ...tank, parry: 0, block: 0 })
+    expect([s.parry, s.block]).toEqual([0, 0])
+  })
 })
 
 describe('WE-10 and WE-11: spells', () => {

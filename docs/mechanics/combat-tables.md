@@ -51,7 +51,10 @@ Client builds: Forever beta 1.60.1.69913 · Classic Era 1.15.9.69722
 - **Position:** behind the boss (the DPS default) removes parry and block; bosses dodge from
   any direction ([§2.4](#24-attacking-from-behind-vs-the-front)).
 - **Boss → player (tanks):** one roll over `miss → dodge → parry → block → crit → crushing
-  → hit`, driven by defense skill ([§8](#8-boss--player-tanks)).
+  → hit`, driven by defense skill; dodge, parry and block only for a player facing the attack.
+  A landed swing costs health after damage-taken modifiers, armor, its multiplier and block
+  value, and the results report damage taken per second and the share of each outcome
+  ([§8](#8-boss--player-tanks)).
 - **Spells (generic):** base miss 17% vs +3; the hit cap and the 1% floor depend on the
   profile. Two rolls (hit, then crit ×1.5). Partial resists are averaged, and Holy is never
   partially resisted ([§9](#9-spell-hit-and-crit-generic)).
@@ -533,7 +536,14 @@ miss → dodge → parry → block → crit → crushing → hit
   engine's "(Before diminishing returns)" line that Classic Era's generic strings carry [F]
   ([gs][gs-forever] vs [era strings][gs-era]).
 - **Direction:** a player can only dodge, parry or block attacks from the front [F]
-  ([gs][gs-forever]). Tanks face the boss.
+  ([gs][gs-forever]). Tanks face the boss: the sim's boss always attacks the tank from the
+  front ([encounter §5](encounter.md#5-boss-melee-tank-modeling)). An attack from behind keeps
+  its miss, crit and crushing slices and loses the dodge, parry and block ones
+  ([WE-12](#worked-examples)).
+- **Defense below 300** raises crushing blows by 2% a point, and crits and lowers misses by
+  0.04% a point: at 290 defense the boss crushes 35% of the time ([WE-13](#worked-examples)).
+  The sheet's dodge, parry and block already carry the defense term
+  ([character-stats](character-stats.md#defense-skill)).
 - **Bear form** can't parry or block (no parry skill in form; no shield) [C]. Class details
   are in [classes/druid.md](../classes/druid.md).
 - **Parry haste** also applies to the tank: a parry hastens the tank's own next swing
@@ -543,6 +553,25 @@ miss → dodge → parry → block → crit → crushing → hit
 - **Rage from damage taken** is in [rage.md](rage.md).
 - **Converting defense rating:** 1 Defense rating = 1 defense skill in Forever [F]
   ([§10](#10-ratings)).
+- **What a landed swing costs** ([damage-and-timing §2.6](damage-and-timing.md#26-order-of-operations-physical-direct-hit)):
+  `swing × Π damage-taken modifiers × (1 − armor reduction vs the boss's level) × (2 crit |
+  1.5 crushing | 1) − (block value if blocked)`, never below 0. Damage-taken modifiers are the
+  stance's (Defensive Stance −10%) and any aura's; they multiply [C]. A block whose block value
+  covers the rest costs nothing (a **full block**) but still gives its rage in `forever`, which
+  reads the swing before armor, block and those modifiers ([rage.md](rage.md#forever-)).
+  [WE-14](#worked-examples), [WE-15](#worked-examples).
+- **The engine** (`bossSlices` and `bossOutcomeShares` in `src/sim/core/attack-table.ts`, the
+  boss swing in `src/sim/engine/sim.ts`): one roll per swing against the table rebuilt whenever
+  the tank's stats change. A swing then gives rage from damage taken, and fires the class
+  hooks in this order: for a dodge or parry, "dodge or parry", then "dodge" or "parry" (and the
+  tank's own parry haste); for a landed swing, "damage taken" (if it cost health), "melee
+  taken", then "block" (and each block-charged aura, such as Holy Shield or Redoubt, loses a
+  charge) or "crit taken". Auras can add dodge, parry, block, block value, armor and a
+  damage-taken modifier. Druids never parry or block; a warrior or paladin parries only with a
+  weapon in hand and blocks only with a shield.
+- **Results:** damage taken per second (health lost, with its 95% CI over fights), the boss's
+  swings per fight, and the share of them each outcome took. The sheet carries the table
+  against the boss as the fight starts, and defense's crit reduction.
 
 ---
 
@@ -719,6 +748,9 @@ Edge cases:
   this), but keep the slices as floats until the comparison.
 - **Skipped:** mob block value (see §2.4), and "can't parry/block" boss flags (encounter
   toggles).
+- **Boss → player:** clamp each slice at ≥ 0, then truncate in roll order, so crushing blows
+  fall off first and crits next ([§8](#8-boss--player-tanks)). A tank with no shield has 0 block
+  and one with no weapon 0 parry on the sheet, so those slices are 0.
 
 ---
 
@@ -826,6 +858,45 @@ crushing stays at 15.00.
 avgResist = 0.75 × 24 / 300 = **0.06**, so a 40-damage proc averages 37.6. Binary version
 with 17% miss and 0% hit: resist chance = 0.17 + 0.83 × 0.06 = **0.2198**.
 
+**WE-12: boss → tank from behind (both profiles)**
+
+WE-8's tank facing away: miss **10.00**, dodge, parry and block **0**, crit **0.00**, crushing
+**15.00**, hit **75.00**. At 300 defense: miss 4.40, crit 5.60, crushing 15.00, hit 75.00.
+
+**WE-13: boss → tank at 290 defense, no avoidance on the sheet (both profiles)**
+
+| Outcome | Value |
+| --- | --- |
+| Miss | 5 + (290 − 315) × 0.04 = **4.00** |
+| Crit | 5 + (315 − 290) × 0.04 = **6.00** |
+| Crushing | (315 − 290) × 2 − 15 = **35.00** |
+| Hit | **55.00** |
+
+Truncation: a sheet at 300 defense with dodge 93.2 (92.6 against the boss) and no parry or
+block. Miss 4.40 + dodge 92.60 = 97.00, so crit keeps **3.00** of its 5.60, and crushing blows
+and hits get **0**.
+
+**WE-14: one 5,000 swing on an 8,000-armor tank in Defensive Stance, block value 62, maximum health 6,029 (`forever`)**
+
+Armor reduction vs level 63 = 8000 / (8000 + 5755) = **58.1607%**
+([damage-and-timing §1.1](damage-and-timing.md#11-formula)).
+
+| Outcome | Health lost | Rage (`10 × D_pre ÷ 6,029`) |
+| --- | --- | --- |
+| Hit | 5000 × 0.9 × 0.418393 = **1,882.77** | D_pre 5,000: **8.2932** |
+| Crit (×2) | **3,765.54** | D_pre 10,000: **16.5865** |
+| Crushing (×1.5) | **2,824.15** | D_pre 7,500: **12.4399** |
+| Blocked | 1,882.77 − 62 = **1,820.77** | D_pre 5,000: **8.2932** |
+| Blocked, block value ≥ 1,882.77 (full block) | **0** | **8.2932** |
+
+**WE-15: damage taken per second from WE-8's table**
+
+WE-8's tank (440 defense: block 19.4, crushing 15, hit 30.8, no crits), 10,000 armor
+(63.4719%), Defensive Stance, block value 150, a 5,000 swing every 2.0 s. Per outcome: hit
+5000 × 0.9 × 0.365281 = **1,643.76**, crushing **2,465.65**, blocked **1,493.76**. Per swing
+0.308 × 1,643.76 + 0.15 × 2,465.65 + 0.194 × 1,493.76 = **1,165.92**, so **582.96** damage
+taken per second.
+
 ---
 
 ## Open questions
@@ -903,6 +974,11 @@ adopt its results when they land.
     (77 queued vs 394 unqueued off-hand swings) found the Classic rule still in place
     ([fw-2]); both profiles keep it. Test: a guild repeat with ≥1,000 off-hand swings per state
     vs +3 mobs.
+22. **The boss → player table in Forever** [?]. §8's formulas are what the Forever client
+    displays ([F] client UI) and Classic Era's measured rules; nobody has logged them against
+    a level-60 tank. Test at the beta cap, against mobs 3 levels up: a tank's logged miss,
+    dodge, parry, block, crit and crushing rates against its sheet (crushing 15% needs the full
+    3-level gap; the defense terms scale with `5 × level`).
 
 ---
 

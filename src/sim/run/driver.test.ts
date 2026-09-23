@@ -47,6 +47,8 @@ function syntheticExecutor(plan: Plan, lanes: number, spread: Record<Metric, num
           auraUpMs: new Float64Array(plan.auras.length),
           rageGainedTenths: 0,
           rageWastedTenths: 0,
+          damageTaken: emptyMoments(),
+          bossOutcomes: new Float64Array(7),
         }
         setTimeout(() => resolve(result), lanes > 1 ? (chunk * 7919) % 13 : 0)
       }),

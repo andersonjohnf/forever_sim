@@ -6,6 +6,7 @@
 // where Forever and Classic Era differ. Each takes an optional `out` to write into, so the engine
 // re-derives its tables without allocating (docs/architecture.md, "Hot-loop discipline").
 import type { RulesProfile } from '../rules/profiles'
+import type { BossOutcomes } from '../types'
 
 /** Outcome codes, also used as breakdown columns. */
 export const OUTCOME = {
@@ -168,6 +169,26 @@ export function glanceRange(profile: RulesProfile, targetLevel: number, skill: n
   return [low, high]
 }
 
+// Boss → player (docs/mechanics/combat-tables.md#8-boss--player-tanks).
+
+/**
+ * Each point of defense above the attacker's weapon skill adds 0.04% to its miss chance and takes
+ * 0.04% from its crit chance; each point of attacker skill above 5 × the player's level takes
+ * 0.04% from the player's dodge, parry and block (combat-tables §8; character-stats#defense-skill).
+ */
+export const DEFENSE_PER_POINT = 0.04
+/** A mob's miss and crit chance, %, against a player whose defense equals its weapon skill (combat-tables §8). */
+export const MOB_BASE_MISS = 5
+export const MOB_BASE_CRIT = 5
+/**
+ * Crushing blows: 2% per point of the attacker's weapon skill above the player's defense, that
+ * defense capped at 5 × the player's level, minus 15%; only from attackers 3 or more levels above
+ * the player. 15% from a level-63 boss whatever the defense (combat-tables §8).
+ */
+export const CRUSH_PER_POINT = 2
+export const CRUSH_OFFSET = 15
+export const CRUSH_MIN_LEVEL_GAP = 3
+
 export interface DefenderInputs {
   playerLevel: number
   bossLevel: number
@@ -178,20 +199,33 @@ export interface DefenderInputs {
   parry: number
   block: number
   canCrush: boolean
+  /**
+   * The attack comes from in front of the player, who faces it. A player dodges, parries and
+   * blocks only attacks from the front (combat-tables §8, "Direction"); a tank faces its boss.
+   */
+  front: boolean
 }
 
-/** Boss melee on a player, in roll order: miss, dodge, parry, block, crit, crushing (combat-tables §8). */
+/** A mob's weapon skill: 5 × its level, 315 for a level-63 boss (combat-tables §8). */
+export const mobSkill = (level: number) => 5 * level
+
+/**
+ * Boss melee on a player, in roll order: miss, dodge, parry, block, crit, crushing
+ * (combat-tables §8). Each is clamped at ≥ 0 here; `thresholds` truncates them at 100 in this
+ * order, so crushing blows fall off the table first, then crits.
+ */
 export function bossSlices<T extends Slices = number[]>(i: DefenderInputs, out: T = [0, 0, 0, 0, 0, 0] as T): T {
-  const bossSkill = 5 * i.bossLevel
-  const skillGap = (bossSkill - 5 * i.playerLevel) * 0.04
-  const miss = Math.max(0, 5 + (i.defense - bossSkill) * 0.04)
-  const dodge = Math.max(0, i.dodge - skillGap)
-  const parry = Math.max(0, i.parry - skillGap)
-  const block = Math.max(0, i.block - skillGap)
-  const crit = Math.max(0, 5 + (bossSkill - i.defense) * 0.04)
+  const bossSkill = mobSkill(i.bossLevel)
+  // The sheet's dodge, parry and block assume an attacker of the player's level (§8).
+  const skillGap = (bossSkill - 5 * i.playerLevel) * DEFENSE_PER_POINT
+  const miss = Math.max(0, MOB_BASE_MISS + (i.defense - bossSkill) * DEFENSE_PER_POINT)
+  const dodge = i.front ? Math.max(0, i.dodge - skillGap) : 0
+  const parry = i.front ? Math.max(0, i.parry - skillGap) : 0
+  const block = i.front ? Math.max(0, i.block - skillGap) : 0
+  const crit = Math.max(0, MOB_BASE_CRIT + (bossSkill - i.defense) * DEFENSE_PER_POINT)
   const crush =
-    i.canCrush && i.bossLevel - i.playerLevel >= 3
-      ? Math.max(0, (bossSkill - Math.min(i.defense, 5 * i.playerLevel)) * 2 - 15)
+    i.canCrush && i.bossLevel - i.playerLevel >= CRUSH_MIN_LEVEL_GAP
+      ? Math.max(0, (bossSkill - Math.min(i.defense, 5 * i.playerLevel)) * CRUSH_PER_POINT - CRUSH_OFFSET)
       : 0
   out[0] = miss
   out[1] = dodge
@@ -200,6 +234,12 @@ export function bossSlices<T extends Slices = number[]>(i: DefenderInputs, out: 
   out[4] = crit
   out[5] = crush
   return out
+}
+
+/** The boss → player table as shares that add up to 100: the slices of `bossSlices`, truncated (combat-tables §8, §2.1). */
+export function bossOutcomeShares(i: DefenderInputs): BossOutcomes {
+  const [miss, dodge, parry, block, crit, crush, hit] = probabilities(thresholds(bossSlices(i), new Float64Array(6)), 6)
+  return { miss, dodge, parry, block, crit, crush, hit }
 }
 
 /** Spell miss chance vs a target (combat-tables §9). */

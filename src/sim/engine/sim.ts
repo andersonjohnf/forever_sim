@@ -86,6 +86,10 @@ const BOSS_LEVEL_RESISTANCE_PER_LEVEL = 8
 /** Threat per rage from a spell effect (threat.md#threat-from-healing-power-gains-and-buffs). */
 const THREAT_PER_RAGE_TENTH = 0.5
 
+/** The boss's swing outcomes, in its table's roll order (combat-tables §8): `Sim.bossOutcomes` columns. */
+export const BOSS_OUTCOME = { miss: 0, dodge: 1, parry: 2, block: 3, crit: 4, crush: 5, hit: 6 } as const
+export const BOSS_OUTCOME_COUNT = 7
+
 export class Sim {
   readonly plan: Plan
   /** Totals per source × field, summed over every fight run. */
@@ -117,6 +121,15 @@ export class Sim {
   stanceTrace: ((stance: number, time: number, rageBefore: number, rageAfter: number) => void) | null = null
   /** Test hook: every boss swing on the tank (its time). */
   bossTrace: ((time: number) => void) | null = null
+  /**
+   * Test hook: every boss swing on the tank, as it resolves: its BOSS_OUTCOME, the health it cost
+   * and its size before mitigation (both 0 for a miss, dodge or parry).
+   */
+  swingTakenTrace: ((outcome: number, healthLost: number, pre: number) => void) | null = null
+  /** The boss's swings by outcome (BOSS_OUTCOME), summed over every fight run (combat-tables §8). */
+  readonly bossOutcomes = new Float64Array(BOSS_OUTCOME_COUNT)
+  /** Last fight's health lost to hits taken: the boss's swings, or a DPS spec's stand-in hits. */
+  fightDamageTaken = 0
   /** When the last fight's execute phase started, ms (its end if there was none; encounter §3). */
   executeAtMs = 0
 
@@ -205,6 +218,18 @@ export class Sim {
   /** Crits dealt that end an aura (Weakness Analyzer), and the auras that have them. */
   private readonly aCritCharges: Int32Array
   private readonly critChargeAuras: Int32Array
+  /**
+   * Defensive aura mods (combat-tables §8): dodge, parry and block %, block value, bonus armor and
+   * damage taken %; and blocks that end an aura (Holy Shield, Redoubt), with the auras that have them.
+   */
+  private readonly aDodge: Float64Array
+  private readonly aParry: Float64Array
+  private readonly aBlock: Float64Array
+  private readonly aBlockValue: Float64Array
+  private readonly aArmor: Float64Array
+  private readonly aTaken: Float64Array
+  private readonly aBlockCharges: Int32Array
+  private readonly blockChargeAuras: Int32Array
   /**
    * Lines that refresh an aura (COND.abilityAuraRefresh, Battle Shout's upkeep, warrior.md §5.2
    * row 1): aura a's are watchLine[watchStart[a] … watchStart[a + 1] − 1], each with its lead (ms
@@ -357,6 +382,7 @@ export class Sim {
   private readonly auraStacks: Int32Array
   private readonly auraCharges: Int32Array
   private readonly auraCritCharges: Int32Array
+  private readonly auraBlockCharges: Int32Array
   private readonly auraGen: Int32Array
   /** When each active aura came up this fight (0 for a pre-pull one), for `auraUpMs`. */
   private readonly auraSince: Float64Array
@@ -414,6 +440,13 @@ export class Sim {
   private dynCrit = 0
   private dynSpellCrit = 0
   private auraHasteMult = 1
+  /** Defensive aura deltas (combat-tables §8) and the product of damage-taken aura mods. */
+  private dynDodge = 0
+  private dynParry = 0
+  private dynBlock = 0
+  private dynBlockValue = 0
+  private dynArmor = 0
+  private auraTakenMult = 1
 
   // Derived per hand, refreshed on stat changes.
   private ap = 0
@@ -426,6 +459,8 @@ export class Sim {
   /** Special crit % per hand before truncation, for ability bonus crit and melee spells' second roll. */
   private readonly specCrit = new Float64Array(2)
   private readonly thrBoss = new Float64Array(6)
+  /** 1 − the player's armor reduction against the boss's level (damage-and-timing §1.1). */
+  private bossArmorFactor = 1
   private readonly armorFactor = new Float64Array(2)
   private physMult = 1
   private magicMult = 1
@@ -449,7 +484,7 @@ export class Sim {
     canParry: false,
     canBlock: false,
   }
-  private readonly defenderIn: DefenderInputs = { playerLevel: 0, bossLevel: 0, defense: 0, dodge: 0, parry: 0, block: 0, canCrush: false }
+  private readonly defenderIn: DefenderInputs = { playerLevel: 0, bossLevel: 0, defense: 0, dodge: 0, parry: 0, block: 0, canCrush: false, front: false }
   private readonly chances = emptyChances()
   private readonly slices = new Float64Array(6)
 
@@ -587,15 +622,24 @@ export class Sim {
     this.aKeepsEnd = new Uint8Array(na)
     for (const p of plan.procs) if (p.action === ACTION.aura && p.b > 0) this.aKeepsEnd[p.amount] = 1
     this.aCritCharges = new Int32Array(na)
+    this.aDodge = new Float64Array(na)
+    this.aParry = new Float64Array(na)
+    this.aBlock = new Float64Array(na)
+    this.aBlockValue = new Float64Array(na)
+    this.aArmor = new Float64Array(na)
+    this.aTaken = new Float64Array(na)
+    this.aBlockCharges = new Int32Array(na)
     this.auraActive = new Uint8Array(na)
     this.auraStacks = new Int32Array(na)
     this.auraCharges = new Int32Array(na)
     this.auraCritCharges = new Int32Array(na)
+    this.auraBlockCharges = new Int32Array(na)
     this.auraGen = new Int32Array(na)
     this.auraSince = new Float64Array(na)
     this.auraUpMs = new Float64Array(na)
     const chargeAuras: number[] = []
     const critChargeAuras: number[] = []
+    const blockChargeAuras: number[] = []
     for (let i = 0; i < na; i++) {
       const a = auras[i]
       this.aDuration[i] = a.durationMs
@@ -609,13 +653,23 @@ export class Sim {
       this.aSpellCrit[i] = a.spellCrit
       this.aHaste[i] = a.haste
       this.aDamage[i] = a.damage
-      this.aStatful[i] = a.str || a.agi || a.ap || a.apPct || a.crit || a.spellCrit ? 1 : 0
+      this.aDodge[i] = a.dodge ?? 0
+      this.aParry[i] = a.parry ?? 0
+      this.aBlock[i] = a.block ?? 0
+      this.aBlockValue[i] = a.blockValue ?? 0
+      this.aArmor[i] = a.armor ?? 0
+      this.aTaken[i] = a.damageTaken ?? 0
+      this.aBlockCharges[i] = a.blockCharges ?? 0
+      const defensive = this.aDodge[i] || this.aParry[i] || this.aBlock[i] || this.aBlockValue[i] || this.aArmor[i]
+      this.aStatful[i] = a.str || a.agi || a.ap || a.apPct || a.crit || a.spellCrit || defensive ? 1 : 0
       this.aCritCharges[i] = a.critCharges
       if (a.whiteSwingCharges > 0) chargeAuras.push(i)
       if (a.critCharges > 0) critChargeAuras.push(i)
+      if (this.aBlockCharges[i] > 0) blockChargeAuras.push(i)
     }
     this.chargeAuras = Int32Array.from(chargeAuras)
     this.critChargeAuras = Int32Array.from(critChargeAuras)
+    this.blockChargeAuras = Int32Array.from(blockChargeAuras)
 
     const abilities = plan.abilities
     const nb = abilities.length
@@ -976,6 +1030,8 @@ export class Sim {
       physMult: this.physMult,
       maxRage: this.maxRage,
       blockValue: this.blockValue,
+      bossArmorFactor: this.bossArmorFactor,
+      damageTakenMult: this.damageTakenMult * this.auraTakenMult,
     }
   }
 
@@ -1008,6 +1064,7 @@ export class Sim {
     this.dynCrit = 0
     this.dynSpellCrit = 0
     this.auraHasteMult = 1
+    this.resetDefense()
     this.exHead = 0
     this.exCount = 0
     this.chainMask = 0
@@ -1099,6 +1156,7 @@ export class Sim {
     // all-crit auras' spell crit (character-stats.md#derived-stat-pipeline, step 4).
     s.crit = base.crit + this.dynCrit + this.stanceCrit
     s.spellCrit = base.spellCrit + this.dynSpellCrit + this.stanceSpellCrit
+    this.defensiveScratch(s, base)
     const d = deriveStats(s, this.deriveOptions, this.derived)
     this.ap = d.attackPower
     this.blockValue = d.blockValue
@@ -1138,18 +1196,7 @@ export class Sim {
       if (armor > 0) armor *= 1 - this.wArmorPenPct[h]
       this.armorFactor[h] = 1 - armorReduction(armor, plan.playerLevel, plan.profile)
     }
-    if (f.bossSwing) {
-      // docs/mechanics/combat-tables.md#8-boss--player-tanks
-      const tank = this.defenderIn
-      tank.playerLevel = plan.playerLevel
-      tank.bossLevel = f.targetLevel
-      tank.defense = d.defense
-      tank.dodge = d.dodge
-      tank.parry = d.parry
-      tank.block = d.block
-      tank.canCrush = f.bossSwing.canCrush
-      thresholds(bossSlices(tank, slices), this.thrBoss)
-    }
+    if (f.bossSwing) this.updateBossTable(d)
     this.hasteMult = d.hasteMult * this.auraHasteMult
     this.updateSwingSpeeds()
   }
@@ -1844,6 +1891,7 @@ export class Sim {
     this.auraStacks[a] = stacks
     this.auraCharges[a] = this.aCharges[a]
     this.auraCritCharges[a] = this.aCritCharges[a]
+    this.auraBlockCharges[a] = this.aBlockCharges[a]
     this.q.push(end, EV_AURA_EXPIRE, a, ++this.auraGen[a])
     if (this.watchStart[a] !== this.watchStart[a + 1]) this.watchAura(a, end)
     if (stacks !== oldStacks || !wasActive) this.auraChanged(a, stacks - (wasActive ? oldStacks : 0))
@@ -1889,6 +1937,7 @@ export class Sim {
       this.dynAp += this.aAp[a] * deltaStacks
       this.dynCrit += this.aCrit[a] * deltaStacks
       this.dynSpellCrit += this.aSpellCrit[a] * deltaStacks
+      this.defensiveDelta(a, deltaStacks)
       if (this.aApPct[a]) {
         // Attack power % auras multiply (character-stats step 4); recomputed from the active ones, so no drift.
         let m = 1
@@ -1900,6 +1949,7 @@ export class Sim {
       this.recomputeStats()
     }
     if (this.aHaste[a] || this.aDamage[a]) this.recomputeMultipliers()
+    if (this.aTaken[a]) this.recomputeTakenMult()
   }
 
   /**
@@ -2053,7 +2103,14 @@ export class Sim {
     }
   }
 
-  /** One boss swing on the tank (combat-tables §8, encounter §5). */
+  /**
+   * One boss swing on the player (combat-tables §8, encounter §5): one roll over miss, dodge, parry,
+   * block, crit and crushing. A landed swing costs health after damage-taken modifiers, armor, its
+   * outcome's multiplier and a block's block value (damage-and-timing §2.6), and gives rage from its
+   * size before all of them (rage.md#forever-). Then the class hooks: `dodgeParry` and `dodge` or
+   * `parry` for an avoided swing; for a landed one `damageTaken` (if it cost health), `meleeTaken`,
+   * and `block` (then the blocks that end auras) or `critTaken`.
+   */
   private onBossSwing(): void {
     const boss = this.plan.fight.bossSwing!
     const rng = this.rngBoss
@@ -2063,42 +2120,135 @@ export class Sim {
     if (this.bossTrace !== null) this.bossTrace(this.now)
     this.bossNextAt = this.now + this.bossSwingMs
     this.q.push(this.bossNextAt, EV_BOSS, 0, ++this.bossGen)
-    if (r < th[0]) return // miss
-    if (r < th[2]) {
-      this.fireProcs(TRIGGER.dodgeParry, -1)
-      if (r >= th[1]) this.onPlayerParried()
+    const out = this.bossOutcomes
+    if (r < th[0]) {
+      out[BOSS_OUTCOME.miss]++
+      if (this.swingTakenTrace !== null) this.swingTakenTrace(BOSS_OUTCOME.miss, 0, 0)
       return
     }
-    // docs/mechanics/damage-and-timing.md#26-order-of-operations-physical-direct-hit, boss → tank.
-    // `pre` is the hit before armor, block and damage-taken modifiers, a crit or crushing blow at
-    // its multiplied size: what `forever` rage reads, blocked or not (rage.md#forever-).
-    const mitigated = raw * (1 - armorReduction(this.plan.armor, this.plan.fight.targetLevel, this.plan.profile)) * this.damageTakenMult
+    if (r < th[2]) {
+      const dodged = r < th[1]
+      out[dodged ? BOSS_OUTCOME.dodge : BOSS_OUTCOME.parry]++
+      if (this.swingTakenTrace !== null) this.swingTakenTrace(dodged ? BOSS_OUTCOME.dodge : BOSS_OUTCOME.parry, 0, 0)
+      this.fireProcs(TRIGGER.dodgeParry, -1)
+      if (dodged) this.fireProcs(TRIGGER.dodge, -1)
+      else {
+        this.fireProcs(TRIGGER.parry, -1)
+        this.onPlayerParried()
+      }
+      return
+    }
+    // docs/mechanics/damage-and-timing.md#26-order-of-operations-physical-direct-hit, boss → tank:
+    // damage-taken modifiers (the stance's and auras'), armor against the boss's level, then the
+    // outcome's multiplier (combat-tables §8: crit ×2, crushing ×1.5), then the block value, floored
+    // at 0. `pre` is the swing before armor, block and damage-taken modifiers, a crit or crushing
+    // blow at its multiplied size: what `forever` rage reads, blocked or not (rage.md#forever-).
+    const mitigated = raw * this.damageTakenMult * this.auraTakenMult * this.bossArmorFactor
+    let outcome: number
     let lost: number
     let pre = raw
-    const blocked = r < th[3]
-    if (blocked) {
+    if (r < th[3]) {
+      outcome = BOSS_OUTCOME.block
       lost = Math.max(0, mitigated - this.blockValue)
     } else if (r < th[4]) {
-      lost = mitigated * 2
-      pre = raw * 2
+      outcome = BOSS_OUTCOME.crit
+      lost = mitigated * CRIT_MULTIPLIER.creature
+      pre = raw * CRIT_MULTIPLIER.creature
     } else if (r < th[5]) {
-      lost = mitigated * 1.5
-      pre = raw * 1.5
+      outcome = BOSS_OUTCOME.crush
+      lost = mitigated * CRIT_MULTIPLIER.crushing
+      pre = raw * CRIT_MULTIPLIER.crushing
     } else {
+      outcome = BOSS_OUTCOME.hit
       lost = mitigated
     }
-    // rage.md#implementation-notes item 4: the damage-taken rage first, then the block's procs (Shield Specialization).
+    out[outcome]++
+    if (this.swingTakenTrace !== null) this.swingTakenTrace(outcome, lost, pre)
+    // rage.md#implementation-notes item 4: the damage-taken rage first, then the procs (Shield Specialization).
     this.takeHit(lost, pre)
-    if (blocked) this.fireProcs(TRIGGER.block, -1)
+    this.fireProcs(TRIGGER.meleeTaken, -1)
+    if (outcome === BOSS_OUTCOME.block) {
+      this.fireProcs(TRIGGER.block, -1)
+      this.useBlockCharges()
+    } else if (outcome === BOSS_OUTCOME.crit) this.fireProcs(TRIGGER.critTaken, -1)
   }
 
-  /** The tank parried: parry haste on its own main-hand swing (damage-and-timing §3.4). */
+  /** A block uses a charge of each aura blocks end (Holy Shield, Redoubt), after the block's procs. */
+  private useBlockCharges(): void {
+    const list = this.blockChargeAuras
+    for (let i = 0; i < list.length; i++) {
+      const a = list[i]
+      if (this.auraActive[a] && --this.auraBlockCharges[a] <= 0) this.removeAura(a)
+    }
+  }
+
+  /** The tank parried: parry haste on its own main-hand swing (damage-and-timing §3.4; encounter §5's setting). */
   private onPlayerParried(): void {
     // During a cast that stops swings there is no pending swing to hasten.
-    if (!this.hasWeapon[HAND.main] || this.swingsStopped) return
+    if (!this.hasWeapon[HAND.main] || this.swingsStopped || !this.plan.fight.bossSwing?.parryHaste) return
     const remaining = this.nextSwingAt[HAND.main] - this.now
     const after = Math.round(parryHasteRemaining(remaining, this.swingMs[HAND.main]))
     if (after !== remaining) this.scheduleSwing(HAND.main, this.now + after)
+  }
+
+  /**
+   * The boss → player table against the current stats (combat-tables §8), and the armor factor
+   * against the boss's level (damage-and-timing §1.1): at the start of a fight and whenever an aura
+   * changes the stats.
+   */
+  private updateBossTable(d: DerivedStats): void {
+    const plan = this.plan
+    const f = plan.fight
+    const tank = this.defenderIn
+    tank.playerLevel = plan.playerLevel
+    tank.bossLevel = f.targetLevel
+    tank.defense = d.defense
+    tank.dodge = d.dodge
+    tank.parry = d.parry
+    tank.block = d.block
+    tank.canCrush = f.bossSwing!.canCrush
+    tank.front = f.bossSwing!.front
+    thresholds(bossSlices(tank, this.slices), this.thrBoss)
+    this.bossArmorFactor = 1 - armorReduction(d.armor, f.targetLevel, plan.profile)
+  }
+
+  /** The defensive aura deltas on the scratch stat block, before a re-derive (combat-tables §8). */
+  private defensiveScratch(s: StatBlock, base: StatBlock): void {
+    s.dodge = base.dodge + this.dynDodge
+    s.parry = base.parry + this.dynParry
+    s.block = base.block + this.dynBlock
+    s.blockValue = base.blockValue + this.dynBlockValue
+    s.bonusArmor = base.bonusArmor + this.dynArmor
+  }
+
+  /** Aura a's defensive mods, `deltaStacks` stacks of them, added to the deltas. */
+  private defensiveDelta(a: number, deltaStacks: number): void {
+    this.dynDodge += this.aDodge[a] * deltaStacks
+    this.dynParry += this.aParry[a] * deltaStacks
+    this.dynBlock += this.aBlock[a] * deltaStacks
+    this.dynBlockValue += this.aBlockValue[a] * deltaStacks
+    this.dynArmor += this.aArmor[a] * deltaStacks
+  }
+
+  /** Damage-taken aura mods multiply (Iron Creed −10%), recomputed from the active ones, so no drift. */
+  private recomputeTakenMult(): void {
+    let m = 1
+    for (let i = 0; i < this.auraActive.length; i++) {
+      if (this.auraActive[i] && this.aTaken[i]) m *= 1 + (this.aTaken[i] * this.auraStacks[i]) / 100
+    }
+    this.auraTakenMult = m
+  }
+
+  /** A fight starts with no defensive auras and no damage taken. */
+  private resetDefense(): void {
+    this.dynDodge = 0
+    this.dynParry = 0
+    this.dynBlock = 0
+    this.dynBlockValue = 0
+    this.dynArmor = 0
+    this.auraTakenMult = 1
+    this.auraBlockCharges.fill(0)
+    this.fightDamageTaken = 0
   }
 
   /**
@@ -2110,6 +2260,12 @@ export class Sim {
    */
   private takeHit(healthLost: number, pre: number): void {
     const plan = this.plan
+    this.fightDamageTaken += healthLost
+    // rage.md#rage-from-damage-taken: rage users only (warriors, druids in Bear Form).
+    if (!plan.rage.fromDamageTaken) {
+      if (healthLost > 0) this.fireProcs(TRIGGER.damageTaken, -1)
+      return
+    }
     let rage = 0
     switch (plan.rage.damageTakenModel) {
       case 'forever':

@@ -128,12 +128,13 @@ and their values are in [buffs-debuffs-consumables.md](buffs-debuffs-consumables
 | Swing speed | **2.0 s** | [?] (typical raid-boss swing; no Forever data; tune from logs) |
 | Pre-armor damage per swing | **uniform 4,500–5,500** (mean 5,000) | [?], see below |
 | Attack table vs the tank | [combat-tables §8](combat-tables.md#8-boss--player-tanks): miss, dodge, parry, block, crit 5.6% at 300 defense, crushing 15% | [F]/[C] |
+| Direction | from the front: the tank faces the boss, so it can dodge, parry and block. The tank's own position setting (in front or behind) is where it attacks from, and doesn't change this | [F] tooltip; [C] ([combat-tables §8](combat-tables.md#8-boss--player-tanks)) |
 | Crit / crushing multiplier | ×2.0 / ×1.5 | [F] tooltip ([gs][gs-forever]); in combat [C] (unchanged) |
 | Parry haste (when the tank parries the boss's swings, and when the boss parries the tank) | on | [F] tooltip; [C] ([damage-and-timing §3.4](damage-and-timing.md#parry-haste)) |
 | Armor constant vs the tank | 400 + 85 × 63 = 5,755 | [C] ([damage-and-timing §1.1](damage-and-timing.md#11-formula)) |
 | Attack-speed debuffs (Thunder Clap, …) | per buffs doc | [damage-and-timing §3.2](damage-and-timing.md#32-attack-speed-debuffs-on-the-boss-tank-modeling) |
 | AP debuffs (Demoralizing Shout/Roar) | `damage −= APreduction / 14 × swingSpeed` | [?] (creature damage modeled as base + AP/14 × speed) |
-| Spells or special attacks | not modeled; optional `bossExtraDtps` (default 0) | modelling choice |
+| Spells or special attacks | not modeled; `bossExtraDtps` is planned, not yet a setting | modelling choice |
 
 **Why 5,000 pre-armor per swing** [?]. Classic-era raid bosses hit a well-geared tank for
 about 1,500–2,500 after armor. At 10,000 armor vs a level-63 attacker, mitigation is 63.5%, so
@@ -142,6 +143,15 @@ tank rage. [rage.md](rage.md#rage-from-damage-taken) owns the damage-taken rage 
 Forever default is `10 × damage before armor, block and absorbs ÷ max health` [?], fitted to
 beta logs, so tank rage follows this pre-armor number directly: armor, block and Defensive
 Stance don't change it. Replace the stand-in with measured values once Forever raid logs exist.
+
+**What a tank's results show** (beside TPS and DPS,
+[D18](../decisions.md#d18-tank-specs-report-tps-and-dps-as-equals-2026-09-22)): **damage taken
+per second**, the health the boss's swings cost after armor, block, stance and other
+damage-taken modifiers, with its 95% CI over fights; the boss's **swings per fight**, parry-hastened
+ones included; and the **share of its swings** each outcome took: miss, dodge, parry, block, crit,
+crushing and hit ([combat-tables WE-15](combat-tables.md#worked-examples) works one through). The
+character sheet adds the table against your stats as the fight starts. Survival (health over time,
+healing, death) isn't modeled.
 
 ---
 
@@ -212,7 +222,7 @@ What the UI exposes, with defaults. All are part of `SimConfig.encounter`.
 | `bossSwingSpeedSec` (tanks) | 2.0 | 1.0–4.0 | [?] §5 |
 | `bossDamageMin` / `bossDamageMax` (tanks, pre-armor) | 4500 / 5500 | 0–20,000 | [?] §5 |
 | `bossCanCrush` | true | bool | [F] §5 |
-| `bossExtraDtps` (tanks) | 0 | 0–2,000 | modelling choice §5 |
+| `bossExtraDtps` (tanks) | 0 | 0–2,000 | modelling choice §5; planned, not yet a setting |
 | `dpsDamageTakenPerSec` (before your mitigation) | 0 | 0–500 | [?] §4 |
 | `creatureType` | none | none / Beast / Demon / Dragonkin / Elemental / Giant / Humanoid / Mechanical / Undead | [F] §6 |
 | `biome` | none | none / woodland / mountain / desert / city / cavern | [F]/[?] §6 |
@@ -255,7 +265,11 @@ threshold as a boss property.
   `bossArmor`.
 - The boss swing loop exists only when the simulated spec is a tank. Every swing resolves on
   the boss → player table, applies armor and block, and triggers the tank's damage-taken hooks
-  (rage, Reckoning, …).
+  (rage, Reckoning, …). The order within a swing, the mitigation and the hooks are in
+  [combat-tables §8](combat-tables.md#8-boss--player-tanks).
+- Parry haste follows `bossParryHaste` both ways: on the boss's pending swing when it parries the
+  tank, and on the tank's main-hand swing when the tank parries it
+  ([damage-and-timing §3.4](damage-and-timing.md#parry-haste)).
 - The zone, biome and creature type are plain enums passed to the aura system. An aura with a
   `requiresZone`/`requiresCreatureType` condition checks them.
 

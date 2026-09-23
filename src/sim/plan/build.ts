@@ -6,7 +6,7 @@
 // only the resulting plain object.
 import itemJson from '@/data/items/pre-bis.json'
 import type { Item, ItemData, Stats, WeaponSkill, WeaponType } from '@/data/items/types'
-import { glanceRange, PLAYER_LEVEL } from '../core/attack-table'
+import { bossOutcomeShares, glanceRange, PLAYER_LEVEL } from '../core/attack-table'
 import { negativeArmorFloor, NORMALIZED_SPEED, OFF_HAND_DAMAGE, ppmChance, slowedSwingSec, toTenths } from '../core/formulas'
 import { classSetup } from '../classes'
 import { classRotation, maintainedBuffs, rotationBaseStance } from '../classes/rotation'
@@ -101,6 +101,9 @@ const SPELL_SCHOOL = { fire: 0, frost: 1, shadow: 2, nature: 3, arcane: 4, holy:
 
 /** Base rage cap (rage.md#rage-pool-cap-and-decay). */
 const BASE_MAX_RAGE = 100
+
+/** Specs whose hits taken give rage: warriors, and druids in Bear Form (rage.md#bear-druid-rage). */
+const RAGE_FROM_DAMAGE_TAKEN: ReadonlySet<SimConfig['spec']> = new Set(['warrior-fury', 'warrior-arms', 'warrior-protection', 'druid-feral-bear'])
 
 /**
  * Interval of the stand-in incoming hits for DPS specs (encounter §4, [?]). Each hit carries
@@ -336,6 +339,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (override?.use) itemUses.push(override.use)
     else if (item.useEffects.length > 0) onUseItems.push(item.name)
   }
+  // docs/data/items.md#stats-armor-and-block-value: the Forever client has no innate shield block
+  // value. A shield with no Forever data uses its Classic Era stats (D6), and with them its Classic
+  // Era block value, flagged [?] (character-stats.md#strength).
+  const fallbackShieldBlockValue = hasShield ? (ohItem?.classicShieldBlockValue ?? 0) : 0
+  block.blockValue += fallbackShieldBlockValue
   /** Active set bonuses the plan can't apply (not flat stats or a weapon skill), e.g. "The Gladiator (5)". */
   const unmodelledSetBonuses: string[] = []
   for (const [setId, count] of setCounts) {
@@ -463,6 +471,20 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     blockPct: shown.block,
     blockValue: shown.blockValue,
     defense: shown.defense,
+    critReductionPct: shown.critReduction,
+    // docs/mechanics/combat-tables.md#8-boss--player-tanks: the boss's table against this sheet.
+    bossTable: tank
+      ? bossOutcomeShares({
+          playerLevel: PLAYER_LEVEL,
+          bossLevel: fight.bossLevel,
+          defense: shown.defense,
+          dodge: shown.dodge,
+          parry: shown.parry,
+          block: shown.block,
+          canCrush: fight.boss.canCrush,
+          front: true,
+        })
+      : null,
     unknown,
     placeholders,
   }
@@ -499,6 +521,14 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       spellCrit: spec.mods.spellCrit ?? 0,
       haste: spec.mods.haste ?? 0,
       damage: spec.mods.damage ?? 0,
+      // Defensive mods and block charges (combat-tables §8), only when set.
+      ...(spec.mods.dodge ? { dodge: spec.mods.dodge } : {}),
+      ...(spec.mods.parry ? { parry: spec.mods.parry } : {}),
+      ...(spec.mods.block ? { block: spec.mods.block } : {}),
+      ...(spec.mods.blockValue ? { blockValue: spec.mods.blockValue } : {}),
+      ...(spec.mods.armor ? { armor: spec.mods.armor } : {}),
+      ...(spec.mods.damageTaken ? { damageTaken: spec.mods.damageTaken } : {}),
+      ...(spec.blockCharges ? { blockCharges: spec.blockCharges } : {}),
     })
     return auras.length - 1
   }
@@ -645,6 +675,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
             maxDamage: Math.max(0, fight.boss.damageMax + bossApDamage),
             canCrush: fight.boss.canCrush,
             parryHaste: fight.boss.parryHaste,
+            // docs/mechanics/combat-tables.md#8-boss--player-tanks: a tank faces the boss it tanks.
+            front: true,
           }
         : null,
       damageTakenPerHit: !tank && fight.damageTakenPerSec > 0 ? (fight.damageTakenPerSec * DPS_DAMAGE_INTERVAL_MS) / 1000 : 0,
@@ -664,6 +696,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       // docs/mechanics/rage.md#rage-from-damage-taken; a legacy id maps to its new name
       damageTakenModel: currentDamageTakenRageModel(config.rules.damageTakenRage) ?? profile.rage.damageTaken,
       maxHealth: derived.health,
+      // rage.md#rage-from-damage-taken, #bear-druid-rage: rage users only.
+      fromDamageTaken: RAGE_FROM_DAMAGE_TAKEN.has(config.spec),
     },
     periodicRage,
     auras,
@@ -725,7 +759,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // docs/mechanics/rage.md#forever-: the damage-taken model, when you take damage. `classic` is [C].
   const takenModel = plan.rage.damageTakenModel
   const takesDamage = tank || plan.fight.damageTakenPerHit > 0
-  if (takesDamage) {
+  if (takesDamage && plan.rage.fromDamageTaken) {
     if (takenModel === 'forever') notes.add('damageTakenRage')
     if (takenModel === 'foreverFlat') notes.add('damageTakenRageFlat')
     if (takenModel === 'foreverHealthLost') notes.add('damageTakenRageHealthLost')
@@ -735,7 +769,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const standIns: string[] = []
   if (placeholders.includes('base health')) {
     // The `forever` and `foreverHealthLost` models divide by max health.
-    const dividesByHealth = takesDamage && (takenModel === 'forever' || takenModel === 'foreverHealthLost')
+    const dividesByHealth = takesDamage && plan.rage.fromDamageTaken && (takenModel === 'forever' || takenModel === 'foreverHealthLost')
     standIns.push(`base health ${block.baseHealth.toLocaleString('en-US')}${dividesByHealth ? ', which rage from damage taken divides by' : ''}`)
   }
   if (tank) {
@@ -777,7 +811,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (setup.stance === 'defensive' && setup.talents.has('Defiance') && hasShield) notes.add('defiance')
   if (tank) notes.add('bossMelee')
   if (front) notes.add('bossFlags')
-  if (hasShield && tank) notes.add('shieldBlockValue')
+  // docs/data/items.md#stats-armor-and-block-value: a Classic Era shield's own block value, or none.
+  if (hasShield && tank) {
+    if (fallbackShieldBlockValue > 0) notes.add('classicShieldBlockValue', `${ohItem!.name}, ${fallbackShieldBlockValue} block value`)
+    else notes.add('shieldBlockValue')
+  }
   if (tank && hasDebuffs.slow) notes.add('bossSlow')
   if (tank && hasDebuffs.boss) notes.add('bossApDebuff')
   if (plan.fight.damageTakenPerHit > 0) notes.add('dpsDamageTaken')

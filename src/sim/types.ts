@@ -354,6 +354,18 @@ export interface CharacterSheet {
   blockValue: number
   defense: number
   /**
+   * How much your defense lowers an attacker's crit chance, % (0.04 per point above 300; negative
+   * below it): 5.6 at 440 defense, where a raid boss can't crit you
+   * (docs/mechanics/character-stats.md#defense-skill).
+   */
+  critReductionPct: number
+  /**
+   * Tank specs: the boss's swings against you as the fight starts, shares of its table in %
+   * (miss, dodge, parry, block, crit, crushing, hit; docs/mechanics/combat-tables.md#8-boss--player-tanks).
+   * Null for specs the boss doesn't attack.
+   */
+  bossTable: BossOutcomes | null
+  /**
    * Base values not known yet for this race and class (e.g. "base attributes"), left out of the
    * numbers above (docs/mechanics/character-stats.md#open-questions). Empty when complete.
    */
@@ -364,6 +376,38 @@ export interface CharacterSheet {
    * assumptions say which values they are.
    */
   placeholders: string[]
+}
+
+/**
+ * The boss's melee swings against the player by outcome, in the table's roll order
+ * (docs/mechanics/combat-tables.md#8-boss--player-tanks). As shares, % of its swings, they add up
+ * to 100.
+ */
+export interface BossOutcomes {
+  miss: number
+  dodge: number
+  parry: number
+  block: number
+  crit: number
+  /** Crushing blows (×1.5). */
+  crush: number
+  hit: number
+}
+
+/**
+ * What a tank needs to read the fight (decision D18 puts TPS and DPS in the headline): the damage
+ * it takes and how the boss's swings landed (docs/mechanics/encounter.md#5-boss-melee-tank-modeling).
+ */
+export interface TankResult {
+  /**
+   * Damage taken per second: the health the boss's swings cost, after armor, block, stance and
+   * other damage-taken modifiers, with its 95% CI over fights.
+   */
+  dtps: Summary
+  /** The boss's swings per fight, parry-hastened ones included. */
+  bossSwingsPerFight: number
+  /** Share of the boss's swings by outcome, %, as they fell in the fights run. */
+  outcomes: BossOutcomes
 }
 
 export interface Assumption {
@@ -383,6 +427,8 @@ export interface SimResult {
   abilities: AbilityResult[]
   /** Casts and buffs on the player, with uptimes: casts first, in the rotation's order, then procs. */
   cooldowns: CooldownResult[]
+  /** Tank specs (the boss attacks you): damage taken and the boss's outcomes. Absent otherwise. */
+  tank?: TankResult
   sheet: CharacterSheet
   /** The [?] assumptions that affect this configuration. */
   assumptions: Assumption[]

@@ -9,6 +9,8 @@ import {
   AGGRO_THRESHOLD,
   armorReduction,
   averageWeaponDamage,
+  bossHitHealthLost,
+  bossHitPreMitigation,
   damageTakenRage,
   executePhaseStart,
   GCD_MS,
@@ -196,11 +198,47 @@ describe('encounter.md worked examples (formula level)', () => {
     expect(executePhaseStart(180001, 0)).toBe(180001)
   })
   it('WE-3: a boss swing on a 10,000-armor tank', () => {
-    const hit = 5000 * (1 - armorReduction(10000, 63, FOREVER))
+    const dr = armorReduction(10000, 63, FOREVER)
+    const hit = 5000 * (1 - dr)
     expect(hit).toBeCloseTo(1826.4, 1)
     expect(hit * 2).toBeCloseTo(3652.8, 1)
     expect(hit * 1.5).toBeCloseTo(2739.6, 1)
     expect(hit - 150).toBeCloseTo(1676.4, 1)
+    // The engine's reference function (damage-and-timing §2.6, boss → tank).
+    expect(bossHitHealthLost(5000, 'hit', dr, 1, 150)).toBeCloseTo(1826.4, 1)
+    expect(bossHitHealthLost(5000, 'crit', dr, 1, 150)).toBeCloseTo(3652.8, 1)
+    expect(bossHitHealthLost(5000, 'crush', dr, 1, 150)).toBeCloseTo(2739.6, 1)
+    expect(bossHitHealthLost(5000, 'block', dr, 1, 150)).toBeCloseTo(1676.4, 1)
+  })
+  it('combat-tables WE-14: one swing on an 8,000-armor tank in Defensive Stance, and its rage', () => {
+    const dr = armorReduction(8000, 63, FOREVER)
+    expect(dr * 100).toBeCloseTo(58.1607, 4)
+    const lost = (o: 'hit' | 'crit' | 'crush' | 'block', bv = 62) => bossHitHealthLost(5000, o, dr, 0.9, bv)
+    expect(lost('hit')).toBeCloseTo(1882.77, 2)
+    expect(lost('crit')).toBeCloseTo(3765.54, 2)
+    expect(lost('crush')).toBeCloseTo(2824.15, 2)
+    expect(lost('block')).toBeCloseTo(1820.77, 2)
+    // A full block: block value at or above the mitigated hit costs nothing, never less than 0.
+    expect(lost('block', 2000)).toBe(0)
+    // rage.md#forever-: the swing before armor, block and the stance; ×2 crit, ×1.5 crushing.
+    expect(bossHitPreMitigation(5000, 'block')).toBe(5000)
+    expect(bossHitPreMitigation(5000, 'crit')).toBe(10000)
+    expect(bossHitPreMitigation(5000, 'crush')).toBe(7500)
+    expect(damageTakenRage('forever', lost('block', 2000), 5000, 6029)).toBeCloseTo(8.2932, 4)
+    expect(damageTakenRage('forever', lost('crit'), 10000, 6029)).toBeCloseTo(16.5865, 4)
+    expect(damageTakenRage('forever', lost('crush'), 7500, 6029)).toBeCloseTo(12.4399, 4)
+  })
+  it('combat-tables WE-15: damage taken per second from WE-8’s table', () => {
+    // 440 defense: block 19.4, crushing 15, hit 30.8, no crits; 10,000 armor, Defensive Stance,
+    // block value 150, a 5,000 swing every 2.0 s.
+    const dr = armorReduction(10000, 63, FOREVER)
+    const lost = (o: 'hit' | 'crush' | 'block') => bossHitHealthLost(5000, o, dr, 0.9, 150)
+    expect(lost('hit')).toBeCloseTo(1643.76, 2)
+    expect(lost('crush')).toBeCloseTo(2465.65, 2)
+    expect(lost('block')).toBeCloseTo(1493.76, 2)
+    const perSwing = 0.308 * lost('hit') + 0.15 * lost('crush') + 0.194 * lost('block')
+    expect(perSwing).toBeCloseTo(1165.92, 2)
+    expect(perSwing / 2).toBeCloseTo(582.96, 2)
   })
   it('WE-5: Thunder Clap’s slow, as the plan builder applies it', () => {
     expect(slowedSwingSec(2.0, 0.2)).toBeCloseTo(2.4, 9)

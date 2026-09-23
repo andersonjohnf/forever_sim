@@ -200,3 +200,35 @@ describe('ratings and the D12 switch', () => {
     expect(deriveStats(s, opts).strength).toBe(295)
   })
 })
+
+describe('Example 4: a naked Human warrior’s defensive sheet (character-stats, D24 placeholders)', () => {
+  it('holding a one-hander and a shield: dodge 4%, parry 5%, block 5%, block value 6, no crit reduction', () => {
+    const b = warrior()
+    b.canParry = true
+    b.baseParry = CLASS_BASE.warrior.baseParry
+    b.canBlock = true
+    b.baseBlock = CLASS_BASE.warrior.baseBlock
+    const d = deriveStats(b, opts)
+    expect(d.health).toBe(2609)
+    expect(d.dodge).toBeCloseTo(4, 9)
+    expect(d.parry).toBe(5)
+    expect(d.block).toBe(5)
+    expect(d.blockValue).toBe(6)
+    expect(d.defense).toBe(300)
+    expect(d.critReduction).toBe(0)
+  })
+
+  it('defense moves dodge, parry, block and the crit reduction by 0.04% a point, both ways', () => {
+    const b = warrior()
+    b.canParry = true
+    b.canBlock = true
+    b.defense = 140 // 440 defense: the raid-boss crit cap
+    const d = deriveStats(b, opts)
+    expect(d.critReduction).toBeCloseTo(5.6, 9)
+    expect(d.parry).toBeCloseTo(5.6, 9)
+    b.defense = -10
+    const low = deriveStats(b, opts)
+    expect(low.critReduction).toBeCloseTo(-0.4, 9)
+    expect(low.block).toBeCloseTo(-0.4, 9)
+  })
+})

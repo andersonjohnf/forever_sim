@@ -41,6 +41,7 @@ describe('character-stats Example 1 through computeSheet', () => {
     expect(s.placeholders).toEqual(['base health'])
     // Dodge: base dodge 0% [C] + 80 / 20.
     expect(s.dodgePct).toBeCloseTo(4, 9)
+    expect(s.critReductionPct).toBe(0)
   })
 
   it('against a level-63 boss: forever 3.40%, classicEra 1.00% crit (no aura crit, no 1.8%)', () => {
@@ -79,6 +80,49 @@ describe('character-stats Example 1 through computeSheet', () => {
       // Crit slice = threshold 5 − threshold 4.
       expect(t[5] - t[4]).toBeCloseTo(expected, 9)
     }
+  })
+})
+
+describe('character-stats Example 4 and the tank’s sheet (combat-tables §8, D24)', () => {
+  // Arbiter's Blade (a one-handed sword: +8 Sta, +5 Int, no avoidance) and Sacred Protector (a
+  // Forever shield: +15 Sta, +10 Int, no block value in the client).
+  const gear: SimConfig['gear'] = { mainHand: { itemId: 11784 }, offHand: { itemId: 16998 } }
+
+  it('a naked Human warrior with a one-hander and a shield: dodge 4, parry 5, block 5, and the boss’s table', () => {
+    const { sheet, assumptions } = buildPlan(bare('warrior-protection', { gear }))
+    // Health: 1,689 (D24 placeholder) + 20 + (133 − 20) × 10.
+    expect(sheet.health).toBe(2839)
+    expect(sheet.dodgePct).toBeCloseTo(4, 9)
+    expect([sheet.parryPct, sheet.blockPct, sheet.defense, sheet.critReductionPct]).toEqual([5, 5, 300, 0])
+    // No block value on a Forever shield: floor(120 Str / 20) only.
+    expect(sheet.blockValue).toBe(6)
+    const t = sheet.bossTable!
+    const shares = [t.miss, t.dodge, t.parry, t.block, t.crit, t.crush, t.hit]
+    expect(shares).toEqual([4.4, 3.4, 4.4, 4.4, 5.6, 15, 62.8].map((x) => expect.closeTo(x, 9)))
+    expect(sheet.placeholders).toEqual(['base health', 'base parry', 'base block'])
+    const ids = assumptions.map((a) => a.id)
+    expect(ids).toContain('shieldBlockValue')
+    expect(ids).not.toContain('classicShieldBlockValue')
+  })
+
+  it('a Classic Era fallback shield counts its Classic block value, flagged; a Forever one has none (items.md)', () => {
+    const classic = buildPlan(bare('warrior-protection', { gear: { mainHand: { itemId: 11784 }, offHand: { itemId: 12602 } } }))
+    // Draconian Deflector: classicShieldBlockValue 40, + floor(120 / 20).
+    expect(classic.sheet.blockValue).toBe(46)
+    const note = classic.assumptions.find((a) => a.id === 'classicShieldBlockValue')!
+    expect(note.text).toMatch(/Draconian Deflector, 40 block value\.$/)
+    expect(classic.assumptions.map((a) => a.id)).not.toContain('shieldBlockValue')
+    // Not a tank, or no shield: no shield note, and no block value without a shield.
+    expect(buildPlan(bare('warrior-arms', { gear: { mainHand: { itemId: 11784 }, offHand: { itemId: 12602 } } })).sheet.blockValue).toBe(46)
+    expect(buildPlan(bare('warrior-protection', { gear: { mainHand: { itemId: 11784 } } })).sheet.blockValue).toBe(0)
+  })
+
+  it('a tank faces the boss: the plan’s boss swings come from the front', () => {
+    expect(buildPlan(defaultConfig('warrior-protection')).plan.fight.bossSwing!.front).toBe(true)
+  })
+
+  it('DPS specs have no boss table', () => {
+    expect(buildPlan(defaultConfig('warrior-fury')).sheet.bossTable).toBeNull()
   })
 })
 
@@ -459,8 +503,9 @@ describe('assumptions', () => {
     expect(fury).not.toContain('foreverBossParry')
     const prot = ids(defaultConfig('warrior-protection'))
     expect(prot).toEqual(
-      expect.arrayContaining(['bossMelee', 'damageTakenRage', 'foreverBossParry', 'whiteThreat', 'defiance', 'shieldBlockValue', 'baseStatPlaceholders']),
+      expect.arrayContaining(['bossMelee', 'damageTakenRage', 'foreverBossParry', 'whiteThreat', 'defiance', 'classicShieldBlockValue', 'baseStatPlaceholders']),
     )
+    expect(prot).not.toContain('shieldBlockValue')
     const classic = ids(withRules(defaultConfig('warrior-arms'), 'classicEra'))
     expect(classic).not.toContain('foreverGlancing')
     expect(classic).not.toContain('foreverWhiteRage')

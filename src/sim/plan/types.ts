@@ -22,8 +22,17 @@ export const TRIGGER = {
   swingLanded: 6,
   /** The target dodged one of the player's attacks, white or special (the Overpower window, warrior.md §2.8). */
   targetDodge: 7,
+  // The boss's swings on the player (combat-tables §8), for any class's defensive procs:
+  /** The player dodged (Natural Reaction). `dodgeParry` fires too. */
+  dodge: 8,
+  /** The player parried. `dodgeParry` fires too. */
+  parry: 9,
+  /** A swing landed on the player: a hit, crit, crushing blow or block, before `damageTaken` (Redoubt). */
+  meleeTaken: 10,
+  /** The player took a crit (Reckoning). */
+  critTaken: 11,
 } as const
-export const TRIGGER_COUNT = 8
+export const TRIGGER_COUNT = 12
 
 /**
  * Warrior stances as bits (docs/classes/warrior.md#21-stances). An ability's `stances` mask says
@@ -113,6 +122,16 @@ export interface AuraPlan {
   damage: number
   /** Crits dealt that end it early (Weakness Analyzer: 1; 0 = none). */
   critCharges: number
+  // Defensive mods (combat-tables §8), absent = 0: dodge, parry and block chance %, block value,
+  // bonus armor, and damage taken % (multiplicative; −75 is ×0.25).
+  dodge?: number
+  parry?: number
+  block?: number
+  blockValue?: number
+  armor?: number
+  damageTaken?: number
+  /** Blocks that end it early (Holy Shield 4, Redoubt 5; absent or 0 = none). */
+  blockCharges?: number
 }
 
 export interface ProcPlan {
@@ -412,12 +431,18 @@ export interface PrepullPlan {
 
 export const NO_PREPULL: PrepullPlan = { casts: [], chargeTenths: 0, keepTenths: -1 }
 
+/** The boss's melee on the player (combat-tables §8, encounter.md §5). */
 export interface BossSwingPlan {
+  /** Between swings, after attack-speed slows (damage-and-timing §3.2). */
   speedSec: number
+  /** Each swing's damage, uniform in [min, max], before the player's mitigation; AP debuffs included. */
   minDamage: number
   maxDamage: number
   canCrush: boolean
+  /** Parry haste, both ways: on the boss's swing when it parries, and on the tank's when the tank parries (encounter.md §5). */
   parryHaste: boolean
+  /** The swings come from in front of the player, so it can dodge, parry and block them (combat-tables §8, "Direction"). */
+  front: boolean
 }
 
 export interface Plan {
@@ -486,10 +511,15 @@ export interface Plan {
     /** Rage from damage taken (rage.md#rage-from-damage-taken; `damageTakenRage` in core/formulas.ts). */
     damageTakenModel: DamageTakenRageModel
     /**
-     * Max health, which the `forever` and `foreverHealthLost` models divide by. It leaves out base
-     * health while that's unknown (character-stats OQ-2).
+     * Max health, which the `forever` and `foreverHealthLost` models divide by. Its base health is
+     * a Classic-based stand-in while unmeasured (character-stats OQ-2, D24).
      */
     maxHealth: number
+    /**
+     * Hits that land on the player give rage (rage.md#rage-from-damage-taken): warriors, and
+     * druids in Bear Form (rage.md#bear-druid-rage). False for classes without rage.
+     */
+    fromDamageTaken: boolean
   }
   periodicRage: { periodMs: number; tenths: number; source: number }[]
   auras: AuraPlan[]

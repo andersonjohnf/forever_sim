@@ -203,8 +203,12 @@ const REGISTRY = {
     docRef: `${CT}#24-attacking-from-behind-vs-the-front`,
   },
   shieldBlockValue: {
-    text: 'Shield block values aren’t in the item data yet, so block value counts Strength only.',
-    docRef: `${STATS}#strength`,
+    text: 'The Forever client gives shields no block value of their own, so block value counts Strength and the block value on your gear; whether Forever shields have one is unknown.',
+    docRef: 'docs/data/items.md#stats-armor-and-block-value',
+  },
+  classicShieldBlockValue: {
+    text: 'Your shield has no Forever data, so the sim counts its Classic Era block value, as it does its other Classic Era stats.',
+    docRef: 'docs/data/items.md#stats-armor-and-block-value',
   },
   bossSlow: {
     text: 'Attack-speed slows lengthen the boss’s swings as base × (1 + slow).',

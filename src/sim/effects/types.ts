@@ -170,6 +170,8 @@ export interface AuraSpec {
   whiteSwingCharges?: number
   /** Charges consumed by crits dealt, white or special (Weakness Analyzer: 1); the aura drops when they run out. */
   critCharges?: number
+  /** Charges consumed by the player's blocks (Holy Shield 4, Redoubt 5); the aura drops when they run out. */
+  blockCharges?: number
   mods: {
     str?: number
     agi?: number
@@ -183,6 +185,14 @@ export interface AuraSpec {
     haste?: number
     /** Physical damage done %, multiplicative. */
     damage?: number
+    // Defensive (combat-tables §8): dodge, parry and block chance %, block value, bonus armor,
+    // and damage taken % (multiplicative).
+    dodge?: number
+    parry?: number
+    block?: number
+    blockValue?: number
+    armor?: number
+    damageTaken?: number
   }
 }
 
@@ -201,6 +211,14 @@ export type ProcTrigger =
   | 'block'
   /** The player dodges or parries. */
   | 'dodgeParry'
+  /** The player dodges (Natural Reaction). */
+  | 'dodge'
+  /** The player parries. */
+  | 'parry'
+  /** A melee swing lands on the player: hit, crit, crushing blow or block, whatever it costs (Redoubt). */
+  | 'meleeTaken'
+  /** The player takes a melee crit (Reckoning). */
+  | 'critTaken'
   /** The target dodges one of the player's attacks, white or special, either hand (the Overpower window, warrior.md §2.8). */
   | 'targetDodge'
 

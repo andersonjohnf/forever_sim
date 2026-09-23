@@ -393,7 +393,10 @@ table. Putting Classic's into `stats.blockValue` would make the 20 fallback shie
 Forever ones for want of data, so it is kept apart as `classicShieldBlockValue` (only on
 shields with `statsFrom: "classic"`). `stats.blockValue` holds block value from stat 48 and
 equip spells only, as before. Whether Forever shields have a base block value is an open
-question ([client.md](client.md#open-questions)).
+question ([client.md](client.md#open-questions)). The engine adds a fallback shield's
+`classicShieldBlockValue` to its block value, as it uses the rest of its Classic Era stats (D6),
+and a tank's results flag it; a Forever shield adds none
+([character-stats](../mechanics/character-stats.md#strength)).
 
 ## Effect and set-bonus text
 

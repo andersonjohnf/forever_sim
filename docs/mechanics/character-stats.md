@@ -317,6 +317,12 @@ value % modifiers (Forever paladin Shield Specialization: +30% "damage absorbed 
 **[F]** [changes][fc-changes]). **[C]** An emulator variant subtracts 1; it isn't adopted. **[?]**
 [OQ-5](#oq-5-base-dodge-parry-and-block)
 
+The shield's block value: the Forever client gives shields none of their own, only block value
+from gear (stat 48 and equip auras), so a Forever shield adds 0 [?]. A shield with no Forever
+data uses its Classic Era stats (D6), and with them its Classic Era block value
+(`classicShieldBlockValue`, [items.md](../data/items.md#stats-armor-and-block-value)), flagged in
+the results' assumptions [?].
+
 ### Agility
 
 | Effect | Warrior | Paladin | Druid | Tag · source |
@@ -394,7 +400,11 @@ from Spirit. Mana regeneration matters for paladins (seals, judgements, Consecra
 
 Each point of defense above 5 × level adds **0.04%** to the chance to be missed and to dodge,
 parry and block, and removes 0.04% from the attacker's crit chance. Points below it do the
-reverse. **[C]** [Blizzard forum, Oct 2019][bnet-def], [tankadin guide][wt-tankadin]. How the boss's
+reverse. The sheet shows the crit part as the defense's **crit reduction**, `(Def − 300) × 0.04`:
+5.60% at 440, where a raid boss can't crit you (the Forever tooltip's "-5.60% Critical Strike
+chance", [combat-tables §8](combat-tables.md#8-boss--player-tanks)). For a tank the sim also
+shows the boss's table against the sheet (miss, dodge, parry, block, crit, crushing and hit,
+[Example 4](#example-4-a-naked-human-warriors-defensive-sheet)). **[C]** [Blizzard forum, Oct 2019][bnet-def], [tankadin guide][wt-tankadin]. How the boss's
 315 weapon skill interacts with player defense (crits, crushing blows) belongs to
 [combat-tables.md](combat-tables.md). Forever changes the sources of defense, not the conversion:
 Anticipation gives +20 defense at 5/5 for warriors and paladins (Classic +10). **[F]**
@@ -575,7 +585,8 @@ Blood Fury, Elune's Light, Kings, trinkets).
      hit gets the same `hitRating/10` plus Classic spell-hit lines.
    - `spellCrit% = baseSpellCrit + Int × spellCritPerInt + critRating/14 + Σ flat spell crit`
      (including aura-290 racials).
-   - `Def = 300 + defenseRating + Σ defense skill` (Classic-form gear, Anticipation).
+   - `Def = 300 + defenseRating + Σ defense skill` (Classic-form gear, Anticipation), and
+     `critReduction = (Def − 300) × 0.04` ([Defense skill](#defense-skill)).
    - `dodge% = baseDodge + Agi / 20 + dodgeRating/12 + Σ dodge% + (Def − 300) × 0.04`.
    - `parry% = 5 + parryRating/15 + Σ parry% + (Def − 300) × 0.04` for warrior and paladin, 0 for
      druid.
@@ -847,6 +858,28 @@ Inputs (illustrative totals, not a real gear set):
 to get a critical strike by 1%"). Melee crit is unchanged at **16.65%**. Spell crit drops to
 **5.22%** (5.2231), because a Classic melee-crit line doesn't touch spell crit. The test should
 feed both item forms through the same pipeline.
+
+### Example 4: a naked Human warrior's defensive sheet
+
+Inputs: Example 1's warrior in Defensive Stance, holding Arbiter's Blade (a one-handed sword:
++8 Stamina, +5 Intellect) and Sacred Protector (a Forever shield: +15 Stamina, +10 Intellect, no
+block value in the client, [items.md](../data/items.md#stats-armor-and-block-value)). No talents
+or buffs. Base health is D24's placeholder, and base parry and block are unmeasured [?]
+([OQ-2](#oq-2-base-health), [OQ-5](#oq-5-base-dodge-parry-and-block)).
+
+| Stat | Computation | Result |
+| --- | --- | --- |
+| Max HP | 1,689 + 20 + (133 − 20) × 10 | **2,839** |
+| Defense | 5 × 60 | **300** |
+| Dodge | 0 + 80 / 20 | **4.00%** |
+| Parry | 5 (a weapon in hand) | **5.00%** |
+| Block | 5 (a shield) | **5.00%** |
+| Block value | 0 (the shield) + floor(120 / 20) | **6** |
+| Crit reduction | (300 − 300) × 0.04 | **0.00%** |
+
+Against a level-63 boss ([combat-tables §8](combat-tables.md#8-boss--player-tanks)): miss
+**4.40**, dodge **3.40**, parry **4.40**, block **4.40**, crit **5.60**, crushing **15.00**, hit
+**62.80**.
 
 ---
 

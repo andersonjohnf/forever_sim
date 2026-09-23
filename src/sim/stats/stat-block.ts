@@ -5,6 +5,7 @@
 // numbers the character sheet shows and combat uses, in the documented order: flat adds, then %
 // attribute multipliers, then floor, then conversions. The engine calls the same function when an
 // aura that changes attributes starts or ends, so the sheet and combat can't disagree.
+import { DEFENSE_PER_POINT } from '../core/attack-table'
 import type { RulesProfile } from '../rules/profiles'
 
 /** Floor with a tiny epsilon so exact products (1820 × 1.05) don't land on …999 (character-stats implementation notes). */
@@ -121,6 +122,12 @@ export class DerivedStats {
   armorPen = 0
   armor = 0
   defense = 0
+  /**
+   * How much defense above 5 × level lowers an attacker's crit chance, % (0.04 per point; negative
+   * below it): the sheet's "−5.60% Critical Strike chance" at 440 (character-stats#defense-skill,
+   * combat-tables §8).
+   */
+  critReduction = 0
   dodge = 0
   parry = 0
   block = 0
@@ -171,9 +178,12 @@ export function deriveStats(b: StatBlock, o: DeriveOptions, out: DerivedStats = 
   out.expertise = o.profile.combat.expertise ? b.expertise + (unmeasured ? b.expertiseRating / r.expertise : 0) : 0
   out.armorPen = unmeasured ? b.armorPen : 0
 
+  // docs/mechanics/character-stats.md#defense-skill: 0.04% per point above 5 × level to being
+  // missed, dodge, parry and block, and off the attacker's crit chance.
   const baseDefense = 5 * o.level
   out.defense = baseDefense + b.defenseRating / r.defense + b.defense
-  const defenseBonus = (out.defense - baseDefense) * 0.04
+  const defenseBonus = (out.defense - baseDefense) * DEFENSE_PER_POINT
+  out.critReduction = defenseBonus
   out.dodge = b.baseDodge + out.agility * b.dodgePerAgi + b.dodgeRating / r.dodge + b.dodge + defenseBonus
   out.parry = b.canParry ? b.baseParry + b.parryRating / r.parry + b.parry + defenseBonus : 0
   out.block = b.canBlock ? b.baseBlock + b.blockRating / r.block + b.block + defenseBonus : 0

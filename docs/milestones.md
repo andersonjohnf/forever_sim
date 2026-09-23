@@ -118,7 +118,20 @@ work is in slices:
         owning docs. Every finding is fixed or waived, logged in `docs/reviews/`.
   - [x] **M2.4c Adversarial UX review:** a fresh reviewer works through the ux.md checklist
         on every screen at 390 and 1280 px, light and dark. Findings logged and resolved.
-  - [ ] **M2.4d First deploy:** push when the user asks, and check the Pages deploy.
+  - [ ] **M2.4e Number fields** (RV1, RV7): the field shows the plain number while you edit
+        it and its separators once you leave, and half steps snap evenly.
+  - [ ] **M2.4f Remove Undo**
+        ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)):
+        changes happen without an Undo toast. Toasts become plain notices that go after
+        10 s, and the waiting toasts go, with the code that made room for them (RV2–RV6).
+  - [ ] **M2.4g Setups** (D21):
+    - Save a named copy of the current setup, and Load, rename or delete one
+    - Export a setup code for the current setup, or a `.json` file of every saved setup
+      plus the current one
+    - Import a code or share link as the current setup, or a file into the list
+  - [ ] **M2.4h Review of e–g:** the full logic and UX reviews for new work, then a
+        verification pass (D20).
+  - [ ] **M2.4i First deploy:** push when the user asks, and check the Pages deploy.
 
 ## Session handoff (2026-09-23)
 
@@ -138,12 +151,15 @@ decides; the push waits for "Ready to push: yes" there.
   sheets got no toast clearance). All fixed.
 - **Review of the PV fixes:** 10 findings (QV1–QV10), one blocking (QV1: selects listed their
   options under a waiting toast). 9 fixed, 1 waived (QV8, extra room).
+- **Review of the QV fixes:** 8 findings (RV1–RV8), one blocking (RV1: editing a grouped
+  number field's display misread it). Number fields get a simpler design (M2.4e), and Undo
+  goes (D21), which retires the toast findings.
 
 Golden runs: Fury 673.8 DPS, Arms 610.7 DPS, Protection 217.0 TPS.
 
 **Next:**
-1. Have a fresh reviewer check the QV fixes, resolve what it finds, and set the log's verdict.
-2. **M2.4d:** push when the user asks, then check the Pages deploy.
+1. **M2.4e–h:** number fields, remove Undo, Setups, then their reviews (D20, D21).
+2. **M2.4i:** push when the user asks, then check the Pages deploy.
 3. **M3 Protection**, in a fresh session. Enable the 3 `test.fixme` tests in
    `e2e/tank-results.spec.ts` when Protection ships.
 4. Then M4 Feral Druid, M5 Paladin, M6 Multi-target and M7 Stat boosts, in that order.
@@ -280,7 +296,7 @@ slice is worked:
   to stat-50 bonus armor is open (M4). Fallback shields carry `classicShieldBlockValue`,
   and Forever shields have no innate block value in the client (M3).
 - **Pushes:** nothing has been pushed yet; `origin/main` is still the first commit. The first
-  push is M2.4d, once the review log's verdict says "Ready to push: yes".
+  push is M2.4i, once the review log's verdict says "Ready to push: yes".
 - **Deferred from the first-release review** (FV2, FV5, FV6, FV7 in
   [its log](reviews/2026-09-23-first-release.md#final-verification-of-the-third-pass-fixes)):
   - Touch is detected by `(pointer: coarse)` alone, so on a touch screen with a hardware

@@ -373,16 +373,17 @@ each finding says whether these commits introduced it.
 
 | # | Severity | Origin | Finding | Disposition |
 | --- | --- | --- | --- | --- |
-| RV1 | medium, blocking | introduced (`21a5626`) | **Editing a grouped field's own display misreads it.** The field shows "3,000"; Backspace gives "3,00", read as 3 and clamped to 100 fights. "10,000" plus a "0" gives 100 fights; boss armor "3,500" plus Backspace gives 4. | open: a simpler design, proposed to the user (CLAUDE.md step 6; number reading drew FV3, PV2, QV2/3/9 and now RV1) |
-| RV2 | low | introduced (`334af80`, `4c16a35`) | **An open list moves clear of a growing toast stack, but its active option can end up clipped** 36 of 44 px below the list's scroll edge until the next key press. | open: toast design, proposed to the user (step 6: PV, QV and RV all found problems here) |
-| RV3 | low | introduced | **A select's look depends on whether a toast is up,** even a 10 s one: over its trigger without, dropping from it with a slide with one. | open: toast design |
-| RV4 | low | introduced | **The flip ignores horizontal overlap and the sticky header:** at 1280 px, Zone flips above though the toast isn't under it; at 390 px, a list flipped to the top covers the header and tabs. | open: toast design |
-| RV5 | low | introduced (the `4c16a35` doc line) | **ux.md says an open list doesn't move when a toast goes,** but at the page's end the padding shrinks, the page scroll clamps, and the list moves 49 or 68 px with its trigger. | open: toast design |
-| RV6 | low | pre-existing, breaks a ux.md promise | **In landscape on a phone (844×390), the item picker sits under a waiting toast,** which keeps the bar's offset though the picker covers the bar: its controls 30 of 44 px covered, item rows 102 of 103. | open: toast design |
-| RV7 | low | pre-existing | **`snapToStep` rounds exact halves unevenly** in 0.1 fields ("0,15" to 0.1 but "0,25" to 0.3): float division. | open: with RV1's design |
+| RV1 | medium, blocking | introduced (`21a5626`) | **Editing a grouped field's own display misreads it.** The field shows "3,000"; Backspace gives "3,00", read as 3 and clamped to 100 fights. "10,000" plus a "0" gives 100 fights; boss armor "3,500" plus Backspace gives 4. | planned, M2.4e: a simpler design (user decision). The field shows the plain number while you edit it, so it never reads its own separators |
+| RV2 | low | introduced (`334af80`, `4c16a35`) | **An open list moves clear of a growing toast stack, but its active option can end up clipped** 36 of 44 px below the list's scroll edge until the next key press. | superseded: Undo and its waiting toasts go (D21, M2.4f) |
+| RV3 | low | introduced | **A select's look depends on whether a toast is up,** even a 10 s one: over its trigger without, dropping from it with a slide with one. | superseded: Undo and its waiting toasts go (D21, M2.4f) |
+| RV4 | low | introduced | **The flip ignores horizontal overlap and the sticky header:** at 1280 px, Zone flips above though the toast isn't under it; at 390 px, a list flipped to the top covers the header and tabs. | superseded: Undo and its waiting toasts go (D21, M2.4f) |
+| RV5 | low | introduced (the `4c16a35` doc line) | **ux.md says an open list doesn't move when a toast goes,** but at the page's end the padding shrinks, the page scroll clamps, and the list moves 49 or 68 px with its trigger. | superseded: Undo and its waiting toasts go (D21, M2.4f) |
+| RV6 | low | pre-existing, breaks a ux.md promise | **In landscape on a phone (844×390), the item picker sits under a waiting toast,** which keeps the bar's offset though the picker covers the bar: its controls 30 of 44 px covered, item rows 102 of 103. | superseded: Undo and its waiting toasts go (D21, M2.4f) |
+| RV7 | low | pre-existing | **`snapToStep` rounds exact halves unevenly** in 0.1 fields ("0,15" to 0.1 but "0,25" to 0.3): float division. | planned, M2.4e |
 | RV8 | low | introduced (`e7ef259`) | **One waiting toast replacing another** leaves 14 px of extra room until it goes. | waived: extra room, never too little, as QV8 |
 
 ## Verdict
 
-Ready to push: not yet. RV1 is blocking, and the number fields and the toasts each wait on a
-simpler design (CLAUDE.md step 6).
+Ready to push: not yet. The user chose the simpler designs: number fields show the plain
+number while you edit them (M2.4e), and Undo goes in favour of saved, exported and imported
+setups (D21; M2.4f and M2.4g). Those are new work, so they get the full reviews (D20).

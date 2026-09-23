@@ -232,3 +232,20 @@ So:
 
 The procedure is in [CLAUDE.md](../CLAUDE.md#core-doctrine-adversarial-review-before-every-push)
 steps 4–6, and [doctrine §6](doctrine.md#6-review-gate-before-every-push) summarises it.
+
+### D21: No Undo; setups are saved, loaded, exported and imported (2026-09-23)
+User decision. People tweak their setup constantly, so an Undo for each change isn't the safety
+net they need. Its waiting toasts also drew findings three review rounds running (D20). Instead:
+- **Save** keeps a named copy of the current setup, its spec included. **Load** picks one from
+  a list, with rename and delete. Saves stay in the browser, like the automatic save.
+- **Export** copies a setup code for the current setup (the share link's payload), or downloads
+  a `.json` file with every saved setup plus the current one.
+- **Import** takes a code or a share link, which becomes the current setup, or a file, whose
+  setups join the list (its current setup too, as a saved one) without replacing yours.
+- **Nothing prompts** before a Load, an Import, a shared link or Reset setup replaces the
+  setup. A shared link usually opens in a new tab, which keeps the old setup on screen; the
+  automatic save, which the tabs share, becomes the link's setup.
+- **Toasts are plain notices** that go after 10 s.
+
+This replaces the Undo parts of [ux.md](ux.md#persistence-and-sharing).
+

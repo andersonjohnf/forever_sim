@@ -79,6 +79,12 @@ About & data, Reset setup, and Theme (system, light, dark).
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
   with units, one line of help, and the default marked. **Reset to defaults** is always
   available.
+  - A choice between a few named values (Arms: the stance it fights in) is a segmented control
+    (a toggle group, like the Fight tab's position), full width on a phone, labelled by its row.
+  - A setting's default can follow the talents or another setting (Arms: Rend is on by default
+    with Bloodthrill; Berserker Stance turns Whirlwind on and Rend and Overpower off). The tab
+    shows the value the sim will use, the help says what it follows, and a value you set stays
+    set until **Reset to defaults**.
   - A setting that depends on a switch is dimmed while that switch is off.
   - A consumable's row needs its Buffs switch. While that's off, the row says so
     ("Not used: turn on … in Buffs first").

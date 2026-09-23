@@ -15,8 +15,23 @@ import type { SimConfig } from '../types'
 import { CHUNK_SIZE, type ChunkResult, runChunk } from './chunk'
 import { Sim } from './sim'
 
-/** Every Fury ability switched off (warrior.md §5.2 settings): white swings only. */
+/** Every Fury and Arms ability switched off (warrior.md §5.2, §5.3 settings): white swings only. */
 const NO_ABILITIES: SimConfig['rotation'] = {
+  'warrior.arms.prepull.bloodrage': false,
+  'warrior.arms.battleShout.enabled': false,
+  'warrior.arms.rend.enabled': false,
+  'warrior.arms.deathWish.enabled': false,
+  'warrior.arms.racial.enabled': false,
+  'warrior.arms.recklessness.enabled': false,
+  'warrior.arms.bloodrage.enabled': false,
+  'warrior.arms.execute.enabled': false,
+  'warrior.arms.mortalStrike.enabled': false,
+  'warrior.arms.overpower.enabled': false,
+  'warrior.arms.slam.enabled': false,
+  'warrior.arms.spearingStrike.enabled': false,
+  'warrior.arms.whirlwind.enabled': false,
+  'warrior.arms.heroicStrike.enabled': false,
+  'warrior.arms.hamstring.enabled': false,
   'warrior.fury.prepull.bloodrage': false,
   'warrior.fury.battleShout.enabled': false,
   'warrior.fury.deathWish.enabled': false,
@@ -316,6 +331,19 @@ describe('golden run (fixed config and seed)', () => {
     }).toMatchSnapshot()
   })
 
+  // - M2.3c: the default Arms warrior (warrior.md §5.3), added with its rotation.
+  it('keeps the default Arms warrior’s result unchanged', () => {
+    const bundle = buildPlan({ ...defaultConfig('warrior-arms'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
+    const agg = runFights(bundle.plan, 1000)
+    const result = toResult(bundle, agg, 0)
+    expect({
+      dps: result.dps,
+      tps: result.tps,
+      durationSec: result.durationSec,
+      abilities: result.abilities.map((a) => [a.id, a.damage, a.casts, a.hits, a.crits, a.misses, a.dodges, a.glances]),
+    }).toMatchSnapshot()
+  })
+
   it('keeps the default Protection warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)
@@ -325,17 +353,20 @@ describe('golden run (fixed config and seed)', () => {
 })
 
 describe('benchmark', () => {
-  it('runs at least 5,000 default Fury warrior fights per second on one core', () => {
-    const plan = buildPlan(defaultConfig('warrior-fury')).plan
-    const sim = new Sim(plan)
-    runChunk(plan, 0, 500, sim) // warm up the JIT
-    const fights = 10000
-    const start = performance.now()
-    for (let k = 0; k < fights / CHUNK_SIZE; k++) runChunk(plan, k, CHUNK_SIZE, sim)
-    const perSecond = fights / ((performance.now() - start) / 1000)
-    console.log(`benchmark: ${Math.round(perSecond)} fights/s (default Fury warrior, one core)`)
-    // Shared CI runners are noisy; the real bar is checked locally.
-    const ci = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env.CI
-    expect(perSecond).toBeGreaterThanOrEqual(ci ? 1000 : 5000)
-  })
+  for (const spec of ['warrior-fury', 'warrior-arms'] as const) {
+    const name = spec === 'warrior-fury' ? 'Fury' : 'Arms'
+    it(`runs at least 5,000 default ${name} warrior fights per second on one core`, () => {
+      const plan = buildPlan(defaultConfig(spec)).plan
+      const sim = new Sim(plan)
+      runChunk(plan, 0, 500, sim) // warm up the JIT
+      const fights = 10000
+      const start = performance.now()
+      for (let k = 0; k < fights / CHUNK_SIZE; k++) runChunk(plan, k, CHUNK_SIZE, sim)
+      const perSecond = fights / ((performance.now() - start) / 1000)
+      console.log(`benchmark: ${Math.round(perSecond)} fights/s (default ${name} warrior, one core)`)
+      // Shared CI runners are noisy; the real bar is checked locally.
+      const ci = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env.CI
+      expect(perSecond).toBeGreaterThanOrEqual(ci ? 1000 : 5000)
+    })
+  }
 })

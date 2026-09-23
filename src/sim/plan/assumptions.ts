@@ -226,6 +226,22 @@ const REGISTRY = {
     text: 'Bloodthrill procs only from your white swings while your own Rend is on the target, and opens the same Overpower window as a dodge, for 6 s.',
     docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
   },
+  slamCast: {
+    text: 'Slam spends its rage and starts its cooldown when its cast ends (failing if rage fell short during it), Heroic Strike and other off-GCD actions work during the cast, and haste doesn’t shorten it; untested in Forever.',
+    docRef: `${WAR}#7-implementation-notes`,
+  },
+  spearingStrike: {
+    text: 'Spearing Strike deals 40% of normalized weapon damage, attack power included, and 120% against Giants and Dragonkin, as its tooltip reads; untested.',
+    docRef: `${WAR}#31-damage-abilities`,
+  },
+  rendTickCrits: {
+    text: 'Rend’s ticks can crit, at your special-attack crit chance when it landed, with the same bonus as your abilities’ crits (×2.2 with Impale 2/2); untested in Forever.',
+    docRef: `${WAR}#25-crits-impale-flurry-deep-wounds`,
+  },
+  rendOnHit: {
+    text: 'A Rend that lands triggers on-hit effects such as Windfury and Crusader, though it deals no damage itself; untested.',
+    docRef: `${WAR}#7-implementation-notes`,
+  },
   hyjalFlask: {
     text: 'Your flask’s bonus works only in Mount Hyjal, Hyjal Summit and the Barrow Deeps; this fight is elsewhere.',
     docRef: `${BUFFS}#31-flasks`,

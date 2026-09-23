@@ -2,9 +2,10 @@
 // (docs/classes/warrior.md §2.1, §2.8, §3.1, §5.1, §7): worked examples W5 and W18; the swap's
 // cooldown and rage (rage.md#stance-changes-and-tactical-mastery); the stance's effects on hits
 // while swapped; GCD-safe with stances; Overpower's table (combat-tables §3); the window a dodge
-// or Bloodthrill opens and Overpower closes; the Fury rows 10 and 15 (§5.2); determinism.
+// or Bloodthrill opens and Overpower closes; a line that stays in its stance (Arms Recklessness,
+// §5.3 row 4); the Fury rows 10 and 15 (§5.2); determinism.
 import { describe, expect, it } from 'vitest'
-import { BERSERKER_RAGE, HAMSTRING, HEROIC_STRIKE, OVERPOWER, OVERPOWER_WINDOW, REND, WHIRLWIND } from '../classes/warrior/abilities'
+import { BERSERKER_RAGE, HAMSTRING, HEROIC_STRIKE, OVERPOWER, OVERPOWER_WINDOW, RECKLESSNESS, REND, WHIRLWIND } from '../classes/warrior/abilities'
 import { defaultConfig } from '../defaults'
 import { buildPlan } from '../plan/build'
 import { ACTION, COND, type Plan, STANCE, TRIGGER } from '../plan/types'
@@ -401,6 +402,40 @@ describe('stance swaps and dancing (warrior.md §2.1, §7)', () => {
     expect(firstUses(false)).toEqual([0, undefined])
     // With the dance, Whirlwind is ready: it goes first, and Hamstring when it's on cooldown.
     expect(firstUses(true)).toEqual([1500, 0])
+  })
+})
+
+describe('a line that stays in the stance it dances to (warrior.md §5.3 row 4, §7)', () => {
+  it('makes that stance the base for the rest of the fight: no swap back, and later dances come back to it', () => {
+    // Arms (Battle Stance): Rend at 0 needs no dance; Recklessness at 2 s dances to Berserker Stance
+    // and stays; Rend at 5 s is then a dance from Berserker Stance, which is home now.
+    const plan = armsPlan(12000)
+    const reck = addAbility(plan, RECKLESSNESS)
+    const rend = addAbility(plan, REND)
+    line(plan, rend, at(plan, 0), STANCE.battle)
+    plan.rotation.push({ ability: reck, conditions: [from(plan, 2000)], unqueueBelowTenths: 0, danceTo: STANCE.berserker, stay: true })
+    line(plan, rend, at(plan, 5000), STANCE.battle)
+    alwaysLandNoCrit(plan)
+    rageAtPull(plan, 20)
+    const { swaps, uses } = timeline(plan)
+    expect(uses[reck]).toEqual([2000])
+    expect(uses[rend]).toEqual([0, 5000])
+    expect(swaps.map((w) => [w.stance, w.time])).toEqual([
+      [STANCE.berserker, 2000],
+      [STANCE.battle, 5000],
+      [STANCE.berserker, 6000],
+    ])
+  })
+
+  it('without `stay`, the same dance swaps back 1 s later', () => {
+    const plan = armsPlan(6000)
+    const reck = addAbility(plan, RECKLESSNESS)
+    line(plan, reck, [from(plan, 2000)], STANCE.berserker)
+    const { swaps } = timeline(plan)
+    expect(swaps.map((w) => [w.stance, w.time])).toEqual([
+      [STANCE.berserker, 2000],
+      [STANCE.battle, 3000],
+    ])
   })
 })
 

@@ -656,7 +656,14 @@ Two more were replaced:
   higher-priority ability in the list still has at least one GCD of cooldown left.
   WarriorSim implements this idea as its `maincd` option [C] [ws-spell]. An ability the current
   stance refuses isn't coming up, so it doesn't count, unless a line dances for it
-  ([§7](#7-implementation-notes) "Stance dancing").
+  ([§7](#7-implementation-notes) "Stance dancing"). Arms measures "one GCD" as the line's own:
+  1 s for Slam with Improved Slam 2/2 ([§5.3](#53-arms-two-hander)); Fury's lines all have 1.5 s.
+- **Defaults can follow the setup.** A switch's default can depend on a talent or on another
+  setting (Arms: Rend is on by default only with Bloodthrill; the base stance moves Rend,
+  Overpower and Whirlwind). The first rule that matches wins, the Rotation tab shows the result,
+  and a value you set yourself always wins ([§5.3](#53-arms-two-hander) notes).
+- **A choice** picks one of a few named values (Arms: `arms.baseStance`, `battle` or
+  `berserker`), shown as a segmented control ([ux.md](../ux.md#sections) "Rotation").
 - **Stance-dance lines** swap to the stance their ability needs, use it, and swap back. Each
   swap keeps at most the Tactical Mastery cap ([§2.1](#21-stances)), so the line's `maxRage`
   (default: the cap, 25 with the default build) stops the swap in from wasting rage.
@@ -855,27 +862,32 @@ Weapon: a slow two-hander. The default talents are the popular 37/14/0 build ([�
 | Not taken | Flurry, Death Wish | |
 
 This priority is **derived for Forever**. Classic Era raid Arms leaned on Slam spam, which the
-15 s Slam cooldown removes.
+15 s Slam cooldown removes. The table is the list as built (`sim/classes/warrior/arms.ts`);
+rows 0, 1, 3, 5, 13 and 16–18 share their code and settings' wording with Fury's
+(`sim/classes/warrior/shared.ts`).
 
 | # | Action | Condition (defaults) | Setting ids (default) | On by default |
 | --- | --- | --- | --- | --- |
-| 0 | Pre-pull | Battle Shout at −3 s; Bloodrage at −1 s; optional Charge (Battle Stance, 15 + 6 rage) | `arms.prepull.battleShout` (on), `.bloodrage` (on), `.charge` (off) | yes |
-| 1 | Battle Shout | Buff missing or under 3 s left | `arms.battleShout.enabled` (on) | yes |
-| 2 | Rend | Your Rend is missing or under 1.5 s left on the target. Needed for Bloodthrill | `arms.rend.enabled` (on if Bloodthrill is talented), `.refreshBelowSec` (1.5) | yes |
-| 3 | Racial or trinket cooldowns | At the pull and on cooldown | `arms.racial.enabled` (on) | yes |
-| 4 | Recklessness | Once, when ≤ `lastSec` s are left. Swaps to Berserker Stance (keeps 25 rage) and stays there for the rest of the fight | `arms.recklessness.enabled` (on), `.lastSec` (15) | yes |
-| 5 | Bloodrage (off the GCD) | On cooldown if rage ≤ max − 20 | `arms.bloodrage.enabled` (on) | yes |
-| 6 | **Execute phase:** Slam | Off cooldown; rage ≥ 15 + Execute cost | `arms.execute.slamInExecute` (on) | yes |
-| 7 | Execute phase: Execute | Rage ≥ cost | `arms.execute.enabled` (on), `.mortalStrikeInExecute` (off) | yes |
-| 8 | Mortal Strike | Off cooldown; rage ≥ 30 | `arms.mortalStrike.enabled` (on) | yes |
-| 9 | Overpower | Window open (dodge or Bloodthrill); Mortal Strike is GCD-safe or rage ≥ 35 | `arms.overpower.enabled` (on) | yes |
-| 10 | Slam | Off cooldown; rage ≥ 15 + `reserve`; Mortal Strike is GCD-safe | `arms.slam.enabled` (on), `.reserve` (0) | yes |
-| 11 | Spearing Strike | Target is a Giant, Dragonkin or mounted: on cooldown. Otherwise: rage ≥ `minRageOtherTargets` and Mortal Strike is GCD-safe | `arms.spearingStrike.enabled` (on), `.minRageOtherTargets` (50) | yes |
-| 12 | Whirlwind (stance dance) | Swap to Berserker, Whirlwind, swap back; rage ≤ `maxRage` | `arms.whirlwind.enabled` (off), `.maxRage` (30) | no |
-| 13 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage` (45 ≈ Mortal Strike's 30 + Heroic Strike's 12, plus a little slack); optional unqueue | `arms.heroicStrike.enabled` (on), `.minRage` (45), `.unqueueBelow` (off) | yes |
-| 14 | Hamstring | Rage ≥ 60 and GCD-safe (useful with Weaponmaster swords or Windfury) | `arms.hamstring.enabled` (off), `.minRage` (60) | no |
-| 15 | Sweeping Strikes (off the GCD) | 2 or more targets: on cooldown | `arms.sweepingStrikes.enabled` (on for multi-target only) | multi-target |
-| 16 | Death Wish | Only if the talent build includes it | `arms.deathWish.enabled` (follows talents) | n/a |
+| – | Base stance | Battle Stance, or Berserker Stance; see the notes (Q24) | `arms.baseStance` (`battle`; a choice of `battle` or `berserker`) | Battle |
+| 0 | Pre-pull | Battle Shout at −3 s (with row 1 on); Bloodrage at −1 s; optional Charge: 15 rage, +3 per Improved Charge rank, all kept in Battle Stance. Fighting in Berserker Stance, the swap after Charge keeps at most 10 + 3 per Improved Tactical Mastery rank | `arms.prepull.battleShout` (on; needs `arms.battleShout.enabled`), `.bloodrage` (on), `.charge` (off) | yes |
+| 1 | Battle Shout | As Fury's row 1: missing, or at most `refreshBelowSec` left and it would run out before the fight ends; rage ≥ 10. It replaces the Buffs tab's Battle Shout | `arms.battleShout.enabled` (on), `.refreshBelowSec` (3) | yes |
+| 2 | Rend | Your Rend is missing, or has at most `refreshBelowSec` of ticks left and would end before the fight does. Bloodthrill needs it. In Berserker Stance, a dance to Battle Stance at rage ≤ the swap's cap (25) | `arms.rend.enabled` (on with Bloodthrill in Battle Stance, off otherwise), `.refreshBelowSec` (1.5) | with Bloodthrill |
+| 3 | Racial or trinket cooldowns | As Fury's row 3: with Death Wish (row 16) when it's used; otherwise at the pull and on cooldown | `arms.racial.enabled` (on), `arms.trinkets.enabled` (on), `arms.cooldowns.syncWithDeathWish` (on) | yes |
+| 4 | Recklessness | Once, when ≤ `lastSec` s are left. From Battle Stance it swaps to Berserker Stance (keeping at most 25 rage) and stays there for the rest of the fight | `arms.recklessness.enabled` (on), `.lastSec` (15) | yes |
+| 5 | Bloodrage (off the GCD) | On cooldown if rage ≤ `maxRage` | `arms.bloodrage.enabled` (on), `.maxRage` (110: max − 20) | yes |
+| 6 | **Execute phase** (target ≤ 20%): Slam | Off cooldown; rage ≥ Slam's 15 + Execute's 15 | `arms.execute.slamInExecute` (on) | yes |
+| 7 | Execute phase: Execute | Rage ≥ cost. With `mortalStrikeInExecute`, Mortal Strike comes just before it | `arms.execute.enabled` (on), `.mortalStrikeInExecute` (off) | yes |
+| 8 | Mortal Strike | Off cooldown; rage ≥ 30; outside the execute phase | `arms.mortalStrike.enabled` (on; needs the talent) | yes |
+| 9 | Overpower | Window open (dodge or Bloodthrill); Mortal Strike is GCD-safe, or rage ≥ 35 (Mortal Strike's 30 + Overpower's 5). In both phases. In Berserker Stance, a dance to Battle Stance at rage ≤ 25 | `arms.overpower.enabled` (on in Battle Stance, off in Berserker) | Battle Stance |
+| 10 | Slam | Off cooldown; rage ≥ 15 + `reserve`; Mortal Strike is GCD-safe over Slam's own GCD (1 s with Improved Slam 2/2); outside the execute phase | `arms.slam.enabled` (on), `.reserve` (0) | yes |
+| 11 | Spearing Strike | Target is a Giant or Dragonkin: on cooldown. Otherwise: rage ≥ `minRageOtherTargets` and Mortal Strike is GCD-safe. Outside the execute phase | `arms.spearingStrike.enabled` (on; needs the talent and a two-hander), `.minRageOtherTargets` (50) | yes |
+| 12 | Whirlwind | Mortal Strike is GCD-safe; outside the execute phase. From Battle Stance, a dance to Berserker Stance at rage ≤ `maxRage`; in Berserker Stance, no dance | `arms.whirlwind.enabled` (off in Battle Stance, on in Berserker), `.maxRage` (30) | Berserker Stance |
+| 13 | Heroic Strike queue (off the GCD) | Rage ≥ `minRage` (45 ≈ Mortal Strike's 30 + Heroic Strike's 12, plus a little slack); optional unqueue; outside the execute phase | `arms.heroicStrike.enabled` (on), `.minRage` (45), `.unqueue` (off), `.unqueueBelow` (20) | yes |
+| 14 | Hamstring | Rage ≥ `minRage`; GCD-safe for Mortal Strike, Slam, Spearing Strike and Whirlwind (useful with Weaponmaster swords or Windfury); outside the execute phase | `arms.hamstring.enabled` (off), `.minRage` (60) | no |
+| 15 | Sweeping Strikes (off the GCD) | 2 or more targets: on cooldown. **Not simulated** until multi-target support ([§5.5](#55-multi-target-options-light)): the sim has one target | none yet | multi-target |
+| 16 | Death Wish | Only with the talent: as Fury's row 2, including `alignToEnd`. Its line sits before row 3's, so the racial can wait for it | `arms.deathWish.enabled` (on with the talent), `.alignToEnd` (on) | with the talent |
+| 17 | Mighty Rage Potion (off the GCD) | As Fury's row 16: once, from the start of the execute phase (the last 20 s without one), at rage ≤ `maxRage` | `arms.ragePotion.enabled` (on), `.maxRage` (55) | with the consumable |
+| 18 | Juju Flurry (off the GCD) | As Fury's row 17: on cooldown from the pull | `arms.jujuFlurry.enabled` (on) | with the consumable |
 
 Notes:
 
@@ -883,15 +895,55 @@ Notes:
   2/2, which pay off only in Battle Stance with Rend up. The alternative is a Berserker-base
   profile: +3% crit and Whirlwind without dancing, but Rend and Overpower need a dance. It is
   available by setting `arms.baseStance = berserker`, which turns on #12 and turns off #2 and
-  #9 unless their dance options are enabled. Which is better is for the sim to show (Q24).
+  #9 unless you turn them back on, and then they dance. **What the sim shows** (Q24, M2.3c, the
+  default setup, 20,000 fights, ± 0.6): Battle Stance 630 DPS; Berserker Stance with its defaults
+  604 (−4%); Berserker Stance dancing for Rend and Overpower 631, level with Battle Stance. So
+  Battle Stance stays the default.
+- **Defaults that follow the setup.** Rend's default is on only with Bloodthrill, and the base
+  stance moves the defaults of Rend, Overpower and Whirlwind as above. Each setting's
+  `defaultWhen` says so (the first match wins), the Rotation tab shows the resulting value, and a
+  value you set stays set ([§5.1](#51-conventions-for-rotation-settings)). Death Wish's default
+  follows its talent the same way; without the talent it's never used, whatever the setting.
 - **Execute phase.** Slam at 15 rage for about 728 damage
   ([W4](#w4-slam-with-the-same-two-hander)) beats a minimum Execute's 600 per GCD [marrow].
   Mortal Strike (30 rage, about 737) loses to Execute at 30 rage (825), so it's off by
-  default.
+  default; when it's on, its line comes just before Execute, since below it Execute would take
+  every GCD it could pay for.
+- **What the execute phase changes** (with `arms.execute.enabled` on). Rows 6 and 7 apply only
+  in the phase; rows 8 and 10–14 only outside it, and a Heroic Strike already queued is
+  cancelled when the phase starts, as Fury's is. Rows 1–5, 9 and 16–18 apply in both phases.
+  Overpower comes after Execute, so in the phase it gets a GCD only while Execute waits for rage,
+  and at 5 rage it's worth it. Rend keeps running there too: with the default setup, leaving it
+  out of the phase measured about +0.1% (0.7 DPS, near the ± 0.6 interval), so the row order
+  stands. With the setting off, the phase changes nothing. These are engine choices; no
+  source covers them.
+- **Recklessness and the stance** (row 4). From Battle Stance the line dances to Berserker
+  Stance and **stays**: that stance becomes the base stance for the rest of the fight, so the
+  engine never swaps back ([§7](#7-implementation-notes) "Stance dancing"). Rend and Overpower
+  then wait for good, and the Whirlwind line, if it's on, needs no dance. There's no rage guard:
+  the swap keeps at most 25, and delaying Recklessness costs more of its 15 s than the rage is
+  worth. In the execute phase it usually follows an Execute that spent the rage; the default
+  setup loses about 1 rage a fight to it.
+- **The Whirlwind dance** (row 12). Whirlwind costs 25 and the swap keeps 25, so the dance needs
+  25–`maxRage` rage; 30 gives it a 5-rage window, where 25 would allow exactly 25. After
+  Recklessness the line still waits for rage ≤ `maxRage`, though it no longer swaps.
+- **GCD-safe for Mortal Strike** (rows 9–12) is checked over the line's own GCD: 1 s for Slam
+  with Improved Slam 2/2, 1.5 s for the rest ([§5.1](#51-conventions-for-rotation-settings)).
+  Hamstring (row 14) is GCD-safe for every ability above it with a cooldown. Rend and Overpower
+  aren't in these masks: Rend has no cooldown, and Overpower waits for its window.
+- **Dances from Berserker Stance** (rows 2 and 9) swap in only at rage ≤ the swap's cap, 25 with
+  the default build, so the swap loses none ([§5.1](#51-conventions-for-rotation-settings)). The
+  cap follows the build and the profile; it isn't a setting.
 - **Spearing Strike** at 40% weapon damage is a weak filler, about 229 at 1800 AP
   ([W6](#w6-spearing-strike)). Against Giants, Dragonkin (Onyxia and most Blackwing Lair
   bosses) or mounted targets it does 120%, which puts it on par with Mortal Strike for half
-  the rage. Creature types are in [encounter.md](../mechanics/encounter.md).
+  the rage. The rotation reads the creature type set under Fight
+  ([encounter.md](../mechanics/encounter.md)); raid bosses aren't mounted, so there's no setting
+  for that.
+- **Tuning the defaults.** The defaults above are this table's, not the sim's best. With the
+  default setup (20,000 fights, ± 0.6), Heroic Strike from 55 rage gave 638 DPS against 630,
+  Spearing Strike from 40 rage 634, and the Whirlwind dance 635; Heroic Strike from 40 gave 624.
+  Whether to move them is a guild call.
 
 ### 5.4 Protection (TPS)
 
@@ -1003,8 +1055,8 @@ list and the stacking rules. **No world buffs**
 parts:
 
 - **Mighty Rage Potion.** Default: once, at the start of the execute phase, or in the last 20 s
-  without one ([§5.2](#52-fury-dual-wield) #16). Classic Era players use it for the rage burst
-  in Execute [marrow-cd].
+  without one ([§5.2](#52-fury-dual-wield) #16, [§5.3](#53-arms-two-hander) #17). Classic Era
+  players use it for the rage burst in Execute [marrow-cd].
 - **Weapon oils and stones.** A sharpening stone or weightstone on each weapon's flat damage
   feeds the `weapon` and `normalized` formulas as flat weapon damage [C].
 - **Tanks.** A defensive tier (armor and health consumables) matters to survival, not TPS.
@@ -1107,7 +1159,8 @@ parts:
   has landed, so it spends the rage too.
 - **Stances.** Each ability carries the stances it can be used in ([§3.1](#31-damage-abilities)
   "Stance", from the client's `ShapeshiftMask`), and the engine refuses it in any other. Each spec
-  fights in its base stance ([§5](#5-spec-models-and-rotations)). The plan's static numbers (the
+  fights in its base stance ([§5](#5-spec-models-and-rotations); Arms in the one its
+  `arms.baseStance` setting picks, [§5.3](#53-arms-two-hander)). The plan's static numbers (the
   damage, threat and damage-taken multipliers and the stat block's crit) are the base stance's, as
   they were before stances could change. Each stance carries what it changes relative to them: its
   own effects ([§2.1](#21-stances)) and the talents' stance-bound ones that hold in it (Defiance),
@@ -1133,8 +1186,11 @@ parts:
   ended, so the warrior is back 1 s after the swap in; that swap keeps at most the cap too, and
   nothing guards it. There's one swap per cooldown, so no second dance until it ends. Meanwhile,
   abilities the other stance refuses wait, and a line without a dance waits for a stance that
-  allows its ability. The engine wakes the rotation when the swap cooldown ends. These timings are
-  engine choices; no source covers them.
+  allows its ability. The engine wakes the rotation when the swap cooldown ends. A dance line can
+  also **stay** (Arms Recklessness, [§5.3](#53-arms-two-hander) row 4): once its ability is used,
+  the stance it was used in becomes the base stance for the rest of the fight, so there's no swap
+  back, and later dances return to it. Each fight starts in the plan's base stance again. These
+  timings are engine choices; no source covers them.
 - **GCD-safe and stances.** An ability the current stance refuses isn't coming up, so a GCD-safe
   condition skips it, unless one of its lines dances for it; then it counts as usual.
 - **Slam's cast.** An ability can have a cast time (`castMs`: Slam's 1500 ms, 250 less per
@@ -1145,7 +1201,7 @@ parts:
   it can't pay then, it fails, costing nothing and starting no cooldown [?]. Haste doesn't shorten
   the cast, as it doesn't shorten the GCD [?]
   ([damage-and-timing §3.5](../mechanics/damage-and-timing.md#35-global-cooldown)). All three
-  are Q3.
+  are Q3, and a result whose rotation uses Slam lists them among its assumptions.
   - **Without Improved Slam** (`castStopsSwings`), the cast cancels both pending swings and both
     timers restart from full when it completes
     ([damage-and-timing §3.3](../mechanics/damage-and-timing.md#33-swing-reset-rules)). A queued
@@ -1160,7 +1216,9 @@ parts:
   creature type: 1.20 against Giants and Dragonkin, 0.40 against anything else
   ([encounter §6](../mechanics/encounter.md#6-creature-type-biome-and-zone-forever)). There's no
   setting for mounted targets, since raid bosses aren't mounted. Without a two-hander the engine
-  never uses it.
+  never uses it. The Arms rotation reads the same creature type for the line's conditions
+  ([§5.3](#53-arms-two-hander) row 11), and a result that uses it lists its weapon share among
+  its assumptions (Q13).
 - **Rend is a bleed ability** (`bleed`). Its application rolls the special table once: a miss,
   dodge or parry refunds 80% of the cost
   ([rage.md](../mechanics/rage.md#rage-refunds-on-avoided-abilities)), and anything else (the
@@ -1176,12 +1234,13 @@ parts:
   0x11154) has the bit for dealing periodic damage (0x40000) [F] [client] (SpellAuraOptions,
   1.60.1.69913), and the trinket ends on a "non-periodic critical effect". A refresh restarts
   the ticks and re-snapshots them; a tick due at the very moment of the refresh lands first, and
-  the partial tick in progress is lost (WE-9).
+  the partial tick in progress is lost (WE-9). A result whose rotation uses Rend lists its tick
+  crits (in `forever`) and its on-hit procs among its assumptions.
   - **"Your Rend is on the target"** is an aura with no stat mods, the ability's `aura`, up from
     the application to the last tick. The rotation reads it with the aura conditions it already
     has: "Rend missing or under x s left" ([§5.3](#53-arms-two-hander) row 2) is the upkeep
     condition Battle Shout's row uses, so it also skips a refresh while the running Rend lasts
-    past the end of the fight; "Rend up" gates a line. Bloodthrill (§2.8) will read the same
+    past the end of the fight; "Rend up" gates a line. Bloodthrill (§2.8) reads the same
     marker.
   - **Its breakdown row, "Rend",** counts applications in casts, misses, dodges and parries, and
     ticks in hits and crits.
@@ -1500,7 +1559,11 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
 23. **Build variants.** "Fury + Precision" (15/36) versus the popular 17/34, and the
     Protection "TPS" variant. Settle these with the sim once M2 and M3 exist.
 24. **Arms base stance.** Battle, with Rend, Bloodthrill and Overpower, or Berserker, with
-    +3% crit and Whirlwind? Settle this with the sim.
+    +3% crit and Whirlwind? Settle this with the sim. **The sim's first answer** (M2.3c, the
+    default setup, 20,000 fights): Battle Stance 630 DPS, Berserker Stance 604, and Berserker
+    Stance dancing for Rend and Overpower 631 ([§5.3](#53-arms-two-hander) notes). Battle Stance
+    stays the default; the answer depends on the unverified Bloodthrill and Overpower rules (Q10,
+    Q11) and moves with gear.
 25. **Rank availability.** Classic Era added Heroic Strike rank 9, Battle Shout rank 7 and
     Revenge rank 6 in its AQ patch. The Forever spellbook lists them all at level 60. Are they
     trainable at launch (November 4)?

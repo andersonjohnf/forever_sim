@@ -1,8 +1,11 @@
 // The engine's public API: the only module the UI imports from src/sim
 // (docs/architecture.md#data-flow). Keep these signatures stable.
 import type { ClassSlug } from '@/data/races/types'
+import { talentRanksByName } from './classes'
+import { resolveRotationValues } from './classes/options'
 import { rotationOptions } from './classes/rotation'
 import { normalizeConfig } from './config/normalize'
+import { TALENT_DATA } from './defaults'
 import { BUFFS } from './effects/buffs'
 import { ENCHANTS } from './effects/enchants'
 import { presetBuffIds } from './effects/presets'
@@ -17,6 +20,7 @@ import type {
   BuffPreset,
   CharacterSheet,
   EnchantDefinition,
+  RotationValue,
   SimConfig,
   SimProgress,
   SimResult,
@@ -30,8 +34,8 @@ export { defaultConfig, FULL_RAID, TALENT_DATA, talentPresets, type TalentPreset
 export { canUse, fitsSlot, isTwoHand, PROFICIENCY } from './equip'
 export { normalizeConfig } from './config/normalize'
 
-/** Specs whose sim and UI are complete (docs/ux.md principle 8): Fury from M2.2c; Arms joins it in M2.3. */
-const AVAILABLE: ReadonlySet<SpecId> = new Set(['warrior-fury'])
+/** Specs whose sim and UI are complete (docs/ux.md principle 8): Fury from M2.2c, Arms from M2.3c. */
+const AVAILABLE: ReadonlySet<SpecId> = new Set(['warrior-fury', 'warrior-arms'])
 
 /**
  * Every spec with its engine-declared options. `available` flips when the spec's sim and UI are
@@ -47,6 +51,16 @@ export function getSpec(id: SpecId): SpecDefinition {
   const spec = specs.find((s) => s.id === id)
   if (!spec) throw new Error(`Unknown spec ${id}`)
   return spec
+}
+
+/**
+ * Every rotation setting's value for a setup: the saved one, or the option's default for this
+ * setup, which can follow the build's talents or another setting (Arms: Rend with Bloodthrill,
+ * Whirlwind in Berserker Stance; docs/classes/warrior.md §5.3). The plan uses the same values.
+ */
+export function rotationValues(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation'>): Record<string, RotationValue> {
+  const classId = SPEC_META[config.spec].classId
+  return resolveRotationValues(rotationOptions(config.spec), config.rotation, talentRanksByName(TALENT_DATA[classId], config.talents))
 }
 
 /** Raid buffs, target debuffs and consumables (docs/mechanics/buffs-debuffs-consumables.md). */

@@ -73,8 +73,15 @@ A spec is data plus small ability modules, never its own loop.
   plain object of numbers that posts to workers by structured clone. The base stance's effects
   are in the plan's static numbers; each stance's effects, with the talents bound to one
   (Defiance), become factors on them and a crit delta (`Plan.stances`), which are exactly 1 and 0
-  for the base stance, so a warrior can swap stances in the fight. The engine and worker import
-  no datasets, so the worker bundle stays small.
+  for the base stance, so a warrior can swap stances in the fight. The base stance is the spec's,
+  unless a rotation setting picks another (Arms in Berserker Stance, warrior.md §5.3). The engine
+  and worker import no datasets, so the worker bundle stays small.
+- **Rotation settings** are read through one resolver (`sim/classes/options.ts`): a saved value,
+  or the option's default for the setup, which can follow a talent or another setting
+  (`defaultWhen`: Arms's Rend with Bloodthrill, and its base stance moving Rend, Overpower and
+  Whirlwind). The plan builder and the Rotation tab (`rotationValues` in `sim/index.ts`) use the
+  same values, so the tab shows what the sim uses. Options are `toggle`, `number` or `choice` (one
+  of a few named values).
 - A buff the rotation keeps up itself (the warrior's own Battle Shout) is left out of the static
   effects and becomes an aura in the fight, so it counts once; the character sheet still shows
   it. On-use items (`sim/effects/items.ts`) and consumables (`sim/effects/buffs.ts`) carry their
@@ -150,7 +157,9 @@ A spec is data plus small ability modules, never its own loop.
   and bleeds, which the Fury rotation doesn't use, left it unchanged: about 9,400 both before and
   after, measured on a busier machine. M2.3b's stances, dances and Overpower window, also unused
   by the default, cost it about 2%: about 9,550 against 9,800 before, medians of five runs each,
-  measured back to back.
+  measured back to back. M2.3c's shared rotation code and staying dances left the default Fury
+  unchanged (median 9,160 against 9,080 just before, on a busier machine), and the default Arms
+  warrior, with its slow two-hander, runs about 14,400.
 - **Abilities** are rows of `Plan.abilities` (`AbilityPlan`), resolved by one switch on `kind`:
   `weaponStrike` (one roll: Whirlwind, Hamstring, …), `meleeSpell` (two rolls: Bloodthirst,
   Execute, …), `onNextSwing` (Heroic Strike: queued off the GCD, it replaces the next
@@ -192,7 +201,8 @@ A spec is data plus small ability modules, never its own loop.
   warrior.md §5.1). An ability can have several lines
   (Bloodthirst in and out of the execute phase; Death Wish before its final use and at the end).
   The spec declares its settings as `RotationOption`s (`sim/classes/rotation.ts`), and the plan
-  builder turns `config.rotation` plus those defaults into the list. Whenever something the list
+  builder turns `config.rotation` plus those defaults into the list. Fury and Arms share their
+  common rows' settings and lines (`sim/classes/warrior/shared.ts`). Whenever something the list
   depends on changes (rage gained or spent, the GCD, a cooldown, an aura, the queue, the phase, a
   time-left threshold, the stance), the engine walks it in order and uses every usable line whose
   conditions hold: at most one GCD ability, plus off-GCD lines. A usable line's ability is off
@@ -202,8 +212,9 @@ A spec is data plus small ability modules, never its own loop.
   cooldown (1 s, shared, off the GCD) has ended and the rage the swap keeps still pays for the
   ability, the engine swaps, which keeps at most the Tactical Mastery cap, and uses the ability at
   once. Away from the base stance, each walk first swaps back if the cooldown has ended, so a
-  dance returns 1 s later. A GCD-safe condition skips an ability the current stance refuses
-  unless a line dances for it.
+  dance returns 1 s later. A dance line can **stay**: once its ability is used, its stance is the
+  base stance for the rest of the fight (Arms Recklessness), so there's no swap back. A GCD-safe
+  condition skips an ability the current stance refuses unless a line dances for it.
   The engine resolves two kinds of condition before any walk. It sorts the lines into one list
   per phase up front, so a walk skips the lines that can't apply in the current phase. And since
   each fight's drawn length is known, it turns time-left conditions into a window of times per

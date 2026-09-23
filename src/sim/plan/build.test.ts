@@ -12,10 +12,11 @@ import type { SimConfig, SpecId } from '../types'
 import { buildPlan } from './build'
 import { STANCE, STANCE_ANY, TRIGGER } from './types'
 
-/** A bare config: no gear, no talents, no buffs. */
+/** A bare config: no gear, no talents, no buffs, and no Battle Shout of Arms's own (warrior.md §5.3 row 1). */
 function bare(spec: SpecId = 'warrior-arms', patch: Partial<SimConfig> = {}): SimConfig {
   const d = defaultConfig(spec)
-  return { ...d, race: 'alliance-human', talents: '', gear: {}, buffs: { raid: d.buffs.raid, enabled: [] }, ...patch }
+  const rotation: SimConfig['rotation'] = spec === 'warrior-arms' ? { 'warrior.arms.battleShout.enabled': false } : {}
+  return { ...d, race: 'alliance-human', talents: '', gear: {}, buffs: { raid: d.buffs.raid, enabled: [] }, rotation, ...patch }
 }
 
 const withRules = (c: SimConfig, profile: 'forever' | 'classicEra'): SimConfig => ({ ...c, rules: { ...c.rules, profile } })
@@ -433,9 +434,29 @@ describe('assumptions', () => {
     expect(note(trinkets)).toBe('Some on-use items and consumables aren’t simulated: Diamond Flask.')
     expect(ids(trinkets)).toContain('weaknessAnalyzer')
     expect(ids(d)).not.toContain('weaknessAnalyzer')
-    // A spec without a rotation uses none of them.
+    // Arms uses them too (warrior.md §5.3 rows 3 and 17); a spec without a rotation uses none of them.
     const arms = defaultConfig('warrior-arms')
-    expect(note({ ...arms, gear: { ...arms.gear, trinket1: { itemId: 272438 } } })).toContain('Weakness Analyzer')
+    expect(note({ ...arms, gear: { ...arms.gear, trinket1: { itemId: 272438 } } })).toBeUndefined()
+    const prot = defaultConfig('warrior-protection')
+    expect(note({ ...prot, gear: { ...prot.gear, trinket1: { itemId: 272438 } } })).toContain('Weakness Analyzer')
+  })
+
+  it('surfaces the Arms rotation’s assumptions: the Overpower window, Bloodthrill, Slam’s cast, Spearing Strike and Rend (warrior.md §7, Q3, Q10, Q11, Q13, Q32)', () => {
+    const ids = (config: SimConfig) => buildPlan(config).assumptions.map((a) => a.id)
+    const arms = defaultConfig('warrior-arms')
+    expect(ids(arms)).toEqual(expect.arrayContaining(['overpowerWindow', 'bloodthrill', 'slamCast', 'spearingStrike', 'rendTickCrits', 'rendOnHit']))
+    expect(ids(arms)).not.toContain('whiteSwingsOnly')
+    // Classic Era: Rend's ticks can't crit, but its landing still procs.
+    const classic = ids(withRules(arms, 'classicEra'))
+    expect(classic).not.toContain('rendTickCrits')
+    expect(classic).toContain('rendOnHit')
+    // Without Rend there's no Bloodthrill; in Berserker Stance, no Overpower either.
+    expect(ids({ ...arms, rotation: { 'warrior.arms.rend.enabled': false } })).not.toContain('bloodthrill')
+    const berserker = ids({ ...arms, rotation: { 'warrior.arms.baseStance': 'berserker' } })
+    for (const id of ['overpowerWindow', 'bloodthrill', 'rendTickCrits', 'rendOnHit']) expect(berserker).not.toContain(id)
+    // Fury's default uses none of them.
+    const fury = ids(defaultConfig('warrior-fury'))
+    for (const id of ['overpowerWindow', 'bloodthrill', 'slamCast', 'spearingStrike', 'rendTickCrits', 'rendOnHit']) expect(fury).not.toContain(id)
   })
 
   it('names unmodelled item effects', () => {

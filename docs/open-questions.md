@@ -1638,7 +1638,9 @@ new build, re-run `npm run scrape:client -- --claims` instead of checking in a b
 
 - **Warrior build variants** (Fury 17/34 vs "Fury + Precision" 15/36; the Prot "TPS" variant) and
   **Arms base stance** (Battle vs Berserker): simulate once M2 and M3 exist
-  ([warrior Q23, Q24](classes/warrior.md#9-open-questions)).
+  ([warrior Q23, Q24](classes/warrior.md#9-open-questions)). The base stance's first run (M2.3c):
+  Battle 630 DPS, Berserker 604, Berserker dancing for Rend and Overpower 631, so Battle stays
+  the default.
 - **Rip vs Bite as the default finisher**: simulate after B17, C17, C18, B38 and B22 (whether
   Rip ticks crit in `forever`; the default already differs by profile)
   ([druid Q26](classes/druid.md#10-open-questions)).

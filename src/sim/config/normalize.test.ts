@@ -174,6 +174,18 @@ describe('normalizeConfig', () => {
     expect(both.warnings).toEqual([])
   })
 
+  it('keeps a choice only when it’s one of its values (the Arms base stance, warrior.md §5.3)', () => {
+    const d = defaultConfig('warrior-arms')
+    const ok = normalizeConfig({ ...d, rotation: { 'warrior.arms.baseStance': 'berserker' } })
+    expect(ok.config.rotation).toEqual({ 'warrior.arms.baseStance': 'berserker' })
+    expect(ok.warnings).toEqual([])
+    for (const bad of ['defensive', 4, true]) {
+      const { config, warnings } = normalizeConfig({ ...d, rotation: { 'warrior.arms.baseStance': bad } })
+      expect(config.rotation).toEqual({})
+      expect(warnings).toHaveLength(1)
+    }
+  })
+
   it('never throws, and always returns a config the engine accepts (fuzz)', () => {
     const rng = new Rng()
     rng.seed(2024, 0, 0)

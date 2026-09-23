@@ -367,6 +367,12 @@ export interface RotationEntry {
    * Absent or 0: no dance, so the line waits for a stance that allows the ability.
    */
   danceTo?: number
+  /**
+   * With `danceTo`: once the line's ability is used, the stance it was used in becomes the base
+   * stance for the rest of the fight, so the engine no longer swaps back (Arms Recklessness, which
+   * swaps to Berserker Stance and stays; warrior.md §5.3 row 4, §7 "Stance dancing").
+   */
+  stay?: boolean
 }
 
 /**
@@ -405,8 +411,9 @@ export interface Plan {
   seed: number
   playerLevel: number
   /**
-   * STANCE bit the warrior fights in, its base stance (warrior.md §5), or STANCE_ANY for classes
-   * without stances. Stance dances leave it and come back (warrior.md §7).
+   * STANCE bit the warrior fights in, its base stance (warrior.md §5; Arms: its setting, §5.3), or
+   * STANCE_ANY for classes without stances. Stance dances leave it and come back, and a line that
+   * stays makes its stance the base for the rest of the fight (warrior.md §7).
    */
   stance: number
   /** What each stance changes relative to the base stance (empty for classes without stances). */

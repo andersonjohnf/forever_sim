@@ -99,8 +99,11 @@ export interface SimConfig {
     /** Enabled BuffDefinition ids (raid buffs, target debuffs, consumables). */
     enabled: string[]
   }
-  /** Values for the spec's RotationOption ids; missing ids use the option default. */
-  rotation: Record<string, number | boolean>
+  /**
+   * Values for the spec's RotationOption ids; missing ids use the option's default for this setup
+   * (`rotationValues`).
+   */
+  rotation: Record<string, RotationValue>
   fight: FightConfig
   rules: {
     profile: RuleProfileId
@@ -133,6 +136,16 @@ export type DamageTakenRageModel = 'forever' | 'classic' | 'foreverHp' | 'foreve
 // Schemas the engine declares and the UI renders.
 // ---------------------------------------------------------------------------
 
+/** A rotation setting's value: a toggle's boolean, a number input's number, a choice's value. */
+export type RotationValue = number | boolean | string
+
+/**
+ * A default that depends on the setup (docs/classes/warrior.md §5.3): used when the build has
+ * `talent`, or when another option (declared earlier in the list) currently has the value `is`.
+ * The first entry that matches wins; with none, the option's `default` applies.
+ */
+export type RotationDefaultWhen = ({ talent: string } | { option: string; is: RotationValue }) & { default: boolean }
+
 export type RotationOption =
   | {
       kind: 'toggle'
@@ -141,6 +154,8 @@ export type RotationOption =
       /** One line of help shown under the control. */
       help: string
       default: boolean
+      /** Defaults that follow the build's talents or another setting (Arms: Rend with Bloodthrill). */
+      defaultWhen?: RotationDefaultWhen[]
       /** Id of a toggle that must be on for this one to apply. */
       dependsOn?: string
       /**
@@ -163,6 +178,17 @@ export type RotationOption =
       step: number
       default: number
       /** Id of a toggle that must be on for this input to apply. */
+      dependsOn?: string
+    }
+  | {
+      /** One of a few named values, shown as a segmented control (Arms: the stance it fights in). */
+      kind: 'choice'
+      id: string
+      label: string
+      help: string
+      choices: { value: string; label: string }[]
+      default: string
+      /** Id of a toggle that must be on for this choice to apply. */
       dependsOn?: string
     }
 

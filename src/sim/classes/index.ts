@@ -18,7 +18,7 @@ export interface ClassSetup {
   simulated: boolean
 }
 
-/** Base stance per warrior spec (warrior.md §5.2–§5.4). */
+/** Base stance per warrior spec (warrior.md §5.2–§5.4), unless its settings choose another. */
 const WARRIOR_STANCE: Partial<Record<SpecId, Stance>> = {
   'warrior-fury': 'berserker',
   'warrior-arms': 'battle',
@@ -42,10 +42,14 @@ export function talentRanksByName(data: TalentData, code: string): Map<string, n
   return byName
 }
 
-export function classSetup(classId: ClassId, spec: SpecId, talentCode: string): ClassSetup {
+/**
+ * A class's passives for the build. `stance` overrides a warrior spec's base stance when its
+ * settings choose another (Arms in Berserker Stance, warrior.md §5.3 notes, Q24).
+ */
+export function classSetup(classId: ClassId, spec: SpecId, talentCode: string, stance?: Stance): ClassSetup {
   const talents = talentRanksByName(TALENT_DATA[classId], talentCode)
   if (classId !== 'warrior') return { effects: [], stance: null, talents, simulated: false }
-  const stance = WARRIOR_STANCE[spec] ?? 'battle'
+  stance ??= WARRIOR_STANCE[spec] ?? 'battle'
   const effects: Effect[] = [...STANCE_EFFECTS[stance]]
   for (const [name, rank] of talents) {
     const f = TALENT_EFFECTS[name]

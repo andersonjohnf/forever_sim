@@ -9,6 +9,7 @@ import {
   FULL_RAID,
   getSpec,
   presetBuffs,
+  rotationValues,
   type SimConfig,
   type SimProgress,
   simulate,
@@ -81,11 +82,28 @@ describe('simulate', () => {
 })
 
 describe('specs', () => {
-  it('offers only finished specs: Fury since M2.2c (docs/ux.md principle 8), with every spec’s metadata', () => {
+  it('offers only finished specs: Fury since M2.2c and Arms since M2.3c (docs/ux.md principle 8), with every spec’s metadata', () => {
     expect(specs.map((s) => s.id)).toEqual(SPEC_IDS)
-    expect(specs.filter((s) => s.available).map((s) => s.id)).toEqual(['warrior-fury'])
+    expect(specs.filter((s) => s.available).map((s) => s.id)).toEqual(['warrior-fury', 'warrior-arms'])
     expect(getSpec('warrior-protection').role).toBe('tank')
     expect(() => getSpec('mage-fire' as never)).toThrow()
+  })
+})
+
+describe('rotationValues', () => {
+  it('gives each setting its saved value or its default for the setup: Arms follows the talents and the base stance (warrior.md §5.3)', () => {
+    const arms = defaultConfig('warrior-arms')
+    expect(rotationValues(arms)).toMatchObject({ 'warrior.arms.baseStance': 'battle', 'warrior.arms.rend.enabled': true, 'warrior.arms.whirlwind.enabled': false })
+    // Without Bloodthrill (no Arms talents at all), Rend is off by default.
+    expect(rotationValues({ ...arms, talents: '' })['warrior.arms.rend.enabled']).toBe(false)
+    expect(rotationValues({ ...arms, rotation: { 'warrior.arms.baseStance': 'berserker' } })).toMatchObject({
+      'warrior.arms.rend.enabled': false,
+      'warrior.arms.overpower.enabled': false,
+      'warrior.arms.whirlwind.enabled': true,
+    })
+    // Fury's are its plain defaults, and a spec without a rotation has none.
+    expect(rotationValues(defaultConfig('warrior-fury'))['warrior.fury.bloodthirst.enabled']).toBe(true)
+    expect(rotationValues(defaultConfig('warrior-protection'))).toEqual({})
   })
 })
 

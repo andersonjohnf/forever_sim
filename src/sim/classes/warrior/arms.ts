@@ -1,0 +1,388 @@
+// The Arms priority list and its settings (docs/classes/warrior.md §5.1, §5.3).
+//
+// This covers the base stance (Q24), the pre-pull (row 0), Battle Shout (row 1), Rend (row 2),
+// Death Wish with the talent (row 16, whose line sits before row 3's), the racial and on-use
+// trinkets (row 3), Recklessness (row 4), Bloodrage (row 5), the execute phase (rows 6 and 7),
+// Mortal Strike, Overpower, Slam, Spearing Strike, the Whirlwind stance dance, Heroic Strike and
+// Hamstring (rows 8–14), and the Mighty Rage Potion and Juju Flurry (rows 17 and 18, as Fury's 16
+// and 17). Sweeping Strikes (row 15) waits for multi-target support. Setting ids are
+// `warrior.arms.<ability>.<param>` and every rage threshold is in absolute rage points (§5.1).
+// Abilities are resolved with the build's talents (modifiers.ts) before their costs feed any
+// condition.
+import { toTenths } from '../../core/formulas'
+import { COND, type RotationCondition, STANCE } from '../../plan/types'
+import type { RotationOption, RotationValue } from '../../types'
+import {
+  type AbilityDef,
+  EXECUTE,
+  HAMSTRING,
+  MORTAL_STRIKE,
+  OVERPOWER,
+  overpowerWindowProcs,
+  REND,
+  SLAM,
+  SPEARING_STRIKE,
+  stanceSwapKeepTenths,
+  WHIRLWIND,
+} from './abilities'
+import type { TalentRanks } from './modifiers'
+import type { Stance } from './talents'
+import {
+  battleShoutLine,
+  battleShoutOptions,
+  bit,
+  bloodrageLine,
+  bloodrageOptions,
+  type ClassRotation,
+  consumableLines,
+  consumableOptions,
+  cooldownLines,
+  cooldownOptions,
+  deathWishLines,
+  deathWishOptions,
+  gcdSafe,
+  heroicStrikeLine,
+  heroicStrikeOptions,
+  IN_EXECUTE,
+  maxRage,
+  minRage,
+  NO_CONTEXT,
+  NOT_IN_EXECUTE,
+  onUseIds,
+  prepullCasts,
+  prepullOptions,
+  rageOption,
+  reader,
+  recklessnessLine,
+  recklessnessOptions,
+  RotationBuilder,
+  type RotationContext,
+  seconds,
+  sharedIds,
+} from './shared'
+
+const ID = {
+  ...sharedIds('arms'),
+  baseStance: 'warrior.arms.baseStance',
+  rendEnabled: 'warrior.arms.rend.enabled',
+  rendRefresh: 'warrior.arms.rend.refreshBelowSec',
+  exEnabled: 'warrior.arms.execute.enabled',
+  exSlam: 'warrior.arms.execute.slamInExecute',
+  exMortalStrike: 'warrior.arms.execute.mortalStrikeInExecute',
+  msEnabled: 'warrior.arms.mortalStrike.enabled',
+  opEnabled: 'warrior.arms.overpower.enabled',
+  slamEnabled: 'warrior.arms.slam.enabled',
+  slamReserve: 'warrior.arms.slam.reserve',
+  ssEnabled: 'warrior.arms.spearingStrike.enabled',
+  ssMinRage: 'warrior.arms.spearingStrike.minRageOtherTargets',
+  wwEnabled: 'warrior.arms.whirlwind.enabled',
+  wwMaxRage: 'warrior.arms.whirlwind.maxRage',
+  hamEnabled: 'warrior.arms.hamstring.enabled',
+  hamMinRage: 'warrior.arms.hamstring.minRage',
+}
+
+/** The base-stance setting's id and values (warrior.md §5.3 notes, Q24). */
+export const ARMS_BASE_STANCE_ID = ID.baseStance
+const BERSERKER = { option: ID.baseStance, is: 'berserker' } as const
+
+/** Defaults from warrior.md §5.3's table (rows 0–14, 16–18), in priority order, the base stance first. */
+export const ARMS_OPTIONS: RotationOption[] = [
+  {
+    kind: 'choice',
+    id: ID.baseStance,
+    label: 'Stance',
+    help: 'Battle Stance has Rend, Overpower and Bloodthrill. Berserker Stance has +3% crit and Whirlwind. Either one can swap to the other for its abilities: turn them on below.',
+    choices: [
+      { value: 'battle', label: 'Battle' },
+      { value: 'berserker', label: 'Berserker' },
+    ],
+    default: 'battle',
+  },
+  ...prepullOptions(
+    ID,
+    'Open with Charge for 15 rage (+3 per Improved Charge rank). In Berserker Stance, the swap after it keeps at most 10 + 3 per Improved Tactical Mastery rank.',
+  ),
+  ...battleShoutOptions(ID),
+  {
+    kind: 'toggle',
+    id: ID.rendEnabled,
+    label: 'Rend',
+    help: 'Keep your Rend on the boss: Bloodthrill needs it. On by default with Bloodthrill in Battle Stance. In Berserker Stance, swap to Battle Stance for it and back, at or below the rage a swap keeps.',
+    default: false,
+    defaultWhen: [
+      { ...BERSERKER, default: false },
+      { talent: 'Bloodthrill', default: true },
+    ],
+  },
+  {
+    kind: 'number',
+    id: ID.rendRefresh,
+    label: 'Rend again with',
+    help: 'Refresh it when this much of it is left, unless it lasts to the end of the fight.',
+    unit: 's left',
+    min: 0,
+    max: 21,
+    step: 0.5,
+    default: 1.5,
+    dependsOn: ID.rendEnabled,
+  },
+  ...deathWishOptions(ID, {
+    help: 'Use Death Wish for +20% physical damage for 30 s. Needs the Death Wish talent, and is on by default with it.',
+    default: false,
+    defaultWhen: [{ talent: 'Death Wish', default: true }],
+  }),
+  ...cooldownOptions(ID),
+  ...recklessnessOptions(
+    ID,
+    'Use Recklessness once, near the end of the fight, for +100% crit chance for 15 s. It needs Berserker Stance: from Battle Stance you swap and stay there, keeping at most 10 rage plus 3 per Improved Tactical Mastery rank.',
+  ),
+  ...bloodrageOptions(ID),
+  {
+    kind: 'toggle',
+    id: ID.exEnabled,
+    label: 'Execute',
+    help: 'In the execute phase, use Execute whenever you have the rage, in place of Mortal Strike, Slam and the fillers.',
+    default: true,
+  },
+  {
+    kind: 'toggle',
+    id: ID.exSlam,
+    label: 'Slam in the execute phase',
+    help: 'Keep using Slam in the execute phase while you have rage for it and an Execute after it. It hits harder than an Execute for the same rage.',
+    default: true,
+    dependsOn: ID.exEnabled,
+  },
+  {
+    kind: 'toggle',
+    id: ID.exMortalStrike,
+    label: 'Mortal Strike in the execute phase',
+    help: 'Keep using Mortal Strike in the execute phase, ahead of Execute. An Execute with the same 30 rage usually hits harder.',
+    default: false,
+    dependsOn: ID.exEnabled,
+  },
+  {
+    kind: 'toggle',
+    id: ID.msEnabled,
+    label: 'Mortal Strike',
+    help: 'Use Mortal Strike whenever it’s ready. Needs the Mortal Strike talent.',
+    default: true,
+  },
+  {
+    kind: 'toggle',
+    id: ID.opEnabled,
+    label: 'Overpower',
+    help: 'Use Overpower after the boss dodges or Bloodthrill opens it, unless Mortal Strike is about to be ready and there isn’t rage for both. In Berserker Stance, swap to Battle Stance for it and back, at or below the rage a swap keeps.',
+    default: true,
+    defaultWhen: [{ ...BERSERKER, default: false }],
+  },
+  {
+    kind: 'toggle',
+    id: ID.slamEnabled,
+    label: 'Slam',
+    help: 'Use Slam whenever it’s ready and Mortal Strike isn’t about to be. Without Improved Slam its 1.5 s cast stops your swings and resets the swing timer.',
+    default: true,
+  },
+  rageOption(ID.slamReserve, 'Slam rage reserve', 'Rage to keep on top of Slam’s cost.', 0, ID.slamEnabled),
+  {
+    kind: 'toggle',
+    id: ID.ssEnabled,
+    label: 'Spearing Strike',
+    help: 'Against Giants and Dragonkin (set under Fight) it deals 120% weapon damage, so use it on cooldown; against anything else, 40%. Needs the talent and a two-hander.',
+    default: true,
+  },
+  rageOption(
+    ID.ssMinRage,
+    'Spearing Strike from',
+    'Against other targets, use it only at or above this much rage, when Mortal Strike isn’t about to be ready.',
+    50,
+    ID.ssEnabled,
+  ),
+  {
+    kind: 'toggle',
+    id: ID.wwEnabled,
+    label: 'Whirlwind',
+    help: 'Use Whirlwind when Mortal Strike isn’t about to be ready. It needs Berserker Stance: from Battle Stance, swap for it and back. On by default in Berserker Stance.',
+    default: false,
+    defaultWhen: [{ ...BERSERKER, default: true }],
+  },
+  rageOption(
+    ID.wwMaxRage,
+    'Whirlwind swap up to',
+    'From Battle Stance, swap for it only at or below this much rage. The swap keeps at most 25 with Improved Tactical Mastery 5/5, and Whirlwind costs 25.',
+    30,
+    ID.wwEnabled,
+  ),
+  ...heroicStrikeOptions(ID, 45),
+  {
+    kind: 'toggle',
+    id: ID.hamEnabled,
+    label: 'Hamstring filler',
+    help: 'Use Hamstring to fish for procs, such as Weaponmaster’s extra attacks with a sword or Windfury, while the rest of the rotation is cooling down.',
+    default: false,
+  },
+  rageOption(ID.hamMinRage, 'Hamstring from', 'Use it at or above this much rage.', 60, ID.hamEnabled),
+  ...consumableOptions(ID),
+]
+
+/** The stance Arms fights in with these settings (warrior.md §5.3, Q24): Battle unless set to Berserker. */
+export function armsBaseStance(values: Record<string, RotationValue>): Stance {
+  return reader(ARMS_OPTIONS, values).str(ID.baseStance) === 'berserker' ? 'berserker' : 'battle'
+}
+
+/**
+ * Buff catalogue ids the rotation keeps up itself with these settings, so the plan drops the
+ * Buffs switch's static version (Battle Shout, warrior.md §5.3 row 1).
+ */
+export function armsMaintainedBuffs(values: Record<string, RotationValue>): string[] {
+  return reader(ARMS_OPTIONS, values).on(ID.bsEnabled) ? ['battleShout'] : []
+}
+
+/**
+ * The Arms priority list from the settings (warrior.md §5.3). `talents` gates talent abilities
+ * (Mortal Strike, Spearing Strike, Death Wish), follows them for defaults (Rend with Bloodthrill)
+ * and resolves costs, Impale, Improved Rend, Improved Slam, Improved Overpower and the talented
+ * rage of Bloodrage and Charge; `context` gives the race (its racial cooldown), the equipped
+ * on-use items, the selected consumables, whether there's an execute phase, the profile (the rage
+ * a stance swap keeps) and the target's creature type (Spearing Strike). `_auraIndex` is unused:
+ * no Arms line reads a plan aura by id.
+ */
+export function armsRotation(
+  values: Record<string, RotationValue>,
+  talents: TalentRanks,
+  _auraIndex: (id: string) => number,
+  context: Partial<RotationContext> = {},
+): ClassRotation {
+  const ctx = { ...NO_CONTEXT, ...context }
+  const v = reader(ARMS_OPTIONS, values, talents)
+  const b = new RotationBuilder(talents)
+  const index = (def: AbilityDef) => b.ability(def)
+  /** Its GCD with the build's talents: Slam's is 1 s with Improved Slam 2/2 (§3.1). */
+  const gcdOf = (def: AbilityDef) => b.abilities[index(def)].gcdMs
+
+  // The base stance (§5.3 notes, Q24). A line whose ability the base stance refuses dances to the
+  // stance it needs (§7 "Stance dancing"): from Battle, Whirlwind; from Berserker, Rend and
+  // Overpower. Those two swap in only at rage ≤ what a swap keeps, so it loses none (§5.1).
+  const home = armsBaseStance(values) === 'berserker' ? STANCE.berserker : STANCE.battle
+  const danceTo = (def: AbilityDef, stance: number) => ((def.stances & home) === 0 ? stance : 0)
+  const swapCap = maxRage(stanceSwapKeepTenths(talents, ctx.profile) / 10)
+
+  const execute = v.on(ID.exEnabled)
+  /** Lines that stop in the execute phase get this condition while Execute is on (§5.3 notes). */
+  const outside: RotationCondition[] = execute ? [NOT_IN_EXECUTE] : []
+
+  // Rows 1–5 and 16 apply in both phases, Rend included (§5.3 notes).
+
+  // Row 1: Battle Shout (shared.ts).
+  const shout = battleShoutLine(b, v, ID)
+
+  // Row 2: Rend when your Rend is missing or has at most refreshBelowSec of ticks left, unless it
+  // lasts to the end of the fight (the upkeep condition, §7 "Rend is a bleed ability"). On by
+  // default with Bloodthrill, whose proc needs it.
+  if (v.on(ID.rendEnabled)) {
+    const rend = index(REND)
+    const to = danceTo(REND, STANCE.battle)
+    b.line(REND, to, [{ code: COND.abilityAuraRefresh, a: rend, b: seconds(v, ID.rendRefresh) }, ...(to ? [swapCap] : [])])
+  }
+
+  // Row 16, with the talent: Death Wish, as Fury's row 2. Its line comes before row 3's, so the
+  // racial and trinkets can wait for it (shared.ts).
+  const dw = deathWishLines(b, v, ID)
+
+  // Row 3: the racial and on-use trinkets, synced with Death Wish when it's used, on cooldown
+  // otherwise.
+  cooldownLines(b, v, ID, ctx, dw)
+
+  // Row 4: Recklessness once, at ≤ lastSec left. From Battle Stance it swaps to Berserker Stance
+  // (keeping at most the swap's cap) and stays there for the rest of the fight.
+  recklessnessLine(b, v, ID, home === STANCE.battle ? STANCE.berserker : 0)
+
+  // Row 5: Bloodrage on cooldown (off the GCD) at rage ≤ maxRage.
+  bloodrageLine(b, v, ID)
+
+  // Mortal Strike needs its talent. Outside the phase it's row 8; in it, only with
+  // mortalStrikeInExecute, ahead of Execute.
+  const msTalent = talents.has('Mortal Strike')
+  const msOut = msTalent && v.on(ID.msEnabled)
+  const msIn = execute && msTalent && v.on(ID.exMortalStrike)
+
+  // Row 6: in the execute phase, Slam off cooldown at rage ≥ its cost + Execute's, so an Execute
+  // can follow it.
+  if (execute && v.on(ID.exSlam)) b.add(SLAM, [IN_EXECUTE, minRage(b.cost(index(SLAM)) + b.cost(index(EXECUTE)))])
+
+  // Row 7: with mortalStrikeInExecute, Mortal Strike ahead of Execute; then Execute whenever it can
+  // pay (the engine checks its cost, and allows it only in the phase).
+  let ms = -1
+  if (msIn) ms = b.add(MORTAL_STRIKE, [IN_EXECUTE])
+  if (execute) b.add(EXECUTE, [])
+
+  // Row 8: Mortal Strike on cooldown, outside the execute phase.
+  if (msOut) ms = b.add(MORTAL_STRIKE, outside)
+  /** GCD-safe for Mortal Strike over `def`'s own GCD, in the phase(s) where it's used (§5.1). */
+  const msSafe = (def: AbilityDef, used: boolean) => gcdSafe(used ? bit(ms) : 0, gcdOf(def))
+
+  // Row 9: Overpower while its window is open (a dodge, or Bloodthrill), when Mortal Strike is
+  // GCD-safe or there's rage for both (its cost + Overpower's: 35). It applies in both phases; in
+  // the execute phase Mortal Strike counts only while it's used there, and Overpower gets a GCD
+  // only while Execute waits for rage. From Berserker Stance it's a dance at rage ≤ the swap's cap,
+  // which leaves no room for the rage-for-both line. The window's openers come with it (§2.8).
+  if (v.on(ID.opEnabled)) {
+    const op = index(OVERPOWER)
+    const to = danceTo(OVERPOWER, STANCE.battle)
+    const dance = to ? [swapCap] : []
+    const phases: [RotationCondition[], boolean][] = execute ? [[[NOT_IN_EXECUTE], msOut], [[IN_EXECUTE], msIn]] : [[[], msOut]]
+    for (const [phase, msUsed] of phases) {
+      if (!msUsed) {
+        b.line(OVERPOWER, to, [...phase, ...dance])
+        continue
+      }
+      b.line(OVERPOWER, to, [...phase, ...msSafe(OVERPOWER, true), ...dance])
+      const both = b.cost(ms) + b.cost(op)
+      if (!to || both <= swapCap.a) b.line(OVERPOWER, to, [...phase, minRage(both), ...dance])
+    }
+    b.procs.push(...overpowerWindowProcs(talents))
+  }
+
+  // Row 10: Slam off cooldown at rage ≥ its cost + reserve, Mortal Strike GCD-safe over Slam's own
+  // GCD (1 s with Improved Slam 2/2); outside the execute phase, where row 6 has it.
+  const slamOut = v.on(ID.slamEnabled)
+  if (slamOut) b.add(SLAM, [...outside, minRage(b.cost(index(SLAM)) + toTenths(v.num(ID.slamReserve))), ...msSafe(SLAM, msOut)])
+
+  // Row 11: Spearing Strike (the talent; the engine skips it without a two-hander). Against Giants
+  // and Dragonkin (1.20 of weapon damage, §3.1) on cooldown; against anything else (0.40) at rage ≥
+  // minRageOtherTargets with Mortal Strike GCD-safe. Outside the execute phase.
+  let ss = -1
+  if (talents.has('Spearing Strike') && v.on(ID.ssEnabled)) {
+    const strong = SPEARING_STRIKE.vsCreature!.types.includes(ctx.creatureType)
+    ss = b.add(SPEARING_STRIKE, strong ? outside : [...outside, minRage(toTenths(v.num(ID.ssMinRage))), ...msSafe(SPEARING_STRIKE, msOut)])
+  }
+
+  // Row 12: Whirlwind, Mortal Strike GCD-safe, outside the execute phase. From Battle Stance it's a
+  // dance to Berserker Stance at rage ≤ maxRage (30: the swap keeps 25 and Whirlwind costs 25); in
+  // Berserker Stance it needs no dance.
+  let ww = -1
+  if (v.on(ID.wwEnabled)) {
+    const to = danceTo(WHIRLWIND, STANCE.berserker)
+    ww = b.line(WHIRLWIND, to, [...outside, ...msSafe(WHIRLWIND, msOut), ...(to ? [maxRage(v.num(ID.wwMaxRage))] : [])])
+  }
+
+  // Row 13: the Heroic Strike queue (off the GCD) at rage ≥ minRage, outside the execute phase; a
+  // queued one is cancelled when the phase starts (shared.ts).
+  heroicStrikeLine(b, v, ID, outside)
+
+  // Row 14: Hamstring (off by default) at rage ≥ minRage, GCD-safe for every ability above it with
+  // a cooldown (Mortal Strike, Slam, Spearing Strike, Whirlwind), outside the execute phase.
+  if (v.on(ID.hamEnabled)) {
+    const mask = (msOut ? bit(ms) : 0) | (slamOut ? bit(index(SLAM)) : 0) | bit(ss) | bit(ww)
+    b.add(HAMSTRING, [...outside, minRage(toTenths(v.num(ID.hamMinRage))), ...gcdSafe(mask, gcdOf(HAMSTRING))])
+  }
+
+  // Rows 17 and 18: the Mighty Rage Potion from the start of the execute phase, and Juju Flurry on
+  // cooldown, when they're selected in Buffs (shared.ts).
+  consumableLines(b, v, ID, ctx)
+
+  // Row 0: the pre-pull (shared.ts). Charge is a Battle Stance ability: fighting in Berserker
+  // Stance, the swap after it keeps at most the swap's cap.
+  prepullCasts(b, v, ID, ctx, shout, home !== STANCE.battle)
+
+  return b.result(onUseIds(ctx))
+}

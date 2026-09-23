@@ -324,6 +324,9 @@ function normalizeRotation(input: unknown, spec: SpecId, r: Repairs): SimConfig[
     if (option.kind === 'toggle') {
       if (typeof value === 'boolean') rotation[id] = value
       else dropped = true
+    } else if (option.kind === 'choice') {
+      if (option.choices.some((c) => c.value === value)) rotation[id] = value as string
+      else dropped = true
     } else if (isNum(value)) {
       rotation[id] = Math.min(option.max, Math.max(option.min, value))
       if (rotation[id] !== value) r.add(`${option.label} was out of range and was set to ${rotation[id]}.`)

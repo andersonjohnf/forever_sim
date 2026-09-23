@@ -259,6 +259,8 @@ export class Sim {
   private readonly rotAbility: Int32Array
   /** The STANCE bit a line dances to when the current stance refuses its ability, or 0 (warrior.md §7). */
   private readonly entryDance: Int32Array
+  /** 1: once the line's ability is used, its stance is the base stance for the rest of the fight (Arms Recklessness). */
+  private readonly entryStay: Uint8Array
   /**
    * The priority list per phase, in order: the entries that can apply outside and inside the
    * execute phase, and of those the off-GCD ones (all that can act while the GCD runs). The phase
@@ -297,8 +299,8 @@ export class Sim {
   /**
    * Stances (warrior.md §2.1, §7 "Stances"), per STANCE bit: the factors on the plan's damage,
    * threat and damage taken, and the aura crit added (1, 1, 1, 0 for the stance the plan's static
-   * numbers are for); the base stance the fight starts and ends dances in; and a swap's shared
-   * cooldown and the most rage it keeps.
+   * numbers are for); the base stance the fight starts in; and a swap's shared cooldown and the
+   * most rage it keeps.
    */
   private readonly sDamage = new Float64Array(8).fill(1)
   private readonly sThreat = new Float64Array(8).fill(1)
@@ -351,6 +353,11 @@ export class Sim {
   private swingsStopped = false
   /** The STANCE bit the warrior is in: the base stance, or the one a dance swapped to (warrior.md §7). */
   private stance = 0
+  /**
+   * The stance dances end in: the plan's base stance, until a line that stays makes the stance it
+   * was used in the base for the rest of the fight (Arms Recklessness, warrior.md §5.3 row 4).
+   */
+  private home = 0
   /** When the stances' shared swap cooldown ends (warrior.md §2.1). */
   private stanceReadyAt = 0
   /** The current stance's factor on all damage and its aura crit, and the threat and damage-taken multipliers in it. */
@@ -649,6 +656,7 @@ export class Sim {
     const rotation = plan.rotation
     this.rotAbility = new Int32Array(rotation.length)
     this.entryDance = new Int32Array(rotation.length)
+    this.entryStay = new Uint8Array(rotation.length)
     this.condStart = new Int32Array(rotation.length + 1)
     // Phase, time-left and aura-refresh conditions are resolved up front, into the per-phase lists
     // and a time window per line, so a walk never evaluates them.
@@ -677,6 +685,8 @@ export class Sim {
       if (to !== 0 && (ability.stances & to) !== 0 && plan.stances.length > 0) {
         this.entryDance[e] = to
         this.abDances[entry.ability] = 1
+        // warrior.md §5.3 row 4: a line can stay in the stance it danced to.
+        if (entry.stay) this.entryStay[e] = 1
       }
       this.abUnqueueBelow[entry.ability] = entry.unqueueBelowTenths
       this.condStart[e] = k
@@ -919,6 +929,7 @@ export class Sim {
     // numbers are its own) and the swap cooldown ready.
     const base = this.baseStance
     this.stance = base
+    this.home = base
     this.stanceReadyAt = 0
     this.stanceDamage = this.sDamage[base]
     this.stanceCrit = this.sCrit[base]
@@ -1233,12 +1244,13 @@ export class Sim {
    * window among them (the constructor adds it to the line). A GCD ability blocks the later GCD
    * entries through the GCD it starts; off-GCD entries (the Heroic Strike queue) are still checked
    * after it. Away from the base stance, the walk first swaps back if the swap cooldown allows; a
-   * dance line swaps to its stance just before its ability (warrior.md §7 "Stance dancing").
+   * dance line swaps to its stance just before its ability, and a line that stays makes that
+   * stance the base for the rest of the fight (warrior.md §7 "Stance dancing").
    */
   private act(): void {
     this.actPending = false
     const now = this.now
-    if (this.stance !== this.baseStance && this.stanceReadyAt <= now) this.swapStance(this.baseStance)
+    if (this.stance !== this.home && this.stanceReadyAt <= now) this.swapStance(this.home)
     // While the GCD runs only off-GCD entries can be used; skipping the others changes nothing.
     const gcdBusy = this.gcdEnd > now
     // The current phase's list: lines that can't apply in it (and Execute outside it) aren't in it.
@@ -1260,6 +1272,7 @@ export class Sim {
       }
       if (!this.conditionsHold(e)) continue
       if (dance !== 0) this.swapStance(dance)
+      if (this.entryStay[e] !== 0) this.home = this.stance
       this.use(a)
     }
   }

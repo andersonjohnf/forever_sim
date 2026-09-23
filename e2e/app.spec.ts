@@ -14,7 +14,18 @@ test.describe('setup', () => {
     await page.goto('./')
     await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
     await expect(page.getByRole('menuitem', { name: /Fury/ })).toBeVisible()
-    await expect(page.getByRole('menuitem')).toHaveCount(1)
+    await expect(page.getByRole('menuitem', { name: /Arms/ })).toBeVisible()
+    await expect(page.getByRole('menuitem')).toHaveCount(2)
+  })
+
+  test('switching to Arms keeps it across reloads, with its own setup', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
+    await page.getByRole('menuitem', { name: /Arms/ }).click()
+    await expect(page.getByRole('button', { name: /Spec: Arms Warrior/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Main hand: / })).toContainText('Blackblade of Shahram')
+    await page.reload()
+    await expect(page.getByRole('button', { name: /Spec: Arms Warrior/ })).toBeVisible()
   })
 
   test('a saved setup for a spec the sim doesn’t offer opens Fury instead', async ({ page }) => {
@@ -201,6 +212,21 @@ test.describe('simulation', () => {
     }
   })
 
+  test('selects Arms, simulates, and breaks the DPS down by ability', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
+    await page.getByRole('menuitem', { name: /Arms/ }).click()
+    const results = page.getByRole('complementary', { name: 'Results' })
+    await results.getByRole('button', { name: 'Simulate' }).click()
+    await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
+    await expect(results.getByText('DPS', { exact: true })).toBeVisible()
+    const breakdown = results.getByRole('region', { name: 'Damage by ability' })
+    for (const ability of ['Mortal Strike', 'Slam', 'Overpower', 'Rend', 'Execute', 'Main hand']) {
+      await expect(breakdown.getByText(ability, { exact: true })).toBeVisible()
+    }
+    await expect(breakdown.getByText('Off hand', { exact: true })).toBeHidden()
+  })
+
   test('explains a setup it can’t simulate', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('tab', { name: 'Character', exact: true }).click()
@@ -229,6 +255,36 @@ test.describe('rotation and buffs', () => {
     await expect(shout).toBeEnabled()
     await expect(shout).toBeChecked()
     await expect(page.getByText(/You keep it up yourself/)).toBeHidden()
+  })
+})
+
+test.describe('Arms rotation', () => {
+  test('fighting in Berserker Stance turns Whirlwind on and Rend and Overpower off, until you set them', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
+    await page.getByRole('menuitem', { name: /Arms/ }).click()
+    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+    const stance = page.getByRole('radiogroup', { name: 'Stance' })
+    await expect(stance.getByRole('radio', { name: 'Battle' })).toBeChecked()
+    const whirlwind = page.getByRole('switch', { name: 'Whirlwind', exact: true })
+    const rend = page.getByRole('switch', { name: 'Rend', exact: true })
+    const overpower = page.getByRole('switch', { name: 'Overpower', exact: true })
+    await expect(whirlwind).not.toBeChecked()
+    await expect(rend).toBeChecked()
+    await expect(overpower).toBeChecked()
+
+    await stance.getByRole('radio', { name: 'Berserker' }).click()
+    await expect(stance.getByRole('radio', { name: 'Berserker' })).toBeChecked()
+    await expect(whirlwind).toBeChecked()
+    await expect(rend).not.toBeChecked()
+    await expect(overpower).not.toBeChecked()
+    // A setting you choose sticks; the defaults come back with Defaults.
+    await overpower.click()
+    await expect(overpower).toBeChecked()
+    await page.getByRole('button', { name: 'Defaults' }).click()
+    await expect(stance.getByRole('radio', { name: 'Battle' })).toBeChecked()
+    await expect(whirlwind).not.toBeChecked()
+    await expect(overpower).toBeChecked()
   })
 })
 

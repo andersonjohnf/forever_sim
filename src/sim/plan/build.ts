@@ -9,7 +9,7 @@ import type { Item, ItemData, Stats, WeaponSkill, WeaponType } from '@/data/item
 import { glanceRange, PLAYER_LEVEL } from '../core/attack-table'
 import { NORMALIZED_SPEED, ppmChance, toTenths } from '../core/formulas'
 import { classSetup } from '../classes'
-import { classRotation, maintainedBuffs } from '../classes/rotation'
+import { classRotation, maintainedBuffs, rotationBaseStance } from '../classes/rotation'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, STANCE_EFFECTS } from '../classes/warrior/talents'
 import { BUFFS_BY_ID } from '../effects/buffs'
@@ -234,7 +234,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   block.baseMana = base.baseMana ?? 0
 
   // --- Effects -------------------------------------------------------------------------------
-  const setup = classSetup(classId, config.spec, config.talents)
+  const setup = classSetup(classId, config.spec, config.talents, rotationBaseStance(config.spec, config.rotation))
   if (!setup.simulated && attributes) blockers.push(`${meta.className} simulation isn’t available yet.`)
   const c: Collected = {
     block,
@@ -512,6 +512,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         consumables: c.onUse.flatMap((u) => (u.use ? [u.use] : [])),
         executePhase: fight.executePct > 0,
         profile,
+        creatureType: fight.creatureType,
       })
     : { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
   // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), a
@@ -686,6 +687,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (abilities.some((a) => a.id === 'weaknessAnalyzer')) notes.add('weaknessAnalyzer')
   if (abilities.some((a) => a.window >= 0)) notes.add('overpowerWindow')
   if (procIds.has('bloodthrill')) notes.add('bloodthrill')
+  // warrior.md §7 and Q3, Q13, Q32: Slam's cast, Spearing Strike's weapon share, Rend's tick crits and on-hit procs.
+  if (abilities.some((a) => a.castMs > 0)) notes.add('slamCast')
+  if (abilities.some((a) => a.twoHandOnly) && weapons[HAND.main]?.plan.twoHand) notes.add('spearingStrike')
+  const bleeds = abilities.filter((a) => a.kind === 'bleed')
+  if (bleeds.some((a) => a.periodicCanCrit) && profile.combat.periodicCrits) notes.add('rendTickCrits')
+  if (bleeds.length > 0 && mh) notes.add('rendOnHit')
   if (c.zoneGatedUnmet) notes.add('hyjalFlask')
 
   return { plan, sheet, assumptions: notes.toArray(), blockers }

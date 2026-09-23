@@ -41,23 +41,25 @@ export function AboutSheet({ open, onOpenChange }: { open: boolean; onOpenChange
           </Section>
           <Section title="Items marked “Classic stats”">
             <p>
-              The Forever client hasn&apos;t received data for some items yet (the beta is level-capped), so those
-              items use their Classic Era stats until it does. They&apos;re marked{' '}
+              The Forever beta client doesn&apos;t include every item yet, so those items use their Classic Era
+              stats until a client build ships them. They&apos;re marked{' '}
               <Badge variant="outline">Classic stats</Badge> in the gear picker.
             </p>
           </Section>
           <Section title="Game data">
             <DataAttribution />
             <p className="text-muted-foreground">
-              Both read the WoW Forever beta client. wago.tools serves the client&apos;s own data tables;
-              foreverchanges.pro compares them with Classic Era.
+              Both read the WoW Forever beta client. Items and ability numbers come straight from the
+              client&apos;s data tables, served by wago.tools. Spellbooks, talents and races come from
+              foreverchanges.pro, which compares the client with Classic Era.
             </p>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 tabular-nums">
               {DATASETS.map(({ name, meta }) => (
                 <div key={name} className="contents">
                   <dt className="text-muted-foreground">{name}</dt>
                   <dd>
-                    Build {meta.foreverBuild} · {meta.scrapedAt.slice(0, 10)}
+                    <span className="whitespace-nowrap">Build {meta.foreverBuild}</span> ·{' '}
+                    <span className="whitespace-nowrap">{meta.scrapedAt.slice(0, 10)}</span>
                   </dd>
                 </div>
               ))}

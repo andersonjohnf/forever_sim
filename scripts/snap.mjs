@@ -20,7 +20,7 @@ const { values: args } = parseArgs({
     width: { type: 'string', default: '1280' },
     height: { type: 'string', default: '900' },
     dark: { type: 'boolean', default: false },
-    /** Accessible names of tabs or buttons to click, in order, before the screenshot. */
+    /** Accessible names of tabs, buttons or menu items to click, in order, before the screenshot. */
     click: { type: 'string', multiple: true, default: [] },
   },
 })
@@ -76,6 +76,7 @@ try {
     await page
       .getByRole('tab', { name, exact: true })
       .or(page.getByRole('button', { name, exact: true }))
+      .or(page.getByRole('menuitem', { name, exact: true }))
       .first()
       .click()
     await page.waitForLoadState('networkidle')

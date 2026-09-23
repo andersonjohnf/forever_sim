@@ -29,8 +29,9 @@ It runs entirely in your browser (no server) and is hosted on GitHub Pages:
 
 ## Where the numbers come from
 
-1. WoW Forever beta data, via [foreverchanges.pro](https://foreverchanges.pro) (datamined
-   from the beta client) and the guild's in-game testing.
+1. WoW Forever beta data: the beta client's own data tables through the
+   [wago.tools API](https://wago.tools/apis), [foreverchanges.pro](https://foreverchanges.pro)
+   (which compares the client with Classic Era), and the guild's in-game testing.
 2. Where Forever data doesn't exist yet, **Classic Era** values.
 3. Never Season of Discovery, Season of Mastery, original Vanilla, TBC+ or Retail values.
 
@@ -53,11 +54,13 @@ npm run snap         # screenshot + console/network check (add -- --dark --width
 
 ### Data
 
-Game data is a snapshot of foreverchanges.pro, stored as JSON in `src/data/`. To refresh it
-after a new beta build:
+Game data is a snapshot stored as JSON in `src/data/`. Items and the client tables come from
+the Forever beta client through the wago.tools API. Spellbooks, talents and races still come
+from foreverchanges.pro until they move to the client too. To refresh after a new beta build:
 
 ```sh
-npm run scrape       # re-runs scripts/scrape/*.mjs (uses a local cache; add -- --refresh to bypass)
+npm run scrape:client  # client tables → src/data/client (cached; -- --version=<build> for a new build)
+npm run scrape         # spellbooks, talents and races from foreverchanges.pro; items from the client
 ```
 
 Then review `git diff src/data`. See [docs/data/README.md](docs/data/README.md).

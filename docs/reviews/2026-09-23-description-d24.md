@@ -38,6 +38,23 @@ light and dark). The fix commit is `7174998`.
 
 Checks after the fixes: lint ✓ · typecheck ✓ · unit ✓ (1052) · e2e ✓ (225, 3 deferred to M3).
 
+## Quick check of `7174998`
+
+A fresh reviewer found L1 only partly fixed, plus two medium findings the fix introduced.
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| V1 | high, blocking | L1 not finished | **architecture.md, character-stats.md (the candidate rows, base health, the sources table) and open-questions A1 still forbade or blocked what D24 allows.** | fixed, `a64ad6d`; a sweep for "not adopted", "never substitutes" and "blocks" finds only other rulesets' values (SoD, TBC), which D24 doesn't cover |
+| V2 | medium | introduced | **The About sheet said base values use Classic numbers,** but the engine doesn't have the placeholders yet. | fixed, `a64ad6d`: "are left out or use the value Classic Era is expected to have", true either way |
+| V3 | medium | introduced | **The milestones' track table kept its old header,** which broke its columns. | fixed, `a64ad6d` |
+| V4 | low | introduced | **Doctrine §2 didn't limit the exception to an emulator database** as D24 does. | fixed, `a64ad6d` |
+| V5 | nit | pre-existing | **M0's first deploy was unticked.** | fixed, `a64ad6d` |
+| V6 | nit | introduced | **"So far" was left in comments.** | fixed, `a64ad6d` |
+| V7 | nit | introduced | **The e2e didn't check the switcher's role labels.** | fixed, `a64ad6d`: every role is DPS or Tank |
+| V8 | nit | pre-existing | **Wording in reviewer.md and CLAUDE.md.** | fixed, `a64ad6d` |
+
+Checks after the fixes: lint ✓ · typecheck ✓ · unit ✓ (1052) · e2e ✓ (225, 3 deferred to M3).
+
 ## Verdict
 
-Ready to push: not yet. L1 was blocking, so `7174998` gets a quick fresh check (D20).
+Ready to push: not yet. V1 was blocking, so `a64ad6d` gets a quick fresh check (D20).

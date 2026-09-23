@@ -14,7 +14,7 @@ import { ACTION, type AbilityDef, COND, NO_PREPULL, type Plan, POWER_TICK_MS, ST
 import { simulate } from '../index'
 import type { GearSlot, RuleProfileId, SimConfig, SpecId } from '../types'
 import { runChunk } from './chunk'
-import { FIELD, SOURCE_MAIN_HAND, Sim } from './sim'
+import { BOSS_OUTCOME, FIELD, SOURCE_MAIN_HAND, Sim } from './sim'
 import { addAura, addProc, at, counter, damages, expectMean, from, line, setAttackPower, timeline } from './test-helpers'
 
 /**
@@ -505,6 +505,25 @@ describe('rage from hits (druid.md §8 "Rage from hits", rage.md#bear-druid-rage
     expect(hits('druid-feral-bear', 'cat')).toEqual({ fromDamageTaken: true, rage: 21, procs: 4, form: FORM_INDEX.cat })
     // A cat whose fight can be in bear, which sets the switch (rageFromHits): only the hits in bear.
     expect(hits('druid-feral-cat', 'bear', true)).toEqual({ fromDamageTaken: true, rage: 21, procs: 4, form: FORM_INDEX.bear })
+  })
+
+  it('Natural Reaction gives 5 rage on each dodge of the boss’s swings, and none on a parry (the `dodge` trigger)', () => {
+    const plan = druidPlan('druid-feral-bear', 60000, { keepProcs: true })
+    const reaction = plan.procs.findIndex((p) => p.id === 'naturalReaction')
+    expect(plan.procs[reaction].chance).toEqual([1, 1])
+    expect(plan.triggers[TRIGGER.dodge]).toContain(reaction)
+    expect(plan.triggers[TRIGGER.dodgeParry]).not.toContain(reaction)
+    // A druid can't parry; here it can (20%), to show a parry doesn't fire it. No rage cap, so
+    // every proc's 5 rage counts: 25 threat on its row (5 threat per rage, threat.md).
+    plan.stats.canParry = true
+    plan.stats.baseParry = 20
+    plan.rage.maxTenths = 1e9
+    const sim = new Sim(plan)
+    for (let i = 0; i < 5; i++) sim.runFight(i)
+    const dodges = sim.bossOutcomes[BOSS_OUTCOME.dodge]
+    expect(dodges).toBeGreaterThan(0)
+    expect(sim.bossOutcomes[BOSS_OUTCOME.parry]).toBeGreaterThan(0)
+    expect(counter(sim, plan.procs[reaction].source, FIELD.threat)).toBe(25 * dodges)
   })
 })
 

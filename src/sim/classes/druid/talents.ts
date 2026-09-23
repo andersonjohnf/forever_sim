@@ -57,7 +57,8 @@ export const DRUID_TALENT_EFFECTS: Record<string, (rank: number, profile: RulesP
     ...(profile.catalogue.column === 'classicEra' ? [] : [{ kind: 'stat', stat: 'spellCrit', value: 3, when: ANIMAL } as const]),
   ],
   // Feral 6·1: +1% dodge per rank, and 20% per rank to gain 5 rage on a dodge (417051, 417053:
-  // energize 50) (§4.8, rage.md#bear-druid-rage). Druids can't parry, so a dodge is the trigger.
+  // energize 50) (§4.8, rage.md#bear-druid-rage). It fires on the player's dodges only (the `dodge`
+  // trigger, combat-tables §8), not on parries, which a druid can't make anyway.
   'Natural Reaction': (r) => [
     { kind: 'stat', stat: 'dodge', value: r },
     {
@@ -66,7 +67,7 @@ export const DRUID_TALENT_EFFECTS: Record<string, (rank: number, profile: RulesP
         id: 'naturalReaction',
         name: 'Natural Reaction',
         icon: 'ability_bullrush',
-        trigger: 'dodgeParry',
+        trigger: 'dodge',
         from: 'any',
         chance: { pct: 20 * r },
         action: { kind: 'rage', amount: 5 },

@@ -151,10 +151,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
   ...recklessnessOptions(
     ID,
     'Use Recklessness once, for +100% crit chance for 15 s: just before the execute phase, or near the end without one. It needs Berserker Stance: from Battle Stance you swap and stay there, keeping at most 10 rage plus 3 per Improved Tactical Mastery rank.',
-    {
-      default: 15,
-      help: 'Or once this much of the fight is left, if that comes first: in a short fight, without an execute phase, or with Execute off. 15 s is its duration, so all of it counts.',
-    },
+    15,
     {
       kind: 'number',
       id: ID.reckBeforeExecute,

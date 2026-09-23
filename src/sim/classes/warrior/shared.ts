@@ -266,15 +266,11 @@ export const cooldownOptions = (ids: SharedIds): RotationOption[] => [
 
 /**
  * Recklessness once near the end (row 4 of both); its help says how the spec gets to Berserker
- * Stance, and `lastSec` is the spec's timing by the clock: its default (15 s) and help. `before`
- * is the spec's own timing setting ahead of it (Arms: before the execute phase, §5.3 row 4).
+ * Stance, and `lastSec` is the spec's default timing by the clock (Fury 16 s, Arms 15 s), whose help
+ * both share. `before` is the spec's own timing setting ahead of it (before the execute phase,
+ * §5.2 and §5.3 row 4).
  */
-export const recklessnessOptions = (
-  ids: SharedIds,
-  help: string,
-  lastSec: { default: number; help: string } = { default: 15, help: 'Use it once this much of the fight is left.' },
-  ...before: RotationOption[]
-): RotationOption[] => [
+export const recklessnessOptions = (ids: SharedIds, help: string, lastSec = 15, ...before: RotationOption[]): RotationOption[] => [
   { kind: 'toggle', id: ids.reckEnabled, group: 'Cooldowns and buffs', label: 'Recklessness', help, default: true },
   ...before,
   {
@@ -282,12 +278,12 @@ export const recklessnessOptions = (
     id: ids.reckLastSec,
     group: 'Cooldowns and buffs',
     label: 'Recklessness in the last',
-    help: lastSec.help,
+    help: 'Or once this much of the fight is left, if that comes first: in a short fight, without an execute phase, or with Execute off. Recklessness lasts 15 s, so at 15 or 16 s nearly all of it counts, even after a global cooldown in progress.',
     unit: 's',
     min: 1,
     max: 300,
     step: 1,
-    default: lastSec.default,
+    default: lastSec,
     dependsOn: ids.reckEnabled,
   },
 ]

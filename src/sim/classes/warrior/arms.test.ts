@@ -6,12 +6,13 @@ import { MIGHTY_RAGE_POTION } from '../../effects/buffs'
 import { ITEM_EFFECTS } from '../../effects/items'
 import { COND, STANCE } from '../../plan/types'
 import { CLASSIC_ERA } from '../../rules/profiles'
-import type { RotationValue } from '../../types'
+import type { RotationOption, RotationValue } from '../../types'
 import { talentRanksByName } from '..'
 import { TALENT_DATA, defaultConfig } from '../../defaults'
 import { resolveRotationValues } from '../options'
 import { overpowerWindowProcs } from './abilities'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './arms'
+import { FURY_OPTIONS } from './fury'
 import { potionFallbackMaxRage, rageCap } from './shared'
 
 /** The default Arms build's talents by name (37/14/0, warrior.md §6.1). */
@@ -52,6 +53,12 @@ describe('Arms rotation options (warrior.md §5.1, §5.3)', () => {
         for (const w of option.defaultWhen ?? [])
           if ('option' in w) expect(optionIds.indexOf(w.option), option.id).toBeLessThan(optionIds.indexOf(option.id))
     }
+  })
+
+  it('row 4: the clock shares Fury’s help, with its own default (15 s, Fury’s 16 s)', () => {
+    const lastSec = (options: RotationOption[], spec: string) => options.find((o) => o.id === `warrior.${spec}.recklessness.lastSec`)!
+    expect(lastSec(ARMS_OPTIONS, 'arms').help).toBe(lastSec(FURY_OPTIONS, 'fury').help)
+    expect([lastSec(ARMS_OPTIONS, 'arms').default, lastSec(FURY_OPTIONS, 'fury').default]).toEqual([15, 16])
   })
 
   it('lists the settings in priority order, the base stance first (§5.3 rows 0–14, 16–18)', () => {

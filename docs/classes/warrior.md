@@ -1082,7 +1082,7 @@ rows 1, 3, 5 and 18 their settings' wording too. The defaults are the best rotat
 default setup ([D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
 [Tuning the defaults](#tuning-the-defaults-m25a) below), so where a shared row's default or
 wording differs from Fury's, Arms passes its own: row 0's Charge, row 1's refresh, row 4's
-timing and help, row 13's switch and threshold, row 16's switch, and row 17's last chance (4 s,
+clock (15 s, Fury's 16 s; its help is shared) and the switch's help, row 13's switch and threshold, row 16's switch, and row 17's last chance (4 s,
 Fury's 2 s) and help. Both follow the execute phase the same way since M2.5b
 ([§5.2](#tuning-the-defaults-m25b)); Fury's final Death Wish does too, a setting Arms doesn't
 have.
@@ -1094,7 +1094,7 @@ have.
 | 1 | Battle Shout | As Fury's row 1: missing, or at most `refreshBelowSec` left and it would run out before the fight ends; rage ≥ 10. It replaces the Buffs tab's Battle Shout | `arms.battleShout.enabled` (on), `.refreshBelowSec` (0: once it has run out) | yes |
 | 2 | Rend | Your Rend is missing, or has at most `refreshBelowSec` of ticks left and would end before the fight does. Bloodthrill needs it. In Berserker Stance, a dance to Battle Stance at rage ≤ the swap's cap (25) | `arms.rend.enabled` (on with Bloodthrill in Battle Stance, off otherwise), `.refreshBelowSec` (3) | with Bloodthrill |
 | 3 | Racial or trinket cooldowns | As Fury's row 3: with Death Wish (row 16) when it's used; otherwise at the pull and on cooldown | `arms.racial.enabled` (on), `arms.trinkets.enabled` (on), `arms.cooldowns.syncWithDeathWish` (on) | yes |
-| 4 | Recklessness | Once: `beforeExecuteSec` before the execute phase starts, or when ≤ `lastSec` s are left, whichever comes first. Without an execute phase, or with Execute (row 7) off, only the latter. From Battle Stance it swaps to Berserker Stance (keeping at most 25 rage) and stays there for the rest of the fight | `arms.recklessness.enabled` (on), `.beforeExecuteSec` (1.5; dimmed with Execute off, and its help says it needs an execute phase), `.lastSec` (15: its duration); see the notes | yes |
+| 4 | Recklessness | Once: `beforeExecuteSec` before the execute phase starts, or when ≤ `lastSec` s are left, whichever comes first. Without an execute phase, or with Execute (row 7) off, only the latter. From Battle Stance it swaps to Berserker Stance (keeping at most 25 rage) and stays there for the rest of the fight | `arms.recklessness.enabled` (on), `.beforeExecuteSec` (1.5; dimmed with Execute off, and its help says it needs an execute phase), `.lastSec` (15: its duration; the help is Fury's); see the notes | yes |
 | 5 | Bloodrage (off the GCD) | On cooldown if rage ≤ `maxRage` | `arms.bloodrage.enabled` (on), `.maxRage` (110: max − 20) | yes |
 | 6 | **Execute phase** (target ≤ 20%): Slam | Off cooldown; rage ≥ Slam's 15 + Execute's 15 | `arms.execute.slamInExecute` (on) | yes |
 | 7 | Execute phase: Execute | Rage ≥ cost. With `mortalStrikeInExecute`, Mortal Strike comes just before it | `arms.execute.enabled` (on), `.mortalStrikeInExecute` (on) | yes |
@@ -1155,10 +1155,11 @@ Notes:
   is used once that much is left, if that comes first. It does in a short fight: a 30 s fight's
   20% phase starts about 6 s before the end, and 15 s left is 7.5 s earlier than 1.5 s before
   it. Without an execute phase, or with Execute off (the phase then changes nothing), the clock
-  is all there is. Its default is Recklessness's own 15 s, so all of it counts, and 15 s measured
-  best at every length (below). An engine choice, measured; no source covers it. Until the M2.5a
-  review it was 39 s left, fitted to the default fight's phase, which cost 5–8% in fights of
-  30–60 s and 1.9% without a phase. The phase's start and the fight's end are known exactly
+  is all there is. Its default is Recklessness's own 15 s, so nearly all of it counts even after a
+  global cooldown in progress, and 15 s measured best at every length (below). The setting's help
+  is Fury's too ([§5.2](#52-fury-dual-wield) row 4, 16 s). An engine choice, measured; no source
+  covers it. Until the M2.5a review it was 39 s left, fitted to the default fight's phase, which
+  cost 5–8% in fights of 30–60 s and 1.9% without a phase. The phase's start and the fight's end are known exactly
   ([§5.2](#52-fury-dual-wield) notes); using Recklessness 1–3 s early or late around the phase
   costs 0.02–0.28% in the default setup (seed 5304, 200,000 paired fights each), and the result
   lists the assumption.

@@ -140,10 +140,7 @@ export const FURY_OPTIONS: RotationOption[] = [
   ...recklessnessOptions(
     ID,
     'Use Recklessness once, for +100% crit chance for 15 s: just before the execute phase, or near the end without one.',
-    {
-      default: 16,
-      help: 'Or once this much of the fight is left, if that comes first: in a short fight, without an execute phase, or with Execute off. At 16 s, a global cooldown in progress still leaves it its full 15 s.',
-    },
+    16,
     {
       kind: 'number',
       id: ID.reckBeforeExecute,

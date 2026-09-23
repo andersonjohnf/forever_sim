@@ -1084,7 +1084,9 @@ the buffs doc as a per-spec entry.
   aura (OQ-8). With the cat's abilities: Shred's and Claw's flat bonus (Q1), Rip's and Bite's
   attack power (Q3), the bleeds' snapshots and tick crits (Q21), the two rolls of Rake and Bite
   (Q33), Predatory Instincts' 2.2× (Q10), Rend and Tear's scope and others' bleeds (Q9), Berserk's
-  crits and Primal Fury (Q8), and attack speed in form (Q28).
+  crits and Primal Fury (Q8), attack speed in form (Q28), and why the cat never powershifts
+  (§2.8, an inference from the tooltips). The form weapon's and Omen of Clarity's lines give only
+  the form's own figures: a cat's 1.0 s swing and 3.33% of landed hits.
 
 **What the engine provides** (`src/sim/classes/druid/`, and plan/types.ts `AbilityPlan`). A cat or
 bear ability is a row with these fields, and its talents come from `withDruidTalents`

@@ -289,13 +289,26 @@ const REGISTRY = {
     text: 'Your flask’s bonus works only in Mount Hyjal, Hyjal Summit and the Barrow Deeps; this fight is elsewhere.',
     docRef: `${BUFFS}#31-flasks`,
   },
-  formWeapon: {
-    text: 'In Cat and Bear Form you attack with the form’s own weapon: 54.8 damage per second (43.84–65.76 every 1.0 s in cat, 109.6–164.4 every 2.5 s in bear), a figure from another sim, not the game. Your weapon’s damage and weapon skill don’t count, its other stats do, and procs per minute use the form’s swing speed.',
+  // Each form's lines give only its own figures: the cat's, and the bear's (formWeapon, omenOfClarity).
+  formWeaponCat: {
+    text: 'In Cat Form you attack with the form’s own weapon: 43.84–65.76 damage every 1.0 s (54.8 damage per second), a figure from another sim, not the game. Your weapon’s damage and weapon skill don’t count, its other stats do, and procs per minute use the form’s 1.0 s swing.',
     docRef: `${DRUID}#21-form-attacks-swing-timer-and-damage`,
   },
-  omenOfClarity: {
-    text: 'Omen of Clarity procs Clearcasting 2 times a minute (3.33% of landed hits in cat, 8.33% in bear), at most once every 10 s. The 10 s is client data; the rate comes from another sim.',
+  formWeapon: {
+    text: 'In Dire Bear Form you attack with the form’s own weapon: 109.6–164.4 damage every 2.5 s (54.8 damage per second), a figure from another sim, not the game. Your weapon’s damage and weapon skill don’t count, its other stats do, and procs per minute use the form’s 2.5 s swing.',
+    docRef: `${DRUID}#21-form-attacks-swing-timer-and-damage`,
+  },
+  omenOfClarityCat: {
+    text: 'Omen of Clarity procs Clearcasting 2 times a minute (3.33% of landed hits in Cat Form), at most once every 10 s. The 10 s is client data; the rate comes from another sim.',
     docRef: `${DRUID}#27-omen-of-clarity-and-clearcasting`,
+  },
+  omenOfClarity: {
+    text: 'Omen of Clarity procs Clearcasting 2 times a minute (8.33% of landed hits in Dire Bear Form), at most once every 10 s. The 10 s is client data; the rate comes from another sim.',
+    docRef: `${DRUID}#27-omen-of-clarity-and-clearcasting`,
+  },
+  noPowershift: {
+    text: 'The cat never powershifts. Forever’s Furor gives back the Energy you left Cat Form with, where Classic Era’s set it to 40, so a shift gains nothing and costs a GCD and mana: an inference from the tooltips, untested.',
+    docRef: `${DRUID}#28-shapeshifting-furor-wolfshead-helm-powershifting-mana`,
   },
   energyTicks: {
     text: 'Energy comes 20 every 2 s, as in Classic Era. The rest is untested: a cap of 100, a full bar at the pull, the first tick at a random moment in the first 2 s, and 80% of a builder’s Energy back when it misses or is dodged or parried (a finisher gets none back).',
@@ -366,7 +379,7 @@ const REGISTRY = {
     docRef: `${DRUID}#29-snapshotting`,
   },
   catTwoRolls: {
-    text: 'Rake’s hit and Ferocious Bite roll to hit and then to crit, like Bloodthirst, since they deal no weapon damage; Shred and Claw roll once. Untested for druids.',
+    text: 'Rake’s hit and Ferocious Bite roll to hit and then to crit, since they deal no weapon damage; Shred and Claw roll once. Untested for druids.',
     docRef: `${DRUID}#3-feral-cat-sim-model`,
   },
   predatoryInstincts: {

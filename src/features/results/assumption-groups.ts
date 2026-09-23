@@ -63,7 +63,10 @@ export const ASSUMPTION_GROUP = {
   // How the sim plays the class: rage, abilities and talents.
   whiteSwingsOnly: 'class',
   formWeapon: 'class',
+  formWeaponCat: 'class',
   omenOfClarity: 'class',
+  omenOfClarityCat: 'class',
+  noPowershift: 'class',
   energyTicks: 'class',
   rendAndTear: 'class',
   catFinisherAp: 'class',

@@ -76,8 +76,12 @@ describe('simulate', () => {
     // Energy's ticks and refunds, Omen of Clarity and the form weapon are listed; no rage refunds,
     // and the reaction time and GCD in the cat's terms (Energy, Clearcasting, a 1 s GCD).
     const notes = result.assumptions.map((a) => a.id)
-    expect(notes).toEqual(expect.arrayContaining(['energyTicks', 'omenOfClarity', 'formWeapon', 'reactionTimeEnergy', 'gcdHasteCat']))
-    for (const id of ['abilityRefunds', 'reactionTime', 'gcdHaste']) expect(notes).not.toContain(id)
+    expect(notes).toEqual(expect.arrayContaining(['energyTicks', 'omenOfClarityCat', 'formWeaponCat', 'noPowershift', 'reactionTimeEnergy', 'gcdHasteCat']))
+    for (const id of ['abilityRefunds', 'reactionTime', 'gcdHaste', 'formWeapon', 'omenOfClarity']) expect(notes).not.toContain(id)
+    // Only Cat Form's figures, and no warrior terms (CU10).
+    const texts = result.assumptions.map((a) => a.text).join(' ')
+    expect(texts).not.toMatch(/bear|Bear|Bloodthirst/)
+    expect(result.assumptions.find((a) => a.id === 'noPowershift')?.docRef).toMatch(/druid\.md#28-/)
     expect(result.assumptions.find((a) => a.id === 'gcdHasteCat')?.text).toMatch(/1 s in Cat Form/)
   })
 

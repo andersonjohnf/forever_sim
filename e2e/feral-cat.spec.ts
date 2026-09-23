@@ -181,8 +181,10 @@ test.describe('Feral cat', () => {
     await expect(results.getByText(/^Omen of Clarity procs Clearcasting 2 times a minute/)).toBeVisible()
     await expect(results.getByText(/Energy ticks in or Clearcasting procs/)).toBeVisible()
     await expect(results.getByText(/^The global cooldown, 1 s in Cat Form/)).toBeVisible()
-    // Nothing of the warrior's: rage, Execute or Rend.
-    await expect(results.getByText(/rage arrives|Execute|Rend’s/)).toHaveCount(0)
+    await expect(results.getByText(/^The cat never powershifts\./)).toBeVisible()
+    await expect(results.getByText(/^In Cat Form you attack with the form’s own weapon: 43\.84–65\.76 damage every 1\.0 s/)).toBeVisible()
+    // Nothing of the warrior's or the bear's: rage, Execute, Rend or Bloodthirst, and no bear figures.
+    await expect(results.getByText(/rage arrives|Execute|Rend’s|Bloodthirst|in bear|Bear Form/)).toHaveCount(0)
   })
 })
 

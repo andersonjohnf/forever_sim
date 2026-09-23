@@ -1017,8 +1017,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // docs/classes/druid.md §2, §8 "Uncertainty surfacing": the druid's [?] that this setup relies on
   // (its base values are D24 placeholders, in `baseStatPlaceholders` above).
   if (classId === 'druid') {
-    if (setup.form === 'cat' || setup.form === 'bear') notes.add('formWeapon')
-    if (procIds.has('omenOfClarity')) notes.add('omenOfClarity')
+    // Each form's own figures (druid.md §2.1, §2.7); the cat also says why it never powershifts (§2.8).
+    if (setup.form === 'cat') notes.add('formWeaponCat')
+    if (setup.form === 'bear') notes.add('formWeapon')
+    if (procIds.has('omenOfClarity')) notes.add(setup.form === 'cat' ? 'omenOfClarityCat' : 'omenOfClarity')
+    if (setup.form === 'cat' && setup.simulated) notes.add('noPowershift')
     if (abilities.some((a) => a.resource === 'energy')) notes.add('energyTicks')
     if (abilities.some((a) => a.kind === 'shift')) notes.add('shapeshifts')
     // druid.md §3, §8 "Uncertainty surfacing": the cat's abilities.

@@ -7,7 +7,7 @@
 // energize threat (threat.md T15, T16).
 import { describe, expect, it } from 'vitest'
 import { BLOODRAGE, HAMSTRING, HEROIC_STRIKE, MORTAL_STRIKE } from '../classes/warrior/abilities'
-import { armorReduction, damageTakenRage, rageConversion, toTenths } from '../core/formulas'
+import { armorReduction, damageTakenRage, rageConversion } from '../core/formulas'
 import { defaultConfig } from '../defaults'
 import { buildPlan } from '../plan/build'
 import { ACTION, type Plan, STANCE, TRIGGER, TRIGGER_COUNT } from '../plan/types'
@@ -322,8 +322,11 @@ describe('rage from damage taken (rage.md#rage-from-damage-taken)', () => {
     return plan
   }
 
-  /** The inlined model in Sim.takeHit, from the reference `damageTakenRage` (core/formulas.ts), in tenths. */
-  const tenths = (model: DamageTakenRageModel, lost: number, pre: number, health: number) => toTenths(damageTakenRage(model, lost, pre, health))
+  /**
+   * The inlined model in Sim.takeHit, from the reference `damageTakenRage` (core/formulas.ts), in
+   * tenths with its fraction: `forever` carries each hit's fraction to the next (rage.md#rounding).
+   */
+  const tenths = (model: DamageTakenRageModel, lost: number, pre: number, health: number) => damageTakenRage(model, lost, pre, health) * 10
 
   describe('every model matches its closed form', () => {
     for (const model of models) {
@@ -369,7 +372,8 @@ describe('rage from damage taken (rage.md#rage-from-damage-taken)', () => {
       sim.runFight(0)
       const perBlock = tenths(model, 0, 5000, plan.rage.maxHealth)
       expect(perBlock > 0).toBe(model === 'forever')
-      expect(sim.totalRageGainedTenths).toBe(90 * perBlock) // every 2.0 s from 0 to < 180 s
+      // Every 2.0 s from 0 to < 180 s; the fractions carry, so the whole tenths add up to their sum's floor.
+      expect(sim.totalRageGainedTenths).toBe(Math.floor(90 * perBlock + 1e-9))
       expect(counter(sim, procs, FIELD.threat)).toBe(0)
     }
   })
@@ -395,8 +399,65 @@ describe('rage from damage taken (rage.md#rage-from-damage-taken)', () => {
     expect(health).toBeGreaterThan(0)
     const sim = new Sim(plan)
     sim.runFight(0)
-    // Hits at 2, 4, …, 18 s: 9 of them, each 10 × 200 ÷ max health.
-    expect(sim.totalRageGainedTenths).toBe(9 * toTenths((10 * 200) / health))
+    // Hits at 2, 4, …, 18 s: 9 of them, each 10 × 200 ÷ max health, their fractions carried.
+    expect(sim.totalRageGainedTenths).toBe(Math.floor(9 * ((10 * 200) / health) * 10 + 1e-9))
+  })
+})
+
+describe('fractions of a tenth (rage.md#rounding)', () => {
+  /** An Arms warrior whose every white swing lands, on a 3.5 s two-hander: 4.5 × 3.5 = 15.75 rage a swing. */
+  function swingPlan(profile: RuleProfileId, durationMs: number, maxTenths: number): Plan {
+    const plan = barePlan('warrior-arms', profile, { mainHand: { itemId: 12784 } }, durationMs)
+    plan.weapons[0]!.speedSec = 3.5
+    alwaysLandNoCrit(plan)
+    plan.rage.maxTenths = maxTenths
+    return plan
+  }
+
+  it('R27: a white hit’s fraction carries in `forever`: two 15.75-rage swings give 31.5, not 31.4', () => {
+    const plan = swingPlan('forever', 7000, 1e9) // swings at 0 and 3.5 s
+    const sim = new Sim(plan)
+    // The pool as each swing lands, before its own rage: whole tenths, 15.7 after the first.
+    const pool: number[] = []
+    sim.damageTrace = (source) => {
+      if (source === SOURCE_MAIN_HAND) pool.push((sim as unknown as { rage: number }).rage)
+    }
+    sim.runFight(0)
+    expect(pool).toEqual([0, 157])
+    expect(sim.totalRageGainedTenths).toBe(315)
+  })
+
+  it('R28: small hits add up in `forever`: a 5-damage hit every second gives its rage, which flooring each hit would lose', () => {
+    const plan = barePlan('warrior-fury', 'forever', { offHand: { itemId: 12602 } }, 60000) // a shield: no swings
+    plan.fight.damageTakenPerHit = 5
+    plan.fight.damageTakenIntervalMs = 1000
+    plan.rage.maxTenths = 1e9
+    plan.rage.maxHealth = 990 // 10 × 5 / 990 = 0.0505 rage a hit
+    const sim = new Sim(plan)
+    sim.runFight(0)
+    // Hits at 1, 2, …, 59 s: 29.8 tenths.
+    expect(sim.totalRageGainedTenths).toBe(29)
+  })
+
+  it('R29: a gain that reaches the cap loses its fraction: at the cap each 15.75-rage swing wastes 15.7, never 15.8', () => {
+    const plan = swingPlan('forever', 35000, 1000) // swings at 0, 3.5, …, 31.5 s: 10 of them
+    const sim = new Sim(plan)
+    sim.runFight(0)
+    // 15.7, 31.5, 47.2, 63, 78.7, 94.5, then the 7th reaches 100 (10.2 of its 15.7 lost, and its 0.05).
+    expect(sim.totalRageGainedTenths).toBe(1000)
+    expect(sim.totalRageWastedTenths).toBe(102 + 3 * 157)
+  })
+
+  it('R30: `classicEra` still floors each gain: 59 hits taken of 1.08 tenths give 5.9 rage', () => {
+    const plan = barePlan('warrior-fury', 'classicEra', { offHand: { itemId: 12602 } }, 60000)
+    expect(plan.rage.damageTakenModel).toBe('classic')
+    plan.fight.damageTakenPerHit = 10
+    plan.fight.damageTakenIntervalMs = 1000
+    plan.rage.maxTenths = 1e9
+    const perHit = ((2.5 * 10) / rageConversion(60)) * 10 // 1.084 tenths
+    const sim = new Sim(plan)
+    sim.runFight(0)
+    expect(sim.totalRageGainedTenths).toBe(59 * Math.floor(perHit))
   })
 })
 

@@ -146,12 +146,14 @@ export class Sim {
   private readonly wGlanceLow: Float64Array
   private readonly wGlanceHigh: Float64Array
   private readonly wTwoHand: Uint8Array
-  /** Normalized white rage per landed swing, in tenths (profile `normalized`). */
-  private readonly wNormRageTenths: Int32Array
+  /** Normalized white rage per landed swing, in tenths with their fraction (profile `normalized`). */
+  private readonly wNormRageTenths: Float64Array
   private readonly wRageMult: Float64Array
   private readonly wNormSpeed: Float64Array
   private readonly dualWield: boolean
   private readonly normalizedRage: boolean
+  /** Whether a white hit's or a hit taken's fraction of a tenth carries to the next (rage.md#rounding). */
+  private readonly carryRageFraction: boolean
   private readonly avoidedRageShare: number
   private readonly rageConv: number
   private readonly staticPhysMult: number
@@ -334,6 +336,8 @@ export class Sim {
   private now = 0
   private fightEnd = 0
   private rage = 0
+  /** The fraction of a tenth carried to the next white hit or hit taken, 0 ≤ it < 1 (rage.md#rounding). */
+  private rageFraction = 0
   private readonly maxRage: number
   private readonly swingMs = new Float64Array(2)
   private readonly nextSwingAt = new Float64Array(2)
@@ -473,7 +477,7 @@ export class Sim {
     this.wGlanceLow = new Float64Array(2)
     this.wGlanceHigh = new Float64Array(2)
     this.wTwoHand = new Uint8Array(2)
-    this.wNormRageTenths = new Int32Array(2)
+    this.wNormRageTenths = new Float64Array(2)
     this.wRageMult = new Float64Array(2)
     this.wNormSpeed = new Float64Array(2)
     const rage = plan.profile.rage
@@ -495,13 +499,15 @@ export class Sim {
       this.wTwoHand[h] = weapon.twoHand ? 1 : 0
       this.wRageMult[h] = weapon.rageMult
       this.wNormSpeed[h] = weapon.normalizedSpeed
-      // docs/mechanics/rage.md#forever-normalized-rage-per-swing-: k × base speed (× off-hand base), floored to tenths
+      // docs/mechanics/rage.md#forever-normalized-rage-per-swing-: k × base speed (× off-hand base), in
+      // tenths with its fraction, which rage.md#rounding carries or drops
       const k = weapon.twoHand ? rage.normalizedTwoHand : rage.normalizedOneHand
       const offBase = h === HAND.off ? rage.offHandBase : 1
-      this.wNormRageTenths[h] = Math.floor(k * weapon.speedSec * offBase * weapon.rageMult * 10 + 1e-9)
+      this.wNormRageTenths[h] = k * weapon.speedSec * offBase * weapon.rageMult * 10
     }
     this.dualWield = w[HAND.main] !== null && w[HAND.off] !== null
     this.normalizedRage = rage.white === 'normalized'
+    this.carryRageFraction = rage.fraction === 'carry'
     this.avoidedRageShare = rage.avoidedWhiteShare
     this.rageConv = rageConversion(plan.playerLevel)
     this.staticPhysMult = plan.damageMult * plan.physicalMult
@@ -952,6 +958,7 @@ export class Sim {
     this.q.clear()
     this.now = 0
     this.rage = 0
+    this.rageFraction = 0
     this.fightDamage = 0
     this.fightThreat = 0
     this.swingGen[0]++
@@ -1041,7 +1048,7 @@ export class Sim {
     if (this.preChargeTenths > 0) {
       this.gainRage(this.preChargeTenths, -1)
       // warrior.md §2.1: the swap to the fighting stance keeps at most 10 + 3 × Improved Tactical Mastery.
-      if (this.preKeepTenths >= 0 && this.rage > this.preKeepTenths) this.rage = this.preKeepTenths
+      if (this.preKeepTenths >= 0 && this.rage > this.preKeepTenths) this.setRage(this.preKeepTenths)
       // The swap is at the pull, so the next can come after its cooldown (warrior.md §7, an engine choice).
       if (this.preKeepTenths >= 0) {
         this.stanceReadyAt = this.swapCdMs
@@ -1220,7 +1227,7 @@ export class Sim {
       // docs/mechanics/rage.md#rage-from-damage-dealt: Classic gives 75% of the would-be damage; Forever 0
       if (!this.normalizedRage && this.avoidedRageShare > 0) {
         const wouldBe = this.whiteDamage(hand, bonusAp)
-        this.gainRage(this.whiteDamageRageTenths(hand, this.avoidedRageShare * wouldBe), -1)
+        this.gainRageFraction(this.whiteDamageRageTenths(hand, this.avoidedRageShare * wouldBe))
       }
       // warrior.md §2.8: the target's dodge opens the Overpower window.
       if (!dodged) this.onBossParried()
@@ -1244,8 +1251,7 @@ export class Sim {
       c[row + FIELD.hits]++
     }
     this.dealDamage(source, damage)
-    if (this.normalizedRage) this.gainRage(this.wNormRageTenths[hand], -1)
-    else this.gainRage(this.whiteDamageRageTenths(hand, damage), -1)
+    this.gainRageFraction(this.normalizedRage ? this.wNormRageTenths[hand] : this.whiteDamageRageTenths(hand, damage))
     this.fireProcs(TRIGGER.swingLanded, hand)
     this.fireProcs(TRIGGER.whiteLanded, hand)
     this.fireProcs(TRIGGER.meleeLanded, hand)
@@ -1263,10 +1269,9 @@ export class Sim {
     )
   }
 
-  /** Classic Era white-hit rage, 7.5 × damage / c, × this hand's multiplier (rage.md). */
+  /** Classic Era white-hit rage, 7.5 × damage / c, × this hand's multiplier (rage.md), in tenths with its fraction. */
   private whiteDamageRageTenths(hand: number, damage: number): number {
-    const rage = ((7.5 * damage) / this.rageConv) * this.wRageMult[hand]
-    return Math.floor(rage * 10 + 1e-9)
+    return ((7.5 * damage) / this.rageConv) * this.wRageMult[hand] * 10
   }
 
   /**
@@ -1367,7 +1372,7 @@ export class Sim {
   private swapStance(to: number): void {
     const before = this.rage
     if (before > this.swapKeep) {
-      this.rage = this.swapKeep
+      this.setRage(this.swapKeep)
       this.totalSwapRageLostTenths += before - this.rage
       this.afterRageSpent()
     }
@@ -1604,7 +1609,8 @@ export class Sim {
         // docs/mechanics/rage.md#rage-refunds-on-avoided-abilities: no threat, not an energize.
         // Execute refunds nothing, so a miss loses only its cost (warrior.md §3.1 "Execute details").
         const refund = Math.floor(this.abRefund[a] * this.abCost[a] + 1e-9)
-        this.rage = Math.min(this.maxRage, this.rage + refund)
+        if (this.rage + refund >= this.maxRage) this.setRage(this.maxRage)
+        else this.rage += refund
         this.actPending = this.hasRotation
       }
       return
@@ -1636,7 +1642,7 @@ export class Sim {
     }
     if (main && this.abPerExtraRage[a] > 0) {
       // warrior.md §3.1 "Execute details": a landed Execute (a block lands too) spends all the rage.
-      this.rage = 0
+      this.setRage(0)
       this.afterRageSpent()
       this.actPending = this.hasRotation
     }
@@ -1964,11 +1970,38 @@ export class Sim {
   // Rage
   // ------------------------------------------------------------------------------------------
 
-  /** Adds rage in tenths, capped. `source` ≥ 0 marks an energize: 5 threat per rage gained (threat.md). */
+  /**
+   * Adds a white hit's or a hit taken's rage, in tenths with its fraction (rage.md#rounding). The
+   * pool holds whole tenths. `carry` keeps the fraction for the next such gain, so the fractions
+   * add up and none is lost; `floor` drops it. At the cap the fraction is lost with the rest.
+   */
+  private gainRageFraction(tenths: number): void {
+    if (!this.carryRageFraction) {
+      this.gainRage(Math.floor(tenths + 1e-9), -1)
+      return
+    }
+    const total = this.rageFraction + tenths
+    const whole = Math.floor(total + 1e-9)
+    // gainRage drops the fraction if this gain reaches the cap; one already there keeps none.
+    this.rageFraction = this.rage >= this.maxRage ? 0 : Math.max(0, total - whole)
+    this.gainRage(whole, -1)
+  }
+
+  /** Sets the pool, dropping any carried fraction: a stance swap's limit, the cap, or all of it spent (rage.md#rounding). */
+  private setRage(tenths: number): void {
+    this.rage = tenths
+    this.rageFraction = 0
+  }
+
+  /**
+   * Adds rage in tenths, capped; a pool that reaches the cap keeps no carried fraction
+   * (rage.md#rounding). `source` ≥ 0 marks an energize: 5 threat per rage gained (threat.md).
+   */
   private gainRage(tenths: number, source: number): void {
     if (tenths <= 0) return
     const gained = Math.min(tenths, this.maxRage - this.rage)
     this.rage += gained
+    if (this.rage >= this.maxRage) this.rageFraction = 0
     if (gained > 0) this.actPending = this.hasRotation
     this.totalRageGainedTenths += gained
     this.totalRageWastedTenths += tenths - gained
@@ -2067,7 +2100,7 @@ export class Sim {
         if (healthLost > 0) rage = (2.5 * healthLost) / this.rageConv
         break
     }
-    this.gainRage(Math.floor(rage * 10 + 1e-9), -1)
+    this.gainRageFraction(rage * 10)
     if (healthLost > 0) this.fireProcs(TRIGGER.damageTaken, -1)
   }
 }

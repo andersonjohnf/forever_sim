@@ -213,7 +213,7 @@ describe('timing worked examples in the engine', () => {
 })
 
 describe('tank rage from boss hits matches the closed form (rage.md tank model)', () => {
-  it('forever default, 10 × the hit before mitigation ÷ max health, floored to tenths per hit; a block doesn’t lower it', () => {
+  it('forever default, 10 × the hit before mitigation ÷ max health, fractions of a tenth carried; a block doesn’t lower it', () => {
     const d = defaultConfig('warrior-protection')
     const config: SimConfig = {
       ...d,
@@ -228,7 +228,8 @@ describe('tank rage from boss hits matches the closed form (rage.md tank model)'
     const p = [miss, dodge - miss, parry - dodge, block - parry, crit - block, crush - crit, 100 - crush].map((x) => x / 100)
     expect(plan.rage.damageTakenModel).toBe('forever')
     const health = plan.rage.maxHealth
-    const tenths = (pre: number) => Math.floor(((10 * pre) / health) * 10 + 1e-9)
+    // rage.md#rounding: each hit's fraction of a tenth carries to the next, so none is lost on average.
+    const tenths = (pre: number) => ((10 * pre) / health) * 10
     // Blocked, crit, crushing and plain hits; armor, the block and Defensive Stance's −10% don't enter.
     const perSwing = p[3] * tenths(5000) + p[4] * tenths(10000) + p[5] * tenths(7500) + p[6] * tenths(5000)
     const swings = 90 // every 2.0 s from 0 to < 180 s
@@ -389,6 +390,17 @@ describe('golden run (fixed config and seed)', () => {
   //   Shield Specialization and Master of Defense rage: their threat 7,232.5 → 7,486 and
   //   16,387.5 → 16,959.5 over 500 fights, TPS 216.97981 → 216.98889; DPS unchanged. Fury and
   //   Arms take no damage: unchanged.
+  // - M2.4i fix slice B (LX4): in `forever` a white hit's or a hit taken's fraction of a tenth
+  //   carries to the next such gain (rage.md#rounding: the beta logs keep it on average); each gain
+  //   was floored to a tenth. Fury's 2.4 s main hand (8.4 rage) and 1.8 s off hand (6.3 with Dual
+  //   Wield Specialization 5/5) have no fraction: unchanged. Arms' 3.5 s two-hander gives 15.75 a
+  //   landed swing where it gave 15.7: 1.8 more rage a fight over 40,000 fights (1,269.9 →
+  //   1,271.7, +0.14%) for +0.01% DPS. On this seed's 1,000 fights the extra rage shifts Overpower
+  //   (8,552 → 8,716 casts), Execute and Slam: DPS 610.71 → 611.88, TPS 353.68 → 354.24.
+  //   Protection's mean boss hit gives 11.4536 rage where it gave 11.4, so the bar fills a little
+  //   sooner and clips more of Shield Specialization's and Master of Defense's rage: their threat
+  //   7,486 → 7,467.5 and 16,959.5 → 16,927.5 over 500 fights, TPS 216.98889 → 216.98833; DPS
+  //   unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

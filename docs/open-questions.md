@@ -17,11 +17,12 @@ Status: consolidated 2026-09-22, reconciled with the cross-doc review the same d
 ([D13](decisions.md#d13-cross-doc-reconciliation-rules-2026-09-22)), and synced with the
 client-data check the same day ([client.md](data/client.md)); B9, B14, C2 and C25 updated
 2026-09-23 from the beta-log analysis of rage from damage taken
-([rage.md](mechanics/rage.md#forever-)), with no entries added or closed · Forever beta 1.60.1.69913 ·
+([rage.md](mechanics/rage.md#forever-)), and B77 added the same day from its rounding
+([rage.md](mechanics/rage.md#rounding)) · Forever beta 1.60.1.69913 ·
 Classic Era 1.15.9.69722 · beta capped at level 20 (rising to 30), launch 2026-11-04, raids
 unlock 2026-12-09
 
-**144 entries, 121 open:** Route A 8 (High 1, Medium 2, Low 5) · Route B 76 (20 / 27 / 29) ·
+**145 entries, 122 open:** Route A 8 (High 1, Medium 2, Low 5) · Route B 77 (20 / 27 / 30) ·
 Route C 37 (9 / 14 / 14) · Route D 23, all ✅ resolved from client data (was 7 / 11 / 5), plus
 7 items settled by the sim or a guild decision. The client-data check added in-game checks to
 B41, C11 and C12 rather than new entries.
@@ -1267,6 +1268,26 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Samples:** one look per item family.
 - **Changes:** which items the gear picker offers each faction.
 - **Docs:** [items § Equipping rules, Caveats](data/items.md#equipping-rules)
+
+#### B77. Rage fractions: carried, random or floored
+**Low · M2 · ≤20**
+- **Assumes** [?]: in `forever` a white hit's or a hit taken's fraction of a tenth carries to the
+  next such gain, so none is lost, and the pool shows whole tenths. Third-party beta logs rule
+  out flooring each gain or rounding it to the nearest tenth: one weapon's swings take two
+  neighbouring values, in the share its fraction predicts. They lean towards random rounding
+  over a carried fraction (2 of 36 back-to-back pairs are ones a carried fraction can't give);
+  both have the same mean. `classicEra` floors each gain (unmeasured).
+- **Test:** log many hits and see whether the totals drift. One weapon, auto attack only, no
+  rage talents, a target that can't hit back, the pool far from the cap: log 50 or more landed
+  swings in a row and compare the rage gained with `swings × k × speed`. A carried fraction
+  stays within 0.1 of it; random rounding wanders about ±0.35 after 50 swings at a fraction of
+  0.5; flooring each swing falls 2.5 behind. Repeat with a stream of small hits taken and no
+  swings of your own.
+- **Samples:** 50 or more swings in a row, twice; 50 or more hits taken.
+- **Changes:** how the rage model rounds. Flooring would cost Arms' 3.5 s two-hander 0.05 rage a
+  swing and a tank about 0.05 a boss hit; carried and random rounding differ only in spread.
+- **Docs:** [rage § Rounding](mechanics/rage.md#rounding),
+  [rage OQ 9](mechanics/rage.md#open-questions)
 
 ---
 

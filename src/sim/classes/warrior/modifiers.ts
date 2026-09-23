@@ -137,8 +137,8 @@ export function abilityCritMultiplier(id: string, talents: TalentRanks): number 
 
 /**
  * Improved Bloodrage multiplies all of Bloodrage's rage by `1 + 0.25 × rank` [F] (warrior.md §2.3,
- * W19): 15 + 1.5/s at 2/2. Each gain is floored to a tenth (rage.md#implementation-notes
- * "Rounding"), so 1/2's 1.25-rage ticks give 1.2.
+ * W19): 15 + 1.5/s at 2/2. Each gain is floored to a tenth, as talent-scaled energizes are
+ * (rage.md#rounding), so 1/2's 1.25-rage ticks give 1.2.
  */
 export function bloodrageRage(tenths: number, talents: TalentRanks): number {
   return Math.floor(tenths * (1 + 0.25 * rank(talents, 'Improved Bloodrage')) + 1e-9)

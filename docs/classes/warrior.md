@@ -1174,8 +1174,8 @@ parts:
   aura ends early (its duration minus the lead), its cooldown runs from the cast, its ticks due
   before the pull are rage at the pull and the rest keep their phase.
 - **Talented cooldown rage.** Improved Bloodrage multiplies each of Bloodrage's gains by
-  `1 + 0.25 × rank`, and each gain is floored to a tenth
-  ([rage.md](../mechanics/rage.md#implementation-notes) "Rounding"). At 1/2 that gives 12.5 at
+  `1 + 0.25 × rank`, and each gain is floored to a tenth, as talent-scaled energizes are
+  ([rage.md](../mechanics/rage.md#rounding)). At 1/2 that gives 12.5 at
   once and 1.2 per tick (1.25 floored) [?] (Q29), and a result with Improved Bloodrage 1/2 and
   Bloodrage in the rotation lists it among its assumptions; 2/2 is exact (15 + 1.5). Improved
   Berserker Rage adds 5 rage per rank.
@@ -1675,8 +1675,10 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     log or a rage display with decimals shows it.
 29. **Improved Bloodrage 1/2.** Its +25% makes Bloodrage 12.5 rage at once and 1.25 per tick.
     Does the server keep the hundredths, round each tick, or round the curve value? The sim
-    floors each gain to a tenth, as [rage.md](../mechanics/rage.md#implementation-notes) does
-    for every gain, so 1/2 gives 12.5 + 10 × 1.2 = 24.5 rather than 25 ([§7](#7-implementation-notes)).
+    floors each gain to a tenth, as [rage.md](../mechanics/rage.md#rounding) does for
+    talent-scaled energizes, so 1/2 gives 12.5 + 10 × 1.2 = 24.5 rather than 25
+    ([§7](#7-implementation-notes)). White hits and hits taken keep their fractions in Forever
+    beta logs, so this energize may too.
     2/2 (the only rank the presets use) is exact. **Test:** rage before and after each tick with
     1/2, in a combat log that shows tenths.
 

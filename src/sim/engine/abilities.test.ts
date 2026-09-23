@@ -264,11 +264,12 @@ describe('Heroic Strike queue (warrior.md §2.4)', () => {
     const expected = Array.from({ length: Math.ceil(60000 / swing) }, (_, k) => k * swing)
     expect([...white[0], ...strikes].sort((a, b) => a - b)).toEqual(expected)
     expect(strikes.length).toBeGreaterThan(5)
-    // rage.md: rage came only from the landed white swings (Forever normalized, floored to tenths).
+    // rage.md: rage came only from the landed white swings (Forever normalized). Their fractions of a
+    // tenth carry (rage.md#rounding), so the whole tenths gained add up to the floor of their sum.
     const r = plan.profile.rage
-    const tenths = (w: WeaponPlan, offBase: number) => Math.floor(r.normalizedOneHand * w.speedSec * offBase * w.rageMult * 10 + 1e-9)
+    const tenths = (w: WeaponPlan, offBase: number) => r.normalizedOneHand * w.speedSec * offBase * w.rageMult * 10
     const fromWhite = white[0].length * tenths(plan.weapons[0]!, 1) + white[1].length * tenths(plan.weapons[1]!, r.offHandBase)
-    expect(sim.totalRageGainedTenths + sim.totalRageWastedTenths).toBe(fromWhite)
+    expect(sim.totalRageGainedTenths + sim.totalRageWastedTenths).toBe(Math.floor(fromWhite + 1e-9))
   })
 
   it('lifts the off hand’s dual-wield miss penalty while queued (combat-tables §5, W24)', () => {

@@ -104,6 +104,11 @@ export interface RulesProfile {
     conversion: number
     /** Default damage-taken model (rage.md#rage-from-damage-taken; `damageTakenRage` in core/formulas.ts). */
     damageTaken: DamageTakenRageModel
+    /**
+     * A white hit's or a hit taken's fraction of a tenth (docs/mechanics/rage.md#rounding): `carry`
+     * keeps it for the next such gain, so fractions add up and none is lost; `floor` drops it.
+     */
+    fraction: 'carry' | 'floor'
     /** Rage kept on a stance swap: base + per rank of (Improved) Tactical Mastery (rage.md#stance-changes-and-tactical-mastery). */
     stanceRetainBase: number
     stanceRetainPerRank: number
@@ -188,6 +193,8 @@ export const FOREVER: RulesProfile = {
     conversion: 230.6,
     // docs/mechanics/rage.md#forever-: 10 × damage before armor, block and absorbs ÷ max health
     damageTaken: 'forever',
+    // docs/mechanics/rage.md#rounding: the logs keep every fraction of a tenth on average
+    fraction: 'carry',
     // docs/mechanics/rage.md#stance-changes-and-tactical-mastery (Forever: 10 + 3 × Improved Tactical Mastery)
     stanceRetainBase: 10,
     stanceRetainPerRank: 3,
@@ -250,6 +257,8 @@ export const CLASSIC_ERA: RulesProfile = {
     conversion: 230.6,
     // docs/mechanics/rage.md#classic-era-c: 2.5 × health lost ÷ 230.6
     damageTaken: 'classic',
+    // docs/mechanics/rage.md#rounding: unmeasured in Classic Era, so each gain is floored as before
+    fraction: 'floor',
     // docs/mechanics/rage.md#stance-changes-and-tactical-mastery (Classic Era: 5 × Tactical Mastery)
     stanceRetainBase: 0,
     stanceRetainPerRank: 5,

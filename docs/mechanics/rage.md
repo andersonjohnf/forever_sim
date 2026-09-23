@@ -12,7 +12,7 @@ also adds 5-rage procs on blocks, dodges and parries, and makes Tactical Mastery
 models are documented below. The Forever model is the engine default. It still counts as
 unverified (`[?]`) until it has been measured at level 60.
 
-Status: researched 2026-09-22; rage from damage taken 2026-09-23 (beta logs of 18–22 Sep, build 1.60.1) · Forever client build 1.60.1.69913 · Classic Era 1.15.9.69722 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
+Status: researched 2026-09-22; rage from damage taken and rounding 2026-09-23 (beta logs of 18–22 Sep, build 1.60.1) · Forever client build 1.60.1.69913 · Classic Era 1.15.9.69722 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 
 **Client-data values.** Values cited as `[client] (Table, build)` come from the raw Forever
 client files (build 1.60.1.69913; Classic Era 1.15.9.69722 for the Classic halves), read through
@@ -28,6 +28,8 @@ same number, the tooltip is the primary citation.
 
 - A rage pool per character, stored in **tenths** (integers), with a cap of 100 rage
   ([rage-pool](#rage-pool-cap-and-decay)). Boundless Rage raises the cap by 10, 20 or 30.
+- **Fractions of a tenth** ([rounding](#rounding)): in `forever` (`[?]`) a white hit's or a hit
+  taken's fraction carries to the next such gain, so none is lost; `classicEra` floors each gain.
 - **Rage from white hits.** There are two models behind a ruleset switch
   ([rage-from-damage-dealt](#rage-from-damage-dealt)):
   - `forever` (default, `[?]`): per landed white hit, `k × baseWeaponSpeed`, with `k = 3.5`
@@ -296,6 +298,76 @@ question 1 lists the tests that would settle it.
 
 ---
 
+## Rounding
+
+The pool is kept in tenths, the unit of the client tables and the combat log
+([pool](#rage-pool-cap-and-decay)). A white hit (`k × speed`) or a hit taken (`10 × D_pre ÷
+maxHealth`) is rarely a whole number of tenths, and what happens to the rest decides whether
+small gains count. A 5-damage hit on a 200-health character is worth 0.25 rage; floored to a
+tenth it gives 0.2, and a stream of hits worth under 0.1 each gives nothing.
+
+**Forever [?]: the fraction counts.** The logs show whole tenths, and each gain's fraction
+counts in full on average. The engine carries a white hit's or a hit taken's fraction to the
+next such gain: the pool holds whole tenths, and the fractions add up, so none is lost. The
+fraction is lost when the pool is set rather than added to: at the cap (with the rest of the
+gain), by a stance swap's limit, and when Execute spends all the rage.
+
+**Classic Era [?]: floored.** Nothing measures it, so `classicEra` floors each gain to a tenth,
+as the engine always has.
+
+**Energizes** (Bloodrage, Shield Specialization, Unbridled Wrath and other spell effects) are
+whole tenths in the client data and need no rounding. A talent-scaled one is floored: Improved
+Bloodrage 1/2's 1.25-rage ticks give 1.2 ([warrior Q29](../classes/warrior.md#9-open-questions)).
+
+**Evidence** (third-party, `[?]`). The public logs of the [damage-taken analysis](#forever-):
+[tzcnt/forever-data][fd-logs] (18–19 Sep 2026, build 1.60.1, many players) and
+[1337LutZ's][lutz-gist] 12 labelled logs (22 Sep 2026, one warrior), re-read on 2026-09-23. A
+white swing's rage is the change in the advanced log's power snapshot at the swing, with no
+other snapshot, spending or cap in between (the method of [damage taken](#forever-)).
+
+1. **A weapon's swings give two neighbouring values, in the share the fraction predicts.** In
+   the logs, 777 clean one-hander swings, grouped by the pair of values they take:
+
+   | Weapon speed | `3.46 × speed` | Logged rage per swing | Share at the higher value: logged, predicted |
+   | --- | --- | --- | --- |
+   | 1.5 s | 5.19 | 5.1 ×3, 5.2 ×9 | 0.75, 0.90 |
+   | 1.6 s | 5.536 | 5.5 ×9, 5.6 ×5 | 0.36, 0.36 |
+   | 1.7 s | 5.882 | 5.8 ×15, 5.9 ×53 | 0.78, 0.82 |
+   | 1.9 s | 6.574 | 6.5 ×8, 6.6 ×35 | 0.81, 0.74 |
+   | 2.0 s | 6.92 | 6.9 ×22, 7.0 ×7 | 0.24, 0.20 |
+   | 2.1 s | 7.266 | 7.2 ×35, 7.3 ×81 | 0.70, 0.66 |
+   | 2.2 s | 7.612 | 7.6 ×13, 7.7 ×2 | 0.13, 0.12 |
+   | 2.3 s | 7.958 | 7.9 ×59, 8.0 ×95 | 0.62, 0.58 |
+   | 2.5 s | 8.65 | 8.6 ×118, 8.7 ×125 | 0.51, 0.50 |
+   | 2.6 s | 8.996 | 8.9 ×3, 9.0 ×80 | 0.96, 0.96 |
+
+   The speed is the one whose `3.46 × speed` falls between the two values; for 36 of the 44
+   characters with enough swings (one character in one log each), the logged swing interval
+   gives the same speed. Across the 34 whose two values are the floor and ceiling of `k × speed`
+   (848 swings, two-handers included at `4.5 × speed`), 485 swings are at the higher value; a
+   kept fraction predicts 500. **Flooring each swing predicts 0, and rounding each to the
+   nearest tenth 805**: 332 swings sit below where the nearest tenth would put them. Any rule
+   that rounds each gain by itself gives one weapon one value.
+2. **Hits taken.** Identical hits give different rage: in 1337LutZ's logs a 5-damage hit on 203
+   maximum health (0.246 rage) gave 0.2 eight times and 0.3 eleven times, where flooring or the
+   nearest tenth give 0.2 every time. A hit of 8 before mitigation blocked down to 1 gave +0.3
+   (0.26 predicted, 0.2 floored). The heaviest multi-attacker window, 10 Kobold hits on one
+   warrior in under 3 s, gave +4.4 against 4.36 predicted; floored per hit it would be 4.0, and
+   rounded per hit 4.5. Two fully absorbed hits gave +0.3 and +0.2 against 0.29 and 0.32.
+3. **Carried or random?** The logs fit either way the fraction could count. Carried from gain to
+   gain, one weapon's swings would alternate evenly: with a fraction under 0.5 two higher swings
+   never come back to back, and above 0.5 two lower ones never do. Rounded up at random, with a
+   chance equal to the fraction, both can happen. Of 36 pairs of back-to-back swings with nothing
+   between them, 2 are pairs a carried fraction can't give; random rounding expects about 3. That leans
+   towards random rounding, on too few pairs to decide, and both give the same average. The
+   engine carries the fraction, which needs no random numbers and gives the same mean
+   ([open question 9](#open-questions)).
+
+These swings also fit a one-hander's `k` at 3.46 rather than the default's 3.5: a 2.6 s weapon
+gives 8.9 or 9.0, never 9.1 ([open question 2](#open-questions)).
+
+---
+
 ## Rage refunds on avoided abilities
 
 | Rule | Value | Tag | Source |
@@ -504,11 +576,13 @@ owns the warrior-specific modifiers. The two docs were checked against each othe
    Management ticks every 3000 ms from the start of combat. The phase is assumed, not measured.
 6. Changing stance applies `min(rage, retain)` at the moment you swap.
 
-**Rounding.** Keep rage as integer tenths. Round each gain down to the nearest tenth. The
-server-side rounding is not known; Forever logs show tenths ([#252](https://github.com/ElliotWood/Forever/issues/252)).
-Keep the running total exact, and never truncate the pool to whole rage. Energizes scaled by a
-talent round the same way: Improved Bloodrage 1/2's 1.25-rage ticks give 1.2
-([warrior Q29](../classes/warrior.md#9-open-questions)).
+**Rounding.** Keep rage as integer tenths, and never truncate the pool to whole rage. In
+`forever`, keep a white hit's or a hit taken's fraction of a tenth, `0 ≤ f < 1`, and add it to
+the next such gain: `whole = ⌊f + gain⌋`, `f = f + gain − whole`. Drop `f` whenever the pool is
+set rather than added to: at the cap, a stance swap's limit, or Execute spending it all. In
+`classicEra`, floor each gain. Energizes are whole tenths, except a talent-scaled one, which is
+floored ([rounding](#rounding)). The per-fight reset sets `f = 0`, so each fight is reproducible
+from its seed alone.
 
 **Spell batching / latency.** The Forever batching window is not known. See
 [damage-and-timing.md](damage-and-timing.md). This doc assumes rage updates are visible
@@ -556,8 +630,8 @@ function damageTakenRage(healthLost: number, dPre: number, cfg: RageCfg, maxHeal
   equipped off-hand.
 - Revenge being usable after a block, dodge or parry is part of the attack table and ability
   logic, not rage (see [classes/warrior.md](../classes/warrior.md)).
-- Skipped under the 0.5% rule (doctrine §4): out-of-combat decay, and the rage-gain truncation
-  details.
+- Skipped under the 0.5% rule (doctrine §4): out-of-combat decay, and whether the server
+  carries a gain's fraction or rounds it at random (both give the same mean; [rounding](#rounding)).
 
 ---
 
@@ -600,6 +674,10 @@ Each of these becomes a unit test. Use level 60 and `c = 230.6` unless stated ot
 | R24b | Same as R23 with `foreverFlat` (`1.5/c`) | R_taken = 8.0497 × 0.6 = 4.8298. Per swing 7.5798; **3.7899 rage/s** |
 | R25 | Execute (cost 15) dodged at 50 rage | Rage after = **35** (the cost is lost, the extra 35 is kept, no refund) |
 | R26 | Execute (cost 15) hits at 50 rage | Rage after = **0** (the damage uses 35 extra rage; see warrior.md W10) |
+| R27 | Forever: a 3.5 s two-hander (4.5 × 3.5 = 15.75 rage), two landed swings from 0 | The pool shows **15.7**, then **31.5**, its fraction carried. Floored per swing it would be 31.4. |
+| R28 | Forever: a hit of 5 before mitigation every second, maximum health 990 (10 × 5 / 990 = 0.0505 rage each), 59 hits | **2.9** rage (29.8 tenths, floored once). Floored per hit it would be 0. |
+| R29 | Forever, cap 100: the swings of R27 from 0, ten of them | 15.7, 31.5, 47.2, 63.0, 78.7, 94.5, then **100**: the 7th's 15.7 loses 10.2 over the cap, and its 0.05 with it. At the cap each later swing wastes 15.7, never 15.8: **57.3** wasted in all. |
+| R30 | Classic Era: a 10-damage hit every second (2.5 × 10 / 230.6 = 0.108 rage each), 59 hits | Each floored to 0.1: **5.9** rage |
 
 ---
 
@@ -661,6 +739,18 @@ sample size (doctrine §2, tier 2).
    It is a minor issue.
 8. **Classic dodge/parry 75% rule** (only matters in `classic` mode): is "would-be damage" taken
    before or after armor?
+9. **Rounding: is each gain's fraction carried, rounded at random, or floored, and does it hold
+   at 60?** The default carries it ([rounding](#rounding)). The logs rule out flooring and the
+   nearest tenth per gain, and lean towards random rounding over a carried fraction on 36 pairs
+   of swings. **Test: log many hits and see whether the totals drift.** One weapon, auto attack
+   only, nothing else giving rage (no rage talents, a target that can't hit back, the pool far
+   from the cap): log 50 or more landed swings in a row and compare the rage gained with
+   `swings × k × speed`. A carried fraction keeps the total within 0.1 of it all the way; random
+   rounding wanders about ±0.35 after 50 swings at a fraction of 0.5; flooring each swing falls
+   behind by the fraction every swing (2.5 after 50). Then take a stream of small hits (a weak
+   mob, no swings of your own) and do the same with `10 × D_pre / maxHealth` per hit. Also note
+   back-to-back swings: with a fraction under 0.5, a carried fraction never gives two higher
+   swings in a row. Classic Era: the same test with a Classic Era warrior.
 
 ---
 

@@ -88,7 +88,10 @@ export const executePhaseStart = (fightMs: number, executePct: number) => Math.f
 /** Rage conversion value c(L) (rage.md#classic-era-formula-c); 230.6 at level 60. */
 export const rageConversion = (level: number) => 0.0091107836 * level * level + 3.225598133 * level + 4.2652911
 
-/** Floors a rage gain to whole tenths (rage.md#implementation-notes), exact for representable inputs. */
+/**
+ * Floors a rage amount to whole tenths, exact for representable inputs: energizes and rotation
+ * thresholds (rage.md#rounding). White hits and hits taken keep their fraction in `forever` instead.
+ */
 export const toTenths = (rage: number) => Math.floor(rage * 10 + 1e-9)
 
 export type SwingResult = 'hit' | 'crit' | 'glance' | 'block' | 'miss' | 'dodge' | 'parry'

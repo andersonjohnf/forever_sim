@@ -2338,14 +2338,17 @@ export class Sim {
   /**
    * A druid ability that missed or was dodged or parried gets back its refund share of what it paid
    * (a builder 80%, a finisher nothing [?]; nothing when Clearcasting paid), and a finisher keeps its
-   * combo points (druid.md §2.4, §2.5, Q29). No threat.
+   * combo points (druid.md §2.4, §2.5, Q29). No threat. Rage that reaches the cap drops the carried
+   * fraction, as a warrior's refund does (rage.md#rounding).
    */
   private refundPaid(a: number): void {
     const refund = Math.floor(this.abRefund[a] * this.lastPaid + 1e-9)
     if (refund <= 0) return
     const res = this.abRes[a]
-    if (res === RES_RAGE) this.rage = Math.min(this.maxRage, this.rage + refund)
-    else if (res === RES_ENERGY) this.energy = Math.min(this.energyMax, this.energy + refund)
+    if (res === RES_RAGE) {
+      if (this.rage + refund >= this.maxRage) this.setRage(this.maxRage)
+      else this.rage += refund
+    } else if (res === RES_ENERGY) this.energy = Math.min(this.energyMax, this.energy + refund)
     else this.mana = Math.min(this.manaMax, this.mana + refund)
     this.actPending = this.hasRotation
   }

@@ -314,8 +314,8 @@ counts in full on average. The engine carries a white hit's or a hit taken's fra
 next such gain: the pool holds whole tenths, and the fractions add up, so none is lost. The
 fraction is lost when the pool is set rather than added to (worked examples R29, R31–R33):
 - at the cap, with the rest of the gain (R29). A refund that reached the cap would lose it too
-  (R33), but none can: a refund is at most 80% of its cost, so the pool it returns to is below
-  where it was before the cost;
+  (R33), a warrior's or a bear's alike, but none can: a refund is at most 80% of its cost, so the
+  pool it returns to is below where it was before the cost;
 - by a stance swap's limit (R31): the swap keeps whole tenths;
 - when Execute spends all the rage (R32).
 

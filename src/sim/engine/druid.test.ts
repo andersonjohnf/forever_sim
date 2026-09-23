@@ -347,6 +347,35 @@ describe('bear rage (rage.md#bear-druid-rage)', () => {
     expect(c.totalRageGainedTenths).not.toBe(346)
     expect(c.totalRageGainedTenths).toBeGreaterThan(0)
   })
+
+  it('a bear refund that reaches the cap sets the pool to it and drops the fraction, as a warrior’s does (rage.md#rounding, R33)', () => {
+    // As R33 (mechanics.test.ts): a test ability refunds 3 × its 1-rage cost, and a second spends
+    // the capped pool. Every attack is dodged, so no white rage; the rage is from hits taken of
+    // 10 × 21 ÷ 200 = 1.05 rage, at 1 s and 2 s, so each carries 0.05.
+    const plan = druidPlan('druid-feral-bear', 2500)
+    expect(plan.rage.damageTakenModel).toBe('forever')
+    plan.fight.bossSwing = null
+    plan.fight.bossCanDodge = true
+    plan.stats.hit = 100
+    plan.stats.crit = -100
+    plan.stats.expertise = -1000
+    plan.fight.damageTakenPerHit = 21
+    plan.fight.damageTakenIntervalMs = 1000
+    plan.rage.maxHealth = 200
+    plan.rage.maxTenths = 30
+    const bear = formBit('bear')
+    const refunds = addDruidAbility(plan, testRow('testRefunds', { resource: 'rage', costTenths: 10, refundShare: 3, forms: bear }))
+    const spends = addDruidAbility(plan, testRow('testSpends', { resource: 'rage', costTenths: 30, forms: bear }))
+    line(plan, refunds, at(plan, 1500))
+    line(plan, spends, at(plan, 1500))
+    const { sim, uses, rageAtUse } = timeline(plan)
+    expect(counter(sim, plan.abilities[refunds].source, FIELD.dodges)).toBe(1)
+    // 1.0 at 1 s; at 1.5 s 1.0 − 1 + 3 reaches the cap of 3, then all 3 is spent.
+    expect([uses[refunds], rageAtUse[refunds], uses[spends], rageAtUse[spends]]).toEqual([[1500], [10], [1500], [30]])
+    // The hit at 2 s gives 1.0 (its 1.05, with nothing carried). Had the fraction stayed, 1.1.
+    expect(sim.totalRageGainedTenths).toBe(10 + 10)
+    expect(sim.resources().rage).toBe(10)
+  })
 })
 
 describe('determinism and the default druids', () => {

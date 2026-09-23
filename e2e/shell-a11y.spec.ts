@@ -189,6 +189,14 @@ test.describe('phone', () => {
     expect(checked).toBeGreaterThan(20)
   })
 
+  test('the header and tab bar’s bottom edge is kept for the page’s scroll padding', async ({ page }) => {
+    await page.goto('./')
+    const tabs = (await page.locator('[data-sticky-tabs]').boundingBox())!
+    await expect
+      .poll(() => page.evaluate(() => Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop)))
+      .toBeGreaterThanOrEqual(tabs.y + tabs.height + 4)
+  })
+
   test('the chosen tab scrolls into view', async ({ page }) => {
     await page.addInitScript(() => {
       if (sessionStorage.getItem('seeded')) return
@@ -202,6 +210,50 @@ test.describe('phone', () => {
     await expect.poll(async () => (await fight.boundingBox())!.x + (await fight.boundingBox())!.width).toBeLessThanOrEqual(bar.x + bar.width)
   })
 })
+
+// WCAG 2.4.11 (U34, RU3): going backwards, the page scrolls up, and a focused control must clear
+// the sticky section tabs as well as the header.
+for (const [width, device] of [
+  [390, { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }],
+  [1280, { viewport: { width: 1280, height: 900 } }],
+] as const) {
+  test.describe(`focus going backwards, ${width} px`, () => {
+    test.use(device)
+
+    for (const section of ['Buffs', 'Rotation']) {
+      test(`Shift+Tab through ${section} keeps each control clear of the header, the tabs and the sim bar`, async ({ page }) => {
+        await page.goto('./')
+        await page.getByRole('tab', { name: section, exact: true }).click()
+        const panel = page.locator(`[data-section="${section.toLowerCase()}"]`)
+        // From the tab's last control, at the foot of the page, back up to the tab panel itself.
+        await panel.locator('button:visible, input:visible').last().focus()
+        let checked = 0
+        for (let i = 0; i < 120; i++) {
+          await page.keyboard.press('Shift+Tab')
+          if (!(await panel.evaluate((el) => el.contains(document.activeElement) && el !== document.activeElement))) break
+          /** How far the focused control reaches under the tabs or the phone's sim bar, in px. */
+          const hidden = () =>
+            page.evaluate(() => {
+              const box = document.activeElement!.getBoundingClientRect()
+              const tabs = document.querySelector('[data-sticky-tabs]')!.getBoundingClientRect()
+              const bar = document.querySelector('[data-sim-bar]')!.getBoundingClientRect()
+              const floor = bar.height > 0 ? bar.top : window.innerHeight
+              return Math.max(0, tabs.bottom - box.top, box.bottom - floor)
+            })
+          const name = await page.evaluate(() => {
+            const el = document.activeElement!
+            const labelledBy = el.getAttribute('aria-labelledby')
+            const label = labelledBy && document.getElementById(labelledBy.split(' ')[0])?.textContent
+            return el.getAttribute('aria-label') || label || el.textContent?.slice(0, 40) || el.outerHTML.slice(0, 80)
+          })
+          await expect.poll(hidden, { message: `${name} is fully in view` }).toBe(0)
+          checked++
+        }
+        expect(checked).toBeGreaterThan(10)
+      })
+    }
+  })
+}
 
 for (const colorScheme of ['light', 'dark'] as const) {
   test.describe(`contrast, ${colorScheme}`, () => {

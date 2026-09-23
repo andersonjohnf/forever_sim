@@ -13,7 +13,14 @@ interface SimState {
   previous: SimResult | null
   /** The config the current result was computed from (JSON), for staleness. */
   resultKey: string | null
+  /** The config of the run under way (JSON), so a re-run that applies the setup isn't marked stale. */
+  runKey: string | null
   error: string | null
+  /**
+   * The config the failed run was given (JSON). Like a result, a failure belongs to its setup: it
+   * shows only while the setup still matches (docs/ux.md#states "Error").
+   */
+  errorKey: string | null
   run: (config: SimConfig) => Promise<void>
   cancel: () => void
 }
@@ -28,12 +35,15 @@ export const useSim = create<SimState>()((set, get) => ({
   result: null,
   previous: null,
   resultKey: null,
+  runKey: null,
   error: null,
+  errorKey: null,
   run: async (config) => {
     controller?.abort()
     const current = new AbortController()
     controller = current
-    set({ status: 'running', progress: null, error: null })
+    const key = configKey(config)
+    set({ status: 'running', progress: null, error: null, errorKey: null, runKey: key })
     try {
       const result = await simulate(config, {
         signal: current.signal,
@@ -45,15 +55,17 @@ export const useSim = create<SimState>()((set, get) => ({
         status: 'done',
         result,
         previous: last && last.spec === result.spec ? last : null,
-        resultKey: configKey(config),
+        resultKey: key,
+        runKey: null,
         progress: null,
       })
     } catch (err) {
       if (controller !== current) return
       if (err instanceof DOMException && err.name === 'AbortError') {
-        set({ status: get().result ? 'done' : 'idle', progress: null })
+        set({ status: get().result ? 'done' : 'idle', progress: null, runKey: null })
       } else {
-        set({ status: 'error', error: err instanceof Error ? err.message : String(err), progress: null })
+        const error = err instanceof Error ? err.message : String(err)
+        set({ status: 'error', error, errorKey: key, progress: null, runKey: null })
       }
     } finally {
       if (controller === current) controller = null

@@ -94,6 +94,9 @@ test.describe('run states', () => {
     await expect(panel.getByText(/Add a weapon in Gear/)).toBeVisible()
     await panel.getByRole('button', { name: 'Open Gear' }).click()
     await expect(page.getByRole('tab', { name: 'Gear', exact: true })).toHaveAttribute('aria-selected', 'true')
+    // The button goes once Gear is open beside it, so focus moves on to the weapon to add (RU6).
+    await expect(page.getByRole('button', { name: 'Main hand: empty' })).toBeFocused()
+    await expect(page.getByRole('button', { name: 'Main hand: empty' })).toBeInViewport()
   })
 })
 

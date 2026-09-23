@@ -11,8 +11,13 @@ import { useRef } from 'react'
  *   <Button ref={focus.returnRef} onClick={() => setOpen(true)}>…</Button>
  *   <SheetContent {...focus.contentProps}>
  *     <SheetTitle ref={focus.titleRef} tabIndex={-1}>…</SheetTitle>
+ *
+ * Without a titleRef, the content's own first field takes focus (a search box with autoFocus).
+ * When one sheet serves many controls (the item picker, for every gear slot), `returnTo` names
+ * the control to go back to instead of `returnRef`. It also runs when the sheet unmounts rather
+ * than closing, which Radix reports the same way.
  */
-export function useSheetFocus<T extends HTMLElement>() {
+export function useSheetFocus<T extends HTMLElement>(returnTo?: () => HTMLElement | null | undefined) {
   const returnRef = useRef<T>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
   return {
@@ -25,9 +30,10 @@ export function useSheetFocus<T extends HTMLElement>() {
         titleRef.current.focus({ preventScroll: true })
       },
       onCloseAutoFocus: (event: Event) => {
-        if (!returnRef.current) return
+        const target = returnTo?.() ?? returnRef.current
+        if (!target) return
         event.preventDefault()
-        returnRef.current.focus({ preventScroll: true })
+        target.focus({ preventScroll: true })
       },
     },
   }

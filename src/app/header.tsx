@@ -110,7 +110,8 @@ function ShareButton() {
     )
   }
   return (
-    <Button variant="ghost" className="h-11 gap-2 px-3" onClick={share}>
+    // At least 44 px wide on a phone, where it's the icon alone (docs/ux.md principle 4).
+    <Button variant="ghost" className="h-11 min-w-11 gap-2 px-3" onClick={share}>
       <Link2 />
       <span className="hidden sm:inline">Share</span>
       <span className="sr-only sm:hidden">Share setup</span>

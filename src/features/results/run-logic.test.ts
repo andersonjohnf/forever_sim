@@ -5,7 +5,7 @@ import { BUFFS } from '@/sim/effects/buffs'
 import { ENCHANTS } from '@/sim/effects/enchants'
 import { ITEM_EFFECTS } from '@/sim/effects/items'
 import { buildPlan } from '@/sim/plan/build'
-import { headlineText, isSetupError, NEEDS_DAMAGE_TAKEN, neverHit, runConfigFromKey } from './run-logic'
+import { headlineText, isSetupError, NEEDS_DAMAGE_TAKEN, neverHit, runConfigFromKey, runError } from './run-logic'
 
 const config = (spec: SpecId, change: (c: SimConfig) => SimConfig = (c) => c) => normalizeConfig(change(defaultConfig(spec))).config
 
@@ -86,5 +86,25 @@ describe('headlineText', () => {
   it('reads DPS for a DPS spec, and TPS then DPS for a tank', () => {
     expect(headlineText(result('warrior-fury'))).toBe('682.5 DPS')
     expect(headlineText(result('warrior-protection'))).toBe('1,204.3 TPS and 682.5 DPS')
+  })
+})
+
+describe('runError', () => {
+  const skyborne = JSON.stringify(config('warrior-fury', (c) => ({ ...c, race: 'alliance-skyborne-high-order' })))
+  const failed = { status: 'error', error: 'This setup can’t be simulated.', errorKey: skyborne }
+
+  it('shows a failure while the setup is the one that failed', () => {
+    expect(runError(failed, skyborne)).toBe('This setup can’t be simulated.')
+  })
+
+  it('clears it once the setup changes or on another spec, and brings it back for the same setup', () => {
+    expect(runError(failed, JSON.stringify(config('warrior-fury')))).toBeNull()
+    expect(runError(failed, JSON.stringify(config('warrior-arms')))).toBeNull()
+    expect(runError(failed, skyborne)).toBe('This setup can’t be simulated.')
+  })
+
+  it('shows nothing unless the last run failed', () => {
+    expect(runError({ ...failed, status: 'running' }, skyborne)).toBeNull()
+    expect(runError({ ...failed, status: 'done' }, skyborne)).toBeNull()
   })
 })

@@ -1,5 +1,5 @@
 import { ChevronRight, MoreHorizontal } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
 import { undoToast } from '@/app/undo-toast'
@@ -51,6 +51,8 @@ export function GearSection() {
   const update = useSetup((s) => s.update)
   const replace = useSetup((s) => s.replace)
   const [picking, setPicking] = useState<GearSlot | null>(null)
+  // Each slot's button, which takes focus back when the picker closes (docs/ux.md#accessibility).
+  const slotButtons = useRef(new Map<GearSlot, HTMLButtonElement>())
 
   const mainHand = config.gear.mainHand ? itemsById.get(config.gear.mainHand.itemId) : undefined
   const twoHanded = mainHand ? isTwoHand(mainHand) : false
@@ -113,7 +115,13 @@ export function GearSection() {
                     )}
                   >
                     <button
+                      ref={(el) => {
+                        if (el) slotButtons.current.set(slot, el)
+                        else slotButtons.current.delete(slot)
+                      }}
                       type="button"
+                      // "Open Gear" in a result with no weapon focuses the main hand (src/app/section-focus.ts).
+                      data-gear-slot={slot}
                       disabled={lockedByTwoHand}
                       onClick={() => setPicking(slot)}
                       className="absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed"
@@ -176,6 +184,7 @@ export function GearSection() {
             update((c) => equip(c, picking, item))
             setPicking(null)
           }}
+          returnTo={() => slotButtons.current.get(picking)}
         />
       )}
     </div>

@@ -163,11 +163,13 @@
   html {
     @apply font-sans;
     /*
-     * Keyboard focus and in-page scrolling stop clear of the sticky header (3.5rem and its border)
-     * and the phone's fixed sim bar, whose height App keeps in --sim-bar-height, so a focused
-     * control is never hidden behind them (WCAG 2.4.11, docs/ux.md#accessibility).
+     * Keyboard focus and in-page scrolling stop clear of the sticky header and section tabs, whose
+     * bottom edge App keeps in --sticky-top, and of the phone's fixed sim bar, whose height it keeps
+     * in --sim-bar-height, so a focused control is never hidden behind them, with 0.5rem to spare
+     * (WCAG 2.4.11, docs/ux.md#accessibility). The fallback is the header's 3.5rem and the tabs'
+     * 51 px, before the first measurement.
      */
-    scroll-padding-top: 4rem;
+    scroll-padding-top: calc(var(--sticky-top, 6.75rem) + 0.5rem);
     scroll-padding-bottom: calc(var(--sim-bar-height, 0px) + 0.5rem);
     }
   /*
@@ -192,7 +194,35 @@
   border-radius: var(--radius-md);
   font-size: 0.875rem;
 }
-[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-button]:focus-visible {
+/* data-hotkey-focus: Undo focused by Alt+T, which :focus-visible can miss (src/app/toast-layer.ts). */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-button]:focus-visible,
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] [data-button][data-hotkey-focus]:focus {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/*
+ * A toast stays tappable over an open sheet or dialog, which turns pointer events off for the rest
+ * of the page (body) while it's open (docs/ux.md#persistence-and-sharing). Toasts sonner has hidden
+ * (data-visible=false) stay untappable. src/app/toast-layer.ts keeps the sheet open meanwhile.
+ */
+[data-sonner-toaster] [data-sonner-toast][data-visible='true'] {
+  pointer-events: auto;
+}
+
+/*
+ * Over a sheet, which shares its popover surface, a toast needs its own edge: a border at 22% of
+ * the text colour and a deeper shadow, stronger in dark mode, where a shadow barely shows. A
+ * focused toast (Alt+T, then Shift+Tab) gets the app's focus ring.
+ */
+[data-sonner-toaster] [data-sonner-toast][data-styled='true'] {
+  border-color: color-mix(in oklch, var(--foreground) 22%, transparent);
+  box-shadow: 0 8px 24px oklch(0 0 0 / 0.16);
+}
+.dark [data-sonner-toaster] [data-sonner-toast][data-styled='true'] {
+  box-shadow: 0 8px 24px oklch(0 0 0 / 0.6);
+}
+[data-sonner-toaster] [data-sonner-toast]:focus-visible {
   outline: 3px solid var(--ring);
   outline-offset: 2px;
 }

@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowUp, ChevronRight, ChevronsDown, Loader2, Play, RotateCw, Square, TriangleAlert } from 'lucide-react'
 import { Fragment, type ReactNode, useId, useRef } from 'react'
-import { useSetup } from '@/app/setup-store'
+import { focusSection } from '@/app/section-focus'
+import { type Section, useSetup } from '@/app/setup-store'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Progress } from '@/components/ui/progress'
@@ -67,7 +68,7 @@ function RunningBadge({ pct }: { pct: number | null }) {
 }
 
 export function Headline({ compact = false }: { compact?: boolean }) {
-  const { sim, result, stale, running, progressPct, dimmed, config } = useRunState()
+  const { sim, result, stale, running, rerunning, progressPct, dimmed, config } = useRunState()
   // A result shows the metrics of the spec it was run for; only this spec's result is shown.
   const metrics = metricsFor(result?.spec ?? config.spec)
   if (running && !result) return <RunProgress pct={progressPct} compact={compact} />
@@ -78,7 +79,8 @@ export function Headline({ compact = false }: { compact?: boolean }) {
     previous: sim.previous ? sim.previous[key].mean : null,
   }))
   // In the panel the progress sits above the headline; the phone bar has room only for a badge.
-  const badge = running && compact ? <RunningBadge pct={progressPct} /> : stale ? <StaleBadge /> : null
+  // A run that applies the change isn't marked "Setup changed": its progress says it's coming.
+  const badge = running && compact ? <RunningBadge pct={progressPct} /> : stale && !rerunning ? <StaleBadge /> : null
   const headline =
     rows.length === 1 ? (
       <SingleHeadline row={rows[0]} compact={compact} dimmed={dimmed} badge={badge} />
@@ -242,20 +244,29 @@ function RunSummary({ result, runConfig }: { result: SimResult; runConfig: SimCo
 }
 
 /**
- * A result with nothing to show (docs/ux.md#states): no main-hand weapon, or nothing that deals
- * damage. It says what to do next and takes you there.
+ * Closes the phone's results sheet when a link in it opens a setup tab. `then` moves focus into
+ * that tab, and runs once the sheet has closed, in place of handing focus back to "Show results".
  */
-function NoDamage({ result, variant, onNavigate }: { result: SimResult; variant: 'panel' | 'sheet'; onNavigate?: () => void }) {
+type Navigate = (then: () => void) => void
+
+/**
+ * A result with nothing to show (docs/ux.md#states): no main-hand weapon, or nothing that deals
+ * damage. It says what to do next and takes you there, focus included: the button goes away once
+ * its tab is open beside the desktop panel, so focus moves into the tab (the main hand in Gear).
+ */
+function NoDamage({ result, variant, onNavigate }: { result: SimResult; variant: 'panel' | 'sheet'; onNavigate?: Navigate }) {
   const section = useSetup((s) => s.section)
   const setSection = useSetup((s) => s.setSection)
   const noWeapon = result.assumptions.some((a) => a.id === 'noWeapon')
   if (!noWeapon && result.abilities.length > 0) return null
   // Beside the desktop panel, the tab you're on is already in view; the phone's sheet covers it.
-  const offer = (target: typeof section) => variant === 'sheet' || section !== target
-  const open = (target: typeof section) => {
+  const offer = (target: Section) => variant === 'sheet' || section !== target
+  const open = (target: Section) => {
     setSection(target)
-    onNavigate?.()
     window.scrollTo({ top: 0 })
+    const focus = () => focusSection(target)
+    if (onNavigate) onNavigate(focus)
+    else requestAnimationFrame(focus)
   }
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-dashed p-3 text-sm">
@@ -288,7 +299,7 @@ function NoDamage({ result, variant, onNavigate }: { result: SimResult; variant:
  * viewport, and the details under the headline scroll inside it. `sheet` is the phone's results
  * sheet, which scrolls as a whole; `onNavigate` closes it when a link opens a setup tab.
  */
-export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'panel' | 'sheet'; onNavigate?: () => void }) {
+export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'panel' | 'sheet'; onNavigate?: Navigate }) {
   const { result, runConfig, stale, running, error, dimmed, metricLabel } = useRunState()
   const empty = result !== null && result.abilities.length === 0
   const body = result && (

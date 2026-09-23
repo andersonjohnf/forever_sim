@@ -1,5 +1,6 @@
 import { ChevronUp, TriangleAlert } from 'lucide-react'
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
+import { DrawerCloseButton } from '@/app/drawer-close-button'
 import { useSheetFocus } from '@/app/sheet-focus'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Progress } from '@/components/ui/progress'
@@ -16,8 +17,17 @@ export function MobileSimBar() {
   const { result, running, progressPct, error } = useRunState()
   const summaryId = useId()
   const canOpen = result !== null || running || error !== null
-  // Focus moves to the sheet's title when it opens, and back to "Show results" when it closes.
+  // Focus moves to the sheet's title when it opens, and back to "Show results" when it closes,
+  // unless a link in the sheet opened a setup tab ("Open Gear"): then it goes into that tab.
   const { returnRef, titleRef, contentProps } = useSheetFocus<HTMLButtonElement>()
+  const afterClose = useRef<(() => void) | null>(null)
+  const onCloseAutoFocus = (event: Event) => {
+    const then = afterClose.current
+    afterClose.current = null
+    if (!then) return contentProps.onCloseAutoFocus(event)
+    event.preventDefault()
+    then()
+  }
   return (
     <>
       {/* The run's live region lives here because this component is mounted once at every width. */}
@@ -47,15 +57,22 @@ export function MobileSimBar() {
         </div>
       </div>
       <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerContent className="max-h-[92svh]" {...contentProps}>
-          <DrawerHeader className="text-left">
+        <DrawerContent className="max-h-[92svh]" {...contentProps} onCloseAutoFocus={onCloseAutoFocus}>
+          <DrawerHeader className="relative px-14 text-left">
             <DrawerTitle ref={titleRef} tabIndex={-1} className="outline-none">
               Results
             </DrawerTitle>
             <DrawerDescription className="sr-only">Simulation results for your setup.</DrawerDescription>
+            <DrawerCloseButton />
           </DrawerHeader>
           <div className="overflow-y-auto px-4 pb-8">
-            <ResultsPanel variant="sheet" onNavigate={() => setOpen(false)} />
+            <ResultsPanel
+              variant="sheet"
+              onNavigate={(then) => {
+                afterClose.current = then
+                setOpen(false)
+              }}
+            />
           </div>
         </DrawerContent>
       </Drawer>

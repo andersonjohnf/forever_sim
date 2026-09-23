@@ -1,5 +1,7 @@
 import { Ban, Check, Search, X } from 'lucide-react'
 import { useDeferredValue, useMemo, useRef, useState } from 'react'
+import { DrawerCloseButton } from '@/app/drawer-close-button'
+import { useSheetFocus } from '@/app/sheet-focus'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
@@ -30,6 +32,8 @@ interface PickerProps {
   /** What's equipped in every slot, for the Unique and Unique-Equipped rules. */
   worn: Partial<Record<GearSlot, Item>>
   onPick: (item: Item | null) => void
+  /** The slot's button, which focus goes back to however the picker closes, a pick included. */
+  returnTo: () => HTMLElement | null | undefined
 }
 
 /** How the Unique rules treat an item here: free to pick, moving from another slot, or blocked. */
@@ -55,15 +59,25 @@ function CloseButton() {
   )
 }
 
-/** The item picker: a dialog on desktop, a full-height drawer on phones (docs/ux.md#sections). */
+/**
+ * The item picker: a dialog on desktop, a full-height drawer on phones (docs/ux.md#sections).
+ * Focus moves in when it opens (the search box on desktop; the title on a phone, so the keyboard
+ * doesn't pop up over the list), stays inside, and goes back to the slot's button when it closes.
+ * The parent unmounts the picker rather than closing it, which Radix reports the same way.
+ */
 export function ItemPicker(props: PickerProps) {
   const isDesktop = useIsDesktop()
+  const { titleRef, contentProps } = useSheetFocus(props.returnTo)
   const title = `Choose ${SLOT_LABEL[props.slot].toLowerCase()}`
   const description = `Items a ${SPEC_META[props.spec].className.toLowerCase()} can equip here.`
   if (isDesktop) {
     return (
       <Dialog open={props.open} onOpenChange={props.onOpenChange}>
-        <DialogContent showCloseButton={false} className="flex h-[min(85vh,52rem)] max-w-2xl flex-col gap-0 p-0 sm:max-w-2xl">
+        <DialogContent
+          showCloseButton={false}
+          className="flex h-[min(85vh,52rem)] max-w-2xl flex-col gap-0 p-0 sm:max-w-2xl"
+          {...contentProps}
+        >
           <DialogHeader className="border-b p-4 pr-14">
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>
@@ -76,10 +90,13 @@ export function ItemPicker(props: PickerProps) {
   }
   return (
     <Drawer open={props.open} onOpenChange={props.onOpenChange}>
-      <DrawerContent className="h-[92svh] max-h-[92svh]">
-        <DrawerHeader className="border-b text-left">
-          <DrawerTitle>{title}</DrawerTitle>
+      <DrawerContent className="h-[92svh] max-h-[92svh]" {...contentProps}>
+        <DrawerHeader className="relative border-b px-14 text-left">
+          <DrawerTitle ref={titleRef} tabIndex={-1} className="outline-none">
+            {title}
+          </DrawerTitle>
           <DrawerDescription>{description}</DrawerDescription>
+          <DrawerCloseButton />
         </DrawerHeader>
         <PickerBody {...props} />
       </DrawerContent>

@@ -47,9 +47,9 @@ offers ("A DPS simulator for Fury and Arms Warriors in WoW Forever"), so it grow
 updated with each spec; an e2e test compares them.
 
 **Section tabs** are 44 px tall. When they scroll sideways, a fade marks each edge with more
-tabs past it (none at an end), and the chosen tab scrolls into view. Arrow keys move between
-tabs and Enter or Space opens one (manual activation), so focus coming back from a toast never
-switches the tab.
+tabs past it (none at an end), and the chosen tab scrolls into view clear of the fades, as does
+a tab that arrow keys move focus to. Arrow keys move between tabs and Enter or Space opens one
+(manual activation), so focus coming back from a toast never switches the tab.
 
 **Setup sections**, in this order: **Character · Talents · Gear · Buffs · Rotation · Fight**.
 
@@ -290,6 +290,9 @@ Every view handles these states:
   - The results panel and sheet show "Simulating… 45%" and a progress bar above the kept
     result, which is dimmed. The phone's bottom bar keeps the dimmed value with a small "45%"
     beside its label and a thin progress line along its top edge.
+  - A run for the current setup is about to replace a stale result, so the "Setup changed"
+    badge waits: it isn't shown beside "Simulating…". A change made during the run isn't in
+    it, so the badge comes back.
   - A polite live region, mounted once at every width, says "Simulating…" when a run starts
     and then "Done: 682.5 DPS" or "Simulation cancelled."
 - **Stale:** the setup changed after the last run, so results are dimmed with a "Re-run" hint.
@@ -310,6 +313,10 @@ Every view handles these states:
     and the start of the reason, in AA colors. "Show results" stays enabled, with or without an
     earlier result, and opens the sheet with the full message. The live region reads it out
     too (on desktop the panel's alert does).
+  - A failure belongs to the setup that failed, as a result does. It shows, in the panel,
+    the sheet and the phone's bar alike, only while the setup is still that one: fixing it
+    (another race) clears the message, leaving the last result if there is one, marked
+    stale. A spec switch sets it aside, and switching back to the same setup brings it back.
 
 ## Persistence and sharing
 
@@ -323,8 +330,22 @@ Every view handles these states:
   **Undo**. Undo restores the whole previous setup, including your own saved setup for the
   link's spec, so undoing a link for your other spec gives that spec's setup back.
 - **Toasts** sit at the bottom, just above the phone's sticky bar, so they never cover the
-  header. A toast with Undo stays up 10 s, paused while it's hovered, touched or focused
-  (`undoToast` in `src/app/undo-toast.ts`). Its buttons are 44 px tall.
+  header. Their buttons are 44 px tall. A toast with Undo (`undoToast` in
+  `src/app/undo-toast.ts`) depends on how you made the change:
+  - After a tap or click it stays up 10 s, paused while it's hovered, touched or focused.
+  - After a key press (a menu item chosen with Enter, a race picked with the arrow keys) it
+    says "Press Alt+T to reach Undo" ("Option+T" on a Mac) and stays until you dismiss it, with
+    Undo, **Dismiss** or Escape. The toasts sit at the end of the page's tab order, many key
+    presses away, and 10 s isn't long enough to get there.
+- **Alt+T** (Option+T) is the keyboard's way to the toasts: it moves focus to the newest toast's
+  Undo (sonner's hotkey focuses the toast list and spreads the toasts out, and
+  `src/app/toaster.tsx` moves focus on to Undo). Escape in a toast dismisses an undo toast, and
+  leaving the toasts, by Undo, Dismiss, Escape or Tab, hands focus back to where it was.
+- **A toast stays usable over an open sheet or dialog** (the results sheet, the item picker,
+  About): a tap on Undo reaches the toast, not the sheet under it, and neither the tap nor
+  focus on the toast closes the sheet or is pulled back into its focus trap. Undo changes the
+  setup under the sheet, which stays open as it was. Escape in the toast leaves the sheet
+  open too. (`src/app/toast-layer.ts` explains how.)
 - Setups are versioned, so an old link still loads, or explains why it can't.
 - A link to a spec the app doesn't offer yet shows an error toast and leaves the current setup
   alone. A saved setup for such a spec is kept for later, and the default spec opens.
@@ -337,13 +358,25 @@ Every view handles these states:
 
 - WCAG 2.2 AA contrast in both themes.
 - Visible focus on everything interactive, and labels on icon-only buttons. A focused control
-  is never hidden behind the sticky header or the phone's sim bar: the page's scroll padding
-  keeps it clear of both (WCAG 2.4.11).
-- Logical tab order. Sheets and dialogs trap focus and close with Escape.
+  is never hidden behind the sticky header, the sticky section tabs or the phone's sim bar,
+  going forwards or backwards: the page's scroll padding keeps it clear of all three with
+  0.5rem to spare, from their measured heights (WCAG 2.4.11).
+- Logical tab order. Sheets and dialogs trap focus and close with Escape. Phone sheets (the
+  results, the item picker) also have a 44 px close button in the header's corner, as the
+  About sheet and the desktop dialogs do.
 - When a sheet or dialog opens, focus moves into it: to its title when the content is long
-  (About, the phone's results), or to its first field (a search box). When it closes, focus
-  goes back to the control that opened it. Radix does this only for its own Trigger, so one
-  opened from state uses `useSheetFocus` (`src/app/sheet-focus.ts`).
+  (About, the phone's results, the phone's item picker, so the on-screen keyboard doesn't pop
+  up over the list), or to its first field (the desktop item picker's search box). When it
+  closes, however it closes, focus goes back to the control that opened it: the item picker
+  gives it back to the slot's button after Escape, its close button or a pick. Radix does this
+  only for its own Trigger, so one opened from state uses `useSheetFocus`
+  (`src/app/sheet-focus.ts`).
+- A control that opens a setup tab ("Open Gear" or "Open Rotation" in a result with no damage)
+  takes focus into that tab, never leaving it on `<body>`: Gear's main hand, the weapon to add,
+  or the tab's panel. From the phone's results sheet, this replaces handing focus back to
+  "Show results".
+- Toasts are reachable by keyboard; see Toasts under
+  [Persistence and sharing](#persistence-and-sharing).
 - The page has one `<h1>`, "Forever Sim"; sections, sheets and groups use lower levels.
 - Nothing is hover-only: every tooltip's content is reachable by tap or focus.
 

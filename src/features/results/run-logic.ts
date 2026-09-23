@@ -36,6 +36,16 @@ export function runConfigFromKey(key: string | null): SimConfig | null {
 }
 
 /**
+ * A failed run's message, while the setup is still the one that failed (docs/ux.md#states
+ * "Error"); null otherwise. A failure is keyed to its config as a result is: fixing the setup
+ * clears it, and a spec switch sets it aside until you switch back to the same setup. `key` is
+ * the current config's key (`configKey` in src/app/sim-store.ts).
+ */
+export function runError(sim: { status: string; error: string | null; errorKey: string | null }, key: string): string | null {
+  return sim.status === 'error' && sim.errorKey === key ? (sim.error ?? '') : null
+}
+
+/**
  * Whether a failed run's message is the engine refusing the setup (a race or spec it can't
  * simulate yet). Those messages say what to change, so a retry would only fail again; any other
  * failure (a worker that stopped) may pass on a retry. A unit test ties this to the engine's

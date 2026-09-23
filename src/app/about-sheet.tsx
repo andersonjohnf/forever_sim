@@ -87,13 +87,16 @@ export function AboutSheet({
               ))}
             </dl>
           </Section>
+          {/* The links are 44 px tall touch targets (docs/ux.md principle 4), and as wide as their text. */}
           <Section title="Source and docs">
-            <a className="inline-flex items-center gap-1 underline underline-offset-2" href={REPO}>
-              GitHub repository <ExternalLink className="size-3.5" />
-            </a>
-            <a className="inline-flex items-center gap-1 underline underline-offset-2" href={`${REPO}/blob/main/docs/open-questions.md`}>
-              What still needs testing in game <ExternalLink className="size-3.5" />
-            </a>
+            <div className="flex flex-col items-start">
+              <a className="inline-flex min-h-11 items-center gap-1 underline underline-offset-2" href={REPO}>
+                GitHub repository <ExternalLink className="size-3.5" aria-hidden />
+              </a>
+              <a className="inline-flex min-h-11 items-center gap-1 underline underline-offset-2" href={`${REPO}/blob/main/docs/open-questions.md`}>
+                What still needs testing in game <ExternalLink className="size-3.5" aria-hidden />
+              </a>
+            </div>
           </Section>
           <p className="text-xs text-muted-foreground">
             World of Warcraft is a trademark of Blizzard Entertainment. This project is not affiliated with Blizzard.

@@ -23,7 +23,10 @@ const SECTIONS: { id: Section; label: string; content: () => React.JSX.Element }
   { id: 'fight', label: 'Fight', content: FightSection },
 ]
 
-/** Keeps the phone bar's height in --sim-bar-height, so toasts sit just above it (src/app/toaster.tsx). */
+/**
+ * Keeps the phone bar's height in --sim-bar-height, so toasts sit just above it
+ * (src/app/toaster.tsx) and focus stays clear of it (the page's scroll padding, src/index.css).
+ */
 function useSimBarHeight() {
   const ref = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -42,11 +45,36 @@ function useSimBarHeight() {
   return ref
 }
 
+/**
+ * Keeps the bottom edge of the sticky section tabs (their sticky offset under the header, plus
+ * their height) in --sticky-top, so keyboard focus scrolls clear of the header and the tabs
+ * (WCAG 2.4.11; the page's scroll padding, src/index.css).
+ */
+function useStickyTop() {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const bar = ref.current
+    if (!bar) return
+    const root = document.documentElement
+    const observer = new ResizeObserver(() => {
+      const top = Number.parseFloat(getComputedStyle(bar).top) || 0
+      root.style.setProperty('--sticky-top', `${top + bar.getBoundingClientRect().height}px`)
+    })
+    observer.observe(bar)
+    return () => {
+      observer.disconnect()
+      root.style.removeProperty('--sticky-top')
+    }
+  }, [])
+  return ref
+}
+
 export default function App() {
   const section = useSetup((s) => s.section)
   const setSection = useSetup((s) => s.setSection)
   const { ref: tabsRef, fade } = useScrollFade<HTMLDivElement>(section)
   const simBar = useSimBarHeight()
+  const tabBar = useStickyTop()
   useSharedLink()
 
   return (
@@ -59,7 +87,11 @@ export default function App() {
          * clicked right after Undo was switched back to the one focused before (docs/ux.md).
          */}
         <Tabs value={section} onValueChange={(v) => setSection(v as Section)} activationMode="manual" className="min-w-0 gap-0">
-          <div className="sticky top-14 z-30 -mx-4 border-b bg-background/95 px-4 backdrop-blur lg:mx-0 lg:px-0">
+          <div
+            ref={tabBar}
+            data-sticky-tabs
+            className="sticky top-14 z-30 -mx-4 border-b bg-background/95 px-4 backdrop-blur lg:mx-0 lg:px-0"
+          >
             {/*
              * On narrow screens the tabs scroll sideways, and a fade marks each edge with more past
              * it. Tabs are 44 px tall (docs/ux.md principle 4), their underline on the bar's edge.
@@ -78,7 +110,8 @@ export default function App() {
             </TabsList>
           </div>
           {SECTIONS.map(({ id, content: Content }) => (
-            <TabsContent key={id} value={id} className="pt-6">
+            // data-section: a control that opens this tab moves focus here (src/app/section-focus.ts).
+            <TabsContent key={id} value={id} data-section={id} className="pt-6">
               <Content />
             </TabsContent>
           ))}

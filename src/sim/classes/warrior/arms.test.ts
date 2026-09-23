@@ -354,8 +354,16 @@ describe('armsRotation (warrior.md §5.3)', () => {
   })
 
   it('row 13: with Heroic Strike off, the result still lists the assumption its default rests on', () => {
-    expect(armsRotation({}, TALENTS, noAura).assumes).toEqual([{ id: 'onNextSwingRage', detail: expect.stringContaining('off by default') }])
-    expect(armsRotation({ 'warrior.arms.heroicStrike.enabled': true }, TALENTS, noAura).assumes).toEqual([])
+    const ids = (values: Record<string, RotationValue>) => armsRotation(values, TALENTS, noAura).assumes?.map((a) => a.id)
+    expect(armsRotation({}, TALENTS, noAura).assumes).toContainEqual({ id: 'onNextSwingRage', detail: expect.stringContaining('off by default') })
+    expect(ids({ 'warrior.arms.heroicStrike.enabled': true })).not.toContain('onNextSwingRage')
+  })
+
+  it('rows 4 and 17: timed to the phase and the fight’s end, which the result lists as an assumption (§5.2 notes)', () => {
+    const ids = (values: Record<string, RotationValue>) => armsRotation(values, TALENTS, noAura).assumes?.map((a) => a.id)
+    expect(armsRotation({}, TALENTS, noAura).assumes).toContainEqual({ id: 'knownFightTimings', detail: expect.stringContaining('0.02–0.28%') })
+    // Nothing timed without Recklessness (and no Death Wish, potion or trinket here).
+    expect(ids({ 'warrior.arms.recklessness.enabled': false })).toEqual(['onNextSwingRage'])
   })
 
   it('row 16: with the talent, Death Wish before the racial, which waits for it as Fury’s does', () => {

@@ -458,5 +458,9 @@ export function furyRotation(
   // 10 + 3 per Improved Tactical Mastery rank (§2.1, §2.3).
   prepullCasts(b, v, ID, ctx, shout, true)
 
+  // What the timings above rest on (§5.2 notes, "The rotation knows the fight's timing").
+  b.assumeKnownTimings(
+    'with the default setup, timing Death Wish and Recklessness to the phase is worth about 1.4%, and using them 1–3 s early or late costs 0.05–0.33%; without a phase, Recklessness 3 s late is cut short by the fight’s end, costing 0.8% in a 3-minute fight and 4% in a 30 s one',
+  )
   return b.result(onUseIds(ctx))
 }

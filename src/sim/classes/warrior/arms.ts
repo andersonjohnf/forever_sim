@@ -443,5 +443,7 @@ export function armsRotation(
   // Stance, the swap after it keeps at most the swap's cap.
   prepullCasts(b, v, ID, ctx, shout, home !== STANCE.battle)
 
+  // What the timings above rest on (§5.2 notes, "The rotation knows the fight's timing"; §5.3 row 4 notes).
+  b.assumeKnownTimings('with the default setup, using Recklessness 1–3 s early or late around the phase costs 0.02–0.28%')
   return b.result(onUseIds(ctx))
 }

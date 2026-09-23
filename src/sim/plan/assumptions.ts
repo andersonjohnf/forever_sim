@@ -20,6 +20,10 @@ const REGISTRY = {
     text: 'Only white swings, talents, procs and buffs are simulated for now: abilities, cooldowns and on-use items arrive with the rotation.',
     docRef: 'docs/milestones.md#m2-warrior-dps-with-the-production-ux',
   },
+  knownFightTimings: {
+    text: 'The rotation knows exactly when the execute phase starts and when the fight ends, and times its cooldowns and the Mighty Rage Potion to them, where a player has to judge both.',
+    docRef: `${WAR}#52-fury-dual-wield`,
+  },
   reactionTime: {
     text: 'The rotation reacts instantly: it acts at the very moment a cooldown ends, rage arrives or a proc or dodge opens a window, with no reaction time or latency.',
     docRef: `${DT}#36-server-tick-and-spell-batching`,

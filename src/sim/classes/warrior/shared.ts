@@ -45,7 +45,7 @@ export interface ClassRotation {
 
 export interface RotationAssumption {
   id: AssumptionId
-  detail: string
+  detail?: string
 }
 
 /** What the rotation needs from the rest of the setup. */
@@ -460,6 +460,16 @@ export class RotationBuilder {
 
   cost(a: number): number {
     return this.abilities[a].costTenths
+  }
+
+  /**
+   * Lists `knownFightTimings` when a line is timed to the fight's end or its execute phase (Death
+   * Wish, the racial synced with it, Recklessness, the potion; warrior.md §5.2 notes), with the
+   * spec's measured `detail`: each fight's phase start and end are exact, where a player judges them.
+   */
+  assumeKnownTimings(detail: string): void {
+    const timed = new Set<number>([COND.timeLeftAtMost, COND.timeLeftAtLeast, COND.executeWithin, COND.executeNotWithin])
+    if (this.rotation.some((e) => e.conditions.some((c) => timed.has(c.code)))) this.assumes.push({ id: 'knownFightTimings', detail })
   }
 
   result(onUse: string[]): ClassRotation {

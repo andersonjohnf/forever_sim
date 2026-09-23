@@ -809,6 +809,17 @@ Notes:
   choice, measured (below); no source covers it. 3 s measured best of 0–10 s in the default fight
   (2.5 s −0.30 DPS, 3.5 s −0.25), and of 1.5–6 s at 180 s with a 20% phase and at 300 s with 10%
   and 20% (seed 5106).
+- **The rotation knows the fight's timing** (rows 2–4 and 16). Each fight's execute phase start
+  and end are known exactly ([encounter.md](../mechanics/encounter.md#implementation-notes)), and
+  the rotation times Death Wish, the racial, Recklessness and the potion to them. A player has to
+  judge both, so the result lists it as an assumption. In the default setup, timing Death Wish
+  and Recklessness to the phase is worth about 1.4% (below: −9.95 DPS without it). Using both
+  1 s early or late costs 0.05% and 0.13%, and 3 s early or late 0.14% and 0.33% (the latter
+  with Recklessness at the phase's start, its earliest setting; seed 5304, 200,000 paired
+  fights each), so a player can come close. Without a phase, Recklessness's clock matters more
+  when it's late: at 13 s left rather than 16 s, it's cut short by the fight's end, −0.79% at
+  180 s and −4.25% at 30 s; 3 s early, level at 180 s and −0.15% at 30 s (seed 5304). An engine
+  choice; no source covers it.
 - **The racial with Death Wish** (row 3, `syncWithDeathWish`). The racial is used while Death
   Wish is up. It's also used whenever Death Wish's next use is at least the racial's cooldown
   away, because then it will be ready again by then and waiting would cost a use. "Next use"
@@ -1147,7 +1158,10 @@ Notes:
   is all there is. Its default is Recklessness's own 15 s, so all of it counts, and 15 s measured
   best at every length (below). An engine choice, measured; no source covers it. Until the M2.5a
   review it was 39 s left, fitted to the default fight's phase, which cost 5–8% in fights of
-  30–60 s and 1.9% without a phase.
+  30–60 s and 1.9% without a phase. The phase's start and the fight's end are known exactly
+  ([§5.2](#52-fury-dual-wield) notes); using Recklessness 1–3 s early or late around the phase
+  costs 0.02–0.28% in the default setup (seed 5304, 200,000 paired fights each), and the result
+  lists the assumption.
 - **The Mighty Rage Potion** (row 17) follows the execute phase too. **In the phase**, with
   Execute on, it's drunk at rage ≤ `maxRage`. The default 0 waits until an Execute has emptied
   the bar: 1.8 s into the phase on average, after Recklessness's swap (row 4). 55 (the 130 cap

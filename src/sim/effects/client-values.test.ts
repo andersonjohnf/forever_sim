@@ -257,6 +257,17 @@ describe('other assumptions this slice surfaces', () => {
     expect(note.docRef).toBe('docs/mechanics/damage-and-timing.md#36-server-tick-and-spell-batching')
   })
 
+  it('the fight’s timing, known exactly, wherever a line is timed to the phase or the end (warrior.md §5.2 notes)', () => {
+    const fury = defaultConfig('warrior-fury')
+    const note = (config: SimConfig) => buildPlan(config).assumptions.find((a) => a.id === 'knownFightTimings')
+    expect(note(fury)).toMatchObject({ docRef: 'docs/classes/warrior.md#52-fury-dual-wield', text: expect.stringContaining('worth about 1.4%') })
+    expect(note(defaultConfig('warrior-arms'))?.text).toContain('0.02–0.28%')
+    // Without Death Wish (and so the racial's sync with it), Recklessness and the potion, nothing is.
+    const untimed = { 'warrior.fury.deathWish.enabled': false, 'warrior.fury.recklessness.enabled': false, 'warrior.fury.ragePotion.enabled': false }
+    expect(note({ ...fury, rotation: untimed })).toBeUndefined()
+    expect(note({ ...fury, rotation: { ...untimed, 'warrior.fury.ragePotion.enabled': true } })).toBeDefined()
+  })
+
   it('negative armor, and the floor at −2,750 once armor goes past it (damage-and-timing §1.1)', () => {
     const d = defaultConfig('warrior-fury')
     const debuffs = ['sunderArmor', 'faerieFire', 'curseOfRecklessness', 'armorShatter']

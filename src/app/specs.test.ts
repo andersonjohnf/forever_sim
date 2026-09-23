@@ -18,8 +18,8 @@ describe('the About sheet and page description', () => {
   test('list the specs one class at a time', () => {
     expect(coverageSentence(offering('warrior-fury'))).toBe('Covers Warriors: Fury.')
     expect(coverageSentence(offering('warrior-fury', 'warrior-arms'))).toBe('Covers Warriors: Fury and Arms.')
-    // The specs that ship today, the Feral cat since B2.
-    expect(coverageSentence()).toBe('Covers Warriors: Fury and Arms · Druids: Feral (Cat).')
+    // The specs that ship today, the Feral cat since B2, whose name never breaks across lines.
+    expect(coverageSentence()).toBe('Covers Warriors: Fury and Arms · Druids: Feral\u00a0(Cat).')
     const all = coverageSentence(specs)
     expect(all).toMatch(/^Covers Warriors: [^·]+ · Druids: [^·]+ · Paladins: [^·]+\.$/)
     expect(all).toContain('Fury, Arms and Protection')

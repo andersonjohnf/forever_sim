@@ -32,11 +32,12 @@ export function appSentence(offered: readonly SpecDefinition[] = visibleSpecs())
  * Arms and Protection · Druids: …" as more do.
  */
 export function coverageSentence(offered: readonly SpecDefinition[] = visibleSpecs()): string {
-  // Spec names per class, in the switcher's order: { Warrior: ['Fury', 'Arms'] }.
+  // Spec names per class, in the switcher's order: { Warrior: ['Fury', 'Arms'] }. A name never
+  // breaks across lines ("Feral (Cat)"): its spaces are non-breaking.
   const byClass = new Map<string, string[]>()
   for (const spec of offered) {
     const { className, name } = SPEC_META[spec.id]
-    byClass.set(className, [...(byClass.get(className) ?? []), name])
+    byClass.set(className, [...(byClass.get(className) ?? []), name.replace(/ /g, '\u00a0')])
   }
   return `Covers ${[...byClass].map(([className, names]) => `${className}s: ${list(names)}`).join(' · ')}.`
 }

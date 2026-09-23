@@ -310,16 +310,20 @@ A fresh reviewer checked `d8d76c3`, `4a1cad3` and the dispositions above (`9264d
 
 | # | Severity | Finding | Disposition |
 | --- | --- | --- | --- |
-| PV1 | medium, blocking | **The sheets get no toast clearance.** At 390 px with a waiting toast up, Tab can land on a control the toast hides entirely: the results sheet's "Character sheet" button, and About's "What still needs testing in game" link. It's WCAG 2.4.11 and contradicts ux.md. The pre-fix build does the same. | open |
-| PV2 | medium | **Decimal fields read a decimal comma as a thousands separator:** Arms "Rend again with" turns "1,5" into 15. On a comma-decimal phone, whose decimal keypad has only ",", no fraction can be typed. FV3 covered integer fields only. | open |
-| PV3 | low | **The handoff said the gate was complete** while this review was open, and the FV2 known gap dropped "after typing in a text field". | open |
-| PV4 | low | **The Ironfoe copy doesn't say which way** the other reading moves DPS, or that 2.7% is for the default setup. | open |
-| PV5 | low | **Every toast grows the page's padding**, so when a 10 s toast times out with the page scrolled to its end, the content drops 35 px (390) or 54 px (1280) unprompted. | open |
-| PV6 | low, pre-existing | **Undo hands focus back off-screen** when it lengthens the page, because Sonner restores focus with `preventScroll`. | open |
-| PV7 | low | **Focus isn't cleared again when the toast stack settles:** when Share's toast times out in front of a waiting toast, the waiting one grows to full size over 17 of the focused link's 44 px. | open |
-| PV8 | low | **Stale comments and one loose sentence** about `--toast-clearance` and the "last control". | open |
-| PV9 | low | **FV7's description is off:** each arrow press scrolls the page about 360 px (390) or 420 px (1280), not "to the top", so peeking at a tab loses your place. | open |
+| PV1 | medium, blocking | **The sheets get no toast clearance.** At 390 px with a waiting toast up, Tab can land on a control the toast hides entirely: the results sheet's "Character sheet" button, and About's "What still needs testing in game" link. It's WCAG 2.4.11 and contradicts ux.md. The pre-fix build does the same. | fixed, `37a9643`: the results sheet, About, the item picker's list and the enchant drawer's list get bottom scroll padding from the toast clearance (`scroll-pb-toast`) and room at their end (`pb-toast-*`). The enchant drawer was worse: options up to 180 px under the toast, and the list couldn't scroll them clear. New e2e tests fail without it (70–83 px covered) |
+| PV2 | medium | **Decimal fields read a decimal comma as a thousands separator:** Arms "Rend again with" turns "1,5" into 15. On a comma-decimal phone, whose decimal keypad has only ",", no fraction can be typed. FV3 covered integer fields only. | fixed, `3a898bb`: `src/lib/parse-number.ts`. A fractional field reads a lone comma as the decimal point, and whole-number fields read locale thousands separators (FV3 too) |
+| PV3 | low | **The handoff said the gate was complete** while this review was open, and the FV2 known gap dropped "after typing in a text field". | fixed, `ffe271f`: the handoff defers to this log's verdict, and the FV2 gap keeps its condition |
+| PV4 | low | **The Ironfoe copy doesn't say which way** the other reading moves DPS, or that 2.7% is for the default setup. | fixed, `ffe271f`: "if hits from the other hand proc it too, the default Fury warrior does about 2.7% more DPS" |
+| PV5 | low | **Every toast grows the page's padding**, so when a 10 s toast times out with the page scrolled to its end, the content drops 35 px (390) or 54 px (1280) unprompted. | fixed, `37a9643`: only a toast that waits for Dismiss grows the padding (`--toast-wait-clearance`, that toast's own reach), so a 10 s toast coming or going moves nothing. New e2e tests fail without it |
+| PV6 | low, pre-existing | **Undo hands focus back off-screen** when it lengthens the page, because Sonner restores focus with `preventScroll`. | fixed, `7f5a8a6`: when focus leaves the toasts, the element that gets it is scrolled into view (`block: 'nearest'`) on the next frame. New e2e tests fail without it |
+| PV7 | low | **Focus isn't cleared again when the toast stack settles:** when Share's toast times out in front of a waiting toast, the waiting one grows to full size over 17 of the focused link's 44 px. | fixed, `7f5a8a6`: when the toasts reach higher, keyboard focus they now cover scrolls clear of them; never after a tap or click, and focus never moves. New e2e tests fail without it (24 px covered) |
+| PV8 | low | **Stale comments and one loose sentence** about `--toast-clearance` and the "last control". | fixed, `37a9643` and `7f5a8a6`: the comments in App.tsx, toaster.tsx and index.css, and ux.md's toast bullets |
+| PV9 | low | **FV7's description is off:** each arrow press scrolls the page about 360 px (390) or 420 px (1280), not "to the top", so peeking at a tab loses your place. | fixed, `ffe271f`: FV7's row and the known gap |
+
+Checks after the PV fixes (`7f5a8a6`): lint ✓ · typecheck ✓ · unit ✓ (939) · e2e ✓ (169, 3
+deferred to M3).
 
 ## Verdict
 
-Ready to push: not yet. The post-verification review's findings are open.
+Ready to push: not yet. The PV fixes (`3a898bb`, `ffe271f`, `37a9643`, `7f5a8a6`) await their
+independent review.

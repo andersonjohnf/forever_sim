@@ -81,7 +81,7 @@ test.describe('a Reset’s hit area (TU7)', () => {
     const tab = page.getByRole('tabpanel', { name: 'Fight' })
     await tab.getByRole('button', { name: 'Advanced' }).click()
     await tab.getByRole('button', { name: 'Decrease Boss level' }).click()
-    const reset = tab.getByRole('button', { name: 'Reset Boss level to 63' })
+    const reset = tab.getByRole('button', { name: 'Reset Boss level, default 63' })
     const area = await hitArea(reset)
     expect(area.bottom - area.top).toBeGreaterThanOrEqual(44)
     // Its hit area starts below the field's steppers and input.
@@ -98,7 +98,7 @@ test.describe('a Reset’s hit area (TU7)', () => {
     await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
     const slam = page.getByRole('switch', { name: 'Slam', exact: true })
     await slam.click()
-    const reset = page.getByRole('button', { name: 'Reset Slam to off' })
+    const reset = page.getByRole('button', { name: 'Reset Slam, default off' })
     const area = await hitArea(reset)
     expect(area.bottom - area.top).toBeGreaterThanOrEqual(44)
     const row = (await page.locator('label').filter({ has: slam }).boundingBox())!
@@ -133,7 +133,7 @@ test('Fixed precision gives the number of fights its own labelled field, with se
   await expect(fights).toHaveAccessibleDescription('Changed. Default: 3,000')
   await tab.getByRole('button', { name: 'Increase Number of fights' }).click()
   await expect(fights).toHaveValue('12,600')
-  await tab.getByRole('button', { name: 'Reset Number of fights to 3,000' }).click()
+  await tab.getByRole('button', { name: 'Reset Number of fights, default 3,000' }).click()
   // Reset hands focus to the field, which shows the plain number while it has focus.
   await expect(fights).toBeFocused()
   await expect(fights).toHaveValue('3000')

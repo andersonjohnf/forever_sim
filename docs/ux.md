@@ -186,6 +186,9 @@ Era's) start in view rather than under the tabs.
   with units, one line of help, and the default marked. **Reset rotation** (in the section
   header, enabled once you've set anything) puts every setting back to its default. It disables
   itself, so it moves focus to the first setting, the next control after it.
+  - The intro says what the defaults are, per spec: "tuned for the default setup" once a slice
+    has tuned them ([D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
+    Arms), "the common priority" until then (Fury).
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
     **Consumables**, in that order. Under each heading the settings keep the spec's priority
@@ -216,8 +219,9 @@ Era's) start in view rather than under the tabs.
   - **Changed settings are marked.** A setting that differs from its default for this setup
     gets a line under its help: a dot, its default ("Default: 42 rage", "Default: on") and a
     **Reset** for that row alone, which moves focus back to the row's control. A value you set
-    that equals the default isn't marked. Screen readers hear "Changed. Default: …" as the
-    switch's description.
+    that equals the default isn't marked. Screen readers hear the setting's help, then
+    "Changed. Default: …", as its switch's or input's description, and the Reset is named
+    "Reset {setting}, default {value}" ("Reset Slam, default off").
   - A small text link (a row's Reset, the "Buffs" link below) has a 44 px hit area around its
     line, lopsided so it never covers the control above: 10 px above the line and 18 px below
     (`LINK_HIT_AREA` in `src/features/changed-hint.tsx`). Whatever holds one leaves that much

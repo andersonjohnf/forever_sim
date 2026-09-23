@@ -1,12 +1,21 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
-// The Rotation tab (docs/ux.md "Rotation"): dependent switches, changed settings and their
-// defaults, each heading's Advanced thresholds, Reset rotation, and consumables that
-// need their Buffs switch.
+// The Rotation tab (docs/ux.md "Rotation"): its intro per spec, dependent switches, changed
+// settings and their defaults, each heading's Advanced thresholds and their descriptions, Reset
+// rotation, and consumables that need their Buffs switch.
 
 const openRotation = async (page: Page) => {
   await page.goto('./')
+  await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+  return page.getByRole('tabpanel', { name: 'Rotation' })
+}
+
+/** The Rotation tab of Arms, the second spec. */
+const openArmsRotation = async (page: Page) => {
+  await page.goto('./')
+  await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
+  await page.getByRole('menuitem', { name: /Arms/ }).click()
   await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
   return page.getByRole('tabpanel', { name: 'Rotation' })
 }
@@ -50,10 +59,10 @@ test.describe('rotation tab', () => {
     await slam.click()
     await expect(slam).toBeChecked()
     await expect(slam).toHaveAccessibleDescription(/Changed\. Default: off/)
-    await tab.getByRole('button', { name: 'Reset Slam to off' }).click()
+    await tab.getByRole('button', { name: 'Reset Slam, default off' }).click()
     await expect(slam).not.toBeChecked()
     await expect(slam).toBeFocused()
-    await expect(tab.getByRole('button', { name: 'Reset Slam to off' })).toHaveCount(0)
+    await expect(tab.getByRole('button', { name: 'Reset Slam, default off' })).toHaveCount(0)
   })
 
   test('thresholds wait behind each heading’s Advanced button, which opens by itself for a changed one', async ({ page }) => {
@@ -84,6 +93,41 @@ test.describe('rotation tab', () => {
     await advanced.click()
     await expect(threshold).toHaveCount(0)
     await expect(advanced).toContainText('1 changed')
+  })
+
+  test('the intro says what the spec’s defaults are: tuned for Arms, the common priority for Fury', async ({ page }) => {
+    const fury = await openRotation(page)
+    await expect(fury.getByText('Which abilities the sim uses, and when. The defaults follow the common priority.', { exact: true })).toBeVisible()
+    const arms = await openArmsRotation(page)
+    await expect(arms.getByText('Which abilities the sim uses, and when. The defaults are tuned for the default setup.', { exact: true })).toBeVisible()
+    await expect(arms.getByText(/we’ve found/)).toHaveCount(0)
+  })
+
+  test('a threshold is described by its help, and once changed by its default too', async ({ page }) => {
+    const tab = await openRotation(page)
+    const fillers = tab.getByRole('region', { name: 'Fillers' })
+    await fillers.getByRole('button', { name: /^Advanced settings for Fillers/ }).click()
+    const threshold = fillers.getByRole('textbox', { name: 'Heroic Strike from' })
+    await expect(threshold).toHaveAccessibleDescription('Queue it at or above this much rage.')
+    await threshold.fill('50')
+    await threshold.press('Enter')
+    await expect(threshold).toHaveAccessibleDescription('Queue it at or above this much rage. Changed. Default: 42 rage')
+  })
+
+  test('a threshold’s Reset names it and its default once each, and puts it back', async ({ page }) => {
+    const tab = await openArmsRotation(page)
+    const consumables = tab.getByRole('region', { name: 'Consumables' })
+    await consumables.getByRole('button', { name: /^Advanced settings for Consumables/ }).click()
+    const limit = consumables.getByRole('textbox', { name: 'Mighty Rage Potion up to' })
+    await expect(limit).toHaveValue('0')
+    await limit.fill('20')
+    await limit.press('Enter')
+    // Not "Reset Mighty Rage Potion up to to 0 rage".
+    const reset = consumables.getByRole('button', { name: 'Reset Mighty Rage Potion up to, default 0 rage', exact: true })
+    await reset.click()
+    await expect(limit).toHaveValue('0')
+    await expect(limit).toBeFocused()
+    await expect(reset).toHaveCount(0)
   })
 
   test('Reset rotation restores every default', async ({ page }) => {

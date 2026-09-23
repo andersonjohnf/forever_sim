@@ -33,6 +33,17 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   return []
 }
 
+/**
+ * What the Rotation tab's intro says about the spec's defaults (docs/ux.md "Rotation"): tuned for
+ * the default setup once a paired search has tuned them (decision D23; Arms since M2.5a), the common
+ * priority until then (Fury, until M2.5b). None for a spec without rotation settings.
+ */
+export function rotationDefaultsNote(spec: SpecId): string | undefined {
+  if (spec === 'warrior-arms') return 'The defaults are tuned for the default setup.'
+  if (spec === 'warrior-fury') return 'The defaults follow the common priority.'
+  return undefined
+}
+
 /** Setting ids a spec renamed, old → new (normalizeConfig carries saved values over). */
 export function renamedRotationOptions(spec: SpecId): Readonly<Record<string, string>> {
   return spec === 'warrior-fury' ? FURY_RENAMED_OPTIONS : {}

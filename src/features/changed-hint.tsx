@@ -28,7 +28,7 @@ export function ChangedHint({
 }: {
   /** The id of the "Changed. Default: …" text, for the control's aria-describedby. */
   id: string
-  /** The setting's name, for the button: "Reset Fight length to 3:00". */
+  /** The setting's name, for the button: "Reset Fight length, default 3:00". */
   label: string
   /** The default as the setting shows it. */
   value: string
@@ -45,7 +45,7 @@ export function ChangedHint({
       </span>
       <button
         type="button"
-        aria-label={`Reset ${label} to ${value}`}
+        aria-label={`Reset ${label}, default ${value}`}
         onClick={onReset}
         // A small link with a 44 px hit area around it.
         className={cn(

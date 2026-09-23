@@ -53,7 +53,8 @@ export function RotationSection() {
   const talents = useSetup((s) => s.config.talents)
   const enabledBuffs = useSetup((s) => s.config.buffs.enabled)
   const update = useSetup((s) => s.update)
-  const options = getSpec(meta.id).rotationOptions
+  const spec = getSpec(meta.id)
+  const options = spec.rotationOptions
   // Each setting's value, its default for this setup (a default can follow the talents or another
   // setting), whether it's changed, and whether it can apply (docs/ux.md "Rotation").
   const rows = useMemo(() => rotationRows({ spec: meta.id, talents, rotation }, options, enabledBuffs), [meta.id, talents, rotation, options, enabledBuffs])
@@ -87,7 +88,7 @@ export function RotationSection() {
     <div className="flex flex-col gap-6">
       <SectionHeader
         title="Rotation"
-        description="Which abilities the sim uses, and when. The defaults are the best rotation we’ve found."
+        description={['Which abilities the sim uses, and when.', spec.rotationDefaults].filter(Boolean).join(' ')}
         action={
           <Button variant="ghost" className="h-11 shrink-0" disabled={Object.keys(rotation).length === 0} onClick={resetAll}>
             <RotateCcw /> Reset rotation
@@ -241,7 +242,7 @@ function OptionRow({ option, ctx, nested = false }: { option: RotationOption; ct
           step={option.step}
           unit={option.unit}
           aria-label={option.label}
-          aria-describedby={row.changed ? ids.default : undefined}
+          aria-describedby={[ids.help, row.changed && ids.default].filter(Boolean).join(' ')}
         />
       )}
     </div>

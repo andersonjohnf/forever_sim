@@ -186,7 +186,9 @@ spec's default rotation is the best one we've found.
 - [ ] **M2.5b Fury:** search Fury's rotation options the same way (warrior.md §5.2).
 - Each slice records its method and numbers in warrior.md, re-snapshots the goldens, and goes
   through the review gate.
-- The Rotation tab now says "The defaults are the best rotation we’ve found" (M2.5a).
+- The Rotation tab's intro says what each spec's defaults are: "tuned for the default setup"
+  once a slice has tuned them (Arms), "the common priority" until then (Fury, until M2.5b)
+  (`rotationDefaultsNote` in `src/sim/classes/rotation.ts`).
 
 ## Parallel tracks: the tank specs first, and every remaining spec (user priority, 2026-09-23)
 

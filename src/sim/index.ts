@@ -3,7 +3,7 @@
 import type { ClassSlug } from '@/data/races/types'
 import { talentRanksByName } from './classes'
 import { resolveRotationValues } from './classes/options'
-import { ROTATION_GROUPS, rotationOptions } from './classes/rotation'
+import { ROTATION_GROUPS, rotationDefaultsNote, rotationOptions } from './classes/rotation'
 import { normalizeConfig } from './config/normalize'
 import { TALENT_DATA } from './defaults'
 import { BUFFS } from './effects/buffs'
@@ -50,6 +50,7 @@ export const specs: SpecDefinition[] = SPEC_IDS.map((id) => ({
   ...SPEC_META[id],
   available: AVAILABLE.has(id),
   rotationOptions: rotationOptions(id),
+  rotationDefaults: rotationDefaultsNote(id),
 }))
 
 export function getSpec(id: SpecId): SpecDefinition {

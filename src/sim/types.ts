@@ -233,6 +233,8 @@ export interface SpecDefinition {
   /** Shown in the spec picker only when its sim and UI are complete (docs/ux.md principle 8). */
   available: boolean
   rotationOptions: RotationOption[]
+  /** What the Rotation tab says about the defaults: tuned for the default setup, or the common priority (D23). */
+  rotationDefaults?: string
 }
 
 export type BuffCategory = 'raidBuff' | 'targetDebuff' | 'consumable'

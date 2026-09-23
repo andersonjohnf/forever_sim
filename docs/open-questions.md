@@ -1131,6 +1131,30 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [§5.3](mechanics/damage-and-timing.md#53-what-can-trigger-a-chance-on-hit-proc),
   [OQ 13](mechanics/damage-and-timing.md#open-questions)
 
+#### B71. Execute and fractional rage
+**Low · M2 · ≤30 (Execute)**
+- **Assumes** [?]: Execute converts all the rage left after its cost, tenths included (15
+  damage per rage). Forever's normalized white rage leaves fractions, e.g. 9.1 rage from a
+  2.6 s main hand. The difference is at most 13.5 damage per Execute.
+- **Test:** Execute a mob at a known fractional rage (read with an addon on
+  `UNIT_POWER_UPDATE`), and compare the damage with `600 + 15 × (rage − cost)` with and
+  without the fraction. Use non-crits only, at a known armor.
+- **Samples:** ≥30 Executes.
+- **Changes:** Execute's damage per extra rage.
+- **Docs:** [warrior §7](classes/warrior.md#7-implementation-notes),
+  [Q28](classes/warrior.md#9-open-questions)
+
+#### B72. Improved Bloodrage 1/2 rounding
+**Low · M3 · ≤20 (Protection tier 2)**
+- **Assumes** [?]: at 1/2, each rage gain is ×1.25 floored to a tenth: 12.5 at once, then 1.2
+  per tick (1.25 floored), 24.5 in all instead of 25. Rank 2/2 (×1.5) is exact.
+- **Test:** Improved Bloodrage 1/2; use Bloodrage out of combat and log each rage gain with
+  decimals.
+- **Samples:** 3 casts.
+- **Changes:** Bloodrage's per-tick rage at rank 1.
+- **Docs:** [warrior §2.3](classes/warrior.md#23-rage-warrior-specific),
+  [Q29](classes/warrior.md#9-open-questions)
+
 ---
 
 ## Route C: Forever at level 60

@@ -79,10 +79,13 @@ export const ASSUMPTION_GROUP = {
   improvedBloodrageRounding: 'class',
   weaponmasterMace: 'class',
   rendOnHit: 'class',
-  enrageTrigger: 'class',
+  // Damage taken, together: the rage a hit gives, then a DPS spec's hits themselves (Fight →
+  // Advanced → "Damage you take", the one you set), then what they trigger.
   damageTakenRage: 'class',
   damageTakenRageFlat: 'class',
   damageTakenRageHealthLost: 'class',
+  dpsDamageTaken: 'class',
+  enrageTrigger: 'class',
   berserkerRageTaken: 'class',
   defiance: 'class',
   // Combat rules every setup shares: the attack table, timing, threat and the boss.
@@ -100,7 +103,6 @@ export const ASSUMPTION_GROUP = {
   bossMelee: 'combat',
   bossSlow: 'combat',
   bossApDebuff: 'combat',
-  dpsDamageTaken: 'combat',
 } as const satisfies Record<string, AssumptionGroup>
 
 const GROUPS: Record<string, AssumptionGroup> = ASSUMPTION_GROUP

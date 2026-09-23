@@ -99,7 +99,7 @@ const REGISTRY = {
     docRef: `${RAGE}#forever-normalized-rage-per-swing-`,
   },
   damageTakenRage: {
-    text: 'Each hit that lands on you gives 10 × its damage before armor, block and absorbs ÷ your maximum health, the fit to about 2,000 hits in low-level beta logs; it’s untested at level 60, and stance damage-taken modifiers are assumed not to change it.',
+    text: 'A hit that lands on you gives rage of 10 × the hit before armor, block and absorbs, divided by your maximum health. That fits about 2,000 hits in low-level beta logs, but it isn’t tested at level 60, and stances that change the damage you take are assumed not to change it.',
     docRef: `${RAGE}#forever-`,
   },
   damageTakenRageFlat: {

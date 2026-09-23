@@ -490,7 +490,7 @@ describe('assumptions', () => {
     const withModel = (damageTakenRage: NonNullable<SimConfig['rules']['damageTakenRage']>) => taken({ ...prot, rules: { ...prot.rules, damageTakenRage } })
     const [model, health] = taken(prot)
     expect(model.id).toBe('damageTakenRage')
-    expect(model.text).toMatch(/10 × its damage before armor, block and absorbs ÷ your maximum health/)
+    expect(model.text).toMatch(/rage of 10 × the hit before armor, block and absorbs, divided by your maximum health/)
     expect(health.text).toMatch(/rage from damage taken divides by it/)
     expect(withModel('foreverFlat').map((a) => a.id)).toEqual(['damageTakenRageFlat', 'unknownBaseHealth'])
     expect(withModel('foreverHealthLost').map((a) => a.id)).toEqual(['damageTakenRageHealthLost', 'unknownBaseHealth'])

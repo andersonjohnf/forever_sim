@@ -38,6 +38,15 @@ describe('assumption groups', () => {
     expect(groupTitle('gear', 'warrior')).toBe('Your gear and consumables')
   })
 
+  it('keeps the damage you set next to the rage it gives, in the class group (UX12)', () => {
+    const fury = normalizeConfig(defaultConfig('warrior-fury')).config
+    const { assumptions } = buildPlan({ ...fury, fight: { ...fury.fight, damageTakenPerSec: 200 } })
+    const group = groupAssumptions(assumptions).find((g) => g.items.some((i) => i.id === 'dpsDamageTaken'))!
+    expect(group.group).toBe('class')
+    const ids = group.items.map((i) => i.id)
+    expect(ids.slice(ids.indexOf('damageTakenRage'), ids.indexOf('damageTakenRage') + 3)).toEqual(['damageTakenRage', 'dpsDamageTaken', 'enrageTrigger'])
+  })
+
   it('groups the default Fury setup’s assumptions without losing any', () => {
     const { assumptions } = buildPlan(normalizeConfig(defaultConfig('warrior-fury')).config)
     const grouped = groupAssumptions(assumptions)

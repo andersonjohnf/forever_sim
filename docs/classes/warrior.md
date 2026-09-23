@@ -447,7 +447,10 @@ Weaponmaster replaces Classic's Sword, Axe, Polearm and Mace Specialization with
     while a Bloodthrill window is open doesn't shorten it: the window lasts until the later of
     the two ends [?] (Q11).
 - **Revenge window.** After the warrior blocks, dodges or parries, Revenge is usable for
-  **5 s** [?] (Q12). It needs Defensive Stance and has a 5 s cooldown [F] [sb].
+  **5 s** [?] (Q12): assumed like Overpower's, since no allowed source gives its length. It needs
+  Defensive Stance and has a 5 s cooldown [F] [sb]. The length matters little: a 4 s window costs
+  the default Protection warrior 0.05% of its TPS (−0.51, −0.77 to −0.24), and Max TPS 0.06%; a
+  3 s one 0.15% and 0.06% (seed 12345, 20,000 fights).
 
 ### 2.9 Racials for warriors
 
@@ -2380,9 +2383,10 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     attacks (tooltip)? The sim takes white swings, extra attacks included. Does it need your own
     Rend? Does its 6 s window stack with a dodge window? The sim keeps one window, which a dodge
     refreshes but never shortens.
-12. **Revenge window.** Is it 5 s after a block, dodge or parry? The only source we found for
-    a number (4 s) is Turtle WoW, which is forbidden. **Test:** time from a dodge to Revenge
-    greying out.
+12. **Revenge window.** Is it 5 s after a block, dodge or parry? The sim assumes Overpower's
+    5 s. The only source we found for a number (4 s) is Turtle WoW, which is forbidden. It's
+    small: 4 s would cost the default 0.05% TPS ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)).
+    **Test:** time from a dodge to Revenge greying out.
 13. **Spearing Strike and Raging Blows.** Is Spearing Strike's 40% applied to normalized
     weapon damage including AP? Which Forever raid bosses are Giants or Dragonkin? For Raging
     Blows' off-hand Whirlwind strike: is it normalized, does the off-hand 50% penalty apply,

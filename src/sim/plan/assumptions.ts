@@ -274,7 +274,8 @@ const REGISTRY = {
     docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
   },
   revengeWindow: {
-    text: 'A block, dodge or parry of the boss’s swings opens Revenge for 5 s, and using it closes the window, as in Classic Era; untested in Forever.',
+    // warrior.md §2.8, Q12: no tier 1–3 source gives its length; 5 s is Overpower's.
+    text: 'A block, dodge or parry of the boss’s swings opens Revenge for 5 s, assumed like Overpower’s window, and using it closes the window; untested. A 4 s window would cost about 0.05% of your TPS.',
     docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
   },
   spellTable: {

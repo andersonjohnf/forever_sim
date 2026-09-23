@@ -494,7 +494,9 @@ describe('assumptions', () => {
     expect(health.text).toMatch(/rage from damage taken divides by it/)
     expect(withModel('foreverFlat').map((a) => a.id)).toEqual(['damageTakenRageFlat', 'unknownBaseHealth'])
     expect(withModel('foreverHealthLost').map((a) => a.id)).toEqual(['damageTakenRageHealthLost', 'unknownBaseHealth'])
-    expect(withModel('foreverHpPreArmor').map((a) => a.id)).toEqual(['damageTakenRage', 'unknownBaseHealth'])
+    // A legacy id, in a raw setup that skipped normalizing, flags the model it now names.
+    const legacy = { ...prot, rules: { ...prot.rules, damageTakenRage: 'foreverHpPreArmor' } } as unknown as SimConfig
+    expect(taken(legacy).map((a) => a.id)).toEqual(['damageTakenRage', 'unknownBaseHealth'])
     // Classic Era's own model is [C]; it and `foreverFlat` don't divide by health.
     const classic = withModel('classic')
     expect(classic.map((a) => a.id)).toEqual(['unknownBaseHealth'])

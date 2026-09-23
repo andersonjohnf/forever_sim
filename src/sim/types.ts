@@ -112,10 +112,11 @@ export interface SimConfig {
     /**
      * Rage from damage taken (docs/mechanics/rage.md#rage-from-damage-taken). Omitted: the
      * profile's default (`forever` for Forever, `classic` for Classic Era). A setup saved before
-     * the models were renamed may still carry a legacy id; normalizeConfig and buildPlan map it
-     * to today's (`LEGACY_DAMAGE_TAKEN_RAGE` in rules/profiles.ts).
+     * the models were renamed may still carry a legacy id, which isn't a SimConfig value:
+     * normalizeConfig maps it to today's, and so does buildPlan for a config that skipped
+     * normalizing (`LEGACY_DAMAGE_TAKEN_RAGE` in rules/profiles.ts).
      */
-    damageTakenRage?: DamageTakenRageModel | LegacyDamageTakenRageModel
+    damageTakenRage?: DamageTakenRageModel
   }
   run: {
     /**

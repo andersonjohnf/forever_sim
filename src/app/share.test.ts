@@ -34,7 +34,8 @@ function largestSetup(spec: SpecId): SimConfig {
       damageTakenPerSec: 123.456789012345,
       boss: { ...d.fight.boss, swingSpeedSec: 1.23456789012345, damageMin: 12345.6789012345, damageMax: 19999.999999999 },
     },
-    rules: { profile: 'classicEra', unmeasuredRatings: 'ignore', damageTakenRage: 'foreverHpPreArmor' },
+    // The longest damage-taken rage model id.
+    rules: { profile: 'classicEra', unmeasuredRatings: 'ignore', damageTakenRage: 'foreverHealthLost' },
     run: { mode: 'adaptive', iterations: 100000, seed: 4294967295 },
   }
 }

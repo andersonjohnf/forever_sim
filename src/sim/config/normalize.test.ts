@@ -249,8 +249,9 @@ describe('normalizeConfig', () => {
       const { config, warnings } = normalizeConfig({ ...d, rules: { ...d.rules, damageTakenRage: old } })
       expect(config.rules.damageTakenRage).toBe(now)
       expect(warnings).toEqual([])
-      // A setup that skips normalizing still gets the new model.
-      expect(buildPlan({ ...d, rules: { ...d.rules, damageTakenRage: old as keyof typeof legacy } }).plan.rage.damageTakenModel).toBe(now)
+      // A raw setup that skips normalizing still gets the new model.
+      const raw = { ...d, rules: { ...d.rules, damageTakenRage: old } } as unknown as SimConfig
+      expect(buildPlan(raw).plan.rage.damageTakenModel).toBe(now)
     }
     // Prototype keys aren't ids.
     expect(normalizeConfig({ ...d, rules: { ...d.rules, damageTakenRage: 'toString' } }).config.rules.damageTakenRage).toBeUndefined()

@@ -124,6 +124,7 @@ UX fix slices:
 | U30 | low | **The no-gear result gives no next step.** | fix, UX-A |
 | U31 | low | **First load: 1.8 MB JS (311 kB gzipped).** | **waived** for the first release. 311 kB gzipped loads in about a second on a phone connection, and the sim then runs offline in workers. Lazy-loading per class stays in Known gaps. |
 | U32 | low | **Share may fail on iOS Safari** (a clipboard write after an await); not verified. | fix, UX-C: `ClipboardItem` with a promise, or `navigator.share` on phones |
+| U33 | medium | **The app-wide focus ring** (shadcn's `ring-ring/50`) is 1.54:1 on the light page and 1.87:1 on the dark one, below the 3:1 that WCAG 1.4.11 asks of a focus indicator. Found by the UX-C fixer. | fix, cleanup slice: a token-level `--ring` that clears 3:1 at the ring's opacity in both themes |
 
 ## Verdict
 

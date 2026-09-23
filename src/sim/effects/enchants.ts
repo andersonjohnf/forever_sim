@@ -1,7 +1,10 @@
 // The enchant catalogue for the warrior specs (docs/mechanics/buffs-debuffs-consumables.md#5-enchants-and-item-enhancements).
-// Forever values from the enchant scroll tooltips; proc rates are Classic Era's [C] or [?].
+// Forever values from the enchant scroll tooltips; proc rates are Classic Era's [C] or [?]. An
+// enchant whose Classic Era value differs carries it in `classicEra`, from the Classic Era client
+// (buffs doc, "Classic Era values"); resolve with `catalogueEffects`. Enchants new in Forever keep
+// Forever's values in both profiles.
 import type { EnchantDefinition, GearSlot } from '../types'
-import type { Effect } from './types'
+import type { ClassicEraValues, Effect } from './types'
 
 const DOC = 'docs/mechanics/buffs-debuffs-consumables.md'
 
@@ -10,6 +13,8 @@ export type EnchantRequirement = 'weapon' | 'twoHand' | 'shield'
 
 export interface EnchantSpec extends EnchantDefinition {
   effects: Effect[]
+  /** Classic Era's values where they differ (buffs doc, Classic Era values). */
+  classicEra?: ClassicEraValues
   requires?: EnchantRequirement
 }
 
@@ -132,6 +137,8 @@ export const ENCHANTS: EnchantSpec[] = [
     summary: '+5 Stamina, +40 armor',
     docRef: `${DOC}#53-head-and-legs-arcanums-zg-idols-armor-kits`,
     effects: [stat('sta', 5), stat('bonusArmor', 40)],
+    // Classic's Rugged Armor Kit applies enchant 1843 instead (+40 armor only).
+    classicEra: { summary: '+40 armor', effects: [stat('bonusArmor', 40)] },
   },
   { id: 'coreArmorKit', name: 'Core Armor Kit', slots: KIT_SLOTS, summary: '+3 defense', docRef: `${DOC}#53-head-and-legs-arcanums-zg-idols-armor-kits`, effects: [stat('defense', 3)] },
   // §5.4 Shoulders
@@ -156,7 +163,7 @@ export const ENCHANTS: EnchantSpec[] = [
   { id: 'cloakAgility', name: 'Agility', slots: ['back'], summary: '+5 Agility', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('agi', 5)] },
   { id: 'cloakLesserAgility', name: 'Lesser Agility', slots: ['back'], summary: '+3 Agility', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('agi', 3)] },
   { id: 'cloakSuperiorDefense', name: 'Superior Defense', slots: ['back'], summary: '+70 armor', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('bonusArmor', 70)] },
-  { id: 'cloakGreaterDefense', name: 'Greater Defense', slots: ['back'], summary: '+60 armor', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('bonusArmor', 60)] },
+  { id: 'cloakGreaterDefense', name: 'Greater Defense', slots: ['back'], summary: '+60 armor', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('bonusArmor', 60)], classicEra: { summary: '+50 armor', effects: [stat('bonusArmor', 50)] } },
   { id: 'cloakDodge', name: 'Dodge', slots: ['back'], summary: '+1% dodge', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('dodge', 1)] },
   { id: 'cloakSubtlety', name: 'Subtlety', slots: ['back'], summary: '−2% threat', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [{ kind: 'threat', pct: -2 }] },
   {
@@ -175,25 +182,25 @@ export const ENCHANTS: EnchantSpec[] = [
     docRef: `${DOC}#55-armor-slots-enchanting`,
     effects: [stat('str', 3), stat('agi', 3), stat('sta', 3), stat('int', 3), stat('spi', 3)],
   },
-  { id: 'chestMajorStamina', name: 'Major Stamina', slots: ['chest'], summary: '+10 Stamina', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('sta', 10)] },
+  { id: 'chestMajorStamina', name: 'Major Stamina', slots: ['chest'], summary: '+10 Stamina', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('sta', 10)], classicEra: { summary: '+100 health', effects: [stat('health', 100)] } },
   { id: 'bracerSuperiorStrength', name: 'Superior Strength', slots: ['wrist'], summary: '+9 Strength', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('str', 9)] },
   { id: 'bracerGreaterStrength', name: 'Greater Strength', slots: ['wrist'], summary: '+7 Strength', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('str', 7)] },
   { id: 'bracerSuperiorAgility', name: 'Superior Agility', slots: ['wrist'], summary: '+9 Agility', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('agi', 9)] },
   { id: 'bracerSuperiorStamina', name: 'Superior Stamina', slots: ['wrist'], summary: '+9 Stamina', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('sta', 9)] },
-  { id: 'bracerDeflection', name: 'Deflection', slots: ['wrist'], summary: '+7 defense', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('defense', 7)] },
+  { id: 'bracerDeflection', name: 'Deflection', slots: ['wrist'], summary: '+7 defense', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('defense', 7)], classicEra: { summary: '+3 defense', effects: [stat('defense', 3)] } },
   { id: 'bracerSuperiorDeflection', name: 'Superior Deflection', slots: ['wrist'], summary: '+9 defense', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('defense', 9)] },
   { id: 'gloveSuperiorStrength', name: 'Superior Strength', slots: ['hands'], summary: '+15 Strength', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('str', 15)] },
   { id: 'gloveSuperiorAgility', name: 'Superior Agility', slots: ['hands'], summary: '+15 Agility', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('agi', 15)] },
-  { id: 'gloveGreaterStrength', name: 'Greater Strength', slots: ['hands'], summary: '+10 Strength', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('str', 10)] },
-  { id: 'gloveGreaterAgility', name: 'Greater Agility', slots: ['hands'], summary: '+10 Agility', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('agi', 10)] },
-  { id: 'gloveStrength', name: 'Strength', slots: ['hands'], summary: '+7 Strength', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('str', 7)] },
-  { id: 'gloveAgility', name: 'Agility', slots: ['hands'], summary: '+7 Agility', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('agi', 7)] },
+  { id: 'gloveGreaterStrength', name: 'Greater Strength', slots: ['hands'], summary: '+10 Strength', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('str', 10)], classicEra: { summary: '+7 Strength', effects: [stat('str', 7)] } },
+  { id: 'gloveGreaterAgility', name: 'Greater Agility', slots: ['hands'], summary: '+10 Agility', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('agi', 10)], classicEra: { summary: '+7 Agility', effects: [stat('agi', 7)] } },
+  { id: 'gloveStrength', name: 'Strength', slots: ['hands'], summary: '+7 Strength', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('str', 7)], classicEra: { summary: '+5 Strength', effects: [stat('str', 5)] } },
+  { id: 'gloveAgility', name: 'Agility', slots: ['hands'], summary: '+7 Agility', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('agi', 7)], classicEra: { summary: '+5 Agility', effects: [stat('agi', 5)] } },
   { id: 'gloveMinorHaste', name: 'Minor Haste', slots: ['hands'], summary: '+1% attack speed', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [{ kind: 'haste', pct: 1 }] },
   { id: 'gloveThreat', name: 'Threat', slots: ['hands'], summary: '+2% threat', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [{ kind: 'threat', pct: 2 }] },
   { id: 'bootsGreaterAgility', name: 'Greater Agility', slots: ['feet'], summary: '+7 Agility', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('agi', 7)] },
   { id: 'bootsAgility', name: 'Agility', slots: ['feet'], summary: '+5 Agility', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('agi', 5)] },
   { id: 'bootsGreaterStamina', name: 'Greater Stamina', slots: ['feet'], summary: '+7 Stamina', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('sta', 7)] },
-  { id: 'shieldGreaterStamina', name: 'Greater Stamina', slots: ['offHand'], requires: 'shield', summary: '+9 Stamina', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('sta', 9)] },
+  { id: 'shieldGreaterStamina', name: 'Greater Stamina', slots: ['offHand'], requires: 'shield', summary: '+9 Stamina', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('sta', 9)], classicEra: { summary: '+7 Stamina', effects: [stat('sta', 7)] } },
   { id: 'shieldExcellentStamina', name: 'Excellent Stamina', slots: ['offHand'], requires: 'shield', summary: '+12 Stamina', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('sta', 12)] },
   { id: 'shieldCriticalStrike', name: 'Critical Strike', slots: ['offHand'], requires: 'shield', summary: '+1% crit', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('crit', 1), stat('spellCrit', 1)] },
   { id: 'shieldLesserBlock', name: 'Lesser Block', slots: ['offHand'], requires: 'shield', summary: '+2% block', docRef: `${DOC}#55-armor-slots-enchanting`, effects: [stat('block', 2)] },

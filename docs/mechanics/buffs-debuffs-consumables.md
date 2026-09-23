@@ -15,7 +15,7 @@ shamans. Class-specific self-buffs (seals, stances, forms, Seal of the
 Crusader's attack-power half) live in the class docs; this doc owns everything a *second*
 player or an item provides.
 
-Status: researched 2026-09-22 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
+Status: researched 2026-09-22 · Classic Era values checked 2026-09-23 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 
 Forever data: beta client **1.60.1.69913** (2026-09-18) vs Classic Era **1.15.9.69722**,
 read from foreverchanges.pro (spellbooks, change log, item data files, enchanting recipes)
@@ -40,7 +40,9 @@ appear in [Open questions](#open-questions).
 **Reading the tables.** "X (C: Y)" means the Forever value is X and the Classic Era value
 was Y. A value with no "(C: …)" is identical in both clients. IDs are spell IDs for buffs
 and debuffs, item IDs for consumables (with the buff spell ID after `→`), and
-enchanting-spell / SpellItemEnchantment IDs for enchants.
+enchanting-spell / SpellItemEnchantment IDs for enchants. The `classicEra` rule profile uses
+the Classic Era values; [Classic Era values](#classic-era-values) lists every catalogue entry
+in both clients with its client rows.
 
 ---
 
@@ -88,8 +90,8 @@ enchanting-spell / SpellItemEnchantment IDs for enchants.
   separate from potions), explosives (shared 1 min), and the Blasted Lands buffs (shared
   1 h). See [Implementation notes](#on-use-items-and-cooldown-categories).
 - **One temporary enchant per weapon** (stone, oil or poison). In Classic, Windfury Totem
-  took the main-hand slot; in Forever it probably doesn't. See
-  [Windfury Totem](#windfury-totem).
+  took the main-hand slot, and the `classicEra` profile models that; in Forever it probably
+  doesn't. See [Windfury Totem](#windfury-totem).
 - **Presets** built on raid composition, not faction ([§6](#6-default-presets)).
 - **No world buffs** ([§2](#2-world-buffs-excluded)).
 - **Camp buffs** (a new Forever system) as optional fallbacks for missing classes
@@ -230,6 +232,10 @@ which doesn't matter inside one fight [F] [[fc-camping]].
   coexist with Windfury Totem. The sim should allow it, flagged as an assumption until the
   beta confirms. Twisting Windfury with Grace of Air probably no longer works, because the
   aura disappears with the totem. See [Open questions](#open-questions).
+- **`classicEra` [C]:** the totem's enchant takes the main hand's temporary-enchant slot, so
+  a main-hand stone does nothing while the totem is up; the off hand keeps its own (which is
+  where Classic warriors put an Elemental Sharpening Stone). With a two-hander, no stone
+  applies at all.
 - **Extra-attack rules [C]:** a Windfury extra attack can't proc Windfury, and Windfury can't
   proc twice in one chain of extra attacks ([Magey › Windfury Totem][magey-wf], text from 2019).
   `forever` also applies the client's 100 ms internal cooldown [F]; `classicEra` has none (the
@@ -818,7 +824,8 @@ food) are static: used before the pull and up all fight.
   and a proc starts the client's 100 ms internal cooldown [F]
   ([damage-and-timing §5.4](damage-and-timing.md#54-extra-attacks-and-chaining)).
   The totem aura is not a weapon enchant, so a main-hand temporary enchant is allowed ([?]).
-  Classic mode (if ever needed): +315 AP, and it replaces the main-hand temporary enchant.
+  `classicEra`: +315 AP, and the totem's enchant replaces the main-hand temporary enchant [C]
+  ([Windfury Totem](#windfury-totem)).
 - **Weapon enchant procs** use PPM (`chance = PPM × weaponSpeed / 60`, see
   [glossary](../glossary.md)). Crusader 1, Fiery 6 and Lifestealing 6 are [C] (the pre-SoD
   WarriorSim, [ws-gear]); Icy Chill 1.6 and Unholy 3 are [?] (an unversioned wiki only).
@@ -834,6 +841,136 @@ food) are static: used before the pull and up all fight.
 - **Skipped (< 0.5% of DPS/TPS)**: Retribution Aura and Thorns damage, Blood Pact, Gift of
   Arthas, Battle Squawk, healer-proc armor buffs (Inspiration / Ancestral Fortitude), and
   debuff-slot pressure.
+
+### Classic Era values
+
+The `classicEra` rule profile uses each catalogue entry's Classic Era values where they differ
+from Forever's. They were read from the Classic Era client **1.15.9.69722** on 2026-09-23, and
+every Forever value was checked against **1.60.1.69913** at the same time [client]. In the
+tables, `a + 1` is a `SpellEffect` row's `EffectBasePoints` a with `EffectDieSides` 1, so the
+value is a + 1; `#n` is the effect index; `→` follows an item to its spell, an enchanting spell
+to its `SpellItemEnchantment`, and an enchant to its equip spell. All **98** entries were
+compared (42 buffs, debuffs and consumables; 56 enchants): **23 differ**, **18 are new in
+Forever**, and the other **57** are the same in both clients.
+
+- **Untalented spell values.** A Classic Era buff is the spell's own value. The providers'
+  improving talents (Improved Battle Shout, Improved Blessing of Might, Improved Mark of the
+  Wild, Improved Power Word: Fortitude, Enhancing Totems, Improved Weapon Totems) aren't
+  applied, because the sim doesn't know the other players' builds; [worked example
+  5](#worked-examples) shows the talented numbers. For reference, Forever's Mark of the Wild
+  (16 / 385), Fortitude (70) and Grace of Air (89) equal Classic's with the improving talent at
+  5/5, rounded.
+- **New in Forever.** An entry with no Classic Era row, or whose only 1.15 row is Season of
+  Discovery's (a forbidden source,
+  [doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable)), has no Classic Era
+  value, so both profiles use Forever's, as they do for Forever gear. It stays selectable in
+  `classicEra`.
+- **Where the values live.** An entry carries its Classic Era values itself (`classicEra` in
+  `src/sim/effects/buffs.ts` and `enchants.ts`, with its own summary). The debuffs that
+  worked examples tie to the profile (Expose Armor, Curse of Recklessness, Armor Shatter,
+  Demoralizing Shout, Thunder Clap) and Windfury's attack power read the profile's `values`
+  instead, and Windfury's main-hand enchant is the profile's `catalogue.windfuryMainHandEnchant`.
+- **The warrior's own Battle Shout** (the rotation's upkeep) isn't a catalogue entry. It's the
+  class ability ([warrior](../classes/warrior.md)), whose numbers are Forever's in both profiles
+  for now, and the character sheet counts it at that value. The catalogue's Battle Shout
+  (another warrior's) is +232 in `classicEra`.
+- **Tests.** `src/sim/effects/catalogue.test.ts` mirrors these tables. With the raw client
+  tables cached locally (`npm run scrape:client`), it also checks every cited row in both
+  clients.
+
+**Raid buffs and target debuffs**
+
+| Entry (sim id) | Forever | Classic Era | Classic Era client row | Tag |
+| --- | --- | --- | --- | --- |
+| Battle Shout r7 (`battleShout`) | +139 AP | **+232 AP** | SpellEffect 25289 #0: 231 + 1 (+1 per level from 60) | [C] |
+| Blessing of Might r7 (`blessingOfMight`) | +133 AP | **+185 AP** | 25291 #0: 184 + 1 (Greater 25916 the same) | [C] |
+| Blessing of Kings (`blessingOfKings`) | +10% all stats | same | 20217 #0: 9 + 1 | [C] |
+| Gift of the Wild r2 (`markOfTheWild`) | +16 all stats, +385 armor | **+12 all stats, +285 armor** | 21850 #1: 11 + 1; #0: 284 + 1 (resistances 19 + 1, not simulated) | [C] |
+| Prayer of Fortitude r2 (`powerWordFortitude`) | +70 Sta | **+54 Sta** | 21564 #0: 53 + 1 | [C] |
+| Leader of the Pack (`leaderOfThePack`) | +3% crit | same (melee and ranged only) | 24932 #0 (aura 52): 2 + 1; Forever's is aura 290, all crit | [C] |
+| Windfury Totem r3 (`windfuryTotem`) | 20% for an extra attack with +246 AP; a party aura | **+315 AP; a main-hand enchant that replaces a stone** | 10610 #0: 314 + 1; 10612 → 10611 → enchant 564 (20%, casts 10610) | [C] |
+| Grace of Air Totem r3 (`graceOfAir`) | +89 Agi | **+77 Agi** | 25360 #0 (the totem's aura): 76 + 1 | [C] |
+| Strength of Earth Totem r5 (`strengthOfEarth`) | +53 Str | **+77 Str** | 25362 #0 (the totem's aura): 76 + 1 | [C] |
+| Blessing of Salvation (`blessingOfSalvation`) | −30% threat | same | 1038 #0: −31 + 1 | [C] |
+| Devotion Aura r7 (`devotionAura`) | +735 armor | same | 10293 #0: 734 + 1 | [C] |
+| Sunder Armor ×5 (`sunderArmor`) | −2250 armor | same | 11597 #0: −451 + 1, ×5 | [C] |
+| Expose Armor (`exposeArmor`) | −2250 armor | **−1700 armor** | Both clients hold 0 (combo points scale it server-side), so these are the tooltip values ([§4.1](#41-armor-reduction)) | [C] tooltip |
+| Curse of Recklessness (`curseOfRecklessness`) | −505 armor | **−640 armor, +90 boss AP** | 11717 #1: −641 + 1; #0 (aura 99): 89 + 1 (Forever's #0 is a dummy) | [C] |
+| Faerie Fire (`faerieFire`) | −505 armor | same | 9907 #0: −506 + 1 | [C] |
+| Annihilator ×3 (`armorShatter`) | −495 armor | **−600 armor** | 16928 #0: −201 + 1, ×3 | [C] |
+| Demoralizing Shout (`demoralizingShout`) | −196 boss AP | **−140 boss AP** | 11556 #0: −141 + 1, and −1 per level from 54 (both clients carry a per-level term; see [OQ 19](#open-questions)) | [C] |
+| Thunder Clap (`thunderClap`) | boss attacks 20% slower | **10% slower** | 11581 #1 (aura 138): −11 + 1 | [C] |
+
+**Consumables**
+
+| Entry (sim id) | Forever | Classic Era | Classic Era client row | Tag |
+| --- | --- | --- | --- | --- |
+| Elixir of the Mongoose (`elixirOfTheMongoose`) | +25 Agi, +2% crit | same (the crit is melee and ranged only) | 13452 → 17538 #0: 24 + 1; #1 (aura 52): 1 + 1 | [C] |
+| Elixir of Greater Strength (`elixirOfGreaterStrength`) | +25 Str | same (named Elixir of the Giants) | 9206 → 11405 #0: 24 + 1 | [C] |
+| Juju Power (`jujuPower`) | +30 Str | same | 12451 → 16323 #0: 29 + 1 | [C] |
+| Elixir of Greater Defense (`elixirOfGreaterDefense`) | +450 armor | same (named Elixir of Superior Defense) | 13445 → 11348 #0: 449 + 1 | [C] |
+| Elixir of Fortitude (`elixirOfFortitude`) | +200 health | none: new in Forever (250334). Classic's item of that name, 3825 (+120 health), is Forever's Elixir of Lesser Fortitude, another item | — | [F] |
+| Flask of the Titans (`flaskOfTheTitans`) | +1200 health | same | 13510 → 17626 #0: 1199 + 1 | [C] |
+| Flasks of Natural Accuracy, Aggression, Precision, Swiftness (`flaskOfNatural…`) | +60 Sta and a zone bonus | none: new in Forever (274273–274276) | — | [F] |
+| Winterfall Firewater (`winterfallFirewater`) | +35 AP | same | 12820 → 17038 #0: 34 + 1 | [C] |
+| Juju Might (`jujuMight`) | +40 AP | same | 12460 → 16329 #0: 39 + 1 | [C] |
+| R.O.I.D.S. (`roids`) | +25 Str | same | 8410 → 10667 #0: 24 + 1 | [C] |
+| Ground Scorpok Assay (`groundScorpokAssay`) | +25 Agi | same | 8412 → 10669 #0: 24 + 1 | [C] |
+| Rumsey Rum Black Label (`rumseyRum`) | +15 Sta | same | 21151 → 25804 #0: 14 + 1 | [C] |
+| Smoked Desert Dumplings (`smokedDesertDumplings`) | +20 Str | same | 20452 → 24800 → Well Fed 24799 #0: 19 + 1 (Forever: 1248401 #1, aura 227 = 20) | [C] |
+| Mightfish Steak (`mightfishSteak`) | +40 AP | **+10 Sta** | 13934 → 18234 → Increased Stamina 18191 #0: 9 + 1 (Forever: 1249515 #1 = 40) | [C] |
+| Grilled Squid (`grilledSquid`) | +1% crit | **+10 Agi** | 13928 → 18230 → Increased Agility 18192 #0: 9 + 1 (Forever: 1249522 #1 = 1) | [C] |
+| Dense Sharpening Stone / Weightstone (`denseSharpeningStone`) | +8 weapon damage | same | 12404 → 16138 → enchant 1643: 8; 12643 → 16622 → 1703: 8 | [C] |
+| Elemental Sharpening Stone (`elementalSharpeningStone`) | +2% crit | same | 18262 → 22756 → enchant 2506 → 22755 #0: 1 + 1 | [C] |
+| Mighty Rage Potion (`mightyRagePotion`) | 45–75 rage, +60 Str for 20 s | same | 13442 → 17528 #0: 449 + 1d301 tenths; #1: 59 + 1; 20 s | [C] |
+| Juju Flurry (`jujuFlurry`) | +3% attack speed for 20 s | same | 12450 → 16322 #0: 2 + 1; 20 s | [C] |
+| EZ-Thro Dark Bomb (`ezThroDarkBomb`) | not simulated | none: new in Forever (260817) | — | [F] |
+| Greater Stoneshield Potion (`greaterStoneshieldPotion`) | not simulated (+2000 armor) | same | 13455 → 17540 #0: 1999 + 1 | [C] |
+
+**Enchants**
+
+| Entry (sim id) | Forever | Classic Era | Classic Era client row | Tag |
+| --- | --- | --- | --- | --- |
+| Crusader (`crusader`) | +100 Str for 15 s | same | 20034 → 1900 → 20007 #0: 99 + 1; 15 s (the PPM is server-side) | [C] |
+| Weapon – Agility, Strength (`weaponAgility`, `weaponStrength`) | +15 Agi, +15 Str | same | 23800 → 2564 → 23794: 14 + 1; 23799 → 2563 → 23793: 14 + 1 | [C] |
+| Superior Striking (`superiorStriking`) | +5 weapon damage | same | 20031 → 1897: 5 | [C] |
+| Fiery Weapon (`fieryWeapon`) | 40 Fire damage | same | 13898 → 803 → 13897 #0: 39 + 1 | [C] |
+| 2H Weapon – Agility (`twoHandAgility`) | +25 Agi | same | 27837 → 2646 → 27836: 24 + 1 | [C] |
+| 2H Weapon – Strength, Lesser Strength (`twoHandStrength`, `twoHandLesserStrength`) | +25 Str, +15 Str | none: new in Forever (1248668, 1248511) | — | [F] |
+| 2H Weapon – Superior Impact (`superiorImpact`) | +9 weapon damage | same | 20030 → 1896: 9 | [C] |
+| Lesser Arcanum of Voracity (`arcanumVoracityStrength`, `…Agility`, `…Stamina`) | +8 | same | 1506, 1508, 1507 → 15396, 15401, 15399: 7 + 1 | [C] |
+| Lesser Arcanum of Constitution, Tenacity (`arcanumConstitution`, `arcanumTenacity`) | +100 health, +125 armor | same | 1503 → 15388: 99 + 1; 1504 → 15390: 124 + 1 | [C] |
+| Arcanum of Rapidity, Protection (`arcanumRapidity`, `arcanumProtection`) | +1% attack speed, +1% dodge | same | 2543 → 22841 #0 (aura 138): 0 + 1; 2545 → 22847: 0 + 1 | [C] |
+| Presence of Might (`presenceOfMight`) | +10 Sta, +7 defense, +15 block value | same | 2583 → 24148: 9 + 1, 6 + 1, 14 + 1 | [C] |
+| Forceful Rugged, Wild Leather Armor Kit (`forcefulRuggedArmorKit`, `wildLeatherArmorKit`) | +10 AP and +40 armor; +4 defense and +10 Sta | none: new in Forever (enchants 8491, 8719) | — | [F] |
+| Rugged Armor Kit (`ruggedArmorKit`) | +5 Sta, +40 armor | **+40 armor** | 15564 → 19057 → enchant 1843: 40 (Forever's 19057 applies 8490) | [C] |
+| Core Armor Kit (`coreArmorKit`) | +3 defense | same | 18251 → 22725 → 2503 → 7516: 2 + 1 | [C] |
+| Zandalar Signet of Might (`zandalarSignetOfMight`) | +30 AP | same | 2606 → 9336: 29 + 1 | [C] |
+| Might, Fortitude of the Scourge (`mightOfTheScourge`, `fortitudeOfTheScourge`) | +26 AP and +1% crit; +16 Sta and +100 armor | same | 2717 → 29482: 25 + 1, 0 + 1; 2716 → 29481: 15 + 1, 99 + 1 | [C] |
+| Cloak – Agility (`cloakAgility`) | +5 Agi | none: the 1.15 row (1219587 → 7667) is Season of Discovery's | — | [F] |
+| Cloak – Lesser Agility (`cloakLesserAgility`) | +3 Agi | same | 13882 → 849 → 13364: 2 + 1 | [C] |
+| Cloak – Superior Defense (`cloakSuperiorDefense`) | +70 armor | same | 20015 → 1889: 70 | [C] |
+| Cloak – Greater Defense (`cloakGreaterDefense`) | +60 armor | **+50 armor** | 13746 → 884: 50 | [C] |
+| Cloak – Dodge, Subtlety (`cloakDodge`, `cloakSubtlety`) | +1% dodge, −2% threat | same | 25086 → 2622 → 25071: 0 + 1; 25084 → 2621 → 25070: −3 + 1 | [C] |
+| Chest – Greater Stats, Stats (`chestGreaterStats`, `chestStats`) | +4, +3 all stats | same | 20025 → 1891 → 19988: 3 + 1; 13941 → 928 → 13824: 2 + 1 | [C] |
+| Chest – Major Stamina (`chestMajorStamina`) | +10 Sta | **+100 health** (Major Health) | 20026 → 1892 → 19990 (aura 34): 99 + 1 | [C] |
+| Bracers – Superior, Greater Strength (`bracerSuperiorStrength`, `bracerGreaterStrength`) | +9, +7 Str | same | 20010 → 1885 → 19984: 8 + 1; 13939 → 927 → 13828: 6 + 1 | [C] |
+| Bracers – Superior Stamina (`bracerSuperiorStamina`) | +9 Sta | same | 20011 → 1886 → 19985: 8 + 1 | [C] |
+| Bracers – Deflection (`bracerDeflection`) | +7 defense | **+3 defense** | 13931 → 923 → 13922: 2 + 1 | [C] |
+| Bracers – Superior Agility, Superior Deflection (`bracerSuperiorAgility`, `bracerSuperiorDeflection`) | +9 Agi, +9 defense | none: new in Forever (1248599, 1248665) | — | [F] |
+| Gloves – Superior Strength (`gloveSuperiorStrength`) | +15 Str | none: new in Forever (1248640) | — | [F] |
+| Gloves – Superior Agility (`gloveSuperiorAgility`) | +15 Agi | same | 25080 → 2564 → 23794: 14 + 1 | [C] |
+| Gloves – Greater Strength (`gloveGreaterStrength`) | +10 Str | **+7 Str** | 20013 → 927 → 13828: 6 + 1 (Forever's 20013 applies 8207) | [C] |
+| Gloves – Greater Agility (`gloveGreaterAgility`) | +10 Agi | **+7 Agi** | 20012 → 1887 → 13823: 6 + 1 (Forever: 8206) | [C] |
+| Gloves – Strength (`gloveStrength`) | +7 Str | **+5 Str** | 13887 → 856 → 13372: 4 + 1 (Forever: 927) | [C] |
+| Gloves – Agility (`gloveAgility`) | +7 Agi | **+5 Agi** | 13815 → 904 → 13365: 4 + 1 (Forever: 1887) | [C] |
+| Gloves – Minor Haste (`gloveMinorHaste`) | +1% attack speed | same (without Forever's casting speed) | 13948 → 931 → 13928 #0 (aura 138): 0 + 1 | [C] |
+| Gloves – Threat (`gloveThreat`) | +2% threat | same | 25072 → 2613 → 25063: 1 + 1 | [C] |
+| Boots – Greater Agility, Agility, Greater Stamina (`bootsGreaterAgility`, `bootsAgility`, `bootsGreaterStamina`) | +7 Agi, +5 Agi, +7 Sta | same | 20023 → 1887 → 13823: 6 + 1; 13935 → 904 → 13365: 4 + 1; 20020 → 929 → 13827: 6 + 1 | [C] |
+| Shield – Greater Stamina (`shieldGreaterStamina`) | +9 Sta | **+7 Sta** | 20017 → 929 → 13827: 6 + 1 (Forever: 1886) | [C] |
+| Shield – Excellent Stamina, Critical Strike (`shieldExcellentStamina`, `shieldCriticalStrike`) | +12 Sta, +1% crit | none: the 1.15 rows (1219581, 1220623) are Season of Discovery's | — | [F] |
+| Shield – Lesser Block (`shieldLesserBlock`) | +2% block | same | 13689 → 863 → 13690: 1 + 1 | [C] |
+| Necklace – Strength, Agility (`neckStrength`, `neckAgility`) | +5 Str, +5 Agi | none: a new Forever slot (1249019, 1249059) | — | [F] |
 
 ---
 
@@ -855,7 +992,9 @@ These become unit tests. Boss armor 3731 is an *input* here; its value is owned 
    one `armor-major` slot → **−2250** (not −4500).
 5. **External melee AP, Forever standard raid.** Battle Shout 139 + Blessing of Might 133 =
    **272** flat AP. Classic Era with 5/5 Improved Battle Shout and 5/5 Improved Blessing of
-   Might: 232 × 1.25 + 185 × 1.20 = 290 + 222 = **512**. That is 240 AP less in Forever.
+   Might: 232 × 1.25 + 185 × 1.20 = 290 + 222 = **512**. That is 240 AP less in Forever. The
+   `classicEra` profile uses the untalented spells ([Classic Era values](#classic-era-values)):
+   232 + 185 = **417**.
 6. **Strength stack.** A warrior with 200 Str from base and gear, plus Strength of Earth
    (+53) and Gift of the Wild (+16), with Kings: (200 + 53 + 16) × 1.10 = **295.9** before
    the rounding that [character-stats](character-stats.md) defines.

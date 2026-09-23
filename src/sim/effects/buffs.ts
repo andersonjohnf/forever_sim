@@ -3,10 +3,12 @@
 // mana, Holy debuffs) arrive with those specs. World buffs never exist here (decision D8).
 //
 // Each entry is a UI-facing BuffDefinition plus its effects and the presets that include it
-// (buffs doc §6.2 and §6.3). Values are Forever's; the few that differ in Classic Era read the
-// rule profile.
+// (buffs doc §6.2 and §6.3). Values are Forever's. An entry whose Classic Era value differs
+// carries it in `classicEra` (from the Classic Era client, buffs doc "Classic Era values"), or
+// reads the rule profile's `values` where a worked example ties it to the profile; resolve them
+// with `catalogueEffects`. Entries new in Forever have no Classic Era value and keep Forever's.
 import type { BuffDefinition, BuffPreset, SpecId } from '../types'
-import type { EffectList, OnUseSpec } from './types'
+import type { ClassicEraValues, EffectList, OnUseSpec } from './types'
 
 const DOC = 'docs/mechanics/buffs-debuffs-consumables.md'
 
@@ -15,6 +17,8 @@ export type Audience = 'all' | 'dps' | 'tank' | readonly SpecId[]
 
 export interface BuffSpec extends BuffDefinition {
   effects: EffectList
+  /** Classic Era's values where they differ (buffs doc, Classic Era values). */
+  classicEra?: ClassicEraValues
   presets: Partial<Record<Exclude<BuffPreset['id'], 'self'>, Audience>>
 }
 
@@ -67,6 +71,7 @@ export const BUFFS: BuffSpec[] = [
     providedBy: 'warrior',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [{ kind: 'stat', stat: 'ap', value: 139 }],
+    classicEra: { summary: '+232 attack power', effects: [{ kind: 'stat', stat: 'ap', value: 232 }] },
     presets: { dungeon: 'all', raid: 'all', max: 'all' },
   },
   {
@@ -79,6 +84,7 @@ export const BUFFS: BuffSpec[] = [
     providedBy: 'paladin',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [{ kind: 'stat', stat: 'ap', value: 133 }],
+    classicEra: { summary: '+185 attack power', effects: [{ kind: 'stat', stat: 'ap', value: 185 }] },
     presets: { dungeon: 'dps', raid: 'all', max: 'all' },
   },
   {
@@ -110,6 +116,17 @@ export const BUFFS: BuffSpec[] = [
       { kind: 'stat', stat: 'spi', value: 16 },
       { kind: 'stat', stat: 'bonusArmor', value: 385 },
     ],
+    classicEra: {
+      summary: '+12 all stats, +285 armor',
+      effects: [
+        { kind: 'stat', stat: 'str', value: 12 },
+        { kind: 'stat', stat: 'agi', value: 12 },
+        { kind: 'stat', stat: 'sta', value: 12 },
+        { kind: 'stat', stat: 'int', value: 12 },
+        { kind: 'stat', stat: 'spi', value: 12 },
+        { kind: 'stat', stat: 'bonusArmor', value: 285 },
+      ],
+    },
     presets: { dungeon: 'all', raid: 'all', max: 'all' },
   },
   {
@@ -122,6 +139,7 @@ export const BUFFS: BuffSpec[] = [
     providedBy: 'priest',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [{ kind: 'stat', stat: 'sta', value: 70 }],
+    classicEra: { summary: '+54 Stamina', effects: [{ kind: 'stat', stat: 'sta', value: 54 }] },
     presets: { dungeon: 'all', raid: 'all', max: 'all' },
   },
   {
@@ -163,6 +181,7 @@ export const BUFFS: BuffSpec[] = [
         },
       },
     ],
+    classicEra: { summary: '20% chance on a main-hand hit for an extra attack with +315 attack power; replaces a main-hand stone' },
     presets: { raid: 'all', max: 'all' },
   },
   {
@@ -176,6 +195,7 @@ export const BUFFS: BuffSpec[] = [
     exclusiveGroup: 'totem:air',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [{ kind: 'stat', stat: 'agi', value: 89 }],
+    classicEra: { summary: '+77 Agility', effects: [{ kind: 'stat', stat: 'agi', value: 77 }] },
     presets: {},
   },
   {
@@ -189,6 +209,7 @@ export const BUFFS: BuffSpec[] = [
     exclusiveGroup: 'totem:earth',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [{ kind: 'stat', stat: 'str', value: 53 }],
+    classicEra: { summary: '+77 Strength', effects: [{ kind: 'stat', stat: 'str', value: 77 }] },
     presets: { raid: 'all', max: 'all' },
   },
   {
@@ -241,6 +262,7 @@ export const BUFFS: BuffSpec[] = [
     exclusiveGroup: 'armor-major',
     docRef: `${DOC}#41-armor-reduction`,
     effects: (p) => [{ kind: 'targetArmor', value: p.values.exposeArmor }],
+    classicEra: { summary: '−1,700 armor (instead of Sunder Armor)' },
     presets: {},
   },
   {
@@ -268,6 +290,7 @@ export const BUFFS: BuffSpec[] = [
       { kind: 'targetArmor', value: p.values.curseOfRecklessnessArmor },
       { kind: 'bossAp', value: p.values.curseOfRecklessnessBossAp },
     ],
+    classicEra: { summary: '−640 armor, +90 boss attack power' },
     presets: { raid: 'all', max: 'all' },
   },
   {
@@ -279,6 +302,7 @@ export const BUFFS: BuffSpec[] = [
     summary: '−495 armor (Armor Shatter from a raid member’s Annihilator)',
     docRef: `${DOC}#41-armor-reduction`,
     effects: (p) => [{ kind: 'targetArmor', value: 3 * p.values.armorShatterPerStack }],
+    classicEra: { summary: '−600 armor (Armor Shatter from a raid member’s Annihilator)' },
     presets: { max: 'all' },
   },
   {
@@ -292,6 +316,7 @@ export const BUFFS: BuffSpec[] = [
     exclusiveGroup: 'ap-reduction',
     docRef: `${DOC}#42-other-debuffs`,
     effects: (p) => [{ kind: 'bossAp', value: -p.values.demoralizingShoutAp }],
+    classicEra: { summary: '−140 boss attack power' },
     presets: { raid: 'tank', max: 'tank' },
   },
   {
@@ -304,6 +329,7 @@ export const BUFFS: BuffSpec[] = [
     providedBy: 'warrior',
     docRef: `${DOC}#42-other-debuffs`,
     effects: (p) => [{ kind: 'bossSlow', pct: 100 * p.values.thunderClapSlow }],
+    classicEra: { summary: 'Boss attacks 10% slower' },
     presets: { raid: 'tank', max: 'tank' },
   },
 
@@ -530,6 +556,7 @@ export const BUFFS: BuffSpec[] = [
     exclusiveGroup: 'food',
     docRef: `${DOC}#34-food`,
     effects: [{ kind: 'stat', stat: 'ap', value: 40 }],
+    classicEra: { summary: '+10 Stamina', effects: [{ kind: 'stat', stat: 'sta', value: 10 }] },
     presets: {},
   },
   {
@@ -542,6 +569,7 @@ export const BUFFS: BuffSpec[] = [
     exclusiveGroup: 'food',
     docRef: `${DOC}#34-food`,
     effects: [{ kind: 'stat', stat: 'crit', value: 1 }],
+    classicEra: { summary: '+10 Agility', effects: [{ kind: 'stat', stat: 'agi', value: 10 }] },
     presets: {},
   },
   {

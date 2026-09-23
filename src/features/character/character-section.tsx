@@ -73,7 +73,7 @@ export function CharacterSection() {
       <Advanced>
         <Field
           label="Rules"
-          help="Forever uses the beta client's numbers where they exist. Classic Era uses Classic numbers everywhere they differ, so you can see how much the Forever changes matter."
+          help="Forever uses the beta client's numbers where they exist. Classic Era uses Classic's combat rules and buff, consumable and enchant values instead, so you can see how much those Forever changes matter. Talents, abilities and gear stay Forever's."
         >
           <ToggleGroup
             type="single"

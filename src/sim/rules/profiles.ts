@@ -88,6 +88,19 @@ export interface RulesProfile {
     stanceRetainBase: number
     stanceRetainPerRank: number
   }
+  /** The buff, consumable and enchant catalogue (docs/mechanics/buffs-debuffs-consumables.md#classic-era-values). */
+  catalogue: {
+    /**
+     * Which values the entries use: their own (Forever's), or their Classic Era ones where an
+     * entry has them (`classicEra` on buffs.ts and enchants.ts entries).
+     */
+    column: 'forever' | 'classicEra'
+    /**
+     * Windfury Totem is a main-hand temporary enchant (Classic Era: enchant 564, which replaces a
+     * stone there) rather than a party aura (Forever). docs/mechanics/buffs-debuffs-consumables.md#windfury-totem
+     */
+    windfuryMainHandEnchant: boolean
+  }
   /**
    * Spell values that differ between the two clients and that worked examples tie to the
    * profile (docs/mechanics/buffs-debuffs-consumables.md, damage-and-timing WE-1, encounter WE-4).
@@ -150,6 +163,8 @@ export const FOREVER: RulesProfile = {
     stanceRetainBase: 10,
     stanceRetainPerRank: 3,
   },
+  // docs/mechanics/buffs-debuffs-consumables.md#classic-era-values, #windfury-totem
+  catalogue: { column: 'forever', windfuryMainHandEnchant: false },
   values: {
     // docs/mechanics/buffs-debuffs-consumables.md#41-armor-reduction
     curseOfRecklessnessArmor: 505,
@@ -201,6 +216,8 @@ export const CLASSIC_ERA: RulesProfile = {
     stanceRetainBase: 0,
     stanceRetainPerRank: 5,
   },
+  // docs/mechanics/buffs-debuffs-consumables.md#classic-era-values, #windfury-totem
+  catalogue: { column: 'classicEra', windfuryMainHandEnchant: true },
   values: {
     // docs/mechanics/buffs-debuffs-consumables.md#41-armor-reduction (Classic Era columns)
     curseOfRecklessnessArmor: 640,

@@ -16,7 +16,7 @@ import { BUFFS_BY_ID } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { ITEM_EFFECTS } from '../effects/items'
 import { COOLDOWN_RACIALS, racialEffects } from '../effects/racials'
-import type { AuraSpec, Condition, Effect, FlatStat, OnUseSpec, ProcSpec } from '../effects/types'
+import { type AuraSpec, catalogueEffects, type Condition, type Effect, type FlatStat, type OnUseSpec, type ProcSpec } from '../effects/types'
 import { isTwoHand } from '../equip'
 import { PROFILES } from '../rules/profiles'
 import { SPEC_META } from '../specs'
@@ -335,7 +335,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     const enchant = entry?.enchantId ? ENCHANTS_BY_ID.get(entry.enchantId) : undefined
     if (!enchant || !equipped.has(slot)) continue
     const origin = slot === 'mainHand' ? HAND.main : slot === 'offHand' ? HAND.off : null
-    apply(enchant.effects, origin)
+    apply(catalogueEffects(enchant, profile), origin)
   }
 
   // Racials, talents and stance. The weapon racials read the weapons in either hand (warrior.md §2.9).
@@ -353,13 +353,15 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const sheetOnly: Effect[] = []
   for (const id of maintained) {
     const buff = BUFFS_BY_ID.get(id)
+    // The entry's own effects, not its Classic Era column: the fight's aura is the class ability's
+    // (classes/warrior/abilities.ts, Forever's numbers in both profiles), and the sheet shows that.
     if (buff) sheetOnly.push(...(typeof buff.effects === 'function' ? buff.effects(profile) : buff.effects))
   }
   for (const id of config.buffs.enabled) {
     const buff = BUFFS_BY_ID.get(id)
     if (!buff || (buff.providedBy && !config.buffs.raid.includes(buff.providedBy))) continue
     if (maintained.includes(id)) continue
-    const effects = typeof buff.effects === 'function' ? buff.effects(profile) : buff.effects
+    const effects = catalogueEffects(buff, profile)
     apply(effects, null)
     for (const e of effects) {
       if (e.kind === 'targetArmor') hasDebuffs.armor = true
@@ -368,10 +370,14 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     }
   }
 
+  // Classic Era's Windfury Totem is itself a main-hand temporary enchant (564), so it takes that
+  // weapon's slot from a stone (buffs doc, Windfury Totem); Forever's is a party aura.
+  const windfuryHoldsMainHand = profile.catalogue.windfuryMainHandEnchant && c.procs.some((p) => p.spec.id === 'windfury')
   // Temporary weapon enchants: each weapon takes the highest-priority one that fits it (buffs doc §3.6).
   let elementalStones = 0
   for (const w of weapons) {
     if (!w) continue
+    if (windfuryHoldsMainHand && w.hand === HAND.main) continue
     const best = c.tempEnchants
       .filter((t) => !t.weapons || t.weapons.includes(w.type))
       .sort((a, b) => b.priority - a.priority)[0]
@@ -693,7 +699,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const procIds = new Set(procs.map((p) => p.id))
   if (['crusader', 'fieryWeapon', 'handOfJustice', 'ironfoe', 'flurryAxe'].some((id) => procIds.has(id))) notes.add('procRates')
   if (chainBits.size > 0) notes.add('extraAttackChains')
-  if (procIds.has('windfury') && weapons[HAND.main] && c.tempEnchants.length) notes.add('windfuryStone')
+  if (procIds.has('windfury') && weapons[HAND.main] && c.tempEnchants.length && !windfuryHoldsMainHand) notes.add('windfuryStone')
   if (elementalStones > 1) notes.add('elementalStone')
   if (procIds.has('deepWounds')) notes.add('deepWounds')
   if (setup.talents.has('Anger Management')) notes.add('angerManagement')

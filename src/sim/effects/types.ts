@@ -47,6 +47,35 @@ export type MultStat = 'str' | 'agi' | 'sta' | 'int' | 'spi' | 'allStats' | 'ap'
 /** Effects that depend on the rule profile (Classic Era spell values), resolved per run. */
 export type EffectList = Effect[] | ((profile: RulesProfile) => Effect[])
 
+/**
+ * A catalogue entry's Classic Era values where they differ from Forever's (its own `summary` and
+ * `effects`), from the Classic Era client (docs/mechanics/buffs-debuffs-consumables.md#classic-era-values).
+ * A profile whose `catalogue.column` is `classicEra` reads them instead. `effects` is left out
+ * where the entry's own effects already read the profile (`EffectList` as a function).
+ */
+export interface ClassicEraValues {
+  summary: string
+  effects?: Effect[]
+}
+
+/** A buff, consumable or enchant: its Forever values, and its Classic Era ones where they differ. */
+export interface CatalogueEntry {
+  summary: string
+  effects: EffectList
+  classicEra?: ClassicEraValues
+}
+
+/** The effects a catalogue entry has under a rule profile (buffs doc, Classic Era values). */
+export function catalogueEffects(entry: CatalogueEntry, profile: RulesProfile): Effect[] {
+  const list = (profile.catalogue.column === 'classicEra' && entry.classicEra?.effects) || entry.effects
+  return typeof list === 'function' ? list(profile) : list
+}
+
+/** The one-line summary a catalogue entry shows under a rule profile. */
+export function catalogueSummary(entry: CatalogueEntry, profile: RulesProfile): string {
+  return (profile.catalogue.column === 'classicEra' && entry.classicEra?.summary) || entry.summary
+}
+
 export type Zone = FightConfig['zone']
 
 /** When an effect applies. Everything here is known before the fight, so it resolves at plan time. */

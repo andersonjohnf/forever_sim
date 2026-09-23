@@ -102,9 +102,16 @@ A spec is data plus small ability modules, never its own loop.
   or Forever is unmeasured, per profile, each citing its doc: attack-table constants and formulas,
   glancing, crit suppression, spell miss floor, expertise, negative armor, rating conversions,
   white-hit rage (normalized or damage-based), the damage-taken rage model (overridable per config:
-  `forever`, `classic`, `foreverHp`, `foreverHpPreArmor`), and the few spell values the docs tie to
+  `forever`, `classic`, `foreverHp`, `foreverHpPreArmor`), the spell values worked examples tie to
   a profile (Curse of Recklessness, Armor Shatter, Expose Armor, Demoralizing Shout, Thunder Clap,
-  Windfury).
+  Windfury's attack power), and which column of the buff, consumable and enchant catalogue it
+  reads. A catalogue entry whose Classic Era value differs carries it (`classicEra` on its
+  `sim/effects` entry, from the Classic Era client), and `catalogueEffects` picks the profile's
+  column; entries new in Forever keep Forever's values in both
+  ([buffs doc, Classic Era values](mechanics/buffs-debuffs-consumables.md#classic-era-values)).
+  `classicEra` also makes Windfury Totem a main-hand enchant that replaces a stone there. Class
+  abilities, such as the warrior's own Battle Shout, take their numbers from the class code, not
+  the catalogue.
 - **Stats pipeline** (`sim/stats/`): a `StatBlock` of base values, flat additions and multipliers,
   and one pure `deriveStats` in the documented order (flat adds → % multipliers → floor →
   conversions). Forever ratings and Classic percentages feed the same pipeline; haste rating,

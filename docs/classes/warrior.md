@@ -1505,9 +1505,12 @@ parts:
 
 - **Mighty Rage Potion.** Default: once, in the execute phase, or in the last 20 s without one.
   Both specs drink it in the phase once an Execute has emptied the bar, with a last chance at the
-  phase's end (Fury's last 2 s, Arms' last 4 s). Without a phase, or with Execute off, both drink
-  it in the last 20 s once Recklessness has been used: Fury so its rage joins Recklessness's
-  crits, Arms after Recklessness's stance swap ([§5.2](#52-fury-dual-wield) #16,
+  phase's end (Fury's last 2 s, Arms' last 4 s); in a phase too short for Recklessness's timing,
+  Fury drinks it with Recklessness instead. Without a phase, or with Execute off, both drink it in
+  the last 20 s. Fury waits until Recklessness has been used, so its rage joins Recklessness's
+  crits. Arms from Battle Stance waits for Recklessness's stance swap, which would cap its rage;
+  Arms in Berserker Stance, with no swap, doesn't wait. Whether it should, for Recklessness's
+  crits as Fury does, is unmeasured ([§5.2](#52-fury-dual-wield) #16,
   [§5.3](#53-arms-two-hander) #17). Classic Era players use it for the rage burst in Execute
   [marrow-cd].
 - **Weapon oils and stones.** A sharpening stone or weightstone on each weapon's flat damage

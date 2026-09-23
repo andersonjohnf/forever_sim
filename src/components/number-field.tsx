@@ -3,14 +3,16 @@ import { useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { parseNumber } from '@/lib/parse-number'
 import { cn } from '@/lib/utils'
 
 /**
  * A number input with − / + steppers (44 px touch targets). Commits on blur or Enter and
  * clamps to [min, max], so typing a partial number never pushes an invalid value.
  *
- * `grouping` shows thousands separators ("10,000"), as the rest of the app writes counts; typed
- * commas are fine either way. Leave it off for an identifier such as a seed.
+ * `grouping` shows thousands separators ("10,000"), as the rest of the app writes counts. What's
+ * typed is read in the typist's locale style either way (`parseNumber`): "5.000" and "5 000" are
+ * 5000, and in a fractional field "1,5" is 1.5. Leave it off for an identifier such as a seed.
  *
  * `aria-label` names the input and, after "Decrease" / "Increase", the steppers; it should match
  * the field's visible label (WCAG 2.5.3). `stepLabel` names the steppers instead when the label
@@ -53,9 +55,8 @@ export function NumberField({
   const clamp = (n: number) => Math.min(max, Math.max(min, Math.round(n / step) * step))
   const commit = () => {
     if (draft === null) return
-    const text = draft.replace(/,/g, '').trim()
-    const n = Number(text)
-    if (text !== '' && !Number.isNaN(n) && clamp(n) !== value) onChange(clamp(n))
+    const n = parseNumber(draft, step)
+    if (n !== null && clamp(n) !== value) onChange(clamp(n))
     setDraft(null)
   }
   // A stepper that reaches its limit disables itself, which would drop focus to the page, so

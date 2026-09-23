@@ -136,6 +136,30 @@ test('Fixed precision gives the number of fights its own labelled field, with se
   await expect(fights).toBeFocused()
 })
 
+test('number fields read what’s typed in the typist’s own style (PV2, FV3)', async ({ page }) => {
+  await page.goto('./')
+  await page.getByRole('tab', { name: 'Fight', exact: true }).click()
+  const fight = page.getByRole('tabpanel', { name: 'Fight' })
+  await fight.getByRole('button', { name: 'Advanced' }).click()
+  await fight.getByRole('radio', { name: 'Fixed' }).click()
+  const fights = fight.getByRole('textbox', { name: 'Number of fights', exact: true })
+  for (const typed of ['5.000', '5 000', '5,000']) {
+    await fights.fill(typed)
+    await fights.press('Enter')
+    await expect(fights, typed).toHaveValue('5,000')
+    await fights.fill('3000')
+    await fights.press('Enter')
+  }
+
+  // A fractional field reads a decimal comma as the decimal point.
+  await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+  await page.getByRole('button', { name: 'Advanced settings for Core abilities' }).click()
+  const btLeft = page.getByRole('textbox', { name: 'Whirlwind: Bloodthirst cooldown left', exact: true })
+  await btLeft.fill('0,5')
+  await btLeft.press('Enter')
+  await expect(btLeft).toHaveValue('0.5')
+})
+
 test.describe('a tab switch from further down the page (TU11)', () => {
   test.use(PHONE)
 

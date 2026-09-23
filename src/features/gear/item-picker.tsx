@@ -260,7 +260,7 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
                   )}
                 >
                   <span className="sr-only">
-                    {item.name}. {itemDescription(item, { bis, meta: details, note: blocked })}
+                    {item.name}. {itemDescription(item, { bis, meta: details, note: blocked, spec })}
                     {equipped && '. Equipped'}
                   </span>
                 </button>

@@ -131,7 +131,7 @@ export function GearSection() {
                     >
                       {item && (
                         <span id={`slot-${slot}-description`} className="sr-only">
-                          {itemDescription(item, { bis })}
+                          {itemDescription(item, { bis, spec: meta.id })}
                         </span>
                       )}
                     </button>

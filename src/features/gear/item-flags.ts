@@ -2,15 +2,16 @@ import type { Item } from '@/data/items/types'
 import { summarizeItem } from '@/lib/items'
 // Which effects the engine models, read the way the plan builder reads them (build.ts, "Gear stats,
 // set bonuses and item effects"). item-flags.test.ts holds this to the plan's own lists.
-import { modelledItemEffects } from '@/sim'
+import { modelledItemEffects, type SpecId } from '@/sim'
 
 /**
  * The item's effects the sim doesn't simulate, as their tooltip lines: equip and chance-on-hit
  * effects with no engine override, extra weapon damage, and use effects the rotation can't press.
  * The result lists the same items in its assumptions ("Some item effects aren’t simulated yet").
+ * For a spec, an effect that names only other specs' abilities isn't one (Idol of Brutality, a cat).
  */
-export function unsimulatedEffects(item: Item): string[] {
-  const modelled = modelledItemEffects(item.id)
+export function unsimulatedEffects(item: Item, spec?: SpecId): string[] {
+  const modelled = modelledItemEffects(item.id, spec)
   const lines: string[] = []
   if (!modelled.equip) {
     lines.push(...item.procs.map((e) => e.raw), ...item.otherEquip.map((e) => e.raw))
@@ -28,14 +29,14 @@ export function unsimulatedEffects(item: Item): string[] {
  */
 export function itemDescription(
   item: Item,
-  { bis, meta, note }: { bis?: number | null; meta?: string | null; note?: string | null } = {},
+  { bis, meta, note, spec }: { bis?: number | null; meta?: string | null; note?: string | null; spec?: SpecId } = {},
 ): string {
   return [
     meta,
     summarizeItem(item) || 'No stats',
     bis ? (bis === 1 ? 'Best in slot' : `Best in slot, choice ${bis}`) : null,
     item.foreverData ? null : 'Classic stats: no Forever data yet',
-    unsimulatedEffects(item).length ? 'Has an effect the sim doesn’t simulate' : null,
+    unsimulatedEffects(item, spec).length ? 'Has an effect the sim doesn’t simulate' : null,
     note,
   ]
     .filter(Boolean)

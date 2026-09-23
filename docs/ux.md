@@ -154,7 +154,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     - **Classic stats** for items with no Forever data yet;
     - **Effect not simulated** for items with an equip, chance-on-hit or use effect the sim
       leaves out (Blackblade of Shahram's summon), the same items the result's assumptions
-      list.
+      list. An effect that names only another spec's abilities isn't one: Idol of Brutality's
+      Maul and Swipe, a bear's, aren't flagged for a cat.
 
     The two flags open a popover on tap, click or Enter that explains them and, for effects,
     quotes each one; the popover is named by its heading ("Classic stats"). They sit over the

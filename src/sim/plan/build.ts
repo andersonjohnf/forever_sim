@@ -17,7 +17,7 @@ import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrio
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
 import { BUFFS_BY_ID } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
-import { ITEM_EFFECTS } from '../effects/items'
+import { ITEM_EFFECTS, itemEffectsApply } from '../effects/items'
 import { buffProvided, buffUnusedReason } from '../effects/presets'
 import { COOLDOWN_RACIALS, racialEffects } from '../effects/racials'
 import { type AuraSpec, catalogueEffects, type Condition, type DruidForm, type Effect, type FlatStat, type OnUseSpec, type ProcSpec } from '../effects/types'
@@ -400,7 +400,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (!item.foreverData) classicItems.push(item.name)
     const override = ITEM_EFFECTS[item.id]
     if (override) apply(typeof override.effects === 'function' ? override.effects(profile) : override.effects, origin)
-    else if (item.procs.length > 0 || item.otherEquip.length > 0 || (item.weapon?.extraDamage?.length ?? 0) > 0)
+    // An effect that names only another spec's abilities (Idol of Brutality's Maul and Swipe for a
+    // cat) does nothing here, so it isn't listed.
+    else if ((item.procs.length > 0 || item.otherEquip.length > 0 || (item.weapon?.extraDamage?.length ?? 0) > 0) && itemEffectsApply(item.id, config.spec))
       unmodelled.push(item.name)
     if (override?.use) itemUses.push(override.use)
     else if (item.useEffects.length > 0) onUseItems.push(item.name)

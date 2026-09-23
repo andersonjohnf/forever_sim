@@ -1,6 +1,7 @@
 // Item effects the tooltip parser leaves as text: the engine's documented override layer
 // (docs/doctrine.md#3-data). Each entry cites where its numbers come from. An equipped item with a
 // proc or use effect that isn't here is reported as not simulated.
+import type { SpecId } from '../types'
 import type { EffectList, OnUseSpec } from './types'
 
 const PROC_DOC = 'docs/mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples'
@@ -19,6 +20,19 @@ export interface ItemEffects {
   /** Why the entry exists and where the numbers come from. */
   source: string
 }
+
+/**
+ * Items whose equip effects name only some specs' abilities, by item id: for any other spec they
+ * do nothing, so they aren't flagged as not simulated. Idol of Brutality (23198, spell 28855):
+ * "Reduces the Rage cost of Maul and Swipe by 2", a bear's abilities (druid.md §4.1, §4.4), and
+ * the cat's pre-raid relic.
+ */
+const ITEM_EFFECT_SPECS: Record<number, readonly SpecId[]> = {
+  23198: ['druid-feral-bear'],
+}
+
+/** Whether an item's equip effects can do anything for this spec (ITEM_EFFECT_SPECS). */
+export const itemEffectsApply = (itemId: number, spec: SpecId): boolean => ITEM_EFFECT_SPECS[itemId]?.includes(spec) ?? true
 
 export const ITEM_EFFECTS: Record<number, ItemEffects> = {
   // Hand of Justice (spell 15600, proc mask 0x14: white and yellow melee hits). Forever: ProcChance 3,

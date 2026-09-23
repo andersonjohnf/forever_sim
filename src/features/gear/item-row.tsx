@@ -6,6 +6,7 @@ import { WowIcon } from '@/components/wow-icon'
 import type { Item } from '@/data/items/types'
 import { QUALITY_CLASS, summarizeItem } from '@/lib/items'
 import { cn } from '@/lib/utils'
+import { useSpecMeta } from '@/app/specs'
 import { unsimulatedEffects } from './item-flags'
 
 /**
@@ -97,7 +98,7 @@ export function ItemSummary({
   className?: string
 }) {
   const fade = dimmed && 'opacity-60'
-  const effects = unsimulatedEffects(item)
+  const effects = unsimulatedEffects(item, useSpecMeta().id)
   return (
     <div className={cn('flex min-w-0 flex-1 items-start gap-3', className)}>
       <WowIcon icon={item.icon} size="lg" className={cn(fade)} />

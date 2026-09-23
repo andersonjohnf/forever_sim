@@ -9,7 +9,7 @@ import { normalizeConfig } from './config/normalize'
 import { TALENT_DATA } from './defaults'
 import { BUFFS } from './effects/buffs'
 import { ENCHANTS } from './effects/enchants'
-import { ITEM_EFFECTS } from './effects/items'
+import { ITEM_EFFECTS, itemEffectsApply } from './effects/items'
 import { presetBuffIds } from './effects/presets'
 import { catalogueSummary } from './effects/types'
 import { buildPlan, UnsupportedSetupError } from './plan/build'
@@ -172,11 +172,15 @@ export function enchantCatalogueFor(profile: RuleProfileId): EnchantDefinition[]
  * Which of an item's effects the engine models, read the way the plan builder reads its item-effect
  * overrides (`sim/effects/items.ts`): `equip`, its equip and chance-on-hit effects and extra weapon
  * damage (an override replaces what the tooltip says); `use`, its use effect, as a cast a rotation
- * can press. The plan lists every other effect as not simulated.
+ * can press. The plan lists every other effect as not simulated. With a spec, an equip effect that
+ * names only other specs' abilities (Idol of Brutality's Maul and Swipe, for a cat) counts as
+ * modelled: there's nothing in it to simulate.
  */
-export function modelledItemEffects(itemId: number): { equip: boolean; use: boolean } {
+export function modelledItemEffects(itemId: number, spec?: SpecId): { equip: boolean; use: boolean } {
   const override = ITEM_EFFECTS[itemId]
-  return { equip: override !== undefined, use: override?.use !== undefined }
+  // An equip effect that names only another spec's abilities has nothing to simulate for this one.
+  const irrelevant = spec !== undefined && !itemEffectsApply(itemId, spec)
+  return { equip: override !== undefined || irrelevant, use: override?.use !== undefined }
 }
 
 /** Final character stats for a config, synchronously (docs/mechanics/character-stats.md). */

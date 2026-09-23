@@ -22,6 +22,16 @@ describe('gear-row badge for effects the sim leaves out', () => {
     expect(unsimulatedEffects(byName('Lionheart Helm'))).toEqual([])
   })
 
+  it('leaves out an effect that names only another spec’s abilities: Idol of Brutality’s Maul and Swipe for a cat, not a bear', () => {
+    const idol = itemsById.get(23198)!
+    expect(unsimulatedEffects(idol, 'druid-feral-cat')).toEqual([])
+    expect(unsimulatedEffects(idol, 'druid-feral-bear')).toEqual(['Equip: Reduces the Rage cost of Maul and Swipe by 2.'])
+    // The cat's plan agrees: its default relic isn't listed as not simulated.
+    const cat = defaultConfig('druid-feral-cat')
+    expect(cat.gear.ranged?.itemId).toBe(23198)
+    expect(listed(buildPlan(cat).assumptions, 'unmodelledProcs')).not.toContain('Idol of Brutality')
+  })
+
   it('agrees with the plan’s assumptions for every item with an effect a warrior can wear', () => {
     const base = defaultConfig('warrior-fury')
     const withEffects = itemData.items.filter(

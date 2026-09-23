@@ -76,6 +76,7 @@ npm test              # vitest run (unit + data-integrity tests in src/)
 npm run test:e2e      # Playwright, headless Chromium, against the production build under /forever_sim/
 npm run snap          # build, open a page headless, print console errors + failed requests, screenshot
                       #   -- --dark --width 390 --click Talents --out .cache/snaps/x.png
+                      #   (--click Simulate waits for the result; on phones add --click "Show results")
 npm run scrape        # re-scrape foreverchanges.pro → src/data (cached; -- --refresh to bypass)
 npm run scrape:client # Forever client tables via the wago.tools API → src/data/client (cached; -- --version=<build>)
 ```

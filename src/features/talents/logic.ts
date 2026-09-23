@@ -48,9 +48,53 @@ export function lockReason(data: TalentData, ranks: TalentRanksById, talent: Tal
   return null
 }
 
-export type BuildCodeResult = { ok: true; code: string } | { ok: false; error: string }
-
 const pointsText = (n: number) => `${n} ${n === 1 ? 'point' : 'points'}`
+const list = (words: string[]) => (words.length < 3 ? words.join(' and ') : `${words.slice(0, -1).join(', ')} and ${words.at(-1)}`)
+
+/**
+ * Why a talent can't give a point back, in plain words, or null if it can (or has none): the
+ * talents whose arrow needs its points, then the deeper talents whose tier gate would break
+ * (docs/ux.md "Talents"), e.g. "Can’t remove a point: Bloodthirst needs 30 points in Fury above it."
+ */
+export function removeReason(data: TalentData, ranks: TalentRanksById, talent: Talent): string | null {
+  const rank = ranks[talent.id] ?? 0
+  if (rank === 0 || canRemove(data, ranks, talent)) return null
+  const after = withRank(ranks, talent.id, rank - 1)
+  const tree = data.trees.find((t) => t.id === talent.tree)!
+  const spent = tree.talents.filter((t) => (after[t.id] ?? 0) > 0)
+  const reasons: string[] = []
+  // Arrows: a talent that needs this one at a rank it would drop below.
+  for (const dependent of spent) {
+    const pre = dependent.prerequisite
+    if (pre?.talentId === talent.id && rank - 1 < pre.rank) reasons.push(`${dependent.name} needs ${pointsText(pre.rank)} in ${talent.name}`)
+  }
+  // Tier gates: the shallowest tier below this one whose talents would lose their gate.
+  const pointsAbove = (tier: number) => tree.talents.filter((t) => t.tier < tier).reduce((n, t) => n + (after[t.id] ?? 0), 0)
+  const gated = spent.filter((t) => t.tier > talent.tier && pointsAbove(t.tier) < data.rules.pointsPerTier * t.tier)
+  const tier = Math.min(...gated.map((t) => t.tier))
+  const names = gated.filter((t) => t.tier === tier).map((t) => t.name)
+  if (names.length > 0) {
+    const one = names.length === 1
+    reasons.push(`${list(names)} ${one ? 'needs' : 'need'} ${data.rules.pointsPerTier * tier} points in ${tree.name} above ${one ? 'it' : 'them'}`)
+  }
+  return reasons.length > 0 ? `Can’t remove a point: ${reasons.join('; ')}.` : null
+}
+
+/**
+ * The spec a talent preset is for: the class's spec whose name starts the preset's ("Fury + Precision"
+ * is Fury's, "Feral cat (default)" is Feral (Cat)'s). Presets are listed only for specs the app
+ * offers (docs/ux.md principle 8), so the menu grows with them.
+ */
+export function presetSpec<S extends { name: string }>(presetName: string, specs: readonly S[]): S | undefined {
+  const words = (name: string) => name.toLowerCase().replace(/[()]/g, '').split(/\s+/).filter(Boolean)
+  const preset = words(presetName)
+  // The longest matching name wins, should one spec's name start another's.
+  return [...specs]
+    .sort((a, b) => words(b.name).length - words(a.name).length)
+    .find((spec) => words(spec.name).every((word, i) => preset[i] === word))
+}
+
+export type BuildCodeResult = { ok: true; code: string } | { ok: false; error: string }
 
 /**
  * Reads a pasted build code, or a talent calculator link ending in one, into a canonical code.

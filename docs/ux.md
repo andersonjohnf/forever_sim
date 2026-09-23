@@ -68,23 +68,49 @@ a tab that arrow keys move focus to. Arrow keys move between tabs and Enter or S
     their race went.
   - A race on the other side swaps the faction-bound gear (PvP, battleground and reputation
     rewards, [items.md](data/items.md#equipping-rules)) for the new faction's twin, which has
-    the same stats, and keeps the slot's enchant. A toast with **Undo** names the new items.
-    An item with no twin stays, and the toast says so.
+    the same stats, and keeps the slot's enchant. A twin's class restriction counts only as
+    whether this class can wear it, so a warrior's Sergeant Major's Plate Wristguards (warriors
+    and paladins) swap for First Sergeant's Plate Bracers (warriors). A toast with **Undo** names
+    the new items. An item with no twin stays, and the toast says so.
   - Advanced: the rule profile (`Forever`, the default, or `Classic Era`) and the switch for
     unmeasured ratings
     ([D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
     A switch's whole row, with its help, is its label, as in Buffs.
+  - The rule profile's help says what Classic Era changes and what it doesn't
+    ([architecture, "Rules and stats"](architecture.md#rules-and-stats)): Classic's combat rules,
+    its raid buff, debuff, consumable and enchant values, and the warrior's own Battle Shout.
+    Racials, talents, other abilities and gear stay Forever's.
+  - **Changed settings are marked,** as on the Rotation tab: the race and each Advanced setting,
+    when it differs from the spec's default, gets a line under it with its default ("Default:
+    Human", "Default: Forever") and a **Reset** that moves focus back to its control. Advanced
+    opens by itself while a setting in it differs from its default, and its button counts them
+    ("Advanced, 1 changed"), so Classic Era rules are never out of sight.
 - **Talents.**
-  - A preset menu with each spec's documented builds (its class doc); the spec default is
-    selected.
-  - Interactive trees: three side by side on desktop, one tab per tree on mobile. With a
-    mouse, click to add a point and right-click to remove one; on a touch screen, a tap opens
-    the talent's details with − and + buttons. On a focused talent, Enter adds a point and
-    Backspace removes one (Delete and − work too); the hint above the trees and each talent's
-    tooltip say so. Tier gates and prerequisites are enforced visibly.
+  - A preset menu with the documented builds (its class doc) of the specs the app offers, so it
+    grows as specs ship (principle 8): no Protection builds until Protection does. The spec
+    default is selected.
+  - Interactive trees: three side by side on desktop, one tab per tree on mobile (a segmented
+    control named "Talent tree"). With a mouse, click to add a point and right-click to remove
+    one; on a touch screen, a tap opens the talent's details with − and + buttons. On a focused
+    talent, Enter adds a point and Backspace removes one (Delete and − work too); the hint above
+    the trees and each talent's tooltip say so. Tier gates and prerequisites are enforced
+    visibly: a locked talent's icon turns gray and its rank badge takes the muted text colour
+    (AA), never opacity.
+  - **A point that can't move says why.** A talent that can't take a point says what it needs
+    ("Requires 5 points in Fury."). One whose point can't come back names what depends on it:
+    the talent its arrow leads to ("Can't remove a point: Bloodthirst needs 1 point in Death
+    Wish."), or the talents in the first deeper tier whose gate would break ("Unbridled Wrath
+    needs 5 points in Fury above it."). The reasons show in the tooltip and the popover, where
+    the reason describes the disabled −. A click, right-click or key that's refused shows the
+    reason as a toast, one at a time.
+  - In the popover, a button that disables itself (− at 0, + at the top rank) hands focus to the
+    other one, so focus never falls to the page.
   - A points counter (x / 51) and **Import / Copy build code**. A pasted code that doesn't
     work gets a plain reason: "That isn't a talent code", with an example code for the class;
     a code for another class; more than 51 points; or the talent a tier gate or arrow blocks.
+    The paste dialog puts focus in its field, and gives it back to **Paste code** however it
+    closes. **Clear** disables itself, so it moves focus to the preset menu (now "Custom build")
+    first.
 - **Gear.**
   - Slots in paper-doll order. Each row shows the item icon, its name in its quality color,
     a one-line summary of its key stats, and an enchant chip. Empty slots have their own
@@ -114,24 +140,40 @@ a tab that arrow keys move focus to. Arrow keys move between tabs and Enter or S
       list.
 
     The two flags open a popover on tap, click or Enter that explains them and, for effects,
-    quotes each one. They sit over the row's button, never inside it, with 44 px hit areas. The
-    row's button covers the row: its name is the slot and item ("Main hand: Blackblade of
-    Shahram"), and its description carries what the row shows: stats, BiS rank and flags.
+    quotes each one; the popover is named by its heading ("Classic stats"). They sit over the
+    row's button, never inside it, with 44 px hit areas. The row's button covers the row: its
+    name is the slot and item ("Main hand: Blackblade of Shahram"), and its description carries
+    what the row shows: stats, BiS rank and flags.
+  - A row's enchant chip ("Greater Strength · +10 Strength", or "Add an enchant") opens the
+    **enchant picker**: a popover named for the slot ("Hands enchant") on wider screens, and
+    below 640 px a full-height sheet with a 44 px Close, like the item picker. The enchants that
+    fit are one listbox, "No enchant" first, each a 44 px option with its summary. Focus goes
+    to the list with the current enchant active; arrow keys, Home and End move, Enter or Space
+    picks, and so does a tap. The current enchant is the selected option, with a check. Focus
+    goes back to the chip when it closes. Under Classic Era rules it says its values are Classic
+    Era's, as Buffs does.
   - A gear-set menu: "Pre-raid BiS" (the spec default, in the race's faction's PvP gear),
     "Empty", and later saved sets.
 - **Buffs.**
-  - Presets: Self only, Dungeon group, Standard raid (the default), Max consumables. Each
-    shows what it brings in a line under its name, in the tile, not in a hover title.
+  - Presets: Self only, Dungeon group, Standard raid (the default, named "Standard raid
+    (default)", like the talent presets), Max consumables. Each shows what it brings in a line
+    under its name, in the tile, not in a hover title.
   - Composition switches: which classes are in the raid. These drive which raid buffs are
     available; buffs never depend on faction.
-  - Grouped switches for raid buffs, target debuffs and consumables.
+  - Grouped switches for raid buffs, target debuffs and consumables. A buff nobody in the raid
+    brings says so ("Needs a paladin in the raid") and is dimmed by colour, not opacity: its text
+    takes the muted text colour (AA), its icon turns gray, and its switch is off and disabled.
+  - Under Classic Era rules, a note at the top says the buff, debuff and consumable values are
+    Classic Era's, with a link to **Character → Advanced** that opens the rule profile with focus
+    on it.
   - World buffs don't exist here ([D8](decisions.md#d8-world-buffs-are-excluded-2026-09-22)).
   - A buff the rotation keeps up itself (a warrior's own Battle Shout) shows its switch on and
     locked, with a note saying the rotation keeps it up, so it's never counted twice.
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
   with units, one line of help, and the default marked. **Reset rotation** (in the section
   header, enabled once you've set anything) puts every setting back to its default, with an
-  Undo toast like the other bulk changes. Undo restores that spec's settings only.
+  Undo toast like the other bulk changes. Undo restores that spec's settings only. It disables
+  itself, so it moves focus to the first setting, the next control after it.
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
     **Consumables**, in that order. Under each heading the settings keep the spec's priority
@@ -165,23 +207,36 @@ a tab that arrow keys move focus to. Arrow keys move between tabs and Enter or S
     that equals the default isn't marked. Screen readers hear "Changed. Default: …" as the
     switch's description.
   - A setting that depends on a switch is dimmed while that switch is off, or can't apply
-    itself (a potion's threshold while the potion isn't selected in Buffs), down the tree.
+    itself (a potion's threshold while the potion isn't selected in Buffs), down the tree. It's
+    dimmed by colour, never opacity: its label and inputs take the muted text colour, which is
+    AA, and a switch that's on shows a neutral gray track rather than the primary colour. It
+    stays usable.
   - A consumable's row needs its Buffs switch. While that's off, its own switch shows off and
     locked, whatever it's set to, and the row says so ("Not used: turn on … in Buffs first"),
-    with **Buffs** a link to that tab. Turning it on in Buffs brings back its setting.
+    with **Buffs** a link to that tab (a 44 px hit area, like a row's Reset). The link opens
+    Buffs with focus on that consumable's switch, so Space turns it on. Turning it on in Buffs
+    brings back its setting.
 - **Fight.**
   - The header names the boss's level ("A level 63 raid boss"), following Boss level.
   - Duration (default 180 s), boss armor preset, execute phase, and whether you attack from the
-    front (tanks) or behind (DPS).
+    front (tanks) or behind (DPS). The position's help follows the chosen side: in front, a DPS
+    spec reads that the boss can parry and block its attacks.
   - The duration slider's track and thumb are 44 px targets. Its thumb is named "Fight length"
     and says its value in words ("3 minutes"). The execute phase's help names the class's
     execute ability (Execute for warriors), and its whole row is the switch's label.
+  - **Changed settings are marked,** as on the Rotation tab: each one that differs from the
+    spec's default gets a line under it with its default ("Default: 3:00", "Default: 63") and a
+    **Reset** that moves focus back to its control; a screen reader hears "Changed. Default: …"
+    as the control's description. Advanced opens by itself while a setting in it differs from
+    its default, and its button counts them ("Advanced, 2 changed").
   - No number of targets yet: the sim has one target, so the control waits for multi-target
     support ([warrior §5.5](classes/warrior.md#55-multi-target-options-light)). A control that
     changes nothing isn't shown. Saved setups keep the value (`extraTargets`), unused.
   - Advanced: iterations and seed, then the fight's details. Every field is labelled, the
-    Creature type and Zone menus included, and a stepper's buttons name their field
-    ("Decrease Boss level").
+    Creature type and Zone menus included, and its accessible name contains its visible label
+    ("Execute phase starts at", "Damage you take"; WCAG 2.5.3). A stepper's buttons name their
+    field ("Decrease Boss level"). A stepper that reaches its limit disables itself, so it hands
+    focus to its field first.
 
 ## Results
 

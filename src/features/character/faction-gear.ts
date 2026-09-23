@@ -5,7 +5,7 @@ import type { Item } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { Faction, RaceData } from '@/data/races/types'
 import { itemData, itemsById } from '@/lib/items'
-import { fitsFaction, itemFaction, uniqueConflicts, type GearSlot, type SimConfig } from '@/sim'
+import { canUse, fitsFaction, itemFaction, SPEC_META, uniqueConflicts, type ClassId, type GearSlot, type SimConfig } from '@/sim'
 
 const races = (raceJson as unknown as RaceData).races
 
@@ -17,9 +17,12 @@ export function factionOf(race: string): Faction | null {
 /**
  * What must match for two items to be the same item for either side: everything that changes what
  * the item does. A use effect's text can name a faction's base (the Alterac Valley insignias
- * return you to Dun Baldar or Frostwolf Keep), so use effects match by count and cooldown.
+ * return you to Dun Baldar or Frostwolf Keep), so use effects match by count and cooldown. Class
+ * restrictions match by whether this class can wear the item, not by the whole list: Horde's rank-5
+ * plate bracers are warrior-only while Alliance's twin is for warriors and paladins, and a warrior
+ * wears either.
  */
-function twinKey(item: Item): string {
+function twinKey(item: Item, classId: ClassId): string {
   return JSON.stringify([
     item.slot,
     item.itemLevel,
@@ -28,7 +31,7 @@ function twinKey(item: Item): string {
     item.weaponType,
     item.unique,
     item.uniqueEquipped,
-    item.classes,
+    canUse(classId, item),
     item.stats,
     item.weapon,
     item.weaponSkill,
@@ -48,18 +51,19 @@ function sharedSuffix(a: string, b: string): number {
 const twinCache = new Map<string, Item | null>()
 
 /**
- * The other faction's version of a faction-bound item: the `faction` item with the same stats,
- * effects, slot and level. When several match (Highlander's Chain and Mail Greaves), the one whose
- * name ends the same way wins. Null when the item isn't bound to the other side or has no twin.
+ * The other faction's version of a faction-bound item for a character of this class: the `faction`
+ * item with the same stats, effects, slot and level that the class can wear too. When several match
+ * (Highlander's Chain and Mail Greaves), the one whose name ends the same way wins. Null when the
+ * item isn't bound to the other side or has no twin.
  */
-export function factionTwin(item: Item, faction: Faction): Item | null {
+export function factionTwin(item: Item, faction: Faction, classId: ClassId): Item | null {
   const own = itemFaction(item)
   if (own === null || own === faction) return null
-  const cacheKey = `${item.id}:${faction}`
+  const cacheKey = `${item.id}:${faction}:${classId}`
   const cached = twinCache.get(cacheKey)
   if (cached !== undefined) return cached
-  const key = twinKey(item)
-  const matches = itemData.items.filter((other) => itemFaction(other) === faction && twinKey(other) === key)
+  const key = twinKey(item, classId)
+  const matches = itemData.items.filter((other) => itemFaction(other) === faction && twinKey(other, classId) === key)
   const twin = matches.sort((a, b) => sharedSuffix(b.name, item.name) - sharedSuffix(a.name, item.name) || a.id - b.id)[0] ?? null
   twinCache.set(cacheKey, twin)
   return twin
@@ -80,6 +84,7 @@ export interface FactionGearChange {
  */
 export function changeRace(config: SimConfig, race: string): FactionGearChange {
   const faction = factionOf(race)
+  const { classId } = SPEC_META[config.spec]
   const gear = { ...config.gear }
   const swapped: FactionGearChange['swapped'] = []
   const kept: FactionGearChange['kept'] = []
@@ -91,7 +96,7 @@ export function changeRace(config: SimConfig, race: string): FactionGearChange {
     }
     for (const [slot, item] of Object.entries(worn) as [GearSlot, Item][]) {
       if (fitsFaction(race, item)) continue
-      const twin = factionTwin(item, faction)
+      const twin = factionTwin(item, faction, classId)
       if (twin && uniqueConflicts(worn, slot, twin).length === 0) {
         gear[slot] = { ...gear[slot], itemId: twin.id }
         worn[slot] = twin

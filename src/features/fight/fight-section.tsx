@@ -1,13 +1,16 @@
+import { useMemo, type ReactNode } from 'react'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
 import { NumberField } from '@/components/number-field'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { ChangedHint } from '@/features/changed-hint'
+import { changeAndFocus, selectedOption } from '@/features/refocus'
 import { Advanced, Field, SectionHeader } from '@/features/section'
 import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
-import type { ClassId, CreatureType, FightConfig } from '@/sim'
+import { defaultConfig, type ClassId, type CreatureType, type FightConfig, type SimConfig } from '@/sim'
 import { formatDuration } from './duration'
 import { LengthSlider } from './length-slider'
 
@@ -36,20 +39,68 @@ const ZONES: { value: FightConfig['zone']; label: string }[] = [
   { value: 'other', label: 'Other' },
 ]
 
+const POSITIONS: Record<FightConfig['position'], string> = { behind: 'Behind', front: 'In front' }
+const PRECISION: Record<SimConfig['run']['mode'], string> = { adaptive: 'Adaptive', fixed: 'Fixed' }
+
+const BOSS_SWITCHES = [
+  ['canCrush', 'Crushing blows'],
+  ['parryHaste', 'Parry speeds up the boss'],
+  ['canDodge', 'Boss can dodge'],
+  ['canParry', 'Boss can parry'],
+  ['canBlock', 'Boss can block'],
+] as const
+type BossSwitch = (typeof BOSS_SWITCHES)[number][0]
+
 /** The ability the execute phase unlocks, per class (docs/mechanics/encounter.md#3-fight-length-and-execute-phase). */
 const EXECUTE_ABILITY: Partial<Record<ClassId, string>> = { warrior: 'Execute', paladin: 'Hammer of Wrath' }
+
+const number = (n: number) => n.toLocaleString('en-US')
+
+/** Element ids: each control, and the "Changed. Default: …" text that describes it. */
+const ids = (key: string) => ({ control: `fight-${key}`, default: `fight-${key}-default` })
+const byId = (id: string) => () => document.getElementById(id)
 
 export function FightSection() {
   const meta = useSpecMeta()
   const fight = useSetup((s) => s.config.fight)
   const update = useSetup((s) => s.update)
   const set = (patch: Partial<FightConfig>) => update((c) => ({ ...c, fight: { ...c.fight, ...patch } }))
-  const setBoss = (patch: Partial<FightConfig['boss']>) => set({ boss: { ...fight.boss, ...patch } })
+  const setBoss = (patch: Partial<FightConfig['boss']>) => update((c) => ({ ...c, fight: { ...c.fight, boss: { ...c.fight.boss, ...patch } } }))
   const run = useSetup((s) => s.config.run)
   const setRun = (patch: Partial<typeof run>) => update((c) => ({ ...c, run: { ...c.run, ...patch } }))
   const isPreset = ARMOR_PRESETS.some((p) => p.value === fight.bossArmor)
   const tank = meta.role === 'tank'
   const executeAbility = EXECUTE_ABILITY[meta.classId]
+
+  // Each setting that differs from the spec's default says so, with a Reset (docs/ux.md "Fight",
+  // checklist 3). A reset moves focus to the setting's control, since the Reset button goes away.
+  const defaults = useMemo(() => defaultConfig(meta.id), [meta.id])
+  const def = defaults.fight
+  const hint = (key: string, label: string, changed: boolean, value: string, reset: () => void, target = byId(ids(key).control)): ReactNode =>
+    changed && <ChangedHint id={ids(key).default} label={label} value={value} onReset={() => changeAndFocus(reset, target)} />
+  const describedBy = (changed: boolean, key: string, ...others: string[]) => [...others, changed && ids(key).default].filter(Boolean).join(' ') || undefined
+
+  const changed = {
+    length: fight.durationSec !== def.durationSec,
+    armor: fight.bossArmor !== def.bossArmor,
+    position: fight.position !== def.position,
+    execute: fight.executePct > 0 !== def.executePct > 0,
+    // Advanced
+    precision: run.mode !== defaults.run.mode,
+    iterations: run.mode === 'fixed' && run.iterations !== defaults.run.iterations,
+    seed: run.seed !== defaults.run.seed,
+    variation: fight.durationVariationPct !== def.durationVariationPct,
+    executePct: fight.executePct > 0 && fight.executePct !== def.executePct,
+    bossLevel: fight.bossLevel !== def.bossLevel,
+    creatureType: fight.creatureType !== def.creatureType,
+    zone: fight.zone !== def.zone,
+    damageTaken: !tank && fight.damageTakenPerSec !== def.damageTakenPerSec,
+    swingSpeed: tank && fight.boss.swingSpeedSec !== def.boss.swingSpeedSec,
+    swingDamage: tank && (fight.boss.damageMin !== def.boss.damageMin || fight.boss.damageMax !== def.boss.damageMax),
+    ...(Object.fromEntries(BOSS_SWITCHES.map(([key]) => [key, tank && fight.boss[key] !== def.boss[key]])) as Record<BossSwitch, boolean>),
+  }
+  const advancedKeys = ['precision', 'iterations', 'seed', 'variation', 'executePct', 'bossLevel', 'creatureType', 'zone', 'damageTaken', 'swingSpeed', 'swingDamage', ...BOSS_SWITCHES.map(([key]) => key)] as const
+  const advancedChanged = advancedKeys.filter((key) => changed[key]).length
 
   return (
     <div className="flex flex-col gap-6">
@@ -65,24 +116,33 @@ export function FightSection() {
             <span className="tabular-nums text-muted-foreground">{formatDuration(fight.durationSec)}</span>
           </span>
         }
+        changed={hint('length', 'Fight length', changed.length, formatDuration(def.durationSec), () => set({ durationSec: def.durationSec }))}
       >
         <LengthSlider
+          id={ids('length').control}
           min={30}
           max={600}
           step={15}
           value={fight.durationSec}
           onChange={(durationSec) => set({ durationSec })}
           labelledBy="fight-length-label"
+          describedBy={describedBy(changed.length, 'length')}
         />
       </Field>
 
-      <Field label="Boss armor" help="Before armor debuffs such as Sunder Armor, which you set under Buffs.">
+      <Field
+        label="Boss armor"
+        help="Before armor debuffs such as Sunder Armor, which you set under Buffs."
+        changed={hint('armor', 'Boss armor', changed.armor, number(def.bossArmor), () => set({ bossArmor: def.bossArmor }), () => selectedOption(ids('armor').control))}
+      >
         <ToggleGroup
+          id={ids('armor').control}
           type="single"
           variant="outline"
           value={isPreset ? String(fight.bossArmor) : 'custom'}
           onValueChange={(v) => v && v !== 'custom' && set({ bossArmor: Number(v) })}
           aria-label="Boss armor"
+          aria-describedby={describedBy(changed.armor, 'armor')}
           className="w-full items-stretch"
         >
           {ARMOR_PRESETS.map((p) => (
@@ -102,41 +162,59 @@ export function FightSection() {
 
       {/* No "Enemies" control until multi-target is simulated (warrior.md §5.5, docs/ux.md "Fight"): the
           sim has one target. The config keeps `extraTargets`, so saved setups still load. */}
-      <Field label="Position" help={tank ? 'Tanks face the boss: it can parry and block.' : 'Behind the boss, it can’t parry or block.'}>
+      <Field
+        label="Position"
+        // Follows the chosen position, so a DPS spec moved in front hears what that changes.
+        help={
+          fight.position === 'behind'
+            ? 'Behind the boss, it can’t parry or block.'
+            : tank
+              ? 'Tanks face the boss: it can parry and block.'
+              : 'In front of the boss, it can parry and block your attacks.'
+        }
+        changed={hint('position', 'Position', changed.position, POSITIONS[def.position], () => set({ position: def.position }), () => selectedOption(ids('position').control))}
+      >
         <ToggleGroup
+          id={ids('position').control}
           type="single"
           variant="outline"
           value={fight.position}
           onValueChange={(v) => v && set({ position: v as FightConfig['position'] })}
           aria-label="Position"
+          aria-describedby={describedBy(changed.position, 'position')}
           className="w-full"
         >
           <ToggleGroupItem value="behind" className={cn('h-11 flex-1', CHOICE_ITEM)}>
-            Behind
+            {POSITIONS.behind}
           </ToggleGroupItem>
           <ToggleGroupItem value="front" className={cn('h-11 flex-1', CHOICE_ITEM)}>
-            In front
+            {POSITIONS.front}
           </ToggleGroupItem>
         </ToggleGroup>
       </Field>
 
-      {/* The whole row is the switch's label, so it's one 44 px target (docs/ux.md "Accessibility"). */}
-      <label className="flex min-h-11 cursor-pointer items-center justify-between gap-4">
-        <span className="flex flex-col gap-1">
-          <span className="text-sm font-medium">Execute phase</span>
-          <span id="execute-help" className="text-xs text-muted-foreground">
-            The last {fight.executePct || 20}% of the boss’s health{executeAbility ? `, when ${executeAbility} can be used` : ''}.
+      <div className="flex flex-col gap-2">
+        {/* The whole row is the switch's label, so it's one 44 px target (docs/ux.md "Accessibility"). */}
+        <label className="flex min-h-11 cursor-pointer items-center justify-between gap-4">
+          <span className="flex flex-col gap-1">
+            <span className="text-sm font-medium">Execute phase</span>
+            <span id="execute-help" className="text-xs text-muted-foreground">
+              The last {fight.executePct || 20}% of the boss’s health{executeAbility ? `, when ${executeAbility} can be used` : ''}.
+            </span>
           </span>
-        </span>
-        <Switch
-          aria-label="Execute phase"
-          aria-describedby="execute-help"
-          checked={fight.executePct > 0}
-          onCheckedChange={(on) => set({ executePct: on ? 20 : 0 })}
-        />
-      </label>
+          <Switch
+            id={ids('execute').control}
+            aria-label="Execute phase"
+            aria-describedby={describedBy(changed.execute, 'execute', 'execute-help')}
+            checked={fight.executePct > 0}
+            onCheckedChange={(on) => set({ executePct: on ? 20 : 0 })}
+          />
+        </label>
+        {/* Outside the label, since it has a button. */}
+        {hint('execute', 'Execute phase', changed.execute, def.executePct > 0 ? 'on' : 'off', () => set({ executePct: def.executePct }))}
+      </div>
 
-      <Advanced>
+      <Advanced changed={advancedChanged}>
         <Field
           label="Precision"
           help={
@@ -144,46 +222,124 @@ export function FightSection() {
               ? 'Runs until the result is within about ±0.25% (95% confidence), between 1,000 and 50,000 fights.'
               : 'Always runs exactly this many fights.'
           }
+          changed={
+            <>
+              {hint('precision', 'Precision', changed.precision, PRECISION[defaults.run.mode], () => setRun({ mode: defaults.run.mode }), () => selectedOption(ids('precision').control))}
+              {hint('iterations', 'Number of fights', changed.iterations, number(defaults.run.iterations), () => setRun({ iterations: defaults.run.iterations }))}
+            </>
+          }
         >
           <div className="flex flex-wrap items-center gap-3">
             <ToggleGroup
+              id={ids('precision').control}
               type="single"
               variant="outline"
               value={run.mode}
               onValueChange={(v) => v && setRun({ mode: v as typeof run.mode })}
               aria-label="Precision"
+              aria-describedby={describedBy(changed.precision, 'precision')}
             >
               <ToggleGroupItem value="adaptive" className={cn('h-11 px-4', CHOICE_ITEM)}>
-                Adaptive
+                {PRECISION.adaptive}
               </ToggleGroupItem>
               <ToggleGroupItem value="fixed" className={cn('h-11 px-4', CHOICE_ITEM)}>
-                Fixed
+                {PRECISION.fixed}
               </ToggleGroupItem>
             </ToggleGroup>
             {run.mode === 'fixed' && (
-              <NumberField value={run.iterations} onChange={(iterations) => setRun({ iterations })} min={100} max={100000} step={100} aria-label="Number of fights" />
+              <NumberField
+                id={ids('iterations').control}
+                value={run.iterations}
+                onChange={(iterations) => setRun({ iterations })}
+                min={100}
+                max={100000}
+                step={100}
+                aria-label="Number of fights"
+                aria-describedby={describedBy(changed.iterations, 'iterations')}
+              />
             )}
           </div>
         </Field>
-        <Field label="Seed" htmlFor="fight-seed" help="The same setup and seed give exactly the same result on any device.">
-          <NumberField id="fight-seed" value={run.seed} onChange={(seed) => setRun({ seed })} min={0} max={4294967295} step={1} aria-label="Random seed" />
+        <Field
+          label="Seed"
+          htmlFor={ids('seed').control}
+          help="The same setup and seed give exactly the same result on any device."
+          changed={hint('seed', 'Seed', changed.seed, number(defaults.run.seed), () => setRun({ seed: defaults.run.seed }))}
+        >
+          <NumberField
+            id={ids('seed').control}
+            value={run.seed}
+            onChange={(seed) => setRun({ seed })}
+            min={0}
+            max={4294967295}
+            step={1}
+            aria-label="Random seed"
+            aria-describedby={describedBy(changed.seed, 'seed')}
+          />
         </Field>
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Length variation" htmlFor="fight-length-variation" help="Each simulated fight varies by up to this much.">
-            <NumberField id="fight-length-variation" value={fight.durationVariationPct} onChange={(v) => set({ durationVariationPct: v })} min={0} max={25} unit="%" aria-label="Length variation" />
+          <Field
+            label="Length variation"
+            htmlFor={ids('variation').control}
+            help="Each simulated fight varies by up to this much."
+            changed={hint('variation', 'Length variation', changed.variation, `${def.durationVariationPct}%`, () => set({ durationVariationPct: def.durationVariationPct }))}
+          >
+            <NumberField
+              id={ids('variation').control}
+              value={fight.durationVariationPct}
+              onChange={(v) => set({ durationVariationPct: v })}
+              min={0}
+              max={25}
+              unit="%"
+              aria-label="Length variation"
+              aria-describedby={describedBy(changed.variation, 'variation')}
+            />
           </Field>
           {fight.executePct > 0 && (
-            <Field label="Execute phase starts at" htmlFor="fight-execute-pct" help="Boss health remaining.">
-              <NumberField id="fight-execute-pct" value={fight.executePct} onChange={(v) => set({ executePct: v })} min={1} max={50} unit="%" aria-label="Execute phase threshold" />
+            // Its accessible name is its visible label (WCAG 2.5.3); the steppers read better shorter.
+            <Field
+              label="Execute phase starts at"
+              htmlFor={ids('executePct').control}
+              help="Boss health remaining."
+              changed={hint('executePct', 'Execute phase starts at', changed.executePct, `${def.executePct}%`, () => set({ executePct: def.executePct }))}
+            >
+              <NumberField
+                id={ids('executePct').control}
+                value={fight.executePct}
+                onChange={(v) => set({ executePct: v })}
+                min={1}
+                max={50}
+                unit="%"
+                aria-label="Execute phase starts at"
+                stepLabel="execute phase start"
+                aria-describedby={describedBy(changed.executePct, 'executePct')}
+              />
             </Field>
           )}
-          <Field label="Boss level" htmlFor="fight-boss-level">
-            <NumberField id="fight-boss-level" value={fight.bossLevel} onChange={(v) => set({ bossLevel: v })} min={60} max={63} aria-label="Boss level" />
+          <Field
+            label="Boss level"
+            htmlFor={ids('bossLevel').control}
+            changed={hint('bossLevel', 'Boss level', changed.bossLevel, String(def.bossLevel), () => set({ bossLevel: def.bossLevel }))}
+          >
+            <NumberField
+              id={ids('bossLevel').control}
+              value={fight.bossLevel}
+              onChange={(v) => set({ bossLevel: v })}
+              min={60}
+              max={63}
+              aria-label="Boss level"
+              aria-describedby={describedBy(changed.bossLevel, 'bossLevel')}
+            />
           </Field>
-          <Field label="Creature type" htmlFor="fight-creature-type" help="Some racials and items only work against certain types.">
+          <Field
+            label="Creature type"
+            htmlFor={ids('creatureType').control}
+            help="Some racials and items only work against certain types."
+            changed={hint('creatureType', 'Creature type', changed.creatureType, CREATURE_TYPES.find((t) => t.value === def.creatureType)!.label, () => set({ creatureType: def.creatureType }))}
+          >
             <Select value={fight.creatureType} onValueChange={(v) => set({ creatureType: v as CreatureType })}>
               {/* The trigger's size attribute sets its height, so the 44 px target overrides that. */}
-              <SelectTrigger id="fight-creature-type" className="w-full data-[size=default]:h-11">
+              <SelectTrigger id={ids('creatureType').control} aria-describedby={describedBy(changed.creatureType, 'creatureType')} className="w-full data-[size=default]:h-11">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -195,9 +351,14 @@ export function FightSection() {
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Zone" htmlFor="fight-zone" help="Some Forever consumables only work in certain zones.">
+          <Field
+            label="Zone"
+            htmlFor={ids('zone').control}
+            help="Some Forever consumables only work in certain zones."
+            changed={hint('zone', 'Zone', changed.zone, ZONES.find((z) => z.value === def.zone)!.label, () => set({ zone: def.zone }))}
+          >
             <Select value={fight.zone} onValueChange={(v) => set({ zone: v as FightConfig['zone'] })}>
-              <SelectTrigger id="fight-zone" className="w-full data-[size=default]:h-11">
+              <SelectTrigger id={ids('zone').control} aria-describedby={describedBy(changed.zone, 'zone')} className="w-full data-[size=default]:h-11">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -210,8 +371,25 @@ export function FightSection() {
             </Select>
           </Field>
           {!tank && (
-            <Field label="Damage you take" help="For effects that trigger when you’re hit, such as Enrage. At 0 they never trigger.">
-              <NumberField value={fight.damageTakenPerSec} onChange={(v) => set({ damageTakenPerSec: v })} min={0} max={500} step={10} unit="/s" aria-label="Damage taken per second" />
+            // Its accessible name is its visible label (WCAG 2.5.3).
+            <Field
+              label="Damage you take"
+              htmlFor={ids('damageTaken').control}
+              help="For effects that trigger when you’re hit, such as Enrage. At 0 they never trigger."
+              changed={hint('damageTaken', 'Damage you take', changed.damageTaken, `${def.damageTakenPerSec}/s`, () => set({ damageTakenPerSec: def.damageTakenPerSec }))}
+            >
+              <NumberField
+                id={ids('damageTaken').control}
+                value={fight.damageTakenPerSec}
+                onChange={(v) => set({ damageTakenPerSec: v })}
+                min={0}
+                max={500}
+                step={10}
+                unit="/s"
+                aria-label="Damage you take"
+                stepLabel="damage you take"
+                aria-describedby={describedBy(changed.damageTaken, 'damageTaken')}
+              />
             </Field>
           )}
         </div>
@@ -220,31 +398,71 @@ export function FightSection() {
           <div className="flex flex-col gap-5">
             <h3 className="text-sm font-medium">Boss melee</h3>
             <div className="grid gap-5 sm:grid-cols-2">
-              <Field label="Swing speed">
-                <NumberField value={fight.boss.swingSpeedSec} onChange={(v) => setBoss({ swingSpeedSec: v })} min={1} max={4} step={0.1} unit="s" aria-label="Boss swing speed" />
+              <Field
+                label="Swing speed"
+                changed={hint('swingSpeed', 'Swing speed', changed.swingSpeed, `${def.boss.swingSpeedSec} s`, () => setBoss({ swingSpeedSec: def.boss.swingSpeedSec }))}
+              >
+                <NumberField
+                  id={ids('swingSpeed').control}
+                  value={fight.boss.swingSpeedSec}
+                  onChange={(v) => setBoss({ swingSpeedSec: v })}
+                  min={1}
+                  max={4}
+                  step={0.1}
+                  unit="s"
+                  aria-label="Boss swing speed"
+                  aria-describedby={describedBy(changed.swingSpeed, 'swingSpeed')}
+                />
               </Field>
-              <Field label="Damage per swing" help="Before your armor.">
+              <Field
+                label="Damage per swing"
+                help="Before your armor."
+                changed={hint(
+                  'swingDamage',
+                  'Damage per swing',
+                  changed.swingDamage,
+                  `${number(def.boss.damageMin)} to ${number(def.boss.damageMax)}`,
+                  () => setBoss({ damageMin: def.boss.damageMin, damageMax: def.boss.damageMax }),
+                )}
+              >
                 <div className="flex flex-wrap items-center gap-2">
-                  <NumberField value={fight.boss.damageMin} onChange={(v) => setBoss({ damageMin: Math.min(v, fight.boss.damageMax) })} min={0} max={20000} step={100} aria-label="Minimum damage per swing" />
+                  <NumberField
+                    id={ids('swingDamage').control}
+                    value={fight.boss.damageMin}
+                    onChange={(v) => setBoss({ damageMin: Math.min(v, fight.boss.damageMax) })}
+                    min={0}
+                    max={20000}
+                    step={100}
+                    aria-label="Minimum damage per swing"
+                    aria-describedby={describedBy(changed.swingDamage, 'swingDamage')}
+                  />
                   <span className="text-muted-foreground">to</span>
-                  <NumberField value={fight.boss.damageMax} onChange={(v) => setBoss({ damageMax: Math.max(v, fight.boss.damageMin) })} min={0} max={20000} step={100} aria-label="Maximum damage per swing" />
+                  <NumberField
+                    value={fight.boss.damageMax}
+                    onChange={(v) => setBoss({ damageMax: Math.max(v, fight.boss.damageMin) })}
+                    min={0}
+                    max={20000}
+                    step={100}
+                    aria-label="Maximum damage per swing"
+                    aria-describedby={describedBy(changed.swingDamage, 'swingDamage')}
+                  />
                 </div>
               </Field>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              {(
-                [
-                  ['canCrush', 'Crushing blows'],
-                  ['parryHaste', 'Parry speeds up the boss'],
-                  ['canDodge', 'Boss can dodge'],
-                  ['canParry', 'Boss can parry'],
-                  ['canBlock', 'Boss can block'],
-                ] as const
-              ).map(([key, label]) => (
-                <label key={key} className="flex min-h-11 items-center justify-between gap-4 text-sm">
-                  {label}
-                  <Switch checked={fight.boss[key]} onCheckedChange={(on) => setBoss({ [key]: on })} />
-                </label>
+              {BOSS_SWITCHES.map(([key, label]) => (
+                <div key={key} className="flex flex-col gap-1">
+                  <label className="flex min-h-11 items-center justify-between gap-4 text-sm">
+                    {label}
+                    <Switch
+                      id={ids(key).control}
+                      checked={fight.boss[key]}
+                      onCheckedChange={(on) => setBoss({ [key]: on })}
+                      aria-describedby={describedBy(changed[key], key)}
+                    />
+                  </label>
+                  {hint(key, label, changed[key], def.boss[key] ? 'on' : 'off', () => setBoss({ [key]: def.boss[key] }))}
+                </div>
               ))}
             </div>
           </div>

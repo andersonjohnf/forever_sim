@@ -1,5 +1,5 @@
 import { Info } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { WowIcon } from '@/components/wow-icon'
@@ -14,6 +14,8 @@ import { unsimulatedEffects } from './item-flags'
  * takes a badge's height in the layout.
  */
 function FlagBadge({ label, children }: { label: string; children: ReactNode }) {
+  // The popover is a dialog, named by its heading (docs/ux.md#accessibility).
+  const titleId = useId()
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -27,8 +29,10 @@ function FlagBadge({ label, children }: { label: string; children: ReactNode }) 
           </Badge>
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-[min(20rem,calc(100vw-2rem))]">
-        <p className="font-medium">{label}</p>
+      <PopoverContent align="start" aria-labelledby={titleId} className="w-[min(20rem,calc(100vw-2rem))]">
+        <p id={titleId} className="font-medium">
+          {label}
+        </p>
         {children}
       </PopoverContent>
     </Popover>

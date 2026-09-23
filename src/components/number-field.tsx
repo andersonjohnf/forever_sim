@@ -1,5 +1,5 @@
 import { Minus, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -7,6 +7,10 @@ import { cn } from '@/lib/utils'
 /**
  * A number input with − / + steppers (44 px touch targets). Commits on blur or Enter and
  * clamps to [min, max], so typing a partial number never pushes an invalid value.
+ *
+ * `aria-label` names the input and, after "Decrease" / "Increase", the steppers; it should match
+ * the field's visible label (WCAG 2.5.3). `stepLabel` names the steppers instead when the label
+ * reads badly after "Decrease" ("Execute phase starts at").
  */
 export function NumberField({
   id,
@@ -17,7 +21,9 @@ export function NumberField({
   step = 1,
   unit,
   className,
+  stepLabel,
   'aria-label': ariaLabel,
+  'aria-describedby': describedBy,
 }: {
   id?: string
   value: number
@@ -27,10 +33,14 @@ export function NumberField({
   step?: number
   unit?: string
   className?: string
+  stepLabel?: string
   'aria-label'?: string
+  'aria-describedby'?: string
 }) {
   // While typing, the draft is shown; otherwise the committed value. No effect needed.
   const [draft, setDraft] = useState<string | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const stepName = stepLabel ?? ariaLabel
 
   const clamp = (n: number) => Math.min(max, Math.max(min, Math.round(n / step) * step))
   const commit = () => {
@@ -38,6 +48,13 @@ export function NumberField({
     const n = Number(draft)
     if (draft.trim() !== '' && !Number.isNaN(n) && clamp(n) !== value) onChange(clamp(n))
     setDraft(null)
+  }
+  // A stepper that reaches its limit disables itself, which would drop focus to the page, so
+  // focus moves to the input first (docs/ux.md#accessibility).
+  const stepTo = (next: number) => {
+    const clamped = clamp(next)
+    if (clamped <= min || clamped >= max) inputRef.current?.focus()
+    onChange(clamped)
   }
 
   return (
@@ -47,17 +64,19 @@ export function NumberField({
         variant="outline"
         size="icon"
         className="size-11"
-        aria-label={ariaLabel ? `Decrease ${ariaLabel}` : 'Decrease'}
+        aria-label={stepName ? `Decrease ${stepName}` : 'Decrease'}
         disabled={value <= min}
-        onClick={() => onChange(clamp(value - step))}
+        onClick={() => stepTo(value - step)}
       >
         <Minus />
       </Button>
       <div className="relative">
         <Input
+          ref={inputRef}
           id={id}
           inputMode="decimal"
           aria-label={ariaLabel}
+          aria-describedby={describedBy}
           value={draft ?? String(value)}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={commit}
@@ -75,9 +94,9 @@ export function NumberField({
         variant="outline"
         size="icon"
         className="size-11"
-        aria-label={ariaLabel ? `Increase ${ariaLabel}` : 'Increase'}
+        aria-label={stepName ? `Increase ${stepName}` : 'Increase'}
         disabled={value >= max}
-        onClick={() => onChange(clamp(value + step))}
+        onClick={() => stepTo(value + step)}
       >
         <Plus />
       </Button>

@@ -14,6 +14,8 @@ export function LengthSlider({
   max,
   step,
   labelledBy,
+  id,
+  describedBy,
 }: {
   value: number
   onChange: (value: number) => void
@@ -21,6 +23,9 @@ export function LengthSlider({
   max: number
   step: number
   labelledBy: string
+  /** The thumb's id, which takes focus. */
+  id?: string
+  describedBy?: string
 }) {
   return (
     <SliderPrimitive.Root
@@ -35,7 +40,9 @@ export function LengthSlider({
         <SliderPrimitive.Range className="absolute h-full bg-primary" />
       </SliderPrimitive.Track>
       <SliderPrimitive.Thumb
+        id={id}
         aria-labelledby={labelledBy}
+        aria-describedby={describedBy}
         aria-valuetext={durationText(value)}
         className="group/thumb flex size-11 items-center justify-center rounded-full outline-none"
       >

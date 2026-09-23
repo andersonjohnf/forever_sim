@@ -16,21 +16,31 @@ describe('faction twins (docs/data/items.md#equipping-rules)', () => {
       [17904, 17909], // Stormpike / Frostwolf Insignia Rank 6: only the use's destination differs
     ]
     for (const [alliance, horde] of twins) {
-      expect(factionTwin(item(alliance), 'Horde')?.id, item(alliance).name).toBe(horde)
-      expect(factionTwin(item(horde), 'Alliance')?.id, item(horde).name).toBe(alliance)
+      expect(factionTwin(item(alliance), 'Horde', 'warrior')?.id, item(alliance).name).toBe(horde)
+      expect(factionTwin(item(horde), 'Alliance', 'warrior')?.id, item(horde).name).toBe(alliance)
     }
   })
 
   it('picks the twin whose name ends the same way when several share the stats', () => {
-    expect(factionTwin(item(20050), 'Horde')?.name).toBe("Defiler's Chain Greaves")
-    expect(factionTwin(item(20051), 'Horde')?.name).toBe("Defiler's Mail Greaves")
+    expect(factionTwin(item(20050), 'Horde', 'warrior')?.name).toBe("Defiler's Chain Greaves")
+    expect(factionTwin(item(20051), 'Horde', 'warrior')?.name).toBe("Defiler's Mail Greaves")
+  })
+
+  it('matches class restrictions by whether this class can wear both, not by the whole list', () => {
+    // Sergeant Major's Plate Wristguards (warriors and paladins) / First Sergeant's Plate Bracers (warriors).
+    expect(item(18445).classes).toEqual(['Warrior', 'Paladin'])
+    expect(item(18429).classes).toEqual(['Warrior'])
+    expect(factionTwin(item(18445), 'Horde', 'warrior')?.id).toBe(18429)
+    expect(factionTwin(item(18429), 'Alliance', 'warrior')?.id).toBe(18445)
+    // A paladin can't wear the Horde piece, so for a paladin there's no twin.
+    expect(factionTwin(item(18445), 'Horde', 'paladin')).toBeNull()
   })
 
   it('has no twin for items only one side has, for neutral items, or for the same side', () => {
-    expect(factionTwin(item(18445), 'Horde')).toBeNull() // Sergeant Major's Plate Wristguards: the Horde piece differs
-    expect(factionTwin(item(23315), 'Alliance')).toBeNull()
+    expect(factionTwin(item(16337), 'Horde', 'warrior')).toBeNull() // Sergeant Major's Cape: no Horde piece with its stats
+    expect(factionTwin(item(23315), 'Alliance', 'warrior')).toBeNull()
     const neutral = defaultConfig('warrior-fury').gear.head!.itemId // Lionheart Helm
-    expect(factionTwin(item(neutral), 'Horde')).toBeNull()
+    expect(factionTwin(item(neutral), 'Horde', 'warrior')).toBeNull()
   })
 })
 
@@ -58,10 +68,20 @@ describe('changing race', () => {
 
   it('keeps an item with no twin and says so', () => {
     const human = defaultConfig('warrior-fury', 'alliance-human')
-    const bracers: SimConfig = { ...human, gear: { ...human.gear, wrist: { itemId: 18445 } } }
-    const { config, kept } = changeRace(bracers, 'horde-orc')
-    expect(kept.map((k) => [k.slot, k.item.id])).toEqual([['wrist', 18445]])
-    expect(config.gear.wrist).toEqual({ itemId: 18445 })
-    expect(fitsFaction('horde-orc', item(18445))).toBe(false)
+    const cape: SimConfig = { ...human, gear: { ...human.gear, back: { itemId: 16337 } } }
+    const { config, kept } = changeRace(cape, 'horde-orc')
+    expect(kept.map((k) => [k.slot, k.item.id])).toEqual([['back', 16337]])
+    expect(config.gear.back).toEqual({ itemId: 16337 })
+    expect(fitsFaction('horde-orc', item(16337))).toBe(false)
+  })
+
+  it('swaps the rank-5 plate bracers for a warrior (RL8)', () => {
+    const human = defaultConfig('warrior-fury', 'alliance-human')
+    const bracers: SimConfig = { ...human, gear: { ...human.gear, wrist: { itemId: 18445, enchantId: 'bracerSuperiorStrength' } } }
+    const orc = changeRace(bracers, 'horde-orc')
+    expect(orc.config.gear.wrist).toEqual({ itemId: 18429, enchantId: 'bracerSuperiorStrength' })
+    expect(orc.swapped.map((s) => [s.slot, s.from.id, s.to.id])).toContainEqual(['wrist', 18445, 18429])
+    expect(orc.kept).toEqual([])
+    expect(changeRace(orc.config, 'alliance-human').config.gear.wrist).toEqual({ itemId: 18445, enchantId: 'bracerSuperiorStrength' })
   })
 })

@@ -1,8 +1,9 @@
-import { ClipboardCopy, ClipboardPaste, Minus, Plus, RotateCcw } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { CircleAlert, ClipboardCopy, ClipboardPaste, Minus, Plus, RotateCcw } from 'lucide-react'
+import { useId, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { useSheetFocus } from '@/app/sheet-focus'
 import { useSetup } from '@/app/setup-store'
-import { useSpecMeta } from '@/app/specs'
+import { useSpecMeta, visibleSpecs } from '@/app/specs'
 import { undoToast } from '@/app/undo-toast'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -21,12 +22,13 @@ import {
   type TalentRanksById,
   type TalentTree,
 } from '@/data/talents/types'
+import { changeAndFocus } from '@/features/refocus'
 import { SectionHeader } from '@/features/section'
 import { useIsDesktop, useMediaQuery } from '@/hooks/use-media-query'
 import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
 import { TALENT_DATA, talentPresets } from '@/sim'
-import { canAdd, canRemove, lockReason, readBuildCode, totalPoints, withRank } from './logic'
+import { canAdd, canRemove, lockReason, presetSpec, readBuildCode, removeReason, totalPoints, withRank } from './logic'
 
 export function TalentsSection() {
   const meta = useSpecMeta()
@@ -37,17 +39,30 @@ export function TalentsSection() {
   const ranks = useMemo(() => safeDecode(data, code), [data, code])
   const perTree = pointsPerTree(data, ranks)
   const spent = totalPoints(ranks)
-  const presets = talentPresets(meta.classId)
+  // Only the builds of specs the app offers (docs/ux.md principle 8): no Protection builds until
+  // Protection ships, and the menu grows as specs do.
+  const presets = useMemo(() => {
+    const offered = visibleSpecs().filter((s) => s.classId === meta.classId)
+    return talentPresets(meta.classId).filter((p) => presetSpec(p.name, offered))
+  }, [meta.classId])
   const isDesktop = useIsDesktop()
   const finePointer = useMediaQuery('(hover: hover) and (pointer: fine)')
   const [treeIndex, setTreeIndex] = useState(() => perTree.indexOf(Math.max(...perTree)))
   const [importOpen, setImportOpen] = useState(false)
+  const presetsRef = useRef<HTMLButtonElement>(null)
+  const { returnRef: pasteRef, contentProps: importFocusProps } = useSheetFocus<HTMLButtonElement>()
 
   const setRanks = (next: TalentRanksById) => update((c) => ({ ...c, talents: encodeTalentCode(data, next) }))
   const withUndo = (message: string, change: () => void) => {
     const previous = useSetup.getState().config
     change()
     undoToast(message, () => replace(previous))
+  }
+  const clear = () => {
+    // Clear disables itself, so focus moves to the preset menu first, which now reads "Custom
+    // build" (docs/ux.md#accessibility: focus never falls to the page).
+    presetsRef.current?.focus()
+    withUndo('All talent points removed', () => setRanks({}))
   }
 
   return (
@@ -70,7 +85,7 @@ export function TalentsSection() {
           }}
         >
           {/* The trigger's size attribute sets its height, so the 44 px target overrides that (docs/ux.md "Accessibility"). */}
-          <SelectTrigger className="col-span-3 w-full data-[size=default]:h-11 sm:w-auto sm:min-w-48" aria-label="Talent build presets">
+          <SelectTrigger ref={presetsRef} className="col-span-3 w-full data-[size=default]:h-11 sm:w-auto sm:min-w-48" aria-label="Talent build presets">
             <SelectValue placeholder="Custom build" />
           </SelectTrigger>
           <SelectContent>
@@ -95,15 +110,10 @@ export function TalentsSection() {
         >
           <ClipboardCopy /> Copy<span className="hidden sm:inline"> code</span>
         </Button>
-        <Button variant="outline" className="h-11" onClick={() => setImportOpen(true)}>
+        <Button ref={pasteRef} variant="outline" className="h-11" onClick={() => setImportOpen(true)}>
           <ClipboardPaste /> Paste<span className="hidden sm:inline"> code</span>
         </Button>
-        <Button
-          variant="ghost"
-          className="h-11"
-          disabled={spent === 0}
-          onClick={() => withUndo('All talent points removed', () => setRanks({}))}
-        >
+        <Button variant="ghost" className="h-11" disabled={spent === 0} onClick={clear}>
           <RotateCcw /> Clear
         </Button>
       </div>
@@ -127,6 +137,7 @@ export function TalentsSection() {
             variant="outline"
             value={String(treeIndex)}
             onValueChange={(v) => v && setTreeIndex(Number(v))}
+            aria-label="Talent tree"
             className="w-full"
           >
             {data.trees.map((tree, i) => (
@@ -153,6 +164,7 @@ export function TalentsSection() {
         data={data}
         example={presets[0]?.code ?? code}
         onImport={(next) => withUndo('Build imported', () => update((c) => ({ ...c, talents: next })))}
+        contentProps={importFocusProps}
       />
     </div>
   )
@@ -218,8 +230,21 @@ function TalentCell({
   const addable = canAdd(data, ranks, talent)
   const removable = canRemove(data, ranks, talent)
   const locked = rank === 0 && !addable
+  const removeId = useId()
+  const minusRef = useRef<HTMLButtonElement>(null)
+  const plusRef = useRef<HTMLButtonElement>(null)
   const add = () => addable && setRanks(withRank(ranks, talent.id, rank + 1))
   const remove = () => removable && setRanks(withRank(ranks, talent.id, rank - 1))
+  // A click, right-click or key that can't change the rank says why, rather than doing nothing
+  // (docs/ux.md "Talents"). One toast at a time: a new refusal replaces the last.
+  const refuse = (reason: string | null) => reason && toast(reason, { id: 'talent-refused' })
+  const tryAdd = () => (addable ? add() : refuse(lockReason(data, ranks, talent)))
+  const tryRemove = () => (removable ? remove() : refuse(removeReason(data, ranks, talent)))
+  // In the popover, a button that disables itself hands focus to the other one, so focus never
+  // falls to the page (docs/ux.md#accessibility). The other one may only just have been enabled
+  // (− after a first point, + after a point frees the 51st), so focus moves once the change renders.
+  const popoverAdd = () => changeAndFocus(add, () => (plusRef.current?.disabled ? minusRef.current : null))
+  const popoverRemove = () => changeAndFocus(remove, () => (minusRef.current?.disabled ? plusRef.current : null))
   const label = `${talent.name}, ${rank} of ${talent.maxRank}`
 
   const cell = (
@@ -227,16 +252,16 @@ function TalentCell({
       type="button"
       aria-label={label}
       aria-keyshortcuts="Backspace"
-      onClick={finePointer ? add : undefined}
+      onClick={finePointer ? tryAdd : undefined}
       onContextMenu={(e) => {
         e.preventDefault()
-        remove()
+        tryRemove()
       }}
       // Keyboard removal (docs/ux.md "Talents"): Backspace, or Delete and − as aliases.
       onKeyDown={(e) => {
         if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '-') {
           e.preventDefault()
-          remove()
+          tryRemove()
         }
       }}
       className={cn(
@@ -251,11 +276,12 @@ function TalentCell({
       )}
     >
       <WowIcon icon={talent.icon} size="lg" grayscale={locked} className="border-0" />
+      {/* A locked talent's badge is dimmed by colour alone (the muted text colour, AA), never by
+          opacity (docs/ux.md "Visual language"); its icon turns gray and its border goes. */}
       <span
         className={cn(
           'absolute -right-1.5 -bottom-1.5 rounded-md border bg-background px-1 text-[0.7rem] leading-4 font-semibold tabular-nums',
           rank === talent.maxRank ? 'text-notice' : rank > 0 ? 'text-positive' : 'text-muted-foreground',
-          locked && 'opacity-60',
         )}
       >
         {rank}/{talent.maxRank}
@@ -263,15 +289,13 @@ function TalentCell({
     </button>
   )
 
-  const details = <TalentDetails data={data} talent={talent} ranks={ranks} />
-
   if (finePointer) {
     return (
       <Tooltip>
         <TooltipTrigger asChild>{cell}</TooltipTrigger>
         <TooltipContent side="top" className="max-w-72">
           <div className="flex flex-col gap-2">
-            {details}
+            <TalentDetails data={data} talent={talent} ranks={ranks} inverted />
             <p className="border-t border-current/20 pt-2 text-xs opacity-80">
               Click or Enter adds a point. Right-click or Backspace removes one.
             </p>
@@ -283,13 +307,21 @@ function TalentCell({
   return (
     <Popover>
       <PopoverTrigger asChild>{cell}</PopoverTrigger>
-      <PopoverContent className="w-72">
-        {details}
+      <PopoverContent className="w-72" aria-label={talent.name}>
+        <TalentDetails data={data} talent={talent} ranks={ranks} removeId={removeId} />
         <div className="mt-3 flex gap-2">
-          <Button variant="outline" className="h-11 flex-1" disabled={!removable} onClick={remove} aria-label="Remove a point">
+          <Button
+            ref={minusRef}
+            variant="outline"
+            className="h-11 flex-1"
+            disabled={!removable}
+            onClick={popoverRemove}
+            aria-label="Remove a point"
+            aria-describedby={removeReason(data, ranks, talent) ? removeId : undefined}
+          >
             <Minus />
           </Button>
-          <Button className="h-11 flex-1" disabled={!addable} onClick={add} aria-label="Add a point">
+          <Button ref={plusRef} className="h-11 flex-1" disabled={!addable} onClick={popoverAdd} aria-label="Add a point">
             <Plus />
           </Button>
         </div>
@@ -298,11 +330,32 @@ function TalentCell({
   )
 }
 
-function TalentDetails({ data, talent, ranks }: { data: TalentData; talent: Talent; ranks: TalentRanksById }) {
+/**
+ * A talent's name, rank and texts, and why a point can't be added or removed. `inverted` is for the
+ * tooltip's inverted colours, where the notice colour would fall below AA, so a reason there is
+ * marked by weight and icon instead.
+ */
+function TalentDetails({
+  data,
+  talent,
+  ranks,
+  removeId,
+  inverted = false,
+}: {
+  data: TalentData
+  talent: Talent
+  ranks: TalentRanksById
+  /** The id of the remove reason, which describes the popover's "−". */
+  removeId?: string
+  inverted?: boolean
+}) {
   const rank = ranks[talent.id] ?? 0
   const current = rank > 0 ? talent.ranks.forever[rank - 1] : null
   const next = rank < talent.maxRank ? talent.ranks.forever[rank] : null
-  const reason = lockReason(data, ranks, talent)
+  const reasons = [
+    { id: undefined, text: lockReason(data, ranks, talent) },
+    { id: removeId, text: removeReason(data, ranks, talent) },
+  ].filter((r) => r.text)
   return (
     <div className="flex flex-col gap-2 text-sm">
       <div className="flex items-baseline justify-between gap-3">
@@ -319,7 +372,12 @@ function TalentDetails({ data, talent, ranks }: { data: TalentData; talent: Tale
           {next}
         </p>
       )}
-      {reason && <p className="font-medium text-notice">{reason}</p>}
+      {reasons.map((r) => (
+        <p key={r.text} id={r.id} className={cn('flex items-start gap-1.5 font-medium', !inverted && 'text-notice')}>
+          <CircleAlert aria-hidden className="mt-0.5 size-3.5 shrink-0" />
+          {r.text}
+        </p>
+      ))}
     </div>
   )
 }
@@ -330,6 +388,7 @@ function ImportDialog({
   data,
   example,
   onImport,
+  contentProps,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -337,6 +396,12 @@ function ImportDialog({
   /** A code for this class, shown as the example. */
   example: string
   onImport: (code: string) => void
+  /**
+   * From `useSheetFocus`: the dialog opens from state, not from a Dialog.Trigger, so this hands
+   * focus back to the Paste button when it closes, however it closes (docs/ux.md#accessibility).
+   * Focus goes in to the code field.
+   */
+  contentProps: ReturnType<typeof useSheetFocus>['contentProps']
 }) {
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -354,7 +419,7 @@ function ImportDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* No stock 28 px close button: Cancel (44 px) and Escape close it. */}
-      <DialogContent showCloseButton={false}>
+      <DialogContent showCloseButton={false} {...contentProps}>
         <DialogHeader>
           <DialogTitle>Paste a build code</DialogTitle>
           <DialogDescription>

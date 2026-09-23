@@ -22,10 +22,10 @@ describe('the race-change toast', () => {
   })
 
   it('says which items stayed, and says nothing within a faction', () => {
-    const bracers: SimConfig = { ...human, gear: { wrist: { itemId: 18445 } } }
-    expect(raceChangeMessage(changeRace(bracers, 'horde-orc'), 'Horde')).toEqual({
+    const cape: SimConfig = { ...human, gear: { back: { itemId: 16337 } } }
+    expect(raceChangeMessage(changeRace(cape, 'horde-orc'), 'Horde')).toEqual({
       title: 'Your gear includes items a Horde character can’t wear',
-      description: "Kept Sergeant Major's Plate Wristguards: it has no Horde version, so pick a replacement under Gear.",
+      description: "Kept Sergeant Major's Cape: it has no Horde version, so pick a replacement under Gear.",
     })
     expect(raceChangeMessage(changeRace(human, 'alliance-gnome'), 'Alliance')).toBeNull()
   })

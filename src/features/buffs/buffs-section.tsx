@@ -5,13 +5,16 @@ import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { WowIcon } from '@/components/wow-icon'
 import type { ClassSlug } from '@/data/races/types'
+import { ClassicEraNote } from '@/features/character/classic-era-note'
 import { EmptyState } from '@/features/empty-state'
 import { Field, SectionHeader } from '@/features/section'
 import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
+import { buffSwitchId } from './ids'
 import {
   buffCatalogueFor,
   buffPresets,
+  defaultConfig,
   FULL_RAID,
   getSpec,
   presetBuffs,
@@ -61,6 +64,11 @@ export function BuffsSection() {
   }, [meta.id, talents, rotation])
 
   const activePreset = buffPresets.find((p) => sameSet(presetBuffs(p.id, meta.id, buffs.raid), buffs.enabled))?.id
+  // The spec's default preset, marked like the talent presets' "(default)" (docs/ux.md "Buffs", checklist 3).
+  const defaultPreset = useMemo(
+    () => buffPresets.find((p) => sameSet(presetBuffs(p.id, meta.id, FULL_RAID), defaultConfig(meta.id).buffs.enabled))?.id,
+    [meta.id],
+  )
   const applyPreset = (id: BuffPreset['id']) => setBuffs({ enabled: presetBuffs(id, meta.id, buffs.raid) })
 
   const toggleClass = (cls: ClassSlug, on: boolean) => {
@@ -88,6 +96,7 @@ export function BuffsSection() {
   return (
     <div className="flex flex-col gap-6">
       <SectionHeader title="Buffs" description="What your raid brings, what’s on the boss, and your consumables." />
+      <ClassicEraNote what="Raid buffs, debuffs and consumables" />
 
       <Field label="Preset">
         <ToggleGroup
@@ -107,7 +116,10 @@ export function BuffsSection() {
               aria-describedby={`buff-preset-${p.id}`}
               className={cn('h-auto min-h-11 flex-col items-start justify-start gap-0.5 px-3 py-2 text-left', CHOICE_ITEM)}
             >
-              <span id={`buff-preset-${p.id}-name`}>{p.name}</span>
+              <span id={`buff-preset-${p.id}-name`}>
+                {p.name}
+                {p.id === defaultPreset && ' (default)'}
+              </span>
               <span id={`buff-preset-${p.id}`} className={cn('text-xs font-normal whitespace-normal', CHOICE_HINT)}>
                 {p.description}
               </span>
@@ -129,7 +141,7 @@ export function BuffsSection() {
                 onClick={() => toggleClass(cls, !on)}
                 className={cn(
                   'flex min-h-11 items-center gap-2 rounded-full border px-3 text-sm transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
-                  on ? 'border-primary bg-muted font-medium' : 'text-muted-foreground hover:bg-muted',
+                  on ? 'border-primary bg-muted font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                 )}
               >
                 <WowIcon icon={`classicon_${cls}`} size="xs" grayscale={!on} />
@@ -159,14 +171,20 @@ export function BuffsSection() {
                       const own = maintained.has(def.id)
                       const missing = !own && def.providedBy && !buffs.raid.includes(def.providedBy)
                       return (
+                        // A buff nobody in the raid brings is dimmed by colour, never opacity: its
+                        // text turns to the muted colour (AA) and its icon to gray (docs/ux.md "Buffs").
                         <label
                           key={def.id}
-                          className={cn('flex min-h-14 items-center gap-3 rounded-lg px-3 py-2', missing ? 'opacity-60' : !own && 'hover:bg-muted')}
+                          data-unavailable={missing || undefined}
+                          className={cn(
+                            'flex min-h-14 items-center gap-3 rounded-lg px-3 py-2',
+                            missing ? 'cursor-not-allowed text-muted-foreground' : !own && 'hover:bg-muted',
+                          )}
                         >
-                          <WowIcon icon={def.icon} size="sm" />
+                          <WowIcon icon={def.icon} size="sm" grayscale={!!missing} />
                           <span className="flex min-w-0 flex-1 flex-col">
                             <span className="text-sm font-medium">{def.name}</span>
-                            <span className="text-xs text-muted-foreground">
+                            <span id={`${buffSwitchId(def.id)}-help`} className="text-xs text-muted-foreground">
                               {own
                                 ? `${def.summary}. You keep it up yourself (see Rotation), so it isn’t added twice.`
                                 : missing
@@ -175,10 +193,12 @@ export function BuffsSection() {
                             </span>
                           </span>
                           <Switch
+                            id={buffSwitchId(def.id)}
                             checked={own || buffs.enabled.includes(def.id)}
                             disabled={own || !!missing}
                             onCheckedChange={(on) => toggleBuff(def, on)}
                             aria-label={def.name}
+                            aria-describedby={`${buffSwitchId(def.id)}-help`}
                           />
                         </label>
                       )

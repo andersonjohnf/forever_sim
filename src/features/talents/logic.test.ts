@@ -3,8 +3,9 @@
 // lower tiers of the same tree, and the cap is 51 points.
 import { describe, expect, it } from 'vitest'
 import { decodeTalentCode, talentsInCodeOrder, type Talent, type TalentData } from '@/data/talents/types'
-import { TALENT_DATA } from '@/sim/defaults'
-import { canAdd, canRemove, lockReason, readBuildCode, withRank } from './logic'
+import { SPEC_META } from '@/sim'
+import { TALENT_DATA, talentPresets } from '@/sim/defaults'
+import { canAdd, canRemove, lockReason, presetSpec, readBuildCode, removeReason, withRank } from './logic'
 
 const find = (data: TalentData, name: string): Talent => data.trees.flatMap((t) => t.talents).find((t) => t.name === name)!
 
@@ -46,6 +47,61 @@ describe('talent calculator rules', () => {
     const bloodthirst = find(warrior, 'Bloodthirst')
     expect(bloodthirst.tier).toBe(6)
     expect(lockReason(warrior, ranks, bloodthirst)).toBe('Requires 30 points in Fury.')
+  })
+})
+
+describe('why a point can’t come back (docs/ux.md "Talents")', () => {
+  const warrior = TALENT_DATA.warrior
+  const fury = decodeTalentCode(warrior, '30305013002-050530035150010051-') // the Fury default
+  const reason = (name: string) => removeReason(warrior, fury, find(warrior, name))
+
+  it('names the talent whose arrow needs it', () => {
+    expect(reason('Death Wish')).toBe('Can’t remove a point: Bloodthirst needs 1 point in Death Wish.')
+    expect(reason('Enrage')).toBe('Can’t remove a point: Flurry needs 5 points in Enrage.')
+  })
+
+  it('names the talents in the first tier whose gate would break', () => {
+    // Cruelty is Fury's tier 1: without its fifth point, tier 2 has 4 points above it.
+    expect(reason('Cruelty')).toBe('Can’t remove a point: Unbridled Wrath needs 5 points in Fury above it.')
+    // Unbridled Wrath is tier 2: tier 3 would have 9, and Improved Cleave and Boundless Rage need 10.
+    expect(reason('Unbridled Wrath')).toBe('Can’t remove a point: Improved Cleave and Boundless Rage need 10 points in Fury above them.')
+  })
+
+  it('is null for a point that can go, and for a talent with none', () => {
+    expect(reason('Flurry')).toBeNull()
+    expect(reason('Bloodthirst')).toBeNull()
+    expect(reason('Booming Voice')).toBeNull() // no points
+    expect(canRemove(warrior, fury, find(warrior, 'Flurry'))).toBe(true)
+  })
+})
+
+describe('talent presets per spec (docs/ux.md principle 8)', () => {
+  it('ties every documented preset to exactly one spec of its class', () => {
+    for (const classId of ['warrior', 'druid', 'paladin'] as const) {
+      const specs = Object.values(SPEC_META).filter((s) => s.classId === classId)
+      for (const preset of talentPresets(classId)) {
+        expect(presetSpec(preset.name, specs)?.classId, preset.name).toBe(classId)
+      }
+    }
+    const warriors = Object.values(SPEC_META).filter((s) => s.classId === 'warrior')
+    expect(talentPresets('warrior').map((p) => presetSpec(p.name, warriors)?.id)).toEqual([
+      'warrior-fury',
+      'warrior-fury',
+      'warrior-arms',
+      'warrior-protection',
+      'warrior-protection',
+    ])
+    const druids = Object.values(SPEC_META).filter((s) => s.classId === 'druid')
+    expect(talentPresets('druid').map((p) => presetSpec(p.name, druids)?.id)).toEqual(['druid-feral-cat', 'druid-feral-bear'])
+  })
+
+  it('leaves out presets for specs that aren’t offered', () => {
+    const offered = [SPEC_META['warrior-fury'], SPEC_META['warrior-arms']]
+    expect(talentPresets('warrior').filter((p) => presetSpec(p.name, offered)).map((p) => p.name)).toEqual([
+      'Fury (default)',
+      'Fury + Precision',
+      'Arms (default)',
+    ])
   })
 })
 

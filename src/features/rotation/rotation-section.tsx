@@ -7,6 +7,9 @@ import { NumberField } from '@/components/number-field'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { buffSwitchId } from '@/features/buffs/ids'
+import { ChangedHint } from '@/features/changed-hint'
+import { changeAndFocus } from '@/features/refocus'
 import { EmptyState } from '@/features/empty-state'
 import { SectionHeader } from '@/features/section'
 import { CHOICE_ITEM } from '@/lib/choice'
@@ -29,6 +32,21 @@ const rowIds = (id: string) => ({
   missing: `rot-${id}-missing`,
 })
 
+/** A setting's control as it is now: its switch or input, or a choice's selected option. */
+const controlOf = (option: RotationOption) => {
+  const ids = rowIds(option.id)
+  return option.kind === 'choice'
+    ? document.querySelector<HTMLElement>(`[aria-labelledby="${ids.label}"] [data-state="on"]`)
+    : document.getElementById(ids.control)
+}
+
+/**
+ * A switch that depends on one that's off is dimmed by colour, not opacity (docs/ux.md "Rotation"
+ * and "Visual language"): on, its track is a neutral gray rather than the primary colour, which
+ * still meets 3:1 against the page.
+ */
+const INACTIVE_SWITCH = 'data-checked:bg-muted-foreground'
+
 export function RotationSection() {
   const meta = useSpecMeta()
   const rotation = useSetup((s) => s.config.rotation)
@@ -48,16 +66,23 @@ export function RotationSection() {
         return { ...c, rotation: rest }
       }),
   }
-  // Undo restores this spec's settings only, and only while that spec is still the one shown.
-  const resetAll = () => {
-    const { spec, rotation: previous } = useSetup.getState().config
-    update((c) => ({ ...c, rotation: {} }))
-    undoToast('Rotation reset to its defaults', () => update((c) => (c.spec === spec ? { ...c, rotation: previous } : c)))
-  }
   // The few settings without a heading (Arms' stance) come first, then each heading's settings in
   // the spec's priority order (docs/ux.md "Rotation").
   const ungrouped = options.filter((o) => o.group === undefined)
   const groups = rotationGroups.map((group) => ({ group, options: options.filter((o) => o.group === group) })).filter((g) => g.options.length > 0)
+  // Undo restores this spec's settings only, and only while that spec is still the one shown. The
+  // button disables itself, so focus moves on to the first setting, the next control after it,
+  // rather than falling to the page (docs/ux.md#accessibility).
+  const resetAll = () => {
+    const { spec, rotation: previous } = useSetup.getState().config
+    // Headings' thresholds may be hidden behind Advanced; their switches never are.
+    const first = [...ungrouped, ...groups.flatMap((g) => g.options.filter((o) => !isAdvanced(o)))][0]
+    changeAndFocus(
+      () => update((c) => ({ ...c, rotation: {} })),
+      () => first && controlOf(first),
+    )
+    undoToast('Rotation reset to its defaults', () => update((c) => (c.spec === spec ? { ...c, rotation: previous } : c)))
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -175,7 +200,8 @@ function OptionRow({ option, ctx, nested = false }: { option: RotationOption; ct
         // Number inputs and choices go under their label on a phone.
         'flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between',
         pad,
-        row.inactive && 'opacity-60',
+        // Dimmed by colour, never opacity, so its text stays AA (docs/ux.md "Visual language").
+        row.inactive && 'text-muted-foreground',
       )}
     >
       <div className="flex min-w-0 flex-col gap-1">
@@ -192,7 +218,7 @@ function OptionRow({ option, ctx, nested = false }: { option: RotationOption; ct
           type="single"
           variant="outline"
           aria-labelledby={ids.label}
-          aria-describedby={ids.help}
+          aria-describedby={[ids.help, row.changed && ids.default].filter(Boolean).join(' ')}
           value={String(row.value)}
           onValueChange={(v) => v && ctx.set(option.id, v)}
           className="w-full shrink-0 sm:w-auto"
@@ -213,6 +239,7 @@ function OptionRow({ option, ctx, nested = false }: { option: RotationOption; ct
           step={option.step}
           unit={option.unit}
           aria-label={option.label}
+          aria-describedby={row.changed ? ids.default : undefined}
         />
       )}
     </div>
@@ -229,7 +256,8 @@ function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOptio
   const ids = rowIds(option.id)
   const notes = row.missingBuff !== undefined || row.changed
   return (
-    <div data-inactive={row.inactive || undefined} className={cn(row.inactive && 'opacity-60')}>
+    // Dimmed by colour, never opacity, so its text stays AA (docs/ux.md "Visual language").
+    <div data-inactive={row.inactive || undefined} className={cn(row.inactive && 'text-muted-foreground')}>
       <label
         className={cn(
           'flex min-h-14 items-center gap-4 px-4',
@@ -250,6 +278,7 @@ function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOptio
           id={ids.control}
           checked={row.on}
           disabled={row.missingBuff !== undefined}
+          className={cn(row.inactive && INACTIVE_SWITCH)}
           aria-labelledby={ids.label}
           aria-describedby={[ids.help, row.missingBuff && ids.missing, row.changed && ids.default].filter(Boolean).join(' ')}
           onCheckedChange={(on) => ctx.set(option.id, on)}
@@ -262,8 +291,16 @@ function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOptio
               Not used: turn on {row.missingBuff.name} in{' '}
               <button
                 type="button"
-                className="rounded-sm font-medium text-foreground underline underline-offset-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-                onClick={() => setSection('buffs')}
+                // A small link with a 44 px hit area around it, like a row's Reset.
+                className="relative rounded-sm font-medium text-foreground underline underline-offset-2 outline-none after:absolute after:-inset-x-2 after:-inset-y-3.5 focus-visible:ring-3 focus-visible:ring-ring/50"
+                onClick={() => {
+                  // Opens Buffs on that consumable's switch, so the next key press turns it on.
+                  const buff = row.missingBuff!.id
+                  changeAndFocus(
+                    () => setSection('buffs'),
+                    () => document.getElementById(buffSwitchId(buff)),
+                  )
+                }}
               >
                 Buffs
               </button>{' '}
@@ -277,39 +314,20 @@ function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOptio
   )
 }
 
-/**
- * Marks a changed setting: a dot, its default for this setup, and a reset for this row alone.
- * Resetting moves focus to the row's control, since the button goes away.
- */
+/** Marks a changed setting with its default and a reset for this row alone (docs/ux.md "Rotation"). */
 function DefaultHint({ option, row, ctx, className }: { option: RotationOption; row: RowState; ctx: RowContext; className?: string }) {
-  const ids = rowIds(option.id)
-  const def = formatSetting(option, row.default)
-  const reset = () => {
-    const control =
-      option.kind === 'choice'
-        ? document.querySelector<HTMLElement>(`[aria-labelledby="${ids.label}"] [data-state="on"]`)
-        : document.getElementById(ids.control)
-    ctx.reset(option.id)
-    control?.focus()
-  }
   return (
-    <p className={cn('flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground', className)}>
-      <span id={ids.default} className="inline-flex items-center gap-1.5">
-        <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-primary" />
-        <span>
-          <span className="sr-only">Changed. </span>Default: {def}
-        </span>
-      </span>
-      <button
-        type="button"
-        aria-label={`Reset ${option.label} to ${def}`}
-        onClick={reset}
-        // A small link with a 44 px hit area around it.
-        className="relative inline-flex items-center gap-1 rounded-sm font-medium text-foreground outline-none after:absolute after:-inset-x-2 after:-inset-y-3.5 hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
-      >
-        <RotateCcw aria-hidden className="size-3" />
-        Reset
-      </button>
-    </p>
+    <ChangedHint
+      id={rowIds(option.id).default}
+      label={option.label}
+      value={formatSetting(option, row.default)}
+      onReset={() =>
+        changeAndFocus(
+          () => ctx.reset(option.id),
+          () => controlOf(option),
+        )
+      }
+      className={className}
+    />
   )
 }

@@ -440,7 +440,7 @@ Every view handles these states:
   - A select's list (`src/components/select-content.tsx`) keeps clear of the toasts itself. With
     no toast up, it opens over its trigger, as shadcn's does. Opened while one is up, it drops
     from its trigger instead, and flips above it or gets shorter and scrolls, so no option is
-    ever under a toast.
+    ever under a toast. It doesn't move when a toast goes while it's open.
 - **Alt+T** (Option+T) is the keyboard's way to the toasts: it moves focus to the newest toast's
   Undo (sonner's hotkey focuses the toast list and spreads the toasts out, and
   `src/app/toaster.tsx` moves focus on to Undo). Escape in a toast dismisses an undo toast, and

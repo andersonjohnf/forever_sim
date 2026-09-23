@@ -478,6 +478,47 @@ for (const [name, device] of [
       await expect(toast).toBeVisible()
     })
 
+    test('a list opened while a toast is up stays put, and keeps its active option, when the toast goes', async ({ page }) => {
+      await page.clock.install()
+      await page.goto('./')
+      await gearMenuByPointer(page, 'Remove all gear')
+      const toast = toasts(page).filter({ hasText: 'All gear removed' })
+      await expect(toast).toBeVisible()
+      await settled(page)
+      await page.getByRole('tab', { name: 'Fight', exact: true }).click()
+      await page.getByRole('button', { name: 'Advanced', exact: true }).click()
+      const trigger = page.getByRole('combobox', { name: 'Zone' })
+      const list = page.getByRole('listbox')
+      await trigger.focus()
+      await trigger.evaluate((el) => el.scrollIntoView({ block: 'center' }))
+      await page.keyboard.press('Enter')
+      const { height } = (await list.boundingBox())!
+      await page.keyboard.press('Escape')
+
+      // Low enough that the list flips above its trigger to clear the toast, though it would fit
+      // below it with the toast gone, with 20 px to spare.
+      const off = await trigger.evaluate((el, height) => {
+        const rest = () => window.innerHeight - 10 - 4 - 20 - height - el.getBoundingClientRect().bottom
+        window.scrollBy(0, -rest())
+        return rest()
+      }, height)
+      expect(Math.abs(off), 'the page scrolls far enough').toBeLessThan(1)
+      await page.keyboard.press('Enter')
+      await expect(list).toHaveAttribute('data-side', 'top')
+      await page.keyboard.press('ArrowUp')
+      const active = await page.evaluate(() => document.activeElement!.textContent)
+      await expect.poll(() => list.evaluate((el) => el.getAnimations().length)).toBe(0)
+      const box = await list.boundingBox()
+
+      await page.mouse.move(0, 0)
+      await page.clock.fastForward(10_000)
+      await expect(toast).toHaveCount(0)
+      await frames(page)
+      await expect(list).toHaveAttribute('data-side', 'top')
+      expect(await list.boundingBox()).toEqual(box)
+      expect(await page.evaluate(() => document.activeElement!.textContent)).toBe(active)
+    })
+
     // shadcn's own look (item-aligned), as before QV1: the list drops from its trigger only while
     // a toast is up.
     test('with no toast up, it still opens over its trigger, the chosen option on it', async ({ page }) => {

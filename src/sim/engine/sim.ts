@@ -322,6 +322,7 @@ export class Sim {
   private readonly splDefense: Int32Array
   private readonly splNoActive: Uint8Array
   private readonly splAlwaysHit: Uint8Array
+  private readonly splTriggersProcs: Uint8Array
   private readonly splMin: Float64Array
   private readonly splMax: Float64Array
   private readonly splWeaponPct: Float64Array
@@ -846,6 +847,7 @@ export class Sim {
     this.splDefense = Int32Array.from(spells, (x) => x.defense)
     this.splNoActive = Uint8Array.from(spells, (x) => (x.noActiveDefense ? 1 : 0))
     this.splAlwaysHit = Uint8Array.from(spells, (x) => (x.alwaysHit ? 1 : 0))
+    this.splTriggersProcs = Uint8Array.from(spells, (x) => (x.triggersProcs ? 1 : 0))
     this.splMin = Float64Array.from(spells, (x) => x.min)
     this.splMax = Float64Array.from(spells, (x) => x.max)
     this.splWeaponPct = Float64Array.from(spells, (x) => x.weaponPercent)
@@ -2478,7 +2480,9 @@ export class Sim {
    * multipliers, then + the target's flat Holy damage taken × its share (JotC's bonus comes after
    * your own multipliers [?]), × the crit multiplier. Threat: (damage × mult + bonus) × Righteous
    * Fury for Holy × the global multiplier. A landed melee-class spell fires on-hit procs, and its
-   * crit the melee crit procs (Vengeance) [?]; another spell's crit fires the spell crit procs.
+   * crit the melee crit procs (Vengeance) [?]; another spell's crit fires the spell crit procs. A
+   * spell that doesn't trigger procs (a triggered spell without NOT_A_PROC: Seal of Righteousness's
+   * and Seal of Fury's procs, Consecration's ticks) fires none and uses no crit charge [?].
    * `countCast`: count a cast on its row (a proc's spell; an ability counts its own).
    */
   private castSpell(s: number, countCast: boolean): boolean {
@@ -2564,6 +2568,8 @@ export class Sim {
     }
     const threat = (damage * this.splThreatMult[s] + this.splThreatBonus[s]) * (holy ? this.holyThreatMult : 1) * this.threatMult
     this.addDamage(source, damage, threat)
+    // paladin.md#conventions-used-below: a triggered spell without NOT_A_PROC triggers nothing [?].
+    if (this.splTriggersProcs[s] === 0) return true
     if (defense === DEFENSE.melee) {
       this.fireProcs(TRIGGER.meleeLanded, HAND.main)
       if (crit) this.onCrit(HAND.main)

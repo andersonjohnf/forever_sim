@@ -114,6 +114,13 @@ export interface SpellDef {
   noActiveDefense: boolean
   /** Never misses (SpellMisc Attr3 0x40000, "Always Hit"). */
   alwaysHit: boolean
+  /**
+   * Its hits and crits trigger procs: on-hit and crit procs, and crit charges. A spell you cast
+   * always does; a spell that another spell or an aura triggers (a seal's proc, a judgement's
+   * damage, a periodic tick) only with SpellMisc Attr3 0x200, "NOT_A_PROC" [?]
+   * (paladin.md#conventions-used-below).
+   */
+  triggersProcs: boolean
   min: number
   max: number
   weaponPercent: number

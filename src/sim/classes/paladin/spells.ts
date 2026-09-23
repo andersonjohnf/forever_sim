@@ -21,14 +21,16 @@ export const spread = (base: number, variance: number): [number, number] => [bas
 
 /**
  * What every paladin damage spell starts from: Holy, melee class (SpellCategories DefenseType 2),
- * the full special-attack table, crit ×2, no talents. JotC's share (`takenScale`) is the spell's
- * coefficient, the default rule (paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc).
+ * the full special-attack table, crit ×2, triggering procs, no talents. JotC's share
+ * (`takenScale`) is the spell's coefficient, the default rule
+ * (paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc).
  */
 const HOLY_MELEE = {
   school: 'holy',
   defense: 'melee',
   noActiveDefense: false,
   alwaysHit: false,
+  triggersProcs: true,
   min: 0,
   max: 0,
   weaponPercent: 0,
@@ -44,7 +46,8 @@ const HOLY_MELEE = {
  * Seal of Command's proc (20424, paladin.md#seal-of-command-soc): `WEAPON_PERCENT_DAMAGE` 70% of a
  * main-hand swing (roll + flat weapon damage + AP/14 × base speed), Holy, and its 0.29 coefficient
  * inside the 70% [?] (OQ 2), so 0.203 × SP. Melee class without No Active Defense or Always Hit:
- * it rolls miss, dodge, parry, block and crit ×2 [?] (OQ 3).
+ * it rolls miss, dodge, parry, block and crit ×2 [?] (OQ 3). It carries NOT_A_PROC, so it
+ * triggers procs.
  */
 export const SEAL_OF_COMMAND_PROC: SpellDef = {
   ...HOLY_MELEE,
@@ -85,6 +88,7 @@ export const SEAL_OF_RIGHTEOUSNESS_VALUE = atLevel60(1786, 47, 58, 64) / 100
  * Seal of Righteousness's proc per landed white hit (25713, paladin.md#seal-of-righteousness-sor):
  * `1.2 × v × speed` with a two-hander, `0.85 × v × speed` with a one-hander [?] (OQ 4), plus
  * 0.1 × SP. Melee class with No Active Defense and Always Hit: it can't be avoided, and crits ×2 [?].
+ * It lacks NOT_A_PROC, so it triggers no procs: no Windfury, Crusader or Vengeance from it [?].
  */
 export function sealOfRighteousnessProc(speedSec: number, twoHand: boolean): SpellDef {
   const damage = (twoHand ? 1.2 : 0.85) * SEAL_OF_RIGHTEOUSNESS_VALUE * speedSec
@@ -95,6 +99,7 @@ export function sealOfRighteousnessProc(speedSec: number, twoHand: boolean): Spe
     icon: 'ability_thunderbolt',
     noActiveDefense: true,
     alwaysHit: true,
+    triggersProcs: false,
     min: damage,
     max: damage,
     spCoefficient: 0.1,
@@ -122,7 +127,8 @@ export const JUDGEMENT_OF_RIGHTEOUSNESS: SpellDef = {
 /**
  * Seal of Fury's proc per landed white hit (20418, paladin.md#seal-of-fury-sof-new-the-protection-seal):
  * a flat 35 Holy [?] (OQ 10: the aura also carries a seal value the sim ignores), + 0.1 × SP.
- * Melee class with No Active Defense and Always Hit, like Seal of Righteousness's.
+ * Melee class with No Active Defense and Always Hit, and no NOT_A_PROC, like Seal of
+ * Righteousness's: it triggers no procs [?].
  */
 export const SEAL_OF_FURY_PROC: SpellDef = {
   ...HOLY_MELEE,
@@ -131,6 +137,7 @@ export const SEAL_OF_FURY_PROC: SpellDef = {
   icon: 'spell_holy_retributionaura',
   noActiveDefense: true,
   alwaysHit: true,
+  triggersProcs: false,
   min: 35,
   max: 35,
   spCoefficient: 0.1,
@@ -211,7 +218,8 @@ export const HAMMER_OF_WRATH: SpellDef = {
 /**
  * One tick of Consecration r5 on a single target (1280349, paladin.md#other-abilities): 12 Holy to
  * every enemy plus 27 + 0.095 × SP to the first four, so 39 + 0.095 × SP. Magic class; each tick
- * rolls spell hit and crit [?] (OQ 18), crit ×1.5.
+ * rolls spell hit and crit [?] (OQ 18), crit ×1.5. A tick is triggered by the aura and lacks
+ * NOT_A_PROC, so it triggers no procs [?].
  */
 export const CONSECRATION_TICK: SpellDef = {
   ...HOLY_MELEE,
@@ -219,6 +227,7 @@ export const CONSECRATION_TICK: SpellDef = {
   name: 'Consecration',
   icon: 'spell_holy_innerfire',
   defense: 'magic',
+  triggersProcs: false,
   critMultiplier: CRIT_MULTIPLIER.spell,
   min: 12 + 27,
   max: 12 + 27,

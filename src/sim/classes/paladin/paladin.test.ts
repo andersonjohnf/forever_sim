@@ -9,7 +9,7 @@ import { runChunk } from '../../engine/chunk'
 import { FIELD, FIELD_COUNT, Sim } from '../../engine/sim'
 import { expectMean } from '../../engine/test-helpers'
 import { buildPlan } from '../../plan/build'
-import { type AbilityDef, COND, type Plan, type RotationCondition } from '../../plan/types'
+import { type AbilityDef, ACTION, COND, type Plan, type RotationCondition, TRIGGER } from '../../plan/types'
 import {
   CONSECRATION,
   CONSECRATION_RANK1,
@@ -22,6 +22,7 @@ import {
   JUDGE_FURY,
   JUDGE_RIGHTEOUSNESS,
   SEAL_OF_COMMAND,
+  SEAL_OF_FURY,
   SEAL_OF_RIGHTEOUSNESS,
   SEAL_OF_THE_CRUSADER,
   manaCostOf,
@@ -433,6 +434,55 @@ describe('seals and judgements (paladin.md#seals, #judgement)', () => {
   it('Seal of the Crusader: +325 AP [?], +40% attack speed and each swing ÷ 1.4 [?]', () => {
     expect(SEAL_OF_THE_CRUSADER.aura!.mods).toMatchObject({ ap: 325.2, haste: 40 })
     expect(1 + SEAL_OF_THE_CRUSADER.aura!.mods.damage! / 100).toBeCloseTo(1 / 1.4, 12)
+  })
+})
+
+describe('which seal procs trigger procs (paladin.md#seals, OQ 22)', () => {
+  /** Windfury Totem's proc as buffs.ts builds it: 20% on a landed main-hand attack, 100 ms ICD, its own chain. */
+  function addWindfury(plan: Plan): void {
+    plan.sources.push({ id: 'windfury', name: 'Windfury', icon: 'x' })
+    plan.procs.push({ id: 'windfury', name: 'Windfury', trigger: TRIGGER.meleeLanded, chance: [0.2, 0.2], hands: 1, icdMs: 100, action: ACTION.extraAttacks, amount: 1, a: 0, b: 0, school: 0, source: plan.sources.length - 1, chainBit: 1 })
+    plan.triggers[TRIGGER.meleeLanded].push(plan.procs.length - 1)
+  }
+
+  it('Seal of Righteousness’s and Seal of Fury’s procs don’t trigger Windfury: its procs per landed white swing are the same with and without them', () => {
+    const fights = 30
+    const rate = (seal: AbilityDef | null) => {
+      const plan = examplePlan({ core: false, durationMs: 300000 })
+      if (seal) withSeal(plan, seal)
+      addWindfury(plan)
+      const sim = new Sim(plan)
+      for (let i = 0; i < fights; i++) sim.runFight(i)
+      const main = row(plan, 'mainHand') * FIELD_COUNT
+      const landed = sim.counters[main + FIELD.hits] + sim.counters[main + FIELD.glances] + sim.counters[main + FIELD.crits]
+      if (seal) expect(counter(sim, plan, `${seal.id}Proc`, FIELD.casts)).toBeGreaterThan(landed)
+      return { landed, windfury: counter(sim, plan, 'windfury', FIELD.casts) }
+    }
+    const none = rate(null)
+    for (const seal of [SEAL_OF_RIGHTEOUSNESS, SEAL_OF_FURY]) {
+      const { landed, windfury } = rate(seal)
+      // The same 20% a swing (4 standard errors); a seal proc that triggered Windfury gave 36%.
+      const p = none.windfury / none.landed
+      expect(p).toBeCloseTo(0.2, 1)
+      expect(Math.abs(windfury / landed - p), seal.id).toBeLessThan(4 * Math.sqrt((p * (1 - p)) / landed) + 4 * Math.sqrt((p * (1 - p)) / none.landed))
+    }
+  })
+
+  it('their crits give no Vengeance [?]; a Seal of Command proc’s crit does', () => {
+    const vengeanceUpMs = (seal: AbilityDef) => {
+      const plan = examplePlan({ core: false, talents: { Vengeance: 3 }, durationMs: 30000 })
+      withSeal(plan, seal)
+      // White swings never crit; the seal's proc always does.
+      plan.spells!.find((x) => x.source === row(plan, `${seal.id}Proc`))!.bonusCrit = 1000
+      if (seal === SEAL_OF_COMMAND) sealProc(plan).chance = [1, 1]
+      const sim = new Sim(plan)
+      sim.runFight(0)
+      expect(counter(sim, plan, `${seal.id}Proc`, FIELD.crits), seal.id).toBeGreaterThan(0)
+      return sim.auraUpMs[plan.auras.findIndex((a) => a.id === 'vengeance')]
+    }
+    expect(vengeanceUpMs(SEAL_OF_RIGHTEOUSNESS)).toBe(0)
+    expect(vengeanceUpMs(SEAL_OF_FURY)).toBe(0)
+    expect(vengeanceUpMs(SEAL_OF_COMMAND)).toBe(30000)
   })
 })
 

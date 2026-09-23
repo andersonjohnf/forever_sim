@@ -172,6 +172,15 @@ and the docs it links; this list only summarizes them, with the same tags.
   2 melee (melee special table, ×2), 3 ranged. **No Active Defense** (SpellMisc Attr0
   `0x200000`) removes dodge, parry and block. **Always Hit** (Attr3 `0x40000`) removes the
   miss roll. Table percentages are in [combat-tables.md](../mechanics/combat-tables.md).
+- **Which spells trigger procs.** A spell you cast (Holy Strike, Exorcism, Hammer of Wrath)
+  triggers on-hit and crit procs as any attack does. A spell that another spell or an aura
+  triggers (a seal's proc, a judgement's damage spell, Consecration's ticks) triggers them only if
+  it carries **NOT_A_PROC** (SpellMisc Attr3 `0x200`). Seal of Command's proc 20424 and the
+  judgements' damage spells 20966, 20286 and 20414 carry it. Seal of Righteousness's proc 25713
+  and Seal of Fury's 20418 (Attr3 `0x40000`, Always Hit only) and Consecration's ticks 1280345–1280349
+  don't [F] [client] (SpellMisc, 1.60.1.69913). "Procs" means every kind: Windfury, Crusader, Hand
+  of Justice, Vengeance, Vindication and crit charges. The attribute's reading is data; that
+  Forever's server applies it this way is untested [?] ([open question 22](#open-questions)).
 - **Holy damage ignores armor.** Mobs and raid bosses have no Holy resistance. Whether
   level-based partial resists apply to melee-class Holy spells is an
   [open question](#open-questions).
@@ -218,7 +227,7 @@ have the talent ([Twist of Light](#retribution-tree)).
 | Damage | `0.70 × (MH weapon damage roll + AP × speed / 14 + 0.29 × SP)` (effective **0.203 × SP**) | Coefficient 0.29: [F] [client] (SpellEffect, 1.60.1.69913; [20424][f20424]), as in Classic ([C 20424][c20424]). Applying it *inside* the 70% is [?], see [open questions](#open-questions) |
 | Hit table | Melee class **without** No Active Defense or Always Hit: rolls miss, dodge, parry, block and crit (×2) on the special-attack table. No glancing | [F] SpellMisc/SpellCategories on 20424 [?]: the attribute reading of dodge and parry needs a beta log |
 | Modifiers | Improved Seals ×1.15 (spell mask includes 20424). Vengeance, Crusade and JotC apply. **Two-Handed Weapon Specialization does not** (Physical only) | [F] [client] (SpellEffect, 1.60.1.69913; [20224][f20224], [20111][f20111]) |
-| Triggers | The proc counts as a melee special hit: it can crit, trigger Vengeance and Vindication, and proc weapon effects [?] | Attr3 `NOT_A_PROC` on 20424 [F] |
+| Triggers | The proc counts as a melee special hit: it can crit, and it triggers on-hit and crit procs (Windfury, Crusader, Hand of Justice, Vengeance, Vindication) [?] | 20424 carries NOT_A_PROC (Attr3 `0x200`) [F] [client] (SpellMisc, 1.60.1.69913); the server's use of it [?] ([conventions](#conventions-used-below)) |
 
 **Judgement of Command** (JoC, r5): dummy 20968 → damage spell 20966. Base **339–373 Holy,
 halved unless the target is stunned or incapacitated** (tooltip "169.5 to 186.5 … 339 to 373
@@ -243,6 +252,7 @@ always uses the halved value.
 | SP coefficient | 0.1 per proc on the proc spell (Classic r8 also 0.1). Forever gives ranks 1–3 the full 0.1 too | [F] [client] (SpellEffect, 1.60.1.69913; [25713][f25713]), [C 25713][c25713] |
 | Hit table | Melee class, **No Active Defense + Always Hit**: rides on the white hit that triggered it, can't miss, dodge, parry or block. **Can crit** (melee crit ×2; no "can't crit" attribute) [?] | [F] [client] (SpellMisc Attr0 0x240000, Attr3 0x40000; SpellCategories, 1.60.1.69913; 25713) |
 | Modifiers | Improved Seals ×1.15, Vengeance, Crusade, JotC | [F] |
+| Triggers | **Nothing**: the proc triggers no Windfury, Crusader, Hand of Justice, Vengeance or Vindication, even when it crits. The white hit that carries it still does [?] | 25713's Attr3 is `0x40000` (Always Hit) only, without NOT_A_PROC `0x200` [F] [client] (SpellMisc, 1.60.1.69913); the server's use of it [?] ([conventions](#conventions-used-below), [open question 22](#open-questions)) |
 
 **Judgement of Righteousness** (r8, 20286): **162–178 + 8.2 = 170.2–186.2 at level 60**,
 plus **0.5 × SP**, ×1.15 Improved Seals. Melee class, No Active Defense, no Always Hit: melee
@@ -292,6 +302,7 @@ It corroborates the client data above but isn't a guild measurement.
 | Per landed white hit | **+35 Holy** (proc 20418), **0.1 × SP** | [F] [client] (SpellEffect, 1.60.1.69913; [20418][f20418]) |
 | Absorb | With a shield equipped, each hit grants an absorb of **50% of the Holy damage dealt** | [F] (effect 1 = 50). Stacking or refresh rules [?] |
 | Hit table | Proc 20418: melee class, No Active Defense + Always Hit, like SoR | [F] [client] (SpellMisc, SpellCategories, 1.60.1.69913) |
+| Triggers | **Nothing**, like SoR's proc: no Windfury, Crusader, Hand of Justice, Vengeance or Vindication from it [?] | 20418's Attr3 is `0x40000` only, without NOT_A_PROC [F] [client] (SpellMisc, 1.60.1.69913); the server's use of it [?] ([open question 22](#open-questions)) |
 | Judgement of Fury (r7) | 20414: **146–160 + 7.38 = 153.4–167.4 at 60**, **0.45 × SP**, Holy, melee class, No Active Defense, no Always Hit (can miss). **Taunts for 4 s** | [F] [client] (SpellEffect, SpellMisc, 1.60.1.69913; [20414][f20414]); taunt: tooltip |
 | Improved Seals | applies to the proc and the judgement | [F] [client] (SpellEffect spell mask includes 20418 and 20414, 1.60.1.69913) |
 
@@ -323,7 +334,7 @@ These judgements are debuffs: taking one replaces your JotC.
 | GCD | **none** (`StartRecoveryTime 0`) | [F]/[C] [f-SpellCooldowns] |
 | Range | 10 yd | [F] |
 | Requirement | an active seal. **The seal stays up** (Forever) | [F] |
-| Outcome | the active seal's judgement spell: see each seal. Every Forever judgement is melee class + No Active Defense. JoR and JoF can miss (melee special miss chance); **JoC can't** (its damage spell 20966 is Always Hit). Damage judgements crit ×2. Debuff judgements always hit | [F] [client] (SpellMisc, SpellCategories, 1.60.1.69913); JoC in game [?] ([open question 23](#open-questions)) |
+| Outcome | the active seal's judgement spell: see each seal. Every Forever judgement is melee class + No Active Defense. JoR and JoF can miss (melee special miss chance); **JoC can't** (its damage spell 20966 is Always Hit). Damage judgements crit ×2. Debuff judgements always hit. The damage spells (20966, 20286, 20414) carry NOT_A_PROC, so a damage judgement triggers on-hit and crit procs [?] ([conventions](#conventions-used-below)) | [F] [client] (SpellMisc, SpellCategories, 1.60.1.69913); JoC in game [?] ([open question 23](#open-questions)) |
 | Sanctified Judgement | 3/3: **100% chance to return 60% of the judged seal's mana cost** (SoC → 126). Base vs modified cost [?]: use the base cost | [F] [F 1311074][f1311074] |
 
 ---
@@ -333,7 +344,7 @@ These judgements are debuffs: taking one replaces your JotC.
 | Ability (max rank) | Numbers at 60 | Cost / CD / GCD | Class, hit table | Tag, source |
 | --- | --- | --- | --- | --- |
 | **Holy Strike** r8 (10333), new, trained at 6 | Effects: `NORMALIZED_WEAPON_DMG` +93 (81–105) then `WEAPON_PERCENT_DAMAGE` 40% ⇒ **0.40 × (normalized MH damage + 81..105)**, plus **0.429 × SP**. **All Holy**, so no armor | 20 mana; **12 s** (category 2404, shared with HotR); Improved Holy Strike −2 s → 10 s; GCD 1.5 s | Melee special: miss, dodge, parry, block, crit ×2. Doesn't proc damage seals [F]; doesn't reset the swing timer (instant special) [C] | [F] [client] (SpellEffect, SpellCategories, SpellMisc school 2, 1.60.1.69913; [10333][f10333]). The ×0.40 on the flat part and how the 0.429 applies are [?] (the tooltip prints the raw 81–105; the BlizzCon build printed "36 to 46", i.e. 40%) |
-| **Consecration** r5 (20924), baseline from 20 | Per 1 s tick for 8 s (spell 1280349): **12 Holy to every enemy** (no coefficient) **+ 27 Holy + 0.095 × SP to the first 4 enemies**. Single target: **312 + 0.76 × SP** per cast | 565 mana; 8 s; GCD 1.5 s | Magic class; each tick is a separate direct-damage spell (spell hit roll per tick [?]; crit [?]) | [F] [F 20924][f20924]; tick split and 0.095: [client] (SpellEffect, 1.60.1.69913; [1280349][f1280349]). Classic: 48/tick, 0.042 ([C 20924][c20924]) |
+| **Consecration** r5 (20924), baseline from 20 | Per 1 s tick for 8 s (spell 1280349): **12 Holy to every enemy** (no coefficient) **+ 27 Holy + 0.095 × SP to the first 4 enemies**. Single target: **312 + 0.76 × SP** per cast | 565 mana; 8 s; GCD 1.5 s | Magic class; each tick is a separate direct-damage spell (spell hit roll per tick [?]; crit [?]). The ticks lack NOT_A_PROC, so they trigger no procs [?] ([conventions](#conventions-used-below)) | [F] [F 20924][f20924]; tick split and 0.095: [client] (SpellEffect, 1.60.1.69913; [1280349][f1280349]). Classic: 48/tick, 0.042 ([C 20924][c20924]) |
 | Consecration ranks 1–4 | per tick all + first-4: r1 2 + 4, r2 3 + 7, r3 6 + 11, r4 8 + 20; **every rank has the full 0.095** | 135 / 235 / 320 / 435 mana | as above | [F] tick spells 1280345–1280348, [F 26573][f26573]. Downranking is mana-efficient: r1 is `48 + 0.76 × SP` for 135 mana |
 | **Exorcism** r6 (10314) | **475–529 + 0.429 × SP** Holy; **Undead or Demon only** | 345 mana; 15 s; GCD 1.5 s | Magic: spell hit, crit ×1.5 | [F] [F 10314][f10314] |
 | **Hammer of Wrath** r3 (24239) | **474–522 + 0.429 × SP** Holy; target **≤ 20% health** | 425 mana; 6 s; 1.0 s cast (Instrument of Law −0.5/−1.0 s → instant); **GCD 1.0 s** | **Ranged** class (DefenseType 3): ranged hit/crit table, see combat-tables | [F] [F 24239][f24239] |
@@ -380,7 +391,7 @@ DPS, TPS or mana effect are listed but not modelled.
 | Sacred Arbiter (1), new | "Increases the damage of your Holy Strike ability by 10% and causes it to refresh all Judgement effects on the target." ([F 1311087][f1311087]) | — | Holy Strike ×1.10; refreshes your judgement debuffs |
 | Crusade (2), new | "Increases all damage dealt by 2%. Increased by an additional 2% against Demon and Undead targets." ([F 1311083][f1311083]) | — | ×1.02 all damage; a further ×1.02 vs Undead/Demon (separate aura, multiplicative) |
 | Two-Handed Weapon Specialization (3) | "Increases the damage you deal with two-handed melee weapons by 9%." ([F 20111][f20111]) | 6% | ×1.09 **Physical only** (school mask 1, [client] (SpellEffect, 1.60.1.69913)), with a 2H equipped. Holy Strike, SoC and judgements don't benefit |
-| Vengeance (3) | "Increases your Physical and Holy damage dealt by 3% for 30 sec after landing a critical strike. Stacks up to 5 times." ([F 20049][f20049], buff [F 20050][f20050]) | 15% flat for 8 s, 5 ranks | Buff: **+1/2/3% per stack, max 5 stacks (15% at 3/3)**, 30 s ([client] (SpellAuraOptions, SpellDuration, CurvePoint, 1.60.1.69913)). Each crit (melee, special, seal proc, judgement, spell) adds a stack and refreshes the duration |
+| Vengeance (3) | "Increases your Physical and Holy damage dealt by 3% for 30 sec after landing a critical strike. Stacks up to 5 times." ([F 20049][f20049], buff [F 20050][f20050]) | 15% flat for 8 s, 5 ranks | Buff: **+1/2/3% per stack, max 5 stacks (15% at 3/3)**, 30 s ([client] (SpellAuraOptions, SpellDuration, CurvePoint, 1.60.1.69913)). Each crit that triggers procs adds a stack and refreshes the duration: white, special, SoC proc, judgement, spell; **not** SoR's or SoF's procs or Consecration's ticks [?] ([conventions](#conventions-used-below)) |
 | Repentance (1) | incapacitate | same | not modelled |
 | Champion of the Light (3), new | "Increases your spell damage and healing by up to 100% of your Intellect." ([F 1311084][f1311084]) | — | **+Int to spell damage** (all magic schools) and healing, at 33/66/100% |
 | Instrument of Law (2), new | "Reduces the cast time of your Hammer of Wrath by 1.0 sec, and reduces all threat you generate by 20% while Righteous Fury is not active." ([F 1311085][f1311085]) | — | HoW instant (still 1.0 s GCD); threat ×0.8 when RF is off (curves −500/−1000 ms and 10/20, [client] (TraitDefinitionEffectPoints, 1.60.1.69913)) |
@@ -633,9 +644,11 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
 
 - **Spells.** Every damaging paladin spell is a row of data (`spells.ts`): school, damage class
   (`SpellCategories.DefenseType`), No Active Defense, Always Hit, base range (or weapon share),
-  SP coefficient, its own damage and threat multipliers, and its share of JotC's bonus. One
-  engine function rolls the right table, deals the damage and threat, and fires on-hit and crit
-  procs. The numbers are the client's, checked by `data.test.ts`.
+  SP coefficient, its own damage and threat multipliers, its share of JotC's bonus, and whether it
+  triggers procs. One engine function rolls the right table, deals the damage and threat, and fires
+  on-hit and crit procs unless the spell triggers none (a triggered spell without NOT_A_PROC:
+  [conventions](#conventions-used-below)). The numbers and attributes are the client's, checked by
+  `data.test.ts`.
 - **Seals** are casts that put an aura up; seals form an exclusive group, so a new one ends the
   old. Each damage seal's proc is a proc on landed main-hand auto attacks (white swings and
   extra attacks) that rolls only while its seal is up, and fires **after** the swing's own procs,
@@ -655,7 +668,8 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
   Vengeance, Vindication, Champion of the Light, …) or changes to the ability and spell rows
   (Benediction, Holy Conduit, Improved Judgement, Improved Seals, Sanctified Judgement, Sacred
   Arbiter, Iron Creed, Improved Holy Strike, Purifying Power, Instrument of Law's cast time).
-  Vengeance's stack comes from any crit: white, special, seal proc, judgement or spell.
+  Vengeance's stack comes from any crit that triggers procs: white, special, Seal of Command's
+  proc, judgement or spell.
 - **The core both specs share** (`setup.ts` `paladinCore`): the spec's seal (Seal of Command or
   Seal of Fury) 1.5 s before the pull and recast when it has 1.5 s left, and its judgement
   whenever Judgement is ready. The specs' own rows (Holy Strike, Consecration, Exorcism, Hammer of
@@ -794,11 +808,17 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     mask (20111, 20196); Improved Seals spell masks (20224); seal-aura proc masks 0x4 vs 0x14.
     **One correction:** JoC's damage spell 20966 also carries Always Hit, so JoC can't miss
     ([Seal of Command](#seal-of-command-soc); in game: question 23).
-22. **Minor mechanics** (under 0.5% each, but the defaults are guesses): SotC's per-swing
-    damage reduction (÷1.4 assumed); whether Holy Shield's block damage can miss or crit;
-    Eye for an Eye's damage school and threat; whether SoC procs, the other seals' procs and
-    the damage judgements trigger weapon and equip procs such as Crusader, as the sim assumes
-    for every melee-class spell (with a slow two-hander that's about 40% more Crusader procs).
+22. **Which spells trigger procs, and minor mechanics.** The sim follows the client's
+    NOT_A_PROC attribute ([conventions](#conventions-used-below)): SoC's proc and the damage
+    judgements trigger on-hit and crit procs (Windfury, Crusader, Hand of Justice, Vengeance,
+    Vindication); SoR's and SoF's procs and Consecration's ticks trigger none [?]. This one isn't
+    minor: if SoR's and SoF's procs did trigger them, default Protection would deal about 12%
+    more DPS and 11% more TPS, almost all from Windfury. *Test:* in a Windfury Totem group, count
+    Windfury attacks per landed white swing with Seal of Fury up and with no seal (500+ swings
+    each; the sim expects the same 20%), and Vengeance stacks from SoR crits alone. The minor ones
+    (under 0.5% each, but the defaults are guesses): SotC's per-swing damage reduction (÷1.4
+    assumed); whether Holy Shield's block damage can miss or crit; Eye for an Eye's damage school
+    and threat.
 23. **Judgement of Command's miss chance.** The damage spell 20966 carries Always Hit, but the
     dummy 20968 that casts it doesn't [F] [client] (SpellMisc, 1.60.1.69913). The sim assumes
     JoC never misses. *Test:* 200+ JoC judgements on mobs three levels above you, counting

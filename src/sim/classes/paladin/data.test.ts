@@ -25,6 +25,7 @@ import {
   SEAL_OF_THE_CRUSADER_AP,
   sealProcs,
 } from './abilities'
+import * as SPELLS from './spells'
 import {
   atLevel60,
   CONSECRATION_RANK1_TICK,
@@ -196,6 +197,37 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     expect(effect(20050, 0).effectMiscValue![0]).toBe(1 | HOLY_MASK)
     expect(spell(20050).auraOptions!.cumulativeAura).toBe(5)
     expect(spell(20050).duration!.duration).toBe(30000)
+  })
+
+  it('which spells trigger procs: every one you cast, and a triggered one only with NOT_A_PROC (Attr3 0x200)', () => {
+    // Each paladin spell's client row, and whether another spell or an aura triggers it (a seal's
+    // proc, a judgement's damage, Consecration's ticks) rather than you casting it.
+    const CLIENT: Record<string, [id: number, triggered: boolean]> = {
+      sealOfCommandProc: [20424, true],
+      judgementOfCommand: [20966, true],
+      sealOfRighteousnessProc: [25713, true],
+      judgementOfRighteousness: [20286, true],
+      sealOfFuryProc: [20418, true],
+      judgementOfFury: [20414, true],
+      holyStrike: [10333, false],
+      exorcism: [10314, false],
+      hammerOfWrath: [24239, false],
+      consecration: [1280349, true],
+      consecrationRank1: [1280345, true],
+    }
+    const isSpell = (x: unknown): x is SpellDef => typeof x === 'object' && x !== null && 'triggersProcs' in x
+    const defs = [...Object.values(SPELLS).filter(isSpell), sealOfRighteousnessProc(3.5, true)]
+    // Every spell spells.ts defines is in the table, so none escapes the check.
+    expect(defs.map((d) => d.id).sort()).toEqual(Object.keys(CLIENT).sort())
+    for (const def of defs) {
+      const [id, triggered] = CLIENT[def.id]
+      const notAProc = (spell(id).misc!.attributes![3] & 0x200) !== 0
+      expect(def.triggersProcs, def.id).toBe(!triggered || notAProc)
+    }
+    // The review's reading (PC1): the seals' procs differ. Seal of Command's has NOT_A_PROC, and so
+    // does each judgement's damage spell; Seal of Righteousness's and Seal of Fury's have Always Hit only.
+    for (const id of [20424, 20966, 20286, 20414]) expect(spell(id).misc!.attributes![3] & 0x200, String(id)).toBe(0x200)
+    for (const id of [25713, 20418]) expect(spell(id).misc!.attributes![3], String(id)).toBe(0x40000)
   })
 
   it('the default JotC rule scales the bonus by each spell’s coefficient; the flat rule gives melee-class spells all of it', () => {

@@ -321,7 +321,7 @@ const REGISTRY = {
     docRef: `${PAL}#seal-of-fury-sof-new-the-protection-seal`,
   },
   meleeSpellProcs: {
-    text: 'Seal procs and judgements are melee attacks: they crit for double at your melee crit, and trigger Vengeance, Vindication and on-hit effects such as Crusader; untested.',
+    text: 'Seal procs and judgements are melee attacks that crit for double at your melee crit. Seal of Command’s proc and the judgements trigger Windfury, Hand of Justice, Crusader, Vengeance and Vindication; Seal of Righteousness’s and Seal of Fury’s procs trigger none of them, as the client data marks them. Untested in game.',
     docRef: `${PAL}#open-questions`,
   },
   jotcBonus: {

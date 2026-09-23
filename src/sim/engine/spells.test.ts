@@ -37,6 +37,7 @@ function addSpell(plan: Plan, patch: Partial<SpellPlan> = {}): number {
     defense: DEFENSE.magic,
     noActiveDefense: false,
     alwaysHit: false,
+    triggersProcs: true,
     min: 0,
     max: 0,
     weaponPercent: 0,

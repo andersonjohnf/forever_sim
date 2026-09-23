@@ -1,5 +1,6 @@
 import { ChevronRight, RotateCcw } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { announce } from '@/app/announce'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
 import { NumberField } from '@/components/number-field'
@@ -69,9 +70,9 @@ export function RotationSection() {
   // the spec's priority order (docs/ux.md "Rotation").
   const ungrouped = options.filter((o) => o.group === undefined)
   const groups = rotationGroups.map((group) => ({ group, options: options.filter((o) => o.group === group) })).filter((g) => g.options.length > 0)
-  // No notice: the settings change in front of you. The button disables itself, so focus moves on
-  // to the first setting, the next control after it, rather than falling to the page
-  // (docs/ux.md#accessibility).
+  // No visible notice: the settings change in front of you, and screen readers hear it
+  // (src/app/announce.ts). The button disables itself, so focus moves on to the first setting, the
+  // next control after it, rather than falling to the page (docs/ux.md#accessibility).
   const resetAll = () => {
     // Headings' thresholds may be hidden behind Advanced; their switches never are.
     const first = [...ungrouped, ...groups.flatMap((g) => g.options.filter((o) => !isAdvanced(o)))][0]
@@ -79,6 +80,7 @@ export function RotationSection() {
       () => update((c) => ({ ...c, rotation: {} })),
       () => first && controlOf(first),
     )
+    announce('Rotation settings reset to their defaults.')
   }
 
   return (

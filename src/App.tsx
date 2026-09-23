@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { Announcer } from '@/app/announcer'
 import { Header } from '@/app/header'
 import { useScrollFade } from '@/app/scroll-fade'
 import { useSetup, type Section } from '@/app/setup-store'
@@ -155,6 +156,8 @@ export default function App() {
       <div ref={simBar} className="contents">
         <MobileSimBar />
       </div>
+      {/* Screen readers hear bulk changes that have no visible notice (src/app/announce.ts). */}
+      <Announcer />
     </div>
   )
 }

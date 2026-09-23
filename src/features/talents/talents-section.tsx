@@ -1,6 +1,7 @@
 import { CircleAlert, ClipboardCopy, ClipboardPaste, Minus, Plus, RotateCcw } from 'lucide-react'
 import { useId, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { announce } from '@/app/announce'
 import { useSheetFocus } from '@/app/sheet-focus'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta, visibleSpecs } from '@/app/specs'
@@ -58,14 +59,20 @@ export function TalentsSection() {
   const presetsRef = useRef<HTMLButtonElement>(null)
   const { returnRef: pasteRef, contentProps: importFocusProps } = useSheetFocus<HTMLButtonElement>()
 
-  // No notice for a preset, a pasted build or Clear: the trees change in front of you.
+  // No visible notice for a preset, a pasted build or Clear: the trees change in front of you.
+  // Screen readers hear them, with the points in each tree (src/app/announce.ts).
   const setRanks = (next: TalentRanksById) => update((c) => ({ ...c, talents: encodeTalentCode(data, next) }))
   const setCode = (talents: string) => update((c) => ({ ...c, talents }))
+  const split = (talents: string) =>
+    pointsPerTree(data, safeDecode(data, talents))
+      .map((points, i) => `${points} ${data.trees[i].name}`)
+      .join(', ')
   const clear = () => {
     // Clear disables itself, so focus moves to the preset menu first, which now reads "Custom
     // build" (docs/ux.md#accessibility: focus never falls to the page).
     presetsRef.current?.focus()
     setRanks({})
+    announce('Cleared all talent points.')
   }
 
   return (
@@ -84,7 +91,9 @@ export function TalentsSection() {
           value={presets.find((p) => p.code === code)?.code ?? ''}
           onValueChange={(presetCode) => {
             const preset = presets.find((p) => p.code === presetCode)
-            if (preset) setCode(preset.code)
+            if (!preset) return
+            setCode(preset.code)
+            announce(`Talents set to ${preset.label}: ${split(preset.code)}.`)
           }}
         >
           {/* The trigger's size attribute sets its height, so the 44 px target overrides that (docs/ux.md "Accessibility"). */}
@@ -166,7 +175,10 @@ export function TalentsSection() {
         onOpenChange={setImportOpen}
         data={data}
         example={presets[0]?.code ?? code}
-        onImport={setCode}
+        onImport={(pasted) => {
+          setCode(pasted)
+          announce(`Pasted a talent build: ${split(pasted)}.`)
+        }}
         contentProps={importFocusProps}
       />
     </div>

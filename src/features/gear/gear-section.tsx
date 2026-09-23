@@ -1,5 +1,6 @@
 import { ChevronRight, MoreHorizontal } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { announce } from '@/app/announce'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
 import { Button } from '@/components/ui/button'
@@ -56,9 +57,16 @@ export function GearSection() {
   const mainHand = config.gear.mainHand ? itemsById.get(config.gear.mainHand.itemId) : undefined
   const twoHanded = mainHand ? isTwoHand(mainHand) : false
 
-  // No notice for these: the slots change in front of you.
-  const loadBis = () => update((c) => ({ ...c, gear: defaultConfig(c.spec, c.race).gear }))
-  const clearAll = () => update((c) => ({ ...c, gear: {} }))
+  // No visible notice for these: the slots change in front of you. Screen readers hear them
+  // (src/app/announce.ts).
+  const loadBis = () => {
+    update((c) => ({ ...c, gear: defaultConfig(c.spec, c.race).gear }))
+    announce(`Equipped ${meta.name} ${meta.className} pre-raid best in slot.`)
+  }
+  const clearAll = () => {
+    update((c) => ({ ...c, gear: {} }))
+    announce('Removed all gear.')
+  }
 
   return (
     <div className="flex flex-col gap-6">

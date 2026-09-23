@@ -398,7 +398,10 @@ Every view handles these states:
 
 ## Persistence and sharing
 
-- The setup is saved to `localStorage` automatically and restored on the next visit.
+- The setup is saved to `localStorage` automatically and restored on the next visit. If the
+  browser's storage for the site is full, a change still applies for as long as the page is open,
+  and a notice says once that your changes aren't being kept (until a save works again), rather
+  than every change failing (`autoSaveStorage` in `src/app/setup-store.ts`).
 - **Share** copies a URL with the compressed setup in the hash (`#s=…`). The clipboard write
   starts within the tap itself, with the link as a promise (`ClipboardItem`), because Safari
   refuses one that follows an await. A notice says the link was copied, or that the browser
@@ -406,8 +409,11 @@ Every view handles these states:
 - Opening a link loads it, whether it opens a new tab or is pasted into a tab that already has
   the app open (only the hash changes). It replaces your setup for the link's spec without
   asking ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)),
-  and a notice says so, and which spec it switched you to. A link for another spec keeps your
-  setup for the spec you were on, as switching spec does.
+  so its notice says whose setup it replaced, and which spec it switched you to: "Loaded a shared
+  setup. It replaced your Arms Warrior setup, and you're on Arms now." A link for another spec
+  keeps your setup for the spec you were on, as switching spec does. A code's import and a Load
+  say the same (`replacedDescription` in `src/app/load-notice.ts`), and **Reset setup** says "Your
+  Fury Warrior setup is back to its defaults".
 - **Notices.** Toasts are plain notices, with no buttons. Each goes after 10 s, paused while
   you hover over it, touch it or reach it with Alt+T, and while the page is hidden. A swipe
   sends one away sooner. They sit at the bottom, just above the phone's sticky bar, so they
@@ -447,6 +453,17 @@ Every view handles these states:
   current setup alone. The caps are 8 K characters in the hash and 16 KB of setup once
   inflated. The largest real setup is about 4.4 KB, or 1.7 K characters. The link leaves the
   URL before it's decoded, so a reload never tries a bad one again.
+- A link whose setup the app can't load is refused before it's normalized (normalizing would
+  make anything a default setup, and replace yours with it), with an error toast whose title says
+  why and whose description that your setup is unchanged (`setupProblem` in
+  `src/app/setup-code.ts`):
+  - JSON that isn't a setup (`null`, a number, a list, an empty object, a version that isn't a
+    number, or nesting deeper than any setup): "That share link is broken", "It doesn't hold a
+    setup, so your own setup is unchanged."
+  - A version after 1: "That link is from a newer version of Forever Sim", "Reload this page to
+    update it, then open the link again."
+  - A spec that isn't one of the sim's: "That link is for a spec this sim doesn't know".
+  A setup with no version is read as version 1, as a saved one is.
 
 ### Setups
 

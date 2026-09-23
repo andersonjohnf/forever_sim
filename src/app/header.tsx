@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils'
 import { SPEC_META, type ClassId } from '@/sim'
 import { AboutSheet } from './about-sheet'
 import { copyText } from './clipboard'
+import { resetTitle } from './load-notice'
 import { useSetup } from './setup-store'
 import { SetupsSheet } from './setups-sheet'
 import { shareUrl } from './share'
@@ -184,9 +185,11 @@ function MoreMenu({ onOpen, triggerRef }: { onOpen: (sheet: MenuSheet) => void; 
         <DropdownMenuItem
           className="min-h-11"
           onSelect={() => {
+            const spec = useSetup.getState().config.spec
             reset()
-            // Said, since it changes every tab, most of them out of sight.
-            toast(`${meta.name} ${meta.className} reset to defaults`, { id: 'setup-reset' })
+            // Said, since it changes every tab, most of them out of sight, and with no prompt first
+            // (decision D21): whose setup it replaced.
+            toast(resetTitle(spec), { id: 'setup-reset' })
           }}
         >
           <RotateCcw /> Reset {meta.name} to defaults

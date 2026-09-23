@@ -35,12 +35,12 @@ async function armsTrollLinkFromFuryGnome(page: Page) {
 }
 
 /**
- * The link's Arms Troll replaces your own Arms, and a notice says it switched you to Arms. Your
- * Fury, the spec you were on, keeps its Gnome.
+ * The link's Arms Troll replaces your own Arms, and a notice says it replaced your Arms setup and
+ * switched you to Arms. Your Fury, the spec you were on, keeps its Gnome.
  */
 async function loadedArmsKeepingOwnFury(page: Page) {
   const notice = page.locator('[data-sonner-toast]').filter({ hasText: 'Loaded a shared setup' })
-  await expect(notice).toContainText('You’re on Arms Warrior now.')
+  await expect(notice).toContainText('It replaced your Arms Warrior setup, and you’re on Arms now.')
   await expect(page.getByRole('button', { name: /^Spec: Arms Warrior/ })).toBeVisible()
   await expectRace(page, /Troll/)
   await switchSpec(page, 'Fury')

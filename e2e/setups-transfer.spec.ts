@@ -109,7 +109,7 @@ for (const [label, device] of [
       // No prompt: the sheet closes, and focus goes back to the menu's button.
       await expect(sheet).toBeHidden()
       await expect(moreButton(page)).toBeFocused()
-      await expect(toast(page, 'Imported a setup')).toContainText('You’re on Fury Warrior now.')
+      await expect(toast(page, 'Imported a setup')).toContainText('It replaced your Fury Warrior setup, and you’re on Fury now.')
       await expectSetup(page, 'Fury', /Troll/)
       // The Arms setup you were on is kept, as switching spec keeps it.
       await switchSpec(page, 'Arms')
@@ -129,7 +129,7 @@ for (const [label, device] of [
       await sheet.getByRole('textbox', { name: CODE_FIELD }).fill(`My Arms setup: ${link} , have fun`)
       await sheet.getByRole('textbox', { name: CODE_FIELD }).press('Enter')
       await expect(sheet).toBeHidden()
-      await expect(toast(page, 'Imported a setup')).toContainText('You’re on Arms Warrior now.')
+      await expect(toast(page, 'Imported a setup')).toContainText('It replaced your Arms Warrior setup, and you’re on Arms now.')
       await expectSetup(page, 'Arms', /Tauren/)
     })
 
@@ -289,7 +289,7 @@ for (const [label, device] of [
       await page.keyboard.press('Enter')
       await expect(sheet).toBeHidden()
       await expect(moreButton(page)).toBeFocused()
-      await expect(toast(page, 'Imported a setup')).toContainText('You’re on Fury Warrior now.')
+      await expect(toast(page, 'Imported a setup')).toContainText('It replaced your Fury Warrior setup, and you’re on Fury now.')
       await expectSetup(page, 'Fury', /Troll/)
     })
   })

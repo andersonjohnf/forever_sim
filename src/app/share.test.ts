@@ -90,7 +90,13 @@ describe('share links', () => {
     const replaceState = vi.fn()
     vi.stubGlobal('history', { replaceState })
     vi.stubGlobal('location', { hash: '#other', pathname: '/forever_sim/', search: '' })
-    expect(await readSharedSetup()).toBeNull()
+    expect(await readSharedSetup()).toBeUndefined()
     expect(replaceState).not.toHaveBeenCalled()
+  })
+
+  it('reads a link whose JSON is null as null, not as no link', async () => {
+    vi.stubGlobal('history', { replaceState: vi.fn() })
+    vi.stubGlobal('location', { hash: `#s=${await packSetup(null as unknown as SimConfig)}`, pathname: '/forever_sim/', search: '' })
+    expect(await readSharedSetup()).toBeNull()
   })
 })

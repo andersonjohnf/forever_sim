@@ -9,7 +9,7 @@ vi.stubGlobal('localStorage', {
   setItem: (key: string, value: string) => void memory.set(key, value),
   removeItem: (key: string) => void memory.delete(key),
 })
-const { CODE_ERRORS, findSetupCode, readSetupCode } = await import('./setup-code')
+const { CODE_ERRORS, findSetupCode, MIN_CODE_CHARS, readSetupCode, setupProblem } = await import('./setup-code')
 const { MAX_LINK_CHARS, packSetup } = await import('./share')
 
 const fresh = (spec: SimConfig['spec'], race?: string): SimConfig => {
@@ -82,13 +82,52 @@ describe('reading a code', () => {
     expect(await readSetupCode('not a code!')).toEqual({ ok: false, error: CODE_ERRORS.notACode })
   })
 
+  // UX4: a word is text, not a code cut short.
+  test('text too short to be a code isn’t one', async () => {
+    expect(await readSetupCode('hello')).toEqual({ ok: false, error: CODE_ERRORS.notACode })
+    expect(await readSetupCode('hello world')).toEqual({ ok: false, error: CODE_ERRORS.notACode })
+    // The smallest setup that's usable packs to more.
+    expect((await packSetup({ spec: 'warrior-fury' } as unknown as SimConfig)).length).toBeGreaterThanOrEqual(MIN_CODE_CHARS)
+    // A link's code is a code, however short: it was cut short.
+    expect(await readSetupCode('#s=AAAA')).toEqual({ ok: false, error: CODE_ERRORS.damaged })
+  })
+
+  // UX4: a talent build pasted here belongs in the Talents tab.
+  test('a talent build code, or a talent calculator’s link, says where it goes', async () => {
+    for (const text of ['30305213132515201-05050103-', ' 30305213132515201-05050103-5 ', '0503-', 'https://classic.wowhead.com/talent-calc/warrior/30305213132515201']) {
+      expect(await readSetupCode(text), text).toEqual({ ok: false, error: CODE_ERRORS.talentCode })
+    }
+  })
+
   test('a damaged or cut-short code says so', async () => {
     const code = await packSetup(fresh('warrior-fury'))
     expect(await readSetupCode(code.slice(0, code.length / 2))).toEqual({ ok: false, error: CODE_ERRORS.damaged })
-    expect(await readSetupCode('hello')).toEqual({ ok: false, error: CODE_ERRORS.damaged })
+    expect(await readSetupCode('x'.repeat(MIN_CODE_CHARS))).toEqual({ ok: false, error: CODE_ERRORS.damaged })
     expect(await readSetupCode(LINK)).toEqual({ ok: false, error: CODE_ERRORS.damaged })
-    // Valid, but not a setup.
-    expect(await readSetupCode(await packSetup([1, 2] as unknown as SimConfig))).toEqual({ ok: false, error: CODE_ERRORS.damaged })
+  })
+
+  // LX1: normalizing turns anything into a default setup, which would have replaced yours.
+  test('a code that isn’t a usable setup is refused before it’s normalized, and says why', async () => {
+    const code = (value: unknown) => packSetup(value as SimConfig)
+    // As a link's #s=…: most of these pack too short to be taken for a bare code at all.
+    for (const value of [null, 42, 'fury', [], [1, 2], {}, { version: '1', spec: 'warrior-fury' }, { version: 0, spec: 'warrior-fury' }]) {
+      expect(await readSetupCode(`#s=${await code(value)}`), JSON.stringify(value)).toEqual({ ok: false, error: CODE_ERRORS.notASetup })
+      expect((await readSetupCode(await code(value))).ok, JSON.stringify(value)).toBe(false)
+    }
+    expect(await readSetupCode(await code({ ...fresh('warrior-arms'), version: 2 }))).toEqual({ ok: false, error: CODE_ERRORS.newer })
+    expect(CODE_ERRORS.newer).toBe('That code is from a newer version of Forever Sim. Reload this page to update it, then try again.')
+    for (const spec of ['mage-fire', undefined, 7]) {
+      expect(await readSetupCode(await code({ ...fresh('warrior-arms'), spec })), String(spec)).toEqual({ ok: false, error: CODE_ERRORS.unknownSpec })
+    }
+    let deep: unknown = 0
+    for (let i = 0; i < 20; i++) deep = [deep]
+    expect(await readSetupCode(await code({ ...fresh('warrior-arms'), deep }))).toEqual({ ok: false, error: CODE_ERRORS.notASetup })
+  })
+
+  test('a setup with no version is read as version 1, as a saved one is', async () => {
+    const { version: _version, ...unversioned } = fresh('warrior-arms', 'horde-troll')
+    expect(setupProblem(unversioned)).toBeNull()
+    expect(await readSetupCode(await packSetup(unversioned as SimConfig))).toMatchObject({ ok: true, config: { spec: 'warrior-arms', race: 'horde-troll' } })
   })
 
   test('a code over a share link’s size caps is refused, unread', async () => {

@@ -82,13 +82,14 @@ export function hasSharedSetup(): boolean {
 }
 
 /**
- * The raw (unvalidated) setup in the current URL, or null if there is none. Throws if it's
- * corrupt or too large. The link leaves the URL before it's decoded, so one that breaks the
- * page can't break it again on reload.
+ * The raw (unvalidated) setup in the current URL, or undefined if there's no link (JSON never
+ * gives undefined, so a link whose JSON is `null` reads as null, to be refused as not a setup).
+ * Throws if it's corrupt or too large. The link leaves the URL before it's decoded, so one that
+ * breaks the page can't break it again on reload.
  */
-export async function readSharedSetup(): Promise<unknown | null> {
+export async function readSharedSetup(): Promise<unknown> {
   const hash = location.hash
-  if (!hasSharedSetup()) return null
+  if (!hasSharedSetup()) return undefined
   clearSharedSetupFromUrl()
   return unpackSetup(hash.slice(PREFIX.length))
 }

@@ -87,7 +87,7 @@ test.describe('notices', () => {
     await page.getByRole('radio', { name: 'Gnome' }).click()
     await resetSetup(page)
     await expect(page.getByRole('radio', { name: 'Human' })).toHaveAttribute('aria-checked', 'true')
-    const notice = toasts(page).filter({ hasText: 'Fury Warrior reset to defaults' })
+    const notice = toasts(page).filter({ hasText: 'Your Fury Warrior setup is back to its defaults' })
     await expect(notice).toBeVisible()
     await expect(notice.getByRole('button')).toHaveCount(0)
     await page.clock.runFor(8_000)
@@ -117,7 +117,7 @@ test.describe('notices', () => {
   test('Alt+T reaches them, and leaving them hands focus back', async ({ page }) => {
     await page.goto('./')
     await resetSetup(page)
-    const notice = toasts(page).filter({ hasText: 'Fury Warrior reset to defaults' })
+    const notice = toasts(page).filter({ hasText: 'Your Fury Warrior setup is back to its defaults' })
     await expect(notice).toBeVisible()
     const more = page.getByRole('button', { name: 'More' })
     await expect(more).toBeFocused()
@@ -151,7 +151,7 @@ test.describe('notices', () => {
     await page.goto('./')
     await resetSetup(page)
     await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
-    const notice = toasts(page).filter({ hasText: 'Fury Warrior reset to defaults' })
+    const notice = toasts(page).filter({ hasText: 'Your Fury Warrior setup is back to its defaults' })
     await notice.click()
     await page.getByRole('tab', { name: 'Fight', exact: true }).click()
     await expect(page.getByRole('tab', { name: 'Fight', exact: true })).toHaveAttribute('aria-selected', 'true')
@@ -167,7 +167,7 @@ test.describe('notices on a phone', () => {
   test('sit above the bottom bar, clear of the header', async ({ page }) => {
     await page.goto('./')
     await resetSetup(page)
-    const notice = toasts(page).filter({ hasText: 'Fury Warrior reset to defaults' })
+    const notice = toasts(page).filter({ hasText: 'Your Fury Warrior setup is back to its defaults' })
     await expect(notice).toBeVisible()
     await settled(page)
     const header = (await page.locator('header').boundingBox())!

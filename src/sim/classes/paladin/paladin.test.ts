@@ -542,7 +542,8 @@ describe('the default setups', () => {
   it('Retribution judges Seal of Command and Protection Seal of Fury with Righteous Fury; mana is tracked, rage isn’t', () => {
     const noBuffs = { raid: [], enabled: [] }
     const ret = buildPlan({ ...defaultConfig('paladin-retribution'), buffs: noBuffs }).plan
-    expect(ret.abilities.map((a) => a.id)).toEqual(['sealOfCommand', 'judgementOfCommand'])
+    // Abilities 0 and 1 are the seal and its judgement; Retribution's other rows follow (retribution.test.ts).
+    expect(ret.abilities.slice(0, 2).map((a) => a.id)).toEqual(['sealOfCommand', 'judgementOfCommand'])
     expect(ret.mana).toBeTruthy()
     expect(ret.rage.maxTenths).toBe(0)
     expect(ret.holyThreatMult ?? 1).toBe(1)

@@ -7,6 +7,7 @@ import { NO_PREPULL } from '../plan/types'
 import type { RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
 import { CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from './druid/cat'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
+import { RETRIBUTION_OPTIONS, retributionRotation } from './paladin/retribution'
 import { paladinCore, type PaladinContext } from './paladin/setup'
 import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
@@ -45,6 +46,7 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   if (spec === 'warrior-fury') return FURY_OPTIONS
   if (spec === 'warrior-arms') return ARMS_OPTIONS
   if (spec === 'druid-feral-cat') return CAT_OPTIONS
+  if (spec === 'paladin-retribution') return RETRIBUTION_OPTIONS
   return []
 }
 
@@ -60,6 +62,7 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
   if (spec === 'druid-feral-cat') {
     return 'The defaults are tuned for the default setup. There’s no powershifting: in Forever, Furor keeps your Energy through a shift, so it gains nothing.'
   }
+  if (spec === 'paladin-retribution') return 'The defaults follow the common priority.'
   return undefined
 }
 
@@ -138,7 +141,9 @@ export function classRotation(
   if (spec === 'warrior-fury') return furyRotation(values, talents, auraIndex, context)
   if (spec === 'warrior-arms') return armsRotation(values, talents, auraIndex, context)
   if (spec === 'druid-feral-cat') return catRotation(values, talents, auraIndex, context)
-  // docs/classes/paladin.md: the seal and its judgement both specs share; the specs' rows come with C2 and the Protection slice.
-  if (spec === 'paladin-retribution' || spec === 'paladin-protection') return paladinCore(spec, talents, context)
+  // docs/classes/paladin.md "Retribution: model and rotation".
+  if (spec === 'paladin-retribution') return retributionRotation(values, talents, auraIndex, context)
+  // docs/classes/paladin.md: the seal and its judgement both specs share; Protection's rows come with its slice.
+  if (spec === 'paladin-protection') return paladinCore(spec, talents, context)
   return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
 }

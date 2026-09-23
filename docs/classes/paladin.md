@@ -18,7 +18,7 @@ so both factions also have Windfury. This doc is the engine contract for both sp
 ability, proc and talent at level 60, with numbers, hit-table behaviour, rotation settings,
 defaults, worked examples and the questions the beta has to answer.
 
-Status: researched 2026-09-22 · Forever client build 1.60.1.69913 · Classic Era 1.15.9.69722 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified · engine: the class foundation (seals, judgements, spells, mana, talents; [Implementation notes](#implementation-notes)); the specs' rotations come next
+Status: researched 2026-09-22 · Forever client build 1.60.1.69913 · Classic Era 1.15.9.69722 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified · engine: the class foundation (seals, judgements, spells, mana, talents; [Implementation notes](#implementation-notes)) and the Retribution rotation ([Forever priority list](#forever-priority-list-default)); Protection's comes next
 
 ---
 
@@ -522,22 +522,30 @@ Wrath in execute, Exorcism against Undead and Demons. Advanced players twisted S
 ### Forever priority list (default)
 
 Evaluate top to bottom whenever the paladin is free (off GCD). **Judgement is off the GCD**,
-so check it between GCD actions too.
+so check it between GCD actions too. Setting ids are `paladin.retribution.<ability>.<param>`
+(written without the prefix below), in the Rotation tab's groups. A mana threshold is a share
+of maximum mana: "mana ≥ 60%" is mana ≥ 0.6 × the sheet's maximum.
 
-| # | Action | Condition (UI setting, default) | Default |
+| # | Action | Condition (setting, default) | Default |
 | --- | --- | --- | --- |
-| 0 | Pre-pull: SotC at −1.5 s, Judgement on pull, then SoC | `judgementDebuff = Crusader` and nobody else holds JotC (`jotcCoveredExternally = false`) | on |
-| 1 | Seal of Command | seal missing, or `remaining ≤ sealRefreshMs` (1500 ms) | on |
-| 2 | Judgement (JotC) | the debuff is missing or ≤ 3 s and `judgementDebuff = Crusader`. Needs SotC first: cast SotC (GCD), judge, recast SoC | on (rarely fires: 40 s duration, refreshed by melee) |
-| 3 | Judgement (seal) | ready | on |
-| 4 | Hammer of Wrath | target ≤ 20% health and `mana% ≥ howMinManaPct` (0) | on |
-| 5 | Holy Strike | ready | on |
-| 6 | Exorcism | target Undead/Demon and `mana% ≥ exoMinManaPct` (20) | on (auto-gated by target type) |
-| 7 | Consecration (rank 5) | `mana% ≥ consecrateHighManaPct` (60) | on |
-| 8 | Consecration (rank 1) | `mana% ≥ consecrateLowManaPct` (30) | on |
-| 9 | Twist: SoR, then after the next swing SoC | talent taken and `mana% ≥ twistMinManaPct` (80). Cast SoR when the swing lands within `twistWindowMs` (≤ 1500 ms) so the echo is used at once; recast SoC after that swing | **off** |
-| — | Mana potion / rune | missing mana ≥ the item's max restore and off cooldown | on when the consumables preset includes it (potion: Standard raid; rune: Max-consumables raid) |
-| — | Holy Wrath | Undead/Demon AoE | off |
+| 0 | Pre-pull: Seal of the Crusader at −1.5 s (free, no five-second rule), its judgement at the pull, then the main seal | `judgementOfTheCrusader.enabled` | on |
+| 1 | The main seal: Seal of Command, or Seal of Righteousness (`seal.primary`) | the seal missing, or at most `seal.refreshBelowSec` (1.5 s) of it left. With row 0 on, never over Seal of the Crusader before its judgement has landed | Command |
+| 2 | Judgement of the Crusader | the debuff is missing: cast Seal of the Crusader (GCD) when neither it nor the debuff is up, judge it when Judgement is ready, then recast the main seal (row 1). Your landed auto attacks restart its 40 s, so after the pull this fires only if it drops | with row 0 |
+| 3 | Judgement (the seal's) | `judgement.enabled`; ready, with the seal up | on |
+| 4 | Hammer of Wrath | `hammerOfWrath.enabled`; the execute phase (target ≤ 20% health) and mana ≥ `hammerOfWrath.minManaPct` (0%) | on |
+| 5 | Holy Strike | `holyStrike.enabled`; ready | on |
+| 6 | Exorcism | `exorcism.enabled`; target Undead or Demon and mana ≥ `exorcism.minManaPct` (20%) | on (gated by target type) |
+| 7 | Consecration (rank 5) | `consecration.enabled`; mana ≥ `consecration.minManaPct` (60%) | on |
+| 8 | Consecration (rank 1) | `consecrationRank1.enabled`; mana ≥ `consecrationRank1.minManaPct` (30%). The ranks share one 8 s cooldown | on |
+| 9 | Twist: SoR, then after the next swing SoC | talent taken and `mana% ≥ twistMinManaPct` (80). Cast SoR when the swing lands within `twistWindowMs` (≤ 1500 ms) so the echo is used at once; recast SoC after that swing | **off**; not simulated yet |
+| — | Major Mana Potion | selected in Buffs, `manaPotion.enabled`; missing at least `manaPotion.missingMana` (2,250, its most, so none is lost) | on (Standard raid) |
+| — | Demonic / Dark Rune | selected in Buffs, `rune.enabled`; missing at least `rune.missingMana` (1,500, its most); its own cooldown, apart from the potion's | on (Max consumables) |
+| — | Holy Wrath | Undead/Demon AoE | off; not simulated |
+
+`judgementOfTheCrusader.bonusRule` (By spell coefficient, the default, or Flat on melee hits)
+sits with row 0. It isn't a rotation choice but the engine switch of
+[open question 5](#open-questions): how much of the +161 each Holy hit gets. Tuning leaves it at
+the documented default.
 
 Notes:
 
@@ -699,18 +707,33 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
   proc, judgement or spell.
 - **The core both specs share** (`setup.ts` `paladinCore`): the spec's seal (Seal of Command or
   Seal of Fury) 1.5 s before the pull and recast when it has 1.5 s left, and its judgement
-  whenever Judgement is ready. The specs' own rows (Holy Strike, Consecration, Exorcism, Hammer of
-  Wrath, Judgement of the Crusader's upkeep, seal twisting; Holy Shield, Swift Judgement,
-  Hammer of the Righteous) and their settings come next; their ability rows already exist.
+  whenever Judgement is ready. Protection's own rows (Holy Shield, Swift Judgement, Hammer of the
+  Righteous) and their settings come next.
+- **Retribution** (`retribution.ts`) builds the [priority list](#forever-priority-list-default)
+  from its settings. Abilities 0 and 1 are the main seal and its judgement, as in the core; each
+  ability is resolved with the build's talents and the Judgement of the Crusader rule before its
+  cost or spell feeds anything. Row 0 puts Seal of the Crusader up before the pull. Rows 1 and 2
+  read "Seal of the Crusader is down" and "the debuff is up or down" on each walk (the engine's
+  `abilityAuraDown`), so the main seal never replaces Seal of the Crusader before its judgement.
+  Hammer of Wrath is in the list only with an execute phase, and Exorcism only against Undead and
+  Demons. A mana threshold is `minMana` at its share of the plan's maximum mana, and the potion and
+  rune wait for `maxMana` at the maximum minus their setting. They're casts off the GCD that
+  restore their roll at once: 13,500 + a whole 0…9,000 tenths from the proc stream for the potion,
+  9,000 + 0…6,000 for a rune (buffs doc §3.5), each on its item's own 2 min cooldown.
+- **Consecration's ranks share one cooldown**, as every rank of a spell does [C]: rank 5 and rank 1
+  are one category.
 - **Base stats** follow [character-stats](../mechanics/character-stats.md#paladin-and-druid-base-attributes):
   the attributes, base health, dodge and crits are all [?] placeholders under
   [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23), kept with the
   druid's in `BASE_PLACEHOLDERS` (`src/sim/stats/base-stats.ts`), which the results list on the
   sheet and in the assumptions (`baseStatPlaceholders`).
-- **Not modelled yet:** Twist of Light, Holy Shield's block damage, Reckoning, Redoubt, Swift
-  Judgement, Hammer of the Righteous, Holy Wrath, Judgement of Fury's taunt, Sacred Arbiter's
-  judgement refresh, the utility seals, the T1 5-piece's −0.5 s Judgement, and Blessing of Wisdom
-  and Mana Spring Totem, which only paladins use and aren't in the buff catalogue yet.
+- **Not modelled yet:** Twist of Light and seal twisting (row 9, off by default), Holy Shield's
+  block damage, Reckoning, Redoubt, Swift Judgement, Hammer of the Righteous, Holy Wrath,
+  Judgement of Fury's taunt, Sacred Arbiter's judgement refresh (your auto attacks already keep
+  Judgement of the Crusader up), the utility seals, another paladin's Judgement of Wisdom, a
+  rune's health cost, and the T1 5-piece's −0.5 s Judgement. Blessing of Wisdom and Mana Spring
+  Totem are in the buff catalogue, for paladins only
+  ([buffs doc](../mechanics/buffs-debuffs-consumables.md#class-only-entries)).
 
 ---
 
@@ -721,7 +744,8 @@ weapon **3.50 speed, 200–300 damage (average 250)**; **AP 1200**; **SP 100**. 
 the defaults marked [?] above, so a test failing after a beta measurement means the default
 changed, not a bug. Every example runs through the engine in
 `src/sim/classes/paladin/paladin.test.ts`, except 12 (Holy Shield) and 17 (Twist of Light),
-which come with the rotations that use them.
+which come with the rotations that use them, and 20–22 (the Retribution rotation), which run in
+`retribution.test.ts` on the default setup.
 
 1. **SoC proc chance.** `7 × 3.5 / 60 = 0.40833` per landed white hit. With 10% haste the
    chance is still 0.40833 per hit; only the swing count rises.
@@ -777,6 +801,19 @@ which come with the rotations that use them.
     SoC aura still has 20 s left, and a white hit at t + 0.5 can proc SoC.
 19. **Vengeance ramp (3/3)**: crits at t = 0, 5, 8 → 3 stacks = +9% Physical/Holy until
     t = 38; no crit after that → the buff drops at t = 38.
+20. **The Retribution opener** (the default build and settings): Seal of the Crusader at
+    t = −1.5 s, free. At t = 0, Judgement of the Crusader (81 mana; Sanctified Judgement 3/3
+    returns 60% of the seal's 160 = 96, capped at the maximum), then Seal of Command (189 mana,
+    a GCD). Judgement's 8 s cooldown started at 0, so the first Judgement of Command is at 8 s.
+    Seal of the Crusader and its judgement come once a fight: every landed auto attack restarts
+    the debuff's 40 s.
+21. **Mana thresholds** are shares of maximum mana, in tenths: at 2,882 maximum mana,
+    "Consecration from 60%" needs 1,729.2 mana (17,292 tenths) and "rank 1 from 30%" 864.6
+    (8,646). A Major Mana Potion "when missing 2,250" goes at 632 mana or less.
+22. **Major Mana Potion**: 1800 mana with variance 0.5, so 1,350–2,250, drawn as 13,500 + a
+    whole 0…9,000 tenths. At its default it's drunk only when missing at least 2,250, so none is
+    lost to the cap, and at most every 2 minutes. A Demonic or Dark Rune: 900–1,500, its own
+    2 minute cooldown.
 
 ---
 

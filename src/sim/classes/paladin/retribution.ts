@@ -1,0 +1,355 @@
+// The Retribution priority list and its settings (docs/classes/paladin.md "Forever priority list
+// (default)", rows 0–8 and the consumables).
+//
+// Rows: Judgement of the Crusader before the pull and whenever it's missing (rows 0 and 2), the
+// main seal (row 1: Seal of Command, or Seal of Righteousness), its judgement (row 3), Hammer of
+// Wrath in the execute phase (row 4), Holy Strike (row 5), Exorcism against Undead and Demons
+// (row 6), Consecration rank 5 and rank 1 by mana (rows 7 and 8), and the mana potion and rune.
+// Seal twisting (row 9) is off by default and not simulated yet, nor is Holy Wrath. Setting ids are
+// `paladin.retribution.<ability>.<param>`; mana thresholds are percentages of maximum mana. Abilities
+// are resolved with the build's talents (talents.ts) and the Judgement of the Crusader rule
+// (spells.ts) before their costs or spells feed anything.
+import type { OnUseSpec } from '../../effects/types'
+import { type AbilityDef, COND, type RotationCondition, type RotationEntry } from '../../plan/types'
+import type { RotationOption, RotationValue } from '../../types'
+import { NO_CONTEXT, reader, seconds, type ClassRotation } from '../warrior/shared'
+import {
+  CONSECRATION,
+  CONSECRATION_RANK1,
+  EXORCISM_ABILITY,
+  HAMMER_OF_WRATH_ABILITY,
+  HOLY_STRIKE_ABILITY,
+  JUDGE_CRUSADER,
+  JUDGEMENT_OF,
+  PALADIN,
+  SEAL_OF_COMMAND,
+  SEAL_OF_RIGHTEOUSNESS,
+  SEAL_OF_THE_CRUSADER,
+} from './abilities'
+import { type PaladinContext, paladinProcs, PREPULL_SEAL_MS, SEAL_REFRESH_MS } from './setup'
+import { type JotcRule, withJotcRule } from './spells'
+import { type TalentRanks, withTalents } from './talents'
+
+const P = 'paladin.retribution'
+const ID = {
+  seal: `${P}.seal.primary`,
+  crusader: `${P}.judgementOfTheCrusader.enabled`,
+  jotcRule: `${P}.judgementOfTheCrusader.bonusRule`,
+  sealRefresh: `${P}.seal.refreshBelowSec`,
+  judgement: `${P}.judgement.enabled`,
+  holyStrike: `${P}.holyStrike.enabled`,
+  exorcism: `${P}.exorcism.enabled`,
+  exorcismMana: `${P}.exorcism.minManaPct`,
+  consecration: `${P}.consecration.enabled`,
+  consecrationMana: `${P}.consecration.minManaPct`,
+  consecrationRank1: `${P}.consecrationRank1.enabled`,
+  consecrationRank1Mana: `${P}.consecrationRank1.minManaPct`,
+  hammerOfWrath: `${P}.hammerOfWrath.enabled`,
+  hammerOfWrathMana: `${P}.hammerOfWrath.minManaPct`,
+  manaPotion: `${P}.manaPotion.enabled`,
+  manaPotionMissing: `${P}.manaPotion.missingMana`,
+  rune: `${P}.rune.enabled`,
+  runeMissing: `${P}.rune.missingMana`,
+}
+export const RETRIBUTION_IDS = ID
+
+/** Buff catalogue ids of the mana consumables the rotation uses (effects/buffs.ts). */
+export const MANA_POTION = 'majorManaPotion'
+export const MANA_RUNE = 'demonicRune'
+
+/** The creature types Exorcism can be cast on (paladin.md#other-abilities). */
+export const EXORCISM_TARGETS: readonly string[] = ['undead', 'demon']
+
+/** A mana threshold input: 0 to 100% of maximum mana, in its parent's group. */
+const manaOption = (id: string, label: string, help: string, def: number, dependsOn: string, group: RotationOption['group']): RotationOption => ({
+  kind: 'number',
+  id,
+  label,
+  group,
+  help,
+  unit: '% mana',
+  min: 0,
+  max: 100,
+  step: 5,
+  default: def,
+  dependsOn,
+})
+
+/**
+ * Defaults from paladin.md's "Forever priority list (default)", in priority order, the seal first.
+ * They're the best rotation found for the default setup (decision D23; paladin.md "Tuning the
+ * defaults", measured with scripts/tune/rotation.mjs).
+ */
+export const RETRIBUTION_OPTIONS: RotationOption[] = [
+  {
+    kind: 'choice',
+    id: ID.seal,
+    group: 'Core abilities',
+    label: 'Seal',
+    help: 'Seal of Command procs about 7 times a minute for 70% of a swing as Holy damage, and wins with any slow two-hander. Seal of Righteousness adds Holy damage to every swing, for fast or weak weapons.',
+    choices: [
+      { value: 'command', label: 'Command' },
+      { value: 'righteousness', label: 'Righteousness' },
+    ],
+    default: 'command',
+  },
+  {
+    kind: 'toggle',
+    id: ID.crusader,
+    group: 'Before the pull',
+    label: 'Judgement of the Crusader',
+    help: 'Put Seal of the Crusader up before the pull and judge it at the pull, then your seal: the boss takes +161 Holy damage for 40 s, and your auto attacks keep it up. If it’s ever missing, it’s judged again.',
+    default: true,
+  },
+  {
+    kind: 'choice',
+    id: ID.jotcRule,
+    group: 'Before the pull',
+    label: 'Judgement of the Crusader’s bonus',
+    help: 'Untested in Forever. By spell coefficient: each Holy hit gets its spell damage coefficient’s share of the +161 (a Seal of Command proc 20%, Judgement of Command and Holy Strike 43%). Flat: melee-class hits (seal procs, judgements, Holy Strike) get all of it.',
+    choices: [
+      { value: 'coefficient', label: 'By spell coefficient' },
+      { value: 'flat', label: 'Flat on melee hits' },
+    ],
+    default: 'coefficient',
+    dependsOn: ID.crusader,
+  },
+  {
+    kind: 'number',
+    id: ID.sealRefresh,
+    group: 'Core abilities',
+    label: 'Seal again with',
+    help: 'Recast your seal when this much of it is left, so Judgement always has one. It lasts 30 s.',
+    unit: 's left',
+    min: 0,
+    max: 29,
+    step: 0.5,
+    default: SEAL_REFRESH_MS / 1000,
+  },
+  {
+    kind: 'toggle',
+    id: ID.judgement,
+    group: 'Core abilities',
+    label: 'Judgement',
+    help: 'Judge your seal whenever Judgement is ready. It’s off the global cooldown and keeps the seal up, and with Sanctified Judgement it returns more mana than it costs.',
+    default: true,
+  },
+  {
+    kind: 'toggle',
+    id: ID.holyStrike,
+    group: 'Core abilities',
+    label: 'Holy Strike',
+    help: 'Use Holy Strike whenever it’s ready: 40% of a normalized swing plus spell damage, all Holy, for 18 mana.',
+    default: true,
+  },
+  {
+    kind: 'toggle',
+    id: ID.exorcism,
+    group: 'Core abilities',
+    label: 'Exorcism',
+    help: 'Against Undead and Demons (set under Fight), use Exorcism whenever it’s ready. It can’t be cast on anything else.',
+    default: true,
+  },
+  manaOption(ID.exorcismMana, 'Exorcism from', 'Use it only at or above this much of your maximum mana.', 20, ID.exorcism, 'Core abilities'),
+  {
+    kind: 'toggle',
+    id: ID.consecration,
+    group: 'Fillers',
+    label: 'Consecration',
+    help: 'Put down Consecration (rank 5, 508 mana) when you have the mana: 8 ticks of Holy damage over 8 s.',
+    default: true,
+  },
+  manaOption(ID.consecrationMana, 'Consecration from', 'Use rank 5 only at or above this much of your maximum mana.', 60, ID.consecration, 'Fillers'),
+  {
+    kind: 'toggle',
+    id: ID.consecrationRank1,
+    group: 'Fillers',
+    label: 'Consecration (Rank 1)',
+    help: 'Below that, put down rank 1 (121 mana). Every rank has the full spell damage bonus, so it’s the most damage for the mana.',
+    default: true,
+  },
+  manaOption(ID.consecrationRank1Mana, 'Consecration (Rank 1) from', 'Use rank 1 only at or above this much of your maximum mana.', 30, ID.consecrationRank1, 'Fillers'),
+  {
+    kind: 'toggle',
+    id: ID.hammerOfWrath,
+    group: 'Execute phase',
+    label: 'Hammer of Wrath',
+    help: 'In the execute phase, use Hammer of Wrath whenever it’s ready, ahead of Holy Strike. Instant with Instrument of Law 2/2.',
+    default: true,
+  },
+  manaOption(ID.hammerOfWrathMana, 'Hammer of Wrath from', 'Use it only at or above this much of your maximum mana.', 0, ID.hammerOfWrath, 'Execute phase'),
+  {
+    kind: 'toggle',
+    id: ID.manaPotion,
+    group: 'Consumables',
+    label: 'Major Mana Potion',
+    help: 'Drink one whenever you’re missing at least the most it restores (2,250 mana), every 2 minutes.',
+    default: true,
+    requiresBuff: MANA_POTION,
+  },
+  {
+    kind: 'number',
+    id: ID.manaPotionMissing,
+    group: 'Consumables',
+    label: 'Major Mana Potion when missing',
+    help: 'Drink it once you’re missing at least this much mana.',
+    unit: 'mana',
+    min: 0,
+    max: 5000,
+    step: 50,
+    default: 2250,
+    dependsOn: ID.manaPotion,
+  },
+  {
+    kind: 'toggle',
+    id: ID.rune,
+    group: 'Consumables',
+    label: 'Demonic Rune',
+    help: 'Use one whenever you’re missing at least the most it restores (1,500 mana), every 2 minutes, apart from the potion’s cooldown.',
+    default: true,
+    requiresBuff: MANA_RUNE,
+  },
+  {
+    kind: 'number',
+    id: ID.runeMissing,
+    group: 'Consumables',
+    label: 'Demonic Rune when missing',
+    help: 'Use it once you’re missing at least this much mana.',
+    unit: 'mana',
+    min: 0,
+    max: 5000,
+    step: 50,
+    default: 1500,
+    dependsOn: ID.rune,
+  },
+]
+
+/** The seal the settings choose (paladin.md "Forever priority list" notes: `sealPrimary`). */
+export const retributionSeal = (values: Record<string, RotationValue>): AbilityDef =>
+  reader(RETRIBUTION_OPTIONS, values).str(ID.seal) === 'righteousness' ? SEAL_OF_RIGHTEOUSNESS : SEAL_OF_COMMAND
+
+/** The Judgement of the Crusader rule the settings choose (paladin.md OQ 5). */
+export const retributionJotcRule = (values: Record<string, RotationValue>): JotcRule =>
+  reader(RETRIBUTION_OPTIONS, values).str(ID.jotcRule) === 'flat' ? 'flat' : 'coefficient'
+
+/** An on-use consumable as a paladin `cast`: no cost, its cooldown and GCD, its mana at once (buffs doc §3.5). */
+const consumable = (use: OnUseSpec): AbilityDef => ({
+  ...PALADIN,
+  id: use.id,
+  name: use.name,
+  icon: use.icon,
+  kind: 'cast',
+  cooldownMs: use.cooldownMs,
+  gcdMs: use.gcdMs,
+  aura: use.aura,
+  manaTenths: use.manaTenths ?? 0,
+  manaSpreadTenths: use.manaSpreadTenths ?? 0,
+})
+
+/**
+ * The Retribution priority list from the settings (paladin.md "Forever priority list (default)").
+ * `context` gives the main hand (Seal of Righteousness), the maximum mana (the mana thresholds are
+ * shares of it), the creature type (Exorcism), and the selected consumables (the potion and rune).
+ * Abilities 0 and 1 are the seal and its judgement, as in `paladinCore`.
+ */
+export function retributionRotation(
+  values: Record<string, RotationValue>,
+  talents: TalentRanks,
+  _auraIndex: (id: string) => number,
+  context: Partial<PaladinContext> = {},
+): ClassRotation {
+  const ctx: PaladinContext = { ...NO_CONTEXT, ...context }
+  const v = reader(RETRIBUTION_OPTIONS, values, talents)
+  const rule = retributionJotcRule(values)
+  const abilities: AbilityDef[] = []
+  const rotation: RotationEntry[] = []
+  /** The ability's index, resolved with the build's talents and the JotC rule on first use. */
+  const index = (def: AbilityDef): number => {
+    const i = abilities.findIndex((a) => a.id === def.id)
+    if (i >= 0) return i
+    const a = withTalents(def, talents)
+    abilities.push({
+      ...a,
+      ...(a.spellDef ? { spellDef: withJotcRule(a.spellDef, rule) } : {}),
+      ...(a.tickSpellDef ? { tickSpellDef: withJotcRule(a.tickSpellDef, rule) } : {}),
+    })
+    return abilities.length - 1
+  }
+  const add = (def: AbilityDef, conditions: RotationCondition[]) => {
+    const a = index(def)
+    rotation.push({ ability: a, conditions, unqueueBelowTenths: 0 })
+    return a
+  }
+  const maxManaTenths = 10 * (ctx.maxMana ?? 0)
+  /** Mana ≥ the setting's share of the maximum. */
+  const manaFrom = (id: string): RotationCondition[] => {
+    const pct = v.num(id)
+    return pct > 0 ? [{ code: COND.minMana, a: Math.round((pct / 100) * maxManaTenths), b: 0 }] : []
+  }
+  const auraUp = (a: number): RotationCondition => ({ code: COND.abilityAuraUp, a, b: 0 })
+  const auraDown = (a: number): RotationCondition => ({ code: COND.abilityAuraDown, a, b: 0 })
+
+  // Abilities 0 and 1: the seal and its judgement.
+  const sealDef = retributionSeal(values)
+  const seal = index(sealDef)
+  const judge = index(JUDGEMENT_OF[sealDef.id])
+  const refresh: RotationCondition = { code: COND.abilityAuraRefresh, a: seal, b: seconds(v, ID.sealRefresh) }
+  let prepullSeal = seal
+
+  if (v.on(ID.crusader)) {
+    // Rows 0 and 2: Seal of the Crusader goes up 1.5 s before the pull; while it's up and Judgement
+    // of the Crusader is missing, judge it (at the pull, then only if the debuff ever drops: your
+    // landed auto attacks restart its 40 s). If it's missing without the seal, cast the seal first.
+    const sotc = index(SEAL_OF_THE_CRUSADER)
+    const jotc = index(JUDGE_CRUSADER)
+    add(JUDGE_CRUSADER, [auraUp(sotc), auraDown(jotc)])
+    add(SEAL_OF_THE_CRUSADER, [auraDown(jotc), auraDown(sotc)])
+    // Row 1: the main seal when it's missing or about to end, but not over Seal of the Crusader
+    // before its judgement has landed.
+    add(sealDef, [refresh, auraDown(sotc)])
+    add(sealDef, [refresh, auraUp(jotc)])
+    prepullSeal = sotc
+  } else {
+    // Row 1.
+    add(sealDef, [refresh])
+  }
+
+  // Row 3: the seal's judgement whenever Judgement is ready, while the seal is up (it stays up).
+  if (v.on(ID.judgement)) rotation.push({ ability: judge, conditions: [auraUp(seal)], unqueueBelowTenths: 0 })
+
+  // Row 4: Hammer of Wrath, only in the execute phase (the ability says so), at mana ≥ x%.
+  if (v.on(ID.hammerOfWrath) && ctx.executePhase) add(HAMMER_OF_WRATH_ABILITY, manaFrom(ID.hammerOfWrathMana))
+
+  // Row 5: Holy Strike on cooldown.
+  if (v.on(ID.holyStrike)) add(HOLY_STRIKE_ABILITY, [])
+
+  // Row 6: Exorcism on cooldown against Undead and Demons, at mana ≥ x%.
+  if (v.on(ID.exorcism) && EXORCISM_TARGETS.includes(ctx.creatureType)) add(EXORCISM_ABILITY, manaFrom(ID.exorcismMana))
+
+  // Rows 7 and 8: Consecration rank 5 at mana ≥ x%, else rank 1 at mana ≥ y%. The ranks share
+  // one cooldown.
+  if (v.on(ID.consecration)) add(CONSECRATION, manaFrom(ID.consecrationMana))
+  if (v.on(ID.consecrationRank1)) add(CONSECRATION_RANK1, manaFrom(ID.consecrationRank1Mana))
+
+  // The mana potion and rune (off the GCD), when selected in Buffs: whenever the most they restore
+  // fits under the maximum.
+  const pressed: string[] = []
+  for (const [id, setting, missing] of [
+    [MANA_POTION, ID.manaPotion, ID.manaPotionMissing],
+    [MANA_RUNE, ID.rune, ID.runeMissing],
+  ] as const) {
+    const use = ctx.consumables.find((c) => c.id === id)
+    if (!use) continue
+    pressed.push(id)
+    if (!v.on(setting)) continue
+    add(consumable(use), [{ code: COND.maxMana, a: maxManaTenths - 10 * v.num(missing), b: 0 }])
+  }
+
+  return {
+    abilities,
+    rotation,
+    prepull: { casts: [{ ability: prepullSeal, atMs: PREPULL_SEAL_MS }], chargeTenths: 0, keepTenths: -1 },
+    onUse: pressed,
+    procs: paladinProcs(abilities, talents, ctx, rule),
+  }
+}

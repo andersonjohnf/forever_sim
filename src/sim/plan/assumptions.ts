@@ -354,6 +354,22 @@ const REGISTRY = {
     text: 'Judgement of the Crusader’s +161 Holy damage is scaled by each hit’s spell damage coefficient and added after your own damage bonuses; untested, and the biggest uncertainty in Retribution damage.',
     docRef: `${PAL}#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc`,
   },
+  jotcBonusFlat: {
+    text: 'Judgement of the Crusader’s +161 Holy damage is added in full to each melee-class Holy hit (seal procs, judgements, Holy Strike), as set on the Rotation tab, and by its coefficient’s share to spells; untested, and the biggest uncertainty in Retribution damage.',
+    docRef: `${PAL}#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc`,
+  },
+  holyStrike: {
+    text: 'Holy Strike deals 40% of a normalized main-hand swing and of its 81–105, plus the full 0.429 × spell damage; untested.',
+    docRef: `${PAL}#other-abilities`,
+  },
+  consecrationTicks: {
+    text: 'Each Consecration tick rolls its own spell hit and crit (×1.5); untested in Forever.',
+    docRef: `${PAL}#other-abilities`,
+  },
+  hammerOfWrath: {
+    text: 'Hammer of Wrath rolls the ranged table: a miss, then a crit at your melee crit chance for double damage; untested.',
+    docRef: `${PAL}#other-abilities`,
+  },
   manaRegen: {
     text: 'Mana regenerates every 2 s, from a random moment in the first 2 s of the fight: 15 + Spirit / 5 when you’ve spent none for 5 s, and your mp5 always. A seal cast before the pull costs nothing.',
     docRef: `${PAL}#mana-model`,

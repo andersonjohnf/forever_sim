@@ -722,6 +722,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         equipped: new Set([...equipped.values()].map((i) => i.id)),
         othersBleed,
         front: fight.position === 'front',
+        maxMana: block.hasMana ? derived.mana : 0,
       })
     : { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
   // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), a

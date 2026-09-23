@@ -45,9 +45,13 @@ export function paladinEffects(spec: SpecId, talents: TalentRanks): Effect[] {
   return effects
 }
 
-/** The main-hand weapon, for the seals whose procs scale with it (Seal of Righteousness). */
+/**
+ * The main-hand weapon, for the seals whose procs scale with it (Seal of Righteousness), and the
+ * maximum mana, which the "mana% ≥ x" settings are shares of (paladin.md#forever-priority-list-default).
+ */
 export interface PaladinContext extends RotationContext {
   mainHand?: { speedSec: number; twoHand: boolean } | null
+  maxMana?: number
 }
 
 /** Each spec's seal (paladin.md#retribution-defaults, #protection-defaults). */
@@ -116,7 +120,14 @@ export function paladinAssumptions(plan: Plan): AssumptionId[] {
   if (procs.has('sealOfFuryProc')) ids.push('sealOfFury')
   if (abilities.has('judgementOfCommand')) ids.push('judgementOfCommand')
   if ((plan.spells ?? []).some((s) => s.defense === DEFENSE.melee)) ids.push('meleeSpellProcs')
-  if (plan.auras.some((a) => (a.holyTaken ?? 0) > 0)) ids.push('jotcBonus')
+  // The Judgement of the Crusader rule (Retribution's setting): flat gives melee-class hits all of it.
+  if (plan.auras.some((a) => (a.holyTaken ?? 0) > 0)) {
+    const flat = (plan.spells ?? []).some((s) => s.defense === DEFENSE.melee && s.takenScale === 1)
+    ids.push(flat ? 'jotcBonusFlat' : 'jotcBonus')
+  }
+  if (abilities.has('holyStrike')) ids.push('holyStrike')
+  if (abilities.has('consecration') || abilities.has('consecrationRank1')) ids.push('consecrationTicks')
+  if (abilities.has('hammerOfWrath')) ids.push('hammerOfWrath')
   if (plan.abilities.some((a) => (a.manaReturnTenths ?? 0) > 0)) ids.push('sanctifiedJudgement')
   if (procs.has('vindication')) ids.push('vindication')
   return ids

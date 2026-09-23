@@ -92,5 +92,6 @@ export function rotationRows(
 export function formatSetting(option: RotationOption, value: RotationValue): string {
   if (option.kind === 'toggle') return value ? 'on' : 'off'
   if (option.kind === 'choice') return option.choices.find((c) => c.value === value)?.label ?? String(value)
-  return `${value} ${option.unit}`
+  // "70% mana", "3 s left", "42 rage"
+  return `${value}${option.unit.startsWith('%') ? '' : ' '}${option.unit}`
 }

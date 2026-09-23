@@ -11,7 +11,8 @@ import { Sim } from '../../engine/sim'
 import { addAura } from '../../engine/test-helpers'
 import { buildPlan } from '../../plan/build'
 import { type AbilityDef, ACTION, DEFENSE, type Plan, SCHOOL, type SpellDef, TRIGGER } from '../../plan/types'
-import type { SpecId } from '../../types'
+import type { RotationValue, SpecId } from '../../types'
+import { RETRIBUTION_IDS } from './retribution'
 
 /** A build code from talent ranks by name (docs/data/talents.md). */
 export function talentCode(ranks: Record<string, number>): string {
@@ -26,6 +27,21 @@ export function talentCode(ranks: Record<string, number>): string {
   return encodeTalentCode(data, ids)
 }
 
+/**
+ * Retribution's settings with only the core rows on (paladin.md "Forever priority list" rows 1 and
+ * 3): the seal and its judgement, as the worked examples use them.
+ */
+export const RETRIBUTION_CORE_ONLY: Record<string, RotationValue> = {
+  [RETRIBUTION_IDS.crusader]: false,
+  [RETRIBUTION_IDS.holyStrike]: false,
+  [RETRIBUTION_IDS.exorcism]: false,
+  [RETRIBUTION_IDS.consecration]: false,
+  [RETRIBUTION_IDS.consecrationRank1]: false,
+  [RETRIBUTION_IDS.hammerOfWrath]: false,
+  [RETRIBUTION_IDS.manaPotion]: false,
+  [RETRIBUTION_IDS.rune]: false,
+}
+
 export interface ExampleOptions {
   spec?: SpecId
   talents?: Record<string, number>
@@ -38,6 +54,8 @@ export interface ExampleOptions {
   durationMs?: number
   /** Keep the spec's core rotation (seal and judgement); otherwise the plan has no abilities. */
   core?: boolean
+  /** Rotation settings, on top of the core-only ones (Retribution: `RETRIBUTION_CORE_ONLY`). */
+  rotation?: Record<string, RotationValue>
 }
 
 /**
@@ -54,6 +72,7 @@ export function examplePlan(o: ExampleOptions = {}): Plan {
     // Only the main hand's weapon, unenchanted: its item stats are cleared below.
     gear: { mainHand: { itemId: d.gear.mainHand!.itemId } },
     buffs: { raid: [], enabled: [] },
+    rotation: { ...(spec === 'paladin-retribution' ? RETRIBUTION_CORE_ONLY : {}), ...o.rotation },
     fight: { ...d.fight, durationVariationPct: 0, durationSec: (o.durationMs ?? 60000) / 1000 },
   }).plan
   const w = o.weapon ?? { min: 200, max: 300, speedSec: 3.5 }

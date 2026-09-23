@@ -209,4 +209,5 @@ gear, 50 more attack power or 10% more block value.
   means better weapons too (user decision).
 - **Off by default.** They never change a default or a golden.
 
-Plan: [M2.5](milestones.md#m25-stat-boosts-gear-that-doesnt-exist-yet-).
+Plan: [M7](milestones.md#m7-stat-boosts-gear-that-doesnt-exist-yet-), after the tank specs and
+multi-target (user decision).

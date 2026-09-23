@@ -94,7 +94,7 @@ and their values are in [buffs-debuffs-consumables.md](buffs-debuffs-consumables
 
 - **Not simulated yet.** The engine fights one target. The model below is the design for
   multi-target support; until it lands, `extraTargets` is kept in saved setups but read nowhere,
-  and the Fight tab hides its control ([milestones](../milestones.md#later)).
+  and the Fight tab hides its control ([M6](../milestones.md#m6-multi-target-)).
 - **Single target by default.** `extraTargets` (0–4, default 0) adds identical copies of the
   boss (same level, armor and debuffs [?]) that cleave and AoE abilities (Cleave, Whirlwind,
   Swipe, Consecration, …) can hit. `extraTargetUptimePct` (default 100 when extraTargets >

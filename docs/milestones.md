@@ -89,7 +89,7 @@ work is in slices:
         then warrior-fury becomes **available**
   - Later: §5.2 rows 10 (Overpower dance) and 15 (Slam) come with M2.3, which builds those
     abilities and stance swaps. Row 14 (Sunder Armor) comes with M3. Whirlwind extra
-    targets wait for multi-target support ([Later](#later)).
+    targets wait for multi-target support ([M6](#m6-multi-target-)).
 - [x] **M2.3 Arms**, in three slices:
   - [x] **M2.3a Arms abilities:** Mortal Strike, Slam (cast time; swing timers reset without
         Improved Slam, untouched with it), Spearing Strike (creature types), and Rend (a bleed,
@@ -104,7 +104,7 @@ work is in slices:
         base-stance alternative (Q24), the Whirlwind dance, and Recklessness swapping to
         Berserker Stance for the rest of the fight. Re-snapshot the goldens, then
         warrior-arms becomes **available**.
-  - Sweeping Strikes waits for multi-target support ([Later](#later)); Deep Wounds and
+  - Sweeping Strikes waits for multi-target support ([M6](#m6-multi-target-)); Deep Wounds and
     Weaponmaster are already simulated.
 - [ ] **M2.4 Results and review**, in slices:
   - [x] **M2.4a Results and rotation polish:**
@@ -119,43 +119,6 @@ work is in slices:
   - [x] **M2.4c Adversarial UX review:** a fresh reviewer works through the ux.md checklist
         on every screen at 390 and 1280 px, light and dark. Findings logged and resolved.
   - [ ] **M2.4d First deploy:** push when the user asks, and check the Pages deploy.
-
-## M2.5: Stat boosts: gear that doesn't exist yet 💤
-
-How a spec scales with better itemization than today's (user request, 2026-09-23;
-[D19](decisions.md#d19-stat-boosts-model-gear-that-doesnt-exist-yet-2026-09-23)). For example: 20% better
-gear, 50 more attack power, or 10% more block value. Off by default. Run once without it and
-once with it: the headline's change from the previous run is the scaling.
-
-- [ ] **M2.5a Engine and config:**
-  - `statBoost` in the config: `itemPct` (one percent for every stat from items) and `add`
-    (per-stat bonuses, each a raw amount or a percent of that stat from items)
-  - applied to the stats from items and enchants, before talents', racials' and buffs'
-    percentages, so a boosted point is worth what an item's point is; documented in a new
-    section of [character-stats.md](mechanics/character-stats.md)
-  - the percent also scales weapon damage (minimum and maximum, at the same speed), as better
-    gear would (user decision, 2026-09-23)
-  - not applied to base stats, buffs, consumables, proc and on-use effects, or set bonuses
-  - Forever ratings follow D12's switch, as they do from items
-  - validated and bounded in `normalize`; saved setups and share links carry it
-  - tests:
-    - no boost leaves every golden unchanged
-    - a boost scales item stats only, in the documented order
-    - same config and seed give the same result
-    - boosted share links round-trip
-- [ ] **M2.5b UI:**
-  - one slider for all item stats, plus a per-stat list. Each row shows the stat from items,
-    the bonus, and the total
-  - lives under an Advanced disclosure (Gear or Character; decide against ux.md). Its
-    "Default: none · Reset" shows when it's on
-  - the character sheet shows boosted values
-  - the results say a boost is on (headline badge, and an entry in the assumptions)
-  - ux.md section, and e2e tests for the flow at 390 and 1280 px
-- [ ] **M2.5c Tank stats**, with M3: block value from items needs shields' block value,
-      which the item data lacks ([known gaps](#known-gaps-and-follow-ups)). Add block value,
-      block chance, defense, dodge and parry to the per-stat list once Protection simulates them.
-- **To decide in M2.5a:** the range: −50% to +100%, say, so worse gear can be modelled too.
-- M6's stat weights can build on the per-stat bonuses.
 
 ## Session handoff (2026-09-23)
 
@@ -181,9 +144,9 @@ Golden runs: Fury 673.8 DPS, Arms 610.7 DPS, Protection 217.0 TPS.
 **Next:**
 1. Have a fresh reviewer check the QV fixes, resolve what it finds, and set the log's verdict.
 2. **M2.4d:** push when the user asks, then check the Pages deploy.
-3. **M2.5 Stat boosts**, in a fresh session.
-4. **M3 Protection**, in a fresh session. Enable the 3 `test.fixme` tests in
+3. **M3 Protection**, in a fresh session. Enable the 3 `test.fixme` tests in
    `e2e/tank-results.spec.ts` when Protection ships.
+4. Then M4 Feral Druid, M5 Paladin, M6 Multi-target and M7 Stat boosts, in that order.
 
 **Open decision for the user:** whether the Arms defaults follow the tuning findings (Heroic
 Strike 55, the Whirlwind dance, Spearing Strike 40, Rend refresh 3 s). They were measured
@@ -197,6 +160,7 @@ before the review moved Arms from 630.7 to 610.7, so re-measure them before deci
 - Boss auto-attacks on the player: avoidance, block, crushing blows, rage from damage taken
 - Tank rotation (Shield Slam, Revenge, Sunder, Heroic Strike dumping)
 - TPS output (plus damage taken as context)
+- Shields' block value, which the item data lacks and M7's stat boosts need too
 
 ## M4: Feral Druid 💤
 
@@ -208,13 +172,71 @@ before the review moved Arms from 630.7 to 610.7, so re-measure them before deci
 - Retribution DPS: seals, judgements, mana model
 - Protection TPS: Righteous Fury, Holy Shield, Reckoning, Consecration
 
-## M6: Analysis tools 💤
+## M6: Multi-target 💤
+
+The engine fights one target today. The design is
+[encounter.md §4](mechanics/encounter.md#4-targets-and-position): extra targets are identical
+copies of the boss. It comes after the tank specs (user decision, 2026-09-23).
+- **Engine and config:**
+  - `extraTargets` (0–4) and `extraTargetUptimePct` in the config contract (a
+    [known gap](#known-gaps-and-follow-ups))
+  - each target keeps its own debuffs, bleeds, Deep Wounds and threat
+  - no extra targets leaves every golden unchanged
+- **Warrior** ([§5.5](classes/warrior.md#55-multi-target-options-light)):
+  - Cleave in place of Heroic Strike at 2+ targets
+  - Whirlwind, Raging Blows and Thunder Clap hit up to 4 targets
+  - Sweeping Strikes (Arms)
+- **Druid and paladin:** Swipe for bears, and Consecration, with Forever's extra damage to the
+  first 4 enemies ([threat.md](mechanics/threat.md))
+- **UI:** the Fight tab shows its Enemies control. Results sum damage and threat across
+  targets, with a per-target split.
+
+## M7: Stat boosts: gear that doesn't exist yet 💤
+
+How a spec scales with better itemization than today's (user request, 2026-09-23;
+[D19](decisions.md#d19-stat-boosts-model-gear-that-doesnt-exist-yet-2026-09-23)). For example:
+20% better gear, 50 more attack power, or 10% more block value. Off by default. Run once
+without it and once with it: the headline's change from the previous run is the scaling.
+It comes after the tank specs and multi-target (user decision, 2026-09-23), so every spec's
+stats are simulated by then, the tanks' included.
+- [ ] **M7a Engine and config:**
+  - `statBoost` in the config: `itemPct` (one percent for every stat from items) and `add`
+    (per-stat bonuses, each a raw amount or a percent of that stat from items)
+  - the stats: every one items carry, the tanks' included (block value, block chance,
+    defense, dodge and parry)
+  - applied to the stats from items and enchants, before talents', racials' and buffs'
+    percentages, so a boosted point is worth what an item's point is; documented in a new
+    section of [character-stats.md](mechanics/character-stats.md)
+  - the percent also scales weapon damage (minimum and maximum, at the same speed), as better
+    gear would (user decision, 2026-09-23)
+  - not applied to base stats, buffs, consumables, proc and on-use effects, or set bonuses
+  - Forever ratings follow D12's switch, as they do from items
+  - validated and bounded in `normalize`; saved setups and share links carry it
+  - tests:
+    - no boost leaves every golden unchanged
+    - a boost scales item stats only, in the documented order
+    - same config and seed give the same result
+    - boosted share links round-trip
+- [ ] **M7b UI:**
+  - one slider for all item stats, plus a per-stat list. Each row shows the stat from items,
+    the bonus, and the total
+  - lives under an Advanced disclosure (Gear or Character; decide against ux.md). Its
+    "Default: none · Reset" shows when it's on
+  - the character sheet shows boosted values
+  - the results say a boost is on (headline badge, and an entry in the assumptions)
+  - ux.md section, and e2e tests for the flow at 390 and 1280 px
+- **To decide in M7a:** the range: −50% to +100%, say, so worse gear can be modelled too.
+- **Needs from M3:** shields' block value, which the item data lacks
+  ([known gaps](#known-gaps-and-follow-ups)).
+- M8's stat weights can build on the per-stat bonuses.
+
+## M8: Analysis tools 💤
 
 - Stat weights (EP) with common random numbers
 - Item A vs item B comparison and talent comparison
 - DPS distribution chart; timeline and combat log for debugging
 
-## M7: Validation 💤
+## M9: Validation 💤
 
 - Compare against guild beta logs and target-dummy tests
 - Resolve open questions, promote `[C]`/`[?]` values to `[F]` as they're verified
@@ -249,8 +271,9 @@ slice is worked:
   documented defaults stay for now; see warrior.md §5.3's notes. They predate the
   first-release review (Arms is now 610.7), so re-measure before changing the defaults.
 - **Gnome Eureka! isn't simulated** (warrior Q18); the result says so.
-- **Multi-target isn't simulated.** The Fight tab's Enemies control is hidden until it is;
-  `extraTargets` stays in the config ([encounter.md §4](mechanics/encounter.md)).
+- **Multi-target isn't simulated** until [M6](#m6-multi-target-). The Fight tab's Enemies
+  control is hidden until then; `extraTargets` stays in the config
+  ([encounter.md §4](mechanics/encounter.md)).
 - **Items:** 18320 Demonheart Spaulders may not be obtainable; PvP rank requirements show as
   numbers (the rank title depends on faction); whether a bear-form armor multiplier applies
   to stat-50 bonus armor is open (M4). Fallback shields carry `classicShieldBlockValue`,
@@ -273,6 +296,5 @@ slice is worked:
 ## Later
 
 - Raid gear (Epic quality): widen the scraper filter
-- Multi-target sims
 - Balance druid, if Forever makes it a real raid spec
 - Other classes, only if wowsims still hasn't arrived

@@ -83,7 +83,8 @@ export default defineConfig({
     },
   },
   test: {
-    // Unit tests only; e2e/*.spec.ts belongs to Playwright (npm run test:e2e).
-    include: ['src/**/*.test.ts'],
+    // Unit tests only; e2e/*.spec.ts belongs to Playwright (npm run test:e2e). Scraper library
+    // tests sit next to their modules in scripts/.
+    include: ['src/**/*.test.ts', 'scripts/**/*.test.mjs'],
   },
 })

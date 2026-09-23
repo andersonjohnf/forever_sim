@@ -60,6 +60,10 @@ is cached under `.cache/client/` (git-ignored) and is never downloaded again unl
 | wago.tools: `/api/casc`, Classic Era build (28 DB2 files, for the claim checks and phase 2) | 28 |
 | GitHub: commit lookup, manifest, 67 `.dbd` files | 69 |
 
+[Items from the client](#items-from-the-client) (M1.5c-1) added **42 more requests**, all HTTP
+200: 30 to wago.tools (12 DB2 files for Forever, 17 DB2 files and one game table for Classic
+Era) and 12 `.dbd` files from GitHub. They are listed in [Tables used](#tables-used).
+
 A later run from the cache makes no requests. A fresh build costs 44 wago.tools requests for
 the datasets (38 DB2 files, 4 game tables, the build lookup and the file list), about 30 more
 with `--claims` if the Classic Era baseline isn't cached yet, and about 40 GitHub requests only
@@ -76,13 +80,15 @@ when WoWDBDefs is re-pinned.
                                        (layout hash, sections, storage, warnings), then one row per line
   <build>/gametables/<name>.json       parsed game tables
   <build>/claims.md                    the doc-claim report (--claims)
+  <build>/items-compare.md (+ .json)   the item-derivation report (npm run compare:items)
   github/wowdbdefs/<sha>/…             manifest.json and definitions/*.dbd
   requests.jsonl
 ```
 
 The download layer ([`lib/wago.mjs`](../../scripts/scrape/lib/wago.mjs)) is generic over product
 and build, and every table it touches is kept whole in `tables/`, not just the extracted subset.
-Both builds' tables are already cached: 67 for 1.60.1.69913 and 28 for 1.15.9.69722.
+Both builds' tables are already cached: 79 DB2 files for 1.60.1.69913 and 45 for 1.15.9.69722
+(plus its `shieldblockregular.txt` game table).
 
 ## Parser coverage
 
@@ -327,6 +333,7 @@ effects[]   { id, legacySlotIndex, triggerType (0 use, 1 equip, 2 chance on hit)
   4000, crit rating 6222, hit rating 4444). The scraped tooltips carry the amounts, which the
   client derives from the item-level budget. Weapon min/max damage isn't stored per item in this
   layout either; `itemDelay` and `damageType` are the facts the tooltips don't give.
+  [Items from the client](#items-from-the-client) has the formulas that turn both into amounts.
 - Consumables list the shared cooldown category of every on-use item: elixirs and flasks 79
   (3 s), potions 4 (120 s), runes 1153 (120 s), explosives 24 (60 s, Sapper also 300 s own),
   Blasted Lands 103 (3,600 s), Juju and Firewater own 60 s.
@@ -535,6 +542,7 @@ npm run scrape:client -- --refresh                # re-ask for the latest build 
 npm run scrape:client -- --claims                 # also re-check the doc claims (Classic Era 1.15.9.69722)
 npm run scrape:client -- --dbdefs=<sha>           # pin a WoWDBDefs commit
 git diff --stat src/data/client
+npm run compare:items                             # derive the pool's items from the client, compare with pre-bis.json
 ```
 
 The scraper reads `src/data/{spells,talents,races,items}/*.json` and the buffs doc to build the
@@ -556,10 +564,333 @@ For rebuilding `src/data/{spells,talents,races,items}` from client files (D17):
 | Talent layout and prerequisites | yes: `TraitNode` (`PosX`/`PosY`), `TraitEdge` (types 2 and 3 gate), `TraitNodeGroup` + `TraitNodeGroupXTraitCond` + `TraitCond` (`SpentAmountRequired` per tier), `TraitCurrency` 3820 (51 points) |
 | Race/class combinations | yes: `CharBaseInfo`, 56 pairs (Classic Era: 40) |
 | Trainer vs talent vs automatic | `SkillLineAbility.AcquireMethod`: 0 trainer (6,958 rows), 2 learned automatically (420, e.g. Heroic Strike r1, Battle Stance), 3 granted by another spell (383, e.g. the Flurry buff, Last Stand's effect), 1 (63 rows, not examined). Talents themselves come from the Trait tables, not SkillLineAbility |
-| Items | yes: `ItemSparse` 19,171 rows, `Item` 31,675, `ItemSet` 532 (+ `ItemSetSpell` 1,462), `ItemEffect` 12,571 + `ItemXItemEffect` 12,565 (Classic Era links through `ItemEffect.ParentItemID` instead), `ItemDisplayInfo` 42,047 |
+| Items | yes: `ItemSparse` 19,171 rows, `Item` 31,675, `ItemSet` 532 (+ `ItemSetSpell` 1,462), `ItemEffect` 12,571 + `ItemXItemEffect` 12,565 (Classic Era links through `ItemEffect.ParentItemID` instead), `ItemDisplayInfo` 42,047. Stats, armor and damage are derived as in [Items from the client](#items-from-the-client) |
 | Item and spell icons | `Item.IconFileDataID` directly (also `ItemModifiedAppearance` → `ItemAppearance.DefaultIconFileDataID`), `SpellMisc.SpellIconFileDataID`. **Names:** the build's own file list (`/api/files`, already fetched) maps them, e.g. 132363 → `interface/icons/ability_warrior_sunder.blp`, so wow-listfile isn't needed |
 | Spell text | `Spell.Description_lang` / `AuraDescription_lang` with `$s1`-style variables; `SpellDescriptionVariables` via `SpellXDescriptionVariables` |
-| Classic Era baseline | `wow_classic_era` 1.15.9.69722 through the same endpoint; 30 of its tables are cached. `ItemXItemEffect` and `PlayerExpectedStat` don't exist there, and several layouts differ (`SpellEffect`, `SpellCategories`, `SpellItemEnchantment` has no `Duration`), which the reader and `createSpellIndex(…, { lenient: true })` handle |
+| Classic Era baseline | `wow_classic_era` 1.15.9.69722 through the same endpoint; 45 of its tables are cached. `ItemXItemEffect` and `PlayerExpectedStat` don't exist there, and several layouts differ (`SpellEffect`, `SpellCategories`, `SpellItemEnchantment` has no `Duration`), which the reader and `createSpellIndex(…, { lenient: true })` handle |
+
+## Items from the client
+
+M1.5c rebuilds `src/data/items/pre-bis.json` from client files (D17). This first slice, M1.5c-1,
+builds the derivation and checks it against the current snapshot. It doesn't write
+`pre-bis.json` yet; that's M1.5c-2.
+
+- [`scripts/scrape/lib/item-stats.mjs`](../../scripts/scrape/lib/item-stats.mjs) holds the
+  derivation. These are pure functions with no dependencies: `deriveItem(ctx, id)` turns an
+  `ItemSparse` + `Item` row into `Stats` amounts, the `Weapon` block, the innate shield block
+  value, effect records and the set id. `deriveSet(ctx, id)` gives a set's pieces and bonuses.
+- [`scripts/scrape/items-client.mjs`](../../scripts/scrape/items-client.mjs)
+  (`npm run compare:items`) derives every pool item from both clients and compares each field.
+  It writes `.cache/client/<build>/items-compare.md` and `.json`, and exits non-zero if a field
+  the engine reads has a mismatch with no stated reason. `--fixtures` regenerates the real rows
+  the unit tests use
+  ([`lib/__fixtures__/item-stats.json`](../../scripts/scrape/lib/__fixtures__/item-stats.json),
+  tests in [`lib/item-stats.test.mjs`](../../scripts/scrape/lib/item-stats.test.mjs)).
+
+### Tables used
+
+| Table | Forever 1.60.1.69913 | Classic Era 1.15.9.69722 | Used for |
+| --- | --- | --- | --- |
+| `ItemSparse`, `Item` | cached | **fetched** | the item row; class and subclass |
+| `ItemEffect` (+ `ItemXItemEffect` in Forever) | cached | cached (links through `ParentItemID`) | use, equip and chance-on-hit spells |
+| `ItemSet`, `ItemSetSpell` | cached | **fetched** | set pieces and bonus spells |
+| `RandPropPoints` | **fetched** | **fetched** (all 300 rows are zeros) | the stat budget |
+| `ItemArmorQuality`, `ItemArmorTotal`, `ArmorLocation`, `ItemArmorShield` | **fetched** | **fetched** | armor |
+| `ItemDamageOneHand`, `…OneHandCaster`, `…TwoHand`, `…TwoHandCaster`, `…Ranged`, `…Thrown`, `…Wand` | **fetched** | **fetched** | weapon DPS |
+| `SpellEffect`, `SpellName`, `SpellCooldowns`, `SpellShapeshift` | cached | cached | equip-spell auras, names, cooldowns, form conditions |
+| `SpellCastingRequirements` | cached | **fetched** | area-restricted equip spells |
+| `gametables/shieldblockregular.txt` | not shipped | **fetched** | innate shield block value |
+
+The armor and damage tables of the two builds are identical row for row. The Forever
+`CombatRatingsMultByIlvl` and `StaminaMultByIlvl` game tables are 1.0 for every column below
+item level 341, so they don't enter the formulas. `ItemSparse.QualityModifier` is set on 427
+Forever rows (91 in the pool) but changes no amount. No pool row sets `ItemSquishEraID`, an
+item-level curve, `ContentTuningID` or a socket.
+
+### Two layouts
+
+| | Forever (`wow_classic_beta`) | Classic Era (`wow_classic_era`) |
+| --- | --- | --- |
+| Stat amounts | `StatPercentEditor[i]` = allocation in 1/10000 of the budget, of stat type `StatModifier_bonusStat[i]` | `StatModifier_bonusAmount[i]` = the amount (only primary stats in the pool) |
+| Secondary stats (ratings, AP, spell power, resistances, …) | more stat types, including Forever's own 83+ | equip spells (`ItemEffect` trigger 1) |
+| Armor, resistances | computed (below); resistances are stat types 51–56 and 124 | `Resistances[0]` armor, `[2..6]` fire, nature, frost, shadow, arcane |
+| Weapon damage | computed from `ItemDamage*` | `MinDamage[0]`/`MaxDamage[0]`; `[1]` is extra damage whose school isn't stored |
+
+### Stat budget
+
+`[F]` confirmed on every Forever pool row (2,927 stat values on 884 items, none off):
+
+```text
+budget = RandPropPoints[ItemLevel].<EpicF | SuperiorF | GoodF>[slot group]
+amount = floor(StatPercentEditor × budget / 10000 + 0.5)
+```
+
+- **Quality column:** Epic (4) and above use `EpicF`, Rare (3) `SuperiorF`, Uncommon (2) and
+  below `GoodF`. The integer columns equal the float ones in this build.
+- **Slot group:** 0 head, chest, robe, legs, two-hand; 1 shoulder, waist, feet, hands, trinket;
+  2 neck, wrist, finger, shield, back, held in off hand; 3 one-hand, main hand, off hand;
+  4 ranged (bows), thrown, ranged-right (guns, crossbows, wands), relic. Bows being in group 4,
+  not 0, was the one correction the data forced (Gorewood Bow: +9 Stamina = 8182 × 11).
+- **Rounding:** half up (`floor(x + 0.5)`), as in the retail client. No pool value lands
+  exactly on .5, so this build can't tell half-up from banker's rounding.
+
+Worked example, Lionheart Helm (12640): item level 61, Epic, head, so the budget is
+`RandPropPoints[61].EpicF[0]` = 45. Strength 4000 → 18.0 → **18**, crit rating 6222 → 27.999 →
+**28**, hit rating 4444 → 19.998 → **20**. That matches the Forever tooltip (and 2% crit × 14,
+2% hit × 10).
+
+`StatModifier_bonusStat` → `Stats` key. Types up to 56 are the retail `ItemModType` enum. The
+83+ types are Forever's own:
+
+| Type | Key | Evidence |
+| --- | --- | --- |
+| 3, 4, 5, 6, 7 | agility, strength, intellect, spirit, stamina | `[F]` pool |
+| 12, 13, 15 | defenseRating, dodgeRating, blockRating | `[F]` pool |
+| 14, 36, 44 | parryRating, hasteRating, armorPenetration | `[?]` not in the pool (retail enum) |
+| 31, 32, 37 | hitRating, critRating, expertiseRating | `[F]` pool |
+| 38, 39 | attackPower, rangedAttackPower | `[F]` pool |
+| 41, 42, 45 | healing, spellDamage, spellPower | `[F]` pool |
+| 43, 46 | mp5, healthRegen | `[F]` pool |
+| 47, 48 | spellPenetration, blockValue | `[?]` not in the pool; Classic Era rows of the same items agree |
+| 50 | bonusArmor; **the Forever tooltip adds it to the white armor line** | `[F]` 74 pool items |
+| 51, 52, 54, 55, 56 | fire, frost, shadow, nature, arcane resistance (53 holy isn't a `Stats` key) | `[F]` pool |
+| 85, 87, 88, 89 | fire, frost, shadow, arcane spell damage | `[F]` pool |
+| 124 | all five resistances ("+N Spell Resistance") | `[F]` pool |
+| 128, 136 | attackPowerVsUndead, spellDamageVsUndead | `[F]` pool |
+| 83 | weaponDamage | `[?]` Might of Cenarius: Classic Era aura 13 (physical) +4, Forever 4 |
+| 84, 86, 127, 131, 135 | holy and nature spell damage; AP vs demons, AP vs beasts; spell damage vs demons | `[?]` from the Classic Era row of the same item |
+| 90, 91, 96 | weapon skill: two-handed axes, two-handed maces, daggers | `[?]` from the Classic Era row of the same item |
+| 92, 98, 103, 112–121, 132 | other weapon, profession and spell-penetration skills, AP vs a creature type | unknown; not mapped, and `deriveItem` reports them in `unknownStatTypes` |
+
+### Armor
+
+`[F]` confirmed on all 884 Forever pool rows:
+
+```text
+cloth–plate: armor = floor(ItemArmorQuality[ilvl].Qualitymod[quality]
+                           × ItemArmorTotal[ilvl].<Cloth|Leather|Mail|Plate>
+                           × ArmorLocation[inventoryType].<Cloth|Leather|Chain|Plate>modifier + 0.5)
+             (robes use the chest row; cloaks are cloth with location 16)
+shields:     armor = floor(ItemArmorShield[ilvl].Quality[quality] + 0.5)
+tooltip armor = armor + stat 50 (bonus armor)
+```
+
+Lionheart Helm: 1.2 × 3619.31 × 0.13 = 564.6 → **565**. Burrow Barricade (274418, Rare
+shield, item level 58): `ItemArmorShield[58].Quality[3]` = 1,994, plus stat 50 at 43160 × 19 /
+10000 = 82, gives the tooltip's **2,076**. 74 pool items carry stat 50 (63 changed, 10 new, 1
+unchanged). It explains most of the "armor changes" that
+[items.md](items.md#how-heavily-forever-re-itemized-the-pool) counts, such as Whitesoul Helm 509
+→ 629. On 63 of the 70 changed items whose armor moved, the base armor is still Classic's and
+Forever added bonus armor. The other 7 have lower base armor: six Timbermaw and Argent Dawn
+reputation pieces (for example Gloves of the Dawn 417 → 398), and Emerald Circle, which lost
+its armor. `deriveItem` keeps the two apart (`armor`, `bonusArmor`) so the engine can tell
+them apart, for example for bear form.
+
+### Weapon damage
+
+`[F]` confirmed on all 51 Forever pool weapons:
+
+```text
+dps     = ItemDamage<table>[ilvl].Quality[quality]
+          table: TwoHand (inventory type 17), OneHand (13, 21, 22), Ranged (bows, guns, crossbows),
+                 Thrown, Wand; the Caster tables (ItemFlags2 0x200) equal the others in this build
+average = dps × ItemDelay / 1000
+min     = floor(average × (1 − DmgVariance / 2))
+max     = floor(average × (1 + DmgVariance / 2) + 0.5)
+tooltip dps = round((min + max) / 2 / speed, 1)
+```
+
+Arcanite Reaper (12784; Forever makes it Rare, item level 63): 53.945 × 3.8 = 204.99; min
+floor(153.74) = **153**, max floor(256.74) = **256**, 53.8 DPS. Classic Era stores the damage
+instead; its tooltip DPS includes the extra damage (Warblade of Caer Darrow 142–214 + 1–22 Frost =
+57.4).
+
+**Caster weapons `[?]`.** A Forever weapon with `Flags[4]` bit 0x100 plus 0x200 (spell power)
+or 0x400 (healing) gives up DPS for spell power worth 2 × the group-0 budget of its quality at
+its item level, whatever its slot. For example, Whiteout Staff and Shivsprocket's Shiv (both
+item level 65, Rare, `SuperiorF[0]` = 37) show **+74 Spell Power**, and Elderwild Construction
+Hammer (60, 34) shows +68. Healing weapons get 3.75 × and 1.25 × that group-0 budget as
+healing and spell damage (Simone's Cultivating Hammer: +139 Healing, +46 Spell Damage). The
+DPS falls by **0.195 per point** of that spell power (2 × budget). That constant is a fit, not a
+known formula: scanning 0.190–0.200, only 0.19494–0.19505 reproduces all seven pool weapons'
+min and max. Crackling Staff has spell power in its own stats (+25). It takes the same DPS cut
+but doesn't get the extra 74, so the derivation adds the caster spell power only to weapons
+whose stats have no spell power, healing or spell damage. That rule rests on a single item.
+
+### Block value
+
+- **Forever:** block value is stat type 48 (12 items in the whole client, none in the pool:
+  The Immovable Object, Clobrok's Block Rock, Sawyer Family Seal, …). **The client has no innate
+  shield block value.** It doesn't ship `gametables/shieldblockregular.txt`, and no shield row
+  carries a block field. Whether the server gives shields a base block value is an open
+  question (below).
+- **Classic Era:** equip spells give block chance (aura 51) and block value (aura 564; 158 in
+  older clients). The innate value comes from `ShieldBlockRegular[ilvl].<quality>`, for example
+  Barrier Shield (item level 62, Rare) 39. The foreverchanges tooltips print neither innate
+  value, so the snapshot has none, and `deriveItem` returns it as `shieldBlockValue`, separate
+  from `stats.blockValue`.
+
+### Aura → stat
+
+Equip spells (`ItemEffect` trigger 1) whose every aura is in this table become stats. Other
+equip spells stay effect records. `AURA_STAT` in `item-stats.mjs` is the single copy of this
+table. Points are `EffectBasePointsF` (Forever) or `EffectBasePoints + 1` when
+`EffectDieSides ≥ 1` (Classic Era).
+
+| Aura | Name | Misc value | Stat |
+| --: | --- | --- | --- |
+| 13 | MOD_DAMAGE_DONE | school mask: 126 all magic, one school bit, 1 physical | spellDamage, `<school>SpellDamage`, weaponDamage |
+| 135 | MOD_HEALING_DONE | | healing (13 + 135 of equal size → spellPower) |
+| 22 | MOD_RESISTANCE | school mask: 1 armor, 4 fire, 8 nature, 16 frost, 32 shadow, 64 arcane | bonusArmor, resistances |
+| 29 | MOD_STAT | 0–4 stat, −1 all | strength, agility, stamina, intellect, spirit |
+| 30 | MOD_SKILL | 95 Defense, weapon skill lines (43 Swords, 44 Axes, 54 Maces, 173 Daggers, …) | defense, `weaponSkill` |
+| 47, 49, 51 | MOD_PARRY / DODGE / BLOCK_PERCENT | | parry, dodge, block |
+| 52 | MOD_WEAPON_CRIT_PERCENT | | crit (the tooltip's "with melee attacks" wording is `meleeCrit` in the snapshot; the engine adds both to melee crit) |
+| 54, 55 | MOD_HIT_CHANCE, MOD_SPELL_HIT_CHANCE | | hit, spellHit |
+| 57, 71, 552 | spell crit (552 is Classic Era 1.15's number) | 126 for 71 and 552 | spellCrit |
+| 99, 124 | MOD_ATTACK_POWER, MOD_RANGED_ATTACK_POWER | | attackPower (the melee value); ranged beyond it → rangedAttackPower |
+| 102, 131 | MOD_MELEE / RANGED_ATTACK_POWER_VERSUS | creature-type mask: 1 beast, 2 dragonkin, 4 demon, 8 elemental, 16 giant, 32 undead, 64 humanoid, 256 mechanical | `attackPowerVs<Type>` (the ranged twin is dropped) |
+| 180 | MOD_FLAT_SPELL_DAMAGE_VERSUS | creature-type mask | `spellDamageVs<Type>` |
+| 123 | MOD_TARGET_RESISTANCE | school mask | spellPenetration (negated) |
+| 85 | MOD_POWER_REGEN | 0 mana | mp5 |
+| 84, 161 | MOD_REGEN, MOD_HEALTH_REGEN_IN_COMBAT | | hp5 ("Restores N health per 5 sec") |
+| 158, 564 | shield block value (564 is Classic Era 1.15's number) | | blockValue |
+| 189 | MOD_RATING | combat-rating mask | ratings `[?]` (no pool item uses it) |
+
+Not stats: an equip spell with aura 15 (damage shield, "when struck"), 42 or 43 (proc
+triggers) is a **proc**. One with a `SpellCastingRequirements.RequiredAreasID` or a
+`SpellShapeshift.ShapeshiftMask` is a **conditional** effect, which carries its would-be stats.
+For example, Rune of the Guard Captain's "tripled in Forest and Grassland areas" is spell
+1287704 (+28 AP, area group 9161), next to the always-on +14 AP of spell 1318000. Anything
+else, such as class-ability tweaks (auras 107/108), run speed, stealth detection or dummies, is
+an **equip** effect record. Every effect record keeps
+`{ trigger, kind, spellId, name, cooldownMs, categoryCooldownMs, categoryId, charges }`. Use
+effects show the item's cooldown, else the category's: Stormpike Insignia is 0 ms with a
+120 s category cooldown, and its tooltip reads 2 min.
+
+**Sets:** `ItemSparse.ItemSet` → `ItemSet` (name, up to 17 `ItemID`s) and `ItemSetSpell`
+(`SpellID`, `Threshold` = pieces, `ChrSpecID`). A bonus whose spell is all stat auras gets
+`stats`; the rest keep their spell and unmapped auras.
+
+### Comparison with the snapshot
+
+`npm run compare:items`, run 2026-09-22 against `pre-bis.json` as scraped that day. Rates count
+only items that have a row in the compared build.
+
+| Compared | Fields | Match | Engine-read fields | Match |
+| --- | --: | --: | --: | --: |
+| Forever-stat items (884 with a Forever row) vs the Forever row | 8,328 | 99.9% | 3,974 | 3,973 |
+| Unchanged hotfix-only items (21) vs the Classic Era row | 223 | 100% | 104 | 104 |
+| `statsFrom: "classic"` items (650) vs the Classic Era row | 6,150 | 99.8% | 2,801 | 2,800 |
+| Changed items' `classic` block (494) vs the Classic Era row | 2,704 | 99.96% | 2,334 | 2,334 |
+| Sets with Forever bonuses (89) vs Forever `ItemSetSpell` | 267 | 95.9% | 89 | 78 |
+| Sets with Classic bonuses (13) vs Classic Era `ItemSetSpell` | 39 | 100% | 13 | 13 |
+
+Per field, the Forever comparison matches **100%** on every primary stat, armor (714 items),
+crit, hit, defense, dodge, block and expertise rating, spell power, healing, spell damage,
+resistances, mp5 and health regeneration. It also matches every weapon's min, max, speed, DPS,
+school and skill (51), every set id (884) and every use-effect count. `attackPower` matches
+87/88. The full per-field table is in the report.
+
+Every mismatch has a class:
+
+| Class | Count (engine-read) | What and examples |
+| --- | --: | --- |
+| No client row | 110 (110) | Forever-stat items with no Forever `ItemSparse` row: the 50 hotfix-only items of the [hotfix caveat](#hotfix-caveat) and the 60 seen-in-game items. See [Coverage](#coverage) |
+| Old tooltip or parser error | 9 (3) | the snapshot is wrong or incomplete and the client is right. Rune of the Guard Captain's +14 AP, Seal of the Dawn's +81 AP vs Undead and Rune of the Dawn's +48 spell damage vs Undead sit on lines with a second sentence, so the old parser kept them as text. Devilsaur Leggings gives 48 ranged AP, but the tooltip prints "+46 Attack Power". Devilsaur Armor's set bonus grants spell hit as well as hit. Nat Pagle's Broken Reel and Draconic Infused Emblem have a 75 s cooldown, but the tooltip prints "1 Min" |
+| Equivalent | 10 (10) | set bonuses with aura 52, which the tooltip words "with melee attacks" (`meleeCrit`) and the derivation calls `crit`; the engine adds both to melee crit (Blood Tiger Harness, the Highlander's and Defiler's sets, Black Dragon Mail) |
+| Effect bucket | 9 (0) | the same effect sorted differently: "Adds 4 Fire damage to your weapon attack" is a proc aura (42) that the snapshot files under other equip effects (Fiery Plate Gauntlets, Storm Gauntlets, Fiery Retributer). Arcanite Dragonling has a hidden Forever equip dummy (1318325). Seal of Ascension's tooltip lacks its use and equip lines |
+| Likely hotfix | 3 (0) | the Undermine trinkets (Adaptive Combat Assistant, Weakness Analyzer, Serenity Field): the raw `ItemEffect` says a 90 s cooldown (15 s shared category 1141), the tooltip 2 min |
+| Client layout | 2 (0) | Classic Era stores one `DamageType`, so the Frost school of Warblade of Caer Darrow's and Iceblade Hacker's extra damage isn't in the row |
+| Formula gap, rounding | 0 | none left. The iterations fixed the bow slot group, extra damage in DPS, AP pairs of unequal size, area-restricted spells, category cooldowns, caster weapons and thorns (aura 15, now a proc as in the snapshot) |
+
+**Stale Classic set bonuses (7, engine-read).** Thirteen sets get their bonuses from Classic Era
+in the snapshot, because no piece has a Forever tooltip. Seven of them have **different bonuses
+in Forever's own `ItemSetSpell`**:
+
+| Set | Classic Era (snapshot) | Forever client |
+| --- | --- | --- |
+| 124 Deathbone Guardian | 2: +3 defense · 3: +50 armor · 4: +15 all resistances · 5: +1% parry | 2: +3 defense · 3: spell · 4: +5 all resistances · 5: spell |
+| 1 The Gladiator | 2: +20 armor · 3: +2 defense · 4: +10 AP · 5: +1% crit | 2: spell · 3: +20 AP · 4: spell · 5: spell (and a sixth piece, 277117) |
+| 123 Bloodmail Regalia | 2: +3 defense · 3: +10 AP · 4: +15 all res · 5: +1% parry | 2: +10 AP · 3: spell · 4: +5 all res · 5: +21 crit rating |
+| 121 Cadaverous Garb | 2: +3 defense · 3: +10 AP · 4: +15 all res · 5: +2% hit | 3: +10 AP · 3: spell · 4: +5 all res · 5: +2% hit and spell hit |
+| 122 Necropile Raiment | 2: +3 defense · 3: +5 Int · 4: +15 all res · 5: +23 SP | 2: +5 hit rating · 3: spell · 4: +5 all res · 5: +23 SP |
+| 81 The Postmaster | 2: +50 armor · 3: +10 fire/arcane res · 4: +12 SP · 5: +10 Int, spell | 2: spell · 3: +23 SP · 4: spell · 5: +1% hit and spell hit |
+| 520 Ironweave Battlesuit | 4: spell · 8: +200 armor | 2: +200 armor · 3: +5 spell pen · 4: spell · 5: +23 SP · 6: spell |
+
+### Coverage
+
+| | Items |
+| --- | --: |
+| Pool | 1,644 |
+| Forever `ItemSparse` row | 884 |
+| **No Forever row, Classic Era row present** (would fall back to Classic stats, flagged, per D6/D17) | **744** |
+| **No row in either client** (would leave the pool) | **16** |
+
+The 744 Classic fallbacks are the 650 "missing" items and the 60 seen-in-game items (both
+described in [items.md](items.md)), plus 34 of the 50 hotfix-only items:
+
+- **21 unchanged** (13113 Feathermoon Headdress, 13002 Lady Alizabeth's Pendant, 13120 Deepfury
+  Bracers, 871 Flurry Axe, 4091 Widowmaker, 13015 Serathil, …). Their Classic Era rows
+  reproduce the snapshot exactly (223 of 223 fields), so the fallback loses nothing.
+- **13 changed:** 13007 Mageflame Cloak, 13072 Stonegrip Gauntlets, 16717 Wildheart Gloves,
+  16724 Lightforge Gauntlets, 16685 Magister's Belt, 16702 Dreadmist Belt, 16716 Wildheart
+  Belt, 16736 Belt of Valor, 13101 Wolfrunner Shoes, 14549 Boots of Avoidance, 11811 Smoking
+  Heart of the Mountain, 868 Ardent Custodian and 13146 Shell Launcher Shotgun. **A fallback
+  would lose their Forever changes.** Most are percentages reworded as ratings (Stonegrip
+  Gauntlets +10 defense → +10 defense rating, Boots of Avoidance 2% dodge → 24 dodge rating).
+  Some change values: Belt of Valor +8 → +12 Stamina and +6 defense rating, Dreadmist Belt, and
+  Smoking Heart of the Mountain with no armor line in Forever.
+
+The 16 with no row anywhere are all new Forever items, hotfix-only: 272491 Premier Chain
+Headguard, 271907 Expeditionary's Cape, 272063 Darkspear Raider's Cloak, 272411 Arcanoweave
+Cloak, 272414 Howler's Furs, 272415 Stalwart Cloak, 284261 Magically Fortified Legguards,
+271924 Rebels' Rugged Reaper, 272079 Darkspear Raider's Reaper, 284257 Icesworn Decapitator,
+271928 Clever Expeditionary's Spellblade, 271936 Guerilla's Jagged Mace, 272083 Darkspear
+Insurgent's Spellblade, 272091 Darkspear Skirmisher's Bludgeon, 271932 Insurgent's Manifesto
+and 272087 Tome of the Darkspear Prophecy.
+
+**Pre-raid BiS lists** ([`pre-raid-bis.json`](../../scripts/scrape/pre-raid-bis.json), 159
+items): **none lacks a row in both clients**. 117 have no Forever row: 103 "missing", 6 seen in
+game, 4 unchanged hotfix-only (Deepfury Bracers, Flurry Axe, Widowmaker, Serathil) and 4 changed
+hotfix-only (Stonegrip Gauntlets, Boots of Avoidance, Smoking Heart of the Mountain, Ardent
+Custodian).
+
+### Open questions
+
+- `[?]` **Shield block value in Forever.** The client ships no `ShieldBlockRegular` table and no
+  per-shield block value. Does the server give shields an innate block value, and how much?
+  Guild test: the character sheet's block value with and without a shield equipped.
+- `[?]` **Caster-weapon DPS.** The 0.195-DPS-per-spell-power cut and "no extra spell power when
+  the stats carry some" are fits to 7 and 1 items. A caster weapon's tooltip at another item
+  level or quality would confirm them.
+- `[?]` **Hotfix-only rows.** 50 pool items (and all 16 no-row-anywhere items) exist only as
+  server hotfixes, and the Undermine trinkets' cooldowns look hotfixed. The raw client files
+  can't show these; wago.tools' documented API has no hotfix endpoint.
+- `[?]` **Stat types** 92, 98, 103, 112–121 and 132 are unmapped (no pool item uses them). 83,
+  84, 86, 90, 91, 96, 127, 131 and 135 are inferred from Classic Era rows.
+- `[?]` **Round half.** No pool value lands on .5, so half-up and banker's rounding can't be
+  told apart yet.
+
+### What M1.5c-2 needs to know
+
+1. **Armor split:** Forever tooltips add stat-50 bonus armor to the white armor line. The
+   derivation returns `armor` and `bonusArmor` separately. Decide which the dataset keeps, and
+   whether bear form multiplies bonus armor.
+2. **Hotfix-only items:** a Classic fallback is exact for the 21 unchanged ones, but regresses
+   the 13 changed ones (4 on BiS lists), and 16 new items have no row at all. Either keep their
+   snapshot values as a documented override, or accept the fallback and drop the 16 from the
+   pool.
+3. **Sets:** take bonuses from Forever's `ItemSetSpell` even when every piece falls back to
+   Classic stats. Seven sets' bonuses differ (table above), and the Forever PvP sets list new
+   272xxx/273xxx/274xxx piece ids.
+4. **Shield block value:** Classic fallback shields have an innate value (`shieldBlockValue`,
+   from `ShieldBlockRegular`), Forever shields have none. Decide what the engine uses, pending
+   the open question.
+5. **Effects** come as spell records (`use`, `proc`, `equip`, conditional). Tooltip text still
+   has to be rendered from `Spell.Description_lang` if the UI keeps showing it.
+6. Use `rangedAttackPower` only for extra ranged AP. Treat `meleeCrit` and aura 52's `crit` as
+   the same stat, or keep the tooltip's distinction deliberately.
 
 ## Attribution
 

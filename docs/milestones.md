@@ -122,10 +122,37 @@ work is in slices:
 
 ## Session handoff (2026-09-23)
 
-State: `main` is green: lint, typecheck, 567 unit tests, and 23 e2e (3 deferred to M3).
-Nothing is pushed. M1.5 is done: every dataset comes from the Forever client and
-foreverchanges is retired. Fury and Arms are **available**. Next: M2.4a, then the review gate
-(M2.4b and M2.4c can run in parallel), then the first push when the user asks.
+State: `main` is green (lint, typecheck, 585 unit, 26 e2e with 3 deferred to M3). Nothing is
+pushed. Fury and Arms are available. M2.4a is done; the review gate is in progress, logged in
+[reviews/2026-09-23-first-release.md](reviews/2026-09-23-first-release.md): 38 logic and 32 UX
+findings.
+
+**In flight** (one agent per slice, each in a `.claude/worktrees/` worktree, uncommitted until
+the lead verifies):
+- Logic fixes:
+  - F1a engine and effects
+  - F1b warrior and rotations
+  - F1c config and gear
+  - F2 data pipeline
+  - F3 Classic Era profile values
+- UX fixes:
+  - UX-A results and run states
+  - UX-C app shell and accessibility
+
+**Merge plan:**
+- Verify and commit each slice on its branch, then cherry-pick onto `main` one at a time.
+- Resolve the golden snapshot once all logic slices are in: re-run it and explain every
+  change in the commit.
+- F2 reported edits for files it doesn't own (`profiles.ts` Demoralizing Shout, the
+  `abilities.ts` Execute comment); the lead applies them.
+- Then dispatch UX-B1 (Rotation) and UX-B2 (setup screens), which touch files F1b and F1c own.
+
+**Then:**
+- Re-review what changed since the review (a short logic and UX pass on the fixes).
+- Update each finding's disposition with its commit and set the verdict.
+- Push only when the user asks.
+- Open decision for the user: whether Arms defaults should follow the tuning findings
+  (Heroic Strike 55, Whirlwind dance, Spearing Strike 40, Rend refresh 3 s).
 
 ## M3: Warrior Protection (TPS) 💤
 

@@ -420,7 +420,8 @@ Every view handles these states:
 - **A toast never hides the focused control.** While toasts are up, the page's bottom scroll
   padding clears them as it does the phone's bar (`--toast-clearance`, measured by
   `src/app/toaster.tsx`), so focus moving on under a toast that waits for Dismiss scrolls clear
-  of it (WCAG 2.4.11).
+  of it (WCAG 2.4.11). The page's bottom padding grows to match, so there's room to scroll even
+  its last control, the footer's link, clear.
 - **Alt+T** (Option+T) is the keyboard's way to the toasts: it moves focus to the newest toast's
   Undo (sonner's hotkey focuses the toast list and spreads the toasts out, and
   `src/app/toaster.tsx` moves focus on to Undo). Escape in a toast dismisses an undo toast, and

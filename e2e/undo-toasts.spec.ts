@@ -158,6 +158,19 @@ for (const [width, device] of [
       await expect(toast).toBeVisible()
     })
 
+    test('leaves room for the page’s last control, the footer link, to scroll clear of it', async ({ page }) => {
+      await page.goto('./')
+      await gearMenuByKeyboard(page, 'Remove all gear')
+      const toast = toasts(page).filter({ hasText: 'All gear removed' })
+      await expect(toast).toContainText(/to reach Undo/)
+      await expect.poll(() => toast.evaluate((el) => el.getAnimations().length)).toBe(0)
+      await page.getByRole('link', { name: 'wago.tools' }).focus()
+      const covered = () =>
+        toast.evaluate((el) => Math.max(0, document.activeElement!.getBoundingClientRect().bottom - el.getBoundingClientRect().top))
+      await expect.poll(covered).toBe(0)
+      await expect(toast).toBeVisible()
+    })
+
     test('clears the focused control even when focus moves on while it’s still sliding in', async ({ page }) => {
       await page.goto('./')
       // A tenth of the speed, so focus surely moves on mid-slide.

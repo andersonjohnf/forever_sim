@@ -96,7 +96,11 @@ export default function App() {
   return (
     <div className="min-h-svh bg-background">
       <Header />
-      <main className="mx-auto max-w-7xl px-4 pb-32 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10 lg:pb-12">
+      {/*
+       * The bottom padding clears the phone's sim bar, and a toast that waits for Dismiss too, so
+       * the page's last control (the footer's link) can scroll clear of it (docs/ux.md).
+       */}
+      <main className="mx-auto max-w-7xl px-4 pb-[max(8rem,calc(var(--toast-clearance,0px)+0.5rem))] lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10 lg:pb-[max(3rem,calc(var(--toast-clearance,0px)+0.5rem))]">
         {/*
          * Manual activation: arrow keys move between tabs, Enter or Space opens one. A toast hands
          * focus back to where it was when you leave it, so with automatic activation a tab you

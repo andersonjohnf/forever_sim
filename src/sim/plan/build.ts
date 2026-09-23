@@ -666,6 +666,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (abilities.some((a) => a.costTenths > 0)) notes.add('abilityRefunds')
   const queues = abilities.some((a) => a.kind === 'onNextSwing')
   if (queues && mh) notes.add('onNextSwingRage')
+  // What the rotation's settings rest on without an ability that shows it (Arms' Heroic Strike off).
+  if (mh) for (const { id, detail } of classRot.assumes ?? []) notes.add(id, detail)
   if (queues && weapons[HAND.off]) notes.add('onNextSwingOffHand')
   if (setup.talents.has('Unbridled Wrath') && mh) notes.add('unbridledWrathSwings')
   if (abilities.some((a) => a.offHandSource >= 0)) notes.add('ragingBlows')

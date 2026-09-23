@@ -566,6 +566,22 @@ describe('assumptions', () => {
     for (const id of ['overpowerWindow', 'bloodthrill', 'slamCast', 'spearingStrike', 'rendTickCrits', 'rendOnHit']) expect(fury).not.toContain(id)
   })
 
+  it('lists Heroic Strike’s swing rage for Arms even with Heroic Strike off, since its default rests on it (warrior.md §5.3 notes)', () => {
+    const note = (config: SimConfig) => buildPlan(config).assumptions.find((a) => a.id === 'onNextSwingRage')?.text
+    const arms = defaultConfig('warrior-arms')
+    const plain = 'A Heroic Strike swing generates no rage from its damage, as in Classic Era and as Forever players report; unmeasured.'
+    expect(note(arms)).toBe(
+      'A Heroic Strike swing generates no rage from its damage, as in Classic Era and as Forever players report; unmeasured: it’s why Arms leaves Heroic Strike off by default.',
+    )
+    // Turned on, it's the plain note, as Fury's.
+    expect(note({ ...arms, rotation: { 'warrior.arms.heroicStrike.enabled': true } })).toBe(plain)
+    expect(note(defaultConfig('warrior-fury'))).toBe(plain)
+    // Fury with Heroic Strike off doesn't rest on it; nor does an Arms warrior with no weapon, who swings nothing.
+    expect(note({ ...defaultConfig('warrior-fury'), rotation: { 'warrior.fury.heroicStrike.enabled': false } })).toBeUndefined()
+    const { mainHand: _, ...unarmed } = arms.gear
+    expect(note({ ...arms, gear: unarmed })).toBeUndefined()
+  })
+
   it('surfaces Execute’s rage tenths whenever Execute is used, and Improved Bloodrage’s rounding only at 1/2 (warrior.md §7, Q28, Q29)', () => {
     const ids = (config: SimConfig) => buildPlan(config).assumptions.map((a) => a.id)
     const fury = defaultConfig('warrior-fury')

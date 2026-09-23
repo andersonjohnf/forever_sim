@@ -6,6 +6,7 @@
 // threshold is in absolute rage points (§5.1).
 import { GCD_MS, toTenths } from '../../core/formulas'
 import type { OnUseSpec, ProcSpec } from '../../effects/types'
+import type { AssumptionId } from '../../plan/assumptions'
 import { COND, type PrepullPlan, type RotationCondition, type RotationEntry } from '../../plan/types'
 import { FOREVER, type RulesProfile } from '../../rules/profiles'
 import type { CreatureType, RotationGroup, RotationOption, RotationValue } from '../../types'
@@ -33,6 +34,17 @@ export interface ClassRotation {
   onUse: string[]
   /** Procs the rotation needs: the Overpower window's openers when it uses Overpower (warrior.md §2.8). */
   procs: ProcSpec[]
+  /**
+   * [?] assumptions the rotation's settings rest on though no ability it uses shows them, with a
+   * note why (Arms: Heroic Strike is off by default because its swing is reported to give no rage,
+   * warrior.md §5.3 notes). The plan lists them.
+   */
+  assumes?: RotationAssumption[]
+}
+
+export interface RotationAssumption {
+  id: AssumptionId
+  detail: string
 }
 
 /** What the rotation needs from the rest of the setup. */
@@ -157,7 +169,7 @@ export const battleShoutOptions = (ids: SharedIds, refreshBelowSec = 3): Rotatio
     id: ids.bsRefresh,
     group: 'Cooldowns and buffs',
     label: 'Shout again with',
-    help: 'Refresh it when this much of it is left, unless the fight ends first.',
+    help: 'Refresh it when this much of it is left, unless the fight ends first. At 0, it shouts again once it has run out.',
     unit: 's left',
     min: 0,
     max: 30,
@@ -371,6 +383,7 @@ export class RotationBuilder {
   readonly rotation: RotationEntry[] = []
   readonly prepull: PrepullPlan = { casts: [], chargeTenths: 0, keepTenths: -1 }
   readonly procs: ProcSpec[] = []
+  readonly assumes: RotationAssumption[] = []
   readonly talents: TalentRanks
 
   constructor(talents: TalentRanks) {
@@ -412,7 +425,7 @@ export class RotationBuilder {
   }
 
   result(onUse: string[]): ClassRotation {
-    return { abilities: this.abilities, rotation: this.rotation, prepull: this.prepull, onUse, procs: this.procs }
+    return { abilities: this.abilities, rotation: this.rotation, prepull: this.prepull, onUse, procs: this.procs, assumes: this.assumes }
   }
 }
 

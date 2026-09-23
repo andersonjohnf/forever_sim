@@ -197,7 +197,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
     id: ID.exMortalStrike,
     group: 'Execute phase',
     label: 'Mortal Strike in the execute phase',
-    help: 'Keep using Mortal Strike in the execute phase, ahead of Execute. With rage to spare, its 30 rage does more there than as an Execute’s extra rage.',
+    help: 'Keep using Mortal Strike in the execute phase, ahead of Execute. With rage to spare, 30 rage does more as a Mortal Strike than as extra damage on an Execute.',
     default: true,
     dependsOn: ID.exEnabled,
   },
@@ -262,7 +262,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
   ),
   ...heroicStrikeOptions(ID, 125, {
     default: false,
-    help: 'Queue Heroic Strike on the next main-hand swing. Off by default: its swing gives no rage, so the rage does more in Slam, Mortal Strike, Hamstring and Execute. If you turn it on, 125 keeps it for rage that would hit the cap.',
+    help: 'Queue Heroic Strike on the next main-hand swing. Off by default: its swing is reported to give no rage (unmeasured), so the rage does more in Slam, Mortal Strike, Hamstring and Execute. If you turn it on, keep “Heroic Strike from” (under Advanced) at 125 or more, so it only spends rage the cap would waste.',
   }),
   {
     kind: 'toggle',
@@ -424,8 +424,10 @@ export function armsRotation(
   }
 
   // Row 13: the Heroic Strike queue (off the GCD) at rage ≥ minRage, outside the execute phase; a
-  // queued one is cancelled when the phase starts (shared.ts).
-  heroicStrikeLine(b, v, ID, outside)
+  // queued one is cancelled when the phase starts (shared.ts). Off, as by default, the result still
+  // lists the [?] that its swing gives no rage: the default rests on it (§5.3 notes).
+  if (v.on(ID.hsEnabled)) heroicStrikeLine(b, v, ID, outside)
+  else b.assumes.push({ id: 'onNextSwingRage', detail: 'it’s why Arms leaves Heroic Strike off by default' })
 
   // Row 14: Hamstring (on by default, from 40) at rage ≥ minRage, GCD-safe for every ability above
   // it with a cooldown (Mortal Strike, Slam, Spearing Strike, Whirlwind), outside the execute phase.

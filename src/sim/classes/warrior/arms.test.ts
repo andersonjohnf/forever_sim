@@ -326,6 +326,11 @@ describe('armsRotation (warrior.md §5.3)', () => {
     expect(potion(berserker, false).lines.map((e) => e.conditions)).toEqual([[last(20000), maxRage(550)]])
   })
 
+  it('row 13: with Heroic Strike off, the result still lists the assumption its default rests on', () => {
+    expect(armsRotation({}, TALENTS, noAura).assumes).toEqual([{ id: 'onNextSwingRage', detail: expect.stringContaining('off by default') }])
+    expect(armsRotation({ 'warrior.arms.heroicStrike.enabled': true }, TALENTS, noAura).assumes).toEqual([])
+  })
+
   it('row 16: with the talent, Death Wish before the racial, which waits for it as Fury’s does', () => {
     const talents = new Map([...TALENTS, ['Death Wish', 1]])
     const r = armsRotation({}, talents, noAura, { race: 'horde-orc' })

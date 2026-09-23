@@ -1010,8 +1010,10 @@ Notes:
   1.5 s measured −0.32% and 2.5 s −0.12%, and 0 s −0.03%, its interval reaching zero (below).
   So Rend's worth is mostly Bloodthrill's uptime, not its 28-damage ticks.
 - **Heroic Strike** (row 13) is off by default. Its swing replaces a white swing that would have
-  given 15.75 rage with the default 3.5 s two-hander, and gives none
-  ([§2.4](#24-heroic-strike-and-cleave-on-next-swing)), so it costs its 12 rage plus that swing's.
+  given 15.75 rage with the default 3.5 s two-hander, and is reported to give none
+  ([§2.4](#24-heroic-strike-and-cleave-on-next-swing); unmeasured [?]), so it costs its 12 rage
+  plus that swing's. Since the default rests on that report, Arms' result lists the assumption
+  even with Heroic Strike off.
   For about 157 more damage than the swing, that's the worst use of rage Arms has: Slam, Mortal
   Strike, Overpower and Hamstring all do more with it, and Execute turns what's left into 15
   damage a point. Against the tuned defaults, every threshold from 30 to 120 measured below off

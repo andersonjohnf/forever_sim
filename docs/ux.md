@@ -354,9 +354,16 @@ Era's) start in view rather than under the tabs.
 - **Controls** meet 3:1 against what's behind them (WCAG 1.4.11), in both themes. Text fields,
   selects, segmented choices and outline buttons draw their edge with `--input`: a mid gray in
   light mode (3.6:1 on the page and cards, 3.3:1 on muted rows) and white at 38% in dark mode
-  (3.5:1 and 3.4:1), whose fields fill with 30% of it. An unchecked switch's track uses its own
-  token, `--switch-off`, rather than the input border color. Cards and dividers keep the fainter
-  `--border`: they separate content and aren't controls.
+  (3.5:1 and 3.4:1), whose fields fill with 30% of it. An outline button takes it whatever its
+  slot, so one that opens a menu ("Gear options") does too. So does an outline badge that's the
+  face of a button (the gear flags, which open a popover); a badge that only labels keeps the
+  fainter edge. An unchecked switch's track uses its own token, `--switch-off`, rather than the
+  input border color. Cards and dividers keep the fainter `--border`: they separate content and
+  aren't controls.
+- **The destructive button** (Delete, once a save's row asks) is red text on a tint of it. Inside
+  it the red is darker in light mode (red-800) and lighter in dark mode (red-300) than the theme's,
+  so its text is AA at rest and on hover: 6.9:1 and 5.7:1 in light, 6.2:1 and 4.8:1 in dark. Its
+  focus ring is the app's.
 - **The focus ring** meets 3:1 too. The shadcn components draw it at half strength
   (`ring-ring/50`), so the `--ring` token is near-black in light mode and light gray in dark
   mode, which puts the composited ring at about 3.7:1 or more on the page, on cards and

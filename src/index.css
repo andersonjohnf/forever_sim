@@ -193,10 +193,45 @@
   /*
    * An outline button's edge is --border in light mode (shadcn's), too faint for a control. It
    * takes the control edge instead, as it already does in dark mode, so a stepper matches its field.
+   * Whatever its slot: an outline button that opens a menu or a popover is that trigger's element
+   * ("Gear options" is a dropdown-menu-trigger). An outline badge isn't a control, so it keeps the
+   * fainter edge, unless it's the face of one (below).
    */
-  [data-slot='button'][data-variant='outline'] {
+  [data-variant='outline']:not([data-slot='badge']) {
     --border: var(--input);
   }
+  /*
+   * An outline badge inside a button or link is that control's only visible edge (the gear flags,
+   * "Classic stats" and "Effect not simulated", which open a popover), so it takes the control edge
+   * too (WCAG 1.4.11). A badge that only labels something keeps --border.
+   */
+  :is(button, a) [data-slot='badge'][data-variant='outline'],
+  [data-slot='badge'][data-variant='outline']:is(button, a) {
+    --border: var(--input);
+  }
+  /*
+   * The destructive button (Delete in a save's row, once it asks) draws its text in --destructive
+   * on a 10% tint of it, 20% on hover (20% and 30% in dark mode). The theme's red is 4.0:1 there in
+   * light mode and 3.3:1 on hover, and 3.8:1 on hover in dark mode, under AA's 4.5:1 for text. Inside
+   * the button it's darker in light mode (Tailwind's red-800) and lighter in dark mode (red-300):
+   * 6.9:1 and 5.7:1 on hover in light, 6.2:1 and 4.8:1 in dark, on the sheet's surface.
+   */
+  [data-slot='button'][data-variant='destructive'] {
+    --destructive: oklch(0.444 0.177 26.899);
+  }
+  .dark [data-slot='button'][data-variant='destructive'] {
+    --destructive: oklch(0.808 0.114 19.571);
+  }
+}
+
+/*
+ * A destructive button's focus ring is the app's, 3.7:1 or more (docs/ux.md "The focus ring"),
+ * rather than shadcn's red at 20% (40% in dark mode): 1.4:1, and 2.0:1 in dark mode. Outside the
+ * layers, so it outranks the variant's focus-visible utilities.
+ */
+[data-slot='button'][data-variant='destructive']:focus-visible {
+  --tw-ring-color: color-mix(in oklab, var(--ring) 50%, transparent);
+  border-color: var(--ring);
 }
 
 /*

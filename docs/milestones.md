@@ -136,16 +136,16 @@ work is in slices:
         don't reduce it, and hits from several attackers each count.
   - [x] **M2.4i Review of e–h:** the full logic and UX reviews for new work, then a
         verification pass (D20).
-  - [ ] **M2.4j First deploy:** push when the user asks, and check the Pages deploy.
+  - [x] **M2.4j First deploy:** pushed, and the Pages deploy and Full regression are green.
 
 ## Session handoff (2026-09-23)
 
-State: `main` is green (lint, typecheck, 1,050 unit, 224 e2e with 3 deferred to M3). Nothing is
-pushed. Fury and Arms are available.
+State: `main` is green (lint, typecheck, 1,050 unit, 225 e2e with 3 deferred to M3), pushed and
+deployed. Fury and Arms are available.
 
-**The review gate for the first release has passed**: the verdict in
-[reviews/2026-09-23-first-release.md](reviews/2026-09-23-first-release.md) says "Ready to push:
-yes". The push waits for the user.
+**The first release is live** at https://andersonjohnf.github.io/forever_sim/. Its review log
+is [reviews/2026-09-23-first-release.md](reviews/2026-09-23-first-release.md), and pushes now
+happen at every stable state (D25).
 - **First pass:** 38 logic and 34 UX findings.
 - **Second pass** (a review of the fixes): 10 logic and 17 UX findings.
 - **Third pass:** 6 logic and 12 UX findings.
@@ -166,12 +166,8 @@ yes". The push waits for the user.
 
 Golden runs: Fury 668.6 DPS, Arms 611.9 DPS, Protection 217.0 TPS.
 
-**Next:**
-1. **M2.4j:** push when the user asks, then check the Pages deploy.
-2. **M2.5 Best rotations as defaults** (Arms, then Fury), then **M3 Protection**, in fresh
-   sessions. Enable the 3 `test.fixme` tests in
-   `e2e/tank-results.spec.ts` when Protection ships.
-3. Then M4 Feral Druid, M5 Paladin, M6 Multi-target and M7 Stat boosts, in that order.
+**Next:** the parallel tracks below (tank core, druid, paladin, Warrior Protection), the M2.5a
+Arms fixes, then M2.5b Fury tuning.
 
 **Rotation defaults** follow D23: the best one found becomes the default (M2.5).
 
@@ -193,18 +189,21 @@ spec's default rotation is the best one we've found.
 - The Rotation tab says "The defaults follow the community priority"
   (`src/features/rotation/rotation-section.tsx`). Reword it once a default is our own tuning.
 
-## Tanks next, then every remaining spec, in parallel (user priority, 2026-09-23)
+## Parallel tracks: the tank specs first, and every remaining spec (user priority, 2026-09-23)
 
-The goal is every DPS and tank spec. Tracks run in parallel, each in its own worktree with its
-own review gate, and the lead merges them one at a time.
+The goal is every DPS and tank spec. The tracks run at the same time, each in its own worktree
+with its own review gate, and the lead merges them one at a time (D25). Tracks B and C start
+without waiting for A; only the Bear and Paladin Protection slices need A1.
 
 | Track | Slices | Depends on |
 | --- | --- | --- |
-| A. Tank core | A1: the boss attacking the player, mitigation, tank stats, tank results | – |
-| B. Druid | B1: druid foundation (forms, energy, combo points, rage, mana); B2: Cat; then Bear | Bear needs A1 |
-| C. Paladin | C1: paladin foundation (spells, mana, seals, Judgement, Righteous Fury); C2: Retribution; then Protection | Protection needs A1 |
-| Warrior Protection | its abilities, rotation and defaults | A1 |
-| M2.5b Fury tuning | as M2.5a | the M2.5a fixes |
+| Track | Slices | Milestone | Depends on |
+| --- | --- | --- | --- |
+| A. Tank core | A1: the boss attacking the player, mitigation, tank stats, tank results | M3 (its first bullets) | – |
+| B. Druid | B1: druid foundation (forms, energy, combo points, rage, mana); B2: Cat; then Bear | M4 | Bear needs A1 |
+| C. Paladin | C1: paladin foundation (spells, mana, seals, Judgement, Righteous Fury); C2: Retribution; then Protection | M5 | Protection needs A1 |
+| Warrior Protection | its abilities, rotation and defaults | M3 | A1 |
+| Fury tuning | search Fury's rotation options under D23, as M2.5a did for Arms | M2.5b | the M2.5a fixes, which change shared warrior options |
 
 Unknown base values don't gate any of it
 ([D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)): they ship as flagged
@@ -340,12 +339,14 @@ slice is worked:
 - **Multi-target isn't simulated** until [M6](#m6-multi-target-). The Fight tab's Enemies
   control is hidden until then; `extraTargets` stays in the config
   ([encounter.md §4](mechanics/encounter.md)).
+- **About's "Game data" rows** show the spellbook and talent builds from `warrior.json` only;
+  list the build per dataset once another class's data is re-scraped.
 - **Items:** 18320 Demonheart Spaulders may not be obtainable; PvP rank requirements show as
   numbers (the rank title depends on faction); whether a bear-form armor multiplier applies
   to stat-50 bonus armor is open (M4). Fallback shields carry `classicShieldBlockValue`,
   and Forever shields have no innate block value in the client (M3).
-- **Pushes:** nothing has been pushed yet; `origin/main` is still the first commit. The first
-  push is M2.4j, once the review log's verdict says "Ready to push: yes".
+- **Pushes** happen at every stable state (D25); the deploy and Full regression runs are watched
+  to green after each.
 - **Deferred from the first-release review** (FV5, FV6, FV7 in
   [its log](reviews/2026-09-23-first-release.md#final-verification-of-the-third-pass-fixes)):
   - The character sheet shows only the main hand's crit, so Weaponmaster on an off-hand axe

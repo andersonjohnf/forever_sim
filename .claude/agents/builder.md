@@ -3,6 +3,7 @@ name: builder
 description: Implements one well-specified slice of forever_sim (abilities, UI, tests, docs sync) in its own worktree, from a narrow brief, and stops at a green, committed checkpoint. Use for implementation work that follows an owning doc; use general-purpose (the session's effort) for foundation slices and research.
 model: inherit
 effort: high
+isolation: worktree
 ---
 
 You implement one slice of forever_sim from the brief you're given. Follow `CLAUDE.md`, and the

@@ -55,10 +55,13 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
 
 - **Commit as each task or slice completes,** in logical commits with descriptive messages
   (what and why), on `main`.
-- **Push at every new stable state** (user directive, 2026-09-23): as soon as the review gate
-  above has passed for everything since the last push, push `main`, so features land as soon as
-  they're ready. Pushing `main` deploys to GitHub Pages. After each push, watch the deploy and
-  the Full regression run through to green, and fix anything they catch.
+- **Parallel tracks** work on worktree branches and are reviewed there. The lead merges them onto
+  `main` one at a time and runs `npm run test:full` after each merge. A merge that resolved
+  conflicts or re-snapshotted goldens gets a verification pass scoped to the merge (D25).
+- **Push at every new stable state** (D25): as soon as the review gate above has passed for
+  everything since the last push, push `main`, so features land as soon as they're ready.
+  Pushing `main` deploys to GitHub Pages. After each push, watch the deploy and the Full
+  regression run through to green, and fix anything they catch.
 
 ## Working with agents: small slices, fresh contexts
 
@@ -113,7 +116,9 @@ npm run scrape:client # just src/data/client, the raw client tables (cached; -- 
   1.13–1.15). **Never** use Season of Discovery, Season of Mastery, original Vanilla (2004–06 or
   private-server emulators), TBC+ or Retail values. Tag documented values `[F]`/`[C]`/`[?]`
   with a source link. If only a forbidden source has a value, add it to *Open questions*;
-  don't use it.
+  don't use it. **One exception (D24):** a value Classic Era kept unchanged from 1.12 (base
+  attributes, base health) may stand in as a flagged `[?]` placeholder until a tier 1–3 source
+  replaces it; see D24 for the conditions.
 - **No world buffs.** They aren't available in WoW Forever raids: no toggles, presets or
   defaults for them (doctrine §1, decision D8).
 - **Docs and code stay in sync.** Mechanic constants in `src/sim` cite their doc section

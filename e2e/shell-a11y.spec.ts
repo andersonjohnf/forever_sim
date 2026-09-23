@@ -123,7 +123,10 @@ test.describe('About', () => {
   test('says what the app is, as the page’s description does, and lists the specs so far', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('button', { name: /^Spec: / }).click()
-    const specs = (await page.getByRole('menuitem').allInnerTexts()).map((text) => text.split('\n')[0].trim())
+    const items = await page.getByRole('menuitem').allInnerTexts()
+    const specs = items.map((text) => text.split('\n')[0].trim())
+    // The switcher labels each spec's role ("DPS" or "Tank") on its second line.
+    const hasTank = items.some((text) => text.split('\n')[1]?.trim() === 'Tank')
     await page.keyboard.press('Escape')
     const meta = await page.locator('meta[name="description"]').getAttribute('content')
     const og = await page.locator('meta[property="og:description"]').getAttribute('content')
@@ -134,10 +137,10 @@ test.describe('About', () => {
     // index.html has to be kept in step (its "DPS and TPS" once a tank spec ships).
     expect(meta).toBe(about)
     expect(og).toBe(about)
-    expect(about).toMatch(/^A DPS (and TPS )?simulator for WoW Forever\./)
+    expect(about).toMatch(hasTank ? /^A DPS and TPS simulator for WoW Forever\./ : /^A DPS simulator for WoW Forever\./)
     for (const spec of specs) expect(about).not.toContain(spec)
     // The specs so far are listed on their own line.
-    const coverage = await sheet.getByText(/^Specs so far: /).innerText()
+    const coverage = await sheet.getByText(/^Covers /).innerText()
     for (const spec of specs) expect(coverage).toContain(spec)
     expect(about + coverage).not.toMatch(/coming soon/i)
   })

@@ -272,9 +272,11 @@ no Classic Era sim or guide publishes them, and the Forever client doesn't carry
 
 Candidate values were found in a forbidden source (a vanilla server emulator database). They are
 recorded, **not adopted**, under [OQ-1](#oq-1-paladin-druid-and-skyborne-base-attributes).
-**Doctrine decision (2026-09-22): no forbidden-source placeholders, in the engine or in test
-fixtures.** Until these rows are measured, the engine has no values for them, and the paladin and
-druid specs can't compute base attributes. OQ-1 gives the way to measure them on Classic Era.
+**Replaced by [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)
+(2026-09-23):** the 2026-09-22 rule "no forbidden-source placeholders" kept the paladin and druid
+specs from computing base attributes. Under D24 these 1.12 rows, which Classic Era kept and which
+agree with the [C] race offsets, stand in as flagged `[?]` placeholders until OQ-1's Classic Era
+sheets replace them.
 
 ### Other base values at level 60
 
@@ -866,8 +868,9 @@ feed both item forms through the same pipeline.
 
 ### OQ-1: paladin, druid and Skyborne base attributes
 The class rows for paladin and druid, and all values for both Skyborne races, are unknown.
-Doctrine decision (2026-09-22): no forbidden-source placeholders in the engine or in test
-fixtures. The paladin and druid specs wait for this measurement.
+Under [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23) (replacing the
+2026-09-22 rule "no forbidden-source placeholders"), the rows below stand in as flagged `[?]`
+placeholders; the paladin and druid specs no longer wait for this measurement.
 
 **Resolution, Route A (Classic Era, level 60, the standard naked sheet), sheets needed:**
 

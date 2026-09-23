@@ -20,20 +20,24 @@ const list = (words: string[]) => (words.length < 3 ? words.join(' and ') : `${w
  * What the app is, without naming specs, so it reads right as specs ship (docs/ux.md principle
  * 8): "A DPS simulator for WoW Forever.", and "A DPS and TPS simulator…" once a tank spec ships.
  */
-export function appSentence(): string {
-  const metrics = visibleSpecs().some((s) => s.role === 'tank') ? 'DPS and TPS' : 'DPS'
+export function appSentence(offered: readonly SpecDefinition[] = visibleSpecs()): string {
+  const metrics = offered.some((s) => s.role === 'tank') ? 'DPS and TPS' : 'DPS'
   return `A ${metrics} simulator for WoW Forever.`
 }
 
-/** The specs it offers so far, from the switcher: "Specs so far: Fury and Arms Warriors." */
-export function coverageSentence(): string {
+/**
+ * The specs it offers, from the switcher, one class at a time so the list stays readable as specs
+ * ship: "Covers Warriors: Fury and Arms." or "Covers Warriors: Fury, Arms and Protection · Druids:
+ * Cat and Bear."
+ */
+export function coverageSentence(offered: readonly SpecDefinition[] = visibleSpecs()): string {
   // Spec names per class, in the switcher's order: { Warrior: ['Fury', 'Arms'] }.
   const byClass = new Map<string, string[]>()
-  for (const spec of visibleSpecs()) {
+  for (const spec of offered) {
     const { className, name } = SPEC_META[spec.id]
     byClass.set(className, [...(byClass.get(className) ?? []), name])
   }
-  return `Specs so far: ${list([...byClass].map(([className, names]) => `${list(names)} ${className}s`))}.`
+  return `Covers ${[...byClass].map(([className, names]) => `${className}s: ${list(names)}`).join(' · ')}.`
 }
 
 /**

@@ -27,9 +27,9 @@ test.describe('Protection rotation', () => {
     const priority = tab.getByRole('radiogroup', { name: 'Priority' })
     await expect(priority.getByRole('radio', { name: 'Tank duties first' })).toBeChecked()
     await expect(priority.getByRole('radio', { name: 'Max TPS' })).not.toBeChecked()
-    // Its help says what Max TPS drops, why the default keeps it, and what it costs.
+    // Its help says what Max TPS drops, why the default keeps it, what it gains and costs, and when to pick it.
     await expect(priority).toHaveAccessibleDescription(
-      /^Tank duties first keeps up Shield Block, for your survival, and Thunder Clap’s slow and Demoralizing Shout, for the raid\. Max TPS drops all three for threat: about 12% more TPS/,
+      /^Tank duties first keeps Shield Block up and Thunder Clap and Demoralizing Shout on the boss, so you take less damage\. Max TPS drops all three for threat: about 13% more TPS and 36% more damage taken in the default setup\. Pick it when another tank or the raid covers your survival\./,
     )
     expect((await priority.boundingBox())!.y).toBeLessThan((await tab.getByRole('heading', { name: 'Before the pull' }).boundingBox())!.y)
     // Execute is the tank's only execute-phase setting, so it sits under Core abilities: no heading over one setting.

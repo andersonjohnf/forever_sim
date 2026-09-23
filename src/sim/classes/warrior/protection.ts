@@ -116,7 +116,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     kind: 'choice',
     id: ID.priority,
     label: 'Priority',
-    help: 'Tank duties first keeps up Shield Block, for your survival, and Thunder Clap’s slow and Demoralizing Shout, for the raid. Max TPS drops all three for threat: about 12% more TPS in the default setup. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there.',
+    help: 'Tank duties first keeps Shield Block up and Thunder Clap and Demoralizing Shout on the boss, so you take less damage. Max TPS drops all three for threat: about 13% more TPS and 36% more damage taken in the default setup. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another player’s.',
     choices: [
       { value: PROTECTION_PRIORITY.duties, label: 'Tank duties first' },
       { value: PROTECTION_PRIORITY.maxTps, label: 'Max TPS' },
@@ -267,8 +267,9 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.exEnabled,
     group: 'Core abilities',
     label: 'Execute',
-    help: 'In the execute phase, swap to Battle Stance for Execute and back. Battle Stance loses Defensive Stance’s threat, and the swap keeps at most 10 rage (plus 3 per Improved Tactical Mastery rank), less than Execute’s cost without that talent.',
+    help: 'In the execute phase, swap to Battle Stance for Execute and back, which loses Defensive Stance’s threat. Without Improved Tactical Mastery the swap keeps 10 rage, less than Execute’s 12, so it’s never used. Needs an execute phase under Fight.',
     default: false,
+    needsExecutePhase: true,
   },
   ...consumableOptions(ID, 'Drink it once, as soon as your rage is low enough: 45–75 rage and +60 Strength for 20 s.', {
     default: PROT_MAX_RAGE - 75,

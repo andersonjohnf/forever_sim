@@ -297,12 +297,19 @@ Bloodthirst, Mortal Strike, Shred, Holy Strike and so on.
   [paladin conventions](../classes/paladin.md#conventions-used-below), confirmed in the raw
   client files: [F] [client] (SpellCategories, 1.60.1.69913); [wowsims/forever spell data][wf-spelldata]
   reads the same):
-  - `Melee`: the table above.
+  - `Melee`: the table above, the main hand's, one roll, crit ×2.
   - `Ranged`: miss, then block (front only), then crit roll 2. No dodge or parry, because
-    creatures dodge and parry melee only [F] tooltips ([gs][gs-forever]).
+    creatures dodge and parry melee only [F] tooltips ([gs][gs-forever]). Its miss chance and
+    crit are taken as the main hand's special miss and crit [?] (the paladin's Hammer of Wrath).
   - `Magic`: the spell table ([§9](#9-spell-hit-and-crit-generic)).
   - `None`: always hits (may still crit if the ability says so).
   - Which abilities are unblockable, undodgeable and so on is owned by the class docs.
+  - Two spell attributes change a table [F] [client] (SpellMisc): **No Active Defense** (Attr0
+    `0x200000`) removes dodge, parry and block, so a melee-class spell rolls `miss → crit → hit`,
+    like Overpower; **Always Hit** (Attr3 `0x40000`) removes the miss slice (for a magic spell, the
+    miss roll). With both, only the crit slice is left. The engine applies them to its one roll by
+    dropping those slices and keeping the rest in order, so the crit slice still follows the last
+    one left ([paladin conventions](../classes/paladin.md#conventions-used-below)).
 
 ---
 

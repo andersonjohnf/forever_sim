@@ -90,6 +90,12 @@ export class StatBlock {
   blockValue = 0
   blockValueMult = 1
 
+  // Spell damage (paladin.md#conventions-used-below "SP"): all schools (gear's Spell Power and
+  // Spell Damage lines, consumables), Holy only, and Champion of the Light's share of Intellect, %.
+  spellDamage = 0
+  holySpellDamage = 0
+  spellDamagePerIntPct = 0
+
   // Pools.
   baseHealth = 0
   health = 0
@@ -97,6 +103,8 @@ export class StatBlock {
   hasMana = false
   baseMana = 0
   mana = 0
+  /** Mana per 5 s from gear and buffs (character-stats.md#spirit-and-mana-regeneration). */
+  mp5 = 0
 
   copyFrom(o: StatBlock): this {
     Object.assign(this, o)
@@ -139,6 +147,11 @@ export class DerivedStats {
   blockValue = 0
   health = 0
   mana = 0
+  /**
+   * Holy spell damage ("SP" in paladin.md#conventions-used-below): all-schools spell damage, Holy
+   * spell damage and Champion of the Light's share of Intellect.
+   */
+  holySpellDamage = 0
 }
 
 export interface DeriveOptions {
@@ -200,5 +213,8 @@ export function deriveStats(b: StatBlock, o: DeriveOptions, out: DerivedStats = 
 
   out.health = floorStat((b.baseHealth + healthFromStamina(out.stamina) + b.health) * b.healthMult)
   out.mana = b.hasMana ? b.baseMana + manaFromIntellect(out.intellect) + b.mana : 0
+  // docs/classes/paladin.md#retribution-tree (Champion of the Light: "up to 100% of your
+  // Intellect"; the floor is [?]) and #conventions-used-below (SP = all schools plus Holy).
+  out.holySpellDamage = b.spellDamage + b.holySpellDamage + floorStat((out.intellect * b.spellDamagePerIntPct) / 100)
   return out
 }

@@ -13,7 +13,10 @@
 // (Overpower), stances and stance dancing, the execute phase, time-left conditions, buff upkeep
 // and the pre-pull (docs/architecture.md#engine-design-m1). For druids it adds Energy and mana on a
 // power tick, combo points, Clearcasting's free ability, and forms a shapeshift swaps in
-// (docs/classes/druid.md §2); a plan without them never enters those paths.
+// (docs/classes/druid.md §2). For the paladin it adds damaging spells on their own tables, mp5 and
+// a share of spirit regeneration inside the five-second rule, Holy damage and threat multipliers,
+// cooldown categories and exclusive auras (seals; docs/classes/paladin.md). A plan without them
+// never enters those paths.
 import {
   averageResist,
   bossSlices,
@@ -38,7 +41,7 @@ import {
 } from '../core/formulas'
 import { EventQueue } from '../core/queue'
 import { Rng, STREAM } from '../core/rng'
-import { ACTION, COND, HAND, POWER_TICK_MS, TRIGGER, TRIGGER_COUNT, type Plan, type WeaponPlan } from '../plan/types'
+import { ACTION, COND, DEFENSE, HAND, POWER_TICK_MS, SCHOOL, TRIGGER, TRIGGER_COUNT, type Plan, type WeaponPlan } from '../plan/types'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 
 /** Event kinds. */
@@ -69,6 +72,7 @@ const KIND_ON_NEXT_SWING = 2
 const KIND_CAST = 3
 const KIND_BLEED = 4
 const KIND_SHIFT = 5
+const KIND_SPELL = 6
 const KIND_CODE = {
   weaponStrike: KIND_STRIKE,
   meleeSpell: KIND_MELEE_SPELL,
@@ -76,6 +80,7 @@ const KIND_CODE = {
   cast: KIND_CAST,
   bleed: KIND_BLEED,
   shift: KIND_SHIFT,
+  spell: KIND_SPELL,
 } as const
 
 /** The pool an ability pays from (AbilityPlan.resource). */
@@ -127,6 +132,25 @@ const THREAT_PER_RAGE_TENTH = 0.5
 export const BOSS_OUTCOME = { miss: 0, dodge: 1, parry: 2, block: 3, crit: 4, crush: 5, hit: 6 } as const
 export const BOSS_OUTCOME_COUNT = 7
 
+/**
+ * A ring over the items that share a key (a cooldown category, an exclusive aura group): next[i]
+ * is the next index with i's key, wrapping round, and i itself when it has none.
+ */
+function ring(keys: readonly (string | undefined)[]): Int32Array {
+  const next = Int32Array.from(keys, (_, i) => i)
+  const first = new Map<string, number>()
+  const last = new Map<string, number>()
+  keys.forEach((k, i) => {
+    if (k === undefined) return
+    const prev = last.get(k)
+    if (prev === undefined) first.set(k, i)
+    else next[prev] = i
+    last.set(k, i)
+  })
+  for (const [k, i] of last) next[i] = first.get(k)!
+  return next
+}
+
 export class Sim {
   readonly plan: Plan
   /** Totals per source × field, summed over every fight run. */
@@ -148,6 +172,9 @@ export class Sim {
   /** Energy gained and lost to its cap in Cat Form, in tenths, summed over every fight run (druid.md §2.4). */
   totalEnergyGainedTenths = 0
   totalEnergyWastedTenths = 0
+  /** Mana spent on abilities, and gained from regeneration and spell effects, in tenths, summed over every fight run. */
+  totalManaSpentTenths = 0
+  totalManaGainedTenths = 0
   /** Test hook: called for every white swing (source row, hand, time) and bleed tick (source, −1, time). */
   trace: ((source: number, hand: number, time: number) => void) | null = null
   /**
@@ -162,6 +189,8 @@ export class Sim {
   stanceTrace: ((stance: number, time: number, rageBefore: number, rageAfter: number) => void) | null = null
   /** Test hook: every boss swing on the tank (its time). */
   bossTrace: ((time: number) => void) | null = null
+  /** Test hook: every power tick with mana (its time, and the mana it restores in tenths before the cap). */
+  manaTrace: ((time: number, tenths: number) => void) | null = null
   /**
    * Test hook: every boss swing on the tank, as it resolves: its BOSS_OUTCOME, the health it cost
    * and its size before mitigation (both 0 for a miss, dodge or parry).
@@ -281,6 +310,29 @@ export class Sim {
   private readonly watchStart: Int32Array
   private readonly watchLine: Int32Array
   private readonly watchLead: Float64Array
+  /** Holy damage done % (Vengeance) and flat Holy damage taken by the target (JotC) per stack (paladin.md). */
+  private readonly aHoly: Float64Array
+  private readonly aHolyTaken: Float64Array
+  /** The next aura of the same exclusive group, in a ring (itself when it has none): one seal at a time. */
+  private readonly aGroupNext: Int32Array
+
+  // Spells, flattened (paladin.md#conventions-used-below; Plan.spells).
+  private readonly splSource: Int32Array
+  private readonly splSchool: Int32Array
+  private readonly splDefense: Int32Array
+  private readonly splNoActive: Uint8Array
+  private readonly splAlwaysHit: Uint8Array
+  private readonly splMin: Float64Array
+  private readonly splMax: Float64Array
+  private readonly splWeaponPct: Float64Array
+  private readonly splNormalized: Uint8Array
+  private readonly splSpCoef: Float64Array
+  private readonly splTakenScale: Float64Array
+  private readonly splCritMult: Float64Array
+  private readonly splBonusCrit: Float64Array
+  private readonly splDamageMult: Float64Array
+  private readonly splThreatMult: Float64Array
+  private readonly splThreatBonus: Float64Array
 
   // Abilities and the rotation, flattened.
   private readonly abKind: Int32Array
@@ -338,6 +390,16 @@ export class Sim {
   /** Uses per fight (0 = no limit), and this fight's uses so far. */
   private readonly abUsesPerFight: Int32Array
   private readonly abUses: Int32Array
+  /**
+   * The spell it casts on use and on each tick (−1 none), and the mana in tenths it returns when it
+   * lands, with this chance (paladin.md). Its mana cost is `abCost`, from the pool `abRes`.
+   */
+  private readonly abSpell: Int32Array
+  private readonly abTickSpell: Int32Array
+  private readonly abManaReturn: Float64Array
+  private readonly abManaReturnChance: Float64Array
+  /** The next ability of the same cooldown category, in a ring (itself when it has none). */
+  private readonly abCatNext: Int32Array
   /** The pre-pull casts (ability, time < 0) and the opener's rage (warrior.md §5.2 row 0). */
   private readonly preAbility: Int32Array
   private readonly preAt: Float64Array
@@ -406,6 +468,11 @@ export class Sim {
   private readonly swapKeep: number
   private readonly hasRotation: boolean
   private readonly hasAbilities: boolean
+  /** Some proc fires after a landed white swing's own procs (the paladin's damage seals). */
+  private readonly hasWhiteResolved: boolean
+  /** Static multipliers on Holy damage and Holy threat (Righteous Fury ×1.9, paladin.md#threat-paladin-specific). */
+  private readonly staticHolyMult: number
+  private readonly holyThreatMult: number
 
   // Druid resources and forms (docs/classes/druid.md §2), flattened. A plan without them has every
   // ability `abPlainRage` and no power tick, forms or free-cast aura, so none of this runs for it.
@@ -451,6 +518,9 @@ export class Sim {
   private readonly manaMax: number
   private readonly manaRegen: number
   private readonly fiveSecondRuleMs: number
+  /** mp5 per power tick, and the share of spirit regeneration inside the five-second rule (the paladin's Reverence; paladin.md#mana-model). */
+  private readonly manaMp5: number
+  private readonly manaInFsrShare: number
 
   // Per-fight state.
   /** Energy, mana (tenths) and combo points (druid.md §2.4, §2.5, §2.8). */
@@ -472,6 +542,9 @@ export class Sim {
   private now = 0
   private fightEnd = 0
   private rage = 0
+  /** Flat Holy damage the target takes from active auras (JotC), and the aura multiplier on Holy damage (Vengeance). */
+  private holyTaken = 0
+  private holyMult = 1
   /** The fraction of a tenth carried to the next white hit or hit taken, 0 ≤ it < 1 (rage.md#rounding). */
   private rageFraction = 0
   private readonly maxRage: number
@@ -573,6 +646,8 @@ export class Sim {
   private spellMissPct = 0
   /** Sheet spell crit %, for magic procs' second roll (combat-tables §9). */
   private spellCritPct = 0
+  /** Holy spell damage (paladin.md#conventions-used-below "SP"). */
+  private sp = 0
 
   // Scratch for recomputeStats, so re-deriving the tables allocates nothing (architecture.md).
   private readonly meleeIn: MeleeInputs = {
@@ -760,6 +835,30 @@ export class Sim {
     this.critChargeAuras = Int32Array.from(critChargeAuras)
     this.blockChargeAuras = Int32Array.from(blockChargeAuras)
     this.blockChargeGen = new Int32Array(blockChargeAuras.length)
+    // paladin.md: Vengeance's Holy damage, JotC's Holy damage taken, and exclusive groups (one seal).
+    this.aHoly = Float64Array.from(auras, (a) => a.holy ?? 0)
+    this.aHolyTaken = Float64Array.from(auras, (a) => a.holyTaken ?? 0)
+    this.aGroupNext = ring(auras.map((a) => a.group))
+
+    const spells = plan.spells ?? []
+    this.splSource = Int32Array.from(spells, (x) => x.source)
+    this.splSchool = Int32Array.from(spells, (x) => x.school)
+    this.splDefense = Int32Array.from(spells, (x) => x.defense)
+    this.splNoActive = Uint8Array.from(spells, (x) => (x.noActiveDefense ? 1 : 0))
+    this.splAlwaysHit = Uint8Array.from(spells, (x) => (x.alwaysHit ? 1 : 0))
+    this.splMin = Float64Array.from(spells, (x) => x.min)
+    this.splMax = Float64Array.from(spells, (x) => x.max)
+    this.splWeaponPct = Float64Array.from(spells, (x) => x.weaponPercent)
+    this.splNormalized = Uint8Array.from(spells, (x) => (x.normalized ? 1 : 0))
+    this.splSpCoef = Float64Array.from(spells, (x) => x.spCoefficient)
+    this.splTakenScale = Float64Array.from(spells, (x) => x.takenScale)
+    this.splCritMult = Float64Array.from(spells, (x) => x.critMultiplier)
+    this.splBonusCrit = Float64Array.from(spells, (x) => x.bonusCrit)
+    this.splDamageMult = Float64Array.from(spells, (x) => x.damageMult)
+    this.splThreatMult = Float64Array.from(spells, (x) => x.threatMult)
+    this.splThreatBonus = Float64Array.from(spells, (x) => x.threatBonus)
+    this.staticHolyMult = plan.holyMult ?? 1
+    this.holyThreatMult = plan.holyThreatMult ?? 1
 
     const abilities = plan.abilities
     const nb = abilities.length
@@ -823,6 +922,11 @@ export class Sim {
     this.abShiftTo = new Int32Array(nb).fill(-1)
     this.abPlainRage = new Uint8Array(nb)
     this.freeAura = plan.freeCastAura ?? -1
+    this.abSpell = Int32Array.from(abilities, (a) => a.spell ?? -1)
+    this.abTickSpell = Int32Array.from(abilities, (a) => a.tickSpell ?? -1)
+    this.abManaReturn = Float64Array.from(abilities, (a) => a.manaReturnTenths ?? 0)
+    this.abManaReturnChance = Float64Array.from(abilities, (a) => a.manaReturnChance ?? 0)
+    this.abCatNext = ring(abilities.map((a) => a.category))
     for (let i = 0; i < nb; i++) {
       const a = abilities[i]
       // docs/classes/druid.md §2.4–§2.8: the pool it pays from, its forms, combo points and Clearcasting.
@@ -846,9 +950,12 @@ export class Sim {
       this.abCastMs[i] = a.castMs
       this.abCastStopsSwings[i] = a.castStopsSwings ? 1 : 0
       // warrior.md §3.1: Spearing Strike needs a two-hander. §7 "Without a main-hand weapon": every
-      // ability that attacks (strikes, melee spells, bleeds, the on-next-swing queue) needs one; casts don't.
-      // A shapeshift attacks nothing either (druid.md §2.8).
-      this.abNeverReady[i] = (a.twoHandOnly && !this.wTwoHand[HAND.main]) || (a.kind !== 'cast' && a.kind !== 'shift' && !this.hasWeapon[HAND.main]) ? 1 : 0
+      // ability that attacks (strikes, melee spells, bleeds, the on-next-swing queue) needs one; casts
+      // don't, nor does a shapeshift (druid.md §2.8), nor a spell unless it deals weapon damage (Holy
+      // Strike, paladin.md).
+      const weaponSpell = a.kind === 'spell' && a.spell !== undefined && a.spell >= 0 && spells[a.spell].weaponPercent > 0
+      const needsWeapon = a.kind === 'spell' ? weaponSpell : a.kind !== 'cast' && a.kind !== 'shift'
+      this.abNeverReady[i] = (a.twoHandOnly && !this.wTwoHand[HAND.main]) || (needsWeapon && !this.hasWeapon[HAND.main]) ? 1 : 0
       this.abUnavoidable[i] = a.unavoidable ? 1 : 0
       this.abWindow[i] = a.window
       this.abWeaponPct[i] = a.weaponPercent
@@ -1004,7 +1111,9 @@ export class Sim {
     this.hasMaxRage = this.condCode.includes(COND.maxRage)
     this.hasDodgeProcs = (plan.triggers[TRIGGER.targetDodge] ?? []).length > 0
     this.hasRotation = rotation.length > 0
-    this.hasAbilities = nb > 0
+    // Spells on the melee table read the special-attack tables too (paladin.md#conventions-used-below).
+    this.hasAbilities = nb > 0 || spells.length > 0
+    this.hasWhiteResolved = (plan.triggers[TRIGGER.whiteResolved] ?? []).length > 0
     // docs/classes/druid.md §2.4, §2.8: forms, Furor, and the power tick's Energy and mana.
     const shift = plan.shapeshift
     this.startForm = plan.forms && plan.form !== undefined ? plan.form : -1
@@ -1021,9 +1130,14 @@ export class Sim {
     this.manaMax = plan.mana?.maxTenths ?? 0
     this.manaRegen = plan.mana?.regenTickTenths ?? 0
     this.fiveSecondRuleMs = plan.mana?.fiveSecondRuleMs ?? 0
+    // paladin.md#mana-model: mp5 per tick, and Reverence's share of spirit regeneration inside the rule.
+    this.manaMp5 = plan.mana?.mp5TickTenths ?? 0
+    this.manaInFsrShare = plan.mana?.inFsrShare ?? 0
     this.hasPowerTick = plan.energy !== undefined || plan.mana !== undefined
     this.hasMaxEnergy = this.condCode.includes(COND.maxEnergy)
-    if (this.startForm >= 0) this.gainsRage = plan.forms![this.startForm].rage
+    // Hits give rage in a form whose power is rage, and for a class with a rage pool: a warrior, not a
+    // paladin (plan.rage.maxTenths 0, paladin.md#mana-model).
+    this.gainsRage = this.startForm >= 0 ? plan.forms![this.startForm].rage : this.maxRage > 0
   }
 
   /**
@@ -1212,6 +1326,11 @@ export class Sim {
       energy: this.energy,
       mana: this.mana,
       form: this.form,
+      maxMana: this.manaMax / 10,
+      spellDamage: this.sp,
+      spellMiss: this.spellMissPct,
+      spellCrit: this.spellCritPct,
+      holyMult: this.magicMult * this.holyMult,
     }
   }
 
@@ -1287,6 +1406,7 @@ export class Sim {
     this.damageTakenMult = this.plan.damageTakenMult * this.sTaken[base]
     this.rotList = this.rotNormal
     this.rotOffList = this.offGcdNormal
+    this.holyTaken = 0
     this.recomputeStats()
     this.recomputeMultipliers()
   }
@@ -1307,8 +1427,9 @@ export class Sim {
         this.abReadyAt[a] = at + this.abCd[a]
         if (this.abReadyAt[a] > 0) this.q.push(this.abReadyAt[a], EV_ACT, 0, 0)
       }
+      if (this.abCatNext[a] !== a && this.abReadyAt[a] > 0) this.shareCooldown(a)
       const aura = this.abAura[a]
-      if (aura >= 0 && at + this.aDuration[aura] > 0) this.startAura(aura, at + this.aDuration[aura])
+      if (aura >= 0 && at + this.aDuration[aura] > 0) this.putAura(aura, at + this.aDuration[aura])
       this.gainPower(this.abRes[a], this.castRageTenths(a), -1)
       const ticks = this.abTicks[a]
       for (let k = 1; k <= ticks; k++) {
@@ -1357,6 +1478,7 @@ export class Sim {
     this.blockValue = d.blockValue
     this.spellMissPct = spellMiss(plan.profile, plan.playerLevel, plan.fight.targetLevel, d.spellHit)
     this.spellCritPct = d.spellCrit
+    this.sp = d.holySpellDamage
     const f = plan.fight
     const inputs = this.meleeIn
     const ch = this.chances
@@ -1400,13 +1522,16 @@ export class Sim {
   private recomputeMultipliers(): void {
     let haste = 1
     let damage = 1
+    let holy = 1
     for (let i = 0; i < this.auraActive.length; i++) {
       if (!this.auraActive[i]) continue
       const stacks = this.auraStacks[i]
       if (this.aHaste[i]) haste *= 1 + (this.aHaste[i] * stacks) / 100
       if (this.aDamage[i]) damage *= 1 + (this.aDamage[i] * stacks) / 100
+      if (this.aHoly[i]) holy *= 1 + (this.aHoly[i] * stacks) / 100
     }
     this.auraHasteMult = haste
+    this.holyMult = this.staticHolyMult * holy
     // The stance's damage factor (Defensive Stance −10% on all damage, warrior.md §2.1).
     this.physMult = this.staticPhysMult * this.stanceDamage * damage
     this.magicMult = this.staticMagicMult * this.stanceDamage
@@ -1523,6 +1648,8 @@ export class Sim {
     this.fireProcs(TRIGGER.whiteLanded, hand)
     this.fireProcs(TRIGGER.meleeLanded, hand)
     if (crit) this.onCrit(hand)
+    // paladin.md#implementation-notes: the damage seals' procs come after the swing's Vengeance.
+    if (this.hasWhiteResolved) this.fireProcs(TRIGGER.whiteResolved, hand)
   }
 
   /** A landed white swing's damage before the outcome multiplier (damage-and-timing §2.6, steps 1–4). */
@@ -1723,6 +1850,10 @@ export class Sim {
         case COND.minComboPoints:
           if (this.comboPoints < a) return false
           break
+        // paladin.md: a mana threshold.
+        case COND.minMana:
+          if (this.mana < a) return false
+          break
 
       }
     }
@@ -1754,9 +1885,15 @@ export class Sim {
     if (!this.countUse(a) && cd > 0) {
       this.abReadyAt[a] = this.now + cd
       this.q.push(this.abReadyAt[a], EV_ACT, 0, 0)
+      if (this.abCatNext[a] !== a) this.shareCooldown(a)
     }
     if (this.abKind[a] === KIND_CAST) {
       this.cast(a)
+      return
+    }
+    if (this.abKind[a] === KIND_SPELL) {
+      this.spellAbility(a)
+      if (this.exCount > 0) this.drainExtraAttacks()
       return
     }
     if (this.abKind[a] === KIND_SHIFT) {
@@ -1809,8 +1946,10 @@ export class Sim {
       if (!this.countUse(a) && cd > 0) {
         this.abReadyAt[a] = now + cd
         this.q.push(this.abReadyAt[a], EV_ACT, 0, 0)
+        if (this.abCatNext[a] !== a) this.shareCooldown(a)
       }
-      this.strike(a)
+      if (this.abKind[a] === KIND_SPELL) this.spellAbility(a)
+      else this.strike(a)
     }
     if (this.swingsStopped) {
       this.swingsStopped = false
@@ -1844,10 +1983,16 @@ export class Sim {
   private cast(a: number): void {
     const source = this.abSource[a]
     this.counters[source * FIELD_COUNT + FIELD.casts]++
-    if (this.abAura[a] >= 0) this.applyAura(this.abAura[a])
+    const aura = this.abAura[a]
+    if (aura >= 0) this.putAura(aura, this.now + this.aDuration[aura])
     this.gainPower(this.abRes[a], this.castRageTenths(a), source)
+    if (this.abManaReturn[a] > 0) this.returnMana(a)
+    this.startTicks(a)
+  }
+
+  /** A cast's ticks from now; a recast restarts them (none of the warrior's recasts before they end). */
+  private startTicks(a: number): void {
     if (this.abTicks[a] > 0) {
-      // A recast restarts the ticks (none of the abilities recasts before they end).
       this.abTicksLeft[a] = this.abTicks[a]
       this.q.push(this.now + this.abTickMs[a], EV_CAST_RAGE, a, ++this.abTickGen[a])
     }
@@ -1855,6 +2000,8 @@ export class Sim {
 
   private onCastRageTick(a: number): void {
     this.gainPower(this.abRes[a], this.abTickRage[a], this.abSource[a])
+    // A spell per tick (Consecration, paladin.md#other-abilities), each with its own rolls [?].
+    if (this.abTickSpell[a] >= 0) this.castSpell(this.abTickSpell[a], false)
     if (--this.abTicksLeft[a] > 0) this.q.push(this.now + this.abTickMs[a], EV_CAST_RAGE, a, this.abTickGen[a])
   }
 
@@ -2090,6 +2237,12 @@ export class Sim {
       case ACTION.spellDamage:
         this.spellProc(p)
         return
+      case ACTION.spell:
+        this.castSpell(this.pAmount[p], true)
+        return
+      case ACTION.mana:
+        this.gainMana((this.manaMax * this.pAmount[p]) / 100, this.pSource[p])
+        return
       case ACTION.weaponBleed: {
         const slot = this.pBleedSlot[p]
         // A tick due this very moment lands before the refresh, as Rend's does (damage-and-timing
@@ -2170,6 +2323,8 @@ export class Sim {
 
   private auraChanged(a: number, deltaStacks: number): void {
     this.actPending = this.hasRotation
+    // paladin.md: JotC's flat Holy damage taken (Vengeance's Holy % is a multiplier, below).
+    if (this.aHolyTaken[a]) this.holyTaken += this.aHolyTaken[a] * deltaStacks
     if (this.aStatful[a]) {
       this.dynStr += this.aStr[a] * deltaStacks
       this.dynAgi += this.aAgi[a] * deltaStacks
@@ -2187,7 +2342,7 @@ export class Sim {
       }
       this.recomputeStats()
     }
-    if (this.aHaste[a] || this.aDamage[a]) this.recomputeMultipliers()
+    if (this.aHaste[a] || this.aDamage[a] || this.aHoly[a]) this.recomputeMultipliers()
     if (this.aTaken[a]) this.recomputeTakenMult()
   }
 
@@ -2284,6 +2439,142 @@ export class Sim {
   }
 
   // ------------------------------------------------------------------------------------------
+  // Spells, cooldown categories and exclusive auras (the paladin; its mana is the pool below)
+  // ------------------------------------------------------------------------------------------
+
+  /** Puts aura a up until `end`, first ending the others of its exclusive group (one seal, paladin.md#seals). */
+  private putAura(a: number, end: number): void {
+    for (let i = this.aGroupNext[a]; i !== a; i = this.aGroupNext[i]) if (this.auraActive[i]) this.removeAura(i)
+    this.startAura(a, end)
+  }
+
+  /** Ability a's cooldown also holds every ability of its category (paladin.md#implementation-notes). */
+  private shareCooldown(a: number): void {
+    const until = this.abReadyAt[a]
+    for (let b = this.abCatNext[a]; b !== a; b = this.abCatNext[b]) if (this.abReadyAt[b] < until) this.abReadyAt[b] = until
+  }
+
+  /**
+   * A `spell` ability, paid for (paladin.md): its row counts the cast, its spell rolls and deals
+   * damage, and if the spell lands (or it has none) it returns its mana (Sanctified Judgement). Its
+   * ticks, if any, start now (Consecration).
+   */
+  private spellAbility(a: number): void {
+    this.chainMask = 0
+    this.counters[this.abSource[a] * FIELD_COUNT + FIELD.casts]++
+    const s = this.abSpell[a]
+    const landed = s < 0 || this.castSpell(s, false)
+    if (landed && this.abManaReturn[a] > 0) this.returnMana(a)
+    this.startTicks(a)
+  }
+
+  /**
+   * Casts plan spell s and returns whether it landed (paladin.md#conventions-used-below; combat-tables
+   * §3 and §9). Its table follows its damage class: `melee` is the main hand's special table, one roll,
+   * without the miss slice if it always hits and without dodge, parry and block if it has No Active
+   * Defense, crit ×2; `ranged` is miss, block, then a crit roll [?]; `magic` is the spell table, a
+   * miss roll unless it always hits, then a crit roll at spell crit; `none` always lands and rolls
+   * spell crit. Damage: base (or weapon-based) + SP × coefficient, × its own and its school's
+   * multipliers, then + the target's flat Holy damage taken × its share (JotC's bonus comes after
+   * your own multipliers [?]), × the crit multiplier. Threat: (damage × mult + bonus) × Righteous
+   * Fury for Holy × the global multiplier. A landed melee-class spell fires on-hit procs, and its
+   * crit the melee crit procs (Vengeance) [?]; another spell's crit fires the spell crit procs.
+   * `countCast`: count a cast on its row (a proc's spell; an ability counts its own).
+   */
+  private castSpell(s: number, countCast: boolean): boolean {
+    const source = this.splSource[s]
+    const row = source * FIELD_COUNT
+    const c = this.counters
+    if (countCast) c[row + FIELD.casts]++
+    const defense = this.splDefense[s]
+    const alwaysHit = this.splAlwaysHit[s] === 1
+    let crit = false
+    let blocked = false
+    if (defense === DEFENSE.melee || defense === DEFENSE.ranged) {
+      const th = this.thrSpecial
+      const r = this.rngTable.roll100()
+      const missTh = alwaysHit ? 0 : th[0]
+      if (r < missTh) {
+        c[row + FIELD.misses]++
+        return false
+      }
+      const critChance = this.specCrit[HAND.main] + this.splBonusCrit[s]
+      if (defense === DEFENSE.ranged) {
+        // combat-tables §3 "Defense type": ranged is miss, then block (from the front), then a second crit roll.
+        blocked = r < missTh + (th[4] - th[2])
+        crit = this.rngTable.roll100() < critChance
+      } else {
+        let critFrom = missTh
+        if (this.splNoActive[s] === 0) {
+          // The miss slice removed for a spell that always hits.
+          const shift = th[0] - missTh
+          if (r < th[2] - shift) {
+            if (r < th[1] - shift) {
+              c[row + FIELD.dodges]++
+              if (this.hasDodgeProcs) this.fireProcs(TRIGGER.targetDodge, HAND.main)
+            } else {
+              c[row + FIELD.parries]++
+              this.onBossParried()
+            }
+            return false
+          }
+          critFrom = th[4] - shift
+          blocked = r < critFrom
+        }
+        crit = !blocked && r < Math.min(100, critFrom + Math.max(0, critChance))
+      }
+    } else {
+      if (defense === DEFENSE.magic && !alwaysHit && this.rngTable.roll100() < this.spellMissPct) {
+        c[row + FIELD.misses]++
+        return false
+      }
+      crit = this.rngTable.roll100() < this.spellCritPct + this.splBonusCrit[s]
+    }
+
+    let base: number
+    const pct = this.splWeaponPct[s]
+    if (pct > 0) {
+      const h = HAND.main
+      const speed = this.splNormalized[s] ? this.wNormSpeed[h] : this.wSpeedSec[h]
+      const roll = this.rngDamage.uniform(this.wMin[h], this.wMax[h])
+      const flat = this.splMin[s] === this.splMax[s] ? this.splMin[s] : this.rngDamage.uniform(this.splMin[s], this.splMax[s])
+      base = (roll + this.wFlat[h] + (this.ap / 14) * speed + flat) * pct
+    } else {
+      base = this.splMin[s] === this.splMax[s] ? this.splMin[s] : this.rngDamage.uniform(this.splMin[s], this.splMax[s])
+    }
+    let damage = (base + this.splSpCoef[s] * this.sp) * this.splDamageMult[s]
+    const school = this.splSchool[s]
+    const holy = school === SCHOOL.holy
+    if (holy) {
+      // paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc: the target's flat bonus × the spell's share
+      damage = damage * this.magicMult * this.holyMult + this.holyTaken * this.splTakenScale[s]
+    } else if (school === SCHOOL.physical) {
+      damage *= this.physMult * this.armorFactor[HAND.main]
+    } else {
+      damage *= this.magicMult * (1 - averageResist(this.bossLevelResist, this.plan.playerLevel))
+    }
+    if (crit) {
+      damage *= this.splCritMult[s]
+      c[row + FIELD.crits]++
+    } else if (blocked) {
+      // Mob block value is 0 [?] (combat-tables §2.4): a blocked spell deals full damage.
+      c[row + FIELD.blocks]++
+    } else {
+      c[row + FIELD.hits]++
+    }
+    const threat = (damage * this.splThreatMult[s] + this.splThreatBonus[s]) * (holy ? this.holyThreatMult : 1) * this.threatMult
+    this.addDamage(source, damage, threat)
+    if (defense === DEFENSE.melee) {
+      this.fireProcs(TRIGGER.meleeLanded, HAND.main)
+      if (crit) this.onCrit(HAND.main)
+    } else if (crit) {
+      this.fireProcs(TRIGGER.spellCrit, -1)
+      this.useCritCharges()
+    }
+    return true
+  }
+
+  // ------------------------------------------------------------------------------------------
   // Resources and forms (docs/classes/druid.md §2): every warrior row is `abPlainRage` and pays
   // rage as before; the rest take these paths.
   // ------------------------------------------------------------------------------------------
@@ -2331,6 +2622,7 @@ export class Sim {
       if (cost > 0 && this.hasMaxEnergy) this.actPending = true
     } else if (cost > 0) {
       this.mana -= cost
+      this.totalManaSpentTenths += cost
       this.manaSpentAt = this.now
     }
   }
@@ -2400,11 +2692,15 @@ export class Sim {
     }
   }
 
-  /** Adds mana in tenths, capped (druid.md §2.8); an energize makes 0.5 threat per mana [?]. */
+  /**
+   * Adds mana in tenths, capped (druid.md §2.8, paladin.md#mana-model); an energize (`source` ≥ 0:
+   * Sanctified Judgement, Shield Specialization) makes 0.5 threat per mana on its row [?].
+   */
   private gainMana(tenths: number, source: number): void {
     if (tenths <= 0) return
     const gained = Math.min(tenths, this.manaMax - this.mana)
     this.mana += gained
+    this.totalManaGainedTenths += gained
     if (gained > 0) this.actPending = this.hasRotation
     if (source >= 0 && gained > 0) {
       const threat = gained * THREAT_PER_MANA_TENTH
@@ -2413,13 +2709,27 @@ export class Sim {
     }
   }
 
+  /** An ability's mana back when it lands, at its chance (Sanctified Judgement, paladin.md#judgement). */
+  private returnMana(a: number): void {
+    const chance = this.abManaReturnChance[a]
+    if (chance < 1 && this.rngProc.next() >= chance) return
+    this.gainMana(this.abManaReturn[a], this.abSource[a])
+  }
+
   /**
-   * The player-global power tick (druid.md §2.4, §2.8): 20 Energy, and spirit regeneration unless
-   * mana was spent in the last 5 s. The tick doesn't reset on a shapeshift.
+   * The player-global power tick (druid.md §2.4, §2.8; character-stats.md#spirit-and-mana-regeneration):
+   * 20 Energy, and mana: mp5 always, and spirit regeneration unless mana was spent in the last 5 s,
+   * or inside that rule the share of it that continues (Reverence; paladin.md#mana-model). The tick
+   * doesn't reset on a shapeshift. A druid has no mp5 or share, so gains spirit regeneration only.
    */
   private onPowerTick(): void {
     if (this.energyMax > 0) this.gainEnergy(this.energyTick, -1)
-    if (this.manaMax > 0 && this.now - this.manaSpentAt >= this.fiveSecondRuleMs) this.gainMana(this.manaRegen, -1)
+    if (this.manaMax > 0) {
+      const outside = this.now - this.manaSpentAt >= this.fiveSecondRuleMs
+      const tenths = this.manaMp5 + (outside ? this.manaRegen : this.manaRegen * this.manaInFsrShare)
+      if (this.manaTrace !== null) this.manaTrace(this.now, tenths)
+      this.gainMana(tenths, -1)
+    }
   }
 
   /**

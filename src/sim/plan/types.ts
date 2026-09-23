@@ -34,8 +34,15 @@ export const TRIGGER = {
   meleeTaken: 10,
   /** The player took a crit (Reckoning). */
   critTaken: 11,
+  /**
+   * A landed white swing (an extra attack too), after its own crit's procs: the paladin's damage
+   * seals, which fire after the swing's Vengeance (paladin.md#implementation-notes).
+   */
+  whiteResolved: 12,
+  /** A spell crit on the magic or ranged table (combat-tables §9): Vengeance (paladin.md#retribution-tree). */
+  spellCrit: 13,
 } as const
-export const TRIGGER_COUNT = 12
+export const TRIGGER_COUNT = 14
 
 /**
  * Warrior stances as bits (docs/classes/warrior.md#21-stances). An ability's `stances` mask says
@@ -73,7 +80,62 @@ export const ACTION = {
   spellDamage: 2,
   rage: 3,
   weaponBleed: 4,
+  /** Casts a plan spell (`amount`: its index in Plan.spells): the paladin's seal procs. */
+  spell: 5,
+  /** Mana: `amount` % of maximum mana (Shield Specialization, paladin.md#protection-tree). */
+  mana: 6,
 } as const
+
+/**
+ * A spell's damage class, the client's `SpellCategories.DefenseType`, which picks its attack table
+ * (paladin.md#conventions-used-below; combat-tables §3 "Defense type"): `magic` the spell table
+ * (§9), `melee` the special-attack table (§3), `ranged` miss, block, then crit, `none` always hits.
+ */
+export const DEFENSE = { none: 0, magic: 1, melee: 2, ranged: 3 } as const
+
+/** Spell schools as codes (ProcPlan.school's, plus physical). */
+export const SCHOOL = { fire: 0, frost: 1, shadow: 2, nature: 3, arcane: 4, holy: 5, physical: 6 } as const
+
+/**
+ * A damaging spell, as data (paladin.md#conventions-used-below): a seal's proc, a judgement, Holy
+ * Strike, Exorcism. One engine function resolves them all. Damage is `min…max` (weapon-based:
+ * `weaponPercent` × (main-hand roll + flat weapon damage + AP/14 × speed + `min…max`)), plus
+ * `spCoefficient` × spell damage, × `damageMult` and the school's multipliers, then plus the
+ * target's flat damage taken of its school (Judgement of the Crusader) × `takenScale`, and × the
+ * crit multiplier on a crit.
+ */
+export interface SpellDef {
+  id: string
+  name: string
+  icon: string
+  school: keyof typeof SCHOOL
+  defense: keyof typeof DEFENSE
+  /** Can't be dodged, parried or blocked (SpellMisc Attr0 0x200000, "No Active Defense"). */
+  noActiveDefense: boolean
+  /** Never misses (SpellMisc Attr3 0x40000, "Always Hit"). */
+  alwaysHit: boolean
+  min: number
+  max: number
+  weaponPercent: number
+  normalized: boolean
+  spCoefficient: number
+  /** Share of the target's flat damage taken of this school it gets (JotC: the coefficient, paladin.md). */
+  takenScale: number
+  critMultiplier: number
+  bonusCrit: number
+  /** Its own damage multiplier (Improved Seals, Sacred Arbiter). */
+  damageMult: number
+  /** Threat = damage × mult + bonus, before the school's and the global multipliers (threat.md). */
+  threatMult: number
+  threatBonus: number
+}
+
+export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense'> {
+  school: number
+  defense: number
+  /** Breakdown row. */
+  source: number
+}
 
 export interface WeaponPlan {
   name: string
@@ -135,6 +197,15 @@ export interface AuraPlan {
   damageTaken?: number
   /** Blocks that end it early (Holy Shield 4, Redoubt 5; absent or 0 = none). */
   blockCharges?: number
+  /** Holy damage done %, multiplicative (Vengeance, paladin.md#retribution-tree). */
+  holy?: number
+  /** Flat Holy damage the target takes (Judgement of the Crusader, paladin.md). */
+  holyTaken?: number
+  /**
+   * Auras in the same group exclude each other: putting one up ends the others (one seal per
+   * paladin, one judgement debuff per paladin on the target; paladin.md#seals).
+   */
+  group?: string
 }
 
 export interface ProcPlan {
@@ -215,7 +286,7 @@ export interface AbilityPlan {
    * `shift`: no attack: a druid's shapeshift into form `shiftTo`, with the form's entry rules for
    * Energy and rage (Furor, druid.md §2.8). The damage fields are unused.
    */
-  kind: 'weaponStrike' | 'meleeSpell' | 'onNextSwing' | 'cast' | 'bleed' | 'shift'
+  kind: 'weaponStrike' | 'meleeSpell' | 'onNextSwing' | 'cast' | 'bleed' | 'shift' | 'spell'
   /** Rage cost in tenths after the build's talent reductions (warrior.md §2.3 "Cost reductions"). */
   costTenths: number
   cooldownMs: number
@@ -322,7 +393,7 @@ export interface AbilityPlan {
   /**
    * The pool `costTenths` is paid from, refunds go back to, a `cast`'s `rageTenths` and ticks go to,
    * and `damagePerExtraRage` reads and a landed hit then spends (Ferocious Bite's Energy, druid.md
-   * §3.5). All pools are in tenths. Absent: rage.
+   * §3.5; the paladin's mana, paladin.md#mana-model). All pools are in tenths. Absent: rage.
    */
   resource?: 'rage' | 'energy' | 'mana'
   /** Bit mask of the plan's forms (1 << index into `Plan.forms`) it can be used in; absent or 0: any. */
@@ -351,6 +422,25 @@ export interface AbilityPlan {
   clearcastable?: boolean
   /** `shift`: the form it shifts into (an index into `Plan.forms`, druid.md §2.8). */
   shiftTo?: number
+  // --- Spells, mana returns and shared cooldowns (the paladin, docs/classes/paladin.md). ---
+  /**
+   * `spell` (and `cast`): the plan spell it casts on use (Plan.spells), and the one each tick casts
+   * (Consecration), or −1 / absent. A `spell` ability rolls nothing itself: its spell does.
+   */
+  spell?: number
+  tickSpell?: number
+  /**
+   * Mana in tenths it returns, with this chance, when it lands (its spell doesn't miss, or it has
+   * none): Sanctified Judgement's share of the judged seal's cost (paladin.md#judgement).
+   */
+  manaReturnTenths?: number
+  manaReturnChance?: number
+  /**
+   * A cooldown category: using any ability of a category starts the cooldown it was used with on
+   * all of them (Holy Strike and Hammer of the Righteous, paladin.md#other-abilities; the
+   * judgements of each seal). Absent for none.
+   */
+  category?: string
 }
 
 /**
@@ -360,9 +450,12 @@ export interface AbilityPlan {
  * to its auras; `vsCreature` is a different weapon share against some creature types (Spearing
  * Strike), which the plan resolves against the encounter's creature type (encounter §6).
  */
-export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura' | 'window'> & {
+export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura' | 'window' | 'spell' | 'tickSpell'> & {
   offHand: boolean
   aura: AuraSpec | null
+  /** The spell it casts on use, and on each tick (paladin abilities); the plan adds them to Plan.spells. */
+  spellDef?: SpellDef
+  tickSpellDef?: SpellDef
   vsCreature?: { types: readonly CreatureType[]; weaponPercent: number }
   /** The reactive window it needs and ends (the Overpower window, warrior.md §2.8); the plan adds it to its auras. */
   window?: AuraSpec
@@ -433,6 +526,10 @@ export const COND = {
   maxEnergy: 15,
   /** combo points ≥ a (druid.md §2.5, §6.2) */
   minComboPoints: 16,
+  // 17 is reserved for `abilityAuraDown` (Cat and Retribution).
+  /** mana ≥ a, in tenths (paladin.md "mana% ≥ x" settings, as mana at the plan's maximum) */
+  minMana: 18,
+  // 19 is reserved for `maxMana`.
 } as const
 
 export interface RotationCondition {
@@ -602,10 +699,16 @@ export interface Plan {
   shapeshift?: ShapeshiftPlan
   /** Energy (druid.md §2.4): absent for classes without it. */
   energy?: EnergyPlan
-  /** Mana and its regeneration (druid.md §2.8): absent unless the plan can spend mana. */
+  /** Mana and its regeneration (druid.md §2.8, paladin.md#mana-model): absent unless the plan can spend mana. */
   mana?: ManaPlan
   /** The plan aura that makes the next ability with a cost free (Clearcasting, druid.md §2.7), or absent. */
   freeCastAura?: number
+  /** Damaging spells (seal procs, judgements, Holy Strike), indexed by abilities and procs. */
+  spells?: SpellPlan[]
+  /** Multiplier on Holy damage done, static (paladin.md#conventions-used-below). */
+  holyMult?: number
+  /** Multiplier on Holy threat, static: Righteous Fury ×1.9 (paladin.md#threat-paladin-specific). */
+  holyThreatMult?: number
 }
 
 /** One druid form (druid.md §2.1, §2.2, §2.3): everything a shapeshift swaps in. */
@@ -650,18 +753,27 @@ export interface EnergyPlan {
   tickTenths: number
 }
 
-/** Mana (druid.md §2.8, character-stats.md#spirit-and-mana-regeneration), in tenths. */
+/**
+ * Mana (druid.md §2.8, paladin.md#mana-model, character-stats.md#spirit-and-mana-regeneration), in
+ * tenths: the pool starts full, and every power tick it regains `mp5TickTenths` always, plus the
+ * Spirit regen `regenTickTenths` if no mana was spent in the last `fiveSecondRuleMs`, or
+ * `inFsrShare` of it if some was.
+ */
 export interface ManaPlan {
   maxTenths: number
   /** Spirit regeneration per power tick, outside the five-second rule. */
   regenTickTenths: number
   /** How long after spending mana spirit regeneration stops (the five-second rule). */
   fiveSecondRuleMs: number
+  /** mp5 per power tick (mp5 × 2/5), inside the five-second rule too (the paladin's gear and buffs); absent: 0. */
+  mp5TickTenths?: number
+  /** Share of the Spirit regeneration that continues inside the five-second rule (Reverence); absent: 0. */
+  inFsrShare?: number
 }
 
 /**
- * The player-global power tick (druid.md §2.4): Energy and mana regenerate every this many ms,
- * from a random phase in [0, tick) at the pull [?].
+ * The player-global power tick (druid.md §2.4; character-stats.md#spirit-and-mana-regeneration):
+ * Energy and mana regenerate every this many ms, from a random phase in [0, tick) at the pull [?].
  */
 export const POWER_TICK_MS = 2000
 

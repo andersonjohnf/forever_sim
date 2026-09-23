@@ -6,6 +6,7 @@
 // multipliers, target modifiers, and aura/proc definitions the engine runs. Nothing here is
 // class-specific, so a new spec adds data, not engine branches.
 import type { WeaponType } from '@/data/items/types'
+import type { SpellDef } from '../plan/types'
 import type { RulesProfile } from '../rules/profiles'
 import type { CreatureType, FightConfig } from '../types'
 
@@ -42,6 +43,13 @@ export type FlatStat =
   | 'blockValue'
   | 'health'
   | 'mana'
+  /** Spell damage, all schools (paladin.md#conventions-used-below). */
+  | 'spellDamage'
+  | 'holySpellDamage'
+  /** Spell damage from a % of Intellect (Champion of the Light). */
+  | 'spellDamagePerIntPct'
+  /** Mana per 5 s (character-stats.md#spirit-and-mana-regeneration). */
+  | 'mp5'
 
 /** Stats that % modifiers multiply (character-stats.md#derived-stat-pipeline, step 3 and 4). */
 export type MultStat = 'str' | 'agi' | 'sta' | 'int' | 'spi' | 'allStats' | 'ap' | 'health' | 'blockValue'
@@ -120,8 +128,11 @@ export type Effect = (
   | { kind: 'damage'; pct: number; physicalOnly?: boolean }
   /** Damage taken (tanks); multiplicative. */
   | { kind: 'damageTaken'; pct: number }
-  /** Global threat multiplier (threat.md#global-threat-modifiers); multiplicative. */
-  | { kind: 'threat'; pct: number }
+  /**
+   * Global threat multiplier (threat.md#global-threat-modifiers); multiplicative. `holyOnly`: Holy
+   * threat only (Righteous Fury, threat.md#paladin-righteous-fury).
+   */
+  | { kind: 'threat'; pct: number; holyOnly?: boolean }
   /** Maximum rage, flat or % (rage.md#rage-pool-cap-and-decay). */
   | { kind: 'maxRage'; value: number }
   | { kind: 'maxRagePct'; pct: number }
@@ -184,6 +195,8 @@ export interface AuraSpec {
   critCharges?: number
   /** Charges consumed by the player's blocks (Holy Shield 4, Redoubt 5); the aura drops when they run out. */
   blockCharges?: number
+  /** Auras in the same group exclude each other: one seal, one judgement debuff (paladin.md#seals). */
+  group?: string
   mods: {
     str?: number
     agi?: number
@@ -205,6 +218,10 @@ export interface AuraSpec {
     blockValue?: number
     armor?: number
     damageTaken?: number
+    /** Holy damage done %, multiplicative (Vengeance, paladin.md#retribution-tree). */
+    holy?: number
+    /** Flat Holy damage taken by the target (Judgement of the Crusader, paladin.md). */
+    holyTaken?: number
   }
 }
 
@@ -233,6 +250,10 @@ export type ProcTrigger =
   | 'critTaken'
   /** The target dodges one of the player's attacks, white or special, either hand (the Overpower window, warrior.md §2.8). */
   | 'targetDodge'
+  /** A landed white swing, after its own crit's procs (the paladin's damage seals, paladin.md#implementation-notes). */
+  | 'whiteResolved'
+  /** A crit on the spell table (magic or ranged spells, combat-tables §9). */
+  | 'spellCrit'
 
 export type ProcAction =
   /** Extra main-hand swings, immediately (damage-and-timing §5.4); `bonusAp` applies to them only. */
@@ -248,6 +269,10 @@ export type ProcAction =
   | { kind: 'rage'; amount: number }
   /** A bleed of `share` × the main hand's average swing, recomputed each tick (Deep Wounds, warrior.md §2.5). */
   | { kind: 'weaponBleed'; share: number; ticks: number; periodMs: number }
+  /** Casts a damaging spell on its own table (the paladin's seal procs, paladin.md#seals). */
+  | { kind: 'spell'; spell: SpellDef }
+  /** Mana: a % of maximum mana (Shield Specialization, paladin.md#protection-tree); spell-effect mana makes threat. */
+  | { kind: 'mana'; pctOfMax: number }
 
 export interface ProcSpec {
   id: string

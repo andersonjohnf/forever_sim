@@ -36,7 +36,11 @@ import {
   type Plan,
   type PlanBundle,
   type ProcPlan,
+  SCHOOL,
+  DEFENSE,
   type SourcePlan,
+  type SpellDef,
+  type SpellPlan,
   STANCE,
   STANCE_ANY,
   type StancePlan,
@@ -84,6 +88,24 @@ const ITEM_STAT: Partial<Record<keyof Stats, FlatStat>> = {
   hasteRating: 'hasteRating',
   expertiseRating: 'expertiseRating',
   armorPenetration: 'armorPen',
+  // Spell damage and mana regeneration (paladin.md#conventions-used-below: "SP" is all-schools
+  // spell damage plus Holy; Forever's healing items carry their spell damage as its own line).
+  spellPower: 'spellDamage',
+  spellDamage: 'spellDamage',
+  holySpellDamage: 'holySpellDamage',
+  mp5: 'mp5',
+}
+
+/** "+X spell damage against <type>" item stats (encounter.md#6-creature-type-biome-and-zone-forever). */
+const SPELL_DAMAGE_VS: Partial<Record<keyof Stats, SimConfig['fight']['creatureType']>> = {
+  spellDamageVsBeasts: 'beast',
+  spellDamageVsDemons: 'demon',
+  spellDamageVsDragonkin: 'dragonkin',
+  spellDamageVsElementals: 'elemental',
+  spellDamageVsGiants: 'giant',
+  spellDamageVsHumanoids: 'humanoid',
+  spellDamageVsMechanical: 'mechanical',
+  spellDamageVsUndead: 'undead',
 }
 
 /** "+X Attack Power against <type>" item stats (encounter.md#6-creature-type-biome-and-zone-forever). */
@@ -139,6 +161,8 @@ interface Collected {
   physicalMult: number
   damageTakenMult: number
   threatMult: number
+  /** Righteous Fury's multiplier on Holy threat (threat.md#paladin-righteous-fury). */
+  holyThreatMult: number
   maxRageFlat: number
   maxRageMult: number
   targetArmor: number
@@ -288,6 +312,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
 
   // --- Effects -------------------------------------------------------------------------------
   const setup = classSetup(classId, config.spec, config.talents, profile, rotationBaseStance(config.spec, config.rotation))
+  // The paladin uses mana, not rage (paladin.md#mana-model): it has no rage pool. Its hits give
+  // none either (`rageFromHits`), so no rage assumption applies to it.
+  const usesRage = classId !== 'paladin'
   if (!setup.simulated && attributes) blockers.push(`${meta.className} simulation isn’t available yet.`)
   // A druid in an animal form attacks with the form's weapon, whatever is equipped; the item's
   // other stats and effects still apply (druid.md §2.1, §8 "Form swap"). Its per-hand bonuses
@@ -309,6 +336,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     physicalMult: 1,
     damageTakenMult: 1,
     threatMult: 1,
+    holyThreatMult: 1,
     maxRageFlat: 0,
     maxRageMult: 1,
     targetArmor: 0,
@@ -357,6 +385,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       if (stat) block[stat] += value
       else if (key in AP_VS && AP_VS[key] === fight.creatureType) block.ap += value
       else if (key === 'feralAttackPower') formItemEffects.push(feralAp(value))
+      else if (key in SPELL_DAMAGE_VS && SPELL_DAMAGE_VS[key] === fight.creatureType) block.spellDamage += value
       else if (key === 'weaponDamage') {
         for (const w of weapons) if (w && (origin === null || w.hand === origin)) w.plan.flatDamage += value
       }
@@ -574,8 +603,22 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spec.mods.armor ? { armor: spec.mods.armor } : {}),
       ...(spec.mods.damageTaken ? { damageTaken: spec.mods.damageTaken } : {}),
       ...(spec.blockCharges ? { blockCharges: spec.blockCharges } : {}),
+      // paladin.md: Vengeance's Holy damage, JotC's Holy damage taken, one seal at a time.
+      ...(spec.mods.holy ? { holy: spec.mods.holy } : {}),
+      ...(spec.mods.holyTaken ? { holyTaken: spec.mods.holyTaken } : {}),
+      ...(spec.group ? { group: spec.group } : {}),
     })
     return auras.length - 1
+  }
+  const spells: SpellPlan[] = []
+  /** The plan spell for `def` (paladin.md#conventions-used-below), added on first use with its breakdown row. */
+  const spellIndex = (def: SpellDef) => {
+    const source = sourceIndex(def.id, def.name, def.icon)
+    const i = spells.findIndex((x) => x.source === source)
+    if (i >= 0) return i
+    const { name: _, icon: __, school, defense, ...rest } = def
+    spells.push({ ...rest, school: SCHOOL[school], defense: DEFENSE[defense], source })
+    return spells.length - 1
   }
   let procs: ProcPlan[] = []
   /** The aura id each proc needs to be up (Bloodthrill: your Rend), resolved once the abilities' auras are in. */
@@ -629,6 +672,18 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         // Applications and ticks share the row; a proc's bleed can't crit or be avoided (warrior.md §2.5).
         sources[proc.source].bleed = { ticksCanCrit: false, avoidable: false }
         break
+      case 'spell':
+        // A seal's proc (paladin.md#seals): its spell's row counts its casts.
+        proc.action = ACTION.spell
+        proc.amount = spellIndex(action.spell)
+        proc.source = spells[proc.amount].source
+        break
+      case 'mana':
+        // Shield Specialization (paladin.md#protection-tree): the mana's threat goes on its row.
+        proc.action = ACTION.mana
+        proc.amount = action.pctOfMax
+        proc.source = sourceIndex(spec.id, spec.name, spec.icon)
+        break
     }
     procs.push(proc)
     procNeeds.push(spec.requiresAura)
@@ -660,7 +715,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // cooldowns; Rend), and the encounter's creature type picks the weapon share (Spearing Strike).
   // A reactive ability's window is an aura too (the Overpower window, warrior.md §2.8, §7).
   const abilities: AbilityPlan[] = classRot.abilities.map((def) => {
-    const { offHand, aura, vsCreature: _, window, ...a } = def
+    const { offHand, aura, vsCreature: _, window, spellDef, tickSpellDef, ...a } = def
     const source = sourceIndex(a.id, a.name, a.icon)
     // A bleed's row counts applications and ticks (Rend: its ticks crit only where periodic
     // effects can, damage-and-timing §4).
@@ -672,6 +727,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       offHandSource: offHand && weapons[HAND.off] ? sourceIndex(`${a.id}OffHand`, `${a.name} (off hand)`, a.icon) : -1,
       aura: aura ? auraIndex(aura, aura.id, a.icon) : -1,
       window: window ? auraIndex(window, window.id, a.icon) : -1,
+      // A paladin ability's spells (paladin.md): its own shares its row.
+      ...(spellDef ? { spell: spellIndex(spellDef) } : {}),
+      ...(tickSpellDef ? { tickSpell: spellIndex(tickSpellDef) } : {}),
     }
   })
   // The rotation's own procs (the Overpower window's openers, warrior.md §2.8). A proc that needs an
@@ -756,7 +814,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     armor: derived.armor,
     rage: {
       // docs/mechanics/rage.md#rage-pool-cap-and-decay: 100 + Boundless Rage, × Gnome +5% [?] (warrior Q17)
-      maxTenths: Math.round((BASE_MAX_RAGE + c.maxRageFlat) * c.maxRageMult * 10),
+      maxTenths: usesRage ? Math.round((BASE_MAX_RAGE + c.maxRageFlat) * c.maxRageMult * 10) : 0,
       // docs/mechanics/rage.md#rage-from-damage-taken; a legacy id maps to its new name
       damageTakenModel: currentDamageTakenRageModel(config.rules.damageTakenRage) ?? profile.rage.damageTaken,
       maxHealth: derived.health,
@@ -772,6 +830,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     rotation: classRot.rotation,
     prepull: classRot.prepull,
     ...(forms && setup.form ? druidPlan(forms, setup.form, setup.talents, derived, auras) : {}),
+    ...(spells.length > 0 ? { spells } : {}),
+    ...(c.holyThreatMult !== 1 ? { holyThreatMult: c.holyThreatMult } : {}),
   }
 
   // --- Assumptions ---------------------------------------------------------------------------------
@@ -969,7 +1029,8 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
       c.damageTakenMult *= 1 + e.pct / 100
       return
     case 'threat':
-      c.threatMult *= 1 + e.pct / 100
+      if (e.holyOnly) c.holyThreatMult *= 1 + e.pct / 100
+      else c.threatMult *= 1 + e.pct / 100
       return
     case 'maxRage':
       c.maxRageFlat += e.value
@@ -1139,7 +1200,8 @@ function resolveProc(spec: ProcSpec, origin: 0 | 1 | null, weapons: [Weapon | nu
     trigger === TRIGGER.whiteLanded ||
     trigger === TRIGGER.swingLanded ||
     trigger === TRIGGER.meleeCrit ||
-    trigger === TRIGGER.targetDodge
+    trigger === TRIGGER.targetDodge ||
+    trigger === TRIGGER.whiteResolved
   let hands = 0
   if (onAttack) {
     for (const w of weapons) {

@@ -84,6 +84,8 @@ export const ACTION = {
   spell: 5,
   /** Mana: `amount` % of maximum mana (Shield Specialization, paladin.md#protection-tree). */
   mana: 6,
+  /** Mana: `amount` tenths (Improved Seal of Fury, paladin.md#protection-tree). */
+  manaFlat: 7,
 } as const
 
 /**
@@ -135,6 +137,11 @@ export interface SpellDef {
   /** Threat = damage × mult + bonus, before the school's and the global multipliers (threat.md). */
   threatMult: number
   threatBonus: number
+  /**
+   * Never crits, and rolls no crit (Holy Shield's block damage and Retribution Aura's, a damage
+   * shield's: paladin.md#protection-model-and-rotation [?]). Absent: it can crit.
+   */
+  cannotCrit?: boolean
 }
 
 export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense'> {
@@ -204,6 +211,8 @@ export interface AuraPlan {
   damageTaken?: number
   /** Blocks that end it early (Holy Shield 4, Redoubt 5; absent or 0 = none). */
   blockCharges?: number
+  /** Hits taken that cost health and end it (Seal of Fury's absorb, 1; paladin.md#protection-tree); absent or 0 = none. */
+  takenCharges?: number
   /** Holy damage done %, multiplicative (Vengeance, paladin.md#retribution-tree). */
   holy?: number
   /** Flat Holy damage the target takes (Judgement of the Crusader, paladin.md). */
@@ -515,6 +524,11 @@ export interface AbilityPlan {
    * nothing (Faerie Fire, druid.md §3.8).
    */
   spellHit?: boolean
+  /**
+   * `cast`: the ability whose cooldown it ends, with its category's (an index into Plan.abilities):
+   * Swift Judgement ends Judgement's (paladin.md#protection-tree). Absent or −1: none.
+   */
+  endsCooldownOf?: number
 }
 
 /**

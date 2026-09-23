@@ -37,4 +37,9 @@ describe('the plan’s code tables', () => {
   it('executeWithin’s opposite, executeNotWithin (Fury’s potion, M2.5b), takes 29, after the codes the other tracks hold', () => {
     expect(COND.executeNotWithin).toBe(29)
   })
+
+  it('the Protection paladin adds no condition or trigger, and one proc action: manaFlat 7 (Improved Seal of Fury)', () => {
+    expect(ACTION.manaFlat).toBe(7)
+    expect(Math.max(...Object.values(ACTION))).toBe(7)
+  })
 })

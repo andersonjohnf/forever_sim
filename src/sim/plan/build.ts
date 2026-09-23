@@ -623,6 +623,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spec.mods.armor ? { armor: spec.mods.armor } : {}),
       ...(spec.mods.damageTaken ? { damageTaken: spec.mods.damageTaken } : {}),
       ...(spec.blockCharges ? { blockCharges: spec.blockCharges } : {}),
+      ...(spec.takenCharges ? { takenCharges: spec.takenCharges } : {}),
       // paladin.md: Vengeance's Holy damage, JotC's Holy damage taken, one seal at a time.
       ...(spec.mods.holy ? { holy: spec.mods.holy } : {}),
       ...(spec.mods.holyTaken ? { holyTaken: spec.mods.holyTaken } : {}),
@@ -709,6 +710,14 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         proc.amount = action.pctOfMax
         proc.source = sourceIndex(spec.id, spec.name, spec.icon)
         break
+      case 'manaFlat': {
+        // Improved Seal of Fury (paladin.md#protection-tree): more for each level the boss is above you.
+        const levelPct = Math.min(action.maxLevelPct, action.perLevelPct * Math.max(0, fight.bossLevel - PLAYER_LEVEL))
+        proc.action = ACTION.manaFlat
+        proc.amount = toTenths(action.amount * (1 + levelPct / 100))
+        proc.source = sourceIndex(spec.id, spec.name, spec.icon)
+        break
+      }
     }
     procs.push(proc)
     procNeeds.push(spec.requiresAura)

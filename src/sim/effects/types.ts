@@ -203,6 +203,11 @@ export interface AuraSpec {
   critCharges?: number
   /** Charges consumed by the player's blocks (Holy Shield 4, Redoubt 5); the aura drops when they run out. */
   blockCharges?: number
+  /**
+   * Charges consumed by hits taken that cost health (Seal of Fury's absorb: 1, paladin.md#protection-tree),
+   * after their damage-taken procs; the aura drops when they run out.
+   */
+  takenCharges?: number
   /** Auras in the same group exclude each other: one seal, one judgement debuff (paladin.md#seals). */
   group?: string
   mods: {
@@ -288,6 +293,11 @@ export type ProcAction =
   | { kind: 'spell'; spell: SpellDef }
   /** Mana: a % of maximum mana (Shield Specialization, paladin.md#protection-tree); spell-effect mana makes threat. */
   | { kind: 'mana'; pctOfMax: number }
+  /**
+   * Mana: a flat amount, `perLevelPct`% more for each level the boss is above you, up to
+   * `maxLevelPct`% more (Improved Seal of Fury, paladin.md#protection-tree); it makes threat too.
+   */
+  | { kind: 'manaFlat'; amount: number; perLevelPct: number; maxLevelPct: number }
 
 export interface ProcSpec {
   id: string

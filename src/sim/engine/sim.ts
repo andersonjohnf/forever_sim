@@ -342,6 +342,13 @@ export class Sim {
   private readonly aHolyTaken: Float64Array
   /** The next aura of the same exclusive group, in a ring (itself when it has none): one seal at a time. */
   private readonly aGroupNext: Int32Array
+  /**
+   * Charges that hits taken which cost health use up (Seal of Fury's absorb, 1; paladin.md#protection-tree),
+   * the auras that have them, and each active one's charges left.
+   */
+  private readonly aTakenCharges: Int32Array
+  private readonly takenChargeAuras: Int32Array
+  private readonly auraTakenCharges: Int32Array
 
   // Spells, flattened (paladin.md#conventions-used-below; Plan.spells).
   private readonly splSource: Int32Array
@@ -361,6 +368,8 @@ export class Sim {
   private readonly splDamageMult: Float64Array
   private readonly splThreatMult: Float64Array
   private readonly splThreatBonus: Float64Array
+  /** Rolls no crit (a damage shield's: Holy Shield's block damage, Retribution Aura; paladin.md [?]). */
+  private readonly splNoCrit: Uint8Array
 
   // Abilities and the rotation, flattened.
   private readonly abKind: Int32Array
@@ -427,6 +436,8 @@ export class Sim {
   /** Uses per fight (0 = no limit), and this fight's uses so far. */
   private readonly abUsesPerFight: Int32Array
   private readonly abUses: Int32Array
+  /** The ability whose cooldown (and category's) a cast ends, or −1 (Swift Judgement, paladin.md#protection-tree). */
+  private readonly abEndsCd: Int32Array
   /**
    * The spell it casts on use and on each tick (−1 none), and the mana in tenths it returns when it
    * lands, with this chance (paladin.md). Its mana cost is `abCost`, from the pool `abRes`.
@@ -932,6 +943,9 @@ export class Sim {
     this.aHoly = Float64Array.from(auras, (a) => a.holy ?? 0)
     this.aHolyTaken = Float64Array.from(auras, (a) => a.holyTaken ?? 0)
     this.aGroupNext = ring(auras.map((a) => a.group))
+    this.aTakenCharges = Int32Array.from(auras, (a) => a.takenCharges ?? 0)
+    this.takenChargeAuras = Int32Array.from(auras.flatMap((a, i) => ((a.takenCharges ?? 0) > 0 ? [i] : [])))
+    this.auraTakenCharges = new Int32Array(na)
 
     const spells = plan.spells ?? []
     this.splSource = Int32Array.from(spells, (x) => x.source)
@@ -951,6 +965,7 @@ export class Sim {
     this.splDamageMult = Float64Array.from(spells, (x) => x.damageMult)
     this.splThreatMult = Float64Array.from(spells, (x) => x.threatMult)
     this.splThreatBonus = Float64Array.from(spells, (x) => x.threatBonus)
+    this.splNoCrit = Uint8Array.from(spells, (x) => (x.cannotCrit ? 1 : 0))
     this.staticHolyMult = plan.holyMult ?? 1
     this.holyThreatMult = plan.holyThreatMult ?? 1
 
@@ -1121,6 +1136,7 @@ export class Sim {
       this.abDotCanCrit[i] = a.periodicCanCrit && plan.profile.combat.periodicCrits ? 1 : 0
       this.abUsesPerFight[i] = a.usesPerFight
     }
+    this.abEndsCd = Int32Array.from(abilities, (a) => a.endsCooldownOf ?? -1)
     const prepull = plan.prepull
     this.preAbility = Int32Array.from(prepull.casts.map((c) => c.ability))
     this.preAt = Float64Array.from(prepull.casts.map((c) => c.atMs))
@@ -1557,6 +1573,7 @@ export class Sim {
     this.rotList = this.rotNormal
     this.rotOffList = this.offGcdNormal
     this.holyTaken = 0
+    this.auraTakenCharges.fill(0)
     this.recomputeStats()
     this.recomputeMultipliers()
   }
@@ -2170,6 +2187,20 @@ export class Sim {
     if (this.abManaGain[a] > 0) this.gainMana(this.abManaGain[a] + (spread > 0 ? Math.floor(this.rngProc.next() * (spread + 1)) : 0), source)
     if (this.abManaReturn[a] > 0) this.returnMana(a)
     this.startTicks(a)
+    // paladin.md#protection-tree: Swift Judgement ends Judgement's cooldown.
+    if (this.abEndsCd[a] >= 0) this.endCooldown(this.abEndsCd[a])
+  }
+
+  /**
+   * Ability b and every ability of its category are ready now (Swift Judgement "finishes the
+   * remaining cooldown on your Judgement ability", paladin.md#protection-tree), and the rotation
+   * walks again so it can use them.
+   */
+  private endCooldown(b: number): void {
+    const now = this.now
+    if (this.abReadyAt[b] > now) this.abReadyAt[b] = now
+    for (let c = this.abCatNext[b]; c !== b; c = this.abCatNext[c]) if (this.abReadyAt[c] > now) this.abReadyAt[c] = now
+    this.actPending = this.hasRotation
   }
 
   /**
@@ -2501,6 +2532,9 @@ export class Sim {
       case ACTION.mana:
         this.gainMana((this.manaMax * this.pAmount[p]) / 100, this.pSource[p])
         return
+      case ACTION.manaFlat:
+        this.gainMana(this.pAmount[p], this.pSource[p])
+        return
       case ACTION.weaponBleed: {
         const slot = this.pBleedSlot[p]
         // A tick due this very moment lands before the refresh, as Rend's does (damage-and-timing
@@ -2543,6 +2577,7 @@ export class Sim {
     this.auraCharges[a] = this.aCharges[a]
     this.auraCritCharges[a] = this.aCritCharges[a]
     this.auraBlockCharges[a] = this.aBlockCharges[a]
+    this.auraTakenCharges[a] = this.aTakenCharges[a]
     this.q.push(end, EV_AURA_EXPIRE, a, ++this.auraGen[a])
     if (this.watchStart[a] !== this.watchStart[a + 1]) this.watchAura(a, end)
     if (stacks !== oldStacks || !wasActive) this.auraChanged(a, stacks - (wasActive ? oldStacks : 0))
@@ -2741,7 +2776,7 @@ export class Sim {
    * avoidance, roll 2 for crit on anything that landed, blocked too: combat-tables §3 "melee spells"
    * [?]); `ranged` is miss, block, then a crit roll [?]; `magic` is the spell table, a
    * miss roll unless it always hits, then a crit roll at spell crit; `none` always lands and rolls
-   * spell crit. Damage: base (or weapon-based) + SP × coefficient, × its own and its school's
+   * spell crit, unless, like a damage shield, it can't crit (Holy Shield's block damage [?]). Damage: base (or weapon-based) + SP × coefficient, × its own and its school's
    * multipliers, then + the target's flat Holy damage taken × its share (JotC's bonus comes after
    * your own multipliers [?]), × the crit multiplier. Threat: (damage × mult + bonus) × Righteous
    * Fury for Holy × the global multiplier. A landed melee-class spell fires on-hit procs, and its
@@ -2804,7 +2839,7 @@ export class Sim {
         c[row + FIELD.misses]++
         return false
       }
-      crit = this.rngTable.roll100() < this.spellCritPct + this.splBonusCrit[s]
+      crit = this.splNoCrit[s] === 0 && this.rngTable.roll100() < this.spellCritPct + this.splBonusCrit[s]
     }
 
     let base: number
@@ -3349,7 +3384,7 @@ export class Sim {
     // rage.md#rage-from-damage-taken, #bear-druid-rage: rage users only: the plan's switch (warriors,
     // a druid that can be in Bear Form), and a druid's current form (bear). The procs fire either way.
     if (!plan.rage.fromDamageTaken || !this.gainsRage) {
-      if (healthLost > 0) this.fireProcs(TRIGGER.damageTaken, -1)
+      if (healthLost > 0) this.onDamageTaken()
       return
     }
     let rage = 0
@@ -3368,6 +3403,20 @@ export class Sim {
         break
     }
     this.gainRageFraction(rage * 10)
-    if (healthLost > 0) this.fireProcs(TRIGGER.damageTaken, -1)
+    if (healthLost > 0) this.onDamageTaken()
+  }
+
+  /**
+   * A hit that cost health: the damage-taken procs, then a charge of each aura such hits use up,
+   * so a proc that needs the aura still sees it (Seal of Fury's absorb and Improved Seal of Fury's
+   * mana, paladin.md#protection-tree).
+   */
+  private onDamageTaken(): void {
+    this.fireProcs(TRIGGER.damageTaken, -1)
+    const list = this.takenChargeAuras
+    for (let i = 0; i < list.length; i++) {
+      const a = list[i]
+      if (this.auraActive[a] && --this.auraTakenCharges[a] <= 0) this.removeAura(a)
+    }
   }
 }

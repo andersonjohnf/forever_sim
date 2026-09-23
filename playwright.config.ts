@@ -2,8 +2,9 @@ import { defineConfig, devices } from '@playwright/test'
 
 // End-to-end tests run against the production build served under the GitHub Pages base
 // path, so they exercise exactly what gets deployed. A dedicated port keeps them clear of a
-// dev or preview server you may already have running.
-const PORT = 4179
+// dev or preview server you may already have running; E2E_PORT overrides it so two checkouts
+// (e.g. a git worktree) can run e2e at the same time.
+const PORT = Number(process.env.E2E_PORT ?? 4179)
 const BASE_PATH = '/forever_sim/'
 
 export default defineConfig({

@@ -93,6 +93,9 @@ npm run test:e2e      # Playwright, headless Chromium, against the production bu
 npm run snap          # build, open a page headless, print console errors + failed requests, screenshot
                       #   -- --dark --width 390 --click Talents --out .cache/snaps/x.png
                       #   (--click Simulate waits for the result; on phones add --click "Show results")
+                      #   --storage seed.json sets localStorage keys before the app loads ({ "key": value });
+                      #   --fill "Label=text" types in a field; --upload f.json answers a file picker;
+                      #   --viewport shoots just the viewport, as an open sheet shows it
 npm run scrape        # every dataset in src/data from the Forever client via the wago.tools API (cached;
                       #   -- --version=<build> --diff for a new build, diffed against the committed data)
 npm run scrape:client # just src/data/client, the raw client tables (cached; -- --version=<build>)

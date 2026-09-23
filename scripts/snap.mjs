@@ -11,25 +11,51 @@
 //   node scripts/snap.mjs --width 390 --click Simulate --click "Show results"   # phone: open the results sheet
 //   node scripts/snap.mjs --width 390 --click Simulate --click "Show results" --click "Cooldowns and buffs" --scroll "Cooldowns and buffs"
 //                                                  # …and scroll the sheet to a section it opened
-import { mkdirSync } from 'node:fs'
+//
+// Seeding and filling in, for states a fresh page doesn't reach (the Setups sheet's list, say):
+//   --storage seed.json    sets localStorage before the app loads, from a JSON object of keys:
+//                          a string value is stored as it is, anything else as JSON, e.g.
+//                          { "forever-sim:saved-setups": { "version": 1, "setups": [ … ] } }
+//   --fill "Label=text"    types text into the field with that accessible name, in turn with --click
+//   --upload file.json     the file for the file picker that a --click opens
+//   --viewport             screenshot the viewport alone, as it shows an open sheet, not the whole page
+//   node scripts/snap.mjs --viewport --storage seed.json --click More --click "Setups…" --fill "Setup code or share link=junk" --click Import
+import { mkdirSync, readFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { parseArgs } from 'node:util'
 import { chromium } from '@playwright/test'
 import { preview } from 'vite'
 
-const { values: args } = parseArgs({
+const { values: args, tokens } = parseArgs({
+  tokens: true,
   options: {
     path: { type: 'string', default: '' },
     out: { type: 'string', default: '.cache/snaps/snap.png' },
     width: { type: 'string', default: '1280' },
     height: { type: 'string', default: '900' },
     dark: { type: 'boolean', default: false },
+    /** Screenshot the viewport alone, as it shows an open sheet, rather than the whole page. */
+    viewport: { type: 'boolean', default: false },
     /** Accessible names of tabs, buttons or menu items to click, in order, before the screenshot. Simulate waits for the result. */
     click: { type: 'string', multiple: true, default: [] },
-    /** Accessible name of a tab, button or menu item to scroll to the top of its scroller before the screenshot (inside a sheet). */
+    /** Accessible name of a tab, button, menu item or heading to scroll to the top of its scroller before the screenshot (inside a sheet). */
     scroll: { type: 'string' },
+    /** A JSON file of localStorage keys and values, set before the app loads. */
+    storage: { type: 'string' },
+    /** "Label=text": types text into the field with that accessible name, in turn with the clicks. */
+    fill: { type: 'string', multiple: true, default: [] },
+    /** A file for the file picker a click opens. */
+    upload: { type: 'string' },
   },
 })
+
+/** The clicks and fills, in the order given. */
+const steps = tokens.filter((t) => t.kind === 'option' && (t.name === 'click' || t.name === 'fill')).map((t) => ({ kind: t.name, value: t.value }))
+
+/** localStorage to set before the app loads: string values as they are, others as JSON. */
+const storage = args.storage
+  ? Object.entries(JSON.parse(readFileSync(args.storage, 'utf8'))).map(([key, value]) => [key, typeof value === 'string' ? value : JSON.stringify(value)])
+  : []
 
 const server = await preview({ preview: { port: 0 }, logLevel: 'silent' })
 const { port } = server.httpServer.address()
@@ -69,6 +95,12 @@ try {
       }
     })
   }
+  if (storage.length) {
+    await page.addInitScript((entries) => {
+      for (const [key, value] of entries) localStorage.setItem(key, value)
+    }, storage)
+  }
+  if (args.upload) page.on('filechooser', (chooser) => chooser.setFiles(args.upload))
   page.on('console', (msg) => {
     if (msg.type() === 'error' || msg.type() === 'warning') problems.push(`console.${msg.type()}: ${msg.text()}`)
   })
@@ -84,7 +116,14 @@ try {
       .or(page.getByRole('button', { name, exact: true }))
       .or(page.getByRole('menuitem', { name, exact: true }))
       .first()
-  for (const name of args.click) {
+  for (const step of steps) {
+    if (step.kind === 'fill') {
+      const at = step.value.indexOf('=')
+      if (at < 0) throw new Error(`--fill needs "Label=text", not "${step.value}"`)
+      await page.getByRole('textbox', { name: step.value.slice(0, at), exact: true }).fill(step.value.slice(at + 1))
+      continue
+    }
+    const name = step.value
     await control(name).click()
     await page.waitForLoadState('networkidle')
     // A run finishes when its button reads "Run again" again (the results panel or phone bar).
@@ -92,7 +131,12 @@ try {
       await page.getByRole('button', { name: 'Run again', exact: true }).first().waitFor({ state: 'visible', timeout: 60_000 })
     }
   }
-  if (args.scroll) await control(args.scroll).evaluate((el) => el.scrollIntoView({ block: 'start' }))
+  if (args.scroll) {
+    await control(args.scroll)
+      .or(page.getByRole('heading', { name: args.scroll, exact: true }))
+      .first()
+      .evaluate((el) => el.scrollIntoView({ block: 'start' }))
+  }
   // Full-page screenshots don't scroll, so lazy images below the fold would never load. Load
   // them all, wait for them, then let CSS transitions (150 ms) settle.
   await page.evaluate(async () => {
@@ -115,7 +159,7 @@ try {
   })
   await page.waitForTimeout(400)
   mkdirSync(dirname(args.out), { recursive: true })
-  await page.screenshot({ path: args.out, fullPage: true })
+  await page.screenshot({ path: args.out, fullPage: !args.viewport })
 
   console.log(`${url}\n  title: ${await page.title()}\n  screenshot: ${args.out}`)
   console.log(problems.length ? `  problems:\n${problems.map((p) => `    ${p}`).join('\n')}` : '  problems: none')

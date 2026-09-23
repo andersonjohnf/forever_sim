@@ -487,6 +487,12 @@ describe('golden run (fixed config and seed)', () => {
   //   threat 26.18 M → 27.66 M (more Sunders: 3,782 → 3,979 parried), Heroic Strike's 8.55 M →
   //   8.30 M, Bloodrage's 220,676 → 255,610 (its rage at the pull makes threat); TPS 970.29 →
   //   985.63, DPS 305.68 → 305.98.
+  // - P1 rebased onto the final tank core (T1's review fixes): unchanged, re-run rather than
+  //   re-snapshotted. A block charges only the auras up before its procs (TA1): Shield Block, the
+  //   warrior's one aura that blocks end, is cast, never applied by a block's procs, so every block
+  //   still uses a charge. Damage-taken factors are floored at 0 (TA7), and nothing here comes near
+  //   −100%. Avoidance placeholders are listed for tanks only (TA8), which changes the assumptions,
+  //   not the fights.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

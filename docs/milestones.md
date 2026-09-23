@@ -125,10 +125,11 @@ work is in slices:
         changes happen without an Undo toast. Toasts become plain notices that go after
         10 s, and the waiting toasts go, with the code that made room for them (RV2–RV6).
   - [ ] **M2.4g Setups** (D21):
-    - Save a named copy of the current setup, and Load, rename or delete one
-    - Export a setup code for the current setup, or a `.json` file of every saved setup
-      plus the current one
-    - Import a code or share link as the current setup, or a file into the list
+    - [x] Save a named copy of the current setup, and Load, rename or delete one; announce
+          bulk changes that have no notice (part 1)
+    - [ ] Export a setup code for the current setup, or a `.json` file of every saved setup
+          plus the current one; import a code or share link as the current setup, or a file
+          into the list (part 2)
   - [x] **M2.4h Rage from damage taken:** make `10 × damage before armor, block and absorb ÷
         maximum health` the Forever default, from about 2,000 logged beta hits (research
         2026-09-23, [rage.md](mechanics/rage.md#rage-from-damage-taken)). Blocks and absorbs

@@ -99,6 +99,19 @@ test.describe('Feral cat', () => {
     await expect(pack).toBeChecked()
     await expect(pack).toBeDisabled()
     await expect(pack).toHaveAccessibleDescription(/Your talents bring it \(see Talents\), so it isn’t added twice\./)
+    // A weapon stone's damage does nothing in Cat Form: off and locked, saying so. The Elemental
+    // stone's crit still counts.
+    const dense = page.getByRole('switch', { name: 'Dense Sharpening Stone / Weightstone' })
+    await expect(dense).not.toBeChecked()
+    await expect(dense).toBeDisabled()
+    await expect(dense).toHaveAccessibleDescription(/Not used in Cat Form: your attacks there don’t use your weapon’s damage\./)
+    await expect(page.getByRole('switch', { name: 'Elemental Sharpening Stone' })).toBeEnabled()
+    // You're the raid's druid for Gift of the Wild, which you cast on yourself.
+    await page.getByRole('button', { name: 'Druid', exact: true }).click()
+    const gift = page.getByRole('switch', { name: 'Gift of the Wild' })
+    await expect(gift).toBeChecked()
+    await expect(gift).toBeEnabled()
+    await expect(page.getByText('Needs a druid in the raid')).toHaveCount(0)
 
     await openTab(page, 'Fight')
     const fight = page.getByRole('tabpanel', { name: 'Fight' })

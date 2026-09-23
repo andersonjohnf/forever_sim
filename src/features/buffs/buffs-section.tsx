@@ -14,6 +14,8 @@ import { buffSwitchId } from './ids'
 import {
   buffCatalogueFor,
   buffPresets,
+  buffProvided,
+  unusedBuffs,
   defaultConfig,
   FULL_RAID,
   getSpec,
@@ -69,6 +71,8 @@ export function BuffsSection() {
   // The spec's own buffs (the cat's Faerie Fire): while the rotation doesn't keep one up, the tab's
   // switch is someone else's, off unless you turn it on (SpecMeta.ownBuffs, druid.md §6.2).
   const ownBuffs = useMemo(() => new Set(getSpec(meta.id).ownBuffs ?? []), [meta.id])
+  // Buffs that do nothing for the spec (a weapon stone's damage in Cat Form): off and locked, saying why.
+  const inert = useMemo(() => unusedBuffs(meta.id), [meta.id])
 
   const activePreset = buffPresets.find((p) => sameSet(presetBuffs(p.id, meta.id, buffs.raid), buffs.enabled))?.id
   // The spec's default preset, marked like the talent presets' "(default)" (docs/ux.md "Buffs", checklist 3).
@@ -83,7 +87,7 @@ export function BuffsSection() {
     // Drop buffs nobody in the raid can provide any more.
     const enabled = buffs.enabled.filter((id) => {
       const def = buffCatalogue.find((b) => b.id === id)
-      return !def?.providedBy || raid.includes(def.providedBy)
+      return !def || buffProvided(def, raid, meta.id)
     })
     setBuffs({ raid, enabled })
   }
@@ -179,20 +183,24 @@ export function BuffsSection() {
                       const own = maintained.has(def.id) || talent
                       // Yours, but the rotation doesn't keep it up: the switch means another player's.
                       const dropped = !own && ownBuffs.has(def.id)
-                      const missing = !own && def.providedBy && !buffs.raid.includes(def.providedBy)
+                      // A buff you cast on yourself needs no one else (a druid's Mark of the Wild).
+                      const missing = !own && !buffProvided(def, buffs.raid, meta.id)
+                      const unused = own ? undefined : inert[def.id]
+                      const unavailable = missing || unused !== undefined
                       const providerName = def.providedBy ? CLASS_LABEL[def.providedBy].toLowerCase() : ''
                       return (
-                        // A buff nobody in the raid brings is dimmed by colour, never opacity: its
-                        // text turns to the muted colour (AA) and its icon to gray (docs/ux.md "Buffs").
+                        // A buff nobody in the raid brings, or one that does nothing for you, is dimmed by
+                        // colour, never opacity: its text turns to the muted colour (AA) and its icon to
+                        // gray (docs/ux.md "Buffs").
                         <label
                           key={def.id}
-                          data-unavailable={missing || undefined}
+                          data-unavailable={unavailable || undefined}
                           className={cn(
                             'flex min-h-14 items-center gap-3 rounded-lg px-3 py-2',
-                            missing ? 'cursor-not-allowed text-muted-foreground' : !own && 'hover:bg-muted',
+                            unavailable ? 'cursor-not-allowed text-muted-foreground' : !own && 'hover:bg-muted',
                           )}
                         >
-                          <WowIcon icon={def.icon} size="sm" grayscale={!!missing} />
+                          <WowIcon icon={def.icon} size="sm" grayscale={unavailable} />
                           <span className="flex min-w-0 flex-1 flex-col">
                             <span className="text-sm font-medium">{def.name}</span>
                             <span id={`${buffSwitchId(def.id)}-help`} className="text-xs text-muted-foreground">
@@ -200,17 +208,19 @@ export function BuffsSection() {
                                 ? `${def.summary}. Your talents bring it (see Talents), so it isn’t added twice.`
                                 : own
                                   ? `${def.summary}. You keep it up yourself (see Rotation), so it isn’t added twice.`
-                                  : missing
-                                    ? `Needs ${dropped ? 'another' : 'a'} ${providerName} in the raid`
-                                    : dropped
-                                      ? `${def.summary}. You’re not keeping it up (see Rotation); turn this on if another ${providerName} does.`
-                                      : def.summary}
+                                  : unused !== undefined
+                                    ? `${def.summary}. ${unused}.`
+                                    : missing
+                                      ? `Needs ${dropped ? 'another' : 'a'} ${providerName} in the raid`
+                                      : dropped
+                                        ? `${def.summary}. You’re not keeping it up (see Rotation); turn this on if another ${providerName} does.`
+                                        : def.summary}
                             </span>
                           </span>
                           <Switch
                             id={buffSwitchId(def.id)}
-                            checked={own || buffs.enabled.includes(def.id)}
-                            disabled={own || !!missing}
+                            checked={own || (!unavailable && buffs.enabled.includes(def.id))}
+                            disabled={own || unavailable}
                             onCheckedChange={(on) => toggleBuff(def, on)}
                             aria-label={def.name}
                             aria-describedby={`${buffSwitchId(def.id)}-help`}

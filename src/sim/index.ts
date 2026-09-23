@@ -119,6 +119,7 @@ const BUFF_CATALOGUES = perProfile((profile): BuffDefinition[] =>
     group: b.group,
     summary: catalogueSummary(b, PROFILES[profile]),
     ...(b.providedBy ? { providedBy: b.providedBy } : {}),
+    ...(b.selfCast ? { selfCast: true } : {}),
     ...(b.exclusiveGroup ? { exclusiveGroup: b.exclusiveGroup } : {}),
     docRef: b.docRef,
   })),
@@ -144,6 +145,8 @@ export const buffPresets: BuffPreset[] = [
   { id: 'raid', name: 'Standard raid', description: 'Raid buffs and common consumables.' },
   { id: 'max', name: 'Max consumables', description: 'Raid buffs and every consumable that helps.' },
 ]
+
+export { buffProvided, unusedBuffs } from './effects/presets'
 
 /** The buff ids a preset enables for a spec, given the raid composition (buffs doc §6). */
 export function presetBuffs(preset: BuffPreset['id'], spec: SpecId, raid: ClassSlug[]): string[] {

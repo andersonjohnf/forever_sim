@@ -113,6 +113,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Stats',
     summary: '+16 all stats, +385 armor',
     providedBy: 'druid',
+    selfCast: true,
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [
       { kind: 'stat', stat: 'str', value: 16 },

@@ -262,6 +262,11 @@ export interface BuffDefinition {
   summary: string
   /** Raid composition needed for this buff to be available. */
   providedBy?: ClassSlug
+  /**
+   * A player of the `providedBy` class casts it on themselves, so for one the raid needs no other
+   * (a druid's Mark of the Wild; buffs doc §6.1).
+   */
+  selfCast?: boolean
   /** Buffs sharing a key are mutually exclusive (e.g. one battle elixir). */
   exclusiveGroup?: string
   /** Owning doc section, e.g. "docs/mechanics/buffs-debuffs-consumables.md#…". */

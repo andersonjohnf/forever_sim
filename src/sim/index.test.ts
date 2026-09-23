@@ -4,12 +4,14 @@ import {
   buffCatalogue,
   buffCatalogueFor,
   buffPresets,
+  buffProvided,
   computeSheet,
   defaultConfig,
   enchantCatalogue,
   enchantCatalogueFor,
   FULL_RAID,
   modelledItemEffects,
+  normalizeConfig,
   getSpec,
   presetBuffs,
   rotationGroups,
@@ -21,6 +23,7 @@ import {
   SPEC_IDS,
   specs,
   talentBuffs,
+  unusedBuffs,
   unusedRotationSettings,
 } from './index'
 
@@ -303,6 +306,32 @@ describe('catalogues and presets', () => {
     }
     expect(getSpec('druid-feral-cat').ownBuffs).toEqual(['faerieFire'])
     expect(getSpec('warrior-arms').ownBuffs).toBeUndefined()
+  })
+
+  it('counts a druid player as the raid’s druid for Mark of the Wild, which it casts on itself; not a warrior', () => {
+    const noDruid = FULL_RAID.filter((c) => c !== 'druid')
+    const gift = buffCatalogue.find((b) => b.id === 'markOfTheWild')!
+    expect(buffProvided(gift, noDruid, 'druid-feral-cat')).toBe(true)
+    expect(buffProvided(gift, noDruid, 'warrior-fury')).toBe(false)
+    // Faerie Fire in Buffs is another druid's, so it still needs one.
+    expect(buffProvided(buffCatalogue.find((b) => b.id === 'faerieFire')!, noDruid, 'druid-feral-cat')).toBe(false)
+    expect(presetBuffs('raid', 'druid-feral-cat', noDruid)).toContain('markOfTheWild')
+    expect(presetBuffs('raid', 'warrior-fury', noDruid)).not.toContain('markOfTheWild')
+    // The plan applies it, and loading the setup keeps it.
+    const cat = defaultConfig('druid-feral-cat')
+    const alone = { ...cat, buffs: { raid: noDruid, enabled: presetBuffs('raid', 'druid-feral-cat', noDruid) } }
+    expect(computeSheet(alone)!.strength).toBe(computeSheet(cat)!.strength)
+    expect(normalizeConfig(alone).config.buffs.enabled).toContain('markOfTheWild')
+  })
+
+  it('locks a weapon stone’s damage off for a cat, whose attacks in Cat Form don’t use the weapon’s damage (Q25)', () => {
+    expect(unusedBuffs('druid-feral-cat')).toEqual({ denseSharpeningStone: 'Not used in Cat Form: your attacks there don’t use your weapon’s damage' })
+    expect(unusedBuffs('warrior-fury')).toEqual({})
+    // The plan leaves it out; the Elemental Sharpening Stone's crit still applies.
+    const cat = defaultConfig('druid-feral-cat')
+    const withStone = (id: string) => computeSheet({ ...cat, buffs: { ...cat.buffs, enabled: [...cat.buffs.enabled, id] } })!
+    expect(withStone('denseSharpeningStone')).toEqual(computeSheet(cat))
+    expect(withStone('elementalSharpeningStone').critPct).toBeCloseTo(computeSheet(cat)!.critPct + 2, 9)
   })
 
   it('never lets a preset pick two buffs from one exclusive group', () => {

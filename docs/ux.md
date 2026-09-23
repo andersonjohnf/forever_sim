@@ -182,7 +182,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     available; buffs never depend on faction.
   - Grouped switches for raid buffs, target debuffs and consumables. A buff nobody in the raid
     brings says so ("Needs a paladin in the raid") and is dimmed by colour, not opacity: its text
-    takes the muted text colour (AA), its icon turns gray, and its switch is off and disabled.
+    takes the muted text colour (AA), its icon turns gray, and its switch is off and disabled. You
+    count for a buff you cast on yourself: a druid's Gift of the Wild never needs another druid.
+    One that does nothing for your spec is dimmed and locked off the same way, and says why: for a
+    druid, a Dense Sharpening Stone or Weightstone ("Not used in Cat Form: your attacks there don't
+    use your weapon's damage.").
   - Under Classic Era rules, a note at the top says the buff, debuff and consumable values are
     Classic Era's, with a link to **Character → Advanced** that opens the rule profile with focus
     on it.

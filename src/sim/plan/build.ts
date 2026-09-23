@@ -18,6 +18,7 @@ import { type Stance, stanceEffects } from '../classes/warrior/talents'
 import { BUFFS_BY_ID } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { ITEM_EFFECTS } from '../effects/items'
+import { buffProvided, buffUnusedReason } from '../effects/presets'
 import { COOLDOWN_RACIALS, racialEffects } from '../effects/racials'
 import { type AuraSpec, catalogueEffects, type Condition, type DruidForm, type Effect, type FlatStat, type OnUseSpec, type ProcSpec } from '../effects/types'
 import { isTwoHand } from '../equip'
@@ -460,7 +461,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   }
   for (const id of config.buffs.enabled) {
     const buff = BUFFS_BY_ID.get(id)
-    if (!buff || (buff.providedBy && !config.buffs.raid.includes(buff.providedBy))) continue
+    if (!buff || !buffProvided(buff, config.buffs.raid, config.spec) || buffUnusedReason(buff, config.spec)) continue
     if (maintained.includes(id) || setup.replacesBuffs?.includes(id)) continue
     const effects = catalogueEffects(buff, profile)
     apply(effects, null)

@@ -626,7 +626,9 @@ composition flags; each buff toggle is enabled only if its flag is set.
 
 When the sim'd player *is* the warrior, druid or paladin providing a buff (their own Battle
 Shout, Leader of the Pack or Sunders), the class doc models it as self-applied and the
-external toggle is ignored.
+external toggle is ignored. A druid casts Mark of the Wild on itself, so for a druid player
+`comp.druid` is always met for it (the entry's `selfCast`): Gift of the Wild never needs another
+druid. Faerie Fire in Buffs still does, since a cat's own is its rotation's.
 
 ### 6.2 Buffs and debuffs by preset
 

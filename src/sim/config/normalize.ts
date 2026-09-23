@@ -10,7 +10,7 @@ import { defaultConfig, defaultGear, FULL_RAID, TALENT_DATA } from '../defaults'
 import { BUFFS_BY_ID, type BuffSpec } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { catalogueEffects } from '../effects/types'
-import { presetBuffIds } from '../effects/presets'
+import { buffProvided, presetBuffIds } from '../effects/presets'
 import { fitsSlot, isTwoHand, uniqueConflicts } from '../equip'
 import { currentDamageTakenRageModel, PROFILES, type RulesProfile } from '../rules/profiles'
 import { SPEC_IDS, SPEC_META } from '../specs'
@@ -324,7 +324,7 @@ function normalizeBuffs(input: unknown, spec: SpecId, profile: RulesProfile, leg
       continue
     }
     if (selected.includes(buff)) continue
-    if (buff.providedBy && !raid.includes(buff.providedBy)) {
+    if (!buffProvided(buff, raid, spec)) {
       r.add(`${buff.name} needs a ${buff.providedBy} in the raid, so it was turned off.`)
       continue
     }

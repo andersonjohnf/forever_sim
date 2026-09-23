@@ -1012,7 +1012,10 @@ the buffs doc as a per-spec entry.
   them only to powershift [C] [wh-rot] (secondary: [ws-presets]).
 - No world buffs: Songflower, Zandalar, Rallying Cry, Warchief's Blessing, DM tribute and DMF are
   excluded ([doctrine §1](../doctrine.md#1-what-were-building)).
-- Weapon stones and oils are left to the buffs doc: whether they apply in form is Q25.
+- Weapon stones and oils: a Dense Sharpening Stone or Weightstone only adds weapon damage, which
+  a form's attacks don't use (§2.1), so the Buffs tab locks it off for a druid, saying so, and the
+  plan leaves it out. An Elemental Sharpening Stone's +2% crit still applies. Whether stones and
+  oils do anything in form in game is Q25.
 
 ---
 
@@ -1232,7 +1235,7 @@ ranks.
 | Q22 | Nature's Reach +4% applies to melee | Aura 54 [F] | Miss rate vs mobs three levels above you with 0 vs 2 points (large sample) |
 | Q23 | HotW Str ×1.10 before or after Blessing of Kings | [?] | Character-sheet Str in cat with and without Kings |
 | Q24 | MCP charges and cooldown in Forever. **✅ Resolved from client data:** 3 charges and a 180 s cooldown in the Forever item effect | [F] [client] (ItemEffect 98990, 1.60.1.69913); foreverchanges' tooltip lists no charges [fc-mcp]; wowsims/classic's APL uses it only in the first 90 s [?] [ws-apl] | Nothing left; a guild check of the tooltip would confirm it |
-| Q25 | Crusader, weapon stones and oils in form | Buffs doc | Combat log in cat form |
+| Q25 | Crusader, weapon stones and oils in form | Buffs doc. The sim: a stone's weapon damage does nothing in form (the Buffs tab locks it off, §7.5), an Elemental stone's crit does | Combat log in cat form |
 | Q26 | Rip vs Bite as default finisher. **✅ Answered by the sim:** Rip, in both profiles | With the default raid's bleed, Bite in Rip's place loses 9.9% in `forever` and 4.4% in `classicEra`, where Example 12's single finisher favoured Bite (§6.2, W12). The inputs are still [?] (Q3, Q9, Q10, Q21) | Nothing to test for this question; re-run the comparison (`scripts/tune/rotation.mjs --spec druid-feral-cat [--profile classicEra] rip.onlyWithoutOtherBleeds=true`) when Q3, Q9, Q10 or Q21 is answered |
 | Q27 | Confirm the wago.tools DB2 readings (scripted before the robots.txt ruling). **✅ Resolved from client data** ([client.md](../data/client.md#doc-claims-checked-against-the-raw-client)) | Every priority row matched the raw 1.60.1.69913 and 1.15.9.69722 files (claims D6, D10, D14–D17, C27): Rip 9896 and SDV 865, Shred, Claw, Rake, Ferocious Bite, Mangle, Lacerate, Cat Form (Passive) 3025, Bear Form Passive2 21178, Tiger's Fury, King of the Jungle, Berserk, Omen of Clarity's ICD, Demoralizing Roar's row, Cower, the Balance/Resto talent auras, form swing timers, the cat GCD, Endurance and Elune's Light. The remaining label-cited values match `src/data/client/*.json` | Nothing left in a browser. On a new build, re-run `npm run scrape:client -- --claims` |
 | Q28 | Form attacks and items (secondary source only): does haste (MCP, Wind Blessed, T1 2-piece) speed form swings; do PPM procs use the form speed (1.0 / 2.5); is "+X Attack Power in Cat, Bear, and Dire Bear forms" added 1:1; is there no normalization; is MCP the right default weapon? | [?] (secondary [ws-forms] [ws-talents] [ws-presets] [ws-apl] [ws-shred]) | Swing timer with MCP active (addon or combat log); Crusader proc count in cat vs caster; character-sheet AP with and without a feral-AP item |

@@ -109,7 +109,8 @@ describe('specs', () => {
 })
 
 describe('rotation groups (docs/ux.md "Rotation")', () => {
-  for (const spec of specs.filter((s) => s.available)) {
+  // Every spec with settings, a hidden one too (the Feral cat until it ships).
+  for (const spec of specs.filter((s) => s.rotationOptions.length > 0)) {
     it(`puts every ${spec.name} setting under a heading, a dependent one with its parent or naming it`, () => {
       const options = spec.rotationOptions
       for (const [i, option] of options.entries()) {

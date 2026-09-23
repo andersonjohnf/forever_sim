@@ -15,7 +15,7 @@ const items = itemsJson as unknown as ClientItems
 /** SpellEffectName and SpellAuraName codes (src/data/client/types.ts). */
 const APPLY_AURA = 6
 const ENERGIZE = 30
-const AURA = { modStat: 29, attackSpeed: 9, allCrit: 290 }
+const AURA = { modStat: 29, attackSpeed: 9, allCrit: 290, meleeHaste: 319 }
 /** ItemEffect trigger: on use. */
 const ON_USE = 0
 
@@ -80,6 +80,18 @@ describe('on-use trinkets match src/data/client (warrior.md §5.2 row 3)', () =>
     // One proc charge: the tooltip says a non-periodic crit you deal uses it.
     expect(spell.auraOptions?.procCharges).toBe(1)
     expect(use.aura?.critCharges).toBe(1)
+  })
+
+  it('Manual Crowd Pummeler (9449 → 13494): +50% attack speed for 30 s, a 3 min cooldown, 3 charges (druid.md §7.3)', () => {
+    const use = ITEM_EFFECTS[9449].use!
+    const { effect, spell } = useOf(9449, false)
+    expect(spell.name).toBe('Haste')
+    expectCast(use, spell)
+    expect([use.cooldownMs, use.charges]).toEqual([effect.coolDownMSec, effect.charges])
+    expect([use.cooldownMs, use.charges]).toEqual([180000, 3])
+    const haste = spell.effects.find((e) => e.effect === APPLY_AURA && e.effectAura === AURA.meleeHaste)!
+    expect(use.aura?.mods).toEqual({ haste: haste.effectBasePointsF })
+    expect([use.rageTenths, use.rageSpreadTenths]).toEqual([0, 0])
   })
 
   it('Diamond Flask (20130) isn’t simulated, or in the pool: Forever replaced its +75 Strength use (warrior.md §7, Q30)', () => {

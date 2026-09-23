@@ -5,6 +5,7 @@
 // abilities, priority list and pre-pull. Specs without a rotation yet simulate white swings only.
 import { NO_PREPULL } from '../plan/types'
 import type { RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
+import { CAT_OPTIONS, catMaintainedBuffs, catRotation } from './druid/cat'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
 import { paladinCore, type PaladinContext } from './paladin/setup'
 import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
@@ -14,6 +15,14 @@ import type { Stance } from './warrior/talents'
 
 export type { ClassRotation, RotationContext } from './warrior/shared'
 export type { PaladinContext } from './paladin/setup'
+
+/** What a rotation needs from the rest of the setup: the warrior's and paladin's context, and what the druid's reads. */
+export interface ClassRotationContext extends PaladinContext {
+  /** Ids of the equipped items (Wolfshead Helm's Energy on Tiger's Fury, druid.md §3.6). */
+  equipped: ReadonlySet<number>
+  /** Others keep the target bleeding all fight: a raid with warriors (Rip's and Rake's settings, druid.md §6.2). */
+  othersBleed: boolean
+}
 
 /**
  * The Rotation tab's headings, in the order it shows them (docs/ux.md "Rotation"): the pre-pull,
@@ -32,16 +41,19 @@ export const ROTATION_GROUPS: readonly RotationGroup[] = [
 export function rotationOptions(spec: SpecId): RotationOption[] {
   if (spec === 'warrior-fury') return FURY_OPTIONS
   if (spec === 'warrior-arms') return ARMS_OPTIONS
+  if (spec === 'druid-feral-cat') return CAT_OPTIONS
   return []
 }
 
 /**
  * What the Rotation tab's intro says about the spec's defaults (docs/ux.md "Rotation"): tuned for
  * the default setup once a paired search has tuned them (decision D23; Arms since M2.5a, Fury since
- * M2.5b), the common priority until then. None for a spec without rotation settings.
+ * M2.5b), the common priority until then (the Feral cat, until its tuning). None for a spec without
+ * rotation settings.
  */
 export function rotationDefaultsNote(spec: SpecId): string | undefined {
   if (spec === 'warrior-arms' || spec === 'warrior-fury') return 'The defaults are tuned for the default setup.'
+  if (spec === 'druid-feral-cat') return 'The defaults follow the common priority.'
   return undefined
 }
 
@@ -57,6 +69,7 @@ export function renamedRotationOptions(spec: SpecId): Readonly<Record<string, st
 export function maintainedBuffs(spec: SpecId, values: Record<string, RotationValue>): string[] {
   if (spec === 'warrior-fury') return furyMaintainedBuffs(values)
   if (spec === 'warrior-arms') return armsMaintainedBuffs(values)
+  if (spec === 'druid-feral-cat') return catMaintainedBuffs(values)
   return []
 }
 
@@ -74,11 +87,12 @@ export function classRotation(
   values: Record<string, RotationValue>,
   talents: TalentRanks,
   auraIndex: (id: string) => number,
-  /** RotationContext, and for the paladin its main-hand weapon (Seal of Righteousness scales with it). */
-  context: PaladinContext,
+  /** RotationContext, for the paladin its main-hand weapon (Seal of Righteousness scales with it), and for the druid what its rotation reads. */
+  context: ClassRotationContext,
 ): ClassRotation {
   if (spec === 'warrior-fury') return furyRotation(values, talents, auraIndex, context)
   if (spec === 'warrior-arms') return armsRotation(values, talents, auraIndex, context)
+  if (spec === 'druid-feral-cat') return catRotation(values, talents, auraIndex, context)
   // docs/classes/paladin.md: the seal and its judgement both specs share; the specs' rows come with C2 and the Protection slice.
   if (spec === 'paladin-retribution' || spec === 'paladin-protection') return paladinCore(spec, talents, context)
   return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }

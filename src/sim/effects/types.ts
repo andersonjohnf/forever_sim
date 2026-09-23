@@ -181,6 +181,11 @@ export interface OnUseSpec {
   /** Rage at once: `rageTenths` plus a uniform whole number of tenths from 0 to `rageSpreadTenths`. */
   rageTenths: number
   rageSpreadTenths: number
+  /**
+   * Uses before it's spent, each fight (Manual Crowd Pummeler's 3 charges, `ItemEffect.Charges`,
+   * druid.md §7.3); absent or 0: no limit.
+   */
+  charges?: number
 }
 
 /** Timed buff applied by a proc or a `cast` ability (plan/types.ts AbilityPlan). Mods apply per stack. */
@@ -222,6 +227,8 @@ export interface AuraSpec {
     holy?: number
     /** Flat Holy damage taken by the target (Judgement of the Crusader, paladin.md). */
     holyTaken?: number
+    /** Armor taken off the target while it's up: a debuff on the boss (Faerie Fire, druid.md §3.8). */
+    targetArmor?: number
   }
 }
 

@@ -58,10 +58,23 @@ export const CP_BUILDERS: ReadonlySet<string> = new Set(['shred', 'claw', 'rake'
 
 /**
  * Rend and Tear: +2% damage per rank from melee abilities against a bleeding target, not white
- * swings or periodic ticks [F]; its scope is [?] (druid.md §2.3, §5.1, Q9). The engine hook that
- * knows whether the target bleeds comes with the cat rotation (druid.md §8).
+ * swings or periodic ticks [F]; its scope is [?] (druid.md §2.3, §5.1, Q9). The abilities with
+ * direct damage get it (`bleedingTargetPct`); the engine knows whether the target bleeds, from the
+ * druid's own bleeds or others' (plan/types.ts `othersBleed`).
  */
 export const REND_AND_TEAR_PCT_PER_RANK = 2
+export const REND_AND_TEAR: ReadonlySet<string> = new Set([
+  'claw',
+  'rake',
+  'shred',
+  'ravage',
+  'pounce',
+  'ferociousBite',
+  'maul',
+  'swipe',
+  'mangle',
+  'lacerate',
+])
 
 /** Rage or Energy a build's talents take off an ability's cost, in whole points (druid.md §5.1). */
 export function costReduction(id: string, talents: TalentRanks): number {
@@ -90,8 +103,8 @@ export function abilityCritMultiplier(id: string, talents: TalentRanks): number 
 /**
  * The ability as this build uses it (druid.md §2.3, §2.5, §5): cost reductions (in the ability's
  * resource, tenths), Savage Fury and Feral Instinct on its hit and bleed, Genesis on its bleed,
- * Predatory Instincts' crit damage, and Primal Fury's chance of an extra combo point on a builder's
- * crit. Stacking: percentage modifiers from different talents multiply [?] (druid.md §2.3).
+ * Predatory Instincts' crit damage, Rend and Tear against a bleeding target, and Primal Fury's
+ * chance of an extra combo point on a builder's crit. Stacking: percentage modifiers from different talents multiply [?] (druid.md §2.3).
  */
 export function withDruidTalents(def: AbilityDef, talents: TalentRanks): AbilityDef {
   const hit = damageMultiplier(def.id, talents)
@@ -104,6 +117,9 @@ export function withDruidTalents(def: AbilityDef, talents: TalentRanks): Ability
     flatDamage: def.weaponPercent > 0 ? def.flatDamage : def.flatDamage * hit,
     apCoefficient: def.apCoefficient * hit,
   }
+  if (def.flatDamageRange) resolved.flatDamageRange = def.flatDamageRange * hit
+  const rendAndTear = REND_AND_TEAR.has(def.id) ? REND_AND_TEAR_PCT_PER_RANK * rank(talents, 'Rend and Tear') : 0
+  if (rendAndTear > 0) resolved.bleedingTargetPct = rendAndTear
   const periodic = hit * periodicMultiplier(def.id, talents)
   resolved.dotTickDamage = def.dotTickDamage * periodic
   if (def.dotTickPerComboPoint) resolved.dotTickPerComboPoint = def.dotTickPerComboPoint * periodic

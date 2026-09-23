@@ -136,7 +136,8 @@ damage_after_armor = damage × (1 − DR)
   Rake/Rip/Pounce ticks [C] (the pre-SoD WarriorSim applies no armor to Deep Wounds ticks,
   [ws-spell]; a Classic Era feral guide: "bleed damage is not discounted by armor",
   [wowhead Classic feral rotation][wh-feral]). The initial hit of Rake or Pounce is a normal
-  physical hit and *is* mitigated.
+  physical hit and *is* mitigated. The engine does both: Rake's hit takes the armor factor, and its
+  bleed's ticks and Rip's don't ([druid §3.3](../classes/druid.md#33-rake-r4-9904)).
 - Direct physical hits (white swings, Heroic Strike, Shred, …) are mitigated.
 
 ---

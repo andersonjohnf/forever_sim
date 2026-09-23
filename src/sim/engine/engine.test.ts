@@ -487,6 +487,23 @@ describe('golden run (fixed config and seed)', () => {
     }).toMatchSnapshot()
   })
 
+  // - B2: the default Feral cat (druid.md §6.2, §7), added with its rotation at the doc's first
+  //   priority: Berserk, the Manual Crowd Pummeler and Tiger's Fury off the GCD; its own Faerie Fire,
+  //   a Clearcasting Shred, Rip at 5 combo points, a Shred first from 67 Energy, Ferocious Bite at 4,
+  //   and Shred.
+  it('keeps the default Feral cat’s result unchanged', () => {
+    const bundle = buildPlan({ ...defaultConfig('druid-feral-cat'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
+    const agg = runFights(bundle.plan, 1000)
+    const result = toResult(bundle, agg, 0)
+    expect({
+      dps: result.dps,
+      tps: result.tps,
+      durationSec: result.durationSec,
+      abilities: result.abilities.map((a) => [a.id, a.damage, a.casts, a.hits, a.crits, a.misses, a.dodges, a.glances]),
+      cooldowns: result.cooldowns.map((c) => [c.id, c.castsPerFight, c.uptimePct]),
+    }).toMatchSnapshot()
+  })
+
   it('keeps the default Protection warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-protection'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)

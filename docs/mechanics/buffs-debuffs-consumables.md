@@ -437,7 +437,7 @@ All explosives share a **1-minute cooldown** (category 24 [F] [client] (ItemEffe
 | Sunder Armor (r5) | 11597 | −450 armor per stack, 5 stacks = **−2250** | 30 s | **Exclusive with Expose Armor** in Classic [C]; unverified in Forever [?] | Warrior | [F] value | [fc-sb-warrior] · [crc-ea] |
 | Expose Armor (r5) | 11198 | **−450 per combo point, −2250 at 5 CP** (C: −340 / −1700) | 30 s | Exclusive with Sunder [C] / [?] | Rogue | [F] value | [fc-sb-rogue] |
 | Improved Expose Armor | talent (C: 14168) | **No longer adds armor reduction.** Forever: −10 energy cost, refunds 2 CP when used at 5 CP (C: +50%, i.e. −2550 at 5 CP) | — | — | Rogue talent | [F] | [fc-changes] |
-| Faerie Fire (r4) | 9907 | −505 armor; target can't stealth | 40 s | Stacks with Sunder / Expose Armor and CoR [C] | Druid. **Castable in Cat, Bear and Dire Bear Form** in Forever; free with a 6 s cooldown in form (see [druid](../classes/druid.md)) | [F] | [fc-sb-druid] |
+| Faerie Fire (r4) | 9907 | −505 armor; target can't stealth | 40 s | Stacks with Sunder / Expose Armor and CoR [C] | Druid. **Castable in Cat, Bear and Dire Bear Form** in Forever; free with a 6 s cooldown in form (see [druid](../classes/druid.md)). A cat that keeps its own up (its Rotation tab's Faerie Fire, on by default, [druid §3.8](../classes/druid.md#38-faerie-fire-in-cat-9907-r4)) replaces this switch, as a warrior's own Battle Shout does | [F] | [fc-sb-druid] |
 | Faerie Fire (Feral) | 17392 (Classic) | **Not in Forever** (the talent and spell were removed; Faerie Fire itself is now form-castable) | — | — | — | [F] | [fc-sb-druid] (missing list) · [fc-changes] |
 | Curse of Recklessness (r4) | 11717 | **−505 armor** (C: −640 armor **and +90 AP to the target**); target won't flee | 2 min | One curse per warlock; stacks with Sunder / FF [C] | Warlock | [F] | [fc-sb-warlock] · [client] (SpellEffect, 1.60.1.69913) |
 | Annihilator: Armor Shatter | item 12798 → 16928 | **−165** armor per stack, 3 stacks = −495 (C: −200 / −600) | 45 s | Stacks with the major armor debuffs [C] | Forever item is now **One-Hand, 2.40 speed, +14 AP** (C: Main Hand 1.70) | [F] | [fc/12798](https://foreverchanges.pro/item/12798) · [client] (SpellEffect, 1.60.1.69913) |
@@ -826,8 +826,12 @@ SpellCategories, 1.60.1.69913).
 **Which the rotation uses** ([warrior §5.2](../classes/warrior.md#52-fury-dual-wield) rows 16
 and 17): the Fury rotation drinks the Mighty Rage Potion once, from the start of the execute
 phase, and uses Juju Flurry on cooldown from the pull, each only when it's selected here; both
-are off the GCD. EZ-Thro Dark Bomb and Greater Stoneshield Potion aren't simulated, and a result
-that selects them says so. The long buffs above (Juju Might, Juju Power, Firewater, elixirs,
+are off the GCD. The Feral cat ([druid §6.2](../classes/druid.md#62-forever-cat-priority)) drinks the
+potion once, with Berserk, for its +60 Strength, and uses Juju Flurry on cooldown. EZ-Thro Dark
+Bomb and Greater Stoneshield Potion aren't simulated, and a result that selects them says so.
+An on-use *item* (a trinket, the Manual Crowd Pummeler) keeps its own cooldown and charges from
+its item effect: the Pummeler's +50% attack speed is ready every 180 s, 3 times a fight [F]
+[client] (ItemEffect, 1.60.1.69913; [druid §7.3](../classes/druid.md#73-weapon)). The long buffs above (Juju Might, Juju Power, Firewater, elixirs,
 food) are static: used before the pull and up all fight.
 ### Modelling rules
 

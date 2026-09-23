@@ -7,7 +7,7 @@
 import itemJson from '@/data/items/pre-bis.json'
 import type { Item, ItemData, Stats, WeaponSkill, WeaponType } from '@/data/items/types'
 import { bossOutcomeShares, glanceRange, PLAYER_LEVEL } from '../core/attack-table'
-import { negativeArmorFloor, NORMALIZED_SPEED, OFF_HAND_DAMAGE, ppmChance, slowedSwingSec, toTenths } from '../core/formulas'
+import { CRIT_MULTIPLIER, negativeArmorFloor, NORMALIZED_SPEED, OFF_HAND_DAMAGE, ppmChance, slowedSwingSec, toTenths } from '../core/formulas'
 import { classSetup } from '../classes'
 import { DRUID_FORMS, FORM_INDEX, FORM_NAME, formWeapon } from '../classes/druid/forms'
 import { druidPlan } from '../classes/druid/plan'
@@ -608,6 +608,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spec.mods.holy ? { holy: spec.mods.holy } : {}),
       ...(spec.mods.holyTaken ? { holyTaken: spec.mods.holyTaken } : {}),
       ...(spec.group ? { group: spec.group } : {}),
+      // A debuff the player keeps on the target (Faerie Fire, druid.md §3.8).
+      ...(spec.mods.targetArmor ? { targetArmor: spec.mods.targetArmor } : {}),
     })
     return auras.length - 1
   }
@@ -701,6 +703,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const periodicRage = c.periodicRage.map((p) => ({ periodMs: p.periodMs, tenths: toTenths(p.amount), source: -1 }))
 
   // --- Abilities and the priority list (docs/classes/warrior.md §5) ------------------------------
+  // A raid with warriors keeps their Deep Wounds on the boss, so it bleeds from others all fight: an
+  // assumption for Rend and Tear and the cat's Rip (druid.md §5.1, §6.2, Q9 [?]).
+  const othersBleed = config.buffs.raid.includes('warrior')
   const classRot = setup.simulated
     ? classRotation(config.spec, config.rotation, setup.talents, (id) => auras.findIndex((a) => a.id === id), {
         race: config.race,
@@ -710,6 +715,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         profile,
         creatureType: fight.creatureType,
         mainHand: mh ? { speedSec: mh.plan.speedSec, twoHand: mh.twoHand } : null,
+        equipped: new Set([...equipped.values()].map((i) => i.id)),
+        othersBleed,
       })
     : { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
   // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), a
@@ -717,11 +724,19 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // cooldowns; Rend), and the encounter's creature type picks the weapon share (Spearing Strike).
   // A reactive ability's window is an aura too (the Overpower window, warrior.md §2.8, §7).
   const abilities: AbilityPlan[] = classRot.abilities.map((def) => {
-    const { offHand, aura, vsCreature: _, window, spellDef, tickSpellDef, ...a } = def
+    const { offHand, aura, vsCreature: _, window, spellDef, tickSpellDef, auraCrit: __, ...a } = def
     const source = sourceIndex(a.id, a.name, a.icon)
     // A bleed's row counts applications and ticks (Rend: its ticks crit only where periodic
     // effects can, damage-and-timing §4).
-    if (a.kind === 'bleed') sources[source].bleed = { ticksCanCrit: a.periodicCanCrit && profile.combat.periodicCrits, avoidable: true }
+    const ticksCanCrit = a.periodicCanCrit && profile.combat.periodicCrits
+    if (a.kind === 'bleed') sources[source].bleed = { ticksCanCrit, avoidable: true }
+    // An attack that also bleeds (Rake, druid.md §3.3): its ticks get a row of their own, whose
+    // applications come from landed hits, so they can't be avoided.
+    let dotSource: number | undefined
+    if (a.kind !== 'bleed' && a.dotTicks > 0) {
+      dotSource = sourceIndex(`${a.id}Bleed`, `${a.name} (bleed)`, a.icon)
+      sources[dotSource].bleed = { ticksCanCrit, avoidable: false }
+    }
     return {
       ...a,
       weaponPercent: weaponPercentVs(def, fight.creatureType),
@@ -732,7 +747,15 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       // A paladin ability's spells (paladin.md): its own shares its row.
       ...(spellDef ? { spell: spellIndex(spellDef) } : {}),
       ...(tickSpellDef ? { tickSpell: spellIndex(tickSpellDef) } : {}),
+      ...(dotSource !== undefined ? { dotSource } : {}),
     }
+  })
+  // Crit an aura gives some abilities (Berserk's, druid.md §3.7), once every ability's aura is in;
+  // without an ability that puts it up, there's none.
+  classRot.abilities.forEach((def, i) => {
+    if (!def.auraCrit) return
+    const aura = auras.findIndex((x) => x.id === def.auraCrit!.aura)
+    if (aura >= 0) abilities[i].auraCrit = { aura, pct: def.auraCrit.pct }
   })
   // The rotation's own procs (the Overpower window's openers, warrior.md §2.8). A proc that needs an
   // aura (Bloodthrill: your Rend on the target) is rolled only while it's up, and left out if the plan
@@ -805,6 +828,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         : null,
       damageTakenPerHit: !tank && fight.damageTakenPerSec > 0 ? (fight.damageTakenPerSec * DPS_DAMAGE_INTERVAL_MS) / 1000 : 0,
       damageTakenIntervalMs: DPS_DAMAGE_INTERVAL_MS,
+      ...(abilities.some((a) => a.bleedingTargetPct) ? { othersBleed } : {}),
     },
     stats: block,
     weapons: [weapons[0]?.plan ?? null, weapons[1]?.plan ?? null],
@@ -974,11 +998,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // warrior.md §7 and Q3, Q13, Q32: Slam's cast, Spearing Strike's weapon share, Rend's tick crits and on-hit procs.
   if (abilities.some((a) => a.castMs > 0)) notes.add('slamCast')
   if (abilities.some((a) => a.twoHandOnly) && weapons[HAND.main]?.plan.twoHand) notes.add('spearingStrike')
-  const bleeds = abilities.filter((a) => a.kind === 'bleed')
+  // A warrior's Rend (a rage bleed); a druid's bleeds are in `catBleeds`.
+  const bleeds = abilities.filter((a) => a.kind === 'bleed' && (a.resource ?? 'rage') === 'rage')
   if (bleeds.some((a) => a.periodicCanCrit) && profile.combat.periodicCrits) notes.add('rendTickCrits')
   if (bleeds.length > 0 && mh) notes.add('rendOnHit')
   // warrior.md §7 and Q28, Q29: Execute's rage tenths, and Improved Bloodrage 1/2's rounding.
-  if (mh && fight.executePct > 0 && abilities.some((a) => a.damagePerExtraRage > 0)) notes.add('executeRageTenths')
+  if (mh && fight.executePct > 0 && abilities.some((a) => a.damagePerExtraRage > 0 && (a.resource ?? 'rage') === 'rage')) notes.add('executeRageTenths')
   if (setup.talents.get('Improved Bloodrage') === 1 && abilities.some((a) => a.id === 'bloodrage')) notes.add('improvedBloodrageRounding')
   if (c.zoneGatedUnmet) notes.add('hyjalFlask')
   // docs/classes/druid.md §2, §8 "Uncertainty surfacing": the druid's [?] that this setup relies on
@@ -988,6 +1013,16 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (procIds.has('omenOfClarity')) notes.add('omenOfClarity')
     if (abilities.some((a) => a.resource === 'energy')) notes.add('energyTicks')
     if (abilities.some((a) => a.kind === 'shift')) notes.add('shapeshifts')
+    // druid.md §3, §8 "Uncertainty surfacing": the cat's abilities.
+    const has = (id: string) => abilities.some((a) => a.id === id)
+    if (has('shred') || has('claw')) notes.add('catShredFlat')
+    if (has('rip') || has('ferociousBite')) notes.add('catFinisherAp')
+    if (has('rip') || has('rake')) notes.add('catBleeds')
+    if (has('rake') || has('ferociousBite')) notes.add('catTwoRolls')
+    if (setup.talents.has('Predatory Instincts') && abilities.some((a) => a.critMultiplier > CRIT_MULTIPLIER.melee)) notes.add('predatoryInstincts')
+    if (abilities.some((a) => a.bleedingTargetPct)) notes.add('rendAndTear')
+    if (has('berserk') && setup.talents.has('Primal Fury')) notes.add('berserkCrits')
+    if ((setup.form === 'cat' || setup.form === 'bear') && (auras.some((a) => a.haste) || derived.hasteMult > 1)) notes.add('formHaste')
     if (setup.form === 'bear' && profile.catalogue.column === 'forever') notes.add('bearArmor')
   }
   // docs/classes/paladin.md#open-questions: what the paladin's seals, judgements and mana rely on.

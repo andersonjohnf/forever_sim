@@ -95,6 +95,34 @@ export const ITEM_EFFECTS: Record<number, ItemEffects> = {
       rageSpreadTenths: 0,
     },
   },
+  // Manual Crowd Pummeler (item 9449; its stats are Classic Era's, D6): "Use: Increases your attack
+  // speed by 50% for 30 sec." Spell 13494: aura 319 (melee haste) +50 for 30 s, no GCD; the Forever
+  // item effect has a 180 s cooldown and 3 charges [F] [client] (SpellEffect, SpellDuration,
+  // ItemEffect, 1.60.1.69913; docs/classes/druid.md §7.3). A rotation presses it with its on-use
+  // items (a warrior's trinket setting, a cat's on-use setting); that it hastes a druid's form swings
+  // is [?] (druid.md Q28).
+  9449: {
+    source: 'Forever client: spell 13494 and the item effect’s cooldown and charges (1.60.1.69913)',
+    effects: [],
+    use: {
+      id: 'manualCrowdPummeler',
+      name: 'Manual Crowd Pummeler',
+      icon: 'inv_mace_14',
+      cooldownMs: 180000,
+      gcdMs: 0,
+      aura: { id: 'manualCrowdPummeler', name: 'Haste (Manual Crowd Pummeler)', durationMs: 30000, mods: { haste: 50 } },
+      rageTenths: 0,
+      rageSpreadTenths: 0,
+      charges: 3,
+    },
+  },
+  // Wolfshead Helm (item 8345): "Equip: You gain an additional 5 Rage from activating Enrage and an
+  // additional 20 Energy from activating Tiger's Fury." (17768). Nothing on its own: the cat's Tiger's
+  // Fury reads it (docs/classes/druid.md §3.6); the bear's Enrage part comes with the bear rotation.
+  8345: {
+    source: 'Forever client: spell 17768 (1.60.1.69913); the cat rotation’s Tiger’s Fury adds its Energy',
+    effects: [],
+  },
   // Flurry Axe: "Grants 1 extra attack on your next swing"; 1.8 PPM [C].
   871: {
     source: 'Tooltip text; 1.8 PPM (WarriorSim gear.js, pre-SoD)',

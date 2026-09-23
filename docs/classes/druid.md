@@ -14,8 +14,9 @@ real changes from those artefacts using the client DB2 tables, and specifies eve
 rotation setting and default the engine needs for cat DPS and bear TPS at level 60.
 
 Status: researched 2026-09-22 · foundation in the engine 2026-09-23 (forms, Energy, combo points,
-Clearcasting, shapeshifts, talents and defaults; the cat and bear abilities and rotations come
-next, [§8](#8-implementation-notes)) · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
+Clearcasting, shapeshifts, talents and defaults) · the cat's abilities and tuned rotation
+2026-09-23 ([§3](#3-feral-cat-sim-model), [§6.2](#62-forever-cat-priority)); the bear's come next
+([§8](#8-implementation-notes)) · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 
 Forever client build `1.60.1.69913`, Classic Era client build `1.15.9.69722`. Source links use
 short labels, which are resolved under [Sources](#sources).
@@ -519,6 +520,12 @@ and the hit table is owned by [combat-tables.md](../mechanics/combat-tables.md).
 maintains it, the sim applies the raid debuff from this source and doesn't double-count a
 "Faerie Fire" debuff toggle. [F] [client] (SpellEffect 3025 effects 2–4, 1.60.1.69913) [ss-f]
 
+**In the engine:** a `cast` that rolls spell hit ([combat-tables §9](../mechanics/combat-tables.md#9-spell-hit-and-crit-generic)):
+17% against a level-63 boss, less your spell hit (Nature's Reach's 4% among it). A miss applies
+nothing, and the 6 s cooldown runs either way. Its aura takes 505 off the boss's armor while it's up. With
+the rotation's Faerie Fire on (the default), the Buffs tab's Faerie Fire adds nothing more, as a
+warrior's own Battle Shout replaces the Buffs one. Its threat (108 [?], Q15) isn't counted.
+
 ### 3.9 Not used in the default cat rotation
 
 - **Ravage** (r4 9867): `3.50 × (W + 98)`, must be prowling and behind. [F] [se-f]
@@ -536,6 +543,34 @@ doesn't apply). Physical, so armor applies, and Tiger's Fury and Naturalist appl
 
 Cat Form's threat modifier is **×0.71** (−29%). [F] [client] (SpellEffect 3025 effect 1: −29,
 1.60.1.69913); [C] [ltc2]
+
+### 3.12 In the engine
+
+`src/sim/classes/druid/cat-abilities.ts` holds the rows above with the client's numbers, which
+`cat.test.ts` checks against `src/data/client`; the build's talents apply through
+`withDruidTalents` ([§8](#8-implementation-notes)).
+
+- **Shred, Claw:** one-roll weapon strikes (`W` is the form weapon, §2.1). Shred is from behind
+  only: with the Fight tab's position at the front it's never used, and Claw builds instead.
+- **Rake:** its hit is a two-roll attack like Ferocious Bite (Q33 [?]). A landed hit also starts
+  its bleed: 3 ticks with their own breakdown row ("Rake (bleed)"), a marker on the boss for
+  Rend and Tear and the rotation, and the crit chance it landed with (Berserk's included [?]).
+- **Rip:** a bleed finisher. The ticks snapshot the combo points, attack power, Tiger's Fury and
+  crit chance when it lands (§2.9), and crit in `forever` only.
+- **Ferocious Bite:** 52 + a uniform 0–60, + 147 per combo point, + 3% of attack power per point
+  [?], + 2.7 per Energy left after its 35. A landed Bite spends every point and all the Energy;
+  an avoided one keeps both, less its cost.
+- **Tiger's Fury:** a free cast off the GCD. Its Energy is an energize: 60 at King of the Jungle
+  3/3, 80 with Wolfshead Helm, capped at 100, with 5 threat per Energy gained [?].
+- **Berserk:** a free cast off the GCD. While its 15 s aura is up, Shred, Claw and Rake get +100%
+  crit, so each landed builder crits and, with Primal Fury 2/2, gives 2 combo points (Q8 [?]).
+- **Rend and Tear:** +10% on the direct damage of Shred, Claw, Rake and Ferocious Bite while the
+  boss bleeds: from the druid's Rip or Rake, or all fight when the Buffs tab's raid has warriors,
+  whose Deep Wounds count (Q9 [?]). Not on auto attacks or ticks.
+- **The Manual Crowd Pummeler:** its use is a cast off the GCD, +50% attack speed for 30 s, a 180 s
+  cooldown and 3 charges a fight [F] [client] (ItemEffect, 1.60.1.69913). That the haste speeds
+  the form's swings is Q28 [?].
+- The results list the cat's `[?]` in use ([§8](#8-implementation-notes)).
 
 ---
 
@@ -737,49 +772,67 @@ Why Forever differs from the Era rotation:
 - Rend and Tear rewards keeping the target bleeding.
 
 The Shred/Bite core of the Era tree carries over. Everything below is a **Forever derivation**
-[?] that the sim should verify by comparing settings. It's evaluated at every decision point: GCD
-ready, Energy tick, Clearcasting gained, cooldown ready, debuff expiry.
+[?] that the sim should verify by comparing settings. It's evaluated
+at every decision point: GCD ready, Energy tick, Clearcasting gained, a cooldown ready, a debuff
+or bleed expiring, a fight-time threshold. Each line is used when its ability is usable (off
+cooldown, the Energy and combo points for it, the GCD free if it needs it) and its conditions
+hold.
 
 **Off-GCD (checked first, may fire alongside a GCD action):**
 
-1. **Berserk** if ready and in cat.
-2. **Tiger's Fury** if ready and `Energy ≤ tfMaxEnergy`.
+1. **Berserk** on cooldown, with the talent.
+2. The racial cooldown (Night Elf: Elune's Light, §7.2) and on-use items (the Manual Crowd
+   Pummeler, Weakness Analyzer) on cooldown. All have 3 min cooldowns, so they line up with
+   Berserk from the pull.
+3. **Tiger's Fury** at `Energy ≤ 100 − its Energy + tigersFury.maxEnergyLost` (its Energy: 60 at
+   King of the Jungle 3/3, 80 with Wolfshead Helm; W8).
+4. The Mighty Rage Potion once, with Berserk (at the pull without it), and Juju Flurry on
+   cooldown, when they're selected in Buffs.
 
 **On the GCD:**
 
-3. **Faerie Fire** if `maintainFaerieFire`, FF is off cooldown, and either the debuff is missing,
-   or remains < `ffRefreshAt` while Energy < Shred cost (so the GCD comes out of waiting time).
-4. **Clearcasting** active → **Shred** (Claw if not behind).
-5. **Combo points ≥ `biteMinCP`**:
-   1. **Rip** if `useRip`, CP ≥ `ripMinCP`, Rip isn't on the target, fight time remaining ≥
-      `ripMinRemaining`, and (unless `ripOnlyIfNoOtherBleed` is off) the target isn't already
-      bleeding from another source.
-   2. Otherwise, if Energy ≥ `shredBeforeBiteEnergy` → **Shred** first (Bite converts surplus
-      Energy at only 2.7 per point).
-   3. Otherwise, if Energy ≥ 35 and `useBite` → **Ferocious Bite**.
-6. **Rake** if `useRake`, Rake isn't on the target, the target isn't bleeding, and ≥ 9 s remain.
-7. **Shred** if behind, else **Claw** (if `allowClaw`), when affordable.
-8. Otherwise wait for the next event.
+5. **Faerie Fire** when it's off the boss; and with at most `faerieFire.refreshBelowSec` left while
+   Energy is below the builder's cost, so the GCD comes out of waiting time.
+6. With **Clearcasting** up, the builder (**Shred**, or **Claw** where Shred can't be used): it's free.
+7. **Rip** at ≥ `rip.minComboPoints`, when it's off the boss (or has at most
+   `rip.refreshBelowSec` left), with at least `rip.minFightLeftSec` of the fight left. Not at all
+   with `rip.onlyWithoutOtherBleeds` while others keep the boss bleeding.
+8. At ≥ `ferociousBite.minComboPoints`: the builder first while Energy ≥
+   `ferociousBite.shredFirstFrom` (Bite converts surplus Energy at only 2.7 a point), then
+   **Ferocious Bite** (with `ferociousBite.onlyWhileRipUp`, only while Rip is up or too little of
+   the fight is left for one).
+9. **Rake** when it's off the boss, with at least its 9 s of the fight left; with
+   `rake.onlyWithoutBleeds`, only while nothing else bleeds the boss (no Rip of yours, no
+   warriors in the raid).
+10. The builder: **Shred** from behind, **Claw** from the front (or with Shred off).
+11. Otherwise wait for the next event.
 
-**Tunable settings (these are the UI's "abilities used"):**
+No powershifting: in Forever it gains nothing (§2.8), so the rotation offers none. Cower and
+the Prowl openers aren't simulated (§3.9).
+
+**Settings** (the Rotation tab; ids `druid.cat.<ability>.<param>`):
 
 | Setting | Default | Meaning |
 | --- | --- | --- |
-| `behindTarget` | **on** | Shred allowed. Off → Claw builder |
-| `useShred` | **on** | Primary builder |
-| `allowClaw` | **on** | Claw used when not behind (only then) |
-| `useBite`, `biteMinCP` | **on**, **4** | Bite threshold ([C] 4 CP from [wh-rot]; Primal Fury keeps the same overflow logic) |
-| `shredBeforeBiteEnergy` | **67** (= Shred cost 42 + Bite 35 − 10 regenerated during the 1 s GCD) | Energy at or above which to Shred before biting |
-| `useRip`, `ripMinCP`, `ripMinRemaining` | **on**, **5**, **10 s** | Rip policy |
-| `ripOnlyIfNoOtherBleed` | **off** in `forever`, **on** in `classicEra` | Profile-dependent (§9, example 12). In `classicEra` Rip ticks can't crit, so with a raid bleed (Deep Wounds) on the target Bite beats Rip, and Rip is used only to enable Rend and Tear. In `forever` Rip ticks can crit [?], which makes Rip the better finisher even when the target already bleeds. Q26 settles it with the sim |
-| `targetBleedingFromOthers` | **on** for raid presets, off for "solo / no warriors" | Encounter flag feeding Rend and Tear and the Rip condition. Default is [?]: it assumes warriors keep Deep Wounds up |
-| `useRake` | **off** | Low damage per Energy ([C] [wh-rot]); try it only when nothing else bleeds |
-| `useTigersFury`, `tfMaxEnergy` | **on**, **100 − (20 × King of the Jungle rank) − (20 if Wolfshead)** (= 40 with the default build) | Use TF without capping Energy |
-| `useBerserk` | **on** | On cooldown |
-| `maintainFaerieFire`, `ffRefreshAt` | **on**, **12 s** ([C] [wh-rot] refresh window) | Off if another druid owns FF |
-| `powershift` | **off** | Forever gains nothing (§2.8). If on: shift when Energy + next tick < next cost, using the Forever Furor rule |
-| `useCower` | **off** | Threat utility |
-| `useMCP` (item on-use) | **on** if equipped | Use on cooldown |
+| `berserk.enabled` | **on** | Berserk on cooldown (needs the talent) |
+| `racial.enabled` | **on** | Elune's Light on cooldown (Night Elf) |
+| `onUseItems.enabled` | **on** | The Manual Crowd Pummeler and Weakness Analyzer on cooldown, if worn |
+| `tigersFury.enabled`, `tigersFury.maxEnergyLost` | **on**, **0** | Tiger's Fury once at most this much of its Energy would be lost at the cap. The doc's `tfMaxEnergy` = 100 − its Energy (20 with the default build and Wolfshead Helm) is the 0 of this setting, whatever the build and helm |
+| `faerieFire.enabled`, `faerieFire.refreshBelowSec` | **on**, **12 s** ([C] [wh-rot] refresh window) | Keep your own Faerie Fire up (the Buffs tab's then adds nothing). Off if another druid owns it: then the Buffs tab's applies |
+| `shred.enabled` | **on** | Shred builds, from behind (the Fight tab's position) |
+| `claw.enabled` | **on** | Claw builds where Shred can't: from the front, or with Shred off |
+| `rip.enabled`, `rip.minComboPoints`, `rip.minFightLeftSec`, `rip.refreshBelowSec` | **on**, **5**, **10 s**, **0 s** | Rip policy (the doc's `ripMinCP`, `ripMinRemaining`, and a refresh before it runs out) |
+| `rip.onlyWithoutOtherBleeds` | **off** | The doc's `ripOnlyIfNoOtherBleed`. Off in `forever`, where Rip's ticks can crit [?] (W12). In `classicEra` W12 favours on (with a raid bleed, Bite beats a Rip that can't crit); a setting's default can't follow the profile, so a Classic Era run sets it by hand. Q26 |
+| `ferociousBite.enabled`, `ferociousBite.minComboPoints` | **on**, **4** | Bite threshold ([C] 4 CP from [wh-rot]; Primal Fury keeps the same overflow logic) |
+| `ferociousBite.shredFirstFrom` | **67** (= Shred cost 42 + Bite 35 − 10 regenerated during the 1 s GCD) | Energy at or above which to Shred before biting. 35 to 42 mean the same (Shred costs 42): Bite only when there isn't Energy for a Shred |
+| `ferociousBite.onlyWhileRipUp` | **off** | Hold combo points for Rip while it's down |
+| `rake.enabled`, `rake.onlyWithoutBleeds` | **off**, **on** | Low damage per Energy ([C] [wh-rot]); try it only when nothing else bleeds |
+| `ragePotion.enabled`, `jujuFlurry.enabled` | **on**, **on** | Only when selected in Buffs (the Max consumables preset has the potion) |
+
+**Others' bleeds.** The doc's `targetBleedingFromOthers` isn't a setting: the plan reads it from
+the Buffs tab's raid. With warriors in it (the default raid), the boss bleeds from their Deep
+Wounds all fight [?], which feeds Rend and Tear and the two "only when nothing else bleeds"
+settings. A raid without warriors turns it off.
 
 ### 6.3 Forever bear priority (TPS)
 
@@ -852,10 +905,10 @@ BiS [?] [ws-presets] (Q28).
 It is required level 29, so it falls **outside** the guild's "Rare, required level 55–60"
 pre-raid pool ([decisions.md D5](../decisions.md)). Recommendation:
 
-- Offer MCP as an explicit exception in the gear picker, for cat and bear, pending Q28. The
-  on-use needs modelling: +50% attack speed for 30 s. wowsims/classic gives it a 30 s cooldown and
-  no charge limit, but its APL stops using it after 90 s, which fits the commonly cited 3 charges
-  [?] (secondary [ws-apl]). The charge count is [?] in both clients (Q24).
+- Offer MCP as an explicit exception in the gear picker, for cat and bear, pending Q28. Its use
+  is +50% attack speed for 30 s (13494, aura 319), with a **180 s cooldown and 3 charges** in the
+  Forever item effect [F] [client] (SpellEffect, ItemEffect, 1.60.1.69913; Q24). wowsims/classic
+  gives it a 30 s cooldown and no charge limit (secondary [ws-apl]); the client settles it.
 - Otherwise the default is the best Rare 55–60 two-hander by Str/Agi/feral AP, chosen by the
   items doc owner. Weapon DPS is irrelevant.
 
@@ -863,8 +916,10 @@ The sim's default is the pre-raid list's top two-hander even where the list also
 (D11): Manual Crowd Pummeler for the cat, Warden Staff for the bear, each with Enchant 2H Weapon -
 Major Agility (+25). The other enchants are the feral column of
 [buffs-debuffs-consumables §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec):
-Agility wherever it's offered, Greater Stats on the chest, and Threat on the bear's gloves. MCP's
-on-use isn't simulated yet; the results list it.
+Agility wherever it's offered, Greater Stats on the chest, and Threat on the bear's gloves. The
+cat presses MCP's use on cooldown from the pull (§6.2 row 2): at 0 s and 180 s in a fight long
+enough, 3 times at most. That its haste speeds the form's swings is Q28 [?], listed in the
+results. The bear's rotation will press it too.
 
 ### 7.4 Rotation settings
 
@@ -950,7 +1005,10 @@ the buffs doc as a per-spec entry.
   (Q4), the D24 base-value placeholders (with every class's; base dodge for the bear only, since
   avoidance matters only when the boss attacks you), Energy's tick and refunds (Q6, Q29) once an ability pays
   Energy, shapeshifts' timers (Q34) once a rotation shifts, bear white rage and the bonus-armor
-  aura (OQ-8).
+  aura (OQ-8). With the cat's abilities: Shred's and Claw's flat bonus (Q1), Rip's and Bite's
+  attack power (Q3), the bleeds' snapshots and tick crits (Q21), the two rolls of Rake and Bite
+  (Q33), Predatory Instincts' 2.2× (Q10), Rend and Tear's scope and others' bleeds (Q9), Berserk's
+  crits and Primal Fury (Q8), and attack speed in form (Q28).
 
 **What the engine provides** (`src/sim/classes/druid/`, and plan/types.ts `AbilityPlan`). A cat or
 bear ability is a row with these fields, and its talents come from `withDruidTalents`
@@ -965,15 +1023,26 @@ Instincts, Primal Fury's combo point):
   `dotTickPerComboPoint` and `dotApCoefficientPerComboPoint` (§2.5, §3.4, §3.5).
 - `clearcastable`: Clearcasting pays for it (§2.7).
 - `kind: 'shift'` with `shiftTo` (§2.8).
-- Rotation conditions `minEnergy`, `maxEnergy` and `minComboPoints`, next to the rage ones.
+- Rotation conditions `minEnergy`, `maxEnergy` and `minComboPoints`, next to the rage ones, and
+  `abilityAuraDown` (an ability's aura, or its bleed, is off: Rake waits while Rip bleeds).
 
-The cat and bear rotations still need, in the engine: a random flat range on a non-weapon ability
-(Ferocious Bite's 52–112, §3.5); a crit bonus from an aura for some abilities only (Berserk's
-+100% on the builders, §3.7); Rend and Tear's multiplier while the target bleeds, from the
-encounter's `targetBleedingFromOthers` or the druid's own bleeds (§5.1, Q9); a hit plus a bleed in
-one ability (Rake, §3.3) and a stacking bleed (Lacerate, §4.3); Swipe's extra targets (§4.4); and
-debuffs the druid keeps up on the target (Faerie Fire's armor, Demoralizing Roar's attack power:
-§3.8, §4.5).
+The cat added, generically (plan/types.ts `AbilityPlan`, §3.12):
+- `flatDamageRange`: a uniform extra on a non-weapon ability's flat damage (Ferocious Bite's
+  52–112, §3.5).
+- `auraCrit`: crit from an aura for this ability only, its bleed's snapshot included (Berserk's
+  +100% on the builders, §3.7).
+- `bleedingTargetPct`: Rend and Tear's multiplier on direct damage while the target bleeds, from
+  the druid's own bleeds or `Plan.fight.othersBleed`, which the plan sets from the raid's warriors
+  (§5.1, Q9).
+- `dotTicks` on an attack: a hit plus a bleed in one ability, the bleed on its own row
+  (`dotSource`; Rake, §3.3).
+- `behindOnly`: never used from the front (Shred, §3.1).
+- `spellHit` on a cast, and `targetArmor` on an aura: a debuff the druid keeps on the boss, which
+  can miss (Faerie Fire, §3.8).
+- `charges` on an on-use item: uses a fight (the Manual Crowd Pummeler, §7.3).
+
+The bear still needs a stacking bleed (Lacerate, §4.3), Swipe's extra targets (§4.4) and
+Demoralizing Roar's attack power on the boss (§4.5).
 
 ---
 
@@ -985,9 +1054,11 @@ Each example states which tags it depends on. **Every example that uses the form
 `W_b` (2–4, 12–15) inherits the [?] form base damage (43.84–65.76 cat, 109.6–164.4 bear; Q5).**
 If Q5 changes those numbers, recompute the examples; the formulas stay.
 
-Unit tests: W1, W2, W9, W10, W13 and W17, the regeneration part of W11, and the talent arithmetic
-of W3, W5 and W6 (`src/sim/classes/druid/druid.test.ts`, `src/sim/engine/druid.test.ts`). The
-rest become tests with the abilities they need.
+Unit tests: W1, W2, W9, W10, W13 and W17, and the talent arithmetic of W3, W5 and W6
+(`src/sim/classes/druid/druid.test.ts`, `src/sim/engine/druid.test.ts`); W3–W8 and W11 with the
+cat's abilities in the engine, and W8's Energy against the client (`src/sim/engine/cat.test.ts`,
+`src/sim/classes/druid/cat.test.ts`). W12 compares W6 and W7 by hand; the rest come with the
+bear.
 
 1. **Cat AP.** Str 200 (after HotW), Agi 300, +310 AP from gear and buffs, Predatory Strikes 3/3:
    `2×200 − 20 + 300 + 120 + 90 + 310 = 1200`. [F] form terms; [?] `2×Str − 20` (character-stats.md)
@@ -1075,7 +1146,7 @@ ranks.
 | Q6 | Energy tick (2.0 vs 2.02 s; 20 vs 20.2) and whether haste speeds Energy | 20 per 2 s [C] [wh-rot]; 2.02 s / 20.2 only from a secondary source [?] [ws-energy] | Log Energy over time with an addon; with and without MCP/haste |
 | Q7 | King of the Jungle hidden value (5/10/15 per rank, dummy effect 1); does TF persist out of cat? | Curve [F] [client] (CurvePoint, 1.60.1.69913); what the dummy does is server-side | Compare TF damage bonus and duration with 0 vs 3 points |
 | Q8 | Berserk: do crits it forces trigger Primal Fury? | Expected yes [?] | Shred under Berserk and count CP |
-| Q9 | Rend and Tear scope: which bleeds count (others' Deep Wounds?), and does it affect white hits and periodic ticks? | Tooltip only | Shred damage on a mob with and without a warrior's Rend on it; white-hit averages; Rip ticks |
+| Q9 | Rend and Tear scope: which bleeds count (others' Deep Wounds?), and does it affect white hits and periodic ticks? | Tooltip only (1223246 is a dummy aura). The sim counts any bleed, the druid's or others' (a raid with warriors), on abilities' direct damage only [?] | Shred damage on a mob with and without a warrior's Rend on it; white-hit averages; Rip ticks |
 | Q10 | Predatory Instincts: crit = 2.2×? | `SPELLMOD_CRIT_DAMAGE_BONUS` +20% [F] | Ratio of crit to non-crit Shred on a mob three levels above you |
 | Q11 | Genesis applies to Rip, Rake, Lacerate | Class masks match [F] [client] | Rip ticks with 0 vs 5 Genesis |
 | Q12 | Savage Fury on Rake's bleed (10%) | Mask on the periodic mod [F] | Rake ticks with 0 vs 2 points |
@@ -1090,7 +1161,7 @@ ranks.
 | Q21 | Bleeds: do they snapshot TF, AP and multipliers (both profiles), and in Forever can their ticks crit, at what multiplier (does Predatory Instincts reach Rip ticks)? | Snapshot: secondary only [?] [ws-rip]. Tick crits: the Forever tooltip says periodic effects can crit [F text]; the client sets the per-spell flag on Rake, Rip, Pounce and Lacerate [F] [client] (SpellMisc, 1.60.1.69913); whether the server honours it is [?] ([damage-and-timing OQ 2](../mechanics/damage-and-timing.md#open-questions)) | Rip under TF, compare ticks after TF ends; count crits among ≥ 200 Rip and Rake ticks and their size |
 | Q22 | Nature's Reach +4% applies to melee | Aura 54 [F] | Miss rate vs mobs three levels above you with 0 vs 2 points (large sample) |
 | Q23 | HotW Str ×1.10 before or after Blessing of Kings | [?] | Character-sheet Str in cat with and without Kings |
-| Q24 | MCP charges and cooldown in Forever | foreverchanges' tooltip lists no charges [F] [fc-mcp]; wowsims/classic's APL uses it only in the first 90 s (≈ 3 charges) [?] [ws-apl] | Item tooltip in game; use it 4 times |
+| Q24 | MCP charges and cooldown in Forever. **✅ Resolved from client data:** 3 charges and a 180 s cooldown in the Forever item effect | [F] [client] (ItemEffect 98990, 1.60.1.69913); foreverchanges' tooltip lists no charges [fc-mcp]; wowsims/classic's APL uses it only in the first 90 s [?] [ws-apl] | Nothing left; a guild check of the tooltip would confirm it |
 | Q25 | Crusader, weapon stones and oils in form | Buffs doc | Combat log in cat form |
 | Q26 | Rip vs Bite as default finisher | Example 12 [?] | Sim both after Q3/Q9/Q10 |
 | Q27 | Confirm the wago.tools DB2 readings (scripted before the robots.txt ruling). **✅ Resolved from client data** ([client.md](../data/client.md#doc-claims-checked-against-the-raw-client)) | Every priority row matched the raw 1.60.1.69913 and 1.15.9.69722 files (claims D6, D10, D14–D17, C27): Rip 9896 and SDV 865, Shred, Claw, Rake, Ferocious Bite, Mangle, Lacerate, Cat Form (Passive) 3025, Bear Form Passive2 21178, Tiger's Fury, King of the Jungle, Berserk, Omen of Clarity's ICD, Demoralizing Roar's row, Cower, the Balance/Resto talent auras, form swing timers, the cat GCD, Endurance and Elune's Light. The remaining label-cited values match `src/data/client/*.json` | Nothing left in a browser. On a new build, re-run `npm run scrape:client -- --claims` |

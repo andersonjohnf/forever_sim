@@ -29,7 +29,7 @@ const REGISTRY = {
     docRef: `${DT}#36-server-tick-and-spell-batching`,
   },
   gcdHaste: {
-    text: 'The 1.5 s global cooldown isn’t shortened by haste, as in Classic Era; untested in Forever.',
+    text: 'The global cooldown isn’t shortened by haste, as in Classic Era; untested in Forever.',
     docRef: `${DT}#35-global-cooldown`,
   },
   abilityRefunds: {
@@ -343,6 +343,38 @@ const REGISTRY = {
   vindication: {
     text: 'Vindication procs from every landed melee attack, as its data reads, so its attack power bonus is up almost all fight; untested.',
     docRef: `${PAL}#retribution-tree`,
+  },
+  catShredFlat: {
+    text: 'Shred’s and Claw’s flat bonus is added before the weapon percentage, as in Classic Era: Shred deals 155% of (weapon damage + 80). Forever’s tooltip doesn’t settle it; untested.',
+    docRef: `${DRUID}#31-shred-r5-9830`,
+  },
+  catFinisherAp: {
+    text: 'Rip gains 1% of your attack power per combo point per tick (4 points at most) and Ferocious Bite 3% per combo point, as another sim has it; the Forever client doesn’t carry the scaling.',
+    docRef: `${DRUID}#34-rip-r6-9896`,
+  },
+  catBleeds: {
+    text: 'Rip and Rake’s bleed keep your attack power, damage bonuses (Tiger’s Fury) and crit chance from when they land, and in Forever their ticks can crit, as the client’s flag says; a Rip that lands can also proc Omen of Clarity. Untested.',
+    docRef: `${DRUID}#29-snapshotting`,
+  },
+  catTwoRolls: {
+    text: 'Rake’s hit and Ferocious Bite roll to hit and then to crit, like Bloodthirst, since they deal no weapon damage; Shred and Claw roll once. Untested for druids.',
+    docRef: `${DRUID}#3-feral-cat-sim-model`,
+  },
+  predatoryInstincts: {
+    text: 'Predatory Instincts makes your abilities crit for 2.2× (the +100% bonus becomes +120%), Rip’s ticks included; 2.4× is the other reading. Untested.',
+    docRef: `${DRUID}#51-feral-combat`,
+  },
+  rendAndTear: {
+    text: 'Rend and Tear adds 10% to your abilities’ direct damage, not auto attacks or bleed ticks, while the boss bleeds from your Rip or Rake, or all fight in a raid with warriors, whose Deep Wounds count. Untested.',
+    docRef: `${DRUID}#51-feral-combat`,
+  },
+  berserkCrits: {
+    text: 'Berserk’s crits give Primal Fury’s extra combo point like any crit, and Rake’s bleed keeps its crit chance. Untested.',
+    docRef: `${DRUID}#37-berserk-417141-cat-use`,
+  },
+  formHaste: {
+    text: 'Attack speed bonuses (the Manual Crowd Pummeler, Juju Flurry) speed up your form’s swings, as other sims have it; untested in Forever.',
+    docRef: `${DRUID}#21-form-attacks-swing-timer-and-damage`,
   },
   noWeapon: {
     text: 'No main-hand weapon: unarmed attacks aren’t simulated, so neither is any ability that attacks; only cooldowns and buffs are used.',

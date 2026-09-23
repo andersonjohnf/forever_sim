@@ -55,9 +55,22 @@ function testRow(id: string, fields: Partial<AbilityDef>): AbilityDef {
 
 /** Adds an ability as the plan builder does, with the druid's talent modifiers. */
 function addDruidAbility(plan: Plan, def: AbilityDef, talents: TalentRanks = new Map()): number {
-  const { offHand: _, aura, vsCreature: __, window: ___, ...a } = withDruidTalents(def, talents)
+  const { offHand: _, aura, vsCreature: __, window: ___, auraCrit, ...a } = withDruidTalents(def, talents)
   plan.sources.push({ id: a.id, name: a.name, icon: a.icon })
-  plan.abilities.push({ ...a, source: plan.sources.length - 1, offHandSource: -1, aura: aura ? addAura(plan, aura) : -1, window: -1 })
+  const source = plan.sources.length - 1
+  // An attack that also bleeds (Rake) gets its bleed's own row, as the plan builder gives it.
+  const dotSource = a.kind !== 'bleed' && a.dotTicks > 0 ? plan.sources.push({ id: `${a.id}Bleed`, name: `${a.name} (bleed)`, icon: a.icon }) - 1 : undefined
+  // An aura's crit (Berserk's) resolves to that aura, if the plan has it.
+  const critAura = auraCrit ? plan.auras.findIndex((x) => x.id === auraCrit.aura) : -1
+  plan.abilities.push({
+    ...a,
+    source,
+    offHandSource: -1,
+    aura: aura ? addAura(plan, aura) : -1,
+    window: -1,
+    ...(dotSource !== undefined ? { dotSource } : {}),
+    ...(auraCrit && critAura >= 0 ? { auraCrit: { aura: critAura, pct: auraCrit.pct } } : {}),
+  })
   return plan.abilities.length - 1
 }
 
@@ -614,8 +627,9 @@ describe('determinism and the default druids', () => {
       expect(a.dps).toEqual(b.dps)
       expect(a.tps).toEqual(b.tps)
       expect(a.dps.mean).toBeGreaterThan(0)
-      // White swings only until the rotations arrive; Clearcasting shows among the buffs.
-      expect(a.assumptions.map((x) => x.id)).toContain('whiteSwingsOnly')
+      // White swings only until the bear's rotation arrives (the cat's is in engine/cat.test.ts);
+      // Clearcasting shows among the buffs.
+      if (spec === 'druid-feral-bear') expect(a.assumptions.map((x) => x.id)).toContain('whiteSwingsOnly')
       expect(a.cooldowns.map((x) => x.id)).toContain('clearcasting')
     }
   })

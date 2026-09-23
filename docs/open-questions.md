@@ -832,12 +832,11 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **Medium · M4 · ≤20 (MCP ≤30)**
 - **Assumes:** haste speeds form swings; PPM procs use the form's speed (1.0 cat, 2.5 bear);
   "+X Attack Power in Cat, Bear, and Dire Bear forms" adds 1:1; no normalization; Crusader,
-  stones and oils work in form; MCP (+50% attack speed on use) is the default feral weapon with
-  about 3 charges [? secondary sources].
+  stones and oils work in form; MCP (+50% attack speed on use) is the default feral weapon [?
+  secondary sources]. Its 3 charges and 180 s cooldown are client data now [F] (druid Q24).
 - **Test:** swing timer in cat with a haste effect (Skyborne Wind Blessed or MCP); Crusader
-  procs per landed hit in cat vs caster form; sheet AP with and without a feral-AP item; MCP's
-  tooltip, then use it four times.
-- **Samples:** ≥500 landed hits per form for Crusader; 4 MCP uses.
+  procs per landed hit in cat vs caster form; sheet AP with and without a feral-AP item.
+- **Samples:** ≥500 landed hits per form for Crusader.
 - **Changes:** form weapon rules and MCP modelling.
 - **Docs:** [druid §2.1](classes/druid.md#21-form-attacks-swing-timer-and-damage),
   [§7.3](classes/druid.md#73-weapon), [Q24, Q25, Q28](classes/druid.md#10-open-questions)

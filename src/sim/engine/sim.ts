@@ -287,6 +287,8 @@ export class Sim {
   private readonly chargeAuras: Int32Array
   /** Crits dealt that end an aura (Weakness Analyzer), and the auras that have them. */
   private readonly aCritCharges: Int32Array
+  /** Armor an aura takes off the target while it's up (Faerie Fire, druid.md §3.8). */
+  private readonly aTargetArmor: Float64Array
   private readonly critChargeAuras: Int32Array
   /**
    * Defensive aura mods (combat-tables §8): dodge, parry and block %, block value, bonus armor and
@@ -502,6 +504,20 @@ export class Sim {
   private readonly abShiftTo: Int32Array
   /** Pays rage, in any form, with no combo points and never free: every warrior row, on the unchanged path. */
   private readonly abPlainRage: Uint8Array
+  /** Fields the cat's abilities brought (druid.md §3; plan/types.ts AbilityPlan): all 0 or −1 on a warrior row. */
+  /** A uniform extra of 0…this on a non-weapon ability's flat damage (Ferocious Bite, §3.5). */
+  private readonly abFlatRange: Float64Array
+  /** The plan aura that gives it extra crit while up (−1: none), and how much (Berserk, §3.7). */
+  private readonly abCritAura: Int32Array
+  private readonly abCritAuraPct: Float64Array
+  /** Damage % on its direct damage while the target bleeds (Rend and Tear, §5.1). */
+  private readonly abBleedPct: Float64Array
+  /** The breakdown row of its bleed's ticks: its own for an attack that also bleeds (Rake, §3.3). */
+  private readonly abDotSource: Int32Array
+  /** A `cast` that rolls spell hit on the target (Faerie Fire, §3.8). */
+  private readonly abSpellHit: Uint8Array
+  /** Others keep the target bleeding (Plan.fight.othersBleed). */
+  private readonly othersBleed: boolean
   /** PPM procs that can roll on the main hand, and their rates: a shapeshift re-resolves their chance (druid.md §2.1). */
   private readonly pPpm: Float64Array
   private readonly ppmProcs: Int32Array
@@ -541,6 +557,10 @@ export class Sim {
   private lastPaid = 0
   /** When mana was last spent (the five-second rule, druid.md §2.8, paladin.md#mana-model). */
   private manaSpentAt = -Infinity
+  /** The player's bleeds on the target now (`bleed` abilities' and Rake's; druid.md §5.1 Rend and Tear). */
+  private activeDots = 0
+  /** Armor the active debuff auras take off the target (Faerie Fire, druid.md §3.8). */
+  private dynTargetArmor = 0
   /**
    * White hits and hits taken give rage: for a warrior, in a druid's bear form (FormPlan.rage), and
    * never for a class without a rage pool (the paladin).
@@ -805,6 +825,7 @@ export class Sim {
     this.aArmor = new Float64Array(na)
     this.aTaken = new Float64Array(na)
     this.aBlockCharges = new Int32Array(na)
+    this.aTargetArmor = new Float64Array(na)
     this.auraActive = new Uint8Array(na)
     this.auraStacks = new Int32Array(na)
     this.auraCharges = new Int32Array(na)
@@ -836,8 +857,10 @@ export class Sim {
       this.aArmor[i] = a.armor ?? 0
       this.aTaken[i] = a.damageTaken ?? 0
       this.aBlockCharges[i] = a.blockCharges ?? 0
+      this.aTargetArmor[i] = a.targetArmor ?? 0
       const defensive = this.aDodge[i] || this.aParry[i] || this.aBlock[i] || this.aBlockValue[i] || this.aArmor[i]
-      this.aStatful[i] = a.str || a.agi || a.ap || a.apPct || a.crit || a.spellCrit || defensive ? 1 : 0
+      // A debuff's armor re-derives the armor factor with the stats (druid.md §3.8).
+      this.aStatful[i] = a.str || a.agi || a.ap || a.apPct || a.crit || a.spellCrit || defensive || this.aTargetArmor[i] ? 1 : 0
       this.aCritCharges[i] = a.critCharges
       if (a.whiteSwingCharges > 0) chargeAuras.push(i)
       if (a.critCharges > 0) critChargeAuras.push(i)
@@ -934,6 +957,13 @@ export class Sim {
     this.abFree = new Uint8Array(nb)
     this.abShiftTo = new Int32Array(nb).fill(-1)
     this.abPlainRage = new Uint8Array(nb)
+    this.abFlatRange = new Float64Array(nb)
+    this.abCritAura = new Int32Array(nb).fill(-1)
+    this.abCritAuraPct = new Float64Array(nb)
+    this.abBleedPct = new Float64Array(nb)
+    this.abDotSource = new Int32Array(nb)
+    this.abSpellHit = new Uint8Array(nb)
+    this.othersBleed = plan.fight.othersBleed === true
     this.freeAura = plan.freeCastAura ?? -1
     this.abTickAt = new Float64Array(nb)
     this.abSpell = Int32Array.from(abilities, (a) => a.spell ?? -1)
@@ -956,6 +986,15 @@ export class Sim {
       this.abDotApPerCp[i] = a.dotApCoefficientPerComboPoint ?? 0
       this.abFree[i] = a.clearcastable && this.freeAura >= 0 ? 1 : 0
       this.abShiftTo[i] = a.shiftTo ?? -1
+      // druid.md §3: Ferocious Bite's range, Berserk's crit, Rend and Tear, Rake's bleed row, Faerie Fire's hit roll.
+      this.abFlatRange[i] = a.flatDamageRange ?? 0
+      if (a.auraCrit) {
+        this.abCritAura[i] = a.auraCrit.aura
+        this.abCritAuraPct[i] = a.auraCrit.pct
+      }
+      this.abBleedPct[i] = a.bleedingTargetPct ?? 0
+      this.abDotSource[i] = a.dotSource ?? a.source
+      this.abSpellHit[i] = a.spellHit ? 1 : 0
       this.abPlainRage[i] = this.abRes[i] === RES_RAGE && this.abForms[i] === 0 && !a.finisher && !this.abCp[i] && !this.abFree[i] ? 1 : 0
       this.abKind[i] = KIND_CODE[a.kind]
       this.abCost[i] = a.costTenths
@@ -969,7 +1008,9 @@ export class Sim {
       // Strike, paladin.md).
       const weaponSpell = a.kind === 'spell' && a.spell !== undefined && a.spell >= 0 && spells[a.spell].weaponPercent > 0
       const needsWeapon = a.kind === 'spell' ? weaponSpell : a.kind !== 'cast' && a.kind !== 'shift'
-      this.abNeverReady[i] = (a.twoHandOnly && !this.wTwoHand[HAND.main]) || (needsWeapon && !this.hasWeapon[HAND.main]) ? 1 : 0
+      // druid.md §3.1: Shred needs you behind the target, so from the front it's never used.
+      this.abNeverReady[i] =
+        (a.twoHandOnly && !this.wTwoHand[HAND.main]) || (needsWeapon && !this.hasWeapon[HAND.main]) || (a.behindOnly && plan.fight.front) ? 1 : 0
       this.abUnavoidable[i] = a.unavoidable ? 1 : 0
       this.abWindow[i] = a.window
       this.abWeaponPct[i] = a.weaponPercent
@@ -1372,6 +1413,8 @@ export class Sim {
     this.comboPoints = 0
     this.lastPaid = 0
     this.manaSpentAt = -Infinity
+    this.activeDots = 0
+    this.dynTargetArmor = 0
     this.catEnergyLeft = this.energyStart
     this.outOfFormMs = 0
     this.formSince = 0
@@ -1534,7 +1577,8 @@ export class Sim {
         this.specCrit[h] = ch.crit
       }
       // docs/mechanics/damage-and-timing.md#12-armor-reduction-debuffs-and-penetration: flat reductions, then % ignored
-      let armor = f.targetArmor - d.armorPen
+      // A debuff the player keeps up (Faerie Fire, druid.md §3.8) takes its armor off first.
+      let armor = f.targetArmor - this.dynTargetArmor - d.armorPen
       if (armor > 0) armor *= 1 - this.wArmorPenPct[h]
       this.armorFactor[h] = 1 - armorReduction(armor, plan.playerLevel, plan.profile)
     }
@@ -1875,6 +1919,11 @@ export class Sim {
         case COND.minComboPoints:
           if (this.comboPoints < a) return false
           break
+        case COND.abilityAuraDown: {
+          const aura = this.abAura[a]
+          if (aura >= 0 && this.auraActive[aura]) return false
+          break
+        }
         // paladin.md: a mana threshold.
         case COND.minMana:
           if (this.mana < a) return false
@@ -2008,6 +2057,11 @@ export class Sim {
   private cast(a: number): void {
     const source = this.abSource[a]
     this.counters[source * FIELD_COUNT + FIELD.casts]++
+    // A spell on the target rolls spell hit first; a miss applies nothing (Faerie Fire, druid.md §3.8).
+    if (this.abSpellHit[a] === 1 && this.rngTable.roll100() < this.spellMissPct) {
+      this.counters[source * FIELD_COUNT + FIELD.misses]++
+      return
+    }
     const aura = this.abAura[a]
     if (aura >= 0) this.putAura(aura, this.now + this.aDuration[aura])
     this.gainPower(this.abRes[a], this.castRageTenths(a), source)
@@ -2098,7 +2152,7 @@ export class Sim {
       return
     }
     const blocked = !unavoidable && r < th[o + 4]
-    const critChance = this.specCrit[hand] + this.abBonusCrit[a]
+    const critChance = this.specCrit[hand] + this.abBonusCrit[a] + this.auraCritPct(a)
     // The crit slice follows the block slice, or the miss slice for an unavoidable attack.
     const critFrom = unavoidable ? th[o] : th[o + 4]
     const crit =
@@ -2124,6 +2178,8 @@ export class Sim {
       } else this.emptyPool(this.abRes[a])
       this.actPending = this.hasRotation
     }
+    // druid.md §3.3: an attack that also bleeds (Rake) lands its bleed with its hit.
+    if (main && this.abDotTicks[a] > 0) this.applyDot(a)
     // druid.md §2.5: a landed builder awards its combo points (Primal Fury one more on a crit), a
     // finisher spends them, after its damage read them.
     if (main && (this.abCp[a] !== 0 || this.abFinisher[a] === 1)) this.landComboPoints(a, crit)
@@ -2155,11 +2211,20 @@ export class Sim {
         base = this.abFlat[a] + this.abApCoef[a] * ap + (this.abPerExtraRage[a] * this.rage) / 10
       } else {
         base = this.abFlat[a] + this.abApCoef[a] * ap + (this.abPerExtraRage[a] * this.pool(this.abRes[a])) / 10
-        // druid.md §3.5: a finisher's damage per combo point and attack power per combo point.
+        // druid.md §3.5: Ferocious Bite's 52–112, and a finisher's damage per combo point and attack power per combo point.
+        if (this.abFlatRange[a] > 0) base += this.rngDamage.uniform(0, this.abFlatRange[a])
         if (this.abFinisher[a] === 1) base += this.comboPointDamage(a, ap)
       }
     }
+    // druid.md §5.1: Rend and Tear, on a bleeding target (the player's bleeds or others').
+    if (this.abBleedPct[a] !== 0 && (this.othersBleed || this.activeDots > 0)) base *= 1 + this.abBleedPct[a] / 100
     return base * this.physMult * this.armorFactor[hand]
+  }
+
+  /** Extra crit an aura gives this ability while it's up (Berserk on Shred, Claw and Rake, druid.md §3.7). */
+  private auraCritPct(a: number): number {
+    const aura = this.abCritAura[a]
+    return aura >= 0 && this.auraActive[aura] ? this.abCritAuraPct[a] : 0
   }
 
   /** A finisher's combo-point terms: damage per point, and attack power per point up to its cap (druid.md §3.4, §3.5). */
@@ -2374,6 +2439,7 @@ export class Sim {
       this.dynCrit += this.aCrit[a] * deltaStacks
       this.dynSpellCrit += this.aSpellCrit[a] * deltaStacks
       this.defensiveDelta(a, deltaStacks)
+      this.dynTargetArmor += this.aTargetArmor[a] * deltaStacks
       if (this.aApPct[a]) {
         // Attack power % auras multiply (character-stats step 4); recomputed from the active ones, so no drift.
         let m = 1
@@ -2424,12 +2490,16 @@ export class Sim {
   private applyDot(a: number): void {
     const now = this.now
     if (this.dotTicksLeft[a] > 0 && this.dotNextAt[a] === now) this.onDotTick(a)
+    // druid.md §5.1: the target bleeds while any of the player's bleeds has ticks to come.
+    if (this.dotTicksLeft[a] === 0) this.activeDots++
+    // An attack that also bleeds (Rake) counts its applications on the bleed's own row.
+    if (this.abDotSource[a] !== this.abSource[a]) this.counters[this.abDotSource[a] * FIELD_COUNT + FIELD.casts]++
     this.dotTicksLeft[a] = this.abDotTicks[a]
     // druid.md §2.9, §3.4: a finisher's bleed snapshots its combo points and attack power too (Rip).
     const cp = this.comboPoints
     const perCp = this.abFinisher[a] === 1 ? this.abDotPerCp[a] * cp + this.abDotApPerCp[a] * Math.min(cp, this.abCpApCap[a]) * this.ap : 0
     this.dotDamage[a] = (this.abDotTick[a] + perCp) * this.physMult
-    this.dotCrit[a] = this.abDotCanCrit[a] ? this.specCrit[HAND.main] + this.abBonusCrit[a] : -1
+    this.dotCrit[a] = this.abDotCanCrit[a] ? this.specCrit[HAND.main] + this.abBonusCrit[a] + this.auraCritPct(a) : -1
     this.dotNextAt[a] = now + this.abDotTickMs[a]
     this.q.push(this.dotNextAt[a], EV_DOT_TICK, a, ++this.dotGen[a])
     if (this.abAura[a] >= 0) this.startAura(this.abAura[a], now + this.abDotTicks[a] * this.abDotTickMs[a])
@@ -2443,7 +2513,7 @@ export class Sim {
    * damage × the ability's multiplier.
    */
   private onDotTick(a: number): void {
-    const source = this.abSource[a]
+    const source = this.abDotSource[a]
     const row = source * FIELD_COUNT
     let damage = this.dotDamage[a]
     const chance = this.dotCrit[a]
@@ -2458,7 +2528,7 @@ export class Sim {
     if (--this.dotTicksLeft[a] > 0) {
       this.dotNextAt[a] = this.now + this.abDotTickMs[a]
       this.q.push(this.dotNextAt[a], EV_DOT_TICK, a, this.dotGen[a])
-    }
+    } else this.activeDots--
   }
 
   /** Deep Wounds-style bleed tick: share × main-hand average swing / ticks, current AP, no armor (warrior.md §2.5). */

@@ -273,7 +273,12 @@ A spec is data plus small ability modules, never its own loop.
   (`sim/classes/warrior/modifiers.ts`: cost reductions, Impale, Raging Blows, Improved
   Bloodrage, Improved Berserker Rage, Improved Rend, Improved Slam, Improved Overpower), and
   resolves an ability's weapon share against the encounter's creature type (Spearing Strike), so the engine sees only
-  resolved numbers.
+  resolved numbers. A druid's rows add optional fields, each absent on a warrior's
+  ([druid §8](classes/druid.md#8-implementation-notes)): the pool they pay from (Energy, mana),
+  the forms, combo points and Clearcasting, and, for the cat, a flat damage range (Ferocious
+  Bite), crit from an aura for some abilities (Berserk), a bonus against a bleeding target (Rend
+  and Tear), a hit that also bleeds on its own breakdown row (Rake), attacks only from behind
+  (Shred), and a cast that rolls spell hit and puts an armor debuff on the boss (Faerie Fire).
 - **Rotation:** `Plan.rotation` is a priority list of `RotationEntry` lines (an ability plus
   conditions: rage at least or at most a value, another ability's cooldown, GCD-safe, aura down,
   another ability's aura up, another ability's aura down or due for a refresh (Battle Shout's

@@ -213,6 +213,11 @@ export interface AuraPlan {
    * paladin, one judgement debuff per paladin on the target; paladin.md#seals).
    */
   group?: string
+  /**
+   * Armor taken off the target while it's up: a debuff the player keeps on the boss (Faerie Fire's
+   * 505, druid.md §3.8). Absent: none.
+   */
+  targetArmor?: number
 }
 
 export interface ProcPlan {
@@ -448,6 +453,37 @@ export interface AbilityPlan {
    * judgements of each seal). Absent for none.
    */
   category?: string
+  // --- More generic fields the cat's abilities brought (docs/classes/druid.md §3). All optional:
+  // absent, a row behaves as before. ---
+  /**
+   * A uniform extra of 0 to this much damage on top of `flatDamage`, for an ability that isn't
+   * weapon-based (Ferocious Bite's 52–112: 52 plus 0–60, druid.md §3.5). Absent or 0: none.
+   */
+  flatDamageRange?: number
+  /**
+   * Extra crit chance while a plan aura is up, for this ability only (Berserk's +100% on Shred,
+   * Claw and Rake, druid.md §3.7): its direct hit, and its bleed's ticks, which snapshot it.
+   */
+  auraCrit?: { aura: number; pct: number }
+  /**
+   * Damage % on its direct damage while the target bleeds, from the player's own bleeds or others'
+   * (`Plan.fight.othersBleed`): Rend and Tear, druid.md §5.1. Not on periodic ticks.
+   */
+  bleedingTargetPct?: number
+  /** Usable only from behind the target (Shred, druid.md §3.1): from the front it's never used. */
+  behindOnly?: boolean
+  /**
+   * An attack that also lands a bleed (Rake, druid.md §3.3): its hit deals its damage, and on a
+   * landed hit its `dotTicks` start as a `bleed`'s would, with `aura` as their marker. Their
+   * breakdown row, which counts the applications and ticks; absent for a `bleed`, whose row is
+   * `source`.
+   */
+  dotSource?: number
+  /**
+   * `cast`: it's a spell on the target that rolls spell hit (combat-tables §9); a miss applies
+   * nothing (Faerie Fire, druid.md §3.8).
+   */
+  spellHit?: boolean
 }
 
 /**
@@ -457,7 +493,7 @@ export interface AbilityPlan {
  * to its auras; `vsCreature` is a different weapon share against some creature types (Spearing
  * Strike), which the plan resolves against the encounter's creature type (encounter §6).
  */
-export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura' | 'window' | 'spell' | 'tickSpell'> & {
+export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura' | 'window' | 'spell' | 'tickSpell' | 'auraCrit' | 'dotSource'> & {
   offHand: boolean
   aura: AuraSpec | null
   /** The spell it casts on use, and on each tick (paladin abilities); the plan adds them to Plan.spells. */
@@ -466,6 +502,11 @@ export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura' |
   vsCreature?: { types: readonly CreatureType[]; weaponPercent: number }
   /** The reactive window it needs and ends (the Overpower window, warrior.md §2.8); the plan adds it to its auras. */
   window?: AuraSpec
+  /**
+   * Extra crit while the aura with this id is up (Berserk's, druid.md §3.7); the plan resolves the
+   * id once every ability's aura is in, and drops it if no ability puts that aura up.
+   */
+  auraCrit?: { aura: string; pct: number }
 }
 
 /** An ability's weapon share against the encounter's creature type (Spearing Strike ×3 vs Giants and Dragonkin, warrior.md §3.1). */
@@ -533,7 +574,11 @@ export const COND = {
   maxEnergy: 15,
   /** combo points ≥ a (druid.md §2.5, §6.2) */
   minComboPoints: 16,
-  // 17 is reserved for `abilityAuraDown` (Cat and Retribution).
+  /**
+   * the aura that ability a puts on the player is down; for a bleed, or an attack that bleeds, its
+   * bleed is off the target (Rake waits while your Rip bleeds, druid.md §6.2)
+   */
+  abilityAuraDown: 17,
   /** mana ≥ a, in tenths (paladin.md "mana% ≥ x" settings, as mana at the plan's maximum) */
   minMana: 18,
   // 19 is reserved for `maxMana`; 20 is Warrior Protection's, 21–24 the bear's, 25–28 the
@@ -656,6 +701,11 @@ export interface Plan {
      */
     damageTakenPerHit: number
     damageTakenIntervalMs: number
+    /**
+     * Others keep a bleed on the target all fight (a raid's warriors and their Deep Wounds), for
+     * abilities that do more to a bleeding target (Rend and Tear, druid.md §5.1, Q9 [?]). Absent: no.
+     */
+    othersBleed?: boolean
   }
   /** The static stat block; the engine adds aura deltas to it and re-derives. */
   stats: StatBlock

@@ -73,7 +73,8 @@ export function cooldownResults(plan: Plan, agg: Aggregate): CooldownResult[] {
   const rows: CooldownResult[] = []
   const shown = new Set<number>()
   for (const ability of plan.abilities) {
-    if (ability.kind === 'bleed' && ability.aura >= 0) shown.add(ability.aura)
+    // An attack that also bleeds (Rake) has its bleed's marker too (druid.md §3.3).
+    if ((ability.kind === 'bleed' || ability.dotSource !== undefined) && ability.aura >= 0) shown.add(ability.aura)
     // A druid's shapeshift is listed like a cast: its casts per fight, no buff (druid.md §2.8).
     if (ability.kind !== 'cast' && ability.kind !== 'shift') continue
     if (ability.aura >= 0) shown.add(ability.aura)
@@ -144,8 +145,8 @@ export function toResult(bundle: PlanBundle, agg: Aggregate, elapsedMs: number):
       blocks: c[row + FIELD.blocks],
     }
     if (source.bleed) {
-      // Rend's marker aura is up from an application until its last tick.
-      const marker = plan.abilities.find((a) => a.source === i && a.kind === 'bleed' && a.aura >= 0)
+      // Rend's marker aura is up from an application until its last tick; Rake's is on its bleed's row.
+      const marker = plan.abilities.find((a) => a.aura >= 0 && (a.kind === 'bleed' ? a.source === i : a.dotSource === i))
       result.bleed = { ...source.bleed, uptimePct: marker ? uptimePct(agg, marker.aura) : null }
     }
     abilities.push(result)

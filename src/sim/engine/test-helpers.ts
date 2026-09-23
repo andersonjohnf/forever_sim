@@ -101,7 +101,7 @@ export function addAura(plan: Plan, spec: AuraSpec): number {
  */
 export function addAbility(plan: Plan, def: AbilityDef, talents: TalentRanks = new Map(), creatureType: CreatureType = 'none'): number {
   const resolved = withTalents(def, talents)
-  const { offHand: _, aura, vsCreature: __, window, ...a } = resolved
+  const { offHand: _, aura, vsCreature: __, window, auraCrit: ___, ...a } = resolved
   plan.sources.push({ id: a.id, name: a.name, icon: a.icon })
   const source = plan.sources.length - 1
   plan.abilities.push({

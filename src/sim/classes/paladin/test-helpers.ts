@@ -100,7 +100,7 @@ export function setSp(plan: Plan, sp: number): void {
 
 /** Adds an ability to a plan as the plan builder does: a breakdown row, its aura, and its spells. Returns its index. */
 export function addPaladinAbility(plan: Plan, def: AbilityDef): number {
-  const { offHand: _, aura, vsCreature: __, window: ___, spellDef, tickSpellDef, ...a } = def
+  const { offHand: _, aura, vsCreature: __, window: ___, auraCrit: ____, spellDef, tickSpellDef, ...a } = def
   const source = rowFor(plan, a.id, a.name, a.icon)
   plan.abilities.push({
     ...a,

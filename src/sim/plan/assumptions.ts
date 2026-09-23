@@ -449,6 +449,11 @@ const REGISTRY = {
     text: 'No main-hand weapon: unarmed attacks aren’t simulated, so neither is anything that needs them, such as your seal’s procs and Holy Strike; your other spells are.',
     docRef: `${PAL}#conventions-used-below`,
   },
+  weaponlessAttacks: {
+    // warrior.md §7; the plan names the abilities ({detail}).
+    text: 'Still used, since they need no weapon: {detail}. They roll on a special-attack table at your level’s base weapon skill.',
+    docRef: `${WAR}#7-implementation-notes`,
+  },
 } satisfies Record<string, { text: string; docRef: string }>
 
 export type AssumptionId = keyof typeof REGISTRY

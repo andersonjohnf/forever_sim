@@ -514,6 +514,12 @@ export class Sim {
   private readonly swapKeep: number
   private readonly hasRotation: boolean
   private readonly hasAbilities: boolean
+  /**
+   * Some ability attacks without a weapon (a spell-table one, or one that needs only a shield:
+   * Thunder Clap, Shield Slam; warrior.md §7 "Without a main-hand weapon"), so an empty main hand
+   * still gets its special-attack table.
+   */
+  private readonly hasWeaponlessAttacks: boolean
   /** Some proc fires after a landed white swing's own procs (the paladin's damage seals). */
   private readonly hasWhiteResolved: boolean
   /** Static multipliers on Holy damage and Holy threat (Righteous Fury ×1.9, paladin.md#threat-paladin-specific). */
@@ -1062,9 +1068,11 @@ export class Sim {
       // warrior.md §3.1: Spearing Strike needs a two-hander. §7 "Without a main-hand weapon": every
       // ability that attacks (strikes, melee spells, bleeds, the on-next-swing queue) needs one; casts
       // don't, nor does a shapeshift (druid.md §2.8), nor a spell unless it deals weapon damage (Holy
-      // Strike, paladin.md). Shield Slam and Shield Block need a shield (§3.1, §3.2).
+      // Strike, paladin.md), nor a spell-table ability (Thunder Clap, Demoralizing Shout) or one that
+      // needs a shield instead (Shield Slam; Shield Block is a cast). Those need a shield (§3.1, §3.2).
       const weaponSpell = a.kind === 'spell' && a.spell !== undefined && a.spell >= 0 && spells[a.spell].weaponPercent > 0
-      const needsWeapon = a.kind === 'spell' ? weaponSpell : a.kind !== 'cast' && a.kind !== 'shift'
+      const needsWeapon =
+        a.kind === 'spell' ? weaponSpell : a.kind !== 'cast' && a.kind !== 'shift' && a.kind !== 'spellTable' && a.shieldOnly !== true
       // druid.md §3.1: Shred needs you behind the target, so from the front it's never used.
       this.abNeverReady[i] =
         (a.twoHandOnly && !this.wTwoHand[HAND.main]) ||
@@ -1248,6 +1256,7 @@ export class Sim {
     this.hasRotation = rotation.length > 0
     // Spells on the melee table read the special-attack tables too (paladin.md#conventions-used-below).
     this.hasAbilities = nb > 0 || spells.length > 0
+    this.hasWeaponlessAttacks = abilities.some((a) => a.kind === 'spellTable' || (a.shieldOnly === true && a.kind !== 'cast'))
     this.hasWhiteResolved = (plan.triggers[TRIGGER.whiteResolved] ?? []).length > 0
     // docs/classes/druid.md §2.4, §2.8: forms, Furor, and the power tick's Energy and mana.
     const shift = plan.shapeshift
@@ -1626,22 +1635,26 @@ export class Sim {
     const ch = this.chances
     const slices = this.slices
     for (let h = 0; h < 2; h++) {
-      if (!this.hasWeapon[h]) continue
-      const sheetCrit = d.crit + this.wCritBonus[h]
+      // warrior.md §7 "Without a main-hand weapon": an empty main hand gets a special-attack table for
+      // the attacks that need no weapon (Thunder Clap, Shield Slam), at your level's base skill (300)
+      // with no weapon's hit, crit or armor penetration. No white table: it has no swings.
+      const armed = this.hasWeapon[h] === 1
+      if (!armed && !(h === HAND.main && this.hasWeaponlessAttacks)) continue
+      const sheetCrit = d.crit + (armed ? this.wCritBonus[h] : 0)
       this.critPct[h] = sheetCrit
       // docs/mechanics/combat-tables.md#2-melee-attack-table-white-swings
       inputs.attackerLevel = plan.playerLevel
       inputs.targetLevel = f.targetLevel
-      inputs.skill = this.wSkill[h]
-      inputs.hit = d.hit + this.wHitBonus[h]
+      inputs.skill = armed ? this.wSkill[h] : 5 * plan.playerLevel
+      inputs.hit = d.hit + (armed ? this.wHitBonus[h] : 0)
       inputs.sheetCrit = sheetCrit
-      inputs.auraCrit = d.auraCrit + this.wCritBonus[h]
+      inputs.auraCrit = d.auraCrit + (armed ? this.wCritBonus[h] : 0)
       inputs.expertise = d.expertise
       inputs.front = f.front
       inputs.canDodge = f.bossCanDodge
       inputs.canParry = f.bossCanParry
       inputs.canBlock = f.bossCanBlock
-      thresholds(whiteSlices(meleeChances(plan.profile, inputs, true, this.dualWield, ch), slices), this.thrWhite, 6 * h)
+      if (armed) thresholds(whiteSlices(meleeChances(plan.profile, inputs, true, this.dualWield, ch), slices), this.thrWhite, 6 * h)
       if (this.hasAbilities) {
         // docs/mechanics/combat-tables.md#5-dual-wield-and-on-next-swing-queues: dwPenalty = dualWielding && !queue.active
         if (h === HAND.off && this.dualWield) thresholds(whiteSlices(meleeChances(plan.profile, inputs, true, false, ch), slices), this.thrOffQueued)
@@ -1654,7 +1667,7 @@ export class Sim {
       // A debuff the player keeps up (Faerie Fire, druid.md §3.8; Sunder Armor's stacks, warrior.md
       // §7) takes its armor off first.
       let armor = f.targetArmor - this.dynTargetArmor - d.armorPen
-      if (armor > 0) armor *= 1 - this.wArmorPenPct[h]
+      if (armor > 0 && armed) armor *= 1 - this.wArmorPenPct[h]
       this.armorFactor[h] = 1 - armorReduction(armor, plan.playerLevel, plan.profile)
     }
     if (f.bossSwing) this.updateBossTable(d)

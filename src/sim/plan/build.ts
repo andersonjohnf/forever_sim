@@ -918,7 +918,13 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (queues && weapons[HAND.off]) notes.add('onNextSwingOffHand')
   if (setup.talents.has('Unbridled Wrath') && mh) notes.add('unbridledWrathSwings')
   if (abilities.some((a) => a.offHandSource >= 0)) notes.add('ragingBlows')
-  if (!mh) notes.add(classId === 'paladin' ? 'noWeaponSpells' : 'noWeapon')
+  if (!mh) {
+    notes.add(classId === 'paladin' ? 'noWeaponSpells' : 'noWeapon')
+    // warrior.md §7 "Without a main-hand weapon": the attacks that need none are still used.
+    const weaponless = abilities.filter((a) => a.kind === 'spellTable' || (a.shieldOnly === true && a.kind !== 'cast' && hasShield))
+    const names = weaponless.map((a) => a.name)
+    if (names.length > 0) notes.add('weaponlessAttacks', names.length > 1 ? `${names.slice(0, -1).join(', ')} and ${names.at(-1)}` : names[0])
+  }
   // Thunder Clap and Demoralizing Shout roll the spell table (warrior.md §7 "Spell-table abilities", Q33).
   const spellTableRows = abilities.filter((a) => a.kind === 'spellTable')
   if (spellTableRows.length > 0) notes.add('spellTable', spellTableRows.map((a) => a.name).join(' and '))

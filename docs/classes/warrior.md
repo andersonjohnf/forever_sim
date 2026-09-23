@@ -1931,11 +1931,15 @@ parts:
   - **With Improved Slam** the timers are untouched: white swings, a queued Heroic Strike and
     extra attacks land during the cast as usual. A Heroic Strike swing during the cast spends
     its rage first, so it can leave too little for Slam, which then fails.
-- **Without a main-hand weapon** the engine refuses every ability that attacks: weapon strikes,
-  melee spells (Bloodthirst), bleeds (Rend), Execute and the on-next-swing queue (Heroic Strike).
-  It has no unarmed attacks, white or special (the result says so), and none of these may spend
-  rage without an attack to land. Casts, which roll nothing (Bloodrage, Battle Shout, Death Wish,
-  Recklessness, the racials, trinkets and potions), are still used. An engine choice.
+- **Without a main-hand weapon** the engine refuses every ability that attacks with one: weapon
+  strikes, melee spells (Bloodthirst), bleeds (Rend), Execute and the on-next-swing queue (Heroic
+  Strike). It has no unarmed attacks, white or special (the result says so), and none of these may
+  spend rage without an attack to land. Casts, which roll nothing (Bloodrage, Battle Shout, Death
+  Wish, Recklessness, Shield Block, the racials, trinkets and potions), are still used. So are the
+  attacks that need no weapon: Thunder Clap and Demoralizing Shout on the spell table, and Shield
+  Slam, which needs a shield instead. They roll the main hand's special-attack table (Shield Slam)
+  or crit (Thunder Clap) as if at your level's base weapon skill, 300, with no weapon's hit, crit or
+  armor penetration, and the result lists them. An engine choice.
 - **Spearing Strike's target.** The plan resolves its weapon share once, from the encounter's
   creature type: 1.20 against Giants and Dragonkin, 0.40 against anything else
   ([encounter §6](../mechanics/encounter.md#6-creature-type-biome-and-zone-forever)). There's no

@@ -140,6 +140,47 @@ describe('Protection worked examples in the engine (warrior.md W14, W15)', () =>
     expect(counter(sim, plan.abilities[slam].source, FIELD.casts)).toBe(0)
     expect(counter(sim, plan.abilities[block].source, FIELD.casts)).toBe(0)
   })
+
+  it('without a main-hand weapon, uses Shield Slam, Shield Block, Thunder Clap and Demoralizing Shout, which need none, and nothing that does (§7, PL7)', () => {
+    const d = defaultConfig('warrior-protection')
+    const run = (gear: SimConfig['gear'], patch: Partial<SimConfig> = {}) => {
+      const { plan, assumptions } = buildPlan({ ...d, gear, run: { ...d.run, seed: 7 }, ...patch })
+      const sim = new Sim(plan)
+      runFights(plan, 50, sim)
+      const row = (id: string) => plan.abilities.find((a) => a.id === id)!.source
+      const casts = (id: string) => counter(sim, row(id), FIELD.casts)
+      return { plan, sim, assumptions, row, casts }
+    }
+    const shield = run({ ...d.gear, mainHand: undefined })
+    expect(shield.plan.hasShield).toBe(true)
+    for (const id of ['shieldSlam', 'shieldBlock', 'thunderClap', 'demoralizingShout']) expect(shield.casts(id), id).toBeGreaterThan(0)
+    for (const id of ['sunderArmor', 'revenge', 'heroicStrike']) expect(shield.casts(id), id).toBe(0)
+    // Shield Slam rolls the main hand's special table at the base skill: it lands, crits and deals its damage.
+    const slam = shield.row('shieldSlam')
+    expect(counter(shield.sim, slam, FIELD.hits)).toBeGreaterThan(0)
+    expect(counter(shield.sim, slam, FIELD.crits)).toBeGreaterThan(0)
+    // Its damage per landed hit is the armed warrior's, (655 + block value) × the modifiers × armor,
+    // compared with no Sunder Armor on the boss, since there's none without a weapon.
+    const armed = run(d.gear, {
+      rotation: { 'warrior.protection.sunder.enabled': false, 'warrior.protection.sunderFiller.enabled': false },
+      buffs: { ...d.buffs, enabled: d.buffs.enabled.filter((b) => b !== 'sunderArmor') },
+    })
+    const perHit = (r: typeof armed) => {
+      const s = r.row('shieldSlam')
+      return counter(r.sim, s, FIELD.damage) / (counter(r.sim, s, FIELD.hits) + 2 * counter(r.sim, s, FIELD.crits))
+    }
+    expect(perHit(shield) / perHit(armed)).toBeGreaterThan(0.98)
+    expect(perHit(shield) / perHit(armed)).toBeLessThan(1.02)
+    expect(counter(shield.sim, shield.row('thunderClap'), FIELD.damage)).toBeGreaterThan(0)
+    expect(shield.assumptions.find((a) => a.id === 'weaponlessAttacks')?.text).toMatch(
+      /^Still used, since they need no weapon: Shield Slam, Thunder Clap and Demoralizing Shout\./,
+    )
+    // With neither a weapon nor a shield: Thunder Clap and Demoralizing Shout only.
+    const bare = run({ ...d.gear, mainHand: undefined, offHand: undefined })
+    for (const id of ['thunderClap', 'demoralizingShout']) expect(bare.casts(id), id).toBeGreaterThan(0)
+    for (const id of ['shieldSlam', 'shieldBlock', 'sunderArmor', 'revenge', 'heroicStrike']) expect(bare.casts(id), id).toBe(0)
+    expect(bare.assumptions.find((a) => a.id === 'weaponlessAttacks')?.text).toMatch(/: Thunder Clap and Demoralizing Shout\./)
+  })
 })
 
 describe('the Revenge window (warrior.md §2.8, §7)', () => {

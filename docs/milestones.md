@@ -41,7 +41,7 @@ Slices ([CLAUDE.md](../CLAUDE.md#working-with-agents-small-slices-fresh-contexts
       ([data/client.md](data/client.md)).
 - [x] **M1.5b Doc sync:** apply the client-confirmed values to the docs, resolve the Route D
       entries in open-questions.md, and fix the 6 partial matches
-- [ ] **M1.5c Items from client**, in two slices:
+- [x] **M1.5c Items from client**, in two slices:
   - [x] **c-1 Stats derivation:** turn `ItemSparse` budget allocations, the damage and armor
         tables, equip spells and item sets into stats, for both builds, and validate every item
         field by field against the current snapshot. All engine-read fields match except two
@@ -49,10 +49,11 @@ Slices ([CLAUDE.md](../CLAUDE.md#working-with-agents-small-slices-fresh-contexts
         [client.md](data/client.md#items-from-the-client)).
         16 new Forever items exist only as server hotfixes, so they leave the pool (D17).
         None is on a pre-raid BiS list.
-  - [ ] **c-2 Switch over:** rebuild `src/data/items/pre-bis.json` from the client (same JSON
+  - [x] **c-2 Switch over:** rebuild `src/data/items/pre-bis.json` from the client (same JSON
         shape), with Classic Era rows for items whose Forever row is empty (D6, D17). Tooltip
         text comes from spell descriptions, and drop sources go away, since the Encounter
-        Journal ships empty.
+        Journal ships empty. Now 1,630 items; the picker shows type and levels instead of
+        sources ([items.md](data/items.md)).
 - [ ] **M1.5d Talents from client:** layout, prerequisite arrows (including the client-only
       Nature's Splendor arrow), ranks and rendered rank texts. Popular builds become our own
       documented presets.
@@ -78,7 +79,7 @@ work is in slices:
   - [x] **M2.2a Talents on abilities and the execute phase:** cost reductions and Impale,
         Unbridled Wrath on Heroic Strike swings (Q5), the execute-phase event, Execute (§5.2
         rows 6–7), Raging Blows, and stance gating
-  - [ ] **M2.2b Cooldowns:** self-buff and energize ability kinds, and time-left conditions
+  - [x] **M2.2b Cooldowns:** self-buff and energize ability kinds, and time-left conditions
         with a wake-up event; Bloodrage, Berserker Rage, Death Wish (`alignToEnd`),
         Recklessness (`lastSec`), and the racial cooldowns (§5.2 rows 2–5 and 13)
   - [ ] **M2.2c Upkeep, pre-pull and consumables:** Battle Shout upkeep, the pre-pull actions,
@@ -141,8 +142,8 @@ slice is worked:
   druid base stats are unknown, so those sims refuse with a plain message (character-stats
   OQ-1: needs Classic Era naked character sheets).
 - **The buffs doc says Hyjal flasks are "added automatically"** but not which flask.
-- **Bundle size:** 1.73 MB (272 KB gzipped), mostly item data. Consider lazy-loading
-  talents per class.
+- **Bundle size:** 1.78 MB (300 KB gzipped) after M1.5c, mostly item data. Consider
+  lazy-loading talents per class, and slimming item fields the app doesn't read.
 - **Rotation UX:** indent dependent inputs under their toggle, e.g. "Heroic Strike from"
   under "Heroic Strike". Raise it in the M2.4 UX review. `dependsOn` works only for number
   options, so dependent toggles ("Whirlwind in the execute phase" under "Execute") aren't
@@ -157,6 +158,16 @@ slice is worked:
   Fix it when stance dancing arrives (M2.3).
 - **Cleave isn't built yet,** so W21's Cleave costs (Improved Cleave, Raging Blows) are
   untested.
+- **The Rotation tab is 27 rows for Fury** (about 3,800 px on a phone). Group it (cooldowns,
+  execute phase, core, fillers) in the M2.4 UX review.
+- **Casts don't show in the results:** their breakdown rows deal no damage, so
+  `run/aggregate.ts` hides them, and aura uptimes aren't in the results model. Show
+  cooldown casts and uptimes in M2.4's results UX.
+- **Gnome Eureka! isn't simulated** (warrior Q18); the result says so.
+- **Items:** 18320 Demonheart Spaulders may not be obtainable; PvP rank requirements show as
+  numbers (the rank title depends on faction); whether a bear-form armor multiplier applies
+  to stat-50 bonus armor is open (M4). Fallback shields carry `classicShieldBlockValue`,
+  and Forever shields have no innate block value in the client (M3).
 - **Pushes:** nothing has been pushed yet; `origin/main` is still the first commit. The first
   push happens at M2.4, after the full review gate.
 

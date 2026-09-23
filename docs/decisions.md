@@ -279,3 +279,21 @@ never used, and adopted only if its interval is still above zero. The owning cla
 the change, the numbers and the method, and the goldens are re-snapshotted with the explanation. Talent builds and gear stay "what a typical raider runs"
 ([doctrine §5](doctrine.md#5-defaults)). This decision is about rotations.
 
+### D24: Small assumptions don't gate features (2026-09-23)
+User directive: a value that moves results by about ±1% or less never stops a feature from landing.
+Build with a sensible default, track it, and fix it once everything is built.
+- **Where the default comes from.** When neither the Forever client, a guild test nor a Classic Era
+  source has the value, use a sensible Classic-based one. Some values Classic Era kept unchanged
+  from patch 1.12, such as class base attributes and base health. For those, the recorded 1.12
+  value may serve as the placeholder even when its only source is on the forbidden list (an
+  emulator database), as long as it agrees with the [C] rules around it (for example the race
+  offsets). It stays a placeholder: it's never cited as evidence, and it's replaced as soon as a
+  tier 1–3 source has the value.
+- **A placeholder also beats leaving a value out.** Base health feeds Forever's rage from damage
+  taken, so leaving it out skewed tank rage by about 39%.
+- **Tracking.** Tag every placeholder [?], and list it in the owning doc's open questions with
+  its estimated effect on results. Show it in the results' assumptions. M9 (validation) works
+  through all of them once every spec is built.
+- **What this doesn't cover.** A rule that moves results by more than about 1% still needs tier
+  1–3 evidence or a D22 log analysis before it becomes a default.
+

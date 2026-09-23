@@ -193,6 +193,23 @@ spec's default rotation is the best one we've found.
 - The Rotation tab says "The defaults follow the community priority"
   (`src/features/rotation/rotation-section.tsx`). Reword it once a default is our own tuning.
 
+## Tanks next, then every remaining spec, in parallel (user priority, 2026-09-23)
+
+The goal is every DPS and tank spec. Tracks run in parallel, each in its own worktree with its
+own review gate, and the lead merges them one at a time.
+
+| Track | Slices | Depends on |
+| --- | --- | --- |
+| A. Tank core | A1: the boss attacking the player, mitigation, tank stats, tank results | – |
+| B. Druid | B1: druid foundation (forms, energy, combo points, rage, mana); B2: Cat; then Bear | Bear needs A1 |
+| C. Paladin | C1: paladin foundation (spells, mana, seals, Judgement, Righteous Fury); C2: Retribution; then Protection | Protection needs A1 |
+| Warrior Protection | its abilities, rotation and defaults | A1 |
+| M2.5b Fury tuning | as M2.5a | the M2.5a fixes |
+
+Unknown base values don't gate any of it
+([D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)): they ship as flagged
+placeholders, and M9 replaces them.
+
 ## M3: Warrior Protection (TPS) 💤
 
 - Enable the three `test.fixme` tests in `e2e/tank-results.spec.ts` once Protection ships
@@ -282,6 +299,9 @@ stats are simulated by then, the tanks' included.
 - DPS distribution chart; timeline and combat log for debugging
 
 ## M9: Validation 💤
+
+- Replace every D24 placeholder with a measured value. The base attributes, base health and base
+  avoidance come from naked level-60 Classic Era sheets: character-stats.md OQ-1, OQ-2 and OQ-5.
 
 - Compare against guild beta logs and target-dummy tests
 - Resolve open questions, promote `[C]`/`[?]` values to `[F]` as they're verified

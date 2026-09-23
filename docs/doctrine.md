@@ -64,7 +64,10 @@ Rules come from four tiers. Use the highest tier that has an answer.
    original Vanilla** (2004–2006 live patches, private-server emulators such as
    vmangos/cmangos/Turtle WoW, or wiki text describing pre-1.12 behaviour), **TBC or
    later**, or **Retail**. If a forbidden source is the only one you can find, do not adopt
-   the value. Record it as an open question, with how to verify it on the beta.
+   the value. Record it as an open question, with how to verify it on the beta. **One
+   exception ([D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)):** a
+   value Classic Era kept unchanged from 1.12, such as base attributes, may stand in as a
+   flagged [?] placeholder until a tier 1–3 source replaces it.
 
 **Secondary Forever sources** include Wowhead news posts, streamer tooltip captures, and
 community Forever sims such as [wowsims/forever](https://github.com/wowsims/forever) and

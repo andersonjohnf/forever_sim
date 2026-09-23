@@ -110,7 +110,8 @@ export function sealOfRighteousnessProc(speedSec: number, twoHand: boolean): Spe
 /**
  * Judgement of Righteousness r8 (20286, paladin.md#seal-of-righteousness-sor): 170 base points,
  * variance 0.0941, + 4.1 per level from 58: 170.2–186.2 at 60, + 0.5 × SP. Melee class with No
- * Active Defense and no Always Hit: a melee miss, crit ×2, no dodge, parry or block.
+ * Active Defense and no Always Hit: a melee miss, no dodge, parry or block; no weapon damage, so
+ * a second roll for crit ×2 on a landed one [?] (combat-tables §3 "melee spells").
  */
 export const JUDGEMENT_OF_RIGHTEOUSNESS: SpellDef = {
   ...HOLY_MELEE,
@@ -147,8 +148,8 @@ export const SEAL_OF_FURY_PROC: SpellDef = {
 /**
  * Judgement of Fury r7 (20414, paladin.md#seal-of-fury-sof-new-the-protection-seal): 153 base
  * points, variance 0.0876, + 3.69 per level from 58: 153.7–167.1 at 60, + 0.45 × SP. Melee class
- * with No Active Defense and no Always Hit, so it can miss. Its 4 s taunt comes with the
- * Protection rotation.
+ * with No Active Defense and no Always Hit, so it can miss, and like JoR rolls crit apart. Its 4 s
+ * taunt comes with the Protection rotation.
  */
 export const JUDGEMENT_OF_FURY: SpellDef = {
   ...HOLY_MELEE,

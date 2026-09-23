@@ -199,24 +199,27 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     expect(spell(20050).duration!.duration).toBe(30000)
   })
 
+  // Each paladin spell's client row, and whether another spell or an aura triggers it (a seal's
+  // proc, a judgement's damage, Consecration's ticks) rather than you casting it.
+  const CLIENT: Record<string, [id: number, triggered: boolean]> = {
+    sealOfCommandProc: [20424, true],
+    judgementOfCommand: [20966, true],
+    sealOfRighteousnessProc: [25713, true],
+    judgementOfRighteousness: [20286, true],
+    sealOfFuryProc: [20418, true],
+    judgementOfFury: [20414, true],
+    holyStrike: [10333, false],
+    exorcism: [10314, false],
+    hammerOfWrath: [24239, false],
+    consecration: [1280349, true],
+    consecrationRank1: [1280345, true],
+  }
+  const isSpell = (x: unknown): x is SpellDef => typeof x === 'object' && x !== null && 'triggersProcs' in x
+  /** Every spell spells.ts defines. */
+  const allSpells = () => [...Object.values(SPELLS).filter(isSpell), sealOfRighteousnessProc(3.5, true)]
+
   it('which spells trigger procs: every one you cast, and a triggered one only with NOT_A_PROC (Attr3 0x200)', () => {
-    // Each paladin spell's client row, and whether another spell or an aura triggers it (a seal's
-    // proc, a judgement's damage, Consecration's ticks) rather than you casting it.
-    const CLIENT: Record<string, [id: number, triggered: boolean]> = {
-      sealOfCommandProc: [20424, true],
-      judgementOfCommand: [20966, true],
-      sealOfRighteousnessProc: [25713, true],
-      judgementOfRighteousness: [20286, true],
-      sealOfFuryProc: [20418, true],
-      judgementOfFury: [20414, true],
-      holyStrike: [10333, false],
-      exorcism: [10314, false],
-      hammerOfWrath: [24239, false],
-      consecration: [1280349, true],
-      consecrationRank1: [1280345, true],
-    }
-    const isSpell = (x: unknown): x is SpellDef => typeof x === 'object' && x !== null && 'triggersProcs' in x
-    const defs = [...Object.values(SPELLS).filter(isSpell), sealOfRighteousnessProc(3.5, true)]
+    const defs = allSpells()
     // Every spell spells.ts defines is in the table, so none escapes the check.
     expect(defs.map((d) => d.id).sort()).toEqual(Object.keys(CLIENT).sort())
     for (const def of defs) {
@@ -228,6 +231,14 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     // does each judgement's damage spell; Seal of Righteousness's and Seal of Fury's have Always Hit only.
     for (const id of [20424, 20966, 20286, 20414]) expect(spell(id).misc!.attributes![3] & 0x200, String(id)).toBe(0x200)
     for (const id of [25713, 20418]) expect(spell(id).misc!.attributes![3], String(id)).toBe(0x40000)
+  })
+
+  it('a weapon share exactly when the client effect is weapon damage (17, 58, 121, 31): one roll for those, two for the rest (combat-tables §3)', () => {
+    const WEAPON_EFFECTS = new Set([17, 58, 121, 31])
+    for (const def of allSpells()) {
+      const weapon = spell(CLIENT[def.id][0]).effects.some((e) => WEAPON_EFFECTS.has(e.effect))
+      expect(def.weaponPercent > 0, def.id).toBe(weapon)
+    }
   })
 
   it('the default JotC rule scales the bonus by each spell’s coefficient; the flat rule gives melee-class spells all of it', () => {

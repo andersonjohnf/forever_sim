@@ -2492,9 +2492,11 @@ export class Sim {
 
   /**
    * Casts plan spell s and returns whether it landed (paladin.md#conventions-used-below; combat-tables
-   * §3 and §9). Its table follows its damage class: `melee` is the main hand's special table, one roll,
-   * without the miss slice if it always hits and without dodge, parry and block if it has No Active
-   * Defense, crit ×2; `ranged` is miss, block, then a crit roll [?]; `magic` is the spell table, a
+   * §3 and §9). Its table follows its damage class: `melee` is the main hand's special table, without
+   * the miss slice if it always hits and without dodge, parry and block if it has No Active Defense,
+   * crit ×2, in one roll for a weapon-damage spell and in two for one without (roll 1 for the
+   * avoidance, roll 2 for crit on anything that landed, blocked too: combat-tables §3 "melee spells"
+   * [?]); `ranged` is miss, block, then a crit roll [?]; `magic` is the spell table, a
    * miss roll unless it always hits, then a crit roll at spell crit; `none` always lands and rolls
    * spell crit. Damage: base (or weapon-based) + SP × coefficient, × its own and its school's
    * multipliers, then + the target's flat Holy damage taken × its share (JotC's bonus comes after
@@ -2545,7 +2547,14 @@ export class Sim {
           critFrom = th[4] - shift
           blocked = r < critFrom
         }
-        crit = !blocked && r < Math.min(100, critFrom + Math.max(0, critChance))
+        if (this.splWeaponPct[s] > 0) {
+          // A weapon-damage spell (Seal of Command's proc, Holy Strike): one roll, the crit slice after the rest.
+          crit = !blocked && r < Math.min(100, critFrom + Math.max(0, critChance))
+        } else {
+          // combat-tables §3 "melee spells" (the damage judgements): roll 2 for crit, not truncated by
+          // roll 1. When roll 1 has no slices (Always Hit and No Active Defense), its roll is the crit roll.
+          crit = (critFrom === 0 ? r : this.rngTable.roll100()) < critChance
+        }
       }
     } else {
       if (defense === DEFENSE.magic && !alwaysHit && this.rngTable.roll100() < this.spellMissPct) {

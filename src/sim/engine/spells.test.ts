@@ -150,13 +150,13 @@ describe('the spell table (combat-tables §9, WE-10)', () => {
 })
 
 describe('melee-class spells (combat-tables §3 "Defense type"; paladin.md#conventions-used-below)', () => {
-  /** A melee-class spell from the front (dodge, parry and block all possible), 5% hit, 20% crit. */
-  function meleePlan(patch: Partial<SpellPlan>) {
+  /** A melee-class spell from the front (dodge, parry and block all possible), `hit`% hit (5), 20% crit. */
+  function meleePlan(patch: Partial<SpellPlan>, hit = 5) {
     const plan = spellPlan(60000)
     plan.fight.front = true
     plan.fight.bossCanParry = true
     plan.fight.bossCanBlock = true
-    plan.stats.hit = 5
+    plan.stats.hit = hit
     plan.stats.crit = 20
     const s = addSpell(plan, { defense: DEFENSE.melee, critMultiplier: CRIT_MULTIPLIER.melee, min: 100, max: 100, ...patch })
     line(plan, addSpellAbility(plan, s))
@@ -169,8 +169,8 @@ describe('melee-class spells (combat-tables §3 "Defense type"; paladin.md#conve
   }
   const near = (x: number, p: number, n: number) => expect(Math.abs(x - p)).toBeLessThanOrEqual(4 * Math.sqrt((p * (1 - p)) / n) + 1e-12)
 
-  it('roll the main hand’s special table once: miss, dodge, parry, block, then crit ×2', () => {
-    const { th, rate, n } = meleePlan({})
+  it('with weapon damage, roll the main hand’s special table once: miss, dodge, parry, block, then crit ×2 (Holy Strike)', () => {
+    const { th, rate, n } = meleePlan({ weaponPercent: 0.4 })
     near(rate(FIELD.misses), th[0] / 100, n)
     near(rate(FIELD.dodges), (th[1] - th[0]) / 100, n)
     near(rate(FIELD.parries), (th[2] - th[1]) / 100, n)
@@ -179,12 +179,24 @@ describe('melee-class spells (combat-tables §3 "Defense type"; paladin.md#conve
     expect(th[1] - th[0]).toBeGreaterThan(0)
   })
 
-  it('with No Active Defense, can only miss, then crit (Judgement of Righteousness)', () => {
-    const { th, rate, n } = meleePlan({ noActiveDefense: true })
+  it('without weapon damage, roll twice (combat-tables §3 "melee spells"): miss, dodge, parry, block, then crit on anything that landed, blocked hits too', () => {
+    const { th, rate, n } = meleePlan({})
+    const crit = (th[5] - th[4]) / 100
+    near(rate(FIELD.misses), th[0] / 100, n)
+    near(rate(FIELD.dodges), (th[1] - th[0]) / 100, n)
+    near(rate(FIELD.parries), (th[2] - th[1]) / 100, n)
+    // A blocked crit counts as a crit.
+    near(rate(FIELD.blocks), ((th[4] - th[2]) / 100) * (1 - crit), n)
+    near(rate(FIELD.crits), (1 - th[2] / 100) * crit, n)
+  })
+
+  it('with No Active Defense, can only miss, then crit on a landed one (Judgement of Righteousness)', () => {
+    // −20% hit: a 28% miss, so one roll (crit 20% of all) and two (20% of those that land) differ.
+    const { th, rate, n } = meleePlan({ noActiveDefense: true }, -20)
     for (const field of [FIELD.dodges, FIELD.parries, FIELD.blocks]) expect(rate(field)).toBe(0)
     near(rate(FIELD.misses), th[0] / 100, n)
-    // The crit slice follows the miss slice: the special crit chance, not truncated by avoidance.
-    near(rate(FIELD.crits), (th[5] - th[4]) / 100, n)
+    expect(th[0]).toBeGreaterThan(20)
+    near(rate(FIELD.crits), (1 - th[0] / 100) * ((th[5] - th[4]) / 100), n)
   })
 
   it('with No Active Defense and Always Hit, always lands and crits at the special crit chance (Judgement of Command)', () => {

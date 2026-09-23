@@ -297,7 +297,10 @@ Bloodthirst, Mortal Strike, Shred, Holy Strike and so on.
   [paladin conventions](../classes/paladin.md#conventions-used-below), confirmed in the raw
   client files: [F] [client] (SpellCategories, 1.60.1.69913); [wowsims/forever spell data][wf-spelldata]
   reads the same):
-  - `Melee`: the table above, the main hand's, one roll, crit ×2.
+  - `Melee`: the table above, the main hand's, crit ×2: one roll for a weapon-damage spell
+    (Seal of Command's proc, Holy Strike), and two for a spell without weapon damage (the damage
+    judgements), the "melee spells" split above. Which spells fall on which side is the class
+    docs' inference by effect type [?].
   - `Ranged`: miss, then block (front only), then crit roll 2. No dodge or parry, because
     creatures dodge and parry melee only [F] tooltips ([gs][gs-forever]). Its miss chance and
     crit are taken as the main hand's special miss and crit [?] (the paladin's Hammer of Wrath).
@@ -307,9 +310,11 @@ Bloodthirst, Mortal Strike, Shred, Holy Strike and so on.
   - Two spell attributes change a table [F] [client] (SpellMisc): **No Active Defense** (Attr0
     `0x200000`) removes dodge, parry and block, so a melee-class spell rolls `miss → crit → hit`,
     like Overpower; **Always Hit** (Attr3 `0x40000`) removes the miss slice (for a magic spell, the
-    miss roll). With both, only the crit slice is left. The engine applies them to its one roll by
-    dropping those slices and keeping the rest in order, so the crit slice still follows the last
-    one left ([paladin conventions](../classes/paladin.md#conventions-used-below)).
+    miss roll). The engine drops those slices and keeps the rest in order. In a weapon-damage
+    spell's one roll the crit slice still follows the last one left; a melee spell's roll 1 just
+    has fewer slices, and its roll 2 is unchanged. With both attributes nothing is left to roll
+    first, so only the crit roll remains, the same in either model
+    ([paladin conventions](../classes/paladin.md#conventions-used-below)).
 
 ---
 

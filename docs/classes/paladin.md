@@ -172,6 +172,15 @@ and the docs it links; this list only summarizes them, with the same tags.
   2 melee (melee special table, ×2), 3 ranged. **No Active Defense** (SpellMisc Attr0
   `0x200000`) removes dodge, parry and block. **Always Hit** (Attr3 `0x40000`) removes the
   miss roll. Table percentages are in [combat-tables.md](../mechanics/combat-tables.md).
+- **One roll or two.** A melee-class spell whose client effect is weapon damage (SoC's proc,
+  effect 31; Holy Strike, 121 and 31) rolls the special table once. One without weapon damage
+  (the damage judgements, SoR's and SoF's procs: effect 2) rolls twice: miss, dodge, parry and
+  block first, then crit on anything that landed, like the warrior's Bloodthirst. That's
+  [combat-tables §3](../mechanics/combat-tables.md#3-special-yellow-attacks)'s "melee spells"
+  split by effect type, applied to the paladin by inference [?]. It matters only for spells that
+  can miss or be avoided and have no weapon share, JoR and JoF: their crits come from the landed
+  ones (with 5% miss and 25% crit, 23.75% of casts rather than 25%). JoC and the seals' procs
+  have nothing to roll first, so the two models agree.
 - **Which spells trigger procs.** A spell you cast (Holy Strike, Exorcism, Hammer of Wrath)
   triggers on-hit and crit procs as any attack does. A spell that another spell or an aura
   triggers (a seal's proc, a judgement's damage spell, Consecration's ticks) triggers them only if
@@ -257,7 +266,8 @@ always uses the halved value.
 **Judgement of Righteousness** (r8, 20286): **162–178 + 8.2 = 170.2–186.2 at level 60**,
 plus **0.5 × SP**, ×1.15 Improved Seals. Melee class, No Active Defense, no Always Hit: melee
 miss, crit ×2, no dodge, parry or block [F] [client] (SpellEffect, SpellMisc, SpellCategories,
-1.60.1.69913; [20286][f20286]). A beta combat log shows a JoR crit at
+1.60.1.69913; [20286][f20286]). It has no weapon damage, so it rolls the miss first and crit on a
+landed JoR second [?] ([one roll or two](#conventions-used-below)). A beta combat log shows a JoR crit at
 exactly ×2 (69 on a 34 base) and plain misses only. That's a single Forever log (n=1)
 reported by community sim authors
 ([ElliotWood `sor.go`](https://github.com/ElliotWood/Forever/blob/master/sim/paladin/sor.go)) [?].
@@ -303,7 +313,7 @@ It corroborates the client data above but isn't a guild measurement.
 | Absorb | With a shield equipped, each hit grants an absorb of **50% of the Holy damage dealt** | [F] (effect 1 = 50). Stacking or refresh rules [?] |
 | Hit table | Proc 20418: melee class, No Active Defense + Always Hit, like SoR | [F] [client] (SpellMisc, SpellCategories, 1.60.1.69913) |
 | Triggers | **Nothing**, like SoR's proc: no Windfury, Crusader, Hand of Justice, Vengeance or Vindication from it [?] | 20418's Attr3 is `0x40000` only, without NOT_A_PROC [F] [client] (SpellMisc, 1.60.1.69913); the server's use of it [?] ([open question 22](#open-questions)) |
-| Judgement of Fury (r7) | 20414: **146–160 + 7.38 = 153.4–167.4 at 60**, **0.45 × SP**, Holy, melee class, No Active Defense, no Always Hit (can miss). **Taunts for 4 s** | [F] [client] (SpellEffect, SpellMisc, 1.60.1.69913; [20414][f20414]); taunt: tooltip |
+| Judgement of Fury (r7) | 20414: **146–160 + 7.38 = 153.4–167.4 at 60**, **0.45 × SP**, Holy, melee class, No Active Defense, no Always Hit (can miss; then crit on a landed one, two rolls [?]). **Taunts for 4 s** | [F] [client] (SpellEffect, SpellMisc, 1.60.1.69913; [20414][f20414]); taunt: tooltip |
 | Improved Seals | applies to the proc and the judgement | [F] [client] (SpellEffect spell mask includes 20418 and 20414, 1.60.1.69913) |
 
 The SoF aura carries the same weapon-speed "seal value" dummy as SoR (1607 + 42/level), and
@@ -628,8 +638,9 @@ Iron Creed adds 25% threat; HotR has no SP coefficient in the data.
   cooldown after talents.
 - **Sanctified Judgement**: grant mana when the Judgement lands [?] (on a missed JoR or JoF,
   assume no refund; JoC can't miss). Use the seal's base cost.
-- **Judgement miss rolls**: JoR and JoF roll the melee special miss chance; JoC and the debuff
-  judgements skip the miss roll (Always Hit).
+- **Judgement miss rolls**: JoR and JoF roll the melee special miss chance, then crit on a
+  landed one (two rolls, no weapon damage); JoC and the debuff judgements skip the miss roll
+  (Always Hit).
 - **Level scaling**: store per-rank `base`, `variance`, `perLevel`, `baseLevel`,
   `maxLevel` from the spell data, so the numbers at 60 follow the formula in
   [Conventions](#conventions-used-below).

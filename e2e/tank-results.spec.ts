@@ -3,8 +3,10 @@ import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // Tank specs report TPS and DPS as equals (decision D18). Tanks aren't in the spec picker until
-// they ship, but a shared setup can load one: this is the share link (#s=…, deflated JSON; see
-// docs/ux.md#persistence-and-sharing) for the default Protection warrior.
+// they ship, and a share link to a spec the app doesn't offer is refused (M2.2c), so the
+// Protection tests wait for Protection to ship in M3 (docs/milestones.md). This is the share link
+// (#s=…, deflated JSON; see docs/ux.md#persistence-and-sharing) for the default Protection warrior.
+const UNTIL_PROTECTION_SHIPS = 'Protection isn’t offered until M3, so its share link is refused'
 const PROTECTION = `./#s=${deflateRawSync(JSON.stringify({ version: 1, spec: 'warrior-protection' })).toString('base64url')}`
 
 /** A value with its ± 95% CI, e.g. "212.9± 0.5" in the text of a headline group. */
@@ -25,6 +27,7 @@ async function simulate(scope: Locator | Page) {
 
 test.describe('tank results', () => {
   test('headline TPS and DPS side by side, each with its CI and its own change', async ({ page }) => {
+    test.fixme(true, UNTIL_PROTECTION_SHIPS)
     await openProtection(page)
     const results = page.getByRole('complementary', { name: 'Results' })
     const tps = results.getByRole('group', { name: 'TPS' })
@@ -53,6 +56,7 @@ test.describe('tank results', () => {
   })
 
   test('the breakdown switches between threat and damage, and remembers the choice', async ({ page }) => {
+    test.fixme(true, UNTIL_PROTECTION_SHIPS)
     await openProtection(page)
     const results = page.getByRole('complementary', { name: 'Results' })
     await simulate(results)
@@ -93,6 +97,7 @@ test.describe('tank results on a phone', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
   test('the bottom bar shows TPS and DPS, and the results sheet has both with the switch', async ({ page }) => {
+    test.fixme(true, UNTIL_PROTECTION_SHIPS)
     await openProtection(page)
     await simulate(page)
 

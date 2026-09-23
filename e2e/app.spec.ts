@@ -195,7 +195,7 @@ test.describe('simulation', () => {
     await results.getByRole('button', { name: 'Simulate' }).click()
     await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
     await expect(results.getByText('DPS', { exact: true })).toBeVisible()
-    const breakdown = results.getByRole('heading', { name: 'Damage by ability' }).locator('..')
+    const breakdown = results.getByRole('region', { name: 'Damage by ability' })
     for (const ability of ['Bloodthirst', 'Execute', 'Whirlwind', 'Heroic Strike', 'Main hand', 'Off hand']) {
       await expect(breakdown.getByText(ability, { exact: true })).toBeVisible()
     }

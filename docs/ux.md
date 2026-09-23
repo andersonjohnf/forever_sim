@@ -48,9 +48,9 @@ and the **spec switcher**, which shows the class icon and spec in the class colo
 **About & data** opens a sheet that starts with what the app is, without naming specs ("A DPS
 simulator for WoW Forever", and "A DPS and TPS simulator" once a tank spec ships), then the specs
 it covers on their own line, one class at a time ("Covers Warriors: Fury and Arms · Druids:
-Feral (Cat)"), which grows as specs ship (principle 8). The page's meta and Open Graph
-descriptions in `index.html` carry the same description line and change only when the first
-tank spec ships; an e2e test compares them.
+Feral (Cat) · Paladins: Retribution"), which grows as specs ship (principle 8). The page's meta
+and Open Graph descriptions in `index.html` carry the same description line and change only when
+the first tank spec ships; an e2e test compares them.
 
 **Section tabs** are 44 px tall. When they scroll sideways, a fade marks each edge with more
 tabs past it (none at an end), and the chosen tab scrolls into view clear of the fades, as does

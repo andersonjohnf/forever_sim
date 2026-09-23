@@ -148,7 +148,7 @@ test.describe('sharing', () => {
     await page.goto('./')
     // The share format (src/app/share.ts): deflate-raw JSON, base64url, in #s=.
     const hash = await page.evaluate(async () => {
-      const json = new TextEncoder().encode(JSON.stringify({ version: 1, spec: 'paladin-retribution' }))
+      const json = new TextEncoder().encode(JSON.stringify({ version: 1, spec: 'paladin-protection' }))
       const packed = new Uint8Array(await new Response(new Blob([json]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer())
       let binary = ''
       for (const b of packed) binary += String.fromCharCode(b)
@@ -157,7 +157,7 @@ test.describe('sharing', () => {
     // A fresh load of the link (e2e/shell-sharing.spec.ts covers one pasted into an open tab).
     await page.goto('about:blank')
     await page.goto(`./${hash}`)
-    await expect(page.getByText('That link is for a Retribution Paladin')).toBeVisible()
+    await expect(page.getByText('That link is for a Protection Paladin')).toBeVisible()
     await expect(page.getByRole('button', { name: /Spec: Fury Warrior/ })).toBeVisible()
     expect(new URL(page.url()).hash).toBe('')
   })

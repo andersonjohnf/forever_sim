@@ -39,8 +39,8 @@ describe('a shared link’s setup', () => {
 
   test('a spec the sim doesn’t know, or doesn’t offer yet, says so', () => {
     expect(readLinkSetup({ version: 1, spec: 'mage-fire' })).toMatchObject({ ok: false, title: 'That link is for a spec this sim doesn’t know' })
-    const hidden = readLinkSetup({ version: 1, spec: 'paladin-retribution' })
-    expect(hidden).toMatchObject({ ok: false, title: 'That link is for a Retribution Paladin' })
+    const hidden = readLinkSetup({ version: 1, spec: 'paladin-protection' })
+    expect(hidden).toMatchObject({ ok: false, title: 'That link is for a Protection Paladin' })
     expect(!hidden.ok && hidden.description).toMatch(UNCHANGED)
   })
 })

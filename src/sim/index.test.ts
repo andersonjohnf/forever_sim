@@ -129,21 +129,22 @@ describe('simulate', () => {
   })
 })
 
-describe('paladin (hidden until its specs ship)', () => {
-  it('simulates both specs on the placeholder base stats of D24, and says so', async () => {
+describe('paladin', () => {
+  it('simulates both specs on the placeholder base stats of D24, and says so; Retribution ships (C2), Protection is still hidden', async () => {
     for (const spec of ['paladin-retribution', 'paladin-protection'] as const) {
       const result = await simulate(quick(defaultConfig(spec)))
       expect(result.dps.mean).toBeGreaterThan(0)
       expect(result.assumptions.map((a) => a.id)).toContain('baseStatPlaceholders')
-      expect(getSpec(spec).available).toBe(false)
     }
+    expect(getSpec('paladin-retribution').available).toBe(true)
+    expect(getSpec('paladin-protection').available).toBe(false)
   })
 })
 
 describe('specs', () => {
-  it('offers only finished specs: Fury since M2.2c, Arms since M2.3c and the Feral cat since B2 (docs/ux.md principle 8), with every spec’s metadata', () => {
+  it('offers only finished specs: Fury since M2.2c, Arms since M2.3c, the Feral cat since B2 and Retribution since C2 (docs/ux.md principle 8), with every spec’s metadata', () => {
     expect(specs.map((s) => s.id)).toEqual(SPEC_IDS)
-    expect(specs.filter((s) => s.available).map((s) => s.id)).toEqual(['warrior-fury', 'warrior-arms', 'druid-feral-cat'])
+    expect(specs.filter((s) => s.available).map((s) => s.id)).toEqual(['warrior-fury', 'warrior-arms', 'druid-feral-cat', 'paladin-retribution'])
     expect(getSpec('warrior-protection').role).toBe('tank')
     expect(() => getSpec('mage-fire' as never)).toThrow()
   })

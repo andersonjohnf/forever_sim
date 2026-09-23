@@ -1355,9 +1355,10 @@ parts:
   current rage: the rage the swap keeps pays for it (`min(rage, cap) ≥ cost`), and rage is at most
   the highest `maxRage` of its dance lines (none: no limit). Then it counts as usual. Otherwise its
   dance waits for rage, and a GCD spent meanwhile delays nothing. So Arms' Whirlwind dance (at
-  25–30 rage, [§5.3](#53-arms-two-hander) row 12) no longer holds Hamstring (at 60 or more,
-  row 14) back whenever Whirlwind is off cooldown: with both on, the default setup used
-  Hamstring 0.01 times a fight, 0.18 with this rule. An engine choice; no source covers it.
+  25–30 rage, [§5.3](#53-arms-two-hander) row 12) no longer holds Hamstring (row 14, at its rage
+  threshold or more) back whenever Whirlwind is off cooldown. With both on and M2.3c's defaults
+  (Hamstring from 60), Hamstring went from 0.01 casts a fight to 0.18 under this rule. An engine
+  choice; no source covers it.
 - **Slam's cast.** An ability can have a cast time (`castMs`: Slam's 1500 ms, 250 less per
   Improved Slam rank). The GCD starts with the cast, and no GCD ability starts before the cast
   completes: the engine holds the GCD until then. Off-GCD lines (the Heroic Strike queue,
@@ -1757,9 +1758,10 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
 24. **Arms base stance.** Battle, with Rend, Bloodthrill and Overpower, or Berserker, with
     +3% crit and Whirlwind? Settle this with the sim. **The sim's first answer** (M2.3c, the
     default setup, 20,000 fights): Battle Stance 630 DPS, Berserker Stance 604, and Berserker
-    Stance dancing for Rend and Overpower 631 ([§5.3](#53-arms-two-hander) notes). Battle Stance
-    stays the default; the answer depends on the unverified Bloodthrill and Overpower rules (Q10,
-    Q11) and moves with gear.
+    Stance dancing for Rend and Overpower 631. **With the tuned defaults** (M2.5a, D23): Berserker
+    Stance dancing for Rend and Overpower is −22.5 DPS (−3.5%) against Battle Stance, over 200,000
+    paired fights ([§5.3](#53-arms-two-hander) notes). Battle Stance stays the default; the answer
+    depends on the unverified Bloodthrill and Overpower rules (Q10, Q11) and moves with gear.
 25. **Rank availability.** Classic Era added Heroic Strike rank 9, Battle Shout rank 7 and
     Revenge rank 6 in its AQ patch. The Forever spellbook lists them all at level 60. Are they
     trainable at launch (November 4)?

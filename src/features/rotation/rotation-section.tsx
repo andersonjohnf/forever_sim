@@ -87,7 +87,7 @@ export function RotationSection() {
     <div className="flex flex-col gap-6">
       <SectionHeader
         title="Rotation"
-        description="Which abilities the sim uses, and when. The defaults follow the community priority."
+        description="Which abilities the sim uses, and when. The defaults are the best rotation we’ve found."
         action={
           <Button variant="ghost" className="h-11 shrink-0" disabled={Object.keys(rotation).length === 0} onClick={resetAll}>
             <RotateCcw /> Reset rotation

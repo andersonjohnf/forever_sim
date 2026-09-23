@@ -44,7 +44,7 @@ A fresh reviewer found L1 only partly fixed, plus two medium findings the fix in
 
 | # | Severity | Origin | Finding | Disposition |
 | --- | --- | --- | --- | --- |
-| V1 | high, blocking | L1 not finished | **architecture.md, character-stats.md (the candidate rows, base health, the sources table) and open-questions A1 still forbade or blocked what D24 allows.** | fixed, `a64ad6d`; a sweep for "not adopted", "never substitutes" and "blocks" finds only other rulesets' values (SoD, TBC), which D24 doesn't cover |
+| V1 | high, blocking | L1 not finished | **architecture.md, character-stats.md (the candidate rows, base health, the sources table) and open-questions A1 still forbade or blocked what D24 allows.** | partly fixed, `a64ad6d`: the sweep missed three passages (B1–B3 below), so this row's first claim was wrong |
 | V2 | medium | introduced | **The About sheet said base values use Classic numbers,** but the engine doesn't have the placeholders yet. | fixed, `a64ad6d`: "are left out or use the value Classic Era is expected to have", true either way |
 | V3 | medium | introduced | **The milestones' track table kept its old header,** which broke its columns. | fixed, `a64ad6d` |
 | V4 | low | introduced | **Doctrine §2 didn't limit the exception to an emulator database** as D24 does. | fixed, `a64ad6d` |

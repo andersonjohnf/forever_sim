@@ -123,6 +123,7 @@ test.describe('About', () => {
   test('says what the app is, as the page’s description does, and lists the specs it covers', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('button', { name: /^Spec: / }).click()
+    await expect(page.getByRole('menuitem').first()).toBeVisible()
     const items = await page.getByRole('menuitem').allInnerTexts()
     const specs = items.map((text) => text.split('\n')[0].trim())
     // The switcher labels each spec's role ("DPS" or "Tank") on its second line.

@@ -93,7 +93,7 @@ Result: white miss <x.x>% (±<y.y>% at 95%) · raw: <link>
 6. [B6](#b6-heroic-strike-queue-and-the-off-hand-miss-penalty): Heroic Strike queue and the
    off-hand miss penalty, with a bigger sample (M2).
 7. [A1](#a1-paladin-and-druid-base-stats-naked-sheets): naked Classic Era sheets for paladin and
-   druid (blocks M4 and M5; any level-60 Classic Era character).
+   druid, to replace the [D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23) placeholders (any level-60 Classic Era character).
 8. [B9](#b9-rage-from-damage-taken-confirm-the-logged-fit): rage from damage taken, confirming
    the logged fit (M3).
 9. [B10](#b10-sunder-armor-threat): Sunder Armor threat by rank (M3).

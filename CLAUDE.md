@@ -117,8 +117,8 @@ npm run scrape:client # just src/data/client, the raw client tables (cached; -- 
   private-server emulators), TBC+ or Retail values. Tag documented values `[F]`/`[C]`/`[?]`
   with a source link. If only a forbidden source has a value, add it to *Open questions*;
   don't use it. **One exception (D24):** a value Classic Era kept unchanged from 1.12 (class base
-  attributes, base health), found only in an emulator database, may stand in as a flagged `[?]` placeholder until a tier 1–3 source
-  replaces it; see D24 for the conditions.
+  attributes, base health), found only in an emulator database, may stand in as a flagged `[?]`
+  placeholder until a tier 1–3 source replaces it; see D24 for the conditions.
 - **No world buffs.** They aren't available in WoW Forever raids: no toggles, presets or
   defaults for them (doctrine §1, decision D8).
 - **Docs and code stay in sync.** Mechanic constants in `src/sim` cite their doc section

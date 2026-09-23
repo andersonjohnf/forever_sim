@@ -193,7 +193,7 @@ spec's default rotation is the best one we've found.
 
 The goal is every DPS and tank spec. The tracks run at the same time, each in its own worktree
 with its own review gate, and the lead merges them one at a time (D25). Tracks B and C start
-without waiting for A; only the Bear and Paladin Protection slices need A1.
+without waiting for A; only the Bear and Paladin Protection slices need the tank-core slice.
 
 | Track | Slices | Milestone | Depends on |
 | --- | --- | --- | --- |

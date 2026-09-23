@@ -676,9 +676,9 @@ the five-second rule, and the defense conversion.
   deterministic and unit-tested from the [worked examples](#worked-examples).
 - **Data:** base attributes live in a table keyed by (race, class) and built as `classRow + raceOffset`,
   so one measured naked sheet per class fills every race. Every [?] value in that table must be
-  surfaced in the UI as an assumption (doctrine §4). Unmeasured rows have **no fallback**: never
-  substitute the OQ-1 candidates. A spec whose base row is missing reports that instead of
-  simulating.
+  surfaced in the UI as an assumption (doctrine §4). An unmeasured row takes a
+  [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23) placeholder if one qualifies, flagged the same way; a spec whose base row has
+  neither reports that instead of simulating.
 - **Racials:** implement by spell ID. Weapon-conditional crit (20597, 20574, 1259719) checks the
   subtypes of the weapons equipped in either hand (the effect's `weapons` condition); when one
   matches, it is flat aura crit (melee and spell) for the whole character, as the racials'
@@ -908,8 +908,8 @@ rage comes out high.
 **Route A:** read maximum health from the OQ-1 sheets (divide the Tauren value by 1.05). Then
 `baseHP = HP − 20 − 10 × (Sta − 20)`. *Candidates from the emulator's class table
 [mz-classlevelstats], which may stand in as D24 placeholders:* warrior 1689, paladin 1381, druid
-1483. The druid value also appears in an
-old Classic-branded sim that mixes in TBC formulas, so it doesn't count as a Classic source.
+1483. The druid value also appears in an old Classic-branded sim that mixes in TBC formulas, so
+it doesn't count as a Classic source.
 
 ### OQ-3: base melee and spell crit
 Warrior base melee crit is 0% **[C]**. Paladin and druid base melee and spell crit are unknown.

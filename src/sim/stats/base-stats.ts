@@ -1,8 +1,8 @@
 // Level-60 base values per race and class (docs/mechanics/character-stats.md#base-stats-at-level-60).
 //
-// Only values a tier 1–3 source supports are here. Anything unknown is `null` and reported as
-// missing, never filled from a forbidden source (the doc's OQ-1 decision): no emulator
-// placeholders, in the engine or in test fixtures.
+// Values a tier 1–3 source supports, and D24 placeholders (docs/decisions.md D24), which are
+// tagged [?] and listed in the results' assumptions. Anything else unknown is `null` and
+// reported as missing.
 import type { ClassId } from '../types'
 
 export interface Attributes {

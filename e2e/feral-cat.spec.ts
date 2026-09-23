@@ -79,7 +79,7 @@ test.describe('Feral cat', () => {
     // The tuned thresholds wait behind Advanced, in Energy and combo points (druid.md §6.2).
     const core = tab.getByRole('region', { name: 'Core abilities' })
     await core.getByRole('button', { name: /^Advanced settings for Core abilities/ }).click()
-    await expect(core.getByRole('textbox', { name: 'Ferocious Bite at' })).toHaveValue('5')
+    await expect(core.getByRole('textbox', { name: 'Ferocious Bite at', exact: true })).toHaveValue('5')
     await expect(core.getByRole('textbox', { name: 'Shred before Ferocious Bite from' })).toHaveValue('35')
     await expect(core.getByRole('textbox', { name: 'Ferocious Bite at any Energy in the last' })).toHaveValue('4')
     const cooldowns = tab.getByRole('region', { name: 'Cooldowns and buffs' })

@@ -25,7 +25,10 @@ test.describe('setup', () => {
     await expect(page.getByRole('menuitem', { name: /Fury/ })).toBeVisible()
     await expect(page.getByRole('menuitem', { name: /Arms/ })).toBeVisible()
     await expect(page.getByRole('menuitem', { name: /Feral \(Cat\)/ })).toBeVisible()
-    await expect(page.getByRole('menuitem')).toHaveCount(3)
+    // Retribution since C2, under its class's own heading.
+    await expect(page.getByRole('menuitem', { name: /Retribution/ })).toBeVisible()
+    await expect(page.getByRole('menu').getByText('Paladin', { exact: true })).toBeVisible()
+    await expect(page.getByRole('menuitem')).toHaveCount(4)
   })
 
   test('switching to Arms keeps it across reloads, with its own setup', { tag: '@smoke' }, async ({ page }) => {

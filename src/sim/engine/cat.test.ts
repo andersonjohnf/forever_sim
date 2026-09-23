@@ -562,14 +562,45 @@ describe('Faerie Fire in Cat Form (druid.md §3.8)', () => {
     expectMean(white(false), 140.514 * (1 - armorReduction(3000, 60, FOREVER)))
   })
 
-  it('rolls spell hit: a miss applies nothing (17% − 4% Nature’s Reach against a level-63 boss)', () => {
+  it('rolls spell hit: a miss applies nothing (9% against a level-63 boss: 17% less the default cat’s 8%)', () => {
     const plan = catPlan(600000)
     plan.fight.targetLevel = 63
     const ff = add(plan, FAERIE_FIRE_CAT)
     line(plan, ff)
-    const { casts, misses } = totals(plan, row(plan, ff), 5)
+    // Spell hit 8%: Nature's Reach's 4%, the Tauren's 1% and the gear's (combat-tables §9).
+    expect(new Sim(plan).inspect().spellMiss).toBe(9)
+    // About 5,000 casts in 50 fights of 10 min (one every 6 s): 9% ± 0.4% (one standard error).
+    const { casts, misses } = totals(plan, row(plan, ff), 50)
     expect(misses / casts).toBeGreaterThan(0.08)
-    expect(misses / casts).toBeLessThan(0.18)
+    expect(misses / casts).toBeLessThan(0.1)
+  })
+})
+
+describe('abilityAuraDown, condition 17 (druid.md §6.2 row 9)', () => {
+  /** Rip at 5 combo points when it's off the boss, Rake when its bleed is (and, with `hold`, while Rip is off too), else Shred. */
+  function uses(hold: boolean) {
+    const plan = catPlan(120000)
+    plan.fight.targetLevel = 63
+    const rip = add(plan, RIP)
+    const rake = add(plan, RAKE)
+    const shred = add(plan, SHRED)
+    line(plan, rip, [{ code: COND.minComboPoints, a: 5, b: 0 }, { code: COND.abilityAuraRefresh, a: rip, b: 0 }])
+    line(plan, rake, [{ code: COND.abilityAuraRefresh, a: rake, b: 0 }, ...(hold ? [{ code: COND.abilityAuraDown, a: rip, b: 0 }] : [])])
+    line(plan, shred)
+    const { uses: u } = timeline(plan)
+    return { rip: u[rip], rake: u[rake] }
+  }
+  // Every hit lands, so each Rip bleeds its full 12 s from the moment it's used.
+  const ripUp = (rips: number[], t: number) => rips.some((r) => t >= r && t < r + 12000)
+
+  it('holds Rake back while your Rip bleeds, and lets it go once Rip is off the boss', () => {
+    const held = uses(true)
+    expect(held.rip.length).toBeGreaterThan(3)
+    expect(held.rake.length).toBeGreaterThan(1)
+    for (const t of held.rake) expect(ripUp(held.rip, t), `Rake at ${t} ms`).toBe(false)
+    // Without the condition, Rake comes back each time its own bleed ends, Rip or not.
+    const free = uses(false)
+    expect(free.rake.some((t) => ripUp(free.rip, t))).toBe(true)
   })
 })
 
@@ -626,6 +657,21 @@ describe('the default cat (druid.md §6.2, §7)', () => {
     const off = buildPlan({ ...d, rotation: { 'druid.cat.faerieFire.enabled': false } }).plan
     expect(own.fight.targetArmor - off.fight.targetArmor).toBe(FAERIE_FIRE_ARMOR)
     expect(off.abilities.some((a) => a.id === 'faerieFire')).toBe(false)
+  })
+
+  it('counts its own Faerie Fire when it judges negative armor: 3,009 armor under the Standard raid goes below 0', () => {
+    const d = defaultConfig('druid-feral-cat')
+    const light = { ...d, fight: { ...d.fight, bossArmor: 3009 } }
+    const { plan, assumptions } = buildPlan(light)
+    // The static armor (Sunder Armor ×5 and Curse of Recklessness) stays above 0; Faerie Fire's 505,
+    // an aura in the fight, takes it below.
+    const faerieFire = plan.auras.find((a) => a.id === 'faerieFire')!
+    expect(plan.fight.targetArmor).toBeGreaterThan(0)
+    expect(plan.fight.targetArmor - faerieFire.targetArmor!).toBeLessThan(0)
+    expect(assumptions.map((a) => a.id)).toContain('negativeArmor')
+    // Without your Faerie Fire (and the Buffs tab's off), it stays above 0: no note.
+    const off = buildPlan({ ...light, rotation: { 'druid.cat.faerieFire.enabled': false }, buffs: { ...d.buffs, enabled: d.buffs.enabled.filter((id) => id !== 'faerieFire') } })
+    expect(off.assumptions.map((a) => a.id)).not.toContain('negativeArmor')
   })
 
   it('from the front, Claw builds instead of Shred', async () => {

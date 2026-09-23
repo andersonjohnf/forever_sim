@@ -897,7 +897,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (derived.hasteRatingPct > 0) notes.add('hasteRating')
   if (derived.armorPen > 0) notes.add('armorPen')
   // docs/mechanics/damage-and-timing.md#11-formula: below −K/2 the engine holds armor at the floor [?].
-  const effectiveArmor = targetArmor - derived.armorPen
+  // A debuff the rotation keeps up (the cat's Faerie Fire, druid.md §3.8) is an aura in the fight,
+  // not in the static armor, so it's taken off here too: it's up for all but the first moments.
+  const maintainedArmor = auras.reduce((n, a) => n + (a.targetArmor ?? 0), 0)
+  const effectiveArmor = targetArmor - maintainedArmor - derived.armorPen
   const armorFloor = negativeArmorFloor(PLAYER_LEVEL)
   if (profile.armor.allowNegative && effectiveArmor < 0) {
     const armorText = (a: number) => `−${Math.round(-a).toLocaleString('en-US')}`

@@ -81,6 +81,7 @@ test.describe('Feral cat', () => {
     await core.getByRole('button', { name: /^Advanced settings for Core abilities/ }).click()
     await expect(core.getByRole('textbox', { name: 'Ferocious Bite at' })).toHaveValue('5')
     await expect(core.getByRole('textbox', { name: 'Shred before Ferocious Bite from' })).toHaveValue('35')
+    await expect(core.getByRole('textbox', { name: 'Ferocious Bite at any Energy in the last' })).toHaveValue('4')
     const cooldowns = tab.getByRole('region', { name: 'Cooldowns and buffs' })
     await cooldowns.getByRole('button', { name: /^Advanced settings for Cooldowns and buffs/ }).click()
     const tigersFury = cooldowns.getByRole('textbox', { name: 'Tiger’s Fury losing up to' })

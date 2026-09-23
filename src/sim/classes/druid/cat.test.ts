@@ -201,9 +201,9 @@ describe('the cat priority list (druid.md §6.2)', () => {
   const ctx = { race: 'horde-tauren', items: [], consumables: [], equipped: new Set([WOLFSHEAD_HELM]), othersBleed: true }
   const names = (rot: ReturnType<typeof catRotation>) => rot.rotation.map((e) => rot.abilities[e.ability].id)
 
-  it('by default: Berserk, Tiger’s Fury, Faerie Fire (twice), a Clearcasting Shred, Rip, Shred first, Bite, Shred', () => {
+  it('by default: Berserk, Tiger’s Fury, Faerie Fire (twice), a Clearcasting Shred, Rip, Bite at the end, Shred first, Bite, Shred', () => {
     const rot = catRotation({}, CAT, auraIndex, ctx)
-    expect(names(rot)).toEqual(['berserk', 'tigersFury', 'faerieFire', 'faerieFire', 'shred', 'claw', 'rip', 'shred', 'claw', 'ferociousBite', 'shred', 'claw'])
+    expect(names(rot)).toEqual(['berserk', 'tigersFury', 'faerieFire', 'faerieFire', 'shred', 'claw', 'rip', 'ferociousBite', 'shred', 'claw', 'ferociousBite', 'shred', 'claw'])
     const line = (i: number) => rot.rotation[i].conditions
     // Tiger's Fury at ≤ 100 − 80 + 20 Energy (the default loss allowed).
     expect(line(1)).toEqual([{ code: COND.maxEnergy, a: 400, b: 0 }])
@@ -215,11 +215,19 @@ describe('the cat priority list (druid.md §6.2)', () => {
       { code: COND.abilityAuraRefresh, a: rot.rotation[6].ability, b: 0 },
       { code: COND.timeLeftAtLeast, a: 8000, b: 0 },
     ])
+    // In the last 4 s, Bite at 5 whatever the Energy, ahead of the Shred first (CL7, D23).
+    expect(line(7)).toEqual([
+      { code: COND.minComboPoints, a: 5, b: 0 },
+      { code: COND.timeLeftAtMost, a: 4000, b: 0 },
+    ])
+    expect(line(8)).toContainEqual({ code: COND.minEnergy, a: 350, b: 0 })
     // Faerie Fire's early refresh waits until there's no Energy for a Shred (42).
     expect(line(3)).toContainEqual({ code: COND.maxEnergy, a: 419, b: 0 })
     // Claw only when Shred can never be used.
     const shred = rot.abilities.findIndex((a) => a.id === 'shred')
-    expect(line(11)).toEqual([{ code: COND.cooldownAtLeast, a: shred, b: 1 }])
+    expect(line(12)).toEqual([{ code: COND.cooldownAtLeast, a: shred, b: 1 }])
+    // At 0 there's no end-of-fight line.
+    expect(names(catRotation({ 'druid.cat.ferociousBite.anyEnergyLastSec': 0 }, CAT, auraIndex, ctx)).filter((n) => n === 'ferociousBite')).toHaveLength(1)
     expect(rot.prepull.casts).toEqual([])
   })
 
@@ -255,11 +263,12 @@ describe('the cat priority list (druid.md §6.2)', () => {
     expect(names(catRotation({ 'druid.cat.rip.onlyWithoutOtherBleeds': true }, CAT, auraIndex, { ...ctx, othersBleed: false }))).toContain('rip')
   })
 
-  it('Bite only while Rip is up: two lines, Rip’s aura or too late for a Rip', () => {
+  it('Bite only while Rip is up: two lines, Rip’s aura or too late for a Rip (after the end-of-fight Bite)', () => {
     const rot = catRotation({ 'druid.cat.ferociousBite.onlyWhileRipUp': true }, CAT, auraIndex, ctx)
     const bites = rot.rotation.filter((e) => rot.abilities[e.ability].id === 'ferociousBite')
     const rip = rot.abilities.findIndex((a) => a.id === 'rip')
     expect(bites.map((e) => e.conditions[1])).toEqual([
+      { code: COND.timeLeftAtMost, a: 4000, b: 0 },
       { code: COND.abilityAuraUp, a: rip, b: 0 },
       { code: COND.timeLeftAtMost, a: 8000, b: 0 },
     ])

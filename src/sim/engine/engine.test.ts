@@ -499,6 +499,10 @@ describe('golden run (fixed config and seed)', () => {
   //   On this seed's 1,000 fights: Rip 5,605 → 11,833 casts (it's now the only finisher most of the
   //   time), Ferocious Bite 9,690 → 1,044 (only at 35–41 Energy with Rip up), Shred 50,487 → 54,799;
   //   DPS 547.22 → 566.83, TPS 286.14 → 295.02. The warriors are unchanged.
+  // - B2 review (CL7, D23): Ferocious Bite at any Energy in the last 4 s, ahead of the Shred first
+  //   (druid.md §6.2 step 5): +0.82 DPS (+0.15%, 95% CI ± 0.02) over 400,000 paired fights on the
+  //   fresh seed. On this seed's 1,000 fights: Ferocious Bite 1,044 → 1,353 casts, Shred 54,799 →
+  //   54,388; DPS 566.83 → 567.60, TPS 295.02 → 295.41. The warriors are unchanged.
   it('keeps the default Feral cat’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('druid-feral-cat'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

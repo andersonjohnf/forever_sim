@@ -48,6 +48,7 @@ const ID = {
   biteCp: 'druid.cat.ferociousBite.minComboPoints',
   biteShredFirst: 'druid.cat.ferociousBite.shredFirstFrom',
   biteRipUp: 'druid.cat.ferociousBite.onlyWhileRipUp',
+  biteEnd: 'druid.cat.ferociousBite.anyEnergyLastSec',
   rakeEnabled: 'druid.cat.rake.enabled',
   rakeNoBleed: 'druid.cat.rake.onlyWithoutBleeds',
   potion: 'druid.cat.ragePotion.enabled',
@@ -233,6 +234,19 @@ export const CAT_OPTIONS: RotationOption[] = [
     35,
   ),
   {
+    kind: 'number',
+    id: ID.biteEnd,
+    group: 'Core abilities',
+    label: 'Ferocious Bite at any Energy in the last',
+    help: 'This close to the end, Bite as soon as you have the combo points, without a Shred first: there’s no time left to turn the Energy into Shreds. At 0, never.',
+    unit: 's',
+    min: 0,
+    max: 30,
+    step: 1,
+    default: 4,
+    dependsOn: ID.biteEnabled,
+  },
+  {
     kind: 'toggle',
     id: ID.biteRipUp,
     group: 'Core abilities',
@@ -386,8 +400,9 @@ export function catRotation(
 
   // Row 7: Rip at ≥ ripMinCP when it's off the boss (or has ≤ refreshBelowSec left) and at least
   // minFightLeftSec of the fight is left; not at all with onlyWithoutOtherBleeds while others keep
-  // the boss bleeding. Row 8: at ≥ biteMinCP, a Shred first while Energy ≥ shredFirstFrom, and
-  // Ferocious Bite (only while Rip is up, or too late for one, with onlyWhileRipUp).
+  // the boss bleeding. Row 8: at ≥ biteMinCP, Ferocious Bite in the last anyEnergyLastSec, then a
+  // Shred first while Energy ≥ shredFirstFrom, and Ferocious Bite (only while Rip is up, or too
+  // late for one, with onlyWhileRipUp).
   const ripLeft = seconds(v, ID.ripLeft)
   let rip = -1
   if (v.on(ID.ripEnabled) && !(v.on(ID.ripNoOtherBleeds) && ctx.othersBleed)) {
@@ -396,6 +411,9 @@ export function catRotation(
   }
   if (v.on(ID.biteEnabled)) {
     const cp = minComboPoints(v.num(ID.biteCp))
+    // In the last anyEnergyLastSec, Bite ahead of the Shred first: its Energy has no time to become Shreds.
+    const endMs = seconds(v, ID.biteEnd)
+    if (endMs > 0) b.add(FEROCIOUS_BITE, [cp, timeLeftAtMost(endMs)])
     builderLines([cp, minEnergy(v.num(ID.biteShredFirst))])
     if (rip >= 0 && v.on(ID.biteRipUp)) {
       b.add(FEROCIOUS_BITE, [cp, auraUp(rip)])

@@ -800,7 +800,8 @@ hold.
 7. **Rip** at ≥ `rip.minComboPoints`, when it's off the boss (or has at most
    `rip.refreshBelowSec` left), with at least `rip.minFightLeftSec` of the fight left. Not at all
    with `rip.onlyWithoutOtherBleeds` while others keep the boss bleeding.
-8. At ≥ `ferociousBite.minComboPoints`: the builder first while Energy ≥
+8. At ≥ `ferociousBite.minComboPoints`: **Ferocious Bite** at any Energy in the last
+   `ferociousBite.anyEnergyLastSec` of the fight; otherwise the builder first while Energy ≥
    `ferociousBite.shredFirstFrom` (Bite converts surplus Energy at only 2.7 a point), then
    **Ferocious Bite** (with `ferociousBite.onlyWhileRipUp`, only while Rip is up or too little of
    the fight is left for one).
@@ -830,6 +831,7 @@ isn't shown, [ux.md](../ux.md) "Fight").
 | `rip.onlyWithoutOtherBleeds` | **off** | The doc's `ripOnlyIfNoOtherBleed`. Off in both profiles: in the sim Rip beats Bite even with a raid bleed, including in `classicEra`, where Rip's ticks can't crit. Turning it on in the default raid loses 56.22 DPS (−9.9%) in `forever` and 24.58 (−4.4%) in `classicEra` (W12, Q26) |
 | `ferociousBite.enabled`, `ferociousBite.minComboPoints` | **on**, **5** | Bite threshold. The Era's 4 (Primal Fury's overflow) is the doc's first default; tuning prefers 5 |
 | `ferociousBite.shredFirstFrom` | **35** | Energy at or above which to Shred before biting. 35 to 42 mean the same (Shred costs 42): Bite only when there isn't Energy for a Shred. The doc's first default was 67 (42 + 35 − 10) |
+| `ferociousBite.anyEnergyLastSec` | **4 s** | In the last this many seconds, Bite at the combo points without a Shred first: the Energy has no time left to become Shreds. 0 is never. Tuning's (below) |
 | `ferociousBite.onlyWhileRipUp` | **off** | Hold combo points for Rip while it's down. With both thresholds at 5 it changes nothing |
 | `rake.enabled`, `rake.onlyWithoutBleeds` | **off**, **on** | Low damage per Energy ([C] [wh-rot]); try it only when nothing else bleeds |
 | `ragePotion.enabled`, `jujuFlurry.enabled` | **on**, **on** | Only when selected in Buffs (the Max consumables preset has the potion) |
@@ -865,8 +867,12 @@ seed 1, adopting a value only when its 95% interval was above zero:
 | 2 | `ferociousBite.shredFirstFrom` 67 → 35 | +2.54 (+2.35 to +2.73) |
 | 3 | `rip.minFightLeftSec` 10 → 8 | +0.31 (+0.29 to +0.34) |
 | 4 | `tigersFury.maxEnergyLost` 0 → 20 | +0.94 (+0.73 to +1.15) |
+| 5 | `ferociousBite.anyEnergyLastSec` 0 → 4 (a setting the review added, CL7) | +0.83 (+0.80 to +0.87) |
 
-A second pass changed nothing. No other setting cleared the bar. Against the tuned set on seed 1
+A second pass changed nothing. Step 5 swept 1 to 12 s: every window gains, 4 s the most (3 s
++0.77, 5 s +0.57, 6 s +0.40, 12 s +0.26); against it, the other settings' neighbours all lose or
+don't clear (Bite at 4 −4.64, Rip with 7 or 9 s −0.11 and −0.07, Tiger's Fury losing 15 or 25
+−0.12 and −0.03, Faerie Fire again with 14 s −0.06). No other setting cleared the bar. Against the tuned set on seed 1
 (40,000 fights; every interval below zero): Rip at 4 −0.52, Rip again with 1 s left −0.91, Faerie
 Fire only once it has run out −0.40, Rake kept up whatever bleeds −19.12 (with the default raid,
 "only when nothing else bleeds" gives it no line), and without Berserk −18.43, the on-use items
@@ -885,6 +891,12 @@ tuned defaults against the doc's first ones, **+20.39 DPS (+3.73%, 547.05 → 56
 +19.9. The execute phase changes nothing for a cat (no line reads it): 0% and 20% give identical
 fights. Reverting each change still loses at 60 s and 300 s (Rip with 10 s: −0.66 and −0.12; Tiger's
 Fury without loss: −3.59 and −0.62; all intervals below zero).
+
+**Step 5's confirmation** (the review's end-of-fight Bite, CL7): on the fresh seed, 400,000 paired
+fights, `ferociousBite.anyEnergyLastSec` 4 against 0 gains **+0.82 DPS (+0.15%), 95% CI +0.81 to
++0.84** (3 s +0.76, 5 s +0.57). It holds at 60 s (+2.81, +0.44%), 300 s (+0.65), without an
+execute phase (+0.83) and from the front (+1.97), each over 200,000 fights with its interval above
+zero. It gains most in short fights, where the last seconds are a larger share.
 
 Why they win: Energy, not the GCD, limits a cat, and a Bite turns spare Energy into 2.7 damage a
 point where a Shred makes about 11. So the tuned cat Shreds whenever it can afford to and bites at
@@ -982,8 +994,8 @@ results. The bear's rotation will press it too.
 
 As in the default column of §6.2 (cat) and §6.3 (bear). The cat's are the best rotation a paired
 search found for the default setup (decision D23, §6.2 "Tuning the defaults"): Bite and Rip at 5
-combo points, a Shred first whenever there's the Energy for one, Rip only with 8 s of the fight
-left, and Tiger's Fury once at most 20 of its Energy would be lost.
+combo points, a Shred first whenever there's the Energy for one except in the last 4 s, Rip only
+with 8 s of the fight left, and Tiger's Fury once at most 20 of its Energy would be lost.
 
 ### 7.5 Consumables tier ("standard raid night", no world buffs)
 

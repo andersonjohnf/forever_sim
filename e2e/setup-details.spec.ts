@@ -150,6 +150,11 @@ test('number fields read what’s typed in the typist’s own style (PV2, FV3)',
     await fights.fill('3000')
     await fights.press('Enter')
   }
+  // A whole-number field reads a decimal comma as the decimal point too, and rounds (QV3).
+  const variation = fight.getByRole('textbox', { name: 'Length variation', exact: true })
+  await variation.fill('2,5')
+  await variation.press('Enter')
+  await expect(variation).toHaveValue('3')
 
   // A fractional field reads a decimal comma as the decimal point.
   await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
@@ -158,6 +163,11 @@ test('number fields read what’s typed in the typist’s own style (PV2, FV3)',
   await btLeft.fill('0,5')
   await btLeft.press('Enter')
   await expect(btLeft).toHaveValue('0.5')
+  // Its steppers leave no float noise (QV2): 0.5 + 0.1 + 0.1 is 0.7, not 0.7000000000000001.
+  const more = page.getByRole('button', { name: 'Increase Whirlwind: Bloodthirst cooldown left' })
+  await more.click()
+  await more.click()
+  await expect(btLeft).toHaveValue('0.7')
 })
 
 test.describe('a tab switch from further down the page (TU11)', () => {

@@ -255,8 +255,8 @@ Era's) start in view rather than under the tabs.
     with its own help and default. Counts are written with thousands separators, in a field as
     in its "Default: 3,000" (boss armor, damage per swing); a seed is an identifier and has none.
     A number field reads what's typed in the typist's own style (`src/lib/parse-number.ts`):
-    "5.000" and "5 000" are 5,000, and in a field with fractions, such as seconds, "1,5" is 1.5,
-    as a comma-decimal phone's keypad types it.
+    "5.000" and "5 000" are 5,000, and "1,5" is 1.5, as a comma-decimal phone's keypad types it.
+    It then snaps the value to its step, with no float noise (1.4, never 1.4000000000000001).
 
 ## Results
 

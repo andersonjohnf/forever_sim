@@ -3,7 +3,7 @@ import { useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { parseNumber } from '@/lib/parse-number'
+import { parseNumber, snapToStep } from '@/lib/parse-number'
 import { cn } from '@/lib/utils'
 
 /**
@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
  *
  * `grouping` shows thousands separators ("10,000"), as the rest of the app writes counts. What's
  * typed is read in the typist's locale style either way (`parseNumber`): "5.000" and "5 000" are
- * 5000, and in a fractional field "1,5" is 1.5. Leave it off for an identifier such as a seed.
+ * 5000, and "1,5" is 1.5, snapped to the step. Leave it off for an identifier such as a seed.
  *
  * `aria-label` names the input and, after "Decrease" / "Increase", the steppers; it should match
  * the field's visible label (WCAG 2.5.3). `stepLabel` names the steppers instead when the label
@@ -52,10 +52,10 @@ export function NumberField({
   const increaseRef = useRef<HTMLButtonElement>(null)
   const stepName = stepLabel ?? ariaLabel
 
-  const clamp = (n: number) => Math.min(max, Math.max(min, Math.round(n / step) * step))
+  const clamp = (n: number) => Math.min(max, Math.max(min, snapToStep(n, step)))
   const commit = () => {
     if (draft === null) return
-    const n = parseNumber(draft, step)
+    const n = parseNumber(draft, { step, max })
     if (n !== null && clamp(n) !== value) onChange(clamp(n))
     setDraft(null)
   }

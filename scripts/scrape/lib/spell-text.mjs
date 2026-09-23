@@ -8,10 +8,12 @@
 //   $s1 $S1   effect points (a range "min to max" when the effect has a spread)
 //   $m1 / $M1 minimum / maximum points
 //   $o1       points × ticks over the duration          $t1  tick period in seconds
-//   $d        duration ("15 sec", "2 min")               $a1  radius in yards
+//   $d        duration ("15 sec", "2 min"; "until cancelled" when the duration is −1)
+//   $a1       radius in yards
 //   $h        proc chance                                $n   proc charges
 //   $u        max stacks    $x1 chain targets    $i max targets    $r range
 //   $q1 misc value         $e1 amplitude        $b1 points per resource
+//   $f1       chain amplitude (EffectChainAmplitude; Execute's "$*10;F1" rage-to-damage factor)
 //   $proccooldown          the proc's internal cooldown in seconds
 //   $/N;s1 $*N;s1          a token divided or multiplied by N
 //   ${expr}.N              arithmetic over tokens (+ − × ÷, parentheses, $max/$min/$floor/
@@ -19,6 +21,7 @@
 //   $<name>                a SpellDescriptionVariables variable of the spell
 //   $gmale:female;         the first form      $lsingular:plural;  by the last number
 //   $@spelldesc123 / $@spelltooltip123 / $@spellname123 / $@auradesc123
+//   $AP $RAP $SP $SPH      player stats inside ${…}, only when the caller passes `stats`
 // Effect indexes run 1–9 (Forever spells have more than Classic's three effects).
 // `$?cond[yes][no]` player conditions (auras, known spells) are reported in `unrendered`, unless
 // the caller passes `{ conditions: "unmet" }`: then every aura/spell test is taken as unmet (a
@@ -54,8 +57,12 @@ function firstBySpell(t) {
   return map;
 }
 
-/** Build the lookups the renderer needs from SPELL_TEXT_TABLES (rows or parsed tables). */
-export function createSpellTextContext(tables) {
+/**
+ * Build the lookups the renderer needs from SPELL_TEXT_TABLES (rows or parsed tables). `stats`
+ * gives player stats for `$AP`, `$RAP`, `$SP`, `$SPH` in expressions (e.g. { AP: 0 }); without
+ * it such expressions stay unrendered.
+ */
+export function createSpellTextContext(tables, { stats = null } = {}) {
   const t = (name) => tables[name];
   const effects = new Map();
   for (const e of rowsOf(t("SpellEffect"))) {
@@ -80,6 +87,7 @@ export function createSpellTextContext(tables) {
     range: indexById(t("SpellRange")),
     targets: firstBySpell(t("SpellTargetRestrictions")),
     descVars,
+    stats,
   };
 }
 
@@ -200,6 +208,9 @@ function variableValue(ctx, spellId, letter, index) {
     case "b":
     case "B":
       return e ? one(e.EffectPointsPerResource) : null;
+    case "f":
+    case "F":
+      return e ? one(e.EffectChainAmplitude ?? null) : null;
     case "h":
     case "H":
       return one(ctx.auraOptions.get(spellId)?.ProcChance ?? null);
@@ -231,29 +242,39 @@ function variableValue(ctx, spellId, letter, index) {
 // ---------------------------------------------------------------------------
 
 /** `$<spell id?><variable><index?>`, e.g. $s1, $17669s1, $d, $21970d1, $proccooldown, $s5. */
-const TOKEN = /^\$(\d*)(proccooldown|[sSmMoOtTdDaAhHnNxXuUeEqQbBiIrR])([1-9]?)/;
+const TOKEN = /^\$(\d*)(proccooldown|[sSmMoOtTdDaAhHnNxXuUeEqQbBiIrRfF])([1-9]?)/;
 /** `$/1000;s1`, `$*2;17669s1`: a scale, then the token without its `$`. */
-const SCALE = /^\$([/*])(-?\d+(?:\.\d+)?);(\d*)(proccooldown|[sSmMoOtTdDaAhHnNxXuUeEqQbBiIrR])([1-9]?)/;
+const SCALE = /^\$([/*])(-?\d+(?:\.\d+)?);(\d*)(proccooldown|[sSmMoOtTdDaAhHnNxXuUeEqQbBiIrRfF])([1-9]?)/;
 
 /**
  * Render a spell's description. Returns { text, unrendered, assumed } where `unrendered` lists
  * every token that couldn't be resolved (empty when the text is complete) and `assumed` the
  * `$?` conditions resolved under `conditions: "unmet"`. `field` picks the column
  * (Description_lang or AuraDescription_lang). Line breaks become spaces; with
- * `paragraphs: true`, a blank line in the client text becomes one "\n" instead.
+ * `paragraphs: true`, a blank line in the client text becomes one "\n" instead. With
+ * `lines: true` the client's layout is kept: a blank line becomes "\n\n" and a single line
+ * break "\n" (Rip's per-combo-point lines), each line trimmed. `wholeExpressions: true` shows a
+ * `${…}` with no `.N` precision as a whole number, as the game's tooltips do (Rip's 44.4 is 44).
  */
-export function renderSpellText(ctx, spellId, { field = "Description_lang", depth = 0, conditions = null, paragraphs = false } = {}) {
+export function renderSpellText(ctx, spellId, { field = "Description_lang", depth = 0, conditions = null, paragraphs = false, lines = false, wholeExpressions = false } = {}) {
   const raw = ctx.spell.get(spellId)?.[field] ?? "";
   const unrendered = [];
-  const state = { lastNumber: null, conditions, paragraphs, assumed: [] };
+  const state = { lastNumber: null, conditions, paragraphs, lines, wholeExpressions, assumed: [] };
   const text = renderString(ctx, spellId, raw, unrendered, state, depth);
-  const clean = paragraphs
-    ? text
-        .split(PARAGRAPH_BREAK)
-        .map(cleanText)
-        .filter(Boolean)
-        .join(depth ? PARAGRAPH : "\n")
-    : cleanText(text);
+  let clean;
+  if (lines)
+    clean = text
+      .split(PARAGRAPH_BREAK)
+      .map((p) => p.split(LINE_BREAK).map(cleanText).filter(Boolean).join(depth ? LINE : "\n"))
+      .filter(Boolean)
+      .join(depth ? PARAGRAPH : "\n\n");
+  else if (paragraphs)
+    clean = text
+      .split(PARAGRAPH_BREAK)
+      .map(cleanText)
+      .filter(Boolean)
+      .join(depth ? PARAGRAPH : "\n");
+  else clean = cleanText(text);
   return { text: clean, unrendered, assumed: state.assumed };
 }
 
@@ -261,6 +282,10 @@ export function renderSpellText(ctx, spellId, { field = "Description_lang", dept
 const PARAGRAPH = "\u2029";
 /** A blank line in client text (or a nested render's paragraph separator). */
 const PARAGRAPH_BREAK = /[ \t]*\r?\n[ \t]*(?:\r?\n[ \t]*)+|[ \t]*\u2029[ \t]*/;
+/** Line separator inside nested renders under `lines: true`. */
+const LINE = "\u2028";
+/** A single line break in client text (or a nested render's line separator). */
+const LINE_BREAK = /\r?\n|\u2028/;
 
 function cleanText(s) {
   return s
@@ -306,12 +331,13 @@ function renderString(ctx, spellId, raw, unrendered, state, depth) {
       if (dm) {
         decimals = Number(dm[1]);
         j += dm[0].length;
-      }
-      const v = evaluate(ctx, spellId, expr, depth);
+      } else if (state.wholeExpressions) decimals = 0;
+      const v = evaluate(ctx, spellId, expr, depth, state.conditions);
       if (v === null || !Number.isFinite(v)) unrendered.push(`\${${expr}}`);
       else {
-        state.lastNumber = Math.abs(v);
-        out += decimals === null ? formatNumber(Math.abs(v)) : Math.abs(v).toFixed(decimals);
+        const shown = decimals === null ? formatNumber(Math.abs(v)) : Math.abs(v).toFixed(decimals);
+        state.lastNumber = state.wholeExpressions ? Number(shown) : Math.abs(v);
+        out += shown;
       }
       i = j;
       continue;
@@ -331,6 +357,8 @@ function renderString(ctx, spellId, raw, unrendered, state, depth) {
           depth: depth + 1,
           conditions: state.conditions,
           paragraphs: state.paragraphs,
+          lines: state.lines,
+          wholeExpressions: state.wholeExpressions,
         });
         unrendered.push(...inner.unrendered);
         state.assumed.push(...inner.assumed);
@@ -360,7 +388,7 @@ function renderString(ctx, spellId, raw, unrendered, state, depth) {
     // $<variable>
     const named = /^\$<([A-Za-z_][A-Za-z0-9_]*)>/.exec(rest);
     if (named) {
-      const v = variable(ctx, spellId, named[1], depth);
+      const v = variable(ctx, spellId, named[1], depth, state.conditions);
       if (v === null || !Number.isFinite(v)) unrendered.push(named[0]);
       else {
         state.lastNumber = Math.abs(v);
@@ -404,9 +432,16 @@ function tokenValue(ctx, spellId, tok) {
   const index = tok[3] ? Number(tok[3]) : 1;
   if (letter === "d" || letter === "D") {
     const ms = spellDurationMs(ctx, id);
-    return ms === null ? null : formatDuration(ms);
+    if (ms === null) return lastsUntilCancelled(ctx, id) ? "until cancelled" : null;
+    return formatDuration(ms);
   }
   return variableValue(ctx, id, letter, index);
+}
+
+/** Whether a spell lasts until cancelled (SpellDuration −1): "Lasts $d." reads "Lasts until cancelled." */
+function lastsUntilCancelled(ctx, spellId) {
+  const index = ctx.misc.get(spellId)?.DurationIndex;
+  return index ? ctx.duration.get(index)?.Duration === -1 : false;
 }
 
 /** Index of the `]` closing the `[` at `open` (nested brackets allowed), or -1. */
@@ -424,7 +459,7 @@ function matchingBracket(s, open) {
  * then `!`, `&`, `|` and parentheses apply. Returns null when the text isn't a condition.
  */
 function unmetCondition(text) {
-  const tokens = text.match(/[a-zA-Z]+\d+|[!&|()]/g);
+  const tokens = text.match(/\$?[a-zA-Z]+\d+|[!&|()]/g);
   if (!tokens || tokens.join("") !== text.replace(/\s+/g, "")) return null;
   let p = 0;
   const factor = () => {
@@ -437,7 +472,7 @@ function unmetCondition(text) {
       const v = expr();
       return tokens[p++] === ")" ? v : null;
     }
-    return t && /^[a-zA-Z]+\d+$/.test(t) ? false : null;
+    return t && /^\$?[a-zA-Z]+\d+$/.test(t) ? false : null;
   };
   const term = () => {
     let v = factor();
@@ -498,13 +533,22 @@ function matchingBrace(s, open) {
   return -1;
 }
 
-/** A SpellDescriptionVariables variable, evaluated (numbers only). */
-function variable(ctx, spellId, name, depth) {
-  const expr = ctx.descVars.get(spellId)?.get(name);
+/**
+ * A SpellDescriptionVariables variable, evaluated (numbers only). Under `conditions: "unmet"` a
+ * variable written as a condition (`$ticks=$?s436895[${8}][${6}]`) takes its unmet branch.
+ */
+function variable(ctx, spellId, name, depth, conditions = null) {
+  let expr = ctx.descVars.get(spellId)?.get(name);
   if (expr === undefined || depth > 6) return null;
+  expr = expr.trim();
+  if (expr.startsWith("$?")) {
+    const cond = conditions === "unmet" ? resolveCondition(expr, 0) : null;
+    if (!cond || cond.end !== expr.length) return null;
+    expr = cond.branch.trim();
+  }
   // A variable is either ${…} or a bare expression.
-  const inner = /^\$\{([\s\S]*)\}$/.exec(expr.trim());
-  return evaluate(ctx, spellId, inner ? inner[1] : expr, depth + 1);
+  const inner = /^\$\{([\s\S]*)\}$/.exec(expr);
+  return evaluate(ctx, spellId, inner ? inner[1] : expr, depth + 1, conditions);
 }
 
 // ---------------------------------------------------------------------------
@@ -529,7 +573,7 @@ const FUNCTIONS = {
  * Evaluate a `${…}` expression. Tokens are signed (so `${$m1/-1000}` turns a negative value
  * positive); a range contributes its minimum. Returns null when any part can't be resolved.
  */
-export function evaluate(ctx, spellId, expr, depth = 0) {
+export function evaluate(ctx, spellId, expr, depth = 0, conditions = null) {
   const tokens = [];
   let i = 0;
   while (i < expr.length) {
@@ -562,9 +606,17 @@ export function evaluate(ctx, spellId, expr, depth = 0) {
       i += pl[0].length;
       continue;
     }
+    const stat = /^\$(AP|RAP|SP|SPH)\b/.exec(rest);
+    if (stat) {
+      const v = ctx.stats?.[stat[1]];
+      if (v === undefined) return null;
+      tokens.push({ type: "num", value: v });
+      i += stat[0].length;
+      continue;
+    }
     const named = /^\$<([A-Za-z_][A-Za-z0-9_]*)>/.exec(rest);
     if (named) {
-      const v = variable(ctx, spellId, named[1], depth);
+      const v = variable(ctx, spellId, named[1], depth, conditions);
       if (v === null) return null;
       tokens.push({ type: "num", value: v });
       i += named[0].length;

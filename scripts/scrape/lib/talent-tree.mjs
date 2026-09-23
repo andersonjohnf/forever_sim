@@ -368,18 +368,26 @@ export function tooltipHeader(tc, spellId) {
   const cd = tc.cooldowns.get(spellId);
   const cdMs = Math.max(cd?.RecoveryTime ?? 0, cd?.CategoryRecoveryTime ?? 0);
   if (cdMs > 0) out.cooldown = `${formatDuration(cdMs)} cooldown`;
-  const eq = tc.equipped.get(spellId);
-  if (eq && eq.EquippedItemClass >= 0 && eq.EquippedItemSubclass > 0) {
-    const named = eq.EquippedItemClass === 2 ? WEAPON_MASKS.get(eq.EquippedItemSubclass) : null;
-    const names = [];
-    for (let bit = 0; bit < 32; bit++)
-      if (eq.EquippedItemSubclass & (1 << bit)) {
-        const r = tc.subclass.get(`${eq.EquippedItemClass}:${bit}`);
-        names.push(r?.VerboseName_lang || r?.DisplayName_lang || `subclass ${bit}`);
-      }
-    out.requirements = `Requires ${named ?? (eq.EquippedItemClass === 4 && eq.EquippedItemSubclass === 64 ? "Shields" : names.join(", "))}`;
-  }
+  const required = equippedRequirement(tc, spellId);
+  if (required) out.requirements = `Requires ${required}`;
   return out;
+}
+
+/**
+ * The item a spell needs equipped, as its tooltip names it ("Melee Weapon", "Shields",
+ * "One-Handed Axes, One-Handed Maces"), or null (SpellEquippedItems).
+ */
+export function equippedRequirement(tc, spellId) {
+  const eq = tc.equipped.get(spellId);
+  if (!eq || eq.EquippedItemClass < 0 || eq.EquippedItemSubclass <= 0) return null;
+  const named = eq.EquippedItemClass === 2 ? WEAPON_MASKS.get(eq.EquippedItemSubclass) : null;
+  const names = [];
+  for (let bit = 0; bit < 32; bit++)
+    if (eq.EquippedItemSubclass & (1 << bit)) {
+      const r = tc.subclass.get(`${eq.EquippedItemClass}:${bit}`);
+      names.push(r?.VerboseName_lang || r?.DisplayName_lang || `subclass ${bit}`);
+    }
+  return named ?? (eq.EquippedItemClass === 4 && eq.EquippedItemSubclass === 64 ? "Shields" : names.join(", "));
 }
 
 // ---------------------------------------------------------------------------

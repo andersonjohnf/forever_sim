@@ -59,11 +59,10 @@ const allDatasets: Record<string, { meta: { source: string; scrapedAt: string; f
   items,
 }
 
-describe.each(Object.entries(allDatasets))('%s', (name, data) => {
+describe.each(Object.entries(allDatasets))('%s', (_name, data) => {
   it('has a meta envelope tied to a Forever build', () => {
-    // Items and talents come from the client files (decision D17); the rest still from foreverchanges.pro.
-    const fromClient = name === 'items' || name.startsWith('talents/')
-    expect(data.meta.source).toMatch(fromClient ? /^https:\/\/wago\.tools\/api\// : /^https:\/\/foreverchanges\.pro\//)
+    // Every dataset comes from the client files through the wago.tools API (decisions D16, D17).
+    expect(data.meta.source).toMatch(/^https:\/\/wago\.tools\/api\//)
     expect(Number.isNaN(Date.parse(data.meta.scrapedAt))).toBe(false)
     expect(data.meta.foreverBuild).toMatch(/^1\.60\.\d+\.\d+$/)
   })
@@ -73,20 +72,62 @@ describe.each(Object.entries(allDatasets))('%s', (name, data) => {
   })
 })
 
+// The client spellbooks (docs/data/spells.md). Counts pin this build's books: a new build that
+// adds or drops a spell fails here on purpose, so the change gets looked at and documented.
+const BOOK_SIZES = { warrior: [42, 0], druid: [60, 1], paladin: [56, 3] } as const
+
 describe.each(Object.entries(spellBooks))('spells/%s', (cls, book) => {
-  it('matches its own page counts', () => {
+  const all = book.spells.flatMap((s) => s.ranks)
+
+  it('has this build’s spells, with counts that add up', () => {
     expect(book.class).toBe(cls)
-    expect(book.spells).toHaveLength(book.counts.total)
-    expect(book.missing).toHaveLength(book.counts.notInForever)
+    expect([book.spells.length, book.missing.length]).toEqual(BOOK_SIZES[cls as keyof typeof BOOK_SIZES])
+    expect(book.counts.total).toBe(book.spells.length)
+    expect(book.counts.notInForever).toBe(book.missing.length)
+    const by = (st: string) => book.spells.filter((s) => s.status === st).length
+    expect(book.counts.new).toBe(by('new'))
+    expect(book.counts.changed).toBe(book.spells.filter((s) => !['same', 'new', 'talent'].includes(s.status)).length)
+    expect(book.counts.differentFromClassic).toBe(book.counts.new + book.counts.changed)
     expect(book.tabs.reduce((n, t) => n + t.spellCount, 0)).toBe(book.spells.length)
+    for (const t of book.tabs) expect(book.spells.filter((s) => s.tab === t.name), t.name).toHaveLength(t.spellCount)
   })
 
-  it('gives every spell unique id and at least one rank from either client', () => {
+  it('gives every spell a unique id, and every Forever rank a rendered tooltip, an icon and a cast time', () => {
     expect(new Set(book.spells.map((s) => s.id)).size).toBe(book.spells.length)
     for (const spell of book.spells) {
-      expect(spell.ranks.length, spell.name).toBeGreaterThan(0)
+      expect(spell.id, spell.name).toBe(`${cls}-${spell.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`)
+      expect(spell.ranks.some((r) => r.forever), spell.name).toBe(true)
       for (const rank of spell.ranks) expect(rank.forever ?? rank.classic, spell.name).toBeTruthy()
     }
+    for (const r of all.flatMap((p) => (p.forever ? [p.forever] : []))) {
+      expect(r.text, `${r.spellId}`).toBeTruthy()
+      expect(r.text, `${r.spellId}`).not.toMatch(/\$/)
+      expect(r.icon, `${r.spellId}`).toMatch(/^[a-z0-9_-]+$/)
+      expect(r.castTime, `${r.spellId}`).not.toBeNull()
+    }
+  })
+
+  it('keeps training levels, except on spells that come only with a talent point', () => {
+    for (const s of book.spells) {
+      const levels = s.ranks.flatMap((p) => (p.forever ? [p.forever.level] : []))
+      if (s.grantedByTalent) expect(levels.every((l) => l === null), s.name).toBe(true)
+      else expect(levels.every((l) => typeof l === 'number' && l >= 1 && l <= 60), s.name).toBe(true)
+      if (!s.grantedByTalent) expect(s.level, s.name).toBe(Math.min(...(levels as number[])))
+    }
+  })
+
+  it('lists every active Forever talent as a talent spell of its tree', () => {
+    const active = talentData[cls as keyof typeof talentData].trees.flatMap((t) => t.talents.filter((x) => !x.passive).map((x) => [x.name, t.name]))
+    const talentSpells = book.spells.filter((s) => s.isTalent).map((s) => [s.name, s.tab])
+    expect(talentSpells.sort()).toEqual(active.sort())
+    for (const s of book.spells.filter((x) => x.isTalent)) expect(s.status, s.name).toBe('talent')
+  })
+
+  it('compares with Classic Era spells only, never Season of Discovery ones', () => {
+    // docs/data/spells.md#classic-era-baseline: the 1.15 client's SoD spells have ids from 400,000.
+    const classicIds = [...all.flatMap((p) => (p.classic ? [p.classic.spellId] : [])), ...book.missing.map((m) => m.classic?.spellId ?? 0)]
+    expect(classicIds.filter((id) => id >= 400000)).toEqual([])
+    for (const s of book.spells) if (s.status === 'new') expect(s.classic, s.name).toBeNull()
   })
 })
 
@@ -283,7 +324,93 @@ describe('talent names the engine keys on', () => {
   })
 })
 
+// Race ids are a storage contract: saved setups and share links keep them (docs/data/races.md).
+const RACE_IDS = [
+  'horde-orc',
+  'horde-undead',
+  'horde-tauren',
+  'horde-troll',
+  'horde-skyborne-windshaper',
+  'alliance-human',
+  'alliance-dwarf',
+  'alliance-night-elf',
+  'alliance-gnome',
+  'alliance-skyborne-high-order',
+]
+// Every race id the app's source mentions (engine, defaults, features), tests included.
+const APP_SOURCES = import.meta.glob<string>(['../sim/**/*.ts', '../features/**/*.{ts,tsx}', '../app/**/*.{ts,tsx}'], { query: '?raw', import: 'default', eager: true })
+
 describe('races', () => {
+  const pairs = (side: 'forever' | 'classic') => races.races.flatMap((r) => (r.classes[side] ?? []).map((c) => `${r.id}/${c}`))
+
+  it('keeps the race ids saved setups store, in the picker order', () => {
+    expect(races.races.map((r) => r.id)).toEqual(RACE_IDS)
+  })
+
+  it('has every race id the app uses', () => {
+    const used = new Set<string>()
+    for (const source of Object.values(APP_SOURCES)) for (const m of source.matchAll(/['"`]((?:horde|alliance)-[a-z-]+)['"`]/g)) used.add(m[1])
+    expect(used.size, 'the scan finds the ids').toBeGreaterThan(5)
+    expect([...used].filter((id) => !RACE_IDS.includes(id))).toEqual([])
+  })
+
+  it('has the client’s 56 race/class pairs (Classic Era 40), and availability that agrees with them', () => {
+    expect(pairs('forever')).toHaveLength(56)
+    expect(pairs('classic')).toHaveLength(40)
+    for (const [cls, sides] of Object.entries(races.simClassAvailability)) {
+      expect(sides.forever, cls).toEqual(races.races.filter((r) => r.classes.forever.includes(cls as never)).map((r) => r.id))
+      expect(sides.classic, cls).toEqual(races.races.filter((r) => r.classes.classic?.includes(cls as never)).map((r) => r.id))
+    }
+    // The simulated classes' races (docs/data/races.md#race-and-class-availability).
+    expect(races.simClassAvailability.paladin.forever).toEqual(['horde-undead', 'alliance-human', 'alliance-dwarf'])
+    expect(races.simClassAvailability.druid.forever).toEqual(['horde-tauren', 'horde-skyborne-windshaper', 'alliance-night-elf', 'alliance-skyborne-high-order'])
+    expect(races.simClassAvailability.warrior.forever).toEqual(RACE_IDS)
+    for (const r of races.races) {
+      expect(r.classes.addedInForever, r.id).toEqual(r.classes.forever.filter((c) => !r.classes.classic?.includes(c)))
+      expect(r.newInForever, r.id).toBe(r.classes.classic === null)
+    }
+    expect(races.newCombos.map((c) => `${c.raceId}/${c.class}`).sort()).toEqual(
+      pairs('forever').filter((p) => !pairs('classic').includes(p) && !p.includes('skyborne')).sort(),
+    )
+  })
+
+  it('gives every race four racials with a tooltip, an icon and a Forever spell', () => {
+    for (const r of races.races) {
+      expect(r.racials, r.id).toHaveLength(4)
+      expect(new Set(r.racials.map((x) => x.id)).size, r.id).toBe(4)
+      for (const x of r.racials) {
+        expect(x.forever, x.id).toBeTruthy()
+        expect(x.forever, x.id).not.toMatch(/\$/)
+        expect(x.icon, x.id).toMatch(/^[a-z0-9_-]+$/)
+        expect(x.spellIds.length, x.id).toBeGreaterThan(0)
+        expect(x.races, x.id).toContain(r.id)
+        if (x.foreverByClass) expect(Object.keys(x.foreverByClass).sort(), x.id).toEqual([...r.classes.forever].sort())
+      }
+    }
+  })
+
+  it('shares a racial between races only as one and the same racial', () => {
+    const byId = new Map<string, string>()
+    for (const r of races.races)
+      for (const x of r.racials) {
+        const { races: holders, ...rest } = x
+        const key = JSON.stringify(rest)
+        if (byId.has(x.id)) expect(key, x.id).toBe(byId.get(x.id))
+        else byId.set(x.id, key)
+        for (const h of holders) expect(races.races.find((o) => o.id === h)?.racials.some((y) => y.id === x.id), `${x.id} in ${h}`).toBe(true)
+      }
+  })
+
+  it('compares with the race’s Classic Era racials', () => {
+    for (const r of races.races)
+      for (const x of r.racials) {
+        if (r.newInForever) expect(x.classic.status, x.id).toBe('absent')
+        expect(x.classicSpellId !== null, x.id).toBe(x.classic.status === 'verified')
+        if (x.classicSpellId !== null) expect(x.classicSpellId, x.id).toBeLessThan(400000)
+        expect(x.changeLabel, x.id).toBe({ added: 'New', moved: 'New', modified: 'Changed', unchanged: 'Unchanged' }[x.changeKind])
+      }
+  })
+
   it('offers every simulated class to at least one race per faction', () => {
     for (const cls of ['warrior', 'druid', 'paladin']) {
       const factions = new Set(

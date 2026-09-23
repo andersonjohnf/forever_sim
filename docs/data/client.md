@@ -67,7 +67,9 @@ Writing `pre-bis.json` (M1.5c-2) added **6 more**, all HTTP 200: `ItemSubClass`,
 `ItemLimitCategory` from the Forever build and their three `.dbd` files
 ([items.md](items.md#how-the-data-was-obtained)). Rebuilding the talent trees (M1.5d) added
 **2 more**, both HTTP 200: the Classic Era `Talent` and `TalentTab` tables (their `.dbd` files
-were cached; [talents.md](talents.md#requests)).
+were cached; [talents.md](talents.md#requests)). Rebuilding the spellbooks and races (M1.5e)
+added **4 more**, all HTTP 200: the Classic Era `SkillLineAbility`, `SkillLine`, `ChrRaces` and
+`ItemSubClass` tables (their `.dbd` files were cached; [spells.md](spells.md#requests)).
 
 A later run from the cache makes no requests. A fresh build costs 44 wago.tools requests for
 the datasets (38 DB2 files, 4 game tables, the build lookup and the file list), about 30 more
@@ -91,13 +93,18 @@ when WoWDBDefs is re-pinned.
   <build>/talents-diff.md (+ .json)    the foreverchanges → client talent diff (npm run diff:talents)
   <build>/talents-changes.md           the talent dataset's Forever-vs-Classic tables, for talents.md
   talents-foreverchanges-snapshot/     the last foreverchanges talents/<class>.json (git 403142e)
+  <build>/spells-diff.md (+ .json)     the foreverchanges → client spellbook diff (npm run diff:spells)
+  <build>/spells-left-out.json         every SkillLineAbility row the spellbooks leave out, with the rule
+  spells-foreverchanges-snapshot/      the last foreverchanges spells/<class>.json (git ad46f63)
+  <build>/races-diff.md (+ .json)      the foreverchanges → client races diff (npm run diff:races)
+  races-foreverchanges-snapshot/       the last foreverchanges races.json (git ad46f63)
   github/wowdbdefs/<sha>/…             manifest.json and definitions/*.dbd
   requests.jsonl
 ```
 
 The download layer ([`lib/wago.mjs`](../../scripts/scrape/lib/wago.mjs)) is generic over product
 and build, and every table it touches is kept whole in `tables/`, not just the extracted subset.
-Both builds' tables are already cached: 82 DB2 files for 1.60.1.69913 and 47 for 1.15.9.69722
+Both builds' tables are already cached: 82 DB2 files for 1.60.1.69913 and 51 for 1.15.9.69722
 (plus its `shieldblockregular.txt` game table).
 
 ## Parser coverage
@@ -181,7 +188,11 @@ hotfix changed or added is missing or stale here. Evidence in this build:
   "missing" ones have no Forever row either and use Classic Era rows too.
 - **No sign of spell hotfixes in the compared fields:** every cooldown (170), cost (435), cast
   time (487) and range (343) of every Forever spellbook rank matches foreverchanges exactly,
-  and all 156 talents sit in the same cell with the same max rank.
+  and all 156 talents sit in the same cell with the same max rank. The spellbooks rebuilt from
+  the client in M1.5e confirm it ([spells.md](spells.md#from-foreverchanges-to-the-client)).
+- **One racial:** foreverchanges shows the Tauren's Cultivation (20552) with a 1 hr cooldown;
+  the raw client has none (`SpellCooldowns` 0, its category 2578 has no recovery), so a hotfix
+  likely sets it ([races.md](races.md#from-foreverchanges-to-the-client)).
 
 Values that might differ in game, because the client's numbers are placeholders the server
 overrides, or disagree with the tooltip a hotfix may already have fixed:
@@ -564,10 +575,17 @@ npm run compare:items                             # the derivation vs the saved 
 npm run diff:items                                # the item pool vs the saved foreverchanges item dataset
 npm run scrape:talents                            # the talent trees from the client (talents-client.mjs, cached)
 npm run diff:talents                              # the talent trees vs the saved foreverchanges talent dataset
+npm run scrape:spells                             # the spellbooks from the client (spells-client.mjs, cached)
+npm run diff:spells                               # the spellbooks vs the saved foreverchanges spell dataset
+npm run scrape:races                              # the races from the client (races-client.mjs, cached)
+npm run diff:races                                # the races vs the saved foreverchanges race dataset
 ```
 
 The scraper reads `src/data/{spells,talents,races,items}/*.json` and the buffs doc to build the
-interest set, so run it after `npm run scrape` (which includes `scrape:items`). For a new build: run it with `--version=` (or
+interest set, so run it after `npm run scrape` (which runs all four dataset generators). Since
+M1.5e the spellbooks no longer count Frenzied Regeneration's heal 22845 as a rank, and the
+racials of each race are in client order: the next run drops 22845's `spellbook` source and
+reorders `racials` (the committed `spells.json` predates M1.5e). For a new build: run it with `--version=` (or
 `--refresh` to take the latest), and pin a fresh WoWDBDefs commit (delete
 `.cache/client/github/wowdbdefs_head.json`, or pass `--dbdefs=`) if the new build's layouts
 aren't in the cached definitions; the run fails loudly on an unknown layout. Then review the
@@ -577,19 +595,21 @@ rating isn't 14.
 
 ## Phase 2 notes: what this client ships
 
-For rebuilding `src/data/{spells,talents,races,items}` from client files (D17). **Items and
-talents are done** (M1.5c-2, [items.md](items.md); M1.5d, [talents.md](talents.md)); spells
-and races follow in M1.5e–f.
+For rebuilding `src/data/{spells,talents,races,items}` from client files (D17). **All four are
+done:** items (M1.5c-2, [items.md](items.md)), talents (M1.5d, [talents.md](talents.md)),
+spellbooks and races (M1.5e, [spells.md](spells.md), [races.md](races.md)). M1.5f retires the
+foreverchanges scrapers.
 
 | Need | In 1.60.1.69913? |
 | --- | --- |
 | Encounter Journal (`JournalInstance`, `JournalEncounter`, `JournalEncounterItem`) | the files ship but are **empty (0 records)**: no drop sources from the client, so every item's `source` is null |
 | Talent layout and prerequisites | yes: `TraitNode` (`PosX`/`PosY`), `TraitEdge` (types 2 and 3 gate), `TraitNodeGroupXTraitNode` + `TraitNodeGroupXTraitCond` + `TraitCond` (`SpentAmountRequired` per tier: the lower tiers for tiers 2–6, the whole tree for tier 7), `TraitCurrency` 3820 (51 points). Used by `src/data/talents` since M1.5d, with the Classic Era `Talent`/`TalentTab` rows for the comparison ([talents.md](talents.md)) |
-| Race/class combinations | yes: `CharBaseInfo`, 56 pairs (Classic Era: 40) |
-| Trainer vs talent vs automatic | `SkillLineAbility.AcquireMethod`: 0 trainer (6,958 rows), 2 learned automatically (420, e.g. Heroic Strike r1, Battle Stance), 3 granted by another spell (383, e.g. the Flurry buff, Last Stand's effect), 1 (63 rows, not examined). Talents themselves come from the Trait tables, not SkillLineAbility |
+| Race/class combinations | yes: `CharBaseInfo`, 56 pairs (Classic Era: 40). Used by `races.json` since M1.5e, with `ChrRaces` for names and factions and the racial skill lines of `SkillLineAbility` for racials ([races.md](races.md)) |
+| Race base stats | **no**: Forever's `RaceStat` has one unnamed column that is 0 for every race, `ChrRaces` has no stat modifiers, and Classic Era ships no `RaceStat`. Level-60 base stats are server data ([races.md § Base stats](races.md#base-stats)) |
+| Trainer vs talent vs automatic | `SkillLineAbility.AcquireMethod`: 0 trainer (6,958 rows), 2 learned automatically (420, e.g. Heroic Strike r1, Battle Stance), 3 granted by another spell (383, e.g. the Flurry buff, Last Stand's effect), 1 (63 rows, not examined). Talents themselves come from the Trait tables, not SkillLineAbility. Used by the spellbooks since M1.5e ([spells.md § The book](spells.md#the-book)); the Classic Era client's `AcquireMethod` is looser (Season of Discovery runes and Judgement effects are 0 there) |
 | Items | yes: `ItemSparse` 19,171 rows, `Item` 31,675, `ItemSet` 532 (+ `ItemSetSpell` 1,462), `ItemEffect` 12,571 + `ItemXItemEffect` 12,565 (Classic Era links through `ItemEffect.ParentItemID` instead), `ItemDisplayInfo` 42,047. Stats, armor and damage are derived as in [Items from the client](#items-from-the-client); names of subclasses, factions, skills and Unique-Equipped groups come from `ItemSubClass`, `Faction`, `SkillLine` and `ItemLimitCategory`. Used by `pre-bis.json` since M1.5c-2 |
 | Item and spell icons | `Item.IconFileDataID` directly (also `ItemModifiedAppearance` → `ItemAppearance.DefaultIconFileDataID`), `SpellMisc.SpellIconFileDataID`. **Names:** the build's own file list (`/api/files`, already fetched) maps them, e.g. 132363 → `interface/icons/ability_warrior_sunder.blp`, so wow-listfile isn't needed. The item pool uses this for every icon (37 new items have `IconFileDataID` 0 and take their appearance's icon; a space in a name is written `-`) |
-| Spell text | `Spell.Description_lang` / `AuraDescription_lang` with `$s1`-style variables; `SpellDescriptionVariables` via `SpellXDescriptionVariables`. [`lib/spell-text.mjs`](../../scripts/scrape/lib/spell-text.mjs) renders them; every item effect and set bonus of the pool renders ([items.md](items.md#effect-and-set-bonus-text)) |
+| Spell text | `Spell.Description_lang` / `AuraDescription_lang` with `$s1`-style variables; `SpellDescriptionVariables` via `SpellXDescriptionVariables`. [`lib/spell-text.mjs`](../../scripts/scrape/lib/spell-text.mjs) renders them; every item effect and set bonus of the pool renders ([items.md](items.md#effect-and-set-bonus-text)), and so does every spellbook rank and racial, with the options of [spells.md § Rank fields](spells.md#rank-fields) (line layout, whole-number `${…}`, `$f1`, "until cancelled", conditional description variables, `$AP` as 0) |
 | Classic Era baseline | `wow_classic_era` 1.15.9.69722 through the same endpoint; 45 of its tables are cached. `ItemXItemEffect` and `PlayerExpectedStat` don't exist there, and several layouts differ (`SpellEffect`, `SpellCategories`, `SpellItemEnchantment` has no `Duration`), which the reader and `createSpellIndex(…, { lenient: true })` handle |
 
 ## Items from the client

@@ -187,3 +187,78 @@ describe("formatting", () => {
     expect(evaluate(ctx, 0, "1+")).toBeNull();
   });
 });
+
+// Spellbook options (M1.5e): real rows of Forever Execute, Rip, Tranquility and Victory Rush,
+// Classic Era Rip, and Find Treasure.
+describe("spellbook rendering", () => {
+  const book = createSpellTextContext(
+    {
+      Spell: [
+        { ID: 20662, Description_lang: "Attempt to finish off a wounded foe, causing $s1 damage and converting each extra point of rage into $*10;F1 additional damage." },
+        {
+          ID: 9896,
+          Description_lang: "Finishing move that causes damage over time.  Damage increases per combo point:\r\n   1 point  : ${6*($m1+$b1)} damage over $d.\r\n   2 points: ${6*($m1+2*$b1)} damage over $d.\r\n",
+        },
+        { ID: 99896, Description_lang: "   1 point  : ${$<ticks>*$<mult>*($m1+$b1)} damage over $d." },
+        { ID: 740, Description_lang: "Regenerates all nearby party members for $?$p456322[${$m1*2}][$s1] every $t1 sec." },
+        { ID: 402927, Description_lang: "Instantly attack the target causing ${1+$AP*$m3/100} damage." },
+        { ID: 2481, Description_lang: "Allows the dwarf to sense nearby treasure.  Lasts $d." },
+      ],
+      SpellName: [],
+      SpellEffect: [
+        fx(20662, 0, 600, { EffectChainAmplitude: 1.5 }),
+        fx(9896, 0, 15, { EffectPointsPerResource: 25.5, EffectAuraPeriod: 2000 }),
+        { ...cx(99896, 0, 16, 1, { EffectAuraPeriod: 2000 }), EffectPointsPerResource: 28 },
+        fx(740, 0, 87, { EffectAuraPeriod: 2000 }),
+        fx(402927, 2, 15),
+      ],
+      SpellMisc: [
+        { SpellID: 9896, DifficultyID: 0, DurationIndex: 29 },
+        { SpellID: 99896, DifficultyID: 0, DurationIndex: 29 },
+        { SpellID: 2481, DifficultyID: 0, DurationIndex: 21 },
+      ],
+      SpellDuration: [
+        { ID: 21, Duration: -1 },
+        { ID: 29, Duration: 12000 },
+      ],
+      SpellAuraOptions: [],
+      SpellRadius: [],
+      SpellRange: [],
+      SpellTargetRestrictions: [],
+      SpellDescriptionVariables: [{ ID: 865, Variables: "$ticks=$?s436895[${8}][${6}]\r\n$mult=$?s436895[${1.5}][${1.0}]" }],
+      SpellXDescriptionVariables: [{ SpellID: 99896, SpellDescriptionVariablesID: 865 }],
+    },
+    { stats: { AP: 0 } },
+  );
+  const opts = { conditions: "unmet", lines: true, wholeExpressions: true };
+
+  it("reads $f1 as the effect's chain amplitude (Execute's rage-to-damage factor)", () => {
+    expect(renderSpellText(book, 20662, opts).text).toContain("into 15 additional damage");
+  });
+
+  it("keeps line breaks and shows ${…} as whole numbers (Rip)", () => {
+    expect(renderSpellText(book, 9896, opts).text).toBe(
+      "Finishing move that causes damage over time. Damage increases per combo point:\n1 point : 243 damage over 12 sec.\n2 points: 396 damage over 12 sec.",
+    );
+    expect(renderSpellText(book, 9896, { conditions: "unmet" }).text).toContain("1 point : 243 damage over 12 sec. 2 points: 396");
+  });
+
+  it("evaluates description variables written as conditions (Classic Era Rip: 6 ticks × 1.0)", () => {
+    expect(renderSpellText(book, 99896, opts)).toMatchObject({ text: "1 point : 270 damage over 12 sec.", unrendered: [] });
+    expect(renderSpellText(book, 99896, { lines: true }).unrendered).toEqual(["${$<ticks>*$<mult>*($m1+$b1)}"]);
+  });
+
+  it("takes a $-prefixed condition atom ($?$p456322) as unmet (Tranquility)", () => {
+    expect(renderSpellText(book, 740, opts)).toMatchObject({ text: "Regenerates all nearby party members for 87 every 2 sec.", assumed: ["$?$p456322"] });
+  });
+
+  it("reads $AP only when the caller gives player stats (Victory Rush)", () => {
+    expect(renderSpellText(book, 402927, opts).text).toBe("Instantly attack the target causing 1 damage.");
+    const bare = createSpellTextContext({ Spell: [{ ID: 1, Description_lang: "${1+$AP}" }], SpellEffect: [] });
+    expect(renderSpellText(bare, 1).unrendered).toEqual(["${1+$AP}"]);
+  });
+
+  it("reads a duration of −1 as until cancelled (Find Treasure)", () => {
+    expect(renderSpellText(book, 2481, opts).text).toBe("Allows the dwarf to sense nearby treasure. Lasts until cancelled.");
+  });
+});

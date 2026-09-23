@@ -1,6 +1,6 @@
-// Types for src/data/spells/<class>.json, written by scripts/scrape/spells.mjs
-// from https://foreverchanges.pro/spellbook/<class> (plus /class/<class> for
-// sources). See docs/data/spells.md.
+// Types for src/data/spells/<class>.json, written by scripts/scrape/spells-client.mjs from the
+// Forever beta client's tables, compared with the Classic Era client's (decision D17). See
+// docs/data/spells.md.
 //
 // Usage:
 //   import warriorJson from "@/data/spells/warrior.json";
@@ -10,198 +10,179 @@
 export type SpellClass = "warrior" | "druid" | "paladin";
 export type SpellResource = "rage" | "energy" | "mana" | "health";
 
+/**
+ * How a spell compares with Classic Era (docs/data/spells.md#status): "talent" (a talent in
+ * Forever), "new" (no Classic Era spell of that name), "baseline" (a talent in Classic Era,
+ * trained now), "earlier" (first trained at a lower level), "changed" (any rank field or tooltip
+ * differs, or a rank exists on one side only), "same".
+ */
+export type SpellStatus = "same" | "changed" | "new" | "baseline" | "earlier" | "talent";
+
 export interface SpellBook {
   meta: SpellBookMeta;
   class: SpellClass;
-  /** The counts shown on the spellbook page; the scraper checks them against `spells`/`missing`. */
+  /** Tallies of `spells` by status and of `missing`. */
   counts: SpellBookCounts;
-  /** Spellbook tabs in site order (`spells` is grouped by tab in this order). */
+  /** Spellbook tabs: the talent trees' skill lines in tree order, then the class's other lines (Mounts). */
   tabs: SpellBookTab[];
+  /** Grouped by tab in `tabs` order, then by first trained level (talent-only spells last), then name. */
   spells: Spell[];
-  /** Classic spells with no Forever counterpart (the page's "Not in Forever" tab). */
+  /** Classic Era spellbook spells with no Forever counterpart. */
   missing: MissingSpell[];
 }
 
 export interface SpellBookMeta {
-  /** Spellbook page the data was read from. */
+  /** "https://wago.tools/api/casc": raw client files by FileDataID (decision D16). */
   source: string;
-  /** Class changes page that `changelog` and `sources` were read from. */
-  changesSource: string;
-  /** When the spellbook page was fetched (ISO 8601, UTC, from the scrape cache). */
+  scraper: "scripts/scrape/spells-client.mjs";
+  /** Latest download time of the client files read (ISO 8601, UTC). */
   scrapedAt: string;
+  /** "wow_classic_beta". */
+  product: string;
   /** WoW Forever beta client build, e.g. "1.60.1.69913". */
   foreverBuild: string;
+  /** Build date from wago.tools (YYYY-MM-DD), or null for a pinned older build. */
+  foreverBuildDate: string | null;
+  /** "wow_classic_era". */
+  classicProduct: string;
   /** Classic Era client build compared against, e.g. "1.15.9.69722". */
   classicBuild: string;
-  scraper: "scripts/scrape/spells.mjs";
+  /** Table name → FileDataID, per build. */
+  tables: { forever: Record<string, number>; classic: Record<string, number> };
+  wowDbDefs: { repository: string; commit: string };
 }
 
 export interface SpellBookCounts {
-  /** "All spells". */
   total: number;
-  /** "New" / "New in Forever": status "new". */
+  /** Status "new". */
   new: number;
-  /** "Changed": status other than "same", "new" or "talent". */
+  /** Every status other than "same", "new" and "talent". */
   changed: number;
-  /** "Not in Forever": `missing.length`. */
+  /** `missing.length`. */
   notInForever: number;
-  /** "Different from Classic": new + changed. */
+  /** new + changed. */
   differentFromClassic: number;
 }
 
 export interface SpellBookTab {
   name: string;
   slug: string;
+  /** Icon file name (SkillLine.SpellIconFileID), e.g. "ability_rogue_eviscerate". */
   icon: string;
   spellCount: number;
 }
 
 export interface Spell {
-  /** Site slug, e.g. "warrior-thunder-clap" (talent spells: "calc-warrior-arms-spearing-strike"). */
+  /** "<class>-<name slug>", e.g. "warrior-thunder-clap", "druid-nature-s-grasp". */
   id: string;
   name: string;
   tab: string;
-  /** Icon file name without extension, e.g. "spell_nature_thunderclap". */
-  icon: string;
-  /** Deep link to the spell on the spellbook page. */
-  url: string;
-  /** First trained level; null for spells that come only from a talent point (and a few oddities). */
+  /** Icon file name of the first Forever rank, e.g. "spell_nature_thunderclap". */
+  icon: string | null;
+  /** First trained level; null for spells that come only with a talent point. */
   level: number | null;
-  /**
-   * Site status, verbatim. Seen values: "same", "changed", "new", "baseline"
-   * (was a talent in Classic, trained now), "earlier" (trained at lower levels),
-   * "talent" (a talent in Forever).
-   */
-  status: string;
-  /** Badge text in the spell list: "Same as Classic", "Changed", "New", "Was a talent", "Talent", "Earlier". */
-  badge: string | null;
-  /** One-line change summary shown in the spell list, verbatim. */
-  summary: string | null;
-  /** Site `reasons`, verbatim (strings). */
-  reasons: string[];
-  /** Races that can learn it; null = every race of the class. */
+  status: SpellStatus;
+  /** Race names that can learn it (from SkillLineAbility race masks); null = every race of the class. */
   races: string[] | null;
-  /** Highest numbered rank; null for spells without numbered ranks. */
+  /** Highest "Rank N" of the Forever ranks; null for spells without numbered ranks. */
   maxRank: number | null;
-  /** The rank the site features in the list summary and detail pane (site `rank`); null when unranked. */
-  featuredRank: number | null;
-  /** A talent in Forever (site `talent`). */
+  /** A Forever talent's spell (an active talent). */
   isTalent: boolean;
-  /** Comes with the talent point; no trainer teaches it (site `talent_only`). */
+  /** Every Forever rank comes with the talent point; no trainer teaches one. */
   grantedByTalent: boolean;
-  /** The matching entry on the class changes page. */
-  changelog?: SpellChangelog;
-  /** Evidence links from the class changes page. */
-  sources?: SpellSource[];
-  /** Rank-by-rank Forever vs Classic comparison, in site order. */
+  /** The Classic Era spell of the same name, if any: its tab and whether it came from a talent. */
+  classic: { tab: string; wasTalent: boolean } | null;
+  /** Rank-by-rank Forever vs Classic Era comparison (docs/data/spells.md#ranks). */
   ranks: SpellRankPair[];
 }
 
-export interface SpellChangelog {
-  /** Entry id on the class changes page, e.g. "spellbook-warrior-thunder-clap". */
-  id: string;
-  kind: "spell" | "talent";
-  /** Site `reported_change_kind`: "modified", "unchanged", "added", "baseline", "earlier", ... */
-  changeKind: string | null;
-  /** Full change summary (the list `summary` is cut to the first difference). */
-  summary: string | null;
-  /** Site `evidence_status`, e.g. "client_data". */
-  evidenceStatus: string | null;
-  /** YYYY-MM-DD the site first recorded the entry. */
-  discoveredAt: string | null;
-  /** Deep link to the entry on the class changes page. */
-  url: string;
-  /** Present only when the site lists open questions about the entry. */
-  uncertainties?: unknown[];
-}
-
-export interface SpellSource {
-  url: string;
-  title?: string;
-  /** e.g. "client_data" (Forever beta client), "classic_client_data". */
-  type?: string;
-}
-
 export interface SpellRankPair {
-  /** Numbered rank; null for unranked spells and for unnumbered variants. */
+  /** Numbered rank; null for unnumbered spells and variants. */
   rank: number | null;
-  /** null when this rank does not exist in Forever. */
+  /** null for a Classic Era rank Forever dropped (Tiger's Fury ranks 2 to 4). */
   forever: SpellRank | null;
-  /** null when this rank does not exist in Classic. */
+  /** null when this rank doesn't exist in Classic Era. */
   classic: SpellRank | null;
+  /** Field-by-field differences when both sides exist. */
   differences: SpellDifference[];
 }
 
 export interface SpellDifference {
-  /** e.g. "cooldown", "cost", "value", "text", "form", "level". */
+  /** "level", "cost", "castTime", "cooldown", "range", "school", "form", "requires", "value" (numbers) or "text". */
   field: string;
   text: string;
 }
 
 export interface SpellRank {
-  /**
-   * Client spell id. null only on the Classic side of talent spells, where the
-   * site gives just the Classic talent tooltip (`text`); every other field is null then.
-   */
-  spellId: number | null;
-  /** Client rank label when the site gives one: "Rank 5", "Shapeshift", "Passive", "Summon". */
+  /** Client spell id. */
+  spellId: number;
+  /** The client's rank subtext (Spell.NameSubtext_lang): "Rank 5", "Shapeshift", "Passive", "Summon". */
   rankLabel: string | null;
-  /** Level it is trained at; null for talent-granted ranks. */
+  /** Training level (SpellLevels); null for ranks that come only with a talent point. */
   level: number | null;
-  /** Tooltip text; may contain "\n". */
+  /** Rendered tooltip; "\n" separates lines and "\n\n" paragraphs. */
   text: string | null;
   cost: SpellCost | null;
   castTime: SpellCastTime | null;
   cooldown: SpellCooldown | null;
   range: SpellRange | null;
+  /** Lower-case school name(s), "+"-joined: "physical", "holy", "nature". */
+  school: string | null;
+  /** Icon file name (SpellMisc.SpellIconFileDataID). */
+  icon: string | null;
+  /** Stances or forms the spell can be used in (SpellShapeshift); null when it needs none. */
+  forms: string[] | null;
+  /** The item it needs equipped, as the tooltip names it: "Melee Weapon", "Shields". */
+  requires: string | null;
   /** Only on `MissingSpell.classic`. */
   name?: string;
 }
 
 export interface SpellCost {
-  /** Verbatim, e.g. "20 Rage", "150 Mana", "55% of base mana". */
+  /** As the tooltip prints it: "20 Rage", "150 Mana", "55% of base mana", "20% of base health". */
   raw: string;
   /** Flat amount; null for percentage costs. */
   amount: number | null;
   resource: SpellResource | null;
-  /** For "N% of base mana". */
+  /** For "N% of base …". */
   percentOfBase?: number;
 }
 
 export interface SpellCastTime {
-  /** Verbatim, e.g. "Instant", "1.5 sec cast", "Channeled". */
+  /** "Instant", "1.5 sec cast", "Channeled". */
   raw: string;
-  /** "Instant" -> 0; null for "Channeled" (duration is in the tooltip text). */
+  /** "Instant" -> 0; null for "Channeled" (the channel duration is in the tooltip). */
   seconds: number | null;
   channeled: boolean;
 }
 
 export interface SpellCooldown {
-  /** Verbatim, e.g. "6 sec cooldown", "1 hr cooldown". */
+  /** "6 sec cooldown", "1 hr cooldown" (the larger of the spell and category recovery). */
   raw: string;
-  seconds: number | null;
+  seconds: number;
 }
 
 export interface SpellRange {
-  /** Verbatim, e.g. "Melee range", "30 yd range". */
+  /** "Melee range", "30 yd range", "8-25 yd range". */
   raw: string;
   /** null for melee range. */
   yards: number | null;
   melee: boolean;
-  /** For "min-max yd range" strings (none in the current snapshot). */
+  /** Minimum range (Charge, Intercept, Feral Charge: 8). */
   minYards?: number;
 }
 
 export interface MissingSpell {
   name: string;
+  /** Its Classic Era tab. */
   tab: string;
   icon: string | null;
-  /** First trained level in Classic. */
+  /** First trained level in Classic Era; null when only a talent gave it. */
   level: number | null;
   /** Highest Classic rank. */
   rank: number | null;
-  /** It was a talent in Classic (site `talent_then`). */
+  /** It was a talent in Classic Era. */
   wasTalent: boolean;
-  /** Tooltip of the highest Classic rank. */
+  /** The highest Classic Era rank. */
   classic: SpellRank | null;
 }

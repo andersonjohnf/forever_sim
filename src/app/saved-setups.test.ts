@@ -24,6 +24,8 @@ const {
   deleteSetup,
   formatDay,
   formatSavedAt,
+  importSetups,
+  importToStorage,
   listSetups,
   MAX_NAME_LENGTH,
   nameProblem,
@@ -35,6 +37,8 @@ const {
   SAVED_SETUPS_KEY,
   sameName,
   saveSetup,
+  readStoredSetups,
+  sameConfig,
   saveToStorage,
   serializeSavedSetups,
   uniqueName,
@@ -181,6 +185,84 @@ describe('the saved list', () => {
     expect(result.ok && result.updated).toBe(false)
     expect(result.ok && result.setups).toHaveLength(5)
     expect(renameSetup(list, 'fury', 'tank').ok).toBe(true)
+  })
+})
+
+// docs/ux.md#setups: a file's setups join the list without replacing any.
+describe('importing a file’s setups', () => {
+  const NOW = new Date(2026, 8, 23, 14, 5)
+
+  test('a name that’s saved already gets a number, as a new save’s would', () => {
+    const list = [stored('a', 'Raid night', stamp(20)), stored('b', 'Raid night (2)', stamp(21))]
+    const troll = fresh('warrior-fury', 'horde-troll')
+    const result = importSetups(list, [stored('x', 'RAID NIGHT', stamp(19), troll), stored('y', 'Arms', stamp(18))], null, NOW, nextId)
+    expect(result.added.map((s) => [s.id, s.name])).toEqual([
+      ['x', 'RAID NIGHT (3)'],
+      ['y', 'Arms'],
+    ])
+    // Nothing is replaced, and each keeps its date and config.
+    expect(result.setups).toHaveLength(4)
+    expect(result.setups).toEqual(expect.arrayContaining(list))
+    expect(result.setups.find((s) => s.id === 'x')).toEqual({ id: 'x', name: 'RAID NIGHT (3)', savedAt: stamp(19), config: troll })
+    // Two of the file's own with one name are kept apart too.
+    const twins = importSetups([], [stored('p', 'Twin', stamp(1)), stored('q', 'twin', stamp(2), fresh('warrior-arms'))], null, NOW, nextId)
+    expect(names(twins.added)).toEqual(['Twin', 'twin (2)'])
+  })
+
+  test('an id that’s taken gets a new one, so the save isn’t read as a copy', () => {
+    const list = [stored('a', 'Mine', stamp(20))]
+    const result = importSetups(list, [stored('a', 'Theirs', stamp(21), fresh('warrior-arms')), stored('a', 'Also theirs', stamp(22), fresh('warrior-arms'))], null, NOW, nextId)
+    expect(result.added.map((s) => s.id)).toEqual(['id-1', 'id-2'])
+    expect(parseSavedSetups(serializeSavedSetups(result.setups))).toMatchObject({ ok: true, skipped: 0 })
+  })
+
+  test('a save that’s saved already, same name and setup, isn’t added again', () => {
+    const list = [stored('a', 'Raid night', stamp(20))]
+    // The same setup with its keys in another order is the same setup.
+    const reordered = Object.fromEntries(Object.entries(fresh('warrior-fury')).reverse())
+    expect(sameConfig(reordered, fresh('warrior-fury'))).toBe(true)
+    const result = importSetups(list, [stored('z', ' raid  NIGHT ', stamp(1), reordered)], null, NOW, nextId)
+    expect(result).toEqual({ setups: list, added: [], duplicates: 1 })
+    // The same name with another setup is a different save.
+    expect(importSetups(list, [stored('z', 'Raid night', stamp(1), fresh('warrior-arms'))], null, NOW, nextId).added).toHaveLength(1)
+  })
+
+  test('the file’s current setup is saved as "Imported · 23 Sep", now, unless a save has it already', () => {
+    const list = [stored('a', 'Raid night', stamp(20))]
+    const arms = fresh('warrior-arms')
+    const result = importSetups(list, [], arms, NOW, nextId)
+    expect(result.added).toEqual([{ id: 'id-1', name: 'Imported · 23 Sep', savedAt: NOW.toISOString(), config: arms }])
+    expect(importSetups(result.setups, [], fresh('warrior-fury', 'horde-orc'), NOW, nextId).added[0].name).toBe('Imported · 23 Sep (2)')
+    // Saved already, under any name, or among the file's own saves.
+    expect(importSetups(list, [], fresh('warrior-fury'), NOW, nextId).added).toEqual([])
+    expect(importSetups([], [stored('b', 'Arms', stamp(1), arms)], arms, NOW, nextId).added.map((s) => s.name)).toEqual(['Arms'])
+  })
+
+  test('a save the list doesn’t show is kept as it is, and its name doesn’t count', () => {
+    const tank = stored('prot', 'Raid night', stamp(1), { version: 1, spec: 'warrior-protection' })
+    const result = importSetups([stored('a', 'Raid night', stamp(20))], [tank], null, NOW, nextId)
+    expect(result.added).toEqual([tank])
+    expect(names(listSetups(result.setups))).toEqual(['Raid night'])
+  })
+
+  test('into storage: added to what’s stored now, and shown', () => {
+    memory.set(SAVED_SETUPS_KEY, serializeSavedSetups([stored('a', 'From another tab', stamp(20))]))
+    const result = importToStorage([stored('x', 'From a file', stamp(21))], fresh('warrior-arms'), NOW)
+    expect(result).toMatchObject({ ok: true, duplicates: 0 })
+    expect(names(kept().setups)).toEqual(['Imported · 23 Sep', 'From a file', 'From another tab'])
+    expect(names(useSavedSetups.getState().setups)).toEqual(['Imported · 23 Sep', 'From a file', 'From another tab'])
+    expect(readStoredSetups()).toEqual({ setups: kept().setups, problem: null })
+  })
+
+  test('into storage the browser refuses: nothing changes, and it says why', () => {
+    saveToStorage('First', fresh('warrior-fury'))
+    const before = memory.get(SAVED_SETUPS_KEY)
+    refuse = 'full'
+    expect(importToStorage([stored('x', 'From a file', stamp(21))], null, NOW)).toEqual({ ok: false, problem: 'full' })
+    expect(memory.get(SAVED_SETUPS_KEY)).toBe(before)
+    refuse = 'get'
+    expect(importToStorage([stored('x', 'From a file', stamp(21))], null, NOW)).toEqual({ ok: false, problem: 'blocked' })
+    expect(readStoredSetups()).toEqual({ setups: [], problem: 'blocked' })
   })
 })
 

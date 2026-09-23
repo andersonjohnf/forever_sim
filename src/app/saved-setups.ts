@@ -4,8 +4,8 @@
 //
 // Two layers:
 // - Pure functions over the stored list (StoredSetup[]): parse and serialize the stored form, list
-//   what to show, and add, replace, save, rename and delete. Export and import can reuse them; the
-//   stored form (SavedSetupsFile) is what a file of saves would carry.
+//   what to show, and add, replace, save, rename, delete and import. A setups file
+//   (src/app/setups-file.ts) carries its saves in the stored form.
 // - A small store that reads and writes localStorage, every access in try/catch, and reports what
 //   went wrong for the UI to say.
 import { create } from 'zustand'
@@ -59,9 +59,12 @@ export function nameProblem(name: string): string | null {
   return null
 }
 
+/** A name as names are compared: case and extra spaces don't count. */
+const sameNameKey = (name: string) => cleanName(name).toLocaleLowerCase()
+
 /** Whether two names are the same save's. Case and extra spaces don't count. */
 export function sameName(a: string, b: string): boolean {
-  return cleanName(a).toLocaleLowerCase() === cleanName(b).toLocaleLowerCase()
+  return sameNameKey(a) === sameNameKey(b)
 }
 
 /** The save with this name, if there is one. */
@@ -105,8 +108,8 @@ export function formatSavedAt(savedAt: string, now = new Date()): string {
 type Obj = Record<string, unknown>
 const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v)
 
-/** A stored entry, tidied, or null if it can't be read. */
-function readEntry(entry: unknown): StoredSetup | null {
+/** A stored entry (or a setups file's), tidied, or null if it can't be read. */
+export function readEntry(entry: unknown): StoredSetup | null {
   if (!isObj(entry)) return null
   const { id, name, savedAt, config } = entry
   if (typeof id !== 'string' || !id) return null
@@ -228,6 +231,75 @@ export function deleteSetup(setups: readonly StoredSetup[], id: string): StoredS
   return setups.filter((s) => s.id !== id)
 }
 
+/**
+ * A config as text that doesn't depend on its keys' order, so two copies of a setup compare equal
+ * however they were written.
+ */
+function canonical(config: unknown): string {
+  return JSON.stringify(config, (_key, value: unknown) =>
+    isObj(value) ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) : value,
+  )
+}
+
+/** Whether two configs are the same setup, as stored: key order doesn't count. */
+export function sameConfig(a: unknown, b: unknown): boolean {
+  return canonical(a) === canonical(b)
+}
+
+/** What importing a file's setups added, and how many of them were saved already. */
+export interface Imported {
+  added: StoredSetup[]
+  duplicates: number
+}
+
+/**
+ * Adds a setups file's saves to the list, without replacing any (docs/ux.md#setups, D21):
+ * - Each keeps its date and config, and its name, made unique among the shown saves as a new save's
+ *   is ("Raid night (2)"). It keeps its id too, unless a save has that id already.
+ * - One that's saved already, under the same name (case doesn't count) with the same config, isn't
+ *   added again, so importing a file twice adds nothing the second time.
+ * - The file's current setup is added as "Imported · 23 Sep", saved now, unless a save (one of the
+ *   file's included) has the same config: then it's in the list already.
+ */
+export function importSetups(
+  setups: readonly StoredSetup[],
+  entries: readonly StoredSetup[],
+  current: object | null,
+  now: Date,
+  newId: () => string,
+): { setups: StoredSetup[] } & Imported {
+  let list = [...setups]
+  const added: StoredSetup[] = []
+  let duplicates = 0
+  // Kept as they grow, so a big file doesn't compare every pair of configs afresh.
+  const ids = new Set(list.map((s) => s.id))
+  const configs = new Set(list.map((s) => canonical(s.config)))
+  const savedKey = (s: StoredSetup) => `${sameNameKey(s.name)}\n${canonical(s.config)}`
+  const saved = new Set(list.map(savedKey))
+  const shown = list.filter(isShown)
+  const add = (setup: StoredSetup) => {
+    list = addSetup(list, setup)
+    added.push(setup)
+    ids.add(setup.id)
+    configs.add(canonical(setup.config))
+    saved.add(savedKey(setup))
+    if (isShown(setup)) shown.push(setup)
+  }
+  for (const entry of entries) {
+    if (saved.has(savedKey(entry))) {
+      duplicates++
+      continue
+    }
+    // Names are matched among the shown saves only (isShown), as saving does.
+    const name = isShown(entry) ? uniqueName(entry.name, shown) : entry.name
+    add({ ...entry, id: ids.has(entry.id) ? newId() : entry.id, name })
+  }
+  if (current !== null && !configs.has(canonical(current))) {
+    add({ id: newId(), name: uniqueName(`Imported · ${formatDay(now)}`, shown), savedAt: now.toISOString(), config: current })
+  }
+  return { setups: list, added, duplicates }
+}
+
 /** A new save's id. */
 export function newSetupId(): string {
   // randomUUID needs a secure context: GitHub Pages and localhost are; a dev server on a LAN IP isn't.
@@ -300,6 +372,15 @@ export function refreshSavedSetups(): ReadReport {
   return { skipped: read.skipped, problem: null }
 }
 
+/**
+ * Every stored save, shown or not, as a setups file carries them; or, if they can't be read, none
+ * and why.
+ */
+export function readStoredSetups(): { setups: StoredSetup[]; problem: ReadProblem | null } {
+  const read = readStorage()
+  return read.ok ? { setups: read.setups, problem: null } : { setups: [], problem: read.problem }
+}
+
 /** A change to the stored saves; or why a name can't be used; or why storage refused it. */
 export type StorageResult<T> = Change<T> | { ok: false; problem: StorageProblem }
 
@@ -335,4 +416,9 @@ export function renameInStorage(id: string, name: string): StorageResult<{ setup
 /** Deletes a save. */
 export function deleteFromStorage(id: string): StorageResult<object> {
   return modify((setups) => ({ ok: true, setups: deleteSetup(setups, id) }))
+}
+
+/** Adds a setups file's saves, and its current setup, to the stored saves (importSetups). */
+export function importToStorage(entries: readonly StoredSetup[], current: object | null, now = new Date()): StorageResult<Imported> {
+  return modify((setups) => ({ ok: true, ...importSetups(setups, entries, current, now, newSetupId) }))
 }

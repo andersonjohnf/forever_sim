@@ -4,7 +4,7 @@
 // the racial and on-use trinkets, Recklessness, Bloodrage), the execute phase (rows 6 and 7),
 // Bloodthirst, Whirlwind, the Overpower stance dance, Heroic Strike and Hamstring (rows 8–12),
 // Berserker Rage (row 13), Slam (row 15), the Mighty Rage Potion (row 16) and Juju Flurry (row 17).
-// Rows 10 and 15 are off by default; Sunder Armor (row 14) isn't simulated. Setting ids are
+// Rows 12 and 15 are off by default; Sunder Armor (row 14) isn't simulated. Setting ids are
 // `warrior.fury.<ability>.<param>` and every rage threshold is in absolute rage points (§5.1).
 // Abilities are resolved with the build's talents (modifiers.ts) before their costs feed any
 // condition.
@@ -19,6 +19,7 @@ import {
   HAMSTRING,
   OVERPOWER,
   overpowerWindowProcs,
+  recklessness,
   SLAM,
   WHIRLWIND,
 } from './abilities'
@@ -44,6 +45,7 @@ import {
   NO_CONTEXT,
   NOT_IN_EXECUTE,
   onUseIds,
+  potionFallbackMaxRage,
   prepullCasts,
   prepullOptions,
   rageOption,
@@ -52,12 +54,15 @@ import {
   recklessnessOptions,
   RotationBuilder,
   type RotationContext,
+  seconds,
   sharedIds,
   WARRIOR_MAX_RAGE,
 } from './shared'
 
 const ID = {
   ...sharedIds('fury'),
+  dwBeforeExecute: 'warrior.fury.deathWish.beforeExecuteSec',
+  reckBeforeExecute: 'warrior.fury.recklessness.beforeExecuteSec',
   bzEnabled: 'warrior.fury.berserkerRage.enabled',
   bzMaxRage: 'warrior.fury.berserkerRage.maxRage',
   exEnabled: 'warrior.fury.execute.enabled',
@@ -95,23 +100,72 @@ export { PREPULL_BLOODRAGE_MS, PREPULL_SHOUT_MS } from './shared'
  */
 const BT_OVER_EXECUTE_AP = Math.round(executeBreakEvenAp(EXECUTE.costTenths / 10))
 
-/** Defaults from warrior.md §5.2's table (rows 0–13 and 15–17), in its priority order. */
+/**
+ * In the execute phase, the potion's last chance: if it hasn't been drunk by the phase's last 2 s,
+ * it's drunk then at up to the build's cap minus 75, so a short phase still gets it (§5.2 notes).
+ */
+const POTION_LAST_CHANCE_MS = 2000
+
+/**
+ * Defaults from warrior.md §5.2's table (rows 0–13 and 15–17), in its priority order. They're the
+ * best rotation found for the default setup (decision D23; §5.2 "Tuning the defaults", measured with
+ * scripts/tune/rotation.mjs).
+ */
 export const FURY_OPTIONS: RotationOption[] = [
   ...prepullOptions(
     ID,
     'Open with Charge for 15 rage (+3 per Improved Charge rank). The swap to Berserker Stance then keeps at most 10 + 3 per Improved Tactical Mastery rank.',
   ),
   ...battleShoutOptions(ID),
-  ...deathWishOptions(ID),
+  ...deathWishOptions(
+    ID,
+    {},
+    'When no later Death Wish would fit in the fight, hold the last one for the execute phase, or until 30 s are left. Earlier ones go on cooldown.',
+    {
+      kind: 'number',
+      id: ID.dwBeforeExecute,
+      group: 'Cooldowns and buffs',
+      label: 'Last Death Wish before the execute phase',
+      help: 'Use the last one this long before the execute phase starts, or once 30 s are left if that comes first. Needs Execute on, and an execute phase under Fight.',
+      unit: 's',
+      min: 0,
+      max: 60,
+      step: 0.5,
+      default: 3,
+      dependsOn: ID.dwAlign,
+      alsoDependsOn: ID.exEnabled,
+    },
+  ),
   ...cooldownOptions(ID),
-  ...recklessnessOptions(ID, 'Use Recklessness once, near the end of the fight, for +100% crit chance for 15 s.'),
+  ...recklessnessOptions(
+    ID,
+    'Use Recklessness once, for +100% crit chance for 15 s: just before the execute phase, or near the end without one.',
+    {
+      default: 16,
+      help: 'Or once this much of the fight is left, if that comes first: in a short fight, without an execute phase, or with Execute off. At 16 s, a global cooldown in progress still leaves it its full 15 s.',
+    },
+    {
+      kind: 'number',
+      id: ID.reckBeforeExecute,
+      group: 'Cooldowns and buffs',
+      label: 'Recklessness before the execute phase',
+      help: 'Use it this long before the execute phase starts, so its crits land on the first Executes. Needs Execute on, and an execute phase under Fight.',
+      unit: 's',
+      min: 0,
+      max: 60,
+      step: 0.5,
+      default: 1.5,
+      dependsOn: ID.reckEnabled,
+      alsoDependsOn: ID.exEnabled,
+    },
+  ),
   ...bloodrageOptions(ID),
   {
     kind: 'toggle',
     id: ID.exEnabled,
     group: 'Execute phase',
     label: 'Execute',
-    help: 'In the execute phase, use Execute on every global cooldown in place of the rest of the rotation.',
+    help: 'In the execute phase, use Execute on every global cooldown in place of Bloodthirst, Whirlwind and Hamstring.',
     default: true,
   },
   rageOption(
@@ -149,8 +203,8 @@ export const FURY_OPTIONS: RotationOption[] = [
     id: ID.exHeroicStrike,
     group: 'Execute phase',
     label: 'Heroic Strike in the execute phase',
-    help: 'Keep queueing Heroic Strike in the execute phase. Off: a queued one is cancelled when the phase starts.',
-    default: false,
+    help: 'Keep queueing Heroic Strike in the execute phase, at the rage it’s queued from outside it. Off: a queued one is cancelled when the phase starts.',
+    default: true,
     dependsOn: ID.exEnabled,
   },
   {
@@ -180,7 +234,7 @@ export const FURY_OPTIONS: RotationOption[] = [
     min: 0,
     max: 6,
     step: 0.1,
-    default: 1.5,
+    default: 0.5,
     dependsOn: ID.wwEnabled,
   },
   {
@@ -189,24 +243,24 @@ export const FURY_OPTIONS: RotationOption[] = [
     group: 'Fillers',
     label: 'Overpower (stance dance)',
     help: 'After the boss dodges, swap to Battle Stance for Overpower and back while Bloodthirst and Whirlwind are cooling down. Each swap keeps at most 10 rage, plus 3 per Improved Tactical Mastery rank.',
-    default: false,
+    default: true,
   },
   rageOption(
     ID.opMaxRage,
     'Overpower up to',
-    'Dance only at or below this much rage, so the swap loses none. 25 is what a swap keeps with Improved Tactical Mastery 5/5.',
-    25,
+    'Dance only at or below this much rage. A swap keeps at most 25 with Improved Tactical Mastery 5/5, so a dance above that loses the rest; up to 15 lost is worth an Overpower sooner.',
+    40,
     ID.opEnabled,
     'Fillers',
   ),
-  ...heroicStrikeOptions(ID, 42),
+  ...heroicStrikeOptions(ID, 40, undefined, true),
   {
     kind: 'toggle',
     id: ID.hamEnabled,
     group: 'Fillers',
     label: 'Hamstring filler',
-    help: 'Use Hamstring to fish for procs while Bloodthirst and Whirlwind are cooling down.',
-    default: true,
+    help: 'Use Hamstring to fish for procs while Bloodthirst and Whirlwind are cooling down. Off by default: the Overpower dance and Heroic Strike do more with the rage and the global cooldowns.',
+    default: false,
   },
   rageOption(ID.hamMinRage, 'Hamstring from', 'Use it at or above this much rage.', 60, ID.hamEnabled, 'Fillers'),
   {
@@ -242,7 +296,10 @@ export const FURY_OPTIONS: RotationOption[] = [
     help: 'Use Slam while Bloodthirst and Whirlwind are cooling down. Without Improved Slam (an Arms talent), its 1.5 s cast stops your swings and resets both swing timers, which usually costs a dual wielder damage.',
     default: false,
   },
-  ...consumableOptions(ID),
+  ...consumableOptions(ID, 'early in the execute phase (without one, or with Execute off, in the last 20 s, with Recklessness)', {
+    default: 0,
+    help: 'In the execute phase, drink it only at or below this much rage: at 0, once an Execute has emptied your bar. In the phase’s last 2 s, without an execute phase, or with Execute off, it’s up to your rage cap minus 75 (55 with Boundless Rage 3/3).',
+  }),
 ]
 
 /**
@@ -272,6 +329,8 @@ export function furyRotation(
   const cost = (a: number) => b.cost(a)
 
   const execute = v.on(ID.exEnabled)
+  /** The rows that follow the execute phase (Recklessness, the potion) need Execute and a phase. */
+  const phase = execute && ctx.executePhase
   const useBt = talents.has('Bloodthirst') && v.on(ID.btEnabled)
   const btOverAp = v.num(ID.exBtOverAp)
   /** Lines that stop in the execute phase get this condition while Execute is on. */
@@ -285,10 +344,13 @@ export function furyRotation(
   const shout = battleShoutLine(b, v, ID, ctx)
 
   // Row 2: Death Wish, and row 3: the racial and on-use trinkets synced with it (shared.ts).
-  cooldownLines(b, v, ID, ctx, deathWishLines(b, v, ID))
+  cooldownLines(b, v, ID, ctx, deathWishLines(b, v, ID, phase ? seconds(v, ID.dwBeforeExecute) : undefined))
 
-  // Row 4: Recklessness once, at ≤ lastSec left (Berserker Stance only, Fury's base stance).
-  recklessnessLine(b, v, ID, ctx)
+  // Row 4: Recklessness once, beforeExecuteSec before the execute phase starts or at ≤ lastSec left,
+  // whichever comes first; by the clock alone without the phase or with Execute off (Berserker
+  // Stance only, Fury's base stance). Without the phase the potion follows it (rows 16).
+  recklessnessLine(b, v, ID, ctx, 0, phase ? seconds(v, ID.reckBeforeExecute) : undefined)
+  const reck = v.on(ID.reckEnabled) ? b.ability(recklessness(ctx.profile)) : -1
 
   // Row 5: Bloodrage on cooldown (off the GCD) at rage ≤ maxRage.
   bloodrageLine(b, v, ID)
@@ -340,9 +402,10 @@ export function furyRotation(
     return lines
   }
 
-  // Row 10: the Overpower stance dance (off by default): while the window a dodge opened is up,
-  // Bloodthirst and Whirlwind are GCD-safe and rage ≤ maxRage (so the swap in loses none), swap to
-  // Battle Stance, Overpower, and swap back when the swap cooldown allows (§2.1, §2.8, §7). It
+  // Row 10: the Overpower stance dance (on by default since M2.5b): while the window a dodge opened
+  // is up, Bloodthirst and Whirlwind are GCD-safe and rage ≤ maxRage (40 by default: the swap in
+  // keeps at most 25, and an Overpower sooner is worth the rest), swap to Battle Stance, Overpower,
+  // and swap back when the swap cooldown allows (§2.1, §2.8, §7). It
   // applies in both phases, GCD-safe as row 13 is; in the execute phase it gets a GCD only while
   // Execute waits for rage. The window's openers come with it.
   if (v.on(ID.opEnabled)) {
@@ -350,7 +413,8 @@ export function furyRotation(
     b.procs.push(...overpowerWindowProcs(talents))
   }
 
-  // Row 11: Heroic Strike queue (off the GCD), rage ≥ minRage; optional unqueue below a threshold.
+  // Row 11: Heroic Strike queue (off the GCD), rage ≥ minRage; optional unqueue below a threshold (on
+  // by default). In both phases unless heroicStrikeInExecute is off.
   heroicStrikeLine(b, v, ID, outsideExecute(v.on(ID.exHeroicStrike)))
 
   // Row 12: Hamstring filler, rage ≥ minRage, Bloodthirst and Whirlwind GCD-safe, optionally Flurry
@@ -376,9 +440,12 @@ export function furyRotation(
   // the swings and resets both timers (§3.1 "Slam"); the engine checks its cost.
   if (v.on(ID.slamEnabled)) b.add(SLAM, [...outsideExecute(false), ...gcdSafe(bit(bt) | bit(ww))])
 
-  // Rows 16 and 17: the Mighty Rage Potion from the start of the execute phase, and Juju Flurry on
-  // cooldown, when they're selected in Buffs (shared.ts).
-  consumableLines(b, v, ID, ctx)
+  // Rows 16 and 17: the Mighty Rage Potion and Juju Flurry, when they're selected in Buffs (shared.ts).
+  // With Execute in an execute phase, the potion is drunk there at rage ≤ maxRage, or in the phase's
+  // last 2 s at ≤ the build's cap − 75 if it hasn't been; otherwise in the last 20 s at ≤ that
+  // limit, once Recklessness has been used, so its rage joins Recklessness's crits. Juju Flurry on
+  // cooldown.
+  consumableLines(b, v, ID, ctx, { inPhase: phase, fallbackMaxRage: potionFallbackMaxRage(talents), lastChanceMs: POTION_LAST_CHANCE_MS, after: reck })
 
   // Row 0: the pre-pull (shared.ts). Fury fights in Berserker Stance, so Charge's swap keeps at most
   // 10 + 3 per Improved Tactical Mastery rank (§2.1, §2.3).

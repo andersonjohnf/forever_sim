@@ -78,7 +78,10 @@ describe('Cooldowns and buffs', () => {
       'Holy Strength (off hand)',
       'Enrage',
       'Flurry',
+      // The Overpower dance's window (on by default since M2.5b, warrior.md §5.2 row 10).
+      'Overpower window',
     ])
+    expect(row(result, 'overpowerWindow')!.uptimePct).toBeGreaterThan(0)
     // Death Wish (3 min) once or twice in a 162–198 s fight, 30 s each; Recklessness once for 15 s.
     expect(row(result, 'deathWish')!.castsPerFight).toBeGreaterThan(1)
     expect(row(result, 'deathWish')!.castsPerFight).toBeLessThan(2)

@@ -41,6 +41,7 @@ const NO_ABILITIES: SimConfig['rotation'] = {
   'warrior.fury.berserkerRage.enabled': false,
   'warrior.fury.bloodthirst.enabled': false,
   'warrior.fury.whirlwind.enabled': false,
+  'warrior.fury.overpower.enabled': false,
   'warrior.fury.heroicStrike.enabled': false,
   'warrior.fury.hamstring.enabled': false,
   'warrior.fury.execute.enabled': false,
@@ -442,6 +443,24 @@ describe('golden run (fixed config and seed)', () => {
   //   and clips less of Shield Specialization's and Master of Defense's energizes: their threat
   //   7,503 → 9,116 and 17,045 → 20,083 over 500 fights, TPS 216.99002 → 217.04235 (+0.02%); DPS
   //   unchanged. Fury and Arms take no damage: unchanged.
+  // - M2.5a follow-ups (V3): the Arms potion's limit outside the setting's is the build's rage cap
+  //   minus 75, not a fixed 55; the default build's cap is 130, so no golden moves.
+  // - M2.5b (decision D23): the default Fury rotation is the best one a paired search found
+  //   (warrior.md §5.2 "Tuning the defaults", scripts/tune/rotation.mjs): the Overpower dance on, up
+  //   to 40 rage; Hamstring off; Heroic Strike from 40 (42 before) with its cancel below 20, and kept
+  //   in the execute phase; Whirlwind at 0.5 s of Bloodthirst's cooldown (1.5); the final Death Wish
+  //   3 s before the execute phase and Recklessness 1.5 s before it (they came with 30 s and 15 s
+  //   left); the Mighty Rage Potion at 0 rage in the phase (55), once an
+  //   Execute has emptied the bar. Recklessness's clock (16 s, was 15), the potion's last chance and
+  //   its wait for Recklessness without a phase don't act in the default fight. Over 400,000 paired
+  //   fights on a seed the search never used, +42.88 DPS (+6.39%, 670.62 → 713.50, 95% CI ± 0.15).
+  //   On this seed's 1,000 fights: Overpower is a new row (12,279 casts, 590 damage each on
+  //   average) and Hamstring's is gone (578 casts); Heroic Strike 17,815 → 13,450 casts, so more
+  //   white main-hand swings (69,025 → 70,768) and Windfury procs (21,560 → 24,825); Whirlwind
+  //   11,688 → 12,901 casts and Bloodthirst 23,157 → 21,944 with the shorter wait; Execute's damage
+  //   19.56 M → 20.42 M with Death Wish and Recklessness up from the phase's start. DPS 668.63 →
+  //   716.09, TPS 405.50 → 424.70. Arms and Protection are unchanged: their shared rows keep their
+  //   defaults, and their lines are the same.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

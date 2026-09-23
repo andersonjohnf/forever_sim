@@ -31,14 +31,31 @@ test.describe('rotation tab', () => {
       await expect(deathWish.getByRole('switch', { name, exact: true })).toBeVisible()
       await expect(inactiveRow(page, name)).toHaveCount(0)
     }
+    // Hamstring is off by default (warrior.md §5.2), so its own setting starts dimmed.
     const hamstring = tab.getByRole('listitem').filter({ has: page.getByRole('switch', { name: 'Hamstring filler', exact: true }) })
     await expect(hamstring.getByRole('switch', { name: 'Hamstring only without Flurry', exact: true })).toBeVisible()
+    await expect(inactiveRow(page, 'Hamstring only without Flurry')).toHaveCount(1)
 
     await page.getByRole('switch', { name: 'Death Wish', exact: true }).click()
     await expect(page.getByRole('switch', { name: 'Death Wish', exact: true })).not.toBeChecked()
     for (const name of ['Save the last Death Wish for the end', 'Racial and trinkets with Death Wish']) await expect(inactiveRow(page, name)).toHaveCount(1)
     await page.getByRole('switch', { name: 'Hamstring filler', exact: true }).click()
-    await expect(inactiveRow(page, 'Hamstring only without Flurry')).toHaveCount(1)
+    await expect(inactiveRow(page, 'Hamstring only without Flurry')).toHaveCount(0)
+  })
+
+  test('timings before the execute phase dim while Execute, under another heading, is off', async ({ page }) => {
+    const tab = await openRotation(page)
+    const cooldowns = tab.getByRole('region', { name: 'Cooldowns and buffs' })
+    await cooldowns.getByRole('button', { name: /^Advanced settings for Cooldowns and buffs/ }).click()
+    const names = ['Last Death Wish before the execute phase', 'Recklessness before the execute phase']
+    const inactive = (name: string) => page.locator('[data-inactive]').filter({ has: page.getByRole('textbox', { name, exact: true }) })
+    for (const name of names) {
+      await expect(cooldowns.getByRole('textbox', { name, exact: true })).toBeVisible()
+      await expect(inactive(name)).toHaveCount(0)
+    }
+    await expect(cooldowns.getByRole('textbox', { name: 'Recklessness before the execute phase', exact: true })).toHaveAccessibleDescription(/Needs Execute on, and an execute phase under Fight\.$/)
+    await tab.getByRole('switch', { name: 'Execute', exact: true }).click()
+    for (const name of names) await expect(inactive(name)).toHaveCount(1)
   })
 
   test('a tap anywhere on a switch’s row flips it, and the row is at least 44 px tall', async ({ page }) => {
@@ -78,10 +95,10 @@ test.describe('rotation tab', () => {
     // In place, under the switch it tunes.
     const heroicStrike = fillers.getByRole('listitem').filter({ has: page.getByRole('switch', { name: 'Heroic Strike', exact: true }) })
     const threshold = heroicStrike.getByRole('textbox', { name: 'Heroic Strike from' })
-    await expect(threshold).toHaveValue('42')
+    await expect(threshold).toHaveValue('40')
     await threshold.fill('50')
     await threshold.press('Enter')
-    await expect(heroicStrike.getByText('Default: 42 rage')).toBeVisible()
+    await expect(heroicStrike.getByText('Default: 40 rage')).toBeVisible()
     await expect(advanced).toHaveAccessibleName('Advanced settings for Fillers, 1 changed')
 
     // Next visit, the heading with a changed threshold is open; closed, it still counts it.
@@ -95,9 +112,10 @@ test.describe('rotation tab', () => {
     await expect(advanced).toContainText('1 changed')
   })
 
-  test('the intro says what the spec’s defaults are: tuned for Arms, the common priority for Fury', async ({ page }) => {
+  test('the intro says what the spec’s defaults are: tuned for Fury (since M2.5b) and Arms', async ({ page }) => {
     const fury = await openRotation(page)
-    await expect(fury.getByText('Which abilities the sim uses, and when. The defaults follow the common priority.', { exact: true })).toBeVisible()
+    await expect(fury.getByText('Which abilities the sim uses, and when. The defaults are tuned for the default setup.', { exact: true })).toBeVisible()
+    await expect(fury.getByText(/common priority/)).toHaveCount(0)
     const arms = await openArmsRotation(page)
     await expect(arms.getByText('Which abilities the sim uses, and when. The defaults are tuned for the default setup.', { exact: true })).toBeVisible()
     await expect(arms.getByText(/we’ve found/)).toHaveCount(0)
@@ -111,7 +129,7 @@ test.describe('rotation tab', () => {
     await expect(threshold).toHaveAccessibleDescription('Queue it at or above this much rage.')
     await threshold.fill('50')
     await threshold.press('Enter')
-    await expect(threshold).toHaveAccessibleDescription('Queue it at or above this much rage. Changed. Default: 42 rage')
+    await expect(threshold).toHaveAccessibleDescription('Queue it at or above this much rage. Changed. Default: 40 rage')
   })
 
   test('a threshold’s Reset names it and its default once each, and puts it back', async ({ page }) => {

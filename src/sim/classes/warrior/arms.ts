@@ -437,7 +437,7 @@ export function armsRotation(
   // the phase's last 4 s at ≤ the build's cap − 75 (55 at 3/3 Boundless Rage) if it hasn't been.
   // Otherwise, in the last 20 s at ≤ that limit, after Recklessness's swap, which would cap its rage
   // at 25 (§5.3 notes). Juju Flurry on cooldown.
-  consumableLines(b, v, ID, ctx, { inPhase: phase, fallbackMaxRage: potionFallbackMaxRage(talents), swapFirst: reckSwap, lastChanceMs: POTION_LAST_CHANCE_MS })
+  consumableLines(b, v, ID, ctx, { inPhase: phase, fallbackMaxRage: potionFallbackMaxRage(talents), lastChanceMs: POTION_LAST_CHANCE_MS, after: reckSwap })
 
   // Row 0: the pre-pull (shared.ts). Charge is a Battle Stance ability: fighting in Berserker
   // Stance, the swap after it keeps at most the swap's cap.

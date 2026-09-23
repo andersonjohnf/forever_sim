@@ -22,7 +22,7 @@ describe('rotation rows', () => {
 
   it('marks a saved value that differs from its default, but not one that matches it', () => {
     const r = rows(fury, { 'warrior.fury.heroicStrike.minRage': 50, 'warrior.fury.bloodthirst.enabled': true })
-    expect(r.get('warrior.fury.heroicStrike.minRage')).toMatchObject({ value: 50, default: 42, changed: true })
+    expect(r.get('warrior.fury.heroicStrike.minRage')).toMatchObject({ value: 50, default: 40, changed: true })
     expect(r.get('warrior.fury.bloodthirst.enabled')).toMatchObject({ value: true, default: true, changed: false })
   })
 
@@ -50,8 +50,10 @@ describe('rotation rows', () => {
   })
 
   it('makes the settings under a switch inactive while it’s off, down the tree (U13)', () => {
-    const on = rows(fury)
-    for (const id of ['warrior.fury.deathWish.alignToEnd', 'warrior.fury.cooldowns.syncWithDeathWish', 'warrior.fury.hamstring.onlyWhenFlurryDown'])
+    // Hamstring is off by default since M2.5b, so its setting is inactive until it's on.
+    expect(rows(fury).get('warrior.fury.hamstring.onlyWhenFlurryDown')?.inactive).toBe(true)
+    const on = rows(fury, { 'warrior.fury.hamstring.enabled': true })
+    for (const id of ['warrior.fury.deathWish.alignToEnd', 'warrior.fury.cooldowns.syncWithDeathWish', 'warrior.fury.hamstring.onlyWhenFlurryDown', 'warrior.fury.heroicStrike.unqueueBelow'])
       expect(on.get(id)?.inactive, id).toBe(false)
     const off = rows(fury, { 'warrior.fury.deathWish.enabled': false, 'warrior.fury.hamstring.enabled': false, 'warrior.fury.heroicStrike.enabled': false })
     for (const id of [
@@ -71,6 +73,17 @@ describe('rotation rows', () => {
     expect(rows(arms, { 'warrior.arms.recklessness.enabled': false }).get(id)?.inactive).toBe(true)
     expect(rows(arms, { 'warrior.arms.execute.enabled': false }).get(id)?.inactive).toBe(true)
     expect(rows(arms, { 'warrior.arms.execute.enabled': false }).get('warrior.arms.execute.slamInExecute')?.inactive).toBe(true)
+  })
+
+  it('dims Fury’s timings before the execute phase the same way: Death Wish’s under its alignment, Recklessness’s under it (M2.5b)', () => {
+    for (const [id, parent] of [
+      ['warrior.fury.deathWish.beforeExecuteSec', 'warrior.fury.deathWish.alignToEnd'],
+      ['warrior.fury.recklessness.beforeExecuteSec', 'warrior.fury.recklessness.enabled'],
+    ]) {
+      expect(rows(fury).get(id)?.inactive, id).toBe(false)
+      expect(rows(fury, { [parent]: false }).get(id)?.inactive, id).toBe(true)
+      expect(rows(fury, { 'warrior.fury.execute.enabled': false }).get(id)?.inactive, id).toBe(true)
+    }
   })
 
   it('puts the number settings behind Advanced and keeps switches and choices in view', () => {

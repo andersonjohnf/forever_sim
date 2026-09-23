@@ -649,6 +649,8 @@ describe('Fury rotation options (warrior.md §5.1, §5.2)', () => {
         const parent = FURY_OPTIONS.find((o) => o.id === option.dependsOn)
         expect(parent?.kind, `${option.id} depends on a toggle`).toBe('toggle')
       }
+      if (option.kind === 'number' && option.alsoDependsOn !== undefined)
+        expect(FURY_OPTIONS.find((o) => o.id === option.alsoDependsOn)?.kind, `${option.id} also depends on a toggle`).toBe('toggle')
       if (option.kind === 'toggle') {
         if (option.requiresBuff) expect(BUFFS_BY_ID.get(option.requiresBuff)?.category, option.id).toBe('consumable')
         if (option.maintainsBuff) expect(BUFFS_BY_ID.has(option.maintainsBuff), option.id).toBe(true)
@@ -667,32 +669,35 @@ describe('Fury rotation options (warrior.md §5.1, §5.2)', () => {
       'warrior.fury.trinkets.enabled': true,
       'warrior.fury.cooldowns.syncWithDeathWish': true,
       'warrior.fury.ragePotion.enabled': true,
-      'warrior.fury.ragePotion.maxRage': 55,
+      'warrior.fury.ragePotion.maxRage': 0,
       'warrior.fury.jujuFlurry.enabled': true,
     })
     // The racial's sync covers trinkets now; a saved setup keeps its value under the new id.
     expect(FURY_RENAMED_OPTIONS).toEqual({ 'warrior.fury.racial.syncWithDeathWish': 'warrior.fury.cooldowns.syncWithDeathWish' })
   })
 
-  it('uses the §5.2 defaults: Execute on, Bloodthirst over Execute from 2220 AP, Heroic Strike at 42, Hamstring at 60', () => {
+  it('uses the §5.2 defaults, the best rotation found (D23, M2.5b): the Overpower dance up to 40 rage, Heroic Strike from 40 with its cancel and in the phase, no Hamstring', () => {
     const defaults = Object.fromEntries(FURY_OPTIONS.map((o) => [o.id, o.default]))
     expect(defaults).toMatchObject({
       'warrior.fury.execute.enabled': true,
       'warrior.fury.execute.minExtraRage': 0,
       'warrior.fury.execute.btOverExecuteAp': 2220,
       'warrior.fury.execute.whirlwindInExecute': false,
-      'warrior.fury.execute.heroicStrikeInExecute': false,
+      'warrior.fury.execute.heroicStrikeInExecute': true,
       'warrior.fury.bloodthirst.enabled': true,
       'warrior.fury.whirlwind.enabled': true,
       'warrior.fury.whirlwind.reserve': 0,
-      'warrior.fury.whirlwind.btCdMinSec': 1.5,
+      'warrior.fury.whirlwind.btCdMinSec': 0.5,
+      'warrior.fury.overpower.enabled': true,
+      'warrior.fury.overpower.maxRage': 40,
       'warrior.fury.heroicStrike.enabled': true,
-      'warrior.fury.heroicStrike.minRage': 42,
-      'warrior.fury.heroicStrike.unqueue': false,
+      'warrior.fury.heroicStrike.minRage': 40,
+      'warrior.fury.heroicStrike.unqueue': true,
       'warrior.fury.heroicStrike.unqueueBelow': 20,
-      'warrior.fury.hamstring.enabled': true,
+      'warrior.fury.hamstring.enabled': false,
       'warrior.fury.hamstring.minRage': 60,
       'warrior.fury.hamstring.onlyWhenFlurryDown': false,
+      'warrior.fury.slam.enabled': false,
     })
   })
 
@@ -703,8 +708,10 @@ describe('Fury rotation options (warrior.md §5.1, §5.2)', () => {
       'warrior.fury.deathWish.alignToEnd': true,
       'warrior.fury.racial.enabled': true,
       'warrior.fury.cooldowns.syncWithDeathWish': true,
+      'warrior.fury.deathWish.beforeExecuteSec': 3,
       'warrior.fury.recklessness.enabled': true,
-      'warrior.fury.recklessness.lastSec': 15,
+      'warrior.fury.recklessness.beforeExecuteSec': 1.5,
+      'warrior.fury.recklessness.lastSec': 16,
       'warrior.fury.bloodrage.enabled': true,
       'warrior.fury.bloodrage.maxRage': 110,
       'warrior.fury.berserkerRage.enabled': true,
@@ -753,41 +760,50 @@ describe('furyRotation', () => {
   const notExec = { code: COND.executePhase, a: 0, b: 0 }
   const noExecute = { ...NO_CD, 'warrior.fury.execute.enabled': false }
 
-  it('builds rows 6–9, 11 and 12 in priority order with the default conditions', () => {
+  it('builds rows 6–11 in priority order with the default conditions (M2.5b): the Overpower dance, Heroic Strike in both phases, no Hamstring', () => {
     const { abilities, rotation } = furyRotation(NO_CD, withBt, noAura)
-    expect(abilities.map((a) => a.id)).toEqual(['bloodthirst', 'execute', 'whirlwind', 'heroicStrike', 'hamstring'])
-    expect(rotation.map((e) => e.ability)).toEqual([0, 1, 0, 2, 3, 4])
+    expect(abilities.map((a) => a.id)).toEqual(['bloodthirst', 'execute', 'whirlwind', 'overpower', 'heroicStrike'])
+    expect(rotation.map((e) => e.ability)).toEqual([0, 1, 0, 2, 3, 3, 3, 4])
+    const upTo40 = { code: COND.maxRage, a: 400, b: 0 }
     expect(rotation.map((e) => e.conditions)).toEqual([
       [inExec, { code: COND.apAtLeast, a: 2220, b: 0 }], // 6: Bloodthirst in the execute phase
       [{ code: COND.minRage, a: 150, b: 0 }], // 7: Execute
       [notExec], // 8: Bloodthirst
-      [notExec, { code: COND.minRage, a: 250, b: 0 }, { code: COND.cooldownAtLeast, a: 0, b: 1500 }], // 9: Whirlwind
-      [notExec, { code: COND.minRage, a: 420, b: 0 }], // 11: Heroic Strike
-      [notExec, { code: COND.minRage, a: 600, b: 0 }, { code: COND.gcdSafe, a: 0b101, b: 1500 }], // 12: Hamstring
+      [notExec, { code: COND.minRage, a: 250, b: 0 }, { code: COND.cooldownAtLeast, a: 0, b: 500 }], // 9: Whirlwind
+      // 10: the Overpower dance at rage ≤ 40, GCD-safe as Berserker Rage is in each phase (row 13).
+      [notExec, { code: COND.gcdSafe, a: 0b101, b: 1500 }, upTo40],
+      [inExec, { code: COND.apAtLeast, a: 2220, b: 0 }, { code: COND.gcdSafe, a: 0b1, b: 1500 }, upTo40],
+      [inExec, { code: COND.apBelow, a: 2220, b: 0 }, upTo40],
+      [{ code: COND.minRage, a: 400, b: 0 }], // 11: Heroic Strike, in both phases
     ])
-    expect(rotation[4].unqueueBelowTenths).toBe(0)
+    expect(rotation.slice(4, 7).map((e) => e.danceTo)).toEqual([STANCE.battle, STANCE.battle, STANCE.battle])
+    // Cancelled below 20 rage before its swing.
+    expect(rotation[7].unqueueBelowTenths).toBe(200)
   })
 
-  it('without Execute, keeps the M2.1 list with no phase conditions', () => {
+  it('without Execute, builds one list with no phase conditions', () => {
     const { abilities, rotation } = furyRotation(noExecute, withBt, noAura)
-    expect(abilities.map((a) => a.id)).toEqual(['bloodthirst', 'whirlwind', 'heroicStrike', 'hamstring'])
+    expect(abilities.map((a) => a.id)).toEqual(['bloodthirst', 'whirlwind', 'overpower', 'heroicStrike'])
     expect(rotation.map((e) => e.ability)).toEqual([0, 1, 2, 3])
     expect(rotation[0].conditions).toEqual([])
     expect(rotation[1].conditions).toEqual([
       { code: COND.minRage, a: 250, b: 0 },
-      { code: COND.cooldownAtLeast, a: 0, b: 1500 },
+      { code: COND.cooldownAtLeast, a: 0, b: 500 },
     ])
-    expect(rotation[2].conditions).toEqual([{ code: COND.minRage, a: 420, b: 0 }])
-    expect(rotation[3].conditions).toEqual([
-      { code: COND.minRage, a: 600, b: 0 },
+    expect(rotation[2].conditions).toEqual([
       { code: COND.gcdSafe, a: 0b11, b: 1500 },
+      { code: COND.maxRage, a: 400, b: 0 },
     ])
+    expect(rotation[3].conditions).toEqual([{ code: COND.minRage, a: 400, b: 0 }])
   })
 
   it('applies the settings: reserve, thresholds, unqueue and the Flurry condition', () => {
+    // With Hamstring on and the Overpower dance off (the defaults before M2.5b), so the list is rows 8, 9, 11, 12.
     const { rotation } = furyRotation(
       {
         ...noExecute,
+        'warrior.fury.overpower.enabled': false,
+        'warrior.fury.hamstring.enabled': true,
         'warrior.fury.whirlwind.reserve': 10,
         'warrior.fury.whirlwind.btCdMinSec': 2,
         'warrior.fury.heroicStrike.minRage': 55,
@@ -805,6 +821,9 @@ describe('furyRotation', () => {
     expect(rotation[2].conditions).toEqual([{ code: COND.minRage, a: 550, b: 0 }])
     expect(rotation[2].unqueueBelowTenths).toBe(250)
     expect(rotation[3].conditions).toContainEqual({ code: COND.auraDown, a: 4, b: 0 })
+    expect(rotation[3].conditions).toContainEqual({ code: COND.minRage, a: 600, b: 0 })
+    // Without its cancel, a queued Heroic Strike stays queued.
+    expect(furyRotation({ ...noExecute, 'warrior.fury.heroicStrike.unqueue': false }, withBt, noAura).rotation[3].unqueueBelowTenths).toBe(0)
   })
 
   it('applies the execute settings: extra rage, the Bloodthirst AP, and the talented Execute cost', () => {
@@ -818,17 +837,20 @@ describe('furyRotation', () => {
     expect(rotation[1].conditions).toEqual([{ code: COND.minRage, a: 300, b: 0 }])
   })
 
-  it('keeps Heroic Strike in the execute phase if asked', () => {
-    const { rotation, abilities } = furyRotation({ 'warrior.fury.execute.heroicStrikeInExecute': true }, withBt, noAura)
-    const hs = abilities.findIndex((a) => a.id === 'heroicStrike')
-    expect(rotation.find((e) => e.ability === hs)!.conditions).toEqual([{ code: COND.minRage, a: 420, b: 0 }])
+  it('keeps Heroic Strike in the execute phase by default (M2.5b), and stops it there with heroicStrikeInExecute off', () => {
+    const hsLine = (values: Record<string, boolean>) => {
+      const { rotation, abilities } = furyRotation(values, withBt, noAura)
+      return rotation.find((e) => e.ability === abilities.findIndex((a) => a.id === 'heroicStrike'))!.conditions
+    }
+    expect(hsLine({})).toEqual([{ code: COND.minRage, a: 400, b: 0 }])
+    expect(hsLine({ 'warrior.fury.execute.heroicStrikeInExecute': false })).toEqual([notExec, { code: COND.minRage, a: 400, b: 0 }])
   })
 
   it('keeps Whirlwind in the execute phase if asked, waiting on Bloodthirst only while it’s used there', () => {
     const { rotation, abilities } = furyRotation({ ...NO_CD, 'warrior.fury.execute.whirlwindInExecute': true }, withBt, noAura)
     const ww = abilities.findIndex((a) => a.id === 'whirlwind')
     const minRage = { code: COND.minRage, a: 250, b: 0 }
-    const btWait = { code: COND.cooldownAtLeast, a: 0, b: 1500 }
+    const btWait = { code: COND.cooldownAtLeast, a: 0, b: 500 }
     expect(rotation.filter((e) => e.ability === ww).map((e) => e.conditions)).toEqual([
       [notExec, minRage, btWait],
       [inExec, { code: COND.apAtLeast, a: 2220, b: 0 }, minRage, btWait],
@@ -840,16 +862,17 @@ describe('furyRotation', () => {
   })
 
   it('leaves out disabled abilities, and Bloodthirst without the talent', () => {
-    const noTalent = furyRotation(noExecute, new Map(), noAura)
-    expect(noTalent.abilities.map((a) => a.id)).toEqual(['whirlwind', 'heroicStrike', 'hamstring'])
-    // Whirlwind then has no Bloodthirst condition, and Hamstring is GCD-safe for Whirlwind only.
+    const noTalent = furyRotation({ ...noExecute, 'warrior.fury.hamstring.enabled': true }, new Map(), noAura)
+    expect(noTalent.abilities.map((a) => a.id)).toEqual(['whirlwind', 'overpower', 'heroicStrike', 'hamstring'])
+    // Whirlwind then has no Bloodthirst condition, and the Overpower dance and Hamstring are GCD-safe for Whirlwind only.
     expect(noTalent.rotation[0].conditions).toEqual([{ code: COND.minRage, a: 250, b: 0 }])
-    expect(noTalent.rotation[2].conditions).toContainEqual({ code: COND.gcdSafe, a: 0b1, b: 1500 })
+    expect(noTalent.rotation[1].conditions).toContainEqual({ code: COND.gcdSafe, a: 0b1, b: 1500 })
+    expect(noTalent.rotation[3].conditions).toContainEqual({ code: COND.gcdSafe, a: 0b1, b: 1500 })
     // Execute doesn't need the Bloodthirst talent.
-    expect(furyRotation(NO_CD, new Map(), noAura).abilities.map((a) => a.id)).toEqual(['execute', 'whirlwind', 'heroicStrike', 'hamstring'])
+    expect(furyRotation(NO_CD, new Map(), noAura).abilities.map((a) => a.id)).toEqual(['execute', 'whirlwind', 'overpower', 'heroicStrike'])
 
     const onlyHs = furyRotation(
-      { ...noExecute, 'warrior.fury.bloodthirst.enabled': false, 'warrior.fury.whirlwind.enabled': false, 'warrior.fury.hamstring.enabled': false },
+      { ...noExecute, 'warrior.fury.bloodthirst.enabled': false, 'warrior.fury.whirlwind.enabled': false, 'warrior.fury.overpower.enabled': false },
       withBt,
       noAura,
     )
@@ -870,25 +893,34 @@ describe('furyRotation: the cooldowns (warrior.md §5.2 rows 2–5 and 13)', () 
   const at = (r: Rot, id: string) => r.abilities.findIndex((a) => a.id === id)
   const timeLeftAtMost = (ms: number) => ({ code: COND.timeLeftAtMost, a: ms, b: 0 })
   const timeLeftAtLeast = (ms: number) => ({ code: COND.timeLeftAtLeast, a: ms, b: 0 })
+  const executeWithin = (ms: number) => ({ code: COND.executeWithin, a: ms, b: 0 })
 
   it('puts rows 1–5 before the execute phase’s lines and row 13 after them, in §5.2 order', () => {
     const r = furyRotation({}, talents, noAura, { race: 'horde-orc' })
     expect(ids(r)).toEqual([
       'battleShout', // 1
-      ...['deathWish', 'deathWish'], // 2: not the final use, or the final one aligned to the end
+      ...['deathWish', 'deathWish', 'deathWish'], // 2: not the final use, or the final one with 30 s left or before the phase
       ...['bloodFury', 'bloodFury', 'bloodFury'], // 3: synced with Death Wish
-      'recklessness', // 4
+      ...['recklessness', 'recklessness'], // 4: before the execute phase, or by the clock
       'bloodrage', // 5
-      ...['bloodthirst', 'execute', 'bloodthirst', 'whirlwind', 'heroicStrike', 'hamstring'], // 6–12
+      ...['bloodthirst', 'execute', 'bloodthirst', 'whirlwind'], // 6–9
+      ...['overpower', 'overpower', 'overpower'], // 10: the dance, outside the phase and in it above and below btOverExecuteAp
+      'heroicStrike', // 11
       ...['berserkerRage', 'berserkerRage', 'berserkerRage'], // 13: outside the phase, and in it above and below btOverExecuteAp
     ])
     // Off-GCD casts: Bloodrage and the racial; the rest (Battle Shout too) use the GCD (warrior.md §2.2).
     expect(r.abilities.filter((a) => a.gcdMs === 0).map((a) => a.id).sort()).toEqual(['bloodFury', 'bloodrage', 'heroicStrike'])
   })
 
-  it('row 2: Death Wish on cooldown, the final use held to the last 30 s; one plain line without alignToEnd; none without the talent', () => {
+  it('row 2: Death Wish on cooldown, the final use 3 s before the execute phase or with 30 s left; one plain line without alignToEnd; none without the talent', () => {
     const r = furyRotation({}, talents, noAura)
-    expect(linesOf(r, 'deathWish')).toEqual([[timeLeftAtLeast(180001)], [timeLeftAtMost(30000)]])
+    const final = [[timeLeftAtLeast(180001)], [timeLeftAtMost(30000)]]
+    // The final use is the one no later use could follow: time left ≤ its 3 min cooldown.
+    expect(linesOf(r, 'deathWish')).toEqual([...final, [executeWithin(3000), timeLeftAtMost(180000)]])
+    expect(linesOf(furyRotation({ 'warrior.fury.deathWish.beforeExecuteSec': 10 }, talents, noAura), 'deathWish')[2][0]).toEqual(executeWithin(10000))
+    // Without the execute phase, or with Execute off, only the clock.
+    expect(linesOf(furyRotation({}, talents, noAura, { executePhase: false }), 'deathWish')).toEqual(final)
+    expect(linesOf(furyRotation({ 'warrior.fury.execute.enabled': false }, talents, noAura), 'deathWish')).toEqual(final)
     expect(linesOf(furyRotation({ 'warrior.fury.deathWish.alignToEnd': false }, talents, noAura), 'deathWish')).toEqual([[]])
     expect(ids(furyRotation({}, new Map([['Bloodthirst', 1]]), noAura))).not.toContain('deathWish')
     expect(ids(furyRotation({ 'warrior.fury.deathWish.enabled': false }, talents, noAura))).not.toContain('deathWish')
@@ -900,7 +932,9 @@ describe('furyRotation: the cooldowns (warrior.md §5.2 rows 2–5 and 13)', () 
     expect(linesOf(r, 'berserking')).toEqual([
       [{ code: COND.abilityAuraUp, a: dw, b: 0 }], // while Death Wish is up
       [{ code: COND.cooldownAtLeast, a: dw, b: 180000 }], // Death Wish's cooldown outlasts the racial's
-      [timeLeftAtMost(180000), timeLeftAtLeast(30000 + 180000)], // the held final Death Wish is that far off
+      // The held final Death Wish is that far off, counted from 30 s left even though it comes 3 s
+      // before the execute phase when that's first: holding the racial for that too measured worse.
+      [timeLeftAtMost(180000), timeLeftAtLeast(30000 + 180000)],
     ])
     const plain = [[]]
     expect(linesOf(furyRotation({ 'warrior.fury.cooldowns.syncWithDeathWish': false }, talents, noAura, { race: 'horde-troll' }), 'berserking')).toEqual(plain)
@@ -913,9 +947,14 @@ describe('furyRotation: the cooldowns (warrior.md §5.2 rows 2–5 and 13)', () 
     expect(ids(furyRotation({ 'warrior.fury.racial.enabled': false }, talents, noAura, { race: 'horde-orc' }))).not.toContain('bloodFury')
   })
 
-  it('rows 4 and 5: Recklessness at ≤ lastSec left, Bloodrage at rage ≤ maxRage', () => {
+  it('rows 4 and 5: Recklessness 1.5 s before the execute phase or at ≤ lastSec left, Bloodrage at rage ≤ maxRage', () => {
     const r = furyRotation({ 'warrior.fury.recklessness.lastSec': 40, 'warrior.fury.bloodrage.maxRage': 90 }, talents, noAura)
-    expect(linesOf(r, 'recklessness')).toEqual([[timeLeftAtMost(40000)]])
+    expect(linesOf(r, 'recklessness')).toEqual([[executeWithin(1500)], [timeLeftAtMost(40000)]])
+    expect(linesOf(furyRotation({}, talents, noAura), 'recklessness')).toEqual([[executeWithin(1500)], [timeLeftAtMost(16000)]])
+    expect(linesOf(furyRotation({ 'warrior.fury.recklessness.beforeExecuteSec': 5 }, talents, noAura), 'recklessness')[0]).toEqual([executeWithin(5000)])
+    // Without the execute phase, or with Execute off, only the clock.
+    expect(linesOf(furyRotation({}, talents, noAura, { executePhase: false }), 'recklessness')).toEqual([[timeLeftAtMost(16000)]])
+    expect(linesOf(furyRotation({ 'warrior.fury.execute.enabled': false }, talents, noAura), 'recklessness')).toEqual([[timeLeftAtMost(16000)]])
     expect(linesOf(r, 'bloodrage')).toEqual([[{ code: COND.maxRage, a: 900, b: 0 }]])
     expect(linesOf(furyRotation({}, talents, noAura), 'bloodrage')).toEqual([[{ code: COND.maxRage, a: 1100, b: 0 }]])
     const off = furyRotation({ 'warrior.fury.recklessness.enabled': false, 'warrior.fury.bloodrage.enabled': false }, talents, noAura)
@@ -995,7 +1034,12 @@ describe('furyRotation: Battle Shout, the pre-pull, trinkets and consumables (wa
   it('row 3: on-use trinkets synced with Death Wish like the racial, on cooldown without it', () => {
     const r = furyRotation({}, talents, noAura, { race: 'horde-orc', items: [analyzer] })
     const dw = at(r, 'deathWish')
-    expect(ids(r).slice(0, 9)).toEqual(['battleShout', 'deathWish', 'deathWish', 'bloodFury', 'bloodFury', 'bloodFury', 'weaknessAnalyzer', 'weaknessAnalyzer', 'weaknessAnalyzer'])
+    expect(ids(r).slice(0, 10)).toEqual([
+      'battleShout',
+      ...['deathWish', 'deathWish', 'deathWish'],
+      ...['bloodFury', 'bloodFury', 'bloodFury'],
+      ...['weaknessAnalyzer', 'weaknessAnalyzer', 'weaknessAnalyzer'],
+    ])
     expect(linesOf(r, 'weaknessAnalyzer')).toEqual([
       [{ code: COND.abilityAuraUp, a: dw, b: 0 }],
       [{ code: COND.cooldownAtLeast, a: dw, b: 90000 }],
@@ -1010,14 +1054,37 @@ describe('furyRotation: Battle Shout, the pre-pull, trinkets and consumables (wa
     expect(r.abilities[at(r, 'weaknessAnalyzer')].gcdMs).toBe(0)
   })
 
-  it('row 16: the potion once, from the execute phase (or in the last 20 s without one), at rage ≤ 55; only when selected', () => {
+  it('row 16: the potion once: in the execute phase at rage ≤ maxRage, or in its last 2 s at ≤ 55; without one, with Recklessness in the last 20 s; only when selected', () => {
     const consumables = [MIGHTY_RAGE_POTION]
-    const r = furyRotation({}, talents, noAura, { consumables })
+    // With Boundless Rage 3/3, the default build's 130 cap.
+    const cap130 = new Map([...talents, ['Boundless Rage', 3]])
+    const r = furyRotation({}, cap130, noAura, { consumables })
     const potion = r.abilities[at(r, 'mightyRagePotion')]
     expect(potion).toMatchObject({ usesPerFight: 1, gcdMs: 0, rageTenths: 450, rageSpreadTenths: 300, cooldownMs: 120000 })
-    expect(linesOf(r, 'mightyRagePotion')).toEqual([[{ code: COND.executePhase, a: 1, b: 0 }, { code: COND.maxRage, a: 550, b: 0 }]])
-    const noPhase = furyRotation({ 'warrior.fury.ragePotion.maxRage': 40 }, talents, noAura, { consumables, executePhase: false })
-    expect(linesOf(noPhase, 'mightyRagePotion')).toEqual([[{ code: COND.timeLeftAtMost, a: 20000, b: 0 }, { code: COND.maxRage, a: 400, b: 0 }]])
+    const inExec = { code: COND.executePhase, a: 1, b: 0 }
+    const upTo = (tenths: number) => ({ code: COND.maxRage, a: tenths, b: 0 })
+    const last = (ms: number) => ({ code: COND.timeLeftAtMost, a: ms, b: 0 })
+    // By default at 0 rage: once an Execute has emptied the bar; or, not drunk by the phase's last 2 s,
+    // at up to the build's cap minus 75 (55 at 130).
+    expect(linesOf(r, 'mightyRagePotion')).toEqual([
+      [inExec, upTo(0)],
+      [inExec, last(2000), upTo(550)],
+    ])
+    expect(linesOf(furyRotation({ 'warrior.fury.ragePotion.maxRage': 20 }, cap130, noAura, { consumables }), 'mightyRagePotion')[0]).toEqual([inExec, upTo(200)])
+    // Without the phase, or with Execute off: in the last 20 s at up to 55, whatever maxRage says,
+    // once Recklessness has been used; without Recklessness, in the last 20 s.
+    const afterReck = (rot: Rot) => [last(20000), { code: COND.cooldownAtLeast, a: at(rot, 'recklessness'), b: 1 }, upTo(550)]
+    for (const rot of [
+      furyRotation({ 'warrior.fury.ragePotion.maxRage': 40 }, cap130, noAura, { consumables, executePhase: false }),
+      furyRotation({ 'warrior.fury.execute.enabled': false }, cap130, noAura, { consumables }),
+    ])
+      expect(linesOf(rot, 'mightyRagePotion')).toEqual([afterReck(rot)])
+    const noReck = furyRotation({ 'warrior.fury.recklessness.enabled': false }, cap130, noAura, { consumables, executePhase: false })
+    expect(linesOf(noReck, 'mightyRagePotion')).toEqual([[last(20000), upTo(550)]])
+    // The limit follows the build's cap: 100 + 10 per Boundless Rage rank, minus 75.
+    const twoRanks = furyRotation({}, new Map([...talents, ['Boundless Rage', 2]]), noAura, { consumables })
+    expect(linesOf(twoRanks, 'mightyRagePotion')[1]).toEqual([inExec, last(2000), upTo(450)])
+    expect(linesOf(furyRotation({}, talents, noAura, { consumables }), 'mightyRagePotion')[1]).toEqual([inExec, last(2000), upTo(250)])
     expect(ids(furyRotation({}, talents, noAura))).not.toContain('mightyRagePotion')
     expect(ids(furyRotation({ 'warrior.fury.ragePotion.enabled': false }, talents, noAura, { consumables }))).not.toContain('mightyRagePotion')
     // Known either way, so it isn't listed as "not simulated".
@@ -1047,20 +1114,23 @@ describe('furyRotation: the Overpower dance and Slam (warrior.md §5.2 rows 10 a
   const inExec = { code: COND.executePhase, a: 1, b: 0 }
   const notExec = { code: COND.executePhase, a: 0, b: 0 }
 
-  it('are off by default, so the default list, its abilities and its procs don’t change', () => {
+  it('the Overpower dance is on by default (M2.5b) and Slam off; without the dance, no dance lines or procs', () => {
     const defaults = Object.fromEntries(FURY_OPTIONS.map((o) => [o.id, o.default]))
-    expect(defaults).toMatchObject({ 'warrior.fury.overpower.enabled': false, 'warrior.fury.overpower.maxRage': 25, 'warrior.fury.slam.enabled': false })
+    expect(defaults).toMatchObject({ 'warrior.fury.overpower.enabled': true, 'warrior.fury.overpower.maxRage': 40, 'warrior.fury.slam.enabled': false })
     const r = furyRotation({}, talents, noAura)
-    expect(r.abilities.map((a) => a.id)).not.toContain('overpower')
+    expect(r.abilities.map((a) => a.id)).toContain('overpower')
     expect(r.abilities.map((a) => a.id)).not.toContain('slam')
-    expect(r.procs).toEqual([])
-    expect(r.rotation.every((e) => e.danceTo === undefined)).toBe(true)
+    expect(r.procs).toEqual(overpowerWindowProcs(talents))
+    const off = furyRotation({ 'warrior.fury.overpower.enabled': false }, talents, noAura)
+    expect(off.abilities.map((a) => a.id)).not.toContain('overpower')
+    expect(off.procs).toEqual([])
+    expect(off.rotation.every((e) => e.danceTo === undefined)).toBe(true)
   })
 
   it('row 10: an Overpower dance to Battle Stance after Whirlwind, GCD-safe for Bloodthirst and Whirlwind at rage ≤ maxRage, in both phases as row 13', () => {
-    const r = furyRotation({ 'warrior.fury.overpower.enabled': true }, talents, noAura)
+    const r = furyRotation({}, talents, noAura)
     const [bt, ww, op] = [at(r, 'bloodthirst'), at(r, 'whirlwind'), at(r, 'overpower')]
-    const limit = { code: COND.maxRage, a: 250, b: 0 }
+    const limit = { code: COND.maxRage, a: 400, b: 0 }
     expect(ids(r).slice(ids(r).lastIndexOf('whirlwind') + 1, ids(r).indexOf('heroicStrike'))).toEqual(['overpower', 'overpower', 'overpower'])
     const lines = linesOf(r, 'overpower')
     expect(lines.map((e) => e.danceTo)).toEqual([STANCE.battle, STANCE.battle, STANCE.battle])

@@ -191,7 +191,7 @@ Era's) start in view rather than under the tabs.
   itself, so it moves focus to the first setting, the next control after it.
   - The intro says what the defaults are, per spec: "tuned for the default setup" once a slice
     has tuned them ([D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
-    Arms), "the common priority" until then (Fury).
+    Arms since M2.5a, Fury since M2.5b), "the common priority" for a spec until then.
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
     **Consumables**, in that order. Under each heading the settings keep the spec's priority

@@ -184,11 +184,16 @@ spec's default rotation is the best one we've found.
 
   Also search the other Arms options. The findings are in the known gaps and warrior.md §5.3.
 - [ ] **M2.5b Fury:** search Fury's rotation options the same way (warrior.md §5.2).
+  Done on its branch, awaiting review: +42.9 DPS (+6.4%, 670.6 → 713.5) over the old defaults
+  on a fresh seed, and ahead at every fight length and execute phase measured (+4.1% to +8.5%).
+  The Overpower dance is on (up to 40 rage), Hamstring off, Heroic Strike from 40 with its cancel
+  and in the execute phase, and Death Wish, Recklessness and the potion follow the phase
+  ([warrior.md §5.2](classes/warrior.md#tuning-the-defaults-m25b)).
 - Each slice records its method and numbers in warrior.md, re-snapshots the goldens, and goes
   through the review gate.
 - The Rotation tab's intro says what each spec's defaults are: "tuned for the default setup"
-  once a slice has tuned them (Arms), "the common priority" until then (Fury, until M2.5b)
-  (`rotationDefaultsNote` in `src/sim/classes/rotation.ts`).
+  once a slice has tuned them (Arms since M2.5a, Fury since M2.5b), "the common priority" until
+  then (`rotationDefaultsNote` in `src/sim/classes/rotation.ts`).
 
 ## Parallel tracks: the tank specs first, and every remaining spec (user priority, 2026-09-23)
 
@@ -347,7 +352,14 @@ slice is worked:
   fight length and execute phase measured, but one: **still open,** in a 30 s fight with no
   execute phase the old defaults are 2.4% ahead, from their Heroic Strike. Without a phase,
   Heroic Strike from 90 beats off at every length (+0.1% to +2.2%); taking it needs a switch's
-  default to follow the Fight tab's execute phase.
+  default to follow the Fight tab's execute phase. 30 s fights with a 5–8% phase trail them by
+  0.6–1.6% too, from Mortal Strike in a phase of one or two GCDs (M2.5a's V1).
+- **Fury tuning, small losses and a lead left open** (M2.5b, warrior.md §5.2). Heroic Strike's
+  cancel costs 0.1–0.4% in 30–60 s fights without an execute phase, and Whirlwind at 0.5 s and
+  Recklessness's 16 s clock under 0.1% in 30 s fights with a 10–20% phase; the whole package
+  still wins by 4–8.5% there. Pooling rage for the phase (no Heroic Strike in the 20 s before it)
+  measured +0.11% in the default setup; it needs a setting of its own and short-fight checks, so
+  it's left for later.
 - **Gnome Eureka! isn't simulated** (warrior Q18); the result says so.
 - **The paladin's mana plan** (`paladinManaPlan`) has no test pinning how mp5 and Reverence
   feed the plan; the engine side is tested (CV3 in

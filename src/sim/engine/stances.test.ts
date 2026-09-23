@@ -547,7 +547,7 @@ describe('stance effects while swapped (warrior.md §2.1, §7)', () => {
 })
 
 describe('the Fury rows 10 and 15 in the engine (warrior.md §5.2)', () => {
-  const furyRun = (rotation: Record<string, boolean>, seed = 12345, fights = 200) => {
+  const furyRun = (rotation: Record<string, boolean | number>, seed = 12345, fights = 200) => {
     const d = defaultConfig('warrior-fury')
     const { plan } = buildPlan({ ...d, rotation, run: { ...d.run, seed } })
     const sim = new Sim(plan)
@@ -570,14 +570,23 @@ describe('the Fury rows 10 and 15 in the engine (warrior.md §5.2)', () => {
     return { plan, sim, toBattle, opTimes, inBattleUses }
   }
 
-  it('row 10: every Overpower is a dance to Battle Stance at rage ≤ 25, so the swap in loses nothing', () => {
-    const { plan, sim, toBattle, opTimes, inBattleUses } = furyRun({ 'warrior.fury.overpower.enabled': true })
+  it('row 10: every Overpower is a dance to Battle Stance at rage ≤ maxRage; at 25, what a swap keeps, the swap in loses nothing', () => {
+    // By default (M2.5b) up to 40 rage: a swap in above 25 keeps 25.
+    const { plan, sim, toBattle, opTimes, inBattleUses } = furyRun({})
     const row = plan.abilities.find((a) => a.id === 'overpower')!.source
     expect(counter(sim, row, FIELD.casts)).toBeGreaterThan(200)
     expect(counter(sim, row, FIELD.damage)).toBeGreaterThan(0)
     expect(inBattleUses).toBe(opTimes.length)
     expect(toBattle.length).toBe(opTimes.length)
     for (const s of toBattle) {
+      expect(s.before).toBeLessThanOrEqual(400)
+      expect(s.after).toBe(Math.min(s.before, 250))
+    }
+    expect(toBattle.some((s) => s.before > 250)).toBe(true)
+    // At 25 the swap in loses nothing.
+    const at25 = furyRun({ 'warrior.fury.overpower.maxRage': 25 })
+    expect(at25.toBattle.length).toBe(at25.opTimes.length)
+    for (const s of at25.toBattle) {
       expect(s.before).toBeLessThanOrEqual(250)
       expect(s.after).toBe(s.before)
     }

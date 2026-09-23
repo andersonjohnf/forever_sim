@@ -203,8 +203,17 @@ export const battleShoutOptions = (ids: SharedIds, refreshBelowSec = 3): Rotatio
   },
 ]
 
-/** Death Wish and its alignment with the fight's end (Fury row 2; Arms row 16, with the talent). */
-export const deathWishOptions = (ids: SharedIds, enabled: Partial<Extract<RotationOption, { kind: 'toggle' }>> = {}): RotationOption[] => [
+/**
+ * Death Wish and its alignment with the fight's end (Fury row 2; Arms row 16, with the talent).
+ * `enabled` overrides the switch's fields, `alignHelp` is the alignment's help, and `after` are the
+ * spec's own settings after it (Fury: before the execute phase, §5.2 row 2).
+ */
+export const deathWishOptions = (
+  ids: SharedIds,
+  enabled: Partial<Extract<RotationOption, { kind: 'toggle' }>> = {},
+  alignHelp = 'When no later Death Wish would fit in the fight, hold the last one until 30 s are left. Earlier ones go on cooldown.',
+  ...after: RotationOption[]
+): RotationOption[] => [
   {
     kind: 'toggle',
     id: ids.dwEnabled,
@@ -219,10 +228,11 @@ export const deathWishOptions = (ids: SharedIds, enabled: Partial<Extract<Rotati
     id: ids.dwAlign,
     group: 'Cooldowns and buffs',
     label: 'Save the last Death Wish for the end',
-    help: 'When no later Death Wish would fit in the fight, hold the last one until 30 s are left. Earlier ones go on cooldown.',
+    help: alignHelp,
     default: true,
     dependsOn: ids.dwEnabled,
   },
+  ...after,
 ]
 
 /** The racial cooldown and on-use trinkets, synced with Death Wish (Fury row 3, Arms row 3). */
@@ -304,12 +314,14 @@ export const bloodrageOptions = (ids: SharedIds): RotationOption[] => [
 
 /**
  * The Heroic Strike queue (Fury row 11, Arms row 13), from `minRage`. `enabled` is the toggle's
- * default and help: Fury's is on; Arms' is off (warrior.md §5.3 notes).
+ * default and help: Fury's is on; Arms' is off (warrior.md §5.3 notes). `unqueue` is the cancel
+ * switch's default: Fury's is on (§5.2), Arms' off.
  */
 export const heroicStrikeOptions = (
   ids: SharedIds,
   minRage: number,
   enabled: { default: boolean; help: string } = { default: true, help: 'Queue Heroic Strike on the next main-hand swing when rage is high.' },
+  unqueue = false,
 ): RotationOption[] => [
   {
     kind: 'toggle',
@@ -326,7 +338,7 @@ export const heroicStrikeOptions = (
     group: 'Fillers',
     label: 'Cancel Heroic Strike on low rage',
     help: 'Unqueue Heroic Strike if rage drops below a threshold before the swing.',
-    default: false,
+    default: unqueue,
     dependsOn: ids.hsEnabled,
   },
   rageOption(ids.hsUnqueueBelow, 'Cancel Heroic Strike below', 'Unqueue it when rage falls below this.', 20, ids.hsUnqueue, 'Fillers'),
@@ -469,17 +481,19 @@ export function battleShoutLine(b: RotationBuilder, v: Reader, ids: SharedIds, c
 /**
  * Death Wish on cooldown (Fury row 2), only with the talent. With alignToEnd, a use is the final
  * one when no further use could start before the fight ends (time left ≤ cooldown); the final use
- * waits until the time left is at most its duration, so it lasts to the end (§5.2 notes). Two
- * lines, either of which may fire: not the final use, or the final one at ≤ 30 s left. Returns
- * Death Wish's index (−1 without it) and whether it's aligned.
+ * waits until the time left is at most its duration, so it lasts to the end (§5.2 notes). Lines
+ * that any one of may fire: not the final use, or the final one at ≤ 30 s left, or (Fury, with
+ * `beforeExecuteMs`) `beforeExecuteMs` before the execute phase starts, whichever comes first.
+ * Returns Death Wish's index (−1 without it) and whether it's aligned.
  */
-export function deathWishLines(b: RotationBuilder, v: Reader, ids: SharedIds): { dw: number; align: boolean } {
+export function deathWishLines(b: RotationBuilder, v: Reader, ids: SharedIds, beforeExecuteMs?: number): { dw: number; align: boolean } {
   let dw = -1
   const align = v.on(ids.dwAlign)
   if (b.talents.has('Death Wish') && v.on(ids.dwEnabled)) {
     if (align) {
       dw = b.add(DEATH_WISH, [timeLeftAtLeast(DEATH_WISH.cooldownMs + 1)])
       b.add(DEATH_WISH, [timeLeftAtMost(DEATH_WISH.aura!.durationMs)])
+      if (beforeExecuteMs !== undefined) b.add(DEATH_WISH, [executeWithin(beforeExecuteMs), timeLeftAtMost(DEATH_WISH.cooldownMs)])
     } else {
       dw = b.add(DEATH_WISH, [])
     }
@@ -491,7 +505,9 @@ export function deathWishLines(b: RotationBuilder, v: Reader, ids: SharedIds): {
  * The racial cooldown and on-use trinkets (off the GCD; Fury row 3). Synced with Death Wish: while
  * Death Wish is up, or whenever Death Wish's next use is at least the cooldown away, so waiting
  * would cost a use: its cooldown left, or, for a final use held by alignToEnd, the time until 30 s
- * are left (§5.2 notes). Without Death Wish (or the sync), on cooldown.
+ * are left. That's so even when Fury's final Death Wish comes earlier, before the execute phase:
+ * holding the racial for it as well measured worse (§5.2 notes). Without Death Wish (or the sync),
+ * on cooldown.
  */
 export function cooldownLines(b: RotationBuilder, v: Reader, ids: SharedIds, ctx: RotationContext, { dw, align }: { dw: number; align: boolean }): void {
   const sync = dw >= 0 && v.on(ids.cdSync)
@@ -543,13 +559,12 @@ export function heroicStrikeLine(b: RotationBuilder, v: Reader, ids: SharedIds, 
  * the pull. Each only when it's selected in Buffs.
  *
  * `potion` says how the spec times the potion (warrior.md §5.2 row 16, §5.3 row 17):
- * - `inPhase`: it's drunk in the execute phase, from its start at rage ≤ maxRage, so its 45–75 rage
- *   fits under the cap (Fury: whenever there's a phase; Arms: only while its Execute is on too).
- *   With `lastChanceMs` (Arms), also in the phase's last that-many ms at rage ≤ `fallbackMaxRage`,
- *   if it hasn't been drunk by then.
- * - Otherwise it's drunk in the last 20 s at rage ≤ `fallbackMaxRage` (Fury: maxRage's value; Arms:
- *   the cap minus 75), after `swapFirst` if it's given: a dance that stays in its stance (Arms
- *   Recklessness, row 4), whose swap keeps at most 25 rage.
+ * - `inPhase` (an execute phase, with the spec's Execute on): it's drunk in the phase at rage ≤
+ *   maxRage, so its 45–75 rage fits under the cap; and in the phase's last `lastChanceMs` at rage ≤
+ *   `fallbackMaxRage` (the build's cap minus 75), if it hasn't been drunk by then.
+ * - Otherwise it's drunk in the last 20 s at rage ≤ `fallbackMaxRage`, and once `after` has been used
+ *   if it's given: Recklessness, whose crits it joins (Fury) or whose swap from Battle Stance would
+ *   cap its rage at 25 (Arms).
  * Its lines share one use a fight: the first whose conditions hold drinks it.
  */
 export function consumableLines(
@@ -557,18 +572,17 @@ export function consumableLines(
   v: Reader,
   ids: SharedIds,
   ctx: RotationContext,
-  potion: { inPhase: boolean; fallbackMaxRage?: number; lastChanceMs?: number; swapFirst?: number } = { inPhase: ctx.executePhase },
+  potion: { inPhase: boolean; fallbackMaxRage: number; lastChanceMs: number; after: number },
 ): void {
   const use = ctx.consumables.find((c) => c.id === RAGE_POTION)
   if (use && v.on(ids.potionEnabled)) {
     const def = { ...onUseAbility(use), usesPerFight: 1 }
-    const limit = v.num(ids.potionMaxRage)
-    const fallback = maxRage(potion.fallbackMaxRage ?? limit)
+    const fallback = maxRage(potion.fallbackMaxRage)
     if (potion.inPhase) {
-      b.add(def, [IN_EXECUTE, maxRage(limit)])
-      if (potion.lastChanceMs) b.add(def, [IN_EXECUTE, timeLeftAtMost(potion.lastChanceMs), fallback])
+      b.add(def, [IN_EXECUTE, maxRage(v.num(ids.potionMaxRage))])
+      b.add(def, [IN_EXECUTE, timeLeftAtMost(potion.lastChanceMs), fallback])
     } else {
-      b.add(def, [timeLeftAtMost(POTION_NO_EXECUTE_LAST_MS), ...usedAlready(potion.swapFirst ?? -1), fallback])
+      b.add(def, [timeLeftAtMost(POTION_NO_EXECUTE_LAST_MS), ...usedAlready(potion.after), fallback])
     }
   }
   const juju = ctx.consumables.find((c) => c.id === JUJU_FLURRY)

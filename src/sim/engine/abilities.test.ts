@@ -33,9 +33,23 @@ const OFF: SimConfig['rotation'] = {
   ...NO_COOLDOWNS,
   'warrior.fury.bloodthirst.enabled': false,
   'warrior.fury.whirlwind.enabled': false,
+  'warrior.fury.overpower.enabled': false,
   'warrior.fury.heroicStrike.enabled': false,
   'warrior.fury.hamstring.enabled': false,
   'warrior.fury.execute.enabled': false,
+}
+/**
+ * The fillers as they were before M2.5b's tuning (warrior.md §5.2): no Overpower dance, Hamstring
+ * from 60, Heroic Strike from 42 without its cancel and out of the execute phase, Whirlwind at 1.5 s
+ * of Bloodthirst's cooldown. The M2.2a tests below check those lines' own behaviour.
+ */
+const M22A_FILLERS: SimConfig['rotation'] = {
+  'warrior.fury.overpower.enabled': false,
+  'warrior.fury.hamstring.enabled': true,
+  'warrior.fury.heroicStrike.minRage': 42,
+  'warrior.fury.heroicStrike.unqueue': false,
+  'warrior.fury.execute.heroicStrikeInExecute': false,
+  'warrior.fury.whirlwind.btCdMinSec': 1.5,
 }
 type Row = 'bloodthirst' | 'whirlwind' | 'heroicStrike' | 'hamstring' | 'execute' | 'deathWish' | 'racial' | 'recklessness' | 'bloodrage' | 'berserkerRage'
 const only = (ability: Row, extra: SimConfig['rotation'] = {}) => ({
@@ -191,20 +205,24 @@ describe('rotation sanity (default Fury warrior)', () => {
   const bt = abilityIndex(plan, 'bloodthirst')
   const ww = abilityIndex(plan, 'whirlwind')
   const hs = abilityIndex(plan, 'heroicStrike')
-  const ham = abilityIndex(plan, 'hamstring')
+  const op = abilityIndex(plan, 'overpower')
+  const ex = abilityIndex(plan, 'execute')
   const sim = new Sim(plan)
   const casts: [number, number, number][] = []
   sim.castTrace = (a, t, rage) => casts.push([a, t, rage])
   const perFight: [number, number, number][][] = []
+  const executeAt: number[] = []
   for (let i = 0; i < 40; i++) {
     casts.length = 0
     sim.runFight(i)
     perFight.push([...casts])
+    executeAt.push(sim.executeAtMs)
   }
 
-  it('uses every ability', () => {
+  it('uses every ability, and no Hamstring (off since M2.5b)', () => {
     const used = new Set(perFight.flat().map(([a]) => a))
-    expect([bt, ww, hs, ham].every((a) => used.has(a))).toBe(true)
+    expect([bt, ww, hs, op, ex].every((a) => used.has(a))).toBe(true)
+    expect(abilityIndex(plan, 'hamstring')).toBe(-1)
   })
 
   it('never uses an ability without the rage for it, off cooldown, or during the GCD', () => {
@@ -225,8 +243,8 @@ describe('rotation sanity (default Fury warrior)', () => {
     }
   })
 
-  it('follows the §5.2 conditions: Whirlwind waits on Bloodthirst, Hamstring is GCD-safe and above 60 rage', () => {
-    for (const fight of perFight) {
+  it('follows the §5.2 conditions: Whirlwind waits on Bloodthirst, the Overpower dance is GCD-safe outside the execute phase', () => {
+    perFight.forEach((fight, i) => {
       const readyAt = new Map<number, number>([
         [bt, 0],
         [ww, 0],
@@ -234,16 +252,19 @@ describe('rotation sanity (default Fury warrior)', () => {
       for (const [a, t, rage] of fight) {
         if (a === ww) {
           expect(rage).toBeGreaterThanOrEqual(250)
-          expect(readyAt.get(bt)! - t).toBeGreaterThanOrEqual(1500)
+          expect(readyAt.get(bt)! - t).toBeGreaterThanOrEqual(500)
         }
-        if (a === ham) {
-          expect(rage).toBeGreaterThanOrEqual(600)
-          expect(readyAt.get(bt)! - t).toBeGreaterThanOrEqual(1500)
-          expect(readyAt.get(ww)! - t).toBeGreaterThanOrEqual(1500)
+        if (a === op) {
+          // Cast after the swap in, which keeps at most 25 of the 40 it may dance at.
+          expect(rage).toBeLessThanOrEqual(250)
+          if (t < executeAt[i]) {
+            expect(readyAt.get(bt)! - t).toBeGreaterThanOrEqual(1500)
+            expect(readyAt.get(ww)! - t).toBeGreaterThanOrEqual(1500)
+          }
         }
         if (a === bt || a === ww) readyAt.set(a, t + plan.abilities[a].cooldownMs)
       }
-    }
+    })
   })
 })
 
@@ -507,9 +528,17 @@ describe('Execute (warrior.md §3.1 "Execute details", W10)', () => {
 })
 
 describe('the execute phase (encounter.md §3, warrior.md §5.2 rows 6 and 7)', () => {
-  /** The M2.2a lines only: the cooldowns (rows 2–5, 13) apply in both phases and are tested below. */
+  /**
+   * The M2.2a lines only, with their fillers as they were (M22A_FILLERS): the cooldowns (rows 2–5,
+   * 13) apply in both phases and are tested below, and so do the Overpower dance and, by default
+   * since M2.5b, Heroic Strike (warrior.md §5.2 notes).
+   */
   function fights(rotation: SimConfig['rotation'] = {}) {
-    const plan = buildPlan({ ...defaultConfig('warrior-fury'), rotation: { ...NO_COOLDOWNS, ...rotation }, run: { mode: 'fixed', iterations: 100, seed: 5 } }).plan
+    const plan = buildPlan({
+      ...defaultConfig('warrior-fury'),
+      rotation: { ...NO_COOLDOWNS, ...M22A_FILLERS, ...rotation },
+      run: { mode: 'fixed', iterations: 100, seed: 5 },
+    }).plan
     const sim = new Sim(plan)
     const out: { executeAt: number; end: number; casts: [string, number][] }[] = []
     let casts: [string, number][] = []
@@ -684,8 +713,8 @@ describe('Bloodrage (warrior.md §2.3, §5.2 row 5, W19)', () => {
 
     // The default Fury warrior with a low maxRage (30): every Bloodrage at ≤ 30 rage, either as it
     // comes off cooldown or right after a cast that spent rage at the same moment (only spending
-    // lowers rage).
-    const config = { ...defaultConfig('warrior-fury'), rotation: { 'warrior.fury.bloodrage.maxRage': 30 } }
+    // lowers rage, without the Overpower dance, whose swap back lowers it too).
+    const config = { ...defaultConfig('warrior-fury'), rotation: { 'warrior.fury.bloodrage.maxRage': 30, 'warrior.fury.overpower.enabled': false } }
     const plan = buildPlan(config).plan
     let late = 0
     for (const { casts } of castsPerFight(plan, 40)) {
@@ -761,18 +790,23 @@ describe('Death Wish (warrior.md §2.6, §5.2 row 2 and notes)', () => {
 })
 
 describe('Recklessness (warrior.md §2.6, §5.2 row 4)', () => {
-  it('is used exactly once a fight, once lastSec seconds are left, as soon as the GCD allows', () => {
+  it('is used exactly once a fight, 1.5 s before the execute phase or once lastSec seconds are left, whichever is first, as soon as the GCD allows', () => {
     const plan = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 100, seed: 8 } }).plan
-    for (const { end, casts } of castsPerFight(plan, 60)) {
+    for (const { end, executeAt, casts } of castsPerFight(plan, 60)) {
       const times = timesOf(casts, 'recklessness')
       expect(times).toHaveLength(1)
       const [t] = times
-      expect(t).toBeGreaterThanOrEqual(end - 15000)
-      // It waits for a GCD already running, and for Battle Shout's refresh (row 1) and Death Wish
-      // (row 2) if they're due as well.
-      const first = [...timesOf(casts, 'battleShout'), ...timesOf(casts, 'deathWish')].filter((x) => x >= end - 15000 && x < t)
-      expect(t - (end - 15000)).toBeLessThanOrEqual(1500 * (1 + first.length))
+      const from = Math.min(executeAt - 1500, end - 16000)
+      expect(t).toBeGreaterThanOrEqual(from)
+      // It waits for a GCD already running (an Overpower dance's too, which is back in Berserker
+      // Stance before its GCD ends), and for Battle Shout's refresh (row 1) and Death Wish (row 2) if
+      // they're due as well.
+      const first = [...timesOf(casts, 'battleShout'), ...timesOf(casts, 'deathWish')].filter((x) => x >= from && x < t)
+      expect(t - from).toBeLessThanOrEqual(1500 * (1 + first.length))
     }
+    // Without an execute phase, by the clock alone: 16 s left.
+    const noPhase = abilityPlan(only('recklessness'), 100000, undefined, 'alliance-human', { fight: { ...defaultConfig('warrior-fury').fight, executePct: 0, durationVariationPct: 0 } })
+    expect(timesOf(castsPerFight(noPhase, 1)[0].casts, 'recklessness')).toEqual([84000])
     const early = abilityPlan(only('recklessness', { 'warrior.fury.recklessness.lastSec': 40 }), 100000)
     expect(timesOf(castsPerFight(early, 1)[0].casts, 'recklessness')).toEqual([60000])
   })
@@ -1017,9 +1051,22 @@ describe('Mighty Rage Potion (warrior.md §5.2 row 16, buffs doc §3.5)', () => 
     expect(ids(potionPlan(60000, { 'warrior.fury.ragePotion.enabled': false }))).not.toContain('mightyRagePotion')
   })
 
-  it('is drunk once a fight, from the start of the execute phase, at rage ≤ 55', () => {
+  it('is drunk once a fight in the execute phase: by default once an Execute has emptied the bar', () => {
     // A 150 s execute phase, longer than the potion's 2 min cooldown; Execute keeps rage low.
     const plan = potionPlan(300000, { 'warrior.fury.execute.enabled': true }, { executePct: 50 })
+    for (const { executeAt, casts } of castsPerFight(plan, 20)) {
+      const potions = casts.filter(([id]) => id === 'mightyRagePotion')
+      expect(potions).toHaveLength(1)
+      const [[, t, rage]] = potions
+      expect(t).toBeGreaterThanOrEqual(executeAt)
+      expect(rage).toBe(0)
+      // Right after the Execute that emptied it.
+      expect(casts.some(([id, when]) => id === 'execute' && when === t)).toBe(true)
+    }
+  })
+
+  it('at maxRage 55 (the default before M2.5b), from the start of the execute phase', () => {
+    const plan = potionPlan(300000, { 'warrior.fury.execute.enabled': true, 'warrior.fury.ragePotion.maxRage': 55 }, { executePct: 50 })
     let atStart = 0
     for (const { executeAt, casts } of castsPerFight(plan, 20)) {
       const potions = casts.filter(([id]) => id === 'mightyRagePotion')
@@ -1033,9 +1080,20 @@ describe('Mighty Rage Potion (warrior.md §5.2 row 16, buffs doc §3.5)', () => 
       else expect(casts.some(([id, when]) => id === 'execute' && when === t)).toBe(true)
     }
     expect(atStart).toBeGreaterThan(10)
-    // It waits for rage ≤ maxRage: at 0, never while white rage keeps flowing.
-    const waits = potionPlan(60000, { 'warrior.fury.ragePotion.maxRage': 0 })
-    expect(castsPerFight(waits, 5).flatMap((f) => timesOf(f.casts, 'mightyRagePotion'))).toEqual([])
+  })
+
+  it('in the phase, waits for rage ≤ maxRage; if the bar never empties, its last chance is the phase’s last 2 s at ≤ 55', () => {
+    // Execute on but never used (it waits for 116 rage over its cost, past the 130 cap), and 0.5 rage
+    // a second keeps the bar above 0: only the last chance, at 58 s of a 60 s fight (57 ticks, 28.5 rage).
+    const plan = potionPlan(60000, { 'warrior.fury.execute.enabled': true, 'warrior.fury.execute.minExtraRage': 116 })
+    for (const w of plan.weapons) w!.rageMult = 0
+    plan.periodicRage = [{ periodMs: 1000, tenths: 5, source: -1 }]
+    const [{ executeAt, casts }] = castsPerFight(plan, 1)
+    expect(executeAt).toBe(48000)
+    expect(casts.filter(([id]) => id === 'mightyRagePotion').map(([, t, rage]) => [t, rage])).toEqual([[58000, 285]])
+    // With the bar above 55 then too, it isn't drunk at all.
+    plan.periodicRage = [{ periodMs: 1000, tenths: 10, source: -1 }]
+    expect(timesOf(castsPerFight(plan, 1)[0].casts, 'mightyRagePotion')).toEqual([])
   })
 
   it('gives 45–75 rage, a whole number of tenths drawn from the proc stream, and +60 Strength for 20 s', () => {
@@ -1059,8 +1117,16 @@ describe('Mighty Rage Potion (warrior.md §5.2 row 16, buffs doc §3.5)', () => 
     expect(plan.auras.find((a) => a.id === 'mightyRage')).toMatchObject({ str: 60, durationMs: 20000 })
 
     // +60 Strength is +120 attack power: Bloodthirst deals 0.35 × (2000 + 120) + 48 once it's drunk.
-    // (maxRage 130: white rage alone keeps the bar above 55 here.)
-    const bt = potionPlan(60000, { 'warrior.fury.bloodthirst.enabled': true, 'warrior.fury.ragePotion.maxRage': 130 })
+    // (Execute on, so it's drunk in the phase, at maxRage 130 as soon as the phase starts: white rage
+    // alone keeps the bar above 55 here. Execute itself never has the 131 rage it waits for, and
+    // Bloodthirst keeps going in the phase at any AP.)
+    const bt = potionPlan(60000, {
+      'warrior.fury.bloodthirst.enabled': true,
+      'warrior.fury.execute.enabled': true,
+      'warrior.fury.execute.minExtraRage': 116,
+      'warrior.fury.execute.btOverExecuteAp': 0,
+      'warrior.fury.ragePotion.maxRage': 130,
+    })
     alwaysLandNoCrit(bt)
     setAttackPower(bt, 2000)
     const btSim = new Sim(bt)
@@ -1080,10 +1146,20 @@ describe('Mighty Rage Potion (warrior.md §5.2 row 16, buffs doc §3.5)', () => 
     for (const [t, d] of hits) expect(d).toBeCloseTo(0.35 * (t > potionAt ? 2120 : 2000) + 48, 9)
   })
 
-  it('without an execute phase, is drunk in the last 20 s', () => {
-    const plan = potionPlan(60000, {}, { executePct: 0 })
-    for (const w of plan.weapons) w!.rageMult = 0
-    expect(timesOf(castsPerFight(plan, 1)[0].casts, 'mightyRagePotion')).toEqual([40000])
+  it('without an execute phase, or with Execute off, is drunk in the last 20 s; after Recklessness if it’s in the rotation', () => {
+    const noPhase = potionPlan(60000, {}, { executePct: 0 })
+    for (const w of noPhase.weapons) w!.rageMult = 0
+    expect(timesOf(castsPerFight(noPhase, 1)[0].casts, 'mightyRagePotion')).toEqual([40000])
+    // Execute off (OFF) with a phase: the same.
+    const noExecute = potionPlan(60000)
+    for (const w of noExecute.weapons) w!.rageMult = 0
+    expect(timesOf(castsPerFight(noExecute, 1)[0].casts, 'mightyRagePotion')).toEqual([40000])
+    // With Recklessness (16 s left, 44 s here), in the same moment as it, so its rage joins the crits.
+    const withReck = potionPlan(60000, { 'warrior.fury.recklessness.enabled': true }, { executePct: 0 })
+    for (const w of withReck.weapons) w!.rageMult = 0
+    const [{ casts }] = castsPerFight(withReck, 1)
+    expect(timesOf(casts, 'recklessness')).toEqual([44000])
+    expect(timesOf(casts, 'mightyRagePotion')).toEqual([44000])
   })
 })
 
@@ -1220,7 +1296,7 @@ describe('without a main-hand weapon (warrior.md §7)', () => {
       const { plan, assumptions } = buildPlan({ ...d, gear, run: { ...d.run, seed: 5 } })
       expect(assumptions.map((a) => a.id)).toContain('noWeapon')
       // The rotation still has its attacks, which the engine refuses.
-      expect(plan.abilities.map((a) => a.id)).toEqual(expect.arrayContaining(['bloodthirst', 'whirlwind', 'heroicStrike', 'hamstring', 'execute']))
+      expect(plan.abilities.map((a) => a.id)).toEqual(expect.arrayContaining(['bloodthirst', 'whirlwind', 'overpower', 'heroicStrike', 'execute']))
       const used = new Set<string>()
       let damage = 0
       const sim = new Sim(plan)

@@ -397,7 +397,9 @@ describe('talents, racials and stances', () => {
 
   it('adds the Overpower window’s dodge opener with the Overpower dance, and drops Bloodthrill without Rend (warrior.md §2.8)', () => {
     const d = defaultConfig('warrior-fury')
-    expect(buildPlan(d).plan.procs.map((p) => p.id)).not.toContain('overpowerDodge')
+    // The dance is on by default since M2.5b; without it, no opener.
+    expect(buildPlan(d).plan.procs.map((p) => p.id)).toContain('overpowerDodge')
+    expect(buildPlan({ ...d, rotation: { 'warrior.fury.overpower.enabled': false } }).plan.procs.map((p) => p.id)).not.toContain('overpowerDodge')
     // The Fury default with Bloodthrill 1/5 instead of a point of Improved Heroic Strike's.
     const ranks = decodeTalentCode(TALENT_DATA.warrior, d.talents)
     const withBloodthrill = encodeTalentCode(TALENT_DATA.warrior, { ...ranks, 'warrior-arms-bloodthrill': 1, 'warrior-arms-improved-heroic-strike': 2 })
@@ -648,9 +650,11 @@ describe('assumptions', () => {
     expect(ids({ ...arms, rotation: { 'warrior.arms.rend.enabled': false } })).not.toContain('bloodthrill')
     const berserker = ids({ ...arms, rotation: { 'warrior.arms.baseStance': 'berserker' } })
     for (const id of ['overpowerWindow', 'bloodthrill', 'rendTickCrits', 'rendOnHit']) expect(berserker).not.toContain(id)
-    // Fury's default uses none of them.
+    // Fury's default uses only the Overpower window, for its Overpower dance (on since M2.5b).
     const fury = ids(defaultConfig('warrior-fury'))
-    for (const id of ['overpowerWindow', 'bloodthrill', 'slamCast', 'spearingStrike', 'rendTickCrits', 'rendOnHit']) expect(fury).not.toContain(id)
+    expect(fury).toContain('overpowerWindow')
+    for (const id of ['bloodthrill', 'slamCast', 'spearingStrike', 'rendTickCrits', 'rendOnHit']) expect(fury).not.toContain(id)
+    expect(ids({ ...defaultConfig('warrior-fury'), rotation: { 'warrior.fury.overpower.enabled': false } })).not.toContain('overpowerWindow')
   })
 
   it('lists Heroic Strike’s swing rage for Arms even with Heroic Strike off, since its default rests on it (warrior.md §5.3 notes)', () => {

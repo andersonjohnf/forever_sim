@@ -3,9 +3,10 @@ import { expect, test } from './fixtures.ts'
 
 // docs/ux.md#persistence-and-sharing: a toast never hides the focused control. A waiting toast
 // clears every control in a sheet or drawer, not just on the page (PV1); only a waiting toast
-// grows the bottom padding, so nothing moves when a 10 s toast goes (PV5); focus a toast hands
-// back is scrolled into view (PV6); focus a toast grows over scrolls clear of it (PV7); and
-// neither scrolls anything after a click (QV4) or when the mouse spreads the toasts out (QV5).
+// grows the bottom padding, so nothing moves when a 10 s toast goes (PV5), and the padding
+// follows a resize (QV6); focus a toast hands back is scrolled into view (PV6); focus a toast
+// grows over scrolls clear of it (PV7); and neither scrolls anything after a click (QV4) or when
+// the mouse spreads the toasts out (QV5).
 
 const PHONE = { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }
 const DESKTOP = { viewport: { width: 1280, height: 900 } }
@@ -345,6 +346,37 @@ for (const [name, device] of [
       await expect(seed).toBeFocused()
       await frames(page)
       expect(await page.evaluate(() => window.scrollY)).toBe(before)
+    })
+  })
+}
+
+// The toast is 356 px wide on a desktop and the window's width less 2rem on a phone, so a resize
+// re-wraps it; and the phone's bar, which it sits on, comes or goes.
+for (const [from, to] of [
+  [420, 1280],
+  [1280, 420],
+] as const) {
+  test.describe(`a waiting toast, the window resized from ${from} to ${to} px (QV6)`, () => {
+    test.use({ viewport: { width: from, height: 900 } })
+
+    test('the room at the end of the page follows it', async ({ page }) => {
+      await page.goto('./')
+      const toast = await waitingToast(page)
+      const height = await toast.evaluate((el: HTMLElement) => el.offsetHeight)
+      await page.setViewportSize({ width: to, height: 900 })
+      await expect.poll(() => toast.evaluate((el: HTMLElement) => el.offsetHeight)).not.toBe(height)
+      await settled(page)
+      await frames(page, 3)
+
+      // The page's bottom padding is how far up the toast reaches, with 0.5rem to spare.
+      const room = () =>
+        toast.evaluate((el) => Number.parseFloat(getComputedStyle(document.querySelector('main')!).paddingBottom) - (window.innerHeight - el.getBoundingClientRect().top))
+      expect(await room()).toBeGreaterThanOrEqual(7)
+      expect(await room()).toBeLessThanOrEqual(9)
+      // So the footer's link, the page's last control, can scroll clear of it.
+      await page.getByRole('link', { name: 'wago.tools' }).focus()
+      await expect.poll(() => covered(page)).toBe(0)
+      await expect(toast).toBeVisible()
     })
   })
 }

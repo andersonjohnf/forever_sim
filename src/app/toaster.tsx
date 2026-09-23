@@ -15,7 +15,8 @@ const TOAST_GAP = 14
 /**
  * Keeps how far up from the bottom of the window the toasts reach, so keyboard focus scrolls clear
  * of them (WCAG 2.4.11): a toast raised from the keyboard waits until it's dismissed, and focus
- * moves on under it meanwhile. Measured again as toasts come, go and spread out.
+ * moves on under it meanwhile. Measured again as toasts come, go and spread out, and as the
+ * window is resized.
  *
  * - --toast-clearance, while any toast is up, sets the bottom scroll padding of the page and of
  *   each sheet (src/index.css). While a toast is still sliding in, it counts where it will stop, so
@@ -61,11 +62,16 @@ function useToastClearance() {
         const clearance = Math.max(0, now, settled)
         root.style.setProperty('--toast-clearance', `${clearance}px`)
 
-        // A toast behind the front one is cut to its height, so this reads the waiting toast's own
-        // height, which sonner keeps in --initial-height.
+        // The waiting toast's own height: at the front of the stack, as it is now. A toast behind
+        // the front one is cut to that one's height, so there it's sonner's --initial-height,
+        // measured when the toast came, and stale after a resize until it's at the front.
         const waiting = toasts.filter((toast) => toast.classList.contains(WAITING_TOAST))
         if (waiting.length > 0) {
-          const height = Math.max(...waiting.map((toast) => Number.parseFloat(toast.style.getPropertyValue('--initial-height')) || toast.offsetHeight))
+          const height = Math.max(
+            ...waiting.map((toast) =>
+              toast.dataset.front === 'true' ? toast.offsetHeight : Number.parseFloat(toast.style.getPropertyValue('--initial-height')) || toast.offsetHeight,
+            ),
+          )
           root.style.setProperty('--toast-wait-clearance', `${Math.max(0, Math.ceil(window.innerHeight - edge.bottom + height))}px`)
         } else {
           root.style.removeProperty('--toast-wait-clearance')
@@ -90,12 +96,19 @@ function useToastClearance() {
       attributeFilter: ['data-mounted', 'data-removed', 'data-visible', 'data-expanded', 'data-front'],
     })
     container.addEventListener('transitionend', measure)
-    window.addEventListener('resize', measure)
+    // After a resize, a frame later: the toasts sit on the phone's bar, which comes, goes or
+    // changes height with the window, and App's ResizeObserver moves them onto it only once the
+    // frame's layout is done.
+    const resized = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(measure)
+    }
+    window.addEventListener('resize', resized)
     return () => {
       cancelAnimationFrame(frame)
       observer.disconnect()
       container.removeEventListener('transitionend', measure)
-      window.removeEventListener('resize', measure)
+      window.removeEventListener('resize', resized)
       root.style.removeProperty('--toast-clearance')
       root.style.removeProperty('--toast-wait-clearance')
     }

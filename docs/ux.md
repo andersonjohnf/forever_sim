@@ -42,10 +42,11 @@ and the **spec switcher**, which shows the class icon and spec in the class colo
 ([Setups](#setups)), About & data, Theme (system, light, dark) and Reset setup. Menu items are
 44 px tall.
 
-**About & data** opens a sheet that starts with what the sim covers, worded from the specs it
-offers ("A DPS simulator for Fury and Arms Warriors in WoW Forever"), so it grows as specs ship
-(principle 8). The page's meta and Open Graph descriptions in `index.html` say the same and are
-updated with each spec; an e2e test compares them.
+**About & data** opens a sheet that starts with what the app is, without naming specs ("A DPS
+simulator for WoW Forever", and "A DPS and TPS simulator" once a tank spec ships), then the specs
+so far on their own line ("Specs so far: Fury and Arms Warriors"), which grows as specs ship
+(principle 8). The page's meta and Open Graph descriptions in `index.html` say the first sentence
+and change only when the first tank spec ships; an e2e test compares them.
 
 **Section tabs** are 44 px tall. When they scroll sideways, a fade marks each edge with more
 tabs past it (none at an end), and the chosen tab scrolls into view clear of the fades, as does

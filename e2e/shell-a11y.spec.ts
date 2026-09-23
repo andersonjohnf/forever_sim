@@ -120,7 +120,7 @@ test.describe('About', () => {
     await expect(page.getByRole('button', { name: 'More' })).toBeFocused()
   })
 
-  test('describes the specs the sim offers, as the page’s description does', async ({ page }) => {
+  test('says what the app is, as the page’s description does, and lists the specs so far', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('button', { name: /^Spec: / }).click()
     const specs = (await page.getByRole('menuitem').allInnerTexts()).map((text) => text.split('\n')[0].trim())
@@ -128,12 +128,18 @@ test.describe('About', () => {
     const meta = await page.locator('meta[name="description"]').getAttribute('content')
     const og = await page.locator('meta[property="og:description"]').getAttribute('content')
     await openAbout(page)
-    const about = await page.getByRole('dialog').locator('[data-slot="sheet-description"]').innerText()
-    // The About sheet's copy follows the specs that ship; index.html has to be kept in step.
+    const sheet = page.getByRole('dialog')
+    const about = await sheet.locator('[data-slot="sheet-description"]').innerText()
+    // The description says what the app is, never which specs, so it holds as specs ship;
+    // index.html has to be kept in step (its "DPS and TPS" once a tank spec ships).
     expect(meta).toBe(about)
     expect(og).toBe(about)
-    for (const spec of specs) expect(about).toContain(spec)
-    expect(about).not.toMatch(/coming soon/i)
+    expect(about).toMatch(/^A DPS (and TPS )?simulator for WoW Forever\./)
+    for (const spec of specs) expect(about).not.toContain(spec)
+    // The specs so far are listed on their own line.
+    const coverage = await sheet.getByText(/^Specs so far: /).innerText()
+    for (const spec of specs) expect(coverage).toContain(spec)
+    expect(about + coverage).not.toMatch(/coming soon/i)
   })
 })
 

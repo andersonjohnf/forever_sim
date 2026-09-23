@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import type { useSheetFocus } from './sheet-focus'
-import { coverageSentence } from './specs'
+import { appSentence, coverageSentence } from './specs'
 
 const REPO = 'https://github.com/andersonjohnf/forever_sim'
 
@@ -49,8 +49,9 @@ export function AboutSheet({
           <SheetTitle ref={titleRef} tabIndex={-1} className="outline-none">
             About Forever Sim
           </SheetTitle>
-          {/* The specs it covers grow as they ship (docs/ux.md principle 8). */}
-          <SheetDescription>{coverageSentence()} Everything runs in your browser.</SheetDescription>
+          {/* What it is, then the specs it covers so far, which grow as they ship (docs/ux.md principle 8). */}
+          <SheetDescription>{appSentence()} Everything runs in your browser.</SheetDescription>
+          <p className="text-sm text-muted-foreground">{coverageSentence()}</p>
         </SheetHeader>
         <SheetClose asChild>
           <Button variant="ghost" size="icon" className="absolute top-2 right-2 size-11">

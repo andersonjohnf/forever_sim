@@ -1,14 +1,15 @@
 # Forever Sim
 
-A DPS simulator for **Fury and Arms Warriors in WoW Forever**, built for our guild. Pick
+A DPS and TPS simulator for **WoW Forever**, built for our guild. Pick
 your spec, talents and gear, tune buffs and your rotation, and simulate. It works on your phone
 as well as your desktop.
 
 It runs entirely in your browser (no server) and is hosted on GitHub Pages:
 **https://andersonjohnf.github.io/forever_sim/**
 
-> **Status:** the sim covers Fury and Arms Warriors. Warrior Protection (TPS), Feral Druid and
-> Paladin follow, one milestone at a time: see [docs/milestones.md](docs/milestones.md).
+> **Status:** Fury and Arms Warriors so far. The tank specs (Warrior Protection, Feral Bear and
+> Paladin Protection), Feral Cat and Retribution are being built in parallel: see
+> [docs/milestones.md](docs/milestones.md).
 
 ## What it will do
 

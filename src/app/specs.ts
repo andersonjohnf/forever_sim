@@ -17,20 +17,23 @@ export const CLASS_TEXT: Record<ClassId, string> = {
 const list = (words: string[]) => (words.length < 3 ? words.join(' and ') : `${words.slice(0, -1).join(', ')} and ${words.at(-1)}`)
 
 /**
- * What the sim covers, from the specs it offers (docs/ux.md principle 8), so the wording grows
- * as specs ship: "A DPS simulator for Fury and Arms Warriors in WoW Forever."
+ * What the app is, without naming specs, so it reads right as specs ship (docs/ux.md principle
+ * 8): "A DPS simulator for WoW Forever.", and "A DPS and TPS simulator…" once a tank spec ships.
  */
+export function appSentence(): string {
+  const metrics = visibleSpecs().some((s) => s.role === 'tank') ? 'DPS and TPS' : 'DPS'
+  return `A ${metrics} simulator for WoW Forever.`
+}
+
+/** The specs it offers so far, from the switcher: "Specs so far: Fury and Arms Warriors." */
 export function coverageSentence(): string {
-  const visible = visibleSpecs()
   // Spec names per class, in the switcher's order: { Warrior: ['Fury', 'Arms'] }.
   const byClass = new Map<string, string[]>()
-  for (const spec of visible) {
+  for (const spec of visibleSpecs()) {
     const { className, name } = SPEC_META[spec.id]
     byClass.set(className, [...(byClass.get(className) ?? []), name])
   }
-  const classes = [...byClass].map(([className, names]) => `${list(names)} ${className}s`)
-  const metrics = visible.some((s) => s.role === 'tank') ? 'DPS and TPS' : 'DPS'
-  return `A ${metrics} simulator for ${list(classes)} in WoW Forever.`
+  return `Specs so far: ${list([...byClass].map(([className, names]) => `${list(names)} ${className}s`))}.`
 }
 
 /**

@@ -247,14 +247,12 @@ describe('the bear’s priority list (druid.md §6.3)', () => {
     return { r, ids: r.rotation.map((e) => r.abilities[e.ability].id) }
   }
 
-  it('with the defaults: the off-GCD lines, then the duties, then Mangle, Lacerate, Swipe and the Faerie Fire filler', () => {
-    const { ids } = lines()
-    const onGcd = ids.filter((id) => !['berserk', 'maul', 'enrage'].includes(id))
-    expect(ids[0]).toBe('berserk')
-    expect(ids.indexOf('maul')).toBeLessThan(ids.indexOf('demoralizingRoar'))
-    expect(onGcd.slice(0, 2)).toEqual(['demoralizingRoar', 'faerieFire'])
-    expect(ids.at(-1)).toBe('faerieFire')
-    expect(ids).not.toContain('enrage')
+  it('with the defaults: Berserk and Maul off the GCD, then the duties, Mangle, Lacerate and the Faerie Fire filler; no Swipe', () => {
+    expect(lines().ids).toEqual(['berserk', 'maul', 'demoralizingRoar', 'faerieFire', 'mangle', 'lacerate', 'lacerate', 'faerieFire'])
+    // A raid whose warriors keep the boss bleeding: no Lacerate (tuned, §6.3).
+    expect(lines({}, { othersBleed: true }).ids).toEqual(['berserk', 'maul', 'demoralizingRoar', 'faerieFire', 'mangle', 'faerieFire'])
+    // Swipe, when it's on, comes before the filler.
+    expect(lines({ [BEAR_IDS.swipeEnabled]: true }, { othersBleed: true }).ids.slice(-2)).toEqual(['swipe', 'faerieFire'])
   })
 
   it('Enrage 1.5 s before the pull, and in combat only when set, up to the cap minus its 30 rage', () => {
@@ -309,20 +307,35 @@ describe('the default bear’s plan', () => {
   const plan = buildPlan(defaultConfig('druid-feral-bear')).plan
   const ability = (id: string) => plan.abilities.find((a) => a.id === id)!
 
+  /** The default bear in a raid without warriors, so nothing else keeps the boss bleeding. */
+  const withoutWarriors = (profile: 'forever' | 'classicEra' = 'forever') => {
+    const d = defaultConfig('druid-feral-bear')
+    return buildPlan({ ...d, buffs: { ...d.buffs, raid: d.buffs.raid.filter((c) => c !== 'warrior') }, rules: { profile, unmeasuredRatings: 'apply' } }).plan
+  }
+
+  it('leaves Lacerate out while the raid’s warriors keep the boss bleeding, for Rend and Tear (§6.3, tuned)', () => {
+    expect(plan.fight.othersBleed).toBe(true)
+    expect(plan.abilities.map((a) => a.id)).not.toContain('lacerate')
+    const alone = withoutWarriors()
+    expect(alone.fight.othersBleed).toBe(false)
+    expect(alone.abilities.map((a) => a.id)).toContain('lacerate')
+    // With it off, Lacerate stays in whoever else bleeds the boss.
+    const d = defaultConfig('druid-feral-bear')
+    const always = buildPlan({ ...d, rotation: { [BEAR_IDS.lacerateAlone]: false } }).plan
+    expect(always.abilities.map((a) => a.id)).toContain('lacerate')
+  })
+
   it('Lacerate’s ticks get their own row, a bleed whose applications can’t be avoided and whose ticks may crit in Forever', () => {
-    const row = plan.sources[ability('lacerate').dotSource!]
+    const alone = withoutWarriors()
+    const row = alone.sources[alone.abilities.find((a) => a.id === 'lacerate')!.dotSource!]
     expect(row).toMatchObject({ id: 'lacerateBleed', name: 'Lacerate (bleed)', bleed: { ticksCanCrit: true, avoidable: false } })
-    const classic = buildPlan({ ...defaultConfig('druid-feral-bear'), rules: { profile: 'classicEra', unmeasuredRatings: 'apply' } }).plan
+    const classic = withoutWarriors('classicEra')
     const classicRow = classic.sources[classic.abilities.find((a) => a.id === 'lacerate')!.dotSource!]
     expect(classicRow.bleed?.ticksCanCrit).toBe(false)
   })
 
-  it('Mangle’s cooldown stops under Berserk’s aura; the raid’s warriors keep the boss bleeding for Rend and Tear', () => {
+  it('Mangle’s cooldown stops under Berserk’s aura', () => {
     expect(plan.auras[ability('mangle').noCooldownAura!].id).toBe('berserk')
-    expect(plan.fight.othersBleed).toBe(true)
-    const noWarriors = defaultConfig('druid-feral-bear')
-    const alone = buildPlan({ ...noWarriors, buffs: { ...noWarriors.buffs, raid: noWarriors.buffs.raid.filter((c) => c !== 'warrior') } }).plan
-    expect(alone.fight.othersBleed).toBe(false)
   })
 
   it('its Faerie Fire and Demoralizing Roar are debuffs on the boss, in place of the Buffs tab’s', () => {

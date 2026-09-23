@@ -620,7 +620,15 @@ describe('golden run (fixed config and seed)', () => {
 
   // - B3: the default Feral bear (docs/classes/druid.md §6.3), added with its rotation at the doc's
   //   first priority: Maul, Mangle, Lacerate, Swipe, Faerie Fire and Demoralizing Roar, Berserk,
-  //   Enrage before the pull and the Mighty Rage Potion.
+  //   Enrage before the pull and the Mighty Rage Potion. TPS 613.47, DPS 322.95.
+  // - B3 (decision D23, within D26's duties): the default bear is the best rotation a paired search
+  //   found on TPS (druid.md §6.3 "Tuning the defaults"): Lacerate only when nothing else bleeds the
+  //   boss, so none with the Standard raid's warriors (Rend and Tear applies anyway), and no Swipe;
+  //   Lacerate's refresh moves 3 → 6 s, which changes nothing here. Over 400,000 paired fights on a
+  //   seed the search never used, +30.01 TPS (+4.91%, 611.23 → 641.24) and −7.89 DPS (−2.45%). On this
+  //   seed's 500 fights: the Lacerate and Swipe rows are gone, their rage goes to Maul (25,465 →
+  //   31,847 casts, so 10,731 → 4,815 white swings) and the freed global cooldowns to Faerie Fire
+  //   (12,671 → 14,063 casts). TPS 613.47 → 641.99, DPS 322.95 → 314.15.
   it('keeps the default Feral bear’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('druid-feral-bear'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)

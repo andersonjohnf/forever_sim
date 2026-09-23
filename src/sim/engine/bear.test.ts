@@ -438,10 +438,12 @@ describe('the default bear (druid.md §6.3)', () => {
     expect(ratio('mainHand')).toBeCloseTo(t, 12)
     expect(flat('faerieFire')).toBeCloseTo(108 * t, 9)
     expect(flat('demoralizingRoar')).toBeCloseTo(39 * t, 9)
-    // Energizes: 5 threat a rage, whatever the form (Primal Fury, Natural Reaction).
+    // Energizes: 5 threat a rage, whatever the form (Primal Fury, Natural Reaction), for the rage
+    // gained in whole tenths: 0.5 a tenth, less than 5 when the cap takes some of it.
     for (const id of ['primalFury', 'naturalReaction']) {
       const r = plan.sources.findIndex((s) => s.id === id)
-      expect(counter(sim, r, FIELD.threat) % 5, id).toBe(0)
+      expect(counter(sim, r, FIELD.threat), id).toBeGreaterThan(0)
+      expect((counter(sim, r, FIELD.threat) * 2) % 1, id).toBe(0)
     }
   })
 

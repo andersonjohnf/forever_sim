@@ -1,5 +1,5 @@
 // Rotation tuning: paired comparisons of rotation settings against a baseline, on the real engine
-// (decision D23; docs/classes/warrior.md §5.3 and docs/classes/druid.md §6.2, "Tuning the defaults").
+// (decision D23; docs/classes/warrior.md §5.3 and docs/classes/druid.md §6.2, §6.3, "Tuning the defaults").
 //
 // Every candidate runs the same fights as the baseline: the same config seed and fight indices, so
 // the same fight lengths and random streams (common random numbers). Each fight gives a paired
@@ -24,14 +24,15 @@
 //   node scripts/tune/rotation.mjs --spec druid-feral-cat --sweep ferociousBite.minComboPoints=3:5:1
 //   node scripts/tune/rotation.mjs --spec paladin-retribution --creature undead exorcism.minManaPct=40
 //   node scripts/tune/rotation.mjs --spec paladin-protection --metric tps consecration.minManaPct=50
+//   node scripts/tune/rotation.mjs --spec druid-feral-bear --metric tps --sweep maul.minRage=10:40:5
 //
 // A setting is `id=value`. An id is either a full setting id of the spec, or one without the spec's
 // prefix, which the tool works out from the spec's own setting ids (`warrior.arms.` for Arms, so
 // `heroicStrike.minRage` is `warrior.arms.heroicStrike.minRage`; `warrior.protection.` for
-// Protection, `druid.cat.` for the Feral cat, `paladin.retribution.` for Retribution,
-// `paladin.protection.` for Protection paladins). Values are numbers, true/false, or a choice's
-// value. A candidate's settings are separated by commas. `--base` changes the baseline from the
-// spec's defaults, and each candidate is applied on top of it.
+// Protection, `druid.cat.` for the Feral cat, `druid.bear.` for the Feral bear,
+// `paladin.retribution.` for Retribution, `paladin.protection.` for Protection paladins). Values
+// are numbers, true/false, or a choice's value. A candidate's settings are separated by commas.
+// `--base` changes the baseline from the spec's defaults, and each candidate is applied on top of it.
 //
 // `--against <commit>` runs the baseline on the engine and defaults of another commit (any git
 // ref, bundled from its src/), so a change of semantics can be compared with the rotation it

@@ -52,6 +52,7 @@ export const BEAR_IDS = {
   maulMinRage: `${B}.maul.minRage`,
   mangleEnabled: `${B}.mangle.enabled`,
   lacerateEnabled: `${B}.lacerate.enabled`,
+  lacerateAlone: `${B}.lacerate.onlyWithoutOtherBleeds`,
   lacerateRefresh: `${B}.lacerate.refreshBelowSec`,
   swipeEnabled: `${B}.swipe.enabled`,
   swipeMinRage: `${B}.swipe.minRage`,
@@ -216,11 +217,20 @@ export const BEAR_OPTIONS: RotationOption[] = [
     help: `Build Lacerate to ${LACERATE_MAX_STACKS} stacks on the boss and keep them up: a bleed of 15 every 3 s per stack for 15 s, for 15 rage. Each one also hits for 10% of your weapon damage per stack already there, and restarts the bleed.`,
     default: true,
   },
+  {
+    kind: 'toggle',
+    id: ID.lacerateAlone,
+    group: 'Core abilities',
+    label: 'Lacerate only when nothing else bleeds',
+    help: 'Leave Lacerate out while warriors in the raid (the Buffs tab) keep their Deep Wounds on the boss: Rend and Tear then applies without it, and Maul makes more threat for the rage.',
+    default: true,
+    dependsOn: ID.lacerateEnabled,
+  },
   refreshOption(
     ID.lacerateRefresh,
     'Lacerate again with',
     'At 5 stacks, refresh it when this much of its bleed is left; the tick under way is lost. At 0, once it has run out, when it starts again from 1 stack.',
-    3,
+    6,
     15,
     ID.lacerateEnabled,
     'Core abilities',
@@ -231,7 +241,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     group: 'Fillers',
     label: 'Swipe',
     help: 'Spend spare rage on Swipe: 83 damage, 30% more with Feral Instinct 3/3 and 10% with Savage Fury, for 15 rage with Ferocity 5/5, at 1.75 threat per damage. It hits up to 3 targets; the sim has one.',
-    default: true,
+    default: false,
   },
   rageOption(ID.swipeMinRage, 'Swipe from', 'Use it only at or above this much rage, so Maul keeps the rage it needs.', 60, ID.swipeEnabled, 'Fillers'),
   {
@@ -327,8 +337,9 @@ export function bearRotation(
   // Row 5: Mangle (the talent) whenever it's ready.
   if (talents.has('Mangle') && v.on(ID.mangleEnabled)) b.add(MANGLE, [])
   // Row 6: Lacerate while it has fewer than 5 stacks, or they have ≤ refreshBelowSec left and would
-  // run out before the fight does.
-  if (v.on(ID.lacerateEnabled)) {
+  // run out before the fight does; with onlyWithoutOtherBleeds, not at all while others keep the
+  // boss bleeding (a raid with warriors: Rend and Tear applies without it).
+  if (v.on(ID.lacerateEnabled) && !(v.on(ID.lacerateAlone) && ctx.othersBleed)) {
     const lacerate = b.ability(LACERATE)
     b.add(LACERATE, [stacksBelow(lacerate, LACERATE_MAX_STACKS)])
     b.add(LACERATE, [refresh(lacerate, seconds(v, ID.lacerateRefresh))])

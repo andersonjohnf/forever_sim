@@ -276,7 +276,16 @@ on the same seeds (common random numbers). The 95% confidence interval of the pe
 difference in DPS (TPS for tank specs) has to lie above zero. A search that tries many options
 turns up false wins at 95%, so the winner is run again on a fresh master seed, one the search
 never used, and adopted only if its interval is still above zero. The owning class doc records
-the change, the numbers and the method, and the goldens are re-snapshotted with the explanation. Talent builds and gear stay "what a typical raider runs"
+the change, the numbers and the method, and the goldens are re-snapshotted with the explanation.
+
+A change that doesn't act in the default setup can't clear that bar there: it differs by zero,
+or only by same-millisecond ties. An example is a rule for fights without an execute phase. It's
+adopted when, on a fresh seed, its interval lies above zero in each cell of the robustness grid
+where it acts, and its point estimate loses no more than 0.1% of DPS (TPS for tank specs) in any
+other cell. The grid is 30, 45, 60, 90, 180 and 300 s fights, each with a 0, 10 and 20% execute
+phase. Added 2026-09-23, from the Fury tuning review (FL2, FV2).
+
+Talent builds and gear stay "what a typical raider runs"
 ([doctrine §5](doctrine.md#5-defaults)). This decision is about rotations: choices that belong to the
 encounter or the raid aren't rotation defaults even when they clear the bar. Charge needs you out
 of combat, where a DPS warrior usually walks in after the tank's pull, and your own Battle Shout's
@@ -325,4 +334,3 @@ Block, Thunder Clap and Demoralizing Shout (+9% TPS together), and Shield Slam (
 - **Max TPS is selectable.** Each tank spec also offers a **Max TPS** rotation in the Rotation
   tab. It drops those duties, and D23's search tunes it on TPS alone. Its help says what it drops
   and why the default keeps it.
-

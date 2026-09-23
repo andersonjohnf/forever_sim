@@ -166,12 +166,11 @@ happen at every stable state (D25).
 
 Golden runs: Fury 668.6 DPS, Arms 611.9 DPS, Protection 217.0 TPS.
 
-**Next:** the parallel tracks below (tank core, druid, paladin, Warrior Protection), the M2.5a
-Arms fixes, then M2.5b Fury tuning.
+**Next:** the parallel tracks below (tank core, druid, paladin, Warrior Protection).
 
 **Rotation defaults** follow D23: the best one found becomes the default (M2.5).
 
-## M2.5: Best rotations as defaults 💤
+## M2.5: Best rotations as defaults ✅
 
 Per [D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23), each
 spec's default rotation is the best one we've found.
@@ -183,12 +182,12 @@ spec's default rotation is the best one we've found.
   - Rend refresh at 3 s
 
   Also search the other Arms options. The findings are in the known gaps and warrior.md §5.3.
-- [ ] **M2.5b Fury:** search Fury's rotation options the same way (warrior.md §5.2).
-  Done on its branch, awaiting review: +42.9 DPS (+6.4%, 670.6 → 713.5) over the old defaults
-  on a fresh seed, and ahead at every fight length and execute phase measured (+4.1% to +8.5%).
-  The Overpower dance is on (up to 40 rage), Hamstring off, Heroic Strike from 40 with its cancel
-  and in the execute phase, and Death Wish, Recklessness and the potion follow the phase
-  ([warrior.md §5.2](classes/warrior.md#tuning-the-defaults-m25b)).
+- [x] **M2.5b Fury:** search Fury's rotation options the same way (warrior.md §5.2). Adopted:
+      +6.4% (670.6 → 713.5 DPS), plus a potion rule for short execute phases
+      Ahead at every fight length and execute phase measured. The Overpower dance is on (up to 40
+      rage), Hamstring off, Heroic Strike from 40 with its cancel and in the execute phase, and
+      Death Wish, Recklessness and the potion follow the phase
+      ([warrior.md §5.2](classes/warrior.md#tuning-the-defaults-m25b)).
 - Each slice records its method and numbers in warrior.md, re-snapshots the goldens, and goes
   through the review gate.
 - The Rotation tab's intro says what each spec's defaults are: "tuned for the default setup"
@@ -360,6 +359,13 @@ slice is worked:
   still wins by 5.5–9.6% there. Pooling rage for the phase (no Heroic Strike in the 20 s before it)
   measured +0.11% in the default setup; it needs a setting of its own and short-fight checks, so
   it's left for later.
+- **The Rotation tab's section headings wrap at 390** beside "Advanced · N changed" when several
+  thresholds are changed; readable, nothing clipped (FU12 in
+  [Fury's review](reviews/2026-09-23-fury-rotation.md)).
+- **Fury's Recklessness clock at 17 s** beat 16 s without an execute phase on one seed (+0.09% at
+  180 s, +0.38% at 30 s); it needs D23's full process before it's adopted.
+- **Arms in Berserker Stance doesn't wait for Recklessness before its potion;** the wait is
+  unmeasured for it (warrior.md §6.2, FL4).
 - **Gnome Eureka! isn't simulated** (warrior Q18); the result says so.
 - **The paladin's mana plan** (`paladinManaPlan`) has no test pinning how mp5 and Reverence
   feed the plan; the engine side is tested (CV3 in

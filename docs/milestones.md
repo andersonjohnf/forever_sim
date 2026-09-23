@@ -129,9 +129,13 @@ work is in slices:
     - Export a setup code for the current setup, or a `.json` file of every saved setup
       plus the current one
     - Import a code or share link as the current setup, or a file into the list
-  - [ ] **M2.4h Review of e–g:** the full logic and UX reviews for new work, then a
+  - [ ] **M2.4h Rage from damage taken:** make `10 × damage before armor, block and absorb ÷
+        maximum health` the Forever default, from about 2,000 logged beta hits (research
+        2026-09-23, [rage.md](mechanics/rage.md#rage-from-damage-taken)). Blocks and absorbs
+        don't reduce it, and hits from several attackers each count.
+  - [ ] **M2.4i Review of e–h:** the full logic and UX reviews for new work, then a
         verification pass (D20).
-  - [ ] **M2.4i First deploy:** push when the user asks, and check the Pages deploy.
+  - [ ] **M2.4j First deploy:** push when the user asks, and check the Pages deploy.
 
 ## Session handoff (2026-09-23)
 
@@ -158,8 +162,9 @@ decides; the push waits for "Ready to push: yes" there.
 Golden runs: Fury 673.8 DPS, Arms 610.7 DPS, Protection 217.0 TPS.
 
 **Next:**
-1. **M2.4e–h:** number fields, remove Undo, Setups, then their reviews (D20, D21).
-2. **M2.4i:** push when the user asks, then check the Pages deploy.
+1. **M2.4e–i:** number fields, remove Undo, Setups, rage from damage taken, then their
+   reviews (D20, D21).
+2. **M2.4j:** push when the user asks, then check the Pages deploy.
 3. **M3 Protection**, in a fresh session. Enable the 3 `test.fixme` tests in
    `e2e/tank-results.spec.ts` when Protection ships.
 4. Then M4 Feral Druid, M5 Paladin, M6 Multi-target and M7 Stat boosts, in that order.
@@ -206,6 +211,9 @@ copies of the boss. It comes after the tank specs (user decision, 2026-09-23).
   first 4 enemies ([threat.md](mechanics/threat.md))
 - **UI:** the Fight tab shows its Enemies control. Results sum damage and threat across
   targets, with a per-target split.
+- **Rage from several attackers:** additive in the 18 Sep beta logs. If a test on a later
+  build shows a cap, add a setting for how hits combine (additive, a cooldown, or a
+  per-second cap) ([rage.md](mechanics/rage.md#rage-from-damage-taken)).
 
 ## M7: Stat boosts: gear that doesn't exist yet 💤
 
@@ -296,7 +304,7 @@ slice is worked:
   to stat-50 bonus armor is open (M4). Fallback shields carry `classicShieldBlockValue`,
   and Forever shields have no innate block value in the client (M3).
 - **Pushes:** nothing has been pushed yet; `origin/main` is still the first commit. The first
-  push is M2.4i, once the review log's verdict says "Ready to push: yes".
+  push is M2.4j, once the review log's verdict says "Ready to push: yes".
 - **Deferred from the first-release review** (FV2, FV5, FV6, FV7 in
   [its log](reviews/2026-09-23-first-release.md#final-verification-of-the-third-pass-fixes)):
   - Touch is detected by `(pointer: coarse)` alone, so on a touch screen with a hardware

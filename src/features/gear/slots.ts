@@ -28,16 +28,6 @@ export const SLOT_GROUPS: { label: string; slots: GearSlot[] }[] = [
   { label: 'Weapons', slots: ['mainHand', 'offHand', 'ranged'] },
 ]
 
-/** Slots that hold the same kind of item, where a unique item can only be in one of them. */
-export const PAIRED_SLOT: Partial<Record<GearSlot, GearSlot>> = {
-  finger1: 'finger2',
-  finger2: 'finger1',
-  trinket1: 'trinket2',
-  trinket2: 'trinket1',
-  mainHand: 'offHand',
-  offHand: 'mainHand',
-}
-
 /** Icon shown for an empty slot. */
 export const EMPTY_SLOT_ICON: Record<GearSlot, string> = {
   head: 'inv_helmet_03',

@@ -1,4 +1,4 @@
-import { Check, Search, X } from 'lucide-react'
+import { Ban, Check, Search, X } from 'lucide-react'
 import { useDeferredValue, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -10,7 +10,7 @@ import { useIsDesktop } from '@/hooks/use-media-query'
 import { CHOICE_ITEM } from '@/lib/choice'
 import { itemData, summarizeItem } from '@/lib/items'
 import { cn } from '@/lib/utils'
-import { fitsSlot, SPEC_META, type GearSlot, type SpecId } from '@/sim'
+import { fitsFaction, fitsSlot, SPEC_META, uniqueConflicts, type GearSlot, type SpecId, type UniqueConflict } from '@/sim'
 import { ItemSummary } from './item-row'
 import { bisRank, itemDetails, itemKind, SLOT_LABEL } from './slots'
 
@@ -20,11 +20,25 @@ interface PickerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   spec: SpecId
+  /** The character's race: the other faction's items aren't offered. */
+  race: string
   slot: GearSlot
   equippedId: number | null
-  /** The unique item in the paired slot (e.g. Ring 2), which moves here if picked. */
-  pairedUnique: { slot: GearSlot; itemId: number } | null
+  /** What's equipped in every slot, for the Unique and Unique-Equipped rules. */
+  worn: Partial<Record<GearSlot, Item>>
   onPick: (item: Item | null) => void
+}
+
+/** How the Unique rules treat an item here: free to pick, moving from another slot, or blocked. */
+function uniqueState(worn: PickerProps['worn'], slot: GearSlot, item: Item): { moves?: string; blocked?: string } {
+  const conflicts = uniqueConflicts(worn, slot, item)
+  if (conflicts.length === 0) return {}
+  const where = (c: UniqueConflict) => SLOT_LABEL[c.slot].toLowerCase()
+  // Another copy of this item: picking it moves it here (as the game swaps it).
+  if (conflicts.every((c) => c.item.id === item.id)) return { moves: `Unique: moves from ${where(conflicts[0])}` }
+  const { group, max } = conflicts[0]
+  const wearing = conflicts.map((c) => `${c.item.name} in ${where(c)}`).join(' and ')
+  return { blocked: `Unique-Equipped (${group}${max > 1 ? `, up to ${max}` : ''}): you’re wearing ${wearing}.` }
 }
 
 /** The item picker: a dialog on desktop, a full-height drawer on phones (docs/ux.md#sections). */
@@ -58,14 +72,15 @@ export function ItemPicker(props: PickerProps) {
   )
 }
 
-function PickerBody({ spec, slot, equippedId, pairedUnique, onPick, autoFocus }: PickerProps & { autoFocus?: boolean }) {
+function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: PickerProps & { autoFocus?: boolean }) {
   const { classId } = SPEC_META[spec]
   const [query, setQuery] = useState('')
   const deferredQuery = useDeferredValue(query)
   const candidates = useMemo(
     () =>
       itemData.items
-        .filter((item) => fitsSlot(classId, slot, item))
+        // The equipped item stays listed even if it's the other faction's (the race changed since).
+        .filter((item) => fitsSlot(classId, slot, item) && (fitsFaction(race, item) || item.id === equippedId))
         .map((item) => ({
           item,
           bis: bisRank(item, spec, slot),
@@ -75,7 +90,7 @@ function PickerBody({ spec, slot, equippedId, pairedUnique, onPick, autoFocus }:
           (a, b) =>
             (a.bis ?? 99) - (b.bis ?? 99) || b.item.itemLevel - a.item.itemLevel || a.item.name.localeCompare(b.item.name),
         ),
-    [classId, slot, spec],
+    [classId, slot, spec, race, equippedId],
   )
   const hasBis = candidates.some((c) => c.bis)
   const [filter, setFilter] = useState<Filter>(hasBis ? 'bis' : 'all')
@@ -136,23 +151,35 @@ function PickerBody({ spec, slot, equippedId, pairedUnique, onPick, autoFocus }:
         )}
         {shown.map(({ item, bis }) => {
           const equipped = item.id === equippedId
-          const moves = pairedUnique?.itemId === item.id
+          const { moves, blocked } = uniqueState(worn, slot, item)
           return (
             <li key={item.id}>
+              {/* A blocked item stays focusable (aria-disabled), so its reason is read out. */}
               <button
                 type="button"
                 aria-current={equipped || undefined}
-                onClick={() => onPick(item)}
+                aria-disabled={blocked ? true : undefined}
+                onClick={() => !blocked && onPick(item)}
                 className={cn(
                   'flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left outline-none',
-                  'hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
+                  'focus-visible:ring-3 focus-visible:ring-ring/50',
+                  blocked ? 'cursor-not-allowed' : 'hover:bg-muted',
                   equipped && 'bg-muted',
                 )}
               >
                 <ItemSummary
                   item={item}
                   bis={bis}
-                  meta={itemDetails(item, moves ? `Unique: moves from ${SLOT_LABEL[pairedUnique.slot].toLowerCase()}` : null)}
+                  meta={itemDetails(item, moves)}
+                  dimmed={Boolean(blocked)}
+                  note={
+                    blocked && (
+                      <>
+                        <Ban className="mt-px size-3.5 shrink-0" aria-hidden />
+                        {blocked}
+                      </>
+                    )
+                  }
                 />
                 {equipped && <Check className="mt-1 size-4 shrink-0" aria-label="Equipped" />}
               </button>

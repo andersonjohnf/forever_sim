@@ -35,27 +35,35 @@ export function ItemSummary({
   item,
   bis,
   meta,
+  note,
+  dimmed = false,
   className,
 }: {
   item: Item
   bis?: number | null
   /** An extra muted line, e.g. the slot name, or the item's type and level. */
   meta?: string | null
+  /** Why the item can't be picked; stays at full contrast when the rest is dimmed. */
+  note?: React.ReactNode
+  /** Fades the icon, name and stats (an item the picker can't equip here). */
+  dimmed?: boolean
   className?: string
 }) {
+  const fade = dimmed && 'opacity-60'
   return (
     <div className={cn('flex min-w-0 flex-1 items-start gap-3', className)}>
-      <WowIcon icon={item.icon} size="lg" />
+      <WowIcon icon={item.icon} size="lg" className={cn(fade)} />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className={cn('truncate text-sm font-medium', QUALITY_CLASS[item.quality])}>{item.name}</span>
-        {meta && <span className="line-clamp-2 text-xs text-muted-foreground">{meta}</span>}
-        <span className="line-clamp-2 text-xs text-muted-foreground tabular-nums">{summarizeItem(item) || 'No stats'}</span>
+        <span className={cn('truncate text-sm font-medium', QUALITY_CLASS[item.quality], fade)}>{item.name}</span>
+        {meta && <span className={cn('line-clamp-2 text-xs text-muted-foreground', fade)}>{meta}</span>}
+        <span className={cn('line-clamp-2 text-xs text-muted-foreground tabular-nums', fade)}>{summarizeItem(item) || 'No stats'}</span>
         {(bis || !item.foreverData) && (
-          <span className="mt-1 flex flex-wrap gap-1">
+          <span className={cn('mt-1 flex flex-wrap gap-1', fade)}>
             {bis ? <BisBadge rank={bis} /> : null}
             {!item.foreverData && <ClassicStatsBadge />}
           </span>
         )}
+        {note && <span className="mt-1 flex items-start gap-1.5 text-xs text-foreground">{note}</span>}
       </div>
     </div>
   )

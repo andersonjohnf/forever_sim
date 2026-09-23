@@ -757,6 +757,10 @@ auras ([§2](#2-world-buffs-excluded)).
 
 Encode these as data (`exclusivityGroup` on each entry). When several entries in a group
 are selected, keep only the one with the largest effect and warn in the UI.
+`normalizeConfig` compares effects when both entries change the same things (Juju Power's
++30 Strength beats Elixir of Greater Strength's +25) and keeps the first on a tie. When they
+change different things (Mightfish Steak's attack power against Smoked Desert Dumplings'
+Strength), it keeps the one the spec's Max consumables preset picks, and otherwise the first.
 
 | Group key | Members | Tag |
 | --- | --- | --- |

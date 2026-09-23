@@ -65,9 +65,18 @@ About & data, Reset setup, and Theme (system, light, dark).
     Each row's second line says what the item is and its levels, e.g. "Two-hand sword · Item
     level 63 · Requires level 58"; on a phone it wraps between those parts. The client data
     has no drop sources (its Encounter Journal is empty), so the picker shows none.
+  - The picker offers only what the character can wear together
+    ([items.md, "Equipping rules"](data/items.md#equipping-rules)):
+    - It leaves out the other faction's PvP and battleground items, except the one equipped.
+    - A unique item worn in the other slot of a pair moves over when picked. Its second line
+      says so: "Unique: moves from ring 2".
+    - An item that would break a Unique-Equipped group is dimmed and can't be picked. A line
+      at full contrast says why, e.g. "Unique-Equipped (Undermine Trinkets): you're wearing
+      Weakness Analyzer in trinket 2." It stays focusable, so the reason is read out.
   - Badges: BiS rank, and **Classic stats** for items with no Forever data yet, with a
     tooltip explaining why.
-  - A gear-set menu: "Pre-raid BiS" (the spec default), "Empty", and later saved sets.
+  - A gear-set menu: "Pre-raid BiS" (the spec default, in the race's faction's PvP gear),
+    "Empty", and later saved sets.
 - **Buffs.**
   - Presets: Self only, Dungeon group, Standard raid (the default), Max consumables.
   - Composition switches: which classes are in the raid. These drive which raid buffs are
@@ -180,6 +189,10 @@ Every view handles these states:
 - Setups are versioned, so an old link still loads, or explains why it can't.
 - A link to a spec the app doesn't offer yet shows an error toast and leaves the current setup
   alone. A saved setup for such a spec is kept for later, and the default spec opens.
+- A link that's corrupt, or over a size cap, shows the broken-link error toast and leaves the
+  current setup alone. The caps are 8 K characters in the hash and 16 KB of setup once
+  inflated. The largest real setup is about 4.4 KB, or 1.7 K characters. The link leaves the
+  URL before it's decoded, so a reload never tries a bad one again.
 
 ## Accessibility
 

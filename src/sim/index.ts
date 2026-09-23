@@ -32,7 +32,7 @@ import type {
 export * from './types'
 export { CLASS_COLOR, SPEC_IDS, SPEC_META } from './specs'
 export { defaultConfig, FULL_RAID, TALENT_DATA, talentPresets, type TalentPreset } from './defaults'
-export { canUse, fitsSlot, isTwoHand, PROFICIENCY } from './equip'
+export { canUse, fitsFaction, fitsSlot, isTwoHand, itemFaction, PROFICIENCY, uniqueConflicts, type UniqueConflict } from './equip'
 export { normalizeConfig } from './config/normalize'
 
 /** Specs whose sim and UI are complete (docs/ux.md principle 8): Fury from M2.2c, Arms from M2.3c. */

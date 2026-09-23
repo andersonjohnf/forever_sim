@@ -66,8 +66,10 @@ A spec is data plus small ability modules, never its own loop.
 ### From config to plan
 
 - `normalizeConfig` (`sim/config/`) repairs anything untrusted: unknown items, slots that don't
-  fit the class, illegal races, bad talent codes, unknown or unprovided buffs, rivals in an
-  exclusive group, out-of-range fight and run values. It never throws, and it migrates configs
+  fit the class, a second unique item or Unique-Equipped group member
+  ([items.md](data/items.md#equipping-rules)), illegal races, bad talent codes, unknown or
+  unprovided buffs, rivals in an exclusive group (the largest stays), out-of-range fight and
+  run values. It never throws, and it migrates configs
   saved before M1 (no `run.mode`: adaptive runs and the Standard raid buff preset).
 - `buildPlan` (`sim/plan/build.ts`) runs on the main thread, where the datasets are loaded. It
   sums gear and set bonuses, turns enchants, buffs, racials, talents and stance into **effects**

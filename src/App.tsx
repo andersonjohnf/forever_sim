@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { toast } from 'sonner'
 import { Header } from '@/app/header'
 import { useSetup, type Section } from '@/app/setup-store'
-import { clearSharedSetupFromUrl, readSharedSetup } from '@/app/share'
+import { readSharedSetup } from '@/app/share'
 import { isVisibleSpec } from '@/app/specs'
 import { DataAttribution } from '@/components/data-attribution'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -25,13 +25,15 @@ const SECTIONS: { id: Section; label: string; content: () => React.JSX.Element }
   { id: 'fight', label: 'Fight', content: FightSection },
 ]
 
-/** Loads a setup from a share link (#s=…), with Undo (docs/ux.md#persistence-and-sharing). */
+/**
+ * Loads a setup from a share link (#s=…), with Undo (docs/ux.md#persistence-and-sharing).
+ * Reading the link also clears it from the URL, before decoding it.
+ */
 function useSharedLink() {
   useEffect(() => {
     readSharedSetup()
       .then((raw) => {
         if (raw === null) return
-        clearSharedSetupFromUrl()
         const { config, warnings } = normalizeConfig(raw)
         if (!isVisibleSpec(config.spec)) {
           const { name, className } = SPEC_META[config.spec]
@@ -45,7 +47,6 @@ function useSharedLink() {
         })
       })
       .catch(() => {
-        clearSharedSetupFromUrl()
         toast.error('That share link is broken', { description: 'Your own setup is unchanged.' })
       })
   }, [])

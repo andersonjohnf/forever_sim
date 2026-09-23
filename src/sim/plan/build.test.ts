@@ -9,7 +9,9 @@ import { Sim } from '../engine/sim'
 import { computeSheet, normalizeConfig } from '../index'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import type { SimConfig, SpecId } from '../types'
-import { buildPlan } from './build'
+import itemJson from '@/data/items/pre-bis.json'
+import type { ItemData } from '@/data/items/types'
+import { buildPlan, setOf } from './build'
 import { STANCE, STANCE_ANY, TRIGGER } from './types'
 
 /** A bare config: no gear, no talents, no buffs, and no Battle Shout of Arms's own (warrior.md §5.3 row 1). */
@@ -20,6 +22,7 @@ function bare(spec: SpecId = 'warrior-arms', patch: Partial<SimConfig> = {}): Si
 }
 
 const withRules = (c: SimConfig, profile: 'forever' | 'classicEra'): SimConfig => ({ ...c, rules: { ...c.rules, profile } })
+const ITEMS = new Map((itemJson as unknown as ItemData).items.map((i) => [i.id, i]))
 
 describe('character-stats Example 1 through computeSheet', () => {
   it('naked Human warrior (Battle Stance: Arms)', () => {
@@ -462,5 +465,29 @@ describe('assumptions', () => {
   it('names unmodelled item effects', () => {
     const arms = buildPlan(defaultConfig('warrior-arms')).assumptions.find((a) => a.id === 'unmodelledProcs')
     expect(arms?.text).toContain('Blackblade of Shahram')
+  })
+
+  it('names active set bonuses it can’t apply, and not the ones it does', () => {
+    // Lieutenant Commander's Battlearmor: (2) +40 AP, a flat stat; (4) Intercept's cooldown, which isn't.
+    const pieces = { shoulder: { itemId: 23315 }, chest: { itemId: 23300 }, feet: { itemId: 23287 }, hands: { itemId: 23286 } }
+    const note = (gear: SimConfig['gear']) => buildPlan(bare('warrior-arms', { gear })).assumptions.find((a) => a.id === 'unmodelledSetBonuses')
+    expect(note(pieces)?.text).toBe('Some of your set bonuses aren’t simulated yet: Lieutenant Commander\'s Battlearmor (4).')
+    const { hands: _, ...three } = pieces
+    expect(note(three)).toBeUndefined()
+  })
+})
+
+describe('set bonuses', () => {
+  // The plan builder takes gear as given, so a warrior can stand in for these hunter pieces.
+  const agility = (gear: SimConfig['gear']) => buildPlan(bare('warrior-arms', { gear })).sheet!.agility
+
+  it('counts a piece only toward a set that lists it (docs/data/items.md#equipping-rules)', () => {
+    // Champion's Chain Headguard (16526) is a Classic Era row carrying Classic's set 361, an id
+    // Forever reuses for Champion's Pursuit (272490, 272492, …), whose (2) bonus is +20 Agility.
+    expect(setOf(ITEMS.get(16526)!)).toBeNull()
+    expect(setOf(ITEMS.get(272490)!)).toBe('361')
+    const chest = agility({ chest: { itemId: 272490 } })
+    expect(agility({ chest: { itemId: 272490 }, head: { itemId: 16526 } }) - chest).toBe(15) // its own 15 Agility, no bonus
+    expect(agility({ chest: { itemId: 272490 }, legs: { itemId: 272492 } }) - chest).toBe(13 + 20) // its own 13, and the bonus
   })
 })

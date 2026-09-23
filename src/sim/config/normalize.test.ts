@@ -80,6 +80,41 @@ describe('normalizeConfig', () => {
     expect(warnings.length).toBeGreaterThanOrEqual(8)
   })
 
+  it('removes the later item of a Unique-Equipped group, and a unique weapon’s second copy (docs/data/items.md#equipping-rules)', () => {
+    const d = defaultConfig('warrior-fury')
+    const { config, warnings } = normalizeConfig({
+      ...d,
+      gear: {
+        ...d.gear,
+        trinket1: { itemId: 272438 }, // Weakness Analyzer…
+        trinket2: { itemId: 272437 }, // …and Adaptive Combat Assistant: both Undermine Trinkets (1)
+        finger1: { itemId: 275968 }, // Ferocious…
+        finger2: { itemId: 275970 }, // …and Vigilant Watcher's Signet (1)
+        mainHand: { itemId: 12798, enchantId: 'crusader' }, // Annihilator…
+        offHand: { itemId: 12798, enchantId: 'crusader' }, // …in both hands
+      },
+    })
+    expect(config.gear.trinket1).toEqual({ itemId: 272438 })
+    expect(config.gear.trinket2).toBeUndefined()
+    expect(config.gear.finger1).toEqual({ itemId: 275968 })
+    expect(config.gear.finger2).toBeUndefined()
+    expect(config.gear.mainHand).toEqual({ itemId: 12798, enchantId: 'crusader' })
+    expect(config.gear.offHand).toBeUndefined()
+    expect(warnings).toEqual([
+      "Vigilant Watcher's Signet can’t be worn with Ferocious Watcher's Signet (Unique-Equipped: Watcher's Signet), so it was removed.",
+      'Adaptive Combat Assistant can’t be worn with Weakness Analyzer (Unique-Equipped: Undermine Trinkets), so it was removed.',
+      'Annihilator is unique, so the second copy was removed.',
+    ])
+    expect(normalizeConfig(config).warnings).toEqual([])
+  })
+
+  it('equips the race’s faction’s default gear when a setup has none', () => {
+    const orc = normalizeConfig({ spec: 'warrior-fury', race: 'horde-orc' }).config
+    expect(orc.gear).toEqual(defaultConfig('warrior-fury', 'horde-orc').gear)
+    expect(orc.gear.shoulder).toEqual({ itemId: 23243 }) // Champion's Plate Shoulders
+    expect(normalizeConfig({ spec: 'warrior-fury' }).config.gear.shoulder).toEqual({ itemId: 23315 }) // Lieutenant Commander's
+  })
+
   it('keeps druids out of plate and paladins’ off hands free of weapons', () => {
     const cat = normalizeConfig({ ...defaultConfig('druid-feral-cat'), gear: { head: { itemId: 12640 } } })
     expect(cat.config.gear.head).toBeUndefined()
@@ -96,6 +131,28 @@ describe('normalizeConfig', () => {
     expect(config.buffs.raid).toEqual(['warrior', 'druid'])
     expect(config.buffs.enabled).toEqual(['battleShout', 'jujuPower'])
     expect(warnings.length).toBe(5)
+  })
+
+  it('keeps the exclusive buff with the largest effect (buffs doc, "Exclusivity groups")', () => {
+    const d = defaultConfig('warrior-fury')
+    const keep = (enabled: string[], config: SimConfig = d) => normalizeConfig({ ...config, buffs: { raid: d.buffs.raid, enabled } })
+    // Juju Power (+30 Str) over Elixir of Greater Strength (+25), whichever comes first.
+    for (const enabled of [['elixirOfGreaterStrength', 'jujuPower'], ['jujuPower', 'elixirOfGreaterStrength']]) {
+      const { config, warnings } = keep(enabled)
+      expect(config.buffs.enabled).toEqual(['jujuPower'])
+      expect(warnings).toEqual(['Elixir of Greater Strength doesn’t stack with Juju Power, so it was turned off.'])
+    }
+    expect(keep(['jujuMight', 'winterfallFirewater']).config.buffs.enabled).toEqual(['jujuMight'])
+    // Equal effects keep the first: Sunder Armor and Expose Armor both take 2,250 armor in Forever…
+    expect(keep(['exposeArmor', 'sunderArmor']).config.buffs.enabled).toEqual(['exposeArmor'])
+    // …but Expose takes 1,700 in Classic Era, so Sunder is the larger there.
+    const classic = { ...d, rules: { ...d.rules, profile: 'classicEra' as const } }
+    expect(keep(['exposeArmor', 'sunderArmor'], classic).config.buffs.enabled).toEqual(['sunderArmor'])
+    // Rivals that change different things: the one the spec's Max consumables preset picks, else the first.
+    expect(keep(['mightfishSteak', 'smokedDesertDumplings']).config.buffs.enabled).toEqual(['smokedDesertDumplings'])
+    expect(keep(['grilledSquid', 'mightfishSteak']).config.buffs.enabled).toEqual(['grilledSquid'])
+    const prot = defaultConfig('warrior-protection')
+    expect(keep(['flaskOfNaturalAggression', 'flaskOfTheTitans'], prot).config.buffs.enabled).toEqual(['flaskOfTheTitans'])
   })
 
   it('migrates a setup saved before M1: an empty buff list becomes the Standard raid preset', () => {

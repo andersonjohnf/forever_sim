@@ -138,6 +138,10 @@ const REGISTRY = {
     text: 'Some item effects aren’t simulated yet',
     docRef: `${DT}#52-ppm-vs-flat-chance-classic-era-examples`,
   },
+  unmodelledSetBonuses: {
+    text: 'Some of your set bonuses aren’t simulated yet',
+    docRef: 'docs/data/items.md#effect-and-set-bonus-text',
+  },
   procRates: {
     text: 'Proc rates (Crusader 1 per minute, Hand of Justice 2%, …) are Classic Era’s; Forever’s are server-side and unmeasured.',
     docRef: `${DT}#52-ppm-vs-flat-chance-classic-era-examples`,

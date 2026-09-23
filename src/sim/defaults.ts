@@ -9,6 +9,7 @@ import paladinTalents from '@/data/talents/paladin.json'
 import type { TalentData } from '@/data/talents/types'
 import warriorTalents from '@/data/talents/warrior.json'
 import { presetBuffIds } from './effects/presets'
+import { fitsFaction, uniqueConflicts } from './equip'
 import { SPEC_META } from './specs'
 import type { ClassId, EquippedItem, GearSlot, SimConfig, SpecId } from './types'
 
@@ -120,13 +121,6 @@ function rank(item: Item, spec: SpecId, slot: PreRaidBisSlot): number {
   return item.preRaidBis.find((p) => p.spec === spec && p.slot === slot)?.rank ?? Infinity
 }
 
-/** The top two distinct picks for a doubled slot, skipping a second copy of a unique item. */
-function topTwo(spec: SpecId, slot: PreRaidBisSlot): [Item | undefined, Item | undefined] {
-  const [first, ...rest] = bisFor(spec, slot)
-  const second = rest.find((i) => i.id !== first?.id)
-  return [first, second]
-}
-
 /**
  * Default enchants per spec (docs/mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec).
  * Shoulder enchants (Zandalar, Scourge) are defaults only if the guild confirms that content
@@ -155,29 +149,42 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
   },
 }
 
-export function defaultGear(spec: SpecId): Partial<Record<GearSlot, EquippedItem>> {
+/**
+ * The spec's pre-raid BiS gear for a character of this race: each slot takes its best-ranked item
+ * that the race's faction can wear and that breaks no Unique or Unique-Equipped rule with the
+ * slots filled before it (docs/data/items.md#equipping-rules). So faction twins listed at the same
+ * rank resolve to the race's own, and the second ring or trinket is the next distinct one.
+ */
+export function defaultGear(spec: SpecId, race = DEFAULT_RACE[SPEC_META[spec].classId]): Partial<Record<GearSlot, EquippedItem>> {
   const gear: Partial<Record<GearSlot, EquippedItem>> = {}
-  const put = (slot: GearSlot, item: Item | undefined) => {
-    if (item) gear[slot] = { itemId: item.id }
+  const worn: Partial<Record<GearSlot, Item>> = {}
+  const put = (slot: GearSlot, candidates: Item[]) => {
+    const item = candidates.find((i) => fitsFaction(race, i) && uniqueConflicts(worn, slot, i).length === 0)
+    if (!item) return
+    worn[slot] = item
+    gear[slot] = { itemId: item.id }
   }
-  for (const [bisSlot, gearSlot] of SINGLE_SLOTS) put(gearSlot, bisFor(spec, bisSlot)[0])
-  const [ring1, ring2] = topTwo(spec, 'finger')
-  put('finger1', ring1)
-  put('finger2', ring2)
-  const [trinket1, trinket2] = topTwo(spec, 'trinket')
-  put('trinket1', trinket1)
-  put('trinket2', trinket2)
+  for (const [bisSlot, gearSlot] of SINGLE_SLOTS) put(gearSlot, bisFor(spec, bisSlot))
+  // Doubled slots take two distinct items: the guides' top two, not two copies of the first.
+  for (const [bisSlot, first, second] of [
+    ['finger', 'finger1', 'finger2'],
+    ['trinket', 'trinket1', 'trinket2'],
+  ] as const) {
+    const candidates = bisFor(spec, bisSlot)
+    put(first, candidates)
+    put(second, candidates.filter((i) => i.id !== worn[first]?.id))
+  }
 
-  const twoHand = bisFor(spec, 'twoHand')[0]
-  const mainHand = bisFor(spec, 'mainHand')[0]
-  if (twoHand && !mainHand) {
-    put('mainHand', twoHand)
+  const twoHands = bisFor(spec, 'twoHand')
+  const mainHands = bisFor(spec, 'mainHand')
+  if (twoHands.length > 0 && mainHands.length === 0) {
+    put('mainHand', twoHands)
   } else {
-    put('mainHand', mainHand)
-    put('offHand', bisFor(spec, 'offHand')[0])
+    put('mainHand', mainHands)
+    put('offHand', bisFor(spec, 'offHand'))
   }
   // Paladins and druids equip a relic in the ranged slot.
-  if (!gear.ranged) put('ranged', bisFor(spec, 'relic')[0])
+  if (!gear.ranged) put('ranged', bisFor(spec, 'relic'))
   for (const [slot, enchantId] of Object.entries(DEFAULT_ENCHANTS[spec] ?? {}) as [GearSlot, string][]) {
     const equipped = gear[slot]
     if (equipped) gear[slot] = { ...equipped, enchantId }
@@ -185,15 +192,16 @@ export function defaultGear(spec: SpecId): Partial<Record<GearSlot, EquippedItem
   return gear
 }
 
-export function defaultConfig(spec: SpecId): SimConfig {
+/** The spec's default setup; `race` (legal for the class) changes the race and its faction's gear. */
+export function defaultConfig(spec: SpecId, race = DEFAULT_RACE[SPEC_META[spec].classId]): SimConfig {
   const meta = SPEC_META[spec]
   const tank = meta.role === 'tank'
   return {
     version: 1,
     spec,
-    race: DEFAULT_RACE[meta.classId],
+    race,
     talents: DEFAULT_TALENTS[spec],
-    gear: defaultGear(spec),
+    gear: defaultGear(spec, race),
     // docs/mechanics/buffs-debuffs-consumables.md#6-default-presets: "Standard raid" is the default.
     buffs: { raid: [...FULL_RAID], enabled: presetBuffIds('raid', spec, FULL_RAID) },
     rotation: {},

@@ -129,6 +129,14 @@ interface Collected {
   zoneGatedUnmet: boolean
 }
 
+/**
+ * The set an item counts toward: its `setId`, if that set lists the item (docs/data/items.md#equipping-rules).
+ * A Classic Era row can carry a set id that Forever reuses for another set (16526 and 361).
+ */
+export function setOf(item: Item): string | null {
+  return item.setId && itemData.sets[item.setId]?.itemIds.includes(item.id) ? item.setId : null
+}
+
 /** Why a setup can't be simulated yet (the result explains it instead of simulating). */
 export class UnsupportedSetupError extends Error {
   constructor(message: string) {
@@ -292,7 +300,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     for (const [skill, value] of Object.entries(item.weaponSkill ?? {}) as [WeaponSkill, number][]) {
       weaponSkill[skill] = (weaponSkill[skill] ?? 0) + value
     }
-    if (item.setId) setCounts.set(item.setId, (setCounts.get(item.setId) ?? 0) + 1)
+    const setId = setOf(item)
+    if (setId) setCounts.set(setId, (setCounts.get(setId) ?? 0) + 1)
     if (!item.foreverData) classicItems.push(item.name)
     const override = ITEM_EFFECTS[item.id]
     if (override) apply(override.effects, origin)
@@ -301,9 +310,16 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (override?.use) itemUses.push(override.use)
     else if (item.useEffects.length > 0) onUseItems.push(item.name)
   }
+  /** Active set bonuses the plan can't apply (not flat stats or a weapon skill), e.g. "The Gladiator (5)". */
+  const unmodelledSetBonuses: string[] = []
   for (const [setId, count] of setCounts) {
-    for (const bonus of itemData.sets[setId]?.bonuses ?? []) {
+    const set = itemData.sets[setId]
+    for (const bonus of set.bonuses) {
       if (bonus.pieces > count) continue
+      if (Object.keys(bonus.parsed ?? {}).length === 0 && Object.keys(bonus.weaponSkill ?? {}).length === 0) {
+        unmodelledSetBonuses.push(`${set.name} (${bonus.pieces})`)
+        continue
+      }
       for (const [key, value] of Object.entries(bonus.parsed ?? {}) as [keyof Stats, number][]) {
         const stat = ITEM_STAT[key]
         if (stat && value) block[stat] += value
@@ -672,6 +688,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (config.race === 'horde-undead') notes.add('touchOfTheGrave')
   if (classicItems.length) notes.add('classicItems', classicItems.join(', '))
   if (unmodelled.length) notes.add('unmodelledProcs', unmodelled.join(', '))
+  if (unmodelledSetBonuses.length) notes.add('unmodelledSetBonuses', unmodelledSetBonuses.join(', '))
   const procIds = new Set(procs.map((p) => p.id))
   if (['crusader', 'fieryWeapon', 'handOfJustice', 'ironfoe', 'flurryAxe'].some((id) => procIds.has(id))) notes.add('procRates')
   if (chainBits.size > 0) notes.add('extraAttackChains')

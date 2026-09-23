@@ -6,11 +6,12 @@ import type { Item, ItemData } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { ClassSlug, RaceData } from '@/data/races/types'
 import { decodeTalentCode, validateTalentBuild } from '@/data/talents/types'
-import { defaultConfig, FULL_RAID, TALENT_DATA } from '../defaults'
-import { BUFFS_BY_ID } from '../effects/buffs'
+import { defaultConfig, defaultGear, FULL_RAID, TALENT_DATA } from '../defaults'
+import { BUFFS_BY_ID, type BuffSpec } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { presetBuffIds } from '../effects/presets'
-import { fitsSlot, isTwoHand } from '../equip'
+import { fitsSlot, isTwoHand, uniqueConflicts } from '../equip'
+import { PROFILES, type RulesProfile } from '../rules/profiles'
 import { SPEC_IDS, SPEC_META } from '../specs'
 import { renamedRotationOptions, rotationOptions } from '../classes/rotation'
 import type { ClassId, CreatureType, FightConfig, GearSlot, SimConfig, SpecId } from '../types'
@@ -161,11 +162,7 @@ function normalize(input: unknown): { config: SimConfig; warnings: string[] } {
     else r.add('The talent build wasn’t valid, so the default build was used.')
   }
 
-  const gear = normalizeGear(input.gear, d, meta.classId, r)
-  const buffs = normalizeBuffs(input.buffs, spec, isObj(input.run) && input.run.mode === undefined, r)
-  const rotation = normalizeRotation(input.rotation, spec, r)
-  const fight = normalizeFight(input.fight, d.fight, r)
-
+  // Rules first: which exclusive buff is the larger can depend on the profile.
   const rulesIn = isObj(input.rules) ? input.rules : {}
   if (input.rules !== undefined && !isObj(input.rules)) r.add('The rule settings couldn’t be read, so they were reset.')
   const rules: SimConfig['rules'] = {
@@ -177,6 +174,11 @@ function normalize(input: unknown): { config: SimConfig; warnings: string[] } {
     if (DAMAGE_TAKEN_MODELS.includes(model)) rules.damageTakenRage = model
     else r.add('The damage-taken rage model wasn’t recognised, so the profile’s default is used.')
   }
+
+  const gear = normalizeGear(input.gear, spec, race, meta.classId, r)
+  const buffs = normalizeBuffs(input.buffs, spec, PROFILES[rules.profile], isObj(input.run) && input.run.mode === undefined, r)
+  const rotation = normalizeRotation(input.rotation, spec, r)
+  const fight = normalizeFight(input.fight, d.fight, r)
 
   const runIn = isObj(input.run) ? input.run : {}
   if (input.run !== undefined && !isObj(input.run)) r.add('The run settings couldn’t be read, so they were reset.')
@@ -198,11 +200,11 @@ function normalize(input: unknown): { config: SimConfig; warnings: string[] } {
   return { config: { version: 1, spec, race, talents, gear, buffs, rotation, fight, rules, run }, warnings: r.warnings }
 }
 
-function normalizeGear(input: unknown, d: SimConfig, classId: ClassId, r: Repairs): SimConfig['gear'] {
-  if (input === undefined) return d.gear
+function normalizeGear(input: unknown, spec: SpecId, race: string, classId: ClassId, r: Repairs): SimConfig['gear'] {
+  if (input === undefined) return defaultGear(spec, race)
   if (!isObj(input)) {
     r.add('The gear couldn’t be read, so the default gear was equipped.')
-    return d.gear
+    return defaultGear(spec, race)
   }
   const gear: SimConfig['gear'] = {}
   for (const [slot, entry] of Object.entries(input)) {
@@ -243,21 +245,56 @@ function normalizeGear(input: unknown, d: SimConfig, classId: ClassId, r: Repair
     delete gear.offHand
     r.add('A two-handed weapon uses both hands, so the off-hand item was removed.')
   }
-  for (const [a, b] of [
-    ['finger1', 'finger2'],
-    ['trinket1', 'trinket2'],
-  ] as const) {
-    const x = gear[a]
-    const y = gear[b]
-    if (x && y && x.itemId === y.itemId && items.get(x.itemId)?.unique) {
-      delete gear[b]
-      r.add(`${items.get(x.itemId)!.name} is unique, so the second copy was removed.`)
+  // Unique and Unique-Equipped (docs/data/items.md#equipping-rules): the first item in paper-doll
+  // order stays, and a later one that breaks a rule with it goes.
+  const worn: Partial<Record<GearSlot, Item>> = {}
+  for (const slot of GEAR_SLOTS) {
+    const item = gear[slot] && items.get(gear[slot].itemId)
+    if (!item) continue
+    const [conflict] = uniqueConflicts(worn, slot, item)
+    if (!conflict) {
+      worn[slot] = item
+      continue
     }
+    delete gear[slot]
+    r.add(
+      conflict.item.id === item.id || conflict.group === null
+        ? `${item.name} is unique, so the second copy was removed.`
+        : `${item.name} can’t be worn with ${conflict.item.name} (Unique-Equipped: ${conflict.group}), so it was removed.`,
+    )
   }
   return gear
 }
 
-function normalizeBuffs(input: unknown, spec: SpecId, legacy: boolean, r: Repairs): SimConfig['buffs'] {
+/**
+ * The size of each thing a buff changes, keyed by effect kind, stat and condition; null when an
+ * effect has no single size (a proc, a temporary weapon enchant).
+ */
+function effectSizes(buff: BuffSpec, profile: RulesProfile): Map<string, number> | null {
+  const sizes = new Map<string, number>()
+  for (const e of typeof buff.effects === 'function' ? buff.effects(profile) : buff.effects) {
+    const size = 'value' in e ? e.value : 'pct' in e ? e.pct : undefined
+    if (typeof size !== 'number') return null
+    const key = `${e.kind}|${'stat' in e ? e.stat : ''}|${JSON.stringify(e.when ?? null)}`
+    sizes.set(key, (sizes.get(key) ?? 0) + Math.abs(size))
+  }
+  return sizes
+}
+
+/**
+ * 1 when `a`'s effect is larger than `b`'s, -1 when smaller, 0 when the same, and null when they
+ * change different things or each is larger at something.
+ */
+function compareEffects(a: BuffSpec, b: BuffSpec, profile: RulesProfile): 1 | 0 | -1 | null {
+  const x = effectSizes(a, profile)
+  const y = effectSizes(b, profile)
+  if (!x || !y || x.size !== y.size || [...x.keys()].some((k) => !y.has(k))) return null
+  const larger = [...x].some(([k, v]) => v > y.get(k)!)
+  const smaller = [...x].some(([k, v]) => v < y.get(k)!)
+  return larger && smaller ? null : larger ? 1 : smaller ? -1 : 0
+}
+
+function normalizeBuffs(input: unknown, spec: SpecId, profile: RulesProfile, legacy: boolean, r: Repairs): SimConfig['buffs'] {
   if (input === undefined) return { raid: [...FULL_RAID], enabled: presetBuffIds('raid', spec, FULL_RAID) }
   if (!isObj(input)) {
     r.add('The buffs couldn’t be read, so the Standard raid preset was used.')
@@ -277,27 +314,37 @@ function normalizeBuffs(input: unknown, spec: SpecId, legacy: boolean, r: Repair
   // Setups saved before the buff catalogue existed (no run mode) have an empty list that meant
   // "nothing to choose from"; they get the default preset.
   if (legacy && input.enabled.length === 0) return { raid, enabled: presetBuffIds('raid', spec, raid) }
-  const enabled: string[] = []
-  const groups = new Set<string>()
+  const selected: BuffSpec[] = []
   for (const id of input.enabled) {
     const buff = typeof id === 'string' ? BUFFS_BY_ID.get(id) : undefined
     if (!buff) {
       r.add('An unknown buff was removed.')
       continue
     }
-    if (enabled.includes(buff.id)) continue
+    if (selected.includes(buff)) continue
     if (buff.providedBy && !raid.includes(buff.providedBy)) {
       r.add(`${buff.name} needs a ${buff.providedBy} in the raid, so it was turned off.`)
       continue
     }
-    if (buff.exclusiveGroup) {
-      if (groups.has(buff.exclusiveGroup)) {
-        r.add(`${buff.name} doesn’t stack with another selected buff, so it was turned off.`)
-        continue
-      }
-      groups.add(buff.exclusiveGroup)
-    }
-    enabled.push(buff.id)
+    selected.push(buff)
+  }
+  // Rivals in an exclusive group: the one with the largest effect stays (buffs doc,
+  // "Exclusivity groups"). Rivals that change different things have no common measure, so the
+  // one the spec's Max consumables preset picks stays, else the first.
+  const max = new Set(presetBuffIds('max', spec, raid))
+  const winners = new Map<string, BuffSpec>()
+  for (const buff of selected) {
+    const group = buff.exclusiveGroup
+    if (!group) continue
+    const best = winners.get(group)
+    const order = best && compareEffects(buff, best, profile)
+    if (!best || order === 1 || (order === null && max.has(buff.id) && !max.has(best.id))) winners.set(group, buff)
+  }
+  const enabled: string[] = []
+  for (const buff of selected) {
+    const winner = buff.exclusiveGroup && winners.get(buff.exclusiveGroup)
+    if (winner && winner !== buff) r.add(`${buff.name} doesn’t stack with ${winner.name}, so it was turned off.`)
+    else enabled.push(buff.id)
   }
   return { raid, enabled }
 }

@@ -10,12 +10,22 @@ import type { Item } from '@/data/items/types'
 import { SectionHeader } from '@/features/section'
 import { itemsById } from '@/lib/items'
 import { cn } from '@/lib/utils'
-import { defaultConfig, isTwoHand, type GearSlot, type SimConfig } from '@/sim'
+import { defaultConfig, isTwoHand, uniqueConflicts, type GearSlot, type SimConfig } from '@/sim'
 import { EnchantPicker } from './enchant-picker'
 import { enchantsFor } from './enchants'
 import { ItemPicker } from './item-picker'
 import { ItemSummary } from './item-row'
-import { bisRank, EMPTY_SLOT_ICON, PAIRED_SLOT, SLOT_GROUPS, SLOT_LABEL } from './slots'
+import { bisRank, EMPTY_SLOT_ICON, SLOT_GROUPS, SLOT_LABEL } from './slots'
+
+/** The items equipped in each slot. */
+function wornItems(gear: SimConfig['gear']): Partial<Record<GearSlot, Item>> {
+  const worn: Partial<Record<GearSlot, Item>> = {}
+  for (const [slot, entry] of Object.entries(gear) as [GearSlot, { itemId: number } | undefined][]) {
+    const item = entry && itemsById.get(entry.itemId)
+    if (item) worn[slot] = item
+  }
+  return worn
+}
 
 function equip(config: SimConfig, slot: GearSlot, item: Item | null): SimConfig {
   const gear = { ...config.gear }
@@ -23,9 +33,9 @@ function equip(config: SimConfig, slot: GearSlot, item: Item | null): SimConfig 
     delete gear[slot]
     return { ...config, gear }
   }
-  // A unique item moves rather than being duplicated.
-  const paired = PAIRED_SLOT[slot]
-  if (paired && item.unique && gear[paired]?.itemId === item.id) delete gear[paired]
+  // A unique item moves rather than being duplicated. The picker doesn't offer an item that
+  // breaks a Unique-Equipped group, so this only ever clears another copy of the same item.
+  for (const conflict of uniqueConflicts(wornItems(gear), slot, item)) delete gear[conflict.slot]
   // Keep the slot's enchant if it still applies to the new item.
   const enchantId = gear[slot]?.enchantId
   const keep = enchantId && enchantsFor(slot, item).some((e) => e.id === enchantId)
@@ -46,19 +56,13 @@ export function GearSection() {
 
   const loadBis = () => {
     const previous = config
-    update((c) => ({ ...c, gear: defaultConfig(c.spec).gear }))
+    update((c) => ({ ...c, gear: defaultConfig(c.spec, c.race).gear }))
     toast('Pre-raid best in slot equipped', { action: { label: 'Undo', onClick: () => replace(previous) } })
   }
   const clearAll = () => {
     const previous = config
     update((c) => ({ ...c, gear: {} }))
     toast('All gear removed', { action: { label: 'Undo', onClick: () => replace(previous) } })
-  }
-
-  const pairedUnique = (slot: GearSlot) => {
-    const paired = PAIRED_SLOT[slot]
-    const other = paired && config.gear[paired] ? itemsById.get(config.gear[paired]!.itemId) : undefined
-    return paired && other?.unique ? { slot: paired, itemId: other.id } : null
   }
 
   return (
@@ -148,9 +152,10 @@ export function GearSection() {
           open
           onOpenChange={(open) => !open && setPicking(null)}
           spec={config.spec}
+          race={config.race}
           slot={picking}
           equippedId={config.gear[picking]?.itemId ?? null}
-          pairedUnique={pairedUnique(picking)}
+          worn={wornItems(config.gear)}
           onPick={(item) => {
             update((c) => equip(c, picking, item))
             setPicking(null)

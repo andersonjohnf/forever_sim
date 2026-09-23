@@ -365,7 +365,8 @@ print.
 Which bucket a line goes in follows the spell, not its wording: `procs` are "Chance on hit"
 spells and equip spells with a proc aura (15 "when struck", 42, 43); `useEffects` are use
 spells; `otherEquip` are the other equip spells, including conditional ones. The engine lists
-items with procs or other equip effects it doesn't model with each result.
+items with procs or other equip effects it doesn't model with each result, and active set
+bonuses without `parsed` stats or a `weaponSkill` ([Equipping rules](#equipping-rules)).
 
 ## Forever's ratings `[F]`, with open questions
 
@@ -580,6 +581,59 @@ Forever row first), plus set changes and watched items that a build now ships. T
 field-by-field check of the derivation against the foreverchanges tooltips
 (`npm run compare:items`) was retired in M1.5f; its result is kept in
 [client.md](client.md#comparison-with-the-snapshot-history).
+
+## Equipping rules
+
+How the engine judges a set of gear as a whole (`src/sim/equip.ts`). `normalizeConfig`, the
+default gear and the item picker all follow these rules.
+
+**Unique and Unique-Equipped** `[F]` (`ItemSparse.MaxCount`, `ItemLimitCategory`; see the
+schema table above). An item Unique-Equipped in a named group counts toward the group's limit
+across every slot, copies included. This snapshot has four groups, each with a limit of 1:
+Undermine Trinkets, Watcher's Signet, Trinket of the Dawn and Talisman of Battle. Any other
+`unique` item, including one Unique-Equipped with no group, is limited in copies, to
+`uniqueEquipped.max` or else 1. So one Annihilator fits across both hands, and one Don
+Julio's Band across both rings.
+- `normalizeConfig` keeps the first item in paper-doll order and removes a later one that
+  breaks a rule, with a warning.
+- The defaults skip to the next-ranked item.
+- The picker moves another copy of the same item from its other slot. It shows an item that
+  would break a group dimmed, with the reason ([ux.md](../ux.md#sections)).
+
+**Set pieces.** A piece counts toward a set only when the set's `itemIds` list it. A Classic
+Era row can carry a set id that Forever reuses for another set. Champion's Chain Headguard
+(16526) carries Classic's set 361, which in Forever is Champion's Pursuit, a set of other
+items. Each result lists any active set bonus that isn't flat stats or a weapon skill as not
+simulated.
+
+**Faction.** The client rows don't encode faction for PvP and battleground gear. The twins'
+`AllowableRace` is −1 in both clients, so `races` is null across the pool (see
+[Caveats](#caveats)). The engine gives an item to one faction by the first of these that
+applies:
+1. `races`, when every race listed is on one side. No item has one yet.
+2. The two rank-3 cloaks, because rank 3's title is "Sergeant" on both sides: Sergeant's Cape
+   (16342) is Horde's and Sergeant's Cloak (18461) Alliance's `[C]` (the pre-raid lists' notes,
+   [Selection](#sources-c)).
+3. A reputation that the client's Faction table files under Alliance (891) or Horde (892) as
+   `ParentFactionID` `[F]` (Faction, 1.60.1.69913):
+   - Alliance: The League of Arathor, Stormpike Guard, Silverwing Sentinels, Theramore
+     Expeditionary Force.
+   - Horde: The Defilers, Frostwolf Clan, Warsong Outriders, Darkspear Raiders.
+4. A PvP rank requirement, by that rank's title at the start of the name `[C]` (the Classic Era
+   honor ranks, 1–14). For example, rank 7 is Knight-Lieutenant (Alliance) or Blood Guard
+   (Horde), and rank 10 is Lieutenant Commander or Champion. Every PvP-rank item in the pool
+   (ranks 3, 4, 5, 7, 8 and 10) matches exactly one title of its rank, except the shared rank 3.
+5. "Stormpike " (Alliance) or "Frostwolf " (Horde) at the start of the name `[C]`. These are
+   the Alterac Valley rewards, which the client lists with no reputation requirement.
+
+Anything else suits both factions. That places all 236 PvP-rank items in the pool (120
+Alliance, 116 Horde) and 58 reputation and battleground items. It leaves Forever's "Premier"
+PvP pieces to both factions, since their rows carry no requirement to go by `[?]`.
+- The default gear takes the race's own twin: an Alliance warrior wears Lieutenant
+  Commander's Plate Shoulders where a Horde one wears Champion's.
+- The picker leaves out the other faction's items, except the one equipped.
+- `normalizeConfig` leaves them alone. A race change keeps the gear, and the twins' stats and
+  set bonuses are identical.
 
 ## Caveats
 

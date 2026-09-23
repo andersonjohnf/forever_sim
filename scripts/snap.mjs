@@ -1,12 +1,14 @@
 // Quick visual check of the production build in headless Chromium.
 //
-// Serves dist/ under the GitHub Pages base path, opens a page, prints console errors and
+// Builds into its own folder, .cache/snap-dist (with --build, which `npm run snap` passes),
+// serves it under the GitHub Pages base path, opens a page, prints console errors and
 // warnings, page errors and failed requests, and saves a full-page screenshot. Exits 1 if
-// anything went wrong.
+// anything went wrong. It never touches dist/, which `npm run test:e2e` builds and serves, so
+// the two can run at once.
 //
 //   npm run snap                                   # build, then snap the landing page
 //   npm run snap -- --dark --width 390             # dark mode at phone width
-//   node scripts/snap.mjs --click Talents --out .cache/snaps/talents.png   # reuse dist/, open a tab first
+//   node scripts/snap.mjs --click Talents --out .cache/snaps/talents.png   # reuse the snap build, open a tab first
 //   node scripts/snap.mjs --click Simulate --out .cache/snaps/result.png   # waits for the run to finish
 //   node scripts/snap.mjs --width 390 --click Simulate --click "Show results"   # phone: open the results sheet
 //   node scripts/snap.mjs --width 390 --click Simulate --click "Show results" --click "Cooldowns and buffs" --scroll "Cooldowns and buffs"
@@ -20,15 +22,20 @@
 //   --upload file.json     the file for the file picker that a --click opens
 //   --viewport             screenshot the viewport alone, as it shows an open sheet, not the whole page
 //   node scripts/snap.mjs --viewport --storage seed.json --click More --click "Setups…" --fill "Setup code or share link=junk" --click Import
-import { mkdirSync, readFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { parseArgs } from 'node:util'
 import { chromium } from '@playwright/test'
-import { preview } from 'vite'
+import { build, preview } from 'vite'
+
+/** The snap build's own folder: never dist/, which the e2e run builds and serves. */
+const OUT_DIR = '.cache/snap-dist'
 
 const { values: args, tokens } = parseArgs({
   tokens: true,
   options: {
+    /** Build the app into OUT_DIR first (`npm run snap` passes it); without it, reuse the last snap build. */
+    build: { type: 'boolean', default: false },
     path: { type: 'string', default: '' },
     out: { type: 'string', default: '.cache/snaps/snap.png' },
     width: { type: 'string', default: '1280' },
@@ -57,7 +64,9 @@ const storage = args.storage
   ? Object.entries(JSON.parse(readFileSync(args.storage, 'utf8'))).map(([key, value]) => [key, typeof value === 'string' ? value : JSON.stringify(value)])
   : []
 
-const server = await preview({ preview: { port: 0 }, logLevel: 'silent' })
+if (args.build) await build({ build: { outDir: OUT_DIR, emptyOutDir: true }, logLevel: 'warn' })
+else if (!existsSync(`${OUT_DIR}/index.html`)) throw new Error(`No snap build in ${OUT_DIR}: run npm run snap, or pass --build`)
+const server = await preview({ build: { outDir: OUT_DIR }, preview: { port: 0 }, logLevel: 'silent' })
 const { port } = server.httpServer.address()
 const url = new URL(args.path, `http://localhost:${port}${server.config.base}`).href
 

@@ -1,8 +1,8 @@
 import { Check, CircleAlert } from 'lucide-react'
 import { useRef, type KeyboardEvent } from 'react'
-import { toast } from 'sonner'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
+import { undoToast } from '@/app/undo-toast'
 import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { WowIcon } from '@/components/wow-icon'
@@ -34,12 +34,7 @@ export function CharacterSection() {
     const change = changeRace(previous, race.id)
     update(() => change.config)
     const message = raceChangeMessage(change, race.faction)
-    if (message) {
-      toast(message.title, {
-        description: message.description,
-        action: { label: 'Undo', onClick: () => replace(previous) },
-      })
-    }
+    if (message) undoToast(message.title, () => replace(previous), { description: message.description })
   }
 
   return (

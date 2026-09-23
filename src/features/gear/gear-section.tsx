@@ -1,8 +1,8 @@
 import { ChevronRight, MoreHorizontal } from 'lucide-react'
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
+import { undoToast } from '@/app/undo-toast'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { WowIcon } from '@/components/wow-icon'
@@ -58,12 +58,12 @@ export function GearSection() {
   const loadBis = () => {
     const previous = config
     update((c) => ({ ...c, gear: defaultConfig(c.spec, c.race).gear }))
-    toast('Pre-raid best in slot equipped', { action: { label: 'Undo', onClick: () => replace(previous) } })
+    undoToast('Pre-raid best in slot equipped', () => replace(previous))
   }
   const clearAll = () => {
     const previous = config
     update((c) => ({ ...c, gear: {} }))
-    toast('All gear removed', { action: { label: 'Undo', onClick: () => replace(previous) } })
+    undoToast('All gear removed', () => replace(previous))
   }
 
   return (
@@ -103,7 +103,8 @@ export function GearSection() {
               return (
                 <li key={slot} className="flex min-w-0 flex-col rounded-xl border">
                   {/* The slot's button covers the row; the flag badges sit above it, so a tap on one
-                      explains it rather than opening the picker (docs/ux.md "Gear"). */}
+                      explains it rather than opening the picker (docs/ux.md "Gear"). Its z-1 keeps it
+                      over faded content too (an empty slot's icon), which opacity would lift above it. */}
                   <div
                     className={cn(
                       'relative flex min-h-16 items-center gap-3 rounded-xl px-3 py-2.5 transition-colors',
@@ -115,7 +116,7 @@ export function GearSection() {
                       type="button"
                       disabled={lockedByTwoHand}
                       onClick={() => setPicking(slot)}
-                      className="absolute inset-0 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed"
+                      className="absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed"
                       aria-label={`${SLOT_LABEL[slot]}: ${item?.name ?? (lockedByTwoHand ? 'two-handed weapon equipped' : 'empty')}`}
                       aria-describedby={item ? `slot-${slot}-description` : undefined}
                     >

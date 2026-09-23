@@ -220,8 +220,9 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
           return (
             <li key={item.id}>
               {/* The item's button covers the row, with the whole item as its name; the flag badges sit
-                  above it (docs/ux.md "Gear"). A blocked item stays focusable (aria-disabled), so its
-                  reason is read out. */}
+                  above it (docs/ux.md "Gear"). Its z-1 keeps it over a blocked item's faded content,
+                  which opacity would lift above it. A blocked item stays focusable (aria-disabled), so
+                  its reason is read out. */}
               <div
                 className={cn(
                   'relative flex w-full items-start gap-3 rounded-lg px-3 py-2.5',
@@ -235,7 +236,7 @@ function PickerBody({ spec, race, slot, equippedId, worn, onPick, autoFocus }: P
                   aria-disabled={blocked ? true : undefined}
                   onClick={() => !blocked && onPick(item)}
                   className={cn(
-                    'absolute inset-0 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
+                    'absolute inset-0 z-1 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
                     blocked && 'cursor-not-allowed',
                   )}
                 >

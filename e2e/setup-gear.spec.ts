@@ -59,6 +59,14 @@ test.describe('phone', () => {
   })
 })
 
+test('an empty slot opens its picker from its faded icon too', async ({ page }) => {
+  await page.goto('./')
+  await page.getByRole('button', { name: 'Gear options' }).click()
+  await page.getByRole('menuitem', { name: 'Remove all gear' }).click()
+  await page.getByRole('button', { name: 'Head: empty' }).click({ position: { x: 24, y: 24 } })
+  await expect(page.getByRole('dialog', { name: 'Choose head' })).toBeVisible()
+})
+
 test.describe('narrow phone', () => {
   test.use({ viewport: { width: 320, height: 700 }, hasTouch: true, isMobile: true })
 

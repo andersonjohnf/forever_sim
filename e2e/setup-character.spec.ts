@@ -61,8 +61,7 @@ test.describe('faction gear on a race change', () => {
 
     await toast.getByRole('button', { name: 'Undo' }).click()
     await expect(page.getByRole('button', { name: 'Shoulders: Lieutenant Commander\'s Plate Shoulders' })).toBeVisible()
-    // Wait for the toast to go: it hands focus back to the Gear tab as it leaves.
-    await expect(toast).toHaveCount(0)
+    // The toast hands focus back to the Gear tab as it goes, which doesn't switch tabs.
     await page.getByRole('tab', { name: 'Character', exact: true }).click()
     await expect(page.getByRole('radio', { name: 'Human' })).toHaveAttribute('aria-checked', 'true')
   })

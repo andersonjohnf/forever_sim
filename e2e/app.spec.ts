@@ -181,7 +181,7 @@ test.describe('phone', () => {
   test('keeps Simulate in a bottom bar and opens pickers as a drawer', async ({ page }) => {
     await page.goto('./')
     await expect(page.getByRole('complementary', { name: 'Results' })).toBeHidden()
-    await expect(page.getByRole('button', { name: 'Simulate' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Simulate', exact: true })).toBeVisible()
     await page.getByRole('button', { name: 'Head: Lionheart Helm' }).click()
     await expect(page.getByRole('dialog', { name: 'Choose head' })).toBeVisible()
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)

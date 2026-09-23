@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
+import { undoToast } from '@/app/undo-toast'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -46,7 +47,7 @@ export function TalentsSection() {
   const withUndo = (message: string, change: () => void) => {
     const previous = useSetup.getState().config
     change()
-    toast(message, { action: { label: 'Undo', onClick: () => replace(previous) } })
+    undoToast(message, () => replace(previous))
   }
 
   return (

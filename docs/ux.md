@@ -47,7 +47,9 @@ offers ("A DPS simulator for Fury and Arms Warriors in WoW Forever"), so it grow
 updated with each spec; an e2e test compares them.
 
 **Section tabs** are 44 px tall. When they scroll sideways, a fade marks each edge with more
-tabs past it (none at an end), and the chosen tab scrolls into view.
+tabs past it (none at an end), and the chosen tab scrolls into view. Arrow keys move between
+tabs and Enter or Space opens one (manual activation), so focus coming back from a toast never
+switches the tab.
 
 **Setup sections**, in this order: **Character · Talents · Gear · Buffs · Rotation · Fight**.
 

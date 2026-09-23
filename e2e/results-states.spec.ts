@@ -173,7 +173,7 @@ test.describe('on a phone', () => {
   test('a failed first run shows in the bar and opens the sheet with the reason', async ({ page }) => {
     await seed(page, { race: 'alliance-skyborne-high-order' })
     await page.goto('./')
-    await page.getByRole('button', { name: 'Simulate' }).click()
+    await page.getByRole('button', { name: 'Simulate', exact: true }).click()
     const bar = page.getByRole('button', { name: 'Show results' })
     await expect(bar).toContainText('Couldn’t simulate')
     await expect(bar).toBeEnabled()
@@ -190,7 +190,7 @@ test.describe('on a phone', () => {
     await simulate(page)
     await page.getByRole('tab', { name: 'Character', exact: true }).click()
     await page.getByRole('radio', { name: /Skyborne \(High Order\)/ }).click()
-    await page.getByRole('button', { name: 'Simulate' }).click()
+    await page.getByRole('button', { name: 'Simulate', exact: true }).click()
     const bar = page.getByRole('button', { name: 'Show results' })
     await expect(bar).toContainText('Couldn’t simulate')
     await bar.click()

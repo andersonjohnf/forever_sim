@@ -53,7 +53,12 @@ export default function App() {
     <div className="min-h-svh bg-background">
       <Header />
       <main className="mx-auto max-w-7xl px-4 pb-32 lg:grid lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-10 lg:pb-12">
-        <Tabs value={section} onValueChange={(v) => setSection(v as Section)} className="min-w-0 gap-0">
+        {/*
+         * Manual activation: arrow keys move between tabs, Enter or Space opens one. A toast hands
+         * focus back to where it was when you leave it, so with automatic activation a tab you
+         * clicked right after Undo was switched back to the one focused before (docs/ux.md).
+         */}
+        <Tabs value={section} onValueChange={(v) => setSection(v as Section)} activationMode="manual" className="min-w-0 gap-0">
           <div className="sticky top-14 z-30 -mx-4 border-b bg-background/95 px-4 backdrop-blur lg:mx-0 lg:px-0">
             {/*
              * On narrow screens the tabs scroll sideways, and a fade marks each edge with more past

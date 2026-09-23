@@ -159,11 +159,28 @@ test.describe('undo toasts', () => {
 
   test('Undo puts the setup back', async ({ page }) => {
     await page.goto('./')
+    // Orc changes sides, so its gear swap shows a toast with its own Undo too.
     await chooseRace(page, /Orc/)
     await resetFury(page)
     await expectRace(page, /Human/)
-    await page.getByRole('button', { name: 'Undo' }).click()
+    await page.locator('[data-sonner-toast]').filter({ hasText: 'Fury Warrior reset to defaults' }).getByRole('button', { name: 'Undo' }).click()
     await expectRace(page, /Orc/)
+    await page.getByRole('tab', { name: 'Gear', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'Shoulders: Champion\'s Plate Shoulders' })).toBeVisible()
+  })
+
+  test('a tab clicked right after Undo stays open', async ({ page }) => {
+    // Leaving a toast hands focus back to the control focused before it (here the Buffs tab),
+    // which mustn't switch the tab back.
+    await page.goto('./')
+    await resetFury(page)
+    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+    await page.getByRole('button', { name: 'Undo' }).click()
+    await page.getByRole('tab', { name: 'Fight', exact: true }).click()
+    await expect(page.getByRole('tab', { name: 'Fight', exact: true })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('button', { name: 'Undo' })).toHaveCount(0)
+    await expect(page.getByRole('tab', { name: 'Fight', exact: true })).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('heading', { level: 2, name: 'Fight', exact: true })).toBeVisible()
   })
 })
 

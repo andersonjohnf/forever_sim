@@ -68,6 +68,26 @@ test.describe('header', () => {
     await page.getByRole('menuitem', { name: /Reset/ }).click()
     await expectTouchTargets(page.getByRole('button', { name: 'Undo' }))
   })
+
+  test('section tabs: arrow keys move between them, Enter or Space opens one', async ({ page }) => {
+    await page.goto('./')
+    const tab = (name: string) => page.getByRole('tab', { name, exact: true })
+    await tab('Gear').focus()
+    // Radix moves focus on a timer after each arrow key, so each press waits for it.
+    await page.keyboard.press('ArrowRight')
+    await expect(tab('Buffs')).toBeFocused()
+    await expect(tab('Gear')).toHaveAttribute('aria-selected', 'true')
+    await page.keyboard.press('Enter')
+    await expect(tab('Buffs')).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('heading', { level: 2, name: 'Buffs', exact: true })).toBeVisible()
+    await page.keyboard.press('ArrowLeft')
+    await expect(tab('Gear')).toBeFocused()
+    await page.keyboard.press('ArrowLeft')
+    await expect(tab('Talents')).toBeFocused()
+    await expect(tab('Buffs')).toHaveAttribute('aria-selected', 'true')
+    await page.keyboard.press(' ')
+    await expect(tab('Talents')).toHaveAttribute('aria-selected', 'true')
+  })
 })
 
 test.describe('About', () => {
@@ -113,7 +133,7 @@ test.describe('phone', () => {
 
   test('the results sheet takes focus and gives it back to Show results', async ({ page }) => {
     await page.goto('./')
-    await page.getByRole('button', { name: 'Simulate' }).click()
+    await page.getByRole('button', { name: 'Simulate', exact: true }).click()
     const show = page.getByRole('button', { name: 'Show results' })
     await expect(show).toBeEnabled({ timeout: 30_000 })
     await expect(page.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })

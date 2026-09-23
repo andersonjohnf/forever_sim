@@ -1,8 +1,8 @@
 import { ChevronRight, RotateCcw } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { toast } from 'sonner'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
+import { undoToast } from '@/app/undo-toast'
 import { NumberField } from '@/components/number-field'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -52,9 +52,7 @@ export function RotationSection() {
   const resetAll = () => {
     const { spec, rotation: previous } = useSetup.getState().config
     update((c) => ({ ...c, rotation: {} }))
-    toast('Rotation reset to its defaults', {
-      action: { label: 'Undo', onClick: () => update((c) => (c.spec === spec ? { ...c, rotation: previous } : c)) },
-    })
+    undoToast('Rotation reset to its defaults', () => update((c) => (c.spec === spec ? { ...c, rotation: previous } : c)))
   }
   // The few settings without a heading (Arms' stance) come first, then each heading's settings in
   // the spec's priority order (docs/ux.md "Rotation").

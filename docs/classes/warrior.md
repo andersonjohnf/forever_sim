@@ -1480,11 +1480,11 @@ Notes:
   [threat.md](../mechanics/threat.md#warrior). The engine uses the Forever client's 1013 for Sunder
   Armor and Classic Era's values for the rest [?]. The Classic reference numbers are Magey's 1.13.6
   measurements [magey-thr].
-- **Why Sunder Armor fills every free GCD.** With its 1013 threat for 10 rage, it makes more threat
-  per GCD than Shield Slam at this gear, and nearly twice as much per rage
-  ([W26](#w26-threat-per-global-cooldown-protection)). Revenge is cheaper still, but waits for its
-  window. So Shield Slam and Revenge keep their places for their damage and their cooldowns, Sunder
-  Armor takes the rest, and Heroic Strike spends rage the GCDs can't.
+- **Why Sunder Armor fills every free GCD.** With its 1013 threat for 10 rage, it makes about as
+  much threat per GCD as a Shield Slam at this gear (more before crits and armor), and nearly
+  twice as much per rage ([W26](#w26-threat-per-global-cooldown-protection)). Revenge is cheaper
+  still, but waits for its window. So Shield Slam and Revenge keep their places for their damage
+  and their cooldowns, Sunder Armor takes the rest, and Heroic Strike spends rage the GCDs can't.
 - **Thunder Clap and Demoralizing Shout roll the spell table** (the client's `DefenseType` Magic):
   17% miss against a raid boss before spell hit (14% with the default gear's 3% hit rating), no
   dodge, parry or block, and a miss refunds 80% as a melee ability's does [?]. Thunder Clap crits at

@@ -1,18 +1,8 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
+import { linkFor } from './links.ts'
 
 // Share links over the size caps in src/app/share.ts (docs/ux.md#persistence-and-sharing).
-
-/** A share-link hash for any JSON, in the app's format: deflate-raw, base64url, after #s=. */
-async function linkFor(page: Page, value: unknown): Promise<string> {
-  return page.evaluate(async (v) => {
-    const json = new TextEncoder().encode(JSON.stringify(v))
-    const packed = new Uint8Array(await new Response(new Blob([json]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer())
-    let binary = ''
-    for (const b of packed) binary += String.fromCharCode(b)
-    return '#s=' + btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-  }, value)
-}
 
 /**
  * A fresh page load of the link, as from a click elsewhere. (A link pasted into an open tab

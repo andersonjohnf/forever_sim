@@ -122,7 +122,7 @@ work is in slices:
 
 ## Session handoff (2026-09-23)
 
-State: `main` is green (lint, typecheck, 934 unit, 156 e2e with 3 deferred to M3). Nothing is
+State: `main` is green (lint, typecheck, 942 unit, 182 e2e with 3 deferred to M3). Nothing is
 pushed. Fury and Arms are available.
 
 **The review gate for the first release is still open**, in
@@ -135,12 +135,14 @@ decides; the push waits for "Ready to push: yes" there.
 - **Final verification:** nothing blocking. Of its 7 polish findings, 3 are fixed and 4 are
   deferred with reasons (listed under known gaps below).
 - **Review of the post-verification commits:** 9 findings (PV1–PV9), one blocking (PV1: the
-  sheets get no toast clearance). Being fixed.
+  sheets got no toast clearance). All fixed.
+- **Review of the PV fixes:** 10 findings (QV1–QV10), one blocking (QV1: selects listed their
+  options under a waiting toast). 9 fixed, 1 waived (QV8, extra room).
 
 Golden runs: Fury 673.8 DPS, Arms 610.7 DPS, Protection 217.0 TPS.
 
 **Next:**
-1. Fix PV1–PV9, have a fresh reviewer check the fixes, and set the log's verdict.
+1. Have a fresh reviewer check the QV fixes, resolve what it finds, and set the log's verdict.
 2. **M2.4d:** push when the user asks, then check the Pages deploy.
 3. **M3 Protection**, in a fresh session. Enable the 3 `test.fixme` tests in
    `e2e/tank-results.spec.ts` when Protection ships.

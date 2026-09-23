@@ -9,6 +9,10 @@ import { FOREVER } from '../rules/profiles'
 import { type Audience, BUFFS, type BuffSpec } from './buffs'
 import { catalogueEffects } from './types'
 
+/** Whether the entry does anything for the spec's class (`forClasses`; absent, every class). */
+export const forSpecClass = (buff: { forClasses?: readonly string[] }, spec: SpecId): boolean =>
+  !buff.forClasses || buff.forClasses.includes(SPEC_META[spec].classId)
+
 function reaches(audience: Audience, spec: SpecId): boolean {
   if (audience === 'all') return true
   if (audience === 'dps' || audience === 'tank') return SPEC_META[spec].role === audience
@@ -60,7 +64,7 @@ export function presetBuffIds(preset: BuffPreset['id'], spec: SpecId, raid: read
   const own = SPEC_META[spec].ownBuffs ?? []
   for (const buff of BUFFS) {
     const audience = buff.presets[preset]
-    if (!audience || !reaches(audience, spec) || own.includes(buff.id)) continue
+    if (!audience || !reaches(audience, spec) || !forSpecClass(buff, spec) || own.includes(buff.id)) continue
     if (!buffProvided(buff, raid, spec)) continue
     if (buff.exclusiveGroup) {
       if (taken.has(buff.exclusiveGroup)) continue

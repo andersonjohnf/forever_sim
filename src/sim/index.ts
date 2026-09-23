@@ -120,6 +120,7 @@ const BUFF_CATALOGUES = perProfile((profile): BuffDefinition[] =>
     summary: catalogueSummary(b, PROFILES[profile]),
     ...(b.providedBy ? { providedBy: b.providedBy } : {}),
     ...(b.selfCast ? { selfCast: true } : {}),
+    ...(b.forClasses ? { forClasses: b.forClasses } : {}),
     ...(b.exclusiveGroup ? { exclusiveGroup: b.exclusiveGroup } : {}),
     docRef: b.docRef,
   })),

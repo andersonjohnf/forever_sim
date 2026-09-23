@@ -189,6 +189,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     One that does nothing for your spec is dimmed and locked off the same way, and says why: for a
     druid, a Dense Sharpening Stone or Weightstone ("Not used in Cat Form: your attacks there don't
     use your weapon's damage.").
+  - Only what does something for your class is listed at all: mana and spell damage entries
+    (Blessing of Wisdom, mana potions, spell damage elixirs) show for paladins only
+    ([buffs doc](mechanics/buffs-debuffs-consumables.md#class-only-entries)). An entry your class
+    can use but your spec can't (the weapon stones in a form) is listed, locked off, as above.
   - Under Classic Era rules, a note at the top says the buff, debuff and consumable values are
     Classic Era's, with a link to **Character → Advanced** that opens the rule profile with focus
     on it.

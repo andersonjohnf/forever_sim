@@ -98,6 +98,10 @@ in both clients with its client rows.
   took the main-hand slot, and the `classicEra` profile models that; in Forever it probably
   doesn't. See [Windfury Totem](#windfury-totem).
 - **Presets** built on raid composition, not faction ([§6](#6-default-presets)).
+- **Class-only entries.** An entry that does nothing for the other classes (mana, spell damage:
+  the paladin's) says which classes it's for. The Buffs tab lists it only for them, presets
+  skip it for the others, and a saved setup of another class drops it
+  ([Implementation notes](#class-only-entries)).
 - **No world buffs** ([§2](#2-world-buffs-excluded)).
 - **Camp buffs** (a new Forever system) as optional fallbacks for missing classes
   ([§1.3](#13-camp-buffs-new-forever-system)).
@@ -834,8 +838,11 @@ SpellCategories, 1.60.1.69913).
 and 17): the Fury rotation drinks the Mighty Rage Potion once, from the start of the execute
 phase, and uses Juju Flurry on cooldown from the pull, each only when it's selected here; both
 are off the GCD. The Feral cat ([druid §6.2](../classes/druid.md#62-forever-cat-priority)) drinks the
-potion once, with Berserk, for its +60 Strength, and uses Juju Flurry on cooldown. EZ-Thro Dark
-Bomb and Greater Stoneshield Potion aren't simulated, and a result that selects them says so.
+potion once, with Berserk, for its +60 Strength, and uses Juju Flurry on cooldown. Retribution
+([paladin](../classes/paladin.md#forever-priority-list-default)) drinks the Major Mana Potion and
+uses a Demonic or Dark Rune whenever it's missing at least the mana its setting names, off the GCD
+and each on its own category's cooldown; a rune's 600–1000 health cost isn't simulated. EZ-Thro
+Dark Bomb and Greater Stoneshield Potion aren't simulated, and a result that selects them says so.
 An on-use *item* (a trinket, the Manual Crowd Pummeler) keeps its own cooldown and charges from
 its item effect: the Pummeler's +50% attack speed is ready every 180 s, 3 times a fight [F]
 [client] (ItemEffect, 1.60.1.69913; [druid §7.3](../classes/druid.md#73-weapon)). The long buffs above (Juju Might, Juju Power, Firewater, elixirs,
@@ -868,6 +875,10 @@ food) are static: used before the pull and up all fight.
   Holy Power, Flask of Supreme Power, spell-damage food and oils) only matter to paladin
   specs. How "up to 161" applies to each Holy source belongs to
   [paladin](../classes/paladin.md).
+- **Mana over time** is mana per 5 s on the sim's 2 s mana tick
+  ([paladin](../classes/paladin.md#mana-model)): Blessing of Wisdom's 40 every 5 s is 16 a
+  tick, and Mana Spring Totem's 10 every 2 s is 25 per 5 s, so exactly its 10 a tick. The
+  Blessing's 5 s period isn't kept (under 0.5% of DPS).
 - **Boss-side debuffs** (Demoralizing Shout / Roar, Thunder Clap, Curse of Weakness) reduce
   damage taken, which lowers tank rage from damage taken ([rage](rage.md)). They don't
   change DPS.
@@ -877,6 +888,16 @@ food) are static: used before the pull and up all fight.
   Arthas, Battle Squawk, healer-proc armor buffs (Inspiration / Ancestral Fortitude), and
   debuff-slot pressure.
 
+### Class-only entries
+
+An entry that does nothing for some classes carries the classes it's for (`forClasses` in
+`src/sim/effects/buffs.ts`). So far these are the paladin's: Blessing of Wisdom, Mana Spring
+Totem, Greater Arcane Elixir, Elixir of Holy Power, Flask of Supreme Power, the Major Mana
+Potion and the Demonic / Dark Rune. Warriors and druids in feral forms spend rage or energy,
+not mana, and deal no spell damage. For another class, the Buffs tab doesn't list such an
+entry, no preset selects it, `normalizeConfig` turns it off in a saved setup with a note, and
+the plan ignores it. The druid's own entries arrive with the druid specs.
+
 ### Classic Era values
 
 The `classicEra` rule profile uses each catalogue entry's Classic Era values where they differ
@@ -884,9 +905,9 @@ from Forever's. They were read from the Classic Era client **1.15.9.69722** on 2
 every Forever value was checked against **1.60.1.69913** at the same time [client]. In the
 tables, `a + 1` is a `SpellEffect` row's `EffectBasePoints` a with `EffectDieSides` 1, so the
 value is a + 1; `#n` is the effect index; `→` follows an item to its spell, an enchanting spell
-to its `SpellItemEnchantment`, and an enchant to its equip spell. All **98** entries were
-compared (42 buffs, debuffs and consumables; 56 enchants): **25 differ**, **18 are new in
-Forever**, and the other **55** are the same in both clients. Two of the 25 differ only in the
+to its `SpellItemEnchantment`, and an enchant to its equip spell. All **105** entries were
+compared (49 buffs, debuffs and consumables; 56 enchants): **27 differ**, **18 are new in
+Forever**, and the other **60** are the same in both clients. Two of the 25 differ only in the
 kind of crit: Leader of the Pack and Mongoose are all crit (aura 290, spells too) in Forever and
 melee and ranged crit (aura 52) in Classic Era.
 
@@ -934,6 +955,8 @@ melee and ranged crit (aura 52) in Classic Era.
 | Strength of Earth Totem r5 (`strengthOfEarth`) | +53 Str | **+77 Str** | 25362 #0 (the totem's aura): 76 + 1 | [C] |
 | Blessing of Salvation (`blessingOfSalvation`) | −30% threat | same | 1038 #0: −31 + 1 | [C] |
 | Devotion Aura r7 (`devotionAura`) | +735 armor | same | 10293 #0: 734 + 1 | [C] |
+| Blessing of Wisdom r6 (`blessingOfWisdom`) | 40 mana every 5 s | **33 every 5 s** | 25290 #0 (aura 24, period 5000): 32 + 1 (Greater 25918 the same) | [C] |
+| Mana Spring Totem r4 (`manaSpringTotem`) | 10 mana every 2 s (25 per 5 s) | same | the totem's Mana Spring 10494 #0 (aura 24, period 2000): 9 + 1 | [C] |
 | Sunder Armor ×5 (`sunderArmor`) | −2250 armor | same | 11597 #0: −451 + 1, ×5 | [C] |
 | Expose Armor (`exposeArmor`) | −2250 armor | **−1700 armor** | Both clients hold 0 (combo points scale it server-side), so these are the tooltip values ([§4.1](#41-armor-reduction)) | [C] tooltip |
 | Curse of Recklessness (`curseOfRecklessness`) | −505 armor | **−640 armor, +90 boss AP** | 11717 #1: −641 + 1; #0 (aura 99): 89 + 1 (Forever's #0 is a dummy) | [C] |
@@ -952,6 +975,9 @@ melee and ranged crit (aura 52) in Classic Era.
 | Elixir of Greater Defense (`elixirOfGreaterDefense`) | +450 armor | same (named Elixir of Superior Defense) | 13445 → 11348 #0: 449 + 1 | [C] |
 | Elixir of Fortitude (`elixirOfFortitude`) | +200 health | none: new in Forever (250334). Classic's item of that name, 3825 (+120 health), is Forever's Elixir of Lesser Fortitude, another item | — | [F] |
 | Flask of the Titans (`flaskOfTheTitans`) | +1200 health | same | 13510 → 17626 #0: 1199 + 1 | [C] |
+| Flask of Supreme Power (`flaskOfSupremePower`) | +150 spell damage | same | 13512 → 17628 #0 (aura 13, all magic schools): 149 + 1 | [C] |
+| Greater Arcane Elixir (`greaterArcaneElixir`) | +35 spell damage | same | 13454 → 17539 #0 (aura 13, all magic schools): 34 + 1 | [C] |
+| Elixir of Holy Power (`elixirOfHolyPower`) | +40 Holy spell damage | **+40 Fire spell damage** (Elixir of Greater Firepower): nothing for Holy | 21546 → 26276 #0 (aura 13, Fire): 39 + 1 (Forever: 1310077, Holy) | [C] |
 | Flasks of Natural Accuracy, Aggression, Precision, Swiftness (`flaskOfNatural…`) | +60 Sta and a zone bonus | none: new in Forever (274273–274276) | — | [F] |
 | Winterfall Firewater (`winterfallFirewater`) | +35 AP | same | 12820 → 17038 #0: 34 + 1 | [C] |
 | Juju Might (`jujuMight`) | +40 AP | same | 12460 → 16329 #0: 39 + 1 | [C] |
@@ -964,6 +990,8 @@ melee and ranged crit (aura 52) in Classic Era.
 | Dense Sharpening Stone / Weightstone (`denseSharpeningStone`) | +8 weapon damage | same | 12404 → 16138 → enchant 1643: 8; 12643 → 16622 → 1703: 8 | [C] |
 | Elemental Sharpening Stone (`elementalSharpeningStone`) | +2% crit | same | 18262 → 22756 → enchant 2506 → 22755 #0: 1 + 1 | [C] |
 | Mighty Rage Potion (`mightyRagePotion`) | 45–75 rage, +60 Str for 20 s | same | 13442 → 17528 #0: 449 + 1d301 tenths; #1: 59 + 1; 20 s | [C] |
+| Major Mana Potion (`majorManaPotion`) | 1350–2250 mana | same | 13444 → 17531 #0: 1349 + 1d901 | [C] |
+| Demonic / Dark Rune (`demonicRune`) | 900–1500 mana (and 600–1000 health, not simulated) | same | 12662 → 16666 and 20520 → 27869 #0: 899 + 1d601 | [C] |
 | Juju Flurry (`jujuFlurry`) | +3% attack speed for 20 s | same | 12450 → 16322 #0: 2 + 1; 20 s | [C] |
 | EZ-Thro Dark Bomb (`ezThroDarkBomb`) | not simulated | none: new in Forever (260817) | — | [F] |
 | Greater Stoneshield Potion (`greaterStoneshieldPotion`) | not simulated (+2000 armor) | same | 13455 → 17540 #0: 1999 + 1 | [C] |

@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import itemsJson from '@/data/client/items.json'
 import spellsJson from '@/data/client/spells.json'
 import type { ClientItems, ClientSpells } from '@/data/client/types'
-import { JUJU_FLURRY, MIGHTY_RAGE_POTION } from './buffs'
+import { DEMONIC_RUNE, JUJU_FLURRY, MAJOR_MANA_POTION, MIGHTY_RAGE_POTION } from './buffs'
 import { ITEM_EFFECTS } from './items'
 import type { OnUseSpec } from './types'
 
@@ -50,6 +50,38 @@ describe('on-use consumables match src/data/client (buffs doc §3.3, §3.5)', ()
     const str = spell.effects.find((e) => e.effect === APPLY_AURA && e.effectAura === AURA.modStat)!
     expect(str.effectMiscValue?.[0] ?? 0, 'stat 0 = Strength').toBe(0)
     expect(MIGHTY_RAGE_POTION.aura?.mods).toEqual({ str: str.effectBasePointsF })
+  })
+
+  it('Major Mana Potion (13444 → 17531): 1,350–2,250 mana, no GCD, 2 min potion cooldown', () => {
+    const { effect, spell } = useOf(13444, true)
+    expect(spell.name).toBe('Restore Mana')
+    expect(MAJOR_MANA_POTION.gcdMs).toBe(spell.cooldowns?.startRecoveryTime ?? 0)
+    expect(MAJOR_MANA_POTION.aura).toBeNull()
+    expect(effect.spellCategoryId).toBe(4) // the potion category, shared with the Mighty Rage Potion
+    expect(MAJOR_MANA_POTION.cooldownMs).toBe(cooldownOf(effect))
+    // Energize, power type 0 (mana): 1800 with variance 0.5, so 1800 × (1 ± 0.25), in tenths.
+    const energize = spell.effects.find((e) => e.effect === ENERGIZE)!
+    expect(energize.effectMiscValue?.[0] ?? 0, 'mana').toBe(0)
+    const [low, high] = [energize.effectBasePointsF! * (1 - energize.variance! / 2), energize.effectBasePointsF! * (1 + energize.variance! / 2)]
+    expect([MAJOR_MANA_POTION.manaTenths, MAJOR_MANA_POTION.manaTenths! + MAJOR_MANA_POTION.manaSpreadTenths!]).toEqual([10 * low, 10 * high])
+    expect([low, high]).toEqual([1350, 2250])
+    expect([MAJOR_MANA_POTION.rageTenths, MAJOR_MANA_POTION.rageSpreadTenths]).toEqual([0, 0])
+  })
+
+  it('Demonic Rune and Dark Rune (12662, 20520 → 16666, 27869): 900–1,500 mana, the rune category’s own 2 min cooldown', () => {
+    for (const item of [12662, 20520]) {
+      const { effect, spell } = useOf(item, true)
+      expect(DEMONIC_RUNE.gcdMs).toBe(spell.cooldowns?.startRecoveryTime ?? 0)
+      expect(effect.spellCategoryId).toBe(1153) // runes, apart from potions
+      expect(DEMONIC_RUNE.cooldownMs).toBe(cooldownOf(effect))
+      const energize = spell.effects.find((e) => e.effect === ENERGIZE)!
+      expect(energize.effectMiscValue?.[0] ?? 0, 'mana').toBe(0)
+      const low = energize.effectBasePointsF! * (1 - energize.variance! / 2)
+      const high = energize.effectBasePointsF! * (1 + energize.variance! / 2)
+      expect([DEMONIC_RUNE.manaTenths, DEMONIC_RUNE.manaTenths! + DEMONIC_RUNE.manaSpreadTenths!]).toEqual([10 * low, 10 * high])
+      expect([low, high]).toEqual([900, 1500])
+    }
+    expect(DEMONIC_RUNE.aura).toBeNull()
   })
 
   it('Juju Flurry (12450 → 16322): +3% attack speed for 20 s, its own 60 s cooldown', () => {

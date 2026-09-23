@@ -66,6 +66,7 @@ function digest(effects: Effect[]): Line[] {
           break
         }
         if (use.rageTenths || use.rageSpreadTenths) lines.push([`${e.id} rage tenths min`, use.rageTenths], [`${e.id} rage tenths max`, use.rageTenths + use.rageSpreadTenths])
+        if (use.manaTenths) lines.push([`${e.id} mana tenths min`, use.manaTenths], [`${e.id} mana tenths max`, use.manaTenths + (use.manaSpreadTenths ?? 0)])
         for (const [mod, v] of Object.entries(use.aura?.mods ?? {})) lines.push([`${e.id} ${mod}`, v])
         break
       }
@@ -138,6 +139,9 @@ const ROWS: Record<string, Row> = {
   strengthOfEarth: { forever: [['str', 53]], classicEra: [['str', 77]], rows: [S(25362)] },
   blessingOfSalvation: { rows: [S(1038)] },
   devotionAura: { rows: [S(10293)] },
+  // Mana per 5 s: 40 every 5 s (Classic Era 33); the totem's Mana Spring 10494, 10 every 2 s, × 2.5.
+  blessingOfWisdom: { forever: [['mp5', 40]], classicEra: [['mp5', 33]], rows: [S(25290)] },
+  manaSpringTotem: { forever: [['mp5', 25]], rows: [S(10494, 0, { times: 2.5 })] },
   // Target debuffs
   sunderArmor: { rows: [S(11597, 0, { times: 5 })] },
   // Both clients have 0 here (combo points scale it server-side): tooltip values.
@@ -168,6 +172,10 @@ const ROWS: Record<string, Row> = {
   elixirOfGreaterDefense: { rows: [S(11348)] },
   elixirOfFortitude: { foreverOnly: true, rows: [S(1250928)] },
   flaskOfTheTitans: { rows: [S(17626)] },
+  flaskOfSupremePower: { forever: [['spellDamage', 150]], rows: [S(17628)] },
+  greaterArcaneElixir: { forever: [['spellDamage', 35]], rows: [S(17539)] },
+  // Classic Era's item is Elixir of Greater Firepower (26276), Fire spell damage: nothing for Holy.
+  elixirOfHolyPower: { forever: [['holySpellDamage', 40]], classicEra: [], rows: [S(1310077)], classicRows: [] },
   flaskOfNaturalAccuracy: { foreverOnly: true, rows: [S(1293740, 0), S(1293740, 1)] },
   // The dummy's 4 is the zone bonus of its all-crit aura (290), so spell crit too.
   flaskOfNaturalAggression: { foreverOnly: true, rows: [S(1293741, 0), S(1293741, 1), S(1293741, 1)] },
@@ -188,6 +196,9 @@ const ROWS: Record<string, Row> = {
   denseSharpeningStone: { rows: [E(1643, 16138)] },
   elementalSharpeningStone: { rows: [E(2506, 22756)] },
   mightyRagePotion: { rows: [S(17528, 0, { bound: 'min' }), S(17528, 0, { bound: 'max' }), S(17528, 1)] },
+  // Mana in tenths: the energize's bounds × 10 (the health a rune costs isn't simulated).
+  majorManaPotion: { rows: [S(17531, 0, { bound: 'min', times: 10 }), S(17531, 0, { bound: 'max', times: 10 })] },
+  demonicRune: { rows: [S(16666, 0, { bound: 'min', times: 10 }), S(16666, 0, { bound: 'max', times: 10 })] },
   jujuFlurry: { rows: [S(16322)] },
   ezThroDarkBomb: { foreverOnly: true, rows: [null] },
   greaterStoneshieldPotion: { rows: [null] },
@@ -262,7 +273,7 @@ const ENTRIES: [string, CatalogueEntry][] = [...BUFFS.map((b) => [b.id, b] as [s
 describe('the catalogue in both profiles (buffs doc, Classic Era values)', () => {
   it('lists every entry once in the table, as the doc does', () => {
     expect(Object.keys(ROWS).sort()).toEqual(ENTRIES.map(([id]) => id).sort())
-    expect(ENTRIES).toHaveLength(99)
+    expect(ENTRIES).toHaveLength(106)
   })
 
   it.each(ENTRIES)('%s: Forever’s values, and Classic Era’s where they differ', (id, entry) => {

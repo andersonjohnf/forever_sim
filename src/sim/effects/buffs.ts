@@ -1,13 +1,15 @@
-// The buff catalogue: raid buffs, target debuffs and consumables for the warrior specs
-// (docs/mechanics/buffs-debuffs-consumables.md). Paladin- and druid-only entries (spell power,
-// mana, Holy debuffs) arrive with those specs. World buffs never exist here (decision D8).
+// The buff catalogue: raid buffs, target debuffs and consumables
+// (docs/mechanics/buffs-debuffs-consumables.md). Entries that do something for one class only
+// (mana and spell damage: the paladin's) say so in `forClasses`: the Buffs tab lists them for that
+// class, and presets and the plan skip them for the others. Druid-only entries arrive with those
+// specs. World buffs never exist here (decision D8).
 //
 // Each entry is a UI-facing BuffDefinition plus its effects and the presets that include it
 // (buffs doc §6.2 and §6.3). Values are Forever's. An entry whose Classic Era value differs
 // carries it in `classicEra` (from the Classic Era client, buffs doc "Classic Era values"), or
 // reads the rule profile's `values` where a worked example ties it to the profile; resolve them
 // with `catalogueEffects`. Entries new in Forever have no Classic Era value and keep Forever's.
-import type { BuffDefinition, BuffPreset, SpecId } from '../types'
+import type { BuffDefinition, BuffPreset, ClassId, SpecId } from '../types'
 import type { ClassicEraValues, EffectList, OnUseSpec } from './types'
 
 const DOC = 'docs/mechanics/buffs-debuffs-consumables.md'
@@ -24,6 +26,12 @@ export interface BuffSpec extends BuffDefinition {
 
 const WARRIOR_DPS: SpecId[] = ['warrior-fury', 'warrior-arms']
 const MELEE_TANKS: SpecId[] = ['warrior-protection', 'druid-feral-bear']
+/** `Pal` in the buffs doc's presets (§6.2): the paladin specs only. */
+const PALADINS: SpecId[] = ['paladin-retribution', 'paladin-protection']
+const RETRIBUTION: SpecId[] = ['paladin-retribution']
+const PROTECTION_PALADIN: SpecId[] = ['paladin-protection']
+/** Mana and spell damage do something for the paladin only among the classes in scope. */
+const PALADIN_ONLY: readonly ClassId[] = ['paladin']
 /**
  * The weapons an Elemental Sharpening Stone fits: 22756 and its enchant's aura 22755 need a weapon
  * (item class 2) of subclass mask 42483, which is one- and two-handed axes, maces and swords,
@@ -63,6 +71,44 @@ export const JUJU_FLURRY: OnUseSpec = {
   aura: { id: 'jujuFlurry', name: 'Juju Flurry', durationMs: 20000, mods: { haste: 3 } },
   rageTenths: 0,
   rageSpreadTenths: 0,
+}
+
+/**
+ * Major Mana Potion (item 13444 → spell 17531; buffs doc §3.5): an energize of 1800 mana with
+ * variance 0.5, so 1350–2250, drawn as 1350 + a whole 0…900 (in tenths, Classic Era's 1349 + 1d901).
+ * No GCD; the potion category's 2 min cooldown is on the item [F] [client] (SpellEffect,
+ * ItemEffect, 1.60.1.69913).
+ */
+export const MAJOR_MANA_POTION: OnUseSpec = {
+  id: 'majorManaPotion',
+  name: 'Major Mana Potion',
+  icon: 'inv_potion_76',
+  cooldownMs: 120000,
+  gcdMs: 0,
+  aura: null,
+  rageTenths: 0,
+  rageSpreadTenths: 0,
+  manaTenths: 13500,
+  manaSpreadTenths: 9000,
+}
+
+/**
+ * Demonic Rune and Dark Rune (items 12662 / 20520 → spells 16666 / 27869; buffs doc §3.5): 900–1500
+ * mana (1200, variance 0.5), and 600–1000 health lost, which a DPS sim doesn't track. No GCD; the
+ * rune category's 2 min cooldown, apart from the potions' [F] [client] (SpellEffect, ItemEffect,
+ * 1.60.1.69913).
+ */
+export const DEMONIC_RUNE: OnUseSpec = {
+  id: 'demonicRune',
+  name: 'Demonic Rune / Dark Rune',
+  icon: 'inv_misc_rune_04',
+  cooldownMs: 120000,
+  gcdMs: 0,
+  aura: null,
+  rageTenths: 0,
+  rageSpreadTenths: 0,
+  manaTenths: 9000,
+  manaSpreadTenths: 6000,
 }
 
 export const BUFFS: BuffSpec[] = [
@@ -250,6 +296,35 @@ export const BUFFS: BuffSpec[] = [
     effects: [{ kind: 'stat', stat: 'bonusArmor', value: 735 }],
     presets: { raid: 'tank', max: 'tank' },
   },
+  {
+    id: 'blessingOfWisdom',
+    name: 'Blessing of Wisdom',
+    icon: 'spell_holy_sealofwisdom',
+    category: 'raidBuff',
+    group: 'Mana',
+    summary: '+40 mana every five seconds',
+    providedBy: 'paladin',
+    forClasses: PALADIN_ONLY,
+    docRef: `${DOC}#12-threat-defense-and-mana`,
+    // 25290 #0: aura 24, 40 every 5 s; the sim's mana ticks every 2 s, so 16 a tick.
+    effects: [{ kind: 'stat', stat: 'mp5', value: 40 }],
+    classicEra: { summary: '+33 mana every five seconds', effects: [{ kind: 'stat', stat: 'mp5', value: 33 }] },
+    presets: { raid: PALADINS, max: PALADINS },
+  },
+  {
+    id: 'manaSpringTotem',
+    name: 'Mana Spring Totem',
+    icon: 'spell_nature_manaregentotem',
+    category: 'raidBuff',
+    group: 'Mana',
+    summary: '+10 mana every two seconds',
+    providedBy: 'shaman',
+    forClasses: PALADIN_ONLY,
+    docRef: `${DOC}#12-threat-defense-and-mana`,
+    // The totem's Mana Spring 10494 #0: aura 24, 10 every 2 s, which is 25 mana per 5 s.
+    effects: [{ kind: 'stat', stat: 'mp5', value: 25 }],
+    presets: { raid: PALADINS, max: PALADINS },
+  },
 
   // --- Target debuffs (§4) -------------------------------------------------------------------
   {
@@ -423,6 +498,34 @@ export const BUFFS: BuffSpec[] = [
     presets: { raid: [...MELEE_TANKS, 'paladin-protection'], max: [...MELEE_TANKS, 'paladin-protection'] },
   },
   {
+    id: 'greaterArcaneElixir',
+    name: 'Greater Arcane Elixir',
+    icon: 'inv_potion_25',
+    category: 'consumable',
+    group: 'Elixirs',
+    summary: '+35 spell damage',
+    forClasses: PALADIN_ONLY,
+    docRef: `${DOC}#32-elixirs`,
+    // 17539 #0: aura 13, school mask 126, all magic schools, so Holy too.
+    effects: [{ kind: 'stat', stat: 'spellDamage', value: 35 }],
+    presets: { raid: RETRIBUTION, max: PALADINS },
+  },
+  {
+    id: 'elixirOfHolyPower',
+    name: 'Elixir of Holy Power',
+    icon: 'inv_potion_60',
+    category: 'consumable',
+    group: 'Elixirs',
+    summary: '+40 Holy spell damage',
+    forClasses: PALADIN_ONLY,
+    docRef: `${DOC}#32-elixirs`,
+    // 1310077 #0: aura 13, school mask 2 (Holy). Classic Era's item is Elixir of Greater Firepower
+    // (26276: Fire, mask 4), which does nothing for a paladin.
+    effects: [{ kind: 'stat', stat: 'holySpellDamage', value: 40 }],
+    classicEra: { summary: 'Fire spell damage (Classic Era’s Elixir of Greater Firepower), nothing for Holy', effects: [] },
+    presets: { raid: PROTECTION_PALADIN, max: PALADINS },
+  },
+  {
     id: 'flaskOfTheTitans',
     name: 'Flask of the Titans',
     icon: 'inv_potion_62',
@@ -433,6 +536,20 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#31-flasks`,
     effects: [{ kind: 'stat', stat: 'health', value: 1200 }],
     presets: { max: MELEE_TANKS },
+  },
+  {
+    id: 'flaskOfSupremePower',
+    name: 'Flask of Supreme Power',
+    icon: 'inv_potion_41',
+    category: 'consumable',
+    group: 'Flasks',
+    summary: '+150 spell damage',
+    exclusiveGroup: 'flask',
+    forClasses: PALADIN_ONLY,
+    docRef: `${DOC}#31-flasks`,
+    // 17628 #0: aura 13, school mask 126, all magic schools, so Holy too.
+    effects: [{ kind: 'stat', stat: 'spellDamage', value: 150 }],
+    presets: { max: PALADINS },
   },
   {
     id: 'flaskOfNaturalAccuracy',
@@ -656,6 +773,30 @@ export const BUFFS: BuffSpec[] = [
       raid: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-bear'],
       max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear'],
     },
+  },
+  {
+    id: 'majorManaPotion',
+    name: 'Major Mana Potion',
+    icon: 'inv_potion_76',
+    category: 'consumable',
+    group: 'Potions and bombs',
+    summary: '1,350–2,250 mana, when that much is missing',
+    forClasses: PALADIN_ONLY,
+    docRef: `${DOC}#35-potions-and-runes`,
+    effects: [{ kind: 'onUse', id: 'majorManaPotion', name: 'Major Mana Potion', use: MAJOR_MANA_POTION }],
+    presets: { raid: PALADINS, max: PALADINS },
+  },
+  {
+    id: 'demonicRune',
+    name: 'Demonic Rune / Dark Rune',
+    icon: 'inv_misc_rune_04',
+    category: 'consumable',
+    group: 'Potions and bombs',
+    summary: '900–1,500 mana, when that much is missing; its own cooldown, apart from potions',
+    forClasses: PALADIN_ONLY,
+    docRef: `${DOC}#35-potions-and-runes`,
+    effects: [{ kind: 'onUse', id: 'demonicRune', name: 'Demonic Rune / Dark Rune', use: DEMONIC_RUNE }],
+    presets: { max: PALADINS },
   },
   {
     id: 'jujuFlurry',

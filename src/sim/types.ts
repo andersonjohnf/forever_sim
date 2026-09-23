@@ -267,6 +267,11 @@ export interface BuffDefinition {
    * (a druid's Mark of the Wild; buffs doc §6.1).
    */
   selfCast?: boolean
+  /**
+   * The classes it does anything for (mana and spell damage: the paladin); absent, every class.
+   * The Buffs tab lists it only for them, and presets and the plan skip it for the others.
+   */
+  forClasses?: readonly ClassId[]
   /** Buffs sharing a key are mutually exclusive (e.g. one battle elixir). */
   exclusiveGroup?: string
   /** Owning doc section, e.g. "docs/mechanics/buffs-debuffs-consumables.md#…". */

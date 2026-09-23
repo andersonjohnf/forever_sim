@@ -509,6 +509,13 @@ describe('golden run (fixed config and seed)', () => {
   //   Protection's own potion line, Heroic Strike queue and pre-pull keep their conditions through
   //   the shared code's changes, and the same identity probe gives Protection's whole results as
   //   before the rebase, and Fury's and Arms' as main's once PU9 restored the Overpower assumption.
+  // - P2's review (PU2): Protection's default build spends all 51 points, 8/5/38 where the popular
+  //   5/5/36 left five unspent: Improved Heroic Strike 3/3 (Heroic Strike 12 → 9 rage), Improved
+  //   Sunder Armor's third point (Sunder Armor 10 → 9) and Toughness 1/5 (+2% armor from items).
+  //   The rotation's settings are unchanged here. On this seed's 500 fights there are more Heroic
+  //   Strikes (1,881 → 2,412 parried), so their threat 8.30 M → 10.99 M and the main hand's 12.10 M
+  //   → 11.07 M as they take its swings; TPS 985.63 → 1,004.67, DPS 305.98 → 313.29. Fury and Arms
+  //   are unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

@@ -23,7 +23,7 @@ import { CHUNK_SIZE, runChunk } from './chunk'
 import { BOSS_OUTCOME, FIELD, Sim } from './sim'
 import { addAbility, addProc, at, counter, damages, expectMean, from, line, rageAtPull, rotationOff } from './test-helpers'
 
-/** The default Protection build's talents by name (5/5/36, warrior.md §6.1). */
+/** The default Protection build's talents by name (8/5/38, warrior.md §6.1). */
 const TALENTS = talentRanksByName(TALENT_DATA.warrior, defaultConfig('warrior-protection').talents)
 
 /**

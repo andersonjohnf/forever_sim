@@ -128,7 +128,7 @@ test.describe('talents', () => {
     await presets.click()
     // Only the builds of specs the app offers (docs/ux.md principle 8): Protection's since it
     // shipped. One "(default)": another spec's default reads plainly (TU10).
-    await expect(page.getByRole('option')).toHaveText(['Fury (default)', 'Fury + Precision', 'Arms default', 'Protection default', 'Protection (TPS)'])
+    await expect(page.getByRole('option')).toHaveText(['Fury (default)', 'Fury + Precision', 'Arms default', 'Protection default', 'Protection + Improved Thunder Clap'])
     await page.getByRole('option', { name: 'Fury + Precision' }).click()
     await expect(page.getByText('15 / 36 / 0')).toBeVisible()
     await expect(presets).toHaveText('Fury + Precision')

@@ -25,8 +25,24 @@
         ""
       ]
     },
+    "35-05-552101233301210531": {
+      "note": "Protection default (8/5/38), warrior.md §6.1",
+      "ranks": [
+        "Improved Heroic Strike 3, Deflection 5",
+        "Cruelty 5",
+        "Shield Specialization 5, Anticipation 5, Improved Bloodrage 2, Toughness 1, Last Stand 1, Master of Defense 2, Improved Revenge 3, Defiance 3, Improved Sunder Armor 3, Vanguard 1, Improved Shield Wall 2, Concussion Blow 1, Bastion 5, Focused Rage 3, Shield Slam 1"
+      ]
+    },
+    "05-05-552131233301210531": {
+      "note": "Protection + Improved Thunder Clap (5/5/41), warrior.md §6.1",
+      "ranks": [
+        "Deflection 5",
+        "Cruelty 5",
+        "Shield Specialization 5, Anticipation 5, Improved Bloodrage 2, Toughness 1, Improved Thunder Clap 3, Last Stand 1, Master of Defense 2, Improved Revenge 3, Defiance 3, Improved Sunder Armor 3, Vanguard 1, Improved Shield Wall 2, Concussion Blow 1, Bastion 5, Focused Rage 3, Shield Slam 1"
+      ]
+    },
     "05-05-552001233201210531": {
-      "note": "Protection default (5/5/36), warrior.md §6.1",
+      "note": "The former Protection default (5/5/36, 46 points; until P2's review): saved setups and share links may hold it",
       "ranks": [
         "Deflection 5",
         "Cruelty 5",
@@ -34,7 +50,7 @@
       ]
     },
     "32-05-552001233201210531": {
-      "note": "Protection, TPS variant (5/5/36), warrior.md §6.1",
+      "note": "The former Protection \"TPS\" preset (5/5/36, 46 points; until P2's review): saved setups and share links may hold it",
       "ranks": [
         "Improved Heroic Strike 3, Deflection 2",
         "Cruelty 5",

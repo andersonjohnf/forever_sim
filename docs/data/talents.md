@@ -198,8 +198,10 @@ every tree, talent and max rank, position by position.
 | Warrior | `30305013002-050530035150010051-` | Fury default ([warrior.md §6.1](../classes/warrior.md#61-talent-builds)) | 17/34/0 | yes | yes |
 | Warrior | `30305013-050520035150310051-` | Fury + Precision (§6.1) | 15/36/0 | yes | yes |
 | Warrior | `30305213132515201-05050103-` | Arms default (§6.1) | 37/14/0 | yes | yes |
-| Warrior | `05-05-552001233201210531` | Protection default (§6.1) | 5/5/36 | yes | yes |
-| Warrior | `32-05-552001233201210531` | Protection "TPS" variant (§6.1) | 5/5/36 | yes | yes |
+| Warrior | `35-05-552101233301210531` | Protection default (§6.1) | 8/5/38 | yes | yes |
+| Warrior | `05-05-552131233301210531` | Protection + Improved Thunder Clap (§6.1) | 5/5/41 | yes | yes |
+| Warrior | `05-05-552001233201210531` | The former Protection default, kept for saved setups (§6.1) | 5/5/36 | yes | yes |
+| Warrior | `32-05-552001233201210531` | The former Protection "TPS" preset, kept for saved setups (§6.1) | 5/5/36 | yes | yes |
 | Druid | `050022-5520002123032213051-05` | Feral cat default ([druid.md §7.1](../classes/druid.md#71-talents)) | 9/37/5 | yes | yes |
 | Druid | `050012-5523032120132210551-` | Feral bear default (§7.1) | 8/43/0 | yes | yes |
 | Druid | `5532220115501351-05-` | Balance (druid.md) | 41/5/0 | yes | yes |

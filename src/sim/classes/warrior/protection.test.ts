@@ -34,7 +34,7 @@ const AURA = { armor: 22, block: 51, ap: 99, slow: 319 }
 /** `EquippedItemSubclass` 64: shields (item class 4, armor). */
 const SHIELD = 64
 
-/** The default Protection build's talents by name (5/5/36, warrior.md §6.1). */
+/** The default Protection build's talents by name (8/5/38, warrior.md §6.1). */
 const TALENTS = talentRanksByName(TALENT_DATA.warrior, defaultConfig('warrior-protection').talents)
 const noAura = () => -1
 type Rot = ReturnType<typeof protectionRotation>
@@ -173,16 +173,16 @@ describe('Protection talents on its abilities (warrior.md §4.3, W14, W20)', () 
       const t = (damage * a.threatMult + a.threatBonus) * m
       return [Math.round(t * 100) / 100, a.costTenths / 10, Math.round((t / (a.costTenths / 10)) * 100) / 100]
     }
-    expect(threat(SUNDER_ARMOR)).toEqual([1514.44, 10, 151.44])
+    expect(threat(SUNDER_ARMOR)).toEqual([1514.44, 9, 168.27])
     expect(threat(SHIELD_SLAM)).toEqual([1440.93, 17, 84.76])
     expect(threat(REVENGE)).toEqual([1218.86, 2, 609.43])
     expect(threat(THUNDER_CLAP)).toEqual([381.11, 17, 22.42])
     expect(threat(DEMORALIZING_SHOUT)).toEqual([64.58, 7, 9.23])
   })
 
-  it('W20: the default build’s costs (Focused Rage 3/3, Improved Sunder Armor 2/3)', () => {
+  it('W20: the default build’s costs (Focused Rage 3/3, Improved Sunder Armor 3/3)', () => {
     const costs = [SUNDER_ARMOR, SHIELD_SLAM, REVENGE, THUNDER_CLAP, DEMORALIZING_SHOUT, SHIELD_BLOCK].map((a) => withTalents(a, TALENTS).costTenths / 10)
-    expect(costs).toEqual([10, 17, 2, 17, 7, 10])
+    expect(costs).toEqual([9, 17, 2, 17, 7, 10])
   })
 })
 

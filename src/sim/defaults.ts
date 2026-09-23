@@ -28,7 +28,7 @@ export const TALENT_DATA: Record<ClassId, TalentData> = {
 const DEFAULT_TALENTS: Record<SpecId, string> = {
   'warrior-fury': '30305013002-050530035150010051-', // popular Fury (docs/classes/warrior.md §6.1)
   'warrior-arms': '30305213132515201-05050103-', // popular Arms
-  'warrior-protection': '05-05-552001233201210531', // popular Protection
+  'warrior-protection': '35-05-552101233301210531', // Protection 8/5/38 (docs/classes/warrior.md §6.1)
   'druid-feral-cat': '050022-5520002123032213051-05', // popular Feral (docs/classes/druid.md)
   'druid-feral-bear': '050012-5523032120132210551-', // documented bear preset (docs/classes/druid.md)
   'paladin-retribution': '250003-503-052052310012330321', // docs/classes/paladin.md
@@ -53,10 +53,10 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
     { name: 'Fury + Precision', code: '30305013-050520035150310051-' },
     // docs/classes/warrior.md#61-talent-builds: Arms 37/14/0
     { name: 'Arms (default)', code: DEFAULT_TALENTS['warrior-arms'] },
-    // docs/classes/warrior.md#61-talent-builds: Protection 5/5/36
+    // docs/classes/warrior.md#61-talent-builds: Protection 8/5/38
     { name: 'Protection (default)', code: DEFAULT_TALENTS['warrior-protection'] },
-    // docs/classes/warrior.md#61-talent-builds: the Protection "TPS" variant, also 5/5/36
-    { name: 'Protection (TPS)', code: '32-05-552001233201210531' },
+    // docs/classes/warrior.md#61-talent-builds: Protection 5/5/41, Improved Thunder Clap 3 for Improved Heroic Strike 3
+    { name: 'Protection + Improved Thunder Clap', code: '05-05-552131233301210531' },
   ],
   druid: [
     // docs/classes/druid.md#71-talents: Cat 9/37/5

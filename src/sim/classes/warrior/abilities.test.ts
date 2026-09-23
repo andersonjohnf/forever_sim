@@ -573,10 +573,21 @@ describe('rage costs per build (warrior.md §2.3 "Cost reductions")', () => {
   const ranks = (code: string) => talentRanksByName(TALENT_DATA.warrior, code)
   const costs = (code: string, ids: string[]) => Object.fromEntries(ids.map((id) => [id, rageCost(id, baseCost(id), ranks(code))]))
 
-  it('W20: Protection default build (Focused Rage 3/3, Improved Sunder Armor 2/3)', () => {
-    expect(
-      costs('05-05-552001233201210531', ['sunderArmor', 'shieldSlam', 'revenge', 'heroicStrike', 'thunderClap', 'demoralizingShout', 'battleShout', 'shieldBlock', 'deathWish']),
-    ).toEqual({ sunderArmor: 10, shieldSlam: 17, revenge: 2, heroicStrike: 12, thunderClap: 17, demoralizingShout: 7, battleShout: 10, shieldBlock: 10, deathWish: 7 })
+  it('W20: Protection default build (Focused Rage 3/3, Improved Sunder Armor 3/3, Improved Heroic Strike 3/3), and its Improved Thunder Clap preset', () => {
+    const ids = ['sunderArmor', 'shieldSlam', 'revenge', 'heroicStrike', 'thunderClap', 'demoralizingShout', 'battleShout', 'shieldBlock', 'deathWish']
+    expect(costs('35-05-552101233301210531', ids)).toEqual({
+      sunderArmor: 9,
+      shieldSlam: 17,
+      revenge: 2,
+      heroicStrike: 9,
+      thunderClap: 17,
+      demoralizingShout: 7,
+      battleShout: 10,
+      shieldBlock: 10,
+      deathWish: 7,
+    })
+    // Improved Thunder Clap 3/3 in place of Improved Heroic Strike 3/3.
+    expect(costs('05-05-552131233301210531', ['heroicStrike', 'thunderClap'])).toEqual({ heroicStrike: 12, thunderClap: 11 })
   })
 
   it('W21: Fury default build (Improved Heroic Strike 3/3, no Improved Execute)', () => {

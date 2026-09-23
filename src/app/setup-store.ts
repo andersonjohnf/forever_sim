@@ -1,10 +1,12 @@
 // The user's setup (docs/ux.md#persistence-and-sharing): the current SimConfig plus the last
 // setup per spec, so switching specs and back keeps your changes. Persisted to localStorage;
 // anything loaded back goes through the engine's normalizeConfig.
+import { toast } from 'sonner'
 import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
+import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware'
 import { defaultConfig, normalizeConfig, type SimConfig, type SpecId } from '@/sim'
 import { defaultSpec, isVisibleSpec } from './specs'
+import { isQuotaError } from './storage-errors'
 
 export type Section = 'character' | 'talents' | 'gear' | 'buffs' | 'rotation' | 'fight'
 
@@ -29,6 +31,46 @@ interface SetupState {
 
 function fresh(spec: SpecId): SimConfig {
   return normalizeConfig(defaultConfig(spec)).config
+}
+
+/** Whether the notice that the automatic save failed is up, or was, since the last save that worked. */
+let saidFull = false
+
+/**
+ * The automatic save's storage: localStorage, with its errors caught, so a change never throws
+ * because the setup can't be written. When this site's storage is full, a notice says so once,
+ * until a save works again; the change itself still applies, for as long as the page is open.
+ * Storage the browser blocks fails quietly, as zustand does when it can't reach localStorage at
+ * all: the Setups sheet says so where it matters.
+ */
+export const autoSaveStorage: StateStorage = {
+  getItem: (name) => {
+    try {
+      return localStorage.getItem(name)
+    } catch {
+      return null
+    }
+  },
+  setItem: (name, value) => {
+    try {
+      localStorage.setItem(name, value)
+      saidFull = false
+    } catch (error) {
+      if (!isQuotaError(error) || saidFull) return
+      saidFull = true
+      toast.error('Your changes aren’t being kept', {
+        id: 'auto-save',
+        description: 'Your browser’s storage for this site is full, so this setup will be lost when you close the page. Delete saved setups you don’t need to make room.',
+      })
+    }
+  },
+  removeItem: (name) => {
+    try {
+      localStorage.removeItem(name)
+    } catch {
+      // Nothing to do: it stays as it was.
+    }
+  },
 }
 
 export const useSetup = create<SetupState>()(
@@ -56,7 +98,7 @@ export const useSetup = create<SetupState>()(
     {
       name: 'forever-sim:setup',
       version: 1,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => autoSaveStorage),
       partialize: ({ config, bySpec, section }) => ({ config, bySpec, section }),
       merge: (persisted, current) => {
         const saved = (persisted ?? {}) as Partial<SetupState>

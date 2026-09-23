@@ -70,16 +70,17 @@ export function ExportSection() {
 
   const download = () => {
     const now = new Date()
-    // Every save, shown or not, as stored; the current setup as it is now.
-    const { setups, problem } = readStoredSetups()
+    // Every save, shown or not, as stored (entries that couldn't be read too); the current setup as it is now.
+    const { setups, unreadable, problem } = readStoredSetups()
     const name = setupsFileName(now)
-    downloadText(name, serializeSetupsFile(buildSetupsFile(useSetup.getState().config, setups, now)), 'application/json')
+    downloadText(name, serializeSetupsFile(buildSetupsFile(useSetup.getState().config, setups, now, unreadable)), 'application/json')
     // Said, since the browser may show nothing of it, and to say what it holds.
+    const saves = setups.length + unreadable.length
     const holds = problem
       ? 'the current setup only: your saved setups couldn’t be read.'
-      : setups.length === 0
+      : saves === 0
         ? 'the current setup.'
-        : `the current setup and ${count(setups.length, 'saved setup', 'saved setups')}.`
+        : `the current setup and ${count(saves, 'saved setup', 'saved setups')}.`
     toast.success('Setups downloaded', { id: 'setups-exported', description: `${name} holds ${holds}` })
   }
 
@@ -184,15 +185,23 @@ export function ImportSection({
     } catch {
       return setFileError(FILE_PROBLEMS.unreadable)
     }
-    const parsed = parseSetupsFile(content)
-    if (!parsed.ok) return setFileError(FILE_PROBLEMS[parsed.problem])
-    const result = importToStorage(parsed.setups, parsed.current)
+    let skipped: number
+    let result: ReturnType<typeof importToStorage>
+    try {
+      const parsed = parseSetupsFile(content)
+      if (!parsed.ok) return setFileError(FILE_PROBLEMS[parsed.problem])
+      skipped = parsed.skipped
+      result = importToStorage(parsed.setups, parsed.current)
+    } catch {
+      // Anything else that goes wrong reading it means the file isn't as the app wrote it.
+      return setFileError(FILE_PROBLEMS.damaged)
+    }
     if (!result.ok) {
       if ('problem' in result) sayStorageProblem(result.problem, 'Couldn’t import the setups')
       return
     }
     const shown = result.added.filter(isShown).length
-    const notice = importNotice({ shown, hidden: result.added.length - shown, duplicates: result.duplicates, skipped: parsed.skipped })
+    const notice = importNotice({ shown, hidden: result.added.length - shown, duplicates: result.duplicates, skipped })
     if (!notice) return setFileError(FILE_PROBLEMS.noneRead)
     // The sheet stays open, on the list that shows them.
     toast(notice.title, { id: 'setups-imported', description: notice.description })

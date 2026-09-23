@@ -32,7 +32,7 @@ const NOW = new Date(2026, 8, 23, 14, 5)
 const text = (value: unknown) => JSON.stringify(value)
 const file = (fields: Record<string, unknown>) => text({ app: 'forever-sim', version: 1, exportedAt: stamp(22), current: fresh('warrior-fury'), setups: [], ...fields })
 
-// docs/ux.md#setups (decision D21): Download all setups, and Open a file….
+// docs/ux.md#setups (decision D21): Download all setups, and Add setups from a file….
 describe('downloading', () => {
   test('the file holds every save as stored and the current setup, and says what it is', () => {
     const setups = [stored('a', 'Raid night', 20), stored('prot', 'Tank', 21, { version: 1, spec: 'warrior-protection' })]
@@ -43,6 +43,13 @@ describe('downloading', () => {
     expect(JSON.parse(serialized)).toEqual(built)
     // Indented, to read in a text editor.
     expect(serialized).toMatch(/^{\n {2}"app": "forever-sim",\n/)
+  })
+
+  // LX9: the file keeps everything that's stored, so a save a later version can read isn't lost.
+  test('saves that couldn’t be read go in too, after the rest, as they are', () => {
+    const setups = [stored('a', 'Raid night', 20)]
+    const unreadable = [{ id: 'b' }, null]
+    expect(buildSetupsFile(fresh('warrior-fury'), setups, NOW, unreadable).setups).toEqual([...setups, ...unreadable])
   })
 
   test('the file is named for the local day', () => {
@@ -77,6 +84,26 @@ describe('reading a file', () => {
     expect(parseSetupsFile(file({ setups: {} }))).toEqual({ ok: false, problem: 'damaged' })
     expect(parseSetupsFile(file({ version: '1' }))).toEqual({ ok: false, problem: 'damaged' })
     expect(parseSetupsFile(file({ version: 0 }))).toEqual({ ok: false, problem: 'damaged' })
+  })
+
+  // UX4: a file cut short in the download (or by an edit) still says it's ours.
+  test('a setups file that’s cut short is damaged, not someone else’s', () => {
+    const whole = serializeSetupsFile(buildSetupsFile(fresh('warrior-fury'), [stored('a', 'Raid night', 20)], NOW))
+    expect(parseSetupsFile(whole.slice(0, whole.length / 2))).toEqual({ ok: false, problem: 'damaged' })
+    expect(parseSetupsFile('{"app":"forever-sim","version":1,"setups":[')).toEqual({ ok: false, problem: 'damaged' })
+    // Text that only mentions the app isn't a setups file.
+    expect(parseSetupsFile('I use forever-sim for my raids')).toEqual({ ok: false, problem: 'notOurs' })
+  })
+
+  // LX5: a config nested deeper than any setup crashed the import, which compares configs.
+  test('a setup nested deeper than any real one is left out, and counted', () => {
+    let deep: unknown = 0
+    for (let i = 0; i < 5000; i++) deep = [deep]
+    const good = stored('a', 'Good', 20)
+    const parsed = parseSetupsFile(file({ setups: [good, stored('b', 'Deep', 21, { ...fresh('warrior-fury'), deep })], current: { ...fresh('warrior-arms'), deep } }))
+    expect(parsed).toEqual({ ok: true, setups: [good], current: null, skipped: 2 })
+    if (!parsed.ok) return
+    expect(() => importSetups([], parsed.setups, parsed.current, NOW, () => 'new')).not.toThrow()
   })
 
   test('a file with nothing in it says so', () => {

@@ -99,13 +99,13 @@ function sayStorageProblem(problem: StorageProblem, title: string) {
 }
 
 /** What reading the saves found that's worth a notice: a problem the sheet doesn't show itself. */
-function sayReadReport({ skipped, problem }: ReadReport) {
+function sayReadReport({ unreadable, problem }: ReadReport) {
   if (problem === 'corrupt') {
     toast.error('Your saved setups couldn’t be read', { id: 'saved-setups-storage', description: 'Saving a setup starts a new list.' })
-  } else if (skipped > 0) {
-    toast.error(skipped === 1 ? 'One saved setup couldn’t be read' : `${skipped} saved setups couldn’t be read`, {
+  } else if (unreadable > 0) {
+    toast.error(unreadable === 1 ? 'One saved setup couldn’t be read' : `${unreadable} saved setups couldn’t be read`, {
       id: 'saved-setups-storage',
-      description: skipped === 1 ? 'It’s been left out.' : 'They’ve been left out.',
+      description: unreadable === 1 ? 'It’s kept as it is, but can’t be shown.' : 'They’re kept as they are, but can’t be shown.',
     })
   }
 }

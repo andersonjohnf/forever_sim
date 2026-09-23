@@ -1,8 +1,9 @@
 // Setups files (docs/ux.md#setups, decision D21): Export's "Download all setups" saves every saved
-// setup and the current one as a .json file, and Import's "Open a file…" adds a file's setups to the
-// saved ones. Pure functions: the Setups sheet reads and writes the file and the stored saves.
+// setup and the current one as a .json file, and Import's "Add setups from a file…" adds a file's
+// setups to the saved ones. Pure functions: the Setups sheet reads and writes the file and the
+// stored saves.
 import type { SimConfig } from '@/sim'
-import { readEntry, type StoredSetup } from './saved-setups'
+import { readEntry, withinDepth, type StoredSetup } from './saved-setups'
 import { MAX_SETUP_BYTES } from './share'
 
 export const SETUPS_FILE_APP = 'forever-sim'
@@ -28,8 +29,19 @@ export interface SetupsFile {
   setups: StoredSetup[]
 }
 
-export function buildSetupsFile(current: SimConfig, setups: readonly StoredSetup[], now: Date): SetupsFile {
-  return { app: SETUPS_FILE_APP, version: SETUPS_FILE_VERSION, exportedAt: now.toISOString(), current, setups: [...setups] }
+/**
+ * The file for a download: the current setup, and every save as it's stored. Entries the app
+ * couldn't read go in too, after the rest, as they are, so the file keeps everything that's stored;
+ * an import leaves them out and counts them, as the sheet does.
+ */
+export function buildSetupsFile(current: SimConfig, setups: readonly StoredSetup[], now: Date, unreadable: readonly unknown[] = []): SetupsFile {
+  return {
+    app: SETUPS_FILE_APP,
+    version: SETUPS_FILE_VERSION,
+    exportedAt: now.toISOString(),
+    current,
+    setups: [...setups, ...(unreadable as StoredSetup[])],
+  }
 }
 
 /** The file's text: indented, so it reads in a text editor. */
@@ -47,7 +59,8 @@ export function setupsFileName(now: Date): string {
  * Why a file can't be imported:
  * - notOurs: not JSON, or not a Forever Sim setups file
  * - newer: a newer version of the app wrote it
- * - damaged: it says it's a setups file, but its setups aren't a list
+ * - damaged: it says it's a setups file, but it doesn't parse (cut short), or its setups aren't a
+ *   list, or importing it failed
  * - tooLarge: over MAX_SETUPS_FILE_BYTES, or holding more than MAX_SETUPS_FILE_SETUPS setups
  * - empty: it holds no setups at all
  */
@@ -73,6 +86,9 @@ const utf8Bytes = (text: string) => new TextEncoder().encode(text).length
 /** A config no larger than a share link's (MAX_SETUP_BYTES), so a file can't hold what a link couldn't. */
 const fits = (config: unknown) => utf8Bytes(JSON.stringify(config)) <= MAX_SETUP_BYTES
 
+/** Text that says it's a setups file, `"app": "forever-sim"`, whether or not the rest parses. */
+const NAMES_THE_APP = new RegExp(`"app"\\s*:\\s*"${SETUPS_FILE_APP}"`)
+
 /** Reads a setups file's text. */
 export function parseSetupsFile(text: string): ParsedSetupsFile {
   if (utf8Bytes(text) > MAX_SETUPS_FILE_BYTES) return { ok: false, problem: 'tooLarge' }
@@ -80,7 +96,8 @@ export function parseSetupsFile(text: string): ParsedSetupsFile {
   try {
     data = JSON.parse(text)
   } catch {
-    return { ok: false, problem: 'notOurs' }
+    // A file that names the app but doesn't parse was one of ours, cut short or edited: damaged.
+    return { ok: false, problem: NAMES_THE_APP.test(text) ? 'damaged' : 'notOurs' }
   }
   if (!isObj(data) || data.app !== SETUPS_FILE_APP) return { ok: false, problem: 'notOurs' }
   if (typeof data.version === 'number' && data.version > SETUPS_FILE_VERSION) return { ok: false, problem: 'newer' }
@@ -96,7 +113,7 @@ export function parseSetupsFile(text: string): ParsedSetupsFile {
   }
   let current: object | null = null
   if (data.current !== undefined) {
-    if (isObj(data.current) && fits(data.current)) current = data.current
+    if (isObj(data.current) && withinDepth(data.current) && fits(data.current)) current = data.current
     else skipped++
   }
   if (setups.length === 0 && current === null && skipped === 0) return { ok: false, problem: 'empty' }

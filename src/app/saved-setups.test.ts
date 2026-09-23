@@ -24,12 +24,17 @@ const {
   deleteSetup,
   formatDay,
   formatSavedAt,
+  findByName,
   importSetups,
   importToStorage,
   listSetups,
+  MAX_CONFIG_DEPTH,
+  MAX_ID_LENGTH,
   MAX_NAME_LENGTH,
   nameProblem,
   parseSavedSetups,
+  readEntry,
+  withinDepth,
   refreshSavedSetups,
   renameInStorage,
   renameSetup,
@@ -94,6 +99,54 @@ describe('names', () => {
     expect(unique).toBe(`${'y'.repeat(MAX_NAME_LENGTH - 4)} (2)`)
     expect(unique).toHaveLength(MAX_NAME_LENGTH)
     expect(uniqueName('   ', [])).toBe('Setup')
+  })
+
+  // LX8: names are kept in NFC, and compared the same way in every locale.
+  test('an accent typed either way is the same name, kept composed', () => {
+    const decomposed = 'Café raid'
+    const composed = 'Café raid'
+    expect(cleanName(decomposed)).toBe(composed)
+    expect(sameName(decomposed, composed.toUpperCase())).toBe(true)
+    expect(findByName([{ name: composed }], decomposed)).toEqual({ name: composed })
+  })
+
+  test('case is compared the same in every locale', () => {
+    // A Turkish locale lowercases "I" to a dotless "ı", so "RAID" wouldn't match "raid" there.
+    const turkish = vi.spyOn(String.prototype, 'toLocaleLowerCase').mockImplementation(function (this: string) {
+      return this.replace(/I/g, 'ı').toLowerCase()
+    })
+    try {
+      expect(sameName('RAID NIGHT', 'raid night')).toBe(true)
+      expect(findByName([{ name: 'raid night' }], 'RAID NIGHT')).toEqual({ name: 'raid night' })
+    } finally {
+      turkish.mockRestore()
+    }
+  })
+
+  test('60 characters counts an emoji as one, and never cuts one in half', () => {
+    expect(nameProblem('😀'.repeat(MAX_NAME_LENGTH))).toBeNull()
+    expect(nameProblem('😀'.repeat(MAX_NAME_LENGTH + 1))).toMatch(/60 characters/)
+    const halves = /[\ud800-\udbff](?![\udc00-\udfff])|(?<![\ud800-\udbff])[\udc00-\udfff]/
+    const stored60 = readEntry(stored('a', `${'a'.repeat(MAX_NAME_LENGTH - 1)}😀b`, stamp(20)))!.name
+    expect(stored60).toBe(`${'a'.repeat(MAX_NAME_LENGTH - 1)}😀`)
+    const long = `${'b'.repeat(MAX_NAME_LENGTH - 5)}😀😀`
+    const unique = uniqueName(long, [{ name: long }])
+    expect(unique).toBe(`${'b'.repeat(MAX_NAME_LENGTH - 5)}😀 (2)`)
+    expect(unique).not.toMatch(halves)
+  })
+
+  // LX6: a file of 1,000 setups with one name took about 25 s to name (every name against every other).
+  test('naming many setups with one name takes time in proportion to them', () => {
+    const entries = Array.from({ length: 1000 }, (_, i) => stored(`e${i}`, 'Raid night', stamp(1), { ...fresh('warrior-fury'), run: { mode: 'fixed', iterations: 100, seed: i } }))
+    const started = performance.now()
+    const result = importSetups([stored('a', 'Raid night (500)', stamp(2))], entries, null, new Date(2026, 8, 23), nextId)
+    expect(performance.now() - started).toBeLessThan(2000)
+    const added = names(result.added)
+    expect(added.slice(0, 3)).toEqual(['Raid night', 'Raid night (2)', 'Raid night (3)'])
+    // The one saved already is skipped, and the count goes on past it.
+    expect(added[498]).toBe('Raid night (499)')
+    expect(added[499]).toBe('Raid night (501)')
+    expect(new Set(added.map((n) => n.toLowerCase())).size).toBe(1000)
   })
 
   test('the default day reads the same in every locale: "23 Sep"', () => {
@@ -213,7 +266,7 @@ describe('importing a file’s setups', () => {
     const list = [stored('a', 'Mine', stamp(20))]
     const result = importSetups(list, [stored('a', 'Theirs', stamp(21), fresh('warrior-arms')), stored('a', 'Also theirs', stamp(22), fresh('warrior-arms'))], null, NOW, nextId)
     expect(result.added.map((s) => s.id)).toEqual(['id-1', 'id-2'])
-    expect(parseSavedSetups(serializeSavedSetups(result.setups))).toMatchObject({ ok: true, skipped: 0 })
+    expect(parseSavedSetups(serializeSavedSetups(result.setups))).toMatchObject({ ok: true, unreadable: [] })
   })
 
   test('a save that’s saved already, same name and setup, isn’t added again', () => {
@@ -225,6 +278,27 @@ describe('importing a file’s setups', () => {
     expect(result).toEqual({ setups: list, added: [], duplicates: 1 })
     // The same name with another setup is a different save.
     expect(importSetups(list, [stored('z', 'Raid night', stamp(1), fresh('warrior-arms'))], null, NOW, nextId).added).toHaveLength(1)
+  })
+
+  // LX2: the reviewer's case. A file's save whose name was taken came in as "Raid night (2)", and
+  // then each import of the file added another: "(3)", "(4)", ….
+  test('a save renamed to keep names apart on the way in isn’t added again by the next import', () => {
+    const list = [stored('a', 'Raid night', stamp(20), fresh('warrior-fury'))]
+    const file = [stored('x', 'Raid night', stamp(19), fresh('warrior-arms'))]
+    const first = importSetups(list, file, null, NOW, nextId)
+    expect(names(first.setups)).toEqual(['Raid night (2)', 'Raid night'])
+    const second = importSetups(first.setups, file, null, NOW, nextId)
+    expect(second).toEqual({ setups: first.setups, added: [], duplicates: 1 })
+    // Its id matches too, but the name alone is enough: here the file's id was taken, so it has a new one.
+    const clash = [stored('a', 'Raid night', stamp(19), fresh('warrior-arms'))]
+    const renumbered = importSetups(list, clash, null, NOW, nextId)
+    expect(renumbered.added.map((s) => [s.id, s.name])).toEqual([['id-1', 'Raid night (2)']])
+    expect(importSetups(renumbered.setups, clash, null, NOW, nextId).added).toEqual([])
+    // And a save renamed since, with its id and setup, is the same save.
+    const renamed = first.setups.map((s) => (s.id === 'x' ? { ...s, name: 'Arms for raids' } : s))
+    expect(importSetups(renamed, file, null, NOW, nextId).added).toEqual([])
+    // A number at the end doesn't count: "raid night (7)" with this setup is a copy of "Raid night (2)".
+    expect(importSetups(first.setups, [stored('y', 'raid night (7)', stamp(1), fresh('warrior-arms'))], null, NOW, nextId).duplicates).toBe(1)
   })
 
   test('the file’s current setup is saved as "Imported · 23 Sep", now, unless a save has it already', () => {
@@ -251,7 +325,7 @@ describe('importing a file’s setups', () => {
     expect(result).toMatchObject({ ok: true, duplicates: 0 })
     expect(names(kept().setups)).toEqual(['Imported · 23 Sep', 'From a file', 'From another tab'])
     expect(names(useSavedSetups.getState().setups)).toEqual(['Imported · 23 Sep', 'From a file', 'From another tab'])
-    expect(readStoredSetups()).toEqual({ setups: kept().setups, problem: null })
+    expect(readStoredSetups()).toEqual({ setups: kept().setups, unreadable: [], problem: null })
   })
 
   test('into storage the browser refuses: nothing changes, and it says why', () => {
@@ -262,7 +336,7 @@ describe('importing a file’s setups', () => {
     expect(memory.get(SAVED_SETUPS_KEY)).toBe(before)
     refuse = 'get'
     expect(importToStorage([stored('x', 'From a file', stamp(21))], null, NOW)).toEqual({ ok: false, problem: 'blocked' })
-    expect(readStoredSetups()).toEqual({ setups: [], problem: 'blocked' })
+    expect(readStoredSetups()).toEqual({ setups: [], unreadable: [], problem: 'blocked' })
   })
 })
 
@@ -271,8 +345,8 @@ describe('the stored form', () => {
     const list = [stored('a', 'A', stamp(20)), stored('b', 'B', stamp(21), fresh('warrior-arms'))]
     const text = serializeSavedSetups(list)
     expect(JSON.parse(text)).toEqual({ version: 1, setups: list })
-    expect(parseSavedSetups(text)).toEqual({ ok: true, setups: list, skipped: 0 })
-    expect(parseSavedSetups(null)).toEqual({ ok: true, setups: [], skipped: 0 })
+    expect(parseSavedSetups(text)).toEqual({ ok: true, setups: list, unreadable: [] })
+    expect(parseSavedSetups(null)).toEqual({ ok: true, setups: [], unreadable: [] })
   })
 
   test('what isn’t the stored form is corrupt; a newer version is left alone', () => {
@@ -283,28 +357,48 @@ describe('the stored form', () => {
     expect(parseSavedSetups('{"version":2,"setups":[]}')).toEqual({ ok: false, problem: 'newer' })
   })
 
-  test('entries that can’t be read are skipped and counted', () => {
+  test('entries that can’t be read are set apart, as they are', () => {
     const good = stored('a', 'A', stamp(20))
-    const text = JSON.stringify({
-      version: 1,
-      setups: [
-        good,
-        null,
-        { ...good, id: '' },
-        { ...good, id: 'b', name: '   ' },
-        { ...good, id: 'c', savedAt: 'yesterday' },
-        { ...good, id: 'd', config: 'fury' },
-        // A repeated id is a copy: the first one stands.
-        { ...good, name: 'Copy' },
-      ],
-    })
-    expect(parseSavedSetups(text)).toEqual({ ok: true, setups: [good], skipped: 6 })
+    const unreadable = [
+      null,
+      { ...good, id: '' },
+      { ...good, id: 'b', name: '   ' },
+      { ...good, id: 'c', savedAt: 'yesterday' },
+      { ...good, id: 'd', config: 'fury' },
+      // A repeated id is a copy: the first one stands.
+      { ...good, name: 'Copy' },
+    ]
+    const text = JSON.stringify({ version: 1, setups: [good, ...unreadable] })
+    expect(parseSavedSetups(text)).toEqual({ ok: true, setups: [good], unreadable })
   })
 
   test('a stored name is tidied and kept within 60 characters', () => {
     const text = JSON.stringify({ version: 1, setups: [stored('a', `  ${'z'.repeat(70)}  `, stamp(20))] })
     const parsed = parseSavedSetups(text)
     expect(parsed.ok && parsed.setups[0].name).toBe('z'.repeat(MAX_NAME_LENGTH))
+  })
+
+  // LX7: a file's entries can't fill the browser's storage with ids or names no save has.
+  test('an id over 64 characters can’t be read, and a raw name is cut to 240 before it’s tidied', () => {
+    expect(readEntry(stored('x'.repeat(MAX_ID_LENGTH), 'A', stamp(20)))).not.toBeNull()
+    expect(readEntry(stored('x'.repeat(MAX_ID_LENGTH + 1), 'A', stamp(20)))).toBeNull()
+    // Past 240 characters, what's left isn't read: here, all but the "a".
+    expect(readEntry(stored('a', `a${' '.repeat(300)}b`, stamp(20)))?.name).toBe('a')
+    expect(readEntry(stored('a', `${' '.repeat(300)}b`, stamp(20)))).toBeNull()
+    expect(readEntry(stored('a', 'y'.repeat(1_000_000), stamp(20)))?.name).toBe('y'.repeat(MAX_NAME_LENGTH))
+  })
+
+  // LX5: a config nested deeper than any setup would overflow the stack of what compares them.
+  test('a config nested deeper than 10 levels can’t be read', () => {
+    const nested = (depth: number): Record<string, unknown> => (depth === 1 ? { spec: 'warrior-fury' } : { version: 1, x: nested(depth - 1) })
+    expect(readEntry(stored('a', 'A', stamp(20), nested(MAX_CONFIG_DEPTH)))).not.toBeNull()
+    expect(readEntry(stored('a', 'A', stamp(20), nested(MAX_CONFIG_DEPTH + 1)))).toBeNull()
+    // Arrays count as levels too.
+    let deep: unknown = 0
+    for (let i = 0; i < 5000; i++) deep = [deep]
+    expect(readEntry(stored('a', 'A', stamp(20), { version: 1, spec: 'warrior-fury', deep }))).toBeNull()
+    expect(withinDepth({ a: [[1]] }, 3)).toBe(true)
+    expect(withinDepth({ a: [[[1]]] }, 3)).toBe(false)
   })
 })
 
@@ -330,7 +424,7 @@ describe('browser storage', () => {
 
   test('reads what another tab saved', () => {
     memory.set(SAVED_SETUPS_KEY, serializeSavedSetups([stored('a', 'From another tab', stamp(20))]))
-    expect(refreshSavedSetups()).toEqual({ skipped: 0, problem: null })
+    expect(refreshSavedSetups()).toEqual({ unreadable: 0, problem: null })
     expect(useSavedSetups.getState().setups.map((s) => s.name)).toEqual(['From another tab'])
     // A save goes on top of what's stored now, not what was read before.
     memory.set(SAVED_SETUPS_KEY, serializeSavedSetups([stored('a', 'From another tab', stamp(20)), stored('b', 'And another', stamp(21))]))
@@ -340,7 +434,7 @@ describe('browser storage', () => {
 
   test('blocked storage says so, on reading and on saving', () => {
     refuse = 'get'
-    expect(refreshSavedSetups()).toEqual({ skipped: 0, problem: 'blocked' })
+    expect(refreshSavedSetups()).toEqual({ unreadable: 0, problem: 'blocked' })
     expect(useSavedSetups.getState().problem).toBe('blocked')
     expect(saveToStorage('Raid night', fresh('warrior-fury'))).toEqual({ ok: false, problem: 'blocked' })
     // Reading works but writing doesn't.
@@ -359,24 +453,44 @@ describe('browser storage', () => {
     expect(useSavedSetups.getState().setups.map((s) => s.name)).toEqual(['First'])
   })
 
-  test('corrupt storage says so, and saving starts a new list', () => {
+  test('corrupt storage says so, and saving replaces it with a new list', () => {
     memory.set(SAVED_SETUPS_KEY, '{"version":1,"setups":')
-    expect(refreshSavedSetups()).toEqual({ skipped: 0, problem: 'corrupt' })
+    expect(refreshSavedSetups()).toEqual({ unreadable: 0, problem: 'corrupt' })
+    expect(useSavedSetups.getState().problem).toBe('corrupt')
     expect(saveToStorage('Fresh start', fresh('warrior-fury')).ok).toBe(true)
     expect(names(kept().setups)).toEqual(['Fresh start'])
+    expect(useSavedSetups.getState().problem).toBeNull()
   })
 
-  test('entries that can’t be read are counted, and go at the next save', () => {
-    memory.set(SAVED_SETUPS_KEY, JSON.stringify({ version: 1, setups: [stored('a', 'Good', stamp(20)), { id: 'b' }] }))
-    expect(refreshSavedSetups()).toEqual({ skipped: 1, problem: null })
+  // LX9: an entry that can't be read may be one a later version can, so nothing drops it.
+  test('entries that can’t be read are counted, and kept as they are through every change', () => {
+    const odd = [{ id: 'b' }, 'not even an object', { ...stored('c', 'Bad date', 'yesterday') }]
+    memory.set(SAVED_SETUPS_KEY, JSON.stringify({ version: 1, setups: [stored('a', 'Good', stamp(20)), ...odd] }))
+    expect(refreshSavedSetups()).toEqual({ unreadable: 3, problem: null })
     saveToStorage('New', fresh('warrior-fury'))
-    expect(kept().setups.map((s: StoredSetup) => s.id)).toEqual([expect.any(String), 'a'])
+    const id = kept().setups[0].id
+    renameInStorage(id, 'Renamed')
+    importToStorage([stored('x', 'From a file', stamp(21), fresh('warrior-arms'))], null)
+    deleteFromStorage('a')
+    expect(kept().setups).toEqual([expect.objectContaining({ id: 'x' }), expect.objectContaining({ id, name: 'Renamed' }), ...odd])
+    expect(readStoredSetups()).toEqual({ setups: kept().setups.slice(0, 2), unreadable: odd, problem: null })
+  })
+
+  test('deleting a save deletes its copies, which repeat its id', () => {
+    const good = stored('a', 'Good', stamp(20))
+    const copy = { ...good, name: 'Copy' }
+    const other = stored('b', 'Other', stamp(21))
+    memory.set(SAVED_SETUPS_KEY, JSON.stringify({ version: 1, setups: [good, other, copy, { id: 'a' }, { id: 'b' }] }))
+    expect(refreshSavedSetups()).toEqual({ unreadable: 3, problem: null })
+    deleteFromStorage('a')
+    // Else the copy would show up in its place, next time the list is read.
+    expect(kept().setups).toEqual([other, { id: 'b' }])
   })
 
   test('saves from a newer version of the app are left alone', () => {
     const newer = JSON.stringify({ version: 2, setups: [{ anything: true }] })
     memory.set(SAVED_SETUPS_KEY, newer)
-    expect(refreshSavedSetups()).toEqual({ skipped: 0, problem: 'newer' })
+    expect(refreshSavedSetups()).toEqual({ unreadable: 0, problem: 'newer' })
     expect(saveToStorage('Mine', fresh('warrior-fury'))).toEqual({ ok: false, problem: 'newer' })
     expect(memory.get(SAVED_SETUPS_KEY)).toBe(newer)
   })

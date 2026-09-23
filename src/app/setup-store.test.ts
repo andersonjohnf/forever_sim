@@ -1,13 +1,20 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { defaultConfig, normalizeConfig, type SimConfig, type SpecId } from '@/sim'
 
-// The store persists to localStorage, which Node doesn't have: a Map stands in for it.
+// The store persists to localStorage, which Node doesn't have: a Map stands in for it, and a test
+// can fill it up.
 const memory = new Map<string, string>()
+let full = false
 vi.stubGlobal('localStorage', {
   getItem: (key: string) => memory.get(key) ?? null,
-  setItem: (key: string, value: string) => void memory.set(key, value),
+  setItem: (key: string, value: string) => {
+    if (full) throw new DOMException('The quota has been exceeded.', 'QuotaExceededError')
+    memory.set(key, value)
+  },
   removeItem: (key: string) => void memory.delete(key),
 })
+const notices = vi.hoisted(() => ({ error: vi.fn() }))
+vi.mock('sonner', () => ({ toast: notices }))
 const { useSetup } = await import('./setup-store')
 
 const store = () => useSetup.getState()
@@ -63,5 +70,27 @@ describe('setup store', () => {
     store().reset()
     expect(store().config).toEqual(fresh('warrior-fury'))
     expect(raceOf('warrior-arms')).toBe('horde-orc')
+  })
+
+  // LX7: a full localStorage made the automatic save throw out of every change.
+  test('a change still applies when storage is full, and a notice says so once', () => {
+    notices.error.mockClear()
+    full = true
+    try {
+      expect(() => setRace('horde-troll')).not.toThrow()
+      expect(() => setRace('horde-orc')).not.toThrow()
+      expect(store().config.race).toBe('horde-orc')
+      expect(notices.error).toHaveBeenCalledTimes(1)
+      expect(notices.error.mock.calls[0][0]).toBe('Your changes aren’t being kept')
+      // Once a save works again, a later failure says so again.
+      full = false
+      setRace('horde-tauren')
+      expect(JSON.parse(memory.get('forever-sim:setup')!).state.config.race).toBe('horde-tauren')
+      full = true
+      setRace('horde-troll')
+      expect(notices.error).toHaveBeenCalledTimes(2)
+    } finally {
+      full = false
+    }
   })
 })

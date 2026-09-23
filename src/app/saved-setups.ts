@@ -11,6 +11,7 @@
 import { create } from 'zustand'
 import { normalizeConfig, SPEC_IDS, type SimConfig, type SpecId } from '@/sim'
 import { isVisibleSpec } from './specs'
+import { isQuotaError } from './storage-errors'
 
 export const SAVED_SETUPS_KEY = 'forever-sim:saved-setups'
 export const SAVED_SETUPS_VERSION = 1
@@ -46,46 +47,101 @@ export interface SavedSetup {
 
 // ---- Names ----
 
-/** A name as it's kept: trimmed, with each run of spaces as one. */
-export function cleanName(name: string): string {
-  return name.replace(/\s+/g, ' ').trim()
+/**
+ * The longest raw name read from storage or a file, in characters, before it's tidied. A name the
+ * app saved has at most MAX_NAME_LENGTH, so the rest is cut before any work is done on it.
+ */
+const MAX_RAW_NAME_LENGTH = 4 * MAX_NAME_LENGTH
+/** The longest id read from storage or a file. The app's own are 36 characters (a UUID) or fewer. */
+export const MAX_ID_LENGTH = 64
+
+/** At most `max` characters of `text`, counting code points, so an emoji is never cut in half. */
+function truncate(text: string, max: number): string {
+  let out = ''
+  let n = 0
+  for (const char of text) {
+    if (n++ === max) break
+    out += char
+  }
+  return out
 }
 
-/** Why a name can't be used, or null if it can. */
+/** A name's length as it's counted here: in code points, so an emoji is one character. */
+function nameLength(name: string): number {
+  let n = 0
+  for (const _char of name) n++
+  return n
+}
+
+/**
+ * A name as it's kept: in Unicode's composed form (NFC, so an "é" typed either way is the same
+ * name), trimmed, with each run of spaces as one.
+ */
+export function cleanName(name: string): string {
+  return name.normalize('NFC').replace(/\s+/g, ' ').trim()
+}
+
+/** Why a name can't be used, or null if it can. Save and Rename both check it. */
 export function nameProblem(name: string): string | null {
   const clean = cleanName(name)
   if (!clean) return 'Enter a name.'
-  if (clean.length > MAX_NAME_LENGTH) return `Keep the name to ${MAX_NAME_LENGTH} characters or fewer.`
+  if (nameLength(clean) > MAX_NAME_LENGTH) return `Keep the name to ${MAX_NAME_LENGTH} characters or fewer.`
   return null
 }
 
-/** A name as names are compared: case and extra spaces don't count. */
-const sameNameKey = (name: string) => cleanName(name).toLocaleLowerCase()
+/**
+ * A name as names are compared: case and extra spaces don't count. The lowercase is Unicode's
+ * own, the same in every locale (a Turkish browser's toLocaleLowerCase makes "I" another letter).
+ */
+const sameNameKey = (name: string) => cleanName(name).toLowerCase()
+
+/** A name as it's compared without the number uniqueName gives it: "Raid night (2)" as "raid night". */
+const baseNameKey = (name: string) => sameNameKey(cleanName(name).replace(/ \(\d+\)$/, ''))
 
 /** Whether two names are the same save's. Case and extra spaces don't count. */
 export function sameName(a: string, b: string): boolean {
   return sameNameKey(a) === sameNameKey(b)
 }
 
-/** The save with this name, if there is one. */
+/** The save with this name, if there is one. Save and Rename both find a clash with it. */
 export function findByName<T extends { name: string }>(setups: readonly T[], name: string): T | undefined {
-  return setups.find((s) => sameName(s.name, name))
+  const key = sameNameKey(name)
+  return setups.find((s) => sameNameKey(s.name) === key)
 }
 
 /**
- * `name`, or, if a save already has it, "name (2)", "name (3)" and so on, kept within
- * MAX_NAME_LENGTH. A name that already ends in a number counts on from it: "Fury (2)" → "Fury (3)".
+ * Makes names unique among `setups`' names and the ones it has made: `name`, or, if that's taken,
+ * "name (2)", "name (3)" and so on, kept within MAX_NAME_LENGTH. A name that already ends in a
+ * number counts on from it: "Fury (2)" → "Fury (3)". The taken names are a set, and each base name
+ * remembers the number it reached, so naming a whole file's setups takes time in proportion to them.
  */
-export function uniqueName(name: string, setups: readonly { name: string }[]): string {
-  const clean = cleanName(name) || 'Setup'
-  const first = clean.slice(0, MAX_NAME_LENGTH).trimEnd()
-  if (!findByName(setups, first)) return first
-  const base = clean.replace(/ \(\d+\)$/, '')
-  for (let n = 2; ; n++) {
-    const suffix = ` (${n})`
-    const candidate = `${base.slice(0, MAX_NAME_LENGTH - suffix.length).trimEnd()}${suffix}`
-    if (!findByName(setups, candidate)) return candidate
+export function nameMaker(setups: readonly { name: string }[]): (name: string) => string {
+  const taken = new Set(setups.map((s) => sameNameKey(s.name)))
+  const next = new Map<string, number>()
+  const take = (name: string) => {
+    taken.add(sameNameKey(name))
+    return name
   }
+  return (name) => {
+    const clean = cleanName(name) || 'Setup'
+    const first = truncate(clean, MAX_NAME_LENGTH).trimEnd()
+    if (!taken.has(sameNameKey(first))) return take(first)
+    const base = clean.replace(/ \(\d+\)$/, '')
+    const key = sameNameKey(base)
+    for (let n = next.get(key) ?? 2; ; n++) {
+      const suffix = ` (${n})`
+      const candidate = `${truncate(base, MAX_NAME_LENGTH - suffix.length).trimEnd()}${suffix}`
+      if (!taken.has(sameNameKey(candidate))) {
+        next.set(key, n + 1)
+        return take(candidate)
+      }
+    }
+  }
+}
+
+/** `name`, made unique among `setups`' names, as nameMaker makes it. */
+export function uniqueName(name: string, setups: readonly { name: string }[]): string {
+  return nameMaker(setups)(name)
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -108,25 +164,54 @@ export function formatSavedAt(savedAt: string, now = new Date()): string {
 type Obj = Record<string, unknown>
 const isObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v)
 
-/** A stored entry (or a setups file's), tidied, or null if it can't be read. */
+/**
+ * The deepest a setup's objects and arrays nest: a real one nests 3 deep (gear, a slot, its item),
+ * so this is room to grow. Anything deeper isn't a setup, and could overflow the stack of the code
+ * that walks it (comparing configs, or JSON.stringify's replacer).
+ */
+export const MAX_CONFIG_DEPTH = 10
+
+/** Whether `value`'s objects and arrays nest no deeper than `max` levels, `value` itself the first. */
+export function withinDepth(value: unknown, max = MAX_CONFIG_DEPTH): boolean {
+  if (typeof value !== 'object' || value === null) return true
+  if (max === 0) return false
+  for (const child of Object.values(value)) if (!withinDepth(child, max - 1)) return false
+  return true
+}
+
+/**
+ * A stored entry (or a setups file's), tidied, or null if it can't be read: an id of up to
+ * MAX_ID_LENGTH characters, a name (cut to MAX_RAW_NAME_LENGTH before it's tidied, then to
+ * MAX_NAME_LENGTH), a date, and a config object no deeper than MAX_CONFIG_DEPTH.
+ */
 export function readEntry(entry: unknown): StoredSetup | null {
   if (!isObj(entry)) return null
-  const { id, name, savedAt, config } = entry
-  if (typeof id !== 'string' || !id) return null
-  if (typeof name !== 'string' || !cleanName(name)) return null
+  const { id, name: rawName, savedAt, config } = entry
+  if (typeof id !== 'string' || !id || id.length > MAX_ID_LENGTH) return null
+  if (typeof rawName !== 'string') return null
+  const name = truncate(cleanName(truncate(rawName, MAX_RAW_NAME_LENGTH)), MAX_NAME_LENGTH).trimEnd()
+  if (!name) return null
   if (typeof savedAt !== 'string' || !Number.isFinite(Date.parse(savedAt))) return null
-  if (!isObj(config)) return null
-  return { id, name: cleanName(name).slice(0, MAX_NAME_LENGTH).trimEnd(), savedAt, config }
+  if (!isObj(config) || !withinDepth(config)) return null
+  return { id, name, savedAt, config }
 }
 
 export type ParsedSetups =
-  | { ok: true; setups: StoredSetup[]; /** Entries that couldn't be read, left out. */ skipped: number }
+  | {
+      ok: true
+      setups: StoredSetup[]
+      /**
+       * Entries that couldn't be read, or that repeat an id (a copy: the first one stands). They're
+       * kept as they are, and written back after the readable ones, so nothing is lost.
+       */
+      unreadable: unknown[]
+    }
   /** corrupt: not the stored form at all. newer: a newer version of the app wrote it. */
   | { ok: false; problem: 'corrupt' | 'newer' }
 
 /** Reads the stored form: JSON text, or null when nothing's been saved yet. */
 export function parseSavedSetups(text: string | null): ParsedSetups {
-  if (text === null) return { ok: true, setups: [], skipped: 0 }
+  if (text === null) return { ok: true, setups: [], unreadable: [] }
   let data: unknown
   try {
     data = JSON.parse(text)
@@ -137,19 +222,21 @@ export function parseSavedSetups(text: string | null): ParsedSetups {
   if (typeof data.version === 'number' && data.version > SAVED_SETUPS_VERSION) return { ok: false, problem: 'newer' }
   if (data.version !== SAVED_SETUPS_VERSION || !Array.isArray(data.setups)) return { ok: false, problem: 'corrupt' }
   const setups: StoredSetup[] = []
-  let skipped = 0
+  const unreadable: unknown[] = []
+  const ids = new Set<string>()
   for (const entry of data.setups) {
     const setup = readEntry(entry)
-    // Ids are unique: a repeat is a copy, and the first one stands.
-    if (setup && !setups.some((s) => s.id === setup.id)) setups.push(setup)
-    else skipped++
+    if (setup && !ids.has(setup.id)) {
+      setups.push(setup)
+      ids.add(setup.id)
+    } else unreadable.push(entry)
   }
-  return { ok: true, setups, skipped }
+  return { ok: true, setups, unreadable }
 }
 
-/** The stored form of a list. */
-export function serializeSavedSetups(setups: readonly StoredSetup[]): string {
-  const file: SavedSetupsFile = { version: SAVED_SETUPS_VERSION, setups: [...setups] }
+/** The stored form of a list, with any entries that couldn't be read after it, as they were. */
+export function serializeSavedSetups(setups: readonly StoredSetup[], unreadable: readonly unknown[] = []): string {
+  const file: SavedSetupsFile = { version: SAVED_SETUPS_VERSION, setups: [...setups, ...(unreadable as StoredSetup[])] }
   return JSON.stringify(file)
 }
 
@@ -256,10 +343,12 @@ export interface Imported {
  * Adds a setups file's saves to the list, without replacing any (docs/ux.md#setups, D21):
  * - Each keeps its date and config, and its name, made unique among the shown saves as a new save's
  *   is ("Raid night (2)"). It keeps its id too, unless a save has that id already.
- * - One that's saved already, under the same name (case doesn't count) with the same config, isn't
- *   added again, so importing a file twice adds nothing the second time.
+ * - One that's saved already isn't added again, so importing a file twice adds nothing the second
+ *   time: a save with the same config, and either the same name (case, and a number the import
+ *   gave it, don't count: "raid night (2)" is "Raid night") or the same id.
  * - The file's current setup is added as "Imported · 23 Sep", saved now, unless a save (one of the
  *   file's included) has the same config: then it's in the list already.
+ * What's been seen is kept in sets as it grows, so the time taken is in proportion to the setups.
  */
 export function importSetups(
   setups: readonly StoredSetup[],
@@ -268,36 +357,41 @@ export function importSetups(
   now: Date,
   newId: () => string,
 ): { setups: StoredSetup[] } & Imported {
-  let list = [...setups]
   const added: StoredSetup[] = []
   let duplicates = 0
-  // Kept as they grow, so a big file doesn't compare every pair of configs afresh.
-  const ids = new Set(list.map((s) => s.id))
-  const configs = new Set(list.map((s) => canonical(s.config)))
-  const savedKey = (s: StoredSetup) => `${sameNameKey(s.name)}\n${canonical(s.config)}`
-  const saved = new Set(list.map(savedKey))
-  const shown = list.filter(isShown)
-  const add = (setup: StoredSetup) => {
-    list = addSetup(list, setup)
-    added.push(setup)
+  const ids = new Set<string>()
+  const configs = new Set<string>()
+  // A save's config with its name (as compared, without a number), and with its id.
+  const byName = new Set<string>()
+  const byId = new Set<string>()
+  const remember = (setup: StoredSetup, config: string) => {
     ids.add(setup.id)
-    configs.add(canonical(setup.config))
-    saved.add(savedKey(setup))
-    if (isShown(setup)) shown.push(setup)
+    configs.add(config)
+    byName.add(`${baseNameKey(setup.name)}\n${config}`)
+    byId.add(`${setup.id}\n${config}`)
+  }
+  for (const setup of setups) remember(setup, canonical(setup.config))
+  // Names are matched among the shown saves only (isShown), as saving does.
+  const unique = nameMaker(setups.filter(isShown))
+  const add = (setup: StoredSetup, config: string) => {
+    added.push(setup)
+    remember(setup, config)
   }
   for (const entry of entries) {
-    if (saved.has(savedKey(entry))) {
+    const config = canonical(entry.config)
+    if (byName.has(`${baseNameKey(entry.name)}\n${config}`) || byId.has(`${entry.id}\n${config}`)) {
       duplicates++
       continue
     }
-    // Names are matched among the shown saves only (isShown), as saving does.
-    const name = isShown(entry) ? uniqueName(entry.name, shown) : entry.name
-    add({ ...entry, id: ids.has(entry.id) ? newId() : entry.id, name })
+    const name = isShown(entry) ? unique(entry.name) : entry.name
+    add({ ...entry, id: ids.has(entry.id) ? newId() : entry.id, name }, config)
   }
-  if (current !== null && !configs.has(canonical(current))) {
-    add({ id: newId(), name: uniqueName(`Imported · ${formatDay(now)}`, shown), savedAt: now.toISOString(), config: current })
+  if (current !== null) {
+    const config = canonical(current)
+    if (!configs.has(config)) add({ id: newId(), name: unique(`Imported · ${formatDay(now)}`), savedAt: now.toISOString(), config: current }, config)
   }
-  return { setups: list, added, duplicates }
+  // Newest addition first, as adding them one by one would put them.
+  return { setups: [...[...added].reverse(), ...setups], added, duplicates }
 }
 
 /** A new save's id. */
@@ -313,18 +407,11 @@ export function newSetupId(): string {
  * Why the saves can't be used:
  * - blocked: the browser refuses this site storage (site data blocked, some private modes)
  * - full: this site's storage is full
- * - corrupt: what's stored isn't in the saves' form, so saving starts a new list
+ * - corrupt: what's stored isn't in the saves' form, so the next save replaces it with a new list
  * - newer: a newer version of the app wrote them (in another tab), so this one leaves them alone
  */
 export type StorageProblem = 'blocked' | 'full' | 'corrupt' | 'newer'
 type ReadProblem = Exclude<StorageProblem, 'full'>
-
-function isQuotaError(error: unknown): boolean {
-  return (
-    error instanceof DOMException &&
-    (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED' || error.code === 22 || error.code === 1014)
-  )
-}
 
 function readStorage(): ParsedSetups | { ok: false; problem: 'blocked' } {
   let text: string | null
@@ -336,9 +423,9 @@ function readStorage(): ParsedSetups | { ok: false; problem: 'blocked' } {
   return parseSavedSetups(text)
 }
 
-function writeStorage(setups: readonly StoredSetup[]): 'full' | 'blocked' | null {
+function writeStorage(setups: readonly StoredSetup[], unreadable: readonly unknown[]): 'full' | 'blocked' | null {
   try {
-    localStorage.setItem(SAVED_SETUPS_KEY, serializeSavedSetups(setups))
+    localStorage.setItem(SAVED_SETUPS_KEY, serializeSavedSetups(setups, unreadable))
     return null
   } catch (error) {
     return isQuotaError(error) ? 'full' : 'blocked'
@@ -357,7 +444,8 @@ export const useSavedSetups = create<SavedSetupsState>()(() => ({ setups: [], pr
 
 /** What a read found that's worth saying: entries that couldn't be read, or why none could be. */
 export interface ReadReport {
-  skipped: number
+  /** Entries that couldn't be read: kept as they are, but not shown. */
+  unreadable: number
   problem: ReadProblem | null
 }
 
@@ -366,19 +454,19 @@ export function refreshSavedSetups(): ReadReport {
   const read = readStorage()
   if (!read.ok) {
     useSavedSetups.setState({ setups: [], problem: read.problem })
-    return { skipped: 0, problem: read.problem }
+    return { unreadable: 0, problem: read.problem }
   }
   useSavedSetups.setState({ setups: listSetups(read.setups), problem: null })
-  return { skipped: read.skipped, problem: null }
+  return { unreadable: read.unreadable.length, problem: null }
 }
 
 /**
- * Every stored save, shown or not, as a setups file carries them; or, if they can't be read, none
- * and why.
+ * Every stored save, shown or not, as a setups file carries them, with any entries that couldn't be
+ * read, as they are; or, if the saves can't be read at all, none and why.
  */
-export function readStoredSetups(): { setups: StoredSetup[]; problem: ReadProblem | null } {
+export function readStoredSetups(): { setups: StoredSetup[]; unreadable: unknown[]; problem: ReadProblem | null } {
   const read = readStorage()
-  return read.ok ? { setups: read.setups, problem: null } : { setups: [], problem: read.problem }
+  return read.ok ? { setups: read.setups, unreadable: read.unreadable, problem: null } : { setups: [], unreadable: [], problem: read.problem }
 }
 
 /** A change to the stored saves; or why a name can't be used; or why storage refused it. */
@@ -386,8 +474,12 @@ export type StorageResult<T> = Change<T> | { ok: false; problem: StorageProblem 
 
 /**
  * Reads what's stored now (another tab may have changed it), applies `change` and writes the
- * result. What's stored but unreadable (corrupt) is replaced, and entries that couldn't be read
- * go; saves a newer version of the app wrote are left alone.
+ * result. Saves a newer version of the app wrote are left alone. Storage that isn't in the saves'
+ * form at all (corrupt) is replaced by the new list; the sheet says so before you save.
+ *
+ * Entries that couldn't be read are kept as they are, after the readable ones, so a later version
+ * of the app may still read them; one with the id of a save that `change` removed goes with it,
+ * since it's a copy of that save.
  */
 function modify<T>(change: (setups: StoredSetup[]) => Change<T>): StorageResult<T> {
   const read = readStorage()
@@ -395,9 +487,13 @@ function modify<T>(change: (setups: StoredSetup[]) => Change<T>): StorageResult<
     useSavedSetups.setState({ setups: [], problem: read.problem })
     return { ok: false, problem: read.problem }
   }
-  const result = change(read.ok ? read.setups : [])
+  const before = read.ok ? read.setups : []
+  const result = change(before)
   if (!result.ok) return result
-  const problem = writeStorage(result.setups)
+  const remaining = new Set(result.setups.map((s) => s.id))
+  const removed = new Set(before.filter((s) => !remaining.has(s.id)).map((s) => s.id))
+  const unreadable = (read.ok ? read.unreadable : []).filter((entry) => !(isObj(entry) && typeof entry.id === 'string' && removed.has(entry.id)))
+  const problem = writeStorage(result.setups, unreadable)
   if (problem) return { ok: false, problem }
   useSavedSetups.setState({ setups: listSetups(result.setups), problem: null })
   return result

@@ -41,10 +41,17 @@ export function TalentsSection() {
   const spent = totalPoints(ranks)
   // Only the builds of specs the app offers (docs/ux.md principle 8): no Protection builds until
   // Protection ships, and the menu grows as specs do.
+  // "(default)" marks only this spec's default build; another spec's reads plainly ("Arms
+  // default"), so the menu has one default (TU10).
   const presets = useMemo(() => {
     const offered = visibleSpecs().filter((s) => s.classId === meta.classId)
-    return talentPresets(meta.classId).filter((p) => presetSpec(p.name, offered))
-  }, [meta.classId])
+    return talentPresets(meta.classId).flatMap((p) => {
+      const spec = presetSpec(p.name, offered)
+      if (!spec) return []
+      const label = spec.id === meta.id ? p.name : p.name.replace(/ \(default\)$/, ' default')
+      return [{ ...p, label }]
+    })
+  }, [meta.classId, meta.id])
   const isDesktop = useIsDesktop()
   const finePointer = useMediaQuery('(hover: hover) and (pointer: fine)')
   const [treeIndex, setTreeIndex] = useState(() => perTree.indexOf(Math.max(...perTree)))
@@ -81,7 +88,7 @@ export function TalentsSection() {
           value={presets.find((p) => p.code === code)?.code ?? ''}
           onValueChange={(presetCode) => {
             const preset = presets.find((p) => p.code === presetCode)
-            if (preset) withUndo(`${preset.name} build loaded`, () => update((c) => ({ ...c, talents: preset.code })))
+            if (preset) withUndo(`${preset.label} build loaded`, () => update((c) => ({ ...c, talents: preset.code })))
           }}
         >
           {/* The trigger's size attribute sets its height, so the 44 px target overrides that (docs/ux.md "Accessibility"). */}
@@ -91,7 +98,7 @@ export function TalentsSection() {
           <SelectContent>
             {presets.map((p) => (
               <SelectItem key={p.code} value={p.code} className="min-h-11">
-                {p.name}
+                {p.label}
               </SelectItem>
             ))}
           </SelectContent>

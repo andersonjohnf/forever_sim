@@ -69,6 +69,22 @@ function useStickyTop() {
   return ref
 }
 
+/**
+ * After a tab switch, the new section starts at its top, just under the sticky tabs, rather than
+ * wherever the last one was scrolled to, which could leave its header and notes (the Classic Era
+ * note) under the tabs (docs/ux.md#layout). It only ever scrolls up, smoothly unless reduced motion
+ * is asked for.
+ */
+function scrollToSectionTop(section: Section) {
+  const panel = document.querySelector<HTMLElement>(`[data-section="${section}"]`)
+  if (!panel) return
+  const stickyTop = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sticky-top')) || 0
+  const offset = panel.getBoundingClientRect().top - stickyTop
+  if (offset >= 0) return
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  window.scrollTo({ top: window.scrollY + offset, behavior: reduced ? 'auto' : 'smooth' })
+}
+
 export default function App() {
   const section = useSetup((s) => s.section)
   const setSection = useSetup((s) => s.setSection)
@@ -86,7 +102,17 @@ export default function App() {
          * focus back to where it was when you leave it, so with automatic activation a tab you
          * clicked right after Undo was switched back to the one focused before (docs/ux.md).
          */}
-        <Tabs value={section} onValueChange={(v) => setSection(v as Section)} activationMode="manual" className="min-w-0 gap-0">
+        <Tabs
+          value={section}
+          onValueChange={(v) => {
+            setSection(v as Section)
+            // Next frame: the new section has rendered by then, and a click has finished moving
+            // focus to its tab.
+            requestAnimationFrame(() => scrollToSectionTop(v as Section))
+          }}
+          activationMode="manual"
+          className="min-w-0 gap-0"
+        >
           <div
             ref={tabBar}
             data-sticky-tabs

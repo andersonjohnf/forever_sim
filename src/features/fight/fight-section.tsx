@@ -156,7 +156,7 @@ export function FightSection() {
           </ToggleGroupItem>
         </ToggleGroup>
         {!isPreset && (
-          <NumberField value={fight.bossArmor} onChange={(bossArmor) => set({ bossArmor })} min={0} max={10000} step={1} aria-label="Custom boss armor" />
+          <NumberField value={fight.bossArmor} onChange={(bossArmor) => set({ bossArmor })} min={0} max={10000} step={1} grouping aria-label="Custom boss armor" />
         )}
       </Field>
 
@@ -220,51 +220,55 @@ export function FightSection() {
           help={
             run.mode === 'adaptive'
               ? 'Runs until the result is within about ±0.25% (95% confidence), between 1,000 and 50,000 fights.'
-              : 'Always runs exactly this many fights.'
+              : 'Always runs exactly the number of fights you set below.'
           }
-          changed={
-            <>
-              {hint('precision', 'Precision', changed.precision, PRECISION[defaults.run.mode], () => setRun({ mode: defaults.run.mode }), () => selectedOption(ids('precision').control))}
-              {hint('iterations', 'Number of fights', changed.iterations, number(defaults.run.iterations), () => setRun({ iterations: defaults.run.iterations }))}
-            </>
-          }
+          changed={hint('precision', 'Precision', changed.precision, PRECISION[defaults.run.mode], () => setRun({ mode: defaults.run.mode }), () => selectedOption(ids('precision').control))}
         >
-          <div className="flex flex-wrap items-center gap-3">
-            <ToggleGroup
-              id={ids('precision').control}
-              type="single"
-              variant="outline"
-              value={run.mode}
-              onValueChange={(v) => v && setRun({ mode: v as typeof run.mode })}
-              aria-label="Precision"
-              aria-describedby={describedBy(changed.precision, 'precision')}
-            >
-              <ToggleGroupItem value="adaptive" className={cn('h-11 px-4', CHOICE_ITEM)}>
-                {PRECISION.adaptive}
-              </ToggleGroupItem>
-              <ToggleGroupItem value="fixed" className={cn('h-11 px-4', CHOICE_ITEM)}>
-                {PRECISION.fixed}
-              </ToggleGroupItem>
-            </ToggleGroup>
-            {run.mode === 'fixed' && (
-              <NumberField
-                id={ids('iterations').control}
-                value={run.iterations}
-                onChange={(iterations) => setRun({ iterations })}
-                min={100}
-                max={100000}
-                step={100}
-                aria-label="Number of fights"
-                aria-describedby={describedBy(changed.iterations, 'iterations')}
-              />
-            )}
-          </div>
+          <ToggleGroup
+            id={ids('precision').control}
+            type="single"
+            variant="outline"
+            value={run.mode}
+            onValueChange={(v) => v && setRun({ mode: v as typeof run.mode })}
+            aria-label="Precision"
+            aria-describedby={describedBy(changed.precision, 'precision')}
+            className="w-full sm:w-auto"
+          >
+            <ToggleGroupItem value="adaptive" className={cn('h-11 flex-1 px-4 sm:flex-none', CHOICE_ITEM)}>
+              {PRECISION.adaptive}
+            </ToggleGroupItem>
+            <ToggleGroupItem value="fixed" className={cn('h-11 flex-1 px-4 sm:flex-none', CHOICE_ITEM)}>
+              {PRECISION.fixed}
+            </ToggleGroupItem>
+          </ToggleGroup>
         </Field>
+        {run.mode === 'fixed' && (
+          // Its own labelled field, with its own help and default (TU8); its name is its visible label.
+          <Field
+            label="Number of fights"
+            htmlFor={ids('iterations').control}
+            help="From 100 to 100,000. More fights give a narrower ± range, and take longer."
+            changed={hint('iterations', 'Number of fights', changed.iterations, number(defaults.run.iterations), () => setRun({ iterations: defaults.run.iterations }))}
+          >
+            <NumberField
+              id={ids('iterations').control}
+              value={run.iterations}
+              onChange={(iterations) => setRun({ iterations })}
+              min={100}
+              max={100000}
+              step={100}
+              grouping
+              aria-label="Number of fights"
+              aria-describedby={describedBy(changed.iterations, 'iterations')}
+            />
+          </Field>
+        )}
         <Field
           label="Seed"
           htmlFor={ids('seed').control}
           help="The same setup and seed give exactly the same result on any device."
-          changed={hint('seed', 'Seed', changed.seed, number(defaults.run.seed), () => setRun({ seed: defaults.run.seed }))}
+          // A seed is an identifier, so no thousands separators, in its default or its field.
+          changed={hint('seed', 'Seed', changed.seed, String(defaults.run.seed), () => setRun({ seed: defaults.run.seed }))}
         >
           <NumberField
             id={ids('seed').control}
@@ -433,6 +437,7 @@ export function FightSection() {
                     min={0}
                     max={20000}
                     step={100}
+                    grouping
                     aria-label="Minimum damage per swing"
                     aria-describedby={describedBy(changed.swingDamage, 'swingDamage')}
                   />
@@ -443,6 +448,7 @@ export function FightSection() {
                     min={0}
                     max={20000}
                     step={100}
+                    grouping
                     aria-label="Maximum damage per swing"
                     aria-describedby={describedBy(changed.swingDamage, 'swingDamage')}
                   />
@@ -451,7 +457,8 @@ export function FightSection() {
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {BOSS_SWITCHES.map(([key, label]) => (
-                <div key={key} className="flex flex-col gap-1">
+                // Room for the Reset's hit area, clear of the switch above and the next row (LINK_HIT_AREA).
+                <div key={key} className={cn('flex flex-col', changed[key] ? 'gap-2 pb-2' : 'gap-1')}>
                   <label className="flex min-h-11 items-center justify-between gap-4 text-sm">
                     {label}
                     <Switch

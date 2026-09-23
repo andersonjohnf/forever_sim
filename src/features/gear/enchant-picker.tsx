@@ -18,22 +18,29 @@ import { SLOT_LABEL } from './slots'
  * screens, a full-height sheet below 640 px, like the item picker. Either way the choices are one
  * listbox: focus goes to it with the current enchant active, arrow keys move, Enter picks, and
  * focus returns to the chip when it closes.
+ *
+ * If the chip goes while the picker is open (an Undo from a toast takes the slot's item away),
+ * focus goes to `fallbackFocus`, the slot's button, rather than falling to the page.
  */
 export function EnchantPicker({
   slot,
   item,
   enchantId,
   onChange,
+  fallbackFocus,
 }: {
   slot: GearSlot
   item: Item
   enchantId: string | undefined
   onChange: (enchantId: string | undefined) => void
+  fallbackFocus: () => HTMLElement | null | undefined
 }) {
   const [open, setOpen] = useState(false)
   const profile = useSetup((s) => s.config.rules.profile)
   const wide = useMediaQuery('(min-width: 640px)')
-  const { returnRef, contentProps } = useSheetFocus<HTMLButtonElement>()
+  // Radix reports a picker that unmounts with its chip as a close, once the chip has gone.
+  const chipRef = useRef<HTMLButtonElement>(null)
+  const { contentProps } = useSheetFocus(() => chipRef.current ?? fallbackFocus())
   const listRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
   const options = enchantsFor(slot, item, profile)
@@ -62,9 +69,10 @@ export function EnchantPicker({
   )
   const trigger = (
     <button
-      ref={returnRef}
+      ref={chipRef}
       type="button"
-      aria-label={`${SLOT_LABEL[slot]} enchant: ${current?.name ?? 'none'}. Change enchant`}
+      // Starts with its visible text (WCAG 2.5.3): "Greater Strength · +10 Strength, Hands enchant".
+      aria-label={current ? `${current.name} · ${current.summary}, ${title}` : `Add an enchant, ${SLOT_LABEL[slot]}`}
       aria-haspopup="dialog"
       onClick={wide ? undefined : () => setOpen(true)}
       className={cn(
@@ -82,11 +90,23 @@ export function EnchantPicker({
     return (
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-        <PopoverContent align="start" aria-labelledby={titleId} onOpenAutoFocus={focusList} className="w-[min(22rem,calc(100vw-2rem))] gap-1 p-1">
+        <PopoverContent
+          align="start"
+          aria-labelledby={titleId}
+          onOpenAutoFocus={focusList}
+          onCloseAutoFocus={(event) => {
+            // Its trigger takes focus back, unless the chip has gone.
+            if (chipRef.current) return
+            event.preventDefault()
+            fallbackFocus()?.focus({ preventScroll: true })
+          }}
+          className="w-[min(22rem,calc(100vw-2rem))] gap-1 p-1"
+        >
           <p id={titleId} className="px-3 pt-2 pb-1 text-sm font-medium">
             {title}
           </p>
-          <ClassicEraNote what="Enchants" className="mx-2 mb-1" />
+          {/* Room below for its link's hit area, clear of the list (LINK_HIT_AREA). */}
+          <ClassicEraNote what="Enchants" className="mx-2 mb-3" />
           {list}
         </PopoverContent>
       </Popover>
@@ -107,7 +127,7 @@ export function EnchantPicker({
               </Button>
             </DrawerClose>
           </DrawerHeader>
-          <ClassicEraNote what="Enchants" className="mx-4 mt-3" />
+          <ClassicEraNote what="Enchants" className="mx-4 mt-3 mb-3" />
           {list}
         </DrawerContent>
       </Drawer>
@@ -188,7 +208,12 @@ function EnchantList({
             onPointerMove={() => index !== active && setActive(index)}
             onClick={() => onPick(option?.id)}
             // The active option's muted fill takes its secondary text to the full text colour (AA).
-            className="group/option flex min-h-11 cursor-default items-center gap-3 rounded-md px-3 py-2 text-sm select-none data-active:bg-muted"
+            // The fill alone is about 1.1:1, so a bar in the focus ring's colour marks it too, at
+            // 3:1 or more in both themes (WCAG 1.4.11).
+            className={cn(
+              'group/option relative flex min-h-11 cursor-default items-center gap-3 rounded-md px-3 py-2 text-sm select-none',
+              'data-active:bg-muted data-active:before:absolute data-active:before:inset-y-2 data-active:before:left-0.5 data-active:before:w-1 data-active:before:rounded-full data-active:before:bg-ring',
+            )}
           >
             <span className="flex min-w-0 flex-1 flex-col">
               <span className={cn(!option && 'text-muted-foreground group-data-active/option:text-foreground')}>{option?.name ?? 'No enchant'}</span>

@@ -8,6 +8,8 @@ const inToaster = (node: EventTarget | null): node is Element => node instanceof
 
 /** Keys that don't count as using the keyboard on their own. */
 const MODIFIERS = new Set(['Shift', 'Control', 'Alt', 'Meta', 'CapsLock'])
+/** Input types that take typing, so on a touch screen the on-screen keyboard. */
+const TEXT_INPUTS = new Set(['text', 'search', 'email', 'number', 'password', 'tel', 'url'])
 let keyboard = false
 
 /**
@@ -15,6 +17,21 @@ let keyboard = false
  * "Remove all gear" with Enter. A toast it raises stays until dismissed (src/app/undo-toast.ts).
  */
 export const lastInputWasKeyboard = () => keyboard
+
+/**
+ * Whether a key press counts as using the keyboard. On a touch screen (a coarse pointer), typing
+ * in a text field is the on-screen keyboard: Enter in the paste dialog on a phone isn't keyboard
+ * navigation, so the toast it raises keeps its 10 s and gets no Alt+T hint.
+ */
+function isKeyboardUse(e: KeyboardEvent) {
+  if (MODIFIERS.has(e.key)) return false
+  const target = e.target
+  const typing =
+    target instanceof HTMLTextAreaElement ||
+    (target instanceof HTMLInputElement && TEXT_INPUTS.has(target.type)) ||
+    (target instanceof HTMLElement && target.isContentEditable)
+  return !(typing && window.matchMedia('(pointer: coarse)').matches)
+}
 
 /** The shortcut to the toasts (sonner's hotkey), as the keyboard labels it. */
 export const TOAST_HOTKEY =
@@ -49,7 +66,7 @@ export function installToastLayer() {
   window.addEventListener(
     'keydown',
     (e) => {
-      if (!MODIFIERS.has(e.key)) keyboard = true
+      if (isKeyboardUse(e)) keyboard = true
     },
     true,
   )

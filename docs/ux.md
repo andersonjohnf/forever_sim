@@ -49,7 +49,10 @@ updated with each spec; an e2e test compares them.
 **Section tabs** are 44 px tall. When they scroll sideways, a fade marks each edge with more
 tabs past it (none at an end), and the chosen tab scrolls into view clear of the fades, as does
 a tab that arrow keys move focus to. Arrow keys move between tabs and Enter or Space opens one
-(manual activation), so focus coming back from a toast never switches the tab.
+(manual activation), so focus coming back from a toast never switches the tab. Opening a tab
+from further down the page scrolls up to the new section's top, just under the sticky tabs
+(smoothly, unless reduced motion is asked for), so its header and any note under it (Classic
+Era's) start in view rather than under the tabs.
 
 **Setup sections**, in this order: **Character · Talents · Gear · Buffs · Rotation · Fight**.
 
@@ -77,9 +80,10 @@ a tab that arrow keys move focus to. Arrow keys move between tabs and Enter or S
     ([D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
     A switch's whole row, with its help, is its label, as in Buffs.
   - The rule profile's help says what Classic Era changes and what it doesn't
-    ([architecture, "Rules and stats"](architecture.md#rules-and-stats)): Classic's combat rules,
-    its raid buff, debuff, consumable and enchant values, and the warrior's own Battle Shout.
-    Racials, talents, other abilities and gear stay Forever's.
+    ([architecture, "Rules and stats"](architecture.md#rules-and-stats)), naming every
+    exception: Classic's combat rules; its raid buff, debuff, consumable and enchant values; the
+    warrior's own Battle Shout, Recklessness and Berserker Stance; and the Hand of Justice and
+    Ironfoe procs. Racials, talents, other abilities and the rest of the gear stay Forever's.
   - **Changed settings are marked,** as on the Rotation tab: the race and each Advanced setting,
     when it differs from the spec's default, gets a line under it with its default ("Default:
     Human", "Default: Forever") and a **Reset** that moves focus back to its control. Advanced
@@ -88,7 +92,8 @@ a tab that arrow keys move focus to. Arrow keys move between tabs and Enter or S
 - **Talents.**
   - A preset menu with the documented builds (its class doc) of the specs the app offers, so it
     grows as specs ship (principle 8): no Protection builds until Protection does. The spec
-    default is selected.
+    default is selected. Only the current spec's default is marked "(default)"; another spec's
+    reads plainly ("Arms default"), so the menu never shows two defaults.
   - Interactive trees: three side by side on desktop, one tab per tree on mobile (a segmented
     control named "Talent tree"). With a mouse, click to add a point and right-click to remove
     one; on a touch screen, a tap opens the talent's details with − and + buttons. On a focused
@@ -146,12 +151,16 @@ a tab that arrow keys move focus to. Arrow keys move between tabs and Enter or S
     what the row shows: stats, BiS rank and flags.
   - A row's enchant chip ("Greater Strength · +10 Strength", or "Add an enchant") opens the
     **enchant picker**: a popover named for the slot ("Hands enchant") on wider screens, and
-    below 640 px a full-height sheet with a 44 px Close, like the item picker. The enchants that
-    fit are one listbox, "No enchant" first, each a 44 px option with its summary. Focus goes
-    to the list with the current enchant active; arrow keys, Home and End move, Enter or Space
-    picks, and so does a tap. The current enchant is the selected option, with a check. Focus
-    goes back to the chip when it closes. Under Classic Era rules it says its values are Classic
-    Era's, as Buffs does.
+    below 640 px a full-height sheet with a 44 px Close, like the item picker. The chip's
+    accessible name starts with its visible text (WCAG 2.5.3): "Greater Strength · +10
+    Strength, Hands enchant", "Add an enchant, Shoulders". The enchants that fit are one
+    listbox, "No enchant" first, each a 44 px option with its summary. Focus goes to the list
+    with the current enchant active; arrow keys, Home and End move, Enter or Space picks, and so
+    does a tap. The active option has a muted fill and a bar on its left in the focus ring's
+    colour, which is what meets 3:1 (the fill alone is about 1.1:1). The current enchant is the
+    selected option, with a check. Focus goes back to the chip when it closes, or to the slot's
+    button if the chip has gone meanwhile (an Undo took the item away). Under Classic Era rules
+    it says its values are Classic Era's, as Buffs does.
   - A gear-set menu: "Pre-raid BiS" (the spec default, in the race's faction's PvP gear),
     "Empty", and later saved sets.
 - **Buffs.**
@@ -206,6 +215,10 @@ a tab that arrow keys move focus to. Arrow keys move between tabs and Enter or S
     **Reset** for that row alone, which moves focus back to the row's control. A value you set
     that equals the default isn't marked. Screen readers hear "Changed. Default: …" as the
     switch's description.
+  - A small text link (a row's Reset, the "Buffs" link below) has a 44 px hit area around its
+    line, lopsided so it never covers the control above: 10 px above the line and 18 px below
+    (`LINK_HIT_AREA` in `src/features/changed-hint.tsx`). Whatever holds one leaves that much
+    room around it, so a row with a Reset is a little taller.
   - A setting that depends on a switch is dimmed while that switch is off, or can't apply
     itself (a potion's threshold while the potion isn't selected in Buffs), down the tree. It's
     dimmed by colour, never opacity: its label and inputs take the muted text colour, which is
@@ -232,11 +245,15 @@ a tab that arrow keys move focus to. Arrow keys move between tabs and Enter or S
   - No number of targets yet: the sim has one target, so the control waits for multi-target
     support ([warrior §5.5](classes/warrior.md#55-multi-target-options-light)). A control that
     changes nothing isn't shown. Saved setups keep the value (`extraTargets`), unused.
-  - Advanced: iterations and seed, then the fight's details. Every field is labelled, the
+  - Advanced: precision and seed, then the fight's details. Every field is labelled, the
     Creature type and Zone menus included, and its accessible name contains its visible label
     ("Execute phase starts at", "Damage you take"; WCAG 2.5.3). A stepper's buttons name their
-    field ("Decrease Boss level"). A stepper that reaches its limit disables itself, so it hands
-    focus to its field first.
+    field ("Decrease Boss level"). A stepper that reaches its limit disables itself, so, if it
+    held focus, it hands focus to the other stepper, the way back. Never to the text field,
+    which on a phone would open the on-screen keyboard.
+  - Precision is Adaptive or Fixed. **Fixed** shows its own field under it, "Number of fights",
+    with its own help and default. Counts are written with thousands separators, in a field as
+    in its "Default: 3,000" (boss armor, damage per swing); a seed is an identifier and has none.
 
 ## Results
 
@@ -392,6 +409,18 @@ Every view handles these states:
     says "Press Alt+T to reach Undo" ("Option+T" on a Mac) and stays until you dismiss it, with
     Undo, **Dismiss** or Escape. The toasts sit at the end of the page's tab order, many key
     presses away, and 10 s isn't long enough to get there.
+  - On a touch screen (a coarse pointer), typing in a text field is the on-screen keyboard, not
+    keyboard use: Enter in the talent paste dialog on a phone raises a toast that keeps its 10 s
+    and has no Alt+T hint.
+- **One Undo at a time, and never a stale one.** Undo puts back the setup from before its own
+  change, so offered later it would also revert everything changed since, or switch spec back.
+  A new undo toast replaces the one that's up, and any other change to the setup (another
+  edit, a spec switch, a shared link) takes it away. This covers every undo toast: gear, a race
+  and its faction swap, talents, Reset rotation, Reset setup and shared links.
+- **A toast never hides the focused control.** While toasts are up, the page's bottom scroll
+  padding clears them as it does the phone's bar (`--toast-clearance`, measured by
+  `src/app/toaster.tsx`), so focus moving on under a toast that waits for Dismiss scrolls clear
+  of it (WCAG 2.4.11).
 - **Alt+T** (Option+T) is the keyboard's way to the toasts: it moves focus to the newest toast's
   Undo (sonner's hotkey focuses the toast list and spreads the toasts out, and
   `src/app/toaster.tsx` moves focus on to Undo). Escape in a toast dismisses an undo toast, and
@@ -413,8 +442,8 @@ Every view handles these states:
 
 - WCAG 2.2 AA contrast in both themes.
 - Visible focus on everything interactive, and labels on icon-only buttons. A focused control
-  is never hidden behind the sticky header, the sticky section tabs or the phone's sim bar,
-  going forwards or backwards: the page's scroll padding keeps it clear of all three with
+  is never hidden behind the sticky header, the sticky section tabs, the phone's sim bar or a
+  toast, going forwards or backwards: the page's scroll padding keeps it clear of them with
   0.5rem to spare, from their measured heights (WCAG 2.4.11).
 - Logical tab order. Sheets and dialogs trap focus and close with Escape. Phone sheets (the
   results, the item picker) also have a 44 px close button in the header's corner, as the

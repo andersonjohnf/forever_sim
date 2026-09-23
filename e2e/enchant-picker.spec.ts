@@ -7,7 +7,7 @@ import { expect, test } from './fixtures.ts'
 test.describe('enchant picker', () => {
   test('is a named listbox: arrow keys move, Enter picks, and focus returns to the chip', async ({ page }) => {
     await page.goto('./')
-    const chip = page.getByRole('button', { name: /^Hands enchant: Greater Strength/ })
+    const chip = page.getByRole('button', { name: /^Greater Strength · \+10 Strength, Hands enchant$/ })
     await chip.click()
     const picker = page.getByRole('dialog', { name: 'Hands enchant' })
     const list = picker.getByRole('listbox', { name: 'Hands enchants' })
@@ -21,7 +21,7 @@ test.describe('enchant picker', () => {
     expect(await active()).toMatch(/^Greater Agility/)
     await page.keyboard.press('Enter')
     await expect(picker).toBeHidden()
-    await expect(page.getByRole('button', { name: /^Hands enchant: Greater Agility/ })).toBeFocused()
+    await expect(page.getByRole('button', { name: /^Greater Agility · .*, Hands enchant$/ })).toBeFocused()
 
     // Escape closes it without a change, and focus returns too.
     await page.keyboard.press('Enter')
@@ -30,18 +30,18 @@ test.describe('enchant picker', () => {
     expect(await active()).toBe('No enchant')
     await page.keyboard.press('Escape')
     await expect(picker).toBeHidden()
-    await expect(page.getByRole('button', { name: /^Hands enchant: Greater Agility/ })).toBeFocused()
+    await expect(page.getByRole('button', { name: /^Greater Agility · .*, Hands enchant$/ })).toBeFocused()
   })
 
   test('its options are 44 px targets and a click picks one', async ({ page }) => {
     await page.goto('./')
-    await page.getByRole('button', { name: /^Hands enchant:/ }).click()
+    await page.getByRole('button', { name: /, Hands enchant$/ }).click()
     const options = page.getByRole('listbox', { name: 'Hands enchants' }).getByRole('option')
     for (const height of await options.evaluateAll((els) => els.map((el) => (el as HTMLElement).offsetHeight))) {
       expect(height).toBeGreaterThanOrEqual(44)
     }
     await options.filter({ hasText: 'No enchant' }).click()
-    await expect(page.getByRole('button', { name: 'Hands enchant: none. Change enchant' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Add an enchant, Hands' })).toBeVisible()
   })
 })
 
@@ -50,7 +50,7 @@ test.describe('enchant picker on a phone', () => {
 
   test('opens as a full-height sheet with a close button, and focus returns to the chip', async ({ page }) => {
     await page.goto('./')
-    const chip = page.getByRole('button', { name: /^Hands enchant: Greater Strength/ })
+    const chip = page.getByRole('button', { name: /^Greater Strength · \+10 Strength, Hands enchant$/ })
     await chip.tap()
     const sheet = page.getByRole('dialog', { name: 'Hands enchant' })
     await expect(sheet).toBeVisible()
@@ -67,7 +67,7 @@ test.describe('enchant picker on a phone', () => {
     await chip.tap()
     await sheet.getByRole('option', { name: /^Superior Strength/ }).tap()
     await expect(sheet).toBeHidden()
-    await expect(page.getByRole('button', { name: /^Hands enchant: Superior Strength/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Superior Strength · .*, Hands enchant$/ })).toBeVisible()
   })
 })
 

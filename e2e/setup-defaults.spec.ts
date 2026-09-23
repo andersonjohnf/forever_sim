@@ -43,17 +43,24 @@ const contrast = (locator: Locator) =>
     return (hi + 0.05) / (lo + 0.05)
   })
 
-/** Every point of a 44 × 44 px square centred on the element hits it (its hit area, pseudo-elements included). */
+/**
+ * Every point of a 44 × 44 px square hits the element (its hit area, pseudo-elements included):
+ * centred across it, and down from the top of its hit area, since a small link's is lopsided,
+ * reaching further below its text than above (LINK_HIT_AREA in src/features/changed-hint.tsx).
+ */
 const hitArea44 = (locator: Locator) =>
   locator.evaluate((el) => {
     el.scrollIntoView({ block: 'center' })
     const box = el.getBoundingClientRect()
-    const [cx, cy] = [box.x + box.width / 2, box.y + box.height / 2]
-    const misses: string[] = []
-    for (const dx of [-21, 0, 21]) for (const dy of [-21, 0, 21]) {
-      const hit = document.elementFromPoint(cx + dx, cy + dy)
-      if (!hit || !(hit === el || el.contains(hit))) misses.push(`${dx},${dy}`)
+    const cx = box.x + box.width / 2
+    const hits = (x: number, y: number) => {
+      const hit = document.elementFromPoint(x, y)
+      return !!hit && (hit === el || el.contains(hit))
     }
+    let top = box.y + box.height / 2
+    while (hits(cx, top - 1) && top > box.y - 44) top--
+    const misses: string[] = []
+    for (const dx of [-21, 0, 21]) for (const dy of [0, 22, 43]) if (!hits(cx + dx, top + dy)) misses.push(`${dx},${dy}`)
     return misses
   })
 
@@ -137,7 +144,7 @@ test.describe('defaults', () => {
 
     await tab.getByRole('button', { name: 'Advanced' }).click()
     const rules = tab.getByRole('radiogroup', { name: 'Rules' })
-    await expect(rules).toHaveAccessibleDescription(/^Forever uses the Forever client’s numbers.*Racials, talents, your other abilities and gear stay Forever’s\.$/)
+    await expect(rules).toHaveAccessibleDescription(/^Forever uses the Forever client’s numbers.*Classic’s combat rules; its raid buff, debuff, consumable and enchant values; your Battle Shout, Recklessness and Berserker Stance; and the Hand of Justice and Ironfoe procs, .*Racials, talents, your other abilities and the rest of your gear stay Forever’s\.$/)
     await rules.getByRole('radio', { name: 'Classic Era' }).click()
     await expect(rules).toHaveAccessibleDescription(/Changed\. Default: Forever$/)
     await expect(tab.getByRole('button', { name: 'Advanced, 1 changed' })).toBeVisible()
@@ -158,7 +165,7 @@ test.describe('Classic Era rules', () => {
     await page.getByRole('radiogroup', { name: 'Rules' }).getByRole('radio', { name: 'Classic Era' }).click()
 
     await page.getByRole('tab', { name: 'Gear', exact: true }).click()
-    await page.getByRole('button', { name: /^Hands enchant:/ }).click()
+    await page.getByRole('button', { name: /, Hands enchant$/ }).click()
     await expect(page.getByRole('dialog', { name: 'Hands enchant' })).toContainText('Classic Era values. Enchants use Classic Era’s numbers')
     await page.keyboard.press('Escape')
 

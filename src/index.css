@@ -167,10 +167,12 @@
      * bottom edge App keeps in --sticky-top, and of the phone's fixed sim bar, whose height it keeps
      * in --sim-bar-height, so a focused control is never hidden behind them, with 0.5rem to spare
      * (WCAG 2.4.11, docs/ux.md#accessibility). The fallback is the header's 3.5rem and the tabs'
-     * 51 px, before the first measurement.
+     * 51 px, before the first measurement. While toasts are up, the bottom clears them too: they
+     * sit above the sim bar, and the toaster keeps how far up they reach in --toast-clearance
+     * (src/app/toaster.tsx).
      */
     scroll-padding-top: calc(var(--sticky-top, 6.75rem) + 0.5rem);
-    scroll-padding-bottom: calc(var(--sim-bar-height, 0px) + 0.5rem);
+    scroll-padding-bottom: calc(max(var(--sim-bar-height, 0px), var(--toast-clearance, 0px)) + 0.5rem);
     }
   /*
    * The shadcn switch paints its off track with --input, which input borders share and which is

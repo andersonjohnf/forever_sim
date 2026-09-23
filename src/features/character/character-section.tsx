@@ -95,12 +95,15 @@ export function CharacterSection() {
           <Field
             label="Rules"
             help={
-              // What Classic Era changes and what stays Forever's (docs/architecture.md "Rules and stats").
+              // What Classic Era changes and what stays Forever's (docs/architecture.md "Rules and stats"),
+              // every exception named: the warrior's own Battle Shout, Recklessness and Berserker
+              // Stance, and two items' procs.
               <span id="rules-help">
-                Forever uses the Forever client’s numbers wherever it has them. Classic Era uses Classic’s combat rules and its raid
-                buff, debuff, consumable and enchant values instead
-                {meta.classId === 'warrior' ? ', your own Battle Shout included' : ''}, so you can see how much those Forever changes
-                matter. Racials, talents, {meta.classId === 'warrior' ? 'your other abilities' : 'abilities'} and gear stay Forever’s.
+                Forever uses the Forever client’s numbers wherever it has them. Classic Era swaps in Classic’s combat rules; its raid
+                buff, debuff, consumable and enchant values;{' '}
+                {meta.classId === 'warrior' ? 'your Battle Shout, Recklessness and Berserker Stance; ' : ''}and the Hand of Justice
+                and Ironfoe procs, so you can see what those Forever changes are worth. Racials, talents,{' '}
+                {meta.classId === 'warrior' ? 'your other abilities' : 'abilities'} and the rest of your gear stay Forever’s.
               </span>
             }
           >

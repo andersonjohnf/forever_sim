@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { buffSwitchId } from '@/features/buffs/ids'
-import { ChangedHint } from '@/features/changed-hint'
+import { ChangedHint, LINK_HIT_AREA } from '@/features/changed-hint'
 import { changeAndFocus } from '@/features/refocus'
 import { EmptyState } from '@/features/empty-state'
 import { SectionHeader } from '@/features/section'
@@ -200,6 +200,9 @@ function OptionRow({ option, ctx, nested = false }: { option: RotationOption; ct
         // Number inputs and choices go under their label on a phone.
         'flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between',
         pad,
+        // Room for the Reset's hit area below its line, clear of the control under it on a phone
+        // and of the next row (LINK_HIT_AREA).
+        row.changed && 'gap-5 pb-5 sm:gap-3',
         // Dimmed by colour, never opacity, so its text stays AA (docs/ux.md "Visual language").
         row.inactive && 'text-muted-foreground',
       )}
@@ -262,7 +265,7 @@ function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOptio
         className={cn(
           'flex min-h-14 items-center gap-4 px-4',
           nested ? 'py-3' : 'py-4',
-          notes && 'pb-2',
+          notes && 'pb-0',
           row.missingBuff ? 'cursor-not-allowed' : 'cursor-pointer hover:bg-muted/50',
         )}
       >
@@ -285,14 +288,16 @@ function ToggleRow({ option, row, ctx, nested }: { option: Extract<RotationOptio
         />
       </label>
       {notes && (
-        <div className={cn('flex flex-col gap-2 px-4', nested ? 'pb-3' : 'pb-4')}>
+        // Spaced so each link's hit area (LINK_HIT_AREA: 10 px above its line, 18 px below) stays
+        // clear of the row's label, of the other link, and of the next row.
+        <div className={cn('flex flex-col px-4 pt-3 pb-5', row.missingBuff && row.changed ? 'gap-6' : 'gap-2')}>
           {row.missingBuff && (
             <p id={ids.missing} className="text-xs text-muted-foreground">
               Not used: turn on {row.missingBuff.name} in{' '}
               <button
                 type="button"
                 // A small link with a 44 px hit area around it, like a row's Reset.
-                className="relative rounded-sm font-medium text-foreground underline underline-offset-2 outline-none after:absolute after:-inset-x-2 after:-inset-y-3.5 focus-visible:ring-3 focus-visible:ring-ring/50"
+                className={cn('rounded-sm font-medium text-foreground underline underline-offset-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50', LINK_HIT_AREA)}
                 onClick={() => {
                   // Opens Buffs on that consumable's switch, so the next key press turns it on.
                   const buff = row.missingBuff!.id

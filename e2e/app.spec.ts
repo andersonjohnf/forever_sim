@@ -111,8 +111,9 @@ test.describe('talents', () => {
     const presets = page.getByRole('combobox', { name: 'Talent build presets' })
     await expect(presets).toHaveText('Fury (default)')
     await presets.click()
-    // Only the builds of specs the app offers (docs/ux.md principle 8): no Protection yet.
-    await expect(page.getByRole('option')).toHaveText(['Fury (default)', 'Fury + Precision', 'Arms (default)'])
+    // Only the builds of specs the app offers (docs/ux.md principle 8): no Protection yet. One
+    // "(default)": the other spec's default reads plainly (TU10).
+    await expect(page.getByRole('option')).toHaveText(['Fury (default)', 'Fury + Precision', 'Arms default'])
     await page.getByRole('option', { name: 'Fury + Precision' }).click()
     await expect(page.getByText('15 / 36 / 0')).toBeVisible()
     await expect(presets).toHaveText('Fury + Precision')

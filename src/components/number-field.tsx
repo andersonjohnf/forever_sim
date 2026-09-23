@@ -1,5 +1,6 @@
 import { Minus, Plus } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -7,6 +8,9 @@ import { cn } from '@/lib/utils'
 /**
  * A number input with − / + steppers (44 px touch targets). Commits on blur or Enter and
  * clamps to [min, max], so typing a partial number never pushes an invalid value.
+ *
+ * `grouping` shows thousands separators ("10,000"), as the rest of the app writes counts; typed
+ * commas are fine either way. Leave it off for an identifier such as a seed.
  *
  * `aria-label` names the input and, after "Decrease" / "Increase", the steppers; it should match
  * the field's visible label (WCAG 2.5.3). `stepLabel` names the steppers instead when the label
@@ -22,6 +26,7 @@ export function NumberField({
   unit,
   className,
   stepLabel,
+  grouping = false,
   'aria-label': ariaLabel,
   'aria-describedby': describedBy,
 }: {
@@ -34,27 +39,39 @@ export function NumberField({
   unit?: string
   className?: string
   stepLabel?: string
+  grouping?: boolean
   'aria-label'?: string
   'aria-describedby'?: string
 }) {
   // While typing, the draft is shown; otherwise the committed value. No effect needed.
   const [draft, setDraft] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const decreaseRef = useRef<HTMLButtonElement>(null)
+  const increaseRef = useRef<HTMLButtonElement>(null)
   const stepName = stepLabel ?? ariaLabel
 
   const clamp = (n: number) => Math.min(max, Math.max(min, Math.round(n / step) * step))
   const commit = () => {
     if (draft === null) return
-    const n = Number(draft)
-    if (draft.trim() !== '' && !Number.isNaN(n) && clamp(n) !== value) onChange(clamp(n))
+    const text = draft.replace(/,/g, '').trim()
+    const n = Number(text)
+    if (text !== '' && !Number.isNaN(n) && clamp(n) !== value) onChange(clamp(n))
     setDraft(null)
   }
   // A stepper that reaches its limit disables itself, which would drop focus to the page, so
-  // focus moves to the input first (docs/ux.md#accessibility).
-  const stepTo = (next: number) => {
+  // focus moves to the other stepper, now enabled: the way back, and never the text field, which
+  // on a phone would open the on-screen keyboard (docs/ux.md#accessibility). Only when the
+  // stepper held focus: a tap on a phone may not focus it.
+  const stepTo = (next: number, stepper: HTMLButtonElement | null, other: HTMLButtonElement | null) => {
     const clamped = clamp(next)
-    if (clamped <= min || clamped >= max) inputRef.current?.focus()
-    onChange(clamped)
+    const atLimit = clamped <= min || clamped >= max
+    if (!atLimit || stepper === null || document.activeElement !== stepper) {
+      onChange(clamped)
+      return
+    }
+    flushSync(() => onChange(clamped))
+    if (other && !other.disabled) other.focus()
+    else inputRef.current?.focus()
   }
 
   return (
@@ -65,8 +82,9 @@ export function NumberField({
         size="icon"
         className="size-11"
         aria-label={stepName ? `Decrease ${stepName}` : 'Decrease'}
+        ref={decreaseRef}
         disabled={value <= min}
-        onClick={() => stepTo(value - step)}
+        onClick={() => stepTo(value - step, decreaseRef.current, increaseRef.current)}
       >
         <Minus />
       </Button>
@@ -77,7 +95,7 @@ export function NumberField({
           inputMode="decimal"
           aria-label={ariaLabel}
           aria-describedby={describedBy}
-          value={draft ?? String(value)}
+          value={draft ?? (grouping ? value.toLocaleString('en-US') : String(value))}
           onChange={(e) => setDraft(e.target.value)}
           onBlur={commit}
           onKeyDown={(e) => e.key === 'Enter' && commit()}
@@ -95,8 +113,9 @@ export function NumberField({
         size="icon"
         className="size-11"
         aria-label={stepName ? `Increase ${stepName}` : 'Increase'}
+        ref={increaseRef}
         disabled={value >= max}
-        onClick={() => stepTo(value + step)}
+        onClick={() => stepTo(value + step, increaseRef.current, decreaseRef.current)}
       >
         <Plus />
       </Button>

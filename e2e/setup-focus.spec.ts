@@ -16,17 +16,24 @@ const touchOnly = (page: Page) =>
     }
   })
 
-/** Every point of a 44 × 44 px square centred on the element hits it (its hit area, pseudo-elements included). */
+/**
+ * Every point of a 44 × 44 px square hits the element (its hit area, pseudo-elements included):
+ * centred across it, and down from the top of its hit area, since a small link's is lopsided,
+ * reaching further below its text than above (LINK_HIT_AREA in src/features/changed-hint.tsx).
+ */
 const hitArea44 = (locator: Locator) =>
   locator.evaluate((el) => {
     el.scrollIntoView({ block: 'center' })
     const box = el.getBoundingClientRect()
-    const [cx, cy] = [box.x + box.width / 2, box.y + box.height / 2]
-    const misses: string[] = []
-    for (const dx of [-21, 0, 21]) for (const dy of [-21, 0, 21]) {
-      const hit = document.elementFromPoint(cx + dx, cy + dy)
-      if (!hit || !(hit === el || el.contains(hit))) misses.push(`${dx},${dy}`)
+    const cx = box.x + box.width / 2
+    const hits = (x: number, y: number) => {
+      const hit = document.elementFromPoint(x, y)
+      return !!hit && (hit === el || el.contains(hit))
     }
+    let top = box.y + box.height / 2
+    while (hits(cx, top - 1) && top > box.y - 44) top--
+    const misses: string[] = []
+    for (const dx of [-21, 0, 21]) for (const dy of [0, 22, 43]) if (!hits(cx + dx, top + dy)) misses.push(`${dx},${dy}`)
     return misses
   })
 
@@ -182,7 +189,7 @@ test.describe('rotation', () => {
 })
 
 test.describe('number steppers', () => {
-  test('a stepper that reaches its limit hands focus to its field', async ({ page }) => {
+  test('a stepper that reaches its limit hands focus to the other stepper, not the field (TU4)', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('tab', { name: 'Fight', exact: true }).click()
     await page.getByRole('button', { name: 'Advanced' }).click()
@@ -197,6 +204,28 @@ test.describe('number steppers', () => {
       await expect(level).toHaveValue(value)
     }
     await expect(down).toBeDisabled()
+    // The way back, and no on-screen keyboard on a phone.
+    await expect(up).toBeFocused()
+    for (const value of ['61', '62', '63']) {
+      await page.keyboard.press('Space')
+      await expect(level).toHaveValue(value)
+    }
+    await expect(up).toBeDisabled()
+    await expect(down).toBeFocused()
+  })
+
+  test('a stepper that didn’t hold focus leaves focus alone at its limit', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('tab', { name: 'Fight', exact: true }).click()
+    await page.getByRole('button', { name: 'Advanced' }).click()
+    const level = page.getByRole('textbox', { name: 'Boss level' })
+    await level.focus()
+    // A tap that doesn't focus the stepper (iOS Safari), as a script click does.
+    const down = page.getByRole('button', { name: 'Decrease Boss level' })
+    for (const value of ['62', '61', '60']) {
+      await down.evaluate((el: HTMLElement) => el.click())
+      await expect(level).toHaveValue(value)
+    }
     await expect(level).toBeFocused()
   })
 })

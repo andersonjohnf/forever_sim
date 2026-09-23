@@ -157,6 +157,11 @@ export function GearSection() {
                         slot={slot}
                         item={item}
                         enchantId={equipped?.enchantId}
+                        // The slot's button, or the main hand's if a two-hander now locks this slot.
+                        fallbackFocus={() => {
+                          const button = slotButtons.current.get(slot)
+                          return button && !button.disabled ? button : slotButtons.current.get('mainHand')
+                        }}
                         onChange={(enchantId) =>
                           update((c) => ({
                             ...c,

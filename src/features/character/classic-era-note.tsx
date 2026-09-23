@@ -1,5 +1,6 @@
 import { History } from 'lucide-react'
 import { useSetup } from '@/app/setup-store'
+import { LINK_HIT_AREA } from '@/features/changed-hint'
 import { changeAndFocus, selectedOption } from '@/features/refocus'
 import { cn } from '@/lib/utils'
 
@@ -22,8 +23,9 @@ export function ClassicEraNote({ what, className }: { what: string; className?: 
         <span className="font-medium text-foreground">Classic Era values.</span> {what} use Classic Era’s numbers, as set in{' '}
         <button
           type="button"
-          // A small link with a 44 px hit area around it, like a setting's Reset.
-          className="relative rounded-sm font-medium text-foreground underline underline-offset-2 outline-none after:absolute after:-inset-x-2 after:-inset-y-3.5 focus-visible:ring-3 focus-visible:ring-ring/50"
+          // A small link with a 44 px hit area around it, like a setting's Reset: whatever follows
+          // the note leaves room for it (LINK_HIT_AREA).
+          className={cn('rounded-sm font-medium text-foreground underline underline-offset-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50', LINK_HIT_AREA)}
           onClick={() =>
             changeAndFocus(
               () => setSection('character'),

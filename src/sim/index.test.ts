@@ -81,9 +81,9 @@ describe('simulate', () => {
 })
 
 describe('specs', () => {
-  it('keeps every spec unavailable in M1, with its metadata', () => {
+  it('offers only finished specs: Fury since M2.2c (docs/ux.md principle 8), with every spec’s metadata', () => {
     expect(specs.map((s) => s.id)).toEqual(SPEC_IDS)
-    expect(specs.every((s) => !s.available)).toBe(true)
+    expect(specs.filter((s) => s.available).map((s) => s.id)).toEqual(['warrior-fury'])
     expect(getSpec('warrior-protection').role).toBe('tank')
     expect(() => getSpec('mage-fire' as never)).toThrow()
   })

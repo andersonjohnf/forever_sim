@@ -141,6 +141,15 @@ export type RotationOption =
       /** One line of help shown under the control. */
       help: string
       default: boolean
+      /** Id of a toggle that must be on for this one to apply. */
+      dependsOn?: string
+      /**
+       * While on, the rotation keeps this buff (a BuffDefinition id) up itself, and the Buffs
+       * switch for it adds nothing more (Battle Shout, warrior.md §5.2 row 1).
+       */
+      maintainsBuff?: string
+      /** The consumable (a BuffDefinition id) that must be selected in Buffs for this to do anything. */
+      requiresBuff?: string
     }
   | {
       kind: 'number'

@@ -18,10 +18,6 @@ const REGISTRY = {
     text: 'Only white swings, talents, procs and buffs are simulated for now: abilities, cooldowns and on-use items arrive with the rotation.',
     docRef: 'docs/milestones.md#m2-warrior-dps-with-the-production-ux',
   },
-  partialRotation: {
-    text: 'The rotation uses Bloodthirst, Whirlwind, Heroic Strike, Hamstring, Execute, Bloodrage, Death Wish, Recklessness, Berserker Rage and racial cooldowns for now: Battle Shout, the pre-pull, potions and on-use items come next.',
-    docRef: 'docs/milestones.md#m2-warrior-dps-with-the-production-ux',
-  },
   gcdHaste: {
     text: 'The 1.5 s global cooldown isn’t shortened by haste, as in Classic Era; untested in Forever.',
     docRef: `${DT}#35-global-cooldown`,
@@ -127,7 +123,7 @@ const REGISTRY = {
     docRef: `${WAR}#9-open-questions`,
   },
   cooldownRacial: {
-    text: 'Eureka! isn’t simulated yet: how its 40% cost cut rounds, and what spends its charges, are open questions.',
+    text: 'Eureka! isn’t simulated: how its 40% cost cut rounds, and what spends its charges, are open questions.',
     docRef: `${WAR}#9-open-questions`,
   },
   touchOfTheGrave: {
@@ -215,8 +211,12 @@ const REGISTRY = {
     docRef: `${WAR}#9-open-questions`,
   },
   onUseConsumables: {
-    text: 'Your on-use consumables are used by the rotation, which isn’t simulated yet',
+    text: 'Some on-use items and consumables aren’t simulated',
     docRef: `${BUFFS}#on-use-items-and-cooldown-categories`,
+  },
+  weaknessAnalyzer: {
+    text: 'Weakness Analyzer’s +5% crit ends on your next crit, white or special, and it’s ready again after 90 s, as the Forever client says; an older tooltip said 2 minutes.',
+    docRef: `${WAR}#9-open-questions`,
   },
   hyjalFlask: {
     text: 'Your flask’s bonus works only in Mount Hyjal, Hyjal Summit and the Barrow Deeps; this fight is elsewhere.',

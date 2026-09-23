@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { Header } from '@/app/header'
 import { useSetup, type Section } from '@/app/setup-store'
 import { clearSharedSetupFromUrl, readSharedSetup } from '@/app/share'
+import { isVisibleSpec } from '@/app/specs'
 import { DataAttribution } from '@/components/data-attribution'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BuffsSection } from '@/features/buffs/buffs-section'
@@ -13,7 +14,7 @@ import { MobileSimBar } from '@/features/results/mobile-sim-bar'
 import { ResultsPanel } from '@/features/results/results-panel'
 import { RotationSection } from '@/features/rotation/rotation-section'
 import { TalentsSection } from '@/features/talents/talents-section'
-import { normalizeConfig } from '@/sim'
+import { normalizeConfig, SPEC_META } from '@/sim'
 
 const SECTIONS: { id: Section; label: string; content: () => React.JSX.Element }[] = [
   { id: 'character', label: 'Character', content: CharacterSection },
@@ -32,6 +33,11 @@ function useSharedLink() {
         if (raw === null) return
         clearSharedSetupFromUrl()
         const { config, warnings } = normalizeConfig(raw)
+        if (!isVisibleSpec(config.spec)) {
+          const { name, className } = SPEC_META[config.spec]
+          toast.error(`That link is for a ${name} ${className}`, { description: 'This sim doesn’t cover that spec, so your own setup is unchanged.' })
+          return
+        }
         const previous = useSetup.getState().replace(config)
         toast('Loaded a shared setup', {
           description: warnings.length ? `${warnings.length} part(s) were out of date and reset to defaults.` : undefined,

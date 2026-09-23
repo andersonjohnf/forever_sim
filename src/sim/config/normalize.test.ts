@@ -163,6 +163,17 @@ describe('normalizeConfig', () => {
     expect(warnings).toHaveLength(1)
   })
 
+  it('carries a renamed rotation setting over to its new id (warrior.md §5.2 row 3)', () => {
+    const d = defaultConfig('warrior-fury')
+    const old = normalizeConfig({ ...d, rotation: { 'warrior.fury.racial.syncWithDeathWish': false } })
+    expect(old.config.rotation).toEqual({ 'warrior.fury.cooldowns.syncWithDeathWish': false })
+    expect(old.warnings).toEqual([])
+    // The new id wins when both are saved.
+    const both = normalizeConfig({ ...d, rotation: { 'warrior.fury.racial.syncWithDeathWish': false, 'warrior.fury.cooldowns.syncWithDeathWish': true } })
+    expect(both.config.rotation).toEqual({ 'warrior.fury.cooldowns.syncWithDeathWish': true })
+    expect(both.warnings).toEqual([])
+  })
+
   it('never throws, and always returns a config the engine accepts (fuzz)', () => {
     const rng = new Rng()
     rng.seed(2024, 0, 0)

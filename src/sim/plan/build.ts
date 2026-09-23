@@ -9,12 +9,12 @@ import type { Item, ItemData, Stats, WeaponSkill, WeaponType } from '@/data/item
 import { glanceRange, PLAYER_LEVEL } from '../core/attack-table'
 import { NORMALIZED_SPEED, ppmChance, toTenths } from '../core/formulas'
 import { classSetup } from '../classes'
-import { classRotation } from '../classes/rotation'
+import { classRotation, maintainedBuffs } from '../classes/rotation'
 import { BUFFS_BY_ID } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { ITEM_EFFECTS } from '../effects/items'
 import { COOLDOWN_RACIALS, racialEffects } from '../effects/racials'
-import type { AuraSpec, Condition, Effect, FlatStat, ProcSpec } from '../effects/types'
+import type { AuraSpec, Condition, Effect, FlatStat, OnUseSpec, ProcSpec } from '../effects/types'
 import { isTwoHand } from '../equip'
 import { PROFILES } from '../rules/profiles'
 import { SPEC_META } from '../specs'
@@ -27,6 +27,7 @@ import {
   ACTION,
   type AuraPlan,
   HAND,
+  NO_PREPULL,
   type Plan,
   type PlanBundle,
   type ProcPlan,
@@ -119,7 +120,8 @@ interface Collected {
   tempEnchants: Extract<Effect, { kind: 'tempEnchant' }>[]
   procs: { spec: ProcSpec; origin: 0 | 1 | null }[]
   periodicRage: Extract<Effect, { kind: 'periodicRage' }>[]
-  onUse: string[]
+  /** Selected on-use consumables; `use` when a rotation can press it (effects/types.ts). */
+  onUse: { id: string; name: string; use?: OnUseSpec }[]
   zoneGatedUnmet: boolean
 }
 
@@ -268,7 +270,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const setCounts = new Map<string, number>()
   const classicItems: string[] = []
   const unmodelled: string[] = []
+  /** Equipped on-use items the sim can't press, and the use effects it can (effects/items.ts). */
   const onUseItems: string[] = []
+  const itemUses: OnUseSpec[] = []
   for (const [slot, item] of equipped) {
     if (slot === 'offHand' && twoHand) continue
     const origin = slot === 'mainHand' ? HAND.main : slot === 'offHand' ? HAND.off : null
@@ -290,7 +294,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (override) apply(override.effects, origin)
     else if (item.procs.length > 0 || item.otherEquip.length > 0 || (item.weapon?.extraDamage?.length ?? 0) > 0)
       unmodelled.push(item.name)
-    if (item.useEffects.length > 0) onUseItems.push(item.name)
+    if (override?.use) itemUses.push(override.use)
+    else if (item.useEffects.length > 0) onUseItems.push(item.name)
   }
   for (const [setId, count] of setCounts) {
     for (const bonus of itemData.sets[setId]?.bonuses ?? []) {
@@ -317,11 +322,20 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   apply(racialEffects(config.race, classId), null)
   apply(setup.effects, null)
 
-  // Buffs, debuffs and consumables.
+  // Buffs, debuffs and consumables. A buff the rotation keeps up itself (the warrior's own Battle
+  // Shout, warrior.md §5.2 row 1) is its aura in the fight, not a static effect, so it counts once;
+  // the sheet still shows it, since it's up for all but the first moments of the fight.
   const hasDebuffs = { armor: false, boss: false, slow: false }
+  const maintained = setup.simulated ? maintainedBuffs(config.spec, config.rotation) : []
+  const sheetOnly: Effect[] = []
+  for (const id of maintained) {
+    const buff = BUFFS_BY_ID.get(id)
+    if (buff) sheetOnly.push(...(typeof buff.effects === 'function' ? buff.effects(profile) : buff.effects))
+  }
   for (const id of config.buffs.enabled) {
     const buff = BUFFS_BY_ID.get(id)
     if (!buff || (buff.providedBy && !config.buffs.raid.includes(buff.providedBy))) continue
+    if (maintained.includes(id)) continue
     const effects = typeof buff.effects === 'function' ? buff.effects(profile) : buff.effects
     apply(effects, null)
     for (const e of effects) {
@@ -363,28 +377,36 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   }
 
   // --- Derived stats and the sheet -------------------------------------------------------------
-  const derived = deriveStats(block, { profile, applyUnmeasured, level: PLAYER_LEVEL }, new DerivedStats())
+  const deriveOptions = { profile, applyUnmeasured, level: PLAYER_LEVEL }
+  const derived = deriveStats(block, deriveOptions, new DerivedStats())
+  // The sheet counts the buffs the rotation keeps up (flat stats only: Battle Shout's AP).
+  let shown = derived
+  if (sheetOnly.length > 0) {
+    const sheetBlock = new StatBlock().copyFrom(block)
+    for (const e of sheetOnly) if (e.kind === 'stat') sheetBlock[e.stat] += e.value
+    shown = deriveStats(sheetBlock, deriveOptions, new DerivedStats())
+  }
   const mh = weapons[HAND.main]
   const sheet: CharacterSheet = {
-    strength: derived.strength,
-    agility: derived.agility,
-    stamina: derived.stamina,
-    intellect: derived.intellect,
-    spirit: derived.spirit,
-    health: derived.health,
-    mana: block.hasMana ? derived.mana : null,
-    armor: derived.armor,
-    attackPower: derived.attackPower,
-    critPct: derived.crit + (mh?.plan.critBonus ?? 0),
-    hitPct: derived.hit,
-    hastePct: (derived.hasteMult - 1) * 100,
-    expertise: derived.expertise,
+    strength: shown.strength,
+    agility: shown.agility,
+    stamina: shown.stamina,
+    intellect: shown.intellect,
+    spirit: shown.spirit,
+    health: shown.health,
+    mana: block.hasMana ? shown.mana : null,
+    armor: shown.armor,
+    attackPower: shown.attackPower,
+    critPct: shown.crit + (mh?.plan.critBonus ?? 0),
+    hitPct: shown.hit,
+    hastePct: (shown.hasteMult - 1) * 100,
+    expertise: shown.expertise,
     weaponSkill: { mainHand: mh?.plan.skill ?? 5 * PLAYER_LEVEL, offHand: weapons[HAND.off]?.plan.skill ?? null },
-    dodgePct: derived.dodge,
-    parryPct: derived.parry,
-    blockPct: derived.block,
-    blockValue: derived.blockValue,
-    defense: derived.defense,
+    dodgePct: shown.dodge,
+    parryPct: shown.parry,
+    blockPct: shown.block,
+    blockValue: shown.blockValue,
+    defense: shown.defense,
     unknown,
   }
 
@@ -409,6 +431,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       durationMs: spec.durationMs,
       maxStacks: spec.maxStacks ?? 1,
       whiteSwingCharges: spec.whiteSwingCharges ?? 0,
+      critCharges: spec.critCharges ?? 0,
       str: spec.mods.str ?? 0,
       agi: spec.mods.agi ?? 0,
       ap: spec.mods.ap ?? 0,
@@ -472,8 +495,13 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
 
   // --- Abilities and the priority list (docs/classes/warrior.md §5) ------------------------------
   const classRot = setup.simulated
-    ? classRotation(config.spec, config.rotation, setup.talents, (id) => auras.findIndex((a) => a.id === id), config.race)
-    : { abilities: [], rotation: [] }
+    ? classRotation(config.spec, config.rotation, setup.talents, (id) => auras.findIndex((a) => a.id === id), {
+        race: config.race,
+        items: itemUses,
+        consumables: c.onUse.flatMap((u) => (u.use ? [u.use] : [])),
+        executePhase: fight.executePct > 0,
+      })
+    : { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [] }
   // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), and a
   // cast's buff joins the plan's auras (Death Wish, Recklessness, racial cooldowns).
   const abilities: AbilityPlan[] = classRot.abilities.map(({ offHand, aura, ...a }) => ({
@@ -543,10 +571,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     sources,
     abilities,
     rotation: classRot.rotation,
+    prepull: classRot.prepull,
   }
 
   // --- Assumptions ---------------------------------------------------------------------------------
-  if (setup.simulated) notes.add(abilities.length > 0 ? 'partialRotation' : 'whiteSwingsOnly')
+  if (setup.simulated && abilities.length === 0) notes.add('whiteSwingsOnly')
   if (abilities.some((a) => a.gcdMs > 0)) notes.add('gcdHaste')
   if (abilities.some((a) => a.costTenths > 0)) notes.add('abilityRefunds')
   const queues = abilities.some((a) => a.kind === 'onNextSwing')
@@ -613,8 +642,15 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (procs.some((p) => p.id === 'enrage') && (tank || plan.fight.damageTakenPerHit > 0)) notes.add('enrageTrigger')
   // rage.md: Berserker Rage's damage-taken rage multiplier is ×1.0 [?] (warrior Q20).
   if (abilities.some((a) => a.id === 'berserkerRage') && (tank || plan.fight.damageTakenPerHit > 0)) notes.add('berserkerRageTaken')
-  const onUse = [...c.onUse, ...onUseItems]
-  if (setup.simulated && onUse.length) notes.add('onUseConsumables', onUse.join(', '))
+  // On-use items and consumables no rotation presses (bombs, Diamond Flask, …; warrior.md §7).
+  const pressed = new Set(classRot.onUse)
+  const notPressed = [
+    ...c.onUse.filter((u) => !pressed.has(u.id)).map((u) => u.name),
+    ...itemUses.filter((u) => !pressed.has(u.id)).map((u) => u.name),
+    ...onUseItems,
+  ]
+  if (setup.simulated && notPressed.length) notes.add('onUseConsumables', notPressed.join(', '))
+  if (abilities.some((a) => a.id === 'weaknessAnalyzer')) notes.add('weaknessAnalyzer')
   if (c.zoneGatedUnmet) notes.add('hyjalFlask')
 
   return { plan, sheet, assumptions: notes.toArray(), blockers }
@@ -697,7 +733,7 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
       c.periodicRage.push(e)
       return
     case 'onUse':
-      c.onUse.push(e.name)
+      c.onUse.push({ id: e.id, name: e.name, use: e.use })
       return
   }
 }

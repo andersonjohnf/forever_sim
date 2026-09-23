@@ -10,12 +10,23 @@ test.describe('setup', () => {
     await expect(page.getByRole('complementary', { name: 'Results' }).getByRole('button', { name: 'Simulate' })).toBeVisible()
   })
 
-  test('switching to a tank spec headlines TPS', async ({ page }) => {
+  test('the spec switcher offers only finished specs', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
-    await page.getByRole('menuitem', { name: /Protection/ }).first().click()
-    await expect(page.getByRole('button', { name: /Spec: Protection Warrior/ })).toBeVisible()
-    await expect(page.getByRole('complementary', { name: 'Results' }).getByText('TPS', { exact: true })).toBeVisible()
+    await expect(page.getByRole('menuitem', { name: /Fury/ })).toBeVisible()
+    await expect(page.getByRole('menuitem')).toHaveCount(1)
+  })
+
+  test('a saved setup for a spec the sim doesn’t offer opens Fury instead', async ({ page }) => {
+    await page.addInitScript(() => {
+      if (sessionStorage.getItem('seeded')) return
+      sessionStorage.setItem('seeded', '1')
+      const state = { config: { version: 1, spec: 'warrior-protection' }, bySpec: {}, section: 'rotation' }
+      localStorage.setItem('forever-sim:setup', JSON.stringify({ state, version: 1 }))
+    })
+    await page.goto('./')
+    await expect(page.getByRole('button', { name: /Spec: Fury Warrior/ })).toBeVisible()
+    await expect(page.getByRole('tab', { name: 'Rotation', exact: true })).toHaveAttribute('aria-selected', 'true')
   })
 
   test('remembers the setup across reloads', async ({ page }) => {
@@ -98,6 +109,23 @@ test.describe('talents', () => {
 test.describe('sharing', () => {
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] })
 
+  test('a link for a spec the sim doesn’t offer leaves your setup alone', async ({ page }) => {
+    await page.goto('./')
+    // The share format (src/app/share.ts): deflate-raw JSON, base64url, in #s=.
+    const hash = await page.evaluate(async () => {
+      const json = new TextEncoder().encode(JSON.stringify({ version: 1, spec: 'paladin-retribution' }))
+      const packed = new Uint8Array(await new Response(new Blob([json]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer())
+      let binary = ''
+      for (const b of packed) binary += String.fromCharCode(b)
+      return '#s=' + btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+    })
+    await page.goto(`./${hash}`)
+    await page.reload()
+    await expect(page.getByText('That link is for a Retribution Paladin')).toBeVisible()
+    await expect(page.getByRole('button', { name: /Spec: Fury Warrior/ })).toBeVisible()
+    expect(new URL(page.url()).hash).toBe('')
+  })
+
   test('a share link restores the setup, with undo', async ({ page, context }) => {
     await page.goto('./')
     await page.getByRole('tab', { name: 'Character', exact: true }).click()
@@ -141,13 +169,48 @@ test.describe('simulation', () => {
     await expect(results.getByText('Main hand')).toBeVisible()
   })
 
-  test('explains a spec the engine can’t simulate yet', async ({ page }) => {
+  test('selects Fury, simulates, and breaks the DPS down by ability', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
-    await page.getByRole('menuitem', { name: /Retribution/ }).click()
+    await page.getByRole('menuitem', { name: /Fury/ }).click()
     const results = page.getByRole('complementary', { name: 'Results' })
     await results.getByRole('button', { name: 'Simulate' }).click()
-    await expect(results.getByRole('alert')).toContainText('Paladin simulation isn’t available yet')
+    await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
+    await expect(results.getByText('DPS', { exact: true })).toBeVisible()
+    const breakdown = results.getByRole('heading', { name: 'Damage by ability' }).locator('..')
+    for (const ability of ['Bloodthirst', 'Execute', 'Whirlwind', 'Heroic Strike', 'Main hand', 'Off hand']) {
+      await expect(breakdown.getByText(ability, { exact: true })).toBeVisible()
+    }
+  })
+
+  test('explains a setup it can’t simulate', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('tab', { name: 'Character', exact: true }).click()
+    await page.getByRole('radio', { name: /Skyborne \(High Order\)/ }).click()
+    const results = page.getByRole('complementary', { name: 'Results' })
+    await results.getByRole('button', { name: 'Simulate' }).click()
+    await expect(results.getByRole('alert')).toContainText('a Skyborne warrior can’t be simulated')
+  })
+})
+
+test.describe('rotation and buffs', () => {
+  test('your own Battle Shout replaces the Buffs one, and a potion needs its Buffs switch', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+    const shout = page.getByRole('switch', { name: 'Battle Shout' })
+    await expect(shout).toBeChecked()
+    await expect(shout).toBeDisabled()
+    await expect(page.getByText(/You keep it up yourself \(see Rotation\)/)).toBeVisible()
+    await page.getByRole('switch', { name: 'Mighty Rage Potion' }).click()
+
+    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+    await expect(page.getByText('Not used: turn on Mighty Rage Potion in Buffs first.')).toBeVisible()
+    await page.getByRole('switch', { name: 'Battle Shout', exact: true }).click()
+
+    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+    await expect(shout).toBeEnabled()
+    await expect(shout).toBeChecked()
+    await expect(page.getByText(/You keep it up yourself/)).toBeHidden()
   })
 })
 

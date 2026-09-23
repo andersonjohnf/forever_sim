@@ -1,35 +1,50 @@
 // The Fury priority list and its settings (docs/classes/warrior.md §5.1, §5.2).
 //
-// This covers the cooldowns (rows 2–5: Death Wish, the racial, Recklessness, Bloodrage), the
-// execute phase (rows 6 and 7), Bloodthirst, Whirlwind, Heroic Strike and Hamstring (rows 8, 9,
-// 11 and 12) and Berserker Rage (row 13); Battle Shout, the pre-pull and the rest of the list
-// come later. Setting ids are `warrior.fury.<ability>.<param>` and every rage threshold is in
-// absolute rage points (§5.1). Abilities are resolved with the build's talents (modifiers.ts)
-// before their costs feed any condition.
+// This covers the pre-pull (row 0), Battle Shout (row 1), the cooldowns (rows 2–5: Death Wish,
+// the racial and on-use trinkets, Recklessness, Bloodrage), the execute phase (rows 6 and 7),
+// Bloodthirst, Whirlwind, Heroic Strike and Hamstring (rows 8, 9, 11 and 12), Berserker Rage
+// (row 13), the Mighty Rage Potion (row 16) and Juju Flurry (row 17). The Overpower dance, Sunder
+// Armor and Slam (rows 10, 14 and 15, off by default) aren't simulated. Setting ids are
+// `warrior.fury.<ability>.<param>` and every rage threshold is in absolute rage points (§5.1).
+// Abilities are resolved with the build's talents (modifiers.ts) before their costs feed any
+// condition.
 import { GCD_MS, toTenths } from '../../core/formulas'
-import { COND, type RotationCondition, type RotationEntry } from '../../plan/types'
+import type { OnUseSpec } from '../../effects/types'
+import { COND, type PrepullPlan, type RotationCondition, type RotationEntry } from '../../plan/types'
 import type { RotationOption } from '../../types'
 import {
   type AbilityDef,
+  BATTLE_SHOUT,
   BERSERKER_RAGE,
   BLOODRAGE,
   BLOODTHIRST,
+  CHARGE_RAGE_TENTHS,
   DEATH_WISH,
   EXECUTE,
   executeBreakEvenAp,
   HAMSTRING,
   HEROIC_STRIKE,
+  IMPROVED_CHARGE_TENTHS_PER_RANK,
+  IMPROVED_TACTICAL_MASTERY_TENTHS_PER_RANK,
+  onUseAbility,
   RACIAL_COOLDOWNS,
   RECKLESSNESS,
+  TACTICAL_MASTERY_TENTHS,
   WHIRLWIND,
 } from './abilities'
 import { type TalentRanks, withTalents } from './modifiers'
 
 const ID = {
+  prepullShout: 'warrior.fury.prepull.battleShout',
+  prepullBloodrage: 'warrior.fury.prepull.bloodrage',
+  prepullCharge: 'warrior.fury.prepull.charge',
+  bsEnabled: 'warrior.fury.battleShout.enabled',
+  bsRefresh: 'warrior.fury.battleShout.refreshBelowSec',
   dwEnabled: 'warrior.fury.deathWish.enabled',
   dwAlign: 'warrior.fury.deathWish.alignToEnd',
   racialEnabled: 'warrior.fury.racial.enabled',
-  racialSync: 'warrior.fury.racial.syncWithDeathWish',
+  trinketsEnabled: 'warrior.fury.trinkets.enabled',
+  cdSync: 'warrior.fury.cooldowns.syncWithDeathWish',
   reckEnabled: 'warrior.fury.recklessness.enabled',
   reckLastSec: 'warrior.fury.recklessness.lastSec',
   brEnabled: 'warrior.fury.bloodrage.enabled',
@@ -52,7 +67,33 @@ const ID = {
   hamEnabled: 'warrior.fury.hamstring.enabled',
   hamMinRage: 'warrior.fury.hamstring.minRage',
   hamFlurryDown: 'warrior.fury.hamstring.onlyWhenFlurryDown',
+  potionEnabled: 'warrior.fury.ragePotion.enabled',
+  potionMaxRage: 'warrior.fury.ragePotion.maxRage',
+  jujuEnabled: 'warrior.fury.jujuFlurry.enabled',
 } as const
+
+/**
+ * Setting ids that were renamed, old → new; normalizeConfig carries saved values over. The
+ * racial's sync with Death Wish now covers on-use trinkets too (M2.2c).
+ */
+export const FURY_RENAMED_OPTIONS: Readonly<Record<string, string>> = {
+  'warrior.fury.racial.syncWithDeathWish': ID.cdSync,
+}
+
+/** Row 0: Battle Shout 3 s and Bloodrage 1 s before the pull (warrior.md §5.2). */
+export const PREPULL_SHOUT_MS = -3000
+export const PREPULL_BLOODRAGE_MS = -1000
+
+/**
+ * Row 16 without an execute phase: the potion goes in the last 20 s, as long as its +60 Strength
+ * lasts, so its buff and rage fall where the execute phase would have been (warrior.md §5.2
+ * notes; an engine choice).
+ */
+export const POTION_NO_EXECUTE_LAST_MS = 20000
+
+/** Buff catalogue ids of the consumables rows 16 and 17 use (effects/buffs.ts). */
+const RAGE_POTION = 'mightyRagePotion'
+const JUJU_FLURRY = 'jujuFlurry'
 
 /** Fury’s rage cap with the default build (Boundless Rage 3/3, warrior.md §5.2); rage thresholds are absolute (§5.1). */
 const FURY_MAX_RAGE = 130
@@ -78,8 +119,50 @@ const rage = (id: string, label: string, help: string, def: number, dependsOn: s
  */
 const BT_OVER_EXECUTE_AP = Math.round(executeBreakEvenAp(EXECUTE.costTenths / 10))
 
-/** Defaults from warrior.md §5.2's table (rows 2–9, 11–13), in its priority order. */
+/** Defaults from warrior.md §5.2's table (rows 0–9, 11–13, 16 and 17), in its priority order. */
 export const FURY_OPTIONS: RotationOption[] = [
+  {
+    kind: 'toggle',
+    id: ID.prepullShout,
+    label: 'Battle Shout before the pull',
+    help: 'Shout 3 s before the pull, so the fight starts with it up. Its rage comes from before the pull. Needs Battle Shout on.',
+    default: true,
+    dependsOn: ID.bsEnabled,
+  },
+  {
+    kind: 'toggle',
+    id: ID.prepullBloodrage,
+    label: 'Bloodrage before the pull',
+    help: 'Use Bloodrage 1 s before the pull: its 10 rage is there at the pull, and it’s ready again 59 s in.',
+    default: true,
+  },
+  {
+    kind: 'toggle',
+    id: ID.prepullCharge,
+    label: 'Charge in',
+    help: 'Open with Charge for 15 rage (+3 per Improved Charge rank). The swap to Berserker Stance then keeps at most 10 + 3 per Improved Tactical Mastery rank.',
+    default: false,
+  },
+  {
+    kind: 'toggle',
+    id: ID.bsEnabled,
+    label: 'Battle Shout',
+    help: 'Keep your own Battle Shout up: +139 attack power for 10 rage a shout. While this is on, the Buffs tab’s Battle Shout adds nothing more, since it’s the same buff.',
+    default: true,
+    maintainsBuff: 'battleShout',
+  },
+  {
+    kind: 'number',
+    id: ID.bsRefresh,
+    label: 'Shout again with',
+    help: 'Refresh it when this much of it is left, unless the fight ends first.',
+    unit: 's left',
+    min: 0,
+    max: 30,
+    step: 1,
+    default: 3,
+    dependsOn: ID.bsEnabled,
+  },
   {
     kind: 'toggle',
     id: ID.dwEnabled,
@@ -98,14 +181,21 @@ export const FURY_OPTIONS: RotationOption[] = [
     kind: 'toggle',
     id: ID.racialEnabled,
     label: 'Racial cooldown',
-    help: 'Use your race’s cooldown: Blood Fury (Orc), Berserking (Troll) or Elune’s Light (Night Elf). Gnome Eureka! isn’t simulated yet.',
+    help: 'Use your race’s cooldown: Blood Fury (Orc), Berserking (Troll) or Elune’s Light (Night Elf). Gnome Eureka! isn’t simulated.',
     default: true,
   },
   {
     kind: 'toggle',
-    id: ID.racialSync,
-    label: 'Racial with Death Wish',
-    help: 'Save the racial for Death Wish, unless Death Wish is too far off for it to be ready again by then.',
+    id: ID.trinketsEnabled,
+    label: 'On-use trinkets',
+    help: 'Use Weakness Analyzer if you wear it: +5% crit until your next crit, for up to 20 s. Other on-use trinkets aren’t simulated.',
+    default: true,
+  },
+  {
+    kind: 'toggle',
+    id: ID.cdSync,
+    label: 'Racial and trinkets with Death Wish',
+    help: 'Save them for Death Wish, unless Death Wish is too far off for them to be ready again by then.',
     default: true,
   },
   {
@@ -253,11 +343,58 @@ export const FURY_OPTIONS: RotationOption[] = [
     FURY_MAX_RAGE - 10,
     ID.bzEnabled,
   ),
+  {
+    kind: 'toggle',
+    id: ID.potionEnabled,
+    label: 'Mighty Rage Potion',
+    help: 'Drink it once, at the start of the execute phase (in the last 20 s if there’s none): 45–75 rage and +60 Strength for 20 s.',
+    default: true,
+    requiresBuff: RAGE_POTION,
+  },
+  rage(
+    ID.potionMaxRage,
+    'Mighty Rage Potion up to',
+    `Drink it only at or below this much rage, so none of its rage is lost at the cap. ${FURY_MAX_RAGE - 75} is the 130 cap minus 75.`,
+    FURY_MAX_RAGE - 75,
+    ID.potionEnabled,
+  ),
+  {
+    kind: 'toggle',
+    id: ID.jujuEnabled,
+    label: 'Juju Flurry',
+    help: 'Use it on cooldown from the pull: +3% attack speed for 20 s, every minute.',
+    default: true,
+    requiresBuff: JUJU_FLURRY,
+  },
 ]
 
 export interface ClassRotation {
   abilities: AbilityDef[]
   rotation: RotationEntry[]
+  prepull: PrepullPlan
+  /** Ids of the on-use items and consumables it knows how to use, whether or not its settings use them. */
+  onUse: string[]
+}
+
+/** What the rotation needs from the rest of the setup. */
+export interface RotationContext {
+  race: string
+  /** Use effects of equipped items the sim models (effects/items.ts), e.g. on-use trinkets. */
+  items: OnUseSpec[]
+  /** Consumables selected in Buffs that the sim can use (the buff catalogue's `onUse` effects with a `use`). */
+  consumables: OnUseSpec[]
+  /** The fight has an execute phase (executePct > 0; encounter §3). */
+  executePhase: boolean
+}
+
+const NO_CONTEXT: RotationContext = { race: '', items: [], consumables: [], executePhase: true }
+
+/**
+ * Buff catalogue ids the rotation keeps up itself with these settings, so the plan drops the
+ * Buffs switch's static version (Battle Shout, warrior.md §5.2 row 1 and notes).
+ */
+export function furyMaintainedBuffs(values: Record<string, number | boolean>): string[] {
+  return reader(FURY_OPTIONS, values).on(ID.bsEnabled) ? ['battleShout'] : []
 }
 
 /** Reads a setting, falling back to its declared default. */
@@ -282,18 +419,21 @@ const bit = (ability: number) => (ability >= 0 ? 1 << ability : 0)
 /**
  * The Fury priority list from the settings (warrior.md §5.2). `talents` gates talent abilities
  * (Death Wish, Bloodthirst, Improved Berserker Rage) and resolves costs, Impale, Raging Blows and
- * the talented rage of Bloodrage and Berserker Rage; `auraIndex` resolves an aura id in the plan
- * (−1 if the setup has none); `race` picks the racial cooldown.
+ * the talented rage of Bloodrage, Berserker Rage and Charge; `auraIndex` resolves an aura id in
+ * the plan (−1 if the setup has none); `context` gives the race (its racial cooldown), the
+ * equipped on-use items, the selected consumables and whether there's an execute phase.
  */
 export function furyRotation(
   values: Record<string, number | boolean>,
   talents: TalentRanks,
   auraIndex: (id: string) => number,
-  race = '',
+  context: Partial<RotationContext> = {},
 ): ClassRotation {
+  const ctx = { ...NO_CONTEXT, ...context }
   const v = reader(FURY_OPTIONS, values)
   const abilities: AbilityDef[] = []
   const rotation: RotationEntry[] = []
+  const prepull: PrepullPlan = { casts: [], chargeTenths: 0, keepTenths: -1 }
   /** The ability's index in `abilities`, resolved with the build's talents on first use. */
   const ability = (def: AbilityDef) => {
     const i = abilities.findIndex((a) => a.id === def.id)
@@ -314,8 +454,18 @@ export function furyRotation(
   /** Lines that stop in the execute phase get this condition while Execute is on. */
   const outsideExecute = (keep: boolean): RotationCondition[] => (execute && !keep ? [NOT_IN_EXECUTE] : [])
 
-  // Rows 2–5 and 13 apply in both phases (§5.2 notes). Their GCD-safe and time conditions are
-  // checked by the engine, which wakes the rotation when a time-left condition becomes true.
+  // Rows 1–5, 13, 16 and 17 apply in both phases (§5.2 notes). Their GCD-safe and time
+  // conditions are checked by the engine, which wakes the rotation when a time-left condition
+  // becomes true.
+
+  // Row 1: Battle Shout when it's down, or has at most refreshBelowSec left and would end before
+  // the fight does (the engine wakes the rotation then). With it on, the plan leaves out the
+  // Buffs switch's static +139, so the buff counts once (§5.2 notes).
+  const shout = v.on(ID.bsEnabled)
+  if (shout) {
+    const bs = ability(BATTLE_SHOUT)
+    rotation.push({ ability: bs, conditions: [{ code: COND.abilityAuraRefresh, a: bs, b: Math.round(v.num(ID.bsRefresh) * 1000) }], unqueueBelowTenths: 0 })
+  }
 
   // Row 2: Death Wish on cooldown. With alignToEnd, a use is the final one when no further use
   // could start before the fight ends (time left ≤ cooldown); the final use waits until the time
@@ -333,20 +483,23 @@ export function furyRotation(
     }
   }
 
-  // Row 3: the racial cooldown (off the GCD). Synced with Death Wish: while Death Wish is up, or
-  // whenever Death Wish's next use is at least the racial's cooldown away, so waiting would cost a
-  // use: its cooldown left, or, for a final use held by alignToEnd, the time until 30 s are left
-  // (§5.2 notes).
-  const racial = RACIAL_COOLDOWNS[race]
-  if (racial && v.on(ID.racialEnabled)) {
-    if (dw >= 0 && v.on(ID.racialSync)) {
-      add(racial, [{ code: COND.abilityAuraUp, a: dw, b: 0 }])
-      add(racial, [{ code: COND.cooldownAtLeast, a: dw, b: racial.cooldownMs }])
-      if (align) add(racial, [timeLeftAtMost(DEATH_WISH.cooldownMs), timeLeftAtLeast(dwDurationMs + racial.cooldownMs)])
+  // Row 3: the racial cooldown and on-use trinkets (off the GCD). Synced with Death Wish: while
+  // Death Wish is up, or whenever Death Wish's next use is at least the cooldown away, so waiting
+  // would cost a use: its cooldown left, or, for a final use held by alignToEnd, the time until
+  // 30 s are left (§5.2 notes).
+  const sync = dw >= 0 && v.on(ID.cdSync)
+  const withDeathWish = (def: AbilityDef) => {
+    if (sync) {
+      add(def, [{ code: COND.abilityAuraUp, a: dw, b: 0 }])
+      add(def, [{ code: COND.cooldownAtLeast, a: dw, b: def.cooldownMs }])
+      if (align) add(def, [timeLeftAtMost(DEATH_WISH.cooldownMs), timeLeftAtLeast(dwDurationMs + def.cooldownMs)])
     } else {
-      add(racial, [])
+      add(def, [])
     }
   }
+  const racial = RACIAL_COOLDOWNS[ctx.race]
+  if (racial && v.on(ID.racialEnabled)) withDeathWish(racial)
+  if (v.on(ID.trinketsEnabled)) for (const item of ctx.items) withDeathWish(onUseAbility(item))
 
   // Row 4: Recklessness once, at ≤ lastSec left (its 30 min cooldown outlasts any fight; Berserker
   // Stance only, which the engine checks).
@@ -421,5 +574,30 @@ export function furyRotation(
     }
   }
 
-  return { abilities, rotation }
+  // Row 16: the Mighty Rage Potion (off the GCD), once a fight, from the start of the execute
+  // phase (or in the last 20 s without one), at rage ≤ maxRage so its 45–75 rage fits under the
+  // cap. Only when it's selected in Buffs.
+  const potion = ctx.consumables.find((c) => c.id === RAGE_POTION)
+  if (potion && v.on(ID.potionEnabled)) {
+    const when = ctx.executePhase ? IN_EXECUTE : timeLeftAtMost(POTION_NO_EXECUTE_LAST_MS)
+    add({ ...onUseAbility(potion), usesPerFight: 1 }, [when, maxRage(v.num(ID.potionMaxRage))])
+  }
+
+  // Row 17: Juju Flurry (off the GCD) on cooldown from the pull, when it's selected in Buffs.
+  const juju = ctx.consumables.find((c) => c.id === JUJU_FLURRY)
+  if (juju && v.on(ID.jujuEnabled)) add(onUseAbility(juju), [])
+
+  // Row 0: the pre-pull, in time order. The shout's rage came before the pull; Bloodrage's rage
+  // at once is there at the pull and its ticks keep their phase. Charge's rage comes at the pull,
+  // and the swap to Berserker Stance keeps at most 10 + 3 per Improved Tactical Mastery rank
+  // (§2.1, §2.3).
+  if (shout && v.on(ID.prepullShout)) prepull.casts.push({ ability: ability(BATTLE_SHOUT), atMs: PREPULL_SHOUT_MS })
+  if (v.on(ID.prepullBloodrage)) prepull.casts.push({ ability: ability(BLOODRAGE), atMs: PREPULL_BLOODRAGE_MS })
+  if (v.on(ID.prepullCharge)) {
+    prepull.chargeTenths = CHARGE_RAGE_TENTHS + IMPROVED_CHARGE_TENTHS_PER_RANK * (talents.get('Improved Charge') ?? 0)
+    prepull.keepTenths = TACTICAL_MASTERY_TENTHS + IMPROVED_TACTICAL_MASTERY_TENTHS_PER_RANK * (talents.get('Improved Tactical Mastery') ?? 0)
+  }
+
+  const onUse = [...ctx.items.map((i) => i.id), ...ctx.consumables.filter((c) => c.id === RAGE_POTION || c.id === JUJU_FLURRY).map((c) => c.id)]
+  return { abilities, rotation, prepull, onUse }
 }

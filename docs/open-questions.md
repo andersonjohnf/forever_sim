@@ -19,8 +19,8 @@ client-data check the same day ([client.md](data/client.md)) · Forever beta 1.6
 Classic Era 1.15.9.69722 · beta capped at level 20 (rising to 30), launch 2026-11-04, raids
 unlock 2026-12-09
 
-**132 entries, 109 open:** Route A 7 (High 1, Medium 2, Low 4) · Route B 70 (20 / 25 / 25) ·
-Route C 32 (8 / 13 / 11) · Route D 23, all ✅ resolved from client data (was 7 / 11 / 5), plus
+**136 entries, 113 open:** Route A 7 (High 1, Medium 2, Low 4) · Route B 72 (20 / 25 / 27) ·
+Route C 34 (8 / 13 / 13) · Route D 23, all ✅ resolved from client data (was 7 / 11 / 5), plus
 6 items settled by the sim or a guild decision. The client-data check added in-game checks to
 B41, C11 and C12 rather than new entries.
 
@@ -1529,6 +1529,31 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 - **Samples:** one read.
 - **Changes:** SotC's AP (only used to judge).
 - **Docs:** [paladin OQ 17](classes/paladin.md#open-questions)
+
+#### C33. Diamond Flask in Forever
+**Low · M2**
+- **Assumes:** nothing; the sim doesn't use it [?]. Forever's client replaced Classic Era's
+  +75 Strength for 60 s with "CHUG! CHUG! CHUG! CHUG!" (363881): a 5 s channel healing 224 a
+  second, "If finished, gain $s2 Strength for $d" ($s2 = 20, $d = 5 s), 6 min cooldown, 60 s
+  shared with runes. The item also gained an equip dummy (1318073) with no description, and it
+  has no Forever tooltip, so the app shows Classic Era's.
+- **Test:** read the tooltip; use it, and watch Strength on the character sheet during the
+  channel, after it, and with the flask merely equipped.
+- **Samples:** one use, sheet read every second for 10 s.
+- **Changes:** whether it's a DPS trinket at all (it's rank 3 on the Fury and Arms pre-raid
+  lists), and its use in the rotation.
+- **Docs:** [warrior §5.2 notes, Q30](classes/warrior.md#9-open-questions)
+
+#### C34. Weakness Analyzer: cooldown and what ends it
+**Low · M2**
+- **Assumes:** a 90 s cooldown (the client's item effect; an older tooltip said 2 min, maybe a
+  hotfix) [?], and the +5% crit ends on the first white or special crit you deal, including
+  the crit it helped make [?].
+- **Test:** its cooldown after a use; with it up, log swings and specials until the buff drops,
+  and note whether it drops on the first crit and on a crit from a weapon proc or extra attack.
+- **Samples:** 3 uses for the cooldown; ≥10 uses for what ends it.
+- **Changes:** the trinket's uses per fight and its value.
+- **Docs:** [warrior §5.2 notes, Q31](classes/warrior.md#9-open-questions)
 
 ---
 

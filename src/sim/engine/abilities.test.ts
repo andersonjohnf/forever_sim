@@ -2,9 +2,11 @@
 // (docs/classes/warrior.md §8), rotation sanity (never off cooldown, without rage or during the
 // GCD), the Heroic Strike queue (replaces a white swing, no white rage, the off hand's dual-wield
 // penalty lifted while queued, unqueueing), rage refunds (rage.md#rage-refunds-on-avoided-abilities),
-// the execute phase (encounter.md §3, warrior.md §5.2 rows 6 and 7), stance limits (§3.1), and
-// the cooldowns (§5.2 rows 2–5 and 13: Bloodrage and W19, Death Wish's alignToEnd, Recklessness,
-// Berserker Rage, racial cooldowns and their sync with Death Wish).
+// the execute phase (encounter.md §3, warrior.md §5.2 rows 6 and 7), stance limits (§3.1), the
+// cooldowns (§5.2 rows 2–5 and 13: Bloodrage and W19, Death Wish's alignToEnd, Recklessness,
+// Berserker Rage, racial cooldowns and their sync with Death Wish), Battle Shout's upkeep and the
+// pre-pull (rows 0 and 1), the Mighty Rage Potion (row 16), Juju Flurry (row 17) and Weakness
+// Analyzer (row 3).
 import { describe, expect, it } from 'vitest'
 import { decodeTalentCode, encodeTalentCode } from '@/data/talents/types'
 import { addSample, emptyMoments, stdev } from '../core/welford'
@@ -14,13 +16,18 @@ import { ACTION, type Plan, STANCE, TRIGGER, TRIGGER_COUNT, type WeaponPlan } fr
 import type { SimConfig } from '../types'
 import { FIELD, FIELD_COUNT, SOURCE_MAIN_HAND, SOURCE_OFF_HAND, Sim } from './sim'
 
-/** The cooldowns (warrior.md §5.2 rows 2–5 and 13) off. */
+/** The pre-pull, Battle Shout, the cooldowns and consumables (warrior.md §5.2 rows 0–5, 13, 16 and 17) off. */
 const NO_COOLDOWNS: SimConfig['rotation'] = {
+  'warrior.fury.prepull.bloodrage': false,
+  'warrior.fury.battleShout.enabled': false,
   'warrior.fury.deathWish.enabled': false,
   'warrior.fury.racial.enabled': false,
   'warrior.fury.recklessness.enabled': false,
   'warrior.fury.bloodrage.enabled': false,
   'warrior.fury.berserkerRage.enabled': false,
+  'warrior.fury.trinkets.enabled': false,
+  'warrior.fury.ragePotion.enabled': false,
+  'warrior.fury.jujuFlurry.enabled': false,
 }
 const OFF: SimConfig['rotation'] = {
   ...NO_COOLDOWNS,
@@ -54,7 +61,7 @@ function furyTalents(ranks: Record<string, number>): string {
  * Raging Blows are known) but no buffs, procs, periodic rage or armor, so every damage event is
  * the ability's own and its numbers are exact. Only casts apply auras then (Death Wish, …).
  */
-function abilityPlan(rotation: SimConfig['rotation'], durationMs = 60000, talents?: string, race = 'alliance-human'): Plan {
+function abilityPlan(rotation: SimConfig['rotation'], durationMs = 60000, talents?: string, race = 'alliance-human', patch: Partial<SimConfig> = {}): Plan {
   const d = defaultConfig('warrior-fury')
   const plan = buildPlan({
     ...d,
@@ -65,6 +72,7 @@ function abilityPlan(rotation: SimConfig['rotation'], durationMs = 60000, talent
     buffs: { raid: d.buffs.raid, enabled: [] },
     rotation,
     fight: { ...d.fight, durationVariationPct: 0 },
+    ...patch,
   }).plan
   plan.procs = []
   plan.triggers = Array.from({ length: TRIGGER_COUNT }, () => [])
@@ -205,7 +213,8 @@ describe('rotation sanity (default Fury warrior)', () => {
       let lastGcd = -Infinity
       for (const [a, t, rage] of fight) {
         const ability = plan.abilities[a]
-        expect(rage).toBeGreaterThanOrEqual(ability.costTenths)
+        // The pre-pull's casts cost nothing in the fight (warrior.md §5.2 row 0).
+        if (t >= 0) expect(rage).toBeGreaterThanOrEqual(ability.costTenths)
         if (ability.cooldownMs > 0 && last.has(a)) expect(t - last.get(a)!).toBeGreaterThanOrEqual(ability.cooldownMs)
         if (ability.gcdMs > 0) {
           expect(t - lastGcd).toBeGreaterThanOrEqual(1500)
@@ -674,6 +683,11 @@ describe('Bloodrage (warrior.md §2.3, §5.2 row 5, W19)', () => {
       casts.forEach(([id, t, rage], i) => {
         if (id !== 'bloodrage') return
         expect(rage).toBeLessThanOrEqual(300)
+        // The pre-pull one (warrior.md §5.2 row 0) starts the cooldown at −1 s.
+        if (t < 0) {
+          ready = t + 60000
+          return
+        }
         expect(t).toBeGreaterThanOrEqual(ready)
         if (t > ready) {
           late++
@@ -832,8 +846,8 @@ describe('racial cooldowns (warrior.md §2.9, §5.2 row 3 and notes)', () => {
   })
 
   it('on cooldown without the sync, or without Death Wish', () => {
-    expect(times(orc(150000, { 'warrior.fury.racial.syncWithDeathWish': false })).racial).toEqual([0, 120000])
-    expect(times(orc(300000, { 'warrior.fury.racial.syncWithDeathWish': false })).racial).toEqual([0, 120000, 240000])
+    expect(times(orc(150000, { 'warrior.fury.cooldowns.syncWithDeathWish': false })).racial).toEqual([0, 120000])
+    expect(times(orc(300000, { 'warrior.fury.cooldowns.syncWithDeathWish': false })).racial).toEqual([0, 120000, 240000])
     expect(times(orc(300000, { 'warrior.fury.deathWish.enabled': false })).racial).toEqual([0, 120000, 240000])
   })
 
@@ -873,12 +887,277 @@ describe('racial cooldowns (warrior.md §2.9, §5.2 row 3 and notes)', () => {
   })
 })
 
-describe('determinism with every cooldown in play (decision D15)', () => {
+describe('Battle Shout (warrior.md §5.2 rows 0 and 1, §1.1)', () => {
+  const shout = (extra: SimConfig['rotation'] = {}): SimConfig['rotation'] => ({
+    ...OFF,
+    'warrior.fury.battleShout.enabled': true,
+    'warrior.fury.prepull.battleShout': true,
+    ...extra,
+  })
+  const shoutTimes = (durationMs: number, extra?: SimConfig['rotation']) => timesOf(castsPerFight(abilityPlan(shout(extra), durationMs), 1)[0].casts, 'battleShout')
+
+  it('is shouted 3 s before the pull, and again with 3 s left only if the fight outlasts it', () => {
+    // 177 s left at the pull, so the refresh comes at 174 s; each refresh lasts 180 s more.
+    expect(shoutTimes(200000)).toEqual([-3000, 174000])
+    expect(shoutTimes(400000)).toEqual([-3000, 174000, 351000])
+    // It would run out 1 ms before the end: refreshed. At or after the end: not.
+    expect(shoutTimes(177001)).toEqual([-3000, 174000])
+    expect(shoutTimes(177000)).toEqual([-3000])
+    expect(shoutTimes(176000)).toEqual([-3000])
+    expect(shoutTimes(200000, { 'warrior.fury.battleShout.refreshBelowSec': 10 })).toEqual([-3000, 167000])
+  })
+
+  it('costs nothing before the pull; without the pre-pull it’s the first thing used once there are 10 rage', () => {
+    const plan = abilityPlan(shout(), 10000)
+    for (const w of plan.weapons) w!.rageMult = 0
+    const [{ casts }] = castsPerFight(plan, 1)
+    expect(casts).toEqual([['battleShout', -3000, 0]])
+    const late = castsPerFight(abilityPlan(shout({ 'warrior.fury.prepull.battleShout': false, 'warrior.fury.bloodthirst.enabled': true }), 30000), 1)[0].casts
+    expect(late[0][0]).toBe('battleShout')
+    expect(late[0][1]).toBeGreaterThanOrEqual(0)
+    expect(late[0][2]).toBeGreaterThanOrEqual(100)
+  })
+
+  it('adds 139 attack power while it’s up: Bloodthirst deals 0.35 × (2000 + 139) + 48 (W1)', () => {
+    // 170 s: the pre-pull shout lasts the whole fight.
+    const plan = abilityPlan(shout({ 'warrior.fury.bloodthirst.enabled': true }), 170000)
+    alwaysLandNoCrit(plan)
+    setAttackPower(plan, 2000)
+    const hits = damages(plan, source(plan, 'bloodthirst'), 3)
+    expect(hits.length).toBeGreaterThan(50)
+    for (const d of hits) expect(d).toBeCloseTo(0.35 * 2139 + 48, 9)
+  })
+
+  it('counts once: with the upkeep on, the Buffs switch changes nothing; with it off, the switch adds its static 139', () => {
+    const d = defaultConfig('warrior-fury')
+    const run = { mode: 'fixed' as const, iterations: 100, seed: 31 }
+    const withBuff: SimConfig = { ...d, buffs: { raid: d.buffs.raid, enabled: ['battleShout'] }, run }
+    const without: SimConfig = { ...d, buffs: { raid: d.buffs.raid, enabled: [] }, run }
+    const off = { 'warrior.fury.battleShout.enabled': false }
+    const damage = (c: SimConfig) => {
+      const sim = new Sim(buildPlan(c).plan)
+      for (let i = 0; i < 20; i++) sim.runFight(i)
+      return Array.from(sim.counters)
+    }
+    expect(buildPlan(withBuff).plan.stats.ap).toBe(buildPlan(without).plan.stats.ap)
+    expect(damage(withBuff)).toEqual(damage(without))
+    expect(buildPlan({ ...withBuff, rotation: off }).plan.stats.ap - buildPlan({ ...without, rotation: off }).plan.stats.ap).toBe(139)
+    expect(buildPlan({ ...withBuff, rotation: off }).plan.abilities.map((a) => a.id)).not.toContain('battleShout')
+    // The sheet shows the shout the rotation keeps up, as it shows the Buffs switch's.
+    expect(buildPlan(without).sheet.attackPower).toBe(buildPlan({ ...withBuff, rotation: off }).sheet.attackPower)
+    expect(buildPlan(without).sheet.attackPower - buildPlan({ ...without, rotation: off }).sheet.attackPower).toBe(139)
+  })
+})
+
+describe('the pre-pull (warrior.md §5.2 row 0)', () => {
+  it('Bloodrage at −1 s: its 10 rage is there at the pull, its ticks come at 0–9 s, and it’s ready again at 59 s', () => {
+    const plan = abilityPlan(only('bloodrage', { 'warrior.fury.prepull.bloodrage': true }), 70000)
+    for (const w of plan.weapons) w!.rageMult = 0
+    expect(timesOf(castsPerFight(plan, 1)[0].casts, 'bloodrage')).toEqual([-1000, 59000])
+
+    const prepullOnly = (L: number) => {
+      const p = abilityPlan({ ...OFF, 'warrior.fury.prepull.bloodrage': true }, L)
+      for (const w of p.weapons) w!.rageMult = 0
+      const sim = new Sim(p)
+      sim.runFight(0)
+      const row = source(p, 'bloodrage') * FIELD_COUNT
+      return { gained: sim.totalRageGainedTenths, casts: sim.counters[row + FIELD.casts], threat: sim.counters[row + FIELD.threat] }
+    }
+    // A fight of L ms runs events at t < L: the tick at 0 is in every fight.
+    expect([1, 1000, 1001, 9001, 20000].map((L) => prepullOnly(L).gained)).toEqual([110, 110, 120, 200, 200])
+    // It counts as a cast; only the ticks in the fight make threat (5 per rage), not the rage before the pull.
+    expect(prepullOnly(20000)).toMatchObject({ casts: 1, threat: 50 })
+  })
+
+  it('Charge: 15 rage, +3 per Improved Charge rank; the swap to Berserker Stance keeps at most 10 + 3 per Improved Tactical Mastery rank', () => {
+    const atPull = (ranks: Record<string, number>, bloodrage = false) => {
+      const rotation = only('deathWish', { 'warrior.fury.deathWish.alignToEnd': false, 'warrior.fury.prepull.charge': true, 'warrior.fury.prepull.bloodrage': bloodrage })
+      const plan = abilityPlan(rotation, 10000, furyTalents(ranks))
+      for (const w of plan.weapons) w!.rageMult = 0
+      const dw = castsPerFight(plan, 1)[0].casts.find(([id]) => id === 'deathWish')!
+      expect(dw[1]).toBe(0)
+      return dw[2]
+    }
+    // The default build: no Improved Charge, Improved Tactical Mastery 5/5 (keeps 25).
+    expect(atPull({})).toBe(150)
+    expect(atPull({ 'Improved Charge': 2 })).toBe(210)
+    expect(atPull({ 'Improved Charge': 2, 'Improved Tactical Mastery': 0 })).toBe(100)
+    expect(atPull({ 'Improved Tactical Mastery': 1 })).toBe(130)
+    // With Bloodrage at −1 s: 10 + 21 = 31, the swap keeps 25, then Bloodrage's tick at 0 adds 1.
+    expect(atPull({ 'Improved Charge': 2 }, true)).toBe(260)
+    // Off by default.
+    expect(buildPlan(defaultConfig('warrior-fury')).plan.prepull.chargeTenths).toBe(0)
+  })
+})
+
+describe('Mighty Rage Potion (warrior.md §5.2 row 16, buffs doc §3.5)', () => {
+  const potionPlan = (durationMs: number, extra: SimConfig['rotation'] = {}, fight: Partial<SimConfig['fight']> = {}) => {
+    const d = defaultConfig('warrior-fury')
+    return abilityPlan({ ...OFF, 'warrior.fury.ragePotion.enabled': true, ...extra }, durationMs, undefined, 'alliance-human', {
+      buffs: { raid: d.buffs.raid, enabled: ['mightyRagePotion'] },
+      fight: { ...d.fight, durationVariationPct: 0, ...fight },
+    })
+  }
+  const ids = (plan: Plan) => plan.abilities.map((a) => a.id)
+
+  it('needs the potion selected in Buffs, and its switch on', () => {
+    expect(ids(potionPlan(60000))).toContain('mightyRagePotion')
+    expect(ids(abilityPlan({ ...OFF, 'warrior.fury.ragePotion.enabled': true }))).not.toContain('mightyRagePotion')
+    expect(ids(potionPlan(60000, { 'warrior.fury.ragePotion.enabled': false }))).not.toContain('mightyRagePotion')
+  })
+
+  it('is drunk once a fight, from the start of the execute phase, at rage ≤ 55', () => {
+    // A 150 s execute phase, longer than the potion's 2 min cooldown; Execute keeps rage low.
+    const plan = potionPlan(300000, { 'warrior.fury.execute.enabled': true }, { executePct: 50 })
+    let atStart = 0
+    for (const { executeAt, casts } of castsPerFight(plan, 20)) {
+      const potions = casts.filter(([id]) => id === 'mightyRagePotion')
+      expect(potions).toHaveLength(1)
+      const [[, t, rage]] = potions
+      expect(t).toBeGreaterThanOrEqual(executeAt)
+      expect(rage).toBeLessThanOrEqual(550)
+      // Rage is capped when the phase starts: the first Execute spends it, and the potion follows
+      // at once, unless that Execute missed (it keeps the rage then) and it waits for the next.
+      if (t === executeAt) atStart++
+      else expect(casts.some(([id, when]) => id === 'execute' && when === t)).toBe(true)
+    }
+    expect(atStart).toBeGreaterThan(10)
+    // It waits for rage ≤ maxRage: at 0, never while white rage keeps flowing.
+    const waits = potionPlan(60000, { 'warrior.fury.ragePotion.maxRage': 0 })
+    expect(castsPerFight(waits, 5).flatMap((f) => timesOf(f.casts, 'mightyRagePotion'))).toEqual([])
+  })
+
+  it('gives 45–75 rage, a whole number of tenths drawn from the proc stream, and +60 Strength for 20 s', () => {
+    const plan = potionPlan(60000)
+    for (const w of plan.weapons) w!.rageMult = 0
+    const sim = new Sim(plan)
+    const gains: number[] = []
+    for (let i = 0; i < 400; i++) {
+      const before = sim.totalRageGainedTenths
+      sim.runFight(i)
+      gains.push(sim.totalRageGainedTenths - before)
+    }
+    for (const g of gains) {
+      expect(Number.isInteger(g)).toBe(true)
+      expect(g).toBeGreaterThanOrEqual(450)
+      expect(g).toBeLessThanOrEqual(750)
+    }
+    expect(Math.min(...gains)).toBeLessThan(470)
+    expect(Math.max(...gains)).toBeGreaterThan(730)
+    expectMean(gains, 600)
+    expect(plan.auras.find((a) => a.id === 'mightyRage')).toMatchObject({ str: 60, durationMs: 20000 })
+
+    // +60 Strength is +120 attack power: Bloodthirst deals 0.35 × (2000 + 120) + 48 once it's drunk.
+    // (maxRage 130: white rage alone keeps the bar above 55 here.)
+    const bt = potionPlan(60000, { 'warrior.fury.bloodthirst.enabled': true, 'warrior.fury.ragePotion.maxRage': 130 })
+    alwaysLandNoCrit(bt)
+    setAttackPower(bt, 2000)
+    const btSim = new Sim(bt)
+    let at = 0
+    let potionAt = Infinity
+    const hits: [number, number][] = []
+    btSim.castTrace = (a, t) => {
+      at = t
+      if (bt.abilities[a].id === 'mightyRagePotion') potionAt = t
+    }
+    btSim.damageTrace = (row, damage) => {
+      if (row === source(bt, 'bloodthirst')) hits.push([at, damage])
+    }
+    btSim.runFight(0)
+    expect(potionAt).toBe(btSim.executeAtMs)
+    expect(hits.some(([t]) => t > potionAt)).toBe(true)
+    for (const [t, d] of hits) expect(d).toBeCloseTo(0.35 * (t > potionAt ? 2120 : 2000) + 48, 9)
+  })
+
+  it('without an execute phase, is drunk in the last 20 s', () => {
+    const plan = potionPlan(60000, {}, { executePct: 0 })
+    for (const w of plan.weapons) w!.rageMult = 0
+    expect(timesOf(castsPerFight(plan, 1)[0].casts, 'mightyRagePotion')).toEqual([40000])
+  })
+})
+
+describe('Juju Flurry (warrior.md §5.2 row 17, buffs doc §3.3)', () => {
+  const jujuPlan = (enabled: string[]) => {
+    const d = defaultConfig('warrior-fury')
+    return abilityPlan({ ...OFF, 'warrior.fury.jujuFlurry.enabled': true }, 130000, undefined, 'alliance-human', { buffs: { raid: d.buffs.raid, enabled } })
+  }
+
+  it('is used on cooldown from the pull when selected in Buffs', () => {
+    expect(timesOf(castsPerFight(jujuPlan(['jujuFlurry']), 1)[0].casts, 'jujuFlurry')).toEqual([0, 60000, 120000])
+    expect(jujuPlan([]).abilities.map((a) => a.id)).not.toContain('jujuFlurry')
+  })
+
+  it('+3% attack speed for 20 s, from the next swing: round(2600 / 1.03) = 2524', () => {
+    const plan = jujuPlan(['jujuFlurry'])
+    plan.weapons = [{ ...plan.weapons[0]!, ...O }, null]
+    const sim = new Sim(plan)
+    const swings: number[] = []
+    sim.trace = (row, _hand, t) => {
+      if (row === SOURCE_MAIN_HAND) swings.push(t)
+    }
+    sim.runFight(0)
+    // The swing at 20192 was scheduled while it was up; the next one is back to 2.6 s.
+    expect(swings.slice(0, 10)).toEqual([0, 2524, 5048, 7572, 10096, 12620, 15144, 17668, 20192, 22792])
+  })
+})
+
+describe('Weakness Analyzer (warrior.md §5.2 row 3, §7)', () => {
+  const analyzerPlan = (rotation: SimConfig['rotation'], durationMs = 60000) =>
+    abilityPlan({ ...OFF, 'warrior.fury.trinkets.enabled': true, ...rotation }, durationMs, undefined, 'alliance-human', {
+      gear: { mainHand: { itemId: 17016 }, offHand: { itemId: 18498 }, trinket1: { itemId: 272438 } },
+    })
+
+  it('+5% crit until the next crit, white or special', () => {
+    /** Crits per fight over 200 fights, with a level-60 target and 0% crit of our own: every crit comes from the trinket. */
+    const critsPerFight = (trinkets: boolean) => {
+      const plan = analyzerPlan({ 'warrior.fury.bloodthirst.enabled': true, 'warrior.fury.trinkets.enabled': trinkets })
+      plan.fight.targetLevel = 60
+      plan.stats.crit -= new Sim(plan).inspect().crit[0]
+      expect(new Sim(plan).inspect().crit[0]).toBeCloseTo(0, 9)
+      const sim = new Sim(plan)
+      const rows = [SOURCE_MAIN_HAND, SOURCE_OFF_HAND, source(plan, 'bloodthirst')]
+      const out: number[] = []
+      for (let i = 0; i < 200; i++) {
+        const before = rows.reduce((n, r) => n + sim.counters[r * FIELD_COUNT + FIELD.crits], 0)
+        sim.runFight(i)
+        out.push(rows.reduce((n, r) => n + sim.counters[r * FIELD_COUNT + FIELD.crits], 0) - before)
+      }
+      return out
+    }
+    expect(critsPerFight(false).every((n) => n === 0)).toBe(true)
+    // One use in 60 s (90 s cooldown): at most one crit a fight. About 20 attacks in its 20 s at 5%:
+    // one lands in about 1 − 0.95^20 ≈ 64% of fights.
+    const crits = critsPerFight(true)
+    expect(crits.every((n) => n <= 1)).toBe(true)
+    const lucky = crits.reduce((a, b) => a + b, 0)
+    expect(lucky).toBeGreaterThan(100)
+    expect(lucky).toBeLessThan(180)
+  })
+
+  it('is used on cooldown without Death Wish (90 s), and not with the trinket switch off', () => {
+    expect(timesOf(castsPerFight(analyzerPlan({}, 200000), 1)[0].casts, 'weaknessAnalyzer')).toEqual([0, 90000, 180000])
+    expect(analyzerPlan({ 'warrior.fury.trinkets.enabled': false }).abilities.map((a) => a.id)).not.toContain('weaknessAnalyzer')
+  })
+
+  it('synced with Death Wish, as the racial is', () => {
+    // 150 s: Death Wish held to 120 s; the trinket goes at the pull (ready again by then) and with it.
+    const plan = analyzerPlan({ 'warrior.fury.deathWish.enabled': true }, 150000)
+    const [{ casts }] = castsPerFight(plan, 1)
+    expect(timesOf(casts, 'deathWish')).toEqual([120000])
+    expect(timesOf(casts, 'weaknessAnalyzer')).toEqual([0, 120000])
+  })
+})
+
+describe('determinism with every cooldown and consumable in play (decision D15)', () => {
   it('gives the same result for the same config and seed', () => {
+    const d = defaultConfig('warrior-fury')
     const config: SimConfig = {
-      ...defaultConfig('warrior-fury'),
+      ...d,
       race: 'horde-orc',
       talents: furyTalents({ 'Improved Berserker Rage': 2, 'Improved Bloodrage': 2 }),
+      gear: { ...d.gear, trinket2: { itemId: 272438 } },
+      buffs: { ...d.buffs, enabled: [...d.buffs.enabled, 'jujuFlurry'] },
+      rotation: { 'warrior.fury.prepull.charge': true },
       run: { mode: 'fixed', iterations: 300, seed: 77 },
     }
     const run = (c: SimConfig) => {
@@ -893,7 +1172,7 @@ describe('determinism with every cooldown in play (decision D15)', () => {
     const a = run(config)
     expect(run(structuredClone(config))).toEqual(a)
     const plan = buildPlan(config).plan
-    for (const id of ['deathWish', 'bloodFury', 'recklessness', 'bloodrage', 'berserkerRage']) {
+    for (const id of ['battleShout', 'deathWish', 'bloodFury', 'weaknessAnalyzer', 'recklessness', 'bloodrage', 'berserkerRage', 'mightyRagePotion', 'jujuFlurry']) {
       expect(a.counters[source(plan, id) * FIELD_COUNT + FIELD.casts], id).toBeGreaterThan(0)
     }
   })

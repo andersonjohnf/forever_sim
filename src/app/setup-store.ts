@@ -4,6 +4,7 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { defaultConfig, normalizeConfig, type SimConfig, type SpecId } from '@/sim'
+import { defaultSpec, isVisibleSpec } from './specs'
 
 export type Section = 'character' | 'talents' | 'gear' | 'buffs' | 'rotation' | 'fight'
 
@@ -21,8 +22,6 @@ interface SetupState {
   replace: (config: SimConfig) => SimConfig
 }
 
-const DEFAULT_SPEC: SpecId = 'warrior-fury'
-
 function fresh(spec: SpecId): SimConfig {
   return normalizeConfig(defaultConfig(spec)).config
 }
@@ -30,7 +29,7 @@ function fresh(spec: SpecId): SimConfig {
 export const useSetup = create<SetupState>()(
   persist(
     (set, get) => ({
-      config: fresh(DEFAULT_SPEC),
+      config: fresh(defaultSpec()),
       bySpec: {},
       section: 'gear',
       setSection: (section) => set({ section }),
@@ -61,9 +60,16 @@ export const useSetup = create<SetupState>()(
         for (const [spec, config] of Object.entries(saved.bySpec ?? {})) {
           bySpec[spec as SpecId] = normalizeConfig(config).config
         }
+        // The last spec used, if the app still offers it (docs/ux.md principles 1 and 8); a setup
+        // for a spec it doesn't offer is kept for later, and the default spec opens instead.
+        let config = saved.config ? normalizeConfig(saved.config).config : current.config
+        if (!isVisibleSpec(config.spec)) {
+          bySpec[config.spec] = config
+          config = bySpec[defaultSpec()] ?? fresh(defaultSpec())
+        }
         return {
           ...current,
-          config: saved.config ? normalizeConfig(saved.config).config : current.config,
+          config,
           bySpec,
           section: saved.section ?? current.section,
         }

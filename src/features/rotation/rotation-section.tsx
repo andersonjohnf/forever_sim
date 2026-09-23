@@ -7,11 +7,12 @@ import { Switch } from '@/components/ui/switch'
 import { EmptyState } from '@/features/empty-state'
 import { SectionHeader } from '@/features/section'
 import { cn } from '@/lib/utils'
-import { getSpec } from '@/sim'
+import { buffCatalogue, getSpec } from '@/sim'
 
 export function RotationSection() {
   const meta = useSpecMeta()
   const rotation = useSetup((s) => s.config.rotation)
+  const enabledBuffs = useSetup((s) => s.config.buffs.enabled)
   const update = useSetup((s) => s.update)
   const options = getSpec(meta.id).rotationOptions
   const value = (id: string, fallback: number | boolean) => rotation[id] ?? fallback
@@ -36,7 +37,10 @@ export function RotationSection() {
       ) : (
         <ul className="flex flex-col divide-y rounded-xl border">
           {options.map((option) => {
-            const inactive = option.kind === 'number' && option.dependsOn !== undefined && !toggleOn(option.dependsOn)
+            // A consumable the rotation uses only when it's selected in Buffs (Mighty Rage Potion, Juju Flurry).
+            const needs = option.kind === 'toggle' && option.requiresBuff ? buffCatalogue.find((b) => b.id === option.requiresBuff) : undefined
+            const missing = needs !== undefined && !enabledBuffs.includes(needs.id)
+            const inactive = (option.dependsOn !== undefined && !toggleOn(option.dependsOn)) || missing
             return (
               <li key={option.id} className={cn('flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between', inactive && 'opacity-60')}>
                 <div className="flex flex-col gap-1">
@@ -44,6 +48,11 @@ export function RotationSection() {
                     {option.label}
                   </label>
                   <p className="text-xs text-muted-foreground">{option.help}</p>
+                  {missing && (
+                    <p className="text-xs text-muted-foreground">
+                      Not used: turn on {needs.name} in <span className="font-medium text-foreground">Buffs</span> first.
+                    </p>
+                  )}
                 </div>
                 {option.kind === 'toggle' ? (
                   <Switch

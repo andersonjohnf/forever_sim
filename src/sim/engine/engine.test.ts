@@ -17,6 +17,8 @@ import { Sim } from './sim'
 
 /** Every Fury ability switched off (warrior.md §5.2 settings): white swings only. */
 const NO_ABILITIES: SimConfig['rotation'] = {
+  'warrior.fury.prepull.bloodrage': false,
+  'warrior.fury.battleShout.enabled': false,
   'warrior.fury.deathWish.enabled': false,
   'warrior.fury.racial.enabled': false,
   'warrior.fury.recklessness.enabled': false,
@@ -155,7 +157,7 @@ describe('timing worked examples in the engine', () => {
   it('warrior W17: Flurry 5/5 turns a 2.6 s swing into 2.080 s from the next swing', () => {
     const flurry = proc({ action: ACTION.aura, amount: 0, chainBit: 0, hands: 1 })
     const plan = timingPlan(2.6, null, [flurry], 7000)
-    plan.auras = [{ id: 'flurry', name: 'Flurry', durationMs: 15000, maxStacks: 1, whiteSwingCharges: 3, str: 0, agi: 0, ap: 0, apPct: 0, crit: 0, haste: 25, damage: 0 }]
+    plan.auras = [{ id: 'flurry', name: 'Flurry', durationMs: 15000, maxStacks: 1, whiteSwingCharges: 3, str: 0, agi: 0, ap: 0, apPct: 0, crit: 0, haste: 25, damage: 0, critCharges: 0 }]
     const times = trace(plan).map(([, , t]) => t)
     expect(times).toEqual([0, 2080, 4160, 6240])
   })
@@ -294,6 +296,14 @@ describe('golden run (fixed config and seed)', () => {
   //   last 30 s), Recklessness in the last 15 s (+100% crit: Execute's crits nearly double) and
   //   Bloodrage's 20 rage a minute (more Heroic Strikes and Hamstrings): DPS 623.9 → 676.7. The
   //   casts deal no damage, so no new breakdown rows; the Human default has no racial cooldown.
+  // - M2.2c: the pre-pull, Battle Shout's upkeep and the Mighty Rage Potion (the Standard raid
+  //   preset selects it): DPS 676.7 → 684.2. The potion's 45–75 rage and +60 Strength at the start
+  //   of the execute phase lift Execute most (19.25M → 20.06M damage). Bloodrage at −1 s puts 10
+  //   rage at the pull and moves its cooldown 1 s earlier. The warrior's own Battle Shout replaces
+  //   the Buffs switch's static +139: the same AP from the pull (shouted at −3 s), but it runs out
+  //   at 177 s, so fights longer than that refresh it at 174 s for a GCD and 10 rage. No new
+  //   breakdown rows (the casts deal no damage); the random potion rage shifts the proc stream,
+  //   so every row's counts move a little.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

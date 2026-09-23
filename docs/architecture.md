@@ -72,6 +72,11 @@ A spec is data plus small ability modules, never its own loop.
   creature type), derives the character sheet, and flattens procs and auras into a **plan**: a
   plain object of numbers that posts to workers by structured clone. The engine and worker import
   no datasets, so the worker bundle stays small.
+- A buff the rotation keeps up itself (the warrior's own Battle Shout) is left out of the static
+  effects and becomes an aura in the fight, so it counts once; the character sheet still shows
+  it. On-use items (`sim/effects/items.ts`) and consumables (`sim/effects/buffs.ts`) carry their
+  use as an `OnUseSpec`, which the rotation turns into a cast; any it doesn't press are listed
+  as not simulated.
 - It also collects the **assumptions**: every `[?]` the setup relies on, each with a doc link
   (`sim/plan/assumptions.ts`), and the setups it refuses to guess (paladin and druid until M4/M5,
   Skyborne warriors until their base stats are known).
@@ -99,9 +104,14 @@ A spec is data plus small ability modules, never its own loop.
   removed: events carry the generation of their timer and stale ones are skipped.
 - **Events:** main-hand and off-hand swings, boss swings (tank specs), aura expiry, bleed ticks,
   periodic rage (Anger Management), a cast's rage ticks (Bloodrage), stand-in incoming hits for
-  DPS specs, "the rotation may act" events when a GCD or an ability's cooldown ends or a
-  time-left condition becomes true, and the start of the execute phase at `t_exec` (specs with
-  a rotation). Fights end at a per-fight length drawn from the encounter's variation.
+  DPS specs, "the rotation may act" events when a GCD or an ability's cooldown ends, a
+  time-left condition becomes true or an upkeep line's refresh window opens, and the start of
+  the execute phase at `t_exec` (specs with a rotation). Fights end at a per-fight length drawn
+  from the encounter's variation.
+- **The pre-pull** (`Plan.prepull`) runs before a fight's first event: casts at negative times
+  that cost nothing (Battle Shout at −3 s, Bloodrage at −1 s), so their auras have part of
+  their duration left, their cooldowns run from the cast and their ticks keep their phase;
+  then an opener's rage (Charge) and the stance swap's cap. Its rage makes no threat.
 - **Attack resolution:** the white table per hand is rebuilt only when stats change; a swing is one
   roll against its cumulative thresholds (combat-tables §2). Damage follows damage-and-timing §2.6.
   Boss swings roll the boss → player table (§8) with armor, block value, crushing and crits.
@@ -109,8 +119,8 @@ A spec is data plus small ability modules, never its own loop.
   and the off hand keeps a second white table without the penalty for while Heroic Strike is
   queued (§5).
 - **Auras and procs** are generic: PPM or flat chance per hand, internal cooldowns, charges consumed
-  by white swings (Flurry), stacks, stat, AP, AP %, crit, haste and damage mods (applied by a proc
-  or a cast), and actions (extra attacks with chain rules, auras, rage energizes, magic damage,
+  by white swings (Flurry) or by crits dealt (Weakness Analyzer), stacks, stat, AP, AP %, crit,
+  haste and damage mods (applied by a proc or a cast), and actions (extra attacks with chain rules, auras, rage energizes, magic damage,
   weapon bleeds such as Deep Wounds).
   Triggers: melee landed, white landed, swing landed (white, extra attack or an on-next-swing
   ability's swing), melee crit, damage taken, block, dodge or parry. Stats are
@@ -122,16 +132,19 @@ A spec is data plus small ability modules, never its own loop.
   the static global multiplier (stance, Defiance, Salvation, enchants).
 - **Hot-loop discipline:** one monomorphic `Sim` class over typed arrays, no allocation per event,
   per-fight state reset rather than reallocated, and a plan flattened once in the constructor.
-  The default Fury warrior (with its M2.2b rotation: cooldowns and execute phase included) runs
-  about 10,200 fights per second on one core in the Vitest benchmark. Its fights now have about
-  8% more events (Bloodrage's ticks, more casts) and walks. M2.2a ran about 11,700 on the same
-  machine, M2.1 about 12,300, and about 17,800 as bundled JavaScript in Node.
+  The default Fury warrior (with its M2.2c rotation: the pre-pull, Battle Shout's upkeep and the
+  Mighty Rage Potion included) runs about 9,800 fights per second on one core in the Vitest
+  benchmark; M2.2b's rotation ran about 10,300 on the same machine the same day (10,200 when it
+  was measured), and the default with the M2.2c rows switched off still does. M2.2a ran about
+  11,700, M2.1 about 12,300, and about 17,800 as bundled JavaScript in Node.
 - **Abilities** are rows of `Plan.abilities` (`AbilityPlan`), resolved by one switch on `kind`:
   `weaponStrike` (one roll: Whirlwind, Hamstring, …), `meleeSpell` (two rolls: Bloodthirst,
   Execute, …), `onNextSwing` (Heroic Strike: queued off the GCD, it replaces the next
   main-hand swing, or extra attack, if there's rage for it then; that swing makes no white rage
   and uses no Flurry charge) and `cast` (no roll: it puts an aura on the player and grants rage
-  at once and on ticks; Bloodrage, Death Wish, Recklessness, Berserker Rage, racial cooldowns).
+  at once, with an optional random extra, and on ticks; Battle Shout, Bloodrage, Death Wish,
+  Recklessness, Berserker Rage, racial cooldowns, on-use items and consumables). A cast can
+  have a limit of uses per fight, after which it's never ready again (the Mighty Rage Potion).
   Each row carries cost, cooldown, GCD, the stances it can be used in, whether it needs the
   execute phase, weapon share and normalization, flat and AP damage, damage per extra rage
   (Execute), bonus crit, crit multiplier, refund share, threat, an optional off-hand strike with
@@ -144,8 +157,9 @@ A spec is data plus small ability modules, never its own loop.
   Bloodrage, Improved Berserker Rage), so the engine sees only resolved numbers.
 - **Rotation:** `Plan.rotation` is a priority list of `RotationEntry` lines (an ability plus
   conditions: rage at least or at most a value, another ability's cooldown, GCD-safe, aura down,
-  another ability's aura up, in or out of the execute phase, AP at least or below a value, fight
-  time left at most or at least a value; warrior.md §5.1). An ability can have several lines
+  another ability's aura up, another ability's aura down or due for a refresh, in or out of the
+  execute phase, AP at least or below a value, fight time left at most or at least a value;
+  warrior.md §5.1). An ability can have several lines
   (Bloodthirst in and out of the execute phase; Death Wish before its final use and at the end).
   The spec declares its settings as `RotationOption`s (`sim/classes/rotation.ts`), and the plan
   builder turns `config.rotation` plus those defaults into the list. Whenever something the list
@@ -157,7 +171,10 @@ A spec is data plus small ability modules, never its own loop.
   per phase up front, so a walk skips the lines that can't apply in the current phase. And since
   each fight's drawn length is known, it turns time-left conditions into a window of times per
   line at the start of the fight: a walk compares the time with it, and the fight schedules a
-  wake-up at `fight end − x` for each "time left ≤ x".
+  wake-up at `fight end − x` for each "time left ≤ x". A refresh condition ("the aura is down, or
+  has at most `b` ms left and ends before the fight") moves the start of that window whenever
+  its aura starts or ends, with a wake-up when it opens, so an upkeep line at the top of the list
+  costs a walk one comparison.
 
 ### Iterations, determinism and workers
 

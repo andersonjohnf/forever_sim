@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { decodeTalentCode, encodeTalentCode } from '@/data/talents/types'
 import { meleeChances } from '../core/attack-table'
 import { defaultConfig, TALENT_DATA } from '../defaults'
+import { presetBuffIds } from '../effects/presets'
 import { Sim } from '../engine/sim'
 import { computeSheet, normalizeConfig } from '../index'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
@@ -180,8 +181,10 @@ describe('buffs-debuffs-consumables worked examples on the plan', () => {
     expect(buildPlan(config).plan.fight.targetArmor).toBe(3731 - 2250)
   })
   it('5: Battle Shout + Blessing of Might = 272 attack power', () => {
-    const base = computeSheet(bare('warrior-fury'))!.attackPower
-    const buffed = computeSheet(bare('warrior-fury', { buffs: { raid: ['warrior', 'paladin'], enabled: ['battleShout', 'blessingOfMight'] } }))!
+    // Another warrior's shout: the rotation's own upkeep is off (warrior.md §5.2 row 1).
+    const rotation = { 'warrior.fury.battleShout.enabled': false }
+    const base = computeSheet(bare('warrior-fury', { rotation }))!.attackPower
+    const buffed = computeSheet(bare('warrior-fury', { rotation, buffs: { raid: ['warrior', 'paladin'], enabled: ['battleShout', 'blessingOfMight'] } }))!
     expect(buffed.attackPower - base).toBe(272)
   })
   it('7: a Windfury extra attack gets +246 attack power (Classic: +315)', () => {
@@ -334,7 +337,8 @@ describe('assumptions', () => {
   it('surfaces Unbridled Wrath on Heroic Strike swings and Raging Blows only when the build relies on them', () => {
     const ids = (config: SimConfig) => buildPlan(config).assumptions.map((a) => a.id)
     const fury = defaultConfig('warrior-fury')
-    expect(ids(fury)).toEqual(expect.arrayContaining(['unbridledWrathSwings', 'ragingBlows', 'partialRotation', 'abilityRefunds']))
+    expect(ids(fury)).toEqual(expect.arrayContaining(['unbridledWrathSwings', 'ragingBlows', 'abilityRefunds']))
+    expect(ids(fury)).not.toContain('whiteSwingsOnly')
     const noTalents = ids({ ...fury, talents: '' })
     expect(noTalents).not.toContain('unbridledWrathSwings')
     expect(noTalents).not.toContain('ragingBlows')
@@ -362,6 +366,27 @@ describe('assumptions', () => {
     expect(ids({ ...fury, talents })).not.toContain('berserkerRageTaken')
     expect(ids({ ...fury, talents, fight: { ...fury.fight, damageTakenPerSec: 100 } })).toContain('berserkerRageTaken')
     expect(ids({ ...fury, fight: { ...fury.fight, damageTakenPerSec: 100 } })).not.toContain('berserkerRageTaken')
+  })
+
+  it('lists the on-use items and consumables no rotation uses (warrior.md §5.2 rows 3, 16, 17; §7)', () => {
+    const d = defaultConfig('warrior-fury')
+    const note = (config: SimConfig) => buildPlan(config).assumptions.find((a) => a.id === 'onUseConsumables')?.text
+    const ids = (config: SimConfig) => buildPlan(config).assumptions.map((a) => a.id)
+    // Standard raid: the Mighty Rage Potion is used.
+    expect(d.buffs.enabled).toContain('mightyRagePotion')
+    expect(note(d)).toBeUndefined()
+    // Max consumables: Juju Flurry is used too; the bomb isn't.
+    const max = { ...d, buffs: { raid: d.buffs.raid, enabled: presetBuffIds('max', 'warrior-fury', d.buffs.raid) } }
+    expect(max.buffs.enabled).toEqual(expect.arrayContaining(['jujuFlurry', 'ezThroDarkBomb']))
+    expect(note(max)).toBe('Some on-use items and consumables aren’t simulated: EZ-Thro Dark Bomb.')
+    // Weakness Analyzer is used (with its own note); Diamond Flask isn't.
+    const trinkets = { ...d, gear: { ...d.gear, trinket1: { itemId: 272438 }, trinket2: { itemId: 20130 } } }
+    expect(note(trinkets)).toBe('Some on-use items and consumables aren’t simulated: Diamond Flask.')
+    expect(ids(trinkets)).toContain('weaknessAnalyzer')
+    expect(ids(d)).not.toContain('weaknessAnalyzer')
+    // A spec without a rotation uses none of them.
+    const arms = defaultConfig('warrior-arms')
+    expect(note({ ...arms, gear: { ...arms.gear, trinket1: { itemId: 272438 } } })).toContain('Weakness Analyzer')
   })
 
   it('names unmodelled item effects', () => {

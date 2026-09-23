@@ -99,9 +99,31 @@ export type Effect = (
   | { kind: 'proc'; proc: ProcSpec }
   /** Rage every `periodMs` from the pull (Anger Management: not an energize, so no threat). */
   | { kind: 'periodicRage'; periodMs: number; amount: number }
-  /** An item or consumable the rotation uses (M2); inert in a white-swing run. */
-  | { kind: 'onUse'; id: string; name: string }
+  /**
+   * A consumable the rotation uses. `use` is the cast a rotation can press; without it, or for a
+   * spec whose rotation doesn't press it, it's listed as not simulated.
+   */
+  | { kind: 'onUse'; id: string; name: string; use?: OnUseSpec }
 ) & { when?: Condition }
+
+/**
+ * An on-use consumable or item as a `cast` a rotation can press (plan/types.ts AbilityPlan):
+ * no cost, any stance, its cooldown and GCD from the client, a buff, and rage at once (an
+ * energize). Numbers from src/data/client, checked by effects/on-use.test.ts.
+ */
+export interface OnUseSpec {
+  id: string
+  name: string
+  icon: string
+  /** Its own cooldown (the item's, or the category's when that's longer). */
+  cooldownMs: number
+  /** 0 = off the GCD. */
+  gcdMs: number
+  aura: AuraSpec | null
+  /** Rage at once: `rageTenths` plus a uniform whole number of tenths from 0 to `rageSpreadTenths`. */
+  rageTenths: number
+  rageSpreadTenths: number
+}
 
 /** Timed buff applied by a proc or a `cast` ability (plan/types.ts AbilityPlan). Mods apply per stack. */
 export interface AuraSpec {
@@ -111,6 +133,8 @@ export interface AuraSpec {
   maxStacks?: number
   /** Charges consumed by white swings (Flurry: 3); the aura drops when they run out. */
   whiteSwingCharges?: number
+  /** Charges consumed by crits dealt, white or special (Weakness Analyzer: 1); the aura drops when they run out. */
+  critCharges?: number
   mods: {
     str?: number
     agi?: number

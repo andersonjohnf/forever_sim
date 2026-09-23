@@ -792,12 +792,21 @@ SpellCategories, 1.60.1.69913).
 | Explosive (24) | Sapper, Dense Dynamite, Thorium Grenade, EZ-Thro / SAF-T items | 60 s (the Sapper also has its own 300 s) |
 | Own cooldown only | Juju Flurry, Juju Might, Juju Power, Winterfall Firewater | 60 s |
 
+**Which the rotation uses** ([warrior §5.2](../classes/warrior.md#52-fury-dual-wield) rows 16
+and 17): the Fury rotation drinks the Mighty Rage Potion once, from the start of the execute
+phase, and uses Juju Flurry on cooldown from the pull, each only when it's selected here; both
+are off the GCD. EZ-Thro Dark Bomb and Greater Stoneshield Potion aren't simulated, and a result
+that selects them says so. The long buffs above (Juju Might, Juju Power, Firewater, elixirs,
+food) are static: used before the pull and up all fight.
 ### Modelling rules
 
 - **Static external buffs** (blessings, shouts, marks, totems, auras, elixirs, food) are
   assumed up for the whole fight. Every duration is at least 3 min, and fight length is
   owned by [encounter](encounter.md). A warrior's *own* Battle Shout upkeep belongs to
-  [warrior](../classes/warrior.md).
+  [warrior](../classes/warrior.md#52-fury-dual-wield): the Battle Shout switch here means
+  *someone else* keeps it up. When the warrior's rotation keeps its own up (Fury's default), the
+  switch's static +139 is left out and the shout is an aura in the fight, so it counts once; the
+  switch shows as on and locked. With the rotation's shout off, the switch decides.
 - **Stat order**: flat buffs are added first, then Blessing of Kings multiplies. Rounding
   and conversions are in [character-stats](character-stats.md).
 - **Windfury Totem (Forever)**: on each main-hand melee hit, roll 20%. On success, queue

@@ -12,7 +12,7 @@ import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { presetBuffIds } from '../effects/presets'
 import { fitsSlot, isTwoHand } from '../equip'
 import { SPEC_IDS, SPEC_META } from '../specs'
-import { rotationOptions } from '../classes/rotation'
+import { renamedRotationOptions, rotationOptions } from '../classes/rotation'
 import type { ClassId, CreatureType, FightConfig, GearSlot, SimConfig, SpecId } from '../types'
 
 const items = new Map<number, Item>((itemJson as unknown as ItemData).items.map((i) => [i.id, i]))
@@ -309,9 +309,13 @@ function normalizeRotation(input: unknown, spec: SpecId, r: Repairs): SimConfig[
     return {}
   }
   const options = rotationOptions(spec)
+  const renamed = renamedRotationOptions(spec)
   const rotation: SimConfig['rotation'] = {}
   let dropped = false
-  for (const [id, value] of Object.entries(input)) {
+  for (const [savedId, value] of Object.entries(input)) {
+    // A renamed setting keeps its saved value under the new id, unless the new id is saved too.
+    const id = renamed[savedId] ?? savedId
+    if (id !== savedId && id in input) continue
     const option = options.find((o) => o.id === id)
     if (!option) {
       dropped = true

@@ -83,6 +83,8 @@ export interface AuraPlan {
   haste: number
   /** Physical damage %, multiplicative. */
   damage: number
+  /** Crits dealt that end it early (Weakness Analyzer: 1; 0 = none). */
+  critCharges: number
 }
 
 export interface ProcPlan {
@@ -134,9 +136,9 @@ export interface AbilityPlan {
    * Shield Slam, Revenge);
    * `onNextSwing`: queued off the GCD, replaces the next main-hand swing and rolls like a
    * `weaponStrike` (Heroic Strike, Cleave; warrior.md §2.4);
-   * `cast`: no attack: it puts `aura` on the warrior and grants its rage (Bloodrage, Death Wish,
-   * Recklessness, Berserker Rage, racial cooldowns; warrior.md §3.2, §2.9). The damage fields
-   * are unused.
+   * `cast`: no attack: it puts `aura` on the warrior and grants its rage (Battle Shout,
+   * Bloodrage, Death Wish, Recklessness, Berserker Rage, racial cooldowns, on-use items and
+   * consumables; warrior.md §3.2, §2.9, §5.2). The damage fields are unused.
    */
   kind: 'weaponStrike' | 'meleeSpell' | 'onNextSwing' | 'cast'
   /** Rage cost in tenths after the build's talent reductions (warrior.md §2.3 "Cost reductions"). */
@@ -186,9 +188,16 @@ export interface AbilityPlan {
    * (rage.md#rage-pool-cap-and-decay, threat.md#threat-from-healing-power-gains-and-buffs).
    */
   rageTenths: number
+  /**
+   * `cast`: a random extra of 0 to this many tenths on the rage at once, a whole number drawn
+   * uniformly from the proc stream (Mighty Rage Potion: 450 + 0…300, warrior.md §5.2 row 16).
+   */
+  rageSpreadTenths: number
   rageTickTenths: number
   rageTicks: number
   rageTickMs: number
+  /** Uses per fight, then never again (Mighty Rage Potion: once, warrior.md §5.2 row 16); 0 = no limit. */
+  usesPerFight: number
 }
 
 /**
@@ -229,6 +238,13 @@ export const COND = {
   timeLeftAtLeast: 9,
   /** the aura that ability a puts on the warrior is up (the racial synced with Death Wish, warrior.md §5.2) */
   abilityAuraUp: 10,
+  /**
+   * the aura that ability a puts on the warrior is down, or has at most b ms left and would end
+   * before the fight does (Battle Shout's upkeep, warrior.md §5.2 row 1). Like the time-left
+   * conditions, the engine resolves it into the line's window of times, moved whenever the aura
+   * starts or ends, and wakes the rotation when the window opens.
+   */
+  abilityAuraRefresh: 11,
 } as const
 
 export interface RotationCondition {
@@ -250,6 +266,24 @@ export interface RotationEntry {
   /** On-next-swing only: cancel the queue if rage falls below this before the swing (tenths; 0 = never; warrior.md §2.4). */
   unqueueBelowTenths: number
 }
+
+/**
+ * Before the pull (warrior.md §5.2 row 0). Each cast uses an ability of `Plan.abilities` at
+ * `atMs` < 0, without paying its cost (its rage came before the pull): its aura starts then, so
+ * it has `durationMs + atMs` left at the pull, its cooldown runs from then, its rage at once is
+ * there at the pull, and its ticks keep their phase. Then the opener: Charge's rage, and the
+ * stance swap that keeps at most `keepTenths`. Pre-pull rage makes no threat.
+ */
+export interface PrepullPlan {
+  /** In time order. */
+  casts: { ability: number; atMs: number }[]
+  /** Charge's rage at the pull (0 = no Charge). */
+  chargeTenths: number
+  /** The most rage the stance swap after Charge keeps (−1 = no swap). */
+  keepTenths: number
+}
+
+export const NO_PREPULL: PrepullPlan = { casts: [], chargeTenths: 0, keepTenths: -1 }
 
 export interface BossSwingPlan {
   speedSec: number
@@ -316,6 +350,7 @@ export interface Plan {
   /** Active abilities and the priority list that uses them (empty for specs without a rotation yet). */
   abilities: AbilityPlan[]
   rotation: RotationEntry[]
+  prepull: PrepullPlan
 }
 
 /** What the main thread keeps next to the plan: the sheet and assumptions for the result. */

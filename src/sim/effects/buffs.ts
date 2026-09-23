@@ -6,7 +6,7 @@
 // (buffs doc §6.2 and §6.3). Values are Forever's; the few that differ in Classic Era read the
 // rule profile.
 import type { BuffDefinition, BuffPreset, SpecId } from '../types'
-import type { EffectList } from './types'
+import type { EffectList, OnUseSpec } from './types'
 
 const DOC = 'docs/mechanics/buffs-debuffs-consumables.md'
 
@@ -21,6 +21,39 @@ export interface BuffSpec extends BuffDefinition {
 const WARRIOR_DPS: SpecId[] = ['warrior-fury', 'warrior-arms']
 const MELEE_TANKS: SpecId[] = ['warrior-protection', 'druid-feral-bear']
 const BLADED = ['sword', 'axe', 'polearm', 'dagger'] as const
+
+/**
+ * Mighty Rage Potion (item 13442 → spell 17528; buffs doc §3.5): an energize of 600 tenths with
+ * variance 0.5, so 45–75 rage, drawn as 450 + a whole 0…300 tenths (Classic Era's 449 + 1d301),
+ * and +60 Strength (aura 29) for 20 s. No GCD on the spell; the potion category's 2 min cooldown
+ * is on the item [F] [client] (SpellEffect, SpellDuration, ItemEffect, 1.60.1.69913).
+ */
+export const MIGHTY_RAGE_POTION: OnUseSpec = {
+  id: 'mightyRagePotion',
+  name: 'Mighty Rage Potion',
+  icon: 'inv_potion_41',
+  cooldownMs: 120000,
+  gcdMs: 0,
+  aura: { id: 'mightyRage', name: 'Mighty Rage', durationMs: 20000, mods: { str: 60 } },
+  rageTenths: 450,
+  rageSpreadTenths: 300,
+}
+
+/**
+ * Juju Flurry (item 12450 → spell 16322; buffs doc §3.3): +3% attack speed (aura 9) for 20 s,
+ * the item's own 60 s cooldown, no GCD [F] [client] (SpellEffect, SpellDuration, ItemEffect,
+ * 1.60.1.69913).
+ */
+export const JUJU_FLURRY: OnUseSpec = {
+  id: 'jujuFlurry',
+  name: 'Juju Flurry',
+  icon: 'inv_misc_monsterscales_17',
+  cooldownMs: 60000,
+  gcdMs: 0,
+  aura: { id: 'jujuFlurry', name: 'Juju Flurry', durationMs: 20000, mods: { haste: 3 } },
+  rageTenths: 0,
+  rageSpreadTenths: 0,
+}
 
 export const BUFFS: BuffSpec[] = [
   // --- Raid buffs (§1.1, §1.2) ---------------------------------------------------------------
@@ -545,7 +578,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Potions and bombs',
     summary: '45–75 rage and +60 Strength for 20 s, once at the start of the execute phase',
     docRef: `${DOC}#35-potions-and-runes`,
-    effects: [{ kind: 'onUse', id: 'mightyRagePotion', name: 'Mighty Rage Potion' }],
+    effects: [{ kind: 'onUse', id: 'mightyRagePotion', name: 'Mighty Rage Potion', use: MIGHTY_RAGE_POTION }],
     presets: {
       raid: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-bear'],
       max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear'],
@@ -559,7 +592,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Potions and bombs',
     summary: '+3% attack speed for 20 s, every minute',
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
-    effects: [{ kind: 'onUse', id: 'jujuFlurry', name: 'Juju Flurry' }],
+    effects: [{ kind: 'onUse', id: 'jujuFlurry', name: 'Juju Flurry', use: JUJU_FLURRY }],
     presets: { max: WARRIOR_DPS },
   },
   {

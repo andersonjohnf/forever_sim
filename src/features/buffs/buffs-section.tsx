@@ -7,7 +7,7 @@ import type { ClassSlug } from '@/data/races/types'
 import { EmptyState } from '@/features/empty-state'
 import { Field, SectionHeader } from '@/features/section'
 import { cn } from '@/lib/utils'
-import { buffCatalogue, buffPresets, FULL_RAID, presetBuffs, type BuffCategory, type BuffDefinition, type BuffPreset } from '@/sim'
+import { buffCatalogue, buffPresets, FULL_RAID, getSpec, presetBuffs, type BuffCategory, type BuffDefinition, type BuffPreset } from '@/sim'
 
 const CATEGORY_LABEL: Record<BuffCategory, string> = {
   raidBuff: 'Raid buffs',
@@ -32,8 +32,16 @@ const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((
 export function BuffsSection() {
   const meta = useSpecMeta()
   const buffs = useSetup((s) => s.config.buffs)
+  const rotation = useSetup((s) => s.config.rotation)
   const update = useSetup((s) => s.update)
   const setBuffs = (patch: Partial<typeof buffs>) => update((c) => ({ ...c, buffs: { ...c.buffs, ...patch } }))
+  // Buffs the rotation keeps up itself (your own Battle Shout, warrior.md §5.2 row 1): the switch
+  // shows them on and locked, since the Buffs version would be the same buff.
+  const maintained = new Set(
+    getSpec(meta.id).rotationOptions.flatMap((o) =>
+      o.kind === 'toggle' && o.maintainsBuff && Boolean(rotation[o.id] ?? o.default) ? [o.maintainsBuff] : [],
+    ),
+  )
 
   const activePreset = buffPresets.find((p) => sameSet(presetBuffs(p.id, meta.id, buffs.raid), buffs.enabled))?.id
   const applyPreset = (id: BuffPreset['id']) => setBuffs({ enabled: presetBuffs(id, meta.id, buffs.raid) })
@@ -120,22 +128,27 @@ export function BuffsSection() {
                   {defs
                     .filter((d) => d.group === group)
                     .map((def) => {
-                      const missing = def.providedBy && !buffs.raid.includes(def.providedBy)
+                      const own = maintained.has(def.id)
+                      const missing = !own && def.providedBy && !buffs.raid.includes(def.providedBy)
                       return (
                         <label
                           key={def.id}
-                          className={cn('flex min-h-14 items-center gap-3 rounded-lg px-3 py-2', missing ? 'opacity-60' : 'hover:bg-muted')}
+                          className={cn('flex min-h-14 items-center gap-3 rounded-lg px-3 py-2', missing ? 'opacity-60' : !own && 'hover:bg-muted')}
                         >
                           <WowIcon icon={def.icon} size="sm" />
                           <span className="flex min-w-0 flex-1 flex-col">
                             <span className="text-sm font-medium">{def.name}</span>
                             <span className="text-xs text-muted-foreground">
-                              {missing ? `Needs a ${CLASS_LABEL[def.providedBy!].toLowerCase()} in the raid` : def.summary}
+                              {own
+                                ? `${def.summary}. You keep it up yourself (see Rotation), so it isn’t added twice.`
+                                : missing
+                                  ? `Needs a ${CLASS_LABEL[def.providedBy!].toLowerCase()} in the raid`
+                                  : def.summary}
                             </span>
                           </span>
                           <Switch
-                            checked={buffs.enabled.includes(def.id)}
-                            disabled={!!missing}
+                            checked={own || buffs.enabled.includes(def.id)}
+                            disabled={own || !!missing}
                             onCheckedChange={(on) => toggleBuff(def, on)}
                             aria-label={def.name}
                           />

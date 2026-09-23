@@ -6,9 +6,11 @@
 // against the client data. Client units: rage costs in tenths (`manaCost` 300 = 30 rage), times
 // in ms. These are the base rows: talents (cost reductions, Impale, Raging Blows, Improved
 // Bloodrage, Improved Berserker Rage) are applied by `withTalents` in modifiers.ts when the plan
-// resolves the rotation. Strikes roll the attack tables; `cast` rows (Bloodrage, Death Wish,
-// Recklessness, Berserker Rage, racial cooldowns) apply an aura and grant rage (warrior.md §3.2).
+// resolves the rotation. Strikes roll the attack tables; `cast` rows (Battle Shout, Bloodrage,
+// Death Wish, Recklessness, Berserker Rage, racial cooldowns, on-use items and consumables)
+// apply an aura and grant rage (warrior.md §3.2, §5.2).
 import { CRIT_MULTIPLIER, GCD_MS } from '../../core/formulas'
+import type { OnUseSpec } from '../../effects/types'
 import { type AbilityDef, STANCE, STANCE_ANY } from '../../plan/types'
 
 export type { AbilityDef } from '../../plan/types'
@@ -16,8 +18,11 @@ export type { AbilityDef } from '../../plan/types'
 /** A special that misses or is dodged or parried refunds 80% of its cost [C] (rage.md#rage-refunds-on-avoided-abilities). */
 const REFUND = 0.8
 
-/** The `cast` fields of an attack: no aura, no rage. */
-const NO_CAST = { aura: null, rageTenths: 0, rageTickTenths: 0, rageTicks: 0, rageTickMs: 0 } as const
+/** A cast's rage and use fields when it has none of its own: no rage, no limit on uses. */
+const NO_CAST_RAGE = { rageTenths: 0, rageSpreadTenths: 0, rageTickTenths: 0, rageTicks: 0, rageTickMs: 0, usesPerFight: 0 } as const
+
+/** The `cast` fields of an attack: no aura, no rage, no limit on uses. */
+const NO_CAST = { aura: null, ...NO_CAST_RAGE } as const
 
 /** The attack fields of a `cast`: it rolls nothing, deals nothing and refunds nothing. */
 export const NO_STRIKE = {
@@ -205,10 +210,46 @@ export const BLOODRAGE: AbilityDef = {
   stances: STANCE_ANY,
   aura: null,
   rageTenths: 100,
+  rageSpreadTenths: 0,
   rageTickTenths: 10,
   rageTicks: 10,
   rageTickMs: 1000,
+  usesPerFight: 0,
 }
+
+/**
+ * Battle Shout rank 7 (spells.json 25289): cost `manaCost` 100, no cooldown, GCD 1500, any stance;
+ * for 180000 ms aura 99 (melee attack power) at base 139 + 0.6 per level above `baseLevel` 60, so
+ * 139 at 60 (warrior.md §1.1, §3.2). Focused Rage doesn't reduce it (§2.3). Its threat (60 per
+ * party member buffed, threat.md) isn't counted: the party isn't modelled (warrior.md §7).
+ */
+export const BATTLE_SHOUT: AbilityDef = {
+  id: 'battleShout',
+  name: 'Battle Shout',
+  icon: 'ability_warrior_battleshout',
+  ...NO_STRIKE,
+  costTenths: 100,
+  cooldownMs: 0,
+  gcdMs: GCD_MS,
+  stances: STANCE_ANY,
+  aura: { id: 'battleShout', name: 'Battle Shout', durationMs: 180000, mods: { ap: 139 } },
+  ...NO_CAST_RAGE,
+}
+
+/**
+ * Charge rank 3 (spells.json 11578): an energize of 150 tenths, Battle Stance only, out of combat
+ * only; Improved Charge adds 30 tenths per rank (12285, aura 107 +30). The sim uses it only as the
+ * opener's rage (warrior.md §2.3, §5.2 row 0).
+ */
+export const CHARGE_RAGE_TENTHS = 150
+export const IMPROVED_CHARGE_TENTHS_PER_RANK = 30
+
+/**
+ * A stance swap keeps at most 10 rage (Tactical Mastery, trained) plus 3 per rank of Improved
+ * Tactical Mastery (warrior.md §2.1) [F].
+ */
+export const TACTICAL_MASTERY_TENTHS = 100
+export const IMPROVED_TACTICAL_MASTERY_TENTHS_PER_RANK = 30
 
 /**
  * Death Wish (spells.json 12328): cost 100, `recoveryTime` 180000, GCD 1500, any stance; for
@@ -225,10 +266,7 @@ export const DEATH_WISH: AbilityDef = {
   gcdMs: GCD_MS,
   stances: STANCE_ANY,
   aura: { id: 'deathWish', name: 'Death Wish', durationMs: 30000, mods: { damage: 20 } },
-  rageTenths: 0,
-  rageTickTenths: 0,
-  rageTicks: 0,
-  rageTickMs: 0,
+  ...NO_CAST_RAGE,
 }
 
 /**
@@ -248,10 +286,7 @@ export const RECKLESSNESS: AbilityDef = {
   gcdMs: GCD_MS,
   stances: STANCE.berserker,
   aura: { id: 'recklessness', name: 'Recklessness', durationMs: 15000, mods: { crit: 100 } },
-  rageTenths: 0,
-  rageTickTenths: 0,
-  rageTicks: 0,
-  rageTickMs: 0,
+  ...NO_CAST_RAGE,
 }
 
 /**
@@ -270,10 +305,7 @@ export const BERSERKER_RAGE: AbilityDef = {
   gcdMs: GCD_MS,
   stances: STANCE.berserker,
   aura: null,
-  rageTenths: 0,
-  rageTickTenths: 0,
-  rageTicks: 0,
-  rageTickMs: 0,
+  ...NO_CAST_RAGE,
 }
 
 /**
@@ -297,10 +329,7 @@ const racialCooldown = (id: string, name: string, icon: string, cooldownMs: numb
   gcdMs: 0,
   stances: STANCE_ANY,
   aura,
-  rageTenths: 0,
-  rageTickTenths: 0,
-  rageTicks: 0,
-  rageTickMs: 0,
+  ...NO_CAST_RAGE,
 })
 
 export const BLOOD_FURY = racialCooldown('bloodFury', 'Blood Fury', 'racial_orc_berserkerstrength', 120000, {
@@ -320,6 +349,25 @@ export const ELUNES_LIGHT = racialCooldown('elunesLight', 'Elune’s Light', 'sp
   name: 'Elune’s Light',
   durationMs: 15000,
   mods: { crit: 10 },
+})
+
+/**
+ * An on-use item or consumable as a cast (effects/types.ts OnUseSpec): no cost, any stance, its
+ * cooldown, GCD, buff and rage from the spec (warrior.md §5.2 rows 3, 16 and 17).
+ */
+export const onUseAbility = (use: OnUseSpec): AbilityDef => ({
+  id: use.id,
+  name: use.name,
+  icon: use.icon,
+  ...NO_STRIKE,
+  costTenths: 0,
+  cooldownMs: use.cooldownMs,
+  gcdMs: use.gcdMs,
+  stances: STANCE_ANY,
+  aura: use.aura,
+  ...NO_CAST_RAGE,
+  rageTenths: use.rageTenths,
+  rageSpreadTenths: use.rageSpreadTenths,
 })
 
 export const RACIAL_COOLDOWNS: Readonly<Partial<Record<string, AbilityDef>>> = {

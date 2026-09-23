@@ -30,13 +30,16 @@ export { defaultConfig, FULL_RAID, TALENT_DATA, talentPresets, type TalentPreset
 export { canUse, fitsSlot, isTwoHand, PROFICIENCY } from './equip'
 export { normalizeConfig } from './config/normalize'
 
+/** Specs whose sim and UI are complete (docs/ux.md principle 8): Fury from M2.2c; Arms joins it in M2.3. */
+const AVAILABLE: ReadonlySet<SpecId> = new Set(['warrior-fury'])
+
 /**
  * Every spec with its engine-declared options. `available` flips when the spec's sim and UI are
- * complete (docs/ux.md principle 8): none in M1; M2 flips warrior DPS.
+ * complete (docs/ux.md principle 8).
  */
 export const specs: SpecDefinition[] = SPEC_IDS.map((id) => ({
   ...SPEC_META[id],
-  available: false,
+  available: AVAILABLE.has(id),
   rotationOptions: rotationOptions(id),
 }))
 

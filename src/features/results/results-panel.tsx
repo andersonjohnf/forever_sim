@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, ChevronRight, ChevronsDown, Loader2, Play, RotateCw, Square, TriangleAlert } from 'lucide-react'
+import { ChevronRight, ChevronsDown, Loader2, Play, RotateCw, Square, TriangleAlert } from 'lucide-react'
 import { Fragment, type ReactNode, useId, useRef } from 'react'
 import { focusSection } from '@/app/section-focus'
 import { type Section, useSetup } from '@/app/setup-store'
@@ -12,17 +12,13 @@ import { formatInt, formatOne, formatPct, formatSeconds } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { SimConfig, SimResult, Summary } from '@/sim'
 import { AssumptionList } from './assumption-list'
+import { Delta } from './delta'
+import { DIM_FILL, DIM_ICON, DIM_ROOT } from './dim'
 import { isSetupError, neverHit } from './run-logic'
+import { BossTable, DamageTaken } from './tank-results'
+import { formatCritReduction } from './tank-logic'
 import { useScrollEdges } from './use-scroll-edges'
 import { type Metric, METRIC_LABEL, metricsFor, useBreakdownMetric, useRunState } from './use-run-state'
-
-// Dimmed results (docs/ux.md#states: stale, or a re-run under way). A subtree marks itself with
-// `group/dim` and `data-dimmed`; its text turns muted, which still meets AA contrast, and its
-// bars, icons and colored changes fade to neutral.
-const DIM_ROOT = 'group/dim data-[dimmed=true]:text-muted-foreground'
-const DIM_TEXT = 'group-data-[dimmed=true]/dim:text-muted-foreground'
-const DIM_FILL = 'group-data-[dimmed=true]/dim:bg-muted-foreground/40'
-const DIM_ICON = 'group-data-[dimmed=true]/dim:opacity-50 group-data-[dimmed=true]/dim:grayscale'
 
 export function SimulateButton({ className }: { className?: string }) {
   const { config, sim, result, stale, running } = useRunState()
@@ -192,27 +188,6 @@ function StaleBadge() {
   return <span className="rounded bg-amber-100 px-1.5 text-amber-900 dark:bg-amber-400/15 dark:text-amber-300">Setup changed</span>
 }
 
-/** The change from the previous result: arrow, sign and color (docs/ux.md#results). */
-function Delta({ value, previous, className }: { value: number; previous: number | null; className?: string }) {
-  if (previous === null) return null
-  const delta = value - previous
-  if (Math.abs(delta) < 0.05) return null
-  return (
-    <span
-      className={cn(
-        'flex items-center font-medium tabular-nums',
-        delta > 0 ? 'text-positive' : 'text-negative',
-        DIM_TEXT,
-        className,
-      )}
-    >
-      {delta > 0 ? <ArrowUp className="size-3.5" aria-hidden /> : <ArrowDown className="size-3.5" aria-hidden />}
-      {delta > 0 ? '+' : '−'}
-      {formatOne(Math.abs(delta))}
-    </span>
-  )
-}
-
 /** What a failed run says, and the way forward (docs/ux.md#states "Error"). */
 function RunError({ message }: { message: string }) {
   // The engine's refusals name what to change; only other failures get the retry advice.
@@ -300,10 +275,12 @@ function NoDamage({ result, variant, onNavigate }: { result: SimResult; variant:
  * sheet, which scrolls as a whole; `onNavigate` closes it when a link opens a setup tab.
  */
 export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'panel' | 'sheet'; onNavigate?: Navigate }) {
-  const { result, runConfig, stale, running, error, dimmed, metricLabel } = useRunState()
+  const { sim, result, runConfig, stale, running, error, dimmed, metricLabel } = useRunState()
   const empty = result !== null && result.abilities.length === 0
   const body = result && (
     <div data-dimmed={dimmed} className={cn('flex flex-col gap-5', DIM_ROOT)}>
+      {/* Tanks: what the boss's swings cost you comes first, since it has no headline of its own. */}
+      {result.tank && <DamageTaken tank={result.tank} previous={sim.previous?.tank?.dtps.mean ?? null} fight={runConfig?.fight ?? null} />}
       {!empty && <Breakdown result={result} />}
       {result.cooldowns.length > 0 && (
         <Details title="Cooldowns and buffs">
@@ -311,7 +288,7 @@ export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'pan
         </Details>
       )}
       <Details title="Character sheet">
-        <CharacterSheet result={result} />
+        <CharacterSheet result={result} runConfig={runConfig} />
       </Details>
       {result.assumptions.length > 0 && (
         <Details title={`Assumptions (${result.assumptions.length})`}>
@@ -540,11 +517,13 @@ function Cooldowns({ result, runConfig }: { result: SimResult; runConfig: SimCon
 /** Base values that only the defensive rows (Dodge, Parry, Block) show. */
 const AVOIDANCE_BASES = new Set(['base dodge', 'base parry', 'base block'])
 
-function CharacterSheet({ result }: { result: SimResult }) {
+function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: SimConfig | null }) {
   const s = result.sheet
   const unknown = s.unknown ?? []
   const dualWield = s.weaponSkill.offHand !== null && s.weaponSkill.offHand > 0
-  const defensive = s.defense > 300 || s.blockValue > 0
+  // A tank's sheet has the boss's table against it (docs/ux.md#results).
+  const bossTable = s.bossTable ?? null
+  const defensive = bossTable !== null || s.defense > 300 || s.blockValue > 0
   // Decision D24: the unmeasured base values in the numbers shown, the ones the assumptions name
   // (a tank's avoidance placeholders only with their rows).
   const placeholders = (s.placeholders ?? []).filter((p) => defensive || !AVOIDANCE_BASES.has(p))
@@ -563,6 +542,7 @@ function CharacterSheet({ result }: { result: SimResult }) {
     ...(defensive
       ? ([
           ['Defense', formatInt(s.defense)],
+          ...(bossTable ? ([['Crit reduction', formatCritReduction(s.critReductionPct)]] as [string, string][]) : []),
           ['Dodge', formatPct(s.dodgePct)],
           ['Parry', formatPct(s.parryPct)],
           ['Block', formatPct(s.blockPct)],
@@ -581,6 +561,7 @@ function CharacterSheet({ result }: { result: SimResult }) {
           </div>
         ))}
       </dl>
+      {bossTable && <BossTable table={bossTable} fight={runConfig?.fight ?? null} />}
       {unknown.length > 0 && (
         <p className="text-xs text-muted-foreground">
           Not known for Forever yet, so left out: {unknown.join(', ')}.

@@ -2,17 +2,20 @@ import { deflateRawSync } from 'node:zlib'
 import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
-// Tank specs report TPS and DPS as equals (decision D18). Tanks aren't in the spec picker until
-// they ship, and a share link to a spec the app doesn't offer is refused (M2.2c), so the
-// Protection tests wait for Protection to ship in M3 (docs/milestones.md). This is the share link
-// (#s=…, deflated JSON; see docs/ux.md#persistence-and-sharing) for the default Protection warrior.
-const UNTIL_PROTECTION_SHIPS = 'Protection isn’t offered until M3, so its share link is refused'
-const PROTECTION = `./#s=${deflateRawSync(JSON.stringify({ version: 1, spec: 'warrior-protection' })).toString('base64url')}`
+// Tank specs report TPS and DPS as equals (decision D18), beside the damage the boss's swings
+// cost them. Tanks aren't in the spec switcher until they ship, and a share link to a spec the app
+// doesn't offer is refused (M2.2c), so these tests preview Protection: `?preview=` adds a spec
+// before it ships in a browser under automation, as Playwright's is (src/app/preview-specs.ts).
+// This is the share link (#s=…, deflated JSON; see docs/ux.md#persistence-and-sharing) for the
+// default Protection warrior.
+const PROTECTION = `./?preview=warrior-protection#s=${deflateRawSync(JSON.stringify({ version: 1, spec: 'warrior-protection' })).toString('base64url')}`
 
 /** A value with its ± 95% CI, e.g. "212.9± 0.5" in the text of a headline group. */
 const VALUE_WITH_CI = /\d[\d,]*\.\d\s*± \d[\d,]*\.\d/
 /** …followed by a change from the previous run: a sign and a value. */
 const WITH_CHANGE = /± \d[\d,]*\.\d\s*[+−]\d[\d,]*\.\d/
+/** The boss's outcomes, in its table's roll order (docs/mechanics/combat-tables.md#8-boss--player-tanks). */
+const OUTCOMES = ['Miss', 'Dodge', 'Parry', 'Block', 'Crit', 'Crushing', 'Hit']
 
 async function openProtection(page: Page) {
   await page.goto(PROTECTION)
@@ -25,9 +28,16 @@ async function simulate(scope: Locator | Page) {
   await expect(scope.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
 }
 
+/** A share in the results, "12.3%", as a number. */
+const pct = (text: string | null) => Number(/(\d+\.\d)%/.exec(text ?? '')![1])
+
+/** The seven outcomes a list or table shows, as [label, share] in its order. */
+async function outcomes(items: Locator): Promise<[string, number][]> {
+  return (await items.allTextContents()).map((text) => [/^[A-Za-z]+/.exec(text.trim())![0], pct(text)])
+}
+
 test.describe('tank results', () => {
   test('headline TPS and DPS side by side, each with its CI and its own change', async ({ page }) => {
-    test.fixme(true, UNTIL_PROTECTION_SHIPS)
     await openProtection(page)
     const results = page.getByRole('complementary', { name: 'Results' })
     const tps = results.getByRole('group', { name: 'TPS' })
@@ -55,8 +65,85 @@ test.describe('tank results', () => {
     await expect(tps).not.toContainText('Setup changed')
   })
 
+  test('damage taken per second, and how the boss’s swings landed', async ({ page }) => {
+    await openProtection(page)
+    const results = page.getByRole('complementary', { name: 'Results' })
+    const taken = results.getByRole('region', { name: 'Damage taken per second' })
+    await expect(taken).toHaveCount(0)
+
+    await simulate(results)
+    await expect(taken).toContainText(VALUE_WITH_CI)
+    await expect(taken).toContainText(
+      /After your armor, block and other mitigation\. The boss swung \d+\.\d times a fight, set to hit for 4,500 to 5,500 before armor \(Fight → Advanced\)\./,
+    )
+    // It comes first, above the breakdown.
+    const breakdown = results.getByRole('region', { name: /by ability$/ })
+    expect((await taken.boundingBox())!.y).toBeLessThan((await breakdown.boundingBox())!.y)
+
+    // Every outcome of the boss's one roll, in its order, as shares of its swings.
+    const landed = taken.getByRole('list', { name: 'How the boss’s swings landed' }).getByRole('listitem')
+    const shares = await outcomes(landed)
+    expect(shares.map(([label]) => label)).toEqual(OUTCOMES)
+    const total = shares.reduce((n, [, share]) => n + share, 0)
+    expect(total).toBeGreaterThan(99.6)
+    expect(total).toBeLessThan(100.4)
+    // A shield and a weapon: the default Protection warrior dodges, parries and blocks, and the
+    // boss crushes it.
+    for (const [label, share] of shares) if (label !== 'Crit') expect(share, label).toBeGreaterThan(0)
+
+    // A bigger boss hits harder: the change is up, and colored as worse, since less is better.
+    await page.getByRole('tab', { name: 'Fight', exact: true }).click()
+    await page.getByRole('button', { name: 'Advanced' }).click()
+    const max = page.getByRole('textbox', { name: 'Maximum damage per swing' })
+    // Focused first, as a person would: focusing swaps "5,500" for "5500" (docs/ux.md, Fight).
+    await max.focus()
+    await max.fill('9000')
+    await max.press('Enter')
+    await expect(max).toHaveValue('9000')
+    await simulate(results)
+    await expect(taken).toContainText(WITH_CHANGE)
+    await expect(taken).toContainText('set to hit for 4,500 to 9,000 before armor')
+    const change = taken.getByText(/^[+−]\d[\d,]*\.\d$/)
+    await expect(change).toHaveText(/^\+/)
+    await expect(change).toHaveClass(/text-negative/)
+  })
+
+  test('the character sheet has crit reduction, and the boss’s table against you', async ({ page }) => {
+    await openProtection(page)
+    const results = page.getByRole('complementary', { name: 'Results' })
+    await simulate(results)
+    await results.getByRole('button', { name: 'Character sheet' }).click()
+
+    // Defense takes 0.04% a point above 300 off the boss's crit chance (character-stats#defense-skill).
+    const stat = (name: string) => results.locator('dl > div').filter({ has: page.locator('dt', { hasText: new RegExp(`^${name}$`) }) }).locator('dd')
+    const defense = Number(await stat('Defense').textContent())
+    expect(defense).toBeGreaterThan(300)
+    await expect(stat('Crit reduction')).toHaveText(`${(Math.round((defense - 300) * 0.4) / 10).toFixed(1)}%`)
+
+    const table = results.getByRole('region', { name: 'Boss’s attack table' })
+    await expect(table).toContainText('Its chances on each swing at you as the fight starts, from the stats above.')
+    const rows = await outcomes(table.locator('dl > div'))
+    expect(rows.map(([label]) => label)).toEqual(OUTCOMES)
+    const [, crush] = rows[5]
+    const [, hit] = rows[6]
+    expect(crush).toBe(15)
+    // Crushing blows sit before hits, so pushing them off takes both slices.
+    await expect(table).toContainText(`${(crush + hit).toFixed(1)}% more avoidance or block would make you uncrushable.`)
+    // The unmeasured base values in these numbers (decision D24).
+    await expect(results).toContainText('Classic-based values until they’re measured: base health, base parry, base block.')
+
+    // With crushing blows off for the fight, the table says so rather than calling you uncrushable.
+    await page.getByRole('tab', { name: 'Fight', exact: true }).click()
+    await page.getByRole('button', { name: 'Advanced' }).click()
+    await page.getByRole('switch', { name: 'Crushing blows' }).click()
+    await simulate(results)
+    await expect(table).toContainText('Crushing blows are off for this fight (Fight → Advanced).')
+    expect((await outcomes(table.locator('dl > div')))[5]).toEqual(['Crushing', 0])
+    const landed = results.getByRole('list', { name: 'How the boss’s swings landed' }).getByRole('listitem')
+    expect((await outcomes(landed))[5]).toEqual(['Crushing', 0])
+  })
+
   test('the breakdown switches between threat and damage, and remembers the choice', async ({ page }) => {
-    test.fixme(true, UNTIL_PROTECTION_SHIPS)
     await openProtection(page)
     const results = page.getByRole('complementary', { name: 'Results' })
     await simulate(results)
@@ -82,7 +169,7 @@ test.describe('tank results', () => {
     await expect(breakdown.getByRole('heading')).toHaveText('Damage by ability')
   })
 
-  test('DPS specs keep one DPS headline and a damage breakdown with no switch', async ({ page }) => {
+  test('DPS specs keep one DPS headline and a damage breakdown with no switch, and no tank views', async ({ page }) => {
     await page.goto('./')
     const results = page.getByRole('complementary', { name: 'Results' })
     await simulate(results)
@@ -90,6 +177,18 @@ test.describe('tank results', () => {
     await expect(results.getByRole('group', { name: 'TPS' })).toHaveCount(0)
     await expect(results.getByRole('heading', { name: 'Damage by ability' })).toBeVisible()
     await expect(results.getByRole('radio', { name: 'Threat' })).toHaveCount(0)
+    // The boss attacks no one in a DPS run.
+    await expect(results.getByRole('region', { name: 'Damage taken per second' })).toHaveCount(0)
+    await results.getByRole('button', { name: 'Character sheet' }).click()
+    await expect(results.getByText('Attack power')).toBeVisible()
+    await expect(results.getByRole('region', { name: 'Boss’s attack table' })).toHaveCount(0)
+    await expect(results.getByText('Crit reduction')).toHaveCount(0)
+  })
+
+  test('without ?preview=, a Protection link is still refused', async ({ page }) => {
+    await page.goto(PROTECTION.replace('?preview=warrior-protection', ''))
+    await expect(page.getByText('That link is for a Protection Warrior')).toBeVisible()
+    await expect(page.getByRole('button', { name: /Spec: Fury Warrior/ })).toBeVisible()
   })
 })
 
@@ -97,7 +196,6 @@ test.describe('tank results on a phone', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
   test('the bottom bar shows TPS and DPS, and the results sheet has both with the switch', async ({ page }) => {
-    test.fixme(true, UNTIL_PROTECTION_SHIPS)
     await openProtection(page)
     await simulate(page)
 
@@ -121,5 +219,35 @@ test.describe('tank results on a phone', () => {
     expect((await damage.boundingBox())!.height).toBeGreaterThanOrEqual(44)
     await damage.click()
     await expect(sheet.getByRole('heading', { name: 'Damage by ability' })).toBeVisible()
+  })
+
+  test('the results sheet has damage taken and the boss’s table, inside the screen', async ({ page }) => {
+    await openProtection(page)
+    await simulate(page)
+    await page.getByRole('button', { name: 'Show results' }).click()
+    const sheet = page.getByRole('dialog', { name: 'Results' })
+
+    const taken = sheet.getByRole('region', { name: 'Damage taken per second' })
+    await expect(taken).toContainText(VALUE_WITH_CI)
+    const landed = taken.getByRole('list', { name: 'How the boss’s swings landed' }).getByRole('listitem')
+    expect((await outcomes(landed)).map(([label]) => label)).toEqual(OUTCOMES)
+    // Two columns, filled down: the four that spare you on the left, then crit, crushing and hit.
+    const boxes = await Promise.all((await landed.all()).map((item) => item.boundingBox()))
+    for (const box of boxes) expect(box!.x + box!.width).toBeLessThanOrEqual(390 - 16)
+    expect(boxes[4]!.x).toBeGreaterThan(boxes[3]!.x + boxes[3]!.width)
+    expect(boxes[4]!.y).toBeCloseTo(boxes[0]!.y, 0)
+
+    // From the keyboard: the link's notice sits over the sheet's lower half for 10 s.
+    await sheet.getByRole('button', { name: 'Character sheet' }).press('Enter')
+    const table = sheet.getByRole('region', { name: 'Boss’s attack table' })
+    await table.scrollIntoViewIfNeeded()
+    await expect(table).toBeInViewport()
+    await expect(table).toContainText(/more avoidance or block would make you uncrushable\./)
+    for (const row of await table.locator('dl > div').all()) {
+      const box = await row.boundingBox()
+      expect(box!.x + box!.width).toBeLessThanOrEqual(390 - 16)
+    }
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+    expect(overflow, 'no horizontal page scroll').toBeLessThanOrEqual(0)
   })
 })

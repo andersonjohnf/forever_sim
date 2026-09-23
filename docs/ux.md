@@ -296,6 +296,22 @@ Era's) start in view rather than under the tabs.
     in the results panel, TPS first, each with its own ± CI and its own change from the
     previous run. The phone's bottom bar stacks them in two rows next to the Simulate button;
     below 375 px wide it leaves out the ± values, which the results sheet still shows.
+- **Damage taken** (tank specs, [encounter §5](mechanics/encounter.md#5-boss-melee-tank-modeling)):
+  the first section under the headline card, above the breakdown, since it has no headline of
+  its own (`src/features/results/tank-results.tsx`). It shows for a tank whatever the result, "No
+  main-hand weapon" included, since the boss hits you either way.
+  - Its heading is "Damage taken per second", and under it the value with its ± 95% CI and its
+    change from the previous run, as in the headline but smaller. Less is better here, so a drop
+    is green (▼ −12.3) and a rise red (▲ +12.3); the arrow and sign still say which way it went.
+  - A line says what it counts and what drove it: "After your armor, block and other mitigation.
+    The boss swung 80.5 times a fight, set to hit for 4,500 to 5,500 before armor (Fight →
+    Advanced)." The swings include parry-hastened ones; a fixed swing size reads "5,000".
+  - **How the boss's swings landed:** the seven outcomes of its one roll (miss, dodge, parry,
+    block, crit, crushing, hit; [combat-tables §8](mechanics/combat-tables.md#8-boss--player-tanks))
+    as shares of its swings in the fights run, each with a share bar like the breakdown's. They sit
+    in two columns filled downwards, so what spares you (miss, dodge, parry, block) is on the left
+    and what lands in full (crit, crushing, hit) on the right, and a screen reader hears them in
+    the roll's order, as a list named by that label.
 - **Breakdown:** a per-ability damage share bar, then casts, hit/crit/miss/dodge/glance
   percentages and average hit.
   - A **bleed's** row counts its applications and its ticks apart, so its outcomes read
@@ -324,12 +340,29 @@ Era's) start in view rather than under the tabs.
   under its name; the Fight tab's "Damage you take" help names Enrage too, and stays 0 by
   default.
 - **Character sheet:** the final AP, crit, hit, haste, weapon skill and armor, the way the
-  sim computed them. Up to two footnotes under it name base values that aren't measured yet:
-  "Not known for Forever yet, so left out: …" for ones the numbers leave out, and
-  "Classic-based values until they're measured: …" for the
-  [D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23) placeholders in the
-  numbers shown, each also named in the Assumptions. Avoidance placeholders (base parry and
-  block) are a tank's only, and listed only while the defensive rows they're in are shown.
+  sim computed them.
+  - Defense, dodge, parry, block and block value join them for a tank, and for anyone with
+    defense above 300 or block value. A tank's add **Crit reduction** after Defense: how much
+    defense lowers the boss's crit chance, 0.04% a point above 300 ("5.6%" at 440, where a raid
+    boss can't crit you; a minus sign below 300, where it raises it;
+    [character-stats](mechanics/character-stats.md#defense-skill)).
+  - **Boss's attack table** (tanks): its chances on each swing at you as the fight starts, from
+    the stats above, in the same two columns as the swings that landed. How the swings landed in
+    the fights can differ from it, since cooldowns and procs change your stats.
+  - A line under the table says whether the boss can crush you. With crushing blows on the
+    table, how much more avoidance or block would push them off, which is the crushing and hit
+    slices together, since crushing blows come before hits ("55.4% more avoidance or block would
+    make you uncrushable.", never "0.0%"). With none left, "You're uncrushable: there's no room
+    left on its table for crushing blows." A boss that can't crush says why instead: "Crushing
+    blows are off for this fight (Fight → Advanced)." or "A level 62 boss can't land crushing
+    blows." (`crushingState` in `src/features/results/tank-logic.ts`).
+  - Lines at the end name the base values that aren't known yet, in two kinds: those left out
+    of the numbers ("Not known for Forever yet, so left out: base attributes."), and the
+    Classic-based placeholders in them until they're measured
+    ([D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23): "Classic-based
+    values until they're measured: base health, base parry, base block."). Base dodge, parry and
+    block are a tank's only, named only when the sheet shows those rows. The assumptions give
+    each one's value.
 - **Assumptions:** the `[?]` items that affect this setup, each a full-width row linking to its
   doc section on GitHub (a new tab, so the result stays open), with the doc's name under the
   text. The sim can't measure how much each one moves a result yet, so they're grouped by what

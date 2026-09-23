@@ -30,8 +30,7 @@ It runs entirely in your browser (no server) and is hosted on GitHub Pages:
 ## Where the numbers come from
 
 1. WoW Forever beta data: the beta client's own data tables through the
-   [wago.tools API](https://wago.tools/apis), [foreverchanges.pro](https://foreverchanges.pro)
-   (which compares the client with Classic Era), and the guild's in-game testing.
+   [wago.tools API](https://wago.tools/apis), and the guild's in-game testing.
 2. Where Forever data doesn't exist yet, **Classic Era** values.
 3. Never Season of Discovery, Season of Mastery, original Vanilla, TBC+ or Retail values.
 
@@ -54,16 +53,17 @@ npm run snap         # screenshot + console/network check (add -- --dark --width
 
 ### Data
 
-Game data is a snapshot stored as JSON in `src/data/`. Items and the client tables come from
-the Forever beta client through the wago.tools API. Spellbooks, talents and races still come
-from foreverchanges.pro until they move to the client too. To refresh after a new beta build:
+Game data is a snapshot stored as JSON in `src/data/`. All of it (spellbooks, talents, races,
+items and the raw client tables) is read from the Forever beta client's files through the
+wago.tools API, with Classic Era comparisons from the Classic Era client. To regenerate it, or
+refresh it after a new beta build:
 
 ```sh
-npm run scrape:client  # client tables → src/data/client (cached; -- --version=<build> for a new build)
-npm run scrape         # spellbooks, talents and races from foreverchanges.pro; items from the client
+npm run scrape                               # every dataset, from the cached client files
+npm run scrape -- --version=<build> --diff   # a new beta build, diffed against the committed data
 ```
 
-Then review `git diff src/data`. See [docs/data/README.md](docs/data/README.md).
+Then review `git diff src/data` and the diff reports. See [docs/data/README.md](docs/data/README.md).
 
 ### Deployment
 
@@ -75,9 +75,10 @@ Actions**.
 
 <a href="https://wago.tools"><picture><source media="(prefers-color-scheme: dark)" srcset="public/attribution/wago-tools-white.svg"><img alt="wago.tools" src="public/attribution/wago-tools-dark.svg" height="32"></picture></a>
 
-- Game data: [wago.tools](https://wago.tools), which serves the WoW Forever client's data
-  tables, and [foreverchanges.pro](https://foreverchanges.pro), which compares them with
-  Classic Era. The wago.tools logo is used per its [branding guidelines](https://wago.tools/branding).
+- Game data: [wago.tools](https://wago.tools), which serves the WoW Forever and Classic Era
+  clients' data tables. The wago.tools logo is used per its
+  [branding guidelines](https://wago.tools/branding). The tables are parsed with the
+  community's [WoWDBDefs](https://github.com/wowdev/WoWDBDefs) definitions.
 - Classic Era mechanics research by the Classic theorycrafting community, credited in each
   doc's *Sources* section.
 

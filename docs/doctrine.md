@@ -37,22 +37,29 @@ so someone who opens the page and clicks "Simulate" gets a meaningful number.
 
 Rules come from four tiers. Use the highest tier that has an answer.
 
-1. **WoW Forever, datamined**: [foreverchanges.pro](https://foreverchanges.pro) (beta client
-   vs Classic Era diffs) and Forever client DB2 tables on [wago.tools](https://wago.tools)
-   for builds `1.60.x` (product `wow_classic_beta`). **Scripts may use wago.tools only through
-   its documented API** ([wago.tools/apis](https://wago.tools/apis)): `/api/builds…`,
-   `/api/files`, `/api/info/{fdid}` and `/api/casc/{fdid}`, the last of which serves raw client
-   files. Requests go one at a time, are cached, carry our User-Agent, and happen once per
-   build. Nothing else on the site is API: its pages and the table pages' CSV export stay
-   off-limits to automation under its `robots.txt`
+1. **WoW Forever, datamined**: the Forever beta client's own files (DB2 tables and game
+   tables) for builds `1.60.x` (product `wow_classic_beta`), fetched through the
+   [wago.tools](https://wago.tools) API and parsed with
+   [WoWDBDefs](https://github.com/wowdev/WoWDBDefs). Every dataset in `src/data` comes from
+   them ([D17](decisions.md#d17-retire-foreverchangespro-as-a-data-source-2026-09-22)).
+   **Scripts may use wago.tools only through its documented API**
+   ([wago.tools/apis](https://wago.tools/apis)): `/api/builds…`, `/api/files`,
+   `/api/info/{fdid}` and `/api/casc/{fdid}`, the last of which serves raw client files.
+   Requests go one at a time, are cached, carry our User-Agent, and happen once per build.
+   Nothing else on the site is API: its pages and the table pages' CSV export stay off-limits
+   to automation under its `robots.txt`
    ([D16](decisions.md#d16-use-the-wagotools-api-with-attribution-2026-09-22)). wago.tools is
    credited with its logo, per its [branding guidelines](https://wago.tools/branding).
+   **Server hotfixes are out of reach:** the raw client files don't carry them, and the
+   documented API has no hotfix endpoint. A value that only a hotfix could explain is
+   flagged **[?]** and listed as an open question, never guessed
+   ([client.md § Hotfix caveat](data/client.md#hotfix-caveat)).
 2. **WoW Forever, measured**: in-game tests on the Forever beta by the guild, recorded in
    the relevant doc with the build, date, method, and sample size. If a measurement
    contradicts a tooltip, the measurement wins; flag the conflict.
-3. **Classic Era**: the 2019+ WoW Classic re-release, clients 1.13–1.15. This is the
-   baseline foreverchanges diffs against (build `1.15.9.69722`). Use it wherever tiers 1–2
-   are silent.
+3. **Classic Era**: the 2019+ WoW Classic re-release, clients 1.13–1.15. Its client
+   (product `wow_classic_era`, build `1.15.9.69722`), read through the same API, is the
+   baseline the datasets compare Forever against. Use it wherever tiers 1–2 are silent.
 4. **Forbidden**: never use values from **Season of Discovery, Season of Mastery,
    original Vanilla** (2004–2006 live patches, private-server emulators such as
    vmangos/cmangos/Turtle WoW, or wiki text describing pre-1.12 behaviour), **TBC or
@@ -72,8 +79,8 @@ Two more kinds of evidence are secondary and tagged **[?]**:
   or community combat logs, until the guild reproduces them (tier 2 is *guild*
   measurement).
 - **Forever client data read through a secondary source**, such as tables extracted in
-  wowsims/forever, unless the same value appears on foreverchanges.pro. In that case, cite
-  foreverchanges and tag it **[F]**.
+  wowsims/forever, until the same value is read from the client files (tier 1). Then cite
+  the client table and build, and tag it **[F]**.
 
 **Mixed-lineage Classic sims are secondary too.** For example,
 [wowsims/classic](https://github.com/wowsims/classic) describes itself as a Season of
@@ -118,19 +125,25 @@ fix one of them in the same change.
 
 ## 3. Data
 
-- `src/data/**/*.json` is a **generated snapshot** of foreverchanges.pro, written by
-  `scripts/scrape/*.mjs`. Hand-authored scraper inputs, such as the curated pre-raid BiS
-  list, live next to the scrapers and cite their sources. Never hand-edit the output. Re-run the scraper (`npm run scrape`) and
-  review the diff.
-- Every dataset has a `meta` envelope recording its source URL, scrape time and client
-  builds. The beta changes weekly, so always know which build a number came from.
-- Corrections to scraped data (a mis-parsed tooltip, a value the guild measured) go in
+- `src/data/**/*.json` is a **generated snapshot** of the Forever and Classic Era client
+  files, written by `scripts/scrape/*.mjs`. Hand-authored scraper inputs, such as the curated
+  pre-raid BiS list, live next to the scrapers and cite their sources. Never hand-edit the
+  output. Re-run the scrapers (`npm run scrape`) and review the diff; for a new build,
+  `npm run scrape -- --version=<build> --diff` also reports what changed against the
+  committed data ([data/README.md](data/README.md#refreshing)).
+- Every dataset has a `meta` envelope recording its source URL, scrape time, client builds
+  and the files it read. The beta changes weekly, so always know which build a number came
+  from.
+- Corrections to scraped data (a mis-rendered tooltip, a value the guild measured) go in
   an explicit, documented override layer in the engine, each with a reason and a source.
   They never go in the JSON.
-- Scrapers respect `robots.txt` (no `/api/`, `/spell/`, `/search`, `/admin`), run
-  sequentially with delays, and cache raw responses under `.cache/scrape/`.
-- Items with no Forever data yet ("missing" on foreverchanges) fall back to their Classic
-  Era stats and are flagged in the UI.
+- Scrapers call only wago.tools' documented API (tier 1 above) and GitHub for WoWDBDefs, run
+  sequentially with delays, and cache raw responses under `.cache/client/`. From a warm
+  cache they regenerate every dataset byte for byte with no requests.
+- Items with no row in the Forever client fall back to their Classic Era stats and are
+  flagged in the UI
+  ([D6](decisions.md#d6-items-with-no-forever-data-use-classic-era-stats-flagged-2026-09-22-confirmed-by-the-guild),
+  [items.md](data/items.md#items-with-no-forever-data-d6)).
 
 ## 4. Engine
 
@@ -173,7 +186,8 @@ finding is fixed or waived with a written reason, and the log is committed as
 
 ## 7. Change management
 
-- The beta client changes. When foreverchanges.pro updates, re-scrape, diff, and update any
-  doc whose numbers moved (bump the build in its status line).
+- The beta client changes. When wago.tools lists a new `wow_classic_beta` build, re-scrape
+  with `npm run scrape -- --version=<build> --diff`, review the diffs, and update any doc
+  whose numbers moved (bump the build in its status line).
 - Milestones live in [milestones.md](milestones.md). Significant decisions go in
   [decisions.md](decisions.md) with a date and the reasoning.

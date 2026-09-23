@@ -288,6 +288,24 @@ test.describe('Arms rotation', () => {
   })
 })
 
+test.describe('about', () => {
+  test('credits wago.tools, the only game-data source, in the footer and the About sheet', async ({ page }) => {
+    await page.goto('./')
+    const footer = page.locator('footer')
+    await expect(footer).toContainText('Game data from')
+    await expect(footer.getByRole('link', { name: 'wago.tools' })).toBeVisible()
+    await expect(footer).not.toContainText(/foreverchanges/i)
+
+    await page.getByRole('button', { name: 'More' }).click()
+    await page.getByRole('menuitem', { name: 'About & data' }).click()
+    const about = page.getByRole('dialog', { name: 'About Forever Sim' })
+    await expect(about.getByRole('link', { name: 'wago.tools' })).toBeVisible()
+    await expect(about).toContainText('all come from the WoW Forever beta client')
+    await expect(about).toContainText(/Items\s*Build 1\.60\./)
+    await expect(about).not.toContainText(/foreverchanges/i)
+  })
+})
+
 test.describe('dark mode', () => {
   test.use({ colorScheme: 'dark' })
 

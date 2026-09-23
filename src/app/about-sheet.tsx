@@ -49,9 +49,9 @@ export function AboutSheet({ open, onOpenChange }: { open: boolean; onOpenChange
           <Section title="Game data">
             <DataAttribution />
             <p className="text-muted-foreground">
-              Both read the WoW Forever beta client. Items and ability numbers come straight from the
-              client&apos;s data tables, served by wago.tools. Spellbooks, talents and races come from
-              foreverchanges.pro, which compares the client with Classic Era.
+              Spellbooks, talents, races, items and ability numbers all come from the WoW Forever beta
+              client&apos;s own data tables, served by wago.tools. Classic Era comparisons come from the Classic Era
+              client the same way.
             </p>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 tabular-nums">
               {DATASETS.map(({ name, meta }) => (

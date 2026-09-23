@@ -22,7 +22,7 @@ Interfaces are in [`src/data/items/types.ts`](../../src/data/items/types.ts); th
 | Size | 1,630 items, 102 item sets; 1.9 MB JSON (1.2 MB minified, 106 KB gzipped) |
 
 Until M1.5c-2 the pool came from foreverchanges.pro's item pages. What moved in the switch is
-in [From foreverchanges to the client](#from-foreverchanges-to-the-client).
+recorded, as history, in [From foreverchanges to the client](#from-foreverchanges-to-the-client).
 
 ## How the data was obtained
 
@@ -506,10 +506,12 @@ checked on 2026-09-22, and D17 retires the site as a data source.)
 
 ## From foreverchanges to the client
 
-`npm run diff:items` compares the last foreverchanges dataset (saved to
-`.cache/client/items-foreverchanges-snapshot.json` before the first client write; also
-`git show b94a076:src/data/items/pre-bis.json`) with the client one, field by field. The
-report is `.cache/client/<build>/items-diff.md`. Result for this snapshot:
+*History: the one-time switch in M1.5c-2, kept as its record.* The last foreverchanges
+dataset (`git show b94a076:src/data/items/pre-bis.json`) was compared with the first client
+one, field by field. Since M1.5f, `npm run diff:items` compares a fresh generation with the
+committed dataset instead ([Re-running](#re-running-and-widening-the-filter));
+`npm run diff:items -- --against=b94a076` still lists the raw field changes of the switch,
+without the classes below. Result of the switch:
 
 **Removed: 16**, the [items no client carries yet](#items-no-client-carries-yet).
 
@@ -543,7 +545,7 @@ attack power; only its Classic Era row splits melee and ranged.
 no piece had a Forever tooltip now take Forever's `ItemSetSpell` (The Gladiator, The
 Postmaster, Cadaverous Garb, Necropile Raiment, Bloodmail Regalia, Deathbone Guardian,
 Ironweave Battlesuit; the table is in
-[client.md](client.md#comparison-with-the-snapshot)). The Gladiator gains its sixth piece
+[client.md](client.md#comparison-with-the-snapshot-history)). The Gladiator gains its sixth piece
 (277117), Champion's Pursuit loses Classic's Champion's Chain Headguard (16526), which the site
 filed under it. Devilsaur Armor's 2-piece bonus grants spell hit as well as hit. Ten
 Highlander's, Defiler's, Blood Tiger and Black Dragon Mail bonuses read `crit` instead of
@@ -572,8 +574,12 @@ guard, the pre-raid BiS lists, the `statsFrom`/`foreverData`/`tab` flags, the se
 the absence of drop sources and of leftover `$` variables, and that `meta.noClientRow` items
 aren't in the pool.
 
-`npm run compare:items` still runs the M1.5c-1 field-by-field check of the derivation against
-the saved foreverchanges snapshot ([client.md](client.md#comparison-with-the-snapshot)).
+`npm run diff:items` regenerates the pool and lists every item added or removed and every
+changed field against the committed dataset, sorted into kinds (an item gaining or losing its
+Forever row first), plus set changes and watched items that a build now ships. The M1.5c-1
+field-by-field check of the derivation against the foreverchanges tooltips
+(`npm run compare:items`) was retired in M1.5f; its result is kept in
+[client.md](client.md#comparison-with-the-snapshot-history).
 
 ## Caveats
 
@@ -600,8 +606,8 @@ the saved foreverchanges snapshot ([client.md](client.md#comparison-with-the-sna
 npm run scrape:items                  # = node scripts/scrape/items-client.mjs (cached; latest beta build)
 npm run scrape:items -- --version=<build>   # a specific Forever build
 npm run scrape:items -- --refresh     # re-ask for the latest build and re-download
-npm run diff:items                    # this dataset vs the foreverchanges snapshot
-npm run compare:items                 # the derivation vs the foreverchanges snapshot (M1.5c-1)
+npm run diff:items                    # regenerate, then diff against the committed pool (.cache/client/<build>/items-diff.md)
+npm run diff:items -- --against=<ref> # diff against another commit
 npm run scrape:client                 # then refresh src/data/client, whose interest set reads this pool
 git diff --stat src/data              # review what changed
 ```

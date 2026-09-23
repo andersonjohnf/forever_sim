@@ -1,5 +1,6 @@
 // Checks over the client-data snapshot in src/data/client (docs/data/client.md): values the
-// docs and the foreverchanges.pro snapshot state, read back from the raw Forever client files.
+// docs state, and agreement with the spellbook, talent, race and item datasets, read back from
+// the raw Forever client files.
 // A failure here means a scraper regression or a new build that changed the value; in the
 // latter case update the owning doc (and this test) in the same commit.
 import { describe, expect, it } from 'vitest'
@@ -104,8 +105,9 @@ describe.each(metas)('%s.json meta', (_name, meta) => {
     expect(meta.scraper).toBe('scripts/scrape/client.mjs')
   })
 
-  it('is the same build as the foreverchanges snapshot', () => {
-    expect(meta.build).toBe(spellBooks.warrior.meta.foreverBuild)
+  it('is the same build as the spellbook, talent, race and item datasets', () => {
+    const datasets = [...Object.values(spellBooks), ...Object.values(talentData), races, preBis]
+    for (const d of datasets) expect(meta.build).toBe(d.meta.foreverBuild)
   })
 })
 
@@ -174,7 +176,7 @@ describe('values the docs state, read from the raw client', () => {
   })
 })
 
-describe('agreement with the foreverchanges.pro snapshot', () => {
+describe('agreement with the spellbook, talent and race datasets', () => {
   const ranks = Object.entries(spellBooks).flatMap(([cls, book]) =>
     book.spells.flatMap((s) =>
       s.ranks.filter((r) => r.forever?.spellId).map((r) => ({ label: `${cls} ${s.name} ${r.rank ?? ''} (${r.forever!.spellId})`, rank: r.forever! })),
@@ -185,7 +187,7 @@ describe('agreement with the foreverchanges.pro snapshot', () => {
     for (const { label, rank } of ranks) expect(spells.spells[String(rank.spellId)], label).toBeDefined()
   })
 
-  it('gives every rank the cooldown, cost, cast time and range the site shows', () => {
+  it('gives every rank the cooldown, cost, cast time and range its spellbook shows', () => {
     for (const { label, rank } of ranks) {
       const s = spell(rank.spellId!)
       if (rank.cooldown?.seconds != null) expect(cooldownMs(s) / 1000, `${label} cooldown`).toBe(rank.cooldown.seconds)

@@ -95,12 +95,10 @@ pointing up, a gate that isn't "5 × tier points", a curve operation other than 
 token it can't render, an icon it can't name, a Classic talent matched twice, or a stored build
 code that decodes differently (see [Build codes](#build-codes-verified)).
 
-**The old scraper.** Until M1.5d the dataset came from the foreverchanges.pro talent calculator
-([`scripts/scrape/talents.mjs`](../../scripts/scrape/talents.mjs), kept on disk until M1.5f
-retires it). It decoded the page's Next.js RSC payload: it concatenated the
-`self.__next_f.push([1,"…"])` strings, split the stream into `<hex id>:<payload>` rows and
-resolved `"$<id>:a:b"` back-references, `"$undefined"` and `"$$…"` escapes, following lazy
-`"$L<id>"` children only on demand. `scripts/scrape/races.mjs` still imports those RSC helpers.
+**The old scraper (history).** Until M1.5d the dataset came from the foreverchanges.pro
+talent calculator. Its scraper, `scripts/scrape/talents.mjs`, decoded the page's Next.js RSC
+payload; M1.5f deleted it with the other foreverchanges scrapers (it stays in git history, e.g.
+`git show b5972d8:scripts/scrape/talents.mjs`).
 
 ## Schema
 
@@ -160,17 +158,21 @@ A build code is a Wowhead-style string with **three `-`-separated segments, one 
 `trees` order**. A segment has one decimal digit per talent, its rank (0..`maxRank`), with
 talents **sorted by tier, then column** (the talent's `order`). Trailing zeros in a segment are
 trimmed; empty segments are kept, so a canonical code always has two dashes:
-`30305213132515201-05050103-`. These are the codes of the foreverchanges.pro calculator
-(`?b=<code>`), and the client trees keep every cell, so the codes mean what they meant.
+`30305213132515201-05050103-`. They are the codes the foreverchanges.pro calculator used
+(`?b=<code>`), and the client trees keep every cell, so codes written then still mean what
+they meant.
 
 `decodeTalentCode(data, code)` returns `{ [talentId]: rank }`; `encodeTalentCode(data, ranks)`
 is its inverse; `validateTalentBuild(data, ranks)` lists rule violations (unknown talent, rank
 range, >51 points, 5·tier gate, prerequisite at max rank).
 
 **Compatibility.** Every build code the repo stores decodes to the same ranks by talent name
-under the client dataset as under the foreverchanges one, is legal, and re-encodes byte for
-byte. The generator checks this on every run against the saved foreverchanges snapshot and
-refuses to write otherwise; `src/data/data.test.ts` pins each code's ranks by name.
+under the client dataset as under the foreverchanges one it replaced, is legal, and re-encodes
+byte for byte. The generator checks this on every run against the committed dataset (`git
+show HEAD:src/data/talents/<class>.json`, or `--against=<ref>`) and refuses to write when a
+code changes meaning or becomes illegal. A build that really moves talents needs the stored
+codes updated first, then a run with `--accept-code-changes`. `src/data/data.test.ts` pins
+each code's ranks by name.
 
 | Class | Code | Build | Points | Same ranks | Legal |
 | --- | --- | --- | --- | --- | --- |
@@ -264,8 +266,10 @@ currency 3820 in the nodes of group G". In all three classes:
 
 ## From foreverchanges to the client
 
-`npm run diff:talents` compares the saved foreverchanges snapshot with the client dataset,
-talent by talent (`.cache/client/1.60.1.69913/talents-diff.md`). **All 156 talents pair up by
+*History: the one-time switch in M1.5d, kept as its record.* The last foreverchanges dataset
+(`git show 403142e:src/data/talents/<class>.json`) was compared with the client one, talent by
+talent. Since M1.5f, `npm run diff:talents` compares a fresh generation with the committed
+dataset instead ([Re-running](#re-running)). **All 156 talents pair up by
 tree and name, with the same cell, `order`, max rank, icon, tooltip header, passive flag,
 change kind, Classic match (name, max rank, tier, status, prerequisite) and Classic rank-1 spell;
 the tree names, icons and ids and the rules are the same.** The differences:
@@ -506,8 +510,9 @@ Classic Era talents of the class with no Forever talent matched to them (by spel
 - **Beta data.** Client build 1.60.1.69913, five days into the beta. Blizzard will keep tuning
   before the 2026-11-04 launch; re-run and diff.
 - **Raw client files, no hotfixes.** Server hotfixes aren't in the raw files
-  ([client.md § Hotfix caveat](client.md#hotfix-caveat)). The foreverchanges dataset agrees
-  with every cell, rank, text and every arrow but one, so no talent hotfix shows in this build.
+  ([client.md § Hotfix caveat](client.md#hotfix-caveat)). The foreverchanges dataset, which
+  saw hotfixes, agreed with every cell, rank, text and every arrow but one, so no talent hotfix
+  showed in this build. A later build's hotfixes can't be checked that way any more.
 - **Tooltip text is raw client data.** Some values look unresolved or mis-scaled, e.g. Improved
   Shield Wall "by 11.0 min", Improved Seal of Fury "restore 0 Mana", Wild Growth "within
   43.5 yards". Talents with dummy effects print numbers the server scripts (King of the Jungle,
@@ -527,12 +532,16 @@ Classic Era talents of the class with no Forever talent matched to them (by spel
 
 ```sh
 npm run scrape:talents   # node scripts/scrape/talents-client.mjs: the three files, from the cache
-npm run diff:talents     # the old-vs-new diff and the "changes at a glance" tables
-node scripts/scrape/talents-client.mjs --version=<build>   # a new Forever beta build
+npm run diff:talents     # regenerate, diff against the committed files, and the "changes at a glance" tables
+npm run diff:talents -- --version=<build>   # a new Forever beta build, diffed against the committed one
 ```
 
 It prints, per class, the Trait tree, counts, arrows, the Classic talents left out, notes (gates
 that count the whole tree, off-grid nodes, conditions taken as unmet) and each stored build
-code's check, and exits 1 without writing if a check fails. After a new build: re-run
+code's check against the committed dataset, and exits 1 without writing if a check fails
+(`--accept-code-changes` lets a stored code change meaning, once the code is updated). The
+diff (`.cache/client/<build>/talents-diff.md`) pairs talents by tree and name, then by cell,
+and lists every changed field, rank text and stored code. After a new build: re-run
 `npm run scrape:client` too (its `talents.json` maps these ids), review `git diff src/data`,
 paste the new "changes at a glance" tables here, and update any doc whose values moved.
+`npm run scrape -- --version=<build> --diff` does all of this for every dataset.

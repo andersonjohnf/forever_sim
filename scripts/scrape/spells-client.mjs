@@ -4,30 +4,26 @@
 // (wow_classic_beta), rank by rank, next to the same spell in the Classic Era client
 // (wow_classic_era).
 //
-//   node scripts/scrape/spells-client.mjs [--write] [--diff] [--refresh]
+//   node scripts/scrape/spells-client.mjs [--diff] [--against=<git ref>] [--refresh]
 //        [--version=<Forever build>] [--baseline=<Classic Era build>] [--dbdefs=<sha>]
-//        [--snapshot=<dir of the old <class>.json files>]
 //
-//   --write  (default) derive the three books and write src/data/spells/<class>.json
-//   --diff   old dataset (the foreverchanges.pro snapshot) vs the written one, spell by spell;
-//            report in .cache/client/<build>/spells-diff.md (+ .json)
+//   (default)  derive the three books and write src/data/spells/<class>.json
+//   --diff     then diff the written books against the committed ones, spell by spell; report in
+//              .cache/client/<build>/spells-diff.md (+ .json)
+//   --against  the git ref whose dataset is "committed" (default HEAD)
 //
 // The run exits non-zero and writes nothing if a check fails: a Forever rank whose tooltip
 // doesn't render, an icon without a name, a talent spell missing from the book, duplicate ids,
 // or counts that don't add up.
-//
-// The snapshot is the last foreverchanges.pro dataset (git: SNAPSHOT_COMMIT). --write saves the
-// current files there before overwriting them while they're still the foreverchanges ones.
-// Default: .cache/client/spells-foreverchanges-snapshot/.
 //
 // Downloads go through lib/wago.mjs (documented wago.tools API only, one request at a time,
 // cached under .cache/client/, once per build). Zero dependencies (Node >= 22). The book
 // derivation is lib/spellbook.mjs and the text renderer lib/spell-text.mjs; see
 // docs/data/spells.md.
 
-import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { committedJson, describeRef } from "./lib/committed.mjs";
 import { createFetcher } from "./lib/http.mjs";
 import { stableStringify } from "./lib/json.mjs";
 import { SPELL_TEXT_TABLES, createSpellTextContext } from "./lib/spell-text.mjs";
@@ -54,13 +50,11 @@ const OUT_DIR = "src/data/spells";
 const PRODUCT = "wow_classic_beta";
 const BASELINE_PRODUCT = "wow_classic_era";
 const DEFAULT_BASELINE = "1.15.9.69722";
-const DEFAULT_SNAPSHOT = ".cache/client/spells-foreverchanges-snapshot";
-/** The last commit whose src/data/spells/*.json came from foreverchanges.pro. */
-const SNAPSHOT_COMMIT = "ad46f63";
 const RACE_TABLES = ["ChrRaces", "CharBaseInfo"];
 /**
  * Player stats for tooltips that scale with them (Victory Rush: "${1+$AP*$m3/100} damage"): a
- * reader with no attack power, as foreverchanges.pro rendered them. docs/data/spells.md#caveats.
+ * reader with no attack power, so the text depends on the client files alone.
+ * docs/data/spells.md#caveats.
  */
 const TOOLTIP_STATS = { AP: 0 };
 /**
@@ -70,25 +64,23 @@ const TOOLTIP_STATS = { AP: 0 };
  */
 const CLASSIC_CUT_CONTENT = new Map([[22570, "cut content: no trainer teaches it"]]);
 
-const opts = { write: false, diff: false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, snapshot: DEFAULT_SNAPSHOT };
+const opts = { diff: false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
 for (const arg of process.argv.slice(2)) {
   const m = /^--([a-z]+)(?:=(.*))?$/.exec(arg);
   if (!m) usage(`Unknown argument: ${arg}`);
   const [, key, value] = m;
-  if (["write", "diff", "refresh"].includes(key) && value === undefined) opts[key] = true;
-  else if (["version", "baseline", "dbdefs", "snapshot"].includes(key) && value) opts[key] = value;
+  if (["diff", "refresh"].includes(key) && value === undefined) opts[key] = true;
+  else if (["version", "baseline", "dbdefs", "against"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
-if (!opts.diff) opts.write = true;
 function usage(msg) {
-  console.error(`${msg}\nUsage: node ${SCRAPER} [--write] [--diff] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>] [--snapshot=<dir>]`);
+  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
   process.exit(2);
 }
 
 const errors = [];
 const warnings = [];
 const fail = (msg) => errors.push(msg);
-const warn = (msg) => warnings.push(msg);
 
 // ---------------------------------------------------------------------------
 // Tables
@@ -115,44 +107,6 @@ async function load(build, names) {
 
 const forever = await load(version, [...SPELLBOOK_TABLES, ...FOREVER_TREE_TABLES, ...SPELL_TEXT_TABLES, ...RACE_TABLES]);
 const classic = await load(opts.baseline, [...SPELLBOOK_TABLES, ...CLASSIC_TREE_TABLES, ...SPELL_TEXT_TABLES]);
-
-// ---------------------------------------------------------------------------
-// Snapshot (the last foreverchanges dataset)
-// ---------------------------------------------------------------------------
-
-const snapshotDir = path.resolve(REPO_ROOT, opts.snapshot);
-
-function saveSnapshotIfForeverchanges() {
-  for (const cls of CLASSES) {
-    const current = path.join(REPO_ROOT, OUT_DIR, `${cls}.json`);
-    const saved = path.join(snapshotDir, `${cls}.json`);
-    if (!fs.existsSync(current) || fs.existsSync(saved)) continue;
-    const data = JSON.parse(fs.readFileSync(current, "utf8"));
-    if (!/foreverchanges\.pro/.test(data.meta?.source ?? "")) continue;
-    fs.mkdirSync(snapshotDir, { recursive: true });
-    fs.copyFileSync(current, saved);
-    console.log(`Saved the foreverchanges snapshot of ${cls} to ${path.relative(REPO_ROOT, saved)}`);
-  }
-}
-
-function readSnapshot(cls) {
-  const file = path.join(snapshotDir, `${cls}.json`);
-  if (!fs.existsSync(file)) {
-    // Recreate it from git history when the cache was cleared.
-    try {
-      const body = execFileSync("git", ["show", `${SNAPSHOT_COMMIT}:${OUT_DIR}/${cls}.json`], { cwd: REPO_ROOT, maxBuffer: 1 << 26 });
-      fs.mkdirSync(snapshotDir, { recursive: true });
-      fs.writeFileSync(file, body);
-      console.log(`Restored the foreverchanges snapshot of ${cls} from git (${SNAPSHOT_COMMIT}) to ${path.relative(REPO_ROOT, file)}`);
-    } catch {
-      console.error(`No snapshot at ${path.relative(REPO_ROOT, file)} and git show ${SNAPSHOT_COMMIT}:${OUT_DIR}/${cls}.json failed.`);
-      process.exit(2);
-    }
-  }
-  const data = JSON.parse(fs.readFileSync(file, "utf8"));
-  if (!/foreverchanges\.pro/.test(data.meta?.source ?? "")) warn(`${path.relative(REPO_ROOT, file)} is not a foreverchanges dataset (meta.source ${data.meta?.source})`);
-  return data;
-}
 
 // ---------------------------------------------------------------------------
 // Icons
@@ -325,7 +279,6 @@ function scrapedAt(bundles) {
 }
 
 async function write() {
-  saveSnapshotIfForeverchanges();
   const { iconName, unresolved } = await createIconNamer();
   let built = CLASSES.map((cls) => buildClass(cls, iconName));
   if (unresolved.length) {
@@ -391,10 +344,16 @@ function printSummary(built) {
 // Run
 // ---------------------------------------------------------------------------
 
-if (opts.write) await write();
+await write();
 if (opts.diff && !errors.length) {
+  const against = describeRef(REPO_ROOT, opts.against);
+  const old = Object.fromEntries(CLASSES.map((cls) => [cls, committedJson(REPO_ROOT, `${OUT_DIR}/${cls}.json`, opts.against)]));
+  const missing = CLASSES.filter((cls) => !old[cls]);
+  if (missing.length) {
+    console.error(`No committed dataset at ${against} for ${missing.join(", ")}: nothing to diff against.`);
+    process.exit(1);
+  }
   const { diffSpells } = await import("./lib/spells-diff.mjs");
-  const pairs = CLASSES.map((cls) => ({ cls, old: readSnapshot(cls), next: JSON.parse(fs.readFileSync(path.join(REPO_ROOT, OUT_DIR, `${cls}.json`), "utf8")) }));
-  diffSpells({ pairs, outDir: path.join(CACHE_DIR, version), repoRoot: REPO_ROOT });
-  if (!opts.write) console.log(`network requests this run: ${fetcher.stats().requests}`);
+  const pairs = CLASSES.map((cls) => ({ cls, old: old[cls], next: JSON.parse(fs.readFileSync(path.join(REPO_ROOT, OUT_DIR, `${cls}.json`), "utf8")) }));
+  diffSpells({ pairs, against, outDir: path.join(CACHE_DIR, version), repoRoot: REPO_ROOT });
 }

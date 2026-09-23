@@ -77,15 +77,16 @@ npm run test:e2e      # Playwright, headless Chromium, against the production bu
 npm run snap          # build, open a page headless, print console errors + failed requests, screenshot
                       #   -- --dark --width 390 --click Talents --out .cache/snaps/x.png
                       #   (--click Simulate waits for the result; on phones add --click "Show results")
-npm run scrape        # re-scrape foreverchanges.pro → src/data (cached; -- --refresh to bypass)
-npm run scrape:client # Forever client tables via the wago.tools API → src/data/client (cached; -- --version=<build>)
+npm run scrape        # every dataset in src/data from the Forever client via the wago.tools API (cached;
+                      #   -- --version=<build> --diff for a new build, diffed against the committed data)
+npm run scrape:client # just src/data/client, the raw client tables (cached; -- --version=<build>)
 ```
 
 ## Rules
 
-- **Sourcing (non-negotiable):** use WoW Forever values first (foreverchanges.pro; wago.tools
-  DB2 for builds 1.60.x; guild in-game tests), otherwise Classic Era (clients 1.13–1.15).
-  **Never** use Season of Discovery, Season of Mastery, original Vanilla (2004–06 or
+- **Sourcing (non-negotiable):** use WoW Forever values first (the Forever client's files for
+  builds 1.60.x via the wago.tools API; guild in-game tests), otherwise Classic Era (clients
+  1.13–1.15). **Never** use Season of Discovery, Season of Mastery, original Vanilla (2004–06 or
   private-server emulators), TBC+ or Retail values. Tag documented values `[F]`/`[C]`/`[?]`
   with a source link. If only a forbidden source has a value, add it to *Open questions*;
   don't use it.
@@ -109,9 +110,10 @@ npm run scrape:client # Forever client tables via the wago.tools API → src/dat
   clsx + tailwind-merge replacement), not a typo.
 - **GitHub Pages:** the Vite `base` is `/forever_sim/`. Use `import.meta.env.BASE_URL` for
   runtime asset URLs and hash routing if routing is ever needed.
-- **Scrapers** respect robots.txt (never `/api/`, `/spell/`, `/search`, `/admin` on
-  foreverchanges.pro), request sequentially with delays, and cache under `.cache/scrape/`.
-  Zero npm dependencies.
+- **Scrapers** (`scripts/scrape/`) fetch only client files from the wago.tools API and table
+  definitions from WoWDBDefs on GitHub, sequentially with delays. They cache under
+  `.cache/client/` and regenerate byte-identical data from the cache with zero requests. Zero
+  npm dependencies. foreverchanges.pro is retired as a data source (decision D17).
 - **wago.tools: documented API only** ([wago.tools/apis](https://wago.tools/apis): `/api/builds…`,
   `/api/files`, `/api/info/{fdid}`, `/api/casc/{fdid}`). Requests go one at a time, are cached
   and identified, once per build. Never automate its HTML pages or the table pages' CSV export

@@ -69,7 +69,7 @@
     }
   },
   "class": "druid",
-  "codeFormat": "Wowhead-style string of three \"-\"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank), in `order` = sorted by tier, then col (both 0-based). Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two \"-\" (e.g. \"30305213132515201-05050103-\"). The same codes as the foreverchanges.pro calculator's ?b=<code>; every code the repo stores decodes to the same ranks by talent name.",
+  "codeFormat": "Wowhead-style string of three \"-\"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank), in `order` = sorted by tier, then col (both 0-based). Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two \"-\" (e.g. \"30305213132515201-05050103-\"). Every code the repo stores decodes to the same ranks by talent name from build to build.",
   "rules": {
     "maxCol": 3,
     "maxPoints": 51,

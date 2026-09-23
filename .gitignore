@@ -23,7 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# One-time scraper cache (raw HTML/JSON from foreverchanges.pro)
+# Caches: raw client files and parsed tables from wago.tools, diff reports, snaps
 .cache
 
 # Playwright

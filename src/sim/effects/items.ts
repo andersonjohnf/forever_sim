@@ -58,7 +58,7 @@ export const ITEM_EFFECTS: Record<number, ItemEffects> = {
   // 90 s, plus a 20 s one shared by category 1141 ("Burst Trinket"), which no other simulated
   // trinket is in; no GCD [F] [client] (SpellEffect, SpellAuraOptions, ItemEffect, 1.60.1.69913).
   // The charge goes on the first crit dealt, white or special (warrior.md §7; the 2 min cooldown
-  // foreverchanges once showed is warrior Q31 [?]).
+  // an older tooltip showed is warrior Q31 [?]).
   272438: {
     source: 'Forever client: spell 1291101 and the item effect (1.60.1.69913); its tooltip for what ends it',
     effects: [],

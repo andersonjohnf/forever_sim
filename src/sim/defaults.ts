@@ -21,8 +21,8 @@ export const TALENT_DATA: Record<ClassId, TalentData> = {
 }
 
 /**
- * Default talent codes. Popular builds come from foreverchanges; the rest are the documented
- * presets in the class docs (validated in src/data/data.test.ts).
+ * Default talent codes: the documented presets in the class docs, several of them the most popular
+ * Forever builds of September 2026 (doctrine §5; validated in src/data/data.test.ts).
  */
 const DEFAULT_TALENTS: Record<SpecId, string> = {
   'warrior-fury': '30305013002-050530035150010051-', // popular Fury (docs/classes/warrior.md §6.1)

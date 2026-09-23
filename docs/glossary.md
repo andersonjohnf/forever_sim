@@ -27,4 +27,4 @@ this is the quick reference.
 | **World buffs** | Powerful buffs from world events and locations (Rallying Cry, Songflower, …). **Not available in Forever raids, so the sim excludes them** ([doctrine §1](doctrine.md#1-what-were-building)). |
 | **APL** | Action priority list: the ordered, conditional rotation the engine follows. |
 | **Iteration** | One simulated fight. Results average many iterations. |
-| **RSC payload** | The data stream in foreverchanges.pro's server-rendered Next.js pages, which our scrapers parse. |
+| **RSC payload** | *Historical.* The data stream in foreverchanges.pro's server-rendered Next.js pages, which the first scrapers parsed. Those scrapers are gone: every dataset now comes from the client files ([D17](decisions.md#d17-retire-foreverchangespro-as-a-data-source-2026-09-22)). |

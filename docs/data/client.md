@@ -19,7 +19,7 @@ Interfaces are in [`src/data/client/types.ts`](../../src/data/client/types.ts); 
 
 | File | Size | What |
 | --- | --: | --- |
-| `spells.json` | 1.2 MB | 1,222 merged spell records (the interest set below), plus racials, radii and spell categories |
+| `spells.json` | 1.2 MB | 1,221 merged spell records (the interest set below), plus racials, radii and spell categories |
 | `talents.json` | 145 KB | every Forever talent of the three classes, mapped to its Trait node, spell and per-rank values |
 | `items.json` | 1.2 MB | ItemEffect rows and ItemSparse/Item fields for the 1,630 pre-raid items, plus 85 consumables |
 | `enchants.json` | 56 KB | the 79 SpellItemEnchantment rows the buffs doc names, with the spells and items that apply them |
@@ -87,20 +87,18 @@ when WoWDBDefs is re-pinned.
                                        (layout hash, sections, storage, warnings), then one row per line
   <build>/gametables/<name>.json       parsed game tables
   <build>/claims.md                    the doc-claim report (--claims)
-  <build>/items-compare.md (+ .json)   the item-derivation report (npm run compare:items)
-  <build>/items-diff.md (+ .json)      the foreverchanges → client dataset diff (npm run diff:items)
-  items-foreverchanges-snapshot.json   the last foreverchanges pre-bis.json (git b94a076), for both reports
-  <build>/talents-diff.md (+ .json)    the foreverchanges → client talent diff (npm run diff:talents)
+  <build>/<dataset>-diff.md (+ .json)  committed vs fresh dataset, for items, talents, spells and
+                                       races (npm run diff:<dataset>, or npm run scrape -- --diff)
   <build>/talents-changes.md           the talent dataset's Forever-vs-Classic tables, for talents.md
-  talents-foreverchanges-snapshot/     the last foreverchanges talents/<class>.json (git 403142e)
-  <build>/spells-diff.md (+ .json)     the foreverchanges → client spellbook diff (npm run diff:spells)
   <build>/spells-left-out.json         every SkillLineAbility row the spellbooks leave out, with the rule
-  spells-foreverchanges-snapshot/      the last foreverchanges spells/<class>.json (git ad46f63)
-  <build>/races-diff.md (+ .json)      the foreverchanges → client races diff (npm run diff:races)
-  races-foreverchanges-snapshot/       the last foreverchanges races.json (git ad46f63)
   github/wowdbdefs/<sha>/…             manifest.json and definitions/*.dbd
   requests.jsonl
 ```
+
+Caches from before M1.5f may also hold `<build>/items-compare.md` and the
+`*-foreverchanges-snapshot*` copies of the retired datasets; nothing reads them any more
+(the datasets themselves stay in git history: items `b94a076`, talents `403142e`, spells and
+races `ad46f63`).
 
 The download layer ([`lib/wago.mjs`](../../scripts/scrape/lib/wago.mjs)) is generic over product
 and build, and every table it touches is kept whole in `tables/`, not just the extracted subset.
@@ -161,10 +159,11 @@ Nothing else is left unparsed.
 
 Raw client files **don't include server hotfixes**. The server sends hotfixed and added rows
 to the client at login (the client's DBCache), and wago.tools collects hotfixes for its table
-pages, which is presumably how foreverchanges.pro shows rows the raw file lacks. Anything a
-hotfix changed or added is missing or stale here. Evidence in this build:
+pages, which is presumably how foreverchanges.pro (our source until D17) showed rows the raw
+file lacks. Anything a hotfix changed or added is missing or stale here, and the documented
+API has no hotfix endpoint. Evidence in this build:
 
-- **50 items that foreverchanges shows as Forever client data have no `ItemSparse` row** in the
+- **50 items that foreverchanges showed as Forever client data have no `ItemSparse` row** in the
   raw 1.60.1.69913 file, and none of them is in an encrypted section. They are most likely
   hotfix rows: 13113 Feathermoon Headdress, 272491 Premier Chain Headguard, 13002 Lady
   Alizabeth's Pendant, 13007 Mageflame Cloak, 271907 Expeditionary's Cape, 272063 Darkspear
@@ -187,10 +186,10 @@ hotfix changed or added is missing or stale here. Evidence in this build:
   ([items.md](items.md#items-no-client-carries-yet)). The 60 "seen in game" items and the 650
   "missing" ones have no Forever row either and use Classic Era rows too.
 - **No sign of spell hotfixes in the compared fields:** every cooldown (170), cost (435), cast
-  time (487) and range (343) of every Forever spellbook rank matches foreverchanges exactly,
+  time (487) and range (343) of every Forever spellbook rank matched the foreverchanges dataset,
   and all 156 talents sit in the same cell with the same max rank. The spellbooks rebuilt from
   the client in M1.5e confirm it ([spells.md](spells.md#from-foreverchanges-to-the-client)).
-- **One racial:** foreverchanges shows the Tauren's Cultivation (20552) with a 1 hr cooldown;
+- **One racial:** foreverchanges showed the Tauren's Cultivation (20552) with a 1 hr cooldown;
   the raw client has none (`SpellCooldowns` 0, its category 2578 has no recovery), so a hotfix
   likely sets it ([races.md](races.md#from-foreverchanges-to-the-client)).
 
@@ -277,21 +276,21 @@ ClientSpell    id, name, nameSubtext ("Rank 5"), sources[]
   (meaning unverified), and `SpellProcsPerMinuteMod` is empty. No `SpellAuraOptions` row
   references a PPM id, so every `ppm` in the file is absent: proc rates are server-side.
 
-**Interest set: 1,222 spells** (1,134 before the trigger closure), every one in the client:
+**Interest set: 1,221 spells** (1,134 before the trigger closure), every one in the client:
 
 | Source | Spells | What |
 | --- | --: | --- |
-| `spellbook` | 494 | every Forever rank in `src/data/spells/{warrior,druid,paladin}.json` |
+| `spellbook` | 493 | every Forever rank in `src/data/spells/{warrior,druid,paladin}.json` |
 | `talent` | 156 | each talent's TraitDefinition spell |
 | `racial` | 44 | the racials of `src/data/races/races.json`, resolved through `SkillLineAbility` race masks and names, per-class variants included (e.g. Eureka!: 1259813 for warriors) |
-| `item` | 181 | ItemEffect spells of the pre-raid items |
-| `consumable` | 79 | ItemEffect spells of the consumables in the buffs doc, and the doc's own `→` spell ids |
+| `item` | 182 | ItemEffect spells of the pre-raid items |
+| `consumable` | 78 | ItemEffect spells of the consumables in the buffs doc, and the doc's own `→` spell ids |
 | `enchant` | 125 | enchanting spells, the spells each enchant casts (combat, equip, use), doc proc spells |
 | `buffsDoc` | 47 | buff and debuff spell ids in the buffs doc's §1 and §4 tables |
-| `docs` | 256 | spell ids cited in `docs/classes`, `docs/mechanics` and `docs/open-questions.md`, either with a marker ("spell 12966", "[F 20128]", "proc 25713", "DB2 21184", "(3025, 1178, 9635)", backticks) or with the client's name earlier on the same line; Classic "(C: …)" ids are skipped |
+| `docs` | 261 | spell ids cited in `docs/classes`, `docs/mechanics` and `docs/open-questions.md`, either with a marker ("spell 12966", "[F 20128]", "proc 25713", "DB2 21184", "(3025, 1178, 9635)", backticks) or with the client's name earlier on the same line; Classic "(C: …)" ids are skipped |
 | `trigger` | 104 | reached through another extracted spell's `effectTriggerSpell`, transitively |
 
-A spell can have several sources, so the column sums to more than 1,222. The docs source was
+A spell can have several sources, so the column sums to more than 1,221. The docs source was
 added beyond the brief because the engine needs proc and passive spells that no spellbook lists:
 the Flurry buff 12966, the stance passives 21156/7376/7381, the Overpower window 1282733,
 Consecration's tick spells, Weaponmaster's procs, the Forever Deep Wounds bleed 412609 and the
@@ -563,6 +562,9 @@ Things the raw files show that no doc claims yet:
 
 ## Re-running
 
+`npm run scrape` regenerates every dataset in order, this one last
+([README § Refreshing](README.md#refreshing)). This scraper on its own:
+
 ```sh
 npm run scrape:client                             # latest wow_classic_beta build, from the cache
 npm run scrape:client -- --version=<build>        # a specific build (e.g. the next beta build)
@@ -570,34 +572,29 @@ npm run scrape:client -- --refresh                # re-ask for the latest build 
 npm run scrape:client -- --claims                 # also re-check the doc claims (Classic Era 1.15.9.69722)
 npm run scrape:client -- --dbdefs=<sha>           # pin a WoWDBDefs commit
 git diff --stat src/data/client
-npm run scrape:items                              # the item pool from the client (items-client.mjs, cached)
-npm run compare:items                             # the derivation vs the saved foreverchanges item dataset
-npm run diff:items                                # the item pool vs the saved foreverchanges item dataset
-npm run scrape:talents                            # the talent trees from the client (talents-client.mjs, cached)
-npm run diff:talents                              # the talent trees vs the saved foreverchanges talent dataset
-npm run scrape:spells                             # the spellbooks from the client (spells-client.mjs, cached)
-npm run diff:spells                               # the spellbooks vs the saved foreverchanges spell dataset
-npm run scrape:races                              # the races from the client (races-client.mjs, cached)
-npm run diff:races                                # the races vs the saved foreverchanges race dataset
 ```
 
-The scraper reads `src/data/{spells,talents,races,items}/*.json` and the buffs doc to build the
-interest set, so run it after `npm run scrape` (which runs all four dataset generators). Since
-M1.5e the spellbooks no longer count Frenzied Regeneration's heal 22845 as a rank, and the
-racials of each race are in client order: the next run drops 22845's `spellbook` source and
-reorders `racials` (the committed `spells.json` predates M1.5e). For a new build: run it with `--version=` (or
-`--refresh` to take the latest), and pin a fresh WoWDBDefs commit (delete
+The scraper reads `src/data/{spells,talents,races,items}/*.json`, the buffs doc and the class,
+mechanics and open-questions docs to build the interest set, so it runs after the four dataset
+scrapers, and again after a doc cites a new spell id. For a new build: pass `--version=` (or
+run `npm run scrape -- --version=<build>`), and pin a fresh WoWDBDefs commit (delete
 `.cache/client/github/wowdbdefs_head.json`, or pass `--dbdefs=`) if the new build's layouts
 aren't in the cached definitions; the run fails loudly on an unknown layout. Then review the
 diff, re-run `--claims`, and update any doc whose value moved. It exits non-zero if a table
 fails to parse, a spellbook or talent spell is missing from the client, or level-60 crit
 rating isn't 14.
 
+The M1.5f run (2026-09-22, same build, 0 requests) changed only `spells.json`, catching up
+with M1.5e and the docs: Frenzied Regeneration's heal 22845 left the interest set (M1.5e's
+spellbooks no longer count it as a rank, and nothing else cites it), each race's `racials`
+took the client's `SkillLineAbility` order, and the Diamond Flask ids warrior.md Q30 now cites
+joined as `docs` sources (24427 and 363880 added; 363881 and 1318073 gained the source).
+
 ## Phase 2 notes: what this client ships
 
 For rebuilding `src/data/{spells,talents,races,items}` from client files (D17). **All four are
 done:** items (M1.5c-2, [items.md](items.md)), talents (M1.5d, [talents.md](talents.md)),
-spellbooks and races (M1.5e, [spells.md](spells.md), [races.md](races.md)). M1.5f retires the
+spellbooks and races (M1.5e, [spells.md](spells.md), [races.md](races.md)). M1.5f retired the
 foreverchanges scrapers.
 
 | Need | In 1.60.1.69913? |
@@ -614,22 +611,24 @@ foreverchanges scrapers.
 
 ## Items from the client
 
-M1.5c rebuilds `src/data/items/pre-bis.json` from client files (D17). M1.5c-1 built the
-derivation below and checked it against the foreverchanges dataset; M1.5c-2 writes
-`pre-bis.json` from it ([items.md](items.md) documents the dataset, its filter and the diff
-from the foreverchanges one).
+`src/data/items/pre-bis.json` is built from client files (D17). M1.5c-1 built the derivation
+below and checked it against the last foreverchanges dataset; M1.5c-2 writes `pre-bis.json`
+from it ([items.md](items.md) documents the dataset, its filter and, as history, the diff from
+the foreverchanges one).
 
 - [`scripts/scrape/lib/item-stats.mjs`](../../scripts/scrape/lib/item-stats.mjs) holds the
   derivation. These are pure functions with no dependencies: `deriveItem(ctx, id)` turns an
   `ItemSparse` + `Item` row into `Stats` amounts, the `Weapon` block, the innate shield block
   value, effect records and the set id. `deriveSet(ctx, id)` gives a set's pieces and bonuses.
-- [`scripts/scrape/items-client.mjs`](../../scripts/scrape/items-client.mjs)
-  (`npm run compare:items`) derives every pool item from both clients and compares each field.
-  It writes `.cache/client/<build>/items-compare.md` and `.json`, and exits non-zero if a field
-  the engine reads has a mismatch with no stated reason. `--fixtures` regenerates the real rows
-  the unit tests use
+- [`scripts/scrape/items-client.mjs`](../../scripts/scrape/items-client.mjs) writes the pool
+  (`npm run scrape:items`) and diffs it against the committed one (`npm run diff:items`).
+  `--fixtures` regenerates the real rows the unit tests use
   ([`lib/__fixtures__/item-stats.json`](../../scripts/scrape/lib/__fixtures__/item-stats.json),
   tests in [`lib/item-stats.test.mjs`](../../scripts/scrape/lib/item-stats.test.mjs)).
+- The M1.5c-1 check, `npm run compare:items`, derived every item of the foreverchanges
+  dataset from both clients and compared each field with the site's tooltip values. It only
+  made sense against that dataset, so M1.5f retired it; its result is kept below as
+  [history](#comparison-with-the-snapshot-history).
 
 ### Tables used
 
@@ -818,13 +817,12 @@ effects show the item's cooldown, else the category's: Stormpike Insignia is 0 m
 (`SpellID`, `Threshold` = pieces, `ChrSpecID`). A bonus whose spell is all stat auras gets
 `stats`; the rest keep their spell and unmapped auras.
 
-### Comparison with the snapshot
+### Comparison with the snapshot (history)
 
-`npm run compare:items`, run 2026-09-22 against `pre-bis.json` as foreverchanges gave it that
-day. Since M1.5c-2 wrote the client dataset, the command compares against that saved dataset
-(`.cache/client/items-foreverchanges-snapshot.json`, restored from `git show
-b94a076:src/data/items/pre-bis.json` when missing). Rates count only items that have a row in
-the compared build.
+*History: the M1.5c-1 check, kept as its record. The command was retired in M1.5f.*
+`npm run compare:items` ran on 2026-09-22 against `pre-bis.json` as foreverchanges gave it
+that day (`git show b94a076:src/data/items/pre-bis.json`). Rates count only items that have a
+row in the compared build.
 
 | Compared | Fields | Match | Engine-read fields | Match |
 | --- | --: | --: | --: | --: |
@@ -868,6 +866,9 @@ in Forever's own `ItemSetSpell`**:
 | 520 Ironweave Battlesuit | 4: spell · 8: +200 armor | 2: +200 armor · 3: +5 spell pen · 4: spell · 5: +23 SP · 6: spell |
 
 ### Coverage
+
+*History: how the M1.5c-1 foreverchanges pool mapped onto the client, which decided what
+M1.5c-2 does with items that have no Forever row.*
 
 | | Items |
 | --- | --: |

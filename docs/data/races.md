@@ -42,11 +42,13 @@ FileDataIDs.
   Era. `ChrRaces.Alliance` gives the faction (0 Alliance, 1 Horde). A faction variant is named
   "`<variant> <base>`" with the base as its `ClientFileString` ("Windshaper Skyborne",
   "Skyborne"): it becomes "Skyborne (Windshaper)" with id `horde-skyborne-windshaper`. Other
-  races keep their name ("Night Elf" → `alliance-night-elf`). **These ids are exactly the
-  foreverchanges ones**, and the generator refuses to write if the ids, a race's name or
-  faction, or the classes of any race differ from the saved foreverchanges snapshot: saved
-  setups and share links store race ids. Races are ordered Horde first, then by `ChrRaces` id,
-  which is the order the race picker has always shown.
+  races keep their name ("Night Elf" → `alliance-night-elf`). **These ids are exactly the ones
+  the app has always used** (the foreverchanges dataset's), and the generator refuses to write
+  if the ids, a race's name or faction, or the classes of any race differ from the committed
+  dataset (`git show HEAD:src/data/races/races.json`, or `--against=<ref>`): saved setups and
+  share links store race ids. A build that really changes them needs
+  `--accept-race-changes`, once the app handles the change. Races are ordered Horde first, then
+  by `ChrRaces` id, which is the order the race picker has always shown.
 - **Classes** come from `CharBaseInfo` (race/class pairs), in `ChrClasses` id order: 56 pairs in
   Forever, 40 in Classic Era. `addedInForever` and `removedInForever` are the difference;
   `newCombos` lists the new pairs of races that exist in Classic Era.
@@ -66,8 +68,8 @@ FileDataIDs.
   is one racial in both lists (`races` names both).
 - **Racial ids** are `racial-<race>-<name>` ("racial-night-elf-elune-s-light",
   "racial-windshaper-skyborne-skysight") or `racial-<base>-both-factions-<name>` when both
-  faction variants share it. They are the foreverchanges ids, which `src/data/client/spells.json`
-  keys its resolved racial spells on.
+  faction variants share it. They are the ids the foreverchanges dataset used, which
+  `src/data/client/spells.json` keys its resolved racial spells on.
 - **Tooltips** are rendered like the spellbooks' ([spells.md](spells.md#rank-fields)), without
   player stats (no racial needs one). The tooltip header of an active racial (`tooltip`) has its
   cast time, cooldown, range and cost in the spellbook's wording.
@@ -304,8 +306,10 @@ open.
 
 ## From foreverchanges to the client
 
-`npm run diff:races` compares the saved foreverchanges snapshot with the client dataset
-(`.cache/client/1.60.1.69913/races-diff.md`). **The race ids, names, base names, factions,
+*History: the one-time switch in M1.5e, kept as its record.* The last foreverchanges dataset
+(`git show ad46f63:src/data/races/races.json`) was compared with the client one. Since M1.5f,
+`npm run diff:races` compares a fresh generation with the committed dataset instead
+([Re-running](#re-running)). **The race ids, names, base names, factions,
 icons, `newInForever` and every race's Forever and Classic class sets are identical, as are
 `simClassAvailability` (every list, in order) and the set of new race/class pairs. All 37
 racials keep their id, name, passive flag, Forever tooltip (character for character, per-class
@@ -349,14 +353,16 @@ the client `meta` envelope with `classicBuild`.
 
 ```sh
 npm run scrape:races   # node scripts/scrape/races-client.mjs: races.json, from the cache
-npm run diff:races     # the old-vs-new diff (.cache/client/<build>/races-diff.md)
-node scripts/scrape/races-client.mjs --version=<build>   # a new Forever beta build
+npm run diff:races     # regenerate, then diff against the committed file (.cache/client/<build>/races-diff.md)
+npm run diff:races -- --version=<build>   # a new Forever beta build, diffed against the committed one
 ```
 
 It prints the race, racial and pair counts, each simulated class's Forever and Classic Era
 races, the new pairs, each race's racials with their change kind and removed racials, and any
 tooltip clause it left out. It exits 1 without writing if the race ids, names, factions or class
-lists differ from the foreverchanges snapshot (`.cache/client/races-foreverchanges-snapshot/`,
-restored from git `ad46f63` when missing), or if a racial has an unrendered tooltip or no icon.
-After a new build: re-run `npm run scrape:client` (its racial resolution reads this file),
-review `git diff src/data`, and update this page and any doc whose values moved.
+lists differ from the committed dataset (`--against=<ref>` for another commit;
+`--accept-race-changes` once the app handles a real change), or if a racial has an unrendered
+tooltip or no icon. The diff pairs races by id and racials by id, then name, and lists every
+changed field and text. After a new build: re-run `npm run scrape:client` (its racial
+resolution reads this file), review `git diff src/data`, and update this page and any doc whose
+values moved. `npm run scrape -- --version=<build> --diff` does all of this for every dataset.

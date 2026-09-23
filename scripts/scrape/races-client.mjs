@@ -4,29 +4,27 @@
 // (CharBaseInfo) and its racials (the racial skill lines of SkillLineAbility), next to the Classic
 // Era client (wow_classic_era).
 //
-//   node scripts/scrape/races-client.mjs [--write] [--diff] [--refresh]
-//        [--version=<Forever build>] [--baseline=<Classic Era build>] [--dbdefs=<sha>]
-//        [--snapshot=<dir of the old races.json>]
+//   node scripts/scrape/races-client.mjs [--diff] [--against=<git ref>] [--accept-race-changes]
+//        [--refresh] [--version=<Forever build>] [--baseline=<Classic Era build>] [--dbdefs=<sha>]
 //
-//   --write  (default) derive the races and write src/data/races/races.json
-//   --diff   old dataset (the foreverchanges.pro snapshot) vs the written one; report in
-//            .cache/client/<build>/races-diff.md (+ .json)
+//   (default)  derive the races and write src/data/races/races.json
+//   --diff     then diff the written file against the committed one; report in
+//              .cache/client/<build>/races-diff.md (+ .json)
+//   --against  the git ref whose dataset is "committed" (default HEAD)
 //
-// Saved setups and share links store race ids, so the run refuses to write if the race ids, or
-// the classes each race can be in Forever and in Classic Era, differ from the snapshot's. It also
-// fails on a racial without a rendered tooltip or an icon.
-//
-// The snapshot is the last foreverchanges.pro dataset (git: SNAPSHOT_COMMIT). --write saves the
-// current file there before overwriting it while it's still the foreverchanges one. Default:
-// .cache/client/races-foreverchanges-snapshot/.
+// Saved setups and share links store race ids, so the run refuses to write if the race ids, a
+// race's name or faction, or the classes each race can be in Forever and in Classic Era differ
+// from the committed dataset's. A build that really changes them needs --accept-race-changes,
+// after the app handles the change. The run also fails on a racial without a rendered tooltip
+// or an icon.
 //
 // Downloads go through lib/wago.mjs (documented wago.tools API only, one request at a time,
 // cached under .cache/client/, once per build). Zero dependencies (Node >= 22). See
 // docs/data/races.md.
 
-import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { committedJson, describeRef } from "./lib/committed.mjs";
 import { createFetcher } from "./lib/http.mjs";
 import { stableStringify } from "./lib/json.mjs";
 import { RACE_TABLES, classSlugs, classesOfMask, groupByText, isHidden, raceNames, racialId, racialRows } from "./lib/race-data.mjs";
@@ -42,34 +40,32 @@ const OUT_FILE = "src/data/races/races.json";
 const PRODUCT = "wow_classic_beta";
 const BASELINE_PRODUCT = "wow_classic_era";
 const DEFAULT_BASELINE = "1.15.9.69722";
-const DEFAULT_SNAPSHOT = ".cache/client/races-foreverchanges-snapshot";
-/** The last commit whose src/data/races/races.json came from foreverchanges.pro. */
-const SNAPSHOT_COMMIT = "ad46f63";
 const SIM_CLASSES = ["warrior", "druid", "paladin"];
 /**
  * The client ships no race icon (character creation draws races from atlas textures). Icons follow
  * Wowhead's race_<ClientFileString>_male names (decision D14); the Skyborne, which have none there,
- * keep the elf-head placeholders the site used.
+ * keep elf-head placeholders.
  */
 const RACE_ICON_OVERRIDES = { 95: "inv_misc_head_elf_01", 96: "inv_misc_head_elf_02" };
 
-const opts = { write: false, diff: false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, snapshot: DEFAULT_SNAPSHOT };
+const opts = { diff: false, "accept-race-changes": false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
 for (const arg of process.argv.slice(2)) {
-  const m = /^--([a-z]+)(?:=(.*))?$/.exec(arg);
+  const m = /^--([a-z-]+)(?:=(.*))?$/.exec(arg);
   if (!m) usage(`Unknown argument: ${arg}`);
   const [, key, value] = m;
-  if (["write", "diff", "refresh"].includes(key) && value === undefined) opts[key] = true;
-  else if (["version", "baseline", "dbdefs", "snapshot"].includes(key) && value) opts[key] = value;
+  if (["diff", "accept-race-changes", "refresh"].includes(key) && value === undefined) opts[key] = true;
+  else if (["version", "baseline", "dbdefs", "against"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
-if (!opts.diff) opts.write = true;
 function usage(msg) {
-  console.error(`${msg}\nUsage: node ${SCRAPER} [--write] [--diff] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>] [--snapshot=<dir>]`);
+  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--accept-race-changes] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
   process.exit(2);
 }
 
 const errors = [];
+const warnings = [];
 const fail = (msg) => errors.push(msg);
+const warn = (msg) => warnings.push(msg);
 
 // ---------------------------------------------------------------------------
 // Tables
@@ -96,32 +92,6 @@ async function load(build) {
 
 const forever = await load(version);
 const classic = await load(opts.baseline);
-
-// ---------------------------------------------------------------------------
-// Snapshot (the last foreverchanges dataset)
-// ---------------------------------------------------------------------------
-
-const snapshotFile = path.join(path.resolve(REPO_ROOT, opts.snapshot), "races.json");
-
-function readSnapshot() {
-  const current = path.join(REPO_ROOT, OUT_FILE);
-  if (!fs.existsSync(snapshotFile)) {
-    let body = null;
-    if (fs.existsSync(current) && /foreverchanges\.pro/.test(JSON.parse(fs.readFileSync(current, "utf8")).meta?.source ?? "")) body = fs.readFileSync(current);
-    else {
-      try {
-        body = execFileSync("git", ["show", `${SNAPSHOT_COMMIT}:${OUT_FILE}`], { cwd: REPO_ROOT, maxBuffer: 1 << 26 });
-      } catch {
-        console.error(`No snapshot at ${path.relative(REPO_ROOT, snapshotFile)} and git show ${SNAPSHOT_COMMIT}:${OUT_FILE} failed.`);
-        process.exit(2);
-      }
-    }
-    fs.mkdirSync(path.dirname(snapshotFile), { recursive: true });
-    fs.writeFileSync(snapshotFile, body);
-    console.log(`Saved the foreverchanges snapshot to ${path.relative(REPO_ROOT, snapshotFile)}`);
-  }
-  return JSON.parse(fs.readFileSync(snapshotFile, "utf8"));
-}
 
 // ---------------------------------------------------------------------------
 // Build
@@ -165,7 +135,7 @@ const droppedClauses = [];
 /**
  * A racial's tooltip. A "for $<id>d" clause that reads the duration of a spell the build doesn't
  * ship is left out (Forever's Berserking 20554 reads its haste aura 26635, which the Forever client
- * lacks), as foreverchanges.pro did; any other unresolved token fails the run.
+ * lacks); any other unresolved token fails the run.
  */
 function render(b, id) {
   const out = renderSpellText(b.text, id, { conditions: "unmet", lines: true, wholeExpressions: true });
@@ -334,47 +304,59 @@ async function build() {
   };
 }
 
-/** The contract with saved setups and share links: race ids and classes as the snapshot has them. */
-function checkAgainstSnapshot(next, old) {
+/**
+ * The contract with saved setups and share links: race ids, names, factions and classes as the
+ * committed dataset has them. A change fails the run unless --accept-race-changes.
+ */
+function checkAgainstCommitted(next, old, against) {
+  if (!old) {
+    warn(`no committed dataset at ${against}; race ids and classes aren't checked`);
+    return;
+  }
+  const changed = opts["accept-race-changes"] ? warn : fail;
   const ids = (d) => d.races.map((r) => r.id).sort();
-  if (JSON.stringify(ids(next)) !== JSON.stringify(ids(old))) fail(`race ids differ from the snapshot: ${ids(old).join(", ")} → ${ids(next).join(", ")}`);
+  if (JSON.stringify(ids(next)) !== JSON.stringify(ids(old))) changed(`race ids differ from ${against}: ${ids(old).join(", ")} → ${ids(next).join(", ")}`);
   const set = (xs) => JSON.stringify([...(xs ?? [])].sort());
   for (const o of old.races) {
     const n = next.races.find((r) => r.id === o.id);
     if (!n) continue;
-    if (set(n.classes.forever) !== set(o.classes.forever)) fail(`${o.id}: Forever classes ${set(o.classes.forever)} → ${set(n.classes.forever)}`);
-    if (set(n.classes.classic) !== set(o.classes.classic)) fail(`${o.id}: Classic classes ${set(o.classes.classic)} → ${set(n.classes.classic)}`);
-    if (n.name !== o.name || n.faction !== o.faction) fail(`${o.id}: ${o.name} (${o.faction}) → ${n.name} (${n.faction})`);
+    if (set(n.classes.forever) !== set(o.classes.forever)) changed(`${o.id}: Forever classes ${set(o.classes.forever)} → ${set(n.classes.forever)}`);
+    if (set(n.classes.classic) !== set(o.classes.classic)) changed(`${o.id}: Classic classes ${set(o.classes.classic)} → ${set(n.classes.classic)}`);
+    if (n.name !== o.name || n.faction !== o.faction) changed(`${o.id}: ${o.name} (${o.faction}) → ${n.name} (${n.faction})`);
   }
   for (const cls of SIM_CLASSES)
     for (const side of ["forever", "classic"])
-      if (set(next.simClassAvailability[cls][side]) !== set(old.simClassAvailability[cls][side])) fail(`${cls} ${side} races differ from the snapshot`);
+      if (set(next.simClassAvailability[cls][side]) !== set(old.simClassAvailability[cls]?.[side])) changed(`${cls} ${side} races differ from ${against}`);
 }
 
 // ---------------------------------------------------------------------------
 // Run
 // ---------------------------------------------------------------------------
 
-const old = readSnapshot();
+const against = describeRef(REPO_ROOT, opts.against);
+const old = committedJson(REPO_ROOT, OUT_FILE, opts.against);
 const next = await build();
-checkAgainstSnapshot(next, old);
+checkAgainstCommitted(next, old, against);
 console.log(`${next.races.length} races (${next.races.filter((r) => r.faction === "Horde").length} Horde), ${new Set(next.races.flatMap((r) => r.racials.map((x) => x.id))).size} racials, ${next.races.reduce((n, r) => n + r.classes.forever.length, 0)} race/class pairs (Classic Era ${next.races.reduce((n, r) => n + (r.classes.classic?.length ?? 0), 0)})`);
 for (const cls of SIM_CLASSES) console.log(`  ${cls}: Forever ${next.simClassAvailability[cls].forever.join(", ")}; Classic ${next.simClassAvailability[cls].classic.join(", ")}`);
 console.log(`  new pairs: ${next.newCombos.map((c) => `${c.race} ${c.class}`).join(", ")}`);
 for (const r of next.races) console.log(`  ${r.name}: ${r.racials.map((x) => `${x.name} [${x.changeKind}]`).join(", ")}${r.removedRacials.length ? `; removed: ${r.removedRacials.map((x) => x.name).join(", ")}` : ""}`);
 for (const d of droppedClauses) console.log(`  left out of ${d.spellId}'s tooltip (${d.build}): "${d.clause}" (spell ${d.reads} is not in the client${d.encrypted ? ", encrypted" : ""})`);
+for (const w of warnings) console.warn(`WARNING: ${w}`);
 console.log(`network requests this run: ${fetcher.stats().requests}`);
 if (errors.length) {
   for (const e of errors) console.error(`ERROR: ${e}`);
   console.error(`\nNot writing ${OUT_FILE}: ${errors.length} check(s) failed.`);
   process.exit(1);
 }
-if (opts.write) {
-  const text = stableStringify(next);
-  fs.writeFileSync(path.join(REPO_ROOT, OUT_FILE), text);
-  console.log(`Wrote ${OUT_FILE} (${(text.length / 1024).toFixed(0)} KB)`);
-}
+const text = stableStringify(next);
+fs.writeFileSync(path.join(REPO_ROOT, OUT_FILE), text);
+console.log(`Wrote ${OUT_FILE} (${(text.length / 1024).toFixed(0)} KB)`);
 if (opts.diff) {
+  if (!old) {
+    console.error(`No committed dataset at ${against}: nothing to diff against.`);
+    process.exit(1);
+  }
   const { diffRaces } = await import("./lib/races-diff.mjs");
-  diffRaces({ old, next: JSON.parse(fs.readFileSync(path.join(REPO_ROOT, OUT_FILE), "utf8")), outDir: path.join(CACHE_DIR, version), repoRoot: REPO_ROOT });
+  diffRaces({ old, next: JSON.parse(text), against, outDir: path.join(CACHE_DIR, version), repoRoot: REPO_ROOT });
 }

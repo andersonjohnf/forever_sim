@@ -18,12 +18,11 @@
     "scrape:races": "node scripts/scrape/races-client.mjs",
     "scrape:items": "node scripts/scrape/items-client.mjs",
     "scrape:client": "node scripts/scrape/client.mjs",
-    "compare:items": "node scripts/scrape/items-client.mjs --compare",
     "diff:items": "node scripts/scrape/items-client.mjs --diff",
     "diff:talents": "node scripts/scrape/talents-client.mjs --diff",
     "diff:spells": "node scripts/scrape/spells-client.mjs --diff",
     "diff:races": "node scripts/scrape/races-client.mjs --diff",
-    "scrape": "npm run scrape:spells && npm run scrape:talents && npm run scrape:races && npm run scrape:items"
+    "scrape": "node scripts/scrape/all.mjs"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",

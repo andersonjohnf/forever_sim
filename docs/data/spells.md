@@ -115,8 +115,8 @@ exist: level, cost, cast time, cooldown, range, school, form, required item, and
 | `same` | every rank pairs up with no difference |
 
 `counts.changed` is every status except `same`, `new` and `talent`; `differentFromClassic` is
-new + changed. These are the foreverchanges.pro definitions, and every spell of the three books
-gets the status the site gave it.
+new + changed. These definitions come from foreverchanges.pro, the former source, and every
+spell of the three books kept the status the site gave it when the client rebuild replaced it.
 
 ### Rank fields
 
@@ -213,8 +213,11 @@ cures in Moonkin Form as well as the (unused) Tree Form.
 
 ## From foreverchanges to the client
 
-`npm run diff:spells` compares the saved foreverchanges snapshot with the client dataset, spell
-by spell and rank by rank (`.cache/client/1.60.1.69913/spells-diff.md`). **The same 158 spells
+*History: the one-time switch in M1.5e, kept as its record.* The last foreverchanges dataset
+(`git show ad46f63:src/data/spells/<class>.json`) was compared with the client one, spell by
+spell and rank by rank; the conventions below were how that diff told the site's text
+conventions apart from real changes. Since M1.5f, `npm run diff:spells` compares a fresh
+generation with the committed dataset instead ([Re-running](#re-running)). **The same 158 spells
 in the same tabs, with the same status for every spell, the same tabs and counts (but Paladin
 `notInForever`, below), the same first training level (but one) and the same `isTalent`,
 `grantedByTalent` and `races`; every Forever rank but one (22845, below) keeps its spell id and
@@ -253,8 +256,9 @@ client `meta` envelope. **Changed:** `missing` adds Sanctity Aura, which the sit
 
 - **Beta data.** Client build 1.60.1.69913. Re-run and diff after each beta build.
 - **Raw client files, no hotfixes** ([client.md § Hotfix caveat](client.md#hotfix-caveat)).
-  The foreverchanges dataset agreed with every cost, cast time, cooldown and range, so no
-  spellbook hotfix shows in this build.
+  The foreverchanges dataset, which saw hotfixes, agreed with every cost, cast time, cooldown
+  and range, so no spellbook hotfix showed in this build. A later build's hotfixes can't be
+  checked that way any more.
 - **Tooltip numbers are tooltips.** `differences` compare rendered tooltips. Values the server
   scripts (dummy effects) or scales with stats (Victory Rush's "1 damage": attack power taken as
   0) aren't in them; the engine keeps its own constants.
@@ -269,15 +273,17 @@ client `meta` envelope. **Changed:** `missing` adds Sanctity Aura, which the sit
 
 ```sh
 npm run scrape:spells   # node scripts/scrape/spells-client.mjs: the three files, from the cache
-npm run diff:spells     # the old-vs-new diff (.cache/client/<build>/spells-diff.md)
-node scripts/scrape/spells-client.mjs --version=<build>   # a new Forever beta build
+npm run diff:spells     # regenerate, then diff against the committed files (.cache/client/<build>/spells-diff.md)
+npm run diff:spells -- --version=<build>   # a new Forever beta build, diffed against the committed one
 ```
 
 It prints, per class, the tab and status counts, the Classic Era spells not in Forever, any
 Classic tokens it couldn't render and how many rows each rule left out (the rows are in
 `.cache/client/<build>/spells-left-out.json`), and exits 1 without writing if a check fails: a
 Forever rank without a rendered tooltip, an icon without a name, an active talent missing from
-the book, duplicate ids, or tab counts that don't add up. The foreverchanges snapshot for the
-diff is saved in `.cache/client/spells-foreverchanges-snapshot/` (restored from git `ad46f63`
-when missing). After a new build: re-run `npm run scrape:client` (its interest set reads these
-files), review `git diff src/data`, and update this page and any doc whose values moved.
+the book, duplicate ids, or tab counts that don't add up. The diff pairs spells by name and
+ranks by Forever spell id (then Classic spell id, then rank number), and lists every changed
+spell field, rank field and tooltip (whitespace, numbers or wording); `--against=<ref>` diffs
+against another commit. After a new build: re-run `npm run scrape:client` (its interest set
+reads these files), review `git diff src/data`, and update this page and any doc whose values
+moved. `npm run scrape -- --version=<build> --diff` does all of this for every dataset.

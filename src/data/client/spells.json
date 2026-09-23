@@ -38,18 +38,18 @@
     "bySource": {
       "buffsDoc": 47,
       "consumable": 78,
-      "docs": 257,
+      "docs": 261,
       "enchant": 125,
       "item": 182,
       "racial": 44,
-      "spellbook": 494,
+      "spellbook": 493,
       "talent": 156,
       "trigger": 104
     },
     "encryptedSpellNameRecords": 872,
     "notInClient": 0,
-    "seeds": 1133,
-    "spells": 1220
+    "seeds": 1134,
+    "spells": 1221
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -62,19 +62,6 @@
       "playableRaceBit": 2,
       "racials": [
         {
-          "classicSpellId": 20594,
-          "id": "racial-dwarf-stoneform",
-          "name": "Stoneform",
-          "spells": [
-            {
-              "acquireMethod": 2,
-              "classMask": 0,
-              "skillLine": 101,
-              "spellId": 20594
-            }
-          ]
-        },
-        {
           "classicSpellId": 2481,
           "id": "racial-dwarf-find-treasure",
           "name": "Find Treasure",
@@ -84,6 +71,19 @@
               "classMask": 0,
               "skillLine": 101,
               "spellId": 2481
+            }
+          ]
+        },
+        {
+          "classicSpellId": 20594,
+          "id": "racial-dwarf-stoneform",
+          "name": "Stoneform",
+          "spells": [
+            {
+              "acquireMethod": 2,
+              "classMask": 0,
+              "skillLine": 101,
+              "spellId": 20594
             }
           ]
         },
@@ -120,6 +120,19 @@
       "playableRaceBit": 6,
       "racials": [
         {
+          "classicSpellId": 20589,
+          "id": "racial-gnome-escape-artist",
+          "name": "Escape Artist",
+          "spells": [
+            {
+              "acquireMethod": 2,
+              "classMask": 0,
+              "skillLine": 753,
+              "spellId": 20589
+            }
+          ]
+        },
+        {
           "classicSpellId": 20591,
           "id": "racial-gnome-expansive-mind",
           "name": "Expansive Mind",
@@ -141,6 +154,19 @@
               "classMask": 8,
               "skillLine": 753,
               "spellId": 1259803
+            }
+          ]
+        },
+        {
+          "classicSpellId": 20593,
+          "id": "racial-gnome-engineering-specialization",
+          "name": "Engineering Specialization",
+          "spells": [
+            {
+              "acquireMethod": 2,
+              "classMask": 0,
+              "skillLine": 753,
+              "spellId": 20593
             }
           ]
         },
@@ -180,32 +206,6 @@
               "spellId": 1259823
             }
           ]
-        },
-        {
-          "classicSpellId": 20589,
-          "id": "racial-gnome-escape-artist",
-          "name": "Escape Artist",
-          "spells": [
-            {
-              "acquireMethod": 2,
-              "classMask": 0,
-              "skillLine": 753,
-              "spellId": 20589
-            }
-          ]
-        },
-        {
-          "classicSpellId": 20593,
-          "id": "racial-gnome-engineering-specialization",
-          "name": "Engineering Specialization",
-          "spells": [
-            {
-              "acquireMethod": 2,
-              "classMask": 0,
-              "skillLine": 753,
-              "spellId": 20593
-            }
-          ]
         }
       ]
     },
@@ -213,19 +213,6 @@
       "chrRacesId": 1,
       "playableRaceBit": 0,
       "racials": [
-        {
-          "classicSpellId": null,
-          "id": "racial-human-will-to-survive",
-          "name": "Will to Survive",
-          "spells": [
-            {
-              "acquireMethod": 2,
-              "classMask": 0,
-              "skillLine": 754,
-              "spellId": 1259718
-            }
-          ]
-        },
         {
           "classicSpellId": 20600,
           "id": "racial-human-perception",
@@ -264,6 +251,19 @@
               "spellId": 20598
             }
           ]
+        },
+        {
+          "classicSpellId": null,
+          "id": "racial-human-will-to-survive",
+          "name": "Will to Survive",
+          "spells": [
+            {
+              "acquireMethod": 2,
+              "classMask": 0,
+              "skillLine": 754,
+              "spellId": 1259718
+            }
+          ]
         }
       ]
     },
@@ -271,19 +271,6 @@
       "chrRacesId": 4,
       "playableRaceBit": 3,
       "racials": [
-        {
-          "classicSpellId": null,
-          "id": "racial-night-elf-elune-s-light",
-          "name": "Elune's Light",
-          "spells": [
-            {
-              "acquireMethod": 2,
-              "classMask": 0,
-              "skillLine": 126,
-              "spellId": 1259799
-            }
-          ]
-        },
         {
           "classicSpellId": 20580,
           "id": "racial-night-elf-shadowmeld",
@@ -322,6 +309,19 @@
               "spellId": 20585
             }
           ]
+        },
+        {
+          "classicSpellId": null,
+          "id": "racial-night-elf-elune-s-light",
+          "name": "Elune's Light",
+          "spells": [
+            {
+              "acquireMethod": 2,
+              "classMask": 0,
+              "skillLine": 126,
+              "spellId": 1259799
+            }
+          ]
         }
       ]
     },
@@ -329,19 +329,6 @@
       "chrRacesId": 95,
       "playableRaceBit": 32,
       "racials": [
-        {
-          "classicSpellId": null,
-          "id": "racial-skyborne-both-factions-walk-on-air",
-          "name": "Walk on Air",
-          "spells": [
-            {
-              "acquireMethod": 2,
-              "classMask": 0,
-              "skillLine": 2980,
-              "spellId": 1259416
-            }
-          ]
-        },
         {
           "classicSpellId": null,
           "id": "racial-high-order-skyborne-read-ley-line",
@@ -357,14 +344,14 @@
         },
         {
           "classicSpellId": null,
-          "id": "racial-skyborne-both-factions-wind-blessed",
-          "name": "Wind Blessed",
+          "id": "racial-skyborne-both-factions-walk-on-air",
+          "name": "Walk on Air",
           "spells": [
             {
               "acquireMethod": 2,
               "classMask": 0,
               "skillLine": 2980,
-              "spellId": 1259710
+              "spellId": 1259416
             }
           ]
         },
@@ -380,6 +367,19 @@
               "spellId": 1259707
             }
           ]
+        },
+        {
+          "classicSpellId": null,
+          "id": "racial-skyborne-both-factions-wind-blessed",
+          "name": "Wind Blessed",
+          "spells": [
+            {
+              "acquireMethod": 2,
+              "classMask": 0,
+              "skillLine": 2980,
+              "spellId": 1259710
+            }
+          ]
         }
       ]
     },
@@ -387,19 +387,6 @@
       "chrRacesId": 2,
       "playableRaceBit": 1,
       "racials": [
-        {
-          "classicSpellId": 20574,
-          "id": "racial-orc-axe-specialization",
-          "name": "Axe Specialization",
-          "spells": [
-            {
-              "acquireMethod": 2,
-              "classMask": 0,
-              "skillLine": 125,
-              "spellId": 20574
-            }
-          ]
-        },
         {
           "classicSpellId": 20572,
           "id": "racial-orc-blood-fury",
@@ -414,19 +401,6 @@
           ]
         },
         {
-          "classicSpellId": null,
-          "id": "racial-orc-shatter-curse",
-          "name": "Shatter Curse",
-          "spells": [
-            {
-              "acquireMethod": 2,
-              "classMask": 0,
-              "skillLine": 125,
-              "spellId": 1299026
-            }
-          ]
-        },
-        {
           "classicSpellId": 20573,
           "id": "racial-orc-hardiness",
           "name": "Hardiness",
@@ -436,6 +410,32 @@
               "classMask": 0,
               "skillLine": 125,
               "spellId": 20573
+            }
+          ]
+        },
+        {
+          "classicSpellId": 20574,
+          "id": "racial-orc-axe-specialization",
+          "name": "Axe Specialization",
+          "spells": [
+            {
+              "acquireMethod": 2,
+              "classMask": 0,
+              "skillLine": 125,
+              "spellId": 20574
+            }
+          ]
+        },
+        {
+          "classicSpellId": null,
+          "id": "racial-orc-shatter-curse",
+          "name": "Shatter Curse",
+          "spells": [
+            {
+              "acquireMethod": 2,
+              "classMask": 0,
+              "skillLine": 125,
+              "spellId": 1299026
             }
           ]
         }
@@ -460,14 +460,14 @@
         },
         {
           "classicSpellId": null,
-          "id": "racial-windshaper-skyborne-skysight",
-          "name": "Skysight",
+          "id": "racial-skyborne-both-factions-elemental-insight",
+          "name": "Elemental Insight",
           "spells": [
             {
               "acquireMethod": 2,
               "classMask": 0,
               "skillLine": 2980,
-              "spellId": 1259686
+              "spellId": 1259707
             }
           ]
         },
@@ -486,14 +486,14 @@
         },
         {
           "classicSpellId": null,
-          "id": "racial-skyborne-both-factions-elemental-insight",
-          "name": "Elemental Insight",
+          "id": "racial-windshaper-skyborne-skysight",
+          "name": "Skysight",
           "spells": [
             {
               "acquireMethod": 2,
               "classMask": 0,
               "skillLine": 2980,
-              "spellId": 1259707
+              "spellId": 1259686
             }
           ]
         }
@@ -503,19 +503,6 @@
       "chrRacesId": 6,
       "playableRaceBit": 5,
       "racials": [
-        {
-          "classicSpellId": 20552,
-          "id": "racial-tauren-cultivation",
-          "name": "Cultivation",
-          "spells": [
-            {
-              "acquireMethod": 2,
-              "classMask": 0,
-              "skillLine": 124,
-              "spellId": 20552
-            }
-          ]
-        },
         {
           "classicSpellId": 20549,
           "id": "racial-tauren-war-stomp",
@@ -530,19 +517,6 @@
           ]
         },
         {
-          "classicSpellId": null,
-          "id": "racial-tauren-plainsrunning",
-          "name": "Plainsrunning",
-          "spells": [
-            {
-              "acquireMethod": 2,
-              "classMask": 0,
-              "skillLine": 124,
-              "spellId": 1259918
-            }
-          ]
-        },
-        {
           "classicSpellId": 20550,
           "id": "racial-tauren-endurance",
           "name": "Endurance",
@@ -552,6 +526,32 @@
               "classMask": 0,
               "skillLine": 124,
               "spellId": 20550
+            }
+          ]
+        },
+        {
+          "classicSpellId": 20552,
+          "id": "racial-tauren-cultivation",
+          "name": "Cultivation",
+          "spells": [
+            {
+              "acquireMethod": 2,
+              "classMask": 0,
+              "skillLine": 124,
+              "spellId": 20552
+            }
+          ]
+        },
+        {
+          "classicSpellId": null,
+          "id": "racial-tauren-plainsrunning",
+          "name": "Plainsrunning",
+          "spells": [
+            {
+              "acquireMethod": 2,
+              "classMask": 0,
+              "skillLine": 124,
+              "spellId": 1259918
             }
           ]
         }
@@ -575,15 +575,15 @@
           ]
         },
         {
-          "classicSpellId": null,
-          "id": "racial-troll-rapid-regeneration",
-          "name": "Rapid Regeneration",
+          "classicSpellId": 20555,
+          "id": "racial-troll-regeneration",
+          "name": "Regeneration",
           "spells": [
             {
               "acquireMethod": 2,
               "classMask": 0,
               "skillLine": 733,
-              "spellId": 1260270
+              "spellId": 20555
             }
           ]
         },
@@ -601,15 +601,15 @@
           ]
         },
         {
-          "classicSpellId": 20555,
-          "id": "racial-troll-regeneration",
-          "name": "Regeneration",
+          "classicSpellId": null,
+          "id": "racial-troll-rapid-regeneration",
+          "name": "Rapid Regeneration",
           "spells": [
             {
               "acquireMethod": 2,
               "classMask": 0,
               "skillLine": 733,
-              "spellId": 20555
+              "spellId": 1260270
             }
           ]
         }
@@ -619,6 +619,19 @@
       "chrRacesId": 5,
       "playableRaceBit": 4,
       "racials": [
+        {
+          "classicSpellId": 5227,
+          "id": "racial-undead-underwater-breathing",
+          "name": "Underwater Breathing",
+          "spells": [
+            {
+              "acquireMethod": 2,
+              "classMask": 0,
+              "skillLine": 220,
+              "spellId": 5227
+            }
+          ]
+        },
         {
           "classicSpellId": 7744,
           "id": "racial-undead-will-of-the-forsaken",
@@ -642,19 +655,6 @@
               "classMask": 0,
               "skillLine": 220,
               "spellId": 20577
-            }
-          ]
-        },
-        {
-          "classicSpellId": 5227,
-          "id": "racial-undead-underwater-breathing",
-          "name": "Underwater Breathing",
-          "spells": [
-            {
-              "acquireMethod": 2,
-              "classMask": 0,
-              "skillLine": 220,
-              "spellId": 5227
             }
           ]
         },
@@ -39072,29 +39072,6 @@
       "name": "Arcanum of Focus",
       "sources": ["enchant"]
     },
-    "22845": {
-      "auraRestrictions": {
-        "excludeTargetAuraSpell": 1231681
-      },
-      "classOptions": {
-        "spellClassSet": 7
-      },
-      "effects": [
-        {
-          "effect": 10,
-          "effectIndex": 0,
-          "implicitTarget": [1, 0]
-        }
-      ],
-      "id": 22845,
-      "misc": {
-        "attributes": [262160, 0, 805306368, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
-        "schoolMask": 1,
-        "spellIconFileDataId": 132091
-      },
-      "name": "Frenzied Regeneration",
-      "sources": ["spellbook"]
-    },
     "22847": {
       "duration": {
         "duration": -1,
@@ -40967,6 +40944,48 @@
       },
       "name": "Spirit of Zanza",
       "sources": ["consumable", "docs"]
+    },
+    "24427": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "categories": {
+        "category": 59,
+        "dispelType": 1,
+        "startRecoveryCategory": 133
+      },
+      "cooldowns": {
+        "startRecoveryTime": 1500
+      },
+      "duration": {
+        "duration": 60000,
+        "maxDuration": 60000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 29,
+          "effectBasePointsF": 75,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 8,
+          "effectAuraPeriod": 5000,
+          "effectBasePointsF": 9,
+          "effectIndex": 1,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 24427,
+      "misc": {
+        "attributes": [16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 132788
+      },
+      "name": "Diamond Flask",
+      "sources": ["docs"]
     },
     "24610": {
       "auraOptions": {
@@ -44215,6 +44234,34 @@
       },
       "sources": ["docs", "spellbook"]
     },
+    "363880": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "categories": {
+        "category": 59,
+        "dispelType": 1,
+        "startRecoveryCategory": 133
+      },
+      "cooldowns": {
+        "startRecoveryTime": 1500
+      },
+      "effects": [
+        {
+          "effect": 77,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 363880,
+      "misc": {
+        "attributes": [16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 8,
+        "spellIconFileDataId": 132788
+      },
+      "name": "Diamond Flask",
+      "sources": ["docs"]
+    },
     "363881": {
       "auraOptions": {
         "procChance": 101
@@ -44250,7 +44297,7 @@
         "spellIconFileDataId": 132788
       },
       "name": "CHUG! CHUG! CHUG! CHUG!",
-      "sources": ["item"]
+      "sources": ["docs", "item"]
     },
     "402927": {
       "auraOptions": {
@@ -53148,7 +53195,7 @@
       "range": {
         "rangeMax": [50000, 50000]
       },
-      "sources": ["item"]
+      "sources": ["docs", "item"]
     },
     "1318325": {
       "effects": [

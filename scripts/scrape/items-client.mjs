@@ -3,29 +3,24 @@
 // M1.5c-1 and M1.5c-2, decision D17). Forever (wow_classic_beta) rows first; items the Forever
 // client has no row for fall back to their Classic Era (wow_classic_era) row, flagged.
 //
-//   node scripts/scrape/items-client.mjs [--write] [--compare] [--diff] [--fixtures]
+//   node scripts/scrape/items-client.mjs [--write] [--diff] [--against=<git ref>] [--fixtures]
 //        [--refresh] [--version=<Forever build>] [--baseline=<Classic Era build>] [--dbdefs=<sha>]
-//        [--snapshot=<old pre-bis.json>]
 //
 //   --write     (default) derive the pool and write src/data/items/pre-bis.json
-//   --compare   derive every item of the saved foreverchanges snapshot and compare it field by
-//               field (the M1.5c-1 check); report in .cache/client/<build>/items-compare.md
-//   --diff      old dataset (the snapshot) vs the written one: items added and removed, and
-//               changed fields by class; report in .cache/client/<build>/items-diff.md
-//   --fixtures  regenerate scripts/scrape/lib/__fixtures__/item-stats.json (unit-test rows)
-//
-// The snapshot is the last foreverchanges.pro dataset (git: b94a076:src/data/items/pre-bis.json).
-// --write saves the current pre-bis.json there before overwriting it when it is still the
-// foreverchanges one. Default path: .cache/client/items-foreverchanges-snapshot.json.
+//   --diff      write, then diff the written pool against the committed one: items added and
+//               removed, and changed fields by kind; report in .cache/client/<build>/items-diff.md
+//   --against   the git ref whose dataset is "committed" (default HEAD)
+//   --fixtures  regenerate scripts/scrape/lib/__fixtures__/item-stats.json (unit-test rows); on
+//               its own it doesn't write the pool
 //
 // Downloads go through lib/wago.mjs (documented wago.tools API only, one request at a time,
 // cached under .cache/client/, once per build). Zero dependencies (Node >= 22). The derivation
 // is lib/item-stats.mjs, the text renderer lib/spell-text.mjs and the pool lib/item-pool.mjs;
 // see docs/data/items.md and docs/data/client.md#items-from-the-client.
 
-import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { committedJson, describeRef } from "./lib/committed.mjs";
 import { createFetcher } from "./lib/http.mjs";
 import { buildPool, measureRatingConversions } from "./lib/item-pool.mjs";
 import { ITEM_GAMETABLES, ITEM_TABLES, createItemContext } from "./lib/item-stats.mjs";
@@ -63,9 +58,10 @@ const JUNK_NAME = /\b(?:test|deprecated)\b|^monster\b|\bplaceholder\b|\[dnt\]|\(
 /** Hand-curated Classic Era pre-raid BiS lists (scraper input); every listed item joins the pool. */
 const PRE_RAID_BIS_FILE = "scripts/scrape/pre-raid-bis.json";
 /**
- * New Forever items that no client build carries yet (foreverchanges showed them from server
- * hotfixes, which the raw client files don't include). D17: flagged, never guessed. They join
- * the pool on their own once a build ships their rows; delete them here then.
+ * New Forever items that no client build carries yet: they exist only as server hotfix rows,
+ * which the raw client files don't include (docs/data/items.md#items-no-client-carries-yet).
+ * D17: flagged, never guessed. They join the pool on their own once a build ships their rows;
+ * delete them here then.
  */
 const WATCH_ITEMS = new Map([
   [272491, "Premier Chain Headguard"],
@@ -100,25 +96,22 @@ const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
 const SCRAPER = "scripts/scrape/items-client.mjs";
 const FIXTURE_FILE = "scripts/scrape/lib/__fixtures__/item-stats.json";
-const DEFAULT_SNAPSHOT = ".cache/client/items-foreverchanges-snapshot.json";
-/** The last commit whose pre-bis.json came from foreverchanges.pro. */
-const SNAPSHOT_COMMIT = "b94a076";
 const PRODUCT = "wow_classic_beta";
 const BASELINE_PRODUCT = "wow_classic_era";
 const DEFAULT_BASELINE = "1.15.9.69722";
 
-const opts = { write: false, compare: false, diff: false, fixtures: false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, snapshot: DEFAULT_SNAPSHOT };
+const opts = { write: false, diff: false, fixtures: false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
 for (const arg of process.argv.slice(2)) {
   const m = /^--([a-z]+)(?:=(.*))?$/.exec(arg);
   if (!m) usage(`Unknown argument: ${arg}`);
   const [, key, value] = m;
-  if (["write", "compare", "diff", "fixtures", "refresh"].includes(key) && value === undefined) opts[key] = true;
-  else if (["version", "baseline", "dbdefs", "snapshot"].includes(key) && value) opts[key] = value;
+  if (["write", "diff", "fixtures", "refresh"].includes(key) && value === undefined) opts[key] = true;
+  else if (["version", "baseline", "dbdefs", "against"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
-if (!opts.compare && !opts.diff && !opts.fixtures) opts.write = true;
+if (!opts.fixtures || opts.diff) opts.write = true;
 function usage(msg) {
-  console.error(`${msg}\nUsage: node ${SCRAPER} [--write] [--compare] [--diff] [--fixtures] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>] [--snapshot=<file>]`);
+  console.error(`${msg}\nUsage: node ${SCRAPER} [--write] [--diff] [--against=<git ref>] [--fixtures] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
   process.exit(2);
 }
 
@@ -273,16 +266,6 @@ function scrapedAt(bundles) {
 
 async function write() {
   const outPath = path.join(REPO_ROOT, OUT_FILE);
-  const snapshotPath = path.resolve(REPO_ROOT, opts.snapshot);
-  if (fs.existsSync(outPath) && !fs.existsSync(snapshotPath)) {
-    const current = JSON.parse(fs.readFileSync(outPath, "utf8"));
-    if (/foreverchanges\.pro/.test(current.meta?.source ?? "")) {
-      fs.mkdirSync(path.dirname(snapshotPath), { recursive: true });
-      fs.copyFileSync(outPath, snapshotPath);
-      console.log(`Saved the foreverchanges snapshot to ${path.relative(REPO_ROOT, snapshotPath)}`);
-    }
-  }
-
   const bis = loadPreRaidBis();
   const { iconName, unresolved } = await createIconNamer();
   forever.lookups = createLookups(forever, iconName);
@@ -394,29 +377,6 @@ function printSummary(out, report) {
   console.log(`network requests this run: ${requests}`);
 }
 
-// ---------------------------------------------------------------------------
-// Snapshot (the last foreverchanges dataset)
-// ---------------------------------------------------------------------------
-
-function readSnapshot() {
-  const file = path.resolve(REPO_ROOT, opts.snapshot);
-  if (!fs.existsSync(file)) {
-    // Recreate it from git history when the cache was cleared.
-    try {
-      const body = execFileSync("git", ["show", `${SNAPSHOT_COMMIT}:${OUT_FILE}`], { cwd: REPO_ROOT, maxBuffer: 1 << 28 });
-      fs.mkdirSync(path.dirname(file), { recursive: true });
-      fs.writeFileSync(file, body);
-      console.log(`Restored the foreverchanges snapshot from git (${SNAPSHOT_COMMIT}) to ${path.relative(REPO_ROOT, file)}`);
-    } catch {
-      console.error(`No snapshot at ${path.relative(REPO_ROOT, file)} and git show ${SNAPSHOT_COMMIT}:${OUT_FILE} failed.`);
-      process.exit(2);
-    }
-  }
-  const data = JSON.parse(fs.readFileSync(file, "utf8"));
-  if (!/foreverchanges\.pro/.test(data.meta?.source ?? "")) console.warn(`WARNING: ${opts.snapshot} is not a foreverchanges dataset (meta.source ${data.meta?.source})`);
-  return data;
-}
-
 
 // ---------------------------------------------------------------------------
 // Test fixtures: the real rows behind the unit tests
@@ -489,14 +449,15 @@ function writeFixtures() {
 // ---------------------------------------------------------------------------
 
 if (opts.write) await write();
-if (opts.compare) {
-  const { compare } = await import("./lib/items-compare.mjs");
-  const ok = compare({ forever, classic, pool: readSnapshot(), version, baseline: opts.baseline, dbdefsSha, outDir: path.join(CACHE_DIR, version), repoRoot: REPO_ROOT, bisFile: PRE_RAID_BIS_FILE });
-  if (!ok) process.exitCode = 1;
-}
-if (opts.diff) {
+if (opts.diff && !errors.length) {
+  const against = describeRef(REPO_ROOT, opts.against);
+  const old = committedJson(REPO_ROOT, OUT_FILE, opts.against);
+  if (!old) {
+    console.error(`No committed dataset at ${against}: nothing to diff against.`);
+    process.exit(1);
+  }
   const { diff } = await import("./lib/items-diff.mjs");
-  diff({ old: readSnapshot(), next: JSON.parse(fs.readFileSync(path.join(REPO_ROOT, OUT_FILE), "utf8")), outDir: path.join(CACHE_DIR, version), repoRoot: REPO_ROOT });
+  diff({ old, next: JSON.parse(fs.readFileSync(path.join(REPO_ROOT, OUT_FILE), "utf8")), against, outDir: path.join(CACHE_DIR, version), repoRoot: REPO_ROOT });
 }
 if (opts.fixtures) writeFixtures();
 if (!opts.write) console.log(`network requests this run: ${fetcher.stats().requests}`);

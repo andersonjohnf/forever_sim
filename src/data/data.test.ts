@@ -38,20 +38,6 @@ const talentData = {
 const races = raceJson as unknown as RaceData
 const items = itemJson as unknown as ItemData
 
-/** Next.js RSC back-references ("$1e:props:…", "$undefined", "$L1f") that a scraper failed to resolve. */
-const RSC_REFERENCE = /^\$[$@A-Za-z0-9]/
-
-function unresolvedReferences(value: unknown, path = '$root', found: string[] = []): string[] {
-  if (typeof value === 'string') {
-    if (RSC_REFERENCE.test(value)) found.push(`${path} = ${value}`)
-  } else if (Array.isArray(value)) {
-    value.forEach((v, i) => unresolvedReferences(v, `${path}[${i}]`, found))
-  } else if (value && typeof value === 'object') {
-    for (const [k, v] of Object.entries(value)) unresolvedReferences(v, `${path}.${k}`, found)
-  }
-  return found
-}
-
 const allDatasets: Record<string, { meta: { source: string; scrapedAt: string; foreverBuild: string } }> = {
   ...Object.fromEntries(Object.entries(spellBooks).map(([c, d]) => [`spells/${c}`, d])),
   ...Object.fromEntries(Object.entries(talentData).map(([c, d]) => [`talents/${c}`, d])),
@@ -65,10 +51,6 @@ describe.each(Object.entries(allDatasets))('%s', (_name, data) => {
     expect(data.meta.source).toMatch(/^https:\/\/wago\.tools\/api\//)
     expect(Number.isNaN(Date.parse(data.meta.scrapedAt))).toBe(false)
     expect(data.meta.foreverBuild).toMatch(/^1\.60\.\d+\.\d+$/)
-  })
-
-  it('contains no unresolved RSC references', () => {
-    expect(unresolvedReferences(data)).toEqual([])
   })
 })
 
@@ -132,10 +114,10 @@ describe.each(Object.entries(spellBooks))('spells/%s', (cls, book) => {
 })
 
 // Every build code the repo stores or documents: defaults and presets (src/sim/defaults.ts), the
-// class docs' builds (warrior.md §6.1, druid.md §7.1, paladin.md), the old site's popular builds
+// class docs' builds (warrior.md §6.1, druid.md §7.1, paladin.md), a popular Restoration build
 // and the codes in tests. Share links and saved setups store codes, so a code must keep meaning
 // the same build: each entry lists, per tree, the ranks by talent name it decoded to when it was
-// written (under the foreverchanges.pro dataset). If a doc changes a build, change it here too.
+// written; every client build since has kept them. If a doc changes a build, change it here too.
 const STORED_BUILDS: Record<keyof typeof talentData, Record<string, [string, string, string]>> = {
   warrior: {
     // Fury default (17/34/0)
@@ -188,7 +170,7 @@ const STORED_BUILDS: Record<keyof typeof talentData, Record<string, [string, str
       'Heart of the Wild 5',
       '',
     ],
-    // Restoration (11/5/35), the old site's popular build
+    // Restoration (11/5/35), a popular build of September 2026
     '05302001-05-5050035103113251': [
       "Genesis 5, Moonglow 3, Nature's Majesty 2, Nature's Splendor 1",
       'Heart of the Wild 5',

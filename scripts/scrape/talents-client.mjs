@@ -4,31 +4,28 @@
 // client (wow_classic_beta), compared talent by talent with the Classic Era client's legacy
 // Talent/TalentTab trees (wow_classic_era).
 //
-//   node scripts/scrape/talents-client.mjs [--write] [--diff] [--refresh]
-//        [--version=<Forever build>] [--baseline=<Classic Era build>] [--dbdefs=<sha>]
-//        [--snapshot=<dir of the old <class>.json files>]
+//   node scripts/scrape/talents-client.mjs [--diff] [--against=<git ref>] [--accept-code-changes]
+//        [--refresh] [--version=<Forever build>] [--baseline=<Classic Era build>] [--dbdefs=<sha>]
 //
-//   --write  (default) derive the three trees and write src/data/talents/<class>.json
-//   --diff   old dataset (the foreverchanges.pro snapshot) vs the written one, talent by talent;
-//            report in .cache/client/<build>/talents-diff.md (+ .json)
+//   (default)  derive the three trees and write src/data/talents/<class>.json
+//   --diff     then diff the written trees against the committed ones, talent by talent; report
+//              in .cache/client/<build>/talents-diff.md (+ .json) and talents-changes.md
+//   --against  the git ref whose dataset is "committed" (default HEAD)
 //
-// Every run also checks build-code compatibility: each build code in the repo (REPO_CODES) and
-// each popular build of the snapshot must decode to the same ranks by talent name under the old
-// and the new dataset, and be legal under the new one. The run exits non-zero and writes nothing
-// if that or any other check fails.
-//
-// The snapshot is the last foreverchanges.pro dataset (git: SNAPSHOT_COMMIT). --write saves the
-// current files there before overwriting them while they're still the foreverchanges ones.
-// Default: .cache/client/talents-foreverchanges-snapshot/.
+// Every run also checks build-code compatibility. Share links and saved setups store build
+// codes, so each code the repo stores (REPO_CODES) must decode to the same ranks by talent name
+// under the committed dataset and the new one, and be legal under the new one. The run exits
+// non-zero and writes nothing if that or any other check fails. A build that really moves
+// talents needs --accept-code-changes, after the stored codes are updated to match.
 //
 // Downloads go through lib/wago.mjs (documented wago.tools API only, one request at a time,
 // cached under .cache/client/, once per build). Zero dependencies (Node >= 22). The tree
 // derivation is lib/talent-tree.mjs and the text renderer lib/spell-text.mjs; see
 // docs/data/talents.md.
 
-import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { committedJson, describeRef } from "./lib/committed.mjs";
 import { createFetcher } from "./lib/http.mjs";
 import { stableStringify } from "./lib/json.mjs";
 import { SPELL_TEXT_TABLES, createSpellTextContext } from "./lib/spell-text.mjs";
@@ -55,13 +52,11 @@ const OUT_DIR = "src/data/talents";
 const PRODUCT = "wow_classic_beta";
 const BASELINE_PRODUCT = "wow_classic_era";
 const DEFAULT_BASELINE = "1.15.9.69722";
-const DEFAULT_SNAPSHOT = ".cache/client/talents-foreverchanges-snapshot";
-/** The last commit whose src/data/talents/*.json came from foreverchanges.pro. */
-const SNAPSHOT_COMMIT = "403142e";
 
 /**
  * Every build code the repo stores (defaults, presets, the class docs' builds, tests), by class.
- * They must decode to the same ranks by talent name as they did under the foreverchanges data.
+ * Each must decode to the same ranks by talent name under the committed dataset and the new one
+ * (src/data/data.test.ts pins the ranks they had when they were written).
  */
 const REPO_CODES = {
   warrior: [
@@ -75,7 +70,7 @@ const REPO_CODES = {
     "050022-5520002123032213051-05", // Feral cat (druid.md §7.1)
     "050012-5523032120132210551-", // Feral bear (druid.md §7.1)
     "5532220115501351-05-", // Balance (druid.md, Balance notes)
-    "05302001-05-5050035103113251", // Restoration (the old site's popular build)
+    "05302001-05-5050035103113251", // Restoration (a popular build of September 2026)
   ],
   paladin: [
     "250003-503-052052310012330321", // Retribution (paladin.md, Retribution defaults)
@@ -85,20 +80,19 @@ const REPO_CODES = {
 };
 
 const CODE_FORMAT =
-  'Wowhead-style string of three "-"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank), in `order` = sorted by tier, then col (both 0-based). Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two "-" (e.g. "30305213132515201-05050103-"). The same codes as the foreverchanges.pro calculator\'s ?b=<code>; every code the repo stores decodes to the same ranks by talent name.';
+  'Wowhead-style string of three "-"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank), in `order` = sorted by tier, then col (both 0-based). Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two "-" (e.g. "30305213132515201-05050103-"). Every code the repo stores decodes to the same ranks by talent name from build to build.';
 
-const opts = { write: false, diff: false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, snapshot: DEFAULT_SNAPSHOT };
+const opts = { diff: false, "accept-code-changes": false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
 for (const arg of process.argv.slice(2)) {
-  const m = /^--([a-z]+)(?:=(.*))?$/.exec(arg);
+  const m = /^--([a-z-]+)(?:=(.*))?$/.exec(arg);
   if (!m) usage(`Unknown argument: ${arg}`);
   const [, key, value] = m;
-  if (["write", "diff", "refresh"].includes(key) && value === undefined) opts[key] = true;
-  else if (["version", "baseline", "dbdefs", "snapshot"].includes(key) && value) opts[key] = value;
+  if (["diff", "accept-code-changes", "refresh"].includes(key) && value === undefined) opts[key] = true;
+  else if (["version", "baseline", "dbdefs", "against"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
-if (!opts.diff) opts.write = true;
 function usage(msg) {
-  console.error(`${msg}\nUsage: node ${SCRAPER} [--write] [--diff] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>] [--snapshot=<dir>]`);
+  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--accept-code-changes] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
   process.exit(2);
 }
 
@@ -133,43 +127,9 @@ async function load(build, names) {
 const forever = await load(version, [...FOREVER_TREE_TABLES, ...SPELL_TEXT_TABLES]);
 const classic = await load(opts.baseline, [...CLASSIC_TREE_TABLES, ...SPELL_TEXT_TABLES]);
 
-// ---------------------------------------------------------------------------
-// Snapshot (the last foreverchanges dataset)
-// ---------------------------------------------------------------------------
-
-const snapshotDir = path.resolve(REPO_ROOT, opts.snapshot);
-
-function saveSnapshotIfForeverchanges() {
-  for (const cls of CLASSES) {
-    const current = path.join(REPO_ROOT, OUT_DIR, `${cls}.json`);
-    const saved = path.join(snapshotDir, `${cls}.json`);
-    if (!fs.existsSync(current) || fs.existsSync(saved)) continue;
-    const data = JSON.parse(fs.readFileSync(current, "utf8"));
-    if (!/foreverchanges\.pro/.test(data.meta?.source ?? "")) continue;
-    fs.mkdirSync(snapshotDir, { recursive: true });
-    fs.copyFileSync(current, saved);
-    console.log(`Saved the foreverchanges snapshot of ${cls} to ${path.relative(REPO_ROOT, saved)}`);
-  }
-}
-
-function readSnapshot(cls) {
-  const file = path.join(snapshotDir, `${cls}.json`);
-  if (!fs.existsSync(file)) {
-    // Recreate it from git history when the cache was cleared.
-    try {
-      const body = execFileSync("git", ["show", `${SNAPSHOT_COMMIT}:${OUT_DIR}/${cls}.json`], { cwd: REPO_ROOT, maxBuffer: 1 << 26 });
-      fs.mkdirSync(snapshotDir, { recursive: true });
-      fs.writeFileSync(file, body);
-      console.log(`Restored the foreverchanges snapshot of ${cls} from git (${SNAPSHOT_COMMIT}) to ${path.relative(REPO_ROOT, file)}`);
-    } catch {
-      console.error(`No snapshot at ${path.relative(REPO_ROOT, file)} and git show ${SNAPSHOT_COMMIT}:${OUT_DIR}/${cls}.json failed.`);
-      process.exit(2);
-    }
-  }
-  const data = JSON.parse(fs.readFileSync(file, "utf8"));
-  if (!/foreverchanges\.pro/.test(data.meta?.source ?? "")) warn(`${path.relative(REPO_ROOT, file)} is not a foreverchanges dataset (meta.source ${data.meta?.source})`);
-  return data;
-}
+/** The committed dataset of each class (git show <against>:src/data/talents/<class>.json), or null. */
+const committed = Object.fromEntries(CLASSES.map((cls) => [cls, committedJson(REPO_ROOT, `${OUT_DIR}/${cls}.json`, opts.against)]));
+const againstLabel = describeRef(REPO_ROOT, opts.against);
 
 // ---------------------------------------------------------------------------
 // Build codes (the same algorithm as src/data/talents/types.ts)
@@ -212,17 +172,24 @@ function validate(data, code) {
   return problems;
 }
 
+/**
+ * Each stored code of a class under the committed (`old`, may be null) and the new dataset. A code
+ * that changes meaning fails the run unless --accept-code-changes; one illegal under the new
+ * dataset always fails.
+ */
 function checkCodes(cls, old, next) {
-  const codes = [...new Set([...REPO_CODES[cls], ...(old.popularBuilds ?? []).map((b) => b.code)])];
+  const changed = opts["accept-code-changes"] ? warn : fail;
+  if (!old) warn(`${cls}: no committed dataset at ${againstLabel}; stored build codes are checked for legality only`);
   const results = [];
-  for (const code of codes) {
-    let a;
+  for (const code of REPO_CODES[cls]) {
+    let a = null;
     let b;
-    try {
-      a = decodeByName(old, code);
-    } catch (e) {
-      fail(`${cls} ${code}: doesn't decode under the old data (${e.message})`);
-      continue;
+    if (old) {
+      try {
+        a = decodeByName(old, code);
+      } catch (e) {
+        changed(`${cls} ${code}: doesn't decode under the committed data (${e.message})`);
+      }
     }
     try {
       b = decodeByName(next, code);
@@ -230,8 +197,8 @@ function checkCodes(cls, old, next) {
       fail(`${cls} ${code}: doesn't decode under the new data (${e.message})`);
       continue;
     }
-    const same = JSON.stringify(a) === JSON.stringify(b);
-    if (!same) fail(`${cls} ${code}: decodes differently: old ${JSON.stringify(a)}, new ${JSON.stringify(b)}`);
+    const same = a !== null && JSON.stringify(a) === JSON.stringify(b);
+    if (a !== null && !same) changed(`${cls} ${code}: decodes differently: committed ${JSON.stringify(a)}, new ${JSON.stringify(b)}`);
     const problems = validate(next, code);
     for (const p of problems) fail(`${cls} ${code}: illegal under the new data: ${p}`);
     results.push({ code, talents: Object.keys(b).length, points: Object.values(b).reduce((x, y) => x + y, 0), sameRanks: same, legal: problems.length === 0 });
@@ -369,8 +336,7 @@ function buildClass(cls, iconName) {
 }
 
 /**
- * The nearest client equivalent of the site's reported_change_kind: "added" with no Classic
- * talent, "unchanged" when name, ranks, texts (ignoring case and whitespace) and prerequisite
+ * How a talent differs from its Classic Era counterpart: "added" with no Classic talent, "unchanged" when name, ranks, texts (ignoring case and whitespace) and prerequisite
  * are the Classic ones in the same cell, "moved" when only the tree or cell differs, and
  * "modified" otherwise.
  */
@@ -398,7 +364,6 @@ function scrapedAt(bundles) {
 }
 
 async function write() {
-  saveSnapshotIfForeverchanges();
   const { iconName, unresolved } = await createIconNamer();
   let built = CLASSES.map((cls) => buildClass(cls, iconName));
   if (unresolved.length) {
@@ -427,7 +392,7 @@ async function write() {
       tables: { forever: tableMeta(forever), classic: tableMeta(classic) },
       wowDbDefs: { repository: "https://github.com/wowdev/WoWDBDefs", commit: dbdefsSha },
     };
-    codeResults[cls] = checkCodes(cls, readSnapshot(cls), b.data);
+    codeResults[cls] = checkCodes(cls, committed[cls], b.data);
   }
   printSummary(built, codeResults);
   if (errors.length) {
@@ -456,7 +421,7 @@ function printSummary(built, codeResults) {
     console.log(`  Classic talents not in the Forever tree: ${classicUnmatched.map((c) => `${c.name} (${c.tabName})`).join(", ") || "none"}`);
     for (const n of report.notes) console.log(`  note: ${n}`);
     for (const a of report.assumed) console.log(`  assumed: ${a}`);
-    for (const r of codeResults[data.class] ?? []) console.log(`  code ${r.code}: ${r.points} points in ${r.talents} talents, ${r.sameRanks ? "same ranks by name" : "DIFFERENT ranks"}, ${r.legal ? "legal" : "ILLEGAL"}`);
+    for (const r of codeResults[data.class] ?? []) console.log(`  code ${r.code}: ${r.points} points in ${r.talents} talents, ${r.sameRanks ? `same ranks by name as ${againstLabel}` : "DIFFERENT ranks (or no committed dataset)"}, ${r.legal ? "legal" : "ILLEGAL"}`);
   }
   for (const w of warnings) console.warn(`WARNING: ${w}`);
   console.log(`\nnetwork requests this run: ${fetcher.stats().requests}`);
@@ -466,10 +431,14 @@ function printSummary(built, codeResults) {
 // Run
 // ---------------------------------------------------------------------------
 
-if (opts.write) await write();
-if (opts.diff) {
+await write();
+if (opts.diff && !errors.length) {
+  const missing = CLASSES.filter((cls) => !committed[cls]);
+  if (missing.length) {
+    console.error(`No committed dataset at ${againstLabel} for ${missing.join(", ")}: nothing to diff against.`);
+    process.exit(1);
+  }
   const { diffTalents } = await import("./lib/talents-diff.mjs");
-  const pairs = CLASSES.map((cls) => ({ cls, old: readSnapshot(cls), next: JSON.parse(fs.readFileSync(path.join(REPO_ROOT, OUT_DIR, `${cls}.json`), "utf8")) }));
-  diffTalents({ pairs, outDir: path.join(CACHE_DIR, version), repoRoot: REPO_ROOT, decodeByName, repoCodes: REPO_CODES });
-  if (!opts.write) console.log(`network requests this run: ${fetcher.stats().requests}`);
+  const pairs = CLASSES.map((cls) => ({ cls, old: committed[cls], next: JSON.parse(fs.readFileSync(path.join(REPO_ROOT, OUT_DIR, `${cls}.json`), "utf8")) }));
+  diffTalents({ pairs, against: againstLabel, outDir: path.join(CACHE_DIR, version), repoRoot: REPO_ROOT, decodeByName, repoCodes: REPO_CODES });
 }

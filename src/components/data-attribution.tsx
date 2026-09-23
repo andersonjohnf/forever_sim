@@ -26,12 +26,6 @@ export function DataAttribution({ className }: { className?: string }) {
     <div className={cn('flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground', className)}>
       <span>Game data from</span>
       <WagoToolsLogo />
-      <span>
-        and{' '}
-        <a className="underline underline-offset-2 hover:text-foreground" href="https://foreverchanges.pro">
-          foreverchanges.pro
-        </a>
-      </span>
     </div>
   )
 }

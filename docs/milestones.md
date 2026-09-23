@@ -54,7 +54,7 @@ Slices ([CLAUDE.md](../CLAUDE.md#working-with-agents-small-slices-fresh-contexts
         text comes from spell descriptions, and drop sources go away, since the Encounter
         Journal ships empty. Now 1,630 items; the picker shows type and levels instead of
         sources ([items.md](data/items.md)).
-- [ ] **M1.5d Talents from client:** layout, prerequisite arrows (including the client-only
+- [x] **M1.5d Talents from client:** layout, prerequisite arrows (including the client-only
       Nature's Splendor arrow), ranks and rendered rank texts. Popular builds become our own
       documented presets.
 - [ ] **M1.5e Spells and races from client:** class spellbooks via SkillLineAbility, and
@@ -75,14 +75,14 @@ work is in slices:
   - Bloodthirst, Whirlwind, Heroic Strike and Hamstring, with numbers from
     `src/data/client/spells.json` and doc fallback
   - tests W1, W3, W7, W24, and rotation sanity checks
-- [ ] **M2.2 Complete Fury**, in three slices (M2.1's handoff list, split):
+- [x] **M2.2 Complete Fury**, in three slices (M2.1's handoff list, split):
   - [x] **M2.2a Talents on abilities and the execute phase:** cost reductions and Impale,
         Unbridled Wrath on Heroic Strike swings (Q5), the execute-phase event, Execute (§5.2
         rows 6–7), Raging Blows, and stance gating
   - [x] **M2.2b Cooldowns:** self-buff and energize ability kinds, and time-left conditions
         with a wake-up event; Bloodrage, Berserker Rage, Death Wish (`alignToEnd`),
         Recklessness (`lastSec`), and the racial cooldowns (§5.2 rows 2–5 and 13)
-  - [ ] **M2.2c Upkeep, pre-pull and consumables:** Battle Shout upkeep, the pre-pull actions,
+  - [x] **M2.2c Upkeep, pre-pull and consumables:** Battle Shout upkeep, the pre-pull actions,
         Mighty Rage Potion, on-use trinkets (§5.2 rows 0, 1 and 16); re-snapshot the goldens,
         then warrior-fury becomes **available**
   - Later: §5.2 rows 10 (Overpower dance) and 15 (Slam) come with M2.3, which builds those
@@ -107,7 +107,31 @@ work is in slices:
 - [ ] **M2.4 Results and review:** results UX with real data, an e2e simulate test, the
       adversarial logic and UX review, and the first deploy
 
+## Session handoff (2026-09-22)
+
+State: `main` is green (lint, typecheck, 435 unit tests, 19 e2e with 3 deferred to M3).
+Nothing is pushed. No agents are running. Done this session: M1.5c, M1.5d, M2.2a–c (Fury is
+**available**), and D18 (tank specs report TPS and DPS as equals).
+
+Next, in order:
+1. **Small cleanups** (lead, one commit):
+   - two comments still describe a single headline metric: the `simulate` docstring in
+     `src/sim/index.ts` and the `run.mode` comment in `src/sim/types.ts`
+   - warrior.md §6.1 still says the default is "the site's most popular Forever build";
+     reword it to match doctrine §5
+   - `docs/ux.md` should describe three new UI states: the Buffs switch locked "kept up by
+     your rotation", the Rotation row "Not used: turn on … in Buffs first", and the error
+     for a share link to a spec the app doesn't offer
+2. **M2.3a → M2.3b → M2.3c** (Arms), sequential, one fresh agent each.
+3. **M1.5e** spells and races from the client, which can run in parallel with M2.3 in a
+   worktree. Then **M1.5f** retires foreverchanges: delete `scripts/scrape/{items,talents,…}.mjs`,
+   and update the attribution, CLAUDE.md, doctrine §2–3 and the README.
+4. **M2.4** results polish and the full review gate, then the first push when the user asks.
+
 ## M3: Warrior Protection (TPS) 💤
+
+- Enable the three `test.fixme` tests in `e2e/tank-results.spec.ts` once Protection ships
+  (they load Protection from a share link, which is refused while it isn't offered)
 
 - Boss auto-attacks on the player: avoidance, block, crushing blows, rage from damage taken
 - Tank rotation (Shield Slam, Revenge, Sunder, Heroic Strike dumping)
@@ -168,6 +192,14 @@ slice is worked:
   Fix it when stance dancing arrives (M2.3).
 - **Cleave isn't built yet,** so W21's Cleave costs (Improved Cleave, Raging Blows) are
   untested.
+- **Diamond Flask changed in Forever:** its use spell is now a 5 s heal ("CHUG!"), so it isn't
+  simulated (warrior Q30). It's still rank 3 on the Fury and Arms pre-raid BiS lists, and its
+  item text shows the Classic effect. It falls back to Classic Era, and the item generator
+  renders fallback items' effects from Era spells even when Forever has the same spell.
+  Prefer Forever's spell data (tier 1) there, and revisit the BiS lists.
+- **Snap can't capture a finished run:** `npm run snap -- --click Simulate` doesn't wait for
+  the run to finish. The tank slice used a git-ignored helper (`.cache/tank-snap.mjs`, gone
+  with its worktree). Add a `--wait-result` option before the M2.4 UX review.
 - **The Rotation tab is 27 rows for Fury** (about 3,800 px on a phone). Group it (cooldowns,
   execute phase, core, fillers) in the M2.4 UX review.
 - **Casts don't show in the results:** their breakdown rows deal no damage, so

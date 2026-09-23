@@ -842,9 +842,9 @@ amendment treats a tank's duties: no preset adds the Buffs tab's for the cat
 (`SpecMeta.ownBuffs`). With `faerieFire.enabled` on, the Buffs tab shows it on and locked, since
 you keep it up yourself. With it off, the Buffs tab's is off by default and unlocked, and its help
 says to turn it on if another druid keeps it up. What you set there stays set. In the default
-setup, turning your Faerie Fire off loses **32.92 DPS (−5.80%), 95% CI −33.14 to −32.70** (seed 1,
-40,000 paired fights), and 32.85 (−32.95 to −32.76) on a fresh seed (20260923, 200,000 fights).
-With another druid's Faerie Fire on in Buffs instead, it gains +2.38 (+2.16 to +2.61, seed 1),
+setup, turning your Faerie Fire off loses **32.97 DPS (−5.80%), 95% CI −33.19 to −32.75** (seed 1,
+40,000 paired fights), and 32.92 (−33.02 to −32.82) on a fresh seed (20260923, 200,000 fights).
+With another druid's Faerie Fire on in Buffs instead, it gains +2.40 (+2.17 to +2.62, seed 1),
 since the cat spends no GCDs on it and it's up from the pull. That gain is the raid's composition,
 not the rotation, so under D23 it doesn't change the default, as
 [warrior.md §5.3](warrior.md#53-arms-two-hander) records for Arms' own Battle Shout.

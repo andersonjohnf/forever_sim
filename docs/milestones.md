@@ -58,14 +58,24 @@ Slices ([CLAUDE.md](../CLAUDE.md#working-with-agents-small-slices-fresh-contexts
 The production UX shell is built ([ux.md](ux.md)): spec switcher, Character, Talents, Gear
 with enchants, Buffs, Rotation, Fight, results, persistence and share links. The engine
 work is in slices:
-- [ ] **M2.1 Ability framework + core Fury:**
+- [x] **M2.1 Ability framework + core Fury:**
   - GCD and cooldown events, and the ability kinds (one-roll strike, two-roll melee spell,
     on-next-swing)
   - rage costs and refunds, and the priority-list rotation with option plumbing
   - Bloodthirst, Whirlwind, Heroic Strike and Hamstring, with numbers from
     `src/data/client/spells.json` and doc fallback
   - tests W1, W3, W7, W24, and rotation sanity checks
-- [ ] **M2.2 Complete Fury:**
+- [ ] **M2.2 Complete Fury.** M2.1 left this handoff list:
+  1. talent cost reductions (Heroic Strike 12 rage) and Impale (crit ×2.2)
+  2. Unbridled Wrath on Heroic Strike swings (warrior.md §2.3 default, Q5)
+  3. the execute phase: a phase-start event and the rage dump
+  4. Bloodrage, Berserker Rage, Death Wish, Recklessness (needs a time wake-up), Battle
+     Shout, racials, potion, trinkets and pre-pull actions, which need an aura/energize
+     ability kind
+  5. the remaining §5.2 options
+  6. stance gating, Whirlwind extra targets and Raging Blows
+  7. re-snapshot the goldens, then flip Fury to available
+  The original scope for this slice follows:
   - Execute and the execute phase
   - Bloodrage, Berserker Rage, Death Wish, Recklessness and Battle Shout upkeep
   - racial cooldowns, Mighty Rage Potion and on-use trinkets
@@ -128,8 +138,8 @@ slice is worked:
 - **The buffs doc says Hyjal flasks are "added automatically"** but not which flask.
 - **Bundle size:** 1.73 MB (272 KB gzipped), mostly item data. Consider lazy-loading
   talents per class.
-- **Draft M2 plan types** from a stopped agent: `.cache/handoff/m2-plan-types-draft.patch`
-  (local only). M2.1 may have used it; delete it once M2.1 lands.
+- **Rotation UX:** indent dependent inputs under their toggle, e.g. "Heroic Strike from"
+  under "Heroic Strike". Raise it in the M2.4 UX review.
 - **Pushes:** nothing has been pushed yet; `origin/main` is still the first commit. The first
   push happens at M2.4, after the full review gate.
 

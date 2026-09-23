@@ -111,9 +111,11 @@ export interface SimConfig {
     unmeasuredRatings: 'apply' | 'ignore'
     /**
      * Rage from damage taken (docs/mechanics/rage.md#rage-from-damage-taken). Omitted: the
-     * profile's default (`forever` for Forever, `classic` for Classic Era).
+     * profile's default (`forever` for Forever, `classic` for Classic Era). A setup saved before
+     * the models were renamed may still carry a legacy id; normalizeConfig and buildPlan map it
+     * to today's (`LEGACY_DAMAGE_TAKEN_RAGE` in rules/profiles.ts).
      */
-    damageTakenRage?: DamageTakenRageModel
+    damageTakenRage?: DamageTakenRageModel | LegacyDamageTakenRageModel
   }
   run: {
     /**
@@ -129,8 +131,18 @@ export interface SimConfig {
   }
 }
 
-/** docs/mechanics/rage.md#rage-from-damage-taken */
-export type DamageTakenRageModel = 'forever' | 'classic' | 'foreverHp' | 'foreverHpPreArmor'
+/**
+ * docs/mechanics/rage.md#rage-from-damage-taken: `forever`, 10 × damage before mitigation ÷ max
+ * health (the Forever default); `foreverFlat`, 1.5 × health lost ÷ 230.6; `foreverHealthLost`,
+ * 10 × health lost ÷ max health; `classic`, 2.5 × health lost ÷ 230.6 (the Classic Era default).
+ */
+export type DamageTakenRageModel = 'forever' | 'foreverFlat' | 'foreverHealthLost' | 'classic'
+
+/**
+ * Ids from before the damage-taken models were renamed (M2.4h): `foreverHp` is now
+ * `foreverHealthLost`, and `foreverHpPreArmor` is now `forever`.
+ */
+export type LegacyDamageTakenRageModel = 'foreverHp' | 'foreverHpPreArmor'
 
 // ---------------------------------------------------------------------------
 // Schemas the engine declares and the UI renders.

@@ -1038,9 +1038,10 @@ Notes:
   measurements [magey-thr].
 - **What Forever changes for tanks.** Shield Slam and Revenge do about 1.7–1.9× their Classic
   damage. Focused Rage makes Revenge cost 2 and Sunder 10. Shield Specialization and Master
-  of Defense add 5 rage per avoidance event [F]. But Forever's white-hit rage is normalized and
-  its damage-taken rage looks lower than Classic's, so whether Forever tanks end up richer or
-  poorer in rage is **unverified**: see
+  of Defense add 5 rage per avoidance event [F]. But Forever's white-hit rage is normalized, and
+  its damage-taken rage (`10 × the hit before armor, block and absorbs ÷ max health`, fitted to
+  low-level beta logs [?]) is about a third of Classic's at 60, though blocks no longer cost any
+  of it. So whether Forever tanks end up richer or poorer in rage is **unverified**: see
   [rage.md's reconciliation](../mechanics/rage.md#reconciliation-with-the-warrior-class-doc) and
   its damage-taken question ([rage OQ 1](../mechanics/rage.md#open-questions)). The sim will
   show how much Heroic Strike dumping carries of the TPS.
@@ -1190,8 +1191,11 @@ parts:
   other haste from the next swing (W17). Their fear immunity and Bloodrage's health cost aren't
   simulated.
 - **Damage taken by the cooldowns isn't simulated.** Death Wish (+5%) and Recklessness (+20%)
-  raise damage taken. The DPS stand-in's incoming damage is health lost, which ignores the
-  stance's +10% too, and no tank rotation uses them yet.
+  raise damage taken, and no tank rotation uses them yet. The DPS stand-in's hits are sized
+  before your mitigation ([encounter §4](../mechanics/encounter.md#4-targets-and-position)), so
+  the sim applies neither these nor the stance's +10% to them. For rage that is the Forever
+  default anyway: it reads the hit before damage-taken modifiers [?]
+  ([rage.md](../mechanics/rage.md#forever-)).
 - **Berserker Rage's extra rage from damage taken** uses rage.md's ×1.0 default [?] (Q20), so
   its aura would change nothing and isn't applied. The result flags this when damage is taken.
 - **Eureka! isn't simulated** (Gnome). Its 3 charges would need a per-cast cost and damage
@@ -1219,7 +1223,8 @@ parts:
   same results, bit for bit. A swap switches them: the crit deltas (Berserker Stance's +3% is aura
   crit, and spell crit too in `forever`) re-derive the stats, so crit suppression and the table
   caps apply as usual; the rest are multipliers. A bleed snapshots the stance it was applied in (Rend). Only boss swings use damage
-  taken; the DPS stand-in's hits are health lost and ignore it (below).
+  taken, for the health a hit costs; the DPS stand-in's hits ignore it (below). Forever's rage
+  from damage taken reads the hit before it either way ([rage.md](../mechanics/rage.md#forever-)).
 - **Stance swaps** are off the GCD and share a 1 s cooldown ([§2.1](#21-stances)). Each keeps at
   most the plan's cap: in `forever` 10 + 3 × Improved Tactical Mastery rank, in `classicEra` 5 ×
   the rank of the talent in the same place, Classic's Tactical Mastery
@@ -1625,7 +1630,10 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     (1310196–1310200, [F] [client] (SpellName, 1.60.1.69913)) and carry an extra attribute. Does
     anything else change: cooldown, rage?
 20. **Berserker Rage's extra rage from damage taken.** The Classic formula is for
-    [rage.md](../mechanics/rage.md) to settle. Does Forever change it?
+    [rage.md](../mechanics/rage.md) to settle. Does Forever change it? Forever's rage from damage
+    taken is now `10 × the hit before mitigation ÷ max health` ([rage.md](../mechanics/rage.md#forever-)),
+    and the multiplier stays ×1.0 [?]; a Forever sim's ×2 is its own guess. **Test:** equal hits
+    with and without Berserker Rage ([rage.md open question 1](../mechanics/rage.md#open-questions)).
 21. **Deep Wounds implementation.** ✅ The spell and flags are resolved from client data
     ([client.md][client]): the Classic bleed 12721 doesn't exist in the Forever client, and
     Forever's bleed is spell **412609** (4 ticks, one every 3 s, no periodic-crit flag), which

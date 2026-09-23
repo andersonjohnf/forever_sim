@@ -450,7 +450,11 @@ export interface Plan {
     targetArmor: number
     /** Boss melee on the player (tank specs), or null. */
     bossSwing: BossSwingPlan | null
-    /** Incoming damage for DPS specs: this much every `damageTakenIntervalMs` (0 = none). */
+    /**
+     * Incoming damage for DPS specs: a hit this size every `damageTakenIntervalMs` (0 = none). The
+     * size is before your mitigation, and nothing mitigates it, so it's also the health each hit
+     * costs (encounter.md §4).
+     */
     damageTakenPerHit: number
     damageTakenIntervalMs: number
   }
@@ -472,8 +476,12 @@ export interface Plan {
   armor: number
   rage: {
     maxTenths: number
+    /** Rage from damage taken (rage.md#rage-from-damage-taken; `damageTakenRage` in core/formulas.ts). */
     damageTakenModel: DamageTakenRageModel
-    /** Max health for the health-based damage-taken models. */
+    /**
+     * Max health, which the `forever` and `foreverHealthLost` models divide by. It leaves out base
+     * health while that's unknown (character-stats OQ-2).
+     */
     maxHealth: number
   }
   periodicRage: { periodMs: number; tenths: number; source: number }[]

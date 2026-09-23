@@ -296,14 +296,14 @@ exports[`golden run (fixed config and seed) > keeps the default Protection warri
     [
       "shieldSpecialization",
       0,
-      7232.5,
+      7486,
       0,
       0,
     ],
     [
       "masterOfDefense",
       0,
-      16387.5,
+      16959.5,
       0,
       0,
     ],
@@ -321,9 +321,9 @@ exports[`golden run (fixed config and seed) > keeps the default Protection warri
     "stdev": 12.05069887117212,
   },
   "tps": {
-    "ci95": 1.609465070821774,
-    "mean": 216.97980540150877,
-    "stdev": 18.361935903702587,
+    "ci95": 1.6094349588859609,
+    "mean": 216.98888765675738,
+    "stdev": 18.36159236506645,
   },
 }
 `;

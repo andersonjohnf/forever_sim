@@ -899,7 +899,9 @@ the Route A screenshots once they arrive.
 
 ### OQ-2: base health
 The client has no base-HP game table (no `octbasehp*` file in build 1.60.1.69913, [client]), so
-this stays a sheet measurement.
+this stays a sheet measurement. It now matters to tank rage too: Forever's rage from damage taken
+divides by maximum health ([rage.md](rage.md#forever-)), so while base health is left out, that
+rage comes out high.
 **Route A:** read maximum health from the OQ-1 sheets (divide the Tauren value by 1.05). Then
 `baseHP = HP − 20 − 10 × (Sta − 20)`. *Forbidden-source candidates, not adopted*, from
 the emulator's class table [mz-classlevelstats]: warrior 1689, paladin 1381, druid 1483. The druid value also appears in an

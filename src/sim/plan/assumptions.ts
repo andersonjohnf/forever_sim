@@ -99,12 +99,16 @@ const REGISTRY = {
     docRef: `${RAGE}#forever-normalized-rage-per-swing-`,
   },
   damageTakenRage: {
-    text: 'Rage from damage taken follows the Forever default (1.5 × damage ÷ 230.6), fitted to low-level beta reports.',
-    docRef: `${RAGE}#rage-from-damage-taken`,
+    text: 'Each hit that lands on you gives 10 × its damage before armor, block and absorbs ÷ your maximum health, the fit to about 2,000 hits in low-level beta logs; it’s untested at level 60, and stance damage-taken modifiers are assumed not to change it.',
+    docRef: `${RAGE}#forever-`,
   },
-  damageTakenRageHp: {
-    text: 'Rage from damage taken scales with your maximum health (10 × damage ÷ max health), a third-party fit to low-level beta logs.',
-    docRef: `${RAGE}#rage-from-damage-taken`,
+  damageTakenRageFlat: {
+    text: 'Rage from damage taken uses an earlier fit, 1.5 × health lost ÷ 230.6, which the beta logs don’t support.',
+    docRef: `${RAGE}#forever-`,
+  },
+  damageTakenRageHealthLost: {
+    text: 'Rage from damage taken is 10 × health lost ÷ your maximum health, an alternative to the logged fit, which uses the damage before armor.',
+    docRef: `${RAGE}#forever-`,
   },
   unknownBaseHealth: {
     text: 'Health leaves out base health, which isn’t known for level-60 characters yet.',
@@ -215,7 +219,7 @@ const REGISTRY = {
     docRef: `${ENC}#5-boss-melee-tank-modeling`,
   },
   dpsDamageTaken: {
-    text: 'Incoming damage for a DPS player arrives as one hit every 2 seconds.',
+    text: 'Damage you take arrives as one hit every 2 seconds, sized before your armor, stance and other mitigation, none of which the sim applies to it.',
     docRef: `${ENC}#4-targets-and-position`,
   },
   berserkerRageTaken: {

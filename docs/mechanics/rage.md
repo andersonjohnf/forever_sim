@@ -5,13 +5,14 @@ talents, cooldowns and consumables, and what stance changes and shapeshifts cost
 baseline is well understood (a damage-based formula with conversion constant 230.6 at level 60).
 **WoW Forever replaces it.** Forever beta combat logs show a landed white hit giving a fixed amount
 of rage set by weapon speed (about 3.5 × speed with a one-hander and 4.5 × speed with a
-two-hander). Crits give no extra rage. Misses, dodges and parries give none, and rage from damage
-taken is well below Classic. The beta tracker confirms the normalization is intentional. Forever
+two-hander). Crits give no extra rage. Misses, dodges and parries give none. Each hit you take
+gives `10 × its damage before armor, block and absorbs ÷ your maximum health`, which about 2,000
+logged beta hits fit. The beta tracker confirms the normalization is intentional. Forever
 also adds 5-rage procs on blocks, dodges and parries, and makes Tactical Mastery baseline. Both
 models are documented below. The Forever model is the engine default. It still counts as
 unverified (`[?]`) until it has been measured at level 60.
 
-Status: researched 2026-09-22 · Forever client build 1.60.1.69913 · Classic Era 1.15.9.69722 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
+Status: researched 2026-09-22; rage from damage taken 2026-09-23 (beta logs of 18–22 Sep, build 1.60.1) · Forever client build 1.60.1.69913 · Classic Era 1.15.9.69722 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 
 **Client-data values.** Values cited as `[client] (Table, build)` come from the raw Forever
 client files (build 1.60.1.69913; Classic Era 1.15.9.69722 for the Classic halves), read through
@@ -36,14 +37,20 @@ same number, the tooltip is the primary citation.
     of what it would have hit for. A miss gives 0.
 - **On-next-swing attacks** (Heroic Strike, Cleave, Maul) replace the white swing. The swing
   itself generates no rage, in both models ([yellow-attacks](#yellow-damage-and-on-next-swing-attacks)).
-- **Rage from damage taken**, also switchable ([rage-from-damage-taken](#rage-from-damage-taken)):
-  - `forever` (default, `[?]`): `1.5 × damageTaken / 230.6`.
-  - `classic` `[C]`: `2.5 × damageTaken / 230.6`.
-  - `forever-hp` (`[?]` alternative): `10 × healthLost / maxHealth`.
-  - `forever-hp-prearmor` (`[?]` alternative): `10 × preArmorDamage / maxHealth`, the fit the
-    third-party tester actually reported.
+- **Rage from damage taken**, also switchable ([rage-from-damage-taken](#rage-from-damage-taken)).
+  Every model gives rage per hit that lands on you, and 0 for an attack you avoid (miss, dodge,
+  parry):
+  - `forever` (default, `[?]`): `10 × D_pre / maxHealth`. `D_pre` is the hit's damage before
+    armor, block, absorbs and damage-taken modifiers, with a crit or crushing blow at its
+    multiplied size. So a blocked or absorbed hit gives its full rage, even when it costs no
+    health. Hits from several attackers each count, with no cap.
+  - `classic` `[C]`: `2.5 × healthLost / 230.6`.
+  - `foreverFlat` (`[?]` alternative): `1.5 × healthLost / 230.6`, an earlier low-level fit.
+  - `foreverHealthLost` (`[?]` alternative): `10 × healthLost / maxHealth`.
 
-  In every model, avoided or fully absorbed attacks give 0.
+  The three health-lost models give 0 for a hit that costs no health. Setups saved with the old
+  ids still load: `foreverHp` is now `foreverHealthLost`, and `foreverHpPreArmor` is now
+  `forever`.
 - **Refunds.** A special ability that misses or is dodged or parried refunds 80% of its cost.
   Whirlwind and Cleave never refund. A failed Execute loses its base cost and keeps the extra
   rage ([refunds](#rage-refunds-on-avoided-abilities)).
@@ -56,7 +63,8 @@ same number, the tooltip is the primary citation.
 - **Bear shift**: rage is set to 0, then Furor may add 10.
 - Every rage gain from a spell effect (energize) also produces threat. See
   [threat.md › Threat from power gains](threat.md#threat-from-healing-power-gains-and-buffs).
-  Rage from white hits and from damage taken produces none.
+  Rage from white hits and from damage taken produces none. Whether Forever's damage-taken rage
+  is a hidden energize is open question 1.
 - The expected-value tank model in [tank-model](#rage-model-for-a-tank-being-hit-by-a-boss) is
   there to sanity-check the simulation. The engine itself rolls every event.
 
@@ -131,7 +139,7 @@ k = 3.5  one-handed main hand      (measured 3.45–3.5)
 k = 4.5  two-handed
 crit / glancing / blocked-by-mob: same as a normal hit
 miss, dodge, parry: 0
-attack fully absorbed by a shield: 0
+your attack fully absorbed by the target's shield: 0
 ```
 
 | Evidence | What it shows | Source |
@@ -166,7 +174,7 @@ server-side, so the client tables can't confirm it.
 | Blocked by the mob (bosses can't block from behind) | `7.5 × (dmg − blocked) / c` | `k × speed` |
 | Dodged or parried | `0.75 × 7.5 × wouldBeDmg / c` | 0 |
 | Miss | 0 | 0 |
-| Fully absorbed | 0 [C, community] | 0 ([forever-bugs#78](https://github.com/ClassicWoWCommunity/forever-bugs/issues/78)) [?] |
+| Fully absorbed by the target's shield | 0 [C, community] | 0, by design as a PvP counter, says the tracker's triager closing [forever-bugs#78](https://github.com/ClassicWoWCommunity/forever-bugs/issues/78) (2026-09-23) [?]. The hit's victim still gains rage ([damage taken](#forever-)). |
 
 Attack-table probabilities, glancing, and a mob blocking your attacks are covered in
 [combat-tables.md](combat-tables.md).
@@ -209,47 +217,82 @@ rage = 2.5 × damageTaken / c(L)      // c(60) = 230.6  →  1 rage per 92.24 da
   that misses you. [C] Classic players stated this in the
   [2019 thread](https://us.forums.blizzard.com/en/wow/t/does-armor-effect-rage-generation/319913),
   and the formula appears in the Kalgan post quoted there. Confidence: medium. The community
-  agrees on it, but we found no controlled 1.13 test. A blocked hit gives rage for the unblocked
-  part.
+  agrees on it, but we found no controlled 1.13 test. In Classic Era a blocked hit gives rage for
+  its unblocked part only. **Forever differs on both blocks and absorbs** ([Forever](#forever-)).
 - **Berserker Rage**'s "generating extra rage when taking damage": **the multiplier is unknown
   for Classic Era.** Tooltips give no number. The only number we found comes from a forbidden
   private-server emulator (see [Open questions](#open-questions)). Engine default: ×1.0, flagged
   `[?]`. This is the question [warrior.md Q20](../classes/warrior.md#9-open-questions) hands to
-  this doc.
+  this doc. For Forever, [wowsims/forever f9f9f21883][wsf-rage] doubles it, marked as its own
+  guess ("TODO: Ingame test needed"). That is a secondary source's guess, so it isn't adopted
+  either.
 
 ### Forever [?]
 
-Beta testers report rage from damage taken is **well below Classic**, and the formula is not
-settled ([forever-bugs#72](https://github.com/ClassicWoWCommunity/forever-bugs/issues/72), opened
-2026-09-22):
+```
+rage per hit that lands on you = 10 × D_pre / maxHealth
+D_pre = the hit's damage before armor, block, absorbs and damage-taken modifiers
+        (a crit or crushing blow at its multiplied size [?])
+blocked, partly or fully:   full rage (D_pre is unchanged)
+absorbed, partly or fully:  full rage [?]
+miss, dodge, parry:         0
+several attackers:          each hit counts; no cap and no internal cooldown (18 Sep build)
+```
 
-| Observation (all at levels 1–20) | Source |
-| --- | --- |
-| "Roughly a single point of rage per 5% health lost" (with videos) | issue #72 body |
-| ~0.02 rage per damage taken at level 20, against mobs hitting for 1–2, 16–18 and 80–90 | issue #72, sebwib |
-| Level 1: 106 health lost → ~21 rage (Classic predicts 35.3). The tester fits `damageTaken / c × 1.5`. | issue #72, Atsumito |
-| Rage per pre-armor damage point falls ~50% as armor rises from 52 to 170+. The tester fits a Cataclysm-style `10 × preArmorDamage / maxHealth`, with no rage from avoided hits, and the same fit (doubled below ~130–170 armor, "possibly a bug") in a second write-up with logs. | issue #72, 1337LutZ; [magey/forever-warrior#3](https://github.com/magey/forever-warrior/issues/3) |
-| Hits absorbed by Power Word: Shield give 0 rage | [forever-bugs#78](https://github.com/ClassicWoWCommunity/forever-bugs/issues/78) |
+**Method.** On 2026-09-23 we re-read the public beta logs in [tzcnt/forever-data @c7d1746][fd-logs]
+(7 logs of 18–19 Sep 2026, build 1.60.1, many unrelated players) and 1337LutZ's 12 logs
+([gist][lutz-gist], 22 Sep 2026, one warrior at levels 8–9). For each clean hit on a rage user,
+with no other rage source between two power snapshots, the **ratio** is the rage gained (read in
+tenths from the advanced log's power snapshot at `SWING_DAMAGE_LANDED`) ÷ `10 × D_pre /
+maxHealth`. `D_pre` is the event's unmitigated amount (its second damage field: before armor,
+block and absorbs). A ratio of 1.0 is the formula. The **factor** is `rage × maxHealth ÷ D_pre`,
+so 10 is the formula.
 
-Both fits agree at level 20 (about 0.02 rage per damage). At 60 they are far apart. A tank with
-7,000 health taking 1,000 damage gets 6.5 rage under `1.5/c` but about 1.4 under `10/maxHP`.
+| What | Evidence (third-party beta logs, levels about 5–25) | Tag, source |
+| --- | --- | --- |
+| The formula | About 2,000 clean hits on about 50 rage users, maximum health 155–730, armor 170 or more. The factor stays flat as maximum health rises: 9.75, 9.64, 9.84 and 9.91 by health band, and 9.8 at 400–449. Fitted to the damage **after** armor instead, it drifts from 12.8 to over 14.8. A flat rate per point of damage doesn't fit either: rage per point before armor falls from 0.055 to 0.022 as maximum health rises. 1337LutZ fitted the same formula to his own logs. | [?] [fd-logs], [lutz-gist]; [forever-bugs#72][fb72]; [magey/forever-warrior#3][fw3] |
+| Blocked hits give full rage | 74 blocked hits on 22 players: median ratio 0.97 against the full `D_pre`, but 1.24 against the unblocked part alone. For example a hit of 8 blocked down to 1 gave +0.3 rage, where the full 8 predicts 0.26. The gist's log 01 shows the same: hits of 5 and 6 before mitigation, blocked down to 1, gave +0.3 rage each. | [?] [fd-logs], [lutz-gist] |
+| Absorbed hits give rage | 2 fully absorbed hits on one player gave +0.3 and +0.2 rage, against 0.29 and 0.32 predicted. The tracker's triager closed [forever-bugs#78][fb78] as "[Incorrect Report]" on 2026-09-23: in their tests a warrior hit through Power Word: Shield still got "0 to 2 Rage". Forum reports disagree. Two say warriors still get rage under the shield and bears in form get none ([US 2354715 #2][f-pws1], [US 2356535 #1][f-pws2]); one says the shield does prevent it ([US 2358789 #2][f-pws3]). | [?] 2 hits; bears may differ (open question 1) |
+| Several attackers each count | Median ratio with 1 attacker in 3 s: 0.97 (1,706 hits). With 2: 0.97 (260). With 3 or more: 0.98 (110). With 2 or more other mobs hitting within 1 s: 0.98 (67 hits, 97% of them between 0.7 and 1.4). When the previous hit came from a different mob under 0.35 s earlier: 0.98 (106). In the heaviest window 5–7 Kobolds hit one warrior 10 times in under 3 s, for 43.6% of his 195 maximum health before armor: +4.4 rage, against 4.36 predicted. Across multi-attacker 3 s windows worth 20–50% of maximum health, the median ratio is 1.00 (42 windows). No other source measured it; one forum post feels two mobs give too little rage ([US 2353811 #103][f-2mobs]). | [?] measured on the **18 Sep build** only; the beta updates weekly (next 2026-09-24) |
+| Low armor doubles it | Below about 122–154 armor, rage per hit roughly doubles. Two characters at 122–123 armor show 1.85× and 2.3×, and 138–154 armor is mixed (0.8–2.2×). The threshold is probably a mitigation percentage, so it moves with the attacker's level. 1337LutZ saw the same below ~130–170 armor and suspects a bug. **Not modelled:** a level-60 tank's armor is far above it. | [?] [fd-logs]; [fw3] |
+| Player reports | "Getting hit by mobs no longer generates any rage" ([EU 630258][f-eu1], [EU 630912][f-eu2]); "every forth attack against the warrior generates 1 rage" ([US 2358514 #1][f-4th]); about 10 hits of 4–5 damage per rage when geared ([US 2355684 #25][f-geared]). All fit the formula's size at low level: a 5-damage hit on 200 maximum health gives 0.25 rage. | [?] impressions |
+| Bears | 33 hits on 4 players who are likely bears (armor 900 or more): median ratio 0.93. Weak evidence that bears use the same formula. | [?] [fd-logs]; open question 3 |
 
-- **Engine default `forever`:** `rage = 1.5 × damageTaken / c(L)`, using health actually lost.
-  This is the smallest change that fits the data: all low-level reports come out at about 0.6 ×
-  Classic.
-- **Engine alternative `forever-hp`:** `rage = 10 × damageTaken / maxHealth`, using health lost.
-  A UI toggle lets the guild see how much prot TPS depends on this choice.
-- **Engine alternative `forever-hp-prearmor`:** `rage = 10 × preArmorDamage / maxHealth`. This is
-  what the evidence actually says: both of 1337LutZ's write-ups fit **pre-armor** damage
-  (checked 2026-09-22 against [forever-bugs#72](https://github.com/ClassicWoWCommunity/forever-bugs/issues/72)
-  and [magey/forever-warrior#3](https://github.com/magey/forever-warrior/issues/3)). The reported
-  doubling below ~130–170 armor is not modelled: tanks at 60 are far above it, and the tester
-  suspects a bug. Blocked hits count only their unblocked part [?]. See
-  [Open questions](#open-questions).
-- Attacks you avoid give 0 in all models.
+The logs show no Berserker Rage or Defensive Stance hits, so neither is measured. White-swing
+rage is unchanged by this analysis ([above](#forever-normalized-rage-per-swing-)).
 
-Rage from damage taken is the least certain number in this doc for Forever tanks. It is the first
-item under [Open questions](#open-questions).
+- **What's measured** (third-party, so `[?]`): the formula at levels about 5–25 on the 18 Sep
+  build; full rage from blocked hits; rage from absorbed hits (2 hits); no cap or internal
+  cooldown with several attackers; no rage from avoided attacks.
+- **What's assumed** `[?]`:
+  - It holds at level 60, where a tank has 6,000–8,000 maximum health and takes 4,000–6,000 per
+    boss hit before armor. **The logs can't tell maximum health from a level term**: both rose
+    together in them. A term in level instead of health would change level-60 rage.
+  - Damage-taken modifiers (Defensive Stance −10%, Berserker Stance +10%, Death Wish +5%,
+    Recklessness +20%) don't change `D_pre`: the log's unmitigated amount, which the rage
+    follows, is the hit before all mitigation. Untested: the logs show no hits in those stances.
+  - A crit counts at 2 × and a crushing blow at 1.5 × the hit's `D_pre`.
+  - Several attackers still count in full on later builds.
+- **The sim's maximum health leaves out base health**, which isn't known at 60
+  ([character-stats OQ-2](character-stats.md#oq-2-base-health)). Since `forever` divides by it,
+  its rage per hit comes out high until base health is known. The result says so.
+- **At level 60** this gives much less than Classic Era. A 5,000 boss hit before armor gives a
+  7,000-health tank `10 × 5000 / 7000` = 7.1 rage. Classic Era's model gives 19.8 for the same hit
+  after 10,000 armor (1,826 lost).
+
+**Engine models** (`damageTakenRage` in `src/sim/core/formulas.ts`). A setup can pick any of them
+in its rules (`rules.damageTakenRage`), though the app has no control for it yet:
+
+- **`forever`** (the Forever default): `10 × D_pre / maxHealth`, as above.
+- **`foreverFlat`**: `1.5 × healthLost / c(L)`. It was the default until 2026-09-23, fitted to the
+  earliest low-level reports on [forever-bugs#72][fb72] (about 0.6 × Classic). The logs don't
+  support it: rage per damage moves with maximum health.
+- **`foreverHealthLost`**: `10 × healthLost / maxHealth`. The same shape fitted to the damage after
+  armor, which the logs don't support either.
+- **`classic`** (the Classic Era default): see [above](#classic-era-c).
+
+Rage from damage taken is still the least certain rage number for Forever tanks at 60. Open
+question 1 lists the tests that would settle it.
 
 ---
 
@@ -331,7 +374,7 @@ Rage changes nothing else about stances. Stance threat and damage modifiers are 
 | Shifting into Bear or Dire Bear Form | Rage set to 0 | Assumed the same | [C] common Classic knowledge; Forever untested [?] |
 | Furor (5 ranks) | 20% per rank to gain 10 rage on shifting to bear | Same bear effect (Cat part reworked) | [F] [client] (CurvePoint, SpellEffect, 1.60.1.69913): curve 20…100, 17057 energize 100; [C] |
 | Rage from bear white hits | `7.5 × dmg / c` (same formula as warriors; bear attack speed 2.5 s) | Assumed `3.5 × 2.5` = 8.75 per landed auto, crits no bonus | [C]; Forever [?] (see [Forever model](#forever-normalized-rage-per-swing-)) |
-| Rage from damage taken | `2.5 × dmg / c` | Same model as warriors (`1.5 × dmg / c` default) | [C]; Forever [?] |
+| Rage from damage taken | `2.5 × dmg / c` | Same model as warriors (`10 × D_pre / maxHealth`). 33 logged hits on likely bears fit it at a median ratio of 0.93. Whether Power Word: Shield stops it for bears is open. | [C]; Forever [?] ([damage taken](#forever-), open question 3) |
 | Maul | On-next-swing; the replaced swing gives no rage | Same | [C]; [F] spell unchanged (DB2 9881) |
 | Enrage (1 min CD, 10 s, lowers armor) | 20 rage over 10 s (2 rage/s) | **10 rage now, plus 20 over 10 s (30 total)** | [F] [client] (SpellEffect, 1.60.1.69913): 5229 energize 100 + periodic 20/s; [C] periodic only |
 | Improved Enrage | +5 / +10 instant | Removed (folded into Enrage) | [F] [class/druid](https://foreverchanges.pro/class/druid) |
@@ -357,8 +400,11 @@ where rage comes from. With a boss swing interval `T_boss` (after Thunder Clap's
 
 ```
 per boss swing (warrior):
-  R_taken  = Σ_o P(o) × f(D_o)          // o ∈ {hit, crit, crush, block}; D_o = health lost
-                                        // f = damage-taken model (Forever 1.5/c · Classic 2.5/c · forever-hp · forever-hp-prearmor)
+  R_taken  = Σ_o P(o) × f(D_o)          // o ∈ {hit, crit, crush, block}
+                                        // forever: f = 10 × D_o / maxHealth, D_o = the swing before armor, block
+                                        //   and Defensive Stance (×2 crit, ×1.5 crush). A block doesn't lower it.
+                                        // classic 2.5/c · foreverFlat 1.5/c · foreverHealthLost 10/maxHealth:
+                                        //   D_o = health lost, after armor, stance and block
   R_block  = P(block) × 5 × 0.2 × rank_ShieldSpec          // Forever; Classic: × 1 rage
   R_avoid  = (P(dodge) + P(parry)) × 5 × 0.5 × rank_MoD     // Forever, shield equipped
 rage_per_sec_boss = (R_taken + R_block + R_avoid) / T_boss
@@ -374,8 +420,10 @@ For a bear, replace `R_block` and `R_avoid` with Natural Reaction `P(dodge) × 5
 add Primal Fury `P(crit on your attacks) × 5 × 0.5 × rank` for each attack you make.
 
 **What this means.** A Forever prot warrior gets much of its rage from avoidance and blocks
-(5 per proc) and much less from damage taken. Block, dodge and parry now raise rage income
-directly. For a Classic tank, rage income is dominated by damage taken.
+(5 per proc) and much less from damage taken: a 5,000 boss hit before armor gives a 7,000-health
+tank 7.1 rage, where Classic Era gives 19.8 after 10,000 armor. Block, dodge and parry now raise
+rage income directly, and a block no longer costs the hit's rage. Stamina lowers rage per hit.
+For a Classic tank, rage income is dominated by damage taken.
 
 ---
 
@@ -384,7 +432,7 @@ directly. For a Classic tank, rage income is dominated by damage taken.
 | Topic | Classic Era | Forever | Tag |
 | --- | --- | --- | --- |
 | White-hit rage | `7.5 × dmg / 230.6`; crits ×2; dodges and parries 75% | `3.5 / 4.5 × weapon speed` per landed hit; crits no bonus; dodges and parries 0 | [?] measured by third parties, low level ([#252](https://github.com/ElliotWood/Forever/issues/252), [#47](https://github.com/ClassicWoWCommunity/forever-bugs/issues/47)) |
-| Rage from damage taken | `2.5 × dmg / 230.6` | Much lower. Formula unsettled (`1.5/c` or `∝ 1/maxHealth`). | [?] ([#72](https://github.com/ClassicWoWCommunity/forever-bugs/issues/72)) |
+| Rage from damage taken | `2.5 × health lost / 230.6`; a block or absorb lowers it | `10 × damage before armor, block and absorbs ÷ max health`: blocked and absorbed hits give full rage, and several attackers each count. Much lower at 60. | [?] third-party beta logs at levels ~5–25 ([damage taken](#forever-); [fd-logs], [#72][fb72], [#78][fb78]) |
 | Tactical Mastery | Arms talent, 5–25 | Trained at 14, retains 10; Improved Tactical Mastery +3 per rank (25 at 5/5) | [F] |
 | Shield Specialization | 1 rage per proc | 5 rage per proc (100% at 5/5) | [F] |
 | Master of Defense | — | 5 rage on dodge or parry with a shield (100% at 2/2) | [F] |
@@ -424,7 +472,7 @@ owns the warrior-specific modifiers. The two docs were checked against each othe
 | Topic | warrior.md | This doc | Resolution |
 | --- | --- | --- | --- |
 | Cleave refund | Now lists Whirlwind, Cleave and Execute as exceptions (2026-09-22) | No refund (Magey issue #27 video) | This doc owns refunds, so **Cleave does not refund**. Resolved in warrior.md §2.3. |
-| Rage from white hits and damage taken in Forever | Defers to this doc. §5.4 used to expect Forever tanks to "run far richer in rage than Classic tanks"; it now links here and calls the outlook unverified (2026-09-22). | Forever white-hit rage is **normalized per swing**, and damage-taken rage is **~0.6× Classic or lower** (evidence from 2026-09-18 to 09-22, after warrior.md was researched) | The 5-rage procs are real [F], but the rage from white hits and damage taken is lower. Whether Forever tanks end up richer or poorer in rage than Classic depends on gear and avoidance, and stays unverified until the sim runs both models. Resolved in warrior.md. |
+| Rage from white hits and damage taken in Forever | Defers to this doc. §5.4 used to expect Forever tanks to "run far richer in rage than Classic tanks"; it now links here and calls the outlook unverified (2026-09-22). | Forever white-hit rage is **normalized per swing**, and damage-taken rage is **`10 × damage before mitigation ÷ max health`**, about a third of Classic's for a level-60 tank (evidence from 2026-09-18 to 09-23, after warrior.md was researched) | The 5-rage procs are real [F], but the rage from white hits and damage taken is lower. Whether Forever tanks end up richer or poorer in rage than Classic depends on gear and avoidance, and stays unverified until the sim runs both models. Resolved in warrior.md. |
 | Dodge rage for the off hand | "including dodge rage" (Classic mode) | Classic: dodged white swings give 75%. Forever: 0 | Consistent: dodge rage exists only in `classic` mode. |
 
 ---
@@ -449,7 +497,9 @@ owns the warrior-specific modifiers. The two docs were checked against each othe
 4. **Boss swing resolves.** Add rage from damage taken, then any procs (Shield Specialization,
    Master of Defense, Natural Reaction), in the same event. Near the cap the order decides which
    rage is lost: a blocked hit's own rage fills the bar first, so Shield Specialization's 5 (an
-   energize, 5 threat per rage) gains, and threatens, only what room is left.
+   energize, 5 threat per rage) gains, and threatens, only what room is left. In `forever` a
+   blocked hit's rage is that of its full `D_pre`, even when the block leaves no damage. Procs
+   on damage taken (Enrage) need a hit that costs health.
 5. **Periodic sources** (Bloodrage, Enrage, Anger Management) tick on their own timers. Anger
    Management ticks every 3000 ms from the start of combat. The phase is assumed, not measured.
 6. Changing stance applies `min(rage, retain)` at the moment you swap.
@@ -484,15 +534,16 @@ function whiteHitRage(o: Outcome, hand: Hand, w: Weapon, dmgDealt: number, would
   return 7.5 * dmgDealt / c;                         // hit, crit, glance, blocked-by-mob
 }
 
-// docs/mechanics/rage.md#rage-from-damage-taken
-function damageTakenRage(healthLost: number, preArmorDamage: number, cfg: RageCfg, maxHealth: number): number {
-  if (healthLost <= 0) return 0;                     // avoided or fully absorbed
+// docs/mechanics/rage.md#rage-from-damage-taken. Called for hits that land on you: an attack
+// you miss, dodge or parry never gets here. dPre = the hit before armor, block, absorbs and
+// damage-taken modifiers (a crit or crushing blow at its multiplied size).
+function damageTakenRage(healthLost: number, dPre: number, cfg: RageCfg, maxHealth: number): number {
   const c = rageConversion(cfg.level);
   switch (cfg.takenModel) {
-    case 'forever':    return 1.5 * healthLost / c;          // [?] default
-    case 'forever-hp': return 10 * healthLost / maxHealth;   // [?] alternative
-    case 'forever-hp-prearmor': return 10 * preArmorDamage / maxHealth; // [?] alternative (the reported fit)
-    case 'classic':    return 2.5 * healthLost / c * cfg.berserkerRageMult; // [C]; mult [?] = 1.0
+    case 'forever':           return dPre > 0 ? 10 * dPre / maxHealth : 0;         // [?] default; blocked or absorbed: full
+    case 'foreverFlat':       return healthLost > 0 ? 1.5 * healthLost / c : 0;    // [?] alternative
+    case 'foreverHealthLost': return healthLost > 0 ? 10 * healthLost / maxHealth : 0; // [?] alternative
+    case 'classic':           return healthLost > 0 ? 2.5 * healthLost / c * cfg.berserkerRageMult : 0; // [C]; mult [?] = 1.0
   }
 }
 ```
@@ -526,9 +577,14 @@ Each of these becomes a unit test. Use level 60 and `c = 230.6` unless stated ot
 | R8 | Forever: off-hand 1.8 s; base, then with 5/5 DWS (×2.0, [warrior.md W23](../classes/warrior.md#w23-off-hand-rage-with-dual-wield-specialization-55)) | Base 1.8 × 3.5 × 0.5 = **3.15**; with 5/5 DWS **6.3** |
 | R9 | Forever: any white swing dodged or parried | **0** |
 | R10 | Classic: 1,000 health lost to a boss hit | 1000 × 2.5 / 230.6 = **10.841** |
-| R11 | Forever default: 1,000 health lost | 1000 × 1.5 / 230.6 = **6.505** |
-| R12 | Forever `forever-hp`: 1,000 health lost, maximum health 7,000 | 10 × 1000 / 7000 = **1.429** |
-| R12b | Forever `forever-hp-prearmor`: a 2,000 pre-armor hit that costs 1,000 health, maximum health 7,000 | 10 × 2000 / 7000 = **2.857** |
+| R11 | `foreverFlat`: 1,000 health lost | 1000 × 1.5 / 230.6 = **6.505** |
+| R11b | `foreverHealthLost`: 1,000 health lost, maximum health 7,000 | 10 × 1000 / 7000 = **1.429** |
+| R12 | Forever default (`forever`): a hit of 2,000 before mitigation that costs 1,000 health, maximum health 7,000 | 10 × 2000 / 7000 = **2.857** |
+| R12a | Forever default: maximum health 195; 10 hits from 5–7 attackers in under 3 s, 43.6% of maximum health before armor in all (the logged Kobold window) | 10 × 0.436 = **+4.36** rage (logged: +4.4). Each hit counts: no cap, no internal cooldown. |
+| R12b | Forever default: a hit of 8 before mitigation, blocked down to 1, maximum health 200 | 10 × 8 / 200 = **0.4**, the rage of all 8 (the unblocked 1 alone would give 0.05) |
+| R12c | Forever default: a hit of 50 before mitigation, fully absorbed, maximum health 1,000 | 10 × 50 / 1000 = **0.5**. The health-lost models give **0**. |
+| R12d | Any model: an attack you miss, dodge or parry | **0** |
+| R12e | Forever default at 60: a boss hit of 5,000 before armor (1,826.4 after 10,000 armor), maximum health 7,000; then its crit and crushing blow | **7.143**; crit (10,000) **14.286**; crushing (7,500) **10.714** |
 | R13 | Heroic Strike queued with rage = 14 and cost = 15 at swing time | HS dequeued; white swing resolves and gives normal white rage |
 | R14 | Heroic Strike (cost 12) dodged | Rage after = rage before − 12 + 9.6 (net −2.4); no white rage |
 | R15 | Cleave (cost 20) parried | Net −20 (no refund) |
@@ -539,8 +595,9 @@ Each of these becomes a unit test. Use level 60 and `c = 230.6` unless stated ot
 | R20 | Forever druid Enrage | +10 at cast, then +2 every 1 s for 10 s (**30** total) |
 | R21 | Rage 95, gain 10, cap 100 (no Boundless Rage) | Rage 100; 5 counted as gained (for threat) |
 | R22 | Rage 95, gain 10, Boundless Rage 3/3 (cap 130) | Rage 105 |
-| R23 | Tank model, Forever. Boss swings every 2.0 s. Outcomes: miss 5%, dodge 15%, parry 15%, block 25% (1,050 lost), hit 40% (1,200 lost). Classic damage-taken model, Shield Specialization 5/5, Master of Defense 2/2. | R_taken = 0.40 × 13.0095 + 0.25 × 11.3833 = 8.0497. R_block = 1.25. R_avoid = 1.5. Per swing **10.7997**; **5.3998 rage/s** |
-| R24 | Same as R23 with the Forever default (`1.5/c`) | R_taken = 8.0497 × 0.6 = 4.8298. Per swing 7.5798; **3.7899 rage/s** |
+| R23 | Tank model, Forever. Boss swings every 2.0 s for 3,000 before armor. Outcomes: miss 5%, dodge 15%, parry 15%, block 25% (1,050 lost), hit 40% (1,200 lost after armor and Defensive Stance). Classic damage-taken model, Shield Specialization 5/5, Master of Defense 2/2. | R_taken = 0.40 × 13.0095 + 0.25 × 11.3833 = 8.0497. R_block = 1.25. R_avoid = 1.5. Per swing **10.7997**; **5.3998 rage/s** |
+| R24 | Same as R23 with the Forever default, maximum health 7,000. The block doesn't lower the hit's rage. | R_taken = (0.40 + 0.25) × 10 × 3000 / 7000 = 2.7857. Per swing 5.5357; **2.7679 rage/s** |
+| R24b | Same as R23 with `foreverFlat` (`1.5/c`) | R_taken = 8.0497 × 0.6 = 4.8298. Per swing 7.5798; **3.7899 rage/s** |
 | R25 | Execute (cost 15) dodged at 50 rage | Rage after = **35** (the cost is lost, the extra 35 is kept, no refund) |
 | R26 | Execute (cost 15) hits at 50 rage | Rage after = **0** (the damage uses 35 extra rage; see warrior.md W10) |
 
@@ -551,23 +608,42 @@ Each of these becomes a unit test. Use level 60 and `c = 230.6` unless stated ot
 Each item says what to measure on the Forever beta. Record results with build, date, method and
 sample size (doctrine §2, tier 2).
 
-1. **Rage from damage taken at level 60 (highest priority for tank TPS).** Take ≥50 hits from
-   one mob type and log `UNIT_POWER_UPDATE` and combat-log damage.
-   - Repeat at two different maximum health values (swap Stamina gear or buffs, same armor) and
-     two armor values (same maximum health).
-   - Rage per damage changes with maximum health → a `forever-hp` model. Then check whether it
-     follows the hit's **pre-armor** size (`forever-hp-prearmor`, what the third-party logs fit)
-     or the health actually lost (`forever-hp`): compare two armor values at the same maximum
-     health.
-   - It changes only with health actually lost → the `1.5/c` model. Also measure the constant.
-   - Note whether the reported doubling below ~130–170 armor still happens.
+1. **Rage from damage taken: confirm the logged fit (highest priority for tank TPS).** The
+   default, `10 × D_pre / maxHealth`, fits third-party logs at levels about 5–25 on the 18 Sep
+   build ([Forever](#forever-)). Turn on advanced combat logging and log `/combatlog` with
+   `UNIT_POWER_UPDATE`. For each hit, record the log's unmitigated amount, the health lost, any
+   blocked or absorbed amount, and your maximum health, armor and level. Take ≥50 hits per
+   condition. The tests:
+   - **Several attackers on the current build** (2026-09-24 or later): rage per hit from 1 mob,
+     then from 3 or more at once. The 18 Sep logs show no cap or internal cooldown; a newer build
+     could add one.
+   - **Maximum health or level:** at one level, change maximum health (Stamina gear, Power Word:
+     Fortitude) with armor held; then compare two levels at about the same maximum health. The
+     logs can't tell the two apart, since both rose together in them.
+   - **Berserker Rage** on and off, against the same mobs (item 5).
+   - **Defensive Stance** against Battle Stance: does its −10% damage taken lower the rage? The
+     default says no.
+   - **Mob crits and crushing blows:** rage per crit or crush against a plain hit's. The default
+     counts them at 2 × and 1.5 × `D_pre`.
+   - **Power Word: Shield**, on a warrior and on a bear in form: rage from fully absorbed hits.
+     Two logged hits and the tracker's triager say warriors still get it; forum reports
+     disagree, and say bears get none.
+   - **Bears:** rage per hit taken in Bear Form (item 3).
+   - **A hidden energize:** does the combat log show the damage-taken rage as a
+     `SPELL_ENERGIZE` with its own spell ID? If so, look the ID up in the client data, and check
+     whether it makes threat as energizes do ([threat.md](threat.md#threat-from-healing-power-gains-and-buffs)).
+   - Note whether the doubling below ~122–154 armor still happens, and at what mitigation.
 2. **White-hit rage at level 60.**
    - Confirm `k = 3.5 / 4.5` and pin down the 1H constant (3.45 vs 3.5).
    - Hasted or base speed: log with and without Flurry or a haste effect.
    - The off-hand base rate: 50% or 100%, and how DWS scales it.
    - Whether extra attacks (Windfury, Sword Weaponmaster, Reckoning) give rage.
 3. **Bear rage.** Does normalization apply? If so, with what factor per landed bear auto (the
-   default 3.5 × 2.5 = 8.75)? Does the damage-taken change apply to bears too?
+   default 3.5 × 2.5 = 8.75)? One player reports "11 rage per hit no matter what, 1 rage when i
+   get hit" ([US 2355684 #97][f-bear]); one anecdote, so the default stays. Log landed bear autos
+   and the rage each gives. Does the damage-taken formula apply to bears too? 33 logged hits on
+   likely bears fit it at a median ratio of 0.93 ([Forever](#forever-)); log rage per hit taken in
+   Bear Form as in item 1.
 4. **Refunds in Forever**: miss/dodge/parry refund percentage, and which abilities are exempt.
    Specifically:
    - Does Cleave refund? Magey says no; WarriorSim says yes.
@@ -577,7 +653,9 @@ sample size (doctrine §2, tier 2).
 5. **Berserker Rage multiplier on damage-taken rage.** We only found it in forbidden code, so it
    is **not adopted**: the vmangos emulator uses `addRage *= 1.3f` when aura 18499 is present
    ([vmangos Player.cpp `RewardRage`](https://github.com/vmangos/core/blob/development/src/game/Objects/Player.cpp)).
-   Test: take a series of equal hits with and without Berserker Rage active.
+   For Forever, [wowsims/forever f9f9f21883][wsf-rage] uses ×2 as its own guess ("TODO: Ingame
+   test needed"), also not adopted. Test: take a series of equal hits with and without Berserker
+   Rage active.
 6. **Shapeshift rage reset.** Does shifting to bear still set rage to 0 in Forever?
 7. **Anger Management tick phase**: from the start of combat, or from when the talent is gained.
    It is a minor issue.
@@ -595,7 +673,11 @@ sample size (doctrine §2, tier 2).
 | [docs/classes/warrior.md](../classes/warrior.md) §2.3, §3.1, Q5, Q17, Q18, Q20 | Warrior-specific rage modifiers, cost reductions, the Execute rule, and the DWS off-hand multiplier | Project doc (reconciled above) |
 | [GuybrushGit/WarriorSim @ad5ac8b (Classic mode) › spell.js](https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/classes/spell.js) | Refund flags: default 80%, Whirlwind and Execute none, Cleave on the default | Classic Era mode (the SoD mode is not used) |
 | [ElliotWood/Forever#252](https://github.com/ElliotWood/Forever/issues/252) | Beta combat-log measurement: rage per landed white hit ∝ weapon speed (63 pairs, 9 warriors, levels 10–15) | Forever (third-party measurement) |
-| [ClassicWoWCommunity/forever-bugs #47](https://github.com/ClassicWoWCommunity/forever-bugs/issues/47), [#72](https://github.com/ClassicWoWCommunity/forever-bugs/issues/72), [#78](https://github.com/ClassicWoWCommunity/forever-bugs/issues/78) | Crit normalization "intentional"; damage-taken rage measurements and fits; absorbs give 0 rage | Forever (community tracker) |
+| [ClassicWoWCommunity/forever-bugs #47](https://github.com/ClassicWoWCommunity/forever-bugs/issues/47), [#72][fb72], [#78][fb78] | Crit normalization "intentional"; damage-taken rage measurements and fits; #78, closed 2026-09-23 as "[Incorrect Report]": a warrior hit through Power Word: Shield still gains rage, and hitting a shielded target gives none, by design | Forever (community tracker) |
+| [tzcnt/forever-data @c7d1746 › raw-logs][fd-logs] | 7 public advanced combat logs, 18–19 Sep 2026, build 1.60.1, many players: our 2026-09-23 re-analysis of rage from damage taken (about 2,000 hits; blocks, absorbs, several attackers, low armor, likely bears) | Forever (third-party logs) |
+| [1337LutZ's logs (gist)][lutz-gist] and [magey/forever-warrior#3][fw3] | 12 logs of one warrior at levels 8–9 (22 Sep 2026), and his write-up fitting `10 × damage before armor ÷ max health` | Forever (third-party measurement) |
+| [wowsims/forever f9f9f21883][wsf-rage] | A Forever sim's rage port (1337LutZ, 2026-09-22): 3.46 / 4.5, off hand half, damage taken as `10 × damage before armor ÷ max health`, Berserker Rage ×2 as a guess | Forever (secondary sim) |
+| Blizzard forums, Forever beta: [US 2354715 #2][f-pws1], [US 2356535 #1][f-pws2], [US 2358789 #2][f-pws3], [US 2353811 #103][f-2mobs], [US 2358514 #1][f-4th], [US 2355684 #25][f-geared], [US 2355684 #97][f-bear], [EU 630258][f-eu1], [EU 630912][f-eu2] | Player impressions: Power Word: Shield and rage, several mobs, low rage from being hit, a bear's ~11 rage per auto | Forever beta (anecdotal) |
 | [Blizzard forums: "Warrior Rage Normalization"](https://us.forums.blizzard.com/en/wow/t/warrior-rage-normalization-auto-attack-crits-dont-generate-extra-rage/2355684) | Player observations: per-swing rage, crits, HS swing gives 0 | Forever beta |
 | [tzcnt/WarriorSim › data/forever/RAGE_GAIN.md](https://github.com/tzcnt/WarriorSim/blob/master/data/forever/RAGE_GAIN.md) | Independent Forever measurement (3.46 / 4.5 per second of weapon speed); off-hand assumptions | Forever (third-party) |
 | [GuybrushGit/WarriorSim @180a3cc (May 2021) › player.js](https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/player.js) | Classic 1.13 rage model: 7.5/230.6, dodge 75%, 80% refunds, Unbridled Wrath on autos/HS | Classic Era (the 2021 revision; later commits add SoD, not used) |
@@ -606,3 +688,18 @@ sample size (doctrine §2, tier 2).
 | [vmangos core › Player.cpp](https://github.com/vmangos/core/blob/development/src/game/Objects/Player.cpp) | Berserker Rage ×1.3. **Forbidden source: recorded only as an open question, not adopted.** | Private-server emulator (forbidden) |
 
 [client]: ../data/client.md#doc-claims-checked-against-the-raw-client
+[fd-logs]: https://github.com/tzcnt/forever-data/tree/c7d17462c50d1eb0103aa5e2aff52f77f33e3418/raw-logs
+[lutz-gist]: https://gist.github.com/077264a1aada001889e5ce0f47674623
+[fb72]: https://github.com/ClassicWoWCommunity/forever-bugs/issues/72
+[fb78]: https://github.com/ClassicWoWCommunity/forever-bugs/issues/78
+[fw3]: https://github.com/magey/forever-warrior/issues/3
+[wsf-rage]: https://github.com/wowsims/forever/commit/f9f9f21883
+[f-pws1]: https://us.forums.blizzard.com/en/wow/t/2354715/2
+[f-pws2]: https://us.forums.blizzard.com/en/wow/t/2356535/1
+[f-pws3]: https://us.forums.blizzard.com/en/wow/t/2358789/2
+[f-2mobs]: https://us.forums.blizzard.com/en/wow/t/2353811/103
+[f-4th]: https://us.forums.blizzard.com/en/wow/t/2358514/1
+[f-geared]: https://us.forums.blizzard.com/en/wow/t/warrior-rage-normalization-auto-attack-crits-dont-generate-extra-rage/2355684/25
+[f-bear]: https://us.forums.blizzard.com/en/wow/t/warrior-rage-normalization-auto-attack-crits-dont-generate-extra-rage/2355684/97
+[f-eu1]: https://eu.forums.blizzard.com/en/wow/t/630258/1
+[f-eu2]: https://eu.forums.blizzard.com/en/wow/t/630912/1

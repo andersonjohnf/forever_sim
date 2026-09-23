@@ -102,7 +102,8 @@ A spec is data plus small ability modules, never its own loop.
   or Forever is unmeasured, per profile, each citing its doc: attack-table constants and formulas,
   glancing, crit suppression, spell miss floor, expertise, negative armor, rating conversions,
   white-hit rage (normalized or damage-based), the damage-taken rage model (overridable per config:
-  `forever`, `classic`, `foreverHp`, `foreverHpPreArmor`), the spell values worked examples tie to
+  `forever`, `foreverFlat`, `foreverHealthLost`, `classic`; the legacy `foreverHp` and
+  `foreverHpPreArmor` still load), the spell values worked examples tie to
   a profile (Curse of Recklessness, Armor Shatter, Expose Armor, Demoralizing Shout, Thunder Clap,
   Windfury's attack power), and which column of the buff, consumable and enchant catalogue it
   reads. A catalogue entry whose Classic Era value differs carries it (`classicEra` on its

@@ -15,7 +15,9 @@ the owning doc ([Recording results](#recording-results)), then tick it off here.
 
 Status: consolidated 2026-09-22, reconciled with the cross-doc review the same day
 ([D13](decisions.md#d13-cross-doc-reconciliation-rules-2026-09-22)), and synced with the
-client-data check the same day ([client.md](data/client.md)) · Forever beta 1.60.1.69913 ·
+client-data check the same day ([client.md](data/client.md)); B9, B14, C2 and C25 updated
+2026-09-23 from the beta-log analysis of rage from damage taken
+([rage.md](mechanics/rage.md#forever-)), with no entries added or closed · Forever beta 1.60.1.69913 ·
 Classic Era 1.15.9.69722 · beta capped at level 20 (rising to 30), launch 2026-11-04, raids
 unlock 2026-12-09
 
@@ -91,7 +93,8 @@ Result: white miss <x.x>% (±<y.y>% at 95%) · raw: <link>
    off-hand miss penalty, with a bigger sample (M2).
 7. [A1](#a1-paladin-and-druid-base-stats-naked-sheets): naked Classic Era sheets for paladin and
    druid (blocks M4 and M5; any level-60 Classic Era character).
-8. [B9](#b9-rage-from-damage-taken-which-formula): rage from damage taken, which formula (M3).
+8. [B9](#b9-rage-from-damage-taken-confirm-the-logged-fit): rage from damage taken, confirming
+   the logged fit (M3).
 9. [B10](#b10-sunder-armor-threat): Sunder Armor threat by rank (M3).
 10. [B12](#b12-boss-parry-from-the-front): boss parry from the front (M3, M4, M5 tanks; same
     session as B2 and B3).
@@ -147,8 +150,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   truncated, 35 if rounded; a Night Elf warrior with Blessing of Kings reads Str 128 or 129, AP
   416 or 418.
 - **Samples:** one sheet per character.
-- **Changes:** confirms or corrects the warrior rows; fills base HP (tank survival and the
-  `forever-hp` rage model) and base avoidance; sets the rounding rule.
+- **Changes:** confirms or corrects the warrior rows; fills base HP (tank survival, and tank
+  rage: Forever's rage from damage taken divides by max health, so leaving base HP out raises it)
+  and base avoidance; sets the rounding rule.
 - **Docs:** [stats OQ-1](mechanics/character-stats.md#oq-1-paladin-druid-and-skyborne-base-attributes),
   [OQ-2](mechanics/character-stats.md#oq-2-base-health),
   [OQ-5](mechanics/character-stats.md#oq-5-base-dodge-parry-and-block),
@@ -360,21 +364,32 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Docs:** [warrior §2.3](classes/warrior.md#23-rage-warrior-specific),
   [Q4](classes/warrior.md#9-open-questions); [rage OQ 2](mechanics/rage.md#open-questions)
 
-#### B9. Rage from damage taken: which formula
+#### B9. Rage from damage taken: confirm the logged fit
 **High · M3 (bears: M4) · ≤20**
-- **Assumes:** default `forever`: `1.5 × health lost / 230.6` [?]; alternatives `forever-hp`,
-  `10 × health lost / max health` [?], and `forever-hp-prearmor`, `10 × pre-armor damage / max
-  health` [?], which is what the third-party logs actually fit (with a doubling below ~130–170
-  armor that the tester suspects is a bug). rage.md owns all three.
-- **Test:** take hits from one mob type in four conditions: two max-health values with the same
-  armor (swap Stamina gear or buffs), and two armor values with the same max health. Log rage
-  per hit, health lost, max health and armor; note blocked and absorbed amounts.
+- **Assumes:** default `forever`: `10 × D_pre / max health`, where `D_pre` is the hit before
+  armor, block, absorbs and damage-taken modifiers [?]. About 2,000 hits in third-party beta logs
+  (levels about 5–25, build 1.60.1 of 18 Sep) fit it: blocked and absorbed hits give full rage,
+  several attackers each count with no cap, and avoided attacks give 0. Untested: whether
+  Defensive Stance's −10% lowers it (assumed not), mob crits and crushing blows (assumed 2 × and
+  1.5 × `D_pre`), whether a level term hides behind max health, and whether later builds cap
+  several attackers. Alternatives: `foreverFlat` (`1.5 × health lost / 230.6`, the earlier fit)
+  and `foreverHealthLost` (`10 × health lost / max health`) [?]. rage.md owns them all.
+- **Test:** with advanced combat logging and `UNIT_POWER_UPDATE`, record per hit the log's
+  unmitigated amount, health lost, any blocked or absorbed amount, max health, armor and level:
+  1. rage per hit from 1 mob, then from 3 or more at once, on the current build (2026-09-24 or
+     later);
+  2. max health changed at one level (Stamina gear, Power Word: Fortitude) with armor held, then
+     two levels at about the same max health;
+  3. Defensive Stance against Battle Stance;
+  4. mob crits and crushing blows against plain hits;
+  5. hits fully absorbed by Power Word: Shield;
+  6. whether the log shows the rage as a `SPELL_ENERGIZE` with its own spell ID (if so, it
+     could make threat).
 - **Samples:** ≥50 hits per condition.
-- **Changes:** rage per damage that moves with max health → `forever-hp` or
-  `forever-hp-prearmor` (the armor comparison tells them apart); moves only with health lost →
-  `1.5/c`, and fit the constant. The largest single input to tank rage. Confirm at 60 in
+- **Changes:** confirms the default, or adds a cap on several attackers, a level term, a stance
+  rule or a crit rule. The largest single input to tank rage. Confirm at 60 in
   [C2](#c2-rage-formulas-at-level-60).
-- **Docs:** [rage § damage taken](mechanics/rage.md#rage-from-damage-taken),
+- **Docs:** [rage § damage taken](mechanics/rage.md#forever-),
   [rage OQ 1](mechanics/rage.md#open-questions);
   [system-changes §2, OQ 5](mechanics/forever-system-changes.md#open-questions);
   [encounter §5](mechanics/encounter.md#5-boss-melee-tank-modeling),
@@ -436,12 +451,14 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B14. Bear rage
 **High · M4 · ≤20 (bear form at 10)**
-- **Assumes:** 3.5 × 2.5 = 8.75 rage per landed bear auto, crits no bonus [?]; rage from damage
-  taken as for warriors ([B9](#b9-rage-from-damage-taken-which-formula)) [?]; shifting into bear
-  sets rage to 0 [C; Forever ?].
+- **Assumes:** 3.5 × 2.5 = 8.75 rage per landed bear auto, crits no bonus [?] (one player
+  reports about 11: "11 rage per hit no matter what"); rage from damage taken as for warriors
+  ([B9](#b9-rage-from-damage-taken-confirm-the-logged-fit)) [?], which 33 logged hits on likely
+  bears fit weakly; shifting into bear sets rage to 0 [C; Forever ?].
 - **Test:** bear form, auto attack only, no damage taken: rage per landed swing. Then take hits
-  as in B9. Shift out and back in at a known rage (no Furor) and read rage after the shift.
-- **Samples:** ≥50 landed autos; ≥50 hits taken; 5 shifts.
+  as in B9, including hits fully absorbed by Power Word: Shield (players report bears get none
+  there). Shift out and back in at a known rage (no Furor) and read rage after the shift.
+- **Samples:** ≥50 landed autos; ≥50 hits taken; 10 absorbed hits; 5 shifts.
 - **Changes:** the bear rage model.
 - **Docs:** [rage § bear](mechanics/rage.md#bear-druid-rage),
   [rage OQ 3, OQ 6](mechanics/rage.md#open-questions)
@@ -1083,7 +1100,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   buff's armor or 2.8 times it?); Thick Hide trained vs untrained; sheet dodge in bear with and
   without Feral Swiftness.
 - **Samples:** sheet reads.
-- **Changes:** bear armor (only matters to damage-taken rage) and bear dodge.
+- **Changes:** bear armor (survival only: Forever's rage from damage taken reads the hit before
+  armor) and bear dodge.
 - **Docs:** [stats OQ-8](mechanics/character-stats.md#oq-8-bear-armor-multipliers-and-thick-hide),
   [OQ-11](mechanics/character-stats.md#oq-11-feral-swiftness-dodge-scope);
   [druid §4.7](classes/druid.md#47-bear-armor-low-priority-tps-doesnt-need-it),
@@ -1272,9 +1290,11 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 #### C2. Rage formulas at level 60
 **High · M2 (tanks: M3, M4)**
 - **Assumes:** the same `k` at every level, and the damage-taken formula from B9 holds at 60 [?]
-  (measured only at levels 1–20).
+  (measured only at levels 1–25). The logs can't tell max health from a level term, which would
+  change level-60 tank rage.
 - **Test:** repeat [B1](#b1-rage-per-landed-white-hit) and
-  [B9](#b9-rage-from-damage-taken-which-formula) at 60 with level-60 weapons and hits.
+  [B9](#b9-rage-from-damage-taken-confirm-the-logged-fit) at 60 with level-60 weapons and hits,
+  including boss or elite hits of several thousand before armor.
 - **Samples:** as in B1 and B9.
 - **Changes:** the level-60 rage constants.
 - **Docs:** [rage OQ 1, OQ 2](mechanics/rage.md#open-questions);
@@ -1595,8 +1615,10 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 
 #### C25. Berserker Rage multiplier (Forever)
 **Low · M3**
-- **Assumes:** ×1.0 [?].
-- **Test:** as [A6](#a6-berserker-rage-and-rage-from-damage-taken) on Forever.
+- **Assumes:** ×1.0 on `10 × D_pre / max health` [?]. A Forever sim uses ×2 as its own guess
+  (wowsims/forever f9f9f21883); not adopted.
+- **Test:** as [A6](#a6-berserker-rage-and-rage-from-damage-taken) on Forever, logging each
+  hit's unmitigated amount.
 - **Samples:** ≥30 hits per state.
 - **Changes:** Forever damage-taken rage with Berserker Rage.
 - **Docs:** [rage OQ 5](mechanics/rage.md#open-questions);

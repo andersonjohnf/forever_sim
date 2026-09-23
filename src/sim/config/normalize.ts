@@ -12,7 +12,7 @@ import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { catalogueEffects } from '../effects/types'
 import { presetBuffIds } from '../effects/presets'
 import { fitsSlot, isTwoHand, uniqueConflicts } from '../equip'
-import { PROFILES, type RulesProfile } from '../rules/profiles'
+import { currentDamageTakenRageModel, PROFILES, type RulesProfile } from '../rules/profiles'
 import { SPEC_IDS, SPEC_META } from '../specs'
 import { renamedRotationOptions, rotationOptions } from '../classes/rotation'
 import type { ClassId, CreatureType, FightConfig, GearSlot, SimConfig, SpecId } from '../types'
@@ -43,7 +43,6 @@ export const GEAR_SLOTS: GearSlot[] = [
 const CLASS_SLUGS: ClassSlug[] = ['warrior', 'hunter', 'mage', 'rogue', 'priest', 'warlock', 'paladin', 'druid', 'shaman']
 const CREATURE_TYPES: CreatureType[] = ['none', 'beast', 'demon', 'dragonkin', 'elemental', 'giant', 'humanoid', 'mechanical', 'undead']
 const ZONES: FightConfig['zone'][] = ['hyjal', 'barrowDeeps', 'onyxia', 'other']
-const DAMAGE_TAKEN_MODELS = ['forever', 'classic', 'foreverHp', 'foreverHpPreArmor'] as const
 
 /**
  * Ranges for fight settings (docs/mechanics/encounter.md#encounter-settings). Boss armor has no
@@ -171,8 +170,9 @@ function normalize(input: unknown): { config: SimConfig; warnings: string[] } {
     unmeasuredRatings: oneOf(rulesIn.unmeasuredRatings, ['apply', 'ignore'] as const, d.rules.unmeasuredRatings, 'The untested-ratings switch', r),
   }
   if (rulesIn.damageTakenRage !== undefined) {
-    const model = rulesIn.damageTakenRage as (typeof DAMAGE_TAKEN_MODELS)[number]
-    if (DAMAGE_TAKEN_MODELS.includes(model)) rules.damageTakenRage = model
+    // A legacy id keeps working under its new name (LEGACY_DAMAGE_TAKEN_RAGE, rage.md#rage-from-damage-taken).
+    const model = currentDamageTakenRageModel(rulesIn.damageTakenRage)
+    if (model) rules.damageTakenRage = model
     else r.add('The damage-taken rage model wasn’t recognised, so the profile’s default is used.')
   }
 

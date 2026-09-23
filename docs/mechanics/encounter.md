@@ -111,6 +111,13 @@ and their values are in [buffs-debuffs-consumables.md](buffs-debuffs-consumables
 - **Boss target:** in tank sims the boss attacks the simulated tank all fight. In DPS sims
   the boss attacks no one. Damage taken by DPS players (and the rage it gives) is off unless
   `dpsDamageTakenPerSec` is set (default 0) [?].
+  - **What the number means:** incoming damage per second **before your mitigation**, arriving
+    as one hit every 2 s [?]. That is the size Forever's rage from damage taken reads: each hit
+    gives `10 × hit ÷ max health` rage ([rage.md](rage.md#forever-)).
+  - The sim applies no armor, stance or other mitigation to the stream. Under the health-lost
+    rage models (Classic Era's `classic`, and the `foreverFlat` and `foreverHealthLost`
+    alternatives), each hit costs its full size in health.
+  - Every hit can trigger damage-taken procs, such as Enrage.
 
 ---
 
@@ -131,10 +138,10 @@ and their values are in [buffs-debuffs-consumables.md](buffs-debuffs-consumables
 **Why 5,000 pre-armor per swing** [?]. Classic-era raid bosses hit a well-geared tank for
 about 1,500–2,500 after armor. At 10,000 armor vs a level-63 attacker, mitigation is 63.5%, so
 5,000 pre-armor ≈ 1,826 after armor. The value matters for tank survivability outputs and for
-tank rage. [rage.md](rage.md#rage-from-damage-taken) owns the damage-taken rage model: its
-Forever default is `1.5 × health lost / 230.6` [?], so rage follows the post-armor hit; its
-`forever-hp-prearmor` variant, a third-party fit, uses pre-armor damage ÷ max health.
-Replace the stand-in with measured values once Forever raid logs exist.
+tank rage. [rage.md](rage.md#rage-from-damage-taken) owns the damage-taken rage model. Its
+Forever default is `10 × damage before armor, block and absorbs ÷ max health` [?], fitted to
+beta logs, so tank rage follows this pre-armor number directly: armor, block and Defensive
+Stance don't change it. Replace the stand-in with measured values once Forever raid logs exist.
 
 ---
 
@@ -206,7 +213,7 @@ What the UI exposes, with defaults. All are part of `SimConfig.encounter`.
 | `bossDamageMin` / `bossDamageMax` (tanks, pre-armor) | 4500 / 5500 | 0–20,000 | [?] §5 |
 | `bossCanCrush` | true | bool | [F] §5 |
 | `bossExtraDtps` (tanks) | 0 | 0–2,000 | modelling choice §5 |
-| `dpsDamageTakenPerSec` | 0 | 0–500 | [?] §4 |
+| `dpsDamageTakenPerSec` (before your mitigation) | 0 | 0–500 | [?] §4 |
 | `creatureType` | none | none / Beast / Demon / Dragonkin / Elemental / Giant / Humanoid / Mechanical / Undead | [F] §6 |
 | `biome` | none | none / woodland / mountain / desert / city / cavern | [F]/[?] §6 |
 | `zone` | Hyjal Summit | Hyjal Summit / Barrow Deeps / Onyxia's Lair / Other | [F] §6 |
@@ -291,8 +298,8 @@ convention [?]).
 2. **Default fight length** [?]: 180 s is a judgment call for pre-raid guilds. Revisit with
    the guild's first Forever kill times.
 3. **Boss pre-armor damage** [?]: 5,000 per 2.0 s is a stand-in. Tank rage depends on it
-   under every rage model: through health lost in rage.md's default, and directly in its
-   pre-armor variant ([rage.md open questions](rage.md#open-questions)).
+   under every rage model: directly in rage.md's Forever default, and through health lost in
+   the others ([rage.md open questions](rage.md#open-questions)).
 4. **Level-based magic resistance of a +3 boss** [?]: 24 vs ~15; see
    [combat-tables open questions](combat-tables.md#open-questions).
 5. **Onyxia's armor** [?]: assumed 3,731 (a common Classic value); not directly sourced.

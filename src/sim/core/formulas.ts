@@ -120,25 +120,34 @@ export function whiteHitRage(
   return (7.5 * damageDealt) / c
 }
 
-/** Rage from damage taken (rage.md#rage-from-damage-taken). Avoided or absorbed hits give 0. */
+/**
+ * Rage from one hit that lands on you (rage.md#rage-from-damage-taken). `preMitigation` is the
+ * hit's damage before armor, block, absorbs and damage-taken modifiers, a crit or crushing blow at
+ * its multiplied size; `healthLost` is what it cost after all of them. A missed, dodged or parried
+ * attack deals neither, so it gives 0.
+ * - `forever`, the Forever default: 10 × preMitigation ÷ max health (rage.md#forever-). A blocked
+ *   or fully absorbed hit gives its full rage.
+ * - `foreverFlat`: 1.5 × health lost ÷ c(L), the earlier low-level fit.
+ * - `foreverHealthLost`: 10 × health lost ÷ max health.
+ * - `classic`: 2.5 × health lost ÷ c(L) (rage.md#classic-era-c).
+ * The three health-lost models give 0 for a hit that costs no health.
+ */
 export function damageTakenRage(
   model: DamageTakenRageModel,
   healthLost: number,
-  preArmorDamage: number,
+  preMitigation: number,
   maxHealth: number,
   level = 60,
 ): number {
-  if (healthLost <= 0) return 0
-  const c = rageConversion(level)
   switch (model) {
     case 'forever':
-      return (1.5 * healthLost) / c
+      return preMitigation > 0 && maxHealth > 0 ? (10 * preMitigation) / maxHealth : 0
+    case 'foreverFlat':
+      return healthLost > 0 ? (1.5 * healthLost) / rageConversion(level) : 0
+    case 'foreverHealthLost':
+      return healthLost > 0 && maxHealth > 0 ? (10 * healthLost) / maxHealth : 0
     case 'classic':
-      return (2.5 * healthLost) / c
-    case 'foreverHp':
-      return maxHealth > 0 ? (10 * healthLost) / maxHealth : 0
-    case 'foreverHpPreArmor':
-      return maxHealth > 0 ? (10 * preArmorDamage) / maxHealth : 0
+      return healthLost > 0 ? (2.5 * healthLost) / rageConversion(level) : 0
   }
 }
 

@@ -7,7 +7,7 @@
 // energize threat (threat.md T15, T16).
 import { describe, expect, it } from 'vitest'
 import { BLOODRAGE, HAMSTRING, HEROIC_STRIKE, MORTAL_STRIKE } from '../classes/warrior/abilities'
-import { armorReduction, rageConversion } from '../core/formulas'
+import { armorReduction, damageTakenRage, rageConversion, toTenths } from '../core/formulas'
 import { defaultConfig } from '../defaults'
 import { buildPlan } from '../plan/build'
 import { ACTION, type Plan, STANCE, TRIGGER, TRIGGER_COUNT } from '../plan/types'
@@ -304,41 +304,100 @@ describe('parry haste (damage-and-timing §3.4)', () => {
   })
 })
 
-describe('rage from damage taken (rage.md#rage-from-damage-taken): every model matches its closed form', () => {
-  const models: DamageTakenRageModel[] = ['forever', 'classic', 'foreverHp', 'foreverHpPreArmor']
-  for (const model of models) {
-    it(model, () => {
-      const d = defaultConfig('warrior-protection')
-      const plan = buildPlan({
-        ...d,
-        talents: '',
-        gear: { offHand: { itemId: 12602 } }, // shield only: only boss hits give rage
-        buffs: { raid: d.buffs.raid, enabled: [] },
-        fight: { ...d.fight, durationVariationPct: 0, boss: { ...d.fight.boss, damageMin: 5000, damageMax: 5000 } },
-      }).plan
-      plan.rage.damageTakenModel = model
-      plan.rage.maxTenths = 1e9
-      const state = new Sim(plan).inspect()
-      const [miss, dodge, parry, block, crit, crush] = state.bossThresholds
-      const p = [miss, dodge - miss, parry - dodge, block - parry, crit - block, crush - crit, 100 - crush].map((x) => x / 100)
-      const raw = 5000
-      const mitigated = raw * (1 - armorReduction(plan.armor, 63, FOREVER)) * plan.damageTakenMult
-      const c = rageConversion(60)
-      const health = plan.rage.maxHealth
-      expect(health).toBeGreaterThan(0)
-      const rage = (lost: number, preArmor: number) =>
-        model === 'forever' ? (1.5 * lost) / c : model === 'classic' ? (2.5 * lost) / c : model === 'foreverHp' ? (10 * lost) / health : (10 * preArmor) / health
-      const tenths = (lost: number, preArmor: number) => (lost > 0 ? Math.floor(rage(lost, preArmor) * 10 + 1e-9) : 0)
-      const blocked = Math.max(0, mitigated - state.blockValue)
-      const perSwing =
-        p[3] * tenths(blocked, (raw * blocked) / mitigated) + p[4] * tenths(mitigated * 2, raw * 2) + p[5] * tenths(mitigated * 1.5, raw * 1.5) + p[6] * tenths(mitigated, raw)
-      const sim = new Sim(plan)
-      const fights = 2000
-      for (let i = 0; i < fights; i++) sim.runFight(i)
-      const swings = 90 // every 2.0 s from 0 to < 180 s
-      expect(sim.totalRageGainedTenths / fights / (swings * perSwing)).toBeCloseTo(1, 2)
-    })
+describe('rage from damage taken (rage.md#rage-from-damage-taken)', () => {
+  const models: DamageTakenRageModel[] = ['forever', 'foreverFlat', 'foreverHealthLost', 'classic']
+
+  /** A Protection warrior with a shield and nothing else (only boss hits give rage), under 5,000-damage boss swings every 2.0 s. */
+  function bossPlan(model: DamageTakenRageModel): Plan {
+    const d = defaultConfig('warrior-protection')
+    const plan = buildPlan({
+      ...d,
+      talents: '',
+      gear: { offHand: { itemId: 12602 } },
+      buffs: { raid: d.buffs.raid, enabled: [] },
+      fight: { ...d.fight, durationVariationPct: 0, boss: { ...d.fight.boss, damageMin: 5000, damageMax: 5000 } },
+    }).plan
+    plan.rage.damageTakenModel = model
+    plan.rage.maxTenths = 1e9
+    return plan
   }
+
+  /** The inlined model in Sim.takeHit, from the reference `damageTakenRage` (core/formulas.ts), in tenths. */
+  const tenths = (model: DamageTakenRageModel, lost: number, pre: number, health: number) => toTenths(damageTakenRage(model, lost, pre, health))
+
+  describe('every model matches its closed form', () => {
+    for (const model of models) {
+      it(model, () => {
+        const plan = bossPlan(model)
+        const state = new Sim(plan).inspect()
+        const [miss, dodge, parry, block, crit, crush] = state.bossThresholds
+        const p = [miss, dodge - miss, parry - dodge, block - parry, crit - block, crush - crit, 100 - crush].map((x) => x / 100)
+        const raw = 5000
+        const mitigated = raw * (1 - armorReduction(plan.armor, 63, FOREVER)) * plan.damageTakenMult
+        const health = plan.rage.maxHealth
+        expect(health).toBeGreaterThan(0)
+        expect(p[3]).toBeGreaterThan(0)
+        // A blocked hit reads all of the hit before mitigation in `forever`, and only what it cost in the rest.
+        const blocked = Math.max(0, mitigated - state.blockValue)
+        const perSwing =
+          p[3] * tenths(model, blocked, raw, health) +
+          p[4] * tenths(model, mitigated * 2, raw * 2, health) +
+          p[5] * tenths(model, mitigated * 1.5, raw * 1.5, health) +
+          p[6] * tenths(model, mitigated, raw, health)
+        const sim = new Sim(plan)
+        const fights = 2000
+        for (let i = 0; i < fights; i++) sim.runFight(i)
+        const swings = 90 // every 2.0 s from 0 to < 180 s
+        expect(sim.totalRageGainedTenths / fights / (swings * perSwing)).toBeCloseTo(1, 2)
+      })
+    }
+  })
+
+  it('R12b, R12c: a hit blocked down to nothing still gives its full rage in `forever`, and none in the health-lost models; it triggers no damage-taken procs', () => {
+    for (const model of models) {
+      const plan = bossPlan(model)
+      // Every swing is blocked: no miss (low defense), dodge or parry, and a block chance past 100%.
+      plan.stats.defense = -200
+      plan.stats.dodge = -1000
+      plan.stats.canParry = false
+      plan.stats.block = 1000
+      plan.stats.blockValue = 1e6 // and the block leaves nothing
+      const procs = row(plan, 'hitProc')
+      addProc(plan, { id: 'hitProc', trigger: TRIGGER.damageTaken, chance: [1, 1], hands: 3, action: ACTION.rage, amount: 1000, b: 0, source: procs })
+      const sim = new Sim(plan)
+      expect(sim.inspect().bossThresholds.slice(0, 4)).toEqual([0, 0, 0, 100])
+      sim.runFight(0)
+      const perBlock = tenths(model, 0, 5000, plan.rage.maxHealth)
+      expect(perBlock > 0).toBe(model === 'forever')
+      expect(sim.totalRageGainedTenths).toBe(90 * perBlock) // every 2.0 s from 0 to < 180 s
+      expect(counter(sim, procs, FIELD.threat)).toBe(0)
+    }
+  })
+
+  it('R12d: a boss swing you dodge, parry or that misses gives no rage in any model', () => {
+    for (const model of models) {
+      const plan = bossPlan(model)
+      plan.stats.dodge = 1000 // every swing that doesn't miss is dodged
+      const sim = new Sim(plan)
+      expect(sim.inspect().bossThresholds[1]).toBe(100)
+      for (let i = 0; i < 20; i++) sim.runFight(i)
+      expect(sim.totalRageGainedTenths).toBe(0)
+    }
+  })
+
+  it('the DPS stand-in: each hit gives rage for its full size, before any mitigation (encounter.md §4)', () => {
+    const plan = barePlan('warrior-fury', 'forever', { offHand: { itemId: 12602 } }, 20000)
+    plan.fight.damageTakenPerHit = 200
+    plan.fight.damageTakenIntervalMs = 2000
+    plan.rage.maxTenths = 1e9
+    expect(plan.rage.damageTakenModel).toBe('forever')
+    const health = plan.rage.maxHealth
+    expect(health).toBeGreaterThan(0)
+    const sim = new Sim(plan)
+    sim.runFight(0)
+    // Hits at 2, 4, …, 18 s: 9 of them, each 10 × 200 ÷ max health.
+    expect(sim.totalRageGainedTenths).toBe(9 * toTenths((10 * 200) / health))
+  })
 })
 
 describe('Classic Era white rage from dodges and parries (rage.md R4)', () => {

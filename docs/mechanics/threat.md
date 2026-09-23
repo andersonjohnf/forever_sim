@@ -457,7 +457,8 @@ threat-value scale with a plain white hit in a known stance.
 7. **Power-gain threat in Forever**: still 5 per rage (Magey, Classic) and 0.5 per mana and 5 per
    energy (LTC2 only [?]), with no multipliers? This matters much more now, because Shield
    Specialization and Master of Defense give 5 rage (25 threat) per proc. Does Anger Management
-   generate threat?
+   generate threat? And does Forever's new rage from damage taken arrive as an energize, which
+   would make threat? The default says no, as in Classic Era ([rage.md open question 1](rage.md#open-questions)).
 8. **Execute** (×1.25?) and **Mocking Blow** bonus: Classic Era values unverified.
 9. **Aggro thresholds** (110% / 130%) in Forever.
 10. **Forever threat items**: confirm the tooltips of items linked to the ±1–4% threat spells.

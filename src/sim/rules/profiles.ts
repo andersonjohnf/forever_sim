@@ -5,9 +5,29 @@
 // measurement changes a value here (with its source), not code. `forever` is the default;
 // `classicEra` is the tested Classic Era baseline. Each field cites the doc section that owns
 // it; the tags ([F]/[C]/[?]) live in that doc.
-import type { DamageTakenRageModel, RuleProfileId } from '../types'
+import type { DamageTakenRageModel, LegacyDamageTakenRageModel, RuleProfileId } from '../types'
 
 export type { DamageTakenRageModel }
+
+/** The damage-taken rage models (docs/mechanics/rage.md#rage-from-damage-taken). */
+export const DAMAGE_TAKEN_RAGE_MODELS: readonly DamageTakenRageModel[] = ['forever', 'foreverFlat', 'foreverHealthLost', 'classic']
+
+/**
+ * Legacy ids a saved setup may carry, and the model each now names (M2.4h). `forever` kept its
+ * name: it has always meant the Forever default, which is now the logged fit that
+ * `foreverHpPreArmor` used to name (rage.md#forever-).
+ */
+export const LEGACY_DAMAGE_TAKEN_RAGE: Readonly<Record<LegacyDamageTakenRageModel, DamageTakenRageModel>> = {
+  foreverHp: 'foreverHealthLost',
+  foreverHpPreArmor: 'forever',
+}
+
+/** A damage-taken model id, legacy ones mapped to today's; anything else is `undefined`. */
+export function currentDamageTakenRageModel(id: unknown): DamageTakenRageModel | undefined {
+  if (typeof id !== 'string') return undefined
+  if ((DAMAGE_TAKEN_RAGE_MODELS as readonly string[]).includes(id)) return id as DamageTakenRageModel
+  return Object.hasOwn(LEGACY_DAMAGE_TAKEN_RAGE, id) ? LEGACY_DAMAGE_TAKEN_RAGE[id as LegacyDamageTakenRageModel] : undefined
+}
 
 export interface RulesProfile {
   id: RuleProfileId
@@ -82,7 +102,7 @@ export interface RulesProfile {
     avoidedWhiteShare: number
     /** Rage conversion value c(60) (rage.md, Classic Era formula). */
     conversion: number
-    /** Default damage-taken model (rage.md#rage-from-damage-taken). */
+    /** Default damage-taken model (rage.md#rage-from-damage-taken; `damageTakenRage` in core/formulas.ts). */
     damageTaken: DamageTakenRageModel
     /** Rage kept on a stance swap: base + per rank of (Improved) Tactical Mastery (rage.md#stance-changes-and-tactical-mastery). */
     stanceRetainBase: number
@@ -166,7 +186,7 @@ export const FOREVER: RulesProfile = {
     avoidedWhiteShare: 0,
     // docs/mechanics/rage.md#classic-era-formula-c
     conversion: 230.6,
-    // docs/mechanics/rage.md#forever-
+    // docs/mechanics/rage.md#forever-: 10 × damage before armor, block and absorbs ÷ max health
     damageTaken: 'forever',
     // docs/mechanics/rage.md#stance-changes-and-tactical-mastery (Forever: 10 + 3 × Improved Tactical Mastery)
     stanceRetainBase: 10,
@@ -228,6 +248,7 @@ export const CLASSIC_ERA: RulesProfile = {
     offHandBase: 0.5,
     avoidedWhiteShare: 0.75,
     conversion: 230.6,
+    // docs/mechanics/rage.md#classic-era-c: 2.5 × health lost ÷ 230.6
     damageTaken: 'classic',
     // docs/mechanics/rage.md#stance-changes-and-tactical-mastery (Classic Era: 5 × Tactical Mastery)
     stanceRetainBase: 0,

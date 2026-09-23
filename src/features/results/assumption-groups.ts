@@ -81,7 +81,8 @@ export const ASSUMPTION_GROUP = {
   rendOnHit: 'class',
   enrageTrigger: 'class',
   damageTakenRage: 'class',
-  damageTakenRageHp: 'class',
+  damageTakenRageFlat: 'class',
+  damageTakenRageHealthLost: 'class',
   berserkerRageTaken: 'class',
   defiance: 'class',
   // Combat rules every setup shares: the attack table, timing, threat and the boss.

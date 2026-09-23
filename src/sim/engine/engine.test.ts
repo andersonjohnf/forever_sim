@@ -213,7 +213,7 @@ describe('timing worked examples in the engine', () => {
 })
 
 describe('tank rage from boss hits matches the closed form (rage.md tank model)', () => {
-  it('forever default, 1.5 × health lost / 230.6, floored to tenths per hit', () => {
+  it('forever default, 10 × the hit before mitigation ÷ max health, floored to tenths per hit; a block doesn’t lower it', () => {
     const d = defaultConfig('warrior-protection')
     const config: SimConfig = {
       ...d,
@@ -226,10 +226,11 @@ describe('tank rage from boss hits matches the closed form (rage.md tank model)'
     const state = new Sim(plan).inspect()
     const [miss, dodge, parry, block, crit, crush] = state.bossThresholds
     const p = [miss, dodge - miss, parry - dodge, block - parry, crit - block, crush - crit, 100 - crush].map((x) => x / 100)
-    const mitigated = 5000 * (1 - armorReduction(plan.armor, 63, FOREVER)) * plan.damageTakenMult
-    const tenths = (lost: number) => Math.floor(((1.5 * lost) / 230.6) * 10 + 1e-9)
-    const perSwing =
-      p[3] * tenths(Math.max(0, mitigated - state.blockValue)) + p[4] * tenths(mitigated * 2) + p[5] * tenths(mitigated * 1.5) + p[6] * tenths(mitigated)
+    expect(plan.rage.damageTakenModel).toBe('forever')
+    const health = plan.rage.maxHealth
+    const tenths = (pre: number) => Math.floor(((10 * pre) / health) * 10 + 1e-9)
+    // Blocked, crit, crushing and plain hits; armor, the block and Defensive Stance's −10% don't enter.
+    const perSwing = p[3] * tenths(5000) + p[4] * tenths(10000) + p[5] * tenths(7500) + p[6] * tenths(5000)
     const swings = 90 // every 2.0 s from 0 to < 180 s
     const agg = runFights(plan, 5000)
     const perFight = (agg.rageGainedTenths + agg.rageWastedTenths) / agg.fights
@@ -379,6 +380,15 @@ describe('golden run (fixed config and seed)', () => {
   //   against 691.3 from either hand). Arms and Protection don't wield it: unchanged. TL2
   //   (Weaponmaster's axe and polearm crit on that weapon's attacks only, no spell crit) moves no
   //   golden: no default has Weaponmaster with an axe or polearm.
+  // - M2.4h: rage from damage taken in `forever` is 10 × the hit before armor, block and absorbs ÷
+  //   max health (rage.md#forever-, from about 2,000 logged beta hits); it was 1.5 × health lost ÷
+  //   230.6. Only Protection takes damage. At its 4,340 max health (base health left out, stats
+  //   OQ-2) the mean boss hit of 4,970.86 before armor now gives 11.4 rage where it gave 12.0
+  //   after armor and Defensive Stance (−5%), and a blocked hit 11.4 where it gave 11.9. Nothing
+  //   spends rage yet (no rotation), so the bar fills a little later and clips less of the early
+  //   Shield Specialization and Master of Defense rage: their threat 7,232.5 → 7,486 and
+  //   16,387.5 → 16,959.5 over 500 fights, TPS 216.97981 → 216.98889; DPS unchanged. Fury and
+  //   Arms take no damage: unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

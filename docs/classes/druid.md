@@ -545,7 +545,10 @@ doesn't affect bear abilities (its mask holds only cat builders). [F] [client] (
   multipliers" [F] [fc-tal].
 - A passive 1306459 ("additional base Armor equal to 100% of your Defense skill", with a −600
   flat effect) exists in the Forever client, but no talent or spell grants it [?].
-- Model armor only if [rage.md](../mechanics/rage.md) needs damage taken.
+- Model armor only if [rage.md](../mechanics/rage.md) needs damage taken. For rage it doesn't:
+  Forever's rage from damage taken reads the hit before armor, `10 × D_pre ÷ max health`
+  ([rage.md](../mechanics/rage.md#forever-), [?]; 33 logged hits on likely bears fit it), so bear
+  armor matters for survival only. Maximum health does move bear rage.
 
 ### 4.8 Bear threat and druid rage numbers (summary for the shared docs)
 
@@ -833,8 +836,8 @@ the buffs doc as a per-spec entry.
   if Rage is short the swing stays white. Swing and rage interplay is in
   [rage.md](../mechanics/rage.md).
 - **Skipped effects (< 0.5% or out of scope):** Ravage/Pounce openers, Feral Charge,
-  Bash/Growl/Frenzied Regeneration, Cower, movement, stealth, and Thick Hide armor (unless rage
-  from damage taken is modelled).
+  Bash/Growl/Frenzied Regeneration, Cower, movement, stealth, and Thick Hide armor (Forever's
+  rage from damage taken reads the hit before armor, so armor doesn't change it).
 - **Uncertainty surfacing:** the UI should flag, when they're active, the [?] assumptions that
   move DPS most:
   - flat-before-% on Shred/Claw (Q1)

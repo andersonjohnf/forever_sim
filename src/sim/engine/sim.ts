@@ -895,7 +895,8 @@ export class Sim {
         }
         case EV_DAMAGE_TAKEN:
           this.chainMask = 0
-          this.takeDamage(f.damageTakenPerHit, f.damageTakenPerHit)
+          // encounter.md §4: the stand-in hit's size is before your mitigation, and nothing mitigates it.
+          this.takeHit(f.damageTakenPerHit, f.damageTakenPerHit)
           if (this.exCount > 0) this.drainExtraAttacks()
           q.push(t + f.damageTakenIntervalMs, EV_DAMAGE_TAKEN, 0, 0)
           break
@@ -2010,25 +2011,26 @@ export class Sim {
       if (r >= th[1]) this.onPlayerParried()
       return
     }
-    // docs/mechanics/damage-and-timing.md#26-order-of-operations-physical-direct-hit, boss → tank
+    // docs/mechanics/damage-and-timing.md#26-order-of-operations-physical-direct-hit, boss → tank.
+    // `pre` is the hit before armor, block and damage-taken modifiers, a crit or crushing blow at
+    // its multiplied size: what `forever` rage reads, blocked or not (rage.md#forever-).
     const mitigated = raw * (1 - armorReduction(this.plan.armor, this.plan.fight.targetLevel, this.plan.profile)) * this.damageTakenMult
     let lost: number
-    let preArmor = raw
+    let pre = raw
     const blocked = r < th[3]
     if (blocked) {
       lost = Math.max(0, mitigated - this.blockValue)
-      preArmor = mitigated > 0 ? raw * (lost / mitigated) : 0
     } else if (r < th[4]) {
       lost = mitigated * 2
-      preArmor = raw * 2
+      pre = raw * 2
     } else if (r < th[5]) {
       lost = mitigated * 1.5
-      preArmor = raw * 1.5
+      pre = raw * 1.5
     } else {
       lost = mitigated
     }
     // rage.md#implementation-notes item 4: the damage-taken rage first, then the block's procs (Shield Specialization).
-    this.takeDamage(lost, preArmor)
+    this.takeHit(lost, pre)
     if (blocked) this.fireProcs(TRIGGER.block, -1)
   }
 
@@ -2041,26 +2043,31 @@ export class Sim {
     if (after !== remaining) this.scheduleSwing(HAND.main, this.now + after)
   }
 
-  /** Health lost to an attack: rage from damage taken, then damage-taken procs (rage.md implementation notes). */
-  private takeDamage(healthLost: number, preArmor: number): void {
-    if (healthLost <= 0) return
+  /**
+   * A hit that landed on the player (missed, dodged and parried ones never get here): rage from
+   * damage taken, then, if it cost health, the damage-taken procs (rage.md#rage-from-damage-taken,
+   * #implementation-notes). `pre` is its size before armor, block, absorbs and damage-taken
+   * modifiers. The inlined `damageTakenRage` (core/formulas.ts): `forever` reads `pre`, so a
+   * blocked hit that costs nothing still gives its full rage; the other models read health lost.
+   */
+  private takeHit(healthLost: number, pre: number): void {
     const plan = this.plan
-    let rage: number
+    let rage = 0
     switch (plan.rage.damageTakenModel) {
       case 'forever':
-        rage = (1.5 * healthLost) / this.rageConv
+        if (pre > 0 && plan.rage.maxHealth > 0) rage = (10 * pre) / plan.rage.maxHealth
+        break
+      case 'foreverFlat':
+        if (healthLost > 0) rage = (1.5 * healthLost) / this.rageConv
+        break
+      case 'foreverHealthLost':
+        if (healthLost > 0 && plan.rage.maxHealth > 0) rage = (10 * healthLost) / plan.rage.maxHealth
         break
       case 'classic':
-        rage = (2.5 * healthLost) / this.rageConv
-        break
-      case 'foreverHp':
-        rage = plan.rage.maxHealth > 0 ? (10 * healthLost) / plan.rage.maxHealth : 0
-        break
-      case 'foreverHpPreArmor':
-        rage = plan.rage.maxHealth > 0 ? (10 * preArmor) / plan.rage.maxHealth : 0
+        if (healthLost > 0) rage = (2.5 * healthLost) / this.rageConv
         break
     }
     this.gainRage(Math.floor(rage * 10 + 1e-9), -1)
-    this.fireProcs(TRIGGER.damageTaken, -1)
+    if (healthLost > 0) this.fireProcs(TRIGGER.damageTaken, -1)
   }
 }

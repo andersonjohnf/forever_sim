@@ -100,24 +100,54 @@ describe('rage.md worked examples', () => {
     expect(r('dodge', false, false, 2.6, 0, 500)).toBe(0)
     expect(r('parry', false, false, 2.6, 0, 500)).toBe(0)
   })
-  it('R10–R12b: rage from damage taken', () => {
-    expect(damageTakenRage('classic', 1000, 1000, 7000)).toBeCloseTo(10.841, 3)
-    expect(damageTakenRage('forever', 1000, 1000, 7000)).toBeCloseTo(6.505, 3)
-    expect(damageTakenRage('foreverHp', 1000, 1000, 7000)).toBeCloseTo(1.429, 3)
-    expect(damageTakenRage('foreverHpPreArmor', 1000, 2000, 7000)).toBeCloseTo(2.857, 3)
-    expect(damageTakenRage('forever', 0, 5000, 7000)).toBe(0)
+  it('R10–R12: rage from damage taken in each model', () => {
+    expect(damageTakenRage('classic', 1000, 2000, 7000)).toBeCloseTo(10.841, 3)
+    expect(damageTakenRage('foreverFlat', 1000, 2000, 7000)).toBeCloseTo(6.505, 3)
+    expect(damageTakenRage('foreverHealthLost', 1000, 2000, 7000)).toBeCloseTo(1.429, 3)
+    // R12: the Forever default reads the 2,000 before mitigation, not the 1,000 lost.
+    expect(damageTakenRage('forever', 1000, 2000, 7000)).toBeCloseTo(2.857, 3)
   })
-  it('R23–R24: tank rage model per boss swing', () => {
-    const taken = (model: 'classic' | 'forever') =>
-      0.4 * damageTakenRage(model, 1200, 0, 0) + 0.25 * damageTakenRage(model, 1050, 0, 0)
+  it('R12a: 10 hits from 5–7 attackers in under 3 s, 43.6% of 195 max health before armor, give +4.36 rage', () => {
+    // Several attackers each count, with no cap or internal cooldown: the rage is the sum of the
+    // hits'. Health lost (here half of each hit) doesn't enter.
+    const hits = [9, 7, 10, 8, 9, 6, 11, 8, 9, 8.02]
+    expect(hits.reduce((a, b) => a + b) / 195).toBeCloseTo(0.436, 9)
+    const rage = hits.reduce((sum, pre) => sum + damageTakenRage('forever', pre / 2, pre, 195), 0)
+    expect(rage).toBeCloseTo(4.36, 9)
+  })
+  it('R12b: a hit of 8 blocked down to 1 gives the rage of all 8', () => {
+    expect(damageTakenRage('forever', 1, 8, 200)).toBeCloseTo(0.4, 9)
+    // The unblocked part alone would give 0.05.
+    expect(damageTakenRage('foreverHealthLost', 1, 8, 200)).toBeCloseTo(0.05, 9)
+  })
+  it('R12c: a fully absorbed hit gives rage in the Forever default, none in the health-lost models', () => {
+    expect(damageTakenRage('forever', 0, 50, 1000)).toBeCloseTo(0.5, 9)
+    for (const model of ['foreverFlat', 'foreverHealthLost', 'classic'] as const) expect(damageTakenRage(model, 0, 50, 1000)).toBe(0)
+  })
+  it('R12d: a missed, dodged or parried attack deals nothing and gives 0 in every model', () => {
+    for (const model of ['forever', 'foreverFlat', 'foreverHealthLost', 'classic'] as const) expect(damageTakenRage(model, 0, 0, 7000)).toBe(0)
+  })
+  it('R12e: a level-60 boss hit of 5,000 before armor on 7,000 max health, and its crit and crushing blow', () => {
+    expect(damageTakenRage('forever', 1826.4, 5000, 7000)).toBeCloseTo(7.143, 3)
+    expect(damageTakenRage('forever', 3652.8, 10000, 7000)).toBeCloseTo(14.286, 3)
+    expect(damageTakenRage('forever', 2739.6, 7500, 7000)).toBeCloseTo(10.714, 3)
+  })
+  it('R23–R24b: tank rage model per boss swing', () => {
+    // Hits of 3,000 before armor: 1,200 lost after armor and Defensive Stance, 1,050 when blocked.
+    const taken = (model: 'classic' | 'forever' | 'foreverFlat') =>
+      0.4 * damageTakenRage(model, 1200, 3000, 7000) + 0.25 * damageTakenRage(model, 1050, 3000, 7000)
     const block = 0.25 * 5 * 0.2 * 5 // Shield Specialization 5/5
     const avoid = (0.15 + 0.15) * 5 * 0.5 * 2 // Master of Defense 2/2
     expect(taken('classic')).toBeCloseTo(8.0497, 4)
     expect(block).toBeCloseTo(1.25, 9)
     expect(avoid).toBeCloseTo(1.5, 9)
     expect((taken('classic') + block + avoid) / 2).toBeCloseTo(5.3998, 4)
-    expect(taken('forever')).toBeCloseTo(4.8298, 4)
-    expect((taken('forever') + block + avoid) / 2).toBeCloseTo(3.7899, 4)
+    // R24: the Forever default; the block doesn't lower it.
+    expect(taken('forever')).toBeCloseTo(2.7857, 4)
+    expect((taken('forever') + block + avoid) / 2).toBeCloseTo(2.7679, 4)
+    // R24b: `foreverFlat`.
+    expect(taken('foreverFlat')).toBeCloseTo(4.8298, 4)
+    expect((taken('foreverFlat') + block + avoid) / 2).toBeCloseTo(3.7899, 4)
   })
 })
 

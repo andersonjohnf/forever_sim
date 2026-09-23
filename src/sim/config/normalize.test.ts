@@ -235,7 +235,25 @@ describe('normalizeConfig', () => {
     expect(config.rules).toEqual({ profile: 'forever', unmeasuredRatings: 'apply' })
     expect(config.run).toEqual({ mode: 'adaptive', iterations: 100, seed: 5 })
     expect(warnings).toHaveLength(6)
-    expect(normalizeConfig({ ...d, rules: { ...d.rules, damageTakenRage: 'foreverHp' } }).config.rules.damageTakenRage).toBe('foreverHp')
+    for (const model of ['forever', 'foreverFlat', 'foreverHealthLost', 'classic'] as const) {
+      const out = normalizeConfig({ ...d, rules: { ...d.rules, damageTakenRage: model } })
+      expect(out.config.rules.damageTakenRage).toBe(model)
+      expect(out.warnings).toEqual([])
+    }
+  })
+
+  it('maps the legacy damage-taken rage ids to their new names, without a warning (rage.md#rage-from-damage-taken)', () => {
+    const d = defaultConfig('warrior-protection')
+    const legacy = { foreverHp: 'foreverHealthLost', foreverHpPreArmor: 'forever' } as const
+    for (const [old, now] of Object.entries(legacy)) {
+      const { config, warnings } = normalizeConfig({ ...d, rules: { ...d.rules, damageTakenRage: old } })
+      expect(config.rules.damageTakenRage).toBe(now)
+      expect(warnings).toEqual([])
+      // A setup that skips normalizing still gets the new model.
+      expect(buildPlan({ ...d, rules: { ...d.rules, damageTakenRage: old as keyof typeof legacy } }).plan.rage.damageTakenModel).toBe(now)
+    }
+    // Prototype keys aren't ids.
+    expect(normalizeConfig({ ...d, rules: { ...d.rules, damageTakenRage: 'toString' } }).config.rules.damageTakenRage).toBeUndefined()
   })
 
   it('drops rotation settings the spec doesn’t have', () => {

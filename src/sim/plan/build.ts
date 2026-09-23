@@ -18,7 +18,7 @@ import { ITEM_EFFECTS } from '../effects/items'
 import { COOLDOWN_RACIALS, racialEffects } from '../effects/racials'
 import { type AuraSpec, catalogueEffects, type Condition, type Effect, type FlatStat, type OnUseSpec, type ProcSpec } from '../effects/types'
 import { isTwoHand } from '../equip'
-import { PROFILES } from '../rules/profiles'
+import { currentDamageTakenRageModel, PROFILES } from '../rules/profiles'
 import { SPEC_META } from '../specs'
 import { CLASS_BASE } from '../stats/base-stats'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
@@ -102,7 +102,11 @@ const SPELL_SCHOOL = { fire: 0, frost: 1, shadow: 2, nature: 3, arcane: 4, holy:
 /** Base rage cap (rage.md#rage-pool-cap-and-decay). */
 const BASE_MAX_RAGE = 100
 
-/** Interval of the stand-in incoming hits for DPS specs (encounter §4, [?]). */
+/**
+ * Interval of the stand-in incoming hits for DPS specs (encounter §4, [?]). Each hit carries
+ * `damageTakenPerSec` × 2 s of damage before your mitigation, the size Forever's rage from damage
+ * taken reads (rage.md#forever-).
+ */
 const DPS_DAMAGE_INTERVAL_MS = 2000
 
 interface Weapon {
@@ -640,7 +644,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     rage: {
       // docs/mechanics/rage.md#rage-pool-cap-and-decay: 100 + Boundless Rage, × Gnome +5% [?] (warrior Q17)
       maxTenths: Math.round((BASE_MAX_RAGE + c.maxRageFlat) * c.maxRageMult * 10),
-      damageTakenModel: config.rules.damageTakenRage ?? profile.rage.damageTaken,
+      // docs/mechanics/rage.md#rage-from-damage-taken; a legacy id maps to its new name
+      damageTakenModel: currentDamageTakenRageModel(config.rules.damageTakenRage) ?? profile.rage.damageTaken,
       maxHealth: derived.health,
     },
     periodicRage,
@@ -698,12 +703,19 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     notes.add('foreverWhiteRage')
     if (weapons[HAND.off]) notes.add('foreverOffHandRage')
   }
+  // docs/mechanics/rage.md#forever-: the damage-taken model, when you take damage. `classic` is [C].
   const takenModel = plan.rage.damageTakenModel
-  if (tank || plan.fight.damageTakenPerHit > 0) {
+  const takesDamage = tank || plan.fight.damageTakenPerHit > 0
+  if (takesDamage) {
     if (takenModel === 'forever') notes.add('damageTakenRage')
-    if (takenModel === 'foreverHp' || takenModel === 'foreverHpPreArmor') notes.add('damageTakenRageHp')
+    if (takenModel === 'foreverFlat') notes.add('damageTakenRageFlat')
+    if (takenModel === 'foreverHealthLost') notes.add('damageTakenRageHealthLost')
   }
-  if (unknown.includes('base health')) notes.add('unknownBaseHealth')
+  if (unknown.includes('base health')) {
+    // The `forever` and `foreverHealthLost` models divide by max health, so its missing base raises their rage.
+    const dividesByHealth = takesDamage && (takenModel === 'forever' || takenModel === 'foreverHealthLost')
+    notes.add('unknownBaseHealth', dividesByHealth ? 'rage from damage taken divides by it, so that rage comes out high' : undefined)
+  }
   if (unknown.includes('base dodge') && (tank || front)) notes.add('unknownBaseDodge')
   // A weapon racial with one matching weapon and one other: all attacks get it, as its tooltip reads;
   // Weaponmaster's axe or polearm with another weapon: only that weapon's attacks, as its tooltip

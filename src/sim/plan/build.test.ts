@@ -484,6 +484,28 @@ describe('assumptions', () => {
     for (const race of ['horde-orc', 'horde-troll', 'alliance-night-elf', 'alliance-human']) expect(ids(race)).not.toContain('cooldownRacial')
   })
 
+  it('flags the damage-taken rage model in use, only when you take damage, and says the missing base health raises it (rage.md#forever-)', () => {
+    const taken = (config: SimConfig) => buildPlan(config).assumptions.filter((a) => a.id.startsWith('damageTakenRage') || a.id === 'unknownBaseHealth')
+    const prot = defaultConfig('warrior-protection')
+    const withModel = (damageTakenRage: NonNullable<SimConfig['rules']['damageTakenRage']>) => taken({ ...prot, rules: { ...prot.rules, damageTakenRage } })
+    const [model, health] = taken(prot)
+    expect(model.id).toBe('damageTakenRage')
+    expect(model.text).toMatch(/10 × its damage before armor, block and absorbs ÷ your maximum health/)
+    expect(health.text).toMatch(/rage from damage taken divides by it/)
+    expect(withModel('foreverFlat').map((a) => a.id)).toEqual(['damageTakenRageFlat', 'unknownBaseHealth'])
+    expect(withModel('foreverHealthLost').map((a) => a.id)).toEqual(['damageTakenRageHealthLost', 'unknownBaseHealth'])
+    expect(withModel('foreverHpPreArmor').map((a) => a.id)).toEqual(['damageTakenRage', 'unknownBaseHealth'])
+    // Classic Era's own model is [C]; it and `foreverFlat` don't divide by health.
+    const classic = withModel('classic')
+    expect(classic.map((a) => a.id)).toEqual(['unknownBaseHealth'])
+    expect(classic[0].text).not.toMatch(/rage/)
+    expect(withModel('foreverFlat')[1].text).not.toMatch(/rage/)
+    // A DPS warrior takes no damage by default.
+    const fury = defaultConfig('warrior-fury')
+    expect(taken(fury).map((a) => a.id)).toEqual(['unknownBaseHealth'])
+    expect(taken({ ...fury, fight: { ...fury.fight, damageTakenPerSec: 100 } }).map((a) => a.id)).toEqual(['damageTakenRage', 'unknownBaseHealth'])
+  })
+
   it('flags Berserker Rage’s unknown damage-taken rage only when it’s used and damage is taken (rage.md, Q20)', () => {
     const fury = defaultConfig('warrior-fury')
     // Improved Berserker Rage 2/2 on top of the default build.

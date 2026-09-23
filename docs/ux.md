@@ -430,10 +430,14 @@ Every view handles these states:
     (`--toast-wait-clearance`), so there's room to scroll even the last control in the
     scrolling page or sheet clear of it. A toast that goes by itself leaves the padding alone,
     so nothing moves when it times out.
+  - When the toasts reach higher, say the toast in front of a waiting one times out and the
+    waiting one comes to the front at full size, keyboard focus they now cover scrolls clear of
+    them. Focus stays where it is, and after a tap or click nothing scrolls.
 - **Alt+T** (Option+T) is the keyboard's way to the toasts: it moves focus to the newest toast's
   Undo (sonner's hotkey focuses the toast list and spreads the toasts out, and
   `src/app/toaster.tsx` moves focus on to Undo). Escape in a toast dismisses an undo toast, and
-  leaving the toasts, by Undo, Dismiss, Escape or Tab, hands focus back to where it was.
+  leaving the toasts, by Undo, Dismiss, Escape or Tab, hands focus back to where it was,
+  scrolled into view: after an Undo that lengthened the page it could otherwise be off-screen.
 - **A toast stays usable over an open sheet or dialog** (the results sheet, the item picker,
   About): a tap on Undo reaches the toast, not the sheet under it, and neither the tap nor
   focus on the toast closes the sheet or is pulled back into its focus trap. Undo changes the

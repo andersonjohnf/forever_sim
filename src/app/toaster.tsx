@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Toaster } from '@/components/ui/sonner'
-import { focusNewestUndo } from './toast-layer'
+import { focusNewestUndo, revealFocus } from './toast-layer'
 import { UNDO_TOAST_MS, WAITING_TOAST } from './undo-toast'
 
 /**
@@ -24,6 +24,8 @@ const TOAST_GAP = 14
  *   of the page and of each sheet, so the last control in them has room to scroll clear of it.
  *   It's that toast's own reach at the front of the stack, so a 10 s toast coming or going doesn't
  *   change it: content never moves by itself when one times out.
+ * - When the toasts reach higher than before (one came, or one behind moved to the front at full
+ *   size), keyboard focus they now cover scrolls clear of them (revealFocus).
  */
 function useToastClearance() {
   const ref = useRef<HTMLDivElement>(null)
@@ -32,6 +34,7 @@ function useToastClearance() {
     if (!container) return
     const root = document.documentElement
     let frame = 0
+    let reach = 0
     const measure = () => {
       cancelAnimationFrame(frame)
       frame = requestAnimationFrame(() => {
@@ -42,6 +45,7 @@ function useToastClearance() {
         if (toasts.length === 0 || !list) {
           root.style.removeProperty('--toast-clearance')
           root.style.removeProperty('--toast-wait-clearance')
+          reach = 0
           return
         }
         // Where they are now (spread out, say), and where they settle: the front toast on the
@@ -61,6 +65,14 @@ function useToastClearance() {
         } else {
           root.style.removeProperty('--toast-wait-clearance')
         }
+
+        // Covered as the scroll padding counts it: reaching into the band the toasts take across
+        // the bottom of the window, so focus ends up where moving it would have put it.
+        if (clearance > reach) {
+          const top = window.innerHeight - clearance
+          revealFocus((box) => box.bottom > top && box.top < window.innerHeight)
+        }
+        reach = clearance
       })
     }
     const observer = new MutationObserver(measure)

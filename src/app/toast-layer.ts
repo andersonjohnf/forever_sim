@@ -43,6 +43,20 @@ export function leaveToasts() {
   if (inToaster(focused) && focused instanceof HTMLElement) focused.blur()
 }
 
+/**
+ * Scrolls keyboard focus into view, e.g. once a toast hands it back or grows over it
+ * (docs/ux.md#persistence-and-sharing). block: 'nearest', so the scroll padding keeps it clear of
+ * the toasts, the sticky header and the phone's bar (src/index.css), and a control already clear
+ * of them doesn't move. `when` gets the control's box and can rule it out. Only keyboard focus
+ * (:focus-visible) outside the toasts: after a tap or click the page doesn't scroll by itself.
+ * Focus stays where it is.
+ */
+export function revealFocus(when: (box: DOMRect) => boolean = () => true) {
+  const focused = document.activeElement
+  if (!(focused instanceof HTMLElement) || focused === document.body || focused.closest(TOASTER)) return
+  if (focused.matches(':focus-visible') && when(focused.getBoundingClientRect())) focused.scrollIntoView({ block: 'nearest' })
+}
+
 let installed = false
 
 /**
@@ -57,6 +71,9 @@ let installed = false
  *   reach the toast at all through src/index.css; the rest of the page has them off meanwhile.)
  * - Escape in a toast dismisses it, if it has Undo, and hands focus back, rather than closing the
  *   sheet under it: capture phase, ahead of Radix's own Escape listener.
+ * - Sonner hands focus back from the toasts without scrolling to it (preventScroll), so after an
+ *   Undo that lengthened the page it could land off-screen. On the next frame, once the page has
+ *   re-rendered and while the toast still counts in the scroll padding, it's scrolled into view.
  *
  * The shortcut itself is the toaster's (src/app/toaster.tsx).
  */
@@ -84,6 +101,14 @@ export function installToastLayer() {
   document.addEventListener('pointerdown', (e) => stopIf(inToaster(e.target), e))
   document.addEventListener('focusin', (e) => stopIf(inToaster(e.target), e))
   document.addEventListener('focusout', (e) => stopIf(inToaster(e.relatedTarget), e))
+  // Capture phase, so it sees focus leave however the other listeners treat the event.
+  document.addEventListener(
+    'focusout',
+    (e) => {
+      if (inToaster(e.target) && !inToaster(e.relatedTarget)) requestAnimationFrame(() => revealFocus())
+    },
+    true,
+  )
 
   document.addEventListener(
     'keydown',

@@ -2,8 +2,9 @@ import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // docs/ux.md#persistence-and-sharing: a toast never hides the focused control. A waiting toast
-// clears every control in a sheet or drawer, not just on the page (PV1); and only a waiting toast
-// grows the bottom padding, so nothing moves when a 10 s toast goes (PV5).
+// clears every control in a sheet or drawer, not just on the page (PV1); only a waiting toast
+// grows the bottom padding, so nothing moves when a 10 s toast goes (PV5); focus a toast hands
+// back is scrolled into view (PV6); and focus a toast grows over scrolls clear of it (PV7).
 
 const PHONE = { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }
 const DESKTOP = { viewport: { width: 1280, height: 900 } }
@@ -169,6 +170,17 @@ test.describe('a waiting toast over a sheet or drawer (PV1)', () => {
   }
 })
 
+/** How many px of the focused control are hidden: under a toast, the phone's bar or the sticky tabs. */
+const obscured = (page: Page) =>
+  page.evaluate(() => {
+    const box = document.activeElement!.getBoundingClientRect()
+    const tops = [...document.querySelectorAll("[data-sonner-toast][data-removed='false']")].map((t) => t.getBoundingClientRect().top)
+    const bar = document.querySelector('[data-sim-bar]')!.getBoundingClientRect()
+    const tabs = document.querySelector('[data-sticky-tabs]')!.getBoundingClientRect()
+    const floor = Math.min(window.innerHeight, bar.height > 0 ? bar.top : Infinity, ...tops)
+    return Math.max(0, box.bottom - floor) + Math.max(0, tabs.bottom - box.top)
+  })
+
 for (const [name, device] of [
   ['phone', PHONE],
   ['desktop', DESKTOP],
@@ -196,6 +208,67 @@ for (const [name, device] of [
       await expect(toast).toHaveCount(0)
       expect(await padding()).toBe(before)
       expect(await page.evaluate(() => window.scrollY)).toBe(end)
+    })
+
+    test('Undo hands focus back in view, clear of the toast and the bars, though the page grew (PV6)', async ({ page }) => {
+      await page.goto('./')
+      const toast = await waitingToast(page)
+      const link = page.getByRole('link', { name: 'wago.tools' })
+      await link.focus()
+      await page.keyboard.press('Alt+KeyT')
+      await expect(toast.getByRole('button', { name: 'Undo' })).toBeFocused()
+      await page.keyboard.press('Enter')
+      // The gear is back, so the page is longer above the link, and sonner hands focus back
+      // without scrolling.
+      await expect(page.getByRole('button', { name: 'Main hand: empty' })).toHaveCount(0)
+      await expect(link).toBeFocused()
+      await expect(link).toBeInViewport({ ratio: 1 })
+      await expect.poll(() => obscured(page)).toBe(0)
+    })
+  })
+}
+
+// A phone's talent cell opens a popover rather than refusing, so the narrow case is a 390 px
+// window with a mouse: the toasts are as wide as on a phone.
+for (const [name, device] of [
+  ['390 px', { viewport: { width: 390, height: 844 } }],
+  ['desktop', DESKTOP],
+] as const) {
+  test.describe(`toasts and the page, ${name}`, () => {
+    test.use(device)
+
+    test('focus a waiting toast grows over, as the toast in front of it goes, scrolls clear of it (PV7)', async ({ page }) => {
+      await page.clock.install()
+      await page.goto('./')
+      const waiting = await waitingToast(page)
+      // A shorter 10 s toast in front of it: Enter on a talent when every point is spent says so.
+      await page.getByRole('tab', { name: 'Talents', exact: true }).click()
+      await page.getByRole('button', { name: /, 0 of \d+$/ }).first().focus()
+      await page.keyboard.press('Enter')
+      const refusal = toasts(page).filter({ hasText: 'points are spent' })
+      await expect(refusal).toBeVisible()
+      await settled(page)
+
+      // The footer's link, focused from the keyboard and just clear of the stack.
+      const link = page.getByRole('link', { name: 'wago.tools' })
+      await link.focus()
+      await page.evaluate(() => {
+        const box = document.activeElement!.getBoundingClientRect()
+        const top = Math.min(...[...document.querySelectorAll("[data-sonner-toast][data-removed='false']")].map((t) => t.getBoundingClientRect().top))
+        window.scrollBy(0, box.bottom - (top - 2))
+      })
+      expect(await covered(page)).toBe(0)
+      const before = await page.evaluate(() => window.scrollY)
+
+      // The refusal times out, and the waiting toast comes to the front at its full height.
+      await page.mouse.move(0, 0)
+      await page.clock.fastForward(10_000)
+      await expect(refusal).toHaveCount(0)
+      await settled(page)
+      await expect.poll(() => covered(page)).toBe(0)
+      await expect(link).toBeFocused()
+      expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(before)
+      await expect(waiting).toBeVisible()
     })
   })
 }

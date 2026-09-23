@@ -200,13 +200,19 @@ describe('warrior worked examples in the engine (1800 AP, pre-armor)', () => {
   })
 })
 
-describe('rotation sanity (default Fury warrior)', () => {
-  const plan = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 100, seed: 3 } }).plan
+describe.each([
+  ['default Fury warrior', {}],
+  // Hamstring on and the dance off, as before M2.5b, so Hamstring's own conditions are tested too.
+  ['with Hamstring on and the Overpower dance off', { 'warrior.fury.hamstring.enabled': true, 'warrior.fury.overpower.enabled': false }],
+] as const)('rotation sanity (%s)', (_, rotation: SimConfig['rotation']) => {
+  const plan = buildPlan({ ...defaultConfig('warrior-fury'), rotation, run: { mode: 'fixed', iterations: 100, seed: 3 } }).plan
   const bt = abilityIndex(plan, 'bloodthirst')
   const ww = abilityIndex(plan, 'whirlwind')
   const hs = abilityIndex(plan, 'heroicStrike')
   const op = abilityIndex(plan, 'overpower')
+  const ham = abilityIndex(plan, 'hamstring')
   const ex = abilityIndex(plan, 'execute')
+  const dance = rotation['warrior.fury.overpower.enabled'] !== false
   const sim = new Sim(plan)
   const casts: [number, number, number][] = []
   sim.castTrace = (a, t, rage) => casts.push([a, t, rage])
@@ -219,10 +225,10 @@ describe('rotation sanity (default Fury warrior)', () => {
     executeAt.push(sim.executeAtMs)
   }
 
-  it('uses every ability, and no Hamstring (off since M2.5b)', () => {
+  it('uses every ability it has: the Overpower dance or Hamstring (off since M2.5b), not both', () => {
     const used = new Set(perFight.flat().map(([a]) => a))
-    expect([bt, ww, hs, op, ex].every((a) => used.has(a))).toBe(true)
-    expect(abilityIndex(plan, 'hamstring')).toBe(-1)
+    expect([bt, ww, hs, ex, dance ? op : ham].every((a) => used.has(a))).toBe(true)
+    expect(abilityIndex(plan, dance ? 'hamstring' : 'overpower')).toBe(-1)
   })
 
   it('never uses an ability without the rage for it, off cooldown, or during the GCD', () => {
@@ -243,7 +249,7 @@ describe('rotation sanity (default Fury warrior)', () => {
     }
   })
 
-  it('follows the §5.2 conditions: Whirlwind waits on Bloodthirst, the Overpower dance is GCD-safe outside the execute phase', () => {
+  it('follows the §5.2 conditions: Whirlwind waits on Bloodthirst; the Overpower dance and Hamstring are GCD-safe outside the execute phase, and Hamstring waits for 60 rage there', () => {
     perFight.forEach((fight, i) => {
       const readyAt = new Map<number, number>([
         [bt, 0],
@@ -261,6 +267,13 @@ describe('rotation sanity (default Fury warrior)', () => {
             expect(readyAt.get(bt)! - t).toBeGreaterThanOrEqual(1500)
             expect(readyAt.get(ww)! - t).toBeGreaterThanOrEqual(1500)
           }
+        }
+        if (a === ham) {
+          // Never in the execute phase, where the global cooldowns are Execute's.
+          expect(t).toBeLessThan(executeAt[i])
+          expect(rage).toBeGreaterThanOrEqual(600)
+          expect(readyAt.get(bt)! - t).toBeGreaterThanOrEqual(1500)
+          expect(readyAt.get(ww)! - t).toBeGreaterThanOrEqual(1500)
         }
         if (a === bt || a === ww) readyAt.set(a, t + plan.abilities[a].cooldownMs)
       }
@@ -712,12 +725,23 @@ describe('Bloodrage (warrior.md §2.3, §5.2 row 5, W19)', () => {
     expect(times({ 'warrior.fury.bloodrage.maxRage': 0 }, true)).toEqual([0])
 
     // The default Fury warrior with a low maxRage (30): every Bloodrage at ≤ 30 rage, either as it
-    // comes off cooldown or right after a cast that spent rage at the same moment (only spending
-    // lowers rage, without the Overpower dance, whose swap back lowers it too).
-    const config = { ...defaultConfig('warrior-fury'), rotation: { 'warrior.fury.bloodrage.maxRage': 30, 'warrior.fury.overpower.enabled': false } }
+    // comes off cooldown or at a moment rage dropped: right after a cast that spent rage, or the
+    // Overpower dance's swap back to Berserker Stance, which keeps at most 25 (§2.1).
+    const config = { ...defaultConfig('warrior-fury'), rotation: { 'warrior.fury.bloodrage.maxRage': 30 } }
     const plan = buildPlan(config).plan
+    const sim = new Sim(plan)
+    let casts: [string, number, number][] = []
+    let drops = new Set<number>()
+    sim.castTrace = (a, t, rage) => casts.push([plan.abilities[a].id, t, rage])
+    sim.stanceTrace = (_stance, t, before, after) => {
+      if (after < before) drops.add(t)
+    }
     let late = 0
-    for (const { casts } of castsPerFight(plan, 40)) {
+    let afterSwap = 0
+    for (let fight = 0; fight < 40; fight++) {
+      casts = []
+      drops = new Set()
+      sim.runFight(fight)
       let ready = 0
       casts.forEach(([id, t, rage], i) => {
         if (id !== 'bloodrage') return
@@ -730,12 +754,15 @@ describe('Bloodrage (warrior.md §2.3, §5.2 row 5, W19)', () => {
         expect(t).toBeGreaterThanOrEqual(ready)
         if (t > ready) {
           late++
-          expect(casts[i - 1][1], `Bloodrage at ${t}`).toBe(t)
+          const spent = casts[i - 1][1] === t
+          if (!spent) afterSwap++
+          expect(spent || drops.has(t), `Bloodrage at ${t}`).toBe(true)
         }
         ready = t + 60000
       })
     }
     expect(late).toBeGreaterThan(0)
+    expect(afterSwap).toBeGreaterThan(0)
   })
 })
 
@@ -758,6 +785,17 @@ describe('Death Wish (warrior.md §2.6, §5.2 row 2 and notes)', () => {
     expect(three).toHaveLength(3)
     expect(three[1]).toBe(three[0] + 180000)
     expect(three[2]).toBe(370000)
+  })
+
+  it('alignToEnd with Execute and a 20% phase: the final use beforeExecuteSec (3 s) before the phase, or with 30 s left, whichever comes first', () => {
+    // Execute on, and Bloodrage before the pull for Death Wish's 10 rage at 0 s.
+    const phase = { 'warrior.fury.execute.enabled': true, 'warrior.fury.prepull.bloodrage': true }
+    // 180 s: the phase at 144 s, so 141 s (39 s left) rather than 150 s.
+    expect(dwTimes(180000, phase)).toEqual([141000])
+    // 300 s: a use at the pull, then the final one 3 s before the phase at 240 s.
+    expect(dwTimes(300000, phase)).toEqual([0, 237000])
+    // 120 s: the phase at 96 s is only 24 s before the end, so the clock's 90 s comes before 93 s.
+    expect(dwTimes(120000, phase)).toEqual([90000])
   })
 
   it('without alignToEnd, every use goes on cooldown', () => {

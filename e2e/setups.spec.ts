@@ -303,6 +303,27 @@ for (const [label, device] of [
       await expect(raceRadio(page, /Orc/)).toHaveAttribute('aria-checked', 'true')
     })
 
+    // VF11: the field stopped at 60 UTF-16 units (15 skin-toned thumbs), and a name was cut into
+    // code points, which could split an emoji.
+    test('a name counts an emoji as one character, a skin tone or a ZWJ family included', async ({ page }) => {
+      await page.goto('./')
+      const sheet = await openSetups(page)
+      const field = sheet.getByRole('textbox', { name: 'Save the current setup as' })
+      const thumbs = '👍🏽'.repeat(60)
+      await field.fill(thumbs)
+      await expect(field).toHaveValue(thumbs)
+      await sheet.getByRole('button', { name: 'Save', exact: true }).click()
+      await expect(toast(page, `Saved “${thumbs}”`)).toBeVisible()
+      await expect(sheet.getByRole('button', { name: `Load ${thumbs}` })).toBeVisible()
+      // One more is over the limit, and says why under the field.
+      const family = '👨‍👩‍👧‍👦'.repeat(61)
+      await field.fill(family)
+      await expect(field).toHaveValue(family)
+      await sheet.getByRole('button', { name: 'Save', exact: true }).click()
+      await expect(field).toHaveAccessibleDescription('Keep the name to 60 characters or fewer.')
+      await expect(sheet.getByRole('listitem')).toHaveCount(1)
+    })
+
     test('a long name wraps to two lines at most, without scrolling sideways', async ({ page }) => {
       const long = 'Unbrokenlongnamewithoutanyspacesatallthatgoesonforsixtychars'
       await seed(page, [

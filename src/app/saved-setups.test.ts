@@ -31,6 +31,8 @@ const {
   MAX_CONFIG_DEPTH,
   MAX_ID_LENGTH,
   MAX_NAME_LENGTH,
+  MAX_NAME_UNITS,
+  MAX_RAW_NAME_UNITS,
   nameProblem,
   parseSavedSetups,
   readEntry,
@@ -134,6 +136,52 @@ describe('names', () => {
     const unique = uniqueName(long, [{ name: long }])
     expect(unique).toBe(`${'b'.repeat(MAX_NAME_LENGTH - 5)}😀 (2)`)
     expect(unique).not.toMatch(halves)
+  })
+
+  // VF11: counting code points split a skin-toned or ZWJ emoji, and counted it as several.
+  test('an emoji with a skin tone, or a family joined with ZWJs, is one character, never cut', () => {
+    const thumb = '👍🏽' // 2 code points
+    const family = '👨‍👩‍👧‍👦' // 7 code points
+    const kiss = '👩🏻‍❤️‍💋‍👨🏼' // 15 UTF-16 units, the longest
+    for (const emoji of [thumb, family, kiss]) {
+      expect(nameProblem(emoji.repeat(MAX_NAME_LENGTH)), emoji).toBeNull()
+      expect(nameProblem(emoji.repeat(MAX_NAME_LENGTH + 1)), emoji).toMatch(/60 characters/)
+    }
+    // A name cut to 60 keeps its last emoji whole, or leaves it out.
+    const a59 = 'a'.repeat(MAX_NAME_LENGTH - 1)
+    expect(readEntry(stored('a', `${a59}${thumb}b`, stamp(20)))!.name).toBe(`${a59}${thumb}`)
+    expect(readEntry(stored('a', `${a59}${family}${family}`, stamp(20)))!.name).toBe(`${a59}${family}`)
+    // 60 of the longest emoji are kept as they are.
+    expect(readEntry(stored('a', kiss.repeat(MAX_NAME_LENGTH), stamp(20)))!.name).toBe(kiss.repeat(MAX_NAME_LENGTH))
+    // A unique name's number makes room by whole characters.
+    const long = `${'b'.repeat(MAX_NAME_LENGTH - 5)}${family}${family}`
+    expect(uniqueName(long, [{ name: long }])).toBe(`${'b'.repeat(MAX_NAME_LENGTH - 5)}${family} (2)`)
+  })
+
+  test('a name stays within the name field’s limit in UTF-16 units, cut between characters', () => {
+    // One character however long: a letter under a thousand accents (an "x", so NFC keeps them all).
+    const zalgo = `x${'\u0301'.repeat(1000)}`
+    expect(nameProblem(zalgo)).toMatch(/60 characters/)
+    expect(nameProblem(zalgo.slice(0, MAX_NAME_UNITS))).toBeNull()
+    expect(nameProblem(`b${zalgo.slice(0, MAX_NAME_UNITS)}`)).toMatch(/60 characters/)
+    // Read back, it's left out whole, rather than cut into.
+    expect(readEntry(stored('a', `ok ${zalgo}`, stamp(20)))!.name).toBe('ok')
+  })
+
+  test('without Intl.Segmenter, a name counts code points', async () => {
+    const segmenter = Object.getOwnPropertyDescriptor(Intl, 'Segmenter')!
+    Object.defineProperty(Intl, 'Segmenter', { value: undefined, configurable: true, writable: true })
+    try {
+      vi.resetModules()
+      const fallback = await import('./saved-setups')
+      expect(fallback.nameProblem('👍🏽'.repeat(MAX_NAME_LENGTH / 2))).toBeNull()
+      expect(fallback.nameProblem('👍🏽'.repeat(MAX_NAME_LENGTH / 2 + 1))).toMatch(/60 characters/)
+      // Still never half an emoji's code point.
+      expect(fallback.readEntry(stored('a', `${'a'.repeat(MAX_NAME_LENGTH - 1)}😀b`, stamp(20)))!.name).toBe(`${'a'.repeat(MAX_NAME_LENGTH - 1)}😀`)
+    } finally {
+      Object.defineProperty(Intl, 'Segmenter', segmenter)
+      vi.resetModules()
+    }
   })
 
   // LX6: a file of 1,000 setups with one name took about 25 s to name (every name against every other).
@@ -380,12 +428,14 @@ describe('the stored form', () => {
   })
 
   // LX7: a file's entries can't fill the browser's storage with ids or names no save has.
-  test('an id over 64 characters can’t be read, and a raw name is cut to 240 before it’s tidied', () => {
+  test('an id over 64 characters can’t be read, and a raw name is cut to 3,840 units before it’s tidied', () => {
     expect(readEntry(stored('x'.repeat(MAX_ID_LENGTH), 'A', stamp(20)))).not.toBeNull()
     expect(readEntry(stored('x'.repeat(MAX_ID_LENGTH + 1), 'A', stamp(20)))).toBeNull()
-    // Past 240 characters, what's left isn't read: here, all but the "a".
-    expect(readEntry(stored('a', `a${' '.repeat(300)}b`, stamp(20)))?.name).toBe('a')
-    expect(readEntry(stored('a', `${' '.repeat(300)}b`, stamp(20)))).toBeNull()
+    expect(MAX_RAW_NAME_UNITS).toBe(3840)
+    // Past 3,840 units, what's left isn't read: here, all but the "a".
+    expect(readEntry(stored('a', `a${' '.repeat(MAX_RAW_NAME_UNITS)}b`, stamp(20)))?.name).toBe('a')
+    expect(readEntry(stored('a', `a${' '.repeat(MAX_RAW_NAME_UNITS - 2)}b`, stamp(20)))?.name).toBe('a b')
+    expect(readEntry(stored('a', `${' '.repeat(MAX_RAW_NAME_UNITS)}b`, stamp(20)))).toBeNull()
     expect(readEntry(stored('a', 'y'.repeat(1_000_000), stamp(20)))?.name).toBe('y'.repeat(MAX_NAME_LENGTH))
   })
 

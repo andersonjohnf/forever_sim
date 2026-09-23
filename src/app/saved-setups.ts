@@ -15,7 +15,14 @@ import { isQuotaError } from './storage-errors'
 
 export const SAVED_SETUPS_KEY = 'forever-sim:saved-setups'
 export const SAVED_SETUPS_VERSION = 1
+/** The most characters in a name, counted as a reader counts them (`characters`). */
 export const MAX_NAME_LENGTH = 60
+/**
+ * The most UTF-16 code units in a name, the name fields' `maxLength`: room for 60 of the longest
+ * emoji (a kiss with two skin tones is 15), while a letter under hundreds of accents, one
+ * character however long, can't fill the browser's storage.
+ */
+export const MAX_NAME_UNITS = 16 * MAX_NAME_LENGTH
 
 /**
  * A saved setup as it's stored. Its config is as it was saved, maybe by an older version of the
@@ -48,28 +55,43 @@ export interface SavedSetup {
 // ---- Names ----
 
 /**
- * The longest raw name read from storage or a file, in characters, before it's tidied. A name the
- * app saved has at most MAX_NAME_LENGTH, so the rest is cut before any work is done on it.
+ * The longest raw name read from storage or a file, in UTF-16 code units, before it's tidied. A
+ * name the app saved has at most MAX_NAME_UNITS, so the rest is cut before any work is done on it.
  */
-const MAX_RAW_NAME_LENGTH = 4 * MAX_NAME_LENGTH
+export const MAX_RAW_NAME_UNITS = 4 * MAX_NAME_UNITS
 /** The longest id read from storage or a file. The app's own are 36 characters (a UUID) or fewer. */
 export const MAX_ID_LENGTH = 64
 
-/** At most `max` characters of `text`, counting code points, so an emoji is never cut in half. */
-function truncate(text: string, max: number): string {
+const graphemes = typeof Intl.Segmenter === 'function' ? new Intl.Segmenter(undefined, { granularity: 'grapheme' }) : null
+
+/**
+ * A text's characters as a reader counts them: its graphemes, so an emoji is one, a skin tone or a
+ * family joined with ZWJs included. A browser without Intl.Segmenter counts code points instead.
+ * Lazy, so a long text is read only as far as it's needed.
+ */
+function* characters(text: string): Generator<string> {
+  if (graphemes === null) yield* text
+  else for (const { segment } of graphemes.segment(text)) yield segment
+}
+
+/**
+ * The start of `text`: at most `max` characters (`characters`) and `maxUnits` UTF-16 code units,
+ * cut only between characters, so an emoji is never cut in half.
+ */
+function truncate(text: string, max = MAX_NAME_LENGTH, maxUnits = MAX_NAME_UNITS): string {
   let out = ''
   let n = 0
-  for (const char of text) {
-    if (n++ === max) break
+  for (const char of characters(text)) {
+    if (n++ === max || out.length + char.length > maxUnits) break
     out += char
   }
   return out
 }
 
-/** A name's length as it's counted here: in code points, so an emoji is one character. */
+/** A name's length as it's counted here (`characters`): an emoji is one character. */
 function nameLength(name: string): number {
   let n = 0
-  for (const _char of name) n++
+  for (const _char of characters(name)) n++
   return n
 }
 
@@ -85,7 +107,7 @@ export function cleanName(name: string): string {
 export function nameProblem(name: string): string | null {
   const clean = cleanName(name)
   if (!clean) return 'Enter a name.'
-  if (nameLength(clean) > MAX_NAME_LENGTH) return `Keep the name to ${MAX_NAME_LENGTH} characters or fewer.`
+  if (clean.length > MAX_NAME_UNITS || nameLength(clean) > MAX_NAME_LENGTH) return `Keep the name to ${MAX_NAME_LENGTH} characters or fewer.`
   return null
 }
 
@@ -124,13 +146,13 @@ export function nameMaker(setups: readonly { name: string }[]): (name: string) =
   }
   return (name) => {
     const clean = cleanName(name) || 'Setup'
-    const first = truncate(clean, MAX_NAME_LENGTH).trimEnd()
+    const first = truncate(clean).trimEnd()
     if (!taken.has(sameNameKey(first))) return take(first)
     const base = clean.replace(/ \(\d+\)$/, '')
     const key = sameNameKey(base)
     for (let n = next.get(key) ?? 2; ; n++) {
       const suffix = ` (${n})`
-      const candidate = `${truncate(base, MAX_NAME_LENGTH - suffix.length).trimEnd()}${suffix}`
+      const candidate = `${truncate(base, MAX_NAME_LENGTH - suffix.length, MAX_NAME_UNITS - suffix.length).trimEnd()}${suffix}`
       if (!taken.has(sameNameKey(candidate))) {
         next.set(key, n + 1)
         return take(candidate)
@@ -181,15 +203,16 @@ export function withinDepth(value: unknown, max = MAX_CONFIG_DEPTH): boolean {
 
 /**
  * A stored entry (or a setups file's), tidied, or null if it can't be read: an id of up to
- * MAX_ID_LENGTH characters, a name (cut to MAX_RAW_NAME_LENGTH before it's tidied, then to
- * MAX_NAME_LENGTH), a date, and a config object no deeper than MAX_CONFIG_DEPTH.
+ * MAX_ID_LENGTH characters, a name (cut to MAX_RAW_NAME_UNITS before it's tidied, then to
+ * MAX_NAME_LENGTH characters and MAX_NAME_UNITS), a date, and a config object no deeper than
+ * MAX_CONFIG_DEPTH.
  */
 export function readEntry(entry: unknown): StoredSetup | null {
   if (!isObj(entry)) return null
   const { id, name: rawName, savedAt, config } = entry
   if (typeof id !== 'string' || !id || id.length > MAX_ID_LENGTH) return null
   if (typeof rawName !== 'string') return null
-  const name = truncate(cleanName(truncate(rawName, MAX_RAW_NAME_LENGTH)), MAX_NAME_LENGTH).trimEnd()
+  const name = truncate(cleanName(truncate(rawName, Infinity, MAX_RAW_NAME_UNITS))).trimEnd()
   if (!name) return null
   if (typeof savedAt !== 'string' || !Number.isFinite(Date.parse(savedAt))) return null
   if (!isObj(config) || !withinDepth(config)) return null
@@ -416,6 +439,9 @@ type ReadProblem = Exclude<StorageProblem, 'full'>
 /** What a change to the saves was, for the words when storage refuses it. */
 export type StorageAction = 'save' | 'rename' | 'delete' | 'import'
 
+/** What makes room when storage is full of something other than saves. */
+const CLEAR_SITE_DATA = 'Clearing this site’s data in your browser’s settings makes room, and resets your setup too.'
+
 /**
  * Why storage refused a change, in words for what was being done and what's saved: full storage
  * asks you to delete a save only when there's one to delete.
@@ -438,8 +464,19 @@ export function storageMessage(problem: StorageProblem, action: StorageAction, h
       if (action === 'delete') return 'Your browser’s storage for this site is full. Reload this page, then try again.'
       return hasSaves
         ? 'Your browser’s storage for this site is full. Delete a saved setup you don’t need, then try again.'
-        : 'Your browser’s storage for this site is full, but not with saved setups. Clearing this site’s data in your browser’s settings makes room, and resets your setup too.'
+        : `Your browser’s storage for this site is full, but not with saved setups. ${CLEAR_SITE_DATA}`
   }
+}
+
+/**
+ * Why the automatic save failed on full storage (src/app/setup-store.ts): the setup will be lost
+ * when the page closes, and what makes room, worded as storageMessage words it. It asks you to
+ * delete saves only when there are some to delete.
+ */
+export function autoSaveFullMessage(hasSaves: boolean): string {
+  return hasSaves
+    ? 'Your browser’s storage for this site is full, so this setup will be lost when you close the page. Delete saved setups you don’t need to make room.'
+    : `Your browser’s storage for this site is full, but not with saved setups, so this setup will be lost when you close the page. ${CLEAR_SITE_DATA}`
 }
 
 function readStorage(): ParsedSetups | { ok: false; problem: 'blocked' } {
@@ -487,6 +524,15 @@ export function refreshSavedSetups(): ReadReport {
   }
   useSavedSetups.setState({ setups: listSetups(read.setups), problem: null })
   return { unreadable: read.unreadable.length, problem: null }
+}
+
+/**
+ * Whether storage holds a save the list shows, one you could delete to make room: read afresh,
+ * since the list is only read while the Setups sheet is open.
+ */
+export function hasShownSaves(): boolean {
+  const read = readStorage()
+  return read.ok && read.setups.some(isShown)
 }
 
 /**

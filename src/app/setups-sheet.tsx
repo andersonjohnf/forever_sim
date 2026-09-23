@@ -19,7 +19,7 @@ import {
   findByName,
   formatDay,
   formatSavedAt,
-  MAX_NAME_LENGTH,
+  MAX_NAME_UNITS,
   nameProblem,
   refreshSavedSetups,
   renameInStorage,
@@ -243,7 +243,7 @@ function SetupsBody({ onLoaded }: { onLoaded: () => void }) {
             ref={nameRef}
             id={nameId}
             value={name}
-            maxLength={MAX_NAME_LENGTH}
+            maxLength={MAX_NAME_UNITS}
             autoComplete="off"
             onChange={(event) => {
               setDraft(event.target.value)
@@ -501,7 +501,7 @@ function RenameForm({
           autoFocus
           onFocus={(event) => event.currentTarget.select()}
           value={value}
-          maxLength={MAX_NAME_LENGTH}
+          maxLength={MAX_NAME_UNITS}
           autoComplete="off"
           aria-label={`New name for ${setup.name}`}
           aria-invalid={!!error}

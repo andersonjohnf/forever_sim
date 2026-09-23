@@ -65,6 +65,8 @@ describe('reading a file', () => {
     expect(parseSetupsFile(file({ setups, current }))).toEqual({ ok: true, setups, current, skipped: 0 })
     // With no current setup, the saves alone.
     expect(parseSetupsFile(file({ setups, current: undefined }))).toEqual({ ok: true, setups, current: null, skipped: 0 })
+    // VF10: `"current": null` is no current setup too, not one that couldn't be read.
+    expect(parseSetupsFile(file({ setups, current: null }))).toEqual({ ok: true, setups, current: null, skipped: 0 })
   })
 
   test('a file from a newer version of the app is refused', () => {
@@ -108,6 +110,7 @@ describe('reading a file', () => {
 
   test('a file with nothing in it says so', () => {
     expect(parseSetupsFile(file({ current: undefined }))).toEqual({ ok: false, problem: 'empty' })
+    expect(parseSetupsFile(file({ current: null }))).toEqual({ ok: false, problem: 'empty' })
   })
 
   test('a setup larger than a share link can hold is left out, and counted', () => {

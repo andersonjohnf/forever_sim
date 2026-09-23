@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { create } from 'zustand'
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware'
 import { defaultConfig, normalizeConfig, type SimConfig, type SpecId } from '@/sim'
+import { autoSaveFullMessage, hasShownSaves } from './saved-setups'
 import { defaultSpec, isVisibleSpec } from './specs'
 import { isQuotaError } from './storage-errors'
 
@@ -39,7 +40,8 @@ let saidFull = false
 /**
  * The automatic save's storage: localStorage, with its errors caught, so a change never throws
  * because the setup can't be written. When this site's storage is full, a notice says so once,
- * until a save works again; the change itself still applies, for as long as the page is open.
+ * until a save works again, and what makes room: deleting saves, or with none, clearing the site's
+ * data. The change itself still applies, for as long as the page is open.
  * Storage the browser blocks fails quietly, as zustand does when it can't reach localStorage at
  * all: the Setups sheet says so where it matters.
  */
@@ -58,10 +60,7 @@ export const autoSaveStorage: StateStorage = {
     } catch (error) {
       if (!isQuotaError(error) || saidFull) return
       saidFull = true
-      toast.error('Your changes aren’t being kept', {
-        id: 'auto-save',
-        description: 'Your browser’s storage for this site is full, so this setup will be lost when you close the page. Delete saved setups you don’t need to make room.',
-      })
+      toast.error('Your changes aren’t being kept', { id: 'auto-save', description: autoSaveFullMessage(hasShownSaves()) })
     }
   },
   removeItem: (name) => {

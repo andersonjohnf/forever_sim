@@ -420,7 +420,9 @@ Every view handles these states:
 - The setup is saved to `localStorage` automatically and restored on the next visit. If the
   browser's storage for the site is full, a change still applies for as long as the page is open,
   and a notice says once that your changes aren't being kept (until a save works again), rather
-  than every change failing (`autoSaveStorage` in `src/app/setup-store.ts`).
+  than every change failing (`autoSaveStorage` in `src/app/setup-store.ts`). It says what makes
+  room as the Setups sheet does: deleting saved setups, or with none shown, that the storage is
+  full of something else and clearing the site's data makes room.
 - **Share** copies a URL with the compressed setup in the hash (`#s=…`). The clipboard write
   starts within the tap itself, with the link as a promise (`ClipboardItem`), because Safari
   refuses one that follows an await. A notice says the link was copied, or that the browser
@@ -496,9 +498,13 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
 **Import**, each under a rule with a heading and a line on what it does.
 - **Names.** Save and Rename keep the same rules (`src/app/saved-setups.ts`). A name is required,
   trimmed, with each run of spaces as one, in Unicode's composed form (NFC, so an "é" typed either
-  way is one name), and at most 60 characters, counted so an emoji is one and never cut in half.
-  Names compare without case, the same in every locale. A name that breaks the rules gets its
-  reason under the field, which describes the field.
+  way is one name), and at most 60 characters. Characters are counted as a reader counts them
+  (graphemes, through `Intl.Segmenter`), so an emoji is one, a skin tone or a family joined with
+  ZWJs included, and a name is never cut inside one; a browser without `Intl.Segmenter` counts code
+  points. A name also stays within 960 UTF-16 units, the fields' `maxLength`: room for 60 of the
+  longest emoji, while a letter under hundreds of accents can't fill storage. Names compare without
+  case, the same in every locale. A name that breaks the rules gets its reason under the field,
+  which describes the field.
 - **Save** keeps a copy of the current setup, its spec included, under a name. The field starts on
   the spec and the day ("Fury Warrior · 23 Sep"), counting on ("… (2)") so the default never
   saves over anything, and the default is selected, so typing replaces it; after a save from the
@@ -563,8 +569,9 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
     (2)"). One that's saved already isn't added again, so a second import of a file adds nothing: a
     save with the same setup and the same name (without the number an import gave it) or the same
     id. The file's current setup is added too, as "Imported · 23 Sep", unless a save has it
-    already. A notice says "Imported 3 setups" (or "Nothing new to import"), and how many were
-    saved already, couldn't be read, or are kept but not shown. The sheet stays open, with focus on
+    already; a file with none (no `current`, or `null`) adds its saves alone. A notice says
+    "Imported 3 setups" (or "Nothing new to import"), and how many were saved already, couldn't be
+    read, or are kept but not shown. The sheet stays open, with focus on
     the list's heading, so the list is in view, and the rows it added are marked **New** until the
     sheet closes.
   - A file that can't be used gets its reason under the button, which it describes, with no
@@ -573,8 +580,8 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
     large (over 5 MB, about all a browser keeps for a site, or 1,000 setups); or none of its setups
     could be read. A setup that can't be read is left out and counted in the notice: over a share
     link's 16 KB cap, nested deeper than any setup (10 levels), or with an id over 64 characters.
-    A name is cut to 240 characters before it's tidied. Anything else that goes wrong reading a
-    file says it's damaged.
+    A name is cut to 3,840 UTF-16 units (between characters) before it's tidied. Anything else that
+    goes wrong reading a file says it's damaged.
 - **Storage.** Saves stay in this browser, under their own versioned key
   (`forever-sim:saved-setups`, `src/app/saved-setups.ts`), apart from the automatic save. The
   sheet reads them afresh each time it opens, and shows another tab's changes as they happen.

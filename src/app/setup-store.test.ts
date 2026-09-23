@@ -16,6 +16,7 @@ vi.stubGlobal('localStorage', {
 const notices = vi.hoisted(() => ({ error: vi.fn() }))
 vi.mock('sonner', () => ({ toast: notices }))
 const { useSetup } = await import('./setup-store')
+const { SAVED_SETUPS_KEY, storageMessage } = await import('./saved-setups')
 
 const store = () => useSetup.getState()
 const fresh = (spec: SpecId, race?: string): SimConfig => {
@@ -92,5 +93,40 @@ describe('setup store', () => {
     } finally {
       full = false
     }
+  })
+
+  // VF3: it asked you to delete saved setups even when there were none.
+  test('the full-storage notice asks you to delete saves only when there are some to delete', () => {
+    const description = () => (notices.error.mock.lastCall![1] as { description: string }).description
+    const fillUp = (race: string) => {
+      notices.error.mockClear()
+      full = true
+      try {
+        setRace(race)
+      } finally {
+        full = false
+      }
+      expect(notices.error).toHaveBeenCalledTimes(1)
+      // A save that works resets the notice, so the next full storage says it again.
+      setRace('alliance-human')
+    }
+    memory.delete(SAVED_SETUPS_KEY)
+    fillUp('horde-troll')
+    expect(description()).toBe(
+      'Your browser’s storage for this site is full, but not with saved setups, so this setup will be lost when you close the page. Clearing this site’s data in your browser’s settings makes room, and resets your setup too.',
+    )
+    // The no-saves wording is the Setups sheet's.
+    expect(description()).toContain(storageMessage('full', 'save', false).replace(/^.*but not with saved setups\. /, ''))
+    // Only saves the list shows count: one for a spec the sim doesn't offer can't be deleted there.
+    const save = (spec: string) => ({ id: spec, name: spec, savedAt: '2026-09-23T10:00:00.000Z', config: { ...fresh('warrior-fury'), spec } })
+    memory.set(SAVED_SETUPS_KEY, JSON.stringify({ version: 1, setups: [save('druid-feral-cat')] }))
+    fillUp('horde-orc')
+    expect(description()).toMatch(/but not with saved setups/)
+    memory.set(SAVED_SETUPS_KEY, JSON.stringify({ version: 1, setups: [save('warrior-arms')] }))
+    fillUp('horde-tauren')
+    expect(description()).toBe(
+      'Your browser’s storage for this site is full, so this setup will be lost when you close the page. Delete saved setups you don’t need to make room.',
+    )
+    memory.delete(SAVED_SETUPS_KEY)
   })
 })

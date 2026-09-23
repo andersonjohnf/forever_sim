@@ -111,8 +111,9 @@ export function parseSetupsFile(text: string): ParsedSetupsFile {
     if (setup && fits(setup.config)) setups.push(setup)
     else skipped++
   }
+  // A file with no current setup, or `"current": null`, adds the saves alone.
   let current: object | null = null
-  if (data.current !== undefined) {
+  if (data.current !== undefined && data.current !== null) {
     if (isObj(data.current) && withinDepth(data.current) && fits(data.current)) current = data.current
     else skipped++
   }

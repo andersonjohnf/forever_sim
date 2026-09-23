@@ -47,6 +47,8 @@ npm run build        # type-check + production build to dist/
 npm run lint         # oxlint
 npm test             # vitest: unit and data-integrity tests
 npm run test:e2e     # Playwright: headless Chromium against the production build
+npm run test:smoke   # the smoke suite each deploy runs: core unit files + e2e tagged @smoke
+npm run test:full    # lint, typecheck, every unit and e2e test (before every push)
 npm run snap         # screenshot + console/network check (add -- --dark --width 390 for phone/dark)
 ```
 
@@ -66,9 +68,10 @@ Then review `git diff src/data` and the diff reports. See [docs/data/README.md](
 
 ### Deployment
 
-Every push to `main` runs lint, tests and the build, then deploys to GitHub Pages
-(`.github/workflows/deploy.yml`). One-time setup: **Settings → Pages → Source: GitHub
-Actions**.
+Every push to `main` runs lint, the smoke suite and the build, then deploys to GitHub Pages
+(`.github/workflows/deploy.yml`). Beside it, the **Full regression** workflow runs every test on
+the same platform (`.github/workflows/regression.yml`); run it by hand from the Actions tab too.
+One-time setup: **Settings → Pages → Source: GitHub Actions**.
 
 ## Credits
 

@@ -271,9 +271,11 @@ User directive. Each spec's default rotation is the best-performing one we can c
 a real player can execute. When tuning finds a better one, it becomes the default without asking
 first.
 
-A better rotation has to show it with enough fights to be sure: a DPS gain (TPS for tank specs)
-beyond the 95% confidence interval, measured with common random numbers against the current
-default. The owning class doc records the change, the numbers and the method, and the goldens are
+A better rotation has to show it with enough fights to be sure. Run it against the current default
+on the same seeds (common random numbers). The 95% confidence interval of the per-fight
+difference in DPS (TPS for tank specs) has to lie above zero. A search that tries many options
+turns up false wins at 95%, so the winner is run again on a fresh master seed, one the search
+never used, and adopted only if its interval is still above zero. The owning class doc records the change, the numbers and the method, and the goldens are
 re-snapshotted with the explanation. Talent builds and gear stay "what a typical raider runs"
 ([doctrine §5](doctrine.md#5-defaults)). This decision is about rotations.
 

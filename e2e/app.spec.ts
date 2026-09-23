@@ -1,5 +1,14 @@
 import { expect, test } from './fixtures.ts'
 
+test('opens every section without an error', { tag: '@smoke' }, async ({ page }) => {
+  await page.goto('./')
+  // The fixture fails the test on any console error, uncaught exception or failed request.
+  for (const section of ['Character', 'Talents', 'Gear', 'Buffs', 'Rotation', 'Fight']) {
+    await page.getByRole('tab', { name: section, exact: true }).click()
+    await expect(page.getByRole('heading', { level: 2, name: section, exact: true })).toBeVisible()
+  }
+})
+
 test.describe('setup', () => {
   test('opens on a ready-to-run Fury warrior in pre-raid best in slot', { tag: '@smoke' }, async ({ page }) => {
     await page.goto('./')

@@ -99,8 +99,8 @@ describe('reading a file', () => {
 
   // LX5: a config nested deeper than any setup crashed the import, which compares configs.
   test('a setup nested deeper than any real one is left out, and counted', () => {
-    // 5,000 levels, spliced in as text: JSON.stringify of them overflows a smaller stack, such as
-    // a Linux CI runner's test worker, while the parser under test handles them.
+    // 5,000 levels, spliced in as text: Node 22's JSON.stringify recurses, and on x64 (the deploy
+    // runner) it overflows at about 4,000 levels. The parser under test doesn't recurse.
     const deep = `${'['.repeat(5000)}0${']'.repeat(5000)}`
     const good = stored('a', 'Good', 20)
     const withDeep = file({ setups: [good, stored('b', 'Deep', 21, { ...fresh('warrior-fury'), deep: 'DEEP' })], current: { ...fresh('warrior-arms'), deep: 'DEEP' } })

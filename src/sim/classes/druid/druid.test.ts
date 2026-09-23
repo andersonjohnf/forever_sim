@@ -2,8 +2,8 @@
 // against the Forever client (src/data/client), the talents' per-rank values against their curves,
 // the ability modifiers, the forms the plan builds (§2.1–§2.3, §4.7), the worked examples that need
 // no cat or bear ability (W1, W9, W10, W17, and the talent arithmetic of W3, W5 and W6), and the
-// defaults (§7). Base attributes are the [C] rows, and the other base values the D24 placeholders
-// (character-stats.md OQ-1).
+// defaults (§7). Every base value is a D24 placeholder: the attribute rows (mangos, not evidence)
+// and the rest (character-stats.md OQ-1).
 import { describe, expect, it } from 'vitest'
 import spellsJson from '@/data/client/spells.json'
 import talentsJson from '@/data/client/talents.json'
@@ -300,7 +300,7 @@ describe('the druid plan (druid.md §2, §7)', () => {
     expect(plan.freeCastAura).toBe(plan.auras.findIndex((a) => a.id === 'clearcasting'))
   })
 
-  it('uses the [C] base attributes and the D24 placeholders for the rest, listed as an assumption', () => {
+  it('uses the D24 placeholder rows and base values, listed as an assumption', () => {
     const { sheet, assumptions } = buildPlan({ ...bare(defaultConfig('druid-feral-cat')), gear: {}, talents: '' })
     const row = DRUID_ROWS['horde-tauren']
     // Cat form, no gear or talents: the attributes are the row's.
@@ -313,7 +313,7 @@ describe('the druid plan (druid.md §2, §7)', () => {
     expect(sheet.health).toBe(Math.floor((1483 + 20 + 52 * 10) * 1.05))
     expect(assumptions.map((a) => a.id)).toContain('druidBaseStats')
     expect(assumptions.map((a) => a.id)).not.toContain('unknownBaseAttributes')
-    // The class row with the [C] race offsets: Night Elf −3 Str, +5 Agi, −1 Sta; Tauren +5, −5, +2, −5, +2.
+    // The rows agree with the [C] race offsets: Night Elf −3 Str, +5 Agi, −1 Sta; Tauren +5, −5, +2, −5, +2.
     const classRow = DRUID_ROWS['alliance-skyborne-high-order']
     const ne = DRUID_ROWS['alliance-night-elf']
     expect([ne.str - classRow.str, ne.agi - classRow.agi, ne.sta - classRow.sta, ne.int - classRow.int, ne.spi - classRow.spi]).toEqual([-3, 5, -1, 0, 0])

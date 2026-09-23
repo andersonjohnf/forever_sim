@@ -1,4 +1,4 @@
-import { ChevronDown, Info, Link2, MoreHorizontal, Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
+import { ChevronDown, FolderOpen, Info, Link2, MoreHorizontal, Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { type Ref, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -22,14 +22,21 @@ import { cn } from '@/lib/utils'
 import { SPEC_META, type ClassId, type SimConfig } from '@/sim'
 import { AboutSheet } from './about-sheet'
 import { useSetup } from './setup-store'
+import { SetupsSheet } from './setups-sheet'
 import { shareUrl } from './share'
 import { useSheetFocus } from './sheet-focus'
 import { CLASS_TEXT, useSpecMeta, visibleSpecs } from './specs'
 
+/** The sheets the overflow menu opens. */
+type MenuSheet = 'setups' | 'about'
+
 export function Header() {
-  const [aboutOpen, setAboutOpen] = useState(false)
-  // About opens from the overflow menu, and focus goes back to the menu's button when it closes.
-  const { returnRef, titleRef, contentProps } = useSheetFocus<HTMLButtonElement>()
+  const [sheet, setSheet] = useState<MenuSheet | null>(null)
+  // Each sheet opens from the overflow menu, and focus goes back to the menu's button when it closes.
+  const menuButton = useRef<HTMLButtonElement>(null)
+  const setupsFocus = useSheetFocus(() => menuButton.current)
+  const aboutFocus = useSheetFocus(() => menuButton.current)
+  const openChange = (which: MenuSheet) => (open: boolean) => setSheet(open ? which : null)
   return (
     <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-4">
@@ -38,10 +45,16 @@ export function Header() {
         <SpecSwitcher />
         <div className="ml-auto flex items-center gap-1">
           <ShareButton />
-          <MoreMenu onAbout={() => setAboutOpen(true)} triggerRef={returnRef} />
+          <MoreMenu onOpen={setSheet} triggerRef={menuButton} />
         </div>
       </div>
-      <AboutSheet open={aboutOpen} onOpenChange={setAboutOpen} titleRef={titleRef} contentProps={contentProps} />
+      <SetupsSheet
+        open={sheet === 'setups'}
+        onOpenChange={openChange('setups')}
+        titleRef={setupsFocus.titleRef}
+        contentProps={setupsFocus.contentProps}
+      />
+      <AboutSheet open={sheet === 'about'} onOpenChange={openChange('about')} titleRef={aboutFocus.titleRef} contentProps={aboutFocus.contentProps} />
     </header>
   )
 }
@@ -120,13 +133,13 @@ function ShareButton() {
   )
 }
 
-function MoreMenu({ onAbout, triggerRef }: { onAbout: () => void; triggerRef: Ref<HTMLButtonElement> }) {
+function MoreMenu({ onOpen, triggerRef }: { onOpen: (sheet: MenuSheet) => void; triggerRef: Ref<HTMLButtonElement> }) {
   const reset = useSetup((s) => s.reset)
   const meta = useSpecMeta()
   const { theme, setTheme } = useTheme()
-  // About opens once the menu has closed, so the menu doesn't hand focus back to its button
+  // A sheet opens once the menu has closed, so the menu doesn't hand focus back to its button
   // after the sheet has taken it.
-  const aboutChosen = useRef(false)
+  const chosen = useRef<MenuSheet | null>(null)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -138,15 +151,24 @@ function MoreMenu({ onAbout, triggerRef }: { onAbout: () => void; triggerRef: Re
         align="end"
         className="w-56"
         onCloseAutoFocus={(event) => {
-          if (!aboutChosen.current) return
-          aboutChosen.current = false
+          const sheet = chosen.current
+          if (!sheet) return
+          chosen.current = null
           event.preventDefault()
-          onAbout()
+          onOpen(sheet)
         }}
       >
         <DropdownMenuItem
           onSelect={() => {
-            aboutChosen.current = true
+            chosen.current = 'setups'
+          }}
+          className="min-h-11"
+        >
+          <FolderOpen /> Setups…
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onSelect={() => {
+            chosen.current = 'about'
           }}
           className="min-h-11"
         >

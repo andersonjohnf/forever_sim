@@ -38,8 +38,9 @@ When a design decision isn't covered here, make it, then add it here.
 
 **Header:** the app mark, "Forever Sim" (the page's one `<h1>`, visually hidden on phones),
 and the **spec switcher**, which shows the class icon and spec in the class color. Then
-**Share** (copies a link to this setup) and an overflow menu with About & data, Reset setup,
-and Theme (system, light, dark). Menu items are 44 px tall.
+**Share** (copies a link to this setup) and an overflow menu with Setups…
+([Setups](#setups)), About & data, Theme (system, light, dark) and Reset setup. Menu items are
+44 px tall.
 
 **About & data** opens a sheet that starts with what the sim covers, worded from the specs it
 offers ("A DPS simulator for Fury and Arms Warriors in WoW Forever"), so it grows as specs ship
@@ -412,9 +413,10 @@ Every view handles these states:
   sends one away sooner. They sit at the bottom, just above the phone's sticky bar, so they
   never cover the header.
   - A change gets a notice only when it happens out of sight or needs saying: a shared link
-    loaded, **Reset setup** (it changes every tab) and a race change that swapped faction gear
-    (on the Gear tab). A change you watch happen, like gear, a talent build or Reset rotation,
-    gets none.
+    loaded, **Reset setup** (it changes every tab), a race change that swapped faction gear
+    (on the Gear tab), and a setup saved, loaded or deleted ([Setups](#setups)). A change you
+    watch happen, like gear, a talent build or Reset rotation, gets none, but screen readers
+    still hear it ([Accessibility](#accessibility)).
   - A newer notice of the same kind replaces the last, rather than stacking.
 - **A toast never hides the focused control** (WCAG 2.4.11), on the page, in a sheet under it
   (the results sheet, About, the item and enchant pickers) or in a select's list, with one
@@ -445,6 +447,47 @@ Every view handles these states:
   inflated. The largest real setup is about 4.4 KB, or 1.7 K characters. The link leaves the
   URL before it's decoded, so a reload never tries a bad one again.
 
+### Setups
+
+**Setups…** in the header's overflow menu opens a sheet of named copies of setups
+([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)). It
+follows About: a side sheet (full width on a phone), focus on its title when it opens, and back
+to the menu's button when it closes.
+- **Save** keeps a copy of the current setup, its spec included, under a name. A name is
+  required, trimmed, and at most 60 characters. The field starts on the spec and the day ("Fury
+  Warrior · 23 Sep"), counting on ("… (2)") so the default never saves over anything, and the
+  default is selected, so typing replaces it. Saving under a name that's saved already (case
+  doesn't count) saves over it, and its notice says "Updated" rather than "Saved".
+- **The list**, newest first: each save's name (up to two lines, then an ellipsis), its spec's
+  icon and name in the class colour, and when it was saved ("23 Sep, 14:05", or "19 Aug 2025"
+  from another year). On a phone a row's **Load**, **Rename** and **Delete** sit under its name,
+  with their words; on wider screens they sit on its right, Rename and Delete as icons. Each is
+  44 px, and its accessible name adds the save's ("Load Raid night"). A line above the list says
+  that loading replaces your current setup for its spec.
+- **Load** replaces the current setup, switching to its spec if needed, with no prompt. Your
+  setup for the spec you were on is kept, as switching spec does. The sheet closes, and a notice
+  says "Loaded “Raid night”", with the spec it switched to and any parts that were out of date,
+  as a shared link's does.
+- **Rename** edits the name in place. Enter or Rename keeps it; Escape or Cancel doesn't, and
+  leaves the sheet open. Focus goes back to the row's Rename. A name another save has is
+  refused, so a rename never replaces a save.
+- **Delete** removes the save at once, with a notice. Focus moves to the next row's Delete, or
+  the previous row's at the end of the list, or the name field once the list is empty. A held
+  Enter doesn't delete a second one.
+- A name that breaks the rules gets its reason under the field, which describes the field.
+- **Storage.** Saves stay in this browser, under their own versioned key
+  (`forever-sim:saved-setups`, `src/app/saved-setups.ts`), apart from the automatic save. The
+  sheet reads them afresh each time it opens, and shows another tab's changes as they happen.
+  Each save is normalized as it's read, like a shared link, so an old save still loads.
+- **States:**
+  - Empty: "No saved setups yet", and a sentence on what a save is.
+  - A save that can't be read is left out, and a notice says how many. A save for a spec the app
+    doesn't offer, or from a newer version of the app, is kept but not shown (principle 8).
+  - Storage the browser blocks: the list says so, and Save raises a notice saying how to allow
+    it. Storage that's full: a notice asks you to delete a save you don't need. Storage that
+    can't be read: a notice says so, and the next save starts a new list. Saves that a newer
+    version of the app wrote, in another tab, are left alone until you reload.
+
 ## Accessibility
 
 - WCAG 2.2 AA contrast in both themes.
@@ -457,11 +500,11 @@ Every view handles these states:
   results, the item picker) also have a 44 px close button in the header's corner, as the
   About sheet and the desktop dialogs do.
 - When a sheet or dialog opens, focus moves into it: to its title when the content is long
-  (About, the phone's results, the phone's item picker, so the on-screen keyboard doesn't pop
-  up over the list), or to its first field (the desktop item picker's search box). When it
-  closes, however it closes, focus goes back to the control that opened it: the item picker
-  gives it back to the slot's button after Escape, its close button or a pick. Radix does this
-  only for its own Trigger, so one opened from state uses `useSheetFocus`
+  (About, Setups, the phone's results, the phone's item picker, so the on-screen keyboard
+  doesn't pop up over the list), or to its first field (the desktop item picker's search box).
+  When it closes, however it closes, focus goes back to the control that opened it: the item
+  picker gives it back to the slot's button after Escape, its close button or a pick. Radix does
+  this only for its own Trigger, so one opened from state uses `useSheetFocus`
   (`src/app/sheet-focus.ts`).
 - A control that opens a setup tab ("Open Gear" or "Open Rotation" in a result with no damage)
   takes focus into that tab, never leaving it on `<body>`: Gear's main hand, the weapon to add,
@@ -469,6 +512,11 @@ Every view handles these states:
   "Show results".
 - Toasts are read out as they come (a polite live region), and Alt+T reaches them from the
   keyboard; see Notices under [Persistence and sharing](#persistence-and-sharing).
+- **A change with no notice is still announced** (WCAG 4.1.3), through a polite live region in
+  the app shell (`announce()` in `src/app/announce.ts`): Equip pre-raid best in slot, Remove all
+  gear, a talent preset, a pasted build and Clear (with the points in each tree), Reset rotation,
+  and renaming a save. Radix hides the page from screen readers while a sheet is open, but leaves
+  live regions alone, so it's heard from a sheet too.
 - The page has one `<h1>`, "Forever Sim"; sections, sheets and groups use lower levels.
 - Nothing is hover-only: every tooltip's content is reachable by tap or focus.
 

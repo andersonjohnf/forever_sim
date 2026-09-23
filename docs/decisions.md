@@ -213,3 +213,22 @@ gear, 50 more attack power or 10% more block value.
 
 Plan: [M7](milestones.md#m7-stat-boosts-gear-that-doesnt-exist-yet-), after the tank specs and
 multi-target (user decision).
+
+### D20: Review new work in full, verify the fixes (2026-09-23)
+User decision, from the first release's review ([its log](reviews/2026-09-23-first-release.md)):
+- **The full passes paid off.** The first three changed the numbers users see (Fury 684.2 →
+  673.8 DPS, Arms 630.7 → 610.7) and caught a data-loss bug that an earlier fix had introduced.
+- **Later rounds found less.** Each hunted afresh instead of checking its own fixes. They found
+  mostly minor problems that were already there, in one small area, plus regressions from the
+  previous round's fixes.
+
+So:
+- new work keeps the full adversarial logic and UX reviews
+- fixes get one verification pass, scoped to the fix commits, that confirms them and hunts for
+  regressions they introduced
+- findings say whether the change introduced them, and a pre-existing low finding that breaks
+  no promise the docs make may go to the known gaps
+- an area that draws new findings two rounds running is simplified, not patched a third time
+
+The procedure is in [CLAUDE.md](../CLAUDE.md#core-doctrine-adversarial-review-before-every-push)
+steps 4–6, and [doctrine §6](doctrine.md#6-review-gate-before-every-push) summarises it.

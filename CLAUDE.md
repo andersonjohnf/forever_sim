@@ -31,7 +31,23 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
    - inconsistency with `docs/ux.md`
 4. **Every finding is fixed, or waived with a written reason.** Log the findings and their
    dispositions in `docs/reviews/<YYYY-MM-DD>-<topic>.md` and commit the log before pushing.
-   The author never signs off on their own change.
+   The author never signs off on their own change. Each finding says whether the change under
+   review **introduced** it or it was **pre-existing**:
+   - **Introduced:** fix it, or waive it with a reason.
+   - **Pre-existing:** fix it if it's medium or worse, or if it breaks a promise the docs make
+     (`docs/ux.md`, the doctrine, a mechanics or class doc). A low finding that breaks no
+     promise may instead go to the milestones' known gaps, with its reason.
+5. **Fix rounds get a verification pass, not a fresh review.** New work always gets the full
+   reviews in steps 2 and 3. The fixes they lead to get one pass by a fresh reviewer, scoped to
+   the fix commits. It confirms each finding is fixed, and hunts for regressions the fixes
+   introduced with the same checks: green checks, logic, and screenshots of the changed
+   screens. Its findings follow step 4.
+   - The gate passes when a pass finds nothing the fixes introduced at medium or worse, and
+     every finding has a disposition.
+   - A low finding's later fix gets a quick fresh check of just its commits.
+   - Commits that only record the review (the log, the handoff) need no further pass.
+6. **Simplify rather than patch a third time.** If two rounds in a row find new problems in
+   the same area, stop patching it and propose a simpler design to the user.
 
 ## Git workflow
 

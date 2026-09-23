@@ -180,7 +180,17 @@ The default for each setting is documented in the class doc that owns it.
 Nothing is pushed until every change since the last push has passed an **adversarial logic
 review** and an **adversarial UX review** by an independent reviewer, not the author. Every
 finding is fixed or waived with a written reason, and the log is committed as
-`docs/reviews/<YYYY-MM-DD>-<topic>.md`. The procedure and checklists are in
+`docs/reviews/<YYYY-MM-DD>-<topic>.md`.
+- **Fixes get one verification pass** by a fresh reviewer, scoped to the fix commits: it
+  confirms the fixes and looks for regressions they introduced. New work always gets the full
+  reviews.
+- **Each finding says whether the change introduced it.** A pre-existing low finding that
+  breaks no promise the docs make may go to the milestones' known gaps instead of being fixed
+  then.
+- **An area that draws new findings two rounds running** is simplified, not patched again
+  ([D20](decisions.md#d20-review-new-work-in-full-verify-the-fixes-2026-09-23)).
+
+The procedure and checklists are in
 [CLAUDE.md](../CLAUDE.md#core-doctrine-adversarial-review-before-every-push) and
 [ux.md](ux.md#ux-review-checklist).
 

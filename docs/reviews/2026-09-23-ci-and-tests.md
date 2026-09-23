@@ -50,8 +50,8 @@ A fresh reviewer checked the fix commit only (D20).
 
 | # | Severity | Origin | Finding | Disposition |
 | --- | --- | --- | --- | --- |
-| N1 | low | introduced (`2ba6d03`) | **A comment in `deploy.yml` and two lines in architecture.md still say the full suite runs only by hand,** and the smoke list there leaves out the every-section test. | fixed, FIXHASH: comment and doc lines only |
-| N2 | nit | introduced | **Doctrine §5's lead-in said "the best one a real player can execute"** where D23 says the best one "we've found", and a line in D23 wasn't wrapped. | fixed, FIXHASH |
+| N1 | low | introduced (`2ba6d03`) | **A comment in `deploy.yml` and two lines in architecture.md still say the full suite runs only by hand,** and the smoke list there leaves out the every-section test. | fixed, `b2b06b9`: comment and doc lines only |
+| N2 | nit | introduced | **Doctrine §5's lead-in said "the best one a real player can execute"** where D23 says the best one "we've found", and a line in D23 wasn't wrapped. | fixed, `b2b06b9` |
 
 ## Verdict
 

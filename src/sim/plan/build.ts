@@ -429,12 +429,14 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     return sources.length - 1
   }
   const auras: AuraPlan[] = []
-  const auraIndex = (spec: AuraSpec, key: string) => {
+  /** The plan aura for `spec` under `key`, added on first use with the icon of what applies it. */
+  const auraIndex = (spec: AuraSpec, key: string, icon: string) => {
     const i = auras.findIndex((a) => a.id === key)
     if (i >= 0) return i
     auras.push({
       id: key,
       name: spec.name,
+      icon,
       durationMs: spec.durationMs,
       maxStacks: spec.maxStacks ?? 1,
       whiteSwingCharges: spec.whiteSwingCharges ?? 0,
@@ -473,7 +475,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       }
       case 'aura':
         proc.action = ACTION.aura
-        proc.amount = auraIndex(action.aura, spec.from === 'weapon' && origin !== null ? `${action.aura.id}.${origin}` : action.aura.id)
+        proc.amount = auraIndex(action.aura, spec.from === 'weapon' && origin !== null ? `${action.aura.id}.${origin}` : action.aura.id, spec.icon)
         // Its own duration for this aura (the Overpower window: 6 s from Bloodthrill, warrior.md §2.8); 0 = the aura's.
         proc.b = action.durationMs ?? 0
         break
@@ -496,12 +498,21 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         proc.a = action.share
         proc.b = action.periodMs
         proc.source = sourceIndex(spec.id, spec.name, spec.icon)
+        // Applications and ticks share the row; a proc's bleed can't crit or be avoided (warrior.md §2.5).
+        sources[proc.source].bleed = { ticksCanCrit: false, avoidable: false }
         break
     }
     procs.push(proc)
     procNeeds.push(spec.requiresAura)
   }
   for (const { spec, origin } of c.procs) addProc(spec, origin)
+  // A weapon's own proc aura (Crusader's Holy Strength) is one per hand; with both, each names its hand.
+  for (const aura of auras) {
+    const hand = /^(.+)\.([01])$/.exec(aura.id)
+    if (hand && auras.some((a) => a.id === `${hand[1]}.${1 - Number(hand[2])}`)) {
+      aura.name = `${aura.name} (${hand[2] === '0' ? 'main hand' : 'off hand'})`
+    }
+  }
   const periodicRage = c.periodicRage.map((p) => ({ periodMs: p.periodMs, tenths: toTenths(p.amount), source: -1 }))
 
   // --- Abilities and the priority list (docs/classes/warrior.md §5) ------------------------------
@@ -521,13 +532,17 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // A reactive ability's window is an aura too (the Overpower window, warrior.md §2.8, §7).
   const abilities: AbilityPlan[] = classRot.abilities.map((def) => {
     const { offHand, aura, vsCreature: _, window, ...a } = def
+    const source = sourceIndex(a.id, a.name, a.icon)
+    // A bleed's row counts applications and ticks (Rend: its ticks crit only where periodic
+    // effects can, damage-and-timing §4).
+    if (a.kind === 'bleed') sources[source].bleed = { ticksCanCrit: a.periodicCanCrit && profile.combat.periodicCrits, avoidable: true }
     return {
       ...a,
       weaponPercent: weaponPercentVs(def, fight.creatureType),
-      source: sourceIndex(a.id, a.name, a.icon),
+      source,
       offHandSource: offHand && weapons[HAND.off] ? sourceIndex(`${a.id}OffHand`, `${a.name} (off hand)`, a.icon) : -1,
-      aura: aura ? auraIndex(aura, aura.id) : -1,
-      window: window ? auraIndex(window, window.id) : -1,
+      aura: aura ? auraIndex(aura, aura.id, a.icon) : -1,
+      window: window ? auraIndex(window, window.id, a.icon) : -1,
     }
   })
   // The rotation's own procs (the Overpower window's openers, warrior.md §2.8). A proc that needs an

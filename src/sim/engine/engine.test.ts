@@ -63,7 +63,7 @@ function whiteSwingConfig(spec: 'warrior-arms' | 'warrior-fury', gear: SimConfig
 
 function runFights(plan: Plan, fights: number): Aggregate {
   const sim = new Sim(plan)
-  let agg = emptyAggregate(plan.sources.length)
+  let agg = emptyAggregate(plan.sources.length, plan.auras.length)
   for (let k = 0; k * CHUNK_SIZE < fights; k++) agg = mergeChunk(agg, runChunk(plan, k, Math.min(CHUNK_SIZE, fights - k * CHUNK_SIZE), sim))
   return agg
 }
@@ -172,7 +172,7 @@ describe('timing worked examples in the engine', () => {
   it('warrior W17: Flurry 5/5 turns a 2.6 s swing into 2.080 s from the next swing', () => {
     const flurry = proc({ action: ACTION.aura, amount: 0, chainBit: 0, hands: 1 })
     const plan = timingPlan(2.6, null, [flurry], 7000)
-    plan.auras = [{ id: 'flurry', name: 'Flurry', durationMs: 15000, maxStacks: 1, whiteSwingCharges: 3, str: 0, agi: 0, ap: 0, apPct: 0, crit: 0, haste: 25, damage: 0, critCharges: 0 }]
+    plan.auras = [{ id: 'flurry', name: 'Flurry', icon: 'x', durationMs: 15000, maxStacks: 1, whiteSwingCharges: 3, str: 0, agi: 0, ap: 0, apPct: 0, crit: 0, haste: 25, damage: 0, critCharges: 0 }]
     const times = trace(plan).map(([, , t]) => t)
     expect(times).toEqual([0, 2080, 4160, 6240])
   })
@@ -263,7 +263,17 @@ describe('determinism (decision D15)', () => {
     expect(three.dps).toEqual(one.dps)
     expect(three.tps).toEqual(one.tps)
     expect(Array.from(three.counters)).toEqual(Array.from(one.counters))
+    expect(Array.from(three.auraUpMs)).toEqual(Array.from(one.auraUpMs))
+    expect(one.auraUpMs.some((ms) => ms > 0)).toBe(true)
     expect(three.durationMs).toBe(one.durationMs)
+  })
+
+  it('gives bit-identical aura uptimes for the default Arms warrior with 1 and 4 workers', async () => {
+    const arms = buildPlan({ ...defaultConfig('warrior-arms'), run: { mode: 'fixed', iterations: 1500, seed: 5 } }).plan
+    const one = await drive(arms, localExecutor(arms), { mode: 'fixed', iterations: 1500 })
+    const four = await drive(arms, racingExecutor(arms, 4), { mode: 'fixed', iterations: 1500 })
+    expect(Array.from(four.auraUpMs)).toEqual(Array.from(one.auraUpMs))
+    expect(one.auraUpMs.length).toBe(arms.auras.length)
   })
 
   it('gives bit-identical fixed-count results with 1 and 3 workers, including a partial last chunk', async () => {

@@ -4,7 +4,7 @@
 // config's values (or the options' defaults for the setup, classes/options.ts) into the spec's
 // abilities, priority list and pre-pull. Specs without a rotation yet simulate white swings only.
 import { NO_PREPULL } from '../plan/types'
-import type { RotationOption, RotationValue, SpecId } from '../types'
+import type { RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
 import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import type { TalentRanks } from './warrior/modifiers'
@@ -12,6 +12,20 @@ import type { ClassRotation, RotationContext } from './warrior/shared'
 import type { Stance } from './warrior/talents'
 
 export type { ClassRotation, RotationContext } from './warrior/shared'
+
+/**
+ * The Rotation tab's headings, in the order it shows them (docs/ux.md "Rotation"): the pre-pull,
+ * what runs all fight, the normal phase, the execute phase and consumables. Settings without one
+ * (Arms' stance) come first.
+ */
+export const ROTATION_GROUPS: readonly RotationGroup[] = [
+  'Before the pull',
+  'Cooldowns and buffs',
+  'Core abilities',
+  'Fillers',
+  'Execute phase',
+  'Consumables',
+]
 
 export function rotationOptions(spec: SpecId): RotationOption[] {
   if (spec === 'warrior-fury') return FURY_OPTIONS

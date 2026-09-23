@@ -8,7 +8,7 @@ import { GCD_MS, toTenths } from '../../core/formulas'
 import type { OnUseSpec, ProcSpec } from '../../effects/types'
 import { COND, type PrepullPlan, type RotationCondition, type RotationEntry } from '../../plan/types'
 import { FOREVER, type RulesProfile } from '../../rules/profiles'
-import type { CreatureType, RotationOption, RotationValue } from '../../types'
+import type { CreatureType, RotationGroup, RotationOption, RotationValue } from '../../types'
 import { resolveRotationValues } from '../options'
 import {
   type AbilityDef,
@@ -73,11 +73,12 @@ export const JUJU_FLURRY = 'jujuFlurry'
  */
 export const WARRIOR_MAX_RAGE = 130
 
-/** A rage threshold input: 0 to the default build's 130 cap. */
-export const rageOption = (id: string, label: string, help: string, def: number, dependsOn: string): RotationOption => ({
+/** A rage threshold input: 0 to the default build's 130 cap, in its parent's group. */
+export const rageOption = (id: string, label: string, help: string, def: number, dependsOn: string, group: RotationGroup): RotationOption => ({
   kind: 'number',
   id,
   label,
+  group,
   help,
   unit: 'rage',
   min: 0,
@@ -121,6 +122,7 @@ export const prepullOptions = (ids: SharedIds, chargeHelp: string): RotationOpti
   {
     kind: 'toggle',
     id: ids.prepullShout,
+    group: 'Before the pull',
     label: 'Battle Shout before the pull',
     help: 'Shout 3 s before the pull, so the fight starts with it up. Its rage comes from before the pull. Needs Battle Shout on.',
     default: true,
@@ -129,11 +131,12 @@ export const prepullOptions = (ids: SharedIds, chargeHelp: string): RotationOpti
   {
     kind: 'toggle',
     id: ids.prepullBloodrage,
+    group: 'Before the pull',
     label: 'Bloodrage before the pull',
     help: 'Use Bloodrage 1 s before the pull: its 10 rage is there at the pull, and it’s ready again 59 s in.',
     default: true,
   },
-  { kind: 'toggle', id: ids.prepullCharge, label: 'Charge in', help: chargeHelp, default: false },
+  { kind: 'toggle', id: ids.prepullCharge, group: 'Before the pull', label: 'Charge in', help: chargeHelp, default: false },
 ]
 
 /** Battle Shout's upkeep (Fury row 1, Arms row 1). */
@@ -141,6 +144,7 @@ export const battleShoutOptions = (ids: SharedIds): RotationOption[] => [
   {
     kind: 'toggle',
     id: ids.bsEnabled,
+    group: 'Cooldowns and buffs',
     label: 'Battle Shout',
     help: 'Keep your own Battle Shout up: +139 attack power for 10 rage a shout. While this is on, the Buffs tab’s Battle Shout adds nothing more, since it’s the same buff.',
     default: true,
@@ -149,6 +153,7 @@ export const battleShoutOptions = (ids: SharedIds): RotationOption[] => [
   {
     kind: 'number',
     id: ids.bsRefresh,
+    group: 'Cooldowns and buffs',
     label: 'Shout again with',
     help: 'Refresh it when this much of it is left, unless the fight ends first.',
     unit: 's left',
@@ -165,6 +170,7 @@ export const deathWishOptions = (ids: SharedIds, enabled: Partial<Extract<Rotati
   {
     kind: 'toggle',
     id: ids.dwEnabled,
+    group: 'Cooldowns and buffs',
     label: 'Death Wish',
     help: 'Use Death Wish for +20% physical damage for 30 s. Needs the Death Wish talent.',
     default: true,
@@ -173,6 +179,7 @@ export const deathWishOptions = (ids: SharedIds, enabled: Partial<Extract<Rotati
   {
     kind: 'toggle',
     id: ids.dwAlign,
+    group: 'Cooldowns and buffs',
     label: 'Save the last Death Wish for the end',
     help: 'When no later Death Wish would fit in the fight, hold the last one until 30 s are left. Earlier ones go on cooldown.',
     default: true,
@@ -184,6 +191,7 @@ export const cooldownOptions = (ids: SharedIds): RotationOption[] => [
   {
     kind: 'toggle',
     id: ids.racialEnabled,
+    group: 'Cooldowns and buffs',
     label: 'Racial cooldown',
     help: 'Use your race’s cooldown: Blood Fury (Orc), Berserking (Troll) or Elune’s Light (Night Elf). Gnome Eureka! isn’t simulated.',
     default: true,
@@ -191,6 +199,7 @@ export const cooldownOptions = (ids: SharedIds): RotationOption[] => [
   {
     kind: 'toggle',
     id: ids.trinketsEnabled,
+    group: 'Cooldowns and buffs',
     label: 'On-use trinkets',
     help: 'Use Weakness Analyzer if you wear it: +5% crit until your next crit, for up to 20 s. Other on-use trinkets aren’t simulated.',
     default: true,
@@ -198,6 +207,7 @@ export const cooldownOptions = (ids: SharedIds): RotationOption[] => [
   {
     kind: 'toggle',
     id: ids.cdSync,
+    group: 'Cooldowns and buffs',
     label: 'Racial and trinkets with Death Wish',
     help: 'Save them for Death Wish, unless Death Wish is too far off for them to be ready again by then.',
     default: true,
@@ -206,10 +216,11 @@ export const cooldownOptions = (ids: SharedIds): RotationOption[] => [
 
 /** Recklessness once near the end (row 4 of both); its help says how the spec gets to Berserker Stance. */
 export const recklessnessOptions = (ids: SharedIds, help: string): RotationOption[] => [
-  { kind: 'toggle', id: ids.reckEnabled, label: 'Recklessness', help, default: true },
+  { kind: 'toggle', id: ids.reckEnabled, group: 'Cooldowns and buffs', label: 'Recklessness', help, default: true },
   {
     kind: 'number',
     id: ids.reckLastSec,
+    group: 'Cooldowns and buffs',
     label: 'Recklessness in the last',
     help: 'Use it once this much of the fight is left.',
     unit: 's',
@@ -226,6 +237,7 @@ export const bloodrageOptions = (ids: SharedIds): RotationOption[] => [
   {
     kind: 'toggle',
     id: ids.brEnabled,
+    group: 'Cooldowns and buffs',
     label: 'Bloodrage',
     help: 'Use Bloodrage on cooldown: 10 rage, then 10 more over 10 s (50% more with Improved Bloodrage 2/2).',
     default: true,
@@ -236,6 +248,7 @@ export const bloodrageOptions = (ids: SharedIds): RotationOption[] => [
     `Use it only at or below this much rage, so its rage isn’t lost at the cap. ${WARRIOR_MAX_RAGE - 20} is the 130 cap minus 20.`,
     WARRIOR_MAX_RAGE - 20,
     ids.brEnabled,
+    'Cooldowns and buffs',
   ),
 ]
 
@@ -244,19 +257,21 @@ export const heroicStrikeOptions = (ids: SharedIds, minRage: number): RotationOp
   {
     kind: 'toggle',
     id: ids.hsEnabled,
+    group: 'Fillers',
     label: 'Heroic Strike',
     help: 'Queue Heroic Strike on the next main-hand swing when rage is high.',
     default: true,
   },
-  rageOption(ids.hsMinRage, 'Heroic Strike from', 'Queue it at or above this much rage.', minRage, ids.hsEnabled),
+  rageOption(ids.hsMinRage, 'Heroic Strike from', 'Queue it at or above this much rage.', minRage, ids.hsEnabled, 'Fillers'),
   {
     kind: 'toggle',
     id: ids.hsUnqueue,
+    group: 'Fillers',
     label: 'Cancel Heroic Strike on low rage',
     help: 'Unqueue Heroic Strike if rage drops below a threshold before the swing.',
     default: false,
   },
-  rageOption(ids.hsUnqueueBelow, 'Cancel Heroic Strike below', 'Unqueue it when rage falls below this.', 20, ids.hsUnqueue),
+  rageOption(ids.hsUnqueueBelow, 'Cancel Heroic Strike below', 'Unqueue it when rage falls below this.', 20, ids.hsUnqueue, 'Fillers'),
 ]
 
 /** The Mighty Rage Potion and Juju Flurry, when they're selected in Buffs (Fury rows 16 and 17, Arms rows 17 and 18). */
@@ -264,6 +279,7 @@ export const consumableOptions = (ids: SharedIds): RotationOption[] => [
   {
     kind: 'toggle',
     id: ids.potionEnabled,
+    group: 'Consumables',
     label: 'Mighty Rage Potion',
     help: 'Drink it once, at the start of the execute phase (in the last 20 s if there’s none): 45–75 rage and +60 Strength for 20 s.',
     default: true,
@@ -275,10 +291,12 @@ export const consumableOptions = (ids: SharedIds): RotationOption[] => [
     `Drink it only at or below this much rage, so none of its rage is lost at the cap. ${WARRIOR_MAX_RAGE - 75} is the 130 cap minus 75.`,
     WARRIOR_MAX_RAGE - 75,
     ids.potionEnabled,
+    'Consumables',
   ),
   {
     kind: 'toggle',
     id: ids.jujuEnabled,
+    group: 'Consumables',
     label: 'Juju Flurry',
     help: 'Use it on cooldown from the pull: +3% attack speed for 20 s, every minute.',
     default: true,

@@ -7,6 +7,7 @@ import { WowIcon } from '@/components/wow-icon'
 import raceJson from '@/data/races/races.json'
 import { racesForClass, racialEffectForClass, type RaceData } from '@/data/races/types'
 import { Advanced, Field, SectionHeader } from '@/features/section'
+import { CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
 import type { RuleProfileId } from '@/sim'
 
@@ -83,10 +84,10 @@ export function CharacterSection() {
             }
             className="w-full"
           >
-            <ToggleGroupItem value="forever" className="h-11 flex-1">
+            <ToggleGroupItem value="forever" className={cn('h-11 flex-1', CHOICE_ITEM)}>
               Forever
             </ToggleGroupItem>
-            <ToggleGroupItem value="classicEra" className="h-11 flex-1">
+            <ToggleGroupItem value="classicEra" className={cn('h-11 flex-1', CHOICE_ITEM)}>
               Classic Era
             </ToggleGroupItem>
           </ToggleGroup>

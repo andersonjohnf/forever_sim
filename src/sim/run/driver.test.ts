@@ -44,6 +44,7 @@ function syntheticExecutor(plan: Plan, lanes: number, spread: Record<Metric, num
           tps,
           durationMs: fights * 180_000,
           counters: new Float64Array(plan.sources.length * FIELD_COUNT),
+          auraUpMs: new Float64Array(plan.auras.length),
           rageGainedTenths: 0,
           rageWastedTenths: 0,
         }
@@ -68,7 +69,7 @@ function racingExecutor(plan: Plan, lanes: number): ChunkExecutor {
 
 /** Merges chunks in order until `stop` holds at a chunk boundary (from the minimum on). */
 async function mergeUntil(executor: ChunkExecutor, plan: Plan, stop: (agg: Aggregate) => boolean): Promise<Aggregate> {
-  let agg = emptyAggregate(plan.sources.length)
+  let agg = emptyAggregate(plan.sources.length, plan.auras.length)
   for (let k = 0; agg.fights < ADAPTIVE.maxFights; k++) {
     agg = mergeChunk(agg, await executor.run(k, CHUNK_SIZE))
     if (agg.fights >= ADAPTIVE.minFights && stop(agg)) break

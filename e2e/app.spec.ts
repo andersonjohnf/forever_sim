@@ -212,6 +212,25 @@ test.describe('simulation', () => {
     }
   })
 
+  test('shows Fury’s cooldowns and buffs with uptimes and casts per fight, collapsed until opened', async ({ page }) => {
+    await page.goto('./')
+    const results = page.getByRole('complementary', { name: 'Results' })
+    await results.getByRole('button', { name: 'Simulate' }).click()
+    await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
+    const toggle = results.getByRole('button', { name: 'Cooldowns and buffs' })
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    // Casts that deal no damage stay out of the damage breakdown.
+    await expect(results.getByRole('region', { name: 'Damage by ability' }).getByText('Death Wish', { exact: true })).toHaveCount(0)
+    await toggle.click()
+    const table = results.getByRole('table')
+    await expect(table.getByRole('columnheader', { name: 'Uptime' })).toBeVisible()
+    await expect(table.getByRole('columnheader', { name: 'Casts per fight' })).toBeVisible()
+    // Death Wish: its buff's uptime and its casts; Flurry, a proc, has no casts.
+    await expect(table.getByRole('row', { name: /^Death Wish \d+\.\d% \d+\.\d$/ })).toBeVisible()
+    await expect(table.getByRole('row', { name: /^Flurry \d+\.\d% none$/ })).toBeVisible()
+    await expect(table.getByRole('row', { name: /^Bloodrage none \d+\.\d$/ })).toBeVisible()
+  })
+
   test('selects Arms, simulates, and breaks the DPS down by ability', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
@@ -225,6 +244,15 @@ test.describe('simulation', () => {
       await expect(breakdown.getByText(ability, { exact: true })).toBeVisible()
     }
     await expect(breakdown.getByText('Off hand', { exact: true })).toBeHidden()
+    // Rend's row reads its ticks and its applications apart (docs/ux.md#results).
+    const rend = breakdown.getByRole('listitem').filter({ hasText: /^Rend/ })
+    await expect(rend).toContainText(/\d+\.\d% uptime on the boss/)
+    await expect(rend).toContainText(/\d+\.\d% tick crit/)
+    await expect(rend).toContainText(/\d+\.\d% of applications avoided/)
+    await expect(breakdown.getByRole('listitem').filter({ hasText: /^Deep Wounds/ })).toContainText(/\d+\.\d ticks per fight/)
+    // The Overpower window is among the buffs.
+    await results.getByRole('button', { name: 'Cooldowns and buffs' }).click()
+    await expect(results.getByRole('table').getByRole('row', { name: /^Overpower window \d+\.\d% none$/ })).toBeVisible()
   })
 
   test('explains a setup it can’t simulate', async ({ page }) => {
@@ -255,6 +283,34 @@ test.describe('rotation and buffs', () => {
     await expect(shout).toBeEnabled()
     await expect(shout).toBeChecked()
     await expect(page.getByText(/You keep it up yourself/)).toBeHidden()
+  })
+})
+
+test.describe('rotation groups', () => {
+  test('groups Fury’s settings under headings, each dependent setting under its parent', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+    const headings = page.getByRole('tabpanel', { name: 'Rotation' }).getByRole('heading', { level: 3 })
+    await expect(headings).toHaveText(['Before the pull', 'Cooldowns and buffs', 'Core abilities', 'Fillers', 'Execute phase', 'Consumables'])
+    const core = page.getByRole('region', { name: 'Core abilities' })
+    await expect(core.getByRole('switch', { name: 'Bloodthirst', exact: true })).toBeVisible()
+    // Whirlwind's reserve sits in Whirlwind's own list item, under it.
+    const whirlwind = core.getByRole('listitem').filter({ has: page.getByRole('switch', { name: 'Whirlwind', exact: true }) })
+    await expect(whirlwind.getByRole('textbox', { name: 'Whirlwind rage reserve' })).toBeVisible()
+    await expect(page.getByRole('region', { name: 'Execute phase' }).getByRole('switch', { name: 'Execute', exact: true })).toBeVisible()
+  })
+
+  test('puts Arms’ stance first, above the headings', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
+    await page.getByRole('menuitem', { name: /Arms/ }).click()
+    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+    const stance = page.getByRole('radiogroup', { name: 'Stance' })
+    await expect(stance).toBeVisible()
+    const stanceTop = (await stance.boundingBox())!.y
+    const firstHeading = (await page.getByRole('heading', { name: 'Before the pull' }).boundingBox())!.y
+    expect(stanceTop).toBeLessThan(firstHeading)
+    await expect(page.getByRole('region', { name: 'Core abilities' }).getByRole('switch', { name: 'Rend', exact: true })).toBeVisible()
   })
 })
 

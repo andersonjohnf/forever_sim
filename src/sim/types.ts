@@ -146,11 +146,26 @@ export type RotationValue = number | boolean | string
  */
 export type RotationDefaultWhen = ({ talent: string } | { option: string; is: RotationValue }) & { default: boolean }
 
+/**
+ * The heading a rotation setting sits under on the Rotation tab (docs/ux.md "Rotation"). The tab
+ * shows the groups in `rotationGroups` order and each group's settings in the spec's priority
+ * order, a dependent setting under its parent when they share a group.
+ */
+export type RotationGroup =
+  | 'Before the pull'
+  | 'Cooldowns and buffs'
+  | 'Core abilities'
+  | 'Fillers'
+  | 'Execute phase'
+  | 'Consumables'
+
 export type RotationOption =
   | {
       kind: 'toggle'
       id: string
       label: string
+      /** Its heading; none for the few that shape the rest, which come first (Arms' stance). */
+      group?: RotationGroup
       /** One line of help shown under the control. */
       help: string
       default: boolean
@@ -170,6 +185,7 @@ export type RotationOption =
       kind: 'number'
       id: string
       label: string
+      group?: RotationGroup
       help: string
       /** Shown after the value, e.g. "rage", "s", "%". */
       unit: string
@@ -185,6 +201,7 @@ export type RotationOption =
       kind: 'choice'
       id: string
       label: string
+      group?: RotationGroup
       help: string
       choices: { value: string; label: string }[]
       default: string
@@ -266,6 +283,35 @@ export interface AbilityResult {
   parries: number
   glances: number
   blocks: number
+  /**
+   * A bleed's row (Rend, Deep Wounds): its casts, misses, dodges and parries count applications,
+   * and its hits and crits count ticks (docs/ux.md#results). Absent for every other row.
+   */
+  bleed?: BleedResult
+}
+
+export interface BleedResult {
+  /** Its ticks can crit (Rend in the `forever` profile; damage-and-timing §4). */
+  ticksCanCrit: boolean
+  /** An application rolls miss, dodge and parry (Rend); a proc's bleed can't be avoided (Deep Wounds). */
+  avoidable: boolean
+  /** Share of fight time it was on the boss, 0–100, or null when the sim doesn't track it (Deep Wounds). */
+  uptimePct: number | null
+}
+
+/**
+ * A cooldown, buff or proc on the player in the results' "Cooldowns and buffs" (docs/ux.md#results):
+ * every cast the rotation can press (they deal no damage, so the breakdown leaves them out) and
+ * every other aura on the player.
+ */
+export interface CooldownResult {
+  id: string
+  name: string
+  icon: string
+  /** Share of fight time its buff was up, 0–100; null for a cast without one (Bloodrage). */
+  uptimePct: number | null
+  /** Casts per fight, pre-pull ones included; null for a buff nothing casts (Flurry, the Overpower window). */
+  castsPerFight: number | null
 }
 
 /** Final stats as the sim computed them (docs/mechanics/character-stats.md). */
@@ -314,6 +360,8 @@ export interface SimResult {
   dps: Summary
   tps: Summary
   abilities: AbilityResult[]
+  /** Casts and buffs on the player, with uptimes: casts first, in the rotation's order, then procs. */
+  cooldowns: CooldownResult[]
   sheet: CharacterSheet
   /** The [?] assumptions that affect this configuration. */
   assumptions: Assumption[]

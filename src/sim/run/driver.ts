@@ -88,7 +88,7 @@ export function drive(plan: Plan, executor: ChunkExecutor, options: DriveOptions
       reject(abortError())
       return
     }
-    let agg = emptyAggregate(plan.sources.length)
+    let agg = emptyAggregate(plan.sources.length, plan.auras.length)
     const pending = new Map<number, ChunkResult>()
     let nextToRun = 0
     let nextToMerge = 0

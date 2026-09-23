@@ -3,7 +3,7 @@
 import type { ClassSlug } from '@/data/races/types'
 import { talentRanksByName } from './classes'
 import { resolveRotationValues } from './classes/options'
-import { rotationOptions } from './classes/rotation'
+import { ROTATION_GROUPS, rotationOptions } from './classes/rotation'
 import { normalizeConfig } from './config/normalize'
 import { TALENT_DATA } from './defaults'
 import { BUFFS } from './effects/buffs'
@@ -20,6 +20,7 @@ import type {
   BuffPreset,
   CharacterSheet,
   EnchantDefinition,
+  RotationGroup,
   RotationValue,
   SimConfig,
   SimProgress,
@@ -52,6 +53,12 @@ export function getSpec(id: SpecId): SpecDefinition {
   if (!spec) throw new Error(`Unknown spec ${id}`)
   return spec
 }
+
+/**
+ * The Rotation tab's headings in the order it shows them; each spec's settings name theirs in
+ * `RotationOption.group` (docs/ux.md "Rotation").
+ */
+export const rotationGroups: readonly RotationGroup[] = ROTATION_GROUPS
 
 /**
  * Every rotation setting's value for a setup: the saved one, or the option's default for this

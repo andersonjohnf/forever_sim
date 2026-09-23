@@ -79,6 +79,18 @@ About & data, Reset setup, and Theme (system, light, dark).
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
   with units, one line of help, and the default marked. **Reset to defaults** is always
   available.
+  - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
+    pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
+    **Consumables**, in that order. Under each heading the settings keep the spec's priority
+    order (warrior.md §5.2, §5.3). The spec gives each setting its heading
+    (`RotationOption.group`). The few settings that shape the rest (Arms' stance) have no
+    heading and come first.
+  - A setting that depends on another under the same heading sits under it, indented on a
+    rule (Heroic Strike's rage threshold under Heroic Strike). One whose parent is under
+    another heading stays with its own heading, and its help names the parent ("Needs Battle
+    Shout on").
+  - A switch sits beside its label at every width. Number inputs and choices go under the
+    label on a phone.
   - A choice between a few named values (Arms: the stance it fights in) is a segmented control
     (a toggle group, like the Fight tab's position), full width on a phone, labelled by its row.
   - A setting's default can follow the talents or another setting (Arms: Rend is on by default
@@ -104,10 +116,26 @@ About & data, Reset setup, and Theme (system, light, dark).
     below 375 px wide it leaves out the ± values, which the results sheet still shows.
 - **Breakdown:** a per-ability damage share bar, then casts, hit/crit/miss/dodge/glance
   percentages and average hit.
+  - A **bleed's** row counts its applications and its ticks apart, so its outcomes read
+    "32.2% tick crit · 1.1% of applications avoided", with its uptime on the boss on a second
+    line (Rend). The tick crit shows only where ticks can crit (the Forever profile), and the
+    avoidance only for an application that rolls (Rend). A bleed that does neither, such as
+    Deep Wounds (a crit applies it, and its ticks can't crit), shows its ticks per fight.
+  - Casts that deal no damage (Death Wish, Recklessness, Bloodrage, racials, the potion) stay
+    out of the breakdown. They're under **Cooldowns and buffs**.
   - **Tank specs** get a **Threat / Damage** switch above it. Threat is the default, and the
     choice is remembered for the browser session. The heading, the order, the share bars and
     the per-second values follow the chosen metric. Abilities that add nothing to it are left
     out: a talent that only gives rage makes threat but no damage.
+- **Cooldowns and buffs:** a collapsed section, like the character sheet. It's a table with
+  one row per cast the rotation can press (Battle Shout if you keep it up, Death Wish,
+  Recklessness, Bloodrage, racials, on-use trinkets, consumables), in the rotation's order, and
+  then one per other buff on you (Holy Strength, Flurry, Enrage, the Overpower window). Each row
+  has an icon, the name, the **uptime** (the share of fight time the buff was up) and the
+  **casts per fight** (pre-pull casts included), all in tabular numbers. A dash, read out as
+  "none", marks a value that doesn't apply: a cast with no buff (Bloodrage) has no uptime, and a
+  proc buff has no casts. A weapon proc on both hands names its hand: "Holy Strength (main
+  hand)".
 - **Character sheet:** the final AP, crit, hit, haste, weapon skill and armor, the way the
   sim computed them.
 - **Assumptions:** the `[?]` items that affect this setup, each linking to its doc.
@@ -116,6 +144,12 @@ About & data, Reset setup, and Theme (system, light, dark).
 ## Visual language
 
 - **Components:** shadcn/ui (Radix, Nova preset) and Lucide icons for UI controls.
+- **Segmented choices** (single-select toggle groups: Arms' stance, the Fight tab's armor,
+  position and precision, the Buffs presets, the rule profile, the talent tree switcher on a
+  phone, the item picker's filter, a tank's Threat / Damage switch): the selected option is
+  filled with the primary color and its text in the primary foreground (`CHOICE_ITEM` in
+  `src/lib/choice.ts`), so it reads at a glance in both themes. Secondary text inside an option
+  (the armor presets' "Most raid bosses") switches to match (`CHOICE_HINT`).
 - **Type:** Geist, one scale. Use tabular numbers for every stat and result.
 - **Color:**
   - Neutral tokens for surfaces and text.

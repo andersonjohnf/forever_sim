@@ -106,6 +106,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
   {
     kind: 'toggle',
     id: ID.rendEnabled,
+    group: 'Core abilities',
     label: 'Rend',
     help: 'Keep your Rend on the boss: Bloodthrill needs it. On by default with Bloodthrill in Battle Stance. In Berserker Stance, swap to Battle Stance for it and back, at or below the rage a swap keeps.',
     default: false,
@@ -117,6 +118,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
   {
     kind: 'number',
     id: ID.rendRefresh,
+    group: 'Core abilities',
     label: 'Rend again with',
     help: 'Refresh it when this much of it is left, unless it lasts to the end of the fight.',
     unit: 's left',
@@ -140,6 +142,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
   {
     kind: 'toggle',
     id: ID.exEnabled,
+    group: 'Execute phase',
     label: 'Execute',
     help: 'In the execute phase, use Execute whenever you have the rage, in place of Mortal Strike, Slam and the fillers.',
     default: true,
@@ -147,6 +150,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
   {
     kind: 'toggle',
     id: ID.exSlam,
+    group: 'Execute phase',
     label: 'Slam in the execute phase',
     help: 'Keep using Slam in the execute phase while you have rage for it and an Execute after it. It hits harder than an Execute for the same rage.',
     default: true,
@@ -155,6 +159,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
   {
     kind: 'toggle',
     id: ID.exMortalStrike,
+    group: 'Execute phase',
     label: 'Mortal Strike in the execute phase',
     help: 'Keep using Mortal Strike in the execute phase, ahead of Execute. An Execute with the same 30 rage usually hits harder.',
     default: false,
@@ -163,6 +168,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
   {
     kind: 'toggle',
     id: ID.msEnabled,
+    group: 'Core abilities',
     label: 'Mortal Strike',
     help: 'Use Mortal Strike whenever it’s ready. Needs the Mortal Strike talent.',
     default: true,
@@ -170,6 +176,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
   {
     kind: 'toggle',
     id: ID.opEnabled,
+    group: 'Core abilities',
     label: 'Overpower',
     help: 'Use Overpower after the boss dodges or Bloodthrill opens it, unless Mortal Strike is about to be ready and there isn’t rage for both. In Berserker Stance, swap to Battle Stance for it and back, at or below the rage a swap keeps.',
     default: true,
@@ -178,14 +185,16 @@ export const ARMS_OPTIONS: RotationOption[] = [
   {
     kind: 'toggle',
     id: ID.slamEnabled,
+    group: 'Core abilities',
     label: 'Slam',
     help: 'Use Slam whenever it’s ready and Mortal Strike isn’t about to be. Without Improved Slam its 1.5 s cast stops your swings and resets the swing timer.',
     default: true,
   },
-  rageOption(ID.slamReserve, 'Slam rage reserve', 'Rage to keep on top of Slam’s cost.', 0, ID.slamEnabled),
+  rageOption(ID.slamReserve, 'Slam rage reserve', 'Rage to keep on top of Slam’s cost.', 0, ID.slamEnabled, 'Core abilities'),
   {
     kind: 'toggle',
     id: ID.ssEnabled,
+    group: 'Core abilities',
     label: 'Spearing Strike',
     help: 'Against Giants and Dragonkin (set under Fight) it deals 120% weapon damage, so use it on cooldown; against anything else, 40%. Needs the talent and a two-hander.',
     default: true,
@@ -196,10 +205,12 @@ export const ARMS_OPTIONS: RotationOption[] = [
     'Against other targets, use it only at or above this much rage, when Mortal Strike isn’t about to be ready.',
     50,
     ID.ssEnabled,
+    'Core abilities',
   ),
   {
     kind: 'toggle',
     id: ID.wwEnabled,
+    group: 'Core abilities',
     label: 'Whirlwind',
     help: 'Use Whirlwind when Mortal Strike isn’t about to be ready. It needs Berserker Stance: from Battle Stance, swap for it and back. On by default in Berserker Stance.',
     default: false,
@@ -211,16 +222,18 @@ export const ARMS_OPTIONS: RotationOption[] = [
     'From Battle Stance, swap for it only at or below this much rage. The swap keeps at most 25 with Improved Tactical Mastery 5/5, and Whirlwind costs 25.',
     30,
     ID.wwEnabled,
+    'Core abilities',
   ),
   ...heroicStrikeOptions(ID, 45),
   {
     kind: 'toggle',
     id: ID.hamEnabled,
+    group: 'Fillers',
     label: 'Hamstring filler',
     help: 'Use Hamstring to fish for procs, such as Weaponmaster’s extra attacks with a sword or Windfury, while the rest of the rotation is cooling down.',
     default: false,
   },
-  rageOption(ID.hamMinRage, 'Hamstring from', 'Use it at or above this much rage.', 60, ID.hamEnabled),
+  rageOption(ID.hamMinRage, 'Hamstring from', 'Use it at or above this much rage.', 60, ID.hamEnabled, 'Fillers'),
   ...consumableOptions(ID),
 ]
 

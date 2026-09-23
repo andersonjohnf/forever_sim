@@ -87,6 +87,11 @@ export class Sim {
   readonly plan: Plan
   /** Totals per source × field, summed over every fight run. */
   readonly counters: Float64Array
+  /**
+   * Time each plan aura was up, ms, summed over every fight run: from the pull (a pre-pull aura
+   * counts from 0) until it ends or the fight does (the results' uptimes).
+   */
+  readonly auraUpMs: Float64Array
   /** Last fight's results. */
   fightDamage = 0
   fightThreat = 0
@@ -329,6 +334,8 @@ export class Sim {
   private readonly auraCharges: Int32Array
   private readonly auraCritCharges: Int32Array
   private readonly auraGen: Int32Array
+  /** When each active aura came up this fight (0 for a pre-pull one), for `auraUpMs`. */
+  private readonly auraSince: Float64Array
   private readonly bleedTicksLeft: Int32Array
   private readonly bleedGen: Int32Array
   private readonly bleedProc: Int32Array
@@ -531,6 +538,8 @@ export class Sim {
     this.auraCharges = new Int32Array(na)
     this.auraCritCharges = new Int32Array(na)
     this.auraGen = new Int32Array(na)
+    this.auraSince = new Float64Array(na)
+    this.auraUpMs = new Float64Array(na)
     const chargeAuras: number[] = []
     const critChargeAuras: number[] = []
     for (let i = 0; i < na; i++) {
@@ -862,6 +871,9 @@ export class Sim {
       // A decision point: the event changed rage, the GCD, a cooldown, an aura or the queue.
       while (this.actPending) this.act()
     }
+    // Auras still up when the fight ends count until its end.
+    const active = this.auraActive
+    for (let a = 0; a < active.length; a++) if (active[a]) this.auraUpMs[a] += end - this.auraSince[a]
     this.fightMs = end
   }
 
@@ -1719,6 +1731,7 @@ export class Sim {
     const wasActive = this.auraActive[a] === 1
     const oldStacks = this.auraStacks[a]
     const stacks = wasActive ? Math.min(oldStacks + 1, this.aMaxStacks[a]) : 1
+    if (!wasActive) this.auraSince[a] = this.now
     this.auraActive[a] = 1
     this.auraStacks[a] = stacks
     this.auraCharges[a] = this.aCharges[a]
@@ -1750,6 +1763,7 @@ export class Sim {
 
   private removeAura(a: number): void {
     const stacks = this.auraStacks[a]
+    this.auraUpMs[a] += this.now - this.auraSince[a]
     this.auraActive[a] = 0
     this.auraStacks[a] = 0
     this.auraCharges[a] = 0

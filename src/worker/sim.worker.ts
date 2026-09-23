@@ -23,7 +23,7 @@ scope.onmessage = (event) => {
   try {
     if (!current || current.planId !== message.planId) throw new Error('The worker has no plan for this chunk.')
     const result = runChunk(current.sim.plan, message.chunk, message.fights, current.sim)
-    scope.postMessage({ type: 'result', jobId: message.jobId, result }, [result.counters.buffer])
+    scope.postMessage({ type: 'result', jobId: message.jobId, result }, [result.counters.buffer, result.auraUpMs.buffer])
   } catch (error) {
     scope.postMessage({ type: 'error', jobId: message.jobId, message: error instanceof Error ? error.message : String(error) })
   }

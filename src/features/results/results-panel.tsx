@@ -5,6 +5,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Progress } from '@/components/ui/progress'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { WowIcon } from '@/components/wow-icon'
+import { CHOICE_ITEM } from '@/lib/choice'
 import { formatInt, formatOne, formatPct, formatSeconds } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { SimResult, Summary } from '@/sim'
@@ -192,6 +193,11 @@ export function ResultsPanel() {
       {result && (
         <>
           <Breakdown result={result} />
+          {result.cooldowns.length > 0 && (
+            <Details title="Cooldowns and buffs">
+              <Cooldowns result={result} />
+            </Details>
+          )}
           <Details title="Character sheet">
             <Sheet result={result} />
           </Details>
@@ -239,10 +245,10 @@ function Breakdown({ result }: { result: SimResult }) {
             onValueChange={(v) => v && setMetric(v as Metric)}
             aria-label="Break down by"
           >
-            <ToggleGroupItem value="tps" className="h-11 px-3">
+            <ToggleGroupItem value="tps" className={cn('h-11 px-3', CHOICE_ITEM)}>
               Threat
             </ToggleGroupItem>
-            <ToggleGroupItem value="dps" className="h-11 px-3">
+            <ToggleGroupItem value="dps" className={cn('h-11 px-3', CHOICE_ITEM)}>
               Damage
             </ToggleGroupItem>
           </ToggleGroup>
@@ -252,8 +258,6 @@ function Breakdown({ result }: { result: SimResult }) {
       <ul className="flex flex-col gap-2">
         {rows.map((a) => {
           const share = (100 * value(a)) / total
-          const landed = a.hits + a.crits + a.glances + a.blocks
-          const attempts = landed + a.misses + a.dodges + a.parries
           return (
             <li key={a.id} className="flex items-center gap-3">
               <WowIcon icon={a.icon} size="sm" />
@@ -267,18 +271,88 @@ function Breakdown({ result }: { result: SimResult }) {
                 <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
                   <div className="h-full rounded-full bg-primary" style={{ width: `${share}%` }} />
                 </div>
-                {attempts > 0 && (
-                  <span className="text-xs text-muted-foreground tabular-nums">
-                    {formatPct((100 * a.crits) / attempts)} crit · {formatPct((100 * (a.misses + a.dodges + a.parries)) / attempts)} avoided
-                    {a.glances > 0 && <> · {formatPct((100 * a.glances) / attempts)} glancing</>}
-                  </span>
-                )}
+                <Outcomes ability={a} fights={result.iterations} />
               </div>
             </li>
           )
         })}
       </ul>
     </section>
+  )
+}
+
+/**
+ * A breakdown row's outcomes (docs/ux.md#results): crit, avoided and glancing shares of its
+ * attempts. A bleed's row counts applications and ticks apart: crits from its ticks, avoidance
+ * from its applications, and then, on a line of its own, its uptime on the boss. One that can do
+ * neither (Deep Wounds) gives its ticks per fight.
+ */
+function Outcomes({ ability: a, fights }: { ability: SimResult['abilities'][number]; fights: number }) {
+  const avoided = a.misses + a.dodges + a.parries
+  const parts: string[] = []
+  let uptime: string | null = null
+  if (a.bleed) {
+    const ticks = a.hits + a.crits
+    if (a.bleed.ticksCanCrit && ticks > 0) parts.push(`${formatPct((100 * a.crits) / ticks)} tick crit`)
+    if (a.bleed.avoidable && a.casts > 0) parts.push(`${formatPct((100 * avoided) / a.casts)} of applications avoided`)
+    if (parts.length === 0 && fights > 0) parts.push(`${formatOne(ticks / fights)} ticks per fight`)
+    if (a.bleed.uptimePct !== null) uptime = `${formatPct(a.bleed.uptimePct)} uptime on the boss`
+  } else {
+    const attempts = a.hits + a.crits + a.glances + a.blocks + avoided
+    if (attempts === 0) return null
+    parts.push(`${formatPct((100 * a.crits) / attempts)} crit`, `${formatPct((100 * avoided) / attempts)} avoided`)
+    if (a.glances > 0) parts.push(`${formatPct((100 * a.glances) / attempts)} glancing`)
+  }
+  return (
+    <span className="flex flex-col text-xs text-muted-foreground tabular-nums">
+      {parts.length > 0 && <span>{parts.join(' · ')}</span>}
+      {uptime && <span>{uptime}</span>}
+    </span>
+  )
+}
+
+/**
+ * Cooldowns and buffs (docs/ux.md#results): each cast and buff on you, with the share of the fight
+ * it was up and its casts per fight. A dash marks what doesn't apply: no buff (Bloodrage), or
+ * nothing to cast (Flurry).
+ */
+function Cooldowns({ result }: { result: SimResult }) {
+  const none = (
+    <>
+      <span aria-hidden>—</span>
+      <span className="sr-only">none</span>
+    </>
+  )
+  return (
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="text-xs text-muted-foreground">
+          <th scope="col" className="pb-2 text-left font-medium">
+            <span className="sr-only">Cooldown or buff</span>
+          </th>
+          <th scope="col" className="pb-2 pl-3 text-right font-medium">
+            Uptime
+          </th>
+          <th scope="col" className="pb-2 pl-3 text-right font-medium">
+            Casts per fight
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {result.cooldowns.map((c) => (
+          <tr key={c.id}>
+            <th scope="row" className="py-1 text-left font-normal">
+              <span className="flex min-w-0 items-center gap-2">
+                <WowIcon icon={c.icon} size="xs" />
+                <span className="min-w-0">{c.name}</span>
+              </span>
+            </th>
+            <td className="py-1 pl-3 text-right tabular-nums">{c.uptimePct === null ? none : formatPct(c.uptimePct)}</td>
+            <td className="py-1 pl-3 text-right tabular-nums">{c.castsPerFight === null ? none : formatOne(c.castsPerFight)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   )
 }
 

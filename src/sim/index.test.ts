@@ -9,6 +9,7 @@ import {
   FULL_RAID,
   getSpec,
   presetBuffs,
+  rotationGroups,
   rotationValues,
   type SimConfig,
   type SimProgress,
@@ -41,6 +42,11 @@ describe('simulate', () => {
     expect(result.assumptions.length).toBeGreaterThan(3)
     expect(result.elapsedMs).toBeGreaterThanOrEqual(0)
     expect(progress.at(-1)).toEqual({ completedIterations: 500, totalIterations: 500 })
+    // Cooldowns and buffs: what deals no damage, with casts per fight and uptimes (docs/ux.md#results).
+    const deathWish = result.cooldowns.find((c) => c.id === 'deathWish')!
+    expect(deathWish.castsPerFight).toBeGreaterThanOrEqual(1)
+    expect(deathWish.uptimePct).toBeGreaterThan(10)
+    expect(result.cooldowns.find((c) => c.id === 'flurry')).toMatchObject({ castsPerFight: null })
   })
 
   it('headlines TPS for a tank and reports the boss parrying from the front', async () => {
@@ -88,6 +94,30 @@ describe('specs', () => {
     expect(getSpec('warrior-protection').role).toBe('tank')
     expect(() => getSpec('mage-fire' as never)).toThrow()
   })
+})
+
+describe('rotation groups (docs/ux.md "Rotation")', () => {
+  for (const spec of specs.filter((s) => s.available)) {
+    it(`puts every ${spec.name} setting under a heading, a dependent one with its parent or naming it`, () => {
+      const options = spec.rotationOptions
+      for (const [i, option] of options.entries()) {
+        // Only Arms' stance, which shapes the rest, comes first without a heading.
+        if (option.id === 'warrior.arms.baseStance') expect(option.group).toBeUndefined()
+        else expect(rotationGroups, option.id).toContain(option.group)
+        if (option.dependsOn === undefined) continue
+        const p = options.findIndex((o) => o.id === option.dependsOn)
+        const parent = options[p]
+        // The tab indents it under its parent when they share a heading; otherwise its help says what it needs.
+        if (parent.group === option.group) expect(p, option.id).toBeLessThan(i)
+        else expect(option.help, option.id).toContain(`Needs ${parent.label} on`)
+      }
+      // No heading over a single setting.
+      for (const group of rotationGroups) {
+        const n = options.filter((o) => o.group === group).length
+        if (n > 0) expect(n, group).toBeGreaterThanOrEqual(2)
+      }
+    })
+  }
 })
 
 describe('rotationValues', () => {

@@ -51,8 +51,11 @@ UI state ──► SimConfig (plain, serializable) ──► Plan ──► Work
   talents, gear and enchants, buffs, rotation settings, encounter, iterations and seed. It
   must be JSON-serializable. Share links and saved setups are just compressed `SimConfig`s.
 - The engine resolves `SimConfig` against `src/data` and its own ability definitions, and
-  returns a `SimResult`: summary statistics, a per-ability breakdown, aura uptimes, and
-  optionally one sample combat log.
+  returns a `SimResult`: summary statistics, a per-ability breakdown (`abilities`, bleeds
+  marked with how their applications and ticks read), casts per fight and uptimes of the
+  casts and buffs that deal no damage (`cooldowns`), the character sheet, the assumptions,
+  and later optionally one sample combat log. A `SimResult` lives only in memory: nothing
+  saves or shares it, so it can grow fields freely.
 - Class data is loaded lazily (dynamic `import()` per class), so the first paint stays small.
 
 ## Engine design (M1)
@@ -141,6 +144,20 @@ A spec is data plus small ability modules, never its own loop.
   5 s); a refresh of such an aura keeps the later end. Stats are
   re-derived only when an aura that changes attributes starts or ends; haste and damage
   multipliers update without a full re-derive.
+- **Aura uptimes:** each plan aura's time up is summed per engine (`Sim.auraUpMs`, one
+  `Float64Array` entry per aura). An aura notes when it comes up (a pre-pull one at the pull,
+  0), and adds the span when it ends, by expiry, charges or use (the Overpower window), or
+  when the fight does. A refresh doesn't end it. That's one store and one add per aura start
+  and end, and nothing per other event. A chunk returns its totals (`ChunkResult.auraUpMs`),
+  and the driver sums them in chunk order like the breakdown counters, so uptimes are
+  bit-identical for any worker count.
+- **Results** (`sim/run/aggregate.ts`): the breakdown lists the sources that add to the
+  headline metric. A bleed's source (`SourcePlan.bleed`: Rend, Deep Wounds) says whether its
+  ticks can crit and its applications can be avoided, and a bleed with a marker aura (Rend)
+  gets its uptime on the boss. "Cooldowns and buffs" lists every `cast` ability, with casts per
+  fight and its buff's uptime, then every other aura on the player, uptime only. Uptime is
+  time up over all simulated fight time. Plan auras carry a name and icon for this (the proc's
+  or ability's that applies them), and a weapon's own proc aura on both hands names its hand.
 - **Rage** is integer tenths with a cap; energizes make 5 threat per rage. Abilities pay their cost
   when used (an on-next-swing one when its swing happens, one with a cast time when the cast
   completes) and refund their share of it on a miss,
@@ -159,7 +176,9 @@ A spec is data plus small ability modules, never its own loop.
   by the default, cost it about 2%: about 9,550 against 9,800 before, medians of five runs each,
   measured back to back. M2.3c's shared rotation code and staying dances left the default Fury
   unchanged (median 9,160 against 9,080 just before, on a busier machine), and the default Arms
-  warrior, with its slow two-hander, runs about 14,400.
+  warrior, with its slow two-hander, runs about 14,400. M2.4a's aura uptimes cost nothing
+  measurable: medians of five runs each, back to back, 9,428 against 9,449 (Fury) and 14,998
+  against 15,026 (Arms).
 - **Abilities** are rows of `Plan.abilities` (`AbilityPlan`), resolved by one switch on `kind`:
   `weaponStrike` (one roll: Whirlwind, Hamstring, …), `meleeSpell` (two rolls: Bloodthirst,
   Execute, …), `onNextSwing` (Heroic Strike: queued off the GCD, it replaces the next

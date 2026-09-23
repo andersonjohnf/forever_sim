@@ -90,7 +90,10 @@ export interface WeaponPlan {
 
 export interface AuraPlan {
   id: string
+  /** For the results' "Cooldowns and buffs"; a weapon's own proc names its hand when both have one. */
   name: string
+  /** WoW icon name: the proc's or the ability's that applies it. */
+  icon: string
   durationMs: number
   maxStacks: number
   whiteSwingCharges: number
@@ -141,6 +144,11 @@ export interface SourcePlan {
   id: string
   name: string
   icon: string
+  /**
+   * A bleed's row (Rend, Deep Wounds): its casts, misses, dodges and parries count applications,
+   * its hits and crits count ticks. Whether the ticks can crit and an application can be avoided.
+   */
+  bleed?: { ticksCanCrit: boolean; avoidable: boolean }
 }
 
 /**

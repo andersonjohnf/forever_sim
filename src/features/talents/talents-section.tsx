@@ -23,6 +23,7 @@ import {
 } from '@/data/talents/types'
 import { SectionHeader } from '@/features/section'
 import { useIsDesktop, useMediaQuery } from '@/hooks/use-media-query'
+import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
 import { TALENT_DATA, talentPresets } from '@/sim'
 import { canAdd, canRemove, lockReason, totalPoints, withRank } from './logic'
@@ -128,9 +129,9 @@ export function TalentsSection() {
             className="w-full"
           >
             {data.trees.map((tree, i) => (
-              <ToggleGroupItem key={tree.id} value={String(i)} className="h-11 flex-1 gap-1.5 px-2">
+              <ToggleGroupItem key={tree.id} value={String(i)} className={cn('h-11 flex-1 gap-1.5 px-2', CHOICE_ITEM)}>
                 <span className="truncate">{tree.name}</span>
-                <span className="tabular-nums text-muted-foreground">{perTree[i]}</span>
+                <span className={cn('tabular-nums', CHOICE_HINT)}>{perTree[i]}</span>
               </ToggleGroupItem>
             ))}
           </ToggleGroup>

@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useSetup } from '@/app/setup-store'
 import { useSpecMeta } from '@/app/specs'
 import { Switch } from '@/components/ui/switch'
@@ -6,8 +7,19 @@ import { WowIcon } from '@/components/wow-icon'
 import type { ClassSlug } from '@/data/races/types'
 import { EmptyState } from '@/features/empty-state'
 import { Field, SectionHeader } from '@/features/section'
+import { CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
-import { buffCatalogue, buffPresets, FULL_RAID, getSpec, presetBuffs, type BuffCategory, type BuffDefinition, type BuffPreset } from '@/sim'
+import {
+  buffCatalogue,
+  buffPresets,
+  FULL_RAID,
+  getSpec,
+  presetBuffs,
+  rotationValues,
+  type BuffCategory,
+  type BuffDefinition,
+  type BuffPreset,
+} from '@/sim'
 
 const CATEGORY_LABEL: Record<BuffCategory, string> = {
   raidBuff: 'Raid buffs',
@@ -33,15 +45,18 @@ export function BuffsSection() {
   const meta = useSpecMeta()
   const buffs = useSetup((s) => s.config.buffs)
   const rotation = useSetup((s) => s.config.rotation)
+  const talents = useSetup((s) => s.config.talents)
   const update = useSetup((s) => s.update)
   const setBuffs = (patch: Partial<typeof buffs>) => update((c) => ({ ...c, buffs: { ...c.buffs, ...patch } }))
   // Buffs the rotation keeps up itself (your own Battle Shout, warrior.md §5.2 row 1): the switch
-  // shows them on and locked, since the Buffs version would be the same buff.
-  const maintained = new Set(
-    getSpec(meta.id).rotationOptions.flatMap((o) =>
-      o.kind === 'toggle' && o.maintainsBuff && Boolean(rotation[o.id] ?? o.default) ? [o.maintainsBuff] : [],
-    ),
-  )
+  // shows them on and locked, since the Buffs version would be the same buff. Read through the same
+  // resolver as the plan, so a default that follows the talents or another setting counts.
+  const maintained = useMemo(() => {
+    const values = rotationValues({ spec: meta.id, talents, rotation })
+    return new Set(
+      getSpec(meta.id).rotationOptions.flatMap((o) => (o.kind === 'toggle' && o.maintainsBuff && Boolean(values[o.id]) ? [o.maintainsBuff] : [])),
+    )
+  }, [meta.id, talents, rotation])
 
   const activePreset = buffPresets.find((p) => sameSet(presetBuffs(p.id, meta.id, buffs.raid), buffs.enabled))?.id
   const applyPreset = (id: BuffPreset['id']) => setBuffs({ enabled: presetBuffs(id, meta.id, buffs.raid) })
@@ -81,7 +96,12 @@ export function BuffsSection() {
           className="grid w-full grid-cols-2 sm:grid-cols-4"
         >
           {buffPresets.map((p) => (
-            <ToggleGroupItem key={p.id} value={p.id} className="h-auto min-h-11 flex-col items-start px-3 py-2 text-left" title={p.description}>
+            <ToggleGroupItem
+              key={p.id}
+              value={p.id}
+              className={cn('h-auto min-h-11 flex-col items-start px-3 py-2 text-left', CHOICE_ITEM)}
+              title={p.description}
+            >
               <span>{p.name}</span>
             </ToggleGroupItem>
           ))}

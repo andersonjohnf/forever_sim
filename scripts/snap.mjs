@@ -9,6 +9,8 @@
 //   node scripts/snap.mjs --click Talents --out .cache/snaps/talents.png   # reuse dist/, open a tab first
 //   node scripts/snap.mjs --click Simulate --out .cache/snaps/result.png   # waits for the run to finish
 //   node scripts/snap.mjs --width 390 --click Simulate --click "Show results"   # phone: open the results sheet
+//   node scripts/snap.mjs --width 390 --click Simulate --click "Show results" --click "Cooldowns and buffs" --scroll "Cooldowns and buffs"
+//                                                  # …and scroll the sheet to a section it opened
 import { mkdirSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { parseArgs } from 'node:util'
@@ -24,6 +26,8 @@ const { values: args } = parseArgs({
     dark: { type: 'boolean', default: false },
     /** Accessible names of tabs, buttons or menu items to click, in order, before the screenshot. Simulate waits for the result. */
     click: { type: 'string', multiple: true, default: [] },
+    /** Accessible name of a tab, button or menu item to scroll to the top of its scroller before the screenshot (inside a sheet). */
+    scroll: { type: 'string' },
   },
 })
 
@@ -74,19 +78,21 @@ try {
   })
 
   await page.goto(url, { waitUntil: 'networkidle' })
-  for (const name of args.click) {
-    await page
+  const control = (name) =>
+    page
       .getByRole('tab', { name, exact: true })
       .or(page.getByRole('button', { name, exact: true }))
       .or(page.getByRole('menuitem', { name, exact: true }))
       .first()
-      .click()
+  for (const name of args.click) {
+    await control(name).click()
     await page.waitForLoadState('networkidle')
     // A run finishes when its button reads "Run again" again (the results panel or phone bar).
     if (name === 'Simulate' || name === 'Run again') {
       await page.getByRole('button', { name: 'Run again', exact: true }).first().waitFor({ state: 'visible', timeout: 60_000 })
     }
   }
+  if (args.scroll) await control(args.scroll).evaluate((el) => el.scrollIntoView({ block: 'start' }))
   // Full-page screenshots don't scroll, so lazy images below the fold would never load. Load
   // them all, wait for them, then let CSS transitions (150 ms) settle.
   await page.evaluate(async () => {

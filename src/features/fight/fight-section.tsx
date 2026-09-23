@@ -6,6 +6,8 @@ import { Slider } from '@/components/ui/slider'
 import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Advanced, Field, SectionHeader } from '@/features/section'
+import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
+import { cn } from '@/lib/utils'
 import type { CreatureType, FightConfig } from '@/sim'
 
 // docs/mechanics/encounter.md#2-boss-armor
@@ -77,12 +79,12 @@ export function FightSection() {
           className="w-full items-stretch"
         >
           {ARMOR_PRESETS.map((p) => (
-            <ToggleGroupItem key={p.value} value={String(p.value)} className="h-auto min-h-14 flex-1 flex-col py-1.5">
+            <ToggleGroupItem key={p.value} value={String(p.value)} className={cn('h-auto min-h-14 flex-1 flex-col py-1.5', CHOICE_ITEM)}>
               <span className="tabular-nums">{p.label}</span>
-              <span className="text-xs font-normal text-muted-foreground">{p.help}</span>
+              <span className={cn('text-center text-xs font-normal whitespace-normal', CHOICE_HINT)}>{p.help}</span>
             </ToggleGroupItem>
           ))}
-          <ToggleGroupItem value="custom" className="h-auto min-h-14 flex-1" onClick={() => isPreset && set({ bossArmor: 3500 })}>
+          <ToggleGroupItem value="custom" className={cn('h-auto min-h-14 flex-1', CHOICE_ITEM)} onClick={() => isPreset && set({ bossArmor: 3500 })}>
             Custom
           </ToggleGroupItem>
         </ToggleGroup>
@@ -100,10 +102,10 @@ export function FightSection() {
             onValueChange={(v) => v && set({ position: v as FightConfig['position'] })}
             className="w-full"
           >
-            <ToggleGroupItem value="behind" className="h-11 flex-1">
+            <ToggleGroupItem value="behind" className={cn('h-11 flex-1', CHOICE_ITEM)}>
               Behind
             </ToggleGroupItem>
-            <ToggleGroupItem value="front" className="h-11 flex-1">
+            <ToggleGroupItem value="front" className={cn('h-11 flex-1', CHOICE_ITEM)}>
               In front
             </ToggleGroupItem>
           </ToggleGroup>
@@ -147,10 +149,10 @@ export function FightSection() {
               value={run.mode}
               onValueChange={(v) => v && setRun({ mode: v as typeof run.mode })}
             >
-              <ToggleGroupItem value="adaptive" className="h-11 px-4">
+              <ToggleGroupItem value="adaptive" className={cn('h-11 px-4', CHOICE_ITEM)}>
                 Adaptive
               </ToggleGroupItem>
-              <ToggleGroupItem value="fixed" className="h-11 px-4">
+              <ToggleGroupItem value="fixed" className={cn('h-11 px-4', CHOICE_ITEM)}>
                 Fixed
               </ToggleGroupItem>
             </ToggleGroup>

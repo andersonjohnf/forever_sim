@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import type { Item } from '@/data/items/types'
 import { useIsDesktop } from '@/hooks/use-media-query'
+import { CHOICE_ITEM } from '@/lib/choice'
 import { itemData, summarizeItem } from '@/lib/items'
 import { cn } from '@/lib/utils'
 import { fitsSlot, SPEC_META, type GearSlot, type SpecId } from '@/sim'
@@ -108,10 +109,10 @@ function PickerBody({ spec, slot, equippedId, pairedUnique, onPick, autoFocus }:
             disabled={searching}
             onValueChange={(v) => v && setFilter(v as Filter)}
           >
-            <ToggleGroupItem value="bis" disabled={!hasBis} className="h-9 px-3">
+            <ToggleGroupItem value="bis" disabled={!hasBis} className={cn('h-9 px-3', CHOICE_ITEM)}>
               Best in slot
             </ToggleGroupItem>
-            <ToggleGroupItem value="all" className="h-9 px-3">
+            <ToggleGroupItem value="all" className={cn('h-9 px-3', CHOICE_ITEM)}>
               All items
             </ToggleGroupItem>
           </ToggleGroup>

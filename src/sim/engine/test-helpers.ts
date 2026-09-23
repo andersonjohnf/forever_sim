@@ -77,6 +77,7 @@ export function addAura(plan: Plan, spec: AuraSpec): number {
   plan.auras.push({
     id: spec.id,
     name: spec.name,
+    icon: 'x',
     durationMs: spec.durationMs,
     maxStacks: 1,
     whiteSwingCharges: 0,

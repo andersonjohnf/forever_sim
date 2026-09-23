@@ -176,7 +176,10 @@ Shield Slam, Spearing Strike, Victory Rush, Death Wish, Bloodrage, the shouts an
 - **The Berserker crit type changed.** Berserker Stance's +3% now uses the "all crit" aura (290)
   instead of Classic's weapon-crit aura (52) [F] [client] (SpellEffect, 1.60.1.69913); [C]
   [client] (SpellEffect, 1.15.9.69722). It is still crit from an aura, so the +3-level aura-crit
-  suppression in [combat-tables.md](../mechanics/combat-tables.md) applies [magey-crit].
+  suppression in [combat-tables.md](../mechanics/combat-tables.md) applies [magey-crit]. All crit
+  raises spell crit too (magic procs), so `forever` adds +3% spell crit in Berserker Stance and
+  `classicEra` doesn't (`stanceEffects(profile)`,
+  [character-stats](../mechanics/character-stats.md#implementation-notes)).
 - **An empty aura on Berserker Stance.** Its Forever passive adds an attack-power-percent
   aura (166) with value 0. It has no effect, but watch for it in later builds [F]
   [client] (SpellEffect, 1.60.1.69913).
@@ -376,7 +379,10 @@ SpellMisc, 1.60.1.69913); other mechanics [C] (the pre-SoD WarriorSim's `DeepWou
 **Recklessness** [F] [sb] [db-eff] [db-cd]:
 
 - 0 rage, 30 min cooldown, on the GCD, Berserker Stance only.
-- For 15 s: +100% crit chance on all attacks, and +20% damage taken.
+- For 15 s: +100% crit chance on all attacks, and +20% damage taken. Its crit is the all-crit
+  aura (290), so spells crit more too; Classic Era's is aura 52, melee only, which `classicEra`
+  uses (`recklessness(profile)`) [F] [client] (SpellEffect, 1.60.1.69913); [C] [client]
+  (SpellEffect, 1.15.9.69722).
 - White crits are still bounded by the attack table's crit cap; see
   [combat-tables.md](../mechanics/combat-tables.md). It is usable once per fight.
 - In Classic, Recklessness, Retaliation and Shield Wall share a cooldown [wh-tank]. The Forever
@@ -392,7 +398,7 @@ Weaponmaster replaces Classic's Sword, Axe, Polearm and Mace Specialization with
 | Weapon | Effect per rank (5/5) | Model | Tag |
 | --- | --- | --- | --- |
 | **Sword** (1H or 2H) | 1% (5%) chance on a successful melee attack (white or yellow) made with the sword to gain **1 extra attack** | Proc mask 0x14 (auto attack + melee ability). There is a **200 ms internal cooldown** (`ProcCategoryRecovery` 200), so an extra attack can't chain-proc itself. Roll once per ability cast, even for multi-target abilities [?] (only WarriorSim's post-SoD code does this; Magey establishes it for Windfury only; Q9). The extra attack is an immediate main-hand white swing: it resets the main-hand swing timer, consumes a Flurry charge, and becomes the queued Heroic Strike if one is queued [C] [magey-wf] | [F] [client] (SpellAuraOptions, 1.60.1.69913) (spell 12281, proc chance 5, mask 0x14); [C] [client] (SpellAuraOptions, 1.15.9.69722) (the same 200 ms) |
-| **Axe or polearm** | +1% (5%) crit chance | Applies to attacks made with that weapon. It is aura crit (aura 290), so suppression against a +3-level target applies [magey-crit] | [F] [client] (SpellEffect, 1.60.1.69913) (spell 12700) |
+| **Axe or polearm** | +1% (5%) crit chance | All crit (aura 290), with an axe-and-polearm `SpellEquippedItems` mask: the weapon racials' client data, so the sim reads it their way. **+1% per rank to every attack, both hands, and spells, while an axe or polearm is in either hand** [?] (Q15). It is aura crit, so suppression against a +3-level target applies [magey-crit]. Classic Era's Axe Specialization was aura 52 on the same spell id, crit for that weapon's attacks only [C] | [F] [client] (SpellEffect, SpellEquippedItems, 1.60.1.69913) (spell 12700); [C] [client] (SpellEffect, 1.15.9.69722) |
 | **Mace or staff** | Attacks ignore 3% (15%) of the target's armor | Effective armor = armor after all flat reductions × (1 − 0.03 × rank). The order is an assumption [?] (Q9) | [F] [tal] [db-trait] |
 
 - **What changed from Classic.** Sword, Axe and Polearm used the same numbers in Classic,
@@ -451,14 +457,16 @@ Forever Human racials are Will to Survive, Perception, Sword Specialization and 
 Spirit [F] [rac]. Every warrior therefore starts at 300 skill with
 every weapon, and weapon skill only comes from items; the hit and glancing consequences are in
 [combat-tables.md](../mechanics/combat-tables.md). Stat numbers belong to
-[character-stats.md](../mechanics/character-stats.md). The warrior-relevant effects:
+[character-stats.md](../mechanics/character-stats.md). **Both rule profiles use these Forever
+racials**: `classicEra` swaps in Classic Era's combat rules and spell values, not Classic Era's
+racials ([architecture](../architecture.md#rules-and-stats)). The warrior-relevant effects:
 
 | Race | Racial (Forever) | Sim model | Tag |
 | --- | --- | --- | --- |
 | Human | Sword Specialization: +2% crit with all attacks while a sword or two-handed sword is equipped (Classic: +5 sword and mace skill) | +2% aura crit on all attacks (and spells) while a sword is in either hand: with a mace and a sword, both hands' attacks get it [?] (Q15) | [F] [rac] [client] (SpellEffect, 1.60.1.69913) (spell 20597) |
 | Orc | Axe Specialization: +1% crit while an axe is equipped. **Blood Fury: +10% AP** (and spell power) for 15 s, 2 min cooldown, off the GCD (Classic: +25% of base AP) | +1% aura crit on all attacks while an axe is in either hand [?] (Q15); AP ×1.10 | [F] [rac] [client] (SpellEffect, SpellDuration, SpellCooldowns, 1.60.1.69913) (20574, 20572) |
 | Dwarf | Mace Specialization: +1% crit while a mace is equipped. Stoneform: −10% physical damage taken for 8 s, 3 min cooldown, **on the GCD** | +1% aura crit on all attacks while a mace is in either hand [?] (Q15) | [F] [rac] [client] (SpellEffect, SpellCooldowns, 1.60.1.69913) (1259719, 20594) |
-| Night Elf | **Elune's Light: +10% crit for 15 s, 3 min cooldown**. Quickness: +1% dodge | 10% crit cooldown | [F] [rac] [client] (SpellEffect, SpellDuration, 1.60.1.69913) (1259799) |
+| Night Elf | **Elune's Light: +10% crit for 15 s, 3 min cooldown**. Quickness: +1% dodge | 10% crit cooldown (all crit: spells too) | [F] [rac] [client] (SpellEffect, SpellDuration, 1.60.1.69913) (1259799) |
 | Gnome | Expansive Mind: **+5% max rage**. **Eureka!: the next 3 damaging abilities cost 40% less rage and deal +10% damage**, 15 s, 2 min cooldown | See Q17 and Q18 | [F] [rac] [client] (SpellEffect, SpellDuration, 1.60.1.69913) (1259802, 1259813) |
 | Troll | **Berserking: +10% attack speed for 10 s, 3 min cooldown** (Classic: 10–30%, scaling with missing health). Beast Slaying: +5% vs Beasts | ×1.10 haste | [F] [rac] [client] (SpellEffect, SpellDuration, SpellPower, 1.60.1.69913) (20554) |
 | Tauren | Endurance: +5% health and **+1% hit** | +1% melee hit | [F] [rac] [client] (SpellEffect, 1.60.1.69913) (20550) |
@@ -822,7 +830,7 @@ Notes:
 - **On-use trinkets** (row 3). A trinket the sim models is used with the same sync with Death
   Wish as the racial (the note above), with its own cooldown in place of the racial's; off the
   GCD, both are used in the same moment as Death Wish. The pool's one warrior-relevant on-use
-  trinket is **Weakness Analyzer** (new in Forever): +5% crit (aura 290) for 20 s or
+  trinket is **Weakness Analyzer** (new in Forever): +5% crit (aura 290: attacks and spells) for 20 s or
   until you deal a non-periodic crit, 90 s cooldown [F] [client] (ItemEffect, SpellEffect,
   SpellAuraOptions, 1.60.1.69913); an older foreverchanges tooltip said 2 min (Q31). The sim
   ends it on the first crit you deal, white or special, including the crit it helped make.
@@ -1172,7 +1180,8 @@ parts:
   Berserker Rage adds 5 rage per rank.
 - **What the cooldowns' buffs do in the sim.** Death Wish is ×1.20 physical damage, like any
   damage-done aura (white, yellow and bleeds). Recklessness's +100% and Elune's Light's +10% are
-  aura crit (aura 290, like Berserker Stance): the white table still truncates crit at its crit
+  aura crit (aura 290, like Berserker Stance), which raises spell crit too for as long as they
+  last (magic procs; Recklessness only in `forever`, above): the white table still truncates crit at its crit
   cap, specials at theirs, and melee spells' second roll takes it as is
   ([combat-tables §2.2, §3](../mechanics/combat-tables.md#3-special-yellow-attacks)). The +3-boss
   suppression takes `min(auraCrit, 1.8)`, which talents and stance already fill, so it doesn't
@@ -1205,11 +1214,11 @@ parts:
   damage, threat and damage-taken multipliers and the stat block's crit) are the base stance's, as
   they were before stances could change. Each stance carries what it changes relative to them: its
   own effects ([§2.1](#21-stances)) and the talents' stance-bound ones that hold in it (Defiance),
-  as factors on damage (all schools), threat and damage taken, and a crit delta. The base
-  stance's factors are exactly 1 and its delta 0, so a spec that never swaps gets the same
-  results, bit for bit. A swap switches them: the crit delta (Berserker Stance's +3% is aura crit)
-  re-derives the stats, so crit suppression and the table caps apply as usual; the rest are
-  multipliers. A bleed snapshots the stance it was applied in (Rend). Only boss swings use damage
+  as factors on damage (all schools), threat and damage taken, and crit and spell crit deltas.
+  The base stance's factors are exactly 1 and its deltas 0, so a spec that never swaps gets the
+  same results, bit for bit. A swap switches them: the crit deltas (Berserker Stance's +3% is aura
+  crit, and spell crit too in `forever`) re-derive the stats, so crit suppression and the table
+  caps apply as usual; the rest are multipliers. A bleed snapshots the stance it was applied in (Rend). Only boss swings use damage
   taken; the DPS stand-in's hits are health lost and ignore it (below).
 - **Stance swaps** are off the GCD and share a 1 s cooldown ([§2.1](#21-stances)). Each keeps at
   most the plan's cap: in `forever` 10 + 3 × Improved Tactical Mastery rank, in `classicEra` 5 ×
@@ -1560,8 +1569,8 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
 9. **Weaponmaster.** When a mace ignores armor, is the 15% applied before or after Sunder, Faerie
    Fire and Curse of Recklessness? For a sword, the client's 200 ms internal cooldown is [F]
    [client] (SpellAuraOptions, 1.60.1.69913); does the server honour it, and does a multi-target
-   ability (Whirlwind, Cleave) roll the extra attack once per cast or once per target hit? For an
-   axe, does the crit apply only to attacks with the axe when dual wielding mixed types?
+   ability (Whirlwind, Cleave) roll the extra attack once per cast or once per target hit? (The
+   axe and polearm crit with mixed weapons is Q15's.)
    **Test:** mace hit damage against a mob of known armor, with and without Sunder; sword procs
    per Cleave on two mobs.
 10. **Overpower window.** The data has a combo-point-like counter that stacks to 3, on a 5,000 ms
@@ -1584,16 +1593,21 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     [F] [client] (SpellEffect, 1.60.1.69913), perhaps 15% of AP (the server scripts what a dummy
     does). SoD's version (45% AP, 30% heal) is a forbidden source. Low priority: it isn't used on
     bosses.
-15. **Weapon racials with dual wield.** The sim reads the tooltips ("+2% crit with all spells and
-    attacks while you have a sword or two-handed sword equipped"): one sword in either hand gives
-    Human Sword Specialization's +2% to every attack, both hands'
-    ([§2.9](#29-racials-for-warriors),
+15. **Weapon-conditional crit with dual wield: the racials and Weaponmaster's axe.** The sim reads
+    the racials' tooltips ("+2% crit with all spells and attacks while you have a sword or
+    two-handed sword equipped"): one sword in either hand gives Human Sword Specialization's +2% to
+    every attack, both hands', and to spells ([§2.9](#29-racials-for-warriors),
     [character-stats](../mechanics/character-stats.md#implementation-notes)); Orc Axe and Dwarf
-    Mace Specialization likewise. Is that so, or does the crit apply only to the matching weapon's
+    Mace Specialization likewise. Weaponmaster's axe and polearm crit (12700) is the same client
+    data (all crit, aura 290, with a weapon-type `SpellEquippedItems` mask), so the sim reads it the
+    same way, though its own tooltip says "with Axes and Polearms" ([§2.7](#27-weaponmaster-extra-attacks-and-windfury)):
+    one rule for one kind of data. Is that so, or does the crit apply only to the matching weapon's
     attacks, or need it in the main hand? The answer moves the default Human Fury (a mace and a
-    sword) by about 1.2%. **Test:** a Human with a sword in the main hand only, then in the off hand
-    only, with a mace in the other hand: read the sheet's crit, and if it's unclear, log crits per
-    hand.
+    sword) by about 1.2%; for Weaponmaster it only matters to a warrior with the talent dual
+    wielding an axe and another type (polearms are two-handed). **Test:** a Human with a sword in the main hand only, then in the
+    off hand only, with a mace in the other hand: read the sheet's crit, and if it's unclear, log
+    crits per hand. An Arms warrior with Weaponmaster, an axe and a sword, the same way; if the two
+    answers differ, the rule splits by spell.
 16. **Touch of the Grave (Undead).** Does it deal damage, or only heal? If it deals damage,
     it should be modelled.
 17. **Max rage for Gnomes with Boundless Rage.** Is it (100 + 30) × 1.05 = 136.5, or

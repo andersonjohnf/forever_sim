@@ -76,7 +76,12 @@ in both clients with its client rows.
   - **% all stats** (Blessing of Kings, applied after flat bonuses).
   - Flat melee AP (Battle Shout, Blessing of Might, Juju Might), and flat melee+ranged AP.
   - Flat % crit (Leader of the Pack, Mongoose, Elemental Sharpening Stone, food), % attack
-    speed (Juju Flurry, Minor Haste gloves, Arcanum of Rapidity), % hit (a Hyjal flask).
+    speed (Juju Flurry, Minor Haste gloves, Arcanum of Rapidity), % hit (a Hyjal flask). An
+    all-crit aura (290: Leader of the Pack, Mongoose, Grilled Squid, the Aggression flask in
+    Forever) is spell crit too, for magic procs
+    ([character-stats](character-stats.md#implementation-notes)); aura 52 (Elemental
+    Sharpening Stone, Might of the Scourge, and Classic Era's Leader of the Pack and Mongoose) is
+    melee and ranged crit only.
   - Armor, max health, dodge %, defense skill, block value, threat % (Salvation, Threat
     gloves), flat weapon damage (sharpening stones, Striking/Impact enchants), and flat
     spell or Holy damage (paladins).
@@ -280,7 +285,7 @@ The tooltip is unchanged [F].
 | Flask of the Titans | 13510 → 17626 | +1200 max health | 2 h | One flask | Alchemy (Same) | [F] | [fc-items] · [client] (ItemEffect, 1.60.1.69913) |
 | Flask of Supreme Power | 13512 → 17628 | +150 spell damage, all magic schools (so Holy too) | 2 h | One flask | Alchemy (Same) | [F] | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
 | Flask of Distilled Wisdom | 13511 → 17627 | +2000 max mana | 2 h | One flask | Alchemy (reworded only) | [F] | [fc/13511](https://foreverchanges.pro/item/13511) |
-| Flask of Natural Aggression *(new)* | 274274 → 1293741 | +60 Sta; **+4% crit while in Mount Hyjal, Hyjal Summit or the Barrow Deeps** | 2 h | One flask | New Forever recipe (BoP formula, Alchemy 300) | [F] | [fc/274274](https://foreverchanges.pro/item/274274) |
+| Flask of Natural Aggression *(new)* | 274274 → 1293741 | +60 Sta; **+4% crit while in Mount Hyjal, Hyjal Summit or the Barrow Deeps** (the zero-valued aura the zone fills is 290, all crit, so spells too) | 2 h | One flask | New Forever recipe (BoP formula, Alchemy 300) | [F] | [fc/274274](https://foreverchanges.pro/item/274274) |
 | Flask of Natural Accuracy *(new)* | 274273 → 1293740 | +60 Sta; **+5% hit** in those zones | 2 h | One flask | As above | [F] | [fc/274273](https://foreverchanges.pro/item/274273) |
 | Flask of Natural Precision *(new)* | 274275 → 1293742 | +60 Sta; **5% reduced chance to be dodged or parried** in those zones | 2 h | One flask | As above | [F] | [fc/274275](https://foreverchanges.pro/item/274275) |
 | Flask of Natural Swiftness *(new)* | 274276 → 1293743 | +60 Sta; **+5% haste** in those zones | 2 h | One flask | As above | [F] | [fc/274276](https://foreverchanges.pro/item/274276) |
@@ -869,8 +874,10 @@ every Forever value was checked against **1.60.1.69913** at the same time [clien
 tables, `a + 1` is a `SpellEffect` row's `EffectBasePoints` a with `EffectDieSides` 1, so the
 value is a + 1; `#n` is the effect index; `→` follows an item to its spell, an enchanting spell
 to its `SpellItemEnchantment`, and an enchant to its equip spell. All **98** entries were
-compared (42 buffs, debuffs and consumables; 56 enchants): **23 differ**, **18 are new in
-Forever**, and the other **57** are the same in both clients.
+compared (42 buffs, debuffs and consumables; 56 enchants): **25 differ**, **18 are new in
+Forever**, and the other **55** are the same in both clients. Two of the 25 differ only in the
+kind of crit: Leader of the Pack and Mongoose are all crit (aura 290, spells too) in Forever and
+melee and ranged crit (aura 52) in Classic Era.
 
 - **Untalented spell values.** A Classic Era buff is the spell's own value. The providers'
   improving talents (Improved Battle Shout, Improved Blessing of Might, Improved Mark of the
@@ -893,7 +900,10 @@ Forever**, and the other **57** are the same in both clients.
   class ability ([warrior §3.2](../classes/warrior.md#32-buffs-debuffs-and-cooldowns)), which
   picks its profile's values the same way: +139 for 3 min in `forever`, Classic Era's 25289,
   +232 for 2 min, in `classicEra`. The character sheet counts it at that value, the same as the
-  catalogue's Battle Shout (another warrior's).
+  catalogue's Battle Shout (another warrior's). Recklessness and Berserker Stance follow the
+  profile the same way: their crit is all crit (spells too) in `forever` and melee crit only
+  (aura 52) in `classicEra`. The racials, talents and items stay Forever's in both profiles
+  ([architecture](../architecture.md#rules-and-stats)).
 - **Tests.** `src/sim/effects/catalogue.test.ts` mirrors these tables. With the raw client
   tables cached locally (`npm run scrape:client`), it also checks every cited row in both
   clients.
@@ -907,7 +917,7 @@ Forever**, and the other **57** are the same in both clients.
 | Blessing of Kings (`blessingOfKings`) | +10% all stats | same | 20217 #0: 9 + 1 | [C] |
 | Gift of the Wild r2 (`markOfTheWild`) | +16 all stats, +385 armor | **+12 all stats, +285 armor** | 21850 #1: 11 + 1; #0: 284 + 1 (resistances 19 + 1, not simulated) | [C] |
 | Prayer of Fortitude r2 (`powerWordFortitude`) | +70 Sta | **+54 Sta** | 21564 #0: 53 + 1 | [C] |
-| Leader of the Pack (`leaderOfThePack`) | +3% crit | same (melee and ranged only) | 24932 #0 (aura 52): 2 + 1; Forever's is aura 290, all crit | [C] |
+| Leader of the Pack (`leaderOfThePack`) | +3% crit, spells too (aura 290) | **+3% melee and ranged crit** | 24932 #0 (aura 52): 2 + 1; Forever's is aura 290, all crit | [C] |
 | Windfury Totem r3 (`windfuryTotem`) | 20% for an extra attack with +246 AP; a party aura | **+315 AP; a main-hand enchant that replaces a stone** | 10610 #0: 314 + 1; 10612 → 10611 → enchant 564 (20%, casts 10610) | [C] |
 | Grace of Air Totem r3 (`graceOfAir`) | +89 Agi | **+77 Agi** | 25360 #0 (the totem's aura): 76 + 1 | [C] |
 | Strength of Earth Totem r5 (`strengthOfEarth`) | +53 Str | **+77 Str** | 25362 #0 (the totem's aura): 76 + 1 | [C] |
@@ -925,7 +935,7 @@ Forever**, and the other **57** are the same in both clients.
 
 | Entry (sim id) | Forever | Classic Era | Classic Era client row | Tag |
 | --- | --- | --- | --- | --- |
-| Elixir of the Mongoose (`elixirOfTheMongoose`) | +25 Agi, +2% crit | same (the crit is melee and ranged only) | 13452 → 17538 #0: 24 + 1; #1 (aura 52): 1 + 1 | [C] |
+| Elixir of the Mongoose (`elixirOfTheMongoose`) | +25 Agi, +2% crit, spells too (aura 290) | **+25 Agi, +2% melee and ranged crit** | 13452 → 17538 #0: 24 + 1; #1 (aura 52): 1 + 1 | [C] |
 | Elixir of Greater Strength (`elixirOfGreaterStrength`) | +25 Str | same (named Elixir of the Giants) | 9206 → 11405 #0: 24 + 1 | [C] |
 | Juju Power (`jujuPower`) | +30 Str | same | 12451 → 16323 #0: 29 + 1 | [C] |
 | Elixir of Greater Defense (`elixirOfGreaterDefense`) | +450 armor | same (named Elixir of Superior Defense) | 13445 → 11348 #0: 449 + 1 | [C] |
@@ -939,7 +949,7 @@ Forever**, and the other **57** are the same in both clients.
 | Rumsey Rum Black Label (`rumseyRum`) | +15 Sta | same | 21151 → 25804 #0: 14 + 1 | [C] |
 | Smoked Desert Dumplings (`smokedDesertDumplings`) | +20 Str | same | 20452 → 24800 → Well Fed 24799 #0: 19 + 1 (Forever: 1248401 #1, aura 227 = 20) | [C] |
 | Mightfish Steak (`mightfishSteak`) | +40 AP | **+10 Sta** | 13934 → 18234 → Increased Stamina 18191 #0: 9 + 1 (Forever: 1249515 #1 = 40) | [C] |
-| Grilled Squid (`grilledSquid`) | +1% crit | **+10 Agi** | 13928 → 18230 → Increased Agility 18192 #0: 9 + 1 (Forever: 1249522 #1 = 1) | [C] |
+| Grilled Squid (`grilledSquid`) | +1% crit, spells too (Well Fed 1249523, aura 290) | **+10 Agi** | 13928 → 18230 → Increased Agility 18192 #0: 9 + 1 (Forever: 1249522 #1 = 1) | [C] |
 | Dense Sharpening Stone / Weightstone (`denseSharpeningStone`) | +8 weapon damage | same | 12404 → 16138 → enchant 1643: 8; 12643 → 16622 → 1703: 8 | [C] |
 | Elemental Sharpening Stone (`elementalSharpeningStone`) | +2% crit | same | 18262 → 22756 → enchant 2506 → 22755 #0: 1 + 1 | [C] |
 | Mighty Rage Potion (`mightyRagePotion`) | 45–75 rage, +60 Str for 20 s | same | 13442 → 17528 #0: 449 + 1d301 tenths; #1: 59 + 1; 20 s | [C] |

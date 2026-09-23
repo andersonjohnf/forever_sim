@@ -188,6 +188,8 @@ export class Sim {
   private readonly aAp: Float64Array
   private readonly aApPct: Float64Array
   private readonly aCrit: Float64Array
+  /** Spell crit, for all-crit auras (290): Recklessness, Elune's Light, Weakness Analyzer. */
+  private readonly aSpellCrit: Float64Array
   private readonly aHaste: Float64Array
   private readonly aDamage: Float64Array
   private readonly aStatful: Uint8Array
@@ -321,6 +323,7 @@ export class Sim {
   private readonly sThreat = new Float64Array(8).fill(1)
   private readonly sTaken = new Float64Array(8).fill(1)
   private readonly sCrit = new Float64Array(8)
+  private readonly sSpellCrit = new Float64Array(8)
   private readonly baseStance: number
   private readonly swapCdMs: number
   private readonly swapKeep: number
@@ -379,9 +382,10 @@ export class Sim {
   private home = 0
   /** When the stances' shared swap cooldown ends (warrior.md §2.1). */
   private stanceReadyAt = 0
-  /** The current stance's factor on all damage and its aura crit, and the threat and damage-taken multipliers in it. */
+  /** The current stance's factor on all damage, its aura crit and spell crit, and the threat and damage-taken multipliers in it. */
   private stanceDamage = 1
   private stanceCrit = 0
+  private stanceSpellCrit = 0
   private threatMult = 1
   private damageTakenMult = 1
   /** The current phase's lists (rotNormal / rotExecute and their off-GCD entries). */
@@ -397,6 +401,7 @@ export class Sim {
   /** Product of the active attack-power % auras (Blood Fury). */
   private dynApMult = 1
   private dynCrit = 0
+  private dynSpellCrit = 0
   private auraHasteMult = 1
 
   // Derived per hand, refreshed on stat changes.
@@ -561,6 +566,7 @@ export class Sim {
     this.aAp = new Float64Array(na)
     this.aApPct = new Float64Array(na)
     this.aCrit = new Float64Array(na)
+    this.aSpellCrit = new Float64Array(na)
     this.aHaste = new Float64Array(na)
     this.aDamage = new Float64Array(na)
     this.aStatful = new Uint8Array(na)
@@ -587,9 +593,10 @@ export class Sim {
       this.aAp[i] = a.ap
       this.aApPct[i] = a.apPct
       this.aCrit[i] = a.crit
+      this.aSpellCrit[i] = a.spellCrit
       this.aHaste[i] = a.haste
       this.aDamage[i] = a.damage
-      this.aStatful[i] = a.str || a.agi || a.ap || a.apPct || a.crit ? 1 : 0
+      this.aStatful[i] = a.str || a.agi || a.ap || a.apPct || a.crit || a.spellCrit ? 1 : 0
       this.aCritCharges[i] = a.critCharges
       if (a.whiteSwingCharges > 0) chargeAuras.push(i)
       if (a.critCharges > 0) critChargeAuras.push(i)
@@ -695,6 +702,7 @@ export class Sim {
       this.sThreat[st.stance] = st.threat
       this.sTaken[st.stance] = st.damageTaken
       this.sCrit[st.stance] = st.crit
+      this.sSpellCrit[st.stance] = st.spellCrit
     }
     this.baseStance = plan.stance
     this.swapCdMs = plan.stanceSwap.cooldownMs
@@ -965,6 +973,7 @@ export class Sim {
     this.dynAp = 0
     this.dynApMult = 1
     this.dynCrit = 0
+    this.dynSpellCrit = 0
     this.auraHasteMult = 1
     this.exHead = 0
     this.exCount = 0
@@ -988,6 +997,7 @@ export class Sim {
     this.stanceReadyAt = 0
     this.stanceDamage = this.sDamage[base]
     this.stanceCrit = this.sCrit[base]
+    this.stanceSpellCrit = this.sSpellCrit[base]
     this.threatMult = this.plan.threatMult * this.sThreat[base]
     this.damageTakenMult = this.plan.damageTakenMult * this.sTaken[base]
     this.rotList = this.rotNormal
@@ -1052,8 +1062,10 @@ export class Sim {
     s.agi = base.agi + this.dynAgi
     s.ap = base.ap + this.dynAp
     s.apMult = base.apMult * this.dynApMult
-    // The stance's aura crit (Berserker Stance +3, relative to the base stance's in `base`).
+    // The stance's aura crit (Berserker Stance +3, relative to the base stance's in `base`), and
+    // all-crit auras' spell crit (character-stats.md#derived-stat-pipeline, step 4).
     s.crit = base.crit + this.dynCrit + this.stanceCrit
+    s.spellCrit = base.spellCrit + this.dynSpellCrit + this.stanceSpellCrit
     const d = deriveStats(s, this.deriveOptions, this.derived)
     this.ap = d.attackPower
     this.blockValue = d.blockValue
@@ -1368,15 +1380,17 @@ export class Sim {
 
   /**
    * Puts the warrior in a stance: its factors on the plan's damage, threat and damage taken and its
-   * aura crit (warrior.md §2.1, §7 "Stances"). Crit re-derives the stats; the rest are multipliers.
+   * aura crit and spell crit (warrior.md §2.1, §7 "Stances"). Crit re-derives the stats; the rest
+   * are multipliers.
    */
   private setStance(to: number): void {
     this.stance = to
     this.stanceDamage = this.sDamage[to]
     this.threatMult = this.plan.threatMult * this.sThreat[to]
     this.damageTakenMult = this.plan.damageTakenMult * this.sTaken[to]
-    if (this.sCrit[to] !== this.stanceCrit) {
+    if (this.sCrit[to] !== this.stanceCrit || this.sSpellCrit[to] !== this.stanceSpellCrit) {
       this.stanceCrit = this.sCrit[to]
+      this.stanceSpellCrit = this.sSpellCrit[to]
       this.recomputeStats()
     }
     this.recomputeMultipliers()
@@ -1842,6 +1856,7 @@ export class Sim {
       this.dynAgi += this.aAgi[a] * deltaStacks
       this.dynAp += this.aAp[a] * deltaStacks
       this.dynCrit += this.aCrit[a] * deltaStacks
+      this.dynSpellCrit += this.aSpellCrit[a] * deltaStacks
       if (this.aApPct[a]) {
         // Attack power % auras multiply (character-stats step 4); recomputed from the active ones, so no drift.
         let m = 1

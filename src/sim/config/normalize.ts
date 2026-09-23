@@ -9,6 +9,7 @@ import { decodeTalentCode, validateTalentBuild } from '@/data/talents/types'
 import { defaultConfig, defaultGear, FULL_RAID, TALENT_DATA } from '../defaults'
 import { BUFFS_BY_ID, type BuffSpec } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
+import { catalogueEffects } from '../effects/types'
 import { presetBuffIds } from '../effects/presets'
 import { fitsSlot, isTwoHand, uniqueConflicts } from '../equip'
 import { PROFILES, type RulesProfile } from '../rules/profiles'
@@ -267,12 +268,13 @@ function normalizeGear(input: unknown, spec: SpecId, race: string, classId: Clas
 }
 
 /**
- * The size of each thing a buff changes, keyed by effect kind, stat and condition; null when an
- * effect has no single size (a proc, a temporary weapon enchant).
+ * The size of each thing a buff changes under the rule profile (its Classic Era values in
+ * `classicEra`: `catalogueEffects`), keyed by effect kind, stat and condition; null when an effect
+ * has no single size (a proc, a temporary weapon enchant).
  */
 function effectSizes(buff: BuffSpec, profile: RulesProfile): Map<string, number> | null {
   const sizes = new Map<string, number>()
-  for (const e of typeof buff.effects === 'function' ? buff.effects(profile) : buff.effects) {
+  for (const e of catalogueEffects(buff, profile)) {
     const size = 'value' in e ? e.value : 'pct' in e ? e.pct : undefined
     if (typeof size !== 'number') return null
     const key = `${e.kind}|${'stat' in e ? e.stat : ''}|${JSON.stringify(e.when ?? null)}`
@@ -283,9 +285,9 @@ function effectSizes(buff: BuffSpec, profile: RulesProfile): Map<string, number>
 
 /**
  * 1 when `a`'s effect is larger than `b`'s, -1 when smaller, 0 when the same, and null when they
- * change different things or each is larger at something.
+ * change different things or each is larger at something. Exported for its tests.
  */
-function compareEffects(a: BuffSpec, b: BuffSpec, profile: RulesProfile): 1 | 0 | -1 | null {
+export function compareEffects(a: BuffSpec, b: BuffSpec, profile: RulesProfile): 1 | 0 | -1 | null {
   const x = effectSizes(a, profile)
   const y = effectSizes(b, profile)
   if (!x || !y || x.size !== y.size || [...x.keys()].some((k) => !y.has(k))) return null

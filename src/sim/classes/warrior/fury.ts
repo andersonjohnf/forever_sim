@@ -288,7 +288,7 @@ export function furyRotation(
   cooldownLines(b, v, ID, ctx, deathWishLines(b, v, ID))
 
   // Row 4: Recklessness once, at ≤ lastSec left (Berserker Stance only, Fury's base stance).
-  recklessnessLine(b, v, ID)
+  recklessnessLine(b, v, ID, ctx)
 
   // Row 5: Bloodrage on cooldown (off the GCD) at rage ≤ maxRage.
   bloodrageLine(b, v, ID)

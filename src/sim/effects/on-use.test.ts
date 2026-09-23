@@ -75,7 +75,8 @@ describe('on-use trinkets match src/data/client (warrior.md §5.2 row 3)', () =>
     // The 20 s it shares with category 1141 ("Burst Trinket") is shorter, and no other simulated trinket is in it.
     expect([effect.spellCategoryId, effect.categoryCoolDownMSec]).toEqual([1141, 20000])
     const crit = spell.effects.find((e) => e.effect === APPLY_AURA && e.effectAura === AURA.allCrit)!
-    expect(use.aura?.mods).toEqual({ crit: crit.effectBasePointsF })
+    // All crit (aura 290): attacks and spells alike (combat-tables §9).
+    expect(use.aura?.mods).toEqual({ crit: crit.effectBasePointsF, spellCrit: crit.effectBasePointsF })
     // One proc charge: the tooltip says a non-periodic crit you deal uses it.
     expect(spell.auraOptions?.procCharges).toBe(1)
     expect(use.aura?.critCharges).toBe(1)

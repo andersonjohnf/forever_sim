@@ -19,8 +19,8 @@ client-data check the same day ([client.md](data/client.md)) · Forever beta 1.6
 Classic Era 1.15.9.69722 · beta capped at level 20 (rising to 30), launch 2026-11-04, raids
 unlock 2026-12-09
 
-**142 entries, 119 open:** Route A 8 (High 1, Medium 2, Low 5) · Route B 75 (20 / 27 / 28) ·
-Route C 36 (8 / 14 / 14) · Route D 23, all ✅ resolved from client data (was 7 / 11 / 5), plus
+**144 entries, 121 open:** Route A 8 (High 1, Medium 2, Low 5) · Route B 76 (20 / 27 / 29) ·
+Route C 37 (9 / 14 / 14) · Route D 23, all ✅ resolved from client data (was 7 / 11 / 5), plus
 7 items settled by the sim or a guild decision. The client-data check added in-game checks to
 B41, C11 and C12 rather than new entries.
 
@@ -572,7 +572,7 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   Icy Chill 1.6 and Unholy Weapon 3 [?, an unversioned wiki only]; all from base weapon speed.
   None is measured in Forever, and its new 2.3 PPM row has no known user [?]. Flat chances are
   client data instead: Hand of Justice 1% against non-Dwarves (2% in Classic Era), 2 s
-  cooldown [F client].
+  cooldown [F client]; Ironfoe's reading is [C37](#c37-ironfoes-proc-chance-and-hands).
 - **Test:** Crusader (and any other enchant you can get) on a known-speed weapon; procs per
   landed hit; repeat with a second weapon speed.
 - **Samples:** ≥1,000 landed hits per weapon.
@@ -687,13 +687,12 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Assumes:** mace or staff ignores 3% of armor per rank, applied after all flat reductions
   [?]; sword extra attacks at 1% per rank with a 200 ms internal cooldown [F client
   `SpellAuraOptions`, ✅ D2; whether the server honours it ?], rolled once per cast on
-  multi-target abilities [?] (only a post-SoD sim does this); axe crit counts only
-  for that weapon's attacks when dual wielding [?].
+  multi-target abilities [?] (only a post-SoD sim does this). The axe and polearm crit with
+  mixed weapons is [B49](#b49-weapon-conditional-crit-while-dual-wielding)'s.
 - **Test:** mace hits on a mob of known armor with and without Sunder; the minimum gap between
-  sword extra attacks, and sword procs per Cleave that hits two mobs; crit per hand with an axe
-  in one hand only.
+  sword extra attacks, and sword procs per Cleave that hits two mobs.
 - **Samples:** ≥300 hits per state.
-- **Changes:** armor-penetration order, the sword ICD and axe crit per hand.
+- **Changes:** armor-penetration order and the sword ICD.
 - **Docs:** [warrior §2.7](classes/warrior.md#27-weaponmaster-extra-attacks-and-windfury),
   [Q9](classes/warrior.md#9-open-questions)
 
@@ -723,17 +722,22 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Docs:** [warrior §3.1](classes/warrior.md#31-damage-abilities),
   [Q13](classes/warrior.md#9-open-questions)
 
-#### B49. Human Sword Specialization while dual wielding
-**Medium · M2 · ≤20**
-- **Assumes** [?]: as the tooltip reads, +2% crit to all attacks (both hands, white and special)
-  and spells while a sword is in either hand; Orc Axe and Dwarf Mace Specialization likewise.
-  With a mace and a sword (the default Human Fury), a per-hand answer would cost about 1.2%, so
-  this is Medium (re-rated from Low after review finding L3).
+#### B49. Weapon-conditional crit while dual wielding
+**Medium · M2 · ≤20 (Weaponmaster ≤30)**
+- **Assumes** [?]: as the racials' tooltips read, +2% crit to all attacks (both hands, white and
+  special) and spells while a sword is in either hand; Orc Axe and Dwarf Mace Specialization
+  likewise. Weaponmaster's axe and polearm crit is the same client data (all crit, aura 290,
+  with a weapon-type `SpellEquippedItems` mask), so it follows the same rule: +1% per rank to
+  every attack and spell while an axe or polearm is in either hand. With a mace and a sword (the
+  default Human Fury), a per-hand answer would cost about 1.2%, so this is Medium (re-rated from
+  Low after review finding L3).
 - **Test:** Human warrior with a sword in the main hand only, then the off hand only, and a mace
-  in the other hand; read sheet crit and, if unclear, log crits per hand.
+  in the other hand; read sheet crit and, if unclear, log crits per hand. Then an Arms warrior
+  with Weaponmaster, an axe and a sword, the same way.
 - **Samples:** sheet reads; ≥1,000 swings per hand if needed.
-- **Changes:** the racial's scope (all attacks, or the matching weapon's).
-- **Docs:** [warrior §2.9](classes/warrior.md#29-racials-for-warriors),
+- **Changes:** the scope of the racials and of Weaponmaster's axe crit (all attacks, or the
+  matching weapon's); if the two answers differ, the rule splits by spell.
+- **Docs:** [warrior §2.7, §2.9](classes/warrior.md#29-racials-for-warriors),
   [Q15](classes/warrior.md#9-open-questions)
 
 #### B34. Threat from rage and mana gains
@@ -1234,6 +1238,18 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [spells.md § Caveats](data/spells.md#caveats), [talents.md § Caveats](data/talents.md#caveats);
   [C27](#c27-demoralizing-shout-and-roar-level-scaling)
 
+#### B76. Faction of Forever's new PvP and battleground items
+**Low · M2 · ≤20**
+- **Assumes** [?]: an item new in Forever whose row carries no reputation, rank or race
+  requirement suits both factions: the "Premier" PvP pieces and Sentinel's Libram (272434), whose
+  name is an Alliance Warsong Gulch prefix but which has no Horde twin. Classic Era's Warsong
+  Gulch and Alterac Valley rewards go by their names [C].
+- **Test:** find who sells or drops Sentinel's Libram and the Premier pieces, on each faction (a
+  vendor's list or a loot table is enough).
+- **Samples:** one look per item family.
+- **Changes:** which items the gear picker offers each faction.
+- **Docs:** [items § Equipping rules, Caveats](data/items.md#equipping-rules)
+
 ---
 
 ## Route C: Forever at level 60
@@ -1336,6 +1352,21 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 - **Docs:** [druid §4.3](classes/druid.md#43-lacerate-r3-1235827),
   [Q15, Q16](classes/druid.md#10-open-questions);
   [threat OQ 4](mechanics/threat.md#open-questions)
+
+#### C37. Ironfoe's proc chance and hands
+**High · M2**
+- **Assumes** [?]: Forever's equip aura 1301046 (`ProcChance` 6; "Attacks against Orcs are
+  $s2 times as likely", `$s2` = 2; proc mask 0x14; 100 ms `ProcCategoryRecovery` [F client])
+  procs **3%** of landed white and yellow hits against a non-Orc boss, read as Hand of Justice's
+  `${$h/3}%` is read, from **either hand's** hits, as an aura on the wielder would. Its text
+  states no chance. The default Fury main hand: 6% instead would add about 6% DPS; main-hand hits
+  only would cost about 2.6%.
+- **Test:** Ironfoe in the main hand and a slow one-hander in the off hand, on non-Orc mobs:
+  count "Fury of Forgewright" procs (2 extra attacks) per landed hit of each hand; then the same
+  against Orcs.
+- **Samples:** ≥2,000 landed hits per hand.
+- **Changes:** Ironfoe's chance and hands (the `ironfoe` rule-profile value); default Fury DPS.
+- **Docs:** [damage §5.2, OQ 15](mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples)
 
 ### Medium
 
@@ -1514,9 +1545,11 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
   spell read from Forever; a Classic Era stat spell stays unless Forever's effects give that stat
   ([items.md](data/items.md#effects-of-fallback-items)). Where Forever moved a bonus into the
   missing `ItemSparse` row it is kept from Classic Era (Hand of Justice's +20 attack power);
-  where it replaced one with an effect of another kind both are kept (Mark of Tyranny's +1%
-  dodge and Forever's health use). The Fury and Arms defaults' Blackhand's Breadth reads +1%
-  crit (Forever's spell 1318954) with Forever's new use.
+  where it added an effect of another kind next to one both are kept (Savage Gladiator Chain's
+  +2% crit and Forever's fear resistance); where it re-pointed the item effect row itself to
+  another spell, Classic Era's goes (Mark of Tyranny's +1% dodge, now a health use). The Fury
+  and Arms defaults' Blackhand's Breadth reads +1% crit (Forever's spell 1318954) with
+  Forever's new use.
 - **Test:** read these items' tooltips in game (an item link is enough; the server sends the
   row): Blackhand's Breadth, Hand of Justice, Savage Gladiator Chain, Mark of Tyranny and
   Counterattack Lodestone. Re-scrape when a build ships their rows.

@@ -80,7 +80,10 @@ combat. So:
   [Open questions](#open-questions) with a test. Values the client shows unchanged from Classic
   Era carry Classic's measured behaviour ([C]).
 - `classicEra` keeps the measured Classic Era table, by Magey et al. on the 1.13 client
-  ([Attack table][magey-at]).
+  ([Attack table][magey-at]). It swaps in Classic Era's rules and spell values, not a Classic Era
+  character: talents, racials (crit from the weapon racials, never Classic's weapon skill), items
+  and Forever's new spells stay Forever's in both profiles
+  ([architecture](../architecture.md#rules-and-stats)).
 - When the guild measures a value (doctrine tier 2), change the `forever` profile entry and
   cite the test. Don't add a third profile.
 

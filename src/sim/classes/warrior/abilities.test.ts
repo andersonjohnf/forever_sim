@@ -43,6 +43,8 @@ import {
   overpowerWindowProcs,
   RACIAL_COOLDOWNS,
   RECKLESSNESS,
+  RECKLESSNESS_CLASSIC_ERA,
+  recklessness,
   REND,
   SLAM,
   SPEARING_STRIKE,
@@ -389,8 +391,11 @@ const APPLY_AURA = 6
 const ENERGIZE = 30
 const TRIGGER_SPELL = 64
 const PERIODIC_ENERGIZE = 24
-/** The aura effects the sim models, by SpellAuraName: damage done %, all crit, attack power %, melee haste %, melee attack power. */
-const AURA_MOD: Record<number, string> = { 79: 'damage', 290: 'crit', 166: 'apPct', 319: 'haste', 99: 'ap' }
+/**
+ * The aura effects the sim models, by SpellAuraName: damage done %, all crit (attacks and spells,
+ * combat-tables §9), attack power %, melee haste %, melee attack power.
+ */
+const AURA_MOD: Record<number, string[]> = { 79: ['damage'], 290: ['crit', 'spellCrit'], 166: ['apPct'], 319: ['haste'], 99: ['ap'] }
 /**
  * An effect's points at level 60, by the spell-text renderer's rule (scripts/scrape/lib/spell-text.mjs
  * `scalingLevels`, `effectRange`; docs/data/items.md#per-level-values): base + the per-level term ×
@@ -419,7 +424,7 @@ describe('cast abilities match src/data/client/spells.json (warrior.md §2.3, §
       const mods: Record<string, number> = {}
       for (const e of spell.effects) {
         if (e.effect !== APPLY_AURA || e.effectAura === undefined || !(e.effectAura in AURA_MOD)) continue
-        mods[AURA_MOD[e.effectAura]] = pointsAt60(spell, e)
+        for (const mod of AURA_MOD[e.effectAura]) mods[mod] = pointsAt60(spell, e)
         // Death Wish's damage aura is on the physical school (misc 1), as the engine's damage mod is.
         if (e.effectAura === 79) expect(e.effectMiscValue?.[0]).toBe(1)
       }
@@ -443,6 +448,16 @@ describe('cast abilities match src/data/client/spells.json (warrior.md §2.3, §
     expect(withTalents(BATTLE_SHOUT, new Map([['Focused Rage', 3]])).costTenths).toBe(100)
     // The same 139 as the Buffs tab's Battle Shout, which the rotation's upkeep replaces.
     expect(BUFFS_BY_ID.get('battleShout')!.effects).toEqual([{ kind: 'stat', stat: 'ap', value: 139 }])
+  })
+
+  it('Recklessness per profile: all crit (aura 290) in Forever, so spells crit more; Classic Era’s is melee crit only (aura 52) (warrior.md §2.6)', () => {
+    expect(recklessness(FOREVER)).toBe(RECKLESSNESS)
+    expect(recklessness(CLASSIC_ERA)).toBe(RECKLESSNESS_CLASSIC_ERA)
+    const { aura, ...rest } = RECKLESSNESS_CLASSIC_ERA
+    const { aura: foreverAura, ...foreverRest } = RECKLESSNESS
+    expect(rest).toEqual(foreverRest)
+    expect(foreverAura!.mods).toEqual({ crit: 100, spellCrit: 100 })
+    expect(aura).toEqual({ ...foreverAura, mods: { crit: 100 } })
   })
 
   it('Battle Shout per profile: Classic Era’s is 232 attack power for 2 min, the catalogue’s Classic Era value (warrior.md §1.1, §3.2)', () => {

@@ -20,7 +20,7 @@ import {
   IMPROVED_CHARGE_TENTHS_PER_RANK,
   onUseAbility,
   RACIAL_COOLDOWNS,
-  RECKLESSNESS,
+  recklessness,
   stanceSwapKeepTenths,
 } from './abilities'
 import { type TalentRanks, withTalents } from './modifiers'
@@ -456,13 +456,15 @@ export function cooldownLines(b: RotationBuilder, v: Reader, ids: SharedIds, ctx
  * Recklessness once, at ≤ lastSec left (row 4; its 30 min cooldown outlasts any fight; Berserker
  * Stance only, which the engine checks). From another stance it's a dance to Berserker Stance that
  * stays there for the rest of the fight (Arms, §5.3 row 4). Returns that dance's ability, whose
- * swap caps rage (the Mighty Rage Potion waits for it, `consumableLines`), or −1 without one.
+ * swap caps rage (the Mighty Rage Potion waits for it, `consumableLines`), or −1 without one. The
+ * ability is the profile's (`recklessness`).
  */
-export function recklessnessLine(b: RotationBuilder, v: Reader, ids: SharedIds, danceAndStay = 0): number {
+export function recklessnessLine(b: RotationBuilder, v: Reader, ids: SharedIds, ctx: RotationContext, danceAndStay = 0): number {
   if (!v.on(ids.reckEnabled)) return -1
   const when = [timeLeftAtMost(seconds(v, ids.reckLastSec))]
-  if (danceAndStay) return b.dance(RECKLESSNESS, danceAndStay, when, true)
-  b.add(RECKLESSNESS, when)
+  const reck = recklessness(ctx.profile)
+  if (danceAndStay) return b.dance(reck, danceAndStay, when, true)
+  b.add(reck, when)
   return -1
 }
 

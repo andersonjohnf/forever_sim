@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 47,
       "consumable": 78,
-      "docs": 285,
+      "docs": 287,
       "enchant": 125,
       "item": 407,
       "racial": 44,
@@ -48,7 +48,7 @@
     },
     "encryptedSpellNameRecords": 872,
     "notInClient": 0,
-    "seeds": 1362,
+    "seeds": 1363,
     "spells": 1475
   },
   "excludedWorldBuffs": {
@@ -53918,7 +53918,7 @@
         "spellIconFileDataId": 133943
       },
       "name": "Well Fed",
-      "sources": ["trigger"]
+      "sources": ["docs", "trigger"]
     },
     "1250918": {
       "duration": {
@@ -57264,7 +57264,7 @@
         "spellIconFileDataId": 135990
       },
       "name": "Fury of Forgewright",
-      "sources": ["item"]
+      "sources": ["docs", "item"]
     },
     "1301083": {
       "classOptions": {

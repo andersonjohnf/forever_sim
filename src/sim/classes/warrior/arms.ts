@@ -307,7 +307,7 @@ export function armsRotation(
 
   // Row 4: Recklessness once, at ≤ lastSec left. From Battle Stance it swaps to Berserker Stance
   // (keeping at most the swap's cap) and stays there for the rest of the fight.
-  const reckSwap = recklessnessLine(b, v, ID, home === STANCE.battle ? STANCE.berserker : 0)
+  const reckSwap = recklessnessLine(b, v, ID, ctx, home === STANCE.battle ? STANCE.berserker : 0)
 
   // Row 5: Bloodrage on cooldown (off the GCD) at rage ≤ maxRage.
   bloodrageLine(b, v, ID)

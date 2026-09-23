@@ -142,6 +142,36 @@ describe('faction-bound items (docs/data/items.md#equipping-rules)', () => {
     expect(itemFaction(byName('Frostwolf Insignia Rank 6'))).toBe('Horde')
   })
 
+  // RL7: the client lists them with no requirement, as it does Alterac Valley's.
+  it('places the Warsong Gulch rewards by their quartermasters’ names, twin by twin [C]', () => {
+    const twins: [number, number][] = [
+      [19538, 19534], // Sentinel's / Scout's Medallion
+      [19514, 19510], // Protector's / Legionnaire's Band
+      [19522, 19518], // Lorekeeper's / Advisor's Ring
+      [19530, 19526], // Caretaker's Cape / Battle Healer's Cloak
+      [19546, 19542], // Sentinel's / Scout's Blade
+      [19554, 19550], // Protector's / Legionnaire's Sword
+      [19562, 19558], // Outrunner's / Outrider's Bow
+      [19570, 19566], // Lorekeeper's Staff / Advisor's Gnarled Staff
+    ]
+    for (const [alliance, horde] of twins) {
+      expect(itemFaction(byId(alliance)), byId(alliance).name).toBe('Alliance')
+      expect(itemFaction(byId(horde)), byId(horde).name).toBe('Horde')
+      // Twins: the same slot, level and stats.
+      expect(byId(alliance).slot).toBe(byId(horde).slot)
+      expect(byId(alliance).itemLevel).toBe(byId(horde).itemLevel)
+      expect(byId(alliance).stats).toEqual(byId(horde).stats)
+      expect(byId(alliance).requirements).toEqual([])
+    }
+    expect(fitsFaction('horde-orc', byName("Sentinel's Medallion"))).toBe(false)
+    expect(fitsFaction('alliance-human', byName("Legionnaire's Sword"))).toBe(false)
+    // Forever's own Sentinel's Libram is new, with no twin: both factions [?].
+    expect(byId(272434)).toMatchObject({ name: "Sentinel's Libram", tab: 'new' })
+    expect(itemFaction(byId(272434))).toBeNull()
+    // The Horde PvP rank-8 pieces also start "Legionnaire's": Horde either way.
+    expect(itemFaction(byName("Legionnaire's Plate Armor"))).toBe('Horde')
+  })
+
   it('leaves everything else to both factions', () => {
     for (const name of ['Lionheart Helm', 'Hand of Justice', 'Darkspear', "Champion's Chain Headguard"]) {
       const item = byName(name)

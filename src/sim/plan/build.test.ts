@@ -371,6 +371,51 @@ describe('talents, racials and stances', () => {
     expect(crit('alliance-dwarf') - gnome.plan.stats.crit).toBeCloseTo(1, 9)
     expect(bundle('alliance-human', axes).assumptions.map((a) => a.id)).not.toContain('racialWeaponCrit')
   })
+
+  // RL6: 12700 is the racials' client data (aura 290 and a SpellEquippedItems mask), so the same rule.
+  it('gives Weaponmaster’s axe and polearm crit to all attacks and spells while either hand holds one, as the weapon racials (warrior.md §2.7) [?] (Q15)', () => {
+    const arms = defaultConfig('warrior-arms')
+    const ranks = decodeTalentCode(TALENT_DATA.warrior, arms.talents)
+    expect(ranks['warrior-arms-weaponmaster']).toBe(5)
+    const four = encodeTalentCode(TALENT_DATA.warrior, { ...ranks, 'warrior-arms-weaponmaster': 4 })
+    const plan = (talents: string, gear: SimConfig['gear']) => buildPlan({ ...arms, race: 'alliance-gnome', talents, gear }).plan
+    const swordAndAxe = { mainHand: { itemId: 15806 }, offHand: { itemId: 18498 } } // Mirah's Song and Hedgecutter
+    const swords = { mainHand: { itemId: 15806 }, offHand: { itemId: 15806 } }
+    const [five, less] = [plan(arms.talents, swordAndAxe), plan(four, swordAndAxe)]
+    // One rank is +1% crit on the sheet and for spells, not a bonus on the axe's hand only.
+    expect(five.stats.crit - less.stats.crit).toBeCloseTo(1, 9)
+    expect(five.stats.spellCrit - less.stats.spellCrit).toBeCloseTo(1, 9)
+    expect(five.weapons.map((w) => w!.critBonus)).toEqual([0, 0])
+    const [mh, oh] = new Sim(five).inspect().crit
+    expect(mh - oh).toBeCloseTo(0, 9)
+    // No axe or polearm, no crit; a two-handed axe counts too.
+    expect(plan(arms.talents, swords).stats.crit - plan(four, swords).stats.crit).toBeCloseTo(0, 9)
+    const reaper = { mainHand: { itemId: 12784 } }
+    expect(plan(arms.talents, reaper).stats.crit - plan(four, reaper).stats.crit).toBeCloseTo(1, 9)
+    // An axe and another weapon: the result lists the reading, as it does for the racials.
+    const notes = (gear: SimConfig['gear']) => buildPlan({ ...arms, race: 'alliance-gnome', gear }).assumptions.map((a) => a.id)
+    expect(notes(swordAndAxe)).toContain('racialWeaponCrit')
+    expect(notes(reaper)).not.toContain('racialWeaponCrit')
+  })
+
+  it('counts all-crit (aura 290) stances and buffs toward spell crit in `forever`, melee crit only where Classic Era’s is aura 52 (RL5)', () => {
+    const d = defaultConfig('warrior-fury')
+    const spellCrit = (config: SimConfig) => buildPlan(config).plan.stats.spellCrit
+    const none: SimConfig = { ...d, buffs: { raid: d.buffs.raid, enabled: [] } }
+    const withBuffs = (enabled: string[]): SimConfig => ({ ...d, buffs: { raid: d.buffs.raid, enabled } })
+    // Leader of the Pack +3 and Mongoose +2: spells too in Forever; Classic Era's are melee only.
+    expect(spellCrit(withBuffs(['leaderOfThePack', 'elixirOfTheMongoose'])) - spellCrit(none)).toBeCloseTo(5, 9)
+    expect(spellCrit(withRules(withBuffs(['leaderOfThePack', 'elixirOfTheMongoose']), 'classicEra')) - spellCrit(withRules(none, 'classicEra'))).toBeCloseTo(0, 9)
+    // Berserker Stance's +3: a stance factor on spell crit too, in Forever only.
+    const stance = (profile: 'forever' | 'classicEra') =>
+      Object.fromEntries(buildPlan(withRules(d, profile)).plan.stances.map((s) => [s.stance, s.spellCrit]))
+    expect(stance('forever')[STANCE.battle]).toBeCloseTo(-3, 9)
+    expect(stance('classicEra')[STANCE.battle]).toBeCloseTo(0, 9)
+    // Recklessness's aura: +100 spell crit in Forever, none in Classic Era.
+    const reck = (profile: 'forever' | 'classicEra') => buildPlan(withRules(d, profile)).plan.auras.find((a) => a.id === 'recklessness')!
+    expect(reck('forever')).toMatchObject({ crit: 100, spellCrit: 100 })
+    expect(reck('classicEra')).toMatchObject({ crit: 100, spellCrit: 0 })
+  })
 })
 
 describe('setups the engine can’t run yet', () => {

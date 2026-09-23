@@ -168,6 +168,16 @@ Consequences for the rest of the sim:
   tooltip wins over a per-hand reading
   ([doctrine §2](../doctrine.md#2-where-numbers-come-from-non-negotiable)); whether the server
   agrees for mixed weapons is **[?]** ([warrior Q15](../classes/warrior.md#9-open-questions)).
+  **One rule for this client data:** an all-crit aura (290) that the client ties to weapon types
+  (`SpellEquippedItems`, item class 2) gives its crit to every attack, both hands and spells,
+  while a matching weapon is in either hand. Weaponmaster's axe and polearm crit (12700) is the
+  same data, so it follows the same rule
+  ([warrior §2.7](../classes/warrior.md#27-weaponmaster-extra-attacks-and-windfury)); Classic
+  Era's per-weapon crit was a different aura (52).
+- **Both rule profiles use these Forever racials.** `classicEra` changes the combat rules and the
+  spell values that differ between the clients, not the character: a Human still gets +2% crit
+  with a sword rather than Classic Era's +5 sword skill, and a Night Elf still has Elune's Light
+  ([architecture](../architecture.md#rules-and-stats)).
 - Classic Era suppresses crit from auras by 1.8% against +3-level targets, and these racials are
   auras. Whether Forever keeps that suppression belongs to [combat-tables.md](combat-tables.md).
   **[C]** [Magey attack table][magey-at] The sim counts them in the aura-crit total that
@@ -668,19 +678,24 @@ the five-second rule, and the defense conversion.
   surfaced in the UI as an assumption (doctrine §4). Unmeasured rows have **no fallback**: never
   substitute the OQ-1 candidates. A spec whose base row is missing reports that instead of
   simulating.
-- **Racials:** implement by spell ID. Weapon-conditional crit (20597, 20574, 1259719) checks the
-  subtypes of the weapons equipped in either hand; when one matches, the racial is flat aura crit
-  (melee and spell) for the whole character, as the tooltip reads ("while you have a sword
-  equipped"). A dual-wield warrior with a mace and a sword gets the +2% on both hands' attacks.
-  That reading is **[?]** ([warrior Q15](../classes/warrior.md#9-open-questions)), and a result
-  with a matching weapon and a different one lists it among its assumptions. Creature-type
+- **Racials:** implement by spell ID. Weapon-conditional crit (20597, 20574, 1259719, and
+  Weaponmaster's 12700) checks the subtypes of the weapons equipped in either hand (the effect's
+  `weapons` condition); when one matches, it is flat aura crit (melee and spell) for the whole
+  character, as the racials' tooltips read ("while you have a sword equipped"). A dual-wield
+  warrior with a mace and a sword gets the +2% on both hands' attacks. That reading is **[?]**
+  ([warrior Q15](../classes/warrior.md#9-open-questions)), and a result with a matching weapon
+  and a different one lists it among its assumptions. Creature-type
   racials (Beast Slaying, Big Game Hunter, Elemental Insight) multiply damage only when the target
   type matches: see [encounter.md](encounter.md).
-- **Spell crit in the engine.** The engine's effects have one crit stat, melee crit, so aura-290
-  crit from Leader of the Pack, Berserker Stance and Weakness Analyzer isn't yet added to spell
-  crit as step 4 says (the weapon racials add both). For warriors spell crit only decides magic procs' crits
-  (Fiery Weapon, [combat-tables §9](combat-tables.md#9-spell-hit-and-crit-generic)), well under
-  0.1% of DPS; it must be fixed before the paladin (M5).
+- **Spell crit in the engine.** An all-crit aura (290) adds to melee and spell crit alike, as
+  step 4 says, wherever it comes from: the weapon racials and Weaponmaster's axe crit, Berserker
+  Stance, Recklessness, Elune's Light, Weakness Analyzer, Leader of the Pack, Elixir of the
+  Mongoose, Grilled Squid and the Flask of Natural Aggression's zone crit. Timed ones (Recklessness,
+  Elune's Light, Weakness Analyzer) and the stance re-derive spell crit when they start and end.
+  Where Classic Era's spell is aura 52 (melee and ranged crit only: Berserker Stance,
+  Recklessness, Leader of the Pack, Mongoose), `classicEra` adds melee crit only. For warriors spell
+  crit only decides magic procs' crits (Fiery Weapon,
+  [combat-tables §9](combat-tables.md#9-spell-hit-and-crit-generic)), well under 0.1% of DPS.
 - **Cooldown racials** (Blood Fury, Berserking, Elune's Light, Eureka!) are rotation options with
   sensible defaults in the class docs. They are off the GCD (`StartRecoveryTime` 0); Stoneform is
   on it (1,500 ms) **[F]** [client] (SpellCooldowns, 1.60.1.69913). Tank-only racials (Stoneform,

@@ -87,6 +87,7 @@ export function addAura(plan: Plan, spec: AuraSpec): number {
     ap: m.ap ?? 0,
     apPct: 0,
     crit: m.crit ?? 0,
+    spellCrit: m.spellCrit ?? 0,
     haste: m.haste ?? 0,
     damage: m.damage ?? 0,
   })

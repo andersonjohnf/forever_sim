@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { Rng } from '../core/rng'
 import { defaultConfig } from '../defaults'
+import { BUFFS_BY_ID, type BuffSpec } from '../effects/buffs'
 import { buildPlan } from '../plan/build'
+import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import { SPEC_IDS } from '../specs'
 import type { SimConfig } from '../types'
-import { normalizeConfig } from './normalize'
+import { compareEffects, normalizeConfig } from './normalize'
 
 describe('normalizeConfig', () => {
   it('leaves every default setup untouched, with no warnings', () => {
@@ -153,6 +155,28 @@ describe('normalizeConfig', () => {
     expect(keep(['grilledSquid', 'mightfishSteak']).config.buffs.enabled).toEqual(['grilledSquid'])
     const prot = defaultConfig('warrior-protection')
     expect(keep(['flaskOfNaturalAggression', 'flaskOfTheTitans'], prot).config.buffs.enabled).toEqual(['flaskOfTheTitans'])
+  })
+
+  // RL4: the comparison reads each entry's Classic Era values in `classicEra` (catalogueEffects).
+  it('compares exclusive rivals by the profile’s own values, Classic Era’s included', () => {
+    const giants = BUFFS_BY_ID.get('elixirOfGreaterStrength')! // +25 Strength in both clients
+    const juju = BUFFS_BY_ID.get('jujuPower')! // +30 in both
+    expect(compareEffects(juju, giants, FOREVER)).toBe(1)
+    expect(compareEffects(juju, giants, CLASSIC_ERA)).toBe(1)
+    // A rival whose Classic Era value is smaller than Forever's loses in `classicEra` only.
+    const rival: BuffSpec = {
+      ...juju,
+      effects: [{ kind: 'stat', stat: 'str', value: 30 }],
+      classicEra: { summary: '+20 Strength', effects: [{ kind: 'stat', stat: 'str', value: 20 }] },
+    }
+    expect(compareEffects(rival, giants, FOREVER)).toBe(1)
+    expect(compareEffects(rival, giants, CLASSIC_ERA)).toBe(-1)
+    // A real entry with Classic Era values of another kind: Mightfish Steak is +40 attack power in
+    // Forever and +10 Stamina in Classic Era, so against Rumsey Rum's +15 Stamina it only compares there.
+    const steak = BUFFS_BY_ID.get('mightfishSteak')!
+    const rum = BUFFS_BY_ID.get('rumseyRum')!
+    expect(compareEffects(steak, rum, FOREVER)).toBeNull()
+    expect(compareEffects(steak, rum, CLASSIC_ERA)).toBe(-1)
   })
 
   it('migrates a setup saved before M1: an empty buff list becomes the Standard raid preset', () => {

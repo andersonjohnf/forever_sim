@@ -118,6 +118,12 @@ export interface RulesProfile {
     windfuryIcdMs: number
     /** Hand of Justice's chance per landed melee hit against a non-Dwarf target, % (damage-and-timing §5.2). */
     handOfJusticePct: number
+    /**
+     * Ironfoe's proc (damage-and-timing §5.2): the chance per landed melee hit against a non-Orc
+     * target, which hands' hits roll it (`any`: either hand's; `weapon`: Ironfoe's own), and its
+     * internal cooldown, ms.
+     */
+    ironfoe: { chance: { pct: number } | { ppm: number }; from: 'any' | 'weapon'; icdMs: number }
   }
 }
 
@@ -185,6 +191,9 @@ export const FOREVER: RulesProfile = {
     windfuryIcdMs: 100,
     // docs/mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples: 15600 ProcChance 3, ÷ 3 unless the target is a Dwarf
     handOfJusticePct: 1,
+    // docs/mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples: equip aura 1301046, ProcChance 6
+    // read as Hand of Justice's, ÷ 2 unless the target is an Orc [?]; mask 0x14 from either hand [?]; ProcCategoryRecovery 100
+    ironfoe: { chance: { pct: 3 }, from: 'any', icdMs: 100 },
   },
 }
 
@@ -242,6 +251,8 @@ export const CLASSIC_ERA: RulesProfile = {
     windfuryIcdMs: 0,
     // docs/mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples: 15600 ProcChance 2 (1.15.9)
     handOfJusticePct: 2,
+    // docs/mechanics/damage-and-timing.md#52-ppm-vs-flat-chance-classic-era-examples: chance on hit (15494), 0.8 PPM, Ironfoe's own hits
+    ironfoe: { chance: { ppm: 0.8 }, from: 'weapon', icdMs: 0 },
   },
 }
 

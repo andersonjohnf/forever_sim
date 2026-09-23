@@ -11,7 +11,7 @@ import { negativeArmorFloor, NORMALIZED_SPEED, OFF_HAND_DAMAGE, ppmChance, slowe
 import { classSetup } from '../classes'
 import { classRotation, maintainedBuffs, rotationBaseStance } from '../classes/rotation'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
-import { type Stance, STANCE_EFFECTS } from '../classes/warrior/talents'
+import { type Stance, stanceEffects } from '../classes/warrior/talents'
 import { BUFFS_BY_ID } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { ITEM_EFFECTS } from '../effects/items'
@@ -246,7 +246,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   block.baseMana = base.baseMana ?? 0
 
   // --- Effects -------------------------------------------------------------------------------
-  const setup = classSetup(classId, config.spec, config.talents, rotationBaseStance(config.spec, config.rotation))
+  const setup = classSetup(classId, config.spec, config.talents, profile, rotationBaseStance(config.spec, config.rotation))
   if (!setup.simulated && attributes) blockers.push(`${meta.className} simulation isn’t available yet.`)
   const c: Collected = {
     block,
@@ -272,6 +272,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (when.twoHand !== undefined && when.twoHand !== twoHand) return false
     if (when.stance !== undefined && when.stance !== stance) return false
     if (when.creature && !when.creature.includes(fight.creatureType)) return false
+    // A weapon of one of these types in either hand (warrior.md §2.7, §2.9, Q15).
+    if (when.weapons && !weapons.some((w) => w !== null && when.weapons!.includes(w.type))) return false
     if (when.zones && !when.zones.includes(fight.zone)) {
       c.zoneGatedUnmet = true
       return false
@@ -343,11 +345,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   }
 
   // Racials, talents and stance. The weapon racials read the weapons in either hand (warrior.md §2.9).
-  apply(racialEffects(config.race, classId, weapons.flatMap((w) => (w ? [w.type] : []))), null)
+  apply(racialEffects(config.race, classId), null)
   apply(setup.effects, null)
   // The base stance's effects are in the static numbers, as above; each stance's factors turn them
   // into its own, so a stance dance can switch them (warrior.md §2.1, §7 "Stances").
-  const stances: StancePlan[] = setup.stance ? stancePlans(setup.stance, setup.effects, holds) : []
+  const stances: StancePlan[] = setup.stance ? stancePlans(setup.stance, stanceEffects(profile), setup.effects, holds) : []
 
   // Buffs, debuffs and consumables. A buff the rotation keeps up itself (the warrior's own Battle
   // Shout, warrior.md §5.2 row 1) is its aura in the fight, not a static effect, so it counts once;
@@ -473,6 +475,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ap: spec.mods.ap ?? 0,
       apPct: spec.mods.apPct ?? 0,
       crit: spec.mods.crit ?? 0,
+      spellCrit: spec.mods.spellCrit ?? 0,
       haste: spec.mods.haste ?? 0,
       damage: spec.mods.damage ?? 0,
     })
@@ -702,11 +705,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   }
   if (unknown.includes('base health')) notes.add('unknownBaseHealth')
   if (unknown.includes('base dodge') && (tank || front)) notes.add('unknownBaseDodge')
-  // A weapon racial with one matching weapon and one other: all attacks get it [?] (warrior Q15).
+  // A weapon racial, or Weaponmaster's axe and polearm crit, with one matching weapon and one other:
+  // all attacks get it [?] (warrior.md §2.7, §2.9, Q15).
   const racialWeapons: Partial<Record<string, WeaponType>> = { 'alliance-human': 'sword', 'horde-orc': 'axe', 'alliance-dwarf': 'mace' }
+  const mixed = (types: readonly WeaponType[]) => weapons.some((w) => w && types.includes(w.type)) && weapons.some((w) => w && !types.includes(w.type))
   const racialWeapon = racialWeapons[config.race]
-  if (racialWeapon && weapons.some((w) => w?.type === racialWeapon) && weapons.some((w) => w && w.type !== racialWeapon))
-    notes.add('racialWeaponCrit')
+  if ((racialWeapon && mixed([racialWeapon])) || (setup.talents.has('Weaponmaster') && mixed(['axe', 'polearm']))) notes.add('racialWeaponCrit')
   if (config.race === 'alliance-gnome' && c.maxRageFlat > 0) notes.add('gnomeRage')
   // A racial cooldown no rotation presses yet (Eureka!, warrior.md §7); specs without a rotation have `whiteSwingsOnly`.
   if (setup.simulated && COOLDOWN_RACIALS[config.race]?.simulated === false) notes.add('cooldownRacial')
@@ -715,8 +719,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (unmodelled.length) notes.add('unmodelledProcs', unmodelled.join(', '))
   if (unmodelledSetBonuses.length) notes.add('unmodelledSetBonuses', unmodelledSetBonuses.join(', '))
   const procIds = new Set(procs.map((p) => p.id))
-  // PPM rates are server-side (damage-and-timing §5.1); Hand of Justice's flat chance is client data (§5.2).
-  if (['crusader', 'fieryWeapon', 'ironfoe', 'flurryAxe'].some((id) => procIds.has(id))) notes.add('procRates')
+  // PPM rates are server-side (damage-and-timing §5.1); Hand of Justice's and Ironfoe's flat chances are client data (§5.2).
+  if (['crusader', 'fieryWeapon', 'flurryAxe'].some((id) => procIds.has(id))) notes.add('procRates')
   if (chainBits.size > 0) notes.add('extraAttackChains')
   if (procs.some((p) => p.id === 'windfury' && p.icdMs > 0)) notes.add('windfuryIcd')
   if (procIds.has('windfury') && weapons[HAND.main] && c.tempEnchants.length && !windfuryHoldsMainHand) notes.add('windfuryStone')
@@ -808,9 +812,6 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
     case 'weaponDamage':
       for (const w of matching(e.weapons)) if (origin === null || w.hand === origin) w.plan.flatDamage += e.value
       return
-    case 'weaponCrit':
-      for (const w of matching(e.weapons)) w.plan.critBonus += e.value
-      return
     case 'weaponArmorPenPct':
       for (const w of matching(e.weapons)) w.plan.armorPenPct += e.pct / 100
       return
@@ -845,20 +846,27 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
 
 /**
  * What each warrior stance changes relative to the base stance (warrior.md §2.1, §7 "Stances"):
- * its own effects and the talents' stance-bound ones (Defiance) that hold in it, as factors on the
- * base stance's damage, threat and damage taken and a crit delta, so the base stance's are exactly
- * 1, 1, 1 and 0 and its static numbers are untouched.
+ * its own effects (the rule profile's: `stanceEffects`) and the talents' stance-bound ones (Defiance)
+ * that hold in it, as factors on the base stance's damage, threat and damage taken and crit and
+ * spell crit deltas, so the base stance's are exactly 1, 1, 1, 0 and 0 and its static numbers are
+ * untouched.
  */
-function stancePlans(base: Stance, effects: Effect[], holds: (when: Condition | undefined, stance: Stance) => boolean): StancePlan[] {
+function stancePlans(
+  base: Stance,
+  own: Record<Stance, Effect[]>,
+  effects: Effect[],
+  holds: (when: Condition | undefined, stance: Stance) => boolean,
+): StancePlan[] {
   const bound = effects.filter((e) => e.when?.stance !== undefined)
   const mods = (stance: Stance) => {
-    const m = { damage: 1, threat: 1, damageTaken: 1, crit: 0 }
-    for (const e of [...STANCE_EFFECTS[stance], ...bound]) {
+    const m = { damage: 1, threat: 1, damageTaken: 1, crit: 0, spellCrit: 0 }
+    for (const e of [...own[stance], ...bound]) {
       if (!holds(e.when, stance)) continue
       if (e.kind === 'damage' && !e.physicalOnly) m.damage *= 1 + e.pct / 100
       else if (e.kind === 'threat') m.threat *= 1 + e.pct / 100
       else if (e.kind === 'damageTaken') m.damageTaken *= 1 + e.pct / 100
       else if (e.kind === 'stat' && e.stat === 'crit') m.crit += e.value
+      else if (e.kind === 'stat' && e.stat === 'spellCrit') m.spellCrit += e.value
       else throw new Error(`A stance effect the engine can't switch: ${e.kind}`)
     }
     return m
@@ -866,7 +874,14 @@ function stancePlans(base: Stance, effects: Effect[], holds: (when: Condition | 
   const b = mods(base)
   return (['battle', 'defensive', 'berserker'] as const).map((stance) => {
     const m = mods(stance)
-    return { stance: STANCE[stance], damage: m.damage / b.damage, threat: m.threat / b.threat, damageTaken: m.damageTaken / b.damageTaken, crit: m.crit - b.crit }
+    return {
+      stance: STANCE[stance],
+      damage: m.damage / b.damage,
+      threat: m.threat / b.threat,
+      damageTaken: m.damageTaken / b.damageTaken,
+      crit: m.crit - b.crit,
+      spellCrit: m.spellCrit - b.spellCrit,
+    }
   })
 }
 

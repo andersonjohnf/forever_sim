@@ -158,7 +158,12 @@ export const BUFFS: BuffSpec[] = [
     providedBy: 'druid',
     exclusiveGroup: 'party-crit-aura',
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
-    effects: [{ kind: 'stat', stat: 'crit', value: 3 }],
+    // 24932: all crit (aura 290), so spells too; Classic Era's is aura 52, melee and ranged only.
+    effects: [
+      { kind: 'stat', stat: 'crit', value: 3 },
+      { kind: 'stat', stat: 'spellCrit', value: 3 },
+    ],
+    classicEra: { summary: '+3% melee crit (feral druid in your party)', effects: [{ kind: 'stat', stat: 'crit', value: 3 }] },
     presets: { raid: 'dps', max: 'dps' },
   },
   {
@@ -351,10 +356,19 @@ export const BUFFS: BuffSpec[] = [
     summary: '+25 Agility, +2% crit',
     exclusiveGroup: 'elixir:agility',
     docRef: `${DOC}#32-elixirs`,
+    // 17538 #1: all crit (aura 290), so spells too; Classic Era's is aura 52, melee and ranged only.
     effects: [
       { kind: 'stat', stat: 'agi', value: 25 },
       { kind: 'stat', stat: 'crit', value: 2 },
+      { kind: 'stat', stat: 'spellCrit', value: 2 },
     ],
+    classicEra: {
+      summary: '+25 Agility, +2% melee crit',
+      effects: [
+        { kind: 'stat', stat: 'agi', value: 25 },
+        { kind: 'stat', stat: 'crit', value: 2 },
+      ],
+    },
     presets: {
       raid: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution'],
       max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution'],
@@ -443,9 +457,11 @@ export const BUFFS: BuffSpec[] = [
     summary: '+60 Stamina; +4% crit in Hyjal and the Barrow Deeps',
     exclusiveGroup: 'flask',
     docRef: `${DOC}#31-flasks`,
+    // 1293741: the dummy's 4 sets an all-crit aura (290) in the zones, so spells too [?].
     effects: [
       { kind: 'stat', stat: 'sta', value: 60 },
       { kind: 'stat', stat: 'crit', value: 4, when: { zones: ['hyjal', 'barrowDeeps'] } },
+      { kind: 'stat', stat: 'spellCrit', value: 4, when: { zones: ['hyjal', 'barrowDeeps'] } },
     ],
     presets: {},
   },
@@ -576,7 +592,11 @@ export const BUFFS: BuffSpec[] = [
     summary: '+1% crit',
     exclusiveGroup: 'food',
     docRef: `${DOC}#34-food`,
-    effects: [{ kind: 'stat', stat: 'crit', value: 1 }],
+    // Well Fed 1249523: all crit (aura 290), so spells too.
+    effects: [
+      { kind: 'stat', stat: 'crit', value: 1 },
+      { kind: 'stat', stat: 'spellCrit', value: 1 },
+    ],
     classicEra: { summary: '+10 Agility', effects: [{ kind: 'stat', stat: 'agi', value: 10 }] },
     presets: {},
   },

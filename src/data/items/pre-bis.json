@@ -63,8 +63,8 @@
     "fallbackEffects": {
       "effectsFromForever": 108,
       "items": 500,
-      "spells": 624,
-      "spellsFromForever": 624
+      "spells": 623,
+      "spellsFromForever": 623
     },
     "filter": {
       "equippableOnly": true,
@@ -65325,7 +65325,7 @@
       "itemLevel": 63,
       "itemSubclass": "Miscellaneous",
       "name": "Mark of Tyranny",
-      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spells 13669, 1287842 read from the Forever client."],
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spell 1287842 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
         {
@@ -65343,11 +65343,10 @@
       "setId": null,
       "slot": "trinket",
       "source": null,
-      "statSpellIds": [13669],
+      "statSpellIds": [],
       "stats": {
         "arcaneResistance": 10,
-        "armor": 180,
-        "dodge": 1
+        "armor": 180
       },
       "statsFrom": "classic",
       "tab": "missing",

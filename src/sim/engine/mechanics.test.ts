@@ -14,7 +14,7 @@ import { ACTION, type Plan, STANCE, TRIGGER, TRIGGER_COUNT } from '../plan/types
 import { FOREVER } from '../rules/profiles'
 import type { DamageTakenRageModel, RuleProfileId, SimConfig, SpecId } from '../types'
 import { FIELD, SOURCE_MAIN_HAND, SOURCE_OFF_HAND, Sim } from './sim'
-import { addAbility, addProc, alwaysLandNoCrit, armsPlan, at, counter, damages, expectMean, line, rageAtPull, setAttackPower, timeline } from './test-helpers'
+import { addAbility, addAura, addProc, alwaysLandNoCrit, armsPlan, at, counter, damages, expectMean, line, rageAtPull, setAttackPower, timeline } from './test-helpers'
 
 /** A breakdown row for a test proc. */
 function row(plan: Plan, id: string): number {
@@ -145,6 +145,25 @@ describe('magic procs (combat-tables §9)', () => {
     for (let i = 0; i < 200; i++) sim.runFight(i)
     expect(counter(sim, source, FIELD.crits)).toBe(crits)
     expect(counter(sim, source, FIELD.crits) + counter(sim, source, FIELD.hits)).toBe(counter(sim, source, FIELD.casts))
+  })
+
+  // RL5: an all-crit aura (290) raises spell crit as well as melee crit (character-stats step 4).
+  it('crits at the spell crit an all-crit aura or the stance adds, and not after the aura ends', () => {
+    // An aura of +100 spell crit from the first landed swing only (its internal cooldown outlasts the
+    // fight), before the spell proc rolls, for 30 s.
+    const { plan, source } = spellPlan(0)
+    const aura = addAura(plan, { id: 'allCrit', name: 'All crit', durationMs: 30000, mods: { spellCrit: 100 } })
+    plan.procs.unshift({ ...plan.procs[0], id: 'allCritProc', action: ACTION.aura, amount: aura, a: 0, b: 0, school: 0, icdMs: 120000, source: row(plan, 'allCritProc') })
+    plan.triggers = Array.from({ length: TRIGGER_COUNT }, () => [])
+    plan.procs.forEach((p, i) => plan.triggers[p.trigger].push(i))
+    const { swings } = timeline(plan)
+    const hits = damages(plan, source, 1)
+    // Swings at 0, 3.8, … s: those in the first 30 s crit (150), the rest don't (100).
+    expect(hits).toEqual(swings[0].map((t) => (t < 30000 ? 150 : 100)))
+    // The base stance's spell crit (Berserker Stance's all-crit +3 in `forever`) the same way.
+    const stanced = spellPlan(0)
+    for (const s of stanced.plan.stances) s.spellCrit = s.stance === stanced.plan.stance ? 100 : 0
+    expect(new Set(damages(stanced.plan, stanced.source, 3))).toEqual(new Set([150]))
   })
 
   it('never crits at 0% spell crit, always at 100%', () => {

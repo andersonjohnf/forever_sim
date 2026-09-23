@@ -50,6 +50,8 @@ export interface StancePlan {
   damageTaken: number
   /** Aura crit %, added (Berserker Stance +3). */
   crit: number
+  /** Spell crit %, added (Berserker Stance's +3 is all crit in `forever`, melee only in `classicEra`). */
+  spellCrit: number
 }
 
 /** Proc actions as integer codes. */
@@ -103,6 +105,8 @@ export interface AuraPlan {
   /** Attack power %, multiplicative with the stat block's AP multiplier (Blood Fury, warrior.md §2.9). */
   apPct: number
   crit: number
+  /** Spell crit % (all-crit auras, 290: Recklessness, Elune's Light, Weakness Analyzer). */
+  spellCrit: number
   /** Attack speed %, multiplicative. */
   haste: number
   /** Physical damage %, multiplicative. */

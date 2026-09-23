@@ -186,6 +186,17 @@ describe("fallback items: Classic Era stats, Forever effects", () => {
     );
   });
 
+  // RL2: Forever re-pointed the Classic Era row's ItemEffect 99949 from 13669 (+1% dodge) to a Use.
+  it("Mark of Tyranny: Forever re-points ItemEffect 99949 to a Use (1287842), so Classic Era's +1% dodge (13669) goes", () => {
+    expect(classic.itemEffects.get(13966).map((e) => [e.ID, e.SpellID])).toEqual([[99949, 13669]]);
+    expect(deriveItem(classic, 13966).statSpellIds).toEqual([13669]);
+    const item = deriveItem(fallback, 13966);
+    expect(item.stats.dodge).toBeUndefined();
+    expect(item.statSpellIds).toEqual([]);
+    expect(item.effects.map((e) => [e.kind, e.spellId])).toEqual([["use", 1287842]]);
+    expect(fallback.effectsFrom(13966)).toBe("forever");
+  });
+
   it("Barrier Shield: block value comes from Forever's aura 274 (the same 18)", () => {
     const item = deriveItem(fallback, 18499);
     expect(item.stats).toEqual({ armor: 2121, block: 2, blockValue: 18 });

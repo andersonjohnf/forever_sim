@@ -394,16 +394,17 @@ const FIXTURES = {
   // Crackling Staff (caster weapons), Burrow Barricade (shield + bonus armor), Rune of the Guard
   // Captain (equip AP + area-restricted AP), Stormpike Insignia Rank 4 (category cooldown).
   // The Gladiator (a set bonus with aura 290, all crit). For the fallback items below (no Forever
-  // ItemSparse row): the item effects Forever links to Hand of Justice, Blackhand's Breadth and
-  // Diamond Flask, and Forever's rows of their Classic Era spells (`spells`: +20 Attack Power
-  // 9331, +2% crit 7598, Seal of the Dawn 23930, Barrier Shield's block value 22912 (aura 274) and
-  // block chance 13675, Classic Era's Diamond Flask use 363880).
-  forever: { items: [12640, 12798, 12784, 19101, 19102, 274418, 19120, 17902, 11815, 13965, 20130], sets: [281, 1], spells: [9331, 7598, 23930, 22912, 13675, 363880] },
+  // ItemSparse row): the item effects Forever links to Hand of Justice, Blackhand's Breadth,
+  // Diamond Flask and Mark of Tyranny, and Forever's rows of their Classic Era spells (`spells`:
+  // +20 Attack Power 9331, +2% crit 7598, Seal of the Dawn 23930, Barrier Shield's block value
+  // 22912 (aura 274) and block chance 13675, Classic Era's Diamond Flask use 363880, Mark of
+  // Tyranny's +1% dodge 13669).
+  forever: { items: [12640, 12798, 12784, 19101, 19102, 274418, 19120, 17902, 11815, 13965, 20130, 13966], sets: [281, 1], spells: [9331, 7598, 23930, 22912, 13675, 363880, 13669] },
   // Lionheart Helm (equip crit/hit), Barrier Shield (block chance and value, innate block),
   // Hand of Justice (Classic Era only: AP + proc), Warblade of Caer Darrow (extra damage),
   // Devilsaur Leggings (46 melee / 48 ranged AP), and the fallback items Seal of the Dawn,
-  // Blackhand's Breadth and Diamond Flask.
-  classic: { items: [12640, 18499, 11815, 13982, 15062, 13209, 13965, 20130], sets: [1] },
+  // Blackhand's Breadth, Diamond Flask and Mark of Tyranny.
+  classic: { items: [12640, 18499, 11815, 13982, 15062, 13209, 13965, 20130, 13966], sets: [1] },
 };
 
 function writeFixtures() {

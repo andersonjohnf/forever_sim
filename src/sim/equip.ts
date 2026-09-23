@@ -216,6 +216,18 @@ const AV_PREFIX: [RegExp, Faction][] = [
   [/^Frostwolf /, 'Horde'],
 ]
 
+/**
+ * Warsong Gulch rewards, which the client also lists with no reputation requirement: the Silverwing
+ * Sentinels' and the Warsong Outriders' quartermasters sell twins of the same stats under these
+ * names [C] (docs/data/items.md#equipping-rules). Only Classic Era items: a Forever item with one of
+ * these names (Sentinel's Libram, 272434) has no twin to go by, so it suits both factions [?].
+ */
+const WSG_PREFIX: [RegExp, Faction][] = [
+  [/^(Sentinel|Protector|Lorekeeper|Caretaker|Outrunner)'s /, 'Alliance'],
+  [/^(Legionnaire|Outrider|Scout|Advisor|Battle Healer)'s /, 'Horde'],
+]
+const BATTLEGROUND_PREFIX = [...AV_PREFIX, ...WSG_PREFIX]
+
 /** The faction a race belongs to; null for an unknown race id. */
 export function raceFaction(race: string): Faction | null {
   return RACE_FACTION.get(race) ?? null
@@ -240,7 +252,7 @@ export function itemFaction(item: Item): Faction | null {
       if (sides.length === 1) return sides[0]
     }
   }
-  return AV_PREFIX.find(([pattern]) => pattern.test(item.name))?.[1] ?? null
+  return (item.tab === 'new' ? AV_PREFIX : BATTLEGROUND_PREFIX).find(([pattern]) => pattern.test(item.name))?.[1] ?? null
 }
 
 /** Can a character of this race equip the item, i.e. it isn't the other faction's? */

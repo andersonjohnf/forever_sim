@@ -556,10 +556,11 @@ export const DEATH_WISH: AbilityDef = {
 
 /**
  * Recklessness (spells.json 1719): no cost, `recoveryTime` 1800000 (once per fight: fights are at
- * most 900 s + 25%), GCD 1500, Berserker Stance only; for 15000 ms aura 290 (all crit) +100
- * (warrior.md §2.6, §3.2). It's aura crit, so the white table still caps it (combat-tables §2.2)
- * and the +3-boss suppression is unchanged (already at its 1.8% maximum, §4.4); its 20% more
- * damage taken (aura 87) isn't simulated (warrior.md §7).
+ * most 900 s + 25%), GCD 1500, Berserker Stance only; for 15000 ms aura 290 (all crit) +100, so
+ * spells crit more too (warrior.md §2.6, §3.2). It's aura crit, so the white table still caps it
+ * (combat-tables §2.2) and the +3-boss suppression is unchanged (already at its 1.8% maximum,
+ * §4.4); its 20% more damage taken (aura 87) isn't simulated (warrior.md §7). `recklessness(profile)`
+ * picks the rule profile's.
  */
 export const RECKLESSNESS: AbilityDef = {
   id: 'recklessness',
@@ -570,8 +571,19 @@ export const RECKLESSNESS: AbilityDef = {
   cooldownMs: 1800000,
   gcdMs: GCD_MS,
   stances: STANCE.berserker,
-  aura: { id: 'recklessness', name: 'Recklessness', durationMs: 15000, mods: { crit: 100 } },
+  aura: { id: 'recklessness', name: 'Recklessness', durationMs: 15000, mods: { crit: 100, spellCrit: 100 } },
   ...NO_CAST_RAGE,
+}
+
+/** Classic Era's Recklessness: 1719 #0 is aura 52, +100% melee crit only [C] (SpellEffect, 1.15.9.69722). */
+export const RECKLESSNESS_CLASSIC_ERA: AbilityDef = {
+  ...RECKLESSNESS,
+  aura: { id: 'recklessness', name: 'Recklessness', durationMs: 15000, mods: { crit: 100 } },
+}
+
+/** The warrior's Recklessness under a rule profile: Classic Era's where the profile reads its values. */
+export function recklessness(profile: RulesProfile): AbilityDef {
+  return profile.catalogue.column === 'classicEra' ? RECKLESSNESS_CLASSIC_ERA : RECKLESSNESS
 }
 
 /**
@@ -601,7 +613,8 @@ export const BERSERKER_RAGE: AbilityDef = {
  *   its ranged-AP and spell-power parts don't matter to a warrior.
  * - Troll Berserking (20554): aura 319 (melee haste %) +10 for 10000 ms, `recoveryTime` 180000,
  *   multiplicative with other haste (W17).
- * - Night Elf Elune's Light (1259799): aura 290 (all crit) +10 for 15000 ms, `recoveryTime` 180000.
+ * - Night Elf Elune's Light (1259799): aura 290 (all crit: attacks and spells) +10 for 15000 ms,
+ *   `recoveryTime` 180000. Forever's racials hold in both rule profiles (docs/architecture.md).
  * Gnome Eureka! (1259813) isn't simulated (warrior.md §7, Q18).
  */
 const racialCooldown = (id: string, name: string, icon: string, cooldownMs: number, aura: AbilityDef['aura']): AbilityDef => ({
@@ -633,7 +646,7 @@ export const ELUNES_LIGHT = racialCooldown('elunesLight', 'Elune’s Light', 'sp
   id: 'elunesLight',
   name: 'Elune’s Light',
   durationMs: 15000,
-  mods: { crit: 10 },
+  mods: { crit: 10, spellCrit: 10 },
 })
 
 /**

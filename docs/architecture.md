@@ -110,8 +110,16 @@ A spec is data plus small ability modules, never its own loop.
   column; entries new in Forever keep Forever's values in both
   ([buffs doc, Classic Era values](mechanics/buffs-debuffs-consumables.md#classic-era-values)).
   `classicEra` also makes Windfury Totem a main-hand enchant that replaces a stone there. Class
-  abilities, such as the warrior's own Battle Shout, take their numbers from the class code, not
-  the catalogue; one whose Classic Era value differs picks it the same way (`battleShout(profile)`).
+  abilities take their numbers from the class code, not the catalogue; one whose Classic Era value
+  differs picks it the same way: the warrior's own Battle Shout (`battleShout(profile)`: +232 for
+  2 min), Recklessness (`recklessness(profile)`) and Berserker Stance (`stanceEffects(profile)`),
+  whose crit is melee only in Classic Era (aura 52, not Forever's all-crit 290). Item effects whose
+  Classic Era numbers differ read the profile's `values` (Hand of Justice's chance; Ironfoe's
+  chance, hands and internal cooldown). **Everything else stays Forever's in both profiles:** the
+  talent trees, **the racials** (Forever's weapon racials are crit, not Classic Era's weapon skill,
+  and Elune's Light and Eureka! exist only in Forever), the other abilities, the items and the
+  spells new in Forever. `classicEra` is Classic Era's combat rules and spell values on a
+  Forever character, not a Classic Era character.
   The UI shows the profile's summaries through `buffCatalogueFor` and `enchantCatalogueFor`.
 - **Stats pipeline** (`sim/stats/`): a `StatBlock` of base values, flat additions and multipliers,
   and one pure `deriveStats` in the documented order (flat adds → % multipliers → floor →

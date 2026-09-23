@@ -405,6 +405,9 @@ export const hasSpell = (ctx, spellId) => ctx.spellName.has(spellId) || ctx.spel
  *     effects give one of its stats: Forever moved most such bonuses into ItemSparse stats, which
  *     the client doesn't carry for these items (Hand of Justice's +20 Attack Power, 9331, stays;
  *     Blackhand's Breadth's +2% crit, 7598, gives way to Forever's +1%).
+ *   - a Classic Era item effect whose ItemEffect row Forever links to the item with another
+ *     spell is replaced, whatever the new spell gives: Forever re-pointed Mark of Tyranny's 99949
+ *     from the +1% dodge (13669) to a Use (1287842), so the dodge goes.
  *   - without Forever links, the Classic Era row's item effects, their spells read from Forever.
  * `spellFrom(spellId)` says which build a spell is read from, and `effectsFrom(itemId)` whose
  * item effects the item has ("forever", "classic", or null with none).
@@ -438,7 +441,9 @@ export function createFallbackContext(classic, forever) {
       const linked = forever.itemEffects.get(itemId) ?? [];
       if (!linked.length) return own.length ? own : undefined;
       const given = new Set(linked.flatMap(statKeys));
-      const kept = own.filter((e) => statEquip(merged, e) && !statKeys(e).some((k) => given.has(k)));
+      // An ItemEffect row Forever links to the item is Forever's, whichever spell it now points to.
+      const replaced = new Set(linked.map((e) => e.ID));
+      const kept = own.filter((e) => !replaced.has(e.ID) && statEquip(merged, e) && !statKeys(e).some((k) => given.has(k)));
       return [...kept, ...linked];
     },
     has: (itemId) => classic.itemEffects.has(itemId) || forever.itemEffects.has(itemId),

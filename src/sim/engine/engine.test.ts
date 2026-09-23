@@ -172,7 +172,7 @@ describe('timing worked examples in the engine', () => {
   it('warrior W17: Flurry 5/5 turns a 2.6 s swing into 2.080 s from the next swing', () => {
     const flurry = proc({ action: ACTION.aura, amount: 0, chainBit: 0, hands: 1 })
     const plan = timingPlan(2.6, null, [flurry], 7000)
-    plan.auras = [{ id: 'flurry', name: 'Flurry', icon: 'x', durationMs: 15000, maxStacks: 1, whiteSwingCharges: 3, str: 0, agi: 0, ap: 0, apPct: 0, crit: 0, haste: 25, damage: 0, critCharges: 0 }]
+    plan.auras = [{ id: 'flurry', name: 'Flurry', icon: 'x', durationMs: 15000, maxStacks: 1, whiteSwingCharges: 3, str: 0, agi: 0, ap: 0, apPct: 0, crit: 0, spellCrit: 0, haste: 25, damage: 0, critCharges: 0 }]
     const times = trace(plan).map(([, , t]) => t)
     expect(times).toEqual([0, 2080, 4160, 6240])
   })
@@ -359,6 +359,17 @@ describe('golden run (fixed config and seed)', () => {
   //   taken, and fewer of Shield Specialization's and Master of Defense's rage gains are clipped at the
   //   rage cap (threat 7,231 → 7,232.5 and 16,385.5 → 16,387.5 over 500 fights). TPS 216.97977 →
   //   216.97981; DPS unchanged. Fury and Arms are unchanged.
+  // - RL1 (the second review pass): Ironfoe, the default Fury main hand, is Forever's equip aura
+  //   1301046 in `forever`: 3% of landed white and yellow hits from either hand, with a 100 ms
+  //   internal cooldown (damage-and-timing §5.2, OQ 15 [?]); it was Classic Era's 0.8 PPM on the main
+  //   hand's hits. Fury 675.2 → 692.7 DPS (+2.6%), TPS 409.8 → 420.7: its extra-attack swings
+  //   8,352 → 14,013, so more Windfury procs (21,537 → 22,243) and Deep Wounds ticks, and fewer
+  //   timed main-hand swings (68,394 → 66,021; each extra attack resets the timer). Over 40,000
+  //   fights the change is +2.4%: the off hand's hits
+  //   +2.7%, 3% in place of the main hand's 3.2% (0.8 PPM at 2.4 s) −0.3%, the cooldown −0.1%. Arms
+  //   and Protection don't wield it: unchanged. RL5 (all-crit auras add spell crit) and RL6
+  //   (Weaponmaster's axe crit for every attack) move no golden: no default has a magic proc, and
+  //   none has Weaponmaster with an axe or polearm.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

@@ -119,7 +119,7 @@ const REGISTRY = {
     docRef: `${STATS}#oq-1-paladin-druid-and-skyborne-base-attributes`,
   },
   racialWeaponCrit: {
-    text: 'Weapon racials (Sword, Axe and Mace Specialization) add their crit to all your attacks while either hand holds that weapon type, as the Forever tooltip reads; untested with two different weapons.',
+    text: 'Weapon racials (Sword, Axe and Mace Specialization) and Weaponmaster’s axe and polearm crit add their crit to all your attacks and spells while either hand holds that weapon type, as the racials’ Forever tooltips read; untested with two different weapons.',
     docRef: `${STATS}#implementation-notes`,
   },
   gnomeRage: {
@@ -147,7 +147,7 @@ const REGISTRY = {
     docRef: 'docs/data/items.md#effect-and-set-bonus-text',
   },
   procRates: {
-    text: 'Procs-per-minute rates (Crusader 1, Fiery Weapon 6, Ironfoe 0.8, …) are Classic Era’s: Forever sets them on the server, and nobody has measured them.',
+    text: 'Procs-per-minute rates (Crusader 1, Fiery Weapon 6, Flurry Axe 1.8, …) are Classic Era’s: Forever sets them on the server, and nobody has measured them.',
     docRef: `${DT}#52-ppm-vs-flat-chance-classic-era-examples`,
   },
   extraAttackChains: {

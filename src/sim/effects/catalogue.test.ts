@@ -76,6 +76,12 @@ function digest(effects: Effect[]): Line[] {
 const round = (x: number) => Math.round(x * 1e6) / 1e6
 
 /**
+ * Lines the sim stores as a reduction, as a positive number, where the client row holds a negative
+ * modifier: target armor (Sunder Armor's −450) and the boss's attack-speed slow (Thunder Clap's
+ * aura 138, −20). Every other line has the client row's own sign.
+ */
+const CLIENT_SIGN: Record<string, -1> = { targetArmor: -1, bossSlow: -1 }
+/**
  * A client row a value comes from. `spell`: a SpellEffect row (Forever `EffectBasePointsF`;
  * Classic Era `EffectBasePoints` + 1 when `EffectDieSides` is 1, or the bounds of the roll),
  * times `times`. `enchant`: a SpellItemEnchantment row's `EffectPointsMin` for that slot, or its
@@ -113,7 +119,13 @@ const ROWS: Record<string, Row> = {
     rows: [S(21850, 1), S(21850, 1), S(21850, 1), S(21850, 1), S(21850, 1), S(21850, 0)],
   },
   powerWordFortitude: { forever: [['sta', 70]], classicEra: [['sta', 54]], rows: [S(21564)] },
-  leaderOfThePack: { rows: [S(24932)] },
+  // Forever: all crit (aura 290), so spell crit too; Classic Era: aura 52, melee and ranged only.
+  leaderOfThePack: {
+    forever: [['crit', 3], ['spellCrit', 3]],
+    classicEra: [['crit', 3]],
+    rows: [S(24932), S(24932)],
+    classicRows: [S(24932)],
+  },
   windfuryTotem: {
     forever: [['windfury chance %', 20], ['windfury bonusAp', 246]],
     classicEra: [['windfury chance %', 20], ['windfury bonusAp', 315]],
@@ -141,14 +153,21 @@ const ROWS: Record<string, Row> = {
   demoralizingShout: { forever: [['bossAp', -204]], classicEra: [['bossAp', -146]], rows: [S(11556)] },
   thunderClap: { forever: [['bossSlow', 20]], classicEra: [['bossSlow', 10]], rows: [S(11581, 1)] },
   // Consumables
-  elixirOfTheMongoose: { rows: [S(17538, 0), S(17538, 1)] },
+  // Forever: #1 is all crit (aura 290), so spell crit too; Classic Era: aura 52.
+  elixirOfTheMongoose: {
+    forever: [['agi', 25], ['crit', 2], ['spellCrit', 2]],
+    classicEra: [['agi', 25], ['crit', 2]],
+    rows: [S(17538, 0), S(17538, 1), S(17538, 1)],
+    classicRows: [S(17538, 0), S(17538, 1)],
+  },
   elixirOfGreaterStrength: { rows: [S(11405)] },
   jujuPower: { rows: [S(16323)] },
   elixirOfGreaterDefense: { rows: [S(11348)] },
   elixirOfFortitude: { foreverOnly: true, rows: [S(1250928)] },
   flaskOfTheTitans: { rows: [S(17626)] },
   flaskOfNaturalAccuracy: { foreverOnly: true, rows: [S(1293740, 0), S(1293740, 1)] },
-  flaskOfNaturalAggression: { foreverOnly: true, rows: [S(1293741, 0), S(1293741, 1)] },
+  // The dummy's 4 is the zone bonus of its all-crit aura (290), so spell crit too.
+  flaskOfNaturalAggression: { foreverOnly: true, rows: [S(1293741, 0), S(1293741, 1), S(1293741, 1)] },
   flaskOfNaturalPrecision: { foreverOnly: true, rows: [S(1293742, 0), S(1293742, 1)] },
   flaskOfNaturalSwiftness: { foreverOnly: true, rows: [S(1293743, 0), S(1293743, 1)] },
   winterfallFirewater: { rows: [S(17038)] },
@@ -159,7 +178,8 @@ const ROWS: Record<string, Row> = {
   // Forever: Nutritious Food's aura 227 amount (the item's spell); Classic Era: the Well Fed buff.
   smokedDesertDumplings: { rows: [S(1248401, 1)], classicRows: [S(24799)] },
   mightfishSteak: { forever: [['ap', 40]], classicEra: [['sta', 10]], rows: [S(1249515, 1)], classicRows: [S(18191)] },
-  grilledSquid: { forever: [['crit', 1]], classicEra: [['agi', 10]], rows: [S(1249522, 1)], classicRows: [S(18192)] },
+  // Forever: Well Fed 1249523 is all crit (aura 290), so spell crit too.
+  grilledSquid: { forever: [['crit', 1], ['spellCrit', 1]], classicEra: [['agi', 10]], rows: [S(1249522, 1), S(1249523)], classicRows: [S(18192)] },
   denseSharpeningStone: { rows: [E(1643, 16138)] },
   elementalSharpeningStone: { rows: [E(2506, 22756)] },
   mightyRagePotion: { rows: [S(17528, 0, { bound: 'min' }), S(17528, 0, { bound: 'max' }), S(17528, 1)] },
@@ -351,9 +371,11 @@ describe('a plan per profile', () => {
         .filter(([k, v]) => typeof v === 'number' && v !== (forever as unknown as Record<string, number>)[k])
         .map(([k, v]) => [k, (v as number) - (forever as unknown as Record<string, number>)[k]]),
     )
-    // Gloves – Greater Strength: +10 in Forever, +7 in Classic Era (the cloak and necklace enchants are Forever's in both).
+    // Gloves – Greater Strength: +10 in Forever, +7 in Classic Era (the cloak and necklace enchants are
+    // Forever's in both). And Berserker Stance's +3% crit is melee only in Classic Era (7381 #0 is aura
+    // 52 there, 290 in Forever), so spell crit is 3 lower (warrior.md §2.1).
     expect(fury.gear.hands?.enchantId).toBe('gloveGreaterStrength')
-    expect(changed).toEqual({ str: -3 })
+    expect(changed).toEqual({ str: -3, spellCrit: -3 })
   })
 
   it('buffs doc example 5 in Classic Era: another warrior’s Battle Shout and Blessing of Might, untalented, add 417', () => {
@@ -517,7 +539,10 @@ describe('the cited client rows', () => {
     const check = (client: Client, profile: RulesProfile, id: string, entry: CatalogueEntry, refs: Ref[]) => {
       const lines = digest(catalogueEffects(entry, profile))
       refs.forEach((ref, i) => {
-        if (ref) expect(Math.abs(round(client.value(ref))), `${id} ${lines[i][0]} (${client.build})`).toBe(Math.abs(round(lines[i][1])))
+        if (!ref) return
+        const [label, value] = lines[i]
+        // Signed: a flipped sign fails (`+ 0` makes −0 and 0 equal).
+        expect(round(client.value(ref)) + 0, `${id} ${label} (${client.build})`).toBe(round((CLIENT_SIGN[label] ?? 1) * value) + 0)
       })
     }
     for (const [id, entry] of ENTRIES) {

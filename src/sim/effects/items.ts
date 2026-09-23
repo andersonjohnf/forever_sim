@@ -45,10 +45,16 @@ export const ITEM_EFFECTS: Record<number, ItemEffects> = {
       },
     ],
   },
-  // Ironfoe: "Grants 2 extra attacks on your next swing"; 0.8 PPM [C].
+  // Ironfoe: 2 extra attacks (15494, EXTRA_ATTACKS 2 in both clients). Forever: an equip aura on the
+  // wielder, 1301046, proc mask 0x14 (white and yellow melee hits), ProcChance 6, "Attacks against
+  // Orcs are $s2 times as likely" with $s2 = 2 and no chance in the text, and ProcCategoryRecovery
+  // 100; read as Hand of Justice's, 3% against a boss that isn't an Orc, from either hand's hits,
+  // with a 100 ms internal cooldown [?]. Classic Era: chance on hit (ItemEffect 99055 → 15494), 0.8
+  // PPM on its own hits [C] (Spell, SpellEffect, SpellAuraOptions, ItemEffect, 1.60.1.69913 and
+  // 1.15.9.69722; damage-and-timing §5.2).
   11684: {
-    source: 'Tooltip text; 0.8 PPM (WarriorSim gear.js, pre-SoD)',
-    effects: [
+    source: 'Forever and Classic Era clients: spell 1301046’s proc chance, description and internal cooldown; 0.8 PPM in Classic Era (WarriorSim gear.js, pre-SoD)',
+    effects: (p) => [
       {
         kind: 'proc',
         proc: {
@@ -56,8 +62,9 @@ export const ITEM_EFFECTS: Record<number, ItemEffects> = {
           name: 'Ironfoe',
           icon: 'inv_mace_10',
           trigger: 'meleeLanded',
-          from: 'weapon',
-          chance: { ppm: 0.8 },
+          from: p.values.ironfoe.from,
+          chance: p.values.ironfoe.chance,
+          icdMs: p.values.ironfoe.icdMs,
           action: { kind: 'extraAttacks', count: 2 },
           docRef: PROC_DOC,
         },
@@ -66,7 +73,7 @@ export const ITEM_EFFECTS: Record<number, ItemEffects> = {
   },
   // Weakness Analyzer (new in Forever): "Use: Increases your critical strike chance with all
   // spells and attacks by 5% for 20 sec or until you deal a non-periodic critical effect."
-  // Spell 1291101: aura 290 (all crit) +5 for 20 s with one proc charge; the item's cooldown is
+  // Spell 1291101: aura 290 (all crit: attacks and spells) +5 for 20 s with one proc charge; the item's cooldown is
   // 90 s, plus a 20 s one shared by category 1141 ("Burst Trinket"), which no other simulated
   // trinket is in; no GCD [F] [client] (SpellEffect, SpellAuraOptions, ItemEffect, 1.60.1.69913).
   // The charge goes on the first crit dealt, white or special (warrior.md §7; the 2 min cooldown
@@ -80,7 +87,7 @@ export const ITEM_EFFECTS: Record<number, ItemEffects> = {
       icon: 'inv_misc_blizzcon09_graphicscard',
       cooldownMs: 90000,
       gcdMs: 0,
-      aura: { id: 'analyzingWeaknesses', name: 'Analyzing Weaknesses', durationMs: 20000, critCharges: 1, mods: { crit: 5 } },
+      aura: { id: 'analyzingWeaknesses', name: 'Analyzing Weaknesses', durationMs: 20000, critCharges: 1, mods: { crit: 5, spellCrit: 5 } },
       rageTenths: 0,
       rageSpreadTenths: 0,
     },

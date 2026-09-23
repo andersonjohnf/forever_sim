@@ -72,6 +72,49 @@ describe('Hand of Justice (spell 15600; damage-and-timing §5.2)', () => {
   })
 })
 
+describe('Ironfoe (item 11684 → spell 1301046; damage-and-timing §5.2)', () => {
+  const aura = spells['1301046']
+  /** SpellEffect: extra attacks; SpellAuraName: proc trigger spell; ItemEffect trigger: on equip. */
+  const EXTRA_ATTACKS = 19
+  const AURA_PROC_TRIGGER_SPELL = 42
+  const ON_EQUIP = 1
+  const fury = defaultConfig('warrior-fury')
+
+  it('Forever: an equip aura, ProcChance 6 with Orcs "$s2 times as likely" ($s2 = 2), read as 3% [?]; a 100 ms internal cooldown', () => {
+    // The item's effect is the equip aura, not Classic Era's chance on hit (15494, trigger 2).
+    expect(clientItems['11684'].effects).toEqual([expect.objectContaining({ id: 99055, spellId: 1301046, triggerType: ON_EQUIP })])
+    expect(aura.name).toBe('Fury of Forgewright')
+    expect(aura.auraOptions?.procTypeMask?.[0]).toBe(MELEE_HITS)
+    const trigger = aura.effects.find((e) => e.effectIndex === 0)!
+    expect(trigger).toMatchObject({ effect: APPLY_AURA, effectAura: AURA_PROC_TRIGGER_SPELL, effectTriggerSpell: 15494 })
+    expect(spells['15494'].effects.find((e) => e.effect === EXTRA_ATTACKS)?.effectBasePointsF).toBe(2)
+    expect(ITEM_EFFECTS[11684].effects).toBeTypeOf('function')
+    const orcs = aura.effects.find((e) => e.effectIndex === 1)!
+    expect(orcs).toMatchObject({ effect: APPLY_AURA, effectAura: AURA_DUMMY, effectBasePointsF: 2 })
+    // Hand of Justice's reading: ProcChance is the favoured race's chance, ÷ $s2 for anyone else.
+    expect(FOREVER.values.ironfoe).toEqual({ chance: { pct: aura.auraOptions!.procChance! / orcs.effectBasePointsF! }, from: 'any', icdMs: aura.auraOptions!.procCategoryRecovery })
+    expect(FOREVER.values.ironfoe.chance).toEqual({ pct: 3 })
+  })
+
+  it('reaches the plan per profile: either hand at 3% with its cooldown in `forever`; the main hand at 0.8 PPM in `classicEra`', () => {
+    expect(fury.gear.mainHand?.itemId).toBe(11684)
+    expect(procOf(fury, 'ironfoe')).toMatchObject({ chance: [0.03, 0.03], hands: 3, icdMs: 100, amount: 2 })
+    const speed = buildPlan(fury).plan.weapons[0]!.speedSec
+    const classic = procOf(withRules(fury, 'classicEra'), 'ironfoe')!
+    expect(classic).toMatchObject({ hands: 1, icdMs: 0, amount: 2 })
+    expect(classic.chance[0]).toBeCloseTo((0.8 * speed) / 60, 12)
+    expect(CLASSIC_ERA.values.ironfoe).toEqual({ chance: { ppm: 0.8 }, from: 'weapon', icdMs: 0 })
+  })
+
+  it('isn’t one of the server-side proc rates the `procRates` assumption lists', () => {
+    const noEnchants = Object.fromEntries(Object.entries(fury.gear).map(([slot, e]) => [slot, e && { itemId: e.itemId }]))
+    const config = { ...fury, gear: noEnchants }
+    expect(procOf(config, 'ironfoe')).toBeDefined()
+    expect(assumptionIds(config)).not.toContain('procRates')
+    expect(buildPlan(fury).assumptions.find((a) => a.id === 'procRates')?.text).not.toContain('Ironfoe')
+  })
+})
+
 describe('Windfury Totem’s internal cooldown (spell 10612; damage-and-timing §5.4)', () => {
   const d = defaultConfig('warrior-fury')
   const config = (profile: RuleProfileId) => withRules({ ...d, buffs: { raid: ['shaman'], enabled: ['windfuryTotem'] } }, profile)

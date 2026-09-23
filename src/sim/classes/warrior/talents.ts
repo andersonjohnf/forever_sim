@@ -5,6 +5,7 @@
 // or tank avoidance are here; talents that modify abilities (cost reductions, Impale, Raging
 // Blows) are in modifiers.ts, and the rest (Improved Slam, …) come with their abilities.
 import type { Effect } from '../../effects/types'
+import type { RulesProfile } from '../../rules/profiles'
 
 export type Stance = 'battle' | 'defensive' | 'berserker'
 
@@ -18,12 +19,28 @@ export const STANCE_EFFECTS: Record<Stance, Effect[]> = {
     { kind: 'damage', pct: -10 },
     { kind: 'damageTaken', pct: -10 },
   ],
-  // Berserker Stance: +3% crit (all-crit aura 290), damage taken +10%, threat ×0.8 (spell 7381) [F]
+  // Berserker Stance: +3% crit with attacks and spells (all-crit aura 290), damage taken +10%,
+  // threat ×0.8 (spell 7381) [F]
   berserker: [
     { kind: 'threat', pct: -20 },
     { kind: 'stat', stat: 'crit', value: 3 },
+    { kind: 'stat', stat: 'spellCrit', value: 3 },
     { kind: 'damageTaken', pct: 10 },
   ],
+}
+
+/**
+ * Stance passives in Classic Era (warrior.md §2.1): Berserker Stance's +3% is melee crit only
+ * (7381 #0 is aura 52 in 1.15.9.69722) [C]; the others are the same.
+ */
+export const STANCE_EFFECTS_CLASSIC_ERA: Record<Stance, Effect[]> = {
+  ...STANCE_EFFECTS,
+  berserker: STANCE_EFFECTS.berserker.filter((e) => !(e.kind === 'stat' && e.stat === 'spellCrit')),
+}
+
+/** The stance passives under a rule profile: Classic Era's where the profile reads its values. */
+export function stanceEffects(profile: RulesProfile): Record<Stance, Effect[]> {
+  return profile.catalogue.column === 'classicEra' ? STANCE_EFFECTS_CLASSIC_ERA : STANCE_EFFECTS
 }
 
 export const STANCE_NAME: Record<Stance, string> = {
@@ -121,9 +138,12 @@ export const TALENT_EFFECTS: Record<string, (rank: number) => Effect[]> = {
       },
     },
   ],
-  // Arms 5·3: axe/polearm +1% crit, mace/staff ignore 3% armor, sword 1% extra attack (200 ms ICD) per rank (§2.7)
+  // Arms 5·3: axe/polearm +1% crit per rank with every attack and spell while one is in either hand
+  // (12700: aura 290 with an axe/polearm SpellEquippedItems mask, the weapon racials' rule [?], Q15),
+  // mace/staff ignore 3% armor, sword 1% extra attack (200 ms ICD) per rank (§2.7)
   Weaponmaster: (r) => [
-    { kind: 'weaponCrit', value: r, weapons: ['axe', 'polearm'] },
+    { kind: 'stat', stat: 'crit', value: r, when: { weapons: ['axe', 'polearm'] } },
+    { kind: 'stat', stat: 'spellCrit', value: r, when: { weapons: ['axe', 'polearm'] } },
     { kind: 'weaponArmorPenPct', pct: 3 * r, weapons: ['mace', 'staff'] },
     {
       kind: 'proc',

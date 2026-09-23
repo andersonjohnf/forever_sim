@@ -41,8 +41,11 @@ export { normalizeConfig } from './config/normalize'
 // The boss → player table's constants, for the results to explain it (docs/mechanics/combat-tables.md#8-boss--player-tanks).
 export { CRUSH_MIN_LEVEL_GAP, DEFENSE_PER_POINT, mobSkill, PLAYER_LEVEL } from './core/attack-table'
 
-/** Specs whose sim and UI are complete (docs/ux.md principle 8): Fury from M2.2c, Arms from M2.3c. */
-const AVAILABLE: ReadonlySet<SpecId> = new Set(['warrior-fury', 'warrior-arms'])
+/**
+ * Specs whose sim and UI are complete (docs/ux.md principle 8): Fury from M2.2c, Arms from M2.3c,
+ * the Feral cat from B2.
+ */
+const AVAILABLE: ReadonlySet<SpecId> = new Set(['warrior-fury', 'warrior-arms', 'druid-feral-cat'])
 
 /**
  * Every spec with its engine-declared options. `available` flips when the spec's sim and UI are

@@ -52,6 +52,25 @@ describe('simulate', () => {
     expect(result.cooldowns.find((c) => c.id === 'flurry')).toMatchObject({ castsPerFight: null })
   })
 
+  it('fills a SimResult for a Feral cat: its abilities, cooldowns and the Energy it runs on', async () => {
+    const result = await simulate(quick(defaultConfig('druid-feral-cat'), 500))
+    expect(result.spec).toBe('druid-feral-cat')
+    expect(result.dps.mean).toBeGreaterThan(300)
+    // The form's swings are the main hand's row; Shred and Rip carry the damage (druid.md §6.2).
+    const ids = result.abilities.map((a) => a.id)
+    expect(ids).toEqual(expect.arrayContaining(['mainHand', 'shred', 'rip', 'ferociousBite']))
+    expect(ids).not.toContain('offHand')
+    expect(result.abilities.find((a) => a.id === 'rip')?.bleed?.uptimePct).toBeGreaterThan(50)
+    const casts = Object.fromEntries(result.cooldowns.map((c) => [c.id, c.castsPerFight]))
+    expect(casts.tigersFury).toBeGreaterThan(4)
+    expect(casts.berserk).toBeGreaterThanOrEqual(1)
+    expect(casts.faerieFire).toBeGreaterThan(4)
+    // Energy's ticks and refunds, Omen of Clarity and the form weapon are listed; no rage refunds.
+    const notes = result.assumptions.map((a) => a.id)
+    expect(notes).toEqual(expect.arrayContaining(['energyTicks', 'omenOfClarity', 'formWeapon']))
+    expect(notes).not.toContain('abilityRefunds')
+  })
+
   it('headlines TPS for a tank and reports the boss parrying from the front', async () => {
     const result = await simulate(quick(defaultConfig('warrior-protection')))
     expect(result.tps.mean).toBeGreaterThan(result.dps.mean)
@@ -100,16 +119,16 @@ describe('paladin (hidden until its specs ship)', () => {
 })
 
 describe('specs', () => {
-  it('offers only finished specs: Fury since M2.2c and Arms since M2.3c (docs/ux.md principle 8), with every spec’s metadata', () => {
+  it('offers only finished specs: Fury since M2.2c, Arms since M2.3c and the Feral cat since B2 (docs/ux.md principle 8), with every spec’s metadata', () => {
     expect(specs.map((s) => s.id)).toEqual(SPEC_IDS)
-    expect(specs.filter((s) => s.available).map((s) => s.id)).toEqual(['warrior-fury', 'warrior-arms'])
+    expect(specs.filter((s) => s.available).map((s) => s.id)).toEqual(['warrior-fury', 'warrior-arms', 'druid-feral-cat'])
     expect(getSpec('warrior-protection').role).toBe('tank')
     expect(() => getSpec('mage-fire' as never)).toThrow()
   })
 })
 
 describe('rotation groups (docs/ux.md "Rotation")', () => {
-  // Every spec with settings, a hidden one too (the Feral cat until it ships).
+  // Every spec with settings, a hidden one too, so a spec meets these rules before it ships.
   for (const spec of specs.filter((s) => s.rotationOptions.length > 0)) {
     it(`puts every ${spec.name} setting under a heading, a dependent one with its parent or naming it`, () => {
       const options = spec.rotationOptions

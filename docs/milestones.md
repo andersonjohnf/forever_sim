@@ -93,7 +93,7 @@ work is in slices:
         Improved Slam, untouched with it), Spearing Strike (creature types), and Rend (a bleed,
         with Improved Rend and Forever's tick crits). Fix the docs on Impale's class mask,
         which includes Rend and Sunder Armor (W2, W4, W6, W13).
-  - [ ] **M2.3b Stances and reactive windows:** stance swaps (1 s cooldown, rage kept per
+  - [x] **M2.3b Stances and reactive windows:** stance swaps (1 s cooldown, rage kept per
         Tactical Mastery, stance effects swapped), the Overpower window from dodges and
         Bloodthrill, Improved Overpower, stance-dance lines, and GCD-safe that respects
         stances. Then Fury's Overpower dance and Slam options (§5.2 rows 10 and 15)

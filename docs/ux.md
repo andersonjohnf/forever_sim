@@ -26,7 +26,10 @@ When a design decision isn't covered here, make it, then add it here.
 7. **Provenance without noise.** Data sources, builds and tags live in an **About** sheet and
    in tooltips on flagged values, not on the main screen.
 8. **Only finished specs ship.** A spec appears in the spec picker only when its sim and UI
-   are complete. Nothing is visibly "coming soon".
+   are complete. Nothing is visibly "coming soon". To see and test one before it ships, a dev
+   build, or a browser under automation (the e2e tests, `npm run snap`), offers it too when the
+   URL names it: `?preview=warrior-protection` (`src/app/preview-specs.ts`). A visitor's browser
+   ignores the parameter.
 
 ## Layout
 

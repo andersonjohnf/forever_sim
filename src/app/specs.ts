@@ -2,6 +2,7 @@
 // it's being created, and this module imports the store for useSpecMeta: the helpers are
 // function declarations, so the import cycle is safe in either load order.
 import { SPEC_META, specs, type ClassId, type SpecDefinition, type SpecId } from '@/sim'
+import { previewSpecs } from './preview-specs'
 import { useSetup } from './setup-store'
 
 /**
@@ -46,7 +47,10 @@ export function coverageSentence(offered: readonly SpecDefinition[] = visibleSpe
  */
 export function visibleSpecs(): SpecDefinition[] {
   const finished = specs.filter((s) => s.available)
-  return finished.length > 0 ? finished : specs
+  if (finished.length === 0) return specs
+  // A dev or e2e page can preview an unfinished spec (src/app/preview-specs.ts).
+  const preview = previewSpecs()
+  return preview.length > 0 ? specs.filter((s) => s.available || preview.includes(s.id)) : finished
 }
 
 /** The spec a first visit opens on: Fury, or the first finished spec if Fury isn't (docs/ux.md principle 1). */

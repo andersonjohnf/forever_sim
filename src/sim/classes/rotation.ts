@@ -61,12 +61,18 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
 /**
  * What the Rotation tab's intro says about the spec's defaults (docs/ux.md "Rotation"): tuned for
  * the default setup once a paired search has tuned them (decision D23; Arms since M2.5a, Fury since
- * M2.5b, the Feral cat since B2, Protection since P1, Retribution since C2), the common priority
- * until then. None for a spec without rotation settings. The cat's also says why there's no
- * powershifting, which a Classic Era feral would look for (druid.md §2.8).
+ * M2.5b, the Feral cat since B2, Protection since P1, Retribution since C2, Protection paladins
+ * since C3), the common priority until then. None for a spec without rotation settings. The cat's
+ * also says why there's no powershifting, which a Classic Era feral would look for (druid.md §2.8).
  */
 export function rotationDefaultsNote(spec: SpecId): string | undefined {
-  if (spec === 'warrior-arms' || spec === 'warrior-fury' || spec === 'warrior-protection' || spec === 'paladin-retribution') {
+  if (
+    spec === 'warrior-arms' ||
+    spec === 'warrior-fury' ||
+    spec === 'warrior-protection' ||
+    spec === 'paladin-retribution' ||
+    spec === 'paladin-protection'
+  ) {
     return 'The defaults are tuned for the default setup.'
   }
   if (spec === 'druid-feral-cat') {

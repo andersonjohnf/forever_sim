@@ -4,6 +4,7 @@
 import { useEffect } from 'react'
 import { toast } from 'sonner'
 import { normalizeConfig, SPEC_META } from '@/sim'
+import { loadedDescription } from './load-notice'
 import { useSetup } from './setup-store'
 import { hasSharedSetup, readSharedSetup } from './share'
 import { isVisibleSpec } from './specs'
@@ -36,15 +37,8 @@ function apply(raw: unknown) {
   }
   const switched = config.spec !== useSetup.getState().config.spec
   useSetup.getState().replace(config)
-  const outdated =
-    warnings.length === 1
-      ? 'One part was out of date and is back to its default.'
-      : warnings.length > 1
-        ? `${warnings.length} parts were out of date and are back to their defaults.`
-        : ''
-  const description = [switched ? `You’re on ${name} ${className} now.` : '', outdated].filter(Boolean).join(' ')
   // One at a time: a newer link's notice replaces this one.
-  toast('Loaded a shared setup', { id: 'shared-link', description: description || undefined })
+  toast('Loaded a shared setup', { id: 'shared-link', description: loadedDescription(switched ? config.spec : null, warnings) })
 }
 
 /** Loads share links on open and on hashchange. Call once, from App. */

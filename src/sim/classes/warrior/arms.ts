@@ -59,11 +59,13 @@ import {
   type RotationContext,
   seconds,
   sharedIds,
+  WARRIOR_MAX_RAGE,
 } from './shared'
 
 const ID = {
   ...sharedIds('arms'),
   baseStance: 'warrior.arms.baseStance',
+  reckBeforeExecute: 'warrior.arms.recklessness.beforeExecuteSec',
   rendEnabled: 'warrior.arms.rend.enabled',
   rendRefresh: 'warrior.arms.rend.refreshBelowSec',
   exEnabled: 'warrior.arms.execute.enabled',
@@ -80,6 +82,19 @@ const ID = {
   hamEnabled: 'warrior.arms.hamstring.enabled',
   hamMinRage: 'warrior.arms.hamstring.minRage',
 }
+
+/**
+ * The Mighty Rage Potion's rage limit outside the execute phase (without one, or with Execute off):
+ * the 130 cap minus its 75 at most, so none of its rage is lost (warrior.md §5.3 notes). In the phase
+ * the setting's limit applies, 0 by default: it waits for an Execute to empty the bar.
+ */
+const POTION_FALLBACK_MAX_RAGE = WARRIOR_MAX_RAGE - 75
+
+/**
+ * In the execute phase, the potion's last chance: if an Execute hasn't emptied the bar by the fight's
+ * last 4 s, it's drunk at up to POTION_FALLBACK_MAX_RAGE, so a short phase still gets it (§5.3 notes).
+ */
+const POTION_LAST_CHANCE_MS = 4000
 
 /** The base-stance setting's id and values (warrior.md §5.3 notes, Q24). */
 export const ARMS_BASE_STANCE_ID = ID.baseStance
@@ -140,10 +155,23 @@ export const ARMS_OPTIONS: RotationOption[] = [
   ...cooldownOptions(ID),
   ...recklessnessOptions(
     ID,
-    'Use Recklessness once, near the end of the fight, for +100% crit chance for 15 s. It needs Berserker Stance: from Battle Stance you swap and stay there, keeping at most 10 rage plus 3 per Improved Tactical Mastery rank.',
+    'Use Recklessness once, for +100% crit chance for 15 s: just before the execute phase, or near the end without one. It needs Berserker Stance: from Battle Stance you swap and stay there, keeping at most 10 rage plus 3 per Improved Tactical Mastery rank.',
     {
-      default: 39,
-      help: 'Use it once this much of the fight is left. 39 s is just before the default fight’s execute phase, so its crits land on the first Executes.',
+      default: 15,
+      help: 'Or once this much of the fight is left, if that comes first: in a short fight, without an execute phase, or with Execute off. 15 s is its duration, so all of it counts.',
+    },
+    {
+      kind: 'number',
+      id: ID.reckBeforeExecute,
+      group: 'Cooldowns and buffs',
+      label: 'Recklessness before the execute phase',
+      help: 'Use it this long before the execute phase starts, so its crits land on the first Executes.',
+      unit: 's',
+      min: 0,
+      max: 60,
+      step: 0.5,
+      default: 1.5,
+      dependsOn: ID.reckEnabled,
     },
   ),
   ...bloodrageOptions(ID),
@@ -245,9 +273,9 @@ export const ARMS_OPTIONS: RotationOption[] = [
     default: true,
   },
   rageOption(ID.hamMinRage, 'Hamstring from', 'Use it at or above this much rage.', 40, ID.hamEnabled, 'Fillers'),
-  ...consumableOptions(ID, 'in the last 20 s if there’s none; from Battle Stance, after Recklessness’s swap, which caps your rage', {
+  ...consumableOptions(ID, 'early in the execute phase (without one, or with Execute off, in the last 20 s; from Battle Stance, after Recklessness’s swap, which caps your rage)', {
     default: 0,
-    help: 'Drink it only at or below this much rage. At 0 it waits for an Execute to empty your bar. Without an execute phase, raise it to 55 (the 130 cap minus 75), or it may never be drunk.',
+    help: `In the execute phase, drink it only at or below this much rage: at 0, once an Execute has emptied your bar. In the fight’s last 4 s, without an execute phase, or with Execute off, it’s up to ${POTION_FALLBACK_MAX_RAGE} (the 130 cap minus 75).`,
   }),
 ]
 
@@ -319,9 +347,12 @@ export function armsRotation(
   // otherwise.
   cooldownLines(b, v, ID, ctx, dw)
 
-  // Row 4: Recklessness once, at ≤ lastSec left. From Battle Stance it swaps to Berserker Stance
-  // (keeping at most the swap's cap) and stays there for the rest of the fight.
-  const reckSwap = recklessnessLine(b, v, ID, ctx, home === STANCE.battle ? STANCE.berserker : 0)
+  // Row 4: Recklessness once, beforeExecuteSec before the execute phase starts or at ≤ lastSec left,
+  // whichever comes first; by the clock alone without the phase or with Execute off. From Battle
+  // Stance it swaps to Berserker Stance (keeping at most the swap's cap) and stays there for the rest
+  // of the fight.
+  const phase = execute && ctx.executePhase
+  const reckSwap = recklessnessLine(b, v, ID, ctx, home === STANCE.battle ? STANCE.berserker : 0, phase ? seconds(v, ID.reckBeforeExecute) : undefined)
 
   // Row 5: Bloodrage on cooldown (off the GCD) at rage ≤ maxRage.
   bloodrageLine(b, v, ID)
@@ -396,17 +427,18 @@ export function armsRotation(
   // queued one is cancelled when the phase starts (shared.ts).
   heroicStrikeLine(b, v, ID, outside)
 
-  // Row 14: Hamstring (off by default) at rage ≥ minRage, GCD-safe for every ability above it with
-  // a cooldown (Mortal Strike, Slam, Spearing Strike, Whirlwind), outside the execute phase.
+  // Row 14: Hamstring (on by default, from 40) at rage ≥ minRage, GCD-safe for every ability above
+  // it with a cooldown (Mortal Strike, Slam, Spearing Strike, Whirlwind), outside the execute phase.
   if (v.on(ID.hamEnabled)) {
     const mask = (msOut ? bit(ms) : 0) | (slamOut ? bit(index(SLAM)) : 0) | bit(ss) | bit(ww)
     b.add(HAMSTRING, [...outside, minRage(toTenths(v.num(ID.hamMinRage))), ...gcdSafe(mask, gcdOf(HAMSTRING))])
   }
 
-  // Rows 17 and 18: the Mighty Rage Potion from the start of the execute phase, and Juju Flurry on
-  // cooldown, when they're selected in Buffs (shared.ts). Without an execute phase the potion waits
-  // for Recklessness's swap, which would cap its rage at 25 (§5.3 notes).
-  consumableLines(b, v, ID, ctx, reckSwap)
+  // Rows 17 and 18: the Mighty Rage Potion and Juju Flurry, when they're selected in Buffs
+  // (shared.ts). With Execute in an execute phase, the potion is drunk there at rage ≤ maxRage, or in
+  // the fight's last 4 s at ≤ 55 if it hasn't been. Otherwise, in the last 20 s at ≤ 55, after
+  // Recklessness's swap, which would cap its rage at 25 (§5.3 notes). Juju Flurry on cooldown.
+  consumableLines(b, v, ID, ctx, { inPhase: phase, fallbackMaxRage: POTION_FALLBACK_MAX_RAGE, swapFirst: reckSwap, lastChanceMs: POTION_LAST_CHANCE_MS })
 
   // Row 0: the pre-pull (shared.ts). Charge is a Battle Stance ability: fighting in Berserker
   // Stance, the swap after it keeps at most the swap's cap.

@@ -842,8 +842,10 @@ Notes:
   cooldown would allow one. Its rage is 450 plus a whole 0–300 tenths drawn uniformly from the
   proc stream (the client's 600 with variance 0.5; Classic Era's 449 + 1d301), an energize (5
   threat per rage). **Without an execute phase** (0%) it's used in the last 20 s, as long as its
-  +60 Strength lasts, so its rage and buff land where the phase would have been (Arms also waits
-  for Recklessness's stance swap, [§5.3](#53-arms-two-hander) notes). An engine choice.
+  +60 Strength lasts, so its rage and buff land where the phase would have been. An engine
+  choice. Arms times it its own way ([§5.3](#53-arms-two-hander) row 17): in the phase once an
+  Execute has emptied the bar, with a last chance in the fight's last 4 s; without a phase, or
+  with its Execute off, in the last 20 s at up to 55 and after Recklessness's stance swap.
 - **Juju Flurry** (row 17) is used on cooldown from the pull: no source ties it to Death Wish,
   and it's off the GCD (no start recovery in the client). Each use is +3% attack speed for 20 s,
   multiplied with other haste from the next swing (W17).
@@ -877,12 +879,14 @@ Weapon: a slow two-hander. The default talents are the popular 37/14/0 build ([�
 | Not taken | Flurry, Death Wish | |
 
 This priority is **derived for Forever**. Classic Era raid Arms leaned on Slam spam, which the
-15 s Slam cooldown removes. The table is the list as built (`sim/classes/warrior/arms.ts`);
-rows 0, 1, 3, 5, 13 and 16–18 share their code and settings' wording with Fury's
-(`sim/classes/warrior/shared.ts`). The defaults are the best rotation found for the default
-setup ([D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
-[Tuning the defaults](#tuning-the-defaults-m25a) below), so where a shared row's default differs
-from Fury's (rows 1, 4, 13 and 17), Arms passes its own.
+15 s Slam cooldown removes. The table is the list as built (`sim/classes/warrior/arms.ts`).
+Rows 0, 1, 3–5, 13 and 16–18 share their code with Fury's (`sim/classes/warrior/shared.ts`), and
+rows 1, 3, 5 and 18 their settings' wording too. The defaults are the best rotation found for the
+default setup ([D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
+[Tuning the defaults](#tuning-the-defaults-m25a) below), so where a shared row's default or
+wording differs from Fury's, Arms passes its own: row 0's Charge, row 1's refresh, row 4's
+timing (with a setting of its own for the execute phase), row 13's switch and threshold, row
+16's switch, and row 17's timing and rage limit.
 
 | # | Action | Condition (defaults) | Setting ids (default) | On by default |
 | --- | --- | --- | --- | --- |
@@ -891,7 +895,7 @@ from Fury's (rows 1, 4, 13 and 17), Arms passes its own.
 | 1 | Battle Shout | As Fury's row 1: missing, or at most `refreshBelowSec` left and it would run out before the fight ends; rage ≥ 10. It replaces the Buffs tab's Battle Shout | `arms.battleShout.enabled` (on), `.refreshBelowSec` (0: once it has run out) | yes |
 | 2 | Rend | Your Rend is missing, or has at most `refreshBelowSec` of ticks left and would end before the fight does. Bloodthrill needs it. In Berserker Stance, a dance to Battle Stance at rage ≤ the swap's cap (25) | `arms.rend.enabled` (on with Bloodthrill in Battle Stance, off otherwise), `.refreshBelowSec` (3) | with Bloodthrill |
 | 3 | Racial or trinket cooldowns | As Fury's row 3: with Death Wish (row 16) when it's used; otherwise at the pull and on cooldown | `arms.racial.enabled` (on), `arms.trinkets.enabled` (on), `arms.cooldowns.syncWithDeathWish` (on) | yes |
-| 4 | Recklessness | Once, when ≤ `lastSec` s are left. From Battle Stance it swaps to Berserker Stance (keeping at most 25 rage) and stays there for the rest of the fight | `arms.recklessness.enabled` (on), `.lastSec` (39: just before the default fight's execute phase; see the notes) | yes |
+| 4 | Recklessness | Once: `beforeExecuteSec` before the execute phase starts, or when ≤ `lastSec` s are left, whichever comes first. Without an execute phase, or with Execute (row 7) off, only the latter. From Battle Stance it swaps to Berserker Stance (keeping at most 25 rage) and stays there for the rest of the fight | `arms.recklessness.enabled` (on), `.beforeExecuteSec` (1.5), `.lastSec` (15: its duration); see the notes | yes |
 | 5 | Bloodrage (off the GCD) | On cooldown if rage ≤ `maxRage` | `arms.bloodrage.enabled` (on), `.maxRage` (110: max − 20) | yes |
 | 6 | **Execute phase** (target ≤ 20%): Slam | Off cooldown; rage ≥ Slam's 15 + Execute's 15 | `arms.execute.slamInExecute` (on) | yes |
 | 7 | Execute phase: Execute | Rage ≥ cost. With `mortalStrikeInExecute`, Mortal Strike comes just before it | `arms.execute.enabled` (on), `.mortalStrikeInExecute` (on) | yes |
@@ -904,7 +908,7 @@ from Fury's (rows 1, 4, 13 and 17), Arms passes its own.
 | 14 | Hamstring | Rage ≥ `minRage`; GCD-safe for Mortal Strike, Slam, Spearing Strike and Whirlwind (useful with Weaponmaster swords or Windfury); outside the execute phase | `arms.hamstring.enabled` (on), `.minRage` (40) | yes |
 | 15 | Sweeping Strikes (off the GCD) | 2 or more targets: on cooldown. **Not simulated** until multi-target support ([§5.5](#55-multi-target-options-light)): the sim has one target | none yet | multi-target |
 | 16 | Death Wish | Only with the talent: as Fury's row 2, including `alignToEnd`. Its line sits before row 3's, so the racial can wait for it | `arms.deathWish.enabled` (on with the talent), `.alignToEnd` (on) | with the talent |
-| 17 | Mighty Rage Potion (off the GCD) | As Fury's row 16: once, from the start of the execute phase (the last 20 s without one, and after row 4's swap from Battle Stance; see the notes), at rage ≤ `maxRage` | `arms.ragePotion.enabled` (on), `.maxRage` (0: once an Execute has emptied the bar; raise it to 55 without an execute phase, notes) | with the consumable |
+| 17 | Mighty Rage Potion (off the GCD) | Once. With Execute (row 7) and an execute phase: in the phase at rage ≤ `maxRage`, or, if it hasn't been drunk by the fight's last 4 s, then at rage ≤ 55. Without an execute phase, or with Execute off: in the last 20 s at rage ≤ 55, after row 4's swap from Battle Stance. See the notes | `arms.ragePotion.enabled` (on), `.maxRage` (0, in the phase: once an Execute has emptied the bar) | with the consumable |
 | 18 | Juju Flurry (off the GCD) | As Fury's row 17: on cooldown from the pull | `arms.jujuFlurry.enabled` (on) | with the consumable |
 
 Notes:
@@ -943,31 +947,40 @@ Notes:
   engine never swaps back ([§7](#7-implementation-notes) "Stance dancing"). Rend and Overpower
   then wait for good, and the Whirlwind line, if it's on, needs no dance. There's no rage guard:
   the swap keeps at most 25, and delaying Recklessness costs more of its 15 s than the rage is
-  worth. **When.** At the default 39 s left it comes just before the execute phase, which starts
-  32.4–39.6 s before the end of the default 180 s ± 10% fight: 2.4 s before it on average. Its
-  15 s of crits then land on the phase's first Executes, Slams and Mortal Strikes, with the rage
-  the rotation pooled for them, and the potion (row 17) follows the swap. The swap loses 16.5
-  rage a fight there (0.9 at 15 s left), and it's still +0.9% over 15 s (below). The best time
-  follows the phase, not the clock: in a 300 s fight (the phase starts 54–66 s before the end)
-  60–65 s measured best, +0.34% over 39 s, which is still +0.27% over 15 s; without an execute
-  phase, 15 s is best (+1.9% over 39 s). The default setup decides, so 39 s it is; set it for
-  other fights.
-- **The Mighty Rage Potion** (row 17). **With an execute phase** it's drunk from the phase's
-  start at rage ≤ `maxRage`. The default 0 waits until an Execute has emptied the bar: 1.8 s into
-  the phase on average, after Recklessness's swap (row 4). That measured +0.48% over 55, the
-  130 cap minus 75 (below). **Without an execute phase**, Fury drinks it in the last 20 s
-  ([§5.2](#52-fury-dual-wield) notes). From Battle Stance, Arms' Recklessness (row 4) swaps to
-  Berserker Stance, and that swap keeps at most 25 rage, so a potion drunk just before it would
-  lose rage to it. With Recklessness in the rotation from Battle Stance, the potion waits until
-  Recklessness has been used; with Recklessness in the last 15 s, it follows the swap in the
-  same moment: its +60 Strength still lasts to the end, and its 45–75 rage lands on top of the
-  25 the swap kept. With the setup of the time at 0% execute (M2.3c, Recklessness at 15 s, the
-  potion up to 55), the swap's loss fell from 17.6 rage a fight to 5.9, and DPS rose from 599.9
-  to 605.2 (20,000 fights, ± 0.6). With Recklessness off, or fighting in Berserker Stance (no
-  swap), it's the last 20 s, as Fury's. An engine choice. **The defaults assume an execute
-  phase:** without one, rage seldom falls to 0, so at the default 0 the potion is almost never
-  drunk. Raise `maxRage` to 55 and Recklessness's `lastSec` to 15 there: +1.25% and +1.9%, +3.1%
-  together (614.5 DPS against 596.2).
+  worth. **When.** It follows the execute phase, whose start each fight knows, as it knows its
+  length ([encounter.md](../mechanics/encounter.md#implementation-notes)). By default it comes
+  1.5 s before the phase starts, so its 15 s of crits land on the phase's first Executes, Slams
+  and Mortal Strikes, with the rage the rotation pooled for them, and the potion (row 17)
+  follows. It waits for the GCD, and for Rend's upkeep above it (row 2), so it comes 0.9 s before
+  the phase on average; its swap loses 15.0 rage a fight. `lastSec` is the clock: Recklessness
+  is used once that much is left, if that comes first. It does in a short fight: a 30 s fight's
+  20% phase starts about 6 s before the end, and 15 s left is 7.5 s earlier than 1.5 s before
+  it. Without an execute phase, or with Execute off (the phase then changes nothing), the clock
+  is all there is. Its default is Recklessness's own 15 s, so all of it counts, and 15 s measured
+  best at every length (below). An engine choice, measured; no source covers it. Until the M2.5a
+  review it was 39 s left, fitted to the default fight's phase, which cost 5–8% in fights of
+  30–60 s and 1.9% without a phase.
+- **The Mighty Rage Potion** (row 17) follows the execute phase too. **In the phase**, with
+  Execute on, it's drunk at rage ≤ `maxRage`. The default 0 waits until an Execute has emptied
+  the bar: 1.8 s into the phase on average, after Recklessness's swap (row 4). 55 (the 130 cap
+  minus 75) measured −0.44% against it (seed 3031, below). A short phase can end before an
+  Execute empties the bar: a 30 s fight's 10% phase lasts about 3 s, and 14% of those fights went
+  without the potion. So if it hasn't been drunk by the fight's last 4 s, it's drunk then at up to
+  55. That last chance measured +3.7% in 30 s fights with a 10% phase, +1.4% at 45 s and 10%,
+  +1.0% at 30 s and 20%, +0.05% to +0.5% in fights of 45–90 s otherwise, and nothing from 180 s
+  up; 4 s was the best of 3–15 s, or level with it, at every length (below).
+  **Without an execute phase, or with Execute off**, no Execute will empty the bar, so it's drunk
+  in the last 20 s at up to 55, as Fury's is: as long as its +60 Strength lasts, where the phase
+  would have been. From Battle Stance, Recklessness's swap to Berserker Stance keeps at most 25
+  rage, so a potion drunk just before it would lose rage to it. With Recklessness in the rotation
+  from Battle Stance, the potion waits until Recklessness has been used, and at its 15 s it
+  follows the swap in the same moment: its 45–75 rage lands on top of the 25 the swap kept.
+  There, any limit from 35 up and any window from 15 s up measured the same. With Recklessness
+  off, or fighting in Berserker Stance (no swap), it's the last 20 s, as Fury's. Engine choices,
+  measured; no source covers them. Until the M2.5a review, `maxRage` applied there too, so at the
+  default 0 the potion was drunk in only 2–3.5% of those fights. On the defaults of that time
+  without a phase, the potion at 55 measured +1.1% alone and Recklessness at 15 s +1.8% alone,
+  +3.1% together (the review's probe, seed 12, 200,000 fights); both are now automatic.
 - **The Whirlwind dance** (row 12). Whirlwind costs 25 and the swap keeps 25, so the dance needs
   25–`maxRage` rage; 30 gives it a 5-rage window, where 25 would allow exactly 25. After
   Recklessness the line still waits for rage ≤ `maxRage`, though it no longer swaps. It counts
@@ -1008,9 +1021,13 @@ Notes:
 #### Tuning the defaults (M2.5a)
 
 The defaults above are the best rotation found on 2026-09-23, per
-[D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23): it beat
-the previous defaults by **+35.6 DPS (+5.8%, 95% CI +35.5 to +35.8)**, 610.1 → 645.8, over
-400,000 paired fights on a seed the search never used.
+[D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23), in two
+rounds. The first searched every option. Its review found Recklessness's timing and the potion's
+rage limit fitted to the default fight's execute phase, at a cost of up to 8% in other fights,
+so the second made both follow the phase and tuned them again (below). Against the defaults
+before M2.5a, the result is **+37.02 DPS (+6.07%, 95% CI +36.87 to +37.18)**, 610.31 → 647.34,
+over 400,000 paired fights on seed 3031, which no search used; against the first round's,
++1.44 (+0.22%, +1.37 to +1.51) on the same fights.
 
 - **Method.** `scripts/tune/rotation.mjs` runs the real engine (bundled from `src/` with Vite)
   over worker threads. Every candidate plays the same fights as its baseline: the same config
@@ -1018,19 +1035,28 @@ the previous defaults by **+35.6 DPS (+5.8%, 95% CI +35.5 to +35.8)**, 610.1 →
   Each fight gives a paired difference, and a candidate clears the bar when the 95% confidence
   interval of the mean difference lies entirely above zero. The setup is the default Arms setup
   (Human, the 37/14/0 build, pre-raid BiS, the Standard raid buffs, 180 s ± 10%, 20% execute,
-  armor 3,731), the rotation settings aside. The search went option by option, from coarse grids
-  to finer ones around the best values, re-sweeping every option on top of each change adopted
-  (coordinate descent), with 2-D grids where two fillers share rage (Spearing Strike and
-  Hamstring). It used 40,000 fights a candidate on seed 1, then 100,000–200,000 on seeds 2–5
-  and 7 for the small effects and the early robustness checks. **Confirmation:** the winning
-  combination against the old defaults, and against itself with each change reverted in turn,
-  on seed 6 (400,000 fights), a seed the search never used. Every change still cleared the bar. Every option was searched: Charge is left out (below), and
-  the Death Wish, trinket, Juju Flurry and racial settings do nothing for the default Human with
-  no Death Wish, on-use trinket or Juju Flurry. Rerun it with, for example:
-  `node scripts/tune/rotation.mjs --fights 400000 --seed 6 heroicStrike.enabled=true`
-  (a candidate against the defaults) or
-  `node scripts/tune/rotation.mjs --sweep spearingStrike.minRageOtherTargets=20:60:5` (a sweep).
-- **Adopted.** "Alone" is the change alone against the old defaults on search seed 1 (100,000
+  armor 3,731), the rotation settings aside. Each round goes in three steps, in this order:
+  1. **Search** on its search seeds. Option by option, from coarse grids to finer ones around
+     the best values, re-sweeping every option on top of each change adopted (coordinate
+     descent), with 2-D grids where two fillers share rage (Spearing Strike and Hamstring).
+  2. **Freeze** the winning combination: no change after this step.
+  3. **Confirm** it on a seed no search used: against the old defaults, and against itself with
+     each change reverted in turn. It's adopted only if each still clears the bar.
+
+  Rerun it with, for example,
+  `node scripts/tune/rotation.mjs --fights 400000 --seed 3031 heroicStrike.enabled=true`
+  (a candidate against the defaults),
+  `node scripts/tune/rotation.mjs --sweep spearingStrike.minRageOtherTargets=20:60:5` (a sweep),
+  or `node scripts/tune/rotation.mjs --fights 400000 --seed 3031 --against a69198b` (the defaults
+  against another commit's engine and defaults, here the last before M2.5a: how a change of
+  semantics is compared with the rotation it replaces).
+- **First round.** It searched on seed 1 (40,000 fights a candidate), then seeds 2–5 and 7
+  (100,000–200,000) for the small effects and the early robustness checks, and confirmed on seed
+  6 (400,000 fights): +35.6 DPS (+5.8%, 95% CI +35.5 to +35.8), 610.1 → 645.8, over the defaults
+  before it. Every change still cleared the bar. Every option was searched: Charge is left out
+  (below), and the Death Wish, trinket, Juju Flurry and racial settings do nothing for the
+  default Human with no Death Wish, on-use trinket or Juju Flurry.
+- **Adopted in the first round.** "Alone" is the change alone against the old defaults on search seed 1 (100,000
   fights); "in the winner" is the winner against a copy of it with that one change reverted to
   the old default, on the fresh seed 6 (400,000 fights). The changes interact: Hamstring only pays once
   Heroic Strike stops taking its rage, and Mortal Strike in the execute phase only with the new
@@ -1040,15 +1066,15 @@ the previous defaults by **+35.6 DPS (+5.8%, 95% CI +35.5 to +35.8)**, 610.1 →
 | --- | --- | --- | --- |
 | `heroicStrike.enabled` | on → off | +18.99 (+18.71 to +19.28) | +19.50 (+19.35 to +19.65) |
 | `hamstring.enabled`, `.minRage` | off, 60 → on, 40 | +0.69 (+0.49 to +0.89) | +5.85 (+5.71 to +5.99); 40 over 60: +0.90 (+0.75 to +1.04) |
-| `recklessness.lastSec` | 15 → 39 | +4.94 (+4.76 to +5.11) | +5.78 (+5.69 to +5.87); 39 over 40: +0.25 (+0.19 to +0.31) |
-| `ragePotion.maxRage` | 55 → 0 | +1.41 (+1.27 to +1.54) | +3.11 (+3.04 to +3.18) |
+| `recklessness.lastSec` | 15 → 39 (replaced in the second round) | +4.94 (+4.76 to +5.11) | +5.78 (+5.69 to +5.87); 39 over 40: +0.25 (+0.19 to +0.31) |
+| `ragePotion.maxRage` | 55 → 0 (in the phase since the second round) | +1.41 (+1.27 to +1.54) | +3.11 (+3.04 to +3.18) |
 | `rend.refreshBelowSec` | 1.5 → 3 | +2.42 (+2.14 to +2.71) | +2.08 (+1.93 to +2.23) |
 | `execute.mortalStrikeInExecute` | off → on | −0.15 (−0.28 to −0.02) | +0.88 (+0.82 to +0.94) |
 | `spearingStrike.minRageOtherTargets` | 50 → 35 | +3.62 (+3.34 to +3.91) | +0.81 (+0.66 to +0.95) |
 | `battleShout.refreshBelowSec` | 3 → 0 | +0.68 (+0.62 to +0.74) | +0.72 (+0.69 to +0.75) |
 | `slam.reserve` | 0 → 5 | −0.02 (−0.23 to +0.19) | +0.33 (+0.24 to +0.43) |
 
-- **Not adopted** (each on top of the winner, on seed 8, 200,000 fights, which the search never
+- **Not adopted in the first round** (each on top of the winner, on seed 8, 200,000 fights, which the search never
   used either; the old findings are measured alone against the old defaults on seed 1). Of the
   four old findings, Rend's refresh at 3 s is adopted (the table); the other three aren't:
   - **The Whirlwind dance**: alone +4.11 (+3.82 to +4.40), the old +0.8% finding, but on top of
@@ -1076,19 +1102,80 @@ the previous defaults by **+35.6 DPS (+5.8%, 95% CI +35.5 to +35.8)**, 610.1 →
     or 130, and Rend at 0 s. Worse: Recklessness at 38 s (−0.17), Rend at 2.5 s (−0.76), the
     potion up to 5 (−0.13), Battle Shout at 1 s (−0.27), no Slam in the execute phase (−5.50), no
     pre-pull Battle Shout (−1.82) or Bloodrage (−0.20).
-- **Robustness** (seed 9, 200,000 paired fights each, the winner against the old defaults):
+- **The first round's robustness** (seed 9, 200,000 paired fights each, its winner against the
+  defaults before it):
   - **Troll** (Berserking, its faction's gear): +35.90 (+35.68 to +36.12), +5.9%. Every change
     holds, except that Heroic Strike from 125 is level with off.
   - **5-minute fight** (300 s): +29.26 (+29.08 to +29.43), +4.9%. Every change holds except
     three: Hamstring from 60 beats 40 by +0.22 (+0.05 to +0.39), Mortal Strike in the execute
     phase is −0.14 (−0.22 to −0.06), and Battle Shout's refresh at 3 s is level with 0. And
-    Recklessness is best at 60–65 s there (row 4 notes).
+    Recklessness was best at 60–65 s there, not 39 s: the phase starts 54–66 s before the end.
   - **Boss armor 3,009**: +40.73 (+40.48 to +40.98), +5.9%. Every change holds.
-  - **No execute phase** (0%, seed 9, 100,000 fights): +8.26 (+7.97 to +8.54), +1.4% only. The
-    potion at 0 is almost never drunk, and Recklessness at 39 s is worse than at 15 s. See the
-    potion note: change both there.
+  - **No execute phase** (0%, seed 9, 100,000 fights): +8.26 (+7.97 to +8.54), +1.4% only: the
+    potion at 0 was almost never drunk, and Recklessness at 39 s was worse than at 15 s.
 
-  The default setup decides, so these stay the defaults.
+  Its review found the same in fights of 30–90 s: the defaults before M2.5a were ahead by 5–8%
+  at 30–60 s and level at 90 s, since 39 s left comes long before those fights' execute phases.
+- **Second round: Recklessness and the potion follow the execute phase** (the M2.5a review).
+  Recklessness gets `beforeExecuteSec`, and `lastSec` becomes the clock's fallback, whichever
+  comes first (row 4). The potion's `maxRage` applies in the phase, with the last chance in the
+  fight's last 4 s, and without a phase or Execute it's drunk as Fury's is, at up to 55 (row 17).
+  The engine gained a condition for this, "the execute phase starts within x"
+  ([§7](#7-implementation-notes) "Time-left conditions"). The search used seeds 101–108 (100,000
+  fights a candidate, 200,000 for the close calls). A first check on seeds 2026 and 2027, before
+  the potion's last chance, found the losses in 30 s fights that led to it, so those count as
+  search seeds too:
+  - **`beforeExecuteSec`**: 1.5 s. Against 3 s (seed 101): 0 s +0.52, 1 s +0.66, 1.5 s +0.77,
+    2 s +0.56, 2.5 s +0.36, 4 s −0.68, 6 s −2.14. At 200,000 fights (seed 102), 1.5 s beat 1 s
+    by 0.10 (+0.03 to +0.16) and 2 s by 0.28 (+0.22 to +0.34).
+  - **`lastSec`**: 15 s, whichever comes first. With a 20% phase (seed 103), 15 s beat 14 and 16 s
+    by 0.2–0.6% at 30–60 s, and the phase's timing alone (`lastSec` 1) by 4.0% at 30 s, 1.8% at
+    45 s and 0.4% at 60 s; from 90 s up the phase comes first and it changes nothing. Without a
+    phase (seed 104), 15 s beat 14 s by 0.17% and 20 s by 0.14%; 16–18 s were within 0.02%.
+  - **The potion.** In the phase, `maxRage` 0 still beat 5 (−0.10), 10 (−0.24) and 30 (−2.33;
+    seed 102). Without a phase, with Recklessness's swap, any limit from 35 and any window from
+    15 s measured the same (seed 104), so it's Fury's 20 s and the cap minus 75. The last chance:
+    3–15 s against none at 30–300 s and 10% and 20% phases (seed 107): 4 s was the best or level
+    with it everywhere. Drinking it in the last 20 s whatever the phase, with Recklessness's swap,
+    was better only in the shortest phases (+4.3% at 30 s and 10%, +0.8% at 45 s and 10%) and
+    worse wherever else the phase starts in them (−0.3% to −1.7% at 45–180 s; seed 106).
+  - **The rest, re-checked** on top (seed 105): nothing cleared the bar against the new defaults.
+    Heroic Strike on from 100, 125 or 130: −0.34, −0.04, −0.04. Hamstring off −6.19, from 50 or
+    60 −0.46 and −1.05 (35 and 45 level). Spearing Strike from 25, 45 or 50 −0.70, −0.53, −0.44
+    (30 and 40 level). Slam's reserve at 0 or 10 level. Rend at 1.5, 2.5, 3.5 or 4 s −1.85,
+    −0.82, −1.60, −1.30 (0 s level). Battle Shout at 1 or 3 s −0.28, −0.69. Mortal Strike out of
+    the phase −1.09, no Slam in it −5.83. The Whirlwind dance −3.42 (−0.12 at `maxRage` 25).
+    Bloodrage up to 90 or 130 level. Berserker Stance dancing for Rend and Overpower −23.38.
+  - **Confirmation** (seed 3031, 400,000 fights, frozen first): +37.02 (+36.87 to +37.18) over
+    the defaults before M2.5a, +1.44 (+1.37 to +1.51) over the first round's (`--against a69198b`
+    and `--against 852f522`). Recklessness at 1, 2 or 3 s before the phase: −0.04 (−0.09 to
+    +0.01), −0.24 (−0.28 to −0.20), −0.80 (−0.87 to −0.73); the potion up to 55 in the phase:
+    −2.82 (−2.89 to −2.75). 1 s is level with 1.5 s here; 1.5 s cleared it on the search seed.
+- **Robustness** (seed 3032, which no search used, 200,000 paired fights each): the final
+  defaults' Δ DPS, and Δ %, against the defaults before M2.5a (`--against a69198b`), by fight
+  length and execute phase.
+
+  | Fight | 0% | 10% | 20% |
+  | --- | --- | --- | --- |
+  | 30 s | **−16.99 (−17.37 to −16.60), −2.43%** | +5.88 (+5.48 to +6.27), +0.78% | +17.84 (+17.42 to +18.27), +2.30% |
+  | 45 s | +0.13 (−0.22 to +0.47), +0.02% | +19.51 (+19.14 to +19.88), +2.80% | +24.53 (+24.12 to +24.94), +3.43% |
+  | 60 s | +5.66 (+5.34 to +5.97), +0.90% | +26.08 (+25.74 to +26.43), +3.90% | +26.19 (+25.82 to +26.55), +3.80% |
+  | 90 s | +16.28 (+16.01 to +16.55), +2.67% | +29.54 (+29.25 to +29.84), +4.59% | +38.67 (+38.36 to +38.98), +6.00% |
+  | 180 s | +26.78 (+26.57 to +26.98), +4.56% | +39.81 (+39.59 to +40.03), +6.60% | +37.10 (+36.88 to +37.33), +6.08% |
+  | 300 s | +30.68 (+30.52 to +30.84), +5.29% | +36.36 (+36.19 to +36.53), +6.13% | +33.27 (+33.09 to +33.44), +5.54% |
+
+  Against the first round's defaults (`--against 852f522`) they win everywhere: +0.22% at 180 s
+  and 20%, +0.55% and +0.63% at 300 s with a phase, +1.85% at 300 s without one, +3.07% and
+  +3.20% at 180 s without one and at 10%, and +5.9% to +12.5% at 30–90 s.
+
+  **One loss remains: a 30 s fight with no execute phase**, 2.4% behind the defaults before
+  M2.5a, and 45 s with none is level. Their Heroic Strike from 45 spends rage that a fight that
+  short, with no Execute to pour it into, can't use otherwise; turning it back on alone is +2.7%
+  there (seed 106). Without an execute phase, Heroic Strike on from 90 beat off at every length
+  measured, +0.1% at 300 s to +2.2% at 30 s, but closing the 30 s gap takes it from 80 or less,
+  which loses at 300 s (−0.05% from 80; seed 108). A default that follows the Fight tab's execute
+  phase could take it; switches' defaults follow the talents and other settings, not the fight,
+  so it's left for now.
 
 ### 5.4 Protection (TPS)
 
@@ -1202,9 +1289,11 @@ list and the stacking rules. **No world buffs**
 ([decision D8](../decisions.md#d8-world-buffs-are-excluded-2026-09-22)). The warrior-specific
 parts:
 
-- **Mighty Rage Potion.** Default: once, at the start of the execute phase, or in the last 20 s
-  without one ([§5.2](#52-fury-dual-wield) #16, [§5.3](#53-arms-two-hander) #17). Classic Era
-  players use it for the rage burst in Execute [marrow-cd].
+- **Mighty Rage Potion.** Default: once, in the execute phase, or in the last 20 s without one.
+  Fury drinks it at the phase's start, at up to 55 rage ([§5.2](#52-fury-dual-wield) #16); Arms
+  once an Execute has emptied the bar, and without a phase (or with Execute off) after
+  Recklessness's stance swap ([§5.3](#53-arms-two-hander) #17). Classic Era players use it for
+  the rage burst in Execute [marrow-cd].
 - **Weapon oils and stones.** A sharpening stone or weightstone on each weapon's flat damage
   feeds the `weapon` and `normalized` formulas as flat weapon damage [C].
 - **Tanks.** A defensive tier (armor and health consumables) matters to survival, not TPS.
@@ -1308,7 +1397,11 @@ parts:
 - **Time-left conditions.** The fight's drawn length is known, so "time left ≤ x" and "≥ x"
   become a window of times per line for each fight: the engine compares the time with it,
   without evaluating a condition, and wakes the rotation at `fight end − x`, when a "≤ x"
-  condition becomes true.
+  condition becomes true. The execute phase's start is known the same way
+  ([encounter.md](../mechanics/encounter.md#implementation-notes)), so "the execute phase starts
+  within x" (Arms Recklessness, [§5.3](#53-arms-two-hander) row 4) moves the window's start to
+  `execute start − x`, with a wake-up then; in a fight without the phase it never holds. Two
+  lines for one ability give "whichever comes first"; conditions on one line all have to hold.
 - **Execute's rage.** Rage is kept in tenths, and Execute converts everything left after its
   cost, tenths included: at 27.3 rage and cost 15 it deals `600 + 15 × 12.3 = 784.5` before
   modifiers. The 15 per rage is the client's `EffectChainAmplitude` 1.5 × 10 on 20662 [F]

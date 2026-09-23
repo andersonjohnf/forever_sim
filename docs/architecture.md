@@ -240,8 +240,8 @@ A spec is data plus small ability modules, never its own loop.
   conditions: rage at least or at most a value, another ability's cooldown, GCD-safe, aura down,
   another ability's aura up, another ability's aura down or due for a refresh (Battle Shout's
   upkeep; for a bleed, its marker: "Rend missing or under x s"), in or out of the
-  execute phase, AP at least or below a value, fight time left at most or at least a value;
-  warrior.md §5.1). An ability can have several lines
+  execute phase, AP at least or below a value, fight time left at most or at least a value, the
+  execute phase starting within a value; warrior.md §5.1). An ability can have several lines
   (Bloodthirst in and out of the execute phase; Death Wish before its final use and at the end).
   The spec declares its settings as `RotationOption`s (`sim/classes/rotation.ts`), and the plan
   builder turns `config.rotation` plus those defaults into the list. Fury and Arms share their
@@ -262,7 +262,9 @@ A spec is data plus small ability modules, never its own loop.
   per phase up front, so a walk skips the lines that can't apply in the current phase. And since
   each fight's drawn length is known, it turns time-left conditions into a window of times per
   line at the start of the fight: a walk compares the time with it, and the fight schedules a
-  wake-up at `fight end − x` for each "time left ≤ x". A refresh condition ("the aura is down, or
+  wake-up at `fight end − x` for each "time left ≤ x". The execute phase's start is known too, so
+  "the execute phase starts within x" moves the window's start to `execute start − x`, with a
+  wake-up then (never, without the phase). A refresh condition ("the aura is down, or
   has at most `b` ms left and ends before the fight") moves the start of that window whenever
   its aura starts or ends, with a wake-up when it opens, so an upkeep line at the top of the list
   costs a walk one comparison.

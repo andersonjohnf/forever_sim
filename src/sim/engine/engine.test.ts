@@ -425,6 +425,16 @@ describe('golden run (fixed config and seed)', () => {
   //   Rend and Overpower sooner: Rend 9,283 → 8,751 casts, yet Overpower 8,716 → 9,826 with the extra
   //   rage. DPS 611.88 → 646.38, TPS 354.24 → 373.34. Fury and Protection are unchanged: their
   //   shared settings keep their defaults.
+  // - M2.5a review (AL1, AL2): Recklessness and the Mighty Rage Potion follow the execute phase, not
+  //   the clock (warrior.md §5.3 rows 4 and 17, "Tuning the defaults"). Recklessness now comes 1.5 s
+  //   before the phase starts (or with 15 s left, if that comes first, which it never does in the
+  //   default fight), where it came with 39 s left; the phase starts 32.4–39.6 s before the end. So
+  //   Rend and Overpower run a little longer in Battle Stance (Rend 8,751 → 8,897 casts, Overpower
+  //   9,826 → 9,942), and more of its crits land on Executes (6,599 → 6,831 crits, in 11,580 →
+  //   11,524 casts; Execute's damage 13.36 M → 13.50 M). The potion's new last chance (the fight's
+  //   last 4 s) and its timing without a phase never apply here. Over 400,000 paired fights on a
+  //   seed the search never used, +1.44 DPS (+0.22%, 95% CI +1.37 to +1.51). On this seed's 1,000
+  //   fights, DPS 646.38 → 647.48, TPS 373.34 → 373.96. Fury and Protection are unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

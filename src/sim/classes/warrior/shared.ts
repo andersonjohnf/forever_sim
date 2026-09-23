@@ -220,14 +220,17 @@ export const cooldownOptions = (ids: SharedIds): RotationOption[] => [
 
 /**
  * Recklessness once near the end (row 4 of both); its help says how the spec gets to Berserker
- * Stance, and `lastSec` is the spec's timing: its default (Fury 15 s, Arms 39 s) and help.
+ * Stance, and `lastSec` is the spec's timing by the clock: its default (15 s) and help. `before`
+ * is the spec's own timing setting ahead of it (Arms: before the execute phase, §5.3 row 4).
  */
 export const recklessnessOptions = (
   ids: SharedIds,
   help: string,
   lastSec: { default: number; help: string } = { default: 15, help: 'Use it once this much of the fight is left.' },
+  ...before: RotationOption[]
 ): RotationOption[] => [
   { kind: 'toggle', id: ids.reckEnabled, group: 'Cooldowns and buffs', label: 'Recklessness', help, default: true },
+  ...before,
   {
     kind: 'number',
     id: ids.reckLastSec,
@@ -295,12 +298,13 @@ export const heroicStrikeOptions = (
 
 /**
  * The Mighty Rage Potion and Juju Flurry, when they're selected in Buffs (Fury rows 16 and 17, Arms
- * rows 17 and 18). `noExecute` says when the potion goes without an execute phase; `potionMaxRage`
- * is the spec's rage limit for it: its default (Fury 55, the cap minus 75; Arms 0) and help.
+ * rows 17 and 18). `when` says when the potion is drunk, in and outside the execute phase; `potionMaxRage`
+ * is the spec's rage limit for it: its default (Fury 55, the cap minus 75; Arms 0, in the phase) and
+ * help.
  */
 export const consumableOptions = (
   ids: SharedIds,
-  noExecute = 'in the last 20 s if there’s none',
+  when = 'at the start of the execute phase (in the last 20 s if there’s none)',
   potionMaxRage: { default: number; help: string } = {
     default: WARRIOR_MAX_RAGE - 75,
     help: `Drink it only at or below this much rage, so none of its rage is lost at the cap. ${WARRIOR_MAX_RAGE - 75} is the 130 cap minus 75.`,
@@ -311,7 +315,7 @@ export const consumableOptions = (
     id: ids.potionEnabled,
     group: 'Consumables',
     label: 'Mighty Rage Potion',
-    help: `Drink it once, at the start of the execute phase (${noExecute}): 45–75 rage and +60 Strength for 20 s.`,
+    help: `Drink it once, ${when}: 45–75 rage and +60 Strength for 20 s.`,
     default: true,
     requiresBuff: RAGE_POTION,
   },
@@ -346,6 +350,8 @@ export const NOT_IN_EXECUTE: RotationCondition = { code: COND.executePhase, a: 0
 
 export const timeLeftAtMost = (ms: number): RotationCondition => ({ code: COND.timeLeftAtMost, a: ms, b: 0 })
 export const timeLeftAtLeast = (ms: number): RotationCondition => ({ code: COND.timeLeftAtLeast, a: ms, b: 0 })
+/** The execute phase starts within `ms`, or has started (never true without one). */
+export const executeWithin = (ms: number): RotationCondition => ({ code: COND.executeWithin, a: ms, b: 0 })
 export const minRage = (tenths: number): RotationCondition => ({ code: COND.minRage, a: tenths, b: 0 })
 export const maxRage = (rage: number): RotationCondition => ({ code: COND.maxRage, a: toTenths(rage), b: 0 })
 /** GCD-safe for the abilities in `mask` over `gcdMs` (warrior.md §5.1), or no condition when there are none. */
@@ -469,18 +475,19 @@ export function cooldownLines(b: RotationBuilder, v: Reader, ids: SharedIds, ctx
 
 /**
  * Recklessness once, at ≤ lastSec left (row 4; its 30 min cooldown outlasts any fight; Berserker
- * Stance only, which the engine checks). From another stance it's a dance to Berserker Stance that
- * stays there for the rest of the fight (Arms, §5.3 row 4). Returns that dance's ability, whose
- * swap caps rage (the Mighty Rage Potion waits for it, `consumableLines`), or −1 without one. The
- * ability is the profile's (`recklessness`).
+ * Stance only, which the engine checks). With `beforeExecuteMs` (Arms, §5.3 row 4), also that long
+ * before the execute phase starts, whichever comes first: two lines, the first to hold uses it. From
+ * another stance it's a dance to Berserker Stance that stays there for the rest of the fight (Arms).
+ * Returns that dance's ability, whose swap caps rage (the Mighty Rage Potion waits for it,
+ * `consumableLines`), or −1 without one. The ability is the profile's (`recklessness`).
  */
-export function recklessnessLine(b: RotationBuilder, v: Reader, ids: SharedIds, ctx: RotationContext, danceAndStay = 0): number {
+export function recklessnessLine(b: RotationBuilder, v: Reader, ids: SharedIds, ctx: RotationContext, danceAndStay = 0, beforeExecuteMs?: number): number {
   if (!v.on(ids.reckEnabled)) return -1
-  const when = [timeLeftAtMost(seconds(v, ids.reckLastSec))]
   const reck = recklessness(ctx.profile)
-  if (danceAndStay) return b.dance(reck, danceAndStay, when, true)
-  b.add(reck, when)
-  return -1
+  const whens = [...(beforeExecuteMs === undefined ? [] : [[executeWithin(beforeExecuteMs)]]), [timeLeftAtMost(seconds(v, ids.reckLastSec))]]
+  let a = -1
+  for (const when of whens) a = danceAndStay ? b.dance(reck, danceAndStay, when, true) : b.add(reck, when)
+  return danceAndStay ? a : -1
 }
 
 /** Bloodrage on cooldown (off the GCD) at rage ≤ maxRage (row 5). */
@@ -495,17 +502,37 @@ export function heroicStrikeLine(b: RotationBuilder, v: Reader, ids: SharedIds, 
 }
 
 /**
- * The Mighty Rage Potion (off the GCD), once a fight, from the start of the execute phase (or in
- * the last 20 s without one), at rage ≤ maxRage so its 45–75 rage fits under the cap; then Juju
- * Flurry (off the GCD) on cooldown from the pull. Each only when it's selected in Buffs.
- * `swapFirst` is a dance that stays in its stance (Arms Recklessness, row 4): without an execute
- * phase, the potion waits until it's been used, since its swap keeps at most 25 rage (§5.3 notes).
+ * The Mighty Rage Potion (off the GCD), once a fight, then Juju Flurry (off the GCD) on cooldown from
+ * the pull. Each only when it's selected in Buffs.
+ *
+ * `potion` says how the spec times the potion (warrior.md §5.2 row 16, §5.3 row 17):
+ * - `inPhase`: it's drunk in the execute phase, from its start at rage ≤ maxRage, so its 45–75 rage
+ *   fits under the cap (Fury: whenever there's a phase; Arms: only while its Execute is on too).
+ *   With `lastChanceMs` (Arms), also in the phase's last that-many ms at rage ≤ `fallbackMaxRage`,
+ *   if it hasn't been drunk by then.
+ * - Otherwise it's drunk in the last 20 s at rage ≤ `fallbackMaxRage` (Fury: maxRage's value; Arms:
+ *   the cap minus 75), after `swapFirst` if it's given: a dance that stays in its stance (Arms
+ *   Recklessness, row 4), whose swap keeps at most 25 rage.
+ * Its lines share one use a fight: the first whose conditions hold drinks it.
  */
-export function consumableLines(b: RotationBuilder, v: Reader, ids: SharedIds, ctx: RotationContext, swapFirst = -1): void {
-  const potion = ctx.consumables.find((c) => c.id === RAGE_POTION)
-  if (potion && v.on(ids.potionEnabled)) {
-    const when = ctx.executePhase ? [IN_EXECUTE] : [timeLeftAtMost(POTION_NO_EXECUTE_LAST_MS), ...usedAlready(swapFirst)]
-    b.add({ ...onUseAbility(potion), usesPerFight: 1 }, [...when, maxRage(v.num(ids.potionMaxRage))])
+export function consumableLines(
+  b: RotationBuilder,
+  v: Reader,
+  ids: SharedIds,
+  ctx: RotationContext,
+  potion: { inPhase: boolean; fallbackMaxRage?: number; lastChanceMs?: number; swapFirst?: number } = { inPhase: ctx.executePhase },
+): void {
+  const use = ctx.consumables.find((c) => c.id === RAGE_POTION)
+  if (use && v.on(ids.potionEnabled)) {
+    const def = { ...onUseAbility(use), usesPerFight: 1 }
+    const limit = v.num(ids.potionMaxRage)
+    const fallback = maxRage(potion.fallbackMaxRage ?? limit)
+    if (potion.inPhase) {
+      b.add(def, [IN_EXECUTE, maxRage(limit)])
+      if (potion.lastChanceMs) b.add(def, [IN_EXECUTE, timeLeftAtMost(potion.lastChanceMs), fallback])
+    } else {
+      b.add(def, [timeLeftAtMost(POTION_NO_EXECUTE_LAST_MS), ...usedAlready(potion.swapFirst ?? -1), fallback])
+    }
   }
   const juju = ctx.consumables.find((c) => c.id === JUJU_FLURRY)
   if (juju && v.on(ids.jujuEnabled)) b.add(onUseAbility(juju), [])

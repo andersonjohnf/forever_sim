@@ -89,7 +89,8 @@ describe('Arms rotation options (warrior.md §5.1, §5.3)', () => {
       'warrior.arms.racial.enabled': true,
       'warrior.arms.trinkets.enabled': true,
       'warrior.arms.recklessness.enabled': true,
-      'warrior.arms.recklessness.lastSec': 39,
+      'warrior.arms.recklessness.beforeExecuteSec': 1.5,
+      'warrior.arms.recklessness.lastSec': 15,
       'warrior.arms.bloodrage.enabled': true,
       'warrior.arms.bloodrage.maxRage': 110,
       'warrior.arms.execute.enabled': true,
@@ -143,7 +144,7 @@ describe('armsRotation (warrior.md §5.3)', () => {
       'battleShout', // 1
       'rend', // 2
       'bloodFury', // 3: on cooldown, with no Death Wish
-      'recklessness', // 4
+      ...['recklessness', 'recklessness'], // 4: before the execute phase, or by the clock, whichever first
       'bloodrage', // 5
       'slam', // 6: in the execute phase
       'mortalStrike', // 7: mortalStrikeInExecute, ahead of Execute
@@ -153,7 +154,7 @@ describe('armsRotation (warrior.md §5.3)', () => {
       'slam', // 10
       'spearingStrike', // 11
       'hamstring', // 14
-      'mightyRagePotion', // 17
+      ...['mightyRagePotion', 'mightyRagePotion'], // 17: in the execute phase, and its last chance there
     ])
     // Rows 12 and 13 (the Whirlwind dance and Heroic Strike) are off by default; Sweeping Strikes (15) isn't simulated.
     for (const id of ['whirlwind', 'heroicStrike', 'sweepingStrikes', 'deathWish']) expect(ids(r)).not.toContain(id)
@@ -184,13 +185,33 @@ describe('armsRotation (warrior.md §5.3)', () => {
     expect(ids(armsRotation({}, without('Bloodthrill'), noAura))).not.toContain('rend')
   })
 
-  it('row 4: from Battle Stance, Recklessness swaps to Berserker Stance and stays; in Berserker Stance it’s a plain line', () => {
-    const r = armsRotation({ 'warrior.arms.recklessness.lastSec': 20 }, TALENTS, noAura)
-    expect(linesOf(r, 'recklessness')).toEqual([
-      { ability: at(r, 'recklessness'), conditions: [{ code: COND.timeLeftAtMost, a: 20000, b: 0 }], unqueueBelowTenths: 0, danceTo: STANCE.berserker, stay: true },
+  it('row 4: 1.5 s before the execute phase or with 15 s left, whichever first; by the clock alone without the phase or Execute', () => {
+    const before = (ms: number) => ({ code: COND.executeWithin, a: ms, b: 0 })
+    const left = (ms: number) => ({ code: COND.timeLeftAtMost, a: ms, b: 0 })
+    const reck = (values: Record<string, RotationValue>, executePhase = true) => {
+      const r = armsRotation(values, TALENTS, noAura, { executePhase })
+      return { r, lines: linesOf(r, 'recklessness') }
+    }
+    // From Battle Stance each line swaps to Berserker Stance and stays there.
+    const d = reck({})
+    const dance = { ability: at(d.r, 'recklessness'), unqueueBelowTenths: 0, danceTo: STANCE.berserker, stay: true }
+    expect(d.lines).toEqual([
+      { ...dance, conditions: [before(1500)] },
+      { ...dance, conditions: [left(15000)] },
     ])
-    const b = armsRotation(berserker, TALENTS, noAura)
-    expect(linesOf(b, 'recklessness')).toEqual([{ ability: at(b, 'recklessness'), conditions: [{ code: COND.timeLeftAtMost, a: 39000, b: 0 }], unqueueBelowTenths: 0 }])
+    expect(reck({ 'warrior.arms.recklessness.beforeExecuteSec': 4, 'warrior.arms.recklessness.lastSec': 20 }).lines.map((e) => e.conditions)).toEqual([
+      [before(4000)],
+      [left(20000)],
+    ])
+    // Without an execute phase, or with Execute off (the phase then changes nothing), only the clock.
+    expect(reck({}, false).lines.map((e) => e.conditions)).toEqual([[left(15000)]])
+    expect(reck({ 'warrior.arms.execute.enabled': false }).lines.map((e) => e.conditions)).toEqual([[left(15000)]])
+    // In Berserker Stance, plain lines.
+    const b = reck(berserker)
+    expect(b.lines).toEqual([
+      { ability: at(b.r, 'recklessness'), conditions: [before(1500)], unqueueBelowTenths: 0 },
+      { ability: at(b.r, 'recklessness'), conditions: [left(15000)], unqueueBelowTenths: 0 },
+    ])
   })
 
   it('rows 6–8: Slam in the phase at rage ≥ its cost + Execute’s, Mortal Strike in it by default, Execute, then Mortal Strike outside it', () => {
@@ -279,20 +300,30 @@ describe('armsRotation (warrior.md §5.3)', () => {
     expect(ids(armsRotation({ 'warrior.arms.hamstring.enabled': false }, TALENTS, noAura))).not.toContain('hamstring')
   })
 
-  it('row 17: the Mighty Rage Potion from the execute phase; without one, in the last 20 s and after Recklessness’s swap from Battle Stance', () => {
-    const potion = (values: Record<string, RotationValue>, executePhase: boolean) => {
+  it('row 17: the Mighty Rage Potion in the execute phase at ≤ maxRage, or in its last 4 s at ≤ 55; without the phase or Execute, in the last 20 s at ≤ 55, after Recklessness’s swap', () => {
+    const potion = (values: Record<string, RotationValue>, executePhase = true) => {
       const r = armsRotation(values, TALENTS, noAura, { consumables: [MIGHTY_RAGE_POTION], executePhase })
       return { r, lines: linesOf(r, 'mightyRagePotion') }
     }
-    // By default at 0 rage: once an Execute has emptied the bar (§5.3 notes).
-    const withPhase = potion({}, true)
-    expect(withPhase.lines.map((e) => e.conditions)).toEqual([[inExec, maxRage(0)]])
-    const last20 = { code: COND.timeLeftAtMost, a: 20000, b: 0 }
-    const none = potion({ 'warrior.arms.ragePotion.maxRage': 55 }, false)
-    expect(none.lines.map((e) => e.conditions)).toEqual([[last20, { code: COND.cooldownAtLeast, a: at(none.r, 'recklessness'), b: 1 }, maxRage(550)]])
+    const last = (ms: number) => ({ code: COND.timeLeftAtMost, a: ms, b: 0 })
+    // By default at 0 rage: once an Execute has emptied the bar; or, not drunk by the last 4 s, at up
+    // to 55 (§5.3 notes). One use a fight between the lines.
+    const withPhase = potion({})
+    expect(withPhase.lines.map((e) => e.conditions)).toEqual([
+      [inExec, maxRage(0)],
+      [inExec, last(4000), maxRage(550)],
+    ])
+    expect(new Set(withPhase.lines.map((e) => e.ability)).size).toBe(1)
+    expect(withPhase.r.abilities[at(withPhase.r, 'mightyRagePotion')].usesPerFight).toBe(1)
+    expect(potion({ 'warrior.arms.ragePotion.maxRage': 20 }).lines[0].conditions).toEqual([inExec, maxRage(200)])
+    // Without an execute phase, or with Execute off: in the last 20 s at up to 55, whatever maxRage
+    // says, and after Recklessness's swap from Battle Stance.
+    const afterSwap = (r: Rot) => [last(20000), { code: COND.cooldownAtLeast, a: at(r, 'recklessness'), b: 1 }, maxRage(550)]
+    for (const p of [potion({}, false), potion({ 'warrior.arms.execute.enabled': false }), potion({ 'warrior.arms.ragePotion.maxRage': 20 }, false)])
+      expect(p.lines.map((e) => e.conditions)).toEqual([afterSwap(p.r)])
     // No swap to wait for: Recklessness off, or fighting in Berserker Stance.
-    expect(potion({ 'warrior.arms.recklessness.enabled': false }, false).lines.map((e) => e.conditions)).toEqual([[last20, maxRage(0)]])
-    expect(potion(berserker, false).lines.map((e) => e.conditions)).toEqual([[last20, maxRage(0)]])
+    expect(potion({ 'warrior.arms.recklessness.enabled': false }, false).lines.map((e) => e.conditions)).toEqual([[last(20000), maxRage(550)]])
+    expect(potion(berserker, false).lines.map((e) => e.conditions)).toEqual([[last(20000), maxRage(550)]])
   })
 
   it('row 16: with the talent, Death Wish before the racial, which waits for it as Fury’s does', () => {

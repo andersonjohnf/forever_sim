@@ -1,9 +1,9 @@
 // The Arms rotation in the engine, from the default setup (docs/classes/warrior.md §5.3, §7):
 // Rend kept up, Overpower from dodges and Bloodthrill, Slam in and out of the execute phase,
-// Execute, Recklessness swapping to Berserker Stance for the rest of the fight, the Whirlwind
-// dance, Spearing Strike by creature type, Hamstring (row 14, with and without the Whirlwind
-// dance), Death Wish with the talent (row 16), the Mighty Rage Potion without an execute phase
-// (row 17), the Berserker base stance (Q24), and determinism.
+// Execute, Recklessness swapping to Berserker Stance for the rest of the fight (before the execute
+// phase, or by the clock), the Whirlwind dance, Spearing Strike by creature type, Hamstring (row 14,
+// with and without the Whirlwind dance), Death Wish with the talent (row 16), the Mighty Rage Potion
+// in and without an execute phase (row 17), the Berserker base stance (Q24), and determinism.
 import { describe, expect, it } from 'vitest'
 import { decodeTalentCode, encodeTalentCode } from '@/data/talents/types'
 import { defaultConfig, TALENT_DATA } from '../defaults'
@@ -137,11 +137,17 @@ describe('the default Arms rotation in the engine (warrior.md §5.3)', () => {
       for (const c of uses(f, 'mortalStrike')) expect(c.t).toBeLessThan(f.executeAt)
   })
 
-  it('row 4: Recklessness swaps to Berserker Stance in the last 39 s and stays there: no swap back, no Rend or Overpower after it', () => {
+  it('row 4: Recklessness swaps to Berserker Stance 1.5 s before the execute phase and stays there: no swap back, no Rend or Overpower after it', () => {
+    let onTime = 0
     for (const f of out) {
       const reck = uses(f, 'recklessness')
       expect(reck).toHaveLength(1)
-      expect(f.ms - reck[0].t).toBeLessThanOrEqual(39000)
+      // The phase starts 32.4–39.6 s before the end of the default fight, so the clock's 15 s never
+      // comes first. It waits for the GCD, and for Rend's upkeep above it (row 2), a few GCDs at most.
+      const late = reck[0].t - (f.executeAt - 1500)
+      expect(late).toBeGreaterThanOrEqual(0)
+      expect(late).toBeLessThan(4 * 1500)
+      if (late < 1500) onTime++
       expect(reck[0].stance).toBe(STANCE.berserker)
       // The only swap in the fight is Recklessness's, at the moment it's used, and keeps at most 25 rage.
       expect(f.swaps).toHaveLength(1)
@@ -151,6 +157,7 @@ describe('the default Arms rotation in the engine (warrior.md §5.3)', () => {
         expect(c.stance).toBe(STANCE.berserker)
       }
     }
+    expect(onTime).toBeGreaterThan(out.length * 0.8)
   })
 })
 
@@ -273,44 +280,86 @@ describe('Arms options in the engine (warrior.md §5.3)', () => {
     expect(armsPlan({ 'warrior.arms.deathWish.enabled': true }).abilities.map((a) => a.id)).not.toContain('deathWish')
   })
 
-  it('row 17 without an execute phase: the Mighty Rage Potion follows Recklessness’s swap, whose cap would take its rage', () => {
+  it('row 4 by the clock: with 15 s left when that comes before the phase, and without a phase or Execute', () => {
+    // A 30 s fight's 20% phase starts 5.4–6.6 s before the end: 1.5 s before it is later than 15 s left.
+    const short = { fight: { ...ARMS.fight, durationSec: 30 } }
     const noExecute = { fight: { ...ARMS.fight, executePct: 0 } }
-    // The settings §5.3 suggests without an execute phase: the potion up to 55 rage (at the default
-    // 0 it waits for an Execute, which never comes), and Recklessness in the last 15 s, inside the
-    // potion's last 20 s.
-    const suggested = { 'warrior.arms.ragePotion.maxRage': 55, 'warrior.arms.recklessness.lastSec': 15 }
-    const { out } = fights(armsPlan(suggested, noExecute), 50)
-    for (const f of out) {
-      const reck = uses(f, 'recklessness')
-      const potion = uses(f, 'mightyRagePotion')
-      expect(reck).toHaveLength(1)
-      expect(potion).toHaveLength(1)
-      // The same moment, after the swap (at most 25 rage kept), and after anything else that moment
-      // brings: Bloodrage's rage, if it comes off cooldown then. All 45–75 of its rage fits.
-      expect(potion[0].t).toBe(reck[0].t)
-      expect(f.swaps.map((s) => s.t)).toEqual([reck[0].t])
-      expect(f.swaps[0].after).toBeLessThanOrEqual(250)
-      const between = f.casts.slice(f.casts.indexOf(reck[0]) + 1, f.casts.indexOf(potion[0])).map((c) => c.id)
-      expect(between.every((id) => id === 'bloodrage')).toBe(true)
-      expect(potion[0].rage).toBeLessThanOrEqual(f.swaps[0].after + (between.length > 0 ? 150 : 0))
-    }
-    // With Recklessness off, or fighting in Berserker Stance (no swap), it's the last 20 s, as Fury's.
-    const noSwap: SimConfig['rotation'][] = [
-      { ...suggested, 'warrior.arms.recklessness.enabled': false },
-      { ...suggested, 'warrior.arms.baseStance': 'berserker' },
+    const cases: [SimConfig['rotation'], Partial<SimConfig>][] = [
+      [{}, short],
+      [{}, noExecute],
+      [{ 'warrior.arms.execute.enabled': false }, {}],
     ]
-    for (const rotation of noSwap) {
-      const times = fights(armsPlan(rotation, noExecute), 30).out.map((f) => f.ms - uses(f, 'mightyRagePotion')[0].t)
-      for (const left of times) expect(left).toBeLessThanOrEqual(20000)
-      expect(Math.max(...times)).toBeGreaterThan(15000)
-    }
-    // With an execute phase (the default), from its start, once an Execute has emptied the bar.
+    for (const [rotation, patch] of cases)
+      for (const f of fights(armsPlan(rotation, patch), 30).out) {
+        const reck = uses(f, 'recklessness')
+        expect(reck).toHaveLength(1)
+        expect(f.ms - reck[0].t).toBeLessThanOrEqual(15000)
+        expect(f.ms - reck[0].t).toBeGreaterThan(15000 - 4 * 1500)
+      }
+  })
+
+  it('row 17: the Mighty Rage Potion follows the execute phase, and without one (or Execute) follows Recklessness’s swap', () => {
+    // With an execute phase (the default), in it once an Execute has emptied the bar.
     for (const f of fights(armsPlan(), 30).out) {
       const potion = uses(f, 'mightyRagePotion')
       expect(potion).toHaveLength(1)
       expect(potion[0].t).toBeGreaterThanOrEqual(f.executeAt)
       expect(potion[0].rage).toBe(0)
     }
+    // Without an execute phase, or with Execute off (where the default 0 would wait for an Execute that
+    // never comes), it's drunk in every fight: at the same moment as Recklessness's swap (at most 25 rage
+    // kept), after anything else that moment brings (Bloodrage's rage, if it comes off cooldown then).
+    // All 45–75 of its rage fits.
+    const fallbacks: [SimConfig['rotation'], Partial<SimConfig>][] = [
+      [{}, { fight: { ...ARMS.fight, executePct: 0 } }],
+      [{ 'warrior.arms.execute.enabled': false }, {}],
+    ]
+    for (const [rotation, patch] of fallbacks) {
+      const { out } = fights(armsPlan(rotation, patch), 50)
+      for (const f of out) {
+        const reck = uses(f, 'recklessness')
+        const potion = uses(f, 'mightyRagePotion')
+        expect(reck).toHaveLength(1)
+        expect(potion).toHaveLength(1)
+        expect(potion[0].t).toBe(reck[0].t)
+        expect(f.swaps.map((s) => s.t)).toEqual([reck[0].t])
+        expect(f.swaps[0].after).toBeLessThanOrEqual(250)
+        const between = f.casts.slice(f.casts.indexOf(reck[0]) + 1, f.casts.indexOf(potion[0])).map((c) => c.id)
+        expect(between.every((id) => id === 'bloodrage')).toBe(true)
+        expect(potion[0].rage).toBeLessThanOrEqual(f.swaps[0].after + (between.length > 0 ? 150 : 0))
+      }
+    }
+    // With Recklessness off, or fighting in Berserker Stance (no swap), it's the last 20 s, as Fury's.
+    const noExecute = { fight: { ...ARMS.fight, executePct: 0 } }
+    const noSwap: SimConfig['rotation'][] = [{ 'warrior.arms.recklessness.enabled': false }, { 'warrior.arms.baseStance': 'berserker' }]
+    for (const rotation of noSwap) {
+      const times = fights(armsPlan(rotation, noExecute), 30).out.map((f) => f.ms - uses(f, 'mightyRagePotion')[0].t)
+      for (const left of times) expect(left).toBeLessThanOrEqual(20000)
+      expect(Math.max(...times)).toBeGreaterThan(15000)
+    }
+  })
+
+  it('row 17 in a short execute phase: not drunk by the last 4 s, it’s drunk then at up to 55 rage', () => {
+    // A 30 s fight's 10% phase lasts 2.7–3.3 s, often too short for an Execute to empty the bar first.
+    const { out } = fights(armsPlan({}, { fight: { ...ARMS.fight, durationSec: 30, executePct: 10 } }), 200)
+    let lastChance = 0
+    let drunk = 0
+    for (const f of out) {
+      const potion = uses(f, 'mightyRagePotion')
+      expect(potion.length).toBeLessThanOrEqual(1)
+      // Rarely, rage stays above 55 to the end with no Execute to empty it: then it isn't drunk.
+      if (potion.length === 0) continue
+      drunk++
+      expect(potion[0].t).toBeGreaterThanOrEqual(f.executeAt)
+      if (potion[0].rage > 0) {
+        lastChance++
+        expect(f.ms - potion[0].t).toBeLessThanOrEqual(4000)
+        expect(potion[0].rage).toBeLessThanOrEqual(550)
+      }
+    }
+    // Without the last chance, 14% of these fights went without it (M2.5a review, AL2).
+    expect(drunk).toBeGreaterThan(out.length * 0.98)
+    expect(lastChance).toBeGreaterThan(out.length * 0.05)
   })
 
   it('is deterministic: the same seed gives the same result, another seed a different one, and a fight depends only on its index', () => {

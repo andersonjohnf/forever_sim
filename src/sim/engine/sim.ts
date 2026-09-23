@@ -303,6 +303,11 @@ export class Sim {
    */
   private readonly entryLeftAtMost: Float64Array
   private readonly entryLeftAtLeast: Float64Array
+  /**
+   * The line's "execute phase starts within x" condition (ms; ∞ = none, COND.executeWithin): each
+   * fight moves the window's start to `execute start − x`, or never in a fight without the phase.
+   */
+  private readonly entryExecuteWithin: Float64Array
   private readonly entryBaseFrom: Float64Array
   private readonly entryFrom: Float64Array
   private readonly entryTo: Float64Array
@@ -311,6 +316,8 @@ export class Sim {
    * `fightEnd − x`, when that condition becomes true.
    */
   private readonly wakeTimeLeft: Float64Array
+  /** The distinct thresholds of `executeWithin` conditions (ms): each fight wakes the rotation at `execute start − x`. */
+  private readonly wakeExecuteWithin: Float64Array
   /** Some line waits for rage ≤ x, so spending rage is a decision point. */
   private readonly hasMaxRage: boolean
   /** Some proc listens for the target's dodges (the Overpower window); without one, a dodge fires nothing. */
@@ -721,13 +728,18 @@ export class Sim {
     // Phase, time-left and aura-refresh conditions are resolved up front, into the per-phase lists
     // and a time window per line, so a walk never evaluates them.
     const resolved = (c: { code: number }) =>
-      c.code === COND.executePhase || c.code === COND.timeLeftAtMost || c.code === COND.timeLeftAtLeast || c.code === COND.abilityAuraRefresh
+      c.code === COND.executePhase ||
+      c.code === COND.timeLeftAtMost ||
+      c.code === COND.timeLeftAtLeast ||
+      c.code === COND.executeWithin ||
+      c.code === COND.abilityAuraRefresh
     const nc = rotation.reduce((n, e) => n + e.conditions.filter((c) => !resolved(c)).length + (abilities[e.ability].window >= 0 ? 1 : 0), 0)
     this.condCode = new Int32Array(nc)
     this.condA = new Float64Array(nc)
     this.condB = new Float64Array(nc)
     this.entryLeftAtMost = new Float64Array(rotation.length).fill(Infinity)
     this.entryLeftAtLeast = new Float64Array(rotation.length).fill(-Infinity)
+    this.entryExecuteWithin = new Float64Array(rotation.length).fill(Infinity)
     this.entryBaseFrom = new Float64Array(rotation.length)
     this.entryFrom = new Float64Array(rotation.length)
     this.entryTo = new Float64Array(rotation.length)
@@ -778,6 +790,10 @@ export class Sim {
           this.entryLeftAtLeast[e] = Math.max(this.entryLeftAtLeast[e], cond.a)
           continue
         }
+        if (cond.code === COND.executeWithin) {
+          this.entryExecuteWithin[e] = Math.min(this.entryExecuteWithin[e], cond.a)
+          continue
+        }
         if (cond.code === COND.abilityAuraRefresh) {
           // warrior.md §5.2 row 1: usable while the aura is down, or from `lead` before its end.
           const aura = abilities[cond.a].aura
@@ -811,6 +827,7 @@ export class Sim {
     const wakes = new Set<number>()
     for (const x of this.entryLeftAtMost) if (x !== Infinity) wakes.add(x)
     this.wakeTimeLeft = Float64Array.from([...wakes].sort((x, y) => y - x))
+    this.wakeExecuteWithin = Float64Array.from(new Set(this.entryExecuteWithin.filter((x) => x !== Infinity)))
     this.hasMaxRage = this.condCode.includes(COND.maxRage)
     this.hasDodgeProcs = (plan.triggers[TRIGGER.targetDodge] ?? []).length > 0
     this.hasRotation = rotation.length > 0
@@ -836,23 +853,31 @@ export class Sim {
     const u = this.rngFight.next()
     this.fightEnd = Math.round(f.durationMs * (1 + f.variation * (2 * u - 1)))
     this.reset()
+    // docs/mechanics/encounter.md#implementation-notes: t_exec = floor(L_i × (1 − executePct/100))
+    this.executeAtMs = executePhaseStart(this.fightEnd, f.executePct)
+    const hasExecute = this.executeAtMs < this.fightEnd
     // Time left ≤ x ⇔ now ≥ fightEnd − x; time left ≥ x ⇔ now ≤ fightEnd − x (warrior.md §5.2 rows 2–4).
+    // The execute phase starts within x ⇔ now ≥ t_exec − x, never without the phase (§5.3 row 4).
     for (let e = 0; e < this.entryFrom.length; e++) {
-      this.entryBaseFrom[e] = this.fightEnd - this.entryLeftAtMost[e]
-      this.entryFrom[e] = this.entryBaseFrom[e]
+      let from = this.fightEnd - this.entryLeftAtMost[e]
+      const lead = this.entryExecuteWithin[e]
+      if (lead !== Infinity) from = hasExecute ? Math.max(from, this.executeAtMs - lead) : Infinity
+      this.entryBaseFrom[e] = from
+      this.entryFrom[e] = from
       this.entryTo[e] = this.fightEnd - this.entryLeftAtLeast[e]
     }
     if (this.preAbility.length > 0 || this.preChargeTenths > 0) this.prepull()
 
     const q = this.q
-    // docs/mechanics/encounter.md#implementation-notes: t_exec = floor(L_i × (1 − executePct/100))
-    this.executeAtMs = executePhaseStart(this.fightEnd, f.executePct)
     if (this.hasRotation) {
       q.push(0, EV_ACT, 0, 0)
-      if (this.executeAtMs < this.fightEnd) q.push(this.executeAtMs, EV_EXECUTE, 0, 0)
-      // "Time left ≤ x" becomes true at fightEnd − x: wake the rotation then.
+      if (hasExecute) q.push(this.executeAtMs, EV_EXECUTE, 0, 0)
+      // "Time left ≤ x" becomes true at fightEnd − x, and "the phase starts within x" at t_exec − x:
+      // wake the rotation then.
       const wakes = this.wakeTimeLeft
       for (let i = 0; i < wakes.length; i++) if (this.fightEnd - wakes[i] > 0) q.push(this.fightEnd - wakes[i], EV_ACT, 0, 0)
+      const leads = this.wakeExecuteWithin
+      if (hasExecute) for (let i = 0; i < leads.length; i++) if (this.executeAtMs - leads[i] > 0) q.push(this.executeAtMs - leads[i], EV_ACT, 0, 0)
     }
     // docs/mechanics/damage-and-timing.md#31-haste: main hand at 0, off hand at half its swing [?]
     if (this.hasWeapon[HAND.main]) this.scheduleSwing(HAND.main, 0)

@@ -329,12 +329,14 @@ slice is worked:
 - ~~Snap can't capture a finished run~~: `--click Simulate` now waits for the result, and
   `--click "Show results"` opens the phone's results sheet.
 - **Arms tuning findings:** re-measured and adopted in M2.5a. The Arms defaults are now the best
-  rotation found ([warrior.md §5.3](classes/warrior.md#tuning-the-defaults-m25a)): +35.6 DPS
-  (+5.8%, 610.1 → 645.8) over the old ones. Of the old findings, Rend's 3 s refresh is adopted;
+  rotation found ([warrior.md §5.3](classes/warrior.md#tuning-the-defaults-m25a)): +37.0 DPS
+  (+6.1%, 610.3 → 647.3) over the old ones. Of the old findings, Rend's 3 s refresh is adopted;
   Heroic Strike from 55, the Whirlwind dance and Spearing Strike from 40 lost to better changes.
-  **Still open:** Recklessness's timing and the potion's rage limit are tuned to the default
-  fight's execute phase. Without one, set them to 15 s and 55 rage (+3.1%); in a 300 s fight
-  Recklessness is best at 60–65 s (+0.3%). Settings that follow the execute phase would fix both.
+  Recklessness and the Mighty Rage Potion follow the execute phase, so the defaults hold at every
+  fight length and execute phase measured, but one: **still open,** in a 30 s fight with no
+  execute phase the old defaults are 2.4% ahead, from their Heroic Strike. Without a phase,
+  Heroic Strike from 90 beats off at every length (+0.1% to +2.2%); taking it needs a switch's
+  default to follow the Fight tab's execute phase.
 - **Gnome Eureka! isn't simulated** (warrior Q18); the result says so.
 - **Multi-target isn't simulated** until [M6](#m6-multi-target-). The Fight tab's Enemies
   control is hidden until then; `extraTargets` stays in the config

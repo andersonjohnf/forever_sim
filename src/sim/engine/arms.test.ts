@@ -431,6 +431,48 @@ describe('rage refunds on avoidance (rage.md#rage-refunds-on-avoided-abilities)'
   })
 })
 
+describe('a line timed from the execute phase (COND.executeWithin; warrior.md §5.3 row 4, §7)', () => {
+  // A 20 s fight with no variation and a 20% execute phase: the phase starts at 16 s. White swings
+  // land at 0, 3.8, 7.6, 11.4 and 15.2 s, so a use at any other time is the condition's own wake-up.
+  const withPhase = (executePct: number, lines: (plan: Plan, br: number) => void) => {
+    const plan = armsPlan(20000)
+    plan.fight.executePct = executePct
+    const br = addAbility(plan, BLOODRAGE)
+    lines(plan, br)
+    alwaysLandNoCrit(plan)
+    const { sim, uses } = timeline(plan)
+    return { executeAt: sim.executeAtMs, uses: uses[br] }
+  }
+  const within = (ms: number): RotationCondition => ({ code: COND.executeWithin, a: ms, b: 0 })
+
+  it('holds from that long before the phase starts, and the rotation wakes then', () => {
+    expect(withPhase(20, (plan, br) => line(plan, br, [within(1500)]))).toEqual({ executeAt: 16000, uses: [14500] })
+    // A lead longer than the time to the phase holds from the pull.
+    expect(withPhase(20, (plan, br) => line(plan, br, [within(30000)])).uses).toEqual([0])
+    // A lead of 0: the phase's start.
+    expect(withPhase(20, (plan, br) => line(plan, br, [within(0)])).uses).toEqual([16000])
+  })
+
+  it('never holds in a fight without an execute phase', () => {
+    expect(withPhase(0, (plan, br) => line(plan, br, [within(1500)]))).toEqual({ executeAt: 20000, uses: [] })
+  })
+
+  it('with a time-left line for the same ability, the first to hold uses it (Arms Recklessness)', () => {
+    // 1.5 s before the phase (14.5 s) or with 8 s left (12 s): 12 s comes first; with 3 s left (17 s), 14.5 s.
+    const both = (leftMs: number, executePct = 20) =>
+      withPhase(executePct, (plan, br) => {
+        line(plan, br, [within(1500)])
+        line(plan, br, [{ code: COND.timeLeftAtMost, a: leftMs, b: 0 }])
+      }).uses
+    expect(both(8000)).toEqual([12000])
+    expect(both(3000)).toEqual([14500])
+    // Without the phase, only the clock.
+    expect(both(3000, 0)).toEqual([17000])
+    // Conditions on one line all hold: the later of the two.
+    expect(withPhase(20, (plan, br) => line(plan, br, [within(1500), { code: COND.timeLeftAtMost, a: 8000, b: 0 }])).uses).toEqual([14500])
+  })
+})
+
 describe('determinism with the Arms abilities in play (decision D15)', () => {
   function arms(seed: number): Plan {
     const plan = armsPlan(120000)

@@ -352,6 +352,13 @@ export const COND = {
    * nothing for it.
    */
   windowOpen: 12,
+  /**
+   * the execute phase starts in at most a ms, or has started (encounter §3; Arms Recklessness,
+   * warrior.md §5.3 row 4). Never true in a fight without one. Each fight's phase start is known,
+   * so the engine resolves it like the time-left conditions: into the line's window of times, with
+   * a wake-up of the rotation at `execute start − a`.
+   */
+  executeWithin: 13,
 } as const
 
 export interface RotationCondition {

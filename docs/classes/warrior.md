@@ -18,7 +18,9 @@ Status: researched 2026-09-22 · Forever beta build 1.60.1.69913 vs Classic Era 
 ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 
 **How values are tagged.** **[F]** means a Forever tooltip on foreverchanges.pro or a row
-in the Forever client's DB2 tables on wago.tools (links marked `db`). **[C]** means Classic Era
+in the Forever client's DB2 tables at build 1.60.1.69913. **[client] (Table, build)** marks a
+value read from the raw client files and checked in [client.md][client]; links marked `db` open
+the same tables on wago.tools for browsing. **[C]** means Classic Era
 behaviour. **[?]** means an assumption or an unverified value, and each one has a matching entry
 in [Open questions](#9-open-questions) (Q-numbers). Source links are reference-style; the full
 list is in [Sources](#10-sources).
@@ -83,13 +85,13 @@ utility are covered in [§4](#4-talents).
 
 | Change | Classic Era [C] | WoW Forever [F] | What it means for the sim |
 | --- | --- | --- | --- |
-| Bloodthirst | 45% of AP, 30 rage, 6 s cooldown [cls] | **35% of AP + 48** (the talent's rank 1 is + 30). Also +10% movement speed for 10 s instead of the heal [sb] [db-eff] | Weaker at high AP (−132 at 1800 AP). The AP above which Bloodthirst beats Execute rises to about 2220–2430 ([W11](#w11-bloodthirst-versus-execute-break-even)) |
-| Slam | 1.5 s cast, **no cooldown**, rank 4 +87 | **15 s cooldown** on every rank; rank 5 is +87 and is trained at 54 [sb] [db-cd] | No more Slam spam. Slam becomes a cooldown ability |
+| Bloodthirst | 45% of AP, 30 rage, 6 s cooldown [cls] | **35% of AP + 48** (the talent's rank 1 is + 30). Also +10% movement speed for 10 s instead of the heal [sb] [client] (SpellEffect, 1.60.1.69913) | Weaker at high AP (−132 at 1800 AP). The AP above which Bloodthirst beats Execute rises to about 2220–2430 ([W11](#w11-bloodthirst-versus-execute-break-even)) |
+| Slam | 1.5 s cast, **no cooldown**, rank 4 +87 | **15 s cooldown** on every rank; rank 5 is +87 and is trained at 54 [sb] [client] (SpellCooldowns, 1.60.1.69913) | No more Slam spam. Slam becomes a cooldown ability |
 | Improved Slam | Fury tier 5, 5 ranks, −0.1 s cast per rank | **Arms** tier 6, 2 ranks, **−0.25 s cast time and GCD** per rank, and Slam "no longer interrupts your melee swing time" [tal] [db-eff] | At 2/2 Slam is a 1.0 s cast on a 1.0 s GCD that leaves swing timers alone |
-| Flurry | +10/15/20/25/30% attack speed | **+5/10/15/20/25%** [tal] [db-trait] | 5/5 is 25%, not 30% |
+| Flurry | +10/15/20/25/30% attack speed | **+5/10/15/20/25%** [tal] [client] (CurvePoint, 1.60.1.69913) | 5/5 is 25%, not 30% |
 | Unbridled Wrath | 8% per rank (40%), +1 rage | **12% per rank (60%), +1 rage, or +2 with a two-hander** [tal] | Much more rage, especially for two-handers |
-| Dual Wield Specialization | +5% off-hand damage per rank | +5% off-hand damage, **+20% off-hand rage and +2% off-hand hit** per rank [tal] [db-trait] | At 5/5: off-hand rage ×2.0 and +10% off-hand hit |
-| Enrage | +5% per rank melee damage for 12 s or 12 swings, after **being crit** | **30% chance when hit by any damaging attack**; +2% per rank Physical damage for 12 s, with no swing cap [tal] [db-aura] | Needs incoming damage events. At 5/5 it gives +10% |
+| Dual Wield Specialization | +5% off-hand damage per rank | +5% off-hand damage, **+20% off-hand rage and +2% off-hand hit** per rank [tal] [client] (CurvePoint, 1.60.1.69913) | At 5/5: off-hand rage ×2.0 and +10% off-hand hit |
+| Enrage | +5% per rank melee damage for 12 s or 12 swings, after **being crit** | **30% chance when hit by any damaging attack**; +2% per rank Physical damage for 12 s, with no swing cap [tal] [client] (SpellAuraOptions, 1.60.1.69913) | Needs incoming damage events. At 5/5 it gives +10% |
 | Death Wish | +20% physical damage, but −20% armor and resistances | +20% Physical damage, but **+5% damage taken** [tal] | DPS unchanged; the tank-side penalty is different |
 | Improved Execute | −2 / −5 rage | −3 / −5 rage [tal] | Rank 1 is better |
 | Improved Cleave | +40% per rank to Cleave's bonus damage | **−1 rage per rank** to Cleave's cost [tal] | Cleave stays at +50 damage |
@@ -114,8 +116,8 @@ utility are covered in [§4](#4-talents).
 | Battle Shout (rank 7) | +232 AP, 2 min | **+139 AP, 3 min** [sb] | −93 AP to the party. See [§1.1](#11-battle-shout-a-nerf-not-a-re-ranking) |
 | Improved Battle Shout and Improved Demoralizing Shout | Fury talents | **Removed** [cls] | No way to raise shout values |
 | Demoralizing Shout (rank 5) | −140 AP, 30 s | **−196 AP, 45 s** [sb] | Details belong in [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md) |
-| Thunder Clap | 4 s cooldown, 10% attack-speed slow, Battle Stance only | **6 s cooldown, 20% slow, Battle or Defensive Stance** [sb] [db-ss] | Protection can use it without dancing |
-| Sunder Armor | No threat effect in client data (Classic threat of 261 is set server side [magey-thr]) | Client data adds a **THREAT effect of 1013 at rank 5** (405/608/810 at ranks 2–4, which is 2.25 × the armor removed) [db-eff] [?] | Possibly a large TPS change. Flagged for [threat.md](../mechanics/threat.md); see Q1 |
+| Thunder Clap | 4 s cooldown, 10% attack-speed slow, Battle Stance only | **6 s cooldown, 20% slow, Battle or Defensive Stance** [sb] [client] (SpellShapeshift, 1.60.1.69913) | Protection can use it without dancing |
+| Sunder Armor | No threat effect in client data [client] (SpellEffect, 1.15.9.69722) (Classic threat of 261 is set server side [magey-thr]) | Client data adds a **THREAT effect of 1013 at rank 5** (405/608/810 at ranks 2–4, which is 2.25 × the armor removed) [F] [client] (SpellEffect, 1.60.1.69913); the in-game threat is [?] | Possibly a large TPS change. Flagged for [threat.md](../mechanics/threat.md); see Q1 |
 | Victory Rush | Does not exist in Classic Era | New baseline spell: 1 damage, heals 10% of max health, 30 s cooldown, only within 20 s of killing a non-trivial enemy [sb] | Not used against bosses |
 | Retaliation, Shield Wall, Last Stand, Taunt | 30 min, 30 min (75%, 10 s), 10 min, 10 s | 15 min, 15 min (60%, 12 s), **3 min**, 8 s [sb] [db-cd] | Not simulated |
 | Concussion Blow | 15 rage | 10 rage [db-pow] | Not simulated |
@@ -123,10 +125,10 @@ utility are covered in [§4](#4-talents).
 
 ### 1.1 Battle Shout: a nerf, not a re-ranking
 
-Every Forever rank of Battle Shout is 0.60× its Classic value: 9/15, 21/35, 33/55, 51/85,
-78/130, 111/185 and 139/232 [sb]. Rank 7 is still the level-60 rank, spell 25289. Its client
-row is base 139 with 0.6 points per level, where Classic had 232 and 1 point per level
-[db-eff] [C-eff], so the whole spell was scaled by 0.6. This is a **flat nerf, not a
+Every Forever rank of Battle Shout is 0.60× its Classic value: 9/15, 21/35, 33/55, 51/85, 78/130,
+111/185 and 139/232 [sb]. Rank 7 is still the level-60 rank, spell 25289. Its client row is base
+139 with 0.6 points per level [client] (SpellEffect, 1.60.1.69913), where Classic had 232 and 1
+point per level [C-eff], so the whole spell was scaled by 0.6. This is a **flat nerf, not a
 re-ranking**. Nothing restores the old value:
 
 - Improved Battle Shout was removed from the Fury tree [cls].
@@ -157,9 +159,9 @@ same as Classic, so this is not a change [tal] [db-eff] [C-eff].
 
 | Stance | Passive in Forever | Threat | Stance-only abilities [db-ss] |
 | --- | --- | --- | --- |
-| Battle | none | ×0.8 [F] [db-eff] (spell 21156, −20%); [C] [magey-thr] | Overpower, Charge, Sweeping Strikes, Retaliation, Mocking Blow; shared with Defensive: Rend, Thunder Clap, Shield Bash; shared with Berserker: Execute, Hamstring |
-| Defensive | Damage taken −10%, damage done −10%, all threat +30% [F] [sb] [db-eff] (spell 7376) | ×1.3, and ×1.15 more with Defiance 3/3 and a shield | Revenge, Shield Block, Shield Wall, Taunt, Disarm, Charge (with Vanguard); shared with Battle: Rend, Thunder Clap (new in Forever), Shield Bash |
-| Berserker | +3% crit on all attacks, damage taken +10% [F] [sb] [db-eff] (spell 7381) | ×0.8 [F] [db-eff]; [C] [magey-thr] | Whirlwind, Berserker Rage, Recklessness, Intercept, Pummel; shared with Battle: Execute, Hamstring |
+| Battle | none | ×0.8 [F] [client] (SpellEffect, 1.60.1.69913) (spell 21156, −20%); [C] [magey-thr] | Overpower, Charge, Sweeping Strikes, Retaliation, Mocking Blow; shared with Defensive: Rend, Thunder Clap, Shield Bash; shared with Berserker: Execute, Hamstring |
+| Defensive | Damage taken −10%, damage done −10%, all threat +30% [F] [sb]; threat [client] (SpellEffect, 1.60.1.69913) (spell 7376) | ×1.3, and ×1.15 more with Defiance 3/3 and a shield | Revenge, Shield Block, Shield Wall, Taunt, Disarm, Charge (with Vanguard); shared with Battle: Rend, Thunder Clap (new in Forever), Shield Bash |
+| Berserker | +3% crit on all attacks, damage taken +10% [F] [sb] [client] (SpellEffect, 1.60.1.69913) (spell 7381) | ×0.8 [F] [client] (SpellEffect, 1.60.1.69913); [C] [magey-thr] | Whirlwind, Berserker Rage, Recklessness, Intercept, Pummel; shared with Battle: Execute, Hamstring |
 
 Usable in **any stance**: Heroic Strike, Cleave, Bloodthirst, Mortal Strike, Slam, Sunder Armor,
 Shield Slam, Spearing Strike, Victory Rush, Death Wish, Bloodrage, the shouts and Concussion Blow
@@ -169,16 +171,17 @@ Shield Slam, Spearing Strike, Victory Rush, Death Wish, Bloodrage, the shouts an
   percentage auras. The Defensive Stance penalty uses the same aura type (79) as Death Wish,
   Bastion and Two-Handed Weapon Specialization, and the engine multiplies them
   [db-eff]; see [damage-and-timing.md](../mechanics/damage-and-timing.md).
-- **The Berserker crit type changed.** Berserker Stance's +3% now uses the "all crit" aura
-  (290) instead of Classic's weapon-crit aura (52) [db-eff] [C-eff]. It is still crit from an
-  aura, so the +3-level aura-crit suppression in
-  [combat-tables.md](../mechanics/combat-tables.md) applies [magey-crit].
+- **The Berserker crit type changed.** Berserker Stance's +3% now uses the "all crit" aura (290)
+  instead of Classic's weapon-crit aura (52) [F] [client] (SpellEffect, 1.60.1.69913); [C]
+  [client] (SpellEffect, 1.15.9.69722). It is still crit from an aura, so the +3-level aura-crit
+  suppression in [combat-tables.md](../mechanics/combat-tables.md) applies [magey-crit].
 - **An empty aura on Berserker Stance.** Its Forever passive adds an attack-power-percent
-  aura (166) with value 0. It has no effect, but watch for it in later builds [db-eff].
+  aura (166) with value 0. It has no effect, but watch for it in later builds [F]
+  [client] (SpellEffect, 1.60.1.69913).
 - **Swapping stances.** A swap is off the GCD and has a 1.0 s cooldown shared by the three
-  stances [F] [db-cd]. The warrior keeps `rage = min(rage, 10 + 3 × Improved Tactical
-  Mastery rank)` [F] [sb] [tal]; in Classic Era the formula was `min(rage, 5 × Tactical
-  Mastery rank)` [C]. The rest of the rage is lost.
+  stances [F] [client] (SpellCooldowns, 1.60.1.69913) (category 47). The warrior keeps `rage =
+  min(rage, 10 + 3 × Improved Tactical Mastery rank)` [F] [sb] [tal]; in Classic Era the formula
+  was `min(rage, 5 × Tactical Mastery rank)` [C]. The rest of the rage is lost.
 - **Stance-restricted abilities.** When an ability needs another stance, an APL may swap first
   ("stance dance"). The swap and its rage loss happen before the ability. The Classic
   mechanics are implemented the same way in WarriorSim [ws-spell].
@@ -195,12 +198,13 @@ Shield Slam, Spearing Strike, Victory Rush, Death Wish, Bloodrage, the shouts an
   - shouts
   - cooldowns: Death Wish, Recklessness, **Berserker Rage**, Retaliation, Shield Wall
   - utility: Pummel, Shield Bash, Mocking Blow
+  - racials: **Stoneform** (`StartRecoveryTime` 1500) [F] [client] (SpellCooldowns, 1.60.1.69913)
 - **Off the GCD:**
   - Heroic Strike and Cleave (on-next-swing)
   - Bloodrage, Sweeping Strikes, Shield Block, Last Stand
   - stance swaps
   - racials: Blood Fury, Berserking, Elune's Light and Eureka! all have `StartRecoveryTime` 0
-    [F] [db-cd]
+    [F] [client] (SpellCooldowns, 1.60.1.69913)
   - trinkets
 
 ### 2.3 Rage: warrior-specific
@@ -211,14 +215,14 @@ This section adds the warrior's own sources and sinks.
 
 | Source or modifier | Rule | Tag |
 | --- | --- | --- |
-| Max rage | 100 + 10 × Boundless Rage rank, so 130 at 3/3. Gnomes get +5% max rage from Expansive Mind; how the two combine is Q17 | [F] [tal] [rac] [db-eff] (aura 418) |
-| Unbridled Wrath | On every **white** melee hit that deals damage (hit, crit, glance or block; not miss, dodge or parry), a 12% per rank chance to gain 1 rage, or 2 with a two-hander. The Forever data's proc mask is "melee auto attack" only. The pre-SoD WarriorSim also lets Heroic Strike swings proc it (it has no Cleave). **Default: white swings, extra attacks and HS/Cleave swings.** See Q5 | [F] [tal] [db-aura]; HS/Cleave [C] [ws-player] [?] |
-| Dual Wield Specialization | Rage from off-hand auto attacks × (1 + 0.20 × rank), so ×2.0 at 5/5. Applied to the rage [rage.md](../mechanics/rage.md) computes for that off-hand swing, including dodge rage | [F] [tal] [db-trait] |
+| Max rage | 100 + 10 × Boundless Rage rank, so 130 at 3/3. Gnomes get +5% max rage from Expansive Mind; how the two combine is Q17 | [F] [tal] [rac] [client] (SpellEffect, CurvePoint, 1.60.1.69913) (aura 418, 100/200/300 tenths) |
+| Unbridled Wrath | On every **white** melee hit that deals damage (hit, crit, glance or block; not miss, dodge or parry), a 12% per rank chance to gain 1 rage, or 2 with a two-hander. The Forever data's proc mask is "melee auto attack" only. The pre-SoD WarriorSim also lets Heroic Strike swings proc it (it has no Cleave). **Default: white swings, extra attacks and HS/Cleave swings.** See Q5 | [F] [tal] [client] (SpellAuraOptions, CurvePoint, 1.60.1.69913) (mask 0x4, curve 12–60, energize 12964 = 10 tenths); HS/Cleave [C] [ws-player] [?] |
+| Dual Wield Specialization | Rage from off-hand auto attacks × (1 + 0.20 × rank), so ×2.0 at 5/5. Applied to the rage [rage.md](../mechanics/rage.md) computes for that off-hand swing, including dodge rage | [F] [tal] [client] (CurvePoint, 1.60.1.69913) |
 | Anger Management | +1 rage every 3 s in combat, on a fixed 3 s tick from combat start | [F] [tal]; [C] |
-| Bloodrage | +10 rage at once, then +1 per second for 10 s. Improved Bloodrage multiplies all of it by 1 + 0.25 × rank (15 + 15 at 2/2). 60 s cooldown, off the GCD, puts the warrior in combat, so it can be used before the pull | [F] [sb] [tal] [db-eff] |
+| Bloodrage | +10 rage at once, then +1 per second for 10 s. Improved Bloodrage multiplies all of it by 1 + 0.25 × rank (15 + 15 at 2/2). 60 s cooldown, off the GCD, puts the warrior in combat, so it can be used before the pull | [F] [sb] [tal] [client] (SpellEffect, CurvePoint, 1.60.1.69913) (2687 = 100, 29131 = 10 per s; 25/50) |
 | Berserker Rage | +5 / +10 rage on use with Improved Berserker Rage 1/2 or 2/2. Its extra rage from damage taken belongs to [rage.md](../mechanics/rage.md) | [F] [tal]; extra rage [C] [?] (Q20) |
-| Shield Specialization | On a block, a 20% per rank chance to gain 5 rage (100% at 5/5). Blocks from Shield Block count | [F] [tal] [db-eff] (spell 1310318) |
-| Master of Defense | On a dodge or parry with a shield equipped, a 50% per rank chance to gain 5 rage | [F] [tal] [db-eff] (spell 23602) |
+| Shield Specialization | On a block, a 20% per rank chance to gain 5 rage (100% at 5/5). Blocks from Shield Block count | [F] [tal] [client] (SpellEffect, CurvePoint, 1.60.1.69913) (spell 1310318 = 50 tenths) |
+| Master of Defense | On a dodge or parry with a shield equipped, a 50% per rank chance to gain 5 rage | [F] [tal] [client] (SpellEffect, CurvePoint, 1.60.1.69913) (spell 23602 = 50 tenths) |
 | Charge (opener) | Charge rank 3 generates 15 rage, +3 per rank of Improved Charge. Out of combat only; Battle Stance, or Defensive with Vanguard. It is modelled only as an optional pre-pull rage grant | [F] [sb] [tal] |
 | Stance swap | Keeps min(rage, 10 + 3 × Improved Tactical Mastery rank); see [§2.1](#21-stances) | [F] |
 | Execute | Spends all remaining rage on a successful hit; see [§3.1](#31-damage-abilities) | [F]/[C] |
@@ -231,7 +235,8 @@ This section adds the warrior's own sources and sinks.
 - Improved Execute: −3 at 1/2, −5 at 2/2.
 - Improved Sunder Armor: −1 per rank.
 - Improved Thunder Clap: −2 per rank.
-- **Focused Rage: −1 per rank** on every ability in its class mask [F] [db-cls]:
+- **Focused Rage: −1 per rank** on every ability in its class mask [F] [client] (SpellEffect,
+  1.60.1.69913):
   - attacks: Bloodthirst, Mortal Strike, Whirlwind, Slam, Heroic Strike, Cleave, Execute,
     Overpower, Revenge, Shield Slam, Spearing Strike, Rend, Hamstring, Thunder Clap, Sunder
     Armor
@@ -250,9 +255,9 @@ This section adds the warrior's own sources and sinks.
 2. **Damage.** The replaced swing uses the main-hand's non-normalized weapon damage
    (`weaponRoll + AP / 14 × weaponSpeed`) plus the bonus: +157 for Heroic Strike rank 9, +50
    for Cleave rank 5. Cleave hits the target and one more nearby enemy, each with the +50 [F]
-   [sb] [db-eff] (effect 17 = non-normalized weapon damage). The swing rolls on the **special
-   attack table**, so it cannot glance; see [combat-tables.md](../mechanics/combat-tables.md)
-   [C] [marrow-mech].
+   [sb] [client] (SpellEffect, 1.60.1.69913) (effect 17 = non-normalized weapon damage). The
+   swing rolls on the **special attack table**, so it cannot glance; see
+   [combat-tables.md](../mechanics/combat-tables.md) [C] [marrow-mech].
 3. **Rage.** The replaced swing generates no damage rage [C] [marrow] [wh-fury]. It can still
    proc Unbridled Wrath under the default in [§2.3](#23-rage-warrior-specific).
 4. **Off-hand swings while queued.** While Heroic Strike or Cleave is queued, off-hand white
@@ -265,10 +270,11 @@ This section adds the warrior's own sources and sinks.
    Another community Forever sim removed this behaviour in its own code [ew]; nothing supports
    that. Q6.
 5. **Flurry.** In Forever, Heroic Strike and Cleave swings **do not consume Flurry charges**;
-   only white swings do [F] [db-aura] (the Flurry buff's proc mask is auto attacks only). For
-   Classic Era this is [?]: the pre-SoD WarriorSim consumes a charge on a Heroic Strike swing
-   [ws-player], while its post-SoD code doesn't. Q7. Either way they can **proc** Flurry, Deep
-   Wounds and on-hit effects like any yellow attack [C] [ws-player].
+   only white swings do [F] [client] (SpellAuraOptions, 1.60.1.69913) (the Flurry buff's proc
+   mask is auto attacks only). For Classic Era this is [?]: the pre-SoD WarriorSim consumes a
+   charge on a Heroic Strike swing [ws-player], while its post-SoD code doesn't. Q7. Either way
+   they can **proc** Flurry, Deep Wounds and on-hit effects like any yellow attack [C]
+   [ws-player].
 6. **Swing timer.** The replaced swing resets the main-hand swing timer like a normal swing
    [C] [ws-player].
 7. **Extra attacks.** If an extra attack (Windfury, Weaponmaster's sword proc, Hand of
@@ -281,7 +287,7 @@ This section adds the warrior's own sources and sinks.
 
 **Crit damage.** Melee crits deal 2.0× damage [C]. For **abilities** the multiplier is
 `1 + 1.0 × (1 + 0.10 × Impale rank)`, which is 2.2 at 2/2 [F] [tal]; [C] [ws-player]. Impale's
-class mask covers these attacks [db-cls]:
+class mask covers these attacks [client] (SpellEffect, 1.60.1.69913):
 
 - Bloodthirst, Mortal Strike, Whirlwind, Slam, Heroic Strike, Cleave, Execute, Overpower
 - Revenge, Shield Slam, Thunder Clap, Hamstring, Spearing Strike, Victory Rush, Intercept,
@@ -293,11 +299,11 @@ through the periodic-crit flag [?] (a 2.0× tick crit, since Rend isn't in Impal
 [damage-and-timing §4](../mechanics/damage-and-timing.md#4-dots-and-bleeds)). Crit-damage
 bonuses from items, if any, are covered in [damage-and-timing.md](../mechanics/damage-and-timing.md).
 
-**Flurry** [F] [tal] [db-trait] [db-aura]:
+**Flurry** [F] [tal] [client] (SpellAuraOptions, CurvePoint, 1.60.1.69913):
 
 - **Trigger.** Any melee crit (white or yellow, main or off hand, including Heroic Strike,
   Cleave and extra attacks) sets the Flurry buff to **3 charges** and a **15 s** duration
-  [F] [db-misc] (spell 12966, duration 15 000 ms).
+  [F] [client] (SpellMisc, SpellDuration, 1.60.1.69913) (spell 12966, duration 15 000 ms).
 - **Effect.** While the buff is up, melee attack speed is multiplied by `1 + 0.05 × rank`, so
   ×1.25 at 5/5. It stacks multiplicatively with other haste; see
   [damage-and-timing.md](../mechanics/damage-and-timing.md).
@@ -306,9 +312,10 @@ bonuses from items, if any, are covered in [damage-and-timing.md](../mechanics/d
   [C] [ws-player]. When the charges run out, the buff drops.
 - **The data disagrees with the tooltip.** The Forever buff row still has base 30, but the
   talent's rank curve (5/10/15/20/25) and the tooltip give 25 at 5/5. **Use 25** [F]
-  [db-trait]; the leftover base value is Q7.
+  [client] (SpellEffect, CurvePoint, 1.60.1.69913); the leftover base value is Q7.
 
-**Deep Wounds** [F] [tal]; mechanics [C] (the pre-SoD WarriorSim's `DeepWounds` aura,
+**Deep Wounds** [F] [tal]; bleed spell and tick timing [F] [client] (SpellName, SpellEffect,
+SpellMisc, 1.60.1.69913); other mechanics [C] (the pre-SoD WarriorSim's `DeepWounds` aura,
 [ws-spell]):
 
 - **Trigger.** Every crit (white or yellow, main or off hand) applies or refreshes a bleed on
@@ -325,14 +332,18 @@ bonuses from items, if any, are covered in [damage-and-timing.md](../mechanics/d
   damage does not roll over. That rolling behaviour is WarriorSim's later SoD `DeepWounds`
   class, which we don't use [C] [ws-spell].
 - **Modifiers.** The bleed ignores armor. Physical damage-done modifiers apply (Death Wish,
-  Enrage, Two-Handed Weapon Specialization, stance) [C] [ws-spell]. It cannot crit (its
-  Forever periodic-crit flag is off, per a secondary read, [?]) and doesn't proc on-hit
-  effects. Whether Forever still uses Classic's separate bleed spell (12721) is Q21; the
-  candidate Forever id 412609 comes only from wowsims/forever's read of the client [?].
+  Enrage, Two-Handed Weapon Specialization, stance) [C] [ws-spell]. It cannot crit (its Forever
+  bleed lacks the periodic-crit flag, [F] [client] (SpellMisc, 1.60.1.69913)) and doesn't proc
+  on-hit effects.
+- **Spell.** Forever's bleed is spell **412609** ("Deep Wound": aura 226 every 3,000 ms for
+  12,000 ms, 4 ticks); the talent 12834 triggers it server-side, with no trigger in the data.
+  Classic's bleed 12721 doesn't exist in the Forever client (no `SpellName`, `SpellEffect` or
+  `SpellMisc` row, and not encrypted) [F] [client] (SpellName, SpellEffect, SpellMisc,
+  1.60.1.69913).
 
 ### 2.6 Enrage, Death Wish, Recklessness
 
-**Enrage** [F] [tal] [db-aura] [db-eff]:
+**Enrage** [F] [tal] [client] (SpellAuraOptions, SpellEffect, 1.60.1.69913):
 
 - **Trigger.** Each time the warrior is hit by a **damaging** attack, there is a 30% chance to
   gain Enrage. That covers melee, ranged and spell damage. The proc mask is 0x222A8: taken
@@ -358,7 +369,8 @@ bonuses from items, if any, are covered in [damage-and-timing.md](../mechanics/d
 - White crits are still bounded by the attack table's crit cap; see
   [combat-tables.md](../mechanics/combat-tables.md). It is usable once per fight.
 - In Classic, Recklessness, Retaliation and Shield Wall share a cooldown [wh-tank]. The Forever
-  data gives Recklessness its own recovery time [db-cd], so they may be independent now. That
+  data gives Recklessness its own recovery time (1,800,000 ms, no category) [F]
+  [client] (SpellCooldowns, SpellCategories, 1.60.1.69913), so they may be independent now. That
   doesn't matter to a DPS sim.
 
 ### 2.7 Weaponmaster, extra attacks and Windfury
@@ -368,8 +380,8 @@ Weaponmaster replaces Classic's Sword, Axe, Polearm and Mace Specialization with
 
 | Weapon | Effect per rank (5/5) | Model | Tag |
 | --- | --- | --- | --- |
-| **Sword** (1H or 2H) | 1% (5%) chance on a successful melee attack (white or yellow) made with the sword to gain **1 extra attack** | Proc mask 0x14 (auto attack + melee ability). There is a **200 ms internal cooldown** (`ProcCategoryRecovery` 200), so an extra attack can't chain-proc itself. Roll once per ability cast, even for multi-target abilities [?] (only WarriorSim's post-SoD code does this; Magey establishes it for Windfury only; Q9). The extra attack is an immediate main-hand white swing: it resets the main-hand swing timer, consumes a Flurry charge, and becomes the queued Heroic Strike if one is queued [C] [magey-wf] | [F] [db-aura] (spell 12281; Classic has the same 200 ms) [C-aura] |
-| **Axe or polearm** | +1% (5%) crit chance | Applies to attacks made with that weapon. It is aura crit (aura 290), so suppression against a +3-level target applies [magey-crit] | [F] [db-eff] (spell 12700) |
+| **Sword** (1H or 2H) | 1% (5%) chance on a successful melee attack (white or yellow) made with the sword to gain **1 extra attack** | Proc mask 0x14 (auto attack + melee ability). There is a **200 ms internal cooldown** (`ProcCategoryRecovery` 200), so an extra attack can't chain-proc itself. Roll once per ability cast, even for multi-target abilities [?] (only WarriorSim's post-SoD code does this; Magey establishes it for Windfury only; Q9). The extra attack is an immediate main-hand white swing: it resets the main-hand swing timer, consumes a Flurry charge, and becomes the queued Heroic Strike if one is queued [C] [magey-wf] | [F] [client] (SpellAuraOptions, 1.60.1.69913) (spell 12281, proc chance 5, mask 0x14); [C] [client] (SpellAuraOptions, 1.15.9.69722) (the same 200 ms) |
+| **Axe or polearm** | +1% (5%) crit chance | Applies to attacks made with that weapon. It is aura crit (aura 290), so suppression against a +3-level target applies [magey-crit] | [F] [client] (SpellEffect, 1.60.1.69913) (spell 12700) |
 | **Mace or staff** | Attacks ignore 3% (15%) of the target's armor | Effective armor = armor after all flat reductions × (1 − 0.03 × rank). The order is an assumption [?] (Q9) | [F] [tal] [db-trait] |
 
 - **What changed from Classic.** Sword, Axe and Polearm used the same numbers in Classic,
@@ -384,10 +396,12 @@ Weaponmaster replaces Classic's Sword, Axe, Polearm and Mace Specialization with
     and extra attacks.
   - It can't proc itself or twice in the same chain of extra attacks [C] ([magey-wf], 2019
     text).
-  - **No internal cooldown is modelled** [?]. Magey's page adds a 1.5 s ICD, but its source is
-    a 2023 statement about SoD's Wild Strikes, which is forbidden evidence
-    ([damage-and-timing §5.4](../mechanics/damage-and-timing.md#54-extra-attacks-and-chaining);
-    Q27).
+  - **No 1.5 s internal cooldown** [?]. Magey's page adds one, but its source is a 2023
+    statement about SoD's Wild Strikes, which is forbidden evidence. The Forever client does
+    give Windfury Totem's proc (10612) a **100 ms** internal cooldown (`ProcCategoryRecovery`
+    100) [F] [client] (SpellAuraOptions, 1.60.1.69913), far shorter than any swing timer;
+    [damage-and-timing §5.4](../mechanics/damage-and-timing.md#54-extra-attacks-and-chaining)
+    owns the rule (Q27).
   - A queued Heroic Strike fires on the Windfury extra attack.
   - A Weaponmaster extra attack can proc Windfury, and a Windfury extra attack can proc
     Weaponmaster, as long as Weaponmaster's 200 ms internal cooldown is ready.
@@ -396,14 +410,14 @@ Weaponmaster replaces Classic's Sword, Axe, Polearm and Mace Specialization with
 
 - **Overpower window.** When the target **dodges** any of the warrior's attacks (white or
   yellow, either hand), Overpower becomes usable for **5 s**. Using it closes the window [C]
-  [ws-spell]; [F] [db-misc] (spell 1282733 lasts 5000 ms).
+  [ws-spell]; [F] [client] (SpellMisc, SpellDuration, 1.60.1.69913) (spell 1282733 lasts 5000 ms).
   - Forever implements the window as a combo-point-like resource. Overpower has a second cost
     of 1 point of power type 4, and the dodge aura grants 1 point, stacking to 3 [F]
-    [db-pow] [db-aura].
+    [client] (SpellPower, SpellAuraOptions, 1.60.1.69913).
   - **Default: one window, refreshed by each new dodge.** Whether windows can be banked is
     Q10.
   - Overpower needs Battle Stance and has a 5 s cooldown.
-- **Bloodthrill** [F] [tal] [db-aura]:
+- **Bloodthrill** [F] [tal] [client] (SpellAuraOptions, 1.60.1.69913):
   - **Trigger.** When your melee attack hits a target that has **your** Rend, there is a 2%
     per rank chance (10% at 5/5) to open the Overpower window for **6 s**, for 1 use.
   - **Which attacks count.** The data's proc mask is 4, main-hand and off-hand **auto
@@ -424,14 +438,14 @@ every weapon, and weapon skill only comes from items; the hit and glancing conse
 
 | Race | Racial (Forever) | Sim model | Tag |
 | --- | --- | --- | --- |
-| Human | Sword Specialization: +2% crit with all attacks while a sword or two-handed sword is equipped (Classic: +5 sword and mace skill) | +2% aura crit. For dual wield, "equipped" is read as "either hand" [?] (Q15) | [F] [rac] [db-eff] (spell 20597) |
-| Orc | Axe Specialization: +1% crit while an axe is equipped. **Blood Fury: +10% AP** (and spell power) for 15 s, 2 min cooldown, off the GCD (Classic: +25% of base AP) | +1% aura crit; AP ×1.10 | [F] [rac] [db-eff] (20574, 20572) |
-| Dwarf | Mace Specialization: +1% crit while a mace is equipped. Stoneform: −10% physical damage taken for 8 s | +1% aura crit | [F] [rac] |
-| Night Elf | **Elune's Light: +10% crit for 15 s, 3 min cooldown**. Quickness: +1% dodge | 10% crit cooldown | [F] [rac] [db-eff] (1259799) |
-| Gnome | Expansive Mind: **+5% max rage**. **Eureka!: the next 3 damaging abilities cost 40% less rage and deal +10% damage**, 15 s, 2 min cooldown | See Q17 and Q18 | [F] [rac] [db-eff] (1259813) |
-| Troll | **Berserking: +10% attack speed for 10 s, 3 min cooldown** (Classic: 10–30%, scaling with missing health). Beast Slaying: +5% vs Beasts | ×1.10 haste | [F] [rac] [db-eff] (20554) |
-| Tauren | Endurance: +5% health and **+1% hit** | +1% melee hit | [F] [rac] [db-eff] (20550) |
-| Undead | Touch of the Grave: 5% chance on attacks to drain health, up to 5% of max health | Healing only, not simulated [?] (Q16) | [F] [rac] |
+| Human | Sword Specialization: +2% crit with all attacks while a sword or two-handed sword is equipped (Classic: +5 sword and mace skill) | +2% aura crit. For dual wield, "equipped" is read as "either hand" [?] (Q15) | [F] [rac] [client] (SpellEffect, 1.60.1.69913) (spell 20597) |
+| Orc | Axe Specialization: +1% crit while an axe is equipped. **Blood Fury: +10% AP** (and spell power) for 15 s, 2 min cooldown, off the GCD (Classic: +25% of base AP) | +1% aura crit; AP ×1.10 | [F] [rac] [client] (SpellEffect, SpellDuration, SpellCooldowns, 1.60.1.69913) (20574, 20572) |
+| Dwarf | Mace Specialization: +1% crit while a mace is equipped. Stoneform: −10% physical damage taken for 8 s, 3 min cooldown, **on the GCD** | +1% aura crit | [F] [rac] [client] (SpellEffect, SpellCooldowns, 1.60.1.69913) (1259719, 20594) |
+| Night Elf | **Elune's Light: +10% crit for 15 s, 3 min cooldown**. Quickness: +1% dodge | 10% crit cooldown | [F] [rac] [client] (SpellEffect, SpellDuration, 1.60.1.69913) (1259799) |
+| Gnome | Expansive Mind: **+5% max rage**. **Eureka!: the next 3 damaging abilities cost 40% less rage and deal +10% damage**, 15 s, 2 min cooldown | See Q17 and Q18 | [F] [rac] [client] (SpellEffect, SpellDuration, 1.60.1.69913) (1259802, 1259813) |
+| Troll | **Berserking: +10% attack speed for 10 s, 3 min cooldown** (Classic: 10–30%, scaling with missing health). Beast Slaying: +5% vs Beasts | ×1.10 haste | [F] [rac] [client] (SpellEffect, SpellDuration, SpellPower, 1.60.1.69913) (20554) |
+| Tauren | Endurance: +5% health and **+1% hit** | +1% melee hit | [F] [rac] [client] (SpellEffect, 1.60.1.69913) (20550) |
+| Undead | Touch of the Grave: 5% chance on attacks to drain health, up to 5% of max health | Healing only, not simulated [?] (Q16) | [F] [rac]; 1260189 exists [client] (SpellEffect, 1.60.1.69913) |
 | Skyborne | Wind Blessed: **+1% haste**. Elemental Insight: +5% damage vs Elementals | ×1.01 haste; ×1.05 against Elementals | [F] [rac] [db-eff] (1259710) |
 
 ## 3. Abilities at level 60
@@ -446,18 +460,18 @@ for daggers. `weapon` means the real speed. Both are defined in
 
 | Ability (rank, spell id) | Cost | Cooldown | GCD | Stance | Damage and effect | Tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| Heroic Strike (9, 25286) | 15 | none | off (next swing) | any | MH `weapon` + 157 | [F] [sb] [db-eff] |
+| Heroic Strike (9, 25286) | 15 | none | off (next swing) | any | MH `weapon` + 157 | [F] [sb] [client] (SpellEffect, 1.60.1.69913) |
 | Cleave (5, 20569) | 20 | none | off (next swing) | any | MH `weapon` + 50 to the target and one more enemy | [F] [sb] [db-eff] |
-| Bloodthirst (4, 23894) | 30 | 6 s | yes | any | **0.35 × AP + 48**, physical, not weapon-based. Also +10% movement speed for 10 s (ignore) | [F] [sb] [db-eff]. Classic: 0.45 × AP [C] |
+| Bloodthirst (4, 23894) | 30 | 6 s | yes | any | **0.35 × AP + 48**, physical, not weapon-based. Also +10% movement speed for 10 s (ignore) | [F] [sb] [client] (SpellEffect, 1.60.1.69913). Classic: 0.45 × AP [C] |
 | Mortal Strike (4, 21553) | 30 | 6 s | yes | any | MH `normalized` + 160. Also −50% healing on the target for 10 s | [F] [sb] [db-eff] |
 | Whirlwind (1680) | 25 | 10 s | yes | Berserker | MH `normalized` to up to 4 targets within 8 yd. With Raging Blows it also strikes with the off hand; see below | [F] [sb] [db-eff] |
-| Slam (5, 11605; Improved Slam version 1310200) | 15 | **15 s** | 1.5 s, −0.25 s per rank of Improved Slam | any | MH `weapon` + 87. **Cast 1.5 s**, −0.25 s per rank of Improved Slam. See the Slam notes below | [F] [sb] [db-cd] [tal] |
+| Slam (5, 11605; Improved Slam version 1310200) | 15 | **15 s** | 1.5 s, −0.25 s per rank of Improved Slam | any | MH `weapon` + 87. **Cast 1.5 s**, −0.25 s per rank of Improved Slam. See the Slam notes below | [F] [sb] [client] (SpellCooldowns, SpellCastTimes, 1.60.1.69913) [tal] |
 | Execute (5, 20662) | 15 | none | yes | Battle, Berserker | Only on targets at or below 20% health. **600 + 15 × (rage − cost)**; a successful hit spends all rage | [F] [sb]; rage rules [C] [marrow] [ws-spell] |
 | Overpower (4, 11585) | 5 | 5 s | yes | Battle | MH `normalized` + 35. Can't be dodged, parried or blocked. Improved Overpower adds +25% crit chance per rank | [F] [sb] [tal] |
 | Hamstring (3, 7373) | 10 | none | yes | Battle, Berserker | 45 physical damage (flat, rolls on the melee table) and a 50% snare. Used to fish for procs | [F] [sb] [db-eff] |
 | Rend (7, 11574) | 10 | none | yes | Battle, Defensive | Bleed: 147 over 21 s, 21 per 3 s tick. Improved Rend multiplies it by 1 + 0.12 / 0.23 / 0.35. It enables Bloodthrill | [F] [sb] [tal] [db-eff] |
 | Spearing Strike (1310222) | 15 | 20 s | yes | any, two-hander only | **0.40 × MH `normalized`**. Against **Giants, Dragonkin and mounted targets**, 1.20 × (+80%) | [F] [tal] [db-eff] (effect 121 + weapon-% effect 31 = 40) [?] (Q13) |
-| Thunder Clap (6, 11581) | 20 | **6 s** | yes | Battle, **Defensive** | 103 damage to up to 4 targets. Rolls as a spell-type attack (defense type 1), so it can't be dodged or parried. Also a −20% attack-speed debuff for 30 s | [F] [sb] [db-cat]. Threat is in [threat.md](../mechanics/threat.md) |
+| Thunder Clap (6, 11581) | 20 | **6 s** | yes | Battle, **Defensive** | 103 damage to up to 4 targets. Rolls as a spell-type attack (defense type 1), so it can't be dodged or parried. Also a −20% attack-speed debuff for 30 s | [F] [sb] [client] (SpellCategories, 1.60.1.69913). Threat is in [threat.md](../mechanics/threat.md) |
 | Revenge (6, 25288) | 5 | 5 s | yes | Defensive | **138–168** (153 ±10%) × (1 + 0.20 × Improved Revenge rank). Needs the Revenge window ([§2.8](#28-reactive-abilities-overpower-bloodthrill-revenge)) | [F] [sb] [db-eff] |
 | Shield Slam (4, 23925) | 20 | 6 s | yes | any, shield | **640–670 + block value** (655 ±2.3%). Also a 50% chance to dispel one magic effect | [F] [sb] [db-eff]. Block value is in [character-stats.md](../mechanics/character-stats.md) |
 | Victory Rush (402927) | 0 | 30 s | yes | any | 1 damage and heals 10% of max health. Only usable within 20 s of killing a non-trivial enemy. **Not used against bosses** | [F] [sb] (Q14) |
@@ -471,7 +485,7 @@ for daggers. `weapon` means the real speed. Both are defined in
 - **With Improved Slam 1/2 or 2/2**, the cast and the Slam GCD shrink by 0.25 s per rank, and
   **swing timers are unaffected**: white swings keep landing during the cast, and nothing
   resets afterwards [F] [tal]. The Improved Slam versions of Slam (1310196–1310200) replace
-  the action bar spells [db-eff]; see Q19.
+  the action bar spells [client] (SpellName, 1.60.1.69913); see Q19.
 - Other GCD abilities can't start during the cast.
 
 **Raging Blows (off-hand Whirlwind).** Each Whirlwind target is also hit by an off-hand strike.
@@ -495,10 +509,10 @@ buffs. It is physical, so armor applies, and it uses the special attack table [F
 
 | Ability (rank, spell id) | Cost | Cooldown | GCD | Stance | Effect | Tag |
 | --- | --- | --- | --- | --- | --- | --- |
-| Battle Shout (7, 25289) | 10 | none | yes | any | +139 melee AP to the party (20 yd) for 3 min | [F] [sb] [db-eff] |
-| Demoralizing Shout (5, 11556) | 10 | none | yes | any | −196 AP to enemies within 10 yd for 45 s. The tooltip value is used (tooltip beats derived, doctrine §2); the client data's −1.4 per level above 54 would give about −204.4 at 60 and is an open question (Q22) | [F] [sb]; derived value [?] [db-eff] |
-| Sunder Armor (5, 11597) | 15 | none | yes | any | −450 armor per stack, 5 stacks, 30 s. The client data also carries a THREAT effect of 1013 | [F] [sb] [db-eff] (Q1) |
-| Bloodrage (2687) | 0 (costs health) | 60 s | off | any | +10 rage, then +10 over 10 s | [F] [sb] [db-eff] |
+| Battle Shout (7, 25289) | 10 | none | yes | any | +139 melee AP to the party (20 yd) for 3 min | [F] [sb] [client] (SpellEffect, 1.60.1.69913) |
+| Demoralizing Shout (5, 11556) | 10 | none | yes | any | −196 AP to enemies within 10 yd for 45 s. The tooltip value is used (tooltip beats derived, doctrine §2); the client data's −1.4 per level above 54 (levels 54–64, so `MaxLevel` doesn't cap it below 60) would give −204.4 at 60; whether the server applies it is an open question (Q22) | [F] [sb]; client values [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913); derived −204.4 in game [?] |
+| Sunder Armor (5, 11597) | 15 | none | yes | any | −450 armor per stack, 5 stacks, 30 s. The client data also carries a THREAT effect of 1013 | [F] [sb] [client] (SpellEffect, 1.60.1.69913) (Q1) |
+| Bloodrage (2687) | 0 (costs health) | 60 s | off | any | +10 rage, then +10 over 10 s | [F] [sb] [client] (SpellEffect, 1.60.1.69913) |
 | Berserker Rage (18499) | 0 | 30 s | **yes** | Berserker | For 10 s, immune to fear and incapacitate, and extra rage from damage taken. Improved Berserker Rage: +5 / +10 rage | [F] [sb] [db-cd] [tal] |
 | Death Wish (12328) | 10 | 3 min | yes | any | For 30 s: +20% Physical damage done, +5% damage taken, fear immunity | [F] [tal] [db-eff] |
 | Recklessness (1719) | 0 | 30 min | yes | Berserker | For 15 s: +100% crit chance and +20% damage taken | [F] [sb] [db-eff] |
@@ -522,8 +536,10 @@ result" rule in [doctrine §4](../doctrine.md#4-engine).
 ## 4. Talents
 
 Forever uses the same 51-point, tier-gated grid as Classic (5 points per tier). Rank values
-below are the Forever tooltips from [tal]. They match the client's trait rank curves
-(TraitDefinitionEffectPoints and CurvePoint) value for value [db-trait]. **The engine reads
+below are the Forever tooltips from [tal]. They match the client's trait rank curves value for
+value [F] [client](../data/client.md#talentsjson) (TraitDefinitionEffectPoints, CurvePoint,
+1.60.1.69913), except two effects the tooltips don't print as stored (Last Stand's hidden
+effect and Improved Shield Wall's ms-to-minutes; neither is simulated). **The engine reads
 ranks from `src/data/talents/warrior.json`**; the "Model" column says what each one does.
 "Not simulated" talents have no effect on DPS or TPS. Tier·Col is 1-based.
 
@@ -906,7 +922,7 @@ parts:
   an open question.
 - **Where tooltips can't tell us, use the client data.** Tooltips don't show GCD, stance or
   proc-mask facts, so this doc takes them from the DB2 tables and tags them [F] with a `db`
-  link.
+  link, or with [client] where the raw-client check covered the value.
 
 ## 8. Worked examples
 
@@ -1081,13 +1097,13 @@ the log file, or count hits by hand. Attack a mob 3 levels above the character t
 boss conditions. For threat, use the threat macro from [magey-thr]:
 `UnitDetailedThreatSituation`.
 
-1. **Sunder Armor threat.** The Forever client data adds a THREAT effect (63): 1 at rank 1,
-   405 / 608 / 810 / 1013 at ranks 2–5, which is 2.25 × the armor removed. Classic has none in
-   the client, and its threat of 261 is set on the server [magey-thr]. Is Forever's Sunder
-   threat now about 1013 at rank 5, and is that on top of the server value? **Test:** read the
-   threat macro before and after a Sunder, at every rank available, in Battle Stance (×0.8).
-   Rank 1 is especially interesting, since its data value is "1". Owner:
-   [threat.md](../mechanics/threat.md).
+1. **Sunder Armor threat.** The Forever client data adds a THREAT effect (63): 1 at rank 1, 405 /
+   608 / 810 / 1013 at ranks 2–5, which is 2.25 × the armor removed ([F] [client] (SpellEffect,
+   1.60.1.69913)). Classic has none in the client, and its threat of 261 is set on the server
+   [magey-thr]. Is Forever's Sunder threat now about 1013 at rank 5, and is that on top of the
+   server value? **Test:** read the threat macro before and after a Sunder, at every rank
+   available, in Battle Stance (×0.8). Rank 1 is especially interesting, since its data value is
+   "1". Owner: [threat.md](../mechanics/threat.md).
 2. **Bloodthirst.** Does it really deal 35% of AP + 48 at rank 4? The tooltip and data agree;
    the in-game check matters because this is Fury's core ability. **Test:** average
    non-critical Bloodthirst hits at two AP values (with and without Battle Shout) against a
@@ -1095,11 +1111,12 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
 3. **Slam without Improved Slam.** Is it still the Classic swing-reset behaviour? And with
    Improved Slam, does it truly never touch the timer? **Test:** swing timestamps around Slam
    casts in the combat log.
-4. **Dual Wield Specialization.** Does the +2% per rank hit apply to the off hand only, and
-   does the rage bonus multiply the off-hand's rage from dodges too? The data shows a general
-   hit aura (54) with no hand restriction. **Test:** main-hand and off-hand miss counts
-   separately over 500+ swings each, with and without the talent. Also record rage per
-   off-hand hit.
+4. **Dual Wield Specialization.** Does the +2% per rank hit apply to the off hand only, and does
+   the rage bonus multiply the off-hand's rage from dodges too? The data shows a general hit aura
+   (54) with no hand restriction (the spell as a whole requires a one-handed weapon) [F] [client]
+   (SpellEffect, SpellEquippedItems, 1.60.1.69913). **Test:** main-hand and off-hand miss counts
+   separately over 500+ swings each, with and without the talent. Also record rage per off-hand
+   hit.
 5. **Unbridled Wrath.** Does it proc from Heroic Strike and Cleave swings and from extra
    attacks? The data's mask is "auto attack". The pre-SoD WarriorSim counts Heroic Strike
    swings [ws-player]. **Test:** rage gains logged while spamming Heroic Strike with a low-rage
@@ -1118,14 +1135,16 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
    fully absorbed hits, blocked hits? Does a new proc refresh the duration? And how many such
    events does a DPS warrior see in a raid? **Test:** Enrage uptime while being hit by mobs;
    in raids later, from WarcraftLogs-style logs.
-9. **Weaponmaster.** When a mace ignores armor, is the 15% applied before or after Sunder,
-   Faerie Fire and Curse of Recklessness? For a sword, is there really a 200 ms internal
-   cooldown, and does a multi-target ability (Whirlwind, Cleave) roll the extra attack once
-   per cast or once per target hit? For an axe, does the crit apply only to attacks with the axe
-   when dual wielding mixed types? **Test:** mace hit damage against a mob of known armor, with
-   and without Sunder; sword procs per Cleave on two mobs.
-10. **Overpower window.** The data suggests a combo-point-like counter that stacks to 3.
-    Can several dodges bank several Overpowers? How long is the window, 5 s?
+9. **Weaponmaster.** When a mace ignores armor, is the 15% applied before or after Sunder, Faerie
+   Fire and Curse of Recklessness? For a sword, the client's 200 ms internal cooldown is [F]
+   [client] (SpellAuraOptions, 1.60.1.69913); does the server honour it, and does a multi-target
+   ability (Whirlwind, Cleave) roll the extra attack once per cast or once per target hit? For an
+   axe, does the crit apply only to attacks with the axe when dual wielding mixed types?
+   **Test:** mace hit damage against a mob of known armor, with and without Sunder; sword procs
+   per Cleave on two mobs.
+10. **Overpower window.** The data has a combo-point-like counter that stacks to 3, on a 5,000 ms
+    window [F] [client] (SpellPower, SpellAuraOptions, SpellDuration, 1.60.1.69913). Can several
+    dodges bank several Overpowers in game?
 11. **Bloodthrill.** Does it trigger only from white swings (data mask) or from all melee
     attacks (tooltip)? Does it need your own Rend? Does its 6 s window stack with a dodge
     window?
@@ -1136,9 +1155,10 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     weapon damage including AP? Which Forever raid bosses are Giants or Dragonkin? For Raging
     Blows' off-hand Whirlwind strike: is it normalized, does the off-hand 50% penalty apply,
     and can it crit and proc?
-14. **Victory Rush damage.** The tooltip says "1 damage", but the data has a dummy effect of
-    15, perhaps 15% of AP. SoD's version (45% AP, 30% heal) is a forbidden source. Low
-    priority: it isn't used on bosses.
+14. **Victory Rush damage.** The tooltip says "1 damage", but the data has a dummy effect of 15
+    [F] [client] (SpellEffect, 1.60.1.69913), perhaps 15% of AP (the server scripts what a dummy
+    does). SoD's version (45% AP, 30% heal) is a forbidden source. Low priority: it isn't used on
+    bosses.
 15. **Human Sword Specialization with dual wield.** Is one sword in either hand enough, or
     must it be in the main hand?
 16. **Touch of the Grave (Undead).** Does it deal damage, or only heal? If it deals damage,
@@ -1148,21 +1168,23 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
 18. **Eureka!.** How does the 40% cost cut round? Execute costs 15, and 40% of it is 6. Does
     Eureka! reduce the extra rage Execute consumes? Does it spend a charge on a miss?
 19. **Improved Slam's replacement spells.** The Improved Slam ranks replace the Slam spells
-    (1310196–1310200) and carry an extra attribute. Does anything else change: cooldown,
-    rage?
+    (1310196–1310200, [F] [client] (SpellName, 1.60.1.69913)) and carry an extra attribute. Does
+    anything else change: cooldown, rage?
 20. **Berserker Rage's extra rage from damage taken.** The Classic formula is for
     [rage.md](../mechanics/rage.md) to settle. Does Forever change it?
-21. **Deep Wounds implementation.** The Classic bleed spell 12721 no longer has a name in the
-    Forever client, so Forever may have reimplemented Deep Wounds. wowsims/forever reads it as
-    spell **412609** (a candidate id only, [?]; a person should confirm it on wago.tools). Check
-    tick count, the 3 s interval, whether it still recomputes on each tick (Classic: yes, [C]),
-    its periodic-crit flag, and refresh behaviour. Also confirm Rend's periodic-crit flag, which
-    lets its ticks crit in the `forever` profile [?]
-    ([damage-and-timing OQ 2](../mechanics/damage-and-timing.md#open-questions)).
+21. **Deep Wounds implementation.** ✅ The spell and flags are resolved from client data
+    ([client.md][client]): the Classic bleed 12721 doesn't exist in the Forever client, and
+    Forever's bleed is spell **412609** (4 ticks, one every 3 s, no periodic-crit flag), which
+    the talent 12834 triggers server-side. Rend 11574 does carry the periodic-crit flag [F]
+    [client] (SpellName, SpellEffect, SpellMisc, 1.60.1.69913). Still to check in game: whether
+    the bleed recomputes on each tick (Classic: yes, [C]), its refresh behaviour, and whether
+    Rend's ticks really crit in combat, as the `forever` profile assumes [?] ([damage-and-timing
+    OQ 2](../mechanics/damage-and-timing.md#open-questions)).
 22. **Demoralizing Shout scaling.** The sim uses the tooltip's −196 [F]; the client data's −1.4
-    per level above 54 would give about −204.4 at 60 [?]. Owner:
-    [buffs-debuffs-consumables OQ 19](../mechanics/buffs-debuffs-consumables.md#open-questions)
-    (Route D: `SpellLevels` `MaxLevel` on wago.tools; Route C: read it at 60).
+    per level above 54 would give −204.4 at 60, and its `SpellLevels` (54–64) don't cap the term
+    below 60 [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913). Whether the server applies it
+    is [?]. Owner: [buffs-debuffs-consumables OQ
+    19](../mechanics/buffs-debuffs-consumables.md#open-questions) (Route C: read it at 60).
 23. **Build variants.** "Fury + Precision" (15/36) versus the popular 17/34, and the
     Protection "TPS" variant. Settle these with the sim once M2 and M3 exist.
 24. **Arms base stance.** Battle, with Rend, Bloodthrill and Overpower, or Berserker, with
@@ -1171,11 +1193,14 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     Revenge rank 6 in its AQ patch. The Forever spellbook lists them all at level 60. Are they
     trainable at launch (November 4)?
 26. **Recklessness, Retaliation and Shield Wall.** Do they still share a cooldown? The data
-    suggests not. This doesn't matter for DPS.
-27. **Windfury internal cooldown.** The sim models none (§2.7). The only source for 1.5 s is a
-    2023 statement about SoD's Wild Strikes, which is forbidden. Owner:
-    [damage-and-timing OQ 9](../mechanics/damage-and-timing.md#open-questions). **Test:** the
-    minimum gap between Windfury procs over 500+ main-hand swings.
+    suggests not: Recklessness has its own recovery and no category [F]
+    [client] (SpellCooldowns, SpellCategories, 1.60.1.69913). This doesn't matter for DPS.
+27. **Windfury internal cooldown.** The only source for 1.5 s is a 2023 statement about SoD's
+    Wild Strikes, which is forbidden. The Forever client gives Windfury Totem's proc a 100 ms
+    internal cooldown [F] [client] (SpellAuraOptions, 1.60.1.69913) (§2.7); whether the server
+    enforces a longer one is the question. Owner: [damage-and-timing OQ
+    9](../mechanics/damage-and-timing.md#open-questions). **Test:** the minimum gap between
+    Windfury procs over 500+ main-hand swings.
 
 ## 10. Sources
 
@@ -1193,13 +1218,17 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
   - [rac]: <https://foreverchanges.pro/racials>. Racials in Forever versus Classic. [F]
   - [bis]: <https://foreverchanges.pro/bis/warrior>. Early beta BiS lists, level 20. [F]
   - [beta]: <https://foreverchanges.pro/beta>. Beta dates and builds. [F]
-- **wago.tools, Forever client DB2 at build 1.60.1.69913.** The research agent downloaded 20
-  CSV tables once on 2026-09-22 and read them locally. The IDs quoted in the text are
-  `SpellID` values. **wago.tools' `robots.txt` disallows automated access (`Disallow: /`)**,
-  so that download should not have happened
-  ([decision D9](../decisions.md#d9-wagotools-is-cited-never-crawled-2026-09-22)). Values
-  sourced only from these tables should be confirmed by a person in a browser before they're
-  treated as settled. Never fetch wago.tools from scripts or agents.
+- **Forever client DB2 at build 1.60.1.69913.** The research agent first read 20 CSV tables
+  from wago.tools' table pages once on 2026-09-22, which its `robots.txt` forbids
+  ([decision D9](../decisions.md#d9-wagotools-is-cited-never-crawled-2026-09-22)). The project
+  now reads the raw client files through the documented wago.tools API
+  ([D16](../decisions.md#d16-use-the-wagotools-api-with-attribution-2026-09-22)), parsed by
+  `scripts/scrape/client.mjs` into `src/data/client/`. Its claim check
+  ([client.md][client]) confirmed every value this doc had marked for a browser check, except
+  one correction: Stoneform is on the GCD (§2.2). Those values carry [client]; the `db` links
+  below open the same tables on wago.tools for browsing. Raw files lack server hotfixes and
+  scripts (dummy effects, proc rates; [hotfix caveat](../data/client.md#hotfix-caveat)). The
+  IDs quoted in the text are `SpellID` values.
   - [db-eff]: <https://wago.tools/db2/SpellEffect?build=1.60.1.69913>. Base points, aura
     types, weapon-damage effects, class masks and threat effects. [F]
   - [db-aura]: <https://wago.tools/db2/SpellAuraOptions?build=1.60.1.69913>. Proc chance,
@@ -1223,9 +1252,14 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     [TraitDefinition](https://wago.tools/db2/TraitDefinition?build=1.60.1.69913). Per-rank
     talent values; they match the tooltips. [F]
   - Also used: [SpellName](https://wago.tools/db2/SpellName?build=1.60.1.69913) and
-    [SpellProcsPerMinute](https://wago.tools/db2/SpellProcsPerMinute?build=1.60.1.69913). [F]
+    [SpellProcsPerMinute](https://wago.tools/db2/SpellProcsPerMinute?build=1.60.1.69913). No
+    `SpellAuraOptions` row references a PPM row, so proc rates are server-side and keep their
+    [C]/[?] tags. [F]
+  - [client]: [client.md](../data/client.md#doc-claims-checked-against-the-raw-client), the
+    raw-client claim check (Forever 1.60.1.69913, Classic Era 1.15.9.69722). [F] and [C]
 
-**Classic Era client data (tier 3):** the same tables at build 1.15.9.69722, for comparison. [C]
+**Classic Era client data (tier 3):** the same tables at build 1.15.9.69722, for comparison;
+the claim check read the raw 1.15.9.69722 files for the "(Classic …)" halves. [C]
 
 - [C-eff]: <https://wago.tools/db2/SpellEffect?build=1.15.9.69722>
 - [C-aura]: <https://wago.tools/db2/SpellAuraOptions?build=1.15.9.69722>
@@ -1296,6 +1330,7 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
 [rac]: https://foreverchanges.pro/racials
 [bis]: https://foreverchanges.pro/bis/warrior
 [beta]: https://foreverchanges.pro/beta
+[client]: ../data/client.md#doc-claims-checked-against-the-raw-client
 [db-eff]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913
 [db-aura]: https://wago.tools/db2/SpellAuraOptions?build=1.60.1.69913
 [db-cd]: https://wago.tools/db2/SpellCooldowns?build=1.60.1.69913

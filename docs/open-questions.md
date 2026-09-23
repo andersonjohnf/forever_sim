@@ -5,19 +5,24 @@ docs (eight mechanics docs, three class docs and the items dataset doc) into one
 deduplicated list of everything the sim currently assumes that a person needs to verify. The
 list is grouped by how each question can be answered today: on a level-60 **Classic Era**
 character (Route A), on the **Forever beta at its current level cap** (Route B), on **Forever
-at level 60** once the cap lifts or at launch (Route C), or by a **person reading wago.tools
-in a browser** (Route D). Within each route, questions are sorted by their impact on sim output
+at level 60** once the cap lifts or at launch (Route C), or by reading the Forever client's own
+data tables (Route D). Route D is now closed: the client-data pipeline checked every value in it
+against the raw client files ([client.md](data/client.md#doc-claims-checked-against-the-raw-client)).
+Within each route, questions are sorted by their impact on sim output
 and then by the milestone that needs them. Nothing here answers a question: each entry states
 the docs' current assumption, and the linked doc sections own the value. Record every result in
 the owning doc ([Recording results](#recording-results)), then tick it off here.
 
 Status: consolidated 2026-09-22, reconciled with the cross-doc review the same day
-([D13](decisions.md#d13-cross-doc-reconciliation-rules-2026-09-22)) · Forever beta 1.60.1.69913 ·
+([D13](decisions.md#d13-cross-doc-reconciliation-rules-2026-09-22)), and synced with the
+client-data check the same day ([client.md](data/client.md)) · Forever beta 1.60.1.69913 ·
 Classic Era 1.15.9.69722 · beta capped at level 20 (rising to 30), launch 2026-11-04, raids
 unlock 2026-12-09
 
-**132 entries:** Route A 7 (High 1, Medium 2, Low 4) · Route B 70 (20 / 25 / 25) · Route C 32
-(8 / 13 / 11) · Route D 23 (7 / 11 / 5), plus 6 items settled by the sim or a guild decision.
+**132 entries, 109 open:** Route A 7 (High 1, Medium 2, Low 4) · Route B 70 (20 / 25 / 25) ·
+Route C 32 (8 / 13 / 11) · Route D 23, all ✅ resolved from client data (was 7 / 11 / 5), plus
+6 items settled by the sim or a guild decision. The client-data check added in-game checks to
+B41, C11 and C12 rather than new entries.
 
 ---
 
@@ -133,7 +138,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **Medium · M2 (avoidance: M3)**
 - **Assumes:** warrior Str, Agi, Sta and Int from WarriorSim's pre-SoD Classic rows and additive
   race offsets [C]; warrior Spirit [?] (only WarriorSim's post-SoD data has it); base health
-  [?]; base dodge [?], base parry 5% and block 5% [?]; attributes floored once after all
+  [?] (the client ships no base-HP table, only `hppersta.txt`: 10 HP per Stamina at 60 [F
+  client]); base dodge [?], base parry 5% and block 5% [?]; attributes floored once after all
   multipliers [?]; the first 20 Stamina and Intellect give 1 HP or mana each (the Forever sheet
   code does this [F client UI; ? on the server]; no genuine Classic Era source [?]).
 - **Test:** standard naked sheet for a Human or Night Elf warrior and an Orc or Tauren warrior
@@ -269,7 +275,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **High · M2 (all specs) · ≤20**
 - **Assumes:** 14 crit rating = 1% melee **and** spell crit; 10 hit rating = 1% melee **and**
   spell hit; 12 dodge, 15 parry and 5 block rating per 1%; 1 defense rating = 1 defense skill;
-  the same at every level [F as displayed; ? in combat].
+  the same at every level [F as displayed, and F client: `combatratings.txt` has these values
+  at every level 1–123 ([client.md](data/client.md#gametablesjson)); ? in combat].
 - **Test:** sheet test: equip and remove Forever items with known ratings and read melee crit,
   spell crit, hit, dodge, parry, block and defense (the sheet reads server values). Combat spot
   check: white crit rate vs mobs three levels higher with and without a crit-rating item.
@@ -522,12 +529,15 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B22. DoTs: periodic crits, snapshots and refresh
 **Medium · M2 (Rend, Deep Wounds), M4 (Rip, Rake) · ≤20**
 - **Assumes:** in `forever`, ticks crit when the spell has the periodic-crit flag (Rend, Rake,
-  Rip, Pounce, Lacerate; not Deep Wounds) [? the tooltip text is F, the per-spell flags are a
-  secondary read, see D14], ×2.0 for physical [?]; in `classicEra`, ticks never crit [C]. Both
+  Rip, Pounce, Lacerate; not Deep Wounds) [the tooltip text and the per-spell flags are F
+  client, `SpellMisc` Attributes[8], ✅ D14; whether ticks crit in combat ?], ×2.0 for physical
+  [?]; in `classicEra`, ticks never crit [C]. Both
   profiles snapshot AP, caster modifiers and crit chance at application [?], except Deep
   Wounds, which recomputes each tick [C]; a third-party report that Forever's Rend reads them
   per tick is not adopted [?]. Crit suppression on ticks [?]; a refresh restarts duration and
-  tick timer and loses the partial tick [?]. Deep Wounds: 4 ticks over 12 s [C].
+  tick timer and loses the partial tick [?]. Deep Wounds: 4 ticks over 12 s [C; F client: the
+  Forever bleed is spell 412609, every 3 s for 12 s, and 12721 doesn't exist in the Forever
+  client].
 - **Test:** vs mobs three levels higher, log Rend, Deep Wounds (1/3), Rip and Rake ticks: count
   crits and their size. Reapply Rend mid-duration and log tick times. Apply a DoT, then gain AP
   or a damage buff mid-DoT (Battle Shout; Tiger's Fury if trainable) and see whether later ticks
@@ -585,7 +595,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   [D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22),
   with the `unmeasuredRatings: 'apply' | 'ignore'` switch): armor penetration is flat armor
   removed from the target for your own attacks [?]; 10 haste rating = 1%, multiplicative with
-  other haste [? gametable read by wowsims only]; Health Regeneration has no combat effect.
+  other haste [F client `combatratings.txt` for the 10; ? in combat]; Health Regeneration has no
+  combat effect.
   Armor below 0 increases damage in `forever` (client tooltip text [F]; in combat [?]), and is
   floored at 0 in `classicEra` [C]; resistance below 0 likewise ("Spell Vulnerability").
 - **Test:** under the cap, the only armor-penetration item in foreverchanges' data is Leafre's
@@ -607,8 +618,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B27. Race/class combinations
 **Medium · M2 · ≤20**
 - **Assumes:** Undead paladins (Horde) and Dwarf shamans (Alliance) exist, so both factions get
-  Blessings and Windfury [F client `CharBaseInfo`, owned by character-stats; confirm on
-  wago.tools, D11]. This is a cheap confirmation, not an open [?].
+  Blessings and Windfury [F client `CharBaseInfo`, owned by character-stats; ✅ confirmed from
+  client data, [D11](#route-d-wagotools-lookups-in-a-browser)]. This is a cheap in-game
+  confirmation, not an open [?].
 - **Test:** character creation: Undead paladin, Dwarf shaman, and a Skyborne warrior and druid
   on each faction.
 - **Samples:** one attempt each.
@@ -654,8 +666,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B31. Weaponmaster details
 **Medium · M2 · ≤30 (Arms tier 5)**
 - **Assumes:** mace or staff ignores 3% of armor per rank, applied after all flat reductions
-  [?]; sword extra attacks at 1% per rank with a 200 ms internal cooldown [F data], rolled once
-  per cast on multi-target abilities [?] (only a post-SoD sim does this); axe crit counts only
+  [?]; sword extra attacks at 1% per rank with a 200 ms internal cooldown [F client
+  `SpellAuraOptions`, ✅ D2; whether the server honours it ?], rolled once per cast on
+  multi-target abilities [?] (only a post-SoD sim does this); axe crit counts only
   for that weapon's attacks when dual wielding [?].
 - **Test:** mace hits on a mob of known armor with and without Sunder; the minimum gap between
   sword extra attacks, and sword procs per Cleave that hits two mobs; crit per hand with an axe
@@ -773,15 +786,18 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B41. SoC and judgement avoidance; partial resists on melee-class Holy
 **Medium · M5 · ≤20**
 - **Assumes:** SoC procs roll the full special table (miss, dodge, parry, block, crit ×2) [F
-  data; ? dodge and parry reading]; damage judgements can miss but not be dodged, parried or
-  blocked, and crit ×2 [F data; one third-party log]; level-based partial resists on
-  melee-class Holy vs +3 [?].
-- **Test:** from the front vs mobs three levels higher, log SoC procs and JoC/JoR outcomes;
-  compare average SoC damage vs +3 and +0 mobs.
-- **Samples:** ≥300 SoC procs; ≥50 judgements.
+  data; ? dodge and parry reading]; JoR and JoF can miss but not be dodged, parried or
+  blocked, and crit ×2 [F data; one third-party log]; **JoC can't miss**: its damage spell
+  20966 carries Always Hit, though the dummy 20968 that casts it doesn't [F client `SpellMisc`,
+  found by the client-data check (D18); whether the server honours it ?]; level-based partial
+  resists on melee-class Holy vs +3 [?].
+- **Test:** from the front vs mobs three levels higher, log SoC procs and JoC/JoR outcomes (a
+  single JoC miss disproves Always Hit; JoR is the control); compare average SoC damage vs +3
+  and +0 mobs.
+- **Samples:** ≥300 SoC procs; ≥200 JoC and ≥50 JoR judgements.
 - **Changes:** Ret hit tables and resist averaging.
 - **Docs:** [paladin § SoC](classes/paladin.md#seal-of-command-soc),
-  [§ judgement](classes/paladin.md#judgement), [OQ 3, 14](classes/paladin.md#open-questions);
+  [§ judgement](classes/paladin.md#judgement), [OQ 3, 14, 23](classes/paladin.md#open-questions);
   [combat-tables §9](mechanics/combat-tables.md#9-spell-hit-and-crit-generic)
 
 #### B42. Consecration ticks
@@ -1246,11 +1262,16 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 **Medium · M2**
 - **Assumes:** a party aura rather than a weapon enchant, so a main-hand stone coexists [?];
   20% per main-hand hit, +246 AP [F]; it can't proc itself or twice in one chain [C, Magey's
-  2019 text; every doc agrees]; **no internal cooldown** modelled [?], because the only source
-  for 1.5 s is a 2023 statement about SoD's Wild Strikes (forbidden); twisting with Grace of Air
-  and procs from feral attacks [?].
+  2019 text; every doc agrees]; the Forever client gives Windfury Totem Passive 10612 a
+  **100 ms internal cooldown** (`ProcCategoryRecovery` 100) [F client `SpellAuraOptions`, found
+  by the client-data check], which `forever` now models; whether the server applies it [?]; the
+  SoD-era 1.5 s stays refused (forbidden source); the proc's +246 AP aura 10610 has 2 charges
+  and lasts 1 s [F client], so does a second attack inside that second also get the AP [?];
+  twisting with Grace of Air and procs from feral attacks [?].
 - **Test:** a main-hand stone next to a Windfury Totem (does the enchant stay?); log Windfury
-  procs, chains and the minimum gap between procs; repeat in cat and bear form.
+  procs, chains and the minimum gap between procs (expect ≥ 100 ms); compare the damage of an
+  instant attack pressed right after a Windfury extra attack with the same attack without one;
+  repeat in cat and bear form.
 - **Samples:** ≥500 swings.
 - **Changes:** the Windfury model and the main-hand stone default.
 - **Docs:** [buffs § Windfury](mechanics/buffs-debuffs-consumables.md#windfury-totem),
@@ -1264,9 +1285,12 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 **Medium · M2**
 - **Assumes:** the new elixirs (Grizzly, Ferocity, Cunning, Phalanx, Strength, Fortitude,
   Greater Fortitude) default off until their stacking groups are known [?]; Frenzy potions give
-  +AP per the tooltip but flat physical damage per the data, with no cooldown category [?].
+  +AP per the tooltip but flat physical damage per the data [?]; they **share the 120 s potion
+  cooldown**: their spells 1251937/1251938/1251940 sit in cooldown category 4, although their
+  item effects carry no category [F client `SpellCategories`, corrected by the client-data
+  check (D13); whether the server enforces it ?].
 - **Test:** drink each pair and watch the buffs; with a Frenzy potion, compare sheet AP and
-  white-hit damage, and drink one after another potion to check cooldown sharing.
+  white-hit damage, and drink one after another potion to confirm the shared cooldown.
 - **Samples:** one per pair; ≥100 hits per Frenzy state.
 - **Changes:** consumable presets.
 - **Docs:** [buffs §3.2](mechanics/buffs-debuffs-consumables.md#32-elixirs),
@@ -1420,14 +1444,15 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
   [encounter OQ 6](mechanics/encounter.md#open-questions)
 
 #### C27. Demoralizing Shout and Roar level scaling
-**Low · M3 · Route D first**
+**Low · M3**
 - **Assumes:** every doc uses the tooltips: Shout r5 −196 and Roar r5 −193 [F] (tooltip beats
   derived, doctrine §2). The client data's per-level term (−1.4 per level, from 54 and 52) would
-  give about −204.4 and −204.2 at 60 if the server applies it uncapped [?].
-- **Test:** **Route D** (a person, in a browser): on wago.tools, `SpellLevels` for 11556 and 9898
-  (is `MaxLevel` set, capping the scaling?) and `SpellEffect` (`EffectRealPointsPerLevel`).
-  **Route C** if that's inconclusive: at 60, read the AP reduction in the debuff's tooltip on
-  the target.
+  give about −204.4 and −204.2 at 60 if the server applies it [?].
+- ✅ **Client half resolved** ([client.md](data/client.md#doc-claims-checked-against-the-raw-client),
+  row C27): `SpellEffect` has −196 / −193 with −1.4 per level, and `SpellLevels` runs 54–64 /
+  52–62, so `MaxLevel` doesn't cap the term below 60 [F client]. Only the server's behaviour is
+  left.
+- **Test:** **Route C**: at 60, read the AP reduction in the debuff's tooltip on the target.
 - **Samples:** one read each.
 - **Changes:** boss AP reduction (tank damage taken only).
 - **Docs:** [buffs §4.2](mechanics/buffs-debuffs-consumables.md#42-other-debuffs),
@@ -1485,41 +1510,52 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 
 ## Route D: wago.tools lookups in a browser
 
-Values the research agents read from wago.tools DB2 tables before the project learned that its
-`robots.txt` forbids automated access ([D9](decisions.md#d9-wagotools-is-cited-never-crawled-2026-09-22)).
-**Only a person does these, in a browser. Never script them.**
+✅ **Closed 2026-09-22: every row is resolved from client data.** These are values the research
+agents read from wago.tools DB2 tables before the project learned that its `robots.txt` forbids
+automated access ([D9](decisions.md#d9-wagotools-is-cited-never-crawled-2026-09-22)), listed
+here for a person to confirm in a browser. The client-data pipeline now reads the same raw
+client files through the documented wago.tools API
+([D16](decisions.md#d16-use-the-wagotools-api-with-attribution-2026-09-22)) and checked every
+row against build 1.60.1.69913 (and 1.15.9.69722 for the Classic halves). **18 rows match as
+written; 5 match only in part** (D9, D12, D13, D18, D19), and the owning docs now carry the
+client's value. The claim-by-claim results are in
+[client.md](data/client.md#doc-claims-checked-against-the-raw-client). The owning docs tag
+these values [F] client and have dropped their "confirm on wago.tools" notes (‡ in the buffs
+doc).
 
-**How:** open `https://wago.tools/db2/<Table>?build=1.60.1.69913` (Forever) or
-`?build=1.15.9.69722` (Classic Era), and filter by spell with
-`&filter[SpellID]=exact:<id>` (the paladin doc has per-spell links). Compare with the value
-below. **Record:** build, date, and "confirmed" or the value you saw; then drop the "confirm on
-wago.tools" note (‡ in the buffs doc) in the owning doc. Sorted by impact, then milestone.
+What raw client files can't settle stays in Routes B and C: server-side behaviour (PPM rates,
+what a dummy effect does, whether the server honours an attribute) and anything a hotfix changed
+([client.md § hotfix caveat](data/client.md#hotfix-caveat)). The partial matches added checks
+to [B41](#b41-soc-and-judgement-avoidance-partial-resists-on-melee-class-holy) (JoC can't miss),
+[C11](#c11-windfury-totem) (Windfury's 100 ms internal cooldown) and
+[C12](#c12-new-elixirs-and-frenzy-potions) (Frenzy potions share the potion cooldown). For a
+new build, re-run `npm run scrape:client -- --claims` instead of checking in a browser.
 
-| # | What to look up | Table · build | Value the docs assume | Impact · M | Docs |
-| --- | --- | --- | --- | --- | --- |
-| D1 | PPM rows and proc links | `SpellProcsPerMinute` · both builds; `SpellAuraOptions` · Forever | IDs 454–463 = 1–10 PPM in both; new ID 479 = 2.3 PPM in Forever only; no `SpellAuraOptions` row references a PPM ID | High · M2 | [damage §5.1](mechanics/damage-and-timing.md#51-ppm-formula), [system-changes §2](mechanics/forever-system-changes.md#2-combat-rules) |
-| D2 | Warrior DPS core | `SpellEffect`, `SpellAuraOptions`, `SpellMisc`, `TraitDefinitionEffectPoints` + `CurvePoint` · Forever | Bloodthirst 23894 = 0.35 × AP + 48; Flurry buff 12966 base 30 vs talent curve 5–25, 15,000 ms; Dual Wield Spec curves 5–25 / 20–100 / 2–10 and a hit aura (54) with no hand restriction; Unbridled Wrath curve 12–60, energize 12964 = 10 tenths, proc mask auto attack only; Weaponmaster sword 12281 `ProcCategoryRecovery` 200 (both builds), axe 12700 aura 290 | High · M2 | [warrior §2.3–§2.7](classes/warrior.md#2-warrior-mechanics) |
-| D3 | Rage energize amounts (tenths) | `SpellEffect` · both builds | Bloodrage 2687 = 100 and 29131 = 10 per 1,000 ms for 10 s; Charge 11578 = 150; Mighty Rage Potion 17528 = 600, variance 0.5, 20 s; Shield Specialization 1310318 = 50 (Classic 23602 = 10); Master of Defense → 23602 = 50; Enrage 5229 = 100 + 20/s; Furor 17057 = 100; Primal Fury 16959 = 50; Natural Reaction 417053 = 50; Heroic Strike 25286 +157 | High · M2 | [rage § sources](mechanics/rage.md#warrior-rage-sources-and-sinks), [§ bear](mechanics/rage.md#bear-druid-rage) |
-| D4 | Sunder Armor threat effect (63) by rank | `SpellEffect` · Forever (Classic has none) | r1 1, r2 405, r3 608, r4 810, r5 1013 (11597) | High · M3 | [threat § warrior](mechanics/threat.md#warrior), [warrior Q1](classes/warrior.md#9-open-questions) |
-| D5 | Base stat tables | `PlayerExpectedStat` · Forever (level 60; also the level you test at for B44) and 1.15.9 (absent); `ChrClasses` · both | BaseMana 1512 (paladin), 1244 (druid); CritPerAgility 0.0005 / 0.000506 / 0.0005; SpellCritPerIntellect 0.000167; unnamed columns 10 and 287; AttackPowerPerStrength 2, AttackPowerPerAgility 0, ArmorTypeMask 127 / 2303 / 2343 (all zero in 1.15.9) | High · M4 | [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser), [OQ-4](mechanics/character-stats.md#oq-4-paladin-intellect-to-spell-crit) |
-| D6 | Cat damage values | `SpellEffect` · both; `SpellDescriptionVariables` · 1.15.9 | Shred 9830 flat 80 / 155%; Claw 9850 115 / 110%; Rake 9904 61 / 34 per 3 s; Rip 9896 15 + 25.5 per CP (Classic 16+1 / 28; SDV 865 `$ticks=6`, `$mult=1.0`); Ferocious Bite 31018 base 82, variance 0.7317, 147 per CP, dummy 270; Tiger's Fury 5217 15%, 30,000 ms, no GCD | High · M4 | [druid Q27](classes/druid.md#10-open-questions) |
-| D7 | Ret damage coefficients | `SpellEffect` · Forever | SoC proc 20424 70% weapon, 0.29; JoC 20966 0.429; JoR 20286 0.5; SoR proc 25713 0.1; Holy Strike 10333 effect 121 (+93) then 31 (40%), 0.429; Consecration 1280349 12 + 27 at 0.095; Vengeance 20050 5 stacks, 30 s; 2HWS 20111 / 1HWS 20196 Physical only; Improved Seals 20224 spell masks | High · M5 | [paladin OQ 21](classes/paladin.md#open-questions), [§ DB2 links](classes/paladin.md#db2-links-per-spell) |
-| D8 | Rage talent curves | `TraitDefinitionEffectPoints` + `CurvePoint` · Forever | Boundless Rage 1310236 aura 418 = 100/200/300; Improved Bloodrage 25/50; Shield Specialization 20…100; Master of Defense 50/100; Improved Tactical Mastery 12295 = 3/6/9/12/15 and Tactical Mastery 1310185 dummy 10; Furor 20…100; Natural Reaction 417051 | Medium · M2 | [rage § sources](mechanics/rage.md#warrior-rage-sources-and-sinks), [§ stances](mechanics/rage.md#stance-changes-and-tactical-mastery) |
-| D9 | Warrior timing, procs and masks | `SpellCooldowns`, `SpellCategories`, `SpellShapeshift`, `SpellPower`, `SpellMisc`, `SpellAuraOptions`, `SpellClassOptions`, `SpellName` · Forever | Slam 15 s CD on every rank; stance swap 1.0 s shared, off GCD; racial `StartRecoveryTime` 0; Thunder Clap defense type 1, usable in Defensive; Overpower window 1282733 = 5,000 ms, second cost power type 4 stacking to 3; Bloodthrill proc mask 4; Enrage proc mask 0x222A8; Berserker Stance aura 290 (Classic 52) plus an empty aura 166; Recklessness has its own recovery; Improved Slam spells 1310196–1310200; Battle Shout 25289 base 139 + 0.6/level; weapon-damage effect types (121 normalized: Mortal Strike, Overpower, Whirlwind, Spearing Strike; 17: Heroic Strike, Cleave, Slam); Focused Rage and Impale class masks; Deep Wounds 12721 has no name; Victory Rush dummy 15. (Demoralizing Shout's per-level term: [C27](#c27-demoralizing-shout-and-roar-level-scaling)) | Medium · M2 | [warrior §2](classes/warrior.md#2-warrior-mechanics), [Q19, Q21, Q22](classes/warrior.md#9-open-questions) |
-| D10 | Racials | `SpellEffect`, `SpellMisc`, `SpellDuration`, `SpellPower` · Forever | 20597 (+2% crit, aura 290), 20598, 20572 (+10% AP, RAP, SP; 15 s), 20574, 1259719, 1259721, 20594, 20582, 1259799 (+10%, 15 s), 1259802, 1259813 (15 s), 1260189, 20550 (+5% HP; +1% hit via auras 54 and 55), 20554 (10 s, no cost), 20557 | Medium · M2 | [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser) |
-| D11 | Race/class pairs | `CharBaseInfo`, `ChrRaces` · Forever | 56 pairs including Undead paladin; High Order Skyborne = race 95, Windshaper = 96 | Medium · M2 | [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser) |
-| D12 | Windfury Totem | `SpellEffect`, `SpellAuraOptions` · both | Forever: 10612 is a party dummy aura, 20% proc into 10610 (+246 AP, 1 extra attack), 10611 absent. Classic: 10612 pulses 10611 every 5 s → enchant 564 (10 s) | Medium · M2 | [buffs OQ 17](mechanics/buffs-debuffs-consumables.md#open-questions) |
-| D13 | Consumable mechanics | `ItemEffect`, `ItemXItemEffect`, `SpellEffect` · Forever | cooldown categories: elixirs 79, potions 4, runes 1153, explosives 24, Blasted Lands 103 (3,600 s); Frenzy potions aura 13 (school mask 1), no category; all-crit aura on Leader of the Pack 24932 and Mongoose 17538; Hyjal flasks = dummy + zero-valued aura | Medium · M2 | [buffs OQ 17](mechanics/buffs-debuffs-consumables.md#open-questions) |
-| D14 | Periodic-crit flags and Deep Wounds (read so far only by wowsims/forever, a secondary source) | `SpellMisc` (Attributes[8], `PERIODIC_CAN_CRIT`), `SpellName`, `SpellEffect` · Forever | flag set on Rend 11574, Rake 9904, Rip 9896, Pounce bleed 9826 and Lacerate 1235827; not set on Deep Wounds and Consecration 20924 / 1280349; Forever's Deep Wounds bleed is spell 412609 (4 ticks, 3 s) | Medium · M2 | [damage §4](mechanics/damage-and-timing.md#4-dots-and-bleeds), [OQ 2](mechanics/damage-and-timing.md#open-questions); [warrior Q21](classes/warrior.md#9-open-questions); [druid Q21](classes/druid.md#10-open-questions) |
-| D15 | Threat auras | `SpellEffect` · both; `SpellClassOptions` · 1.15.9 | Battle 21156 −20, Berserker 7381 −20, Defensive 7376 +30; Bear Passive2 21178 +30; Cat 3025 −29; Defiance 12792 curve 5/10/15; Righteous Fury 25780 = 90 (Classic 59+1), school mask 2; Improved RF 20468 −2/−4/−6 (curve 82954); Instrument of Law 1311085 10/20; Iron Creed 1311034 aura 108, modifier 2, 5…25; Salvation 1038 / 25895 −30; Feral Instinct 16947 (Classic: aura 107 on mask 0x2000000) | Medium · M3 | [threat § stances](mechanics/threat.md#stance-and-form-modifiers), [§ Righteous Fury](mechanics/threat.md#paladin-righteous-fury) |
-| D16 | Bear and form values | `SpellEffect`, `SpellShapeshiftForm`, `SpellShapeshift`, `SpellLevels`, `SpellCooldowns`, `SpellPower`, `SpellAuraOptions` · both | Mangle 407995 / 1238069 / 1238070 / 1238073 = 26/38/59/77, 20 rage, 6 s, shapeshift mask 144; Lacerate 1235827 15 per 3 s, 5 stacks; Cat 3025 12 + 2/level from 6, Faerie Fire cost −100%, CD +6,000, GCD −500, aura 598 = 100 on Agility; Dire Bear 9635; forms 1/5/8 = 1,000/2,500 ms, variance 0.4; cat `StartRecoveryTime` 1,000; Berserk 417141 masks, 180,000 ms; Omen of Clarity 16864 `ProcCategoryRecovery` 10,000; Cower 9892 −1200 − 1/level (Demoralizing Roar's per-level term: [C27](#c27-demoralizing-shout-and-roar-level-scaling)); `SpellLevels` 3025 base 6 (Classic 20), 1178 10–40, 9635 40–70 | Medium · M4 | [druid Q27](classes/druid.md#10-open-questions), [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser) |
-| D17 | Feral talent auras | `SpellEffect`, `CurvePoint` · Forever | Genesis, Savage Fury, Predatory Instincts, Nature's Reach (auras 54/55), Nature's Majesty, Naturalist (aura 79) values and class masks; King of the Jungle 20/40/60 plus a hidden 5/10/15 | Medium · M4 | [druid Q7, Q27](classes/druid.md#10-open-questions) |
-| D18 | Paladin attributes, cooldowns and procs | `SpellMisc`, `SpellCategories`, `SpellAuraOptions`, `SpellCooldowns`, `SpellEffect` · Forever | JoC/JoR/JotC melee class with No Active Defense / Always Hit (20966, 20968, 20286, 20303 for 40 s); SoR and SoF proc attributes (25713, 20418); SoC 1 s ICD (20920); seal proc masks 0x4 (damage) vs 0x14 (utility); Holy Strike and HotR category 2404 (12 s / 6 s); Holy Strike SpellMisc school 2; Holy Shield 20928 4 charges, 0.08; SoF 20418 35 at 0.1; JoF 20414 0.45; SotC 20308 +2.4/level; JoF scripted value 1607 + 42.3/level, coefficient 0.18 | Medium · M5 | [paladin OQ 17, 21](classes/paladin.md#open-questions), [threat OQ 6](mechanics/threat.md#open-questions) |
-| D19 | Item → buff spells | `ItemEffect`, `ItemXItemEffect` · Forever | the spell IDs after "→" in buffs §3; Distilled Firewater → 17038; Smoked Desert Dumplings → 1248401 (the Well Fed family) | Low · M2 | [buffs §3](mechanics/buffs-debuffs-consumables.md#3-consumables) |
-| D20 | Enchant and minor consumable values | `SpellItemEnchantment`, `SpellEffect` · Forever | enchant 2618 → spell 19989 (+9 Agi); enchant 925 → spell 13930 (+2 defense); Rivenspike 17315 −100 per stack; Consecrated Sharpening Stone reads 99; Gift of Arthas 11374 +8; Blood Pact 11767 = 49 + 0.5/level; Trueshot Aura r5 = 50 (possible data bug) | Low · M2 | [buffs OQ 16, 17](mechanics/buffs-debuffs-consumables.md#open-questions) |
-| D21 | World buffs (context only) | `SpellEffect` · both | 22888, 15366, 16609 are dummy auras in Forever | Low · M2 | [buffs §2](mechanics/buffs-debuffs-consumables.md#2-world-buffs-excluded) |
-| D22 | Threat items and enchants | `SpellItemEnchantment`, `ItemEffect`, `ItemXItemEffect`, `SpellEffect` · Forever | Gloves – Threat 2613 → 25063 (+2); Cloak – Subtlety 2621 → 25070 (−2); Fetish of the Sand Reaver 26400 −70, 20 s, CD 180 s; Eye of Diminution 28862 −35, 20 s, CD 120 s; Increase/Decrease Threat All 01–04 linked to 278540, 279493, 278929, 278299, 14576, 13959, 18308; Enhanced Sunder 23561 | Low · M3 | [threat § global](mechanics/threat.md#global-threat-modifiers), [threat OQ 10](mechanics/threat.md#open-questions) |
-| D23 | Taunts and forced attacks | `SpellEffect`, `SpellDuration` · Forever | Taunt 355 and Growl 6795: effect 114 + aura 11, 3 s; Mocking Blow 20560 aura 11, 6 s; Challenging Shout 1161 and Roar 5209 6 s | Low · M3 | [threat § taunts](mechanics/threat.md#taunts-and-forced-attacks) |
+| # | What was looked up | Table · build | Value the docs assumed | Impact · M | Docs | Result |
+| --- | --- | --- | --- | --- | --- | --- |
+| D1 | PPM rows and proc links | `SpellProcsPerMinute` · both builds; `SpellAuraOptions` · Forever | IDs 454–463 = 1–10 PPM in both; new ID 479 = 2.3 PPM in Forever only; no `SpellAuraOptions` row references a PPM ID | High · M2 | [damage §5.1](mechanics/damage-and-timing.md#51-ppm-formula), [system-changes §2](mechanics/forever-system-changes.md#2-combat-rules) | ✅ confirmed from client data (every PPM row has Flags 1; no proc references one, so PPM rates are server-side and keep their [C]/[?] tags), see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D2 | Warrior DPS core | `SpellEffect`, `SpellAuraOptions`, `SpellMisc`, `TraitDefinitionEffectPoints` + `CurvePoint` · Forever | Bloodthirst 23894 = 0.35 × AP + 48; Flurry buff 12966 base 30 vs talent curve 5–25, 15,000 ms; Dual Wield Spec curves 5–25 / 20–100 / 2–10 and a hit aura (54) with no hand restriction; Unbridled Wrath curve 12–60, energize 12964 = 10 tenths, proc mask auto attack only; Weaponmaster sword 12281 `ProcCategoryRecovery` 200 (both builds), axe 12700 aura 290 | High · M2 | [warrior §2.3–§2.7](classes/warrior.md#2-warrior-mechanics) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D3 | Rage energize amounts (tenths) | `SpellEffect` · both builds | Bloodrage 2687 = 100 and 29131 = 10 per 1,000 ms for 10 s; Charge 11578 = 150; Mighty Rage Potion 17528 = 600, variance 0.5, 20 s; Shield Specialization 1310318 = 50 (Classic 23602 = 10); Master of Defense → 23602 = 50; Enrage 5229 = 100 + 20/s; Furor 17057 = 100; Primal Fury 16959 = 50; Natural Reaction 417053 = 50; Heroic Strike 25286 +157 | High · M2 | [rage § sources](mechanics/rage.md#warrior-rage-sources-and-sinks), [§ bear](mechanics/rage.md#bear-druid-rage) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D4 | Sunder Armor threat effect (63) by rank | `SpellEffect` · Forever (Classic has none) | r1 1, r2 405, r3 608, r4 810, r5 1013 (11597) | High · M3 | [threat § warrior](mechanics/threat.md#warrior), [warrior Q1](classes/warrior.md#9-open-questions) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D5 | Base stat tables | `PlayerExpectedStat` · Forever (level 60; also the level you test at for B44) and 1.15.9 (absent); `ChrClasses` · both | BaseMana 1512 (paladin), 1244 (druid); CritPerAgility 0.0005 / 0.000506 / 0.0005; SpellCritPerIntellect 0.000167; unnamed columns 10 and 287; AttackPowerPerStrength 2, AttackPowerPerAgility 0, ArmorTypeMask 127 / 2303 / 2343 (all zero in 1.15.9) | High · M4 | [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser), [OQ-4](mechanics/character-stats.md#oq-4-paladin-intellect-to-spell-crit) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D6 | Cat damage values | `SpellEffect` · both; `SpellDescriptionVariables` · 1.15.9 | Shred 9830 flat 80 / 155%; Claw 9850 115 / 110%; Rake 9904 61 / 34 per 3 s; Rip 9896 15 + 25.5 per CP (Classic 16+1 / 28; SDV 865 `$ticks=6`, `$mult=1.0`); Ferocious Bite 31018 base 82, variance 0.7317, 147 per CP, dummy 270; Tiger's Fury 5217 15%, 30,000 ms, no GCD | High · M4 | [druid Q27](classes/druid.md#10-open-questions) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D7 | Ret damage coefficients | `SpellEffect` · Forever | SoC proc 20424 70% weapon, 0.29; JoC 20966 0.429; JoR 20286 0.5; SoR proc 25713 0.1; Holy Strike 10333 effect 121 (+93) then 31 (40%), 0.429; Consecration 1280349 12 + 27 at 0.095; Vengeance 20050 5 stacks, 30 s; 2HWS 20111 / 1HWS 20196 Physical only; Improved Seals 20224 spell masks | High · M5 | [paladin OQ 21](classes/paladin.md#open-questions), [§ DB2 links](classes/paladin.md#db2-links-per-spell) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D8 | Rage talent curves | `TraitDefinitionEffectPoints` + `CurvePoint` · Forever | Boundless Rage 1310236 aura 418 = 100/200/300; Improved Bloodrage 25/50; Shield Specialization 20…100; Master of Defense 50/100; Improved Tactical Mastery 12295 = 3/6/9/12/15 and Tactical Mastery 1310185 dummy 10; Furor 20…100; Natural Reaction 417051 | Medium · M2 | [rage § sources](mechanics/rage.md#warrior-rage-sources-and-sinks), [§ stances](mechanics/rage.md#stance-changes-and-tactical-mastery) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D9 | Warrior timing, procs and masks | `SpellCooldowns`, `SpellCategories`, `SpellShapeshift`, `SpellPower`, `SpellMisc`, `SpellAuraOptions`, `SpellClassOptions`, `SpellName` · Forever | Slam 15 s CD on every rank; stance swap 1.0 s shared, off GCD; racial `StartRecoveryTime` 0; Thunder Clap defense type 1, usable in Defensive; Overpower window 1282733 = 5,000 ms, second cost power type 4 stacking to 3; Bloodthrill proc mask 4; Enrage proc mask 0x222A8; Berserker Stance aura 290 (Classic 52) plus an empty aura 166; Recklessness has its own recovery; Improved Slam spells 1310196–1310200; Battle Shout 25289 base 139 + 0.6/level; weapon-damage effect types (121 normalized: Mortal Strike, Overpower, Whirlwind, Spearing Strike; 17: Heroic Strike, Cleave, Slam); Focused Rage and Impale class masks; Deep Wounds 12721 has no name; Victory Rush dummy 15. (Demoralizing Shout's per-level term: [C27](#c27-demoralizing-shout-and-roar-level-scaling)) | Medium · M2 | [warrior §2](classes/warrior.md#2-warrior-mechanics), [Q19, Q21, Q22](classes/warrior.md#9-open-questions) | ✅ resolved from client data, with one correction: **Stoneform is on the GCD** (`StartRecoveryTime` 1500); Blood Fury, Berserking, Elune's Light and Eureka! are 0. Deep Wounds 12721 is absent from the client altogether (the Forever bleed is 412609). See [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D10 | Racials | `SpellEffect`, `SpellMisc`, `SpellDuration`, `SpellPower` · Forever | 20597 (+2% crit, aura 290), 20598, 20572 (+10% AP, RAP, SP; 15 s), 20574, 1259719, 1259721, 20594, 20582, 1259799 (+10%, 15 s), 1259802, 1259813 (15 s), 1260189, 20550 (+5% HP; +1% hit via auras 54 and 55), 20554 (10 s, no cost), 20557 | Medium · M2 | [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D11 | Race/class pairs | `CharBaseInfo`, `ChrRaces` · Forever | 56 pairs including Undead paladin; High Order Skyborne = race 95, Windshaper = 96 | Medium · M2 | [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D12 | Windfury Totem | `SpellEffect`, `SpellAuraOptions` · both | Forever: 10612 is a party dummy aura, 20% proc into 10610 (+246 AP, 1 extra attack), 10611 absent. Classic: 10612 pulses 10611 every 5 s → enchant 564 (10 s) | Medium · M2 | [buffs OQ 17](mechanics/buffs-debuffs-consumables.md#open-questions) | ✅ Forever half confirmed; also found: 10612 has a 100 ms internal cooldown (`ProcCategoryRecovery` 100, see [C11](#c11-windfury-totem)). Classic half: 10612 pulses 10611 → enchant 564 as written, but Classic's `SpellItemEnchantment` has no duration column, so the 10 s is unverifiable there (Forever's row for 564 says 10 s). See [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D13 | Consumable mechanics | `ItemEffect`, `ItemXItemEffect`, `SpellEffect` · Forever | cooldown categories: elixirs 79, potions 4, runes 1153, explosives 24, Blasted Lands 103 (3,600 s); Frenzy potions aura 13 (school mask 1), no category; all-crit aura on Leader of the Pack 24932 and Mongoose 17538; Hyjal flasks = dummy + zero-valued aura | Medium · M2 | [buffs OQ 17](mechanics/buffs-debuffs-consumables.md#open-questions) | ✅ resolved from client data, with one correction: **Frenzy potions share the 120 s potion cooldown** (their spells are in category 4, though their item effects carry none; see [C12](#c12-new-elixirs-and-frenzy-potions)). The rest confirmed. See [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D14 | Periodic-crit flags and Deep Wounds (read so far only by wowsims/forever, a secondary source) | `SpellMisc` (Attributes[8], `PERIODIC_CAN_CRIT`), `SpellName`, `SpellEffect` · Forever | flag set on Rend 11574, Rake 9904, Rip 9896, Pounce bleed 9826 and Lacerate 1235827; not set on Deep Wounds and Consecration 20924 / 1280349; Forever's Deep Wounds bleed is spell 412609 (4 ticks, 3 s) | Medium · M2 | [damage §4](mechanics/damage-and-timing.md#4-dots-and-bleeds), [OQ 2](mechanics/damage-and-timing.md#open-questions); [warrior Q21](classes/warrior.md#9-open-questions); [druid Q21](classes/druid.md#10-open-questions) | ✅ confirmed from client data (412609: every 3,000 ms for 12,000 ms; the flags are client values, whether ticks crit in combat stays [B22](#b22-dots-periodic-crits-snapshots-and-refresh)), see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D15 | Threat auras | `SpellEffect` · both; `SpellClassOptions` · 1.15.9 | Battle 21156 −20, Berserker 7381 −20, Defensive 7376 +30; Bear Passive2 21178 +30; Cat 3025 −29; Defiance 12792 curve 5/10/15; Righteous Fury 25780 = 90 (Classic 59+1), school mask 2; Improved RF 20468 −2/−4/−6 (curve 82954); Instrument of Law 1311085 10/20; Iron Creed 1311034 aura 108, modifier 2, 5…25; Salvation 1038 / 25895 −30; Feral Instinct 16947 (Classic: aura 107 on mask 0x2000000) | Medium · M3 | [threat § stances](mechanics/threat.md#stance-and-form-modifiers), [§ Righteous Fury](mechanics/threat.md#paladin-righteous-fury) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D16 | Bear and form values | `SpellEffect`, `SpellShapeshiftForm`, `SpellShapeshift`, `SpellLevels`, `SpellCooldowns`, `SpellPower`, `SpellAuraOptions` · both | Mangle 407995 / 1238069 / 1238070 / 1238073 = 26/38/59/77, 20 rage, 6 s, shapeshift mask 144; Lacerate 1235827 15 per 3 s, 5 stacks; Cat 3025 12 + 2/level from 6, Faerie Fire cost −100%, CD +6,000, GCD −500, aura 598 = 100 on Agility; Dire Bear 9635; forms 1/5/8 = 1,000/2,500 ms, variance 0.4; cat `StartRecoveryTime` 1,000; Berserk 417141 masks, 180,000 ms; Omen of Clarity 16864 `ProcCategoryRecovery` 10,000; Cower 9892 −1200 − 1/level (Demoralizing Roar's per-level term: [C27](#c27-demoralizing-shout-and-roar-level-scaling)); `SpellLevels` 3025 base 6 (Classic 20), 1178 10–40, 9635 40–70 | Medium · M4 | [druid Q27](classes/druid.md#10-open-questions), [stats OQ-13](mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D17 | Feral talent auras | `SpellEffect`, `CurvePoint` · Forever | Genesis, Savage Fury, Predatory Instincts, Nature's Reach (auras 54/55), Nature's Majesty, Naturalist (aura 79) values and class masks; King of the Jungle 20/40/60 plus a hidden 5/10/15 | Medium · M4 | [druid Q7, Q27](classes/druid.md#10-open-questions) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D18 | Paladin attributes, cooldowns and procs | `SpellMisc`, `SpellCategories`, `SpellAuraOptions`, `SpellCooldowns`, `SpellEffect` · Forever | JoC/JoR/JotC melee class with No Active Defense / Always Hit (20966, 20968, 20286, 20303 for 40 s); SoR and SoF proc attributes (25713, 20418); SoC 1 s ICD (20920); seal proc masks 0x4 (damage) vs 0x14 (utility); Holy Strike and HotR category 2404 (12 s / 6 s); Holy Strike SpellMisc school 2; Holy Shield 20928 4 charges, 0.08; SoF 20418 35 at 0.1; JoF 20414 0.45; SotC 20308 +2.4/level; JoF scripted value 1607 + 42.3/level, coefficient 0.18 | Medium · M5 | [paladin OQ 17, 21](classes/paladin.md#open-questions), [threat OQ 6](mechanics/threat.md#open-questions) | ✅ resolved from client data, with one correction: **JoC's damage spell 20966 also has Always Hit**, so JoC can't miss; JoR 20286 and JoF 20414 can (see [B41](#b41-soc-and-judgement-avoidance-partial-resists-on-melee-class-holy)). The rest confirmed. See [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D19 | Item → buff spells | `ItemEffect`, `ItemXItemEffect` · Forever | the spell IDs after "→" in buffs §3; Distilled Firewater → 17038; Smoked Desert Dumplings → 1248401 (the Well Fed family) | Low · M2 | [buffs §3](mechanics/buffs-debuffs-consumables.md#3-consumables) | ✅ resolved from client data, with one correction: **Blessed Sunfruit 13810 casts 18124, which triggers the buff 18125**. The other 48 item → buff ids and both named items confirmed. See [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D20 | Enchant and minor consumable values | `SpellItemEnchantment`, `SpellEffect` · Forever | enchant 2618 → spell 19989 (+9 Agi); enchant 925 → spell 13930 (+2 defense); Rivenspike 17315 −100 per stack; Consecrated Sharpening Stone reads 99; Gift of Arthas 11374 +8; Blood Pact 11767 = 49 + 0.5/level; Trueshot Aura r5 = 50 (possible data bug) | Low · M2 | [buffs OQ 16, 17](mechanics/buffs-debuffs-consumables.md#open-questions) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D21 | World buffs (context only) | `SpellEffect` · both | 22888, 15366, 16609 are dummy auras in Forever | Low · M2 | [buffs §2](mechanics/buffs-debuffs-consumables.md#2-world-buffs-excluded) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D22 | Threat items and enchants | `SpellItemEnchantment`, `ItemEffect`, `ItemXItemEffect`, `SpellEffect` · Forever | Gloves – Threat 2613 → 25063 (+2); Cloak – Subtlety 2621 → 25070 (−2); Fetish of the Sand Reaver 26400 −70, 20 s, CD 180 s; Eye of Diminution 28862 −35, 20 s, CD 120 s; Increase/Decrease Threat All 01–04 linked to 278540, 279493, 278929, 278299, 14576, 13959, 18308; Enhanced Sunder 23561 | Low · M3 | [threat § global](mechanics/threat.md#global-threat-modifiers), [threat OQ 10](mechanics/threat.md#open-questions) | ✅ confirmed from client data (none of the seven threat items has an `ItemSparse` row in this build), see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
+| D23 | Taunts and forced attacks | `SpellEffect`, `SpellDuration` · Forever | Taunt 355 and Growl 6795: effect 114 + aura 11, 3 s; Mocking Blow 20560 aura 11, 6 s; Challenging Shout 1161 and Roar 5209 6 s | Low · M3 | [threat § taunts](mechanics/threat.md#taunts-and-forced-attacks) | ✅ confirmed from client data, see [client.md](data/client.md#doc-claims-checked-against-the-raw-client) |
 
 ---
 

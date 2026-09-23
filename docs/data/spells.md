@@ -155,8 +155,9 @@ Sanctuary* (a talent in Classic) and *Greater Blessing of Sanctuary*.
 - **Tooltip numbers are tooltips.** `differences` and the texts compare client tooltip strings.
   Some large numeric diffs may be tooltip-template artefacts rather than balance changes.
   For example, Classic Rip rank 6 reads "157 damage over 12 sec" at 5 CP, which looks like
-  a per-tick value (×6 ticks = 942) against Forever's 855 total. Verify on
-  [wago.tools](https://wago.tools) DB2 or in game before building on such a number `[?]`.
+  a per-tick value (×6 ticks = 942) against Forever's 855 total. Check the raw client values in
+  `src/data/client/spells.json` ([client.md](client.md)) or in game before building on such a
+  number `[?]`.
 - **Source links.** `sources[].type` is `client_data` (Forever: wago.tools DB2 tables for
   build 1.60.1.69913) or `classic_client_data` (links to `wowhead.com/classic/spell=…`). The
   Classic values themselves come from the Classic Era client via the site. Doctrine §2 warns

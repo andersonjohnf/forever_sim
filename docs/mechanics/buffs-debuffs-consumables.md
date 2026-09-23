@@ -19,14 +19,19 @@ Status: researched 2026-09-22 · ruleset tags: [F] Forever · [C] Classic Era ·
 
 Forever data: beta client **1.60.1.69913** (2026-09-18) vs Classic Era **1.15.9.69722**,
 read from foreverchanges.pro (spellbooks, change log, item data files, enchanting recipes)
-and from wago.tools DB2 tables for both builds. **wago.tools disallows automated access**
-(its robots.txt allows only the homepage), so the project makes no further automated
-requests there. Every fact that rests *only* on a wago.tools DB2 read is marked **‡**, and a
-human should confirm it in a browser (see [Open question 17](#open-questions)). Values
-without ‡ are also visible in foreverchanges.pro tooltips or in Classic Era sources.
+and from the raw client files of both builds.
+
+**Client data.** A source cell `[client] (Table, build)` means the value was read from that
+raw DB2 file, fetched through the wago.tools API and parsed by `scripts/scrape/client.mjs`
+([client.md](../data/client.md)). The client check confirmed every value this doc had marked
+for a browser check, with two corrections: **Frenzy potions share the potion cooldown**, and
+Blessed Sunfruit's item casts 18124, which triggers the buff 18125. Classic's enchant table
+has no duration column, so Windfury enchant 564's 10 s is Forever's value only. Raw files
+lack server hotfixes and server scripts (dummy effects, PPM rates, the Hyjal flasks' zone
+bonus), which stay as tagged ([hotfix caveat](../data/client.md#hotfix-caveat)).
 
 **Tag rules for this doc.** **[F]** means the value was read from the Forever beta client,
-through foreverchanges.pro or wago.tools DB2. That includes values the Forever client shows
+through foreverchanges.pro or the raw client files. That includes values the Forever client shows
 *unchanged* from Classic (foreverchanges' "Same as Classic" or "Unchanged" tab, or an
 identical DB2 row); for those the number is the Classic tooltip, now confirmed in the
 Forever client. **[C]** is used only where Forever data is silent. **[?]** entries also
@@ -79,7 +84,7 @@ enchanting-spell / SpellItemEnchantment IDs for enchants.
     negative in `forever`, per [damage-and-timing §1.2](damage-and-timing.md#12-armor-reduction-debuffs-and-penetration)), +Holy damage taken,
     +magic damage taken %, and reductions to boss AP, attack speed and physical damage done.
     The last three matter only for tank rage and survival.
-- **Cooldown categories for on-use items**: potions (shared 2 min), runes (shared 2 min,
+- **Cooldown categories for on-use items**: potions, Frenzy potions included (shared 2 min), runes (shared 2 min,
   separate from potions), explosives (shared 1 min), and the Blasted Lands buffs (shared
   1 h). See [Implementation notes](#on-use-items-and-cooldown-categories).
 - **One temporary enchant per weapon** (stone, oil or poison). In Classic, Windfury Totem
@@ -121,8 +126,9 @@ only.
 
 Both factions can field paladins and shamans in Forever: Undead paladins on the Horde and
 Dwarf shamans on the Alliance are new **[F]**. The Forever client's `CharBaseInfo` table lists
-these pairs; [character-stats](character-stats.md#legal-races-for-the-sims-classes) owns the
-matrix, and a person should confirm the table on wago.tools. foreverchanges' racials page marks
+these pairs (56, Undead paladin included) [F] [client] (CharBaseInfo, 1.60.1.69913);
+[character-stats](character-stats.md#legal-races-for-the-sims-classes) owns the
+matrix. foreverchanges' racials page marks
 its own copy community-reported (`reported_compatibility`, transcribed from BlizzCon footage;
 see [data/races.md](../data/races.md)), but the client table is the primary source
 [[fc-racials]](https://foreverchanges.pro/racials) [[fc-beta]](https://foreverchanges.pro/beta).
@@ -133,35 +139,35 @@ see [data/races.md](../data/races.md)), but the client table is the primary sour
 
 | Name | ID | Effect (max rank) | Duration | Stacking / exclusivity | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Battle Shout (r7) | 25289 | **+139** melee AP (C: 232). Every rank is a flat 0.6× of Classic (9 / 21 / 33 / 51 / 78 / 111 / 139); see [warrior](../classes/warrior.md) | **3 min** (C: 2 min) | Party within 20 yd (Booming Voice adds radius only; it no longer adds duration). Stacks with Blessing of Might and all other AP | Warrior | [F] | [fc-sb-warrior] · [fc-changes] · [DB2][wF-SE] |
+| Battle Shout (r7) | 25289 | **+139** melee AP (C: 232). Every rank is a flat 0.6× of Classic (9 / 21 / 33 / 51 / 78 / 111 / 139); see [warrior](../classes/warrior.md) | **3 min** (C: 2 min) | Party within 20 yd (Booming Voice adds radius only; it no longer adds duration). Stacks with Blessing of Might and all other AP | Warrior | [F] | [fc-sb-warrior] · [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
 | Improved Battle Shout | talent (C: 12318) | **Removed** (C: +25% Battle Shout AP at 5/5) | — | — | — | [F] | [fc-changes] |
-| Blessing of Might (r7) | 25291 | **+133** melee AP (C: 185) | **1 h** (C: 5 min) | One Blessing per paladin on a player; stacks with Battle Shout | Paladin | [F] | [fc-sb-paladin] · [DB2][wF-SE] |
+| Blessing of Might (r7) | 25291 | **+133** melee AP (C: 185) | **1 h** (C: 5 min) | One Blessing per paladin on a player; stacks with Battle Shout | Paladin | [F] | [fc-sb-paladin] · [client] (SpellEffect, 1.60.1.69913) |
 | Greater Blessing of Might (r2) | 25916 | **+133** melee AP to every raid member of the target's class (C: 185) | **1 h** (C: 15 min) | Same blessing slot as Blessing of Might from that paladin | Paladin | [F] | [fc-sb-paladin] |
 | Improved Blessing of Might | talent (C: 20042) | **Removed** (C: +20% at 5/5) | — | — | — | [F] | [fc-changes] |
 | Blessing of Kings | 20217 | +10% all stats | **1 h** (C: 5 min) | One Blessing per paladin | Paladin, **trained at level 20** (C: Protection talent) | [F] | [fc-sb-paladin] · [fc-changes] |
 | Greater Blessing of Kings | 25898 | +10% all stats, class-wide | **1 h** (C: 15 min) | As above | Paladin | [F] | [fc-sb-paladin] |
-| Mark of the Wild (r7) | 9885 | **+385** armor, **+16** all stats, **+27** all resistances (C: 285 / 12 / 20) | **1 h** (C: 30 min) | Single target; same buff as Gift of the Wild | Druid (castable in Moonkin Form too) | [F] | [fc-sb-druid] · [DB2][wF-SE] |
+| Mark of the Wild (r7) | 9885 | **+385** armor, **+16** all stats, **+27** all resistances (C: 285 / 12 / 20) | **1 h** (C: 30 min) | Single target; same buff as Gift of the Wild | Druid (castable in Moonkin Form too) | [F] | [fc-sb-druid] · [client] (SpellEffect, 1.60.1.69913) |
 | Gift of the Wild (r2) | 21850 | As Mark of the Wild, **whole raid** (C: target's party) | 1 h | Same as Mark of the Wild | Druid | [F] | [fc-sb-druid] |
 | Improved Mark of the Wild | talent (C: 17050) | **Removed** (C: +35% at 5/5) | — | — | — | [F] | [fc-changes] |
-| Leader of the Pack | 17007 (aura 24932) | +3% crit to the party within 45 yd. The Forever tooltip says "critical strike chance", and the aura is all-crit‡ (C: melee and ranged crit) | While the druid is in Cat, Bear or Dire Bear Form | **Exclusive with Moonkin Aura** (Forever tooltip); several druids don't stack | Feral druid talent | [F] | [fc-changes] · [DB2][wF-SE] |
-| Moonkin Aura (Moonkin Form) | 24907 | **+3% crit (all)** to the party within 45 yd (C: +3% *spell* crit, 30 yd) | While in Moonkin Form | Exclusive with Leader of the Pack | Balance druid talent | [F] | [fc-changes] · [DB2][wF-SE] |
+| Leader of the Pack | 17007 (aura 24932) | +3% crit to the party within 45 yd. The Forever tooltip says "critical strike chance", and the aura is all-crit (aura 290 = 3) (C: melee and ranged crit) | While the druid is in Cat, Bear or Dire Bear Form | **Exclusive with Moonkin Aura** (Forever tooltip); several druids don't stack | Feral druid talent | [F] | [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
+| Moonkin Aura (Moonkin Form) | 24907 | **+3% crit (all)** to the party within 45 yd (C: +3% *spell* crit, 30 yd) | While in Moonkin Form | Exclusive with Leader of the Pack | Balance druid talent | [F] | [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
 | Trueshot Aura (r5) | 20906 (r1 1299346) | **Ranged AP only** in Forever: 30 / 40 / 50 / 75 / 50 by rank (C: +50 / 75 / 100 melee **and** ranged AP) | 30 min | Party within 45 yd | Hunter talent | [F] | [fc-sb-hunter] · [fc-changes] |
 | Strength of Earth Totem (r5) | 25361 | **+53** Str (C: 77) | **5 min**, 30 yd (C: 2 min, 20 yd) | Party only. Earth totem, so it excludes Stoneskin Totem from the same shaman | Shaman | [F] | [fc-sb-shaman] |
 | Grace of Air Totem (r3) | 25359 | **+89** Agi (C: 77) | **5 min**, 30 yd (C: 2 min, 20 yd) | Party only. Air totem, so it excludes Windfury Totem from the same shaman | Shaman | [F] | [fc-sb-shaman] |
-| Windfury Totem (r3) | 10614 (proc 10610) | Each main-hand hit has a 20% chance to grant 1 extra attack with **+246** AP (C: +315) | **5 min** (C: 2 min) | Party only, air totem. **Party aura in Forever, weapon enchant in Classic**; see [Windfury Totem](#windfury-totem) | Shaman | [F] | [fc-sb-shaman] · [DB2][wF-SE] · [DB2][wF-SIE] |
+| Windfury Totem (r3) | 10614 (proc 10610) | Each main-hand hit has a 20% chance to grant 1 extra attack with **+246** AP (C: +315) | **5 min** (C: 2 min) | Party only, air totem. **Party aura in Forever, weapon enchant in Classic**; see [Windfury Totem](#windfury-totem) | Shaman | [F] | [fc-sb-shaman] · [client] (SpellEffect, SpellAuraOptions, 1.60.1.69913) |
 | Enhancing Totems / Improved Weapon Totems / Totemic Mastery | talents (C: 16259 / 29192 / 16189) | **Removed** (C: +15% SoE/GoA; +30% Windfury AP; 30 yd radius). Forever's totems have 30 yd baseline | — | — | — | [F] | [fc-changes] |
-| Power Word: Fortitude (r6) | 10938 | **+70** Sta (C: 54) | **1 h** (C: 30 min) | Same buff as Prayer of Fortitude | Priest | [F] | [fc-sb-priest] · [DB2][wF-SE] |
+| Power Word: Fortitude (r6) | 10938 | **+70** Sta (C: 54) | **1 h** (C: 30 min) | Same buff as Prayer of Fortitude | Priest | [F] | [fc-sb-priest] · [client] (SpellEffect, 1.60.1.69913) |
 | Prayer of Fortitude (r2) | 21564 | **+70** Sta, **whole raid** (C: 54, party) | 1 h | As above | Priest | [F] | [fc-sb-priest] |
 | Improved Power Word: Fortitude | talent (C: 14749) | **Removed** (C: +30%) | — | — | — | [F] | [fc-changes] |
 | Divine Spirit (r4) / Prayer of Spirit | 27841 / 27681 | +40 Spi; Prayer of Spirit covers the whole raid (C: party) | **1 h** (C: 30 min for Divine Spirit) | — | Priest; **Divine Spirit is trained at level 30** (C: Discipline talent) | [F] | [fc-sb-priest] |
 | Arcane Intellect (r5) / Arcane Brilliance | 10157 / 23028 | +31 Int; Arcane Brilliance covers the whole raid (C: party) | **1 h** (C: 30 min for Arcane Intellect) | — | Mage. Matters only to paladins | [F] | [fc-sb-mage] |
-| Blood Pact (r5) | 11767 | Party Stamina: DB2 base **49** + 0.5/level‡ (C: 38 + 0.4/level‡, about 42 at 60). **Improved Imp no longer boosts it** | While the Imp is out | Party only | Warlock with Imp | [?] | [DB2][wF-SE] · [fc-changes] |
+| Blood Pact (r5) | 11767 | Party Stamina: client base **49** + 0.5/level (C: 38 + 0.4/level, about 42 at 60). **Improved Imp no longer boosts it** | While the Imp is out | Party only | Warlock with Imp | [F] / [C] client values · [?] total at 60 | [client] (SpellEffect, 1.60.1.69913 and 1.15.9.69722) · [fc-changes] |
 
 ### 1.2 Threat, defense and mana
 
 | Name | ID | Effect (max rank) | Duration | Stacking / exclusivity | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Blessing of Salvation | 1038 | −30% threat generated | **1 h** (C: 5 min) | One Blessing per paladin. **Default off for tanks** | Paladin | [F] | [fc-sb-paladin] · [DB2][wF-SE] |
+| Blessing of Salvation | 1038 | −30% threat generated | **1 h** (C: 5 min) | One Blessing per paladin. **Default off for tanks** | Paladin | [F] | [fc-sb-paladin] · [client] (SpellEffect, 1.60.1.69913) |
 | Greater Blessing of Salvation | 25895 | −30% threat, class-wide | **1 h** (C: 15 min) | Class-wide, so it also hits warrior/druid/paladin tanks of the same class unless they cancel it | Paladin | [F] | [fc-sb-paladin] |
 | Blessing / Greater Blessing of Sanctuary | 20914 / 25899 | **Not in Forever** (C: −24 damage taken per hit, 35 Holy on block) | — | — | Removed spell and talent | [F] | [fc-sb-paladin] (missing list) · [fc-changes] |
 | Tranquil Air Totem | 25908 | **Not in Forever** (C: −20% threat, party) | — | — | Removed | [F] | [fc-sb-shaman] (missing list) |
@@ -206,24 +212,28 @@ which doesn't matter inside one fight [F] [[fc-camping]].
   used an Elemental Sharpening Stone only on the off-hand ([Blizzard forum,
   Classic][bnet-cons] · [Almar][almar-tank]). The Classic tooltip says it "enchants all
   party members main-hand weapons … Each hit has a 20% chance of granting the attacker 1
-  extra attacks with 315 extra melee attack power" [[fc-sb-shaman]]. DB2 detail‡: the
-  totem's passive (10612) pulses every 5 s. The pulse (10611) applies temporary enchant
-  **564 "Windfury Totem 3"** (10 s), which procs 10610 ([DB2][wC-SE] ·
-  [DB2][wC-SIE]).
+  extra attacks with 315 extra melee attack power" [[fc-sb-shaman]]. Client detail
+  ([client] (SpellEffect, SpellItemEnchantment, 1.15.9.69722)): the totem's passive (10612)
+  pulses 10611 every 5 s, and 10611 applies temporary enchant **564 "Windfury Totem 3"**,
+  which procs 10610 (20%). Classic's `SpellItemEnchantment` has no duration column, so the
+  enchant's 10 s can't be read there; Forever's row for 564 says 10 s.
 - **Forever [F]:** the tooltip was rewritten to "The totem **enhances the melee attacks** of
   all party members … Each main hand hit has a 20% chance of granting the attacker 1 extra
   attack with **246** extra melee attack power. Lasts 5 min." Windfury Weapon's Forever
   tooltip adds: "When applied to main hand, disables any benefit you personally receive
-  from Windfury Totem" [[fc-sb-shaman]]. DB2 detail‡: 10612 is now a party area aura (dummy
-  aura, 20% proc chance) that triggers 10610 directly, and 10611, the spell that applied the
-  weapon enchant, no longer exists ([DB2][wF-SE]).
+  from Windfury Totem" [[fc-sb-shaman]]. Client detail ([client] (SpellEffect,
+  SpellAuraOptions, 1.60.1.69913)): 10612 is now a party area aura (dummy aura, 20% proc
+  chance) that triggers 10610 directly, with a **100 ms internal cooldown**
+  (`ProcCategoryRecovery` 100). 10610 grants +246 AP and 1 extra attack; its AP aura has 2
+  charges and lasts 1 s. 10611, the spell that applied the weapon enchant, no longer exists.
 - **Consequence [?]:** in Forever, a main-hand sharpening stone or weightstone should
   coexist with Windfury Totem. The sim should allow it, flagged as an assumption until the
   beta confirms. Twisting Windfury with Grace of Air probably no longer works, because the
   aura disappears with the totem. See [Open questions](#open-questions).
 - **Extra-attack rules [C]:** a Windfury extra attack can't proc Windfury, and Windfury can't
   proc twice in one chain of extra attacks ([Magey › Windfury Totem][magey-wf], text from 2019).
-  No internal cooldown is modelled: the only source for one is SoD-era. Both rules are owned by
+  `forever` also applies the client's 100 ms internal cooldown [F]; `classicEra` has none (the
+  SoD-era 1.5 s cooldown stays refused). These rules are owned by
   [damage-and-timing §5.4](damage-and-timing.md#54-extra-attacks-and-chaining).
 
 ---
@@ -235,11 +245,11 @@ which doesn't matter inside one fight [F] [[fc-camping]].
 [D8](../decisions.md#d8-world-buffs-are-excluded-2026-09-22)). The sim has no world-buff
 toggles, and no preset includes them.
 
-For context only (not adopted, no values given): in the Forever client‡, the stat effects
+For context only (not adopted, no values given): in the Forever client, the stat effects
 of Rallying Cry of the Dragonslayer (22888), Songflower Serenade (15366) and Warchief's
 Blessing (16609) are replaced by **dummy auras**, i.e. their effects are now under
 server-side control. That fits the directive
-([DB2][wF-SE] vs [DB2][wC-SE]). Spirit of Zandalar and Fengus' Ferocity still carry real
+([client] (SpellEffect, 1.60.1.69913 vs 1.15.9.69722)). Spirit of Zandalar and Fengus' Ferocity still carry real
 stat effects in the client, so this is not a full confirmation. See
 [Open questions](#open-questions).
 
@@ -248,9 +258,11 @@ stat effects in the client, so this is not a full confirmation. See
 ## 3. Consumables
 
 Every item below was checked against foreverchanges' Forever item files (`new`, `changed`,
-`same`, `missing`) [[fc-items]] and the DB2 item→spell mapping for both builds‡. "Same"
-means the Forever tooltip is identical to Classic, so the Classic tooltip number applies.
-The buff spell IDs after `→` come from DB2‡.
+`same`, `missing`) [[fc-items]] and the Forever client's item→spell mapping [F] [client]
+(ItemEffect, ItemXItemEffect, 1.60.1.69913). "Same" means the Forever tooltip is identical to
+Classic, so the Classic tooltip number applies. The buff spell IDs after `→` come from that
+mapping; where the item's spell only triggers the buff, the chain is written out (13810 →
+18124 → 18125).
 
 ### 3.1 Flasks
 
@@ -259,29 +271,31 @@ The tooltip is unchanged [F].
 
 | Name | ID | Effect | Duration | Stacking | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Flask of the Titans | 13510 → 17626 | +1200 max health | 2 h | One flask | Alchemy (Same) | [F] | [fc-items] · [DB2][wF-IE] |
-| Flask of Supreme Power | 13512 → 17628 | +150 spell damage, all magic schools (so Holy too) | 2 h | One flask | Alchemy (Same) | [F] | [fc-items] · [DB2][wF-SE] |
+| Flask of the Titans | 13510 → 17626 | +1200 max health | 2 h | One flask | Alchemy (Same) | [F] | [fc-items] · [client] (ItemEffect, 1.60.1.69913) |
+| Flask of Supreme Power | 13512 → 17628 | +150 spell damage, all magic schools (so Holy too) | 2 h | One flask | Alchemy (Same) | [F] | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
 | Flask of Distilled Wisdom | 13511 → 17627 | +2000 max mana | 2 h | One flask | Alchemy (reworded only) | [F] | [fc/13511](https://foreverchanges.pro/item/13511) |
 | Flask of Natural Aggression *(new)* | 274274 → 1293741 | +60 Sta; **+4% crit while in Mount Hyjal, Hyjal Summit or the Barrow Deeps** | 2 h | One flask | New Forever recipe (BoP formula, Alchemy 300) | [F] | [fc/274274](https://foreverchanges.pro/item/274274) |
 | Flask of Natural Accuracy *(new)* | 274273 → 1293740 | +60 Sta; **+5% hit** in those zones | 2 h | One flask | As above | [F] | [fc/274273](https://foreverchanges.pro/item/274273) |
 | Flask of Natural Precision *(new)* | 274275 → 1293742 | +60 Sta; **5% reduced chance to be dodged or parried** in those zones | 2 h | One flask | As above | [F] | [fc/274275](https://foreverchanges.pro/item/274275) |
 | Flask of Natural Swiftness *(new)* | 274276 → 1293743 | +60 Sta; **+5% haste** in those zones | 2 h | One flask | As above | [F] | [fc/274276](https://foreverchanges.pro/item/274276) |
 
-The Hyjal flasks' zone bonus is a server-side conditional: the DB2‡ holds a dummy with the
-value and a zero-valued hit/crit/haste aura. The sim must offer them only when
-[encounter](encounter.md) says the fight is in one of those zones.
+The Hyjal flasks' zone bonus is a server-side conditional: the client holds a dummy with
+the value and a zero-valued hit/crit/haste aura [F] [client] (SpellEffect, 1.60.1.69913). (The
+Swiftness flask's spell 1293743 is named "Flask of Natural Accuracy" in `SpellName`; its
+auras are haste.) The sim must offer them only when [encounter](encounter.md) says the fight
+is in one of those zones.
 
 ### 3.2 Elixirs
 
 Classic Era has no battle/guardian elixir split (that is TBC). Only the specific pairs
 below are known not to stack. All elixirs share a 3-second cooldown (the "(3 Sec Cooldown)"
-in the tooltips; category 79‡) [F].
+in the tooltips; category 79 [F] [client] (ItemEffect, 1.60.1.69913)).
 
 | Name | ID | Effect | Duration | Stacking / exclusivity | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Elixir of the Mongoose | 13452 → 17538 | +25 Agi, +2% crit (Forever uses an all-crit aura‡) | **30 min** (C: 1 h) | Probably exclusive with Elixir of Greater Agility | Alchemy | [F] effect · [?] stacking | [fc/13452](https://foreverchanges.pro/item/13452) |
+| Elixir of the Mongoose | 13452 → 17538 | +25 Agi, +2% crit (Forever uses an all-crit aura, 290 = 2, [client] (SpellEffect, 1.60.1.69913)) | **30 min** (C: 1 h) | Probably exclusive with Elixir of Greater Agility | Alchemy | [F] effect · [?] stacking | [fc/13452](https://foreverchanges.pro/item/13452) |
 | Elixir of Greater Strength *(Classic name: Elixir of Giants)* | 9206 → 11405 | +25 Str | 1 h | **Exclusive with Juju Power** | Alchemy. Renamed in Forever; required level **48** (C: 38) | [F] effect · [C] stacking | [fc/9206](https://foreverchanges.pro/item/9206) · [bnet-cons] · [almar-tank] |
-| Elixir of Brute Force | 13453 → 17537 | +18 Str, +18 Sta | 1 h | Probably exclusive with Elixir of Giants / Juju Power (both are Strength elixirs) | Alchemy (Same) | [F] effect · [?] stacking | [fc-items] · [DB2][wF-SE] |
+| Elixir of Brute Force | 13453 → 17537 | +18 Str, +18 Sta | 1 h | Probably exclusive with Elixir of Giants / Juju Power (both are Strength elixirs) | Alchemy (Same) | [F] effect · [?] stacking | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
 | Elixir of Greater Agility | 9187 → 11334 | +25 Agi | 1 h | Probably exclusive with Mongoose | Alchemy (Same) | [F] effect · [?] stacking | [fc-items] |
 | Elixir of Greater Defense *(Classic: Elixir of Superior Defense)* | 13445 → 11348 | +450 armor | 1 h | — | Alchemy. Renamed | [F] | [fc/13445](https://foreverchanges.pro/item/13445) |
 | Elixir of Lesser Fortitude *(Classic: Elixir of Fortitude)* | 3825 → 3593 | +120 max health | 1 h | Health elixirs are probably mutually exclusive | Alchemy. Renamed | [F] | [fc/3825](https://foreverchanges.pro/item/3825) |
@@ -292,9 +306,9 @@ in the tooltips; category 79‡) [F].
 | Elixir of Cunning *(new)* | 250328 → 1250918 | +25 Agi, +25 Int | 30 min | Unknown | New, required level 55 | [F] effect · [?] stacking | [fc/250328](https://foreverchanges.pro/item/250328) |
 | Elixir of the Phalanx *(new)* | 250329 → 1250920 | +400 max health, +500 armor | 30 min | Unknown | New, required level 55 | [F] effect · [?] stacking | [fc/250329](https://foreverchanges.pro/item/250329) |
 | Elixir of Strength *(new)* | 250349 | +10 Str | 30 min | Unknown | New, required level 45 | [F] effect · [?] stacking | [fc/250349](https://foreverchanges.pro/item/250349) |
-| Greater Arcane Elixir | 13454 → 17539 | +35 spell damage (all schools, so Holy too) | 1 h | — | Alchemy (Same). Paladins only | [F] | [fc-items] · [DB2][wF-SE] |
+| Greater Arcane Elixir | 13454 → 17539 | +35 spell damage (all schools, so Holy too) | 1 h | — | Alchemy (Same). Paladins only | [F] | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
 | Elixir of Holy Power *(Classic: Elixir of Greater Firepower)* | 21546 → 1310077 | **+40 Holy spell damage** (C: +40 Fire) | 30 min | — | Alchemy. Renamed and re-schooled, so it is now a paladin elixir | [F] | [fc/21546](https://foreverchanges.pro/item/21546) |
-| Gift of Arthas | 9088 → 11371 | +10 Shadow resistance. When the drinker is struck, it may put a debuff on the attacker: +8 physical damage taken for 3 min (11374)‡ | 30 min | — | Alchemy (Same) | [F] | [fc-items] · [DB2][wF-SE] |
+| Gift of Arthas | 9088 → 11371 | +10 Shadow resistance. When the drinker is struck, it may put a debuff on the attacker: +8 physical damage taken for 3 min (11374) | 30 min | — | Alchemy (Same) | [F] | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
 
 ### 3.3 Juju, Firewater, Blasted Lands and other buffs
 
@@ -302,11 +316,11 @@ in the tooltips; category 79‡) [F].
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Juju Power | 12451 → 16323 | +30 Str | 30 min | **Exclusive with Elixir of Giants (Greater Strength)**. Stacks with R.O.I.D.S. and Juju Might | Winterspring (Same) | [F] effect · [C] stacking | [fc-items] · [bnet-cons] · [almar-tank] |
 | Juju Might | 12460 → 16329 | +40 melee and ranged AP | 10 min | **Exclusive with Winterfall Firewater** | Winterspring (Same) | [F] effect · [C] stacking | [fc-items] · [almar-tank] |
-| Juju Flurry | 12450 → 16322 | +3% attack speed | 20 s; 1 min cooldown | On-use in combat | Winterspring (Same) | [F] | [fc-items] · [DB2][wF-SE] |
+| Juju Flurry | 12450 → 16322 | +3% attack speed | 20 s; 1 min cooldown | On-use in combat | Winterspring (Same) | [F] | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
 | Winterfall Firewater | 12820 → 17038 | +35 melee AP, larger size | 20 min; 1 min cooldown | Exclusive with Juju Might | Winterfall furbolgs (Same) | [F] effect · [C] stacking | [fc-items] · [almar-tank] |
-| Distilled Firewater *(new)* | 246948 → **17038**‡ | +35 melee AP (tooltip identical to Winterfall Firewater). **Same spell as Winterfall Firewater**‡, so the two can never stack | 20 min | Exclusive with Winterfall Firewater and (by extension) Juju Might | New in Forever | [F] | [fc/246948](https://foreverchanges.pro/item/246948) · [DB2][wF-IE] |
-| R.O.I.D.S. | 8410 → 10667 | +25 Str | 1 h; "(1 Hour Cooldown)" in the tooltip | **The Blasted Lands buffs share that 1-hour cooldown** (category 103‡), so only one is active at a time. Stacks with Juju Power | Blasted Lands (Same) | [F] | [fc-items] · [wh-roids] · [DB2][wF-IE] · [bnet-cons] |
-| Ground Scorpok Assay | 8412 → 10669 | +25 Agi | 1 h | Blasted Lands (one at a time) | Blasted Lands (Same) | [F] | [fc-items] · [DB2][wF-IE] |
+| Distilled Firewater *(new)* | 246948 → **17038** | +35 melee AP (tooltip identical to Winterfall Firewater). **Same spell as Winterfall Firewater**, so the two can never stack | 20 min | Exclusive with Winterfall Firewater and (by extension) Juju Might | New in Forever | [F] | [fc/246948](https://foreverchanges.pro/item/246948) · [client] (ItemEffect, 1.60.1.69913) |
+| R.O.I.D.S. | 8410 → 10667 | +25 Str | 1 h; "(1 Hour Cooldown)" in the tooltip | **The Blasted Lands buffs share that 1-hour cooldown** (category 103, 3,600 s), so only one is active at a time. Stacks with Juju Power | Blasted Lands (Same) | [F] | [fc-items] · [wh-roids] · [client] (ItemEffect, 1.60.1.69913) · [bnet-cons] |
+| Ground Scorpok Assay | 8412 → 10669 | +25 Agi | 1 h | Blasted Lands (one at a time) | Blasted Lands (Same) | [F] | [fc-items] · [client] (ItemEffect, 1.60.1.69913) |
 | Lung Juice Cocktail | 8411 → 10668 | +25 Sta | 1 h | Blasted Lands | Same | [F] | [fc-items] |
 | Cerebral Cortex Compound | 8423 → 10692 | +25 Int | 1 h | Blasted Lands | Same | [F] | [fc-items] |
 | Gizzard Gum | 8424 → 10693 | +25 Spi | 1 h | Blasted Lands | Same | [F] | [fc-items] |
@@ -318,13 +332,13 @@ in the tooltips; category 79‡) [F].
 
 **Forever reworked food.** Most level-45+ buff foods now say "you will become well fed and
 gain …" and give flat AP, crit, Str, Agi or Sta for **15 min** (many were 10 min before)
-[F: tooltips]. Under the hood they use a generic "Nutritious Food → Well Fed" spell family‡. A player keeps **one Well Fed buff at a time** [?]. Dirge's
+[F: tooltips]. Under the hood they use a generic "Nutritious Food → Well Fed" spell family [F] [client] (ItemEffect, 1.60.1.69913). A player keeps **one Well Fed buff at a time** [?]. Dirge's
 Kickin' Chimaerok Chops ("Increased Stamina") and Blessed Sunfruit keep their old,
 differently named buffs, so whether they stack with a Well Fed buff is [?].
 
 | Name | ID | Well Fed effect | Duration | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- |
-| Smoked Desert Dumplings | 20452 | +20 Str (tooltip unchanged; now uses the Forever Well Fed spell 1248401‡) | 15 min | Cooking (Same tooltip) | [F] | [fc-items] · [DB2][wF-IE] |
+| Smoked Desert Dumplings | 20452 | +20 Str (tooltip unchanged; now uses the Forever Nutritious Food spell 1248401, which grants Well Fed 1248422 after 10 s) | 15 min | Cooking (Same tooltip) | [F] | [fc-items] · [client] (ItemEffect, 1.60.1.69913) |
 | Bear Bruscitti / Steaming Stag Steak *(new)* | 250070 / 250071 | +20 Str | 15 min | Cooking, required level 45 | [F] | [fc/250070](https://foreverchanges.pro/item/250070) |
 | Savory Stag Sliders *(new)* | 250065 | +15 Str | 15 min | Required level 35 | [F] | [fc/250065](https://foreverchanges.pro/item/250065) |
 | Flank au Poivre / Swiftstrike Steak *(new)* | 250069 / 250072 | +20 Agi | 15 min | Required level 45 | [F] | [fc/250069](https://foreverchanges.pro/item/250069) |
@@ -339,21 +353,21 @@ differently named buffs, so whether they stack with a Well Fed buff is [?].
 | Plated Armorfish *(new)* | 286152 | +150 armor | 15 min | Required level 35 | [F] | [fc/286152](https://foreverchanges.pro/item/286152) |
 | Nightfin Soup | 13931 | **+22 spell damage** (C: 8 mana per 5 s, 10 min) | 15 min | Changed. Holy damage food for paladins | [F] | [fc/13931](https://foreverchanges.pro/item/13931) |
 | Sagefish Delight / Smoked Sagefish | 21217 / 21072 | **+7 / +4 spell damage** (C: 6 / 3 mana per 5 s) | 15 min | Changed | [F] | [fc/21217](https://foreverchanges.pro/item/21217) |
-| Blessed Sunfruit | 13810 → 18125 | +10 Str ("Blessed Sunfruit" buff) | 10 min | Argent Dawn Revered (Same); stacking with Well Fed [?] | [F] effect · [?] stacking | [fc-items] · [DB2][wF-IE] |
+| Blessed Sunfruit | 13810 → 18124 → 18125 | +10 Str ("Blessed Sunfruit" buff 18125, triggered by the item's spell 18124) | 10 min | Argent Dawn Revered (Same); stacking with Well Fed [?] | [F] effect · [?] stacking | [fc-items] · [client] (ItemEffect, 1.60.1.69913) |
 | *Herbal Salad* | — | **Does not exist** in the Classic Era or Forever clients. The only match is a Turtle WoW private-server item, which is a forbidden source; not adopted | — | — | — | [turtle-salad] (forbidden, cited only to explain the refusal) |
 
 ### 3.5 Potions and runes
 
 | Name | ID | Effect | Cooldown | Stacking | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Mighty Rage Potion | 13442 → 17528 | +45–75 rage, +60 Str for 20 s | 2 min, potion category | Potion | **Warrior and Druid** (C: Warrior only) | [F] | [fc/13442](https://foreverchanges.pro/item/13442) · [DB2][wF-IE] |
+| Mighty Rage Potion | 13442 → 17528 | +45–75 rage, +60 Str for 20 s | 2 min, potion category | Potion | **Warrior and Druid** (C: Warrior only) | [F] | [fc/13442](https://foreverchanges.pro/item/13442) · [client] (ItemEffect, 1.60.1.69913) |
 | Great Rage Potion | 5633 → 6613 | +30–60 rage | 2 min, potion | Potion | **Warrior and Druid** (C: Warrior) | [F] | [fc/5633](https://foreverchanges.pro/item/5633) |
-| Major Mana Potion | 13444 → 17531 | +1350–2250 mana | 2 min, potion | Potion | Same | [F] | [fc-items] · [DB2][wF-SE] |
+| Major Mana Potion | 13444 → 17531 | +1350–2250 mana | 2 min, potion | Potion | Same | [F] | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
 | Major Healing Potion | 13446 → 17534 | +1050–1750 health | 2 min, potion | Potion | Same | [F] | [fc-items] |
-| Greater Stoneshield Potion | 13455 → 17540 | +2000 armor for 2 min | 2 min, potion | Potion | Same | [F] | [fc-items] · [DB2][wF-SE] |
+| Greater Stoneshield Potion | 13455 → 17540 | +2000 armor for 2 min | 2 min, potion | Potion | Same | [F] | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
 | Free Action Potion | 5634 → 6615 | Immunity to stun and movement impairment for 30 s | 2 min, potion | Potion | Same (no DPS effect) | [F] | [fc-items] |
-| Major / Superior / Greater Frenzy Potion *(new)* | 250943 / 250942 / 250941 | Tooltip: **+40 / +28 / +20 Attack Power** for 30 s. DB2 aura‡: +40/28/20 flat **physical damage done**. No cooldown in the tooltip, and no cooldown category in DB2‡ | 30 s | [?] | New, required level 55 / 45 / 35 | [F] tooltip · [?] mechanics | [fc/250943](https://foreverchanges.pro/item/250943) · [DB2][wF-SE] |
-| Demonic Rune / Dark Rune | 12662 / 20520 → 16666 / 27869 | +900–1500 mana; costs 600–1000 health | 2 min, **rune category**‡ (separate from potions) | Runes share a cooldown with each other | Same | [F] | [fc-items] · [DB2][wF-IE] |
+| Major / Superior / Greater Frenzy Potion *(new)* | 250943 / 250942 / 250941 → 1251940 / 1251938 / 1251937 | Tooltip: **+40 / +28 / +20 Attack Power** for 30 s. Client aura: +40/28/20 flat **physical damage done** (aura 13, school mask 1). No cooldown in the tooltip or on the item effects, but the potion spells are in the **potion category** (4, 120 s) | 2 min, potion category | Potion | New, required level 55 / 45 / 35 | [F] tooltip, category · [?] AP vs flat damage | [fc/250943](https://foreverchanges.pro/item/250943) · [client] (SpellEffect, SpellCategories, 1.60.1.69913) |
+| Demonic Rune / Dark Rune | 12662 / 20520 → 16666 / 27869 | +900–1500 mana; costs 600–1000 health | 2 min, **rune category** (1153, separate from potions) | Runes share a cooldown with each other | Same | [F] | [fc-items] · [client] (ItemEffect, 1.60.1.69913) |
 
 ### 3.6 Weapon enhancements (temporary)
 
@@ -363,22 +377,22 @@ in Forever it probably doesn't ([Windfury Totem](#windfury-totem)).
 
 | Name | ID | Effect | Duration | Stacking | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Elemental Sharpening Stone | 18262 → enchant 2506 | +2% melee crit | 30 min | Temporary-enchant slot of that weapon | Blacksmithing (Same) | [F] | [fc-items] · [DB2][wF-SIE] |
+| Elemental Sharpening Stone | 18262 → enchant 2506 | +2% melee crit | 30 min | Temporary-enchant slot of that weapon | Blacksmithing (Same) | [F] | [fc-items] · [client] (SpellItemEnchantment, 1.60.1.69913) |
 | Dense Sharpening Stone | 12404 → enchant 1643 | +8 weapon damage | 30 min | As above | Same | [F] | [fc-items] |
 | Dense Weightstone | 12643 → enchant 1703 | +8 weapon damage (blunt) | 30 min | As above | Same | [F] | [fc-items] |
-| Consecrated Sharpening Stone | 23122 → enchant 2684 | +100 AP vs Undead (tooltip unchanged; the Forever DB2 row reads 99‡) | 30 min | As above | Argent Dawn (Same) | [F] | [fc-items] · [DB2][wF-SIE] |
+| Consecrated Sharpening Stone | 23122 → enchant 2684 | +100 AP vs Undead (tooltip unchanged; the Forever client's spell 28893 reads 99) | 30 min | As above | Argent Dawn (Same) | [F] | [fc-items] · [client] (SpellItemEnchantment, 1.60.1.69913) |
 | Wizard Oil | 20750 → enchant 2627 | **+30 spell damage and healing** (C: +24 damage) | 30 min | As above | Enchanting | [F] | [fc/20750](https://foreverchanges.pro/item/20750) |
 | Brilliant Wizard Oil | 20749 → enchant 2628 | +36 spell damage and healing, +1% spell crit | 30 min | As above | Enchanting (reworded) | [F] | [fc/20749](https://foreverchanges.pro/item/20749) |
 | Brilliant Mana Oil | 20748 → enchant 2629 | **+15 mana per 5 s, +30 healing** (C: 12 / 25) | 30 min | As above | Enchanting | [F] | [fc/20748](https://foreverchanges.pro/item/20748) |
 
 ### 3.7 Engineering and explosives
 
-All explosives share a **1-minute cooldown** (category 24‡). The Sapper also has its own
+All explosives share a **1-minute cooldown** (category 24 [F] [client] (ItemEffect, 1.60.1.69913)). The Sapper also has its own
 5-minute cooldown [F: "(1 Min Cooldown)" / "(5 Min Cooldown)" in the tooltips].
 
 | Name | ID | Effect | Cooldown | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- |
-| Goblin Sapper Charge | 10646 → 13241 | 450–750 Fire damage to nearby enemies; 375–625 to self | 5 min own + 1 min shared | Requires Engineering 205 to use (Same tooltip) | [F] | [fc-items] · [wh-sapper] · [DB2][wF-IE] |
+| Goblin Sapper Charge | 10646 → 13241 | 450–750 Fire damage to nearby enemies; 375–625 to self | 5 min own + 1 min shared | Requires Engineering 205 to use (Same tooltip) | [F] | [fc-items] · [wh-sapper] · [client] (ItemEffect, 1.60.1.69913) |
 | Dense Dynamite | 18641 → 23063 | 340–460 Fire, 5 yd | 1 min shared | Requires Engineering 250 | [F] | [fc-items] · [wh-dyn] |
 | Thorium Grenade | 15993 → 19769 | 300–500 Fire, 3 s stun, 3 yd | 1 min shared | Requires Engineering 260 | [F] | [fc-items] · [wh-thor] |
 | EZ-Thro Thorium Grenade *(new)* | 260816 | 300–500 Fire, 3 s stun | 1 min shared | **Usable by anyone** ("Anyone can use grenades with EZ-Thro!") | [F] | [fc/260816](https://foreverchanges.pro/item/260816) |
@@ -398,9 +412,9 @@ All explosives share a **1-minute cooldown** (category 24‡). The Sapper also h
 | Improved Expose Armor | talent (C: 14168) | **No longer adds armor reduction.** Forever: −10 energy cost, refunds 2 CP when used at 5 CP (C: +50%, i.e. −2550 at 5 CP) | — | — | Rogue talent | [F] | [fc-changes] |
 | Faerie Fire (r4) | 9907 | −505 armor; target can't stealth | 40 s | Stacks with Sunder / Expose Armor and CoR [C] | Druid. **Castable in Cat, Bear and Dire Bear Form** in Forever; free with a 6 s cooldown in form (see [druid](../classes/druid.md)) | [F] | [fc-sb-druid] |
 | Faerie Fire (Feral) | 17392 (Classic) | **Not in Forever** (the talent and spell were removed; Faerie Fire itself is now form-castable) | — | — | — | [F] | [fc-sb-druid] (missing list) · [fc-changes] |
-| Curse of Recklessness (r4) | 11717 | **−505 armor** (C: −640 armor **and +90 AP to the target**); target won't flee | 2 min | One curse per warlock; stacks with Sunder / FF [C] | Warlock | [F] | [fc-sb-warlock] · [DB2][wF-SE] |
-| Annihilator: Armor Shatter | item 12798 → 16928 | **−165** armor per stack, 3 stacks = −495 (C: −200 / −600) | 45 s | Stacks with the major armor debuffs [C] | Forever item is now **One-Hand, 2.40 speed, +14 AP** (C: Main Hand 1.70) | [F] | [fc/12798](https://foreverchanges.pro/item/12798) · [DB2][wF-SE] |
-| Rivenspike: Puncture Armor | item 13286 → 17315 | Forever DB2‡: **−100** per stack ×3 (C: −200 ×3, tooltip "lowering it by 200") | 30 s | As Annihilator; does it stack with Armor Shatter? [?] | Item has **no Forever row yet** ("missing") | [?] | [fc/13286](https://foreverchanges.pro/item/13286) · [DB2][wF-SE] |
+| Curse of Recklessness (r4) | 11717 | **−505 armor** (C: −640 armor **and +90 AP to the target**); target won't flee | 2 min | One curse per warlock; stacks with Sunder / FF [C] | Warlock | [F] | [fc-sb-warlock] · [client] (SpellEffect, 1.60.1.69913) |
+| Annihilator: Armor Shatter | item 12798 → 16928 | **−165** armor per stack, 3 stacks = −495 (C: −200 / −600) | 45 s | Stacks with the major armor debuffs [C] | Forever item is now **One-Hand, 2.40 speed, +14 AP** (C: Main Hand 1.70) | [F] | [fc/12798](https://foreverchanges.pro/item/12798) · [client] (SpellEffect, 1.60.1.69913) |
+| Rivenspike: Puncture Armor | item 13286 → 17315 | Forever client: **−100** per stack ×3 (C: −200 ×3, tooltip "lowering it by 200") | 30 s | As Annihilator; does it stack with Armor Shatter? [?] | Item has **no Forever row yet** ("missing") | [?] | [fc/13286](https://foreverchanges.pro/item/13286) · [client] (SpellEffect, 1.60.1.69913) |
 
 **Stacking and floor.** Active reductions are summed. The floor depends on the rules
 profile, and [damage-and-timing §1.2](damage-and-timing.md#12-armor-reduction-debuffs-and-penetration)
@@ -417,18 +431,18 @@ matters for armor, only for who spends the GCDs. Armor math itself is in
 
 | Name | ID | Effect | Duration | Stacking / exclusivity | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Judgement of the Crusader (r6) | 20303 | +**161** Holy damage taken (C: 140; Improved Seal of the Crusader's 15% is now baseline and the talent is removed). Whether each Holy hit gets the flat +161 or +161 × its coefficient is open; see [paladin](../classes/paladin.md) | **40 s** (C: 10 s); the judging paladin's melee hits refresh it | One Judgement per paladin; several paladins can keep different Judgements up. Debuff Judgements always hit ([paladin](../classes/paladin.md)) | Paladin | [F] value · [?] application | [fc-sb-paladin] · [DB2][wF-SE] |
+| Judgement of the Crusader (r6) | 20303 | +**161** Holy damage taken (C: 140; Improved Seal of the Crusader's 15% is now baseline and the talent is removed). Whether each Holy hit gets the flat +161 or +161 × its coefficient is open; see [paladin](../classes/paladin.md) | **40 s** (C: 10 s); the judging paladin's melee hits refresh it | One Judgement per paladin; several paladins can keep different Judgements up. Debuff Judgements always hit ([paladin](../classes/paladin.md)) | Paladin | [F] value · [?] application | [fc-sb-paladin] · [client] (SpellEffect, 1.60.1.69913) |
 | Judgement of Wisdom (r3) | 20355 | Attacks and spells against the target may restore 59 mana | **40 s** (C: 10 s) | One per paladin; always hits | Paladin (only paladins use it) | [F] | [fc-sb-paladin] |
-| Judgement of Light (r4) | 20346‡ | Melee attacks against the target may heal the attacker for 61 | **40 s** (C: 10 s) | One per paladin; always hits | Paladin | [F] | [fc-sb-paladin] |
-| Curse of the Elements (r4) | 1311680 | −75 resistance to **all magic schools**, **+10% magic damage taken, Holy included** (C: r3, 11722, Fire and Frost only) | 5 min | One curse per warlock | Warlock; new rank 4 at level 50. **Curse of Shadow removed** (merged in) | [F] | [fc-sb-warlock] · [DB2][wF-SE] |
+| Judgement of Light (r4) | 20346 | Melee attacks against the target may heal the attacker for 61 | **40 s** (C: 10 s) | One per paladin; always hits | Paladin | [F] | [fc-sb-paladin] |
+| Curse of the Elements (r4) | 1311680 | −75 resistance to **all magic schools**, **+10% magic damage taken, Holy included** (C: r3, 11722, Fire and Frost only) | 5 min | One curse per warlock | Warlock; new rank 4 at level 50. **Curse of Shadow removed** (merged in) | [F] | [fc-sb-warlock] · [client] (SpellEffect, 1.60.1.69913) |
 | Hunter's Mark (r4) | 14325 | **+71 ranged AP** for all attackers (C: 110). **No melee component in Classic Era or Forever** | 2 min | — | Hunter. Improved Hunter's Mark removed (C: +15% ranged only) | [F] | [fc-sb-hunter] · [fc-changes] |
 | Demoralizing Shout (r5) | 11556 | Enemy melee AP **−196** (C: −140). The tooltip value is used; a per-level term in the client data would give about −204 at 60 [?] ([OQ 19](#open-questions)) | **45 s** (C: 30 s) | Probably exclusive with Demoralizing Roar. Improved Demoralizing Shout removed | Warrior | [F] value · [?] stacking | [fc-sb-warrior] |
 | Demoralizing Roar (r5) | 9898 | Enemy melee AP **−193** (C: −130). Tooltip value; the data's per-level term would give −204.2 at 60 [?] ([OQ 19](#open-questions)) | 30 s | As above | Druid (bear) | [F] value · [?] stacking | [fc-sb-druid] |
 | Thunder Clap (r6) | 11581 | 103 damage; enemy attack speed **−20%** (C: −10%) | 30 s; **6 s cooldown** (C: 4 s); also usable in Defensive Stance | — | Warrior | [F] | [fc-sb-warrior] |
 | Curse of Weakness (r6) | 11708 | Target's **physical** damage done −37 (C: −31, all damage) | 2 min | One curse per warlock. Improved Curse of Weakness removed | Warlock | [F] | [fc-sb-warlock] |
 | Stormstrike | 17364 | Forever: **self only**, +20% to the shaman's own next Lightning Bolt, Chain Lightning or Earth Shock (C: target takes +20% from the next 2 Nature damage sources, 12 s) | 12 s | — | Shaman talent. No longer a raid debuff | [F] | [fc-changes] |
-| Nightfall: Spell Vulnerability | item 19169 → 23605 | +15% spell damage taken (paladin Holy damage included) | 5 s | Proc rate is server-side [?] | Same | [F] effect | [fc-items] · [DB2][wF-SE] |
-| Gift of Arthas (proc) | 11374 | +8 physical damage taken | 3 min | Applied to whoever strikes the drinker | See [§3.2](#32-elixirs) | [F] | [DB2][wF-SE] |
+| Nightfall: Spell Vulnerability | item 19169 → 23605 | +15% spell damage taken (paladin Holy damage included) | 5 s | Proc rate is server-side [?] | Same | [F] effect | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
+| Gift of Arthas (proc) | 11374 | +8 physical damage taken | 3 min | Applied to whoever strikes the drinker | See [§3.2](#32-elixirs) | [F] | [client] (SpellEffect, 1.60.1.69913) |
 
 Improved Scorch, Winter's Chill and Improved Shadow Bolt don't affect melee. Shadow
 Weaving is now a self-buff [F] [[fc-changes]].
@@ -451,13 +465,13 @@ Season-of-Discovery era appear in the Forever client. Where they have a formula 
 Forever they are listed as available; where the recipe list shows *"No recipe item"* they
 are marked [?] availability. Forever values come from the scroll tooltips in
 foreverchanges' item data [[fc-items]]. Classic values come from foreverchanges'
-"Classic" recipe and tooltip text, or from the Classic Era DB2 rows of the same enchants‡.
+"Classic" recipe and tooltip text, or from the Classic Era client's rows of the same enchants.
 
 ### 5.1 Weapon
 
 | Name | IDs (spell / enchant) | Effect | Duration / proc | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- |
-| Crusader | 20034 / 1900 → 20007 | On hit: +100 Str for 15 s and heals 75–125 | 1 PPM [C] | Formula (Same) | [F] effect · [C] rate | [fc-ench] · [DB2][wF-SIE] · [ws-gear] |
+| Crusader | 20034 / 1900 → 20007 | On hit: +100 Str for 15 s and heals 75–125 | 1 PPM [C] | Formula (Same) | [F] effect · [C] rate | [fc-ench] · [client] (SpellItemEnchantment, 1.60.1.69913) · [ws-gear] |
 | Weapon – Agility | 23800 / 2564 | +15 Agi | Permanent | Formula (Same) | [F] | [fc-ench] |
 | Weapon – Strength | 23799 / 2563 | +15 Str | Permanent | Formula (Same) | [F] | [fc-ench] |
 | Superior Striking | 20031 / 1897 | +5 weapon damage | Permanent | Formula (Same) | [F] | [fc-ench] |
@@ -468,16 +482,16 @@ foreverchanges' item data [[fc-items]]. Classic values come from foreverchanges'
 | Weapon – Spell Power | 22749 / 2504 | +30 spell damage and healing | Permanent | Formula (Same). A paladin option | [F] | [fc-ench] |
 | Recovery *(new)* | 1248760 / 8721 | When parried or dodged: heal 5% of max health (10 s cooldown) | — | New formula | [F] | [fc-ench] |
 | Demonslaying | 13915 / 912 | Vs demons: **100** damage + stun (C: 75) | Proc | Formula | [F] | [fc-ench] |
-| Grand Crusader | 1231128 / 7940 | On hit: +120 Str for 20 s, heals 350–450 | Proc | **No recipe item in Forever** | [F] effect · [?] availability | [fc-ench] · [DB2][wF-SIE] |
+| Grand Crusader | 1231128 / 7940 | On hit: +120 Str for 20 s, heals 350–450 | Proc | **No recipe item in Forever** | [F] effect · [?] availability | [fc-ench] · [client] (SpellItemEnchantment, 1.60.1.69913) |
 
 ### 5.2 Two-handed weapon
 
 | Name | IDs | Effect | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- |
-| 2H Weapon – Agility | 27837 / 2646 | +25 Agi. **Exists in Classic Era** (same spell and enchant in the Classic DB2) | Formula | [F] | [fc-ench] · [DB2][wC-SIE] |
-| 2H Weapon – Strength *(new)* | 1248668 / 8215 | +25 Str | New formula | [F] | [fc-ench] · [DB2][wF-SIE] |
+| 2H Weapon – Agility | 27837 / 2646 | +25 Agi. **Exists in Classic Era** (same spell and enchant in the Classic DB2) | Formula | [F] | [fc-ench] · [client] (SpellItemEnchantment, 1.15.9.69722) |
+| 2H Weapon – Strength *(new)* | 1248668 / 8215 | +25 Str | New formula | [F] | [fc-ench] · [client] (SpellItemEnchantment, 1.60.1.69913) |
 | 2H Weapon – Lesser Strength *(new)* | 1248511 / 2563 | +15 Str | New formula | [F] | [fc-ench] |
-| 2H Weapon – Lesser Agility *(new)* | 1248510 / 2618 | Tooltip and enchant name: **+15 Agi**, but the enchant's equip spell 19989 grants **+9**‡ | New formula | [?] | [fc-ench] · [DB2][wF-SIE] |
+| 2H Weapon – Lesser Agility *(new)* | 1248510 / 2618 | Tooltip and enchant name: **+15 Agi**, but the enchant's equip spell 19989 grants **+9** | New formula | [?] | [fc-ench] · [client] (SpellItemEnchantment, 1.60.1.69913) |
 | 2H Weapon – Superior Impact | 20030 / 1896 | +9 weapon damage (probably the "+9" in the brief; Classic has no "+9 Strength" 2H enchant) | Formula (Same) | [F] | [fc-ench] |
 | 2H Weapon – Grand Inquisitor | 1232172 / 7943 | On hit: +200 Str for 20 s, heals 350–450 | **No recipe item** | [F] effect · [?] availability | [fc-ench] |
 
@@ -488,10 +502,10 @@ arcanum on the same item [C].
 
 | Name | Item → enchant | Effect | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- |
-| Lesser Arcanum of Voracity | 11645 / 11646 / 11647 / 11648 / 11649 → 1506–1510 | +8 Str / Sta / Agi / Int / Spi (one item per stat) | Dire Maul libram turn-in (Same) | [F] | [fc-items] · [DB2][wF-SIE] |
+| Lesser Arcanum of Voracity | 11645 / 11646 / 11647 / 11648 / 11649 → 1506–1510 | +8 Str / Sta / Agi / Int / Spi (one item per stat) | Dire Maul libram turn-in (Same) | [F] | [fc-items] · [client] (SpellItemEnchantment, 1.60.1.69913) |
 | Lesser Arcanum of Constitution | 11642 → 1503 | +100 health | Same | [F] | [fc-items] |
 | Lesser Arcanum of Tenacity | 11643 → 1504 | +125 armor | Same | [F] | [fc-items] |
-| Arcanum of Rapidity | 18329 → 2543 | +1% attack speed | Same | [F] | [fc-items] · [DB2][wF-SIE] |
+| Arcanum of Rapidity | 18329 → 2543 | +1% attack speed | Same | [F] | [fc-items] · [client] (SpellItemEnchantment, 1.60.1.69913) |
 | Arcanum of Protection | 18331 → 2545 | +1% dodge | Same | [F] | [fc-items] |
 | Arcanum of Focus | 18330 → 2544 | +8 spell damage and healing | Same | [F] | [fc-items] |
 | Presence of Might (ZG, warrior) | 19782 → 2583 | +10 Sta, +7 defense, +15 block value | Same; ZG availability [?] | [F] effect | [fc-items] |
@@ -506,7 +520,7 @@ arcanum on the same item [C].
 
 | Name | Item → enchant | Effect | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- |
-| Zandalar Signet of Might | 20077 → 2606 | +30 AP (melee and ranged) | ZG reputation (Same); ZG availability [?] | [F] effect | [fc-items] · [DB2][wF-SIE] |
+| Zandalar Signet of Might | 20077 → 2606 | +30 AP (melee and ranged) | ZG reputation (Same); ZG availability [?] | [F] effect | [fc-items] · [client] (SpellItemEnchantment, 1.60.1.69913) |
 | Zandalar Signet of Mojo | 20076 → 2605 | +18 spell damage and healing | As above | [F] effect | [fc-items] |
 | Zandalar Signet of Serenity | 20078 → 2604 | +33 healing | As above | [F] effect | [fc-items] |
 | Might of the Scourge | 23548 → 2717 | +26 AP, +1% crit | Naxxramas-era Argent Dawn (Same); availability [?] | [F] effect | [fc-items] |
@@ -518,7 +532,7 @@ arcanum on the same item [C].
 | Slot | Name | IDs (spell / enchant) | Effect | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- |
 | Cloak | Lesser Agility | 13882 / 849 | +3 Agi | Formula (Same) | [F] | [fc-ench] |
-| Cloak | Agility | 1219587 / 7667 | +5 Agi | Formula listed in Forever | [F] | [fc-ench] · [DB2][wF-SIE] |
+| Cloak | Agility | 1219587 / 7667 | +5 Agi | Formula listed in Forever | [F] | [fc-ench] · [client] (SpellItemEnchantment, 1.60.1.69913) |
 | Cloak | Minor Agility | 13419 / 247 | **+3** Agi (C: +1) | Changed | [F] | [fc-ench] |
 | Cloak | Superior Defense | 20015 / 1889 | +70 armor | Formula | [F] | [fc-ench] |
 | Cloak | Greater Defense | 13746 / 884 | **+60** armor (C: +50) | Changed | [F] | [fc-ench] |
@@ -526,7 +540,7 @@ arcanum on the same item [C].
 | Cloak | Subtlety (context) | 25084 / 2621 | −2% threat | Formula (Same) | [F] | [fc-ench] |
 | Chest | Greater Stats | 20025 / 1891 | +4 all stats | Formula (Same) | [F] | [fc-ench] |
 | Chest | Stats | 13941 / 928 | +3 all stats | Same | [F] | [fc-ench] |
-| Chest | Major Stamina *(Classic: Major Health)* | 20026 / 1892 | **+10 Sta** (C: +100 health) | Formula; renamed | [F] | [fc-ench] · [DB2][wF-SIE] |
+| Chest | Major Stamina *(Classic: Major Health)* | 20026 / 1892 | **+10 Sta** (C: +100 health) | Formula; renamed | [F] | [fc-ench] · [client] (SpellItemEnchantment, 1.60.1.69913) |
 | Chest | Superior Stamina *(Classic: Superior Health)* | 13858 / 908 | **+8 Sta** (C: +50 health) | Renamed | [F] | [fc-ench] |
 | Chest | Living Stats | 1213616 / 7645 | +4 all stats, +15 Nature resistance | **No recipe item** | [F] effect · [?] availability | [fc-ench] |
 | Bracers | Superior Strength | 20010 / 1885 | +9 Str | Formula (Same) | [F] | [fc-ench] |
@@ -537,13 +551,13 @@ arcanum on the same item [C].
 | Bracers | Superior Stamina | 20011 / 1886 | +9 Sta | Formula (Same) | [F] | [fc-ench] |
 | Bracers | Deflection | 13931 / 923 | **+7 defense** (C: +3) | Changed | [F] | [fc-ench] |
 | Bracers | Superior Deflection *(new)* | 1248665 / 8214 | +9 defense | New formula | [F] | [fc-ench] |
-| Bracers | Lesser Deflection | 13646 / 925 | Tooltip **+5 defense**, but the equip spell 13930 still grants +2‡ (C: +2) | Changed | [?] | [fc-ench] · [DB2][wF-SIE] |
+| Bracers | Lesser Deflection | 13646 / 925 | Tooltip **+5 defense**, but the equip spell 13930 still grants +2 (C: +2) | Changed | [?] | [fc-ench] · [client] (SpellItemEnchantment, 1.60.1.69913) |
 | Gloves | Superior Strength *(new)* | 1248640 / 2563 | +15 Str | New formula | [F] | [fc-ench] |
 | Gloves | Superior Agility | 25080 / 2564 | +15 Agi | Formula (Same) | [F] | [fc-ench] |
-| Gloves | Greater Strength | 20013 / 8207 | **+10 Str** (C: +7) | Formula | [F] | [fc-ench] · [DB2][wF-SIE] |
+| Gloves | Greater Strength | 20013 / 8207 | **+10 Str** (C: +7) | Formula | [F] | [fc-ench] · [client] (SpellItemEnchantment, 1.60.1.69913) |
 | Gloves | Greater Agility | 20012 / 8206 | **+10 Agi** (C: +7) | Formula | [F] | [fc-ench] |
 | Gloves | Strength / Agility | 13887 / 927, 13815 / 1887 | **+7** Str / **+7** Agi (C: +5 / +5) | Changed | [F] | [fc-ench] |
-| Gloves | Minor Haste | 13948 / 931 | **+1% melee and ranged haste and +1% casting speed** (C: +1% attack speed) | "No recipe item" in Forever's list [?] | [F] effect · [?] availability | [fc-ench] · [DB2][wF-SIE] |
+| Gloves | Minor Haste | 13948 / 931 | **+1% melee and ranged haste and +1% casting speed** (C: +1% attack speed) | "No recipe item" in Forever's list [?] | [F] effect · [?] availability | [fc-ench] · [client] (SpellItemEnchantment, 1.60.1.69913) |
 | Gloves | Threat | 25072 / 2613 | +2% threat | Formula (Same) | [F] | [fc-ench] |
 | Gloves | Riding Skill | 13947 / 930 | Mount speed only (no combat effect) | Formula | [F] | [fc-ench] |
 | Gloves | *"Greater Haste"* | — | No such enchant in the Classic Era or Forever data | — | [F] | [fc-ench] |
@@ -554,11 +568,11 @@ arcanum on the same item [C].
 | Shield | Greater Stamina | 20017 / 1886 | **+9 Sta** (C: +7) | Formula | [F] | [fc-ench] |
 | Shield | Stamina | 13817 / 929 | **+7 Sta** (C: +5) | Formula | [F] | [fc-ench] |
 | Shield | Excellent Stamina | 1219581 / 7663 | +12 Sta | Formula listed in Forever | [F] | [fc-ench] |
-| Shield | Critical Strike | 1220623 / 7664 | +1% crit (melee and spell) | Formula listed in Forever | [F] | [fc-ench] · [DB2][wF-SIE] |
+| Shield | Critical Strike | 1220623 / 7664 | +1% crit (melee and spell) | Formula listed in Forever | [F] | [fc-ench] · [client] (SpellItemEnchantment, 1.60.1.69913) |
 | Shield | Lesser Block | 13689 / 863 | +2% block | Formula (Same) | [F] | [fc-ench] |
 | Necklace *(new slot)* | Strength | 1249019 / 856 | +5 Str | New formula | [F] | [fc-ench] · [fc/273630](https://foreverchanges.pro/item/273630) |
 | Necklace *(new slot)* | Agility | 1249059 / 904 | +5 Agi | New formula | [F] | [fc-ench] |
-| Necklace *(new slot)* | Deflection | 1249060 / 925 | Tooltip **+5 defense**, but the equip spell grants +2‡ (same conflict as Lesser Deflection) | New formula | [?] | [fc-ench] · [DB2][wF-SIE] |
+| Necklace *(new slot)* | Deflection | 1249060 / 925 | Tooltip **+5 defense**, but the equip spell grants +2 (same conflict as Lesser Deflection) | New formula | [?] | [fc-ench] · [client] (SpellItemEnchantment, 1.60.1.69913) |
 
 ---
 
@@ -696,7 +710,7 @@ auras ([§2](#2-world-buffs-excluded)).
   and **Holy Power** (the last now +40 Holy).
 - New elixirs: Grizzly, Ferocity, Cunning, Phalanx, Fortitude (+200), Greater Fortitude
   (+400). New Hyjal-only flasks. New Distilled Firewater (same buff as Winterfall
-  Firewater). New Frenzy potions.
+  Firewater). New Frenzy potions, which share the potion cooldown.
 - Food: flat AP (+30 / +40) and +1% crit foods, +20 Str / +20 Agi foods, 15 min.
 - Rage potions usable by **Druids**. Wizard Oil and Brilliant Mana Oil buffed.
 - New EZ-Thro explosives usable without Engineering.
@@ -709,7 +723,7 @@ auras ([§2](#2-world-buffs-excluded)).
 - Expose Armor 1700 → **2250** at 5 CP (equal to 5 Sunders), and Improved Expose Armor no
   longer reduces armor. Curse of Recklessness 640 → **505** with no AP bonus. **Faerie Fire
   (Feral) removed**; Faerie Fire can be cast in feral forms. Annihilator 200 → **165** per
-  stack. Rivenspike −100 per stack in DB2.
+  stack. Rivenspike −100 per stack in the client.
 - Judgements last **40 s**; Judgement of the Crusader 140 → **161**; Improved Seal of the
   Crusader removed.
 - Curse of the Elements now covers **all magic schools including Holy**; Curse of Shadow
@@ -768,15 +782,15 @@ are selected, keep only the one with the largest effect and warn in the UI.
 ### On-use items and cooldown categories
 
 The APL uses these as actions, not as static buffs. The cooldown lengths are in the
-tooltips [F]; which items *share* a category comes from DB2 ItemEffect‡.
+tooltips [F]; which items *share* a category comes from the client [F] [client] (ItemEffect,
+SpellCategories, 1.60.1.69913).
 
 | Category | Members | Shared cooldown |
 | --- | --- | --- |
-| Potion (4) | Mighty / Great Rage, Major Mana, Major Healing, Greater Stoneshield, Free Action | 120 s |
+| Potion (4) | Mighty / Great Rage, Major Mana, Major Healing, Greater Stoneshield, Free Action, and the Frenzy potions (whose category is on their spells, not their item effects) | 120 s |
 | Rune (1153) | Demonic Rune, Dark Rune | 120 s (independent of potions) |
 | Explosive (24) | Sapper, Dense Dynamite, Thorium Grenade, EZ-Thro / SAF-T items | 60 s (the Sapper also has its own 300 s) |
 | Own cooldown only | Juju Flurry, Juju Might, Juju Power, Winterfall Firewater | 60 s |
-| Frenzy potions | No category in DB2 [?] | Treat as a potion until measured |
 
 ### Modelling rules
 
@@ -788,7 +802,8 @@ tooltips [F]; which items *share* a category comes from DB2 ItemEffect‡.
   and conversions are in [character-stats](character-stats.md).
 - **Windfury Totem (Forever)**: on each main-hand melee hit, roll 20%. On success, queue
   one extra main-hand attack that gets +246 AP. The extra attack can't proc Windfury again,
-  and there is no internal cooldown ([damage-and-timing §5.4](damage-and-timing.md#54-extra-attacks-and-chaining)).
+  and a proc starts the client's 100 ms internal cooldown [F]
+  ([damage-and-timing §5.4](damage-and-timing.md#54-extra-attacks-and-chaining)).
   The totem aura is not a weapon enchant, so a main-hand temporary enchant is allowed ([?]).
   Classic mode (if ever needed): +315 AP, and it replaces the main-hand temporary enchant.
 - **Weapon enchant procs** use PPM (`chance = PPM × weaponSpeed / 60`, see
@@ -854,8 +869,10 @@ Each item says what was found and how the guild can check it on the Forever beta
    (one replaces the other, or both stay).
 3. **Windfury Totem as a party aura.** Does a main-hand sharpening stone stay active with
    Windfury Totem up? Does twisting with Grace of Air still work, and does the totem proc on
-   feral cat and bear attacks? (That an extra attack can't proc Windfury is Classic [C]; the
-   internal-cooldown question is [damage-and-timing OQ 9](damage-and-timing.md#open-questions).)
+   feral cat and bear attacks? Does 10610's AP aura (2 charges, 1 s in the client) give
+   +246 AP to a second attack inside that second? (That an extra attack can't proc Windfury is
+   Classic [C]; the internal cooldown is
+   [damage-and-timing OQ 9](damage-and-timing.md#open-questions).)
    *Check:* apply a stone to the main hand next to a Windfury Totem and watch the enchant;
    combat-log 500+ swings.
 4. **Stacking groups for the new Forever elixirs** (Grizzly, Ferocity, Cunning, Phalanx,
@@ -867,15 +884,19 @@ Each item says what was found and how the guild can check it on the Forever beta
 6. **Food exclusivity.** One Well Fed at a time is assumed. Dirge's ("Increased Stamina")
    and Blessed Sunfruit use different buffs. *Check:* eat Dumplings, then Dirge's or
    Sunfruit, and watch the buff bar.
-7. **Frenzy potions.** Tooltip: +X Attack Power. DB2: +X flat physical damage done (aura
-   13, school mask 1). No cooldown category. *Check:* drink one and compare the character
-   sheet AP and white-hit damage; test whether the potion cooldown is shared.
+7. **Frenzy potions.** Tooltip: +X Attack Power. Client: +X flat physical damage done (aura
+   13, school mask 1) [F] [client] (SpellEffect, 1.60.1.69913). ✅ Cooldown resolved from
+   client data: their spells are in the potion category (4, 120 s), though the item effects
+   carry none ([client] (SpellCategories, 1.60.1.69913)). *Check:* drink one and compare the
+   character sheet AP and white-hit damage; confirm that a Mighty Rage Potion is blocked
+   afterwards.
 8. **Enchant tooltip vs spell conflicts.** 2H Weapon – Lesser Agility (tooltip +15, spell
    19989 = +9); Bracer – Lesser Deflection and Necklace – Deflection (tooltip +5, spell
    13930 = +2). *Check:* apply the enchant and read the character sheet.
 9. **Weapon-enchant PPM.** Crusader 1, Fiery 6 and Lifestealing 6 are [C] from the pre-SoD
    WarriorSim ([ws-gear]); Icy Chill 1.6 and Unholy 3 come only from an unversioned
-   warcraft.wiki.gg section [[wiki-ppm]] [?]. PPM is server-side and absent from the DB2, so
+   warcraft.wiki.gg section [[wiki-ppm]] [?]. No `SpellAuraOptions` row in the Forever client
+   references a PPM row [F] [client] (SpellAuraOptions, 1.60.1.69913), so PPM is server-side and
    all five are unverified in Forever. *Check:* log 1000+ hits with a known weapon speed and fit
    the proc rate.
 10. **Availability.** ZG (Signets, idols, Zanza), Naxxramas-era Scourge shoulder enchants,
@@ -886,12 +907,13 @@ Each item says what was found and how the guild can check it on the Forever beta
 11. **Rivenspike** has no Forever item row yet; its proc spell reads −100 per stack
     (Classic −200). Does Puncture Armor stack with Armor Shatter? *Check:* once the item
     drops in the beta.
-12. **Blood Pact exact value** (DB2 base 49 + 0.5/level). *Check:* an Imp's buff on the
-    party's character sheets.
-13. **Race/class matrix.** [F] from the client's `CharBaseInfo`
-    ([character-stats](character-stats.md#legal-races-for-the-sims-classes)); a person should
-    confirm the table on wago.tools. *Check* (cheap confirmation): character creation in the
-    beta (Undead paladin, Dwarf shaman).
+12. **Blood Pact exact value.** The client value is 49 + 0.5/level [F] [client] (SpellEffect,
+    1.60.1.69913); how the server applies the per-level term is unknown. *Check:* an Imp's buff
+    on the party's character sheets.
+13. **Race/class matrix.** ✅ Resolved from client data ([client.md](../data/client.md#doc-claims-checked-against-the-raw-client)): `CharBaseInfo` lists
+    56 pairs, Undead paladin included [F]
+    ([character-stats](character-stats.md#legal-races-for-the-sims-classes)). Optional cheap
+    check: character creation in the beta (Undead paladin, Dwarf shaman).
 14. **World buffs (context, not adopted).** The Forever client turns Rallying Cry,
     Songflower and Warchief's Blessing into dummy auras, consistent with the directive.
     Spirit of Zandalar and Fengus' Ferocity keep real stat auras in the client (Fengus now
@@ -900,28 +922,19 @@ Each item says what was found and how the guild can check it on the Forever beta
 15. **Demoralizing Shout vs Roar** exclusivity is assumed from Classic lore, not a cited
     source. *Check:* apply both to a mob (the beta has no target dummies) and inspect its
     debuffs.
-16. **Trueshot Aura rank 5** reads 50, lower than rank 4's 75, in both tooltip and DB2.
-    Irrelevant for melee; flagged in case it is a data bug.
-17. **Verify on wago.tools manually (‡ values).** These facts come only from DB2 reads made
-    before we learned that wago.tools disallows automated access. A human should open the
-    linked tables in a browser (build 1.60.1.69913, and 1.15.9.69722 for Classic) and
-    confirm them. Make no automated requests to wago.tools.
-    - Windfury Totem: 10612 is a party dummy aura with a 20% proc into 10610 (+246 AP, 1
-      extra attack), and 10611 is absent (SpellEffect, SpellAuraOptions). Classic: 10612
-      pulses 10611 every 5 s, applying enchant 564 (10 s).
-    - The item→buff spell IDs in §3 (ItemEffect, ItemXItemEffect). Distilled Firewater uses
-      17038.
-    - Cooldown categories: elixirs 79, potions 4, runes 1153, explosives 24, Blasted Lands
-      103 (shared 3600 s).
-    - Frenzy potions: aura 13 (school mask 1) and no cooldown category.
-    - Food: the "Nutritious Food → Well Fed" spells (e.g. Smoked Desert Dumplings → 1248401).
-    - Enchant conflicts: enchant 2618 → spell 19989 (+9 Agi); enchant 925 → spell 13930
-      (+2 defense).
-    - Rivenspike 17315 (−100 per stack); Consecrated stone 28893 (99); Gift of Arthas 11374
-      (+8 physical damage taken); Blood Pact 11767 (49 + 0.5/level).
-    - The all-crit aura on Leader of the Pack (24932) and Mongoose (17538); the Hyjal
-      flasks' dummy-plus-zero-aura layout.
-    - World buffs 22888 / 15366 / 16609 turned into dummy auras (context only).
+16. **Trueshot Aura rank 5** reads 50, lower than rank 4's 75, in both the tooltip and the
+    client (20906 aura 124 = 50, [client] (SpellEffect, 1.60.1.69913)). Irrelevant for melee;
+    flagged in case it is a data bug.
+17. **Client-data reads.** ✅ Resolved from client data ([client.md](../data/client.md#doc-claims-checked-against-the-raw-client)). Every value this
+    doc had marked for a browser check matches the raw 1.60.1.69913 files (and 1.15.9.69722
+    for the Classic halves), with these corrections, now applied above:
+    - Frenzy potions share the potion cooldown (category 4, 120 s) through their spells.
+    - Blessed Sunfruit: the item casts 18124, which triggers the buff 18125.
+    - Windfury: Classic's `SpellItemEnchantment` has no duration column, so enchant 564's
+      10 s is unverifiable there (Forever's row says 10 s). New: 10612 has a 100 ms internal
+      cooldown in the Forever client.
+    - Also new: the Flask of Natural Swiftness's spell 1293743 is named "Flask of Natural
+      Accuracy" in `SpellName` (its auras are haste, 342 and 65).
 18. **Camp buffs in raids.** Do camps work inside instances? Do you have to be grouped with
     the object's owner? Is Camp Chair exclusive with Leader of the Pack as well as Moonkin
     Aura? *Check:* build a camp outside a raid, zone in, and inspect the buffs. Also, does
@@ -929,11 +942,11 @@ Each item says what was found and how the guild can check it on the Forever beta
     Fire-toasted Bun (+2% hit)? That is a guild decision. Both are default off here.
 19. **Demoralizing Shout and Roar at level 60** [?]. The Forever tooltips say −196 (Shout r5)
     and −193 (Roar r5), and the sim uses them (tooltip beats derived, doctrine §2). The client
-    data adds a per-level term (−1.4 per level, from 54 for the Shout and 52 for the Roar), which
-    would give about −204.4 and −204.2 at 60 if the server applies it without a cap. *Check,
-    Route D:* a person reads `SpellLevels` (is `MaxLevel` set?) and `SpellEffect`
-    (`EffectRealPointsPerLevel`) for 11556 and 9898 on wago.tools in a browser. *Route C:* read
-    the debuff tooltip on a target at 60.
+    data adds a per-level term (−1.4 per level, from 54 for the Shout and 52 for the Roar), and
+    `MaxLevel` (64 / 62) doesn't cap it below 60 [F] [client] (SpellEffect, SpellLevels,
+    1.60.1.69913), so it would give about −204.4 and −204.2 at 60 if the server applies it. ✅
+    The client read is resolved; whether the server applies the term is still open. *Check,
+    Route C:* read the debuff tooltip on a target at 60.
 
 ---
 
@@ -948,8 +961,8 @@ Each item says what was found and how the guild can check it on the Forever beta
 | fc-ench | https://foreverchanges.pro/professions/enchanting/recipes | All 229 Forever enchanting recipes, new ones and formula sources | Forever [F] |
 | fc-racials | https://foreverchanges.pro/racials | Race/class matrix (community-reported), racials | Forever [F] / [?] |
 | fc-beta | https://foreverchanges.pro/beta | Beta dates, builds, new race/class combinations | Forever [F] |
-| DB2 (Forever) | https://wago.tools/db2/SpellEffect?build=1.60.1.69913 · https://wago.tools/db2/SpellItemEnchantment?build=1.60.1.69913 · https://wago.tools/db2/ItemEffect?build=1.60.1.69913 (+ ItemXItemEffect, SpellMisc, SpellDuration, SpellAuraOptions) | Exact effect values, durations, proc chances, stack counts, item→spell mapping, cooldown categories. **Read once on 2026-09-22. wago.tools' robots.txt disallows automated access, so there are no further automated reads; confirm the ‡ values in a browser** ([Open question 17](#open-questions)) | Forever [F] |
-| DB2 (Classic) | https://wago.tools/db2/SpellEffect?build=1.15.9.69722 · https://wago.tools/db2/SpellItemEnchantment?build=1.15.9.69722 · https://wago.tools/db2/ItemEffect?build=1.15.9.69722 | Classic Era values of the same rows. **Caution:** the 1.15 client also contains Season of Discovery rows, so only rows for spells that exist in Classic Era are used. Same access note as above | Classic Era [C] |
+| client | [client.md](../data/client.md), `src/data/client/*.json`: raw DB2 files of build 1.60.1.69913 (and 1.15.9.69722 for Classic halves), fetched through the wago.tools API and parsed by `scripts/scrape/client.mjs` | Exact effect values, durations, proc chances and internal cooldowns, stack counts, item→spell mapping, cooldown categories; the claims check that confirmed this doc's values | Forever [F] / Classic Era [C] |
+| DB2 pages (browse) | https://wago.tools/db2/SpellEffect?build=1.60.1.69913 · https://wago.tools/db2/SpellItemEnchantment?build=1.60.1.69913 · https://wago.tools/db2/ItemEffect?build=1.60.1.69913 (and the same tables at `?build=1.15.9.69722`) | The same tables for a person to browse; never fetched by scripts. **Caution:** the 1.15 client also contains Season of Discovery rows, so only rows for spells that exist in Classic Era are used | Forever [F] / Classic Era [C] |
 | fc-camping | https://foreverchanges.pro/professions/camping | Camp system, camp objects' level-60 buffs and exclusivity, the Permanence perk | Forever [F] |
 | wh-roids | https://www.wowhead.com/classic/item=8410 | Classic tooltip: "(1 Hour Cooldown)" | Classic Era [C] |
 | wh-sapper / wh-dyn / wh-thor / wh-zanza | https://www.wowhead.com/classic/item=10646 · https://www.wowhead.com/classic/item=18641 · https://www.wowhead.com/classic/item=15993 · https://www.wowhead.com/classic/item=20079 | Classic tooltips: Engineering use requirements; the Zanza exclusivity line | Classic Era [C] (wowhead /classic also hosts SoD; these items are unchanged there) |
@@ -984,18 +997,13 @@ multipliers) · [forever-system-changes](forever-system-changes.md) ·
 [fc-ench]: https://foreverchanges.pro/professions/enchanting/recipes
 [fc-racials]: https://foreverchanges.pro/racials
 [fc-beta]: https://foreverchanges.pro/beta
-[wF-SE]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913
-[wF-SIE]: https://wago.tools/db2/SpellItemEnchantment?build=1.60.1.69913
-[wF-IE]: https://wago.tools/db2/ItemEffect?build=1.60.1.69913
-[wC-SE]: https://wago.tools/db2/SpellEffect?build=1.15.9.69722
-[wC-SIE]: https://wago.tools/db2/SpellItemEnchantment?build=1.15.9.69722
-[wC-IE]: https://wago.tools/db2/ItemEffect?build=1.15.9.69722
 [wh-sapper]: https://www.wowhead.com/classic/item=10646
 [wh-dyn]: https://www.wowhead.com/classic/item=18641
 [wh-thor]: https://www.wowhead.com/classic/item=15993
 [wh-zanza]: https://www.wowhead.com/classic/item=20079
 [wh-roids]: https://www.wowhead.com/classic/item=8410
 [fc-camping]: https://foreverchanges.pro/professions/camping
+[client]: ../data/client.md#doc-claims-checked-against-the-raw-client
 [bt-1144]: https://www.bluetracker.gg/wow/topic/us-en/1656146-wow-classic-era-version-1144-patch-notes/
 [crc-ea]: https://classicroguecraft.com/expose-armor-guide-aq40/
 [almar-tank]: https://almarsguides.com/WoW/GettingStarted/EndGame/Classic/Consumables/Warrior/Tank/

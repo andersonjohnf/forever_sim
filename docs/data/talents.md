@@ -376,6 +376,9 @@ Holy 18, Protection 16, Retribution 18 (52 talents): 20 new, 25 changed, 4 moved
   Shield Wall "by 11.0 min", Improved Seal of Fury "restore 0 Mana", Wild Growth "within
   43.5 yards", Improved Bloodrage "50% instead of 5". Check suspicious numbers in game before
   the engine relies on them, and put corrections in the override layer.
+- **One prerequisite the site doesn't show.** The client makes Nature's Splendor (druid Balance)
+  require Nature's Majesty (a `TraitEdge` of type 3, "required for availability"); the scraped
+  tree has no arrow there. [F] [client](client.md#talentsjson) (TraitEdge, 1.60.1.69913)
 - **Summaries are machine-written.** "Same numbers, reworded" and "Effect rewritten" are the
   site's diff labels, not balance notes. Some new-talent summaries are cut
   (Eclipse: "17 sec. Stores up to 4 charges."). Use `ranks.forever`.

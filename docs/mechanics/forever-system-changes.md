@@ -11,7 +11,8 @@ that owns it. The biggest changes:
 - **The client's own tooltips give a different raid-boss attack table** from Classic Era:
   8% / 27% / 17% hit caps and 16.5% boss parry.
 - **Rage is normalized** to weapon speed.
-- **Periodic effects can crit**, per the client tooltip (which spells, and how, is unverified).
+- **Periodic effects can crit**, per the client tooltip; a per-spell client flag says which
+  (whether the server honours it is unverified).
 - **Consumables, raid buffs and food are reworked**, including zone-gated flasks and camp
   buffs.
 - **Launch raids are new** (Barrow Deeps 10, Hyjal Summit 20, Onyxia 40, unlocking
@@ -71,22 +72,22 @@ modeled).
 | Change | Forever vs Classic Era | Source | Sim impact | Owner |
 | --- | --- | --- | --- | --- |
 | **Unified hit and crit** | One hit stat for melee, ranged and spells; one crit stat likewise | [F] [Blizzard Deep Dive][bz-deepdive]; foreverchanges item data: Classic items' melee-hit and spell-hit lines both became "Hit Rating", and melee- and spell-crit lines both "Critical Strike Rating" ([items dataset][items-ratings]). In combat [?] | **high** (hybrids; one stat feeds both tables) | [combat-tables §6](combat-tables.md#6-hit-caps); [character-stats.md](character-stats.md) |
-| **Combat ratings on gear** | Items carry ratings instead of %: hit 10, crit 14, dodge 12, parry 15, block 5 per 1%, defense 1:1; plus new Haste, Expertise, Armor Penetration and Health Regeneration stats. The same at every level. The new ratings apply by hypothesis (haste and expertise 10 per 1%, armor penetration flat), behind `unmeasuredRatings` ([D12](../decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)). | [F] as displayed for hit, crit, dodge, parry, block and defense ([items dataset][items-ratings]); haste and expertise per 1% [?] (only the client gametable as read by wowsims, [wf-cr]); in combat [?] | **high** | [character-stats.md](character-stats.md); [combat-tables §10](combat-tables.md#10-ratings) |
+| **Combat ratings on gear** | Items carry ratings instead of %: hit 10, crit 14, dodge 12, parry 15, block 5 per 1%, defense 1:1; plus new Haste, Expertise, Armor Penetration and Health Regeneration stats. The same at every level. The new ratings apply by hypothesis (haste and expertise 10 per 1%, armor penetration flat), behind `unmeasuredRatings` ([D12](../decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)). | [F] as displayed for hit, crit, dodge, parry, block and defense ([items dataset][items-ratings]); haste and expertise 10 per 1% [F] in the client's `combatratings.txt` ([client], 1.60.1.69913), applied by hypothesis [?]; in combat [?] | **high** | [character-stats.md](character-stats.md); [combat-tables §10](combat-tables.md#10-ratings) |
 | **Raid-boss hit caps** | Tooltips: 8% melee, 27% dual wield, 17% spells (Classic Era: 9% / 28% / 16%), which implies no hit suppression and no spell 1% floor | [F] client strings ([gs][gs-forever]); [?] in combat, untested ([fw-1]) | **high** | [combat-tables §6](combat-tables.md#6-hit-caps) |
 | **Weapon skill** | Client skill panel: 0.04% hit/dodge/parry/crit per point (Classic: 0.1–0.2%); racials give crit instead of skill; items give less (Edgemaster's +7 → +1, Huge Thorium Battleaxe +10 → +2) | 0.04% per point: [F] client UI ([SkillsFrame][ui-skills]), [?] in combat; racials and items [F] ([fc-racials]; [fc-items]; [Warcraft Tavern][wt-skill]) | **high** | [combat-tables §4](combat-tables.md#4-weapon-skill-vs-defense) |
 | **Boss parry** | Tooltip: 16.5% (Classic 14%) | [F] client strings ([gs][gs-forever]); [?] in combat | **high** for tanks (parry haste) | [combat-tables §1.1](combat-tables.md#11-profile-parameters-player-level-60-vs-boss-level-63-defense-315) |
 | **Glancing blows** | Chance unchanged (40% vs +3); client UI penalty 25% at 300 skill (Classic 35%). Glancing damage vs higher-level mobs is reported **broken on the beta** | [F] client UI ([SkillsFrame][ui-skills]); the 25% penalty [?] in combat; broken damage [?] (third-party report, [magey/forever-warrior#1][fw-1]) | **high** (~4% of white damage) | [combat-tables §2.3](combat-tables.md#23-glancing-blows) |
 | **Crit suppression** vs +3 | Skill part 0.6% (UI) vs Classic's 3%; the 1.8% aura part is unverified | skill part [F] client UI, [?] in combat; aura part [?] | **high** | [combat-tables §4.4](combat-tables.md#44-crit-suppression) |
 | **Expertise** | New: "reduces the chance to be dodged or parried"; 10 rating = 1% as displayed; combat effect unknown | [F] [bz-deepdive]; [gs][gs-forever]; combat [?] | medium (tanks), low (DPS from behind) | [combat-tables §7](combat-tables.md#7-expertise-forever) |
-| **Haste stat** | Haste Rating (10 = 1% by hypothesis, D12), haste flask, haste set bonuses, Skyborne racial +1% | rating conversion [?] ([wf-cr], secondary); flask, sets and racial [F] ([fc-items]; [fc-racials]) | medium | [damage-and-timing §3.1](damage-and-timing.md#31-haste) |
+| **Haste stat** | Haste Rating (10 = 1% by hypothesis, D12), haste flask, haste set bonuses, Skyborne racial +1% | rating cost 10 [F] client game table ([client]); its combat effect [?] (D12); flask, sets and racial [F] ([fc-items]; [fc-racials]) | medium | [damage-and-timing §3.1](damage-and-timing.md#31-haste) |
 | **Armor penetration; negative armor** | New flat armor-pierce stat (modelled as flat armor removed, D12); armor below 0 increases damage in the `forever` profile (Classic: floor 0) | [F] tooltip text ([gs][gs-forever]; not shown on foreverchanges); in combat [?] | low to medium | [damage-and-timing §1.2](damage-and-timing.md#12-armor-reduction-debuffs-and-penetration) |
 | Spell penetration below 0 resistance | "Spell Vulnerability": negative resistance increases spell damage taken | [F] tooltip text ([gs][gs-forever]); in combat [?] | low | [combat-tables §9](combat-tables.md#9-spell-hit-and-crit-generic) |
-| **Periodic crits and per-tick evaluation** | "Most periodic effects can critically strike". Per-spell flag, as read by wowsims/forever: Rend, Rake, Rip, Pounce and Lacerate yes; Deep Wounds no. The `forever` profile lets flagged ticks crit. A third-party sim reports Rend reading AP, modifiers and crit per tick (no snapshot); that is **not adopted**: both profiles snapshot at application (Deep Wounds excepted). | [F] tooltip text ([gs][gs-forever]); per-spell flags [?] ([wowsims spell data][wf-spell], secondary; confirm on wago.tools); per-tick reads [?] ([tzcnt Forever notes][tz-forever], anecdotal) | medium (bleed specs) | [damage-and-timing §4](damage-and-timing.md#4-dots-and-bleeds); class docs |
+| **Periodic crits and per-tick evaluation** | "Most periodic effects can critically strike". Per-spell client flag (`PERIODIC_CAN_CRIT`, SpellMisc Attributes[8]): Rend, Rake, Rip, Pounce and Lacerate yes; Deep Wounds (412609) and Consecration no. The `forever` profile lets flagged ticks crit. A third-party sim reports Rend reading AP, modifiers and crit per tick (no snapshot); that is **not adopted**: both profiles snapshot at application (Deep Wounds excepted). | [F] tooltip text ([gs][gs-forever]); per-spell flags [F] [client] (SpellMisc, 1.60.1.69913; [wf-spell] agrees), whether flagged ticks crit in combat [?]; per-tick reads [?] ([tzcnt Forever notes][tz-forever], anecdotal) | medium (bleed specs) | [damage-and-timing §4](damage-and-timing.md#4-dots-and-bleeds); class docs |
 | **Rage normalization** | Swing rage is a fixed amount per landed hit set by weapon speed. [rage.md](rage.md#forever-normalized-rage-per-swing-) owns the model: `k × speed` with k = 3.5 (1H) or 4.5 (2H), no crit bonus [?]; one third-party log set fits 3.46 for 1H ([fw-3]). Damage-taken rage is lower than Classic; rage.md's default is `1.5 × health lost / 230.6` [?], with `10 × damage / max health` variants ([rage § damage taken](rage.md#rage-from-damage-taken)). | [?] third-party beta logs ([magey/forever-warrior#3][fw-3]; [wowsims/forever#2][wf-2]) | **high** (warrior, bear) | [rage.md](rage.md) |
 | HS/Cleave queue and the off-hand DW penalty | The Classic rule (a queued HS/Cleave removes the off-hand penalty) is kept in both profiles [C]; a third-party beta test found it still present (5.19% vs 18.27% off-hand miss, 77 and 394 swings) | [?] third-party measurement ([magey/forever-warrior#2][fw-2]); guild test pending | **high** (Fury) | [combat-tables §5](combat-tables.md#5-dual-wield-and-on-next-swing-queues) |
 | Normalized weapon damage | Same rule; new normalized abilities (Holy Strike, Spearing Strike) | [F] client effects as read by the class docs ([damage-and-timing §2.2](damage-and-timing.md#22-normalization-for-instant-attacks)); [wf-spell] corroborates | low | [damage-and-timing §2.2](damage-and-timing.md#22-normalization-for-instant-attacks) |
-| PPM table | Classic Era's 1–10 PPM rows plus a new 2.3 PPM row (ID 479) | [F] wago.tools (confirm manually, [wago-ppm]) | low | [damage-and-timing §5](damage-and-timing.md#5-procs) |
-| Armor formula | No change found (Classic 400 + 85 × level). A client gametable with retail values exists; not adopted | [C]; [?] | high **if** wrong | [damage-and-timing §1.1](damage-and-timing.md#11-formula) |
+| PPM table | Classic Era's 1–10 PPM rows (IDs 454–463) plus a new 2.3 PPM row (ID 479). No client proc references any PPM row, so proc rates are server-side and keep their own [C]/[?] tags | [F] [client] (SpellProcsPerMinute, SpellAuraOptions, 1.60.1.69913) | low | [damage-and-timing §5](damage-and-timing.md#5-procs) |
+| Armor formula | No change found (Classic 400 + 85 × level). The client's `armormitigationbylvl.txt` holds retail values (1,059 at 60, [F] [client]); not adopted | [C]; [?] | high **if** wrong | [damage-and-timing §1.1](damage-and-timing.md#11-formula) |
 | Debuff limit | Not announced. Classic Era realms keep 16 debuffs; the limit was removed on Hardcore (1.14.4) and Anniversary (1.15.5) realms | [F] not announced ([wowsod]); [C] ([Massively OP][mop-debuff]) | low (the sim assumes the modeled debuffs fit) | [buffs-debuffs-consumables.md](buffs-debuffs-consumables.md) |
 | Spell batching | Not announced. Classic Era has been at 10 ms since 1.13.7 | [C] ([Blizzard][bz-1137]) | low (not modeled) | [damage-and-timing §3.6](damage-and-timing.md#36-server-tick-and-spell-batching) |
 | Unchanged (checked) | Crit ×2.0 / ×1.5; crushing 15% ×1.5; creature crit ×2; 440 defense uncrittable; glancing chance 40%; boss dodge 6.5%; DW +19%; parry haste 40%; GCD 1.5 s / 1.0 s cat; AP/14; armor cap 75%; resistance formula | [F] client tooltips and code ([gs][gs-forever]; [stats Lua][ui-stats]); GCDs from the class docs' client reads ([damage-and-timing §3.5](damage-and-timing.md#35-global-cooldown)). Since the client shows the Classic values, combat keeps Classic's measured behaviour [C] | none | combat-tables, damage-and-timing |
@@ -100,7 +101,7 @@ modeled).
 | Class talents and spells | 747 changes: 113 new talents, 300 changed, 77 removed and 257 changed spells; a new 16-point milestone talent | [F] [foreverchanges changes][fc-changes]; [bz-deepdive] | **high** | [classes/warrior.md](../classes/warrior.md), [druid.md](../classes/druid.md), [paladin.md](../classes/paladin.md) |
 | Buff talents made baseline | e.g. Blessing of Kings, Improved Mark of the Wild and Divine Spirit are baseline; buff-improvement talents cut | [F] [bz-deepdive] | medium (buff presets) | [buffs-debuffs-consumables.md](buffs-debuffs-consumables.md) |
 | Racials reworked | 2 active + 2 passive per race, "similar offensive power". Weapon-skill racials become crit (e.g. Human Sword Specialization, Orc Axe Specialization +1% crit, Dwarf Mace Specialization). Blood Fury +10% AP and SP for 15 s; Stoneform reduces physical damage; Skyborne Wind Blessed +1% haste. | [F] [fc-racials]; [bz-deepdive] | medium | [character-stats.md](character-stats.md) |
-| Crit per Agility and base stats | From the client's `PlayerExpectedStat`: warrior 0.05 (20 Agi per 1%), druid 0.05, paladin 0.0506, rogue 0.0345, hunter 0.0189. These match Classic Era's per-class values as far as checked. | [F] client, as read by [character-stats](character-stats.md#agility) (confirm on wago.tools); wowsims/forever's read agrees ([wf-basestats], secondary) | low | [character-stats.md](character-stats.md) |
+| Crit per Agility and base stats | From the client's `PlayerExpectedStat`: warrior 0.05 (20 Agi per 1%), druid 0.05, paladin 0.0506, rogue 0.0345, hunter 0.0189. These match Classic Era's per-class values as far as checked. | [F] [client] (PlayerExpectedStat, 1.60.1.69913), used by [character-stats](character-stats.md#agility); wowsims/forever's read agrees ([wf-basestats], secondary) | low | [character-stats.md](character-stats.md) |
 | Healing power gives spell damage | Bonus healing also gives one third as much spell damage; caster weapons give spell power from level ~10 | [F] [bz-deepdive] | low (Ret/Prot paladin spell damage from hybrid gear) | [character-stats.md](character-stats.md); [paladin.md](../classes/paladin.md) |
 | Legacy perks | No combat power. Durations only: **Permanence** makes long-duration class raid buffs and camp buffs last +50/100%; **Gourmand** makes food buffs last +33/67/100%; Reagent Economy removes buff reagents. Cap 16 points per character. | [F] [foreverchanges legacy][fc-legacy] | none on in-fight DPS (buff uptime is assumed 100%) | [buffs-debuffs-consumables.md](buffs-debuffs-consumables.md) |
 
@@ -142,7 +143,8 @@ built, rather than only its numbers:
    until the guild measures the Forever table. Per doctrine §2, the client UI values are [F] for
    what the client shows and [?] in combat, so they drive the `forever` defaults and stay open
    questions.
-3. **Periodic crits** → DoT ticks need a crit roll when the spell's flag says so (`forever`; the flags are [?]).
+3. **Periodic crits** → DoT ticks need a crit roll when the spell's flag says so (`forever`; the flags
+   are [F] client data, their combat effect [?]).
 4. **Negative armor and negative resistance** → don't floor at 0 in the `forever` profile (tooltip text [F]; in combat [?]).
 5. **Normalized rage** → the rage model changes shape, not just constants ([rage.md](rage.md)).
 6. **Creature type, biome and zone** → encounter enums that gate item and consumable effects.
@@ -206,7 +208,8 @@ with" the class buff they copy).
 4. **Debuff limit in Forever raids** [?]. Not announced. Test: stack 16+ debuffs on a boss and
    watch for pushed-off debuffs.
 5. **Rage formulas at level 60** [?]. Measured only at levels 1–20, by third parties ([fw-3]; [rage.md open questions](rage.md#open-questions)).
-6. **Armor mitigation constant** [?]. A retail-valued gametable exists in the client
+6. **Armor mitigation constant** [?]. A retail-valued game table exists in the client
+   (`armormitigationbylvl.txt`, 1,059 at 60, [client])
    ([damage-and-timing open questions](damage-and-timing.md#open-questions)).
 7. **World buffs.** Directive: excluded. The only public hint (a player relaying a streamer on
    the Blizzard forums) agrees that they don't work in instances ([bf-wbuffs]). Revisit only
@@ -215,8 +218,8 @@ with" the class buff they copy).
    dummies ([fw-1]), and the modern addon API limits combat-log detail ([fw-2]). Guild tests
    of `+3` rules must use mobs 3 levels above the tester.
 9. **Third-party and secondary findings to repeat** [?]: the HS-queue off-hand result ([fw-2];
-   [combat-tables open questions](combat-tables.md#open-questions)), the per-spell periodic-crit
-   flags and negative armor ([damage-and-timing open questions](damage-and-timing.md#open-questions)),
+   [combat-tables open questions](combat-tables.md#open-questions)), whether ticks with the
+   periodic-crit flag crit in combat, and negative armor ([damage-and-timing open questions](damage-and-timing.md#open-questions)),
    and the beta's broken glancing damage ([fw-1]).
 
 ---
@@ -237,16 +240,17 @@ with" the class buff they copy).
 | [gs-forever] | Forever client GlobalStrings enUS, <https://github.com/Ketho/BlizzardInterfaceResources/blob/forever/Resources/GlobalStrings/enUS.lua> | combat tooltips | [F] client (verbatim mirror): what the client displays; combat [?] until measured |
 | [ui-skills] | Forever `Camelot/SkillsFrame.lua`, <https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_UIPanels_Game/Camelot/SkillsFrame.lua> | weapon-skill formulas | [F] client (verbatim mirror): what the client computes; combat [?] until measured |
 | [ui-stats] | Forever `Camelot/PaperDollFrameStats.lua`, <https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_UIPanels_Game/Camelot/PaperDollFrameStats.lua> | enemy tables, AP/14 | [F] client (verbatim mirror): what the client computes; combat [?] until measured |
-| [wf-cr] | wowsims/forever CombatRatings, <https://github.com/wowsims/forever/blob/master/assets/db_inputs/basestats/combatratings.txt> | rating conversions | [?] secondary (client gametable read by wowsims) |
+| [wf-cr] | wowsims/forever CombatRatings, <https://github.com/wowsims/forever/blob/master/assets/db_inputs/basestats/combatratings.txt> | rating conversions | [?] secondary (corroborates the client game table, now read directly: [client]) |
 | [wf-basestats] | wowsims/forever `sim/core/base_stats_auto_gen.go`, <https://github.com/wowsims/forever/blob/master/sim/core/base_stats_auto_gen.go> | crit per Agility from `PlayerExpectedStat` | [?] secondary (corroboration only) |
-| [wf-spell] | wowsims/forever generated spell data, <https://github.com/wowsims/forever/blob/master/sim/warrior/spell_data_auto_gen.go> (and druid, paladin) | GCDs, effect types, periodic-crit flags, buff values | [?] secondary (client data read by wowsims; the only source for the periodic-crit flags) |
+| [wf-spell] | wowsims/forever generated spell data, <https://github.com/wowsims/forever/blob/master/sim/warrior/spell_data_auto_gen.go> (and druid, paladin) | GCDs, effect types, periodic-crit flags, buff values | [?] secondary (client data read by wowsims; corroborates the periodic-crit flags now read directly, [client]) |
 | [wf-36] | wowsims/forever issue #36, <https://github.com/wowsims/forever/issues/36> | buff and debuff census against the Forever client | [?] secondary (corroboration only) |
 | [fc-spellbooks] | foreverchanges.pro spellbooks, <https://foreverchanges.pro/spellbook/druid> (and `/warrior`, `/warlock`) | Mark of the Wild, Thunder Clap, Demoralizing Shout tooltips | [F] |
 | [wf-2] | wowsims/forever issue #2, <https://github.com/wowsims/forever/issues/2> | "rage is normalized; crit does not double the gain" | [?] secondary (reported) |
 | [fw-1] | magey/forever-warrior #1, <https://github.com/magey/forever-warrior/issues/1> | attack-table test plan; glancing broken; no dummies | [?] third-party measurement (in progress) |
 | [fw-2] | magey/forever-warrior #2, <https://github.com/magey/forever-warrior/issues/2> | HS queue and the off-hand DW penalty; addon limits | [?] third-party measurement |
 | [fw-3] | magey/forever-warrior #3, <https://github.com/magey/forever-warrior/issues/3> | rage normalization logs (1H 3.46 per second of speed; damage taken as pre-armor damage × 10 / max health) | [?] third-party measurement |
-| [wago-ppm] | wago.tools `SpellProcsPerMinute` (Forever), <https://wago.tools/db2/SpellProcsPerMinute?build=1.60.1.69913> | PPM rows; **a human should confirm this in a browser** (no further automated access) | [F] client |
+| [client] | Raw Forever client files (build 1.60.1.69913) read through the wago.tools API, [../data/client.md](../data/client.md#doc-claims-checked-against-the-raw-client) | PPM rows, periodic-crit flags, `PlayerExpectedStat`, game tables | [F] client |
+| [wago-ppm] | wago.tools `SpellProcsPerMinute` (Forever), <https://wago.tools/db2/SpellProcsPerMinute?build=1.60.1.69913> | PPM rows (browse link; the values were checked in the raw client files, [client]) | [F] client |
 | [wt-skill] | Warcraft Tavern, weapon skills in Forever, <https://www.warcrafttavern.com/forever/news/weapon-skills-in-world-of-warcraft-forever/> | Edgemaster's +1, racials | [F] reported |
 | [wowsod] | wowsod.pro, Forever vs Classic pillar guide, <https://wowsod.pro/articles/wow-forever-vs-classic-every-key-change> | beta cap, raids, Q&A items (debuff limit and dual spec not announced) | [F] reported |
 | [cwgg-raids] | classicwow.gg, Forever raids, <https://classicwow.gg/forever/raids> | raid sizes, unlock date, no flex | [F] reported |
@@ -277,6 +281,7 @@ with" the class buff they copy).
 [fw-2]: https://github.com/magey/forever-warrior/issues/2
 [fw-3]: https://github.com/magey/forever-warrior/issues/3
 [wago-ppm]: https://wago.tools/db2/SpellProcsPerMinute?build=1.60.1.69913
+[client]: ../data/client.md#doc-claims-checked-against-the-raw-client
 [wt-skill]: https://www.warcrafttavern.com/forever/news/weapon-skills-in-world-of-warcraft-forever/
 [wowsod]: https://wowsod.pro/articles/wow-forever-vs-classic-every-key-change
 [cwgg-raids]: https://classicwow.gg/forever/raids

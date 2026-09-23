@@ -56,8 +56,9 @@ Client builds: Forever beta 1.60.1.69913 · Classic Era 1.15.9.69722
   profile. Two rolls (hit, then crit ×1.5). Partial resists are averaged, and Holy is never
   partially resisted ([§9](#9-spell-hit-and-crit-generic)).
 - All inputs arrive as **percentages**. Forever gear carries ratings (hit 10, crit 14,
-  dodge 12, parry 15, block 5 per 1%; defense 1:1). The conversions are [F] as displayed and
-  [?] in combat; expertise's 10 per 1% is [?] even as displayed (gametable only). One hit %
+  dodge 12, parry 15, block 5 per 1%; defense 1:1). The conversions are [F] as displayed and in
+  the client's `combatratings.txt`, and [?] in combat; expertise's 10 per 1% is [F] only in that
+  game table (no tooltip prints it) and [?] in combat. One hit %
   serves the melee **and** spell tables. Converting ratings is owned by
   [character-stats.md](character-stats.md) ([§10](#10-ratings)).
 
@@ -279,9 +280,9 @@ Bloodthirst, Mortal Strike, Shred, Holy Strike and so on.
 - **Defense type.** Each ability's client `DefenseType` picks its table [F] (per-spell values
   come from the class docs' own `SpellCategories` reads, e.g.
   [warrior §3.1](../classes/warrior.md#31-damage-abilities) and
-  [paladin conventions](../classes/paladin.md#conventions-used-below), to be confirmed on
-  wago.tools; [wowsims/forever spell data][wf-spelldata] reads the same and is corroboration
-  only):
+  [paladin conventions](../classes/paladin.md#conventions-used-below), confirmed in the raw
+  client files: [F] [client] (SpellCategories, 1.60.1.69913); [wowsims/forever spell data][wf-spelldata]
+  reads the same):
   - `Melee`: the table above.
   - `Ranged`: miss, then block (front only), then crit roll 2. No dodge or parry, because
     creatures dodge and parry melee only [F] tooltips ([gs][gs-forever]).
@@ -453,9 +454,9 @@ What the Forever client **says** [F] (displayed text; not a measured combat effe
   (`TOOLTIP_ITEM_STAT_EXPERTISE_PCT_INCREASE`). Character sheet: "Increase the chance Melee
   attacks are not Dodged or Parried by X", listing raid-boss dodge 6.50% / parry 16.50%
   (`CR_EXPERTISE_TOOLTIP`) ([gs][gs-forever]).
-- Conversion: **10 Expertise Rating = 1%** [?]. The item tooltip template prints a percentage,
-  but foreverchanges' item data shows only "+N Expertise Rating", so the ratio comes only from
-  the client gametable as read by wowsims ([§10](#10-ratings)).
+- Conversion: **10 Expertise Rating = 1%**, [F] in the client's `combatratings.txt` and [?] in
+  combat. The item tooltip template prints a percentage, but foreverchanges' item data shows only
+  "+N Expertise Rating", so the ratio comes only from the game table ([§10](#10-ratings)).
   Sources in or near the pre-raid pool: Adaptive Combat Assistant +20 rating (2%), a Tier 1
   4-piece tank bonus of 12 rating (1.2%), and the Flask of Natural Precision at 5% (Hyjal
   zones only) [F] ([items dataset](../data/items.md#forevers-ratings-f-with-open-questions);
@@ -582,26 +583,26 @@ Forever rewrites Classic's percentage stats on items as **combat ratings**: Hit,
 Expertise, Dodge, Parry, Block and Defense, plus new Armor Penetration and Health Regeneration
 stats. The in-game item tooltips show them as percentages again [F] (`TOOLTIP_ITEM_STAT_*_PCT_*`
 strings, [gs][gs-forever]). The foreverchanges item data gives the conversions for the old stats,
-and a secondary read of the client gametable agrees; neither varies with level:
+and the client's `combatratings.txt` game table agrees; neither varies with level:
 
 | Rating | Per 1% (or per defense point) | Tooltip-ratio samples (items dataset) | Tag / source |
 | --- | --- | --- | --- |
-| Hit (one stat: melee = ranged = spell) | 10 | 152 | [F] as displayed ([items dataset][items-ratings]; [wf-cr]) |
+| Hit (one stat: melee = ranged = spell) | 10 | 152 | [F] as displayed ([items dataset][items-ratings]); [F] [client] (`combatratings.txt`, 1.60.1.69913) |
 | Crit (one stat: melee = ranged = spell) | 14 | 349 | [F] as displayed |
 | Dodge | 12 | 46 | [F] as displayed |
 | Parry | 15 | 7 (plus one item at 21) | [F] as displayed |
 | Block | 5 | 11 | [F] as displayed |
 | Defense | 1 rating = 1 defense skill | 69 | [F] as displayed |
-| Haste | 10 | – (new stat) | [?] gametable only, as read by wowsims ([wf-cr]); applied by hypothesis (D12) |
-| Expertise | 10 | – (new stat) | [?] gametable only, as read by wowsims ([wf-cr]); applied by hypothesis (D12) |
+| Haste | 10 | – (new stat) | [F] client game table only ([client]); combat effect [?], applied by hypothesis (D12) |
+| Expertise | 10 | – (new stat) | [F] client game table only ([client]); combat effect [?], applied by hypothesis (D12) |
 
 - The first source is the item diffs: for every changed item whose Classic tooltip had one
   percentage stat and whose Forever tooltip has the rating instead, rating ÷ old value
   ([items dataset][items-ratings]; [foreverchanges items][fc-items]).
-- The second is the client's `CombatRatings` gametable as extracted by wowsims on 2026-09-20.
-  It has the same value at levels 1 through 60 and beyond ([wf-cr]). It is a secondary source
-  (doctrine §2), so it corroborates the item ratios and is the only source for haste and
-  expertise [?].
+- The second is the client's `combatratings.txt` game table, read from the raw client files
+  ([client], 1.60.1.69913; level-60 row in [`gametables.json`](../data/client.md#gametablesjson)). It has
+  the same value at all 123 levels, and it is the only source for haste and expertise. wowsims'
+  extraction of 2026-09-20 agrees ([wf-cr]).
 - **In combat** [?]: whether 14 rating really adds exactly 1% crit against a level-63 boss,
   whether 10 hit rating is 1% in both the melee and the spell table, and whether 1 Defense
   Rating is exactly 1 defense skill have not been measured. The sim assumes the displayed
@@ -874,7 +875,7 @@ adopt its results when they land.
     item level 20, no level requirement in its Forever tooltip) predicts −0.6 points, which
     needs a much larger sample.
 17. **Do the displayed rating conversions hold in combat?** [?] (14 crit / 10 hit / 12 dodge /
-    15 parry / 5 block per 1%; 1 defense rating = 1 defense; and the gametable-only 10 haste and
+    15 parry / 5 block per 1%; 1 defense rating = 1 defense; and the game-table-only 10 haste and
     10 expertise per 1%.) Test: compare the character-sheet
     crit/hit/dodge/parry/block % before and after equipping a rating item. The sheet reads
     server values. Then spot-check the crit rate vs +3 mobs.
@@ -903,7 +904,8 @@ adopt its results when they land.
 | [ui-skills] | `Camelot/SkillsFrame.lua`, <https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_UIPanels_Game/Camelot/SkillsFrame.lua> | weapon skill → hit/dodge/parry/crit, glancing chance and penalty | [F] client data (verbatim mirror): what the client displays or computes; combat behaviour [?] until measured |
 | [gs-forever] | Ketho/BlizzardInterfaceResources `forever` GlobalStrings enUS, <https://github.com/Ketho/BlizzardInterfaceResources/blob/forever/Resources/GlobalStrings/enUS.lua> | hit-cap, expertise, defense, crit, dodge, parry, block, armor-pen and spell-pen tooltips | [F] client data (verbatim mirror): what the client displays or computes; combat behaviour [?] until measured |
 | [gs-era] | same repo, branch `classic_era`, <https://github.com/Ketho/BlizzardInterfaceResources/blob/classic_era/Resources/GlobalStrings/enUS.lua> | control: Classic Era 1.15.9 has none of the Forever tooltip numbers | [C] |
-| [wf-cr] | wowsims/forever `assets/db_inputs/basestats/combatratings.txt` (commit c65434c), <https://github.com/wowsims/forever/blob/master/assets/db_inputs/basestats/combatratings.txt> | Forever CombatRatings gametable | [?] secondary (client gametable extracted by wowsims) |
+| [client] | Raw Forever client files (build 1.60.1.69913) read through the wago.tools API, [../data/client.md](../data/client.md#doc-claims-checked-against-the-raw-client) | `combatratings.txt`; per-spell `DefenseType` (SpellCategories) | [F] client data |
+| [wf-cr] | wowsims/forever `assets/db_inputs/basestats/combatratings.txt` (commit c65434c), <https://github.com/wowsims/forever/blob/master/assets/db_inputs/basestats/combatratings.txt> | Forever CombatRatings game table | [?] secondary (corroborates the client file now read directly, [client]) |
 | [wf-34] | wowsims/forever issue #34, <https://github.com/wowsims/forever/issues/34> | expertise sources and aura types in the Forever client | [?] secondary (their core is TBC-based; only the client findings are used) |
 | [wf-spelldata] | wowsims/forever generated spell data, e.g. <https://github.com/wowsims/forever/blob/master/sim/warrior/spell_data_auto_gen.go> | per-spell DefenseType, GCD, effects | [?] secondary (corroboration of the class docs' own reads) |
 | [fw-1] | magey/forever-warrior issue #1 "Attack table", <https://github.com/magey/forever-warrior/issues/1> | Forever test plan; glancing damage reported broken on beta; asks whether crit is still two-roll | [?] third-party (in progress) |
@@ -934,6 +936,7 @@ adopt its results when they land.
 [gs-era]: https://github.com/Ketho/BlizzardInterfaceResources/blob/classic_era/Resources/GlobalStrings/enUS.lua
 [gs]: https://github.com/Ketho/BlizzardInterfaceResources/blob/forever/Resources/GlobalStrings/enUS.lua
 [wf-cr]: https://github.com/wowsims/forever/blob/master/assets/db_inputs/basestats/combatratings.txt
+[client]: ../data/client.md#doc-claims-checked-against-the-raw-client
 [wf-34]: https://github.com/wowsims/forever/issues/34
 [wf-spelldata]: https://github.com/wowsims/forever/blob/master/sim/warrior/spell_data_auto_gen.go
 [fw-1]: https://github.com/magey/forever-warrior/issues/1

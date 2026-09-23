@@ -13,15 +13,13 @@ unverified (`[?]`) until it has been measured at level 60.
 
 Status: researched 2026-09-22 · Forever client build 1.60.1.69913 · Classic Era 1.15.9.69722 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 
-**About the wago.tools values.** Values tagged [F] and cited to wago.tools DB2 tables were read
-from CSVs downloaded once on 2026-09-22, before we noticed that wago.tools' `robots.txt`
-disallows automated access. That download should not have happened
-([decision D9](../decisions.md#d9-wagotools-is-cited-never-crawled-2026-09-22)).
-
-- The values stay, but **a person should confirm each one in a browser** before treating it as
-  settled.
-- Never fetch wago.tools from scripts or agents.
-- Where a foreverchanges.pro tooltip gives the same number, the tooltip is the primary citation.
+**Client-data values.** Values cited as `[client] (Table, build)` come from the raw Forever
+client files (build 1.60.1.69913; Classic Era 1.15.9.69722 for the Classic halves), read through
+the wago.tools API and parsed by `scripts/scrape/client.mjs`. The claim check in
+[client.md][client] confirmed every value this doc had marked for a browser check, with no
+corrections. Raw files lack server hotfixes and scripts (dummy effects, proc rates; see the
+[hotfix caveat](../data/client.md#hotfix-caveat)). Where a foreverchanges.pro tooltip gives the
+same number, the tooltip is the primary citation.
 
 ---
 
@@ -69,9 +67,9 @@ disallows automated access. That download should not have happened
 | Rule | Value | Tag | Source |
 | --- | --- | --- | --- |
 | Rage cap | 100 | [C] | [LTC2 core](https://github.com/dfherr/LibThreatClassic2/blob/master/ThreatClassModuleCore.lua), Classic sims ([WarriorSim `addRage`](https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/player.js)) |
-| Boundless Rage (Fury talent, 3 ranks) | +10 / +20 / +30 maximum rage | [F] | [foreverchanges › warrior](https://foreverchanges.pro/class/warrior), DB2 spell 1310236, aura 418, curve 100/200/300 tenths ([CurvePoint](https://wago.tools/db2/CurvePoint?build=1.60.1.69913)) |
+| Boundless Rage (Fury talent, 3 ranks) | +10 / +20 / +30 maximum rage | [F] | [foreverchanges › warrior](https://foreverchanges.pro/class/warrior); [client] (SpellEffect, CurvePoint, 1.60.1.69913): spell 1310236, aura 418, curve 100/200/300 tenths |
 | Gnome, Expansive Mind (racial) | +5% maximum rage. How it combines with Boundless Rage, and how it rounds, is open. | [F] text; combination [?] | [warrior.md §2.3 and Q17](../classes/warrior.md#23-rage-warrior-specific), [racials](https://foreverchanges.pro/racials) |
-| Internal unit | Tenths of rage. DB2 stores every rage amount ×10 (Bloodrage energize = 100 → 10 rage), and Forever combat logs report rage in tenths. | [F] | [SpellEffect 2687](https://wago.tools/db2/SpellEffect?build=1.60.1.69913), [ElliotWood/Forever#252](https://github.com/ElliotWood/Forever/issues/252) |
+| Internal unit | Tenths of rage. DB2 stores every rage amount ×10 (Bloodrage energize = 100 → 10 rage), and Forever combat logs report rage in tenths. | [F] | [client] (SpellEffect, 1.60.1.69913): 2687 = 100; [ElliotWood/Forever#252](https://github.com/ElliotWood/Forever/issues/252) |
 | In-combat decay | None | [C] | Classic sims apply no decay in combat |
 | Out-of-combat decay | Not modelled: the sim only runs in-combat fights. Forever's Anger Management tooltip adds "reduces Rage loss while out of combat by 30%". | [F] tooltip | [foreverchanges › warrior](https://foreverchanges.pro/class/warrior) |
 | Starting rage | 0, unless the user sets pre-pull rage (Charge, Bloodrage before the pull, a potion) | — | Encounter setting; see [encounter.md](encounter.md) |
@@ -185,14 +183,16 @@ Attack-table probabilities, glancing, and a mob blocking your attacks are covere
   [Magey › Windfury Totem](https://github.com/magey/classic-warrior/wiki/Windfury-Totem) ("it
   converts the melee swing into a spell cast"). In Forever players see the same, "that specific
   auto attack generates zero rage" ([forum](https://us.forums.blizzard.com/en/wow/t/warrior-rage-normalization-auto-attack-crits-dont-generate-extra-rage/2355684)). [?]
-- **Unbridled Wrath** can proc on white hits, extra attacks and HS/Cleave swings, but not on other
-  yellow attacks. [C] Classic sims (WarriorSim, Aurana, tzcnt) all limit it to autos plus
-  HS/Cleave. In the Forever client data its proc mask is "melee auto attack" only, so the HS and
-  Cleave part is open. This default and question Q5 are owned by
-  [warrior.md §2.3](../classes/warrior.md#23-rage-warrior-specific). Confidence: medium.
+- **Unbridled Wrath** can proc on white hits, extra attacks and HS/Cleave swings, but not on
+  other yellow attacks. [C] Classic sims (WarriorSim, Aurana, tzcnt) all limit it to autos plus
+  HS/Cleave. In the Forever client data its proc mask is "melee auto attack" only ([F] [client]
+  (SpellAuraOptions, 1.60.1.69913)), so the HS and Cleave part is open. This default and question
+  Q5 are owned by [warrior.md §2.3](../classes/warrior.md#23-rage-warrior-specific). Confidence:
+  medium.
 - Forever Heroic Strike rank 9 is "+157 damage", unchanged from Classic
-  ([spellbook](https://foreverchanges.pro/spellbook/warrior), DB2 25286). Damage, the queue and
-  swing timing are covered in [damage-and-timing.md](damage-and-timing.md).
+  ([spellbook](https://foreverchanges.pro/spellbook/warrior); 25286 [client] (SpellEffect,
+  1.60.1.69913)). Damage, the queue and swing timing are covered in
+  [damage-and-timing.md](damage-and-timing.md).
 
 ---
 
@@ -277,18 +277,18 @@ Focused Rage, and so on). Refunded rage generates no threat: it is not an energi
 
 | Source | Classic Era | Forever | Tags / source |
 | --- | --- | --- | --- |
-| Charge (rank 3) | 15 rage; can't be used in combat | 15 rage. Vanguard (Prot) lets you Charge from Defensive Stance. | [F][C] DB2 11578 energize 150; [spellbook](https://foreverchanges.pro/spellbook/warrior) |
+| Charge (rank 3) | 15 rage; can't be used in combat | 15 rage. Vanguard (Prot) lets you Charge from Defensive Stance. | [F][C] [client] (SpellEffect, 1.60.1.69913): 11578 energize 150; [spellbook](https://foreverchanges.pro/spellbook/warrior) |
 | Improved Charge | +3 per rank | +3 per rank (same text) | [F][C] [class/warrior](https://foreverchanges.pro/class/warrior) |
-| Bloodrage (1 min CD, costs health, puts you in combat) | 10 rage now, plus 1 rage/s for 10 s (20 total) | Same | [F][C] DB2 2687 energize 100; 29131 periodic energize 10 every 1000 ms for 10 s |
-| Improved Bloodrage (2 ranks) | +2 / +5 instant rage | **+25% / +50% to all Bloodrage rage**: 12.5 + 1.25/s at 1/2, 15 + 1.5/s at 2/2 (30 total) | [F] curve 25/50; [C] Classic text |
+| Bloodrage (1 min CD, costs health, puts you in combat) | 10 rage now, plus 1 rage/s for 10 s (20 total) | Same | [F][C] [client] (SpellEffect, 1.60.1.69913): 2687 energize 100; 29131 periodic energize 10 every 1000 ms for 10 s |
+| Improved Bloodrage (2 ranks) | +2 / +5 instant rage | **+25% / +50% to all Bloodrage rage**: 12.5 + 1.25/s at 1/2, 15 + 1.5/s at 2/2 (30 total) | [F] [client] (CurvePoint, 1.60.1.69913): curve 25/50; [C] Classic text |
 | Berserker Rage (30 s CD, 10 s) | Immune to Fear and Incapacitate; "extra rage when taking damage" (multiplier unknown) | Same text | [F][C] DB2 18499 (immunity auras only); multiplier [?] |
 | Improved Berserker Rage (2 ranks) | 5 / 10 rage on use | 5 / 10 rage on use, plus a 50% / 100% chance to remove movement impairment | [F][C] |
 | Anger Management (Arms) | 1 rage every 3 s in combat | 1 rage every 3 s in combat (now stated in the tooltip) | [F] tooltip + DB2 12296 (aura 85 + dummy 1/3). [C] Classic sims ([Aurana](https://github.com/wow-aurana/bigdick/blob/master/cooldowns.js)). |
-| Unbridled Wrath (Fury, 5 ranks) | 8% per rank to gain 1 rage when you deal weapon damage (40% at 5/5) | **12% per rank (60% at 5/5); 2 rage with a two-hander** | [F] curve 12…60, energize 12964 = 10 tenths; [C] |
-| Shield Specialization (Prot, 5 ranks) | +1% block per rank; 20% per rank to gain **1** rage on a block | +1% block per rank; 20% per rank to gain **5** rage on a block (100% at 5/5) | [F] DB2 12298 → 1310318 energize 50, curve 20…100; [C] 23602 energize 10 |
-| Master of Defense (Prot, new, 2 ranks) | — | 50% / 100% chance to gain 5 rage when you dodge or parry **with a shield equipped** | [F] 1310316 → 23602 energize 50, curve 50/100 |
-| Mighty Rage Potion (2 min potion CD) | 45–75 rage, +60 Strength for 20 s | 45–75 rage (600 ± 25%), +60 Strength for 20 s | [F] DB2 17528: 600 with Variance 0.5, duration 20 s; [C] 449 + 1d301 |
-| Dual Wield Specialization (Fury, 5 ranks) | Off-hand damage only | Also **+20% off-hand rage generation per rank** and +2% off-hand hit per rank | [F] curves 5…25 / 20…100 / 2…10 |
+| Unbridled Wrath (Fury, 5 ranks) | 8% per rank to gain 1 rage when you deal weapon damage (40% at 5/5) | **12% per rank (60% at 5/5); 2 rage with a two-hander** | [F] [client] (CurvePoint, SpellEffect, 1.60.1.69913): curve 12…60, energize 12964 = 10 tenths; [C] |
+| Shield Specialization (Prot, 5 ranks) | +1% block per rank; 20% per rank to gain **1** rage on a block | +1% block per rank; 20% per rank to gain **5** rage on a block (100% at 5/5) | [F] [client] (SpellEffect, CurvePoint, 1.60.1.69913): 12298 → 1310318 energize 50, curve 20…100; [C] [client] (SpellEffect, 1.15.9.69722): 23602 energize 10 |
+| Master of Defense (Prot, new, 2 ranks) | — | 50% / 100% chance to gain 5 rage when you dodge or parry **with a shield equipped** | [F] [client] (SpellEffect, CurvePoint, 1.60.1.69913): 1310316 → 23602 energize 50, curve 50/100 |
+| Mighty Rage Potion (2 min potion CD) | 45–75 rage, +60 Strength for 20 s | 45–75 rage (600 ± 25%), +60 Strength for 20 s | [F] [client] (SpellEffect, SpellDuration, 1.60.1.69913): 17528 = 600 with Variance 0.5, duration 20 s; [C] [client] (SpellEffect, 1.15.9.69722): 449 + 1d301 |
+| Dual Wield Specialization (Fury, 5 ranks) | Off-hand damage only | Also **+20% off-hand rage generation per rank** and +2% off-hand hit per rank | [F] [client] (CurvePoint, 1.60.1.69913): curves 5…25 / 20…100 / 2…10 |
 
 ### Sinks and cost changes (Forever)
 
@@ -317,7 +317,7 @@ Changing stance produces no threat.
 | Ruleset | `retain` | Tag | Source |
 | --- | --- | --- | --- |
 | Classic Era | `5 × Tactical Mastery rank` (Arms talent, 0–25). Untalented: 0. | [C] | Classic tooltip "You retain up to 5 … 25 of your rage points" ([class/warrior](https://foreverchanges.pro/class/warrior)) |
-| Forever | `10 + 3 × Improved Tactical Mastery rank`: 10 at 0/5, 25 at 5/5. Tactical Mastery is trained at level 14 (spell 1310185, "You retain up to 10 Rage"). | [F] | [spellbook](https://foreverchanges.pro/spellbook/warrior); DB2 1310185 dummy 10; 12295 curve 3/6/9/12/15 |
+| Forever | `10 + 3 × Improved Tactical Mastery rank`: 10 at 0/5, 25 at 5/5. Tactical Mastery is trained at level 14 (spell 1310185, "You retain up to 10 Rage"). | [F] | [spellbook](https://foreverchanges.pro/spellbook/warrior); [client] (SpellEffect, CurvePoint, 1.60.1.69913): 1310185 dummy 10; 12295 curve 3/6/9/12/15 |
 
 Rage changes nothing else about stances. Stance threat and damage modifiers are in
 [threat.md](threat.md#stance-and-form-modifiers).
@@ -329,15 +329,15 @@ Rage changes nothing else about stances. Stance threat and damage modifiers are 
 | Rule | Classic Era | Forever | Tags / source |
 | --- | --- | --- | --- |
 | Shifting into Bear or Dire Bear Form | Rage set to 0 | Assumed the same | [C] common Classic knowledge; Forever untested [?] |
-| Furor (5 ranks) | 20% per rank to gain 10 rage on shifting to bear | Same bear effect (Cat part reworked) | [F] curve 20…100, 17057 energize 100; [C] |
+| Furor (5 ranks) | 20% per rank to gain 10 rage on shifting to bear | Same bear effect (Cat part reworked) | [F] [client] (CurvePoint, SpellEffect, 1.60.1.69913): curve 20…100, 17057 energize 100; [C] |
 | Rage from bear white hits | `7.5 × dmg / c` (same formula as warriors; bear attack speed 2.5 s) | Assumed `3.5 × 2.5` = 8.75 per landed auto, crits no bonus | [C]; Forever [?] (see [Forever model](#forever-normalized-rage-per-swing-)) |
 | Rage from damage taken | `2.5 × dmg / c` | Same model as warriors (`1.5 × dmg / c` default) | [C]; Forever [?] |
 | Maul | On-next-swing; the replaced swing gives no rage | Same | [C]; [F] spell unchanged (DB2 9881) |
-| Enrage (1 min CD, 10 s, lowers armor) | 20 rage over 10 s (2 rage/s) | **10 rage now, plus 20 over 10 s (30 total)** | [F] DB2 5229: energize 100 + periodic 20/s; [C] periodic only |
+| Enrage (1 min CD, 10 s, lowers armor) | 20 rage over 10 s (2 rage/s) | **10 rage now, plus 20 over 10 s (30 total)** | [F] [client] (SpellEffect, 1.60.1.69913): 5229 energize 100 + periodic 20/s; [C] periodic only |
 | Improved Enrage | +5 / +10 instant | Removed (folded into Enrage) | [F] [class/druid](https://foreverchanges.pro/class/druid) |
 | Wolfshead Helm (item 8345) | +5 rage on shifting into bear | **+5 rage from Enrage** instead (the bonus on shifting is removed) | [F] per [druid.md](../classes/druid.md), which owns it |
-| Primal Fury (2 ranks) | 50% / 100% chance to gain 5 rage on any crit in bear form | Same bear effect (Cat part added) | [F][C] 16959 energize 50 |
-| Natural Reaction (new, 5 ranks) | — | +1% dodge per rank; 20% per rank to gain 5 rage on each dodge | [F] 417051 curves, 417053 energize 50 |
+| Primal Fury (2 ranks) | 50% / 100% chance to gain 5 rage on any crit in bear form | Same bear effect (Cat part added) | [F][C] [client] (SpellEffect, 1.60.1.69913): 16959 energize 50 |
+| Natural Reaction (new, 5 ranks) | — | +1% dodge per rank; 20% per rank to gain 5 rage on each dodge | [F] [client] (CurvePoint, SpellEffect, 1.60.1.69913): 417051 curves 1…5 / 20…100, 417053 energize 50 |
 | Ferocity (5 ranks) | −1 per rank to Maul, Swipe, Claw, Rake | Also Mangle | [F] |
 | Shredding Attacks (new) | — | −1 per rank to Lacerate (−3 at 3/3) | [F] |
 | Omen of Clarity | Talent | Baseline from level 20: "spells and attacks" can proc Clearcasting (your next ability is free) | [F]. Proc rate: see [classes/druid.md](../classes/druid.md). |
@@ -397,7 +397,7 @@ directly. For a Classic tank, rage income is dominated by damage taken.
 | Druid Enrage | 20 over 10 s | 10 now + 20 over 10 s | [F] |
 | Natural Reaction | — | 5 rage on dodge (100% at 5/5) | [F] |
 | Frenzied Regeneration | 10 health per rage | 1% of maximum health per rage | [F] |
-| Mighty Rage Potion, Charge, Bloodrage base, Furor, Primal Fury | — | No Forever change found | [F] (DB2 values match) |
+| Mighty Rage Potion, Charge, Bloodrage base, Furor, Primal Fury | — | No Forever change found | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Refunds, yellow attacks generate none, HS/Maul swing generates none | — | No Forever change found; the HS swing is observed to give 0 rage | [?] |
 
 ### Reconciliation with the warrior class doc
@@ -587,7 +587,7 @@ sample size (doctrine §2, tier 2).
 | Source | Covers | Ruleset |
 | --- | --- | --- |
 | [foreverchanges.pro › class/warrior](https://foreverchanges.pro/class/warrior), [class/druid](https://foreverchanges.pro/class/druid), [spellbook/warrior](https://foreverchanges.pro/spellbook/warrior), [spellbook/druid](https://foreverchanges.pro/spellbook/druid), [talents/warrior](https://foreverchanges.pro/talents/warrior), [talents/druid](https://foreverchanges.pro/talents/druid) | Forever talent and spell tooltips per rank, next to Classic Era 1.15.9 | Forever + Classic Era (client data) |
-| [wago.tools DB2 SpellEffect (1.60.1.69913)](https://wago.tools/db2/SpellEffect?build=1.60.1.69913) and [(1.15.9.69722)](https://wago.tools/db2/SpellEffect?build=1.15.9.69722), plus [SpellName](https://wago.tools/db2/SpellName?build=1.60.1.69913), [SpellMisc](https://wago.tools/db2/SpellMisc?build=1.60.1.69913), [SpellDuration](https://wago.tools/db2/SpellDuration?build=1.60.1.69913), [TraitDefinition](https://wago.tools/db2/TraitDefinition?build=1.60.1.69913), [TraitDefinitionEffectPoints](https://wago.tools/db2/TraitDefinitionEffectPoints?build=1.60.1.69913), [CurvePoint](https://wago.tools/db2/CurvePoint?build=1.60.1.69913) | Energize amounts (tenths), periodic ticks, durations, per-rank talent curves. **Downloaded once on 2026-09-22 before we learned that robots.txt forbids it ([D9](../decisions.md#d9-wagotools-is-cited-never-crawled-2026-09-22)). A person should confirm in a browser; never fetch automatically.** | Forever + Classic Era (client data) |
+| [wago.tools DB2 SpellEffect (1.60.1.69913)](https://wago.tools/db2/SpellEffect?build=1.60.1.69913) and [(1.15.9.69722)](https://wago.tools/db2/SpellEffect?build=1.15.9.69722), plus [SpellName](https://wago.tools/db2/SpellName?build=1.60.1.69913), [SpellMisc](https://wago.tools/db2/SpellMisc?build=1.60.1.69913), [SpellDuration](https://wago.tools/db2/SpellDuration?build=1.60.1.69913), [TraitDefinition](https://wago.tools/db2/TraitDefinition?build=1.60.1.69913), [TraitDefinitionEffectPoints](https://wago.tools/db2/TraitDefinitionEffectPoints?build=1.60.1.69913), [CurvePoint](https://wago.tools/db2/CurvePoint?build=1.60.1.69913) | Energize amounts (tenths), periodic ticks, durations, per-rank talent curves. Browse links; the values are checked against the raw client files in [client.md][client] (read through the wago.tools API, [D16](../decisions.md#d16-use-the-wagotools-api-with-attribution-2026-09-22)). | Forever + Classic Era (client data) |
 | [docs/classes/warrior.md](../classes/warrior.md) §2.3, §3.1, Q5, Q17, Q18, Q20 | Warrior-specific rage modifiers, cost reductions, the Execute rule, and the DWS off-hand multiplier | Project doc (reconciled above) |
 | [GuybrushGit/WarriorSim @ad5ac8b (Classic mode) › spell.js](https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/classes/spell.js) | Refund flags: default 80%, Whirlwind and Execute none, Cleave on the default | Classic Era mode (the SoD mode is not used) |
 | [ElliotWood/Forever#252](https://github.com/ElliotWood/Forever/issues/252) | Beta combat-log measurement: rage per landed white hit ∝ weapon speed (63 pairs, 9 warriors, levels 10–15) | Forever (third-party measurement) |
@@ -600,3 +600,5 @@ sample size (doctrine §2, tier 2).
 | [magey/classic-warrior wiki › Windfury Totem](https://github.com/magey/classic-warrior/wiki/Windfury-Totem) | On-next-swing attacks turn the swing into a spell | Classic Era |
 | [Blizzard Classic forums (2019): "Does armor affect rage generation"](https://us.forums.blizzard.com/en/wow/t/does-armor-effect-rage-generation/319913) | Damage-taken formula `× 2.5 / c`; absorbs give 0; the attacker gains rage when dodged or parried; Kalgan's formula quoted | Classic Era (community) |
 | [vmangos core › Player.cpp](https://github.com/vmangos/core/blob/development/src/game/Objects/Player.cpp) | Berserker Rage ×1.3. **Forbidden source: recorded only as an open question, not adopted.** | Private-server emulator (forbidden) |
+
+[client]: ../data/client.md#doc-claims-checked-against-the-raw-client

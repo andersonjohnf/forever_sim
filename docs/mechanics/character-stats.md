@@ -19,11 +19,13 @@ that have no Forever data yet.
 Status: researched 2026-09-22 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified ·
 Forever build `1.60.1.69913`, Classic Era baseline `1.15.9.69722`
 
-> **wago.tools values need a human check.** Every value cited to a wago.tools URL was read by
-> automated lookup before the project stopped making automated requests to that site (its
-> `robots.txt` disallows them). They keep their [F] tag, but a person should open each linked
-> table in a browser and confirm the value. [OQ-13](#oq-13-confirm-wagotools-values-in-a-browser)
-> lists them. Don't script new wago.tools lookups; use foreverchanges.pro or a manual check.
+> **Client-data values.** Values tagged [F] [client] come from the raw Forever client files of
+> build 1.60.1.69913 (and [C] [client] from the Classic Era 1.15.9.69722 baseline), read through
+> the wago.tools API and parsed by `scripts/scrape/client.mjs`. That check confirmed every value
+> this doc had marked for a browser check ([OQ-13](#oq-13-confirm-wagotools-values-in-a-browser))
+> and corrected one claim: the client does ship the `basemp.txt` and `hppersta.txt` game tables
+> ([below](#what-the-forever-client-ships-and-does-not)). Raw files lack server hotfixes and
+> server scripts ([hotfix caveat][client-hotfix]).
 
 ---
 
@@ -81,9 +83,9 @@ Cross-doc consistency, checked 2026-09-22:
 
 The Forever client's `CharBaseInfo` table lists every valid race/class pair: 56 rows. The table
 below is read from it, and it matches the community-reported class lists on foreverchanges.pro and
-[`src/data/races/races.json`][races-json]. **[F]** [wago CharBaseInfo][w-cbi] (a person should
-confirm it in a browser, [OQ-13](#oq-13-confirm-wagotools-values-in-a-browser)),
-[racials page][fc-racials]. This doc owns the matrix; the site's racials page marks its own list
+[`src/data/races/races.json`][races-json]. **[F]** [client] (CharBaseInfo, 1.60.1.69913; Classic
+Era has 40 pairs), [racials page][fc-racials]. This doc owns the matrix; the site's racials
+page marks its own list
 community-reported because it was transcribed from BlizzCon footage, but the client table is the
 primary source.
 
@@ -102,17 +104,18 @@ primary source.
 
 - The Horde gets paladins (Undead only). That changes the Horde raid-buff pool: see
   [buffs-debuffs-consumables.md](buffs-debuffs-consumables.md). **[F]**
-- Skyborne names and IDs are from `ChrRaces` (ID 95 "High Order Skyborne", Alliance). **[F]** [wago ChrRaces][w-chrraces]
+- Skyborne names and IDs are from `ChrRaces` (ID 95 "High Order Skyborne", Alliance; 96
+  "Windshaper Skyborne"). **[F]** [client] (ChrRaces, 1.60.1.69913)
 - Shield use: `ChrClasses.ArmorTypeMask` lets warriors (127) and paladins (2303) use shields but not
-  druids (2343). Druids therefore have no block. **[F]** [wago ChrClasses][w-chrclasses]
+  druids (2343). Druids therefore have no block. **[F]** [client] (ChrClasses, 1.60.1.69913)
 
 ### Racials that matter to the sim
 
 Forever effects are the beta client's tooltips as read by foreverchanges.pro, cross-checked
-against the spell's `SpellEffect` rows on wago.tools, which give the exact aura types and values.
-Durations come from `SpellMisc.DurationIndex` → `SpellDuration`
-(index 1 = 10 s, index 8 = 15 s) [wago SpellDuration][w-dur]. Every effect has a spell ID so the
-engine can key its implementation on it.
+against the spell's `SpellEffect` rows in the client files, which give the exact aura types and
+values: **[F]** [client] (SpellEffect, SpellMisc, SpellDuration, SpellCooldowns, SpellPower,
+1.60.1.69913). Durations come from `SpellMisc.DurationIndex` → `SpellDuration` (index 1 = 10 s,
+index 8 = 15 s). Every effect has a spell ID so the engine can key its implementation on it.
 
 **Sim handling** legend: *stat* = permanent stat; *cond* = active only with the named weapon or
 target type equipped or present; *CD* = on-use cooldown the rotation can press; *proc*; *tank* = only
@@ -120,32 +123,32 @@ matters for tanking survival (not modelled for DPS/TPS unless noted); *ignore* =
 
 | Race | Racial (spell ID) | Forever effect | Classic Era effect | Sim handling | Tag · source |
 | --- | --- | --- | --- | --- | --- |
-| Human | Sword Specialization (20597) | +2% crit chance with all spells and attacks while a sword or two-handed sword is equipped (aura 290, value 2) | +5 Sword and Two-Handed Sword skill | cond: crit aura (counts as *aura crit*, see [combat-tables.md](combat-tables.md)) | [F] [racials][fc-racials], [SpellEffect 20597][w-se-20597] |
-| Human | The Human Spirit (20598) | Spirit +5% (aura 137, misc 4 = Spirit) | same | stat: ×1.05 Spirit | [F] [SpellEffect 20598][w-se-20598] |
+| Human | Sword Specialization (20597) | +2% crit chance with all spells and attacks while a sword or two-handed sword is equipped (aura 290, value 2) | +5 Sword and Two-Handed Sword skill | cond: crit aura (counts as *aura crit*, see [combat-tables.md](combat-tables.md)) | [F] [racials][fc-racials], [client] (SpellEffect, 1.60.1.69913) |
+| Human | The Human Spirit (20598) | Spirit +5% (aura 137, misc 4 = Spirit) | same | stat: ×1.05 Spirit | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Human | Mace Specialization | **removed** | +5 Mace skill | — | [F] [racials][fc-racials] |
 | Human | Will to Survive (1259718), Perception | stun break; stealth detection | Perception only | ignore | [F] [racials][fc-racials] |
-| Dwarf | Mace Specialization (1259719) | +1% crit chance with all spells and attacks while a mace or two-handed mace is equipped (aura 290, value 1) | did not exist (Dwarves had Gun Specialization) | cond: crit aura | [F] [SpellEffect 1259719][w-se-1259719] |
-| Dwarf | Stoneform (20594) | −10% physical damage taken for 8 s (aura 87, school Physical), removes and grants immunity to bleed, poison and disease; 3 min cooldown | +10% armor for 8 s, immunities; 3 min | tank CD (optional) | [F] [SpellEffect 20594][w-se-20594] |
-| Dwarf | Big Game Hunter (1259721) | +5% damage vs Beasts (aura 168, creature mask Beast) | did not exist | cond: target type | [F] [SpellEffect 1259721][w-se-1259721] |
+| Dwarf | Mace Specialization (1259719) | +1% crit chance with all spells and attacks while a mace or two-handed mace is equipped (aura 290, value 1) | did not exist (Dwarves had Gun Specialization) | cond: crit aura | [F] [client] (SpellEffect, 1.60.1.69913) |
+| Dwarf | Stoneform (20594) | −10% physical damage taken for 8 s (aura 87, school Physical), removes and grants immunity to bleed, poison and disease; 3 min cooldown; **on the GCD** (1.5 s, unlike the damage racials) | +10% armor for 8 s, immunities; 3 min | tank CD (optional) | [F] [client] (SpellEffect, 1.60.1.69913) |
+| Dwarf | Big Game Hunter (1259721) | +5% damage vs Beasts (aura 168, creature mask Beast) | did not exist | cond: target type | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Dwarf | Gun Specialization, Frost Resistance | **removed** | +1% gun crit; +10 Frost resistance | — | [F] [racials][fc-racials] |
-| Night Elf | Quickness (20582) | +1% dodge (aura 49), +2% movement speed | +1% dodge | stat: +1% dodge | [F] [SpellEffect 20582][w-se-20582] |
-| Night Elf | Elune's Light (1259799) | +10% crit chance with all spells and attacks for 15 s (aura 290, value 10); 3 min cooldown | did not exist | CD | [F] [SpellEffect 1259799][w-se-1259799], [SpellMisc 1259799][w-misc-1259799] |
+| Night Elf | Quickness (20582) | +1% dodge (aura 49), +2% movement speed | +1% dodge | stat: +1% dodge | [F] [client] (SpellEffect, 1.60.1.69913) |
+| Night Elf | Elune's Light (1259799) | +10% crit chance with all spells and attacks for 15 s (aura 290, value 10); 3 min cooldown | did not exist | CD | [F] [client] (SpellEffect, SpellMisc, 1.60.1.69913) |
 | Night Elf | Shadowmeld | now usable in combat (drops aggro, 2 min cooldown when used in combat) | 10 s cooldown, out of combat | ignore (see [threat.md](threat.md)) | [F] [racials][fc-racials] |
 | Night Elf | Nature Resistance | **removed** | +10 Nature resistance | — | [F] [racials][fc-racials] |
-| Gnome | Expansive Mind, warrior version (1259802) | Warrior: maximum Rage +5% (aura 178, misc 1 = Rage) → 105 | Intellect +5% (all classes) | stat: see [rage.md](rage.md) | [F] [SpellEffect 1259802][w-se-1259802] |
-| Gnome | Eureka!, warrior version (1259813) | Next 3 damaging abilities cost 40% less Rage and deal 10% more damage; 15 s window; 2 min cooldown; no cost | did not exist | CD (charges) | [F] [SpellEffect 1259813][w-se-1259813], [SpellMisc][w-misc-1259813], [SpellPower][w-power] |
+| Gnome | Expansive Mind, warrior version (1259802) | Warrior: maximum Rage +5% (aura 178, misc 1 = Rage) → 105 | Intellect +5% (all classes) | stat: see [rage.md](rage.md) | [F] [client] (SpellEffect, 1.60.1.69913) |
+| Gnome | Eureka!, warrior version (1259813) | Next 3 damaging abilities cost 40% less Rage and deal 10% more damage; 15 s window; 2 min cooldown; no cost | did not exist | CD (charges) | [F] [client] (SpellEffect, SpellMisc, SpellPower, 1.60.1.69913) |
 | Gnome | Arcane Resistance | **removed** | +10 Arcane resistance | — | [F] [racials][fc-racials] |
-| Orc | Axe Specialization (20574) | +1% crit chance with all spells and abilities while an axe or two-handed axe is equipped (aura 290, value 1) | +5 Axe and Two-Handed Axe skill | cond: crit aura | [F] [SpellEffect 20574][w-se-20574] |
-| Orc | Blood Fury (20572) | +10% melee attack power (aura 166), +10% ranged attack power (167) and +10% spell power (317) for 15 s; 2 min cooldown | +25% *base* melee AP for 15 s (a scripted effect), −50% healing received for 25 s; 2 min | CD (AP multiplier; scope [?], see [OQ-9](#oq-9-blood-fury-scope)) | [F] [SpellEffect 20572][w-se-20572], [SpellMisc 20572][w-misc-20572]; Classic [C] [SpellEffect 20572 (1.15.9)][w-se-c-20572] |
+| Orc | Axe Specialization (20574) | +1% crit chance with all spells and abilities while an axe or two-handed axe is equipped (aura 290, value 1) | +5 Axe and Two-Handed Axe skill | cond: crit aura | [F] [client] (SpellEffect, 1.60.1.69913) |
+| Orc | Blood Fury (20572) | +10% melee attack power (aura 166), +10% ranged attack power (167) and +10% spell power (317) for 15 s; 2 min cooldown | +25% *base* melee AP for 15 s (a scripted effect), −50% healing received for 25 s; 2 min | CD (AP multiplier; scope [?], see [OQ-9](#oq-9-blood-fury-scope)) | [F] [client] (SpellEffect, SpellMisc, 1.60.1.69913); Classic [C] [client] (SpellEffect, 1.15.9.69722: a dummy, 25) |
 | Orc | Shatter Curse (1299026) | removes curses; −15% magic damage taken for 8 s; 3 min cooldown | did not exist | tank CD | [F] [racials][fc-racials] |
 | Orc | Hardiness, Command | stun duration −20%; Command **removed** | stun resist; pet damage | ignore | [F] [racials][fc-racials] |
-| Undead | Touch of the Grave (1260189, warrior/paladin/rogue version) | Spells and attacks have a 5% chance to drain health from the target, up to 5% of your maximum health | did not exist | proc; damage model [?] ([OQ-10](#oq-10-touch-of-the-grave)) | [F] text [racials][fc-racials]; [SpellEffect 1260189][w-se-1260189] (dummy aura, 5) |
+| Undead | Touch of the Grave (1260189, warrior/paladin/rogue version) | Spells and attacks have a 5% chance to drain health from the target, up to 5% of your maximum health | did not exist | proc; damage model [?] ([OQ-10](#oq-10-touch-of-the-grave)) | [F] text [racials][fc-racials]; [client] (SpellEffect, 1.60.1.69913: dummy aura, 5) |
 | Undead | Will of the Forsaken, Cannibalize, Underwater Breathing; Shadow Resistance | utility; resistance **removed** | utility; +10 Shadow resistance | ignore | [F] [racials][fc-racials] |
-| Tauren | Endurance (20550) | total health +5% (aura 133) **and +1% chance to hit** with melee and ranged attacks (aura 54) and spells (aura 55) | total health +5% | stat | [F] [SpellEffect 20550][w-se-20550] |
+| Tauren | Endurance (20550) | total health +5% (aura 133) **and +1% chance to hit** with melee and ranged attacks (aura 54) and spells (aura 55) | total health +5% | stat | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Tauren | War Stomp | unchanged: 2 s AoE stun | same | ignore | [F] [racials][fc-racials] |
 | Tauren | Plainsrunning, Cultivation; Nature Resistance | movement, herb; resistance **removed** | — | ignore | [F] [racials][fc-racials] |
-| Troll | Berserking (20554) | +10% melee attack speed (aura 319), +10% ranged attack speed (140) and +10% cast speed (65) for **10 s**; 3 min cooldown; **no resource cost** | +10% to +30% attack and cast speed depending on missing health, 10 s, 3 min; warriors pay 5 Rage | CD | [F] [SpellEffect 20554][w-se-20554], [SpellMisc 20554][w-misc-20554], [SpellPower 20554][w-power] |
-| Troll | Beast Slaying (20557) | +5% damage vs Beasts (aura 168) | same | cond: target type | [F] [SpellEffect 20557][w-se-20557] |
+| Troll | Berserking (20554) | +10% melee attack speed (aura 319), +10% ranged attack speed (140) and +10% cast speed (65) for **10 s**; 3 min cooldown; **no resource cost** | +10% to +30% attack and cast speed depending on missing health, 10 s, 3 min; warriors pay 5 Rage | CD | [F] [client] (SpellEffect, SpellMisc, SpellPower, 1.60.1.69913) |
+| Troll | Beast Slaying (20557) | +5% damage vs Beasts (aura 168) | same | cond: target type | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Troll | Regeneration, Rapid Regeneration; Bow and Throwing Specialization | health regen; Bow/Throwing **removed** | — | ignore | [F] [racials][fc-racials] |
 | Skyborne (both) | Wind Blessed | +1% spell, melee and ranged haste (passive) | new race | stat (haste, see [damage-and-timing.md](damage-and-timing.md)) | [F] [racials][fc-racials] |
 | Skyborne (both) | Elemental Insight | +5% damage vs Elementals | new race | cond: target type | [F] [racials][fc-racials] |
@@ -171,17 +174,18 @@ Consequences for the rest of the sim:
 
 ### What the Forever client ships (and does not)
 
-Checked against build `1.60.1.69913` on wago.tools. The wowsims Forever team reached the same
-conclusion from its own client extraction [wsf-base].
+Checked against the raw client files of build `1.60.1.69913` ([client]; level-60 rows in
+[`gametables.json`][client-gt]). The wowsims Forever team reached the same conclusion from its own
+client extraction [wsf-base].
 
 | Table | What it holds | Use |
 | --- | --- | --- |
-| `PlayerExpectedStat` (**new in 1.60**; absent from the 1.15.9 Classic client [w-pes-c]) | Per class and level: `BaseMana`, `CritPerAgility`, `SpellCritPerIntellect`, plus two unnamed columns (at level 60 these read 10 and 287 for every class) | Base mana and the Agi→crit and Int→spell-crit slopes **[F]** [w-pes] |
-| `ChrClasses` | `AttackPowerPerStrength`, `AttackPowerPerAgility`, `RangedAttackPowerPerAgility` (all 0 in the Classic 1.15.9 client, populated in Forever) | Str→AP ratios **[F]** [w-chrclasses], [w-chrclasses-c] |
-| `CharBaseInfo` | race × class validity only | race table above **[F]** [w-cbi] |
-| `RaceStat` (new in 1.60.1.69876) | one row per race, single unnamed field, 0 everywhere | nothing usable [w-racestat] |
-| `ChrRaces` | no stat columns | names, IDs, factions [w-chrraces] |
-| GameTables | the beta ships `CombatRatings` and `ArmorMitigationByLvl`, but no base-crit, base-HP or regen tables | `CombatRatings` holds the rating costs used by Forever items, identical at every level: see [Combat ratings](#combat-ratings-forever-items). **[?]**: known only from wowsims/forever's extraction ([wsf-cr], [wsf-parser], [wsf-armor]), a secondary source; the item ratios on foreverchanges are the [F] evidence for the old stats |
+| `PlayerExpectedStat` (**new in 1.60**; absent from the 1.15.9.69722 file list [client]) | Per class and level: `BaseMana`, `CritPerAgility`, `SpellCritPerIntellect`, plus two unnamed columns (at level 60 these read 10 and 287 for every class) | Base mana and the Agi→crit and Int→spell-crit slopes **[F]** [client] (PlayerExpectedStat, 1.60.1.69913) |
+| `ChrClasses` | `AttackPowerPerStrength`, `AttackPowerPerAgility`, `RangedAttackPowerPerAgility` (all 0 in the Classic 1.15.9 client, populated in Forever) | Str→AP ratios **[F]** [client] (ChrClasses, 1.60.1.69913); zeros **[C]** [client] (ChrClasses, 1.15.9.69722) |
+| `CharBaseInfo` | race × class validity only | race table above **[F]** [client] (CharBaseInfo, 1.60.1.69913) |
+| `RaceStat` (new in 1.60.1.69876) | 43 rows, one per race, single unnamed field, 0 everywhere | nothing usable [client] |
+| `ChrRaces` | no stat columns | names, IDs, factions [client] |
+| Game tables | the beta ships `combatratings.txt`, `armormitigationbylvl.txt`, **`basemp.txt`** (base mana by class: paladin 1,512, druid 1,244, warrior 0 at level 60, the same as `PlayerExpectedStat.BaseMana`) and **`hppersta.txt`** (10 HP per Stamina at level 60), but no base-crit, base-HP or regen tables | `combatratings.txt` holds the rating costs used by Forever items, identical at all 123 levels: see [Combat ratings](#combat-ratings-forever-items). `hppersta.txt` backs the 10 HP per Stamina in [Stamina](#stamina). **[F]** [client] ([`gametables.json`][client-gt], 1.60.1.69913); wowsims/forever's extraction agrees ([wsf-cr], [wsf-armor]) |
 
 **Consequence:** per-race base attributes, base health and base dodge/parry/block/crit are
 server-side. The sim takes them from Classic Era sources where they exist; the rest are
@@ -258,12 +262,12 @@ druid specs can't compute base attributes. OQ-1 gives the way to measure them on
 | Quantity | Warrior | Paladin | Druid | Tag · source |
 | --- | --- | --- | --- | --- |
 | Base health (before Stamina) | ? | ? | ? | [?] [OQ-2](#oq-2-base-health) |
-| Base mana (before Intellect) | 0 (uses Rage) | **1512** | **1244** | [F] `PlayerExpectedStat.BaseMana` [w-pes] |
+| Base mana (before Intellect) | 0 (uses Rage) | **1512** | **1244** | [F] [client] (PlayerExpectedStat, `basemp.txt`, 1.60.1.69913) |
 | Base melee crit (before Agility) | **0%** | ? | ? | warrior [C] (the pre-SoD WarriorSim: base crit 0, [ws-player]; [Magey][magey-at]: a level-20 warrior's 4.49% spellbook crit equals Agi × 0.1282 exactly); others [?] [OQ-3](#oq-3-base-melee-and-spell-crit) |
 | Base spell crit (before Intellect) | — | ? | ? | [?] [OQ-3](#oq-3-base-melee-and-spell-crit) |
 | Base dodge (before Agility and defense) | ? | ? | ? | [?] [OQ-5](#oq-5-base-dodge-parry-and-block) |
 | Base parry | 5% | 5% | none (druids can't parry) | [?] [OQ-5](#oq-5-base-dodge-parry-and-block) |
-| Base block (shield equipped) | 5% | 5% | none (no shields) | [?] [OQ-5](#oq-5-base-dodge-parry-and-block); shields [F] [w-chrclasses] |
+| Base block (shield equipped) | 5% | 5% | none (no shields) | [?] [OQ-5](#oq-5-base-dodge-parry-and-block); shields [F] [client] (ChrClasses, 1.60.1.69913) |
 | Defense skill | 300 (5 × level) | 300 | 300 | [C] [Magey][magey-at] (defense = 5 × level), [Blizzard forum][bnet-def] |
 | Weapon skill | 300 (+items only) | 300 | 300 (feral forms: see [druid.md](../classes/druid.md)) | [C] 5 × level; [F] no racial skill |
 | Base melee AP | 3 × 60 − 20 = **160** | 160 | −20 (caster form) | warrior [C] (the pre-SoD WarriorSim gives every race `ap: 160` at 60, [ws-races]; the `3 × level − 20` formula itself appears only in its post-SoD code); paladin and druid [?] [OQ-7](#oq-7-base-attack-power-formulas) |
@@ -276,7 +280,7 @@ druid specs can't compute base attributes. OQ-1 gives the way to measure them on
 
 | Effect | Warrior | Paladin | Druid | Tag · source |
 | --- | --- | --- | --- | --- |
-| Melee AP per Str | 2 | 2 | 2 (every form) | [F] `ChrClasses.AttackPowerPerStrength` = 2 [w-chrclasses]; [C] [Warcraft Tavern calculator][wt-basestats] |
+| Melee AP per Str | 2 | 2 | 2 (every form) | [F] `ChrClasses.AttackPowerPerStrength` = 2 [client] (ChrClasses, 1.60.1.69913); [C] [Warcraft Tavern calculator][wt-basestats] |
 | Block value per Str | 1 per 20 Str | 1 per 20 Str | — | [C] [calculator][wt-basestats] (Str/20 "to Block"); [F] Forever client UI `BLOCK_VALUE_PER_STRENGTH = 20` ([combat-tables §8](combat-tables.md#8-boss--player-tanks)). Rounding (`floor`) [?]: only WarriorSim's post-SoD code floors it ([OQ-6](#oq-6-rounding)) |
 
 Block value = shield's block value + flat block value from items + `floor(Str / 20)`, then block
@@ -288,11 +292,11 @@ value % modifiers (Forever paladin Shield Specialization: +30% "damage absorbed 
 
 | Effect | Warrior | Paladin | Druid | Tag · source |
 | --- | --- | --- | --- | --- |
-| Melee crit per Agi | 0.0500% (**20.00 Agi = 1%**) | 0.0506% (**19.76 Agi = 1%**) | 0.0500% (**20.00 Agi = 1%**) | [F] `PlayerExpectedStat.CritPerAgility` 0.00050 / 0.000506 / 0.00050 per point [w-pes]; Classic agrees for warrior and druid (20) [C] [calculator][wt-basestats], [WarriorSim][ws-player] |
+| Melee crit per Agi | 0.0500% (**20.00 Agi = 1%**) | 0.0506% (**19.76 Agi = 1%**) | 0.0500% (**20.00 Agi = 1%**) | [F] `PlayerExpectedStat.CritPerAgility` 0.00050 / 0.000506 / 0.00050 per point [client] (PlayerExpectedStat, 1.60.1.69913); Classic agrees for warrior and druid (20) [C] [calculator][wt-basestats], [WarriorSim][ws-player] |
 | Dodge per Agi | 20 Agi = 1% | 20 Agi = 1% | 20 Agi = 1% | [C] [calculator][wt-basestats], [tankadin guide][wt-tankadin] (0.05% dodge per Agi); not in Forever client |
 | Armor per Agi | 2 | 2 | 2 | [C] [calculator][wt-basestats], [tankadin guide][wt-tankadin] |
-| Melee AP per Agi | 0 | 0 | 0 in caster/bear forms; **1 in Cat Form** | [F] `AttackPowerPerAgility` = 0 [w-chrclasses]; Cat Form tooltip "melee attack power by X **plus Agility**" [fc-sb-druid] |
-| Ranged AP per Agi | 2 in Forever data (Classic: 1) | 0 | 0 | [F] data [w-chrclasses]; whether the server uses it is [?] and doesn't matter to the sim |
+| Melee AP per Agi | 0 | 0 | 0 in caster/bear forms; **1 in Cat Form** | [F] `AttackPowerPerAgility` = 0 [client] (ChrClasses, 1.60.1.69913); Cat Form tooltip "melee attack power by X **plus Agility**" [fc-sb-druid] |
+| Ranged AP per Agi | 2 in Forever data (Classic: 1) | 0 | 0 | [F] [client] (ChrClasses, 1.60.1.69913); whether the server uses it is [?] and doesn't matter to the sim |
 
 The Forever slopes match Classic Era's per-class values for 8 of 9 classes, for Agility and
 Intellect alike (hunter 52.9 Agi, rogue 29.0, mage 59.5 Int, warlock 60.6…). The one outlier is
@@ -301,7 +305,8 @@ paladin Intellect (below).
 ### Stamina
 
 `HP = baseHP + min(Sta, 20) + 10 × max(Sta − 20, 0) + flat HP`, then × health % modifiers
-(Tauren Endurance ×1.05). **[C]** 10 HP per Stamina: [calculator][wt-basestats],
+(Tauren Endurance ×1.05). 10 HP per Stamina: **[F]** [client] (`hppersta.txt` = 10 at level 60,
+1.60.1.69913; [data][client-gt]); **[C]** [calculator][wt-basestats],
 [tankadin guide][wt-tankadin]. The "first 20 Stamina give 1 HP each" term is **[F] client UI;
 [?] on the server**: the Forever character sheet computes its Stamina tooltip as `min(STAMINA_BREAK, Sta) +
 (Sta − STAMINA_BREAK) × UnitHPPerStamina`, with `STAMINA_BREAK = 20`
@@ -322,7 +327,7 @@ modes, and the Classic Era client's own sheet prints no formula
   first-20 term is [?] for Classic Era (Sixty Upgrades only, [sixty]). Base mana **[F]** (table
   above).
 - Spell crit per Int, Forever client: paladin **0.0167% (59.88 Int = 1%)**, druid
-  **0.0167% (59.88 Int = 1%)**. **[F]** `PlayerExpectedStat.SpellCritPerIntellect` [w-pes]
+  **0.0167% (59.88 Int = 1%)**. **[F]** `PlayerExpectedStat.SpellCritPerIntellect` [client] (PlayerExpectedStat, 1.60.1.69913)
 - **Confidence note (paladin):** Classic Era sources give paladins roughly double that
   (29.5 Int per 1% [calculator][wt-basestats]; "~30 Intellect to 1 Crit" [mana guide][wt-mana];
   0.02% per Int [tankadin guide][wt-tankadin]). The client value matches Classic for every other
@@ -371,17 +376,17 @@ Anticipation gives +20 defense at 5/5 for warriors and paladins (Classic +10). *
 Forever rewrites Classic's percentage bonuses on items as ratings. The items scrape measured the
 ratio of Forever rating to Classic percentage across 4,271 changed items
 ([items.md, "Forever's ratings"](../data/items.md#forevers-ratings-f-with-open-questions)).
-The client's `CombatRatings` GameTable, as extracted by wowsims (a secondary source), has the
-same costs, flat across every level from 1 upward [wsf-cr].
+The client's `combatratings.txt` game table has the same costs, identical at all 123 levels
+(**[F]** [client] (`combatratings.txt`, 1.60.1.69913); wowsims' extraction agrees, [wsf-cr]).
 
 | Rating on a Forever item | Converts to | Cost | Replaces (Classic item text) | Tag |
 | --- | --- | --- | --- | --- |
-| Critical Strike Rating | melee, ranged **and** spell crit, all at once | **14 per 1%** | "critical strike by N%" and "critical strike with spells by N%" | [F] tooltip ratio (349 samples); `CombatRatings` Crit 14 agrees (secondary, [wsf-cr]); in-combat [?] |
-| Hit Rating | melee **and** spell hit, all at once | **10 per 1%** | "chance to hit by N%" and "chance to hit with spells by N%" | [F] tooltip ratio (152 samples); `CombatRatings` Hit 10 agrees (secondary, [wsf-cr]); in-combat [?] |
-| Dodge Rating | dodge | **12 per 1%** | "chance to dodge … by N%" | [F] (46 samples); `CombatRatings` Dodge 12 agrees (secondary, [wsf-cr]); in-combat [?] |
-| Parry Rating | parry | **15 per 1%** | "chance to parry … by N%" | [F] (7 samples); `CombatRatings` Parry 15 agrees (secondary, [wsf-cr]); in-combat [?] |
-| Block Rating | shield block chance | **5 per 1%** | "chance to block … by N%" | [F] (11 samples); `CombatRatings` Block 5 agrees (secondary, [wsf-cr]); in-combat [?] |
-| Defense Rating | defense skill | **1 per point** | "Increased Defense +N" | [F] (69 samples); `CombatRatings` Defense 1 agrees (secondary, [wsf-cr]); in-combat [?] |
+| Critical Strike Rating | melee, ranged **and** spell crit, all at once | **14 per 1%** | "critical strike by N%" and "critical strike with spells by N%" | [F] tooltip ratio (349 samples); [F] client game table Crit 14; in-combat [?] |
+| Hit Rating | melee **and** spell hit, all at once | **10 per 1%** | "chance to hit by N%" and "chance to hit with spells by N%" | [F] tooltip ratio (152 samples); [F] client game table Hit 10; in-combat [?] |
+| Dodge Rating | dodge | **12 per 1%** | "chance to dodge … by N%" | [F] (46 samples); [F] client game table Dodge 12; in-combat [?] |
+| Parry Rating | parry | **15 per 1%** | "chance to parry … by N%" | [F] (7 samples); [F] client game table Parry 15; in-combat [?] |
+| Block Rating | shield block chance | **5 per 1%** | "chance to block … by N%" | [F] (11 samples); [F] client game table Block 5; in-combat [?] |
+| Defense Rating | defense skill | **1 per point** | "Increased Defense +N" | [F] (69 samples); [F] client game table Defense 1; in-combat [?] |
 
 - One Forever crit rating raises melee and spell crit together. A Classic item's melee crit
   (or spell crit) raised only that one. Warriors and ferals don't care; for paladins every point
@@ -389,9 +394,9 @@ same costs, flat across every level from 1 upward [wsf-cr].
 - "Mana Regeneration" on Forever items replaces "mana per 5 sec" with the same numbers. Treat it
   as mp5. **[F]** wording, **[?]** unit ([items.md](../data/items.md#how-heavily-forever-re-itemized-the-pool)).
 - **Ratings whose combat effect is unmeasured:** Expertise Rating, Haste Rating, Armor
-  Penetration and Health Regeneration are new on Forever items. `CombatRatings`, as extracted by
-  wowsims (secondary), lists Expertise 10, Haste 10 (melee, ranged and spell) and Armor
-  Penetration 10, but not what a point does in combat. Expertise replaced weapon skill at
+  Penetration and Health Regeneration are new on Forever items. The client's `combatratings.txt`
+  lists Expertise 10, Haste 10 (melee, ranged and spell) and Armor Penetration 10 (**[F]**
+  [client]), but not what a point does in combat. Expertise replaced weapon skill at
   inconsistent ratios on two items, and Health Regeneration replaced hp5 at inconsistent ratios.
   **Don't borrow TBC formulas.** Per
   [D12](../decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22),
@@ -431,10 +436,9 @@ AP multipliers (Blood Fury) apply last.
 
 Form AP and health scale by level from spell data:
 `value = base + perLevel × (min(level, MaxLevel) − BaseLevel)`, where `MaxLevel = 0` means no cap.
-The rows below give the level-60 results for Forever and Classic. **[F]** / **[C]** from
-`SpellEffect` and `SpellLevels` in both clients [w-se-3025], [w-se-1178], [w-se-9635],
-[w-se-c-3025], [w-se-c-1178], [w-se-c-9635], [w-sl]. Attack speed and damage variance come from
-`SpellShapeshiftForm` [w-ssf], [w-ssf-c].
+The rows below give the level-60 results for Forever and Classic: **[F]** [client] (SpellEffect,
+SpellLevels, 1.60.1.69913) and **[C]** [client] (the same tables, 1.15.9.69722). Attack speed and
+damage variance come from `SpellShapeshiftForm` in both clients.
 
 | Form (passive spell) | AP at 60 | Agi → AP | Armor | Max health | Attack speed | Threat |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -587,7 +591,7 @@ Blood Fury, Elune's Light, Kings, trinkets).
 Stat-relevant changes versus Classic Era 1.15.9, all **[F]**:
 
 1. **New race/class pairs:** Undead paladin (Horde paladins exist), and two Skyborne races (one per
-   faction) that can be warriors or druids. [w-cbi], [fc-racials]
+   faction) that can be warriors or druids. [client] (CharBaseInfo), [fc-racials]
 2. **Weapon-skill racials are gone.** Human Sword Specialization is now +2% crit with swords, Orc
    Axe Specialization +1% crit with axes, and Dwarves gain Mace Specialization (+1% crit with maces).
    Human Mace Specialization is removed. Nobody has 305 skill from race.
@@ -625,11 +629,13 @@ Stat-relevant changes versus Classic Era 1.15.9, all **[F]**:
     crit; one hit rating covers melee and spell hit. Expertise, Haste Rating, Armor Penetration
     and Health Regeneration are new, and their combat effects are unmeasured; the first three
     apply by hypothesis (D12).
-    ([items.md](../data/items.md#forevers-ratings-f-with-open-questions), [wsf-cr])
+    ([items.md](../data/items.md#forevers-ratings-f-with-open-questions), [client] game table
+    `combatratings.txt`)
 
-Checked, **no Forever change found** (these values aren't in the client, so the Classic values
-stand until measured): HP per Stamina, mana per Intellect, dodge and armor per Agility, block
-value per Strength, Spirit regen, the five-second rule, and the defense conversion.
+Checked, **no Forever change found**: HP per Stamina is 10 in the client's `hppersta.txt`, as in
+Classic ([F] [client]). These values aren't in the client, so the Classic values stand until
+measured: mana per Intellect, dodge and armor per Agility, block value per Strength, Spirit regen,
+the five-second rule, and the defense conversion.
 
 ---
 
@@ -650,7 +656,9 @@ value per Strength, Spirit regen, the five-second rule, and the defense conversi
   you have a sword equipped". Creature-type racials (Beast Slaying, Big Game Hunter, Elemental
   Insight) multiply damage only when the target type matches: see [encounter.md](encounter.md).
 - **Cooldown racials** (Blood Fury, Berserking, Elune's Light, Eureka!) are rotation options with
-  sensible defaults in the class docs. Tank-only racials (Stoneform, Shatter Curse) default off.
+  sensible defaults in the class docs. They are off the GCD (`StartRecoveryTime` 0); Stoneform is
+  on it (1,500 ms) **[F]** [client] (SpellCooldowns, 1.60.1.69913). Tank-only racials (Stoneform,
+  Shatter Curse) default off.
 - **Skipped** (under the 0.5% rule, doctrine §4): out-of-combat health regen, resistances,
   utility racials, and Human Spirit's effect on paladin regen (it is modelled but tiny).
 - **Rounding:** floor attributes after multipliers and floor AP and HP. Keep percentages as
@@ -659,8 +667,9 @@ value per Strength, Spirit regen, the five-second rule, and the defense conversi
   such as 1820 × 1.05 can't land on 1910.999… because of floating-point error.
 - **Ratings:** the item model carries both forms, Forever ratings (`critRating`, `hitRating`, …;
   see [items.md](../data/items.md)) and Classic percentages. Put the rating costs in one constants
-  table (the old stats tagged [F], haste and expertise [?]) so a beta measurement can change them
-  in one place. Haste, expertise and armor penetration follow their D12 hypotheses when
+  table (the old stats tagged [F]; haste and expertise [F] as client values, [?] in combat) so a
+  beta measurement can change them in one place. Haste, expertise and armor penetration follow
+  their D12 hypotheses when
   `unmeasuredRatings = 'apply'` (the `forever` default) and are ignored when it is `'ignore'`;
   health regeneration has no combat effect. Show a UI warning whenever gear carries any of them,
   and don't approximate them with TBC rules.
@@ -845,6 +854,8 @@ These rows are internally consistent with the [C] race offsets, which is a usefu
 the Route A screenshots once they arrive.
 
 ### OQ-2: base health
+The client has no base-HP game table (no `octbasehp*` file in build 1.60.1.69913, [client]), so
+this stays a sheet measurement.
 **Route A:** read maximum health from the OQ-1 sheets (divide the Tauren value by 1.05). Then
 `baseHP = HP − 20 − 10 × (Sta − 20)`. *Forbidden-source candidates, not adopted*, from
 the emulator's class table [mz-classlevelstats]: warrior 1689, paladin 1381, druid 1483. The druid value also appears in an
@@ -863,8 +874,9 @@ The Forever client says 59.88 Int per 1% at level 60; Classic sources say about 
 (an Int item or buff) and notes it again. The slope is Δcrit / ΔInt. Then repeat the exact test
 on a Classic Era paladin of the **same level**. The two slopes are the same if Forever kept
 Classic's paladin value; if the beta slope is about half, the nerf is real. The Forever client's
-own slope for that level can be confirmed by hand on wago.tools (`PlayerExpectedStat`, filtered to
-that level and class 2).
+own paladin slope is in `PlayerExpectedStat`: 0.000417 per Int at level 20 (24.0 Int per 1%),
+0.000313 at level 30 and 0.000167 at level 60 **[F]** [client] (PlayerExpectedStat,
+1.60.1.69913). The client value is settled; whether the server uses it is the open part.
 
 ### OQ-5: base dodge, parry and block
 **Route A:** read dodge, parry and block (warrior and paladin with a shield) from the OQ-1 sheets.
@@ -913,27 +925,31 @@ These are all Route B unless marked.
 
 - Whether the server uses `PlayerExpectedStat` at all. OQ-4 answers this for paladins.
 - Warrior ranged AP per Agi: 2 in Forever data, 1 in Classic.
-- The two unnamed `PlayerExpectedStat` columns (10 and 287 at level 60).
+- What the two unnamed `PlayerExpectedStat` columns mean (the values, 10 and 287 at level 60 for
+  every class, are [F] [client]).
 - Whether the "first 20 Stamina and Intellect count as 1" rule holds on the server: the Forever
   sheet code uses it ([F] client UI; [?] on the server), and no genuine Classic Era source was
   found ([?] for `classicEra`). Read maximum HP and mana (the server's values) against Stamina
   and Intellect on a naked sheet, at two Stamina and Intellect totals, and compare with
   `min(20, x) + 10 or 15 × (x − 20)`.
 - For the [damage-and-timing.md](damage-and-timing.md) owner: the beta ships an
-  `ArmorMitigationByLvl` GameTable whose level-60 constant is 1059, far from Classic's
-  400 + 85 × level. It is probably an unused engine table, but check that armor mitigation matches
-  the Classic formula on the beta. [wsf-armor]
+  `armormitigationbylvl.txt` game table whose level-60 constant is 1059 ([F] [client]), far from
+  Classic's 400 + 85 × level. It is probably an unused engine table, but check that armor
+  mitigation matches the Classic formula on the beta.
 
 ### OQ-13: confirm wago.tools values in a browser
-These were read by automated lookup on 2026-09-22 and need a manual check: open each link on
-wago.tools and compare. Don't script it.
+✅ **Resolved from client data** (2026-09-22, [client.md][client], rows D5, D10, D11 and D16):
+every value below matches the raw 1.60.1.69913 client files, and the 1.15.9.69722 files for the
+Classic halves. The same check corrected the game-table claim (the client ships `basemp.txt` and
+`hppersta.txt`, [above](#what-the-forever-client-ships-and-does-not)) and found Stoneform on the
+GCD. The in-game questions (OQ-4, OQ-12) stay open.
 
-| Table | Values to confirm |
+| Table | Values (confirmed) |
 | --- | --- |
 | [CharBaseInfo][w-cbi] | the race × class pairs in the races table; High Order Skyborne = race 95 and Windshaper = race 96 ([ChrRaces][w-chrraces]) |
 | [PlayerExpectedStat][w-pes] | level 60: `BaseMana` 1512 (paladin) and 1244 (druid); `CritPerAgility` 0.0005, 0.000506, 0.0005; `SpellCritPerIntellect` 0.000167; the table is absent from 1.15.9 ([w-pes-c]) |
 | [ChrClasses][w-chrclasses] | `AttackPowerPerStrength` 2 (warrior, paladin, druid); `AttackPowerPerAgility` 0; `ArmorTypeMask` 127, 2303, 2343; all zero in 1.15.9 ([w-chrclasses-c]) |
-| SpellEffect | racials 20597, 20598, 20572, 20574, 1259719, 1259721, 20594, 20582, 1259799, 1259802, 1259813, 1260189, 20550, 20554, 20557; forms 3025, 1178, 9635 in both builds (links in the tables above) |
+| SpellEffect | racials 20597, 20598, 20572, 20574, 1259719, 1259721, 20594, 20582, 1259799, 1259802, 1259813, 1260189, 20550, 20554, 20557; forms 3025, 1178, 9635 in both builds (cited in the tables above) |
 | [SpellLevels][w-sl] | 3025 (Forever base level 6, Classic 20); 1178 (10–40); 9635 (40–70) |
 | SpellMisc and [SpellDuration][w-dur] | durations for 20554 (10 s), 20572, 1259799 and 1259813 (15 s) |
 | [SpellPower][w-power] | 20554 has no cost |
@@ -976,8 +992,8 @@ matter.
 | [foreverchanges.pro/spellbook/druid][fc-sb-druid], [/paladin][fc-sb-paladin], [/warrior][fc-sb-warrior] | Forever spell tooltips (Cat and Bear Form, Kings baseline, stances) | Forever |
 | [foreverchanges.pro/legacy-perks][fc-legacy] | Legacy perks (none affect combat stats) | Forever |
 | [foreverchanges.pro/beta][fc-beta] | Beta builds (1.60.1.69913 current) | Forever |
-| wago.tools DB2, build 1.60.1.69913: [PlayerExpectedStat][w-pes], [ChrClasses][w-chrclasses], [CharBaseInfo][w-cbi], [ChrRaces][w-chrraces], [RaceStat][w-racestat], [SkillLineAbility][w-sla], SpellEffect (per spell, linked in the tables), [SpellLevels][w-sl], [SpellMisc][w-misc-20572], [SpellDuration][w-dur], [SpellShapeshiftForm][w-ssf], [SpellPower][w-power] | Exact Forever client values | Forever (client) |
-| wago.tools DB2, build 1.15.9.69722: [ChrClasses][w-chrclasses-c], [PlayerExpectedStat (absent)][w-pes-c], SpellEffect for 3025, 1178, 9635, 20572 ([1][w-se-c-3025], [2][w-se-c-1178], [3][w-se-c-9635], [4][w-se-c-20572]), [SpellShapeshiftForm][w-ssf-c] | Classic Era client baseline | Classic Era |
+| Raw Forever client files, build 1.60.1.69913, read through the wago.tools API ([client.md][client]; game tables in [`gametables.json`][client-gt]). Browse the same tables on wago.tools: [PlayerExpectedStat][w-pes], [ChrClasses][w-chrclasses], [CharBaseInfo][w-cbi], [ChrRaces][w-chrraces], [RaceStat][w-racestat], [SkillLineAbility][w-sla], SpellEffect (per spell, linked in the tables), [SpellLevels][w-sl], [SpellMisc][w-misc-20572], [SpellDuration][w-dur], [SpellShapeshiftForm][w-ssf], [SpellPower][w-power] | Exact Forever client values | Forever (client) |
+| Raw Classic Era client files, build 1.15.9.69722 ([client.md][client]). Browse on wago.tools: [ChrClasses][w-chrclasses-c], [PlayerExpectedStat (absent)][w-pes-c], SpellEffect for 3025, 1178, 9635, 20572 ([1][w-se-c-3025], [2][w-se-c-1178], [3][w-se-c-9635], [4][w-se-c-20572]), [SpellShapeshiftForm][w-ssf-c] | Classic Era client baseline | Classic Era |
 | [`src/data/races/races.json`][races-json] | Project snapshot of the racials page | Forever |
 | GuybrushGit/WarriorSim at pre-SoD commit `180a3cc` (2021-05-11): [races.js][ws-races], [player.js][ws-player] | Classic warrior level-60 Str, Agi, Sta, Int and base AP 160 per race; warrior base crit 0; multiplicative stat mods; truncation | Classic Era (pre-SoD) |
 | WarriorSim post-SoD `levelstats.js` ([ws-levelstats], `ad5ac8b`) | Warrior Spirit per race; `3 × level − 20` | **Not a [C] source** (post-SoD); the Spirit values it alone supplies are [?] |
@@ -989,16 +1005,17 @@ matter.
 | [Warcraft Tavern: Mana Management guide][wt-mana] | Five-second rule, mp5, paladin ~30 Int per 1% crit | Classic Era |
 | [Sixty Upgrades][sixty] (gear planner; client bundle `assets/index-*.js`) | HP = min(20, Sta) + (Sta − 20) × 10 and mana = min(20, Int) + (Int − 20) × 15 | Secondary (the planner has SoD and Forever modes): [?] for Classic Era; the Forever client UI supplies the [F] evidence |
 | [Blizzard forums: +dodge vs +defense (Oct 2019)][bnet-def] | Defense 0.04% per point to avoidance and crit reduction | Classic Era (community) |
-| [wowsims/forever base_stats.go][wsf-base], [base_stats_auto_gen.go][wsf-autogen], [base_stats_parser.py][wsf-parser], [racials.go][wsf-racials], [ArmorMitigationByLvl.txt][wsf-armor], [CombatRatings.txt][wsf-cr] | Independent confirmation of what the Forever client does and doesn't ship; the beta's `CombatRatings` GameTable. **Its attribute rows are TBC level-70 values and its racials are TBC: not used.** | Secondary [?]: a Forever sim, TBC-derived (partly forbidden); the GameTable files are Forever client extractions read through it (doctrine §2) |
+| [wowsims/forever base_stats.go][wsf-base], [base_stats_auto_gen.go][wsf-autogen], [base_stats_parser.py][wsf-parser], [racials.go][wsf-racials], [ArmorMitigationByLvl.txt][wsf-armor], [CombatRatings.txt][wsf-cr] | Corroboration of what the Forever client does and doesn't ship and of its game tables, which the project now reads directly ([client-gt]). **Its attribute rows are TBC level-70 values and its racials are TBC: not used.** | Secondary [?]: a Forever sim, TBC-derived (partly forbidden) |
 | [docs/data/items.md, "Forever's ratings"](../data/items.md#forevers-ratings-f-with-open-questions) | Measured tooltip ratio of rating to percentage across 4,271 changed items; new rating stats | Forever (project scrape of foreverchanges.pro) |
 | [mangoszero player_levelstats.sql][mz-levelstats], [player_classlevelstats.sql][mz-classlevelstats] | Candidate values for the open questions only | **Forbidden** (vanilla emulator): not adopted |
 
 Fetch notes: foreverchanges.pro was read through its RSC payload, respecting its `robots.txt`.
-wago.tools' `robots.txt` (`Allow: /$`, `Disallow: /`) disallows automated access to everything
-but its homepage. About 50 targeted lookups were made on 2026-09-22 before the project withdrew
-that direction. The project makes no further automated requests there, and a human confirms
-those values ([OQ-13](#oq-13-confirm-wagotools-values-in-a-browser)). Wowhead was not fetched,
-because its `robots.txt` disallows Anthropic agents.
+About 50 wago.tools page lookups were made on 2026-09-22 before the project learned that its
+`robots.txt` forbids them ([D9](../decisions.md#d9-wagotools-is-cited-never-crawled-2026-09-22)).
+Those values were since checked against the raw client files fetched through the documented
+wago.tools API ([D16](../decisions.md#d16-use-the-wagotools-api-with-attribution-2026-09-22),
+[OQ-13](#oq-13-confirm-wagotools-values-in-a-browser)); no wago.tools page is fetched. Wowhead
+was not fetched, because its `robots.txt` disallows Anthropic agents.
 
 [fc-racials]: https://foreverchanges.pro/racials
 [fc-changes]: https://foreverchanges.pro/changes
@@ -1008,6 +1025,9 @@ because its `robots.txt` disallows Anthropic agents.
 [fc-legacy]: https://foreverchanges.pro/legacy-perks
 [fc-beta]: https://foreverchanges.pro/beta
 [races-json]: ../../src/data/races/races.json
+[client]: ../data/client.md#doc-claims-checked-against-the-raw-client
+[client-gt]: ../data/client.md#gametablesjson
+[client-hotfix]: ../data/client.md#hotfix-caveat
 [w-pes]: https://wago.tools/db2/PlayerExpectedStat?build=1.60.1.69913&filter%5BLevel%5D=exact%3A60
 [w-pes-c]: https://wago.tools/db2/PlayerExpectedStat?build=1.15.9.69722
 [w-chrclasses]: https://wago.tools/db2/ChrClasses?build=1.60.1.69913
@@ -1022,31 +1042,10 @@ because its `robots.txt` disallows Anthropic agents.
 [w-ssf-c]: https://wago.tools/db2/SpellShapeshiftForm?build=1.15.9.69722
 [w-power]: https://wago.tools/db2/SpellPower?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A20554
 [w-misc-20572]: https://wago.tools/db2/SpellMisc?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A20572
-[w-misc-20554]: https://wago.tools/db2/SpellMisc?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A20554
-[w-misc-1259799]: https://wago.tools/db2/SpellMisc?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A1259799
-[w-misc-1259813]: https://wago.tools/db2/SpellMisc?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A1259813
-[w-se-3025]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A3025
-[w-se-1178]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A1178
-[w-se-9635]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A9635
 [w-se-c-3025]: https://wago.tools/db2/SpellEffect?build=1.15.9.69722&filter%5BSpellID%5D=exact%3A3025
 [w-se-c-1178]: https://wago.tools/db2/SpellEffect?build=1.15.9.69722&filter%5BSpellID%5D=exact%3A1178
 [w-se-c-9635]: https://wago.tools/db2/SpellEffect?build=1.15.9.69722&filter%5BSpellID%5D=exact%3A9635
 [w-se-c-20572]: https://wago.tools/db2/SpellEffect?build=1.15.9.69722&filter%5BSpellID%5D=exact%3A20572
-[w-se-20597]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A20597
-[w-se-20598]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A20598
-[w-se-20572]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A20572
-[w-se-20574]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A20574
-[w-se-1259719]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A1259719
-[w-se-1259721]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A1259721
-[w-se-20594]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A20594
-[w-se-20582]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A20582
-[w-se-1259799]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A1259799
-[w-se-1259802]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A1259802
-[w-se-1259813]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A1259813
-[w-se-1260189]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A1260189
-[w-se-20550]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A20550
-[w-se-20554]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A20554
-[w-se-20557]: https://wago.tools/db2/SpellEffect?build=1.60.1.69913&filter%5BSpellID%5D=exact%3A20557
 [ws-levelstats]: https://github.com/guybrushgit/WarriorSim/blob/ad5ac8b5dd76db3f0fa7c41de52c0b0b60a5a4d8/js/data/levelstats.js
 [ws-races]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/data/races.js
 [ws-player]: https://github.com/GuybrushGit/WarriorSim/blob/180a3cc/js/classes/player.js

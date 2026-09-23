@@ -2,8 +2,9 @@
 
 WoW Forever reworks the paladin more than any other class in scope. The biggest change is that
 **Judgement no longer consumes the Seal**, so a paladin keeps one seal up and judges it on
-cooldown. Damage judgements now roll on the **melee** table: they can miss, but they can't
-be dodged, parried or blocked, and they crit for double damage. Judgement debuffs still
+cooldown. Damage judgements now roll on the **melee** table: they can't be dodged, parried or
+blocked, and they crit for double damage. Judgement of Righteousness and of Fury can miss, but
+Judgement of Command can't (its damage spell is *Always Hit*). Judgement debuffs still
 always hit and now last 40 s instead of 10 s. Retribution gains a cheap 12 s strike (Holy Strike), a
 spell-damage-from-Intellect capstone line (Champion of the Light), a mana-positive judgement
 talent (Sanctified Judgement), a reworked Vengeance (up to 5 stacks, 30 s) and Twist of
@@ -30,8 +31,9 @@ Both specs need the following. Each item links to its section.
    ([Seals](#seals)).
 2. **Judgement** as an off-GCD, 10 s (8 s talented) cooldown that fires the active seal's
    judgement **without removing the seal**. Damage judgements (JoC, JoR, JoF) roll the melee
-   special-attack table with no dodge, parry or block. Debuff judgements (JotC, JoW, JoL,
-   JoJ) always hit ([Judgement](#judgement)).
+   special-attack table with no dodge, parry or block; JoC's damage spell is *Always Hit*, so
+   only JoR and JoF can miss. Debuff judgements (JotC, JoW, JoL, JoJ) always hit
+   ([Judgement](#judgement)).
 3. **Judgement debuffs** (Crusader, Wisdom, Light, Justice): one per paladin per target,
    40 s (Justice 10 s), refreshed by the paladin's melee strikes and by Holy Strike with
    Sacred Arbiter.
@@ -60,16 +62,17 @@ Both specs need the following. Each item links to its section.
 Everything below comes from the Forever client
 ([foreverchanges /class/paladin](https://foreverchanges.pro/class/paladin),
 [/spellbook/paladin](https://foreverchanges.pro/spellbook/paladin),
-[/talents/paladin](https://foreverchanges.pro/talents/paladin)), checked against the DB2
-tables on wago.tools where a number matters. Tags are per row.
+[/talents/paladin](https://foreverchanges.pro/talents/paladin)), checked against the
+client's own DB2 tables ([client data](../data/client.md)) where a number matters. Tags are
+per row.
 
 ### Races and factions
 
 | Race | Faction | Paladin in Classic | Paladin in Forever | Combat-relevant racial (Forever) |
 | --- | --- | --- | --- | --- |
-| Human | Alliance | yes | yes [F] | Sword Specialization: **+2% crit with all spells and attacks** while a sword or 2H sword is equipped (was +5 weapon skill) [F] ([racials](https://foreverchanges.pro/racials)) |
-| Dwarf | Alliance | yes | yes [F] | Mace Specialization (new to Dwarves): +1% crit with spells and attacks with a mace; Stoneform −10% physical damage taken for 8 s [F] |
-| Undead | Horde | no | **yes (new)** [F] | Touch of the Grave: 5% chance on spell or attack hit to drain health from the target, up to 5% of max health [F]; drain formula unknown [?] |
+| Human | Alliance | yes | yes [F] | Sword Specialization: **+2% crit with all spells and attacks** while a sword or 2H sword is equipped (was +5 weapon skill) [F] ([racials](https://foreverchanges.pro/racials); [client] (SpellEffect 20597, 1.60.1.69913)) |
+| Dwarf | Alliance | yes | yes [F] | Mace Specialization (new to Dwarves): +1% crit with spells and attacks with a mace; Stoneform −10% physical damage taken for 8 s [F] [client] (SpellEffect, SpellDuration, 1.60.1.69913; 1259719, 20594) |
+| Undead | Horde | no | **yes (new)** [F] | Touch of the Grave: 5% chance on spell or attack hit to drain health from the target, up to 5% of max health [F]; the client spell 1260189 is a dummy (5), so the drain formula is server-side and unknown [?] |
 
 "Both factions have access to all nine classes in Forever"
 ([racials](https://foreverchanges.pro/racials)). Horde raids therefore have Blessings, and
@@ -84,25 +87,25 @@ Charger is Dwarf and Human only [F].
 | Area | Classic Era | WoW Forever | Tag, source |
 | --- | --- | --- | --- |
 | **Judgement consumes seal** | yes | **no**: "Does not consume the Seal." | [F] [spellbook](https://foreverchanges.pro/spellbook/paladin), [F 20271][f20271] |
-| Judgement hit table | Magic class: damage judgements roll spell hit and spell crit | **Melee class** + *No Active Defense*: damage judgements (JoC, JoR, JoF) roll melee miss and melee crit ×2, never dodge, parry or block. Debuff judgements (JotC, JoW, JoL, JoJ) carry *Always Hit* in both clients | [F] SpellCategories DefenseType 2, SpellMisc Attr0 0x200000 / Attr3 0x40000 on [F 20286][f20286], [F 20968][f20968], [F 20303][f20303] vs [C 20286][c20286], [C 20968][c20968], [C 20303][c20303] |
-| Judgement debuff duration (Crusader, Wisdom, Light) | 10 s | **40 s**, still refreshed by your melee strikes | [F] [F 20303][f20303], [F 20355][f20355] |
+| Judgement hit table | Magic class: damage judgements roll spell hit and spell crit | **Melee class** + *No Active Defense*: damage judgements (JoC, JoR, JoF) roll melee crit ×2 and never dodge, parry or block. **JoR and JoF roll melee miss; JoC's damage spell 20966 carries *Always Hit*, so JoC can't miss.** Debuff judgements (JotC, JoW, JoL, JoJ) carry *Always Hit* in both clients | [F] [client] (SpellCategories DefenseType 2, SpellMisc Attr0 0x200000 / Attr3 0x40000, 1.60.1.69913; [20286][f20286], [20414][f20414], [20968][f20968], [20966][f20966], [20303][f20303], [20355][f20355]) vs [C 20286][c20286], [C 20968][c20968], [C 20303][c20303]. Whether the server honours JoC's Always Hit is [?] ([open question 23](#open-questions)) |
+| Judgement debuff duration (Crusader, Wisdom, Light) | 10 s | **40 s**, still refreshed by your melee strikes | [F] [client] (SpellDuration, 1.60.1.69913; [20303][f20303], [20355][f20355]) |
 | Judgement of the Crusader (r6) | +140 Holy damage taken | **+161** (Improved SotC's 15% is now baseline) | [F] [F 20303][f20303] |
-| Improved Seals (was Improved SoR) | +15% SoR/JoR, 5 ranks | **+15% all seal procs and judgements**, 3 ranks | [F] [F 20224][f20224] |
+| Improved Seals (was Improved SoR) | +15% SoR/JoR, 5 ranks | **+15% all seal procs and judgements**, 3 ranks | [F] [client] (SpellEffect spell masks, TraitDefinitionEffectPoints, 1.60.1.69913; [20224][f20224]) |
 | Seal of Command, SoR, JoC, JoR numbers | — | unchanged at max rank (SoR ranks 1–3 get the full 0.1 coefficient) | [F] [spellbook](https://foreverchanges.pro/spellbook/paladin) |
-| Holy Strike | — | **new**, 8 ranks; r8: 20 mana, 12 s, 40% weapon + 81–105, Holy | [F] [F 10333][f10333] |
-| Seal of Fury / Judgement of Fury | — | **new tank seal**; r7: +35 Holy per swing, absorb, judgement 146–160 + taunt 4 s | [F] [F 20423][f20423] |
-| Hammer of the Righteous | SoD rune only | **trained at 40**: 3× MH weapon DPS as Holy to the target and up to 3 more (tooltip); shares cooldown with Holy Strike | [F] [F 407632][f407632] |
-| Consecration | Holy talent; r5 384 over 8 s, 0.042/tick | **trained at 20**; r5 96 to all + 216 to the first 4, 0.095/tick on the capped part | [F] [F 1280349][f1280349] vs [C 20924][c20924] |
+| Holy Strike | — | **new**, 8 ranks; r8: 20 mana, 12 s, 40% weapon + 81–105, Holy | [F] [client] (SpellEffect, SpellCategories, SpellMisc, 1.60.1.69913; [10333][f10333]) |
+| Seal of Fury / Judgement of Fury | — | **new tank seal**; r7: +35 Holy per swing, absorb, judgement 146–160 + taunt 4 s | [F] [F 20423][f20423]; the 35 and 146–160: [client] (SpellEffect, 1.60.1.69913; [20418][f20418], [20414][f20414]) |
+| Hammer of the Righteous | SoD rune only | **trained at 40**: 3× MH weapon DPS as Holy to the target and up to 3 more (tooltip); shares cooldown with Holy Strike | [F] [F 407632][f407632]; shared category 2404: [client] (SpellCategories, 1.60.1.69913) |
+| Consecration | Holy talent; r5 384 over 8 s, 0.042/tick | **trained at 20**; r5 96 to all + 216 to the first 4, 0.095/tick on the capped part | [F] [client] (SpellEffect, 1.60.1.69913; [1280349][f1280349]) vs [C 20924][c20924] |
 | Exorcism r6 | 505–563 | **475–529** | [F] [F 10314][f10314] |
 | Hammer of Wrath r3 | 504–556 | **474–522** | [F] [F 24239][f24239] |
-| Holy Shield r3 | 30% block, 130 dmg, 0.05 coef | **20% block, 221 dmg, 0.08 coef**, 4 charges | [F] [F 20928][f20928] vs [C 20928][c20928] |
-| Righteous Fury | +60% Holy threat | **+90%** | [F] [F 25780][f25780] |
-| Improved Righteous Fury | +16/33/50% RF threat | **−2/4/6% damage taken** while RF is up | [F] [talents](https://foreverchanges.pro/talents/paladin) |
+| Holy Shield r3 | 30% block, 130 dmg, 0.05 coef | **20% block, 221 dmg, 0.08 coef**, 4 charges | [F] [client] (SpellEffect, SpellAuraOptions, 1.60.1.69913; [20928][f20928]) vs [C 20928][c20928] |
+| Righteous Fury | +60% Holy threat | **+90%** | [F] [client] (SpellEffect, school mask 2, 1.60.1.69913; [25780][f25780]) |
+| Improved Righteous Fury | +16/33/50% RF threat | **−2/4/6% damage taken** while RF is up | [F] [talents](https://foreverchanges.pro/talents/paladin); [client] (TraitDefinitionEffectPoints curve 82954, 1.60.1.69913) |
 | Blessing of Might r7 | 185 AP, 5 min | **133 AP, 1 h** | [F] [F 25291][f25291] |
 | Improved Blessing of Might | +20% | **removed** | [F] [class page](https://foreverchanges.pro/class/paladin) |
 | Blessing of Kings | Prot talent (tier 3) | **trained at 20**, 1 h | [F] [F 20217][f20217] |
 | Blessing of Wisdom r6 | 33 mp5 | **40 mp5**, 1 h | [F] [F 25290][f25290] |
-| Blessing of Salvation | 5 min | 1 h, still −30% threat | [F] [F 1038][f1038] |
+| Blessing of Salvation | 5 min | 1 h, still −30% threat | [F] [client] (SpellEffect, 1.60.1.69913; [1038][f1038]) |
 | Blessing of Sanctuary (+ Greater) | talent | **gone from the client** | [F] [spellbook "Not in Forever"](https://foreverchanges.pro/spellbook/paladin), [C 20914][c20914] |
 | Sanctity Aura (+10% party Holy damage) | Ret talent | **removed** from the tree and not trained | [F] [class page](https://foreverchanges.pro/class/paladin) |
 | Retribution Aura r5 | 20 | **30** Holy per hit taken | [F] [F 10301][f10301] |
@@ -144,14 +147,15 @@ and the docs it links; this list only summarizes them, with the same tags.
 
 ## Conventions used below
 
-- **wago.tools provenance.** Numbers that foreverchanges doesn't print (coefficients,
-  variance, per-level growth, proc masks, ICDs, charges, defense types, spell attributes,
-  cooldown categories) were read from wago.tools DB2 exports for both builds on 2026-09-22.
-  wago.tools' `robots.txt` disallows automated access, so **the project makes no further
-  automated requests to it**. Every value linked to a wago.tools page below should be
-  **confirmed by a human in a browser** before it's treated as final
-  ([open question 21](#open-questions)). The `[F]` tags on those values mean "Forever client
-  data, pending that manual check".
+- **Client data.** Numbers that foreverchanges doesn't print (coefficients, variance,
+  per-level growth, proc masks, ICDs, charges, defense types, spell attributes, cooldown
+  categories) come from the raw Forever client files, build 1.60.1.69913, read through the
+  wago.tools API and parsed by `scripts/scrape/client.mjs`. Values tagged `[F] [client]` were
+  confirmed by the [claims check][client], which covered every value this doc had marked for a
+  browser check, with one correction: Judgement of Command can't miss
+  ([Seal of Command](#seal-of-command-soc)). Raw files lack server hotfixes and server
+  scripts, so dummy values such as Judgement of Fury's scripted 1607 + 42.3/level and all PPM
+  rates are server-side ([hotfix caveat](../data/client.md#hotfix-caveat)).
 - **Rank at level 60.** Every table uses the max rank a level-60 paladin has. Where
   `SpellLevels.BaseLevel` < 60, add `EffectRealPointsPerLevel × (min(60, MaxLevel) −
   BaseLevel)` to the base: JoR r8 +8.2, JoF r7 +7.38, SoR r8 dummy +94, SotC r6 AP +19.2.
@@ -176,10 +180,11 @@ and the docs it links; this list only summarizes them, with the same tags.
   Seals, Sacred Arbiter, Benediction, Holy Conduit) are a separate factor. When two of them
   hit the same spell (Benediction + Holy Conduit on Consecration's cost), **add** them
   (Classic engine convention) [?].
-- **Base mana** at level 60 is **1512** [F], owned by
-  [character-stats](../mechanics/character-stats.md#other-base-values-at-level-60): the Forever
-  client's `PlayerExpectedStat.BaseMana`, to be confirmed by a person on wago.tools
-  ([OQ-13](../mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser)).
+- **Base mana** at level 60 is **1512** [F] [client] (`PlayerExpectedStat.BaseMana` and the
+  `basemp.txt` game table, 1.60.1.69913), owned by
+  [character-stats](../mechanics/character-stats.md#other-base-values-at-level-60); the client
+  check replaces the browser check of
+  [OQ-13](../mechanics/character-stats.md#oq-13-confirm-wagotools-values-in-a-browser).
   Corroboration only: the community sim ElliotWood/Forever transcribes the same value from the
   `OctBaseMPByClass` table
   ([`octbasempbyclass.txt`](https://github.com/ElliotWood/Forever/blob/master/assets/db_inputs/basestats/octbasempbyclass.txt)),
@@ -195,9 +200,9 @@ and the docs it links; this list only summarizes them, with the same tags.
 All seals last 30 s, cost a 1.5 s GCD, and are exclusive: only one seal is active per
 paladin [F]/[C]. The damage seals (SoC, SoR, SoF) fire on `ProcTypeMask 0x4`, the paladin's
 **melee auto attacks**: white swings and extra attacks such as Windfury, Reckoning and Hand
-of Justice. They don't fire on Holy Strike or other specials [F] (SpellAuraOptions on 20920,
-20293 and 20423, [f-SpellAuraOptions]). The utility seals (SoW, SoL, SoJ) use `0x14`, so
-melee specials can trigger them too [F]. Recasting a seal while it's active refreshes it.
+of Justice. They don't fire on Holy Strike or other specials [F] [client] (SpellAuraOptions,
+1.60.1.69913; 20920, 20293, 20423). The utility seals (SoW, SoL, SoJ) use `0x14`, so melee
+specials can trigger them too [F] [client] (SpellAuraOptions, 1.60.1.69913). Recasting a seal while it's active refreshes it.
 Replacing SoC, SoR, SoF or SoJ with a *different* seal grants a Twist of Light echo if you
 have the talent ([Twist of Light](#retribution-tree)).
 
@@ -207,22 +212,25 @@ have the talent ([Twist of Light](#retribution-tree)).
 | --- | --- | --- |
 | Spell (r5) | 20920, Ret talent (tier 3 in both clients), ranks 2–5 trained at 30/40/50/60 | [F] [F 20920][f20920] |
 | Cost | 210 mana (189 with Benediction 5/5) | [F] |
-| Proc spell | 20424, used by every rank: `WEAPON_PERCENT_DAMAGE` **70%**, Holy, melee class | [F] [F 20424][f20424], same in [C 20424][c20424] |
-| Proc rate | **7 PPM from base weapon speed**: `chance = 7 × speed / 60` per landed white hit (3.50 speed → 40.8%). Haste adds swings, not chance | [C] ([Warcraft Tavern Classic](https://www.warcrafttavern.com/wow-classic/guides/pve-retribution-paladin-rotations-cooldowns/), [ClassicSim `SealOfCommandProc.cpp`](https://github.com/timhul/ClassicSim/blob/master/Class/Paladin/Procs/SealOfCommandProc.cpp)). Not in either client (no `SpellProcsPerMinute` row). One [Blue-forum thread](https://us.forums.blizzard.com/en/wow/t/seal-of-command-proc-rate/407383) claims 6.8 [?] |
-| Internal cooldown | **1.0 s** (`ProcCategoryRecovery 1000`). Windfury's extra swing right after a SoC proc can't proc again | [F] [f-SpellAuraOptions], same in Classic |
-| Damage | `0.70 × (MH weapon damage roll + AP × speed / 14 + 0.29 × SP)` (effective **0.203 × SP**) | [C] coefficient 0.29 on [C 20424][c20424]/[F 20424][f20424]. Applying it *inside* the 70% is [?], see [open questions](#open-questions) |
+| Proc spell | 20424, used by every rank: `WEAPON_PERCENT_DAMAGE` **70%**, Holy, melee class | [F] [client] (SpellEffect, 1.60.1.69913; [20424][f20424]), same in [C 20424][c20424] |
+| Proc rate | **7 PPM from base weapon speed**: `chance = 7 × speed / 60` per landed white hit (3.50 speed → 40.8%). Haste adds swings, not chance | [C] ([Warcraft Tavern Classic](https://www.warcrafttavern.com/wow-classic/guides/pve-retribution-paladin-rotations-cooldowns/), [ClassicSim `SealOfCommandProc.cpp`](https://github.com/timhul/ClassicSim/blob/master/Class/Paladin/Procs/SealOfCommandProc.cpp)). No `SpellAuraOptions` row in either client references a `SpellProcsPerMinute` row, so the rate is server-side ([client] (SpellAuraOptions, 1.60.1.69913 and 1.15.9.69722)). One [Blue-forum thread](https://us.forums.blizzard.com/en/wow/t/seal-of-command-proc-rate/407383) claims 6.8 [?] |
+| Internal cooldown | **1.0 s** (`ProcCategoryRecovery 1000`). Windfury's extra swing right after a SoC proc can't proc again | [F] [client] (SpellAuraOptions, 1.60.1.69913; 20920), same in Classic |
+| Damage | `0.70 × (MH weapon damage roll + AP × speed / 14 + 0.29 × SP)` (effective **0.203 × SP**) | Coefficient 0.29: [F] [client] (SpellEffect, 1.60.1.69913; [20424][f20424]), as in Classic ([C 20424][c20424]). Applying it *inside* the 70% is [?], see [open questions](#open-questions) |
 | Hit table | Melee class **without** No Active Defense or Always Hit: rolls miss, dodge, parry, block and crit (×2) on the special-attack table. No glancing | [F] SpellMisc/SpellCategories on 20424 [?]: the attribute reading of dodge and parry needs a beta log |
-| Modifiers | Improved Seals ×1.15 (spell mask includes 20424). Vengeance, Crusade and JotC apply. **Two-Handed Weapon Specialization does not** (Physical only) | [F] [F 20224][f20224], [F 20111][f20111] |
+| Modifiers | Improved Seals ×1.15 (spell mask includes 20424). Vengeance, Crusade and JotC apply. **Two-Handed Weapon Specialization does not** (Physical only) | [F] [client] (SpellEffect, 1.60.1.69913; [20224][f20224], [20111][f20111]) |
 | Triggers | The proc counts as a melee special hit: it can crit, trigger Vengeance and Vindication, and proc weapon effects [?] | Attr3 `NOT_A_PROC` on 20424 [F] |
 
 **Judgement of Command** (JoC, r5): dummy 20968 → damage spell 20966. Base **339–373 Holy,
 halved unless the target is stunned or incapacitated** (tooltip "169.5 to 186.5 … 339 to 373
 if stunned"), plus **0.429 × SP**, ×1.15 Improved Seals. Assume the coefficient is **not**
-halved [?]. The dummy is melee class with No Active Defense and the damage spell is Always
-Hit, so JoC can **miss once (dummy roll), never be dodged, parried or blocked, and crits
-×2** [F] ([F 20968][f20968], [F 20966][f20966]). In Classic it was magic class, rolling spell
-hit ([C 20968][c20968]) [C]. Raid bosses are stun-immune, so the sim always uses the halved
-value.
+halved [?]. Both spells are melee class with No Active Defense, and the damage spell 20966
+also carries **Always Hit** (Attr3 `0x40000`), so JoC **can't miss, be dodged, parried or
+blocked, and crits ×2** [F] [client] (SpellMisc, SpellCategories, SpellEffect, 1.60.1.69913;
+[20968][f20968], [20966][f20966]). Unlike JoR and JoF, it has no miss chance in the sim. The
+dummy 20968 lacks Always Hit; whether the server rolls a miss on it anyway is untested, and the
+sim assumes it doesn't [?] ([open question 23](#open-questions)). In Classic JoC was magic
+class, rolling spell hit ([C 20968][c20968]) [C]. Raid bosses are stun-immune, so the sim
+always uses the halved value.
 
 ### Seal of Righteousness (SoR)
 
@@ -232,13 +240,14 @@ value.
 | Cost | 200 mana | [F] |
 | Seal value `v` | dummy points 1786 + 47/level from 58 to 60 → **v = 18.80** per second of weapon speed at 60 | [F] data (same as [C]) |
 | Damage per landed white hit | **2H: `1.20 × v × speed`; 1H: `0.85 × v × speed`**, + **0.1 × SP**. So 18.8 × 1.2 × 3.5 = 79.0 before SP. Tooltip: "Slower weapons cause more Holy damage per swing", which normalizes to roughly constant DPS | Shape [C]/[?]: the server-side script isn't in the client. The tooltip's level-58 range 20.5–71.4 is `v × 1.1475 … v × 4.0` (0.85 × 1.35 to 1.2 × 3.33), consistent with those factors. The extra `+0.03 × avg weapon damage ± 1` in wiki formulas is from TBC-era text and **not adopted** [?] |
-| SP coefficient | 0.1 per proc on the proc spell (Classic r8 also 0.1). Forever gives ranks 1–3 the full 0.1 too | [F] [F 25713][f25713], [C 25713][c25713] |
-| Hit table | Melee class, **No Active Defense + Always Hit**: rides on the white hit that triggered it, can't miss, dodge, parry or block. **Can crit** (melee crit ×2; no "can't crit" attribute) [?] | [F] SpellMisc Attr0 0x240000, Attr3 0x40000 on 25713 |
+| SP coefficient | 0.1 per proc on the proc spell (Classic r8 also 0.1). Forever gives ranks 1–3 the full 0.1 too | [F] [client] (SpellEffect, 1.60.1.69913; [25713][f25713]), [C 25713][c25713] |
+| Hit table | Melee class, **No Active Defense + Always Hit**: rides on the white hit that triggered it, can't miss, dodge, parry or block. **Can crit** (melee crit ×2; no "can't crit" attribute) [?] | [F] [client] (SpellMisc Attr0 0x240000, Attr3 0x40000; SpellCategories, 1.60.1.69913; 25713) |
 | Modifiers | Improved Seals ×1.15, Vengeance, Crusade, JotC | [F] |
 
 **Judgement of Righteousness** (r8, 20286): **162–178 + 8.2 = 170.2–186.2 at level 60**,
-plus **0.5 × SP**, ×1.15 Improved Seals. Melee class, No Active Defense: melee miss, crit ×2,
-no dodge, parry or block [F] ([F 20286][f20286]). A beta combat log shows a JoR crit at
+plus **0.5 × SP**, ×1.15 Improved Seals. Melee class, No Active Defense, no Always Hit: melee
+miss, crit ×2, no dodge, parry or block [F] [client] (SpellEffect, SpellMisc, SpellCategories,
+1.60.1.69913; [20286][f20286]). A beta combat log shows a JoR crit at
 exactly ×2 (69 on a 34 base) and plain misses only. That's a single Forever log (n=1)
 reported by community sim authors
 ([ElliotWood `sor.go`](https://github.com/ElliotWood/Forever/blob/master/sim/paladin/sor.go)) [?].
@@ -246,14 +255,17 @@ It corroborates the client data above but isn't a guild measurement.
 
 ### Seal of the Crusader (SotC) and Judgement of the Crusader (JotC)
 
-- **SotC r6** (20308, 160 mana): +306 melee AP (+2.4/level from 52 → **325 at 60** [?]) and
-  +40% attack speed, with "less damage with each attack" [C]/[F] ([F 20308][f20308]). Only
+- **SotC r6** (20308, 160 mana): +306 melee AP and +40% attack speed, with "less damage with
+  each attack" [C]/[F] ([F 20308][f20308]). The client grows the AP by 2.4 per level over
+  levels 52–60 [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913), so it is **325 at 60**
+  if the server applies that term [?]. Only
   used to judge. While it's active the sim should apply +40% attack speed and divide weapon
   damage per swing by 1.4 [?]. Swapping *away* from SotC gives no Twist of Light echo (it
   isn't one of the listed seals) [F].
 - **JotC r6** (20303): target takes **+161 Holy damage** (flat, `MOD_DAMAGE_TAKEN` Holy) for
-  **40 s**. It **can't miss** (Always Hit). Your own melee strikes refresh it, and so does
-  Holy Strike with Sacred Arbiter [F] ([F 20303][f20303]). Only one judgement debuff per
+  **40 s**. It **can't miss** (Always Hit) [F] [client] (SpellMisc, SpellDuration,
+  1.60.1.69913; [20303][f20303]). Your own melee strikes refresh it, and so does Holy Strike
+  with Sacred Arbiter [F] (tooltip). Only one judgement debuff per
   paladin per target [F]/[C]. Direct damage judgements (JoC, JoR, JoF) are **not** debuffs
   and don't replace it [C] (Classic practice: apply JotC, then SoC and judge SoC,
   [Warcraft Tavern Classic](https://www.warcrafttavern.com/wow-classic/guides/pve-retribution-paladin-rotations-cooldowns/)).
@@ -270,14 +282,17 @@ It corroborates the client data above but isn't a guild measurement.
 | --- | --- | --- |
 | Spell (r7) | 20423, trained at 58; ranks from level 10 | [F] [F 20423][f20423] |
 | Cost | 200 mana | [F] |
-| Per landed white hit | **+35 Holy** (proc 20418), **0.1 × SP** | [F] [F 20418][f20418] |
+| Per landed white hit | **+35 Holy** (proc 20418), **0.1 × SP** | [F] [client] (SpellEffect, 1.60.1.69913; [20418][f20418]) |
 | Absorb | With a shield equipped, each hit grants an absorb of **50% of the Holy damage dealt** | [F] (effect 1 = 50). Stacking or refresh rules [?] |
-| Hit table | Proc 20418: melee class, No Active Defense + Always Hit, like SoR | [F] |
-| Judgement of Fury (r7) | 20414: **146–160 + 7.38 = 153.4–167.4 at 60**, **0.45 × SP**, Holy, melee class, No Active Defense. **Taunts for 4 s** | [F] [F 20414][f20414] |
-| Improved Seals | applies to the proc and the judgement | [F] (mask includes 20418 and 20414) |
+| Hit table | Proc 20418: melee class, No Active Defense + Always Hit, like SoR | [F] [client] (SpellMisc, SpellCategories, 1.60.1.69913) |
+| Judgement of Fury (r7) | 20414: **146–160 + 7.38 = 153.4–167.4 at 60**, **0.45 × SP**, Holy, melee class, No Active Defense, no Always Hit (can miss). **Taunts for 4 s** | [F] [client] (SpellEffect, SpellMisc, 1.60.1.69913; [20414][f20414]); taunt: tooltip |
+| Improved Seals | applies to the proc and the judgement | [F] [client] (SpellEffect spell mask includes 20418 and 20414, 1.60.1.69913) |
 
-The SoF aura carries the same weapon-speed "seal value" dummy as SoR (1607 + 42/level), but
-the tooltip prints a flat 35. The sim uses the flat value [?].
+The SoF aura carries the same weapon-speed "seal value" dummy as SoR (1607 + 42/level), and
+Judgement of Fury has a scripted dummy of 1607 + 42.3/level at a 0.18 coefficient [F] [client]
+(SpellEffect, 1.60.1.69913; [20423][f20423], [20414][f20414]). What the server does with them
+is unknown, and the tooltip prints a flat 35, so the sim uses the flat value and ignores the
+dummies [?].
 
 ### Utility seals (not in default rotations)
 
@@ -301,7 +316,7 @@ These judgements are debuffs: taking one replaces your JotC.
 | GCD | **none** (`StartRecoveryTime 0`) | [F]/[C] [f-SpellCooldowns] |
 | Range | 10 yd | [F] |
 | Requirement | an active seal. **The seal stays up** (Forever) | [F] |
-| Outcome | the active seal's judgement spell: see each seal. Every Forever judgement is melee class + No Active Defense. Damage judgements can miss (melee special miss chance) and crit ×2. Debuff judgements always hit | [F] |
+| Outcome | the active seal's judgement spell: see each seal. Every Forever judgement is melee class + No Active Defense. JoR and JoF can miss (melee special miss chance); **JoC can't** (its damage spell 20966 is Always Hit). Damage judgements crit ×2. Debuff judgements always hit | [F] [client] (SpellMisc, SpellCategories, 1.60.1.69913); JoC in game [?] ([open question 23](#open-questions)) |
 | Sanctified Judgement | 3/3: **100% chance to return 60% of the judged seal's mana cost** (SoC → 126). Base vs modified cost [?]: use the base cost | [F] [F 1311074][f1311074] |
 
 ---
@@ -310,14 +325,14 @@ These judgements are debuffs: taking one replaces your JotC.
 
 | Ability (max rank) | Numbers at 60 | Cost / CD / GCD | Class, hit table | Tag, source |
 | --- | --- | --- | --- | --- |
-| **Holy Strike** r8 (10333), new, trained at 6 | Effects: `NORMALIZED_WEAPON_DMG` +93 (81–105) then `WEAPON_PERCENT_DAMAGE` 40% ⇒ **0.40 × (normalized MH damage + 81..105)**, plus **0.429 × SP**. **All Holy**, so no armor | 20 mana; **12 s** (category 2404, shared with HotR); Improved Holy Strike −2 s → 10 s; GCD 1.5 s | Melee special: miss, dodge, parry, block, crit ×2. Doesn't proc damage seals [F]; doesn't reset the swing timer (instant special) [C] | [F] [F 10333][f10333]. The ×0.40 on the flat part and how the 0.429 applies are [?] (the tooltip prints the raw 81–105; the BlizzCon build printed "36 to 46", i.e. 40%) |
-| **Consecration** r5 (20924), baseline from 20 | Per 1 s tick for 8 s (spell 1280349): **12 Holy to every enemy** (no coefficient) **+ 27 Holy + 0.095 × SP to the first 4 enemies**. Single target: **312 + 0.76 × SP** per cast | 565 mana; 8 s; GCD 1.5 s | Magic class; each tick is a separate direct-damage spell (spell hit roll per tick [?]; crit [?]) | [F] [F 20924][f20924], [F 1280349][f1280349]. Classic: 48/tick, 0.042 ([C 20924][c20924]) |
+| **Holy Strike** r8 (10333), new, trained at 6 | Effects: `NORMALIZED_WEAPON_DMG` +93 (81–105) then `WEAPON_PERCENT_DAMAGE` 40% ⇒ **0.40 × (normalized MH damage + 81..105)**, plus **0.429 × SP**. **All Holy**, so no armor | 20 mana; **12 s** (category 2404, shared with HotR); Improved Holy Strike −2 s → 10 s; GCD 1.5 s | Melee special: miss, dodge, parry, block, crit ×2. Doesn't proc damage seals [F]; doesn't reset the swing timer (instant special) [C] | [F] [client] (SpellEffect, SpellCategories, SpellMisc school 2, 1.60.1.69913; [10333][f10333]). The ×0.40 on the flat part and how the 0.429 applies are [?] (the tooltip prints the raw 81–105; the BlizzCon build printed "36 to 46", i.e. 40%) |
+| **Consecration** r5 (20924), baseline from 20 | Per 1 s tick for 8 s (spell 1280349): **12 Holy to every enemy** (no coefficient) **+ 27 Holy + 0.095 × SP to the first 4 enemies**. Single target: **312 + 0.76 × SP** per cast | 565 mana; 8 s; GCD 1.5 s | Magic class; each tick is a separate direct-damage spell (spell hit roll per tick [?]; crit [?]) | [F] [F 20924][f20924]; tick split and 0.095: [client] (SpellEffect, 1.60.1.69913; [1280349][f1280349]). Classic: 48/tick, 0.042 ([C 20924][c20924]) |
 | Consecration ranks 1–4 | per tick all + first-4: r1 2 + 4, r2 3 + 7, r3 6 + 11, r4 8 + 20; **every rank has the full 0.095** | 135 / 235 / 320 / 435 mana | as above | [F] tick spells 1280345–1280348, [F 26573][f26573]. Downranking is mana-efficient: r1 is `48 + 0.76 × SP` for 135 mana |
 | **Exorcism** r6 (10314) | **475–529 + 0.429 × SP** Holy; **Undead or Demon only** | 345 mana; 15 s; GCD 1.5 s | Magic: spell hit, crit ×1.5 | [F] [F 10314][f10314] |
 | **Hammer of Wrath** r3 (24239) | **474–522 + 0.429 × SP** Holy; target **≤ 20% health** | 425 mana; 6 s; 1.0 s cast (Instrument of Law −0.5/−1.0 s → instant); **GCD 1.0 s** | **Ranged** class (DefenseType 3): ranged hit/crit table, see combat-tables | [F] [F 24239][f24239] |
-| **Hammer of the Righteous** (407632), trained at 40 | **3 × MH weapon DPS** as Holy to the target and up to 3 more (DB2 target field is 3 in Forever, 4 in SoD's copy [?]); no SP coefficient in data | 6% base mana (90); **6 s**, category 2404: **shares its cooldown with Holy Strike**; GCD 1.5 s; needs a 1H axe, mace or sword | Melee special, full table [?] | [F] [F 407632][f407632]. It's SoD's spell id, but Forever changed its level, cooldown category and target count, so it's a deliberate Forever spell. Whether "weapon DPS" includes AP is [?] |
-| **Holy Shield** r3 (20928), tier-7 (31-point) Prot talent | **+20% block** for 10 s, **4 charges**; each block deals **221 + 0.08 × SP** Holy; the damage has **+20% threat** | 240 mana; 10 s (category); GCD 1.5 s | Block damage is a proc (`PROC_TRIGGER_DAMAGE`); can it miss or crit [?] | [F] [F 20928][f20928] |
-| **Righteous Fury** (25780) | **+90% threat from Holy damage**; Improved RF adds −2/4/6% damage taken | 30% base mana (453); 30 min | — | [F] [F 25780][f25780] |
+| **Hammer of the Righteous** (407632), trained at 40 | **3 × MH weapon DPS** as Holy to the target and up to 3 more (DB2 target field is 3 in Forever, 4 in SoD's copy [?]); no SP coefficient in data | 6% base mana (90); **6 s**, category 2404: **shares its cooldown with Holy Strike**; GCD 1.5 s; needs a 1H axe, mace or sword | Melee special, full table [?] | [F] [F 407632][f407632]; category 2404 with 6 s: [client] (SpellCategories, SpellCooldowns, 1.60.1.69913). It's SoD's spell id, but Forever changed its level, cooldown category and target count, so it's a deliberate Forever spell. Whether "weapon DPS" includes AP is [?] |
+| **Holy Shield** r3 (20928), tier-7 (31-point) Prot talent | **+20% block** for 10 s, **4 charges**; each block deals **221 + 0.08 × SP** Holy; the damage has **+20% threat** | 240 mana; 10 s (category); GCD 1.5 s | Block damage is a proc (`PROC_TRIGGER_DAMAGE`); can it miss or crit [?] | [F] [client] (SpellEffect, SpellAuraOptions, 1.60.1.69913; [20928][f20928]) |
+| **Righteous Fury** (25780) | **+90% threat from Holy damage**; Improved RF adds −2/4/6% damage taken | 30% base mana (453); 30 min | — | [F] [client] (SpellEffect, TraitDefinitionEffectPoints, 1.60.1.69913; [25780][f25780]) |
 | **Holy Wrath** r2 (10318) | 490–576 Holy, AoE 20 yd, Undead/Demon only, now also stuns 2 s | 805 mana; 60 s; 2 s cast | Magic | [F]. Off by default |
 | Templar's Bulwark (1311015), new Prot talent | absorb = 100% max health for 8 s; Forbearance | 110 mana; 5 min (−60 s Sacred Duty); off GCD | — | [F] [F 1311015][f1311015]. No TPS effect; not modelled by default |
 | Swift Judgement (1310994), new Prot talent | finishes Judgement's cooldown; next Judgement free | 1 min; off GCD | — | [F] [F 1310994][f1310994] |
@@ -328,7 +343,7 @@ These judgements are debuffs: taking one replaces your JotC.
 
 Might **133 AP** (Greater Might r2 133) [F] ([F 25291][f25291], [F 25916][f25916]). Kings +10% all
 stats (baseline) [F] ([F 20217][f20217]). Wisdom **40 mp5** [F] ([F 25290][f25290]). Salvation
-−30% threat [F] ([F 1038][f1038]). Light unchanged. All last 1 h, Greater Blessings too.
+−30% threat [F] [client] (SpellEffect, 1.60.1.69913; [1038][f1038]). Light unchanged. All last 1 h, Greater Blessings too.
 Blessing of Sanctuary doesn't exist [F]. Presets and stacking rules belong in
 [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md).
 
@@ -351,17 +366,17 @@ DPS, TPS or mana effect are listed but not modelled.
 | Holy Conduit (2), new | "Reduces the mana cost of your Consecration, Holy Wrath, Exorcism, and Hammer of Wrath spells by 40%." ([F 1237268][f1237268]) | — | −40% cost; stacks additively with Benediction [?] |
 | Conviction (5) | "Improves your chance to get a critical strike with melee attacks by 5%." ([F 20117][f20117]) | same numbers | +5% melee crit. Melee-class spells use melee crit, so in Forever it also covers judgements, SoC procs, Holy Strike and HotR |
 | Vindication (3) | "Gives your damaging melee attacks a chance to reduce the target's Attack Power by -6, and increase your Attack Power by 3% for 30 sec." ([F 9452][f9452], buff [F 440668][f440668]) | −15% Str/Agi debuff on target | **+1/2/3% AP** (`MOD_ATTACK_POWER_PCT`). Proc chance in data is 100% on melee damage, so treat it as permanent after the first landed hit [?] |
-| Sanctified Judgement (3), new | "Gives your Judgement ability a 100% chance to return 60% of the Mana cost of the judged seal." ([F 1311074][f1311074]) | — | on each landed [?] Judgement: +20/40/60% of the seal's base cost at 33/66/100% chance |
+| Sanctified Judgement (3), new | "Gives your Judgement ability a 100% chance to return 60% of the Mana cost of the judged seal." ([F 1311074][f1311074]) | — | on each landed [?] Judgement (JoC always lands): +20/40/60% of the seal's base cost at 33/66/100% chance |
 | Seal of Command (1) | see [SoC](#seal-of-command-soc) | same | — |
 | Pursuit of Justice (2) | +15% movement speed | +8% | not modelled |
 | Eye for an Eye (2) | "All critical strikes against you cause 10% of the damage taken to the attacker as well." (capped at 50% of your health) | spell crits only, 30% | Prot option only: reflect 10% of crit damage taken as Holy damage (threat source) [?] |
 | Sacred Arbiter (1), new | "Increases the damage of your Holy Strike ability by 10% and causes it to refresh all Judgement effects on the target." ([F 1311087][f1311087]) | — | Holy Strike ×1.10; refreshes your judgement debuffs |
 | Crusade (2), new | "Increases all damage dealt by 2%. Increased by an additional 2% against Demon and Undead targets." ([F 1311083][f1311083]) | — | ×1.02 all damage; a further ×1.02 vs Undead/Demon (separate aura, multiplicative) |
-| Two-Handed Weapon Specialization (3) | "Increases the damage you deal with two-handed melee weapons by 9%." ([F 20111][f20111]) | 6% | ×1.09 **Physical only** (misc school mask 1), with a 2H equipped. Holy Strike, SoC and judgements don't benefit |
-| Vengeance (3) | "Increases your Physical and Holy damage dealt by 3% for 30 sec after landing a critical strike. Stacks up to 5 times." ([F 20049][f20049], buff [F 20050][f20050]) | 15% flat for 8 s, 5 ranks | Buff: **+1/2/3% per stack, max 5 stacks (15% at 3/3)**, 30 s. Each crit (melee, special, seal proc, judgement, spell) adds a stack and refreshes the duration |
+| Two-Handed Weapon Specialization (3) | "Increases the damage you deal with two-handed melee weapons by 9%." ([F 20111][f20111]) | 6% | ×1.09 **Physical only** (school mask 1, [client] (SpellEffect, 1.60.1.69913)), with a 2H equipped. Holy Strike, SoC and judgements don't benefit |
+| Vengeance (3) | "Increases your Physical and Holy damage dealt by 3% for 30 sec after landing a critical strike. Stacks up to 5 times." ([F 20049][f20049], buff [F 20050][f20050]) | 15% flat for 8 s, 5 ranks | Buff: **+1/2/3% per stack, max 5 stacks (15% at 3/3)**, 30 s ([client] (SpellAuraOptions, SpellDuration, CurvePoint, 1.60.1.69913)). Each crit (melee, special, seal proc, judgement, spell) adds a stack and refreshes the duration |
 | Repentance (1) | incapacitate | same | not modelled |
 | Champion of the Light (3), new | "Increases your spell damage and healing by up to 100% of your Intellect." ([F 1311084][f1311084]) | — | **+Int to spell damage** (all magic schools) and healing, at 33/66/100% |
-| Instrument of Law (2), new | "Reduces the cast time of your Hammer of Wrath by 1.0 sec, and reduces all threat you generate by 20% while Righteous Fury is not active." ([F 1311085][f1311085]) | — | HoW instant (still 1.0 s GCD); threat ×0.8 when RF is off |
+| Instrument of Law (2), new | "Reduces the cast time of your Hammer of Wrath by 1.0 sec, and reduces all threat you generate by 20% while Righteous Fury is not active." ([F 1311085][f1311085]) | — | HoW instant (still 1.0 s GCD); threat ×0.8 when RF is off (curves −500/−1000 ms and 10/20, [client] (TraitDefinitionEffectPoints, 1.60.1.69913)) |
 | Twist of Light (1), new capstone | "When you replace your Seal of Command, Seal of Righteousness, Seal of Fury, or Seal of Justice with a different Seal, gain an Echo. Your next melee attack applies the replaced Seal's effects, consuming the Echo." ([F 1310735][f1310735]) | — (Classic twisting relied on batching) | On replacing a listed seal, gain `Echo of <old seal>` (1 charge, no duration, [F 1311703][f1311703]). It's consumed by the next landed **auto attack**, which applies the old seal's on-hit effect as well as the new one. **Echo of Command "empowers your next melee attack with a *chance* to activate Seal of Command"**: roll 7 PPM and respect the 1 s ICD. Echoes of Righteousness and Fury always fire |
 
 Removed from Ret: Improved Blessing of Might, Improved Retribution Aura, Sanctity Aura,
@@ -377,15 +392,15 @@ Improved Seal of the Crusader [F].
 | Guardian's Favor (2) | BoP/BoF cooldowns | same | not modelled |
 | Anticipation (5) | "Increases your Defense Skill by 20." | +10 | +20 defense skill |
 | Improved Seal of Fury (1), new | "When Seal of Fury's shield is fully absorbed, restore 0 Mana, increased by 15% per level the attacker is above you, up to 45%." ([F 1314103][f1314103]) | — | the tooltip's "0" is broken [?]. Mana only; not modelled until measured |
-| Improved Righteous Fury (3) | "While Righteous Fury is active, all damage taken is reduced by 6%." ([F 20468][f20468]) | +50% RF threat | −6% damage taken; **no threat effect** |
+| Improved Righteous Fury (3) | "While Righteous Fury is active, all damage taken is reduced by 6%." ([F 20468][f20468]) | +50% RF threat | −6% damage taken (curve −2/−4/−6, [client] (TraitDefinitionEffectPoints, 1.60.1.69913)); **no threat effect** |
 | Shield Specialization (3) | "Increases the amount of damage absorbed by your shield by 30%, and gives your blocks a 100% chance to restore 6% of your maximum Mana. May only occur once every 3 sec." ([F 1310925][f1310925]) | block value only | block value ×1.30; on block, +6% max mana (33/66/100%), 3 s ICD |
 | Sacred Duty (2), new | "Increases your total Stamina by 4% and reduces the cooldown of your Divine Shield, Divine Protection, and Templar's Bulwark spells by 60 sec." ([F 1224697][f1224697]) | — | Stamina ×1.04 |
 | Swift Judgement (1), new | "Finishes the remaining cooldown on your Judgement ability and reduces the Mana cost of your next Judgement by 100%." | — | active: see rotation |
-| One-Handed Weapon Specialization (3) | "Increases the damage you deal with one-handed melee weapons by 10%." ([F 20196][f20196]) | 10% at 5/5 | ×1.10 **Physical only** with a 1H |
+| One-Handed Weapon Specialization (3) | "Increases the damage you deal with one-handed melee weapons by 10%." ([F 20196][f20196]) | 10% at 5/5 | ×1.10 **Physical only** (school mask 1, [client] (SpellEffect, 1.60.1.69913)) with a 1H |
 | Improved Hammer of Justice (3) | −15 s | same | not modelled |
 | Templar's Bulwark (1), new | absorb 100% max health, 8 s | — | not modelled by default |
 | Reckoning (5) | "Gives you a 40% chance to gain an extra attack after Blocking a melee attack and a 100% chance to gain an extra attack after being the victim of a non-periodic critical strike." ([F 20177][f20177]) | 100% on crit only | Extra main-hand auto attack (can proc seals). Stacking cap: Classic stored up to 4 [?]; Forever cap [?] |
-| Iron Creed (5), new | "Increases the threat generated by your Holy Strike ability 25%. While Righteous Fury is active, Holy Strike also reduces your damage taken by 10% for 6 sec." ([F 1311034][f1311034]) | — | Holy Strike threat ×1.25; −10% damage taken buff (tank survival only) |
+| Iron Creed (5), new | "Increases the threat generated by your Holy Strike ability 25%. While Righteous Fury is active, Holy Strike also reduces your damage taken by 10% for 6 sec." ([F 1311034][f1311034]) | — | Holy Strike threat ×1.25 (aura 108, modifier 2, curve 5…25, [client] (SpellEffect, CurvePoint, 1.60.1.69913)); −10% damage taken buff (tank survival only) |
 | Holy Shield (1) | see [Other abilities](#other-abilities) | 30% block, 130 dmg | — |
 
 Removed from Prot: Blessing of Sanctuary, Improved Devotion Aura, Improved Concentration
@@ -398,7 +413,7 @@ Aura. Blessing of Kings is now baseline [F].
 | Improved Holy Strike (2), new | "Reduces the cooldown of your Holy Strike ability by 2 sec." | Holy Strike CD 10 s |
 | Divine Strength (5) | "Increases your Strength by 10%." (unchanged) | Str ×1.10 |
 | Divine Intellect (5) | "+10% Intellect" (unchanged) | Int ×1.10 |
-| Improved Seals (3) | "Increases the damage done by your Seals and Judgements by 15%." ([F 20224][f20224]) | ×1.15 on SoC/SoR/SoF procs and JoC/JoR/JoF (spell masks verified). **Not** JotC's bonus, Holy Strike or Consecration |
+| Improved Seals (3) | "Increases the damage done by your Seals and Judgements by 15%." ([F 20224][f20224]) | ×1.15 on SoC/SoR/SoF procs and JoC/JoR/JoF (spell masks and curve 5/10/15: [client] (SpellEffect, CurvePoint, 1.60.1.69913)). **Not** JotC's bonus, Holy Strike or Consecration |
 | Reverence (3), new | "Allows 30% of your Mana regeneration to continue while casting." | 30% of spirit regen during the five-second rule (Holy builds only) |
 | Purifying Power (2), new | "... reduces the cooldown of your Exorcism and Holy Wrath spells by 33%." | Exorcism CD 10 s |
 | Holy Power (5) | "+15% Holy Shock crit, +5% crit on all other spells" | spell crit |
@@ -415,7 +430,7 @@ and aren't modelled.
 
 | Item | Value | Tag, source |
 | --- | --- | --- |
-| Base mana (60) | 1512 | [F] (character-stats, `PlayerExpectedStat`; [conventions](#conventions-used-below)) |
+| Base mana (60) | 1512 | [F] [client] (`PlayerExpectedStat`, `basemp.txt`, 1.60.1.69913); owned by character-stats ([conventions](#conventions-used-below)) |
 | Max mana | base + Int→mana, see character-stats | [C] |
 | Costs, Ret build (Benediction 5/5; no Holy Conduit) | SoC 189, SoR 180, SotC 144, Judgement 81, Holy Strike 18, Consecration r5 508 / r1 121, Exorcism 310, HoW 382 (instant with Instrument of Law, so Benediction applies). If Holy Conduit 2/2 is taken, Consecration r5 is 282 (additive) or 305 (multiplicative) [?] | [F] costs × talent |
 | Costs, Prot build (no Benediction) | SoF 200, Judgement 90 (0 after Swift Judgement), Holy Strike 20, Holy Shield 240, Consecration r5 565, HotR 90, RF 453 | [F] |
@@ -446,14 +461,14 @@ stacking) live in [threat.md](../mechanics/threat.md). Paladin inputs:
 
 | Source | Threat | Tag |
 | --- | --- | --- |
-| Holy damage with Righteous Fury | damage × **1.9** | [F] [F 25780][f25780] |
+| Holy damage with Righteous Fury | damage × **1.9** | [F] [client] (SpellEffect, 1.60.1.69913; [25780][f25780]) |
 | Physical damage (white hits) | damage × 1.0. RF doesn't affect it and paladins have no stance | [C] |
 | Holy Shield block damage | damage × 1.9 × **1.2** (the 20% is multiplicative with RF [?]; additive would be ×2.1) | [F]/[?] |
-| Holy Strike | damage × 1.9 × **1.25** (Iron Creed 5/5) | [F] |
+| Holy Strike | damage × 1.9 × **1.25** (Iron Creed 5/5) | [F] [client] (SpellEffect, CurvePoint, 1.60.1.69913) |
 | Judgement of Fury | damage × 1.9, **taunt 4 s** (sets you to top threat; no-op when you already are) | [F] |
 | Retribution Aura | 30 per hit taken × 1.9 | [F] |
-| Instrument of Law (Ret) | all threat × 0.8 while RF is off | [F] |
-| Blessing of Salvation | −30% | [F] |
+| Instrument of Law (Ret) | all threat × 0.8 while RF is off | [F] [client] (TraitDefinitionEffectPoints, 1.60.1.69913) |
+| Blessing of Salvation | −30% | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Heals, Blessings and mana gains (Shield Specialization, JoW, SoW) | generic rules in threat.md. Whether RF's Holy-school modifier also scales healing threat is [?] | [?] |
 
 ---
@@ -558,7 +573,7 @@ Sanctuary with Seal of Fury, Iron Creed and Holy Strike.
 | — | Templar's Bulwark, Divine Protection | defensive; no TPS effect | off |
 
 Holy Strike and HotR share category 2404: casting one locks the other for that spell's
-cooldown [F]. Single target: Holy Strike wins. It's cheaper, scales with SP (0.429), and
+cooldown [F] [client] (SpellCategories, 1.60.1.69913). Single target: Holy Strike wins. It's cheaper, scales with SP (0.429), and
 Iron Creed adds 25% threat; HotR has no SP coefficient in the data.
 
 ### Protection defaults
@@ -577,7 +592,8 @@ Iron Creed adds 25% threat; HotR has no SP coefficient in the data.
 ## Implementation notes
 
 - **Damage-seal procs (SoC, SoR, SoF) are triggered by landed main-hand auto attacks only**
-  (`ProcTypeMask 0x4`) [F]. Holy Strike, HotR, judgements and spells never proc them.
+  (`ProcTypeMask 0x4`) [F] [client] (SpellAuraOptions, 1.60.1.69913). Holy Strike, HotR,
+  judgements and spells never proc them.
   Windfury, Reckoning, Hand of Justice and other item extra attacks do. SoC's 1 s ICD is per
   paladin.
 - **Order inside one white hit** (single tick): resolve the white swing, then Vengeance and
@@ -590,8 +606,10 @@ Iron Creed adds 25% threat; HotR has no SP coefficient in the data.
   Applying a debuff judgement replaces your previous one. Damage judgements don't touch it.
 - **Holy Strike/HotR shared cooldown**: model as a category timer set to the cast spell's
   cooldown after talents.
-- **Sanctified Judgement**: grant mana when the Judgement lands [?] (on a miss, assume no
-  refund). Use the seal's base cost.
+- **Sanctified Judgement**: grant mana when the Judgement lands [?] (on a missed JoR or JoF,
+  assume no refund; JoC can't miss). Use the seal's base cost.
+- **Judgement miss rolls**: JoR and JoF roll the melee special miss chance; JoC and the debuff
+  judgements skip the miss roll (Always Hit).
 - **Level scaling**: store per-rank `base`, `variance`, `perLevel`, `baseLevel`,
   `maxLevel` from the spell data, so the numbers at 60 follow the formula in
   [Conventions](#conventions-used-below).
@@ -615,9 +633,10 @@ changed, not a bug.
    **440.3**. With Improved Seals 3/3: ×1.15 → average **466.09**. Crit: ×2 → 932.18.
    Two-Handed Weapon Specialization must **not** change it. (The alternative with SP
    outside the 70% gives an average of 414.0 before talents.)
-3. **Judgement of Command** (target not stunned): (339..373)/2 → average 178 +
-   0.429 × 100 = **220.9**; ×1.15 = **254.04**. Crit ×2. Can't be dodged, parried or
-   blocked.
+3. **Judgement of Command** (`forever` profile; target not stunned): (339..373)/2 → average
+   178 + 0.429 × 100 = **220.9**; ×1.15 = **254.04**. Crit ×2. Can't miss (Always Hit on
+   20966), be dodged, parried or blocked, so its expected damage carries no miss factor, unlike
+   JoR's in example 4. (`classicEra`: magic class, spell hit and ×1.5 crit.)
 4. **Judgement of Righteousness r8 at 60**: (162..178) + 8.2 → average 178.2 + 0.5 × 100 =
    **228.2**; ×1.15 = **262.43**.
 5. **Holy Strike r8**: normalized MH = 250 + 1200 × 3.3 / 14 = 532.857; + 93 (average of
@@ -694,32 +713,40 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     Absorb stacking? Improved Seal of Fury's actual mana return ("restore 0 Mana")?
 11. **Hammer of the Righteous**: target count (3 or 4 in total?), whether "weapon DPS"
     includes AP, avoidance, and whether its SP coefficient is really 0.
-12. **Sanctified Judgement**: base or modified seal cost; refund on a missed Judgement?
+12. **Sanctified Judgement**: base or modified seal cost; refund on a missed JoR or JoF?
 13. **Seal of Wisdom / Judgement of Wisdom** proc rates in Forever.
 14. **Level-based partial resists** on melee-class Holy (SoC, judgements, Holy Strike) vs a
     level-63 target. See [combat-tables.md](../mechanics/combat-tables.md).
 15. **Touch of the Grave** (Undead) drain amount.
 16. **Righteous Fury and healing threat**; Holy Shield's 20% additive vs multiplicative with
     RF ([threat.md](../mechanics/threat.md)).
-17. **Seal of the Crusader AP at 60**: 306 or 325 (level scaling)?
+17. **Seal of the Crusader AP at 60**: 306 or 325? The client value is settled: 306 + 2.4 per
+    level over levels 52–60 [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913). Whether the
+    server applies the per-level term is the in-game question. *Test:* at level 60, sheet AP
+    with and without SotC.
 18. **Consecration ticks**: does each tick roll spell hit and crit separately (Forever
     periodic crits)? Which 4 targets count as "first to enter" on a multi-mob pull?
 19. **Spell modifier stacking** (Benediction + Holy Conduit): additive or multiplicative?
 20. **Vindication proc chance** (data reads 100% on melee damage).
-21. **Verify on wago.tools manually** (browser, no scripts). Check the DB2-derived values
-    this doc relies on that foreverchanges doesn't show: SoC proc 0.29 coefficient and 1 s
-    ICD (20424, 20920); JoC 0.429 and the melee/No Active Defense/Always Hit attributes
-    (20966, 20968); JoR 0.5 (20286); JotC Always Hit and 40 s (20303); SoR proc 0.1 and
-    attributes (25713); SoF proc 35 at 0.1 and JoF 0.45 (20418, 20414); Holy Strike effects
-    and 0.429, category 2404 with 12 s (10333); HotR category 2404 with 6 s (407632);
-    Consecration tick split 12 + 27 at 0.095 (1280349); Holy Shield 4 charges and 0.08
-    (20928); Vengeance stack 5, 30 s (20050); 2HWS/1HWS Physical-only school mask (20111,
-    20196); Improved Seals spell masks (20224); seal-aura proc masks 0x4 vs 0x14. Use the
-    per-spell links under [Sources](#sources).
+21. ✅ **Resolved from client data** ([client.md][client]). The DB2-derived values this doc
+    relies on that foreverchanges doesn't show were all confirmed in the raw client files,
+    build 1.60.1.69913: SoC proc 0.29 coefficient and 1 s ICD (20424, 20920); JoC 0.429 and
+    the melee/No Active Defense attributes (20966, 20968); JoR 0.5 (20286); JotC Always Hit and
+    40 s (20303); SoR proc 0.1 and attributes (25713); SoF proc 35 at 0.1 and JoF 0.45 (20418,
+    20414); Holy Strike effects and 0.429, category 2404 with 12 s (10333); HotR category 2404
+    with 6 s (407632); Consecration tick split 12 + 27 at 0.095 (1280349); Holy Shield 4
+    charges and 0.08 (20928); Vengeance stack 5, 30 s (20050); 2HWS/1HWS Physical-only school
+    mask (20111, 20196); Improved Seals spell masks (20224); seal-aura proc masks 0x4 vs 0x14.
+    **One correction:** JoC's damage spell 20966 also carries Always Hit, so JoC can't miss
+    ([Seal of Command](#seal-of-command-soc); in game: question 23).
 22. **Minor mechanics** (under 0.5% each, but the defaults are guesses): SotC's per-swing
     damage reduction (÷1.4 assumed); whether Holy Shield's block damage can miss or crit;
     Eye for an Eye's damage school and threat; whether SoC procs can trigger weapon and
     equip procs.
+23. **Judgement of Command's miss chance.** The damage spell 20966 carries Always Hit, but the
+    dummy 20968 that casts it doesn't [F] [client] (SpellMisc, 1.60.1.69913). The sim assumes
+    JoC never misses. *Test:* 200+ JoC judgements on mobs three levels above you, counting
+    misses, with JoR judgements as the control (they should miss at the melee special rate).
 
 ---
 
@@ -732,7 +759,7 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
 | [foreverchanges.pro /talents/paladin](https://foreverchanges.pro/talents/paladin) | tree layout, rank texts, **popular builds** (Holy `005320213225131051-5032-05`, Prot `2-4530513321301551-502`, Ret `250003-503-052052310012330321`) | Forever |
 | [foreverchanges.pro /racials](https://foreverchanges.pro/racials) | race/class matrix (Undead paladins, both factions have all classes), racials | Forever |
 | [foreverchanges.pro /downrank-calculator](https://foreverchanges.pro/downrank-calculator) | Classic Era servers use client-stored coefficients (except HL/FoL/PW:S); Forever stores full coefficients on low ranks | Forever / Classic Era |
-| wago.tools DB2 for build 1.60.1.69913 (Forever) and 1.15.9.69722 (Classic Era): SpellEffect, SpellAuraOptions, SpellMisc, SpellCategories, SpellCooldowns, SpellPower, SpellLevels, Spell (descriptions) | exact base points, variance, level scaling, coefficients, proc masks, ICDs, charges, defense types, attributes, costs, cooldowns. Per-spell links below. Read once on 2026-09-22; **robots.txt disallows automated access, so confirm by hand in a browser** ([open question 21](#open-questions)) | Forever [F] / Classic Era [C]. **Caveat:** the Classic Era client also carries Season of Discovery data (SoD runes, "S03" spells), so a Classic value was only adopted where it's a base-game spell id and consistent with Classic practice |
+| Client DB2 tables for build 1.60.1.69913 (Forever) and 1.15.9.69722 (Classic Era): SpellEffect, SpellAuraOptions, SpellMisc, SpellCategories, SpellCooldowns, SpellPower, SpellLevels, Spell (descriptions); raw files via the wago.tools API, parsed into `src/data/client/*.json` ([client.md](../data/client.md)) | exact base points, variance, level scaling, coefficients, proc masks, ICDs, charges, defense types, attributes, costs, cooldowns. Every value this doc had marked for a browser check was confirmed by the [claims check][client], with one correction (JoC is Always Hit). Per-spell browse links below | Forever [F] / Classic Era [C]. **Caveat:** the Classic Era client also carries Season of Discovery data (SoD runes, "S03" spells), so a Classic value was only adopted where it's a base-game spell id and consistent with Classic practice |
 | [Warcraft Tavern: PvE Retribution Paladin Rotations (WoW Classic)](https://www.warcrafttavern.com/wow-classic/guides/pve-retribution-paladin-rotations-cooldowns/) | Classic Era Ret rotation: JotC then SoC, Consecration on Vengeance, HoW execute, Exorcism, SoC/SoR twisting 0.4 s before a swing | Classic Era |
 | [Icy Veins: Classic Protection Paladin rotation](https://www.icy-veins.com/wow-classic/protection-paladin-tank-pve-rotation-cooldowns-abilities) | Classic Era prot approach: RF, Holy Shield, SoR + Judgement, downranked Consecration, Sanctuary (search-result summary; page blocks direct fetch) | Classic Era |
 | [Warcraft Tavern: Forever Paladin guide](https://www.warcrafttavern.com/forever/guides/paladin/) | Forever overview: judgements don't consume seals, Seal of Fury taunt, Human vs Dwarf racials, "unified" hit/crit statement | Forever (community guide, pre-data) |
@@ -743,7 +770,9 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
 
 ### DB2 links (per spell)
 
-For a human to open in a browser (no scripted access: wago.tools' robots.txt disallows it).
+Browse links to the same rows on wago.tools' table pages, for reading by hand; the pages stay
+off-limits to scripts ([D16](../decisions.md#d16-use-the-wagotools-api-with-attribution-2026-09-22)),
+and the parsed values are in `src/data/client/spells.json`.
 Forever build 1.60.1.69913 (`f…`) and Classic Era 1.15.9.69722 (`c…`), SpellEffect filtered
 by SpellID. The same `filter[SpellID]` works on SpellAuraOptions, SpellMisc,
 SpellCategories, SpellCooldowns, SpellPower and SpellLevels. Table roots:
@@ -826,3 +855,4 @@ SpellCategories, SpellCooldowns, SpellPower and SpellLevels. Table roots:
 [f-SpellMisc]: https://wago.tools/db2/SpellMisc?build=1.60.1.69913
 [f-SpellCooldowns]: https://wago.tools/db2/SpellCooldowns?build=1.60.1.69913
 [f-SpellPower]: https://wago.tools/db2/SpellPower?build=1.60.1.69913
+[client]: ../data/client.md#doc-claims-checked-against-the-raw-client

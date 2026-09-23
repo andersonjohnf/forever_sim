@@ -39,7 +39,7 @@ Slices ([CLAUDE.md](../CLAUDE.md#working-with-agents-small-slices-fresh-contexts
       `wow_classic_era` 1.15.9.69722 through the wago.tools API (D16), parsed with WoWDBDefs,
       into `src/data/client/`. 123 of 129 doc claims confirmed, none contradicted
       ([data/client.md](data/client.md)).
-- [ ] **M1.5b Doc sync:** apply the client-confirmed values to the docs, resolve the Route D
+- [x] **M1.5b Doc sync:** apply the client-confirmed values to the docs, resolve the Route D
       entries in open-questions.md, and fix the 6 partial matches
 - [ ] **M1.5c Items from client:** rebuild `src/data/items/pre-bis.json` from ItemSparse, Item,
       ItemSet and ItemEffect, with Classic Era rows for items whose Forever row is empty.

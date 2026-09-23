@@ -569,6 +569,11 @@ Feral attack power could not be spot-checked: no item in the pool has it (see Pa
 - **Tooltips, not server data.** The site computes Forever stat amounts, armor and weapon
   damage "from its item level budgets the way the game computes them". The server may still
   disagree. Guild measurements win (doctrine §2).
+- **50 items have no client `ItemSparse` row.** foreverchanges shows them as Forever client data,
+  but the raw 1.60.1.69913 `ItemSparse` file lacks them, and none sits in an encrypted section:
+  they are most likely server hotfix rows. Their `src/data/client/items.json` records have
+  `itemSparse: null`, and the tooltips here stay the source for their stats. The list is in
+  [client.md, "Hotfix caveat"](client.md#hotfix-caveat).
 - **Excluded test items.** Bland Dagger (24071) and Bland Bow of Steadiness (20368) pass the
   filter but are Classic client test weapons ("This bow has no real variance"; both read
   "Damage set by hand" in Forever) and aren't obtainable. The scraper drops them through

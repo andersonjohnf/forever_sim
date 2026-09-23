@@ -329,6 +329,8 @@ export interface BleedResult {
   avoidable: boolean
   /** Share of fight time it was on the boss, 0–100, or null when the sim doesn't track it (Deep Wounds). */
   uptimePct: number | null
+  /** The row of the hit that lands it, for a bleed with a row of its own (Rake's): the breakdown puts it right after. */
+  hitId?: string
 }
 
 /**

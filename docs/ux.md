@@ -359,8 +359,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   with its own weapon, are "Auto attack".
   - A **bleed's** row counts its applications and its ticks apart, so its outcomes read
     "32.2% tick crit · 1.1% of applications avoided", with its uptime on the boss on a second
-    line (Rend, a cat's Rip; Rake's bleed has a row of its own, "Rake (bleed)", beside its
-    hit). The tick crit shows only where ticks can crit (the Forever profile), and the
+    line (Rend, a cat's Rip; Rake's bleed has a row of its own, "Rake (bleed)", right after its
+    hit's row, whatever their damage). The tick crit shows only where ticks can crit (the Forever profile), and the
     avoidance only for an application that rolls (Rend). A bleed that does neither, such as
     Deep Wounds (a crit applies it, and its ticks can't crit), shows its ticks per fight.
   - Casts that deal no damage (Death Wish, Recklessness, Bloodrage, racials, the potion) stay

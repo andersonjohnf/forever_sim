@@ -5,7 +5,7 @@ import { BUFFS } from '@/sim/effects/buffs'
 import { ENCHANTS } from '@/sim/effects/enchants'
 import { ITEM_EFFECTS } from '@/sim/effects/items'
 import { buildPlan } from '@/sim/plan/build'
-import { headlineText, isSetupError, NEEDS_DAMAGE_TAKEN, neverHit, runConfigFromKey, runError } from './run-logic'
+import { breakdownRows, headlineText, isSetupError, NEEDS_DAMAGE_TAKEN, neverHit, runConfigFromKey, runError } from './run-logic'
 
 const config = (spec: SpecId, change: (c: SimConfig) => SimConfig = (c) => c) => normalizeConfig(change(defaultConfig(spec))).config
 
@@ -106,5 +106,20 @@ describe('runError', () => {
   it('shows nothing unless the last run failed', () => {
     expect(runError({ ...failed, status: 'running' }, skyborne)).toBeNull()
     expect(runError({ ...failed, status: 'done' }, skyborne)).toBeNull()
+  })
+})
+
+describe('breakdownRows (docs/ux.md#results)', () => {
+  const row = (id: string, damage: number, hitId?: string) => ({ id, damage, ...(hitId ? { bleed: { hitId } } : {}) })
+  const ids = (rows: { id: string }[]) => rows.map((r) => r.id)
+
+  it('orders rows by the metric and puts a bleed with a hit of its own right after that hit', () => {
+    const rows = [row('shred', 500), row('rakeBleed', 90, 'rake'), row('rip', 300), row('rake', 40), row('rend', 20), row('none', 0)]
+    expect(ids(breakdownRows(rows, (r) => r.damage))).toEqual(['shred', 'rip', 'rake', 'rakeBleed', 'rend'])
+  })
+
+  it('keeps a bleed in its own place when its hit adds nothing to the metric', () => {
+    const rows = [row('shred', 500), row('rakeBleed', 90, 'rake'), row('rake', 0)]
+    expect(ids(breakdownRows(rows, (r) => r.damage))).toEqual(['shred', 'rakeBleed'])
   })
 })

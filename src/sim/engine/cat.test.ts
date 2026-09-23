@@ -689,6 +689,16 @@ describe('the default cat (druid.md §6.2, §7)', () => {
     expect(off.assumptions.map((a) => a.id)).not.toContain('negativeArmor')
   })
 
+  it('names Rake’s hit on its bleed’s row, which the breakdown puts right after it', async () => {
+    const d = defaultConfig('druid-feral-cat')
+    const rake = { ...d, rotation: { 'druid.cat.rake.enabled': true, 'druid.cat.rake.onlyWithoutBleeds': false } }
+    const result = await simulate(fixed(rake))
+    const bleed = result.abilities.find((a) => a.id === 'rakeBleed')!
+    expect(bleed.bleed).toMatchObject({ hitId: 'rake' })
+    expect(result.abilities.find((a) => a.id === 'rake')?.bleed).toBeUndefined()
+    expect(result.abilities.find((a) => a.id === 'rip')?.bleed?.hitId).toBeUndefined()
+  })
+
   it('from the front, Claw builds instead of Shred', async () => {
     const d = defaultConfig('druid-feral-cat')
     const result = await simulate(fixed({ ...d, fight: { ...d.fight, position: 'front' } }))

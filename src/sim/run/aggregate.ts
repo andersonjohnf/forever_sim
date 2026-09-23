@@ -156,7 +156,9 @@ export function toResult(bundle: PlanBundle, agg: Aggregate, elapsedMs: number):
     if (source.bleed) {
       // Rend's marker aura is up from an application until its last tick; Rake's is on its bleed's row.
       const marker = plan.abilities.find((a) => a.aura >= 0 && (a.kind === 'bleed' ? a.source === i : a.dotSource === i))
-      result.bleed = { ...source.bleed, uptimePct: marker ? uptimePct(agg, marker.aura) : null }
+      // A bleed with a hit of its own (Rake) names that hit's row, which the breakdown puts it after.
+      const hit = marker && marker.kind !== 'bleed' ? { hitId: plan.sources[marker.source].id } : {}
+      result.bleed = { ...source.bleed, uptimePct: marker ? uptimePct(agg, marker.aura) : null, ...hit }
     }
     abilities.push(result)
   })

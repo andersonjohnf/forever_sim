@@ -22,6 +22,19 @@ export function headlineText(result: SimResult): string {
 }
 
 /**
+ * The breakdown's rows (docs/ux.md#results): those that add to the metric, most first, except that
+ * a bleed with a hit of its own (Rake's) sits right after that hit.
+ */
+export function breakdownRows<T extends { id: string; bleed?: { hitId?: string } }>(abilities: readonly T[], value: (a: T) => number): T[] {
+  const rows = abilities.filter((a) => value(a) > 0).sort((a, b) => value(b) - value(a))
+  const ids = new Set(rows.map((r) => r.id))
+  const bleedOf = new Map<string, T>()
+  for (const r of rows) if (r.bleed?.hitId && ids.has(r.bleed.hitId)) bleedOf.set(r.bleed.hitId, r)
+  const moved = new Set(bleedOf.values())
+  return rows.flatMap((r) => (moved.has(r) ? [] : bleedOf.has(r.id) ? [r, bleedOf.get(r.id)!] : [r]))
+}
+
+/**
  * The setup a result was run for. The sim store keys a result by its config's JSON (`configKey`
  * in src/app/sim-store.ts), so the key is that config; null if it can't be read.
  */

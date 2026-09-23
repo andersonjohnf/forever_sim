@@ -14,7 +14,7 @@ import type { SimConfig, SimResult, Summary } from '@/sim'
 import { AssumptionList } from './assumption-list'
 import { Delta } from './delta'
 import { DIM_FILL, DIM_ICON, DIM_ROOT } from './dim'
-import { isSetupError, neverHit } from './run-logic'
+import { breakdownRows, isSetupError, neverHit } from './run-logic'
 import { avoidanceOf, CRIT_REDUCTION_LABEL, formatCritReduction } from './tank-logic'
 import { BossTable, DamageTaken, SwingOutcomes } from './tank-results'
 import { useScrollEdges } from './use-scroll-edges'
@@ -372,7 +372,7 @@ function Breakdown({ result }: { result: SimResult }) {
   const headingId = useId()
   const metric: Metric = tank ? chosen : 'dps'
   const value = (a: SimResult['abilities'][number]) => (metric === 'tps' ? a.threat : a.damage)
-  const rows = result.abilities.filter((a) => value(a) > 0).sort((a, b) => value(b) - value(a))
+  const rows = breakdownRows(result.abilities, value)
   const total = rows.reduce((n, a) => n + value(a), 0) || 1
   const perSecond = (n: number) => n / result.iterations / result.durationSec
   const noun = metric === 'tps' ? 'Threat' : 'Damage'

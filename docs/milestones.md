@@ -129,7 +129,7 @@ work is in slices:
     - Export a setup code for the current setup, or a `.json` file of every saved setup
       plus the current one
     - Import a code or share link as the current setup, or a file into the list
-  - [ ] **M2.4h Rage from damage taken:** make `10 × damage before armor, block and absorb ÷
+  - [x] **M2.4h Rage from damage taken:** make `10 × damage before armor, block and absorb ÷
         maximum health` the Forever default, from about 2,000 logged beta hits (research
         2026-09-23, [rage.md](mechanics/rage.md#rage-from-damage-taken)). Blocks and absorbs
         don't reduce it, and hits from several attackers each count.
@@ -278,7 +278,13 @@ slice is worked:
   - Elemental Sharpening Stones stack: +2% crit to all melee attacks per stone [?]
     ([buffs §3.6](mechanics/buffs-debuffs-consumables.md#36-weapon-enhancements-temporary)).
 - **Data gaps:** the items have no shield block value (block value counts Strength only).
-  Warrior base health and dodge are unknown and left off the sheet. Skyborne, paladin and
+  Warrior base health and dodge are unknown and left off the sheet. Rage from damage taken
+  divides by maximum health, so it reads high until base health is known: about 39% at the
+  default Protection's numbers if base health is near 1,700
+  ([rage.md](mechanics/rage.md#rage-from-damage-taken)).
+- **`SimConfig.rules.damageTakenRage` still accepts the legacy model ids** because
+  `src/app/share.test.ts` uses one; switch that test to a current id and drop them from the
+  type (normalize keeps mapping them). Skyborne, paladin and
   druid base stats are unknown, so those sims refuse with a plain message (character-stats
   OQ-1: needs Classic Era naked character sheets).
 - **The buffs doc says Hyjal flasks are "added automatically"** but not which flask.

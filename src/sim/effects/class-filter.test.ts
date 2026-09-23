@@ -12,9 +12,11 @@ import { forSpecClass, presetBuffIds } from './presets'
 const PALADIN_ONLY = ['blessingOfWisdom', 'manaSpringTotem', 'flaskOfSupremePower', 'greaterArcaneElixir', 'elixirOfHolyPower', 'majorManaPotion', 'demonicRune']
 
 describe('class-only catalogue entries', () => {
-  it('are the paladin’s mana and spell damage entries', () => {
-    expect(BUFFS.filter((b) => b.forClasses).map((b) => b.id).sort()).toEqual([...PALADIN_ONLY].sort())
-    for (const b of BUFFS.filter((x) => x.forClasses)) expect(b.forClasses).toEqual(['paladin'])
+  it('are the paladin’s mana and spell damage entries, and the Mighty Rage Potion (warriors and druids only)', () => {
+    expect(BUFFS.filter((b) => b.forClasses?.includes('paladin')).map((b) => b.id).sort()).toEqual([...PALADIN_ONLY].sort())
+    for (const id of PALADIN_ONLY) expect(BUFFS.find((b) => b.id === id)!.forClasses).toEqual(['paladin'])
+    expect(BUFFS.filter((b) => b.forClasses && !b.forClasses.includes('paladin')).map((b) => [b.id, b.forClasses])).toEqual([['mightyRagePotion', ['warrior', 'druid']]])
+    expect(presetBuffIds('max', 'paladin-retribution', FULL_RAID)).not.toContain('mightyRagePotion')
   })
 
   it('never reach another class’s preset', () => {

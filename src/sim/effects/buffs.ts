@@ -767,6 +767,8 @@ export const BUFFS: BuffSpec[] = [
     // When it's drunk, if at all, is the spec's Rotation setting (a warrior's execute phase, a cat's
     // Berserk); a spec whose rotation has no potion setting doesn't drink it.
     summary: '45–75 rage and +60 Strength for 20 s, once a fight, if your rotation uses it (see Rotation)',
+    // Forever lets warriors and druids drink it (buffs doc §3.5), no one else.
+    forClasses: ['warrior', 'druid'],
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'mightyRagePotion', name: 'Mighty Rage Potion', use: MIGHTY_RAGE_POTION }],
     presets: {
@@ -780,7 +782,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_potion_76',
     category: 'consumable',
     group: 'Potions and bombs',
-    summary: '1,350–2,250 mana, when that much is missing',
+    summary: '1,350–2,250 mana, every 2 min; the Rotation tab says when',
     forClasses: PALADIN_ONLY,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'majorManaPotion', name: 'Major Mana Potion', use: MAJOR_MANA_POTION }],
@@ -792,7 +794,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_misc_rune_04',
     category: 'consumable',
     group: 'Potions and bombs',
-    summary: '900–1,500 mana, when that much is missing; its own cooldown, apart from potions',
+    summary: '900–1,500 mana, every 2 min apart from potions; the Rotation tab says when',
     forClasses: PALADIN_ONLY,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'demonicRune', name: 'Demonic Rune / Dark Rune', use: DEMONIC_RUNE }],

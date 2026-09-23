@@ -99,7 +99,8 @@ in both clients with its client rows.
   doesn't. See [Windfury Totem](#windfury-totem).
 - **Presets** built on raid composition, not faction ([§6](#6-default-presets)).
 - **Class-only entries.** An entry that does nothing for the other classes (mana, spell damage:
-  the paladin's) says which classes it's for. The Buffs tab lists it only for them, presets
+  the paladin's), or that only some classes can use (the Mighty Rage Potion: warriors and
+  druids), says which classes it's for. The Buffs tab lists it only for them, presets
   skip it for the others, and a saved setup of another class drops it
   ([Implementation notes](#class-only-entries)).
 - **No world buffs** ([§2](#2-world-buffs-excluded)).
@@ -894,7 +895,8 @@ An entry that does nothing for some classes carries the classes it's for (`forCl
 `src/sim/effects/buffs.ts`). So far these are the paladin's: Blessing of Wisdom, Mana Spring
 Totem, Greater Arcane Elixir, Elixir of Holy Power, Flask of Supreme Power, the Major Mana
 Potion and the Demonic / Dark Rune. Warriors and druids in feral forms spend rage or energy,
-not mana, and deal no spell damage. For another class, the Buffs tab doesn't list such an
+not mana, and deal no spell damage. The Mighty Rage Potion is for warriors and druids, the only
+classes Forever lets drink it ([§3.5](#35-potions-and-runes)). For another class, the Buffs tab doesn't list such an
 entry, no preset selects it, `normalizeConfig` turns it off in a saved setup with a note, and
 the plan ignores it. The druid's own entries arrive with the druid specs.
 

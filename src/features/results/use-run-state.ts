@@ -1,28 +1,48 @@
+import { useMemo } from 'react'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 import { useSetup } from '@/app/setup-store'
 import { configKey, useSim } from '@/app/sim-store'
 import { useSpecMeta } from '@/app/specs'
-import { SPEC_META, type SpecId } from '@/sim'
+import { runConfigFromKey, type Metric } from './run-logic'
 
-export type Metric = 'tps' | 'dps'
-
-export const METRIC_LABEL: Record<Metric, string> = { tps: 'TPS', dps: 'DPS' }
+export { headlineText, METRIC_LABEL, type Metric, metricsFor } from './run-logic'
 
 /**
- * The headline metrics of a spec, in order: tanks report TPS and DPS as equals, TPS first
- * (decision D18); DPS specs report DPS.
+ * The run state everything results-related reads (docs/ux.md#results and #states).
+ *
+ * - `result` is the result to show: the latest one, unless it was run for another spec. A spec
+ *   switch sets it aside rather than showing another spec's numbers under this one, and switching
+ *   back brings it back unchanged. (The ▲/▼ change never compares specs either.)
+ * - `stale`: the setup changed after that run. `dimmed`: stale, or a re-run is under way.
+ * - `runConfig`: the setup `result` was run for, which can differ from `config` while stale.
  */
-export const metricsFor = (spec: SpecId): Metric[] => (SPEC_META[spec].role === 'tank' ? ['tps', 'dps'] : ['dps'])
-
-/** The run state everything results-related reads: progress, staleness and the headline metrics. */
 export function useRunState() {
   const config = useSetup((s) => s.config)
   const sim = useSim()
   const meta = useSpecMeta()
   const tank = meta.role === 'tank'
-  const stale = sim.result !== null && sim.resultKey !== configKey(config)
-  return { config, sim, stale, metricLabel: tank ? 'TPS and DPS' : 'DPS' }
+  const result = sim.result && sim.result.spec === config.spec ? sim.result : null
+  const stale = result !== null && sim.resultKey !== configKey(config)
+  const running = sim.status === 'running'
+  const runConfig = useMemo(() => (result ? runConfigFromKey(sim.resultKey) : null), [result, sim.resultKey])
+  const progressPct =
+    running && sim.progress && sim.progress.totalIterations > 0
+      ? Math.min(100, (100 * sim.progress.completedIterations) / sim.progress.totalIterations)
+      : null
+  const error = sim.status === 'error' ? (sim.error ?? '') : null
+  return {
+    config,
+    sim,
+    result,
+    runConfig,
+    stale,
+    running,
+    progressPct,
+    error,
+    dimmed: result !== null && (stale || running),
+    metricLabel: tank ? 'TPS and DPS' : 'DPS',
+  }
 }
 
 /**

@@ -136,8 +136,17 @@ About & data, Reset setup, and Theme (system, light, dark).
 
 ## Results
 
-- **Headline:** DPS with its ± 95% CI, plus the iterations and rule profile. After a re-run,
-  show the change from the previous result (▲/▼ with color *and* sign).
+- **Headline:** DPS with its ± 95% CI. After a re-run, show the change from the previous result
+  (▲/▼ with color *and* sign). Under it, one line says what was run: "2,750 fights of 180 s ·
+  Forever rules · ran in 0.1 s". The length is the one set in Fight, not the average of the
+  varied fights; the run time is labelled.
+- **On desktop the panel never runs past the viewport.** The headline card with Simulate stays
+  put, and everything under it scrolls inside the panel, with a fade and a chevron at an edge
+  that has more. While it overflows, that area takes keyboard focus so arrow keys scroll it. On a
+  phone the results sheet scrolls as a whole.
+- **A result with no damage** says why and what to do next: with no main-hand weapon, "Add a
+  weapon in Gear", with a button that opens the tab (and closes the sheet on a phone). The
+  button is left out beside the desktop panel when that tab is already open.
   - **Tank specs** headline TPS and DPS as equals
     ([D18](decisions.md#d18-tank-specs-report-tps-and-dps-as-equals-2026-09-22)): side by side
     in the results panel, TPS first, each with its own ± CI and its own change from the
@@ -161,13 +170,23 @@ About & data, Reset setup, and Theme (system, light, dark).
   Recklessness, Bloodrage, racials, on-use trinkets, consumables), in the rotation's order, and
   then one per other buff on you (Holy Strength, Flurry, Enrage, the Overpower window). Each row
   has an icon, the name, the **uptime** (the share of fight time the buff was up) and the
-  **casts per fight** (pre-pull casts included), all in tabular numbers. A dash, read out as
-  "none", marks a value that doesn't apply: a cast with no buff (Bloodrage) has no uptime, and a
-  proc buff has no casts. A weapon proc on both hands names its hand: "Holy Strength (main
-  hand)".
+  **casts per fight** (pre-pull casts included), all in tabular numbers. The casts column's
+  visible header is just "Casts" (its full name is for screen readers), and a caption above the
+  table says what both columns count, so names like "Holy Strength (main hand)" keep one line
+  at 390 px. A dash, read out as "none", marks a value that doesn't apply: a cast with no buff
+  (Bloodrage) has no uptime, and a proc buff has no casts. A weapon proc on both hands names its
+  hand: "Holy Strength (main hand)". A buff that only triggers when you're hit (Enrage) shows a
+  dash, not 0.0%, when a DPS run took no damage, with "Needs damage taken (Fight → Advanced)"
+  under its name; the Fight tab's "Damage you take" help names Enrage too, and stays 0 by
+  default.
 - **Character sheet:** the final AP, crit, hit, haste, weapon skill and armor, the way the
   sim computed them.
-- **Assumptions:** the `[?]` items that affect this setup, each linking to its doc.
+- **Assumptions:** the `[?]` items that affect this setup, each a full-width row linking to its
+  doc section on GitHub (a new tab, so the result stays open), with the doc's name under the
+  text. The sim can't measure how much each one moves a result yet, so they're grouped by what
+  you can do about them, under small headings: **Your gear and consumables**, **Your race and
+  stats**, **_Class_ mechanics**, then **Combat rules**. Inside a group, the ones likely to
+  matter most come first (a judgment kept in `src/features/results/assumption-groups.ts`).
 - **Later:** stat weights, and comparing items or talent builds.
 
 ## Visual language
@@ -197,9 +216,29 @@ Every view handles these states:
 - **Empty:** an empty gear slot, no talents spent, no results yet.
 - **Long content:** long item names, many buffs, a narrow width.
 - **Running:** progress, a cancel button, and the previous result still visible.
+  - The results panel and sheet show "Simulating… 45%" and a progress bar above the kept
+    result, which is dimmed. The phone's bottom bar keeps the dimmed value with a small "45%"
+    beside its label and a thin progress line along its top edge.
+  - A polite live region, mounted once at every width, says "Simulating…" when a run starts
+    and then "Done: 682.5 DPS" or "Simulation cancelled."
 - **Stale:** the setup changed after the last run, so results are dimmed with a "Re-run" hint.
+  - The whole result dims, the breakdown and details included, not just the headline. Dimmed
+    text turns to the muted text color, which still meets AA; bars and icons fade to gray. The
+    "Setup changed" badge beside the headline isn't dimmed.
+  - A result for another spec is set aside rather than shown: after switching from Fury to
+    Arms the panel is empty, ready to simulate Arms, and switching back to Fury brings Fury's
+    result back. A number under the Arms header that belongs to Fury is too easy to misread,
+    especially in the phone bar, which has no room for a label; the ▲/▼ change never compares
+    specs anyway.
 - **Error:** the worker failed or a shared link is invalid. Show a plain message and a way
   forward (retry, or reset to defaults).
+  - A setup the engine refuses (a Skyborne warrior) is titled "This setup can't be simulated",
+    and its message says what to change, so no retry advice follows it. Any other failure is
+    titled "The simulation failed" and suggests trying again, then resetting the spec.
+  - On a phone the bottom bar shows the failure itself: a warning icon, "Couldn't simulate"
+    and the start of the reason, in AA colors. "Show results" stays enabled, with or without an
+    earlier result, and opens the sheet with the full message. The live region reads it out
+    too (on desktop the panel's alert does).
 
 ## Persistence and sharing
 

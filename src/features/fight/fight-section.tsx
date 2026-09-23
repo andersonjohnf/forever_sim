@@ -196,7 +196,7 @@ export function FightSection() {
             </Select>
           </Field>
           {!tank && (
-            <Field label="Damage you take" help="For effects that trigger when you’re hit.">
+            <Field label="Damage you take" help="For effects that trigger when you’re hit, such as Enrage. At 0 they never trigger.">
               <NumberField value={fight.damageTakenPerSec} onChange={(v) => set({ damageTakenPerSec: v })} min={0} max={500} step={10} unit="/s" aria-label="Damage taken per second" />
             </Field>
           )}

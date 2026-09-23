@@ -270,8 +270,7 @@ const REGISTRY = {
     docRef: `${PAL}#conventions-used-below`,
   },
   overpowerWindow: {
-    // warrior.md §2.8, Q10; the plan says how the window opens and closes.
-    text: 'Overpower waits for its window, as in Classic Era; untested in Forever.',
+    text: 'A dodge opens Overpower for 5 s and each new dodge refreshes it, so windows aren’t banked (the Forever data can bank 3); an Overpower that misses still closes it.',
     docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
   },
   revengeWindow: {
@@ -279,8 +278,13 @@ const REGISTRY = {
     docRef: `${WAR}#28-reactive-abilities-overpower-bloodthrill-revenge`,
   },
   spellTable: {
-    // warrior.md §7 "Spell-table abilities" and Q33; the plan names the abilities ({detail}).
-    text: '{detail}: the spell table, as the Forever client marks it, with one roll for a spell miss (17% against a raid boss before spell hit) and no dodge, parry or block. What lands crits at your special-attack crit chance, and a miss refunds 80% of its cost, as a melee ability’s does; both untested.',
+    // warrior.md §7 "Spell-table abilities" and Q33; the plan names the abilities and the verb ({detail}).
+    text: '{detail} the spell table, as the Forever client marks it: one roll for a spell miss (17% against a raid boss before spell hit), and no dodge, parry or block. A miss refunds 80% of the cost, as a melee ability’s does; untested.',
+    docRef: `${WAR}#7-implementation-notes`,
+  },
+  spellTableCrit: {
+    // warrior.md §7 "Spell-table abilities" and Q33: the ones that deal damage ({detail}; Demoralizing Shout deals none).
+    text: '{detail} at your special-attack crit chance, not your spell crit, as a melee ability does; untested.',
     docRef: `${WAR}#7-implementation-notes`,
   },
   bloodthrill: {

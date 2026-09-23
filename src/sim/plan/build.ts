@@ -927,7 +927,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   }
   // Thunder Clap and Demoralizing Shout roll the spell table (warrior.md §7 "Spell-table abilities", Q33).
   const spellTableRows = abilities.filter((a) => a.kind === 'spellTable')
-  if (spellTableRows.length > 0) notes.add('spellTable', spellTableRows.map((a) => a.name).join(' and '))
+  if (spellTableRows.length > 0) notes.add('spellTable', `${spellTableRows.map((a) => a.name).join(' and ')} ${spellTableRows.length > 1 ? 'roll' : 'rolls'}`)
+  // Only the ones that deal damage can crit (Thunder Clap; Demoralizing Shout deals none, §7).
+  const spellTableCrits = spellTableRows.filter((a) => a.flatDamage > 0 || a.weaponPercent > 0 || a.apCoefficient > 0)
+  if (spellTableCrits.length > 0) notes.add('spellTableCrit', `${spellTableCrits.map((a) => a.name).join(' and ')} ${spellTableCrits.length > 1 ? 'crit' : 'crits'}`)
   if (profile.id === 'forever') {
     notes.add('foreverHitTable')
     if (front && fight.boss.canParry) notes.add('foreverBossParry')
@@ -1058,12 +1061,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (abilities.some((a) => a.id === 'weaknessAnalyzer')) notes.add(classId === 'paladin' ? 'weaknessAnalyzerPaladin' : 'weaknessAnalyzer')
   // warrior.md §2.8: the reactive windows this rotation waits for, Q10 and Q12.
   const windows = new Set(abilities.filter((a) => a.window >= 0).map((a) => auras[a.window].id))
-  if (windows.has('overpowerWindow')) {
-    notes.add(
-      'overpowerWindow',
-      'a dodge opens Overpower for 5 s and each new dodge refreshes it, so windows aren’t banked (the Forever data can bank 3); an Overpower that misses still closes it',
-    )
-  }
+  if (windows.has('overpowerWindow')) notes.add('overpowerWindow')
   if (windows.has('revengeWindow')) notes.add('revengeWindow')
   if (procIds.has('bloodthrill')) notes.add('bloodthrill')
   // warrior.md §7 and Q3, Q13, Q32: Slam's cast, Spearing Strike's weapon share, Rend's tick crits and on-hit procs.

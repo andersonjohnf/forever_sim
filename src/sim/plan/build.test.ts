@@ -571,7 +571,9 @@ describe('assumptions', () => {
     const notes = (rotation: SimConfig['rotation']) => buildPlan({ ...defaultConfig('warrior-protection'), rotation }).assumptions
     const prot = notes({})
     expect(prot.find((a) => a.id === 'revengeWindow')!.text).toMatch(/^A block, dodge or parry of the boss’s swings opens Revenge for 5 s/)
-    expect(prot.find((a) => a.id === 'spellTable')!.text).toMatch(/^Thunder Clap and Demoralizing Shout: the spell table, as the Forever client marks it, with one roll for a spell miss/)
+    expect(prot.find((a) => a.id === 'spellTable')!.text).toMatch(/^Thunder Clap and Demoralizing Shout roll the spell table, as the Forever client marks it: one roll for a spell miss/)
+    // Only Thunder Clap deals damage, so only it crits (PU9).
+    expect(prot.find((a) => a.id === 'spellTableCrit')!.text).toBe('Thunder Clap crits at your special-attack crit chance, not your spell crit, as a melee ability does; untested.')
     // Neither rides on another's text any more.
     expect(prot.map((a) => a.id)).not.toContain('overpowerWindow')
     expect(prot.find((a) => a.id === 'foreverHitTable')!.text).not.toMatch(/spell table/)
@@ -579,8 +581,11 @@ describe('assumptions', () => {
     const max = notes({ 'warrior.protection.priority': 'maxTps' })
     expect(max.map((a) => a.id)).not.toContain('spellTable')
     expect(notes({ 'warrior.protection.priority': 'maxTps', 'warrior.protection.thunderClap.enabled': true }).find((a) => a.id === 'spellTable')!.text).toMatch(
-      /^Thunder Clap: the spell table/,
+      /^Thunder Clap rolls the spell table/,
     )
+    const shout = notes({ 'warrior.protection.priority': 'maxTps', 'warrior.protection.demoShout.enabled': true })
+    expect(shout.find((a) => a.id === 'spellTable')!.text).toMatch(/^Demoralizing Shout rolls the spell table/)
+    expect(shout.map((a) => a.id)).not.toContain('spellTableCrit')
     expect(notes({ 'warrior.protection.revenge.enabled': false }).map((a) => a.id)).not.toContain('revengeWindow')
   })
 

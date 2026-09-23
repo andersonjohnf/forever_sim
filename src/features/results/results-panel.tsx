@@ -546,7 +546,8 @@ function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: S
     ['Expertise', formatInt(s.expertise)],
     ...(spell
       ? ([
-          ['Holy spell damage', formatInt(spell.holyDamage)],
+          // Holy: every paladin spell is (Champion of the Light's share of Intellect included).
+          ['Spell damage', formatInt(spell.holyDamage)],
           ['Spell crit', formatPct(spell.critPct)],
           ['Spell hit', formatPct(spell.hitPct)],
         ] as [string, string][])

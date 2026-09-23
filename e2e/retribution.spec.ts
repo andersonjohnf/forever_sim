@@ -53,7 +53,7 @@ async function expectRetributionResult(results: Locator) {
   }
   // The character sheet's spell stats and mana.
   await openDetails(results, /^Character sheet/)
-  for (const label of ['Holy spell damage', 'Spell crit', 'Spell hit', 'Intellect', 'Spirit', 'Mana', 'Mana per 5 s']) {
+  for (const label of ['Spell damage', 'Spell crit', 'Spell hit', 'Intellect', 'Spirit', 'Mana', 'Mana per 5 s']) {
     await expect(results.getByText(label, { exact: true })).toBeVisible()
   }
   // The assumptions too: a paladin's rotation reacts to mana, not rage.

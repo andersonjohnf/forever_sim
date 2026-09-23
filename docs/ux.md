@@ -386,8 +386,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   (crit, crushing, normal hit) on the right, and a screen reader hears them in the roll's order.
   Its heading names the list, so the list has no name of its own to read twice.
 - **Mana per fight** (paladins): the section after the breakdown, a ledger of the average fight,
-  one row per line with the numbers right-aligned: "At the pull 2,882", "Regenerated +3,120",
-  "Restored +3,872", "Spent −9,650" and "Left at the end 224" (never below 0). Restored is left
+  one row per line with the numbers right-aligned: "At the pull 2,882", "Regenerated +2,314",
+  "Restored +6,150", "Spent −10,964" and "Left at the end 382" (the default setup; never below 0). Restored is left
   out when nothing restores mana. A line under it says what the gains count: "Regenerated counts
   Spirit and mana per 5 s; restored, Sanctified Judgement's returns and mana potions and runes."
   It's what Consecration's and Exorcism's mana thresholds and the potion lines are weighed
@@ -410,9 +410,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   your next ability".
 - **Character sheet:** the final AP, crit, hit, haste, weapon skill and armor, the way the
   sim computed them.
-  - A paladin's add its spell stats, each beside its melee or base counterpart: Holy spell damage
-    (Champion of the Light's share of Intellect included), Spell crit and Spell hit after
-    Expertise; Intellect and Spirit after Stamina; Mana and Mana per 5 s after Health.
+  - A paladin's add its spell stats, each beside its melee or base counterpart: Spell damage
+    (its Holy spell damage, since every paladin spell is Holy, Champion of the Light's share of
+    Intellect included), Spell crit and Spell hit after Expertise; Intellect and Spirit after
+    Stamina; Mana and Mana per 5 s after Health. Each label fits on one line at 390 px.
   - Defense, dodge, parry, block and block value join them for a tank, and for anyone with
     defense above 300 or block value. A tank's add **Crit reduction (boss's crits)** after
     Defense, on a row of its own, since your own Crit is a few rows above: how much defense lowers

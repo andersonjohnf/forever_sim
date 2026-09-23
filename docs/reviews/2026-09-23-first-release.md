@@ -80,8 +80,51 @@ Checked and found sound, across the three reviews:
 
 ## UX findings
 
-To follow from the UX review.
+Reviewer: a fresh agent, working at `be7bb9c` with Playwright probes. It checked widths 320, 360, 390, 768, 1024
+and 1280, both themes, both specs, and the default, empty, running, stale and error states.
+No probe logged a console error, page error or failed request.
+
+UX fix slices:
+- **UX-A** results and run states
+- **UX-B1** Rotation tab
+- **UX-B2** setup screens: Character, Talents, Gear, Fight, Buffs
+- **UX-C** app shell, persistence, contrast and focus
+
+| # | Severity | Finding | Disposition |
+| --- | --- | --- | --- |
+| U1 | high | **On phones a failed run is invisible.** With no earlier result, the bar stays "DPS —" and "Show results" is disabled, so the error can't be reached. With an earlier result, the error is only inside the sheet. | fix, UX-A |
+| U2 | high | **The two Skyborne races can be picked but always fail** at Simulate. The message ends "Try again, or reset…", which can never work. | fix, UX-B2: mark the tiles as not yet simulatable; drop the generic retry ending from validation errors |
+| U3 | high | **Desktop: the sticky results panel (about 1,200 px) is taller than the viewport**, so its lower half is only seen at the bottom of the page. | fix, UX-A |
+| U4 | high | **Undo after a shared link for your other spec** (or just switching spec) overwrites your saved setup for that spec. | fix, UX-C |
+| U5 | high | **Keyboard users can't remove talent points** (right-click only). | fix, UX-B2 |
+| U6 | high | **Some Fight controls have no accessible name:** the length slider (and its value text), and the Creature type and Zone selects. | fix, UX-B2 |
+| U7 | high | **Contrast fails AA.** The class-colour "Warrior" label is 2.53:1; the talent rank badges (amber/emerald-600) and the positive change colour fall short; the stale "Setup changed" badge is 2.37:1; the off-state switch track is 1.26–1.34:1 (controls need 3:1). | fix, UX-C (tokens and shared components; call sites with their slices) |
+| U8 | high | **The About sheet and the page meta description** promise druids, paladins and TPS, which don't ship. | fix, UX-C |
+| U9 | medium | **The "Classic stats" explanation can't be reached on a phone:** the badge sits inside the slot button, and the slot's aria-label hides its stats. | fix, UX-B2 |
+| U10 | medium | **A re-run shows no progress:** the old number stays at full strength, with no progress bar or live status. | fix, UX-A |
+| U11 | medium | **Stale results dim only the headline.** After a spec switch, the other spec's rows stay visible. | fix, UX-A |
+| U12 | medium | **Enrage shows 0.0% uptime by default** ("Damage you take" is 0), with no explanation. | fix, UX-A: explain it in the row and the field's help; the default stays 0 per warrior.md §2.6 and Q8 |
+| U13 | medium | **Three settings don't follow the switch they depend on** ("Save the last Death Wish", "Racial and trinkets with Death Wish", "Hamstring only without Flurry"). | fix, UX-B1 |
+| U14 | medium | **The Rotation tab doesn't mark defaults**, and "Defaults" has no Undo. | fix, UX-B1 |
+| U15 | medium | **The Rotation tab is very long** (Fury 38 settings, Arms 37), with thresholds beside the core switches. | fix, UX-B1: thresholds behind an Advanced disclosure per group |
+| U16 | medium | **The Gear tab scrolls sideways at 320 px** (enchant text sets the column width). | fix, UX-B2 |
+| U17 | medium | **Touch targets under 44 px:** selects (32), toast Undo (24), section tabs (40), menu items (38–40), picker chips (36), clear search (32), slider thumb (12), Classic stats badge (20), and setting rows outside Buffs. | fix, UX-B2 (setup screens) and UX-C (tabs, menus, toasts) |
+| U18 | medium | **A share link pasted into an open tab does nothing** (the hash is read only on load). | fix, UX-C |
+| U19 | medium | **Paste-a-build-code errors are developer messages.** | fix, UX-B2 |
+| U20 | medium | **Assumptions don't link to their docs**, the list is long (22/23), and gear with unsimulated effects isn't flagged on its row. | fix, UX-A (links, order); UX-B2 (gear-row badge) |
+| U21 | medium | **The Enemies control promises an effect that isn't simulated.** | fix, F1b (L4) |
+| U22 | medium | **Focus isn't moved into or back from sheets** (results sheet, About). | fix, UX-C |
+| U23 | low | **Copy details:** "Tap a slot" on desktop; Hammer of Wrath in warrior help; a fixed "level 63" header; "fights of 179 s"; the unlabelled run time; the "Defaults" label; the Juju switch showing on while unused. | fix, UX-B1/UX-B2/UX-A by screen |
+| U24 | low | **Race picker:** not grouped by faction as ux.md says; Skyborne names cut off at 390; no arrow-key movement. | fix, UX-B2 |
+| U25 | low | **"Holy Strength (main hand)" wraps** because "Casts per fight" makes a wide column. | fix, UX-A |
+| U26 | low | **The phone tab-bar fade doesn't track scroll position.** | fix, UX-C |
+| U27 | low | **The item picker has no sort control** (ux.md), and Buffs preset descriptions are hover-only `title` text. | fix, UX-B2 |
+| U28 | low | **Undo toasts last only 4 s** and cover the phone header. | fix, UX-C |
+| U29 | low | **Steppers are named only "Decrease/Increase"**, and the page has no `<h1>`. | fix, UX-B2 (steppers), UX-C (h1) |
+| U30 | low | **The no-gear result gives no next step.** | fix, UX-A |
+| U31 | low | **First load: 1.8 MB JS (311 kB gzipped).** | **waived** for the first release. 311 kB gzipped loads in about a second on a phone connection, and the sim then runs offline in workers. Lazy-loading per class stays in Known gaps. |
+| U32 | low | **Share may fail on iOS Safari** (a clipboard write after an await); not verified. | fix, UX-C: `ClipboardItem` with a promise, or `navigator.share` on phones |
 
 ## Verdict
 
-Ready to push: not yet. The logic fixes and the UX review are open.
+Ready to push: not yet. The logic and UX fixes are open.

@@ -140,7 +140,7 @@ work is in slices:
 
 ## Session handoff (2026-09-23)
 
-State: `main` is green (lint, typecheck, 942 unit, 182 e2e with 3 deferred to M3). Nothing is
+State: `main` is green (lint, typecheck, 1,014 unit, 190 e2e with 3 deferred to M3). Nothing is
 pushed. Fury and Arms are available.
 
 **The review gate for the first release is still open**, in
@@ -283,11 +283,6 @@ slice is worked:
   divides by maximum health, so it reads high until base health is known: about 39% at the
   default Protection's numbers if base health is near 1,700
   ([rage.md](mechanics/rage.md#rage-from-damage-taken)).
-- **`SimConfig.rules.damageTakenRage` still accepts the legacy model ids** because
-  `src/app/share.test.ts` uses one; switch that test to a current id and drop them from the
-  type (normalize keeps mapping them). Skyborne, paladin and
-  druid base stats are unknown, so those sims refuse with a plain message (character-stats
-  OQ-1: needs Classic Era naked character sheets).
 - **The buffs doc says Hyjal flasks are "added automatically"** but not which flask.
 - **Bundle size:** 1.78 MB (300 KB gzipped) after M1.5c, mostly item data. Consider
   lazy-loading talents per class, and slimming item fields the app doesn't read.

@@ -32,7 +32,7 @@ rage, threat and TPS, auras and procs, a deterministic chunked worker pool with 
 stopping, and normalizeConfig. An auto-attack-only warrior matches the hand calculation
 within 0.03%. Default Fury runs at about 18k fights/s per core.
 
-## M1.5: Client data, one source 🚧
+## M1.5: Client data, one source ✅
 
 Slices ([CLAUDE.md](../CLAUDE.md#working-with-agents-small-slices-fresh-contexts)):
 - [x] **M1.5a Pipeline:** raw DB2 and game-table files for `wow_classic_beta` 1.60.1.69913 and
@@ -60,8 +60,10 @@ Slices ([CLAUDE.md](../CLAUDE.md#working-with-agents-small-slices-fresh-contexts
 - [x] **M1.5e Spells and races from client:** class spellbooks via SkillLineAbility, and
       races and racials via ChrRaces and CharBaseInfo, with Classic comparisons from the Era
       build
-- [ ] **M1.5f Retire foreverchanges (D17):** delete its scrapers and attribution, and make
-      tier 1 of the doctrine the client files via wago.tools
+- [x] **M1.5f Retire foreverchanges (D17):** delete its scrapers and attribution, and make
+      tier 1 of the doctrine the client files via wago.tools. `npm run scrape` rebuilds every
+      dataset from the client; `-- --version=<build> --diff` diffs a new build against the
+      committed data.
 
 ## M2: Warrior DPS with the production UX 🚧
 
@@ -88,7 +90,7 @@ work is in slices:
   - Later: §5.2 rows 10 (Overpower dance) and 15 (Slam) come with M2.3, which builds those
     abilities and stance swaps. Row 14 (Sunder Armor) comes with M3. Whirlwind extra
     targets wait for multi-target support ([Later](#later)).
-- [ ] **M2.3 Arms**, in three slices:
+- [x] **M2.3 Arms**, in three slices:
   - [x] **M2.3a Arms abilities:** Mortal Strike, Slam (cast time; swing timers reset without
         Improved Slam, untouched with it), Spearing Strike (creature types), and Rend (a bleed,
         with Improved Rend and Forever's tick crits). Fix the docs on Impale's class mask,
@@ -98,28 +100,32 @@ work is in slices:
         Bloodthrill, Improved Overpower, stance-dance lines, and GCD-safe that respects
         stances. Then Fury's Overpower dance and Slam options (§5.2 rows 10 and 15)
         (W5, W18).
-  - [ ] **M2.3c Arms rotation:** §5.3's priority list and options, including the Berserker
+  - [x] **M2.3c Arms rotation:** §5.3's priority list and options, including the Berserker
         base-stance alternative (Q24), the Whirlwind dance, and Recklessness swapping to
         Berserker Stance for the rest of the fight. Re-snapshot the goldens, then
         warrior-arms becomes **available**.
   - Sweeping Strikes waits for multi-target support ([Later](#later)); Deep Wounds and
     Weaponmaster are already simulated.
-- [ ] **M2.4 Results and review:** results UX with real data, an e2e simulate test, the
-      adversarial logic and UX review, and the first deploy
+- [ ] **M2.4 Results and review**, in slices:
+  - [ ] **M2.4a Results and rotation polish:**
+    - show cooldown casts and aura uptimes in the results
+    - split Rend's application avoidance from its ticks
+    - group the Rotation tab (Fury 27 rows, Arms about 42)
+    - make the choice control's selected state clearer
+    - the Buffs tab reads maintained buffs through `rotationValues`
+  - [ ] **M2.4b Adversarial logic review:** fresh reviewers, briefed to break the engine and
+        the data pipeline, check everything since the first commit against doctrine and the
+        owning docs. Every finding is fixed or waived, logged in `docs/reviews/`.
+  - [ ] **M2.4c Adversarial UX review:** a fresh reviewer works through the ux.md checklist
+        on every screen at 390 and 1280 px, light and dark. Findings logged and resolved.
+  - [ ] **M2.4d First deploy:** push when the user asks, and check the Pages deploy.
 
-## Session handoff (2026-09-22)
+## Session handoff (2026-09-23)
 
-State: `main` is green (lint, typecheck, 435 unit tests, 19 e2e with 3 deferred to M3).
-Nothing is pushed. No agents are running. Done this session: M1.5c, M1.5d, M2.2a–c (Fury is
-**available**), and D18 (tank specs report TPS and DPS as equals).
-
-Next, in order:
-1. ~~Small cleanups~~ (done: headline comments, warrior §6.1 wording, ux.md states)
-2. **M2.3a → M2.3b → M2.3c** (Arms), sequential, one fresh agent each.
-3. **M1.5e** spells and races from the client, which can run in parallel with M2.3 in a
-   worktree. Then **M1.5f** retires foreverchanges: delete `scripts/scrape/{items,talents,…}.mjs`,
-   and update the attribution, CLAUDE.md, doctrine §2–3 and the README.
-4. **M2.4** results polish and the full review gate, then the first push when the user asks.
+State: `main` is green: lint, typecheck, 567 unit tests, and 23 e2e (3 deferred to M3).
+Nothing is pushed. M1.5 is done: every dataset comes from the Forever client and
+foreverchanges is retired. Fury and Arms are **available**. Next: M2.4a, then the review gate
+(M2.4b and M2.4c can run in parallel), then the first push when the user asks.
 
 ## M3: Warrior Protection (TPS) 💤
 
@@ -197,6 +203,9 @@ slice is worked:
 - **Casts don't show in the results:** their breakdown rows deal no damage, so
   `run/aggregate.ts` hides them, and aura uptimes aren't in the results model. Show
   cooldown casts and uptimes in M2.4's results UX.
+- **Arms tuning findings** (20,000 fights, default setup, 630 DPS): Heroic Strike from 55 rage
+  gives 638 (+1.2%), the Whirlwind dance 635, and Spearing Strike from 40 rage 634. The
+  documented defaults stay for now; see warrior.md §5.3's notes.
 - **Gnome Eureka! isn't simulated** (warrior Q18); the result says so.
 - **Items:** 18320 Demonheart Spaulders may not be obtainable; PvP rank requirements show as
   numbers (the rank title depends on faction); whether a bear-form armor multiplier applies

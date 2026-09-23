@@ -737,7 +737,11 @@ Notes:
   below 20 before its swing, so a Bloodthirst or Whirlwind that spends the rage first isn't left
   short. Both measured best (below): from 42, Bloodthirst's 30 plus Heroic Strike's 12 and the
   default until M2.5b, is −0.21 DPS, and without the cancel −1.46. WarriorSim's Classic default
-  was 40 in its 2021 revision [ws-spells] (30 in its post-SoD code).
+  was 40 in its 2021 revision [ws-spells] (30 in its post-SoD code). 40 over 42 rests on the
+  unconfirmed rule that a queued Heroic Strike lifts the off hand's dual-wield miss penalty
+  ([§2.4](#24-heroic-strike-and-cleave-on-next-swing), [?]): without it (a local build, the M2.5b
+  review, seed 5201, 400,000 fights), 42 is level with 40, +0.02 (−0.07 to +0.12). Either way it's
+  well within the 1% of [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23).
 - **Hamstring** (row 12). The Classic Era guide uses Hamstring "as a filler at excess rage when
   both Bloodthirst and Whirlwind are on cooldown". It can crit (Flurry) and proc Windfury and
   weapon effects [wh-fury]. It's off by default since M2.5b: the Overpower dance takes those
@@ -898,7 +902,7 @@ Notes:
   in the last 20 s at up to that same limit, as long as its +60 Strength lasts, where the phase
   would have been, and only once Recklessness (row 4) has been used: at its 16 s, in the same
   moment, so its rage and Strength join Recklessness's crits. That wait is +2.7% in 30 s fights
-  without a phase, +1.7% at 60 s and +0.4% at 300 s. With Recklessness off, it's the last 20 s.
+  without a phase, +1.6% at 60 s and +0.4% at 300 s. With Recklessness off, it's the last 20 s.
   Engine choices, measured; no source covers them.
 - **Juju Flurry** (row 17) is used on cooldown from the pull: no source ties it to Death Wish,
   and it's off the GCD (no start recovery in the client). Each use is +3% attack speed for 20 s,
@@ -936,9 +940,12 @@ on seed 5201 (`node scripts/tune/rotation.mjs --spec warrior-fury --fights 40000
   in short fights), made the potion wait for Recklessness without a phase, and moved
   Recklessness's clock from 15 s to 16 s.
 - **Frozen, then confirmed** on seed 5201 (400,000 fights): the winner against the old defaults
-  (above), and against itself with each change reverted in turn ("in the winner"; for the timings
-  that aren't settings, against a build without them). Every change that acts in the default
-  setup still cleared the bar. "Alone" is the change alone against the old defaults on search
+  (above), and against itself with each change reverted in turn ("in the winner"). Every change
+  that acts in the default setup still cleared the bar. No setting turns off the phase timings or
+  the potion's new rules, so for those the line was removed in a local build of the engine,
+  which then played the same fights as the winner; the M2.5b review reproduced the timings' numbers
+  the same way (Recklessness's line removed −8.65, Death Wish's −4.60, both −9.95, the pair
+  about 1.4%). "Alone" is the change alone against the old defaults on search
   seed 1 (100,000 fights). The changes interact: the Death Wish timing pays three times as much
   with Recklessness's beside it, and Heroic Strike from 40 pays only with the dance (alone it's
   level).

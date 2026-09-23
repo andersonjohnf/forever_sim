@@ -2,12 +2,12 @@ import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // docs/ux.md#persistence-and-sharing: a toast never hides the focused control. A waiting toast
-// clears every control in a sheet or drawer, not just on the page (PV1); only a waiting toast
-// grows the bottom padding, so nothing moves when a 10 s toast goes (PV5), and while one is up the
-// padding only rises, so a taller 10 s toast in front is cleared too (QV7), and it follows a
-// resize (QV6); focus a toast hands back is scrolled into view (PV6); focus a toast grows over
-// scrolls clear of it (PV7); and neither scrolls anything after a click (QV4) or when the mouse
-// spreads the toasts out (QV5).
+// clears every control in a sheet or drawer, not just on the page (PV1), and every option in a
+// select's list (QV1); only a waiting toast grows the bottom padding, so nothing moves when a 10 s
+// toast goes (PV5), and while one is up the padding only rises, so a taller 10 s toast in front
+// is cleared too (QV7) and it follows a resize (QV6); focus a toast hands back is scrolled into
+// view (PV6); focus a toast grows over scrolls clear of it (PV7); and neither scrolls anything
+// after a click (QV4) or when the mouse spreads the toasts out (QV5).
 
 const PHONE = { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }
 const DESKTOP = { viewport: { width: 1280, height: 900 } }
@@ -429,6 +429,70 @@ for (const [from, to] of [
       await page.getByRole('link', { name: 'wago.tools' }).focus()
       await expect.poll(() => covered(page)).toBe(0)
       await expect(toast).toBeVisible()
+    })
+  })
+}
+
+/** How many px of the active option in an open select's list are hidden: under a toast, or off the window. */
+const optionHidden = (page: Page) =>
+  page.evaluate(() => {
+    const option = document.activeElement!
+    if (option.getAttribute('role') !== 'option') return Infinity
+    const box = option.getBoundingClientRect()
+    const tops = [...document.querySelectorAll("[data-sonner-toast][data-removed='false']")].map((t) => t.getBoundingClientRect().top)
+    return Math.max(0, box.bottom - Math.min(window.innerHeight, ...tops)) + Math.max(0, -box.top)
+  })
+
+for (const [name, device] of [
+  ['phone', PHONE],
+  ['desktop', DESKTOP],
+] as const) {
+  test.describe(`a select’s list, ${name} (QV1)`, () => {
+    test.use(device)
+
+    test('every option made active with the arrow keys is clear of a waiting toast', async ({ page }) => {
+      await page.goto('./')
+      const toast = await waitingToast(page)
+      await page.getByRole('tab', { name: 'Fight', exact: true }).click()
+      await page.getByRole('button', { name: 'Advanced', exact: true }).click()
+      for (const select of ['Creature type', 'Zone']) {
+        const trigger = page.getByRole('combobox', { name: select })
+        await trigger.focus()
+        // As low as focus moving on leaves it: the scroll padding's 0.5rem above the toast.
+        await restAboveToasts(trigger, 8)
+        await page.keyboard.press('Enter')
+        const list = page.getByRole('listbox')
+        await expect(list).toBeVisible()
+        const options = await list.getByRole('option').count()
+        expect(options).toBeGreaterThan(2)
+        await page.keyboard.press('Home')
+        for (let i = 0; i < options; i++) {
+          if (i > 0) await page.keyboard.press('ArrowDown')
+          await expect(list.getByRole('option').nth(i)).toBeFocused()
+          await expect.poll(() => optionHidden(page), { message: `${select}: option ${i + 1} is clear of the toast` }).toBe(0)
+        }
+        await page.keyboard.press('Escape')
+        await expect(list).toHaveCount(0)
+        await expect(trigger).toBeFocused()
+      }
+      await expect(toast).toBeVisible()
+    })
+
+    // shadcn's own look (item-aligned), as before QV1: the list drops from its trigger only while
+    // a toast is up.
+    test('with no toast up, it still opens over its trigger, the chosen option on it', async ({ page }) => {
+      await page.goto('./')
+      await page.getByRole('tab', { name: 'Fight', exact: true }).click()
+      await page.getByRole('button', { name: 'Advanced', exact: true }).click()
+      const trigger = page.getByRole('combobox', { name: 'Creature type' })
+      await trigger.focus()
+      await trigger.evaluate((el) => el.scrollIntoView({ block: 'center' }))
+      const a = (await trigger.boundingBox())!
+      await page.keyboard.press('Enter')
+      const chosen = page.getByRole('option', { selected: true })
+      await expect(chosen).toBeFocused()
+      const b = (await chosen.boundingBox())!
+      expect(Math.abs(a.y + a.height / 2 - (b.y + b.height / 2))).toBeLessThan(2)
     })
   })
 }

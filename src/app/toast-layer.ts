@@ -37,6 +37,31 @@ function isKeyboardUse(e: KeyboardEvent) {
 export const TOAST_HOTKEY =
   typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.userAgent) ? 'Option+T' : 'Alt+T'
 
+let clearance = 0
+const clearanceListeners = new Set<() => void>()
+
+/**
+ * How far up from the bottom of the window the toasts reach, in px, or 0 with none up: what
+ * --toast-clearance holds. For what has to keep clear of the toasts itself rather than through
+ * the scroll padding, like a select's list (src/components/select-content.tsx).
+ */
+export const toastClearance = () => clearance
+
+/** Calls `listener` whenever toastClearance changes. Returns what stops it. */
+export function onToastClearance(listener: () => void) {
+  clearanceListeners.add(listener)
+  return () => {
+    clearanceListeners.delete(listener)
+  }
+}
+
+/** Sets toastClearance: the toaster's, which measures it (src/app/toaster.tsx). */
+export function setToastClearance(px: number) {
+  if (px === clearance) return
+  clearance = px
+  for (const listener of clearanceListeners) listener()
+}
+
 /** Hands focus back from the toasts to where it was before (sonner restores it when focus leaves them). */
 export function leaveToasts() {
   const focused = document.activeElement

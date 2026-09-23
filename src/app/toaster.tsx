@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Toaster } from '@/components/ui/sonner'
-import { focusNewestUndo, revealFocus } from './toast-layer'
+import { focusNewestUndo, revealFocus, setToastClearance } from './toast-layer'
 import { UNDO_TOAST_MS, WAITING_TOAST } from './undo-toast'
 
 /**
@@ -19,8 +19,9 @@ const TOAST_GAP = 14
  * window is resized.
  *
  * - --toast-clearance, while any toast is up, sets the bottom scroll padding of the page and of
- *   each sheet (src/index.css). While a toast is still sliding in, it counts where it will stop, so
- *   focus moving on at once clears it too.
+ *   each sheet (src/index.css), and toastClearance() the bottom collision padding of a select's
+ *   list (src/components/select-content.tsx). While a toast is still sliding in, it counts where
+ *   it will stop, so focus moving on at once clears it too.
  * - --toast-wait-clearance, while a toast that waits for Dismiss is up, grows the bottom padding
  *   of the page and of each sheet, so the last control in them has room to scroll clear of the
  *   toasts. It's the highest the settled stack has reached meanwhile, counting that toast at its
@@ -54,6 +55,7 @@ function useToastClearance() {
         if (toasts.length === 0 || !list) {
           root.style.removeProperty('--toast-clearance')
           root.style.removeProperty('--toast-wait-clearance')
+          setToastClearance(0)
           reach = 0
           highest = 0
           return
@@ -68,6 +70,7 @@ function useToastClearance() {
         const now = Math.ceil(window.innerHeight - Math.min(...toasts.map((toast) => toast.getBoundingClientRect().top)))
         const clearance = Math.max(0, now, settled)
         root.style.setProperty('--toast-clearance', `${clearance}px`)
+        setToastClearance(clearance)
 
         // At the front, a waiting toast counts in the stack's reach at its height as it is now. A
         // waiting toast behind the front one is cut to that one's height, so there it counts at
@@ -127,6 +130,7 @@ function useToastClearance() {
       window.removeEventListener('resize', resized)
       root.style.removeProperty('--toast-clearance')
       root.style.removeProperty('--toast-wait-clearance')
+      setToastClearance(0)
     }
   }, [])
   return ref

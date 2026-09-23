@@ -113,17 +113,19 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 ### High
 
 #### A1. Paladin and druid base stats (naked sheets)
-**High · M4, M5 · blocks the paladin; the druid runs on placeholders (D24)**
-- **Assumes:** the paladin class row (Str, Agi, Sta, Int, Spi) is unknown and the engine has no
-  fallback, so the paladin can't compute stats [?]. Every druid base value is a D24
-  placeholder [?], not evidence: the Night Elf and Tauren rows are the mangos emulator's 1.12
-  rows (ClassicSim's pre-SoD rows reproduce them: corroboration only), Skyborne druids use the
-  class row, and base health 1483, base melee crit and dodge 0.9%, base spell crit 1.8% and
-  caster AP −20 are values two sims copied from a private server. The base crit comes first: its
-  plausible range, 0–1%, moves cat DPS by up to about 1.5%, over D24's 1%; the AP's −20 is
-  about 0.7% of cat DPS. Also unknown for the paladin: base health, base melee and spell
-  crit, base dodge, parry and block, and the AP term `160 + 2 × Str` [?]. The druid's spirit
-  regen `15 + Spirit/5` per 2 s comes only from a secondary sim [?].
+**High · M4, M5**
+- **Assumes:** the paladin and druid class rows (Str, Agi, Sta, Int, Spi) may stand in as D24
+  placeholders until a sheet replaces them [?], so they no longer block either spec
+  ([D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)). The druid's are in use, and every druid base value is a placeholder, not
+  evidence: the Night Elf and Tauren rows are the mangos emulator's 1.12 rows (ClassicSim's
+  pre-SoD rows reproduce them: corroboration only), Skyborne druids use the class row, and base
+  health 1,483, base melee crit and dodge 0.9%, base spell crit 1.8% and caster AP −20 are values
+  two sims copied from a private server. The base crit comes first: its plausible range, 0–1%,
+  moves cat DPS by up to about 1.5%, over D24's 1%; the AP's −20 is about 0.7% of cat DPS. The
+  paladin's rows come with its track; its base health is in use as a D24 placeholder (1,381) [?].
+  Also unknown for the paladin: base melee and spell crit, base dodge, base parry and block (5%
+  [?]), and the AP term `160 + 2 × Str` [?]. The druid's spirit regen `15 + Spirit/5` per 2 s
+  comes only from a secondary sim [?].
 - **Test:** standard naked sheet for a Human paladin, Dwarf paladin, Night Elf druid and Tauren
   druid. Druids also shift to Cat, Bear and Dire Bear and read AP, crit, armor and health in
   each. For spirit regen, stand out of combat, spend no mana for 5 s, and note mana gained per

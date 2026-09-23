@@ -1416,7 +1416,8 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 - **Test:** as [B13](#b13-warrior-ability-threat-at-low-ranks) at 60 with max ranks, including
   Shield Slam.
 - **Samples:** ≥8 casts per ability.
-- **Changes:** Prot TPS per ability.
+- **Changes:** Prot TPS per ability. Shield Slam's decides whether Max TPS keeps it: from about
+  +449 it does on TPS alone ([warrior Q34](classes/warrior.md#9-open-questions)).
 - **Docs:** [threat OQ 1](mechanics/threat.md#open-questions);
   [warrior §5.4](classes/warrior.md#54-protection-tps)
 

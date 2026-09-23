@@ -2523,6 +2523,13 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     ([§7](#7-implementation-notes) "Spell-table abilities") [?]. **Test:** against mobs three
     levels higher, with and without +hit, count Thunder Clap's and Demoralizing Shout's misses and
     the rage a missed one costs, and Thunder Clap's crits and their size against its hits.
+34. **Shield Slam's threat.** The engine uses Classic Era's dmg + 254 [C] (Magey), but Forever's
+    tooltip raised it from "a high amount of threat" to "a very high amount" [F], so the bonus may
+    have risen ([threat.md](../mechanics/threat.md#warrior), OQ 1). It decides Max TPS's one
+    close call ([§5.4](#max-tps-p2)): at +254 dropping Shield Slam gains 3.3% TPS, and from about
+    +449 keeping it wins; the default keeps it either way, for its damage. **Test:** the threat
+    macro before and after a Shield Slam at 60, against its damage in the combat log, as C6 in
+    [open-questions](../open-questions.md#c6-warrior-threat-at-max-rank).
 
 ## 10. Sources
 

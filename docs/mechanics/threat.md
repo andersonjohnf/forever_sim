@@ -437,7 +437,9 @@ threat-value scale with a plain white hit in a known stance.
 1. **Warrior ability threat in Forever.** Sunder went from 261 (server) to 1013 (client), so
    Blizzard retuned at least one server-side value. Re-measure Heroic Strike, Revenge, Shield Slam
    (the tooltip now says "very high"), Thunder Clap (now used in Defensive Stance), Cleave, Shield
-   Bash, Battle Shout, Demoralizing Shout and Mocking Blow at 60.
+   Bash, Battle Shout, Demoralizing Shout and Mocking Blow at 60. Shield Slam's matters most for
+   Protection's Max TPS: above about +449 it keeps Shield Slam on TPS alone, below it dropping it
+   would win ([warrior.md §5.4](../classes/warrior.md#max-tps-p2), Q34).
 2. **Sunder in play** (same as [warrior.md Q1](../classes/warrior.md#9-open-questions)). Is
    rank 5 about 1013 × stance, as the default assumes? Or is 1013 added on top of the server's
    261? Rank 1's data value is 1: is that a bug? Test in Battle Stance (×0.8) at every rank

@@ -57,8 +57,7 @@ export const ASSUMPTION_GROUP = {
   gnomeRage: 'character',
   cooldownRacial: 'character',
   touchOfTheGrave: 'character',
-  unknownBaseHealth: 'character',
-  unknownBaseDodge: 'character',
+  baseStatPlaceholders: 'character',
   // How the sim plays the class: rage, abilities and talents.
   whiteSwingsOnly: 'class',
   foreverWhiteRage: 'class',

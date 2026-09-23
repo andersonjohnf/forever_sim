@@ -435,6 +435,13 @@ describe('golden run (fixed config and seed)', () => {
   //   last 4 s) and its timing without a phase never apply here. Over 400,000 paired fights on a
   //   seed the search never used, +1.44 DPS (+0.22%, 95% CI +1.37 to +1.51). On this seed's 1,000
   //   fights, DPS 646.38 → 647.48, TPS 373.34 → 373.96. Fury and Protection are unchanged.
+  // - Tank core, T1 (decision D24): base health is a placeholder, 1,689 for warriors
+  //   (character-stats OQ-2), no longer left out. Protection's max health 4,340 → 6,029, so rage
+  //   from damage taken (10 × the hit before mitigation ÷ max health) drops 28%: the mean boss hit
+  //   of 4,970.86 gives 8.24 rage where it gave 11.45. Nothing spends rage yet (no rotation), so the bar fills later
+  //   and clips less of Shield Specialization's and Master of Defense's energizes: their threat
+  //   7,503 → 9,116 and 17,045 → 20,083 over 500 fights, TPS 216.99002 → 217.04235 (+0.02%); DPS
+  //   unchanged. Fury and Arms take no damage: unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

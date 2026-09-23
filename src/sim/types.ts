@@ -354,10 +354,16 @@ export interface CharacterSheet {
   blockValue: number
   defense: number
   /**
-   * Base values not known yet for this race and class (e.g. "base health"), left out of the
+   * Base values not known yet for this race and class (e.g. "base attributes"), left out of the
    * numbers above (docs/mechanics/character-stats.md#open-questions). Empty when complete.
    */
   unknown: string[]
+  /**
+   * Base values that aren't measured for Forever yet, in the numbers above as Classic-based
+   * placeholders or other unmeasured [?] values (decision D24; e.g. "base health"). The
+   * assumptions say which values they are.
+   */
+  placeholders: string[]
 }
 
 export interface Assumption {

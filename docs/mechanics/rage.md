@@ -276,9 +276,10 @@ rage is unchanged by this analysis ([above](#forever-normalized-rage-per-swing-)
     follows, is the hit before all mitigation. Untested: the logs show no hits in those stances.
   - A crit counts at 2 × and a crushing blow at 1.5 × the hit's `D_pre`.
   - Several attackers still count in full on later builds.
-- **The sim's maximum health leaves out base health**, which isn't known at 60
-  ([character-stats OQ-2](character-stats.md#oq-2-base-health)). Since `forever` divides by it,
-  its rage per hit comes out high until base health is known. The result says so.
+- **The sim's maximum health uses a placeholder for base health** (1,689 for a warrior),
+  which isn't measured at 60 (decision D24,
+  [character-stats OQ-2](character-stats.md#oq-2-base-health)). Since `forever` divides by it,
+  its rage per hit moves with that placeholder until base health is measured. The result says so.
 - **At level 60** this gives much less than Classic Era. A 5,000 boss hit before armor gives a
   7,000-health tank `10 × 5000 / 7000` = 7.1 rage. Classic Era's model gives 19.8 for the same hit
   after 10,000 armor (1,826 lost).

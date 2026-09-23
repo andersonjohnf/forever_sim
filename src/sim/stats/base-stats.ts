@@ -1,8 +1,11 @@
 // Level-60 base values per race and class (docs/mechanics/character-stats.md#base-stats-at-level-60).
 //
-// Values a tier 1–3 source supports, and D24 placeholders (docs/decisions.md D24), which are
-// tagged [?] and listed in the results' assumptions. Anything else unknown is `null` and
-// reported as missing.
+// Values a tier 1–3 source supports, and D24 placeholders
+// (docs/decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23), which are tagged [?]
+// and listed in the results' assumptions. Anything else unknown is `null` and reported as missing.
+// CLASS_BASE holds the supported values (`null` there means nobody has measured it), and
+// BASE_PLACEHOLDERS below holds the placeholders, in one replaceable table. The paladin and druid
+// attribute rows (OQ-1) may stand in the same way under D24; their specs' tracks add them.
 import type { ClassId } from '../types'
 
 export interface Attributes {
@@ -68,10 +71,14 @@ export const CLASS_BASE: Record<ClassId, ClassBase> = {
     critPerAgi: 0.05,
     spellCritPerInt: 0,
     baseSpellCrit: 0,
-    baseDodge: null,
+    // docs/mechanics/character-stats.md#other-base-values-at-level-60: warrior base dodge 0 [C]
+    // (RatingBuster's Classic Era table at pre-SoD commit d11164c)
+    baseDodge: 0,
     // docs/mechanics/character-stats.md#other-base-values-at-level-60: base parry and block 5% [?]
+    // (a Blizzard Classic forum statement, 2020-01-21)
     baseParry: 5,
     baseBlock: 5,
+    // A D24 placeholder: BASE_PLACEHOLDERS below.
     baseHealth: null,
     baseMana: null,
   },
@@ -109,4 +116,40 @@ export const CLASS_BASE: Record<ClassId, ClassBase> = {
     // 1244 [F]
     baseMana: 1244,
   },
+}
+
+/**
+ * The base values D24 lets the sim fill with a placeholder while CLASS_BASE has none. One left
+ * out here and unknown in CLASS_BASE is left out of the sheet (0) and listed in its `unknown`.
+ */
+export interface BasePlaceholders {
+  /** Base health before Stamina (character-stats OQ-2). */
+  baseHealth?: number
+  /** Base dodge %, before Agility, defense and gear (character-stats OQ-5). */
+  baseDodge?: number
+  /** Base melee crit %, before Agility (character-stats OQ-3). */
+  baseCrit?: number
+  /** Base spell crit %, before Intellect (character-stats OQ-3). */
+  baseSpellCrit?: number
+}
+
+/**
+ * Placeholders for level-60 base values nobody has measured (decision D24,
+ * docs/decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23;
+ * docs/mechanics/character-stats.md#other-base-values-at-level-60).
+ * Every one is [?], listed in the doc's open questions and in the results' assumptions
+ * (`baseStatPlaceholders`), and replaced by the measured value (M9 validation). A value here is
+ * used only where CLASS_BASE has `null`.
+ *
+ * Base health: warrior 1,689, paladin 1,381, druid 1,483. "[?] placeholder (D24); origin:
+ * https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_classlevelstats.sql
+ * (the vanilla emulator's class table, which wowsims/classic's `base_stats.go` copies), not
+ * evidence". No Classic Era measurement exists, and the 1.15.9 client has no base-health table
+ * (OQ-2). Left out, Forever's rage from damage taken (10 × the hit ÷
+ * maximum health) comes out 20–40% high; off by ±100, it moves a tank's TPS about ±0.3–0.7%.
+ */
+export const BASE_PLACEHOLDERS: Record<ClassId, BasePlaceholders> = {
+  warrior: { baseHealth: 1689 },
+  paladin: { baseHealth: 1381 },
+  druid: { baseHealth: 1483 },
 }

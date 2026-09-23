@@ -280,15 +280,23 @@ sheets replace them.
 
 ### Other base values at level 60
 
+Values in *italics* are **placeholders** the sim uses until they're measured
+([D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)):
+each is tagged "[?] placeholder (D24); origin: <link>, not evidence", listed in the open
+questions and in the results' assumptions, and kept in one replaceable table
+(`BASE_PLACEHOLDERS` in `src/sim/stats/base-stats.ts`). The paladin and druid base attributes
+may stand in the same way ([above](#paladin-and-druid-base-attributes)), so they don't block
+those specs.
+
 | Quantity | Warrior | Paladin | Druid | Tag · source |
 | --- | --- | --- | --- | --- |
-| Base health (before Stamina) | ? | ? | ? | [?] [OQ-2](#oq-2-base-health) |
+| Base health (before Stamina) | *1,689* | *1,381* | *1,483* | [?] placeholder (D24); origin: [emulator class table][mz-classlevelstats], copied by [wowsims/classic][wsc-base], not evidence ([OQ-2](#oq-2-base-health)) |
 | Base mana (before Intellect) | 0 (uses Rage) | **1512** | **1244** | [F] [client] (PlayerExpectedStat, `basemp.txt`, 1.60.1.69913) |
-| Base melee crit (before Agility) | **0%** | ? | ? | warrior [C] (the pre-SoD WarriorSim: base crit 0, [ws-player]; [Magey][magey-at]: a level-20 warrior's 4.49% spellbook crit equals Agi × 0.1282 exactly); others [?] [OQ-3](#oq-3-base-melee-and-spell-crit) |
+| Base melee crit (before Agility) | **0%** | ? | ? | warrior [C] (the pre-SoD WarriorSim: base crit 0, [ws-player]; [Magey][magey-at]: a level-20 warrior's 4.49% spellbook crit equals Agi × 0.1282 exactly; [RatingBuster][rb-vanilla]); others [?] [OQ-3](#oq-3-base-melee-and-spell-crit) |
 | Base spell crit (before Intellect) | — | ? | ? | [?] [OQ-3](#oq-3-base-melee-and-spell-crit) |
-| Base dodge (before Agility and defense) | ? | ? | ? | [?] [OQ-5](#oq-5-base-dodge-parry-and-block) |
-| Base parry | 5% | 5% | none (druids can't parry) | [?] [OQ-5](#oq-5-base-dodge-parry-and-block) |
-| Base block (shield equipped) | 5% | 5% | none (no shields) | [?] [OQ-5](#oq-5-base-dodge-parry-and-block); shields [F] [client] (ChrClasses, 1.60.1.69913) |
+| Base dodge (before Agility and defense) | **0%** | ? | ? | warrior [C] ([RatingBuster][rb-vanilla]'s Classic Era table at its pre-SoD commit; WarriorSim; [Magey][magey-at]); others [?] [OQ-5](#oq-5-base-dodge-parry-and-block) |
+| Base parry | 5% | 5% | none (druids can't parry) | [?] ([a Blizzard Classic forum statement, 2020-01-21][bnet-base]: "Unlike Parry, Miss, and Block, Dodge does not start at a baseline of 5%") [OQ-5](#oq-5-base-dodge-parry-and-block) |
+| Base block (shield equipped) | 5% | 5% | none (no shields) | [?] ([bnet-base]) [OQ-5](#oq-5-base-dodge-parry-and-block); shields [F] [client] (ChrClasses, 1.60.1.69913) |
 | Defense skill | 300 (5 × level) | 300 | 300 | [C] [Magey][magey-at] (defense = 5 × level), [Blizzard forum][bnet-def] |
 | Weapon skill | 300 (+items only) | 300 | 300 (feral forms: see [druid.md](../classes/druid.md)) | [C] 5 × level; [F] no racial skill |
 | Base melee AP | 3 × 60 − 20 = **160** | 160 | −20 (caster form) | warrior [C] (the pre-SoD WarriorSim gives every race `ap: 160` at 60, [ws-races]; the `3 × level − 20` formula itself appears only in its post-SoD code); paladin and druid [?] [OQ-7](#oq-7-base-attack-power-formulas) |
@@ -677,8 +685,12 @@ the five-second rule, and the defense conversion.
 - **Data:** base attributes live in a table keyed by (race, class) and built as `classRow + raceOffset`,
   so one measured naked sheet per class fills every race. Every [?] value in that table must be
   surfaced in the UI as an assumption (doctrine §4). An unmeasured row takes a
-  [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23) placeholder if one qualifies, flagged the same way; a spec whose base row has
-  neither reports that instead of simulating.
+  [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)
+  placeholder if one qualifies, flagged the same way; a spec whose base row has neither reports
+  that instead of simulating. The placeholders live in one replaceable table
+  (`BASE_PLACEHOLDERS`), which the results list among their assumptions
+  ([Other base values](#other-base-values-at-level-60)); base health, unmeasured for every class,
+  is one.
 - **Racials:** implement by spell ID. Weapon-conditional crit (20597, 20574, 1259719) checks the
   subtypes of the weapons equipped in either hand (the effect's `weapons` condition); when one
   matches, it is flat aura crit (melee and spell) for the whole character, as the racials'
@@ -747,9 +759,9 @@ Battle Stance. Base attributes: Str 120, Agi 80, Sta 110, Int 30 **[C]** ([ws-ra
 | Attack power | 160 + 2 × 120 | **400** |
 | Melee crit (sheet) | 0 + 80 × 0.05 | **4.00%** |
 | Hit (sheet) | no sources | **0%** |
-| Dodge | baseDodge + 80 / 20 | **baseDodge + 4.00%** ([OQ-5](#oq-5-base-dodge-parry-and-block)) |
+| Dodge | 0 + 80 / 20 | **4.00%** (base dodge 0 [C]) |
 | Armor | 2 × 80 | **160** |
-| Max HP | baseHP + 20 + 90 × 10 | **baseHP + 920** ([OQ-2](#oq-2-base-health)) |
+| Max HP | 1,689 (placeholder) + 20 + 90 × 10 | **2,609** (base health [?] [OQ-2](#oq-2-base-health)) |
 | Weapon skill | no racial bonus in Forever | **300** |
 
 Against a level-63 boss ([combat-tables.md](combat-tables.md) governs; no aura crit, so no 1.8%
@@ -760,7 +772,7 @@ suppression):
 
 **Variant 1b: plus Blessing of Kings** (×1.10, [F]): Str floor(132.0) = **132**, Agi **88**,
 Sta **121** → AP 160 + 264 = **424**, crit 88 × 0.05 = **4.40%**, armor **176**, HP
-baseHP + 20 + 101 × 10 = **baseHP + 1030**.
+1,689 + 20 + 101 × 10 = **2,719**.
 
 **Variant 1c: holding a one-handed sword, no Kings:** sheet crit 4.00 + 2.00 (Sword
 Specialization, aura crit) = **6.00%**. Against a +3 boss: `forever` 6.00 − 0.60 − 1.80 =
@@ -902,14 +914,20 @@ the Route A screenshots once they arrive.
 
 ### OQ-2: base health
 The client has no base-HP game table (no `octbasehp*` file in build 1.60.1.69913, [client]), so
-this stays a sheet measurement. It now matters to tank rage too: Forever's rage from damage taken
-divides by maximum health ([rage.md](rage.md#forever-)), so while base health is left out, that
-rage comes out high.
+this stays a sheet measurement. It matters to tank rage too: Forever's rage from damage taken
+divides by maximum health ([rage.md](rage.md#forever-)); left out, that rage came out about 39%
+high for the default Protection warrior.
+**In use as [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)
+placeholders:** warrior 1,689, paladin 1,381, druid 1,483, each "[?] placeholder (D24); origin:
+the emulator's class table [mz-classlevelstats], not evidence". The only other sources,
+wowsims/classic's `base_stats.go` [wsc-base] (and an old Classic-branded sim for the druid), copy
+it. No Classic Era measurement exists, and the Classic Era 1.15.9 client has no base-health table
+either. The sheets below replace them; the results list them among their assumptions.
+**What it moves:** off by ±100, base health moves a tank's TPS about ±0.3–0.7%, through rage from
+damage taken; left out, as the engine did before D24, it inflated that rage by 20–40%. DPS specs
+barely notice it.
 **Route A:** read maximum health from the OQ-1 sheets (divide the Tauren value by 1.05). Then
-`baseHP = HP − 20 − 10 × (Sta − 20)`. *Candidates from the emulator's class table
-[mz-classlevelstats], which may stand in as D24 placeholders:* warrior 1689, paladin 1381, druid
-1483. The druid value also appears in an old Classic-branded sim that mixes in TBC formulas, so
-it doesn't count as a Classic source.
+`baseHP = HP − 20 − 10 × (Sta − 20)`.
 
 ### OQ-3: base melee and spell crit
 Warrior base melee crit is 0% **[C]**. Paladin and druid base melee and spell crit are unknown.
@@ -929,6 +947,11 @@ own paladin slope is in `PlayerExpectedStat`: 0.000417 per Int at level 20 (24.0
 1.60.1.69913). The client value is settled; whether the server uses it is the open part.
 
 ### OQ-5: base dodge, parry and block
+Warrior base dodge is 0% **[C]** ([RatingBuster][rb-vanilla]). Base parry and block 5% for
+warriors and paladins are [?] ([bnet-base]), and paladin and druid base dodge are unknown. A point
+of any of them moves a point of the boss's swings between that outcome and a hit
+([combat-tables §8](combat-tables.md#8-boss--player-tanks)); base dodge moves a tank's TPS by
+under ±0.3%.
 **Route A:** read dodge, parry and block (warrior and paladin with a shield) from the OQ-1 sheets.
 Base dodge = shown − Agi / 20; defense is 300, so there is no defense term. With a known shield,
 check that block value = the shield's block value + floor(Str / 20) by hovering block.
@@ -1069,6 +1092,9 @@ whole ([derived-stat pipeline](#derived-stat-pipeline), step 4).
 | [wowsims/forever base_stats.go][wsf-base], [base_stats_auto_gen.go][wsf-autogen], [base_stats_parser.py][wsf-parser], [racials.go][wsf-racials], [ArmorMitigationByLvl.txt][wsf-armor], [CombatRatings.txt][wsf-cr] | Corroboration of what the Forever client does and doesn't ship and of its game tables, which the project now reads directly ([client-gt]). **Its attribute rows are TBC level-70 values and its racials are TBC: not used.** | Secondary [?]: a Forever sim, TBC-derived (partly forbidden) |
 | [docs/data/items.md, "Forever's ratings"](../data/items.md#forevers-ratings-f-with-open-questions) | Measured tooltip ratio of rating to percentage across 4,271 changed items; new rating stats | Forever (project scrape of foreverchanges.pro) |
 | [mangoszero player_levelstats.sql][mz-levelstats], [player_classlevelstats.sql][mz-classlevelstats] | Candidate values for the open questions; they may stand in as D24 placeholders, never as evidence | **Forbidden** (vanilla emulator), except as a [D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23) placeholder |
+| [raethkcj/RatingBuster `Vanilla_Logic.lua` at pre-SoD commit `d11164c`][rb-vanilla] (2023-11-29) | Classic Era base melee crit and base dodge per class (warrior 0 and 0) | Classic Era (pre-SoD addon); its tables largely equal the emulator's, so not independent |
+| [Blizzard forums, Classic General, topic 419469][bnet-base] (2020-01-21) | Base parry, miss and block start at 5%; dodge doesn't | Classic Era (community statement) [?] |
+| [wowsims/classic `base_stats.go`][wsc-base] | Base health per class (copies the emulator) | Secondary, SoD lineage [?]: origin only |
 
 Fetch notes: foreverchanges.pro was read through its RSC payload, respecting its `robots.txt`.
 About 50 wago.tools page lookups were made on 2026-09-22 before the project learned that its
@@ -1127,3 +1153,6 @@ was not fetched, because its `robots.txt` disallows Anthropic agents.
 [wsf-cr]: https://github.com/wowsims/forever/blob/master/assets/db_inputs/basestats-forever/CombatRatings.txt
 [mz-levelstats]: https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_levelstats.sql
 [mz-classlevelstats]: https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_classlevelstats.sql
+[rb-vanilla]: https://github.com/raethkcj/RatingBuster/blob/d11164cf6de90688a635a6ff880b71ea9ea07367/libs/StatLogic/Vanilla_Logic.lua
+[bnet-base]: https://us.forums.blizzard.com/en/wow/t/paladin-base-crit-and-dodge-should-be-5-base-at-max-weapon-and-defense-skill/419469
+[wsc-base]: https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go

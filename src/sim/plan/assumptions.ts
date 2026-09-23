@@ -110,13 +110,9 @@ const REGISTRY = {
     text: 'Rage from damage taken is 10 × health lost ÷ your maximum health, an alternative to the logged fit, which uses the damage before armor.',
     docRef: `${RAGE}#forever-`,
   },
-  unknownBaseHealth: {
-    text: 'Health leaves out base health, which isn’t known for level-60 characters yet.',
-    docRef: `${STATS}#oq-2-base-health`,
-  },
-  unknownBaseDodge: {
-    text: 'Dodge leaves out base dodge, which isn’t known yet; base parry and block are taken as 5%.',
-    docRef: `${STATS}#oq-5-base-dodge-parry-and-block`,
+  baseStatPlaceholders: {
+    text: 'Some base values of a level-60 character aren’t measured yet, so the sim uses Classic-based placeholders until they are.',
+    docRef: `${STATS}#other-base-values-at-level-60`,
   },
   unknownBaseAttributes: {
     text: 'Base attributes for this race and class aren’t known yet, so the character sheet counts gear, buffs and talents only.',

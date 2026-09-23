@@ -116,8 +116,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **High · M4, M5**
 - **Assumes:** the paladin and druid class rows (Str, Agi, Sta, Int, Spi) stand in as D24
   placeholders until a sheet replaces them [?]; they no longer block either spec
-  ([D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)). Also unknown: base
-  health, base melee and spell crit, base dodge, parry and block, and the AP terms (paladin
+  ([D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)). Base health is in
+  use as a D24 placeholder (paladin 1,381, druid 1,483) [?]. Also unknown: base melee and spell
+  crit, base dodge, base parry and block (paladin 5% [?]), and the AP terms (paladin
   `160 + 2 × Str`, druid `2 × Str − 20`) [?]. The druid's 0.9% base crit and spirit regen
   `15 + Spirit/5` per 2 s come only from a secondary sim [?].
 - **Test:** standard naked sheet for a Human paladin, Dwarf paladin, Night Elf druid and Tauren
@@ -143,8 +144,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 **Medium · M2 (avoidance: M3)**
 - **Assumes:** warrior Str, Agi, Sta and Int from WarriorSim's pre-SoD Classic rows and additive
   race offsets [C]; warrior Spirit [?] (only WarriorSim's post-SoD data has it); base health
-  [?] (the client ships no base-HP table, only `hppersta.txt`: 10 HP per Stamina at 60 [F
-  client]); base dodge [?], base parry 5% and block 5% [?]; attributes floored once after all
+  1,689, a [?] placeholder ([D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23);
+  the client ships no base-HP table, only `hppersta.txt`: 10 HP per Stamina at 60 [F client]);
+  base dodge 0% [C]; base parry 5% and block 5% [?]; attributes floored once after all
   multipliers [?]; the first 20 Stamina and Intellect give 1 HP or mana each (the Forever sheet
   code does this [F client UI; ? on the server]; no genuine Classic Era source [?]).
 - **Test:** standard naked sheet for a Human or Night Elf warrior and an Orc or Tauren warrior
@@ -152,9 +154,10 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   truncated, 35 if rounded; a Night Elf warrior with Blessing of Kings reads Str 128 or 129, AP
   416 or 418.
 - **Samples:** one sheet per character.
-- **Changes:** confirms or corrects the warrior rows; fills base HP (tank survival, and tank
-  rage: Forever's rage from damage taken divides by max health, so leaving base HP out raises it)
-  and base avoidance; sets the rounding rule.
+- **Changes:** confirms or corrects the warrior rows; replaces the base HP placeholder (tank
+  survival, and tank rage: Forever's rage from damage taken divides by max health, so ±100 base
+  health moves tank TPS about ±0.3–0.7%) and settles base parry and block; sets the rounding
+  rule.
 - **Docs:** [stats OQ-1](mechanics/character-stats.md#oq-1-paladin-druid-and-skyborne-base-attributes),
   [OQ-2](mechanics/character-stats.md#oq-2-base-health),
   [OQ-5](mechanics/character-stats.md#oq-5-base-dodge-parry-and-block),

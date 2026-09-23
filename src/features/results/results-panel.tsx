@@ -537,10 +537,16 @@ function Cooldowns({ result, runConfig }: { result: SimResult; runConfig: SimCon
   )
 }
 
+/** Base values that only the defensive rows (Dodge, Parry, Block) show. */
+const AVOIDANCE_BASES = new Set(['base dodge', 'base parry', 'base block'])
+
 function CharacterSheet({ result }: { result: SimResult }) {
   const s = result.sheet
   const unknown = s.unknown ?? []
   const dualWield = s.weaponSkill.offHand !== null && s.weaponSkill.offHand > 0
+  const defensive = s.defense > 300 || s.blockValue > 0
+  // Decision D24: the unmeasured base values in the numbers shown (avoidance only with its rows).
+  const placeholders = (s.placeholders ?? []).filter((p) => defensive || !AVOIDANCE_BASES.has(p))
   const rows: [string, string][] = [
     ['Attack power', formatInt(s.attackPower)],
     ['Crit', formatPct(s.critPct)],
@@ -553,7 +559,7 @@ function CharacterSheet({ result }: { result: SimResult }) {
     ['Stamina', formatInt(s.stamina)],
     ['Health', formatInt(s.health)],
     ['Armor', formatInt(s.armor)],
-    ...(s.defense > 300 || s.blockValue > 0
+    ...(defensive
       ? ([
           ['Defense', formatInt(s.defense)],
           ['Dodge', formatPct(s.dodgePct)],
@@ -577,6 +583,11 @@ function CharacterSheet({ result }: { result: SimResult }) {
       {unknown.length > 0 && (
         <p className="text-xs text-muted-foreground">
           Not known for Forever yet, so left out: {unknown.join(', ')}.
+        </p>
+      )}
+      {placeholders.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          Classic-based values until they’re measured: {placeholders.join(', ')}.
         </p>
       )}
     </div>

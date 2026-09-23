@@ -32,10 +32,15 @@ describe('character-stats Example 1 through computeSheet', () => {
     expect(s.critPct).toBeCloseTo(4, 9)
     expect(s.hitPct).toBe(0)
     expect(s.armor).toBe(160)
-    expect(s.health).toBe(920)
+    // Base health 1,689 is D24's Classic-based placeholder (OQ-2): 1689 + 20 + 90 × 10.
+    expect(s.health).toBe(2609)
     expect(s.weaponSkill).toEqual({ mainHand: 300, offHand: null })
     expect(s.mana).toBeNull()
-    expect(s.unknown).toEqual(['base dodge', 'base health'])
+    // Nothing left out; base health is a placeholder (no weapon to parry with, no shield).
+    expect(s.unknown).toEqual([])
+    expect(s.placeholders).toEqual(['base health'])
+    // Dodge: base dodge 0% [C] + 80 / 20.
+    expect(s.dodgePct).toBeCloseTo(4, 9)
   })
 
   it('against a level-63 boss: forever 3.40%, classicEra 1.00% crit (no aura crit, no 1.8%)', () => {
@@ -57,7 +62,7 @@ describe('character-stats Example 1 through computeSheet', () => {
     expect(s.attackPower).toBe(424)
     expect(s.critPct).toBeCloseTo(4.4, 9)
     expect(s.armor).toBe(176)
-    expect(s.health).toBe(1030)
+    expect(s.health).toBe(1689 + 1030)
   })
 
   it('1c: holding a one-handed sword (Sword Specialization, aura crit)', () => {
@@ -453,7 +458,9 @@ describe('assumptions', () => {
     expect(fury).not.toContain('bossMelee')
     expect(fury).not.toContain('foreverBossParry')
     const prot = ids(defaultConfig('warrior-protection'))
-    expect(prot).toEqual(expect.arrayContaining(['bossMelee', 'damageTakenRage', 'foreverBossParry', 'whiteThreat', 'defiance', 'shieldBlockValue']))
+    expect(prot).toEqual(
+      expect.arrayContaining(['bossMelee', 'damageTakenRage', 'foreverBossParry', 'whiteThreat', 'defiance', 'shieldBlockValue', 'baseStatPlaceholders']),
+    )
     const classic = ids(withRules(defaultConfig('warrior-arms'), 'classicEra'))
     expect(classic).not.toContain('foreverGlancing')
     expect(classic).not.toContain('foreverWhiteRage')
@@ -484,28 +491,36 @@ describe('assumptions', () => {
     for (const race of ['horde-orc', 'horde-troll', 'alliance-night-elf', 'alliance-human']) expect(ids(race)).not.toContain('cooldownRacial')
   })
 
-  it('flags the damage-taken rage model in use, only when you take damage, and says the missing base health raises it (rage.md#forever-)', () => {
-    const taken = (config: SimConfig) => buildPlan(config).assumptions.filter((a) => a.id.startsWith('damageTakenRage') || a.id === 'unknownBaseHealth')
+  it('flags the damage-taken rage model in use, only when you take damage, and says rage divides by the placeholder base health (rage.md#forever-, D24)', () => {
+    const taken = (config: SimConfig) => buildPlan(config).assumptions.filter((a) => a.id.startsWith('damageTakenRage') || a.id === 'baseStatPlaceholders')
     const prot = defaultConfig('warrior-protection')
     const withModel = (damageTakenRage: NonNullable<SimConfig['rules']['damageTakenRage']>) => taken({ ...prot, rules: { ...prot.rules, damageTakenRage } })
     const [model, health] = taken(prot)
     expect(model.id).toBe('damageTakenRage')
     expect(model.text).toMatch(/rage of 10 × the hit before armor, block and absorbs, divided by your maximum health/)
-    expect(health.text).toMatch(/rage from damage taken divides by it/)
-    expect(withModel('foreverFlat').map((a) => a.id)).toEqual(['damageTakenRageFlat', 'unknownBaseHealth'])
-    expect(withModel('foreverHealthLost').map((a) => a.id)).toEqual(['damageTakenRageHealthLost', 'unknownBaseHealth'])
+    expect(health.text).toMatch(/placeholders/)
+    expect(health.text).toMatch(/base health 1,689, which rage from damage taken divides by/)
+    // A tank's avoidance placeholders: base parry and block 5% with a weapon and a shield.
+    expect(health.text).toMatch(/: base health 1,689, which rage from damage taken divides by; base parry 5%; base block 5%\.$/)
+    expect(withModel('foreverFlat').map((a) => a.id)).toEqual(['damageTakenRageFlat', 'baseStatPlaceholders'])
+    expect(withModel('foreverHealthLost').map((a) => a.id)).toEqual(['damageTakenRageHealthLost', 'baseStatPlaceholders'])
+    expect(withModel('foreverHealthLost')[1].text).toMatch(/divides by/)
     // A legacy id, in a raw setup that skipped normalizing, flags the model it now names.
     const legacy = { ...prot, rules: { ...prot.rules, damageTakenRage: 'foreverHpPreArmor' } } as unknown as SimConfig
-    expect(taken(legacy).map((a) => a.id)).toEqual(['damageTakenRage', 'unknownBaseHealth'])
+    expect(taken(legacy).map((a) => a.id)).toEqual(['damageTakenRage', 'baseStatPlaceholders'])
     // Classic Era's own model is [C]; it and `foreverFlat` don't divide by health.
     const classic = withModel('classic')
-    expect(classic.map((a) => a.id)).toEqual(['unknownBaseHealth'])
-    expect(classic[0].text).not.toMatch(/rage/)
-    expect(withModel('foreverFlat')[1].text).not.toMatch(/rage/)
-    // A DPS warrior takes no damage by default.
+    expect(classic.map((a) => a.id)).toEqual(['baseStatPlaceholders'])
+    expect(classic[0].text).not.toMatch(/divides by/)
+    expect(withModel('foreverFlat')[1].text).not.toMatch(/divides by/)
+    // A DPS warrior takes no damage by default, and the boss doesn't attack it: health only.
     const fury = defaultConfig('warrior-fury')
-    expect(taken(fury).map((a) => a.id)).toEqual(['unknownBaseHealth'])
-    expect(taken({ ...fury, fight: { ...fury.fight, damageTakenPerSec: 100 } }).map((a) => a.id)).toEqual(['damageTakenRage', 'unknownBaseHealth'])
+    const furyNotes = taken(fury)
+    expect(furyNotes.map((a) => a.id)).toEqual(['baseStatPlaceholders'])
+    expect(furyNotes[0].text).toMatch(/: base health 1,689\.$/)
+    const hit = taken({ ...fury, fight: { ...fury.fight, damageTakenPerSec: 100 } })
+    expect(hit.map((a) => a.id)).toEqual(['damageTakenRage', 'baseStatPlaceholders'])
+    expect(hit[1].text).toMatch(/base health 1,689, which rage from damage taken divides by\.$/)
   })
 
   it('flags Berserker Rage’s unknown damage-taken rage only when it’s used and damage is taken (rage.md, Q20)', () => {

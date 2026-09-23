@@ -3,7 +3,7 @@
 // (pipeline arithmetic only); everything else is the documented real value.
 import { describe, expect, it } from 'vitest'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
-import { CLASS_BASE } from './base-stats'
+import { BASE_PLACEHOLDERS, CLASS_BASE } from './base-stats'
 import { deriveStats, StatBlock } from './stat-block'
 
 const opts = { profile: FOREVER, applyUnmeasured: true, level: 60 }
@@ -19,6 +19,9 @@ function warrior(race = 'alliance-human') {
   b.baseAp = CLASS_BASE.warrior.baseAp
   b.critPerAgi = CLASS_BASE.warrior.critPerAgi
   b.spiMult = 1.05 // The Human Spirit
+  // Base health is D24's placeholder (base-stats.ts BASE_PLACEHOLDERS); base dodge 0 is [C].
+  b.baseHealth = BASE_PLACEHOLDERS.warrior.baseHealth!
+  b.baseDodge = CLASS_BASE.warrior.baseDodge!
   return b
 }
 
@@ -30,8 +33,9 @@ describe('Example 1: naked Human warrior', () => {
     expect(d.crit).toBeCloseTo(4, 9)
     expect(d.hit).toBe(0)
     expect(d.armor).toBe(160)
-    // Max HP = baseHP + 20 + 90 × 10; base HP is unknown (OQ-2), so the pipeline shows the rest.
-    expect(d.health).toBe(920)
+    // Max HP = 1,689 (the placeholder, OQ-2) + 20 + 90 × 10.
+    expect(d.health).toBe(2609)
+    expect(d.dodge).toBeCloseTo(4, 9)
     expect(d.defense).toBe(300)
   })
 
@@ -47,7 +51,7 @@ describe('Example 1: naked Human warrior', () => {
     expect(d.attackPower).toBe(424)
     expect(d.crit).toBeCloseTo(4.4, 9)
     expect(d.armor).toBe(176)
-    expect(d.health).toBe(1030)
+    expect(d.health).toBe(2719)
   })
 })
 

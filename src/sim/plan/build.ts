@@ -20,7 +20,7 @@ import { type AuraSpec, catalogueEffects, type Condition, type Effect, type Flat
 import { isTwoHand } from '../equip'
 import { currentDamageTakenRageModel, PROFILES } from '../rules/profiles'
 import { SPEC_META } from '../specs'
-import { CLASS_BASE } from '../stats/base-stats'
+import { BASE_PLACEHOLDERS, CLASS_BASE } from '../stats/base-stats'
 import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 import type { CharacterSheet, GearSlot, SimConfig } from '../types'
 import { Assumptions } from './assumptions'
@@ -163,6 +163,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const notes = new Assumptions()
   const blockers: string[] = []
   const unknown: string[] = []
+  /** Base values that are D24's Classic-based placeholders or other unmeasured [?] values (character-stats OQ-2, OQ-5). */
+  const placeholders: string[] = []
 
   // --- Gear ------------------------------------------------------------------------------------
   const equipped = new Map<GearSlot, Item>()
@@ -233,19 +235,33 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     )
   }
   block.baseAp = base.baseAp
-  block.baseCrit = base.baseCrit ?? 0
-  if (base.baseCrit === null) unknown.push('base crit')
-  block.critPerAgi = base.critPerAgi
-  block.spellCritPerInt = base.spellCritPerInt
-  block.baseSpellCrit = base.baseSpellCrit ?? 0
-  block.baseDodge = base.baseDodge ?? 0
-  if (base.baseDodge === null) unknown.push('base dodge')
+  // Decision D24: an unmeasured base value takes its Classic-based placeholder, listed in the
+  // assumptions (docs/mechanics/character-stats.md#other-base-values-at-level-60).
+  const stand = BASE_PLACEHOLDERS[classId]
+  const baseValue = (known: number | null, placeholder: number | undefined, name: string) => {
+    if (known !== null) return known
+    if (placeholder !== undefined) {
+      placeholders.push(name)
+      return placeholder
+    }
+    // Neither measured nor a placeholder: left out of the sheet, which says so.
+    unknown.push(name)
+    return 0
+  }
+  block.baseHealth = baseValue(base.baseHealth, stand.baseHealth, 'base health')
+  block.baseDodge = baseValue(base.baseDodge, stand.baseDodge, 'base dodge')
+  // A player parries with a melee weapon in hand; druids can't parry (character-stats §other base values).
   block.canParry = base.baseParry > 0 && weapons[HAND.main] !== null
   block.baseParry = base.baseParry
   block.canBlock = hasShield
   block.baseBlock = base.baseBlock
-  block.baseHealth = base.baseHealth ?? 0
-  if (base.baseHealth === null) unknown.push('base health')
+  // Base parry and block, 5% [?], are unmeasured too (character-stats OQ-5).
+  if (block.canParry) placeholders.push('base parry')
+  if (block.canBlock) placeholders.push('base block')
+  block.baseCrit = baseValue(base.baseCrit, stand.baseCrit, 'base crit')
+  block.critPerAgi = base.critPerAgi
+  block.spellCritPerInt = base.spellCritPerInt
+  block.baseSpellCrit = baseValue(base.baseSpellCrit, stand.baseSpellCrit, 'base spell crit')
   block.hasMana = base.baseMana !== null
   block.baseMana = base.baseMana ?? 0
 
@@ -448,6 +464,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     blockValue: shown.blockValue,
     defense: shown.defense,
     unknown,
+    placeholders,
   }
 
   // --- Procs, auras and breakdown rows ------------------------------------------------------------
@@ -713,12 +730,22 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (takenModel === 'foreverFlat') notes.add('damageTakenRageFlat')
     if (takenModel === 'foreverHealthLost') notes.add('damageTakenRageHealthLost')
   }
-  if (unknown.includes('base health')) {
-    // The `forever` and `foreverHealthLost` models divide by max health, so its missing base raises their rage.
+  // Decision D24: the Classic-based placeholders in this setup's numbers (character-stats OQ-2,
+  // OQ-3, OQ-5). Avoidance matters only when the boss attacks you.
+  const standIns: string[] = []
+  if (placeholders.includes('base health')) {
+    // The `forever` and `foreverHealthLost` models divide by max health.
     const dividesByHealth = takesDamage && (takenModel === 'forever' || takenModel === 'foreverHealthLost')
-    notes.add('unknownBaseHealth', dividesByHealth ? 'rage from damage taken divides by it, so that rage comes out high' : undefined)
+    standIns.push(`base health ${block.baseHealth.toLocaleString('en-US')}${dividesByHealth ? ', which rage from damage taken divides by' : ''}`)
   }
-  if (unknown.includes('base dodge') && (tank || front)) notes.add('unknownBaseDodge')
+  if (tank) {
+    if (placeholders.includes('base dodge')) standIns.push(`base dodge ${block.baseDodge}% before Agility`)
+    if (block.canParry) standIns.push(`base parry ${block.baseParry}%`)
+    if (block.canBlock) standIns.push(`base block ${block.baseBlock}%`)
+  }
+  if (placeholders.includes('base crit')) standIns.push(`base melee crit ${block.baseCrit}%`)
+  if (placeholders.includes('base spell crit')) standIns.push(`base spell crit ${block.baseSpellCrit}%`)
+  if (standIns.length > 0) notes.add('baseStatPlaceholders', standIns.join('; '))
   // A weapon racial with one matching weapon and one other: all attacks get it, as its tooltip reads;
   // Weaponmaster's axe or polearm with another weapon: only that weapon's attacks, as its tooltip
   // reads. Both are [?] (warrior.md §2.7, §2.9, Q15).

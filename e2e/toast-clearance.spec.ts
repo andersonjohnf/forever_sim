@@ -5,7 +5,7 @@ import { expect, test } from './fixtures.ts'
 // clears every control in a sheet or drawer, not just on the page (PV1); only a waiting toast
 // grows the bottom padding, so nothing moves when a 10 s toast goes (PV5); focus a toast hands
 // back is scrolled into view (PV6); focus a toast grows over scrolls clear of it (PV7); and
-// neither scrolls anything after a click (QV4).
+// neither scrolls anything after a click (QV4) or when the mouse spreads the toasts out (QV5).
 
 const PHONE = { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true }
 const DESKTOP = { viewport: { width: 1280, height: 900 } }
@@ -298,6 +298,27 @@ for (const [name, device] of [
       await expect(link).toBeFocused()
       expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(before)
       await expect(waiting).toBeVisible()
+    })
+
+    test('hovering the toasts spreads them out but scrolls nothing (QV5)', async ({ page }) => {
+      await page.goto('./')
+      await waitingToast(page)
+      const refusal = await talentRefusal(page)
+      // The footer's link, focused from the keyboard and just clear of the stack.
+      const link = page.getByRole('link', { name: 'wago.tools' })
+      await link.focus()
+      await restAboveToasts(link, 2)
+      expect(await covered(page)).toBe(0)
+      const before = await page.evaluate(() => window.scrollY)
+
+      // The mouse over the stack spreads it out, higher up the window.
+      const box = (await refusal.boundingBox())!
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+      await expect(refusal).toHaveAttribute('data-expanded', 'true')
+      await settled(page)
+      await frames(page)
+      expect(await page.evaluate(() => window.scrollY)).toBe(before)
+      await expect(link).toBeFocused()
     })
 
     test('after a click, a toast that hands focus back scrolls nothing, even to a text field (QV4)', async ({ page }) => {

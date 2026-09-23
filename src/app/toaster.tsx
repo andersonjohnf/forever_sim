@@ -24,8 +24,9 @@ const TOAST_GAP = 14
  *   of the page and of each sheet, so the last control in them has room to scroll clear of it.
  *   It's that toast's own reach at the front of the stack, so a 10 s toast coming or going doesn't
  *   change it: content never moves by itself when one times out.
- * - When the toasts reach higher than before (one came, or one behind moved to the front at full
- *   size), keyboard focus they now cover scrolls clear of them (revealFocus).
+ * - When the settled stack reaches higher than before (one came, or one behind moved to the front
+ *   at full size), keyboard focus the toasts now cover scrolls clear of them (revealFocus). The
+ *   mouse or Alt+T spreading them out doesn't count, so hovering them scrolls nothing.
  */
 function useToastClearance() {
   const ref = useRef<HTMLDivElement>(null)
@@ -34,6 +35,7 @@ function useToastClearance() {
     if (!container) return
     const root = document.documentElement
     let frame = 0
+    // How far up the settled stack reached when last measured.
     let reach = 0
     const measure = () => {
       cancelAnimationFrame(frame)
@@ -48,12 +50,15 @@ function useToastClearance() {
           reach = 0
           return
         }
-        // Where they are now (spread out, say), and where they settle: the front toast on the
-        // list's bottom edge, the rest a gap above it each.
+        // Where the stack settles: the front toast on the list's bottom edge, at its own height,
+        // and each toast behind it a gap higher. The mouse or Alt+T spreads the stack out, but
+        // that doesn't move where it settles.
         const edge = list.getBoundingClientRect()
-        const now = Math.min(...toasts.map((toast) => toast.getBoundingClientRect().top))
-        const settled = edge.bottom - Math.max(...toasts.map((toast) => toast.offsetHeight)) - TOAST_GAP * (toasts.length - 1)
-        const clearance = Math.max(0, Math.ceil(window.innerHeight - Math.min(now, settled)))
+        const front = toasts.find((toast) => toast.dataset.front === 'true') ?? toasts[0]
+        const settled = Math.ceil(window.innerHeight - edge.bottom + front.offsetHeight + TOAST_GAP * (toasts.length - 1))
+        // Where they are now: spread out, say.
+        const now = Math.ceil(window.innerHeight - Math.min(...toasts.map((toast) => toast.getBoundingClientRect().top)))
+        const clearance = Math.max(0, now, settled)
         root.style.setProperty('--toast-clearance', `${clearance}px`)
 
         // A toast behind the front one is cut to its height, so this reads the waiting toast's own
@@ -66,13 +71,15 @@ function useToastClearance() {
           root.style.removeProperty('--toast-wait-clearance')
         }
 
-        // Covered as the scroll padding counts it: reaching into the band the toasts take across
-        // the bottom of the window, so focus ends up where moving it would have put it.
-        if (clearance > reach) {
+        // Only when the settled stack reaches higher (a toast came, or one behind came to the front
+        // at full size), not when it spreads out: hovering it scrolls nothing. Covered as the
+        // scroll padding counts it: reaching into the band the toasts take across the bottom of
+        // the window, so focus ends up where moving it would have put it.
+        if (settled > reach) {
           const top = window.innerHeight - clearance
           revealFocus((box) => box.bottom > top && box.top < window.innerHeight)
         }
-        reach = clearance
+        reach = settled
       })
     }
     const observer = new MutationObserver(measure)

@@ -61,6 +61,9 @@ from further down the page scrolls up to the new section's top, just under the s
 Era's) start in view rather than under the tabs.
 
 **Setup sections**, in this order: **Character · Talents · Gear · Buffs · Rotation · Fight**.
+Each opens with its title and a short intro. An action (Reset rotation, the gear menu) sits on the
+title's right; on a phone the intro takes the full width under both, and from 640 px it sits
+beside the action (`SectionHeader` in `src/features/section.tsx`).
 
 ## Sections
 

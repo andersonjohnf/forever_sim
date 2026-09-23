@@ -23,10 +23,11 @@ const SLIMMERS: [RegExp, (data: Json) => Json][] = [
     /\/src\/data\/talents\/\w+\.json$/,
     (data) => ({
       ...data,
+      meta: omit(data.meta as Json, ['tables', 'wowDbDefs']),
       trees: (data.trees as Json[]).map((tree) => ({
         ...tree,
         talents: (tree.talents as Json[]).map((t) => ({
-          ...omit(t, ['classic', 'sources', 'changes', 'tooltip', 'evidenceStatus', 'comparisonStatus', 'discoveredAt', 'classicSpellId']),
+          ...omit(t, ['classic', 'tooltip', 'classicSpellId', 'previousName', 'changeKind']),
           ranks: { forever: (t.ranks as Json).forever },
         })),
       })),

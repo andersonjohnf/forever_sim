@@ -1,13 +1,13 @@
 /**
- * Types and build-code helpers for the WoW Forever talent snapshots in this
- * folder (warrior.json, druid.json, paladin.json), scraped from
- * https://foreverchanges.pro by scripts/scrape/talents.mjs.
+ * Types and build-code helpers for the WoW Forever talent trees in this folder (warrior.json,
+ * druid.json, paladin.json), generated from the Forever beta client's Trait tables and compared
+ * with the Classic Era client's Talent tables by scripts/scrape/talents-client.mjs.
  * See docs/data/talents.md for provenance and caveats.
  *
  * Usage:
  *   import warriorJson from './warrior.json';
  *   const warrior = warriorJson as TalentData;
- *   const ranks = decodeTalentCode(warrior, warrior.popularBuilds[0].code);
+ *   const ranks = decodeTalentCode(warrior, '30305013002-050530035150010051-');
  *
  * Tiers and columns are 0-based (tier 0 is the top row; tier N needs
  * N * rules.pointsPerTier points spent in lower tiers of the same tree).
@@ -15,40 +15,47 @@
 
 export type TalentClass = 'warrior' | 'druid' | 'paladin';
 
-/** reported_change_kind as the site reports it (known values; kept open). */
+/**
+ * How the talent compares with Classic Era (known values; kept open): "added" (no Classic
+ * talent), "unchanged" (same name, ranks, texts and prerequisite in the same cell), "moved"
+ * (only the tree or cell differs) or "modified".
+ */
 export type TalentChangeKind = 'added' | 'modified' | 'moved' | 'unchanged' | (string & {});
 
 export interface TalentSnapshotMeta {
-  /** Page the snapshot was taken from. */
+  /** Where the client files came from (the wago.tools API). */
   source: string;
-  /** ISO timestamp of the HTTP fetch (from the scraper's cache). */
+  /** ISO timestamp of the latest download among the client files read. */
   scrapedAt: string;
-  /** WoW Forever beta client build the site read the talents from. */
+  /** WoW Forever beta client build the trees come from. */
   foreverBuild: string;
+  /** Date wago.tools lists for the Forever build, or null for an older build. */
+  foreverBuildDate: string | null;
   /** Classic Era client build used for the Classic comparison. */
   classicBuild: string;
+  /** wago.tools products of the two builds. */
+  product: string;
+  classicProduct: string;
+  /** The class's TraitTree id and the TraitCurrency its points come from. */
+  traitTreeId: number;
+  traitCurrencyId: number;
+  /** Table (DB2) name → FileDataID, per build. */
+  tables: { forever: Record<string, number>; classic: Record<string, number> };
+  /** WoWDBDefs commit the tables were parsed with. */
+  wowDbDefs: { repository: string; commit: string };
   /** Script that produced the file. */
   scraper: string;
 }
 
 export interface TalentRules {
-  /** Talent points available at level 60 (the site caps at 51 even with the Talented legacy perk). */
+  /** Talent points available at level 60 (TraitCurrency.SourcedMax). */
   maxPoints: number;
-  /** Points that must be spent in lower tiers of a tree per tier. */
+  /** Points that must be spent in lower tiers of a tree per tier (TraitCond). */
   pointsPerTier: number;
   /** Deepest tier index (0-based). */
   maxTier: number;
   /** Rightmost column index (0-based). */
   maxCol: number;
-}
-
-export interface PopularBuild {
-  /** Id of the tree the build is named after. */
-  tree: string;
-  /** Points per tree, in `trees` order. */
-  points: [number, number, number];
-  /** Build code; see `TalentData.codeFormat` and `decodeTalentCode`. */
-  code: string;
 }
 
 export interface TalentPrerequisite {
@@ -72,68 +79,57 @@ export interface TalentRanks {
   forever: string[];
   /** Classic Era tooltip text per rank, or null when there is no Classic counterpart. */
   classic: string[] | null;
-  /** Site-estimated Forever texts, present only when the site has any. */
-  foreverEstimated?: string[];
 }
 
 /** The Classic Era talent this Forever talent was matched to. */
 export interface ClassicTalent {
   name: string;
+  /** Classic tree name (differs from `Talent.tree` when the talent moved trees). */
+  tree: string;
+  /** 0-based tier and column in the Classic tree. */
+  tier: number;
+  col: number;
   maxRank: number;
-  /** 0-based tier in the Classic tree. */
-  tier: number | null;
-  /** "same_name" or "same_spell" (renamed; see Talent.previousName). */
+  /** "same_name", or "same_spell" when it was renamed (see Talent.previousName). */
   matchStatus: string;
   /** Name of the Classic prerequisite, if Classic had an arrow into it. */
   prerequisite: string | null;
 }
 
-export interface TalentSource {
-  url: string;
-  title?: string;
-  type?: string;
-}
-
 export interface Talent {
-  /** Site id, e.g. "calc-warrior-arms-mortal-strike" (not always "calc-" prefixed). */
+  /** "<class>-<tree>-<name>", e.g. "warrior-arms-mortal-strike". Opaque; build codes don't store it. */
   id: string;
   name: string;
   /** Icon file name (Blizzard icon, lower case, no extension). */
   icon: string;
   /** Id of the tree the talent belongs to. */
   tree: string;
-  /** 0-based row; -1 only if unknown and not in the Forever tree. */
+  /** 0-based row. */
   tier: number;
-  /** 0-based column (0..3); -1 only if unknown and not in the Forever tree. */
+  /** 0-based column (0..3). */
   col: number;
-  /** Index within the tree used by build codes; -1 if not in the Forever tree. */
+  /** Index within the tree used by build codes (tier, then column). */
   order: number;
   maxRank: number;
   /** The arrow into this talent (may come from the same tier), or null. */
   prerequisite: TalentPrerequisite | null;
-  /** False for context-only records (e.g. Classic talents removed in Forever). */
+  /** Always true: every talent of the client's Trait tree is in the Forever tree. */
   inForeverTree: boolean;
   changeKind: TalentChangeKind;
-  /** The site's one-line change summary. */
-  summary: string | null;
-  /** The site's change bullet points (1-based tiers in the prose). */
-  changes: string[];
-  passive: boolean | null;
+  passive: boolean;
   tooltip: TalentTooltip | null;
   /** Classic name when the talent was renamed. */
   previousName: string | null;
+  /** Forever talent spell id (one spell for every rank; the ranks' values come from curves). */
+  spellId: number;
+  /** Classic Era spell id of rank 1. */
+  classicSpellId: number | null;
   ranks: TalentRanks;
   classic: ClassicTalent | null;
-  /** Classic Era spell id of rank 1 (from the Wowhead Classic source link). */
-  classicSpellId: number | null;
-  evidenceStatus: string;
-  comparisonStatus: string;
-  discoveredAt: string | null;
-  sources: TalentSource[];
 }
 
 export interface TalentTree {
-  /** Tree id used by talents and popular builds, e.g. "Arms", "Feral Combat". */
+  /** Tree id used by talents, e.g. "Arms", "Feral Combat". */
   id: string;
   name: string;
   icon: string;
@@ -141,7 +137,7 @@ export interface TalentTree {
   index: number;
   /** Client TalentTab id. */
   clientTreeId: string | null;
-  /** Forever-tree talents in `order`, then any context-only records. */
+  /** Talents in `order`. */
   talents: Talent[];
 }
 
@@ -149,9 +145,8 @@ export interface TalentData {
   meta: TalentSnapshotMeta;
   class: TalentClass;
   rules: TalentRules;
-  /** Prose description of the verified build-code format. */
+  /** Prose description of the build-code format. */
   codeFormat: string;
-  popularBuilds: PopularBuild[];
   trees: TalentTree[];
 }
 
@@ -195,9 +190,9 @@ export function decodeTalentCode(data: TalentData, code: string): TalentRanksByI
 }
 
 /**
- * Encodes ranks by talent id as a build code, in the site's canonical form:
- * always three segments, trailing zeros trimmed ("05050103-" style).
- * Ids that are unknown or not in the Forever tree are ignored.
+ * Encodes ranks by talent id as a build code in canonical form: always three
+ * segments, trailing zeros trimmed ("05050103-" style). Ids that are unknown or
+ * not in the Forever tree are ignored.
  */
 export function encodeTalentCode(data: TalentData, ranksById: TalentRanksById): string {
   return talentsInCodeOrder(data)
@@ -211,10 +206,14 @@ export function pointsPerTree(data: TalentData, ranksById: TalentRanksById): num
 }
 
 /**
- * Checks a finished build against the calculator's rules: known Forever-tree
- * talents, ranks within 0..maxRank, total <= rules.maxPoints, tier gates
- * (pointsPerTier per tier, counted in the same tree) and prerequisites at their
+ * Checks a finished build against the talent rules: known Forever-tree talents,
+ * ranks within 0..maxRank, total <= rules.maxPoints, tier gates (pointsPerTier
+ * per tier, counted in lower tiers of the same tree) and prerequisites at their
  * required rank. Returns human-readable problems; empty means valid.
+ *
+ * The client's tier-7 gates count the whole tree, the tier-7 talent included; this
+ * check counts only lower tiers, the stricter Classic rule
+ * (docs/data/talents.md#tier-gates).
  */
 export function validateTalentBuild(data: TalentData, ranksById: TalentRanksById): string[] {
   const problems: string[] = [];

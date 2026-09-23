@@ -65,7 +65,9 @@ is cached under `.cache/client/` (git-ignored) and is never downloaded again unl
 Era) and 12 `.dbd` files from GitHub. They are listed in [Tables used](#tables-used).
 Writing `pre-bis.json` (M1.5c-2) added **6 more**, all HTTP 200: `ItemSubClass`, `Faction` and
 `ItemLimitCategory` from the Forever build and their three `.dbd` files
-([items.md](items.md#how-the-data-was-obtained)).
+([items.md](items.md#how-the-data-was-obtained)). Rebuilding the talent trees (M1.5d) added
+**2 more**, both HTTP 200: the Classic Era `Talent` and `TalentTab` tables (their `.dbd` files
+were cached; [talents.md](talents.md#requests)).
 
 A later run from the cache makes no requests. A fresh build costs 44 wago.tools requests for
 the datasets (38 DB2 files, 4 game tables, the build lookup and the file list), about 30 more
@@ -86,13 +88,16 @@ when WoWDBDefs is re-pinned.
   <build>/items-compare.md (+ .json)   the item-derivation report (npm run compare:items)
   <build>/items-diff.md (+ .json)      the foreverchanges → client dataset diff (npm run diff:items)
   items-foreverchanges-snapshot.json   the last foreverchanges pre-bis.json (git b94a076), for both reports
+  <build>/talents-diff.md (+ .json)    the foreverchanges → client talent diff (npm run diff:talents)
+  <build>/talents-changes.md           the talent dataset's Forever-vs-Classic tables, for talents.md
+  talents-foreverchanges-snapshot/     the last foreverchanges talents/<class>.json (git 403142e)
   github/wowdbdefs/<sha>/…             manifest.json and definitions/*.dbd
   requests.jsonl
 ```
 
 The download layer ([`lib/wago.mjs`](../../scripts/scrape/lib/wago.mjs)) is generic over product
 and build, and every table it touches is kept whole in `tables/`, not just the extracted subset.
-Both builds' tables are already cached: 79 DB2 files for 1.60.1.69913 and 45 for 1.15.9.69722
+Both builds' tables are already cached: 82 DB2 files for 1.60.1.69913 and 47 for 1.15.9.69722
 (plus its `shieldblockregular.txt` game table).
 
 ## Parser coverage
@@ -303,14 +308,19 @@ Specialization 5–25 / 20–100 / 2–10 on its three effects. So `rankSpellIds
 id and **`rankEffects` holds the numbers**. A tree's three tabs are its three `PosX` clusters;
 tier = (`PosY` − top) / 600, column = (`PosX` − tab left) / 600.
 
-- **All 156 talents mapped by name**, 0 unmapped, 0 by position. Every one sits in the same tier
-  and column with the same max rank as the scraped tree.
-- **One prerequisite difference:** the client makes Nature's Splendor (druid Balance) require
-  Nature's Majesty (a `TraitEdge` of type 3, "required for availability"); the scraped tree has
-  no arrow there. Type-2 edges are the ordinary arrows and type-0 edges are visual only.
+- **All 156 talents mapped by name**, 0 unmapped, 0 by position, 0 mismatches. Since M1.5d the
+  talent trees in `src/data/talents` are themselves built from these tables
+  ([talents.md](talents.md)), so this mapping now checks the two readers against each other:
+  same cells, max ranks and arrows. The mapper still reads the talent ids from
+  `src/data/talents/<class>.json`, so re-run `npm run scrape:client` after `npm run
+  scrape:talents` changes them.
+- **Nature's Splendor needs Nature's Majesty** (druid Balance): a `TraitEdge` of type 3,
+  "required for availability". The foreverchanges tree had no arrow there; the client talent
+  trees have it ([talents.md](talents.md#prerequisite-arrows)). Type-2 edges are the ordinary
+  arrows and type-0 edges are visual only.
 - The client also ships an older druid tree (1083) on a different grid, with no tier conditions
-  and a different Feral Charge spell. The mapper picks 1089, which matches every scraped name
-  and cell.
+  and a different Feral Charge spell. The mapper picks 1089, which matches every name and cell,
+  and so does the talent generator (by spell family, currency and tier conditions).
 - 112 of the 121 talents with curves show exactly those numbers in their Forever tooltips.
   The other nine have hidden effects the tooltip doesn't print (King of the Jungle's 5/10/15,
   Feral Instinct, Redoubt, Holy Power, Illumination, Last Stand, Eclipse) or convert ms to
@@ -552,6 +562,8 @@ git diff --stat src/data/client
 npm run scrape:items                              # the item pool from the client (items-client.mjs, cached)
 npm run compare:items                             # the derivation vs the saved foreverchanges item dataset
 npm run diff:items                                # the item pool vs the saved foreverchanges item dataset
+npm run scrape:talents                            # the talent trees from the client (talents-client.mjs, cached)
+npm run diff:talents                              # the talent trees vs the saved foreverchanges talent dataset
 ```
 
 The scraper reads `src/data/{spells,talents,races,items}/*.json` and the buffs doc to build the
@@ -565,13 +577,14 @@ rating isn't 14.
 
 ## Phase 2 notes: what this client ships
 
-For rebuilding `src/data/{spells,talents,races,items}` from client files (D17). **Items are
-done** (M1.5c-2, [items.md](items.md)); spells, talents and races follow in M1.5d–f.
+For rebuilding `src/data/{spells,talents,races,items}` from client files (D17). **Items and
+talents are done** (M1.5c-2, [items.md](items.md); M1.5d, [talents.md](talents.md)); spells
+and races follow in M1.5e–f.
 
 | Need | In 1.60.1.69913? |
 | --- | --- |
 | Encounter Journal (`JournalInstance`, `JournalEncounter`, `JournalEncounterItem`) | the files ship but are **empty (0 records)**: no drop sources from the client, so every item's `source` is null |
-| Talent layout and prerequisites | yes: `TraitNode` (`PosX`/`PosY`), `TraitEdge` (types 2 and 3 gate), `TraitNodeGroup` + `TraitNodeGroupXTraitCond` + `TraitCond` (`SpentAmountRequired` per tier), `TraitCurrency` 3820 (51 points) |
+| Talent layout and prerequisites | yes: `TraitNode` (`PosX`/`PosY`), `TraitEdge` (types 2 and 3 gate), `TraitNodeGroupXTraitNode` + `TraitNodeGroupXTraitCond` + `TraitCond` (`SpentAmountRequired` per tier: the lower tiers for tiers 2–6, the whole tree for tier 7), `TraitCurrency` 3820 (51 points). Used by `src/data/talents` since M1.5d, with the Classic Era `Talent`/`TalentTab` rows for the comparison ([talents.md](talents.md)) |
 | Race/class combinations | yes: `CharBaseInfo`, 56 pairs (Classic Era: 40) |
 | Trainer vs talent vs automatic | `SkillLineAbility.AcquireMethod`: 0 trainer (6,958 rows), 2 learned automatically (420, e.g. Heroic Strike r1, Battle Stance), 3 granted by another spell (383, e.g. the Flurry buff, Last Stand's effect), 1 (63 rows, not examined). Talents themselves come from the Trait tables, not SkillLineAbility |
 | Items | yes: `ItemSparse` 19,171 rows, `Item` 31,675, `ItemSet` 532 (+ `ItemSetSpell` 1,462), `ItemEffect` 12,571 + `ItemXItemEffect` 12,565 (Classic Era links through `ItemEffect.ParentItemID` instead), `ItemDisplayInfo` 42,047. Stats, armor and damage are derived as in [Items from the client](#items-from-the-client); names of subclasses, factions, skills and Unique-Equipped groups come from `ItemSubClass`, `Faction`, `SkillLine` and `ItemLimitCategory`. Used by `pre-bis.json` since M1.5c-2 |

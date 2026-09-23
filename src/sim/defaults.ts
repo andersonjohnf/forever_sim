@@ -39,25 +39,41 @@ export interface TalentPreset {
   code: string
 }
 
-/** Documented presets beyond the site's popular builds (class docs §Sensible defaults). */
-const EXTRA_TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
-  warrior: [{ name: 'Fury + Precision', code: '30305013-050520035150310051-' }],
-  druid: [{ name: 'Feral (bear)', code: '050012-5523032120132210551-' }],
-  paladin: [],
+/**
+ * Talent presets per class: the builds the class docs document for the specs this sim covers,
+ * each spec's default first, then its documented alternatives. Validated in
+ * src/data/data.test.ts (legal, round-trip, same ranks by name as when they were written).
+ */
+const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
+  warrior: [
+    // docs/classes/warrior.md#61-talent-builds: Fury 17/34/0
+    { name: 'Fury (default)', code: DEFAULT_TALENTS['warrior-fury'] },
+    // docs/classes/warrior.md#61-talent-builds: "Fury + Precision" 15/36/0, the Fury alternative
+    { name: 'Fury + Precision', code: '30305013-050520035150310051-' },
+    // docs/classes/warrior.md#61-talent-builds: Arms 37/14/0
+    { name: 'Arms (default)', code: DEFAULT_TALENTS['warrior-arms'] },
+    // docs/classes/warrior.md#61-talent-builds: Protection 5/5/36
+    { name: 'Protection (default)', code: DEFAULT_TALENTS['warrior-protection'] },
+    // docs/classes/warrior.md#61-talent-builds: the Protection "TPS" variant, also 5/5/36
+    { name: 'Protection (TPS)', code: '32-05-552001233201210531' },
+  ],
+  druid: [
+    // docs/classes/druid.md#71-talents: Cat 9/37/5
+    { name: 'Feral cat (default)', code: DEFAULT_TALENTS['druid-feral-cat'] },
+    // docs/classes/druid.md#71-talents: Bear 8/43/0
+    { name: 'Feral bear (default)', code: DEFAULT_TALENTS['druid-feral-bear'] },
+  ],
+  paladin: [
+    // docs/classes/paladin.md#retribution-defaults: Holy 10 / Prot 8 / Ret 33
+    { name: 'Retribution (default)', code: DEFAULT_TALENTS['paladin-retribution'] },
+    // docs/classes/paladin.md#protection-defaults: Holy 2 / Prot 42 / Ret 7
+    { name: 'Protection (default)', code: DEFAULT_TALENTS['paladin-protection'] },
+  ],
 }
 
-/** Popular builds for the trees this sim covers, relabelled for display. */
-const POPULAR_TREES: Record<ClassId, Record<string, string>> = {
-  warrior: { Arms: 'Arms', Fury: 'Fury', Protection: 'Protection' },
-  druid: { 'Feral Combat': 'Feral (cat)' },
-  paladin: { Retribution: 'Retribution', Protection: 'Protection' },
-}
-
+/** The documented talent presets of a class (TALENT_PRESETS). */
 export function talentPresets(classId: ClassId): TalentPreset[] {
-  const popular = TALENT_DATA[classId].popularBuilds
-    .filter((b) => b.tree in POPULAR_TREES[classId])
-    .map((b) => ({ name: `Popular ${POPULAR_TREES[classId][b.tree]}`, code: b.code }))
-  return [...popular, ...EXTRA_TALENT_PRESETS[classId]]
+  return TALENT_PRESETS[classId]
 }
 
 /** Default race per class: the doc recommendations (class docs §Sensible defaults). */

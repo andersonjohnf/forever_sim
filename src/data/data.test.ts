@@ -2,6 +2,9 @@
 // These guard against scraper regressions, not against beta balance changes: they check
 // structure and internal consistency, and avoid hard-coding values a new build may change.
 import { describe, expect, it } from 'vitest'
+import { TALENT_EFFECTS } from '@/sim/classes/warrior/talents'
+import { defaultConfig, talentPresets } from '@/sim/defaults'
+import { SPEC_IDS, SPEC_META } from '@/sim/specs'
 import itemJson from './items/pre-bis.json'
 import type { ItemData } from './items/types'
 import raceJson from './races/races.json'
@@ -17,6 +20,7 @@ import {
   encodeTalentCode,
   pointsPerTree,
   type TalentData,
+  talentsInCodeOrder,
   validateTalentBuild,
 } from './talents/types'
 import warriorTalentJson from './talents/warrior.json'
@@ -57,8 +61,9 @@ const allDatasets: Record<string, { meta: { source: string; scrapedAt: string; f
 
 describe.each(Object.entries(allDatasets))('%s', (name, data) => {
   it('has a meta envelope tied to a Forever build', () => {
-    // Items come from the client files (decision D17); the rest still from foreverchanges.pro.
-    expect(data.meta.source).toMatch(name === 'items' ? /^https:\/\/wago\.tools\/api\// : /^https:\/\/foreverchanges\.pro\//)
+    // Items and talents come from the client files (decision D17); the rest still from foreverchanges.pro.
+    const fromClient = name === 'items' || name.startsWith('talents/')
+    expect(data.meta.source).toMatch(fromClient ? /^https:\/\/wago\.tools\/api\// : /^https:\/\/foreverchanges\.pro\//)
     expect(Number.isNaN(Date.parse(data.meta.scrapedAt))).toBe(false)
     expect(data.meta.foreverBuild).toMatch(/^1\.60\.\d+\.\d+$/)
   })
@@ -85,41 +90,196 @@ describe.each(Object.entries(spellBooks))('spells/%s', (cls, book) => {
   })
 })
 
-// Talent builds the class docs recommend as defaults or presets. If a doc changes a build,
-// change it here too: an invalid default build should fail CI, not confuse the guild.
-const DOCUMENTED_BUILDS: Record<keyof typeof talentData, string[]> = {
-  warrior: [
-    '30305013-050520035150310051-', // Fury + Precision (docs/classes/warrior.md §6.1)
-  ],
-  druid: [
-    '050012-5523032120132210551-', // Feral bear default (docs/classes/druid.md)
-  ],
-  paladin: [
-    '250003-503-052052310012330321', // Retribution default (docs/classes/paladin.md)
-    '2-4530513321301551-502', // Protection default (docs/classes/paladin.md)
-  ],
+// Every build code the repo stores or documents: defaults and presets (src/sim/defaults.ts), the
+// class docs' builds (warrior.md §6.1, druid.md §7.1, paladin.md), the old site's popular builds
+// and the codes in tests. Share links and saved setups store codes, so a code must keep meaning
+// the same build: each entry lists, per tree, the ranks by talent name it decoded to when it was
+// written (under the foreverchanges.pro dataset). If a doc changes a build, change it here too.
+const STORED_BUILDS: Record<keyof typeof talentData, Record<string, [string, string, string]>> = {
+  warrior: {
+    // Fury default (17/34/0)
+    '30305013002-050530035150010051-': [
+      'Improved Heroic Strike 3, Improved Rend 3, Improved Tactical Mastery 5, Anger Management 1, Deep Wounds 3, Impale 2',
+      'Cruelty 5, Unbridled Wrath 5, Improved Cleave 3, Boundless Rage 3, Dual Wield Specialization 5, Raging Blows 1, Enrage 5, Death Wish 1, Flurry 5, Bloodthirst 1',
+      '',
+    ],
+    // Fury + Precision (15/36/0)
+    '30305013-050520035150310051-': [
+      'Improved Heroic Strike 3, Improved Rend 3, Improved Tactical Mastery 5, Anger Management 1, Deep Wounds 3',
+      'Cruelty 5, Unbridled Wrath 5, Improved Cleave 2, Boundless Rage 3, Dual Wield Specialization 5, Raging Blows 1, Enrage 5, Precision 3, Death Wish 1, Flurry 5, Bloodthirst 1',
+      '',
+    ],
+    // Arms default (37/14/0)
+    '30305213132515201-05050103-': [
+      'Improved Heroic Strike 3, Improved Rend 3, Improved Tactical Mastery 5, Improved Overpower 2, Anger Management 1, Deep Wounds 3, Spearing Strike 1, Two-Handed Weapon Specialization 3, Impale 2, Bloodthrill 5, Sweeping Strikes 1, Weaponmaster 5, Improved Slam 2, Mortal Strike 1',
+      'Cruelty 5, Unbridled Wrath 5, Piercing Howl 1, Boundless Rage 3',
+      '',
+    ],
+    // Protection default (5/5/36)
+    '05-05-552001233201210531': [
+      'Deflection 5',
+      'Cruelty 5',
+      'Shield Specialization 5, Anticipation 5, Improved Bloodrage 2, Last Stand 1, Master of Defense 2, Improved Revenge 3, Defiance 3, Improved Sunder Armor 2, Vanguard 1, Improved Shield Wall 2, Concussion Blow 1, Bastion 5, Focused Rage 3, Shield Slam 1',
+    ],
+    // Protection "TPS" variant (5/5/36)
+    '32-05-552001233201210531': [
+      'Improved Heroic Strike 3, Deflection 2',
+      'Cruelty 5',
+      'Shield Specialization 5, Anticipation 5, Improved Bloodrage 2, Last Stand 1, Master of Defense 2, Improved Revenge 3, Defiance 3, Improved Sunder Armor 2, Vanguard 1, Improved Shield Wall 2, Concussion Blow 1, Bastion 5, Focused Rage 3, Shield Slam 1',
+    ],
+  },
+  druid: {
+    // Feral cat default (9/37/5)
+    '050022-5520002123032213051-05': [
+      "Genesis 5, Nature's Majesty 2, Nature's Reach 2",
+      'Ferocity 5, Heart of the Wild 5, Feral Swiftness 2, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Shredding Attacks 3, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, Leader of the Pack 1, King of the Jungle 3, Rend and Tear 5, Berserk 1',
+      'Furor 5',
+    ],
+    // Feral bear default (8/43/0)
+    '050012-5523032120132210551-': [
+      "Genesis 5, Nature's Majesty 1, Nature's Reach 2",
+      'Ferocity 5, Heart of the Wild 5, Feral Swiftness 2, Feral Instinct 3, Thick Hide 3, Savage Fury 2, Feral Charge 1, Sharpened Claws 2, Mangle 1, Predatory Strikes 3, Primal Fury 2, Predatory Instincts 2, Leader of the Pack 1, Natural Reaction 5, Rend and Tear 5, Berserk 1',
+      '',
+    ],
+    // Balance (41/5/0), druid.md
+    '5532220115501351-05-': [
+      "Improved Wrath 5, Genesis 5, Moonglow 3, Improved Moonfire 2, Nature's Majesty 2, Nature's Reach 2, Nature's Splendor 1, Insect Swarm 1, Vengeance 5, Improved Starfire 5, Nature's Grace 1, Eclipse 3, Moonfury 5, Moonkin Form 1",
+      'Heart of the Wild 5',
+      '',
+    ],
+    // Restoration (11/5/35), the old site's popular build
+    '05302001-05-5050035103113251': [
+      "Genesis 5, Moonglow 3, Nature's Majesty 2, Nature's Splendor 1",
+      'Heart of the Wild 5',
+      "Nature's Focus 5, Naturalist 5, Reflection 3, Gift of Nature 5, Gift of the Earthmother 1, Improved Rejuvenation 3, Swiftmend 1, Nature's Swiftness 1, Living Spirit 3, Improved Tranquility 2, Improved Regrowth 5, Wild Growth 1",
+    ],
+  },
+  paladin: {
+    // Retribution default (10/8/33)
+    '250003-503-052052310012330321': [
+      'Improved Holy Strike 2, Divine Strength 5, Improved Seals 3',
+      'Toughness 5, Precision 3',
+      'Benediction 5, Improved Judgement 2, Conviction 5, Vindication 2, Sanctified Judgement 3, Seal of Command 1, Sacred Arbiter 1, Crusade 2, Two-Handed Weapon Specialization 3, Vengeance 3, Champion of the Light 3, Instrument of Law 2, Twist of Light 1',
+    ],
+    // Protection default (2/42/7)
+    '2-4530513321301551-502': [
+      'Improved Holy Strike 2',
+      "Toughness 4, Redoubt 5, Precision 3, Anticipation 5, Improved Seal of Fury 1, Improved Righteous Fury 3, Shield Specialization 3, Sacred Duty 2, Swift Judgement 1, One-Handed Weapon Specialization 3, Templar's Bulwark 1, Reckoning 5, Iron Creed 5, Holy Shield 1",
+      'Deflection 5, Improved Judgement 2',
+    ],
+    // Holy (36/10/5), paladin.md Sources
+    '005320213225131051-5032-05': [
+      "Divine Intellect 5, Healing Light 3, Spiritual Focus 2, Unyielding Faith 2, Voice of Truth 1, Reverence 3, Purifying Power 2, Infusion of Light 2, Illumination 5, Divine Favor 1, Divine Precision 3, Holy Shock 1, Holy Power 5, Light's Vigil 1",
+      "Toughness 5, Precision 3, Guardian's Favor 2",
+      'Benediction 5',
+    ],
+  },
+}
+
+/** Ranks by talent name, per tree, in code order: "Name rank, Name rank". */
+function describeBuild(data: TalentData, code: string): string[] {
+  const ranks = decodeTalentCode(data, code)
+  return talentsInCodeOrder(data).map((talents) =>
+    talents
+      .filter((t) => ranks[t.id])
+      .map((t) => `${t.name} ${ranks[t.id]}`)
+      .join(', '),
+  )
 }
 
 describe.each(Object.entries(talentData))('talents/%s', (cls, data) => {
-  it('places every talent in a unique tree cell', () => {
+  const all = data.trees.flatMap((t) => t.talents)
+  const byId = new Map(all.map((t) => [t.id, t]))
+
+  it('places every talent in a unique tree cell on the 4-column grid', () => {
     for (const tree of data.trees) {
       const cells = tree.talents.map((t) => `${t.tier},${t.col}`)
       expect(new Set(cells).size, tree.name).toBe(cells.length)
+      for (const t of tree.talents) {
+        expect(t.col, t.name).toBeGreaterThanOrEqual(0)
+        expect(t.col, t.name).toBeLessThanOrEqual(data.rules.maxCol)
+        expect(t.tier, t.name).toBeLessThanOrEqual(data.rules.maxTier)
+      }
     }
   })
 
-  const builds = [
-    ...data.popularBuilds.map((b) => ({ code: b.code, points: b.points as number[] })),
-    ...DOCUMENTED_BUILDS[cls as keyof typeof talentData].map((code) => ({ code, points: null })),
-  ]
+  it('names every talent once per class (the engine keys on names)', () => {
+    expect(new Set(all.map((t) => t.name)).size).toBe(all.length)
+    expect(new Set(all.map((t) => t.id)).size).toBe(all.length)
+  })
 
-  it.each(builds)('build $code is legal and round-trips', ({ code, points }) => {
-    const ranks = decodeTalentCode(data, code)
-    expect(validateTalentBuild(data, ranks)).toEqual([])
-    const spent = pointsPerTree(data, ranks)
-    expect(spent.reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(51)
-    if (points) expect(spent).toEqual(points)
-    expect(encodeTalentCode(data, ranks)).toBe(code)
+  it('gives every rank a Forever text and points arrows at max ranks in the same tree', () => {
+    for (const t of all) {
+      expect(t.ranks.forever, t.name).toHaveLength(t.maxRank)
+      for (const text of t.ranks.forever) expect(text, t.name).toMatch(/\w/)
+      if (t.ranks.classic) expect(t.ranks.classic.length, t.name).toBe(t.classic?.maxRank)
+      if (!t.prerequisite) continue
+      const pre = byId.get(t.prerequisite.talentId)
+      expect(pre?.tree, t.name).toBe(t.tree)
+      expect(t.prerequisite.rank, t.name).toBe(pre?.maxRank)
+      expect(pre!.tier, t.name).toBeLessThanOrEqual(t.tier)
+    }
+  })
+
+  it('keeps `order` equal to the build-code position', () => {
+    for (const talents of talentsInCodeOrder(data)) talents.forEach((t, i) => expect(t.order, t.name).toBe(i))
+  })
+
+  it.each(Object.entries(STORED_BUILDS[cls as keyof typeof talentData]))(
+    'build %s is legal, round-trips and decodes to the ranks it was written with',
+    (code, expected) => {
+      const ranks = decodeTalentCode(data, code)
+      expect(validateTalentBuild(data, ranks)).toEqual([])
+      expect(pointsPerTree(data, ranks).reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(data.rules.maxPoints)
+      expect(encodeTalentCode(data, ranks)).toBe(code)
+      expect(describeBuild(data, code)).toEqual(expected)
+    },
+  )
+})
+
+describe('talent presets and defaults', () => {
+  it('are all stored builds, so their meaning is pinned above', () => {
+    for (const spec of SPEC_IDS) {
+      const { classId } = SPEC_META[spec]
+      expect(Object.keys(STORED_BUILDS[classId]), spec).toContain(defaultConfig(spec).talents)
+    }
+    for (const classId of ['warrior', 'druid', 'paladin'] as const) {
+      const presets = talentPresets(classId)
+      expect(presets.length, classId).toBeGreaterThan(0)
+      expect(new Set(presets.map((p) => p.name)).size, classId).toBe(presets.length)
+      expect(new Set(presets.map((p) => p.code)).size, classId).toBe(presets.length)
+      for (const p of presets) expect(Object.keys(STORED_BUILDS[classId]), p.name).toContain(p.code)
+    }
+  })
+})
+
+// Talent names are an engine contract: src/sim keys talent effects and rules on names
+// ('Unbridled Wrath', 'Improved Execute'), so every name it uses must exist in the class's data.
+// Names are read from TALENT_EFFECTS and from the source of src/sim: `talents.has('…')`,
+// `talents.get('…')` and `rank(talents, '…')`. Files under src/sim/classes/<class>/ belong to
+// that class; any other file's names must exist in some class.
+const SIM_SOURCES = import.meta.glob<string>(['../sim/**/*.ts', '!../sim/**/*.test.ts'], { query: '?raw', import: 'default', eager: true })
+const NAME_USES = [/\btalents\.(?:has|get)\(\s*(['"])(.+?)\1/g, /\brank\(\s*talents\s*,\s*(['"])(.+?)\1/g]
+
+describe('talent names the engine keys on', () => {
+  const uses: { file: string; cls: keyof typeof talentData | null; name: string }[] = []
+  for (const [file, source] of Object.entries(SIM_SOURCES)) {
+    const cls = (/\/classes\/(warrior|druid|paladin)\//.exec(file)?.[1] ?? null) as keyof typeof talentData | null
+    for (const re of NAME_USES) for (const m of source.matchAll(re)) uses.push({ file, cls, name: m[2] })
+  }
+  for (const name of Object.keys(TALENT_EFFECTS)) uses.push({ file: '../sim/classes/warrior/talents.ts (TALENT_EFFECTS)', cls: 'warrior', name })
+
+  it('finds the names (guards the scan itself)', () => {
+    const names = new Set(uses.map((u) => u.name))
+    for (const name of ['Unbridled Wrath', 'Improved Execute', 'Flurry', 'Bloodthirst', 'Anger Management']) expect(names).toContain(name)
+  })
+
+  it('exist in the talent data', () => {
+    const namesOf = (cls: keyof typeof talentData) => new Set(talentData[cls].trees.flatMap((t) => t.talents.map((x) => x.name)))
+    const missing = uses.filter((u) =>
+      u.cls ? !namesOf(u.cls).has(u.name) : !(['warrior', 'druid', 'paladin'] as const).some((c) => namesOf(c).has(u.name)),
+    )
+    expect(missing).toEqual([])
   })
 })
 

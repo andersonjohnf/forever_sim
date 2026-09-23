@@ -94,6 +94,24 @@ test.describe('talents', () => {
     await expect(page.getByText('37 / 14 / 0')).toBeVisible()
   })
 
+  test('loads a documented preset from the menu', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('tab', { name: 'Talents', exact: true }).click()
+    const presets = page.getByRole('combobox', { name: 'Talent build presets' })
+    await expect(presets).toHaveText('Fury (default)')
+    await presets.click()
+    await expect(page.getByRole('option')).toHaveText([
+      'Fury (default)',
+      'Fury + Precision',
+      'Arms (default)',
+      'Protection (default)',
+      'Protection (TPS)',
+    ])
+    await page.getByRole('option', { name: 'Fury + Precision' }).click()
+    await expect(page.getByText('15 / 36 / 0')).toBeVisible()
+    await expect(presets).toHaveText('Fury + Precision')
+  })
+
   test('adds a point with a click and removes it with a right-click', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('tab', { name: 'Talents', exact: true }).click()

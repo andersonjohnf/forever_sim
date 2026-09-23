@@ -1,2836 +1,1744 @@
 {
   "meta": {
-    "source": "https://foreverchanges.pro/talents/warrior",
-    "scrapedAt": "2026-09-22T20:29:43.167Z",
-    "foreverBuild": "1.60.1.69913",
     "classicBuild": "1.15.9.69722",
-    "scraper": "scripts/scrape/talents.mjs"
+    "classicProduct": "wow_classic_era",
+    "foreverBuild": "1.60.1.69913",
+    "foreverBuildDate": "2026-09-18",
+    "product": "wow_classic_beta",
+    "scrapedAt": "2026-09-23T01:58:04Z",
+    "scraper": "scripts/scrape/talents-client.mjs",
+    "source": "https://wago.tools/api/casc",
+    "tables": {
+      "classic": {
+        "ChrClasses": 1361031,
+        "Spell": 1140089,
+        "SpellAuraOptions": 1139952,
+        "SpellDescriptionVariables": 1140004,
+        "SpellDuration": 1137828,
+        "SpellEffect": 1140088,
+        "SpellMisc": 1003144,
+        "SpellName": 1990283,
+        "SpellRadius": 1134584,
+        "SpellRange": 1146820,
+        "SpellTargetRestrictions": 1139993,
+        "SpellXDescriptionVariables": 1724949,
+        "Talent": 1369062,
+        "TalentTab": 2178102
+      },
+      "forever": {
+        "ChrClasses": 1361031,
+        "CurvePoint": 892586,
+        "ItemSubClass": 1261604,
+        "Spell": 1140089,
+        "SpellAuraOptions": 1139952,
+        "SpellCastTimes": 1134089,
+        "SpellClassOptions": 979663,
+        "SpellCooldowns": 1139924,
+        "SpellDescriptionVariables": 1140004,
+        "SpellDuration": 1137828,
+        "SpellEffect": 1140088,
+        "SpellEquippedItems": 1140011,
+        "SpellMisc": 1003144,
+        "SpellName": 1990283,
+        "SpellPower": 982806,
+        "SpellRadius": 1134584,
+        "SpellRange": 1146820,
+        "SpellTargetRestrictions": 1139993,
+        "SpellXDescriptionVariables": 1724949,
+        "TalentTab": 2178102,
+        "TraitCond": 4543085,
+        "TraitCurrency": 4524216,
+        "TraitDefinition": 4420327,
+        "TraitDefinitionEffectPoints": 4536895,
+        "TraitEdge": 4420308,
+        "TraitNode": 4420297,
+        "TraitNodeEntry": 4420298,
+        "TraitNodeGroupXTraitCond": 4543090,
+        "TraitNodeGroupXTraitNode": 4420302,
+        "TraitNodeXTraitCond": 4543092,
+        "TraitNodeXTraitNodeEntry": 4420304,
+        "TraitTree": 4420305,
+        "TraitTreeXTraitCurrency": 4524218
+      }
+    },
+    "traitCurrencyId": 3820,
+    "traitTreeId": 1117,
+    "wowDbDefs": {
+      "commit": "2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e",
+      "repository": "https://github.com/wowdev/WoWDBDefs"
+    }
   },
   "class": "warrior",
+  "codeFormat": "Wowhead-style string of three \"-\"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank), in `order` = sorted by tier, then col (both 0-based). Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two \"-\" (e.g. \"30305213132515201-05050103-\"). The same codes as the foreverchanges.pro calculator's ?b=<code>; every code the repo stores decodes to the same ranks by talent name.",
   "rules": {
+    "maxCol": 3,
     "maxPoints": 51,
-    "pointsPerTier": 5,
     "maxTier": 6,
-    "maxCol": 3
+    "pointsPerTier": 5
   },
-  "codeFormat": "Wowhead-style string of three \"-\"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank) for the talents with inForeverTree=true, in `order` = sorted by tier, then col (both 0-based); talents with order -1 are not encoded. Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two \"-\" (e.g. \"30305213132515201-05050103-\"). Matches the site calculator, which reads it from ?b=<code>. Verified by decoding every popular build: per-tree points match, total <= 51, 5 points per tier, prerequisites at max rank, the main tree's tier-7 talent is taken, and re-encoding reproduces the code.",
-  "popularBuilds": [
-    {
-      "tree": "Arms",
-      "points": [
-        37,
-        14,
-        0
-      ],
-      "code": "30305213132515201-05050103-"
-    },
-    {
-      "tree": "Fury",
-      "points": [
-        17,
-        34,
-        0
-      ],
-      "code": "30305013002-050530035150010051-"
-    },
-    {
-      "tree": "Protection",
-      "points": [
-        5,
-        5,
-        36
-      ],
-      "code": "05-05-552001233201210531"
-    }
-  ],
   "trees": [
     {
-      "id": "Arms",
-      "name": "Arms",
-      "icon": "ability_rogue_eviscerate",
-      "index": 0,
       "clientTreeId": "161",
+      "icon": "ability_rogue_eviscerate",
+      "id": "Arms",
+      "index": 0,
+      "name": "Arms",
       "talents": [
         {
-          "id": "calc-warrior-arms-improved-heroic-strike",
-          "name": "Improved Heroic Strike",
-          "icon": "ability_rogue_ambush",
-          "tree": "Arms",
-          "tier": 0,
-          "col": 0,
-          "order": 0,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
           "changeKind": "modified",
-          "summary": "Same numbers, reworded.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Reduces the cost of your Heroic Strike ability by 1 Rage.",
-              "Reduces the cost of your Heroic Strike ability by 2 Rage.",
-              "Reduces the cost of your Heroic Strike ability by 3 Rage."
-            ],
-            "classic": [
-              "Reduces the cost of your Heroic Strike ability by 1 rage point.",
-              "Reduces the cost of your Heroic Strike ability by 2 rage points.",
-              "Reduces the cost of your Heroic Strike ability by 3 rage points."
-            ]
-          },
           "classic": {
-            "name": "Improved Heroic Strike",
-            "maxRank": 3,
-            "tier": 0,
+            "col": 0,
             "matchStatus": "same_name",
-            "prerequisite": null
+            "maxRank": 3,
+            "name": "Improved Heroic Strike",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Arms"
           },
           "classicSpellId": 12282,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12282",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Heroic Strike",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-arms-deflection",
-          "name": "Deflection",
-          "icon": "ability_parry",
-          "tree": "Arms",
-          "tier": 0,
-          "col": 1,
-          "order": 1,
-          "maxRank": 5,
-          "prerequisite": null,
+          "col": 0,
+          "icon": "ability_rogue_ambush",
+          "id": "warrior-arms-improved-heroic-strike",
           "inForeverTree": true,
-          "changeKind": "unchanged",
-          "summary": "Same as Classic.",
-          "changes": [],
+          "maxRank": 3,
+          "name": "Improved Heroic Strike",
+          "order": 0,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Increases your Parry chance by 1%.",
-              "Increases your Parry chance by 2%.",
-              "Increases your Parry chance by 3%.",
-              "Increases your Parry chance by 4%.",
-              "Increases your Parry chance by 5%."
-            ],
-            "classic": [
-              "Increases your Parry chance by 1%.",
-              "Increases your Parry chance by 2%.",
-              "Increases your Parry chance by 3%.",
-              "Increases your Parry chance by 4%.",
-              "Increases your Parry chance by 5%."
-            ]
+            "classic": ["Reduces the cost of your Heroic Strike ability by 1 rage point.", "Reduces the cost of your Heroic Strike ability by 2 rage points.", "Reduces the cost of your Heroic Strike ability by 3 rage points."],
+            "forever": ["Reduces the cost of your Heroic Strike ability by 1 Rage.", "Reduces the cost of your Heroic Strike ability by 2 Rage.", "Reduces the cost of your Heroic Strike ability by 3 Rage."]
           },
+          "spellId": 12282,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Arms"
+        },
+        {
+          "changeKind": "unchanged",
           "classic": {
-            "name": "Deflection",
-            "maxRank": 5,
-            "tier": 0,
+            "col": 1,
             "matchStatus": "same_name",
-            "prerequisite": null
+            "maxRank": 5,
+            "name": "Deflection",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Arms"
           },
           "classicSpellId": 16462,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=16462",
-              "title": "Classic Era client, build 1.15.9.69722: Deflection",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-arms-improved-rend",
-          "name": "Improved Rend",
-          "icon": "ability_gouge",
-          "tree": "Arms",
-          "tier": 0,
-          "col": 2,
-          "order": 2,
-          "maxRank": 3,
-          "prerequisite": null,
+          "col": 1,
+          "icon": "ability_parry",
+          "id": "warrior-arms-deflection",
           "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "12% instead of 15%.",
-          "changes": [],
+          "maxRank": 5,
+          "name": "Deflection",
+          "order": 1,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Increases the Bleed damage done by your Rend ability by 12%.",
-              "Increases the Bleed damage done by your Rend ability by 23%.",
-              "Increases the Bleed damage done by your Rend ability by 35%."
-            ],
-            "classic": [
-              "Increases the bleed damage done by your Rend ability by 15%.",
-              "Increases the bleed damage done by your Rend ability by 25%.",
-              "Increases the bleed damage done by your Rend ability by 35%."
-            ]
+            "classic": ["Increases your Parry chance by 1%.", "Increases your Parry chance by 2%.", "Increases your Parry chance by 3%.", "Increases your Parry chance by 4%.", "Increases your Parry chance by 5%."],
+            "forever": ["Increases your Parry chance by 1%.", "Increases your Parry chance by 2%.", "Increases your Parry chance by 3%.", "Increases your Parry chance by 4%.", "Increases your Parry chance by 5%."]
           },
+          "spellId": 16462,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Arms"
+        },
+        {
+          "changeKind": "modified",
           "classic": {
-            "name": "Improved Rend",
-            "maxRank": 3,
-            "tier": 0,
+            "col": 2,
             "matchStatus": "same_name",
-            "prerequisite": null
+            "maxRank": 3,
+            "name": "Improved Rend",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Arms"
           },
           "classicSpellId": 12286,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12286",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Rend",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-arms-improved-charge",
-          "name": "Improved Charge",
-          "icon": "ability_warrior_charge",
-          "tree": "Arms",
-          "tier": 1,
-          "col": 0,
-          "order": 3,
-          "maxRank": 2,
-          "prerequisite": null,
+          "col": 2,
+          "icon": "ability_gouge",
+          "id": "warrior-arms-improved-rend",
           "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Same numbers, reworded.",
-          "changes": [],
+          "maxRank": 3,
+          "name": "Improved Rend",
+          "order": 2,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Increases the Rage generated by your Charge ability by 3.",
-              "Increases the Rage generated by your Charge ability by 6."
-            ],
-            "classic": [
-              "Increases the amount of rage generated by your Charge ability by 3.",
-              "Increases the amount of rage generated by your Charge ability by 6."
-            ]
+            "classic": ["Increases the bleed damage done by your Rend ability by 15%.", "Increases the bleed damage done by your Rend ability by 25%.", "Increases the bleed damage done by your Rend ability by 35%."],
+            "forever": ["Increases the Bleed damage done by your Rend ability by 12%.", "Increases the Bleed damage done by your Rend ability by 23%.", "Increases the Bleed damage done by your Rend ability by 35%."]
           },
+          "spellId": 12286,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Arms"
+        },
+        {
+          "changeKind": "modified",
           "classic": {
-            "name": "Improved Charge",
-            "maxRank": 2,
-            "tier": 1,
+            "col": 0,
             "matchStatus": "same_name",
-            "prerequisite": null
+            "maxRank": 2,
+            "name": "Improved Charge",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Arms"
           },
           "classicSpellId": 12285,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12285",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Charge",
-              "type": "classic_client_data"
-            }
-          ]
+          "col": 0,
+          "icon": "ability_warrior_charge",
+          "id": "warrior-arms-improved-charge",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Charge",
+          "order": 3,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the amount of rage generated by your Charge ability by 3.", "Increases the amount of rage generated by your Charge ability by 6."],
+            "forever": ["Increases the Rage generated by your Charge ability by 3.", "Increases the Rage generated by your Charge ability by 6."]
+          },
+          "spellId": 12285,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Arms"
         },
         {
-          "id": "calc-warrior-arms-improved-tactical-mastery",
-          "name": "Improved Tactical Mastery",
-          "icon": "spell_nature_enchantarmor",
-          "tree": "Arms",
-          "tier": 1,
-          "col": 1,
-          "order": 4,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
           "changeKind": "modified",
-          "summary": "Replaces Tactical Mastery.",
-          "changes": [
-            "Replaces Tactical Mastery"
-          ],
-          "passive": true,
-          "tooltip": null,
-          "previousName": "Tactical Mastery",
-          "ranks": {
-            "forever": [
-              "Tactical Mastery lets you retain up to an additional 3 Rage when you change stances.",
-              "Tactical Mastery lets you retain up to an additional 6 Rage when you change stances.",
-              "Tactical Mastery lets you retain up to an additional 9 Rage when you change stances.",
-              "Tactical Mastery lets you retain up to an additional 12 Rage when you change stances.",
-              "Tactical Mastery lets you retain up to an additional 15 Rage when you change stances."
-            ],
-            "classic": [
-              "You retain up to 5 of your rage points when you change stances.",
-              "You retain up to 10 of your rage points when you change stances.",
-              "You retain up to 15 of your rage points when you change stances.",
-              "You retain up to 20 of your rage points when you change stances.",
-              "You retain up to 25 of your rage points when you change stances."
-            ]
-          },
           "classic": {
-            "name": "Tactical Mastery",
-            "maxRank": 5,
-            "tier": 1,
+            "col": 1,
             "matchStatus": "same_spell",
-            "prerequisite": null
+            "maxRank": 5,
+            "name": "Tactical Mastery",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Arms"
           },
           "classicSpellId": 12295,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12295",
-              "title": "Classic Era client, build 1.15.9.69722: Tactical Mastery",
-              "type": "classic_client_data"
-            }
-          ]
+          "col": 1,
+          "icon": "spell_nature_enchantarmor",
+          "id": "warrior-arms-improved-tactical-mastery",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Improved Tactical Mastery",
+          "order": 4,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": "Tactical Mastery",
+          "ranks": {
+            "classic": ["You retain up to 5 of your rage points when you change stances.", "You retain up to 10 of your rage points when you change stances.", "You retain up to 15 of your rage points when you change stances.", "You retain up to 20 of your rage points when you change stances.", "You retain up to 25 of your rage points when you change stances."],
+            "forever": ["Tactical Mastery lets you retain up to an additional 3 Rage when you change stances.", "Tactical Mastery lets you retain up to an additional 6 Rage when you change stances.", "Tactical Mastery lets you retain up to an additional 9 Rage when you change stances.", "Tactical Mastery lets you retain up to an additional 12 Rage when you change stances.", "Tactical Mastery lets you retain up to an additional 15 Rage when you change stances."]
+          },
+          "spellId": 12295,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Arms"
         },
         {
-          "id": "calc-warrior-arms-improved-overpower",
-          "name": "Improved Overpower",
-          "icon": "inv_sword_05",
-          "tree": "Arms",
-          "tier": 1,
-          "col": 3,
-          "order": 5,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
           "changeKind": "moved",
-          "summary": "Moved from tier 3 to tier 2.",
-          "changes": [
-            "Moved from tier 3 to tier 2"
-          ],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases the critical strike chance of your Overpower ability by 25%.",
-              "Increases the critical strike chance of your Overpower ability by 50%."
-            ],
-            "classic": [
-              "Increases the critical strike chance of your Overpower ability by 25%.",
-              "Increases the critical strike chance of your Overpower ability by 50%."
-            ]
-          },
           "classic": {
-            "name": "Improved Overpower",
-            "maxRank": 2,
-            "tier": 2,
+            "col": 0,
             "matchStatus": "same_name",
-            "prerequisite": null
+            "maxRank": 2,
+            "name": "Improved Overpower",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Arms"
           },
           "classicSpellId": 12290,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12290",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Overpower",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-arms-anger-management",
-          "name": "Anger Management",
-          "icon": "spell_holy_blessingofstamina",
-          "tree": "Arms",
-          "tier": 2,
-          "col": 1,
-          "order": 6,
-          "maxRank": 1,
-          "prerequisite": {
-            "talentId": "calc-warrior-arms-improved-tactical-mastery",
-            "rank": 5
-          },
+          "col": 3,
+          "icon": "inv_sword_05",
+          "id": "warrior-arms-improved-overpower",
           "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Effect rewritten.",
-          "changes": [],
+          "maxRank": 2,
+          "name": "Improved Overpower",
+          "order": 5,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Generates 1 Rage every 3 sec while in combat, and reduces Rage loss while out of combat by 30%."
-            ],
-            "classic": [
-              "Increases the time required for your rage to decay while out of combat by 30%."
-            ]
+            "classic": ["Increases the critical strike chance of your Overpower ability by 25%.", "Increases the critical strike chance of your Overpower ability by 50%."],
+            "forever": ["Increases the critical strike chance of your Overpower ability by 25%.", "Increases the critical strike chance of your Overpower ability by 50%."]
           },
+          "spellId": 12290,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Arms"
+        },
+        {
+          "changeKind": "modified",
           "classic": {
-            "name": "Anger Management",
-            "maxRank": 1,
-            "tier": 2,
+            "col": 1,
             "matchStatus": "same_name",
-            "prerequisite": "Tactical Mastery"
+            "maxRank": 1,
+            "name": "Anger Management",
+            "prerequisite": "Tactical Mastery",
+            "tier": 2,
+            "tree": "Arms"
           },
           "classicSpellId": 12296,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12296",
-              "title": "Classic Era client, build 1.15.9.69722: Anger Management",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-arms-deep-wounds",
-          "name": "Deep Wounds",
-          "icon": "ability_backstab",
-          "tree": "Arms",
-          "tier": 2,
-          "col": 2,
-          "order": 7,
-          "maxRank": 3,
-          "prerequisite": {
-            "talentId": "calc-warrior-arms-improved-rend",
-            "rank": 3
-          },
+          "col": 1,
+          "icon": "spell_holy_blessingofstamina",
+          "id": "warrior-arms-anger-management",
           "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Same numbers, reworded.",
-          "changes": [],
+          "maxRank": 1,
+          "name": "Anger Management",
+          "order": 6,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": {
+            "rank": 5,
+            "talentId": "warrior-arms-improved-tactical-mastery"
+          },
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Your critical strikes cause your opponent to Bleed, dealing 20% of your melee weapon's average damage over 12 sec.",
-              "Your critical strikes cause your opponent to Bleed, dealing 40% of your melee weapon's average damage over 12 sec.",
-              "Your critical strikes cause your opponent to Bleed, dealing 60% of your melee weapon's average damage over 12 sec."
-            ],
-            "classic": [
-              "Your critical strikes cause the opponent to bleed, dealing 20% of your melee weapon's average damage over 12 sec.",
-              "Your critical strikes cause the opponent to bleed, dealing 40% of your melee weapon's average damage over 12 sec.",
-              "Your critical strikes cause the opponent to bleed, dealing 60% of your melee weapon's average damage over 12 sec."
-            ]
+            "classic": ["Increases the time required for your rage to decay while out of combat by 30%."],
+            "forever": ["Generates 1 Rage every 3 sec while in combat, and reduces Rage loss while out of combat by 30%."]
           },
+          "spellId": 12296,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Arms"
+        },
+        {
+          "changeKind": "modified",
           "classic": {
-            "name": "Deep Wounds",
-            "maxRank": 3,
-            "tier": 2,
+            "col": 2,
             "matchStatus": "same_name",
-            "prerequisite": "Improved Rend"
+            "maxRank": 3,
+            "name": "Deep Wounds",
+            "prerequisite": "Improved Rend",
+            "tier": 2,
+            "tree": "Arms"
           },
           "classicSpellId": 12834,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12834",
-              "title": "Classic Era client, build 1.15.9.69722: Deep Wounds",
-              "type": "classic_client_data"
-            }
-          ]
+          "col": 2,
+          "icon": "ability_backstab",
+          "id": "warrior-arms-deep-wounds",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Deep Wounds",
+          "order": 7,
+          "passive": true,
+          "prerequisite": {
+            "rank": 3,
+            "talentId": "warrior-arms-improved-rend"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["Your critical strikes cause the opponent to bleed, dealing 20% of your melee weapon's average damage over 12 sec.", "Your critical strikes cause the opponent to bleed, dealing 40% of your melee weapon's average damage over 12 sec.", "Your critical strikes cause the opponent to bleed, dealing 60% of your melee weapon's average damage over 12 sec."],
+            "forever": ["Your critical strikes cause your opponent to Bleed, dealing 20% of your melee weapon's average damage over 12 sec.", "Your critical strikes cause your opponent to Bleed, dealing 40% of your melee weapon's average damage over 12 sec.", "Your critical strikes cause your opponent to Bleed, dealing 60% of your melee weapon's average damage over 12 sec."]
+          },
+          "spellId": 12834,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Arms"
         },
         {
-          "id": "calc-warrior-arms-spearing-strike",
-          "name": "Spearing Strike",
-          "icon": "inv_spear_01",
-          "tree": "Arms",
-          "tier": 3,
-          "col": 0,
-          "order": 8,
-          "maxRank": 1,
-          "prerequisite": null,
-          "inForeverTree": true,
           "changeKind": "added",
-          "summary": "A brutal attack that deals 40% weapon damage. Deals an additional 80% weapon damage against Giants, Dragonkin, and mounted targets.",
-          "changes": [],
+          "classic": null,
+          "classicSpellId": null,
+          "col": 0,
+          "icon": "inv_spear_01",
+          "id": "warrior-arms-spearing-strike",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Spearing Strike",
+          "order": 8,
           "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["A brutal attack that deals 40% weapon damage. Deals an additional 80% weapon damage against Giants, Dragonkin, and mounted targets. Mounted targets are dismounted."]
+          },
+          "spellId": 1310222,
+          "tier": 3,
           "tooltip": {
-            "resourceCost": "15 Rage",
-            "range": "Melee range",
             "castTime": "Instant",
             "cooldown": "20 sec cooldown",
-            "requirements": "Requires Two-Handed Melee Weapon"
+            "range": "Melee range",
+            "requirements": "Requires Two-Handed Melee Weapon",
+            "resourceCost": "15 Rage"
           },
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "A brutal attack that deals 40% weapon damage. Deals an additional 80% weapon damage against Giants, Dragonkin, and mounted targets. Mounted targets are dismounted."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
+          "tree": "Arms"
         },
         {
-          "id": "calc-warrior-arms-two-handed-weapon-specialization",
-          "name": "Two-Handed Weapon Specialization",
-          "icon": "inv_axe_09",
-          "tree": "Arms",
-          "tier": 3,
-          "col": 1,
-          "order": 9,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
           "changeKind": "modified",
-          "summary": "3 ranks (Classic: 5).",
-          "changes": [
-            "3 ranks (Classic: 5)"
-          ],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases the damage you deal with two-handed melee weapons by 1%.",
-              "Increases the damage you deal with two-handed melee weapons by 2%.",
-              "Increases the damage you deal with two-handed melee weapons by 3%."
-            ],
-            "classic": [
-              "Increases the damage you deal with two-handed melee weapons by 1%.",
-              "Increases the damage you deal with two-handed melee weapons by 2%.",
-              "Increases the damage you deal with two-handed melee weapons by 3%.",
-              "Increases the damage you deal with two-handed melee weapons by 4%.",
-              "Increases the damage you deal with two-handed melee weapons by 5%."
-            ]
-          },
           "classic": {
-            "name": "Two-Handed Weapon Specialization",
-            "maxRank": 5,
-            "tier": 3,
+            "col": 1,
             "matchStatus": "same_name",
-            "prerequisite": null
+            "maxRank": 5,
+            "name": "Two-Handed Weapon Specialization",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Arms"
           },
           "classicSpellId": 12163,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12163",
-              "title": "Classic Era client, build 1.15.9.69722: Two-Handed Weapon Specialization",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-arms-impale",
-          "name": "Impale",
-          "icon": "ability_searingarrow",
-          "tree": "Arms",
-          "tier": 3,
-          "col": 2,
-          "order": 10,
-          "maxRank": 2,
-          "prerequisite": null,
+          "col": 1,
+          "icon": "inv_axe_09",
+          "id": "warrior-arms-two-handed-weapon-specialization",
           "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "No longer requires Deep Wounds. Effect rewritten.",
-          "changes": [
-            "No longer requires Deep Wounds"
-          ],
+          "maxRank": 3,
+          "name": "Two-Handed Weapon Specialization",
+          "order": 9,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Increases the critical strike damage bonus of your abilities by 10%.",
-              "Increases the critical strike damage bonus of your abilities by 20%."
-            ],
-            "classic": [
-              "Increases the critical strike damage bonus of your abilities in Battle, Defensive, and Berserker stance by 10%.",
-              "Increases the critical strike damage bonus of your abilities in Battle, Defensive, and Berserker stance by 20%."
-            ]
+            "classic": ["Increases the damage you deal with two-handed melee weapons by 1%.", "Increases the damage you deal with two-handed melee weapons by 2%.", "Increases the damage you deal with two-handed melee weapons by 3%.", "Increases the damage you deal with two-handed melee weapons by 4%.", "Increases the damage you deal with two-handed melee weapons by 5%."],
+            "forever": ["Increases the damage you deal with two-handed melee weapons by 1%.", "Increases the damage you deal with two-handed melee weapons by 2%.", "Increases the damage you deal with two-handed melee weapons by 3%."]
           },
+          "spellId": 12163,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Arms"
+        },
+        {
+          "changeKind": "modified",
           "classic": {
-            "name": "Impale",
-            "maxRank": 2,
-            "tier": 3,
+            "col": 2,
             "matchStatus": "same_name",
-            "prerequisite": "Deep Wounds"
+            "maxRank": 2,
+            "name": "Impale",
+            "prerequisite": "Deep Wounds",
+            "tier": 3,
+            "tree": "Arms"
           },
           "classicSpellId": 16493,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=16493",
-              "title": "Classic Era client, build 1.15.9.69722: Impale",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-arms-bloodthrill",
-          "name": "Bloodthrill",
-          "icon": "inv_sword_01",
-          "tree": "Arms",
-          "tier": 4,
-          "col": 0,
-          "order": 11,
-          "maxRank": 5,
-          "prerequisite": null,
+          "col": 2,
+          "icon": "ability_searingarrow",
+          "id": "warrior-arms-impale",
           "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Your melee attacks against targets afflicted by your Rend have a 2% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.",
-          "changes": [],
+          "maxRank": 2,
+          "name": "Impale",
+          "order": 10,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Your melee attacks against targets afflicted by your Rend have a 2% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.",
-              "Your melee attacks against targets afflicted by your Rend have a 4% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.",
-              "Your melee attacks against targets afflicted by your Rend have a 6% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.",
-              "Your melee attacks against targets afflicted by your Rend have a 8% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.",
-              "Your melee attacks against targets afflicted by your Rend have a 10% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec."
-            ],
-            "classic": null
+            "classic": ["Increases the critical strike damage bonus of your abilities in Battle, Defensive, and Berserker stance by 10%.", "Increases the critical strike damage bonus of your abilities in Battle, Defensive, and Berserker stance by 20%."],
+            "forever": ["Increases the critical strike damage bonus of your abilities by 10%.", "Increases the critical strike damage bonus of your abilities by 20%."]
           },
+          "spellId": 16493,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Arms"
+        },
+        {
+          "changeKind": "added",
           "classic": null,
           "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-arms-sweeping-strikes",
-          "name": "Sweeping Strikes",
-          "icon": "ability_rogue_slicedice",
-          "tree": "Arms",
-          "tier": 4,
-          "col": 1,
-          "order": 12,
-          "maxRank": 1,
-          "prerequisite": null,
+          "col": 0,
+          "icon": "inv_sword_01",
+          "id": "warrior-arms-bloodthrill",
           "inForeverTree": true,
-          "changeKind": "unchanged",
-          "summary": "Same as Classic.",
-          "changes": [],
-          "passive": false,
-          "tooltip": {
-            "resourceCost": "30 Rage",
-            "castTime": "Instant",
-            "cooldown": "30 sec cooldown"
-          },
+          "maxRank": 5,
+          "name": "Bloodthrill",
+          "order": 11,
+          "passive": true,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Your next 5 melee attacks strike an additional nearby opponent."
-            ],
-            "classic": [
-              "Your next 5 melee attacks strike an additional nearby opponent."
-            ]
+            "classic": null,
+            "forever": ["Your melee attacks against targets afflicted by your Rend have a 2% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.", "Your melee attacks against targets afflicted by your Rend have a 4% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.", "Your melee attacks against targets afflicted by your Rend have a 6% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.", "Your melee attacks against targets afflicted by your Rend have a 8% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec.", "Your melee attacks against targets afflicted by your Rend have a 10% chance to activate your Overpower ability for 1 attack on your current target. Lasts 6 sec."]
           },
+          "spellId": 1289682,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Arms"
+        },
+        {
+          "changeKind": "unchanged",
           "classic": {
-            "name": "Sweeping Strikes",
-            "maxRank": 1,
-            "tier": 4,
+            "col": 1,
             "matchStatus": "same_name",
-            "prerequisite": null
+            "maxRank": 1,
+            "name": "Sweeping Strikes",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Arms"
           },
           "classicSpellId": 12292,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12292",
-              "title": "Classic Era client, build 1.15.9.69722: Sweeping Strikes",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-arms-weaponmaster",
-          "name": "Weaponmaster",
-          "icon": "garrison_weaponupgrade",
-          "tree": "Arms",
-          "tier": 4,
-          "col": 2,
-          "order": 13,
-          "maxRank": 5,
-          "prerequisite": null,
+          "col": 1,
+          "icon": "ability_rogue_slicedice",
+          "id": "warrior-arms-sweeping-strikes",
           "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Gives your melee weapon attacks a benefit depending on the weapon. Axe/Polearm: Increases your critical strike chance by 1%.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
+          "maxRank": 1,
+          "name": "Sweeping Strikes",
+          "order": 12,
+          "passive": false,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Gives your melee weapon attacks a benefit depending on the weapon.\n\nAxe/Polearm: Increases your\ncritical strike chance by 1%.\n\nMace/Staff: Your attacks ignore\n3% of your target's armor.\n\nSword: Your successful melee\nattacks have a 1% chance to\ntrigger an extra attack on the\ntarget.",
-              "Gives your melee weapon attacks a benefit depending on the weapon.\n\nAxe/Polearm: Increases your\ncritical strike chance by 2%.\n\nMace/Staff: Your attacks ignore\n6% of your target's armor.\n\nSword: Your successful melee\nattacks have a 2% chance to\ntrigger an extra attack on the\ntarget.",
-              "Gives your melee weapon attacks a benefit depending on the weapon.\n\nAxe/Polearm: Increases your\ncritical strike chance by 3%.\n\nMace/Staff: Your attacks ignore\n9% of your target's armor.\n\nSword: Your successful melee\nattacks have a 3% chance to\ntrigger an extra attack on the\ntarget.",
-              "Gives your melee weapon attacks a benefit depending on the weapon.\n\nAxe/Polearm: Increases your\ncritical strike chance by 4%.\n\nMace/Staff: Your attacks ignore\n12% of your target's armor.\n\nSword: Your successful melee\nattacks have a 4% chance to\ntrigger an extra attack on the\ntarget.",
-              "Gives your melee weapon attacks a benefit depending on the weapon.\n\nAxe/Polearm: Increases your\ncritical strike chance by 5%.\n\nMace/Staff: Your attacks ignore\n15% of your target's armor.\n\nSword: Your successful melee\nattacks have a 5% chance to\ntrigger an extra attack on the\ntarget."
-            ],
-            "classic": null
+            "classic": ["Your next 5 melee attacks strike an additional nearby opponent."],
+            "forever": ["Your next 5 melee attacks strike an additional nearby opponent."]
           },
+          "spellId": 12292,
+          "tier": 4,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "30 sec cooldown",
+            "resourceCost": "30 Rage"
+          },
+          "tree": "Arms"
+        },
+        {
+          "changeKind": "added",
           "classic": null,
           "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-arms-improved-slam",
-          "name": "Improved Slam",
-          "icon": "ability_warrior_decisivestrike",
-          "tree": "Arms",
-          "tier": 5,
-          "col": 0,
-          "order": 14,
-          "maxRank": 2,
-          "prerequisite": null,
+          "col": 2,
+          "icon": "garrison_weaponupgrade",
+          "id": "warrior-arms-weaponmaster",
           "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "2 ranks (Classic: 5). Moved from Fury to Arms. Effect rewritten.",
-          "changes": [
-            "2 ranks (Classic: 5)",
-            "Moved from Fury to Arms"
-          ],
+          "maxRank": 5,
+          "name": "Weaponmaster",
+          "order": 13,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Reduces the global cooldown and cast time of your Slam ability by 0.25 sec. In addition, Slam no longer interrupts your melee swing time.",
-              "Reduces the global cooldown and cast time of your Slam ability by 0.50 sec. In addition, Slam no longer interrupts your melee swing time."
-            ],
-            "classic": [
-              "Decreases the casting time of your Slam ability by 0.1 sec.",
-              "Decreases the casting time of your Slam ability by 0.2 sec.",
-              "Decreases the casting time of your Slam ability by 0.3 sec.",
-              "Decreases the casting time of your Slam ability by 0.4 sec.",
-              "Decreases the casting time of your Slam ability by 0.5 sec."
-            ]
+            "classic": null,
+            "forever": ["Gives your melee weapon attacks a benefit depending on the weapon.\nAxe/Polearm: Increases your critical strike chance by 1%.\nMace/Staff: Your attacks ignore 3% of your target's armor.\nSword: Your successful melee attacks have a 1% chance to trigger an extra attack on the target.", "Gives your melee weapon attacks a benefit depending on the weapon.\nAxe/Polearm: Increases your critical strike chance by 2%.\nMace/Staff: Your attacks ignore 6% of your target's armor.\nSword: Your successful melee attacks have a 2% chance to trigger an extra attack on the target.", "Gives your melee weapon attacks a benefit depending on the weapon.\nAxe/Polearm: Increases your critical strike chance by 3%.\nMace/Staff: Your attacks ignore 9% of your target's armor.\nSword: Your successful melee attacks have a 3% chance to trigger an extra attack on the target.", "Gives your melee weapon attacks a benefit depending on the weapon.\nAxe/Polearm: Increases your critical strike chance by 4%.\nMace/Staff: Your attacks ignore 12% of your target's armor.\nSword: Your successful melee attacks have a 4% chance to trigger an extra attack on the target.", "Gives your melee weapon attacks a benefit depending on the weapon.\nAxe/Polearm: Increases your critical strike chance by 5%.\nMace/Staff: Your attacks ignore 15% of your target's armor.\nSword: Your successful melee attacks have a 5% chance to trigger an extra attack on the target."]
           },
+          "spellId": 1290261,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Arms"
+        },
+        {
+          "changeKind": "modified",
           "classic": {
-            "name": "Improved Slam",
-            "maxRank": 5,
-            "tier": 4,
+            "col": 0,
             "matchStatus": "same_name",
-            "prerequisite": null
+            "maxRank": 5,
+            "name": "Improved Slam",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Fury"
           },
           "classicSpellId": 12862,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12862",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Slam",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-arms-improved-hamstring",
-          "name": "Improved Hamstring",
-          "icon": "ability_shockwave",
-          "tree": "Arms",
-          "tier": 5,
-          "col": 2,
-          "order": 15,
-          "maxRank": 3,
-          "prerequisite": null,
+          "col": 0,
+          "icon": "ability_warrior_decisivestrike",
+          "id": "warrior-arms-improved-slam",
           "inForeverTree": true,
-          "changeKind": "unchanged",
-          "summary": "Same as Classic.",
-          "changes": [],
+          "maxRank": 2,
+          "name": "Improved Slam",
+          "order": 14,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Gives your Hamstring ability a 5% chance to immobilize the target for 5 sec.",
-              "Gives your Hamstring ability a 10% chance to immobilize the target for 5 sec.",
-              "Gives your Hamstring ability a 15% chance to immobilize the target for 5 sec."
-            ],
-            "classic": [
-              "Gives your Hamstring ability a 5% chance to immobilize the target for 5 sec.",
-              "Gives your Hamstring ability a 10% chance to immobilize the target for 5 sec.",
-              "Gives your Hamstring ability a 15% chance to immobilize the target for 5 sec."
-            ]
+            "classic": ["Decreases the casting time of your Slam ability by 0.1 sec.", "Decreases the casting time of your Slam ability by 0.2 sec.", "Decreases the casting time of your Slam ability by 0.3 sec.", "Decreases the casting time of your Slam ability by 0.4 sec.", "Decreases the casting time of your Slam ability by 0.5 sec."],
+            "forever": ["Reduces the global cooldown and cast time of your Slam ability by 0.25 sec. In addition, Slam no longer interrupts your melee swing time.", "Reduces the global cooldown and cast time of your Slam ability by 0.50 sec. In addition, Slam no longer interrupts your melee swing time."]
           },
+          "spellId": 12862,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Arms"
+        },
+        {
+          "changeKind": "unchanged",
           "classic": {
-            "name": "Improved Hamstring",
-            "maxRank": 3,
-            "tier": 5,
+            "col": 2,
             "matchStatus": "same_name",
-            "prerequisite": null
+            "maxRank": 3,
+            "name": "Improved Hamstring",
+            "prerequisite": null,
+            "tier": 5,
+            "tree": "Arms"
           },
           "classicSpellId": 12289,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12289",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Hamstring",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-arms-mortal-strike",
-          "name": "Mortal Strike",
-          "icon": "ability_warrior_savageblow",
-          "tree": "Arms",
-          "tier": 6,
-          "col": 1,
-          "order": 16,
-          "maxRank": 1,
-          "prerequisite": {
-            "talentId": "calc-warrior-arms-sweeping-strikes",
-            "rank": 1
-          },
+          "col": 2,
+          "icon": "ability_shockwave",
+          "id": "warrior-arms-improved-hamstring",
           "inForeverTree": true,
-          "changeKind": "unchanged",
-          "summary": "Same as Classic.",
-          "changes": [],
-          "passive": false,
-          "tooltip": {
-            "resourceCost": "30 Rage",
-            "range": "Melee range",
-            "castTime": "Instant",
-            "cooldown": "6 sec cooldown",
-            "requirements": "Requires Melee Weapon"
-          },
+          "maxRank": 3,
+          "name": "Improved Hamstring",
+          "order": 15,
+          "passive": true,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "A vicious strike that deals weapon damage plus 85 and wounds the target, reducing the effectiveness of any healing by 50% for 10 sec."
-            ],
-            "classic": [
-              "A vicious strike that deals weapon damage plus 85 and wounds the target, reducing the effectiveness of any healing by 50% for 10 sec."
-            ]
+            "classic": ["Gives your Hamstring ability a 5% chance to immobilize the target for 5 sec.", "Gives your Hamstring ability a 10% chance to immobilize the target for 5 sec.", "Gives your Hamstring ability a 15% chance to immobilize the target for 5 sec."],
+            "forever": ["Gives your Hamstring ability a 5% chance to immobilize the target for 5 sec.", "Gives your Hamstring ability a 10% chance to immobilize the target for 5 sec.", "Gives your Hamstring ability a 15% chance to immobilize the target for 5 sec."]
           },
+          "spellId": 12289,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Arms"
+        },
+        {
+          "changeKind": "unchanged",
           "classic": {
-            "name": "Mortal Strike",
-            "maxRank": 1,
-            "tier": 6,
+            "col": 1,
             "matchStatus": "same_name",
-            "prerequisite": "Sweeping Strikes"
+            "maxRank": 1,
+            "name": "Mortal Strike",
+            "prerequisite": "Sweeping Strikes",
+            "tier": 6,
+            "tree": "Arms"
           },
           "classicSpellId": 12294,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12294",
-              "title": "Classic Era client, build 1.15.9.69722: Mortal Strike",
-              "type": "classic_client_data"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "Fury",
-      "name": "Fury",
-      "icon": "ability_warrior_innerrage",
-      "index": 1,
-      "clientTreeId": "164",
-      "talents": [
-        {
-          "id": "calc-warrior-fury-booming-voice",
-          "name": "Booming Voice",
-          "icon": "spell_nature_purge",
-          "tree": "Fury",
-          "tier": 0,
           "col": 1,
-          "order": 0,
-          "maxRank": 5,
-          "prerequisite": null,
+          "icon": "ability_warrior_savageblow",
+          "id": "warrior-arms-mortal-strike",
           "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Effect rewritten.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases the radius of your Battle Shout and Demoralizing Shout abilities by 10%.",
-              "Increases the radius of your Battle Shout and Demoralizing Shout abilities by 20%.",
-              "Increases the radius of your Battle Shout and Demoralizing Shout abilities by 30%.",
-              "Increases the radius of your Battle Shout and Demoralizing Shout abilities by 40%.",
-              "Increases the radius of your Battle Shout and Demoralizing Shout abilities by 50%."
-            ],
-            "classic": [
-              "Increases the area of effect and duration of your Battle Shout and Demoralizing Shout by 10%.",
-              "Increases the area of effect and duration of your Battle Shout and Demoralizing Shout by 20%.",
-              "Increases the area of effect and duration of your Battle Shout and Demoralizing Shout by 30%.",
-              "Increases the area of effect and duration of your Battle Shout and Demoralizing Shout by 40%.",
-              "Increases the area of effect and duration of your Battle Shout and Demoralizing Shout by 50%."
-            ]
-          },
-          "classic": {
-            "name": "Booming Voice",
-            "maxRank": 5,
-            "tier": 0,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12321,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12321",
-              "title": "Classic Era client, build 1.15.9.69722: Booming Voice",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-fury-cruelty",
-          "name": "Cruelty",
-          "icon": "ability_rogue_eviscerate",
-          "tree": "Fury",
-          "tier": 0,
-          "col": 2,
-          "order": 1,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Same numbers, reworded.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Improves your chance to get a critical strike with melee attacks by 1%.",
-              "Improves your chance to get a critical strike with melee attacks by 2%.",
-              "Improves your chance to get a critical strike with melee attacks by 3%.",
-              "Improves your chance to get a critical strike with melee attacks by 4%.",
-              "Improves your chance to get a critical strike with melee attacks by 5%."
-            ],
-            "classic": [
-              "Increases your chance to get a critical strike with melee weapons by 1%.",
-              "Increases your chance to get a critical strike with melee weapons by 2%.",
-              "Increases your chance to get a critical strike with melee weapons by 3%.",
-              "Increases your chance to get a critical strike with melee weapons by 4%.",
-              "Increases your chance to get a critical strike with melee weapons by 5%."
-            ]
-          },
-          "classic": {
-            "name": "Cruelty",
-            "maxRank": 5,
-            "tier": 0,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12320,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12320",
-              "title": "Classic Era client, build 1.15.9.69722: Cruelty",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-fury-iron-will",
-          "name": "Iron Will",
-          "icon": "spell_magic_magearmor",
-          "tree": "Fury",
-          "tier": 1,
-          "col": 1,
-          "order": 2,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Moved from Protection to Fury. Effect rewritten.",
-          "changes": [
-            "Moved from Protection to Fury"
-          ],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Reduces the duration of Stun and Fear effects inflicted on you by 3%.",
-              "Reduces the duration of Stun and Fear effects inflicted on you by 6%.",
-              "Reduces the duration of Stun and Fear effects inflicted on you by 9%.",
-              "Reduces the duration of Stun and Fear effects inflicted on you by 12%.",
-              "Reduces the duration of Stun and Fear effects inflicted on you by 15%."
-            ],
-            "classic": [
-              "Increases your chance to resist Stun and Charm effects by an additional 3%.",
-              "Increases your chance to resist Stun and Charm effects by an additional 6%.",
-              "Increases your chance to resist Stun and Charm effects by an additional 9%.",
-              "Increases your chance to resist Stun and Charm effects by an additional 12%.",
-              "Increases your chance to resist Stun and Charm effects by an additional 15%."
-            ]
-          },
-          "classic": {
-            "name": "Iron Will",
-            "maxRank": 5,
-            "tier": 1,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12300,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12300",
-              "title": "Classic Era client, build 1.15.9.69722: Iron Will",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-fury-unbridled-wrath",
-          "name": "Unbridled Wrath",
-          "icon": "spell_nature_stoneclawtotem",
-          "tree": "Fury",
-          "tier": 1,
-          "col": 2,
-          "order": 3,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Numbers and wording changed.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Gives you a 12% chance to generate 1 additional Rage when you deal melee damage with a weapon. This effect is increased to 2 Rage for two-handed weapons.",
-              "Gives you a 24% chance to generate 1 additional Rage when you deal melee damage with a weapon. This effect is increased to 2 Rage for two-handed weapons.",
-              "Gives you a 36% chance to generate 1 additional Rage when you deal melee damage with a weapon. This effect is increased to 2 Rage for two-handed weapons.",
-              "Gives you a 48% chance to generate 1 additional Rage when you deal melee damage with a weapon. This effect is increased to 2 Rage for two-handed weapons.",
-              "Gives you a 60% chance to generate 1 additional Rage when you deal melee damage with a weapon. This effect is increased to 2 Rage for two-handed weapons."
-            ],
-            "classic": [
-              "Gives you a 8% chance to generate an additional Rage point when you deal melee damage with a weapon.",
-              "Gives you a 16% chance to generate an additional Rage point when you deal melee damage with a weapon.",
-              "Gives you a 24% chance to generate an additional Rage point when you deal melee damage with a weapon.",
-              "Gives you a 32% chance to generate an additional Rage point when you deal melee damage with a weapon.",
-              "Gives you a 40% chance to generate an additional Rage point when you deal melee damage with a weapon."
-            ]
-          },
-          "classic": {
-            "name": "Unbridled Wrath",
-            "maxRank": 5,
-            "tier": 1,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12322,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12322",
-              "title": "Classic Era client, build 1.15.9.69722: Unbridled Wrath",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-fury-improved-cleave",
-          "name": "Improved Cleave",
-          "icon": "ability_warrior_cleave",
-          "tree": "Fury",
-          "tier": 2,
-          "col": 0,
-          "order": 4,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Effect rewritten.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Reduces the Rage cost of your Cleave ability by 1.",
-              "Reduces the Rage cost of your Cleave ability by 2.",
-              "Reduces the Rage cost of your Cleave ability by 3."
-            ],
-            "classic": [
-              "Increases the bonus damage done by your Cleave ability by 40%.",
-              "Increases the bonus damage done by your Cleave ability by 80%.",
-              "Increases the bonus damage done by your Cleave ability by 120%."
-            ]
-          },
-          "classic": {
-            "name": "Improved Cleave",
-            "maxRank": 3,
-            "tier": 2,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12329,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12329",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Cleave",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-fury-piercing-howl",
-          "name": "Piercing Howl",
-          "icon": "spell_shadow_deathscream",
-          "tree": "Fury",
-          "tier": 2,
-          "col": 1,
-          "order": 5,
           "maxRank": 1,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Same numbers, reworded.",
-          "changes": [],
-          "passive": false,
-          "tooltip": {
-            "resourceCost": "10 Rage",
-            "castTime": "Instant"
-          },
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Causes all nearby enemies to be Dazed, reducing movement speed by 50% for 6 sec."
-            ],
-            "classic": [
-              "Causes all enemies near the warrior to be dazed, reducing movement speed by 50% for 6 sec."
-            ]
-          },
-          "classic": {
-            "name": "Piercing Howl",
-            "maxRank": 1,
-            "tier": 2,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12323,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12323",
-              "title": "Classic Era client, build 1.15.9.69722: Piercing Howl",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-fury-blood-craze",
-          "name": "Blood Craze",
-          "icon": "spell_shadow_summonimp",
-          "tree": "Fury",
-          "tier": 2,
-          "col": 2,
-          "order": 6,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Effect rewritten.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Regenerates 1% of your total Health over 6 sec after being the victim of a critical strike, dealing damage with Bloodthirst, or suffering more than 20% of your maximum Health from a single attack.",
-              "Regenerates 2% of your total Health over 6 sec after being the victim of a critical strike, dealing damage with Bloodthirst, or suffering more than 20% of your maximum Health from a single attack.",
-              "Regenerates 3% of your total Health over 6 sec after being the victim of a critical strike, dealing damage with Bloodthirst, or suffering more than 20% of your maximum Health from a single attack."
-            ],
-            "classic": [
-              "Regenerates 1% of your total Health over 6 sec after being the victim of a critical strike.",
-              "Regenerates 2% of your total Health over 6 sec after being the victim of a critical strike.",
-              "Regenerates 3% of your total Health over 6 sec after being the victim of a critical strike."
-            ]
-          },
-          "classic": {
-            "name": "Blood Craze",
-            "maxRank": 3,
-            "tier": 2,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 16487,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=16487",
-              "title": "Classic Era client, build 1.15.9.69722: Blood Craze",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-fury-boundless-rage",
-          "name": "Boundless Rage",
-          "icon": "ability_warrior_intensifyrage",
-          "tree": "Fury",
-          "tier": 2,
-          "col": 3,
-          "order": 7,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Increases your maximum Rage by 10.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases your maximum Rage by 10.",
-              "Increases your maximum Rage by 20.",
-              "Increases your maximum Rage by 30."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-fury-dual-wield-specialization",
-          "name": "Dual Wield Specialization",
-          "icon": "ability_dualwield",
-          "tree": "Fury",
-          "tier": 3,
-          "col": 0,
-          "order": 8,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Effect rewritten.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases your off-hand weapon damage by 5%, off-hand Rage generation by 20%, and chance to hit with off-hand attacks by 2%.",
-              "Increases your off-hand weapon damage by 10%, off-hand Rage generation by 40%, and chance to hit with off-hand attacks by 4%.",
-              "Increases your off-hand weapon damage by 15%, off-hand Rage generation by 60%, and chance to hit with off-hand attacks by 6%.",
-              "Increases your off-hand weapon damage by 20%, off-hand Rage generation by 80%, and chance to hit with off-hand attacks by 8%.",
-              "Increases your off-hand weapon damage by 25%, off-hand Rage generation by 100%, and chance to hit with off-hand attacks by 10%."
-            ],
-            "classic": [
-              "Increases the damage done by your offhand weapon by 5%.",
-              "Increases the damage done by your offhand weapon by 10%.",
-              "Increases the damage done by your offhand weapon by 15%.",
-              "Increases the damage done by your offhand weapon by 20%.",
-              "Increases the damage done by your offhand weapon by 25%."
-            ]
-          },
-          "classic": {
-            "name": "Dual Wield Specialization",
-            "maxRank": 5,
-            "tier": 3,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 23584,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=23584",
-              "title": "Classic Era client, build 1.15.9.69722: Dual Wield Specialization",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "warrior-raging-blows",
-          "name": "Raging Blows",
-          "icon": "ability_whirlwind",
-          "tree": "Fury",
-          "tier": 3,
-          "col": 1,
-          "order": 9,
-          "maxRank": 1,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Causes your Whirlwind to also strike with your off-hand weapon, and reduces the Rage cost of your Cleave ability by 2.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Causes your Whirlwind to also strike with your off-hand weapon, and reduces the Rage cost of your Cleave ability by 2."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-fury-enrage",
-          "name": "Enrage",
-          "icon": "spell_shadow_unholyfrenzy",
-          "tree": "Fury",
-          "tier": 3,
-          "col": 2,
-          "order": 10,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Effect rewritten.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Gives you a 30% chance to deal 2% increased Physical damage for 12 sec after being the victim of any damaging attack.",
-              "Gives you a 30% chance to deal 4% increased Physical damage for 12 sec after being the victim of any damaging attack.",
-              "Gives you a 30% chance to deal 6% increased Physical damage for 12 sec after being the victim of any damaging attack.",
-              "Gives you a 30% chance to deal 8% increased Physical damage for 12 sec after being the victim of any damaging attack.",
-              "Gives you a 30% chance to deal 10% increased Physical damage for 12 sec after being the victim of any damaging attack."
-            ],
-            "classic": [
-              "Gives you a 5% melee damage bonus for 12 sec up to a maximum of 12 swings after being the victim of a critical strike.",
-              "Gives you a 10% melee damage bonus for 12 sec up to a maximum of 12 swings after being the victim of a critical strike.",
-              "Gives you a 15% melee damage bonus for 12 sec up to a maximum of 12 swings after being the victim of a critical strike.",
-              "Gives you a 20% melee damage bonus for 12 sec up to a maximum of 12 swings after being the victim of a critical strike.",
-              "Gives you a 25% melee damage bonus for 12 sec up to a maximum of 12 swings after being the victim of a critical strike."
-            ]
-          },
-          "classic": {
-            "name": "Enrage",
-            "maxRank": 5,
-            "tier": 3,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12317,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12317",
-              "title": "Classic Era client, build 1.15.9.69722: Enrage",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-fury-improved-execute",
-          "name": "Improved Execute",
-          "icon": "inv_sword_48",
-          "tree": "Fury",
-          "tier": 3,
-          "col": 3,
-          "order": 11,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Moved from column 2 to column 4. 3 instead of 2.",
-          "changes": [
-            "Moved from column 2 to column 4"
-          ],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Reduces the Rage cost of your Execute ability by 3.",
-              "Reduces the Rage cost of your Execute ability by 5."
-            ],
-            "classic": [
-              "Reduces the Rage cost of your Execute ability by 2.",
-              "Reduces the Rage cost of your Execute ability by 5."
-            ]
-          },
-          "classic": {
-            "name": "Improved Execute",
-            "maxRank": 2,
-            "tier": 3,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 20502,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20502",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Execute",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-fury-precision",
-          "name": "Precision",
-          "icon": "ability_marksmanship",
-          "tree": "Fury",
-          "tier": 4,
-          "col": 0,
-          "order": 12,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Improves your chance to hit by 1%.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Improves your chance to hit by 1%.",
-              "Improves your chance to hit by 2%.",
-              "Improves your chance to hit by 3%."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-fury-death-wish",
-          "name": "Death Wish",
-          "icon": "spell_shadow_deathpact",
-          "tree": "Fury",
-          "tier": 4,
-          "col": 1,
-          "order": 13,
-          "maxRank": 1,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "5% instead of 20%, reworded.",
-          "changes": [],
-          "passive": false,
-          "tooltip": {
-            "resourceCost": "10 Rage",
-            "castTime": "Instant",
-            "cooldown": "3 min cooldown"
-          },
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "When activated, increases your Physical damage done by 20% and makes you immune to Fear effects, but increases all damage you take by 5%. Lasts 30 sec."
-            ],
-            "classic": [
-              "When activated, increases your physical damage by 20% and makes you immune to Fear effects, but lowers your armor and all resistances by 20%. Lasts 30 sec."
-            ]
-          },
-          "classic": {
-            "name": "Death Wish",
-            "maxRank": 1,
-            "tier": 4,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12328,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12328",
-              "title": "Classic Era client, build 1.15.9.69722: Death Wish",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-fury-improved-intercept",
-          "name": "Improved Intercept",
-          "icon": "ability_rogue_sprint",
-          "tree": "Fury",
-          "tier": 4,
-          "col": 3,
-          "order": 14,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "unchanged",
-          "summary": "Same as Classic.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Reduces the cooldown of your Intercept ability by 5 sec.",
-              "Reduces the cooldown of your Intercept ability by 10 sec."
-            ],
-            "classic": [
-              "Reduces the cooldown of your Intercept ability by 5 sec.",
-              "Reduces the cooldown of your Intercept ability by 10 sec."
-            ]
-          },
-          "classic": {
-            "name": "Improved Intercept",
-            "maxRank": 2,
-            "tier": 4,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 20504,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20504",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Intercept",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "warrior-improved-berserker-rage",
-          "name": "Improved Berserker Rage",
-          "icon": "spell_nature_ancestralguardian",
-          "tree": "Fury",
-          "tier": 5,
-          "col": 0,
-          "order": 15,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Effect rewritten.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Your Berserker Rage ability will instantly generate 5 Rage and has a 50% chance to remove all movement impairing effects when activated.",
-              "Your Berserker Rage ability will instantly generate 10 Rage and has a 100% chance to remove all movement impairing effects when activated."
-            ],
-            "classic": [
-              "The Berserker Rage ability will generate 5 rage when used.",
-              "The Berserker Rage ability will generate 10 rage when used."
-            ]
-          },
-          "classic": {
-            "name": "Improved Berserker Rage",
-            "maxRank": 2,
-            "tier": 5,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 20500,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20500",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Berserker Rage",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-fury-flurry",
-          "name": "Flurry",
-          "icon": "ability_ghoulfrenzy",
-          "tree": "Fury",
-          "tier": 5,
-          "col": 2,
+          "name": "Mortal Strike",
           "order": 16,
-          "maxRank": 5,
+          "passive": false,
           "prerequisite": {
-            "talentId": "calc-warrior-fury-enrage",
-            "rank": 5
+            "rank": 1,
+            "talentId": "warrior-arms-sweeping-strikes"
           },
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Rank 5: 25% instead of 30%, reworded.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Increases your melee attack speed by 5% for your next 3 swings after dealing a melee critical strike.",
-              "Increases your melee attack speed by 10% for your next 3 swings after dealing a melee critical strike.",
-              "Increases your melee attack speed by 15% for your next 3 swings after dealing a melee critical strike.",
-              "Increases your melee attack speed by 20% for your next 3 swings after dealing a melee critical strike.",
-              "Increases your melee attack speed by 25% for your next 3 swings after dealing a melee critical strike."
-            ],
-            "classic": [
-              "Increases your attack speed by 10% for your next 3 swings after dealing a melee critical strike.",
-              "Increases your attack speed by 15% for your next 3 swings after dealing a melee critical strike.",
-              "Increases your attack speed by 20% for your next 3 swings after dealing a melee critical strike.",
-              "Increases your attack speed by 25% for your next 3 swings after dealing a melee critical strike.",
-              "Increases your attack speed by 30% for your next 3 swings after dealing a melee critical strike."
-            ]
+            "classic": ["A vicious strike that deals weapon damage plus 85 and wounds the target, reducing the effectiveness of any healing by 50% for 10 sec."],
+            "forever": ["A vicious strike that deals weapon damage plus 85 and wounds the target, reducing the effectiveness of any healing by 50% for 10 sec."]
           },
-          "classic": {
-            "name": "Flurry",
-            "maxRank": 5,
-            "tier": 5,
-            "matchStatus": "same_name",
-            "prerequisite": "Enrage"
-          },
-          "classicSpellId": 12319,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12319",
-              "title": "Classic Era client, build 1.15.9.69722: Flurry",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "warrior-bloodthirst",
-          "name": "Bloodthirst",
-          "icon": "spell_nature_bloodlust",
-          "tree": "Fury",
+          "spellId": 12294,
           "tier": 6,
-          "col": 1,
-          "order": 17,
-          "maxRank": 1,
-          "prerequisite": {
-            "talentId": "calc-warrior-fury-death-wish",
-            "rank": 1
-          },
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Effect rewritten.",
-          "changes": [],
-          "passive": false,
           "tooltip": {
-            "resourceCost": "30 Rage",
-            "range": "Melee range",
-            "castTime": "Instant",
-            "cooldown": "6 sec cooldown"
-          },
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Instantly attack the target causing damage equal to 35% of your Attack Power plus 30 and increasing your movement speed by 10% for 10 sec."
-            ],
-            "classic": [
-              "Instantly attack the target causing damage equal to 45% of your attack power. In addition, the next 5 successful melee attacks will restore 10 health. This effect lasts 8 sec."
-            ]
-          },
-          "classic": {
-            "name": "Bloodthirst",
-            "maxRank": 1,
-            "tier": 6,
-            "matchStatus": "same_name",
-            "prerequisite": "Death Wish"
-          },
-          "classicSpellId": 23881,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=23881",
-              "title": "Classic Era client, build 1.15.9.69722: Bloodthirst",
-              "type": "classic_client_data"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "Protection",
-      "name": "Protection",
-      "icon": "inv_shield_06",
-      "index": 2,
-      "clientTreeId": "163",
-      "talents": [
-        {
-          "id": "warrior-shield-specialization",
-          "name": "Shield Specialization",
-          "icon": "inv_shield_06",
-          "tree": "Protection",
-          "tier": 0,
-          "col": 1,
-          "order": 0,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Rank 5: 5 instead of 1, reworded.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases your chance to Block attacks with your shield by 1% and grants you a 20% chance to generate 5 Rage when you Block.",
-              "Increases your chance to Block attacks with your shield by 2% and grants you a 40% chance to generate 5 Rage when you Block.",
-              "Increases your chance to Block attacks with your shield by 3% and grants you a 60% chance to generate 5 Rage when you Block.",
-              "Increases your chance to Block attacks with your shield by 4% and grants you a 80% chance to generate 5 Rage when you Block.",
-              "Increases your chance to Block attacks with your shield by 5% and grants you a 100% chance to generate 5 Rage when you Block."
-            ],
-            "classic": [
-              "Increases your chance to block attacks with a shield by 1% and has a 20% chance to generate 1 rage when a block occurs.",
-              "Increases your chance to block attacks with a shield by 2% and has a 40% chance to generate 1 rage when a block occurs.",
-              "Increases your chance to block attacks with a shield by 3% and has a 60% chance to generate 1 rage when a block occurs.",
-              "Increases your chance to block attacks with a shield by 4% and has a 80% chance to generate 1 rage when a block occurs.",
-              "Increases your chance to block attacks with a shield by 5% and has a 100% chance to generate 1 rage when a block occurs."
-            ]
-          },
-          "classic": {
-            "name": "Shield Specialization",
-            "maxRank": 5,
-            "tier": 0,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12298,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12298",
-              "title": "Classic Era client, build 1.15.9.69722: Shield Specialization",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-anticipation",
-          "name": "Anticipation",
-          "icon": "spell_nature_mirrorimage",
-          "tree": "Protection",
-          "tier": 0,
-          "col": 2,
-          "order": 1,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Rank 5: 20 instead of 10.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases your Defense Skill by 4.",
-              "Increases your Defense Skill by 8.",
-              "Increases your Defense Skill by 12.",
-              "Increases your Defense Skill by 16.",
-              "Increases your Defense Skill by 20."
-            ],
-            "classic": [
-              "Increases your Defense skill by 2.",
-              "Increases your Defense skill by 4.",
-              "Increases your Defense skill by 6.",
-              "Increases your Defense skill by 8.",
-              "Increases your Defense skill by 10."
-            ]
-          },
-          "classic": {
-            "name": "Anticipation",
-            "maxRank": 5,
-            "tier": 0,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12297,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12297",
-              "title": "Classic Era client, build 1.15.9.69722: Anticipation",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-improved-bloodrage",
-          "name": "Improved Bloodrage",
-          "icon": "ability_racial_bloodrage",
-          "tree": "Protection",
-          "tier": 1,
-          "col": 0,
-          "order": 2,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Rank 2: 50% instead of 5, reworded.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases all the Rage generated by your Bloodrage ability by 25%.",
-              "Increases all the Rage generated by your Bloodrage ability by 50%."
-            ],
-            "classic": [
-              "Increases the instant Rage generated by your Bloodrage ability by 2.",
-              "Increases the instant Rage generated by your Bloodrage ability by 5."
-            ]
-          },
-          "classic": {
-            "name": "Improved Bloodrage",
-            "maxRank": 2,
-            "tier": 1,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12301,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12301",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Bloodrage",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-toughness",
-          "name": "Toughness",
-          "icon": "spell_holy_devotion",
-          "tree": "Protection",
-          "tier": 1,
-          "col": 2,
-          "order": 3,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "unchanged",
-          "summary": "Same as Classic.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases your Armor value from items by 2%.",
-              "Increases your Armor value from items by 4%.",
-              "Increases your Armor value from items by 6%.",
-              "Increases your Armor value from items by 8%.",
-              "Increases your Armor value from items by 10%."
-            ],
-            "classic": [
-              "Increases your armor value from items by 2%.",
-              "Increases your armor value from items by 4%.",
-              "Increases your armor value from items by 6%.",
-              "Increases your armor value from items by 8%.",
-              "Increases your armor value from items by 10%."
-            ]
-          },
-          "classic": {
-            "name": "Toughness",
-            "maxRank": 5,
-            "tier": 1,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12299,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12299",
-              "title": "Classic Era client, build 1.15.9.69722: Toughness",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-improved-thunder-clap",
-          "name": "Improved Thunder Clap",
-          "icon": "ability_thunderclap",
-          "tree": "Protection",
-          "tier": 1,
-          "col": 3,
-          "order": 4,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Moved from Arms to Protection. Rank 3: 6 instead of 4, reworded.",
-          "changes": [
-            "Moved from Arms to Protection"
-          ],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Reduces the Rage cost of your Thunder Clap ability by 2.",
-              "Reduces the Rage cost of your Thunder Clap ability by 4.",
-              "Reduces the Rage cost of your Thunder Clap ability by 6."
-            ],
-            "classic": [
-              "Reduces the cost of your Thunder Clap ability by 1 rage point.",
-              "Reduces the cost of your Thunder Clap ability by 2 rage points.",
-              "Reduces the cost of your Thunder Clap ability by 4 rage points."
-            ]
-          },
-          "classic": {
-            "name": "Improved Thunder Clap",
-            "maxRank": 3,
-            "tier": 1,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12287,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12287",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Thunder Clap",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-last-stand",
-          "name": "Last Stand",
-          "icon": "spell_holy_ashestoashes",
-          "tree": "Protection",
-          "tier": 2,
-          "col": 0,
-          "order": 5,
-          "maxRank": 1,
-          "prerequisite": {
-            "talentId": "calc-warrior-protection-improved-bloodrage",
-            "rank": 2
-          },
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Same numbers, reworded.",
-          "changes": [],
-          "passive": false,
-          "tooltip": {
-            "castTime": "Instant",
-            "cooldown": "3 min cooldown"
-          },
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "When activated, this ability temporarily grants you 30% of your maximum health for 20 sec. After the effect expires, the health is lost."
-            ],
-            "classic": [
-              "When activated, this ability temporarily grants you 30% of your maximum hit points for 20 seconds. After the effect expires, the hit points are lost."
-            ]
-          },
-          "classic": {
-            "name": "Last Stand",
-            "maxRank": 1,
-            "tier": 2,
-            "matchStatus": "same_name",
-            "prerequisite": "Improved Bloodrage"
-          },
-          "classicSpellId": 12975,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12975",
-              "title": "Classic Era client, build 1.15.9.69722: Last Stand",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-master-of-defense",
-          "name": "Master of Defense",
-          "icon": "ability_warrior_shieldguard",
-          "tree": "Protection",
-          "tier": 2,
-          "col": 1,
-          "order": 6,
-          "maxRank": 2,
-          "prerequisite": {
-            "talentId": "warrior-shield-specialization",
-            "rank": 5
-          },
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Grants you a 50% chance to generate 5 Rage when you Dodge or Parry while a shield is equipped.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Grants you a 50% chance to generate 5 Rage when you Dodge or Parry while a shield is equipped.",
-              "Grants you a 100% chance to generate 5 Rage when you Dodge or Parry while a shield is equipped."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-improved-revenge",
-          "name": "Improved Revenge",
-          "icon": "ability_warrior_revenge",
-          "tree": "Protection",
-          "tier": 2,
-          "col": 2,
-          "order": 7,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Effect rewritten.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases damage dealt by your Revenge ability by 20%.",
-              "Increases damage dealt by your Revenge ability by 40%.",
-              "Increases damage dealt by your Revenge ability by 60%."
-            ],
-            "classic": [
-              "Gives your Revenge ability a 15% chance to stun the target for 3 sec.",
-              "Gives your Revenge ability a 30% chance to stun the target for 3 sec.",
-              "Gives your Revenge ability a 45% chance to stun the target for 3 sec."
-            ]
-          },
-          "classic": {
-            "name": "Improved Revenge",
-            "maxRank": 3,
-            "tier": 2,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12797,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12797",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Revenge",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-defiance",
-          "name": "Defiance",
-          "icon": "ability_warrior_innerrage",
-          "tree": "Protection",
-          "tier": 2,
-          "col": 3,
-          "order": 8,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "3 ranks (Classic: 5). Effect rewritten.",
-          "changes": [
-            "3 ranks (Classic: 5)"
-          ],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases all threat generated in Defensive stance by an additional 5% while a shield is equipped.",
-              "Increases all threat generated in Defensive stance by an additional 10% while a shield is equipped.",
-              "Increases all threat generated in Defensive stance by an additional 15% while a shield is equipped."
-            ],
-            "classic": [
-              "Increases the threat generated by your attacks by 3% while in Defensive Stance.",
-              "Increases the threat generated by your attacks by 6% while in Defensive Stance.",
-              "Increases the threat generated by your attacks by 9% while in Defensive Stance.",
-              "Increases the threat generated by your attacks by 12% while in Defensive Stance.",
-              "Increases the threat generated by your attacks by 15% while in Defensive Stance."
-            ]
-          },
-          "classic": {
-            "name": "Defiance",
-            "maxRank": 5,
-            "tier": 2,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12303,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12303",
-              "title": "Classic Era client, build 1.15.9.69722: Defiance",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-improved-sunder-armor",
-          "name": "Improved Sunder Armor",
-          "icon": "ability_warrior_sunder",
-          "tree": "Protection",
-          "tier": 3,
-          "col": 0,
-          "order": 9,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Same numbers, reworded.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Reduces the Rage cost of your Sunder Armor ability by 1.",
-              "Reduces the Rage cost of your Sunder Armor ability by 2.",
-              "Reduces the Rage cost of your Sunder Armor ability by 3."
-            ],
-            "classic": [
-              "Reduces the cost of your Sunder Armor ability by 1 rage point.",
-              "Reduces the cost of your Sunder Armor ability by 2 rage points.",
-              "Reduces the cost of your Sunder Armor ability by 3 rage points."
-            ]
-          },
-          "classic": {
-            "name": "Improved Sunder Armor",
-            "maxRank": 3,
-            "tier": 3,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12308,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12308",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Sunder Armor",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-improved-disarm",
-          "name": "Improved Disarm",
-          "icon": "ability_warrior_disarm",
-          "tree": "Protection",
-          "tier": 3,
-          "col": 1,
-          "order": 10,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Rank 3: 20 secs instead of 3 secs, reworded.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Reduces the cooldown of your Disarm ability by 7 secs.",
-              "Reduces the cooldown of your Disarm ability by 13 secs.",
-              "Reduces the cooldown of your Disarm ability by 20 secs."
-            ],
-            "classic": [
-              "Increases the duration of your Disarm ability by 1 secs.",
-              "Increases the duration of your Disarm ability by 2 secs.",
-              "Increases the duration of your Disarm ability by 3 secs."
-            ]
-          },
-          "classic": {
-            "name": "Improved Disarm",
-            "maxRank": 3,
-            "tier": 3,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12313,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12313",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Disarm",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-vanguard",
-          "name": "Vanguard",
-          "icon": "ability_warrior_shieldcharge",
-          "tree": "Protection",
-          "tier": 3,
-          "col": 2,
-          "order": 11,
-          "maxRank": 1,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Your Charge ability is now usable while in Defensive Stance.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Your Charge ability is now usable while in Defensive Stance."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-improved-shield-wall",
-          "name": "Improved Shield Wall",
-          "icon": "ability_warrior_shieldwall",
-          "tree": "Protection",
-          "tier": 4,
-          "col": 0,
-          "order": 12,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Rank 2: 11.0 min instead of 5 secs, reworded.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Reduces the cooldown of your Shield Wall ability by 5.5 min.",
-              "Reduces the cooldown of your Shield Wall ability by 11.0 min."
-            ],
-            "classic": [
-              "Increases the effect duration of your Shield Wall ability by 3 secs.",
-              "Increases the effect duration of your Shield Wall ability by 5 secs."
-            ]
-          },
-          "classic": {
-            "name": "Improved Shield Wall",
-            "maxRank": 2,
-            "tier": 4,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12312,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12312",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Shield Wall",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-concussion-blow",
-          "name": "Concussion Blow",
-          "icon": "ability_thunderbolt",
-          "tree": "Protection",
-          "tier": 4,
-          "col": 1,
-          "order": 13,
-          "maxRank": 1,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Same numbers, reworded.",
-          "changes": [],
-          "passive": false,
-          "tooltip": {
-            "resourceCost": "10 Rage",
-            "range": "Melee range",
-            "castTime": "Instant",
-            "cooldown": "45 sec cooldown",
-            "requirements": "Requires Melee Weapon"
-          },
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Stuns the target for 5 sec."
-            ],
-            "classic": [
-              "Stuns the opponent for 5 sec."
-            ]
-          },
-          "classic": {
-            "name": "Concussion Blow",
-            "maxRank": 1,
-            "tier": 4,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12809,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12809",
-              "title": "Classic Era client, build 1.15.9.69722: Concussion Blow",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-improved-shield-bash",
-          "name": "Improved Shield Bash",
-          "icon": "ability_warrior_shieldbash",
-          "tree": "Protection",
-          "tier": 4,
-          "col": 2,
-          "order": 14,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "unchanged",
-          "summary": "Same as Classic.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Gives your Shield Bash ability a 50% chance to Silence the target for 3 sec.",
-              "Gives your Shield Bash ability a 100% chance to Silence the target for 3 sec."
-            ],
-            "classic": [
-              "Gives your Shield Bash ability a 50% chance to silence the target for 3 sec.",
-              "Gives your Shield Bash ability a 100% chance to silence the target for 3 sec."
-            ]
-          },
-          "classic": {
-            "name": "Improved Shield Bash",
-            "maxRank": 2,
-            "tier": 4,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 12311,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=12311",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Shield Bash",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-bastion",
-          "name": "Bastion",
-          "icon": "inv_shield_04",
-          "tree": "Protection",
-          "tier": 4,
-          "col": 3,
-          "order": 15,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Replaces One-Handed Weapon Specialization. Moved from tier 6 to tier 5.",
-          "changes": [
-            "Replaces One-Handed Weapon Specialization",
-            "Moved from tier 6 to tier 5"
-          ],
-          "passive": true,
-          "tooltip": null,
-          "previousName": "One-Handed Weapon Specialization",
-          "ranks": {
-            "forever": [
-              "Increases all damage you deal by 2% while a shield is equipped.",
-              "Increases all damage you deal by 4% while a shield is equipped.",
-              "Increases all damage you deal by 6% while a shield is equipped.",
-              "Increases all damage you deal by 8% while a shield is equipped.",
-              "Increases all damage you deal by 10% while a shield is equipped."
-            ],
-            "classic": [
-              "Increases the damage you deal with One-Handed Melee weapons by 2%.",
-              "Increases the damage you deal with One-Handed Melee weapons by 4%.",
-              "Increases the damage you deal with One-Handed Melee weapons by 6%.",
-              "Increases the damage you deal with One-Handed Melee weapons by 8%.",
-              "Increases the damage you deal with One-Handed Melee weapons by 10%."
-            ]
-          },
-          "classic": {
-            "name": "One-Handed Weapon Specialization",
-            "maxRank": 5,
-            "tier": 5,
-            "matchStatus": "same_spell",
-            "prerequisite": null
-          },
-          "classicSpellId": 16538,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=16538",
-              "title": "Classic Era client, build 1.15.9.69722: One-Handed Weapon Specialization",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-focused-rage",
-          "name": "Focused Rage",
-          "icon": "ability_warrior_focusedrage",
-          "tree": "Protection",
-          "tier": 5,
-          "col": 2,
-          "order": 16,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Reduces the Rage cost of your offensive abilities by 1.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Reduces the Rage cost of your offensive abilities by 1.",
-              "Reduces the Rage cost of your offensive abilities by 2.",
-              "Reduces the Rage cost of your offensive abilities by 3."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-warrior-protection-shield-slam",
-          "name": "Shield Slam",
-          "icon": "inv_shield_05",
-          "tree": "Protection",
-          "tier": 6,
-          "col": 1,
-          "order": 17,
-          "maxRank": 1,
-          "prerequisite": {
-            "talentId": "calc-warrior-protection-concussion-blow",
-            "rank": 1
-          },
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "421 to 439 instead of 225 to 235, reworded.",
-          "changes": [],
-          "passive": false,
-          "tooltip": {
-            "resourceCost": "20 Rage",
-            "range": "Melee range",
             "castTime": "Instant",
             "cooldown": "6 sec cooldown",
-            "requirements": "Requires Shields"
+            "range": "Melee range",
+            "requirements": "Requires Melee Weapon",
+            "resourceCost": "30 Rage"
+          },
+          "tree": "Arms"
+        }
+      ]
+    },
+    {
+      "clientTreeId": "164",
+      "icon": "ability_warrior_innerrage",
+      "id": "Fury",
+      "index": 1,
+      "name": "Fury",
+      "talents": [
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Booming Voice",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Fury"
+          },
+          "classicSpellId": 12321,
+          "col": 1,
+          "icon": "spell_nature_purge",
+          "id": "warrior-fury-booming-voice",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Booming Voice",
+          "order": 0,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the area of effect and duration of your Battle Shout and Demoralizing Shout by 10%.", "Increases the area of effect and duration of your Battle Shout and Demoralizing Shout by 20%.", "Increases the area of effect and duration of your Battle Shout and Demoralizing Shout by 30%.", "Increases the area of effect and duration of your Battle Shout and Demoralizing Shout by 40%.", "Increases the area of effect and duration of your Battle Shout and Demoralizing Shout by 50%."],
+            "forever": ["Increases the radius of your Battle Shout and Demoralizing Shout abilities by 10%.", "Increases the radius of your Battle Shout and Demoralizing Shout abilities by 20%.", "Increases the radius of your Battle Shout and Demoralizing Shout abilities by 30%.", "Increases the radius of your Battle Shout and Demoralizing Shout abilities by 40%.", "Increases the radius of your Battle Shout and Demoralizing Shout abilities by 50%."]
+          },
+          "spellId": 12321,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Cruelty",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Fury"
+          },
+          "classicSpellId": 12320,
+          "col": 2,
+          "icon": "ability_rogue_eviscerate",
+          "id": "warrior-fury-cruelty",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Cruelty",
+          "order": 1,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your chance to get a critical strike with melee weapons by 1%.", "Increases your chance to get a critical strike with melee weapons by 2%.", "Increases your chance to get a critical strike with melee weapons by 3%.", "Increases your chance to get a critical strike with melee weapons by 4%.", "Increases your chance to get a critical strike with melee weapons by 5%."],
+            "forever": ["Improves your chance to get a critical strike with melee attacks by 1%.", "Improves your chance to get a critical strike with melee attacks by 2%.", "Improves your chance to get a critical strike with melee attacks by 3%.", "Improves your chance to get a critical strike with melee attacks by 4%.", "Improves your chance to get a critical strike with melee attacks by 5%."]
+          },
+          "spellId": 12320,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Iron Will",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Protection"
+          },
+          "classicSpellId": 12300,
+          "col": 1,
+          "icon": "spell_magic_magearmor",
+          "id": "warrior-fury-iron-will",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Iron Will",
+          "order": 2,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your chance to resist Stun and Charm effects by an additional 3%.", "Increases your chance to resist Stun and Charm effects by an additional 6%.", "Increases your chance to resist Stun and Charm effects by an additional 9%.", "Increases your chance to resist Stun and Charm effects by an additional 12%.", "Increases your chance to resist Stun and Charm effects by an additional 15%."],
+            "forever": ["Reduces the duration of Stun and Fear effects inflicted on you by 3%.", "Reduces the duration of Stun and Fear effects inflicted on you by 6%.", "Reduces the duration of Stun and Fear effects inflicted on you by 9%.", "Reduces the duration of Stun and Fear effects inflicted on you by 12%.", "Reduces the duration of Stun and Fear effects inflicted on you by 15%."]
+          },
+          "spellId": 12962,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Unbridled Wrath",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Fury"
+          },
+          "classicSpellId": 12322,
+          "col": 2,
+          "icon": "spell_nature_stoneclawtotem",
+          "id": "warrior-fury-unbridled-wrath",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Unbridled Wrath",
+          "order": 3,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives you a 8% chance to generate an additional Rage point when you deal melee damage with a weapon.", "Gives you a 16% chance to generate an additional Rage point when you deal melee damage with a weapon.", "Gives you a 24% chance to generate an additional Rage point when you deal melee damage with a weapon.", "Gives you a 32% chance to generate an additional Rage point when you deal melee damage with a weapon.", "Gives you a 40% chance to generate an additional Rage point when you deal melee damage with a weapon."],
+            "forever": ["Gives you a 12% chance to generate 1 additional Rage when you deal melee damage with a weapon. This effect is increased to 2 Rage for two-handed weapons.", "Gives you a 24% chance to generate 1 additional Rage when you deal melee damage with a weapon. This effect is increased to 2 Rage for two-handed weapons.", "Gives you a 36% chance to generate 1 additional Rage when you deal melee damage with a weapon. This effect is increased to 2 Rage for two-handed weapons.", "Gives you a 48% chance to generate 1 additional Rage when you deal melee damage with a weapon. This effect is increased to 2 Rage for two-handed weapons.", "Gives you a 60% chance to generate 1 additional Rage when you deal melee damage with a weapon. This effect is increased to 2 Rage for two-handed weapons."]
+          },
+          "spellId": 12322,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Improved Cleave",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Fury"
+          },
+          "classicSpellId": 12329,
+          "col": 0,
+          "icon": "ability_warrior_cleave",
+          "id": "warrior-fury-improved-cleave",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Cleave",
+          "order": 4,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the bonus damage done by your Cleave ability by 40%.", "Increases the bonus damage done by your Cleave ability by 80%.", "Increases the bonus damage done by your Cleave ability by 120%."],
+            "forever": ["Reduces the Rage cost of your Cleave ability by 1.", "Reduces the Rage cost of your Cleave ability by 2.", "Reduces the Rage cost of your Cleave ability by 3."]
+          },
+          "spellId": 12329,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Piercing Howl",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Fury"
+          },
+          "classicSpellId": 12323,
+          "col": 1,
+          "icon": "spell_shadow_deathscream",
+          "id": "warrior-fury-piercing-howl",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Piercing Howl",
+          "order": 5,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Causes all enemies near the warrior to be dazed, reducing movement speed by 50% for 6 sec."],
+            "forever": ["Causes all nearby enemies to be Dazed, reducing movement speed by 50% for 6 sec."]
+          },
+          "spellId": 12323,
+          "tier": 2,
+          "tooltip": {
+            "castTime": "Instant",
+            "resourceCost": "10 Rage"
+          },
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Blood Craze",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Fury"
+          },
+          "classicSpellId": 16487,
+          "col": 2,
+          "icon": "spell_shadow_summonimp",
+          "id": "warrior-fury-blood-craze",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Blood Craze",
+          "order": 6,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Regenerates 1% of your total Health over 6 sec after being the victim of a critical strike.", "Regenerates 2% of your total Health over 6 sec after being the victim of a critical strike.", "Regenerates 3% of your total Health over 6 sec after being the victim of a critical strike."],
+            "forever": ["Regenerates 1% of your total Health over 6 sec after being the victim of a critical strike, dealing damage with Bloodthirst, or suffering more than 20% of your maximum Health from a single attack.", "Regenerates 2% of your total Health over 6 sec after being the victim of a critical strike, dealing damage with Bloodthirst, or suffering more than 20% of your maximum Health from a single attack.", "Regenerates 3% of your total Health over 6 sec after being the victim of a critical strike, dealing damage with Bloodthirst, or suffering more than 20% of your maximum Health from a single attack."]
+          },
+          "spellId": 16487,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 3,
+          "icon": "ability_warrior_intensifyrage",
+          "id": "warrior-fury-boundless-rage",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Boundless Rage",
+          "order": 7,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Increases your maximum Rage by 10.", "Increases your maximum Rage by 20.", "Increases your maximum Rage by 30."]
+          },
+          "spellId": 1310236,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Dual Wield Specialization",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Fury"
+          },
+          "classicSpellId": 23584,
+          "col": 0,
+          "icon": "ability_dualwield",
+          "id": "warrior-fury-dual-wield-specialization",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Dual Wield Specialization",
+          "order": 8,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the damage done by your offhand weapon by 5%.", "Increases the damage done by your offhand weapon by 10%.", "Increases the damage done by your offhand weapon by 15%.", "Increases the damage done by your offhand weapon by 20%.", "Increases the damage done by your offhand weapon by 25%."],
+            "forever": ["Increases your off-hand weapon damage by 5%, off-hand Rage generation by 20%, and chance to hit with off-hand attacks by 2%.", "Increases your off-hand weapon damage by 10%, off-hand Rage generation by 40%, and chance to hit with off-hand attacks by 4%.", "Increases your off-hand weapon damage by 15%, off-hand Rage generation by 60%, and chance to hit with off-hand attacks by 6%.", "Increases your off-hand weapon damage by 20%, off-hand Rage generation by 80%, and chance to hit with off-hand attacks by 8%.", "Increases your off-hand weapon damage by 25%, off-hand Rage generation by 100%, and chance to hit with off-hand attacks by 10%."]
+          },
+          "spellId": 23584,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "ability_whirlwind",
+          "id": "warrior-fury-raging-blows",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Raging Blows",
+          "order": 9,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Causes your Whirlwind to also strike with your off-hand weapon, and reduces the Rage cost of your Cleave ability by 2."]
+          },
+          "spellId": 1310315,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Enrage",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Fury"
+          },
+          "classicSpellId": 12317,
+          "col": 2,
+          "icon": "spell_shadow_unholyfrenzy",
+          "id": "warrior-fury-enrage",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Enrage",
+          "order": 10,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives you a 5% melee damage bonus for 12 sec up to a maximum of 12 swings after being the victim of a critical strike.", "Gives you a 10% melee damage bonus for 12 sec up to a maximum of 12 swings after being the victim of a critical strike.", "Gives you a 15% melee damage bonus for 12 sec up to a maximum of 12 swings after being the victim of a critical strike.", "Gives you a 20% melee damage bonus for 12 sec up to a maximum of 12 swings after being the victim of a critical strike.", "Gives you a 25% melee damage bonus for 12 sec up to a maximum of 12 swings after being the victim of a critical strike."],
+            "forever": ["Gives you a 30% chance to deal 2% increased Physical damage for 12 sec after being the victim of any damaging attack.", "Gives you a 30% chance to deal 4% increased Physical damage for 12 sec after being the victim of any damaging attack.", "Gives you a 30% chance to deal 6% increased Physical damage for 12 sec after being the victim of any damaging attack.", "Gives you a 30% chance to deal 8% increased Physical damage for 12 sec after being the victim of any damaging attack.", "Gives you a 30% chance to deal 10% increased Physical damage for 12 sec after being the victim of any damaging attack."]
+          },
+          "spellId": 12317,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Improved Execute",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Fury"
+          },
+          "classicSpellId": 20502,
+          "col": 3,
+          "icon": "inv_sword_48",
+          "id": "warrior-fury-improved-execute",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Execute",
+          "order": 11,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the Rage cost of your Execute ability by 2.", "Reduces the Rage cost of your Execute ability by 5."],
+            "forever": ["Reduces the Rage cost of your Execute ability by 3.", "Reduces the Rage cost of your Execute ability by 5."]
+          },
+          "spellId": 20502,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 0,
+          "icon": "ability_marksmanship",
+          "id": "warrior-fury-precision",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Precision",
+          "order": 12,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Improves your chance to hit by 1%.", "Improves your chance to hit by 2%.", "Improves your chance to hit by 3%."]
+          },
+          "spellId": 1225295,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Death Wish",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Fury"
+          },
+          "classicSpellId": 12328,
+          "col": 1,
+          "icon": "spell_shadow_deathpact",
+          "id": "warrior-fury-death-wish",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Death Wish",
+          "order": 13,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["When activated, increases your physical damage by 20% and makes you immune to Fear effects, but lowers your armor and all resistances by 20%. Lasts 30 sec."],
+            "forever": ["When activated, increases your Physical damage done by 20% and makes you immune to Fear effects, but increases all damage you take by 5%. Lasts 30 sec."]
+          },
+          "spellId": 12328,
+          "tier": 4,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "3 min cooldown",
+            "resourceCost": "10 Rage"
+          },
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Improved Intercept",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Fury"
+          },
+          "classicSpellId": 20504,
+          "col": 3,
+          "icon": "ability_rogue_sprint",
+          "id": "warrior-fury-improved-intercept",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Intercept",
+          "order": 14,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the cooldown of your Intercept ability by 5 sec.", "Reduces the cooldown of your Intercept ability by 10 sec."],
+            "forever": ["Reduces the cooldown of your Intercept ability by 5 sec.", "Reduces the cooldown of your Intercept ability by 10 sec."]
+          },
+          "spellId": 20504,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Improved Berserker Rage",
+            "prerequisite": null,
+            "tier": 5,
+            "tree": "Fury"
+          },
+          "classicSpellId": 20500,
+          "col": 0,
+          "icon": "spell_nature_ancestralguardian",
+          "id": "warrior-fury-improved-berserker-rage",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Berserker Rage",
+          "order": 15,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["The Berserker Rage ability will generate 5 rage when used.", "The Berserker Rage ability will generate 10 rage when used."],
+            "forever": ["Your Berserker Rage ability will instantly generate 5 Rage and has a 50% chance to remove all movement impairing effects when activated.", "Your Berserker Rage ability will instantly generate 10 Rage and has a 100% chance to remove all movement impairing effects when activated."]
+          },
+          "spellId": 20500,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Flurry",
+            "prerequisite": "Enrage",
+            "tier": 5,
+            "tree": "Fury"
+          },
+          "classicSpellId": 12319,
+          "col": 2,
+          "icon": "ability_ghoulfrenzy",
+          "id": "warrior-fury-flurry",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Flurry",
+          "order": 16,
+          "passive": true,
+          "prerequisite": {
+            "rank": 5,
+            "talentId": "warrior-fury-enrage"
           },
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Slam the target with your shield, causing 421 to 439 damage, increased by your Block Value, and has a 50% chance of dispelling 1 magic effect on the target. Causes a very high amount of threat."
-            ],
-            "classic": [
-              "Slam the target with your shield, causing 225 to 235 damage, modified by your shield block value, and has a 50% chance of dispelling 1 magic effect on the target. Also causes a high amount of threat."
-            ]
+            "classic": ["Increases your attack speed by 10% for your next 3 swings after dealing a melee critical strike.", "Increases your attack speed by 15% for your next 3 swings after dealing a melee critical strike.", "Increases your attack speed by 20% for your next 3 swings after dealing a melee critical strike.", "Increases your attack speed by 25% for your next 3 swings after dealing a melee critical strike.", "Increases your attack speed by 30% for your next 3 swings after dealing a melee critical strike."],
+            "forever": ["Increases your melee attack speed by 5% for your next 3 swings after dealing a melee critical strike.", "Increases your melee attack speed by 10% for your next 3 swings after dealing a melee critical strike.", "Increases your melee attack speed by 15% for your next 3 swings after dealing a melee critical strike.", "Increases your melee attack speed by 20% for your next 3 swings after dealing a melee critical strike.", "Increases your melee attack speed by 25% for your next 3 swings after dealing a melee critical strike."]
           },
+          "spellId": 12319,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Fury"
+        },
+        {
+          "changeKind": "modified",
           "classic": {
-            "name": "Shield Slam",
-            "maxRank": 1,
-            "tier": 6,
+            "col": 1,
             "matchStatus": "same_name",
-            "prerequisite": "Concussion Blow"
+            "maxRank": 1,
+            "name": "Bloodthirst",
+            "prerequisite": "Death Wish",
+            "tier": 6,
+            "tree": "Fury"
+          },
+          "classicSpellId": 23881,
+          "col": 1,
+          "icon": "spell_nature_bloodlust",
+          "id": "warrior-fury-bloodthirst",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Bloodthirst",
+          "order": 17,
+          "passive": false,
+          "prerequisite": {
+            "rank": 1,
+            "talentId": "warrior-fury-death-wish"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["Instantly attack the target causing damage equal to 45% of your attack power. In addition, the next 5 successful melee attacks will restore 10 health. This effect lasts 8 sec."],
+            "forever": ["Instantly attack the target causing damage equal to 35% of your Attack Power plus 30 and increasing your movement speed by 10% for 10 sec."]
+          },
+          "spellId": 23881,
+          "tier": 6,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "6 sec cooldown",
+            "range": "Melee range",
+            "resourceCost": "30 Rage"
+          },
+          "tree": "Fury"
+        }
+      ]
+    },
+    {
+      "clientTreeId": "163",
+      "icon": "inv_shield_06",
+      "id": "Protection",
+      "index": 2,
+      "name": "Protection",
+      "talents": [
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Shield Specialization",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Protection"
+          },
+          "classicSpellId": 12298,
+          "col": 1,
+          "icon": "inv_shield_06",
+          "id": "warrior-protection-shield-specialization",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Shield Specialization",
+          "order": 0,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your chance to block attacks with a shield by 1% and has a 20% chance to generate 1 rage when a block occurs.", "Increases your chance to block attacks with a shield by 2% and has a 40% chance to generate 1 rage when a block occurs.", "Increases your chance to block attacks with a shield by 3% and has a 60% chance to generate 1 rage when a block occurs.", "Increases your chance to block attacks with a shield by 4% and has a 80% chance to generate 1 rage when a block occurs.", "Increases your chance to block attacks with a shield by 5% and has a 100% chance to generate 1 rage when a block occurs."],
+            "forever": ["Increases your chance to Block attacks with your shield by 1% and grants you a 20% chance to generate 5 Rage when you Block.", "Increases your chance to Block attacks with your shield by 2% and grants you a 40% chance to generate 5 Rage when you Block.", "Increases your chance to Block attacks with your shield by 3% and grants you a 60% chance to generate 5 Rage when you Block.", "Increases your chance to Block attacks with your shield by 4% and grants you a 80% chance to generate 5 Rage when you Block.", "Increases your chance to Block attacks with your shield by 5% and grants you a 100% chance to generate 5 Rage when you Block."]
+          },
+          "spellId": 12298,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Anticipation",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Protection"
+          },
+          "classicSpellId": 12297,
+          "col": 2,
+          "icon": "spell_nature_mirrorimage",
+          "id": "warrior-protection-anticipation",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Anticipation",
+          "order": 1,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your Defense skill by 2.", "Increases your Defense skill by 4.", "Increases your Defense skill by 6.", "Increases your Defense skill by 8.", "Increases your Defense skill by 10."],
+            "forever": ["Increases your Defense Skill by 4.", "Increases your Defense Skill by 8.", "Increases your Defense Skill by 12.", "Increases your Defense Skill by 16.", "Increases your Defense Skill by 20."]
+          },
+          "spellId": 12297,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Improved Bloodrage",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Protection"
+          },
+          "classicSpellId": 12301,
+          "col": 0,
+          "icon": "ability_racial_bloodrage",
+          "id": "warrior-protection-improved-bloodrage",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Bloodrage",
+          "order": 2,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the instant Rage generated by your Bloodrage ability by 2.", "Increases the instant Rage generated by your Bloodrage ability by 5."],
+            "forever": ["Increases all the Rage generated by your Bloodrage ability by 25%.", "Increases all the Rage generated by your Bloodrage ability by 50%."]
+          },
+          "spellId": 12301,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Toughness",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Protection"
+          },
+          "classicSpellId": 12299,
+          "col": 2,
+          "icon": "spell_holy_devotion",
+          "id": "warrior-protection-toughness",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Toughness",
+          "order": 3,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your armor value from items by 2%.", "Increases your armor value from items by 4%.", "Increases your armor value from items by 6%.", "Increases your armor value from items by 8%.", "Increases your armor value from items by 10%."],
+            "forever": ["Increases your Armor value from items by 2%.", "Increases your Armor value from items by 4%.", "Increases your Armor value from items by 6%.", "Increases your Armor value from items by 8%.", "Increases your Armor value from items by 10%."]
+          },
+          "spellId": 12299,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Improved Thunder Clap",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Arms"
+          },
+          "classicSpellId": 12287,
+          "col": 3,
+          "icon": "ability_thunderclap",
+          "id": "warrior-protection-improved-thunder-clap",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Thunder Clap",
+          "order": 4,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the cost of your Thunder Clap ability by 1 rage point.", "Reduces the cost of your Thunder Clap ability by 2 rage points.", "Reduces the cost of your Thunder Clap ability by 4 rage points."],
+            "forever": ["Reduces the Rage cost of your Thunder Clap ability by 2.", "Reduces the Rage cost of your Thunder Clap ability by 4.", "Reduces the Rage cost of your Thunder Clap ability by 6."]
+          },
+          "spellId": 12287,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Last Stand",
+            "prerequisite": "Improved Bloodrage",
+            "tier": 2,
+            "tree": "Protection"
+          },
+          "classicSpellId": 12975,
+          "col": 0,
+          "icon": "spell_holy_ashestoashes",
+          "id": "warrior-protection-last-stand",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Last Stand",
+          "order": 5,
+          "passive": false,
+          "prerequisite": {
+            "rank": 2,
+            "talentId": "warrior-protection-improved-bloodrage"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["When activated, this ability temporarily grants you 30% of your maximum hit points for 20 seconds. After the effect expires, the hit points are lost."],
+            "forever": ["When activated, this ability temporarily grants you 30% of your maximum health for 20 sec. After the effect expires, the health is lost."]
+          },
+          "spellId": 12975,
+          "tier": 2,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "3 min cooldown"
+          },
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "ability_warrior_shieldguard",
+          "id": "warrior-protection-master-of-defense",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Master of Defense",
+          "order": 6,
+          "passive": true,
+          "prerequisite": {
+            "rank": 5,
+            "talentId": "warrior-protection-shield-specialization"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Grants you a 50% chance to generate 5 Rage when you Dodge or Parry while a shield is equipped.", "Grants you a 100% chance to generate 5 Rage when you Dodge or Parry while a shield is equipped."]
+          },
+          "spellId": 1310316,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Improved Revenge",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Protection"
+          },
+          "classicSpellId": 12797,
+          "col": 2,
+          "icon": "ability_warrior_revenge",
+          "id": "warrior-protection-improved-revenge",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Revenge",
+          "order": 7,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives your Revenge ability a 15% chance to stun the target for 3 sec.", "Gives your Revenge ability a 30% chance to stun the target for 3 sec.", "Gives your Revenge ability a 45% chance to stun the target for 3 sec."],
+            "forever": ["Increases damage dealt by your Revenge ability by 20%.", "Increases damage dealt by your Revenge ability by 40%.", "Increases damage dealt by your Revenge ability by 60%."]
+          },
+          "spellId": 12797,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Defiance",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Protection"
+          },
+          "classicSpellId": 12303,
+          "col": 3,
+          "icon": "ability_warrior_innerrage",
+          "id": "warrior-protection-defiance",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Defiance",
+          "order": 8,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the threat generated by your attacks by 3% while in Defensive Stance.", "Increases the threat generated by your attacks by 6% while in Defensive Stance.", "Increases the threat generated by your attacks by 9% while in Defensive Stance.", "Increases the threat generated by your attacks by 12% while in Defensive Stance.", "Increases the threat generated by your attacks by 15% while in Defensive Stance."],
+            "forever": ["Increases all threat generated in Defensive stance by an additional 5% while a shield is equipped.", "Increases all threat generated in Defensive stance by an additional 10% while a shield is equipped.", "Increases all threat generated in Defensive stance by an additional 15% while a shield is equipped."]
+          },
+          "spellId": 12792,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Improved Sunder Armor",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Protection"
+          },
+          "classicSpellId": 12308,
+          "col": 0,
+          "icon": "ability_warrior_sunder",
+          "id": "warrior-protection-improved-sunder-armor",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Sunder Armor",
+          "order": 9,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the cost of your Sunder Armor ability by 1 rage point.", "Reduces the cost of your Sunder Armor ability by 2 rage points.", "Reduces the cost of your Sunder Armor ability by 3 rage points."],
+            "forever": ["Reduces the Rage cost of your Sunder Armor ability by 1.", "Reduces the Rage cost of your Sunder Armor ability by 2.", "Reduces the Rage cost of your Sunder Armor ability by 3."]
+          },
+          "spellId": 12308,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Improved Disarm",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Protection"
+          },
+          "classicSpellId": 12313,
+          "col": 1,
+          "icon": "ability_warrior_disarm",
+          "id": "warrior-protection-improved-disarm",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Disarm",
+          "order": 10,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the duration of your Disarm ability by 1 secs.", "Increases the duration of your Disarm ability by 2 secs.", "Increases the duration of your Disarm ability by 3 secs."],
+            "forever": ["Reduces the cooldown of your Disarm ability by 7 secs.", "Reduces the cooldown of your Disarm ability by 13 secs.", "Reduces the cooldown of your Disarm ability by 20 secs."]
+          },
+          "spellId": 12313,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 2,
+          "icon": "ability_warrior_shieldcharge",
+          "id": "warrior-protection-vanguard",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Vanguard",
+          "order": 11,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Your Charge ability is now usable while in Defensive Stance."]
+          },
+          "spellId": 1310317,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Improved Shield Wall",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Protection"
+          },
+          "classicSpellId": 12312,
+          "col": 0,
+          "icon": "ability_warrior_shieldwall",
+          "id": "warrior-protection-improved-shield-wall",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Shield Wall",
+          "order": 12,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the effect duration of your Shield Wall ability by 3 secs.", "Increases the effect duration of your Shield Wall ability by 5 secs."],
+            "forever": ["Reduces the cooldown of your Shield Wall ability by 5.5 min.", "Reduces the cooldown of your Shield Wall ability by 11.0 min."]
+          },
+          "spellId": 12312,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Concussion Blow",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Protection"
+          },
+          "classicSpellId": 12809,
+          "col": 1,
+          "icon": "ability_thunderbolt",
+          "id": "warrior-protection-concussion-blow",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Concussion Blow",
+          "order": 13,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Stuns the opponent for 5 sec."],
+            "forever": ["Stuns the target for 5 sec."]
+          },
+          "spellId": 12809,
+          "tier": 4,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "45 sec cooldown",
+            "range": "Melee range",
+            "requirements": "Requires Melee Weapon",
+            "resourceCost": "10 Rage"
+          },
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Improved Shield Bash",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Protection"
+          },
+          "classicSpellId": 12311,
+          "col": 2,
+          "icon": "ability_warrior_shieldbash",
+          "id": "warrior-protection-improved-shield-bash",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Shield Bash",
+          "order": 14,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives your Shield Bash ability a 50% chance to silence the target for 3 sec.", "Gives your Shield Bash ability a 100% chance to silence the target for 3 sec."],
+            "forever": ["Gives your Shield Bash ability a 50% chance to Silence the target for 3 sec.", "Gives your Shield Bash ability a 100% chance to Silence the target for 3 sec."]
+          },
+          "spellId": 12311,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_spell",
+            "maxRank": 5,
+            "name": "One-Handed Weapon Specialization",
+            "prerequisite": null,
+            "tier": 5,
+            "tree": "Protection"
+          },
+          "classicSpellId": 16538,
+          "col": 3,
+          "icon": "inv_shield_04",
+          "id": "warrior-protection-bastion",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Bastion",
+          "order": 15,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": "One-Handed Weapon Specialization",
+          "ranks": {
+            "classic": ["Increases the damage you deal with One-Handed Melee weapons by 2%.", "Increases the damage you deal with One-Handed Melee weapons by 4%.", "Increases the damage you deal with One-Handed Melee weapons by 6%.", "Increases the damage you deal with One-Handed Melee weapons by 8%.", "Increases the damage you deal with One-Handed Melee weapons by 10%."],
+            "forever": ["Increases all damage you deal by 2% while a shield is equipped.", "Increases all damage you deal by 4% while a shield is equipped.", "Increases all damage you deal by 6% while a shield is equipped.", "Increases all damage you deal by 8% while a shield is equipped.", "Increases all damage you deal by 10% while a shield is equipped."]
+          },
+          "spellId": 16538,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 2,
+          "icon": "ability_warrior_focusedrage",
+          "id": "warrior-protection-focused-rage",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Focused Rage",
+          "order": 16,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Reduces the Rage cost of your offensive abilities by 1.", "Reduces the Rage cost of your offensive abilities by 2.", "Reduces the Rage cost of your offensive abilities by 3."]
+          },
+          "spellId": 29787,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Shield Slam",
+            "prerequisite": "Concussion Blow",
+            "tier": 6,
+            "tree": "Protection"
           },
           "classicSpellId": 23922,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=23922",
-              "title": "Classic Era client, build 1.15.9.69722: Shield Slam",
-              "type": "classic_client_data"
-            }
-          ]
+          "col": 1,
+          "icon": "inv_shield_05",
+          "id": "warrior-protection-shield-slam",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Shield Slam",
+          "order": 17,
+          "passive": false,
+          "prerequisite": {
+            "rank": 1,
+            "talentId": "warrior-protection-concussion-blow"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["Slam the target with your shield, causing 225 to 235 damage, modified by your shield block value, and has a 50% chance of dispelling 1 magic effect on the target. Also causes a high amount of threat."],
+            "forever": ["Slam the target with your shield, causing 421 to 439 damage, increased by your Block Value, and has a 50% chance of dispelling 1 magic effect on the target. Causes a very high amount of threat."]
+          },
+          "spellId": 23922,
+          "tier": 6,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "6 sec cooldown",
+            "range": "Melee range",
+            "requirements": "Requires Shields",
+            "resourceCost": "20 Rage"
+          },
+          "tree": "Protection"
         }
       ]
     }

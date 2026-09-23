@@ -295,9 +295,10 @@ function TalentDetails({ data, talent, ranks }: { data: TalentData; talent: Tale
           Rank {rank}/{talent.maxRank}
         </span>
       </div>
-      {current && <p>{current}</p>}
+      {/* Rank texts keep the client's paragraph breaks as "\n" (docs/data/talents.md). */}
+      {current && <p className="whitespace-pre-line">{current}</p>}
       {next && (
-        <p className={cn(current && 'opacity-80')}>
+        <p className={cn('whitespace-pre-line', current && 'opacity-80')}>
           {current ? 'Next rank: ' : ''}
           {next}
         </p>

@@ -18,9 +18,14 @@
 //                          $ceil/$abs/$round/$cond/$gt/$lt/$gte/$lte), N decimals
 //   $<name>                a SpellDescriptionVariables variable of the spell
 //   $gmale:female;         the first form      $lsingular:plural;  by the last number
-//   $@spelldesc123 / $@spellname123 / $@auradesc123
-// Anything else (`$?` player conditions, `$z`, unknown variables) is reported in `unrendered`
-// and the caller falls back to a plain description.
+//   $@spelldesc123 / $@spelltooltip123 / $@spellname123 / $@auradesc123
+// Effect indexes run 1–9 (Forever spells have more than Classic's three effects).
+// `$?cond[yes][no]` player conditions (auras, known spells) are reported in `unrendered`, unless
+// the caller passes `{ conditions: "unmet" }`: then every aura/spell test is taken as unmet (a
+// reader with no auras or talents), `!`, `|`, `&` and parentheses apply, and the matching branch
+// is rendered; the resolved conditions are listed in `assumed`.
+// Anything else (`$z`, unknown variables) is reported in `unrendered` and the caller falls back to
+// a plain description.
 
 /** Tables the renderer reads (both builds). */
 export const SPELL_TEXT_TABLES = [
@@ -225,28 +230,42 @@ function variableValue(ctx, spellId, letter, index) {
 // Rendering
 // ---------------------------------------------------------------------------
 
-/** `$<spell id?><variable><index?>`, e.g. $s1, $17669s1, $d, $21970d1, $proccooldown. */
-const TOKEN = /^\$(\d*)(proccooldown|[sSmMoOtTdDaAhHnNxXuUeEqQbBiIrR])([1-3]?)/;
+/** `$<spell id?><variable><index?>`, e.g. $s1, $17669s1, $d, $21970d1, $proccooldown, $s5. */
+const TOKEN = /^\$(\d*)(proccooldown|[sSmMoOtTdDaAhHnNxXuUeEqQbBiIrR])([1-9]?)/;
 /** `$/1000;s1`, `$*2;17669s1`: a scale, then the token without its `$`. */
-const SCALE = /^\$([/*])(-?\d+(?:\.\d+)?);(\d*)(proccooldown|[sSmMoOtTdDaAhHnNxXuUeEqQbBiIrR])([1-3]?)/;
+const SCALE = /^\$([/*])(-?\d+(?:\.\d+)?);(\d*)(proccooldown|[sSmMoOtTdDaAhHnNxXuUeEqQbBiIrR])([1-9]?)/;
 
 /**
- * Render a spell's description. Returns { text, unrendered } where `unrendered` lists every
- * token that couldn't be resolved (empty when the text is complete). `field` picks the column
- * (Description_lang or AuraDescription_lang).
+ * Render a spell's description. Returns { text, unrendered, assumed } where `unrendered` lists
+ * every token that couldn't be resolved (empty when the text is complete) and `assumed` the
+ * `$?` conditions resolved under `conditions: "unmet"`. `field` picks the column
+ * (Description_lang or AuraDescription_lang). Line breaks become spaces; with
+ * `paragraphs: true`, a blank line in the client text becomes one "\n" instead.
  */
-export function renderSpellText(ctx, spellId, { field = "Description_lang", depth = 0 } = {}) {
+export function renderSpellText(ctx, spellId, { field = "Description_lang", depth = 0, conditions = null, paragraphs = false } = {}) {
   const raw = ctx.spell.get(spellId)?.[field] ?? "";
   const unrendered = [];
-  const state = { lastNumber: null };
+  const state = { lastNumber: null, conditions, paragraphs, assumed: [] };
   const text = renderString(ctx, spellId, raw, unrendered, state, depth);
-  return { text: cleanText(text), unrendered };
+  const clean = paragraphs
+    ? text
+        .split(PARAGRAPH_BREAK)
+        .map(cleanText)
+        .filter(Boolean)
+        .join(depth ? PARAGRAPH : "\n")
+    : cleanText(text);
+  return { text: clean, unrendered, assumed: state.assumed };
 }
+
+/** Paragraph separator inside nested renders (`$@spelldesc…`) until the outer text is done. */
+const PARAGRAPH = "\u2029";
+/** A blank line in client text (or a nested render's paragraph separator). */
+const PARAGRAPH_BREAK = /[ \t]*\r?\n[ \t]*(?:\r?\n[ \t]*)+|[ \t]*\u2029[ \t]*/;
 
 function cleanText(s) {
   return s
-    .replace(/\|c[0-9a-fA-F]{8}/g, "")
-    .replace(/\|r/g, "")
+    .replace(/\|c[0-9a-f]{8}/gi, "")
+    .replace(/\|r/gi, "")
     .replace(/\|n/g, " ")
     .replace(/\s*\r?\n\s*/g, " ")
     .replace(/ {2,}/g, " ")
@@ -297,8 +316,8 @@ function renderString(ctx, spellId, raw, unrendered, state, depth) {
       i = j;
       continue;
     }
-    // $@spelldesc123, $@spellname123, $@auradesc123
-    const at = /^\$@(spelldesc|spellname|auradesc)(\d+)/.exec(rest);
+    // $@spelldesc123, $@spelltooltip123, $@spellname123, $@auradesc123
+    const at = /^\$@(spelldesc|spelltooltip|spellname|auradesc)(\d+)/.exec(rest);
     if (at) {
       const id = Number(at[2]);
       if (depth > 3 || (!ctx.spell.has(id) && at[1] !== "spellname")) unrendered.push(at[0]);
@@ -307,12 +326,28 @@ function renderString(ctx, spellId, raw, unrendered, state, depth) {
         if (name) out += name;
         else unrendered.push(at[0]);
       } else {
-        const inner = renderSpellText(ctx, id, { field: at[1] === "auradesc" ? "AuraDescription_lang" : "Description_lang", depth: depth + 1 });
+        const inner = renderSpellText(ctx, id, {
+          field: at[1] === "auradesc" ? "AuraDescription_lang" : "Description_lang",
+          depth: depth + 1,
+          conditions: state.conditions,
+          paragraphs: state.paragraphs,
+        });
         unrendered.push(...inner.unrendered);
+        state.assumed.push(...inner.assumed);
         out += inner.text;
       }
       i += at[0].length;
       continue;
+    }
+    // $?a123|!s456[yes][no], chains $?c1[a]?c2[b][c]: only under `conditions: "unmet"`.
+    if (rest.startsWith("$?") && state.conditions === "unmet") {
+      const cond = resolveCondition(raw, i);
+      if (cond) {
+        state.assumed.push(...cond.tests);
+        out += renderString(ctx, spellId, cond.branch, unrendered, state, depth);
+        i = cond.end;
+        continue;
+      }
     }
     // $gmale:female; and $lsingular:plural;
     const choice = /^\$([gGlL])([^:;]*):([^;]*);/.exec(rest);
@@ -372,6 +407,86 @@ function tokenValue(ctx, spellId, tok) {
     return ms === null ? null : formatDuration(ms);
   }
   return variableValue(ctx, id, letter, index);
+}
+
+/** Index of the `]` closing the `[` at `open` (nested brackets allowed), or -1. */
+function matchingBracket(s, open) {
+  let depth = 0;
+  for (let k = open; k < s.length; k++) {
+    if (s[k] === "[") depth++;
+    else if (s[k] === "]" && --depth === 0) return k;
+  }
+  return -1;
+}
+
+/**
+ * A condition such as `a5487|!s123&(a1|a2)` with every aura/spell test unmet: atoms are false,
+ * then `!`, `&`, `|` and parentheses apply. Returns null when the text isn't a condition.
+ */
+function unmetCondition(text) {
+  const tokens = text.match(/[a-zA-Z]+\d+|[!&|()]/g);
+  if (!tokens || tokens.join("") !== text.replace(/\s+/g, "")) return null;
+  let p = 0;
+  const factor = () => {
+    const t = tokens[p++];
+    if (t === "!") {
+      const v = factor();
+      return v === null ? null : !v;
+    }
+    if (t === "(") {
+      const v = expr();
+      return tokens[p++] === ")" ? v : null;
+    }
+    return t && /^[a-zA-Z]+\d+$/.test(t) ? false : null;
+  };
+  const term = () => {
+    let v = factor();
+    while (v !== null && tokens[p] === "&") {
+      p++;
+      const r = factor();
+      v = r === null ? null : v && r;
+    }
+    return v;
+  };
+  const expr = () => {
+    let v = term();
+    while (v !== null && tokens[p] === "|") {
+      p++;
+      const r = term();
+      v = r === null ? null : v || r;
+    }
+    return v;
+  };
+  const v = expr();
+  return p === tokens.length ? v : null;
+}
+
+/**
+ * Resolve `$?c1[a]?c2[b][c]` starting at `start` (the `$`) with every condition unmet.
+ * Returns { branch, end, tests } or null when the syntax isn't recognised.
+ */
+function resolveCondition(raw, start) {
+  let k = start + 1; // at "?"
+  let branch = null;
+  const tests = [];
+  while (raw[k] === "?") {
+    const open = raw.indexOf("[", k);
+    if (open < 0) return null;
+    const test = raw.slice(k + 1, open);
+    const met = unmetCondition(test);
+    const close = matchingBracket(raw, open);
+    if (met === null || close < 0) return null;
+    tests.push(`$?${test}`);
+    if (met && branch === null) branch = raw.slice(open + 1, close);
+    k = close + 1;
+  }
+  if (raw[k] === "[") {
+    const close = matchingBracket(raw, k);
+    if (close < 0) return null;
+    if (branch === null) branch = raw.slice(k + 1, close);
+    k = close + 1;
+  }
+  return { branch: branch ?? "", end: k, tests };
 }
 
 function matchingBrace(s, open) {

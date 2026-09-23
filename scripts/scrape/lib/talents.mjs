@@ -1,5 +1,6 @@
-// Maps the scraped talent trees (src/data/talents/<class>.json) to the Forever client's
-// talent data.
+// Maps the talent trees in src/data/talents/<class>.json to the Forever client's talent data.
+// Since M1.5d those trees are built from the same Trait tables (scripts/scrape/talents-client.mjs),
+// so the mapping doubles as a cross-check of the two readers; "scraped" below means that dataset.
 //
 // Forever keeps its talents in the Trait tables, one TraitTree per class:
 //   TraitNode (TraitTreeID, PosX, PosY) -> TraitNodeXTraitNodeEntry -> TraitNodeEntry

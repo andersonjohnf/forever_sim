@@ -1,2626 +1,1616 @@
 {
   "meta": {
-    "source": "https://foreverchanges.pro/talents/paladin",
-    "scrapedAt": "2026-09-22T20:30:50.274Z",
-    "foreverBuild": "1.60.1.69913",
     "classicBuild": "1.15.9.69722",
-    "scraper": "scripts/scrape/talents.mjs"
+    "classicProduct": "wow_classic_era",
+    "foreverBuild": "1.60.1.69913",
+    "foreverBuildDate": "2026-09-18",
+    "product": "wow_classic_beta",
+    "scrapedAt": "2026-09-23T01:58:04Z",
+    "scraper": "scripts/scrape/talents-client.mjs",
+    "source": "https://wago.tools/api/casc",
+    "tables": {
+      "classic": {
+        "ChrClasses": 1361031,
+        "Spell": 1140089,
+        "SpellAuraOptions": 1139952,
+        "SpellDescriptionVariables": 1140004,
+        "SpellDuration": 1137828,
+        "SpellEffect": 1140088,
+        "SpellMisc": 1003144,
+        "SpellName": 1990283,
+        "SpellRadius": 1134584,
+        "SpellRange": 1146820,
+        "SpellTargetRestrictions": 1139993,
+        "SpellXDescriptionVariables": 1724949,
+        "Talent": 1369062,
+        "TalentTab": 2178102
+      },
+      "forever": {
+        "ChrClasses": 1361031,
+        "CurvePoint": 892586,
+        "ItemSubClass": 1261604,
+        "Spell": 1140089,
+        "SpellAuraOptions": 1139952,
+        "SpellCastTimes": 1134089,
+        "SpellClassOptions": 979663,
+        "SpellCooldowns": 1139924,
+        "SpellDescriptionVariables": 1140004,
+        "SpellDuration": 1137828,
+        "SpellEffect": 1140088,
+        "SpellEquippedItems": 1140011,
+        "SpellMisc": 1003144,
+        "SpellName": 1990283,
+        "SpellPower": 982806,
+        "SpellRadius": 1134584,
+        "SpellRange": 1146820,
+        "SpellTargetRestrictions": 1139993,
+        "SpellXDescriptionVariables": 1724949,
+        "TalentTab": 2178102,
+        "TraitCond": 4543085,
+        "TraitCurrency": 4524216,
+        "TraitDefinition": 4420327,
+        "TraitDefinitionEffectPoints": 4536895,
+        "TraitEdge": 4420308,
+        "TraitNode": 4420297,
+        "TraitNodeEntry": 4420298,
+        "TraitNodeGroupXTraitCond": 4543090,
+        "TraitNodeGroupXTraitNode": 4420302,
+        "TraitNodeXTraitCond": 4543092,
+        "TraitNodeXTraitNodeEntry": 4420304,
+        "TraitTree": 4420305,
+        "TraitTreeXTraitCurrency": 4524218
+      }
+    },
+    "traitCurrencyId": 3820,
+    "traitTreeId": 1100,
+    "wowDbDefs": {
+      "commit": "2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e",
+      "repository": "https://github.com/wowdev/WoWDBDefs"
+    }
   },
   "class": "paladin",
+  "codeFormat": "Wowhead-style string of three \"-\"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank), in `order` = sorted by tier, then col (both 0-based). Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two \"-\" (e.g. \"30305213132515201-05050103-\"). The same codes as the foreverchanges.pro calculator's ?b=<code>; every code the repo stores decodes to the same ranks by talent name.",
   "rules": {
+    "maxCol": 3,
     "maxPoints": 51,
-    "pointsPerTier": 5,
     "maxTier": 6,
-    "maxCol": 3
+    "pointsPerTier": 5
   },
-  "codeFormat": "Wowhead-style string of three \"-\"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank) for the talents with inForeverTree=true, in `order` = sorted by tier, then col (both 0-based); talents with order -1 are not encoded. Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two \"-\" (e.g. \"30305213132515201-05050103-\"). Matches the site calculator, which reads it from ?b=<code>. Verified by decoding every popular build: per-tree points match, total <= 51, 5 points per tier, prerequisites at max rank, the main tree's tier-7 talent is taken, and re-encoding reproduces the code.",
-  "popularBuilds": [
-    {
-      "tree": "Holy",
-      "points": [
-        36,
-        10,
-        5
-      ],
-      "code": "005320213225131051-5032-05"
-    },
-    {
-      "tree": "Protection",
-      "points": [
-        2,
-        42,
-        7
-      ],
-      "code": "2-4530513321301551-502"
-    },
-    {
-      "tree": "Retribution",
-      "points": [
-        10,
-        8,
-        33
-      ],
-      "code": "250003-503-052052310012330321"
-    }
-  ],
   "trees": [
     {
-      "id": "Holy",
-      "name": "Holy",
-      "icon": "spell_holy_holybolt",
-      "index": 0,
       "clientTreeId": "382",
+      "icon": "spell_holy_holybolt",
+      "id": "Holy",
+      "index": 0,
+      "name": "Holy",
       "talents": [
         {
-          "id": "calc-paladin-holy-improved-holy-strike",
-          "name": "Improved Holy Strike",
-          "icon": "classicon_paladin",
-          "tree": "Holy",
-          "tier": 0,
-          "col": 0,
-          "order": 0,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
           "changeKind": "added",
-          "summary": "Reduces the cooldown of your Holy Strike ability by 1 sec.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Reduces the cooldown of your Holy Strike ability by 1 sec.",
-              "Reduces the cooldown of your Holy Strike ability by 2 sec."
-            ],
-            "classic": null
-          },
           "classic": null,
           "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-holy-divine-strength",
-          "name": "Divine Strength",
-          "icon": "ability_golemthunderclap",
-          "tree": "Holy",
-          "tier": 0,
-          "col": 1,
-          "order": 1,
-          "maxRank": 5,
-          "prerequisite": null,
+          "col": 0,
+          "icon": "classicon_paladin",
+          "id": "paladin-holy-improved-holy-strike",
           "inForeverTree": true,
-          "changeKind": "unchanged",
-          "summary": "Same as Classic.",
-          "changes": [],
+          "maxRank": 2,
+          "name": "Improved Holy Strike",
+          "order": 0,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Increases your Strength by 2%.",
-              "Increases your Strength by 4%.",
-              "Increases your Strength by 6%.",
-              "Increases your Strength by 8%.",
-              "Increases your Strength by 10%."
-            ],
-            "classic": [
-              "Increases your Strength by 2%.",
-              "Increases your Strength by 4%.",
-              "Increases your Strength by 6%.",
-              "Increases your Strength by 8%.",
-              "Increases your Strength by 10%."
-            ]
+            "classic": null,
+            "forever": ["Reduces the cooldown of your Holy Strike ability by 1 sec.", "Reduces the cooldown of your Holy Strike ability by 2 sec."]
           },
+          "spellId": 1310902,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Holy"
+        },
+        {
+          "changeKind": "unchanged",
           "classic": {
-            "name": "Divine Strength",
-            "maxRank": 5,
-            "tier": 0,
+            "col": 1,
             "matchStatus": "same_name",
-            "prerequisite": null
+            "maxRank": 5,
+            "name": "Divine Strength",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Holy"
           },
           "classicSpellId": 20262,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20262",
-              "title": "Classic Era client, build 1.15.9.69722: Divine Strength",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-holy-divine-intellect",
-          "name": "Divine Intellect",
-          "icon": "spell_nature_sleep",
-          "tree": "Holy",
-          "tier": 0,
-          "col": 2,
-          "order": 2,
-          "maxRank": 5,
-          "prerequisite": null,
+          "col": 1,
+          "icon": "ability_golemthunderclap",
+          "id": "paladin-holy-divine-strength",
           "inForeverTree": true,
-          "changeKind": "unchanged",
-          "summary": "Same as Classic.",
-          "changes": [],
+          "maxRank": 5,
+          "name": "Divine Strength",
+          "order": 1,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Increases your total Intellect by 2%.",
-              "Increases your total Intellect by 4%.",
-              "Increases your total Intellect by 6%.",
-              "Increases your total Intellect by 8%.",
-              "Increases your total Intellect by 10%."
-            ],
-            "classic": [
-              "Increases your total Intellect by 2%.",
-              "Increases your total Intellect by 4%.",
-              "Increases your total Intellect by 6%.",
-              "Increases your total Intellect by 8%.",
-              "Increases your total Intellect by 10%."
-            ]
+            "classic": ["Increases your Strength by 2%.", "Increases your Strength by 4%.", "Increases your Strength by 6%.", "Increases your Strength by 8%.", "Increases your Strength by 10%."],
+            "forever": ["Increases your Strength by 2%.", "Increases your Strength by 4%.", "Increases your Strength by 6%.", "Increases your Strength by 8%.", "Increases your Strength by 10%."]
           },
+          "spellId": 20262,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Holy"
+        },
+        {
+          "changeKind": "unchanged",
           "classic": {
-            "name": "Divine Intellect",
-            "maxRank": 5,
-            "tier": 0,
+            "col": 2,
             "matchStatus": "same_name",
-            "prerequisite": null
+            "maxRank": 5,
+            "name": "Divine Intellect",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Holy"
           },
           "classicSpellId": 20257,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20257",
-              "title": "Classic Era client, build 1.15.9.69722: Divine Intellect",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-holy-healing-light",
-          "name": "Healing Light",
-          "icon": "spell_holy_holybolt",
-          "tree": "Holy",
-          "tier": 1,
-          "col": 0,
-          "order": 3,
-          "maxRank": 3,
-          "prerequisite": null,
+          "col": 2,
+          "icon": "spell_nature_sleep",
+          "id": "paladin-holy-divine-intellect",
           "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Moved from tier 3 to tier 2. Same numbers, reworded.",
-          "changes": [
-            "Moved from tier 3 to tier 2"
-          ],
+          "maxRank": 5,
+          "name": "Divine Intellect",
+          "order": 2,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Increases the amount healed by your Holy Light, Flash of Light, and Holy Shock spells by 4%.",
-              "Increases the amount healed by your Holy Light, Flash of Light, and Holy Shock spells by 8%.",
-              "Increases the amount healed by your Holy Light, Flash of Light, and Holy Shock spells by 12%."
-            ],
-            "classic": [
-              "Increases the amount healed by your Holy Light and Flash of Light spells by 4%.",
-              "Increases the amount healed by your Holy Light and Flash of Light spells by 8%.",
-              "Increases the amount healed by your Holy Light and Flash of Light spells by 12%."
-            ]
+            "classic": ["Increases your total Intellect by 2%.", "Increases your total Intellect by 4%.", "Increases your total Intellect by 6%.", "Increases your total Intellect by 8%.", "Increases your total Intellect by 10%."],
+            "forever": ["Increases your total Intellect by 2%.", "Increases your total Intellect by 4%.", "Increases your total Intellect by 6%.", "Increases your total Intellect by 8%.", "Increases your total Intellect by 10%."]
           },
+          "spellId": 20257,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Holy"
+        },
+        {
+          "changeKind": "modified",
           "classic": {
-            "name": "Healing Light",
-            "maxRank": 3,
-            "tier": 2,
+            "col": 0,
             "matchStatus": "same_name",
-            "prerequisite": null
+            "maxRank": 3,
+            "name": "Healing Light",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Holy"
           },
           "classicSpellId": 20237,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20237",
-              "title": "Classic Era client, build 1.15.9.69722: Healing Light",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-holy-spiritual-focus",
-          "name": "Spiritual Focus",
-          "icon": "spell_arcane_blink",
-          "tree": "Holy",
-          "tier": 1,
-          "col": 1,
-          "order": 4,
-          "maxRank": 2,
-          "prerequisite": null,
+          "col": 0,
+          "icon": "spell_holy_holybolt",
+          "id": "paladin-holy-healing-light",
           "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "2 ranks (Classic: 5). Rank 2: 70% instead of 28%, reworded.",
-          "changes": [
-            "2 ranks (Classic: 5)"
-          ],
+          "maxRank": 3,
+          "name": "Healing Light",
+          "order": 3,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Gives your Flash of Light, Holy Light, and Light's Vigil spells a 35% chance to not lose casting time when you take damage.",
-              "Gives your Flash of Light, Holy Light, and Light's Vigil spells a 70% chance to not lose casting time when you take damage."
-            ],
-            "classic": [
-              "Gives your Flash of Light and Holy Light spells a 14% chance to not lose casting time when you take damage.",
-              "Gives your Flash of Light and Holy Light spells a 28% chance to not lose casting time when you take damage.",
-              "Gives your Flash of Light and Holy Light spells a 42% chance to not lose casting time when you take damage.",
-              "Gives your Flash of Light and Holy Light spells a 56% chance to not lose casting time when you take damage.",
-              "Gives your Flash of Light and Holy Light spells a 70% chance to not lose casting time when you take damage."
-            ]
+            "classic": ["Increases the amount healed by your Holy Light and Flash of Light spells by 4%.", "Increases the amount healed by your Holy Light and Flash of Light spells by 8%.", "Increases the amount healed by your Holy Light and Flash of Light spells by 12%."],
+            "forever": ["Increases the amount healed by your Holy Light, Flash of Light, and Holy Shock spells by 4%.", "Increases the amount healed by your Holy Light, Flash of Light, and Holy Shock spells by 8%.", "Increases the amount healed by your Holy Light, Flash of Light, and Holy Shock spells by 12%."]
           },
+          "spellId": 20237,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Holy"
+        },
+        {
+          "changeKind": "modified",
           "classic": {
-            "name": "Spiritual Focus",
-            "maxRank": 5,
-            "tier": 1,
+            "col": 1,
             "matchStatus": "same_name",
-            "prerequisite": null
+            "maxRank": 5,
+            "name": "Spiritual Focus",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Holy"
           },
           "classicSpellId": 20205,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20205",
-              "title": "Classic Era client, build 1.15.9.69722: Spiritual Focus",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-holy-improved-seals",
-          "name": "Improved Seals",
-          "icon": "ability_thunderbolt",
-          "tree": "Holy",
-          "tier": 1,
-          "col": 2,
-          "order": 5,
-          "maxRank": 3,
-          "prerequisite": null,
+          "col": 1,
+          "icon": "spell_arcane_blink",
+          "id": "paladin-holy-spiritual-focus",
           "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Replaces Improved Seal of Righteousness. 3 ranks (Classic: 5).",
-          "changes": [
-            "Replaces Improved Seal of Righteousness",
-            "3 ranks (Classic: 5)"
-          ],
-          "passive": true,
-          "tooltip": null,
-          "previousName": "Improved Seal of Righteousness",
-          "ranks": {
-            "forever": [
-              "Increases the damage done by your Seals and Judgements by 5%.",
-              "Increases the damage done by your Seals and Judgements by 10%.",
-              "Increases the damage done by your Seals and Judgements by 15%."
-            ],
-            "classic": [
-              "Increases the damage done by your Seal of Righteousness and Judgement of Righteousness by 3%.",
-              "Increases the damage done by your Seal of Righteousness and Judgement of Righteousness by 6%.",
-              "Increases the damage done by your Seal of Righteousness and Judgement of Righteousness by 9%.",
-              "Increases the damage done by your Seal of Righteousness and Judgement of Righteousness by 12%.",
-              "Increases the damage done by your Seal of Righteousness and Judgement of Righteousness by 15%."
-            ]
-          },
-          "classic": {
-            "name": "Improved Seal of Righteousness",
-            "maxRank": 5,
-            "tier": 1,
-            "matchStatus": "same_spell",
-            "prerequisite": null
-          },
-          "classicSpellId": 20224,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20224",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Seal of Righteousness",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-holy-unyielding-faith",
-          "name": "Unyielding Faith",
-          "icon": "spell_holy_unyieldingfaith",
-          "tree": "Holy",
-          "tier": 1,
-          "col": 3,
-          "order": 6,
           "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Moved from tier 3 to tier 2. Effect rewritten.",
-          "changes": [
-            "Moved from tier 3 to tier 2"
-          ],
+          "name": "Spiritual Focus",
+          "order": 4,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Reduces the duration of Fear and Disorient effects on you by 15%.",
-              "Reduces the duration of Fear and Disorient effects on you by 30%."
-            ],
-            "classic": [
-              "Increases your chance to resist Fear and Disorient effects by an additional 5%.",
-              "Increases your chance to resist Fear and Disorient effects by an additional 10%."
-            ]
+            "classic": ["Gives your Flash of Light and Holy Light spells a 14% chance to not lose casting time when you take damage.", "Gives your Flash of Light and Holy Light spells a 28% chance to not lose casting time when you take damage.", "Gives your Flash of Light and Holy Light spells a 42% chance to not lose casting time when you take damage.", "Gives your Flash of Light and Holy Light spells a 56% chance to not lose casting time when you take damage.", "Gives your Flash of Light and Holy Light spells a 70% chance to not lose casting time when you take damage."],
+            "forever": ["Gives your Flash of Light, Holy Light, and Light's Vigil spells a 35% chance to not lose casting time when you take damage.", "Gives your Flash of Light, Holy Light, and Light's Vigil spells a 70% chance to not lose casting time when you take damage."]
           },
-          "classic": {
-            "name": "Unyielding Faith",
-            "maxRank": 2,
-            "tier": 2,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 9453,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=9453",
-              "title": "Classic Era client, build 1.15.9.69722: Unyielding Faith",
-              "type": "classic_client_data"
-            }
-          ]
+          "spellId": 20205,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Holy"
         },
         {
-          "id": "calc-paladin-holy-voice-of-truth",
-          "name": "Voice of Truth",
-          "icon": "inv_misc_horn_03",
-          "tree": "Holy",
-          "tier": 2,
-          "col": 0,
-          "order": 7,
-          "maxRank": 1,
-          "prerequisite": null,
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_spell",
+            "maxRank": 5,
+            "name": "Improved Seal of Righteousness",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Holy"
+          },
+          "classicSpellId": 20224,
+          "col": 2,
+          "icon": "ability_thunderbolt",
+          "id": "paladin-holy-improved-seals",
           "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Seals",
+          "order": 5,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": "Improved Seal of Righteousness",
+          "ranks": {
+            "classic": ["Increases the damage done by your Seal of Righteousness and Judgement of Righteousness by 3%.", "Increases the damage done by your Seal of Righteousness and Judgement of Righteousness by 6%.", "Increases the damage done by your Seal of Righteousness and Judgement of Righteousness by 9%.", "Increases the damage done by your Seal of Righteousness and Judgement of Righteousness by 12%.", "Increases the damage done by your Seal of Righteousness and Judgement of Righteousness by 15%."],
+            "forever": ["Increases the damage done by your Seals and Judgements by 5%.", "Increases the damage done by your Seals and Judgements by 10%.", "Increases the damage done by your Seals and Judgements by 15%."]
+          },
+          "spellId": 20224,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Holy"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Unyielding Faith",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Holy"
+          },
+          "classicSpellId": 9453,
+          "col": 3,
+          "icon": "spell_holy_unyieldingfaith",
+          "id": "paladin-holy-unyielding-faith",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Unyielding Faith",
+          "order": 6,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your chance to resist Fear and Disorient effects by an additional 5%.", "Increases your chance to resist Fear and Disorient effects by an additional 10%."],
+            "forever": ["Reduces the duration of Fear and Disorient effects on you by 15%.", "Reduces the duration of Fear and Disorient effects on you by 30%."]
+          },
+          "spellId": 9453,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Holy"
+        },
+        {
           "changeKind": "added",
-          "summary": "Grants you immunity to Silence and Interrupt effects. Lasts 6 sec.",
-          "changes": [],
+          "classic": null,
+          "classicSpellId": null,
+          "col": 0,
+          "icon": "inv_misc_horn_03",
+          "id": "paladin-holy-voice-of-truth",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Voice of Truth",
+          "order": 7,
           "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Grants you immunity to Silence and Interrupt effects. Lasts 6 sec."]
+          },
+          "spellId": 1310897,
+          "tier": 2,
           "tooltip": {
             "castTime": "Instant",
             "cooldown": "3 min cooldown"
           },
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Grants you immunity to Silence and Interrupt effects. Lasts 6 sec."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
+          "tree": "Holy"
         },
         {
-          "id": "calc-paladin-holy-reverence",
-          "name": "Reverence",
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
           "icon": "spell_holy_divineillumination",
-          "tree": "Holy",
-          "tier": 2,
-          "col": 1,
-          "order": 8,
+          "id": "paladin-holy-reverence",
+          "inForeverTree": true,
           "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Allows 10% of your Mana regeneration to continue while casting.",
-          "changes": [],
+          "name": "Reverence",
+          "order": 8,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Allows 10% of your Mana regeneration to continue while casting.",
-              "Allows 20% of your Mana regeneration to continue while casting.",
-              "Allows 30% of your Mana regeneration to continue while casting."
-            ],
-            "classic": null
+            "classic": null,
+            "forever": ["Allows 10% of your Mana regeneration to continue while casting.", "Allows 20% of your Mana regeneration to continue while casting.", "Allows 30% of your Mana regeneration to continue while casting."]
           },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-holy-purifying-power",
-          "name": "Purifying Power",
-          "icon": "spell_holy_purifyingpower",
-          "tree": "Holy",
+          "spellId": 1310899,
           "tier": 2,
+          "tooltip": null,
+          "tree": "Holy"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
           "col": 2,
+          "icon": "spell_holy_purifyingpower",
+          "id": "paladin-holy-purifying-power",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Purifying Power",
           "order": 9,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Reduces the mana cost of your Cleanse and Purify spells by 10% and reduces the cooldown of your Exorcism and Holy Wrath spells by 17%.",
-          "changes": [],
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Reduces the mana cost of your Cleanse and Purify spells by 10% and reduces the cooldown of your Exorcism and Holy Wrath spells by 17%.",
-              "Reduces the mana cost of your Cleanse and Purify spells by 20% and reduces the cooldown of your Exorcism and Holy Wrath spells by 33%."
-            ],
-            "classic": null
+            "classic": null,
+            "forever": ["Reduces the mana cost of your Cleanse and Purify spells by 10% and reduces the cooldown of your Exorcism and Holy Wrath spells by 17%.", "Reduces the mana cost of your Cleanse and Purify spells by 20% and reduces the cooldown of your Exorcism and Holy Wrath spells by 33%."]
           },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
+          "spellId": 429144,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Holy"
         },
         {
-          "id": "calc-paladin-holy-infusion-of-light",
-          "name": "Infusion of Light",
-          "icon": "ability_paladin_infusionoflight",
-          "tree": "Holy",
-          "tier": 3,
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
           "col": 0,
-          "order": 10,
-          "maxRank": 2,
-          "prerequisite": null,
+          "icon": "ability_paladin_infusionoflight",
+          "id": "paladin-holy-infusion-of-light",
           "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "5 sec.",
-          "changes": [],
+          "maxRank": 2,
+          "name": "Infusion of Light",
+          "order": 10,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Your Holy Shock and Flash of Light critical hits reduce the cast time of your next Holy Light cast within 15 sec by 0.5 sec.",
-              "Your Holy Shock and Flash of Light critical hits reduce the cast time of your next Holy Light cast within 15 sec by 1.0 sec."
-            ],
-            "classic": null
+            "classic": null,
+            "forever": ["Your Holy Shock and Flash of Light critical hits reduce the cast time of your next Holy Light cast within 15 sec by 0.5 sec.", "Your Holy Shock and Flash of Light critical hits reduce the cast time of your next Holy Light cast within 15 sec by 1.0 sec."]
           },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
+          "spellId": 426065,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Holy"
         },
         {
-          "id": "calc-paladin-holy-illumination",
-          "name": "Illumination",
-          "icon": "spell_holy_greaterheal",
-          "tree": "Holy",
-          "tier": 3,
-          "col": 1,
-          "order": 11,
-          "maxRank": 5,
-          "prerequisite": {
-            "talentId": "calc-paladin-holy-reverence",
-            "rank": 3
-          },
-          "inForeverTree": true,
           "changeKind": "modified",
-          "summary": "Requires Reverence. Numbers and wording changed.",
-          "changes": [
-            "Requires Reverence"
-          ],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "After getting a critical effect from your Flash of Light, Holy Light, Light's Vigil, or Holy Shock heal spell you have a 20% chance to gain Mana equal to 50% of the base cost of the spell.",
-              "After getting a critical effect from your Flash of Light, Holy Light, Light's Vigil, or Holy Shock heal spell you have a 40% chance to gain Mana equal to 50% of the base cost of the spell.",
-              "After getting a critical effect from your Flash of Light, Holy Light, Light's Vigil, or Holy Shock heal spell you have a 60% chance to gain Mana equal to 50% of the base cost of the spell.",
-              "After getting a critical effect from your Flash of Light, Holy Light, Light's Vigil, or Holy Shock heal spell you have a 80% chance to gain Mana equal to 50% of the base cost of the spell.",
-              "After getting a critical effect from your Flash of Light, Holy Light, Light's Vigil, or Holy Shock heal spell you have a 100% chance to gain Mana equal to 50% of the base cost of the spell."
-            ],
-            "classic": [
-              "After getting a critical effect from your Flash of Light, Holy Light, or Holy Shock heal spell, gives you a 20% chance to gain Mana equal to the base cost of the spell.",
-              "After getting a critical effect from your Flash of Light, Holy Light, or Holy Shock heal spell, gives you a 40% chance to gain Mana equal to the base cost of the spell.",
-              "After getting a critical effect from your Flash of Light, Holy Light, or Holy Shock heal spell, gives you a 60% chance to gain Mana equal to the base cost of the spell.",
-              "After getting a critical effect from your Flash of Light, Holy Light, or Holy Shock heal spell, gives you a 80% chance to gain Mana equal to the base cost of the spell.",
-              "After getting a critical effect from your Flash of Light, Holy Light, or Holy Shock heal spell, gives you a 100% chance to gain Mana equal to the base cost of the spell."
-            ]
-          },
           "classic": {
-            "name": "Illumination",
-            "maxRank": 5,
-            "tier": 3,
+            "col": 1,
             "matchStatus": "same_name",
-            "prerequisite": null
+            "maxRank": 5,
+            "name": "Illumination",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Holy"
           },
           "classicSpellId": 20210,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20210",
-              "title": "Classic Era client, build 1.15.9.69722: Illumination",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-holy-divine-favor",
-          "name": "Divine Favor",
-          "icon": "spell_holy_heal",
-          "tree": "Holy",
-          "tier": 3,
-          "col": 2,
-          "order": 12,
-          "maxRank": 1,
-          "prerequisite": null,
+          "col": 1,
+          "icon": "spell_holy_greaterheal",
+          "id": "paladin-holy-illumination",
           "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Moved from tier 5 to tier 4. No longer requires Illumination.",
-          "changes": [
-            "Moved from tier 5 to tier 4",
-            "No longer requires Illumination"
-          ],
-          "passive": false,
-          "tooltip": {
-            "resourceCost": "4% of base mana",
-            "castTime": "Instant",
-            "cooldown": "2 min cooldown"
+          "maxRank": 5,
+          "name": "Illumination",
+          "order": 11,
+          "passive": true,
+          "prerequisite": {
+            "rank": 3,
+            "talentId": "paladin-holy-reverence"
           },
           "previousName": null,
           "ranks": {
-            "forever": [
-              "When activated, gives your next Flash of Light, Holy Light, or Holy Shock spell a 100% critical effect chance."
-            ],
-            "classic": [
-              "When activated, gives your next Flash of Light, Holy Light, or Holy Shock spell a 100% critical effect chance."
-            ]
+            "classic": ["After getting a critical effect from your Flash of Light, Holy Light, or Holy Shock heal spell, gives you a 20% chance to gain Mana equal to the base cost of the spell.", "After getting a critical effect from your Flash of Light, Holy Light, or Holy Shock heal spell, gives you a 40% chance to gain Mana equal to the base cost of the spell.", "After getting a critical effect from your Flash of Light, Holy Light, or Holy Shock heal spell, gives you a 60% chance to gain Mana equal to the base cost of the spell.", "After getting a critical effect from your Flash of Light, Holy Light, or Holy Shock heal spell, gives you a 80% chance to gain Mana equal to the base cost of the spell.", "After getting a critical effect from your Flash of Light, Holy Light, or Holy Shock heal spell, gives you a 100% chance to gain Mana equal to the base cost of the spell."],
+            "forever": ["After getting a critical effect from your Flash of Light, Holy Light, Light's Vigil, or Holy Shock heal spell you have a 20% chance to gain Mana equal to 50% of the base cost of the spell.", "After getting a critical effect from your Flash of Light, Holy Light, Light's Vigil, or Holy Shock heal spell you have a 40% chance to gain Mana equal to 50% of the base cost of the spell.", "After getting a critical effect from your Flash of Light, Holy Light, Light's Vigil, or Holy Shock heal spell you have a 60% chance to gain Mana equal to 50% of the base cost of the spell.", "After getting a critical effect from your Flash of Light, Holy Light, Light's Vigil, or Holy Shock heal spell you have a 80% chance to gain Mana equal to 50% of the base cost of the spell.", "After getting a critical effect from your Flash of Light, Holy Light, Light's Vigil, or Holy Shock heal spell you have a 100% chance to gain Mana equal to 50% of the base cost of the spell."]
           },
+          "spellId": 20210,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Holy"
+        },
+        {
+          "changeKind": "modified",
           "classic": {
-            "name": "Divine Favor",
-            "maxRank": 1,
-            "tier": 4,
+            "col": 1,
             "matchStatus": "same_name",
-            "prerequisite": "Illumination"
+            "maxRank": 1,
+            "name": "Divine Favor",
+            "prerequisite": "Illumination",
+            "tier": 4,
+            "tree": "Holy"
           },
           "classicSpellId": 20216,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20216",
-              "title": "Classic Era client, build 1.15.9.69722: Divine Favor",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-holy-divine-precision",
-          "name": "Divine Precision",
-          "icon": "spell_holy_healingfocus",
-          "tree": "Holy",
-          "tier": 4,
-          "col": 0,
-          "order": 13,
-          "maxRank": 3,
-          "prerequisite": {
-            "talentId": "calc-paladin-holy-holy-shock",
-            "rank": 1
-          },
+          "col": 2,
+          "icon": "spell_holy_heal",
+          "id": "paladin-holy-divine-favor",
           "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Improves your chance to hit with Holy spells by 6%.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
+          "maxRank": 1,
+          "name": "Divine Favor",
+          "order": 12,
+          "passive": false,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Improves your chance to hit with Holy spells by 6%.",
-              "Improves your chance to hit with Holy spells by 12%.",
-              "Improves your chance to hit with Holy spells by 18%."
-            ],
-            "classic": null
+            "classic": ["When activated, gives your next Flash of Light, Holy Light, or Holy Shock spell a 100% critical effect chance."],
+            "forever": ["When activated, gives your next Flash of Light, Holy Light, or Holy Shock spell a 100% critical effect chance."]
           },
+          "spellId": 20216,
+          "tier": 3,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "2 min cooldown",
+            "resourceCost": "4% of base mana"
+          },
+          "tree": "Holy"
+        },
+        {
+          "changeKind": "added",
           "classic": null,
           "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-holy-holy-shock",
-          "name": "Holy Shock",
-          "icon": "spell_holy_searinglight",
-          "tree": "Holy",
-          "tier": 4,
-          "col": 1,
-          "order": 14,
-          "maxRank": 1,
-          "prerequisite": null,
+          "col": 0,
+          "icon": "spell_holy_healingfocus",
+          "id": "paladin-holy-divine-precision",
           "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Moved from tier 7 to tier 5. No longer requires Divine Favor. 129 to 139 instead of 204 to 220, 110 to 118 instead of 204 to 220.",
-          "changes": [
-            "Moved from tier 7 to tier 5",
-            "No longer requires Divine Favor"
-          ],
-          "passive": false,
-          "tooltip": {
-            "resourceCost": "160 Mana",
-            "range": "20 yd range",
-            "castTime": "Instant",
-            "cooldown": "10 sec cooldown"
+          "maxRank": 3,
+          "name": "Divine Precision",
+          "order": 13,
+          "passive": true,
+          "prerequisite": {
+            "rank": 1,
+            "talentId": "paladin-holy-holy-shock"
           },
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Blasts the target with Holy energy, causing 129 to 139 Holy damage to an enemy, or 110 to 118 healing to an ally."
-            ],
-            "classic": [
-              "Blasts the target with Holy energy, causing 204 to 220 Holy damage to an enemy, or 204 to 220 healing to an ally."
-            ]
+            "classic": null,
+            "forever": ["Improves your chance to hit with Holy spells by 6%.", "Improves your chance to hit with Holy spells by 12%.", "Improves your chance to hit with Holy spells by 18%."]
           },
+          "spellId": 1310904,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Holy"
+        },
+        {
+          "changeKind": "modified",
           "classic": {
-            "name": "Holy Shock",
-            "maxRank": 1,
-            "tier": 6,
+            "col": 1,
             "matchStatus": "same_name",
-            "prerequisite": "Divine Favor"
+            "maxRank": 1,
+            "name": "Holy Shock",
+            "prerequisite": "Divine Favor",
+            "tier": 6,
+            "tree": "Holy"
           },
           "classicSpellId": 20473,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20473",
-              "title": "Classic Era client, build 1.15.9.69722: Holy Shock",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-holy-consecrated-ground",
-          "name": "Consecrated Ground",
-          "icon": "spell_holy_innerfire",
-          "tree": "Holy",
-          "tier": 4,
-          "col": 2,
-          "order": 15,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Gives your Holy spells 5% increased damage against the first 4 enemies that enter your Consecration.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Gives your Holy spells 5% increased damage against the first 4 enemies that enter your Consecration.",
-              "Gives your Holy spells 10% increased damage against the first 4 enemies that enter your Consecration."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-holy-holy-power",
-          "name": "Holy Power",
-          "icon": "spell_holy_power",
-          "tree": "Holy",
-          "tier": 5,
-          "col": 2,
-          "order": 16,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Numbers and wording changed.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases the critical strike chance of your Holy Shock spell by 3%, and all other spells by 1%.",
-              "Increases the critical strike chance of your Holy Shock spell by 6%, and all other spells by 2%.",
-              "Increases the critical strike chance of your Holy Shock spell by 9%, and all other spells by 3%.",
-              "Increases the critical strike chance of your Holy Shock spell by 12%, and all other spells by 4%.",
-              "Increases the critical strike chance of your Holy Shock spell by 15%, and all other spells by 5%."
-            ],
-            "classic": [
-              "Increases the critical effect chance of your Holy spells by 1%.",
-              "Increases the critical effect chance of your Holy spells by 2%.",
-              "Increases the critical effect chance of your Holy spells by 3%.",
-              "Increases the critical effect chance of your Holy spells by 4%.",
-              "Increases the critical effect chance of your Holy spells by 5%."
-            ]
-          },
-          "classic": {
-            "name": "Holy Power",
-            "maxRank": 5,
-            "tier": 5,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 5923,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=5923",
-              "title": "Classic Era client, build 1.15.9.69722: Holy Power",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-holy-light-s-vigil",
-          "name": "Light's Vigil",
-          "icon": "ability_paladin_judgementofthepure",
-          "tree": "Holy",
-          "tier": 6,
           "col": 1,
-          "order": 17,
+          "icon": "spell_holy_searinglight",
+          "id": "paladin-holy-holy-shock",
+          "inForeverTree": true,
           "maxRank": 1,
-          "prerequisite": {
-            "talentId": "calc-paladin-holy-holy-shock",
-            "rank": 1
-          },
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Applies Light's Vigil to the target for 30 sec.",
-          "changes": [],
-          "passive": false,
-          "tooltip": {
-            "resourceCost": "730 Mana",
-            "range": "20 yd range",
-            "castTime": "1.5 sec cast",
-            "cooldown": "6 sec cooldown"
-          },
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Applies Light's Vigil to the target for 30 sec. Your next Holy Shock cast on them triggers no cooldown and causes friendly targets to heal their party for 315 to 333, or enemy targets to suffer 175 to 189 Holy damage and refund 75% of Light's Vigil's Mana cost. You may only have 1 Light's Vigil active per Paladin, per party."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "Protection",
-      "name": "Protection",
-      "icon": "spell_holy_devotionaura",
-      "index": 1,
-      "clientTreeId": "383",
-      "talents": [
-        {
-          "id": "calc-paladin-protection-toughness",
-          "name": "Toughness",
-          "icon": "spell_holy_devotion",
-          "tree": "Protection",
-          "tier": 0,
-          "col": 1,
-          "order": 0,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "moved",
-          "summary": "Moved from tier 2 to tier 1.",
-          "changes": [
-            "Moved from tier 2 to tier 1"
-          ],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases your armor value from items by 2%.",
-              "Increases your armor value from items by 4%.",
-              "Increases your armor value from items by 6%.",
-              "Increases your armor value from items by 8%.",
-              "Increases your armor value from items by 10%."
-            ],
-            "classic": [
-              "Increases your armor value from items by 2%.",
-              "Increases your armor value from items by 4%.",
-              "Increases your armor value from items by 6%.",
-              "Increases your armor value from items by 8%.",
-              "Increases your armor value from items by 10%."
-            ]
-          },
-          "classic": {
-            "name": "Toughness",
-            "maxRank": 5,
-            "tier": 1,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 20143,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20143",
-              "title": "Classic Era client, build 1.15.9.69722: Toughness",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "paladin-redoubt",
-          "name": "Redoubt",
-          "icon": "ability_defend",
-          "tree": "Protection",
-          "tier": 0,
-          "col": 2,
-          "order": 1,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Effect rewritten.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Damaging melee attacks against you have a 10% chance to increase your chance to block by 6%. Lasts 10 sec or 5 blocks.",
-              "Damaging melee attacks against you have a 10% chance to increase your chance to block by 12%. Lasts 10 sec or 5 blocks.",
-              "Damaging melee attacks against you have a 10% chance to increase your chance to block by 18%. Lasts 10 sec or 5 blocks.",
-              "Damaging melee attacks against you have a 10% chance to increase your chance to block by 24%. Lasts 10 sec or 5 blocks.",
-              "Damaging melee attacks against you have a 10% chance to increase your chance to block by 30%. Lasts 10 sec or 5 blocks."
-            ],
-            "classic": [
-              "Increases your chance to block attacks with your shield by 6% after being the victim of a critical strike. Lasts 10 sec or 5 blocks.",
-              "Increases your chance to block attacks with your shield by 12% after being the victim of a critical strike. Lasts 10 sec or 5 blocks.",
-              "Increases your chance to block attacks with your shield by 18% after being the victim of a critical strike. Lasts 10 sec or 5 blocks.",
-              "Increases your chance to block attacks with your shield by 24% after being the victim of a critical strike. Lasts 10 sec or 5 blocks.",
-              "Increases your chance to block attacks with your shield by 30% after being the victim of a critical strike. Lasts 10 sec or 5 blocks."
-            ]
-          },
-          "classic": {
-            "name": "Redoubt",
-            "maxRank": 5,
-            "tier": 0,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 20127,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20127",
-              "title": "Classic Era client, build 1.15.9.69722: Redoubt",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-protection-precision",
-          "name": "Precision",
-          "icon": "ability_rogue_ambush",
-          "tree": "Protection",
-          "tier": 1,
-          "col": 0,
-          "order": 2,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Effect rewritten.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Improves your chance to hit by 1%.",
-              "Improves your chance to hit by 2%.",
-              "Improves your chance to hit by 3%."
-            ],
-            "classic": [
-              "Increases your chance to hit with melee weapons by 1%.",
-              "Increases your chance to hit with melee weapons by 2%.",
-              "Increases your chance to hit with melee weapons by 3%."
-            ]
-          },
-          "classic": {
-            "name": "Precision",
-            "maxRank": 3,
-            "tier": 1,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 20189,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20189",
-              "title": "Classic Era client, build 1.15.9.69722: Precision",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-protection-guardian-s-favor",
-          "name": "Guardian's Favor",
-          "icon": "spell_holy_sealofprotection",
-          "tree": "Protection",
-          "tier": 1,
-          "col": 1,
-          "order": 3,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Same numbers, reworded.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Reduces the cooldown of your Blessing of Protection by 1 min and increases the duration of your Blessing of Freedom by 3 sec.",
-              "Reduces the cooldown of your Blessing of Protection by 2 min and increases the duration of your Blessing of Freedom by 6 sec."
-            ],
-            "classic": [
-              "Reduces the cooldown of your Blessing of Protection by 60 sec and increases the duration of your Blessing of Freedom by 3 sec.",
-              "Reduces the cooldown of your Blessing of Protection by 120 sec and increases the duration of your Blessing of Freedom by 6 sec."
-            ]
-          },
-          "classic": {
-            "name": "Guardian's Favor",
-            "maxRank": 2,
-            "tier": 1,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 20174,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20174",
-              "title": "Classic Era client, build 1.15.9.69722: Guardian's Favor",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-protection-anticipation",
-          "name": "Anticipation",
-          "icon": "spell_magic_lesserinvisibilty",
-          "tree": "Protection",
-          "tier": 1,
-          "col": 3,
-          "order": 4,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Moved from tier 3 to tier 2. Rank 5: 20 instead of 10.",
-          "changes": [
-            "Moved from tier 3 to tier 2"
-          ],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases your Defense Skill by 4.",
-              "Increases your Defense Skill by 8.",
-              "Increases your Defense Skill by 12.",
-              "Increases your Defense Skill by 16.",
-              "Increases your Defense Skill by 20."
-            ],
-            "classic": [
-              "Increases your Defense skill by 2.",
-              "Increases your Defense skill by 4.",
-              "Increases your Defense skill by 6.",
-              "Increases your Defense skill by 8.",
-              "Increases your Defense skill by 10."
-            ]
-          },
-          "classic": {
-            "name": "Anticipation",
-            "maxRank": 5,
-            "tier": 2,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 20096,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20096",
-              "title": "Classic Era client, build 1.15.9.69722: Anticipation",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-protection-improved-seal-of-fury",
-          "name": "Improved Seal of Fury",
-          "icon": "spell_holy_righteousnessaura",
-          "tree": "Protection",
-          "tier": 2,
-          "col": 0,
-          "order": 5,
-          "maxRank": 1,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "When Seal of Fury's shield is fully absorbed, restore 0 Mana, increased by 15% per level the attacker is above you, up to 45%.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "When Seal of Fury's shield is fully absorbed, restore 0 Mana, increased by 15% per level the attacker is above you, up to 45%."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-protection-improved-righteous-fury",
-          "name": "Improved Righteous Fury",
-          "icon": "spell_holy_sealoffury",
-          "tree": "Protection",
-          "tier": 2,
-          "col": 1,
-          "order": 6,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Effect rewritten.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "While Righteous Fury is active, all damage taken is reduced by 2%.",
-              "While Righteous Fury is active, all damage taken is reduced by 4%.",
-              "While Righteous Fury is active, all damage taken is reduced by 6%."
-            ],
-            "classic": [
-              "Increases the amount of threat generated by your Righteous Fury spell by 16%.",
-              "Increases the amount of threat generated by your Righteous Fury spell by 33%.",
-              "Increases the amount of threat generated by your Righteous Fury spell by 50%."
-            ]
-          },
-          "classic": {
-            "name": "Improved Righteous Fury",
-            "maxRank": 3,
-            "tier": 2,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 20468,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20468",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Righteous Fury",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-protection-shield-specialization",
-          "name": "Shield Specialization",
-          "icon": "inv_shield_06",
-          "tree": "Protection",
-          "tier": 2,
-          "col": 2,
-          "order": 7,
-          "maxRank": 3,
-          "prerequisite": {
-            "talentId": "paladin-redoubt",
-            "rank": 5
-          },
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Effect rewritten.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases the amount of damage absorbed by your shield by 10%, and gives your blocks a 33% chance to restore 6% of your maximum Mana. May only occur once every 3 sec.",
-              "Increases the amount of damage absorbed by your shield by 20%, and gives your blocks a 66% chance to restore 6% of your maximum Mana. May only occur once every 3 sec.",
-              "Increases the amount of damage absorbed by your shield by 30%, and gives your blocks a 100% chance to restore 6% of your maximum Mana. May only occur once every 3 sec."
-            ],
-            "classic": [
-              "Increases the amount of damage absorbed by your shield by 10%.",
-              "Increases the amount of damage absorbed by your shield by 20%.",
-              "Increases the amount of damage absorbed by your shield by 30%."
-            ]
-          },
-          "classic": {
-            "name": "Shield Specialization",
-            "maxRank": 3,
-            "tier": 2,
-            "matchStatus": "same_name",
-            "prerequisite": "Redoubt"
-          },
-          "classicSpellId": 20148,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20148",
-              "title": "Classic Era client, build 1.15.9.69722: Shield Specialization",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-protection-sacred-duty",
-          "name": "Sacred Duty",
-          "icon": "spell_holy_divineintervention",
-          "tree": "Protection",
-          "tier": 2,
-          "col": 3,
-          "order": 8,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Increases your total Stamina by 2% and reduces the cooldown of your Divine Shield, Divine Protection, and Templar's Bulwark spells by 30 sec.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases your total Stamina by 2% and reduces the cooldown of your Divine Shield, Divine Protection, and Templar's Bulwark spells by 30 sec.",
-              "Increases your total Stamina by 4% and reduces the cooldown of your Divine Shield, Divine Protection, and Templar's Bulwark spells by 60 sec."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-protection-swift-judgement",
-          "name": "Swift Judgement",
-          "icon": "ability_paladin_judgementred",
-          "tree": "Protection",
-          "tier": 3,
-          "col": 0,
-          "order": 9,
-          "maxRank": 1,
-          "prerequisite": {
-            "talentId": "calc-paladin-protection-improved-seal-of-fury",
-            "rank": 1
-          },
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Finishes the remaining cooldown on your Judgement ability and reduces the Mana cost of your next Judgement by 100%.",
-          "changes": [],
-          "passive": false,
-          "tooltip": {
-            "castTime": "Instant",
-            "cooldown": "1 min cooldown"
-          },
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Finishes the remaining cooldown on your Judgement ability and reduces the Mana cost of your next Judgement by 100%."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-protection-one-handed-weapon-specialization",
-          "name": "One-Handed Weapon Specialization",
-          "icon": "inv_sword_20",
-          "tree": "Protection",
-          "tier": 3,
-          "col": 1,
-          "order": 10,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "3 ranks (Classic: 5). Moved from tier 6 to tier 4. Rank 3: 10% instead of 6%.",
-          "changes": [
-            "3 ranks (Classic: 5)",
-            "Moved from tier 6 to tier 4"
-          ],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases the damage you deal with one-handed melee weapons by 3%.",
-              "Increases the damage you deal with one-handed melee weapons by 7%.",
-              "Increases the damage you deal with one-handed melee weapons by 10%."
-            ],
-            "classic": [
-              "Increases the damage you deal with one-handed melee weapons by 2%.",
-              "Increases the damage you deal with one-handed melee weapons by 4%.",
-              "Increases the damage you deal with one-handed melee weapons by 6%.",
-              "Increases the damage you deal with one-handed melee weapons by 8%.",
-              "Increases the damage you deal with one-handed melee weapons by 10%."
-            ]
-          },
-          "classic": {
-            "name": "One-Handed Weapon Specialization",
-            "maxRank": 5,
-            "tier": 5,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 20196,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20196",
-              "title": "Classic Era client, build 1.15.9.69722: One-Handed Weapon Specialization",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-protection-improved-hammer-of-justice",
-          "name": "Improved Hammer of Justice",
-          "icon": "spell_holy_sealofmight",
-          "tree": "Protection",
-          "tier": 3,
-          "col": 2,
-          "order": 11,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "moved",
-          "summary": "Moved from column 2 to column 3.",
-          "changes": [
-            "Moved from column 2 to column 3"
-          ],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Decreases the cooldown of your Hammer of Justice spell by 5 sec.",
-              "Decreases the cooldown of your Hammer of Justice spell by 10 sec.",
-              "Decreases the cooldown of your Hammer of Justice spell by 15 sec."
-            ],
-            "classic": [
-              "Decreases the cooldown of your Hammer of Justice spell by 5 sec.",
-              "Decreases the cooldown of your Hammer of Justice spell by 10 sec.",
-              "Decreases the cooldown of your Hammer of Justice spell by 15 sec."
-            ]
-          },
-          "classic": {
-            "name": "Improved Hammer of Justice",
-            "maxRank": 3,
-            "tier": 3,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 20487,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20487",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Hammer of Justice",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-protection-templar-s-bulwark",
-          "name": "Templar's Bulwark",
-          "icon": "ability_paladin_shieldofthetemplar",
-          "tree": "Protection",
-          "tier": 4,
-          "col": 1,
-          "order": 12,
-          "maxRank": 1,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "When activated, this ability grants you an absorb shield equal to 100% of your maximum health for 8 sec. Applies Forbearance for 1 min.",
-          "changes": [],
-          "passive": false,
-          "tooltip": {
-            "resourceCost": "110 Mana",
-            "castTime": "Instant",
-            "cooldown": "5 min cooldown"
-          },
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "When activated, this ability grants you an absorb shield equal to 100% of your maximum health for 8 sec. Applies Forbearance for 1 min. Cannot be cast while Forbearance is active."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-protection-reckoning",
-          "name": "Reckoning",
-          "icon": "spell_holy_blessingofstrength",
-          "tree": "Protection",
-          "tier": 4,
-          "col": 2,
-          "order": 13,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Numbers and wording changed.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Gives you a 8% chance to gain an extra attack after Blocking a melee attack and a 20% chance to gain an extra attack after being the victim of a non-periodic critical strike.",
-              "Gives you a 16% chance to gain an extra attack after Blocking a melee attack and a 40% chance to gain an extra attack after being the victim of a non-periodic critical strike.",
-              "Gives you a 24% chance to gain an extra attack after Blocking a melee attack and a 60% chance to gain an extra attack after being the victim of a non-periodic critical strike.",
-              "Gives you a 32% chance to gain an extra attack after Blocking a melee attack and a 80% chance to gain an extra attack after being the victim of a non-periodic critical strike.",
-              "Gives you a 40% chance to gain an extra attack after Blocking a melee attack and a 100% chance to gain an extra attack after being the victim of a non-periodic critical strike."
-            ],
-            "classic": [
-              "Gives you a 20% chance to gain an extra attack after being the victim of a critical strike.",
-              "Gives you a 40% chance to gain an extra attack after being the victim of a critical strike.",
-              "Gives you a 60% chance to gain an extra attack after being the victim of a critical strike.",
-              "Gives you a 80% chance to gain an extra attack after being the victim of a critical strike.",
-              "Gives you a 100% chance to gain an extra attack after being the victim of a critical strike."
-            ]
-          },
-          "classic": {
-            "name": "Reckoning",
-            "maxRank": 5,
-            "tier": 4,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 20177,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20177",
-              "title": "Classic Era client, build 1.15.9.69722: Reckoning",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-protection-iron-creed",
-          "name": "Iron Creed",
-          "icon": "spell_holy_improvedresistanceauras",
-          "tree": "Protection",
-          "tier": 5,
-          "col": 2,
+          "name": "Holy Shock",
           "order": 14,
-          "maxRank": 5,
+          "passive": false,
           "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Increases the threat generated by your Holy Strike ability 5%. While Righteous Fury is active, Holy Strike also reduces your damage taken by 2% for 6 sec.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Increases the threat generated by your Holy Strike ability 5%. While Righteous Fury is active, Holy Strike also reduces your damage taken by 2% for 6 sec.",
-              "Increases the threat generated by your Holy Strike ability 10%. While Righteous Fury is active, Holy Strike also reduces your damage taken by 4% for 6 sec.",
-              "Increases the threat generated by your Holy Strike ability 15%. While Righteous Fury is active, Holy Strike also reduces your damage taken by 6% for 6 sec.",
-              "Increases the threat generated by your Holy Strike ability 20%. While Righteous Fury is active, Holy Strike also reduces your damage taken by 8% for 6 sec.",
-              "Increases the threat generated by your Holy Strike ability 25%. While Righteous Fury is active, Holy Strike also reduces your damage taken by 10% for 6 sec."
-            ],
-            "classic": null
+            "classic": ["Blasts the target with Holy energy, causing 204 to 220 Holy damage to an enemy, or 204 to 220 healing to an ally."],
+            "forever": ["Blasts the target with Holy energy, causing 129 to 139 Holy damage to an enemy, or 110 to 118 healing to an ally."]
           },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-protection-holy-shield",
-          "name": "Holy Shield",
-          "icon": "spell_holy_blessingofprotection",
-          "tree": "Protection",
-          "tier": 6,
-          "col": 1,
-          "order": 15,
-          "maxRank": 1,
-          "prerequisite": {
-            "talentId": "calc-paladin-protection-templar-s-bulwark",
-            "rank": 1
-          },
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Requires Templar's Bulwark (Classic: Blessing of Sanctuary). 20% instead of 30%, 110 instead of 65.",
-          "changes": [
-            "Requires Templar's Bulwark (Classic: Blessing of Sanctuary)"
-          ],
-          "passive": false,
+          "spellId": 1311606,
+          "tier": 4,
           "tooltip": {
-            "resourceCost": "150 Mana",
             "castTime": "Instant",
             "cooldown": "10 sec cooldown",
-            "requirements": "Requires Shields"
+            "range": "20 yd range",
+            "resourceCost": "160 Mana"
+          },
+          "tree": "Holy"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 2,
+          "icon": "spell_holy_innerfire",
+          "id": "paladin-holy-consecrated-ground",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Consecrated Ground",
+          "order": 15,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Gives your Holy spells 5% increased damage against the first 4 enemies that enter your Consecration.", "Gives your Holy spells 10% increased damage against the first 4 enemies that enter your Consecration."]
+          },
+          "spellId": 1310905,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Holy"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Holy Power",
+            "prerequisite": null,
+            "tier": 5,
+            "tree": "Holy"
+          },
+          "classicSpellId": 5923,
+          "col": 2,
+          "icon": "spell_holy_power",
+          "id": "paladin-holy-holy-power",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Holy Power",
+          "order": 16,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the critical effect chance of your Holy spells by 1%.", "Increases the critical effect chance of your Holy spells by 2%.", "Increases the critical effect chance of your Holy spells by 3%.", "Increases the critical effect chance of your Holy spells by 4%.", "Increases the critical effect chance of your Holy spells by 5%."],
+            "forever": ["Increases the critical strike chance of your Holy Shock spell by 3%, and all other spells by 1%.", "Increases the critical strike chance of your Holy Shock spell by 6%, and all other spells by 2%.", "Increases the critical strike chance of your Holy Shock spell by 9%, and all other spells by 3%.", "Increases the critical strike chance of your Holy Shock spell by 12%, and all other spells by 4%.", "Increases the critical strike chance of your Holy Shock spell by 15%, and all other spells by 5%."]
+          },
+          "spellId": 5923,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Holy"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "ability_paladin_judgementofthepure",
+          "id": "paladin-holy-lights-vigil",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Light's Vigil",
+          "order": 17,
+          "passive": false,
+          "prerequisite": {
+            "rank": 1,
+            "talentId": "paladin-holy-holy-shock"
           },
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Increases chance to block by 20% for 10 sec, and deals 110 Holy damage for each attack blocked while active. Damage caused by Holy Shield causes 20% additional threat. Each block expends a charge. 4 charges."
-            ],
-            "classic": [
-              "Increases chance to block by 30% for 10 sec, and deals 65 Holy damage for each attack blocked while active. Damage caused by Holy Shield causes 20% additional threat. Each block expends a charge. 4 charges."
-            ]
+            "classic": null,
+            "forever": ["Applies Light's Vigil to the target for 30 sec. Your next Holy Shock cast on them triggers no cooldown and causes friendly targets to heal their party for 315 to 333, or enemy targets to suffer 175 to 189 Holy damage and refund 75% of Light's Vigil's Mana cost. You may only have 1 Light's Vigil active per Paladin, per party."]
           },
-          "classic": {
-            "name": "Holy Shield",
-            "maxRank": 1,
-            "tier": 6,
-            "matchStatus": "same_name",
-            "prerequisite": "Blessing of Sanctuary"
+          "spellId": 1310911,
+          "tier": 6,
+          "tooltip": {
+            "castTime": "1.5 sec cast",
+            "cooldown": "6 sec cooldown",
+            "range": "20 yd range",
+            "resourceCost": "730 Mana"
           },
-          "classicSpellId": 20925,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20925",
-              "title": "Classic Era client, build 1.15.9.69722: Holy Shield",
-              "type": "classic_client_data"
-            }
-          ]
+          "tree": "Holy"
         }
       ]
     },
     {
-      "id": "Retribution",
-      "name": "Retribution",
-      "icon": "spell_holy_auraoflight",
-      "index": 2,
-      "clientTreeId": "381",
+      "clientTreeId": "383",
+      "icon": "spell_holy_devotionaura",
+      "id": "Protection",
+      "index": 1,
+      "name": "Protection",
       "talents": [
         {
-          "id": "calc-paladin-retribution-deflection",
-          "name": "Deflection",
-          "icon": "ability_parry",
-          "tree": "Retribution",
-          "tier": 0,
+          "changeKind": "moved",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Toughness",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Protection"
+          },
+          "classicSpellId": 20143,
           "col": 1,
+          "icon": "spell_holy_devotion",
+          "id": "paladin-protection-toughness",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Toughness",
           "order": 0,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "moved",
-          "summary": "Moved from tier 2 to tier 1.",
-          "changes": [
-            "Moved from tier 2 to tier 1"
-          ],
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Increases your Parry chance by 1%.",
-              "Increases your Parry chance by 2%.",
-              "Increases your Parry chance by 3%.",
-              "Increases your Parry chance by 4%.",
-              "Increases your Parry chance by 5%."
-            ],
-            "classic": [
-              "Increases your Parry chance by 1%.",
-              "Increases your Parry chance by 2%.",
-              "Increases your Parry chance by 3%.",
-              "Increases your Parry chance by 4%.",
-              "Increases your Parry chance by 5%."
-            ]
+            "classic": ["Increases your armor value from items by 2%.", "Increases your armor value from items by 4%.", "Increases your armor value from items by 6%.", "Increases your armor value from items by 8%.", "Increases your armor value from items by 10%."],
+            "forever": ["Increases your armor value from items by 2%.", "Increases your armor value from items by 4%.", "Increases your armor value from items by 6%.", "Increases your armor value from items by 8%.", "Increases your armor value from items by 10%."]
           },
-          "classic": {
-            "name": "Deflection",
-            "maxRank": 5,
-            "tier": 1,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 20060,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20060",
-              "title": "Classic Era client, build 1.15.9.69722: Deflection",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-retribution-benediction",
-          "name": "Benediction",
-          "icon": "spell_frost_windwalkon",
-          "tree": "Retribution",
+          "spellId": 20143,
           "tier": 0,
-          "col": 2,
-          "order": 1,
-          "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Effect rewritten.",
-          "changes": [],
-          "passive": true,
           "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Reduces the Mana cost of all instant cast spells and abilities by 2%.",
-              "Reduces the Mana cost of all instant cast spells and abilities by 4%.",
-              "Reduces the Mana cost of all instant cast spells and abilities by 6%.",
-              "Reduces the Mana cost of all instant cast spells and abilities by 8%.",
-              "Reduces the Mana cost of all instant cast spells and abilities by 10%."
-            ],
-            "classic": [
-              "Reduces the Mana cost of your Judgement and Seal spells by 3%.",
-              "Reduces the Mana cost of your Judgement and Seal spells by 6%.",
-              "Reduces the Mana cost of your Judgement and Seal spells by 9%.",
-              "Reduces the Mana cost of your Judgement and Seal spells by 12%.",
-              "Reduces the Mana cost of your Judgement and Seal spells by 15%."
-            ]
-          },
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
           "classic": {
-            "name": "Benediction",
+            "col": 2,
+            "matchStatus": "same_name",
             "maxRank": 5,
+            "name": "Redoubt",
+            "prerequisite": null,
             "tier": 0,
-            "matchStatus": "same_name",
-            "prerequisite": null
+            "tree": "Protection"
           },
-          "classicSpellId": 20101,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20101",
-              "title": "Classic Era client, build 1.15.9.69722: Benediction",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-retribution-improved-judgement",
-          "name": "Improved Judgement",
-          "icon": "spell_holy_righteousfury",
-          "tree": "Retribution",
-          "tier": 1,
-          "col": 0,
-          "order": 2,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Same numbers, reworded.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Decreases the cooldown of your Judgement ability by 1 sec.",
-              "Decreases the cooldown of your Judgement ability by 2 sec."
-            ],
-            "classic": [
-              "Decreases the cooldown of your Judgement spell by 1 sec.",
-              "Decreases the cooldown of your Judgement spell by 2 sec."
-            ]
-          },
-          "classic": {
-            "name": "Improved Judgement",
-            "maxRank": 2,
-            "tier": 1,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 25956,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=25956",
-              "title": "Classic Era client, build 1.15.9.69722: Improved Judgement",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-retribution-holy-conduit",
-          "name": "Holy Conduit",
-          "icon": "spell_holy_devineaegis",
-          "tree": "Retribution",
-          "tier": 1,
-          "col": 1,
-          "order": 3,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Reduces the mana cost of your Consecration, Holy Wrath, Exorcism, and Hammer of Wrath spells by 20%.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Reduces the mana cost of your Consecration, Holy Wrath, Exorcism, and Hammer of Wrath spells by 20%.",
-              "Reduces the mana cost of your Consecration, Holy Wrath, Exorcism, and Hammer of Wrath spells by 40%."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-retribution-conviction",
-          "name": "Conviction",
-          "icon": "spell_holy_retributionaura",
-          "tree": "Retribution",
-          "tier": 1,
+          "classicSpellId": 20127,
           "col": 2,
-          "order": 4,
+          "icon": "ability_defend",
+          "id": "paladin-protection-redoubt",
+          "inForeverTree": true,
           "maxRank": 5,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Moved from tier 3 to tier 2. Same numbers, reworded.",
-          "changes": [
-            "Moved from tier 3 to tier 2"
-          ],
+          "name": "Redoubt",
+          "order": 1,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Improves your chance to get a critical strike with melee attacks by 1%.",
-              "Improves your chance to get a critical strike with melee attacks by 2%.",
-              "Improves your chance to get a critical strike with melee attacks by 3%.",
-              "Improves your chance to get a critical strike with melee attacks by 4%.",
-              "Improves your chance to get a critical strike with melee attacks by 5%."
-            ],
-            "classic": [
-              "Increases your chance to get a critical strike with melee weapons by 1%.",
-              "Increases your chance to get a critical strike with melee weapons by 2%.",
-              "Increases your chance to get a critical strike with melee weapons by 3%.",
-              "Increases your chance to get a critical strike with melee weapons by 4%.",
-              "Increases your chance to get a critical strike with melee weapons by 5%."
-            ]
+            "classic": ["Increases your chance to block attacks with your shield by 6% after being the victim of a critical strike. Lasts 10 sec or 5 blocks.", "Increases your chance to block attacks with your shield by 12% after being the victim of a critical strike. Lasts 10 sec or 5 blocks.", "Increases your chance to block attacks with your shield by 18% after being the victim of a critical strike. Lasts 10 sec or 5 blocks.", "Increases your chance to block attacks with your shield by 24% after being the victim of a critical strike. Lasts 10 sec or 5 blocks.", "Increases your chance to block attacks with your shield by 30% after being the victim of a critical strike. Lasts 10 sec or 5 blocks."],
+            "forever": ["Damaging melee attacks against you have a 10% chance to increase your chance to block by 6%. Lasts 10 sec or 5 blocks.", "Damaging melee attacks against you have a 10% chance to increase your chance to block by 12%. Lasts 10 sec or 5 blocks.", "Damaging melee attacks against you have a 10% chance to increase your chance to block by 18%. Lasts 10 sec or 5 blocks.", "Damaging melee attacks against you have a 10% chance to increase your chance to block by 24%. Lasts 10 sec or 5 blocks.", "Damaging melee attacks against you have a 10% chance to increase your chance to block by 30%. Lasts 10 sec or 5 blocks."]
           },
-          "classic": {
-            "name": "Conviction",
-            "maxRank": 5,
-            "tier": 2,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 20117,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20117",
-              "title": "Classic Era client, build 1.15.9.69722: Conviction",
-              "type": "classic_client_data"
-            }
-          ]
+          "spellId": 20127,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Protection"
         },
         {
-          "id": "calc-paladin-retribution-vindication",
-          "name": "Vindication",
-          "icon": "spell_holy_vindication",
-          "tree": "Retribution",
-          "tier": 2,
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Precision",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Protection"
+          },
+          "classicSpellId": 20189,
           "col": 0,
+          "icon": "ability_rogue_ambush",
+          "id": "paladin-protection-precision",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Precision",
+          "order": 2,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your chance to hit with melee weapons by 1%.", "Increases your chance to hit with melee weapons by 2%.", "Increases your chance to hit with melee weapons by 3%."],
+            "forever": ["Improves your chance to hit by 1%.", "Improves your chance to hit by 2%.", "Improves your chance to hit by 3%."]
+          },
+          "spellId": 20189,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Guardian's Favor",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Protection"
+          },
+          "classicSpellId": 20174,
+          "col": 1,
+          "icon": "spell_holy_sealofprotection",
+          "id": "paladin-protection-guardians-favor",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Guardian's Favor",
+          "order": 3,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the cooldown of your Blessing of Protection by 60 sec and increases the duration of your Blessing of Freedom by 3 sec.", "Reduces the cooldown of your Blessing of Protection by 120 sec and increases the duration of your Blessing of Freedom by 6 sec."],
+            "forever": ["Reduces the cooldown of your Blessing of Protection by 1 min and increases the duration of your Blessing of Freedom by 3 sec.", "Reduces the cooldown of your Blessing of Protection by 2 min and increases the duration of your Blessing of Freedom by 6 sec."]
+          },
+          "spellId": 20174,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Anticipation",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Protection"
+          },
+          "classicSpellId": 20096,
+          "col": 3,
+          "icon": "spell_magic_lesserinvisibilty",
+          "id": "paladin-protection-anticipation",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Anticipation",
+          "order": 4,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your Defense skill by 2.", "Increases your Defense skill by 4.", "Increases your Defense skill by 6.", "Increases your Defense skill by 8.", "Increases your Defense skill by 10."],
+            "forever": ["Increases your Defense Skill by 4.", "Increases your Defense Skill by 8.", "Increases your Defense Skill by 12.", "Increases your Defense Skill by 16.", "Increases your Defense Skill by 20."]
+          },
+          "spellId": 20096,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 0,
+          "icon": "spell_holy_righteousnessaura",
+          "id": "paladin-protection-improved-seal-of-fury",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Improved Seal of Fury",
           "order": 5,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Effect rewritten.",
-          "changes": [],
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Gives your damaging melee attacks a chance to reduce the target's Attack Power by -2, and increase your Attack Power by 1% for 30 sec.",
-              "Gives your damaging melee attacks a chance to reduce the target's Attack Power by -4, and increase your Attack Power by 2% for 30 sec.",
-              "Gives your damaging melee attacks a chance to reduce the target's Attack Power by -6, and increase your Attack Power by 3% for 30 sec."
-            ],
-            "classic": [
-              "Gives the Paladin's damaging melee attacks a chance to reduce the target's Strength and Agility by 5%10 sec.",
-              "Gives the Paladin's damaging melee attacks a chance to reduce the target's Strength and Agility by 10%10 sec.",
-              "Gives the Paladin's damaging melee attacks a chance to reduce the target's Strength and Agility by 15%10 sec."
-            ]
+            "classic": null,
+            "forever": ["When Seal of Fury's shield is fully absorbed, restore 0 Mana, increased by 15% per level the attacker is above you, up to 45%."]
           },
-          "classic": {
-            "name": "Vindication",
-            "maxRank": 3,
-            "tier": 2,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 9452,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=9452",
-              "title": "Classic Era client, build 1.15.9.69722: Vindication",
-              "type": "classic_client_data"
-            }
-          ]
+          "spellId": 1314103,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Protection"
         },
         {
-          "id": "calc-paladin-retribution-sanctified-judgement",
-          "name": "Sanctified Judgement",
-          "icon": "ability_paladin_judgementblue",
-          "tree": "Retribution",
-          "tier": 2,
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Improved Righteous Fury",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Protection"
+          },
+          "classicSpellId": 20468,
           "col": 1,
+          "icon": "spell_holy_sealoffury",
+          "id": "paladin-protection-improved-righteous-fury",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Righteous Fury",
           "order": 6,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Gives your Judgement ability a 33% chance to return 20% of the Mana cost of the judged seal.",
-          "changes": [],
           "passive": true,
-          "tooltip": null,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Gives your Judgement ability a 33% chance to return 20% of the Mana cost of the judged seal.",
-              "Gives your Judgement ability a 66% chance to return 40% of the Mana cost of the judged seal.",
-              "Gives your Judgement ability a 100% chance to return 60% of the Mana cost of the judged seal."
-            ],
-            "classic": null
+            "classic": ["Increases the amount of threat generated by your Righteous Fury spell by 16%.", "Increases the amount of threat generated by your Righteous Fury spell by 33%.", "Increases the amount of threat generated by your Righteous Fury spell by 50%."],
+            "forever": ["While Righteous Fury is active, all damage taken is reduced by 2%.", "While Righteous Fury is active, all damage taken is reduced by 4%.", "While Righteous Fury is active, all damage taken is reduced by 6%."]
           },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-retribution-seal-of-command",
-          "name": "Seal of Command",
-          "icon": "ability_warrior_innerrage",
-          "tree": "Retribution",
+          "spellId": 20468,
           "tier": 2,
-          "col": 2,
-          "order": 7,
-          "maxRank": 1,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "unchanged",
-          "summary": "Same as Classic.",
-          "changes": [],
-          "passive": false,
-          "tooltip": {
-            "resourceCost": "65 Mana",
-            "castTime": "Instant"
-          },
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 46.5 to 50.5 Holy damage, 93 to 101 if the target is stunned or incapacitated."
-            ],
-            "classic": [
-              "Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\n\nUnleashing this Seal's energy will judge an enemy, instantly causing 46.5 to 50.5 Holy damage, 93 to 101 if the target is stunned or incapacitated."
-            ]
-          },
-          "classic": {
-            "name": "Seal of Command",
-            "maxRank": 1,
-            "tier": 2,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 20375,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20375",
-              "title": "Classic Era client, build 1.15.9.69722: Seal of Command",
-              "type": "classic_client_data"
-            }
-          ]
+          "tooltip": null,
+          "tree": "Protection"
         },
         {
-          "id": "calc-paladin-retribution-pursuit-of-justice",
-          "name": "Pursuit of Justice",
-          "icon": "spell_holy_persuitofjustice",
-          "tree": "Retribution",
-          "tier": 2,
-          "col": 3,
-          "order": 8,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
           "changeKind": "modified",
-          "summary": "Rank 2: 15% instead of 8%, reworded.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases movement speed and mounted movement speed by 8%. This does not stack with other movement speed increasing effects.",
-              "Increases movement speed and mounted movement speed by 15%. This does not stack with other movement speed increasing effects."
-            ],
-            "classic": [
-              "Increases movement and mounted movement speed by 4%. This does not stack with other movement speed increasing effects.",
-              "Increases movement and mounted movement speed by 8%. This does not stack with other movement speed increasing effects."
-            ]
-          },
           "classic": {
-            "name": "Pursuit of Justice",
-            "maxRank": 2,
-            "tier": 2,
+            "col": 2,
             "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 26022,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=26022",
-              "title": "Classic Era client, build 1.15.9.69722: Pursuit of Justice",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-retribution-eye-for-an-eye",
-          "name": "Eye for an Eye",
-          "icon": "spell_holy_eyeforaneye",
-          "tree": "Retribution",
-          "tier": 3,
-          "col": 0,
-          "order": 9,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Rank 2: 10% instead of 30%, reworded.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "All critical strikes against you cause 5% of the damage taken to the attacker as well. The damage caused by Eye for an Eye will not exceed 50% of the Paladin's total health.",
-              "All critical strikes against you cause 10% of the damage taken to the attacker as well. The damage caused by Eye for an Eye will not exceed 50% of the Paladin's total health."
-            ],
-            "classic": [
-              "All spell criticals against you cause 15% of the damage taken to the caster as well. The damage caused by Eye for an Eye will not exceed 50% of the Paladin's total health.",
-              "All spell criticals against you cause 30% of the damage taken to the caster as well. The damage caused by Eye for an Eye will not exceed 50% of the Paladin's total health."
-            ]
-          },
-          "classic": {
-            "name": "Eye for an Eye",
-            "maxRank": 2,
-            "tier": 3,
-            "matchStatus": "same_name",
-            "prerequisite": null
-          },
-          "classicSpellId": 9799,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=9799",
-              "title": "Classic Era client, build 1.15.9.69722: Eye for an Eye",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-retribution-sacred-arbiter",
-          "name": "Sacred Arbiter",
-          "icon": "inv_sword_08",
-          "tree": "Retribution",
-          "tier": 3,
-          "col": 2,
-          "order": 10,
-          "maxRank": 1,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Increases the damage of your Holy Strike ability by 10% and causes it to refresh all Judgement effects on the target.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases the damage of your Holy Strike ability by 10% and causes it to refresh all Judgement effects on the target."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-retribution-crusade",
-          "name": "Crusade",
-          "icon": "spell_holy_crusade",
-          "tree": "Retribution",
-          "tier": 3,
-          "col": 3,
-          "order": 11,
-          "maxRank": 2,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Increases all damage dealt by 1%. Increased by an additional 1% against Demon and Undead targets.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases all damage dealt by 1%. Increased by an additional 1% against Demon and Undead targets.",
-              "Increases all damage dealt by 2%. Increased by an additional 2% against Demon and Undead targets."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-retribution-two-handed-weapon-specialization",
-          "name": "Two-Handed Weapon Specialization",
-          "icon": "inv_hammer_04",
-          "tree": "Retribution",
-          "tier": 4,
-          "col": 0,
-          "order": 12,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "Rank 3: 9% instead of 6%.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases the damage you deal with two-handed melee weapons by 3%.",
-              "Increases the damage you deal with two-handed melee weapons by 6%.",
-              "Increases the damage you deal with two-handed melee weapons by 9%."
-            ],
-            "classic": [
-              "Increases the damage you deal with two-handed melee weapons by 2%.",
-              "Increases the damage you deal with two-handed melee weapons by 4%.",
-              "Increases the damage you deal with two-handed melee weapons by 6%."
-            ]
-          },
-          "classic": {
-            "name": "Two-Handed Weapon Specialization",
             "maxRank": 3,
-            "tier": 4,
-            "matchStatus": "same_name",
-            "prerequisite": null
+            "name": "Shield Specialization",
+            "prerequisite": "Redoubt",
+            "tier": 2,
+            "tree": "Protection"
           },
-          "classicSpellId": 20111,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20111",
-              "title": "Classic Era client, build 1.15.9.69722: Two-Handed Weapon Specialization",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-retribution-vengeance",
-          "name": "Vengeance",
-          "icon": "ability_racial_avatar",
-          "tree": "Retribution",
-          "tier": 4,
-          "col": 1,
-          "order": 13,
-          "maxRank": 3,
-          "prerequisite": {
-            "talentId": "calc-paladin-retribution-sanctified-judgement",
-            "rank": 3
-          },
+          "classicSpellId": 20148,
+          "col": 2,
+          "icon": "inv_shield_06",
+          "id": "paladin-protection-shield-specialization",
           "inForeverTree": true,
-          "changeKind": "modified",
-          "summary": "3 ranks (Classic: 5). Moved from tier 6 to tier 5. Requires Sanctified Judgement (Classic: Conviction). Effect rewritten.",
-          "changes": [
-            "3 ranks (Classic: 5)",
-            "Moved from tier 6 to tier 5",
-            "Requires Sanctified Judgement (Classic: Conviction)"
-          ],
+          "maxRank": 3,
+          "name": "Shield Specialization",
+          "order": 7,
           "passive": true,
-          "tooltip": null,
+          "prerequisite": {
+            "rank": 5,
+            "talentId": "paladin-protection-redoubt"
+          },
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Increases your Physical and Holy damage dealt by 1% for 30 sec after landing a critical strike. Stacks up to 5 times.",
-              "Increases your Physical and Holy damage dealt by 2% for 30 sec after landing a critical strike. Stacks up to 5 times.",
-              "Increases your Physical and Holy damage dealt by 3% for 30 sec after landing a critical strike. Stacks up to 5 times."
-            ],
-            "classic": [
-              "Gives you a 3% bonus to Physical and Holy damage you deal for 8 sec after dealing a critical strike from a weapon swing, spell, or ability.",
-              "Gives you a 6% bonus to Physical and Holy damage you deal for 8 sec after dealing a critical strike from a weapon swing, spell, or ability.",
-              "Gives you a 9% bonus to Physical and Holy damage you deal for 8 sec after dealing a critical strike from a weapon swing, spell, or ability.",
-              "Gives you a 12% bonus to Physical and Holy damage you deal for 8 sec after dealing a critical strike from a weapon swing, spell, or ability.",
-              "Gives you a 15% bonus to Physical and Holy damage you deal for 8 sec after dealing a critical strike from a weapon swing, spell, or ability."
-            ]
+            "classic": ["Increases the amount of damage absorbed by your shield by 10%.", "Increases the amount of damage absorbed by your shield by 20%.", "Increases the amount of damage absorbed by your shield by 30%."],
+            "forever": ["Increases the amount of damage absorbed by your shield by 10%, and gives your blocks a 33% chance to restore 6% of your maximum Mana. May only occur once every 3 sec.", "Increases the amount of damage absorbed by your shield by 20%, and gives your blocks a 66% chance to restore 6% of your maximum Mana. May only occur once every 3 sec.", "Increases the amount of damage absorbed by your shield by 30%, and gives your blocks a 100% chance to restore 6% of your maximum Mana. May only occur once every 3 sec."]
           },
-          "classic": {
-            "name": "Vengeance",
-            "maxRank": 5,
-            "tier": 5,
-            "matchStatus": "same_name",
-            "prerequisite": "Conviction"
-          },
-          "classicSpellId": 20049,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20049",
-              "title": "Classic Era client, build 1.15.9.69722: Vengeance",
-              "type": "classic_client_data"
-            }
-          ]
+          "spellId": 20150,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Protection"
         },
         {
-          "id": "calc-paladin-retribution-repentance",
-          "name": "Repentance",
-          "icon": "spell_holy_prayerofhealing",
-          "tree": "Retribution",
-          "tier": 4,
-          "col": 2,
-          "order": 14,
-          "maxRank": 1,
-          "prerequisite": null,
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 3,
+          "icon": "spell_holy_divineintervention",
+          "id": "paladin-protection-sacred-duty",
           "inForeverTree": true,
-          "changeKind": "moved",
-          "summary": "Moved from tier 7 to tier 5.",
-          "changes": [
-            "Moved from tier 7 to tier 5"
-          ],
+          "maxRank": 2,
+          "name": "Sacred Duty",
+          "order": 8,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Increases your total Stamina by 2% and reduces the cooldown of your Divine Shield, Divine Protection, and Templar's Bulwark spells by 30 sec.", "Increases your total Stamina by 4% and reduces the cooldown of your Divine Shield, Divine Protection, and Templar's Bulwark spells by 60 sec."]
+          },
+          "spellId": 1224697,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 0,
+          "icon": "ability_paladin_judgementred",
+          "id": "paladin-protection-swift-judgement",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Swift Judgement",
+          "order": 9,
           "passive": false,
+          "prerequisite": {
+            "rank": 1,
+            "talentId": "paladin-protection-improved-seal-of-fury"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Finishes the remaining cooldown on your Judgement ability and reduces the Mana cost of your next Judgement by 100%."]
+          },
+          "spellId": 1310994,
+          "tier": 3,
           "tooltip": {
-            "resourceCost": "60 Mana",
-            "range": "20 yd range",
             "castTime": "Instant",
             "cooldown": "1 min cooldown"
           },
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "One-Handed Weapon Specialization",
+            "prerequisite": null,
+            "tier": 5,
+            "tree": "Protection"
+          },
+          "classicSpellId": 20196,
+          "col": 1,
+          "icon": "inv_sword_20",
+          "id": "paladin-protection-one-handed-weapon-specialization",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "One-Handed Weapon Specialization",
+          "order": 10,
+          "passive": true,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Puts the enemy target in a state of meditation, incapacitating them for up to 6 sec. Any damage caused will awaken the target. Only works against Humanoids."
-            ],
-            "classic": [
-              "Puts the enemy target in a state of meditation, incapacitating them for up to 6 sec. Any damage caused will awaken the target. Only works against Humanoids."
-            ]
+            "classic": ["Increases the damage you deal with one-handed melee weapons by 2%.", "Increases the damage you deal with one-handed melee weapons by 4%.", "Increases the damage you deal with one-handed melee weapons by 6%.", "Increases the damage you deal with one-handed melee weapons by 8%.", "Increases the damage you deal with one-handed melee weapons by 10%."],
+            "forever": ["Increases the damage you deal with one-handed melee weapons by 3%.", "Increases the damage you deal with one-handed melee weapons by 7%.", "Increases the damage you deal with one-handed melee weapons by 10%."]
           },
+          "spellId": 20196,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "moved",
           "classic": {
-            "name": "Repentance",
-            "maxRank": 1,
-            "tier": 6,
+            "col": 1,
             "matchStatus": "same_name",
-            "prerequisite": null
+            "maxRank": 3,
+            "name": "Improved Hammer of Justice",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Protection"
+          },
+          "classicSpellId": 20487,
+          "col": 2,
+          "icon": "spell_holy_sealofmight",
+          "id": "paladin-protection-improved-hammer-of-justice",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Improved Hammer of Justice",
+          "order": 11,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Decreases the cooldown of your Hammer of Justice spell by 5 sec.", "Decreases the cooldown of your Hammer of Justice spell by 10 sec.", "Decreases the cooldown of your Hammer of Justice spell by 15 sec."],
+            "forever": ["Decreases the cooldown of your Hammer of Justice spell by 5 sec.", "Decreases the cooldown of your Hammer of Justice spell by 10 sec.", "Decreases the cooldown of your Hammer of Justice spell by 15 sec."]
+          },
+          "spellId": 20487,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "ability_paladin_shieldofthetemplar",
+          "id": "paladin-protection-templars-bulwark",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Templar's Bulwark",
+          "order": 12,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["When activated, this ability grants you an absorb shield equal to 100% of your maximum health for 8 sec. Applies Forbearance for 1 min. Cannot be cast while Forbearance is active."]
+          },
+          "spellId": 1311015,
+          "tier": 4,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "5 min cooldown",
+            "resourceCost": "110 Mana"
+          },
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Reckoning",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Protection"
+          },
+          "classicSpellId": 20177,
+          "col": 2,
+          "icon": "spell_holy_blessingofstrength",
+          "id": "paladin-protection-reckoning",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Reckoning",
+          "order": 13,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives you a 20% chance to gain an extra attack after being the victim of a critical strike.", "Gives you a 40% chance to gain an extra attack after being the victim of a critical strike.", "Gives you a 60% chance to gain an extra attack after being the victim of a critical strike.", "Gives you a 80% chance to gain an extra attack after being the victim of a critical strike.", "Gives you a 100% chance to gain an extra attack after being the victim of a critical strike."],
+            "forever": ["Gives you a 8% chance to gain an extra attack after Blocking a melee attack and a 20% chance to gain an extra attack after being the victim of a non-periodic critical strike.", "Gives you a 16% chance to gain an extra attack after Blocking a melee attack and a 40% chance to gain an extra attack after being the victim of a non-periodic critical strike.", "Gives you a 24% chance to gain an extra attack after Blocking a melee attack and a 60% chance to gain an extra attack after being the victim of a non-periodic critical strike.", "Gives you a 32% chance to gain an extra attack after Blocking a melee attack and a 80% chance to gain an extra attack after being the victim of a non-periodic critical strike.", "Gives you a 40% chance to gain an extra attack after Blocking a melee attack and a 100% chance to gain an extra attack after being the victim of a non-periodic critical strike."]
+          },
+          "spellId": 20177,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 2,
+          "icon": "spell_holy_improvedresistanceauras",
+          "id": "paladin-protection-iron-creed",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Iron Creed",
+          "order": 14,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Increases the threat generated by your Holy Strike ability 5%. While Righteous Fury is active, Holy Strike also reduces your damage taken by 2% for 6 sec.", "Increases the threat generated by your Holy Strike ability 10%. While Righteous Fury is active, Holy Strike also reduces your damage taken by 4% for 6 sec.", "Increases the threat generated by your Holy Strike ability 15%. While Righteous Fury is active, Holy Strike also reduces your damage taken by 6% for 6 sec.", "Increases the threat generated by your Holy Strike ability 20%. While Righteous Fury is active, Holy Strike also reduces your damage taken by 8% for 6 sec.", "Increases the threat generated by your Holy Strike ability 25%. While Righteous Fury is active, Holy Strike also reduces your damage taken by 10% for 6 sec."]
+          },
+          "spellId": 1311034,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Protection"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Holy Shield",
+            "prerequisite": "Blessing of Sanctuary",
+            "tier": 6,
+            "tree": "Protection"
+          },
+          "classicSpellId": 20925,
+          "col": 1,
+          "icon": "spell_holy_blessingofprotection",
+          "id": "paladin-protection-holy-shield",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Holy Shield",
+          "order": 15,
+          "passive": false,
+          "prerequisite": {
+            "rank": 1,
+            "talentId": "paladin-protection-templars-bulwark"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases chance to block by 30% for 10 sec, and deals 65 Holy damage for each attack blocked while active. Damage caused by Holy Shield causes 20% additional threat. Each block expends a charge. 4 charges."],
+            "forever": ["Increases chance to block by 20% for 10 sec, and deals 110 Holy damage for each attack blocked while active. Damage caused by Holy Shield causes 20% additional threat. Each block expends a charge. 4 charges."]
+          },
+          "spellId": 20925,
+          "tier": 6,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "10 sec cooldown",
+            "requirements": "Requires Shields",
+            "resourceCost": "150 Mana"
+          },
+          "tree": "Protection"
+        }
+      ]
+    },
+    {
+      "clientTreeId": "381",
+      "icon": "spell_holy_auraoflight",
+      "id": "Retribution",
+      "index": 2,
+      "name": "Retribution",
+      "talents": [
+        {
+          "changeKind": "moved",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Deflection",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Retribution"
+          },
+          "classicSpellId": 20060,
+          "col": 1,
+          "icon": "ability_parry",
+          "id": "paladin-retribution-deflection",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Deflection",
+          "order": 0,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your Parry chance by 1%.", "Increases your Parry chance by 2%.", "Increases your Parry chance by 3%.", "Increases your Parry chance by 4%.", "Increases your Parry chance by 5%."],
+            "forever": ["Increases your Parry chance by 1%.", "Increases your Parry chance by 2%.", "Increases your Parry chance by 3%.", "Increases your Parry chance by 4%.", "Increases your Parry chance by 5%."]
+          },
+          "spellId": 20060,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Retribution"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Benediction",
+            "prerequisite": null,
+            "tier": 0,
+            "tree": "Retribution"
+          },
+          "classicSpellId": 20101,
+          "col": 2,
+          "icon": "spell_frost_windwalkon",
+          "id": "paladin-retribution-benediction",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Benediction",
+          "order": 1,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Reduces the Mana cost of your Judgement and Seal spells by 3%.", "Reduces the Mana cost of your Judgement and Seal spells by 6%.", "Reduces the Mana cost of your Judgement and Seal spells by 9%.", "Reduces the Mana cost of your Judgement and Seal spells by 12%.", "Reduces the Mana cost of your Judgement and Seal spells by 15%."],
+            "forever": ["Reduces the Mana cost of all instant cast spells and abilities by 2%.", "Reduces the Mana cost of all instant cast spells and abilities by 4%.", "Reduces the Mana cost of all instant cast spells and abilities by 6%.", "Reduces the Mana cost of all instant cast spells and abilities by 8%.", "Reduces the Mana cost of all instant cast spells and abilities by 10%."]
+          },
+          "spellId": 20101,
+          "tier": 0,
+          "tooltip": null,
+          "tree": "Retribution"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Improved Judgement",
+            "prerequisite": null,
+            "tier": 1,
+            "tree": "Retribution"
+          },
+          "classicSpellId": 25956,
+          "col": 0,
+          "icon": "spell_holy_righteousfury",
+          "id": "paladin-retribution-improved-judgement",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Improved Judgement",
+          "order": 2,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Decreases the cooldown of your Judgement spell by 1 sec.", "Decreases the cooldown of your Judgement spell by 2 sec."],
+            "forever": ["Decreases the cooldown of your Judgement ability by 1 sec.", "Decreases the cooldown of your Judgement ability by 2 sec."]
+          },
+          "spellId": 25956,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Retribution"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "spell_holy_devineaegis",
+          "id": "paladin-retribution-holy-conduit",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Holy Conduit",
+          "order": 3,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Reduces the mana cost of your Consecration, Holy Wrath, Exorcism, and Hammer of Wrath spells by 20%.", "Reduces the mana cost of your Consecration, Holy Wrath, Exorcism, and Hammer of Wrath spells by 40%."]
+          },
+          "spellId": 1237268,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Retribution"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Conviction",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Retribution"
+          },
+          "classicSpellId": 20117,
+          "col": 2,
+          "icon": "spell_holy_retributionaura",
+          "id": "paladin-retribution-conviction",
+          "inForeverTree": true,
+          "maxRank": 5,
+          "name": "Conviction",
+          "order": 4,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases your chance to get a critical strike with melee weapons by 1%.", "Increases your chance to get a critical strike with melee weapons by 2%.", "Increases your chance to get a critical strike with melee weapons by 3%.", "Increases your chance to get a critical strike with melee weapons by 4%.", "Increases your chance to get a critical strike with melee weapons by 5%."],
+            "forever": ["Improves your chance to get a critical strike with melee attacks by 1%.", "Improves your chance to get a critical strike with melee attacks by 2%.", "Improves your chance to get a critical strike with melee attacks by 3%.", "Improves your chance to get a critical strike with melee attacks by 4%.", "Improves your chance to get a critical strike with melee attacks by 5%."]
+          },
+          "spellId": 20117,
+          "tier": 1,
+          "tooltip": null,
+          "tree": "Retribution"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Vindication",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Retribution"
+          },
+          "classicSpellId": 9452,
+          "col": 0,
+          "icon": "spell_holy_vindication",
+          "id": "paladin-retribution-vindication",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Vindication",
+          "order": 5,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives the Paladin's damaging melee attacks a chance to reduce the target's Strength and Agility by 5%10 sec.", "Gives the Paladin's damaging melee attacks a chance to reduce the target's Strength and Agility by 10%10 sec.", "Gives the Paladin's damaging melee attacks a chance to reduce the target's Strength and Agility by 15%10 sec."],
+            "forever": ["Gives your damaging melee attacks a chance to reduce the target's Attack Power by 2, and increase your Attack Power by 1% for 30 sec.", "Gives your damaging melee attacks a chance to reduce the target's Attack Power by 4, and increase your Attack Power by 2% for 30 sec.", "Gives your damaging melee attacks a chance to reduce the target's Attack Power by 6, and increase your Attack Power by 3% for 30 sec."]
+          },
+          "spellId": 9452,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Retribution"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "ability_paladin_judgementblue",
+          "id": "paladin-retribution-sanctified-judgement",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Sanctified Judgement",
+          "order": 6,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Gives your Judgement ability a 33% chance to return 20% of the Mana cost of the judged seal.", "Gives your Judgement ability a 66% chance to return 40% of the Mana cost of the judged seal.", "Gives your Judgement ability a 100% chance to return 60% of the Mana cost of the judged seal."]
+          },
+          "spellId": 1311074,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Retribution"
+        },
+        {
+          "changeKind": "unchanged",
+          "classic": {
+            "col": 2,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Seal of Command",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Retribution"
+          },
+          "classicSpellId": 20375,
+          "col": 2,
+          "icon": "ability_warrior_innerrage",
+          "id": "paladin-retribution-seal-of-command",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Seal of Command",
+          "order": 7,
+          "passive": false,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\nUnleashing this Seal's energy will judge an enemy, instantly causing 46.5 to 50.5 Holy damage, 93 to 101 if the target is stunned or incapacitated."],
+            "forever": ["Gives the Paladin a chance to deal additional Holy damage equal to 70% of normal weapon damage. Only one Seal can be active on the Paladin at any one time. Lasts 30 sec.\nUnleashing this Seal's energy will judge an enemy, instantly causing 46.5 to 50.5 Holy damage, 93 to 101 if the target is stunned or incapacitated."]
+          },
+          "spellId": 20375,
+          "tier": 2,
+          "tooltip": {
+            "castTime": "Instant",
+            "resourceCost": "65 Mana"
+          },
+          "tree": "Retribution"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 3,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Pursuit of Justice",
+            "prerequisite": null,
+            "tier": 2,
+            "tree": "Retribution"
+          },
+          "classicSpellId": 26022,
+          "col": 3,
+          "icon": "spell_holy_persuitofjustice",
+          "id": "paladin-retribution-pursuit-of-justice",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Pursuit of Justice",
+          "order": 8,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases movement and mounted movement speed by 4%. This does not stack with other movement speed increasing effects.", "Increases movement and mounted movement speed by 8%. This does not stack with other movement speed increasing effects."],
+            "forever": ["Increases movement speed and mounted movement speed by 8%. This does not stack with other movement speed increasing effects.", "Increases movement speed and mounted movement speed by 15%. This does not stack with other movement speed increasing effects."]
+          },
+          "spellId": 26022,
+          "tier": 2,
+          "tooltip": null,
+          "tree": "Retribution"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 2,
+            "name": "Eye for an Eye",
+            "prerequisite": null,
+            "tier": 3,
+            "tree": "Retribution"
+          },
+          "classicSpellId": 9799,
+          "col": 0,
+          "icon": "spell_holy_eyeforaneye",
+          "id": "paladin-retribution-eye-for-an-eye",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Eye for an Eye",
+          "order": 9,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["All spell criticals against you cause 15% of the damage taken to the caster as well. The damage caused by Eye for an Eye will not exceed 50% of the Paladin's total health.", "All spell criticals against you cause 30% of the damage taken to the caster as well. The damage caused by Eye for an Eye will not exceed 50% of the Paladin's total health."],
+            "forever": ["All critical strikes against you cause 5% of the damage taken to the attacker as well. The damage caused by Eye for an Eye will not exceed 50% of the Paladin's total health.", "All critical strikes against you cause 10% of the damage taken to the attacker as well. The damage caused by Eye for an Eye will not exceed 50% of the Paladin's total health."]
+          },
+          "spellId": 9799,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Retribution"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 2,
+          "icon": "inv_sword_08",
+          "id": "paladin-retribution-sacred-arbiter",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Sacred Arbiter",
+          "order": 10,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Increases the damage of your Holy Strike ability by 10% and causes it to refresh all Judgement effects on the target."]
+          },
+          "spellId": 1311087,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Retribution"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 3,
+          "icon": "spell_holy_crusade",
+          "id": "paladin-retribution-crusade",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Crusade",
+          "order": 11,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Increases all damage dealt by 1%. Increased by an additional 1% against Demon and Undead targets.", "Increases all damage dealt by 2%. Increased by an additional 2% against Demon and Undead targets."]
+          },
+          "spellId": 1311083,
+          "tier": 3,
+          "tooltip": null,
+          "tree": "Retribution"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 0,
+            "matchStatus": "same_name",
+            "maxRank": 3,
+            "name": "Two-Handed Weapon Specialization",
+            "prerequisite": null,
+            "tier": 4,
+            "tree": "Retribution"
+          },
+          "classicSpellId": 20111,
+          "col": 0,
+          "icon": "inv_hammer_04",
+          "id": "paladin-retribution-two-handed-weapon-specialization",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Two-Handed Weapon Specialization",
+          "order": 12,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": ["Increases the damage you deal with two-handed melee weapons by 2%.", "Increases the damage you deal with two-handed melee weapons by 4%.", "Increases the damage you deal with two-handed melee weapons by 6%."],
+            "forever": ["Increases the damage you deal with two-handed melee weapons by 3%.", "Increases the damage you deal with two-handed melee weapons by 6%.", "Increases the damage you deal with two-handed melee weapons by 9%."]
+          },
+          "spellId": 20111,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Retribution"
+        },
+        {
+          "changeKind": "modified",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 5,
+            "name": "Vengeance",
+            "prerequisite": "Conviction",
+            "tier": 5,
+            "tree": "Retribution"
+          },
+          "classicSpellId": 20049,
+          "col": 1,
+          "icon": "ability_racial_avatar",
+          "id": "paladin-retribution-vengeance",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Vengeance",
+          "order": 13,
+          "passive": true,
+          "prerequisite": {
+            "rank": 3,
+            "talentId": "paladin-retribution-sanctified-judgement"
+          },
+          "previousName": null,
+          "ranks": {
+            "classic": ["Gives you a 3% bonus to Physical and Holy damage you deal for 8 sec after dealing a critical strike from a weapon swing, spell, or ability.", "Gives you a 6% bonus to Physical and Holy damage you deal for 8 sec after dealing a critical strike from a weapon swing, spell, or ability.", "Gives you a 9% bonus to Physical and Holy damage you deal for 8 sec after dealing a critical strike from a weapon swing, spell, or ability.", "Gives you a 12% bonus to Physical and Holy damage you deal for 8 sec after dealing a critical strike from a weapon swing, spell, or ability.", "Gives you a 15% bonus to Physical and Holy damage you deal for 8 sec after dealing a critical strike from a weapon swing, spell, or ability."],
+            "forever": ["Increases your Physical and Holy damage dealt by 1% for 30 sec after landing a critical strike. Stacks up to 5 times.", "Increases your Physical and Holy damage dealt by 2% for 30 sec after landing a critical strike. Stacks up to 5 times.", "Increases your Physical and Holy damage dealt by 3% for 30 sec after landing a critical strike. Stacks up to 5 times."]
+          },
+          "spellId": 20049,
+          "tier": 4,
+          "tooltip": null,
+          "tree": "Retribution"
+        },
+        {
+          "changeKind": "moved",
+          "classic": {
+            "col": 1,
+            "matchStatus": "same_name",
+            "maxRank": 1,
+            "name": "Repentance",
+            "prerequisite": null,
+            "tier": 6,
+            "tree": "Retribution"
           },
           "classicSpellId": 20066,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            },
-            {
-              "url": "https://www.wowhead.com/classic/spell=20066",
-              "title": "Classic Era client, build 1.15.9.69722: Repentance",
-              "type": "classic_client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-retribution-champion-of-the-light",
-          "name": "Champion of the Light",
-          "icon": "ability_paladin_enlightenedjudgements",
-          "tree": "Retribution",
-          "tier": 5,
-          "col": 1,
-          "order": 15,
-          "maxRank": 3,
-          "prerequisite": null,
-          "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "Increases your spell damage and healing by up to 33% of your Intellect.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "Increases your spell damage and healing by up to 33% of your Intellect.",
-              "Increases your spell damage and healing by up to 66% of your Intellect.",
-              "Increases your spell damage and healing by up to 100% of your Intellect."
-            ],
-            "classic": null
-          },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
-        },
-        {
-          "id": "calc-paladin-retribution-instrument-of-law",
-          "name": "Instrument of Law",
-          "icon": "spell_holy_divinepurpose",
-          "tree": "Retribution",
-          "tier": 5,
           "col": 2,
-          "order": 16,
-          "maxRank": 2,
-          "prerequisite": null,
+          "icon": "spell_holy_prayerofhealing",
+          "id": "paladin-retribution-repentance",
           "inForeverTree": true,
-          "changeKind": "added",
-          "summary": "5 sec, and reduces all threat you generate by 10% while Righteous Fury is not active.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
+          "maxRank": 1,
+          "name": "Repentance",
+          "order": 14,
+          "passive": false,
+          "prerequisite": null,
           "previousName": null,
           "ranks": {
-            "forever": [
-              "Reduces the cast time of your Hammer of Wrath by 0.5 sec, and reduces all threat you generate by 10% while Righteous Fury is not active.",
-              "Reduces the cast time of your Hammer of Wrath by 1.0 sec, and reduces all threat you generate by 20% while Righteous Fury is not active."
-            ],
-            "classic": null
+            "classic": ["Puts the enemy target in a state of meditation, incapacitating them for up to 6 sec. Any damage caused will awaken the target. Only works against Humanoids."],
+            "forever": ["Puts the enemy target in a state of meditation, incapacitating them for up to 6 sec. Any damage caused will awaken the target. Only works against Humanoids."]
           },
-          "classic": null,
-          "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
+          "spellId": 20066,
+          "tier": 4,
+          "tooltip": {
+            "castTime": "Instant",
+            "cooldown": "1 min cooldown",
+            "range": "20 yd range",
+            "resourceCost": "60 Mana"
+          },
+          "tree": "Retribution"
         },
         {
-          "id": "calc-paladin-retribution-twist-of-light",
-          "name": "Twist of Light",
-          "icon": "spell_holy_blessedresillience",
-          "tree": "Retribution",
-          "tier": 6,
-          "col": 1,
-          "order": 17,
-          "maxRank": 1,
-          "prerequisite": null,
-          "inForeverTree": true,
           "changeKind": "added",
-          "summary": "When you replace your Seal of Command, Seal of Righteousness, Seal of Fury, or Seal of Justice with a different Seal, gain an Echo.",
-          "changes": [],
-          "passive": true,
-          "tooltip": null,
-          "previousName": null,
-          "ranks": {
-            "forever": [
-              "When you replace your Seal of Command, Seal of Righteousness, Seal of Fury, or Seal of Justice with a different Seal, gain an Echo. Your next melee attack applies the replaced Seal's effects, consuming the Echo."
-            ],
-            "classic": null
-          },
           "classic": null,
           "classicSpellId": null,
-          "evidenceStatus": "client_data",
-          "comparisonStatus": "client",
-          "discoveredAt": "2026-09-18",
-          "sources": [
-            {
-              "url": "https://wago.tools/db2/TraitNode?build=1.60.1.69913",
-              "title": "WoW Forever beta client, build 1.60.1.69913",
-              "type": "client_data"
-            }
-          ]
+          "col": 1,
+          "icon": "ability_paladin_enlightenedjudgements",
+          "id": "paladin-retribution-champion-of-the-light",
+          "inForeverTree": true,
+          "maxRank": 3,
+          "name": "Champion of the Light",
+          "order": 15,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Increases your spell damage and healing by up to 33% of your Intellect.", "Increases your spell damage and healing by up to 66% of your Intellect.", "Increases your spell damage and healing by up to 100% of your Intellect."]
+          },
+          "spellId": 1311084,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Retribution"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 2,
+          "icon": "spell_holy_divinepurpose",
+          "id": "paladin-retribution-instrument-of-law",
+          "inForeverTree": true,
+          "maxRank": 2,
+          "name": "Instrument of Law",
+          "order": 16,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["Reduces the cast time of your Hammer of Wrath by 0.5 sec, and reduces all threat you generate by 10% while Righteous Fury is not active.", "Reduces the cast time of your Hammer of Wrath by 1.0 sec, and reduces all threat you generate by 20% while Righteous Fury is not active."]
+          },
+          "spellId": 1311085,
+          "tier": 5,
+          "tooltip": null,
+          "tree": "Retribution"
+        },
+        {
+          "changeKind": "added",
+          "classic": null,
+          "classicSpellId": null,
+          "col": 1,
+          "icon": "spell_holy_blessedresillience",
+          "id": "paladin-retribution-twist-of-light",
+          "inForeverTree": true,
+          "maxRank": 1,
+          "name": "Twist of Light",
+          "order": 17,
+          "passive": true,
+          "prerequisite": null,
+          "previousName": null,
+          "ranks": {
+            "classic": null,
+            "forever": ["When you replace your Seal of Command, Seal of Righteousness, Seal of Fury, or Seal of Justice with a different Seal, gain an Echo. Your next melee attack applies the replaced Seal's effects, consuming the Echo."]
+          },
+          "spellId": 1310735,
+          "tier": 6,
+          "tooltip": null,
+          "tree": "Retribution"
         }
       ]
     }

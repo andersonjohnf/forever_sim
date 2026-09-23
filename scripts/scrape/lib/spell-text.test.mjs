@@ -26,6 +26,18 @@ const ctx = createSpellTextContext({
     { ID: 24427, Description_lang: "Increases attack power by $s1 for $d." },
     { ID: 900001, Description_lang: "Restores $s1 $lcharge:charges; and deals $<damage> damage." },
     { ID: 900002, Description_lang: "Teleports you to $z. $?s12345[Faster.][Slower.]" },
+    // Forever talents: Anger Management (a fourth effect), Feral Charge ($? with colour codes and
+    // $@spelltooltip), and synthetic chains and negations.
+    { ID: 12296, Description_lang: "Generates $m2 Rage every $m3 sec while in combat, and reduces Rage loss while out of combat by $s4%." },
+    {
+      ID: 1238122,
+      Description_lang:
+        "$?a5487|a9634[|CFFFFFFFFRequires Bear Form, Dire Bear Form|R][|CFFFF2020Requires Bear Form, Dire Bear Form|R]\r\nCharge an enemy.\r\n\r\n$@spelltooltip414924",
+    },
+    { ID: 414924, Description_lang: "Leap behind an enemy." },
+    { ID: 900003, Description_lang: "$?!s1[Not known.][Known.] $?a1[A]?(a2|!a3)&!s4[B][C] $?s5[only if known]end" },
+    { ID: 900004, Description_lang: "Outer,\r\nwrapped.\r\n\r\n$@spelldesc900005" },
+    { ID: 900005, Description_lang: "Inner one.\r\n\r\nInner two." },
   ],
   SpellName: [{ ID: 24427, Name_lang: "Diamond Flask" }],
   SpellEffect: [
@@ -44,6 +56,10 @@ const ctx = createSpellTextContext({
     fx(24427, 0, 300),
     fx(900001, 0, 1),
     fx(900001, 1, 40),
+    fx(12296, 0, 15),
+    fx(12296, 1, 1),
+    fx(12296, 2, 3),
+    fx(12296, 3, 30),
   ],
   SpellMisc: [
     { SpellID: 1291097, DifficultyID: 0, DurationIndex: 1 },
@@ -84,6 +100,7 @@ describe("renderSpellText", () => {
     expect(text(1291097)).toEqual({
       text: "Absorbs 450 damage for 15 sec. If this shield expires before 15 sec, 90 to 110 Nature damage will be dealt to all enemies in melee range.",
       unrendered: [],
+      assumed: [],
     });
   });
 
@@ -114,7 +131,37 @@ describe("renderSpellText", () => {
   });
 
   it("picks plurals by the last number and evaluates description variables", () => {
-    expect(text(900001)).toEqual({ text: "Restores 1 charge and deals 140 damage.", unrendered: [] });
+    expect(text(900001)).toEqual({ text: "Restores 1 charge and deals 140 damage.", unrendered: [], assumed: [] });
+  });
+
+  it("reads effect indexes past 3 (Anger Management's $s4)", () => {
+    expect(text(12296).text).toBe("Generates 1 Rage every 3 sec while in combat, and reduces Rage loss while out of combat by 30%.");
+  });
+
+  it("strips upper-case colour codes and includes $@spelltooltip", () => {
+    expect(text(1238122).text).toContain("Charge an enemy. Leap behind an enemy.");
+    expect(text(1238122).text).not.toMatch(/\|[CcRr]/);
+  });
+
+  it("reports $? conditions unless asked to take them as unmet", () => {
+    expect(text(1238122).unrendered).toEqual(["$?a5487|a9634"]);
+    const unmet = renderSpellText(ctx, 1238122, { conditions: "unmet" });
+    expect(unmet.text).toBe("Requires Bear Form, Dire Bear Form Charge an enemy. Leap behind an enemy.");
+    expect(unmet.unrendered).toEqual([]);
+    expect(unmet.assumed).toEqual(["$?a5487|a9634"]);
+  });
+
+  it("keeps a blank line as one paragraph break when asked, through $@ inclusions", () => {
+    const text = renderSpellText(ctx, 1238122, { conditions: "unmet", paragraphs: true }).text;
+    expect(text).toBe("Requires Bear Form, Dire Bear Form Charge an enemy.\nLeap behind an enemy.");
+    expect(renderSpellText(ctx, 900004, { paragraphs: true }).text).toBe("Outer, wrapped.\nInner one.\nInner two.");
+    expect(renderSpellText(ctx, 900004).text).toBe("Outer, wrapped. Inner one. Inner two.");
+  });
+
+  it("applies !, &, | and parentheses, chains, and a missing else branch", () => {
+    const unmet = renderSpellText(ctx, 900003, { conditions: "unmet" });
+    expect(unmet.text).toBe("Not known. B end");
+    expect(unmet.assumed).toEqual(["$?!s1", "$?a1", "$?(a2|!a3)&!s4", "$?s5"]);
   });
 
   it("reports what it can't render", () => {

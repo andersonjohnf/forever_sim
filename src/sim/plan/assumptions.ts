@@ -151,7 +151,7 @@ const REGISTRY = {
     docRef: `${DT}#52-ppm-vs-flat-chance-classic-era-examples`,
   },
   ironfoeChance: {
-    text: 'Ironfoe procs on 3% of its own hits, at most once per 100 ms. The Forever client gives it a 6% chance and says it procs twice as often against Orcs, so, as for Hand of Justice, we read 6% as the chance against Orcs and 3% against other bosses. Whether it also procs on hits from the other hand is unclear too (about 2.7% of Fury DPS). Nobody has measured either.',
+    text: 'Ironfoe procs on 3% of its own hits, at most once per 100 ms. The Forever client gives it a 6% chance and says it procs twice as often against Orcs, so, as for Hand of Justice, we read 6% as the chance against Orcs and 3% against other bosses. We also count only its own hits: if hits from the other hand proc it too, the default Fury warrior does about 2.7% more DPS. Nobody has measured either.',
     docRef: `${DT}#52-ppm-vs-flat-chance-classic-era-examples`,
   },
   extraAttackChains: {

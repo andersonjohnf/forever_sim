@@ -106,12 +106,12 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     default is selected. Only the current spec's default is marked "(default)"; another spec's
     reads plainly ("Arms default"), so the menu never shows two defaults.
   - Interactive trees: three side by side on desktop, one tab per tree on mobile (a segmented
-    control named "Talent tree"). With a mouse, click to add a point and right-click to remove
-    one; on a touch screen, a tap opens the talent's details with − and + buttons. On a focused
-    talent, Enter adds a point and Backspace removes one (Delete and − work too); the hint above
-    the trees and each talent's tooltip say so. Tier gates and prerequisites are enforced
-    visibly: a locked talent's icon turns gray and its rank badge takes the muted text colour
-    (AA), never opacity.
+    control named "Talent tree", each tab as wide as its name and points need, so "Feral Combat 37"
+    fits at 390 px). With a mouse, click to add a point and right-click to remove one; on a touch
+    screen, a tap opens the talent's details with − and + buttons. On a focused talent, Enter adds a
+    point and Backspace removes one (Delete and − work too); the hint above the trees and each
+    talent's tooltip say so. Tier gates and prerequisites are enforced visibly: a locked talent's
+    icon turns gray and its rank badge takes the muted text colour (AA), never opacity.
   - **A point that can't move says why.** A talent that can't take a point says what it needs
     ("Requires 5 points in Fury."). One whose point can't come back names what depends on it:
     the talent its arrow leads to ("Can't remove a point: Bloodthirst needs 1 point in Death

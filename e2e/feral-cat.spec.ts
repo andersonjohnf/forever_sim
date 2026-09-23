@@ -166,6 +166,11 @@ test.describe('Feral cat on a phone', () => {
 
   test('switches, shows its Rotation tab, runs and shows its results, all without side scroll', async ({ page }) => {
     await switchToCat(page)
+    // The tree switcher's tabs are as wide as their names: "Feral Combat" isn't cut short.
+    await openTab(page, 'Talents')
+    const feral = page.getByRole('radio', { name: /^Feral Combat 37$/ })
+    await expect(feral).toBeVisible()
+    expect(await feral.locator('span').first().evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true)
     await openTab(page, 'Rotation')
     const tab = page.getByRole('tabpanel', { name: 'Rotation' })
     await expect(tab.getByText(/There’s no powershifting/)).toBeVisible()

@@ -153,7 +153,9 @@ export function TalentsSection() {
             className="w-full"
           >
             {data.trees.map((tree, i) => (
-              <ToggleGroupItem key={tree.id} value={String(i)} className={cn('h-11 flex-1 gap-1.5 px-2', CHOICE_ITEM)}>
+              // Widths follow the names, so "Feral Combat 37" fits at 390 px beside Balance and
+              // Restoration; a name still truncates on a narrower screen.
+              <ToggleGroupItem key={tree.id} value={String(i)} className={cn('h-11 min-w-0 flex-auto shrink gap-1.5 px-2', CHOICE_ITEM)}>
                 <span className="truncate">{tree.name}</span>
                 <span className={cn('tabular-nums', CHOICE_HINT)}>{perTree[i]}</span>
               </ToggleGroupItem>

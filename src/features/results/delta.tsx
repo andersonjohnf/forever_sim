@@ -5,7 +5,9 @@ import { DIM_TEXT } from './dim'
 
 /**
  * The change from the previous result: arrow, sign and color (docs/ux.md#results). The color says
- * whether it's better: up for TPS and DPS, down for damage taken (`lowerIsBetter`).
+ * whether it's better: up for TPS and DPS, down for damage taken (`lowerIsBetter`). Color alone
+ * can't say that to a screen reader, which hears the change in words instead: "up 239.0 from the
+ * last run, worse".
  */
 export function Delta({
   value,
@@ -21,12 +23,14 @@ export function Delta({
   if (previous === null) return null
   const delta = value - previous
   if (Math.abs(delta) < 0.05) return null
-  const better = lowerIsBetter ? delta < 0 : delta > 0
+  const up = delta > 0
+  const better = lowerIsBetter ? !up : up
+  const amount = formatOne(Math.abs(delta))
   return (
     <span className={cn('flex items-center font-medium tabular-nums', better ? 'text-positive' : 'text-negative', DIM_TEXT, className)}>
-      {delta > 0 ? <ArrowUp className="size-3.5" aria-hidden /> : <ArrowDown className="size-3.5" aria-hidden />}
-      {delta > 0 ? '+' : '−'}
-      {formatOne(Math.abs(delta))}
+      {up ? <ArrowUp className="size-3.5" aria-hidden /> : <ArrowDown className="size-3.5" aria-hidden />}
+      <span aria-hidden>{`${up ? '+' : '−'}${amount}`}</span>
+      <span className="sr-only">{`${up ? 'up' : 'down'} ${amount} from the last run, ${better ? 'better' : 'worse'}`}</span>
     </span>
   )
 }

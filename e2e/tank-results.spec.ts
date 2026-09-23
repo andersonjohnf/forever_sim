@@ -16,6 +16,8 @@ const VALUE_WITH_CI = /\d[\d,]*\.\d\s*± \d[\d,]*\.\d/
 const WITH_CHANGE = /± \d[\d,]*\.\d\s*[+−]\d[\d,]*\.\d/
 /** The boss's outcomes, in its table's roll order (docs/mechanics/combat-tables.md#8-boss--player-tanks). */
 const OUTCOMES = ['Miss', 'Dodge', 'Parry', 'Block', 'Crit', 'Crushing', 'Hit']
+/** What a screen reader hears of a change from the last run (docs/ux.md#results). */
+const HEARD_CHANGE = /^(up|down) [\d,]+\.\d from the last run, (better|worse)$/
 
 async function openProtection(page: Page) {
   await page.goto(PROTECTION)
@@ -34,6 +36,18 @@ const pct = (text: string | null) => Number(/(\d+\.\d)%/.exec(text ?? '')![1])
 /** The seven outcomes a list or table shows, as [label, share] in its order. */
 async function outcomes(items: Locator): Promise<[string, number][]> {
   return (await items.allTextContents()).map((text) => [/^[A-Za-z]+/.exec(text.trim())![0], pct(text)])
+}
+
+/** Weakens the boss: every swing at 4,500, the bottom of the default range (Fight → Advanced). */
+async function weakenBoss(page: Page) {
+  await page.getByRole('tab', { name: 'Fight', exact: true }).click()
+  await page.getByRole('button', { name: 'Advanced' }).click()
+  const max = page.getByRole('textbox', { name: 'Maximum damage per swing' })
+  // Focused first, as a person would: focusing swaps "5,500" for "5500" (docs/ux.md, Fight).
+  await max.focus()
+  await max.fill('4500')
+  await max.press('Enter')
+  await expect(max).toHaveValue('4500')
 }
 
 test.describe('tank results', () => {
@@ -63,6 +77,14 @@ test.describe('tank results', () => {
     await expect(tps).toContainText(WITH_CHANGE)
     await expect(dps).toContainText(WITH_CHANGE)
     await expect(tps).not.toContainText('Setup changed')
+    // A screen reader hears each change in words, and more is better for both (TU3).
+    for (const group of [tps, dps]) {
+      const heard = group.getByText(HEARD_CHANGE)
+      const shown = heard.locator('..')
+      const up = (await shown.textContent())!.includes('+')
+      await expect(heard).toHaveText(up ? /^up .*, better$/ : /^down .*, worse$/)
+      await expect(shown).toHaveClass(up ? /text-positive/ : /text-negative/)
+    }
   })
 
   test('damage taken per second, and how the boss’s swings landed', async ({ page }) => {
@@ -91,7 +113,8 @@ test.describe('tank results', () => {
     // boss crushes it.
     for (const [label, share] of shares) if (label !== 'Crit') expect(share, label).toBeGreaterThan(0)
 
-    // A bigger boss hits harder: the change is up, and colored as worse, since less is better.
+    // A bigger boss hits harder: the change is up, and colored and heard as worse, since less is
+    // better (TU3).
     await page.getByRole('tab', { name: 'Fight', exact: true }).click()
     await page.getByRole('button', { name: 'Advanced' }).click()
     const max = page.getByRole('textbox', { name: 'Maximum damage per swing' })
@@ -103,9 +126,31 @@ test.describe('tank results', () => {
     await simulate(results)
     await expect(taken).toContainText(WITH_CHANGE)
     await expect(taken).toContainText('set to hit for 4,500 to 9,000 before armor')
-    const change = taken.getByText(/^[+−]\d[\d,]*\.\d$/)
-    await expect(change).toHaveText(/^\+/)
-    await expect(change).toHaveClass(/text-negative/)
+    const heard = taken.getByText(HEARD_CHANGE)
+    await expect(heard).toHaveText(/^up [\d,]+\.\d from the last run, worse$/)
+    const shown = heard.locator('..')
+    await expect(shown).toHaveClass(/text-negative/)
+    await expect(shown).toContainText(/\+\d/)
+    await expect(shown.locator('svg.lucide-arrow-up')).toHaveCount(1)
+  })
+
+  test('a drop in damage taken is green, and heard as better (TU7)', async ({ page }) => {
+    await openProtection(page)
+    const results = page.getByRole('complementary', { name: 'Results' })
+    const taken = results.getByRole('region', { name: 'Damage taken per second' })
+    await simulate(results)
+    await expect(taken).toContainText(VALUE_WITH_CI)
+
+    // A weaker boss: every swing at 4,500 rather than 4,500 to 5,500.
+    await weakenBoss(page)
+    await simulate(results)
+    await expect(taken).toContainText(WITH_CHANGE)
+    const heard = taken.getByText(HEARD_CHANGE)
+    await expect(heard).toHaveText(/^down [\d,]+\.\d from the last run, better$/)
+    const shown = heard.locator('..')
+    await expect(shown).toHaveClass(/text-positive/)
+    await expect(shown).toContainText(/−\d/)
+    await expect(shown.locator('svg.lucide-arrow-down')).toHaveCount(1)
   })
 
   test('the character sheet has crit reduction, and the boss’s table against you', async ({ page }) => {

@@ -281,7 +281,9 @@ Era's) start in view rather than under the tabs.
 ## Results
 
 - **Headline:** DPS with its ± 95% CI. After a re-run, show the change from the previous result
-  (▲/▼ with color *and* sign). Under it, one line says what was run: "2,750 fights of 180 s ·
+  (▲/▼ with color *and* sign). A screen reader hears it in words, with whether it's better, since
+  the color says that on screen: "up 12.3 from the last run, better" (`Delta` in
+  `src/features/results/delta.tsx`). Under it, one line says what was run: "2,750 fights of 180 s ·
   Forever rules · ran in 0.1 s". The length is the one set in Fight, not the average of the
   varied fights; the run time is labelled.
 - **On desktop the panel never runs past the viewport.** The headline card with Simulate stays
@@ -302,7 +304,8 @@ Era's) start in view rather than under the tabs.
   main-hand weapon" included, since the boss hits you either way.
   - Its heading is "Damage taken per second", and under it the value with its ± 95% CI and its
     change from the previous run, as in the headline but smaller. Less is better here, so a drop
-    is green (▼ −12.3) and a rise red (▲ +12.3); the arrow and sign still say which way it went.
+    is green (▼ −12.3) and a rise red (▲ +12.3); the arrow and sign still say which way it went,
+    and a screen reader hears "down 12.3 from the last run, better".
   - A line says what it counts and what drove it: "After your armor, block and other mitigation.
     The boss swung 80.5 times a fight, set to hit for 4,500 to 5,500 before armor (Fight →
     Advanced)." The swings include parry-hastened ones; a fixed swing size reads "5,000".

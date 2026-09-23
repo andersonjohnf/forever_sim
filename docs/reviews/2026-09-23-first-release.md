@@ -95,7 +95,7 @@ Golden changes are explained in `src/sim/engine/engine.test.ts`'s history commen
 | F2 data pipeline | `1333834` | L5, L8 (mapping), L9, L10, L33–L38 |
 | UX-B2 setup screens | `e287574` | U2 (tiles), U5, U6, U9, U16, U17 (setup), U19, U20 (gear), U23 (setup), U24, U27, U29 (steppers) |
 | Reconciliation | `75f8e9e` | two bugs the merged slices exposed: tabs re-selected after Undo, and faded gear rows that couldn't be tapped |
-| Cleanup | pending | U33; L9's Demoralizing Shout value in the engine; Classic Era Battle Shout and UI summaries (L11 follow-ups) |
+| Cleanup | `537e040` | U33, U34; L9's Demoralizing Shout value in the engine; the Classic Era Battle Shout and UI summaries (L11 follow-ups); open-question renumbering |
 
 Golden runs, before the review → after all fixes: Fury 684.2 → 675.2 DPS, Arms 630.7 → 610.7 DPS,
 Protection 219.1 → 217.0 TPS. The changes come from matching the Forever client:
@@ -151,6 +151,7 @@ UX fix slices:
 | U31 | low | **First load: 1.8 MB JS (311 kB gzipped).** | **waived** for the first release. 311 kB gzipped loads in about a second on a phone connection, and the sim then runs offline in workers. Lazy-loading per class stays in Known gaps. |
 | U32 | low | **Share may fail on iOS Safari** (a clipboard write after an await); not verified. | fixed, UX-C: `ClipboardItem` with a promise, or `navigator.share` on phones |
 | U33 | medium | **The app-wide focus ring** (shadcn's `ring-ring/50`) is 1.54:1 on the light page and 1.87:1 on the dark one, below the 3:1 that WCAG 1.4.11 asks of a focus indicator. Found by the UX-C fixer. | fixed, cleanup slice: a token-level `--ring` that clears 3:1 at the ring's opacity in both themes |
+| U34 | medium | **At 390 px, keyboard focus could land on switches hidden behind the fixed Simulate bar** (WCAG 2.2 2.4.11, focus not obscured). Found by the cleanup fixer. | fixed, cleanup: scroll padding for the sticky header and bar, with an e2e test |
 
 ## Verdict
 

@@ -52,7 +52,7 @@ Slices ([CLAUDE.md](../CLAUDE.md#working-with-agents-small-slices-fresh-contexts
   - [x] **c-2 Switch over:** rebuild `src/data/items/pre-bis.json` from the client (same JSON
         shape), with Classic Era rows for items whose Forever row is empty (D6, D17). Tooltip
         text comes from spell descriptions, and drop sources go away, since the Encounter
-        Journal ships empty. Now 1,630 items; the picker shows type and levels instead of
+        Journal ships empty. Now 1,629 items; the picker shows type and levels instead of
         sources ([items.md](data/items.md)).
 - [x] **M1.5d Talents from client:** layout, prerequisite arrows (including the client-only
       Nature's Splendor arrow), ranks and rendered rank texts. Popular builds become our own
@@ -207,11 +207,6 @@ slice is worked:
   2434 itself. A per-build default needs an API in `sim/index.ts` and the Rotation UI.
 - **Cleave isn't built yet,** so W21's Cleave costs (Improved Cleave, Raging Blows) are
   untested.
-- **Diamond Flask changed in Forever:** its use spell is now a 5 s heal ("CHUG!"), so it isn't
-  simulated (warrior Q30). It's still rank 3 on the Fury and Arms pre-raid BiS lists, and its
-  item text shows the Classic effect. It falls back to Classic Era, and the item generator
-  renders fallback items' effects from Era spells even when Forever has the same spell.
-  Prefer Forever's spell data (tier 1) there, and revisit the BiS lists.
 - ~~Snap can't capture a finished run~~: `--click Simulate` now waits for the result, and
   `--click "Show results"` opens the phone's results sheet.
 - **Arms tuning findings** (20,000 fights, default setup, 630 DPS): Heroic Strike from 55 rage

@@ -71,7 +71,9 @@ pre-raid BiS guides (never SoD lists) and cites a source per spec. The item scra
 those items at any quality or level, and tags every listed item with `preRaidBis`, so the gear
 picker can offer them as default sets. Forever re-itemized many items and added new dungeons,
 so these lists are a Classic Era starting point. Replace them when Forever level-60 BiS data
-exists.
+exists. An item Forever changed so that it no longer suits a spec leaves that spec's list, with a
+note. If the list was the only reason it was in the pool, it leaves the pool too. First case:
+Diamond Flask, whose use is a 5 s heal in Forever (warrior Q30; 2026-09-23).
 
 ### D12: Unmeasured Forever ratings apply by hypothesis, with a switch (2026-09-22)
 Forever gear carries Expertise Rating, Haste Rating and Armor Penetration, and nobody has

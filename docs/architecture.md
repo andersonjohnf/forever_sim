@@ -93,7 +93,7 @@ A spec is data plus small ability modules, never its own loop.
   use as an `OnUseSpec`, which the rotation turns into a cast; any it doesn't press are listed
   as not simulated.
 - It also collects the **assumptions**: every `[?]` the setup relies on, each with a doc link
-  (`sim/plan/assumptions.ts`), and the setups it refuses to guess (paladin and druid until M4/M5,
+  (`sim/plan/assumptions.ts`), and the setups it refuses to guess (the paladin until M5,
   Skyborne warriors until their base stats are known).
 
 ### Rules and stats
@@ -137,9 +137,9 @@ A spec is data plus small ability modules, never its own loop.
   removed: events carry the generation of their timer and stale ones are skipped.
 - **Events:** main-hand and off-hand swings, boss swings (tank specs), aura expiry, bleed ticks
   (Deep Wounds, Rend), the end of an ability's cast time (Slam), periodic rage (Anger
-  Management), a cast's rage ticks (Bloodrage), stand-in incoming hits for
-  DPS specs, "the rotation may act" events when a GCD, an ability's cooldown or the stance swap
-  cooldown ends, a time-left condition becomes true or an upkeep line's refresh window opens, and
+  Management), a cast's rage ticks (Bloodrage), the power tick (Energy and mana, druids),
+  stand-in incoming hits for DPS specs, "the rotation may act" events when a GCD, an ability's
+  cooldown or the stance swap cooldown ends, a time-left condition becomes true or an upkeep line's refresh window opens, and
   the start of the execute phase at `t_exec` (specs with a rotation). Fights end at a per-fight length drawn
   from the encounter's variation.
 - **The pre-pull** (`Plan.prepull`) runs before a fight's first event: casts at negative times
@@ -194,6 +194,19 @@ A spec is data plus small ability modules, never its own loop.
   dodge or parry, with no threat. Execute then converts the rage left and, if it lands, spends it. **Threat** is (damage × ability multiplier + ability bonus) ×
   the global multiplier: the static one (Salvation, enchants, the base stance and Defiance) times
   the current stance's factor.
+- **Resources, forms and power ticks** (the druid's hooks,
+  [druid.md §2, §8](classes/druid.md#8-implementation-notes)). An ability's `resource` is the pool,
+  in tenths, it pays from and refunds to: rage (the default), Energy or mana. A row that pays
+  rage in any form with no combo points or free cast (every warrior row) stays on the plain rage
+  checks; the others go through `affordable` and `payCost`, which add forms, combo points (builders
+  award them, finishers read and spend them) and Clearcasting's free cast. `Plan.forms` has one
+  stat block, main hand and threat multiplier per form, which a `shift` ability swaps in (PPM
+  chances follow the new swing speed; Furor sets Energy or rage), and a proc can be bound to forms.
+  White hits and hits taken give rage only in a form whose power is rage, and hits taken only
+  under `plan.rage.fromDamageTaken` (warriors, a druid that can be in bear). One player-global
+  power tick every 2 s, from a random phase, adds Energy and spirit mana regeneration. Rotation
+  conditions `minEnergy`, `maxEnergy` and `minComboPoints` (codes 14–16) join the rage ones. A
+  plan without forms, Energy or mana never enters these paths.
 - **Hot-loop discipline:** one monomorphic `Sim` class over typed arrays, no allocation per event,
   per-fight state reset rather than reallocated, and a plan flattened once in the constructor.
   The default Fury warrior (with its M2.2c rotation: the pre-pull, Battle Shout's upkeep and the

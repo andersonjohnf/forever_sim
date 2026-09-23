@@ -357,7 +357,7 @@ slice is worked:
 - **Fury tuning, small losses and a lead left open** (M2.5b, warrior.md §5.2). Heroic Strike's
   cancel costs 0.1–0.4% in 30–60 s fights without an execute phase, and Whirlwind at 0.5 s and
   Recklessness's 16 s clock under 0.1% in 30 s fights with a 10–20% phase; the whole package
-  still wins by 4–8.5% there. Pooling rage for the phase (no Heroic Strike in the 20 s before it)
+  still wins by 5.5–9.6% there. Pooling rage for the phase (no Heroic Strike in the 20 s before it)
   measured +0.11% in the default setup; it needs a setting of its own and short-fight checks, so
   it's left for later.
 - **Gnome Eureka! isn't simulated** (warrior Q18); the result says so.

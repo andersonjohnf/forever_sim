@@ -536,7 +536,15 @@ export const COND = {
   // 17 is reserved for `abilityAuraDown` (Cat and Retribution).
   /** mana ≥ a, in tenths (paladin.md "mana% ≥ x" settings, as mana at the plan's maximum) */
   minMana: 18,
-  // 19 is reserved for `maxMana`.
+  // 19 is reserved for `maxMana`; 20 is Warrior Protection's, 21–24 the bear's, 25–28 the
+  // Protection paladin's: tracks that merge separately.
+  /**
+   * the execute phase starts in more than a ms: `executeWithin`'s opposite, always true in a fight
+   * without one (Fury's potion with a Recklessness that came by its clock, warrior.md §5.2 row 16).
+   * Resolved the same way, into the end of the line's window at `execute start − a`; it only becomes
+   * false, so no wake-up.
+   */
+  executeNotWithin: 29,
 } as const
 
 export interface RotationCondition {

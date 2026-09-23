@@ -302,7 +302,8 @@ A spec is data plus small ability modules, never its own loop.
   line at the start of the fight: a walk compares the time with it, and the fight schedules a
   wake-up at `fight end − x` for each "time left ≤ x". The execute phase's start is known too, so
   "the execute phase starts within x" moves the window's start to `execute start − x`, with a
-  wake-up then (never, without the phase). A refresh condition ("the aura is down, or
+  wake-up then (it never holds without the phase), and "starts in more than x" moves its end to
+  just before then (it always holds without the phase). A refresh condition ("the aura is down, or
   has at most `b` ms left and ends before the fight") moves the start of that window whenever
   its aura starts or ends, with a wake-up when it opens, so an upkeep line at the top of the list
   costs a walk one comparison.

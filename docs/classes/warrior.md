@@ -728,7 +728,7 @@ off, and Death Wish, Recklessness and the Mighty Rage Potion follow the execute 
 | 13 | Berserker Rage | With Improved Berserker Rage: on cooldown, when GCD-safe and rage ≤ max − 10. Without it: not used (its only other effect is Q20's extra rage from damage taken) | `fury.berserkerRage.enabled` (on; the plan skips it without Improved Berserker Rage), `.maxRage` (max − 10) | with the talent |
 | 14 | Sunder Armor | Keep `stacks` stacks up, when no one else in the raid applies them. **Not simulated** until Protection (M3) brings Sunder Armor; until then the Buffs tab's Sunder Armor debuff stands for the raid's | none yet (planned: `fury.sunder.enabled` (off), `.stacks` (5)) | no |
 | 15 | Slam | Not used by dual wield: without Improved Slam it resets both swing timers. When on: Bloodthirst and Whirlwind are GCD-safe; outside the execute phase | `fury.slam.enabled` (off) | no |
-| 16 | Mighty Rage Potion (consumable, off the GCD) | Once. With Execute (row 7) and an execute phase: in the phase at rage ≤ `maxRage`, or, if it hasn't been drunk by the phase's last 2 s, then at rage ≤ the build's cap minus 75 (55 with Boundless Rage 3/3). Without an execute phase, or with Execute off: in the last 20 s at rage ≤ that cap minus 75, once Recklessness (row 4) has been used. Only when it's selected in Buffs; see the notes | `fury.ragePotion.enabled` (on), `.maxRage` (0, in the phase: once an Execute has emptied the bar) | with the consumable |
+| 16 | Mighty Rage Potion (consumable, off the GCD) | Once. With Execute (row 7) and an execute phase: in the phase at rage ≤ `maxRage`, or, if it hasn't been drunk by the phase's last 2 s, then at rage ≤ the build's cap minus 75 (55 with Boundless Rage 3/3); but when Recklessness (row 4) comes by its clock, the phase being too short for its `beforeExecuteSec`, with Recklessness at rage ≤ that cap minus 75. Without an execute phase, or with Execute off: in the last 20 s at rage ≤ that cap minus 75, once Recklessness has been used. Only when it's selected in Buffs; see the notes | `fury.ragePotion.enabled` (on), `.maxRage` (0, in the phase: once an Execute has emptied the bar) | with the consumable |
 | 17 | Juju Flurry (consumable, off the GCD) | On cooldown from the pull. Only when it's selected in Buffs | `fury.jujuFlurry.enabled` (on) | with the consumable |
 
 Notes:
@@ -877,9 +877,23 @@ Notes:
   If it hasn't been drunk by the phase's last 2 s, it's drunk then at up to the build's cap minus
   75 (55 with Boundless Rage 3/3, less with fewer ranks; a Gnome's Expansive Mind isn't counted).
   That last chance is +1.7% in 30 s fights with a 10% phase, up to +0.4% in 30–60 s fights
-  otherwise, and nothing from 90 s up (below). Against none, 1.5 s and 2 s measured best at
-  30–90 s; 1 s gained about half as much, 4 s (Arms') lost up to 0.03% and 6–8 s up to 0.6%
-  (seeds 5104 and 5105).
+  otherwise, and nothing from 90 s up (below; measured before the next rule, which now takes
+  most of those fights). Against none, 1.5 s and 2 s measured best at 30–90 s; 1 s gained about
+  half as much, 4 s (Arms') lost up to 0.03% and 6–8 s up to 0.6% (seeds 5104 and 5105).
+  **With a phase too short for Recklessness's timing**, it goes with Recklessness (since the M2.5b
+  review). Recklessness comes by its clock, `lastSec` (16 s) before the end, when that's before
+  `beforeExecuteSec` (1.5 s) before the phase: when the phase is shorter than 14.5 s, as in fights
+  under about 72 s with a 20% phase or 145 s with a 10% one. Then the potion is drunk in the same
+  moment, at up to the build's cap minus 75, as it is without a phase (below). The rotation tells
+  by the phase: it's still more than `beforeExecuteSec` away when Recklessness is used ("the
+  execute phase starts in more than x", [§7](#7-implementation-notes) "Time-left conditions").
+  Drunk 6–7 s earlier, its Strength lasts through Recklessness and its rage goes into Heroic
+  Strikes on every main-hand swing under Recklessness's crits, where a phase that short would
+  leave it to a few Executes. It gains 5.2% in 30 s fights with a 10% phase, 3.5% with a 20% one,
+  1.8–3.3% at 45 s, 0.8–2.3% at 60 s and 1.0% at 90 s with 10%, and 0.01–0.5% around the 14.5 s
+  line (70–80 s with a 20% phase, 120–150 s with 10%). It changes nothing elsewhere, the default
+  fight included (below). Drinking it with Recklessness whatever the phase lost from about 75 s
+  with a 20% phase up: −0.75% at 180 s (the M2.5b review's probe).
   **Without an execute phase, or with Execute off**, no Execute will empty the bar, so it's drunk
   in the last 20 s at up to that same limit, as long as its +60 Strength lasts, where the phase
   would have been, and only once Recklessness (row 4) has been used: at its 16 s, in the same
@@ -947,16 +961,21 @@ on seed 5201 (`node scripts/tune/rotation.mjs --spec warrior-fury --fights 40000
 
 - **Robustness** (seed 5202, which no search used, 200,000 paired fights each): the final
   defaults' Δ DPS, and Δ %, against the defaults before M2.5b (`--against 2daa74e`), by fight
-  length and execute phase. They win everywhere; no setup measured loses.
+  length and execute phase, with the review's potion rule (below). They win everywhere; no setup
+  measured loses.
 
   | Fight | 0% | 10% | 20% |
   | --- | --- | --- | --- |
-  | 30 s | +74.77 (+74.27 to +75.27), +8.52% | +37.49 (+37.03 to +37.94), +4.10% | +40.55 (+40.08 to +41.03), +4.23% |
-  | 45 s | +59.07 (+58.66 to +59.48), +7.57% | +37.04 (+36.64 to +37.45), +4.52% | +39.50 (+39.08 to +39.92), +4.61% |
-  | 60 s | +52.49 (+52.13 to +52.84), +7.16% | +35.43 (+35.08 to +35.79), +4.57% | +37.45 (+37.08 to +37.81), +4.63% |
-  | 90 s | +45.63 (+45.35 to +45.92), +6.67% | +36.19 (+35.90 to +36.48), +5.01% | +53.20 (+52.90 to +53.50), +7.25% |
+  | 30 s | +74.77 (+74.27 to +75.27), +8.52% | +87.47 (+87.00 to +87.94), +9.58% | +75.94 (+75.45 to +76.43), +7.92% |
+  | 45 s | +59.07 (+58.66 to +59.48), +7.57% | +65.68 (+65.28 to +66.09), +8.02% | +55.33 (+54.91 to +55.75), +6.46% |
+  | 60 s | +52.49 (+52.13 to +52.84), +7.16% | +53.91 (+53.55 to +54.26), +6.96% | +44.37 (+44.01 to +44.73), +5.49% |
+  | 90 s | +45.63 (+45.35 to +45.92), +6.67% | +43.80 (+43.51 to +44.09), +6.06% | +53.20 (+52.90 to +53.50), +7.25% |
   | 180 s | +37.80 (+37.60 to +38.00), +5.98% | +39.82 (+39.62 to +40.02), +6.08% | +42.89 (+42.68 to +43.10), +6.40% |
   | 300 s | +35.41 (+35.26 to +35.56), +5.67% | +38.81 (+38.66 to +38.97), +6.01% | +40.34 (+40.17 to +40.50), +6.09% |
+
+  Before that rule, the frozen winner's 30–90 s cells with a 10% phase and 30–60 s cells with a
+  20% phase gained 4.1–5.0% (30 s and 10%: +37.49, +37.03 to +37.94, +4.10%); the other cells are
+  the same fights with the same result.
 
   In the default fight (seed 5203, 200,000 fights): Orc (Blood Fury, its faction's gear) +43.10
   (+42.90 to +43.31), +6.49%; Troll (Berserking) +42.42 (+42.22 to +42.63), +6.38%; Night Elf
@@ -972,11 +991,27 @@ on seed 5201 (`node scripts/tune/rotation.mjs --spec warrior-fury --fights 40000
   gains 0.4% (300 s) to 2.7% (30 s). The phase timings gain where the phase comes first:
   Recklessness 0.6–1.5% at 90–300 s, Death Wish 0.3–0.9% at 180–300 s, and for an Orc or a
   Troll 0.7–1.0% (seed 5203). Three changes lose a little in short fights, the whole package still
-  winning 4–8.5% there: **Heroic Strike's cancel** costs 0.38% at 30 s without a phase and about
-  0.1% at 45 and 60 s without one (it gains 0.1–0.3% everywhere else); **Whirlwind at 0.5 s** costs
-  0.07% and 0.05% at 30 s with a 10% and a 20% phase (it gains 0.1–0.5% elsewhere); and
+  winning 5.5–9.6% there (4.1–8.5% before the review's potion rule): **Heroic Strike's cancel**
+  costs 0.38% at 30 s without a phase and about 0.1% at 45 and 60 s without one (it gains
+  0.1–0.3% everywhere else); **Whirlwind at 0.5 s** costs 0.07% and 0.05% at 30 s with a 10% and
+  a 20% phase (it gains 0.1–0.5% elsewhere); and
   **Recklessness's 16 s** costs 0.03% at 30 s with a 10% phase (it gains up to 0.46% without a
-  phase, and 0.16% at 30 s and 20%).
+  phase, and 0.16% at 30 s and 20%). These per-cell numbers are the frozen winner's, before the
+  review's potion rule, which now times the potion in the short phases where its last chance
+  paid most.
+- **After the review: the potion with a Recklessness that comes by its clock** (row 16 notes).
+  The M2.5b review found the potion in the phase clearly beaten, in phases too short for
+  Recklessness's `beforeExecuteSec`, by drinking it with Recklessness as without a phase (+5.3% at
+  30 s with a 10% phase). It's measured against the frozen winner (`--against e00241a`) on seed
+  5301, which no search used, 200,000 paired fights each: +49.73 (+49.32 to +50.14), +5.23% at
+  30 s with a 10% phase; +34.98 (+34.55 to +35.41), +3.50% with 20%; at 45 s +28.56 (+28.28 to
+  +28.84), +3.33% and +15.86 (+15.57 to +16.15), +1.77%; at 60 s +18.54 (+18.33 to +18.75),
+  +2.29% and +6.90 (+6.68 to +7.12), +0.82%; at 90 s with 10% +7.51 (+7.36 to +7.65), +0.99%.
+  Around the 14.5 s line: 70, 75 and 80 s with a 20% phase +0.22%, +0.06%, +0.00% (+0.03, +0.01
+  to +0.05), and 120, 135 and 150 s with 10% +0.51%, +0.17%, +0.01% (+0.07, +0.03 to +0.11);
+  all clear the bar. Every other cell of the grid (no phase, 90 s with 20%, 180 and 300 s) and
+  165 s with 10% are the same fights with the same result, and so is the default setup: Δ 0.00
+  over 400,000 fights on seed 5303. The golden run doesn't move.
 - **Not adopted** (on top of the frozen winner, seed 5206, 200,000 fights, unless it says
   otherwise):
   - **Charge in** (`prepull.charge`): +2.79 (+2.58 to +3.00), and **your own Battle Shout off**:
@@ -1131,6 +1166,17 @@ Notes:
   default 0 the potion was drunk in only 2–3.5% of those fights. On the defaults of that time
   without a phase, the potion at 55 measured +1.1% alone and Recklessness at 15 s +1.8% alone,
   +3.1% together (the review's probe, seed 12, 200,000 fights); both are now automatic.
+  **In a phase too short for Recklessness's timing**, Fury drinks it with a Recklessness that
+  comes by its clock ([§5.2](#52-fury-dual-wield) row 16, since the M2.5b review). Arms doesn't
+  need that rule: measured with it against these defaults (seed 5302, 200,000 paired fights
+  each), it gains only at 30 s with a 10% phase (+0.79%, a 3 s phase that the 4 s last chance
+  already covers from its start), and loses wherever else it acts, by 0.55–1.84% at 30–90 s with a
+  10% phase and 30–60 s with a 20% one (180 and 300 s, and 90 s with 20%, don't change). Before
+  the phase, Arms' global cooldowns already have the rage they need, and with Heroic Strike off
+  it has no off-GCD way to spend more: in a 45 s fight with a 20% phase, the potion's rage went to
+  Spearing Strike and Hamstring (+6 DPS) and the phase lost Slams, Mortal Strikes and Executes
+  (−23 DPS; seed 777, 20,000 fights). Fury's Heroic Strike queue spends it on every main-hand
+  swing, under Recklessness's crits.
 - **The Whirlwind dance** (row 12). Whirlwind costs 25 and the swap keeps 25, so the dance needs
   25–`maxRage` rage; 30 gives it a 5-rage window, where 25 would allow exactly 25. After
   Recklessness the line still waits for rage ≤ `maxRage`, though it no longer swaps. It counts
@@ -1563,8 +1609,12 @@ parts:
   condition becomes true. The execute phase's start is known the same way
   ([encounter.md](../mechanics/encounter.md#implementation-notes)), so "the execute phase starts
   within x" (Arms Recklessness, [§5.3](#53-arms-two-hander) row 4) moves the window's start to
-  `execute start − x`, with a wake-up then; in a fight without the phase it never holds. Two
-  lines for one ability give "whichever comes first"; conditions on one line all have to hold.
+  `execute start − x`, with a wake-up then; in a fight without the phase it never holds. Its
+  opposite, "the execute phase starts in more than x" (Fury's potion with a Recklessness that
+  came by its clock, [§5.2](#52-fury-dual-wield) row 16), moves the window's end to just before
+  `execute start − x`, with no wake-up, since it only becomes false; without the phase it always
+  holds. Two lines for one ability give "whichever comes first"; conditions on one line all have
+  to hold.
 - **Execute's rage.** Rage is kept in tenths, and Execute converts everything left after its
   cost, tenths included: at 27.3 rage and cost 15 it deals `600 + 15 × 12.3 = 784.5` before
   modifiers. The 15 per rage is the client's `EffectChainAmplitude` 1.5 × 10 on 20662 [F]

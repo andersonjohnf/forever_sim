@@ -348,7 +348,7 @@ export function furyRotation(
 
   // Row 4: Recklessness once, beforeExecuteSec before the execute phase starts or at ≤ lastSec left,
   // whichever comes first; by the clock alone without the phase or with Execute off (Berserker
-  // Stance only, Fury's base stance). Without the phase the potion follows it (rows 16).
+  // Stance only, Fury's base stance). When it comes by the clock, the potion follows it (row 16).
   recklessnessLine(b, v, ID, ctx, 0, phase ? seconds(v, ID.reckBeforeExecute) : undefined)
   const reck = v.on(ID.reckEnabled) ? b.ability(recklessness(ctx.profile)) : -1
 
@@ -442,10 +442,17 @@ export function furyRotation(
 
   // Rows 16 and 17: the Mighty Rage Potion and Juju Flurry, when they're selected in Buffs (shared.ts).
   // With Execute in an execute phase, the potion is drunk there at rage ≤ maxRage, or in the phase's
-  // last 2 s at ≤ the build's cap − 75 if it hasn't been; otherwise in the last 20 s at ≤ that
-  // limit, once Recklessness has been used, so its rage joins Recklessness's crits. Juju Flurry on
-  // cooldown.
-  consumableLines(b, v, ID, ctx, { inPhase: phase, fallbackMaxRage: potionFallbackMaxRage(talents), lastChanceMs: POTION_LAST_CHANCE_MS, after: reck })
+  // last 2 s at ≤ the build's cap − 75 if it hasn't been; but when Recklessness came by its clock
+  // (the phase was still more than beforeExecuteSec away), it goes with Recklessness, as without a
+  // phase. Otherwise, in the last 20 s at ≤ that limit, once Recklessness has been used, so its rage
+  // joins Recklessness's crits (§5.2 notes). Juju Flurry on cooldown.
+  consumableLines(b, v, ID, ctx, {
+    inPhase: phase,
+    fallbackMaxRage: potionFallbackMaxRage(talents),
+    lastChanceMs: POTION_LAST_CHANCE_MS,
+    after: reck,
+    afterLeadMs: seconds(v, ID.reckBeforeExecute),
+  })
 
   // Row 0: the pre-pull (shared.ts). Fury fights in Berserker Stance, so Charge's swap keeps at most
   // 10 + 3 per Improved Tactical Mastery rank (§2.1, §2.3).

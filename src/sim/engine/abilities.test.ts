@@ -1161,6 +1161,26 @@ describe('Mighty Rage Potion (warrior.md §5.2 row 16, buffs doc §3.5)', () => 
     expect(timesOf(casts, 'recklessness')).toEqual([44000])
     expect(timesOf(casts, 'mightyRagePotion')).toEqual([44000])
   })
+
+  it('with a phase too short for Recklessness’s phase line, goes with Recklessness at its clock; otherwise stays in the phase', () => {
+    // No rage at all, so the potion is drunk as soon as a line allows it. Recklessness: 1.5 s before
+    // the phase, or with 16 s left (84 s of 100 s), whichever comes first.
+    const times = (executePct: number) => {
+      const plan = potionPlan(100000, { 'warrior.fury.execute.enabled': true, 'warrior.fury.recklessness.enabled': true }, { executePct })
+      for (const w of plan.weapons) w!.rageMult = 0
+      const [{ executeAt, casts }] = castsPerFight(plan, 1)
+      return { executeAt, reck: timesOf(casts, 'recklessness'), potion: timesOf(casts, 'mightyRagePotion') }
+    }
+    // A 14.4 s phase (from 85.6 s): the clock (84 s) comes before the phase line (84.1 s), and the
+    // potion follows it.
+    expect(times(14.4)).toEqual({ executeAt: 85600, reck: [84000], potion: [84000] })
+    expect(times(10)).toEqual({ executeAt: 90000, reck: [84000], potion: [84000] })
+    // A 14.5 s phase: both lines hold at 84 s, and the first, the phase line's, uses it; the potion
+    // waits for the phase.
+    expect(times(14.5)).toEqual({ executeAt: 85500, reck: [84000], potion: [85500] })
+    // A 50 s phase: Recklessness 1.5 s before it, the potion in it.
+    expect(times(50)).toEqual({ executeAt: 50000, reck: [48500], potion: [50000] })
+  })
 })
 
 describe('Juju Flurry (warrior.md §5.2 row 17, buffs doc §3.3)', () => {

@@ -471,6 +471,23 @@ describe('a line timed from the execute phase (COND.executeWithin; warrior.md §
     // Conditions on one line all hold: the later of the two.
     expect(withPhase(20, (plan, br) => line(plan, br, [within(1500), { code: COND.timeLeftAtMost, a: 8000, b: 0 }])).uses).toEqual([14500])
   })
+
+  it('its opposite, "the phase starts in more than x" (COND.executeNotWithin), holds until then, and always without the phase (Fury’s potion, §5.2 row 16)', () => {
+    const notWithin = (ms: number): RotationCondition => ({ code: COND.executeNotWithin, a: ms, b: 0 })
+    // With 8 s left (12 s), if the phase (16 s) is more than x away then: until 16 − x, in whole ms.
+    const withClock = (ms: number, executePct = 20) =>
+      withPhase(executePct, (plan, br) => line(plan, br, [notWithin(ms), { code: COND.timeLeftAtMost, a: 8000, b: 0 }])).uses
+    expect(withClock(1500)).toEqual([12000])
+    expect(withClock(3999)).toEqual([12000])
+    expect(withClock(4000)).toEqual([])
+    expect(withClock(5000)).toEqual([])
+    // Without the phase it always holds.
+    expect(withClock(5000, 0)).toEqual([12000])
+    // Alone, from the pull.
+    expect(withPhase(20, (plan, br) => line(plan, br, [notWithin(1500)])).uses).toEqual([0])
+    // Never once the phase has come within it: from 14.5 s on, a lead of 1.5 s.
+    expect(withPhase(20, (plan, br) => line(plan, br, [notWithin(1500), { code: COND.timeLeftAtMost, a: 5500, b: 0 }])).uses).toEqual([])
+  })
 })
 
 describe('determinism with the Arms abilities in play (decision D15)', () => {

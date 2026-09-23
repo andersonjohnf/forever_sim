@@ -1054,7 +1054,7 @@ describe('furyRotation: Battle Shout, the pre-pull, trinkets and consumables (wa
     expect(r.abilities[at(r, 'weaknessAnalyzer')].gcdMs).toBe(0)
   })
 
-  it('row 16: the potion once: in the execute phase at rage ≤ maxRage, or in its last 2 s at ≤ 55; without one, with Recklessness in the last 20 s; only when selected', () => {
+  it('row 16: the potion once: with a Recklessness that came by its clock; in the execute phase at rage ≤ maxRage, or in its last 2 s at ≤ 55; without one, with Recklessness in the last 20 s; only when selected', () => {
     const consumables = [MIGHTY_RAGE_POTION]
     // With Boundless Rage 3/3, the default build's 130 cap.
     const cap130 = new Map([...talents, ['Boundless Rage', 3]])
@@ -1064,16 +1064,26 @@ describe('furyRotation: Battle Shout, the pre-pull, trinkets and consumables (wa
     const inExec = { code: COND.executePhase, a: 1, b: 0 }
     const upTo = (tenths: number) => ({ code: COND.maxRage, a: tenths, b: 0 })
     const last = (ms: number) => ({ code: COND.timeLeftAtMost, a: ms, b: 0 })
-    // By default at 0 rage: once an Execute has emptied the bar; or, not drunk by the phase's last 2 s,
-    // at up to the build's cap minus 75 (55 at 130).
+    const afterReck = (rot: Rot) => [last(20000), { code: COND.cooldownAtLeast, a: at(rot, 'recklessness'), b: 1 }, upTo(550)]
+    const notWithin = (ms: number) => ({ code: COND.executeNotWithin, a: ms, b: 0 })
+    // First, with Recklessness if it came by its clock: the phase was still more than its
+    // beforeExecuteSec (1.5 s) away then. Otherwise at 0 rage in the phase: once an Execute has
+    // emptied the bar; or, not drunk by the phase's last 2 s, at up to the build's cap minus 75 (55 at 130).
     expect(linesOf(r, 'mightyRagePotion')).toEqual([
+      [...afterReck(r), notWithin(1500)],
       [inExec, upTo(0)],
       [inExec, last(2000), upTo(550)],
     ])
-    expect(linesOf(furyRotation({ 'warrior.fury.ragePotion.maxRage': 20 }, cap130, noAura, { consumables }), 'mightyRagePotion')[0]).toEqual([inExec, upTo(200)])
+    const reck5 = furyRotation({ 'warrior.fury.recklessness.beforeExecuteSec': 5 }, cap130, noAura, { consumables })
+    expect(linesOf(reck5, 'mightyRagePotion')[0]).toEqual([...afterReck(reck5), notWithin(5000)])
+    expect(linesOf(furyRotation({ 'warrior.fury.ragePotion.maxRage': 20 }, cap130, noAura, { consumables }), 'mightyRagePotion')[1]).toEqual([inExec, upTo(200)])
+    // Without Recklessness, only the phase's lines.
+    expect(linesOf(furyRotation({ 'warrior.fury.recklessness.enabled': false }, cap130, noAura, { consumables }), 'mightyRagePotion')).toEqual([
+      [inExec, upTo(0)],
+      [inExec, last(2000), upTo(550)],
+    ])
     // Without the phase, or with Execute off: in the last 20 s at up to 55, whatever maxRage says,
     // once Recklessness has been used; without Recklessness, in the last 20 s.
-    const afterReck = (rot: Rot) => [last(20000), { code: COND.cooldownAtLeast, a: at(rot, 'recklessness'), b: 1 }, upTo(550)]
     for (const rot of [
       furyRotation({ 'warrior.fury.ragePotion.maxRage': 40 }, cap130, noAura, { consumables, executePhase: false }),
       furyRotation({ 'warrior.fury.execute.enabled': false }, cap130, noAura, { consumables }),
@@ -1083,8 +1093,8 @@ describe('furyRotation: Battle Shout, the pre-pull, trinkets and consumables (wa
     expect(linesOf(noReck, 'mightyRagePotion')).toEqual([[last(20000), upTo(550)]])
     // The limit follows the build's cap: 100 + 10 per Boundless Rage rank, minus 75.
     const twoRanks = furyRotation({}, new Map([...talents, ['Boundless Rage', 2]]), noAura, { consumables })
-    expect(linesOf(twoRanks, 'mightyRagePotion')[1]).toEqual([inExec, last(2000), upTo(450)])
-    expect(linesOf(furyRotation({}, talents, noAura, { consumables }), 'mightyRagePotion')[1]).toEqual([inExec, last(2000), upTo(250)])
+    expect(linesOf(twoRanks, 'mightyRagePotion')[2]).toEqual([inExec, last(2000), upTo(450)])
+    expect(linesOf(furyRotation({}, talents, noAura, { consumables }), 'mightyRagePotion')[2]).toEqual([inExec, last(2000), upTo(250)])
     expect(ids(furyRotation({}, talents, noAura))).not.toContain('mightyRagePotion')
     expect(ids(furyRotation({ 'warrior.fury.ragePotion.enabled': false }, talents, noAura, { consumables }))).not.toContain('mightyRagePotion')
     // Known either way, so it isn't listed as "not simulated".

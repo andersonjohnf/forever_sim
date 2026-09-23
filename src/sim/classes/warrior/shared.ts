@@ -400,6 +400,8 @@ export const timeLeftAtMost = (ms: number): RotationCondition => ({ code: COND.t
 export const timeLeftAtLeast = (ms: number): RotationCondition => ({ code: COND.timeLeftAtLeast, a: ms, b: 0 })
 /** The execute phase starts within `ms`, or has started (never true without one). */
 export const executeWithin = (ms: number): RotationCondition => ({ code: COND.executeWithin, a: ms, b: 0 })
+/** The execute phase starts in more than `ms` (always true without one): `executeWithin`'s opposite. */
+export const executeNotWithin = (ms: number): RotationCondition => ({ code: COND.executeNotWithin, a: ms, b: 0 })
 export const minRage = (tenths: number): RotationCondition => ({ code: COND.minRage, a: tenths, b: 0 })
 export const maxRage = (rage: number): RotationCondition => ({ code: COND.maxRage, a: toTenths(rage), b: 0 })
 /** GCD-safe for the abilities in `mask` over `gcdMs` (warrior.md §5.1), or no condition when there are none. */
@@ -565,6 +567,10 @@ export function heroicStrikeLine(b: RotationBuilder, v: Reader, ids: SharedIds, 
  * - Otherwise it's drunk in the last 20 s at rage ≤ `fallbackMaxRage`, and once `after` has been used
  *   if it's given: Recklessness, whose crits it joins (Fury) or whose swap from Battle Stance would
  *   cap its rage at 25 (Arms).
+ * - With `inPhase` and `afterLeadMs` (Fury), `after` is timed that long before the phase or by its
+ *   clock, whichever comes first. When the clock comes first (the phase is too short), the phase is
+ *   still more than `afterLeadMs` away when `after` is used, and the potion goes with it, as without
+ *   a phase; otherwise it stays in the phase (§5.2 row 16 and notes).
  * Its lines share one use a fight: the first whose conditions hold drinks it.
  */
 export function consumableLines(
@@ -572,17 +578,19 @@ export function consumableLines(
   v: Reader,
   ids: SharedIds,
   ctx: RotationContext,
-  potion: { inPhase: boolean; fallbackMaxRage: number; lastChanceMs: number; after: number },
+  potion: { inPhase: boolean; fallbackMaxRage: number; lastChanceMs: number; after: number; afterLeadMs?: number },
 ): void {
   const use = ctx.consumables.find((c) => c.id === RAGE_POTION)
   if (use && v.on(ids.potionEnabled)) {
     const def = { ...onUseAbility(use), usesPerFight: 1 }
     const fallback = maxRage(potion.fallbackMaxRage)
+    const withAfter = [timeLeftAtMost(POTION_NO_EXECUTE_LAST_MS), ...usedAlready(potion.after), fallback]
     if (potion.inPhase) {
+      if (potion.afterLeadMs !== undefined && potion.after >= 0) b.add(def, [...withAfter, executeNotWithin(potion.afterLeadMs)])
       b.add(def, [IN_EXECUTE, maxRage(v.num(ids.potionMaxRage))])
       b.add(def, [IN_EXECUTE, timeLeftAtMost(potion.lastChanceMs), fallback])
     } else {
-      b.add(def, [timeLeftAtMost(POTION_NO_EXECUTE_LAST_MS), ...usedAlready(potion.after), fallback])
+      b.add(def, withAfter)
     }
   }
   const juju = ctx.consumables.find((c) => c.id === JUJU_FLURRY)

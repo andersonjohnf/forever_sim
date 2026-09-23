@@ -439,6 +439,12 @@ export class Sim {
    * fight moves the window's start to `execute start − x`, or never in a fight without the phase.
    */
   private readonly entryExecuteWithin: Float64Array
+  /**
+   * The line's "execute phase starts in more than x" condition (ms; −∞ = none,
+   * COND.executeNotWithin): each fight moves the window's end to `execute start − x − 1`, or leaves
+   * it in a fight without the phase.
+   */
+  private readonly entryExecuteNotWithin: Float64Array
   private readonly entryBaseFrom: Float64Array
   private readonly entryFrom: Float64Array
   private readonly entryTo: Float64Array
@@ -1020,6 +1026,7 @@ export class Sim {
       c.code === COND.timeLeftAtMost ||
       c.code === COND.timeLeftAtLeast ||
       c.code === COND.executeWithin ||
+      c.code === COND.executeNotWithin ||
       c.code === COND.abilityAuraRefresh
     const nc = rotation.reduce((n, e) => n + e.conditions.filter((c) => !resolved(c)).length + (abilities[e.ability].window >= 0 ? 1 : 0), 0)
     this.condCode = new Int32Array(nc)
@@ -1028,6 +1035,7 @@ export class Sim {
     this.entryLeftAtMost = new Float64Array(rotation.length).fill(Infinity)
     this.entryLeftAtLeast = new Float64Array(rotation.length).fill(-Infinity)
     this.entryExecuteWithin = new Float64Array(rotation.length).fill(Infinity)
+    this.entryExecuteNotWithin = new Float64Array(rotation.length).fill(-Infinity)
     this.entryBaseFrom = new Float64Array(rotation.length)
     this.entryFrom = new Float64Array(rotation.length)
     this.entryTo = new Float64Array(rotation.length)
@@ -1080,6 +1088,10 @@ export class Sim {
         }
         if (cond.code === COND.executeWithin) {
           this.entryExecuteWithin[e] = Math.min(this.entryExecuteWithin[e], cond.a)
+          continue
+        }
+        if (cond.code === COND.executeNotWithin) {
+          this.entryExecuteNotWithin[e] = Math.max(this.entryExecuteNotWithin[e], cond.a)
           continue
         }
         if (cond.code === COND.abilityAuraRefresh) {
@@ -1204,14 +1216,18 @@ export class Sim {
     this.executeAtMs = executePhaseStart(this.fightEnd, f.executePct)
     const hasExecute = this.executeAtMs < this.fightEnd
     // Time left ≤ x ⇔ now ≥ fightEnd − x; time left ≥ x ⇔ now ≤ fightEnd − x (warrior.md §5.2 rows 2–4).
-    // The execute phase starts within x ⇔ now ≥ t_exec − x, never without the phase (§5.3 row 4).
+    // The execute phase starts within x ⇔ now ≥ t_exec − x, never without the phase (§5.3 row 4); in
+    // more than x ⇔ now < t_exec − x (whole ms), always without the phase (§5.2 row 16).
     for (let e = 0; e < this.entryFrom.length; e++) {
       let from = this.fightEnd - this.entryLeftAtMost[e]
       const lead = this.entryExecuteWithin[e]
       if (lead !== Infinity) from = hasExecute ? Math.max(from, this.executeAtMs - lead) : Infinity
       this.entryBaseFrom[e] = from
       this.entryFrom[e] = from
-      this.entryTo[e] = this.fightEnd - this.entryLeftAtLeast[e]
+      let to = this.fightEnd - this.entryLeftAtLeast[e]
+      const notWithin = this.entryExecuteNotWithin[e]
+      if (notWithin !== -Infinity && hasExecute) to = Math.min(to, this.executeAtMs - notWithin - 1)
+      this.entryTo[e] = to
     }
     if (this.preAbility.length > 0 || this.preChargeTenths > 0) this.prepull()
 

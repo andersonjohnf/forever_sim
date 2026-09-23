@@ -4,8 +4,10 @@
 // (docs/decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23), which are tagged [?]
 // and listed in the results' assumptions. Anything else unknown is `null` and reported as missing.
 // CLASS_BASE holds the supported values (`null` there means nobody has measured it), and
-// BASE_PLACEHOLDERS below holds the placeholders, in one replaceable table. The paladin and druid
-// attribute rows (OQ-1) may stand in the same way under D24; their specs' tracks add them.
+// BASE_PLACEHOLDERS below holds the placeholders, in one replaceable table. The druid's base
+// health, crit, spell crit, dodge and caster attack power are D24 placeholders too, in their own
+// table (DRUID_PLACEHOLDERS) so a measured sheet replaces them. The paladin attribute rows (OQ-1)
+// may stand in the same way under D24; its spec's track adds them.
 import type { ClassId } from '../types'
 
 export interface Attributes {
@@ -34,6 +36,43 @@ const WARRIOR_ROWS: Record<string, Attributes | null> = {
   'alliance-skyborne-high-order': null,
   'horde-skyborne-windshaper': null,
 }
+
+/**
+ * Druid base attributes by race at level 60, as the character sheet shows them [C]: ClassicSim at
+ * its last commit before Season of Discovery, whose rows came in PR #103 (2020-01-05)
+ * (docs/mechanics/character-stats.md#paladin-and-druid-base-attributes):
+ * https://github.com/timhul/ClassicSim/tree/f9cb48dcf177575c383d03ec23554ce5ef5b50cc,
+ * https://github.com/timhul/ClassicSim/pull/103. Both rows are the class row Str 65, Agi 60, Sta 70,
+ * Int 100, Spi 110 plus the [C] race offsets. Skyborne has no known offsets, so both Skyborne rows
+ * are that class row, with neutral offsets: a [?] placeholder (D24), not evidence (OQ-1).
+ */
+export const DRUID_ROWS: Readonly<Record<string, Attributes>> = {
+  'alliance-night-elf': { str: 62, agi: 65, sta: 69, int: 100, spi: 110 },
+  'horde-tauren': { str: 70, agi: 55, sta: 72, int: 95, spi: 112 },
+  // [?] placeholder (D24): the class row, neutral race offsets (Skyborne's are unknown, OQ-1).
+  'alliance-skyborne-high-order': { str: 65, agi: 60, sta: 70, int: 100, spi: 110 },
+  'horde-skyborne-windshaper': { str: 65, agi: 60, sta: 70, int: 100, spi: 110 },
+}
+
+/**
+ * The druid's other base values at level 60: each a [?] placeholder (D24), with its origin, which
+ * is not evidence. Both origins copy a private server's tables (character-stats.md OQ-1 to OQ-7).
+ * - RatingBuster's `Vanilla_Logic.lua` at its last commit before Season of Discovery,
+ *   https://github.com/raethkcj/RatingBuster/blob/d11164cf6de90688a635a6ff880b71ea9ea07367/libs/StatLogic/Vanilla_Logic.lua
+ * - wowsims/classic `base_stats.go`, https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go
+ */
+export const DRUID_PLACEHOLDERS = {
+  /** Base health before Stamina (origin: wowsims/classic; OQ-2). */
+  baseHealth: 1483,
+  /** Base melee crit before Agility, % (origin: RatingBuster, wowsims/classic; OQ-3): about 1.5% of cat DPS. */
+  baseCrit: 0.9,
+  /** Base spell crit before Intellect, % (origin: RatingBuster, wowsims/classic; OQ-3): nothing for cat or bear. */
+  baseSpellCrit: 1.8,
+  /** Base dodge before Agility, % (origin: RatingBuster, wowsims/classic; OQ-5). */
+  baseDodge: 0.9,
+  /** Caster-form attack power before Strength (origin: wowsims/classic; OQ-7): about 0.7% of cat DPS. */
+  baseAp: -20,
+} as const
 
 export interface ClassBase {
   /** Base attributes by race id; null = unknown (OQ-1). */
@@ -101,19 +140,22 @@ export const CLASS_BASE: Record<ClassId, ClassBase> = {
     baseMana: 1512,
   },
   druid: {
-    attributes: () => null,
-    // caster form: 2 × Str − 20 [?] (OQ-7)
-    baseAp: -20,
-    baseCrit: null,
+    // docs/mechanics/character-stats.md#paladin-and-druid-base-attributes [C] (Skyborne [?] placeholders)
+    attributes: (race) => DRUID_ROWS[race] ?? null,
+    // The rest are [?] placeholders (D24): DRUID_PLACEHOLDERS.
+    baseAp: DRUID_PLACEHOLDERS.baseAp,
+    baseCrit: DRUID_PLACEHOLDERS.baseCrit,
+    // docs/mechanics/character-stats.md#agility: 20 Agility per 1% [F]
     critPerAgi: 0.05,
+    // docs/mechanics/character-stats.md#intellect: 59.88 Int per 1% [F]
     spellCritPerInt: 0.0167,
-    baseSpellCrit: null,
-    baseDodge: null,
+    baseSpellCrit: DRUID_PLACEHOLDERS.baseSpellCrit,
+    baseDodge: DRUID_PLACEHOLDERS.baseDodge,
     // Druids can't parry or block (character-stats §other base values).
     baseParry: 0,
     baseBlock: 0,
-    baseHealth: null,
-    // 1244 [F]
+    baseHealth: DRUID_PLACEHOLDERS.baseHealth,
+    // docs/mechanics/character-stats.md#other-base-values-at-level-60: 1244 [F]
     baseMana: 1244,
   },
 }

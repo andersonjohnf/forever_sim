@@ -495,8 +495,8 @@ describe('talents, racials and stances', () => {
 })
 
 describe('setups the engine can’t run yet', () => {
-  it('flags paladin and druid sheets and blocks their simulation', () => {
-    for (const spec of ['paladin-retribution', 'druid-feral-cat'] as const) {
+  it('flags paladin sheets and blocks their simulation', () => {
+    for (const spec of ['paladin-retribution'] as const) {
       const bundle = buildPlan(defaultConfig(spec))
       expect(bundle.sheet.unknown).toContain('base attributes')
       expect(bundle.blockers.length).toBeGreaterThan(0)

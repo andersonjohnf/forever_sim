@@ -113,14 +113,15 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 ### High
 
 #### A1. Paladin and druid base stats (naked sheets)
-**High · M4, M5**
-- **Assumes:** the paladin and druid class rows (Str, Agi, Sta, Int, Spi) stand in as D24
-  placeholders until a sheet replaces them [?]; they no longer block either spec
-  ([D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)). Base health is in
-  use as a D24 placeholder (paladin 1,381, druid 1,483) [?]. Also unknown: base melee and spell
-  crit, base dodge, base parry and block (paladin 5% [?]), and the AP terms (paladin
-  `160 + 2 × Str`, druid `2 × Str − 20`) [?]. The druid's 0.9% base crit and spirit regen
-  `15 + Spirit/5` per 2 s come only from a secondary sim [?].
+**High · M4, M5 · blocks the paladin; the druid runs on placeholders (D24)**
+- **Assumes:** the paladin class row (Str, Agi, Sta, Int, Spi) is unknown and the engine has no
+  fallback, so the paladin can't compute stats [?]. The druid's Night Elf and Tauren rows are
+  ClassicSim's pre-SoD rows [C]; its base health 1483, base melee crit and dodge 0.9%, base
+  spell crit 1.8% and caster AP −20 are D24 placeholders [?] that two sims copied from a private
+  server, not evidence (about 1.5% and 0.7% of cat DPS for the crit and the AP), and Skyborne
+  druids use the class row. Also unknown for the paladin: base health, base melee and spell
+  crit, base dodge, parry and block, and the AP term `160 + 2 × Str` [?]. The druid's spirit
+  regen `15 + Spirit/5` per 2 s comes only from a secondary sim [?].
 - **Test:** standard naked sheet for a Human paladin, Dwarf paladin, Night Elf druid and Tauren
   druid. Druids also shift to Cat, Bear and Dire Bear and read AP, crit, armor and health in
   each. For spirit regen, stand out of combat, spend no mana for 5 s, and note mana gained per
@@ -809,11 +810,13 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   their combo points [?]; combo points on the player or target doesn't matter single-target [?].
 - **Test:** log Energy over time with an addon, with and without a haste effect; read the bar's
   maximum; Energy and combo points before and after a dodged Claw and a dodged Rip; build combo
-  points and swap targets.
+  points and swap targets. Around a powershift (Cat Form → Cat Form) and a cat → bear → cat
+  shift, log the swing timer and the Energy and mana ticks: the sim keeps the swing in progress
+  and one 2 s power tick for both, through shifts [?] (Q34).
 - **Samples:** ≥300 ticks; ≥10 avoided builders and finishers.
 - **Changes:** the Energy model constants.
 - **Docs:** [druid §2.4](classes/druid.md#24-energy-cat), [§2.5](classes/druid.md#25-combo-points),
-  [Q6, Q18, Q29](classes/druid.md#10-open-questions)
+  [Q6, Q18, Q29, Q34](classes/druid.md#10-open-questions)
 
 #### B37. Form attacks, procs and the Manual Crowd Pummeler
 **Medium · M4 · ≤20 (MCP ≤30)**

@@ -85,7 +85,6 @@ describe('simulate', () => {
 
   it('explains setups it can’t simulate yet instead of guessing', async () => {
     await expect(simulate(quick(defaultConfig('paladin-retribution')))).rejects.toThrow(/Paladin simulation/)
-    await expect(simulate(quick(defaultConfig('druid-feral-bear')))).rejects.toThrow(/Druid simulation/)
     await expect(simulate(quick({ ...defaultConfig('warrior-arms'), race: 'alliance-skyborne-high-order' }))).rejects.toThrow(/Skyborne/)
   })
 })

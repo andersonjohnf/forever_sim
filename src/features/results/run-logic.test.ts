@@ -12,10 +12,10 @@ const config = (spec: SpecId, change: (c: SimConfig) => SimConfig = (c) => c) =>
 describe('isSetupError', () => {
   it('recognises every way the engine refuses a setup, so those errors skip the retry advice', () => {
     const skyborne = buildPlan(config('warrior-fury', (c) => ({ ...c, race: 'alliance-skyborne-high-order' }))).blockers
-    const druid = buildPlan(config('druid-feral-cat')).blockers
+    const paladin = buildPlan(config('paladin-retribution')).blockers
     expect(skyborne.length).toBeGreaterThan(0)
-    expect(druid.length).toBeGreaterThan(0)
-    for (const message of [...skyborne, ...druid]) expect(isSetupError(message), message).toBe(true)
+    expect(paladin.length).toBeGreaterThan(0)
+    for (const message of [...skyborne, ...paladin]) expect(isSetupError(message), message).toBe(true)
   })
 
   it('treats other failures as ones a retry may fix', () => {

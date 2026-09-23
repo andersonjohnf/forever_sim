@@ -300,9 +300,19 @@ A spec is data plus small ability modules, never its own loop.
   (light or dark, any width) and lists problems.
 - **Golden runs:** fixed config + seed → exact result snapshot. Update one only with an
   explanation in the commit.
+- **Two suites:**
+  - The **smoke suite** (`npm run test:smoke`) is what the deploy workflow runs. It's seven
+    core unit files (`vitest.smoke.config.ts`: data integrity, the goldens, normalize, defaults,
+    share codes and the sim's API) and the e2e tests tagged `@smoke`: the app opens, Fury and
+    Arms simulate, a share link restores, the phone layout, and Setups save and load.
+  - The **full suite** (`npm run test:full`: lint, typecheck, every unit and e2e test) runs
+    before every push, as the review gate's first step. It also runs on Linux by hand, through
+    the **Full regression** workflow (Actions → Full regression → Run workflow).
+  - Tag an e2e test `{ tag: '@smoke' }` only if it covers a core flow, and keep the suite
+    small.
 
 ## Deployment
 
-1. Push to `main`. The workflow runs lint → unit tests → e2e tests → build, then deploys
-   `dist/`.
+1. Push to `main`. The workflow runs lint → the smoke suite → build, then deploys `dist/`.
+   The full suite has passed locally before the push (CLAUDE.md).
 2. One-time setup: repository **Settings → Pages → Source: GitHub Actions**.

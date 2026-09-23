@@ -76,7 +76,7 @@ for (const [label, device] of [
       await expect(sheet.getByRole('listitem')).toHaveCount(0)
     })
 
-    test('saves a Fury setup, and loads it back from Arms, switching spec', async ({ page }) => {
+    test('saves a Fury setup, and loads it back from Arms, switching spec', { tag: '@smoke' }, async ({ page }) => {
       await page.goto('./')
       await chooseRace(page, /Troll/)
       const sheet = await openSetups(page)

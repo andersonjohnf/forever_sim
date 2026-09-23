@@ -25,9 +25,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
-      - run: npm test
+      # The smoke suite only; the full one is the "Full regression" workflow, run by hand, and
+      # the local check before every push (CLAUDE.md).
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      - run: npm run test:smoke
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:

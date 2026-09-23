@@ -12,7 +12,9 @@ never a reason for half measures. The app doesn't describe itself as temporary.
 **Nothing is pushed until every change since the last push has passed an adversarial logic
 review *and* an adversarial UX review.** Commit freely; push only through this gate.
 
-1. **Green checks:** `npm run lint`, `npm run typecheck`, `npm test` and `npm run test:e2e`.
+1. **Green checks:** the full suite, `npm run test:full`: lint, typecheck, and every unit
+   and e2e test. The deploy workflow runs only the smoke suite (`npm run test:smoke`), so
+   this local run is what catches everything else.
 2. **Adversarial logic review.** An independent reviewer (a fresh subagent that didn't write
    the change) is briefed to *break* it, not approve it. It checks the diff against
    `docs/doctrine.md` and the owning mechanics/class docs:
@@ -90,6 +92,8 @@ npm run lint          # oxlint
 npm run typecheck     # tsc -b
 npm test              # vitest run (unit + data-integrity tests in src/)
 npm run test:e2e      # Playwright, headless Chromium, against the production build under /forever_sim/
+npm run test:smoke    # the smoke suite the deploy runs: vitest.smoke.config.ts + e2e tagged @smoke
+npm run test:full     # lint, typecheck, every unit and e2e test: before every push
 npm run snap          # build, open a page headless, print console errors + failed requests, screenshot
                       #   -- --dark --width 390 --click Talents --out .cache/snaps/x.png
                       #   (--click Simulate waits for the result; on phones add --click "Show results")

@@ -1,7 +1,7 @@
 import { expect, test } from './fixtures.ts'
 
 test.describe('setup', () => {
-  test('opens on a ready-to-run Fury warrior in pre-raid best in slot', async ({ page }) => {
+  test('opens on a ready-to-run Fury warrior in pre-raid best in slot', { tag: '@smoke' }, async ({ page }) => {
     await page.goto('./')
     await expect(page).toHaveTitle('Forever Sim')
     await expect(page.getByRole('button', { name: /Spec: Fury Warrior/ })).toBeVisible()
@@ -18,7 +18,7 @@ test.describe('setup', () => {
     await expect(page.getByRole('menuitem')).toHaveCount(2)
   })
 
-  test('switching to Arms keeps it across reloads, with its own setup', async ({ page }) => {
+  test('switching to Arms keeps it across reloads, with its own setup', { tag: '@smoke' }, async ({ page }) => {
     await page.goto('./')
     await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
     await page.getByRole('menuitem', { name: /Arms/ }).click()
@@ -152,7 +152,7 @@ test.describe('sharing', () => {
     expect(new URL(page.url()).hash).toBe('')
   })
 
-  test('a share link restores the setup, and says so', async ({ page, context }) => {
+  test('a share link restores the setup, and says so', { tag: '@smoke' }, async ({ page, context }) => {
     await page.goto('./')
     await page.getByRole('tab', { name: 'Character', exact: true }).click()
     await page.getByRole('radio', { name: /Night Elf/ }).click()
@@ -174,7 +174,7 @@ test.describe('sharing', () => {
 test.describe('phone', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
-  test('keeps Simulate in a bottom bar and opens pickers as a drawer', async ({ page }) => {
+  test('keeps Simulate in a bottom bar and opens pickers as a drawer', { tag: '@smoke' }, async ({ page }) => {
     await page.goto('./')
     await expect(page.getByRole('complementary', { name: 'Results' })).toBeHidden()
     await expect(page.getByRole('button', { name: 'Simulate', exact: true })).toBeVisible()
@@ -195,7 +195,7 @@ test.describe('simulation', () => {
     await expect(results.getByText('Main hand')).toBeVisible()
   })
 
-  test('selects Fury, simulates, and breaks the DPS down by ability', async ({ page }) => {
+  test('selects Fury, simulates, and breaks the DPS down by ability', { tag: '@smoke' }, async ({ page }) => {
     await page.goto('./')
     await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
     await page.getByRole('menuitem', { name: /Fury/ }).click()
@@ -228,7 +228,7 @@ test.describe('simulation', () => {
     await expect(table.getByRole('row', { name: /^Bloodrage none \d+\.\d$/ })).toBeVisible()
   })
 
-  test('selects Arms, simulates, and breaks the DPS down by ability', async ({ page }) => {
+  test('selects Arms, simulates, and breaks the DPS down by ability', { tag: '@smoke' }, async ({ page }) => {
     await page.goto('./')
     await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
     await page.getByRole('menuitem', { name: /Arms/ }).click()

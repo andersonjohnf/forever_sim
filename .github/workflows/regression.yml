@@ -1,0 +1,30 @@
+name: Full regression
+
+# Every test, on Linux: lint, typecheck, all unit tests and all end-to-end tests. Run it by hand
+# (Actions → Full regression → Run workflow); the deploy workflow runs only the smoke suite.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:full
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7

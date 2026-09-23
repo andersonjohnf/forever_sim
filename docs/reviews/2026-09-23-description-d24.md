@@ -55,6 +55,22 @@ A fresh reviewer found L1 only partly fixed, plus two medium findings the fix in
 
 Checks after the fixes: lint ✓ · typecheck ✓ · unit ✓ (1052) · e2e ✓ (225, 3 deferred to M3).
 
+## Quick check of `a64ad6d`
+
+A fresh reviewer found three passages still carrying the old rule. This is the third round in
+the same area, so under CLAUDE.md step 6 the design is simplified: D24 is the one place the rule
+lives, other passages point to it, and a search for the old rule's wording (listed in `e73e2b9`'s
+message) comes back empty.
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| B1 | high, blocking | V1 not finished | **open-questions' priority list: "blocks M4 and M5".** | fixed, `e73e2b9` |
+| B2 | high, blocking | V1 not finished | **character-stats' implementation notes: "no fallback: never substitute the OQ-1 candidates".** | fixed, `e73e2b9` |
+| B3 | high, blocking | V1 not finished | **`base-stats.ts`'s header cited the old rule.** | fixed, `e73e2b9` |
+| N1 | nit | introduced | **Ragged line wrapping.** | fixed, `e73e2b9` |
+| N2 | nit | pre-existing | **The About e2e read the menu without waiting for it.** | fixed, `e73e2b9` |
+| N3 | nit | pre-existing | **The tank-core slice was also called A1.** | fixed, `e73e2b9` |
+
 ## Verdict
 
-Ready to push: not yet. V1 was blocking, so `a64ad6d` gets a quick fresh check (D20).
+Ready to push: not yet. `e73e2b9` gets a last quick check, of the search above and the three passages.

@@ -91,7 +91,7 @@ const REGISTRY = {
     docRef: `${DT}#31-haste`,
   },
   foreverWhiteRage: {
-    text: 'Each landed white hit gives a fixed rage set by weapon speed (3.5 per second one-handed, 4.5 two-handed), from low-level beta logs by other players.',
+    text: 'Each landed white hit gives a fixed rage set by weapon speed (3.46 per second one-handed, 4.5 two-handed), from low-level beta logs by other players.',
     docRef: `${RAGE}#forever-normalized-rage-per-swing-`,
   },
   foreverOffHandRage: {

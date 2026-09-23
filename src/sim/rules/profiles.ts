@@ -183,9 +183,10 @@ export const FOREVER: RulesProfile = {
   // docs/mechanics/character-stats.md#combat-ratings-forever-items; haste and expertise per D12
   ratings: { hit: 10, crit: 14, dodge: 12, parry: 15, block: 5, defense: 1, haste: 10, expertise: 10, unmeasuredStats: true },
   rage: {
-    // docs/mechanics/rage.md#forever-normalized-rage-per-swing-
+    // docs/mechanics/rage.md#forever-normalized-rage-per-swing-: 3.46 a second one-handed, from 777
+    // logged swings once their fractions count (rage.md#rounding), and 4.5 two-handed
     white: 'normalized',
-    normalizedOneHand: 3.5,
+    normalizedOneHand: 3.46,
     normalizedTwoHand: 4.5,
     offHandBase: 0.5,
     avoidedWhiteShare: 0,

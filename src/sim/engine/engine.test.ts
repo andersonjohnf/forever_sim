@@ -401,6 +401,16 @@ describe('golden run (fixed config and seed)', () => {
   //   sooner and clips more of Shield Specialization's and Master of Defense's rage: their threat
   //   7,486 → 7,467.5 and 16,959.5 → 16,927.5 over 500 fights, TPS 216.98889 → 216.98833; DPS
   //   unchanged.
+  // - M2.4i fix slice B (LX4): a one-hander's white rage is 3.46 × speed, not 3.5 × (rage.md#rounding:
+  //   777 logged swings fit 3.46 once their fractions count). Fury's 2.4 s main hand gives 8.304
+  //   rage a landed swing where it gave 8.4, and its 1.8 s off hand 6.228 where it gave 6.3
+  //   (−1.1% each): 12.2 less rage a fight over 40,000 fights (1,588.3 → 1,576.1), −0.34% DPS and
+  //   −0.42% TPS. On this seed's 1,000 fights: fewer Heroic Strikes (18,441 → 17,815 casts), so
+  //   more white main-hand swings (68,475 → 69,025), and Execute's damage 19.95M → 19.56M with less
+  //   extra rage; DPS 673.83 → 668.63, TPS 409.02 → 405.50. Protection's 1.8 s sword gives 6.228
+  //   where it gave 6.3, so the bar fills a little later and clips less of Shield Specialization's
+  //   and Master of Defense's rage: their threat 7,467.5 → 7,503 and 16,927.5 → 17,045 over 500
+  //   fights, TPS 216.98833 → 216.99002; DPS unchanged. Arms' two-hander is unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

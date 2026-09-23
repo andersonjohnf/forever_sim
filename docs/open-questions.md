@@ -240,9 +240,10 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B1. Rage per landed white hit
 **High · M2 · ≤20** (bears: [B14](#b14-bear-rage))
-- **Assumes:** `k × base weapon speed`, with k = 3.5 (one-hander) and 4.5 (two-hander),
-  measured 3.45–3.5 by third parties. Crits, glances and mob blocks add nothing; misses, dodges
-  and parries give 0; the off-hand base is `0.5 × 3.5 × speed`; base (unhasted) speed; extra
+- **Assumes:** `k × base weapon speed`, with k = 3.46 (one-hander) and 4.5 (two-hander),
+  fitted to 777 and 354 swings in public beta logs once each swing's fraction of a tenth counts
+  ([B77](#b77-rage-fractions-carried-random-or-floored)). Crits, glances and mob blocks add nothing; misses, dodges
+  and parries give 0; the off-hand base is `0.5 × 3.46 × speed`; base (unhasted) speed; extra
   attacks give rage like a white hit [?]. The `classic` model (`7.5 × dmg / 230.6`) is the
   alternative.
 - **Test:** a warrior with no rage talents, auto attack only (no abilities, no damage taken).
@@ -452,7 +453,7 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 
 #### B14. Bear rage
 **High · M4 · ≤20 (bear form at 10)**
-- **Assumes:** 3.5 × 2.5 = 8.75 rage per landed bear auto, crits no bonus [?] (one player
+- **Assumes:** 3.46 × 2.5 = 8.65 rage per landed bear auto, crits no bonus [?] (one player
   reports about 11: "11 rage per hit no matter what"); rage from damage taken as for warriors
   ([B9](#b9-rage-from-damage-taken-confirm-the-logged-fit)) [?], which 33 logged hits on likely
   bears fit weakly; shifting into bear sets rage to 0 [C; Forever ?].

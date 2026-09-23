@@ -4,7 +4,7 @@ How warriors and bear-form druids gain and spend rage: from white hits, from dam
 talents, cooldowns and consumables, and what stance changes and shapeshifts cost. The Classic Era
 baseline is well understood (a damage-based formula with conversion constant 230.6 at level 60).
 **WoW Forever replaces it.** Forever beta combat logs show a landed white hit giving a fixed amount
-of rage set by weapon speed (about 3.5 × speed with a one-hander and 4.5 × speed with a
+of rage set by weapon speed (3.46 × speed with a one-hander and 4.5 × speed with a
 two-hander). Crits give no extra rage. Misses, dodges and parries give none. Each hit you take
 gives `10 × its damage before armor, block and absorbs ÷ your maximum health`, which about 2,000
 logged beta hits fit. The beta tracker confirms the normalization is intentional. Forever
@@ -32,7 +32,7 @@ same number, the tooltip is the primary citation.
   taken's fraction carries to the next such gain, so none is lost; `classicEra` floors each gain.
 - **Rage from white hits.** There are two models behind a ruleset switch
   ([rage-from-damage-dealt](#rage-from-damage-dealt)):
-  - `forever` (default, `[?]`): per landed white hit, `k × baseWeaponSpeed`, with `k = 3.5`
+  - `forever` (default, `[?]`): per landed white hit, `k × baseWeaponSpeed`, with `k = 3.46`
     for a one-hander and `4.5` for a two-hander. Crits and glancing blows change nothing. Misses,
     dodges and parries give 0.
   - `classic` `[C]`: `7.5 × damage / 230.6`. A white attack that is dodged or parried gives 75%
@@ -137,8 +137,8 @@ speed, whatever it hits for**:
 
 ```
 rage_per_landed_white_hit = k × baseWeaponSpeed          // seconds, unhasted (assumption)
-k = 3.5  one-handed main hand      (measured 3.45–3.5)
-k = 4.5  two-handed
+k = 3.46 one-handed                (777 logged swings: 3.4608)
+k = 4.5  two-handed                (354 logged swings: 4.4975)
 crit / glancing / blocked-by-mob: same as a normal hit
 miss, dodge, parry: 0
 your attack fully absorbed by the target's shield: 0
@@ -150,6 +150,7 @@ your attack fully absorbed by the target's shield: 0
 | Beta tracker bug "Rage Generation Not Increased on Critical Hit" | Closed by the tracker maintainer as **"Not A Bug. This was done intentionally."** | [forever-bugs#47](https://github.com/ClassicWoWCommunity/forever-bugs/issues/47) |
 | Beta forum thread (80 posts) | "1hrs around 7–9 rage every 2–3 s, 2hrs 14–17 every 3–4 s". On critters: 103-damage hit → 13 rage, 195-damage crit → 13 rage. Heroic Strike's swing "generates zero rage". | [Blizzard forums, Forever beta](https://us.forums.blizzard.com/en/wow/t/warrior-rage-normalization-auto-attack-crits-dont-generate-extra-rage/2355684) |
 | A second Forever sim's measurements | 1H 3.46 per second of weapon speed, 2H 4.5 per second (levels 8–10). Crits no bonus, glancing no penalty, misses and dodges 0. | [tzcnt/WarriorSim RAGE_GAIN.md](https://github.com/tzcnt/WarriorSim/blob/master/data/forever/RAGE_GAIN.md) |
+| Our re-read of the public beta logs (2026-09-23), with each swing's fraction counted ([rounding](#rounding)) | One-handers: 777 clean swings at 10 weapon speeds, from 23 characters, fit **k = 3.4608**; per speed, 3.449–3.464. Two-handers: 354 swings at 5 speeds, from 6 characters, fit 4.4975. A 2.6 s one-hander gives 8.9 or 9.0 (3.46 × 2.6 = 8.996), never 3.5's 9.1; a 2.0 s one 6.9 or 7.0 (6.92), mostly 6.9, where 3.5 gives 7.0 every swing under any rounding. The earlier reading of 3.45–3.5 came from not knowing how the log rounds. | [?] [fd-logs], [lutz-gist] |
 | Forever talent text consistent with a per-hit, weapon-type model | Dual Wield Specialization: "off-hand Rage generation by 20%" per rank (+100% at 5/5). Unbridled Wrath: 2 rage per proc with two-handers. | [F] [foreverchanges › warrior](https://foreverchanges.pro/class/warrior) |
 
 **Tagged `[?]`, not `[F]`.** The measurements come from third parties, not guild tests. They
@@ -160,11 +161,11 @@ server-side, so the client tables can't confirm it.
 
 | Unknown | Default | Why |
 | --- | --- | --- |
-| Off-hand rage | This doc defines the off-hand **base**: `0.5 × 3.5 × OH speed`. Dual Wield Specialization then multiplies the result by `1 + 0.2 × rank` (×2.0 at 5/5). That multiplier is owned by [warrior.md §2.3](../classes/warrior.md#23-rage-warrior-specific) and example W23, so 5/5 gives the full 3.5 × speed. | A 50% off-hand base is what makes "+100% off-hand rage at 5/5" a sensible talent. [tzcnt](https://github.com/tzcnt/WarriorSim/blob/master/js/classes/player.js) does the same. The ElliotWood sim instead gives the full rate plus the talent. |
+| Off-hand rage | This doc defines the off-hand **base**: `0.5 × 3.46 × OH speed`. Dual Wield Specialization then multiplies the result by `1 + 0.2 × rank` (×2.0 at 5/5). That multiplier is owned by [warrior.md §2.3](../classes/warrior.md#23-rage-warrior-specific) and example W23, so 5/5 gives the full 3.46 × speed. | A 50% off-hand base is what makes "+100% off-hand rage at 5/5" a sensible talent. [tzcnt](https://github.com/tzcnt/WarriorSim/blob/master/js/classes/player.js) does the same. The ElliotWood sim instead gives the full rate plus the talent. |
 | Hasted or base speed | Base (unhasted) weapon speed | With the hasted interval, haste would be rage-neutral per second. Both Forever sims use base speed. |
 | Level scaling | None: the same `k` at every level | Nothing points to scaling, but it is untested. |
 | Extra attacks (Windfury, Sword procs, Reckoning) | Give rage like a normal landed hit | Same as Classic. Untested. |
-| Bear form | `3.5 × 2.5 s` = 8.75 per landed bear auto | Unmeasured. Players report "these rage changes also affect bears". The ElliotWood sim uses the 1H factor on the bear's 2.5 s attack. |
+| Bear form | The one-hander's `k × 2.5 s` = 8.65 per landed bear auto | Unmeasured. Players report "these rage changes also affect bears". The ElliotWood sim uses the 1H factor on the bear's 2.5 s attack. |
 
 ### Outcome summary for a white swing
 
@@ -363,8 +364,9 @@ other snapshot, spending or cap in between (the method of [damage taken](#foreve
    engine carries the fraction, which needs no random numbers and gives the same mean
    ([open question 9](#open-questions)).
 
-These swings also fit a one-hander's `k` at 3.46 rather than the default's 3.5: a 2.6 s weapon
-gives 8.9 or 9.0, never 9.1 ([open question 2](#open-questions)).
+These swings also set a one-hander's `k` at 3.46, not the 3.5 read before the rounding was
+known: a 2.6 s weapon gives 8.9 or 9.0, never 9.1
+([Forever white hits](#forever-normalized-rage-per-swing-)).
 
 ---
 
@@ -445,7 +447,7 @@ Rage changes nothing else about stances. Stance threat and damage modifiers are 
 | --- | --- | --- | --- |
 | Shifting into Bear or Dire Bear Form | Rage set to 0 | Assumed the same | [C] common Classic knowledge; Forever untested [?] |
 | Furor (5 ranks) | 20% per rank to gain 10 rage on shifting to bear | Same bear effect (Cat part reworked) | [F] [client] (CurvePoint, SpellEffect, 1.60.1.69913): curve 20…100, 17057 energize 100; [C] |
-| Rage from bear white hits | `7.5 × dmg / c` (same formula as warriors; bear attack speed 2.5 s) | Assumed `3.5 × 2.5` = 8.75 per landed auto, crits no bonus | [C]; Forever [?] (see [Forever model](#forever-normalized-rage-per-swing-)) |
+| Rage from bear white hits | `7.5 × dmg / c` (same formula as warriors; bear attack speed 2.5 s) | Assumed `3.46 × 2.5` = 8.65 per landed auto, crits no bonus | [C]; Forever [?] (see [Forever model](#forever-normalized-rage-per-swing-)) |
 | Rage from damage taken | `2.5 × dmg / c` | Same model as warriors (`10 × D_pre / maxHealth`). 33 logged hits on likely bears fit it at a median ratio of 0.93. Whether Power Word: Shield stops it for bears is open. | [C]; Forever [?] ([damage taken](#forever-), open question 3) |
 | Maul | On-next-swing; the replaced swing gives no rage | Same | [C]; [F] spell unchanged (DB2 9881) |
 | Enrage (1 min CD, 10 s, lowers armor) | 20 rage over 10 s (2 rage/s) | **10 rage now, plus 20 over 10 s (30 total)** | [F] [client] (SpellEffect, 1.60.1.69913): 5229 energize 100 + periodic 20/s; [C] periodic only |
@@ -503,7 +505,7 @@ For a Classic tank, rage income is dominated by damage taken.
 
 | Topic | Classic Era | Forever | Tag |
 | --- | --- | --- | --- |
-| White-hit rage | `7.5 × dmg / 230.6`; crits ×2; dodges and parries 75% | `3.5 / 4.5 × weapon speed` per landed hit; crits no bonus; dodges and parries 0 | [?] measured by third parties, low level ([#252](https://github.com/ElliotWood/Forever/issues/252), [#47](https://github.com/ClassicWoWCommunity/forever-bugs/issues/47)) |
+| White-hit rage | `7.5 × dmg / 230.6`; crits ×2; dodges and parries 75% | `3.46 / 4.5 × weapon speed` per landed hit; crits no bonus; dodges and parries 0 | [?] measured by third parties and fitted to public logs, low level ([#252](https://github.com/ElliotWood/Forever/issues/252), [#47](https://github.com/ClassicWoWCommunity/forever-bugs/issues/47), [rounding](#rounding)) |
 | Rage from damage taken | `2.5 × health lost / 230.6`; a block or absorb lowers it | `10 × damage before armor, block and absorbs ÷ max health`: blocked and absorbed hits give full rage, and several attackers each count. Much lower at 60. | [?] third-party beta logs at levels ~5–25 ([damage taken](#forever-); [fd-logs], [#72][fb72], [#78][fb78]) |
 | Tactical Mastery | Arms talent, 5–25 | Trained at 14, retains 10; Improved Tactical Mastery +3 per rank (25 at 5/5) | [F] |
 | Shield Specialization | 1 rage per proc | 5 rage per proc (100% at 5/5) | [F] |
@@ -597,7 +599,7 @@ instantly within an event.
 function whiteHitRage(o: Outcome, hand: Hand, w: Weapon, dmgDealt: number, wouldBeDmg: number, cfg: RageCfg): number {
   if (cfg.model === 'forever') {
     if (o === 'miss' || o === 'dodge' || o === 'parry' || dmgDealt <= 0) return 0;
-    const k = w.twoHand ? 4.5 : 3.5;                 // [?] measured 3.45–3.5 (1H)
+    const k = w.twoHand ? 4.5 : 3.46;                // [?] fitted to logged swings (rounding)
     const oh = hand === 'off' ? 0.5 : 1;             // [?] off-hand base
     return k * w.baseSpeedSec * oh;
   }
@@ -646,9 +648,9 @@ Each of these becomes a unit test. Use level 60 and `c = 230.6` unless stated ot
 | R3 | Classic: white crit for 1,200 | **39.029** |
 | R4 | Classic: white swing dodged; it would have hit for 450 | 0.75 × 450 × 7.5 / 230.6 = **10.977** |
 | R5 | Classic: white swing missed | **0** |
-| R6 | Forever: 1H main-hand, base speed 2.6, hit or crit | 2.6 × 3.5 = **9.1** (91 tenths) |
+| R6 | Forever: 1H main-hand, base speed 2.6, hit or crit | 2.6 × 3.46 = **8.996** (89.96 tenths, the fraction carried) |
 | R7 | Forever: 2H, base speed 3.8, glancing blow | 3.8 × 4.5 = **17.1** |
-| R8 | Forever: off-hand 1.8 s; base, then with 5/5 DWS (×2.0, [warrior.md W23](../classes/warrior.md#w23-off-hand-rage-with-dual-wield-specialization-55)) | Base 1.8 × 3.5 × 0.5 = **3.15**; with 5/5 DWS **6.3** |
+| R8 | Forever: off-hand 1.8 s; base, then with 5/5 DWS (×2.0, [warrior.md W23](../classes/warrior.md#w23-off-hand-rage-with-dual-wield-specialization-55)) | Base 1.8 × 3.46 × 0.5 = **3.114**; with 5/5 DWS **6.228** |
 | R9 | Forever: any white swing dodged or parried | **0** |
 | R10 | Classic: 1,000 health lost to a boss hit | 1000 × 2.5 / 230.6 = **10.841** |
 | R11 | `foreverFlat`: 1,000 health lost | 1000 × 1.5 / 230.6 = **6.505** |
@@ -712,12 +714,13 @@ sample size (doctrine §2, tier 2).
      whether it makes threat as energizes do ([threat.md](threat.md#threat-from-healing-power-gains-and-buffs)).
    - Note whether the doubling below ~122–154 armor still happens, and at what mitigation.
 2. **White-hit rage at level 60.**
-   - Confirm `k = 3.5 / 4.5` and pin down the 1H constant (3.45 vs 3.5).
+   - Confirm `k = 3.46 / 4.5` at 60. The logs fit 3.4608 and 4.4975 at low level
+     ([rounding](#rounding)); a two-hander's 4.4975 could be 1.3 × 3.46 = 4.498.
    - Hasted or base speed: log with and without Flurry or a haste effect.
    - The off-hand base rate: 50% or 100%, and how DWS scales it.
    - Whether extra attacks (Windfury, Sword Weaponmaster, Reckoning) give rage.
 3. **Bear rage.** Does normalization apply? If so, with what factor per landed bear auto (the
-   default 3.5 × 2.5 = 8.75)? One player reports "11 rage per hit no matter what, 1 rage when i
+   default 3.46 × 2.5 = 8.65)? One player reports "11 rage per hit no matter what, 1 rage when i
    get hit" ([US 2355684 #97][f-bear]); one anecdote, so the default stays. Log landed bear autos
    and the rage each gives. Does the damage-taken formula apply to bears too? 33 logged hits on
    likely bears fit it at a median ratio of 0.93 ([Forever](#forever-)); log rage per hit taken in

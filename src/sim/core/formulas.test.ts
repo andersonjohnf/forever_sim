@@ -91,12 +91,13 @@ describe('rage.md worked examples', () => {
     expect(classic('miss', 0)).toBe(0)
   })
   it('R6–R9: Forever normalized white rage', () => {
-    expect(toTenths(r('crit', false, false, 2.6, 500, 0))).toBe(91)
+    expect(r('crit', false, false, 2.6, 500, 0)).toBeCloseTo(8.996, 9)
+    expect(toTenths(r('crit', false, false, 2.6, 500, 0))).toBe(89)
     expect(r('glance', false, true, 3.8, 300, 0)).toBeCloseTo(17.1, 9)
     const offHand = r('hit', true, false, 1.8, 200, 0)
-    expect(offHand).toBeCloseTo(3.15, 9)
+    expect(offHand).toBeCloseTo(3.114, 9)
     // W23: Dual Wield Specialization 5/5 doubles it.
-    expect(offHand * 2).toBeCloseTo(6.3, 9)
+    expect(offHand * 2).toBeCloseTo(6.228, 9)
     expect(r('dodge', false, false, 2.6, 0, 500)).toBe(0)
     expect(r('parry', false, false, 2.6, 0, 500)).toBe(0)
   })

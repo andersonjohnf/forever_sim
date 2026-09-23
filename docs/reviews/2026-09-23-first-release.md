@@ -211,6 +211,42 @@ Second-pass fix commits, cherry-picked onto `main`:
 Golden runs after the second pass: Fury 692.7 DPS (Ironfoe's Forever proc: 3% from either hand,
 [?] C37), Arms 610.7, Protection 217.0 TPS.
 
+## Third pass: review of the second-pass fixes
+
+Two fresh reviewers checked `d3f5e84..78afa5d`.
+
+**Confirmed:**
+- the Fury golden reproduces exactly
+- Ironfoe's client values are read correctly
+- RL2, RL4, RL5, RL8 and RL9 are sound
+- the data regenerates byte-identically
+- RU1–RU17 are fixed, and axe finds no violations on any tab
+
+Fix slices:
+- **T-logic**
+- **T-UX**
+
+| # | Severity | Finding | Disposition |
+| --- | --- | --- | --- |
+| TL1 | medium | **Ironfoe from either hand** goes against the one client signal that bears on hands. `ProcTypeMask[1]` 0x20 appears only on 8 Forever-new item procs, two of whose texts say "with this weapon". Ironfoe's aura is otherwise a clone of Hand of Justice's. Tier 1 is ambiguous, so doctrine §2 falls back to Classic Era (the weapon's own hits). Worth about 2.7% of Fury DPS. | fix, T-logic: own hand, with Forever's 3% and 100 ms internal cooldown; list all 8 spells in C37 |
+| TL2 | medium | **RL6's unified rule overrides Weaponmaster's own tooltip** ("…with Axes and Polearms"). Tooltips beat derived values (doctrine §2). | fix, T-logic: Weaponmaster per hand with no spell crit; racials stay "all attacks" |
+| TL3 | low | **The rule-profile help says** "racials, talents, other abilities and gear stay Forever's", but Recklessness, Berserker Stance, Hand of Justice and Ironfoe also switch. | fix, T-UX (copy) |
+| TL4 | low | **Test gap:** the Classic Era aura-52 rows aren't asserted by aura type. | fix, T-logic |
+| TL5 | low | **Dead per-weapon crit plumbing** (`critBonus`). | fix, T-logic (reused by TL2) |
+| TL6 | low | **The Warsong Gulch name prefixes are broad** (latent; nothing in the pool). | fix, T-logic: a test that every prefix match in the pool has a twin |
+| TU1 | high | **A persistent Undo reverts everything changed since it was raised** (`replace(previous)`) and can switch spec back: data loss. | fix, T-UX: one Undo at a time; a later setup change dismisses it |
+| TU2 | medium | **Persistent keyboard toasts pile up and cover focused controls** (WCAG 2.4.11). | fix, T-UX: one persistent toast; scroll padding for it |
+| TU3 | medium | **On a phone, Enter in the paste dialog counts as keyboard use**: an "Option+T" hint and a toast that never times out. | fix, T-UX |
+| TU4 | medium | **On a phone, a stepper at its limit focuses the text input** and opens the on-screen keyboard. | fix, T-UX |
+| TU5 | low | **The enchant chip's accessible name omits its visible text** (WCAG 2.5.3). | fix, T-UX |
+| TU6 | low | **The enchant listbox's active option** is only `bg-muted` (1.09–1.18:1). | fix, T-UX |
+| TU7 | low | **The "Default: … Reset" hit area overlaps the control above by 6 px.** | fix, T-UX |
+| TU8 | low | **The fixed-fights field has no visible label**, and its numbers have no separators. | fix, T-UX |
+| TU9 | low | **The Ironfoe assumption copy doesn't parse.** | fix, T-logic (assumption text) |
+| TU10 | low | **Two "(default)" presets in one menu.** | fix, T-UX |
+| TU11 | low | **The Classic Era note can land under the sticky tabs** after a tab switch. | fix, T-UX |
+| TU12 | low | **Undo that removes the enchant sheet's item drops focus to `<body>`.** | fix, T-UX |
+
 ## Verdict
 
 Ready to push: not yet. The logic and UX fixes are open.

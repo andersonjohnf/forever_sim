@@ -646,6 +646,14 @@ describe('the default cat (druid.md §6.2, §7)', () => {
     for (const id of ['whiteSwingsOnly', 'rendTickCrits', 'rendOnHit', 'executeRageTenths']) expect(assumed).not.toContain(id)
     // The Manual Crowd Pummeler is pressed; the Counterattack Lodestone trinket isn't simulated.
     expect(result.assumptions.find((x) => x.id === 'onUseConsumables')?.text).not.toContain('Pummeler')
+    // Clearcasting is up only until the next ability spends it: its procs per fight say what it did,
+    // about one every 10 s cooldown plus the wait for a proc at 2 PPM (druid.md §2.7, W10).
+    const clearcasting = cooldowns.clearcasting
+    expect(clearcasting.castsPerFight).toBeNull()
+    expect(clearcasting.uptimePct).toBeLessThan(5)
+    expect(clearcasting.procsPerFight).toBeGreaterThan(5)
+    expect(clearcasting.procsPerFight).toBeLessThan(18)
+    expect(cooldowns.berserk.procsPerFight).toBeUndefined()
     // The rip row shows its uptime on the boss.
     expect(result.abilities.find((x) => x.id === 'rip')?.bleed?.uptimePct).toBeGreaterThan(25)
   })

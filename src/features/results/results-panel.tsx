@@ -503,6 +503,10 @@ function Cooldowns({ result, runConfig }: { result: SimResult; runConfig: SimCon
                   <span className="flex min-w-0 flex-col">
                     <span>{c.name}</span>
                     {unhit && <span className="text-xs text-muted-foreground">Needs damage taken (Fight → Advanced)</span>}
+                    {/* A proc the next ability spends is up only moments: how often it came says what it did. */}
+                    {c.procsPerFight !== undefined && (
+                      <span className="text-xs text-muted-foreground">{formatOne(c.procsPerFight)} a fight, each spent by your next ability</span>
+                    )}
                   </span>
                 </span>
               </th>

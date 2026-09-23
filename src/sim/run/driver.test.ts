@@ -45,6 +45,7 @@ function syntheticExecutor(plan: Plan, lanes: number, spread: Record<Metric, num
           durationMs: fights * 180_000,
           counters: new Float64Array(plan.sources.length * FIELD_COUNT),
           auraUpMs: new Float64Array(plan.auras.length),
+          auraApplications: new Float64Array(plan.auras.length),
           rageGainedTenths: 0,
           rageWastedTenths: 0,
           damageTaken: emptyMoments(),

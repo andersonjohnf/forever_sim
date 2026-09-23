@@ -344,6 +344,11 @@ export interface CooldownResult {
   uptimePct: number | null
   /** Casts per fight, pre-pull ones included; null for a buff nothing casts (Flurry, the Overpower window). */
   castsPerFight: number | null
+  /**
+   * For a proc the next ability spends (Clearcasting, druid.md §2.7): how many times a fight it came
+   * up. Its uptime is only the moments until the next ability, so this says what it did.
+   */
+  procsPerFight?: number
 }
 
 /** Final stats as the sim computed them (docs/mechanics/character-stats.md). */

@@ -160,6 +160,11 @@ export class Sim {
    * counts from 0) until it ends or the fight does (the results' uptimes).
    */
   readonly auraUpMs: Float64Array
+  /**
+   * Times each plan aura was put up or refreshed, summed over every fight run: the results' procs
+   * per fight for a proc the next ability spends (Clearcasting, druid.md §2.7).
+   */
+  readonly auraApplications: Float64Array
   /** Last fight's results. */
   fightDamage = 0
   fightThreat = 0
@@ -834,6 +839,7 @@ export class Sim {
     this.auraGen = new Int32Array(na)
     this.auraSince = new Float64Array(na)
     this.auraUpMs = new Float64Array(na)
+    this.auraApplications = new Float64Array(na)
     const chargeAuras: number[] = []
     const critChargeAuras: number[] = []
     const blockChargeAuras: number[] = []
@@ -2382,6 +2388,7 @@ export class Sim {
 
   /** Puts aura a on the warrior (or refreshes it, adding a stack) until `end` (a pre-pull aura ends early). */
   private startAura(a: number, end: number): void {
+    this.auraApplications[a]++
     const wasActive = this.auraActive[a] === 1
     const oldStacks = this.auraStacks[a]
     const stacks = wasActive ? Math.min(oldStacks + 1, this.aMaxStacks[a]) : 1

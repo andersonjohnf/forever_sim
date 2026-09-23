@@ -13,6 +13,8 @@ export interface Aggregate {
   counters: Float64Array
   /** Time each plan aura was up, ms, over every fight merged. */
   auraUpMs: Float64Array
+  /** Times each plan aura was put up or refreshed, over every fight merged. */
+  auraApplications: Float64Array
   rageGainedTenths: number
   rageWastedTenths: number
   /** Health lost per second to hits taken, per fight (the tank results' damage taken). */
@@ -28,6 +30,7 @@ export const emptyAggregate = (sources: number, auras = 0): Aggregate => ({
   durationMs: 0,
   counters: new Float64Array(sources * FIELD_COUNT),
   auraUpMs: new Float64Array(auras),
+  auraApplications: new Float64Array(auras),
   rageGainedTenths: 0,
   rageWastedTenths: 0,
   damageTaken: emptyMoments(),
@@ -40,6 +43,8 @@ export function mergeChunk(agg: Aggregate, chunk: ChunkResult): Aggregate {
   for (let i = 0; i < counters.length; i++) counters[i] += chunk.counters[i]
   const auraUpMs = agg.auraUpMs
   for (let i = 0; i < auraUpMs.length; i++) auraUpMs[i] += chunk.auraUpMs[i]
+  const auraApplications = agg.auraApplications
+  for (let i = 0; i < auraApplications.length; i++) auraApplications[i] += chunk.auraApplications[i]
   const bossOutcomes = agg.bossOutcomes
   for (let i = 0; i < bossOutcomes.length; i++) bossOutcomes[i] += chunk.bossOutcomes[i]
   return {
@@ -49,6 +54,7 @@ export function mergeChunk(agg: Aggregate, chunk: ChunkResult): Aggregate {
     durationMs: agg.durationMs + chunk.durationMs,
     counters,
     auraUpMs,
+    auraApplications,
     rageGainedTenths: agg.rageGainedTenths + chunk.rageGainedTenths,
     rageWastedTenths: agg.rageWastedTenths + chunk.rageWastedTenths,
     damageTaken: combine(agg.damageTaken, chunk.damageTaken),
@@ -88,7 +94,10 @@ export function cooldownResults(plan: Plan, agg: Aggregate): CooldownResult[] {
   }
   plan.auras.forEach((aura, i) => {
     if (shown.has(i)) return
-    rows.push({ id: aura.id, name: aura.name, icon: aura.icon, uptimePct: uptimePct(agg, i), castsPerFight: null })
+    // A proc the next ability spends (Clearcasting, druid.md §2.7) is up only until then, so its
+    // uptime is tiny: its procs per fight say what it did.
+    const spent = plan.freeCastAura === i && agg.fights > 0 ? { procsPerFight: agg.auraApplications[i] / agg.fights } : {}
+    rows.push({ id: aura.id, name: aura.name, icon: aura.icon, uptimePct: uptimePct(agg, i), castsPerFight: null, ...spent })
   })
   return rows
 }

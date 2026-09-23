@@ -956,9 +956,14 @@ the emulator's class table [mz-classlevelstats], not evidence". The only other s
 wowsims/classic's `base_stats.go` [wsc-base] (and an old Classic-branded sim for the druid), copy
 it. No Classic Era measurement exists, and the Classic Era 1.15.9 client has no base-health table
 either. The sheets below replace them; the results list them among their assumptions.
-**What it moves:** off by ±100, base health moves a tank's TPS about ±0.3–0.7%, through rage from
-damage taken; left out, as the engine did before D24, it inflated that rage by 20–40%. DPS specs
-barely notice it.
+**What it moves:** today, almost nothing. Nothing spends rage yet (Protection has no rotation),
+so the bar sits full: off by ±100, base health moves the default Protection warrior's TPS by about
+0.001% (20,000 fights on common seeds), and leaving it out altogether moved it 0.02%. Once a
+rotation spends its rage, it matters more. Rage from damage taken is about 44% of that warrior's
+rage (540 of 1,225 a fight). 100 more base health cuts it 1.6% (100 less adds 1.7%), so the rage
+moves about 0.7%, and TPS moves that much times the share of its threat that comes from spending
+rage: about 0.3–0.7% for a share between 40% and 100%. Left out, as the engine did before D24,
+base health inflated that rage by 20–40%. DPS specs take no damage and don't notice it.
 **Route A:** read maximum health from the OQ-1 sheets (divide the Tauren value by 1.05). Then
 `baseHP = HP − 20 − 10 × (Sta − 20)`.
 

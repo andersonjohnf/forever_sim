@@ -156,8 +156,9 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Samples:** one sheet per character.
 - **Changes:** confirms or corrects the warrior rows; replaces the base HP placeholder (tank
   survival, and tank rage: Forever's rage from damage taken divides by max health, so ±100 base
-  health moves tank TPS about ±0.3–0.7%) and settles base parry and block; sets the rounding
-  rule.
+  health will move tank TPS about ±0.3–0.7% once a rotation spends the rage, and about 0.001%
+  today; [OQ-2](mechanics/character-stats.md#oq-2-base-health)) and settles base parry and
+  block; sets the rounding rule.
 - **Docs:** [stats OQ-1](mechanics/character-stats.md#oq-1-paladin-druid-and-skyborne-base-attributes),
   [OQ-2](mechanics/character-stats.md#oq-2-base-health),
   [OQ-5](mechanics/character-stats.md#oq-5-base-dodge-parry-and-block),

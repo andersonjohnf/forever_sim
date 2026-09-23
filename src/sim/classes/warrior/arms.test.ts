@@ -12,6 +12,7 @@ import { TALENT_DATA, defaultConfig } from '../../defaults'
 import { resolveRotationValues } from '../options'
 import { overpowerWindowProcs } from './abilities'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './arms'
+import { potionFallbackMaxRage, rageCap } from './shared'
 
 /** The default Arms build's talents by name (37/14/0, warrior.md §6.1). */
 const TALENTS = talentRanksByName(TALENT_DATA.warrior, defaultConfig('warrior-arms').talents)
@@ -44,6 +45,8 @@ describe('Arms rotation options (warrior.md §5.1, §5.3)', () => {
       }
       if (option.kind === 'choice') expect(option.choices.map((c) => c.value)).toContain(option.default)
       if (option.dependsOn !== undefined) expect(ARMS_OPTIONS.find((o) => o.id === option.dependsOn)?.kind, option.id).toBe('toggle')
+      if (option.kind === 'number' && option.alsoDependsOn !== undefined)
+        expect(ARMS_OPTIONS.find((o) => o.id === option.alsoDependsOn)?.kind, option.id).toBe('toggle')
       // A default that follows another setting reads one declared before it.
       if (option.kind === 'toggle')
         for (const w of option.defaultWhen ?? [])
@@ -324,6 +327,30 @@ describe('armsRotation (warrior.md §5.3)', () => {
     // No swap to wait for: Recklessness off, or fighting in Berserker Stance.
     expect(potion({ 'warrior.arms.recklessness.enabled': false }, false).lines.map((e) => e.conditions)).toEqual([[last(20000), maxRage(550)]])
     expect(potion(berserker, false).lines.map((e) => e.conditions)).toEqual([[last(20000), maxRage(550)]])
+  })
+
+  it('row 17: the potion’s limit outside the setting follows the build’s rage cap, 100 + 10 per Boundless Rage rank, minus 75', () => {
+    const last = (ms: number) => ({ code: COND.timeLeftAtMost, a: ms, b: 0 })
+    for (const [rank, cap] of [
+      [3, 130],
+      [2, 120],
+      [0, 100],
+    ] as const) {
+      const talents = new Map([...TALENTS, ['Boundless Rage', rank]])
+      expect(rageCap(talents)).toBe(cap)
+      expect(potionFallbackMaxRage(talents)).toBe(cap - 75)
+      const lines = (executePhase: boolean) => {
+        const r = armsRotation({}, talents, noAura, { consumables: [MIGHTY_RAGE_POTION], executePhase })
+        return { r, conditions: linesOf(r, 'mightyRagePotion').map((e) => e.conditions) }
+      }
+      // The phase's last chance, and the last 20 s without a phase (after Recklessness's swap).
+      expect(lines(true).conditions).toEqual([
+        [inExec, maxRage(0)],
+        [inExec, last(4000), maxRage((cap - 75) * 10)],
+      ])
+      const none = lines(false)
+      expect(none.conditions).toEqual([[last(20000), { code: COND.cooldownAtLeast, a: at(none.r, 'recklessness'), b: 1 }, maxRage((cap - 75) * 10)]])
+    }
   })
 
   it('row 13: with Heroic Strike off, the result still lists the assumption its default rests on', () => {

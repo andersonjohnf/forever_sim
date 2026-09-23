@@ -203,7 +203,9 @@ Era's) start in view rather than under the tabs.
     the end" under Death Wish). A dependent switch works the same way as a dependent number
     (`RotationOption.dependsOn`, on any kind of setting). One whose parent is under another
     heading stays with its own heading, and its help names the parent ("Needs Battle Shout
-    on").
+    on"). A number setting can need a second switch under another heading as well
+    (`alsoDependsOn`: "Recklessness before the execute phase" needs Execute); it's dimmed while
+    either is off, and its help names the second.
   - **Advanced** (principle 2): switches and choices are always in view, and each heading's
     number settings (rage and timing thresholds) wait behind an **Advanced** button on the
     heading's right. Opening it shows them in place, under the switch each one tunes, so a

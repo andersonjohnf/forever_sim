@@ -25,6 +25,7 @@ import {
   stanceSwapKeepTenths,
 } from './abilities'
 import { type TalentRanks, withTalents } from './modifiers'
+import { TALENT_EFFECTS } from './talents'
 
 export interface ClassRotation {
   abilities: AbilityDef[]
@@ -84,6 +85,29 @@ export const JUJU_FLURRY = 'jujuFlurry'
  * thresholds are absolute (§5.1).
  */
 export const WARRIOR_MAX_RAGE = 130
+
+/** The base rage cap (rage.md#rage-pool-cap-and-decay), as the plan builder has it. */
+const BASE_RAGE_CAP = 100
+
+/**
+ * The build's rage cap: 100, plus Boundless Rage's 10 a rank (130 at 3/3; rage.md#rage-pool-cap-and-decay,
+ * talents.ts). A Gnome's Expansive Mind (+5%, [?] Q17) isn't counted, so a limit drawn from it
+ * leaves a Gnome a few more points of room.
+ */
+export function rageCap(talents: TalentRanks): number {
+  const effects = TALENT_EFFECTS['Boundless Rage'](talents.get('Boundless Rage') ?? 0)
+  return BASE_RAGE_CAP + effects.reduce((sum, e) => sum + (e.kind === 'maxRage' ? e.value : 0), 0)
+}
+
+/** The most rage a Mighty Rage Potion gives: 45–75 (warrior.md §5.2 notes). */
+const RAGE_POTION_MAX_RAGE = 75
+
+/**
+ * The Mighty Rage Potion's rage limit where the setting's doesn't apply (warrior.md §5.3 row 17):
+ * the build's cap minus the potion's 75 at most, so none of its rage is lost. 55 with Boundless Rage
+ * 3/3.
+ */
+export const potionFallbackMaxRage = (talents: TalentRanks): number => rageCap(talents) - RAGE_POTION_MAX_RAGE
 
 /** A rage threshold input: 0 to the default build's 130 cap, in its parent's group. */
 export const rageOption = (id: string, label: string, help: string, def: number, dependsOn: string, group: RotationGroup): RotationOption => ({

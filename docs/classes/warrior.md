@@ -844,7 +844,7 @@ Notes:
   threat per rage). **Without an execute phase** (0%) it's used in the last 20 s, as long as its
   +60 Strength lasts, so its rage and buff land where the phase would have been. An engine
   choice. Arms times it its own way ([§5.3](#53-arms-two-hander) row 17): in the phase once an
-  Execute has emptied the bar, with a last chance in the fight's last 4 s; without a phase, or
+  Execute has emptied the bar, with a last chance in the phase's last 4 s; without a phase, or
   with its Execute off, in the last 20 s at up to 55 and after Recklessness's stance swap.
 - **Juju Flurry** (row 17) is used on cooldown from the pull: no source ties it to Death Wish,
   and it's off the GCD (no start recovery in the client). Each use is +3% attack speed for 20 s,
@@ -895,7 +895,7 @@ timing (with a setting of its own for the execute phase), row 13's switch and th
 | 1 | Battle Shout | As Fury's row 1: missing, or at most `refreshBelowSec` left and it would run out before the fight ends; rage ≥ 10. It replaces the Buffs tab's Battle Shout | `arms.battleShout.enabled` (on), `.refreshBelowSec` (0: once it has run out) | yes |
 | 2 | Rend | Your Rend is missing, or has at most `refreshBelowSec` of ticks left and would end before the fight does. Bloodthrill needs it. In Berserker Stance, a dance to Battle Stance at rage ≤ the swap's cap (25) | `arms.rend.enabled` (on with Bloodthrill in Battle Stance, off otherwise), `.refreshBelowSec` (3) | with Bloodthrill |
 | 3 | Racial or trinket cooldowns | As Fury's row 3: with Death Wish (row 16) when it's used; otherwise at the pull and on cooldown | `arms.racial.enabled` (on), `arms.trinkets.enabled` (on), `arms.cooldowns.syncWithDeathWish` (on) | yes |
-| 4 | Recklessness | Once: `beforeExecuteSec` before the execute phase starts, or when ≤ `lastSec` s are left, whichever comes first. Without an execute phase, or with Execute (row 7) off, only the latter. From Battle Stance it swaps to Berserker Stance (keeping at most 25 rage) and stays there for the rest of the fight | `arms.recklessness.enabled` (on), `.beforeExecuteSec` (1.5), `.lastSec` (15: its duration); see the notes | yes |
+| 4 | Recklessness | Once: `beforeExecuteSec` before the execute phase starts, or when ≤ `lastSec` s are left, whichever comes first. Without an execute phase, or with Execute (row 7) off, only the latter. From Battle Stance it swaps to Berserker Stance (keeping at most 25 rage) and stays there for the rest of the fight | `arms.recklessness.enabled` (on), `.beforeExecuteSec` (1.5; dimmed with Execute off, and its help says it needs an execute phase), `.lastSec` (15: its duration); see the notes | yes |
 | 5 | Bloodrage (off the GCD) | On cooldown if rage ≤ `maxRage` | `arms.bloodrage.enabled` (on), `.maxRage` (110: max − 20) | yes |
 | 6 | **Execute phase** (target ≤ 20%): Slam | Off cooldown; rage ≥ Slam's 15 + Execute's 15 | `arms.execute.slamInExecute` (on) | yes |
 | 7 | Execute phase: Execute | Rage ≥ cost. With `mortalStrikeInExecute`, Mortal Strike comes just before it | `arms.execute.enabled` (on), `.mortalStrikeInExecute` (on) | yes |
@@ -908,7 +908,7 @@ timing (with a setting of its own for the execute phase), row 13's switch and th
 | 14 | Hamstring | Rage ≥ `minRage`; GCD-safe for Mortal Strike, Slam, Spearing Strike and Whirlwind (useful with Weaponmaster swords or Windfury); outside the execute phase | `arms.hamstring.enabled` (on), `.minRage` (40) | yes |
 | 15 | Sweeping Strikes (off the GCD) | 2 or more targets: on cooldown. **Not simulated** until multi-target support ([§5.5](#55-multi-target-options-light)): the sim has one target | none yet | multi-target |
 | 16 | Death Wish | Only with the talent: as Fury's row 2, including `alignToEnd`. Its line sits before row 3's, so the racial can wait for it | `arms.deathWish.enabled` (on with the talent), `.alignToEnd` (on) | with the talent |
-| 17 | Mighty Rage Potion (off the GCD) | Once. With Execute (row 7) and an execute phase: in the phase at rage ≤ `maxRage`, or, if it hasn't been drunk by the fight's last 4 s, then at rage ≤ 55. Without an execute phase, or with Execute off: in the last 20 s at rage ≤ 55, after row 4's swap from Battle Stance. See the notes | `arms.ragePotion.enabled` (on), `.maxRage` (0, in the phase: once an Execute has emptied the bar) | with the consumable |
+| 17 | Mighty Rage Potion (off the GCD) | Once. With Execute (row 7) and an execute phase: in the phase at rage ≤ `maxRage`, or, if it hasn't been drunk by the phase's last 4 s, then at rage ≤ the build's cap minus 75 (55 with Boundless Rage 3/3). Without an execute phase, or with Execute off: in the last 20 s at rage ≤ that cap minus 75, after row 4's swap from Battle Stance. See the notes | `arms.ragePotion.enabled` (on), `.maxRage` (0, in the phase: once an Execute has emptied the bar) | with the consumable |
 | 18 | Juju Flurry (off the GCD) | As Fury's row 17: on cooldown from the pull | `arms.jujuFlurry.enabled` (on) | with the consumable |
 
 Notes:
@@ -965,13 +965,16 @@ Notes:
   the bar: 1.8 s into the phase on average, after Recklessness's swap (row 4). 55 (the 130 cap
   minus 75) measured −0.44% against it (seed 3031, below). A short phase can end before an
   Execute empties the bar: a 30 s fight's 10% phase lasts about 3 s, and 14% of those fights went
-  without the potion. So if it hasn't been drunk by the fight's last 4 s, it's drunk then at up to
-  55. That last chance measured +3.7% in 30 s fights with a 10% phase, +1.4% at 45 s and 10%,
-  +1.0% at 30 s and 20%, +0.05% to +0.5% in fights of 45–90 s otherwise, and nothing from 180 s
-  up; 4 s was the best of 3–15 s, or level with it, at every length (below).
+  without the potion. So if it hasn't been drunk by the phase's last 4 s, it's drunk then at up to
+  the build's rage cap minus the potion's 75 at most, so none of its rage is lost: 55 with
+  Boundless Rage 3/3's 130 cap, less with fewer ranks (100 + 10 a rank). A Gnome's Expansive Mind
+  (+5%, Q17) isn't counted, which leaves a few more points of room. That last chance measured
+  +3.7% in 30 s fights with a 10% phase, +1.4% at 45 s and 10%, +1.0% at 30 s and 20%, +0.05% to
+  +0.5% in fights of 45–90 s otherwise, and nothing from 180 s up; 4 s was the best of 3–15 s, or
+  level with it, at every length (below).
   **Without an execute phase, or with Execute off**, no Execute will empty the bar, so it's drunk
-  in the last 20 s at up to 55, as Fury's is: as long as its +60 Strength lasts, where the phase
-  would have been. From Battle Stance, Recklessness's swap to Berserker Stance keeps at most 25
+  in the last 20 s at up to that same limit, as Fury's is: as long as its +60 Strength lasts,
+  where the phase would have been. From Battle Stance, Recklessness's swap to Berserker Stance keeps at most 25
   rage, so a potion drunk just before it would lose rage to it. With Recklessness in the rotation
   from Battle Stance, the potion waits until Recklessness has been used, and at its 15 s it
   follows the swap in the same moment: its 45–75 rage lands on top of the 25 the swap kept.
@@ -1150,7 +1153,7 @@ over 400,000 paired fights on seed 3031, which no search used; against the first
     Bloodrage up to 90 or 130 level. Berserker Stance dancing for Rend and Overpower −23.38.
   - **Confirmation** (seed 3031, 400,000 fights, frozen first): +37.02 (+36.87 to +37.18) over
     the defaults before M2.5a, +1.44 (+1.37 to +1.51) over the first round's (`--against a69198b`
-    and `--against 852f522`). Recklessness at 1, 2 or 3 s before the phase: −0.04 (−0.09 to
+    and `--against b47953f`). Recklessness at 1, 2 or 3 s before the phase: −0.04 (−0.09 to
     +0.01), −0.24 (−0.28 to −0.20), −0.80 (−0.87 to −0.73); the potion up to 55 in the phase:
     −2.82 (−2.89 to −2.75). 1 s is level with 1.5 s here; 1.5 s cleared it on the search seed.
 - **Robustness** (seed 3032, which no search used, 200,000 paired fights each): the final
@@ -1166,7 +1169,7 @@ over 400,000 paired fights on seed 3031, which no search used; against the first
   | 180 s | +26.78 (+26.57 to +26.98), +4.56% | +39.81 (+39.59 to +40.03), +6.60% | +37.10 (+36.88 to +37.33), +6.08% |
   | 300 s | +30.68 (+30.52 to +30.84), +5.29% | +36.36 (+36.19 to +36.53), +6.13% | +33.27 (+33.09 to +33.44), +5.54% |
 
-  Against the first round's defaults (`--against 852f522`) they win everywhere: +0.22% at 180 s
+  Against the first round's defaults (`--against b47953f`) they win everywhere: +0.22% at 180 s
   and 20%, +0.55% and +0.63% at 300 s with a phase, +1.85% at 300 s without one, +3.07% and
   +3.20% at 180 s without one and at 10%, and +5.9% to +12.5% at 30–90 s.
 
@@ -1178,6 +1181,15 @@ over 400,000 paired fights on seed 3031, which no search used; against the first
   which loses at 300 s (−0.05% from 80; seed 108). A default that follows the Fight tab's execute
   phase could take it; switches' defaults follow the talents and other settings, not the fight,
   so it's left for now.
+
+  **30 s fights with a very short phase lose a little too** (the M2.5a verification, V1). At
+  5–8%, a phase of 1.5–2.4 s, the defaults are behind those before M2.5a by 0.61%, 1.61%, 1.12%
+  and 0.67% (5%: −4.38, −4.78 to −3.97; 6%: −12.07, −12.48 to −11.65; 7%: −8.35, −8.76 to −7.93;
+  8%: −4.98, −5.39 to −4.56; seed 3032, 200,000 fights each), where 3–4% and 9% gain 0.07–0.54%.
+  It's Mortal Strike in the phase: a phase that short has one or two GCDs, and Mortal Strike
+  takes one from Execute. With it off, the same fights gain 0.27–0.70% over the old defaults. In
+  the default setup it's worth +0.88 DPS (above), and 45 s fights with a 3–9% phase gain
+  1.4–2.3% overall, so it stays on.
 
 ### 5.4 Protection (TPS)
 

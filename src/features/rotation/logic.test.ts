@@ -65,6 +65,14 @@ describe('rotation rows', () => {
       expect(off.get(id)?.inactive, id).toBe(true)
   })
 
+  it('dims Arms’ Recklessness before the execute phase while Recklessness or Execute is off, as the execute phase’s rows are', () => {
+    const id = 'warrior.arms.recklessness.beforeExecuteSec'
+    expect(rows(arms).get(id)?.inactive).toBe(false)
+    expect(rows(arms, { 'warrior.arms.recklessness.enabled': false }).get(id)?.inactive).toBe(true)
+    expect(rows(arms, { 'warrior.arms.execute.enabled': false }).get(id)?.inactive).toBe(true)
+    expect(rows(arms, { 'warrior.arms.execute.enabled': false }).get('warrior.arms.execute.slamInExecute')?.inactive).toBe(true)
+  })
+
   it('puts the number settings behind Advanced and keeps switches and choices in view', () => {
     const options = [...getSpec('warrior-fury').rotationOptions, ...getSpec('warrior-arms').rotationOptions]
     for (const o of options) expect(isAdvanced(o), o.id).toBe(o.kind === 'number')

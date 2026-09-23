@@ -16,7 +16,7 @@ export interface RowState {
   missingBuff?: BuffDefinition
   /** Whether a switch shows on: only while it's on and any consumable it needs is selected. */
   on: boolean
-  /** The switch it depends on is off, or can't apply itself, so this setting changes nothing. */
+  /** A switch it depends on is off, or can't apply itself, so this setting changes nothing. */
   inactive: boolean
 }
 
@@ -57,7 +57,7 @@ export function rotationRows(
       changed: saved !== undefined && saved !== def,
       missingBuff,
       on: Boolean(values[option.id]) && missingBuff === undefined,
-      inactive: option.dependsOn !== undefined && !applies(option.dependsOn),
+      inactive: [option.dependsOn, option.kind === 'number' ? option.alsoDependsOn : undefined].some((id) => id !== undefined && !applies(id)),
     })
   }
   return rows

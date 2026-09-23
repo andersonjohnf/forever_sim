@@ -50,6 +50,7 @@ import {
   NOT_IN_EXECUTE,
   onUseIds,
   prepullCasts,
+  potionFallbackMaxRage,
   prepullOptions,
   rageOption,
   reader,
@@ -59,7 +60,6 @@ import {
   type RotationContext,
   seconds,
   sharedIds,
-  WARRIOR_MAX_RAGE,
 } from './shared'
 
 const ID = {
@@ -84,15 +84,10 @@ const ID = {
 }
 
 /**
- * The Mighty Rage Potion's rage limit outside the execute phase (without one, or with Execute off):
- * the 130 cap minus its 75 at most, so none of its rage is lost (warrior.md §5.3 notes). In the phase
- * the setting's limit applies, 0 by default: it waits for an Execute to empty the bar.
- */
-const POTION_FALLBACK_MAX_RAGE = WARRIOR_MAX_RAGE - 75
-
-/**
- * In the execute phase, the potion's last chance: if an Execute hasn't emptied the bar by the fight's
- * last 4 s, it's drunk at up to POTION_FALLBACK_MAX_RAGE, so a short phase still gets it (§5.3 notes).
+ * In the execute phase, the potion's last chance: if an Execute hasn't emptied the bar by the phase's
+ * last 4 s, it's drunk at up to the build's cap minus 75 (potionFallbackMaxRage), so a short phase
+ * still gets it (§5.3 notes). Outside the phase (without one, or with Execute off) that limit applies
+ * too; in the phase the setting's does, 0 by default: it waits for an Execute to empty the bar.
  */
 const POTION_LAST_CHANCE_MS = 4000
 
@@ -165,13 +160,14 @@ export const ARMS_OPTIONS: RotationOption[] = [
       id: ID.reckBeforeExecute,
       group: 'Cooldowns and buffs',
       label: 'Recklessness before the execute phase',
-      help: 'Use it this long before the execute phase starts, so its crits land on the first Executes.',
+      help: 'Use it this long before the execute phase starts, so its crits land on the first Executes. Needs Execute on, and an execute phase under Fight.',
       unit: 's',
       min: 0,
       max: 60,
       step: 0.5,
       default: 1.5,
       dependsOn: ID.reckEnabled,
+      alsoDependsOn: ID.exEnabled,
     },
   ),
   ...bloodrageOptions(ID),
@@ -275,7 +271,7 @@ export const ARMS_OPTIONS: RotationOption[] = [
   rageOption(ID.hamMinRage, 'Hamstring from', 'Use it at or above this much rage.', 40, ID.hamEnabled, 'Fillers'),
   ...consumableOptions(ID, 'early in the execute phase (without one, or with Execute off, in the last 20 s; from Battle Stance, after Recklessness’s swap, which caps your rage)', {
     default: 0,
-    help: `In the execute phase, drink it only at or below this much rage: at 0, once an Execute has emptied your bar. In the fight’s last 4 s, without an execute phase, or with Execute off, it’s up to ${POTION_FALLBACK_MAX_RAGE} (the 130 cap minus 75).`,
+    help: 'In the execute phase, drink it only at or below this much rage: at 0, once an Execute has emptied your bar. In the phase’s last 4 s, without an execute phase, or with Execute off, it’s up to your rage cap minus 75 (55 with Boundless Rage 3/3).',
   }),
 ]
 
@@ -438,9 +434,10 @@ export function armsRotation(
 
   // Rows 17 and 18: the Mighty Rage Potion and Juju Flurry, when they're selected in Buffs
   // (shared.ts). With Execute in an execute phase, the potion is drunk there at rage ≤ maxRage, or in
-  // the fight's last 4 s at ≤ 55 if it hasn't been. Otherwise, in the last 20 s at ≤ 55, after
-  // Recklessness's swap, which would cap its rage at 25 (§5.3 notes). Juju Flurry on cooldown.
-  consumableLines(b, v, ID, ctx, { inPhase: phase, fallbackMaxRage: POTION_FALLBACK_MAX_RAGE, swapFirst: reckSwap, lastChanceMs: POTION_LAST_CHANCE_MS })
+  // the phase's last 4 s at ≤ the build's cap − 75 (55 at 3/3 Boundless Rage) if it hasn't been.
+  // Otherwise, in the last 20 s at ≤ that limit, after Recklessness's swap, which would cap its rage
+  // at 25 (§5.3 notes). Juju Flurry on cooldown.
+  consumableLines(b, v, ID, ctx, { inPhase: phase, fallbackMaxRage: potionFallbackMaxRage(talents), swapFirst: reckSwap, lastChanceMs: POTION_LAST_CHANCE_MS })
 
   // Row 0: the pre-pull (shared.ts). Charge is a Battle Stance ability: fighting in Berserker
   // Stance, the swap after it keeps at most the swap's cap.

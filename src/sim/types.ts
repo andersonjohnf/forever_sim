@@ -208,6 +208,11 @@ export type RotationOption =
       default: number
       /** Id of a toggle that must be on for this input to apply. */
       dependsOn?: string
+      /**
+       * Id of another toggle that must be on too, under another heading: the input doesn't sit
+       * under it, and its help names it (Recklessness before the execute phase needs Execute).
+       */
+      alsoDependsOn?: string
     }
   | {
       /** One of a few named values, shown as a segmented control (Arms: the stance it fights in). */

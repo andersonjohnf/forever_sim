@@ -495,18 +495,18 @@ describe('talents, racials and stances', () => {
 })
 
 describe('setups the engine can’t run yet', () => {
-  it('gives paladins their Classic Era base attributes and the placeholders of D24, and says so', () => {
+  it('gives paladins the placeholders of D24 (base attributes, health, dodge and crits), and says so', () => {
     for (const race of ['alliance-human', 'alliance-dwarf', 'horde-undead']) {
       const bundle = buildPlan({ ...defaultConfig('paladin-retribution'), race })
       expect(bundle.sheet.unknown).toEqual([])
-      expect(bundle.sheet.placeholders).toEqual(expect.arrayContaining(['base health', 'base crit', 'base spell crit']))
+      expect(bundle.sheet.placeholders).toEqual(expect.arrayContaining(['base attributes', 'base health', 'base crit', 'base spell crit']))
       expect(bundle.blockers).toEqual([])
       const ids = bundle.assumptions.map((a) => a.id)
       expect(ids).toContain('baseStatPlaceholders')
       expect(ids).not.toContain('unknownBaseAttributes')
     }
     // docs/mechanics/character-stats.md#paladin-and-druid-base-attributes: the naked Human sheet
-    // 105/65/100/70/78 [C] (Spirit 75 × 1.05, floored); mana 1512 + 20 + 15 × (70 − 20) = 2282;
+    // 105/65/100/70/78 [?] (a D24 placeholder; Spirit 75 × 1.05, floored); mana 1512 + 20 + 15 × (70 − 20) = 2282;
     // health 1381 [?] + 20 + 10 × (100 − 20) = 2201; crit 0.7 [?] + 65 × 0.0506 = 3.989; dodge
     // 0.7 [?] + 65 / 20 = 3.95.
     const naked = buildPlan({ ...defaultConfig('paladin-retribution'), gear: {}, buffs: { raid: [], enabled: [] }, talents: '' })

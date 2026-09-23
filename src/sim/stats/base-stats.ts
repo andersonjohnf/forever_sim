@@ -4,8 +4,8 @@
 // (docs/decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23), which are tagged [?]
 // and listed in the results' assumptions. Anything else unknown is `null` and reported as missing.
 // CLASS_BASE holds the supported values (`null` there means nobody has measured it), and
-// BASE_PLACEHOLDERS below holds the placeholders, in one replaceable table: every druid base value
-// is one, its attribute rows included, and so are the paladin's health, dodge and crits.
+// BASE_PLACEHOLDERS below holds the placeholders, in one replaceable table: every druid and every
+// paladin base value nobody has measured is one, their attribute rows included.
 import type { ClassId } from '../types'
 
 export interface Attributes {
@@ -54,12 +54,14 @@ const DRUID_ROWS: Readonly<Record<string, Attributes>> = {
 }
 
 /**
- * Paladin base attributes at level 60 [C] (docs/mechanics/character-stats.md#paladin-and-druid-base-attributes):
- * ClassicSim at its last pre-SoD commit f9cb48d, whose rows came in PR #103 (2020-01-05), gives the
- * Human and Dwarf paladin sheets 105/65/100/70/78 and 107/61/103/69/74. Spirit is stored raw,
- * before The Human Spirit's ×1.05 (75 × 1.05 = 78.75, floored to the sheet's 78). Undead is
- * derived: the Human row plus the [C] Undead offset (−1/−2/+1/−2/+5); Classic Era has no Undead
- * paladin. A naked Classic Era sheet (OQ-1) would confirm them.
+ * Paladin base attributes at level 60, [?] placeholders (D24 rule 2;
+ * docs/mechanics/character-stats.md#paladin-and-druid-base-attributes). Origin: the mangos
+ * emulator's 1.12 rows, not evidence; they agree exactly with the [C] race offsets. ClassicSim's
+ * pre-SoD rows (f9cb48d, PR #103) reproduce them, which corroborates them but isn't evidence.
+ * Human 105/65/100/70/78 and Dwarf 107/61/103/69/74 on the sheet; Spirit is stored raw, before The
+ * Human Spirit's ×1.05 (75 × 1.05 = 78.75, floored to the sheet's 78). Undead is derived, so a
+ * placeholder too: the Human row plus the [C] Undead offset (−1/−2/+1/−2/+5); Classic Era has no
+ * Undead paladin. The naked Classic Era sheets of OQ-1 replace them.
  */
 const PALADIN_ROWS: Readonly<Record<string, Attributes>> = {
   'alliance-human': { str: 105, agi: 65, sta: 100, int: 70, spi: 75 },
@@ -115,9 +117,9 @@ export const CLASS_BASE: Record<ClassId, ClassBase> = {
     baseMana: null,
   },
   paladin: {
-    // docs/mechanics/character-stats.md#paladin-and-druid-base-attributes [C] (PALADIN_ROWS). Its
-    // health, dodge and crits are D24 placeholders, in BASE_PLACEHOLDERS below.
-    attributes: (race) => PALADIN_ROWS[race] ?? null,
+    // Unmeasured (OQ-1): the attribute rows, crit, spell crit, dodge and health are D24
+    // placeholders, in BASE_PLACEHOLDERS below.
+    attributes: () => null,
     // 160 term [?] (OQ-7)
     baseAp: 160,
     baseCrit: null,
@@ -197,12 +199,14 @@ export interface BasePlaceholders {
  * and wowsims/classic `base_stats.go`, https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go,
  * which both copy a private server's tables; not evidence". The attribute rows are DRUID_ROWS above.
  *
- * The paladin's base melee crit, spell crit and dodge have the druid's origins (the melee crit via
- * wowsims/classic only), and the same caveat: not evidence.
+ * The paladin's attribute rows are PALADIN_ROWS above. Its base melee crit, spell crit and dodge
+ * have the druid's origins (the melee crit via wowsims/classic only), and the same caveat: not
+ * evidence.
  */
 export const BASE_PLACEHOLDERS: Record<ClassId, BasePlaceholders> = {
   warrior: { baseHealth: 1689 },
   paladin: {
+    attributes: PALADIN_ROWS,
     baseHealth: 1381,
     /**
      * Base melee crit before Agility, % (OQ-3): origin the emulator via wowsims/classic. Sources

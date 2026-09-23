@@ -692,7 +692,8 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
   Wrath, Judgement of the Crusader's upkeep, seal twisting; Holy Shield, Swift Judgement,
   Hammer of the Righteous) and their settings come next; their ability rows already exist.
 - **Base stats** follow [character-stats](../mechanics/character-stats.md#paladin-and-druid-base-attributes):
-  the attributes are [C], and base health, dodge and crits are [?] placeholders the results list.
+  the attributes, base health, dodge and crits are all [?] placeholders under D24, which the
+  results list.
 - **Not modelled yet:** Twist of Light, Holy Shield's block damage, Reckoning, Redoubt, Swift
   Judgement, Hammer of the Righteous, Holy Wrath, Judgement of Fury's taunt, Sacred Arbiter's
   judgement refresh, the utility seals, the T1 5-piece's −0.5 s Judgement, and Blessing of Wisdom

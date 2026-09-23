@@ -395,6 +395,12 @@ export interface CharacterSheet {
    */
   bossTable: BossOutcomes | null
   /**
+   * A class that casts spells (the paladin; docs/classes/paladin.md#conventions-used-below): Holy
+   * spell damage (Champion of the Light's share of Intellect included), spell crit and spell hit in
+   * %, and mana per 5 s. Absent for other classes.
+   */
+  spell?: { holyDamage: number; critPct: number; hitPct: number; mp5: number }
+  /**
    * Base values not known yet for this race and class (e.g. "base attributes"), left out of the
    * numbers above (docs/mechanics/character-stats.md#open-questions). Empty when complete.
    */
@@ -459,10 +465,25 @@ export interface SimResult {
   cooldowns: CooldownResult[]
   /** Tank specs (the boss attacks you): damage taken and the boss's outcomes. Absent otherwise. */
   tank?: TankResult
+  /** A spec that casts spells from mana (the paladin): its mana over a fight. Absent otherwise. */
+  mana?: ManaResult
   sheet: CharacterSheet
   /** The [?] assumptions that affect this configuration. */
   assumptions: Assumption[]
   elapsedMs: number
+}
+
+/**
+ * Mana over a fight, averaged over the fights run (docs/classes/paladin.md#mana-model): the pool
+ * at the pull, what the power ticks regenerated (Spirit and mana per 5 s), what spells and
+ * consumables restored (Sanctified Judgement, a mana potion or rune), and what the rotation spent.
+ * What's left at the end is the pool plus both gains, less what was spent.
+ */
+export interface ManaResult {
+  max: number
+  regeneratedPerFight: number
+  restoredPerFight: number
+  spentPerFight: number
 }
 
 export interface SimProgress {

@@ -180,6 +180,8 @@ export class Sim {
   /** Mana spent on abilities, and gained from regeneration and spell effects, in tenths, summed over every fight run. */
   totalManaSpentTenths = 0
   totalManaGainedTenths = 0
+  /** The part of the mana gained that the power ticks regenerated (Spirit and mp5), in tenths. */
+  totalManaRegenTenths = 0
   /** Test hook: called for every white swing (source row, hand, time), and bleed tick and spell tick (source, −1, time). */
   trace: ((source: number, hand: number, time: number) => void) | null = null
   /**
@@ -2870,7 +2872,9 @@ export class Sim {
       const outside = this.now - this.manaSpentAt >= this.fiveSecondRuleMs
       const tenths = this.manaMp5 + (outside ? this.manaRegen : this.manaRegen * this.manaInFsrShare)
       if (this.manaTrace !== null) this.manaTrace(this.now, tenths)
+      const before = this.mana
       this.gainMana(tenths, -1)
+      this.totalManaRegenTenths += this.mana - before
     }
   }
 

@@ -26,6 +26,10 @@ export interface ChunkResult {
   /** Rage gained and lost to the cap, tenths (diagnostics). */
   rageGainedTenths: number
   rageWastedTenths: number
+  /** Mana spent, and gained (all of it, and the part the power ticks regenerated), tenths (the paladin's results). */
+  manaSpentTenths: number
+  manaGainedTenths: number
+  manaRegenTenths: number
   /** Health lost per second to hits taken, one sample per fight (the tank results' damage taken). */
   damageTaken: Moments
   /** The boss's swings by outcome (Sim.bossOutcomes: miss, dodge, parry, block, crit, crush, hit). */
@@ -43,6 +47,7 @@ export function runChunk(plan: Plan, chunk: number, fights: number, sim: Sim = n
   sim.totalEnergyWastedTenths = 0
   sim.totalManaSpentTenths = 0
   sim.totalManaGainedTenths = 0
+  sim.totalManaRegenTenths = 0
   const dps = emptyMoments()
   const tps = emptyMoments()
   const damageTaken = emptyMoments()
@@ -67,6 +72,9 @@ export function runChunk(plan: Plan, chunk: number, fights: number, sim: Sim = n
     auraApplications: sim.auraApplications.slice(),
     rageGainedTenths: sim.totalRageGainedTenths,
     rageWastedTenths: sim.totalRageWastedTenths,
+    manaSpentTenths: sim.totalManaSpentTenths,
+    manaGainedTenths: sim.totalManaGainedTenths,
+    manaRegenTenths: sim.totalManaRegenTenths,
     damageTaken,
     bossOutcomes: sim.bossOutcomes.slice(),
   }

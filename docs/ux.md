@@ -385,6 +385,13 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   downwards, so what spares you (miss, dodge, parry, block) is on the left and what lands in full
   (crit, crushing, normal hit) on the right, and a screen reader hears them in the roll's order.
   Its heading names the list, so the list has no name of its own to read twice.
+- **Mana per fight** (paladins): the section after the breakdown, a ledger of the average fight,
+  one row per line with the numbers right-aligned: "At the pull 2,882", "Regenerated +3,120",
+  "Restored +3,872", "Spent −9,650" and "Left at the end 224" (never below 0). Restored is left
+  out when nothing restores mana. A line under it says what the gains count: "Regenerated counts
+  Spirit and mana per 5 s; restored, Sanctified Judgement's returns and mana potions and runes."
+  It's what Consecration's and Exorcism's mana thresholds and the potion lines are weighed
+  against; the potion's and rune's casts per fight are under Cooldowns and buffs.
 - **Cooldowns and buffs:** a collapsed section, like the character sheet. It's a table with
   one row per cast the rotation can press (Battle Shout if you keep it up, Death Wish,
   Recklessness, Bloodrage, racials, on-use trinkets, consumables), in the rotation's order, and
@@ -403,6 +410,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   your next ability".
 - **Character sheet:** the final AP, crit, hit, haste, weapon skill and armor, the way the
   sim computed them.
+  - A paladin's add its spell stats, each beside its melee or base counterpart: Holy spell damage
+    (Champion of the Light's share of Intellect included), Spell crit and Spell hit after
+    Expertise; Intellect and Spirit after Stamina; Mana and Mana per 5 s after Health.
   - Defense, dodge, parry, block and block value join them for a tank, and for anyone with
     defense above 300 or block value. A tank's add **Crit reduction (boss's crits)** after
     Defense, on a row of its own, since your own Crit is a few rows above: how much defense lowers

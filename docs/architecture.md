@@ -188,7 +188,10 @@ A spec is data plus small ability modules, never its own loop.
   or ability's that applies them), and a weapon's own proc aura on both hands names its hand.
   Tank specs also get the fight from the tank's side (`SimResult.tank`): damage taken per
   second, one sample per fight with its CI like DPS, and the boss's swings by outcome, summed per
-  chunk and merged in chunk order like the breakdown counters (encounter §5).
+  chunk and merged in chunk order like the breakdown counters (encounter §5). A spec that casts
+  spells from mana (the paladin) gets its mana over a fight (`SimResult.mana`): the pool at the
+  pull, what the power ticks regenerated, what spells and consumables restored and what the
+  rotation spent, each per fight, from the engine's mana totals summed per chunk the same way.
 - **Spells** (the paladin; [paladin.md › How the engine does it](classes/paladin.md#how-the-engine-does-it)):
   `Plan.spells` are damaging spells as data (school, damage class, No Active Defense, Always Hit,
   a range or a weapon share, a spell damage coefficient, their own multipliers), which one

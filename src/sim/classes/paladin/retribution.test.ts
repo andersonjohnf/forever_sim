@@ -7,6 +7,7 @@ import { defaultConfig } from '../../defaults'
 import { runChunk } from '../../engine/chunk'
 import { FIELD, FIELD_COUNT, Sim } from '../../engine/sim'
 import { buildPlan } from '../../plan/build'
+import { emptyAggregate, manaResult } from '../../run/aggregate'
 import { COND, type Plan } from '../../plan/types'
 import { ROTATION_GROUPS } from '../rotation'
 import type { CreatureType, RotationValue, SimConfig } from '../../types'
@@ -373,6 +374,39 @@ describe('mana (paladin.md#mana-model; buffs doc §3.5)', () => {
     expect(lastJudgement).toBeLessThan(sim.fightMs - 30000)
     // Holy Strike (18 mana) outlasts Consecration (121 and 508).
     expect(Math.max(...times(list, 'holyStrike'))).toBeGreaterThan(Math.max(...times(list, 'consecration'), ...times(list, 'consecrationRank1')))
+  })
+})
+
+describe('the mana the results report (docs/ux.md#results "Mana per fight")', () => {
+  it('balances: the pool at the pull, plus what was regenerated and restored, less what was spent, is the mana left at the end', () => {
+    const plan = planOf({ buffs: [...defaultConfig(RET).buffs.enabled, 'demonicRune'] })
+    const sim = new Sim(plan)
+    const fights = 200
+    const chunk = runChunk(plan, 0, fights, sim)
+    let left = 0
+    for (let i = 0; i < fights; i++) {
+      sim.runFight(i)
+      left += sim.resources().mana
+    }
+    const agg = { ...emptyAggregate(plan.sources.length, plan.auras.length), ...chunk, fights }
+    const mana = manaResult(plan, agg)!
+    expect(mana.max).toBe(plan.mana!.maxTenths / 10)
+    expect(mana.regeneratedPerFight).toBeGreaterThan(0)
+    // Sanctified Judgement's returns and the potion and rune.
+    expect(mana.restoredPerFight).toBeGreaterThan(0)
+    expect(mana.max + mana.regeneratedPerFight + mana.restoredPerFight - mana.spentPerFight).toBeCloseTo(left / 10 / fights, 6)
+    // With no potion, rune or Sanctified Judgement, nothing is restored.
+    const bare = planOf({ buffs: [] })
+    for (const a of bare.abilities) a.manaReturnTenths = 0
+    const none = manaResult(bare, { ...emptyAggregate(bare.sources.length, bare.auras.length), ...runChunk(bare, 0, 50), fights: 50 })!
+    expect(none.restoredPerFight).toBe(0)
+  })
+
+  it('is only a paladin’s: a warrior’s and a druid’s results have none', () => {
+    for (const spec of ['warrior-fury', 'druid-feral-cat'] as const) {
+      const plan = buildPlan(defaultConfig(spec)).plan
+      expect(manaResult(plan, { ...emptyAggregate(plan.sources.length, plan.auras.length), ...runChunk(plan, 0, 10), fights: 10 })).toBeNull()
+    }
   })
 })
 

@@ -139,6 +139,19 @@ describe('paladin', () => {
     expect(getSpec('paladin-retribution').available).toBe(true)
     expect(getSpec('paladin-protection').available).toBe(false)
   })
+
+  it('reports a paladin’s spell stats and mana (docs/ux.md#results), and no one else’s', async () => {
+    const ret = await simulate(quick(defaultConfig('paladin-retribution')))
+    expect(ret.sheet.mana).toBeGreaterThan(2000)
+    expect(ret.sheet.spell).toMatchObject({ holyDamage: expect.any(Number), critPct: expect.any(Number), hitPct: expect.any(Number) })
+    // Blessing of Wisdom and Mana Spring Totem in the Standard raid.
+    expect(ret.sheet.spell!.mp5).toBeGreaterThan(0)
+    expect(ret.mana).toMatchObject({ max: ret.sheet.mana })
+    expect(ret.mana!.spentPerFight).toBeGreaterThan(ret.mana!.max)
+    const fury = await simulate(quick(defaultConfig('warrior-fury')))
+    expect(fury.sheet.spell).toBeUndefined()
+    expect(fury.mana).toBeUndefined()
+  })
 })
 
 describe('specs', () => {

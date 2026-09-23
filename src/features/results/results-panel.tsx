@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import type { SimConfig, SimResult, Summary } from '@/sim'
 import { AssumptionList } from './assumption-list'
 import { Delta } from './delta'
+import { ManaPerFight } from './mana-results'
 import { DIM_FILL, DIM_ICON, DIM_ROOT } from './dim'
 import { breakdownRows, isSetupError, neverHit } from './run-logic'
 import { avoidanceOf, CRIT_REDUCTION_LABEL, formatCritReduction } from './tank-logic'
@@ -284,6 +285,7 @@ export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'pan
       {result.tank && <DamageTaken tank={result.tank} previous={previous?.tank?.dtps.mean ?? null} fight={runConfig?.fight ?? null} />}
       {!empty && <Breakdown result={result} />}
       {result.tank && <SwingOutcomes tank={result.tank} />}
+      {result.mana && <ManaPerFight mana={result.mana} />}
       {result.cooldowns.length > 0 && (
         <Details title="Cooldowns and buffs">
           <Cooldowns result={result} runConfig={runConfig} />
@@ -533,6 +535,8 @@ function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: S
   // Decision D24: the unmeasured base values in the numbers shown, the ones the assumptions name
   // (a tank's avoidance placeholders only with their rows).
   const placeholders = (s.placeholders ?? []).filter((p) => defensive || !AVOIDANCE_BASES.has(p))
+  // A paladin's spell stats and mana (docs/ux.md#results): each next to its melee or base counterpart.
+  const spell = s.spell
   const rows: [string, string][] = [
     ['Attack power', formatInt(s.attackPower)],
     ['Crit', formatPct(s.critPct)],
@@ -540,10 +544,29 @@ function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: S
     ['Haste', formatPct(s.hastePct)],
     ['Weapon skill', dualWield ? `${s.weaponSkill.mainHand} main hand / ${s.weaponSkill.offHand} off hand` : String(s.weaponSkill.mainHand)],
     ['Expertise', formatInt(s.expertise)],
+    ...(spell
+      ? ([
+          ['Holy spell damage', formatInt(spell.holyDamage)],
+          ['Spell crit', formatPct(spell.critPct)],
+          ['Spell hit', formatPct(spell.hitPct)],
+        ] as [string, string][])
+      : []),
     ['Strength', formatInt(s.strength)],
     ['Agility', formatInt(s.agility)],
     ['Stamina', formatInt(s.stamina)],
+    ...(spell
+      ? ([
+          ['Intellect', formatInt(s.intellect)],
+          ['Spirit', formatInt(s.spirit)],
+        ] as [string, string][])
+      : []),
     ['Health', formatInt(s.health)],
+    ...(spell && s.mana !== null
+      ? ([
+          ['Mana', formatInt(s.mana)],
+          ['Mana per 5 s', formatInt(spell.mp5)],
+        ] as [string, string][])
+      : []),
     ['Armor', formatInt(s.armor)],
     ...(defensive
       ? ([

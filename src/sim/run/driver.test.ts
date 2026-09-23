@@ -48,6 +48,9 @@ function syntheticExecutor(plan: Plan, lanes: number, spread: Record<Metric, num
           auraApplications: new Float64Array(plan.auras.length),
           rageGainedTenths: 0,
           rageWastedTenths: 0,
+          manaSpentTenths: 0,
+          manaGainedTenths: 0,
+          manaRegenTenths: 0,
           damageTaken: emptyMoments(),
           bossOutcomes: new Float64Array(7),
         }

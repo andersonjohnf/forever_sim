@@ -565,6 +565,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       : null,
     unknown,
     placeholders,
+    // docs/classes/paladin.md#mana-model, #conventions-used-below: the paladin's spell stats, as the
+    // engine starts the fight with them (Holy spell damage with Champion of the Light's share).
+    ...(classId === 'paladin'
+      ? { spell: { holyDamage: shown.holySpellDamage, critPct: shown.spellCrit, hitPct: shown.spellHit, mp5: block.mp5 } }
+      : {}),
   }
 
   // --- Procs, auras and breakdown rows ------------------------------------------------------------

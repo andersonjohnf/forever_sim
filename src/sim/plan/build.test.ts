@@ -494,7 +494,7 @@ describe('talents, racials and stances', () => {
   })
 })
 
-describe('setups the engine can’t run yet', () => {
+describe('base values the sim stands in for (D24), and setups it can’t run yet', () => {
   it('gives paladins the placeholders of D24 (base attributes, health, dodge and crits), and says so', () => {
     for (const race of ['alliance-human', 'alliance-dwarf', 'horde-undead']) {
       const bundle = buildPlan({ ...defaultConfig('paladin-retribution'), race })

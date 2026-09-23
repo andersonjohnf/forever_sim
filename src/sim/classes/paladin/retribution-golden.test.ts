@@ -1,6 +1,7 @@
 // The Retribution golden run (docs/doctrine.md#4-engine: fixed-seed goldens guard against
 // regressions): the default setup, 1,000 fights on seed 12345, as the warriors' in
-// engine/engine.test.ts. Its own file and snapshot, apart from the warriors'.
+// engine/engine.test.ts, and its mana over the fight. Its own file and snapshot, apart from the
+// warriors'. And a single-core benchmark, as the warriors' (engine.test.ts "benchmark").
 import { describe, expect, it } from 'vitest'
 import { defaultConfig } from '../../defaults'
 import { CHUNK_SIZE, runChunk } from '../../engine/chunk'
@@ -25,6 +26,9 @@ describe('golden run (fixed config and seed)', () => {
   //   Consecration from 65% mana (rank 1 from 20%), and the Major Mana Potion once you're missing
   //   1,500 while another would still be ready (2,250 after that): 608.6 DPS over 400,000 fights.
   //   On this seed's 1,000 fights, DPS 609.76 and TPS 358.60.
+  // - C2's review (RU3, RL4): Prayer of Spirit and Arcane Brilliance join a paladin's Standard raid
+  //   (buffs doc §6.2), +40 Spirit and +31 Intellect: 2,882 → 3,392 mana, DPS 622.56, TPS 365.78.
+  //   The snapshot records the mana ledger too.
   it('keeps the default Retribution paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-retribution'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)
@@ -34,6 +38,25 @@ describe('golden run (fixed config and seed)', () => {
       tps: result.tps,
       durationSec: result.durationSec,
       abilities: result.abilities.map((a) => [a.id, a.damage, a.casts, a.hits, a.crits, a.misses, a.dodges, a.glances]),
+      mana: result.mana,
     }).toMatchSnapshot()
+  })
+})
+
+describe('benchmark', () => {
+  // Spells, mana and the seals' procs cost more per fight than a warrior's swings: the reviewer
+  // measured about 9,000 fights a second on one core, like Fury's. The same floor as the warriors'.
+  it('runs at least 5,000 default Retribution paladin fights per second on one core', () => {
+    const plan = buildPlan(defaultConfig('paladin-retribution')).plan
+    const sim = new Sim(plan)
+    runChunk(plan, 0, 500, sim) // warm up the JIT
+    const fights = 10000
+    const start = performance.now()
+    for (let k = 0; k < fights / CHUNK_SIZE; k++) runChunk(plan, k, CHUNK_SIZE, sim)
+    const perSecond = fights / ((performance.now() - start) / 1000)
+    console.log(`benchmark: ${Math.round(perSecond)} fights/s (default Retribution paladin, one core)`)
+    // Shared CI runners are noisy; the real bar is checked locally.
+    const ci = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env.CI
+    expect(perSecond).toBeGreaterThanOrEqual(ci ? 1000 : 5000)
   })
 })

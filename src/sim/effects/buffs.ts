@@ -100,7 +100,7 @@ export const MAJOR_MANA_POTION: OnUseSpec = {
  */
 export const DEMONIC_RUNE: OnUseSpec = {
   id: 'demonicRune',
-  name: 'Demonic Rune / Dark Rune',
+  name: 'Demonic Rune',
   icon: 'inv_misc_rune_04',
   cooldownMs: 120000,
   gcdMs: 0,
@@ -194,6 +194,36 @@ export const BUFFS: BuffSpec[] = [
     effects: [{ kind: 'stat', stat: 'sta', value: 70 }],
     classicEra: { summary: '+54 Stamina', effects: [{ kind: 'stat', stat: 'sta', value: 54 }] },
     presets: { dungeon: 'all', raid: 'all', max: 'all' },
+  },
+  {
+    id: 'prayerOfSpirit',
+    name: 'Prayer of Spirit',
+    icon: 'spell_holy_prayerofspirit',
+    category: 'raidBuff',
+    group: 'Stats',
+    summary: '+40 Spirit',
+    providedBy: 'priest',
+    // Spirit regenerates mana, which only the paladin spends in combat among the classes in scope.
+    forClasses: PALADIN_ONLY,
+    docRef: `${DOC}#11-attack-power-stats-and-crit`,
+    // 27681 #0 (Divine Spirit 27841 the same): aura 29, misc 4 (Spirit), 40; Classic Era's 39 + 1.
+    effects: [{ kind: 'stat', stat: 'spi', value: 40 }],
+    presets: { raid: PALADINS, max: PALADINS },
+  },
+  {
+    id: 'arcaneBrilliance',
+    name: 'Arcane Brilliance',
+    icon: 'spell_holy_arcaneintellect',
+    category: 'raidBuff',
+    group: 'Stats',
+    summary: '+31 Intellect',
+    providedBy: 'mage',
+    // Intellect is mana, spell crit and (Champion of the Light) spell damage: the paladin's alone.
+    forClasses: PALADIN_ONLY,
+    docRef: `${DOC}#11-attack-power-stats-and-crit`,
+    // 23028 #0 (Arcane Intellect 10157 the same): aura 29, misc 3 (Intellect), 31; Classic Era's 30 + 1.
+    effects: [{ kind: 'stat', stat: 'int', value: 31 }],
+    presets: { raid: PALADINS, max: PALADINS },
   },
   {
     id: 'leaderOfThePack',
@@ -302,13 +332,13 @@ export const BUFFS: BuffSpec[] = [
     icon: 'spell_holy_sealofwisdom',
     category: 'raidBuff',
     group: 'Mana',
-    summary: '+40 mana every five seconds',
+    summary: '+40 mana every 5 s',
     providedBy: 'paladin',
     forClasses: PALADIN_ONLY,
     docRef: `${DOC}#12-threat-defense-and-mana`,
     // 25290 #0: aura 24, 40 every 5 s; the sim's mana ticks every 2 s, so 16 a tick.
     effects: [{ kind: 'stat', stat: 'mp5', value: 40 }],
-    classicEra: { summary: '+33 mana every five seconds', effects: [{ kind: 'stat', stat: 'mp5', value: 33 }] },
+    classicEra: { summary: '+33 mana every 5 s', effects: [{ kind: 'stat', stat: 'mp5', value: 33 }] },
     presets: { raid: PALADINS, max: PALADINS },
   },
   {
@@ -317,7 +347,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'spell_nature_manaregentotem',
     category: 'raidBuff',
     group: 'Mana',
-    summary: '+10 mana every two seconds',
+    summary: '+10 mana every 2 s',
     providedBy: 'shaman',
     forClasses: PALADIN_ONLY,
     docRef: `${DOC}#12-threat-defense-and-mana`,
@@ -790,14 +820,15 @@ export const BUFFS: BuffSpec[] = [
   },
   {
     id: 'demonicRune',
-    name: 'Demonic Rune / Dark Rune',
+    name: 'Demonic Rune',
     icon: 'inv_misc_rune_04',
     category: 'consumable',
     group: 'Potions and bombs',
-    summary: '900–1,500 mana, every 2 min apart from potions; the Rotation tab says when',
+    // A Dark Rune is the same, on the same cooldown, so one entry stands for both.
+    summary: '900–1,500 mana (a Dark Rune is the same), every 2 min apart from potions; the Rotation tab says when',
     forClasses: PALADIN_ONLY,
     docRef: `${DOC}#35-potions-and-runes`,
-    effects: [{ kind: 'onUse', id: 'demonicRune', name: 'Demonic Rune / Dark Rune', use: DEMONIC_RUNE }],
+    effects: [{ kind: 'onUse', id: 'demonicRune', name: 'Demonic Rune', use: DEMONIC_RUNE }],
     presets: { max: PALADINS },
   },
   {

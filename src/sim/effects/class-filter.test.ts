@@ -9,7 +9,17 @@ import { SPEC_IDS, SPEC_META } from '../specs'
 import { BUFFS } from './buffs'
 import { forSpecClass, presetBuffIds } from './presets'
 
-const PALADIN_ONLY = ['blessingOfWisdom', 'manaSpringTotem', 'flaskOfSupremePower', 'greaterArcaneElixir', 'elixirOfHolyPower', 'majorManaPotion', 'demonicRune']
+const PALADIN_ONLY = [
+  'prayerOfSpirit',
+  'arcaneBrilliance',
+  'blessingOfWisdom',
+  'manaSpringTotem',
+  'flaskOfSupremePower',
+  'greaterArcaneElixir',
+  'elixirOfHolyPower',
+  'majorManaPotion',
+  'demonicRune',
+]
 
 describe('class-only catalogue entries', () => {
   it('are the paladin’s mana and spell damage entries, and the Mighty Rage Potion (warriors and druids only)', () => {
@@ -34,15 +44,32 @@ describe('class-only catalogue entries', () => {
   it('follow the paladin presets (buffs doc §6.2 “Pal”, §6.3)', () => {
     const raid = (spec: 'paladin-retribution' | 'paladin-protection') => presetBuffIds('raid', spec, FULL_RAID)
     const max = (spec: 'paladin-retribution' | 'paladin-protection') => presetBuffIds('max', spec, FULL_RAID)
-    // Retribution, Standard raid: Blessing of Wisdom, Mana Spring, Greater Arcane Elixir, Major Mana Potion.
-    expect(raid('paladin-retribution').filter((id) => PALADIN_ONLY.includes(id))).toEqual(['blessingOfWisdom', 'manaSpringTotem', 'greaterArcaneElixir', 'majorManaPotion'])
+    // Retribution, Standard raid: Prayer of Spirit, Arcane Brilliance, Blessing of Wisdom, Mana Spring, Greater Arcane Elixir, Major Mana Potion.
+    expect(raid('paladin-retribution').filter((id) => PALADIN_ONLY.includes(id))).toEqual([
+      'prayerOfSpirit',
+      'arcaneBrilliance',
+      'blessingOfWisdom',
+      'manaSpringTotem',
+      'greaterArcaneElixir',
+      'majorManaPotion',
+    ])
     // Max consumables adds Elixir of Holy Power, a rune and Flask of Supreme Power.
     expect(max('paladin-retribution').filter((id) => PALADIN_ONLY.includes(id)).sort()).toEqual([...PALADIN_ONLY].sort())
     // Protection: Elixir of Holy Power and the potion in Standard; Greater Arcane Elixir, the flask and a rune in Max.
-    expect(raid('paladin-protection').filter((id) => PALADIN_ONLY.includes(id))).toEqual(['blessingOfWisdom', 'manaSpringTotem', 'elixirOfHolyPower', 'majorManaPotion'])
+    expect(raid('paladin-protection').filter((id) => PALADIN_ONLY.includes(id))).toEqual([
+      'prayerOfSpirit',
+      'arcaneBrilliance',
+      'blessingOfWisdom',
+      'manaSpringTotem',
+      'elixirOfHolyPower',
+      'majorManaPotion',
+    ])
     expect(max('paladin-protection').filter((id) => PALADIN_ONLY.includes(id)).sort()).toEqual([...PALADIN_ONLY].sort())
-    // Each needs its provider: no shaman, no Mana Spring.
+    // Each needs its provider: no shaman, no Mana Spring; no priest or mage, no Spirit or Intellect.
     expect(presetBuffIds('raid', 'paladin-retribution', FULL_RAID.filter((c) => c !== 'shaman'))).not.toContain('manaSpringTotem')
+    const noCasters = presetBuffIds('raid', 'paladin-retribution', FULL_RAID.filter((c) => c !== 'priest' && c !== 'mage'))
+    expect(noCasters).not.toContain('prayerOfSpirit')
+    expect(noCasters).not.toContain('arcaneBrilliance')
   })
 
   it('are turned off in another class’s saved setup, with a note, and do nothing in its plan', () => {
@@ -65,5 +92,12 @@ describe('class-only catalogue entries', () => {
     expect(some.stats.holySpellDamage - none.stats.holySpellDamage).toBe(40)
     // 40 + 25 mana per 5 s: 26 mana a 2 s tick, in tenths.
     expect(some.mana!.mp5TickTenths! - none.mana!.mp5TickTenths!).toBe(260)
+    // Prayer of Spirit's +40 Spirit (+5% for a Human: 42) and Arcane Brilliance's +31 Intellect (15 mana each, character-stats.md).
+    const sheet = (enabled: string[]) => buildPlan({ ...ret, buffs: { ...ret.buffs, enabled } }).sheet
+    const bare = sheet([])
+    const both = sheet(['prayerOfSpirit', 'arcaneBrilliance'])
+    expect(ret.race).toBe('alliance-human')
+    expect([both.spirit - bare.spirit, both.intellect - bare.intellect]).toEqual([42, 31])
+    expect(both.mana! - bare.mana!).toBe(31 * 15)
   })
 })

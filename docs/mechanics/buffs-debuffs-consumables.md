@@ -640,6 +640,11 @@ druid. Faerie Fire in Buffs still does, since a cat's own is its rotation's.
 `DPS` = Arms, Fury, Cat, Ret · `Tank` = Prot warrior, Bear, Prot paladin · `Pal` = paladin
 specs only (the effect does nothing for the others) · `all` = every spec.
 
+Spirit and Intellect are mana, and among the classes in scope only the paladin spends mana in a
+rotation the sim ships: a warrior has none, and the druid's powershifting mana waits for its
+specs to ship (then Prayer of Spirit and Arcane Brilliance join the cat's presets too, see
+[milestones](../milestones.md)). So they're `Pal`, like Blessing of Wisdom and Mana Spring.
+
 | Entry | Self-buffs only | Pre-raid dungeon group | Standard raid | Max-consumables raid |
 | --- | --- | --- | --- | --- |
 | Battle Shout | — | all | all | all |
@@ -649,7 +654,7 @@ specs only (the effect does nothing for the others) · `all` = every spec.
 | Blessing of Wisdom | — | — | Pal | Pal |
 | Mark / Gift of the Wild | — | all | all | all |
 | Power Word / Prayer of Fortitude | — | all | all | all |
-| Divine Spirit / Prayer of Spirit, Arcane Brilliance | — | — | all | all |
+| Divine Spirit / Prayer of Spirit, Arcane Brilliance | — | — | Pal | Pal |
 | Leader of the Pack or Moonkin Aura | — | — | DPS | DPS |
 | Windfury Totem | — | — | all | all |
 | Strength of Earth Totem | — | — | all | all |
@@ -892,9 +897,9 @@ food) are static: used before the pull and up all fight.
 ### Class-only entries
 
 An entry that does nothing for some classes carries the classes it's for (`forClasses` in
-`src/sim/effects/buffs.ts`). So far these are the paladin's: Blessing of Wisdom, Mana Spring
-Totem, Greater Arcane Elixir, Elixir of Holy Power, Flask of Supreme Power, the Major Mana
-Potion and the Demonic / Dark Rune. Warriors and druids in feral forms spend rage or energy,
+`src/sim/effects/buffs.ts`). So far these are the paladin's: Prayer of Spirit, Arcane
+Brilliance, Blessing of Wisdom, Mana Spring Totem, Greater Arcane Elixir, Elixir of Holy Power,
+Flask of Supreme Power, the Major Mana Potion and the Demonic Rune (a Dark Rune is the same). Warriors and druids in feral forms spend rage or energy,
 not mana, and deal no spell damage. The Mighty Rage Potion is for warriors and druids, the only
 classes Forever lets drink it ([§3.5](#35-potions-and-runes)). For another class, the Buffs tab doesn't list such an
 entry, no preset selects it, `normalizeConfig` turns it off in a saved setup with a note, and
@@ -907,9 +912,9 @@ from Forever's. They were read from the Classic Era client **1.15.9.69722** on 2
 every Forever value was checked against **1.60.1.69913** at the same time [client]. In the
 tables, `a + 1` is a `SpellEffect` row's `EffectBasePoints` a with `EffectDieSides` 1, so the
 value is a + 1; `#n` is the effect index; `→` follows an item to its spell, an enchanting spell
-to its `SpellItemEnchantment`, and an enchant to its equip spell. All **105** entries were
-compared (49 buffs, debuffs and consumables; 56 enchants): **27 differ**, **18 are new in
-Forever**, and the other **60** are the same in both clients. Two of the 25 differ only in the
+to its `SpellItemEnchantment`, and an enchant to its equip spell. All **107** entries were
+compared (51 buffs, debuffs and consumables; 56 enchants): **27 differ**, **18 are new in
+Forever**, and the other **62** are the same in both clients. Two of the 27 differ only in the
 kind of crit: Leader of the Pack and Mongoose are all crit (aura 290, spells too) in Forever and
 melee and ranged crit (aura 52) in Classic Era.
 
@@ -951,6 +956,8 @@ melee and ranged crit (aura 52) in Classic Era.
 | Blessing of Kings (`blessingOfKings`) | +10% all stats | same | 20217 #0: 9 + 1 | [C] |
 | Gift of the Wild r2 (`markOfTheWild`) | +16 all stats, +385 armor | **+12 all stats, +285 armor** | 21850 #1: 11 + 1; #0: 284 + 1 (resistances 19 + 1, not simulated) | [C] |
 | Prayer of Fortitude r2 (`powerWordFortitude`) | +70 Sta | **+54 Sta** | 21564 #0: 53 + 1 | [C] |
+| Prayer of Spirit (`prayerOfSpirit`) | +40 Spi | same | 27681 #0 (aura 29, Spirit): 39 + 1 (Divine Spirit 27841 the same) | [C] |
+| Arcane Brilliance (`arcaneBrilliance`) | +31 Int | same | 23028 #0 (aura 29, Intellect): 30 + 1 (Arcane Intellect 10157 the same) | [C] |
 | Leader of the Pack (`leaderOfThePack`) | +3% crit, spells too (aura 290) | **+3% melee and ranged crit** | 24932 #0 (aura 52): 2 + 1; Forever's is aura 290, all crit | [C] |
 | Windfury Totem r3 (`windfuryTotem`) | 20% for an extra attack with +246 AP; a party aura | **+315 AP; a main-hand enchant that replaces a stone** | 10610 #0: 314 + 1; 10612 → 10611 → enchant 564 (20%, casts 10610) | [C] |
 | Grace of Air Totem r3 (`graceOfAir`) | +89 Agi | **+77 Agi** | 25360 #0 (the totem's aura): 76 + 1 | [C] |
@@ -993,7 +1000,7 @@ melee and ranged crit (aura 52) in Classic Era.
 | Elemental Sharpening Stone (`elementalSharpeningStone`) | +2% crit | same | 18262 → 22756 → enchant 2506 → 22755 #0: 1 + 1 | [C] |
 | Mighty Rage Potion (`mightyRagePotion`) | 45–75 rage, +60 Str for 20 s | same | 13442 → 17528 #0: 449 + 1d301 tenths; #1: 59 + 1; 20 s | [C] |
 | Major Mana Potion (`majorManaPotion`) | 1350–2250 mana | same | 13444 → 17531 #0: 1349 + 1d901 | [C] |
-| Demonic / Dark Rune (`demonicRune`) | 900–1500 mana (and 600–1000 health, not simulated) | same | 12662 → 16666 and 20520 → 27869 #0: 899 + 1d601 | [C] |
+| Demonic Rune (`demonicRune`; a Dark Rune is the same) | 900–1500 mana (and 600–1000 health, not simulated) | same | 12662 → 16666 and 20520 → 27869 #0: 899 + 1d601 | [C] |
 | Juju Flurry (`jujuFlurry`) | +3% attack speed for 20 s | same | 12450 → 16322 #0: 2 + 1; 20 s | [C] |
 | EZ-Thro Dark Bomb (`ezThroDarkBomb`) | not simulated | none: new in Forever (260817) | — | [F] |
 | Greater Stoneshield Potion (`greaterStoneshieldPotion`) | not simulated (+2000 armor) | same | 13455 → 17540 #0: 1999 + 1 | [C] |

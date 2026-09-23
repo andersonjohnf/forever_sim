@@ -123,6 +123,8 @@ const ROWS: Record<string, Row> = {
     rows: [S(21850, 1), S(21850, 1), S(21850, 1), S(21850, 1), S(21850, 1), S(21850, 0)],
   },
   powerWordFortitude: { forever: [['sta', 70]], classicEra: [['sta', 54]], rows: [S(21564)] },
+  prayerOfSpirit: { forever: [['spi', 40]], rows: [S(27681)] },
+  arcaneBrilliance: { forever: [['int', 31]], rows: [S(23028)] },
   // Forever: all crit (aura 290), so spell crit too; Classic Era: aura 52, melee and ranged only.
   leaderOfThePack: {
     forever: [['crit', 3], ['spellCrit', 3]],
@@ -273,7 +275,7 @@ const ENTRIES: [string, CatalogueEntry][] = [...BUFFS.map((b) => [b.id, b] as [s
 describe('the catalogue in both profiles (buffs doc, Classic Era values)', () => {
   it('lists every entry once in the table, as the doc does', () => {
     expect(Object.keys(ROWS).sort()).toEqual(ENTRIES.map(([id]) => id).sort())
-    expect(ENTRIES).toHaveLength(106)
+    expect(ENTRIES).toHaveLength(108)
   })
 
   it.each(ENTRIES)('%s: Forever’s values, and Classic Era’s where they differ', (id, entry) => {
@@ -291,7 +293,8 @@ describe('the catalogue in both profiles (buffs doc, Classic Era values)', () =>
   })
 
   it('shows each profile’s own numbers in the summaries of the entries that differ', () => {
-    const numbers = (text: string) => [...text.matchAll(/\d[\d,]*(?:\.\d+)?/g)].map((m) => Number(m[0].replaceAll(',', '')))
+    // Every number but a time ("every 5 s", "for 2 min"), which says how often, not how much.
+    const numbers = (text: string) => [...text.matchAll(/\d[\d,]*(?:\.\d+)?(?! ?(?:s|min)\b)/g)].map((m) => Number(m[0].replaceAll(',', '')))
     for (const [id, entry] of ENTRIES) {
       if (!entry.classicEra) continue
       for (const profile of [FOREVER, CLASSIC_ERA]) {
@@ -303,6 +306,7 @@ describe('the catalogue in both profiles (buffs doc, Classic Era values)', () =>
     expect(catalogueSummary(BUFFS_BY_ID.get('battleShout')!, FOREVER)).toBe('+139 attack power')
     expect(catalogueSummary(BUFFS_BY_ID.get('battleShout')!, CLASSIC_ERA)).toBe('+232 attack power')
     expect(catalogueSummary(BUFFS_BY_ID.get('blessingOfKings')!, CLASSIC_ERA)).toBe('+10% all stats')
+    expect(catalogueSummary(BUFFS_BY_ID.get('blessingOfWisdom')!, CLASSIC_ERA)).toBe('+33 mana every 5 s')
   })
 })
 

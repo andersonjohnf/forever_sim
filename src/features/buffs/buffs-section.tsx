@@ -216,7 +216,10 @@ export function BuffsSection() {
                                   : unused !== undefined
                                     ? `${def.summary}. ${unused}.`
                                     : missing
-                                      ? `Needs ${dropped ? 'another' : 'a'} ${providerName} in the raid`
+                                      ? // You're one of your class yourself, so a buff your class brings that you
+                                        // don't count for needs another (a paladin's Blessing of Kings, a cat's
+                                        // Faerie Fire when its rotation drops it; docs/ux.md "Buffs").
+                                        `Needs ${def.providedBy === meta.classId ? 'another' : 'a'} ${providerName} in the raid`
                                       : dropped
                                         ? `${def.summary}. You’re not keeping it up (see Rotation); turn this on if another ${providerName} does.`
                                         : def.summary}

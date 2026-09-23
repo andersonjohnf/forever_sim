@@ -4,13 +4,15 @@ import { expect, test } from './fixtures.ts'
 // the paladin's (buffs doc "Class-only entries"), so a warrior never sees them.
 
 const PALADIN_ONLY = [
+  'Prayer of Spirit',
+  'Arcane Brilliance',
   'Blessing of Wisdom',
   'Mana Spring Totem',
   'Greater Arcane Elixir',
   'Elixir of Holy Power',
   'Flask of Supreme Power',
   'Major Mana Potion',
-  'Demonic Rune / Dark Rune',
+  'Demonic Rune',
 ]
 
 test('a warrior’s Buffs tab lists no mana or spell damage entries, in any preset', async ({ page }) => {

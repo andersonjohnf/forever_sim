@@ -1869,7 +1869,7 @@ new build, re-run `npm run scrape:client -- --claims` instead of checking in a b
   Battle 630 DPS, Berserker 604, Berserker dancing for Rend and Overpower 631, so Battle stays
   the default.
 - **Rip vs Bite as the default finisher**: settled by the sim for now. Rip wins in both profiles,
-  with the default raid's bleed: Bite in its place loses 9.9% in `forever` and 4.4% in
+  with the default raid's bleed: Bite in its place loses 9.8% in `forever` and 4.3% in
   `classicEra`. Re-run it after B17, C17, C18, B38 and B22 change the inputs
   ([druid Q26](classes/druid.md#10-open-questions)).
 - **Bear rotation thresholds** (Maul every swing, Swipe at 60+ spare rage, Enrage pre-pull only):

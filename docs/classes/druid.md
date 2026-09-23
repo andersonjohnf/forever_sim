@@ -828,7 +828,7 @@ isn't shown, [ux.md](../ux.md) "Fight").
 | `shred.enabled` | **on** | Shred builds, from behind (the Fight tab's position) |
 | `claw.enabled` | **on** | Claw builds where Shred can't: from the front, or with Shred off |
 | `rip.enabled`, `rip.minComboPoints`, `rip.minFightLeftSec`, `rip.refreshBelowSec` | **on**, **5**, **8 s**, **0 s** | Rip policy. The doc's 10 s is `ripMinRemaining`; tuning prefers 8 |
-| `rip.onlyWithoutOtherBleeds` | **off** | The doc's `ripOnlyIfNoOtherBleed`. Off in both profiles: in the sim Rip beats Bite even with a raid bleed, including in `classicEra`, where Rip's ticks can't crit. Turning it on in the default raid loses 56.22 DPS (−9.9%) in `forever` and 24.58 (−4.4%) in `classicEra` (W12, Q26) |
+| `rip.onlyWithoutOtherBleeds` | **off** | The doc's `ripOnlyIfNoOtherBleed`. Off in both profiles: in the sim Rip beats Bite even with a raid bleed, including in `classicEra`, where Rip's ticks can't crit. Turning it on in the default raid loses 55.72 DPS (−9.8%) in `forever` and 24.03 (−4.3%) in `classicEra` (W12, Q26) |
 | `ferociousBite.enabled`, `ferociousBite.minComboPoints` | **on**, **5** | Bite threshold. The Era's 4 (Primal Fury's overflow) is the doc's first default; tuning prefers 5 |
 | `ferociousBite.shredFirstFrom` | **35** | Energy at or above which to Shred before biting. 35 to 42 mean the same (Shred costs 42): Bite only when there isn't Energy for a Shred. The doc's first default was 67 (42 + 35 − 10) |
 | `ferociousBite.anyEnergyLastSec` | **4 s** | In the last this many seconds, Bite at the combo points without a Shred first: the Energy has no time left to become Shreds. 0 is never. Tuning's (below) |
@@ -1190,10 +1190,10 @@ bear.
       costs and when the rotation can use it: Rip spends 30 Energy and goes out as soon as it's off
       the boss, where Bite spends all the Energy there is. In the engine, with the default setup
       and its raid's bleed, `rip.onlyWithoutOtherBleeds` (Bite instead of Rip) loses in both
-      profiles: `classicEra` **−24.58 DPS (−4.37%), 95% CI −24.81 to −24.35**, and `forever`
-      −56.22 (−9.91%), on seed 1 (40,000 paired fights); on a fresh seed (20260923, 200,000
-      fights) −24.51 (−24.61 to −24.41) and −56.11 (−56.22 to −56.01). Biting at 4 as well
-      doesn't rescue it: −21.59 in `classicEra`. So the setting defaults off in both profiles
+      profiles: `classicEra` **−24.03 DPS (−4.27%), 95% CI −24.26 to −23.80**, and `forever`
+      −55.72 (−9.81%), on seed 1 (40,000 paired fights); on a fresh seed (20260923, 200,000
+      fights) −23.98 (−24.08 to −23.88) and −55.58 (−55.68 to −55.47). Biting at 4 as well
+      doesn't rescue it: −21.25 in `classicEra`. So the setting defaults off in both profiles
       (§6.2).
     - [?] (depends on Q3, Q9, Q10, Q21)
 13. **Dire bear white swing at 1200 AP.** 109.6 + 214.286 = **323.886** to 164.4 + 214.286 =
@@ -1248,7 +1248,7 @@ ranks.
 | Q23 | HotW Str ×1.10 before or after Blessing of Kings | [?] | Character-sheet Str in cat with and without Kings |
 | Q24 | MCP charges and cooldown in Forever. **✅ Resolved from client data:** 3 charges and a 180 s cooldown in the Forever item effect | [F] [client] (ItemEffect 98990, 1.60.1.69913); foreverchanges' tooltip lists no charges [fc-mcp]; wowsims/classic's APL uses it only in the first 90 s [?] [ws-apl] | Nothing left; a guild check of the tooltip would confirm it |
 | Q25 | Crusader, weapon stones and oils in form | Buffs doc. The sim: a stone's weapon damage does nothing in form (the Buffs tab locks it off, §7.5), an Elemental stone's crit does | Combat log in cat form |
-| Q26 | Rip vs Bite as default finisher. **✅ Answered by the sim:** Rip, in both profiles | With the default raid's bleed, Bite in Rip's place loses 9.9% in `forever` and 4.4% in `classicEra`, where Example 12's single finisher favoured Bite (§6.2, W12). The inputs are still [?] (Q3, Q9, Q10, Q21) | Nothing to test for this question; re-run the comparison (`scripts/tune/rotation.mjs --spec druid-feral-cat [--profile classicEra] rip.onlyWithoutOtherBleeds=true`) when Q3, Q9, Q10 or Q21 is answered |
+| Q26 | Rip vs Bite as default finisher. **✅ Answered by the sim:** Rip, in both profiles | With the default raid's bleed, Bite in Rip's place loses 9.8% in `forever` and 4.3% in `classicEra`, where Example 12's single finisher favoured Bite (§6.2, W12). The inputs are still [?] (Q3, Q9, Q10, Q21) | Nothing to test for this question; re-run the comparison (`scripts/tune/rotation.mjs --spec druid-feral-cat [--profile classicEra] rip.onlyWithoutOtherBleeds=true`) when Q3, Q9, Q10 or Q21 is answered |
 | Q27 | Confirm the wago.tools DB2 readings (scripted before the robots.txt ruling). **✅ Resolved from client data** ([client.md](../data/client.md#doc-claims-checked-against-the-raw-client)) | Every priority row matched the raw 1.60.1.69913 and 1.15.9.69722 files (claims D6, D10, D14–D17, C27): Rip 9896 and SDV 865, Shred, Claw, Rake, Ferocious Bite, Mangle, Lacerate, Cat Form (Passive) 3025, Bear Form Passive2 21178, Tiger's Fury, King of the Jungle, Berserk, Omen of Clarity's ICD, Demoralizing Roar's row, Cower, the Balance/Resto talent auras, form swing timers, the cat GCD, Endurance and Elune's Light. The remaining label-cited values match `src/data/client/*.json` | Nothing left in a browser. On a new build, re-run `npm run scrape:client -- --claims` |
 | Q28 | Form attacks and items (secondary source only): does haste (MCP, Wind Blessed, T1 2-piece) speed form swings; do PPM procs use the form speed (1.0 / 2.5); is "+X Attack Power in Cat, Bear, and Dire Bear forms" added 1:1; is there no normalization; is MCP the right default weapon? | [?] (secondary [ws-forms] [ws-talents] [ws-presets] [ws-apl] [ws-shred]) | Swing timer with MCP active (addon or combat log); Crusader proc count in cat vs caster; character-sheet AP with and without a feral-AP item |
 | Q29 | Energy cap 100; builders refund 80% on miss/dodge/parry; finishers refund nothing and keep combo points | [?] (standard values; secondary [ws-energy] [ws-shred] [ws-rip] [ws-fb]) | Energy bar maximum; log Energy before and after a dodged Shred and a dodged Bite, and CP after a missed finisher |

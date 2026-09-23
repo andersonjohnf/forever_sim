@@ -71,7 +71,7 @@ work is in slices:
     `src/data/client/spells.json` and doc fallback
   - tests W1, W3, W7, W24, and rotation sanity checks
 - [ ] **M2.2 Complete Fury**, in three slices (M2.1's handoff list, split):
-  - [ ] **M2.2a Talents on abilities and the execute phase:** cost reductions and Impale,
+  - [x] **M2.2a Talents on abilities and the execute phase:** cost reductions and Impale,
         Unbridled Wrath on Heroic Strike swings (Q5), the execute-phase event, Execute (§5.2
         rows 6–7), Raging Blows, and stance gating
   - [ ] **M2.2b Cooldowns:** self-buff and energize ability kinds, and time-left conditions
@@ -140,7 +140,19 @@ slice is worked:
 - **Bundle size:** 1.73 MB (272 KB gzipped), mostly item data. Consider lazy-loading
   talents per class.
 - **Rotation UX:** indent dependent inputs under their toggle, e.g. "Heroic Strike from"
-  under "Heroic Strike". Raise it in the M2.4 UX review.
+  under "Heroic Strike". Raise it in the M2.4 UX review. `dependsOn` works only for number
+  options, so dependent toggles ("Whirlwind in the execute phase" under "Execute") aren't
+  dimmed when their parent is off.
+- **Fury's `btOverExecuteAp` default is a fixed 2220** (W11 at Execute cost 15). Rotation
+  options have one default per spec, not per build, so an Improved Execute build has to set
+  2434 itself. A per-build default needs an API in `sim/index.ts` and the Rotation UI.
+- **Impale's client class mask also covers Rend and Sunder Armor.** warrior.md §2.5 omits them
+  and says Rend isn't in the mask, and damage-and-timing §4's 2.0× Rend tick crit relies on
+  that. Fix both docs in M2.3, with Rend.
+- **GCD-safe ignores stances:** it counts an ability the current stance refuses as ready.
+  Fix it when stance dancing arrives (M2.3).
+- **Cleave isn't built yet,** so W21's Cleave costs (Improved Cleave, Raging Blows) are
+  untested.
 - **Pushes:** nothing has been pushed yet; `origin/main` is still the first commit. The first
   push happens at M2.4, after the full review gate.
 

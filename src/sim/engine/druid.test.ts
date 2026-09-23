@@ -11,7 +11,7 @@ import { FORM_INDEX, formBit } from '../classes/druid/forms'
 import { type TalentRanks, withDruidTalents } from '../classes/druid/modifiers'
 import { defaultConfig } from '../defaults'
 import { buildPlan } from '../plan/build'
-import { ACTION, type AbilityDef, COND, NO_PREPULL, type Plan, POWER_TICK_MS, STANCE_ANY, TRIGGER, TRIGGER_COUNT } from '../plan/types'
+import { ACTION, type AbilityDef, COND, NO_PREPULL, type Plan, POWER_TICK_MS, type RotationCondition, STANCE_ANY, TRIGGER, TRIGGER_COUNT } from '../plan/types'
 import { simulate } from '../index'
 import { DerivedStats, deriveStats } from '../stats/stat-block'
 import type { GearSlot, RuleProfileId, SimConfig, SpecId } from '../types'
@@ -188,6 +188,53 @@ describe('Energy (druid.md §2.4)', () => {
     // Each dodged use costs 8 Energy net: 100, 92, 84, … while at least 40 is left.
     expect(r.rageAtUse[avoided]).toEqual([1000, 920, 840, 760, 680, 600, 520, 440])
     expect(r.sim.resources().comboPoints).toBe(0)
+  })
+})
+
+describe('Energy conditions (druid.md §6.2): codes 14 and 15, after the warrior’s executeWithin (13)', () => {
+  /**
+   * A cat with no weapon and an Energy spender (30 Energy, 1 s GCD) in a 10 s fight whose
+   * execute phase starts at 8 s: a threshold read as an execute window would hold the line until
+   * 8 s − a, or never.
+   */
+  function spender(condition: RotationCondition) {
+    const plan = druidPlan('druid-feral-cat', 10000)
+    plan.fight.executePct = 20
+    plan.weapons = [null, null]
+    for (const form of plan.forms!) form.mainHand = null
+    const spend = addDruidAbility(plan, testRow('testSpend', { kind: 'cast', resource: 'energy', costTenths: 300, gcdMs: 1000, forms: formBit('cat') }))
+    line(plan, spend, [condition])
+    const { uses, rageAtUse } = timeline(plan)
+    return { at: uses[spend], energy: rageAtUse[spend] }
+  }
+
+  it('minEnergy: used from the pull while Energy ≥ 90, and only then', () => {
+    const { at, energy } = spender({ code: COND.minEnergy, a: 900, b: 0 })
+    expect(COND.minEnergy).toBe(14)
+    expect(at[0]).toBe(0)
+    expect(at.some((t) => t < 8000 - 900 && t > 0)).toBe(true)
+    for (const e of energy) expect(e).toBeGreaterThanOrEqual(900)
+  })
+
+  it('maxEnergy: used only while Energy ≤ 50, which the full bar at the pull isn’t', () => {
+    const { at, energy } = spender({ code: COND.maxEnergy, a: 500, b: 0 })
+    expect(COND.maxEnergy).toBe(15)
+    expect(at.length).toBe(0)
+    // With a minEnergy line first that drains the bar, the maxEnergy line picks up below 50.
+    const plan = druidPlan('druid-feral-cat', 10000)
+    plan.fight.executePct = 20
+    plan.weapons = [null, null]
+    for (const form of plan.forms!) form.mainHand = null
+    const row = (id: string) => addDruidAbility(plan, testRow(id, { kind: 'cast', resource: 'energy', costTenths: 300, gcdMs: 1000, forms: formBit('cat') }))
+    const drain = row('testDrain')
+    const low = row('testLow')
+    line(plan, drain, [{ code: COND.minEnergy, a: 700, b: 0 }])
+    line(plan, low, [{ code: COND.maxEnergy, a: 500, b: 0 }])
+    const t = timeline(plan)
+    expect(t.uses[low].length).toBeGreaterThan(0)
+    expect(t.uses[low][0]).toBeLessThan(8000 - 500)
+    for (const e of t.rageAtUse[low]) expect(e).toBeLessThanOrEqual(500)
+    expect(energy).toEqual([])
   })
 })
 

@@ -292,6 +292,34 @@ data loss, crashes, accessibility blockers or regressions.
 **Post-verification commits:** FV4's copy (`d8d76c3`) and FV1's fix (`4a1cad3`) are changes
 after the last review, so a fresh reviewer checks both before the push (below).
 
+## Review of the post-verification commits
+
+A fresh reviewer checked `d8d76c3`, `4a1cad3` and the dispositions above (`9264d80`).
+
+**Confirmed:**
+- lint ✓ · typecheck ✓ · unit ✓ (934) · e2e ✓ (156, 3 deferred to M3)
+- the new e2e test fails on `4a1cad3^` at both widths (40.9 and 59.9 px) and passed 10/10 on
+  `4a1cad3`
+- with no toast up, the bottom spacing, scroll height and footer gap match the pre-fix build
+  on all 6 tabs at 390 and 1280 px
+- with a waiting toast up, every tab stop on all 6 tabs at 390, 768, 1024 and 1280 px is clear
+  of it, apart from tab panels taller than the screen
+- the padding and `--toast-clearance` go back after Dismiss, Escape, Undo and a timeout
+- the Ironfoe copy matches C37, the rule profile and the effect
+- FV2's, FV3's, FV5's and FV6's factual claims hold
+
+| # | Severity | Finding | Disposition |
+| --- | --- | --- | --- |
+| PV1 | medium, blocking | **The sheets get no toast clearance.** At 390 px with a waiting toast up, Tab can land on a control the toast hides entirely: the results sheet's "Character sheet" button, and About's "What still needs testing in game" link. It's WCAG 2.4.11 and contradicts ux.md. The pre-fix build does the same. | open |
+| PV2 | medium | **Decimal fields read a decimal comma as a thousands separator:** Arms "Rend again with" turns "1,5" into 15. On a comma-decimal phone, whose decimal keypad has only ",", no fraction can be typed. FV3 covered integer fields only. | open |
+| PV3 | low | **The handoff said the gate was complete** while this review was open, and the FV2 known gap dropped "after typing in a text field". | open |
+| PV4 | low | **The Ironfoe copy doesn't say which way** the other reading moves DPS, or that 2.7% is for the default setup. | open |
+| PV5 | low | **Every toast grows the page's padding**, so when a 10 s toast times out with the page scrolled to its end, the content drops 35 px (390) or 54 px (1280) unprompted. | open |
+| PV6 | low, pre-existing | **Undo hands focus back off-screen** when it lengthens the page, because Sonner restores focus with `preventScroll`. | open |
+| PV7 | low | **Focus isn't cleared again when the toast stack settles:** when Share's toast times out in front of a waiting toast, the waiting one grows to full size over 17 of the focused link's 44 px. | open |
+| PV8 | low | **Stale comments and one loose sentence** about `--toast-clearance` and the "last control". | open |
+| PV9 | low | **FV7's description is off:** each arrow press scrolls the page about 360 px (390) or 420 px (1280), not "to the top", so peeking at a tab loses your place. | open |
+
 ## Verdict
 
-Ready to push: not yet. `d8d76c3` and `4a1cad3` await their independent review.
+Ready to push: not yet. The post-verification review's findings are open.

@@ -358,8 +358,9 @@ PL2, PL6, PV1–PV4 and PW1–PW3, and the bear's, BL1, BL2 and BL9):
 - **A duty is survival or a raid debuff whose measured effect is worth its cost.** Skipping Enrage
   in combat saves a bear 0.16% of its damage taken for 3.8% of its TPS, so it isn't a duty; the
   search decides it.
-- **Max TPS drops only the duties.** Other abilities stay unless dropping them wins on TPS
-  without resting on an untested threat value. Shield Slam stays: dropping it gains 3.3% TPS
+- **Max TPS may drop only the duties, and drops each one whose upkeep costs TPS;** a duty that
+  makes threat itself stays (the bear's Faerie Fire). Other abilities stay unless dropping them
+  wins on TPS without resting on an untested threat value. Shield Slam stays: dropping it gains 3.3% TPS
   only at Classic Era's +254 threat [?], while Forever's tooltip raised its threat to "very high",
   and from about +449 keeping it wins on TPS as well.
 - **The Buffs tab's versions of the duties** assume the tank applies them, so no preset lists a

@@ -226,7 +226,7 @@ placeholders, and M9 replaces them.
 - Shields' block value, which the item data lacks and M7's stat boosts need too, still comes
   from a flagged Classic Era fallback shield.
 
-## M4: Feral Druid 🚧
+## M4: Feral Druid ✅
 
 - [x] **B1 druid foundation:** forms, Energy, combo points, mana and the power tick, shifting and
       Furor, Omen of Clarity, form weapons and attack power, bear armor, talents
@@ -234,8 +234,9 @@ placeholders, and M9 replaces them.
 - [x] **B2 Cat DPS:** its rotation (bleeds, finishers, Faerie Fire; no powershifting in Forever),
       +3.7% over the doc's first priority under D23, and shipped
       ([review](reviews/2026-09-23-feral-cat.md))
-- [ ] **B3 Bear TPS:** Maul, Swipe, Mangle, Lacerate, its duties first by default (D26), tuned
-- [ ] **B4 Bear:** the Max TPS rotation (D26), and shipped
+- [x] **B3 Bear TPS:** Maul, Swipe, Mangle, Lacerate, its duties first by default (D26), tuned
+- [x] **B4 Bear:** the Max TPS rotation (D26), and shipped
+      ([review](reviews/2026-09-24-feral-bear.md))
 
 ## M5: Paladin ✅
 
@@ -432,6 +433,10 @@ slice is worked:
   slice that can re-snapshot both.
 - **The spec switcher's separators** sit inside each labelled class group from the second class
   on, so a screen reader reads them as part of that group (CF1).
+- **The bear's review lows** ([its log](reviews/2026-09-24-feral-bear.md)): per-class wording of
+  the white-threat note ("stance or form"); Max TPS results naming "your" roar when it's off; the
+  bear's swings table listing 0% parry and block; Enrage's damage-taken figure (0.16% vs 0.14%);
+  setup-store tests for a known but hidden spec.
 - **Bearweaving:** rage from damage taken divides by the maximum health of the form the fight
   started in, which only holds while no rotation shifts into bear to take hits. A cat that did
   would gain about 47% too much; divide by the current form's health first

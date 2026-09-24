@@ -18,9 +18,10 @@ Status: consolidated 2026-09-22, reconciled with the cross-doc review the same d
 client-data check the same day ([client.md](data/client.md)); B9, B14, C2 and C25 updated
 2026-09-23 from the beta-log analysis of rage from damage taken
 ([rage.md](mechanics/rage.md#forever-)), and B77 added the same day from its rounding
-([rage.md](mechanics/rage.md#rounding)) · Forever beta 1.60.1.69913 ·
-Classic Era 1.15.9.69722 · beta capped at level 20 (rising to 30), launch 2026-11-04, raids
-unlock 2026-12-09
+([rage.md](mechanics/rage.md#rounding)); B9, B14 and C2 noted 2026-09-24 from two bears' logs
+([rage.md](mechanics/rage.md#bear-logs-of-23-and-24-sep-)), defaults unchanged · Forever beta
+1.60.1.69913 · Classic Era 1.15.9.69722 · beta capped at level 20 (rising to 30), launch
+2026-11-04, raids unlock 2026-12-09
 
 **145 entries, 122 open:** Route A 8 (High 1, Medium 2, Low 5) · Route B 77 (20 / 27 / 30) ·
 Route C 37 (9 / 14 / 14) · Route D 23, all ✅ resolved from client data (was 7 / 11 / 5), plus
@@ -390,12 +391,22 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   1.5 × `D_pre`), whether a level term hides behind max health, and whether later builds cap
   several attackers. Alternatives: `foreverFlat` (`1.5 × health lost / 230.6`, the earlier fit)
   and `foreverHealthLost` (`10 × health lost / max health`) [?]. rage.md owns them all.
+- **Partly answered** (2026-09-24, two bears' logs of 23–24 Sep, [?], not adopted:
+  [rage.md](mechanics/rage.md#bear-logs-of-23-and-24-sep-)): max-health normalization holds
+  (the health-lost models don't fit); crits and crushing blows count at 2 × and 1.5 × the
+  unmitigated amount; two mobs' hits each count in full; and the factor rises with the mob's
+  level, from 10.5–11.0 against level 25–26 to 16.0 against 56. Either the mob's level or the
+  level gap explains it; at 60 against a boss that is about 10.5 or 16.5 instead of 10
+  (Protection warrior +0.4% or +4.9% TPS, bear +1.1% or +8.5%). The default stays 10 until a test
+  tells the two apart.
 - **Test:** with advanced combat logging and `UNIT_POWER_UPDATE`, record per hit the log's
   unmitigated amount, health lost, any blocked or absorbed amount, max health, armor and level:
   1. rage per hit from 1 mob, then from 3 or more at once, on the current build (2026-09-24 or
      later);
   2. max health changed at one level (Stamina gear, Power Word: Fortitude) with armor held, then
-     two levels at about the same max health;
+     two levels at about the same max health; and one character hit by the same mob type at
+     several relative levels (0, +3, +10), then a second character at a different level against
+     the same mobs;
   3. Defensive Stance against Battle Stance;
   4. mob crits and crushing blows against plain hits;
   5. hits fully absorbed by Power Word: Shield;
@@ -485,11 +496,18 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 - **Assumes:** 3.46 × 2.5 = 8.65 rage per landed bear auto, crits no bonus [?] (one player
   reports about 11: "11 rage per hit no matter what"); rage from damage taken as for warriors
   ([B9](#b9-rage-from-damage-taken-confirm-the-logged-fit)) [?], which 33 logged hits on likely
-  bears fit weakly; shifting into bear sets rage to 0 [C; Forever ?].
-- **Test:** bear form, auto attack only, no damage taken: rage per landed swing. Then take hits
-  as in B9, including hits fully absorbed by Power Word: Shield (players report bears get none
-  there). Shift out and back in at a known rage (no Furor) and read rage after the shift.
-- **Samples:** ≥50 landed autos; ≥50 hits taken; 10 absorbed hits; 5 shifts.
+  bears fit weakly; shifting into bear sets rage to 0 [C; Forever ?]. Two bears' logs of 23–24
+  Sep ([rage.md](mechanics/rage.md#bear-logs-of-23-and-24-sep-)) add one clean bear auto of
+  +11.3 rage (`4.5 × 2.5`, the two-hander's rate; +1.8% bear TPS if it holds), 49 hits taken that
+  fit the damage-taken formula's shape, and shifts that start at 0 (weak: rage was likely 0
+  already). None is adopted: one swing, and the bear is already above the guild's 800–900 TPS
+  benchmark.
+- **Test:** bear form, auto attack only, no damage taken and nothing else giving rage (no Enrage,
+  Furor or Primal Fury): rage per landed swing. Then take hits as in B9, including hits fully
+  absorbed by Power Word: Shield (players report bears get none there). Shift out and back in at a
+  known rage (no Furor) and read rage after the shift.
+- **Samples:** ≥50 landed autos (≥20 settles 11.25 against 8.65); ≥50 hits taken; 10 absorbed
+  hits; 5 shifts, with rage above 0 before each.
 - **Changes:** the bear rage model.
 - **Docs:** [rage § bear](mechanics/rage.md#bear-druid-rage),
   [rage OQ 3, OQ 6](mechanics/rage.md#open-questions)
@@ -1374,11 +1392,14 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 #### C2. Rage formulas at level 60
 **High · M2 (tanks: M3, M4)**
 - **Assumes:** the same `k` at every level, and the damage-taken formula from B9 holds at 60 [?]
-  (measured only at levels 1–25). The logs can't tell max health from a level term, which would
-  change level-60 tank rage.
+  (measured only at levels 1–25). The 18–22 Sep logs can't tell max health from a level term;
+  two bears' logs of 23–24 Sep find one: the factor rises with the mob's level or the level gap
+  ([rage.md](mechanics/rage.md#bear-logs-of-23-and-24-sep-)), which at 60 against a level-63
+  boss gives about 10.5 or 16.5 instead of 10 [?]. The default stays 10.
 - **Test:** repeat [B1](#b1-rage-per-landed-white-hit) and
   [B9](#b9-rage-from-damage-taken-confirm-the-logged-fit) at 60 with level-60 weapons and hits,
-  including boss or elite hits of several thousand before armor.
+  including boss or elite hits of several thousand before armor, and a level-60 tank hit by a
+  level-63 mob.
 - **Samples:** as in B1 and B9.
 - **Changes:** the level-60 rage constants.
 - **Docs:** [rage OQ 1, OQ 2](mechanics/rage.md#open-questions);

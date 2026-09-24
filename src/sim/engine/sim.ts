@@ -397,6 +397,8 @@ export class Sim {
   private readonly aEnergyRegen: Float64Array
   private readonly aPoisonDamage: Float64Array
   private readonly aPoisonChance: Float64Array
+  /** Your bleeds' tick damage %, per aura (Hemorrhage's, rogue.md §3.9). */
+  private readonly aBleedDamage: Float64Array
 
   // Spells, flattened (paladin.md#conventions-used-below; Plan.spells).
   private readonly splSource: Int32Array
@@ -647,6 +649,21 @@ export class Sim {
   private readonly abCpBackAtFive: Int32Array
   private readonly abCritAuraConsume: Uint8Array
   private readonly abPoisonedPct: Float64Array
+  /**
+   * What Subtlety's rows brought (rogue.md §5.3, §8), 0 or −1 on every other row: a bonus below a
+   * health share (Quietus) and when this fight reaches it, the aura a bleed's ticks put up (Thousand
+   * Cuts) and the one whose stacks make an ability cheaper, and the aura a landed hit opens with a
+   * chance (Cutthroat's Ambush window).
+   */
+  private readonly abLowPct: Float64Array
+  private readonly abLowBelow: Float64Array
+  private readonly abLowAt: Float64Array
+  private readonly lowHealthAbilities: Int32Array
+  private readonly abTickAura: Int32Array
+  private readonly abCostAura: Int32Array
+  private readonly abCostPerStack: Int32Array
+  private readonly abOpensAura: Int32Array
+  private readonly abOpensChance: Float64Array
   /** Others keep the target bleeding (Plan.fight.othersBleed). */
   private readonly othersBleed: boolean
   /** PPM procs that can roll on the main hand, and their rates: a shapeshift re-resolves their chance (druid.md §2.1). */
@@ -701,6 +718,8 @@ export class Sim {
   private energyRegenMult = 1
   private poisonMult = 1
   private poisonChance = 0
+  /** The auras' factor on your bleeds' ticks (Hemorrhage, rogue.md §3.9). */
+  private bleedMult = 1
   /**
    * White hits and hits taken give rage: for a warrior, in a druid's bear form (FormPlan.rage), and
    * never for a class without a rage pool (the paladin).
@@ -1073,6 +1092,7 @@ export class Sim {
     this.aEnergyRegen = Float64Array.from(auras, (a) => a.energyRegen ?? 0)
     this.aPoisonDamage = Float64Array.from(auras, (a) => a.poisonDamage ?? 0)
     this.aPoisonChance = Float64Array.from(auras, (a) => a.poisonChance ?? 0)
+    this.aBleedDamage = Float64Array.from(auras, (a) => a.bleedDamage ?? 0)
 
     const spells = plan.spells ?? []
     this.splBoostAura = Int32Array.from(spells, (x) => x.boostAura ?? -1)
@@ -1181,6 +1201,15 @@ export class Sim {
     this.abCpBackAtFive = Int32Array.from(abilities, (a) => a.comboPointsBackAtFive ?? 0)
     this.abCritAuraConsume = Uint8Array.from(abilities, (a) => (a.auraCrit?.consume ? 1 : 0))
     this.abPoisonedPct = Float64Array.from(abilities, (a) => a.poisonedTargetPct ?? 0)
+    this.abLowPct = Float64Array.from(abilities, (a) => a.lowHealthPct ?? 0)
+    this.abLowBelow = Float64Array.from(abilities, (a) => a.lowHealthBelowPct ?? 0)
+    this.abLowAt = new Float64Array(nb).fill(Infinity)
+    this.lowHealthAbilities = Int32Array.from(abilities.flatMap((a, i) => ((a.lowHealthPct ?? 0) !== 0 ? [i] : [])))
+    this.abTickAura = Int32Array.from(abilities, (a) => a.tickAura ?? -1)
+    this.abCostAura = Int32Array.from(abilities, (a) => a.costAura ?? -1)
+    this.abCostPerStack = Int32Array.from(abilities, (a) => a.costPerStackTenths ?? 0)
+    this.abOpensAura = Int32Array.from(abilities, (a) => a.opensAura ?? -1)
+    this.abOpensChance = Float64Array.from(abilities, (a) => a.opensAuraChance ?? 0)
     this.othersBleed = plan.fight.othersBleed === true
     this.freeAura = plan.freeCastAura ?? -1
     this.abTickAt = new Float64Array(nb)
@@ -1516,6 +1545,11 @@ export class Sim {
     this.reset()
     // docs/mechanics/encounter.md#implementation-notes: t_exec = floor(L_i × (1 − executePct/100))
     this.executeAtMs = executePhaseStart(this.fightEnd, f.executePct)
+    // rogue.md §5.3: Quietus's bonus from the target's 35%, by the execute phase's rule.
+    for (let i = 0; i < this.lowHealthAbilities.length; i++) {
+      const a = this.lowHealthAbilities[i]
+      this.abLowAt[a] = executePhaseStart(this.fightEnd, this.abLowBelow[a])
+    }
     const hasExecute = this.executeAtMs < this.fightEnd
     // Time left ≤ x ⇔ now ≥ fightEnd − x; time left ≥ x ⇔ now ≤ fightEnd − x (warrior.md §5.2 rows 2–4).
     // The execute phase starts within x ⇔ now ≥ t_exec − x, never without the phase (§5.3 row 4); in
@@ -1879,6 +1913,7 @@ export class Sim {
     let energy = 1
     let poison = 1
     let poisonChance = 0
+    let bleed = 1
     for (let i = 0; i < this.auraActive.length; i++) {
       if (!this.auraActive[i]) continue
       const stacks = this.auraStacks[i]
@@ -1888,7 +1923,9 @@ export class Sim {
       if (this.aEnergyRegen[i]) energy *= 1 + (this.aEnergyRegen[i] * stacks) / 100
       if (this.aPoisonDamage[i]) poison *= 1 + (this.aPoisonDamage[i] * stacks) / 100
       if (this.aPoisonChance[i]) poisonChance += (this.aPoisonChance[i] * stacks) / 100
+      if (this.aBleedDamage[i]) bleed *= 1 + (this.aBleedDamage[i] * stacks) / 100
     }
+    this.bleedMult = bleed
     this.energyRegenMult = energy
     this.poisonMult = poison
     this.poisonChance = poisonChance
@@ -2569,6 +2606,8 @@ export class Sim {
     // A landed strike puts its debuff on the boss: Sunder Armor adds a stack (warrior.md §7). An
     // attack that also bleeds put its marker up with its bleed, above (Rake; Lacerate's stacks).
     if (main && this.abAura[a] >= 0 && this.abDotTicks[a] === 0) this.applyAura(this.abAura[a])
+    // rogue.md §5.3: a landed Backstab opens Cutthroat's Ambush window at its chance.
+    if (main && this.abOpensAura[a] >= 0 && this.rngProc.next() < this.abOpensChance[a]) this.applyAura(this.abOpensAura[a])
     // An on-next-swing ability's swing counts as a landed swing (Unbridled Wrath, warrior.md §2.3 [?]).
     if (this.abKind[a] === KIND_ON_NEXT_SWING) this.fireProcs(TRIGGER.swingLanded, hand)
     this.fireProcs(TRIGGER.meleeLanded, hand)
@@ -2611,6 +2650,8 @@ export class Sim {
     if (this.abBleedPct[a] !== 0 && (this.othersBleed || this.activeDots > 0)) base *= 1 + this.abBleedPct[a] / 100
     // rogue.md §3.11: Mutilate's bonus against a target with your lasting poison on it.
     if (this.abPoisonedPct[a] !== 0 && this.poisonedDots > 0) base *= 1 + this.abPoisonedPct[a] / 100
+    // rogue.md §5.3: Quietus, once the target is below 35% health.
+    if (this.abLowPct[a] !== 0 && this.now >= this.abLowAt[a]) base *= 1 + this.abLowPct[a] / 100
     return base * this.physMult * this.armorFactor[hand]
   }
 
@@ -2913,7 +2954,7 @@ export class Sim {
       }
       this.recomputeStats()
     }
-    if (this.aHaste[a] || this.aDamage[a] || this.aHoly[a] || this.aEnergyRegen[a] || this.aPoisonDamage[a] || this.aPoisonChance[a]) this.recomputeMultipliers()
+    if (this.aHaste[a] || this.aDamage[a] || this.aHoly[a] || this.aEnergyRegen[a] || this.aPoisonDamage[a] || this.aPoisonChance[a] || this.aBleedDamage[a]) this.recomputeMultipliers()
     if (this.aTaken[a]) this.recomputeTakenMult()
     if (this.aBossDebuff[a]) this.recomputeBossDebuffs()
   }
@@ -2987,7 +3028,8 @@ export class Sim {
   private onDotTick(a: number): void {
     const source = this.abDotSource[a]
     const row = source * FIELD_COUNT
-    let damage = this.dotDamage[a]
+    // rogue.md §3.9: Hemorrhage's debuff raises your bleeds' ticks while it's on the target.
+    let damage = this.dotDamage[a] * this.bleedMult
     const chance = this.dotCrit[a]
     if (chance > 0 && this.rngTable.roll100() < chance) {
       damage *= this.abCritMult[a]
@@ -2997,6 +3039,8 @@ export class Sim {
     }
     if (this.trace !== null) this.trace(source, -1, this.now)
     this.addDamage(source, damage, damage * this.abThreatMult[a] * this.threatMult)
+    // rogue.md §5.3: each Rupture tick adds a Thousand Cuts stack.
+    if (this.abTickAura[a] >= 0) this.applyAura(this.abTickAura[a])
     if (--this.dotTicksLeft[a] > 0) {
       this.dotNextAt[a] = this.now + this.abDotTickMs[a]
       this.q.push(this.dotNextAt[a], EV_DOT_TICK, a, this.dotGen[a])
@@ -3265,7 +3309,7 @@ export class Sim {
     if (forms !== 0 && (forms & (1 << this.form)) === 0) return false
     if (this.abFinisher[a] === 1 && this.comboPoints === 0) return false
     if (this.abFree[a] === 1 && this.auraActive[this.freeAura]) return true
-    return this.pool(this.abRes[a]) >= (this.abStackAura[a] >= 0 ? this.costOf(a) : this.abCost[a])
+    return this.pool(this.abRes[a]) >= (this.abStackAura[a] >= 0 ? this.costOf(a) : this.costNow(a))
   }
 
   /**
@@ -3292,6 +3336,13 @@ export class Sim {
     this.manaSpentAt = this.now
   }
 
+  /** An ability's cost now: its own, less Thousand Cuts' Energy per stack while that's up (rogue.md §5.3). */
+  private costNow(a: number): number {
+    const aura = this.abCostAura[a]
+    if (aura < 0 || !this.auraActive[aura]) return this.abCost[a]
+    return Math.max(0, this.abCost[a] - this.abCostPerStack[a] * this.auraStacks[aura])
+  }
+
   /** The pool of a resource, in tenths. */
   private pool(res: number): number {
     return res === RES_RAGE ? this.rage : res === RES_ENERGY ? this.energy : this.mana
@@ -3303,7 +3354,10 @@ export class Sim {
    * (§2.8). `lastPaid` keeps what was paid, for a refund.
    */
   private payCost(a: number): void {
-    const cost = this.abCost[a]
+    const cost = this.costNow(a)
+    // rogue.md §5.3: the ability that Thousand Cuts made cheaper uses its stacks up.
+    const costAura = this.abCostAura[a]
+    if (costAura >= 0 && this.auraActive[costAura]) this.removeAura(costAura)
     this.lastPaid = cost
     if (this.abPlainRage[a] === 1) {
       this.spendRage(a)

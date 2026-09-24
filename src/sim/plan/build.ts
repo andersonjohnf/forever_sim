@@ -666,6 +666,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spec.mods.energyRegen ? { energyRegen: spec.mods.energyRegen } : {}),
       ...(spec.mods.poisonDamage ? { poisonDamage: spec.mods.poisonDamage } : {}),
       ...(spec.mods.poisonChance ? { poisonChance: spec.mods.poisonChance } : {}),
+      ...(spec.mods.bleedDamage ? { bleedDamage: spec.mods.bleedDamage } : {}),
     })
     return auras.length - 1
   }
@@ -845,7 +846,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     }
   }
   const abilities: AbilityPlan[] = classRot.abilities.map((def) => {
-    const { offHand, aura, vsCreature: _, window, spellDef, tickSpellDef, auraCrit: __, noCooldownWhile: ___, stackAuraId: ____, selfAuraSpec, ...a } = def
+    const { offHand, aura, vsCreature: _, window, spellDef, tickSpellDef, auraCrit: __, noCooldownWhile: ___, stackAuraId: ____, selfAuraSpec, tickAuraSpec, costStacks: _____, opensWindow, ...a } = def
     const source = sourceIndex(a.id, a.name, a.icon)
     // A bleed's row counts applications and ticks (Rend: its ticks crit only where periodic
     // effects can, damage-and-timing §4).
@@ -875,6 +876,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(dotSource !== undefined ? { dotSource } : {}),
       // docs/classes/shaman.md: an aura it puts on the player when used (Improved Stormstrike's).
       ...(selfAuraSpec ? { selfAura: auraIndex(selfAuraSpec, selfAuraSpec.id, a.icon) } : {}),
+      // Subtlety's (rogue.md §5.3): Thousand Cuts' stacks from Rupture's ticks, Cutthroat's Ambush window.
+      ...(tickAuraSpec ? { tickAura: auraIndex(tickAuraSpec, tickAuraSpec.id, a.icon) } : {}),
+      ...(opensWindow ? { opensAura: auraIndex(opensWindow.aura, opensWindow.aura.id, a.icon), opensAuraChance: opensWindow.chance } : {}),
     }
   })
   // Crit an aura gives some abilities (Berserk's, druid.md §3.7), and the aura that suspends an
@@ -889,6 +893,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (def.noCooldownWhile) {
       const aura = auras.findIndex((x) => x.id === def.noCooldownWhile)
       if (aura >= 0) abilities[i].noCooldownAura = aura
+    }
+    // Thousand Cuts' stacks make Backstab and Hemorrhage cheaper (rogue.md §5.3), when Rupture puts them up.
+    if (def.costStacks) {
+      const aura = auras.findIndex((x) => x.id === def.costStacks!.aura)
+      if (aura >= 0) Object.assign(abilities[i], { costAura: aura, costPerStackTenths: def.costStacks.tenthsPerStack })
     }
   })
   // The rotation's own procs (the Overpower window's openers, warrior.md §2.8). A proc that needs an

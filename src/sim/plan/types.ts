@@ -262,6 +262,8 @@ export interface AuraPlan {
   /** The rogue's poisons' damage % and apply chance in points while it's up (Venom, rogue.md §4.4); absent = 0. */
   poisonDamage?: number
   poisonChance?: number
+  /** Your bleeds' ticks deal this % more while it's up, read at each tick (Hemorrhage's +15% Rupture, rogue.md §3.9); absent = 0. */
+  bleedDamage?: number
 }
 
 export interface ProcPlan {
@@ -639,6 +641,25 @@ export interface AbilityPlan {
   comboPointsBackAtFive?: number
   /** Damage % on its direct damage while the target has a lasting poison on it (Mutilate: +20%). */
   poisonedTargetPct?: number
+  // --- What Subtlety brought (docs/classes/rogue.md §8). All optional: absent, a row behaves as
+  // before. ---
+  /**
+   * Damage % on its direct damage once the target is below `lowHealthBelowPct`% health, from
+   * t = floor(L × (1 − that/100)), the execute phase's rule (Quietus: +10% below 35%, rogue.md §5.3).
+   */
+  lowHealthPct?: number
+  lowHealthBelowPct?: number
+  /** `bleed`: each of its ticks puts this plan aura up, a stack more each (Thousand Cuts, rogue.md §5.3), or −1. */
+  tickAura?: number
+  /**
+   * While this plan aura is up it costs `costPerStackTenths` less per stack, and using it takes the
+   * aura down (Thousand Cuts on Backstab and Hemorrhage: 3 Energy per stack), or −1.
+   */
+  costAura?: number
+  costPerStackTenths?: number
+  /** A landed hit puts this plan aura up with this chance (Cutthroat's Ambush window on Backstab, rogue.md §5.3), or −1. */
+  opensAura?: number
+  opensAuraChance?: number
 }
 
 /**
@@ -648,7 +669,10 @@ export interface AbilityPlan {
  * to its auras; `vsCreature` is a different weapon share against some creature types (Spearing
  * Strike), which the plan resolves against the encounter's creature type (encounter §6).
  */
-export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura' | 'window' | 'spell' | 'tickSpell' | 'auraCrit' | 'dotSource' | 'noCooldownAura'> & {
+export type AbilityDef = Omit<
+  AbilityPlan,
+  'source' | 'offHandSource' | 'aura' | 'window' | 'spell' | 'tickSpell' | 'auraCrit' | 'dotSource' | 'noCooldownAura' | 'tickAura' | 'costAura' | 'costPerStackTenths' | 'opensAura' | 'opensAuraChance'
+> & {
   offHand: boolean
   aura: AuraSpec | null
   /** The spell it casts on use, and on each tick (paladin abilities); the plan adds them to Plan.spells. */
@@ -675,6 +699,12 @@ export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura' |
   stackAuraId?: string
   /** An aura it puts on the player when used (Improved Stormstrike's, shaman.md): the plan adds it to its auras as `selfAura`. */
   selfAuraSpec?: AuraSpec
+  /** `bleed`: the aura each tick puts up (Thousand Cuts, rogue.md §5.3); the plan adds it to its auras. */
+  tickAuraSpec?: AuraSpec
+  /** The aura, by id, whose stacks make it cheaper and that using it takes down (Thousand Cuts); resolved and dropped as `auraCrit`. */
+  costStacks?: { aura: string; tenthsPerStack: number }
+  /** The aura a landed hit puts up with `chance` (Cutthroat's Ambush window, rogue.md §5.3); the plan adds it to its auras. */
+  opensWindow?: { aura: AuraSpec; chance: number }
 }
 
 /** An ability's weapon share against the encounter's creature type (Spearing Strike ×3 vs Giants and Dragonkin, warrior.md §3.1). */

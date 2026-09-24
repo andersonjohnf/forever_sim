@@ -269,6 +269,8 @@ export interface AuraSpec {
     /** The rogue's poisons' damage % and apply chance in points (Venom, docs/classes/rogue.md §4.4). */
     poisonDamage?: number
     poisonChance?: number
+    /** Your bleeds' ticks deal this % more, read at each tick (Hemorrhage's +15% Rupture, docs/classes/rogue.md §3.9). */
+    bleedDamage?: number
   }
 }
 

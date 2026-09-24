@@ -334,6 +334,25 @@ describe('a malformed automatic save', () => {
     expect(store().config.spec).toBe('rogue-combat')
   })
 
+  test('a last-used spec it doesn’t know opens the default spec on the player’s own setup for it (AR-5)', async () => {
+    // A newer version's save, in another tab: its current spec is one this version doesn't have.
+    // Normalizing it would read it as a Fury setup and put it over the player's own Fury setup.
+    seed({ config: { ...arms, spec: 'mage-bogus' }, bySpec: { 'warrior-fury': fury, 'warrior-arms': arms }, section: 'gear', following }, 2)
+    await load()
+    expect(store().config.spec).toBe('warrior-fury')
+    expect(store().config.race).toBe('horde-orc')
+    // Still the player's after a round trip through Arms, which kept its own.
+    store().setSpec('warrior-arms')
+    expect(store().config.race).toBe('horde-troll')
+    store().setSpec('warrior-fury')
+    expect(store().config.race).toBe('horde-orc')
+
+    // With no setup of its own stored, the default spec opens on its defaults.
+    seed({ config: { ...arms, spec: 'mage-bogus' }, bySpec: {}, section: 'gear', following }, 2)
+    await load()
+    expect(store().config).toEqual(fresh('warrior-fury'))
+  })
+
   test('keeps a well-formed save’s other specs', async () => {
     seed({ config: fury, bySpec: { 'warrior-arms': arms }, section: 'talents', following })
     await load()

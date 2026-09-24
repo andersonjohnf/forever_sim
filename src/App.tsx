@@ -4,7 +4,7 @@ import { DecadesCredit } from '@/app/decades-credit'
 import { useDefaultsNotice } from '@/app/defaults-notice'
 import { Header } from '@/app/header'
 import { useScrollFade } from '@/app/scroll-fade'
-import { useSetup, type Section } from '@/app/setup-store'
+import { SECTION_IDS, useSetup, type Section } from '@/app/setup-store'
 import { useSharedLink } from '@/app/shared-link'
 import { DataAttribution } from '@/components/data-attribution'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -17,14 +17,17 @@ import { ResultsPanel } from '@/features/results/results-panel'
 import { RotationSection } from '@/features/rotation/rotation-section'
 import { TalentsSection } from '@/features/talents/talents-section'
 
-const SECTIONS: { id: Section; label: string; content: () => React.JSX.Element }[] = [
-  { id: 'character', label: 'Character', content: CharacterSection },
-  { id: 'talents', label: 'Talents', content: TalentsSection },
-  { id: 'gear', label: 'Gear', content: GearSection },
-  { id: 'buffs', label: 'Buffs', content: BuffsSection },
-  { id: 'rotation', label: 'Rotation', content: RotationSection },
-  { id: 'fight', label: 'Fight', content: FightSection },
-]
+// One tab per section the store knows (SECTION_IDS), in its order: a Record, so a section added
+// there without a tab here, or a tab it doesn't know, fails the typecheck.
+const TABS: Record<Section, { label: string; content: () => React.JSX.Element }> = {
+  character: { label: 'Character', content: CharacterSection },
+  talents: { label: 'Talents', content: TalentsSection },
+  gear: { label: 'Gear', content: GearSection },
+  buffs: { label: 'Buffs', content: BuffsSection },
+  rotation: { label: 'Rotation', content: RotationSection },
+  fight: { label: 'Fight', content: FightSection },
+}
+const SECTIONS = SECTION_IDS.map((id) => ({ id, ...TABS[id] }))
 
 /**
  * Keeps the phone bar's height in --sim-bar-height, so toasts sit just above it

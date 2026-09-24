@@ -12,10 +12,12 @@ import { autoSaveFullMessage, hasShownSaves } from './saved-setups'
 import { defaultSpec, isVisibleSpec } from './specs'
 import { isQuotaError } from './storage-errors'
 
-export type Section = 'character' | 'talents' | 'gear' | 'buffs' | 'rotation' | 'fight'
-
-/** Every tab, so a stored one that no longer exists opens the default instead (issue #8). */
-export const SECTION_IDS: readonly Section[] = ['character', 'talents', 'gear', 'buffs', 'rotation', 'fight']
+/**
+ * Every tab, in the order the app shows them (src/App.tsx), so a stored one that no longer exists
+ * opens the default instead (issue #8). `Section` is derived from it, so the two can't drift.
+ */
+export const SECTION_IDS = ['character', 'talents', 'gear', 'buffs', 'rotation', 'fight'] as const
+export type Section = (typeof SECTION_IDS)[number]
 
 /** The tab a first visit opens on, and a stored tab that no longer exists. */
 const DEFAULT_SECTION: Section = 'gear'
@@ -217,17 +219,22 @@ export const useSetup = create<SetupState>()(
           return moved.config
         }
         // The last spec used, if the app still offers it (docs/ux.md principles 1 and 8); a setup
-        // for a spec it doesn't offer is kept for later, and the default spec opens instead.
-        let config = saved.config ? load(saved.config) : current.config
+        // for a spec it doesn't offer is kept for later, and the default spec opens instead. One
+        // for a spec this version doesn't know at all (a newer version's, in another tab) is
+        // ignored: normalizing would read it as the default spec's and replace the player's own
+        // setup for that spec (AR-5). The default spec's stored setup opens instead.
+        const known = isRecord(saved.config) && SPEC_IDS.includes(saved.config.spec as SpecId)
+        let config: SimConfig | null = known ? load(saved.config) : null
         const bySpec: SetupState['bySpec'] = {}
         for (const [spec, other] of Object.entries(isRecord(saved.bySpec) ? saved.bySpec : {})) {
           // Only a setup stored under its own spec's key: an unknown key ("__proto__" included) or
           // one holding another spec's setup would open the wrong setup when you switch to it.
           if (!SPEC_IDS.includes(spec as SpecId) || !isRecord(other) || other.spec !== spec) continue
           // The current spec's entry is stale, and `following` describes the current setup, not it.
-          bySpec[spec as SpecId] = spec === config.spec ? normalizeConfig(other).config : load(other)
+          bySpec[spec as SpecId] = spec === config?.spec ? normalizeConfig(other).config : load(other)
         }
-        if (!isVisibleSpec(config.spec)) {
+        if (config === null) config = bySpec[defaultSpec()] ?? (saved.config === undefined ? current.config : fresh(defaultSpec()))
+        else if (!isVisibleSpec(config.spec)) {
           bySpec[config.spec] = config
           config = bySpec[defaultSpec()] ?? fresh(defaultSpec())
         }

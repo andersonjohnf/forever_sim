@@ -850,7 +850,8 @@ Every view handles these states:
 - **A stored save is read carefully,** like a shared link: anything in it that this version doesn't
   save falls back to the default instead of breaking the page. A tab that no longer exists opens
   Gear; a setup stored under a spec the sim doesn't know, or under another spec's name, is dropped,
-  so that spec opens on its defaults; a save that isn't a setup at all, or isn't JSON, opens the
+  so that spec opens on its defaults; a last-used spec it doesn't know opens the default spec, on
+  your own stored setup for it; a save that isn't a setup at all, or isn't JSON, opens the
   defaults; and a save from another version of the app is read the same way (`merge` in
   `src/app/setup-store.ts`). Nothing is announced: there's nothing you can do about it.
 - **What you never changed follows the defaults.** A gear slot or talent build that still holds

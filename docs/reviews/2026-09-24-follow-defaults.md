@@ -54,3 +54,18 @@ Checks after the lows' fixes: lint ✓ · typecheck ✓ · `npm test` ✓ (117 f
 | FV-3 | low | introduced (FD-2/FD-3) | `defaults-notice.ts`'s comment quoted the notice's old copy. | fixed in 617363ec: it quotes "Gear and talents you changed yourself are kept." |
 | FV-4 | low | introduced (the log) | The leftover item said decd4c8c's saves don't migrate. Every pushed build from 5166211e up migrates fully; f3d8b19e and decd4c8c fail only for druid and paladin specs, which those builds didn't offer (`AVAILABLE`). | fixed: the item above is corrected and closed as unreachable |
 | FV-5 | low | introduced (FD-4) | `changeRace` (`faction-gear.ts`) doesn't remember a slot its `followDefaults` blocked, so it becomes the player's at the next save. | known gap (b0cdb0cf, milestones.md): practically unreachable, since the factions' defaults differ only in single-slot PvP armour and one-handed caster main hands, which no Unique rule or two-hander blocks (wording corrected in LC-3) |
+
+## Quick check of the lows
+
+A fresh quick check of the verification lows' fixes, on main at 3be164c2, found three lows. Each is
+answered below.
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| LC-2 | low | introduced (FV-1) | `equipEffect` said "replaces" for a slot the default leaves empty but the player filled (a Fury warrior's ammo or quiver, an Arms warrior's off hand, a Balance druid's ranged slot), though equipping the set empties it. | fixed in `b5e0d6c4`: `equipEffect` takes the default gear and names a cleared slot, a third kind: "… replaces 1 slot and clears Off hand.", "… fills 14 empty slots, replaces 2 and clears Off hand.", or "… clears Off hand." alone; unit tests for each shape and for the real Arms defaults, an Arms e2e (Ironfoe and Mirah's Song, then Equip) in follow-defaults.spec.ts, and ux.md "Gear" gives the wording. Screen: Arms Gear at 390 px dark, the long mixed line wraps with each count kept on its line |
+| LC-3 | low | introduced (the log) | FV-5's reason said the factions' defaults differ only in non-unique PvP armour; they also differ in one-handed caster main hands. | fixed in `3137d9cb`: milestones.md's known gap and FV-5's row say "single-slot PvP armour and one-handed caster main hands, which no Unique rule or two-hander blocks" |
+| LC-4 | low | introduced (FV-1) | The mixed branch of `equipEffect` put ordinary spaces before its counts ("fills 2 …", "the other 3"), so a wrapped line could end on "fills" or "the other", unlike "all 17". | fixed in `b5e0d6c4`: a no-break space goes before every count, in the mixed and cleared branches too; the unit tests pin it and ux.md "Gear" says so |
+
+Checks after the fixes: lint ✓ · typecheck ✓ · `npm test` ✓ (119 files, 2618 tests) ·
+`npx vitest run scripts` ✓ (149 tests) · `npm run scrape:check` ✓ (zero requests) · e2e ✓
+(gear-rules, follow-defaults: 10 passed).

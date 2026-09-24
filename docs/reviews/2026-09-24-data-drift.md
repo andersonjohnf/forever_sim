@@ -60,3 +60,13 @@ says the same.
 | DV-3 | low | introduced (the log) | DR-5's disposition cited `--dbdefs=deadbeef` exiting 1 with the fetcher's errors; since the infra merge `assertCommitSha` rejects it first, with a stack trace. | fixed: DR-5's wording above; and in `ccb6c5d2` every generator and all.mjs make a `--dbdefs` that isn't a full SHA a usage error, exit 2 (`dbdefsProblems`, tested) |
 | DV-4 | low | introduced | The log's "Left for later" still listed the CLAUDE.md command line; CLAUDE.md's gate step 1 left out `scrape:check`; `regression.yml`'s header didn't say the step skips there. | fixed: the leftover is marked done; `030bc813` edits step 1 (the brief authorized the one line) and the workflow's header |
 | DV-5 | low | introduced (DR-2) | No test pinned the offline fetcher's promise of zero requests. | fixed in `ccb6c5d2`: `http.test.mjs` with a redirecting `fetchImpl` spy: zero calls, no request counted or logged, no `requests.jsonl`; throws on a miss, with `accept404`, and on a meta without its body; serves cached hits and cached 404s; `offline` + `refresh` refused |
+
+## Quick check of the lows
+
+A fresh quick check of the verification lows' fixes, on main at 3be164c2, found one high and one low. Each is
+answered below.
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| LC-0 | high | pre-existing on main | `npm run scrape:check` failed on main: the consumables merge added the buffs doc's §3.7 "Rule \| Value \| Tag" table and a citation of spell 1269334, but the drift slice's doc parser rejected a table with no ID column, and `src/data/client` wasn't regenerated for the new spell. | fixed by the lead in `9f0af105`: `NO_ID_TABLES` exempts `Rule` tables, and the data was regenerated from the cache |
+| LC-1 | low | introduced (DV-2) | `all.mjs --check --if-cached` didn't look for Forever 1.60.1.69977, the build `client.mjs`'s `DOC_TABLES` read `ItemDamageAmmo` and `CreatureFamily` from, so a cache without it failed as stale data instead of skipping; and three or more absent directories read "a, b, c aren't in the cache". | fixed in `37faaef6`: `lib/wago.mjs` exports `DOC_TABLES_BUILD` (which `DOC_TABLES` uses) and `CHECK_BUILDS` (it and the Classic Era baseline); `lib/output.mjs` `checkNeeds` lists every directory a check reads, each once, and `inWords` joins the absent ones with "and" ("a, b, c and d"); `output.test.mjs` pins both and that `CHECK_BUILDS` covers `DOC_TABLES`; docs/data/README.md#checking-the-committed-data names the build. With the cache link pointed at an empty directory, `--if-cached` skips (exit 0) and a plain `--check` exits 1, each naming all four; `npm run scrape:check` passes with zero requests (`requests.jsonl` stayed at 300 lines) |

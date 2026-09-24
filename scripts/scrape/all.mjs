@@ -28,9 +28,11 @@
 //                        (docs/data/README.md#checking-the-committed-data).
 //   --if-cached          with --check (npm run test:full): skip, and exit 0, when the cache has no
 //                        directory for the Forever build or WoWDBDefs commit the committed data
-//                        records, or for the Classic Era baseline (CI has no cache). Without it, a
-//                        check with one of them absent stops (exit 1) and says it isn't in the cache,
-//                        rather than reporting the committed data as stale
+//                        records, for the Classic Era baseline, or for the Forever build the client
+//                        scraper reads the doc-cited tables from (lib/wago.mjs CHECK_BUILDS; CI has
+//                        no cache). Without it, a check with one of them absent stops (exit 1) and
+//                        says it isn't in the cache, rather than reporting the committed data as
+//                        stale
 //
 // A new build that changes a build-code position, a stored build code or a race's classes stops
 // step 2 or 3; run that generator on its own with --accept-code-changes or --accept-race-changes
@@ -46,8 +48,8 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { recordedSource } from "./lib/output.mjs";
-import { CLASSIC_BASELINE, dbdefsProblems } from "./lib/wago.mjs";
+import { checkNeeds, inWords, recordedSource } from "./lib/output.mjs";
+import { dbdefsProblems } from "./lib/wago.mjs";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
@@ -83,21 +85,16 @@ function usage(msg) {
 for (const problem of dbdefsProblems({ dbdefs })) usage(problem);
 
 // What a check reads from the cache: the Forever build and WoWDBDefs commit the committed data
-// records (or --version/--dbdefs), and the Classic Era baseline. One that's absent means there's
+// records (or --version/--dbdefs), the Classic Era baseline, and the Forever build the client
+// scraper reads the doc-cited tables from (lib/output.mjs checkNeeds). One that's absent means there's
 // nothing to check against, which is said as such rather than as stale data: --if-cached skips
 // (CI has no cache), and a plain --check stops before any generator runs.
 if (check) {
   const recorded = RECORDED.map((f) => recordedSource(path.join(REPO_ROOT, f)));
-  const builds = new Set(version ? [version] : recorded.map((r) => r.version).filter(Boolean));
-  const shas = new Set(dbdefs ? [dbdefs] : recorded.map((r) => r.dbdefs).filter(Boolean));
-  const needed = [
-    ...[...builds].map((b) => [`the Forever build ${b}`, path.join(CACHE_DIR, b)]),
-    [`the Classic Era baseline ${CLASSIC_BASELINE}`, path.join(CACHE_DIR, CLASSIC_BASELINE)],
-    ...[...shas].map((s) => [`the WoWDBDefs commit ${s.slice(0, 12)}`, path.join(CACHE_DIR, "github", "wowdbdefs", s)]),
-  ];
+  const needed = checkNeeds({ recorded, version, dbdefs, cacheDir: CACHE_DIR });
   const absent = needed.filter(([, dir]) => !fs.existsSync(dir)).map(([what]) => what);
   if (absent.length) {
-    const said = `${absent.join(", ")} ${absent.length === 1 ? "isn't" : "aren't"} in the cache (.cache/client; npm run scrape fills it)`;
+    const said = `${inWords(absent)} ${absent.length === 1 ? "isn't" : "aren't"} in the cache (.cache/client; npm run scrape fills it)`;
     if (ifCached) {
       console.log(`scrape:check skipped: ${said}. CI has no cache.`);
       process.exit(0);

@@ -38,7 +38,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createFetcher } from "./lib/http.mjs";
-import { buildRecord, createClientSource, latestBuild, CLASSIC_BASELINE, dbdefsProblems, wowDbDefsCommit } from "./lib/wago.mjs";
+import { buildRecord, createClientSource, latestBuild, CLASSIC_BASELINE, DOC_TABLES_BUILD, dbdefsProblems, wowDbDefsCommit } from "./lib/wago.mjs";
 import { createSpellIndex, compactSpell, SPELL_TABLES, pick, camel } from "./lib/spells.mjs";
 import { mapTalents, TALENT_TABLES } from "./lib/talents.mjs";
 import { BUFFS_DOC, citingDocs, parseBuffsDoc, docSpellMentions } from "./lib/docrefs.mjs";
@@ -141,7 +141,7 @@ for (const name of TABLES) {
 // docs/mechanics/ranged-and-pets.md §1, §6: ammo damage per second by item level and quality, and
 // the pet families, from Forever 1.60.1.69977 and Classic Era 1.15.9.69722.
 const DOC_TABLES = [
-  { build: "1.60.1.69977", tables: ["ItemDamageAmmo", "CreatureFamily"] },
+  { build: DOC_TABLES_BUILD, tables: ["ItemDamageAmmo", "CreatureFamily"] },
   { build: DEFAULT_BASELINE, tables: ["ItemDamageAmmo", "CreatureFamily"] },
 ];
 for (const { build, tables } of DOC_TABLES) {

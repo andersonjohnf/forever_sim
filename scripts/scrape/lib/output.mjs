@@ -13,6 +13,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { CHECK_BUILDS } from "./wago.mjs";
 
 /**
  * `write(file, text)` writes `file` (absolute), or under `check` records whether it matches (and
@@ -68,4 +69,26 @@ export function recordedSource(file) {
   if (!fs.existsSync(file)) return { version: null, dbdefs: null };
   const meta = JSON.parse(fs.readFileSync(file, "utf8")).meta ?? {};
   return { version: meta.foreverBuild ?? meta.build ?? null, dbdefs: meta.wowDbDefs?.commit ?? null };
+}
+
+/**
+ * What an all.mjs --check reads from the cache, as [what, directory] pairs: the Forever builds and
+ * WoWDBDefs commits the committed datasets record (`recorded`, from recordedSource), or `version`
+ * and `dbdefs` when given, and every build in CHECK_BUILDS (the Classic Era baseline and the
+ * Forever build of the tables the docs cite), each directory once. A check with one of them absent
+ * has nothing to compare against (docs/data/README.md#checking-the-committed-data).
+ */
+export function checkNeeds({ recorded, version = null, dbdefs = null, cacheDir }) {
+  const builds = version ? [version] : recorded.map((r) => r.version).filter(Boolean);
+  const shas = dbdefs ? [dbdefs] : recorded.map((r) => r.dbdefs).filter(Boolean);
+  const needed = new Map();
+  for (const b of builds) if (!needed.has(path.join(cacheDir, b))) needed.set(path.join(cacheDir, b), `the Forever build ${b}`);
+  for (const { build, what } of CHECK_BUILDS) if (!needed.has(path.join(cacheDir, build))) needed.set(path.join(cacheDir, build), what);
+  for (const s of shas) needed.set(path.join(cacheDir, "github", "wowdbdefs", s), `the WoWDBDefs commit ${s.slice(0, 12)}`);
+  return [...needed].map(([dir, what]) => [what, dir]);
+}
+
+/** A list in words: "a", "a and b", "a, b and c". */
+export function inWords(items) {
+  return items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
 }

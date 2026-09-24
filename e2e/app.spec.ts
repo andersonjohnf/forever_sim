@@ -44,8 +44,10 @@ test.describe('setup', () => {
     await expect(page.getByRole('group', { name: 'Warlock' }).getByRole('menuitem')).toHaveText([/^Destruction\s*DPS$/, /^Affliction\s*DPS$/])
     // The Shadow Priest since K4, under the Priest heading.
     await expect(page.getByRole('group', { name: 'Priest' }).getByRole('menuitem')).toHaveText([/^Shadow\s*DPS$/])
-    await expect(page.getByRole('menuitem')).toHaveCount(19)
-    await expect(page.getByRole('menu').getByRole('group')).toHaveText([/^Warrior/, /^Druid/, /^Paladin/, /^Shaman/, /^Rogue/, /^Mage/, /^Warlock/, /^Priest/])
+    // Marksmanship, Beast Mastery and Survival since H2, under the Hunter heading.
+    await expect(page.getByRole('group', { name: 'Hunter' }).getByRole('menuitem')).toHaveText([/^Marksmanship\s*DPS$/, /^Beast\sMastery\s*DPS$/, /^Survival\s*DPS$/])
+    await expect(page.getByRole('menuitem')).toHaveCount(22)
+    await expect(page.getByRole('menu').getByRole('group')).toHaveText([/^Warrior/, /^Druid/, /^Paladin/, /^Shaman/, /^Rogue/, /^Mage/, /^Warlock/, /^Priest/, /^Hunter/])
   })
 
   test('switching to Arms keeps it across reloads, with its own setup', { tag: '@smoke' }, async ({ page }) => {

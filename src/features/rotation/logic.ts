@@ -42,7 +42,17 @@ export interface RowState {
    * or the setup leaves it unused (`notUsed`).
    */
   inactive: boolean
+  /**
+   * Why a setting that's on still can't apply, when it's for want of something outside itself: it
+   * needs an execute phase the fight hasn't, another creature type, or a switch it depends on is
+   * off (or can't apply itself). A priority-list row says so in place of its summary
+   * (`aplRowNote`). Absent while it applies, or while its own switch is off.
+   */
+  blockedBy?: Blocker
 }
+
+/** What keeps a setting from applying (`RowState.blockedBy`). */
+export type Blocker = { kind: 'phase' } | { kind: 'creature' } | { kind: 'off'; label: string }
 
 /**
  * Thresholds and fine-tuning numbers sit behind each heading's Advanced disclosure; switches and
@@ -83,13 +93,26 @@ export function rotationRows(
     const unmet = unmetRequirements(config, option.requires)
     return unmet.talent !== undefined || unmet.shield ? unmet : undefined
   }
+  /** The switches a setting depends on: the one it sits under, and one it needs too. */
+  const parents = (option: RotationOption) => [option.dependsOn, option.kind !== 'choice' ? option.alsoDependsOn : undefined].filter((id) => id !== undefined)
   // A switch applies while it's on, its consumable is selected, any execute phase, creature type,
-  // talent or shield it needs is there, and the switch it depends on applies.
+  // talent or shield it needs is there, and the switches it depends on apply (Bloodthirst in the
+  // execute phase needs Execute and Bloodthirst).
   const applies = (id: string, depth = 0): boolean => {
     const option = byId.get(id)
     if (!option || depth > options.length) return false
     if (Boolean(values[id]) === false || missing(option) || noPhase(option) || wrongCreature(option) || unmetOf(option)) return false
-    return option.dependsOn === undefined || applies(option.dependsOn, depth + 1)
+    return parents(option).every((parent) => applies(parent, depth + 1))
+  }
+  /** Why a switch it depends on doesn't apply: the fight, or the first switch up the chain that's off. */
+  const blocker = (id: string, depth = 0): Blocker | undefined => {
+    const option = byId.get(id)
+    if (!option || depth > options.length) return undefined
+    if (noPhase(option)) return { kind: 'phase' }
+    if (wrongCreature(option)) return { kind: 'creature' }
+    if (Boolean(values[id]) === false || missing(option) || unmetOf(option)) return { kind: 'off', label: option.label }
+    const parent = parents(option).find((p) => !applies(p))
+    return parent === undefined ? undefined : blocker(parent, depth + 1)
   }
   const rows = new Map<string, RowState>()
   for (const option of options) {
@@ -99,13 +122,25 @@ export function rotationRows(
     const notUsed = unused[option.id]
     const needsCreature = wrongCreature(option)
     const unmet = unmetOf(option)
+    const on = Boolean(values[option.id]) && missingBuff === undefined && unmet === undefined
+    const blockedParent = parents(option).find((id) => !applies(id))
+    const blockedBy: Blocker | undefined =
+      notUsed !== undefined || !on
+        ? undefined
+        : noPhase(option)
+          ? { kind: 'phase' }
+          : needsCreature
+            ? { kind: 'creature' }
+            : blockedParent === undefined
+              ? undefined
+              : blocker(blockedParent)
     rows.set(option.id, {
       value: values[option.id],
       default: def,
       changed: saved !== undefined && saved !== def,
       missingBuff,
       ...(unmet ? { unmet } : {}),
-      on: Boolean(values[option.id]) && missingBuff === undefined && unmet === undefined,
+      on,
       ...(notUsed !== undefined ? { notUsed } : {}),
       ...(needsCreature ? { needsCreature } : {}),
       // An unused setting dims itself only: the settings under it may be how to use it (Rake's
@@ -114,7 +149,8 @@ export function rotationRows(
         notUsed !== undefined ||
         noPhase(option) ||
         needsCreature !== undefined ||
-        [option.dependsOn, option.kind !== 'choice' ? option.alsoDependsOn : undefined].some((id) => id !== undefined && !applies(id)),
+        blockedParent !== undefined,
+      ...(blockedBy ? { blockedBy } : {}),
     })
   }
   return rows
@@ -144,6 +180,7 @@ export function aplRowSummary(row: AplRow, options: readonly RotationOption[], r
   const byId = new Map(options.map((o) => [o.id, o]))
   const parts: string[] = []
   for (const part of row.summary ?? []) {
+    if (part.alsoOn?.some((id) => !rows.get(id)?.on || rows.get(id)?.inactive)) continue
     if (part.option === undefined) {
       parts.push(part.text)
       continue
@@ -160,6 +197,32 @@ export function aplRowSummary(row: AplRow, options: readonly RotationOption[], r
   const text = parts.join(' · ')
   if (text === '') return row.enabledId === undefined ? 'None' : ''
   return text[0].toUpperCase() + text.slice(1)
+}
+
+/**
+ * What a priority-list row says in place of its summary when it's on but can't do anything
+ * (docs/ux.md "Rotation"): the setup leaves it unused, it needs a consumable, a talent or a shield,
+ * an execute phase or another creature type (the Fight tab), or a switch it depends on is off
+ * ("Not used: Bloodthirst is off."). Undefined while it can apply, or while it's off.
+ */
+export function aplRowNote(row: AplRow, rows: ReadonlyMap<string, RowState>): string | undefined {
+  const state = row.enabledId === undefined ? undefined : rows.get(row.enabledId)
+  if (!state) return undefined
+  if (state.notUsed !== undefined) return state.notUsed
+  if (state.missingBuff) return `Not used: turn on ${state.missingBuff.name} in Buffs first.`
+  // What the row's settings say with links (Buffs, Talents, Gear), said here in words.
+  const unmet = state.unmet && [state.unmet.talent !== undefined && `the ${state.unmet.talent} talent`, state.unmet.shield && 'a shield'].filter(Boolean).join(' and ')
+  if (unmet) return `Not used: needs ${unmet}.`
+  switch (state.blockedBy?.kind) {
+    case 'phase':
+      return 'Not used: needs an execute phase (Fight tab).'
+    case 'creature':
+      return 'Not used: needs another creature type (Fight tab).'
+    case 'off':
+      return `Not used: ${state.blockedBy.label} is off.`
+    default:
+      return undefined
+  }
 }
 
 /** A row's settings (its switch and its own) that differ from their defaults, so the list marks the row. */

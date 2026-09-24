@@ -189,10 +189,12 @@ export const FURY_OPTIONS: RotationOption[] = [
     id: ID.exBtEnabled,
     group: 'Execute phase',
     label: 'Bloodthirst in the execute phase',
-    help: 'In the execute phase, keep using Bloodthirst at high attack power (“Bloodthirst over Execute from”). Needs Execute on, and an execute phase under Fight.',
+    help: 'In the execute phase, keep using Bloodthirst at high attack power (“Bloodthirst over Execute from”). Needs Bloodthirst and Execute on, and an execute phase under Fight.',
     default: true,
     requires: { talent: 'Bloodthirst' },
     dependsOn: ID.exEnabled,
+    // With Bloodthirst off it does nothing (btExec in furyRotation), so the tab dims it.
+    alsoDependsOn: ID.btEnabled,
   },
   {
     kind: 'number',
@@ -342,6 +344,11 @@ export function furyMaintainedBuffs(values: Record<string, RotationValue>): stri
 }
 
 
+/** A row that stops in the execute phase says so while Execute applies (rows 8, 12 and 15). */
+const NOT_IN_PHASE = { text: 'not in the execute phase', alsoOn: [ID.exEnabled] }
+/** A row that stays GCD-safe for Bloodthirst and Whirlwind wherever it sits (rows 10, 12 and 15), while both are on. */
+const AFTER_BT_WW = { text: 'while Bloodthirst and Whirlwind cool down', alsoOn: [ID.btEnabled, ID.wwEnabled] }
+
 /**
  * Fury's rotation as a priority list (decision D31; warrior.md §5.2 "The priority list"): §5.2's
  * rows 0–13 and 15 in its order, each with its switch and its own settings. Row 3 is two rows here,
@@ -434,7 +441,15 @@ export const FURY_APL: AplDefinition = {
       optionIds: [ID.exMinExtraRage],
       summary: [{ text: 'execute phase' }, { option: ID.exMinExtraRage, text: '{} extra', hideWhen: 0 }],
     },
-    { id: 'bloodthirst', label: 'Bloodthirst', icon: BLOODTHIRST.icon, enabledId: ID.btEnabled, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    {
+      id: 'bloodthirst',
+      label: 'Bloodthirst',
+      icon: BLOODTHIRST.icon,
+      enabledId: ID.btEnabled,
+      optionIds: [],
+      // Outside the execute phase: row 6 is Bloodthirst in it.
+      summary: [{ text: 'on cooldown' }, NOT_IN_PHASE],
+    },
     {
       id: 'whirlwind',
       label: 'Whirlwind',
@@ -443,7 +458,7 @@ export const FURY_APL: AplDefinition = {
       optionIds: [ID.wwReserve, ID.wwBtCdMin, ID.exWhirlwind],
       summary: [
         { option: ID.wwReserve, text: '{} reserve', hideWhen: 0 },
-        { option: ID.wwBtCdMin, text: 'Bloodthirst {} away' },
+        { option: ID.wwBtCdMin, text: 'Bloodthirst {} away', alsoOn: [ID.btEnabled] },
         { option: ID.exWhirlwind, text: 'in the execute phase too' },
       ],
     },
@@ -453,7 +468,7 @@ export const FURY_APL: AplDefinition = {
       icon: OVERPOWER.icon,
       enabledId: ID.opEnabled,
       optionIds: [ID.opMaxRage],
-      summary: [{ option: ID.opMaxRage, text: 'up to {}' }],
+      summary: [{ option: ID.opMaxRage, text: 'up to {}' }, AFTER_BT_WW],
     },
     {
       id: 'heroicStrike',
@@ -476,6 +491,8 @@ export const FURY_APL: AplDefinition = {
       summary: [
         { option: ID.hamMinRage, text: 'from {}' },
         { option: ID.hamFlurryDown, text: 'without Flurry' },
+        NOT_IN_PHASE,
+        AFTER_BT_WW,
       ],
     },
     {
@@ -486,7 +503,7 @@ export const FURY_APL: AplDefinition = {
       optionIds: [ID.bzMaxRage],
       summary: [{ option: ID.bzMaxRage, text: 'up to {}' }],
     },
-    { id: 'slam', label: 'Slam', icon: SLAM.icon, enabledId: ID.slamEnabled, optionIds: [] },
+    { id: 'slam', label: 'Slam', icon: SLAM.icon, enabledId: ID.slamEnabled, optionIds: [], summary: [AFTER_BT_WW, NOT_IN_PHASE] },
   ],
   specWide: [ID.potionEnabled, ID.potionMaxRage, ID.jujuEnabled],
   presets: [],

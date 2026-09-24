@@ -3,7 +3,7 @@
 // those that need an execute phase.
 import { describe, expect, it } from 'vitest'
 import { defaultAplOrder, defaultConfig, getSpec, moveAplRow, normalizeConfig, type SimConfig, specs, unusedRotationSettings } from '@/sim'
-import { aplRowChanged, aplRowSummary, formatSetting, groupsThousands, isAdvanced, rotationRows, withRotationOrder } from './logic'
+import { aplRowChanged, aplRowNote, aplRowSummary, formatSetting, groupsThousands, isAdvanced, rotationRows, withRotationOrder } from './logic'
 
 const rows = (config: SimConfig, rotation: SimConfig['rotation'] = {}, enabled = config.buffs.enabled) =>
   rotationRows({ ...config, rotation }, getSpec(config.spec).rotationOptions, enabled)
@@ -318,6 +318,47 @@ describe('a priority list’s rows (decision D31)', () => {
     expect(summary('prepull', { 'warrior.fury.battleShout.enabled': false, 'warrior.fury.prepull.bloodrage': false })).toBe('None')
     // A switch whose talent the build lacks is off, whatever it's set to.
     expect(summary('berserkerRage')).toBe('Off')
+  })
+
+  it('says which rows stop in the execute phase, and which wait for Bloodthirst and Whirlwind, while that holds', () => {
+    const fillers = { 'warrior.fury.hamstring.enabled': true, 'warrior.fury.slam.enabled': true }
+    expect(summary('bloodthirst')).toBe('On cooldown · not in the execute phase')
+    expect(summary('overpower')).toBe('Up to 40 rage · while Bloodthirst and Whirlwind cool down')
+    expect(summary('hamstring', fillers)).toBe('From 60 rage · not in the execute phase · while Bloodthirst and Whirlwind cool down')
+    expect(summary('slam', fillers)).toBe('While Bloodthirst and Whirlwind cool down · not in the execute phase')
+    // Execute off, or no phase: they don't stop for it.
+    expect(summary('bloodthirst', { 'warrior.fury.execute.enabled': false })).toBe('On cooldown')
+    const noPhase = { ...fury, fight: { ...fury.fight, executePct: 0 } }
+    expect(summary('hamstring', fillers, noPhase)).toBe('From 60 rage · while Bloodthirst and Whirlwind cool down')
+    // Without Bloodthirst, the fillers don't claim to wait for it, nor Whirlwind.
+    const noBt = { ...fillers, 'warrior.fury.bloodthirst.enabled': false }
+    expect(summary('slam', noBt)).toBe('Not in the execute phase')
+    expect(summary('overpower', noBt)).toBe('Up to 40 rage')
+    expect(summary('whirlwind', noBt)).toBe('')
+  })
+
+  it('says why a row that’s on can’t do anything: Bloodthirst in the execute phase with Bloodthirst off (A1-1)', () => {
+    const note = (id: string, rotation: SimConfig['rotation'] = {}, config: SimConfig = fury) => {
+      const setup = { ...config, rotation }
+      return aplRowNote(row(id), rotationRows(setup, getSpec(setup.spec).rotationOptions, setup.buffs.enabled, unusedRotationSettings(setup)))
+    }
+    expect(note('executeBloodthirst')).toBeUndefined()
+    const r = rows(fury, { 'warrior.fury.bloodthirst.enabled': false })
+    // On, but dimmed with its threshold, as the engine never uses it (btExec in furyRotation).
+    expect(r.get('warrior.fury.execute.bloodthirst')).toMatchObject({ on: true, inactive: true, blockedBy: { kind: 'off', label: 'Bloodthirst' } })
+    expect(r.get('warrior.fury.execute.btOverExecuteAp')?.inactive).toBe(true)
+    expect(note('executeBloodthirst', { 'warrior.fury.bloodthirst.enabled': false })).toBe('Not used: Bloodthirst is off.')
+    // Execute off says so.
+    expect(note('executeBloodthirst', { 'warrior.fury.execute.enabled': false })).toBe('Not used: Execute is off.')
+    // With no execute phase, the fight is why, for Execute and what hangs on it (A1-7).
+    const noPhase = { ...fury, fight: { ...fury.fight, executePct: 0 } }
+    for (const id of ['execute', 'executeBloodthirst']) expect(note(id, {}, noPhase), id).toBe('Not used: needs an execute phase (Fight tab).')
+    // A row that's off says Off, not why it would be unused.
+    expect(note('executeBloodthirst', { 'warrior.fury.execute.bloodthirst': false, 'warrior.fury.bloodthirst.enabled': false })).toBeUndefined()
+    // The setup's own notes come first: the racial for a Human, a talent the build lacks.
+    expect(note('racial')).toBe('Not used: Human has no racial cooldown that adds damage.')
+    expect(note('berserkerRage')).toBe('Not used: needs the Improved Berserker Rage talent.')
+    expect(note('bloodthirst')).toBeUndefined()
   })
 
   it('marks a row whose switch or own settings differ from their defaults', () => {

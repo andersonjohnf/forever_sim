@@ -740,7 +740,8 @@ the table's order is the default. Row 0 is pinned first. Row 3 is two rows, the 
 on-use trinkets, which share "Racial and trinkets with Death Wish". Row 6 has its own switch,
 `fury.execute.bloodthirst`: off, Bloodthirst isn't used in the execute phase, so Whirlwind there
 doesn't wait for it and the Overpower dance and Berserker Rage there are GCD-safe for Whirlwind
-alone. Rows 16 and 17 are spec-wide settings above the list, and always come after it: they're
+alone. It needs row 8's switch too: with Bloodthirst off it does nothing, and the tab dims it
+("Not used: Bloodthirst is off."). Rows 16 and 17 are spec-wide settings above the list, and always come after it: they're
 off the GCD. **A row's conditions are its own and don't change when it moves.** Whirlwind still
 waits on Bloodthirst's cooldown, and rows 10, 12, 13 and 15 stay GCD-safe for Bloodthirst and
 Whirlwind, wherever they sit; only which usable row comes first changes. So "GCD-safe" (§5.1)

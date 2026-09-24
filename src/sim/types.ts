@@ -310,6 +310,11 @@ export interface AplSummaryPart {
   when?: boolean
   /** A number's part is left out at this value (Execute's extra rage at 0). */
   hideWhen?: number
+  /**
+   * Switches of other rows that must be on and apply too, for a part about them (Fury's fillers:
+   * "while Bloodthirst and Whirlwind cool down").
+   */
+  alsoOn?: readonly string[]
 }
 
 /**

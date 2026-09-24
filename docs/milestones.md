@@ -702,6 +702,23 @@ slice is worked:
   - Each arrow key press between the sticky section tabs scrolls the page up by about 360 px
     (390) or 420 px (1280), because the tabs lie inside the top scroll padding. Peeking at a tab
     without choosing it loses your place.
+- **The Destruction gear review's gaps** ([its log](reviews/2026-09-24-destruction-gear.md)):
+  - **Sim-ranked lists for Frost, Arcane and Shadow** (DG-2). They wear their guide lists with Mindfang /
+    Sageclaw added at rank 1. The same search as the warlocks' (warlock.md §7.3) finds more: Frost
+    447.3 → 461.4 DPS (+3.2%), Arcane 434.8 → 464.3 (+6.8%), Shadow 559.7 → 582.4 (+4.1%), 20,000
+    fights on seed 2701. Before those lists ship, the new candidates' Classic Era sources need
+    checking (Frost Runed Headdress, Wand of Arcane Potency, Simone's Cultivating Hammer, and the
+    staves Whiteout Staff and Crackling Staff). So does Leggings of Torment's, third on Affliction's
+    legs: its note names a Dungeon Set 2 summoned boss from its id's block, with a Wowhead Classic link.
+    The Fire mage's, Balance's and Elemental's guide lists haven't been searched.
+  - **Elixir of Fire Power** (DG-8, [warlock.md §7.4](classes/warlock.md#74-enchants-and-consumables)):
+    the only Fire elixir the Forever client links (+10 Fire spell damage) isn't in the catalogue; about
+    +4 DPS for Destruction `[?]`, if it stacks with Shadow Power.
+  - **Missing faction twins** on three guide lists: Enhancement's rank-1 Deathguard's Cloak (The
+    Defilers) has no Cloak of the Honor Guard beside it, and its note reads "Stratholme (Baron
+    Rivendare)", a Cape of the Black Baron source, so its id wants checking against the guide; the
+    hunters' rank-2 Cloak of the Honor Guard has no Deathguard's Cloak; Enhancement's rank-3
+    Knight-Lieutenant's Chain Greaves has no Blood Guard's.
 
 ## Later
 

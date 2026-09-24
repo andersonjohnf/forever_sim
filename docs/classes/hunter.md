@@ -291,7 +291,7 @@ Mana decides it: Arcane Shot and Sniper Shot cost more mana than the damage they
 hunter runs dry; Beast Mastery, whose pet did a fifth of its damage, keeps Arcane Shot and takes the
 cheaper Multi-Shot. The Rotation tab says these are the common priority, not tuned. Since the search,
 the pet inherits your attack power, crit and hit (§6): Beast Mastery's pet now does about a third of its
-damage and Survival's a fifth, and the optimizer (D30) retakes these choices.
+damage and Survival's about a quarter, and the optimizer (D30) retakes these choices.
 
 ## 9. Implementation notes
 
@@ -379,7 +379,7 @@ Discovery rows. Does Forever teach them? Test: the trainer and spellbook in game
 ### OQ-H7: the pet
 Its base numbers, inheritance, Focus rate, table and buffs are the core's OQ-5 to OQ-8. With Lone Wolf
 the Marksmanship default doesn't depend on them; Beast Mastery's pet is about a third of its damage,
-Survival's a fifth. Its inheritance is the core's one rule (§6.1): without it Beast Mastery loses 13%
+Survival's about a quarter. Its inheritance is the core's one rule (§6.1): without it Beast Mastery loses 13%
 and Survival 9%. Battle Shout on it is worth 24.6 DPS (4.4%) on Beast Mastery, and Forever testers
 report pets can't receive external buffs (§6; the core's OQ-8). Test: the pet's sheet with and without
 Battle Shout, and with two owner gear sets.

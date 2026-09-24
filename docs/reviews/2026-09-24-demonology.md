@@ -154,3 +154,16 @@ Demonology 530.79 → 533.08 (DV2-4); every other golden unchanged.
 
 **Due:** a verification pass scoped to `7f89972` (engine logic: the shared rule) with `4e65b1f`,
 `414d755`, `8884289` and `11a5f1e`.
+
+## Quick verification of the third round
+
+**Gate passes.** Nothing the fixes introduced is medium or worse. A same-seed probe of all 23 specs
+against main moved only Beast Mastery, Survival and Demonology; with the old 0/32/19 talents
+Demonology reproduces the previous default exactly, so the shared rule leaves the Imp untouched.
+
+| id | sev | origin | finding | disposition |
+| --- | --- | --- | --- | --- |
+| DV3-1 | low | introduced | No test reaches the ranged side of the pet's hit and crit rule (`rHitBonus`/`rCritBonus` are 0 in every default). | known gap: a one-case test with a ranged plan's hit and crit bonus |
+| DV3-2 | low | introduced | The shared inheritance text says "your pet" beside the demon's "your demon" texts. | waived: "pet" is the game's own word for both |
+| DV3-3 | low | pre-existing | hunter.md said Survival's pet is a fifth of its damage; measured 23.3%. | fixed: "about a quarter" |
+

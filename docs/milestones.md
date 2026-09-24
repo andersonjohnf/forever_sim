@@ -429,6 +429,8 @@ slice is worked:
   could return for +1.3 TPS at 90.5% EHP (T4R-2, waived: it keeps an EHP margin, and O4 replaces
   the set); gear cards show "+20 Expertise" with no percentage and no D12 flag, though the results'
   assumptions list it (T4R-8).
+- **The pet's ranged hit and crit share has no test** (Demonology verification DV3-1): every
+  default setup has no ranged hit or crit bonus, so a test with a ranged plan's bonuses would pin it.
 - **A DPS spec's "Setup changed" badge wraps to two lines** in the phone bar at 360 px (phone
   bar verification VF7, pre-existing). The bar stays 65 px and nothing overlaps.
 - **The Protection paladin's threat review lows** (T2; the review in `.cache/probes/tank-review-paladin`),

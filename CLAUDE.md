@@ -14,8 +14,8 @@ never a reason for half measures. The app doesn't describe itself as temporary.
 **Nothing is pushed until every change since the last push has passed an adversarial logic
 review *and* an adversarial UX review.** Commit freely; push only through this gate.
 
-1. **Green checks:** the full suite, `npm run test:full`: lint, typecheck, and every unit
-   and e2e test. The deploy workflow runs only the smoke suite (`npm run test:smoke`), so
+1. **Green checks:** the full suite, `npm run test:full`: lint, typecheck, every unit test,
+   `scrape:check` (skips without the cache) and every e2e test. The deploy workflow runs only the smoke suite (`npm run test:smoke`), so
    this local run is what catches everything else.
 2. **Adversarial logic review.** An independent reviewer (a fresh subagent that didn't write
    the change) is briefed to *break* it, not approve it. It checks the diff against

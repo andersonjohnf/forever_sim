@@ -8,7 +8,7 @@
 // 1. If the plan is the same with and without it in every context, it changes nothing: the engine
 //    is a function of the plan alone. No fights are needed. (`none`)
 // 2. Otherwise both plans run the same fights (common random numbers). If the numbers the goal's
-//    score reads (`scoreReads`: DPS and TPS, or damage taken for Defense) are equal on every fight
+//    score reads (`scoreReads`: each goal its own, DPS, TPS, both, or damage taken) are equal on every fight
 //    in every context, it's `tie-break` when the goal's tie-break differs (damage taken, or TPS for
 //    Defense) and `none` when not.
 // 3. Otherwise it's `objective`, unless its paired change in score is below zero with 95%

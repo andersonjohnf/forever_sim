@@ -36,6 +36,17 @@ describe('screenTalents', () => {
     expect(screen.roles.size).toBe(screen.verdicts.length)
   })
 
+  it('a talent that only adds threat does nothing for DPS: Iron Creed for Retribution (OG-4)', async () => {
+    const config = fixed(defaultConfig('paladin-retribution'))
+    const ironCreed = TALENT_DATA.paladin.trees.flatMap((t) => t.talents).find((t) => t.name === 'Iron Creed')!
+    // The setup takes Holy Strike, so Iron Creed changes its threat: the plan changes, and so does TPS.
+    const screen = async (goal: 'dps' | 'tps') =>
+      (await screenTalents({ config, data: TALENT_DATA.paladin, runner: localFightRunner(), goal, fights: 10 })).verdicts.find((v) => v.id === ironCreed.id)!
+    const forDps = await screen('dps')
+    expect(forDps).toMatchObject({ planChanges: true, scoreChanges: false, role: 'none' })
+    expect((await screen('tps')).role).toBe('objective')
+  })
+
   it('keeps a few runs in flight, and a cancel stops it before the next run starts (O1-9)', async () => {
     const config = fixed(defaultConfig('warrior-protection'))
     let inFlight = 0

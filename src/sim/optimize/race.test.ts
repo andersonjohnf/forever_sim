@@ -285,6 +285,9 @@ describe('goals', () => {
     expect(tieBreaker('defense')(0, 900, 500)).toBe(900)
     expect(scoreReads('defense')).toEqual(['taken'])
     expect(scoreReads('balanced')).toEqual(['dps', 'tps'])
+    // Each goal reads only its own metric (OG-4).
+    expect(scoreReads('dps')).toEqual(['dps'])
+    expect(scoreReads('tps')).toEqual(['tps'])
   })
 
   it('a tank defaults to Balanced and a DPS spec to DPS; Balanced for a DPS spec scores DPS, and Defense is a tank’s', () => {

@@ -66,13 +66,23 @@ export function tieBreaker(goal: Goal): Score {
 }
 
 /**
- * The per-fight numbers the goal's score reads. Two candidates equal on these on every fight are the
- * same to it: the race merges them, and the screen calls a talent that changes none of them a
- * tie-break talent or one with no effect. DPS and TPS for `dps`, `tps` and `balanced` (as the race
- * has always merged); damage taken for `defense`.
+ * The per-fight numbers the goal's score reads, and only those (OG-4). Two candidates equal on these
+ * on every fight are the same to it: the race merges them, and the screen calls a talent that changes
+ * none of them a tie-break talent or one with no effect. DPS for `dps`, TPS for `tps`, both for
+ * `balanced`, damage taken for `defense`: a talent that only adds threat (Iron Creed for a
+ * Retribution paladin) does nothing for DPS.
  */
 export function scoreReads(goal: Goal): readonly ('dps' | 'tps' | 'taken')[] {
-  return goal === 'defense' ? ['taken'] : ['dps', 'tps']
+  switch (goal) {
+    case 'dps':
+      return ['dps']
+    case 'tps':
+      return ['tps']
+    case 'balanced':
+      return ['dps', 'tps']
+    case 'defense':
+      return ['taken']
+  }
 }
 
 /** A mean and the half-width of its confidence interval. */

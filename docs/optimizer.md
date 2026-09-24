@@ -167,7 +167,8 @@ rely on.
    plan, racing as a candidate) runs no fights: it takes the baseline's, which are the fights it
    would have run, so it costs the budget nothing and stays paired with every candidate.
 2. **First round only:** candidates the goal can't tell apart on any fight are one candidate: the
-   same DPS and TPS on every fight, or for Defense the same damage taken (`scoreReads`). The one
+   same numbers its score reads on every fight (`scoreReads`: DPS for DPS, TPS for TPS, both for
+   Balanced, damage taken for Defense). The one
    with the best tie-break represents them (D30: what the score leaves out is a tie-break; the
    least damage taken, or for Defense the most TPS), then the earlier one; the others are listed as
    its ties.
@@ -280,9 +281,11 @@ the setup's rotation and every rotation variant the search tries. Then:
 
 1. If the plan is the same with and without it in every context, it changes nothing: the engine is
    a function of the plan alone. No fights are needed. It's **none**.
-2. Otherwise the two plans run the same 400 fights. If the numbers the goal's score reads (DPS and
-   TPS; damage taken for Defense) are equal on every fight in every context, it's **tie-break**
-   when the goal's tie-break differs and **none** when not. For Balanced, Toughness is a tie-break
+2. Otherwise the two plans run the same 400 fights. If the numbers the goal's score reads (DPS for
+   DPS, TPS for TPS, both for Balanced, damage taken for Defense; each goal only its own, OG-4) are
+   equal on every fight in every context, it's **tie-break** when the goal's tie-break differs and
+   **none** when not. So for a Retribution paladin's DPS, Iron Creed, which only adds Holy Strike's
+   threat, is **none**. For Balanced, Toughness is a tie-break
    talent (armor from items lowers damage taken, but Forever's rage from a hit reads it before
    armor); for Defense it's objective, and Defiance, which changes threat but not damage taken, is
    a tie-break talent.

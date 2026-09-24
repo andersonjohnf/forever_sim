@@ -20,6 +20,9 @@ describe('golden run (fixed config and seed)', () => {
   // - K2: the default Frost mage (mage.md "Frost priority", "First-pass defaults"): Troll,
   //   230225200100301--055510033002000105, Presence of Mind and Berserking on cooldown, Frostbolt
   //   with Winter's Chill's stacks, the mana gems and Evocation; the Standard raid's buffs.
+  // - The Destruction gear review (DG-2): the list's rank-1 Sageclaw gets its Horde twin, Mindfang, so a
+  //   Troll wears it instead of Witchblade: 409.75 → 445.79 here; 410.9 → 447.3 over 20,000 fights on
+  //   seed 2701 (+8.9%).
   it('keeps the default Frost mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

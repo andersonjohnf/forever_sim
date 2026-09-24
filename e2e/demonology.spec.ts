@@ -6,8 +6,11 @@ import { expect, test } from './fixtures.ts'
 // demon's rows by name, its passives and its assumptions, a share link, and the phone at 390 px
 // (docs/ux.md). Nothing on its screens may speak warrior, rogue or druid.
 
-/** Words a warlock screen must never show. */
-const OTHER_CLASS = /\brage\b|\bstances?\b|Energy|combo point|Cat Form|Bear Form|Seal of|Judgement|Main hand swings/i
+/**
+ * Words a warlock screen must never show. The paladin's seals by name, as the Destruction warlock's check
+ * has them: Demonology's default trinket, Royal Seal of Eldre'Thalas, is named in its assumptions.
+ */
+const OTHER_CLASS = /\brage\b|\bstances?\b|Energy|combo point|Cat Form|Bear Form|Seal of (the )?(Righteousness|Command|Crusader|Light|Wisdom|Justice)|Judgement|Main hand swings/i
 
 /** A value with its ± 95% CI in the headline, e.g. "492.8± 1.4". */
 const VALUE_WITH_CI = /\d[\d,]*\.\d\s*± \d[\d,]*\.\d/

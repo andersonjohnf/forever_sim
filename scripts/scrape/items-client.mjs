@@ -179,10 +179,18 @@ const classic = await load("classic", opts.baseline);
 // Pre-raid BiS lists
 // ---------------------------------------------------------------------------
 
-/** Read PRE_RAID_BIS_FILE: { specs, byId: Map<id, [{ spec, slot, rank }]>, names: Map<id, name> }. */
+/**
+ * Read PRE_RAID_BIS_FILE: { specs, byId: Map<id, [{ spec, slot, rank }]>, names: Map<id, name>,
+ * kept: Map<id, name> }. `kept` holds items a list dropped: they stay in the pool, with no rank, so
+ * saved setups and share links that wear them keep them (docs/data/items.md#pre-raid-bis-lists).
+ */
 function loadPreRaidBis() {
   const data = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, PRE_RAID_BIS_FILE), "utf8"));
-  const out = { specs: {}, byId: new Map(), names: new Map() };
+  const out = { specs: {}, byId: new Map(), names: new Map(), kept: new Map() };
+  for (const e of data.kept ?? []) {
+    if (!Number.isInteger(e.id) || !e.name || !e.notes) fail(`${PRE_RAID_BIS_FILE}: bad kept entry ${JSON.stringify(e)}`);
+    else out.kept.set(e.id, e.name);
+  }
   const specOrder = Object.keys(data.specs);
   for (const [spec, s] of Object.entries(data.specs)) {
     if (!s.name || !s.source?.url) fail(`${PRE_RAID_BIS_FILE}: spec ${spec} needs a name and source.url`);
@@ -303,7 +311,7 @@ async function write() {
   // Checks: the pre-raid BiS lists, names, SoD and the statsFrom flags.
   const byId = new Map(items.map((i) => [i.id, i]));
   const notInData = [];
-  for (const [id, name] of bis.names) {
+  for (const [id, name] of [...bis.names, ...bis.kept]) {
     const item = byId.get(id);
     const row = forever.ctx.sparse.get(id) ?? classic.ctx.sparse.get(id);
     if (!row) notInData.push({ id, name });
@@ -352,6 +360,7 @@ async function write() {
         file: PRE_RAID_BIS_FILE,
         specs: bis.specs,
         listedItems: bis.names.size,
+        kept: [...bis.kept.keys()].sort((a, b) => a - b),
         inPool: items.filter((i) => i.preRaidBis.length).length,
         addedByList: report.addedByList.length,
         notInData,

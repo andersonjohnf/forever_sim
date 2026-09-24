@@ -441,8 +441,7 @@ for (const [label, device] of [
       await page.getByRole('button', { name: 'Gear options' }).click()
       await page.getByRole('menuitem', { name: 'Remove all gear' }).click()
       await expect(said).toHaveText('Removed all gear.')
-      await page.getByRole('button', { name: 'Gear options' }).click()
-      await page.getByRole('menuitem', { name: 'Equip pre-raid best in slot' }).click()
+      await page.getByRole('button', { name: 'Equip pre-raid best in slot' }).click()
       await expect(said).toHaveText('Equipped Fury Warrior pre-raid best in slot.')
 
       await page.getByRole('tab', { name: 'Talents', exact: true }).click()

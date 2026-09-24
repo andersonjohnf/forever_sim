@@ -160,8 +160,19 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - The tab says what the gear starts as: a DPS spec's pre-raid best in slot ("Starts as Fury Warrior
     pre-raid best in slot"), or for a tank, whose default is the sim's measured threat set rather
     than a guide's list (D29, D30), "Starts as the Protection Paladin threat set: pre-raid items
-    measured for threat, keeping an effective-health floor". The options menu's first item puts it
-    back: "Equip pre-raid best in slot", or "Equip the threat set" for a tank.
+    measured for threat, keeping an effective-health floor".
+  - Under it, a bordered row puts the default set back in one tap: a 44 px **Equip pre-raid best in
+    slot** button, or **Equip the threat set** for a tank, beside a line on how the gear compares.
+    While any slot's item or enchant differs from the default for the spec and race, the line
+    reads "3 slots differ from the threat set." after a dot in the primary colour (the changed-setting
+    marker of Character and Rotation), the row takes a muted fill and the button is the primary
+    one. Once the gear matches, it's quiet: a check, "Wearing the threat set." in muted text, and
+    an outline button. The line is the button's description for screen readers. Below 640 px the
+    button takes the row's full width under the line. The button used to hide in the options menu;
+    it's the tab's main action, and on a returning visit the likeliest one, so it's in view, and the
+    menu (**Gear options**) keeps only **Remove all gear**, which empties every slot with no undo
+    ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)),
+    so it stays a deliberate step away.
   - Slots in paper-doll order. Each row shows the item icon, its name in its quality color,
     a one-line summary of its key stats, and an enchant chip. Empty slots have their own
     state. The columns are `minmax(0, 1fr)`, so a long name or enchant truncates rather than
@@ -212,8 +223,6 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     selected option, with a check. Focus goes back to the chip when it closes, or to the slot's
     button if the chip has gone meanwhile (a share link pasted into the tab took the item away).
     Under Classic Era rules it says its values are Classic Era's, as Buffs does.
-  - A gear-set menu: "Pre-raid BiS" (the spec default, in the race's faction's PvP gear),
-    "Empty", and later saved sets.
 - **Buffs.**
   - Presets: Self only, Dungeon group, Standard raid (the default, named "Standard raid
     (default)", like the talent presets), Max consumables. Each shows what it brings in a line

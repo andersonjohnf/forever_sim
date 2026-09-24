@@ -1,4 +1,4 @@
-import { ChevronRight, Info, MoreHorizontal } from 'lucide-react'
+import { Check, ChevronRight, Info, MoreHorizontal } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { announce } from '@/app/announce'
 import { useSetup } from '@/app/setup-store'
@@ -11,7 +11,8 @@ import { ClassicEraNote } from '@/features/character/classic-era-note'
 import { SectionHeader } from '@/features/section'
 import { itemsById } from '@/lib/items'
 import { cn } from '@/lib/utils'
-import { defaultConfig, hasThreatSet, isTwoHand, matchSupplies, uniqueConflicts, type GearSlot, type SimConfig } from '@/sim'
+import { hasThreatSet, isTwoHand, matchSupplies, uniqueConflicts, type GearSlot, type SimConfig } from '@/sim'
+import { defaultGearFor, slotsOffDefault } from './default-set'
 import { EnchantPicker } from './enchant-picker'
 import { enchantsFor } from './enchants'
 import { ItemPicker } from './item-picker'
@@ -57,6 +58,13 @@ function suppliesSwapped(before: SimConfig['gear'], after: SimConfig['gear']): s
   return swapped.length ? `Swapped in ${swapped.join(' and ')} to match the ranged weapon.` : null
 }
 
+/** Up to three slots by name, then how many more: "Head, Neck, Shoulders and 13 more". */
+function slotList(slots: readonly GearSlot[]): string {
+  const names = slots.map((slot) => SLOT_LABEL[slot])
+  if (names.length > 3) return `${names.slice(0, 3).join(', ')} and ${names.length - 3} more`
+  return names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
+}
+
 export function GearSection() {
   const meta = useSpecMeta()
   const config = useSetup((s) => s.config)
@@ -73,11 +81,15 @@ export function GearSection() {
   // so (docs/ux.md "Gear").
   const threatSet = hasThreatSet(config.spec)
   const defaultSet = threatSet ? `the ${meta.name} ${meta.className} threat set` : `${meta.name} ${meta.className} pre-raid best in slot`
+  // The default set's button sits at the top, stronger while the gear differs from it (docs/ux.md "Gear").
+  const offSlots = slotsOffDefault(config)
+  const offDefault = offSlots.length
+  const setName = threatSet ? 'the threat set' : 'pre-raid best in slot'
 
   // No visible notice for these: the slots change in front of you. Screen readers hear them
   // (src/app/announce.ts).
   const loadBis = () => {
-    update((c) => ({ ...c, gear: defaultConfig(c.spec, c.race).gear }))
+    update((c) => ({ ...c, gear: { ...defaultGearFor(c.spec, c.race) } }))
     announce(`Equipped ${defaultSet}.`)
   }
   const clearAll = () => {
@@ -102,9 +114,6 @@ export function GearSection() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem className="min-h-11" onSelect={loadBis}>
-                {threatSet ? 'Equip the threat set' : 'Equip pre-raid best in slot'}
-              </DropdownMenuItem>
               <DropdownMenuItem className="min-h-11" onSelect={clearAll}>
                 Remove all gear
               </DropdownMenuItem>
@@ -112,6 +121,33 @@ export function GearSection() {
           </DropdownMenu>
         }
       />
+      <div
+        className={cn(
+          'flex flex-col gap-2 rounded-xl border px-3 py-2.5 sm:flex-row sm:items-center sm:gap-4',
+          offDefault > 0 && 'bg-muted/50',
+        )}
+      >
+        <p id="gear-default-status" className="flex min-w-0 flex-1 items-center gap-2 text-sm">
+          {offDefault > 0 ? (
+            <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-primary" />
+          ) : (
+            <Check aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+          )}
+          <span className={cn(offDefault === 0 && 'text-muted-foreground')}>
+            {offDefault === 0
+              ? `Wearing ${setName}.`
+              : `${offDefault} ${offDefault === 1 ? 'slot differs' : 'slots differ'} from ${setName}: ${slotList(offSlots)}.`}
+          </span>
+        </p>
+        <Button
+          variant={offDefault > 0 ? 'default' : 'outline'}
+          className="h-11 w-full px-4 sm:w-auto"
+          aria-describedby="gear-default-status"
+          onClick={loadBis}
+        >
+          {threatSet ? 'Equip the threat set' : 'Equip pre-raid best in slot'}
+        </Button>
+      </div>
       <ClassicEraNote what="Enchants" />
 
       {slotGroups(meta.classId).map((group) => (

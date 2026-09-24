@@ -118,8 +118,7 @@ test.describe('Protection paladin', () => {
     await expect(gear.getByText(/best in slot/)).toHaveCount(0)
     await gear.getByRole('button', { name: 'Gear options' }).click()
     await page.getByRole('menuitem', { name: 'Remove all gear' }).click()
-    await gear.getByRole('button', { name: 'Gear options' }).click()
-    await page.getByRole('menuitem', { name: 'Equip the threat set' }).click()
+    await gear.getByRole('button', { name: 'Equip the threat set' }).click()
     await expect(gear.getByText('Lionheart Helm')).toBeVisible()
     // A DPS spec's still starts as its pre-raid best in slot.
     await page.getByRole('button', { name: /^Spec: Protection Paladin/ }).click()

@@ -623,6 +623,15 @@ heal ([warrior Q30](../classes/warrior.md#9-open-questions)). No other list has 
 filter doesn't keep it, so it's out of the pool; the lists' trinket ranks run 1, 2 and 4. The
 default gear is unchanged, since it wears ranks 1 and 2.
 
+**Sim-ranked lists.** Where no allowed guide fits a spec's default build, the sim ranks the list
+itself, as the [Forever caveat](#forever-caveat) asks: the candidates are the pool's pre-raid items
+for the spec's stats (no raid drops, no Forever-new items until their sources are known, PvP Rank 10
+or lower), a slot-by-slot paired search picks rank 1, and paired runs in that set rank the rest.
+Within the 95% interval, a guide's pick keeps its place. The spec keeps its guide as `source`, since
+the guide's picks are among the candidates, and its `note` says how the list was ranked. So far that's
+`warlock-destruction`: Wowhead's one warlock list is a Shadow list, and Destruction's default is a
+Fire build ([warlock.md §7.3](../classes/warlock.md#73-gear)).
+
 ### Coverage
 
 The counts below were taken before the shaman, rogue and mage lists joined.

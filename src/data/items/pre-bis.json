@@ -155,8 +155,8 @@
     "preRaidBis": {
       "addedByList": 130,
       "file": "scripts/scrape/pre-raid-bis.json",
-      "inPool": 371,
-      "listedItems": 371,
+      "inPool": 376,
+      "listedItems": 376,
       "notInData": [],
       "specs": {
         "druid-balance": {
@@ -349,7 +349,7 @@
         },
         "warlock-destruction": {
           "name": "Destruction Warlock",
-          "note": "The guide has one table ('Warlock Pre-Raid Best in Slot Gear (BiS) - WoW Classic Phase 6') for every warlock. It does not split Affliction and Destruction. Its 15 'of Shadow Wrath' random-suffix items are left out, and the items below them move up. Their shadow damage comes only from the random suffix (RandomSelect), which the item pool doesn't model, so the base items have no spell stats. They are: Eternal Crown and Green Lens (head), Eternal Spaulders, Archivist Cape and Master's Cloak, Master's Vest, Tearfall Bracers, Flameweave Cuffs and Master's Bracers, Atal'ai Gloves, Master's Boots, Bloodstrike Dagger (one-hand), Drakestone (off-hand), Solstice Staff and Lunar Wand. That is why back and wrist keep fewer than three items. The Horde Dreadweave PvP pieces (Rank 7-10) get their Alliance counterpart at the same rank. The guide already lists both factions' battleground belts and Blackrock Depths rings.",
+          "note": "Ranked by the sim, not copied from a guide (docs/data/items.md 'Forever caveat': let the sim decide; docs/classes/warlock.md#73-gear). Wowhead's Classic warlock guide (the source below) has one Shadow list for every warlock, and it never considers the Fire items the default Fire build (warlock.md §7.1) can use. Candidates: every pool item a warlock can wear with spell damage (any school), spell power, spell hit or crit, Intellect or an effect, from pre-raid sources (dungeons, quests, reputation, crafting, world drops, PvP Rank 10 or lower), with the guide's picks among them. Left out: raid drops (Zul'Gurub, Ruins of Ahn'Qiraj); Forever-new items, whose sources aren't known yet; random-suffix items, whose base rows have no spell stats; and four weapons whose Classic Era sources couldn't be confirmed: Verimonde's Last Resort and Shivsprocket's Shiv (Forever's +74 caster-weapon spell power; the sim would rank them second and third in the main hand), Whiteout Staff (it would lead the two-handers) and Amethyst War Staff. Method: a slot-by-slot paired search from the old default gear (the default Orc Destruction setup, 6,000 fights a candidate on seed 2701, common random numbers) until no swap helped, then each slot's alternatives ranked by their paired DPS in the finished set (20,000 fights). Within the 95% interval the guide's pick keeps the place (Deathmist Wraps over Inferno Gloves; Eye of the Beast over Rune of the Guard Captain, a melee trinket). The Bloodvine Garb 3-piece (+2% spell crit) and the Champion's Dreadgear 2-piece (+23 spell power) win over the 4- and 6-piece Dreadgear (paired: -4 to -42 DPS). Fire items lose most slots: the default build still casts Shadow (Shadowburn, Corruption, Bane of Doom), so +1 Fire spell damage is worth about 70% of +1 to every school (the sim's weights: 0.41 against 0.58 DPS), and Tome of Fiery Arcana's +40 Fire ranks second to Therazane's Touch's +31. Twins at the same rank: the Alliance Dreadweave pieces, Sageclaw for Mindfang, the Arathi Basin and Alterac Valley belts, and the two Blackrock Depths rings.",
           "source": {
             "archivedUrl": "https://web.archive.org/web/20210518023319/https://classic.wowhead.com/guides/wow-classic-warlock-dps-pre-raid-best-in-slot-gear",
             "snapshot": "2021-05-18",
@@ -4200,11 +4200,6 @@
         {
           "rank": 1,
           "slot": "head",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 1,
-          "slot": "head",
           "spec": "warlock-affliction"
         },
         {
@@ -4379,6 +4374,11 @@
           "rank": 3,
           "slot": "head",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "warlock-destruction"
         },
         {
           "rank": 1,
@@ -5010,7 +5010,7 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 2,
+          "rank": 1,
           "slot": "head",
           "spec": "warlock-destruction"
         },
@@ -5537,7 +5537,7 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 2,
+          "rank": 1,
           "slot": "head",
           "spec": "warlock-destruction"
         },
@@ -7449,11 +7449,6 @@
         {
           "rank": 1,
           "slot": "neck",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 1,
-          "slot": "neck",
           "spec": "warlock-affliction"
         },
         {
@@ -8522,11 +8517,6 @@
         {
           "rank": 3,
           "slot": "neck",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 3,
-          "slot": "neck",
           "spec": "warlock-affliction"
         },
         {
@@ -8870,7 +8860,7 @@
           "spec": "mage-arcane"
         },
         {
-          "rank": 2,
+          "rank": 1,
           "slot": "neck",
           "spec": "warlock-destruction"
         },
@@ -10300,6 +10290,11 @@
           "rank": 1,
           "slot": "neck",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 3,
+          "slot": "neck",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -10345,7 +10340,13 @@
       "name": "Chains of the Lich",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "neck",
+          "spec": "warlock-destruction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -11644,11 +11645,6 @@
       "notes": [],
       "otherEquip": [],
       "preRaidBis": [
-        {
-          "rank": 2,
-          "slot": "shoulder",
-          "spec": "warlock-destruction"
-        },
         {
           "rank": 2,
           "slot": "shoulder",
@@ -13810,11 +13806,6 @@
         {
           "rank": 3,
           "slot": "shoulder",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 3,
-          "slot": "shoulder",
           "spec": "warlock-affliction"
         },
         {
@@ -14052,7 +14043,13 @@
       "name": "Mantle of the Timbermaw",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "warlock-destruction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -14157,7 +14154,13 @@
       "name": "Argent Shoulders",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "shoulder",
+          "spec": "warlock-destruction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -18081,6 +18084,11 @@
           "rank": 1,
           "slot": "back",
           "spec": "druid-balance"
+        },
+        {
+          "rank": 3,
+          "slot": "back",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -19234,7 +19242,7 @@
           "spec": "mage-arcane"
         },
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "back",
           "spec": "warlock-destruction"
         },
@@ -19567,11 +19575,6 @@
           "rank": 2,
           "slot": "back",
           "spec": "mage-arcane"
-        },
-        {
-          "rank": 2,
-          "slot": "back",
-          "spec": "warlock-destruction"
         },
         {
           "rank": 2,
@@ -20460,6 +20463,11 @@
           "rank": 1,
           "slot": "back",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "back",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -22362,11 +22370,6 @@
         {
           "rank": 3,
           "slot": "chest",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 3,
-          "slot": "chest",
           "spec": "warlock-affliction"
         },
         {
@@ -22418,11 +22421,6 @@
       "notes": [],
       "otherEquip": [],
       "preRaidBis": [
-        {
-          "rank": 2,
-          "slot": "chest",
-          "spec": "warlock-destruction"
-        },
         {
           "rank": 2,
           "slot": "chest",
@@ -22621,7 +22619,7 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 1,
+          "rank": 2,
           "slot": "chest",
           "spec": "warlock-destruction"
         },
@@ -25075,6 +25073,11 @@
         {
           "rank": 1,
           "slot": "chest",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "chest",
           "spec": "priest-shadow"
         }
       ],
@@ -25499,6 +25502,11 @@
           "rank": 3,
           "slot": "chest",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 3,
+          "slot": "chest",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -30746,7 +30754,7 @@
           "spec": "mage-arcane"
         },
         {
-          "rank": 1,
+          "rank": 3,
           "slot": "wrist",
           "spec": "warlock-destruction"
         },
@@ -31274,6 +31282,11 @@
           "rank": 2,
           "slot": "wrist",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 2,
+          "slot": "wrist",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -31680,6 +31693,11 @@
           "rank": 1,
           "slot": "wrist",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 1,
+          "slot": "wrist",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -34532,7 +34550,7 @@
           "spec": "mage-arcane"
         },
         {
-          "rank": 3,
+          "rank": 1,
           "slot": "hands",
           "spec": "warlock-destruction"
         },
@@ -37171,11 +37189,6 @@
         {
           "rank": 2,
           "slot": "hands",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 2,
-          "slot": "hands",
           "spec": "warlock-affliction"
         },
         {
@@ -38259,6 +38272,11 @@
           "rank": 3,
           "slot": "hands",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 2,
+          "slot": "hands",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -38727,7 +38745,7 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 1,
+          "rank": 3,
           "slot": "hands",
           "spec": "warlock-destruction"
         },
@@ -42837,11 +42855,6 @@
         {
           "rank": 3,
           "slot": "waist",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 3,
-          "slot": "waist",
           "spec": "warlock-affliction"
         },
         {
@@ -45324,7 +45337,13 @@
       "name": "Frostwolf Cloth Belt",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "warlock-destruction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -45504,7 +45523,13 @@
       "name": "Stormpike Cloth Girdle",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "warlock-destruction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -50177,7 +50202,7 @@
           "spec": "mage-arcane"
         },
         {
-          "rank": 1,
+          "rank": 3,
           "slot": "legs",
           "spec": "warlock-destruction"
         },
@@ -50471,11 +50496,6 @@
       "notes": [],
       "otherEquip": [],
       "preRaidBis": [
-        {
-          "rank": 3,
-          "slot": "legs",
-          "spec": "warlock-destruction"
-        },
         {
           "rank": 3,
           "slot": "legs",
@@ -52941,6 +52961,11 @@
           "rank": 2,
           "slot": "legs",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -53010,6 +53035,11 @@
           "rank": 1,
           "slot": "legs",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "warlock-destruction"
         },
         {
           "rank": 1,
@@ -55343,11 +55373,6 @@
         {
           "rank": 2,
           "slot": "legs",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 2,
-          "slot": "legs",
           "spec": "warlock-affliction"
         },
         {
@@ -55795,11 +55820,6 @@
       "notes": [],
       "otherEquip": [],
       "preRaidBis": [
-        {
-          "rank": 2,
-          "slot": "legs",
-          "spec": "warlock-destruction"
-        },
         {
           "rank": 2,
           "slot": "legs",
@@ -60770,11 +60790,6 @@
         {
           "rank": 1,
           "slot": "feet",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 1,
-          "slot": "feet",
           "spec": "warlock-affliction"
         },
         {
@@ -61011,6 +61026,11 @@
           "rank": 1,
           "slot": "feet",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "warlock-destruction"
         },
         {
           "rank": 1,
@@ -65814,11 +65834,6 @@
         {
           "rank": 3,
           "slot": "finger",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 3,
-          "slot": "finger",
           "spec": "warlock-affliction"
         },
         {
@@ -65934,11 +65949,6 @@
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9342 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
-        {
-          "rank": 4,
-          "slot": "finger",
-          "spec": "warlock-destruction"
-        },
         {
           "rank": 4,
           "slot": "finger",
@@ -66150,7 +66160,7 @@
           "spec": "mage-arcane"
         },
         {
-          "rank": 1,
+          "rank": 4,
           "slot": "finger",
           "spec": "warlock-destruction"
         },
@@ -66272,7 +66282,7 @@
           "spec": "mage-arcane"
         },
         {
-          "rank": 1,
+          "rank": 4,
           "slot": "finger",
           "spec": "warlock-destruction"
         },
@@ -66436,7 +66446,7 @@
           "spec": "shaman-elemental"
         },
         {
-          "rank": 2,
+          "rank": 3,
           "slot": "finger",
           "spec": "warlock-destruction"
         },
@@ -68538,6 +68548,11 @@
           "rank": 3,
           "slot": "finger",
           "spec": "shaman-elemental"
+        },
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -69105,6 +69120,11 @@
           "rank": 1,
           "slot": "finger",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "warlock-destruction"
         },
         {
           "rank": 1,
@@ -70624,7 +70644,7 @@
           "spec": "mage-arcane"
         },
         {
-          "rank": 4,
+          "rank": 3,
           "slot": "trinket",
           "spec": "warlock-destruction"
         },
@@ -71244,7 +71264,7 @@
           "spec": "mage-arcane"
         },
         {
-          "rank": 2,
+          "rank": 4,
           "slot": "trinket",
           "spec": "warlock-destruction"
         },
@@ -72202,7 +72222,7 @@
       "otherEquip": [],
       "preRaidBis": [
         {
-          "rank": 3,
+          "rank": 2,
           "slot": "trinket",
           "spec": "warlock-destruction"
         },
@@ -73763,11 +73783,6 @@
           "rank": 2,
           "slot": "twoHand",
           "spec": "mage-arcane"
-        },
-        {
-          "rank": 2,
-          "slot": "twoHand",
-          "spec": "warlock-destruction"
         },
         {
           "rank": 2,
@@ -75900,7 +75915,7 @@
           "spec": "mage-arcane"
         },
         {
-          "rank": 1,
+          "rank": 3,
           "slot": "twoHand",
           "spec": "warlock-destruction"
         },
@@ -77383,6 +77398,11 @@
           "rank": 3,
           "slot": "twoHand",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -77605,6 +77625,11 @@
           "rank": 2,
           "slot": "twoHand",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 2,
+          "slot": "twoHand",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -78975,11 +79000,6 @@
         {
           "rank": 1,
           "slot": "mainHand",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 1,
-          "slot": "mainHand",
           "spec": "warlock-affliction"
         },
         {
@@ -79332,6 +79352,11 @@
           "rank": 1,
           "slot": "mainHand",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -79422,6 +79447,11 @@
           "rank": 1,
           "slot": "mainHand",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -79586,6 +79616,11 @@
           "rank": 2,
           "slot": "mainHand",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 2,
+          "slot": "mainHand",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -81303,7 +81338,7 @@
           "spec": "mage-arcane"
         },
         {
-          "rank": 2,
+          "rank": 3,
           "slot": "mainHand",
           "spec": "warlock-destruction"
         },
@@ -81836,11 +81871,6 @@
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 18384 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
-        {
-          "rank": 3,
-          "slot": "mainHand",
-          "spec": "warlock-destruction"
-        },
         {
           "rank": 3,
           "slot": "mainHand",
@@ -84856,11 +84886,6 @@
         {
           "rank": 3,
           "slot": "offHand",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 3,
-          "slot": "offHand",
           "spec": "warlock-affliction"
         },
         {
@@ -85505,11 +85530,6 @@
         {
           "rank": 2,
           "slot": "offHand",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 2,
-          "slot": "offHand",
           "spec": "warlock-affliction"
         },
         {
@@ -85622,6 +85642,11 @@
           "rank": 1,
           "slot": "offHand",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 2,
+          "slot": "offHand",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -85892,6 +85917,11 @@
           "rank": 2,
           "slot": "offHand",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 3,
+          "slot": "offHand",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -86219,6 +86249,11 @@
           "rank": 1,
           "slot": "ranged",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 3,
+          "slot": "ranged",
+          "spec": "warlock-destruction"
         }
       ],
       "procs": [],
@@ -86612,11 +86647,6 @@
         {
           "rank": 1,
           "slot": "ranged",
-          "spec": "warlock-destruction"
-        },
-        {
-          "rank": 1,
-          "slot": "ranged",
           "spec": "warlock-affliction"
         },
         {
@@ -86742,7 +86772,7 @@
           "spec": "mage-arcane"
         },
         {
-          "rank": 2,
+          "rank": 1,
           "slot": "ranged",
           "spec": "warlock-destruction"
         },
@@ -88207,7 +88237,7 @@
           "spec": "mage-fire"
         },
         {
-          "rank": 3,
+          "rank": 2,
           "slot": "ranged",
           "spec": "warlock-destruction"
         },

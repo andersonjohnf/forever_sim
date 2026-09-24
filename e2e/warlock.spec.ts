@@ -6,8 +6,11 @@ import { expect, test } from './fixtures.ts'
 // show the spells, DoTs and mana, the caster's sheet, and a share link, on a desktop and on a phone
 // (docs/ux.md). Nothing on a warlock's screens may speak warrior, rogue or druid.
 
-/** Words a warlock screen must never show. */
-const OTHER_CLASS = /\brage\b|\bstances?\b|Energy|combo point|Cat Form|Bear Form|Seal of|Judgement|Glancing|Main hand swings/i
+/**
+ * Words a warlock screen must never show. The paladin's seals by name, as the hunter's check has them:
+ * Destruction's default trinket, Royal Seal of Eldre'Thalas, is named in its assumptions.
+ */
+const OTHER_CLASS = /\brage\b|\bstances?\b|Energy|combo point|Cat Form|Bear Form|Seal of (the )?(Righteousness|Command|Crusader|Light|Wisdom|Justice)|Judgement|Glancing|Main hand swings/i
 
 /** A value with its ± 95% CI in the headline, e.g. "397.8± 1.4". */
 const VALUE_WITH_CI = /\d[\d,]*\.\d\s*± \d[\d,]*\.\d/
@@ -75,7 +78,10 @@ test.describe('Destruction warlock', () => {
     await openTab(page, 'Character')
     await expect(page.getByRole('radio', { name: /Orc/ })).toHaveAttribute('aria-checked', 'true')
     await openTab(page, 'Gear')
-    await expect(page.getByRole('button', { name: /^Main hand: Blade of the New Moon$/ })).toBeVisible()
+    // Its own sim-ranked list (warlock.md §7.3): Mindfang for a Horde warlock, Therazane's Touch over
+    // the Fire tome.
+    await expect(page.getByRole('button', { name: /^Main hand: Mindfang$/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Off hand: Therazane's Touch$/ })).toBeVisible()
     const talents = await openTab(page, 'Talents')
     const presets = talents.getByRole('combobox', { name: 'Talent build presets' })
     await expect(presets).toHaveText('Destruction (default)')

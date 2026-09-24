@@ -112,6 +112,22 @@ describe('default gear by faction (docs/data/items.md#equipping-rules)', () => {
     expect(listIds('horde-tauren')).toBe(16342) // Sergeant's Cape
   })
 
+  it('gives a Destruction warlock its sim-ranked list’s twins, and Affliction and Demonology the guide’s list', () => {
+    // docs/classes/warlock.md#73-gear: Destruction's own list, with the Arathi Basin main hand and the
+    // Rank 10 Dreadweave cowl and spaulders by faction; the Fire tome ranks second in the off hand.
+    const slots: GearSlot[] = ['head', 'shoulder', 'mainHand', 'offHand']
+    expect(ids('warlock-destruction', 'horde-orc', slots)).toEqual([23255, 23256, 20214, 19315])
+    expect(ids('warlock-destruction', 'horde-undead', slots)).toEqual([23255, 23256, 20214, 19315])
+    expect(ids('warlock-destruction', 'alliance-human', slots)).toEqual([23310, 23311, 20070, 19315])
+    expect(ids('warlock-destruction', 'alliance-gnome', slots)).toEqual([23310, 23311, 20070, 19315])
+    const tome = items.get(19311)!
+    expect(tome.preRaidBis.filter((p) => p.spec.startsWith('warlock-'))).toEqual([{ spec: 'warlock-destruction', slot: 'offHand', rank: 2 }])
+    // The Shadow specs keep Wowhead's one warlock list: Blade of the New Moon, Maleki's Footwraps.
+    for (const spec of ['warlock-affliction', 'warlock-demonology'] as const) {
+      expect(ids(spec, 'horde-orc', ['head', 'feet', 'mainHand', 'offHand'])).toEqual([22074, 18735, 18372, 19315])
+    }
+  })
+
   it('opens with the default race’s gear', () => {
     expect(defaultConfig('warrior-fury')).toEqual(defaultConfig('warrior-fury', 'alliance-human'))
     expect(defaultConfig('druid-feral-cat')).toEqual(defaultConfig('druid-feral-cat', 'horde-tauren'))
@@ -143,6 +159,32 @@ describe('the tanks’ effective-health floor (D30; warrior.md §6.3)', () => {
     expect([shoulder, chest, legs, feet].map((e) => e?.itemId)).toEqual([274233, 13168, 274232, 274226])
     const ally = defaultConfig('paladin-protection', 'alliance-human').gear
     expect([ally.shoulder, ally.chest, ally.legs, ally.feet].map((e) => e?.itemId)).toEqual([23277, 23272, 23273, 23275])
+  })
+})
+
+describe('Destruction’s sim-ranked list (docs/classes/warlock.md#73-gear; D29)', () => {
+  const listed = [...items.values()].filter((i) => i.preRaidBis.some((p) => p.spec === 'warlock-destruction'))
+  const SPELL_STATS = ['spellPower', 'spellDamage', 'fireSpellDamage', 'shadowSpellDamage', 'spellHit', 'spellCrit', 'hitRating', 'critRating', 'intellect'] as const
+
+  it('lists only warlock gear that kept its spell stats, and no Forever-new item', () => {
+    expect(listed.length).toBeGreaterThan(40)
+    for (const item of listed) {
+      expect(canUse('warlock', item), item.name).toBe(true)
+      expect(SPELL_STATS.some((k) => (item.stats[k] ?? 0) > 0), `${item.name}: ${JSON.stringify(item.stats)}`).toBe(true)
+      expect(item.tab, item.name).not.toBe('new')
+      for (const r of item.requirements) if (r.kind === 'pvpRank') expect(r.level, item.name).toBeLessThanOrEqual(10)
+    }
+  })
+
+  it('ranks every slot the default gear fills, with Fire items where they place', () => {
+    const rank = (id: number) => items.get(id)!.preRaidBis.find((p) => p.spec === 'warlock-destruction')
+    for (const slot of ['head', 'neck', 'shoulder', 'back', 'chest', 'wrist', 'hands', 'waist', 'legs', 'feet', 'finger', 'trinket', 'mainHand', 'offHand', 'twoHand', 'ranged'])
+      expect(listed.some((i) => i.preRaidBis.some((p) => p.spec === 'warlock-destruction' && p.slot === slot && p.rank === 1)), slot).toBe(true)
+    // Tome of Fiery Arcana (+40 Fire) and Pyric Caduceus (+13 Fire) place; a Shadow-only item doesn't.
+    expect(rank(19311)).toEqual({ spec: 'warlock-destruction', slot: 'offHand', rank: 2 })
+    expect(rank(11748)).toEqual({ spec: 'warlock-destruction', slot: 'ranged', rank: 3 })
+    expect(rank(19309)).toBeUndefined() // Tome of Shadow Force
+    expect(rank(18735)).toBeUndefined() // Maleki's Footwraps
   })
 })
 

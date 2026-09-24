@@ -643,7 +643,12 @@ no rage, where a landed white swing would give 8.65 [?]
 - **Assumption [?]:** each application also deals an immediate physical hit of
   `0.10 × W_b × (stacks already on the target)`, can crit, and refreshes the bleed's duration. A
   separate spell, 414647, carries a 20% weapon-damage effect whose role is unknown.
-- "Causes a high amount of threat": the value is unknown (Q15, Q16).
+- "Causes a high amount of threat": **+261 per landed application** [?], by
+  [threat.md's wording table](../mechanics/threat.md#threat-wording-table)
+  ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)):
+  the warrior's GCD specials with those words carry 4.5 × the spell's level in Classic Era, and
+  rank 3 is level 58, as Sunder Armor r5 is (261 [C]); ranks 1 and 2 (levels 42 and 50) would be
+  189 and 225. No rank has a threat effect in the client, so it's server-side (Q15, guild test G1).
 - In `forever` its ticks may crit [?] (§2.9).
 - [F] [client] (SpellEffect, SpellDuration, SpellAuraOptions, 1.60.1.69913: period 3000 ms,
   15,000 ms, `CumulativeAura` 5)
@@ -658,7 +663,9 @@ no rage, where a landed white swing would give 8.65 [?]
   - The bleed ends with its fifth tick, 15 s after the last application, and its stacks with it:
     an application at that moment starts again from one stack.
   - Its ticks count on a row of their own, "Lacerate (bleed)", whose casts are the landed
-    applications. Hit and ticks make one threat per damage (Q15).
+    applications. Hit and ticks make one threat per damage (Q15), and each landed application
+    (a hit or a block, the first one too, which deals nothing) makes 261 more × the form's
+    multiplier, on the hit's row (`LACERATE_THREAT`; W20).
 
 ### 4.4 Swipe (r5, 9908)
 
@@ -750,7 +757,8 @@ One target: the extra targets add nothing.
 | Faerie Fire | 108 threat (rank 4) | [?] [ltc2] |
 | Demoralizing Roar | 39 threat per target (rank 5) | [?] [ltc2] |
 | Cower | −1208 (Forever) vs −608 (Classic) at 60 | [F] [client] (SpellEffect, 1.60.1.69913) |
-| Mangle, Lacerate | unknown (Lacerate "high threat") | [?] Q15 |
+| Mangle | ×1.0 damage-to-threat (no threat words) | [?] Q15 |
+| Lacerate | ×1.0 on the hit and ticks, **+261** per landed application ("high threat": 4.5 × level 58, the [wording table](../mechanics/threat.md#threat-wording-table)) | [?] Q15, D29 |
 | Enrage | +10 Rage immediately, 20 over 10 s | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Furor 5/5 | +10 Rage on shifting into bear (100%) | [F] [client] (SpellEffect 17057, 1.60.1.69913) |
 | Primal Fury 2/2 | +5 Rage on any crit in bear (100%) | [F] [client] (SpellEffect 16959, 1.60.1.69913) |
@@ -985,8 +993,9 @@ early is worth more than its lost Energy, since its cooldown starts sooner.
 
 ### 6.3 Forever bear priority (TPS)
 
-This is derived for Forever [?]. Mangle and Lacerate have no Classic analogue, and their threat
-multipliers are unknown (Q15).
+This is derived for Forever [?]. Mangle and Lacerate have no Classic analogue. Mangle's threat is
+assumed one per damage, and Lacerate's "high amount of threat" is +261 an application by the
+wording table (D29); neither is measured (Q15).
 
 **A tank's duties come first** ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)).
 The bear's duties are its two raid debuffs on the boss: **Demoralizing Roar**, the attack-power
@@ -1076,7 +1085,7 @@ arrives, a cooldown or debuff runs out):
 | `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** (duty; off with Max TPS), 1.5 s | 10 rage; the refresh is one global cooldown, by the duty rule. The Buffs tab's Demoralizing Roar adds nothing more, and is off by default when it's off; a Demoralizing Shout there takes its place, so the roar isn't used (§4.5). No preset has a warrior's Shout for the bear |
 | `maul.enabled`, `maul.minRage` | **on**, 20 | Tuned (below): from 20, rage stays for Mangle and Lacerate |
 | `mangle.enabled` | **on** | Needs the talent |
-| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 6 s (4.5 s with Max TPS) | Kept with the raid's warriors: leaving it out rests on its untested threat (below); refresh tuned |
+| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 6 s (4.5 s with Max TPS) | Kept with the raid's warriors: with its +261 threat an application [?], leaving it out costs 4% of TPS and 7% of DPS (below); refresh tuned |
 | `swipe.enabled`, `swipe.minRage` | **off**, 60 | Tuned (below); 60 is the [?] rule of thumb, see §6.1, Q31 |
 | `faerieFire.filler` | **on** | Keeps Faerie Fire up too |
 | `ragePotion.enabled`, `ragePotion.maxRage` | **on**, 25 | The cap minus 75; needs the potion selected in Buffs |
@@ -1172,16 +1181,14 @@ Lacerate out takes 1.28% off (575.32 → 567.98, seed 12107).
   fights Maul does more with it; the setting's help says so.
 - **Lacerate kept** (the review, BL1). With the Standard raid's warriors on the boss, their Deep
   Wounds already turn on Rend and Tear [?] (Q9), so Lacerate adds only its own damage and threat,
-  and costs 1.28% more damage taken (its parries, above). As modelled, one threat per damage (Q15),
-  leaving it out would gain 0.75% TPS for 7.3% of the DPS, which the DPS rule doesn't adopt. Its
-  tooltip's "high threat" makes a bonus likely, and a small one turns the TPS round too [?]:
-  leaving it out wins only if Lacerate adds less than about **+40 threat per landed application,
-  or ×1.1** on its hit and ticks (seed 7476, 40,000 fights, on the second round's defaults; +50
-  gains 0.20% by keeping it, +100 1.23%, +150 2.26%; ×1.2 0.91%). With the first round's Maul from
-  10 the break-even was about **+200, or ×1.6** (seed 4242, 20,000 fights). Both are D24 effect
-  estimates in Q15. In short fights Lacerate costs more as modelled, since its first applications
-  deal little: 5.2% of TPS at 30 s and 3.9% at 60 s against leaving it out (seed 18, 100,000
-  fights), and at 30 s 0.8% of DPS too.
+  and costs 1.28% more damage taken (its parries, above). These rounds modelled it at one threat
+  per damage, with no bonus: then leaving it out gained 0.75% TPS for 7.3% of the DPS, which the
+  DPS rule didn't adopt, and the break-even was about **+40 threat per landed application, or
+  ×1.1** (seed 7476, 40,000 fights, on the second round's defaults; with the first round's Maul
+  from 10, about +200, or ×1.6). Since T3 its tooltip's "high amount of threat" is **+261** an
+  application by the wording table (D29, Q15), well above that: leaving it out now costs 4.4% of
+  TPS and 7.3% of DPS (seed 7503, 100,000 fights; [T3's re-check](#t3s-re-check-of-the-defaults)
+  below). The break-even is still about +40.
 - **Lacerate's refresh at 6 s** acts in the default setup: at 6 s left the refresh comes right
   after a tick, with a GCD's slack before the bleed runs out. On the second round's robustness
   grid (seed 7475, 200,000 fights, 6 s against 3 s), with the raid's warriors: level at 30 s (the
@@ -1276,6 +1283,21 @@ fights). Every other setting keeps the default's value.
 - **The Buffs tab's Demoralizing Roar** is the bear's own and in no preset, so with Max TPS nobody
   keeps it up by default; turned on there, another druid's counts from the pull. Faerie Fire's
   switch there stays the bear's own, kept up by its rotation.
+
+#### T3's re-check of the defaults
+
+M5.6's threat fixes (T3) changed what the rotation's settings trade: Lacerate's +261 threat an
+application [?] (Q15). The talents and gear stay as they were: the optimizer (D30, M5.7 O4) sets
+those. Per D27, one quick paired search on the settings those fixes touch
+(`scripts/tune/rotation.mjs --spec druid-feral-bear`), not a full re-tune:
+
+- **Lacerate kept.** Leaving it out while the raid's warriors keep the boss bleeding costs
+  −31.54 TPS (−31.86 to −31.22), −4.36%, and −26.18 DPS, −7.3% (seed 7503, 100,000 fights).
+- **Lacerate's refresh** (seed 7501, 40,000 fights, from 3 to 9 s; seed 7502, 100,000 fights, from
+  8.5 to 15 s): 6 s stays within 0.2% of the best. 7 s gains +0.08% TPS for −0.13% DPS; 9 s
+  +0.14% TPS and +0.6% DPS for 0.31% more damage taken, a narrow peak (8.5 and 9.5 s lose).
+- **Max TPS's refresh** (seed 7503, 100,000 fights, from 3 to 9 s, with Max TPS as the base):
+  4.5 s is no longer its best: 6 s gains +0.20% TPS and +0.5% DPS, 7 s +0.23%, 9 s +0.24%.
 
 ---
 
@@ -1501,9 +1523,9 @@ If Q5 changes those numbers, recompute the examples; the formulas stay.
 Unit tests: W1, W2, W9, W10, W13 and W17, and the talent arithmetic of W3, W5 and W6
 (`src/sim/classes/druid/druid.test.ts`, `src/sim/engine/druid.test.ts`); W3–W8 and W11 with the
 cat's abilities in the engine, and W8's Energy against the client (`src/sim/engine/cat.test.ts`,
-`src/sim/classes/druid/cat.test.ts`); the bear's W14, W15, W16, W18 and W19
+`src/sim/classes/druid/cat.test.ts`); the bear's W14, W15, W16, W18, W19 and W20
 (`src/sim/classes/druid/bear.test.ts`, with W14–W16 and W19 also in the engine,
-`src/sim/engine/bear.test.ts`). W12 compares W6 and W7 by hand.
+`src/sim/engine/bear.test.ts`, whose default-bear test checks W20's +261 per landed application). W12 compares W6 and W7 by hand.
 
 1. **Cat AP.** Str 200 (after HotW), Agi 300, +310 AP from gear and buffs, Predatory Strikes 3/3:
    `2×200 − 20 + 300 + 120 + 90 + 310 = 1200`. [F] form terms; [?] `2×Str − 20` (character-stats.md)
@@ -1581,6 +1603,10 @@ cat's abilities in the engine, and W8's Energy against the client (`src/sim/engi
     1.15.9.69722). Whether combat applies it is [?] (Q32).
 19. **Lacerate at 5 stacks** (bleed only): 15 × 5 = **75 per 3 s** (25 DPS); with Genesis 5/5,
     **78.75** per tick. [F] bleed, [?] stack model
+20. **Lacerate's threat at 1200 AP** (`forever`, the boss bleeding, 4 stacks already on it): the
+    hit is 0.1 × 4 × 351.286 × 1.10 (Rend and Tear 5/5) = **154.566**; its threat (154.566 + 261)
+    × 1.3 = **540.235**. The first application of a run deals nothing and makes 261 × 1.3 =
+    **339.3**. [?] (the hit, Q16; the +261, Q15 and the wording table)
 
 ---
 
@@ -1606,7 +1632,7 @@ ranks.
 | Q12 | Savage Fury on Rake's bleed (10%) | Mask on the periodic mod [F] | Rake ticks with 0 vs 2 points |
 | Q13 | Furor re-entry formula and rounding; Energy on entering cat without Furor | Tooltip [F]; 0 without Furor [C] [wh-rot] (inferred) | Shift at known Energy, time the caster phase |
 | Q14 | Wolfshead +20 on Tiger's Fury stacks with King of the Jungle | Tooltip [F] | Press TF at 0 Energy with the helm |
-| Q15 | Threat: Maul/Swipe ×1.75, FF 108, Demo Roar 39 (Classic and Forever)? Mangle, Lacerate ("high threat") | [?] for all: Maul, Swipe, FF and Demo Roar come only from LibThreatClassic2 [ltc2] ([threat.md OQ 4](../mechanics/threat.md#open-questions)). Lacerate's bonus, left at none, is a D24 effect estimate: each +50 threat per landed application adds about 1% to the default bear's TPS (+100: +2.1%, ×1.2: +1.8%). Leaving Lacerate out while warriors keep the boss bleeding wins on TPS only below about +40 (×1.1) with the default Maul from 20, and +200 (×1.6) with Maul from 10 (§6.3), so the default keeps it | Threat-meter addon (ThreatClassic2-style) or `UnitDetailedThreatSituation` with a two-player test |
+| Q15 | Threat: Maul/Swipe ×1.75, FF 108, Demo Roar 39 (Classic and Forever)? Mangle ×1? Lacerate's "high amount of threat" | [?] for all: Maul, Swipe, FF and Demo Roar come only from LibThreatClassic2 [ltc2] ([threat.md OQ 4](../mechanics/threat.md#open-questions)). Mangle has no threat words: ×1. Lacerate's bonus is **+261 per landed application**, the [wording table](../mechanics/threat.md#threat-wording-table)'s 4.5 × its level 58 (D29), shown in the results' assumptions; each 50 more or less moves the default bear's TPS by about 1.0%, none at all −5.1%, Forever Sunder's 1013 +14.7% (seed 424242, 20,000 fights, BR1 alone). Leaving Lacerate out while warriors keep the boss bleeding would win on TPS only below about +40 (§6.3), so the default keeps it | **G1:** alone on a high-health elite, no Salvation, read `/run local _,_,_,_,t=UnitDetailedThreatSituation("player","target") print(t/100)` before and after each action. 20+ first applications on fresh mobs: the change ÷ 1.3 is the bonus. 20+ at 1–4 stacks: the change ÷ 1.3 − the hit's damage is the same bonus. The ticks should be damage × 1.3, Maul ÷ 1.3 ÷ damage 1.75, Mangle 1.0 (divide by 1.02 more with the gloves' threat enchant) |
 | Q16 | Lacerate: per-stack bleed and the "10% weapon damage per existing application" hit; does an application restart the ticks (the tick under way lost) or keep their timer? | Tooltip [F]; the SoD precedent is forbidden. The engine hits for 10% × the stacks already there and restarts the ticks, as a reapplied Rend does (§4.3) [?] | Apply 1→5 stacks on a mob; log hits and ticks, and the time from the fifth application to the next tick |
 | Q17 | Ranks available from the trainer: Mangle ranks 2–4, Ferocious Bite rank 5 (Classic: an AQ book) | [F] spellbook lists ranks | Trainer window at 36/48/56/60 |
 | Q18 | Combo points on the player or on the target | Forever uses modern CP costs [F] | Build CP, swap target, check |

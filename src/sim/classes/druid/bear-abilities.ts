@@ -9,7 +9,8 @@
 // the build's talents (Ferocity, Shredding Attacks, Savage Fury, Feral Instinct, Genesis,
 // Predatory Instincts, Rend and Tear) are applied by `withDruidTalents` (modifiers.ts) when the plan
 // resolves the rotation. Threat values are threat.md's bear rows: Classic values that only a threat
-// library carries, so [?] (Q15).
+// library carries, and Lacerate's "high amount of threat" by threat.md's wording table (D29), so [?]
+// (Q15).
 import { CRIT_MULTIPLIER, GCD_MS } from '../../core/formulas'
 import { type AbilityDef, SCHOOL, STANCE_ANY } from '../../plan/types'
 import type { RulesProfile } from '../../rules/profiles'
@@ -113,13 +114,33 @@ export const LACERATE_MAX_STACKS = 5
 export const LACERATE_WEAPON_PCT_PER_STACK = 0.1
 
 /**
+ * "Causes a high amount of threat" on a special on the GCD: 4.5 threat per level of the spell, the
+ * rule the warrior's abilities with those words fit in Classic Era (Sunder Armor r5, level 58: 261;
+ * Revenge r5, 54: 243, and r6, 60: 270) [C] (threat.md#threat-wording-table, D29). The flat bonus
+ * lands with the ability, before the global multipliers.
+ */
+export const HIGH_THREAT_PER_SPELL_LEVEL = 4.5
+export const highThreatBonus = (spellLevel: number) => HIGH_THREAT_PER_SPELL_LEVEL * spellLevel
+
+/** Lacerate's ranks' spell levels, 414644, 1235826 and 1235827: 42, 50 and 58 (`SpellLevels`) [F] (druid.md §4.3). */
+export const LACERATE_RANK_LEVELS = [42, 50, 58] as const
+
+/**
+ * Lacerate's "high amount of threat", per landed application: 4.5 × the rank's level (189, 225 and
+ * 261), no Forever effect carrying it [?] (druid.md §4.3, Q15; guild test G1). Rank 3's 261 is Sunder
+ * Armor r5's in Classic Era: the same level, the same 15 rage, the same 5-stack debuff.
+ */
+export const LACERATE_THREAT = highThreatBonus(LACERATE_RANK_LEVELS[2])
+
+/**
  * Lacerate rank 3 (spells.json 1235827): 15 rage, GCD 1500; a bleed of 15 every 3000 ms for 15000 ms
  * per stack (aura 3, mechanic 15), up to 5 stacks [F]. Each application hits for 10% of the weapon
  * damage per stack already on the target, rolls once, can crit, adds a stack, and restarts and
  * re-snapshots the bleed for every stack [?] (druid.md §4.3, §2.9, Q16). Its ticks carry the
  * periodic-crit flag (SpellMisc Attributes[8] 0x200), so they crit in `forever` [?]. Its threat,
- * "high" in the tooltip, is unknown: one per damage [?] (Q15). Clearcasting's class mask covers it
- * (§2.7).
+ * "high" in the tooltip: one per damage, plus `LACERATE_THREAT` (261) per landed application, a hit
+ * or a block, the first one too, which deals no damage [?] (Q15). Clearcasting's class mask covers
+ * it (§2.7).
  */
 export const LACERATE: AbilityDef = {
   id: 'lacerate',
@@ -129,6 +150,7 @@ export const LACERATE: AbilityDef = {
   ...BEAR_ATTACK,
   costTenths: 150,
   weaponPercentPerStack: LACERATE_WEAPON_PCT_PER_STACK,
+  threatBonus: LACERATE_THREAT,
   clearcastable: true,
   dotTickDamage: 15,
   dotTicks: 5,

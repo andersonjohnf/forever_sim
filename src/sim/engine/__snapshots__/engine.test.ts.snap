@@ -254,7 +254,7 @@ exports[`golden run (fixed config and seed) > keeps the default Feral bear’s r
     [
       "lacerate",
       1676681.8064352344,
-      2223280.0753331184,
+      5550204.793333115,
       12470,
       5973,
       3008,
@@ -280,9 +280,9 @@ exports[`golden run (fixed config and seed) > keeps the default Feral bear’s r
     "stdev": 25.85278521761365,
   },
   "tps": {
-    "ci95": 4.625134380355778,
-    "mean": 686.3713247909384,
-    "stdev": 52.76686184605519,
+    "ci95": 4.603940145472571,
+    "mean": 723.3879156932635,
+    "stdev": 52.52506276044051,
   },
 }
 `;

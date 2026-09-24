@@ -481,6 +481,14 @@ describe('the default bear (druid.md §6.3)', () => {
     expect(ratio('mainHand')).toBeCloseTo(t, 12)
     expect(flat('faerieFire')).toBeCloseTo(108 * t, 9)
     expect(flat('demoralizingRoar')).toBeCloseTo(39 * t, 9)
+    // Lacerate: 1 per damage plus 261 per landed application (threat.md's wording table, D29), the
+    // first one of a run too, which deals nothing; its bleed's ticks 1 per damage.
+    const lac = plan.sources.findIndex((s) => s.id === 'lacerate')
+    const landed = counter(sim, lac, FIELD.hits) + counter(sim, lac, FIELD.crits) + counter(sim, lac, FIELD.blocks)
+    expect(landed).toBeGreaterThan(0)
+    expect(counter(sim, lac, FIELD.casts) - counter(sim, lac, FIELD.misses) - counter(sim, lac, FIELD.dodges) - counter(sim, lac, FIELD.parries)).toBe(landed)
+    expect((counter(sim, lac, FIELD.threat) - counter(sim, lac, FIELD.damage) * t) / landed).toBeCloseTo(261 * t, 9)
+    expect(ratio('lacerateBleed')).toBeCloseTo(t, 12)
     // Energizes: 5 threat a rage, whatever the form (Primal Fury, Natural Reaction), for the rage
     // gained in whole tenths: 0.5 a tenth, less than 5 when the cap takes some of it.
     for (const id of ['primalFury', 'naturalReaction']) {

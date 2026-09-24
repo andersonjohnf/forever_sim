@@ -3,6 +3,7 @@
 // The plan builder adds an assumption only when the setup actually relies on it, so the list
 // stays short and specific. Each links to the doc section that owns the value.
 import type { Assumption } from '../types'
+import { LACERATE_THREAT } from '../classes/druid/bear-abilities'
 
 const CT = 'docs/mechanics/combat-tables.md'
 const DT = 'docs/mechanics/damage-and-timing.md'
@@ -517,7 +518,7 @@ const REGISTRY = {
   },
   // docs/classes/druid.md §4, §8 "Uncertainty surfacing": the bear's abilities.
   bearThreat: {
-    text: 'Maul and Swipe make 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39, as a Classic Era threat library has them; Mangle and Lacerate make 1 threat per damage, since theirs is unknown (Lacerate’s tooltip calls it high). None is measured in Forever.',
+    text: 'Maul and Swipe make 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39, as a Classic Era threat library has them. Mangle makes 1 threat per damage, since its threat is unknown. Lacerate makes 1 per damage and 261 more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s 261 in Classic Era). None is measured in Forever.',
     docRef: `${THREAT}#druid-bear`,
   },
   lacerate: {
@@ -994,13 +995,13 @@ export const BEAR_TEXT = {
     const flat = [...(uses.faerieFire ? ['Faerie Fire 108'] : []), ...(uses.roar ? ['Demoralizing Roar 39'] : [])]
     const known = [...(multiplied.length ? [`${prose(multiplied)} ${multiplied.length > 1 ? 'make' : 'makes'} 1.75 threat per damage`] : []), ...flat]
     if (multiplied.length === 0 && known.length > 0) known[0] = known[0].replace(/ (\d+)$/, ' makes $1 threat')
-    const unknown = [...(uses.mangle ? ['Mangle'] : []), ...(uses.lacerate ? ['Lacerate'] : [])]
+    // threat.md#threat-wording-table (D29): Lacerate's "high amount of threat" is the warrior's.
     const sentences = [
       ...(known.length ? [`${prose(known)}, as a Classic Era threat library has them.`] : []),
-      ...(unknown.length
+      ...(uses.mangle ? ['Mangle makes 1 threat per damage, since its threat is unknown.'] : []),
+      ...(uses.lacerate
         ? [
-            `${prose(unknown)} ${unknown.length > 1 ? 'make 1 threat per damage, since theirs is' : 'makes 1 threat per damage, since its threat is'} unknown` +
-              (uses.lacerate ? ' (Lacerate’s tooltip calls it high: each 50 more an application would add about 1% to TPS).' : '.'),
+            `Lacerate makes 1 per damage and ${LACERATE_THREAT} more each time it lands: its tooltip’s “high amount of threat”, valued as a warrior’s abilities with the same words (4.5 × the spell’s level, Sunder Armor’s 261 in Classic Era).`,
           ]
         : []),
       'None is measured in Forever.',

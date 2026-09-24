@@ -745,7 +745,7 @@ the Feral cat's Faerie Fire ([druid §6.2](../classes/druid.md#62-forever-cat-pr
 tank's duties: a Protection warrior's Thunder Clap and Demoralizing Shout, a Protection paladin's
 Devotion Aura, and the Feral bear's Faerie Fire and Demoralizing Roar
 ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23);
-[paladin](../classes/paladin.md#priority-tank-duties-first-or-max-tps);
+[paladin](../classes/paladin.md#priority-defensive-balanced-or-max-tps);
 [druid §6.3](../classes/druid.md#63-forever-bear-priority-tps)).
 Its rotation keeps it up; when the rotation doesn't, the Buffs tab's is off by default and means
 another player's, on only if you turn it on ([ux.md](../ux.md) "Buffs"). Thunder Clap and

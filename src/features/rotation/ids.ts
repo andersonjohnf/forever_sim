@@ -1,5 +1,5 @@
 // Ids and shared bits of the Rotation tab's setting rows (option-rows.tsx, docs/ux.md "Rotation").
-import type { RotationOption, RotationValue } from '@/sim'
+import type { AplDefinition, RotationOption, RotationValue } from '@/sim'
 import type { RowState } from './logic'
 
 /** What every row needs: its state, and setting or resetting a value. */
@@ -34,3 +34,8 @@ export const controlOf = (option: RotationOption) => {
  */
 export const INACTIVE_SWITCH = 'data-checked:bg-muted-foreground'
 
+/** The top-of-tab preset picker's trigger (priority-list.tsx `AplPresetPicker`), which Reset rotation hands focus to. */
+export const APL_PRESET_TRIGGER_ID = 'apl-preset'
+
+/** Whether the spec has named rotations (D28's tanks), whose picker sits at the top of the tab, first (docs/ux.md "Rotation"). */
+export const hasNamedPresets = (apl: AplDefinition) => apl.presets.length > 0

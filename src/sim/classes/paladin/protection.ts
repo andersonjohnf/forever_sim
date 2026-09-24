@@ -8,15 +8,19 @@
 // (row 3) and Swift Judgement right after it (row 4); Holy Strike (row 5); Exorcism against Undead
 // and Demons (row 6); Consecration rank 5 and rank 1 by mana (row 7); Hammer of Wrath in the
 // execute phase (row 8); and the consumables: on-use trinkets, Juju Flurry, the mana potion and
-// the rune (consumables.ts). A Priority choice at the top picks the tank's duties first (the
-// default) or Max TPS (decision D26), which moves defaults the way Warrior Protection's does. Setting ids are `paladin.protection.<ability>.<param>`; mana
-// thresholds are percentages of maximum mana. Abilities are resolved with the build's talents
-// (talents.ts) before their costs or spells feed anything. Hammer of the Righteous (row 5b) is off
-// by default and not simulated yet.
+// the rune (consumables.ts). The rows are a priority list you reorder (PROTECTION_APL, decision
+// D31), and D28's three rotations are its presets: Defensive (D26's "Tank duties first"), Balanced
+// (the default: Hammer of the Righteous in Holy Strike's place) and Max TPS (Retribution Aura), set
+// by the Priority choice, which moves defaults the way Warrior Protection's does. Setting ids are
+// `paladin.protection.<ability>.<param>`; mana thresholds are percentages of maximum mana.
+// Abilities are resolved with the build's talents (talents.ts) before their costs or spells feed
+// anything.
 import type { AuraSpec, ProcSpec } from '../../effects/types'
 import { type AbilityDef, COND, type Plan, type RotationCondition, type RotationEntry, type SpellDef } from '../../plan/types'
 import type { AssumptionId } from '../../plan/assumptions'
-import type { FixedRotationRow, RotationOption, RotationValue } from '../../types'
+import type { AplDefinition, FixedRotationRow, RotationOption, RotationValue } from '../../types'
+import type { WeaponType } from '@/data/items/types'
+import { compileAplRows, DEFAULT_APL_PRESET } from '../apl'
 import { NO_CONTEXT, reader, seconds, type ClassRotation } from '../warrior/shared'
 import {
   CONSECRATION,
@@ -74,10 +78,14 @@ const ID = {
 export const PROTECTION_IDS = ID
 
 /**
- * The priority choice's values (paladin.md "Max TPS", decision D26): the default keeps the tank's
- * duties; Max TPS gives them up for threat alone.
+ * The priority choice's values, D28's three rotations (paladin.md "Priority: Defensive, Balanced or
+ * Max TPS"): Defensive keeps the tank's duty and is tuned on threat (D26's "Tank duties first",
+ * whose stored value it keeps); Balanced, the default, keeps the same upkeep and is tuned on threat
+ * and damage together; Max TPS gives the duty up for threat alone. The Rotation tab sets it with the
+ * priority list's preset picker.
  */
-export const PROTECTION_PRIORITY = { duties: 'duties', maxTps: 'maxTps' } as const
+export const PROTECTION_PRIORITY = { duties: 'duties', balanced: 'balanced', maxTps: 'maxTps' } as const
+const DEFENSIVE = { option: ID.priority, is: PROTECTION_PRIORITY.duties } as const
 const MAX_TPS = { option: ID.priority, is: PROTECTION_PRIORITY.maxTps } as const
 
 /**
@@ -332,20 +340,24 @@ export function swiftJudgementPlan(auras: readonly { id: string }[]): Pick<Plan,
 
 /**
  * Defaults from paladin.md's "Forever priority list (default)" for Protection, in priority order.
- * They're the best rotation found for the default setup, keeping the tank's duties (decisions D23
- * and D26; paladin.md "Tuning the defaults", measured on TPS with scripts/tune/rotation.mjs).
+ * Defensive's are the best rotation found for the default setup, keeping the tank's duties
+ * (decisions D23 and D26; paladin.md "Tuning the defaults", measured on TPS with
+ * scripts/tune/rotation.mjs); Balanced, the default, differs by a first-pass search on TPS and DPS
+ * together (D27, D28; paladin.md "Priority: Defensive, Balanced or Max TPS").
  */
 export const PROTECTION_OPTIONS: RotationOption[] = [
   {
     kind: 'choice',
     id: ID.priority,
     label: 'Priority',
-    help: 'Tank duties first keeps your Devotion Aura up, +735 armor, so you take less damage. Max TPS runs Retribution Aura instead for threat, 30 Holy damage to the boss each time it hits you: about 3% more TPS and 6% more damage taken in the default setup. Pick it when another paladin in your group keeps Devotion Aura up, or the raid covers your survival. The Buffs tab’s Devotion Aura stays off unless you turn it on there for another paladin’s.',
+    // Not shown as a control: the priority list's preset picker sets it (PROTECTION_APL's presets).
+    help: 'Which of the three rotations you play: Defensive, Balanced or Max TPS. The priority list’s preset picker sets it.',
     choices: [
-      { value: PROTECTION_PRIORITY.duties, label: 'Tank duties first' },
+      { value: PROTECTION_PRIORITY.duties, label: 'Defensive' },
+      { value: PROTECTION_PRIORITY.balanced, label: 'Balanced' },
       { value: PROTECTION_PRIORITY.maxTps, label: 'Max TPS' },
     ],
-    default: PROTECTION_PRIORITY.duties,
+    default: PROTECTION_PRIORITY.balanced,
   },
   {
     kind: 'toggle',
@@ -461,8 +473,13 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.hammerOfTheRighteous,
     group: 'Core abilities',
     label: 'Hammer of the Righteous',
-    help: 'Use Hammer of the Righteous in place of Holy Strike: 3 times your main hand’s weapon DPS as Holy damage, every 6 s, for 90 mana. They share a cooldown, so it’s one or the other, and Iron Creed’s extra threat and lower damage taken come only with Holy Strike. Whether the weapon DPS counts your attack power is untested (Character → Advanced). Needs a one-handed axe, mace or sword: with anything else, Holy Strike is used.',
-    default: false,
+    help: 'Use Hammer of the Righteous in place of Holy Strike: 3 times your main hand’s weapon DPS as Holy damage, every 6 s, for 90 mana. They share a cooldown, so it’s one or the other, and Iron Creed’s extra threat and lower damage taken come only with Holy Strike. Whether the weapon DPS counts your attack power is untested (Character → Advanced). Needs a one-handed axe, mace or sword: with anything else, Holy Strike is used. On with Balanced, for more damage; off with Defensive and Max TPS, since Holy Strike makes more threat.',
+    // paladin.md "Priority: Defensive, Balanced or Max TPS": +1.3% DPS for −0.4% TPS in the default setup, so Balanced takes it.
+    default: true,
+    defaultWhen: [
+      { ...DEFENSIVE, default: false },
+      { ...MAX_TPS, default: false },
+    ],
   },
   {
     kind: 'toggle',
@@ -615,19 +632,152 @@ export function protectionMaintainedBuffs(values: Record<string, RotationValue>)
 export const protectionSeal = (values: Record<string, RotationValue>): AbilityDef =>
   reader(PROTECTION_OPTIONS, values).str(ID.seal) === 'righteousness' ? SEAL_OF_RIGHTEOUSNESS : SEAL_OF_FURY
 
+/** Whether the main hand takes Hammer of the Righteous: a one-handed axe, mace or sword (paladin.md row 5b). */
+export const hammerFits = (mainHand: { twoHand: boolean; type?: WeaponType } | null | undefined): boolean =>
+  mainHand != null && !mainHand.twoHand && mainHand.type !== undefined && (HAMMER_OF_THE_RIGHTEOUS_WEAPONS as readonly string[]).includes(mainHand.type)
+
 /**
- * The Protection priority list from the settings (paladin.md "Forever priority list (default)").
- * `talents` gates Holy Shield and Swift Judgement and resolves costs and cooldowns; `context` gives
- * the main hand (Seal of Righteousness), whether a shield is equipped (Holy Shield), the maximum
+ * What the Rotation tab says under Holy Strike or Hammer of the Righteous when the other takes its
+ * place (docs/ux.md "Rotation"): Hammer of the Righteous replaces Holy Strike with a one-handed axe,
+ * mace or sword; with any other main hand it can't be used, and Holy Strike is. Nothing while the
+ * main hand isn't known (the Buffs tab's reading).
+ */
+export function protectionUnusedSettings(
+  values: Record<string, RotationValue>,
+  mainHand: { twoHand: boolean; type?: WeaponType } | null | undefined,
+): Record<string, string> {
+  const v = reader(PROTECTION_OPTIONS, values)
+  if (mainHand === undefined || !v.on(ID.hammerOfTheRighteous)) return {}
+  if (hammerFits(mainHand)) return v.on(ID.holyStrike) ? { [ID.holyStrike]: 'Not used: Hammer of the Righteous takes its place (they share a cooldown).' } : {}
+  return { [ID.hammerOfTheRighteous]: 'Not used: needs a one-handed axe, mace or sword in your main hand, so Holy Strike is used.' }
+}
+
+/**
+ * The presets' help (the picker says the chosen one's): what each keeps, gives up and is tuned
+ * for, measured in the default setup (paladin.md "Priority: Defensive, Balanced or Max TPS";
+ * 100,000 paired fights on seed 20260925 against Defensive).
+ */
+const DEFENSIVE_HELP =
+  'Defensive keeps your Devotion Aura up, +735 armor, and is tuned for threat: Holy Strike, whose Iron Creed cuts your damage taken 10%. The most survival of the three. 824 TPS and 447 DPS in the default setup.'
+const BALANCED_HELP =
+  'Balanced keeps Devotion Aura and Holy Shield up, as Defensive does, and is tuned for threat and damage together: Hammer of the Righteous in Holy Strike’s place, 0.4% less TPS for 1.3% more DPS, and 4% more damage taken without Iron Creed. How most tanks play fights below progression difficulty.'
+const MAX_TPS_HELP =
+  'Max TPS runs Retribution Aura instead of Devotion Aura for threat, 30 Holy damage to the boss each time it hits you: 3% more TPS than Defensive and 6% more damage taken. Pick it when another paladin in your group keeps Devotion Aura up, or the raid covers your survival. The Buffs tab’s Devotion Aura stays off unless you turn it on there for another paladin’s.'
+
+/**
+ * The Protection paladin's rotation as a priority list (decision D31; paladin.md "Forever priority
+ * list (default)"): rows 1–8 in its order, each with its switch and its own settings. Rows 0–0c,
+ * the aura, Righteous Fury and the opener, are one pinned row first: the aura is D26's duty, first
+ * by its fixed rule, and the opener's judgement comes at the pull. The seal (row 1) has no switch:
+ * there's always one. Hammer of the Righteous (5b) takes Holy Strike's place (5) when it's on and
+ * the weapon allows; each says so when the other does. The consumables and on-use trinkets are
+ * spec-wide, off the GCD, and always come after the list. The Priority choice is the preset
+ * picker: D28's Defensive, Balanced (the default) and Max TPS set it, so it isn't shown as a
+ * control of its own.
+ */
+export const PROTECTION_APL: AplDefinition = {
+  rows: [
+    {
+      id: 'prepull',
+      label: 'Before the pull',
+      icon: 'spell_holy_devotionaura',
+      optionIds: [ID.devotionAura, ID.crusader],
+      summary: [
+        { option: ID.devotionAura, text: 'Devotion Aura' },
+        { option: ID.devotionAura, text: 'Retribution Aura', when: false },
+        { text: 'Righteous Fury' },
+        { option: ID.crusader, text: 'Judgement of the Crusader at the pull' },
+      ],
+      help: 'Your aura 4.5 s before the pull, then Righteous Fury, then the seal. The aura is Devotion Aura while it’s on, and Retribution Aura while it’s off. It always comes first.',
+      pinned: true,
+    },
+    {
+      id: 'seal',
+      label: 'Seal',
+      icon: SEAL_OF_FURY.icon,
+      optionIds: [ID.seal, ID.sealRefresh],
+      summary: [
+        { option: ID.seal, text: 'Seal of {}' },
+        { option: ID.sealRefresh, text: 'again with {}' },
+      ],
+      help: 'Keep your seal up: cast it when it’s missing, or about to end.',
+    },
+    { id: 'holyShield', label: 'Holy Shield', icon: HOLY_SHIELD.icon, enabledId: ID.holyShield, optionIds: [], summary: [{ text: 'whenever its buff is gone' }] },
+    { id: 'judgement', label: 'Judgement', icon: JUDGEMENT_OF[SEAL_OF_FURY.id].icon, enabledId: ID.judgement, optionIds: [], summary: [{ text: 'on cooldown, off the global cooldown' }] },
+    {
+      id: 'swiftJudgement',
+      label: 'Swift Judgement',
+      icon: SWIFT_JUDGEMENT.icon,
+      enabledId: ID.swiftJudgement,
+      optionIds: [ID.swiftJudgementCooldown],
+      summary: [{ option: ID.swiftJudgementCooldown, text: 'while Judgement has {}' }],
+    },
+    { id: 'holyStrike', label: 'Holy Strike', icon: HOLY_STRIKE_ABILITY.icon, enabledId: ID.holyStrike, optionIds: [], summary: [{ text: 'on cooldown' }] },
+    {
+      id: 'hammerOfTheRighteous',
+      label: 'Hammer of the Righteous',
+      icon: hammerOfTheRighteousAbility().icon,
+      enabledId: ID.hammerOfTheRighteous,
+      optionIds: [],
+      summary: [{ text: 'in Holy Strike’s place, on cooldown' }],
+    },
+    {
+      id: 'exorcism',
+      label: 'Exorcism',
+      icon: EXORCISM_ABILITY.icon,
+      enabledId: ID.exorcism,
+      optionIds: [ID.exorcismMana],
+      summary: [{ text: 'Undead and Demons' }, { option: ID.exorcismMana, text: 'from {}', hideWhen: 0 }],
+    },
+    {
+      id: 'consecration',
+      label: 'Consecration',
+      icon: CONSECRATION.icon,
+      enabledId: ID.consecration,
+      optionIds: [ID.consecrationMana],
+      summary: [{ text: 'rank 5' }, { option: ID.consecrationMana, text: 'from {}', hideWhen: 0 }],
+    },
+    {
+      id: 'consecrationRank1',
+      label: 'Consecration (Rank 1)',
+      icon: CONSECRATION_RANK1.icon,
+      enabledId: ID.consecrationRank1,
+      optionIds: [ID.consecrationRank1Mana],
+      summary: [{ option: ID.consecrationRank1Mana, text: 'from {}', hideWhen: 0 }],
+    },
+    {
+      id: 'hammerOfWrath',
+      label: 'Hammer of Wrath',
+      icon: HAMMER_OF_WRATH_ABILITY.icon,
+      enabledId: ID.hammerOfWrath,
+      optionIds: [ID.hammerOfWrathMana],
+      summary: [{ text: 'execute phase' }, { option: ID.hammerOfWrathMana, text: 'from {}', hideWhen: 0 }],
+    },
+  ],
+  specWide: [ID.trinkets, ID.juju, ID.manaPotion, ID.manaPotionEarly, ID.manaPotionMissing, ID.rune, ID.runeEarly, ID.runeMissing],
+  presets: [
+    { id: 'defensive', label: 'Defensive', help: DEFENSIVE_HELP, values: { [ID.priority]: PROTECTION_PRIORITY.duties } },
+    { id: DEFAULT_APL_PRESET, label: 'Balanced', help: BALANCED_HELP, values: {} },
+    { id: 'maxTps', label: 'Max TPS', help: MAX_TPS_HELP, values: { [ID.priority]: PROTECTION_PRIORITY.maxTps } },
+  ],
+}
+
+/**
+ * The Protection priority list from the settings (paladin.md "Forever priority list (default)"),
+ * its rows in `order` (PROTECTION_APL; absent: the default order). `talents` gates Holy Shield and
+ * Swift Judgement and resolves costs and cooldowns; `context` gives the main hand (Seal of
+ * Righteousness, Hammer of the Righteous), whether a shield is equipped (Holy Shield), the maximum
  * mana (the mana thresholds are shares of it), the creature type (Exorcism) and whether the fight
  * has an execute phase (Hammer of Wrath). Abilities 0 and 1 are the seal and its judgement, as in
- * `paladinCore`.
+ * `paladinCore`, then the opener's; the rest are indexed as their rows come, so the default order
+ * gives the plan the rotation gave before the list.
  */
 export function protectionRotation(
   values: Record<string, RotationValue>,
   talents: TalentRanks,
   _auraIndex: (id: string) => number,
   context: Partial<PaladinContext> = {},
+  order?: readonly string[],
 ): ClassRotation {
   const ctx: PaladinContext = { ...NO_CONTEXT, ...context }
   const v = reader(PROTECTION_OPTIONS, values, talents)
@@ -669,75 +819,94 @@ export function protectionRotation(
   const judge = index(JUDGEMENT_OF[sealDef.id])
   if (sealDef.id === SEAL_OF_FURY.id && ctx.hasShield) procs.push(SEAL_OF_FURY_SHIELD_PROC)
   const refresh: RotationCondition = { code: COND.abilityAuraRefresh, a: seal, b: seconds(v, ID.sealRefresh) }
-  let prepullSeal = seal
-
-  if (v.on(ID.crusader)) {
-    // Rows 0c and 1 (paladin.md "the opener"), as Retribution's: Seal of the Crusader goes up 1.5 s
-    // before the pull; while it's up and Judgement of the Crusader is missing, judge it (at the pull,
-    // then only if the debuff ever drops: your landed auto attacks restart its 40 s). If it's missing
-    // without the seal, cast the seal first. The main seal when it's missing or about to end, but
-    // not over Seal of the Crusader before its judgement has landed.
-    const sotc = index(SEAL_OF_THE_CRUSADER)
-    const jotc = index(JUDGE_CRUSADER)
-    add(JUDGE_CRUSADER, [auraUp(sotc), auraDown(jotc)])
-    add(SEAL_OF_THE_CRUSADER, [auraDown(jotc), auraDown(sotc)])
-    add(sealDef, [refresh, auraDown(sotc)])
-    add(sealDef, [refresh, auraUp(jotc)])
-    prepullSeal = sotc
-  } else {
-    // Row 1: the seal when it's missing or has at most refreshBelowSec left.
-    add(sealDef, [refresh])
-  }
-
-  // Row 2: Holy Shield (the talent, with a shield) whenever its buff is gone: its 4 blocks used or
-  // its 10 s over. Its cooldown is its duration, so that's on cooldown unless blocks end it early.
-  if (talents.has('Holy Shield') && ctx.hasShield && v.on(ID.holyShield)) {
-    const shield = index(HOLY_SHIELD)
-    add(HOLY_SHIELD, [{ code: COND.abilityAuraRefresh, a: shield, b: 0 }])
-    procs.push(HOLY_SHIELD_PROC)
-  }
-
-  if (v.on(ID.judgement)) {
-    // Row 3: the seal's judgement whenever Judgement is ready, while the seal is up (it stays up).
-    rotation.push({ ability: judge, conditions: [auraUp(seal)], unqueueBelowTenths: 0 })
-    // Row 4: Swift Judgement (the talent, off the GCD) while Judgement has at least x s of cooldown
-    // left and the seal is up: it ends that cooldown, and the judgement it frees costs nothing.
-    if (talents.has('Swift Judgement') && v.on(ID.swiftJudgement)) {
-      add({ ...SWIFT_JUDGEMENT, endsCooldownOf: judge }, [{ code: COND.cooldownAtLeast, a: judge, b: seconds(v, ID.swiftJudgementCooldown) }, auraUp(seal)])
-      abilities[judge] = { ...abilities[judge], clearcastable: true }
-    }
-  }
-
+  // Row 0c's seal and judgement (paladin.md "the opener"), indexed after the seal's, as before the list.
+  const crusader = v.on(ID.crusader)
+  const sotc = crusader ? index(SEAL_OF_THE_CRUSADER) : -1
+  const jotc = crusader ? index(JUDGE_CRUSADER) : -1
+  const prepullSeal = crusader ? sotc : seal
   // Row 5b: Hammer of the Righteous in Holy Strike's place (they share a cooldown), with a one-handed
   // axe, mace or sword; otherwise row 5.
-  const mh = ctx.mainHand
-  const hammerFits = mh != null && !mh.twoHand && mh.type !== undefined && (HAMMER_OF_THE_RIGHTEOUS_WEAPONS as readonly string[]).includes(mh.type)
-  if (v.on(ID.hammerOfTheRighteous) && hammerFits) add(hammerOfTheRighteousAbility(ctx.hotrWeaponDps !== 'weaponOnly'), [])
-  // Row 5: Holy Strike on cooldown; with Iron Creed, each that lands cuts damage taken for 6 s.
-  else if (v.on(ID.holyStrike)) {
-    const strike = add(HOLY_STRIKE_ABILITY, [])
-    const creed = talents.get('Iron Creed') ?? 0
-    if (creed > 0) abilities[strike] = { ...abilities[strike], aura: ironCreedAura(creed) }
-  }
+  const hammer = v.on(ID.hammerOfTheRighteous) && hammerFits(ctx.mainHand)
 
-  // Row 6: Exorcism on cooldown against Undead and Demons, at mana ≥ x%.
-  if (v.on(ID.exorcism) && EXORCISM_TARGETS.includes(ctx.creatureType)) add(EXORCISM_ABILITY, manaFrom(ID.exorcismMana))
+  compileAplRows(PROTECTION_APL, order, {
+    // Row 0c (paladin.md "the opener"), as Retribution's: Seal of the Crusader goes up 1.5 s before
+    // the pull (the pre-pull below); while it's up and Judgement of the Crusader is missing, judge it
+    // (at the pull, then only if the debuff ever drops: your landed auto attacks restart its 40 s).
+    // If it's missing without the seal, cast the seal first.
+    prepull: () => {
+      if (!crusader) return
+      add(JUDGE_CRUSADER, [auraUp(sotc), auraDown(jotc)])
+      add(SEAL_OF_THE_CRUSADER, [auraDown(jotc), auraDown(sotc)])
+    },
+    // Row 1: the seal when it's missing or has at most refreshBelowSec left; with the opener, not
+    // over Seal of the Crusader before its judgement has landed.
+    seal: () => {
+      if (!crusader) {
+        add(sealDef, [refresh])
+        return
+      }
+      add(sealDef, [refresh, auraDown(sotc)])
+      add(sealDef, [refresh, auraUp(jotc)])
+    },
+    // Row 2: Holy Shield (the talent, with a shield) whenever its buff is gone: its 4 blocks used or
+    // its 10 s over. Its cooldown is its duration, so that's on cooldown unless blocks end it early.
+    holyShield: () => {
+      if (!talents.has('Holy Shield') || !ctx.hasShield || !v.on(ID.holyShield)) return
+      const shield = index(HOLY_SHIELD)
+      add(HOLY_SHIELD, [{ code: COND.abilityAuraRefresh, a: shield, b: 0 }])
+      procs.push(HOLY_SHIELD_PROC)
+    },
+    // Row 3: the seal's judgement whenever Judgement is ready, while the seal is up (it stays up).
+    judgement: () => {
+      if (v.on(ID.judgement)) rotation.push({ ability: judge, conditions: [auraUp(seal)], unqueueBelowTenths: 0 })
+    },
+    // Row 4: Swift Judgement (the talent, off the GCD) while Judgement has at least x s of cooldown
+    // left and the seal is up: it ends that cooldown, and the judgement it frees costs nothing. Only
+    // with Judgement on, which it's for.
+    swiftJudgement: () => {
+      if (!v.on(ID.judgement) || !talents.has('Swift Judgement') || !v.on(ID.swiftJudgement)) return
+      add({ ...SWIFT_JUDGEMENT, endsCooldownOf: judge }, [{ code: COND.cooldownAtLeast, a: judge, b: seconds(v, ID.swiftJudgementCooldown) }, auraUp(seal)])
+      abilities[judge] = { ...abilities[judge], clearcastable: true }
+    },
+    // Row 5: Holy Strike on cooldown, unless Hammer of the Righteous takes its place; with Iron
+    // Creed, each that lands cuts damage taken for 6 s.
+    holyStrike: () => {
+      if (hammer || !v.on(ID.holyStrike)) return
+      const strike = add(HOLY_STRIKE_ABILITY, [])
+      const creed = talents.get('Iron Creed') ?? 0
+      if (creed > 0) abilities[strike] = { ...abilities[strike], aura: ironCreedAura(creed) }
+    },
+    // Row 5b: Hammer of the Righteous on cooldown, in Holy Strike's place.
+    hammerOfTheRighteous: () => {
+      if (hammer) add(hammerOfTheRighteousAbility(ctx.hotrWeaponDps !== 'weaponOnly'), [])
+    },
+    // Row 6: Exorcism on cooldown against Undead and Demons, at mana ≥ x%.
+    exorcism: () => {
+      if (v.on(ID.exorcism) && EXORCISM_TARGETS.includes(ctx.creatureType)) add(EXORCISM_ABILITY, manaFrom(ID.exorcismMana))
+    },
+    // Row 7: Consecration rank 5 at mana ≥ x%; row 7b, rank 1 at mana ≥ y%. The ranks share one cooldown.
+    consecration: () => {
+      if (v.on(ID.consecration)) add(CONSECRATION, manaFrom(ID.consecrationMana))
+    },
+    consecrationRank1: () => {
+      if (v.on(ID.consecrationRank1)) add(CONSECRATION_RANK1, manaFrom(ID.consecrationRank1Mana))
+    },
+    // Row 8: Hammer of Wrath, only in the execute phase (the ability says so), at mana ≥ x%.
+    hammerOfWrath: () => {
+      if (v.on(ID.hammerOfWrath) && ctx.executePhase) add(HAMMER_OF_WRATH_ABILITY, manaFrom(ID.hammerOfWrathMana))
+    },
+  })
 
-  // Row 7: Consecration rank 5 at mana ≥ x%, else rank 1 at mana ≥ y%. The ranks share one cooldown.
-  if (v.on(ID.consecration)) add(CONSECRATION, manaFrom(ID.consecrationMana))
-  if (v.on(ID.consecrationRank1)) add(CONSECRATION_RANK1, manaFrom(ID.consecrationRank1Mana))
-
-  // Row 8: Hammer of Wrath, only in the execute phase (the ability says so), at mana ≥ x%.
-  if (v.on(ID.hammerOfWrath) && ctx.executePhase) add(HAMMER_OF_WRATH_ABILITY, manaFrom(ID.hammerOfWrathMana))
-
-  // On-use trinkets and Juju Flurry on cooldown from the pull, then the mana potion and rune, when
-  // selected in Buffs, whenever the most they restore fits (consumables.ts, as Retribution's).
+  // After the list, off the GCD: on-use trinkets and Juju Flurry on cooldown from the pull, then the
+  // mana potion and rune, when selected in Buffs, whenever the most they restore fits
+  // (consumables.ts, as Retribution's).
   const pressed = paladinConsumables(v, ID, ctx, maxManaTenths, add)
   // The early lines rest on knowing when the fight ends (paladin.md "Tuning the defaults (C3)").
   const timed = rotation.some((e) => e.conditions.some((c) => c.code === COND.timeLeftAtLeast))
 
-  // The aura, then Righteous Fury, from 4.5 and 3 s before the pull, a GCD apart and before the
-  // seal: the duty first (D26's fixed rule), Devotion Aura, or with Max TPS Retribution Aura and its
+  // Rows 0 and 0b, the pre-pull, built last so the abilities keep their indexes: the aura, then
+  // Righteous Fury, from 4.5 and 3 s before the pull, a GCD apart and before the seal: the duty
+  // first (D26's fixed rule), Devotion Aura, or with it off (Max TPS) Retribution Aura and its
   // damage on the boss's swings. An aura lasts until you cancel it, so neither needs a line.
   const aura = index(v.on(ID.devotionAura) ? DEVOTION_AURA : RETRIBUTION_AURA)
   const fury = index(RIGHTEOUS_FURY)

@@ -4,7 +4,8 @@
 // below that. A row moves by its handle (a pointer, or the keyboard: Space, the arrow keys, Space),
 // or with Move up and Move down in its settings. Pinned rows (the pre-pull) show a lock and don't
 // move, and nothing moves past them. Above the list, the preset picker ("Custom" once you've
-// edited it) and Reset order.
+// edited it) and Reset order; a spec with named rotations (D28's tanks) has its picker at the top
+// of the tab instead (`AplPresetPicker`), with what the chosen one plays.
 import {
   closestCenter,
   DndContext,
@@ -38,13 +39,14 @@ import {
   aplPresets,
   applyAplPreset,
   CUSTOM_APL_PRESET,
+  DEFAULT_APL_PRESET,
   moveAplRow,
   normalizeAplOrder,
   type RotationOption,
   rotationPreset,
   storedAplOrder,
 } from '@/sim'
-import { INACTIVE_SWITCH, type RowContext } from './ids'
+import { APL_PRESET_TRIGGER_ID, hasNamedPresets, INACTIVE_SWITCH, type RowContext } from './ids'
 import { aplRowChanged, aplRowNote, aplRowSummary, withRotationOrder } from './logic'
 import { OptionList } from './option-rows'
 
@@ -92,6 +94,78 @@ function useVerticalFade(ref: RefObject<HTMLElement | null>, key: unknown): Fade
 /** Drags move rows up and down only. */
 const vertical: Modifier = ({ transform }) => ({ ...transform, x: 0 })
 
+/** The preset the list matches, the presets, and picking one (docs/ux.md "Rotation": "Presets and Custom"). */
+function useAplPresets(apl: AplDefinition) {
+  const config = useSetup((s) => s.config)
+  const update = useSetup((s) => s.update)
+  const preset = rotationPreset(config)
+  const presets = aplPresets(apl)
+  const pick = (id: string) => {
+    const picked = applyAplPreset(apl, config.rotation, id)
+    if (!picked) return
+    update((c) => withRotationOrder({ ...c, rotation: picked.rotation }, picked.rotationOrder))
+    announce(`Rotation set to ${presets.find((p) => p.id === id)!.label}.`)
+  }
+  return { preset, presets, pick }
+}
+
+/**
+ * The preset picker: "Custom" once the list matches none. With `triggerRef`, the list's own (a spec
+ * without named rotations, beside Reset order); otherwise a spec's named rotations at the top of the
+ * tab, under a heading, with what the chosen one plays and its default marked, as the Buffs tab's
+ * presets are (docs/ux.md "Rotation").
+ */
+function PresetSelect({ apl, triggerRef, id, describedBy }: { apl: AplDefinition; triggerRef?: RefObject<HTMLButtonElement | null>; id?: string; describedBy?: string }) {
+  const { preset, presets, pick } = useAplPresets(apl)
+  const ownDefault = apl.presets.some((p) => p.id === DEFAULT_APL_PRESET)
+  return (
+    <Select value={preset === CUSTOM_APL_PRESET ? '' : (preset ?? '')} onValueChange={pick}>
+      {/* The trigger's size attribute sets its height, so the 44 px target overrides that (docs/ux.md "Accessibility"). */}
+      <SelectTrigger ref={triggerRef} id={id} className="min-w-0 flex-1 data-[size=default]:h-11 sm:max-w-64 sm:min-w-48" aria-label="Rotation preset" aria-describedby={describedBy}>
+        <SelectValue placeholder="Custom" />
+      </SelectTrigger>
+      <SelectContent>
+        {presets.map((p) => (
+          <SelectItem key={p.id} value={p.id} className="min-h-11">
+            {p.label}
+            {ownDefault && p.id === DEFAULT_APL_PRESET && ' (default)'}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+}
+
+/**
+ * A spec's named rotations (D28: Defensive, Balanced and Max TPS), first on the tab as a tank's
+ * priority choice always was: the picker, and one line on the chosen one, what it keeps and gives
+ * up, with its measured numbers; "Custom" says the list matches none (docs/ux.md "Rotation").
+ */
+export function AplPresetPicker({ apl }: { apl: AplDefinition }) {
+  const { preset, presets } = useAplPresets(apl)
+  const helpId = useId()
+  const help =
+    preset === CUSTOM_APL_PRESET ? 'Custom: you’ve changed the priority list from every preset. Pick one to start again from it.' : presets.find((p) => p.id === preset)?.help
+  return (
+    <section aria-labelledby="apl-preset-heading" className="flex flex-col gap-2">
+      <div className="flex min-h-11 items-center">
+        <h3 id="apl-preset-heading" className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          Preset
+        </h3>
+      </div>
+      {/* In a row, so the trigger's flex-1 is its width, not its height. */}
+      <div className="flex">
+        <PresetSelect apl={apl} id={APL_PRESET_TRIGGER_ID} describedBy={help ? helpId : undefined} />
+      </div>
+      {help && (
+        <p id={helpId} className="text-sm text-muted-foreground">
+          {help}
+        </p>
+      )}
+    </section>
+  )
+}
+
 export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; options: readonly RotationOption[]; ctx: RowContext }) {
   const config = useSetup((s) => s.config)
   const update = useSetup((s) => s.update)
@@ -104,6 +178,8 @@ export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; option
   const panelRef = useRef<HTMLElement>(null)
   const fade = useVerticalFade(panelRef, selected)
   const helpId = useId()
+  // A spec with named rotations has its picker at the top of the tab (AplPresetPicker).
+  const pickerAbove = hasNamedPresets(apl)
   /** Selecting a row on desktop moves focus to its settings' heading, as the phone's sheet does (docs/ux.md "Rotation"). */
   const select = (id: string) => {
     if (!desktop) return setSelected(id)
@@ -148,17 +224,11 @@ export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; option
     else stretches.at(-1)!.rows.push(row)
   }
 
-  const preset = rotationPreset(config)
-  const presets = aplPresets(apl)
-  const pickPreset = (id: string) => {
-    const picked = applyAplPreset(apl, config.rotation, id)
-    if (!picked) return
-    update((c) => withRotationOrder({ ...c, rotation: picked.rotation }, picked.rotationOrder))
-    announce(`Rotation set to ${presets.find((p) => p.id === id)!.label}.`)
-  }
   const resetOrder = () => {
-    // Reset order disables itself, so focus moves to the preset picker first (docs/ux.md#accessibility).
-    presetRef.current?.focus()
+    // Reset order disables itself, so focus moves to the preset picker first (docs/ux.md#accessibility),
+    // or with the picker at the top of the tab, to the next control after it: the list's first row.
+    if (pickerAbove) document.getElementById(listIds(order[0]).select)?.focus()
+    else presetRef.current?.focus()
     setOrder(apl.rows.map((r) => r.id))
     announce('Priority list back in its default order.')
   }
@@ -188,20 +258,8 @@ export function PriorityList({ apl, options, ctx }: { apl: AplDefinition; option
         </p>
       </div>
       <div className="flex items-center gap-2">
-        <Select value={preset === CUSTOM_APL_PRESET ? '' : (preset ?? '')} onValueChange={pickPreset}>
-          {/* The trigger's size attribute sets its height, so the 44 px target overrides that (docs/ux.md "Accessibility"). */}
-          <SelectTrigger ref={presetRef} className="min-w-0 flex-1 data-[size=default]:h-11 sm:max-w-64 sm:min-w-48" aria-label="Rotation preset">
-            <SelectValue placeholder="Custom" />
-          </SelectTrigger>
-          <SelectContent>
-            {presets.map((p) => (
-              <SelectItem key={p.id} value={p.id} className="min-h-11">
-                {p.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button variant="ghost" className="h-11 shrink-0" disabled={config.rotationOrder === undefined} onClick={resetOrder}>
+        {!pickerAbove && <PresetSelect apl={apl} triggerRef={presetRef} />}
+        <Button variant="ghost" className={cn('h-11 shrink-0', pickerAbove && '-ml-2 self-start')} disabled={config.rotationOrder === undefined} onClick={resetOrder}>
           <RotateCcw /> Reset order
         </Button>
       </div>

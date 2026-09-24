@@ -82,6 +82,13 @@ describe('golden run (fixed config and seed)', () => {
   //   Improved Holy Strike 2 (paladin.md "Protection defaults"). TPS 818.32 → 821.34, DPS 442.58 →
   //   445.72, damage taken 897.9 → 902.7 a second (Toughness's armor goes; Anticipation's defense
   //   comes).
+  // - T5/A2 (D28, D31): the rotation is a priority list, and its default is Balanced, Defensive (D26's
+  //   "Tank duties first") with Hammer of the Righteous in Holy Strike's place (paladin.md
+  //   "Priority: Defensive, Balanced or Max TPS"). Defensive at this setup gives this snapshot's
+  //   previous result exactly (and 200 random Defensive and Max TPS setups their previous plans,
+  //   protection-apl.test.ts). On this
+  //   seed's 1,000 fights, Defensive → Balanced: TPS 821.34 → 816.46, DPS 445.72 → 450.36, damage
+  //   taken 902.7 → 942.5 a second (Iron Creed's cut goes with Holy Strike).
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

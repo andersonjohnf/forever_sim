@@ -280,11 +280,17 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   back to their defaults. It disables itself, so it moves focus to the first setting, the next
   control after it (the list's first row when nothing is above the list).
   - **A priority list** ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24)).
-    A spec on the list (Fury first; the rest follow in M5.65 A2) shows its rotation as the
-    abilities in the order the sim tries them. Its spec-wide settings (a stance, a pet, a tank's
-    priority, the consumables) sit under their headings above the list, as below. Under
+    A spec on the list (Fury first, the Protection paladin in A2; the rest follow in M5.65 A2)
+    shows its rotation as the abilities in the order the sim tries them. Its spec-wide settings (a
+    stance, a pet, the consumables) sit under their headings above the list, as below. Under
     **Priority list** (a heading, with one line: each global cooldown the sim uses the first
-    ability whose conditions hold) come the preset picker and **Reset order**, then the list.
+    ability whose conditions hold) come the preset picker and **Reset order**, then the list. A
+    spec with named rotations (a tank's Defensive, Balanced and Max TPS, D28) has its picker at the
+    top of the tab instead, under a **Preset** heading, first as a tank's priority choice always
+    was, with one line under it on the chosen one (what it keeps and gives up, with its measured
+    numbers) or, when the list matches none, that it's Custom and picking one starts again from it.
+    Its menu marks the default ("Balanced (default)"). Under Priority list there's then only
+    **Reset order**, which hands focus to the list's first row.
     - **Each row** is an ordered list item: a drag handle, the ability's icon, its name, a
       short summary of its settings ("From 40 rage · cancel below 20 rage", or "Off"), and
       its switch. The handle, the row's button and the switch are each 44 px. A row that's off,
@@ -322,12 +328,20 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       be, have no Move up or down, and no row can be dragged past them. The settings of a
       pinned row say "Fixed at position 1 of 16".
     - **Presets and Custom.** The picker lists the spec's rotations: Default, and any named
-      ones (D28's Defensive, Balanced and Max TPS for tanks). Once you move a row or change one
+      ones (D28's Defensive, Balanced and Max TPS for tanks, in that order, Balanced the default
+      and named so, not "Default"). A tank's preset sets its Priority choice, a spec-wide setting
+      with no control of its own, which moves defaults; picking any preset sets it (Balanced back
+      to its default). Once you move a row or change one
       of the list's settings away from every preset it reads "Custom". Picking a preset sets
       its order and its values for the list's settings and puts the rest of the list's settings
       at their defaults. The spec-wide settings you set stay. **Reset order** (enabled while
       the order isn't the default) puts the rows back in the default order and nothing else,
       and moves focus to the picker.
+    - **One row in another's place.** A row whose ability another row replaces says so in place of
+      its summary, dimmed: a Protection paladin's Holy Strike while Hammer of the Righteous is on
+      ("Not used: Hammer of the Righteous takes its place (they share a cooldown)."), and Hammer
+      of the Righteous when the main hand can't use it ("Not used: needs a one-handed axe, mace or
+      sword in your main hand, so Holy Strike is used.").
     - A row's conditions are its own and move with it. Moving Heroic Strike above Bloodthirst
       lets it queue before Bloodthirst spends the rage, still from its 40 rage; moving
       Hamstring above Bloodthirst changes nothing, since it still waits while Bloodthirst and
@@ -338,7 +352,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     since C2, the Feral bear since B3), "the common priority" for a spec until then. The cat's
     also says there's no powershifting, and why ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
     since a Classic Era feral would look for it. A tank's says no more: its priority choice,
-    first on the tab, names the duties its default keeps (below).
+    first on the tab, names the duties its default keeps (below). A tank with D28's Balanced says
+    which rotations are tuned and that Balanced has a first quick search on top (D27).
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
     **Consumables**, in that order. Under each heading the settings keep the spec's priority
@@ -349,7 +364,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     (Protection's Execute, under Core abilities; the bear's "Enrage before the pull", under
     Cooldowns and buffs).
   - **A tank's priority** ([D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
-    a choice at the top, **Tank duties first** (the default) or **Max TPS**. Its help names the
+    a choice at the top, **Tank duties first** (the default) or **Max TPS**. On the priority list
+    (D28, D31; the Protection paladin since A2) it's the preset at the top instead: **Defensive**
+    (Tank duties first, renamed), **Balanced** (the default) and **Max TPS**, whose help, the line
+    under the picker, says the same things with each one's measured numbers. Its help names the
     duties Max TPS drops (Shield Block, Thunder Clap and Demoralizing Shout for a warrior; Devotion
     Aura, for Retribution Aura, for a paladin; the roar for a bear, which keeps Faerie Fire because
     its armor makes the bear's threat), why the default keeps them (you take less damage), what Max

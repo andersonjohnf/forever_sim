@@ -267,8 +267,11 @@ describe('a Protection paladin’s settings the setup can’t use (docs/ux.md "R
     const r = rowsOf(prot)
     expect(r.get('paladin.protection.exorcism.enabled')).toMatchObject({ inactive: true, on: true, needsCreature: ['undead', 'demon'] })
     expect(r.get('paladin.protection.exorcism.minManaPct')!.inactive).toBe(true)
-    // Nothing else in the default setup but the rune's, which the Standard raid doesn't bring.
+    // Nothing else in the default setup but the rune's, which the Standard raid doesn't bring, and
+    // Holy Strike, whose place Balanced's Hammer of the Righteous takes (paladin.md row 5b).
+    expect(r.get('paladin.protection.holyStrike.enabled')).toMatchObject({ inactive: true, on: true, notUsed: 'Not used: Hammer of the Righteous takes its place (they share a cooldown).' })
     expect([...r].filter(([, row]) => row.inactive).map(([id]) => id)).toEqual([
+      'paladin.protection.holyStrike.enabled',
       'paladin.protection.exorcism.enabled',
       'paladin.protection.exorcism.minManaPct',
       'paladin.protection.rune.earlyMissingMana',

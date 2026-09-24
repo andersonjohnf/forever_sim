@@ -90,7 +90,8 @@ A spec is data plus small ability modules, never its own loop.
   of a few named values).
 - **Rotation as a priority list** ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24)).
   A spec on the list declares its rotation as an `AplDefinition` (`sim/types.ts`, returned by
-  `rotationApl` in `sim/classes/rotation.ts`; Fury first, the rest in M5.65 A2):
+  `rotationApl` in `sim/classes/rotation.ts`; Fury first, the Protection paladin in A2, the rest
+  in M5.65 A2):
   - **Rows**, in the default order. Each has a stable `id`, a label and icon, the switch that turns
     it on (`enabledId`), its own settings (`optionIds`) and a summary built from them. Row settings
     are the spec's ordinary `RotationOption`s, so the resolver, `normalizeConfig`, the unused
@@ -99,9 +100,15 @@ A spec is data plus small ability modules, never its own loop.
   - **Spec-wide settings** (`specWide`: a stance, a pet, a tank's priority, the consumables) sit
     above the list, not in a row.
   - **Presets** (`presets`): an order plus values for the rows' settings. The spec's defaults are
-    the implicit `default` preset. `activeAplPreset` says which one the list matches, or `custom`.
-    Picking one (`applyAplPreset`) sets its order and row values and resets the rest of the rows'
-    settings, keeping the spec-wide ones you set.
+    the implicit `default` preset, unless the spec lists a preset with that id itself, which names
+    and places it (the Protection paladin's Balanced, between Defensive and Max TPS).
+    `activeAplPreset` says which one the list matches, or `custom`. Picking one (`applyAplPreset`)
+    sets its order and row values and resets the rest of the rows' settings, keeping the spec-wide
+    ones you set. A spec-wide setting a preset names (a tank's Priority choice, D28) is the
+    presets' too: picking any preset sets it, to its value or its default, and the match compares
+    it, so a stored Max TPS reads as Max TPS even where its rows resolve as the default's. The
+    Rotation tab shows it only as the preset picker, which for such a spec sits at the top of the
+    tab.
   - **The order** is `SimConfig.rotationOrder`, row ids, stored only while it differs from the
     default. `normalizeAplOrder` (`sim/classes/apl.ts`) reads any stored order. It drops unknown
     ids, and keeps pinned rows fixed. A row the order doesn't name goes just after the nearest

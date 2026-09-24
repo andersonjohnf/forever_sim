@@ -392,7 +392,7 @@ These judgements are debuffs: taking one replaces your JotC.
 | Templar's Bulwark (1311015), new Prot talent | absorb = 100% max health for 8 s; Forbearance | 110 mana; 5 min (−60 s Sacred Duty); off GCD | — | [F] [F 1311015][f1311015]. No TPS effect; not modelled by default |
 | Swift Judgement (1310994), new Prot talent | finishes Judgement's cooldown; next Judgement free | 1 min; off GCD | — | [F] [F 1310994][f1310994] |
 | Retribution Aura r5 (10301) | **30 Holy** to each attacker that hits a party member; no spell damage coefficient | — | damage shield: the sim has it land on each of the boss's swings that lands on you, a blocked one too, and never crit [?] | [F] [F 10301][f10301]; 30 and no coefficient: [client] (SpellEffect, 1.60.1.69913) |
-| Devotion Aura r7 (10293) | +735 armor (party) | — | — | [F] [F 10293][f10293]. A Protection paladin's own is its duty (D26): the rotation puts it up before the pull ([Priority](#priority-tank-duties-first-or-max-tps)) |
+| Devotion Aura r7 (10293) | +735 armor (party) | — | — | [F] [F 10293][f10293]. A Protection paladin's own is its duty (D26): the rotation puts it up before the pull ([Priority](#priority-defensive-balanced-or-max-tps)) |
 
 ### Blessings (for the buffs doc)
 
@@ -786,12 +786,22 @@ and replaces Sanctuary with Seal of Fury, Iron Creed and Holy Strike.
 Evaluate top to bottom whenever the paladin is free (off GCD); Judgement and Swift Judgement are
 off the GCD, so they're checked between GCD actions too. Setting ids are
 `paladin.protection.<ability>.<param>`; the defaults are the tuned ones
-([Tuning the defaults](#tuning-the-defaults-c3) below), and a Priority choice at the top of the
-Rotation tab picks the tank's duties first or Max TPS ([below](#priority-tank-duties-first-or-max-tps)).
+([Tuning the defaults](#tuning-the-defaults-c3) below), and a preset at the top of the Rotation tab
+picks D28's Defensive, Balanced (the default) or Max TPS ([below](#priority-defensive-balanced-or-max-tps)).
+The Rotation tab shows these rows as a priority list you reorder (D31, `PROTECTION_APL` in
+`src/sim/classes/paladin/protection.ts`): rows 0–0c are one pinned row first, **Before the pull**
+(the aura, Righteous Fury and the opener; its settings are Devotion Aura and Judgement of the
+Crusader), since the aura is D26's duty with a fixed rule and the opener's judgement comes at the
+pull; then rows 1–8, each its own row with its switch and settings (the seal's row has no switch,
+since there's always one), in this order. The on-use trinkets, Juju Flurry and the mana consumables
+are spec-wide, above the list, and always come after it: they're off the global cooldown. A row's
+conditions are its own wherever it sits: Hammer of the Righteous takes Holy Strike's place wherever
+either row is, and Swift Judgement still frees Judgement. In the default order the plan is the one
+the rotation gave before the list, fight for fight (`protection-apl.test.ts`).
 
 | # | Action | Condition (setting, default) | Default |
 | --- | --- | --- | --- |
-| 0 | Aura: Devotion Aura, the duty, or Retribution Aura instead (`devotionAura.enabled`) | 4.5 s before the pull, first: a duty comes before any threat ability (D26's fixed rule, [below](#priority-tank-duties-first-or-max-tps)). Free, and it lasts all fight. Retribution Aura deals 30 Holy to the boss on each of its swings that lands on you | Devotion; Retribution with Max TPS |
+| 0 | Aura: Devotion Aura, the duty, or Retribution Aura instead (`devotionAura.enabled`) | 4.5 s before the pull, first: a duty comes before any threat ability (D26's fixed rule, [below](#priority-defensive-balanced-or-max-tps)). Free, and it lasts all fight. Retribution Aura deals 30 Holy to the boss on each of its swings that lands on you | Devotion; Retribution with Max TPS |
 | 0b | Righteous Fury | up all fight, cast 3 s before the pull, a global cooldown after the aura and before the seal (free; the plan's ×1.9 Holy threat). The Rotation tab shows it as a fixed row with no switch | on (forced, no setting) |
 | 0c | **The opener: Judgement of the Crusader** (`judgementOfTheCrusader.enabled`) | Seal of the Crusader 1.5 s before the pull (free) in the seal's place; judge it at the pull (off the GCD), placing JotC; then row 1 puts the main seal up. Your landed auto attacks restart JotC's 40 s, so it stays up; if it's ever missing (40 s with no landed swing), Seal of the Crusader and its judgement again, the same way. As Retribution's rows 0–2 | on (user, 2026-09-24) |
 | 1 | Seal: Seal of Fury, or Seal of Righteousness (`seal.primary`) | 1.5 s before the pull (free) without the opener; then missing or with at most `seal.refreshBelowSec` (2.5 s) left, but not over Seal of the Crusader before its judgement has landed | Fury |
@@ -799,7 +809,7 @@ Rotation tab picks the tank's duties first or Max TPS ([below](#priority-tank-du
 | 3 | Judgement (the seal's) | `judgement.enabled`; ready (off GCD), with the seal up | on |
 | 4 | Swift Judgement | `swiftJudgement.enabled`; the talent; Judgement has at least `swiftJudgement.minCooldownSec` (4.5 s) of cooldown left and the seal is up (off GCD). It ends Judgement's cooldown, and row 3 judges again at once, for free | on |
 | 5 | Holy Strike | `holyStrike.enabled`; ready | on |
-| 5b | Hammer of the Righteous instead of Holy Strike | `hammerOfTheRighteous.enabled`; ready; a 1H axe, mace or sword (with anything else, row 5 instead). They share one cooldown, so it's one or the other | off: Holy Strike makes more threat on one target (below) |
+| 5b | Hammer of the Righteous instead of Holy Strike | `hammerOfTheRighteous.enabled`; ready; a 1H axe, mace or sword (with anything else, row 5 instead). They share one cooldown, so it's one or the other. The Rotation tab's Holy Strike row says when it takes its place ("Not used: Hammer of the Righteous takes its place"), and its own row when the main hand can't use it | **on with Balanced** (the default: more DPS for a little TPS, [below](#priority-defensive-balanced-or-max-tps)); off with Defensive and Max TPS: Holy Strike makes more threat on one target (below) |
 | 6 | Exorcism | `exorcism.enabled`; target Undead or Demon and mana ≥ `exorcism.minManaPct` (0%). Dimmed on the Rotation tab, with a link to Fight's creature type, against anything else | on (gated by target type) |
 | 7 | Consecration (rank 5) | `consecration.enabled`; mana ≥ `consecration.minManaPct` (20%: T2's re-check, [below](#tuning-the-defaults-c3)) | on |
 | 7b | Consecration (rank 1) | `consecrationRank1.enabled`; mana ≥ `consecrationRank1.minManaPct` (10%). The ranks share one 8 s cooldown | on (T2) |
@@ -816,19 +826,52 @@ comes every 6 s to its 10. It scales with SP (0.429) and with another paladin's 
 Crusader, and Iron Creed adds 25% threat and cuts damage taken; HotR has no SP coefficient in the
 data. In the T2 default setup, HotR in its place makes **−13.4 TPS (−1.65%)** and +2.5 DPS (+0.57%),
 even with attack power counted in its weapon DPS, for 5% more damage taken (40,000 paired fights,
-seed 777): −1.1% on the balanced objective.
+seed 777): −1.1% on the balanced objective. With T2's fix-round build it's −0.39% TPS and +1.24%
+DPS, so Balanced takes it ([below](#priority-defensive-balanced-or-max-tps)).
 A slow, high-DPS one-hander with little spell damage is where HotR could win.
 
-#### Priority: tank duties first, or Max TPS
+#### Priority: Defensive, Balanced or Max TPS
 
-Per [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23),
-the Rotation tab opens with a Priority choice (`priority`), as Warrior Protection's does.
+Per [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)
+and [D28](../decisions.md#d28-three-tank-rotations-defensive-balanced-and-max-tps-2026-09-24), the
+Rotation tab opens with the priority list's preset (`priority`): **Defensive** (D26's "Tank duties
+first", renamed; its stored value `duties` still loads as it), **Balanced** (`balanced`, the
+default) and **Max TPS** (`maxTps`). A preset sets the Priority choice, which moves defaults, and
+puts the list's other settings at their defaults and its order back; editing the list after picking
+one makes it "Custom" (D31). A setup that kept the old default gets Balanced.
+
+- **Balanced** keeps Defensive's upkeep, Devotion Aura and Holy Shield (D28: a paladin has no armor
+  debuff, but a survival aura), with the same fixed timing, and differs only in what its search
+  tunes: threat and damage together, the balanced objective (Δ TPS % + Δ DPS % against Defensive,
+  D30), where Defensive's tunes threat alone; a change that costs a larger share of TPS than it
+  gains in DPS isn't adopted (D18 turned around). Its defaults are first-pass (D27): Defensive's
+  tuned list plus one quick search (2026-09-24, seed 777, 20,000 paired fights a candidate) of the
+  three biggest settings:
+  - **Hammer of the Righteous in Holy Strike's place: adopted.** −3.33 TPS (−0.40%) and +5.45 DPS
+    (+1.22%), for 39.0 more damage taken a second: +0.82 on the objective. It's the only change.
+  - **Consecration's threshold and rank**, from 0 to 60% with rank 1 on and off, with Hammer of the
+    Righteous: 20% with rank 1 from 10% stays best (10% and 0% −0.09% TPS, 30% −0.07%, rank 1 off
+    −0.11%); rank 1 alone, no rank 5, loses 7.3% of TPS and 5.5% of DPS. Rank 1 from 0% gains
+    +0.03% and +0.03%, within what a first pass leaves (D27).
+  - **Hammer of Wrath**: from 0% stays (10% −0.01%, 20% −0.15%, 40% −0.85% of TPS, and less DPS);
+    off, in Defensive, it loses 3.6% of TPS and 2.9% of DPS. Swift Judgement's 4.5 s and the seal's
+    2.5 s hold too (4 s −0.48%; the seal from 1.5 to 3.5 s within ±0.05% of TPS and ±0.1% of DPS).
+  - **Confirmed** on seed 20260925, which the search didn't use (100,000 paired fights): Balanced
+    against Defensive **−2.96 TPS (−0.36%, 95% CI −3.16 to −2.76), +5.69 DPS (+1.27%, +5.57 to
+    +5.81)** and +39.1 damage taken a second (+4.3%, Iron Creed's cut goes with Holy Strike):
+    823.8 TPS and 447.0 DPS for Defensive, 820.9 and 452.7 for Balanced. Max TPS against the same
+    Defensive: +24.45 TPS (+2.97%), +12.62 DPS (+2.82%), +51.8 damage taken.
+  - **What it gives up**: Iron Creed's damage-taken cut (−10% for 6 s after each landed Holy
+    Strike) and its extra threat, which come only with Holy Strike, so the default build's 5 points
+    in Iron Creed do nothing for Balanced; the optimizer (O4) weighs the talents with the rotation.
+    Hammer of the Righteous needs a one-handed axe, mace or sword: with another weapon Balanced plays
+    Holy Strike, as Defensive does.
 
 - **The duty: Devotion Aura**, the paladin's own aura, +735 armor. It's survival with a measured
   cost. In the default setup it saves 38 damage taken a second (5.3% of the 719 you'd take without
-  it) and costs Retribution Aura's threat, 20.0 TPS (4.7%) and 10.3 DPS (4.5%). **Tank duties
-  first**, the default, keeps it up all fight (`devotionAura.enabled`), and the Buffs tab's
-  Devotion Aura is then yours: the switch shows it on, and it counts once.
+  it) and costs Retribution Aura's threat, 20.0 TPS (4.7%) and 10.3 DPS (4.5%). **Defensive** and
+  **Balanced** keep it up all fight (`devotionAura.enabled`), and the Buffs tab's Devotion Aura is
+  then yours: the switch shows it on, and it counts once.
 - **Its timing is D26's fixed rule, never tuned** (user decision, D26's "How it applies"): the
   duties come first in the priority, before any threat ability on the global cooldown; a duty that
   isn't a debuff on the boss is used when it's ready; and a debuff, with or without a cooldown, is
@@ -844,14 +887,16 @@ the Rotation tab opens with a Priority choice (`priority`), as Warrior Protectio
   spec's own (`SpecMeta.ownBuffs`), so no preset has it, and none has a warrior tank's Thunder
   Clap or Demoralizing Shout either (D26; [buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset));
   you can add them.
-  Max TPS moves only that setting's default, and a value you set yourself still wins.
+  Max TPS moves only that setting's default (and Hammer of the Righteous's, which it keeps off,
+  as Defensive does).
 - **Not duties.** Holy Shield (+20% block, and a block's damage), Seal of Fury (its absorb, and
   its judgement's taunt) and Holy Strike (Iron Creed's −10% damage taken) help you survive too,
-  but each also makes more threat than what would replace it, so no priority gives them up. In
+  but each also makes more threat than what would replace it, so neither Defensive nor Max TPS
+  gives them up; Balanced gives up only Holy Strike, for Hammer of the Righteous's damage. In
   the default setup after T2's fix round (40,000 paired fights, seed 777): Holy Shield off loses
   14.4% of TPS (and takes 0.4% more damage), Seal of Righteousness 3.9% with the default 1.5 s axe,
   Holy Strike 9.2% (and takes 3.1% more damage). Nothing is dropped for an untested threat value,
-  and every threshold's best value is the same for both priorities. The seal is up from before the
+  and every threshold's best value is the same for all three. The seal is up from before the
   pull: with the opener it's Seal of the Crusader, judged at the pull, so the first global cooldown
   at the pull puts Seal of Fury up and Holy Shield follows at 1.5 s
   ([worked example 25](#worked-examples)); without the opener Holy Shield is the first.
@@ -876,6 +921,7 @@ from 20% −0.07%, and the early potion at 1,250 missing −0.08% and at 1,750 �
 | Judgement of the Crusader | **Your own**, from the opener (row 0c): +161 Holy damage taken all fight, +84.7 TPS | user, 2026-09-24 |
 | Enchants | The Prot paladin column of [buffs §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec): Arcanum of Focus on head and legs (+8 spell damage each), Superior Defense cloak, Greater Stats, Superior Stamina bracers, Threat gloves, Greater Agility boots, **Spell Power (+30) on the weapon** and Greater Stamina on the shield. The shoulders stay empty until Zandalar is confirmed. Holy threat scales with spell damage, so the caster enchants are worth 5.4% of TPS (+22.9) in the default setup ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)) | buffs doc owns the values |
 | Aura | Devotion Aura, your own, kept up by the rotation; Retribution Aura with Max TPS (30 × 1.9 threat per hit taken) | [F]; [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23) |
+| Rotation | **Balanced** (D28): Defensive's list with Hammer of the Righteous in Holy Strike's place; Defensive and Max TPS selectable | first pass (D27), [above](#priority-defensive-balanced-or-max-tps) |
 | Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of Greater Defense (Classic: Superior Defense), Elixir of Fortitude (+200 health), Elixir of Holy Power (+40 Holy), Nightfin Soup (+22 spell damage), Wizard Oil, Major Mana Potion. The Max-consumables preset adds Flask of Supreme Power, Greater Arcane Elixir, Brilliant Wizard Oil (replacing Wizard Oil) and Demonic/Dark Rune. No world buffs. Nightfin Soup and the wizard oils are the caster food and oils of [buffs §3.4 and §3.6](../mechanics/buffs-debuffs-consumables.md#34-food), in the catalogue since T2: +52 spell damage in the Standard raid, worth 5.8% of TPS (+25.9) in the default setup. The Standard raid's paladin-only buffs are Prayer of Spirit, Arcane Brilliance, Blessing of Wisdom and Mana Spring Totem ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset), "Pal"): 4,382 mana with the default gear. The raid preset has no Devotion Aura (yours), Thunder Clap or Demoralizing Shout (a warrior tank's; D26), and has a druid's Thorns on you, as every tank's raid preset does (+9 TPS, 1.1%; [buffs §1.2](../mechanics/buffs-debuffs-consumables.md#12-threat-defense-and-mana)) | buffs doc owns names, values and presets |
 
 #### The interim talents (T2's fix round)
@@ -934,8 +980,8 @@ gear. The grid by fight length below is C3's. **After T2's fix round** (its tale
 seed 777, 40,000 paired fights) Consecration from 20% still holds (10% level, 30% −0.06%, 40%
 −0.18%; rank 1 off −0.03%), and Hammer of the Righteous in Holy Strike's place loses 0.39% of TPS
 but gains 1.24% of DPS, for 4.3% more damage taken (Iron Creed's cut goes with Holy Strike): under
-D23's rule for tanks, TPS first, Holy Strike stays; D28's Balanced rotation, once the paladin has
-one, would weigh it again.
+D23's rule for tanks, TPS first, Holy Strike stays in Defensive; D28's Balanced rotation takes it
+([above](#priority-defensive-balanced-or-max-tps)). The tuning below is Defensive's (and Max TPS's).
 
 The defaults are the best rotation found on 2026-09-24 per
 [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23) and, keeping
@@ -947,7 +993,7 @@ paired comparisons on the real engine with
 candidate (common random numbers), and a candidate adopted only when the 95% confidence interval
 of its per-fight TPS difference lies above zero and it costs no larger share of DPS than it gains
 in TPS (D18). **The search tunes only the threat abilities**: the duty, Devotion Aura, follows
-D26's fixed rule ([above](#priority-tank-duties-first-or-max-tps)). **They're tuned for the
+D26's fixed rule ([above](#priority-defensive-balanced-or-max-tps)). **They're tuned for the
 default setup**, a 3-minute fight: the Protection default setup (Human, the 2/42/7 build,
 pre-raid BiS, the Standard raid buffs with a paladin's Prayer of Spirit, Arcane Brilliance,
 Blessing of Wisdom, Mana Spring Totem, Elixir of Holy Power and the Major Mana Potion, without a

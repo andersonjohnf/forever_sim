@@ -772,7 +772,7 @@ the default setups' DPS. Each names the results' assumption it's listed under.
 9. **OQ-M9: the mage's regeneration** (`manaRegenMage`): 13 + Spirit / 4 a tick, Mage Armor up all
    fight, gems conjured before the pull. *Test:* mana ticks at two Spirit values, in and out of the
    five-second rule, with Mage Armor. *Effect:* 10% less regeneration (about 900 mana a fight) ≈ −3%
-   for Fire, whose gems' 1,950 mana are worth 6.40%; about −1.3% for Frost and −0.4% for Arcane.
+   for Fire, whose gems' 1,950 mana are worth 6.43%; about −1.3% for Frost and −0.4% for Arcane.
 10. **OQ-M10: the spell table** (`mageSpells`): the level-based resistance of 24 (6% on average),
     Frostbolt resisted whole, projectiles landing with the cast, and the Forever rows untested in game
     (spells [OQ-S1, OQ-S2, OQ-S8, OQ-S13](../mechanics/spells.md#open-questions)). *Test:* 200 Frostbolts

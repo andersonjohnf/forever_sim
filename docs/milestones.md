@@ -164,7 +164,8 @@ happen at every stable state (D25).
   and UX15 (deferred). Its verification found 12 more (VF1 blocking: the Delete confirm's
   contrast), all fixed, and the quick check of those fixes passed, waiving 3 nits (QC1–QC3).
 
-Golden runs: Fury 668.6 DPS, Arms 611.9 DPS, Protection 217.0 TPS.
+Golden runs (then): Fury 668.6 DPS, Arms 611.9 DPS, Protection 217.0 TPS. Each golden's history
+comment in `engine.test.ts` has today's.
 
 **Next:** the parallel tracks below (tank core, druid, paladin, Warrior Protection).
 
@@ -212,15 +213,18 @@ Unknown base values don't gate any of it
 ([D24](decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)): they ship as flagged
 placeholders, and M9 replaces them.
 
-## M3: Warrior Protection (TPS) 💤
+## M3: Warrior Protection (TPS) ✅
 
-- Enable the three `test.fixme` tests in `e2e/tank-results.spec.ts` once Protection ships
-  (they load Protection from a share link, which is refused while it isn't offered)
-
-- Boss auto-attacks on the player: avoidance, block, crushing blows, rage from damage taken
-- Tank rotation (Shield Slam, Revenge, Sunder, Heroic Strike dumping)
-- TPS output (plus damage taken as context)
-- Shields' block value, which the item data lacks and M7's stat boosts need too
+- [x] **T1 tank core and T2 tank results:** the boss's swings on the player (avoidance, block,
+      crushing blows, rage from damage taken), mitigation, TPS and damage taken in the results
+      ([T1](reviews/2026-09-23-tank-core.md), [T2](reviews/2026-09-23-tank-results.md))
+- [x] **P1 and P2 Warrior Protection:** its abilities and rotation, tuned on TPS with the tank's
+      duties kept (D26), a selectable Max TPS priority, a 51-point default build, and shipped:
+      the app is "A DPS and TPS simulator"
+      ([review](reviews/2026-09-23-warrior-protection.md)). The share-link tank tests run
+      without `?preview`.
+- Shields' block value, which the item data lacks and M7's stat boosts need too, still comes
+  from a flagged Classic Era fallback shield.
 
 ## M4: Feral Druid 🚧
 
@@ -387,6 +391,14 @@ slice is worked:
   [Retribution's review](reviews/2026-09-23-retribution.md)).
 - **The load warning for a buff nobody provides** says "needs a paladin in the raid" to a
   paladin, where the Buffs tab says "another" (RM3).
+- **Switching a tank's priority keeps a value you set,** so Max TPS can silently keep a duty you
+  turned on under Tank duties first; only its "Changed" mark shows it (PU11 in
+  [Warrior Protection's review](reviews/2026-09-23-warrior-protection.md)).
+- **Without a main hand, notes about swings that never happen still show** (`foreverWhiteRage`,
+  the off hand's notes for Fury; PW6).
+- **Two flat-damage-range fields:** `flatDamageRange` (0 to a range, Ferocious Bite) and
+  Protection's `flatSpread` (± around the client's base) do similar jobs; merging them waits for a
+  slice that can re-snapshot both.
 - **Bearweaving:** rage from damage taken divides by the maximum health of the form the fight
   started in, which only holds while no rotation shifts into bear to take hits. A cat that did
   would gain about 47% too much; divide by the current form's health first

@@ -339,3 +339,32 @@ Block, Thunder Clap and Demoralizing Shout (+9% TPS together), and Shield Slam (
 - **Max TPS is selectable.** Each tank spec also offers a **Max TPS** rotation in the Rotation
   tab. It drops those duties, and D23's search tunes it on TPS alone. Its help says what it drops
   and why the default keeps it.
+
+**How it applies** (added 2026-09-23, from Warrior Protection's review and its verifications, PL1,
+PL2, PL6, PV1–PV4 and PW1–PW3, and the bear's, BL1, BL2 and BL9):
+- **The duties** are named in each tank's class doc: for a warrior, Shield Block, Thunder Clap and
+  Demoralizing Shout. **Their timing follows one fixed rule and is never tuned** (user decision,
+  after two review rounds found new problems in tuned duty timing): the duties come first in the
+  priority, before any threat ability on the global cooldown; a duty that isn't a debuff on the
+  boss is used when it's ready (Shield Block); and a debuff, with or without a cooldown, is
+  refreshed as soon as a missed cast could still be tried again before it falls off, that is, from
+  its own cooldown (Thunder Clap from 6 s), or from one global cooldown if it has none. The
+  search tunes only the threat abilities around them. For a warrior this costs about 2.2% of TPS
+  and 3.3% of DPS against tuned timing, and saves 2.9% of damage taken.
+- **In the default's search,** a change that costs a larger share of DPS than it gains in TPS
+  isn't adopted (D18). Nor is dropping an ability whose gain rests on an untested threat value:
+  the bear keeps Lacerate, whose TPS rests on its untested "high threat" bonus (it breaks even at
+  about +40) and whose DPS dropping it would cost 7.9%.
+- **A duty is survival or a raid debuff whose measured effect is worth its cost.** Skipping Enrage
+  in combat saves a bear 0.16% of its damage taken for 3.8% of its TPS, so it isn't a duty; the
+  search decides it.
+- **Max TPS drops only the duties.** Other abilities stay unless dropping them wins on TPS
+  without resting on an untested threat value. Shield Slam stays: dropping it gains 3.3% TPS
+  only at Classic Era's +254 threat [?], while Forever's tooltip raised its threat to "very high",
+  and from about +449 keeping it wins on TPS as well.
+- **The Buffs tab's versions of the duties** assume the tank applies them, so no preset lists a
+  tank's duty (buffs doc §6.2). When Max TPS drops a duty, the Buffs tab's version is off by
+  default too. You can turn it on there if another player keeps it up. For the same reason, a
+  tank's preset leaves out another tank class's duties: a bear's or a paladin's raid has no
+  warrior tank's Thunder Clap unless you add it.
+

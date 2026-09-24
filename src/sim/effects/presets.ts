@@ -15,11 +15,15 @@ import { PET_BUFFS } from '../plan/pet'
  * for any caster spec when it's a caster's entry (`forCasterSpecs`: the druid's Balance spec gets the
  * mana and spell entries its Feral specs don't, docs/classes/druid.md §11.6); and for its kind, melee
  * or caster (`forSpecs`, SpecMeta.caster; absent, every spec). The Buffs tab lists only these, and
- * presets, `normalizeConfig` and the plan skip the rest (buffs doc "Class-only entries").
+ * presets, `normalizeConfig` and the plan skip the rest (buffs doc "Class-only entries"). A caster
+ * whose pet swings (SpecMeta.petMelee: the Demonology warlock's Succubus and Felhunter) gets the
+ * melee's armor debuffs on the boss too, which its pet's swings meet (ranged-and-pets.md §8).
  */
-export const forSpecClass = (buff: Pick<BuffDefinition, 'forClasses' | 'forCasterSpecs' | 'forSpecs'>, spec: SpecId): boolean =>
+export const forSpecClass = (buff: Pick<BuffDefinition, 'forClasses' | 'forCasterSpecs' | 'forSpecs'> & Partial<Pick<BuffDefinition, 'category' | 'group'>>, spec: SpecId): boolean =>
   (!buff.forClasses || buff.forClasses.includes(SPEC_META[spec].classId) || (buff.forCasterSpecs === true && SPEC_META[spec].caster === true)) &&
-  (!buff.forSpecs || (buff.forSpecs === 'caster') === (SPEC_META[spec].caster === true))
+  (!buff.forSpecs ||
+    (buff.forSpecs === 'caster') === (SPEC_META[spec].caster === true) ||
+    (buff.forSpecs === 'melee' && SPEC_META[spec].petMelee === true && buff.category === 'targetDebuff' && buff.group === 'Armor'))
 
 function reaches(audience: Audience, spec: SpecId): boolean {
   if (audience === 'all') return true

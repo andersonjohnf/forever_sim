@@ -62,6 +62,8 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   // docs/classes/warlock.md#71-talents: Destruction 7/11/33 (Fire, Demonic Sacrifice), Affliction 35/11/5
   'warlock-destruction': '25-0050203001-0050355103101351',
   'warlock-affliction': '2555002003520105-0050203001-005',
+  // docs/classes/warlock.md#116-defaults: Demonology 0/32/19, Demonic Pact with the Succubus out and the Imp sacrificed, Ruin
+  'warlock-demonology': '-0325003231120001351-0350305003',
   // docs/classes/priest.md#71-talents: Shadow 20/0/31, Shadowform with Twin Disciplines, Inner Focus and Meditation
   'priest-shadow': '025300031303--500320501201312051',
   // docs/classes/hunter.md#71-talents: Marksmanship 10/41/0 with Lone Wolf, Beast Mastery 31/20/0 with
@@ -138,6 +140,8 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
     { name: 'Destruction (default)', code: DEFAULT_TALENTS['warlock-destruction'] },
     // docs/classes/warlock.md#71-talents: Affliction 35/11/5 with Demonic Sacrifice
     { name: 'Affliction (default)', code: DEFAULT_TALENTS['warlock-affliction'] },
+    // docs/classes/warlock.md#116-defaults: Demonology 0/32/19 with Demonic Pact
+    { name: 'Demonology (default)', code: DEFAULT_TALENTS['warlock-demonology'] },
   ],
   priest: [
     // docs/classes/priest.md#71-talents: Discipline 20 / Holy 0 / Shadow 31
@@ -294,6 +298,7 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
   'hunter-survival': HUNTER_ENCHANTS,
   'warlock-destruction': WARLOCK_ENCHANTS,
   'warlock-affliction': WARLOCK_ENCHANTS,
+  'warlock-demonology': WARLOCK_ENCHANTS,
   // docs/classes/priest.md#74-enchants-and-consumables: Greater Stats on the chest and Forever's Minor
   // Haste gloves, which cast faster. The warlock's spell damage enchants (Arcanum of Focus, the
   // weapon's Spell Power) aren't in its defaults yet, a known gap.

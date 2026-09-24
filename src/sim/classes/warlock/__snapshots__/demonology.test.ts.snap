@@ -1,0 +1,158 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden runs (fixed config and seed) > keeps the default warlock-demonology’s result unchanged 1`] = `
+{
+  "abilities": [
+    [
+      "immolate",
+      null,
+      3432829.940999493,
+      12825,
+      9866,
+      1264,
+      1695,
+      0,
+    ],
+    [
+      "immolateDot",
+      null,
+      7347652.589819675,
+      11130,
+      46850,
+      6155,
+      0,
+      0,
+    ],
+    [
+      "corruption",
+      null,
+      13148180.602537995,
+      10540,
+      45720,
+      6129,
+      1369,
+      0,
+    ],
+    [
+      "baneOfDoom",
+      null,
+      10328454.95929269,
+      2191,
+      1689,
+      184,
+      318,
+      0,
+    ],
+    [
+      "baneOfAgony",
+      null,
+      3115593.967273242,
+      2473,
+      16523,
+      2180,
+      334,
+      0,
+    ],
+    [
+      "shadowBolt",
+      null,
+      43183318.78597198,
+      41410,
+      31983,
+      4178,
+      5249,
+      0,
+    ],
+    [
+      "succubus.melee",
+      "Succubus",
+      6036871.637289426,
+      90354,
+      37115,
+      4016,
+      7185,
+      36124,
+    ],
+    [
+      "succubus.lashOfPain",
+      "Succubus",
+      1711529.3115573542,
+      15485,
+      12205,
+      619,
+      2661,
+      0,
+    ],
+  ],
+  "cooldowns": [
+    [
+      "demonicSacrifice",
+      1,
+      100,
+    ],
+    [
+      "soulLink",
+      1,
+      100,
+    ],
+    [
+      "masterDemonologist",
+      1,
+      100,
+    ],
+    [
+      "demonicKnowledge",
+      1,
+      100,
+    ],
+    [
+      "bloodFury",
+      2,
+      16.69539926329436,
+    ],
+    [
+      "majorManaPotion",
+      2,
+      null,
+    ],
+    [
+      "curseOfTheElements",
+      1.16,
+      99.86643680589364,
+    ],
+    [
+      "lifeTap",
+      18.6,
+      null,
+    ],
+    [
+      "shadowVulnerability",
+      null,
+      24.3241198733674,
+    ],
+  ],
+  "dps": {
+    "ci95": 1.8236050494897682,
+    "mean": 491.3943833720882,
+    "stdev": 29.422711613371973,
+  },
+  "mana": {
+    "max": 6518,
+    "regeneratedPerFight": 2358.472,
+    "restored": [
+      {
+        "id": "majorManaPotion",
+        "name": "Major Mana Potion",
+        "perFight": 3613.6349,
+      },
+      {
+        "id": "lifeTap",
+        "name": "Life Tap",
+        "perFight": 11978.4,
+      },
+    ],
+    "restoredPerFight": 15592.0349,
+    "spentPerFight": 23552.965,
+  },
+}
+`;

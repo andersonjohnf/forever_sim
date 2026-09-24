@@ -1,0 +1,290 @@
+// The Demonology warlock (docs/classes/warlock.md §11): its demons' spells and talents against the
+// Forever client, the worked examples (§11.8), the engine's Demonology pieces (the demon as a pet,
+// Demonic Pact, the passives on you, Demonic Energies, Decimation), its settings' notes, a golden run
+// and determinism.
+import { describe, expect, it } from 'vitest'
+import spellsJson from '@/data/client/spells.json'
+import talentsJson from '@/data/client/talents.json'
+import type { ClientSpells, ClientTalents } from '@/data/client/types'
+import { executePhaseStart } from '../../core/formulas'
+import { defaultConfig, TALENT_DATA } from '../../defaults'
+import { CHUNK_SIZE, runChunk } from '../../engine/chunk'
+import { FIELD, FIELD_COUNT, Sim } from '../../engine/sim'
+import { buildPlan } from '../../plan/build'
+import { COND, type Plan, SCHOOL } from '../../plan/types'
+import { type Aggregate, emptyAggregate, mergeChunk, toResult } from '../../run/aggregate'
+import type { SimConfig } from '../../types'
+import { talentRanksByName } from '../index'
+import { unusedSettings } from '../rotation'
+import { lifeTap } from './abilities'
+import { DEMONOLOGY_IDS } from './demonology'
+import {
+  DEMO_CURVE,
+  DEMON_STATS,
+  DEMON_WEAPON,
+  demonicKnowledge,
+  demonPet,
+  demonRegenTenths,
+  FIREBOLT,
+  LASH_OF_PAIN,
+  masterDemonologist,
+  SOUL_FIRE,
+  SOUL_LINK,
+  SOUL_LINK_PCT,
+} from './demons'
+import { CURVE, withTalents } from './talents'
+
+const spells = (spellsJson as unknown as ClientSpells).spells
+const clientTalents = (talentsJson as unknown as ClientTalents).classes.warlock.talents
+const spell = (id: number) => spells[String(id)]
+const effect = (id: number, index: number) => spell(id).effects.find((e) => e.effectIndex === index)!
+const manaCost = (id: number) => (spell(id).power ?? [])[0]?.manaCost ?? 0
+const curve = (name: string, index = 0) => clientTalents.find((t) => t.name === name)!.rankEffects.find((r) => r.effectIndex === index)!.values
+const DEMONOLOGY = talentRanksByName(TALENT_DATA.warlock, defaultConfig('warlock-demonology').talents)
+const ranks = (entries: [string, number][]) => new Map(entries)
+
+describe('rows against the Forever client (warlock.md §11.1)', () => {
+  it('Firebolt r7 (11763): 44 ± 11.36%, +0.6 a level from 58, 0.571, 115 mana, a 2 s cast and a 1 s GCD', () => {
+    const e = effect(11763, 0)
+    const grow = e.effectRealPointsPerLevel! * (60 - spell(11763).levels!.baseLevel!)
+    expect(FIREBOLT.min).toBeCloseTo(e.effectBasePointsF! * (1 - e.variance! / 2) + grow, 9)
+    expect(FIREBOLT.max).toBeCloseTo(e.effectBasePointsF! * (1 + e.variance! / 2) + grow, 9)
+    expect(FIREBOLT.spCoefficient).toBe(e.effectBonusCoefficient)
+    expect(FIREBOLT.costTenths).toBe(10 * manaCost(11763))
+    expect(FIREBOLT.castMs).toBe(spell(11763).castTime!.base)
+    expect(FIREBOLT.gcdMs).toBe(spell(11763).cooldowns!.startRecoveryTime)
+  })
+
+  it('Lash of Pain r6 (11780): 50 Shadow at 0.429, 160 mana, instant, a 12 s cooldown', () => {
+    const e = effect(11780, 0)
+    expect([LASH_OF_PAIN.min, LASH_OF_PAIN.max, LASH_OF_PAIN.spCoefficient]).toEqual([e.effectBasePointsF, e.effectBasePointsF, e.effectBonusCoefficient])
+    expect(LASH_OF_PAIN.costTenths).toBe(10 * manaCost(11780))
+    expect(spell(11780).castTime?.base ?? 0).toBe(0)
+    expect(LASH_OF_PAIN.cooldownMs).toBe(spell(11780).cooldowns!.categoryRecoveryTime)
+    expect(LASH_OF_PAIN.gcdMs).toBe(spell(11780).cooldowns!.startRecoveryTime)
+  })
+
+  it('Soul Fire r2 (17924): 431 ± 22.47%, +1.9 a level from 56, coefficient 1, 335 mana, a 6 s cast, 60 s cooldown', () => {
+    const e = effect(17924, 0)
+    const s = SOUL_FIRE.spellDef!
+    const grow = e.effectRealPointsPerLevel! * (60 - spell(17924).levels!.baseLevel!)
+    expect(s.min).toBeCloseTo(e.effectBasePointsF! * (1 - e.variance! / 2) + grow, 9)
+    expect(s.max).toBeCloseTo(e.effectBasePointsF! * (1 + e.variance! / 2) + grow, 9)
+    expect(s.spCoefficient).toBe(e.effectBonusCoefficient)
+    expect(SOUL_FIRE.costTenths).toBe(10 * manaCost(17924))
+    expect(SOUL_FIRE.castMs).toBe(spell(17924).castTime!.base)
+    expect(SOUL_FIRE.cooldownMs).toBe(spell(17924).cooldowns!.categoryRecoveryTime)
+  })
+
+  it('Soul Link (25228) and Master Demonologist’s auras (23759 Fire, 23761 Shadow)', () => {
+    expect(effect(25228, 0)).toMatchObject({ effectAura: 79, effectBasePointsF: SOUL_LINK_PCT, effectMiscValue: [127, 0] })
+    expect(SOUL_LINK.aura!.mods.schoolDamage).toBe(SOUL_LINK_PCT)
+    expect(effect(23759, 0)).toMatchObject({ effectAura: 79, effectMiscValue: [4, 0] })
+    expect(effect(23761, 0)).toMatchObject({ effectAura: 79, effectMiscValue: [32, 0] })
+    // Summon Felguard and Metamorphosis are Season of Discovery data: no class learns them (§11.1).
+    expect(spell(427733)).toBeDefined()
+    expect(spell(403789)).toBeDefined()
+  })
+
+  it('the talents’ curves are the client’s', () => {
+    expect(curve('Improved Imp', 1)).toEqual(DEMO_CURVE.improvedImp)
+    expect(curve('Unholy Power')).toEqual(DEMO_CURVE.unholyPower)
+    expect(curve('Improved Sayaad')).toEqual(DEMO_CURVE.improvedSayaad)
+    expect(curve('Fel Vitality')).toEqual(DEMO_CURVE.felVitality)
+    expect(curve('Demonic Energies', 1)).toEqual(DEMO_CURVE.demonicEnergies)
+    expect(curve('Demonic Knowledge')).toEqual(DEMO_CURVE.demonicKnowledge)
+    expect(curve('Master Demonologist', 0)).toEqual(DEMO_CURVE.masterDemonologist)
+    expect(curve('Master Demonologist', 2)).toEqual(DEMO_CURVE.masterDemonologist)
+    expect(curve('Decimation', 0).map((v) => -v)).toEqual(CURVE.decimationCast)
+    expect(curve('Decimation', 1).map((v) => -v)).toEqual(CURVE.decimationCooldown)
+    expect(curve('Decimation', 3)).toEqual(CURVE.decimationDamage)
+    expect(curve('Bane', 1).map((v) => -v)).toEqual(CURVE.baneSoulFireCast)
+    // Decimation's threshold is 35% (#2).
+    expect(effect(440870, 2).effectBasePointsF).toBe(35)
+  })
+})
+
+describe('worked examples (warlock.md §11.8)', () => {
+  it('1. Firebolt: 42.70–47.70 at 60; 113.63 with Demonic Knowledge, Improved Imp and Master Demonologist; 128.74 with Unholy Power and Soul Link', () => {
+    expect(FIREBOLT.min).toBeCloseTo(42.7, 6)
+    expect(FIREBOLT.max).toBeCloseTo(47.7, 6)
+    const imp = demonPet('imp', DEMONOLOGY)!
+    const bolt = imp.abilities[0]
+    const avg = (bolt.min + bolt.max) / 2 + bolt.spCoefficient * imp.stats.spellDamage!
+    expect(avg).toBeCloseTo(113.6278, 4)
+    expect(avg * imp.damageMult).toBeCloseTo(128.7403, 3)
+  })
+
+  it('2. Lash of Pain: 108.31, and 122.71 with Unholy Power and Soul Link', () => {
+    const succubus = demonPet('succubus', DEMONOLOGY)!
+    const lash = succubus.abilities[0]
+    const avg = lash.min + lash.spCoefficient * succubus.stats.spellDamage!
+    expect(avg).toBeCloseTo(108.3082, 4)
+    expect(avg * succubus.damageMult).toBeCloseTo(122.713, 3)
+  })
+
+  it('3. The Succubus’s swing: 240 attack power, 90.74 on average before armor, glancing and crits', () => {
+    const { plan } = buildPlan(fixed())
+    expect(plan.pet!.ap).toBe(240)
+    const avg = ((DEMON_WEAPON.min + DEMON_WEAPON.max) / 2 + (plan.pet!.ap / 14) * DEMON_WEAPON.speedSec) * plan.pet!.damageMult
+    expect(avg).toBeCloseTo(90.737, 3)
+  })
+
+  it('4. Demonic Knowledge: 19 / 40 / 60 spell damage', () => {
+    expect([1, 2, 3].map((r) => demonicKnowledge(ranks([['Demonic Knowledge', r]])))).toEqual([19, 40, 60])
+  })
+
+  it('5. The Imp’s mana: 2,182.7 with Fel Vitality 3/3, 57.25 every 2 s, and all of a Life Tap with Demonic Energies 2/2', () => {
+    expect(demonPet('imp', DEMONOLOGY)!.power).toMatchObject({ maxTenths: 21827, tickTenths: 572, tickMs: 2000 })
+    expect(demonRegenTenths(DEMON_STATS.imp.spi)).toBe(572)
+    const { plan } = buildPlan(fixed({ [DEMONOLOGY_IDS.demon]: 'imp', [DEMONOLOGY_IDS.sacrifice]: 'succubus' }))
+    const tap = plan.abilities.find((a) => a.id === 'lifeTap')!
+    expect(tap.petPowerTenths).toBe(tap.manaTenths)
+    expect(lifeTap(220, 2).manaTenths).toBe(7728)
+  })
+
+  it('6. Soul Fire with Bane 5/5 and Decimation 2/2: a 2.4 s cast, a 6 s cooldown', () => {
+    const sf = withTalents(SOUL_FIRE, ranks([['Bane', 5], ['Decimation', 2]]))
+    expect([sf.castMs, sf.cooldownMs]).toEqual([2400, 6000])
+    expect(withTalents(SOUL_FIRE, ranks([])).castMs).toBe(6000)
+  })
+
+  it('7. Shadow in the default: ×1.30295 from Burning Shadow, Master Demonologist and Soul Link', () => {
+    const { plan } = buildPlan(fixed())
+    const shadow = ['burningShadow', 'masterDemonologist', 'soulLink'].map((id) => plan.auras.find((a) => a.id === id)!)
+    for (const a of shadow) expect(a.schoolMask! & (1 << SCHOOL.shadow), a.id).not.toBe(0)
+    expect(shadow.reduce((m, a) => m * (1 + a.schoolDamage! / 100), 1)).toBeCloseTo(1.30295, 10)
+  })
+})
+
+function runFights(plan: Plan, fights: number): Aggregate {
+  const sim = new Sim(plan)
+  let agg = emptyAggregate(plan.sources.length, plan.auras.length)
+  for (let k = 0; k * CHUNK_SIZE < fights; k++) agg = mergeChunk(agg, runChunk(plan, k, Math.min(CHUNK_SIZE, fights - k * CHUNK_SIZE), sim))
+  return agg
+}
+function fixed(rotation: SimConfig['rotation'] = {}, extra: Partial<SimConfig> = {}): SimConfig {
+  const d = defaultConfig('warlock-demonology')
+  return { ...d, ...extra, rotation: { ...d.rotation, ...rotation }, run: { mode: 'fixed', iterations: 500, seed: 4242 } }
+}
+const row = (plan: Plan, id: string) => plan.sources.findIndex((s) => s.id === id)
+const perFight = (plan: Plan, agg: Aggregate, id: string, field: keyof typeof FIELD) => agg.counters[row(plan, id) * FIELD_COUNT + FIELD[field]] / agg.fights
+const prepull = (plan: Plan) => plan.prepull.casts.map((c) => [plan.abilities[c.ability].id, c.atMs])
+
+describe('the engine’s Demonology pieces (warlock.md §11.2–§11.5)', () => {
+  it('keeps the Succubus out with the Imp sacrificed (Demonic Pact), its passives up before the pull', () => {
+    const { plan } = buildPlan(fixed())
+    expect(prepull(plan)).toEqual([
+      ['demonicSacrifice', -3000],
+      ['soulLink', -2000],
+      ['masterDemonologist', -2000],
+      ['demonicKnowledge', -2000],
+    ])
+    expect(plan.pet).toMatchObject({ id: 'succubus', name: 'Succubus', weapon: DEMON_WEAPON, glances: true, front: false, spellDamage: 60 })
+    expect(plan.pet!.abilities.map((a) => a.id)).toEqual(['lashOfPain'])
+    // The demon's rows name it (ranged-and-pets.md §10).
+    expect(plan.sources.filter((s) => s.pet).map((s) => [s.id, s.pet])).toEqual([
+      ['succubus.melee', 'Succubus'],
+      ['succubus.lashOfPain', 'Succubus'],
+    ])
+    expect(plan.auras.find((a) => a.id === 'demonicKnowledge')).toMatchObject({ spellDamage: 60 })
+  })
+
+  it('a demon out cancels the sacrifice without Demonic Pact, and summoning the sacrificed demon does too', () => {
+    const noPact = buildPlan(fixed({}, { talents: defaultConfig('warlock-demonology').talents.replace('0001351-', '0001350-') })).plan
+    expect(prepull(noPact).map(([id]) => id)).not.toContain('demonicSacrifice')
+    const same = buildPlan(fixed({ [DEMONOLOGY_IDS.demon]: 'imp', [DEMONOLOGY_IDS.sacrifice]: 'imp' })).plan
+    expect(prepull(same).map(([id]) => id)).not.toContain('demonicSacrifice')
+    const none = buildPlan(fixed({ [DEMONOLOGY_IDS.demon]: 'none' })).plan
+    expect(prepull(none)).toEqual([['demonicSacrifice', -3000]])
+    expect(none.pet).toBeUndefined()
+  })
+
+  it('the Felhunter swings and gives you no Master Demonologist damage; the Imp only casts', () => {
+    expect(masterDemonologist('felhunter', DEMONOLOGY)).toBeNull()
+    const fel = buildPlan(fixed({ [DEMONOLOGY_IDS.demon]: 'felhunter' })).plan
+    expect(fel.pet!.abilities).toEqual([])
+    expect(fel.pet!.power).toBeNull()
+    const imp = buildPlan(fixed({ [DEMONOLOGY_IDS.demon]: 'imp', [DEMONOLOGY_IDS.sacrifice]: 'succubus' })).plan
+    expect(imp.pet!.weapon).toBeNull()
+    expect(imp.auras.find((a) => a.id === 'masterDemonologist')!.schoolMask).toBe(1 << SCHOOL.fire)
+    const agg = runFights(imp, 200)
+    expect(perFight(imp, agg, 'imp.firebolt', 'casts')).toBeGreaterThan(80)
+    expect(perFight(imp, agg, 'imp.firebolt', 'damage')).toBeGreaterThan(0)
+  })
+
+  it('Demonic Energies keeps the Imp casting: without it, it runs dry', () => {
+    const cfg = fixed({ [DEMONOLOGY_IDS.demon]: 'imp', [DEMONOLOGY_IDS.sacrifice]: 'succubus' })
+    const withDE = buildPlan(cfg).plan
+    const without = buildPlan({ ...cfg, talents: cfg.talents.replace('03250032', '03250030') }).plan
+    expect(without.abilities.find((a) => a.id === 'lifeTap')!.petPowerTenths).toBeUndefined()
+    const a = perFight(withDE, runFights(withDE, 200), 'imp.firebolt', 'casts')
+    const b = perFight(without, runFights(without, 200), 'imp.firebolt', 'casts')
+    expect(b).toBeLessThan(a * 0.85)
+  })
+
+  it('Decimation: Soul Fire only once the boss is below 35%, and Shadow Bolt +6% there', () => {
+    const { plan } = buildPlan(fixed({ [DEMONOLOGY_IDS.soulFire]: true }))
+    const sf = plan.abilities.findIndex((a) => a.id === 'soulFire')
+    expect(plan.abilities[sf]).toMatchObject({ castMs: 2400, cooldownMs: 6000 })
+    expect(plan.rotation.find((e) => e.ability === sf)!.conditions).toEqual([{ code: COND.healthAtMost, a: 35, b: 0 }])
+    const bolt = plan.spells!.find((s) => plan.sources[s.source].id === 'shadowBolt')!
+    expect([bolt.lowHealthPct, bolt.lowHealthBelowPct]).toEqual([6, 35])
+    const steady: Plan = { ...plan, fight: { ...plan.fight, variation: 0 } }
+    const sim = new Sim(steady)
+    const casts: number[] = []
+    sim.castTrace = (a, t) => {
+      if (a === sf) casts.push(t)
+    }
+    for (let i = 0; i < 20; i++) sim.runFight(i)
+    expect(casts.length).toBeGreaterThan(100)
+    expect(Math.min(...casts)).toBeGreaterThanOrEqual(executePhaseStart(steady.fight.durationMs, 35))
+  })
+
+  it('the Rotation tab says why a sacrifice does nothing', () => {
+    const setup = (talents: string) => ({ race: 'horde-orc', raceName: 'Orc', othersBleed: false, buffGroups: new Set<string>(), talents: talentRanksByName(TALENT_DATA.warlock, talents) })
+    const talents = defaultConfig('warlock-demonology').talents
+    const same = unusedSettings('warlock-demonology', { [DEMONOLOGY_IDS.demon]: 'imp', [DEMONOLOGY_IDS.sacrifice]: 'imp' }, setup(talents))
+    expect(same[DEMONOLOGY_IDS.sacrifice]).toBe('Not used: summoning the demon you sacrificed cancels its buff.')
+    const noPact = unusedSettings('warlock-demonology', {}, setup(talents.replace('0001351-', '0001350-')))
+    expect(noPact[DEMONOLOGY_IDS.sacrifice]).toBe('Not used: summoning your demon cancels it without Demonic Pact.')
+    expect(unusedSettings('warlock-demonology', {}, setup(talents))[DEMONOLOGY_IDS.sacrifice]).toBeUndefined()
+    expect(unusedSettings('warlock-demonology', { [DEMONOLOGY_IDS.demon]: 'none' }, setup(talents.replace('0001351-', '0001350-')))[DEMONOLOGY_IDS.sacrifice]).toBeUndefined()
+  })
+
+  it('its Standard raid keeps the boss’s armor debuffs for the Succubus’s swings', () => {
+    const { plan } = buildPlan(fixed())
+    expect(plan.fight.targetArmor).toBeLessThan(1000)
+    const result = toResult(buildPlan(fixed()), runFights(plan, 100), 0)
+    expect(result.abilities.filter((a) => a.pet).map((a) => a.name)).toEqual(['Auto attack', 'Lash of Pain'])
+    expect(result.assumptions.map((a) => a.id)).toEqual(expect.arrayContaining(['demonOut', 'demonStats', 'demonTable', 'demonMana', 'masterDemonologist']))
+    expect(result.assumptions.map((a) => a.id)).not.toContain('warlockNoPet')
+  })
+})
+
+describe('golden runs (fixed config and seed)', () => {
+  // Snapshot history (update only deliberately, and say why here):
+  // - H3: the default Demonology warlock (warlock.md §11.5, §11.6): the Succubus out, the Imp sacrificed
+  //   with Demonic Pact, Soul Link, Master Demonologist and Demonic Knowledge, Immolate, Corruption, Bane
+  //   of Doom then Agony, Shadow Bolt, Life Tap at 10%; 492.8 DPS over 20,000 fights on seed 2701 (§11.6).
+  it('keeps the default warlock-demonology’s result unchanged', () => {
+    const bundle = buildPlan({ ...defaultConfig('warlock-demonology'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
+    const result = toResult(bundle, runFights(bundle.plan, 1000), 0)
+    expect({
+      dps: result.dps,
+      abilities: result.abilities.map((a) => [a.id, a.pet ?? null, a.damage, a.casts, a.hits, a.crits, a.misses, a.glances]),
+      cooldowns: result.cooldowns.map((c) => [c.id, c.castsPerFight, c.uptimePct]),
+      mana: result.mana,
+    }).toMatchSnapshot()
+  })
+
+  it('is deterministic: the same config and seed give the same result, for each demon', () => {
+    for (const demon of ['succubus', 'imp', 'felhunter']) {
+      const run = () => {
+        const bundle = buildPlan({ ...fixed({ [DEMONOLOGY_IDS.demon]: demon }), run: { mode: 'fixed', iterations: 500, seed: 777 } })
+        return JSON.stringify(toResult(bundle, runFights(bundle.plan, 500), 0).abilities)
+      }
+      expect(run()).toBe(run())
+    }
+  })
+})

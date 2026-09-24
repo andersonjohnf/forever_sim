@@ -138,6 +138,13 @@ export const ASSUMPTION_GROUP = {
   baneOfAgonyRamp: 'class',
   shadowburnShards: 'class',
   warlockTalentStacking: 'class',
+  // The Demonology warlock's (docs/classes/warlock.md §11.7): the demon's placeholders first.
+  demonStats: 'class',
+  demonTable: 'combat',
+  demonOut: 'class',
+  demonMana: 'class',
+  masterDemonologist: 'class',
+  decimation: 'class',
   reactionTimeWarlock: 'combat',
   deadlyPoisonTicks: 'class',
   rogueArmorPen: 'class',

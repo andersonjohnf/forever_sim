@@ -837,6 +837,31 @@ const REGISTRY = {
     text: 'Bane of Agony deals its average each tick: its ramp from weak to strong ticks is server-side, and changes only a Bane the fight ends early.',
     docRef: `${LOCK}#32-affliction`,
   },
+  // --- The Demonology warlock's (docs/classes/warlock.md §11.7) ---
+  demonOut: {
+    text: 'Your demon is out from the pull and never dies: Soul Link, Master Demonologist and Demonic Knowledge are up all fight, and with Demonic Pact so is the buff of the demon you sacrificed before summoning it.',
+    docRef: `${LOCK}#114-your-demons-passives`,
+  },
+  demonStats: {
+    text: 'Your demon’s stats are placeholders: its attributes and mana at 60 are Classic Era’s as an emulator records them, its attack power 2 per Strength − 20, its swing 37–55 every 2 s (a level-60 hunter pet’s reported damage) and its crit 5%. It inherits none of your stats but Demonic Knowledge’s spell damage; Forever’s pet scaling is server-side. Untested.',
+    docRef: `${LOCK}#112-your-demon`,
+  },
+  demonTable: {
+    text: 'Your demon rolls a player’s tables at its level: its spells miss the boss 17% of the time, lose 6% to its resistance and crit for ×1.5; its swings, from behind, miss, are dodged and glance as yours would, against the boss’s armor after the Buffs tab’s debuffs. Untested.',
+    docRef: `${LOCK}#112-your-demon`,
+  },
+  demonMana: {
+    text: 'Your demon’s mana regenerates 8 + Spirit / 4 every 2 s, casting or not, and with Demonic Energies it gains the mana each Life Tap gives you. Untested.',
+    docRef: `${LOCK}#112-your-demon`,
+  },
+  masterDemonologist: {
+    text: 'Master Demonologist’s +10% Fire (the Imp) or Shadow (the Succubus) is on you and on your demon’s spells of that school, as its Forever tooltip reads; the Succubus’s swings don’t get it. Untested.',
+    docRef: `${LOCK}#113-talents`,
+  },
+  decimation: {
+    text: 'Decimation: below 35% health your Soul Fire casts 40% faster, costs no Soul Shard and cools down in 6 s from the moment the boss reaches 35% (in game a Shadow Bolt cast there starts it), and Shadow Bolt deals 6% more. Untested.',
+    docRef: `${LOCK}#113-talents`,
+  },
   warlockTalentStacking: {
     text: 'Talents that raise the same spell’s damage multiply with each other (Agonizing Flames and Aftermath on Immolate, Malediction and Shadow Mastery on the DoTs), as the modern client does; the additive reading would be under 1% lower. Untested.',
     docRef: `${LOCK}#4-talents`,

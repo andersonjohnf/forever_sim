@@ -29,6 +29,18 @@ import {
   WARLOCK_RACIALS,
 } from './abilities'
 import { rank, type TalentRanks, withTalents } from './talents'
+import {
+  DECIMATION_BELOW_PCT,
+  type Demon,
+  DEMO_CURVE,
+  demonicKnowledgeAura,
+  demonPet,
+  masterDemonologist,
+  PREPULL_DEMON_MS,
+  SOUL_FIRE,
+  SOUL_LINK,
+  talentValue,
+} from './demons'
 
 /** Buff catalogue ids of the consumables and caster buffs the rotations use (effects/buffs.ts). */
 export const MANA_POTION = 'majorManaPotion'
@@ -36,7 +48,7 @@ export const MANA_RUNE = 'demonicRune'
 export const POWER_INFUSION = 'powerInfusion'
 export const CURSE_BUFF = 'curseOfTheElements'
 
-export type WarlockSpec = 'destruction' | 'affliction'
+export type WarlockSpec = 'destruction' | 'affliction' | 'demonology'
 
 /** The settings ids of a spec. */
 export const warlockIds = (spec: WarlockSpec) => {
@@ -59,6 +71,9 @@ export const warlockIds = (spec: WarlockSpec) => {
     manaPotionMissing: `${S}.manaPotion.missingMana`,
     rune: `${S}.rune.enabled`,
     runeMissing: `${S}.rune.missingMana`,
+    // Demonology's (warlock.md §11.5).
+    demon: `${S}.demon.summoned`,
+    soulFire: `${S}.soulFire.enabled`,
   }
 }
 
@@ -70,6 +85,10 @@ export interface WarlockDefaults {
   lifeTapPct: number
   corruption: boolean
   bane: 'agony' | 'doom' | 'none'
+  /** Demonology's (warlock.md §11.5): the demon you keep out, Immolate, and Decimation's Soul Fire. */
+  demon?: Demon
+  immolate?: boolean
+  soulFire?: boolean
 }
 
 const common = (spec: WarlockSpec, d: WarlockDefaults): { head: RotationOption[]; tail: RotationOption[] } => {
@@ -81,7 +100,11 @@ const common = (spec: WarlockSpec, d: WarlockDefaults): { head: RotationOption[]
         id: ID.sacrifice,
         group: 'Cooldowns and buffs',
         label: 'Demonic Sacrifice',
-        help: 'The demon you sacrifice before the pull, for 2 hours: the Imp gives +15% Shadow damage, the Succubus +15% Fire damage, the Voidwalker 2% of your mana every 4 s. Needs the talent. Your pet itself isn’t simulated yet.',
+        help:
+          spec === 'demonology'
+            ? 'The demon you sacrifice before the pull, for 2 hours: the Imp gives +15% Shadow damage, the Succubus +15% Fire damage, the Voidwalker 2% of your mana every 4 s. Needs the talent. With Demonic Pact you keep its buff when you then summon a different demon.'
+            : 'The demon you sacrifice before the pull, for 2 hours: the Imp gives +15% Shadow damage, the Succubus +15% Fire damage, the Voidwalker 2% of your mana every 4 s. Needs the talent. Your pet itself isn’t simulated yet.',
+        ...(spec === 'demonology' ? { group: 'Before the pull' as const } : {}),
         choices: [
           { value: 'imp', label: 'Imp' },
           { value: 'succubus', label: 'Succubus' },
@@ -90,6 +113,7 @@ const common = (spec: WarlockSpec, d: WarlockDefaults): { head: RotationOption[]
         ],
         default: d.sacrifice,
       },
+      ...(spec === 'demonology' ? demonHead(d) : []),
       {
         kind: 'toggle',
         id: ID.racial,
@@ -288,6 +312,55 @@ export function afflictionOptions(d: WarlockDefaults): RotationOption[] {
   ]
 }
 
+/** Demonology's demon (warlock.md §11.5): the one you keep out, after the sacrifice. */
+function demonHead(d: WarlockDefaults): RotationOption[] {
+  const ID = warlockIds('demonology')
+  return [
+    {
+      kind: 'choice',
+      id: ID.demon,
+      group: 'Before the pull',
+      label: 'Demon',
+      help: 'The demon you keep out, fighting beside you: the Imp casts Firebolt, the Succubus attacks and casts Lash of Pain, the Felhunter attacks. With Master Demonologist the Imp gives you both +10% Fire damage and the Succubus +10% Shadow; Soul Link and Demonic Knowledge need one out.',
+      choices: [
+        { value: 'imp', label: 'Imp' },
+        { value: 'succubus', label: 'Succubus' },
+        { value: 'felhunter', label: 'Felhunter' },
+        { value: 'none', label: 'None' },
+      ],
+      default: d.demon ?? 'none',
+    },
+  ]
+}
+
+/** Demonology's settings, in priority order (warlock.md §11.5). */
+export function demonologyOptions(d: WarlockDefaults): RotationOption[] {
+  const ID = warlockIds('demonology')
+  const { head, tail } = common('demonology', d)
+  return [
+    ...head,
+    {
+      kind: 'toggle',
+      id: ID.immolate,
+      group: 'Core abilities',
+      label: 'Immolate',
+      help: 'Keep Immolate on the boss, recast as it runs out: a Fire hit and its burn, which Master Demonologist’s Imp and a sacrificed Succubus raise.',
+      default: d.immolate ?? false,
+    },
+    ...dots('demonology', d),
+    {
+      kind: 'toggle',
+      id: ID.soulFire,
+      group: 'Core abilities',
+      label: 'Soul Fire below 35%',
+      help: 'Below 35% health, cast Soul Fire whenever it’s ready: Decimation makes it 40% faster, free of its Soul Shard, and its cooldown 6 s. Needs Decimation.',
+      default: d.soulFire ?? true,
+      requires: { talent: 'Decimation' },
+    },
+    ...tail,
+  ]
+}
+
 /** The on-use trinkets the warlock presses: none of the modelled ones are a caster's yet (effects/items.ts). */
 const CASTER_TRINKETS = new Set<string>()
 
@@ -335,10 +408,20 @@ export function warlockRotation(
   const prepull: ClassRotation['prepull'] = { ...NO_PREPULL, casts: [] }
   const pressed: string[] = ctx.items.map((i) => i.id)
 
-  // Before the pull: Demonic Sacrifice's buff, with no pet (warlock.md §3.4).
+  // Before the pull: Demonic Sacrifice's buff, with no pet (warlock.md §3.4). Demonology keeps a demon
+  // out (§11.5): summoning one cancels the buff, unless Demonic Pact keeps it for a different demon.
   const sacrifice = v.str(ID.sacrifice) as Sacrifice
-  if (sacrifice !== 'none' && rank(talents, 'Demonic Sacrifice') > 0) {
+  const demon: Demon = spec === 'demonology' ? (v.str(ID.demon) as Demon) : 'none'
+  if (sacrifice !== 'none' && rank(talents, 'Demonic Sacrifice') > 0 && (demon === 'none' || (rank(talents, 'Demonic Pact') > 0 && sacrifice !== demon))) {
     prepull.casts.push({ ability: index(demonicSacrifice(sacrifice, maxMana)), atMs: PREPULL_SACRIFICE_MS })
+  }
+  // Your demon's passives on you, from before the pull (§11.4): Soul Link, Master Demonologist, Demonic Knowledge.
+  const pet = demonPet(demon, talents)
+  if (pet) {
+    if (rank(talents, 'Soul Link') > 0) prepull.casts.push({ ability: index(SOUL_LINK), atMs: PREPULL_DEMON_MS })
+    for (const passive of [masterDemonologist(demon, talents), demonicKnowledgeAura(talents)]) {
+      if (passive) prepull.casts.push({ ability: index(passive), atMs: PREPULL_DEMON_MS })
+    }
   }
 
   // Off the GCD, on cooldown from the pull: the racial, on-use trinkets and Power Infusion.
@@ -378,7 +461,12 @@ export function warlockRotation(
       ])
     }
   }
-  if (spec === 'destruction') {
+  if (spec === 'demonology') {
+    if (v.on(ID.immolate)) upkeep(IMMOLATE)
+    dotsAndBane()
+    // Decimation's Soul Fire below 35% health (§11.3): 40% faster, no Soul Shard, a 6 s cooldown.
+    if (v.on(ID.soulFire) && rank(talents, 'Decimation') > 0) add(SOUL_FIRE, [{ code: COND.healthAtMost, a: DECIMATION_BELOW_PCT, b: 0 }])
+  } else if (spec === 'destruction') {
     const immolate = v.on(ID.immolate)
     if (immolate) upkeep(IMMOLATE)
     if (immolate && v.on(ID.conflagrate) && rank(talents, 'Conflagrate') > 0) add(CONFLAGRATE)
@@ -395,7 +483,10 @@ export function warlockRotation(
   if (spec === 'affliction' && trance >= 0) rotation.push({ ability: shadowBolt(), conditions: [{ code: COND.auraUp, a: trance, b: 0 }], unqueueBelowTenths: 0 })
 
   // Life Tap at x% mana, then the filler, then Life Tap whenever the filler can't be paid for.
-  const tap = lifeTap(context.spirit ?? 0, rank(talents, 'Improved Life Tap'))
+  const tapped = lifeTap(context.spirit ?? 0, rank(talents, 'Improved Life Tap'))
+  // Demonic Energies (§11.3): your demon gains the share of Life Tap's mana, if it has mana.
+  const energies = pet?.power ? talentValue(talents, 'Demonic Energies', DEMO_CURVE.demonicEnergies) : 0
+  const tap = energies > 0 ? { ...tapped, petPowerTenths: Math.floor(((tapped.manaTenths ?? 0) * energies) / 100 + 1e-9) } : tapped
   const tapPct = v.num(ID.lifeTap)
   if (tapPct > 0) add(tap, [{ code: COND.maxMana, a: Math.floor((tapPct / 100) * maxManaTenths), b: 0 }])
   const filler = spec === 'destruction' && v.str(ID.filler) === 'incinerate' && rank(talents, 'Incinerate') > 0 ? index(INCINERATE) : shadowBolt()
@@ -413,7 +504,7 @@ export function warlockRotation(
     if (used('shadowburn')) procs.push(fire)
   }
 
-  return { abilities, rotation, prepull, onUse: pressed, procs }
+  return { abilities, rotation, prepull, onUse: pressed, procs, ...(pet ? { pet } : {}) }
 }
 
 /** Setting ids a race or talent makes do nothing, each with the Rotation tab's note (docs/ux.md "Rotation"). */
@@ -421,6 +512,14 @@ export function warlockUnusedSettings(spec: WarlockSpec, values: Record<string, 
   const ID = warlockIds(spec)
   const out: Record<string, string> = {}
   if (rank(talents, 'Demonic Sacrifice') === 0) out[ID.sacrifice] = 'Not used: Demonic Sacrifice isn’t in your talents.'
+  else if (spec === 'demonology' && values[ID.sacrifice] !== 'none') {
+    // warlock.md §11.5: a summoned demon cancels the sacrifice, unless Demonic Pact keeps it for a different one.
+    const demon = values[ID.demon]
+    if (demon !== undefined && demon !== 'none') {
+      if (rank(talents, 'Demonic Pact') === 0) out[ID.sacrifice] = 'Not used: summoning your demon cancels it without Demonic Pact.'
+      else if (demon === values[ID.sacrifice]) out[ID.sacrifice] = 'Not used: summoning the demon you sacrificed cancels its buff.'
+    }
+  }
   if (spec === 'destruction' && rank(talents, 'Incinerate') === 0 && values[ID.filler] === 'incinerate') out[ID.filler] = 'Incinerate isn’t in your talents, so Shadow Bolt is the filler.'
   return out
 }

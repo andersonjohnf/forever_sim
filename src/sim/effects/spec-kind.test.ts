@@ -71,13 +71,17 @@ function attacksOnly(e: Effect): boolean {
 }
 
 const casters = SPEC_IDS.filter((s) => SPEC_META[s].caster)
+/** The melee's armor debuffs on the boss, which a caster whose pet swings keeps (SpecMeta.petMelee: Demonology, docs/classes/warlock.md §11.2). */
+const ARMOR = ['sunderArmor', 'exposeArmor', 'faerieFire', 'curseOfRecklessness', 'armorShatter']
+/** The melee entries a caster doesn't get. */
+const meleeFor = (spec: SpecId) => (SPEC_META[spec].petMelee ? MELEE.filter((id) => !ARMOR.includes(id)) : MELEE)
 const melee = SPEC_IDS.filter((s) => !SPEC_META[s].caster)
 
 describe('melee and caster entries (forSpecs)', () => {
   it('are these, and the caster specs are those whose SpecMeta sets caster', () => {
     expect(BUFFS.filter((b) => b.forSpecs === 'melee').map((b) => b.id)).toEqual(MELEE)
     expect(CASTER_SPECS).toEqual(casters)
-    expect(casters).toEqual(['druid-balance', 'shaman-elemental', 'mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction', 'priest-shadow'])
+    expect(casters).toEqual(['druid-balance', 'shaman-elemental', 'mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction', 'warlock-demonology', 'priest-shadow'])
   })
 
   it('mark as melee exactly the entries whose Forever effects change only attacks, and Classic Era’s nothing a spell reads', () => {
@@ -101,7 +105,7 @@ describe('melee and caster entries (forSpecs)', () => {
   it('never reach a caster’s preset, and every melee and tank spec keeps them', () => {
     for (const preset of ['self', 'dungeon', 'raid', 'max'] as const) {
       for (const spec of casters) {
-        for (const id of MELEE) expect(presetBuffIds(preset, spec, FULL_RAID), `${spec} ${preset}`).not.toContain(id)
+        for (const id of meleeFor(spec)) expect(presetBuffIds(preset, spec, FULL_RAID), `${spec} ${preset}`).not.toContain(id)
       }
     }
     for (const spec of melee) for (const b of BUFFS) if (b.forSpecs === 'melee') expect(forSpecClass(b, spec), `${spec} ${b.id}`).toBe(forSpecClass({ forClasses: b.forClasses }, spec))
@@ -153,6 +157,13 @@ describe('melee and caster entries (forSpecs)', () => {
     const hidden = (spec: SpecId) => BUFFS.filter((b) => !forSpecClass(b, spec) && !(b.forClasses && !b.forClasses.includes(SPEC_META[spec].classId))).map((b) => b.id)
     for (const spec of melee) expect(hidden(spec), spec).toEqual(['moonkinAura', 'powerInfusion', 'curseOfTheElements'])
     // The Mighty Rage Potion is a warrior's and a druid's: a Balance druid's class could drink it.
-    for (const spec of casters) expect(hidden(spec), spec).toEqual(SPEC_META[spec].classId === 'druid' ? MELEE : MELEE.filter((id) => id !== 'mightyRagePotion'))
+    for (const spec of casters) expect(hidden(spec), spec).toEqual(SPEC_META[spec].classId === 'druid' ? meleeFor(spec) : meleeFor(spec).filter((id) => id !== 'mightyRagePotion'))
+  })
+
+  it('give a caster whose pet swings the boss’s armor debuffs, in its Standard raid too: the Demonology warlock (ranged-and-pets.md §8)', () => {
+    expect(casters.filter((s) => SPEC_META[s].petMelee)).toEqual(['warlock-demonology'])
+    for (const id of ARMOR) expect(forSpecClass(BUFFS.find((b) => b.id === id)!, 'warlock-demonology'), id).toBe(true)
+    expect(presetBuffIds('raid', 'warlock-demonology', FULL_RAID)).toEqual(expect.arrayContaining(['sunderArmor', 'faerieFire', 'curseOfRecklessness']))
+    expect(presetBuffIds('raid', 'warlock-demonology', FULL_RAID)).not.toContain('battleShout')
   })
 })

@@ -38,6 +38,11 @@ export const CURVE = {
   fireAndBrimstone: [8, 17, 25],
   shadowAndFlame: [2, 4, 6, 8, 10],
   shadowAndFlameKeep: [20, 40, 60, 80, 100],
+  // Demonology's that change your own spells (warlock.md §11.3): Bane #1 on Soul Fire, Decimation #0, #1, #3.
+  baneSoulFireCast: [400, 800, 1200, 1600, 2000],
+  decimationCast: [20, 40],
+  decimationCooldown: [45, 90],
+  decimationDamage: [3, 6],
 } as const
 
 /** The warlock's passive talents as effects (warlock.md §4). */
@@ -67,10 +72,10 @@ export function warlockTalentEffects(talents: TalentRanks): Effect[] {
   return out
 }
 
-/** The spells each talent names (their class masks, warlock.md §4). */
-const DESTRUCTION = new Set(['shadowBolt', 'immolate', 'conflagrate', 'incinerate', 'shadowburn'])
-/** Agonizing Flames' damage: its #1 mask (Shadow Bolt, Immolate's hit, Shadowburn, Incinerate, Conflagrate); #2 Immolate's ticks. */
-const AGONIZING = new Set(['shadowBolt', 'immolate', 'conflagrate', 'incinerate', 'shadowburn'])
+/** The spells each talent names (their class masks, warlock.md §4): Ruin's and Cataclysm's mask 997 covers Soul Fire (64) too (§11.3). */
+const DESTRUCTION = new Set(['shadowBolt', 'immolate', 'conflagrate', 'incinerate', 'shadowburn', 'soulFire'])
+/** Agonizing Flames' damage: its #1 mask (Shadow Bolt, Immolate's hit, Shadowburn, Incinerate, Conflagrate, Soul Fire's [0, 128]); #2 Immolate's ticks. */
+const AGONIZING = new Set(['shadowBolt', 'immolate', 'conflagrate', 'incinerate', 'shadowburn', 'soulFire'])
 /** Malediction's periodic damage (#0): Corruption, Immolate's ticks, the Banes, Siphon Life. */
 const MALEDICTION = new Set(['corruption', 'immolate', 'baneOfAgony', 'baneOfDoom', 'siphonLife'])
 /** Shadow Mastery: direct damage (#0: Shadow Bolt, Shadowburn) and periodic (#1: Corruption, the Banes, Siphon Life). */
@@ -106,8 +111,11 @@ export function spellWithTalents(spell: SpellDef, talents: TalentRanks): SpellDe
   if (MALEVOLENCE.has(id)) bonusCrit += at(CURVE.malevolence, rank(talents, 'Malevolence'))
   if (id === 'conflagrate') bonusCrit += at(CURVE.fireAndBrimstone, rank(talents, 'Fire and Brimstone'))
   const hasDot = (spell.dotTicks ?? 0) > 0
+  // Decimation #3 (mask 257: Shadow Bolt, Searing Pain): +3% a rank below 35% health (warlock.md §11.3).
+  const decimation = id === 'shadowBolt' ? at(CURVE.decimationDamage, rank(talents, 'Decimation')) : 0
   return {
     ...spell,
+    ...(decimation > 0 ? { lowHealthPct: decimation, lowHealthBelowPct: 35 } : {}),
     damageMult: direct,
     ...(hasDot && dot !== direct ? { dotDamageMult: dot } : {}),
     bonusCrit,
@@ -127,11 +135,19 @@ export function withTalents(def: AbilityDef, talents: TalentRanks): AbilityDef {
   // Bane (17788): −0.1 s a rank on Shadow Bolt, Immolate and Incinerate (#0).
   if (def.id === 'shadowBolt' || def.id === 'immolate' || def.id === 'incinerate') castMs -= at(CURVE.baneCast, rank(talents, 'Bane'))
   if (def.id === 'corruption') castMs -= at(CURVE.improvedCorruptionCast, rank(talents, 'Improved Corruption'))
+  let cooldownMs = def.cooldownMs
+  if (def.id === 'soulFire') {
+    // Bane #1: −0.4 s a rank; Decimation: −20% a rank with its buff, which the sim's Soul Fire is only
+    // cast under (below 35%), and −45% a rank off its cooldown (warlock.md §11.3).
+    castMs = Math.round((castMs - at(CURVE.baneSoulFireCast, rank(talents, 'Bane'))) * (1 - at(CURVE.decimationCast, rank(talents, 'Decimation')) / 100))
+    cooldownMs = Math.round(cooldownMs * (1 - at(CURVE.decimationCooldown, rank(talents, 'Decimation')) / 100))
+  }
   castMs = Math.max(0, castMs)
   return {
     ...def,
     costTenths,
     castMs,
+    cooldownMs,
     ...(def.spellDef ? { spellDef: spellWithTalents(def.spellDef, talents) } : {}),
     // Shadow and Flame keeps your Immolate with 20% a rank when Conflagrate lands (warlock.md §4.1).
     ...(def.consumesDotOf ? { consumesDotOf: { ...def.consumesDotOf, chance: 1 - at(CURVE.shadowAndFlameKeep, rank(talents, 'Shadow and Flame')) / 100 } } : {}),

@@ -59,7 +59,7 @@ const ROGUE_ONLY: readonly ClassId[] = ['rogue']
  * warlocks (docs/classes/warlock.md#74-enchants-and-consumables) and the Shadow Priest
  * (docs/classes/priest.md#74-enchants-and-consumables); their classes, the only ones in scope that use them.
  */
-const SHADOW_SPECS: SpecId[] = ['warlock-destruction', 'warlock-affliction', 'priest-shadow']
+const SHADOW_SPECS: SpecId[] = ['warlock-destruction', 'warlock-affliction', 'warlock-demonology', 'priest-shadow']
 const SHADOW_CASTERS: readonly ClassId[] = ['warlock', 'priest']
 const ROGUE_DOC = 'docs/classes/rogue.md'
 

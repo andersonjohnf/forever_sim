@@ -30,6 +30,12 @@ export interface SpecMeta {
    * whose stats still count. The hunter's slice (H2) sets it.
    */
   ranged?: boolean
+  /**
+   * A caster whose pet can swing (the Demonology warlock's Succubus and Felhunter, docs/classes/warlock.md
+   * §11.2): the melee's armor debuffs on the boss reach its pet, so its Buffs tab and presets keep them
+   * (docs/mechanics/ranged-and-pets.md §8; effects/presets.ts `forSpecClass`).
+   */
+  petMelee?: boolean
 }
 
 export const SPEC_META: Record<SpecId, SpecMeta> = {
@@ -183,7 +189,7 @@ export const SPEC_META: Record<SpecId, SpecMeta> = {
     icon: 'spell_holy_magicalsentry',
     caster: true,
   },
-  // docs/classes/warlock.md: Destruction and Affliction, landed under D27; Demonology waits for the pet core.
+  // docs/classes/warlock.md: Destruction and Affliction, landed under D27 (K3), and Demonology on the pet core (H3).
   'warlock-destruction': {
     id: 'warlock-destruction',
     classId: 'warlock',
@@ -204,6 +210,18 @@ export const SPEC_META: Record<SpecId, SpecMeta> = {
     icon: 'spell_shadow_deathcoil',
     ownBuffs: ['curseOfTheElements'],
     caster: true,
+  },
+  // docs/classes/warlock.md §11: its demon fights beside it (ClassRotation.pet), and its sheet is a caster's.
+  'warlock-demonology': {
+    id: 'warlock-demonology',
+    classId: 'warlock',
+    className: 'Warlock',
+    name: 'Demonology',
+    role: 'dps',
+    icon: 'spell_shadow_metamorphosis',
+    ownBuffs: ['curseOfTheElements'],
+    caster: true,
+    petMelee: true,
   },
   // docs/classes/priest.md: the Shadow Priest, on the caster core, landed under D27 (K4).
   'priest-shadow': {

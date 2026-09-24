@@ -310,6 +310,7 @@ export type PreRaidBisSpec =
   | "mage-arcane"
   | "warlock-destruction"
   | "warlock-affliction"
+  | "warlock-demonology"
   | "priest-shadow"
   | "hunter-marksmanship"
   | "hunter-beast-mastery"

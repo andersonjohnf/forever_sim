@@ -31,6 +31,7 @@ import { ASSASSINATION_OPTIONS, assassinationMaintainedBuffs, assassinationRotat
 import { SUBTLETY_OPTIONS, subtletyMaintainedBuffs, subtletyRotation, subtletyUnusedSettings } from './rogue/subtlety'
 import { DESTRUCTION_OPTIONS, destructionMaintainedBuffs, destructionRotation, destructionUnusedSettings } from './warlock/destruction'
 import { AFFLICTION_OPTIONS, afflictionMaintainedBuffs, afflictionRotation, afflictionUnusedSettings } from './warlock/affliction'
+import { DEMONOLOGY_OPTIONS, demonologyMaintainedBuffs, demonologyRotation, demonologyUnusedSettings } from './warlock/demonology'
 import { SHADOW_FIXED_ROWS, SHADOW_OPTIONS, shadowRotation, shadowUnusedSettings } from './priest/shadow'
 import { hunterFixedRows, hunterOptions, hunterRotation, hunterUnusedSettings, isHunterSpec } from './hunter/rotation'
 import type { TalentRanks } from './warrior/modifiers'
@@ -97,6 +98,7 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   if (SPEC_META[spec].classId === 'mage') return mageOptions(spec)
   if (spec === 'warlock-destruction') return DESTRUCTION_OPTIONS
   if (spec === 'warlock-affliction') return AFFLICTION_OPTIONS
+  if (spec === 'warlock-demonology') return DEMONOLOGY_OPTIONS
   if (spec === 'priest-shadow') return SHADOW_OPTIONS
   // docs/classes/hunter.md §8: the three hunter specs share one list of settings.
   if (isHunterSpec(spec)) return hunterOptions(spec)
@@ -148,7 +150,7 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
   // docs/classes/mage.md "First-pass defaults" (D27).
   if (SPEC_META[spec].classId === 'mage') return 'The defaults are the common priority.'
   // docs/classes/warlock.md §6.3: the same for the warlock.
-  if (spec === 'warlock-destruction' || spec === 'warlock-affliction') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
+  if (spec === 'warlock-destruction' || spec === 'warlock-affliction' || spec === 'warlock-demonology') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
   if (spec === 'priest-shadow') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
   // docs/classes/hunter.md "First-pass defaults" (D27).
   if (isHunterSpec(spec)) return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
@@ -187,6 +189,7 @@ export const RACIAL_SETTING: Partial<Record<SpecId, string>> = {
   'mage-arcane': 'mage.arcane.racial.enabled',
   'warlock-destruction': 'warlock.destruction.racial.enabled',
   'warlock-affliction': 'warlock.affliction.racial.enabled',
+  'warlock-demonology': 'warlock.demonology.racial.enabled',
   'priest-shadow': 'priest.shadow.racial.enabled',
   'hunter-marksmanship': 'hunter.marksmanship.racial.enabled',
   'hunter-beast-mastery': 'hunter.beastMastery.racial.enabled',
@@ -218,7 +221,7 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   const out: Record<string, string> = {}
   const racial = RACIAL_SETTING[spec]
   // The warlock's racial cooldowns are its own caster versions (warlock.md §7.2): Orc and Troll.
-  const warlock = spec === 'warlock-destruction' || spec === 'warlock-affliction'
+  const warlock = SPEC_META[spec].classId === 'warlock'
   if (racial && !(warlock ? WARLOCK_RACIALS[setup.race] : RACIAL_COOLDOWNS[setup.race])) {
     out[racial] =
       setup.race === 'alliance-gnome'
@@ -236,6 +239,7 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   if (spec === 'rogue-subtlety') Object.assign(out, subtletyUnusedSettings(values))
   if (spec === 'warlock-destruction') Object.assign(out, destructionUnusedSettings(values, setup.talents ?? new Map()))
   if (spec === 'warlock-affliction') Object.assign(out, afflictionUnusedSettings(values, setup.talents ?? new Map()))
+  if (spec === 'warlock-demonology') Object.assign(out, demonologyUnusedSettings(values, setup.talents ?? new Map()))
   // docs/classes/priest.md §6: Starshards and Dark Sacrifice are the Night Elf's and the Undead's.
   if (spec === 'priest-shadow') Object.assign(out, shadowUnusedSettings(setup.race, setup.raceName))
   if (spec === 'druid-balance') Object.assign(out, balanceUnusedSettings(values, setup.talents ?? new Map()))
@@ -266,6 +270,7 @@ export function maintainedBuffs(spec: SpecId, values: Record<string, RotationVal
   // docs/classes/warlock.md §6: its own Curse of the Elements.
   if (spec === 'warlock-destruction') return destructionMaintainedBuffs(values)
   if (spec === 'warlock-affliction') return afflictionMaintainedBuffs(values)
+  if (spec === 'warlock-demonology') return demonologyMaintainedBuffs(values)
   return []
 }
 
@@ -310,6 +315,8 @@ export function classRotation(
   // docs/classes/warlock.md §6.
   if (spec === 'warlock-destruction') return destructionRotation(values, talents, auraIndex, context)
   if (spec === 'warlock-affliction') return afflictionRotation(values, talents, auraIndex, context)
+  // docs/classes/warlock.md §11.5.
+  if (spec === 'warlock-demonology') return demonologyRotation(values, talents, auraIndex, context)
   // docs/classes/priest.md §6.
   if (spec === 'priest-shadow') return shadowRotation(values, talents, context)
   // docs/classes/hunter.md §7.

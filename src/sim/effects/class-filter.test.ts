@@ -43,7 +43,7 @@ describe('class-only catalogue entries', () => {
     expect([CASTER_CLASSES, CASTER_SPECS]).toEqual([
       // The druid isn't a caster class: its Feral specs aren't casters (docs/classes/druid.md §11.6).
       ['mage', 'warlock', 'priest'],
-      ['druid-balance', 'shaman-elemental', 'mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction', 'priest-shadow'],
+      ['druid-balance', 'shaman-elemental', 'mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction', 'warlock-demonology', 'priest-shadow'],
     ])
     const caster = ['moonkinAura', 'powerInfusion', 'curseOfTheElements']
     // And the Elixir of Shadow Power, a caster's by kind and the warlock's and the priest's by class.

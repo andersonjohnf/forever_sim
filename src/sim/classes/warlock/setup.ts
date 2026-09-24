@@ -38,8 +38,12 @@ export function warlockAssumptions(plan: Plan): AssumptionId[] {
   const spells = plan.spells ?? []
   if (spells.some((s) => (s.dotTicks ?? 0) > 0)) ids.push(plan.profile.combat.periodicCrits ? 'casterDotCrits' : 'casterDots')
   if (has('lifeTap')) ids.push('lifeTap')
-  if (has('demonicSacrifice')) ids.push('demonicSacrifice')
-  else ids.push('warlockNoPet')
+  // docs/classes/warlock.md §11.7: Demonology's demon replaces the "no pet" ones.
+  if (plan.pet) ids.push('demonOut', 'demonStats', 'demonTable', ...(plan.pet.power ? (['demonMana'] as const) : []))
+  else if (has('demonicSacrifice')) ids.push('demonicSacrifice')
+  else if (plan.spec !== 'warlock-demonology') ids.push('warlockNoPet')
+  if (has('masterDemonologist')) ids.push('masterDemonologist')
+  if (has('soulFire')) ids.push('decimation')
   if (has('curseOfTheElements')) ids.push('curseOfTheElementsOwn')
   if (has('conflagrate')) ids.push('conflagrate')
   if (has('incinerate')) ids.push('incinerate')

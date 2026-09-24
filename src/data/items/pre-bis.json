@@ -337,6 +337,16 @@
             "url": "https://classic.wowhead.com/guides/wow-classic-warlock-dps-pre-raid-best-in-slot-gear"
           }
         },
+        "warlock-demonology": {
+          "name": "Demonology Warlock",
+          "note": "The same guide's one list for every warlock, as for Destruction (see its note).",
+          "source": {
+            "archivedUrl": "https://web.archive.org/web/20210518023319/https://classic.wowhead.com/guides/wow-classic-warlock-dps-pre-raid-best-in-slot-gear",
+            "snapshot": "2021-05-18",
+            "title": "Classic Warlock Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic 1.13",
+            "url": "https://classic.wowhead.com/guides/wow-classic-warlock-dps-pre-raid-best-in-slot-gear"
+          }
+        },
         "warlock-destruction": {
           "name": "Destruction Warlock",
           "note": "The guide has one table ('Warlock Pre-Raid Best in Slot Gear (BiS) - WoW Classic Phase 6') for every warlock. It does not split Affliction and Destruction. Its 15 'of Shadow Wrath' random-suffix items are left out, and the items below them move up. Their shadow damage comes only from the random suffix (RandomSelect), which the item pool doesn't model, so the base items have no spell stats. They are: Eternal Crown and Green Lens (head), Eternal Spaulders, Archivist Cape and Master's Cloak, Master's Vest, Tearfall Bracers, Flameweave Cuffs and Master's Bracers, Atal'ai Gloves, Master's Boots, Bloodstrike Dagger (one-hand), Drakestone (off-hand), Solstice Staff and Lunar Wand. That is why back and wrist keep fewer than three items. The Horde Dreadweave PvP pieces (Rank 7-10) get their Alliance counterpart at the same rank. The guide already lists both factions' battleground belts and Blackrock Depths rings.",
@@ -3337,6 +3347,11 @@
         {
           "rank": 3,
           "slot": "head",
+          "spec": "warlock-demonology"
+        },
+        {
+          "rank": 3,
+          "slot": "head",
           "spec": "priest-shadow"
         }
       ],
@@ -4191,6 +4206,11 @@
           "rank": 1,
           "slot": "head",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -4998,6 +5018,11 @@
           "rank": 2,
           "slot": "head",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -5520,6 +5545,11 @@
           "rank": 2,
           "slot": "head",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -7425,6 +7455,11 @@
           "rank": 1,
           "slot": "neck",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "neck",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -8495,6 +8530,11 @@
           "spec": "warlock-affliction"
         },
         {
+          "rank": 3,
+          "slot": "neck",
+          "spec": "warlock-demonology"
+        },
+        {
           "rank": 1,
           "slot": "neck",
           "spec": "priest-shadow"
@@ -8838,6 +8878,11 @@
           "rank": 2,
           "slot": "neck",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "neck",
+          "spec": "warlock-demonology"
         },
         {
           "rank": 3,
@@ -11610,6 +11655,11 @@
           "spec": "warlock-affliction"
         },
         {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "warlock-demonology"
+        },
+        {
           "rank": 1,
           "slot": "shoulder",
           "spec": "priest-shadow"
@@ -13768,6 +13818,11 @@
           "spec": "warlock-affliction"
         },
         {
+          "rank": 3,
+          "slot": "shoulder",
+          "spec": "warlock-demonology"
+        },
+        {
           "rank": 2,
           "slot": "shoulder",
           "spec": "priest-shadow"
@@ -15785,6 +15840,11 @@
           "rank": 1,
           "slot": "shoulder",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -16302,6 +16362,11 @@
           "rank": 1,
           "slot": "shoulder",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -19179,6 +19244,11 @@
           "spec": "warlock-affliction"
         },
         {
+          "rank": 1,
+          "slot": "back",
+          "spec": "warlock-demonology"
+        },
+        {
           "rank": 2,
           "slot": "back",
           "spec": "priest-shadow"
@@ -19507,6 +19577,11 @@
           "rank": 2,
           "slot": "back",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "back",
+          "spec": "warlock-demonology"
         },
         {
           "rank": 3,
@@ -22293,6 +22368,11 @@
           "rank": 3,
           "slot": "chest",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 3,
+          "slot": "chest",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -22347,6 +22427,11 @@
           "rank": 2,
           "slot": "chest",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "chest",
+          "spec": "warlock-demonology"
         },
         {
           "rank": 2,
@@ -22544,6 +22629,11 @@
           "rank": 1,
           "slot": "chest",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "chest",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -30666,6 +30756,11 @@
           "spec": "warlock-affliction"
         },
         {
+          "rank": 1,
+          "slot": "wrist",
+          "spec": "warlock-demonology"
+        },
+        {
           "rank": 4,
           "slot": "wrist",
           "spec": "priest-shadow"
@@ -34447,6 +34542,11 @@
           "spec": "warlock-affliction"
         },
         {
+          "rank": 3,
+          "slot": "hands",
+          "spec": "warlock-demonology"
+        },
+        {
           "rank": 2,
           "slot": "hands",
           "spec": "priest-shadow"
@@ -37079,6 +37179,11 @@
           "spec": "warlock-affliction"
         },
         {
+          "rank": 2,
+          "slot": "hands",
+          "spec": "warlock-demonology"
+        },
+        {
           "rank": 1,
           "slot": "hands",
           "spec": "priest-shadow"
@@ -38630,6 +38735,11 @@
           "rank": 1,
           "slot": "hands",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "hands",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -42048,6 +42158,11 @@
         {
           "rank": 1,
           "slot": "waist",
+          "spec": "warlock-demonology"
+        },
+        {
+          "rank": 1,
+          "slot": "waist",
           "spec": "priest-shadow"
         }
       ],
@@ -42728,6 +42843,11 @@
           "rank": 3,
           "slot": "waist",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "warlock-demonology"
         },
         {
           "rank": 2,
@@ -45824,6 +45944,11 @@
           "rank": 2,
           "slot": "waist",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -45969,6 +46094,11 @@
           "rank": 2,
           "slot": "waist",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -50057,6 +50187,11 @@
           "spec": "warlock-affliction"
         },
         {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "warlock-demonology"
+        },
+        {
           "rank": 2,
           "slot": "legs",
           "spec": "priest-shadow"
@@ -50345,6 +50480,11 @@
           "rank": 3,
           "slot": "legs",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 3,
+          "slot": "legs",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -55209,6 +55349,11 @@
           "rank": 2,
           "slot": "legs",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -55659,6 +55804,11 @@
           "rank": 2,
           "slot": "legs",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -57456,6 +57606,11 @@
           "rank": 2,
           "slot": "feet",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "feet",
+          "spec": "warlock-demonology"
         },
         {
           "rank": 3,
@@ -60092,6 +60247,11 @@
           "rank": 3,
           "slot": "feet",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 3,
+          "slot": "feet",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -60616,6 +60776,11 @@
           "rank": 1,
           "slot": "feet",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "warlock-demonology"
         },
         {
           "rank": 2,
@@ -65657,6 +65822,11 @@
           "spec": "warlock-affliction"
         },
         {
+          "rank": 3,
+          "slot": "finger",
+          "spec": "warlock-demonology"
+        },
+        {
           "rank": 4,
           "slot": "finger",
           "spec": "priest-shadow"
@@ -65773,6 +65943,11 @@
           "rank": 4,
           "slot": "finger",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -65985,6 +66160,11 @@
           "spec": "warlock-affliction"
         },
         {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "warlock-demonology"
+        },
+        {
           "rank": 2,
           "slot": "finger",
           "spec": "priest-shadow"
@@ -66100,6 +66280,11 @@
           "rank": 1,
           "slot": "finger",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "warlock-demonology"
         },
         {
           "rank": 2,
@@ -66259,6 +66444,11 @@
           "rank": 2,
           "slot": "finger",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "warlock-demonology"
         },
         {
           "rank": 3,
@@ -70444,6 +70634,11 @@
           "spec": "warlock-affliction"
         },
         {
+          "rank": 4,
+          "slot": "trinket",
+          "spec": "warlock-demonology"
+        },
+        {
           "rank": 3,
           "slot": "trinket",
           "spec": "priest-shadow"
@@ -70539,6 +70734,11 @@
           "rank": 1,
           "slot": "trinket",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "warlock-demonology"
         },
         {
           "rank": 1,
@@ -71052,6 +71252,11 @@
           "rank": 2,
           "slot": "trinket",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "trinket",
+          "spec": "warlock-demonology"
         },
         {
           "rank": 2,
@@ -72005,6 +72210,11 @@
           "rank": 3,
           "slot": "trinket",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 3,
+          "slot": "trinket",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -73563,6 +73773,11 @@
           "rank": 2,
           "slot": "twoHand",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "twoHand",
+          "spec": "warlock-demonology"
         },
         {
           "rank": 2,
@@ -75693,6 +75908,11 @@
           "rank": 1,
           "slot": "twoHand",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "warlock-demonology"
         },
         {
           "rank": 1,
@@ -78763,6 +78983,11 @@
           "spec": "warlock-affliction"
         },
         {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "warlock-demonology"
+        },
+        {
           "rank": 2,
           "slot": "mainHand",
           "spec": "priest-shadow"
@@ -81088,6 +81313,11 @@
           "spec": "warlock-affliction"
         },
         {
+          "rank": 2,
+          "slot": "mainHand",
+          "spec": "warlock-demonology"
+        },
+        {
           "rank": 3,
           "slot": "mainHand",
           "spec": "priest-shadow"
@@ -81615,6 +81845,11 @@
           "rank": 3,
           "slot": "mainHand",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 3,
+          "slot": "mainHand",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],
@@ -84629,6 +84864,11 @@
           "spec": "warlock-affliction"
         },
         {
+          "rank": 3,
+          "slot": "offHand",
+          "spec": "warlock-demonology"
+        },
+        {
           "rank": 2,
           "slot": "offHand",
           "spec": "priest-shadow"
@@ -85273,6 +85513,11 @@
           "spec": "warlock-affliction"
         },
         {
+          "rank": 2,
+          "slot": "offHand",
+          "spec": "warlock-demonology"
+        },
+        {
           "rank": 4,
           "slot": "offHand",
           "spec": "priest-shadow"
@@ -85450,6 +85695,11 @@
           "rank": 1,
           "slot": "offHand",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "offHand",
+          "spec": "warlock-demonology"
         },
         {
           "rank": 3,
@@ -86372,6 +86622,11 @@
         {
           "rank": 1,
           "slot": "ranged",
+          "spec": "warlock-demonology"
+        },
+        {
+          "rank": 1,
+          "slot": "ranged",
           "spec": "priest-shadow"
         }
       ],
@@ -86495,6 +86750,11 @@
           "rank": 2,
           "slot": "ranged",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "ranged",
+          "spec": "warlock-demonology"
         },
         {
           "rank": 2,
@@ -87955,6 +88215,11 @@
           "rank": 3,
           "slot": "ranged",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 3,
+          "slot": "ranged",
+          "spec": "warlock-demonology"
         }
       ],
       "procs": [],

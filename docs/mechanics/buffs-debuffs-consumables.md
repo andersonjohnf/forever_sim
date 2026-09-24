@@ -1054,7 +1054,11 @@ sets `caster` (the mage's three since K2 and the warlock's two since K3,
   Squid and Flask of Natural Aggression give all crit (aura 290) in Forever, spell crit included, so
   a caster sees them. The debuffs on the boss's swings (Demoralizing Shout and Roar, Thunder Clap)
   aren't marked: they're a tank's, and every DPS spec, a caster too, sees them with the note that
-  they change nothing for it ([ux.md](../ux.md) "Buffs").
+  they change nothing for it ([ux.md](../ux.md) "Buffs"). **A caster whose pet swings**
+  (`SpecMeta.petMelee`: the Demonology warlock, whose Succubus or Felhunter attacks, H3) keeps the
+  boss's armor entries, in its Buffs tab and presets alike: its pet's swings meet the boss's armor
+  ([ranged-and-pets §8](ranged-and-pets.md#8-how-owner-buffs-reach-the-pet),
+  [warlock §11.2](../classes/warlock.md#112-your-demon)).
 - **The casters'** (`forSpecs: 'caster'`): the caster core's ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)),
   Moonkin Aura, Power Infusion and Curse of the Elements; and Elixir of Shadow Power, which is the
   warlock's and the priest's by class too (`forClasses`).

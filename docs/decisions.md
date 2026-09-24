@@ -502,6 +502,10 @@ Top Gear and the retail optimizers do:
   effective health of the class's survival preset, and the player can change the share.
   Avoidance and block aren't in it: they lower average damage but don't survive a spike.
   Every result shows its health, effective health and damage taken.
+- **A tank's damage taken is capped too** (user decision): at most 10% more damage per second than
+  the class's survival preset, by default. The first talent searches traded avoidance (Deflection,
+  Anticipation) for rage and threat, which the EHP floor allows since avoidance isn't in it. Both
+  limits are settings in the app's optimizer screen (O3).
 - **What stays as it was.** The model: what the sim can't measure (damage taken, a talent's
   utility) is a constraint or a tie-break, never a guess. Every value that affects the result
   has a default (D29), and the optimizer is only as right as those values, so the tanks' threat

@@ -53,6 +53,7 @@ export {
   storedAplOrder,
 } from './classes/apl'
 // The boss → player table's constants, for the results to explain it (docs/mechanics/combat-tables.md#8-boss--player-tanks).
+export { WORKER_HANG_MESSAGE } from './run/pool'
 export { CRUSH_MIN_LEVEL_GAP, DEFENSE_PER_POINT, mobSkill, PLAYER_LEVEL } from './core/attack-table'
 
 /**

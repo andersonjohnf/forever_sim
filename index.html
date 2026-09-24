@@ -2,6 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Content-Security-Policy (docs/architecture.md, "Content-Security-Policy"): scripts, the sim worker, fonts and data only from this site; game icons from Wowhead's CDN; inline <style> elements, which the drawer, toasts, scroll lock and theme switch inject at runtime. `vite dev` serves the page without it (vite.config.ts). -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https://wow.zamimg.com; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- What the app is (docs/ux.md, "About & data"): "DPS and TPS" since the first tank spec, Protection, shipped; e2e/shell-a11y.spec.ts compares it with the About sheet. -->

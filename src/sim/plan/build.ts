@@ -1652,7 +1652,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   for (const id of protectionAssumptions(plan)) notes.add(id)
   // docs/classes/shaman.md#open-questions: what the shaman's procs, spells and mana rely on.
   for (const id of shamanAssumptions(plan)) notes.add(id)
-  // docs/classes/rogue.md#9-open-questions: what the rogue's Energy, abilities and poisons rely on.
+  // docs/classes/rogue.md#10-open-questions: what the rogue's Energy, abilities and poisons rely on.
   for (const id of rogueAssumptions(plan, setup.talents)) notes.add(id)
   // docs/classes/mage.md#open-questions: what the mage's spells, procs and mana rely on.
   for (const id of mageAssumptions(plan)) notes.add(id)

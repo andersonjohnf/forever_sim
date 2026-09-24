@@ -1,4 +1,4 @@
-// Talent build codes (docs/data/talents.md#build-codes): the order of a code's digits, decoding,
+// Talent build codes (docs/data/talents.md#build-codes-verified): the order of a code's digits, decoding,
 // the legality rules and the guard that keeps stored codes meaning the same build from one client
 // build to the next. The same algorithm as src/data/talents/types.ts. Pure functions over a talent
 // dataset (src/data/talents/<class>.json); scripts/scrape/talents-client.mjs runs the guard.

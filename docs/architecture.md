@@ -494,8 +494,15 @@ A spec is data plus small ability modules, never its own loop.
   (100–100,000).
 - **Workers:** a persistent pool of `navigator.hardwareConcurrency − 1` module workers (at least
   one), created on the first run and kept warm. Each run sends its plan once per worker, then
-  chunks; cancelling stops dispatch and ignores chunks still running. Where workers don't exist
-  (Node, tests), the same chunks run on the calling thread.
+  chunks; cancelling stops dispatch and ignores chunks still running. A watchdog fails the run
+  with an error when a worker that has work doesn't answer for 60 s of awake time (a chunk takes
+  well under a second on a desktop even at the longest fight), and replaces that worker; it never
+  changes a result. It counts in 1 s heartbeats while the pool has work, and a beat adds at most
+  2 s however long it's been since the last one, so a tab the phone or Energy Saver froze resumes
+  its run instead of failing it on waking; time the page is hidden doesn't count either. Any
+  future pool work (the optimizer's) must also answer within 60 s of awake time, or scale the
+  timeout. Where workers don't exist (Node, tests), the same chunks run on the calling thread,
+  where nothing can interrupt a chunk.
 
 ## Testing
 
@@ -539,3 +546,23 @@ push to `main`, so a build's time is its release's; GitHub Actions supplies the 
 `GITHUB_SHA`, and a local build reads it from git (empty when there's none). `BUILD_TIME` in the
 environment pins the time. The About sheet shows it in the viewer's own time zone
 ([ux.md](ux.md), "About & data").
+
+### Content-Security-Policy
+
+GitHub Pages sets no response headers, so the policy is a `<meta http-equiv>` in `index.html`:
+
+| Directive | Allows | Why |
+| --- | --- | --- |
+| `default-src`, `script-src`, `worker-src`, `connect-src`, `font-src` | `'self'` | The bundle, the sim worker, and the Geist and Josefin Sans fonts all ship with the build (Fontsource, no font CDN); the app fetches nothing at runtime |
+| `img-src` | `'self' https://wow.zamimg.com` | Game icons from Wowhead's CDN; the wago.tools and Decades logos are local |
+| `style-src` | `'self' 'unsafe-inline'` | The stylesheet, plus the `<style>` elements the drawer, toasts, scroll lock and theme switch add at runtime with computed values, which no hash or nonce can cover on a static host |
+| `object-src` | `'none'` | |
+| `base-uri`, `form-action` | `'self'` | |
+
+`worker-src` governs loading the worker, not what it does: a same-origin dedicated worker takes
+its own policy from its script's response headers, which Pages doesn't send, so nothing but
+`worker-src` applies to it. It fetches nothing today. A meta policy can't carry `frame-ancestors` or reporting. `vite dev` strips the tag
+(`vite.config.ts`), since React Refresh's inline preamble and the HMR websocket need what it
+forbids; `vite preview`, the e2e suite and the deploy all serve the build with it. The e2e
+fixture (`e2e/fixtures.ts`) turns any violation into a console error, which fails the test, so
+a new external resource shows up there first.

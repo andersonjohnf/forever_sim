@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { defaultConfig, normalizeConfig, type CooldownResult, type SimConfig, type SimResult, type SpecId } from '@/sim'
+import { defaultConfig, normalizeConfig, WORKER_HANG_MESSAGE, type CooldownResult, type SimConfig, type SimResult, type SpecId } from '@/sim'
 import { TALENT_EFFECTS } from '@/sim/classes/warrior/talents'
 import { BUFFS } from '@/sim/effects/buffs'
 import { ENCHANTS } from '@/sim/effects/enchants'
 import { ITEM_EFFECTS } from '@/sim/effects/items'
 import { buildPlan } from '@/sim/plan/build'
-import { breakdownRows, headlineText, isSetupError, NEEDS_DAMAGE_TAKEN, neverHit, runConfigFromKey, runError } from './run-logic'
+import { breakdownRows, carriesItsOwnAdvice, headlineText, isSetupError, NEEDS_DAMAGE_TAKEN, neverHit, runConfigFromKey, runError } from './run-logic'
 
 const config = (spec: SpecId, change: (c: SimConfig) => SimConfig = (c) => c) => normalizeConfig(change(defaultConfig(spec))).config
 
@@ -22,6 +22,14 @@ describe('isSetupError', () => {
     expect(isSetupError('A simulation worker stopped unexpectedly.')).toBe(false)
     expect(isSetupError('The worker has no plan for this chunk.')).toBe(false)
     expect(isSetupError("Cannot read properties of undefined (reading 'x')")).toBe(false)
+  })
+})
+
+describe('carriesItsOwnAdvice', () => {
+  it('skips the retry advice for setup refusals and a hung worker, which already say what to do', () => {
+    expect(carriesItsOwnAdvice(WORKER_HANG_MESSAGE)).toBe(true)
+    expect(carriesItsOwnAdvice('Paladin simulation isn’t available yet.')).toBe(true)
+    expect(carriesItsOwnAdvice('A simulation worker stopped unexpectedly.')).toBe(false)
   })
 })
 

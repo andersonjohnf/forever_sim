@@ -67,7 +67,7 @@ const SUMMARY_STATS: [keyof Stats, string, '%' | ''][] = [
   ['mp5', 'MP5', ''],
 ]
 
-/** Rating → percent at level 60, from the Forever tooltips (docs/data/items.md#forevers-ratings). */
+/** Rating → percent at level 60, from the Forever tooltips (docs/data/items.md#forevers-ratings-f-with-open-questions). */
 const RATING_PER_PCT: Partial<Record<keyof Stats, number>> = Object.fromEntries(
   Object.entries(itemData.meta.ratingConversions)
     .filter(([key]) => key !== 'defenseRating')

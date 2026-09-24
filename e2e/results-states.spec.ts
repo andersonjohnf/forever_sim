@@ -107,6 +107,22 @@ test.describe('run states', () => {
     await expect(dps).toHaveText(arms)
   })
 
+  test('a run whose worker stops answering ends after a minute, and says to run it again', async ({ page }) => {
+    // A worker that never answers, and a clock the test moves (docs/architecture.md#iterations-determinism-and-workers).
+    await page.route('**/assets/sim.worker*.js', (route) => route.fulfill({ contentType: 'text/javascript', body: 'self.onmessage = () => {}' }))
+    await page.clock.install()
+    await page.goto('./')
+    await results(page).getByRole('button', { name: 'Simulate' }).click()
+    await expect(results(page).getByRole('button', { name: 'Cancel' })).toBeVisible()
+    await page.clock.runFor(59_000)
+    await expect(results(page).getByRole('alert')).toHaveCount(0)
+    await page.clock.runFor(2_000)
+    const alert = results(page).getByRole('alert')
+    await expect(alert).toContainText('The simulation failed')
+    await expect(alert).toContainText('The simulation stopped responding for a minute, so it was stopped. Run it again.')
+    await expect(alert).not.toContainText('reset this spec')
+  })
+
   test('says how many fights of what length, and how long the run took', async ({ page }) => {
     await page.goto('./')
     const panel = results(page)

@@ -318,18 +318,33 @@ It corroborates the client data above but isn't a guild measurement.
 | --- | --- | --- |
 | Spell (r7) | 20423, trained at 58; ranks from level 10 | [F] [F 20423][f20423] |
 | Cost | 200 mana | [F] |
-| Per landed white hit | **+35 Holy** (proc 20418), **0.1 × SP** | [F] [client] (SpellEffect, 1.60.1.69913; [20418][f20418]) |
+| Per landed white hit | **+35 Holy** (proc 20418), **plus the seal value** by Seal of Righteousness's rule (below): `0.85 × 16.91 × speed` with a one-hander, `1.2 × 16.91 × speed` with a two-hander, and **0.1 × SP**. The default 1.5 s axe: 35 + 21.56 | 35 and 0.1: [F] [client] (SpellEffect, 1.60.1.69913; [20418][f20418]); the seal value's use [?] ([open question 10](#open-questions), guild test T1) |
 | Absorb | With a shield equipped, each hit grants an absorb of **50% of the Holy damage dealt** | [F] (effect 1 = 50). Stacking or refresh rules [?]: the sim keeps **one** absorb, which each proc replaces and the next hit that costs you health uses up, lasting at most the seal's 30 s. A boss's hit is thousands, so it always takes all of it, which is what [Improved Seal of Fury](#protection-tree)'s mana needs. The absorb itself isn't taken off that hit (about 20 damage, under 1% of damage taken) ([open question 10](#open-questions)) |
 | Hit table | Proc 20418: melee class, No Active Defense + Always Hit, like SoR | [F] [client] (SpellMisc, SpellCategories, 1.60.1.69913) |
 | Triggers | **Nothing**, like SoR's proc: no Windfury, Crusader, Hand of Justice, Vengeance or Vindication from it [?] | 20418's Attr3 is `0x40000` only, without NOT_A_PROC [F] [client] (SpellMisc, 1.60.1.69913); the server's use of it [?] ([open question 22](#open-questions)) |
 | Judgement of Fury (r7) | 20414: **146–160 + 7.38 = 153.4–167.4 at 60**, **0.45 × SP**, Holy, melee class, No Active Defense, no Always Hit (can miss; then crit on a landed one, two rolls [?]). **Taunts for 4 s** | [F] [client] (SpellEffect, SpellMisc, 1.60.1.69913; [20414][f20414]); taunt: tooltip |
 | Improved Seals | applies to the proc and the judgement | [F] [client] (SpellEffect spell mask includes 20418 and 20414, 1.60.1.69913) |
 
-The SoF aura carries the same weapon-speed "seal value" dummy as SoR (1607 + 42/level), and
-Judgement of Fury has a scripted dummy of 1607 + 42.3/level at a 0.18 coefficient [F] [client]
-(SpellEffect, 1.60.1.69913; [20423][f20423], [20414][f20414]). What the server does with them
-is unknown, and the tooltip prints a flat 35, so the sim uses the flat value and ignores the
-dummies [?].
+**The seal value** [?]. The SoF aura carries the same weapon-speed "seal value" dummy as SoR,
+1607 + 42/level from 58, so **16.91** per second of weapon speed at 60 [F] [client] (SpellEffect,
+1.60.1.69913; [20423][f20423]). SoR's is its whole damage (1786 + 47/level, 18.80, by the one- and
+two-hander factors 0.85 and 1.2, [Seal of Righteousness](#seal-of-righteousness-sor)), and Forever
+gives SoR's proc 25713 the same base 35 as SoF's 20418. So the sim reads SoF's the same way, on top
+of the tooltip's flat 35: `35 + 0.85 × 16.91 × speed` a landed swing with a one-hander (with the default
+1.5 s Flurry Axe, 56.56), `35 + 1.2 × 16.91 × speed` with a two-hander [?]. That's
+[D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24):
+the aura carries the value, so it gets a default from its closest analog, and of the two readings
+(the value on top of the 35, or in its place as SoR's formula has it) the one that fits the guild's
+benchmark. The tooltip's flat 35 is the other reading, and the one guild test T1 would confirm
+([open question 10](#open-questions)). It's +27.2 TPS in the default setup (T2's measurement).
+Per second it hardly depends on the weapon's speed: a slower weapon hits for more, less often.
+
+Judgement of Fury has a scripted dummy too, 1607 + 42.3/level at a 0.18 coefficient [F] [client]
+(SpellEffect, 1.60.1.69913; [20414][f20414]). It's the analog of Judgement of Righteousness's, whose
+Classic Era client has the identical structure (a dummy of the seal value beside its damage effect),
+and whose Classic Era damage is only its own 170–186 + 0.5 × SP [C]: an allowed source that gives the
+dummy no effect, so the sim gives Judgement of Fury's none either (D29's one exception). As flat threat
+it would add about 454 TPS, which no tank measurement supports. Guild test T5 checks it.
 
 ### Utility seals (not in default rotations)
 
@@ -1164,8 +1179,9 @@ default setup.
 12. **Protection Holy Shield, SP 300**: 221 + 0.08 × 300 = **245** damage per block; threat
     245 × 1.9 × 1.2 = **558.6** (additive-modifier alternative: 245 × 2.1 = 514.5). After
     4 blocks the buff ends even if 10 s haven't passed.
-13. **Seal of Fury, SP 300**: 35 + 30 = **65** Holy per landed white hit; threat 65 × 1.9 =
-    **123.5**; absorb 32.5 with a shield. Judgement of Fury at 60: average 160.38 +
+13. **Seal of Fury, SP 300, a 2.7 s one-hander**: 35 + 0.85 × 16.91 × 2.7 (38.81) + 30 = **103.81**
+    Holy per landed white hit; threat × 1.9 = **197.24**; absorb 51.90 with a shield. With the default
+    1.5 s axe and no SP: 35 + 21.56 = **56.56**. Judgement of Fury at 60: average 160.38 +
     0.45 × 300 = **295.38** (the default Prot build has no Improved Seals; with it,
     ×1.15 = 339.69).
 14. **Holy Strike threat (Prot)**: a 300-damage Holy Strike → 300 × 1.9 × 1.25 = **712.5**.
@@ -1237,7 +1253,14 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
    tanking log. The sim swings each at once, so in combat no stack builds (one given during Hammer
    of Wrath's cast swings when the cast ends); without Reckoning the default Protection setup makes
    2.8% less TPS.
-10. **Seal of Fury**: flat 35 or weapon-speed scaled (the aura holds an SoR-style value)?
+10. **Seal of Fury**: flat 35 or weapon-speed scaled (the aura holds an SoR-style value)? The sim
+    adds the seal value by SoR's rule to the 35 [?] (`35 + 0.85 × 16.91 × speed` one-handed,
+    [Seal of Fury](#seal-of-fury-sof-new-the-protection-seal)): +27.2 TPS in the default setup
+    against the flat 35. *Test (guild test T1):* 200+ auto hits with Seal of Fury and no spell damage
+    with a 1.5 s one-hander, then a 2.6–2.8 s one: about 35 both times means flat; more on the slow
+    weapon, the seal value applies (by how much says whether it's on top of the 35 or in its place).
+    Seal of Righteousness's proc 25713 carries the same base 35 in Forever, which its Classic formula
+    leaves out: T1 on Seal of Righteousness settles that too.
     Absorb stacking? Improved Seal of Fury's actual mana return ("restore 0 Mana")? The client's
     rank text reads 60 (0 + 1 a level) [F]. The sim keeps one absorb, which each proc replaces and
     the next hit that costs you health uses up (at most the seal's 30 s), restoring 87 mana against

@@ -406,7 +406,7 @@ const REGISTRY = {
     docRef: `${PAL}#seal-of-righteousness-sor`,
   },
   sealOfFury: {
-    text: 'Seal of Fury deals a flat 35 Holy plus 0.1 × spell damage on each landed auto attack, as its tooltip reads; untested.',
+    text: 'Seal of Fury deals its tooltip’s 35 Holy plus its seal value, 0.85 × 16.91 × your weapon’s speed with a one-hander (1.2 × with a two-hander), as Seal of Righteousness’s value works, plus 0.1 × spell damage on each landed auto attack; the tooltip alone would be 35. Untested.',
     docRef: `${PAL}#seal-of-fury-sof-new-the-protection-seal`,
   },
   meleeSpellProcs: {

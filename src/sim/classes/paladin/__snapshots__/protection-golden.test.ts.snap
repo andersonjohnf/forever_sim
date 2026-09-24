@@ -137,8 +137,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "sealOfFuryProc",
-      7605176.699996798,
-      14738832.444607046,
+      10131671.475750417,
+      19635179.32000217,
       110609,
       104035,
       6574,
@@ -208,9 +208,9 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
   ],
   "dps": {
-    "ci95": 0.9522820900376505,
-    "mean": 294.5095442824995,
-    "stdev": 15.364467935420752,
+    "ci95": 0.991853933559549,
+    "mean": 308.57092507459,
+    "stdev": 16.00293454872612,
   },
   "dtps": {
     "ci95": 3.5534327540276114,
@@ -242,9 +242,9 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     "spentPerFight": 18176.86,
   },
   "tps": {
-    "ci95": 1.8748347358836683,
-    "mean": 552.3155941335599,
-    "stdev": 30.249270132297408,
+    "ci95": 1.9322275799838375,
+    "mean": 579.5665501086348,
+    "stdev": 31.17526729440385,
   },
 }
 `;

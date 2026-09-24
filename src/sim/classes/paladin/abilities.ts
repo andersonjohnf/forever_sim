@@ -21,7 +21,7 @@ import {
   JUDGEMENT_OF_FURY,
   JUDGEMENT_OF_RIGHTEOUSNESS,
   SEAL_OF_COMMAND_PROC,
-  SEAL_OF_FURY_PROC,
+  sealOfFuryProc,
   sealOfRighteousnessProc,
 } from './spells'
 
@@ -137,7 +137,7 @@ export const SEAL_BASE_COST: Readonly<Record<string, number>> = Object.fromEntri
  * after the swing's own procs (paladin.md#implementation-notes). Seal of Command: 7 PPM from the
  * base weapon speed [C] (OQ 1), a 1 s internal cooldown [F]. Seal of Righteousness and Seal of
  * Fury: every landed swing. `mainHand` is the main-hand weapon's base speed and whether it's a
- * two-hander (Seal of Righteousness scales with them).
+ * two-hander (Seal of Righteousness and Seal of Fury's seal value scale with them).
  */
 export function sealProcs(
   mainHand: { speedSec: number; twoHand: boolean } | null,
@@ -155,7 +155,7 @@ export function sealProcs(
     requiresAura: seal.id,
     docRef: `${DOC}#seals`,
   })
-  const procs = [proc(SEAL_OF_COMMAND, SEAL_OF_COMMAND_PROC, { ppm: 7 }, 1000), proc(SEAL_OF_FURY, SEAL_OF_FURY_PROC, { pct: 100 })]
+  const procs = [proc(SEAL_OF_COMMAND, SEAL_OF_COMMAND_PROC, { ppm: 7 }, 1000), proc(SEAL_OF_FURY, sealOfFuryProc(mainHand), { pct: 100 })]
   if (mainHand) procs.push(proc(SEAL_OF_RIGHTEOUSNESS, sealOfRighteousnessProc(mainHand.speedSec, mainHand.twoHand), { pct: 100 }))
   return procs
 }

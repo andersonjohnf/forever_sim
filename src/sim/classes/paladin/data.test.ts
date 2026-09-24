@@ -37,7 +37,9 @@ import {
   JUDGEMENT_OF_FURY,
   JUDGEMENT_OF_RIGHTEOUSNESS,
   SEAL_OF_COMMAND_PROC,
-  SEAL_OF_FURY_PROC,
+  SEAL_OF_FURY_BASE,
+  SEAL_OF_FURY_VALUE,
+  sealOfFuryProc,
   SEAL_OF_RIGHTEOUSNESS_VALUE,
   sealOfRighteousnessProc,
   spread,
@@ -102,10 +104,18 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
     expect(JUDGEMENT_OF_RIGHTEOUSNESS.max).toBeCloseTo(186.2, 5)
   })
 
-  it('Seal of Righteousness and Seal of Fury procs: Always Hit, No Active Defense, 0.1; the seal value 1786 + 47/level from 58', () => {
+  it('Seal of Righteousness and Seal of Fury procs: Always Hit, No Active Defense, 0.1; the seal values 1786 + 47/level and 1607 + 42/level from 58', () => {
     matches(sealOfRighteousnessProc(3.5, true), 25713)
-    matches(SEAL_OF_FURY_PROC, 20418)
-    expect(effect(20418, 0).effectBasePointsF).toBe(SEAL_OF_FURY_PROC.min)
+    matches(sealOfFuryProc(null), 20418)
+    // Seal of Fury: the proc's flat 35, plus the aura's seal value by Seal of Righteousness's rule [?] (OQ 10).
+    expect(effect(20418, 0).effectBasePointsF).toBe(SEAL_OF_FURY_BASE)
+    expect(sealOfFuryProc(null).min).toBe(SEAL_OF_FURY_BASE)
+    const f = effect(20423, 0)
+    expect(SEAL_OF_FURY_VALUE).toBeCloseTo(atLevel60(f.effectBasePointsF!, f.effectRealPointsPerLevel!, 58, 64) / 100, 12)
+    expect(SEAL_OF_FURY_VALUE).toBeCloseTo(16.91, 12)
+    // The default 1.5 s axe: 35 + 0.85 × 16.91 × 1.5 = 56.56; a 3.5 s two-hander 35 + 1.2 × 16.91 × 3.5 = 106.02.
+    expect(sealOfFuryProc({ speedSec: 1.5, twoHand: false }).min).toBeCloseTo(56.56025, 9)
+    expect(sealOfFuryProc({ speedSec: 3.5, twoHand: true }).max).toBeCloseTo(106.022, 9)
     const v = effect(20293, 0)
     expect(SEAL_OF_RIGHTEOUSNESS_VALUE).toBeCloseTo(atLevel60(v.effectBasePointsF!, v.effectRealPointsPerLevel!, 58, 64) / 100, 12)
     expect(SEAL_OF_RIGHTEOUSNESS_VALUE).toBeCloseTo(18.8, 12)
@@ -216,7 +226,7 @@ describe('paladin spells against the client (paladin.md#seals, #judgement, #othe
   }
   const isSpell = (x: unknown): x is SpellDef => typeof x === 'object' && x !== null && 'triggersProcs' in x
   /** Every spell spells.ts defines. */
-  const allSpells = () => [...Object.values(SPELLS).filter(isSpell), sealOfRighteousnessProc(3.5, true)]
+  const allSpells = () => [...Object.values(SPELLS).filter(isSpell), sealOfRighteousnessProc(3.5, true), sealOfFuryProc(null)]
 
   it('which spells trigger procs: every one you cast, and a triggered one only with NOT_A_PROC (Attr3 0x200)', () => {
     const defs = allSpells()
@@ -301,7 +311,7 @@ describe('paladin talents (paladin.md#talents)', () => {
 
   it('Improved Seals covers the seals’ procs and the damage judgements, not Holy Strike or Consecration', () => {
     const t = new Map([['Improved Seals', 3]])
-    for (const def of [SEAL_OF_COMMAND_PROC, SEAL_OF_FURY_PROC, sealOfRighteousnessProc(3.5, true), JUDGEMENT_OF_COMMAND, JUDGEMENT_OF_RIGHTEOUSNESS, JUDGEMENT_OF_FURY]) {
+    for (const def of [SEAL_OF_COMMAND_PROC, sealOfFuryProc(null), sealOfRighteousnessProc(3.5, true), JUDGEMENT_OF_COMMAND, JUDGEMENT_OF_RIGHTEOUSNESS, JUDGEMENT_OF_FURY]) {
       expect(IMPROVED_SEALS.has(def.id), def.id).toBe(true)
       expect(withSpellTalents(def, t).damageMult).toBeCloseTo(1.15, 12)
     }

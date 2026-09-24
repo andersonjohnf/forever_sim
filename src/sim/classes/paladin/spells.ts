@@ -125,24 +125,39 @@ export const JUDGEMENT_OF_RIGHTEOUSNESS: SpellDef = {
   takenScale: 0.5,
 }
 
+/** Seal of Fury's proc base (20418 effect 0, paladin.md#seal-of-fury-sof-new-the-protection-seal): the tooltip's flat 35 [F]. */
+export const SEAL_OF_FURY_BASE = 35
+
+/**
+ * The seal value of Seal of Fury r7 (20423 effect 0): 1607 + 42 per level from 58, per 100 s of
+ * weapon speed, so 16.91 per second at 60 [F] data; the same structure as Seal of Righteousness's
+ * (paladin.md#seal-of-fury-sof-new-the-protection-seal).
+ */
+export const SEAL_OF_FURY_VALUE = atLevel60(1607, 42, 58, 64) / 100
+
 /**
  * Seal of Fury's proc per landed white hit (20418, paladin.md#seal-of-fury-sof-new-the-protection-seal):
- * a flat 35 Holy [?] (OQ 10: the aura also carries a seal value the sim ignores), + 0.1 × SP.
- * Melee class with No Active Defense and Always Hit, and no NOT_A_PROC, like Seal of
- * Righteousness's: it triggers no procs [?].
+ * the flat 35, plus its seal value by Seal of Righteousness's rule, `0.85 × 16.91 × speed` with a
+ * one-hander and `1.2 × …` with a two-hander [?] (OQ 10, guild test T1; D29: the aura carries the
+ * value, so it gets a default, the reading that fits the guild's benchmark), + 0.1 × SP. With the
+ * default 1.5 s axe that's 35 + 21.56. With no main hand it's the flat 35. Melee class with No Active
+ * Defense and Always Hit, and no NOT_A_PROC, like Seal of Righteousness's: it triggers no procs [?].
  */
-export const SEAL_OF_FURY_PROC: SpellDef = {
-  ...HOLY_MELEE,
-  id: 'sealOfFuryProc',
-  name: 'Seal of Fury',
-  icon: 'spell_holy_retributionaura',
-  noActiveDefense: true,
-  alwaysHit: true,
-  triggersProcs: false,
-  min: 35,
-  max: 35,
-  spCoefficient: 0.1,
-  takenScale: 0.1,
+export function sealOfFuryProc(mainHand: { speedSec: number; twoHand: boolean } | null): SpellDef {
+  const value = mainHand ? (mainHand.twoHand ? 1.2 : 0.85) * SEAL_OF_FURY_VALUE * mainHand.speedSec : 0
+  return {
+    ...HOLY_MELEE,
+    id: 'sealOfFuryProc',
+    name: 'Seal of Fury',
+    icon: 'spell_holy_retributionaura',
+    noActiveDefense: true,
+    alwaysHit: true,
+    triggersProcs: false,
+    min: SEAL_OF_FURY_BASE + value,
+    max: SEAL_OF_FURY_BASE + value,
+    spCoefficient: 0.1,
+    takenScale: 0.1,
+  }
 }
 
 /**

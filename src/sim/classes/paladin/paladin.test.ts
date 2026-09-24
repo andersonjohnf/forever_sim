@@ -341,14 +341,14 @@ describe('worked example 11: Judgement of the Crusader’s bonus (the default co
 })
 
 describe('worked example 13: Seal of Fury and Judgement of Fury (Protection)', () => {
-  it('at SP 300: 35 + 30 = 65 Holy a landed swing, 123.5 threat with Righteous Fury; JoF 295.38 on average, 339.69 with Improved Seals', () => {
+  it('at SP 300 with a 2.7 s one-hander: 35 + 0.85 × 16.91 × 2.7 + 30 = 103.81 Holy a landed swing, 197.24 threat with Righteous Fury; JoF 295.38 on average, 339.69 with Improved Seals', () => {
     const plan = examplePlan({ spec: 'paladin-protection', sp: 300, weapon: { min: 150, max: 150, speedSec: 2.7, twoHand: false } })
     expect(plan.holyThreatMult).toBeCloseTo(1.9, 12)
     const sim = new Sim(plan)
     sim.runFight(0)
     const procs = counter(sim, plan, 'sealOfFuryProc', FIELD.hits)
-    expect(counter(sim, plan, 'sealOfFuryProc', FIELD.damage) / procs).toBeCloseTo(65, 9)
-    expect(counter(sim, plan, 'sealOfFuryProc', FIELD.threat) / procs).toBeCloseTo(123.5, 9)
+    expect(counter(sim, plan, 'sealOfFuryProc', FIELD.damage) / procs).toBeCloseTo(35 + 0.85 * 16.91 * 2.7 + 30, 9)
+    expect(counter(sim, plan, 'sealOfFuryProc', FIELD.threat) / procs).toBeCloseTo((35 + 0.85 * 16.91 * 2.7 + 30) * 1.9, 9)
     expectMean(damagesOf(plan, 'judgementOfFury', 40), 160.38 + 135)
     const improved = examplePlan({ spec: 'paladin-protection', sp: 300, talents: IMPROVED_SEALS })
     expectMean(damagesOf(improved, 'judgementOfFury', 40), 339.69)

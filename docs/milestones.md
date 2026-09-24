@@ -561,6 +561,10 @@ slice is worked:
     (hunter.md OQ-H1).
   - **Blackhand's Breadth's use and Dwarven Hand Cannon's chance on hit** aren't simulated (HN13,
     about 0.6% of DPS); both are flagged in the assumptions, as other items' effects are.
+  - **The pet takes none of your hit** (H3's verification, DV1): its scaling aura (415429) has hit
+    slots, but the testers' report names only attack power and crit. Your ranged hit on it would be
+    +1.7% on Beast Mastery and Survival (hunter.md OQ-H7). Its inherited attack power also counts
+    Hunter's Mark, which in game is on the boss (under 0.1%).
 - **The Demonology warlock's first-pass gaps** (H3, [warlock.md §11.7](classes/warlock.md#117-open-questions);
   [its review](reviews/2026-09-24-demonology.md)):
   - **The demon's spells take your Shadow Vulnerability** (DM2), whose aura 270 is damage taken from

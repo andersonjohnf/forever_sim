@@ -456,7 +456,7 @@ SpellCooldowns, SpellLevels, both builds):
 | Firebolt (7, 11763), the Imp's | 44 Fire, variance 0.1136, +0.6 a level from 58: **42.70–47.70** at 60; coefficient 0.571; 115 mana; a 2 s cast, a 1 s GCD | 83–94 +1.2 a level |
 | Lash of Pain (6, 11780), the Succubus's | **50** Shadow, coefficient 0.429; 160 mana; instant, a 12 s cooldown | 99 |
 | Blood Pact (5, 11767), the Imp's party aura | +49 Stamina + 0.5 a level from 50 | 38 + 0.4 a level |
-| Soul Fire (2, 17924), yours | 431 Fire, variance 0.2247, +1.9 a level from 56: **390.17–486.03**; coefficient 1.0; 335 mana; a 6 s cast; 60 s cooldown and a Soul Shard | — |
+| Soul Fire (2, 17924), yours | 431 Fire, variance 0.2247, +1.9 a level from 56: **390.17–487.03**; coefficient 1.0; 335 mana; a 6 s cast; 60 s cooldown and a Soul Shard | — |
 
 Blood Pact is Stamina only, which no DPS result reads (buffs doc "Skipped"); the sim doesn't cast it.
 

@@ -103,7 +103,7 @@ const common = (spec: WarlockSpec, d: WarlockDefaults): { head: RotationOption[]
         help:
           spec === 'demonology'
             ? 'The demon you sacrifice before the pull, for 2 hours: the Imp gives +15% Shadow damage, the Succubus +15% Fire damage, the Voidwalker 2% of your mana every 4 s. Needs the talent. With Demonic Pact you keep its buff when you then summon a different demon.'
-            : 'The demon you sacrifice before the pull, for 2 hours: the Imp gives +15% Shadow damage, the Succubus +15% Fire damage, the Voidwalker 2% of your mana every 4 s. Needs the talent. Your pet itself isn’t simulated yet.',
+            : 'The demon you sacrifice before the pull, for 2 hours: the Imp gives +15% Shadow damage, the Succubus +15% Fire damage, the Voidwalker 2% of your mana every 4 s. Needs the talent. This spec fights with no demon out; to keep one, see Demonology.',
         ...(spec === 'demonology' ? { group: 'Before the pull' as const } : {}),
         choices: [
           { value: 'imp', label: 'Imp' },

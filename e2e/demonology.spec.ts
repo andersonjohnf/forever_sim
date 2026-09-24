@@ -55,7 +55,7 @@ async function expectDemonologyResult(results: Locator) {
   await expect(results.getByRole('heading', { name: 'Warlock mechanics' })).toBeVisible()
   await expect(results.getByText(/^Your demon’s stats are placeholders/)).toBeVisible()
   await expect(results.getByText(/^Your demon is out from the pull and never dies/)).toBeVisible()
-  await expect(results).not.toContainText('Your demon isn’t simulated yet')
+  await expect(results).not.toContainText('You fight with no demon')
   await expect(results).not.toContainText(OTHER_CLASS)
 }
 

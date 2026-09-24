@@ -802,11 +802,11 @@ const REGISTRY = {
     docRef: `${LOCK}#33-curses-life-tap-and-buffs`,
   },
   demonicSacrifice: {
-    text: 'Demonic Sacrifice’s buff is up from before the pull, with no pet: sacrificing it is the only use the sim makes of a demon until the pet core arrives.',
+    text: 'Demonic Sacrifice’s buff is up from before the pull, and you keep no demon out, as Classic Era’s raid warlocks played.',
     docRef: `${LOCK}#34-demonic-sacrifice`,
   },
   warlockNoPet: {
-    text: 'Your demon isn’t simulated yet, so neither its damage nor the talents that need it (Soul Link, Master Demonologist, Demonic Knowledge).',
+    text: 'You fight with no demon, out or sacrificed: neither its damage nor the talents that need one out (Soul Link, Master Demonologist, Demonic Knowledge) count. Demonology keeps one out.',
     docRef: `${LOCK}#34-demonic-sacrifice`,
   },
   curseOfTheElementsOwn: {

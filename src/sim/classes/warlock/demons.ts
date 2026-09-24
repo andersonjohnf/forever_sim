@@ -246,7 +246,7 @@ export const PREPULL_DEMON_MS = -2000
 // --- Soul Fire and Decimation (warlock.md §11.3) -----------------------------------------------------
 
 /**
- * Soul Fire r2 (17924): 431 Fire, variance 0.22474748, +1.9 a level from 56, so 390.17–486.03 at 60,
+ * Soul Fire r2 (17924): 431 Fire, variance 0.22474748, +1.9 a level from 56, so 390.17–487.03 at 60,
  * coefficient 1.0; 335 mana, a 6 s cast, a 60 s cooldown (category 631) and a Soul Shard [F] [client]
  * (SpellEffect, SpellPower, SpellCooldowns, SpellLevels, 1.60.1.69913).
  */

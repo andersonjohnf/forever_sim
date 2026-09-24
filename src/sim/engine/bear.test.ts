@@ -651,9 +651,11 @@ describe('Balanced and Max TPS in the engine (druid.md §6.3 "Balanced", "Max TP
     expect(balanced.dps.mean / duties.dps.mean).toBeLessThan(1.05)
     expect(balanced.tank!.dtps.mean / duties.tank!.dtps.mean).toBeGreaterThan(1)
     expect(balanced.abilities.find((a) => a.id === 'demoralizingRoar')).toBeUndefined()
-    // Max TPS plays the same fights as Balanced in the default setup: the roar is the only duty
-    // that costs threat, and neither search moved anything else (§6.3).
-    expect(max.tps!.mean).toBe(balanced.tps!.mean)
-    expect(max.dps.mean).toBe(balanced.dps.mean)
+    // Max TPS drops the roar as Balanced does, and Mauls from 14 rather than 20, tuned on TPS alone
+    // (§6.3 "Max TPS", T5): about 0.2% more TPS for 0.2% less DPS.
+    expect(max.tps!.mean / balanced.tps!.mean).toBeGreaterThan(1)
+    expect(max.tps!.mean / balanced.tps!.mean).toBeLessThan(1.006)
+    expect(max.dps.mean / balanced.dps.mean).toBeLessThan(1)
+    expect(max.dps.mean / balanced.dps.mean).toBeGreaterThan(0.994)
   })
 })

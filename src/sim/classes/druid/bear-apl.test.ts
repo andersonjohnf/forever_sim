@@ -40,10 +40,16 @@ describe('the Feral bear’s priority list (D31)', () => {
   it('gives 200 random setups the plan they had before the list, with Defensive or Max TPS', () => {
     // The snapshot is of the plans before the priority list (A2), whole, taken on the code before it:
     // a change to it is a change to what Defensive or Max TPS plays. A setup that kept the old
-    // default, tank duties first, is Defensive now.
+    // default, tank duties first, is Defensive now. T5 then tuned Max TPS's Maul threshold, 20 → 14
+    // (druid.md §6.3 "Max TPS"), a change to what it plays on purpose, so the cases that leave it
+    // unset keep the old 20: the list itself changes nothing.
     const cases = bearCases(BEAR_OPTIONS, 200)
     const plans = cases.map((config) =>
-      buildPlan({ ...config, rotation: { [BEAR_IDS.priority]: BEAR_PRIORITY.duties, ...config.rotation }, rotationOrder: defaultAplOrder(BEAR_APL) }).plan,
+      buildPlan({
+        ...config,
+        rotation: { [BEAR_IDS.priority]: BEAR_PRIORITY.duties, [BEAR_IDS.maulMinRage]: 20, ...config.rotation },
+        rotationOrder: defaultAplOrder(BEAR_APL),
+      }).plan,
     )
     const hashes = plans.map((plan) => fingerprint(JSON.stringify(plan)))
     expect(new Set(hashes).size).toBeGreaterThan(150)

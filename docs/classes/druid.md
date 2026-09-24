@@ -1129,10 +1129,12 @@ Since M5.65 A2 the rows above are the Rotation tab's priority list
 - **Spec-wide, above the list:** the Mighty Rage Potion (and its limit) and Juju Flurry, under
   Consumables. They take their turn in the list with the on-use items (row 3), wherever that row
   sits, as they did before the list. The priority is the preset picker.
-- **The presets move no row:** Defensive, Balanced and Max TPS share the default order and differ
-  only in the roar's default. In the default order each rotation's plan is the one it had before
-  the list, byte for byte: 200 random setups (settings, talents, race, items, Buffs, raid, fight
-  and rules) are fingerprinted against the code before it (`bear-apl.test.ts`).
+- **The presets move no row:** Defensive, Balanced and Max TPS share the default order. Defensive
+  keeps the roar; Balanced and Max TPS drop it, and Max TPS Mauls from 14 rather than 20
+  ([Max TPS](#max-tps-b4)). In the default order Defensive's plan and Max TPS's with Maul from 20
+  are the ones they had before the list, byte for byte: 200 random setups (settings, talents,
+  race, items, Buffs, raid, fight and rules) are fingerprinted against the code before it
+  (`bear-apl.test.ts`).
 - **What reordering does,** in the default setup (Balanced, seed 28301, 20,000 paired fights):
   Maul below the duties, Mangle or Lacerate changes nothing (±0.02%): it's off the GCD and checks
   its rage as the swing lands. Lacerate above Mangle costs 2.9% of DPS and 0.2% of TPS; Mangle
@@ -1148,7 +1150,7 @@ Since M5.65 A2 the rows above are the Rotation tab's priority list
 | `faerieFire.enabled`, `faerieFire.refreshBelowSec` | **on** (duty; in every preset), 6 s | Free in form, 6 s CD; the refresh is its cooldown, by the duty rule. The Buffs tab's Faerie Fire adds nothing more while it's on, and is off by default when it's off (the bear's own, in no preset) |
 | `priority` | **Balanced** | The preset picker: Defensive (`duties`), Balanced (`balanced`) or Max TPS (`maxTps`), which move the defaults marked with their names |
 | `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** with Defensive (duty; off with Balanced and Max TPS), 1.5 s | 10 rage; the refresh is one global cooldown, by the duty rule. The Buffs tab's Demoralizing Roar adds nothing more, and is off by default when it's off; a Demoralizing Shout there takes its place, so the roar isn't used (§4.5). No preset has a warrior's Shout for the bear |
-| `maul.enabled`, `maul.minRage` | **on**, 20 | Tuned (below): from 20, rage stays for Mangle and Lacerate |
+| `maul.enabled`, `maul.minRage` | **on**, 20 (14 with Max TPS) | Tuned (below): from 20, rage stays for Mangle and Lacerate; Max TPS, tuned on TPS alone, Mauls from 14 ([Max TPS](#max-tps-b4)) |
 | `mangle.enabled` | **on** | Needs the talent |
 | `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 12 s (every preset) | Kept with the raid's warriors: with its +261 threat an application [?], leaving it out costs about 12% of TPS and 14% of DPS; refresh from 12 s since T3 ([T3's re-check](#t3s-re-check-of-the-defaults)) |
 | `swipe.enabled`, `swipe.minRage` | **off**, 60 | Tuned (below); 60 is the [?] rule of thumb, see §6.1, Q31 |
@@ -1320,7 +1322,7 @@ which no search used:
 | DPS | 532.35 | 547.42 | +2.83% (± 0.03) |
 | Damage taken a second | 629.11 | 633.66 | +0.72% (± 0.01) |
 
-Max TPS gives the same fights in the default setup. The roar's −204 attack power takes 0.7% off
+Max TPS drops the roar too, and differs by Maul's threshold ([Max TPS](#max-tps-b4)). The roar's −204 attack power takes 0.7% off
 the damage the boss's swings do; its 10 rage and a global cooldown every 30 s go to Maul, Mangle
 and Lacerate instead.
 
@@ -1341,15 +1343,24 @@ and Lacerate instead.
   from 40 −1.1); Faerie Fire's refresh, Enrage's limit and the potion's are level; everything
   else loses (Mangle off −20.8, Lacerate off −30.7, Berserk off −3.1, the filler off −1.2,
   Enrage in combat off −5.2).
-- **Max TPS is the same rotation** in the default setup. Max TPS's own search (B4) predates T3;
-  on TPS alone, Maul from 14 now makes 0.19% more TPS than from 20, for 0.20% of the DPS (seed
-  28101, 400,000 fights). It's left at 20 until the tuning milestone re-tunes both.
+- **Max TPS differs by Maul's threshold** (T5, below): tuned on TPS alone, it Mauls from 14.
 
 #### Max TPS (B4)
 
-Since T3, Max TPS moves only the roar: its own Lacerate refresh (4.5 s, below) lost to the
-default's 12 s in T3's setup ([T3's re-check](#t3s-re-check-of-the-defaults)). The rest of this
-section is B4's first pass, before T3.
+Since T5, Max TPS moves the roar and Maul's threshold, **20 → 14 rage**: tuned on TPS alone
+([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)),
+it Mauls sooner, a little more threat for a little less damage, so it no longer plays as Balanced
+does. Against Max TPS with Maul from 20, on seed 28401 (200,000 paired fights, which the sweep
+didn't use): **+2.10 TPS (+0.19%, 95% CI +1.83 to +2.36)** and **−1.08 DPS (−0.20%, −1.21 to
+−0.96)**, damage taken level (−0.12 a second). The sweep, on seed 28301 (20,000 fights a
+candidate, Maul from 10 to 18): 13 to 15 best and level (+0.18% to +0.21%), 10 to 12 and 16
++0.16%, 17 and 18 +0.07%; on the fresh seed 13 +0.20%, 14 +0.19% and 15 +0.18%, all within each
+other's intervals. 14, the middle, is the default; T3's re-check had found the same (+0.19%,
+seed 28101). Against Defensive on seed 28401 (200,000 fights), Max TPS is +3.31% TPS (1,081.77 → 1,117.60), +2.62% DPS (532.44 → 546.40) and +0.69% damage taken (629.07 → 633.44 a second); Balanced +3.12%, +2.83% and +0.71%.
+
+Its Lacerate refresh (4.5 s, below) lost to the default's 12 s in T3's setup
+([T3's re-check](#t3s-re-check-of-the-defaults)). The rest of this section is B4's first pass,
+before T3.
 
 The **Max TPS** priority is a first pass on TPS alone, per
 [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)

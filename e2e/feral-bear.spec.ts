@@ -101,7 +101,7 @@ test.describe('Feral bear in the switcher', () => {
 test.describe('the bear’s priority list and its presets (druid.md §6.3; D28, D31)', () => {
   test('Balanced by default: the roar off, Faerie Fire kept, the rows in §6.3’s order, and its help with the numbers', async ({ page }) => {
     const { tab, list } = await openRotation(page)
-    await expect(tab.getByText('Which abilities the sim uses, and when. Defensive is tuned for the default setup; Balanced and Max TPS drop the roar from it, with a first quick search.', { exact: true })).toBeVisible()
+    await expect(tab.getByText('Which abilities the sim uses, and when. Defensive is tuned for the default setup; Balanced, the default, and Max TPS are a first quick search on top of it.', { exact: true })).toBeVisible()
     await expect(preset(page)).toHaveText('Balanced')
     await expect(preset(page)).toHaveAccessibleDescription(BALANCED_HELP)
     await expect(tab.getByText(BALANCED_HELP)).toBeVisible()

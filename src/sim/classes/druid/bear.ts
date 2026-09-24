@@ -76,7 +76,7 @@ const BEAR_MAX_RAGE = 100
 export const PREPULL_ENRAGE_MS = -1500
 
 /** A rage threshold input, 0 to the 100 cap, in its parent's group. */
-const rageOption = (id: string, label: string, help: string, def: number, dependsOn: string, group: RotationGroup): RotationOption => ({
+const rageOption = (id: string, label: string, help: string, def: number, dependsOn: string, group: RotationGroup): Extract<RotationOption, { kind: 'number' }> => ({
   kind: 'number',
   id,
   label,
@@ -138,6 +138,12 @@ const DUTY_RULE = (sec: number, why: string) =>
  */
 export const BEAR_PRIORITY = { duties: 'duties', balanced: 'balanced', maxTps: 'maxTps' } as const
 const MAX_TPS = { option: ID.priority, is: BEAR_PRIORITY.maxTps } as const
+/**
+ * Max TPS's Maul threshold (druid.md §6.3 "Max TPS", T5): tuned on TPS alone (D26), 14 rage, where
+ * Defensive and Balanced keep 20 (+0.19% TPS, 95% CI +0.16% to +0.21%, for −0.20% DPS; seed 28401,
+ * 200,000 paired fights; 13 to 15 are level).
+ */
+const MAX_TPS_MAUL_MIN_RAGE = 14
 const BALANCED = { option: ID.priority, is: BEAR_PRIORITY.balanced } as const
 
 /** Lacerate's refresh, 12 s left, for every priority (§6.3 "T3's re-check of the defaults"). */
@@ -158,7 +164,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     kind: 'choice',
     id: ID.priority,
     label: 'Priority',
-    help: 'Defensive keeps Demoralizing Roar and Faerie Fire on the boss. Balanced, the default, and Max TPS drop the roar and keep Faerie Fire.',
+    help: 'Which of the three rotations you play: Defensive keeps Demoralizing Roar and Faerie Fire on the boss; Balanced, the default, and Max TPS drop the roar and keep Faerie Fire. The priority list’s preset picker sets it.',
     choices: [
       { value: BEAR_PRIORITY.duties, label: 'Defensive' },
       { value: BEAR_PRIORITY.balanced, label: 'Balanced' },
@@ -262,14 +268,18 @@ export const BEAR_OPTIONS: RotationOption[] = [
     help: 'Queue Maul on your next swing: your Dire Bear Form attack’s damage plus 128, 10% more with Savage Fury, for 10 rage with Ferocity 5/5 (8 with Idol of Brutality), at 1.75 threat per damage. The swing it replaces gives no rage.',
     default: true,
   },
-  rageOption(
-    ID.maulMinRage,
-    'Maul from',
-    'Queue it at or above this much rage. It costs 10 with Ferocity 5/5, 8 with Idol of Brutality; from 20, rage stays for Mangle and Lacerate. In fights under a minute, 10 makes more threat.',
-    20,
-    ID.maulEnabled,
-    'Core abilities',
-  ),
+  {
+    ...rageOption(
+      ID.maulMinRage,
+      'Maul from',
+      `Queue it at or above this much rage. It costs 10 with Ferocity 5/5, 8 with Idol of Brutality; from 20, rage stays for Mangle and Lacerate. In fights under a minute, 10 makes more threat. With Max TPS it’s ${MAX_TPS_MAUL_MIN_RAGE} by default: a little more threat for a little less damage.`,
+      20,
+      ID.maulEnabled,
+      'Core abilities',
+    ),
+    // druid.md §6.3 "Max TPS": tuned on TPS alone (D26), 14 makes 0.19% more TPS than 20 for 0.20% of the DPS.
+    defaultWhen: [{ ...MAX_TPS, default: MAX_TPS_MAUL_MIN_RAGE }],
+  },
   {
     kind: 'toggle',
     id: ID.mangleEnabled,
@@ -404,7 +414,8 @@ const stacksBelow = (a: number, n: number): RotationCondition => ({ code: COND.a
  * they take their turn with the on-use items (row 3), wherever that row sits.
  *
  * Presets (D28): Balanced is the default; Defensive and Max TPS set the priority, which moves the
- * roar's default. None moves a row: every preset keeps the duties first.
+ * roar's default and, for Max TPS, Maul's threshold. None moves a row: every preset keeps the
+ * duties first.
  */
 export const BEAR_APL: AplDefinition = {
   rows: [
@@ -469,21 +480,29 @@ export const BEAR_APL: AplDefinition = {
     },
   ],
   specWide: [ID.potion, ID.potionMaxRage, ID.juju],
-  // Their numbers are measured in the default setup (druid.md §6.3 "Balanced"; seed 28201, 200,000
-  // paired fights): Defensive 1,081.6 TPS, 532.4 DPS and 629.1 damage taken a second; Balanced and
-  // Max TPS 1,115.4, 547.4 and 633.7.
+  // Their numbers are measured in the default setup against Defensive (druid.md §6.3 "Balanced",
+  // "Max TPS"; seed 28401, 200,000 paired fights): Defensive 1,081.8 TPS, 532.4 DPS and 629.1
+  // damage taken a second; Balanced +3.12%, +2.83% and +0.71%; Max TPS +3.31%, +2.62% and +0.69%.
   presets: [
     {
       id: 'defensive',
       label: 'Defensive',
-      help: 'Keeps both tank duties first, Demoralizing Roar and Faerie Fire on the boss. The roar’s −204 attack power means 0.7% less damage taken than Balanced, for 3.0% less TPS and 2.8% less DPS in the default setup. Pick it for progression fights.',
+      summary: 'Demoralizing Roar and Faerie Fire kept on the boss: the least damage taken. Tuned on threat.',
+      help: 'Keeps both tank duties first, Demoralizing Roar and Faerie Fire on the boss, and is tuned on threat. The roar’s −204 attack power means 0.7% less damage taken than Balanced, for 3% less TPS and 3% less DPS in the default setup. Pick it for progression fights.',
       values: { [ID.priority]: BEAR_PRIORITY.duties },
     },
-    { id: DEFAULT_APL_PRESET, label: 'Balanced', help: 'The default, as most tanks play fights short of progression. It drops Demoralizing Roar and keeps Faerie Fire, the raid’s armor debuff: 3.1% more TPS and 2.8% more DPS than Defensive in the default setup, for 0.7% more damage taken. The Buffs tab’s Demoralizing Roar stays off unless you turn it on there for another druid’s.', values: {} },
+    {
+      id: DEFAULT_APL_PRESET,
+      label: 'Balanced',
+      summary: 'Faerie Fire kept, Demoralizing Roar dropped: +3.1% TPS, +2.8% DPS and 0.7% more damage taken than Defensive.',
+      help: 'The default, as most tanks play fights short of progression. Drops Demoralizing Roar and keeps Faerie Fire, the raid’s armor debuff: 3.1% more TPS and 2.8% more DPS than Defensive in the default setup, for 0.7% more damage taken. The Buffs tab’s Demoralizing Roar stays off unless you turn it on there for another druid’s.',
+      values: {},
+    },
     {
       id: 'maxTps',
       label: 'Max TPS',
-      help: 'Drops Demoralizing Roar for threat, and keeps Faerie Fire, whose armor makes your attacks, and so your threat, bigger. For a bear it plays as Balanced does in the default setup: the roar is the only duty that costs threat. Pick it when another tank or the raid covers your survival.',
+      summary: 'Drops the roar and Mauls from 14 rage, tuned on threat alone: +3.3% TPS, +2.6% DPS vs Defensive.',
+      help: 'Tuned on threat alone: drops Demoralizing Roar, keeps Faerie Fire, whose armor makes your attacks, and so your threat, bigger, and Mauls from 14 rage rather than 20, a little more threat for a little less damage. Against Defensive in the default setup: 3.3% more TPS, 2.6% more DPS and 0.7% more damage taken. Pick it when another tank or the raid covers your survival.',
       values: { [ID.priority]: BEAR_PRIORITY.maxTps },
     },
   ],

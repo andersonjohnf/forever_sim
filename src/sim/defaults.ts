@@ -210,8 +210,7 @@ function rank(item: Item, spec: SpecId, slot: PreRaidBisSlot): number {
 /**
  * Default enchants per spec (docs/mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec).
  * Shoulder enchants (Zandalar, Scourge) are defaults only if the guild confirms that content
- * exists in Forever, so their fallback, none, applies. The Protection paladin's Arcanum of Focus
- * and +30 Spell Power weapon aren't in the enchant catalogue yet, so those slots fall back to none.
+ * exists in Forever, so their fallback, none, applies.
  */
 const WARRIOR_DPS_ENCHANTS: Partial<Record<GearSlot, string>> = {
   head: 'arcanumVoracityStrength',
@@ -310,8 +309,6 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
   'druid-balance': { chest: 'chestGreaterStats' },
   // §6.4 Retribution: the warrior DPS column with a two-hander (no off hand).
   'paladin-retribution': { ...WARRIOR_DPS_ENCHANTS, offHand: undefined },
-  // §6.4 Prot paladin: Superior Defense cloak, Greater Stats, Superior Stamina bracers, Threat
-  // gloves, Greater Agility boots and Greater Stamina shield.
   // §6.4 Enhancement shaman (docs/classes/shaman.md#defaults): the Retribution column; the main hand
   // is imbued and enchanted with Crusader.
   'shaman-enhancement': { ...WARRIOR_DPS_ENCHANTS, offHand: undefined },
@@ -321,12 +318,18 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
   'mage-arcane': { chest: 'chestGreaterStats' },
   // Elemental shaman (docs/classes/shaman.md#elemental-defaults): Greater Stats on the chest.
   'shaman-elemental': { chest: 'chestGreaterStats' },
+  // §6.4 Prot paladin: Arcanum of Focus on head and legs (+8 spell damage each), Superior Defense
+  // cloak, Greater Stats, Superior Stamina bracers, Threat gloves, Greater Agility boots, the
+  // weapon's Spell Power (+30) and Greater Stamina shield. Holy threat scales with spell damage (D29).
   'paladin-protection': {
+    head: 'arcanumFocus',
+    legs: 'arcanumFocus',
     back: 'cloakSuperiorDefense',
     chest: 'chestGreaterStats',
     wrist: 'bracerSuperiorStamina',
     hands: 'gloveThreat',
     feet: 'bootsGreaterAgility',
+    mainHand: 'weaponSpellPower',
     offHand: 'shieldGreaterStamina',
   },
 }

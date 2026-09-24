@@ -52,6 +52,9 @@ describe('golden run (fixed config and seed)', () => {
   //   DPS (+4.51%) over 400,000 paired fights on seed 4481, which no search used. On this seed's
   //   1,000 fights: Consecration 8,422 → 14,703 casts, the potion 0.41 → 1.90 a fight; TPS 398.23
   //   → 423.41, DPS 220.95 → 230.97, damage taken 680.5 → 682.1 a second.
+  // - T2 (M5.6, the threat review's P2): the buffs doc's §6.4 caster enchants reach the defaults,
+  //   Arcanum of Focus on head and legs and the weapon's Spell Power: 40 → 86 spell damage. On this
+  //   seed's 1,000 fights TPS 423.41 → 446.30 and DPS 230.97 → 242.25; nothing else moves.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

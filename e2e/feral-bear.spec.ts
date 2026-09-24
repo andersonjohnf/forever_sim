@@ -157,6 +157,26 @@ test.describe('the bear’s priority (druid.md §6.3, D26)', () => {
     await expect(roar).toHaveAccessibleDescription(/You keep it up yourself \(see Rotation\)/)
   })
 
+  test('Thorns is on for the bear, a damage shield only a tank feels; the cat’s Buffs tab says so (BR5)', async ({ page }) => {
+    await switchToBear(page)
+    await openTab(page, 'Buffs')
+    const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
+    const thorns = buffs.getByRole('switch', { name: 'Thorns', exact: true })
+    await expect(thorns).toBeChecked()
+    await expect(thorns).toBeEnabled()
+    await expect(thorns).toHaveAccessibleDescription(/^22 Nature damage to the boss each time it hits you/)
+    // A run lists its damage and threat on its own row.
+    const results = await simulate(page)
+    await expect(results.getByText('Thorns', { exact: true }).first()).toBeVisible()
+    // For the cat it's there, off, and says why it does nothing.
+    await page.getByRole('button', { name: /^Spec: / }).click()
+    await page.getByRole('menuitem', { name: /Feral \(Cat\)/ }).click()
+    await openTab(page, 'Buffs')
+    const catThorns = page.getByRole('tabpanel', { name: 'Buffs' }).getByRole('switch', { name: 'Thorns', exact: true })
+    await expect(catThorns).not.toBeChecked()
+    await expect(catThorns).toHaveAccessibleDescription(/Only the tank takes the boss’s swings, so it changes nothing for you\.$/)
+  })
+
   test('a Max TPS run makes more threat and damage than the default, and drops the roar’s row', async ({ page }) => {
     await switchToBear(page)
     const results = await simulate(page)

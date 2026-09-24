@@ -275,13 +275,13 @@ const consumable = (use: OnUseSpec): AbilityDef => ({
 
 /**
  * The Shadow priority list from the settings (priest.md §6). `context` gives the maximum mana (the
- * mana thresholds), the race (its racial spells), the equipped on-use items and the selected
- * consumables and raid buffs.
+ * mana thresholds), the race (its racial spells), the equipped on-use items, the selected
+ * consumables and raid buffs, and the sheet's Spirit at the pull (Dark Sacrifice's mana).
  */
 export function shadowRotation(
   values: Record<string, RotationValue>,
   talents: TalentRanks,
-  context: Partial<PaladinContext> = {},
+  context: Partial<PaladinContext & { spirit: number }> = {},
 ): ClassRotation {
   const ctx = { ...NO_CONTEXT, ...context }
   const v = reader(SHADOW_OPTIONS, values, talents)

@@ -29,7 +29,8 @@ export const RELEASES: readonly Release[] = [
       {
         label: 'Tanks',
         items: [
-          'Every tank now starts in a threat set that keeps about 90% of the survival set’s effective health: Protection Warrior about 980 to 1,130 TPS, Feral Bear about 690 to 1,080 TPS.',
+          'Protection Warrior about 980 to 1,130 TPS: a threat set that keeps about 90% of the old pre-raid best in slot set’s effective health.',
+          'Feral Bear about 690 to 1,080 TPS: Lacerate’s threat, Idol of Brutality, new talents and a threat set.',
           'Protection Paladin about 425 to 820 TPS: spell damage enchants, Nightfin Soup and Wizard Oil, its own Judgement of the Crusader, and the full damage of Seal of Fury and Holy Strike.',
           'Hammer of the Righteous is simulated, as an option in place of Holy Strike.',
           'New default talents for Protection Paladin and Feral Bear.',
@@ -124,14 +125,6 @@ export const RELEASES: readonly Release[] = [
         ],
       },
       {
-        label: 'Results',
-        items: [
-          'DPS with its ± range, a breakdown by ability, cooldowns, uptimes and bleeds.',
-          'Every result lists the assumptions it rests on that nobody has tested in game yet.',
-          'Switch to Classic Era rules under Character, Advanced, to compare.',
-        ],
-      },
-      {
         label: 'Your setup',
         items: [
           'Gear starts on pre-raid best in slot, with enchants and a searchable item picker.',
@@ -141,12 +134,41 @@ export const RELEASES: readonly Release[] = [
           'Your setup is kept in this browser between visits.',
         ],
       },
+      {
+        label: 'Results',
+        items: [
+          'DPS with its ± range, a breakdown by ability, cooldowns, uptimes and bleeds.',
+          'Every result lists the assumptions it rests on that nobody has tested in game yet.',
+          'Switch to Classic Era rules under Character, Advanced, to compare.',
+        ],
+      },
     ],
   },
 ]
 
 /** Where the id of the newest release this browser has seen is kept. */
 export const LAST_SEEN_RELEASE_KEY = 'forever-sim:last-seen-release'
+
+/**
+ * Keys only an earlier visit leaves: the automatic save (src/app/setup-store.ts) and the named
+ * setups (src/app/saved-setups.ts). Written as literals, since this file imports nothing;
+ * releases.test.ts holds them to those files' keys.
+ */
+export const EARLIER_VISIT_KEYS = ['forever-sim:setup', 'forever-sim:saved-setups'] as const
+
+const RELEASE_ID = /^(\d{4}-\d{2}-\d{2})\.(\d+)$/
+
+/**
+ * Orders two release ids: by their date, then by the day's number, numerically ("…24.10" after
+ * "…24.9"). Negative when `a` is older, positive when newer, NaN when either isn't a release id.
+ */
+export function compareReleaseIds(a: string, b: string): number {
+  const x = RELEASE_ID.exec(a)
+  const y = RELEASE_ID.exec(b)
+  if (!x || !y) return Number.NaN
+  if (x[1] !== y[1]) return x[1] < y[1] ? -1 : 1
+  return Number(x[2]) - Number(y[2])
+}
 
 /**
  * The releases newer than `seenId`, newest first. None for a first visit (no id) or an id the list
@@ -161,26 +183,41 @@ export function releasesSince(seenId: string | null, releases: readonly Release[
 type ReleaseStorage = Pick<Storage, 'getItem' | 'setItem'>
 
 /**
- * What What's New shows on this load: the releases since the one this browser last saw. Stores the
- * newest id as it goes, so a release is shown once, whether or not it's dismissed. Storage that
- * can't be read shows nothing (it couldn't remember that it had); storage that can't be written
- * still shows what's new this time.
+ * What What's New shows on this load (docs/ux.md "What's new"): the releases since the one this
+ * browser last saw. Stores the newest id as it goes, so a release is shown once, whether or not it's
+ * dismissed.
+ *
+ * - No id stored: a first visit shows nothing. But a browser with an automatic save or named setups
+ *   (EARLIER_VISIT_KEYS) was here before What's New shipped, so it's treated as having seen the
+ *   release before the newest, and shown the newest alone. Call this before anything writes the
+ *   automatic save on this load, or a first visit would pass for an earlier one.
+ * - An id the list doesn't know shows nothing. It's replaced by the newest only if it sorts older
+ *   (or isn't a release id at all): a newer one, from a later release a newer tab has seen, is kept,
+ *   so going back to that release doesn't show it again.
+ * - Storage that can't be read shows nothing (it couldn't remember that it had); storage that can't
+ *   be written still shows what's new this time.
  */
 export function checkReleases(storage: ReleaseStorage | null, releases: readonly Release[] = RELEASES): Release[] {
   const newest = releases[0]?.id
   if (!storage || !newest) return []
   let seen: string | null
+  let earlierVisit = false
   try {
     seen = storage.getItem(LAST_SEEN_RELEASE_KEY)
+    if (seen === null) earlierVisit = EARLIER_VISIT_KEYS.some((key) => storage.getItem(key) !== null)
   } catch {
     return []
   }
-  if (seen !== newest) {
+  const known = seen !== null && releases.some((r) => r.id === seen)
+  // NaN for a junk id, which isn't newer, so it's replaced.
+  const unknownNewer = seen !== null && !known && compareReleaseIds(seen, newest) > 0
+  if (seen !== newest && !unknownNewer) {
     try {
       storage.setItem(LAST_SEEN_RELEASE_KEY, newest)
     } catch {
       // Full or blocked: shown now, and maybe again next time.
     }
   }
+  if (seen === null) return earlierVisit ? releases.slice(0, 1) : []
   return releasesSince(seen, releases)
 }

@@ -24,8 +24,11 @@ export function DecadesCredit({ className }: { className?: string }) {
          * The tracking's trailing space is taken back, so the mark ends at its last letter, and the
          * lettering's capitals, which sit high in their line, drop a pixel to centre on the crest.
          */}
-        <span className="-mr-[0.24em] translate-y-px font-brand text-sm leading-none font-semibold tracking-[0.24em] uppercase">Decades</span>
-        <span className="sr-only">(opens in a new tab)</span>
+        {/* The lettering is uppercased for looks only; screen readers get the plain name below. */}
+        <span aria-hidden className="-mr-[0.24em] translate-y-px font-brand text-sm leading-none font-semibold tracking-[0.24em] uppercase">
+          Decades
+        </span>
+        <span className="sr-only">Decades (opens in a new tab)</span>
       </a>
     </div>
   )

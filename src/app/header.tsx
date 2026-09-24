@@ -93,7 +93,7 @@ function Lockup() {
         href={DECADES_URL}
         target="_blank"
         rel="noopener"
-        title="decades.gg (opens in a new tab)"
+        title="Decades: decades.gg, opens in a new tab"
         className="outline-none after:absolute after:inset-0 after:rounded-lg"
       >
         <DecadesCrest className="size-8" />

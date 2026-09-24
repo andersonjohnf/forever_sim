@@ -146,7 +146,7 @@ export default function App() {
           ))}
           {/* The game data's credit, then the guild's (docs/ux.md#brand): one line, or two on a phone. */}
           <footer className="mt-12 flex flex-wrap items-center gap-x-8 border-t pt-6">
-            <DataAttribution />
+            <DataAttribution newTab />
             <DecadesCredit />
           </footer>
         </Tabs>

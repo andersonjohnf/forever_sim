@@ -1,3 +1,4 @@
+import { ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const base = import.meta.env.BASE_URL
@@ -21,11 +22,12 @@ export function WagoToolsLogo({ className, newTab = false }: { className?: strin
     >
       <img src={`${base}attribution/wago-tools-dark.svg`} alt="" className="h-6 w-auto dark:hidden" />
       <img src={`${base}attribution/wago-tools-white.svg`} alt="" className="hidden h-6 w-auto dark:block" />
+      {newTab && <ExternalLink className="ml-1 size-3.5 text-muted-foreground" aria-hidden />}
     </a>
   )
 }
 
-/** Credit for the game data, shown at the foot of the page and in the About sheet (there, `newTab`). */
+/** Credit for the game data, at the foot of the page and in the About sheet; both open it in a new tab, so a result isn't lost. */
 export function DataAttribution({ className, newTab = false }: { className?: string; newTab?: boolean }) {
   return (
     <div className={cn('flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-muted-foreground', className)}>

@@ -680,8 +680,11 @@ the sim (principle 1).
   - Not the favicon: the sim keeps its own mark there, since the crest's detail is lost at 16 px.
 - **Links** to the guild's site open in a new tab, with `rel="noopener"`, and say so to screen
   readers ("opens in a new tab"). The header's is named "Decades: decades.gg, opens in a new tab",
-  which holds its visible word (WCAG 2.5.3), and its tooltip says "decades.gg (opens in a new
-  tab)" for sighted users with a mouse. The footer's is named "Decades (opens in a new tab)".
+  which holds its visible word (WCAG 2.5.3), and its tooltip repeats that name for sighted users
+  with a mouse (the same text, so screen readers don't hear it twice). The footer's is named
+  "Decades (opens in a new tab)"; its uppercase lettering is hidden from screen readers, so they
+  don't spell it out. Both footer credits, wago.tools' and the guild's, open in a new tab, so a
+  result on screen isn't lost.
 - **Assets:** the crest is the guild's own path data, unchanged (`src/components/decades-crest.tsx`):
   its blades take the text colour and its hourglass `--brand-gold`, so one drawing serves both
   themes. The full logo is two files in `public/brand/`: the guild's own, white and gold, for dark

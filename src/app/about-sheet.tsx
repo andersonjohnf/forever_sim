@@ -53,7 +53,7 @@ export function AboutSheet({
             About Forever Sim
           </SheetTitle>
           {/* What it is, then the specs it covers, which grow as they ship (docs/ux.md principle 8). */}
-          <SheetDescription>{appSentence()} Everything runs in your browser.</SheetDescription>
+          <SheetDescription>{keepGameNameWhole(appSentence())} Everything runs in your browser.</SheetDescription>
           <ReleaseStamp />
           <p className="mt-1 text-sm text-muted-foreground">{coverageSentence()}</p>
         </SheetHeader>
@@ -176,6 +176,20 @@ function ReleaseStamp() {
       Updated <time dateTime={RELEASE.time.toISOString()}>{formatReleaseTime(RELEASE.time)}</time>
       {commit && <span className="whitespace-nowrap"> · build {commit}</span>}
     </p>
+  )
+}
+
+/** The game's full name kept on one line, so "World of Warcraft: Forever" never splits (the meta keeps the plain string). */
+function keepGameNameWhole(sentence: string): ReactNode {
+  const name = 'World of Warcraft: Forever'
+  const at = sentence.indexOf(name)
+  if (at < 0) return sentence
+  return (
+    <>
+      {sentence.slice(0, at)}
+      <span className="whitespace-nowrap">{name}</span>
+      {sentence.slice(at + name.length)}
+    </>
   )
 }
 

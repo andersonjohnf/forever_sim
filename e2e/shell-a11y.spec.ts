@@ -425,7 +425,7 @@ test.describe('brand', () => {
           expect(await lockup.evaluate((el) => [...el.children].map((c) => c.querySelector('h1') ? 'name' : c.tagName))).toEqual(['name', 'A'])
           const crest = (await link.boundingBox())!
           if (!phone) expect(crest.x).toBeLessThan(name.x)
-          await expect(link).toHaveAttribute('title', 'decades.gg (opens in a new tab)')
+          await expect(link).toHaveAttribute('title', 'Decades: decades.gg, opens in a new tab')
 
           // The crest's hourglass is a graphic, 3:1 on the header; the byline is text, AA, and on
           // hover too, where it takes the text colour on the hover fill.

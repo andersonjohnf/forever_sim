@@ -54,3 +54,21 @@ round, so the verification pass covers it as well as the fixes.
 
 **Ready to push: not yet.** The fixes and the footer's credit need a verification pass by a fresh
 reviewer, scoped to `bdf8893e..7bd112c0`.
+
+## Verification pass
+
+**Gate passes.** BR-1 to BR-7, BR-9 and BR-10 are confirmed fixed and BR-8's waiver stands. The
+header fits every spec from 320 to 1280 px (22 specs on the branch, 23 on a trial merge with
+main), and the footer credit is sound: paired with wago.tools' credit at the same height, 44 px,
+AA in both themes, safe new tab. Seven lows, all fixed by the lead before the merge:
+
+| id | sev | origin | finding | disposition |
+| --- | --- | --- | --- | --- |
+| BV-1 | low | introduced | The header link's `title` read "opens in a new tab" a second time as a description. | fixed: the title matches the link's name |
+| BV-2 | low | introduced | `uppercase` made the footer link's name "DECADES (opens in a new tab)". | fixed: the lettering is hidden from screen readers, which hear "Decades (opens in a new tab)" |
+| BV-3 | low | introduced | The paired footer links behaved differently: wago.tools in the same tab (losing an unsaved result), Decades in a new one. BR-4's reason for leaving wago alone was wrong. | fixed: the footer's wago.tools link opens a new tab too |
+| BV-4 | low | introduced | About's first line split "World of Warcraft: Forever" across lines. | fixed: the name stays on one line in the sheet |
+| BV-5 | low | introduced | About's wago.tools logo link opened a new tab with no external-link cue. | fixed: a new-tab wago link shows the icon |
+| BV-6 | low | introduced | This log's Checks line claimed a green `test:full` after a rebase onto main; the branch sat behind main and one benchmark flaked. | corrected here: the lead runs `test:full` on main after the merge |
+| BV-7 | low | pre-existing | README named the game "WoW Forever" and its Status line was stale. | fixed: the full name and the current coverage |
+

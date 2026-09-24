@@ -2586,6 +2586,8 @@ export class Sim {
         if (this.abCatNext[a] !== a) this.shareCooldown(a)
       }
       if (this.abKind[a] === KIND_SPELL) this.spellAbility(a)
+      // docs/mechanics/spells.md §6: a channel with a cast before it starts channeling as the cast lands.
+      else if (this.abKind[a] === KIND_CHANNEL) this.channel(a)
       else this.strike(a)
     }
     if (this.swingsStopped) {

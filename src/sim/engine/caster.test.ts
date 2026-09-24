@@ -350,6 +350,14 @@ describe('channels (docs/mechanics/spells.md §6)', () => {
     }
   })
 
+  it('starts channeling when a cast before it lands', () => {
+    const { plan, channel } = missiles()
+    plan.abilities[channel].castMs = 1000
+    const t = timeline(plan)
+    expect(t.uses[channel].slice(0, 2)).toEqual([0, 6000])
+    expect(t.ticks.slice(0, 5)).toEqual([2000, 3000, 4000, 5000, 6000])
+  })
+
   it('cuts a DoT channel’s ticks off too, and its marker with them', () => {
     const plan = casterPlan(10000)
     const flay = addSpell(plan, { school: SCHOOL.shadow, dotTicks: 3, dotTickMs: 1000, dotTickDamage: 100 })

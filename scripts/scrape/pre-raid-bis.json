@@ -2840,7 +2840,7 @@
         "archivedUrl": "https://web.archive.org/web/20210516060750/https://classic.wowhead.com/guides/wow-classic-elemental-shaman-dps-pre-raid-best-in-slot-gear",
         "snapshot": "2021-05-16"
       },
-      "note": "The guide's page says Phase 5 (updated 2020-07-28); its Phase 6 best-in-slot hub links to it, and no later pre-raid list exists before August 2021. Its One-Hand row is the main hand and its Off-Hand row the off hand; its Two-Hand row is kept as the alternative. Zulian Ceremonial Staff (a Zul'Gurub drop) is left out as a raid drop, so Rod of the Ogre Magi keeps its rank 4. Its Horde honor mail has no Alliance counterpart with spell power (Classic Era had no Alliance shamans, and the Alliance's honor chain is the hunter's), so an Alliance shaman takes the next rank. The random-suffix items (Green Lens, Abyssal Mail Pauldrons and Armguards, Pyremail Wristguards) keep only their base stats.",
+      "note": "The guide's page says Phase 5 (updated 2020-07-28); its Phase 6 best-in-slot hub links to it, and no later pre-raid list exists before August 2021. Its One-Hand row is the main hand and its Off-Hand row the off hand; its Two-Hand row is kept as the alternative. Zulian Ceremonial Staff (a Zul'Gurub drop) is left out as a raid drop, so Rod of the Ogre Magi keeps its rank 4. Its Horde honor mail has no Alliance counterpart with spell power (Classic Era had no Alliance shamans, and the Alliance's honor chain is the hunter's), so an Alliance shaman takes the next rank. The random-suffix items (Green Lens, Abyssal Mail Pauldrons and Armguards, Pyremail Wristguards) keep only their base stats. Its rank-1 dagger, Mindfang, is The Defilers'; the League of Arathor's Sageclaw, the same dagger, is added at its rank for the Alliance.",
       "slots": {
         "head": [
           {
@@ -3100,6 +3100,12 @@
             "name": "Mindfang",
             "rank": 1,
             "notes": "PvP - Arathi Basin Exalted"
+          },
+          {
+            "id": 20070,
+            "name": "Sageclaw",
+            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); Alliance version",
+            "rank": 1
           },
           {
             "id": 13964,
@@ -4144,7 +4150,7 @@
         "archivedUrl": "https://web.archive.org/web/20210215101245/https://www.icy-veins.com/wow-classic/mage-dps-pre-raid-gear",
         "snapshot": "2021-02-15"
       },
-      "note": "Wowhead's Classic guide has no Fire list, so this is Icy Veins' Classic mage pre-raid list, which says it is for Fire mages heading into AQ40 (Phase 5; last updated 2020-12-06); its low-ranked Frost-only swaps fall outside the kept ranks. Its Horde PvP and Arathi Basin gear gets the Alliance counterpart at the same rank. Its Bloodvine set and Flarecore Leggings are crafted, not raid drops, but need Zul'Gurub / Molten Core materials. Its random-suffix items whose base item has no spell stats are left out, so the entries below them move up: Archivist Cape (back); Flameweave Cuffs, Tearfall Bracers, Master's Bracers and Abyssal Cloth Wristbands (wrist); Demon Blade (main hand). Abyssal Cloth Amice and Drakestone are random-suffix too but keep their rank on their base stats, without the guide's suffix. The guide's Diana's Pearl Necklace is 22403, named Nacreous Shell Necklace in the client, and it links Dryad's Wrist Bindings 19597 (the level-49 bracket version), so the level-60 version 19595 is listed instead. Its rank-2 two-hander, Staff of Balzaphon, is event-only: Balzaphon appears in Stratholme only during the Scourge Invasion (docs/data/items.md#sources-c). It keeps the guide's rank, since the default wears a one-hander and an off hand.",
+      "note": "Wowhead's Classic guide has no Fire list, so this is Icy Veins' Classic mage pre-raid list, which says it is for Fire mages heading into AQ40 (Phase 5; last updated 2020-12-06); its low-ranked Frost-only swaps fall outside the kept ranks. Its Horde PvP and Arathi Basin gear gets the Alliance counterpart at the same rank. Its Bloodvine set and Flarecore Leggings are crafted, not raid drops, but need Zul'Gurub / Molten Core materials. Its random-suffix items whose base item has no spell stats are left out, so the entries below them move up: Archivist Cape (back); Flameweave Cuffs, Tearfall Bracers, Master's Bracers and Abyssal Cloth Wristbands (wrist); Demon Blade (main hand). Abyssal Cloth Amice and Drakestone are random-suffix too but keep their rank on their base stats, without the guide's suffix. The guide's Diana's Pearl Necklace is 22403, named Nacreous Shell Necklace in the client, and it links Dryad's Wrist Bindings 19597 (the level-49 bracket version), so the level-60 version 19595 is listed instead. Its rank-1 dagger, Mindfang, is The Defilers'; the League of Arathor's Sageclaw, the same dagger, is added at its rank for the Alliance. Its rank-2 two-hander, Staff of Balzaphon, is event-only: Balzaphon appears in Stratholme only during the Scourge Invasion (docs/data/items.md#sources-c). It keeps the guide's rank, since the default wears a one-hander and an off hand.",
       "slots": {
         "head": [
           {
@@ -4436,6 +4442,12 @@
             "notes": "Reputation - League of Arathor / The Defilers Exalted (Arathi Basin)"
           },
           {
+            "id": 20070,
+            "name": "Sageclaw",
+            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); Alliance version",
+            "rank": 1
+          },
+          {
             "id": 20720,
             "name": "Dark Whisper Blade",
             "rank": 2,
@@ -4518,7 +4530,7 @@
         "archivedUrl": "https://web.archive.org/web/20210515152513/https://classic.wowhead.com/guides/wow-classic-mage-dps-pre-raid-best-in-slot-gear",
         "snapshot": "2021-05-15"
       },
-      "note": "Wowhead's guide (Phase 6 heading, patch 1.13.7, last updated 2020-12-07) gives one mage list with no spec split; it is a Frost list: every random-suffix pick is 'of Frozen Wrath' and it ranks Frost-only items high (Boreal Mantle, Freezing Lich Robes, Tome of the Ice Lord, Wand of Biting Cold, Freezing Band). Its Horde PvP cloth gets the Alliance counterpart at the same rank. Its random-suffix items whose base item has no spell stats are left out, so the entries below them move up: Solstice Staff (its rank-1 staff), Eternal Spaulders, Archivist Cape and Master's Cloak, Tearfall Bracers (with Flameweave Cuffs and Master's Bracers below it), Master's Boots, Bloodstrike Dagger and Lunar Wand. So the back, main-hand and two-hand rows keep only the guide's two other items. Drakestone is random-suffix too but keeps its rank on its base +7 spell power, without the guide's suffix.",
+      "note": "Wowhead's guide (Phase 6 heading, patch 1.13.7, last updated 2020-12-07) gives one mage list with no spec split; it is a Frost list: every random-suffix pick is 'of Frozen Wrath' and it ranks Frost-only items high (Boreal Mantle, Freezing Lich Robes, Tome of the Ice Lord, Wand of Biting Cold, Freezing Band). Its Horde PvP cloth gets the Alliance counterpart at the same rank. Its random-suffix items whose base item has no spell stats are left out, so the entries below them move up: Solstice Staff (its rank-1 staff), Eternal Spaulders, Archivist Cape and Master's Cloak, Tearfall Bracers (with Flameweave Cuffs and Master's Bracers below it), Master's Boots, Bloodstrike Dagger and Lunar Wand. So the back, main-hand and two-hand rows keep only the guide's two other items. Drakestone is random-suffix too but keeps its rank on its base +7 spell power, without the guide's suffix. Its rank-1 dagger, Sageclaw, is the League of Arathor's; The Defilers' Mindfang, the same dagger, is added at its rank for the Horde.",
       "slots": {
         "head": [
           {
@@ -4790,6 +4802,12 @@
             "name": "Sageclaw",
             "rank": 1,
             "notes": "Reputation - League of Arathor / The Defilers Exalted (Arathi Basin)"
+          },
+          {
+            "id": 20214,
+            "name": "Mindfang",
+            "notes": "PvP reputation - The Defilers Exalted (Arathi Basin); Horde version",
+            "rank": 1
           },
           {
             "id": 13964,
@@ -4862,7 +4880,7 @@
         "archivedUrl": "https://web.archive.org/web/20210515152513/https://classic.wowhead.com/guides/wow-classic-mage-dps-pre-raid-best-in-slot-gear",
         "snapshot": "2021-05-15"
       },
-      "note": "Classic Era had no Arcane raid list: neither Wowhead's nor Icy Veins' Classic guide has one. Classic Era raid Arcane builds (Arcane Power / Presence of Mind) still cast Frostbolt or Fireball as filler, so this reuses the Frost list (Wowhead) as is, with the same random-suffix items left out (see mage-frost's note); an AP/PoM Fire build should use mage-fire instead.",
+      "note": "Classic Era had no Arcane raid list: neither Wowhead's nor Icy Veins' Classic guide has one. Classic Era raid Arcane builds (Arcane Power / Presence of Mind) still cast Frostbolt or Fireball as filler, so this reuses the Frost list (Wowhead) as is, with the same random-suffix items left out (see mage-frost's note); an AP/PoM Fire build should use mage-fire instead. Its rank-1 dagger, Sageclaw, is the League of Arathor's; The Defilers' Mindfang, the same dagger, is added at its rank for the Horde.",
       "slots": {
         "head": [
           {
@@ -5134,6 +5152,12 @@
             "name": "Sageclaw",
             "rank": 1,
             "notes": "Reputation - League of Arathor / The Defilers Exalted (Arathi Basin)"
+          },
+          {
+            "id": 20214,
+            "name": "Mindfang",
+            "notes": "PvP reputation - The Defilers Exalted (Arathi Basin); Horde version",
+            "rank": 1
           },
           {
             "id": 13964,
@@ -6340,7 +6364,7 @@
         "archivedUrl": "https://web.archive.org/web/20210518011006/https://classic.wowhead.com/guides/wow-classic-shadow-priest-dps-pre-raid-best-in-slot-gear",
         "snapshot": "2021-05-18"
       },
-      "note": "The guide's Phase 6 list (patch 1.13.7). Its random-suffix entries (Green Lens, Archivist Cape, Tearfall Bracers, Flameweave Cuffs, Master's Bracers, Drakestone and Lunar Wand, each 'of Shadow Wrath') are left out and keep no rank: the pool has no suffixes, so the base item would carry none of its Shadow damage. The others keep the guide's rank. Its Weapon (1H) row is the main hand and its Wand row the ranged slot. Its PvP items sit below the top three in every slot, so none is kept.",
+      "note": "The guide's Phase 6 list (patch 1.13.7). Its random-suffix entries (Green Lens, Archivist Cape, Tearfall Bracers, Flameweave Cuffs, Master's Bracers, Drakestone and Lunar Wand, each 'of Shadow Wrath') are left out and keep no rank: the pool has no suffixes, so the base item would carry none of its Shadow damage. The others keep the guide's rank. Its Weapon (1H) row is the main hand and its Wand row the ranged slot. Its PvP items sit below the top three in every slot, so none is kept. Not from the guide: Mindfang and Sageclaw lead the main hand (Forever gave them +94 spell power, a [?] estimate; Classic Era +30), so the guide's Scepter of the Unholy and Blade of the New Moon move to ranks 2 and 3 and its Witchblade drops (docs/classes/priest.md#75-gear).",
       "slots": {
         "head": [
           {
@@ -6590,22 +6614,28 @@
         ],
         "mainHand": [
           {
+            "id": 20214,
+            "name": "Mindfang",
+            "notes": "PvP reputation - The Defilers Exalted (Arathi Basin); Horde version; not on the guide: Forever's +94 spell power (a [?] estimate; Classic Era +30) puts it first (paired, about +37 DPS on the guide's gear)",
+            "rank": 1
+          },
+          {
+            "id": 20070,
+            "name": "Sageclaw",
+            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); Alliance version; not on the guide, as Mindfang",
+            "rank": 1
+          },
+          {
             "id": 13349,
             "name": "Scepter of the Unholy",
-            "rank": 1,
-            "notes": "Dungeon - Stratholme (Undead)"
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Undead); the guide's rank 1"
           },
           {
             "id": 18372,
             "name": "Blade of the New Moon",
-            "rank": 2,
-            "notes": "Dungeon - Dire Maul West"
-          },
-          {
-            "id": 13964,
-            "name": "Witchblade",
             "rank": 3,
-            "notes": "Dungeon - Scholomance"
+            "notes": "Dungeon - Dire Maul West; the guide's rank 2"
           }
         ],
         "offHand": [

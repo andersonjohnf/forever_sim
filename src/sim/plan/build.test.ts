@@ -474,9 +474,10 @@ describe('talents, racials and stances', () => {
   })
 
   it('gives a caster its weapon racial’s crit, spells too, for the weapon it holds and never swings (mage.md "Races")', () => {
-    // The Shadow Priest's default main hand is Scepter of the Unholy, a mace: a Dwarf's Mace Specialization holds.
+    // Scepter of the Unholy, a mace (the Shadow Priest's list's rank 2): a Dwarf's Mace Specialization holds.
     const d = defaultConfig('priest-shadow')
-    const plan = (race: string) => buildPlan({ ...d, race }).plan
+    const gear = { ...d.gear, mainHand: { ...d.gear.mainHand, itemId: 13349 } }
+    const plan = (race: string) => buildPlan({ ...d, race, gear }).plan
     const [dwarf, gnome] = [plan('alliance-dwarf'), plan('alliance-gnome')] // the Gnome has no weapon racial
     expect(dwarf.weapons).toEqual([null, null])
     expect(dwarf.stats.spellCrit - gnome.stats.spellCrit).toBeCloseTo(1, 9)

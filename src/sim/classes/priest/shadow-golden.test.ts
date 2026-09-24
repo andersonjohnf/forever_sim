@@ -23,6 +23,9 @@ describe('golden run (fixed config and seed)', () => {
   //   (Greater Arcane Elixir, Elixir of Shadow Power, Major Mana Potion); Berserking, Shadow Word:
   //   Pain, Devouring Plague, Inner Focus before Mind Blast, Mind Flay's 3 ticks. On this seed's
   //   1,000 fights, DPS 523.04.
+  // - The Destruction gear review (DG-2): Mindfang (Sageclaw for the Alliance) leads the main hand,
+  //   ahead of the guide's Scepter of the Unholy: 523.04 → 559.43 here; 523.3 → 559.7 over 20,000
+  //   fights on seed 2701 (+7.0%).
   it('keeps the default Shadow Priest’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('priest-shadow'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

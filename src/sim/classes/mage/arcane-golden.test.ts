@@ -20,6 +20,8 @@ describe('golden run (fixed config and seed)', () => {
   // - K2: the default Arcane mage (mage.md "Arcane priority", "First-pass defaults"): Troll,
   //   050225003100301531-2355001010003-, Arcane Power, Presence of Mind (an instant Pyroblast) and
   //   Berserking on cooldown, Arcane Missiles, the mana gems and Evocation; the Standard raid's buffs.
+  // - The Destruction gear review (DG-2): Mindfang, Sageclaw's Horde twin, replaces Witchblade for a
+  //   Troll: 402.71 → 435.43 here; 402.2 → 434.8 over 20,000 fights on seed 2701 (+8.1%).
   it('keeps the default Arcane mage’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig(SPEC), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

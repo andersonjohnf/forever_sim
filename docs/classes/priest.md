@@ -227,8 +227,8 @@ Shadow Weaving needs no line: every Shadow spell that lands stacks it. Settings 
 
 ### 6.1 First-pass defaults
 
-D27's one quick search, on the default setup (Troll, the default build and gear, Standard raid),
-20,000 fights on seed 1, fixed ([`SHADOW_OPTIONS`](../../src/sim/classes/priest/shadow.ts)), 95% CI
+D27's one quick search, on the default setup (Troll, the default build and gear, Standard raid; the
+gear then had the guide's Scepter of the Unholy, before §7.5's Mindfang), 20,000 fights on seed 1, fixed ([`SHADOW_OPTIONS`](../../src/sim/classes/priest/shadow.ts)), 95% CI
 about ±0.22 DPS:
 
 | Mind Flay ticks | DoTs until (s left) | Devouring Plague | DPS |
@@ -290,7 +290,15 @@ the buffs doc's §6.3 doesn't give it. The Buffs tab doesn't offer a caster what
 The pre-raid list is Wowhead's Classic Era Shadow Priest pre-raid BiS guide (Phase 6, archived
 2021-05-18, [wh-bis]), its random-suffix items ("of Shadow Wrath") left out: the pool has no
 suffixes ([items.md](../data/items.md#pre-raid-bis-lists)). Most of its items have no Forever row
-yet and use Classic Era stats (`classicItems`). Briarwood Reed's Forever effect ("+15 Spell Power in
+yet and use Classic Era stats (`classicItems`).
+
+**The main hand isn't the guide's.** Forever gave the Arathi Basin Exalted daggers, Mindfang (The
+Defilers, Horde) and Sageclaw (League of Arathor, Alliance), +94 spell power (a `[?]` estimate from the
+derived caster-weapon rule, [client.md](../data/client.md#weapon-damage); Classic Era +30), past the
+guide's Scepter of the Unholy (the Destruction gear review, DG-2). They take rank 1, the guide's picks
+move to ranks 2 and 3, and the default gains 7.0% (523.3 → 559.7 DPS, 20,000 fights on seed 2701). A
+sim-ranked list, as the warlocks' ([warlock.md §7.3](warlock.md#73-gear)), would gain a few percent
+more; it's a known gap. Briarwood Reed's Forever effect ("+15 Spell Power in
 certain areas") and Eye of the Beast's on-use +7% spell hit aren't simulated.
 
 ## 8. Implementation notes

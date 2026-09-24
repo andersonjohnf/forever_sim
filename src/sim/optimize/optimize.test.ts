@@ -188,6 +188,8 @@ describe('optimize', () => {
     expect(shrunk.fights).toBe(1_500_000)
     expect(shrunk.initialFights).toBe(27)
     expect(shrunk.notes[0]).toMatch(/first round runs 27 fights each instead of 50/)
+    // It counts plans, the baseline included, and says so, beside the CLI's count of candidates (OV4-5).
+    expect(shrunk.notes[0]).toMatch(/^50,000 plans \(the baseline included\) are many/)
     // quick over 100,000: even 20 each doesn't fit, so the budget grows to 20 each and as much again.
     const grown = fitBudget({ fights: 1_500_000 }, 100_000)
     expect(grown).toMatchObject({ fights: 2 * MIN_FIRST_ROUND * 100_000, initialFights: MIN_FIRST_ROUND })

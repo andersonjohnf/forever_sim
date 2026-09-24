@@ -76,13 +76,14 @@ export function firstRound(budget: Budget, candidates: number): number {
 export const MIN_FIRST_ROUND = 20
 
 /**
- * The budget and first round a race of this many candidates runs (docs/optimizer.md#budgets). The
+ * The budget and first round a race of this many plans runs, the baseline included, since it runs
+ * every round too (docs/optimizer.md#budgets; the CLI's "candidates" count leaves it out). The
  * first round is `firstRound`'s while it fits in 90% of the budget; past that it shrinks to fit, to no
  * fewer than MIN_FIRST_ROUND fights; past that the budget grows to cover that first round and as much
  * again. A search on a space too big for its budget still runs, and `notes` says what changed.
  */
-export function fitBudget(budget: Budget, candidates: number): { fights: number; initialFights: number; notes: string[] } {
-  const n = Math.max(1, candidates)
+export function fitBudget(budget: Budget, plans: number): { fights: number; initialFights: number; notes: string[] } {
+  const n = Math.max(1, plans)
   const wanted = firstRound(budget, n)
   const fmt = (x: number) => x.toLocaleString('en-US')
   if (wanted * n <= 0.9 * budget.fights) return { fights: budget.fights, initialFights: wanted, notes: [] }
@@ -92,14 +93,14 @@ export function fitBudget(budget: Budget, candidates: number): { fights: number;
     return {
       fights: budget.fights,
       initialFights: fit,
-      notes: [`${fmt(n)} candidates are many for a budget of ${fmt(budget.fights)} fights: the first round runs ${fmt(fit)} fights each instead of ${fmt(wanted)}, so it drops fewer, and the race may end on the budget. A larger budget sharpens it.`],
+      notes: [`${fmt(n)} plans (the baseline included) are many for a budget of ${fmt(budget.fights)} fights: the first round runs ${fmt(fit)} fights each instead of ${fmt(wanted)}, so it drops fewer, and the race may end on the budget. A larger budget sharpens it.`],
     }
   const fights = 2 * MIN_FIRST_ROUND * n
   return {
     fights,
     initialFights: MIN_FIRST_ROUND,
     notes: [
-      `${fmt(n)} candidates don't fit a budget of ${fmt(budget.fights)} fights: the budget grew to ${fmt(fights)}, a first round of ${MIN_FIRST_ROUND} fights each and as much again. Narrow the search (keep or exclude talents, fewer rotation variants) or pick a larger budget.`,
+      `${fmt(n)} plans (the baseline included) don't fit a budget of ${fmt(budget.fights)} fights: the budget grew to ${fmt(fights)}, a first round of ${MIN_FIRST_ROUND} fights each and as much again. Narrow the search (keep or exclude talents, fewer rotation variants) or pick a larger budget.`,
     ],
   }
 }
@@ -378,6 +379,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   const setupFails = [...talentFails(baseline), ...sheetRules.filter((c) => !meetsSheet(baselineSheet, reference, [c])).map(constraintName)]
 
   const candidates = [baseline, ...valid]
+  // The baseline runs every round too, so the budget is fitted to every plan (OV4-5).
   const planned = fitBudget(options.budget, candidates.length)
   options.onProgress?.({
     phase: 'space',

@@ -443,7 +443,8 @@ again (a third of a rotation search with one variant).
 The first round runs 30% of the budget over the candidates, between 50 and 1,000 fights each
 (`firstRound`): 20,000 candidates get 90 each on `standard`, the bear's 129 get 1,000.
 `fitBudget` fits a space too big for its budget rather than failing, and the CLI prints a note
-saying what it changed:
+saying what it changed. It counts plans, the baseline included, since the baseline runs every round
+too; the note says so, beside the CLI's count of candidates, which leaves it out (OV4-5):
 
 | Candidates | What the first round does | `quick` | `standard` | `thorough` |
 | --- | --- | --- | --- | --- |

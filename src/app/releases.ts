@@ -24,7 +24,7 @@ export interface Release {
 export const RELEASES: readonly Release[] = [
   {
     id: '2026-09-24.4',
-    time: '2026-09-24T23:24:22Z',
+    time: '2026-09-24T23:29:09Z',
     groups: [
       {
         label: 'Tanks',
@@ -39,9 +39,9 @@ export const RELEASES: readonly Release[] = [
         label: 'DPS specs',
         items: [
           'Horde Frost and Arcane Mages wear Mindfang (+8 to 9%); Alliance Fire Mages (+9%) and Dwarf Elemental Shamans (+13%) wear Sageclaw.',
-          'Fire Mage gains from casting speed again, and Orc mages get Blood Fury’s spell power (+0.7%).',
+          'Fire Mage gains from casting speed again, and Orc mages get Blood Fury’s spell power (+0.7 to 0.8%).',
           'Gnome Eureka! for every class (+0.4 to 2.2%), and Expansive Mind for mages, priests and rogues.',
-          'Max consumables add Brilliant Wizard Oil for every caster: Destruction +4.7%, Shadow +3.5%, Balance +5%.',
+          'Max consumables add Brilliant Wizard Oil for Warlocks, Shadow Priests and Balance Druids: Destruction +4.7%, Shadow +3.5%, Balance +5%.',
         ],
       },
       {

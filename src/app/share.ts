@@ -76,9 +76,21 @@ export async function shareUrl(config: SimConfig): Promise<string> {
   return `${location.origin}${import.meta.env.BASE_URL}${PREFIX}${await packSetup(config)}`
 }
 
+/**
+ * The packed setup in a URL's fragment (`#s=…`, with its `#`): its `s` parameter, or null if it has
+ * none. Chat apps append tracking parameters to a link they pass on (`&fbclid=…`, `?utm_source=…`),
+ * so any other parameter, before or after it, is ignored, and `&` or `?` ends it. What's left is
+ * unpacked as it is, so a damaged code is still refused (docs/ux.md#persistence-and-sharing).
+ */
+export function fragmentCode(hash: string): string | null {
+  if (!hash.startsWith('#')) return null
+  for (const param of hash.slice(1).split(/[&?]/)) if (param.startsWith('s=')) return param.slice(2)
+  return null
+}
+
 /** Whether the current URL holds a share link. */
 export function hasSharedSetup(): boolean {
-  return location.hash.startsWith(PREFIX)
+  return fragmentCode(location.hash) !== null
 }
 
 /**
@@ -86,7 +98,8 @@ export function hasSharedSetup(): boolean {
  * before readSharedSetup loads it. Undefined without one; rejects if it's corrupt or too large.
  */
 export function peekSharedSetup(): Promise<unknown> | undefined {
-  return hasSharedSetup() ? unpackSetup(location.hash.slice(PREFIX.length)) : undefined
+  const code = fragmentCode(location.hash)
+  return code === null ? undefined : unpackSetup(code)
 }
 
 /**
@@ -96,10 +109,11 @@ export function peekSharedSetup(): Promise<unknown> | undefined {
  * breaks the page can't break it again on reload.
  */
 export async function readSharedSetup(): Promise<unknown> {
-  const hash = location.hash
-  if (!hasSharedSetup()) return undefined
+  const code = fragmentCode(location.hash)
+  if (code === null) return undefined
+  // The whole fragment goes, tracking parameters included; the query stays.
   clearSharedSetupFromUrl()
-  return unpackSetup(hash.slice(PREFIX.length))
+  return unpackSetup(code)
 }
 
 function clearSharedSetupFromUrl() {

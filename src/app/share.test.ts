@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { itemData } from '@/lib/items'
 import { buffCatalogue, defaultAplOrder, defaultConfig, enchantCatalogue, getSpec, moveAplRow, normalizeConfig, SPEC_IDS, type GearSlot, type SimConfig, type SpecId } from '@/sim'
 import { GEAR_SLOTS } from '@/sim/config/normalize'
-import { BrokenShareLinkError, MAX_LINK_CHARS, MAX_SETUP_BYTES, packSetup, readSharedSetup, unpackSetup } from './share'
+import { BrokenShareLinkError, hasSharedSetup, MAX_LINK_CHARS, MAX_SETUP_BYTES, packSetup, peekSharedSetup, readSharedSetup, unpackSetup } from './share'
 
 /** The largest setup the app can save for a spec: every slot enchanted, every buff and setting saved. */
 function largestSetup(spec: SpecId): SimConfig {
@@ -109,5 +109,50 @@ describe('share links', () => {
     vi.stubGlobal('history', { replaceState: vi.fn() })
     vi.stubGlobal('location', { hash: `#s=${await packSetup(null as unknown as SimConfig)}`, pathname: '/', search: '' })
     expect(await readSharedSetup()).toBeNull()
+  })
+
+  // Chat apps append tracking parameters to a link they pass on, around the fragment or inside it
+  // (#6): the link's setup is its `s` parameter, whatever else is there.
+  describe('with tracking parameters', () => {
+    const fury = normalizeConfig(defaultConfig('warrior-fury')).config
+    const at = (hash: string, search = '') => {
+      vi.stubGlobal('history', { replaceState: vi.fn() })
+      vi.stubGlobal('location', { hash, pathname: '/', search })
+    }
+
+    it('reads the setup whatever parameters come before or after it', async () => {
+      const code = await packSetup(fury)
+      for (const hash of [
+        `#s=${code}&fbclid=IwAR0abc-_123`,
+        `#s=${code}&utm_source=discord&utm_medium=chat`,
+        `#s=${code}?utm_source=discord`,
+        `#fbclid=IwAR0abc&s=${code}`,
+        `#x=y&s=${code}&z=1`,
+      ]) {
+        at(hash, '?utm_source=whatsapp')
+        expect(hasSharedSetup(), hash).toBe(true)
+        expect(await peekSharedSetup(), hash).toEqual(fury)
+        expect(await readSharedSetup(), hash).toEqual(fury)
+      }
+    })
+
+    it('takes the whole fragment out of the URL, tracking parameters included, and keeps the query', async () => {
+      at(`#s=${await packSetup(fury)}&fbclid=abc`, '?utm_source=x')
+      await readSharedSetup()
+      expect(vi.mocked(history.replaceState)).toHaveBeenCalledWith(null, '', '/?utm_source=x')
+    })
+
+    it('still refuses a code that’s corrupt, and ignores a fragment with no setup', async () => {
+      const code = await packSetup(fury)
+      at(`#s=${code.slice(0, code.length / 2)}&fbclid=abc`)
+      await expect(readSharedSetup()).rejects.toThrow()
+      at(`#s=${code.slice(0, 10)}!${code.slice(10)}`)
+      await expect(readSharedSetup()).rejects.toThrow()
+      at('#fbclid=abc&utm_source=x')
+      expect(hasSharedSetup()).toBe(false)
+      expect(await readSharedSetup()).toBeUndefined()
+      at('#settings=abc')
+      expect(hasSharedSetup()).toBe(false)
+    })
   })
 })

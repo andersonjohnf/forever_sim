@@ -906,6 +906,12 @@ Every view handles these states:
 - **A toast stays solid over an open sheet or dialog** (the results sheet, the item picker,
   About): a tap on it lands on the toast, not on what's under it, and neither a tap nor a swipe
   closes the sheet. (`src/app/toast-layer.ts` explains how.)
+- A link's setup is the `s` parameter of its fragment, whatever else is there: chat apps append
+  tracking parameters to a link they pass on, in the query (`?utm_source=…#s=…`) or after the code
+  (`#s=…&fbclid=…`, `#s=…?utm_source=…`), and those links load as they are. `&` or `?` ends the
+  code, and the code itself is read as it is, so a damaged one is still refused. The whole fragment
+  leaves the URL when it's read; the query stays (`fragmentCode` in `src/app/share.ts`). Import's
+  field reads a pasted link the same way.
 - Setups are versioned, so an old link still loads, or explains why it can't.
 - A link to a spec the app doesn't offer yet shows an error toast and leaves the current setup
   alone. A saved setup for such a spec is kept for later, and the default spec opens.

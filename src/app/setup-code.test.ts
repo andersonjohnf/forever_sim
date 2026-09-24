@@ -47,6 +47,12 @@ describe('finding the code in what was pasted', () => {
     expect(findSetupCode('https://example.com/forever_sim/#tab=gear&s=abc&x=1')).toBe('abc')
   })
 
+  test('a link a chat app added tracking parameters to, as an opened link reads it (#6)', () => {
+    expect(findSetupCode(`https://example.com/?utm_source=x${LINK.slice(LINK.indexOf('#'))}abc&fbclid=IwAR0`)).toBe('abc')
+    expect(findSetupCode(`${LINK}abc?utm_source=discord`)).toBe('abc')
+    expect(findSetupCode('https://example.com/#fbclid=IwAR0?s=abc')).toBe('abc')
+  })
+
   test('a link in a sentence, even after another hash', () => {
     expect(findSetupCode(`My #1 setup: ${LINK}abc, have fun`)).toBe('abc')
     expect(findSetupCode(`(${LINK}abc)`)).toBe('abc')

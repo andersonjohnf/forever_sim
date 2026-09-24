@@ -10,7 +10,7 @@ import { forSpecClass, presetBuffIds } from '../../effects/presets'
 import { BUFFS_BY_ID } from '../../effects/buffs'
 import { unusedRotationSettings } from '../../index'
 import { buildPlan } from '../../plan/build'
-import { COND, SCHOOL } from '../../plan/types'
+import { ACTION, COND, SCHOOL, TRIGGER } from '../../plan/types'
 import { CLASSIC_ERA } from '../../rules/profiles'
 import { DARK_SACRIFICE_MANA, SHADOW_FIXED_ROWS } from './shadow'
 import { priestManaPlan } from './setup'
@@ -139,6 +139,90 @@ describe('worked examples (docs/classes/priest.md#worked-examples)', () => {
     })
     const agg = runChunk(plan, 0, 1, new Sim(plan))
     expect(agg.manaBySource[row(plan, 'darkSacrifice')]).toBe(16000)
+  })
+})
+
+describe('Inner Focus’s +25% crit goes to its own spell only (docs/classes/priest.md#35-inner-focus-14751)', () => {
+  /** Test 8's setup, the sheet's spell crit exactly 0, so only a leaked +25% can crit. */
+  function zeroCritPlan(rotation: Record<string, boolean> = {}, durationMs = 4000) {
+    const plan = examplePlan({
+      talents: { 'Inner Focus': 1 },
+      rotation: { [ID.blast]: true, [ID.innerFocus]: true, ...rotation },
+      durationMs,
+      manaTenths: 50000,
+    })
+    plan.stats.spellCrit -= new Sim(plan).inspect().spellCrit
+    return plan
+  }
+  const run = (plan: ReturnType<typeof zeroCritPlan>, fights = 2000) => {
+    const sim = new Sim(plan)
+    for (let i = 0; i < fights; i++) sim.runFight(i)
+    return sim
+  }
+
+  it('spent on a channel of tick spells, the charge’s crit goes to nothing: its ticks crit at the sheet’s 0%', () => {
+    // Mind Blast made a channel with no spell of its own that casts its spell as one tick 100 ms in.
+    const plan = zeroCritPlan()
+    const blast = plan.abilities[abilityOf(plan, 'mindBlast')]
+    Object.assign(blast, { kind: 'channel', tickSpell: blast.spell, spell: -1, rageTicks: 1, rageTickMs: 100, rageTickTenths: 0 })
+    const { list } = events(plan)
+    expect(list.filter((e) => e.kind === 'use').map((e) => e.id).slice(0, 2)).toEqual(['innerFocus', 'mindBlast'])
+    const sim = run(plan)
+    const r = row(plan, 'mindBlast')
+    expect(counter(sim, r, FIELD.hits)).toBeGreaterThan(1000)
+    expect(counter(sim, r, FIELD.crits)).toBe(0)
+  })
+
+  it('determinism: a fight on a reused Sim deals what it deals on a fresh one, whatever the fight before spent the charge on', () => {
+    // The tick-spell channel above, also cast before the pull so its tick lands at 0 ms, before the
+    // rotation pays for anything: a crit left over from the fight before would show there.
+    const plan = zeroCritPlan({}, 12000)
+    const a = abilityOf(plan, 'mindBlast')
+    const blast = plan.abilities[a]
+    Object.assign(blast, { kind: 'channel', tickSpell: blast.spell, spell: -1, rageTicks: 1, rageTickMs: 100, rageTickTenths: 0 })
+    plan.prepull = { ...plan.prepull, casts: [{ ability: a, atMs: -100 }] }
+    const damage = (sim: Sim, fight: number) => {
+      let total = 0
+      sim.damageTrace = (_source, d) => (total += d)
+      sim.runFight(fight)
+      return total
+    }
+    const reused = new Sim(plan)
+    for (let fight = 0; fight < 200; fight++) expect(damage(reused, fight), `fight ${fight}`).toBe(damage(new Sim(plan), fight))
+  })
+
+  it('a spell a proc of the Inner Focus spell casts doesn’t get the charge’s crit', () => {
+    // A proc on Mind Blast landing that casts Shadow Word: Pain's spell: its DoT's snapshot crit is the
+    // sheet's 0%. One Mind Blast in 7 s (landing at 1.5 s), so a tick at 4.5 s.
+    const plan = zeroCritPlan({ [ID.pain]: true }, 7000)
+    const pain = plan.abilities[abilityOf(plan, 'shadowWordPain')]
+    const blast = plan.abilities[abilityOf(plan, 'mindBlast')]
+    // Only Inner Focus and Mind Blast are pressed; the proc casts Pain's spell.
+    plan.rotation = plan.rotation.filter((e) => plan.abilities[e.ability].id !== 'shadowWordPain')
+    plan.procs.push({
+      id: 'testProc',
+      name: 'Test proc',
+      trigger: TRIGGER.spellLanded,
+      chance: [1, 0],
+      hands: 1,
+      icdMs: 0,
+      action: ACTION.spell,
+      amount: pain.spell!,
+      a: 0,
+      b: 0,
+      school: SCHOOL.shadow,
+      source: plan.spells![pain.spell!].source,
+      chainBit: 0,
+      fromSource: blast.source,
+    })
+    plan.triggers[TRIGGER.spellLanded].push(plan.procs.length - 1)
+    const sim = run(plan)
+    const r = row(plan, 'shadowWordPain')
+    expect(counter(sim, r, FIELD.hits)).toBeGreaterThan(1000)
+    expect(counter(sim, r, FIELD.crits)).toBe(0)
+    // Mind Blast itself still crits at 25%.
+    const b = row(plan, 'mindBlast')
+    near(counter(sim, b, FIELD.crits) / counter(sim, b, FIELD.casts), 0.25, 2000)
   })
 })
 

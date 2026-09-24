@@ -251,8 +251,9 @@ This section adds the warrior's own sources and sinks.
   - utility and cooldowns: Pummel, Shield Bash, Intercept, Mocking Blow, Disarm, Concussion
     Blow, Death Wish, Sweeping Strikes
   - **not** reduced: Battle Shout, Shield Block, Berserker Rage, Bloodrage
-- Gnome Eureka! cuts the next 3 damaging abilities' cost by 40%. How it rounds is Q18 [F]
-  [rac] [db-eff].
+- Gnome Eureka! cuts the next 3 damaging abilities' cost by 40%, rounded down to whole rage
+  (Q18 [?]): Bloodthirst and Mortal Strike 30 → 18, Whirlwind 25 → 15, Execute's 15 → 9 [F]
+  [rac] [db-eff]. The model is every class's ([§7](#7-implementation-notes), `src/sim/classes/eureka.ts`).
 
 ### 2.4 Heroic Strike and Cleave (on-next-swing)
 
@@ -721,7 +722,7 @@ off, and Death Wish, Recklessness and the Mighty Rage Potion follow the execute 
 | 0 | Pre-pull | Battle Shout at −3 s (with row 1 on); Bloodrage at −1 s. No Charge; the warrior walks in, as in [wh-fury] | `fury.prepull.battleShout` (on; needs `fury.battleShout.enabled`), `fury.prepull.bloodrage` (on), `fury.prepull.charge` (off; adds 15 rage, +3 per Improved Charge rank, and needs a swap to Berserker Stance that keeps only 25) | yes |
 | 1 | Battle Shout | Buff missing, or at most `refreshBelowSec` left and it would run out before the fight ends; rage ≥ 10. It replaces the Buffs tab's Battle Shout; see the notes | `fury.battleShout.enabled` (on), `.refreshBelowSec` (3) | yes |
 | 2 | Death Wish | On cooldown from the pull. If `alignToEnd` is on, the final use waits until 30 s are left, so it lasts until the fight ends, or until `beforeExecuteSec` before the execute phase starts, whichever comes first. Without an execute phase, or with Execute (row 7) off, only the 30 s | `fury.deathWish.enabled` (on), `.alignToEnd` (on), `.beforeExecuteSec` (3; dimmed with Execute off) | yes |
-| 3 | Racial or trinket cooldowns | Use together with Death Wish, then on cooldown; see the notes. Blood Fury, Berserking and Elune's Light ([§2.9](#29-racials-for-warriors)), and the on-use trinkets the sim models: Weakness Analyzer, and Earthstrike (+280 attack power for 20 s, modelled with the shaman). Eureka! isn't simulated (Q18); Diamond Flask, now a heal, left the pool (Q30) | `fury.racial.enabled` (on), `fury.trinkets.enabled` (on), `fury.cooldowns.syncWithDeathWish` (on; `fury.racial.syncWithDeathWish` before M2.2c, carried over) | yes |
+| 3 | Racial or trinket cooldowns | Use together with Death Wish, then on cooldown; see the notes. Blood Fury, Berserking, Elune's Light and Eureka! ([§2.9](#29-racials-for-warriors), §7), and the on-use trinkets the sim models: Weakness Analyzer, and Earthstrike (+280 attack power for 20 s, modelled with the shaman); Diamond Flask, now a heal, left the pool (Q30) | `fury.racial.enabled` (on), `fury.trinkets.enabled` (on), `fury.cooldowns.syncWithDeathWish` (on; `fury.racial.syncWithDeathWish` before M2.2c, carried over) | yes |
 | 4 | Recklessness | Once: `beforeExecuteSec` before the execute phase starts, or when ≤ `lastSec` s are left, whichever comes first. Without an execute phase, or with Execute off, only the latter. It needs Berserker Stance | `fury.recklessness.enabled` (on), `.beforeExecuteSec` (1.5; dimmed with Execute off), `.lastSec` (16) | yes |
 | 5 | Bloodrage (off the GCD) | On cooldown, if it won't push rage over the cap: rage ≤ max − 20 | `fury.bloodrage.enabled` (on), `.maxRage` (max − 20) | yes |
 | 6 | **Execute phase** (target ≤ 20%): Bloodthirst | AP ≥ `btOverExecuteAp` and rage ≥ 30 | `fury.execute.bloodthirst` (on; new with the priority list, below, so the row has its own switch), `fury.execute.btOverExecuteAp`, default **2220**: [W11](#w11-bloodthirst-versus-execute-break-even) at the default build's Execute cost 15. The default doesn't follow the build: with Improved Execute 2/2 (cost 10) set 2434 | yes |
@@ -1133,7 +1134,7 @@ have.
 | 9 | Overpower | Window open (dodge or Bloodthrill); Mortal Strike is GCD-safe, or rage ≥ 35 (Mortal Strike's 30 + Overpower's 5). In both phases. In Berserker Stance, a dance to Battle Stance at rage ≤ 25 | `arms.overpower.enabled` (on in Battle Stance, off in Berserker) | Battle Stance |
 | 10 | Slam | Off cooldown; rage ≥ 15 + `reserve`; Mortal Strike is GCD-safe over Slam's own GCD (1 s with Improved Slam 2/2); outside the execute phase | `arms.slam.enabled` (on), `.reserve` (5) | yes |
 | 11 | Spearing Strike | Target is a Giant or Dragonkin: on cooldown. Otherwise: rage ≥ `minRageOtherTargets` and Mortal Strike is GCD-safe. Outside the execute phase | `arms.spearingStrike.enabled` (on; needs the talent and a two-hander), `.minRageOtherTargets` (35) | yes |
-| 12 | Whirlwind | Mortal Strike is GCD-safe; outside the execute phase. From Battle Stance, a dance to Berserker Stance at rage ≤ `maxRage`; in Berserker Stance, no dance | `arms.whirlwind.enabled` (off in Battle Stance, on in Berserker), `.maxRage` (30) | Berserker Stance |
+| 12 | Whirlwind | Mortal Strike is GCD-safe; outside the execute phase. From Battle Stance, a dance to Berserker Stance at rage ≤ `maxRage`; in Berserker Stance (the base stance, or after Recklessness's swap), no dance and no rage limit | `arms.whirlwind.enabled` (off in Battle Stance, on in Berserker), `.maxRage` (30) | Berserker Stance |
 | 13 | Heroic Strike queue (off the GCD) | Off by default: its swing gives no rage ([§2.4](#24-heroic-strike-and-cleave-on-next-swing)), and Arms' rage does more elsewhere (notes). When it's on: rage ≥ `minRage` (125, near the 130 cap); optional unqueue; outside the execute phase | `arms.heroicStrike.enabled` (off), `.minRage` (125), `.unqueue` (off), `.unqueueBelow` (20) | no |
 | 14 | Hamstring | Rage ≥ `minRage`; GCD-safe for Mortal Strike, Slam, Spearing Strike and Whirlwind (useful with Weaponmaster swords or Windfury); outside the execute phase | `arms.hamstring.enabled` (on), `.minRage` (40) | yes |
 | 15 | Sweeping Strikes (off the GCD) | 2 or more targets: on cooldown. **Not simulated** until multi-target support ([§5.5](#55-multi-target-options-light)): the sim has one target | none yet | multi-target |
@@ -1175,7 +1176,7 @@ Notes:
 - **Recklessness and the stance** (row 4). From Battle Stance the line dances to Berserker
   Stance and **stays**: that stance becomes the base stance for the rest of the fight, so the
   engine never swaps back ([§7](#7-implementation-notes) "Stance dancing"). Rend and Overpower
-  then wait for good, and the Whirlwind line, if it's on, needs no dance. There's no rage guard:
+  then wait for good, and Whirlwind, if it's on, needs no dance and no rage limit (row 12). There's no rage guard:
   the swap keeps at most 25, and delaying Recklessness costs more of its 15 s than the rage is
   worth. **When.** It follows the execute phase, whose start each fight knows, as it knows its
   length ([encounter.md](../mechanics/encounter.md#implementation-notes)). By default it comes
@@ -1231,11 +1232,14 @@ Notes:
   (−23 DPS; seed 777, 20,000 fights). Fury's Heroic Strike queue spends it on every main-hand
   swing, under Recklessness's crits.
 - **The Whirlwind dance** (row 12). Whirlwind costs 25 and the swap keeps 25, so the dance needs
-  25–`maxRage` rage; 30 gives it a 5-rage window, where 25 would allow exactly 25. After
-  Recklessness the line still waits for rage ≤ `maxRage`, though it no longer swaps. It counts
-  in Hamstring's GCD-safe check (row 14) only at rage its dance could use (25–30): above
-  `maxRage` it isn't coming up ([§7](#7-implementation-notes) "GCD-safe and stances"), so it no
-  longer holds Hamstring back at its 40 rage or more.
+  25–`maxRage` rage; 30 gives it a 5-rage window, where 25 would allow exactly 25. The limit is
+  the dance's: after Recklessness's swap leaves the warrior in Berserker Stance, a second, plain
+  line uses Whirlwind at any rage, as a Berserker base stance does. (Until September 2026 the line
+  kept its ≤ 30 there, and Hamstring, from 40, waited on the Whirlwind it held back: with no execute
+  phase, 606.8 → 616.6 DPS with Whirlwind on, seed 12345, 20,000 fights; the default, Whirlwind off,
+  is unchanged.) Before that swap it counts in Hamstring's GCD-safe check (row 14) only at rage
+  its dance could use (25–30): above `maxRage` it isn't coming up ([§7](#7-implementation-notes)
+  "GCD-safe and stances"), so it no longer holds Hamstring back at its 40 rage or more.
 - **GCD-safe for Mortal Strike** (rows 9–12) is checked over the line's own GCD: 1 s for Slam
   with Improved Slam 2/2, 1.5 s for the rest ([§5.1](#51-conventions-for-rotation-settings)).
   Hamstring (row 14) is GCD-safe for every ability above it with a cooldown. Rend and Overpower
@@ -2222,9 +2226,13 @@ seed 12345). The enchants stay the spec's
   ([rage.md](../mechanics/rage.md#forever-)).
 - **Berserker Rage's extra rage from damage taken** uses rage.md's ×1.0 default [?] (Q20), so
   its aura would change nothing and isn't applied. The result flags this when damage is taken.
-- **Eureka! isn't simulated** (Gnome). Its 3 charges would need a per-cast cost and damage
-  modifier on damaging abilities, and three unknowns from Q18: how the 40% rounds, whether it
-  cuts Execute's extra rage, and whether a miss spends a charge. The result says so for Gnomes.
+- **Eureka!** (Gnome, `src/sim/classes/eureka.ts`) goes with the other racials (row 3, aligned with
+  Death Wish when that's on). Its aura has 3 charges; each use of an ability the client's masks cover
+  (Bloodthirst, Mortal Strike, Whirlwind, Slam, Execute, Overpower, Heroic Strike, Hamstring, Shield
+  Slam, Thunder Clap, Rend; not Sunder Armor, Revenge or Spearing Strike) spends one as it's paid,
+  whether it lands or not, at 40% off its cost rounded down, and deals +10% (Rend's bleed +10%). The
+  Q18 answers are [?]: rounded down, Execute's base cost only, a miss spends a charge (`eureka`).
+  Worth +1.48% Fury, +1.46% Arms and +0.64% Protection TPS (Gnome, racial on vs off, the defaults, seed 12345, 20,000 fights).
 - **Time-left conditions.** The fight's drawn length is known, so "time left ≤ x" and "≥ x"
   become a window of times per line for each fight: the engine compares the time with it,
   without evaluating a condition, and wakes the rotation at `fight end − x`, when a "≤ x"
@@ -2722,7 +2730,8 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
 17. **Max rage for Gnomes with Boundless Rage.** Is it (100 + 30) × 1.05 = 136.5, or
     100 × 1.05 + 30 = 135? How does the fraction round?
 18. **Eureka!.** How does the 40% cost cut round? Execute costs 15, and 40% of it is 6. Does
-    Eureka! reduce the extra rage Execute consumes? Does it spend a charge on a miss?
+    Eureka! reduce the extra rage Execute consumes? Does it spend a charge on a miss? The sim
+    rounds down, cuts only the base cost and spends a charge on a miss (`eureka`) [?].
 19. **Improved Slam's replacement spells.** The Improved Slam ranks replace the Slam spells
     (1310196–1310200, [F] [client] (SpellName, 1.60.1.69913)) and carry an extra attribute. Does
     anything else change: cooldown, rage?

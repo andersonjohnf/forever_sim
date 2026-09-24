@@ -459,40 +459,6 @@ export const shadowAndFlameProcs = (rank: number): ProcSpec[] => [
   },
 ]
 
-// --- Racial cooldowns (warlock.md §7.2) -----------------------------------------------------------
-
-const racial = (id: string, name: string, icon: string, cooldownMs: number, aura: AuraSpec): AbilityDef => ({
-  ...WARLOCK,
-  id,
-  name,
-  icon,
-  kind: 'cast',
-  gcdMs: 0,
-  cooldownMs,
-  aura,
-})
-
-/** Blood Fury (20572), Forever's: +10% attack power and spell power for 15 s (auras 166, 167, 317), 2 min [F] [client] (SpellEffect, 1.60.1.69913). */
-export const BLOOD_FURY_CASTER = racial('bloodFury', 'Blood Fury', 'racial_orc_berserkerstrength', 120000, {
-  id: 'bloodFury',
-  name: 'Blood Fury',
-  durationMs: 15000,
-  mods: { apPct: 10, spellDamagePct: 10 },
-})
-/** Berserking (20554), Forever's: +10% casting and attack speed for 10 s (auras 65, 140, 319), 3 min [F] (docs/mechanics/spells.md §4). */
-export const BERSERKING_CASTER = racial('berserking', 'Berserking', 'racial_troll_berserk', 180000, {
-  id: 'berserking',
-  name: 'Berserking',
-  durationMs: 10000,
-  mods: { haste: 10, castHaste: 10 },
-})
-
-/** The warlock's racial cooldowns, by race (Undead, Human and Gnome have none the sim uses). */
-export const WARLOCK_RACIALS: Readonly<Partial<Record<string, AbilityDef>>> = {
-  'horde-orc': BLOOD_FURY_CASTER,
-  'horde-troll': BERSERKING_CASTER,
-}
-
 /** An on-use item or consumable as a warlock `cast`: no cost, its cooldown, GCD and buff, its mana at once (buffs doc §3.5). */
 export const consumable = (use: OnUseSpec): AbilityDef => ({
   ...WARLOCK,

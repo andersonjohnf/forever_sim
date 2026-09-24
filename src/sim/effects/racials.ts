@@ -2,8 +2,8 @@
 //
 // Passive racials only. Cooldown racials are rotation actions the class rotation presses: Blood
 // Fury, Berserking and Elune's Light are `cast` abilities of the Fury rotation
-// (classes/warrior/abilities.ts, warrior.md §5.2 row 3); Eureka! isn't simulated yet (warrior.md
-// §7, Q18); Touch of the Grave, Stoneform and Shatter Curse aren't simulated (warrior.md §2.9, Q16).
+// (classes/warrior/abilities.ts, warrior.md §5.2 row 3); Eureka! is each class's (classes/eureka.ts);
+// Touch of the Grave, Stoneform and Shatter Curse aren't simulated (warrior.md §2.9, Q16).
 import type { WeaponType } from '@/data/items/types'
 import type { ClassId } from '../types'
 import type { Effect } from './types'
@@ -23,8 +23,10 @@ const weaponRacial = (value: number, types: WeaponType[]): Effect[] => [
 ]
 
 const SKYBORNE: Effect[] = [
-  // Wind Blessed: +1% melee, ranged and spell haste [F] (character-stats racials table)
+  // Wind Blessed (1259710): +1% melee and ranged haste (aura 342) and +1% casting speed (aura 65) [F]
+  // [client] (SpellEffect, 1.60.1.69913; character-stats racials table)
   { kind: 'haste', pct: 1 },
+  { kind: 'castHaste', pct: 1 },
   // Elemental Insight: +5% damage vs Elementals [F]
   { kind: 'damage', pct: 5, when: { creature: ['elemental'] } },
 ]
@@ -50,10 +52,22 @@ export function racialEffects(race: string, classId: ClassId): Effect[] {
       // Quickness (20582): +1% dodge [F]
       return [{ kind: 'stat', stat: 'dodge', value: 1 }]
     case 'alliance-gnome':
-      // Expansive Mind, warrior version (1259802): maximum Rage +5% [F]; how it combines with Boundless Rage is [?] (warrior Q17)
-      // Forever's caster version (20591): maximum mana +5% (aura 178) [F] (docs/classes/warlock.md#72-race).
-      if (classId === 'warlock') return [{ kind: 'mult', stat: 'mana', pct: 5 }]
-      return classId === 'warrior' ? [{ kind: 'maxRagePct', pct: 5 }] : []
+      // Expansive Mind, one spell per class mask (character-stats.md#racials-that-matter-to-the-sim) [F]:
+      switch (classId) {
+        // 1259802 (warrior): maximum Rage +5%; how it combines with Boundless Rage is [?] (warrior Q17)
+        case 'warrior':
+          return [{ kind: 'maxRagePct', pct: 5 }]
+        // 1259803 (rogue): maximum Energy +5% (aura 178, misc 3); how it combines with Vigor is [?] (rogue.md §2.1)
+        case 'rogue':
+          return [{ kind: 'maxEnergyPct', pct: 5 }]
+        // 20591 (priest, mage, warlock: class mask 400): maximum mana +5% (aura 178)
+        case 'priest':
+        case 'mage':
+        case 'warlock':
+          return [{ kind: 'mult', stat: 'mana', pct: 5 }]
+        default:
+          return []
+      }
     case 'horde-orc':
       // Axe Specialization (20574): +1% crit while an axe is equipped [F]; either hand [?] (warrior Q15)
       return weaponRacial(1, ['axe'])
@@ -73,16 +87,4 @@ export function racialEffects(race: string, classId: ClassId): Effect[] {
     default:
       return []
   }
-}
-
-/**
- * Racial cooldowns (warrior.md §2.9), for the assumptions list: whether a rotation can press them
- * yet. Blood Fury, Berserking and Elune's Light are in the Fury rotation (row 3); Eureka! isn't
- * simulated (its charges and cost rounding are Q18).
- */
-export const COOLDOWN_RACIALS: Record<string, { name: string; simulated: boolean }> = {
-  'horde-orc': { name: 'Blood Fury', simulated: true },
-  'horde-troll': { name: 'Berserking', simulated: true },
-  'alliance-night-elf': { name: 'Elune’s Light', simulated: true },
-  'alliance-gnome': { name: 'Eureka!', simulated: false },
 }

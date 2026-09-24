@@ -484,19 +484,3 @@ export const MANA_TIDE_TOTEM: AbilityDef = {
   rageTicks: 4,
   rageTickMs: 3000,
 }
-
-/**
- * The caster's racial cooldowns [F] [client] (SpellEffect, SpellDuration, SpellCooldowns,
- * 1.60.1.69913): Troll Berserking (20554) is +10% attack speed (auras 319, 140) **and casting speed**
- * (aura 65) for 10 s every 3 min; Orc Blood Fury (20572) is +10% attack power (aura 166) **and +10%
- * spell power** (aura 317) for 15 s every 2 min, which the Elemental plan gives as 10% of the sheet's
- * spell damage, as a flat aura [?] (shaman.md#elemental-defaults).
- */
-export const casterBerserking = (base: AbilityDef): AbilityDef => ({
-  ...base,
-  aura: { id: 'berserking', name: 'Berserking', durationMs: 10000, mods: { haste: 10, castHaste: 10 } },
-})
-export const casterBloodFury = (base: AbilityDef, spellDamage: number): AbilityDef => ({
-  ...base,
-  aura: { id: 'bloodFury', name: 'Blood Fury', durationMs: 15000, mods: { apPct: 10, spellDamage } },
-})

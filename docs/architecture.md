@@ -428,9 +428,16 @@ A spec is data plus small ability modules, never its own loop.
   limited to crits of some schools and kept when a stack is added (`critChargeSchools`,
   `refreshKeepsCharges`), and it can raise mana costs (`manaCostPct`: Arcane Power). A proc can return
   a share of the critting spell's cost (`manaOfCost`: Master of Elements). A caster's Clearcasting is
-  the plan's free-cast aura (`Plan.freeCastAura`). Conditions `auraStacksBelow` (42) and
-  `auraEndsWithin` (43) keep a stacking debuff up (Scorch's Fire Vulnerability). A one-use ability's
+  the plan's free-cast aura (`Plan.freeCastAura`). Conditions `auraStacksBelow` (42),
+  `auraEndsWithin` (43) and `auraEndsBeforeCasts` (44) keep a stacking debuff up (Scorch's Fire
+  Vulnerability, refreshed so the Scorch lands before the spell cast next lets it run out), and
+  `dotTickWait` (45) makes the walk wait for a DoT's tick rather than cut it off (Pyroblast): the
+  one condition that ends the walk and schedules its return. A one-use ability's
   last use still holds its cooldown category (the mana gems, which the Demonic Rune joins).
+- **Gnome Eureka!** (`Plan.eureka`, `AbilityPlan.eureka`; `src/sim/classes/eureka.ts`): an aura
+  with charges and bits per ability (cost, direct damage, DoT). A marked ability used while it's up
+  pays its cut cost (`costNow`, which the warrior's marked rows then pay through), spends a charge
+  (`eurekaTake`), and only its own strike, spell and DoT or bleed snapshot read the +10%.
 - **The warlock's pieces** ([warlock.md §8](classes/warlock.md#8-implementation-notes)), on the caster
   core, each optional so a plan without them runs as before: a DoT's own multiplier
   (`SpellDef.dotDamageMult`), a boost that keeps its aura (`boost.keep`: Incinerate on Immolate), an
@@ -490,7 +497,16 @@ A spec is data plus small ability modules, never its own loop.
   (medians of five, alternating with main's): Fury 7,164, 7,236, 7,140 and 7,146 against 7,265,
   7,259, 7,225 and 7,335; Arms 13,543, 13,553, 13,334 and 13,593 against 13,625, 13,716, 13,410
   and 13,933; Retribution, whose spells take its extra reads, 8,624, 8,841, 8,832 and 8,657
-  against 8,865, 8,968, 8,847 and 8,925.
+  against 8,865, 8,968, 8,847 and 8,925. The Fire mage's casting-speed fix (its two extra Scorch
+  lines, COND 44 and 45) cost the default Fire mage about 14%: most of it was the condition
+  switch, whose `case COND.x` labels V8 tests one by one (and in Vitest, through the module
+  runner's import bindings). Its labels are now COND's numbers with each name after them
+  (`engine/cond-cases.test.ts` checks the pairs), and COND 44 tries the casts' base times before
+  their casting-speed times. Results are unchanged. Medians of eight runs, one process, the
+  engines alternating: bundled in Node, 20,621 fights a second before and 22,092 after, against
+  23,839 before the fix; in Vitest, 8,368 before and 17,686 after (medians of six), against
+  10,556 before the fix. The default Fury warrior gained about 6% in Vitest (6,334 to 6,717,
+  medians of five) and nothing bundled (9,067 and 9,147).
 - **Abilities** are rows of `Plan.abilities` (`AbilityPlan`), resolved by one switch on `kind`:
   `weaponStrike` (one roll: Whirlwind, Hamstring, …), `meleeSpell` (two rolls: Bloodthirst,
   Execute, …), `onNextSwing` (Heroic Strike: queued off the GCD, it replaces the next

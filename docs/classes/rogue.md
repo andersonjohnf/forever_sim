@@ -137,7 +137,7 @@ Slash's extra attack (§5.2) and the Orc's axe racial.
 | Rule | Value | Tag, source |
 | --- | --- | --- |
 | Regeneration | 20 Energy per tick, every 2 s, on the player-global power tick with a random phase | [C] as the cat's ([druid.md §2.4](druid.md#24-energy-cat)) |
-| Cap | 100, +5 per rank of Vigor | [?] cap (the cat's Q29); Vigor [F] (aura 35, curve 5/10) |
+| Cap | 100, +5 per rank of Vigor; a Gnome's Expansive Mind (1259803) multiplies the total by 1.05, rounded down to whole Energy: 105 without Vigor, 110 with 1/2 (110.25) and 115 with 2/2 (115.5) | [?] cap (the cat's Q29); Vigor [F] (aura 35, curve 5/10); Expansive Mind [F] [client] (aura 178, misc 3 = Energy, 1.60.1.69913), multiplying Vigor's too [?] as the warrior's rage (warrior Q17); rounded down [?]: the client shows whole Energy |
 | At the pull | Full | [?] |
 | Adrenaline Rush | Each tick doubled (+100% regeneration, aura 110) | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Refunds | An avoided builder gets 80% back; a finisher nothing, and keeps its points | [?] (the cat's Q29) |
@@ -478,7 +478,13 @@ With Hemorrhage building, rows 7 and 8 do nothing, and the Rotation tab says so.
 
 **Human**: +2% crit with a sword (Forever's racial, [warrior.md §2.9](warrior.md#29-racials-for-warriors))
 and no racial cooldown. Orcs (Blood Fury), Trolls (Berserking) and Night Elves (Elune's Light) press
-theirs on cooldown.
+theirs on cooldown. A Gnome's Expansive Mind raises the Energy cap by 5% ([§2.1](#21-energy)), and
+it presses Eureka! (1259812) on cooldown: the next 3 of Sinister Strike, Backstab, Ambush, Ghostly
+Strike, Eviscerate, Rupture, Mutilate and Blade Flurry cost 20% less Energy, rounded down, and deal
++10% (Rupture's bleed +10%; Mutilate's cast, 1241584, is in the cost mask and its strikes, 1241586
+and 1241590, in the damage mask, so both hands' +10%; not Hemorrhage) [F] [client]
+(`src/sim/classes/eureka.ts`, [?] `eureka`): +0.75% Combat, +2.04% Assassination, +0.87% Subtlety
+(Gnome, racial on vs off, the defaults, seed 12345, 20,000 fights).
 
 ### 7.3 Weapons and gear
 

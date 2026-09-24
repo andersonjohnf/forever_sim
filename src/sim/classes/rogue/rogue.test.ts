@@ -21,6 +21,7 @@ import { ACTION, type AbilityDef, COND, type Plan, TRIGGER_COUNT } from '../../p
 import { type Aggregate, emptyAggregate, mergeChunk, toResult } from '../../run/aggregate'
 import { FOREVER } from '../../rules/profiles'
 import type { SimConfig } from '../../types'
+import { encodeTalentCode } from '@/data/talents/types'
 import { talentRanksByName } from '../index'
 import {
   ADRENALINE_RUSH,
@@ -203,6 +204,11 @@ describe('talents against the client’s curves (rogue.md §5)', () => {
     expect(at('Improved Poisons', 5)).toEqual([{ kind: 'poisonChance', pct: curve('Improved Poisons', 0)[4] }])
     expect(at('Serrated Blades', 3)).toEqual([{ kind: 'weaponArmorPenPct', pct: curve('Serrated Blades', 0)[2] }])
     expect(rogueEnergy(ranks([['Vigor', 2]])).maxTenths).toBe(BASE_MAX_ENERGY_TENTHS + 10 * curve('Vigor')[1])
+    // A Gnome's Expansive Mind multiplies the total, rounded down to whole Energy [?] (rogue.md §2.1):
+    // (100 + 10) × 1.05 = 115.5 → 115; (100 + 5) × 1.05 = 110.25 → 110; 100 × 1.05 = 105 exactly.
+    expect(rogueEnergy(ranks([['Vigor', 2]]), 1.05)).toMatchObject({ maxTenths: 1150, startTenths: 1150 })
+    expect(rogueEnergy(ranks([['Vigor', 1]]), 1.05)).toMatchObject({ maxTenths: 1100, startTenths: 1100 })
+    expect(rogueEnergy(ranks([]), 1.05)).toMatchObject({ maxTenths: 1050, startTenths: 1050 })
     expect(VIGOR_TENTHS_PER_RANK).toBe(10 * curve('Vigor')[0])
   })
 
@@ -418,6 +424,21 @@ describe('the engine with a rogue (rogue.md §2, §4, §8)', () => {
     // combat-tables §1.1 (forever): 27% dual-wield white miss, 8% special, less hit.
     expect(view.whiteThresholds[1][0]).toBeCloseTo(27 - hit, 9)
     expect(view.specialThresholds[0]).toBeCloseTo(Math.max(0, 8 - hit), 9)
+  })
+
+  it('caps a Gnome’s Energy at 115 with Vigor 2/2 all fight, and starts it full (rogue.md §2.1)', () => {
+    const vigor = encodeTalentCode(TALENT_DATA.rogue, { 'rogue-assassination-vigor': 2 })
+    const peaks = (race: string) => {
+      const sim = new Sim(buildPlan({ ...defaultConfig('rogue-combat'), race, talents: vigor }).plan)
+      const seen: number[] = []
+      sim.castTrace = () => seen.push(sim.resources().energy)
+      sim.damageTrace = () => seen.push(sim.resources().energy)
+      for (let i = 0; i < 5; i++) sim.runFight(i)
+      return { first: seen[0], most: Math.max(...seen) }
+    }
+    // (100 + 10) × 1.05 = 115.5, rounded down to whole Energy [?]; a Human's is 110.
+    expect(peaks('alliance-gnome')).toEqual({ first: 1150, most: 1150 })
+    expect(peaks('alliance-human')).toEqual({ first: 1100, most: 1100 })
   })
 
   it('puts each poison on its own hand, and one Deadly Poison on the boss whichever hand applies it', () => {

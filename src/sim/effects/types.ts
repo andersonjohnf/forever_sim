@@ -154,6 +154,8 @@ export type Effect = (
   /** Maximum rage, flat or % (rage.md#rage-pool-cap-and-decay). */
   | { kind: 'maxRage'; value: number }
   | { kind: 'maxRagePct'; pct: number }
+  /** Maximum Energy % (a Gnome rogue's Expansive Mind; rogue.md §2.1). */
+  | { kind: 'maxEnergyPct'; pct: number }
   /** Per-weapon effects: only weapons of these types (all weapons when omitted). */
   | { kind: 'weaponDamage'; value: number; weapons?: WeaponType[] }
   /** Aura crit % on the attacks made with these weapons, not spells (Weaponmaster, axes and polearms). */

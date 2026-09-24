@@ -153,7 +153,7 @@ random stream. Its class doc gives its numbers; the rules here are shared.
 | Attack speed | most hunter pets 2.0 s; faster ones deal proportionally less a hit | [C] ([petopia-speed]); Forever reports pets aren't normalized [?] ([fbugs] #31) |
 | Family and happiness | a family's damage modifier (cat ×1.10) and Happy ×1.25, Content ×1, Unhappy ×0.75, all in the pet's damage multiplier; loyalty changes only training points | cat and happiness [C] ([wt-pets]); loyalty [C] ([petopia-train]); other families [?] |
 | Its table | the player formulas of combat-tables §2–§4 at the pet's level and skill (5 × its level): miss, dodge, parry and block from the front, glancing (40% vs +3) for a pet whose white swings glance, crit less the +3 suppression, as a player's. Its aura crit is its buffs' and the crit it inherits from you (§6.1), so against +3 its physical attacks lose up to 1.8% ([combat-tables §4.4](combat-tables.md#44-crit-suppression)) | [?] no Classic Era measurement ([OQ-7](#oq-7-the-pets-attack-table)) |
-| Position | behind the boss by default (no parry or block); a class can put it in front | [?] |
+| Position | behind the boss by default (no parry or block); a class can put it in front, where a parried attack hastes the boss's swing as yours does ([damage-and-timing §3.4](damage-and-timing.md#34-parry-haste)) | [?] |
 | White damage | `(roll + its AP / 14 × its speed) × its damage multiplier × armor at its level`, crit ×2 | [?] ([wys-formulas]) |
 | Its haste | its own attack speed, and your auras' pet haste (Frenzy: +30% for 8 s) | Frenzy [F] [client] (SpellEffect, 1.60.1.69977) |
 

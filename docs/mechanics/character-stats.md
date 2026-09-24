@@ -135,8 +135,8 @@ matters for tanking survival (not modelled for DPS/TPS unless noted); *ignore* =
 | Night Elf | Elune's Light (1259799) | +10% crit chance with all spells and attacks for 15 s (aura 290, value 10); 3 min cooldown | did not exist | CD | [F] [client] (SpellEffect, SpellMisc, 1.60.1.69913) |
 | Night Elf | Shadowmeld | now usable in combat (drops aggro, 2 min cooldown when used in combat) | 10 s cooldown, out of combat | ignore (see [threat.md](threat.md)) | [F] [racials][fc-racials] |
 | Night Elf | Nature Resistance | **removed** | +10 Nature resistance | — | [F] [racials][fc-racials] |
-| Gnome | Expansive Mind, warrior version (1259802) | Warrior: maximum Rage +5% (aura 178, misc 1 = Rage) → 105 | Intellect +5% (all classes) | stat: see [rage.md](rage.md) | [F] [client] (SpellEffect, 1.60.1.69913) |
-| Gnome | Eureka!, warrior version (1259813) | Next 3 damaging abilities cost 40% less Rage and deal 10% more damage; 15 s window; 2 min cooldown; no cost | did not exist | CD (charges) | [F] [client] (SpellEffect, SpellMisc, SpellPower, 1.60.1.69913) |
+| Gnome | Expansive Mind: one spell per class (`ClassMask`) | Warrior (1259802, mask 1): maximum Rage +5% (aura 178, misc 1 = Rage) → 105. Rogue (1259803, mask 8): maximum Energy +5% (aura 178, misc 3 = Energy) → 105. Priest, mage, warlock (20591, mask 400): maximum mana +5% (aura 178) | Intellect +5% (all classes) | stat: rage [rage.md](rage.md); Energy [rogue.md §2.1](../classes/rogue.md#21-energy); mana a multiplier on the sheet's maximum | [F] [client] (SpellEffect, SkillLineAbility, 1.60.1.69913) |
+| Gnome | Eureka!, one spell per class: warrior 1259813, rogue 1259812, mage 1259817, warlock 1259821, priest 1259823 | Next 3 damaging abilities cost 40% less Rage (rogue 20% Energy, mage and warlock 50% mana, priest 15% mana) and deal 10% more damage, their periodic damage 10% more (aura 108 misc 14, 0 and 22 on the class's spell masks); 3 charges, 15 s, 2 min cooldown, no cost | did not exist | CD (charges): every class presses it (`src/sim/classes/eureka.ts`); a charge per modified ability as it's paid, landed or not, the cut rounded down [?] (`eureka`) | [F] [client] (SpellEffect, SpellAuraOptions, SpellClassOptions, 1.60.1.69913) |
 | Gnome | Arcane Resistance | **removed** | +10 Arcane resistance | — | [F] [racials][fc-racials] |
 | Orc | Axe Specialization (20574) | +1% crit chance with all spells and abilities while an axe or two-handed axe is equipped (aura 290, value 1) | +5 Axe and Two-Handed Axe skill | cond: crit aura, as Human Sword Specialization (an axe in either hand) | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Orc | Blood Fury (20572) | +10% melee attack power (aura 166), +10% ranged attack power (167) and +10% spell power (317) for 15 s; 2 min cooldown | +25% *base* melee AP for 15 s (a scripted effect), −50% healing received for 25 s; 2 min | CD (AP multiplier; scope [?], see [OQ-9](#oq-9-blood-fury-scope)) | [F] [client] (SpellEffect, SpellMisc, 1.60.1.69913); Classic [C] [client] (SpellEffect, 1.15.9.69722: a dummy, 25) |
@@ -150,7 +150,7 @@ matters for tanking survival (not modelled for DPS/TPS unless noted); *ignore* =
 | Troll | Berserking (20554) | +10% melee attack speed (aura 319), +10% ranged attack speed (140) and +10% cast speed (65) for **10 s**; 3 min cooldown; **no resource cost** | +10% to +30% attack and cast speed depending on missing health, 10 s, 3 min; warriors pay 5 Rage | CD | [F] [client] (SpellEffect, SpellMisc, SpellPower, 1.60.1.69913) |
 | Troll | Beast Slaying (20557) | +5% damage vs Beasts (aura 168) | same | cond: target type | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Troll | Regeneration, Rapid Regeneration; Bow and Throwing Specialization | health regen; Bow/Throwing **removed** | — | ignore | [F] [racials][fc-racials] |
-| Skyborne (both) | Wind Blessed | +1% spell, melee and ranged haste (passive) | new race | stat (haste, see [damage-and-timing.md](damage-and-timing.md)) | [F] [racials][fc-racials] |
+| Skyborne (both) | Wind Blessed (1259710) | +1% spell, melee and ranged haste (passive): aura 342 (melee and ranged) and aura 65 (casting speed), 1 each | new race | stat: haste and casting speed ([damage-and-timing.md](damage-and-timing.md), [spells.md §4](spells.md#4-cast-times-casting-speed-and-the-gcd)) | [F] [racials][fc-racials]; [client] (SpellEffect, 1.60.1.69913) |
 | Skyborne (both) | Elemental Insight | +5% damage vs Elementals | new race | cond: target type | [F] [racials][fc-racials] |
 | Skyborne | Walk on Air; Read Ley Line (High Order) / Skysight (Windshaper) | glide; +100% health and mana regen / movement speed | new race | ignore | [F] [racials][fc-racials] |
 
@@ -684,12 +684,13 @@ Stat-relevant changes versus Classic Era 1.15.9, all **[F]**:
    gave +25% base melee AP.
 5. **Berserking** is a flat +10% attack and cast speed for 10 s at no cost. Classic scaled 10–30%
    with missing health.
-6. **New racial cooldowns:** Elune's Light (+10% crit, 15 s), Eureka! (warrior: 3 abilities at −40%
-   Rage and +10% damage), Shatter Curse, Will to Survive, Rapid Regeneration. Stoneform is now −10%
+6. **New racial cooldowns:** Elune's Light (+10% crit, 15 s), Eureka! (3 abilities at −40% Rage,
+   −20% Energy or −50%/−15% mana by class, and +10% damage), Shatter Curse, Will to Survive, Rapid Regeneration. Stoneform is now −10%
    physical damage taken instead of +10% armor.
 7. **New passives:** Touch of the Grave (Undead drain proc), Big Game Hunter (Dwarf, +5% vs Beasts),
    Wind Blessed (Skyborne, +1% haste), Elemental Insight (Skyborne, +5% vs Elementals).
-8. **Gnome Expansive Mind:** +5% maximum Rage for warriors instead of +5% Intellect.
+8. **Gnome Expansive Mind:** +5% maximum Rage for warriors, maximum Energy for rogues and maximum
+   mana for priests, mages and warlocks, instead of +5% Intellect.
 9. **All racial resistances are removed:** Frost (Dwarf), Nature (Night Elf, Tauren), Arcane
    (Gnome), Shadow (Undead).
 10. **Blessing of Kings is baseline** (no talent) and lasts 1 hour.

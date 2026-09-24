@@ -52,8 +52,8 @@ describe('the plan’s code tables', () => {
     expect(Math.max(...Object.values(ACTION).filter((code) => code < 20))).toBe(8)
   })
 
-  it('the mage’s codes (docs/classes/mage.md): conditions auraStacksBelow 42 and auraEndsWithin 43, actions ignite 20 and manaOfCost 21, past the ranges the other tracks hold', () => {
-    expect([COND.auraStacksBelow, COND.auraEndsWithin]).toEqual([42, 43])
+  it('the mage’s codes (docs/classes/mage.md): conditions auraStacksBelow 42, auraEndsWithin 43, auraEndsBeforeCasts 44 and dotTickWait 45, actions ignite 20 and manaOfCost 21, past the ranges the other tracks hold', () => {
+    expect([COND.auraStacksBelow, COND.auraEndsWithin, COND.auraEndsBeforeCasts, COND.dotTickWait]).toEqual([42, 43, 44, 45])
     expect([ACTION.ignite, ACTION.manaOfCost]).toEqual([20, 21])
   })
 

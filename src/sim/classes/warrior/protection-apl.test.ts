@@ -44,7 +44,8 @@ describe('Protection’s priority list: Defensive and Max TPS as before the list
   ] as const) {
     it(`gives 200 random setups the rotation they had before the list: ${name}`, () => {
       // The snapshot is of the rotation before the priority list (ee171d2a): a change to it is a
-      // change to what Protection plays.
+      // change to what Protection plays. Re-taken once for Gnome Eureka! (engine issues EI-2, merged
+      // onto main): 27 of the 200 cases moved, every one a Gnome's; no other case changed.
       const hashes = CASES.map(({ values, talents, context }) => {
         const none = protectionRotation(withPriority(values, priority), talents, noAura, context)
         expect(protectionRotation(withPriority(values, priority), talents, noAura, context, defaultAplOrder(PROTECTION_APL))).toEqual(none)

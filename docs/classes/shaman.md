@@ -59,10 +59,10 @@ row says otherwise.
 
 | Race | Faction | Shaman in Classic | Shaman in Forever | What matters to the sim |
 | --- | --- | --- | --- | --- |
-| Orc | Horde | yes | yes | Blood Fury: +10% attack power for 15 s, 2 min ([character-stats](../mechanics/character-stats.md#racials-that-matter-to-the-sim)); Axe Specialization (+1% crit with an axe) |
+| Orc | Horde | yes | yes | Blood Fury: +10% attack power and +10% spell power for 15 s, 2 min ([character-stats](../mechanics/character-stats.md#racials-that-matter-to-the-sim)); Axe Specialization (+1% crit with an axe) |
 | Tauren | Horde | yes | yes | Endurance: +1% hit with attacks and spells |
-| Troll | Horde | yes | yes | Berserking: +10% attack speed for 10 s, 3 min |
-| Windshaper Skyborne | Horde | — (new race) | yes | Wind Blessed: +1% haste |
+| Troll | Horde | yes | yes | Berserking: +10% attack and casting speed for 10 s, 3 min |
+| Windshaper Skyborne | Horde | — (new race) | yes | Wind Blessed: +1% attack and casting speed (auras 342, 65) |
 | Dwarf | Alliance | no | **yes (new)** | Mace Specialization: +1% crit with a mace |
 
 [F] [client] (ChrRaces, CharBaseInfo, 1.60.1.69913; `src/data/races/races.json`). Blizzard's
@@ -264,7 +264,9 @@ by up to 30% of your Intellect") [F] [client] (SpellEffect 30812, CurvePoint).
   Bolt, Chain Lightning and Earth Shock, Frost-only for Frost Shock, Fire-only for Flame Shock and
   Lava Burst. Since K5; no item in the Enhancement default gear has any, so its results didn't
   move ([Enhancement on the core](#enhancement-on-the-core)).
-- Orc Blood Fury's +10% spell power isn't simulated [?] ([open question 13](#open-questions)).
+- Orc Blood Fury's +10% spell power multiplies the spell damage of every school while it's up, as
+  for every caster (the shared `caster-racials.ts`; [warlock.md §7.2](warlock.md#72-race)), not
+  rounded [?]. Both specs press the casters' Blood Fury and Berserking.
 - The sheet's "spell damage" shows this number (the default setup: 53, from 179 Intellect); an
   Elemental shaman's sheet shows it by school.
 
@@ -936,8 +938,9 @@ Each with its effect on the default setup's DPS, per
   the coefficient); as 33 flat it would be worth 40% more. *Effect:* ±0.3%.
 - **E5: Mana Tide's ticks.** 4 of 290 from 3 s after it drops, for the tooltip's 12 s (the spell
   lasts 13 s). *Effect:* a fifth tick would be +290 mana a fight, about +0.3%.
-- **E6: Blood Fury's spell power** is 10% of the sheet's Nature spell damage at the pull, as a flat
-  aura. *Effect:* under 0.1%.
+- **E6: Blood Fury's spell power** is a live +10% on spell damage while it's up, unrounded [?]
+  (until issue #10 it was a flat 10% of the sheet's Nature spell damage at the pull; the default
+  moved 368.76 → 368.72, within its ± 0.23). *Effect:* under 0.1%.
 - **E7: Eye of the Beast's use** (+7% spell hit for 20 s, 5 min) isn't simulated. *Effect:* one use
   a 3-minute fight, about +0.6%.
 - **E8: Alliance gear.** The list's honor mail and weapons are Horde's, with no Alliance counterpart
@@ -1013,8 +1016,8 @@ the default setup's DPS unless stated.
     *Effect:* one use a 3-minute fight, about +0.4%.
 12. **Totem recasts** in fights over 5 minutes aren't simulated (a GCD and mana a totem).
     *Effect:* none at the default 180 s.
-13. **Blood Fury's +10% spell power** isn't simulated. *Effect:* +5 spell damage for 15 s every
-    2 minutes: under 0.05%.
+13. **Blood Fury's +10% spell power**: simulated since issue #10, as every caster's (Enhancement
+    556.06 → 556.16 on its golden seed). Whether it rounds is [?]. *Effect:* under 0.05%.
 14. **Cost rounding and additive cost cuts**: 247.5 → 247, and Convection added to Shamanistic Focus.
     *Test:* Earth Shock's cost on the tooltip with each talent. *Effect:* under 0.1%.
 15. **No mana refund on an avoided Stormstrike.** *Test:* the mana bar on a dodged Stormstrike.

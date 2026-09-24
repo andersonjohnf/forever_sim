@@ -64,7 +64,8 @@ export const ASSUMPTION_GROUP = {
   unknownBaseAttributes: 'character',
   racialWeaponCrit: 'character',
   gnomeRage: 'character',
-  cooldownRacial: 'character',
+  gnomeEnergy: 'character',
+  eureka: 'character',
   touchOfTheGrave: 'character',
   baseStatPlaceholders: 'character',
   // How the sim plays the class: rage, abilities and talents.
@@ -220,6 +221,7 @@ export const ASSUMPTION_GROUP = {
   mageIgnite: 'class',
   mageImprovedScorch: 'class',
   mageHotStreak: 'class',
+  mageFireWait: 'class',
   mageCombustion: 'class',
   mageWintersChill: 'class',
   mageClearcasting: 'class',

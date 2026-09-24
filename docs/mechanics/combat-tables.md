@@ -633,9 +633,12 @@ covers the generic table.
   take a boss below its own 0; each school has its own resistance. In these
   specs it affects nature, fire and shadow procs (item procs), and the bear's Faerie Fire, a
   binary Nature spell: at 24 the boss resists 0.75 × 24 ÷ 300 = 6% of the ones that would land
-  ([druid §4.5](../classes/druid.md#45-other-bear-abilities)). Demoralizing Roar is Physical, so
-  only its spell hit rolls. The cat's Faerie Fire, the same spell, rolls only its spell hit so far
-  ([druid §3.8](../classes/druid.md#38-faerie-fire-in-cat-9907-r4)).
+  ([druid §4.5](../classes/druid.md#45-other-bear-abilities)). It reads the plan's Nature
+  resistance (after spell penetration and the debuffs) and Nature's own spell hit, as every spell
+  does. Demoralizing Roar is Physical, so only its spell hit rolls. The cat's Faerie Fire, the same
+  spell, rolls only its spell hit so far ([druid §3.8](../classes/druid.md#38-faerie-fire-in-cat-9907-r4));
+  so do the other spell-hit casts (Curse of the Elements, the moonkin's Faerie Fire, Vampiric
+  Embrace), a known gap ([milestones](../milestones.md#known-gaps-and-follow-ups)).
 - Resistance reduction caps at 75% (`R = 5 × level`) [C]; [F] ([Warcraft Tavern stats][wt-stats]).
 - **Forever:** spell penetration can push a target **below 0** resistance ("Spell
   Vulnerability"), which increases the spell damage it takes [F] tooltip text

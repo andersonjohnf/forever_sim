@@ -617,9 +617,9 @@ export const BERSERKER_RAGE: AbilityDef = {
  *   multiplicative with other haste (W17).
  * - Night Elf Elune's Light (1259799): aura 290 (all crit: attacks and spells) +10 for 15000 ms,
  *   `recoveryTime` 180000. Forever's racials hold in both rule profiles (docs/architecture.md).
- * Gnome Eureka! (1259813) isn't simulated (warrior.md §7, Q18).
+ * Gnome Eureka! is every class's own (classes/eureka.ts).
  */
-const racialCooldown = (id: string, name: string, icon: string, cooldownMs: number, aura: AbilityDef['aura']): AbilityDef => ({
+export const racialCooldown = (id: string, name: string, icon: string, cooldownMs: number, aura: AbilityDef['aura']): AbilityDef => ({
   id,
   name,
   icon,

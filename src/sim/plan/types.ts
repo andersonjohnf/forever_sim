@@ -965,6 +965,11 @@ export interface AbilityPlan {
    * the demon gains the mana your Life Tap gives, §11.3). Absent, 0 or without a pet with power: none.
    */
   petPowerTenths?: number
+  /**
+   * What Gnome Eureka! does to it (`Plan.eureka`), bits: 1 its cost, 2 its direct damage, 4 its DoT's
+   * or bleed's snapshot (src/sim/classes/eureka.ts). Absent or 0: nothing, and it spends no charge.
+   */
+  eureka?: number
 }
 
 /**
@@ -1162,6 +1167,20 @@ export const COND = {
    * lands, sees it at its next decision; it schedules no wake-up.
    */
   auraEndsWithin: 43,
+  /**
+   * plan aura a is down, or runs out before ability b's cast and then this line's own cast would
+   * land: at most b's cast time + the line's cast time left, both as they'd start now (casting
+   * speed, their stacks' cut, an instant-cast aura). Scorch before a Pyroblast or Fireball that would
+   * let Fire Vulnerability run out before the Scorch after it lands (docs/classes/mage.md#fire-priority).
+   * Checked on each walk.
+   */
+  auraEndsBeforeCasts: 44,
+  /**
+   * ability a's spell DoT has no tick due within b ms after a cast of a started now would land. When
+   * one is, the walk waits there until the cast would land with the tick, rather than cut it off:
+   * Pyroblast and its own DoT (docs/classes/mage.md#fire-priority). Checked on each walk.
+   */
+  dotTickWait: 45,
   // 50–53 are the Shadow Priest's (docs/classes/priest.md#8-implementation-notes).
   /**
    * ability a could start now: it's off cooldown and affordable, and a GCD ability's global cooldown
@@ -1378,6 +1397,13 @@ export interface Plan {
    * Focus's +25%, docs/classes/priest.md#35-inner-focus-14751). Absent: none (Clearcasting's).
    */
   freeCastCritPct?: number
+  /**
+   * Gnome Eureka! (src/sim/classes/eureka.ts, docs/mechanics/character-stats.md#racials-that-matter-to-the-sim):
+   * its aura, the charges it goes up with, and what it does to the abilities marked `eureka`: their
+   * cost −costPct% (rounded down to whole resource), their direct damage +damagePct%, their DoT's or
+   * bleed's snapshot +dotPct%. Each use of a marked ability, as it's paid, spends a charge [?].
+   */
+  eureka?: { aura: number; charges: number; costPct: number; damagePct: number; dotPct: number }
   /** Damaging spells (seal procs, judgements, Holy Strike), indexed by abilities and procs. */
   spells?: SpellPlan[]
   /** Multiplier on Holy damage done, static (paladin.md#conventions-used-below). */

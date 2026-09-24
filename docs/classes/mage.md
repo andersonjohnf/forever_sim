@@ -57,11 +57,11 @@ row says otherwise. Spell ranges are at level 60 before spell damage.
 | Race | Faction | Mage in Classic | Mage in Forever | What matters to the sim |
 | --- | --- | --- | --- | --- |
 | Troll | Horde | yes | yes | **Berserking** (20554): +10% casting and attack speed for 10 s, 3 min (auras 65, 319, 140) [F]; the default race |
-| Orc | Horde | no | **yes (new)** | Blood Fury (20572): +10% attack power, and a third effect (aura 317) that [shaman.md](shaman.md#spell-damage) reads as +10% spell power; not simulated for a mage (a known gap), so the Rotation tab marks the racial setting unused |
+| Orc | Horde | no | **yes (new)** | **Blood Fury** (20572): +10% attack power and **+10% spell power** (aura 317) for 15 s, 2 min [F]: the casters' shared definition, a live multiplier on your spell damage while it's up ([warlock.md §7.2](warlock.md#72-race)). Simulated since issue #10; on the defaults (seed 12345, 20,000 fights) an Orc measures level with or above a Troll: Fire 521.13 vs 516.26, Frost 411.11 vs 410.81, Arcane 405.13 vs 402.32 (± 0.2–0.5). For Fire a Human (520.65) and an Undead (517.96) measure above a Troll too: Fire's mana binds, so Berserking's casting speed mostly spends it sooner (+0.45 DPS). The default race stays Troll until the tuning milestone looks at it |
 | Undead | Horde | yes | yes | nothing the sim models for a caster |
 | Human | Alliance | yes | yes | The Human Spirit (+5% Spirit); Sword Specialization (+2% crit, spells too, with a sword) |
-| Gnome | Alliance | yes | yes | Eureka! isn't simulated; Expansive Mind no longer gives +5% Intellect |
-| High Order Skyborne | Alliance | — (new race) | yes | Wind Blessed (+1% haste): the sim doesn't apply it to casts yet (a known gap) |
+| Gnome | Alliance | yes | yes | Expansive Mind (20591): **+5% maximum mana** (aura 178) instead of Classic's +5% Intellect [F]; **Eureka!** (1259817), pressed on cooldown from the pull: the next 3 of Fireball, Scorch, Fire Blast, Frostbolt and Arcane Missiles cost 50% less mana and deal +10% (Fireball's DoT +10%; Arcane Missiles only its cost, its missiles are outside the mask; not Pyroblast) [F], its rules [?] (`src/sim/classes/eureka.ts`, `eureka`): +1.98% Fire, +0.84% Frost, +0.32% Arcane (Gnome, racial on vs off, the defaults, seed 12345, 20,000 fights) |
+| High Order Skyborne | Alliance | — (new race) | yes | Wind Blessed (1259710): +1% melee and ranged haste (aura 342) and **+1% casting speed** (aura 65) [F]. Worth +0.4 Fire DPS on the default setup (+1.5 with unlimited mana) and +3.8 Frost, 20,000 fights ([Casting speed](#fire-priority-list-default)) |
 
 [F] [client] (ChrRaces, CharBaseInfo, SkillLineAbility, SpellEffect, 1.60.1.69913;
 `src/data/races/races.json`; racials in
@@ -175,6 +175,7 @@ travel time isn't simulated ([spells OQ-S13](../mechanics/spells.md#open-questio
 | Ice Barrier r4 (13033) | an 819-point absorb for 60 s (811 + 4 a level from 58) | 480 mana, 30 s, on the GCD | [F] [client] |
 | Mana Ruby (item 8008 → 10058), Mana Citrine (8007 → 10057) | 1,000–1,200 and 775–925 mana | once each a fight, 2 min (category 1153), off the GCD | [F] [client] (SpellEffect, ItemEffect) |
 | Berserking (20554, Troll) | +10% casting speed for 10 s | 3 min, off the GCD | [F] [client] |
+| Blood Fury (20572, Orc) | +10% spell power for 15 s (a multiplier on spell damage) | 2 min, off the GCD | [F] [client] |
 
 ---
 
@@ -468,7 +469,9 @@ Ignite 12%, Scorch 8%.
 **Adapted to Forever**:
 
 - **Scorch for your own stacks.** Fire Vulnerability is yours, so every Fire mage keeps its own five,
-  and again with 5 s or less left.
+  and again with 5 s or less left, or sooner when the spell it would cast next (a 4.5 s Pyroblast)
+  would let them run out before the Scorch after it lands: the Scorch must *land* in time, at any
+  casting speed.
 - **Pyroblast on Hot Streak.** Pyroblast was an opener in Classic; Hot Streak makes it a cast worth
   weaving, at the first stack by default ([First-pass defaults](#first-pass-defaults)).
 - **Fire Blast on cooldown.** Its 340 mana buys 417–489 instantly, and Forever's Fireball fell further
@@ -484,17 +487,45 @@ the prefix below), in the Rotation tab's groups. A mana threshold is a share of 
 | # | Action | Condition (setting, default) | Default |
 | --- | --- | --- | --- |
 | 1 | Combustion, off the GCD | `combustion.enabled`, with the talent; ready | on |
-| 2 | Berserking (Troll), off the GCD | `racial.enabled`; on cooldown | on |
+| 2 | Berserking (Troll), Blood Fury (Orc) or Eureka! (Gnome), off the GCD | `racial.enabled`; on cooldown | on |
 | 3 | On-use trinkets, off the GCD | `trinkets.enabled`; on cooldown | on |
 | 4 | Power Infusion, off the GCD | `powerInfusion.enabled`, with Power Infusion selected in Buffs; ready | on (Buffs: off) |
 | 5 | Mana Ruby or Mana Citrine, whichever fits first (the Ruby on a tie) | `manaGems.enabled`; missing 1,200 / 925 | on |
 | 6 | Major Mana Potion | `manaPotion.enabled`, selected in Buffs (Standard raid); missing `manaPotion.missingMana` | on, 2,250 |
 | 7 | Demonic Rune | `rune.enabled`, selected in Buffs (Max consumables); missing `rune.missingMana`; after the gems | on, 1,500 |
 | 8 | Evocation | `evocation.enabled`; mana ≤ `evocation.maxManaPct`, or below Fireball's cost | on, 0% |
-| 9 | Scorch | `scorch.enabled`, with Improved Scorch; Fire Vulnerability under 5 stacks, or at most `scorch.refreshSec` left | on, 5 s |
-| 10 | Pyroblast | `pyroblast.enabled`, with Hot Streak and Pyroblast; at least `pyroblast.minStacks` Hot Streak stacks (1–3) | on, 1 stack |
+| 9 | Scorch | `scorch.enabled`, with Improved Scorch; Fire Vulnerability under 5 stacks, or at most `scorch.refreshSec` left, or at most a Pyroblast's cast (when row 10 would go) or a Fireball's, plus a Scorch's, left (COND 44) | on, 5 s |
+| 10 | Pyroblast | `pyroblast.enabled`, with Hot Streak and Pyroblast; at least `pyroblast.minStacks` Hot Streak stacks (1–3). If it would land up to 0.3 s before its own DoT's next tick, the mage waits and lands it with the tick (COND 45) | on, 1 stack |
 | 11 | Fire Blast | `fireBlast.enabled`; ready | on |
-| 12 | Fireball | always | — |
+| 12 | Fireball | always, unless Fire Blast is ready within 0.3 s: the mage waits for it (COND 1) | — |
+
+**Casting speed** (issue review EI-1, September 2026). Every cast used to end on a 1.5 s grid at ×1.00
+casting speed, and three ties on that grid decided more than the speed did (Human, unlimited mana,
+4,000 fights: ×1.00 558.3, ×1.002 552.5, ×1.01 555.8, ×1.02 559.7 DPS):
+
+- **Fire Blast** (row 12): at ×1.00 a Pyroblast or two Fireballs after Fire Blast end the very
+  millisecond its 6 s cooldown does. A hair faster, they end a few ms early and a 3 s Fireball
+  started, holding Fire Blast back a whole cast (21.1 → 19.0 a fight). Fireball now waits up to
+  `FIRE_WAIT_MS` (0.3 s) for it [?] (`mageFireWait`).
+- **Pyroblast's DoT** (row 10): a Pyroblast, Fire Blast and two Fireballs take 12.0 s at ×1.00, its
+  DoT's length, so the next Pyroblast landed with the last tick (a tick due that moment lands first,
+  [spells §7](../mechanics/spells.md#7-dots)); a hair faster, it landed first and cut the tick off.
+  A recast restarts the DoT and loses the tick in progress, so Pyroblast now waits up to 0.3 s to
+  land with the tick.
+- **Fire Vulnerability** (row 9): a Pyroblast started with 5–6 s of it left leaves 1.5 s, and the
+  Scorch after it lands as it runs out (at ×1.00, the same millisecond, which the expiry wins), so
+  five more Scorches rebuilt it. Scorch now goes first whenever the Pyroblast, or a Fireball, and then
+  a Scorch wouldn't land in time, at their cast times now.
+
+0.3 s is near where waiting stops paying, across common casting speeds [?]: at about 560 DPS it costs
+about 170 damage, what a cut-off Pyroblast tick (53 + 0.15 SP, with its crits) or a Fire Blast held
+back a Fireball costs. Measured (Human, unlimited mana, seed 12345, 4,000 fights, ±0.8), waits of 0,
+0.15, 0.3, 0.45 and 0.6 s give ×1.00 561.8 for each; ×1.01 556.1, then 564.0 for each of the rest;
+×1.05 573.3, 573.8, 576.1, 575.6, 575.2; ×1.10 592.3, 592.3, 591.9, 590.5, 590.3. So no wait loses at
+×1.01, 0.3 s is best at ×1.05 and within the noise of the best at ×1.10, and longer waits start to
+lose. Afterwards (same runs): ×1.00 561.3, ×1.002 560.3, ×1.01 562.6, ×1.02 565.4, and on
+the default setup (Troll, with its mana, seed 12345, 1,000 fights) the golden moved 513.15 → 514.50. The
+1 DPS left at ×1.002 is within those runs' ±0.8 (95% CI).
 
 ---
 
@@ -571,7 +602,7 @@ Setting ids are `mage.arcane.<x>`.
 | Fire talents | **`230225-23550000130133051-005`** (Arcane 14 / Fire 32 / Frost 5): Wand Specialization 2, Arcane Focus 3, Arcane Subtlety 2, Magic Absorption 2, Arcane Concentration 5; Wake of Fire 2, Incineration 3, Improved Fireball 5, Ignite 5, Pyroblast 1, Improved Scorch 3, Hot Streak 1, Master of Elements 3, Critical Mass 3, Fire Power 5, Combustion 1; Elemental Precision 5 | Wowhead's Classic "Combustion Fire 17/31/3" (`230025030002-5052000123033151-003`, [talents][wh-talents]) [C], adapted: Hot Streak (new), and Elemental Precision's five ranks of hit (it had three of resist chance). The Arcane side stops at 14 points, short of Arcane Meditation (tier 4) |
 | Frost talents | **`230225200100301--055510033002000105`** (21 / 0 / 30): Wand Specialization 2, Arcane Focus 3, Arcane Subtlety 2, Magic Absorption 2, Arcane Concentration 5, Arcane Resilience 2, Arcane Blast 1, Arcane Meditation 3, Presence of Mind 1; Improved Frostbolt 5, Elemental Precision 5, Ice Shards 5, Permafrost 1, Piercing Ice 3, Frost Channeling 3, Arctic Reach 2, Cold Snap 1, Winter's Chill 5 | Wowhead's Classic "Arcane Power Frost 31/0/20" (`2300450310031531--053500030013`) and "Winter's Chill Frost 19/0/32" (`230045200003--05350013122301051`) [C]. Winter's Chill is your own crit in Forever, and it and Arcane Power (31 Arcane points) don't fit in one build, so the default is the Winter's Chill shape with Presence of Mind and Arcane Meditation |
 | Arcane talents | **`050225003100301531-2355001010003-`** (31 / 20 / 0): Arcane Focus 5, Arcane Subtlety 2, Magic Absorption 2, Arcane Concentration 5, Arcane Impact 3, Arcane Blast 1, Arcane Meditation 3, Presence of Mind 1, Arcane Mind 5, Arcane Instability 3, Arcane Power 1; Wake of Fire 2, Incineration 3, Improved Fireball 5, Ignite 5, Burning Soul 1, Pyroblast 1, Master of Elements 3 | AP Frost's 31 Arcane points (with Forever's Arcane Impact and Arcane Mind, now Arcane crit) and a Fire side for Presence of Mind's Pyroblast. Wake of Fire, Incineration, Improved Fireball and Burning Soul do nothing in its rotation: they're the way to Pyroblast (tier 3) and Master of Elements (tier 4) |
-| Race | **Troll** (Horde) | Berserking's +10% casting speed is the one racial cooldown the sim uses for a caster ([Races](#races)) |
+| Race | **Troll** (Horde) | Berserking's +10% casting speed; an Orc's Blood Fury (+10% spell power for 15 s every 2 min) is the other racial cooldown for a mage, and measures as much or more since it's simulated ([Races](#races)) |
 | Gear | Fire: Icy Veins' Classic mage pre-raid list; Frost and Arcane: Wowhead's ([Races and gear](#races-and-gear)) | [pre-raid BiS](../data/items.md#pre-raid-bis-lists) [C] |
 | Enchants | **Greater Stats on the chest** only | the enchant catalogue has no caster enchants yet (a known gap: spell damage on the weapon, head, legs, gloves and shoulders) |
 | Buffs | the Standard raid preset ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)): the caster core's **Curse of the Elements**, Arcane Brilliance, Prayer of Spirit, Blessing of Wisdom, Mana Spring Totem, Moonkin Aura (the casters' party crit aura). Nothing that changes only attacks (Battle Shout, Windfury Totem, Sunder Armor, …): those are the melee's, not listed for a mage ([buffs "Class-only entries"](../mechanics/buffs-debuffs-consumables.md#class-only-entries)). **Power Infusion off** (another priest's cooldown; an option). **No world buffs** ([D8](../decisions.md#d8-world-buffs-are-excluded-2026-09-22)) | buffs doc |
@@ -707,9 +738,13 @@ The class is data and rotation in `src/sim/classes/mage/` (`abilities.ts`, `tale
   free-cast aura (`Plan.freeCastAura`); **Master of Elements** is a `manaOfCost` proc.
 - **Arcane Focus** and **Elemental Precision** are spell hit per school (`schoolHit`), so each school
   reads its own miss chance.
-- **Scorch**'s two lines use conditions `auraStacksBelow` (42) and `auraEndsWithin` (43) on Fire
-  Vulnerability; Pyroblast's uses `auraStacksAtLeast` (34) on Hot Streak; Arcane's Pyroblast
-  `abilityAuraUp` (10) on Presence of Mind; Evocation `maxMana` (19).
+- **Scorch**'s lines use conditions `auraStacksBelow` (42), `auraEndsWithin` (43) and
+  `auraEndsBeforeCasts` (44: the aura has at most another ability's cast time now plus the line's own
+  left, both with casting speed and their stacks' cut) on Fire Vulnerability; Pyroblast's uses
+  `auraStacksAtLeast` (34) on Hot Streak and `dotTickWait` (45: when its cast would land up to b ms
+  before its own DoT's next tick, the walk stops and resumes as it can land with the tick); Fireball
+  `cooldownAtLeast` (1) on Fire Blast; Arcane's Pyroblast `abilityAuraUp` (10) on Presence of Mind;
+  Evocation `maxMana` (19).
 - **The gems** are `usesPerFight` 1 casts in the gem category, which the Demonic Rune joins.
 - **No weapon**: a mage's plan has no weapon, so no swing, no weapon proc and no "no weapon" note.
 

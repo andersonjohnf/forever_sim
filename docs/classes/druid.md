@@ -1694,7 +1694,9 @@ The cat added, generically (plan/types.ts `AbilityPlan`, §3.12):
 - `behindOnly`: never used from the front (Shred, §3.1).
 - `spellHit` on a cast, and `targetArmor` on an aura: a debuff the druid keeps on the boss, which
   can miss (Faerie Fire, §3.8).
-- `charges` on an on-use item: uses a fight (the Manual Crowd Pummeler, §7.3).
+- `charges` on an on-use item: uses a fight (the Manual Crowd Pummeler, §7.3), for whichever class
+  presses it: the plan builder caps the item's ability, so a warrior's, paladin's or shaman's MCP
+  stops at 3 too.
 
 What Warrior Protection added serves these rows too: an aura's `bossAp`, the attack power a debuff
 takes off the boss (Demoralizing Roar's, §4.5; [warrior.md §7](warrior.md#7-implementation-notes)

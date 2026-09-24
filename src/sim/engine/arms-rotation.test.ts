@@ -252,6 +252,56 @@ describe('Arms options in the engine (warrior.md §5.3)', () => {
     expect(count).toBeGreaterThan(200 * 5)
   })
 
+  it('row 12 before Recklessness: every Whirlwind is the dance’s, at rage ≤ 30; the plain line never fires, and none is cast in Battle Stance', () => {
+    const plan = armsPlan({ 'warrior.arms.whirlwind.enabled': true })
+    let before = 0
+    let total = 0
+    for (const f of fights(plan, 200).out) {
+      const reck = uses(f, 'recklessness')[0]?.t ?? f.ms
+      for (const c of uses(f, 'whirlwind')) {
+        total++
+        expect(c.stance).toBe(STANCE.berserker)
+        if (c.t >= reck) continue
+        before++
+        // The dance swapped to Berserker Stance that same millisecond, from rage ≤ maxRage (30).
+        const swap = f.swaps.find((s) => s.t === c.t && s.to === STANCE.berserker)
+        expect(swap, `Whirlwind at ${c.t} without its dance`).toBeDefined()
+        expect(swap!.before).toBeLessThanOrEqual(300)
+      }
+    }
+    // On the default fight Recklessness leads straight into the execute phase, where Whirlwind isn't used.
+    expect(before).toBeGreaterThan(50)
+    expect(total).toBe(before)
+  })
+
+  it('row 12 after Recklessness’s swap: Whirlwind needs no dance, so no rage limit, and Hamstring doesn’t wait on it', () => {
+    // No execute phase: Recklessness by the clock, then the rest of the fight in Berserker Stance.
+    const noExecute = { fight: { ...ARMS.fight, executePct: 0 } }
+    const after = (rotation: SimConfig['rotation']) => {
+      const n = { whirlwind: 0, whirlwindAbove30: 0, hamstring: 0, gcds: 0 }
+      const plan = armsPlan(rotation, noExecute)
+      for (const f of fights(plan, 200).out) {
+        const reck = uses(f, 'recklessness')[0].t
+        for (const c of f.casts.filter((x) => x.t > reck)) {
+          expect(c.stance).toBe(STANCE.berserker)
+          if (c.id === 'whirlwind') n.whirlwind++
+          if (c.id === 'whirlwind' && c.rage > 300) n.whirlwindAbove30++
+          if (c.id === 'hamstring') n.hamstring++
+          if (plan.abilities.find((a) => a.id === c.id)!.gcdMs > 0) n.gcds++
+        }
+      }
+      return n
+    }
+    const off = after({})
+    const on = after({ 'warrior.arms.whirlwind.enabled': true })
+    // Before the fix Whirlwind kept the dance's ≤ 30 and Hamstring waited on it: 12 Whirlwinds, 27
+    // Hamstrings and 1,420 GCD casts in 300 fights, against 1,100 Hamstrings and 2,447 GCD casts without it.
+    expect(on.whirlwind).toBeGreaterThan(200)
+    expect(on.whirlwindAbove30).toBeGreaterThan(on.whirlwind / 2)
+    expect(on.hamstring).toBeGreaterThan(off.hamstring / 3)
+    expect(on.gcds).toBeGreaterThan(0.9 * off.gcds)
+  })
+
   it('row 14 with the Whirlwind dance (row 12): a dance waiting for rage ≤ 30 doesn’t hold back Hamstring at 40 (§7 "GCD-safe and stances")', () => {
     const hamstrings = (rotation: SimConfig['rotation']) => fights(armsPlan(rotation), 200).out.reduce((n, f) => n + uses(f, 'hamstring').length, 0)
     const withDance = hamstrings({ 'warrior.arms.hamstring.enabled': true, 'warrior.arms.whirlwind.enabled': true })

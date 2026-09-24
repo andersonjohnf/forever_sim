@@ -754,11 +754,11 @@ export class Sim {
   private readonly abSpellHit: Uint8Array
   // And the bear's (druid.md §4), 0 or −1 on every other row:
   /**
-   * The boss's average resistance to a `spellTable` ability, 0–1: a binary spell of a resistible
-   * school (the bear's Faerie Fire, Nature) is resisted whole that share of the time it would land
-   * (combat-tables §9); 0 without a school, and for Physical and Holy.
+   * The school of a `spellTable` ability whose binary spell the boss can resist (the bear's Faerie
+   * Fire, Nature), or −1: none, Physical or Holy. It's resisted whole at the school's average
+   * resistance, penetration and debuffs included, that share of the time it would land (combat-tables §9).
    */
-  private readonly abResist: Float64Array
+  private readonly abResistSchool: Int32Array
   /** Weapon share per stack of its own bleed already on the target (Lacerate, §4.3). */
   private readonly abPctPerStack: Float64Array
   /** The aura while which it starts no cooldown (Berserk's Mangle, §4.6), or −1. */
@@ -804,8 +804,30 @@ export class Sim {
   private readonly freeAura: number
   /** Spell crit % the ability that uses the free-cast charge gets (Inner Focus's 25, docs/classes/priest.md); 0 for Clearcasting. */
   private readonly freeCritPct: number
-  /** That crit while the ability that used the charge resolves its spell, else 0. */
+  /**
+   * That crit while the ability that used the charge resolves its own spell, else 0: set only for a
+   * spell or a channel with a spell, cleared once that spell resolves, and never carried into a proc
+   * the spell fires or into the next fight (docs/classes/priest.md#35-inner-focus-14751).
+   */
   private freeCrit = 0
+  /**
+   * Gnome Eureka! (Plan.eureka, src/sim/classes/eureka.ts): its aura (−1: none), its charges, and its
+   * cost, damage and DoT factors; each ability's bits (1 cost, 2 damage, 4 DoT) and the charges left.
+   */
+  private readonly euAura: number
+  private readonly euCharges: number
+  private readonly euCostMult: number
+  private readonly euDamageMult: number
+  private readonly euDotMult: number
+  private readonly abEureka: Uint8Array
+  private euLeft = 0
+  /**
+   * The ability whose use took a Eureka! charge, while it resolves (−1: none), and its damage and DoT
+   * factors: only its own strike, spell and DoT read them, never a proc's (src/sim/classes/eureka.ts).
+   */
+  private euA = -1
+  private euDamage = 1
+  private euDot = 1
   /** The form the fight starts in (−1: no forms), and the forms Furor's rules name (druid.md §2.8). */
   private readonly startForm: number
   private readonly catForm: number
@@ -915,6 +937,8 @@ export class Sim {
   private swingsStopped = false
   /** A cast that holds every other action is running: the rotation waits for it (paladin.md#other-abilities). */
   private castHolding = false
+  /** A line that waits set this in its walk: the walk ends and resumes then (COND.dotTickWait). */
+  private walkWaitUntil = 0
   /** The STANCE bit the warrior is in: the base stance, or the one a dance swapped to (warrior.md §7). */
   private stance = 0
   /**
@@ -1096,6 +1120,11 @@ export class Sim {
   private readonly splRanged: Uint8Array
   /** Ranged haste shortens its cast time (Aimed Shot's, §4). */
   private readonly abCastRangedHasted: Uint8Array
+  /**
+   * Its cast time now (`castMsNow`) is never longer than `abCastMs` while casting speed is at least
+   * ×1: no ranged haste, and its stacks only shorten it. COND 44's cheap first test relies on it.
+   */
+  private readonly abCastBounded: Uint8Array
   /** Some line reads Auto Shot's timer (COND 62, 63), so each Auto Shot is a decision point. */
   private readonly walksOnAutoShot: boolean
   /** Auras' ranged attack power, its %, and ranged haste %, per stack. */
@@ -1619,7 +1648,7 @@ export class Sim {
     this.abBleedPct = new Float64Array(nb)
     this.abDotSource = new Int32Array(nb)
     this.abSpellHit = new Uint8Array(nb)
-    this.abResist = new Float64Array(nb)
+    this.abResistSchool = new Int32Array(nb).fill(-1)
     this.abPctPerStack = new Float64Array(nb)
     this.abNoCdAura = new Int32Array(nb).fill(-1)
     this.abAuraMsPerCp = Float64Array.from(abilities, (a) => a.auraMsPerComboPoint ?? 0)
@@ -1643,6 +1672,13 @@ export class Sim {
     this.othersBleed = plan.fight.othersBleed === true
     this.freeAura = plan.freeCastAura ?? -1
     this.freeCritPct = plan.freeCastCritPct ?? 0
+    const eu = plan.eureka
+    this.euAura = eu ? eu.aura : -1
+    this.euCharges = eu ? eu.charges : 0
+    this.euCostMult = eu ? 1 - eu.costPct / 100 : 1
+    this.euDamageMult = eu ? 1 + eu.damagePct / 100 : 1
+    this.euDotMult = eu ? 1 + eu.dotPct / 100 : 1
+    this.abEureka = Uint8Array.from(abilities, (a) => (eu ? (a.eureka ?? 0) : 0))
     this.abTickAt = new Float64Array(nb)
     this.abSpell = Int32Array.from(abilities, (a) => a.spell ?? -1)
     this.abTickSpell = Int32Array.from(abilities, (a) => a.tickSpell ?? -1)
@@ -1697,11 +1733,12 @@ export class Sim {
       // druid.md §4: the bear's Faerie Fire's resist (combat-tables §9: a binary spell's, at the boss's
       // level-based resistance; Physical and Holy have none), Lacerate's per-stack hit, and Berserk's Mangle.
       const school = a.spellSchool
-      this.abResist[i] =
-        a.kind === 'spellTable' && school !== undefined && school !== SCHOOL.holy && school !== SCHOOL.physical ? averageResist(this.bossLevelResist, plan.playerLevel) : 0
+      this.abResistSchool[i] = a.kind === 'spellTable' && school !== undefined && school !== SCHOOL.holy && school !== SCHOOL.physical ? school : -1
       this.abPctPerStack[i] = a.weaponPercentPerStack ?? 0
       this.abNoCdAura[i] = a.noCooldownAura ?? -1
-      this.abPlainRage[i] = this.abRes[i] === RES_RAGE && this.abForms[i] === 0 && !a.finisher && !this.abCp[i] && !this.abFree[i] ? 1 : 0
+      // A Gnome's Eureka! cuts some rows' cost (Plan.eureka): they pay through costNow, as the druid's.
+      const euCut = plan.eureka !== undefined && ((a.eureka ?? 0) & 1) !== 0
+      this.abPlainRage[i] = this.abRes[i] === RES_RAGE && this.abForms[i] === 0 && !a.finisher && !this.abCp[i] && !this.abFree[i] && !euCut ? 1 : 0
       this.abKind[i] = KIND_CODE[a.kind]
       this.abCost[i] = a.costTenths
       this.abCd[i] = a.cooldownMs
@@ -1976,6 +2013,7 @@ export class Sim {
     this.rFirstShotMs = r?.firstShotMs ?? 0
     this.rSource = r?.source ?? -1
     this.abCastRangedHasted = Uint8Array.from(abilities, (a) => (a.castRangedHasted && r ? 1 : 0))
+    this.abCastBounded = Uint8Array.from(abilities, (_, i) => (this.abCastRangedHasted[i] === 0 && this.abStackCast[i] >= 0 ? 1 : 0))
     this.walksOnAutoShot = this.hasRanged && (this.condCode.includes(COND.autoShotClear) || this.condCode.includes(COND.autoShotWithin))
     this.walksOnSwing = this.condCode.includes(COND.mainHandSwung)
     // §6–§10: the pet.
@@ -2327,6 +2365,7 @@ export class Sim {
     this.mana = this.manaMax
     this.comboPoints = 0
     this.lastPaid = 0
+    this.freeCrit = 0
     this.manaSpentAt = -Infinity
     this.activeDots = 0
     this.poisonedDots = 0
@@ -2377,6 +2416,11 @@ export class Sim {
     this.castGcdEnd = 0
     this.swingsStopped = false
     this.castHolding = false
+    this.walkWaitUntil = 0
+    this.euLeft = 0
+    this.euA = -1
+    this.euDamage = 1
+    this.euDot = 1
     for (let i = 0; i < this.abReadyAt.length; i++) this.abReadyAt[i] = this.abNeverReady[i] ? Infinity : 0
     this.abUses.fill(0)
     this.abTicksLeft.fill(0)
@@ -2702,9 +2746,11 @@ export class Sim {
       if (this.affordable(a)) {
         if (this.castTrace !== null) this.castTrace(a, this.now, this.pool(this.abRes[a]))
         this.payCost(a)
+        this.eurekaTake(a)
         // No white rage from the replaced swing (rage.md#yellow-damage-and-on-next-swing-attacks),
         // and it doesn't use Flurry charges in Forever (warrior.md §2.4 item 5).
         this.special(a, HAND.main, bonusAp)
+        this.euA = -1
         return
       }
     }
@@ -2875,7 +2921,15 @@ export class Sim {
       if (this.abKind[a] === KIND_ON_NEXT_SWING) {
         if (this.queued >= 0) continue
       } else if (this.abGcd[a] > 0 && this.gcdEnd > now) continue
-      if (!this.conditionsHold(e)) continue
+      if (!this.conditionsHold(e)) {
+        // A line that waits (COND.dotTickWait) ends the walk; it resumes when the wait is over.
+        if (this.walkWaitUntil > now) {
+          this.q.push(this.walkWaitUntil, EV_ACT, 0, 0)
+          this.walkWaitUntil = 0
+          return
+        }
+        continue
+      }
       if (dance !== 0) this.swapStance(dance)
       if (this.entryStay[e] !== 0) this.home = this.stance
       this.use(a)
@@ -2932,22 +2986,28 @@ export class Sim {
     this.recomputeMultipliers()
   }
 
+  /**
+   * A line's conditions, each by its code (plan/types.ts COND). The case labels are COND's numbers,
+   * each with its name after it (engine/cond-cases.test.ts checks them): number labels let V8 jump
+   * straight to the case, where `COND.x` labels test them one by one. Every walk runs this for each
+   * line it reaches, so it's the hottest switch in the engine.
+   */
   private conditionsHold(e: number): boolean {
     const now = this.now
     for (let k = this.condStart[e]; k < this.condStart[e + 1]; k++) {
       const a = this.condA[k]
       const b = this.condB[k]
       switch (this.condCode[k]) {
-        case COND.windowOpen:
+        case 12: // COND.windowOpen
           if (!this.auraActive[a]) return false
           break
-        case COND.minRage:
+        case 0: // COND.minRage
           if (this.rage < a) return false
           break
-        case COND.cooldownAtLeast:
+        case 1: // COND.cooldownAtLeast
           if (this.abReadyAt[a] - now < b) return false
           break
-        case COND.gcdSafe:
+        case 2: // COND.gcdSafe
           // docs/classes/warrior.md#51-conventions-for-rotation-settings: each has ≥ one GCD of cooldown
           // left. One the current stance refuses isn't coming up, unless a line dances for it and that
           // dance could happen at this rage: the swap keeps enough to pay for it, and rage is within
@@ -2959,95 +3019,129 @@ export class Sim {
             if (this.abDances[i] === 1 && Math.min(rage, this.swapKeep) >= this.abCost[i] && rage <= this.abDanceMaxRage[i]) return false
           }
           break
-        case COND.auraDown:
+        case 3: // COND.auraDown
           if (a >= 0 && this.auraActive[a]) return false
           break
-        case COND.apAtLeast:
+        case 5: // COND.apAtLeast
           if (this.ap < a) return false
           break
-        case COND.apBelow:
+        case 6: // COND.apBelow
           if (this.ap >= a) return false
           break
-        case COND.maxRage:
+        case 7: // COND.maxRage
           if (this.rage > a) return false
           break
-        case COND.abilityAuraUp: {
+        case 10: { // COND.abilityAuraUp
           const aura = this.abAura[a]
           if (aura < 0 || !this.auraActive[aura]) return false
           break
         }
         // docs/classes/druid.md §6.2: Energy and combo-point thresholds.
-        case COND.minEnergy:
+        case 14: // COND.minEnergy
           if (this.energy < a) return false
           break
-        case COND.maxEnergy:
+        case 15: // COND.maxEnergy
           if (this.energy > a) return false
           break
-        case COND.minComboPoints:
+        case 16: // COND.minComboPoints
           if (this.comboPoints < a) return false
           break
         // rogue.md §6: room for a cast's combo points (Premeditation).
-        case COND.maxComboPoints:
+        case 30: // COND.maxComboPoints
           if (this.comboPoints > a) return false
           break
-        case COND.abilityAuraDown: {
+        case 17: { // COND.abilityAuraDown
           const aura = this.abAura[a]
           if (aura >= 0 && this.auraActive[aura]) return false
           break
         }
         // paladin.md: a mana threshold.
-        case COND.minMana:
+        case 18: // COND.minMana
           if (this.mana < a) return false
           break
-        case COND.maxMana:
+        case 19: // COND.maxMana
           if (this.mana > a) return false
           break
+        // docs/classes/mage.md#fire-priority: Pyroblast waits, up to b ms, for its own DoT's next tick
+        // rather than land just before it and cut it off; the walk stops and resumes as it can land
+        // with the tick (a tick due that moment lands first, spells.md §7).
+        case 45: { // COND.dotTickWait
+          const s = this.abSpell[a]
+          if (s >= 0 && this.spDotTicksLeft[s] > 0) {
+            // The first of its ticks due as the cast lands or after: the ticks before it land first.
+            const lands = now + this.castMsNow(a)
+            let tick = this.spDotNextAt[s]
+            let left = this.spDotTicksLeft[s]
+            while (left > 1 && tick < lands) {
+              tick += this.splDotTickMs[s]
+              left--
+            }
+            const early = tick - lands
+            if (early > 0 && early <= b) {
+              this.walkWaitUntil = now + early
+              return false
+            }
+          }
+          break
+        }
         // docs/mechanics/spells.md §11: a plan aura is up (Clearcasting, Shadow Trance).
-        case COND.auraUp:
+        case 38: // COND.auraUp
           if (!this.auraActive[a]) return false
           break
-        case COND.abilityAuraStacksBelow: {
+        case 20: { // COND.abilityAuraStacksBelow
           // warrior.md §5.4 row 10: Sunder Armor's stacks below 5; druid.md §6.3: Lacerate's (down counts as none).
           const aura = this.abAura[a]
           if (aura >= 0 && this.auraActive[aura] && this.auraStacks[aura] >= b) return false
           break
         }
         // docs/classes/shaman.md#enhancement-priority: Lightning Bolt at 5 Maelstrom Weapon stacks.
-        case COND.auraStacksAtLeast:
+        case 34: // COND.auraStacksAtLeast
           if (!this.auraActive[a] || this.auraStacks[a] < b) return false
           break
         // docs/classes/mage.md#fire-priority: Scorch until Fire Vulnerability has 5 stacks, or before it runs out.
-        case COND.auraStacksBelow:
+        case 42: // COND.auraStacksBelow
           if (this.auraActive[a] && this.auraStacks[a] >= b) return false
           break
-        case COND.auraEndsWithin:
+        case 43: // COND.auraEndsWithin
           if (this.auraActive[a] && this.auraEndAt(a) - now > b) return false
           break
+        // docs/classes/mage.md#fire-priority: Scorch now if the Pyroblast or Fireball below would let
+        // Fire Vulnerability run out before a Scorch after it lands (a tie counts as running out).
+        case 44: { // COND.auraEndsBeforeCasts
+          if (!this.auraActive[a]) break
+          const left = this.auraEndAt(a) - now
+          const l = this.rotAbility[e]
+          // Cheap first: while no cast can take longer than its base time, more left than both base
+          // times is more left than both casts now (castMsNow) take. Nearly every walk ends here.
+          if (this.castHasteMult >= 1 && (this.abCastBounded[b] & this.abCastBounded[l]) === 1 && left > this.abCastMs[b] + this.abCastMs[l]) return false
+          if (left > this.castMsNow(b) + this.castMsNow(l)) return false
+          break
+        }
         // docs/classes/priest.md#6-rotation: Inner Focus waits until Mind Blast could start now.
-        case COND.abilityReady:
+        case 50: // COND.abilityReady
           if (this.abReadyAt[a] > now || (this.abGcd[a] > 0 && this.gcdEnd > now)) return false
           if (this.abPlainRage[a] === 1 ? this.rage < this.abCost[a] : !this.affordable(a)) return false
           break
         // docs/mechanics/ranged-and-pets.md §11: Auto Shot's timer and the pet's power.
-        case COND.autoShotClear:
+        case 62: // COND.autoShotClear
           if (!this.autoShotClear(a, b)) return false
           break
-        case COND.autoShotWithin:
+        case 63: // COND.autoShotWithin
           if (!this.hasRanged || now - this.rLastShotAt > a) return false
           break
         // buffs doc §3.7: a throw that stops your swings waits for the fight's first main-hand swing.
-        case COND.mainHandSwung:
+        case 35: // COND.mainHandSwung
           if (this.hasWeapon[HAND.main] && !this.mainHandSwung) return false
           break
-        case COND.petPowerAtLeast:
+        case 64: // COND.petPowerAtLeast
           if (!this.hasPet || this.petPower < a) return false
           break
-        case COND.petPowerAtMost:
+        case 65: // COND.petPowerAtMost
           if (!this.hasPet || this.petPower > a) return false
           break
         // docs/classes/warlock.md §11.3: the target below a% health, from t = floor(L × (1 − a/100)),
         // the execute phase's rule. Read on each walk: a caster walks as each cast lands.
-        case COND.healthAtMost:
+        case 70: // COND.healthAtMost
           if (now < executePhaseStart(this.fightEnd, a)) return false
           break
       }
@@ -3105,6 +3199,7 @@ export class Sim {
     }
     if (stackCost >= 0) this.payStackCost(stackCost)
     else this.payCost(a)
+    this.eurekaTake(a)
     const gcd = this.gcdOf(a)
     if (gcd > 0) {
       this.gcdEnd = this.now + gcd
@@ -3144,6 +3239,7 @@ export class Sim {
       return
     }
     this.strike(a)
+    this.euA = -1
     if (this.exCount > 0) this.drainExtraAttacks()
   }
 
@@ -3220,6 +3316,7 @@ export class Sim {
     if (stackCost >= 0 ? this.mana >= stackCost : this.affordable(a)) {
       if (stackCost >= 0) this.payStackCost(stackCost)
       else this.payCost(a)
+      this.eurekaTake(a)
       const cd = this.abCd[a]
       if (this.countUse(a)) {
         if (cd > 0 && this.abCatNext[a] !== a) this.holdCategory(a, now + cd)
@@ -3232,6 +3329,7 @@ export class Sim {
       // docs/mechanics/spells.md §6: a channel with a cast before it starts channeling as the cast lands.
       else if (this.abKind[a] === KIND_CHANNEL) this.channel(a)
       else this.strike(a)
+      this.euA = -1
     }
     if (this.swingsStopped) {
       this.swingsStopped = false
@@ -3495,6 +3593,8 @@ export class Sim {
     if (this.abPoisonedPct[a] !== 0 && this.poisonedDots > 0) base *= 1 + this.abPoisonedPct[a] / 100
     // rogue.md §5.3: Quietus, once the target is below 35% health.
     if (this.abLowPct[a] !== 0 && this.now >= this.abLowAt[a]) base *= 1 + this.abLowPct[a] / 100
+    // src/sim/classes/eureka.ts: the use that took a Eureka! charge deals its +10%, both hands.
+    if (this.euA === a) base *= this.euDamage
     return base * this.physMult * this.armorFactor[hand]
   }
 
@@ -3531,9 +3631,11 @@ export class Sim {
     const c = this.counters
     c[row + FIELD.casts]++
     // A binary spell of a resistible school is also resisted whole at the boss's average resistance
-    // (the bear's Faerie Fire, druid.md §4.5): one roll against miss + (1 − miss) × resist.
-    const miss = this.spellMissPct
-    if (this.rngTable.roll100() < miss + (100 - miss) * this.abResist[a]) {
+    // (the bear's Faerie Fire, druid.md §4.5): one roll against miss + (1 − miss) × resist, the
+    // school's own miss and resistance (spell penetration and debuffs), as castSpell's (spells.md §2, §3).
+    const school = this.abResistSchool[a]
+    const miss = school >= 0 && this.hasSchoolHit ? this.schMiss[school] : this.spellMissPct
+    if (this.rngTable.roll100() < miss + (100 - miss) * (school >= 0 ? this.resistChance[school] : 0)) {
       c[row + FIELD.misses]++
       if (this.abPlainRage[a] === 1) {
         const refund = Math.floor(this.abRefund[a] * this.abCost[a] + 1e-9)
@@ -3564,9 +3666,9 @@ export class Sim {
    * Pays an ability's cost. Less rage can make a `maxRage` line usable (Bloodrage, Berserker
    * Rage), so the rotation walks again if it has one.
    */
-  private spendRage(a: number): void {
-    if (this.abCost[a] > 0) {
-      this.rage -= this.abCost[a]
+  private spendRage(a: number, cost = this.abCost[a]): void {
+    if (cost > 0) {
+      this.rage -= cost
       if (this.hasMaxRage) this.actPending = true
     }
     this.afterRageSpent()
@@ -3693,9 +3795,14 @@ export class Sim {
       case ACTION.spellDamage:
         this.spellProc(p)
         return
-      case ACTION.spell:
+      case ACTION.spell: {
+        // priest.md#35-inner-focus-14751: the free-cast crit is its own spell's, not a proc's it fires.
+        const free = this.freeCrit
+        this.freeCrit = 0
         this.castSpell(this.pAmount[p], true)
+        this.freeCrit = free
         return
+      }
       case ACTION.mana:
         this.gainMana((this.manaMax * this.pAmount[p]) / 100, this.pSource[p])
         return
@@ -3758,6 +3865,8 @@ export class Sim {
     this.auraStacks[a] = stacks
     this.auraEnd[a] = end
     this.auraCharges[a] = this.aCharges[a]
+    // src/sim/classes/eureka.ts: Eureka! goes up with its charges.
+    if (a === this.euAura) this.euLeft = this.euCharges
     // docs/classes/mage.md#combustion: a stack added to an aura that keeps its charges leaves them as they are.
     if (!wasActive || this.aKeepsCharges[a] === 0) this.auraCritCharges[a] = this.aCritCharges[a]
     this.auraBlockCharges[a] = this.aBlockCharges[a]
@@ -3942,6 +4051,8 @@ export class Sim {
     // docs/mechanics/spells.md §3, §9: its school's average resist (Holy has none) and multipliers, and crit.
     const school = this.pSchool[p]
     let damage = this.rngDamage.uniform(this.pA[p], this.pB[p]) * this.resistFactor[school] * this.magicMult * this.schDamage[school] * this.schTaken[school]
+    // paladin.md#conventions-used-below: Holy damage's own multiplier (Vengeance's), as a Holy spell's.
+    if (school === SCHOOL.holy) damage *= this.holyMult
     // A rogue's poison: the auras' damage bonus (Venom, rogue.md §4.4).
     if (this.pPoison[p] === 1) damage *= this.poisonMult
     const crit = this.rngProc.roll100() < this.spellCritPct + this.schCrit[school]
@@ -3978,7 +4089,7 @@ export class Sim {
     const ticks = this.abDotTicks[a] + (this.abFinisher[a] === 1 ? this.abDotTicksPerCp[a] * cp : 0)
     this.dotTicksLeft[a] = ticks
     const perCp = this.abFinisher[a] === 1 ? this.abDotPerCp[a] * cp + this.abDotApPerCp[a] * Math.min(cp, this.abCpApCap[a]) * this.ap : 0
-    this.dotDamage[a] = (this.abDotTick[a] * stacks + perCp) * this.physMult
+    this.dotDamage[a] = (this.abDotTick[a] * stacks + perCp) * this.physMult * (this.euA === a ? this.euDot : 1)
     this.dotCrit[a] = this.abDotCanCrit[a] ? this.specCrit[HAND.main] + this.abBonusCrit[a] + this.auraCritPct(a) : -1
     this.dotNextAt[a] = now + this.abDotTickMs[a]
     this.q.push(this.dotNextAt[a], EV_DOT_TICK, a, ++this.dotGen[a])
@@ -4160,6 +4271,12 @@ export class Sim {
    * `countCast`: count a cast on its row (a proc's spell; an ability counts its own).
    */
   private castSpell(s: number, countCast: boolean): boolean {
+    // src/sim/classes/eureka.ts: the spell of the use that took a Eureka! charge reads its factors,
+    // and only it: a spell its procs cast finds them gone.
+    const eu = this.euA >= 0 && this.abSpell[this.euA] === s
+    const euDamage = eu ? this.euDamage : 1
+    const euDot = eu ? this.euDot : 1
+    if (eu) this.euA = -1
     const source = this.splSource[s]
     const row = source * FIELD_COUNT
     const c = this.counters
@@ -4187,7 +4304,7 @@ export class Sim {
         blocked = r < blockTh
         if (shot && this.splHasDirect[s] === 0) {
           // ranged-and-pets.md §5: a sting (a pure DoT) lands its DoT and rolls no crit.
-          this.applySpellDot(s)
+          this.applySpellDot(s, euDot)
           if (this.splTriggersProcs[s] === 1) this.fireProcs(TRIGGER.rangedLanded, -1)
           return true
         }
@@ -4234,7 +4351,7 @@ export class Sim {
       }
       // docs/mechanics/spells.md §7: a pure DoT deals nothing as it lands and rolls no crit: its ticks start.
       if (this.splHasDirect[s] === 0) {
-        this.applySpellDot(s)
+        this.applySpellDot(s, euDot)
         if (this.hasSpellLanded && this.splTriggersProcs[s] === 1) this.spellProcs(TRIGGER.spellLanded, s)
         return true
       }
@@ -4274,7 +4391,7 @@ export class Sim {
     }
     // docs/mechanics/spells.md §5: the school's spell damage (Holy's is the paladin's "SP").
     const school = this.splSchool[s]
-    let damage = (base + this.splSpCoef[s] * this.spSchool[school]) * this.splDamageMult[s]
+    let damage = (base + this.splSpCoef[s] * this.spSchool[school]) * this.splDamageMult[s] * euDamage
     const holy = school === SCHOOL.holy
     if (holy) {
       // paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc: the target's flat bonus × the spell's share.
@@ -4311,7 +4428,7 @@ export class Sim {
     const threat = (damage * this.splThreatMult[s] + this.splThreatBonus[s]) * (holy ? this.holyThreatMult : 1) * this.threatMult
     this.addDamage(source, damage, threat)
     // docs/mechanics/spells.md §7: a hybrid's DoT starts as its direct part lands (Fireball, Immolate).
-    if (this.splDotTicks[s] > 0) this.applySpellDot(s)
+    if (this.splDotTicks[s] > 0) this.applySpellDot(s, euDot)
     // paladin.md#conventions-used-below: a triggered spell without NOT_A_PROC triggers nothing [?].
     if (this.splTriggersProcs[s] === 0) return true
     // buffs doc §3.7: an item's spell fires none of your spell procs, which name your class's spells
@@ -4409,11 +4526,11 @@ export class Sim {
    * whose periodic effects can). The boss's side (damage taken, the resist) is read at each tick.
    * Its marker aura is up until the last tick; on a hybrid's own DoT row an application counts as a cast.
    */
-  private applySpellDot(s: number): void {
+  private applySpellDot(s: number, mult = 1): void {
     const now = this.now
     if (this.spDotTicksLeft[s] > 0 && this.spDotNextAt[s] === now) this.spellDotTick(s)
     const school = this.splSchool[s]
-    let snapshot = (this.splDotTick[s] + this.splDotCoef[s] * this.spSchool[school]) * this.splDotMult[s] * this.magicMult * this.schDamage[school]
+    let snapshot = (this.splDotTick[s] + this.splDotCoef[s] * this.spSchool[school]) * this.splDotMult[s] * this.magicMult * this.schDamage[school] * mult
     if (school === SCHOOL.holy) snapshot *= this.holyMult
     this.spDotDamage[s] = snapshot
     this.spDotCrit[s] = this.splDotCanCrit[s] === 1 ? this.spellCritPct + this.splBonusCrit[s] + this.schCrit[school] + this.freeCrit : -1
@@ -4630,15 +4747,27 @@ export class Sim {
    */
   private autoShotClear(a: number, spare: number): boolean {
     if (!this.hasRanged) return false
-    let castMs = this.abCastMs[a]
-    if (castMs === 0) return true
-    const instant = this.abInstantAura[a]
-    if (instant >= 0 && this.auraActive[instant]) return true
-    if (this.abStackAura[a] >= 0) castMs *= this.stackCut(a, this.abStackCast[a])
-    if (this.abCastHasted[a]) castMs = hastedCastMs(castMs, this.castHasteMult)
-    if (this.abCastRangedHasted[a]) castMs = hastedCastMs(castMs, this.rangedHaste())
+    const castMs = this.castMsNow(a)
     if (castMs === 0) return true
     return this.now + castMs + spare <= this.rNextAt - this.rWindupMs
+  }
+
+  /**
+   * The cast time ability a would start with now, as `use` computes it without spending anything: 0
+   * for an instant or under its instant-cast aura, else its stacks' cut, a charge's cut, casting speed
+   * and ranged haste (docs/mechanics/spells.md §4).
+   */
+  private castMsNow(a: number): number {
+    let castMs = this.abCastMs[a]
+    if (castMs === 0) return 0
+    const instant = this.abInstantAura[a]
+    if (instant >= 0 && this.auraActive[instant]) return 0
+    if (this.abStackAura[a] >= 0) castMs *= this.stackCut(a, this.abStackCast[a])
+    const charge = this.abChargeAura[a]
+    if (charge >= 0 && this.auraActive[charge]) castMs = Math.max(0, castMs - this.abChargeCastMs[a])
+    if (this.abCastHasted[a]) castMs = hastedCastMs(castMs, this.castHasteMult)
+    if (this.abCastRangedHasted[a]) castMs = hastedCastMs(castMs, this.rangedHaste())
+    return castMs
   }
 
   // ------------------------------------------------------------------------------------------
@@ -4764,6 +4893,8 @@ export class Sim {
     }
     if (r < th[2]) {
       c[row + (r < th[1] ? FIELD.dodges : FIELD.parries)]++
+      // damage-and-timing §3.4: a parry hastes the boss's swing, whoever it parried.
+      if (r >= th[1]) this.onBossParried()
       return
     }
     let damage = (rng.uniform(this.petWMin, this.petWMax) + (this.petAp / 14) * this.petWSpeedSec) * this.petDamageMult * this.petArmorFactor
@@ -4805,21 +4936,21 @@ export class Sim {
     }
   }
 
-  /** A pet line's conditions (§7, §11): its power, and a plan aura up or down. */
+  /** A pet line's conditions (§7, §11): its power, and a plan aura up or down. The labels are COND's numbers, as conditionsHold's. */
   private petConditionsHold(l: number): boolean {
     for (let k = this.petCondStart[l]; k < this.petCondStart[l + 1]; k++) {
       const a = this.petCondA[k]
       switch (this.petCondCode[k]) {
-        case COND.petPowerAtLeast:
+        case 64: // COND.petPowerAtLeast
           if (this.petPower < a) return false
           break
-        case COND.petPowerAtMost:
+        case 65: // COND.petPowerAtMost
           if (this.petPower > a) return false
           break
-        case COND.auraUp:
+        case 38: // COND.auraUp
           if (!this.auraActive[a]) return false
           break
-        case COND.auraDown:
+        case 3: // COND.auraDown
           if (a >= 0 && this.auraActive[a]) return false
           break
       }
@@ -4886,6 +5017,8 @@ export class Sim {
       }
       if (r < th[2]) {
         c[row + (r < th[1] ? FIELD.dodges : FIELD.parries)]++
+        // damage-and-timing §3.4: a parry hastes the boss's swing, whoever it parried.
+        if (r >= th[1]) this.onBossParried()
         return
       }
       blocked = r < th[4]
@@ -4972,11 +5105,28 @@ export class Sim {
     this.manaSpentAt = this.now
   }
 
-  /** An ability's cost now: its own, less Thousand Cuts' Energy per stack while that's up (rogue.md §5.3). */
+  /**
+   * Gnome Eureka! (src/sim/classes/eureka.ts): an ability it modifies, used while it's up, spends a
+   * charge as it's paid (its cost already cut), and the last charge takes the aura down; its own
+   * strike, spell and DoT then read its factors (`euA`) [?].
+   */
+  private eurekaTake(a: number): void {
+    this.euA = -1
+    const bits = this.abEureka[a]
+    if (bits === 0 || !this.auraActive[this.euAura]) return
+    this.euA = a
+    this.euDamage = (bits & 2) !== 0 ? this.euDamageMult : 1
+    this.euDot = (bits & 4) !== 0 ? this.euDotMult : 1
+    if (--this.euLeft <= 0) this.removeAura(this.euAura)
+  }
+
+  /** An ability's cost now: its own, less Thousand Cuts' Energy per stack while that's up (rogue.md §5.3), and Eureka!'s cut. */
   private costNow(a: number): number {
     const aura = this.abCostAura[a]
-    if (aura < 0 || !this.auraActive[aura]) return this.abCost[a]
-    return Math.max(0, this.abCost[a] - this.abCostPerStack[a] * this.auraStacks[aura])
+    const cost = aura < 0 || !this.auraActive[aura] ? this.abCost[a] : Math.max(0, this.abCost[a] - this.abCostPerStack[a] * this.auraStacks[aura])
+    // src/sim/classes/eureka.ts: Eureka!'s cut while it's up, rounded down to whole resource [?].
+    if ((this.abEureka[a] & 1) === 0 || !this.auraActive[this.euAura]) return cost
+    return 10 * Math.floor((cost * this.euCostMult) / 10 + 1e-9)
   }
 
   /** The pool of a resource, in tenths. */
@@ -5003,12 +5153,15 @@ export class Sim {
     if (cost > 0 && this.abFree[a] === 1 && this.auraActive[this.freeAura]) {
       this.lastPaid = 0
       this.removeAura(this.freeAura)
-      // docs/classes/priest.md#35-inner-focus-14751: the charge's crit goes to this ability's spell.
-      this.freeCrit = this.freeCritPct
+      // docs/classes/priest.md#35-inner-focus-14751: the charge's crit goes to this ability's spell,
+      // if it has one it resolves now; spent on anything else (a strike, a shapeshift, a channel of
+      // tick spells), it goes to nothing.
+      const kind = this.abKind[a]
+      if (kind === KIND_SPELL || (kind === KIND_CHANNEL && this.abSpell[a] >= 0)) this.freeCrit = this.freeCritPct
       return
     }
     const res = this.abRes[a]
-    if (res === RES_RAGE) this.spendRage(a)
+    if (res === RES_RAGE) this.spendRage(a, cost)
     else if (res === RES_ENERGY) {
       this.energy -= cost
       if (cost > 0 && this.hasMaxEnergy) this.actPending = true

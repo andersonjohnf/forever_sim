@@ -169,9 +169,14 @@ const REGISTRY = {
     text: 'Expansive Mind’s +5% maximum rage multiplies the total, including Boundless Rage.',
     docRef: `${WAR}#9-open-questions`,
   },
-  cooldownRacial: {
-    text: 'Eureka! isn’t simulated: how its 40% cost cut rounds, and what spends its charges, are open questions.',
-    docRef: `${WAR}#9-open-questions`,
+  gnomeEnergy: {
+    text: 'Expansive Mind’s +5% maximum Energy multiplies the total, including Vigor, rounded down to whole Energy: 110 with Vigor 1/2, 115 with 2/2.',
+    docRef: `${ROGUE}#21-energy`,
+  },
+  eureka: {
+    // src/sim/classes/eureka.ts; the plan names the class's cut and its resource ({detail}).
+    text: 'Eureka! spends a charge on each of the next 3 abilities it modifies (the client’s spell masks) as you pay for it, landed or not, and cuts its cost by {detail}, rounded down to whole points; those its damage masks cover deal 10% more, their DoTs too. Untested.',
+    docRef: `${STATS}#racials-that-matter-to-the-sim`,
   },
   touchOfTheGrave: {
     text: 'Touch of the Grave isn’t simulated: whether it deals damage is unknown.',
@@ -664,8 +669,8 @@ const REGISTRY = {
     docRef: `${SHAM}#elemental-defaults`,
   },
   bloodFurySpellPower: {
-    text: 'Blood Fury’s +10% spell power is 10% of your sheet’s Nature spell damage, fixed at the pull.',
-    docRef: `${SHAM}#elemental-defaults`,
+    text: 'Blood Fury’s +10% spell power multiplies your spell damage of every school while it’s up, buffs and trinkets included, unrounded.',
+    docRef: `${LOCK}#72-race`,
   },
   // --- The rogue's (docs/classes/rogue.md §9) ---
   energyTicksRogue: {
@@ -757,6 +762,10 @@ const REGISTRY = {
   mageHotStreak: {
     text: 'Hot Streak stacks on non-periodic crits of Fireball, Fire Blast and Scorch, and Pyroblast uses them all; the client’s charge rule is server-side.',
     docRef: `${MAGE}#hot-streak`,
+  },
+  mageFireWait: {
+    text: 'Fireball waits up to 0.3 s for a Fire Blast coming off cooldown, and Pyroblast up to 0.3 s so it lands with its own DoT’s next tick instead of cutting it off: what a perfect player would do, a reasoned estimate.',
+    docRef: `${MAGE}#fire-priority`,
   },
   mageCombustion: {
     text: 'Combustion gives the first Fire spell after it +10% crit, then +10% more for each Fire spell that hits; it ends after 4 Fire crits, and its cooldown starts then.',

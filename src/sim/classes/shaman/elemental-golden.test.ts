@@ -28,6 +28,10 @@ describe('golden run (fixed config and seed)', () => {
   // - T2 (M5.6): the caster food and oil reach the catalogue, and the Standard raid brings the buffs
   //   doc's §6.3 Elemental consumables, Nightfin Soup (+22 spell damage) and Brilliant Wizard Oil
   //   (+36 and +1% spell crit, on Mindfang): DPS 338.00 → 370.34, TPS 242.32 → 264.19.
+  // - Caster racials (issue #10): Blood Fury is the casters' (caster-racials.ts), the warlock's live
+  //   +10% spell damage multiplier while it's up, no longer a flat 10% of the sheet's Nature spell
+  //   damage fixed at the pull: DPS 370.34 → 370.30, TPS 264.19 → 264.16 (20,000 fights: 368.76 →
+  //   368.72, ± 0.23, so no measurable change).
   it('keeps the default Elemental shaman’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('shaman-elemental'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

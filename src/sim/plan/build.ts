@@ -16,6 +16,7 @@ import { protectionAssumptions, swiftJudgementPlan } from '../classes/paladin/pr
 import { paladinAssumptions, paladinManaPlan } from '../classes/paladin/setup'
 import { SHAMAN_WINDFURY_WEAPON, shamanAssumptions, shamanPlan } from '../classes/shaman/setup'
 import { rogueAssumptions, rogueEnergy } from '../classes/rogue/setup'
+import { EUREKA, EUREKA_ABILITIES, EUREKA_RESOURCE, type EurekaClass } from '../classes/eureka'
 import { balanceAssumptions } from '../classes/druid/balance'
 import { mageAssumptions, mageFreeCast, mageManaPlan } from '../classes/mage/setup'
 import { warlockAssumptions, warlockManaPlan } from '../classes/warlock/setup'
@@ -29,7 +30,7 @@ import { BUFFS_BY_ID, EZ_THRO_DARK_BOMB } from '../effects/buffs'
 import { ENCHANTS_BY_ID } from '../effects/enchants'
 import { ITEM_EFFECTS, itemEffectsApply } from '../effects/items'
 import { buffGroupFillers, buffProvided, buffUnusedReason, forSpecClass } from '../effects/presets'
-import { COOLDOWN_RACIALS, racialEffects } from '../effects/racials'
+import { racialEffects } from '../effects/racials'
 import { type AuraSpec, catalogueEffects, type Condition, type DruidForm, type Effect, type FlatStat, type OnUseSpec, type ProcSpec } from '../effects/types'
 import { isTwoHand, PROFICIENCY } from '../equip'
 import { currentDamageTakenRageModel, PROFILES, type RulesProfile } from '../rules/profiles'
@@ -228,6 +229,8 @@ interface Collected {
   holyThreatMult: number
   maxRageFlat: number
   maxRageMult: number
+  /** The rogue's maximum Energy multiplier (Expansive Mind; rogue.md §2.1). */
+  maxEnergyMult: number
   targetArmor: number
   /** The boss's static flat Holy damage taken: another paladin's Judgement of the Crusader (buffs doc §4.2). */
   holyTaken: number
@@ -451,6 +454,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     holyThreatMult: 1,
     maxRageFlat: 0,
     maxRageMult: 1,
+    maxEnergyMult: 1,
     targetArmor: 0,
     holyTaken: 0,
     bossAp: 0,
@@ -1045,7 +1049,6 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         front: fight.position === 'front',
         weaponTypes: [weapons[HAND.main]?.type ?? null, weapons[HAND.off]?.type ?? null],
         maxMana: block.hasMana ? derived.mana : 0,
-        spellDamage: derived.natureSpellDamage,
         jotcRule: config.rules.jotcBonus ?? 'coefficient',
         hotrWeaponDps: config.rules.hotrWeaponDps ?? 'withAttackPower',
         buffGroups: new Set(filledGroups.keys()),
@@ -1077,6 +1080,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       }),
     }
   }
+  // An on-use item's charges cap its uses a fight, whichever class presses it (the Manual Crowd
+  // Pummeler's 3; effects/types.ts OnUseSpec.charges, docs/classes/druid.md §7.3).
+  const itemCharges = new Map(itemUses.flatMap((u) => (u.charges ? [[u.id, u.charges] as const] : [])))
   const abilities: AbilityPlan[] = classRot.abilities.map((def) => {
     const {
       offHand,
@@ -1128,6 +1134,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (tickSpell !== undefined && spells[tickSpell].source === source) sources[source].landing = tickNoun ?? 'tick'
     return {
       ...a,
+      ...(itemCharges.has(a.id) && !a.usesPerFight ? { usesPerFight: itemCharges.get(a.id)! } : {}),
       weaponPercent: weaponPercentVs(def, fight.creatureType),
       source,
       offHandSource,
@@ -1380,8 +1387,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...(classId === 'paladin' ? swiftJudgementPlan(auras) : {}),
     // docs/classes/shaman.md#mana: the same model, with Improved Stormstrike's regeneration while casting.
     ...(classId === 'shaman' ? shamanPlan(derived, block.mp5, setup.talents, auras) : {}),
-    // docs/classes/rogue.md §2.1: its Energy, with Vigor's cap.
-    ...(classId === 'rogue' ? { energy: rogueEnergy(setup.talents) } : {}),
+    // docs/classes/rogue.md §2.1: its Energy, with Vigor's cap and a Gnome's Expansive Mind.
+    ...(classId === 'rogue' ? { energy: rogueEnergy(setup.talents, c.maxEnergyMult) } : {}),
     // docs/classes/mage.md#mana: the same model, with Mage Armor's and Arcane Meditation's regeneration while casting, and Clearcasting's free cast.
     ...(classId === 'mage' ? { mana: mageManaPlan(derived, block.mp5, setup.talents, profile), ...mageFreeCast(auras) } : {}),
     // docs/classes/warlock.md §5: the same mana model, with the warlock's Spirit regeneration.
@@ -1400,6 +1407,17 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // docs/mechanics/ranged-and-pets.md: the ranged weapon and the pet, when the spec has them.
     ...(ranged ? { ranged } : {}),
     ...(pet ? { pet } : {}),
+  }
+  // Gnome Eureka! (classes/eureka.ts): its aura's charges and cuts, and the abilities it modifies.
+  const eurekaAt = abilities.findIndex((a) => a.id === 'eureka')
+  if (eurekaAt >= 0 && abilities[eurekaAt].aura >= 0 && classId in EUREKA) {
+    const eurekaClass = classId as EurekaClass
+    const e = EUREKA[eurekaClass]
+    for (const a of abilities) {
+      const bits = EUREKA_ABILITIES[eurekaClass][a.id]?.bits
+      if (bits) a.eureka = bits
+    }
+    plan.eureka = { aura: abilities[eurekaAt].aura, charges: e.charges, costPct: e.costPct, damagePct: e.damagePct, dotPct: e.dotPct }
   }
 
   // --- Assumptions ---------------------------------------------------------------------------------
@@ -1545,9 +1563,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const racialWeapon = racialWeapons[config.race]
   if ((racialWeapon && mixed([racialWeapon])) || (setup.talents.has('Weaponmaster') && mixed(['axe', 'polearm']))) notes.add('racialWeaponCrit')
   if (config.race === 'alliance-gnome' && c.maxRageFlat > 0) notes.add('gnomeRage')
-  // A racial cooldown no rotation presses yet (Eureka!, warrior.md §7); specs without a rotation have `whiteSwingsOnly`.
-  if (setup.simulated && COOLDOWN_RACIALS[config.race]?.simulated === false) notes.add('cooldownRacial')
+  if (config.race === 'alliance-gnome' && classId === 'rogue' && (setup.talents.get('Vigor') ?? 0) > 0) notes.add('gnomeEnergy')
+  // src/sim/classes/eureka.ts: Eureka!'s charges and cut, the class's own [?].
+  if (plan.eureka) notes.add('eureka', `${plan.eureka.costPct}% ${EUREKA_RESOURCE[classId as EurekaClass]}`)
   if (config.race === 'horde-undead') notes.add('touchOfTheGrave')
+  // A caster's Blood Fury: its spell power multiplies spell damage live, unrounded [?] (warlock.md §7.2).
+  if (auras.some((a) => a.id === 'bloodFury' && a.spellDamagePct)) notes.add('bloodFurySpellPower')
   if (classicItems.length) notes.add('classicItems', classicItems.join(', '))
   // docs/mechanics/ranged-and-pets.md §1: ammo the ranged weapon doesn't fire (arrows in a gun) adds nothing.
   if (meta.ranged && ammoItem && !ammoFired) notes.add('ammoNotFired', ammoItem.name)
@@ -1746,6 +1767,9 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
       return
     case 'maxRagePct':
       c.maxRageMult *= 1 + e.pct / 100
+      return
+    case 'maxEnergyPct':
+      c.maxEnergyMult *= 1 + e.pct / 100
       return
     case 'weaponDamage':
       for (const w of matching(e.weapons)) if (origin === null || w.hand === origin) w.plan.flatDamage += e.value

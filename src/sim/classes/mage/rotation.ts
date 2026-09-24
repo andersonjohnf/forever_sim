@@ -7,7 +7,8 @@ import type { OnUseSpec } from '../../effects/types'
 import { type AbilityDef, COND, NO_PREPULL, type RotationCondition, type RotationEntry } from '../../plan/types'
 import type { RotationOption, RotationValue, SpecId } from '../../types'
 import type { PaladinContext } from '../paladin/setup'
-import { RACIAL_COOLDOWNS } from '../warrior/abilities'
+import { CASTER_RACIALS } from '../caster-racials'
+import { eurekaFor } from '../eureka'
 import { NO_CONTEXT, reader, type ClassRotation } from '../warrior/shared'
 import {
   ARCANE_MISSILES,
@@ -32,6 +33,16 @@ import { FIRE_VULNERABILITY, HOT_STREAK, rank, type TalentRanks, withTalents } f
 export const MANA_POTION = 'majorManaPotion'
 export const MANA_RUNE = 'demonicRune'
 export const POWER_INFUSION = 'powerInfusion'
+
+/**
+ * The longest the Fire rotation waits, doing nothing, rather than lose more (docs/classes/mage.md
+ * "Fire priority", rows 10 and 12) [?] (`mageFireWait`): Fireball waits for a Fire Blast ready this
+ * soon, and Pyroblast for its own DoT's tick due this soon after it would land. At about 560 DPS,
+ * 0.3 s idle costs about 170 damage, what a cut-off Pyroblast tick or a Fire Blast held back a whole
+ * Fireball costs, so a perfect player waits up to about this long. A reasoned estimate, near where
+ * waiting stops paying across common casting speeds (mage.md "Fire priority" has the measurements).
+ */
+export const FIRE_WAIT_MS = 300
 
 type Spec = 'fire' | 'frost' | 'arcane'
 const SPEC_OF: Partial<Record<SpecId, Spec>> = { 'mage-fire': 'fire', 'mage-frost': 'frost', 'mage-arcane': 'arcane' }
@@ -77,7 +88,7 @@ function sharedOptions(spec: Spec): { cooldowns: RotationOption[]; mana: Rotatio
         id: ID.racial,
         group: COOLDOWNS,
         label: 'Racial cooldown',
-        help: 'Use Berserking (Troll: +10% casting speed for 10 s) on cooldown from the pull. Other races’ cooldowns do nothing for your spells.',
+        help: 'Use Berserking (Troll: +10% casting speed for 10 s), Blood Fury (Orc: +10% spell power for 15 s) or Eureka! (Gnome: your next 3 spells cost 50% less, and all but Arcane Missiles deal 10% more) on cooldown from the pull.',
         default: true,
       },
       {
@@ -205,7 +216,7 @@ function fireOptions(): RotationOption[] {
       id: ID.scorchRefresh,
       group: CORE,
       label: 'Scorch again with',
-      help: 'Refresh the stacks when they have at most this long left. Scorch lands 1.5 s after you start it.',
+      help: 'Refresh the stacks when they have at most this long left, or sooner if your next Pyroblast or Fireball would let them run out before a Scorch after it lands.',
       unit: 's left',
       min: 2,
       max: 25,
@@ -326,17 +337,6 @@ const consumable = (use: OnUseSpec, rest: Partial<AbilityDef> = {}): AbilityDef 
 })
 
 /**
- * Berserking for a caster (20554) [F] [client] (SpellEffect auras 65 and 319, 1.60.1.69913): Forever's
- * is +10% casting and attack speed for 10 s (docs/mechanics/spells.md §4); the warrior's row carries
- * the attack speed only.
- */
-function casterRacial(race: string): AbilityDef | undefined {
-  const racial = RACIAL_COOLDOWNS[race]
-  if (!racial || racial.id !== 'berserking' || !racial.aura) return undefined
-  return { ...racial, aura: { ...racial.aura, mods: { ...racial.aura.mods, castHaste: 10 } } }
-}
-
-/**
  * A mage priority list from the settings (mage.md "Fire priority", "Frost priority", "Arcane
  * priority"). `context` gives the maximum mana (the thresholds are shares of it), the race, the
  * equipped on-use items and the selected consumables.
@@ -374,7 +374,8 @@ export function mageRotation(
   if (spec === 'fire' && v.on(ID.combustion) && has('Combustion')) add(COMBUSTION)
   if (spec === 'arcane' && v.on(ID.arcanePower) && has('Arcane Power')) add(ARCANE_POWER)
   if (spec !== 'fire' && v.on(ID.presenceOfMind) && has('Presence of Mind')) add(PRESENCE_OF_MIND)
-  const racial = casterRacial(ctx.race)
+  // A Gnome's Eureka! (classes/eureka.ts) goes with them: its 3 charges go to the spells it modifies.
+  const racial = eurekaFor(ctx.race, 'mage') ?? CASTER_RACIALS[ctx.race]
   if (racial && v.on(ID.racial)) add(racial)
   if (v.on(ID.trinkets)) for (const item of ctx.items) add(consumable(item))
   const pi = ctx.consumables.find((c) => c.id === POWER_INFUSION)
@@ -411,24 +412,32 @@ export function mageRotation(
   }
 
   if (spec === 'fire') {
-    // Scorch until Fire Vulnerability has 5 stacks, or when it has at most x s left.
-    if (v.on(ID.scorch) && has('Improved Scorch')) {
-      const scorch = index(SCORCH)
-      const fv = auraIndex(FIRE_VULNERABILITY.id)
-      if (fv >= 0) {
-        rotation.push({ ability: scorch, conditions: [{ code: COND.auraStacksBelow, a: fv, b: 5 }], unqueueBelowTenths: 0 })
-        rotation.push({ ability: scorch, conditions: [{ code: COND.auraEndsWithin, a: fv, b: 1000 * v.num(ID.scorchRefresh) }], unqueueBelowTenths: 0 })
-      }
+    const hs = auraIndex(HOT_STREAK.id)
+    const fv = auraIndex(FIRE_VULNERABILITY.id)
+    const scorchOn = v.on(ID.scorch) && has('Improved Scorch') && fv >= 0
+    const pyroOn = v.on(ID.pyroblast) && has('Hot Streak') && has('Pyroblast') && hs >= 0
+    const pyroWhen: RotationCondition = { code: COND.auraStacksAtLeast, a: hs, b: Math.max(1, Math.min(3, Math.round(v.num(ID.pyroblastStacks)))) }
+    // The abilities in the priority's order, so the rows keep it; each line refers to them by index.
+    const scorch = scorchOn ? index(SCORCH) : -1
+    const pyro = pyroOn ? index(PYROBLAST) : -1
+    const fireBlast = v.on(ID.fireBlast) ? index(FIRE_BLAST) : -1
+    const fireball = index(FIREBALL)
+    const line = (ability: number, conditions: RotationCondition[]) => rotation.push({ ability, conditions, unqueueBelowTenths: 0 })
+    // Scorch until Fire Vulnerability has 5 stacks, or when it has at most x s left, or sooner when the
+    // Pyroblast or Fireball below would let it run out before the Scorch after it lands (mage.md "Fire
+    // priority" row 9): a player refreshes so the Scorch lands in time, at any casting speed.
+    if (scorchOn) {
+      line(scorch, [{ code: COND.auraStacksBelow, a: fv, b: 5 }])
+      line(scorch, [{ code: COND.auraEndsWithin, a: fv, b: 1000 * v.num(ID.scorchRefresh) }])
+      if (pyroOn) line(scorch, [pyroWhen, { code: COND.auraEndsBeforeCasts, a: fv, b: pyro }])
+      line(scorch, [{ code: COND.auraEndsBeforeCasts, a: fv, b: fireball }])
     }
-    // Pyroblast at x Hot Streak stacks.
-    if (v.on(ID.pyroblast) && has('Hot Streak') && has('Pyroblast')) {
-      const pyro = index(PYROBLAST)
-      const hs = auraIndex(HOT_STREAK.id)
-      const stacks = Math.max(1, Math.min(3, Math.round(v.num(ID.pyroblastStacks))))
-      if (hs >= 0) rotation.push({ ability: pyro, conditions: [{ code: COND.auraStacksAtLeast, a: hs, b: stacks }], unqueueBelowTenths: 0 })
-    }
-    if (v.on(ID.fireBlast)) add(FIRE_BLAST)
-    add(FIREBALL)
+    // Pyroblast at x Hot Streak stacks, waiting up to FIRE_WAIT_MS so it doesn't land just before its
+    // own DoT's next tick and cut it off (row 10).
+    if (pyroOn) line(pyro, [pyroWhen, { code: COND.dotTickWait, a: pyro, b: FIRE_WAIT_MS }])
+    // Fire Blast when it's ready; Fireball waits for one ready within FIRE_WAIT_MS (rows 11 and 12).
+    if (fireBlast >= 0) line(fireBlast, [])
+    line(fireball, fireBlast >= 0 ? [{ code: COND.cooldownAtLeast, a: fireBlast, b: FIRE_WAIT_MS }] : [])
   } else if (spec === 'frost') {
     if (v.on(ID.iceBarrier) && has('Ice Barrier')) add(ICE_BARRIER)
     add(FROSTBOLT)

@@ -262,10 +262,10 @@ describe('the Elemental priority list (shaman.md "Elemental priority")', () => {
     expect(fs.conditions).toEqual([{ code: COND.abilityAuraDown, a: abilityOf(p, 'flameShock'), b: 0 }])
   })
 
-  it('gives an Orc Blood Fury with 10% of the sheet’s Nature spell damage, and a Troll the caster’s Berserking', () => {
+  it('gives an Orc the caster’s Blood Fury, +10% spell damage while it’s up, and a Troll the caster’s Berserking', () => {
     const orc = buildPlan(defaultConfig(ELE))
-    const nature = orc.sheet.spell!.caster!.schoolDamage.nature
-    expect(orc.plan.auras[auraOf(orc.plan, 'bloodFury')]).toMatchObject({ apPct: 10, spellDamage: Math.floor(nature / 10) })
+    expect(orc.plan.auras[auraOf(orc.plan, 'bloodFury')]).toMatchObject({ apPct: 10, spellDamagePct: 10 })
+    expect(orc.plan.auras[auraOf(orc.plan, 'bloodFury')].spellDamage ?? 0).toBe(0)
     expect(orc.assumptions.map((a) => a.id)).toContain('bloodFurySpellPower')
     const troll = buildPlan(defaultConfig(ELE, 'horde-troll')).plan
     expect(troll.auras[auraOf(troll, 'berserking')]).toMatchObject({ castHaste: 10 })

@@ -485,6 +485,13 @@ slice is worked:
   could return for +1.3 TPS at 90.5% EHP (T4R-2, waived: it keeps an EHP margin, and O4 replaces
   the set); gear cards show "+20 Expertise" with no percentage and no D12 flag, though the results'
   assumptions list it (T4R-8).
+- **Spell-hit casts roll only the plain spell miss** (issue #9): Curse of the Elements, the
+  moonkin's and the cat's Faerie Fire and Vampiric Embrace (`cast` abilities with `spellHit`) are
+  binary debuffs, but the engine's `cast` rolls neither the boss's average resistance nor the
+  school's own hit (Shadow Focus for Vampiric Embrace). castSpell and the bear's spell-table Faerie
+  Fire do both. Fixing it needs each ability's school on its row and moves the warlock, Balance
+  and cat goldens: a Curse of the Elements resisted 6% of the time costs a GCD and 200 mana to
+  recast, well under 0.1% of DPS.
 - **The pet's ranged hit and crit share has no test** (Demonology verification DV3-1): every
   default setup has no ranged hit or crit bonus, so a test with a ranged plan's bonuses would pin it.
 - **A race change doesn't remember a slot it blocked** (gear-defaults verification FV-5): `changeRace`
@@ -493,6 +500,18 @@ slice is worked:
   `following`, so that slot becomes the player's at the next save. Practically unreachable: the
   factions' defaults differ only in single-slot PvP armour and one-handed caster main hands, which
   no Unique rule or two-hander blocks.
+- **The Fire mage still does slightly best at exactly ×1.000 casting speed** (engine-issues
+  verification EV-4): at 600 s (Human, unlimited mana, 4,000 fights) ×1.000 gives 570.55 ±0.46,
+  ×1.0005 569.28 ±0.44 and ×1.002 569.69 ±0.44, 1–1.3 DPS (≤0.3%) the verifier also saw. It isn't
+  idle: the waits a hair above ×1.000 total 61 ms a fight (39 for Pyroblast's tick, 22 for Fire
+  Blast), and the casts take the same time. At ×1.000 the mage casts about one more spell a fight
+  (+0.9 Scorch, +0.26 Fire Blast); Scorch goes one Fireball early there, because COND 44 counts a
+  Scorch landing the same millisecond Fire Vulnerability ends as too late, which it is (the expiry
+  wins that tie): counting it in time costs ×1.000 3.5 DPS (567.09). Whether the rest is a real
+  edge of the exact 1.5 s grid (a player with no casting speed lines up the same, less their
+  latency) or a tie still broken in the mage's favour wasn't settled in the time given. The
+  default Fire mage is at ×1.000 outside Berserking, so its headline may read up to 0.3% high
+  against a hair more casting speed: well inside D27's first-pass tolerance.
 - **A DPS spec's "Setup changed" badge wraps to two lines** in the phone bar at 360 px (phone
   bar verification VF7, pre-existing). The bar stays 65 px and nothing overlaps.
 - **The Protection paladin's threat review lows** (T2; the review in `.cache/probes/tank-review-paladin`),
@@ -603,7 +622,6 @@ slice is worked:
   180 s, +0.38% at 30 s); it needs D23's full process before it's adopted.
 - **Arms in Berserker Stance doesn't wait for Recklessness before its potion;** the wait is
   unmeasured for it (warrior.md §6.2, FL4).
-- **Gnome Eureka! isn't simulated** (warrior Q18); the result says so.
 - **Retribution against Undead or Demons in long fights:** the re-tuned defaults trail the first
   round's by 0.14–0.63% at 180 s with a 20% phase and at 300 s with 10–20%, where Exorcism from 40%
   was ahead; 40% loses everywhere else, and a reserve tied to the execute phase lost too

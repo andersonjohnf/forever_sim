@@ -303,7 +303,11 @@ tuning milestone.
 
 **Orc** by default: Forever's Blood Fury adds 10% spell power for 15 s every 2 min. Troll's Berserking
 (+10% casting speed for 10 s every 3 min) is next; Gnome's Forever Expansive Mind is +5% maximum mana
-for a warlock [F] (20591, aura 178), and its Eureka! isn't simulated. Human and Undead have no racial
+for a warlock [F] (20591, aura 178), and its Eureka! (1259821) makes the next 3 of Shadow Bolt,
+Corruption, Immolate, the Banes, Conflagrate, Shadowburn and Soul Fire cost 50% less mana and deal +10%
+(their DoTs +10%), pressed on cooldown from the pull (`src/sim/classes/eureka.ts`, [?] `eureka`; not
+Incinerate or Siphon Life, outside its masks): +2.19% Affliction, +0.94% Demonology, +1.36%
+Destruction (Gnome, racial on vs off, the defaults, seed 12345, 20,000 fights). Human and Undead have no racial
 that adds damage. Classic Era had no Troll warlock; Forever does (CharBaseInfo) [F].
 
 ### 7.3 Gear
@@ -352,7 +356,8 @@ crit and 20 Agility per 1% crit are [F] (PlayerExpectedStat).
   another spell's DoT when it lands (`consumesDot`, `consumeChance`: Conflagrate and Shadow and
   Flame), gains that make no threat (`noThreat`: Life Tap, Fel Energy), a spell damage % aura
   (`spellDamagePct`: Blood Fury) and a maximum-mana % (`StatBlock.manaMult`: Fel Vitality, Expansive
-  Mind).
+  Mind). The warlock's Blood Fury and Berserking are every caster's (`src/sim/classes/caster-racials.ts`:
+  the mage, priest, warlock and shaman press the same definitions).
 - **Shadow Trance** is Maelstrom Weapon's mechanism: an aura whose one stack cuts Shadow Bolt's cast
   by 100% and is spent when it's used.
 - **Demonic Sacrifice** is a pre-pull cast whose aura lasts 2 h; the Voidwalker's is ticks of mana.

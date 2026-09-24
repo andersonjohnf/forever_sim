@@ -38,9 +38,9 @@
     "bySource": {
       "buffsDoc": 48,
       "consumable": 82,
-      "docs": 457,
+      "docs": 469,
       "enchant": 125,
-      "item": 421,
+      "item": 422,
       "racial": 44,
       "spellbook": 1143,
       "talent": 365,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 872,
     "notInClient": 0,
-    "seeds": 2237,
-    "spells": 2384
+    "seeds": 2239,
+    "spells": 2385
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -7186,7 +7186,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "921": {
       "categories": {
@@ -32445,6 +32445,33 @@
       "name": "Increase Spell Dam 18",
       "sources": ["enchant", "item"]
     },
+    "9358": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 13,
+          "effectBasePointsF": 17,
+          "effectIndex": 0,
+          "effectMiscValue": [8, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 9358,
+      "misc": {
+        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Increase Nature Dam 17",
+      "sources": ["item"]
+    },
     "9395": {
       "auraOptions": {
         "procChance": 101
@@ -42680,7 +42707,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "10610": {
       "auraOptions": {
@@ -58105,7 +58132,7 @@
         "spellIconFileDataId": 135817
       },
       "name": "Call of Flame",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16039": {
       "classOptions": {
@@ -58339,7 +58366,7 @@
         "spellIconFileDataId": 136170
       },
       "name": "Elemental Focus",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "16173": {
       "classOptions": {
@@ -58712,7 +58739,7 @@
           "manaCost": 10
         }
       ],
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "16194": {
       "classOptions": {
@@ -58783,7 +58810,7 @@
       "range": {
         "rangeMax": [100, 100]
       },
-      "sources": ["trigger"]
+      "sources": ["docs", "trigger"]
     },
     "16252": {
       "effects": [
@@ -62919,7 +62946,7 @@
           "manaCost": 60
         }
       ],
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "17364": {
       "auraOptions": {
@@ -88798,7 +88825,7 @@
         "spellIconFileDataId": 136041
       },
       "name": "Natural Grace",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "29206": {
       "auraOptions": {
@@ -90806,7 +90833,7 @@
         "spellIconFileDataId": 136050
       },
       "name": "Lightning Overload",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "408490": {
       "castTime": {
@@ -90866,7 +90893,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "408498": {
       "auraOptions": {
@@ -93175,7 +93202,7 @@
         "spellIconFileDataId": 136090
       },
       "name": "Mindfulness",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "1223081": {
       "classOptions": {
@@ -94822,7 +94849,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "1238931": {
       "classOptions": {

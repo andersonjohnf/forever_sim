@@ -268,8 +268,8 @@ talents and default build, abilities, rotation, defaults, e2e, shipped.
       Scorch, Winter's Chill), mana with the five-second rule
       ([review](reviews/2026-09-24-caster-core.md))
 - [x] **K2 Mage:** Fire, Frost, Arcane ([review](reviews/2026-09-24-mage.md))
-- [ ] **K3 Warlock:** Destruction, Affliction (Demonology with the pet core, P1 below). Built on its
-  branch, awaiting review ([warlock.md](classes/warlock.md)).
+- [x] **K3 Warlock:** Destruction, Affliction (Demonology with the pet core, P1 below). Built on its
+  branch, awaiting review ([warlock.md](classes/warlock.md)). ([review](reviews/2026-09-24-warlock.md))
 - [ ] **K4 Shadow Priest**
 - [ ] **K5 Elemental Shaman**
 - [ ] **K6 Balance Druid:** Moonkin Form

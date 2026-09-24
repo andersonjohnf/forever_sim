@@ -205,9 +205,9 @@ describe('damageTakenText', () => {
     expect(text).not.toContain('yours')
   })
 
-  it('gives a tank’s own attack-power debuff as yours: the bear’s roar, beside a warrior tank’s Thunder Clap (BU7)', () => {
+  it('gives a tank’s own attack-power debuff as yours or another player’s: the bear’s roar, which only Defensive keeps, beside a warrior tank’s Thunder Clap (BU7, D28)', () => {
     expect(damageTakenText(80.46, protection().fight.boss, 'druid-feral-bear')).toMatch(
-      / Debuffs on it, such as your Demoralizing Roar \(Rotation\) and a warrior tank’s Thunder Clap \(Buffs\), lower its damage and slow its swings\.$/,
+      / Debuffs on it, such as Demoralizing Roar \(yours in Rotation, or another druid’s in Buffs\) and a warrior tank’s Thunder Clap \(Buffs\), lower its damage and slow its swings\.$/,
     )
     expect(damageTakenText(80.46, protection().fight.boss, 'warrior-protection')).toContain('Debuffs on it, such as Demoralizing Shout and Thunder Clap')
   })

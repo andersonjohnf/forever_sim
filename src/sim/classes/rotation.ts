@@ -7,15 +7,17 @@ import type { WeaponType } from '@/data/items/types'
 import { NO_PREPULL } from '../plan/types'
 import type { AplDefinition, FixedRotationRow, RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
 import { CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from './druid/cat'
-import { BEAR_OPTIONS, bearMaintainedBuffs, bearRotation, bearUnusedSettings } from './druid/bear'
+import { BEAR_APL, BEAR_OPTIONS, bearMaintainedBuffs, bearRotation, bearUnusedSettings } from './druid/bear'
 import { BALANCE_OPTIONS, balanceMaintainedBuffs, balanceRotation, balanceUnusedSettings } from './druid/balance'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
 import { RETRIBUTION_OPTIONS, retributionMaintainedBuffs, retributionRotation } from './paladin/retribution'
 import {
+  PROTECTION_APL as PALADIN_PROTECTION_APL,
   PROTECTION_FIXED_ROWS,
   PROTECTION_OPTIONS as PALADIN_PROTECTION_OPTIONS,
   protectionMaintainedBuffs as paladinProtectionMaintainedBuffs,
   protectionRotation as paladinProtectionRotation,
+  protectionUnusedSettings as paladinProtectionUnusedSettings,
 } from './paladin/protection'
 import type { PaladinContext } from './paladin/setup'
 import { ENHANCEMENT_OPTIONS, enhancementRotation } from './shaman/enhancement'
@@ -25,7 +27,7 @@ import { ELEMENTAL_FIXED_ROWS, ELEMENTAL_OPTIONS, elementalRotation } from './sh
 import { FURY_APL, FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
 import { WARLOCK_RACIALS } from './warlock/abilities'
-import { PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation } from './warrior/protection'
+import { PROTECTION_APL, PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation, protectionUnusedSettings } from './warrior/protection'
 import { COMBAT_OPTIONS, combatMaintainedBuffs, combatRotation } from './rogue/combat'
 import { ASSASSINATION_OPTIONS, assassinationMaintainedBuffs, assassinationRotation } from './rogue/assassination'
 import { SUBTLETY_OPTIONS, subtletyMaintainedBuffs, subtletyRotation, subtletyUnusedSettings } from './rogue/subtlety'
@@ -35,7 +37,8 @@ import { DEMONOLOGY_OPTIONS, demonologyMaintainedBuffs, demonologyRotation, demo
 import { SHADOW_FIXED_ROWS, SHADOW_OPTIONS, shadowRotation, shadowUnusedSettings } from './priest/shadow'
 import { hunterFixedRows, hunterOptions, hunterRotation, hunterUnusedSettings, isHunterSpec } from './hunter/rotation'
 import type { TalentRanks } from './warrior/modifiers'
-import type { ClassRotation } from './warrior/shared'
+import { type ClassRotation, maxRageOf } from './warrior/shared'
+import type { RotationSetup } from './options'
 import type { Stance } from './warrior/talents'
 
 export type { ClassRotation, RotationContext } from './warrior/shared'
@@ -106,11 +109,23 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
 }
 
 /**
+ * What a spec's defaults can follow besides the talents and the settings (options.ts): a warrior's
+ * max rage, which Protection's Balanced thresholds are shares of (warrior.md §5.4 "Balanced").
+ */
+export function rotationSetup(spec: SpecId, talents: TalentRanks, race: string | undefined): RotationSetup {
+  return SPEC_META[spec].classId === 'warrior' ? { maxRage: maxRageOf(talents, race ?? '') } : {}
+}
+
+/**
  * The spec's rotation as a priority list you reorder (decision D31), or undefined for a spec still
- * on switches (M5.65 A2 moves the rest): Fury, the pilot.
+ * on switches (M5.65 A2 moves the rest): Fury, the pilot, and the three tanks, whose D28 rotations are its presets.
  */
 export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'warrior-fury') return FURY_APL
+  if (spec === 'warrior-protection') return PROTECTION_APL
+  if (spec === 'druid-feral-bear') return BEAR_APL
+  // docs/classes/paladin.md "Forever priority list (default)", with D28's rotations as its presets.
+  if (spec === 'paladin-protection') return PALADIN_PROTECTION_APL
   return undefined
 }
 
@@ -128,25 +143,24 @@ export function fixedRotationRows(spec: SpecId): FixedRotationRow[] {
 /**
  * What the Rotation tab's intro says about the spec's defaults (docs/ux.md "Rotation"): tuned for
  * the default setup once a paired search has tuned them (decision D23; Arms since M2.5a, Fury since
- * M2.5b, the Feral cat since B2, Protection since P1, Retribution since C2, the Feral bear since B3,
- * Protection paladins since C3), the common priority until then. A tank's priority choice, first on
- * the tab, names its duties (D26). None for a spec without rotation settings. The cat's also says
- * why there's no powershifting, which a Classic Era feral would look for (druid.md §2.8).
+ * M2.5b, the Feral cat since B2, Protection since P1, Retribution since C2, Protection paladins since
+ * C3), the common priority until then. A tank's says which of its presets (D28) are tuned and which
+ * are a first pass (D27): the warrior's and the bear's Balanced, and the bear's Max TPS since T5's
+ * Maul threshold; a paladin's Balanced plays as its Defensive. None for a spec without rotation
+ * settings. The cat's also says why there's no powershifting, which a Classic Era feral would look
+ * for (druid.md §2.8).
  */
 export function rotationDefaultsNote(spec: SpecId): string | undefined {
-  if (
-    spec === 'warrior-arms' ||
-    spec === 'warrior-fury' ||
-    spec === 'warrior-protection' ||
-    spec === 'druid-feral-bear' ||
-    spec === 'paladin-retribution' ||
-    spec === 'paladin-protection'
-  ) {
-    return 'The defaults are tuned for the default setup.'
-  }
+  // D28, D27: Balanced, the Protection warrior's default since T5, is a first pass; Defensive and Max TPS are tuned.
+  if (spec === 'warrior-protection') return 'Defensive and Max TPS are tuned for the default setup; Balanced, the default, hasn’t been fully tuned yet.'
+  if (spec === 'warrior-arms' || spec === 'warrior-fury' || spec === 'paladin-retribution') return 'The defaults are tuned for the default setup.'
+  // D28 (user decision): a paladin's Balanced keeps Holy Strike, so it's Defensive's tuned list.
+  if (spec === 'paladin-protection') return 'Defensive and Max TPS are tuned for the default setup; Balanced, the default, plays as Defensive.'
   if (spec === 'druid-feral-cat') {
     return 'The defaults are tuned for the default setup. There’s no powershifting: in Forever, Furor keeps your Energy through a shift, so it gains nothing.'
   }
+  // docs/classes/druid.md §6.3 "Balanced", "Max TPS": D28's default and Max TPS's Maul, a first pass (D27) around Defensive's tuned settings.
+  if (spec === 'druid-feral-bear') return 'Defensive is tuned for the default setup; Balanced, the default, and Max TPS haven’t been fully tuned yet.'
   // Decision D27: a spec landed in the 90/10 mode starts from the common priority until the tuning milestone.
   if (spec === 'shaman-enhancement') {
     return 'The defaults are the common priority. There’s no totem twisting: in Forever, Windfury Totem is an aura that ends with the totem.'
@@ -216,6 +230,10 @@ export interface UnusedSetup {
   buffGroups: ReadonlySet<string>
   /** Talent ranks by name: the warlock's Demonic Sacrifice and Incinerate settings need their talents, and the Balance filler Eclipse overrides. Absent: none. */
   talents?: ReadonlyMap<string, number>
+  /** The main hand, whether it's a two-hander and its type, or null for none: a Protection paladin's Hammer of the Righteous needs a one-handed axe, mace or sword. Absent: not known. */
+  mainHand?: { twoHand: boolean; type?: WeaponType } | null
+  /** The stored priority-list order (D31): which of two rows sharing a cooldown sits higher (a Protection paladin's Hammer of the Righteous and Holy Strike). Absent: the default order. */
+  order?: readonly string[]
 }
 
 /**
@@ -252,6 +270,10 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   // docs/classes/priest.md §6: Starshards and Dark Sacrifice are the Night Elf's and the Undead's.
   if (spec === 'priest-shadow') Object.assign(out, shadowUnusedSettings(setup.race, setup.raceName))
   if (spec === 'druid-balance') Object.assign(out, balanceUnusedSettings(values, setup.talents ?? new Map()))
+  // docs/classes/warrior.md §5.4 "The priority list": a duty moved below the Sunder Armor filler, which takes every global cooldown it can pay for.
+  if (spec === 'warrior-protection') Object.assign(out, protectionUnusedSettings(values, setup.talents ?? new Map(), setup.order))
+  // docs/classes/paladin.md row 5b: Hammer of the Righteous or Holy Strike, whichever sits higher, with the weapon for it.
+  if (spec === 'paladin-protection') Object.assign(out, paladinProtectionUnusedSettings(values, setup.mainHand, setup.order))
   // docs/classes/hunter.md §8: the pet's settings with Lone Wolf.
   if (isHunterSpec(spec)) Object.assign(out, hunterUnusedSettings(spec, setup.talents ?? new Map()))
   return out
@@ -304,13 +326,13 @@ export function classRotation(
 ): ClassRotation {
   if (spec === 'warrior-fury') return furyRotation(values, talents, auraIndex, context, order)
   if (spec === 'warrior-arms') return armsRotation(values, talents, auraIndex, context)
-  if (spec === 'warrior-protection') return protectionRotation(values, talents, auraIndex, context)
+  if (spec === 'warrior-protection') return protectionRotation(values, talents, auraIndex, context, order)
   if (spec === 'druid-feral-cat') return catRotation(values, talents, auraIndex, context)
   // docs/classes/paladin.md "Retribution: model and rotation".
   if (spec === 'paladin-retribution') return retributionRotation(values, talents, auraIndex, context)
   // docs/classes/paladin.md "Protection: model and rotation".
-  if (spec === 'paladin-protection') return paladinProtectionRotation(values, talents, auraIndex, context)
-  if (spec === 'druid-feral-bear') return bearRotation(values, talents, auraIndex, context)
+  if (spec === 'paladin-protection') return paladinProtectionRotation(values, talents, auraIndex, context, order)
+  if (spec === 'druid-feral-bear') return bearRotation(values, talents, auraIndex, context, order)
   // docs/classes/druid.md §11.5.
   if (spec === 'druid-balance') return balanceRotation(values, talents, auraIndex, context)
   // docs/classes/shaman.md "Enhancement priority".

@@ -7,6 +7,7 @@ import { aplRowChanged, aplRowNote, aplRowSummary, formatSetting, groupsThousand
 
 const rows = (config: SimConfig, rotation: SimConfig['rotation'] = {}, enabled = config.buffs.enabled) =>
   rotationRows({ ...config, rotation }, getSpec(config.spec).rotationOptions, enabled)
+const rowsOf = rows
 
 describe('rotation rows', () => {
   const fury = defaultConfig('warrior-fury')
@@ -190,6 +191,8 @@ describe('rotation rows', () => {
   it('locks Shield Block and Shield Slam off without a shield or the talent, and dims the filler’s wait for Shield Slam (Protection, PU4)', () => {
     const prot = defaultConfig('warrior-protection')
     const P = 'warrior.protection'
+    // Defensive, whose filler the wait belongs to (Balanced, the default, has no filler, D28).
+    const rows = (config: SimConfig, rotation: SimConfig['rotation'] = {}) => rowsOf(config, { [`${P}.priority`]: 'duties', ...rotation })
     const on = rows(prot)
     for (const id of [`${P}.shieldBlock.enabled`, `${P}.shieldSlam.enabled`]) {
       expect(on.get(id)?.on, id).toBe(true)
@@ -226,9 +229,16 @@ describe('rotation rows', () => {
     expect(waits.get(lacerate)).toMatchObject({ on: true, inactive: true })
     expect(waits.get(lacerate)?.notUsed).toContain('its warriors keep the boss bleeding')
     expect(waits.get('druid.bear.lacerate.onlyWithoutOtherBleeds')?.inactive).toBe(false)
-    // A Demoralizing Shout in Buffs takes the roar's place.
-    const shout = { ...bear, buffs: { ...bear.buffs, enabled: [...bear.buffs.enabled.filter((id) => id !== 'demoralizingRoar'), 'demoralizingShout'] } }
+    // A Demoralizing Shout in Buffs takes the roar's place, while the rotation keeps it (Defensive).
+    const shout = {
+      ...bear,
+      rotation: { 'druid.bear.priority': 'duties' },
+      buffs: { ...bear.buffs, enabled: [...bear.buffs.enabled.filter((id) => id !== 'demoralizingRoar'), 'demoralizingShout'] },
+    }
     expect(unusedRows(shout).get(roar)).toMatchObject({ on: true, inactive: true, notUsed: 'Not used: the Demoralizing Shout in Buffs is on the boss instead, so you don’t cast the roar.' })
+    // Balanced, the default, drops the roar: it's off, not "not used".
+    expect(unusedRows({ ...shout, rotation: {} }).get(roar)).toMatchObject({ on: false })
+    expect(unusedRows({ ...shout, rotation: {} }).get(roar)?.notUsed).toBeUndefined()
   })
 
   it('puts the number settings behind Advanced and keeps switches and choices in view', () => {
@@ -267,7 +277,9 @@ describe('a Protection paladin’s settings the setup can’t use (docs/ux.md "R
     const r = rowsOf(prot)
     expect(r.get('paladin.protection.exorcism.enabled')).toMatchObject({ inactive: true, on: true, needsCreature: ['undead', 'demon'] })
     expect(r.get('paladin.protection.exorcism.minManaPct')!.inactive).toBe(true)
-    // Nothing else in the default setup but the rune's, which the Standard raid doesn't bring.
+    // Nothing else in the default setup but the rune's, which the Standard raid doesn't bring:
+    // Balanced keeps Holy Strike, and Hammer of the Righteous is off (paladin.md row 5b).
+    expect(r.get('paladin.protection.holyStrike.enabled')).toMatchObject({ inactive: false, on: true })
     expect([...r].filter(([, row]) => row.inactive).map(([id]) => id)).toEqual([
       'paladin.protection.exorcism.enabled',
       'paladin.protection.exorcism.minManaPct',

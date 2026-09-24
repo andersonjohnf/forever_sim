@@ -9,6 +9,11 @@ import { CLASSIC_ERA, FOREVER } from '../../rules/profiles'
 import type { OnUseSpec } from '../../effects/types'
 import { talentRanksByName } from '..'
 import { resolveRotationValues } from '../options'
+import { buildPlan } from '../../plan/build'
+import { FIELD, FIELD_COUNT, Sim } from '../../engine/sim'
+import type { SimConfig } from '../../types'
+import { rotationPreset, rotationValues, unusedRotationSettings } from '../..'
+import { defaultAplOrder, moveAplRow } from '../apl'
 import {
   DEMORALIZING_SHOUT,
   demoralizingShout,
@@ -23,7 +28,8 @@ import {
   thunderClap,
 } from './abilities'
 import { IMPROVED_REVENGE_PCT_PER_RANK, withTalents } from './modifiers'
-import { PROTECTION_IDS as ID, PROTECTION_OPTIONS, PROTECTION_PRIORITY, protectionMaintainedBuffs, protectionRotation } from './protection'
+import { PROTECTION_APL, PROTECTION_IDS as ID, PROTECTION_OPTIONS, PROTECTION_PRIORITY, protectionMaintainedBuffs, protectionRotation } from './protection'
+import { maxRageOf } from './shared'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
 const RAGE = 1
@@ -36,6 +42,8 @@ const SHIELD = 64
 
 /** The default Protection build's talents by name (8/5/38, warrior.md §6.1). */
 const TALENTS = talentRanksByName(TALENT_DATA.warrior, defaultConfig('warrior-protection').talents)
+/** The Defensive preset, the default before Balanced (D28): the duties first, tuned on threat. */
+const DEFENSIVE = { [ID.priority]: PROTECTION_PRIORITY.defensive }
 const noAura = () => -1
 type Rot = ReturnType<typeof protectionRotation>
 const ids = (r: Rot) => r.rotation.map((e) => r.abilities[e.ability].id)
@@ -192,7 +200,13 @@ describe('Protection rotation options (warrior.md §5.1, §5.4)', () => {
     expect(new Set(optionIds).size).toBe(optionIds.length)
     // The priority shapes the rest, so it comes first, without a heading (docs/ux.md "Rotation").
     const [priority, ...rest] = PROTECTION_OPTIONS
-    expect(priority).toMatchObject({ kind: 'choice', id: 'warrior.protection.priority', default: 'duties' })
+    // Balanced is the default (D28); Defensive keeps the old default's stored value, so a setup that chose it loads as Defensive.
+    expect(priority).toMatchObject({ kind: 'choice', id: 'warrior.protection.priority', default: 'balanced' })
+    expect(priority.kind === 'choice' && priority.choices).toEqual([
+      { value: 'duties', label: 'Defensive' },
+      { value: 'balanced', label: 'Balanced' },
+      { value: 'maxTps', label: 'Max TPS' },
+    ])
     expect(priority.group).toBeUndefined()
     for (const option of rest) {
       expect(option.id).toMatch(/^warrior\.protection\.[a-zA-Z]+\.[a-zA-Z]+$/)
@@ -215,7 +229,9 @@ describe('Protection rotation options (warrior.md §5.1, §5.4)', () => {
   })
 
   it('keeps Battle Shout, and the boss’s Sunder Armor, Thunder Clap and Demoralizing Shout, itself', () => {
-    expect(protectionMaintainedBuffs({})).toEqual(['battleShout', 'sunderArmor', 'thunderClap', 'demoralizingShout'])
+    expect(protectionMaintainedBuffs(DEFENSIVE)).toEqual(['battleShout', 'sunderArmor', 'thunderClap', 'demoralizingShout'])
+    // Balanced, the default, keeps Sunder Armor and leaves the slow and the shout to the Buffs tab.
+    expect(protectionMaintainedBuffs({})).toEqual(['battleShout', 'sunderArmor'])
     const off = { [ID.sunderEnabled]: false, [ID.fillerEnabled]: false, [ID.tcEnabled]: false, [ID.demoEnabled]: false, [ID.bsEnabled]: false }
     expect(protectionMaintainedBuffs(off)).toEqual([])
     // The filler keeps Sunder Armor up by itself.
@@ -236,7 +252,7 @@ describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
   const DUTIES = [ID.sbEnabled, ID.tcEnabled, ID.demoEnabled]
 
   it('drops the duties, Shield Block, Thunder Clap and Demoralizing Shout, by default, keeps Shield Slam, and queues Heroic Strike from 45', () => {
-    const duties = resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)
+    const duties = resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, TALENTS)
     const max = resolveRotationValues(PROTECTION_OPTIONS, MAX, TALENTS)
     for (const id of DUTIES) expect([id, duties[id], max[id]]).toEqual([id, true, false])
     // D26's amendment: Max TPS drops only the duties.
@@ -249,10 +265,10 @@ describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
     for (const id of [...DUTIES, ID.hsMinRage]) expect(PROTECTION_OPTIONS.find((o) => o.id === id)!.help, id).toContain('Max TPS')
   })
 
-  it('keeps a value you set yourself, and the tank-duties choice is the default', () => {
+  it('keeps a value you set yourself, and Balanced is the default', () => {
     const own = resolveRotationValues(PROTECTION_OPTIONS, { ...MAX, [ID.sbEnabled]: true, [ID.hsMinRage]: 70 }, TALENTS)
     expect([own[ID.sbEnabled], own[ID.hsMinRage], own[ID.tcEnabled]]).toEqual([true, 70, false])
-    const back = resolveRotationValues(PROTECTION_OPTIONS, { [ID.priority]: PROTECTION_PRIORITY.duties }, TALENTS)
+    const back = resolveRotationValues(PROTECTION_OPTIONS, { [ID.priority]: PROTECTION_PRIORITY.balanced }, TALENTS)
     expect(back).toEqual(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS))
   })
 
@@ -274,12 +290,121 @@ describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
   })
 })
 
+describe('Balanced (warrior.md §5.4 "Balanced", D28)', () => {
+  const BALANCED = { [ID.priority]: PROTECTION_PRIORITY.balanced }
+
+  it('keeps Shield Block and Sunder Armor’s 5 stacks, refreshed by the duty rule; drops Thunder Clap and Demoralizing Shout; the filler from 60 rage; Heroic Strike from 84', () => {
+    const def = resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, TALENTS)
+    const bal = resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)
+    expect(resolveRotationValues(PROTECTION_OPTIONS, BALANCED, TALENTS)).toEqual(bal)
+    expect(bal).toMatchObject({
+      [ID.sbEnabled]: true,
+      [ID.sbMinRage]: 10,
+      [ID.sunderEnabled]: true,
+      // D26's rule for a debuff without a cooldown: one global cooldown.
+      [ID.sunderRefresh]: 1.5,
+      [ID.tcEnabled]: false,
+      [ID.demoEnabled]: false,
+      [ID.fillerEnabled]: true,
+      // The filler only above 60% rage (user decision, D28): 60 of the default build's 100.
+      [ID.fillerMinRage]: 60,
+      [ID.slamEnabled]: true,
+      [ID.hsMinRage]: 84,
+      [ID.hsLastSec]: 12,
+    })
+    // Nothing else moves: the first-pass search found no other setting better (§5.4 "Balanced", D27).
+    const moved = Object.keys(def).filter((id) => def[id] !== bal[id])
+    expect(moved.sort()).toEqual([ID.priority, ID.tcEnabled, ID.demoEnabled, ID.sunderRefresh, ID.fillerMinRage, ID.hsMinRage].sort())
+    for (const id of [ID.tcEnabled, ID.demoEnabled, ID.sunderRefresh, ID.fillerMinRage, ID.hsMinRage]) expect(PROTECTION_OPTIONS.find((o) => o.id === id)!.help, id).toContain('Balanced')
+  })
+
+  it('builds the list without Thunder Clap or Demoralizing Shout, Sunder Armor again with 1.5 s left, and the filler from 60 rage', () => {
+    const r = protectionRotation({}, TALENTS, noAura, { race: 'alliance-human' })
+    expect(ids(r)).toEqual(['shieldBlock', 'bloodrage', 'shieldSlam', 'revenge', 'battleShout', 'sunderArmor', 'sunderArmor', 'sunderArmor', 'heroicStrike', 'heroicStrike'])
+    const sunder = at(r, 'sunderArmor')
+    expect(linesOf(r, 'sunderArmor').map((e) => e.conditions)).toEqual([
+      [{ code: COND.abilityAuraStacksBelow, a: sunder, b: 5 }],
+      [{ code: COND.abilityAuraRefresh, a: sunder, b: 1500 }],
+      [{ code: COND.minRage, a: 600, b: 0 }],
+    ])
+    expect(linesOf(r, 'heroicStrike')[0].conditions).toEqual([{ code: COND.minRage, a: 840, b: 0 }])
+  })
+
+  describe('its thresholds are shares of the rage bar: the filler from 60%, Heroic Strike from 84% (§5.4 "Balanced", D28)', () => {
+    const BOUNDLESS = new Map([...TALENTS, ['Boundless Rage', 3]])
+    const thresholds = (r: Rot) => ({
+      filler: linesOf(r, 'sunderArmor')[2].conditions,
+      hs: linesOf(r, 'heroicStrike')[0].conditions,
+    })
+    const minRages = (filler: number, hs: number) => ({
+      filler: [{ code: COND.minRage, a: filler * 10, b: 0 }],
+      hs: [{ code: COND.minRage, a: hs * 10, b: 0 }],
+    })
+
+    it('reads the max rage the plan has: 100, a Gnome’s 105, Boundless Rage 3/3’s 130, both 136.5', () => {
+      for (const [race, talents, max] of [
+        ['alliance-human', TALENTS, 100],
+        ['alliance-gnome', TALENTS, 105],
+        ['alliance-human', BOUNDLESS, 130],
+        ['alliance-gnome', BOUNDLESS, 136.5],
+      ] as const) {
+        expect(maxRageOf(talents, race), `${race} ${talents.get('Boundless Rage') ?? 0}`).toBe(max)
+      }
+      // The plan's own max rage: the default talents, and a build with Boundless Rage 3/3.
+      const boundless = '05-05050003-552101233301210031'
+      expect(talentRanksByName(TALENT_DATA.warrior, boundless).get('Boundless Rage')).toBe(3)
+      for (const [race, talents, max] of [
+        ['alliance-human', undefined, 100],
+        ['alliance-gnome', undefined, 105],
+        ['alliance-human', boundless, 130],
+        ['alliance-gnome', boundless, 136.5],
+      ] as const) {
+        const d = defaultConfig('warrior-protection')
+        const config = { ...d, race, talents: talents ?? d.talents }
+        expect(buildPlan(config).plan.rage.maxTenths / 10).toBe(max)
+        expect(maxRageOf(talentRanksByName(TALENT_DATA.warrior, config.talents), race)).toBe(max)
+      }
+    })
+
+    it('at 100 max rage, plays exactly as the absolute 60 and 84 did', () => {
+      const r = protectionRotation({}, TALENTS, noAura, { race: 'alliance-human' })
+      expect(r).toEqual(protectionRotation({ [ID.fillerMinRage]: 60, [ID.hsMinRage]: 84 }, TALENTS, noAura, { race: 'alliance-human' }))
+      expect(thresholds(r)).toEqual(minRages(60, 84))
+    })
+
+    it('a Gnome’s 105 max rage: the filler from 63, Heroic Strike from 88', () => {
+      expect(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS, { maxRage: 105 })).toMatchObject({ [ID.fillerMinRage]: 63, [ID.hsMinRage]: 88 })
+      expect(thresholds(protectionRotation({}, TALENTS, noAura, { race: 'alliance-gnome' }))).toEqual(minRages(63, 88))
+    })
+
+    it('Boundless Rage 3/3’s 130: the filler from 78, Heroic Strike from 109; with a Gnome’s 136.5, 82 and 115', () => {
+      expect(thresholds(protectionRotation({}, BOUNDLESS, noAura, { race: 'alliance-human' }))).toEqual(minRages(78, 109))
+      expect(thresholds(protectionRotation({}, BOUNDLESS, noAura, { race: 'alliance-gnome' }))).toEqual(minRages(82, 115))
+    })
+
+    it('only Balanced’s defaults scale: a value you set, and Defensive’s and Max TPS’s, stay in rage points', () => {
+      expect(thresholds(protectionRotation({ [ID.fillerMinRage]: 60, [ID.hsMinRage]: 84 }, BOUNDLESS, noAura, { race: 'alliance-gnome' }))).toEqual(minRages(60, 84))
+      expect(resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, BOUNDLESS, { maxRage: 136.5 })).toMatchObject({ [ID.fillerMinRage]: 9, [ID.hsMinRage]: 76 })
+      expect(resolveRotationValues(PROTECTION_OPTIONS, { [ID.priority]: PROTECTION_PRIORITY.maxTps }, BOUNDLESS, { maxRage: 136.5 })).toMatchObject({ [ID.hsMinRage]: 45 })
+    })
+
+    it('the Rotation tab reads the same values as the sim, and a Gnome at the defaults is still on Balanced', () => {
+      const gnome = { ...defaultConfig('warrior-protection'), race: 'alliance-gnome' }
+      expect(rotationValues(gnome)).toMatchObject({ [ID.fillerMinRage]: 63, [ID.hsMinRage]: 88 })
+      expect(rotationPreset(gnome)).toBe('default')
+      // The Human's 60, saved by hand on a Gnome, is a changed setting: Custom.
+      expect(rotationPreset({ ...gnome, rotation: { [ID.fillerMinRage]: 60 } })).toBe('custom')
+    })
+  })
+})
+
 describe('the Protection priority list (warrior.md §5.4)', () => {
   const potion: OnUseSpec = { id: 'mightyRagePotion', name: 'Mighty Rage Potion', icon: 'x', cooldownMs: 120000, gcdMs: 0, aura: null, rageTenths: 450, rageSpreadTenths: 300 }
-  const rot = (values: Record<string, boolean | number> = {}, talents = TALENTS) =>
-    protectionRotation(values, talents, noAura, { consumables: [potion], race: 'alliance-human' })
+  /** Defensive's list, unless `values` names another Priority. */
+  const rot = (values: Record<string, boolean | number | string> = {}, talents = TALENTS) =>
+    protectionRotation({ ...DEFENSIVE, ...values }, talents, noAura, { consumables: [potion], race: 'alliance-human' })
 
-  it('uses §5.4’s rows in priority order with the default settings: the duty rule, and the best rotation found around it (D23, D26, P1, PV1, PW1)', () => {
+  it('uses §5.4’s rows in priority order with Defensive’s settings: the duty rule, and the best rotation found around it (D23, D26, P1, PV1, PW1)', () => {
     const r = rot()
     // Thunder Clap and Demoralizing Shout first from the pull, before any threat ability on the global
     // cooldown (D26's amendment).
@@ -300,7 +425,7 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
     ])
     // Bloodrage waits for the pull, where its rage makes threat (§5.4 "Tuning the defaults").
     expect(r.prepull.casts.map((c) => [r.abilities[c.ability].id, c.atMs])).toEqual([['battleShout', -3000]])
-    expect(resolveRotationValues(PROTECTION_OPTIONS, {}, TALENTS)).toMatchObject({
+    expect(resolveRotationValues(PROTECTION_OPTIONS, DEFENSIVE, TALENTS)).toMatchObject({
       [ID.prepullBloodrage]: false,
       [ID.bsRefresh]: 0,
       [ID.fillerSafe]: false,
@@ -395,8 +520,67 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
   })
 
   it('Thunder Clap’s slow and Demoralizing Shout’s attack power follow the rule profile', () => {
-    const r = protectionRotation({}, TALENTS, noAura, { profile: CLASSIC_ERA })
+    const r = protectionRotation(DEFENSIVE, TALENTS, noAura, { profile: CLASSIC_ERA })
     expect(r.abilities[at(r, 'thunderClap')].aura!.mods.bossSlow).toBe(10)
     expect(r.abilities[at(r, 'demoralizingShout')].aura!.mods.bossAp).toBe(-146)
+  })
+})
+
+describe('a duty below the Sunder Armor filler says when it’s used (TI-4 and TV-1; docs/ux.md "Rotation")', () => {
+  const below = (rage: number) => `Below the Sunder Armor filler: used only while your rage is under its ${rage}.`
+  const d = defaultConfig('warrior-protection')
+  /** The default order with `id` moved to just below the filler. */
+  const belowFiller = (id: string) => {
+    const order = defaultAplOrder(PROTECTION_APL)
+    const moved = moveAplRow(PROTECTION_APL, order, id, order.indexOf('sunderFiller'))!
+    expect(moved.indexOf(id)).toBe(moved.indexOf('sunderFiller') + 1)
+    return moved
+  }
+  /** The notes but the racial's (the default Human's has none the sim uses). */
+  const unused = (rotation: SimConfig['rotation'], rotationOrder?: string[]) => {
+    const { [ID.racialEnabled]: _, ...rest } = unusedRotationSettings({ ...d, rotation, ...(rotationOrder ? { rotationOrder } : {}) })
+    return rest
+  }
+
+  it('says nothing in any preset’s own order', () => {
+    for (const rotation of [{}, DEFENSIVE, { [ID.priority]: PROTECTION_PRIORITY.maxTps }]) expect(unused(rotation), JSON.stringify(rotation)).toEqual({})
+  })
+
+  it('on Thunder Clap, Demoralizing Shout and Battle Shout moved below Defensive’s filler from 9', () => {
+    expect(unused(DEFENSIVE, belowFiller('thunderClap'))).toEqual({ [ID.tcEnabled]: below(9) })
+    expect(unused(DEFENSIVE, belowFiller('demoShout'))).toEqual({ [ID.demoEnabled]: below(9) })
+    expect(unused(DEFENSIVE, belowFiller('battleShout'))).toEqual({ [ID.bsEnabled]: below(9) })
+  })
+
+  it('whatever the threshold, and while the filler waits for Shield Slam: the filler still takes the global cooldown first (TV-1)', () => {
+    // Balanced's filler from 60% of the bar: 60 at 100, 63 for a Gnome's 105.
+    expect(unused({ [ID.demoEnabled]: true }, belowFiller('demoShout'))).toEqual({ [ID.demoEnabled]: below(60) })
+    const gnome = unusedRotationSettings({ ...d, race: 'alliance-gnome', rotation: { [ID.demoEnabled]: true }, rotationOrder: belowFiller('demoShout') })
+    expect(gnome[ID.demoEnabled]).toBe(below(63))
+    // Just above a duty's cost (Demoralizing Shout's 7, Thunder Clap's 17) it's still under it only.
+    expect(unused({ ...DEFENSIVE, [ID.fillerMinRage]: 15 }, belowFiller('demoShout'))).toEqual({ [ID.demoEnabled]: below(15) })
+    expect(unused({ ...DEFENSIVE, [ID.fillerMinRage]: 18 }, belowFiller('thunderClap'))).toEqual({ [ID.tcEnabled]: below(18) })
+    // Waiting for Shield Slam, the filler still comes first whenever it doesn't wait.
+    expect(unused({ ...DEFENSIVE, [ID.fillerSafe]: true }, belowFiller('demoShout'))).toEqual({ [ID.demoEnabled]: below(9) })
+    // Under Sunder Armor's cost, the filler can't be cast: the note gives the cost.
+    expect(unused({ ...DEFENSIVE, [ID.fillerMinRage]: 5 }, belowFiller('demoShout'))).toEqual({ [ID.demoEnabled]: below(9) })
+  })
+
+  it('not with the filler off or the row off, nor on Thunder Clap on cooldown, which is tried above the filler', () => {
+    expect(unused({ ...DEFENSIVE, [ID.fillerEnabled]: false }, belowFiller('demoShout'))).toEqual({})
+    expect(unused({ ...DEFENSIVE, [ID.tcMaintainOnly]: false }, belowFiller('thunderClap'))).toEqual({})
+    expect(unused({ ...DEFENSIVE, [ID.demoEnabled]: false }, belowFiller('demoShout'))).toEqual({})
+  })
+
+  it('is what the engine does: Demoralizing Shout below Defensive’s filler is cast only at the pull, if ever', () => {
+    const plan = (order?: string[]) => buildPlan({ ...d, rotation: DEFENSIVE, ...(order ? { rotationOrder: order } : {}) }).plan
+    const casts = (p: ReturnType<typeof plan>) => {
+      const sim = new Sim(p)
+      for (let i = 0; i < 3; i++) sim.runFight(i)
+      const i = p.sources.findIndex((s) => s.id === 'demoralizingShout')
+      return sim.counters[i * FIELD_COUNT + FIELD.casts] / 3
+    }
+    expect(casts(plan())).toBeGreaterThan(3)
+    expect(casts(plan(belowFiller('demoShout')))).toBeLessThan(1)
   })
 })

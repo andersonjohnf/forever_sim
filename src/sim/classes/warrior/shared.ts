@@ -12,7 +12,8 @@ import type { AssumptionId } from '../../plan/assumptions'
 import { COND, type PrepullPlan, type RotationCondition, type RotationEntry } from '../../plan/types'
 import { FOREVER, type RulesProfile } from '../../rules/profiles'
 import type { CreatureType, RotationDefaultWhen, RotationGroup, RotationOption, RotationValue } from '../../types'
-import { resolveRotationValues } from '../options'
+import { type RotationSetup, resolveRotationValues } from '../options'
+import { racialEffects } from '../../effects/racials'
 import {
   type AbilityDef,
   battleShout,
@@ -101,6 +102,17 @@ const BASE_RAGE_CAP = 100
 export function rageCap(talents: TalentRanks): number {
   const effects = TALENT_EFFECTS['Boundless Rage'](talents.get('Boundless Rage') ?? 0)
   return BASE_RAGE_CAP + effects.reduce((sum, e) => sum + (e.kind === 'maxRage' ? e.value : 0), 0)
+}
+
+/**
+ * The build's max rage as the plan builder has it (rage.md#rage-pool-cap-and-decay): the rage cap
+ * above, × a Gnome's Expansive Mind (+5% [?], warrior Q17), to a tenth: 105 for a Gnome without
+ * Boundless Rage, 136.5 with 3/3. A share-of-the-bar default resolves against it (options.ts), so
+ * the Rotation tab and the sim draw Protection's Balanced thresholds from the same bar (§5.4).
+ */
+export function maxRageOf(talents: TalentRanks, race: string): number {
+  const mult = racialEffects(race, 'warrior').reduce((m, e) => (e.kind === 'maxRagePct' ? m * (1 + e.pct / 100) : m), 1)
+  return Math.round(rageCap(talents) * mult * 10) / 10
 }
 
 /** The most rage a Mighty Rage Potion gives: 45–75 (warrior.md §5.2 notes). */
@@ -415,8 +427,8 @@ export const consumableOptions = (
  * Reads a setting: its saved value, or its default for this setup (classes/options.ts: a default
  * can follow the build's talents or another setting).
  */
-export function reader(options: RotationOption[], values: Record<string, RotationValue>, talents: TalentRanks = new Map()) {
-  const resolved = resolveRotationValues(options, values, talents)
+export function reader(options: RotationOption[], values: Record<string, RotationValue>, talents: TalentRanks = new Map(), setup: RotationSetup = {}) {
+  const resolved = resolveRotationValues(options, values, talents, setup)
   return {
     on: (id: string) => Boolean(resolved[id]),
     num: (id: string) => Number(resolved[id]),

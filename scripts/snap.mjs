@@ -43,7 +43,7 @@ const { values: args, tokens } = parseArgs({
     dark: { type: 'boolean', default: false },
     /** Screenshot the viewport alone, as it shows an open sheet, rather than the whole page. */
     viewport: { type: 'boolean', default: false },
-    /** Accessible names of tabs, buttons or menu items to click, in order, before the screenshot. Simulate waits for the result. */
+    /** Accessible names of tabs, buttons, menu items, comboboxes or their options to click, in order, before the screenshot. Simulate waits for the result. */
     click: { type: 'string', multiple: true, default: [] },
     /** Accessible name of a tab, button, menu item or heading to scroll to the top of its scroller before the screenshot (inside a sheet). */
     scroll: { type: 'string' },
@@ -124,6 +124,8 @@ try {
       .getByRole('tab', { name, exact: true })
       .or(page.getByRole('button', { name, exact: true }))
       .or(page.getByRole('menuitem', { name, exact: true }))
+      .or(page.getByRole('combobox', { name, exact: true }))
+      .or(page.getByRole('option', { name, exact: true }))
       .first()
   for (const step of steps) {
     if (step.kind === 'fill') {

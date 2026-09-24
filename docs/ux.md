@@ -305,8 +305,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     [D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23):
     a Protection warrior's Thunder Clap and Demoralizing Shout, a Protection paladin's Devotion
     Aura, and a bear's Faerie Fire and Demoralizing Roar, [druid §6.3](classes/druid.md#63-forever-bear-priority-tps)),
-    so no preset turns them on. When the rotation drops one (a Protection warrior's Max TPS drops
-    both of its own, a paladin's its Devotion Aura), its Buffs switch is off by default and
+    so no preset turns them on. When the rotation drops one (a Protection warrior's Balanced and
+    Max TPS drop both of its own, a bear's its roar, a paladin's Max TPS its Devotion Aura), its Buffs switch is off by default and
     unlocked, and its note says so: "You're not keeping it up (see Rotation); turn this on if
     another druid does" (or warrior, or paladin). Turned on, it's another
     player's, and it stays on until you turn it off. Without that class in the raid it reads
@@ -317,18 +317,35 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     warrior tank's duty, so presets leave it out; turn this on if one keeps it up."
   - A preset matches on what you choose: a buff your rotation keeps up shows on whatever the
     preset says, so it counts on neither side, and turning another paladin's Devotion Aura on
-    under Max TPS, then going back to tank duties, leaves the preset as it was.
+    under Max TPS, then going back to Defensive, leaves the preset as it was.
 - **Rotation.** The spec's ability list. Each entry has an on/off switch, threshold inputs
   with units, one line of help, and the default marked. **Reset rotation** (in the section
   header, enabled once you've set anything or moved a row) puts every setting and the order
   back to their defaults. It disables itself, so it moves focus to the first setting, the next
   control after it (the list's first row when nothing is above the list).
   - **A priority list** ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24)).
-    A spec on the list (Fury first; the rest follow in M5.65 A2) shows its rotation as the
-    abilities in the order the sim tries them. Its spec-wide settings (a stance, a pet, a tank's
-    priority, the consumables) sit under their headings above the list, as below. Under
+    A spec on the list (Fury first, then the three tanks in A2; the rest follow in M5.65 A2)
+    shows its rotation as the abilities in the order the sim tries them. Its spec-wide settings (a
+    stance, a pet, the consumables) sit under their headings above the list, as below. Under
     **Priority list** (a heading, with one line: each global cooldown the sim uses the first
     ability whose conditions hold) come the preset picker and **Reset order**, then the list.
+  - **A tank's presets** ([D28](decisions.md#d28-three-tank-rotations-defensive-balanced-and-max-tps-2026-09-24)).
+    A spec with named rotations (a tank's **Defensive**, **Balanced** and **Max TPS**) has its
+    picker at the top of the tab instead, under a **Preset** heading, first as a tank's priority
+    choice always was, as the Talents and Buffs tabs' presets are. Its menu lists them in that
+    order and marks the default, "Balanced (default)", as the talent and Buffs presets do; there's
+    no separate "Default". Beside it, an **About the presets** button (the info icon, 44 px) opens
+    a popover that lists all three with their full help: what each keeps and drops, what it
+    measures against Defensive in the default setup (TPS, DPS and damage taken; a bear's Max TPS
+    against Balanced too, which it differs from by one setting), when to pick it, and the Buffs
+    tab's versions of the duties it drops. The popover keeps 16 px from the window's edges. Under
+    the picker, **one short line** on the one picked: what it keeps and gives up, three lines at
+    most at 390 px (a test holds each to 125 characters), with a number or two, its damage-taken
+    cost among them; at Custom, "Custom: the list matches none of the presets. Pick one to start
+    again from it." The picker's trigger takes that line as its description.
+    A tank's Priority choice has no control of its own: the picker sets it (`AplDefinition.presets`,
+    architecture.md). Under Priority list there's then only **Reset order**, which hands focus to
+    the list's first row, and **Reset rotation** hands focus to the picker.
     - **Each row** is an ordered list item: a drag handle, the ability's icon, its name, a
       short summary of its settings ("From 40 rage · cancel below 20 rage", or "Off"), and
       its switch. The handle, the row's button and the switch are each 44 px. A row that's off,
@@ -362,27 +379,58 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       settings move it one place and say where it went; one that reaches the end disables
       itself and hands focus to the other. The handle's name says its place ("Move Whirlwind,
       position 11").
-    - **Pinned rows** (the pre-pull, and later D26's duties) show a lock where the handle would
-      be, have no Move up or down, and no row can be dragged past them. The settings of a
-      pinned row say "Fixed at position 1 of 16".
-    - **Presets and Custom.** The picker lists the spec's rotations: Default, and any named
-      ones (D28's Defensive, Balanced and Max TPS for tanks). Once you move a row or change one
+    - **Pinned rows** (the pre-pull and opener, first) show a lock where the handle would be, have
+      no Move up or down, and no row can be dragged past them. The settings of a pinned row say
+      "Fixed at position 1 of 16". **D26's duties are movable rows**, like any other
+      ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24):
+      the duty timing keeps its own rule wherever the duty sits): a warrior's Shield Block, Thunder
+      Clap and Demoralizing Shout, a bear's Demoralizing Roar and Faerie Fire. Every tank preset
+      puts them first on the global cooldown, and their refresh stays the duty rule's wherever you
+      move them, since it's the row's own condition; a moved duty makes the list Custom. The rule
+      decides when a duty wants the global cooldown, not that it gets it: a row above it takes it
+      first. A warrior's Thunder Clap, Demoralizing Shout or Battle Shout, on and below the Sunder
+      Armor filler (on), says so in place of its summary, dimmed, with the filler's threshold (or
+      Sunder Armor's cost, if that's higher): "Below the Sunder Armor filler: used only while your
+      rage is under its 9." It's a fact about the order, whatever the threshold, and judges nothing:
+      below Defensive's 9 the duty is hardly ever cast, below Balanced's 60 most of the time.
+      Thunder Clap on cooldown (its "only to keep the slow up" off) is tried just above the filler
+      wherever its row is, so it has no note.
+    - **Presets and Custom.** The picker lists the spec's rotations: "Default" for a spec without
+      named ones (Fury), or a tank's three (above). A tank's preset sets its Priority choice, which
+      moves defaults; picking any preset sets it (Balanced back to its default). Once you move a row or change one
       of the list's settings away from every preset it reads "Custom". Picking a preset sets
       its order and its values for the list's settings and puts the rest of the list's settings
       at their defaults. The spec-wide settings you set stay. **Reset order** (enabled while
       the order isn't the default) puts the rows back in the default order and nothing else,
-      and moves focus to the picker.
+      and moves focus to the picker (a tank's, at the top: the list's first row).
+    - **Rows that share a cooldown.** With both on, the higher one is used whenever it can be, and
+      the lower only when the higher can't be paid for; the lower says so in place of its summary,
+      dimmed: a Protection paladin's Holy Strike under Hammer of the Righteous, which is off by
+      default just above it ("Rarely used: Hammer of the Righteous, above it, takes its place (they
+      share a cooldown). It's used when you can't pay Hammer's 90 mana."), or Hammer of the
+      Righteous moved below Holy Strike, which costs less and so always takes it ("Not used: Holy
+      Strike, above it, takes its place (they share a cooldown). Move it above Holy Strike to use it
+      instead."). Hammer of the Righteous says when the main hand can't use it, and what happens
+      instead: "Not used: needs a one-handed axe, mace or sword in your main hand, so Holy Strike is
+      used.", or with Holy Strike off "… main hand. Turn Holy Strike on to use it instead.", and
+      with no main hand, where Holy Strike can't be used either, just "… in your main hand.". With
+      no main hand, Holy Strike (on) says so too, with Hammer on or off: "Not used: needs a weapon
+      in your main hand."
     - A row's conditions are its own and move with it. Moving Heroic Strike above Bloodthirst
       lets it queue before Bloodthirst spends the rage, still from its 40 rage; moving
       Hamstring above Bloodthirst changes nothing, since it still waits while Bloodthirst and
       Whirlwind cool down, as its summary says.
   - The intro says what the defaults are, per spec: "tuned for the default setup" once a slice
     has tuned them ([D23](decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23);
-    Arms since M2.5a, Fury since M2.5b, the Feral cat since B2, Protection since P1, Retribution
-    since C2, the Feral bear since B3), "the common priority" for a spec until then. The cat's
-    also says there's no powershifting, and why ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
-    since a Classic Era feral would look for it. A tank's says no more: its priority choice,
-    first on the tab, names the duties its default keeps (below).
+    Arms since M2.5a, Fury since M2.5b, the Feral cat since B2, Retribution since C2), "the
+    common priority" for a spec until then. The cat's also says there's no powershifting, and why
+    ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
+    since a Classic Era feral would look for it. A tank's says which of its presets are tuned and
+    which aren't yet, in players' words rather than the process's (D27): "Defensive and Max TPS are
+    tuned for the default setup; Balanced, the default, hasn't been fully tuned yet." (the warrior);
+    "Defensive is tuned for the default setup; Balanced, the default, and Max TPS haven't been fully
+    tuned yet." (the bear); "Defensive and Max TPS are tuned for the default setup; Balanced, the
+    default, plays as Defensive." (the paladin).
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
     **Consumables**, in that order. Under each heading the settings keep the spec's priority
@@ -393,7 +441,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     (Protection's Execute, under Core abilities; the bear's "Enrage before the pull", under
     Cooldowns and buffs).
   - **A tank's priority** ([D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
-    a choice at the top, **Tank duties first** (the default) or **Max TPS**. Its help names the
+    before the priority list, a choice at the top, **Tank duties first** (the default) or **Max
+    TPS**. On the priority list (D28, D31; all three tanks since A2) it's the preset picker at the
+    top instead ("A tank's presets", above): **Defensive** (Tank duties first, renamed),
+    **Balanced** (the default) and **Max TPS**, whose help in the picker's info says the same things
+    with each one's measured numbers. Its help names the
     duties Max TPS drops (Shield Block, Thunder Clap and Demoralizing Shout for a warrior; Devotion
     Aura, for Retribution Aura, for a paladin; the roar for a bear, which keeps Faerie Fire because
     its armor makes the bear's threat), why the default keeps them (you take less damage), what Max

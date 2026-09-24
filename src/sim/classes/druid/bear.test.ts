@@ -60,6 +60,10 @@ const effect = (id: number, index: number) => spell(id).effects.find((e) => e.ef
  */
 const BEAR_CODE = '050012-5523032120132210551-'
 const TALENTS = talentRanksByName(TALENT_DATA.druid, BEAR_CODE)
+/** Defensive, "Tank duties first" before D28: the rotation that keeps both duties, the roar and Faerie Fire. */
+const DEFENSIVE = { [BEAR_IDS.priority]: BEAR_PRIORITY.duties }
+/** The default bear with Defensive picked. */
+const defensiveConfig = (): SimConfig => ({ ...defaultConfig('druid-feral-bear'), rotation: DEFENSIVE })
 
 /** A spell's class mask, and whether any of its bits is in a spell effect's affected mask. */
 const mask = (id: number) => spell(id).classOptions!.spellClassMask as number[]
@@ -305,11 +309,13 @@ describe('the bear’s Rotation settings (druid.md §6.3)', () => {
   it('are the spec’s rotation options, each id `druid.bear.<ability>.<param>` and unique, the priority choice first', () => {
     expect(rotationOptions('druid-feral-bear')).toBe(BEAR_OPTIONS)
     expect(new Set(BEAR_OPTIONS.map((o) => o.id)).size).toBe(BEAR_OPTIONS.length)
-    expect(BEAR_OPTIONS[0]).toMatchObject({ kind: 'choice', id: 'druid.bear.priority', default: BEAR_PRIORITY.duties })
+    // Balanced is the default (D28); a setup saved with "duties" (tank duties first) is Defensive.
+    expect(BEAR_OPTIONS[0]).toMatchObject({ kind: 'choice', id: 'druid.bear.priority', default: BEAR_PRIORITY.balanced })
+    expect(BEAR_PRIORITY).toEqual({ duties: 'duties', balanced: 'balanced', maxTps: 'maxTps' })
     for (const o of BEAR_OPTIONS.slice(1)) expect(o.id).toMatch(/^druid\.bear\.[a-zA-Z]+\.[a-zA-Z]+$/)
   })
 
-  it('keep the tank’s duties by default (D26): Demoralizing Roar and Faerie Fire kept up; Enrage in combat isn’t one, and is on (tuned)', () => {
+  it('keep the tank’s duties with Defensive (D26, D28): Demoralizing Roar and Faerie Fire kept up; Enrage in combat isn’t one, and is on (tuned)', () => {
     expect(toggle(BEAR_IDS.roarEnabled).default).toBe(true)
     expect(toggle(BEAR_IDS.ffEnabled).default).toBe(true)
     expect(toggle(BEAR_IDS.enrageInCombat).default).toBe(true)
@@ -330,10 +336,12 @@ describe('the bear’s Rotation settings (druid.md §6.3)', () => {
   })
 
   it('keep the Buffs tab’s Faerie Fire and Demoralizing Roar out while the bear keeps its own', () => {
-    expect(maintainedBuffs('druid-feral-bear', {})).toEqual(['faerieFire', 'demoralizingRoar'])
-    expect(bearMaintainedBuffs({ [BEAR_IDS.roarEnabled]: false })).toEqual(['faerieFire'])
+    expect(maintainedBuffs('druid-feral-bear', DEFENSIVE)).toEqual(['faerieFire', 'demoralizingRoar'])
+    // Balanced, the default, keeps Faerie Fire only.
+    expect(maintainedBuffs('druid-feral-bear', {})).toEqual(['faerieFire'])
+    expect(bearMaintainedBuffs({ ...DEFENSIVE, [BEAR_IDS.roarEnabled]: false })).toEqual(['faerieFire'])
     // The filler keeps Faerie Fire up too.
-    expect(bearMaintainedBuffs({ [BEAR_IDS.ffEnabled]: false })).toEqual(['faerieFire', 'demoralizingRoar'])
+    expect(bearMaintainedBuffs({ ...DEFENSIVE, [BEAR_IDS.ffEnabled]: false })).toEqual(['faerieFire', 'demoralizingRoar'])
     expect(bearMaintainedBuffs({ [BEAR_IDS.ffEnabled]: false, [BEAR_IDS.ffFiller]: false, [BEAR_IDS.roarEnabled]: false })).toEqual([])
   })
 
@@ -342,28 +350,45 @@ describe('the bear’s Rotation settings (druid.md §6.3)', () => {
   })
 })
 
-describe('Max TPS (druid.md §6.3 "Max TPS", D26)', () => {
+describe('Balanced and Max TPS (druid.md §6.3 "Balanced", "Max TPS"; D26, D28)', () => {
   const MAX = { [BEAR_IDS.priority]: BEAR_PRIORITY.maxTps }
 
-  it('drops the roar by default, keeps Faerie Fire and its filler, and refreshes Lacerate as the default does', () => {
-    const duties = resolveRotationValues(BEAR_OPTIONS, {}, TALENTS)
+  it('Balanced, the default, drops the roar and keeps Faerie Fire; its quick search moved nothing else (D27)', () => {
+    const duties = resolveRotationValues(BEAR_OPTIONS, DEFENSIVE, TALENTS)
+    const balanced = resolveRotationValues(BEAR_OPTIONS, {}, TALENTS)
+    expect(balanced[BEAR_IDS.priority]).toBe(BEAR_PRIORITY.balanced)
+    const moved = Object.keys(duties).filter((id) => duties[id] !== balanced[id])
+    expect(moved.sort()).toEqual([BEAR_IDS.priority, BEAR_IDS.roarEnabled].sort())
+    expect([balanced[BEAR_IDS.ffEnabled], balanced[BEAR_IDS.ffFiller], balanced[BEAR_IDS.roarEnabled]]).toEqual([true, true, false])
+    // Max TPS, tuned on TPS alone, Mauls from less rage (T5): otherwise the same rows.
+    const max = resolveRotationValues(BEAR_OPTIONS, MAX, TALENTS)
+    expect(Object.keys(max).filter((id) => max[id] !== balanced[id])).toEqual([BEAR_IDS.priority, BEAR_IDS.maulMinRage])
+    expect([balanced[BEAR_IDS.maulMinRage], max[BEAR_IDS.maulMinRage]]).toEqual([20, 14])
+  })
+
+  it('Max TPS drops the roar by default, keeps Faerie Fire and its filler, refreshes Lacerate as Defensive does, and Mauls from 14', () => {
+    const duties = resolveRotationValues(BEAR_OPTIONS, DEFENSIVE, TALENTS)
     const max = resolveRotationValues(BEAR_OPTIONS, MAX, TALENTS)
     expect([duties[BEAR_IDS.roarEnabled], max[BEAR_IDS.roarEnabled]]).toEqual([true, false])
     // Faerie Fire's armor makes the bear's threat: dropping its upkeep costs 1% of TPS (§6.3 "Max TPS").
     for (const id of [BEAR_IDS.ffEnabled, BEAR_IDS.ffFiller]) expect([id, duties[id], max[id]]).toEqual([id, true, true])
     expect(LACERATE_REFRESH_SEC).toBe(12)
     expect([duties[BEAR_IDS.lacerateRefresh], max[BEAR_IDS.lacerateRefresh]]).toEqual([12, 12])
-    // Nothing else moves: T3's first-pass search found no other setting better (D27).
+    // Maul from 14 on TPS alone (§6.3 "Max TPS", T5); nothing else moves: T3's first-pass search
+    // found no other setting better (D27).
     const moved = Object.keys(duties).filter((id) => duties[id] !== max[id])
-    expect(moved.sort()).toEqual([BEAR_IDS.priority, BEAR_IDS.roarEnabled].sort())
+    expect(moved.sort()).toEqual([BEAR_IDS.priority, BEAR_IDS.roarEnabled, BEAR_IDS.maulMinRage].sort())
     // Each setting's help says how it follows the choice.
-    for (const id of [BEAR_IDS.roarEnabled, BEAR_IDS.ffEnabled]) expect(BEAR_OPTIONS.find((o) => o.id === id)!.help, id).toContain('Max TPS')
+    const help = (id: string) => BEAR_OPTIONS.find((o) => o.id === id)!.help
+    expect(help(BEAR_IDS.maulMinRage)).toContain('With Max TPS it’s 14 by default')
+    expect(help(BEAR_IDS.roarEnabled)).toContain('On with Defensive; off by default with Balanced and Max TPS.')
+    expect(help(BEAR_IDS.ffEnabled)).toContain('Every preset keeps it')
   })
 
-  it('keeps a value you set yourself, and the tank-duties choice is the default', () => {
+  it('keeps a value you set yourself, and Balanced is the default', () => {
     const own = resolveRotationValues(BEAR_OPTIONS, { ...MAX, [BEAR_IDS.roarEnabled]: true, [BEAR_IDS.lacerateRefresh]: 3 }, TALENTS)
     expect([own[BEAR_IDS.roarEnabled], own[BEAR_IDS.lacerateRefresh]]).toEqual([true, 3])
-    const back = resolveRotationValues(BEAR_OPTIONS, { [BEAR_IDS.priority]: BEAR_PRIORITY.duties }, TALENTS)
+    const back = resolveRotationValues(BEAR_OPTIONS, { [BEAR_IDS.priority]: BEAR_PRIORITY.balanced }, TALENTS)
     expect(back).toEqual(resolveRotationValues(BEAR_OPTIONS, {}, TALENTS))
   })
 
@@ -382,23 +407,25 @@ describe('the bear’s priority list (druid.md §6.3)', () => {
     return { r, ids: r.rotation.map((e) => r.abilities[e.ability].id) }
   }
 
-  it('with the defaults: Berserk and Maul off the GCD, then the duties, Mangle, Lacerate and the Faerie Fire filler; no Swipe', () => {
+  it('with Defensive: Berserk and Maul off the GCD, then the duties, Mangle, Lacerate and the Faerie Fire filler; no Swipe', () => {
     const all = ['berserk', 'enrage', 'maul', 'demoralizingRoar', 'faerieFire', 'mangle', 'lacerate', 'lacerate', 'faerieFire']
-    expect(lines().ids).toEqual(all)
+    expect(lines(DEFENSIVE).ids).toEqual(all)
+    // Balanced, the default, the same without the roar.
+    expect(lines().ids).toEqual(all.filter((id) => id !== 'demoralizingRoar'))
     // The duties are the first lines on the GCD, before any threat ability there (D26's rule), and
     // refresh by it: the roar from 1.5 s left, Faerie Fire from 6 s.
-    const { r } = lines()
+    const { r } = lines(DEFENSIVE)
     const onGcd = r.rotation.filter((e) => r.abilities[e.ability].gcdMs > 0).map((e) => r.abilities[e.ability].id)
     expect(onGcd.slice(0, 2)).toEqual(['demoralizingRoar', 'faerieFire'])
     const refreshMs = (id: string) => r.rotation.find((e) => r.abilities[e.ability].id === id)!.conditions.find((c) => c.code === COND.abilityAuraRefresh)!.b
     expect([refreshMs('demoralizingRoar'), refreshMs('faerieFire')]).toEqual([1500, 6000])
     // A raid whose warriors keep the boss bleeding keeps Lacerate too (§6.3, BL1), unless it's set
     // to wait for no other bleeds.
-    expect(lines({}, { othersBleed: true }).ids).toEqual(all)
-    expect(lines({ [BEAR_IDS.lacerateAlone]: true }, { othersBleed: true }).ids).toEqual(['berserk', 'enrage', 'maul', 'demoralizingRoar', 'faerieFire', 'mangle', 'faerieFire'])
-    expect(lines({ [BEAR_IDS.lacerateAlone]: true }).ids).toEqual(all)
+    expect(lines(DEFENSIVE, { othersBleed: true }).ids).toEqual(all)
+    expect(lines({ ...DEFENSIVE, [BEAR_IDS.lacerateAlone]: true }, { othersBleed: true }).ids).toEqual(['berserk', 'enrage', 'maul', 'demoralizingRoar', 'faerieFire', 'mangle', 'faerieFire'])
+    expect(lines({ ...DEFENSIVE, [BEAR_IDS.lacerateAlone]: true }).ids).toEqual(all)
     // A Demoralizing Shout in the Buffs tab takes the roar's group: no roar.
-    expect(lines({}, { buffGroups: new Set(['ap-reduction']) }).ids).not.toContain('demoralizingRoar')
+    expect(lines(DEFENSIVE, { buffGroups: new Set(['ap-reduction']) }).ids).not.toContain('demoralizingRoar')
     // Swipe, when it's on, comes before the filler.
     expect(lines({ [BEAR_IDS.swipeEnabled]: true }).ids.slice(-2)).toEqual(['swipe', 'faerieFire'])
   })
@@ -502,8 +529,12 @@ describe('the default bear’s plan', () => {
   })
 
   it('its Faerie Fire and Demoralizing Roar are debuffs on the boss, in place of the Buffs tab’s', () => {
+    const defensive = buildPlan(defensiveConfig()).plan
+    expect(defensive.auras.find((a) => a.id === 'faerieFire')!.targetArmor).toBe(505)
+    expect(defensive.auras.find((a) => a.id === 'demoralizingRoar')!.bossAp).toBe(-204)
+    // Balanced, the default, keeps Faerie Fire only.
     expect(plan.auras.find((a) => a.id === 'faerieFire')!.targetArmor).toBe(505)
-    expect(plan.auras.find((a) => a.id === 'demoralizingRoar')!.bossAp).toBe(-204)
+    expect(plan.auras.map((a) => a.id)).not.toContain('demoralizingRoar')
     // The Buffs tab's Faerie Fire is left out: the boss's static armor keeps Sunder Armor and Curse
     // of Recklessness only (3,731 − 2,250 − 505).
     expect(plan.fight.targetArmor).toBe(976)
@@ -515,7 +546,7 @@ describe('the default bear’s plan', () => {
 
   it('its assumptions follow the setup: what it uses, the raid and the profile’s numbers (BL4, BU12)', () => {
     const text = (config: SimConfig) => Object.fromEntries(buildPlan(config).assumptions.map((a) => [a.id, a.text]))
-    const d = defaultConfig('druid-feral-bear')
+    const d = defensiveConfig()
     const forever = text(d)
     expect(forever.bearRage).toBe(
       'A Maul swing gives no rage: the white swing it replaces would give 8.65 rage. A bear attack that misses or is dodged or parried refunds 80% of its rage, as in Classic Era; untested for bears in Forever.',
@@ -547,7 +578,7 @@ describe('the default bear’s plan', () => {
   })
 
   it('a Demoralizing Shout in the Buffs tab takes the roar’s place on the boss, so the roar isn’t used (BL3)', () => {
-    const d = defaultConfig('druid-feral-bear')
+    const d = defensiveConfig()
     const buffs = { ...d.buffs, enabled: [...d.buffs.enabled.filter((id) => id !== 'demoralizingRoar'), 'demoralizingShout'] }
     const shout = buildPlan({ ...d, buffs }).plan
     expect(shout.abilities.map((a) => a.id)).not.toContain('demoralizingRoar')
@@ -564,6 +595,7 @@ describe('the default bear’s plan', () => {
     // With the roar off (Max TPS) and the Buffs tab's roar on for another druid, that roar fills
     // the group: no Shout is on the boss, so no note (BF1).
     const other = { ...d.buffs, enabled: [...d.buffs.enabled, 'demoralizingRoar'] }
-    expect(unused({ ...d, buffs: other, rotation: { [BEAR_IDS.roarEnabled]: false } })).toBeUndefined()
+    expect(unused({ ...d, buffs: other, rotation: { ...DEFENSIVE, [BEAR_IDS.roarEnabled]: false } })).toBeUndefined()
+    expect(unused({ ...d, buffs: other, rotation: {} })).toBeUndefined()
   })
 })

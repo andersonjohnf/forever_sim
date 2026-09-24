@@ -300,7 +300,8 @@ describe('encounter worked examples on the plan', () => {
     expect(tank(['thunderClap'], 'classicEra').speedSec).toBeCloseTo(2.2, 9)
   })
   it('Protection’s own Sunder Armor, Thunder Clap and Demoralizing Shout take the Buffs tab’s place (warrior.md §5.4 notes)', () => {
-    const d = defaultConfig('warrior-protection')
+    // Defensive, which keeps all three (Balanced, the default, keeps Sunder Armor alone, D28).
+    const d = { ...defaultConfig('warrior-protection'), rotation: { 'warrior.protection.priority': 'duties' } }
     const plan = buildPlan(d).plan
     // The boss starts unslowed and at full attack power; the rotation's debuffs are auras.
     expect(plan.fight.bossSwing).toMatchObject({ speedSec: 2, unslowedSec: 2, slow: 0, minDamage: 4500, maxDamage: 5500 })
@@ -603,7 +604,9 @@ describe('assumptions', () => {
 
   it('surfaces Protection’s Revenge window and spell-table rolls under their own ids, only while its rotation uses them (warrior.md §2.8, §7, Q12, Q33)', () => {
     const notes = (rotation: SimConfig['rotation']) => buildPlan({ ...defaultConfig('warrior-protection'), rotation }).assumptions
-    const prot = notes({})
+    // Defensive, which uses both spells; Balanced, the default, drops them as Max TPS does (D28).
+    const prot = notes({ 'warrior.protection.priority': 'duties' })
+    expect(notes({}).map((a) => a.id)).not.toContain('spellTable')
     expect(prot.find((a) => a.id === 'revengeWindow')!.text).toMatch(/^A block, dodge or parry of the boss’s swings opens Revenge for 5 s/)
     expect(prot.find((a) => a.id === 'spellTable')!.text).toMatch(/^Thunder Clap and Demoralizing Shout roll the spell table, as the Forever client marks it: one roll for a spell miss/)
     // Only Thunder Clap deals damage, so only it crits (PU9).

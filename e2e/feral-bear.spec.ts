@@ -1,11 +1,15 @@
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
 // The Feral bear (docs/classes/druid.md §4, §6.3, §7), shipped in B4: the switcher, its tabs in
-// its own terms, its priority ("Tank duties first" or "Max TPS", decision D26), a run and its tank
-// results, and a share link, on a desktop and on a phone (docs/ux.md).
+// its own terms, its rotation as a priority list with three presets (Defensive, Balanced, the
+// default, and Max TPS; decisions D28, D31), a run and its tank results, and a share link, on a
+// desktop and on a phone (docs/ux.md).
 
 const BEAR = /^Spec: Feral \(Bear\) Druid/
+
+/** The rows in druid.md §6.3's order. */
+const DEFAULT_ORDER = ['prepull', 'berserk', 'enrage', 'racial', 'onUseItems', 'maul', 'demoRoar', 'faerieFire', 'mangle', 'lacerate', 'swipe', 'faerieFireFiller']
 
 async function switchToBear(page: Page) {
   await page.goto('./')
@@ -15,6 +19,31 @@ async function switchToBear(page: Page) {
 }
 
 const openTab = (page: Page, name: string) => page.getByRole('tab', { name, exact: true }).click()
+
+/** The bear's Rotation tab, and its priority list. */
+async function openRotation(page: Page) {
+  await switchToBear(page)
+  await openTab(page, 'Rotation')
+  return { tab: page.getByRole('tabpanel', { name: 'Rotation' }), list: page.getByRole('list', { name: 'Priority list' }) }
+}
+
+const preset = (page: Page) => page.getByRole('combobox', { name: 'Rotation preset' })
+/** A preset's name in the menu and the trigger: the default's is marked "(default)". */
+const presetName = (name: string) => new RegExp(`^${name}( \\(default\\))?$`)
+async function pickPreset(page: Page, name: string) {
+  await preset(page).click()
+  await page.getByRole('option', { name: presetName(name) }).click()
+  await expect(preset(page)).toHaveText(presetName(name))
+}
+/** The rows' ids in the list's order. */
+const order = (page: Page) => page.locator('[data-apl-row]').evaluateAll((rows) => rows.map((r) => r.getAttribute('data-apl-row')))
+const row = (list: Locator, id: string) => list.locator(`[data-apl-row="${id}"]`)
+
+/** Every match is at least 44 px tall, after any open animation (as shell-a11y.spec.ts measures it). */
+async function expectTouchTargets(locator: Locator) {
+  await expect(locator.first()).toBeVisible()
+  await expect.poll(() => locator.evaluateAll((els) => Math.min(...els.map((e) => e.getBoundingClientRect().height)))).toBeGreaterThanOrEqual(44)
+}
 
 async function simulate(page: Page) {
   const results = page.getByRole('complementary', { name: 'Results' })
@@ -32,9 +61,10 @@ async function noSideScroll(page: Page) {
 const VALUE_WITH_CI = /\d[\d,]*\.\d\s*± \d[\d,]*\.\d/
 /** What a screen reader hears of a change from the last run (docs/ux.md#results). */
 const HEARD_CHANGE = /^(up|down) [\d,]+\.\d from the last run, (better|worse)$/
-/** The priority's help: what Max TPS drops, what it gains and costs, when to pick it (D26). */
-const PRIORITY_HELP =
-  /^Tank duties first keeps Demoralizing Roar and Faerie Fire on the boss, so you take less damage\. Max TPS drops the roar for threat: about 3% more TPS and DPS, for 0\.7% more damage taken in the default setup\. It keeps Faerie Fire, whose armor makes your attacks, and so your threat, bigger\. Pick it when another tank or the raid covers your survival\. The Buffs tab’s Demoralizing Roar stays off unless you turn it on there for another druid’s\./
+/** Each preset's short line under the picker: what it keeps and drops, with a number or two against Defensive (D28). */
+const BALANCED_LINE = 'Faerie Fire kept, Demoralizing Roar dropped: +3.1% TPS, +2.8% DPS and 0.7% more damage taken than Defensive.'
+const DEFENSIVE_LINE = 'Demoralizing Roar and Faerie Fire kept on the boss: the least damage taken. Tuned on threat.'
+const MAX_TPS_LINE = 'Balanced, but Mauls from 14 rage: +0.2% TPS, −0.2% DPS, the same damage taken (0.7% more than Defensive).'
 
 test.describe('Feral bear in the switcher', () => {
   test('is under Druid as a tank, with its own talent build, a Tauren and the Manual Crowd Pummeler', async ({ page }) => {
@@ -64,97 +94,207 @@ test.describe('Feral bear in the switcher', () => {
     // About names both druid specs.
     await page.getByRole('button', { name: 'More' }).click()
     await page.getByRole('menuitem', { name: /About/ }).click()
-    await expect(page.getByRole('dialog').getByText(/ · Druids: Feral\u00a0\(Cat\), Feral\u00a0\(Bear\) and Balance · /)).toBeVisible()
+    await expect(page.getByRole('dialog').getByText(/ · Druids: Feral \(Cat\), Feral \(Bear\) and Balance · /)).toBeVisible()
   })
 })
 
-test.describe('the bear’s priority (druid.md §6.3, D26)', () => {
-  test('tank duties first by default, above the headings, and its help says what Max TPS drops, costs and keeps', async ({ page }) => {
-    await switchToBear(page)
-    await openTab(page, 'Rotation')
-    const tab = page.getByRole('tabpanel', { name: 'Rotation' })
-    const priority = tab.getByRole('radiogroup', { name: 'Priority' })
-    await expect(priority.getByRole('radio', { name: 'Tank duties first' })).toBeChecked()
-    await expect(priority.getByRole('radio', { name: 'Max TPS' })).not.toBeChecked()
-    await expect(priority).toHaveAccessibleDescription(PRIORITY_HELP)
-    expect((await priority.boundingBox())!.y).toBeLessThan((await tab.getByRole('heading', { name: 'Cooldowns and buffs' }).boundingBox())!.y)
-    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Core abilities', 'Fillers', 'Consumables'])
-    for (const name of ['Demoralizing Roar', 'Faerie Fire', 'Maul', 'Mangle', 'Lacerate', 'Faerie Fire as a filler']) {
-      await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+test.describe('the bear’s priority list and its presets (druid.md §6.3; D28, D31)', () => {
+  test('Balanced by default: the roar off, Faerie Fire kept, the rows in §6.3’s order, and its help with the numbers', async ({ page }) => {
+    const { tab, list } = await openRotation(page)
+    await expect(tab.getByText('Which abilities the sim uses, and when. Defensive is tuned for the default setup; Balanced, the default, and Max TPS haven’t been fully tuned yet.', { exact: true })).toBeVisible()
+    await expect(preset(page)).toHaveText('Balanced (default)')
+    await expect(preset(page)).toHaveAccessibleDescription(BALANCED_LINE)
+    await expect(tab.getByText(BALANCED_LINE)).toBeVisible()
+    // The info has each preset's full help and numbers.
+    await tab.getByRole('button', { name: 'About the presets' }).click()
+    const info = page.getByRole('dialog', { name: 'The presets' })
+    await expect(info).toContainText('3.1% more TPS and 2.8% more DPS than Defensive in the default setup, for 0.7% more damage taken')
+    await expect(info).toContainText('Mauls from 14 rage rather than Balanced’s 20')
+    await page.keyboard.press('Escape')
+    expect(await order(page)).toEqual(DEFAULT_ORDER)
+    // The priority is the picker, first: no Priority choice of its own, and only the consumables between it and the list.
+    await expect(tab.getByRole('radiogroup', { name: 'Priority' })).toHaveCount(0)
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Preset', 'Consumables', 'Priority list'])
+    await expect(list.getByRole('switch', { name: 'Demoralizing Roar', exact: true })).not.toBeChecked()
+    await expect(row(list, 'demoRoar')).toContainText('Off')
+    for (const name of ['Berserk', 'Enrage', 'Maul', 'Faerie Fire', 'Mangle', 'Lacerate', 'Faerie Fire filler']) {
+      await expect(list.getByRole('switch', { name, exact: true }), name).toBeChecked()
     }
-    const core = tab.getByRole('region', { name: 'Core abilities' })
-    await core.getByRole('button', { name: /^Advanced settings for Core abilities/ }).click()
-    await expect(core.getByRole('textbox', { name: 'Lacerate again with', exact: true })).toHaveValue('12')
+    await expect(list.getByRole('switch', { name: 'Swipe', exact: true })).not.toBeChecked()
+    await expect(row(list, 'lacerate')).toContainText('5 stacks · again with 12 s left')
+    await expect(row(list, 'faerieFire')).toContainText('Again with 6 s left')
+    await expect(row(list, 'maul')).toContainText('From 20 rage')
+    // The pre-pull's Enrage is pinned first.
+    await expect(row(list, 'prepull').getByText('Fixed in place:')).toHaveCount(1)
+    await expect(row(list, 'prepull')).toContainText('Enrage')
+    await expect(page.getByRole('button', { name: 'Reset order' })).toBeDisabled()
   })
 
-  test('Max TPS turns the roar off by default, keeps Faerie Fire and Lacerate’s refresh, and Reset brings the duties back', async ({ page }) => {
-    await switchToBear(page)
-    await openTab(page, 'Rotation')
-    const tab = page.getByRole('tabpanel', { name: 'Rotation' })
-    const priority = tab.getByRole('radiogroup', { name: 'Priority' })
-    await priority.getByRole('radio', { name: 'Max TPS' }).click()
-    await expect(priority.getByRole('radio', { name: 'Max TPS' })).toBeChecked()
-    await expect(priority).toHaveAccessibleDescription(/Changed\. Default: Tank duties first$/)
-    // The roar's default follows the choice: off, and not marked as changed.
-    const roar = tab.getByRole('switch', { name: 'Demoralizing Roar', exact: true })
+  test('switches presets: Defensive keeps the roar, Max TPS drops it and Mauls sooner, and each says what it is', async ({ page }) => {
+    const { tab, list } = await openRotation(page)
+    await preset(page).click()
+    await expect(page.getByRole('option')).toHaveText(['Defensive', 'Balanced (default)', 'Max TPS'])
+    await expectTouchTargets(page.getByRole('option'))
+    await page.getByRole('option', { name: 'Defensive', exact: true }).click()
+    await expect(preset(page)).toHaveText('Defensive')
+    await expect(page.locator('[data-announcer]')).toHaveText('Rotation set to Defensive.')
+    await expect(preset(page)).toHaveAccessibleDescription(DEFENSIVE_LINE)
+    const roar = list.getByRole('switch', { name: 'Demoralizing Roar', exact: true })
+    await expect(roar).toBeChecked()
+    // Its own default, not a change: no dot.
+    await expect(list.getByRole('button', { name: 'Demoralizing Roar', exact: true })).toHaveAccessibleDescription('Again with 1.5 s left')
+    await expect(list.getByRole('switch', { name: 'Faerie Fire', exact: true })).toBeChecked()
+
+    await pickPreset(page, 'Max TPS')
+    await expect(preset(page)).toHaveAccessibleDescription(MAX_TPS_LINE)
     await expect(roar).not.toBeChecked()
-    await expect(roar).not.toHaveAccessibleDescription(/Changed/)
-    await expect(roar).toHaveAccessibleDescription(/Off by default with Max TPS\./)
-    // Faerie Fire stays: its armor makes the bear's threat.
-    const faerieFire = tab.getByRole('switch', { name: 'Faerie Fire', exact: true })
-    await expect(faerieFire).toBeChecked()
-    await expect(faerieFire).toHaveAccessibleDescription(/It stays on with Max TPS: its armor makes your attacks, and so your threat, bigger\./)
-    await expect(tab.getByRole('switch', { name: 'Faerie Fire as a filler', exact: true })).toBeChecked()
-    // Lacerate's refresh stays the default's, 12 s left (druid.md §6.3, T3's re-check).
-    const core = tab.getByRole('region', { name: 'Core abilities' })
-    await core.getByRole('button', { name: /^Advanced settings for Core abilities/ }).click()
-    const lacerate = core.getByRole('textbox', { name: 'Lacerate again with', exact: true })
+    // Tuned on threat alone, it Mauls from 14 (druid.md §6.3 "Max TPS"), unmarked: its own default.
+    await expect(row(list, 'maul')).toContainText('From 14 rage')
+    await expect(list.getByRole('button', { name: 'Maul', exact: true })).toHaveAccessibleDescription('From 14 rage')
+    await expect(list.getByRole('switch', { name: 'Faerie Fire', exact: true })).toBeChecked()
+    // The settings they don't name stay as they were, and so does the order.
+    expect(await order(page)).toEqual(DEFAULT_ORDER)
+    await pickPreset(page, 'Balanced')
+    await expect(tab.getByText(BALANCED_LINE)).toBeVisible()
+    await expect(row(list, 'maul')).toContainText('From 20 rage')
+    // Back at the default, nothing's left to reset.
+    await expect(tab.getByRole('button', { name: 'Reset rotation' })).toBeDisabled()
+  })
+
+  test('editing the list makes it Custom: a row’s switch, one of its settings, or its place; picking a preset goes back', async ({ page }) => {
+    const { tab, list } = await openRotation(page)
+    const roar = list.getByRole('switch', { name: 'Demoralizing Roar', exact: true })
+    await roar.click()
+    await expect(preset(page)).toHaveText('Custom')
+    await expect(tab.getByText('Custom: the list matches none of the presets. Pick one to start again from it.')).toBeVisible()
+    await expect(preset(page)).toHaveAccessibleDescription(/^Custom: /)
+    // The roar is marked against Balanced's default, off.
+    await expect(list.getByRole('button', { name: 'Demoralizing Roar', exact: true })).toHaveAccessibleDescription('Changed. Again with 1.5 s left')
+    await list.getByRole('button', { name: 'Demoralizing Roar', exact: true }).click()
+    const settings = page.getByRole('complementary', { name: 'Demoralizing Roar settings' })
+    await expect(settings.getByRole('switch', { name: 'Use Demoralizing Roar', exact: true })).toHaveAccessibleDescription(
+      /On with Defensive; off by default with Balanced and Max TPS\. Changed\. Default: off$/,
+    )
+    // Balanced puts it back.
+    await pickPreset(page, 'Balanced')
+    await expect(roar).not.toBeChecked()
+
+    // A setting in a row's panel: Maul from 30 rage.
+    await list.getByRole('button', { name: 'Maul', exact: true }).click()
+    const maul = page.getByRole('complementary', { name: 'Maul settings' })
+    const threshold = maul.getByRole('textbox', { name: 'Maul from', exact: true })
+    await threshold.fill('30')
+    await threshold.press('Enter')
+    await expect(row(list, 'maul')).toContainText('From 30 rage')
+    await expect(preset(page)).toHaveText('Custom')
+    await pickPreset(page, 'Defensive')
+    await expect(row(list, 'maul')).toContainText('From 20 rage')
+
+    // A moved row: Maul down one, below the roar.
+    await list.getByRole('button', { name: 'Maul', exact: true }).click()
+    await maul.getByRole('button', { name: 'Move down', exact: true }).click()
+    await expect.poll(() => order(page)).toEqual(['prepull', 'berserk', 'enrage', 'racial', 'onUseItems', 'demoRoar', 'maul', 'faerieFire', 'mangle', 'lacerate', 'swipe', 'faerieFireFiller'])
+    await expect(preset(page)).toHaveText('Custom')
+    // Defensive's order is the default: picking it puts Maul back, and the roar stays on.
+    await pickPreset(page, 'Defensive')
+    expect(await order(page)).toEqual(DEFAULT_ORDER)
+    await expect(roar).toBeChecked()
+  })
+
+  test('the duties keep their rule wherever they sit: Faerie Fire from 6 s left, the roar from 1.5 s (PW4)', async ({ page }) => {
+    const { list } = await openRotation(page)
+    await list.getByRole('button', { name: 'Faerie Fire', exact: true }).click()
+    const faerieFire = page.getByRole('complementary', { name: 'Faerie Fire settings' })
+    const ffRefresh = faerieFire.getByRole('textbox', { name: 'Faerie Fire again with', exact: true })
+    await expect(ffRefresh).toHaveValue('6')
+    await expect(ffRefresh).toHaveAccessibleDescription(/The default, 6 s \(its cooldown\), follows the tank duties’ rule: refresh while a missed cast can still be tried again before it falls off\./)
+    await expect(faerieFire.getByRole('switch', { name: 'Use Faerie Fire', exact: true })).toHaveAccessibleDescription(/Every preset keeps it: it’s the raid’s armor debuff/)
+    // Moved below Mangle, it keeps the rule, and says so.
+    await faerieFire.getByRole('button', { name: 'Move down', exact: true }).click()
+    await expect(row(list, 'faerieFire')).toContainText('Again with 6 s left')
+    await list.getByRole('button', { name: 'Demoralizing Roar', exact: true }).click()
+    const roar = page.getByRole('complementary', { name: 'Demoralizing Roar settings' })
+    await expect(roar.getByRole('textbox', { name: 'Demoralizing Roar again with', exact: true })).toHaveValue('1.5')
+    await expect(roar.getByRole('textbox', { name: 'Demoralizing Roar again with', exact: true })).toHaveAccessibleDescription(
+      /The default, 1\.5 s \(one global cooldown, as it has none\), follows the tank duties’ rule/,
+    )
+    // Lacerate refreshes from 12 s in every preset (druid.md §6.3, T3's re-check).
+    await list.getByRole('button', { name: 'Lacerate', exact: true }).click()
+    const lacerate = page.getByRole('complementary', { name: 'Lacerate settings' }).getByRole('textbox', { name: 'Lacerate again with', exact: true })
     await expect(lacerate).toHaveValue('12')
     await expect(lacerate).toHaveAccessibleDescription(/From 12 s, the global cooldowns Maul’s rage leaves free go to Lacerate, for its threat\./)
-
-    // Turned back on yourself, the roar stays on, marked against its Max TPS default.
-    await roar.click()
-    await expect(roar).toBeChecked()
-    await expect(roar).toHaveAccessibleDescription(/Changed\. Default: off$/)
-    // The priority's own Reset brings the duties' defaults back, and keeps what you set.
-    await tab.getByRole('button', { name: 'Reset Priority, default Tank duties first' }).click()
-    await expect(priority.getByRole('radio', { name: 'Tank duties first' })).toBeChecked()
-    await expect(priority.getByRole('radio', { name: 'Tank duties first' })).toBeFocused()
-    await expect(roar).toBeChecked()
-    await expect(roar).not.toHaveAccessibleDescription(/Changed/)
-    await expect(lacerate).toHaveValue('12')
   })
 
-  test('the Buffs tab: the roar and Faerie Fire are yours; with Max TPS the roar is off, for another druid’s, and Faerie Fire still yours', async ({ page }) => {
+  test('the Buffs tab: Faerie Fire is yours in every preset; the roar is off for another druid’s with Balanced, and yours with Defensive', async ({ page }) => {
     await switchToBear(page)
     await openTab(page, 'Buffs')
     const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
     const roar = buffs.getByRole('switch', { name: 'Demoralizing Roar', exact: true })
     const faerieFire = buffs.getByRole('switch', { name: 'Faerie Fire', exact: true })
-    for (const own of [roar, faerieFire]) {
-      await expect(own).toBeChecked()
-      await expect(own).toBeDisabled()
-      await expect(own).toHaveAccessibleDescription(/\. You keep it up yourself \(see Rotation\), so it isn’t added twice\.$/)
-    }
-    await openTab(page, 'Rotation')
-    await page.getByRole('tabpanel', { name: 'Rotation' }).getByRole('radiogroup', { name: 'Priority' }).getByRole('radio', { name: 'Max TPS' }).click()
-    await openTab(page, 'Buffs')
-    // The bear's own, in no preset: off by default once Max TPS drops it, and unlocked, with the note.
+    // Balanced: the bear's own roar, in no preset, is off by default once it drops it, and unlocked, with the note.
     await expect(roar).not.toBeChecked()
     await expect(roar).toBeEnabled()
     await expect(roar).toHaveAccessibleDescription(/\. You’re not keeping it up \(see Rotation\); turn this on if another druid does\.$/)
     await expect(faerieFire).toBeChecked()
     await expect(faerieFire).toBeDisabled()
-    await expect(faerieFire).toHaveAccessibleDescription(/You keep it up yourself \(see Rotation\)/)
-    // Turned on for another druid's, it counts; back on tank duties, your own replaces it.
+    await expect(faerieFire).toHaveAccessibleDescription(/\. You keep it up yourself \(see Rotation\), so it isn’t added twice\.$/)
+    // Turned on for another druid's, it counts; with Defensive your own replaces it.
     await roar.click()
     await expect(roar).toBeChecked()
     await openTab(page, 'Rotation')
-    await page.getByRole('tabpanel', { name: 'Rotation' }).getByRole('button', { name: 'Reset Priority, default Tank duties first' }).click()
+    await pickPreset(page, 'Defensive')
     await openTab(page, 'Buffs')
-    await expect(roar).toBeChecked()
+    for (const own of [roar, faerieFire]) {
+      await expect(own).toBeChecked()
+      await expect(own).toBeDisabled()
+      await expect(own).toHaveAccessibleDescription(/\. You keep it up yourself \(see Rotation\), so it isn’t added twice\.$/)
+    }
+    await expect(page.getByText('−204 boss attack power (instead of Demoralizing Shout). You keep it up yourself (see Rotation), so it isn’t added twice.')).toBeVisible()
+    // Without another druid in the raid, the roar needs one, with Balanced; your own Mark of the Wild is still yours.
+    await openTab(page, 'Rotation')
+    await pickPreset(page, 'Balanced')
+    await openTab(page, 'Buffs')
+    await buffs.getByRole('button', { name: 'Druid', exact: true }).click()
     await expect(roar).toBeDisabled()
-    await expect(roar).toHaveAccessibleDescription(/You keep it up yourself \(see Rotation\)/)
+    await expect(roar).toHaveAccessibleDescription('Needs another druid in the raid')
+    const mark = buffs.getByRole('switch', { name: 'Gift of the Wild', exact: true })
+    await expect(mark).toBeChecked()
+    await expect(mark).toBeEnabled()
+  })
+
+  test('with Defensive and a Demoralizing Shout from Buffs, its roar shows off, naming the Shout, and the list says it isn’t cast (BU2)', async ({ page }) => {
+    const { list } = await openRotation(page)
+    await pickPreset(page, 'Defensive')
+    await openTab(page, 'Buffs')
+    const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
+    const roar = buffs.getByRole('switch', { name: 'Demoralizing Roar', exact: true })
+    await expect(roar).toBeChecked()
+    await buffs.getByRole('switch', { name: 'Demoralizing Shout', exact: true }).click()
+    await expect(roar).not.toBeChecked()
+    await expect(roar).toBeDisabled()
+    await expect(roar).toHaveAccessibleDescription(
+      '−204 boss attack power (instead of Demoralizing Shout). Your raid’s Demoralizing Shout is on the boss instead, so you don’t cast it (see Rotation).',
+    )
+    await openTab(page, 'Rotation')
+    await expect(row(list, 'demoRoar')).toContainText('Not used: the Demoralizing Shout in Buffs is on the boss instead, so you don’t cast the roar.')
+    await expect(row(list, 'demoRoar')).toHaveAttribute('data-inactive')
+    await expect(list.getByRole('switch', { name: 'Demoralizing Roar', exact: true })).toBeChecked()
+  })
+
+  test('says why Lacerate does nothing while it waits for no other bleeds in a raid with warriors, as the cat’s Rake does (BU4)', async ({ page }) => {
+    const { list } = await openRotation(page)
+    await list.getByRole('button', { name: 'Lacerate', exact: true }).click()
+    const settings = page.getByRole('complementary', { name: 'Lacerate settings' })
+    const alone = settings.getByRole('switch', { name: 'Lacerate only when nothing else bleeds', exact: true })
+    await expect(alone).not.toBeChecked()
+    const note = 'Not used in this raid: its warriors keep the boss bleeding. Turn off “Lacerate only when nothing else bleeds” to use it anyway.'
+    await expect(row(list, 'lacerate')).not.toContainText(note)
+    await alone.click()
+    await expect(row(list, 'lacerate')).toContainText(note)
+    // Lacerate's switch stays on and usable; the one that makes it wait stays live.
+    await expect(list.getByRole('switch', { name: 'Lacerate', exact: true })).toBeChecked()
+    await expect(alone).toBeEnabled()
+    await expect(preset(page)).toHaveText('Custom')
   })
 
   test('Thorns is on for the bear, a damage shield only a tank feels; the cat’s Buffs tab says so (BR5)', async ({ page }) => {
@@ -177,55 +317,69 @@ test.describe('the bear’s priority (druid.md §6.3, D26)', () => {
     await expect(catThorns).toHaveAccessibleDescription(/Only the tank takes the boss’s swings, so it changes nothing for you\.$/)
   })
 
-  test('a Max TPS run makes more threat and damage than the default, and drops the roar’s row', async ({ page }) => {
+  test('a Defensive run makes less threat and damage than Balanced, and adds the roar’s row', async ({ page }) => {
     await switchToBear(page)
     const results = await simulate(page)
+    const breakdown = results.getByRole('region', { name: 'Threat by ability' })
+    const threatRow = (name: string) => breakdown.getByRole('listitem').filter({ hasText: new RegExp(`^${name}`) })
+    await expect(threatRow('Demoralizing Roar')).toHaveCount(0)
     await openTab(page, 'Rotation')
-    await page.getByRole('tabpanel', { name: 'Rotation' }).getByRole('radiogroup', { name: 'Priority' }).getByRole('radio', { name: 'Max TPS' }).click()
+    await pickPreset(page, 'Defensive')
     await expect(results.getByRole('group', { name: 'TPS' })).toContainText('Setup changed')
     await simulate(page)
     const heard = (metric: string) => results.getByRole('group', { name: metric }).getByText(HEARD_CHANGE)
-    await expect(heard('TPS')).toHaveText(/^up [\d,]+\.\d from the last run, better$/)
-    await expect(heard('DPS')).toHaveText(/^up [\d,]+\.\d from the last run, better$/)
-    const breakdown = results.getByRole('region', { name: 'Threat by ability' })
-    const row = (name: string) => breakdown.getByRole('listitem').filter({ hasText: new RegExp(`^${name}`) })
-    await expect(row('Demoralizing Roar')).toHaveCount(0)
-    for (const name of ['Maul', 'Mangle', 'Faerie Fire']) await expect(row(name).first()).toBeVisible()
+    await expect(heard('TPS')).toHaveText(/^down [\d,]+\.\d from the last run, worse$/)
+    await expect(heard('DPS')).toHaveText(/^down [\d,]+\.\d from the last run, worse$/)
+    for (const name of ['Maul', 'Mangle', 'Faerie Fire', 'Demoralizing Roar']) await expect(threatRow(name).first()).toBeVisible()
   })
 })
 
 test.describe('Feral bear share link', () => {
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] })
 
-  test('carries the bear and its Max TPS priority to a fresh page load', async ({ page }) => {
-    await switchToBear(page)
-    await openTab(page, 'Rotation')
-    const maxTps = () => page.getByRole('radiogroup', { name: 'Priority' }).getByRole('radio', { name: 'Max TPS' })
-    await maxTps().click()
+  test('carries the bear, its Defensive preset and a moved row to a fresh page load', async ({ page }) => {
+    const { list } = await openRotation(page)
+    await pickPreset(page, 'Defensive')
     await page.getByRole('button', { name: /Share/ }).click()
     await expect(page.getByText('Link copied')).toBeVisible()
-    const link = await page.evaluate(() => navigator.clipboard.readText())
-    // Back to tank duties, then Fury: the link brings the copied bear back.
-    await page.getByRole('radiogroup', { name: 'Priority' }).getByRole('radio', { name: 'Tank duties first' }).click()
+    const defensive = await page.evaluate(() => navigator.clipboard.readText())
+    // Mangle up above the duties: Custom, and the order goes in the link too.
+    await list.getByRole('button', { name: 'Mangle', exact: true }).click()
+    const mangle = page.getByRole('complementary', { name: 'Mangle settings' })
+    await mangle.getByRole('button', { name: 'Move up', exact: true }).click()
+    await mangle.getByRole('button', { name: 'Move up', exact: true }).click()
+    const moved = ['prepull', 'berserk', 'enrage', 'racial', 'onUseItems', 'maul', 'mangle', 'demoRoar', 'faerieFire', 'lacerate', 'swipe', 'faerieFireFiller']
+    await expect.poll(() => order(page)).toEqual(moved)
+    await page.getByRole('button', { name: /Share/ }).click()
+    // The first link's toast may still be up: wait for the new link itself.
+    const clipboard = () => page.evaluate(() => navigator.clipboard.readText())
+    await expect.poll(clipboard).not.toBe(defensive)
+    const custom = await clipboard()
+    // Back to Balanced, then Fury: each link brings its bear back.
+    await pickPreset(page, 'Balanced')
     await page.getByRole('button', { name: /^Spec: / }).click()
     await page.getByRole('menuitem', { name: /Fury/ }).click()
 
-    await page.goto('about:blank')
-    await page.goto(link)
-    await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Loaded a shared setup' })).toBeVisible()
-    await expect(page.getByRole('button', { name: BEAR })).toBeVisible()
-    await openTab(page, 'Rotation')
-    await expect(maxTps()).toBeChecked()
-    await expect(page.getByRole('switch', { name: 'Demoralizing Roar', exact: true })).not.toBeChecked()
+    for (const [link, name, rows] of [
+      [defensive, 'Defensive', DEFAULT_ORDER],
+      [custom, 'Custom', moved],
+    ] as const) {
+      await page.goto('about:blank')
+      await page.goto(link)
+      await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Loaded a shared setup' })).toBeVisible()
+      await expect(page.getByRole('button', { name: BEAR })).toBeVisible()
+      await openTab(page, 'Rotation')
+      await expect(preset(page)).toHaveText(name)
+      await expect.poll(() => order(page)).toEqual(rows)
+      await expect(page.getByRole('list', { name: 'Priority list' }).getByRole('switch', { name: 'Demoralizing Roar', exact: true })).toBeChecked()
+    }
   })
 })
 
 test.describe('Feral bear', () => {
   test('simulates TPS and DPS, its abilities in the threat breakdown', async ({ page }) => {
     await switchToBear(page)
-    const results = page.getByRole('complementary', { name: 'Results' })
-    await results.getByRole('button', { name: /^(Simulate|Run again)$/ }).click()
-    await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
+    const results = await simulate(page)
     await expect(results.getByRole('group', { name: 'TPS' })).toContainText(/\d[\d,]*\.\d\s*± /)
     await expect(results.getByRole('group', { name: 'DPS' })).toContainText(/\d[\d,]*\.\d\s*± /)
     // A tank's results: the damage the boss's swings cost it, and how they landed.
@@ -233,108 +387,26 @@ test.describe('Feral bear', () => {
     await expect(results.getByRole('region', { name: 'How the boss’s swings landed' })).toBeVisible()
     const breakdown = results.getByRole('region', { name: /by ability$/ })
     await expect(breakdown.getByRole('heading')).toHaveText('Threat by ability')
-    // Demoralizing Roar deals no damage, so it's in the threat view only.
-    for (const name of ['Maul', 'Mangle', 'Faerie Fire', 'Demoralizing Roar']) {
+    // Faerie Fire deals no damage, so it's in the threat view only.
+    for (const name of ['Maul', 'Mangle', 'Lacerate', 'Faerie Fire']) {
       await expect(breakdown.getByRole('listitem').filter({ hasText: name }).first()).toBeVisible()
     }
   })
 
-  test('keeps the tank’s duties by default, and the Buffs tab shows its own debuffs as kept up', async ({ page }) => {
-    await switchToBear(page)
-    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
-    const tab = page.getByRole('tabpanel', { name: 'Rotation' })
-    await expect(tab.getByText('Which abilities the sim uses, and when. The defaults are tuned for the default setup.', { exact: true })).toBeVisible()
-    for (const name of ['Demoralizing Roar', 'Faerie Fire', 'Maul', 'Mangle', 'Lacerate']) await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
-    await expect(tab.getByRole('switch', { name: 'Enrage in combat', exact: true })).toBeChecked()
-    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
-    for (const name of ['Demoralizing Roar', 'Faerie Fire']) {
-      const own = page.getByRole('switch', { name, exact: true })
-      await expect(own).toBeChecked()
-      await expect(own).toBeDisabled()
-    }
-    await expect(page.getByText('−204 boss attack power (instead of Demoralizing Shout). You keep it up yourself (see Rotation), so it isn’t added twice.')).toBeVisible()
-  })
-
-  test('times its duties by the tank duties’ rule: Faerie Fire from 6 s left, the roar from 1.5 s (PW4)', async ({ page }) => {
-    await switchToBear(page)
-    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
-    const tab = page.getByRole('tabpanel', { name: 'Rotation' })
-    const cooldowns = tab.getByRole('region', { name: 'Cooldowns and buffs' })
-    await cooldowns.getByRole('button', { name: /^Advanced settings for Cooldowns and buffs/ }).click()
-    const faerieFire = cooldowns.getByRole('textbox', { name: 'Faerie Fire again with', exact: true })
-    const roar = cooldowns.getByRole('textbox', { name: 'Demoralizing Roar again with', exact: true })
-    await expect(faerieFire).toHaveValue('6')
-    await expect(roar).toHaveValue('1.5')
-    await expect(faerieFire).toHaveAccessibleDescription(/The default, 6 s \(its cooldown\), follows the tank duties’ rule: refresh while a missed cast can still be tried again before it falls off\./)
-    await expect(roar).toHaveAccessibleDescription(/The default, 1\.5 s \(one global cooldown, as it has none\), follows the tank duties’ rule/)
-  })
-
-  test('with its roar off, the Buffs tab’s is off and unlocked, for another druid’s; without another druid it needs one (BU3, BU14)', async ({ page }) => {
-    await switchToBear(page)
-    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
-    await page.getByRole('tabpanel', { name: 'Rotation' }).getByRole('switch', { name: 'Demoralizing Roar', exact: true }).click()
-    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
-    const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
-    const roar = buffs.getByRole('switch', { name: 'Demoralizing Roar', exact: true })
-    // A duty is the bear's own, in no preset: off by default once its rotation drops it.
-    await expect(roar).not.toBeChecked()
-    await expect(roar).toBeEnabled()
-    await expect(roar).toHaveAccessibleDescription(/You’re not keeping it up \(see Rotation\); turn this on if another druid does\./)
-    // No other druid in the raid: the roar needs one, and your own Mark of the Wild (Gift of the Wild) is still yours.
-    await buffs.getByRole('button', { name: 'Druid', exact: true }).click()
-    await expect(roar).toBeDisabled()
-    await expect(roar).toHaveAccessibleDescription('Needs another druid in the raid')
-    const mark = buffs.getByRole('switch', { name: 'Gift of the Wild', exact: true })
-    await expect(mark).toBeChecked()
-    await expect(mark).toBeEnabled()
-  })
-
-  test('with a Demoralizing Shout from Buffs, its roar shows off, naming the Shout, and Rotation says it isn’t cast (BU2)', async ({ page }) => {
-    await switchToBear(page)
-    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
-    const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
-    const roar = buffs.getByRole('switch', { name: 'Demoralizing Roar', exact: true })
-    await expect(roar).toBeChecked()
-    await buffs.getByRole('switch', { name: 'Demoralizing Shout', exact: true }).click()
-    await expect(roar).not.toBeChecked()
-    await expect(roar).toBeDisabled()
-    await expect(roar).toHaveAccessibleDescription(
-      '−204 boss attack power (instead of Demoralizing Shout). Your raid’s Demoralizing Shout is on the boss instead, so you don’t cast it (see Rotation).',
-    )
-    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
-    const tab = page.getByRole('tabpanel', { name: 'Rotation' })
-    await expect(tab.getByText('Not used: the Demoralizing Shout in Buffs is on the boss instead, so you don’t cast the roar.')).toBeVisible()
-    await expect(tab.getByRole('switch', { name: 'Demoralizing Roar', exact: true })).toBeChecked()
-  })
-
-  test('says why Lacerate does nothing while it waits for no other bleeds in a raid with warriors, as the cat’s Rake does (BU4)', async ({ page }) => {
-    await switchToBear(page)
-    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
-    const tab = page.getByRole('tabpanel', { name: 'Rotation' })
-    const alone = tab.getByRole('switch', { name: 'Lacerate only when nothing else bleeds', exact: true })
-    await expect(alone).not.toBeChecked()
-    const note = tab.getByText('Not used in this raid: its warriors keep the boss bleeding. Turn off “Lacerate only when nothing else bleeds” to use it anyway.')
-    await expect(note).toHaveCount(0)
-    await alone.click()
-    await expect(note).toBeVisible()
-    // Lacerate's switch stays on and usable; the one that makes it wait stays live.
-    await expect(tab.getByRole('switch', { name: 'Lacerate', exact: true })).toBeChecked()
-    await expect(alone).toBeEnabled()
-  })
-
-  test('shows Lacerate’s uptime and stacks on its bleed row, spells’ misses, its own roar under damage taken, and no parry or block (BU5, BU7, BU8, BU15)', async ({ page }) => {
-    await switchToBear(page)
-    const results = page.getByRole('complementary', { name: 'Results' })
-    await results.getByRole('button', { name: /^(Simulate|Run again)$/ }).click()
-    await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
+  test('with Defensive, shows Lacerate’s uptime and stacks on its bleed row, spells’ misses, its own roar under damage taken, and no parry or block (BU5, BU7, BU8, BU15)', async ({ page }) => {
+    await openRotation(page)
+    await pickPreset(page, 'Defensive')
+    const results = await simulate(page)
     const breakdown = results.getByRole('region', { name: /by ability$/ })
-    const row = (name: string) => breakdown.getByRole('listitem').filter({ hasText: new RegExp(`^${name.replace(/[()]/g, '\\$&')}`) })
-    await expect(row('Lacerate (bleed)')).toContainText(/\d+\.\d% uptime on the boss, \d\.\d stacks on average/)
+    const threatRow = (name: string) => breakdown.getByRole('listitem').filter({ hasText: new RegExp(`^${name.replace(/[()]/g, '\\$&')}`) })
+    await expect(threatRow('Lacerate (bleed)')).toContainText(/\d+\.\d% uptime on the boss, \d\.\d stacks on average/)
     for (const name of ['Faerie Fire', 'Demoralizing Roar']) {
-      await expect(row(name)).toContainText(/\d+\.\d% missed/)
-      await expect(row(name)).not.toContainText('crit')
+      await expect(threatRow(name)).toContainText(/\d+\.\d% missed/)
+      await expect(threatRow(name)).not.toContainText('crit')
     }
-    await expect(results.getByText(/Debuffs on it, such as your Demoralizing Roar \(Rotation\) and a warrior tank’s Thunder Clap \(Buffs\), lower its damage and slow its swings\./)).toBeVisible()
+    await expect(
+      results.getByText(/Debuffs on it, such as Demoralizing Roar \(yours in Rotation, or another druid’s in Buffs\) and a warrior tank’s Thunder Clap \(Buffs\), lower its damage and slow its swings\./),
+    ).toBeVisible()
     // Lacerate's marker is on the boss: its uptime is on the bleed's row, not under Cooldowns and buffs.
     await results.getByRole('button', { name: 'Cooldowns and buffs' }).click()
     await expect(results.getByRole('rowheader', { name: 'Faerie Fire' })).toBeVisible()
@@ -357,50 +429,77 @@ test.describe('Feral bear', () => {
     await expect(page.getByText('+8 weapon damage on each weapon. Not used in Dire Bear Form: your attacks there don’t use your weapon’s damage.')).toBeVisible()
     const presets = page.getByRole('radiogroup', { name: 'Preset' })
     await expect(presets.getByRole('radio', { name: 'Standard raid (default)' })).toHaveAttribute('aria-checked', 'true')
-    // Self only leaves only what the bear brings itself on, and still matches its preset.
+    // Self only leaves only what the bear brings itself on, and still matches its preset: its
+    // Faerie Fire, and not the roar Balanced drops.
     await presets.getByRole('radio', { name: 'Self only' }).click()
     await expect(presets.getByRole('radio', { name: 'Self only' })).toHaveAttribute('aria-checked', 'true')
     await expect(page.getByText('Custom selection.')).toHaveCount(0)
-    await expect(page.getByRole('switch', { name: 'Demoralizing Roar', exact: true })).toBeChecked()
+    await expect(page.getByRole('switch', { name: 'Faerie Fire', exact: true })).toBeChecked()
+    await expect(page.getByRole('switch', { name: 'Demoralizing Roar', exact: true })).not.toBeChecked()
   })
 })
 
 test.describe('Feral bear on a phone', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
-  test('switches, picks Max TPS on a full-width choice, runs and shows its tank results, all without side scroll', async ({ page }) => {
-    await switchToBear(page)
-    await openTab(page, 'Rotation')
-    const tab = page.getByRole('tabpanel', { name: 'Rotation' })
-    const priority = tab.getByRole('radiogroup', { name: 'Priority' })
-    await expect(priority).toHaveAccessibleDescription(PRIORITY_HELP)
-    const group = (await priority.boundingBox())!
-    expect(group.x).toBeGreaterThanOrEqual(16)
-    expect(group.x + group.width).toBeLessThanOrEqual(390 - 16)
-    const max = priority.getByRole('radio', { name: 'Max TPS' })
-    for (const item of [priority.getByRole('radio', { name: 'Tank duties first' }), max]) {
-      const box = (await item.boundingBox())!
-      expect(box.height).toBeGreaterThanOrEqual(44)
+  test('picks Defensive from the full-width picker, opens a row in a sheet, runs and shows its tank results, all without side scroll', async ({ page }) => {
+    const { tab, list } = await openRotation(page)
+    // The line under the picker fits in three lines on a phone.
+    const line = tab.getByText(BALANCED_LINE)
+    await expect(line).toBeVisible()
+    expect((await line.boundingBox())!.height).toBeLessThanOrEqual(3 * 20 + 1)
+    const picker = (await preset(page).boundingBox())!
+    expect(picker.x).toBeGreaterThanOrEqual(16)
+    expect(picker.height).toBeGreaterThanOrEqual(44)
+    // The info button beside it is a 44 px target inside the screen.
+    const info = (await tab.getByRole('button', { name: 'About the presets' }).boundingBox())!
+    expect(info.height).toBeGreaterThanOrEqual(44)
+    expect(info.x + info.width).toBeLessThanOrEqual(390 - 16)
+    // Its popover stays on the screen and scrolls to its last preset.
+    await tab.getByRole('button', { name: 'About the presets' }).tap()
+    const about = page.getByRole('dialog', { name: 'The presets' })
+    await expect(about).toBeVisible()
+    const bottom = async () => {
+      const box = (await about.boundingBox())!
+      return box.y + box.height
     }
-    await max.tap()
-    await expect(max).toBeChecked()
-    await expect(tab.getByRole('switch', { name: 'Demoralizing Roar', exact: true })).not.toBeChecked()
+    // 16 px from the screen's edges (collisionPadding).
+    await expect.poll(bottom).toBeLessThanOrEqual(844 - 16)
+    expect((await about.boundingBox())!.x).toBeGreaterThanOrEqual(16)
+    const last = about.getByText(/unless you turn it on there for another druid’s\.$/).last()
+    await last.scrollIntoViewIfNeeded()
+    await expect(last).toBeInViewport()
+    await page.keyboard.press('Escape')
+    await expect(about).toHaveCount(0)
+    await preset(page).tap()
+    await expectTouchTargets(page.getByRole('option'))
+    await page.getByRole('option', { name: 'Defensive', exact: true }).tap()
+    await expect(preset(page)).toHaveText('Defensive')
+    await expect(tab.getByText(DEFENSIVE_LINE)).toBeVisible()
+    await expect(list.getByRole('switch', { name: 'Demoralizing Roar', exact: true })).toBeChecked()
     await noSideScroll(page)
+    // A row's settings open in a sheet, titled with its place.
+    await list.getByRole('button', { name: 'Demoralizing Roar', exact: true }).tap()
+    const sheet = page.getByRole('dialog', { name: 'Demoralizing Roar' })
+    await expect(sheet.getByText('At position 7 of 12', { exact: true })).toBeVisible()
+    await expect(sheet.getByRole('switch', { name: 'Use Demoralizing Roar', exact: true })).toBeChecked()
+    await sheet.getByRole('button', { name: 'Close', exact: true }).tap()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
 
     await openTab(page, 'Buffs')
-    await expect(page.getByRole('switch', { name: 'Demoralizing Roar', exact: true })).toHaveAccessibleDescription(/turn this on if another druid does\.$/)
+    await expect(page.getByRole('switch', { name: 'Demoralizing Roar', exact: true })).toHaveAccessibleDescription(/You keep it up yourself \(see Rotation\)/)
     await noSideScroll(page)
 
     await page.getByRole('button', { name: 'Simulate', exact: true }).click()
     await expect(page.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
-    const bar = page.getByRole('button', { name: 'Show results' })
+    const bar = page.getByRole('button', { name: /^Show results/ })
     await expect(bar).toContainText(/TPS\s*\d[\d,]*\.\d/)
     await expect(bar).toContainText(/DPS\s*\d[\d,]*\.\d/)
     await bar.click()
-    const sheet = page.getByRole('dialog', { name: 'Results' })
-    await expect(sheet.getByRole('group', { name: 'TPS' })).toContainText(VALUE_WITH_CI)
-    await expect(sheet.getByRole('region', { name: 'Damage taken per second' })).toContainText(VALUE_WITH_CI)
-    const breakdown = sheet.getByRole('region', { name: 'Threat by ability' })
+    const results = page.getByRole('dialog', { name: 'Results' })
+    await expect(results.getByRole('group', { name: 'TPS' })).toContainText(VALUE_WITH_CI)
+    await expect(results.getByRole('region', { name: 'Damage taken per second' })).toContainText(VALUE_WITH_CI)
+    const breakdown = results.getByRole('region', { name: 'Threat by ability' })
     await expect(breakdown.getByRole('listitem').filter({ hasText: /^Lacerate \(bleed\)/ })).toContainText(/\d+\.\d% uptime on the boss, \d\.\d stacks on average/)
     await noSideScroll(page)
   })

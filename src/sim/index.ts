@@ -4,7 +4,7 @@ import type { ClassSlug } from '@/data/races/types'
 import { classSetup, talentRanksByName } from './classes'
 import { resolveRotationValues } from './classes/options'
 import { activeAplPreset } from './classes/apl'
-import { fixedRotationRows, maintainedBuffs, othersKeepBleeding, ROTATION_GROUPS, rotationApl, rotationDefaultsNote, rotationOptions, unusedSettings } from './classes/rotation'
+import { fixedRotationRows, maintainedBuffs, othersKeepBleeding, ROTATION_GROUPS, rotationApl, rotationDefaultsNote, rotationOptions, rotationSetup, unusedSettings } from './classes/rotation'
 import { raceName } from './equip'
 import { normalizeConfig } from './config/normalize'
 import { TALENT_DATA } from './defaults'
@@ -14,7 +14,7 @@ import { ENCHANTS } from './effects/enchants'
 import { ITEM_EFFECTS, itemEffectsApply } from './effects/items'
 import { filledBuffGroups, presetBuffIds } from './effects/presets'
 import { catalogueEffects, catalogueSummary, type OnUseSpec } from './effects/types'
-import { buildPlan, UnsupportedSetupError, wieldsShield } from './plan/build'
+import { buildPlan, mainHandWeapon, UnsupportedSetupError, wieldsShield } from './plan/build'
 import { toResult } from './run/aggregate'
 import { type ChunkExecutor, drive } from './run/driver'
 import { localExecutor } from './run/local'
@@ -138,11 +138,14 @@ export const rotationGroups: readonly RotationGroup[] = ROTATION_GROUPS
 /**
  * Every rotation setting's value for a setup: the saved one, or the option's default for this
  * setup, which can follow the build's talents or another setting (Arms: Rend with Bloodthrill,
- * Whirlwind in Berserker Stance; docs/classes/warrior.md §5.3). The plan uses the same values.
+ * Whirlwind in Berserker Stance; docs/classes/warrior.md §5.3), or the race and talents' max rage
+ * (Protection's Balanced thresholds, §5.4; without `race`, a race that doesn't change it). The plan
+ * uses the same values.
  */
-export function rotationValues(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation'>): Record<string, RotationValue> {
+export function rotationValues(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation'> & Partial<Pick<SimConfig, 'race'>>): Record<string, RotationValue> {
   const classId = SPEC_META[config.spec].classId
-  return resolveRotationValues(rotationOptions(config.spec), config.rotation, talentRanksByName(TALENT_DATA[classId], config.talents))
+  const talents = talentRanksByName(TALENT_DATA[classId], config.talents)
+  return resolveRotationValues(rotationOptions(config.spec), config.rotation, talents, rotationSetup(config.spec, talents, config.race))
 }
 
 /**
@@ -150,11 +153,13 @@ export function rotationValues(config: Pick<SimConfig, 'spec' | 'talents' | 'rot
  * preset's id, or `custom` once you've changed its order or a row's setting away from every preset.
  * Undefined for a spec still on switches.
  */
-export function rotationPreset(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'rotationOrder'>): string | undefined {
+export function rotationPreset(
+  config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'rotationOrder'> & Partial<Pick<SimConfig, 'race'>>,
+): string | undefined {
   const apl = rotationApl(config.spec)
   if (!apl) return undefined
   const talents = talentRanksByName(TALENT_DATA[SPEC_META[config.spec].classId], config.talents)
-  return activeAplPreset(apl, rotationOptions(config.spec), config.rotation, config.rotationOrder, talents)
+  return activeAplPreset(apl, rotationOptions(config.spec), config.rotation, config.rotationOrder, talents, rotationSetup(config.spec, talents, config.race))
 }
 
 /**
@@ -164,7 +169,9 @@ export function rotationPreset(config: Pick<SimConfig, 'spec' | 'talents' | 'rot
  * a raid whose warriors keep the boss bleeding, and the bear's Demoralizing Roar while the Buffs
  * tab's Demoralizing Shout takes its place. The Buffs tab is read as the plan reads it.
  */
-export function unusedRotationSettings(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'race' | 'buffs'>): Record<string, string> {
+export function unusedRotationSettings(
+  config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'race' | 'buffs'> & Partial<Pick<SimConfig, 'gear' | 'rotationOrder'>>,
+): Record<string, string> {
   const values = rotationValues(config)
   return unusedSettings(config.spec, values, {
     race: config.race,
@@ -172,6 +179,10 @@ export function unusedRotationSettings(config: Pick<SimConfig, 'spec' | 'talents
     othersBleed: othersKeepBleeding(config.buffs.raid),
     buffGroups: filledBuffGroups(config.buffs.enabled, config.buffs.raid, config.spec, [...maintainedBuffs(config.spec, values), ...talentBuffs(config)]),
     talents: talentRanksByName(TALENT_DATA[SPEC_META[config.spec].classId], config.talents),
+    // A Protection paladin's Hammer of the Righteous needs the weapon for it (paladin.md row 5b).
+    ...(config.gear ? { mainHand: mainHandWeapon(config.gear) } : {}),
+    // Which of two rows sharing a cooldown sits higher (D31): the paladin's Holy Strike and Hammer of the Righteous.
+    ...(config.rotationOrder ? { order: config.rotationOrder } : {}),
   })
 }
 

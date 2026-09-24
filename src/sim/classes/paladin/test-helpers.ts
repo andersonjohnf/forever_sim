@@ -43,8 +43,13 @@ export const RETRIBUTION_CORE_ONLY: Record<string, RotationValue> = {
   [RETRIBUTION_IDS.rune]: false,
 }
 
-/** Protection's settings for the worked examples: its own Judgement of the Crusader off (paladin.md "the opener"). */
+/**
+ * Protection's settings for the worked examples: the Defensive rotation, with Holy Strike, which they
+ * were written for (Balanced puts Hammer of the Righteous in its place, D28), and its own Judgement of
+ * the Crusader off (paladin.md "the opener").
+ */
 export const PROTECTION_CORE_ONLY: Record<string, RotationValue> = {
+  'paladin.protection.priority': 'duties',
   'paladin.protection.judgementOfTheCrusader.enabled': false,
 }
 

@@ -189,7 +189,15 @@ export interface RotationRequirement {
  * The first entry that matches wins; with none, the option's `default` applies. A switch's is on or
  * off; a number's is a number (Protection's Max TPS moves Heroic Strike's threshold, §5.4).
  */
-export type RotationDefaultWhen<V extends boolean | number = boolean> = ({ talent: string } | { option: string; is: RotationValue }) & { default: V }
+export type RotationDefaultWhen<V extends boolean | number = boolean> = ({ talent: string } | { option: string; is: RotationValue }) & {
+  default: V
+  /**
+   * A number's `default` is a share of the build's rage bar, in %, not rage points: it resolves to
+   * that share of the max rage (100, raised by Boundless Rage and a Gnome's Expansive Mind), to the
+   * nearest point. Protection's Balanced thresholds (warrior.md §5.4 "Balanced", D28).
+   */
+  pctOfMaxRage?: true
+}
 
 /**
  * The heading a rotation setting sits under on the Rotation tab (docs/ux.md "Rotation"). The tab
@@ -350,8 +358,16 @@ export interface AplRow {
 export interface AplPreset {
   id: string
   label: string
-  /** One line on what it is and when to pick it. */
+  /**
+   * What it is and when to pick it, with its measured numbers for a tank's (D28): the preset
+   * picker's info lists each one's.
+   */
   help: string
+  /**
+   * The short line under the picker while it's the one picked: what it keeps and gives up, three
+   * lines at most on a phone (docs/ux.md "Rotation"). Absent: `help`.
+   */
+  summary?: string
   /** Its order; absent: the default order. */
   order?: readonly string[]
   values: Readonly<Record<string, RotationValue>>
@@ -366,7 +382,14 @@ export interface AplDefinition {
    * tank's priority, the consumables.
    */
   specWide: readonly string[]
-  /** Named presets besides the default (id `default`, the spec's defaults). */
+  /**
+   * Named presets, in the picker's order. The spec's defaults are the preset with the id `default`
+   * (DEFAULT_APL_PRESET): a spec with named rotations lists it itself, to name and place it (a
+   * tank's Balanced, between Defensive and Max TPS; its values are empty and it has no order, since
+   * it's the defaults), and the picker marks it "(default)". Otherwise it's "Default", first. A
+   * spec-wide setting a preset names (a tank's Priority) is the presets' to set: it has no control
+   * but the picker, and every preset is compared on it (sim/classes/apl.ts).
+   */
   presets: readonly AplPreset[]
 }
 

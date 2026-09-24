@@ -126,6 +126,32 @@ describe('EZ-Thro Dark Bomb (buffs doc §3.7)', () => {
     }
   })
 
+  it('holds your off-GCD abilities too while it’s thrown, as Hammer of Wrath’s cast does (review CV-6)', () => {
+    // Greater Stoneshield, off the GCD, comes after the bomb in the list: both are ready at the pull.
+    const plan = fury(['ezThroDarkBomb', 'greaterStoneshieldPotion'])
+    const a = plan.abilities.findIndex((x) => x.id === EZ_THRO_DARK_BOMB.id)
+    expect(plan.abilities[a].castHoldsOffGcd).toBe(true)
+    /** Uses of the other abilities from a throw's start, after it, until it lands, over 20 fights. */
+    const during = () => {
+      const sim = new Sim(plan)
+      const out: string[] = []
+      let landsAt = -Infinity
+      sim.castTrace = (b, time) => {
+        if (b === a) landsAt = time + 1000
+        else if (time < landsAt) out.push(`${plan.abilities[b].id}@${time}`)
+      }
+      for (let fight = 0; fight < 20; fight++) {
+        landsAt = -Infinity
+        sim.runFight(fight)
+      }
+      return out
+    }
+    expect(during()).toEqual([])
+    // Without the hold, an off-GCD line (the potion) would go during it.
+    plan.abilities[a].castHoldsOffGcd = false
+    expect(during().length).toBeGreaterThan(0)
+  })
+
   it('rolls spell hit with the boss’s average Fire resistance whole, then spell crit at ×1.5, for 225–675 (worked example 12)', () => {
     const plan = fury(['ezThroDarkBomb'])
     const row = plan.sources.findIndex((s) => s.id === EZ_THRO_DARK_BOMB.id)
@@ -198,10 +224,11 @@ describe('EZ-Thro Dark Bomb (buffs doc §3.7)', () => {
     const crits = count(FIELD.crits)
     share(crits, casts - count(FIELD.misses), start.spellCrit)
     expect(crits).toBeGreaterThan(500)
-    // Its crits feed no Ignite, and use none of Combustion's charges: it stays up all fight.
+    // Its crits feed no Ignite, and use none of Combustion's charges: it stays up all fight from when
+    // the mage casts it, as the first throw lands (the throw holds it, review CV-6).
     expect(sim.counters[ignite * FIELD_COUNT + FIELD.casts]).toBe(0)
     const agg = aggregate(plan, 200)
-    expect(agg.auraUpMs[combustion]).toBe(200 * 180000)
+    expect(agg.auraUpMs[combustion]).toBe(200 * (180000 - 1000))
   })
 
   it('is used by every spec’s rotation, and its row counts in the results', () => {

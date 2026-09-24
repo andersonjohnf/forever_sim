@@ -304,7 +304,8 @@ export const EZ_THRO_DARK_BOMB_SPELL: SpellDef = {
  * lands, as a Lightning Bolt's or Hammer of Wrath's cast does [?] (docs/classes/shaman.md#shocks-and-lightning-bolt,
  * docs/classes/paladin.md#other-abilities). No GCD ability starts during it (docs/mechanics/spells.md
  * §4), so the engine gives it a GCD as long as its cast: it waits for a free GCD, and the next GCD
- * ability waits for it to land (an engine choice).
+ * ability waits for it to land (an engine choice). Nor does an off-GCD one: you can't use one
+ * during another's cast, as with Hammer of Wrath [?] (paladin.md#other-abilities).
  */
 export const EZ_THRO_DARK_BOMB: OnUseSpec = {
   id: 'ezThroDarkBomb',
@@ -318,6 +319,7 @@ export const EZ_THRO_DARK_BOMB: OnUseSpec = {
   spell: EZ_THRO_DARK_BOMB_SPELL,
   castMs: 1000,
   castStopsSwings: true,
+  castHoldsOffGcd: true,
 }
 
 /**

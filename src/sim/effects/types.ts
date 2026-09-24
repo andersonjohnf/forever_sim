@@ -254,11 +254,14 @@ export interface OnUseSpec {
   manaSpreadTenths?: number
   /**
    * The damaging spell it casts on the boss (an explosive: EZ-Thro Dark Bomb, buffs doc §3.7), its
-   * cast time in ms, and whether that cast stops your swings. Absent: it deals no damage and is instant.
+   * cast time in ms, whether that cast stops your swings, and whether it holds your off-GCD
+   * abilities too (you can't use one during another's cast, as with Hammer of Wrath,
+   * docs/classes/paladin.md#other-abilities). Absent: it deals no damage and is instant.
    */
   spell?: SpellDef
   castMs?: number
   castStopsSwings?: boolean
+  castHoldsOffGcd?: boolean
 }
 
 /** Timed buff applied by a proc or a `cast` ability (plan/types.ts AbilityPlan). Mods apply per stack. */

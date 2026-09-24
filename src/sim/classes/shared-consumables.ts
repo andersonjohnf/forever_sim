@@ -28,6 +28,7 @@ export function sharedConsumableAbility(use: OnUseSpec): AbilityDef {
     gcdMs: use.gcdMs,
     castMs: use.castMs ?? 0,
     castStopsSwings: use.castStopsSwings ?? false,
+    ...(use.castHoldsOffGcd ? { castHoldsOffGcd: true } : {}),
     stances: STANCE_ANY,
     aura: use.aura,
     rageTenths: use.rageTenths,

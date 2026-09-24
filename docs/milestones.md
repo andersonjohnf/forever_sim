@@ -270,7 +270,7 @@ talents and default build, abilities, rotation, defaults, e2e, shipped.
 - [x] **K2 Mage:** Fire, Frost, Arcane ([review](reviews/2026-09-24-mage.md))
 - [x] **K3 Warlock:** Destruction, Affliction (Demonology with the pet core, P1 below). Built on its
   branch, awaiting review ([warlock.md](classes/warlock.md)). ([review](reviews/2026-09-24-warlock.md))
-- [ ] **K4 Shadow Priest**
+- [x] **K4 Shadow Priest** ([review](reviews/2026-09-24-shadow-priest.md))
 - [x] **K5 Elemental Shaman** ([review](reviews/2026-09-24-elemental-shaman.md))
 - [ ] **K6 Balance Druid:** Moonkin Form
 - [ ] **H1 Ranged and pet core:** Auto Shot and ranged weapons, ammo, and pets with their own

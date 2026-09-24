@@ -15,6 +15,7 @@ const WAR = 'docs/classes/warrior.md'
 const DRUID = 'docs/classes/druid.md'
 const PAL = 'docs/classes/paladin.md'
 const SHAM = 'docs/classes/shaman.md'
+const ROGUE = 'docs/classes/rogue.md'
 
 const REGISTRY = {
   whiteSwingsOnly: {
@@ -51,6 +52,15 @@ const REGISTRY = {
   gcdHasteCat: {
     text: 'The global cooldown, 1 s in Cat Form, isn’t shortened by haste, as in Classic Era; untested in Forever.',
     docRef: `${DT}#35-global-cooldown`,
+  },
+  // The rogue's two: its 1 s global cooldown, and a rotation that waits on Energy with no procs to react to.
+  gcdHasteRogue: {
+    text: 'The rogue’s 1 s global cooldown isn’t shortened by haste, as in Classic Era; untested in Forever.',
+    docRef: `${DT}#35-global-cooldown`,
+  },
+  reactionTimeRogue: {
+    text: 'The rotation reacts instantly: it acts at the very moment a cooldown or the global cooldown ends or Energy ticks in, with no reaction time or latency.',
+    docRef: `${DT}#36-server-tick-and-spell-batching`,
   },
   abilityRefunds: {
     text: 'An ability that misses or is dodged or parried refunds 80% of its rage cost (Whirlwind nothing; a missed Execute loses only its cost), as in Classic Era; untested in Forever.',
@@ -190,6 +200,11 @@ const REGISTRY = {
   },
   windfuryStone: {
     text: 'Windfury Totem is a party aura in Forever, so a main-hand stone still applies alongside it.',
+    docRef: `${BUFFS}#windfury-totem`,
+  },
+  // The same for a rogue's main-hand poison (docs/classes/rogue.md §4).
+  windfuryPoison: {
+    text: 'Windfury Totem is a party aura in Forever, so a main-hand poison still applies alongside it.',
     docRef: `${BUFFS}#windfury-totem`,
   },
   elementalStone: {
@@ -573,6 +588,51 @@ const REGISTRY = {
   shamanTotems: {
     text: 'Your own totems (Strength of Earth, Grace of Air, Mana Spring; see Buffs) are up all fight, dropped before the pull.',
     docRef: `${SHAM}#totems`,
+  },
+  // --- The rogue's (docs/classes/rogue.md §9) ---
+  energyTicksRogue: {
+    text: 'Energy comes 20 every 2 s, as in Classic Era, and Adrenaline Rush doubles each tick. The rest is untested: a cap of 100 (more with Vigor), a full bar at the pull, the first tick at a random moment in the first 2 s, and 80% of a builder’s Energy back when it misses or is dodged or parried (a finisher gets none back and keeps its combo points).',
+    docRef: `${ROGUE}#21-energy`,
+  },
+  rogueFinisherAp: {
+    text: 'Eviscerate gains 3% of your attack power per combo point, and Rupture 1% per point per tick (3 points at most), as Classic Era sims have it; the Forever client doesn’t carry the scaling.',
+    docRef: `${ROGUE}#34-eviscerate-r9-31016`,
+  },
+  rogueTwoRolls: {
+    text: 'Eviscerate and Expose Armor roll to hit and then to crit, since they deal no weapon damage; Sinister Strike and Backstab roll once. Untested for rogues.',
+    docRef: `${ROGUE}#3-abilities`,
+  },
+  rogueFlatInside: {
+    text: 'Backstab’s flat 150 is inside its 150% of weapon damage, so it adds 225, as Classic Era’s tooltip reads; Forever’s tooltip says 150. Untested.',
+    docRef: `${ROGUE}#32-backstab-r9-25300`,
+  },
+  lethality: {
+    text: 'Lethality makes Sinister Strike, Backstab, Hemorrhage, Ghostly Strike and Mutilate crit for 2.2× at 5/5 (the +100% bonus becomes +120%), as the warrior’s Impale; untested.',
+    docRef: `${ROGUE}#51-assassination`,
+  },
+  poisons: {
+    text: 'Poisons roll spell hit (your hit, Precision’s too, lowers their misses), are partly resisted by the boss’s 24 resistance, and crit at your spell crit for 150%, since Malice’s Forever tooltip names poisons. Untested.',
+    docRef: `${ROGUE}#4-poisons`,
+  },
+  deadlyPoisonTicks: {
+    text: 'Deadly Poison’s stacks tick on their own timer, which a new stack doesn’t restart, and its ticks can crit in Forever, as the client’s flag says. Untested.',
+    docRef: `${ROGUE}#42-deadly-poison-v`,
+  },
+  hackAndSlash: {
+    text: 'Hack and Slash’s extra attack is a main-hand swing whichever sword procs it, at most one each 0.2 s, as the warrior’s sword Weaponmaster; its dagger and fist crit counts only for that weapon’s attacks. Untested.',
+    docRef: `${ROGUE}#52-combat`,
+  },
+  rogueArmorPen: {
+    text: 'Serrated Blades’ and a mace’s Hack and Slash armor penetration apply after the flat armor debuffs.',
+    docRef: `${ROGUE}#53-subtlety`,
+  },
+  sliceAndDiceHaste: {
+    text: 'Slice and Dice’s and Blade Flurry’s attack speed multiply with each other and with other haste, as in Classic Era; untested in Forever.',
+    docRef: `${ROGUE}#33-slice-and-dice-r2-6774`,
+  },
+  coldBlood: {
+    text: 'Cold Blood is used up by the next Sinister Strike, Backstab, Eviscerate or Mutilate that lands; one that misses keeps it. Untested.',
+    docRef: `${ROGUE}#38-cold-blood-14177`,
   },
 } satisfies Record<string, { text: string; docRef: string }>
 

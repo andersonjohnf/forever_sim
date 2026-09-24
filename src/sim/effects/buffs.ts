@@ -11,7 +11,8 @@
 // reads the rule profile's `values` where a worked example ties it to the profile; resolve them
 // with `catalogueEffects`. Entries new in Forever have no Classic Era value and keep Forever's.
 import type { BuffDefinition, BuffPreset, ClassId, SpecId } from '../types'
-import type { ClassicEraValues, EffectList, OnUseSpec } from './types'
+import { THISTLE_TEA } from '../classes/rogue/abilities'
+import type { ClassicEraValues, Effect, EffectList, OnUseSpec, ProcSpec } from './types'
 
 const DOC = 'docs/mechanics/buffs-debuffs-consumables.md'
 
@@ -41,6 +42,54 @@ const PALADIN_ONLY: readonly ClassId[] = ['paladin']
 const SHAMAN: SpecId[] = ['shaman-enhancement']
 /** The classes that spend mana in their rotations: the paladin and the shaman (buffs doc, class-only entries). */
 const MANA_USERS: readonly ClassId[] = ['paladin', 'shaman']
+/** The rogue specs, and entries only a rogue can use (its poisons, docs/classes/rogue.md §4). */
+const ROGUES: SpecId[] = ['rogue-combat', 'rogue-assassination', 'rogue-subtlety']
+const ROGUE_ONLY: readonly ClassId[] = ['rogue']
+const ROGUE_DOC = 'docs/classes/rogue.md'
+
+/**
+ * Instant Poison VI (item 8928 → 11340, enchant 625; docs/classes/rogue.md §4.1): each hit of the
+ * weapon it's on has a 20% chance of 11337's 88 Nature damage with `Variance` 0.2769, 75.8–100.2,
+ * whole numbers 76–100 as its tooltip shows them [F] [client] (SpellEffect, SpellItemEnchantment,
+ * 1.60.1.69913). Classic Era's is 112–148 (111 + 1d37) [C].
+ */
+const instantPoison = (min: number, max: number): ProcSpec => ({
+  id: 'instantPoison',
+  name: 'Instant Poison',
+  icon: 'ability_poisons',
+  trigger: 'meleeLanded',
+  from: 'weapon',
+  chance: { pct: 20 },
+  action: { kind: 'spellDamage', school: 'nature', min, max },
+  poison: true,
+  docRef: `${ROGUE_DOC}#41-instant-poison-vi`,
+})
+const INSTANT_POISON = instantPoison(76, 100)
+const INSTANT_POISON_CLASSIC_ERA = instantPoison(112, 148)
+
+/**
+ * Deadly Poison V (item 20844 → 25351, enchant 2630; docs/classes/rogue.md §4.2): each hit of the
+ * weapon it's on has a 30% chance of 25349, 23 Nature damage per stack every 3 s for 12 s, stacking
+ * to 5, whose ticks carry the periodic-crit flag [F] [client] (SpellEffect, SpellAuraOptions,
+ * SpellMisc, SpellItemEnchantment, 1.60.1.69913; Classic Era's 34 a tick).
+ */
+const deadlyPoison = (tick: number, periodicCanCrit: boolean): ProcSpec => ({
+  id: 'deadlyPoison',
+  name: 'Deadly Poison',
+  icon: 'ability_rogue_dualweild',
+  trigger: 'meleeLanded',
+  from: 'weapon',
+  chance: { pct: 30 },
+  action: { kind: 'stackingDot', school: 'nature', tick, periodMs: 3000, durationMs: 12000, maxStacks: 5, periodicCanCrit },
+  poison: true,
+  docRef: `${ROGUE_DOC}#42-deadly-poison-v`,
+})
+const DEADLY_POISON = deadlyPoison(23, true)
+/** Classic Era's 25349: 34 a tick, and no periodic-crit flag (SpellMisc Attributes[8] 0) [C]. */
+const DEADLY_POISON_CLASSIC_ERA = deadlyPoison(34, false)
+
+/** A poison on one hand: a temporary enchant that beats a stone there, with its proc (docs/classes/rogue.md §4). */
+const poisonOn = (hand: 'main' | 'off', proc: ProcSpec): Effect[] => [{ kind: 'tempEnchant', id: `${proc.id}.${hand}`, priority: 10, hand, proc }]
 /**
  * A tank's duties are in no preset (buffs doc §6.2; D26's amendment): a warrior tank's Thunder Clap
  * and Demoralizing Shout, a Protection warrior's own (SpecMeta.ownBuffs), so a bear's or a Protection
@@ -520,8 +569,8 @@ export const BUFFS: BuffSpec[] = [
       ],
     },
     presets: {
-      raid: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN],
-      max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN],
+      raid: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN, ...ROGUES],
+      max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN, ...ROGUES],
     },
   },
   {
@@ -546,7 +595,7 @@ export const BUFFS: BuffSpec[] = [
     exclusiveGroup: 'elixir:strength',
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
     effects: [{ kind: 'stat', stat: 'str', value: 30 }],
-    presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN] },
+    presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN, ...ROGUES] },
   },
   {
     id: 'elixirOfGreaterDefense',
@@ -709,7 +758,7 @@ export const BUFFS: BuffSpec[] = [
     exclusiveGroup: 'buff:ap-drink',
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
     effects: [{ kind: 'stat', stat: 'ap', value: 40 }],
-    presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN] },
+    presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN, ...ROGUES] },
   },
   {
     id: 'roids',
@@ -733,7 +782,7 @@ export const BUFFS: BuffSpec[] = [
     exclusiveGroup: 'blasted-lands',
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
     effects: [{ kind: 'stat', stat: 'agi', value: 25 }],
-    presets: { max: ['druid-feral-cat'] },
+    presets: { max: ['druid-feral-cat', ...ROGUES] },
   },
   {
     id: 'rumseyRum',
@@ -803,7 +852,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#34-food`,
     // New in Forever (item 250069, Well Fed +20 Agility), so both profiles use it; the feral cat's food (buffs doc §6.3).
     effects: [{ kind: 'stat', stat: 'agi', value: 20 }],
-    presets: { dungeon: ['druid-feral-cat'], raid: ['druid-feral-cat'], max: ['druid-feral-cat'] },
+    presets: { dungeon: ['druid-feral-cat', ...ROGUES], raid: ['druid-feral-cat', ...ROGUES], max: ['druid-feral-cat', ...ROGUES] },
   },
   {
     id: 'denseSharpeningStone',
@@ -831,6 +880,63 @@ export const BUFFS: BuffSpec[] = [
     // Each stone is its own +2% melee crit aura on the warrior, so two stack [?] (buffs doc §3.6).
     effects: [{ kind: 'tempEnchant', id: 'elementalStone', priority: 2, weapons: [...ELEMENTAL_STONE_WEAPONS], crit: 2 }],
     presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'paladin-retribution'] },
+  },
+  // The rogue's poisons (buffs doc §3.6; docs/classes/rogue.md §4): one per weapon, in place of a stone there.
+  {
+    id: 'instantPoisonMainHand',
+    name: 'Instant Poison VI (main hand)',
+    icon: 'ability_poisons',
+    category: 'consumable',
+    group: 'Weapon',
+    summary: '20% of main-hand hits: 76–100 Nature damage',
+    forClasses: ROGUE_ONLY,
+    exclusiveGroup: 'poison:mainHand',
+    docRef: `${DOC}#36-weapon-enhancements-temporary`,
+    effects: poisonOn('main', INSTANT_POISON),
+    classicEra: { summary: '20% of main-hand hits: 112–148 Nature damage', effects: poisonOn('main', INSTANT_POISON_CLASSIC_ERA) },
+    presets: { dungeon: ROGUES, raid: ROGUES, max: ROGUES },
+  },
+  {
+    id: 'deadlyPoisonMainHand',
+    name: 'Deadly Poison V (main hand)',
+    icon: 'ability_rogue_dualweild',
+    category: 'consumable',
+    group: 'Weapon',
+    summary: '30% of main-hand hits: 23 Nature damage every 3 s, stacking 5 times',
+    forClasses: ROGUE_ONLY,
+    exclusiveGroup: 'poison:mainHand',
+    docRef: `${DOC}#36-weapon-enhancements-temporary`,
+    effects: poisonOn('main', DEADLY_POISON),
+    classicEra: { summary: '30% of main-hand hits: 34 Nature damage every 3 s, stacking 5 times', effects: poisonOn('main', DEADLY_POISON_CLASSIC_ERA) },
+    presets: {},
+  },
+  {
+    id: 'instantPoisonOffHand',
+    name: 'Instant Poison VI (off hand)',
+    icon: 'ability_poisons',
+    category: 'consumable',
+    group: 'Weapon',
+    summary: '20% of off-hand hits: 76–100 Nature damage',
+    forClasses: ROGUE_ONLY,
+    exclusiveGroup: 'poison:offHand',
+    docRef: `${DOC}#36-weapon-enhancements-temporary`,
+    effects: poisonOn('off', INSTANT_POISON),
+    classicEra: { summary: '20% of off-hand hits: 112–148 Nature damage', effects: poisonOn('off', INSTANT_POISON_CLASSIC_ERA) },
+    presets: { dungeon: ROGUES, raid: ['rogue-combat', 'rogue-subtlety'], max: ['rogue-combat', 'rogue-subtlety'] },
+  },
+  {
+    id: 'deadlyPoisonOffHand',
+    name: 'Deadly Poison V (off hand)',
+    icon: 'ability_rogue_dualweild',
+    category: 'consumable',
+    group: 'Weapon',
+    summary: '30% of off-hand hits: 23 Nature damage every 3 s, stacking 5 times',
+    forClasses: ROGUE_ONLY,
+    exclusiveGroup: 'poison:offHand',
+    docRef: `${DOC}#36-weapon-enhancements-temporary`,
+    effects: poisonOn('off', DEADLY_POISON),
+    classicEra: { summary: '30% of off-hand hits: 34 Nature damage every 3 s, stacking 5 times', effects: poisonOn('off', DEADLY_POISON_CLASSIC_ERA) },
+    presets: { raid: ['rogue-assassination'], max: ['rogue-assassination'] },
   },
   {
     id: 'mightyRagePotion',
@@ -876,6 +982,19 @@ export const BUFFS: BuffSpec[] = [
     presets: { max: [...PALADINS, ...SHAMAN] },
   },
   {
+    id: 'thistleTea',
+    name: 'Thistle Tea',
+    icon: 'inv_drink_milk_05',
+    category: 'consumable',
+    group: 'Potions and bombs',
+    summary: '+100 Energy, every 5 min; the Rotation tab says when',
+    // Forever lets druids use it too (AllowableClass 1032), but only the rogue's rotation drinks it.
+    forClasses: ROGUE_ONLY,
+    docRef: `${DOC}#35-potions-and-runes`,
+    effects: [{ kind: 'onUse', id: 'thistleTea', name: 'Thistle Tea', use: THISTLE_TEA }],
+    presets: { raid: ROGUES, max: ROGUES },
+  },
+  {
     id: 'jujuFlurry',
     name: 'Juju Flurry',
     icon: 'inv_misc_monsterscales_17',
@@ -885,7 +1004,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
     effects: [{ kind: 'onUse', id: 'jujuFlurry', name: 'Juju Flurry', use: JUJU_FLURRY }],
     // Retribution uses it on cooldown too: more swings, more Seal of Command procs (buffs doc §6.3).
-    presets: { max: [...WARRIOR_DPS, ...RETRIBUTION, ...SHAMAN] },
+    presets: { max: [...WARRIOR_DPS, ...RETRIBUTION, ...SHAMAN, ...ROGUES] },
   },
   {
     id: 'ezThroDarkBomb',

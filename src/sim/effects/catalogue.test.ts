@@ -49,6 +49,8 @@ function digest(effects: Effect[]): Line[] {
       case 'tempEnchant':
         if (e.weaponDamage) lines.push([`${e.id} weaponDamage`, e.weaponDamage])
         if (e.crit) lines.push([`${e.id} crit`, e.crit])
+        // A rogue's poison: its proc (docs/classes/rogue.md §4).
+        if (e.proc) lines.push(...digest([{ kind: 'proc', proc: e.proc }]))
         break
       case 'proc': {
         const { id, chance, action } = e.proc
@@ -56,6 +58,7 @@ function digest(effects: Effect[]): Line[] {
         if (action.kind === 'extraAttacks') lines.push([`${id} bonusAp`, action.bonusAp ?? 0])
         else if (action.kind === 'aura') for (const [mod, v] of Object.entries(action.aura.mods)) lines.push([`${id} ${mod}`, v])
         else if (action.kind === 'spellDamage') lines.push([`${id} ${action.school}`, action.min], ...(action.max !== action.min ? [[`${id} ${action.school} max`, action.max] as Line] : []))
+        else if (action.kind === 'stackingDot') lines.push([`${id} ${action.school} tick`, action.tick], [`${id} stacks`, action.maxStacks])
         else lines.push([`${id} ${action.kind}`, NaN])
         break
       }
@@ -92,9 +95,10 @@ const CLIENT_SIGN: Record<string, -1> = { targetArmor: -1, bossSlow: -1 }
  * equip spell's first effect; `via` is the spell whose enchant effect (53 or 54) applies it.
  * `null`: not in the client (a tooltip value, or a server-side rate).
  */
-type Ref = { spell: number; effect?: number; times?: number; bound?: 'min' | 'max' } | { enchant: number; slot?: number; via?: number } | null
+type Ref = { spell: number; effect?: number; times?: number; bound?: 'min' | 'max'; whole?: boolean } | { enchant: number; slot?: number; via?: number } | null
 
-const S = (spell: number, effect = 0, extra: { times?: number; bound?: 'min' | 'max' } = {}): Ref => ({ spell, effect, ...extra })
+/** `whole`: the value rounded to a whole number, as the tooltip shows a roll's bounds (Instant Poison's 76–100). */
+const S = (spell: number, effect = 0, extra: { times?: number; bound?: 'min' | 'max'; whole?: boolean } = {}): Ref => ({ spell, effect, ...extra })
 const E = (enchant: number, via?: number, slot = 0): Ref => ({ enchant, via, slot })
 
 /**
@@ -204,6 +208,31 @@ const ROWS: Record<string, Row> = {
   majorManaPotion: { rows: [S(17531, 0, { bound: 'min', times: 10 }), S(17531, 0, { bound: 'max', times: 10 })] },
   demonicRune: { rows: [S(16666, 0, { bound: 'min', times: 10 }), S(16666, 0, { bound: 'max', times: 10 })] },
   jujuFlurry: { rows: [S(16322)] },
+  // The rogue's poisons (docs/classes/rogue.md §4): the enchant's proc chance, then the proc spell's
+  // damage (Instant Poison's roll to whole numbers) or Deadly Poison's tick and stacks (its
+  // SpellAuraOptions, which rogue.test.ts checks).
+  instantPoisonMainHand: {
+    forever: [['instantPoison chance %', 20], ['instantPoison nature', 76], ['instantPoison nature max', 100]],
+    classicEra: [['instantPoison chance %', 20], ['instantPoison nature', 112], ['instantPoison nature max', 148]],
+    rows: [E(625), S(11337, 0, { bound: 'min', whole: true }), S(11337, 0, { bound: 'max', whole: true })],
+  },
+  instantPoisonOffHand: {
+    forever: [['instantPoison chance %', 20], ['instantPoison nature', 76], ['instantPoison nature max', 100]],
+    classicEra: [['instantPoison chance %', 20], ['instantPoison nature', 112], ['instantPoison nature max', 148]],
+    rows: [E(625), S(11337, 0, { bound: 'min', whole: true }), S(11337, 0, { bound: 'max', whole: true })],
+  },
+  deadlyPoisonMainHand: {
+    forever: [['deadlyPoison chance %', 30], ['deadlyPoison nature tick', 23], ['deadlyPoison stacks', 5]],
+    classicEra: [['deadlyPoison chance %', 30], ['deadlyPoison nature tick', 34], ['deadlyPoison stacks', 5]],
+    rows: [E(2630), S(25349), null],
+  },
+  deadlyPoisonOffHand: {
+    forever: [['deadlyPoison chance %', 30], ['deadlyPoison nature tick', 23], ['deadlyPoison stacks', 5]],
+    classicEra: [['deadlyPoison chance %', 30], ['deadlyPoison nature tick', 34], ['deadlyPoison stacks', 5]],
+    rows: [E(2630), S(25349), null],
+  },
+  // Its Energy in tenths: Restore Energy 9512's 100 × 10.
+  thistleTea: { rows: [S(9512, 0, { times: 10 }), S(9512, 0, { times: 10 })] },
   ezThroDarkBomb: { foreverOnly: true, rows: [null] },
   greaterStoneshieldPotion: { rows: [null] },
   // Enchants
@@ -277,7 +306,7 @@ const ENTRIES: [string, CatalogueEntry][] = [...BUFFS.map((b) => [b.id, b] as [s
 describe('the catalogue in both profiles (buffs doc, Classic Era values)', () => {
   it('lists every entry once in the table, as the doc does', () => {
     expect(Object.keys(ROWS).sort()).toEqual(ENTRIES.map(([id]) => id).sort())
-    expect(ENTRIES).toHaveLength(109)
+    expect(ENTRIES).toHaveLength(114)
   })
 
   it.each(ENTRIES)('%s: Forever’s values, and Classic Era’s where they differ', (id, entry) => {
@@ -554,7 +583,7 @@ class Client {
         if (!ref.bound && die > 1) throw new Error(`${this.build}: SpellEffect ${ref.spell} is a roll`)
         v = ref.bound === 'max' ? bp + die : die > 0 ? bp + 1 : bp
       }
-      return v * (ref.times ?? 1)
+      return (ref.whole ? Math.round(v) : v) * (ref.times ?? 1)
     }
     const row = this.enchants.get(ref.enchant)
     if (!row) throw new Error(`${this.build}: no SpellItemEnchantment ${ref.enchant}`)

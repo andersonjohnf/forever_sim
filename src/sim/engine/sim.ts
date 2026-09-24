@@ -19,7 +19,10 @@
 // regeneration inside the five-second rule, Holy damage and threat multipliers, cooldown
 // categories and exclusive auras (seals; docs/classes/paladin.md). For the bear (druid.md §4) it
 // adds stacking bleeds (Lacerate), a cooldown an aura suspends (Berserk's Mangle) and an item-armor
-// aura (Enrage). A plan without them never enters those paths.
+// aura (Enrage). For the rogue it adds Energy regeneration from an aura, finishers that time a buff
+// or a bleed by their combo points, the combo point and Energy talents around finishers, an aura a
+// strike uses up, and poisons: their apply chance and damage from auras, and a stacking poison on
+// the target (docs/classes/rogue.md §8). A plan without them never enters those paths.
 import {
   averageResist,
   bossSlices,
@@ -69,6 +72,8 @@ const EV_CAST_END = 11
 const EV_DOT_TICK = 12
 /** The player-global power tick: Energy and mana (druid.md §2.4, §2.8). */
 const EV_POWER_TICK = 13
+/** A stacking poison's tick (Deadly Poison; data = its slot; docs/classes/rogue.md §4.2). */
+const EV_STACKING_DOT_TICK = 14
 
 /** Ability kinds (AbilityPlan.kind). */
 const KIND_STRIKE = 0
@@ -284,6 +289,14 @@ export class Sim {
   private readonly pReqAura: Int32Array
   private readonly gatedLists: Int32Array[]
   private readonly pBleedSlot: Int32Array
+  /**
+   * The rogue's poisons (docs/classes/rogue.md §4): whether a proc is one (auras' poison chance and
+   * damage apply), and a stacking poison's slot, or −1, with its duration and tick-crit flag.
+   */
+  private readonly pPoison: Uint8Array
+  private readonly pDotSlot: Int32Array
+  private readonly pDuration: Float64Array
+  private readonly pPeriodicCrit: Uint8Array
   private readonly triggerLists: Int32Array[]
 
   // Auras, flattened.
@@ -380,6 +393,10 @@ export class Sim {
   /** An aura that lets a share of spirit regeneration continue inside the five-second rule while up (Improved Stormstrike's), or −1. */
   private readonly manaFsrAura: number
   private readonly manaFsrAuraShare: number
+  /** Energy regeneration %, and the poisons' damage % and apply chance in points, per aura (the rogue's; rogue.md §3.7, §4.4). */
+  private readonly aEnergyRegen: Float64Array
+  private readonly aPoisonDamage: Float64Array
+  private readonly aPoisonChance: Float64Array
 
   // Spells, flattened (paladin.md#conventions-used-below; Plan.spells).
   private readonly splSource: Int32Array
@@ -615,6 +632,21 @@ export class Sim {
   private readonly abPctPerStack: Float64Array
   /** The aura while which it starts no cooldown (Berserk's Mangle, §4.6), or −1. */
   private readonly abNoCdAura: Int32Array
+  /**
+   * What the rogue's rows brought (docs/classes/rogue.md §8; plan/types.ts AbilityPlan), all 0 on
+   * every other row: a finisher's aura time and bleed ticks per combo point, Relentless Strikes'
+   * Energy, Ruthlessness's and Puncturing Wounds' combo points, Improved Expose Armor's points back,
+   * an aura crit that the strike uses up (Cold Blood), and a bonus against a poisoned target.
+   */
+  private readonly abAuraMsPerCp: Float64Array
+  private readonly abDotTicksPerCp: Int32Array
+  private readonly abFinishEnergyChance: Float64Array
+  private readonly abFinishEnergy: Int32Array
+  private readonly abFinishCpChance: Float64Array
+  private readonly abBonusCp: Float64Array
+  private readonly abCpBackAtFive: Int32Array
+  private readonly abCritAuraConsume: Uint8Array
+  private readonly abPoisonedPct: Float64Array
   /** Others keep the target bleeding (Plan.fight.othersBleed). */
   private readonly othersBleed: boolean
   /** PPM procs that can roll on the main hand, and their rates: a shapeshift re-resolves their chance (druid.md §2.1). */
@@ -658,6 +690,17 @@ export class Sim {
   private manaSpentAt = -Infinity
   /** The player's bleeds on the target now (`bleed` abilities', Rake's and Lacerate's; druid.md §5.1 Rend and Tear). */
   private activeDots = 0
+  /** Stacking poisons on the target (Deadly Poison, rogue.md §4.2): stacks, when each ends, its next tick and generation; and how many are up. */
+  private readonly dotStacks: Int32Array
+  private readonly dotEnd: Float64Array
+  private readonly sdNextAt: Float64Array
+  private readonly sdGen: Int32Array
+  private readonly sdProc: Int32Array
+  private poisonedDots = 0
+  /** The auras' Energy regeneration factor and the poisons' damage factor and extra apply chance (a fraction). */
+  private energyRegenMult = 1
+  private poisonMult = 1
+  private poisonChance = 0
   /**
    * White hits and hits taken give rage: for a warrior, in a druid's bear form (FormPlan.rage), and
    * never for a class without a rage pool (the paladin).
@@ -874,8 +917,14 @@ export class Sim {
     this.pPpm = new Float64Array(np)
     this.pForms = new Int32Array(np)
     this.pBleedSlot = new Int32Array(np).fill(-1)
+    this.pPoison = new Uint8Array(np)
+    this.pDotSlot = new Int32Array(np).fill(-1)
+    this.pDuration = new Float64Array(np)
+    this.pPeriodicCrit = new Uint8Array(np)
     this.procReadyAt = new Float64Array(np)
     let bleeds = 0
+    let stackingDots = 0
+    const dotSlots = new Map<string, number>()
     for (let i = 0; i < np; i++) {
       const p = procs[i]
       this.pTrigger[i] = p.trigger
@@ -894,7 +943,23 @@ export class Sim {
       this.pPpm[i] = p.ppm ?? 0
       this.pForms[i] = p.forms ?? 0
       if (p.action === ACTION.weaponBleed) this.pBleedSlot[i] = bleeds++
+      this.pPoison[i] = p.poison ? 1 : 0
+      this.pDuration[i] = p.durationMs ?? 0
+      // docs/mechanics/damage-and-timing.md#4-dots-and-bleeds: flagged ticks crit only in `forever`
+      this.pPeriodicCrit[i] = p.periodicCanCrit && plan.profile.combat.periodicCrits ? 1 : 0
+      // One poison on the target whichever weapon applies it: the procs of one id share a slot.
+      if (p.action === ACTION.stackingDot) {
+        let slot = dotSlots.get(p.id)
+        if (slot === undefined) dotSlots.set(p.id, (slot = stackingDots++))
+        this.pDotSlot[i] = slot
+      }
     }
+    this.dotStacks = new Int32Array(stackingDots)
+    this.dotEnd = new Float64Array(stackingDots)
+    this.sdNextAt = new Float64Array(stackingDots)
+    this.sdGen = new Int32Array(stackingDots)
+    this.sdProc = new Int32Array(stackingDots)
+    for (let i = 0; i < np; i++) if (this.pDotSlot[i] >= 0) this.sdProc[this.pDotSlot[i]] = i
     // Only a shapeshift changes a PPM proc's main-hand chance (druid.md §2.1), so only a plan with forms lists them.
     this.ppmProcs = Int32Array.from(plan.forms ? procs.flatMap((p, i) => (p.ppm && p.hands & 1 ? [i] : [])) : [])
     this.bleedTicksLeft = new Int32Array(bleeds)
@@ -1004,6 +1069,10 @@ export class Sim {
     this.takenChargeGen = new Int32Array(this.takenChargeAuras.length)
     this.aChargeIcd = Float64Array.from(auras, (a) => a.whiteSwingChargeIcdMs ?? 0)
     this.auraChargeReadyAt = new Float64Array(na)
+    // The rogue's: Adrenaline Rush's Energy, Venom's poison damage and chance (rogue.md §3.7, §4.4).
+    this.aEnergyRegen = Float64Array.from(auras, (a) => a.energyRegen ?? 0)
+    this.aPoisonDamage = Float64Array.from(auras, (a) => a.poisonDamage ?? 0)
+    this.aPoisonChance = Float64Array.from(auras, (a) => a.poisonChance ?? 0)
 
     const spells = plan.spells ?? []
     this.splBoostAura = Int32Array.from(spells, (x) => x.boostAura ?? -1)
@@ -1103,6 +1172,15 @@ export class Sim {
     this.abResist = new Float64Array(nb)
     this.abPctPerStack = new Float64Array(nb)
     this.abNoCdAura = new Int32Array(nb).fill(-1)
+    this.abAuraMsPerCp = Float64Array.from(abilities, (a) => a.auraMsPerComboPoint ?? 0)
+    this.abDotTicksPerCp = Int32Array.from(abilities, (a) => a.dotTicksPerComboPoint ?? 0)
+    this.abFinishEnergyChance = Float64Array.from(abilities, (a) => a.finisherEnergyChancePerCp ?? 0)
+    this.abFinishEnergy = Int32Array.from(abilities, (a) => a.finisherEnergyTenths ?? 0)
+    this.abFinishCpChance = Float64Array.from(abilities, (a) => a.finisherComboPointChance ?? 0)
+    this.abBonusCp = Float64Array.from(abilities, (a) => a.bonusComboPointChance ?? 0)
+    this.abCpBackAtFive = Int32Array.from(abilities, (a) => a.comboPointsBackAtFive ?? 0)
+    this.abCritAuraConsume = Uint8Array.from(abilities, (a) => (a.auraCrit?.consume ? 1 : 0))
+    this.abPoisonedPct = Float64Array.from(abilities, (a) => a.poisonedTargetPct ?? 0)
     this.othersBleed = plan.fight.othersBleed === true
     this.freeAura = plan.freeCastAura ?? -1
     this.abTickAt = new Float64Array(nb)
@@ -1187,7 +1265,9 @@ export class Sim {
         a.damagePerExtraRage === 0 &&
         (a.blockValueCoefficient ?? 0) === 0 &&
         this.abCp[i] === 0 &&
-        this.abFinisher[i] === 0
+        // A finisher deals damage per point or bleeds, unless it does neither (the rogue's Expose
+        // Armor: a debuff only, rogue.md §3.6).
+        (this.abFinisher[i] === 0 || (this.abPerCp[i] === 0 && this.abApPerCp[i] === 0 && a.dotTicks === 0 && (a.flatDamageRange ?? 0) === 0))
           ? 1
           : 0
       this.abApCoef[i] = a.apCoefficient
@@ -1534,6 +1614,9 @@ export class Sim {
           this.onPowerTick()
           q.push(t + POWER_TICK_MS, EV_POWER_TICK, 0, 0)
           break
+        case EV_STACKING_DOT_TICK:
+          if (q.gen === this.sdGen[data]) this.onStackingDotTick(data)
+          break
         case EV_EXECUTE:
           this.rotList = this.rotExecute
           this.rotOffList = this.offGcdExecute
@@ -1599,6 +1682,11 @@ export class Sim {
     this.lastPaid = 0
     this.manaSpentAt = -Infinity
     this.activeDots = 0
+    this.poisonedDots = 0
+    for (let i = 0; i < this.dotStacks.length; i++) {
+      this.dotStacks[i] = 0
+      this.sdGen[i]++
+    }
     this.dynTargetArmor = 0
     this.catEnergyLeft = this.energyStart
     this.outOfFormMs = 0
@@ -1786,13 +1874,24 @@ export class Sim {
     let haste = 1
     let damage = 1
     let holy = 1
+    // The rogue's (rogue.md §3.7, §4.4): Energy regeneration and the poisons' damage multiply; their
+    // apply chance adds.
+    let energy = 1
+    let poison = 1
+    let poisonChance = 0
     for (let i = 0; i < this.auraActive.length; i++) {
       if (!this.auraActive[i]) continue
       const stacks = this.auraStacks[i]
       if (this.aHaste[i]) haste *= 1 + (this.aHaste[i] * stacks) / 100
       if (this.aDamage[i]) damage *= 1 + (this.aDamage[i] * stacks) / 100
       if (this.aHoly[i]) holy *= 1 + (this.aHoly[i] * stacks) / 100
+      if (this.aEnergyRegen[i]) energy *= 1 + (this.aEnergyRegen[i] * stacks) / 100
+      if (this.aPoisonDamage[i]) poison *= 1 + (this.aPoisonDamage[i] * stacks) / 100
+      if (this.aPoisonChance[i]) poisonChance += (this.aPoisonChance[i] * stacks) / 100
     }
+    this.energyRegenMult = energy
+    this.poisonMult = poison
+    this.poisonChance = poisonChance
     this.auraHasteMult = haste
     this.holyMult = this.staticHolyMult * holy
     // The stance's damage factor (Defensive Stance −10% on all damage, warrior.md §2.1).
@@ -2123,6 +2222,10 @@ export class Sim {
         case COND.minComboPoints:
           if (this.comboPoints < a) return false
           break
+        // rogue.md §6: room for a cast's combo points (Premeditation).
+        case COND.maxComboPoints:
+          if (this.comboPoints > a) return false
+          break
         case COND.abilityAuraDown: {
           const aura = this.abAura[a]
           if (aura >= 0 && this.auraActive[aura]) return false
@@ -2306,7 +2409,11 @@ export class Sim {
       return
     }
     const aura = this.abAura[a]
-    if (aura >= 0) this.putAura(aura, this.now + this.aDuration[aura])
+    // A finisher's buff lasts longer per combo point (Slice and Dice, rogue.md §3.3).
+    if (aura >= 0) this.putAura(aura, this.now + this.aDuration[aura] + this.abAuraMsPerCp[a] * this.comboPoints)
+    // A `cast` that builds (Premeditation) or finishes (Slice and Dice) moves combo points once its
+    // aura has read them (rogue.md §3.3, §3.10).
+    if (this.abCp[a] !== 0 || this.abFinisher[a] === 1) this.landComboPoints(a, false)
     this.gainPower(this.abRes[a], this.castRageTenths(a), source)
     // A mana potion or rune (buffs-debuffs-consumables.md §3.5): its mana at once, capped.
     const spread = this.abManaSpread[a]
@@ -2431,6 +2538,8 @@ export class Sim {
           this.abNoDamage[a] === 0 &&
           (this.abPctPerStack[a] === 0 || this.stacksOn(a) > 0)
     let damage = this.abilityDamage(a, hand, bonusAp)
+    // rogue.md §3.8: a strike that lands uses up the aura that gave it crit (Cold Blood).
+    if (main && this.abCritAuraConsume[a] === 1 && this.auraActive[this.abCritAura[a]]) this.removeAura(this.abCritAura[a])
     if (crit) {
       damage *= this.abCritMult[a]
       c[row + FIELD.crits]++
@@ -2500,6 +2609,8 @@ export class Sim {
     }
     // druid.md §5.1: Rend and Tear, on a bleeding target (the player's bleeds or others').
     if (this.abBleedPct[a] !== 0 && (this.othersBleed || this.activeDots > 0)) base *= 1 + this.abBleedPct[a] / 100
+    // rogue.md §3.11: Mutilate's bonus against a target with your lasting poison on it.
+    if (this.abPoisonedPct[a] !== 0 && this.poisonedDots > 0) base *= 1 + this.abPoisonedPct[a] / 100
     return base * this.physMult * this.armorFactor[hand]
   }
 
@@ -2619,7 +2730,9 @@ export class Sim {
       const p = list[k]
       if (hand >= 0 && (this.pHands[p] & (1 << hand)) === 0) continue
       if (this.procReadyAt[p] > this.now || (this.pChainBit[p] & this.chainMask) !== 0) continue
-      const chance = this.pChance[2 * p + (hand > 0 ? hand : 0)]
+      let chance = this.pChance[2 * p + (hand > 0 ? hand : 0)]
+      // A rogue's poison takes the auras' extra apply chance (Venom, rogue.md §4.4).
+      if (this.pPoison[p] === 1) chance += this.poisonChance
       if (chance < 1 && this.rngProc.next() >= chance) continue
       if (this.pIcd[p] > 0) this.procReadyAt[p] = this.now + this.pIcd[p]
       this.doAction(p)
@@ -2641,7 +2754,9 @@ export class Sim {
       if (this.procReadyAt[p] > this.now || (need >= 0 && !this.auraActive[need]) || (this.pChainBit[p] & this.chainMask) !== 0) continue
       // druid.md §2.8: a proc bound to forms (Primal Fury's rage: bear) rolls only in them.
       if (forms !== 0 && (forms & (1 << this.form)) === 0) continue
-      const chance = this.pChance[2 * p + (hand > 0 ? hand : 0)]
+      let chance = this.pChance[2 * p + (hand > 0 ? hand : 0)]
+      // A rogue's poison takes the auras' extra apply chance (Venom, rogue.md §4.4).
+      if (this.pPoison[p] === 1) chance += this.poisonChance
       if (chance < 1 && this.rngProc.next() >= chance) continue
       if (this.pIcd[p] > 0) this.procReadyAt[p] = this.now + this.pIcd[p]
       this.doAction(p)
@@ -2684,6 +2799,9 @@ export class Sim {
         return
       case ACTION.manaFlat:
         this.gainMana(this.pAmount[p], this.pSource[p])
+        return
+      case ACTION.stackingDot:
+        this.applyStackingDot(p)
         return
       case ACTION.weaponBleed: {
         const slot = this.pBleedSlot[p]
@@ -2795,7 +2913,7 @@ export class Sim {
       }
       this.recomputeStats()
     }
-    if (this.aHaste[a] || this.aDamage[a] || this.aHoly[a]) this.recomputeMultipliers()
+    if (this.aHaste[a] || this.aDamage[a] || this.aHoly[a] || this.aEnergyRegen[a] || this.aPoisonDamage[a] || this.aPoisonChance[a]) this.recomputeMultipliers()
     if (this.aTaken[a]) this.recomputeTakenMult()
     if (this.aBossDebuff[a]) this.recomputeBossDebuffs()
   }
@@ -2816,6 +2934,8 @@ export class Sim {
     const holy = this.pSchool[p] === SCHOOL.holy
     const resist = holy ? 0 : averageResist(this.bossLevelResist, this.plan.playerLevel)
     let damage = this.rngDamage.uniform(this.pA[p], this.pB[p]) * (1 - resist) * this.magicMult
+    // A rogue's poison: the auras' damage bonus (Venom, rogue.md §4.4).
+    if (this.pPoison[p] === 1) damage *= this.poisonMult
     const crit = this.rngProc.roll100() < this.spellCritPct
     if (crit) {
       damage *= CRIT_MULTIPLIER.spell
@@ -2840,19 +2960,21 @@ export class Sim {
     if (this.dotTicksLeft[a] === 0) this.activeDots++
     // An attack that also bleeds (Rake, Lacerate) counts its applications on the bleed's own row.
     if (this.abDotSource[a] !== this.abSource[a]) this.counters[this.abDotSource[a] * FIELD_COUNT + FIELD.casts]++
-    this.dotTicksLeft[a] = this.abDotTicks[a]
     // druid.md §4.3: a stacking bleed ticks for every stack, the one this application adds included
     // (its marker's stacks, up to its maximum); any other bleed has one.
     const marker = this.abAura[a]
     const stacks = marker >= 0 ? Math.min(this.aMaxStacks[marker], this.stacksOn(a) + 1) : 1
-    // druid.md §2.9, §3.4: a finisher's bleed snapshots its combo points and attack power too (Rip).
+    // druid.md §2.9, §3.4: a finisher's bleed snapshots its combo points and attack power too (Rip);
+    // a rogue's lasts longer per point (Rupture: 3 ticks + 1 per point, rogue.md §3.5).
     const cp = this.comboPoints
+    const ticks = this.abDotTicks[a] + (this.abFinisher[a] === 1 ? this.abDotTicksPerCp[a] * cp : 0)
+    this.dotTicksLeft[a] = ticks
     const perCp = this.abFinisher[a] === 1 ? this.abDotPerCp[a] * cp + this.abDotApPerCp[a] * Math.min(cp, this.abCpApCap[a]) * this.ap : 0
     this.dotDamage[a] = (this.abDotTick[a] * stacks + perCp) * this.physMult
     this.dotCrit[a] = this.abDotCanCrit[a] ? this.specCrit[HAND.main] + this.abBonusCrit[a] + this.auraCritPct(a) : -1
     this.dotNextAt[a] = now + this.abDotTickMs[a]
     this.q.push(this.dotNextAt[a], EV_DOT_TICK, a, ++this.dotGen[a])
-    if (this.abAura[a] >= 0) this.startAura(this.abAura[a], now + this.abDotTicks[a] * this.abDotTickMs[a])
+    if (this.abAura[a] >= 0) this.startAura(this.abAura[a], now + ticks * this.abDotTickMs[a])
   }
 
   /**
@@ -2885,6 +3007,66 @@ export class Sim {
     // very moment starts again from one stack, whichever of the two events comes first.
     const marker = this.abAura[a]
     if (marker >= 0 && this.aMaxStacks[marker] > 1 && this.auraActive[marker]) this.removeAura(marker)
+  }
+
+  /**
+   * A stacking poison lands (Deadly Poison, docs/classes/rogue.md §4.2): it rolls spell hit (combat-tables
+   * §9) and adds a stack, up to its most, and lasts its duration from now. Its ticks keep their own
+   * timer: a new application doesn't restart it [?]. One that has run out starts again from 1 stack,
+   * ticking a period from now. The row counts applications in casts, and ticks in hits and crits.
+   */
+  private applyStackingDot(p: number): void {
+    const slot = this.pDotSlot[p]
+    const row = this.pSource[p] * FIELD_COUNT
+    this.counters[row + FIELD.casts]++
+    if (this.rngProc.roll100() < this.spellMissPct) {
+      this.counters[row + FIELD.misses]++
+      return
+    }
+    const now = this.now
+    if (this.dotStacks[slot] > 0 && now > this.dotEnd[slot]) this.endStackingDot(slot)
+    if (this.dotStacks[slot] === 0) {
+      this.poisonedDots++
+      this.sdNextAt[slot] = now + this.pB[p]
+      this.q.push(this.sdNextAt[slot], EV_STACKING_DOT_TICK, slot, ++this.sdGen[slot])
+    }
+    this.dotStacks[slot] = Math.min(this.pAmount[p], this.dotStacks[slot] + 1)
+    this.dotEnd[slot] = now + this.pDuration[p]
+  }
+
+  /**
+   * One tick of a stacking poison: its damage per stack × the stacks, the magic multiplier with an
+   * average partial resist and the auras' poison bonus (rogue.md §4.2 [?]); in `forever` a flagged tick
+   * may crit at spell crit, ×1.5, firing nothing. A tick that comes after its end finds it run out
+   * (its last partial period deals nothing).
+   */
+  private onStackingDotTick(slot: number): void {
+    const p = this.sdProc[slot]
+    if (this.now > this.dotEnd[slot]) {
+      this.endStackingDot(slot)
+      return
+    }
+    const row = this.pSource[p] * FIELD_COUNT
+    const resist = averageResist(this.bossLevelResist, this.plan.playerLevel)
+    let damage = this.pA[p] * this.dotStacks[slot] * (1 - resist) * this.magicMult
+    if (this.pPoison[p] === 1) damage *= this.poisonMult
+    if (this.pPeriodicCrit[p] === 1 && this.rngProc.roll100() < this.spellCritPct) {
+      damage *= CRIT_MULTIPLIER.spell
+      this.counters[row + FIELD.crits]++
+    } else this.counters[row + FIELD.hits]++
+    if (this.trace !== null) this.trace(this.pSource[p], -1, this.now)
+    this.dealDamage(this.pSource[p], damage)
+    // The next tick keeps the timer; if no application extends the poison by then, it has run out.
+    this.sdNextAt[slot] = this.now + this.pB[p]
+    this.q.push(this.sdNextAt[slot], EV_STACKING_DOT_TICK, slot, this.sdGen[slot])
+  }
+
+  /** A stacking poison runs out: no stacks, no ticks, one poison fewer on the target. */
+  private endStackingDot(slot: number): void {
+    if (this.dotStacks[slot] === 0) return
+    this.dotStacks[slot] = 0
+    this.sdGen[slot]++
+    this.poisonedDots--
   }
 
   /** Deep Wounds-style bleed tick: share × main-hand average swing / ticks, current AP, no armor (warrior.md §2.5). */
@@ -3173,12 +3355,32 @@ export class Sim {
    * adds its own, and one more on a non-periodic crit with Primal Fury's chance; at most 5.
    */
   private landComboPoints(a: number, crit: boolean): void {
-    if (this.abFinisher[a] === 1) this.comboPoints = 0
+    if (this.abFinisher[a] === 1) {
+      const spent = this.comboPoints
+      this.comboPoints = 0
+      this.afterFinisher(a, spent)
+    }
     let gained = this.abCp[a]
     const extra = this.abCritCp[a]
     if (gained > 0 && crit && extra > 0 && (extra >= 1 || this.rngProc.next() < extra)) gained++
+    // rogue.md §5: Puncturing Wounds' extra point on any landed Backstab, crit or not.
+    const bonus = this.abBonusCp[a]
+    if (gained > 0 && bonus > 0 && (bonus >= 1 || this.rngProc.next() < bonus)) gained++
     this.comboPoints = Math.min(MAX_COMBO_POINTS, this.comboPoints + gained)
     this.actPending = this.hasRotation
+  }
+
+  /**
+   * What a rogue's finisher does once it has spent its points (rogue.md §5): Relentless Strikes'
+   * Energy at its chance per point spent, Improved Expose Armor's points back after 5, then
+   * Ruthlessness's point at its chance. Nothing on a row without them (every druid row).
+   */
+  private afterFinisher(a: number, spent: number): void {
+    const energyChance = this.abFinishEnergyChance[a] * spent
+    if (energyChance > 0 && (energyChance >= 1 || this.rngProc.next() < energyChance)) this.gainEnergy(this.abFinishEnergy[a], this.abSource[a])
+    if (spent === MAX_COMBO_POINTS) this.comboPoints += this.abCpBackAtFive[a]
+    const cpChance = this.abFinishCpChance[a]
+    if (cpChance > 0 && (cpChance >= 1 || this.rngProc.next() < cpChance)) this.comboPoints++
   }
 
   /** Gains a resource from a cast or an energize (`source` ≥ 0: its threat goes on that row). */
@@ -3241,7 +3443,8 @@ export class Sim {
    * doesn't reset on a shapeshift. A druid has no mp5 or share, so gains spirit regeneration only.
    */
   private onPowerTick(): void {
-    if (this.energyMax > 0) this.gainEnergy(this.energyTick, -1)
+    // Adrenaline Rush doubles the tick while it's up (rogue.md §3.7), in whole tenths.
+    if (this.energyMax > 0) this.gainEnergy(this.energyRegenMult === 1 ? this.energyTick : Math.round(this.energyTick * this.energyRegenMult), -1)
     if (this.manaMax > 0) {
       const outside = this.now - this.manaSpentAt >= this.fiveSecondRuleMs
       // docs/classes/shaman.md: Improved Stormstrike's share while its aura is up, if it's more.

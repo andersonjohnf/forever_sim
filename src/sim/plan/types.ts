@@ -86,6 +86,12 @@ export const ACTION = {
   mana: 6,
   /** Mana: `amount` tenths (Improved Seal of Fury, paladin.md#protection-tree). */
   manaFlat: 7,
+  /**
+   * A stacking poison on the target (Deadly Poison, docs/classes/rogue.md §4.2): `amount` its most
+   * stacks, `a` each stack's tick damage, `b` the tick period (ms), `school` its school; it lasts
+   * `durationMs` from its last application. The rogue's; added after main's codes.
+   */
+  stackingDot: 8,
 } as const
 
 /**
@@ -251,6 +257,11 @@ export interface AuraPlan {
    * Form, druid.md §4.5 [?]); absent = 0.
    */
   itemArmorPct?: number
+  /** Energy regeneration %, multiplicative (Adrenaline Rush +100%, docs/classes/rogue.md §3.7); absent = 0. */
+  energyRegen?: number
+  /** The rogue's poisons' damage % and apply chance in points while it's up (Venom, rogue.md §4.4); absent = 0. */
+  poisonDamage?: number
+  poisonChance?: number
 }
 
 export interface ProcPlan {
@@ -290,6 +301,12 @@ export interface ProcPlan {
    * rage: bear only, druid.md §4.8); absent or 0 for any form.
    */
   forms?: number
+  // --- The rogue's poisons (docs/classes/rogue.md §4). Absent on every other proc. ---
+  /** A poison: auras' poison chance and damage mods apply to it (Venom, rogue.md §4.4). */
+  poison?: boolean
+  /** `stackingDot`: how long it lasts after its last application, ms, and whether its ticks may crit (the spell's flag, in a profile whose periodic effects crit). */
+  durationMs?: number
+  periodicCanCrit?: boolean
 }
 
 export interface SourcePlan {
@@ -541,7 +558,7 @@ export interface AbilityPlan {
    * Extra crit chance while a plan aura is up, for this ability only (Berserk's +100% on Shred,
    * Claw and Rake, druid.md §3.7): its direct hit, and its bleed's ticks, which snapshot it.
    */
-  auraCrit?: { aura: number; pct: number }
+  auraCrit?: { aura: number; pct: number; consume?: boolean }
   /**
    * Damage % on its direct damage while the target bleeds, from the player's own bleeds or others'
    * (`Plan.fight.othersBleed`): Rend and Tear, druid.md §5.1. Not on periodic ticks.
@@ -599,6 +616,29 @@ export interface AbilityPlan {
   stackCostPct?: number
   /** A plan aura put on the player when it's used, beside its own `aura` (Improved Stormstrike's regeneration, shaman.md). */
   selfAura?: number
+  // --- What the rogue brought (docs/classes/rogue.md §8). All optional: absent, a row behaves as
+  // before. ---
+  /**
+   * A `cast` finisher's aura lasts this much longer per combo point it spends (Slice and Dice:
+   * 6 s + 3 s per point, × 1.45 with Improved Slice and Dice 3/3), and a `bleed` finisher gets this
+   * many more ticks per point (Rupture: 3 + 1 per point).
+   */
+  auraMsPerComboPoint?: number
+  dotTicksPerComboPoint?: number
+  /**
+   * A finisher that lands (or a `cast` finisher) restores `finisherEnergyTenths` Energy with this
+   * chance per combo point it spent (Relentless Strikes: 20% per point, 25 Energy), and adds a combo
+   * point with `finisherComboPointChance` once it has spent them (Ruthlessness: 20% per rank).
+   */
+  finisherEnergyChancePerCp?: number
+  finisherEnergyTenths?: number
+  finisherComboPointChance?: number
+  /** A landed builder's chance of one more combo point, crit or not (Puncturing Wounds on Backstab: 15% per rank). */
+  bonusComboPointChance?: number
+  /** A finisher that spends 5 combo points gets this many back (Improved Expose Armor: 1 per rank). */
+  comboPointsBackAtFive?: number
+  /** Damage % on its direct damage while the target has a lasting poison on it (Mutilate: +20%). */
+  poisonedTargetPct?: number
 }
 
 /**
@@ -619,9 +659,10 @@ export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura' |
   window?: AuraSpec
   /**
    * Extra crit while the aura with this id is up (Berserk's, druid.md §3.7); the plan resolves the
-   * id once every ability's aura is in, and drops it if no ability puts that aura up.
+   * id once every ability's aura is in, and drops it if no ability puts that aura up. With `consume`,
+   * the ability uses the aura up when it lands (Cold Blood, docs/classes/rogue.md §3.8).
    */
-  auraCrit?: { aura: string; pct: number }
+  auraCrit?: { aura: string; pct: number; consume?: boolean }
   /**
    * The id of the aura while which it starts no cooldown (Berserk's Mangle, druid.md §4.6), resolved
    * and dropped the same way.
@@ -733,6 +774,9 @@ export const COND = {
    * stack gained is a decision point, as every aura change is.
    */
   auraStacksAtLeast: 34,
+  // 30–33 are the rogue's (docs/classes/rogue.md §8).
+  /** combo points ≤ a (Premeditation waits for room for its 2, rogue.md §6) */
+  maxComboPoints: 30,
 } as const
 
 export interface RotationCondition {

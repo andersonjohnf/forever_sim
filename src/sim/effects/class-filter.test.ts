@@ -27,7 +27,14 @@ describe('class-only catalogue entries', () => {
   it('are the paladin’s mana and spell damage entries, the shaman’s but for Holy Power, and the Mighty Rage Potion (warriors and druids only)', () => {
     expect(BUFFS.filter((b) => b.forClasses?.includes('paladin')).map((b) => b.id).sort()).toEqual([...PALADIN_ONLY].sort())
     for (const id of PALADIN_ONLY) expect(BUFFS.find((b) => b.id === id)!.forClasses).toEqual(SHAMAN_TOO.includes(id) ? ['paladin', 'shaman'] : ['paladin'])
-    expect(BUFFS.filter((b) => b.forClasses && !b.forClasses.includes('paladin')).map((b) => [b.id, b.forClasses])).toEqual([['mightyRagePotion', ['warrior', 'druid']]])
+    expect(BUFFS.filter((b) => b.forClasses && !b.forClasses.includes('paladin')).map((b) => [b.id, b.forClasses])).toEqual([
+      ['instantPoisonMainHand', ['rogue']],
+      ['deadlyPoisonMainHand', ['rogue']],
+      ['instantPoisonOffHand', ['rogue']],
+      ['deadlyPoisonOffHand', ['rogue']],
+      ['mightyRagePotion', ['warrior', 'druid']],
+      ['thistleTea', ['rogue']],
+    ])
     expect(presetBuffIds('max', 'paladin-retribution', FULL_RAID)).not.toContain('mightyRagePotion')
   })
 

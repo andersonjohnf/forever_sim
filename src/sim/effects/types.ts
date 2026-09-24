@@ -147,10 +147,26 @@ export type Effect = (
   /** Off-hand modifiers (Dual Wield Specialization). */
   | { kind: 'offHand'; damagePct?: number; hit?: number; ragePct?: number }
   /**
-   * A temporary weapon enchant (stone, oil): each weapon takes the highest-priority one that fits
-   * it (docs/mechanics/buffs-debuffs-consumables.md#36-weapon-enhancements-temporary).
+   * A temporary weapon enchant (stone, oil, poison): each weapon takes the highest-priority one that
+   * fits it (docs/mechanics/buffs-debuffs-consumables.md#36-weapon-enhancements-temporary). A poison
+   * goes on one `hand` only and brings its `proc` from that weapon's hits (docs/classes/rogue.md §4).
    */
-  | { kind: 'tempEnchant'; id: string; priority: number; weapons?: WeaponType[]; weaponDamage?: number; crit?: number }
+  | {
+      kind: 'tempEnchant'
+      id: string
+      priority: number
+      weapons?: WeaponType[]
+      weaponDamage?: number
+      crit?: number
+      hand?: 'main' | 'off'
+      proc?: ProcSpec
+    }
+  /**
+   * The rogue's poisons (docs/classes/rogue.md §4): their apply chance in points (Improved Poisons
+   * +2 per rank) and their damage % (Vile Poisons +4% per rank), on every proc marked `poison`.
+   */
+  | { kind: 'poisonChance'; pct: number }
+  | { kind: 'poisonDamage'; pct: number }
   /** Target armor reduction (docs/mechanics/buffs-debuffs-consumables.md#41-armor-reduction). */
   | { kind: 'targetArmor'; value: number }
   /** Boss attack power (+ raises it, − lowers it) and attack-speed slow (encounter.md#5-boss-melee-tank-modeling). */
@@ -248,6 +264,11 @@ export interface AuraSpec {
     bossAp?: number
     /** Item-armor % while it's up, added to the other item-armor bonuses (Enrage, druid.md §4.5). */
     itemArmorPct?: number
+    /** Energy regeneration %, multiplicative (Adrenaline Rush +100%, docs/classes/rogue.md §3.7). */
+    energyRegen?: number
+    /** The rogue's poisons' damage % and apply chance in points (Venom, docs/classes/rogue.md §4.4). */
+    poisonDamage?: number
+    poisonChance?: number
   }
 }
 
@@ -304,6 +325,12 @@ export type ProcAction =
    * `maxLevelPct`% more (Improved Seal of Fury, paladin.md#protection-tree); it makes threat too.
    */
   | { kind: 'manaFlat'; amount: number; perLevelPct: number; maxLevelPct: number }
+  /**
+   * A poison that stacks on the target (Deadly Poison, docs/classes/rogue.md §4.2): each application
+   * rolls spell hit and adds a stack, up to `maxStacks`, and the poison lasts `durationMs` from the
+   * last one; it ticks `tick` per stack every `periodMs`, on its own timer.
+   */
+  | { kind: 'stackingDot'; school: 'nature'; tick: number; periodMs: number; durationMs: number; maxStacks: number; periodicCanCrit: boolean }
 
 export interface ProcSpec {
   id: string
@@ -333,6 +360,8 @@ export interface ProcSpec {
   forms?: readonly DruidForm[]
   /** What each of its procs is, for its breakdown row's count a fight: an extra attack (Reckoning), a block (Holy Shield's damage). */
   counts?: 'blocks' | 'extraAttacks'
+  /** A rogue's poison: the talents' and auras' poison chance and damage apply (docs/classes/rogue.md §4). */
+  poison?: boolean
   /** Doc section that owns the numbers. */
   docRef: string
 }

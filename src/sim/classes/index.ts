@@ -10,6 +10,7 @@ import type { ClassId, SpecId } from '../types'
 import { druidSetup } from './druid/setup'
 import { paladinEffects } from './paladin/setup'
 import { shamanEffects } from './shaman/setup'
+import { rogueEffects } from './rogue/setup'
 import { stanceEffects, TALENT_EFFECTS, type Stance } from './warrior/talents'
 
 export interface ClassSetup {
@@ -65,6 +66,8 @@ export function classSetup(classId: ClassId, spec: SpecId, talentCode: string, p
   if (classId === 'paladin') return { effects: paladinEffects(spec, talents), stance: null, talents, simulated: true }
   // docs/classes/shaman.md: talents and mana; no stances or forms.
   if (classId === 'shaman') return { effects: shamanEffects(talents), stance: null, talents, simulated: true }
+  // docs/classes/rogue.md §5: its passive talents; Energy is the plan's (rogueEnergy).
+  if (classId === 'rogue') return { effects: rogueEffects(talents), stance: null, talents, simulated: true }
   if (classId !== 'warrior') return { effects: [], stance: null, talents, simulated: false }
   stance ??= WARRIOR_STANCE[spec] ?? 'battle'
   const effects: Effect[] = [...stanceEffects(profile)[stance]]

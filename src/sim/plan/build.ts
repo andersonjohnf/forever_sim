@@ -14,6 +14,7 @@ import { druidPlan } from '../classes/druid/plan'
 import { protectionAssumptions, swiftJudgementPlan } from '../classes/paladin/protection'
 import { paladinAssumptions, paladinManaPlan } from '../classes/paladin/setup'
 import { SHAMAN_WINDFURY_WEAPON, shamanAssumptions, shamanManaPlan } from '../classes/shaman/setup'
+import { rogueAssumptions, rogueEnergy } from '../classes/rogue/setup'
 import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance } from '../classes/rotation'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
@@ -179,6 +180,9 @@ interface Collected {
   bossSlowPct: number
   offHand: { damagePct: number; hit: number; ragePct: number }
   tempEnchants: Extract<Effect, { kind: 'tempEnchant' }>[]
+  /** The rogue's poisons' apply chance in points and damage % (Improved Poisons, Vile Poisons; rogue.md §4). */
+  poisonChancePct: number
+  poisonDamagePct: number
   procs: { spec: ProcSpec; origin: 0 | 1 | null }[]
   periodicRage: Extract<Effect, { kind: 'periodicRage' }>[]
   /** Selected on-use consumables; `use` when a rotation can press it (effects/types.ts). */
@@ -324,11 +328,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
 
   // --- Effects -------------------------------------------------------------------------------
   const setup = classSetup(classId, config.spec, config.talents, profile, rotationBaseStance(config.spec, config.rotation))
-  // The paladin uses mana, not rage (paladin.md#mana-model): it has no rage pool. Its hits give
-  // none either (`rageFromHits`), so no rage assumption applies to it.
-  // The shaman spends mana too (docs/classes/shaman.md#mana): no rage pool either.
+  // The paladin uses mana, not rage (paladin.md#mana-model), and so does the shaman
+  // (docs/classes/shaman.md#mana); the rogue uses Energy (rogue.md §2.1). None has a rage pool, and
+  // their hits give none either (`rageFromHits`), so no rage assumption applies to them.
   const usesMana = classId === 'paladin' || classId === 'shaman'
-  const usesRage = !usesMana
+  const usesRage = classId === 'warrior' || classId === 'druid'
   if (!setup.simulated && attributes) blockers.push(`${meta.className} simulation isn’t available yet.`)
   // A druid in an animal form attacks with the form's weapon, whatever is equipped; the item's
   // other stats and effects still apply (druid.md §2.1, §8 "Form swap"). Its per-hand bonuses
@@ -358,6 +362,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     bossSlowPct: 0,
     offHand: { damagePct: 0, hit: 0, ragePct: 0 },
     tempEnchants: [],
+    poisonChancePct: 0,
+    poisonDamagePct: 0,
     procs: [],
     periodicRage: [],
     onUse: [],
@@ -497,13 +503,21 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // Temporary weapon enchants: each weapon takes the highest-priority one that fits it (buffs doc §3.6).
   // A stone's crit is its own aura on the warrior, for every melee attack, so two stack [?].
   let elementalStones = 0
+  /** A rogue's main-hand poison, beside Forever's Windfury Totem (the assumptions below). */
+  let mainHandPoison = false
   for (const w of weapons) {
     if (!w || !w.item) continue
     if (windfuryHoldsMainHand && w.hand === HAND.main) continue
     const best = c.tempEnchants
-      .filter((t) => !t.weapons || t.weapons.includes(w.type))
+      // A poison goes on its own hand only (docs/classes/rogue.md §4).
+      .filter((t) => (!t.weapons || t.weapons.includes(w.type)) && (!t.hand || t.hand === (w.hand === HAND.main ? 'main' : 'off')))
       .sort((a, b) => b.priority - a.priority)[0]
     if (!best) continue
+    // A poison's proc comes from that weapon's hits (rogue.md §4).
+    if (best.proc) {
+      c.procs.push({ spec: best.proc, origin: w.hand })
+      if (w.hand === HAND.main) mainHandPoison = true
+    }
     w.plan.flatDamage += best.weaponDamage ?? 0
     if (best.crit) {
       block.crit += best.crit
@@ -648,6 +662,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spec.mods.bossSlow ? { bossSlow: spec.mods.bossSlow } : {}),
       ...(spec.mods.bossAp ? { bossAp: spec.mods.bossAp } : {}),
       ...(spec.mods.itemArmorPct ? { itemArmorPct: spec.mods.itemArmorPct } : {}),
+      // The rogue's (rogue.md §3.7, §4.4), only when set.
+      ...(spec.mods.energyRegen ? { energyRegen: spec.mods.energyRegen } : {}),
+      ...(spec.mods.poisonDamage ? { poisonDamage: spec.mods.poisonDamage } : {}),
+      ...(spec.mods.poisonChance ? { poisonChance: spec.mods.poisonChance } : {}),
     })
     return auras.length - 1
   }
@@ -676,6 +694,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     const proc = resolveProc(spec, origin, weapons)
     if (!proc) return
     const { action } = spec
+    /** Vile Poisons' factor on a rogue's poison damage; 1 on any other proc (rogue.md §4.3). */
+    const poisonDamage = spec.poison ? 1 + c.poisonDamagePct / 100 : 1
     switch (action.kind) {
       case 'extraAttacks': {
         let bit = chainBits.get(spec.id)
@@ -703,8 +723,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         break
       case 'spellDamage':
         proc.action = ACTION.spellDamage
-        proc.a = action.min
-        proc.b = action.max
+        // A rogue's poison takes Vile Poisons' damage (rogue.md §4.3).
+        proc.a = action.min * poisonDamage
+        proc.b = action.max * poisonDamage
         proc.school = SCHOOL[action.school]
         proc.source = sourceIndex(spec.id, spec.name, spec.icon)
         notes.add('magicProcs')
@@ -738,6 +759,25 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         proc.source = sourceIndex(spec.id, spec.name, spec.icon)
         break
       }
+      case 'stackingDot': {
+        // Deadly Poison (rogue.md §4.2): its row counts applications (they can miss) and ticks.
+        proc.action = ACTION.stackingDot
+        proc.amount = action.maxStacks
+        proc.a = action.tick * poisonDamage
+        proc.b = action.periodMs
+        proc.school = SCHOOL[action.school]
+        proc.durationMs = action.durationMs
+        proc.periodicCanCrit = action.periodicCanCrit
+        proc.source = sourceIndex(spec.id, spec.name, spec.icon)
+        sources[proc.source].bleed = { ticksCanCrit: action.periodicCanCrit && profile.combat.periodicCrits, avoidable: true }
+        notes.add('magicProcs')
+        break
+      }
+    }
+    if (spec.poison) {
+      // Improved Poisons' apply chance, in points on each hand's chance (rogue.md §4.3).
+      proc.poison = true
+      proc.chance = [proc.chance[0] + c.poisonChancePct / 100, proc.chance[1] + c.poisonChancePct / 100]
     }
     // What its breakdown row counts a fight: Reckoning's extra attacks, Holy Shield's blocks.
     if (spec.counts && proc.source >= 0) sources[proc.source].counts = spec.counts
@@ -842,7 +882,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   classRot.abilities.forEach((def, i) => {
     if (def.auraCrit) {
       const aura = auras.findIndex((x) => x.id === def.auraCrit!.aura)
-      if (aura >= 0) abilities[i].auraCrit = { aura, pct: def.auraCrit.pct }
+      // Cold Blood's is used up by the strike that lands (docs/classes/rogue.md §3.8).
+      if (aura >= 0) abilities[i].auraCrit = { aura, pct: def.auraCrit.pct, ...(def.auraCrit.consume ? { consume: true } : {}) }
     }
     if (def.noCooldownWhile) {
       const aura = auras.findIndex((x) => x.id === def.noCooldownWhile)
@@ -956,10 +997,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
             front: true,
           }
         : null,
-      // A DPS paladin has nothing that reacts to a hit (no rage, no on-hit procs), so the Fight tab
-      // leaves "Damage you take" out and a saved value goes unused (docs/ux.md "Fight").
+      // A DPS paladin or rogue has nothing that reacts to a hit (no rage, no on-hit procs), so the
+      // Fight tab leaves "Damage you take" out and a saved value goes unused (docs/ux.md "Fight").
       damageTakenPerHit:
-        !tank && !usesMana && fight.damageTakenPerSec > 0 ? (fight.damageTakenPerSec * DPS_DAMAGE_INTERVAL_MS) / 1000 : 0,
+        !tank && usesRage && fight.damageTakenPerSec > 0 ? (fight.damageTakenPerSec * DPS_DAMAGE_INTERVAL_MS) / 1000 : 0,
       damageTakenIntervalMs: DPS_DAMAGE_INTERVAL_MS,
       ...(abilities.some((a) => a.bleedingTargetPct) ? { othersBleed } : {}),
     },
@@ -996,6 +1037,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...(classId === 'paladin' ? swiftJudgementPlan(auras) : {}),
     // docs/classes/shaman.md#mana: the same model, with Improved Stormstrike's regeneration while casting.
     ...(classId === 'shaman' ? { mana: shamanManaPlan(derived, block.mp5, auras) } : {}),
+    // docs/classes/rogue.md §2.1: its Energy, with Vigor's cap.
+    ...(classId === 'rogue' ? { energy: rogueEnergy(setup.talents) } : {}),
     ...(c.holyThreatMult !== 1 ? { holyThreatMult: c.holyThreatMult } : {}),
   }
 
@@ -1005,8 +1048,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // A cat's rotation waits on Energy and Clearcasting, and its GCD is 1 s (druid.md §2.4, §2.6); a
   // paladin's on mana.
   const energy = abilities.some((a) => a.resource === 'energy')
-  if (classRot.rotation.length > 0) notes.add(energy ? 'reactionTimeEnergy' : classId === 'paladin' ? 'reactionTimeMana' : classId === 'shaman' ? 'reactionTimeShaman' : 'reactionTime')
-  if (abilities.some((a) => a.gcdMs > 0)) notes.add(setup.form === 'cat' ? 'gcdHasteCat' : 'gcdHaste')
+  if (classRot.rotation.length > 0)
+    notes.add(classId === 'rogue' ? 'reactionTimeRogue' : energy ? 'reactionTimeEnergy' : classId === 'paladin' ? 'reactionTimeMana' : classId === 'shaman' ? 'reactionTimeShaman' : 'reactionTime')
+  if (abilities.some((a) => a.gcdMs > 0)) notes.add(setup.form === 'cat' ? 'gcdHasteCat' : classId === 'rogue' ? 'gcdHasteRogue' : 'gcdHaste')
   // Rage refunds; a druid's Energy refunds are in `energyTicks`, and a bear's rage refunds and
   // Maul's swing in `bearRage` (druid.md §4.1).
   if (abilities.some((a) => a.costTenths > 0 && (a.resource ?? 'rage') === 'rage')) {
@@ -1133,12 +1177,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (procIds.has('ironfoe') && 'pct' in profile.values.ironfoe.chance) notes.add('ironfoeChance')
   if (chainBits.size > 0) notes.add('extraAttackChains')
   if (procs.some((p) => p.id === 'windfury' && p.icdMs > 0)) notes.add('windfuryIcd')
-  if (procIds.has('windfury') && weapons[HAND.main] && c.tempEnchants.length && !windfuryHoldsMainHand) notes.add('windfuryStone')
+  if (procIds.has('windfury') && weapons[HAND.main] && c.tempEnchants.length && !windfuryHoldsMainHand) notes.add(mainHandPoison ? 'windfuryPoison' : 'windfuryStone')
   // buffs doc §3.6: two stones stack, and one on either hand counts for both [?].
   if (elementalStones > 1 || (elementalStones === 1 && weapons[HAND.off])) notes.add('elementalStone')
   if (procIds.has('deepWounds')) notes.add('deepWounds')
   if (setup.talents.has('Anger Management')) notes.add('angerManagement')
-  if (weapons.some((w) => w && w.plan.armorPenPct > 0)) notes.add('weaponmasterMace')
+  if (weapons.some((w) => w && w.plan.armorPenPct > 0)) notes.add(classId === 'rogue' ? 'rogueArmorPen' : 'weaponmasterMace')
   // threat.md#warrior: Sunder Armor's threat is the Forever client's; the rest are Classic Era's.
   // A paladin tank's note speaks paladin: mana and Righteous Fury, not rage and stances.
   if (tank && classId === 'paladin') notes.add('whiteThreatPaladin')
@@ -1243,6 +1287,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   for (const id of protectionAssumptions(plan)) notes.add(id)
   // docs/classes/shaman.md#open-questions: what the shaman's procs, spells and mana rely on.
   for (const id of shamanAssumptions(plan)) notes.add(id)
+  // docs/classes/rogue.md#9-open-questions: what the rogue's Energy, abilities and poisons rely on.
+  for (const id of rogueAssumptions(plan, setup.talents)) notes.add(id)
 
   return { plan, sheet, assumptions: notes.toArray(), blockers }
 }
@@ -1311,6 +1357,12 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
       return
     case 'tempEnchant':
       c.tempEnchants.push(e)
+      return
+    case 'poisonChance':
+      c.poisonChancePct += e.pct
+      return
+    case 'poisonDamage':
+      c.poisonDamagePct += e.pct
       return
     case 'targetArmor':
       c.targetArmor += e.value

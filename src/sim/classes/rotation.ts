@@ -20,6 +20,7 @@ import { ENHANCEMENT_OPTIONS, enhancementRotation } from './shaman/enhancement'
 import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
 import { PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation } from './warrior/protection'
+import { COMBAT_OPTIONS, combatMaintainedBuffs, combatRotation } from './rogue/combat'
 import type { TalentRanks } from './warrior/modifiers'
 import type { ClassRotation } from './warrior/shared'
 import type { Stance } from './warrior/talents'
@@ -65,6 +66,7 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   if (spec === 'paladin-protection') return PALADIN_PROTECTION_OPTIONS
   if (spec === 'druid-feral-bear') return BEAR_OPTIONS
   if (spec === 'shaman-enhancement') return ENHANCEMENT_OPTIONS
+  if (spec === 'rogue-combat') return COMBAT_OPTIONS
   return []
 }
 
@@ -100,6 +102,8 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
   if (spec === 'shaman-enhancement') {
     return 'The defaults are the common priority. There’s no totem twisting: in Forever, Windfury Totem is an aura that ends with the totem.'
   }
+  // Decision D27: specs landed before the tuning milestone start from the common priority.
+  if (spec === 'rogue-combat') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
   return undefined
 }
 
@@ -123,6 +127,7 @@ export const RACIAL_SETTING: Partial<Record<SpecId, string>> = {
   'druid-feral-cat': 'druid.cat.racial.enabled',
   'druid-feral-bear': 'druid.bear.racial.enabled',
   'shaman-enhancement': 'shaman.enhancement.racial.enabled',
+  'rogue-combat': 'rogue.combat.racial.enabled',
 }
 
 /**
@@ -170,6 +175,7 @@ export function maintainedBuffs(spec: SpecId, values: Record<string, RotationVal
   // docs/classes/paladin.md "Priority": a Protection paladin's own Devotion Aura.
   if (spec === 'paladin-protection') return paladinProtectionMaintainedBuffs(values)
   if (spec === 'druid-feral-bear') return bearMaintainedBuffs(values)
+  if (spec === 'rogue-combat') return combatMaintainedBuffs(values)
   return []
 }
 
@@ -201,5 +207,7 @@ export function classRotation(
   if (spec === 'druid-feral-bear') return bearRotation(values, talents, auraIndex, context)
   // docs/classes/shaman.md "Enhancement priority".
   if (spec === 'shaman-enhancement') return enhancementRotation(values, talents, auraIndex, context)
+  // docs/classes/rogue.md §6.
+  if (spec === 'rogue-combat') return combatRotation(values, talents, context)
   return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
 }

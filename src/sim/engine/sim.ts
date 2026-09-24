@@ -83,6 +83,8 @@ const EV_STACKING_DOT_TICK = 14
 const EV_SPELL_DOT_TICK = 15
 /** A channel ends, run out or cut off (docs/mechanics/spells.md §6; data = ability index). */
 const EV_CHANNEL_END = 16
+/** The mage's rolling Ignite ticks (docs/classes/mage.md#ignite; data = 0). */
+const EV_IGNITE_TICK = 17
 
 /** Ability kinds (AbilityPlan.kind). */
 const KIND_STRIKE = 0
@@ -933,6 +935,44 @@ export class Sim {
   private channeling = -1
   private channelGen = 0
 
+  // The mage's (docs/classes/mage.md), flattened. A plan without them has none of these auras,
+  // spells or abilities, so none of this changes what it does.
+  /** A spell's crit % per stack of a plan aura while it's up (Winter's Chill on Frostbolt; −1: none). */
+  private readonly splCritAura: Int32Array
+  private readonly splCritAuraPct: Float64Array
+  /** An aura's crit charges used only by crits of these schools (a mask, 0: any; Combustion's Fire), and whether a refresh keeps them. */
+  private readonly aCritChargeSchools: Int32Array
+  private readonly aKeepsCharges: Uint8Array
+  /** An aura's mana cost %, per stack (Arcane Power's +30%), and the product of the active ones'. */
+  private readonly aManaCost: Float64Array
+  private manaCostMult = 1
+  /** The aura that makes an ability's cast instant and is used up by it (Presence of Mind; −1: none). */
+  private readonly abInstantAura: Int32Array
+  /** Its cooldown starts when its aura ends (Combustion's): not ready until then. */
+  private readonly abCdAfterAura: Uint8Array
+  /** For each aura, the abilities whose cooldown starts when it ends (Combustion's), as a list. */
+  private readonly cdAfterStart: Int32Array
+  private readonly cdAfterAbility: Int32Array
+  /** Spell hit per school is set (Elemental Precision): then a magic spell reads its school's miss. */
+  private readonly hasSchoolHit: boolean
+  private readonly schStaticHit = new Float64Array(SCHOOL_COUNT)
+  private readonly schMiss = new Float64Array(SCHOOL_COUNT)
+  /** The cost in tenths of the ability whose spell resolves now, for a share of it back (Master of Elements). */
+  private castCostTenths = 0
+  /** The damage of the crit whose procs fire now, for Ignite. */
+  private critDamage = 0
+  /** The rolling Ignite (Plan.ignite): the damage still to come, ticks left, the next tick, its generation. */
+  private readonly igPct: number
+  private readonly igTicks: number
+  private readonly igTickMs: number
+  private readonly igSchool: number
+  private readonly igSource: number
+  private readonly igAura: number
+  private igPool = 0
+  private igTicksLeft = 0
+  private igNextAt = 0
+  private igGen = 0
+
   // Scratch for recomputeStats, so re-deriving the tables allocates nothing (architecture.md).
   private readonly meleeIn: MeleeInputs = {
     attackerLevel: 0,
@@ -1189,8 +1229,23 @@ export class Sim {
     this.aSchool = Uint8Array.from(auras, (a) =>
       (a.schoolMask && (a.schoolDamage || a.schoolTaken || a.schoolCrit)) || a.castHaste || a.spiritRegen || a.castingRegen ? 1 : 0,
     )
+    // docs/classes/mage.md#combustion, #arcane-power: crit charges by school, charges a refresh keeps, mana cost.
+    this.aCritChargeSchools = Int32Array.from(auras, (a) => a.critChargeSchools ?? 0)
+    this.aKeepsCharges = Uint8Array.from(auras, (a) => (a.refreshKeepsCharges ? 1 : 0))
+    this.aManaCost = Float64Array.from(auras, (a) => a.manaCostPct ?? 0)
+    // docs/classes/mage.md#ignite: the rolling Ignite's numbers, all 0 without one.
+    const ignite = plan.ignite
+    this.igPct = ignite?.pct ?? 0
+    this.igTicks = ignite?.ticks ?? 0
+    this.igTickMs = ignite?.tickMs ?? 0
+    this.igSchool = ignite?.school ?? 0
+    this.igSource = ignite?.source ?? -1
+    this.igAura = ignite?.aura ?? -1
 
     const spells = plan.spells ?? []
+    // docs/classes/mage.md#winters-chill: a spell's crit from an aura's stacks.
+    this.splCritAura = Int32Array.from(spells, (x) => x.critAura ?? -1)
+    this.splCritAuraPct = Float64Array.from(spells, (x) => x.critAuraPct ?? 0)
     this.splBoostAura = Int32Array.from(spells, (x) => x.boostAura ?? -1)
     this.splBoostPct = Float64Array.from(spells, (x) => x.boostPct ?? 0)
     this.splSource = Int32Array.from(spells, (x) => x.source)
@@ -1244,6 +1299,9 @@ export class Sim {
       this.resistFactor[k] = resistible ? 1 - resist : 1
       this.resistChance[k] = Math.max(0, resist)
     }
+    // docs/classes/mage.md#talents: spell hit per school (Elemental Precision), only when set.
+    this.hasSchoolHit = schools?.hit !== undefined
+    if (schools?.hit) this.schStaticHit.set(schools.hit)
 
     const abilities = plan.abilities
     const nb = abilities.length
@@ -1351,6 +1409,17 @@ export class Sim {
     this.abStackCast = Float64Array.from(abilities, (a) => a.stackCastPct ?? 0)
     this.abStackCost = Float64Array.from(abilities, (a) => a.stackCostPct ?? 0)
     this.abSelfAura = Int32Array.from(abilities, (a) => a.selfAura ?? -1)
+    // docs/classes/mage.md#presence-of-mind, #combustion: an instant-cast aura, and cooldowns that
+    // start when the ability's aura ends, listed per aura.
+    this.abInstantAura = Int32Array.from(abilities, (a) => a.instantAura ?? -1)
+    this.abCdAfterAura = Uint8Array.from(abilities, (a) => (a.cooldownAfterAura && a.aura >= 0 ? 1 : 0))
+    const cdAfter: number[][] = Array.from({ length: na }, () => [])
+    abilities.forEach((a, i) => {
+      if (a.cooldownAfterAura && a.aura >= 0) cdAfter[a.aura].push(i)
+    })
+    this.cdAfterStart = new Int32Array(na + 1)
+    for (let k = 0; k < na; k++) this.cdAfterStart[k + 1] = this.cdAfterStart[k] + cdAfter[k].length
+    this.cdAfterAbility = Int32Array.from(cdAfter.flat())
     for (let i = 0; i < nb; i++) {
       const a = abilities[i]
       // docs/classes/druid.md §2.4–§2.8: the pool it pays from, its forms, combo points and Clearcasting.
@@ -1789,6 +1858,9 @@ export class Sim {
         case EV_CHANNEL_END:
           if (q.gen === this.channelGen && this.channeling === data) this.endChannel(data)
           break
+        case EV_IGNITE_TICK:
+          if (q.gen === this.igGen) this.igniteTick()
+          break
         case EV_EXECUTE:
           this.rotList = this.rotExecute
           this.rotOffList = this.offGcdExecute
@@ -1942,6 +2014,13 @@ export class Sim {
     this.castHasteAura = 1
     this.dynSpiritRegen = 1
     this.dynCastingRegen = 0
+    // docs/classes/mage.md: no Ignite, no mana-cost aura.
+    this.igPool = 0
+    this.igTicksLeft = 0
+    this.igNextAt = 0
+    this.igGen++
+    this.manaCostMult = 1
+    this.castCostTenths = 0
     this.recomputeStats()
     this.recomputeMultipliers()
   }
@@ -2015,6 +2094,8 @@ export class Sim {
     this.ap = d.attackPower
     this.blockValue = d.blockValue
     this.spellMissPct = spellMiss(plan.profile, plan.playerLevel, plan.fight.targetLevel, d.spellHit)
+    // docs/classes/mage.md#talents: each school's miss with its own spell hit (Elemental Precision), under the same floor.
+    if (this.hasSchoolHit) for (let k = 0; k < SCHOOL_COUNT; k++) this.schMiss[k] = spellMiss(plan.profile, plan.playerLevel, plan.fight.targetLevel, d.spellHit + this.schStaticHit[k])
     this.spellCritPct = d.spellCrit
     this.sp = d.holySpellDamage
     // docs/mechanics/spells.md §4, §5: spell damage by school, and casting speed.
@@ -2458,6 +2539,13 @@ export class Sim {
         case COND.auraStacksAtLeast:
           if (!this.auraActive[a] || this.auraStacks[a] < b) return false
           break
+        // docs/classes/mage.md#fire-priority: Scorch until Fire Vulnerability has 5 stacks, or before it runs out.
+        case COND.auraStacksBelow:
+          if (this.auraActive[a] && this.auraStacks[a] >= b) return false
+          break
+        case COND.auraEndsWithin:
+          if (this.auraActive[a] && this.auraEndAt(a) - now > b) return false
+          break
       }
     }
     return true
@@ -2479,13 +2567,23 @@ export class Sim {
     // one cast time the engine uses: the stacks' cut and the casting speed, both read now.
     let castMs = this.abCastMs[a]
     let stackCost = -1
-    const stack = this.abStackAura[a]
-    if (stack >= 0) {
-      stackCost = this.costOf(a)
-      castMs *= this.stackCut(a, this.abStackCast[a])
+    const instant = this.abInstantAura[a]
+    if (instant >= 0 && castMs > 0 && this.auraActive[instant]) {
+      // docs/classes/mage.md#presence-of-mind: its aura makes the cast instant, and goes; stacks that
+      // cut the cast time (Hot Streak) stay for the next one.
+      castMs = 0
+      this.removeAura(instant)
+    } else {
+      const stack = this.abStackAura[a]
+      if (stack >= 0) {
+        // Stacks that cut only the cast time (Hot Streak on Pyroblast, docs/classes/mage.md) leave the
+        // cost to the usual payment, Clearcasting included.
+        if (this.abStackCost[a] !== 0) stackCost = this.costOf(a)
+        castMs *= this.stackCut(a, this.abStackCast[a])
+      }
+      if (this.abCastHasted[a]) castMs = hastedCastMs(castMs, this.castHasteMult)
+      if (stack >= 0 && this.auraActive[stack]) this.removeAura(stack)
     }
-    if (this.abCastHasted[a]) castMs = hastedCastMs(castMs, this.castHasteMult)
-    if (stack >= 0 && this.auraActive[stack]) this.removeAura(stack)
     // Improved Stormstrike's regeneration comes when it's used, whether or not it lands (shaman.md).
     if (this.abSelfAura[a] >= 0) this.applyAura(this.abSelfAura[a])
     if (castMs > 0) {
@@ -2503,7 +2601,12 @@ export class Sim {
     // druid.md §4.6: while Berserk is up, Mangle starts no cooldown.
     const noCd = this.abNoCdAura[a]
     const cd = noCd >= 0 && this.auraActive[noCd] ? 0 : this.abCd[a]
-    if (!this.countUse(a) && cd > 0) {
+    if (this.abCdAfterAura[a] === 1) {
+      // docs/classes/mage.md#combustion: not ready while its aura is up; the cooldown starts as it ends.
+      this.countUse(a)
+      this.abReadyAt[a] = Infinity
+      if (this.abCatNext[a] !== a) this.shareCooldown(a)
+    } else if (!this.countUse(a) && cd > 0) {
       this.abReadyAt[a] = this.now + cd
       this.q.push(this.abReadyAt[a], EV_ACT, 0, 0)
       if (this.abCatNext[a] !== a) this.shareCooldown(a)
@@ -2689,7 +2792,9 @@ export class Sim {
     this.gainPower(this.abRes[a], this.abTickRage[a], this.abSource[a])
     if (this.abTickSpell[a] >= 0) {
       if (this.trace !== null) this.trace(this.abSource[a], -1, this.now)
+      this.castCostTenths = this.abCost[a]
       this.castSpell(this.abTickSpell[a], false)
+      this.castCostTenths = 0
     }
   }
 
@@ -2896,7 +3001,7 @@ export class Sim {
     }
     this.addDamage(source, damage, (damage * this.abThreatMult[a] + this.abThreatBonus[a]) * this.threatMult)
     if (this.abAura[a] >= 0) this.applyAura(this.abAura[a])
-    if (crit) this.useCritCharges()
+    if (crit) this.useCritCharges(SCHOOL.physical)
   }
 
   /**
@@ -2930,14 +3035,19 @@ export class Sim {
    */
   private onCrit(hand: number): void {
     this.fireProcs(TRIGGER.meleeCrit, hand)
-    this.useCritCharges()
+    this.useCritCharges(SCHOOL.physical)
   }
 
-  /** A non-periodic crit dealt, melee or spell, uses a charge of each aura a crit ends (Weakness Analyzer). */
-  private useCritCharges(): void {
+  /**
+   * A non-periodic crit dealt, melee or spell, of this `SCHOOL`, uses a charge of each aura a crit
+   * ends (Weakness Analyzer), or a crit of its schools (Combustion's Fire, docs/classes/mage.md#combustion).
+   */
+  private useCritCharges(school: number): void {
     const list = this.critChargeAuras
     for (let i = 0; i < list.length; i++) {
       const a = list[i]
+      const schools = this.aCritChargeSchools[a]
+      if (schools !== 0 && (schools & (1 << school)) === 0) continue
       if (this.auraActive[a] && --this.auraCritCharges[a] <= 0) this.removeAura(a)
     }
   }
@@ -3030,6 +3140,13 @@ export class Sim {
       case ACTION.stackingDot:
         this.applyStackingDot(p)
         return
+      // docs/classes/mage.md#ignite, #talents: the crit feeds Ignite; Master of Elements returns a share of its spell's cost.
+      case ACTION.ignite:
+        this.feedIgnite()
+        return
+      case ACTION.manaOfCost:
+        this.gainMana(Math.floor((this.pAmount[p] * this.castCostTenths) / 100), this.pSource[p])
+        return
       case ACTION.weaponBleed: {
         const slot = this.pBleedSlot[p]
         // A tick due this very moment lands before the refresh, as Rend's does (damage-and-timing
@@ -3070,8 +3187,10 @@ export class Sim {
     if (this.aMaxStacks[a] > 1) this.countStacks(a, wasActive ? oldStacks : 0)
     this.auraActive[a] = 1
     this.auraStacks[a] = stacks
+    this.auraEnd[a] = end
     this.auraCharges[a] = this.aCharges[a]
-    this.auraCritCharges[a] = this.aCritCharges[a]
+    // docs/classes/mage.md#combustion: a stack added to an aura that keeps its charges leaves them as they are.
+    if (!wasActive || this.aKeepsCharges[a] === 0) this.auraCritCharges[a] = this.aCritCharges[a]
     this.auraBlockCharges[a] = this.aBlockCharges[a]
     this.auraTakenCharges[a] = this.aTakenCharges[a]
     this.q.push(end, EV_AURA_EXPIRE, a, ++this.auraGen[a])
@@ -3099,6 +3218,11 @@ export class Sim {
     }
   }
 
+  /** When active aura a ends (docs/classes/mage.md#fire-priority: Scorch before Fire Vulnerability runs out). */
+  private auraEndAt(a: number): number {
+    return this.auraEnd[a]
+  }
+
   /** A stacking aura's stacks change now: the time it held `held` stacks counts for `auraStackMs`. */
   private countStacks(a: number, held: number): void {
     if (held > 0) this.auraStackMs[a] += held * (this.now - this.auraStackSince[a])
@@ -3115,7 +3239,28 @@ export class Sim {
     this.auraCritCharges[a] = 0
     this.auraGen[a]++
     if (this.watchStart[a] !== this.watchStart[a + 1]) this.watchAura(a, Infinity)
+    // docs/classes/mage.md#combustion: an ability whose cooldown starts as its aura ends.
+    for (let k = this.cdAfterStart[a]; k < this.cdAfterStart[a + 1]; k++) this.startCooldown(this.cdAfterAbility[k])
     this.auraChanged(a, -stacks)
+  }
+
+  /**
+   * Ability b's cooldown starts now, as its aura ends (Combustion's, docs/classes/mage.md#combustion),
+   * and its category's with it (Presence of Mind's, which its use held until now).
+   */
+  private startCooldown(b: number): void {
+    if (this.abReadyAt[b] !== Infinity || this.usedUp(b)) return
+    const until = this.now + this.abCd[b]
+    this.abReadyAt[b] = until
+    this.q.push(until, EV_ACT, 0, 0)
+    for (let c = this.abCatNext[b]; c !== b; c = this.abCatNext[c]) {
+      if (this.abReadyAt[c] < until || (this.abReadyAt[c] === Infinity && !this.usedUp(c) && this.abNeverReady[c] === 0)) this.abReadyAt[c] = until
+    }
+  }
+
+  /** Ability a has had all its uses this fight (the Mighty Rage Potion's one, a mana gem's). */
+  private usedUp(a: number): boolean {
+    return this.abUsesPerFight[a] > 0 && this.abUses[a] >= this.abUsesPerFight[a]
   }
 
   private auraChanged(a: number, deltaStacks: number): void {
@@ -3145,6 +3290,14 @@ export class Sim {
     if (this.aTaken[a]) this.recomputeTakenMult()
     if (this.aBossDebuff[a]) this.recomputeBossDebuffs()
     if (this.aSchool[a]) this.recomputeSchools()
+    if (this.aManaCost[a]) this.recomputeManaCost()
+  }
+
+  /** The active auras' mana-cost multiplier (Arcane Power's +30%, docs/classes/mage.md#arcane-power), from the active ones, so no drift. */
+  private recomputeManaCost(): void {
+    let m = 1
+    for (let i = 0; i < this.auraActive.length; i++) if (this.auraActive[i] && this.aManaCost[i]) m *= 1 + (this.aManaCost[i] * this.auraStacks[i]) / 100
+    this.manaCostMult = m
   }
 
   /**
@@ -3205,7 +3358,7 @@ export class Sim {
       c[row + FIELD.hits]++
     }
     this.dealDamage(this.pSource[p], damage)
-    if (crit) this.useCritCharges()
+    if (crit) this.useCritCharges(this.pSchool[p])
   }
 
   /**
@@ -3378,7 +3531,10 @@ export class Sim {
     this.chainMask = 0
     this.counters[this.abSource[a] * FIELD_COUNT + FIELD.casts]++
     const s = this.abSpell[a]
+    // docs/classes/mage.md#talents: the cost Master of Elements returns a share of, while its spell resolves.
+    this.castCostTenths = this.abCost[a]
     const landed = s < 0 || this.castSpell(s, false)
+    this.castCostTenths = 0
     if (landed && this.abManaReturn[a] > 0) this.returnMana(a)
     // paladin.md#protection-tree: a landed Holy Strike puts Iron Creed's buff up. A caster's DoT
     // marker (docs/mechanics/spells.md §7) is its DoT's, which put it up as it landed.
@@ -3460,7 +3616,8 @@ export class Sim {
       // docs/mechanics/spells.md §2, §3: a binary spell is also resisted whole, in the same roll as
       // its hit, at its school's average resist: miss + (1 − miss) × resist.
       if (defense === DEFENSE.magic && !alwaysHit) {
-        const miss = this.spellMissPct
+        // docs/classes/mage.md#talents: its school's own hit (Elemental Precision), when the plan has any.
+        const miss = this.hasSchoolHit ? this.schMiss[this.splSchool[s]] : this.spellMissPct
         const threshold = this.splBinary[s] === 1 ? miss + (100 - miss) * this.resistChance[this.splSchool[s]] : miss
         if (this.rngTable.roll100() < threshold) {
           c[row + FIELD.misses]++
@@ -3473,8 +3630,9 @@ export class Sim {
         if (this.hasSpellLanded && this.splTriggersProcs[s] === 1) this.spellProcs(TRIGGER.spellLanded, s)
         return true
       }
-      // §5: spell crit, the spell's own and its school's (Winter's Chill, Critical Mass).
-      crit = this.splNoCrit[s] === 0 && this.rngTable.roll100() < this.spellCritPct + this.splBonusCrit[s] + this.schCrit[this.splSchool[s]]
+      // §5: spell crit, the spell's own and its school's (Critical Mass, Combustion), and an aura's
+      // stacks for this spell only (Winter's Chill on Frostbolt, docs/classes/mage.md#winters-chill).
+      crit = this.splNoCrit[s] === 0 && this.rngTable.roll100() < this.spellCritPct + this.splBonusCrit[s] + this.schCrit[this.splSchool[s]] + this.critAuraPct(s)
     }
 
     let base: number
@@ -3530,11 +3688,50 @@ export class Sim {
       // docs/mechanics/spells.md §10: a landed spell's procs, then its crit's (their schools filter them).
       if (this.hasSpellLanded && defense !== DEFENSE.ranged) this.spellProcs(TRIGGER.spellLanded, s)
       if (crit) {
+        // docs/classes/mage.md#ignite: the crit's damage, which Ignite takes its share of.
+        this.critDamage = damage
         this.fireSpellTrigger(TRIGGER.spellCrit, school, source)
-        this.useCritCharges()
+        this.useCritCharges(school)
       }
     }
     return true
+  }
+
+  /** Spell s's crit % from its aura's stacks while it's up (Winter's Chill, docs/classes/mage.md#winters-chill); 0 without. */
+  private critAuraPct(s: number): number {
+    const aura = this.splCritAura[s]
+    return aura >= 0 && this.auraActive[aura] ? this.splCritAuraPct[s] * this.auraStacks[aura] : 0
+  }
+
+  /**
+   * A crit feeds the rolling Ignite (docs/classes/mage.md#ignite; Plan.ignite): its share of the crit's
+   * damage joins the damage still to come, over the next `igTicks` ticks; a tick already due keeps
+   * its time, otherwise the next comes one period from now. Its marker is up until the last tick.
+   */
+  private feedIgnite(): void {
+    this.igPool += (this.igPct / 100) * this.critDamage
+    this.counters[this.igSource * FIELD_COUNT + FIELD.casts]++
+    if (this.igTicksLeft === 0) {
+      this.igNextAt = this.now + this.igTickMs
+      this.q.push(this.igNextAt, EV_IGNITE_TICK, 0, ++this.igGen)
+    }
+    this.igTicksLeft = this.igTicks
+    if (this.igAura >= 0) this.startAura(this.igAura, this.igNextAt + (this.igTicks - 1) * this.igTickMs)
+  }
+
+  /** One tick of the rolling Ignite: the pool ÷ the ticks left, × the boss's damage taken and average resist now; no miss, no crit. */
+  private igniteTick(): void {
+    const share = this.igPool / this.igTicksLeft
+    this.igPool -= share
+    const school = this.igSchool
+    const damage = share * this.schTaken[school] * this.resistFactor[school]
+    this.counters[this.igSource * FIELD_COUNT + FIELD.hits]++
+    if (this.trace !== null) this.trace(this.igSource, -1, this.now)
+    this.addDamage(this.igSource, damage, damage * this.threatMult)
+    if (--this.igTicksLeft > 0) {
+      this.igNextAt = this.now + this.igTickMs
+      this.q.push(this.igNextAt, EV_IGNITE_TICK, 0, this.igGen)
+    } else this.igPool = 0
   }
 
   /** Fires a spell trigger for plan spell s: its school and row filter the procs that name them (docs/mechanics/spells.md §10). */
@@ -3699,7 +3896,17 @@ export class Sim {
     if (forms !== 0 && (forms & (1 << this.form)) === 0) return false
     if (this.abFinisher[a] === 1 && this.comboPoints === 0) return false
     if (this.abFree[a] === 1 && this.auraActive[this.freeAura]) return true
-    return this.pool(this.abRes[a]) >= (this.abStackAura[a] >= 0 ? this.costOf(a) : this.costNow(a))
+    return this.pool(this.abRes[a]) >= this.affordCost(a)
+  }
+
+  /**
+   * An ability's cost now, in tenths: its stacks' cut (Maelstrom Weapon; not stacks that cut only the
+   * cast time), and a mana cost × the active auras' mana-cost multiplier (Arcane Power's +30%,
+   * docs/classes/mage.md#arcane-power), to a whole tenth.
+   */
+  private affordCost(a: number): number {
+    const cost = this.abStackAura[a] >= 0 && this.abStackCost[a] !== 0 ? this.costOf(a) : this.costNow(a)
+    return this.manaCostMult !== 1 && this.abRes[a] === RES_MANA ? Math.round(cost * this.manaCostMult) : cost
   }
 
   /**
@@ -3764,8 +3971,11 @@ export class Sim {
       this.energy -= cost
       if (cost > 0 && this.hasMaxEnergy) this.actPending = true
     } else if (cost > 0) {
-      this.mana -= cost
-      this.totalManaSpentTenths += cost
+      // docs/classes/mage.md#arcane-power: a mana cost × the auras' multiplier, to a whole tenth.
+      const paid = this.manaCostMult !== 1 ? Math.round(cost * this.manaCostMult) : cost
+      this.lastPaid = paid
+      this.mana -= paid
+      this.totalManaSpentTenths += paid
       this.manaSpentAt = this.now
     }
   }

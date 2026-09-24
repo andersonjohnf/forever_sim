@@ -15,6 +15,7 @@ import { protectionAssumptions, swiftJudgementPlan } from '../classes/paladin/pr
 import { paladinAssumptions, paladinManaPlan } from '../classes/paladin/setup'
 import { SHAMAN_WINDFURY_WEAPON, shamanAssumptions, shamanManaPlan } from '../classes/shaman/setup'
 import { rogueAssumptions, rogueEnergy } from '../classes/rogue/setup'
+import { mageAssumptions, mageFreeCast, mageManaPlan } from '../classes/mage/setup'
 import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance } from '../classes/rotation'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
@@ -202,7 +203,7 @@ interface Collected {
    * The schools' static numbers by SCHOOL code (docs/mechanics/spells.md §3, §5, §9): your damage
    * and the boss's damage taken (products), your crit (a sum) and the debuffs' resistance change.
    */
-  schools: { damage: number[]; taken: number[]; crit: number[]; resistance: number[] }
+  schools: { damage: number[]; taken: number[]; crit: number[]; resistance: number[]; hit: number[] }
 }
 
 /** Every school plain: ×1, ×1, +0, +0 (docs/mechanics/spells.md §9). */
@@ -211,6 +212,7 @@ const plainSchools = (): Collected['schools'] => ({
   taken: Array<number>(SCHOOL_COUNT).fill(1),
   crit: Array<number>(SCHOOL_COUNT).fill(0),
   resistance: Array<number>(SCHOOL_COUNT).fill(0),
+  hit: Array<number>(SCHOOL_COUNT).fill(0),
 })
 
 /**
@@ -354,7 +356,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // The paladin uses mana, not rage (paladin.md#mana-model), and so does the shaman
   // (docs/classes/shaman.md#mana); the rogue uses Energy (rogue.md §2.1). None has a rage pool, and
   // their hits give none either (`rageFromHits`), so no rage assumption applies to them.
-  const usesMana = classId === 'paladin' || classId === 'shaman'
+  const usesMana = classId === 'paladin' || classId === 'shaman' || classId === 'mage'
   const usesRage = classId === 'warrior' || classId === 'druid'
   if (!setup.simulated && attributes) blockers.push(`${meta.className} simulation isn’t available yet.`)
   // A druid in an animal form attacks with the form's weapon, whatever is equipped; the item's
@@ -591,7 +593,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     for (const e of sheetOnly) if (e.kind === 'stat') sheetBlock[e.stat] += e.value
     shown = deriveStats(sheetBlock, deriveOptions, new DerivedStats())
   }
-  const mh = weapons[HAND.main]
+  // A mage never swings its weapon (docs/classes/mage.md#what-the-sim-needs): nothing melee applies to it.
+  const mh = classId === 'mage' ? null : weapons[HAND.main]
   const sheet: CharacterSheet = {
     strength: shown.strength,
     agility: shown.agility,
@@ -709,6 +712,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spec.mods.spellDamage ? { spellDamage: spec.mods.spellDamage } : {}),
       ...(spec.mods.spiritRegen ? { spiritRegen: spec.mods.spiritRegen } : {}),
       ...(spec.mods.castingRegen ? { castingRegen: spec.mods.castingRegen } : {}),
+      // The mage's (docs/classes/mage.md#combustion, #arcane-power), only when set.
+      ...(spec.critChargeSchools?.length ? { critChargeSchools: schoolMask(spec.critChargeSchools) } : {}),
+      ...(spec.refreshKeepsCharges ? { refreshKeepsCharges: true } : {}),
+      ...(spec.mods.manaCostPct ? { manaCostPct: spec.mods.manaCostPct } : {}),
     })
     return auras.length - 1
   }
@@ -716,11 +723,13 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   /** The plan spell for `def` (paladin.md#conventions-used-below), added on first use with its breakdown row. */
   /** Spells boosted by an aura (Stormstrike's, shaman.md), resolved once every ability's aura is in. */
   const spellBoosts: { spell: number; boost: NonNullable<SpellDef['boost']> }[] = []
+  /** Spells an aura's stacks give crit (Winter's Chill's Frostbolt, docs/classes/mage.md), resolved the same way. */
+  const spellCritAuras: { spell: number; critAura: NonNullable<SpellDef['critAura']> }[] = []
   const spellIndex = (def: SpellDef) => {
     const source = sourceIndex(def.id, def.name, def.icon)
     const i = spells.findIndex((x) => x.source === source)
     if (i >= 0) return i
-    const { name: _, icon: __, school, defense, boost, ...rest } = def
+    const { name: _, icon: __, school, defense, boost, critAura, ...rest } = def
     // docs/mechanics/spells.md §7: a spell with a DoT. A pure DoT's row counts its applications and
     // ticks, as a bleed's does; a hybrid's ticks get a row of their own, "<name> (DoT)", after its hit.
     let dotSource: number | undefined
@@ -736,8 +745,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // One that always lands and never crits (Holy Shield's damage) shows no crit or avoided shares.
     if (def.cannotCrit && (defense === 'none' || (def.alwaysHit && def.noActiveDefense))) sources[source].certain = true
     if (boost) spellBoosts.push({ spell: spells.length - 1, boost })
+    if (critAura) spellCritAuras.push({ spell: spells.length - 1, critAura })
     return spells.length - 1
   }
+  /** The mage's rolling Ignite (docs/classes/mage.md#ignite): its numbers and row, from its one proc. */
+  const rolling: { ignite?: Plan['ignite'] } = {}
   let procs: ProcPlan[] = []
   /** The aura id each proc needs to be up (Bloodthrill: your Rend), resolved once the abilities' auras are in. */
   const procNeeds: (string | undefined)[] = []
@@ -829,6 +841,29 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         notes.add('magicProcs')
         break
       }
+      case 'ignite': {
+        // docs/classes/mage.md#ignite: one rolling DoT per plan, whose row counts the crits that fed it
+        // and its ticks, and whose marker shows its uptime on the boss.
+        proc.action = ACTION.ignite
+        proc.source = sourceIndex(spec.id, spec.name, spec.icon)
+        sources[proc.source].bleed = { ticksCanCrit: false, avoidable: false }
+        const durationMs = action.ticks * action.tickMs
+        rolling.ignite ??= {
+          pct: action.pct,
+          ticks: action.ticks,
+          tickMs: action.tickMs,
+          school: SCHOOL[action.school],
+          source: proc.source,
+          aura: auraIndex({ id: spec.id, name: spec.name, durationMs, mods: {} }, spec.id, spec.icon),
+        }
+        break
+      }
+      case 'manaOfCost':
+        // docs/classes/mage.md#talents: Master of Elements, a share of the critting spell's cost.
+        proc.action = ACTION.manaOfCost
+        proc.amount = action.pct
+        proc.source = sourceIndex(spec.id, spec.name, spec.icon)
+        break
     }
     if (spec.poison) {
       // Improved Poisons' apply chance, in points on each hand's chance (rogue.md §4.3).
@@ -904,7 +939,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     }
   }
   const abilities: AbilityPlan[] = classRot.abilities.map((def) => {
-    const { offHand, aura, vsCreature: _, window, spellDef, tickSpellDef, auraCrit: __, noCooldownWhile: ___, stackAuraId: ____, selfAuraSpec, tickAuraSpec, costStacks: _____, opensWindow, ...a } = def
+    const { offHand, aura, vsCreature: _, window, spellDef, tickSpellDef, auraCrit: __, noCooldownWhile: ___, stackAuraId: ____, instantAuraId: ______, selfAuraSpec, tickAuraSpec, costStacks: _____, opensWindow, ...a } = def
     const source = sourceIndex(a.id, a.name, a.icon)
     // A bleed's row counts applications and ticks (Rend: its ticks crit only where periodic
     // effects can, damage-and-timing §4).
@@ -974,13 +1009,24 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // Maelstrom Weapon), and a spell an aura boosts (Stormstrike's), once every proc's and ability's aura
   // is in; without that aura there's nothing to cut or boost.
   classRot.abilities.forEach((def, i) => {
-    if (!def.stackAuraId) return
-    const aura = auras.findIndex((x) => x.id === def.stackAuraId)
-    if (aura >= 0) abilities[i].stackAura = aura
+    if (def.stackAuraId) {
+      const aura = auras.findIndex((x) => x.id === def.stackAuraId)
+      if (aura >= 0) abilities[i].stackAura = aura
+    }
+    // docs/classes/mage.md#presence-of-mind: the aura that makes its cast instant.
+    if (def.instantAuraId) {
+      const aura = auras.findIndex((x) => x.id === def.instantAuraId)
+      if (aura >= 0) abilities[i].instantAura = aura
+    }
   })
   for (const { spell, boost } of spellBoosts) {
     const aura = auras.findIndex((x) => x.id === boost.aura)
     if (aura >= 0) Object.assign(spells[spell], { boostAura: aura, boostPct: boost.pct })
+  }
+  // docs/classes/mage.md#winters-chill: a spell an aura's stacks give crit, once the procs' auras are in.
+  for (const { spell, critAura } of spellCritAuras) {
+    const aura = auras.findIndex((x) => x.id === critAura.aura)
+    if (aura >= 0) Object.assign(spells[spell], { critAura: aura, critAuraPct: critAura.pctPerStack })
   }
   // A druid's proc bound to forms rolls only in them: always if it holds in every form the fight can
   // be in (the starting one and those its shapeshifts enter), and left out if in none (druid.md §2.8).
@@ -1089,7 +1135,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(abilities.some((a) => a.bleedingTargetPct) ? { othersBleed } : {}),
     },
     stats: block,
-    weapons: [weapons[0]?.plan ?? null, weapons[1]?.plan ?? null],
+    // docs/classes/mage.md#what-the-sim-needs: a mage casts and never swings its weapon, whose stats still count.
+    weapons: classId === 'mage' ? [null, null] : [weapons[0]?.plan ?? null, weapons[1]?.plan ?? null],
     hasShield,
     damageMult: c.damageMult,
     physicalMult: c.physicalMult,
@@ -1123,9 +1170,13 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...(classId === 'shaman' ? { mana: shamanManaPlan(derived, block.mp5) } : {}),
     // docs/classes/rogue.md §2.1: its Energy, with Vigor's cap.
     ...(classId === 'rogue' ? { energy: rogueEnergy(setup.talents) } : {}),
+    // docs/classes/mage.md#mana: the same model, with Mage Armor's and Arcane Meditation's regeneration while casting, and Clearcasting's free cast.
+    ...(classId === 'mage' ? { mana: mageManaPlan(derived, block.mp5, setup.talents, profile), ...mageFreeCast(auras) } : {}),
     ...(c.holyThreatMult !== 1 ? { holyThreatMult: c.holyThreatMult } : {}),
     // docs/mechanics/spells.md §3, §9: the schools' numbers, when any isn't plain.
     ...(schools ? { schools } : {}),
+    // docs/classes/mage.md#ignite: the rolling Ignite, when a proc feeds it.
+    ...(rolling.ignite && procs.some((p) => p.action === ACTION.ignite) ? { ignite: rolling.ignite } : {}),
   }
 
   // --- Assumptions ---------------------------------------------------------------------------------
@@ -1135,7 +1186,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // paladin's on mana.
   const energy = abilities.some((a) => a.resource === 'energy')
   if (classRot.rotation.length > 0)
-    notes.add(classId === 'rogue' ? 'reactionTimeRogue' : energy ? 'reactionTimeEnergy' : classId === 'paladin' ? 'reactionTimeMana' : classId === 'shaman' ? 'reactionTimeShaman' : 'reactionTime')
+    notes.add(classId === 'rogue' ? 'reactionTimeRogue' : energy ? 'reactionTimeEnergy' : classId === 'paladin' ? 'reactionTimeMana' : classId === 'shaman' ? 'reactionTimeShaman' : classId === 'mage' ? 'reactionTimeMage' : 'reactionTime')
   if (abilities.some((a) => a.gcdMs > 0)) notes.add(setup.form === 'cat' ? 'gcdHasteCat' : classId === 'rogue' ? 'gcdHasteRogue' : 'gcdHaste')
   // Rage refunds; a druid's Energy refunds are in `energyTicks`, and a bear's rage refunds and
   // Maul's swing in `bearRage` (druid.md §4.1).
@@ -1154,7 +1205,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (setup.talents.has('Unbridled Wrath') && mh) notes.add('unbridledWrathSwings')
   // The rogue's off-hand strike (Mutilate) has its own note (rogueAssumptions, `mutilate`).
   if (classId !== 'rogue' && abilities.some((a) => a.offHandSource >= 0)) notes.add('ragingBlows')
-  if (!mh) {
+  // A mage's spells need no weapon (docs/classes/mage.md), and it swings none: no note.
+  if (!mh && classId !== 'mage') {
     // warrior.md §7 "Without a main-hand weapon": the attacks that need none are still used: the
     // spell-table ones, and with a shield the ones that need it instead, which roll the main hand's
     // special-attack table at the base skill. Without a shield, nothing that needs one is named.
@@ -1376,6 +1428,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   for (const id of shamanAssumptions(plan)) notes.add(id)
   // docs/classes/rogue.md#9-open-questions: what the rogue's Energy, abilities and poisons rely on.
   for (const id of rogueAssumptions(plan, setup.talents)) notes.add(id)
+  // docs/classes/mage.md#open-questions: what the mage's spells, procs and mana rely on.
+  for (const id of mageAssumptions(plan)) notes.add(id)
 
   return { plan, sheet, assumptions: notes.toArray(), blockers }
 }
@@ -1482,6 +1536,9 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
     case 'targetResistance':
       for (const school of e.schools) c.schools.resistance[SCHOOL[school]] += e.value
       return
+    case 'schoolHit':
+      for (const school of e.schools) c.schools.hit[SCHOOL[school]] += e.pct
+      return
     case 'castHaste':
       b.castHaste *= 1 + e.pct / 100
       return
@@ -1519,10 +1576,12 @@ export function casterSheet(d: DerivedStats, block: StatBlock): NonNullable<Char
  * level-based resistance, plus its own (0) changed by the debuffs, never below 0, less your spell
  * penetration; below 0 only where the profile allows it. Holy and physical have none.
  */
-export function schoolPlan(schools: Collected['schools'], spellPen: number, bossLevel: number, profile: RulesProfile): SchoolPlan | undefined {
+export function schoolPlan(schools: Omit<Collected['schools'], 'hit'> & { hit?: number[] }, spellPen: number, bossLevel: number, profile: RulesProfile): SchoolPlan | undefined {
   const plain = plainSchools()
   const same = (a: number[], b: number[]) => a.every((x, i) => x === b[i])
-  if (spellPen === 0 && same(schools.damage, plain.damage) && same(schools.taken, plain.taken) && same(schools.crit, plain.crit) && same(schools.resistance, plain.resistance)) {
+  const hit = schools.hit ?? plain.hit
+  const plainHit = same(hit, plain.hit)
+  if (spellPen === 0 && same(schools.damage, plain.damage) && same(schools.taken, plain.taken) && same(schools.crit, plain.crit) && same(schools.resistance, plain.resistance) && plainHit) {
     return undefined
   }
   const level = levelResistance(bossLevel, PLAYER_LEVEL)
@@ -1531,7 +1590,8 @@ export function schoolPlan(schools: Collected['schools'], spellPen: number, boss
     const r = level + Math.max(0, change) - spellPen
     return profile.combat.negativeResistance ? r : Math.max(0, r)
   })
-  return { damage: [...schools.damage], taken: [...schools.taken], crit: [...schools.crit], resistance }
+  // docs/classes/mage.md#talents: a school's own spell hit (Elemental Precision's Fire and Frost), only when set.
+  return { damage: [...schools.damage], taken: [...schools.taken], crit: [...schools.crit], resistance, ...(plainHit ? {} : { hit: [...hit] }) }
 }
 
 /**

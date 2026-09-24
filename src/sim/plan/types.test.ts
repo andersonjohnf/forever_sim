@@ -48,7 +48,13 @@ describe('the plan’s code tables', () => {
   it('the rogue’s codes (R1): maxComboPoints takes 30, the first of its 30–33, and ACTION 8, after manaFlat, is Deadly Poison’s stackingDot', () => {
     expect(COND.maxComboPoints).toBe(30)
     expect(ACTION.stackingDot).toBe(8)
-    expect(Math.max(...Object.values(ACTION))).toBe(8)
+    // The mage's actions sit at 20 and up (below).
+    expect(Math.max(...Object.values(ACTION).filter((code) => code < 20))).toBe(8)
+  })
+
+  it('the mage’s codes (docs/classes/mage.md): conditions auraStacksBelow 42 and auraEndsWithin 43, actions ignite 20 and manaOfCost 21, past the ranges the other tracks hold', () => {
+    expect([COND.auraStacksBelow, COND.auraEndsWithin]).toEqual([42, 43])
+    expect([ACTION.ignite, ACTION.manaOfCost]).toEqual([20, 21])
   })
 
   it('the shaman’s auraStacksAtLeast (Lightning Bolt at 5 Maelstrom Weapon stacks) takes 34: 30–33 are the Rogue track’s', () => {

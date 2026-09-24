@@ -152,7 +152,7 @@ export function addPlanSpell(plan: Plan, def: SpellDef): number {
   const source = rowFor(plan, def.id, def.name, def.icon)
   const i = plan.spells.findIndex((x) => x.source === source)
   if (i >= 0) return i
-  const { name: _, icon: __, school, defense, ...rest } = def
+  const { name: _, icon: __, school, defense, critAura: ___, ...rest } = def
   plan.spells.push({ ...rest, school: SCHOOL[school], defense: DEFENSE[defense], source })
   return plan.spells.length - 1
 }

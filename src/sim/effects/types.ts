@@ -198,6 +198,8 @@ export type Effect = (
   | { kind: 'targetResistance'; schools: readonly MagicSchool[]; value: number }
   /** Casting speed %, multiplicative (docs/mechanics/spells.md §4). */
   | { kind: 'castHaste'; pct: number }
+  /** Spell hit % with these schools, added to your spell hit (Elemental Precision's Fire and Frost; docs/classes/mage.md#talents). */
+  | { kind: 'schoolHit'; schools: readonly MagicSchool[]; pct: number }
 ) & { when?: Condition }
 
 /**
@@ -248,6 +250,13 @@ export interface AuraSpec {
   takenCharges?: number
   /** Auras in the same group exclude each other: one seal, one judgement debuff (paladin.md#seals). */
   group?: string
+  /**
+   * Only crits of these schools use its `critCharges` (Combustion's: Fire, docs/classes/mage.md#combustion);
+   * absent: any crit, melee or spell.
+   */
+  critChargeSchools?: readonly MagicSchool[]
+  /** A refresh that adds a stack keeps its charges (Combustion's stacks from each Fire hit); absent: a refresh restores them. */
+  refreshKeepsCharges?: boolean
   mods: {
     str?: number
     agi?: number
@@ -304,6 +313,8 @@ export interface AuraSpec {
     spellDamage?: number
     spiritRegen?: number
     castingRegen?: number
+    /** The mana cost of your abilities %, per stack, while it's up (Arcane Power's +30%, docs/classes/mage.md#arcane-power). */
+    manaCostPct?: number
   }
 }
 
@@ -370,6 +381,17 @@ export type ProcAction =
    * last one; it ticks `tick` per stack every `periodMs`, on its own timer.
    */
   | { kind: 'stackingDot'; school: 'nature'; tick: number; periodMs: number; durationMs: number; maxStacks: number; periodicCanCrit: boolean }
+  /**
+   * Adds `pct`% of the crit that fired it to the plan's pooled Ignite, dealt over its next `ticks`
+   * ticks every `tickMs` (`Plan.ignite`; the mage's Ignite, docs/classes/mage.md#ignite). Only on
+   * `spellCrit`; a plan has at most one.
+   */
+  | { kind: 'ignite'; pct: number; ticks: number; tickMs: number; school: MagicSchool }
+  /**
+   * Mana: `pct`% of the cost of the ability whose spell fired it (the mage's Master of Elements,
+   * docs/classes/mage.md#talents); it makes threat too. Only on the spell triggers.
+   */
+  | { kind: 'manaOfCost'; pct: number }
 
 export interface ProcSpec {
   id: string

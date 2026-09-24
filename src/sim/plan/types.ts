@@ -102,6 +102,11 @@ export const ACTION = {
    * `durationMs` from its last application. The rogue's; added after main's codes.
    */
   stackingDot: 8,
+  // 9–19 are left to the parallel tracks. The mage's (docs/classes/mage.md):
+  /** Adds the crit that fired it to the plan's rolling Ignite (`Plan.ignite`, docs/classes/mage.md#ignite). */
+  ignite: 20,
+  /** Mana: `amount` % of the cost of the ability whose spell fired it (Master of Elements, docs/classes/mage.md#talents). */
+  manaOfCost: 21,
 } as const
 
 /**
@@ -184,9 +189,17 @@ export interface SpellDef {
   dotTickDamage?: number
   dotSpCoefficient?: number
   dotCanCrit?: boolean
+  /**
+   * More crit for this spell only, per stack of an aura (by id) while it's up: Winter's Chill's +2% a
+   * stack for "your Ice Lance and Frostbolt" (docs/classes/mage.md#winters-chill). Absent: none.
+   */
+  critAura?: { aura: string; pctPerStack: number }
 }
 
-export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense' | 'boost'> {
+export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense' | 'boost' | 'critAura'> {
+  /** `SpellDef.critAura` resolved: the plan aura and its crit % a stack (docs/classes/mage.md#winters-chill). Absent: none. */
+  critAura?: number
+  critAuraPct?: number
   school: number
   defense: number
   /** Breakdown row. */
@@ -235,6 +248,11 @@ export interface SchoolPlan {
    * spell penetration; below 0 only in a profile that allows it (docs/mechanics/spells.md §3).
    */
   resistance: number[]
+  /**
+   * Spell hit %, added per school to the sheet's (Elemental Precision's Fire and Frost, Arcane Focus's
+   * Arcane; docs/classes/mage.md#talents), under the same floor. Absent: none for any school.
+   */
+  hit?: number[]
 }
 
 export interface WeaponPlan {
@@ -358,6 +376,13 @@ export interface AuraPlan {
    */
   spiritRegen?: number
   castingRegen?: number
+  // --- The mage's (docs/classes/mage.md). All optional, absent = none. ---
+  /** Only crits of these schools (a `schoolBit` mask) use its crit charges (Combustion's Fire). */
+  critChargeSchools?: number
+  /** A refresh that adds a stack keeps its charges (Combustion's stacks). */
+  refreshKeepsCharges?: boolean
+  /** The mana cost of mana abilities %, per stack, multiplicative (Arcane Power's +30%). */
+  manaCostPct?: number
 }
 
 export interface ProcPlan {
@@ -777,6 +802,17 @@ export interface AbilityPlan {
   castHasted?: boolean
   /** `channel`: it's cut off after this many ticks (docs/mechanics/spells.md §6); absent or 0: all of them. */
   channelTicks?: number
+  // --- The mage's (docs/classes/mage.md). All optional: absent, a row behaves as before. ---
+  /**
+   * While this plan aura is up, its cast is instant, and using it uses the aura up: Presence of Mind
+   * (docs/classes/mage.md#presence-of-mind). Absent or −1: none.
+   */
+  instantAura?: number
+  /**
+   * Its cooldown starts when its `aura` ends, not when it's used (Combustion's, docs/classes/mage.md#combustion):
+   * it isn't ready while the aura is up.
+   */
+  cooldownAfterAura?: boolean
 }
 
 /**
@@ -788,8 +824,24 @@ export interface AbilityPlan {
  */
 export type AbilityDef = Omit<
   AbilityPlan,
-  'source' | 'offHandSource' | 'aura' | 'window' | 'spell' | 'tickSpell' | 'auraCrit' | 'dotSource' | 'noCooldownAura' | 'tickAura' | 'costAura' | 'costPerStackTenths' | 'opensAura' | 'opensAuraChance'
+  | 'source'
+  | 'offHandSource'
+  | 'aura'
+  | 'window'
+  | 'spell'
+  | 'tickSpell'
+  | 'auraCrit'
+  | 'dotSource'
+  | 'noCooldownAura'
+  | 'tickAura'
+  | 'costAura'
+  | 'costPerStackTenths'
+  | 'opensAura'
+  | 'opensAuraChance'
+  | 'instantAura'
 > & {
+  /** The id of the aura that makes its cast instant (Presence of Mind, docs/classes/mage.md): resolved into `instantAura`, left out if no ability or proc puts it up. */
+  instantAuraId?: string
   offHand: boolean
   aura: AuraSpec | null
   /** The spell it casts on use, and on each tick (paladin abilities); the plan adds them to Plan.spells. */
@@ -927,6 +979,18 @@ export const COND = {
   // 35–37 are free for the parallel tracks; 38–41 the caster core's (docs/mechanics/spells.md §11).
   /** aura a is up: a proc's buff a caster spends (Clearcasting, Shadow Trance), or any plan aura */
   auraUp: 38,
+  // 42–45 the mage's (docs/classes/mage.md).
+  /**
+   * plan aura a has fewer than b stacks (down counts as none): Scorch until Improved Scorch's Fire
+   * Vulnerability has 5 (docs/classes/mage.md#fire-priority). Checked on each walk.
+   */
+  auraStacksBelow: 42,
+  /**
+   * plan aura a is down, or has at most b ms left: Scorch before the Fire Vulnerability runs out
+   * (docs/classes/mage.md#fire-priority). Checked on each walk, so a caster, who walks as each cast
+   * lands, sees it at its next decision; it schedules no wake-up.
+   */
+  auraEndsWithin: 43,
 } as const
 
 export interface RotationCondition {
@@ -1122,6 +1186,27 @@ export interface Plan {
    * absent when every school is plain.
    */
   schools?: SchoolPlan
+  /** The mage's rolling Ignite (docs/classes/mage.md#ignite), which `ignite` procs feed; absent without it. */
+  ignite?: IgnitePlan
+}
+
+/**
+ * A pooled, rolling Ignite (docs/classes/mage.md#ignite) [?]: each crit that feeds it adds `pct`% of
+ * its damage to the pool of damage still to come and gives it `ticks` ticks from now, the next tick
+ * `tickMs` from now unless one is already due (that one keeps its time). Each tick deals the pool ÷
+ * the ticks left, × the boss's damage taken of its school and its average resist at the tick; ticks
+ * never miss and never crit.
+ */
+export interface IgnitePlan {
+  pct: number
+  ticks: number
+  tickMs: number
+  /** Its school (`SCHOOL`): Fire. */
+  school: number
+  /** Breakdown row: its casts count the crits that fed it, its hits the ticks. */
+  source: number
+  /** The plan aura that marks it on the boss, for its uptime; −1 for none. */
+  aura: number
 }
 
 /** One druid form (druid.md §2.1, §2.2, §2.3): everything a shapeshift swaps in. */

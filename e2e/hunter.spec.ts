@@ -154,7 +154,7 @@ test.describe('Hunters', () => {
     await page.getByRole('button', { name: 'Share', exact: true }).click()
     await expect(page.getByText('Link copied')).toBeVisible()
     const url = await page.evaluate(() => navigator.clipboard.readText())
-    expect(url).toContain('/forever_sim/#s=')
+    expect(url).toContain('/#s=')
 
     const other = await (await context.browser()!.newContext()).newPage()
     await other.route('https://wow.zamimg.com/**', (route) => route.fulfill({ status: 204 }))

@@ -20,6 +20,7 @@ import type { PaladinContext } from './paladin/setup'
 import { ENHANCEMENT_OPTIONS, enhancementRotation } from './shaman/enhancement'
 import { mageOptions, mageRotation } from './mage/rotation'
 import { SPEC_META } from '../specs'
+import { ELEMENTAL_FIXED_ROWS, ELEMENTAL_OPTIONS, elementalRotation } from './shaman/elemental'
 import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
 import { WARLOCK_RACIALS } from './warlock/abilities'
@@ -57,6 +58,8 @@ export interface ClassRotationContext extends PaladinContext {
   weaponTypes?: readonly [WeaponType | null, WeaponType | null]
   /** The sheet's Spirit at the pull: the warlock's Life Tap reads it (docs/classes/warlock.md §3.3). Absent: 0. */
   spirit?: number
+  /** The sheet's Nature spell damage: Blood Fury's +10% spell power for an Elemental shaman (shaman.md "Elemental priority"). */
+  spellDamage?: number
 }
 
 /**
@@ -82,6 +85,7 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   if (spec === 'paladin-protection') return PALADIN_PROTECTION_OPTIONS
   if (spec === 'druid-feral-bear') return BEAR_OPTIONS
   if (spec === 'shaman-enhancement') return ENHANCEMENT_OPTIONS
+  if (spec === 'shaman-elemental') return ELEMENTAL_OPTIONS
   if (spec === 'rogue-combat') return COMBAT_OPTIONS
   if (spec === 'rogue-assassination') return ASSASSINATION_OPTIONS
   if (spec === 'rogue-subtlety') return SUBTLETY_OPTIONS
@@ -95,6 +99,7 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
 /** What the spec always does, shown on the Rotation tab without a control (a Protection paladin's Righteous Fury). */
 export function fixedRotationRows(spec: SpecId): FixedRotationRow[] {
   if (spec === 'paladin-protection') return PROTECTION_FIXED_ROWS
+  if (spec === 'shaman-elemental') return ELEMENTAL_FIXED_ROWS
   return []
 }
 
@@ -123,6 +128,9 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
   // Decision D27: a spec landed in the 90/10 mode starts from the common priority until the tuning milestone.
   if (spec === 'shaman-enhancement') {
     return 'The defaults are the common priority. There’s no totem twisting: in Forever, Windfury Totem is an aura that ends with the totem.'
+  }
+  if (spec === 'shaman-elemental') {
+    return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet. Flame Shock is there for Lava Burst, which Classic Era didn’t have.'
   }
   // Decision D27: specs landed before the tuning milestone start from the common priority.
   if (spec === 'rogue-combat' || spec === 'rogue-assassination' || spec === 'rogue-subtlety') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
@@ -153,6 +161,7 @@ export const RACIAL_SETTING: Partial<Record<SpecId, string>> = {
   'druid-feral-cat': 'druid.cat.racial.enabled',
   'druid-feral-bear': 'druid.bear.racial.enabled',
   'shaman-enhancement': 'shaman.enhancement.racial.enabled',
+  'shaman-elemental': 'shaman.elemental.racial.enabled',
   'rogue-combat': 'rogue.combat.racial.enabled',
   'rogue-assassination': 'rogue.assassination.racial.enabled',
   'rogue-subtlety': 'rogue.subtlety.racial.enabled',
@@ -259,6 +268,8 @@ export function classRotation(
   if (spec === 'druid-feral-bear') return bearRotation(values, talents, auraIndex, context)
   // docs/classes/shaman.md "Enhancement priority".
   if (spec === 'shaman-enhancement') return enhancementRotation(values, talents, auraIndex, context)
+  // docs/classes/shaman.md "Elemental priority".
+  if (spec === 'shaman-elemental') return elementalRotation(values, talents, auraIndex, context)
   // docs/classes/rogue.md §6.
   if (spec === 'rogue-combat') return combatRotation(values, talents, context)
   if (spec === 'rogue-assassination') return assassinationRotation(values, talents, context)

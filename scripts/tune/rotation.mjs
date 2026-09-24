@@ -28,6 +28,7 @@
 //   node scripts/tune/rotation.mjs --spec paladin-protection --metric tps consecration.minManaPct=50
 //   node scripts/tune/rotation.mjs --spec druid-feral-bear --sweep maul.minRage=10:40:5
 //   node scripts/tune/rotation.mjs --spec druid-feral-bear --raid=-warrior lacerate.refreshBelowSec=3
+//   node scripts/tune/rotation.mjs --spec shaman-elemental talents=5504301500103031-055-05005
 //
 // A setting is `id=value`. An id is either a full setting id of the spec, or one without the spec's
 // prefix, which the tool works out from the spec's own setting ids (`warrior.arms.` for Arms, so
@@ -35,6 +36,8 @@
 // Protection, `druid.cat.` for the Feral cat, `druid.bear.` for the Feral bear,
 // `paladin.retribution.` for Retribution, `paladin.protection.` for Protection paladins). Values
 // are numbers, true/false, or a choice's value. A candidate's settings are separated by commas.
+// `talents=<build code>` is a setting too: that candidate's talents instead of the spec's default
+// build (docs/data/talents.md), so builds are compared on the same fights as settings are.
 // `--base` changes the baseline from the spec's defaults, and each candidate is applied on top of it.
 //
 // `--against <commit>` runs the baseline on the engine and defaults of another commit (any git
@@ -270,8 +273,11 @@ function settingIds(options) {
   let n = 0
   while (parts.length > 0 && parts.every((p) => n < p.length && p[n] === parts[0][n])) n++
   const prefix = n > 0 ? parts[0].slice(0, n).join('.') + '.' : ''
-  return { ids, prefix, qualify: (id) => (ids.has(id) ? id : prefix + id) }
+  return { ids, prefix, qualify: (id) => (ids.has(id) || id === TALENTS ? id : prefix + id) }
 }
+
+/** The pseudo-setting for a candidate's talent build code. */
+const TALENTS = 'talents'
 
 /** `a=1,b=true,c=x` → [[id, value], …], ids qualified with the spec's prefix. */
 function parseSettings(text, spec) {
@@ -310,6 +316,10 @@ function parseSweep(text, spec) {
 /** Checks each setting against the spec's options: a known id, and a value of the right kind. */
 function validate(settings, options) {
   for (const [id, value] of settings) {
+    if (id === TALENTS) {
+      if (typeof value !== 'string' || !/^[0-9]*-[0-9]*-[0-9]*$/.test(value)) throw new Error(`talents is a build code (digits and two "-"), got "${value}"`)
+      continue
+    }
     const option = options.find((o) => o.id === id)
     if (!option) throw new Error(`Unknown setting ${id}`)
     if (option.kind === 'toggle' && typeof value !== 'boolean') throw new Error(`${id} is a toggle: true or false`)
@@ -448,10 +458,11 @@ async function main() {
   const buffs = { raid: raid.raid, enabled: raid.enabled.filter((b) => !buffsOff.includes(b)) }
   const config = (settings) => ({
     ...d,
+    ...Object.fromEntries(settings.filter(([id]) => id === TALENTS)),
     buffs,
     fight,
     rules,
-    rotation: Object.fromEntries(settings),
+    rotation: Object.fromEntries(settings.filter(([id]) => id !== TALENTS)),
     run: { mode: 'fixed', iterations: 0, seed },
   })
   // The app's own checks for the rest (the race, the fight's ranges, the creature type): a setup it

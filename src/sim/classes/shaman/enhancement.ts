@@ -56,6 +56,13 @@ export const JUJU_FLURRY = 'jujuFlurry'
 /** Totem of Rage (22395): "Increases the damage of your Shock spells by 2%" (27859) [F] [client] (SpellEffect, 1.60.1.69913). */
 export const TOTEM_OF_RAGE = 22395
 export const TOTEM_OF_RAGE_PCT = 2
+/**
+ * Totem of the Storm (23199): "Increases damage done by Chain Lightning and Lightning Bolt by up to 33"
+ * (28857) [F] [client] (SpellEffect, 1.60.1.69913), read as 33 spell damage for those spells [?]
+ * (shaman.md#elemental-defaults).
+ */
+export const TOTEM_OF_THE_STORM = 23199
+export const TOTEM_OF_THE_STORM_SP = 33
 
 /**
  * Defaults from shaman.md's "Enhancement priority", in priority order: the Classic Era common
@@ -242,13 +249,14 @@ export function enhancementRotation(
   const ctx = { ...NO_CONTEXT, ...context }
   const v = reader(ENHANCEMENT_OPTIONS, values, talents)
   const shockBonus = ctx.equipped?.has(TOTEM_OF_RAGE) ? TOTEM_OF_RAGE_PCT : 0
+  const lightningSp = ctx.equipped?.has(TOTEM_OF_THE_STORM) ? TOTEM_OF_THE_STORM_SP : 0
   const abilities: AbilityDef[] = []
   const rotation: RotationEntry[] = []
   const procs: ProcSpec[] = []
   const index = (def: AbilityDef): number => {
     const i = abilities.findIndex((a) => a.id === def.id)
     if (i >= 0) return i
-    abilities.push(withTalents(def, talents, shockBonus))
+    abilities.push(withTalents(def, talents, shockBonus, lightningSp))
     return abilities.length - 1
   }
   const add = (def: AbilityDef, conditions: RotationCondition[] = []) => {
@@ -312,5 +320,7 @@ export function enhancementRotation(
     if (v.on(setting)) add(consumable(use), [{ code: COND.maxMana, a: maxManaTenths - 10 * v.num(missing), b: 0 }])
   }
 
-  return { abilities, rotation, prepull, onUse: pressed, procs }
+  // Totem of the Storm's 33 (shaman.md#elemental-defaults), when the list casts Lightning Bolt.
+  const assumes: ClassRotation['assumes'] = lightningSp > 0 && abilities.some((a) => a.id === LIGHTNING_BOLT.id) ? [{ id: 'totemOfTheStorm' }] : []
+  return { abilities, rotation, prepull, onUse: pressed, procs, assumes }
 }

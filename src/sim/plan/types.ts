@@ -166,7 +166,8 @@ export interface SpellDef {
   /**
    * More damage while an aura (by id) is up, which the spell uses up when it lands: Stormstrike's
    * +20% to the shaman's next Lightning Bolt or Earth Shock (docs/classes/shaman.md#stormstrike).
-   * Absent: none.
+   * Absent: none. With `keep`, the spell doesn't use the aura up: Lava Burst's +20% while your Flame
+   * Shock is on the target (docs/classes/shaman.md#elemental-abilities).
    */
   boost?: { aura: string; pct: number; keep?: boolean }
   // --- The caster core (docs/mechanics/spells.md). All optional: absent, a spell behaves as before. ---
@@ -213,7 +214,7 @@ export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | '
   /** `SpellDef.boost` resolved: the plan aura it's boosted by and uses up, and the % (shaman.md#stormstrike). Absent: none. */
   boostAura?: number
   boostPct?: number
-  /** The boost's aura stays up when the spell lands (Incinerate's +25% on an Immolated target, docs/classes/warlock.md §3). Absent: used up. */
+  /** `SpellDef.boost.keep`: the boost's aura stays up when the spell lands (Incinerate's +25% on an Immolated target, docs/classes/warlock.md §3; Lava Burst's on your Flame Shock, shaman.md#elemental-abilities). Absent: used up. */
   boostKeep?: boolean
   /**
    * Its DoT's breakdown row, when it has a direct part too (Fireball's, Immolate's: "<name> (DoT)");

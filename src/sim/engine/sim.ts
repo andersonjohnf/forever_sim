@@ -391,7 +391,7 @@ export class Sim {
   private readonly auraChargeReadyAt: Float64Array
   /** The plan aura a spell is boosted by and uses up when it lands (−1: none), and by how much %: Stormstrike's (shaman.md). */
   private readonly splBoostAura: Int32Array
-  /** 1: the boost's aura stays up when the spell lands (Incinerate on Immolate, docs/classes/warlock.md §3). */
+  /** 1: the boost's aura stays up when the spell lands (Incinerate on Immolate, docs/classes/warlock.md §3; Lava Burst on your Flame Shock, shaman.md). */
   private readonly splBoostKeep: Uint8Array
   /** A DoT's own multiplier, snapshotted in place of `splDamageMult` (docs/classes/warlock.md §4). */
   private readonly splDotMult: Float64Array
@@ -3715,7 +3715,8 @@ export class Sim {
       // docs/mechanics/spells.md §3, §9: the school's multipliers, and a partial resist on average unless binary.
       damage *= this.magicMult * this.schDamage[school] * this.schTaken[school] * (this.splBinary[s] === 1 ? 1 : this.resistFactor[school])
     }
-    // docs/classes/shaman.md#stormstrike: +20% while Stormstrike's aura is up, which this landed spell uses up.
+    // docs/classes/shaman.md#stormstrike: +20% while Stormstrike's aura is up, which this landed spell uses up;
+    // Lava Burst's +20% while your Flame Shock is on the target, which it leaves up (#elemental-abilities).
     const boost = this.splBoostAura[s]
     if (boost >= 0 && this.auraActive[boost]) {
       damage *= 1 + this.splBoostPct[s] / 100

@@ -7,10 +7,15 @@
 import type { Effect } from '../../effects/types'
 import type { AbilityDef, SpellDef } from '../../plan/types'
 import {
+  CHAIN_LIGHTNING,
   EARTH_SHOCK,
+  elementalFocusProc,
+  FLAME_SHOCK,
   FROST_SHOCK,
   IMPROVED_STORMSTRIKE_AURA,
+  LAVA_BURST,
   LIGHTNING_BOLT,
+  LIGHTNING_BOLT_R4,
   MAELSTROM_AURA,
   maelstromProc,
   STORMSTRIKE,
@@ -95,6 +100,9 @@ export const TALENT_EFFECTS: Record<string, (r: number) => Effect[]> = {
   'Elemental Devastation': elementalDevastation,
   // 408498: its stacks (MAELSTROM_AURA) from melee hits; Lightning Bolt spends them (withTalents).
   'Maelstrom Weapon': () => [{ kind: 'proc', proc: maelstromProc() }],
+  // 16164: Clearcasting from 10% of your Fire, Frost and Nature damage spells (abilities.ts); the plan's
+  // free-cast aura, which the damage spells' rows spend (withTalents).
+  'Elemental Focus': () => [{ kind: 'proc', proc: elementalFocusProc() }],
 }
 
 /** Elemental Weapons (16266) a rank: Windfury Weapon's attack power 13 / 27 / 40%, Rockbiter's 7 / 13 / 20% [F]. */
@@ -104,51 +112,69 @@ export const ELEMENTAL_WEAPONS_ROCKBITER = [0, 7, 13, 20]
 /** Maelstrom Weapon (408498): each stack cuts Lightning Bolt's cast time and cost by 4% a rank [F]. */
 export const maelstromPctPerStack = (talents: TalentRanks) => 4 * rank(talents, 'Maelstrom Weapon')
 
+/** The shocks: one cooldown category, and the shock talents' and Totem of Rage's mask (shaman.md#talents). */
+const SHOCKS: ReadonlySet<string> = new Set([EARTH_SHOCK.id, FROST_SHOCK.id, FLAME_SHOCK.id])
+/** Lightning Bolt (every rank) and Chain Lightning: Call of Thunder's, Concussion's and Elemental Alacrity's (mask 0x3). */
+const LIGHTNING: ReadonlySet<string> = new Set([LIGHTNING_BOLT.id, LIGHTNING_BOLT_R4.id, CHAIN_LIGHTNING.id])
+
 /**
  * The build's changes to a spell (shaman.md#talents) [F] [client] (SpellEffect spell masks,
- * TraitDefinitionEffectPoints, 1.60.1.69913): Concussion +1% a rank to Lightning Bolt and Earth Shock
- * (mask 0x100003; not Frost Shock), Call of Thunder +3% crit to Lightning Bolt, Elemental Fury +20% a
- * rank to the crit bonus of Fire, Frost and Nature spells (so ×2.0 at 5/5), and Totem of Rage's +2%
- * to shocks (27859, a relic: `shockBonusPct`).
+ * TraitDefinitionEffectPoints, 1.60.1.69913): Concussion +1% a rank to Lightning Bolt, Chain Lightning
+ * and Earth Shock (mask 0x100003; not Frost or Flame Shock), Call of Thunder +3% crit to Lightning Bolt
+ * and Chain Lightning, Call of Flame +5% a rank to Flame Shock (its hit and its ticks) and Lava Burst
+ * (16038, masks 0x50000000 and 0x1000 of word 1), Elemental Fury +20% a rank to the crit bonus of
+ * Fire, Frost and Nature spells (so ×2.0 at 5/5), Totem of Rage's +2% to shocks (27859, a relic:
+ * `shockBonusPct`), and Totem of the Storm's "by up to 33" to Lightning Bolt and Chain Lightning
+ * (28857, a relic: `lightningSpellDamage`), read as spell damage for them, so × their coefficient [?].
  */
-export function withSpellTalents(spell: SpellDef, talents: TalentRanks, shockBonusPct = 0): SpellDef {
+export function withSpellTalents(spell: SpellDef, talents: TalentRanks, shockBonusPct = 0, lightningSpellDamage = 0): SpellDef {
   const id = spell.id
-  const bolt = id === 'lightningBolt'
-  const shock = id === 'earthShock' || id === 'frostShock'
+  const lightning = LIGHTNING.has(id)
+  const shock = SHOCKS.has(id)
   let damageMult = spell.damageMult
-  if (bolt || id === 'earthShock') damageMult *= 1 + rank(talents, 'Concussion') / 100
+  if (lightning || id === EARTH_SHOCK.id) damageMult *= 1 + rank(talents, 'Concussion') / 100
+  if (id === FLAME_SHOCK.id || id === LAVA_BURST.id) damageMult *= 1 + (5 * rank(talents, 'Call of Flame')) / 100
   if (shock && shockBonusPct > 0) damageMult *= 1 + shockBonusPct / 100
   const fury = rank(talents, 'Elemental Fury')
+  const relic = lightning ? lightningSpellDamage * spell.spCoefficient : 0
   return {
     ...spell,
+    ...(relic > 0 ? { min: spell.min + relic, max: spell.max + relic } : {}),
     damageMult,
-    bonusCrit: spell.bonusCrit + (bolt ? 3 * rank(talents, 'Call of Thunder') : 0),
+    bonusCrit: spell.bonusCrit + (lightning ? 3 * rank(talents, 'Call of Thunder') : 0),
     critMultiplier: 1 + (spell.critMultiplier - 1) * (1 + (20 * fury) / 100),
   }
 }
 
+/** Elemental Alacrity's cut to the cast a rank, in ms (16578's rank curve) [F]. */
+export const ELEMENTAL_ALACRITY_MS = [0, 170, 330, 500]
+
 /**
  * The build's changes to an ability row (shaman.md#talents): the mana cost cuts, added together as the
- * paladin's are [?] (Convection −2% a rank to shocks and Lightning Bolt; Shamanistic Focus −45% to
- * shocks), Reverberation's −0.2 s a rank to the shocks' cooldown, Elemental Alacrity's cut to Lightning
- * Bolt's cast (170 / 330 / 500 ms), Maelstrom Weapon's stacks on Lightning Bolt, and Improved
- * Stormstrike's regeneration aura on Stormstrike at 2/2 (1/2's 50% chance isn't simulated). A cost
- * rounds down to whole mana.
+ * paladin's are [?] (Convection −2% a rank to the shocks, Lightning Bolt, Chain Lightning and Lava
+ * Burst; Shamanistic Focus −45% to the shocks), Reverberation's −0.2 s a rank to the shocks' cooldown,
+ * Elemental Alacrity's cut to Lightning Bolt's, Chain Lightning's and Lava Burst's casts (170 / 330 /
+ * 500 ms; mask 0x3 and 0x1000 of word 1), Maelstrom Weapon's stacks on Lightning Bolt, Clearcasting on
+ * the damage spells with Elemental Focus, and Improved Stormstrike's regeneration aura on Stormstrike at
+ * 2/2 (1/2's 50% chance isn't simulated). A cost rounds down to whole mana.
  */
-export function withTalents(ability: AbilityDef, talents: TalentRanks, shockBonusPct = 0): AbilityDef {
-  const shock = ability.id === EARTH_SHOCK.id || ability.id === FROST_SHOCK.id
+export function withTalents(ability: AbilityDef, talents: TalentRanks, shockBonusPct = 0, lightningSpellDamage = 0): AbilityDef {
+  const shock = SHOCKS.has(ability.id)
   const bolt = ability.id === LIGHTNING_BOLT.id
+  const alacrity = LIGHTNING.has(ability.id) || ability.id === LAVA_BURST.id
   let costCut = 0
-  if (shock || bolt) costCut += 2 * rank(talents, 'Convection')
+  if (shock || alacrity) costCut += 2 * rank(talents, 'Convection')
   if (shock && rank(talents, 'Shamanistic Focus') > 0) costCut += 45
   const out: AbilityDef = {
     ...ability,
     costTenths: 10 * Math.floor((ability.costTenths / 10) * (1 - costCut / 100) + 1e-9),
-    ...(ability.spellDef ? { spellDef: withSpellTalents(ability.spellDef, talents, shockBonusPct) } : {}),
+    ...(ability.spellDef ? { spellDef: withSpellTalents(ability.spellDef, talents, shockBonusPct, lightningSpellDamage) } : {}),
   }
   if (shock) out.cooldownMs = ability.cooldownMs - 200 * rank(talents, 'Reverberation')
+  if (alacrity) out.castMs = ability.castMs - (ELEMENTAL_ALACRITY_MS[rank(talents, 'Elemental Alacrity')] ?? 500)
+  // 16246's mask: every shaman damage spell the sim casts (Lightning Bolt, Chain Lightning, the shocks, Lava Burst).
+  if ((shock || alacrity) && rank(talents, 'Elemental Focus') > 0) out.clearcastable = true
   if (bolt) {
-    out.castMs = ability.castMs - ([0, 170, 330, 500][rank(talents, 'Elemental Alacrity')] ?? 500)
     const pct = maelstromPctPerStack(talents)
     if (pct > 0) Object.assign(out, { stackAuraId: MAELSTROM_AURA.id, stackCastPct: pct, stackCostPct: pct })
   }

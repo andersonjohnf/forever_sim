@@ -46,8 +46,8 @@ const FORM_NAME: Partial<Record<SpecId, string>> = { 'druid-feral-cat': 'Cat For
  */
 export function buffUnusedReason(buff: BuffSpec, spec: SpecId): string | undefined {
   // docs/classes/shaman.md#weapon-imbues: a shaman's weapon imbue is its main hand's temporary
-  // enchant, so a stone or oil has no weapon to go on.
-  if (SPEC_META[spec].classId === 'shaman' && catalogueEffects(buff, FOREVER).some((e) => e.kind === 'tempEnchant'))
+  // enchant, so a stone or oil has no weapon to go on. An Elemental shaman uses no imbue.
+  if (SPEC_META[spec].classId === 'shaman' && !SPEC_META[spec].caster && catalogueEffects(buff, FOREVER).some((e) => e.kind === 'tempEnchant'))
     return 'Not used: your weapon imbue is your main hand’s temporary enchant'
   const form = FORM_NAME[spec]
   if (!form) return undefined

@@ -156,6 +156,16 @@ export const ASSUMPTION_GROUP = {
   lightningBoltCast: 'class',
   shamanSpellDamage: 'class',
   shamanTotems: 'class',
+  // The Elemental shaman's (docs/classes/shaman.md#elemental-open-questions).
+  elementalSpells: 'class',
+  manaRegenElemental: 'class',
+  elementalTotems: 'class',
+  elementalFocus: 'class',
+  lightningOverload: 'class',
+  manaTideTotem: 'class',
+  lightningBoltDownrank: 'class',
+  totemOfTheStorm: 'class',
+  bloodFurySpellPower: 'class',
   manaRegenShaman: 'class',
   // The mage's (docs/classes/mage.md#open-questions): its spells and procs, then its mana.
   mageSpells: 'class',

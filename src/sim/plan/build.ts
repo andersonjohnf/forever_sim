@@ -13,7 +13,7 @@ import { DRUID_FORMS, FORM_INDEX, FORM_NAME, formWeapon } from '../classes/druid
 import { druidPlan } from '../classes/druid/plan'
 import { protectionAssumptions, swiftJudgementPlan } from '../classes/paladin/protection'
 import { paladinAssumptions, paladinManaPlan } from '../classes/paladin/setup'
-import { SHAMAN_WINDFURY_WEAPON, shamanAssumptions, shamanManaPlan } from '../classes/shaman/setup'
+import { SHAMAN_WINDFURY_WEAPON, shamanAssumptions, shamanPlan } from '../classes/shaman/setup'
 import { rogueAssumptions, rogueEnergy } from '../classes/rogue/setup'
 import { mageAssumptions, mageFreeCast, mageManaPlan } from '../classes/mage/setup'
 import { warlockAssumptions, warlockManaPlan } from '../classes/warlock/setup'
@@ -585,14 +585,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     : undefined
 
   // --- Derived stats and the sheet -------------------------------------------------------------
-  // docs/classes/shaman.md#spell-damage: the shaman's "SP" is all-schools spell damage plus Mental
-  // Quickness's share. Holy-only spell damage does nothing for it, and its Nature-only and Frost-only
-  // lines aren't counted until Elemental (K5) takes up the caster core's per-school spell damage.
-  if (classId === 'shaman') {
-    block.holySpellDamage = 0
-    block.natureSpellDamage = 0
-    block.frostSpellDamage = 0
-  }
+  // docs/classes/shaman.md#spell-damage: the shaman's spells read their school's spell damage (the
+  // caster core's, docs/mechanics/spells.md §5): all schools plus Mental Quickness's share, plus a
+  // Nature, Frost or Fire line. Holy-only spell damage does nothing for it.
+  if (classId === 'shaman') block.holySpellDamage = 0
   const deriveOptions = { profile, applyUnmeasured, level: PLAYER_LEVEL }
   const derived = deriveStats(block, deriveOptions, new DerivedStats())
   // The sheet counts the buffs the rotation keeps up (flat stats only: Battle Shout's AP).
@@ -602,7 +598,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     for (const e of sheetOnly) if (e.kind === 'stat') sheetBlock[e.stat] += e.value
     shown = deriveStats(sheetBlock, deriveOptions, new DerivedStats())
   }
-  // A caster never swings its weapon (above; docs/classes/mage.md#what-the-sim-needs): nothing melee applies to it.
+  // docs/mechanics/spells.md §12: a caster spec (a mage, a warlock, an Elemental shaman) casts from range and
+  // never swings its weapon (above), whose stats still count: nothing melee applies to it.
+  const melee = !meta.caster
   const mh = weapons[HAND.main]
   const sheet: CharacterSheet = {
     strength: shown.strength,
@@ -919,6 +917,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         front: fight.position === 'front',
         weaponTypes: [weapons[HAND.main]?.type ?? null, weapons[HAND.off]?.type ?? null],
         maxMana: block.hasMana ? derived.mana : 0,
+        spellDamage: derived.natureSpellDamage,
         jotcRule: config.rules.jotcBonus ?? 'coefficient',
         buffGroups: new Set(filledGroups.keys()),
         spirit: derived.spirit,
@@ -1050,7 +1049,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   })
   for (const { spell, boost } of spellBoosts) {
     const aura = auras.findIndex((x) => x.id === boost.aura)
-    // docs/classes/warlock.md §3: Incinerate's boost reads Immolate's marker and keeps it up.
+    // docs/classes/warlock.md §3: Incinerate's boost reads Immolate's marker and keeps it up; so does Lava
+    // Burst's on your Flame Shock (docs/classes/shaman.md#elemental-abilities).
     if (aura >= 0) Object.assign(spells[spell], { boostAura: aura, boostPct: boost.pct, ...(boost.keep ? { boostKeep: true } : {}) })
   }
   // docs/classes/mage.md#winters-chill: a spell an aura's stacks give crit, once the procs' auras are in.
@@ -1213,7 +1213,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // paladin.md#protection-tree: Swift Judgement's free next Judgement is the free-cast aura.
     ...(classId === 'paladin' ? swiftJudgementPlan(auras) : {}),
     // docs/classes/shaman.md#mana: the same model, with Improved Stormstrike's regeneration while casting.
-    ...(classId === 'shaman' ? { mana: shamanManaPlan(derived, block.mp5) } : {}),
+    ...(classId === 'shaman' ? shamanPlan(derived, block.mp5, setup.talents, auras) : {}),
     // docs/classes/rogue.md §2.1: its Energy, with Vigor's cap.
     ...(classId === 'rogue' ? { energy: rogueEnergy(setup.talents) } : {}),
     // docs/classes/mage.md#mana: the same model, with Mage Armor's and Arcane Meditation's regeneration while casting, and Clearcasting's free cast.
@@ -1239,7 +1239,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         ? 'reactionTimeRogue'
         : energy
           ? 'reactionTimeEnergy'
-          : classId === 'paladin'
+          : classId === 'paladin' || (classId === 'shaman' && !melee)
             ? 'reactionTimeMana'
             : classId === 'shaman'
               ? 'reactionTimeShaman'
@@ -1290,11 +1290,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const spellTableCrits = spellTableRows.filter((a) => a.flatDamage > 0 || a.weaponPercent > 0 || a.apCoefficient > 0)
   if (spellTableCrits.length > 0) notes.add('spellTableCrit', `${spellTableCrits.map((a) => a.name).join(' and ')} ${spellTableCrits.length > 1 ? 'crit' : 'crits'}`)
   if (profile.id === 'forever') {
-    notes.add('foreverHitTable')
+    if (melee) notes.add('foreverHitTable')
     if (front && fight.boss.canParry) notes.add('foreverBossParry')
-    if (mh) notes.add('foreverGlancing')
+    if (mh && melee) notes.add('foreverGlancing')
   }
-  if (fight.bossLevel - PLAYER_LEVEL >= 3 && mh) notes.add('critSuppression')
+  if (fight.bossLevel - PLAYER_LEVEL >= 3 && mh && melee) notes.add('critSuppression')
   const gearRatings = [...equipped.values()].some((i) =>
     ['hitRating', 'critRating', 'dodgeRating', 'parryRating', 'blockRating', 'defenseRating'].some(
       (k) => (i.stats as Record<string, number | undefined>)[k],
@@ -1320,7 +1320,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     )
   }
   if (weapons[HAND.off]) notes.add('offHandFirstSwing')
-  if (auras.some((a) => a.haste)) notes.add('hasteNextSwing')
+  if (melee && auras.some((a) => a.haste)) notes.add('hasteNextSwing')
   // White rage matters where hits give rage (`rageFromHits`): a warrior, or a druid that can be in
   // Bear Form; a cat's pool is Energy (druid.md §2.4).
   if (setup.simulated && profile.rage.white === 'normalized' && hitsGiveRage) {

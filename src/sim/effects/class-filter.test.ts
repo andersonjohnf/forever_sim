@@ -26,10 +26,10 @@ const SHAMAN_TOO = PALADIN_ONLY.filter((id) => id !== 'elixirOfHolyPower')
 const CASTERS_TOO = SHAMAN_TOO
 
 describe('class-only catalogue entries', () => {
-  it('give the caster core’s buffs and debuffs to the casters only: the mage since K2 and the warlock since K3, so no warrior, druid, paladin, shaman or rogue gets them (docs/mechanics/spells.md §12)', () => {
+  it('give the caster core’s buffs and debuffs to the casters only: the mage since K2, the warlock since K3 and the Elemental shaman since K5, so no warrior, druid, paladin, Enhancement shaman or rogue gets them (docs/mechanics/spells.md §12)', () => {
     expect([CASTER_CLASSES, CASTER_SPECS]).toEqual([
       ['mage', 'warlock'],
-      ['mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction'],
+      ['shaman-elemental', 'mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction'],
     ])
     const caster = ['moonkinAura', 'powerInfusion', 'curseOfTheElements']
     // And the warlock's Elixir of Shadow Power, a caster's by kind and the warlock's by class.
@@ -44,6 +44,11 @@ describe('class-only catalogue entries', () => {
     }
     // A warlock keeps its own curse (SpecMeta.ownBuffs), so no preset adds the Buffs tab's.
     for (const preset of ['self', 'dungeon', 'raid', 'max'] as const) expect(presetBuffIds(preset, 'warlock-destruction', FULL_RAID)).not.toContain('curseOfTheElements')
+    // The Elemental shaman: all three listed; Curse of the Elements in its raid presets. Power Infusion is in
+    // no preset (a caster's rotation presses it when you turn it on).
+    for (const id of caster) expect(forSpecClass(BUFFS.find((b) => b.id === id)!, 'shaman-elemental'), id).toBe(true)
+    expect(presetBuffIds('raid', 'shaman-elemental', FULL_RAID)).toContain('curseOfTheElements')
+    expect(presetBuffIds('raid', 'shaman-elemental', FULL_RAID)).not.toContain('powerInfusion')
   })
 
   it('are the paladin’s mana and spell damage entries, the shaman’s but for Holy Power, the casters’, and the Mighty Rage Potion (warriors and druids only)', () => {

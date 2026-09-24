@@ -195,9 +195,10 @@ export const FROST_SHOCK = spellAbility(FROST_SHOCK_SPELL, 430, { cooldownMs: SH
  * Lightning Bolt r10: 220 mana, a 2.5 s cast (Classic Era: 265 mana, 3 s) [F] [client] (SpellPower,
  * SpellCastTimes, 1.60.1.69913). A cast stops white swings and restarts both timers when it completes,
  * as Slam without Improved Slam does (damage-and-timing §3.3 "Other casts": [?]); one Maelstrom Weapon
- * makes instant starts and stops nothing.
+ * makes instant starts and stops nothing. Casting speed shortens the cast (docs/mechanics/spells.md §4),
+ * after Maelstrom Weapon's cut.
  */
-export const LIGHTNING_BOLT = spellAbility(LIGHTNING_BOLT_SPELL, 220, { castMs: 2500, castStopsSwings: true })
+export const LIGHTNING_BOLT = spellAbility(LIGHTNING_BOLT_SPELL, 220, { castMs: 2500, castStopsSwings: true, castHasted: true })
 
 // --- Weapon imbues (shaman.md#weapon-imbues) ----------------------------------------------------------
 
@@ -254,7 +255,7 @@ export const rockbiterWeapon = (ap: number): AbilityDef => ({
  * Rage of the Farseer (425336) [F] [client] (SpellEffect, SpellDuration, SpellCooldowns, 1.60.1.69913):
  * +30% melee attack speed (aura 342) and casting speed (aura 65) for 25 s, a 3 min cooldown, off the GCD
  * (no `StartRecoveryTime`), no cost. Its casting speed does nothing to an instant Lightning Bolt, and
- * isn't simulated for a cast one [?].
+ * shortens a cast one (docs/mechanics/spells.md §4).
  */
 export const RAGE_OF_THE_FARSEER: AbilityDef = {
   ...SHAMAN,
@@ -264,7 +265,7 @@ export const RAGE_OF_THE_FARSEER: AbilityDef = {
   kind: 'cast',
   cooldownMs: 180000,
   gcdMs: 0,
-  aura: { id: 'rageOfTheFarseer', name: 'Rage of the Farseer', durationMs: 25000, mods: { haste: 30 } },
+  aura: { id: 'rageOfTheFarseer', name: 'Rage of the Farseer', durationMs: 25000, mods: { haste: 30, castHaste: 30 } },
 }
 
 /**
@@ -307,3 +308,195 @@ export const IMPROVED_STORMSTRIKE_AURA: AuraSpec = {
   durationMs: 15000,
   mods: { castingRegen: 100 * IMPROVED_STORMSTRIKE_SHARE },
 }
+
+// --- Elemental (shaman.md#elemental) ------------------------------------------------------------------
+
+/**
+ * Lightning Bolt r4 (915), the Classic Era downrank: 50 base points, variance 0.13483146, +0.6 a level
+ * from 20 to 25, so 49.63–56.37 at 60; coefficient 0.714, the same as rank 10's (the client gives
+ * every rank from 3 up 0.714, and rank 4 is learned at 20, so no low-level penalty applies); 60 mana,
+ * a 2.5 s cast [F] [client] (SpellEffect, SpellLevels, SpellPower, SpellCastTimes, 1.60.1.69913).
+ * Whether Forever charges a downranking penalty the client doesn't show is [?] (shaman.md, open
+ * questions).
+ */
+export const LIGHTNING_BOLT_R4_SPELL: SpellDef = {
+  ...LIGHTNING_BOLT_SPELL,
+  id: 'lightningBoltRank4',
+  name: 'Lightning Bolt (Rank 4)',
+  ...range(50, 0.13483146, 0.6, 20, 25),
+}
+export const LIGHTNING_BOLT_R4 = spellAbility(LIGHTNING_BOLT_R4_SPELL, 60, { castMs: 2500, castHasted: true })
+
+/**
+ * Chain Lightning r4 (10605): 123 base points, variance 0.11111111, +0.8 a level from 56 to 61, so
+ * 119.19–133.21 at 60; coefficient 0.571; Nature; 3 targets, each jump −30%, of which one boss takes
+ * the first [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913). Classic Era's rank 4 is 505–564
+ * [C]. Stormstrike's aura boosts it.
+ */
+export const CHAIN_LIGHTNING_SPELL: SpellDef = {
+  ...SPELL,
+  id: 'chainLightning',
+  name: 'Chain Lightning',
+  icon: 'spell_nature_chainlightning',
+  school: 'nature',
+  ...range(123, 0.11111111, 0.8, 56, 61),
+  spCoefficient: 0.571,
+  boost: STORMSTRIKE_BOOST,
+}
+
+/**
+ * Chain Lightning r4: 485 mana, a 2.0 s cast, its own 6 s cooldown (category 85,
+ * `CategoryRecoveryTime` 6000), on the GCD [F] [client] (SpellPower, SpellCastTimes, SpellCooldowns,
+ * SpellCategories, 1.60.1.69913). Casting speed shortens it (docs/mechanics/spells.md §4).
+ */
+export const CHAIN_LIGHTNING = spellAbility(CHAIN_LIGHTNING_SPELL, 485, { castMs: 2000, castHasted: true, cooldownMs: 6000 })
+
+/** Flame Shock's marker on the boss: up from its application until its last tick (docs/mechanics/spells.md §7). */
+export const FLAME_SHOCK_AURA: AuraSpec = { id: 'flameShock', name: 'Flame Shock', durationMs: 12000, mods: {} }
+
+/**
+ * Flame Shock r6 (29228): 166 Fire at once (+2.1 a level from 60, so 166 at 60, no variance;
+ * coefficient 0.214) and 4 ticks of 44 every 3 s (aura 3, coefficient 0.1 a tick) over 12 s; the
+ * periodic-crit flag (SpellMisc Attributes[8] 0x200), so its ticks crit in `forever` [F] [client]
+ * (SpellEffect, SpellMisc, SpellDuration, SpellLevels, 1.60.1.69913). Classic Era's rank 6 is 292 +
+ * 320 over 12 s [C]. A pure damage spell (its third effect is a dummy that Lava Burst reads), so
+ * partially resisted on average (docs/mechanics/spells.md §3).
+ */
+export const FLAME_SHOCK_SPELL: SpellDef = {
+  ...SPELL,
+  id: 'flameShock',
+  name: 'Flame Shock',
+  icon: 'spell_fire_flameshock',
+  school: 'fire',
+  min: atLevel60(166, 2.1, 60, 67),
+  max: atLevel60(166, 2.1, 60, 67),
+  spCoefficient: 0.214,
+  dotTicks: 4,
+  dotTickMs: 3000,
+  dotTickDamage: 44,
+  dotSpCoefficient: 0.1,
+  dotCanCrit: true,
+}
+
+/** Flame Shock r6: 410 mana, the shocks' 6 s cooldown, on the GCD [F] [client] (SpellPower, SpellCategories, 1.60.1.69913). */
+export const FLAME_SHOCK = spellAbility(FLAME_SHOCK_SPELL, 410, { cooldownMs: SHOCK_COOLDOWN_MS, category: SHOCK_CATEGORY, aura: FLAME_SHOCK_AURA })
+
+/** Lava Burst's +20% while your Flame Shock is on the target (1238300 #1, a dummy of 20), which it doesn't use up [F]. */
+export const LAVA_BURST_FLAME_SHOCK_PCT = 20
+
+/**
+ * Lava Burst r3 (1238300), the Elemental tree's tier-7 talent (408490 is its rank 1): 220 base points,
+ * variance 0.25325885, +1.3 a level from 60, so 192.14–247.86 at 60; coefficient 0.714; Fire; "If
+ * your Flame Shock is on the target, Lava Burst deals 20% increased damage" [F] [client] (SpellEffect,
+ * SpellLevels, 1.60.1.69913; tooltip "192 to 248"). New in Forever: Classic Era has no Lava Burst. Its
+ * travel time (speed 20) isn't simulated.
+ */
+export const LAVA_BURST_SPELL: SpellDef = {
+  ...SPELL,
+  id: 'lavaBurst',
+  name: 'Lava Burst',
+  icon: 'spell_shaman_lavaburst',
+  school: 'fire',
+  ...range(220, 0.25325885, 1.3, 60, 68),
+  spCoefficient: 0.714,
+  boost: { aura: FLAME_SHOCK_AURA.id, pct: LAVA_BURST_FLAME_SHOCK_PCT, keep: true },
+}
+
+/**
+ * Lava Burst r3: 265 mana, a 2.5 s cast, a 10 s cooldown (category 1224), on the GCD [F] [client]
+ * (SpellPower, SpellCastTimes, SpellCooldowns, SpellCategories, 1.60.1.69913).
+ */
+export const LAVA_BURST = spellAbility(LAVA_BURST_SPELL, 265, { castMs: 2500, castHasted: true, cooldownMs: 10000 })
+
+/**
+ * Clearcasting (16246), from Elemental Focus (16164) [F] [client] (SpellAuraOptions, SpellEffect,
+ * SpellDuration, 1.60.1.69913): one charge for 15 s, −100% mana cost (aura 108, misc 14) for the
+ * next damage spell: Lightning Bolt, Chain Lightning, the shocks and Lava Burst. The plan's
+ * `freeCastAura`, as the druid's Omen of Clarity (druid.md §2.7).
+ */
+export const ELEMENTAL_CLEARCASTING: AuraSpec = { id: 'elementalClearcasting', name: 'Clearcasting', durationMs: 15000, mods: {} }
+
+/**
+ * Elemental Focus (16164): a 10% chance after a Fire, Frost or Nature damage spell (proc mask
+ * 0x15550) of Clearcasting [F] [client] (SpellAuraOptions, 1.60.1.69913). "After casting" is read
+ * as the spell landing, as the core's spell procs are (docs/mechanics/spells.md §10) [?].
+ */
+export const elementalFocusProc = (): ProcSpec => ({
+  id: 'elementalFocus',
+  name: 'Elemental Focus',
+  icon: 'spell_shadow_manaburn',
+  trigger: 'spellLanded',
+  from: 'any',
+  schools: ['fire', 'frost', 'nature'],
+  chance: { pct: 10 },
+  action: { kind: 'aura', aura: ELEMENTAL_CLEARCASTING },
+  docRef: `${DOC}#elemental-talents`,
+})
+
+/**
+ * Lightning Overload (408438): its chance a rank, 3 / 7 / 10% (TraitDefinitionEffectPoints), that a
+ * Lightning Bolt or Chain Lightning casts "a second, similar spell on the same target at no
+ * additional cost that causes half damage and no threat" [F] [client] (SpellEffect, CurvePoint,
+ * 1.60.1.69913; tooltip). The sim rolls it when the spell lands, and the second spell rolls its own
+ * hit and crit, with the first one's talents, and triggers no procs [?] (shaman.md, open questions).
+ */
+export const LIGHTNING_OVERLOAD_PCT = [0, 3, 7, 10]
+const OVERLOAD_OF: Record<string, { id: string; name: string }> = {
+  lightningBolt: { id: 'lightningOverload', name: 'Lightning Overload' },
+  lightningBoltRank4: { id: 'lightningOverloadRank4', name: 'Lightning Overload (Rank 4)' },
+  chainLightning: { id: 'lightningOverloadChain', name: 'Lightning Overload (Chain Lightning)' },
+}
+export function lightningOverloadProc(spell: SpellDef, pct: number): ProcSpec {
+  const { id, name } = OVERLOAD_OF[spell.id] ?? { id: `${spell.id}Overload`, name: `Lightning Overload (${spell.name})` }
+  const { boost: _, ...rest } = spell
+  return {
+    id,
+    name,
+    icon: 'spell_nature_lightningoverload',
+    trigger: 'spellLanded',
+    from: 'any',
+    fromSpell: spell.id,
+    chance: { pct },
+    action: {
+      kind: 'spell',
+      spell: { ...rest, id, name, icon: 'spell_nature_lightningoverload', damageMult: spell.damageMult * 0.5, threatMult: 0, triggersProcs: false },
+    },
+    docRef: `${DOC}#elemental-talents`,
+  }
+}
+
+/**
+ * Mana Tide Totem r3 (17359), a Restoration talent: 60 mana, a 5 min cooldown (category 591), a 1 s
+ * GCD [F] [client] (SpellPower, SpellCooldowns, 1.60.1.69913); "restores 290 mana every 3 seconds"
+ * for 12 s to the party [F] tooltip, which the sim gives as 4 ticks of 290 from 3 s after it's
+ * dropped [?]. Classic Era's rank 3 is the same [C].
+ */
+export const MANA_TIDE_TOTEM: AbilityDef = {
+  ...SHAMAN,
+  id: 'manaTideTotem',
+  name: 'Mana Tide Totem',
+  icon: 'spell_frost_summonwaterelemental',
+  kind: 'cast',
+  ...mana(60),
+  cooldownMs: 300000,
+  gcdMs: 1000,
+  rageTickTenths: 2900,
+  rageTicks: 4,
+  rageTickMs: 3000,
+}
+
+/**
+ * The caster's racial cooldowns [F] [client] (SpellEffect, SpellDuration, SpellCooldowns,
+ * 1.60.1.69913): Troll Berserking (20554) is +10% attack speed (auras 319, 140) **and casting speed**
+ * (aura 65) for 10 s every 3 min; Orc Blood Fury (20572) is +10% attack power (aura 166) **and +10%
+ * spell power** (aura 317) for 15 s every 2 min, which the Elemental plan gives as 10% of the sheet's
+ * spell damage, as a flat aura [?] (shaman.md#elemental-defaults).
+ */
+export const casterBerserking = (base: AbilityDef): AbilityDef => ({
+  ...base,
+  aura: { id: 'berserking', name: 'Berserking', durationMs: 10000, mods: { haste: 10, castHaste: 10 } },
+})
+export const casterBloodFury = (base: AbilityDef, spellDamage: number): AbilityDef => ({
+  ...base,
+  aura: { id: 'bloodFury', name: 'Blood Fury', durationMs: 15000, mods: { apPct: 10, spellDamage } },
+})

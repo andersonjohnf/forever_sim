@@ -585,12 +585,49 @@ const REGISTRY = {
     docRef: `${SHAM}#shocks-and-lightning-bolt`,
   },
   shamanSpellDamage: {
-    text: 'Your spells use your all-schools spell damage and Mental Quickness’s share of Intellect; Nature- or Frost-only spell damage on gear isn’t counted yet. They roll the spell table with an average partial resist.',
+    text: 'Your spells use your all-schools spell damage, Mental Quickness’s share of Intellect and their own school’s spell damage on gear. They roll the spell table with an average partial resist.',
     docRef: `${SHAM}#spell-damage`,
   },
   shamanTotems: {
     text: 'Your own totems (Strength of Earth, Grace of Air, Mana Spring; see Buffs) are up all fight, dropped before the pull.',
     docRef: `${SHAM}#totems`,
+  },
+  // The Elemental shaman's (docs/classes/shaman.md#elemental-open-questions).
+  elementalSpells: {
+    text: 'You cast from range and never swing your weapon. Your spells miss 17% of the time against a raid boss before spell hit and lose 6% to partial resists on average; Flame Shock’s ticks crit at your spell crit, as the Forever client flags them; casting speed doesn’t shorten the 1.5 s global cooldown. All untested in Forever.',
+    docRef: `${SHAM}#elemental-open-questions`,
+  },
+  manaRegenElemental: {
+    text: 'Mana regenerates every 2 s, from a random moment in the first 2 s of the fight: 15 + Spirit / 5 when you’ve spent none for 5 s, Mindfulness’s share of it inside those 5 s, and your mp5 always.',
+    docRef: `${SHAM}#elemental-mana`,
+  },
+  elementalTotems: {
+    text: 'Your own Mana Spring Totem (see Buffs) is up all fight, dropped before the pull.',
+    docRef: `${SHAM}#totems`,
+  },
+  elementalFocus: {
+    text: 'Clearcasting comes from 10% of your Fire, Frost and Nature spells that land (the tooltip says after casting), and the next spell you cast uses it, whatever it costs.',
+    docRef: `${SHAM}#elemental-talents`,
+  },
+  lightningOverload: {
+    text: 'Lightning Overload’s second spell comes from a Lightning Bolt or Chain Lightning that lands, deals half damage with the same talents, rolls its own hit and crit, and triggers nothing; untested.',
+    docRef: `${SHAM}#elemental-talents`,
+  },
+  manaTideTotem: {
+    text: 'Mana Tide Totem restores its 290 mana 4 times, every 3 s from 3 s after you drop it; untested.',
+    docRef: `${SHAM}#elemental-mana`,
+  },
+  lightningBoltDownrank: {
+    text: 'Rank 4 Lightning Bolt keeps rank 10’s 0.714 spell damage coefficient, as the client gives it, with no penalty for a lower rank; untested in Forever.',
+    docRef: `${SHAM}#elemental-priority`,
+  },
+  totemOfTheStorm: {
+    text: 'Totem of the Storm’s “up to 33” is read as 33 spell damage for Lightning Bolt and Chain Lightning, so it adds 33 × their coefficient; the effect is a server-side script.',
+    docRef: `${SHAM}#elemental-defaults`,
+  },
+  bloodFurySpellPower: {
+    text: 'Blood Fury’s +10% spell power is 10% of your sheet’s Nature spell damage, fixed at the pull.',
+    docRef: `${SHAM}#elemental-defaults`,
   },
   // --- The rogue's (docs/classes/rogue.md §9) ---
   energyTicksRogue: {

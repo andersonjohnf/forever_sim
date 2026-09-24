@@ -163,6 +163,13 @@ export const ITEM_EFFECTS: Record<number, ItemEffects> = {
     source: 'Forever client: spell 27859 (1.60.1.69913); the shaman rotation’s shocks add its 2%',
     effects: [],
   },
+  // Totem of the Storm (item 23199): "Equip: Increases damage done by Chain Lightning and Lightning Bolt
+  // by up to 33." (28857, aura 112: a class script). Nothing on its own: the shaman's Lightning Bolt and
+  // Chain Lightning read it (docs/classes/shaman.md#elemental-defaults, its pre-raid BiS relic).
+  23199: {
+    source: 'Forever client: spell 28857 (1.60.1.69913); the shaman rotations’ Lightning Bolt and Chain Lightning add its 33 spell damage',
+    effects: [],
+  },
   // Flurry Axe: "Grants 1 extra attack on your next swing"; 1.8 PPM [C].
   871: {
     source: 'Tooltip text; 1.8 PPM (WarriorSim gear.js, pre-SoD)',

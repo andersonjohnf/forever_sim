@@ -21,8 +21,10 @@ describe('the About sheet and page description', () => {
     expect(coverageSentence(offering('warrior-fury', 'warrior-arms'))).toBe('Covers Warriors: Fury and Arms.')
     // The specs that ship today: Protection since P2, the Feral cat since B2 and the bear since B4,
     // whose names never break across lines, Retribution since C2, a class after another " · ", the
-    // Protection paladin since C3, Enhancement since S1, the three rogues since R1, the mages since K2 and the warlocks since K3.
-    expect(coverageSentence()).toBe('Covers Warriors: Fury, Arms and Protection · Druids: Feral (Cat) and Feral (Bear) · Paladins: Retribution and Protection · Shamans: Enhancement · Rogues: Combat, Assassination and Subtlety · Mages: Fire, Frost and Arcane · Warlocks: Destruction and Affliction.')
+    // Protection paladin since C3, Enhancement since S1, the three rogues since R1, the mages since K2, the warlocks since K3 and Elemental since K5.
+    expect(coverageSentence()).toBe(
+      'Covers Warriors: Fury, Arms and Protection · Druids: Feral (Cat) and Feral (Bear) · Paladins: Retribution and Protection · Shamans: Enhancement and Elemental · Rogues: Combat, Assassination and Subtlety · Mages: Fire, Frost and Arcane · Warlocks: Destruction and Affliction.',
+    )
     const all = coverageSentence(specs)
     expect(all).toMatch(/^Covers Warriors: [^·]+ · Druids: [^·]+ · Paladins: [^·]+ · Shamans: [^·]+ · Rogues: [^·]+ · Mages: [^·]+ · Warlocks: [^·]+\.$/)
     expect(all).toContain('Fury, Arms and Protection')

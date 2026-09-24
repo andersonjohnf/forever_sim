@@ -43,6 +43,8 @@ const PROTECTION_PALADIN: SpecId[] = ['paladin-protection']
 const PALADIN_ONLY: readonly ClassId[] = ['paladin']
 /** The Enhancement shaman (docs/classes/shaman.md#defaults): mana and Nature and Frost spell damage matter to it too. */
 const SHAMAN: SpecId[] = ['shaman-enhancement']
+/** The Elemental shaman (docs/classes/shaman.md#elemental-defaults): a caster, which never swings. */
+const ELEMENTAL: SpecId[] = ['shaman-elemental']
 /** The classes that spend mana in their rotations: the paladin and the shaman (buffs doc, class-only entries). */
 const MANA_USERS: readonly ClassId[] = ['paladin', 'shaman']
 /** The rogue specs, and entries only a rogue can use (its poisons, docs/classes/rogue.md §4). */
@@ -480,7 +482,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#12-threat-defense-and-mana`,
     // The totem's Mana Spring 10494 #0: aura 24, 10 every 2 s, which is 25 mana per 5 s.
     effects: [{ kind: 'stat', stat: 'mp5', value: 25 }],
-    presets: { dungeon: SHAMAN, raid: MANA_SPECS, max: MANA_SPECS },
+    presets: { dungeon: [...SHAMAN, ...ELEMENTAL], raid: MANA_SPECS, max: MANA_SPECS },
   },
 
   // The caster core's raid buffs (docs/mechanics/spells.md §9, §12; buffs doc §1.1): the casters' only.

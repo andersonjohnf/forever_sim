@@ -299,7 +299,11 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
       optimizer: the four fixes, threat.md's wording table, Classic
       Era Sunder at 261 (T1's), and interim 9/42/0 talents and threat gear with an effective-health
       floor ([druid.md §7.1, §7.3a](classes/druid.md#73a-interim-gear-m56-t3))
-- [ ] **T4 Warrior:** its talent build and preset come from the optimizer (O4)
+- [ ] **T4 Warrior:** its talent build and preset come from the optimizer (O4). The interim
+      re-gear is done as a quick fix: the gear review's threat set with an effective-health floor,
+      like the paladin's and the bear's (1,124.2 TPS, 357.0 DPS;
+      [warrior.md §6.3](classes/warrior.md#63-protection-gear-interim-measured-m56-t4)); its talents
+      still come from the optimizer
 - [ ] **T5 Balanced rotation (D28)** for all three tanks, the new default; Defensive and Max TPS
       stay selectable
 - [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,

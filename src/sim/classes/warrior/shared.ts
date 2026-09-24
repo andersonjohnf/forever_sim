@@ -434,7 +434,7 @@ export const minRage = (tenths: number): RotationCondition => ({ code: COND.minR
 export const maxRage = (rage: number): RotationCondition => ({ code: COND.maxRage, a: toTenths(rage), b: 0 })
 /** The aura ability a puts on the warrior or the boss is down, or has at most `ms` left and would end before the fight does. */
 export const auraRefresh = (ability: number, ms: number): RotationCondition => ({ code: COND.abilityAuraRefresh, a: ability, b: ms })
-/** The aura ability a puts on the boss has fewer than `n` stacks (Sunder Armor, warrior.md §5.4 row 8). */
+/** The aura ability a puts on the boss has fewer than `n` stacks (Sunder Armor, warrior.md §5.4 row 10). */
 export const stacksBelow = (ability: number, n: number): RotationCondition => ({ code: COND.abilityAuraStacksBelow, a: ability, b: n })
 /** GCD-safe for the abilities in `mask` over `gcdMs` (warrior.md §5.1), or no condition when there are none. */
 export const gcdSafe = (mask: number, gcdMs = GCD_MS): RotationCondition[] => (mask ? [{ code: COND.gcdSafe, a: mask, b: gcdMs }] : [])

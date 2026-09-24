@@ -223,9 +223,9 @@ describe('Protection rotation options (warrior.md §5.1, §5.4)', () => {
     const maintains = PROTECTION_OPTIONS.flatMap((o) => (o.kind === 'toggle' && o.maintainsBuff ? [[o.id, o.maintainsBuff]] : []))
     expect(maintains).toEqual([
       [ID.bsEnabled, 'battleShout'],
-      [ID.sunderEnabled, 'sunderArmor'],
       [ID.tcEnabled, 'thunderClap'],
       [ID.demoEnabled, 'demoralizingShout'],
+      [ID.sunderEnabled, 'sunderArmor'],
       [ID.fillerEnabled, 'sunderArmor'],
     ])
   })
@@ -241,7 +241,7 @@ describe('Max TPS (warrior.md §5.4 "Priority" and "Max TPS", D26)', () => {
     for (const id of DUTIES) expect([id, duties[id], max[id]]).toEqual([id, true, false])
     // D26's amendment: Max TPS drops only the duties.
     expect([duties[ID.slamEnabled], max[ID.slamEnabled]]).toEqual([true, true])
-    expect([duties[ID.hsMinRage], max[ID.hsMinRage]]).toEqual([65, 45])
+    expect([duties[ID.hsMinRage], max[ID.hsMinRage]]).toEqual([76, 45])
     // Nothing else moves: the search found no other setting better (§5.4 "Max TPS").
     const moved = Object.keys(duties).filter((id) => duties[id] !== max[id])
     expect(moved.sort()).toEqual([ID.priority, ...DUTIES, ID.hsMinRage].sort())
@@ -279,19 +279,20 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
   const rot = (values: Record<string, boolean | number> = {}, talents = TALENTS) =>
     protectionRotation(values, talents, noAura, { consumables: [potion], race: 'alliance-human' })
 
-  it('uses §5.4’s rows in priority order with the default settings: the best rotation found (D23, P1)', () => {
+  it('uses §5.4’s rows in priority order with the default settings: the best rotation found (D23, P1, PV1)', () => {
     const r = rot()
+    // Thunder Clap and Demoralizing Shout first from the pull, before any threat ability (D26's amendment).
     expect(ids(r)).toEqual([
       'shieldBlock',
       'bloodrage',
       'mightyRagePotion',
+      'thunderClap',
+      'demoralizingShout',
       'shieldSlam',
       'revenge',
       'battleShout',
       'sunderArmor',
       'sunderArmor',
-      'thunderClap',
-      'demoralizingShout',
       'sunderArmor',
       'heroicStrike',
       'heroicStrike',
@@ -302,8 +303,8 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
       [ID.prepullBloodrage]: false,
       [ID.bsRefresh]: 0,
       [ID.fillerSafe]: false,
-      [ID.hsMinRage]: 65,
-      [ID.hsLastSec]: 10,
+      [ID.hsMinRage]: 76,
+      [ID.hsLastSec]: 12,
       [ID.fillerMinRage]: 9,
     })
     // Charge in Defensive Stance with Vanguard: its 15 rage, no swap.
@@ -327,11 +328,11 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
     ])
     expect(linesOf(r, 'thunderClap')[0].conditions).toEqual([{ code: COND.abilityAuraRefresh, a: at(r, 'thunderClap'), b: 3000 }])
     expect(linesOf(r, 'demoralizingShout')[0].conditions).toEqual([{ code: COND.abilityAuraRefresh, a: at(r, 'demoralizingShout'), b: 3000 }])
-    // From 65 rage, and in the fight's last 10 s from its cost: rage left at the end is wasted.
+    // From 76 rage, and in the fight's last 12 s from its cost: rage left at the end is wasted.
     expect(linesOf(r, 'heroicStrike').map((e) => e.conditions)).toEqual([
-      [{ code: COND.minRage, a: 650, b: 0 }],
+      [{ code: COND.minRage, a: 760, b: 0 }],
       [
-        { code: COND.timeLeftAtMost, a: 10000, b: 0 },
+        { code: COND.timeLeftAtMost, a: 12000, b: 0 },
         { code: COND.minRage, a: 0, b: 0 },
       ],
     ])
@@ -342,7 +343,23 @@ describe('the Protection priority list (warrior.md §5.4)', () => {
 
   it('follows its switches: Thunder Clap on cooldown, the filler waiting for Shield Slam, Execute’s dance, and rows off', () => {
     const r = rot({ [ID.tcMaintainOnly]: false, [ID.fillerSafe]: true, [ID.exEnabled]: true, [ID.prepullBloodrage]: true })
-    expect(linesOf(r, 'thunderClap')[0].conditions).toEqual([{ code: COND.gcdSafe, a: 1 << at(r, 'shieldSlam'), b: 1500 }])
+    // Its slow still goes up first from the pull, once it's down; then it's used on cooldown, below
+    // Sunder Armor's upkeep, when Shield Slam is GCD-safe.
+    expect(linesOf(r, 'thunderClap').map((e) => e.conditions)).toEqual([
+      [{ code: COND.abilityAuraRefresh, a: at(r, 'thunderClap'), b: 0 }],
+      [{ code: COND.gcdSafe, a: 1 << at(r, 'shieldSlam'), b: 1500 }],
+    ])
+    expect(ids(r).slice(3, 12)).toEqual([
+      'thunderClap',
+      'demoralizingShout',
+      'shieldSlam',
+      'revenge',
+      'battleShout',
+      'sunderArmor',
+      'sunderArmor',
+      'thunderClap',
+      'sunderArmor',
+    ])
     expect(r.prepull.casts.map((c) => [r.abilities[c.ability].id, c.atMs])).toEqual([
       ['battleShout', -3000],
       ['bloodrage', -1000],

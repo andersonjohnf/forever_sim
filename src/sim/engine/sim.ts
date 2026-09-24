@@ -2020,7 +2020,7 @@ export class Sim {
           if (this.mana > a) return false
           break
         case COND.abilityAuraStacksBelow: {
-          // warrior.md §5.4 row 8: Sunder Armor's stacks below 5 (down counts as none).
+          // warrior.md §5.4 row 10: Sunder Armor's stacks below 5 (down counts as none).
           const aura = this.abAura[a]
           if (aura >= 0 && this.auraActive[aura] && this.auraStacks[aura] >= b) return false
           break

@@ -1,9 +1,10 @@
 // The Protection priority list and its settings (docs/classes/warrior.md §5.1, §5.4).
 //
 // This covers the pre-pull (row 0), Shield Block (row 1), Bloodrage (row 2), the racial and on-use
-// trinkets (row 3), the Mighty Rage Potion and Juju Flurry (row 4), Shield Slam and Revenge (rows 5
-// and 6), the upkeep of Battle Shout, Sunder Armor, Thunder Clap and Demoralizing Shout (rows 7–10),
-// the Sunder Armor filler (row 11), the Heroic Strike queue (row 12) and Execute (row 13, off by
+// trinkets (row 3), the Mighty Rage Potion and Juju Flurry (row 4), the upkeep of Thunder Clap and
+// Demoralizing Shout, the tank's debuffs, first from the pull (rows 5 and 6, D26), Shield Slam and
+// Revenge (rows 7 and 8), the upkeep of Battle Shout and Sunder Armor (rows 9 and 10), the Sunder
+// Armor filler (row 11), the Heroic Strike queue (row 12) and Execute (row 13, off by
 // default). Setting ids are `warrior.protection.<ability>.<param>` and every rage threshold is in
 // absolute rage points (§5.1). Abilities are resolved with the build's talents (modifiers.ts) before
 // their costs feed any condition. The lines apply in both phases: only Execute is the execute phase's.
@@ -88,10 +89,10 @@ const PROT_MAX_RAGE = 100
  */
 export const PROTECTION_PRIORITY = { duties: 'duties', maxTps: 'maxTps' } as const
 const MAX_TPS = { option: ID.priority, is: PROTECTION_PRIORITY.maxTps } as const
-/** Max TPS's Heroic Strike threshold (§5.4 "Max TPS"): 45, where the duties' default is 65. */
+/** Max TPS's Heroic Strike threshold (§5.4 "Max TPS"): 45, where the duties' default is 76. */
 const MAX_TPS_HS_MIN_RAGE = 45
 
-/** A debuff's refresh input, in seconds left (rows 8–10). */
+/** A debuff's refresh input, in seconds left (rows 5, 6 and 10). */
 const refreshOption = (id: string, what: string, dependsOn: string, def = 3): RotationOption => ({
   kind: 'number',
   id,
@@ -116,7 +117,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     kind: 'choice',
     id: ID.priority,
     label: 'Priority',
-    help: 'Tank duties first keeps Shield Block up and Thunder Clap and Demoralizing Shout on the boss, so you take less damage. Max TPS drops all three for threat: about 13% more TPS and 36% more damage taken in the default setup. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another player’s.',
+    help: 'Tank duties first keeps Shield Block up and Thunder Clap and Demoralizing Shout on the boss, so you take less damage. Max TPS drops all three for threat: about 15% more TPS and 39% more damage taken in the default setup. Pick it when another tank or the raid covers your survival. The Buffs tab’s Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another warrior’s.',
     choices: [
       { value: PROTECTION_PRIORITY.duties, label: 'Tank duties first' },
       { value: PROTECTION_PRIORITY.maxTps, label: 'Max TPS' },
@@ -154,6 +155,37 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
   ...cooldownOptions(ID).filter((o) => o.id !== ID.cdSync),
   {
     kind: 'toggle',
+    id: ID.tcEnabled,
+    group: 'Core abilities',
+    label: 'Thunder Clap',
+    help: 'Keep Thunder Clap’s slow on the boss from the pull, before your threat abilities: it attacks 20% slower (10% in Classic Era rules). While this is on, the Buffs tab’s Thunder Clap adds nothing more. Off by default with Max TPS.',
+    default: true,
+    defaultWhen: [{ ...MAX_TPS, default: false }],
+    maintainsBuff: 'thunderClap',
+  },
+  {
+    kind: 'toggle',
+    id: ID.tcMaintainOnly,
+    group: 'Core abilities',
+    label: 'Thunder Clap only to keep the slow up',
+    help: 'Use it only when the slow is about to run out. Off: also whenever it’s ready and Shield Slam isn’t about to be.',
+    default: true,
+    dependsOn: ID.tcEnabled,
+  },
+  refreshOption(ID.tcRefresh, 'Thunder Clap', ID.tcMaintainOnly),
+  {
+    kind: 'toggle',
+    id: ID.demoEnabled,
+    group: 'Core abilities',
+    label: 'Demoralizing Shout',
+    help: 'Keep Demoralizing Shout on the boss from the pull, before your threat abilities: its attack power is 204 lower (146 in Classic Era rules), so it hits you for less. While this is on, the Buffs tab’s Demoralizing Shout adds nothing more. Off by default with Max TPS.',
+    default: true,
+    defaultWhen: [{ ...MAX_TPS, default: false }],
+    maintainsBuff: 'demoralizingShout',
+  },
+  refreshOption(ID.demoRefresh, 'Demoralizing Shout', ID.demoEnabled),
+  {
+    kind: 'toggle',
     id: ID.slamEnabled,
     group: 'Core abilities',
     label: 'Shield Slam',
@@ -182,37 +214,6 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
   refreshOption(ID.sunderRefresh, 'Sunder Armor', ID.sunderEnabled),
   {
     kind: 'toggle',
-    id: ID.tcEnabled,
-    group: 'Core abilities',
-    label: 'Thunder Clap',
-    help: 'Keep Thunder Clap’s slow on the boss: it attacks 20% slower (10% in Classic Era rules). While this is on, the Buffs tab’s Thunder Clap adds nothing more. Off by default with Max TPS.',
-    default: true,
-    defaultWhen: [{ ...MAX_TPS, default: false }],
-    maintainsBuff: 'thunderClap',
-  },
-  {
-    kind: 'toggle',
-    id: ID.tcMaintainOnly,
-    group: 'Core abilities',
-    label: 'Thunder Clap only to keep the slow up',
-    help: 'Use it only when the slow is about to run out. Off: whenever it’s ready and Shield Slam isn’t about to be.',
-    default: true,
-    dependsOn: ID.tcEnabled,
-  },
-  refreshOption(ID.tcRefresh, 'Thunder Clap', ID.tcMaintainOnly),
-  {
-    kind: 'toggle',
-    id: ID.demoEnabled,
-    group: 'Core abilities',
-    label: 'Demoralizing Shout',
-    help: 'Keep Demoralizing Shout on the boss: its attack power is 204 lower (146 in Classic Era rules), so it hits you for less. While this is on, the Buffs tab’s Demoralizing Shout adds nothing more. Off by default with Max TPS.',
-    default: true,
-    defaultWhen: [{ ...MAX_TPS, default: false }],
-    maintainsBuff: 'demoralizingShout',
-  },
-  refreshOption(ID.demoRefresh, 'Demoralizing Shout', ID.demoEnabled),
-  {
-    kind: 'toggle',
     id: ID.fillerEnabled,
     group: 'Fillers',
     label: 'Sunder Armor filler',
@@ -233,7 +234,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
   },
   ...heroicStrikeOptions(
     ID,
-    65,
+    76,
     {
       default: true,
       help: 'Queue Heroic Strike on the next main-hand swing when rage is high, to spend rage the global cooldowns can’t.',
@@ -258,7 +259,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     min: 0,
     max: 60,
     step: 1,
-    default: 10,
+    default: 12,
     dependsOn: ID.hsEnabled,
   },
   {
@@ -326,21 +327,32 @@ export function protectionRotation(
   const juju = ctx.consumables.find((c) => c.id === JUJU_FLURRY)
   if (juju && v.on(ID.jujuEnabled)) b.add(onUseAbility(juju), [])
 
-  // Row 5: Shield Slam (the talent) whenever it's ready, at rage ≥ minRage.
+  // Rows 5 and 6: the tank's debuffs on the boss, first from the pull, before any threat ability
+  // (D26's amendment, §5.4): Thunder Clap's slow, and Demoralizing Shout, each missing or with
+  // ≤ refreshBelowSec left. Without maintainOnly, Thunder Clap's slow goes up here once it's down, and
+  // it's also used on cooldown for its threat below Sunder Armor's upkeep.
+  const tcDef = thunderClap(ctx.profile)
+  if (v.on(ID.tcEnabled)) b.add(tcDef, [auraRefresh(b.ability(tcDef), v.on(ID.tcMaintainOnly) ? seconds(v, ID.tcRefresh) : 0)])
+  if (v.on(ID.demoEnabled)) {
+    const def = demoralizingShout(ctx.profile)
+    b.add(def, [auraRefresh(b.ability(def), seconds(v, ID.demoRefresh))])
+  }
+
+  // Row 7: Shield Slam (the talent) whenever it's ready, at rage ≥ minRage.
   let slam = -1
   if (talents.has('Shield Slam') && v.on(ID.slamEnabled)) slam = b.add(SHIELD_SLAM, [minRage(toTenths(v.num(ID.slamMinRage)))])
 
-  // Row 6: Revenge whenever its window is open (the engine adds the window to the line); its openers
+  // Row 8: Revenge whenever its window is open (the engine adds the window to the line); its openers
   // come with it: a block, dodge or parry of the boss's swings (§2.8).
   if (v.on(ID.revEnabled)) {
     b.add(REVENGE, [])
     b.procs.push(...revengeWindowProcs())
   }
 
-  // Row 7: Battle Shout (shared.ts), missing or with ≤ refreshBelowSec left.
+  // Row 9: Battle Shout (shared.ts), missing or with ≤ refreshBelowSec left.
   const shout = battleShoutLine(b, v, ID, ctx)
 
-  // Row 8: Sunder Armor while the boss has fewer than 5 stacks, or they have ≤ refreshBelowSec left
+  // Row 10: Sunder Armor while the boss has fewer than 5 stacks, or they have ≤ refreshBelowSec left
   // and would run out before the fight does.
   if (v.on(ID.sunderEnabled)) {
     const sunder = b.ability(SUNDER_ARMOR)
@@ -348,17 +360,8 @@ export function protectionRotation(
     b.add(SUNDER_ARMOR, [auraRefresh(sunder, seconds(v, ID.sunderRefresh))])
   }
 
-  // Row 9: Thunder Clap, to keep its slow up (maintainOnly), or on cooldown.
-  if (v.on(ID.tcEnabled)) {
-    const def = thunderClap(ctx.profile)
-    b.add(def, v.on(ID.tcMaintainOnly) ? [auraRefresh(b.ability(def), seconds(v, ID.tcRefresh))] : [...gcdSafe(bit(slam))])
-  }
-
-  // Row 10: Demoralizing Shout, missing or with ≤ refreshBelowSec left.
-  if (v.on(ID.demoEnabled)) {
-    const def = demoralizingShout(ctx.profile)
-    b.add(def, [auraRefresh(b.ability(def), seconds(v, ID.demoRefresh))])
-  }
+  // Row 5, without maintainOnly: Thunder Clap on cooldown, when Shield Slam is GCD-safe.
+  if (v.on(ID.tcEnabled) && !v.on(ID.tcMaintainOnly)) b.add(tcDef, [...gcdSafe(bit(slam))])
 
   // Row 11: the Sunder Armor filler at rage ≥ minRage; with waitForShieldSlam, GCD-safe for Shield Slam
   // only, so it's a setting that changes nothing without Shield Slam. Revenge waits for its window, so

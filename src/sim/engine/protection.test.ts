@@ -173,7 +173,7 @@ describe('Protection worked examples in the engine (warrior.md W14, W15)', () =>
     expect(perHit(shield) / perHit(armed)).toBeLessThan(1.02)
     expect(counter(shield.sim, shield.row('thunderClap'), FIELD.damage)).toBeGreaterThan(0)
     expect(shield.assumptions.find((a) => a.id === 'weaponlessAttacks')?.text).toMatch(
-      /^Still used, since they need no weapon: Shield Slam, Thunder Clap and Demoralizing Shout\./,
+      /^Still used, since they need no weapon: Thunder Clap, Demoralizing Shout and Shield Slam\./,
     )
     // With neither a weapon nor a shield: Thunder Clap and Demoralizing Shout only.
     const bare = run({ ...d.gear, mainHand: undefined, offHand: undefined })
@@ -482,10 +482,10 @@ describe('the default Protection warrior (warrior.md §5.4)', () => {
     expect(result.cooldowns.find((a) => a.id === 'revengeWindow')!.castsPerFight).toBeNull()
   })
 
-  it('blocks about 65% of the boss’s swings with Shield Block on cooldown, pushing crushing blows and crits off its table (§5.4 notes, PL10)', () => {
+  it('blocks about 66% of the boss’s swings with Shield Block on cooldown, pushing crushing blows and crits off its table (§5.4 notes, PL10)', () => {
     const outcomes = toResult(bundle, agg, 0).tank!.outcomes
-    // Shield Block's +75% for two blocks: the sheet's 11% block becomes about 65% of the swings,
-    // and crushing blows (15% of the table without it) and crits fall to about 1.3% and 0.3%.
+    // Shield Block's +75% for two blocks: the sheet's 11% block becomes about 66% of the swings,
+    // and crushing blows (15% of the table without it) and crits fall to about 1.2% and 0.3%.
     expect(outcomes.block).toBeGreaterThan(60)
     expect(outcomes.block).toBeLessThan(70)
     expect(outcomes.crush).toBeLessThan(2.5)
@@ -535,14 +535,14 @@ describe('Max TPS in the engine (warrior.md §5.4 "Max TPS", D26)', () => {
     expect(used.has('shieldSlam')).toBe(true)
   })
 
-  it('makes more threat and less damage than the default, on the same fights', () => {
+  it('makes more threat and more damage than the default, on the same fights', () => {
     const duties = runFights(buildPlan(config({})).plan, 2000)
     const max = runFights(buildPlan(config(MAX)).plan, 2000)
-    // §5.4 "Max TPS": about +13% TPS and +5.5% DPS in the default setup, with nobody's Thunder Clap or
+    // §5.4 "Max TPS": about +15% TPS and +8.5% DPS in the default setup, with nobody's Thunder Clap or
     // Demoralizing Shout on the boss: the faster, harder boss gives more rage, and Shield Slam stays.
-    expect(max.tps.mean / duties.tps.mean).toBeGreaterThan(1.11)
-    expect(max.tps.mean / duties.tps.mean).toBeLessThan(1.15)
-    expect(max.dps.mean / duties.dps.mean).toBeGreaterThan(1.03)
-    expect(max.dps.mean / duties.dps.mean).toBeLessThan(1.08)
+    expect(max.tps.mean / duties.tps.mean).toBeGreaterThan(1.13)
+    expect(max.tps.mean / duties.tps.mean).toBeLessThan(1.17)
+    expect(max.dps.mean / duties.dps.mean).toBeGreaterThan(1.06)
+    expect(max.dps.mean / duties.dps.mean).toBeLessThan(1.11)
   })
 })

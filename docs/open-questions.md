@@ -708,8 +708,8 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
   Sunder Armor over the Expose Armor: an error or not, the debuff, and the threat macro.
 - **Samples:** 2 trials.
 - **Changes:** the `armor-major` group. If both stay, standard raid armor drops another 2,250. If
-  a Sunder fails over Expose Armor, a Protection warrior with it loses about 25% of its TPS
-  (1,013.84 → 759.37; [warrior Q35](classes/warrior.md#9-open-questions)).
+  a Sunder fails over Expose Armor, a Protection warrior with it loses about 31% of its TPS
+  (996.34 → 684.08; [warrior Q35](classes/warrior.md#9-open-questions)).
 - **Docs:** [buffs §4.1](mechanics/buffs-debuffs-consumables.md#41-armor-reduction),
   [buffs OQ 2](mechanics/buffs-debuffs-consumables.md#open-questions)
 

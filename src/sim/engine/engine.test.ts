@@ -523,6 +523,23 @@ describe('golden run (fixed config and seed)', () => {
   //   seed's 500 fights Heroic Strike's threat 10.99 M → 11.18 M (2,412 → 2,462 parried), Sunder
   //   Armor's 27.61 M → 27.68 M; TPS 1,004.67 → 1,005.29, DPS 313.29 → 312.89. Max TPS queues Heroic
   //   Strike from 45 (50), which the default run doesn't use. Fury and Arms are unchanged.
+  // - P1 and P2 rebased onto main's Feral cat (B2) and its fix round: all four unchanged, re-run
+  //   rather than re-snapshotted. The cat's debuff armor (Faerie Fire's `targetArmor`) and Sunder
+  //   Armor's stacks share one aura field and one armor total, and a warrior row sets none of the
+  //   cat's other fields (`flatDamageRange`, `auraCrit`, `bleedingTargetPct`, `dotSource`,
+  //   `behindOnly`). The identity probe gives Fury's, Arms', the cat's, the bear's and the paladins'
+  //   whole results as main's, and Protection's as the branch's.
+  // - P2's verification (PV1, PV5, PV6; D26's amendment, D23): Thunder Clap and Demoralizing Shout
+  //   go up first from the pull, before any threat ability (rows 5 and 6, above Shield Slam, Revenge
+  //   and Sunder Armor's upkeep), and the re-tune on that order: Heroic Strike from 76 rage (65), and
+  //   with any rage in the fight's last 12 s (10). Over 400,000 paired fights on a seed no search
+  //   used, against the previous defaults: −19.19 TPS (−1.92%), −8.76 DPS (−2.81%) and 2.60% less
+  //   damage taken; the re-tune alone is +0.17 TPS and +0.45 DPS (warrior.md §5.4). On this seed's
+  //   500 fights, more Thunder Claps and Demoralizing Shouts (their threat 1.22 M → 1.41 M and
+  //   0.13 M → 0.15 M) and Sunder Armors (27.68 M → 28.18 M), fewer Shield Slams (17.83 M → 17.14
+  //   M), Revenges (14.92 M → 13.80 M) and Heroic Strikes (11.18 M → 10.06 M); TPS 1,005.29 →
+  //   984.26, DPS 312.89 → 303.36. Max TPS's last-seconds dump, now 12 s too, isn't in the default
+  //   run. Fury, Arms and the cat are unchanged.
   it('keeps the default Fury warrior’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

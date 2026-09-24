@@ -29,12 +29,18 @@ test.describe('Protection rotation', () => {
     await expect(priority.getByRole('radio', { name: 'Max TPS' })).not.toBeChecked()
     // Its help says what Max TPS drops, why the default keeps it, what it gains and costs, and when to pick it.
     await expect(priority).toHaveAccessibleDescription(
-      /^Tank duties first keeps Shield Block up and Thunder Clap and Demoralizing Shout on the boss, so you take less damage\. Max TPS drops all three for threat: about 13% more TPS and 36% more damage taken in the default setup\. Pick it when another tank or the raid covers your survival\./,
+      /^Tank duties first keeps Shield Block up and Thunder Clap and Demoralizing Shout on the boss, so you take less damage\. Max TPS drops all three for threat: about 15% more TPS and 39% more damage taken in the default setup\. Pick it when another tank or the raid covers your survival\./,
     )
     expect((await priority.boundingBox())!.y).toBeLessThan((await tab.getByRole('heading', { name: 'Before the pull' }).boundingBox())!.y)
     // Execute is the tank's only execute-phase setting, so it sits under Core abilities: no heading over one setting.
     await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Before the pull', 'Cooldowns and buffs', 'Core abilities', 'Fillers', 'Consumables'])
-    await expect(tab.getByRole('region', { name: 'Core abilities' }).getByRole('switch', { name: 'Execute', exact: true })).not.toBeChecked()
+    const core = tab.getByRole('region', { name: 'Core abilities' })
+    await expect(core.getByRole('switch', { name: 'Execute', exact: true })).not.toBeChecked()
+    // Its switches in priority order: the debuffs first from the pull, then the threat abilities (D26).
+    const order = ['Thunder Clap', 'Thunder Clap only to keep the slow up', 'Demoralizing Shout', 'Shield Slam', 'Revenge', 'Sunder Armor', 'Execute']
+    const switches = core.getByRole('switch')
+    await expect(switches).toHaveCount(order.length)
+    for (const [i, name] of order.entries()) await expect(switches.nth(i)).toHaveAccessibleName(name)
     for (const name of DUTIES) await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
     // The default Protection warrior is a Human, whose racial cooldown isn't used, as for every spec.
     await expect(tab.getByRole('switch', { name: 'Racial cooldown', exact: true })).toHaveAccessibleDescription(/Not used: Human has no racial cooldown that adds damage\./)
@@ -86,7 +92,7 @@ test.describe('Protection rotation', () => {
     await expect(shieldBlock).not.toHaveAccessibleDescription(/Changed/)
     // Advanced opens afresh on each visit to the tab (docs/ux.md "Rotation").
     await fillers.getByRole('button', { name: 'Advanced settings for Fillers' }).click()
-    await expect(heroicStrike).toHaveValue('65')
+    await expect(heroicStrike).toHaveValue('76')
     // Back on tank duties, your own Thunder Clap replaces the one you turned on: locked, and said so.
     await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
     await expect(thunderClap).toBeChecked()

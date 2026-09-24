@@ -619,7 +619,7 @@ export const COND = {
   maxMana: 19,
   /**
    * the aura that ability a puts on the target has fewer than b stacks (down counts as none): Sunder
-   * Armor's upkeep, "stacks below 5" (warrior.md §5.4 row 8)
+   * Armor's upkeep, "stacks below 5" (warrior.md §5.4 row 10)
    */
   abilityAuraStacksBelow: 20,
   // 21–24 are the bear's, 25–28 the Protection paladin's: tracks that merge separately.

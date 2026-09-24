@@ -825,9 +825,10 @@ Every view handles these states:
     run that stopped answering for a minute: "The simulation stopped responding for a minute, so
     it was stopped. Run it again." says all there is to say, since no setup causes a hang. Nor does
     a run whose workers couldn't start (most likely the site updated since the page loaded): "The
-    simulation couldn't start. Reload the page, then run it again." A worker that stopped mid-run
-    says "A simulation worker stopped unexpectedly.", with the retry advice. Whatever failed, the
-    next Simulate starts afresh with new workers.
+    simulation couldn't start. Reload the page, then run it again." A run whose worker stopped
+    after it had started says "The simulation stopped unexpectedly.", with the retry advice. The
+    next Simulate replaces any worker that failed. If the workers fail to start in two runs in a row, later runs
+    go on the page itself instead, slower but with a result, until a reload.
   - On a phone the bottom bar shows the failure itself: a warning icon, "Failed" and the
     start of the reason, in AA colors. "Show results and details" stays enabled, with or without an
     earlier result, and opens the sheet with the full message. The live region reads it out

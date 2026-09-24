@@ -19,7 +19,7 @@ describe('isSetupError', () => {
   })
 
   it('treats other failures as ones a retry may fix', () => {
-    expect(isSetupError('A simulation worker stopped unexpectedly.')).toBe(false)
+    expect(isSetupError('The simulation stopped unexpectedly.')).toBe(false)
     expect(isSetupError('The worker has no plan for this chunk.')).toBe(false)
     expect(isSetupError("Cannot read properties of undefined (reading 'x')")).toBe(false)
   })

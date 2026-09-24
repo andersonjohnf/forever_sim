@@ -216,3 +216,23 @@ describe('a failed chunk (a crashed worker, or one the pool watchdog gave up on)
     expect(dispatched).toBeLessThan(100)
   })
 })
+
+// A cancelled run tells its executor, so the pool can stop the chunks still running (AR-6).
+describe('a cancelled run', () => {
+  it('abandons the chunks still in flight, once, and only when there are some', async () => {
+    const plan = planFor('warrior-fury')
+    let abandoned = 0
+    const never: ChunkExecutor = { lanes: 2, run: () => new Promise<ChunkResult>(() => {}), abandon: () => abandoned++ }
+    const controller = new AbortController()
+    const run = drive(plan, never, { mode: 'fixed', iterations: 10 * CHUNK_SIZE, signal: controller.signal })
+    controller.abort()
+    await expect(run).rejects.toThrow('cancelled')
+    expect(abandoned).toBe(1)
+
+    // A run that finished has nothing to abandon.
+    const finished = new AbortController()
+    await drive(plan, { ...localExecutor(plan), abandon: () => abandoned++ }, { mode: 'fixed', iterations: CHUNK_SIZE, signal: finished.signal })
+    finished.abort()
+    expect(abandoned).toBe(1)
+  })
+})

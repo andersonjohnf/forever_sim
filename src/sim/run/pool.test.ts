@@ -5,7 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FromWorker, ToWorker } from '@/worker/protocol'
 import type { ChunkResult } from '../engine/chunk'
 import type { Plan } from '../plan/types'
-import { CHUNK_TIMEOUT_MS, WORKER_CRASH_MESSAGE, WORKER_HANG_MESSAGE, WORKER_START_MESSAGE, WorkerPool } from './pool'
+import { abortError } from './driver'
+import { CHUNK_TIMEOUT_MS, START_FAILURES_BEFORE_FALLBACK, WORKER_CRASH_MESSAGE, WORKER_HANG_MESSAGE, WORKER_START_MESSAGE, WorkerPool } from './pool'
 
 /** A stand-in Worker: records what it's sent; a test answers its chunks by hand. */
 class FakeWorker {
@@ -24,6 +25,10 @@ class FakeWorker {
   crash(message = '') {
     if (this.terminated) return
     this.onerror?.({ message, preventDefault() {} } as ErrorEvent)
+  }
+  /** Its script loaded and ran, as the real worker says once it has. */
+  ready() {
+    this.onmessage?.({ data: { type: 'ready' } } as MessageEvent<FromWorker>)
   }
   postMessage(message: ToWorker) {
     this.received.push(message)
@@ -230,6 +235,16 @@ describe('WorkerPool failures', () => {
     await expect(next).resolves.toMatchObject({ chunk: 0 })
   })
 
+  it('says a worker that started, then failed before answering (building its plan, say), stopped unexpectedly', async () => {
+    // A runtime error, not a script that couldn't load: reloading wouldn't help (AR-1).
+    const pool = new WorkerPool(1, { now })
+    const outcome = settle(pool.executor(plan).run(0, 250))
+    FakeWorker.all[0].ready()
+    FakeWorker.all[0].crash('Uncaught TypeError: engine bug')
+    expect(await outcome).toBe(WORKER_CRASH_MESSAGE)
+    expect(pool.unstartable).toBe(false)
+  })
+
   it('says a worker that crashed after answering stopped unexpectedly, and fails only its own chunks', async () => {
     const pool = new WorkerPool(2, { now })
     const executor = pool.executor(plan)
@@ -257,5 +272,115 @@ describe('WorkerPool failures', () => {
     // The same run asking for more finds no worker, and isn't left waiting.
     expect(await settle(executor.run(1, 250))).toBe(WORKER_START_MESSAGE)
     expect(FakeWorker.all).toHaveLength(1)
+  })
+})
+
+// Once fresh workers have failed to start in two runs in a row, the pool says so, and the caller
+// runs on its own thread instead (AR-10, executorFor in src/sim/index.ts).
+describe('WorkerPool that can’t start workers', () => {
+  beforeEach(() => {
+    FakeWorker.all = []
+    FakeWorker.failOnStart = false
+    vi.useFakeTimers()
+    vi.stubGlobal('Worker', FakeWorker)
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  const failedRun = async (pool: WorkerPool) => {
+    const executor = pool.executor(plan)
+    const outcomes = [settle(executor.run(0, 250)), settle(executor.run(1, 250))]
+    await vi.advanceTimersByTimeAsync(10)
+    return Promise.all(outcomes)
+  }
+
+  it('is unstartable after two runs in a row whose workers failed to start, however many workers failed', async () => {
+    expect(START_FAILURES_BEFORE_FALLBACK).toBe(2)
+    FakeWorker.failOnStart = true
+    const pool = new WorkerPool(3, { now })
+    expect(await failedRun(pool)).toEqual([WORKER_START_MESSAGE, WORKER_START_MESSAGE])
+    // Three workers failed, but in one run: a blip, perhaps.
+    expect(pool.unstartable).toBe(false)
+    await failedRun(pool)
+    expect(pool.unstartable).toBe(true)
+  })
+
+  it('starts counting again once a worker starts', async () => {
+    FakeWorker.failOnStart = true
+    const pool = new WorkerPool(1, { now })
+    await failedRun(pool)
+    FakeWorker.failOnStart = false
+    const executor = pool.executor(plan)
+    const ok = executor.run(0, 250)
+    FakeWorker.all.at(-1)!.ready()
+    FakeWorker.all.at(-1)!.answer()
+    await ok
+    FakeWorker.failOnStart = true
+    // The started worker is still there, so make it fail too, as a hang would drop it.
+    FakeWorker.all.at(-1)!.crash()
+    await failedRun(pool)
+    expect(pool.unstartable).toBe(false)
+  })
+
+  it('doesn’t count a hang or a crash as a failure to start', async () => {
+    const pool = new WorkerPool(1, { chunkTimeoutMs: 1000, now })
+    for (let run = 0; run < 3; run++) {
+      const outcome = settle(pool.executor(plan).run(0, 250))
+      await vi.advanceTimersByTimeAsync(1000)
+      expect(await outcome).toBe(WORKER_HANG_MESSAGE)
+    }
+    expect(pool.unstartable).toBe(false)
+  })
+})
+
+// A cancelled run's chunks are abandoned: a worker still busy with one is terminated, so a chunk that
+// hangs can't fail the next run with the hang message (AR-6). Spec switches cancel runs, so this is
+// common.
+describe('WorkerPool cancel', () => {
+  beforeEach(() => {
+    FakeWorker.all = []
+    FakeWorker.failOnStart = false
+    vi.useFakeTimers()
+    vi.stubGlobal('Worker', FakeWorker)
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  it('terminates the workers busy with an abandoned run, and the next run gets fresh ones that aren’t blamed', async () => {
+    const pool = new WorkerPool(2, { now, chunkTimeoutMs: 5_000 })
+    const first = pool.executor(plan)
+    const abandoned = [settle(first.run(0, 250)), settle(first.run(1, 250))]
+    first.abandon?.()
+    expect(FakeWorker.all.map((w) => w.terminated)).toEqual([true, true])
+    expect(await Promise.all(abandoned)).toEqual([abortError().message, abortError().message])
+
+    const second = pool.executor(plan)
+    expect(FakeWorker.all).toHaveLength(4)
+    const next = second.run(0, 250)
+    await vi.advanceTimersByTimeAsync(4_000)
+    const fresh = FakeWorker.all.find((w) => !w.terminated && w.received.some((m) => m.type === 'chunk'))!
+    fresh.answer()
+    await expect(next).resolves.toMatchObject({ chunk: 0 })
+  })
+
+  it('keeps an idle worker warm, and never counts an abandoned worker as failing to start', async () => {
+    const pool = new WorkerPool(2, { now })
+    const first = pool.executor(plan)
+    const done = first.run(0, 250)
+    const worker = FakeWorker.all.find((w) => w.received.some((m) => m.type === 'chunk'))!
+    worker.answer()
+    await done
+    first.abandon?.()
+    expect(FakeWorker.all.some((w) => w.terminated)).toBe(false)
+    for (let run = 0; run < 3; run++) {
+      const executor = pool.executor(plan)
+      void settle(executor.run(0, 250))
+      executor.abandon?.()
+    }
+    expect(pool.unstartable).toBe(false)
   })
 })

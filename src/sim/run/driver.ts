@@ -33,6 +33,11 @@ export interface ChunkExecutor {
   /** How many chunks can run at once. */
   readonly lanes: number
   run(chunk: number, fights: number): Promise<ChunkResult>
+  /**
+   * The run was cancelled with chunks still running: the executor may stop them (the pool
+   * terminates their workers, so one that hangs can't fail the next run).
+   */
+  abandon?(): void
 }
 
 export interface DriveOptions {
@@ -104,7 +109,10 @@ export function drive(plan: Plan, executor: ChunkExecutor, options: DriveOptions
       if (error !== undefined) reject(error)
       else resolve(agg)
     }
-    const onAbort = () => finish(abortError())
+    const onAbort = () => {
+      finish(abortError())
+      if (inFlight > 0) executor.abandon?.()
+    }
     signal?.addEventListener('abort', onAbort, { once: true })
 
     const mergeReady = () => {

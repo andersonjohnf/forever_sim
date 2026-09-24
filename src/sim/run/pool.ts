@@ -8,11 +8,15 @@
 // with an error instead of leaving it running forever, while a tab the phone or browser froze for
 // a while resumes its run instead of failing it. A worker that crashes or hangs is terminated and
 // replaced only when the next run starts, never at once: one whose script can't load (after a deploy,
-// say) would otherwise fail and respawn forever, with no run asking for it (issue #1).
+// say) would otherwise fail and respawn forever, with no run asking for it (issue #1). A cancelled
+// run's workers that are still busy with its chunks are terminated too, so a chunk that hung after
+// the cancel can't fail the next run. Once fresh workers have failed to start in two runs in a row,
+// the pool reports itself `unstartable` and runs go on the calling thread instead (`executorFor` in
+// src/sim/index.ts).
 import type { FromWorker, ToWorker } from '@/worker/protocol'
 import type { ChunkResult } from '../engine/chunk'
 import type { Plan } from '../plan/types'
-import type { ChunkExecutor } from './driver'
+import { abortError, type ChunkExecutor } from './driver'
 
 /**
  * How long a worker with work may go without answering before it counts as hung
@@ -43,8 +47,16 @@ export const WORKER_HANG_MESSAGE = 'The simulation stopped responding for a minu
  */
 export const WORKER_START_MESSAGE = 'The simulation couldn’t start. Reload the page, then run it again.'
 
-/** What a run says when a worker that had been answering stopped (docs/ux.md#states "Error"). */
-export const WORKER_CRASH_MESSAGE = 'A simulation worker stopped unexpectedly.'
+/** What a run says when a worker that had started stopped (docs/ux.md#states "Error"). */
+export const WORKER_CRASH_MESSAGE = 'The simulation stopped unexpectedly.'
+
+/**
+ * Runs in a row whose fresh workers failed to start before the pool gives up on workers and runs
+ * go on the calling thread (docs/architecture.md#iterations-determinism-and-workers). One failure
+ * can be a blip; two mean the worker's script is gone (the site updated since the page loaded),
+ * and a slower run on the page beats a page that can't simulate until it's reloaded.
+ */
+export const START_FAILURES_BEFORE_FALLBACK = 2
 
 interface Slot {
   worker: Worker
@@ -52,7 +64,7 @@ interface Slot {
   busy: number
   /** Awake time since the worker last answered, counted while it has work. */
   silentMs: number
-  /** Whether it has ever answered, so its script loaded and ran. */
+  /** Whether its script has loaded and run: it said it's ready, or answered. */
   answered: boolean
 }
 
@@ -69,6 +81,7 @@ const pageHidden = () => typeof document !== 'undefined' && document.visibilityS
 
 interface Job {
   slot: Slot
+  planId: number
   resolve: (result: ChunkResult) => void
   reject: (error: Error) => void
 }
@@ -87,6 +100,10 @@ export class WorkerPool {
   private lastBeat = 0
   /** Why the last worker failed: a chunk asked of a pool with none left fails the same way. */
   private lastFailure: Error | null = null
+  /** Runs started, and runs in a row in which a fresh worker failed to start (see `unstartable`). */
+  private runs = 0
+  private startFailures = 0
+  private lastStartFailureRun = 0
 
   constructor(size: number, { chunkTimeoutMs = CHUNK_TIMEOUT_MS, now = monotonic, hidden = pageHidden }: PoolOptions = {}) {
     this.size = size
@@ -106,14 +123,29 @@ export class WorkerPool {
   }
 
   /**
+   * Whether workers have failed to start in START_FAILURES_BEFORE_FALLBACK runs in a row, with none
+   * starting since: the caller should run on its own thread instead.
+   */
+  get unstartable(): boolean {
+    return this.startFailures >= START_FAILURES_BEFORE_FALLBACK
+  }
+
+  /**
    * An executor that runs `plan` on the pool. Each run starts with a full pool: workers that failed
    * since the last run are replaced here, and only here.
    */
   executor(plan: Plan): ChunkExecutor {
     this.ensureWorkers()
+    this.runs++
     const planId = this.nextPlan++
     return {
       lanes: this.slots.length,
+      // The run was cancelled: a worker still busy with its chunks is terminated, so a chunk that
+      // hangs can't fail the next run, and the next run replaces it.
+      abandon: () => {
+        const busy = new Set([...this.jobs.values()].filter((job) => job.planId === planId).map((job) => job.slot))
+        for (const slot of busy) this.drop(slot, abortError())
+      },
       run: (chunk, fights) =>
         new Promise<ChunkResult>((resolve, reject) => {
           // Every worker failed during this run: the driver has already failed it, so don't wait.
@@ -129,7 +161,7 @@ export class WorkerPool {
           const jobId = this.nextJob++
           this.startHeartbeat()
           if (slot.busy++ === 0) this.resetSilence(slot)
-          this.jobs.set(jobId, { slot, resolve, reject })
+          this.jobs.set(jobId, { slot, planId, resolve, reject })
           this.post(slot, { type: 'chunk', jobId, planId, chunk, fights })
         }),
     }
@@ -148,8 +180,13 @@ export class WorkerPool {
     const slot: Slot = { worker, planId: 0, busy: 0, silentMs: 0, answered: false }
     worker.onmessage = (event: MessageEvent<FromWorker>) => {
       const message = event.data
-      const job = this.jobs.get(message.jobId)
       slot.answered = true
+      // Its script loaded and ran: workers start again, whatever failed before.
+      if (message.type === 'ready') {
+        this.startFailures = 0
+        return
+      }
+      const job = this.jobs.get(message.jobId)
       if (!job) return
       this.jobs.delete(message.jobId)
       slot.busy--
@@ -159,11 +196,20 @@ export class WorkerPool {
       if (message.type === 'result') job.resolve(message.result)
       else job.reject(new Error(message.message))
     }
-    // An uncaught error in the worker, or its script failing to load. Its own text is for developers
-    // ("Uncaught RangeError: …", or none), so the run says what happened in words a player can act on.
+    // An uncaught error in the worker, or its script failing to load or throwing as it loads (before
+    // it said it's ready). Its own text is for developers ("Uncaught RangeError: …", or none), so the
+    // run says what happened in words a player can act on.
     worker.onerror = (event) => {
       event.preventDefault()
-      this.fail(slot, new Error(slot.answered ? WORKER_CRASH_MESSAGE : WORKER_START_MESSAGE))
+      if (slot.answered) {
+        this.fail(slot, new Error(WORKER_CRASH_MESSAGE))
+        return
+      }
+      if (this.lastStartFailureRun !== this.runs) {
+        this.lastStartFailureRun = this.runs
+        this.startFailures++
+      }
+      this.fail(slot, new Error(WORKER_START_MESSAGE))
     }
     return slot
   }
@@ -206,10 +252,14 @@ export class WorkerPool {
    * worker that fails as it starts costs one worker a run instead of respawning in a loop.
    */
   private fail(slot: Slot, error: Error) {
+    if (this.drop(slot, error)) this.lastFailure = error
+  }
+
+  /** Terminates `slot`'s worker and rejects its jobs with `error`; false if it was already gone. */
+  private drop(slot: Slot, error: Error): boolean {
     const i = this.slots.indexOf(slot)
-    if (i < 0) return
+    if (i < 0) return false
     this.slots.splice(i, 1)
-    this.lastFailure = error
     slot.busy = 0
     slot.worker.onmessage = null
     slot.worker.onerror = null
@@ -220,5 +270,6 @@ export class WorkerPool {
       job.reject(error)
     }
     this.stopHeartbeatIfIdle()
+    return true
   }
 }

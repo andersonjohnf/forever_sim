@@ -306,8 +306,13 @@ export function computeSheet(config: SimConfig): CharacterSheet | null {
 
 let pool: WorkerPool | null = null
 
+/**
+ * The pool's workers, or this thread where there are none, or where they've failed to start in two
+ * runs in a row (the site updated since the page loaded, most likely): a slower run on the page beats
+ * none until a reload (docs/architecture.md#iterations-determinism-and-workers).
+ */
 function executorFor(plan: Parameters<typeof localExecutor>[0]): ChunkExecutor {
-  if (WorkerPool.supported()) {
+  if (WorkerPool.supported() && !pool?.unstartable) {
     try {
       pool ??= new WorkerPool(WorkerPool.defaultSize())
       return pool.executor(plan)

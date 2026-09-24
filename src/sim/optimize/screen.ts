@@ -109,20 +109,52 @@ export async function screenTalents(options: ScreenOptions): Promise<TalentScree
     }),
   )
   const differing = pairs.flat().filter((p) => p.off !== p.on)
-  let done = 0
-  const total = new Set(differing.flatMap((p) => [p.off, p.on])).size
-  // Start every run at once; the runner queues them (and the cache runs a shared plan once).
   const texts = [...new Set(differing.flatMap((p) => [p.off, p.on]))]
   const results = new Map<string, FightSamples>()
-  await Promise.all(
-    texts.map((text) =>
-      cache.samples(text).then((s) => {
-        if (signal?.aborted) throw new DOMException('The optimizer was cancelled.', 'AbortError')
-        results.set(text, s)
-        options.onProgress?.(++done, total)
-      }),
-    ),
-  )
+  // A few runs in flight at a time (twice the runner's lanes, as the race keeps), each started only
+  // if the search hasn't been cancelled, so a cancel stops the screen within a run or two a lane.
+  await new Promise<void>((resolve, reject) => {
+    let next = 0
+    let done = 0
+    let inFlight = 0
+    let failed = false
+    const fail = (error: unknown) => {
+      if (failed) return
+      failed = true
+      signal?.removeEventListener('abort', onAbort)
+      reject(error)
+    }
+    const onAbort = () => fail(abortError())
+    signal?.addEventListener('abort', onAbort, { once: true })
+    const pump = () => {
+      if (failed) return
+      if (done === texts.length) {
+        signal?.removeEventListener('abort', onAbort)
+        resolve()
+        return
+      }
+      while (inFlight < Math.max(1, options.runner.lanes * 2) && next < texts.length) {
+        if (signal?.aborted) return fail(abortError())
+        const text = texts[next++]
+        inFlight++
+        cache.samples(text).then(
+          (s) => {
+            inFlight--
+            if (failed) return
+            results.set(text, s)
+            done++
+            options.onProgress?.(done, texts.length)
+            pump()
+          },
+          (error) => {
+            inFlight--
+            fail(error)
+          },
+        )
+      }
+    }
+    pump()
+  })
 
   const verdicts: TalentVerdict[] = talents.map((t, ti) => {
     let planChanges = false
@@ -161,6 +193,10 @@ export async function screenTalents(options: ScreenOptions): Promise<TalentScree
     return { id: t.id, name: t.name, role, planChanges, scoreChanges, takenChanges, sheetStats, ...(effects.length ? { effect: effects[0] } : {}) }
   })
   return { verdicts, roles: new Map(verdicts.map((v) => [v.id, v.role])), fights: cache.fightsRun }
+}
+
+function abortError(): Error {
+  return new DOMException('The optimizer was cancelled.', 'AbortError')
 }
 
 function changedStats(a: SheetValues, b: SheetValues): SheetStat[] {

@@ -1,18 +1,20 @@
 import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures.ts'
 
-// The Combat and Assassination rogues (docs/classes/rogue.md §3, §4, §6.1, §6.2, §7), shipped in R1:
-// the switcher, their tabs in their own terms (the common priority, poisons per hand, Mutilate and
-// Venom), a run and its results, and a share link, on a desktop and on a phone (docs/ux.md).
+// The three rogues (docs/classes/rogue.md §3, §4, §6, §7), shipped in R1: the switcher, their tabs in
+// their own terms (the common priority, poisons per hand, Mutilate and Venom, Subtlety's builder), a
+// run and its results, and a share link, on a desktop and on a phone (docs/ux.md).
 
 const COMBAT = /^Spec: Combat Rogue/
 const ASSASSINATION = /^Spec: Assassination Rogue/
+const SUBTLETY = /^Spec: Subtlety Rogue/
+const BUTTON = { Combat: COMBAT, Assassination: ASSASSINATION, Subtlety: SUBTLETY }
 
-async function switchTo(page: Page, spec: 'Combat' | 'Assassination') {
+async function switchTo(page: Page, spec: 'Combat' | 'Assassination' | 'Subtlety') {
   await page.goto('./')
   await page.getByRole('button', { name: /^Spec: / }).click()
   await page.getByRole('menuitem', { name: new RegExp(spec) }).click()
-  await expect(page.getByRole('button', { name: spec === 'Combat' ? COMBAT : ASSASSINATION })).toBeVisible()
+  await expect(page.getByRole('button', { name: BUTTON[spec] })).toBeVisible()
 }
 const switchToCombat = (page: Page) => switchTo(page, 'Combat')
 
@@ -30,8 +32,7 @@ test.describe('Combat rogue', () => {
     const combat = page.getByRole('menuitem', { name: /Combat/ })
     await expect(combat).toContainText('DPS')
     await expect(page.getByRole('menuitem', { name: /Assassination/ })).toContainText('DPS')
-    // Subtlety waits for its rotation (docs/ux.md principle 8).
-    await expect(page.getByRole('menuitem', { name: /Subtlety/ })).toHaveCount(0)
+    await expect(page.getByRole('menuitem', { name: /Subtlety/ })).toContainText('DPS')
     await combat.click()
     await expect(page.getByRole('button', { name: COMBAT })).toBeVisible()
 
@@ -46,13 +47,13 @@ test.describe('Combat rogue', () => {
     await expect(presets).toHaveText('Combat (default)')
     await expect(page.getByText('18 / 33 / 0')).toBeVisible()
     await presets.click()
-    // The shipped specs' builds; Subtlety's only once it ships.
-    await expect(page.getByRole('option')).toHaveText(['Combat (default)', /^Assassination \(?default\)?$/])
+    // Every rogue build; only this spec's reads "(default)".
+    await expect(page.getByRole('option')).toHaveText(['Combat (default)', 'Assassination default', 'Subtlety default'])
     await page.keyboard.press('Escape')
     // About names the rogue, after the paladin.
     await page.getByRole('button', { name: 'More' }).click()
     await page.getByRole('menuitem', { name: /About/ }).click()
-    await expect(page.getByRole('dialog').getByText(/ · Rogues: Combat and Assassination\.$/)).toBeVisible()
+    await expect(page.getByRole('dialog').getByText(/ · Rogues: Combat, Assassination and Subtlety\.$/)).toBeVisible()
   })
 
   test('its Rotation tab says its defaults are the common priority', async ({ page }) => {
@@ -253,6 +254,113 @@ test.describe('Assassination rogue on a phone', () => {
     const sheet = page.getByRole('dialog')
     await expect(sheet.getByRole('heading', { name: 'Results' })).toBeFocused()
     await expect(sheet.getByRole('region', { name: 'Damage by ability' }).getByText('Mutilate', { exact: true })).toBeVisible()
+    await noSideScroll(page)
+  })
+})
+
+test.describe('Subtlety rogue', () => {
+  test('has daggers, its build, Hemorrhage as its builder and Ghostly Strike off, with the common priority', async ({ page }) => {
+    await switchTo(page, 'Subtlety')
+    await openTab(page, 'Gear')
+    await expect(page.getByRole('button', { name: /^Main hand: .+/ })).toBeVisible()
+    await openTab(page, 'Talents')
+    await expect(page.getByRole('combobox', { name: 'Talent build presets' })).toHaveText('Subtlety (default)')
+    await expect(page.getByText('15 / 0 / 36')).toBeVisible()
+    await openTab(page, 'Rotation')
+    const tab = page.getByRole('tabpanel', { name: 'Rotation' })
+    await expect(tab.getByText(/The defaults are the common priority, with a first quick search/)).toBeVisible()
+    await expect(tab.getByRole('heading', { level: 3 })).toHaveText(['Cooldowns and buffs', 'Core abilities', 'Consumables'])
+    for (const name of ['Premeditation', 'Slice and Dice', 'Rupture', 'Eviscerate', 'Hemorrhage on a bleeding boss', 'Ambush', 'Thistle Tea']) {
+      await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
+    }
+    const ghostly = tab.getByRole('switch', { name: 'Ghostly Strike', exact: true })
+    await expect(ghostly).not.toBeChecked()
+    await expect(ghostly).toHaveAccessibleDescription(/Off by default: its Energy does as much in Hemorrhage\./)
+    const builder = tab.getByRole('radiogroup', { name: 'Builder' })
+    await expect(builder.getByRole('radio', { name: 'Hemorrhage' })).toBeChecked()
+    await expect(builder.getByRole('radio', { name: 'Backstab' })).not.toBeChecked()
+    // With Hemorrhage building, Ambush and the debuff line can't do anything, and say so.
+    await expect(tab.getByRole('switch', { name: 'Ambush', exact: true })).toHaveAccessibleDescription(/Not used: only Backstab opens Cutthroat’s Ambush/)
+    await expect(tab.getByRole('switch', { name: 'Hemorrhage on a bleeding boss', exact: true })).toHaveAccessibleDescription(/Not used: Hemorrhage is your builder/)
+    await builder.getByRole('radio', { name: 'Backstab' }).click()
+    await expect(tab.getByRole('switch', { name: 'Ambush', exact: true })).not.toHaveAccessibleDescription(/Not used/)
+    await builder.getByRole('radio', { name: 'Hemorrhage' }).click()
+    const core = tab.getByRole('region', { name: 'Core abilities' })
+    await core.getByRole('button', { name: /^Advanced settings for Core abilities/ }).click()
+    await expect(core.getByRole('textbox', { name: 'Rupture at', exact: true })).toHaveValue('3')
+    await expect(core.getByRole('textbox', { name: 'Eviscerate at', exact: true })).toHaveValue('5')
+  })
+
+  test('simulates, and its results show Hemorrhage, Rupture and its talents’ assumptions', async ({ page }) => {
+    await switchTo(page, 'Subtlety')
+    const results = page.getByRole('complementary', { name: 'Results' })
+    await results.getByRole('button', { name: 'Simulate' }).click()
+    await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
+    const breakdown = results.getByRole('region', { name: 'Damage by ability' })
+    for (const ability of ['Hemorrhage', 'Rupture', 'Eviscerate', 'Deadly Poison', 'Instant Poison']) {
+      await expect(breakdown.getByText(ability, { exact: true })).toBeVisible()
+    }
+    await expect(breakdown.getByText('Backstab', { exact: true })).toHaveCount(0)
+    await results.getByRole('button', { name: 'Cooldowns and buffs' }).click()
+    const table = results.getByRole('table')
+    for (const name of ['Slice and Dice', 'Hemorrhage', 'Thousand Cuts']) await expect(table.getByRole('row', { name: new RegExp(`^${name} `) })).toBeVisible()
+    await results.getByRole('button', { name: /^Assumptions \(\d+\)$/ }).click()
+    await expect(results.getByText(/^Hemorrhage’s \+15% counts on each Rupture tick/)).toBeVisible()
+    await expect(results.getByText(/^Quietus’s bonus starts when the boss reaches 35% health/)).toBeVisible()
+    await expect(results.getByText(/^Thousand Cuts gains a stack from every Rupture tick/)).toBeVisible()
+  })
+
+  test('with Backstab building, it Backstabs and Ambushes in Cutthroat’s window', async ({ page }) => {
+    await switchTo(page, 'Subtlety')
+    await openTab(page, 'Rotation')
+    await page.getByRole('radiogroup', { name: 'Builder' }).getByRole('radio', { name: 'Backstab' }).click()
+    const results = page.getByRole('complementary', { name: 'Results' })
+    await results.getByRole('button', { name: 'Simulate' }).click()
+    await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
+    const breakdown = results.getByRole('region', { name: 'Damage by ability' })
+    for (const ability of ['Backstab', 'Ambush', 'Hemorrhage', 'Rupture']) await expect(breakdown.getByText(ability, { exact: true })).toBeVisible()
+    await results.getByRole('button', { name: /^Assumptions \(\d+\)$/ }).click()
+    await expect(results.getByText(/^Cutthroat’s chance rolls on each Backstab that lands/)).toBeVisible()
+  })
+})
+
+test.describe('Subtlety rogue share link', () => {
+  test.use({ permissions: ['clipboard-read', 'clipboard-write'] })
+
+  test('carries its builder to a fresh page load', async ({ page }) => {
+    await switchTo(page, 'Subtlety')
+    await openTab(page, 'Rotation')
+    const builder = page.getByRole('radiogroup', { name: 'Builder' })
+    await builder.getByRole('radio', { name: 'Backstab' }).click()
+    await page.getByRole('button', { name: /Share/ }).click()
+    await expect(page.getByText('Link copied')).toBeVisible()
+    const link = await page.evaluate(() => navigator.clipboard.readText())
+    await builder.getByRole('radio', { name: 'Hemorrhage' }).click()
+    await page.goto('about:blank')
+    await page.goto(link)
+    await expect(page.locator('[data-sonner-toast]').filter({ hasText: 'Loaded a shared setup' })).toBeVisible()
+    await expect(page.getByRole('button', { name: SUBTLETY })).toBeVisible()
+    await openTab(page, 'Rotation')
+    await expect(page.getByRole('radiogroup', { name: 'Builder' }).getByRole('radio', { name: 'Backstab' })).toBeChecked()
+  })
+})
+
+test.describe('Subtlety rogue on a phone', () => {
+  test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
+
+  test('switches, shows its Rotation tab, runs and shows its results, all without side scroll', async ({ page }) => {
+    await switchTo(page, 'Subtlety')
+    await openTab(page, 'Rotation')
+    const tab = page.getByRole('tabpanel', { name: 'Rotation' })
+    await expect(tab.getByRole('radiogroup', { name: 'Builder' })).toBeVisible()
+    await expect(tab.getByRole('switch', { name: 'Premeditation', exact: true })).toBeVisible()
+    await noSideScroll(page)
+    await page.getByRole('button', { name: 'Simulate', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })
+    await page.getByRole('button', { name: 'Show results' }).click()
+    const sheet = page.getByRole('dialog')
+    await expect(sheet.getByRole('heading', { name: 'Results' })).toBeFocused()
+    await expect(sheet.getByRole('region', { name: 'Damage by ability' }).getByText('Hemorrhage', { exact: true })).toBeVisible()
     await noSideScroll(page)
   })
 })

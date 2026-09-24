@@ -6,7 +6,7 @@
 // here so the app bundle doesn't carry the client dataset; rogue.test.ts checks them against it.
 // Energy is in tenths, times in ms.
 import { CRIT_MULTIPLIER } from '../../core/formulas'
-import type { OnUseSpec } from '../../effects/types'
+import type { AuraSpec, OnUseSpec } from '../../effects/types'
 import { type AbilityDef, STANCE_ANY } from '../../plan/types'
 import { NO_STRIKE } from '../druid/abilities'
 
@@ -109,6 +109,101 @@ export const MUTILATE: AbilityDef = {
   comboPoints: 2,
   poisonedTargetPct: 20,
   auraCrit: COLD_BLOOD_CRIT,
+}
+
+/**
+ * Cutthroat's Ambush window (talent 462708, rogue.md §5.3): a landed Backstab opens it at 3% per rank,
+ * and the next Ambush within 10 s needs no Stealth. The talent's row is a server-scripted dummy (aura
+ * 4, 15 at 5/5); the 10 s is its tooltip's [F]. Ambush needs it, and using Ambush closes it.
+ */
+export const CUTTHROAT_WINDOW: AuraSpec = { id: 'cutthroat', name: 'Cutthroat', durationMs: 10000, mods: {} }
+
+/**
+ * Hemorrhage (spells.json 16511): 35 Energy, GCD 1000, `NORMALIZED_WEAPON_DMG` 0 and
+ * `WEAPON_PERCENT_DAMAGE` 100, so 100% of normalized weapon damage; +1 combo point; and for 15 s your
+ * Rupture deals 15% more to the target (aura 271 on Rupture's class mask) [F]. With a dagger its
+ * dummy effect makes it 145% (`HEMORRHAGE_DAGGER_PCT`), which the rotation picks from the weapons
+ * (rogue.md §3.9). Its debuff is read at each Rupture tick.
+ */
+export const HEMORRHAGE: AbilityDef = {
+  id: 'hemorrhage',
+  name: 'Hemorrhage',
+  icon: 'spell_shadow_lifedrain',
+  kind: 'weaponStrike',
+  ...ROGUE_ATTACK,
+  costTenths: 350,
+  weaponPercent: 1,
+  normalized: true,
+  flatDamage: 0,
+  refundShare: BUILDER_REFUND,
+  comboPoints: 1,
+  aura: { id: 'hemorrhage', name: 'Hemorrhage', durationMs: 15000, mods: { bleedDamage: 15 } },
+}
+/** Hemorrhage's share with a dagger, 145% (16511 effect 4, a dummy) [F]; with one in the main hand [?] (rogue.md §3.9). */
+export const HEMORRHAGE_DAGGER_PCT = 1.45
+
+/**
+ * Ghostly Strike (spells.json 14278): 40 Energy, GCD 1000, `RecoveryTime` 20000;
+ * `WEAPON_PERCENT_DAMAGE` 125, not normalized; +1 combo point [F]. With a dagger in the main hand its
+ * dummy makes it 180% (`GHOSTLY_STRIKE_DAGGER_PCT`). Its +15% dodge for 7 s protects only a rogue the
+ * boss attacks, so the sim leaves it out (rogue.md §3.9).
+ */
+export const GHOSTLY_STRIKE: AbilityDef = {
+  id: 'ghostlyStrike',
+  name: 'Ghostly Strike',
+  icon: 'spell_shadow_curse',
+  kind: 'weaponStrike',
+  ...ROGUE_ATTACK,
+  costTenths: 400,
+  cooldownMs: 20000,
+  weaponPercent: 1.25,
+  normalized: false,
+  flatDamage: 0,
+  refundShare: BUILDER_REFUND,
+  comboPoints: 1,
+}
+/** Ghostly Strike's share with a main-hand dagger, 180% (14278 effect 3, a dummy) [F] (rogue.md §3.9). */
+export const GHOSTLY_STRIKE_DAGGER_PCT = 1.8
+
+/**
+ * Ambush rank 6 (spells.json 11269): 60 Energy, GCD 1000, `NORMALIZED_WEAPON_DMG` +116 and
+ * `WEAPON_PERCENT_DAMAGE` 250, so 2.5 × (normalized weapon damage + 116), the tooltip's "250% weapon
+ * damage plus 290"; +1 combo point; from behind with a dagger in the main hand [F]. It needs Stealth,
+ * so the sim uses it only in Cutthroat's window (rogue.md §3.12, §5.3).
+ */
+export const AMBUSH: AbilityDef = {
+  id: 'ambush',
+  name: 'Ambush',
+  icon: 'ability_rogue_ambush',
+  kind: 'weaponStrike',
+  ...ROGUE_ATTACK,
+  costTenths: 600,
+  weaponPercent: 2.5,
+  normalized: true,
+  flatDamage: 116,
+  refundShare: BUILDER_REFUND,
+  comboPoints: 1,
+  behindOnly: true,
+  auraCrit: COLD_BLOOD_CRIT,
+  window: CUTTHROAT_WINDOW,
+}
+
+/**
+ * Premeditation (spells.json 14183): free, off the GCD (no `StartRecoveryTime`), `RecoveryTime`
+ * 120000; +2 combo points, no Stealth needed in Forever, to use within 20 s [F]. The rotation uses it
+ * with room for both points, so the 20 s never runs out (rogue.md §3.10).
+ */
+export const PREMEDITATION: AbilityDef = {
+  id: 'premeditation',
+  name: 'Premeditation',
+  icon: 'spell_shadow_possession',
+  kind: 'cast',
+  ...ROGUE_ATTACK,
+  gcdMs: 0,
+  threatMult: 0,
+  costTenths: 0,
+  cooldownMs: 120000,
+  comboPoints: 2,
 }
 
 // --- Finishers (rogue.md §3.3–§3.6) -----------------------------------------------------------------

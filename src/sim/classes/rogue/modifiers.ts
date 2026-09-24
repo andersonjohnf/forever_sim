@@ -89,6 +89,23 @@ export const RELENTLESS_STRIKES_ENERGY_TENTHS = 250
 /** Improved Slice and Dice: +15% duration per rank (aura 108, duration) [F] (rogue.md §5.1). */
 export const IMPROVED_SLICE_AND_DICE_PER_RANK = 15
 
+/** Initiative's chance of one more combo point on Ambush, by rank: 33 / 67 / 100% [F] (13976's curve; rogue.md §5.3). */
+export const INITIATIVE = [0, 0.33, 0.67, 1] as const
+
+/** Quietus: +2% per rank on Sinister Strike, Ghostly Strike and Hemorrhage below 35% health [F] (1310728; rogue.md §5.3). */
+export const QUIETUS: ReadonlySet<string> = new Set(['sinisterStrike', 'ghostlyStrike', 'hemorrhage'])
+export const QUIETUS_PCT_PER_RANK = 2
+export const QUIETUS_BELOW_HEALTH_PCT = 35
+
+/**
+ * Thousand Cuts (1310721 → 1310723; rogue.md §5.3): each Rupture tick adds a stack, up to 5, for 10 s,
+ * and the next Backstab or Hemorrhage costs 3 Energy less per stack and uses them up [F]. Its 1.9 s
+ * `ProcCategoryRecovery` never binds on Rupture's 2 s ticks.
+ */
+export const THOUSAND_CUTS_AURA = { id: 'thousandCuts', name: 'Thousand Cuts', durationMs: 10000, maxStacks: 5, mods: {} } as const
+export const THOUSAND_CUTS_TENTHS_PER_STACK = 30
+const THOUSAND_CUTS_ABILITIES: ReadonlySet<string> = new Set(['backstab', 'hemorrhage'])
+
 /**
  * The ability as this build uses it (rogue.md §5): cost reductions, damage and crit, Lethality's
  * crit damage, Seal Fate's and Puncturing Wounds' combo points, the finishers' Relentless Strikes,
@@ -132,6 +149,18 @@ export function withRogueTalents(def: AbilityDef, talents: TalentRanks): Ability
     const factor = 1 + (IMPROVED_SLICE_AND_DICE_PER_RANK * improvedSnd) / 100
     resolved.aura = { ...def.aura, durationMs: Math.round(def.aura.durationMs * factor) }
     resolved.auraMsPerComboPoint = Math.round((def.auraMsPerComboPoint ?? 0) * factor)
+  }
+  // Subtlety's (rogue.md §5.3): Initiative's point on Ambush, Quietus below 35%, Thousand Cuts.
+  const initiative = rank(talents, 'Initiative')
+  if (def.id === 'ambush' && initiative > 0) resolved.bonusComboPointChance = INITIATIVE[Math.min(3, initiative)]
+  const quietus = rank(talents, 'Quietus')
+  if (QUIETUS.has(def.id) && quietus > 0) {
+    resolved.lowHealthPct = QUIETUS_PCT_PER_RANK * quietus
+    resolved.lowHealthBelowPct = QUIETUS_BELOW_HEALTH_PCT
+  }
+  if (rank(talents, 'Thousand Cuts') > 0) {
+    if (def.id === 'rupture') resolved.tickAuraSpec = THOUSAND_CUTS_AURA
+    if (THOUSAND_CUTS_ABILITIES.has(def.id)) resolved.costStacks = { aura: THOUSAND_CUTS_AURA.id, tenthsPerStack: THOUSAND_CUTS_TENTHS_PER_STACK }
   }
   // Cold Blood's crit only with the talent (rogue.md §3.8).
   if (def.auraCrit?.aura === 'coldBlood' && rank(talents, 'Cold Blood') === 0) delete resolved.auraCrit

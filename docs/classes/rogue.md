@@ -13,8 +13,8 @@ Hemorrhage now feeds Rupture. **Poisons** hit about a third less hard: Instant P
 the Forever client, compares it with Classic Era's, and gives the three specs' first-pass rotations
 and defaults under [D27](../decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24).
 
-Status: researched and built 2026-09-24 (slice R1) · Combat and Assassination shipped; Subtlety
-documented, its rotation next ([§6](#6-rotation-and-priority)) · ruleset tags: [F] Forever ·
+Status: researched and built 2026-09-24 (slice R1) · Combat, Assassination and Subtlety shipped
+([§6](#6-rotation-and-priority)) · ruleset tags: [F] Forever ·
 [C] Classic Era · [?] unverified
 
 Forever client build `1.60.1.69913`, Classic Era client build `1.15.9.69722`. Source links use
@@ -56,7 +56,7 @@ short labels, resolved under [Sources](#sources).
   the dual-wield miss penalty on white swings ([§2.4](#24-dual-wield-and-white-hits)).
 - **Abilities**: Sinister Strike, Backstab (from behind), Hemorrhage, Mutilate, Ghostly Strike,
   Eviscerate, Slice and Dice (haste), Rupture, Expose Armor, Blade Flurry, Adrenaline Rush, Cold
-  Blood, Premeditation ([§3](#3-abilities)).
+  Blood, Premeditation, and Ambush in Cutthroat's window ([§3](#3-abilities)).
 - **Poisons**: Instant and Deadly Poison as temporary weapon enchants on one hand each, with a
   proc chance per landed hit of that weapon; Deadly Poison stacks on the boss ([§4](#4-poisons)).
 - **Thistle Tea**: 100 Energy, every 5 min ([§7.5](#75-enchants-and-consumables)).
@@ -226,12 +226,17 @@ GCD [F]. The strike uses it up when it lands; one that misses keeps it [?] (Q6).
 ### 3.9 Hemorrhage (16511) and Ghostly Strike (14278)
 
 Hemorrhage: 100% of `W_norm` (145% with a dagger), 35 Energy, 1 CP, and your Rupture deals 15% more
-to the target for 15 s. Ghostly Strike: 125% of `W` (180% with a main-hand dagger), 40 Energy,
-20 s, 1 CP [F] [client] (SpellEffect, 1.60.1.69913). Lethality and Quietus apply to both.
+to the target for 15 s. Ghostly Strike: 125% of `W` (not normalized; 180% with a main-hand dagger),
+40 Energy, 20 s, 1 CP [F] [client] (SpellEffect, 1.60.1.69913). Lethality and Quietus apply to both.
+The daggers' shares are dummy effects, so the server applies them: the sim gives Hemorrhage its 145%
+with a dagger in the main hand [?] (Q12). Hemorrhage's debuff (aura 271 on Rupture's class mask) is
+read at each Rupture tick while it's on the boss, not snapshotted with the Rupture [?] (Q12).
+Ghostly Strike's +15% dodge for 7 s only helps a rogue the boss attacks, so it isn't simulated.
 
 ### 3.10 Premeditation (14183)
 
-+2 CP, 2 min, off the GCD, no Stealth needed in Forever [F]. Used at 3 points or fewer.
++2 CP, 2 min, off the GCD, no Stealth needed in Forever [F]. Used at 3 points or fewer, so its
+20 s to use them never runs out.
 
 ### 3.11 Mutilate (r4, 1241584)
 
@@ -242,9 +247,15 @@ and only the main hand's crit rolls Seal Fate [?] (Q7).
 
 ### 3.12 Not simulated
 
-Ambush (a Cutthroat proc aside), Garrote and Cheap Shot (stealth), Kidney Shot and Gouge (bosses are
+Ambush from Stealth (an opener before the pull), Garrote and Cheap Shot (stealth), Kidney Shot and Gouge (bosses are
 immune or it breaks), Riposte (the boss faces the tank), Kick, Feint, Evasion, Sprint, Vanish,
 Preparation, Redirect, Distract.
+
+### 3.13 Ambush (r6, 11269)
+
+`2.5 × (W_norm + 116)` (the tooltip's "250% weapon damage plus 290"), 60 Energy, 1 CP, from behind
+with a dagger in the main hand [F] [client]. It needs Stealth, so the sim uses it only in Cutthroat's
+window (§5.3); Initiative 3/3 adds a point for certain and Improved Ambush 3/3 45% crit.
 
 ---
 
@@ -315,11 +326,26 @@ parry. Not simulated: Endurance, Riposte, Improved Sprint, Improved Kick.
 
 ### 5.3 Subtlety
 
-Opportunity (+5% per rank), Improved Ambush, Initiative, Ghostly Strike, Premeditation, Serrated
-Blades (3% armor ignored per rank, after the flat debuffs [?], and +10% Rupture per rank),
-Hemorrhage, Quietus (+2% per rank below 35% health), Cutthroat, Thousand Cuts, Preparation. Not
-simulated: Camouflage, Master of Deception, Setup, Elusiveness, Dirty Tricks, Improved Distract,
-Heightened Senses, Dirty Deeds.
+Opportunity (+5% per rank), Improved Ambush (+15% crit per rank), Initiative (33 / 67 / 100% of a
+second point on Ambush), Ghostly Strike, Premeditation, Serrated Blades (3% armor ignored per rank,
+after the flat debuffs [?], and +10% Rupture per rank), Hemorrhage [F].
+
+- **Quietus** 5/5: Sinister Strike, Ghostly Strike and Hemorrhage deal +2% per rank against a target
+  below 35% health [F] (1310728: a dummy of 10 and 35, the curve 2/4/6/8/10). The sim starts it at
+  t = floor(L × 0.65), the execute phase's rule for a boss whose health falls evenly
+  ([encounter §3](../mechanics/encounter.md)), and multiplies it with the other bonuses [?] (Q13).
+- **Cutthroat** 5/5: a landed Backstab has a 3% chance per rank to let the next Ambush within 10 s
+  skip Stealth [F] (462708, a dummy; the curve 3/6/9/12/15). The sim opens a 10 s window that Ambush
+  needs and closes; crits and blocks count as landed [?] (Q14). Its second curve (5/10/15/15/15) has no
+  client effect to go with it and isn't simulated.
+- **Thousand Cuts**: each Rupture tick adds a stack (1310723: `CumulativeAura` 5, 10 s), and the next
+  Backstab or Hemorrhage costs 3 Energy less per stack and uses them all up [F]. Its 1.9 s
+  `ProcCategoryRecovery` never binds on Rupture's 2 s ticks. The sim uses the stacks up when the
+  ability is used, even if it misses [?] (Q15).
+
+Not simulated: Preparation (it would give one more Premeditation in a fight of 2 min or more; the
+build takes it for Thousand Cuts), Camouflage, Master of Deception, Setup, Elusiveness, Dirty Tricks,
+Improved Distract, Heightened Senses, Dirty Deeds.
 
 ---
 
@@ -387,12 +413,40 @@ Sinister Strike builds), and **Venom** is a setting for the poisons, off by defa
   1 s; 2 s −0.73. Thistle Tea at 10: level with 5 (+0.44) and 20.
 - Mutilate is worth +53.7 over Sinister Strike, Cold Blood +5.3.
 
-### 6.3 Subtlety
+### 6.3 Subtlety (shipped)
 
-The Classic Era Hemorrhage priority, adapted to Forever's Subtlety: Backstab from behind as the
-builder (Opportunity, Thousand Cuts), Hemorrhage's debuff kept up for Rupture, Rupture at 5 points
-(Serrated Blades), Eviscerate otherwise, Ghostly Strike on cooldown, Premeditation, and Cutthroat's
-Ambush. Its rotation is the next slice's (§8).
+The Classic Era Hemorrhage priority [wh-rot], adapted to Forever's Subtlety: Rupture kept up
+(Serrated Blades, Hemorrhage's debuff, Thousand Cuts), Eviscerate with the points left over, Slice
+and Dice, Premeditation, and a builder: **Hemorrhage** by default, or Backstab from behind with a
+main-hand dagger, with Cutthroat's Ambush and Hemorrhage kept up for its debuff. Hemorrhage builds
+from the front and without a dagger either way. Only one builder is in the list, so a cheaper one
+never spends the Energy Backstab waits for.
+
+| # | Action | Condition (defaults) | Setting ids (default) |
+| --- | --- | --- | --- |
+| 1 | Racial, on-use trinkets, Thistle Tea, Juju Flurry (off the GCD) | As Combat's 1–3 | `rogue.subtlety.racial.enabled` (on), `.onUseItems.enabled` (on), `.thistleTea.enabled` (on), `.thistleTea.maxEnergy` (10), `.jujuFlurry.enabled` (on) |
+| 2 | Premeditation (off the GCD) | On cooldown, at ≤ 3 CP | `rogue.subtlety.premeditation.enabled` (on) |
+| 3 | Slice and Dice | Down, or ≤ 0.5 s left; at ≥ 2 CP | `rogue.subtlety.sliceAndDice.enabled` (on), `.minComboPoints` (2), `.refreshBelowSec` (0.5) |
+| 4 | Expose Armor | Down, at 5 CP | `rogue.subtlety.exposeArmor.enabled` (off) |
+| 5 | Rupture | Down, at ≥ 3 CP, ≥ 10 s of the fight left | `rogue.subtlety.rupture.enabled` (on), `.minComboPoints` (**3**), `.minFightLeftSec` (10) |
+| 6 | Eviscerate | At ≥ 5 CP | `rogue.subtlety.eviscerate.enabled` (on), `.minComboPoints` (5) |
+| 7 | Hemorrhage (Backstab builder only) | Rupture up, Hemorrhage's debuff down | `rogue.subtlety.hemorrhage.enabled` (on) |
+| 8 | Ambush (Backstab builder only) | Cutthroat's window open | `rogue.subtlety.ambush.enabled` (on) |
+| 9 | Ghostly Strike | On cooldown | `rogue.subtlety.ghostlyStrike.enabled` (**off**) |
+| 10 | The builder | Affordable | `rogue.subtlety.builder` (**hemorrhage**; or backstab) |
+
+With Hemorrhage building, rows 7 and 8 do nothing, and the Rotation tab says so.
+
+**First-pass search** (the default setup, seed 2703, 20,000 paired fights; 504.7 DPS):
+- Hemorrhage as the builder against Backstab: +25.2 (+24.8 to +25.5); Backstab without Ambush is
+  another −13.7. At 35 Energy to Backstab's 60, Hemorrhage builds the points Rupture and Eviscerate
+  spend much faster, and keeps its debuff up.
+- Rupture at 3 points against 5: +3.9; at 4 +2.6 below 3's, at 2 −0.5, at 1 −1.6. Rupture off: −31.8.
+  Eviscerate at 4: −2.6.
+- Ghostly Strike off: +1.1 (+0.8 to +1.4): its Energy does as much in Hemorrhage, so it's off by
+  default. Premeditation off: −5.7.
+- Slice and Dice at 1 point: level (+0.2); at 3 −0.6, at 4 −2.4. Renewing it at 0.5 s: level with
+  0 and 1 s. Thistle Tea at 20: −1.0.
 
 ---
 
@@ -456,8 +510,8 @@ placeholder except the client's slopes:
 
 `src/sim/classes/rogue/` holds the rows (`abilities.ts`), the passive talents as effects
 (`talents.ts`), the talents that modify abilities (`modifiers.ts`, `withRogueTalents`), Energy and
-the assumptions (`setup.ts`), the shared lines and settings (`shared.ts`), and the Combat and
-Assassination lists (`combat.ts`, `assassination.ts`). The rotation's context carries both weapons'
+the assumptions (`setup.ts`), the shared lines and settings (`shared.ts`), and the three lists
+(`combat.ts`, `assassination.ts`, `subtlety.ts`). The rotation's context carries both weapons'
 types, so Mutilate is used only with two daggers. The engine gained, additively (every other spec
 byte-identical):
 
@@ -472,15 +526,21 @@ byte-identical):
 - Poisons: a `tempEnchant` with a `hand` and a `proc`; `poisonChance` and `poisonDamage` effects
   (Improved Poisons, Vile Poisons) and aura mods (Venom); the `stackingDot` proc action (Deadly
   Poison): one stack count on the boss per poison, whichever weapon applies it.
-- COND 30 `maxComboPoints`; ACTION 7 `stackingDot`.
+- COND 30 `maxComboPoints`; ACTION 8 `stackingDot` (after main's `manaFlat` 7).
 
-**What's left** for Subtlety: its rotation, its e2e flows and golden. The rows need four engine
-additions, each absent-is-zero like the ones above: an aura mod that raises your bleeds (Hemorrhage's
-+15% Rupture), a per-ability bonus below 35% health (Quietus, from `executePhaseStart` at 35), a
-stacking cost reduction a Rupture tick adds and a Backstab or Hemorrhage uses up (Thousand Cuts), and
-an Ambush window a landed Backstab opens 15% of the time (Cutthroat). Ghostly Strike's and
-Hemorrhage's dagger shares need only the rotation context's weapon types; Premeditation is a `cast`
-with combo points and COND 30 `maxComboPoints`.
+Subtlety (`subtlety.ts`) added four more, each absent-is-zero:
+
+- An aura's `bleedDamage`: your bleeds' ticks deal that much more while it's up, read at each tick
+  (Hemorrhage's +15% Rupture).
+- `lowHealthPct` and `lowHealthBelowPct`: a bonus on an ability's direct damage from the moment the
+  target falls below that health, by the execute phase's rule (Quietus, 35%).
+- `tickAura` on a bleed, and `costAura` with `costPerStackTenths` on an ability: each tick adds a
+  stack, and the ability costs that much less per stack and takes the aura down (Thousand Cuts).
+- `opensAura` with `opensAuraChance`: a landed hit puts an aura up at that chance (Cutthroat's
+  window, which Ambush needs as a `window`).
+
+Ghostly Strike's and Hemorrhage's dagger shares come from the rotation context's weapon types;
+Premeditation is a `cast` with combo points and COND 30 `maxComboPoints`.
 
 ---
 
@@ -501,6 +561,13 @@ Each is a unit test in `src/sim/classes/rogue/rogue.test.ts`.
 - **R8 Off hand.** Dual Wield Specialization 5/5: 50% × 1.25 = **62.5%** of a hit.
 - **R9 Instant Poison.** Improved Poisons 1/5 and Vile Poisons 0: 22% per hit, 76–100 Nature.
 - **R10 Deadly Poison.** 5 stacks: 115 every 3 s, 38.3 a second before resists.
+- **R11 Hemorrhage.** The R2 dagger at 1,000 AP: `(85 + 1000/14 × 1.7) × 1.45` = **299.3**; with
+  Quietus 5/5 below 35% health, **329.3**.
+- **R12 Ambush.** The same dagger with Opportunity 2/2: `2.5 × (85 + 1000/14 × 1.7 + 116) × 1.10` =
+  **886.7**, and 2 combo points with Initiative 3/3.
+- **R13 Thousand Cuts.** At 3 stacks Backstab costs **51** Energy; at 5, Hemorrhage costs **20**.
+
+R11–R13 are in `subtlety.test.ts`.
 
 ---
 
@@ -529,6 +596,15 @@ Each is a unit test in `src/sim/classes/rogue/rogue.test.ts`.
 - **Q11 Venom's dummy.** Venom's effect 0 is a dummy (effect 3) on the enemy target, with a bonus
   coefficient of 1; the tooltip names only the poisons' +30% and +10%. If it does damage or more,
   Venom may be worth keeping up (§6.2). Test: a 5-point Venom on a dummy, the combat log.
+- **Q12 Hemorrhage.** Does its +15% count on Rupture ticks while the debuff is up (the sim), or only
+  on a Rupture applied under it? Does its 145% need the dagger in the main hand? Test: Rupture ticks
+  before and after a Hemorrhage; a Hemorrhage with a dagger only in the off hand.
+- **Q13 Quietus.** Does it multiply with Lethality's and the other damage bonuses, and does it start
+  at exactly 35%? Test: Hemorrhages on a dummy at 36% and 34%.
+- **Q14 Cutthroat.** Does a Backstab crit (or a blocked one) roll it, and can the window stack or
+  refresh? Test: 200 Backstabs, the Ambushes allowed.
+- **Q15 Thousand Cuts.** Does a missed Backstab or Hemorrhage use up the stacks? Test: the Energy a
+  dodged Hemorrhage costs with stacks up.
 
 ---
 

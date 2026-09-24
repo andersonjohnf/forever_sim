@@ -381,6 +381,11 @@ slice is worked:
   2434 itself. A per-build default needs an API in `sim/index.ts` and the Rotation UI.
 - **Cleave isn't built yet,** so W21's Cleave costs (Improved Cleave, Raging Blows) are
   untested.
+- **Subtlety rogue (R1, first pass under D27):** Preparation isn't simulated (one more
+  Premeditation in a fight of 2 min or more), there's no Stealth opener (Ambush or Premeditation
+  before the pull), and with Backstab chosen as the builder from the front or without a main-hand
+  dagger, the Rotation tab doesn't say that Hemorrhage builds instead
+  ([rogue.md §5.3, §6.3](classes/rogue.md#63-subtlety-shipped)).
 - ~~Snap can't capture a finished run~~: `--click Simulate` now waits for the result, and
   `--click "Show results"` opens the phone's results sheet.
 - **Arms tuning findings:** re-measured and adopted in M2.5a. The Arms defaults are now the best

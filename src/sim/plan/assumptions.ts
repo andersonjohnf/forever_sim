@@ -631,7 +631,7 @@ const REGISTRY = {
     docRef: `${ROGUE}#33-slice-and-dice-r2-6774`,
   },
   coldBlood: {
-    text: 'Cold Blood is used up by the next Sinister Strike, Backstab, Eviscerate or Mutilate that lands; one that misses keeps it. Untested.',
+    text: 'Cold Blood is used up by the next Sinister Strike, Backstab, Ambush, Eviscerate or Mutilate that lands; one that misses keeps it. Untested.',
     docRef: `${ROGUE}#38-cold-blood-14177`,
   },
   mutilate: {
@@ -641,6 +641,23 @@ const REGISTRY = {
   venom: {
     text: 'Venom does nothing beyond its three effects on your poisons: the client’s fourth, a dummy on the target, is taken to add nothing. Untested.',
     docRef: `${ROGUE}#43-poison-talents`,
+  },
+  // Subtlety's (docs/classes/rogue.md §3.9, §5.3, §10).
+  hemorrhage: {
+    text: 'Hemorrhage’s +15% counts on each Rupture tick while its debuff is on the boss, not only on a Rupture applied under it, and its 145% needs the dagger in the main hand. Untested.',
+    docRef: `${ROGUE}#39-hemorrhage-16511-and-ghostly-strike-14278`,
+  },
+  quietus: {
+    text: 'Quietus’s bonus starts when the boss reaches 35% health, with its health falling evenly over the fight as the execute phase’s does, and multiplies with your other damage bonuses. Untested.',
+    docRef: `${ROGUE}#53-subtlety`,
+  },
+  thousandCuts: {
+    text: 'Thousand Cuts gains a stack from every Rupture tick, and the next Backstab or Hemorrhage uses them all up when it’s used, even if it misses. Untested.',
+    docRef: `${ROGUE}#53-subtlety`,
+  },
+  cutthroat: {
+    text: 'Cutthroat’s chance rolls on each Backstab that lands, crits and blocks included, and Ambush is used only in its window: the sim has no Stealth opener. Untested.',
+    docRef: `${ROGUE}#53-subtlety`,
   },
 } satisfies Record<string, { text: string; docRef: string }>
 

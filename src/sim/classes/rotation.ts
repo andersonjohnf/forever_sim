@@ -23,6 +23,7 @@ import { RACIAL_COOLDOWNS } from './warrior/abilities'
 import { PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation } from './warrior/protection'
 import { COMBAT_OPTIONS, combatMaintainedBuffs, combatRotation } from './rogue/combat'
 import { ASSASSINATION_OPTIONS, assassinationMaintainedBuffs, assassinationRotation } from './rogue/assassination'
+import { SUBTLETY_OPTIONS, subtletyMaintainedBuffs, subtletyRotation, subtletyUnusedSettings } from './rogue/subtlety'
 import type { TalentRanks } from './warrior/modifiers'
 import type { ClassRotation } from './warrior/shared'
 import type { Stance } from './warrior/talents'
@@ -76,6 +77,7 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   if (spec === 'shaman-enhancement') return ENHANCEMENT_OPTIONS
   if (spec === 'rogue-combat') return COMBAT_OPTIONS
   if (spec === 'rogue-assassination') return ASSASSINATION_OPTIONS
+  if (spec === 'rogue-subtlety') return SUBTLETY_OPTIONS
   return []
 }
 
@@ -112,7 +114,7 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
     return 'The defaults are the common priority. There’s no totem twisting: in Forever, Windfury Totem is an aura that ends with the totem.'
   }
   // Decision D27: specs landed before the tuning milestone start from the common priority.
-  if (spec === 'rogue-combat' || spec === 'rogue-assassination') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
+  if (spec === 'rogue-combat' || spec === 'rogue-assassination' || spec === 'rogue-subtlety') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
   return undefined
 }
 
@@ -138,6 +140,7 @@ export const RACIAL_SETTING: Partial<Record<SpecId, string>> = {
   'shaman-enhancement': 'shaman.enhancement.racial.enabled',
   'rogue-combat': 'rogue.combat.racial.enabled',
   'rogue-assassination': 'rogue.assassination.racial.enabled',
+  'rogue-subtlety': 'rogue.subtlety.racial.enabled',
 }
 
 /**
@@ -155,8 +158,9 @@ export interface UnusedSetup {
  * Settings that can't do anything in this setup, each with the note the Rotation tab shows under
  * it (docs/ux.md "Rotation"): the racial cooldown for a race without one the sim uses (Orc, Troll
  * and Night Elf have one; Gnome's Eureka! isn't simulated), the cat's Rake and Rip when "only
- * when nothing else bleeds" meets a raid with warriors, and the bear's Lacerate the same way and
- * its Demoralizing Roar while the Buffs tab's Demoralizing Shout takes its place.
+ * when nothing else bleeds" meets a raid with warriors, the bear's Lacerate the same way and its
+ * Demoralizing Roar while the Buffs tab's Demoralizing Shout takes its place, and the Subtlety
+ * rogue's Ambush and Hemorrhage upkeep while Hemorrhage builds.
  */
 export function unusedSettings(spec: SpecId, values: Record<string, RotationValue>, setup: UnusedSetup): Record<string, string> {
   const out: Record<string, string> = {}
@@ -169,6 +173,7 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   }
   if (spec === 'druid-feral-cat') Object.assign(out, catUnusedSettings(values, setup.othersBleed))
   if (spec === 'druid-feral-bear') Object.assign(out, bearUnusedSettings(values, setup))
+  if (spec === 'rogue-subtlety') Object.assign(out, subtletyUnusedSettings(values))
   return out
 }
 
@@ -187,6 +192,7 @@ export function maintainedBuffs(spec: SpecId, values: Record<string, RotationVal
   if (spec === 'druid-feral-bear') return bearMaintainedBuffs(values)
   if (spec === 'rogue-combat') return combatMaintainedBuffs(values)
   if (spec === 'rogue-assassination') return assassinationMaintainedBuffs(values)
+  if (spec === 'rogue-subtlety') return subtletyMaintainedBuffs(values)
   return []
 }
 
@@ -221,5 +227,6 @@ export function classRotation(
   // docs/classes/rogue.md §6.
   if (spec === 'rogue-combat') return combatRotation(values, talents, context)
   if (spec === 'rogue-assassination') return assassinationRotation(values, talents, context)
+  if (spec === 'rogue-subtlety') return subtletyRotation(values, talents, context)
   return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
 }

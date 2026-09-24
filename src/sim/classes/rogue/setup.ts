@@ -21,7 +21,7 @@ export function rogueEnergy(talents: ReadonlyMap<string, number>): EnergyPlan {
 /**
  * The rogue's [?] this plan relies on (rogue.md §9), for the results' assumptions: Energy, the
  * finishers' attack power, the two-roll abilities, Backstab's flat bonus, Lethality, the poisons,
- * Hack and Slash, Slice and Dice's haste and Cold Blood, each only when the plan uses it.
+ * Hack and Slash, Slice and Dice's haste, Cold Blood and Subtlety's talents, each only when the plan uses it.
  */
 export function rogueAssumptions(plan: Plan, talents: ReadonlyMap<string, number>): AssumptionId[] {
   if (plan.classId !== 'rogue') return []
@@ -39,5 +39,10 @@ export function rogueAssumptions(plan: Plan, talents: ReadonlyMap<string, number
   if (has('coldBlood')) ids.push('coldBlood')
   if (has('mutilate')) ids.push('mutilate')
   if (has('venom')) ids.push('venom')
+  // Subtlety's (rogue.md §5.3).
+  if (has('hemorrhage')) ids.push('hemorrhage')
+  if (plan.abilities.some((a) => (a.lowHealthPct ?? 0) !== 0)) ids.push('quietus')
+  if (plan.abilities.some((a) => (a.costAura ?? -1) >= 0)) ids.push('thousandCuts')
+  if (plan.abilities.some((a) => (a.opensAura ?? -1) >= 0)) ids.push('cutthroat')
   return ids
 }

@@ -53,7 +53,10 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
    - A low finding's later fix gets a quick fresh check of just its commits.
    - Commits that only record the review (the log, the handoff) need no further pass.
 6. **Simplify rather than patch a third time.** If two rounds in a row find new problems in
-   the same area, stop patching it and propose a simpler design to the user.
+   the same area, stop patching it and adopt a simpler design without asking (user decision): cut
+   the mechanism that keeps breaking, or narrow it to what a decision actually requires. Record
+   the simplification in the review log and the owning doc, and tell the user what was cut. Ask
+   first only if the simpler design would drop something a user decision asked for.
 7. **New specs land in a 90/10 mode until the tuning milestone (D27).** First-pass defaults
    (the common priority plus one quick search; about ±5% is fine) replace D23's full tuning.
    One fresh reviewer does a **combined logic and UX review** (steps 2 and 3 together). High

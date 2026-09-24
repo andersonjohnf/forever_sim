@@ -537,6 +537,14 @@ Top Gear and the retail optimizers do:
   has a default (D29), and the optimizer is only as right as those values, so the tanks' threat
   fixes land first.
 
+**Simplified after O1's third review round (user decision, step 6):** the preferred filler is only
+the talent space's fill order (spare points go to Anticipation before Toughness); there is no
+end-of-race rule preferring a close candidate with more Anticipation. The race takes no result
+limits (such as a damage-taken cap, which this decision already rules out); its constraints are the
+sheet's (the floor, effective health, crit and crush immunity), which are exact. An answer that
+drops Anticipation entirely, when the gain is clear, is acceptable (user decision: the warrior's
+Deep Wounds build, +4.4 points).
+
 ### D31: The Rotation tab is an action priority list you reorder (2026-09-24)
 User decision, ahead of the optimizer's app screens. Each spec's rotation is an **action priority
 list (APL)**, as SimulationCraft and wowsims model one, rather than a set of toggles. Each global

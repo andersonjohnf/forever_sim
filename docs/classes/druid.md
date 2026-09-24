@@ -1,4 +1,4 @@
-# Druid: Feral cat (DPS) and Feral bear (TPS)
+# Druid: Feral cat (DPS), Feral bear (TPS) and Balance (DPS)
 
 WoW Forever rebuilds the feral tree rather than tuning it. Shred falls from 225% to 155% weapon
 damage and Claw rises to 110%. Tiger's Fury becomes a free, off-GCD +15% physical-damage cooldown,
@@ -11,12 +11,14 @@ Instincts, Rend and Tear, Natural Reaction and Lacerate, and a feral can pick up
 +5% bleed damage and +5% all damage from the Balance and Restoration trees. Several diffs on
 foreverchanges are tooltip artefacts: Rip, Cat Form AP and Bear Form health. This doc sorts the
 real changes from those artefacts using the client DB2 tables, and specifies every formula,
-rotation setting and default the engine needs for cat DPS and bear TPS at level 60.
+rotation setting and default the engine needs for cat DPS and bear TPS at level 60. The Balance druid,
+a caster on the caster core, is §11.
 
 Status: researched 2026-09-22 · foundation in the engine 2026-09-23 (forms, Energy, combo points,
 Clearcasting, shapeshifts, talents and defaults) · the cat's abilities and tuned rotation
 2026-09-23 ([§3](#3-feral-cat-sim-model), [§6.2](#62-forever-cat-priority)) · the bear's abilities
 and rotation in the engine 2026-09-23 ([§4](#4-feral-bear-sim-model), [§6.3](#63-forever-bear-priority-tps))
+· Balance on the caster core with first-pass defaults 2026-09-24 ([§11](#11-balance-moonkin-sim-model), slice K6)
 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 
 Forever client build `1.60.1.69913`, Classic Era client build `1.15.9.69722`. Source links use
@@ -45,7 +47,7 @@ short labels, which are resolved under [Sources](#sources).
 9. [Implementation notes](#8-implementation-notes)
 10. [Worked examples](#9-worked-examples)
 11. [Open questions](#10-open-questions)
-12. [Appendix: Balance in Forever](#appendix-balance-in-forever)
+12. [Balance (Moonkin): sim model](#11-balance-moonkin-sim-model)
 13. [Sources](#sources)
 
 ---
@@ -86,6 +88,14 @@ short labels, which are resolved under [Sources](#sources).
   cooldown). Details in §4.
 - Threat: bear form ×1.3, and **no Feral Instinct threat in Forever**. Per-ability multipliers
   are in §4.8; [threat.md](../mechanics/threat.md) owns the shared rules.
+
+**Balance** (§11)
+
+- A caster on the caster core ([spells.md](../mechanics/spells.md)): Starfire, Wrath, Moonfire and
+  Insect Swarm, whose ticks crit in `forever`, in Moonkin Form, with no auto attack.
+- Nature's Grace's faster casts and shorter GCD after a crit, Eclipse's charges from Wrath that
+  shorten Starfire, Omen of Clarity from spells, Vengeance's ×2 crits and Moonfury.
+- Mana: Innervate on yourself, mana potions and runes, mp5.
 
 ---
 
@@ -395,9 +405,10 @@ Energy-neutral.
   would give about 47% more rage than its bear's 5,631.
 - **Mana**: the pool is base mana plus Intellect. Every power tick gives spirit regeneration,
   `15 + Spirit / 5` per 2 s, unless mana was spent in the last 5 s. That's the engine's one mana
-  model, the paladin's too ([character-stats.md](../mechanics/character-stats.md#spirit-and-mana-regeneration)),
-  but the druid's plan doesn't set its mp5 or a share of spirit regeneration inside the rule yet
-  (no pre-raid feral item has mp5, and no feral build takes Reflection).
+  model, the paladin's too ([character-stats.md](../mechanics/character-stats.md#spirit-and-mana-regeneration)).
+  Since K6 the druid's plan adds gear's mp5 every tick and Reflection's share inside the rule when
+  there are any (§11.4); no pre-raid feral item has mp5 and no feral build takes Reflection, so a
+  feral's mana is as it was.
 
 ### 2.9 Snapshotting
 
@@ -1620,35 +1631,224 @@ ranks.
 
 ---
 
-## Appendix: Balance in Forever
+## 11. Balance (Moonkin): sim model
 
-Out of scope for now, listed so the guild can judge whether to add it. All [F] [fc-class]
-[fc-tal] [se-f].
+The Balance druid is a caster DPS spec on the caster core
+([spells.md §12](../mechanics/spells.md#12-what-a-class-slice-uses)), landed under
+[D27](../decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24)'s
+first-pass defaults (slice K6). It fights in Moonkin Form and never swings its weapon, whose stats
+still count. Everything the core owns (the spell table, partial and binary resists, coefficients,
+casting speed, DoT snapshots and refreshes, the five-second rule) is spells.md's; this section owns
+the druid's spells, talents and rotation. The engine is `src/sim/classes/druid/balance-abilities.ts`
+and `balance.ts`.
 
-- **Spells are much weaker at base** (level 60 max ranks): Wrath r8 58–64 (Classic 236–264,
-  coefficient unchanged at 0.571), Starfire r7 350–412 (496–584), Moonfire r10 124–146 + 240 over
-  12 s (189–221 + 384), Insect Swarm r5 186 over 12 s (324). Hurricane has no cooldown and 132
-  per second. Wrath costs 120 mana (180).
-- **New talents:**
-  - Genesis: +5% periodic.
-  - Nature's Majesty: +4% crit.
-  - Nature's Splendor: longer Moonfire, Rejuvenation, Regrowth and Insect Swarm. The client
-    requires Nature's Majesty for it (§5.2).
-  - Eclipse: Wrath shortens the next 2 Starfires by 0.17/0.33/0.5 s, storing up to 4 charges for
-    15 s.
-- **Reworked talents:**
-  - Improved Wrath also takes −50% mana.
-  - Moonglow: −25% mana on damaging spells.
-  - Improved Moonfire: +10% damage and crit.
-  - Nature's Reach: +4% hit.
-  - Vengeance: now all Arcane and Nature crits.
-  - Moonfury: all Arcane and Nature damage +10%.
-  - Nature's Grace: +10% cast speed and GCD reduction for 3 s after a non-periodic crit.
-  - Insect Swarm moved into Balance.
-- **Moonkin Form:** 3% crit (all crit) to the party, exclusive with LotP; +100% Omen of Clarity
-  chance; can cast any non-healing spell.
-- **Restoration talents a caster might take:** Naturalist (+5% all damage) and Reflection (17/33/50%).
-- The popular Balance build is 41/5/0 `5532220115501351-05-` [fc-tal].
+**Forever changes, from the client** (every row [F] [client] (SpellEffect, SpellMisc, SpellPower,
+SpellCastTimes, SpellLevels, SpellDuration, SpellAuraOptions, CurvePoint, 1.60.1.69913), against
+Classic Era's [C] [client] (1.15.9.69722)):
+
+- The nukes are far weaker at base and keep their coefficients: Starfire r7 350–412 (Classic Era
+  496–584), Wrath r8 62–69 at 60 (236–264), and Wrath costs 120 mana (180).
+- **Moonfire and Insect Swarm carry the periodic-crit flag** (SpellMisc Attributes[8] 0x200), so
+  their ticks crit in `forever` ([spells §7](../mechanics/spells.md#7-dots)); Classic Era's don't.
+- New talents: Genesis (+5% periodic), Nature's Majesty (+4% crit), Nature's Splendor (longer
+  Moonfire and Insect Swarm), **Eclipse** (Wrath shortens the next 2 Starfires).
+- Reworked talents: Improved Wrath also takes 50% of its mana, Moonglow is −25% mana on the damaging
+  spells (Classic Era −9%), Vengeance and Moonfury cover every Arcane and Nature spell, Nature's
+  Grace is +10% casting speed and a 10% shorter GCD for 3 s (Classic Era: the next cast 0.5 s
+  faster), Nature's Reach adds +4% hit, and Insect Swarm is a Balance talent.
+- **Moonkin Form**: its aura is +3% crit, all crit (Classic Era: spell crit); it doubles Omen of
+  Clarity's chance and halves its cooldown; the Moonkin can cast any non-healing spell.
+- Omen of Clarity is trained by every druid and procs from "your spells and attacks" (§2.7).
+
+### 11.1 Moonkin Form
+
+| Rule | Value | Tag |
+| --- | --- | --- |
+| Moonkin Form (24858, the talent) | shapeshift form 31, cast before the pull: the fight starts in it (a Balance build without the talent fights in caster form). Costs 35% of base mana, before the pull: the fight starts with full mana | [F] [client] (SpellEffect, SpellPower, 1.60.1.69913) |
+| Moonkin Aura (24907, which the form triggers) | **+3% crit** (aura 290, all crit) to the party, the druid included; exclusive with Leader of the Pack. `classicEra`: +3% spell crit (aura 57) | [F] [C] [client] (SpellEffect, both builds; [spells §9](../mechanics/spells.md#9-caster-raid-buffs-and-debuffs)) |
+| Its armor | +360% armor from items (the tooltip; no client row in the extracted set) | [F] tooltip. It changes only the sheet: a DPS caster isn't hit |
+| Omen of Clarity in the form | #4: +100% `ProcChance` on 16864; #5: −50% proc cooldown (the 10 s `ProcCategoryRecovery`, so 5 s) | [F] [client] (SpellEffect, 1.60.1.69913) |
+| Weapon | a Balance druid never auto-attacks: its main hand's stats count, its swings don't happen (`SpecMeta.caster`) | engine choice (the moonkin casts from range) |
+
+The druid's Moonkin Aura replaces the Buffs tab's (shown on and locked, "the talents bring it", as
+the cat's Leader of the Pack is, §7.5), and a Leader of the Pack in the same exclusive group is left
+out. In the engine the form is `Plan.forms[3]`; a feral's plan has only its three forms, so its
+indices and results are unchanged.
+
+### 11.2 Spells
+
+Level-60 values, before talents. A rank learned below 60 grows by its per-level points; a range is
+base × (1 ± variance / 2) plus that growth (paladin.md#conventions-used-below).
+
+| Spell (id) | Damage at 60 | Coefficient | Cast, cost | Other | Tag |
+| --- | --- | --- | --- | --- | --- |
+| **Starfire** r7 (25298) | 381 base, variance 0.16296296: **349.96–412.04** | 1.0 | 3.5 s, 340 mana | Arcane; its stun (Improved Starfire) does nothing to a boss | [F] [client] |
+| **Wrath** r8 (9912) | 61 base, variance 0.112, +0.7 a level 54–60: **61.78–68.62** | 0.571 | 2.0 s, 120 mana | Nature; speed 20 (travel time not simulated, spells.md §4) | [F] [client] |
+| **Moonfire** r10 (9835) | hit 135, variance 0.15609756, +2.3 a level 58–63: **129.06–150.14**; DoT **60 every 3 s, 12 s** | 0.15; **0.13 a tick** | instant, 375 mana | Arcane; one hit roll for both parts; not binary; ticks flagged 0x200 | [F] [client] |
+| **Insect Swarm** r5 (24977) | DoT **31 every 2 s, 12 s** | **0.158 a tick** | instant, 160 mana | Nature; −2% hit on the target (#1, aura 54) makes it **binary** (spells.md §3); ticks flagged 0x200 | [F] [client] |
+| **Faerie Fire** r4 (9907) | −505 armor, 40 s | — | instant, 115 mana | Nature, rolls spell hit; only attacks feel the armor | [F] [client] |
+| **Innervate** (29166) | +400% Spirit regeneration (aura 110) and 100% of it while casting (aura 134), 20 s | — | instant, 5% of base mana (62, rounded down [?]), 6 min cooldown | castable in Moonkin Form (its shapeshift mask has form 31) | [F] [client] |
+
+Every one of them is on the 1.5 s GCD (`StartRecoveryTime` 1500). Classic Era's Moonfire and
+Insect Swarm have no periodic-crit flag [C] [client]. The engine's rows cite these ids and
+`balance.test.ts` checks each against `src/data/client/spells.json`.
+
+### 11.3 Talents and procs
+
+Per-rank values from `TraitDefinitionEffectPoints` → `CurvePoint`
+([client] (CurvePoint, 1.60.1.69913)); the class masks decide which spells each touches
+("the Balance spells": Wrath, Moonfire, Starfire, Insect Swarm).
+
+| Talent (spell) | Forever, max rank | Sim model | Tag |
+| --- | --- | --- | --- |
+| Improved Wrath (16814) | 5: −0.5 s cast, −50% mana on Wrath | Wrath 1.5 s | [F] |
+| Genesis (1223081) | 5: +5% periodic damage | Moonfire's and Insect Swarm's ticks ×1.05 (folded into their base and coefficient) | [F] |
+| Moonglow (16845) | 3: −8/17/25% mana on the Balance spells | ×0.75 | [F] |
+| Improved Moonfire (16821) | 2: +10% crit and +10% damage (hit and ticks) on Moonfire | `bonusCrit` 10, ×1.10 | [F] |
+| Nature's Majesty (1223082), Nature's Reach (16819) | +4% crit; +4% hit | as the feral's (§5.2) | [F] |
+| Nature's Splendor (1223083) | Moonfire +3 s, Insect Swarm +2 s | one tick more each: Moonfire 5 ticks (15 s), Insect Swarm 7 (14 s) | [F] |
+| Insect Swarm (5570) | teaches it | §11.2 | [F] |
+| Vengeance (16909) | 5: +100% crit damage bonus on the Arcane and Nature spells | crits ×2.0 (`spellCritMultiplier(100)`), their ticks' too (the mask has Moonfire and Insect Swarm) | [F]; on ticks [?] |
+| Improved Starfire (16850) | 5: −0.5 s cast | Starfire 3.0 s | [F] |
+| **Nature's Grace** (16880 → 16886) | every **non-periodic** spell crit (`ProcChance` 100): +10% casting speed (aura 65) and −10% GCD (aura 108, `StartRecoveryTime`, mask with Faerie Fire, not Innervate) for 3 s | the `spellCrit` trigger, which ticks never fire; an aura with `castHaste` 10 and `gcdPct` 10, read when a cast starts: a 3.0 s Starfire takes 2,727 ms and the GCD 1,350 ms | [F]; in combat [?] |
+| **Eclipse** (408248) | 3: "Your Wrath spell reduces the cast time of your next 2 Starfire spells by 0.50 sec. Stores up to 4 charges. Lasts 15 sec." −170/−330/−500 ms by rank | a Wrath that **lands** adds 2 charges (at most 4, 15 s from the last); a Starfire **started** with one uses it and is 500 ms shorter **before** casting speed (a flat cut first, as Improved Starfire's) | [F] tooltip and curve; the client's effects are dummies, so the mechanics are [?] (OQ-B3) |
+| Moonfury (16896) | 5: +10% damage, Arcane and Nature (aura 79, mask 72) | a school multiplier | [F] |
+| Moonkin Form (24858) | §11.1 | | [F] |
+| Heart of the Wild (Feral, 17003) | 5: +10% Intellect | as the feral's (§5.1) | [F] |
+| Reflection (Restoration, 17106) | 17/33/50% of Spirit regeneration while casting | the mana plan's share inside the rule | [F] |
+
+Two percentages on one spell's mana (Improved Wrath and Moonglow) **multiply** and the cost rounds
+down to whole mana [?] (§2.3's rule for spell mods): Wrath 120 × 0.5 × 0.75 = **45**, Moonfire 375 ×
+0.75 = 281.25 → **281**.
+
+**Omen of Clarity on spells.** 16864's proc mask has harmful and helpful spells as well as melee
+(81940, unchanged from Classic Era) and the Forever tooltip reads "Your spells and attacks"; the rate
+is server-side ([hotfix caveat][client-hotfix]). The sim gives spells the melee rate [?]: **2 procs a
+minute of casting**, so a landed spell's chance is 2 × its ability's cast time (at least the 1.5 s
+GCD) / 60, doubled in Moonkin Form (§11.1) and at most once every 5 s there (OQ-B1). Clearcasting
+(16870) makes the next Starfire, Moonfire or Insect Swarm free: its class mask leaves Wrath out [F]
+[client] (SpellEffect, 1.60.1.69913). The melee Omen of Clarity (§2.7) isn't in a Balance plan: it
+never swings.
+
+### 11.4 Mana
+
+The druid's mana model (§2.8, [character-stats](../mechanics/character-stats.md#spirit-and-mana-regeneration)):
+base mana 1,244 plus Intellect, `15 + Spirit / 5` a tick outside the five-second rule [C], and, new
+with K6, gear's mp5 every tick and Reflection's share inside the rule (none in the default build).
+Spending mana happens when a cast lands (spells.md §4).
+
+- **Innervate on yourself** (§11.2): cast once your mana is at or below a share of your maximum
+  (default 40%): five times your Spirit regeneration, all of it while casting, for 20 s. In a raid it
+  often goes to a healer instead (the Classic Era guide's advice [wh-bal-rot]); the sim's default is
+  the druid's own, as a Balance DPS spec's mana is its limit.
+- **Major Mana Potion and Demonic Rune** (buffs doc §3.5), off the GCD, each once you're missing its
+  "when missing" mana. The potion's default, 2,000, was the quick search's best (§11.5).
+
+### 11.5 Rotation
+
+**Classic Era reference** [C] [wh-bal-rot] (Askalon, patch 1.13, modified 2020-07-20): "Your
+rotation as a Balance Druid comes down to one ability": Starfire, from start to finish, downranked
+late to end the fight at 0 mana. Moonfire and Insect Swarm are "primarily used in PvP due to debuff
+slot limitations" and Wrath "only in PvP". Faerie Fire is "one of the best debuffs", and Innervate
+most likely goes to a healing priest.
+
+**Forever priority (default)**, adapted: Forever's DoTs crit and get Genesis and Nature's Splendor,
+Eclipse makes Wrath worth weaving, and the sim has no debuff limit (spells.md, Implementation notes).
+
+| # | Action | Default |
+| --- | --- | --- |
+| 0 | Moonkin Form before the pull | always |
+| 1 | Off the GCD: Elune's Light (Night Elf), on-use trinkets, Power Infusion (if a priest gives it, Buffs), on cooldown | on |
+| 2 | Off the GCD: Major Mana Potion when missing ≥ 2,000 mana; Demonic Rune when missing ≥ 1,500 (if selected in Buffs) | on |
+| 3 | Innervate on yourself at ≤ 40% mana | on |
+| 4 | Faerie Fire when it's off the boss (a duty; costs you DPS) | **off** |
+| 5 | Insect Swarm when it's off the boss, while ≥ 10 s of the fight is left | on (with the talent) |
+| 6 | Moonfire when it's off the boss, while ≥ 10 s is left | on |
+| 7 | Starfire with Clearcasting | always |
+| 8 | Starfire with an Eclipse charge; otherwise Wrath (a landed Wrath gives 2 charges) | on (with the talent) |
+| 9 | Filler: Starfire, then Wrath (when Starfire's mana isn't there) | Starfire |
+
+Downranking isn't simulated: at low mana the rotation casts Wrath, the cheapest spell.
+
+**First-pass defaults** (D27): the common priority above plus one quick search, 20,000 paired
+fights per candidate on seed 1 (`scripts/tune/rotation.mjs --spec druid-balance --fights 20000`),
+default setup (Tauren, 41/5/0, pre-raid BiS, Standard raid), baseline 423.70 DPS:
+
+| Candidate against the priority | Δ DPS (95% CI) |
+| --- | --- |
+| No Eclipse weaving (Starfire only) | −20.87 (−21.21 to −20.53), −4.9% |
+| No Eclipse, Wrath filler | −56.84, −13.4% |
+| No Moonfire | −20.99, −5.0% |
+| No Insect Swarm | −17.22, −4.1% |
+| Faerie Fire kept up | −16.72, −4.0% |
+| No Innervate | −67.44, −15.9% |
+| Innervate at ≤ 10–50% mana | within ±0.2 of each other; ≥ 60%: −30 or worse |
+| DoTs while ≥ 10 s left (was 6 s), potion when missing 2,000 (was 2,250) | **+2.31 (+2.06 to +2.56), +0.55%**: adopted |
+
+The adopted defaults run at **426.0 DPS** on that seed. Innervate's 40% sits in the flat region, away
+from the drop above 50%. The defaults aren't tuned beyond this (D27); the Rotation tab says "the
+common priority, with a first quick search".
+
+### 11.6 Defaults
+
+| What | Default | Tag |
+| --- | --- | --- |
+| Talents | **41/5/0 `5532220115501351-05-`**: Improved Wrath 5, Genesis 5, Moonglow 3, Improved Moonfire 2, Nature's Majesty 2, Nature's Reach 2, Nature's Splendor 1, Insect Swarm 1, Vengeance 5, Improved Starfire 5, Nature's Grace 1, Eclipse 3, Moonfury 5, Moonkin Form 1 / Heart of the Wild 5 | the most popular Forever Balance build, 2026-09-22 [fc-tal]; `scripts/scrape/stored-builds.json` |
+| Race | Tauren (the druid's default, §7.2): Endurance's +1% hit is spell hit too | [F] |
+| Gear | the Balance pre-raid BiS list (D11): Wowhead's Classic Balance guide's Phase 6 pre-raid section, archived 2021-05-16 (`scripts/scrape/pre-raid-bis.json`, [items.md](../data/items.md#pre-raid-bis-lists)): main hand and off hand (Mindfang for the Horde, Sageclaw for the Alliance; Tome of Arcane Domination) | [C] |
+| Enchants | Greater Stats on the chest, the one caster enchant the catalogue has | buffs doc §6.4 |
+| Buffs and consumables | the casters' Standard raid, as the mage's: the raid buffs, Arcane Brilliance, Blessing of Wisdom, Mana Spring, its own Moonkin Aura, Curse of the Elements, Greater Arcane Elixir and the Major Mana Potion; no attack-power or armor entries (`forSpecs: 'melee'`) | buffs doc §6.2, [spells §12](../mechanics/spells.md#12-what-a-class-slice-uses) |
+
+**The druid's caster entries are per spec.** The druid isn't a caster class (its Feral specs aren't
+casters), so Arcane Brilliance, Blessing of Wisdom, Mana Spring Totem, Prayer of Spirit, the spell
+damage elixirs and flask, the Major Mana Potion and the Demonic Rune carry `forCasterSpecs`: every
+caster spec gets them whatever its class, and a Feral druid gets none of them, in a preset, its
+Buffs tab, a saved setup or its plan ([buffs doc](../mechanics/buffs-debuffs-consumables.md#class-only-entries)).
+
+### 11.7 Worked examples
+
+Common setup: level 60 against 63, 500 spell damage (Arcane and Nature), the boss's level-based
+resist of 24 (6% on average), averages of uniform rolls. Unit tests in
+`src/sim/classes/druid/balance.test.ts`.
+
+- **B1. Starfire.** (381 + 1.0 × 500) × Moonfury 1.10 × 0.94 = **910.95**; a crit with Vengeance
+  5/5 (×2.0): **1,821.91**.
+- **B2. Wrath.** (65.2 + 0.571 × 500) × 1.10 × 0.94 = **362.62**; a crit: **725.25**.
+- **B3. Moonfire** with Improved Moonfire 2/2, Genesis 5/5, Nature's Splendor and Moonfury. Hit:
+  (139.6 + 0.15 × 500) × 1.10 × 1.10 × 0.94 = **244.09**. Each tick: (60 × 1.05 + 0.13 × 1.05 × 500)
+  × 1.10 × 1.10 × 0.94 = **149.29**, over 5 ticks **746.42**.
+- **B4. Insect Swarm** with Genesis 5/5 and Moonfury. Each tick: (31 × 1.05 + 0.158 × 1.05 × 500) ×
+  1.10 = **127.05** (binary: no partial resist), over 7 ticks **889.35**. Resisted whole with no hit:
+  17 + 83 × 0.06 = **21.98%** of casts; with 15% hit, 2 + 98 × 0.06 = **7.88%**.
+- **B5. Cast times and the GCD.** Starfire 3,500 − 500 = **3,000 ms**; under Nature's Grace 3,000 /
+  1.1 = **2,727 ms**; with an Eclipse charge **2,500 ms**; both (3,000 − 500) / 1.1 = **2,273 ms**.
+  Wrath 1,500 ms, under Nature's Grace **1,364 ms**, and the GCD **1,350 ms**.
+- **B6. Mana.** Starfire 340 × 0.75 = **255**; Wrath 120 × 0.5 × 0.75 = **45**; Moonfire 375 × 0.75
+  → **281**; Insect Swarm 160 × 0.75 = **120**; Innervate **62**.
+- **B7. Omen of Clarity** in Moonkin Form: Starfire 4 × 3.0 / 60 = **20%** of landed casts, Wrath,
+  Moonfire and Insect Swarm 4 × 1.5 / 60 = **10%**, at most once every 5 s.
+- **B8. Innervate.** 200 Spirit: 15 + 40 = 55 a tick, ×5 = **275** a tick while casting, **2,750**
+  over its 10 ticks.
+- **B9. Eclipse's cycle.** Wrath (1.5 s) then two Starfires at 2.5 s: **6.5 s** for one Wrath and two
+  Starfires, where two Starfires alone take 6.0 s. At B1 and B2's numbers that's 2,184.53 in 6.5 s
+  (336.1 a second) against 1,821.91 in 6.0 s (303.7), before crits and Nature's Grace.
+
+### 11.8 Open questions
+
+Each with its estimated effect on the default Balance DPS (D24). The caster core's open questions
+(spells.md OQ-S1–S13: binary spells, the level-based resist, DoT crits in Forever, refreshes,
+Spirit regeneration) apply too.
+
+| # | Question | What we have | Effect | How to check |
+| --- | --- | --- | --- | --- |
+| OQ-B1 | Omen of Clarity's rate on spells: 2 per minute of casting, or a flat chance a spell? Does Moonkin Form's −50% act on its 10 s cooldown? | Proc mask and the form's two modifiers [F] [client]; the rate server-side [?] | Clearcasting saves mana only: about 1–2% of DPS at the default mana | Count Clearcasting procs over 30+ min of Starfire and Wrath in Moonkin Form |
+| OQ-B2 | Nature's Grace: does a cast started inside its 3 s get the full +10%, and is the GCD 1.35 s? | Client auras 65 and 108 [F]; timing [?] | under 1% | Time Starfires after a crit with an addon |
+| OQ-B3 | Eclipse: does a landed Wrath (or a cast, or a miss) give the charges; does a new Wrath refresh the 15 s; is the 0.5 s taken before casting speed; is a charge used by a Starfire that's already fast? | Tooltip and curve [F]; effects are dummies | Eclipse is +4.9% of DPS in the sim; the details move a fraction of it | Watch the buff's charges and time Starfires after one Wrath |
+| OQ-B4 | Two spell-cost percentages: multiply (45 mana for Wrath) or add (30)? Rounded down? | [?] (§2.3's rule) | under 0.5% | Wrath's mana cost on the tooltip with both talents |
+| OQ-B5 | Vengeance on Moonfire's and Insect Swarm's tick crits | Its mask includes both [F]; in combat [?] | under 1% | Crit ticks' size in a combat log |
+| OQ-B6 | Does Moonkin Form's aura count toward the druid itself? | Party aura on the caster (implicit target 1) [F] | +3% crit | The character sheet's crit in and out of the form |
+
+[wh-bal-rot]: https://web.archive.org/web/20200807104010/https://classic.wowhead.com/guides/balance-druid-dps-rotation-abilities-classic-wow
 
 ---
 

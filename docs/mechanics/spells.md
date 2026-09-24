@@ -21,6 +21,7 @@ Status: researched 2026-09-24 · Forever client build 1.60.1.69913 · Classic Er
 ruleset tags: [F] Forever · [C] Classic Era · [?] unverified · engine: the caster core (slice K1)
 ([Implementation notes](#implementation-notes)); the first caster specs on it are the mage's (K2,
 [mage.md](../classes/mage.md)), then the Shadow Priest (K4, [priest.md](../classes/priest.md))
+and the Balance druid (K6, [druid.md §11](../classes/druid.md#11-balance-moonkin-sim-model))
 
 ---
 
@@ -150,7 +151,7 @@ share (ticks never miss, the refresh tie-break, periodic crits). For spell DoTs:
 | The boss's side | its damage taken (Curse of the Elements, a Fire Vulnerability) and its resist apply **at each tick** | [C] ([R1][r1-mech] applies Scorch stacks and CoE to each Ignite tick) |
 | Partial resist | each tick of a non-binary DoT, on average; a binary one's ticks none | [C] ([R1][r1-mech]) |
 | Refresh | recasting restarts it: a tick due that moment lands first, the partial tick in progress is lost, and it snapshots again | [?] (as damage-and-timing §4) |
-| Can ticks crit? | `forever`: yes if the spell has the periodic-crit flag (SpellMisc Attributes[8] 0x200), at the snapshot's crit × the spell's crit multiplier. **Forever flags** Corruption, Immolate, Shadow Word: Pain, Moonfire, Mind Flay, and Fireball's and Pyroblast's DoTs; Classic Era flags none of them. `classicEra`: never. The flag alone decides: a spell's `cannotCrit` covers only its direct part, never its ticks | [F] flags [client] (SpellMisc, 1.60.1.69913); [?] in combat; [C] never |
+| Can ticks crit? | `forever`: yes if the spell has the periodic-crit flag (SpellMisc Attributes[8] 0x200), at the snapshot's crit × the spell's crit multiplier. **Forever flags** Corruption, Immolate, Shadow Word: Pain, Moonfire, Insect Swarm, Mind Flay, and Fireball's and Pyroblast's DoTs; Classic Era flags none of them. `classicEra`: never. The flag alone decides: a spell's `cannotCrit` covers only its direct part, never its ticks | [F] flags [client] (SpellMisc, 1.60.1.69913); [?] in combat; [C] never |
 | Procs from ticks | a tick fires only the `spellTick` procs ([§10](#10-spell-procs)): no crit procs | [?] |
 
 ## 8. Mana
@@ -260,13 +261,21 @@ The API the caster class slices (K2–K6) build on, in `src/sim/plan/types.ts`:
   Strength, Agility, weapon enchants, the boss's armor) in their presets, Buffs tab, saved setups
   and plan ([buffs "Class-only entries"](buffs-debuffs-consumables.md#class-only-entries)). The
   mana and spell damage entries go by class (`forClasses`), to a class whose every spec is a caster;
-  a class with a melee spec too (the druid's Feral specs beside Balance) needs those gated per spec
-  instead.
+  a class with a melee spec too (the druid's Feral specs beside Balance) gets them per spec: each
+  carries `forCasterSpecs`, which gives it to every caster spec whatever its class (K6,
+  [druid §11.6](../classes/druid.md#116-defaults)).
 - **No melee**: a spec with `SpecMeta.caster` casts from range and never swings. Its plan has no
   weapon (the weapon's stats still count), and the notes about swings are left out (the mage in K2,
-  the Elemental shaman in K5, whose Enhancement spec keeps the shaman out of `CASTER_CLASSES`).
+  the Elemental shaman in K5, whose Enhancement spec keeps the shaman out of `CASTER_CLASSES`, and
+  the Balance druid in K6, whose Feral specs do the same for the druid).
 - **A spell an aura boosts without using it up** (`SpellDef.boost.keep`): Lava Burst's +20% while
   your Flame Shock is on the target (K5).
+- **What the Balance druid added** (K6, [druid §11](../classes/druid.md#11-balance-moonkin-sim-model)),
+  each optional, so no other plan changes: an aura's `gcdPct`, a shorter GCD for the abilities
+  marked `gcdCut` (Nature's Grace); an ability's `chargeAura` and `chargeCastMs`, a flat cast-time
+  cut per stack that one use spends (Eclipse); a proc's `ppmCast`, a rate per minute of casting on
+  the spell triggers, read from each spell's `procCastMs` (Omen of Clarity on spells); and an aura
+  proc's `stacks`.
 
 ---
 
@@ -275,8 +284,8 @@ The API the caster class slices (K2–K6) build on, in `src/sim/plan/types.ts`:
 What the Forever client changes for casters, read from its tables against Classic Era's
 [F] [C] [client] (SpellEffect, SpellMisc, SpellCastTimes, SpellCooldowns, both builds):
 
-- **Periodic crits:** Corruption, Immolate, Shadow Word: Pain, Moonfire, Mind Flay, and Fireball's and
-  Pyroblast's DoTs carry the periodic-crit flag; no Classic Era spell does.
+- **Periodic crits:** Corruption, Immolate, Shadow Word: Pain, Moonfire, Insect Swarm, Mind Flay, and
+  Fireball's and Pyroblast's DoTs carry the periodic-crit flag; no Classic Era spell does.
 - **Top-rank base damage is lower, the coefficients the same or higher.** At level 60, before
   spell damage:
 

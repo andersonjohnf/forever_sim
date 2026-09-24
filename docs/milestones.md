@@ -438,9 +438,10 @@ slice is worked:
   - **Nightfall's Spell Vulnerability isn't a Buffs entry:** its proc rate is server-side, and a
     static entry needs an uptime (spells.md OQ-S10).
   - **The mana and spell damage entries go to classes, not specs:** the caster core's own entries
-    and the melee's go by spec (`forSpecs`, `SpecMeta.caster`), but Arcane Brilliance, Blessing
-    of Wisdom, the mana potions and the spell damage elixirs are `forClasses`, so the druid's Feral
-    specs would get Balance's if the druid were a mana class; K6 gates them per spec.
+    and the melee's go by spec (`forSpecs`, `SpecMeta.caster`), and Arcane Brilliance, Blessing
+    of Wisdom, the mana potions and the spell damage elixirs by class (`forClasses`). K6 gave them
+    to every caster spec too (`forCasterSpecs`), so the Balance druid has them and its Feral specs
+    don't ([druid §11.6](classes/druid.md#116-defaults)).
   - **The Enhancement shaman is on the core** since K5: its Lightning Bolt is hasted and its
     Nature-, Frost- and Fire-only spell damage lines count; its default result and golden didn't
     move ([shaman.md](classes/shaman.md#enhancement-on-the-core)).
@@ -515,5 +516,4 @@ slice is worked:
 ## Later
 
 - Raid gear (Epic quality): widen the scraper filter
-- Balance druid, if Forever makes it a real raid spec
 - Other classes, only if wowsims still hasn't arrived

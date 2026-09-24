@@ -162,7 +162,7 @@ see [data/races.md](../data/races.md)), but the client table is the primary sour
 | Gift of the Wild (r2) | 21850 | As Mark of the Wild, **whole raid** (C: target's party) | 1 h | Same as Mark of the Wild | Druid | [F] | [fc-sb-druid] |
 | Improved Mark of the Wild | talent (C: 17050) | **Removed** (C: +35% at 5/5) | — | — | — | [F] | [fc-changes] |
 | Leader of the Pack | 17007 (aura 24932) | +3% crit to the party within 45 yd. The Forever tooltip says "critical strike chance", and the aura is all-crit (aura 290 = 3) (C: melee and ranged crit) | While the druid is in Cat, Bear or Dire Bear Form | **Exclusive with Moonkin Aura** (Forever tooltip); several druids don't stack | Feral druid talent | [F] | [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
-| Moonkin Aura (Moonkin Form) | 24907 | **+3% crit (all)** to the party within 45 yd (C: +3% *spell* crit, 30 yd) | While in Moonkin Form | Exclusive with Leader of the Pack | Balance druid talent. The casters' Buffs entry ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)) | [F] | [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
+| Moonkin Aura (Moonkin Form) | 24907 | **+3% crit (all)** to the party within 45 yd (C: +3% *spell* crit, 30 yd) | While in Moonkin Form | Exclusive with Leader of the Pack | Balance druid talent. The casters' Buffs entry ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)); a Balance druid's own Moonkin Form brings it, so its Buffs tab shows it on and locked, and a Leader of the Pack in its group adds nothing ([druid §11.1](../classes/druid.md#111-moonkin-form)) | [F] | [fc-changes] · [client] (SpellEffect, 1.60.1.69913) |
 | Power Infusion | 10060 | +20% spell damage (every magic school), 15 s | 3 min cooldown | — | Priest talent, cast on another player. The casters' Buffs entry, which a caster's rotation presses on cooldown ([spells §9](spells.md#9-caster-raid-buffs-and-debuffs)) | [F] | [client] (SpellEffect, SpellCooldowns, 1.60.1.69913) |
 | Trueshot Aura (r5) | 20906 (r1 1299346) | **Ranged AP only** in Forever: 30 / 40 / 50 / 75 / 50 by rank (C: +50 / 75 / 100 melee **and** ranged AP) | 30 min | Party within 45 yd | Hunter talent | [F] | [fc-sb-hunter] · [fc-changes] |
 | Strength of Earth Totem (r5) | 25361 | **+53** Str (C: 77) | **5 min**, 30 yd (C: 2 min, 20 yd) | Party only. Earth totem, so it excludes Stoneskin Totem from the same shaman | Shaman | [F] | [fc-sb-shaman] |
@@ -994,8 +994,10 @@ The shaman spends mana and deals Nature and Frost spell damage, so every one of 
 shaman's too, except the Elixir of Holy Power: its +40 is Holy only, which no shaman spell uses
 ([shaman](../classes/shaman.md#spell-damage)). The caster classes (`CASTER_CLASSES`: those whose
 every spec is a caster, the mage since K2, the warlock since K3 and the priest since K4) get them
-too, all but Elixir of Holy Power. The Elixir of Shadow Power is the warlock's and the priest's alone
-([warlock](../classes/warlock.md#74-enchants-and-consumables),
+too, all but Elixir of Holy Power, and so does every caster spec of another class
+(`forCasterSpecs`): the druid's Balance spec since K6, while its Feral specs get none of them
+([druid §11.6](../classes/druid.md#116-defaults)). The Elixir of Shadow Power is the warlock's and
+the priest's alone ([warlock](../classes/warlock.md#74-enchants-and-consumables),
 [priest](../classes/priest.md#74-enchants-and-consumables)).
 Warriors and druids in feral forms spend rage or energy, not mana (the cat never powershifts,
 [druid §2.8](../classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)), and

@@ -1540,14 +1540,15 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (procIds.has('deepWounds')) notes.add('deepWounds')
   if (setup.talents.has('Anger Management')) notes.add('angerManagement')
   if (weapons.some((w) => w && w.plan.armorPenPct > 0)) notes.add(classId === 'rogue' ? 'rogueArmorPen' : 'weaponmasterMace')
-  // threat.md#warrior: Sunder Armor's threat is the Forever client's; the rest are Classic Era's.
+  // threat.md#warrior: in `forever` Sunder Armor's threat is the Forever client's, the rest Classic
+  // Era's; in `classicEra` all are Classic Era's, Sunder's 261 too.
   // A paladin tank's note speaks paladin: mana and Righteous Fury, not rage and stances.
   if (tank && classId === 'paladin') notes.add('whiteThreatPaladin')
   else if (tank) {
     const sunder = abilities.find((a) => a.id === 'sunderArmor')
     notes.add(
       'whiteThreat',
-      sunder
+      sunder && profile.id === 'forever'
         ? `Sunder Armor makes ${sunder.threatBonus.toLocaleString('en-US')} threat, the Forever client’s value, in place of Classic Era’s 261; the other abilities make Classic Era’s`
         : undefined,
     )

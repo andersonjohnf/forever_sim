@@ -20,7 +20,7 @@ import {
   revengeWindowProcs,
   SHIELD_BLOCK,
   SHIELD_SLAM,
-  SUNDER_ARMOR,
+  sunderArmor,
   THUNDER_CLAP,
   thunderClap,
 } from './abilities'
@@ -311,8 +311,8 @@ export function protectionMaintainedBuffs(values: Record<string, RotationValue>)
  * The Protection priority list from the settings (warrior.md §5.4). `talents` gates Shield Slam,
  * follows Vanguard for Charge's default and resolves costs, Improved Revenge and Improved Bloodrage;
  * `context` gives the race (its racial cooldown), the equipped on-use items, the selected
- * consumables and the profile (Thunder Clap's slow and Demoralizing Shout's attack power, and the
- * rage a stance swap keeps). `_auraIndex` is unused: no Protection line reads a plan aura by id.
+ * consumables and the profile (Thunder Clap's slow, Demoralizing Shout's attack power, Sunder
+ * Armor's threat, and the rage a stance swap keeps). `_auraIndex` is unused: no Protection line reads a plan aura by id.
  */
 export function protectionRotation(
   values: Record<string, RotationValue>,
@@ -369,10 +369,12 @@ export function protectionRotation(
 
   // Row 10: Sunder Armor while the boss has fewer than 5 stacks, or they have ≤ refreshBelowSec left
   // and would run out before the fight does.
+  // Its threat is the profile's: Forever's 1013, Classic Era's 261 (threat.md#warrior).
+  const sunderDef = sunderArmor(ctx.profile)
   if (v.on(ID.sunderEnabled)) {
-    const sunder = b.ability(SUNDER_ARMOR)
-    b.add(SUNDER_ARMOR, [stacksBelow(sunder, 5)])
-    b.add(SUNDER_ARMOR, [auraRefresh(sunder, seconds(v, ID.sunderRefresh))])
+    const sunder = b.ability(sunderDef)
+    b.add(sunderDef, [stacksBelow(sunder, 5)])
+    b.add(sunderDef, [auraRefresh(sunder, seconds(v, ID.sunderRefresh))])
   }
 
   // Row 5, without maintainOnly: Thunder Clap on cooldown, when Shield Slam is GCD-safe.
@@ -383,7 +385,7 @@ export function protectionRotation(
   // it isn't in the mask, as Overpower isn't in Arms' (§5.3): holding the filler for it measured worse
   // (§5.4 "Tuning the defaults").
   if (v.on(ID.fillerEnabled)) {
-    b.add(SUNDER_ARMOR, [minRage(toTenths(v.num(ID.fillerMinRage))), ...(v.on(ID.fillerSafe) ? gcdSafe(bit(slam)) : [])])
+    b.add(sunderDef, [minRage(toTenths(v.num(ID.fillerMinRage))), ...(v.on(ID.fillerSafe) ? gcdSafe(bit(slam)) : [])])
   }
 
   // Row 12: the Heroic Strike queue (off the GCD) at rage ≥ minRage, in both phases; and in the fight's

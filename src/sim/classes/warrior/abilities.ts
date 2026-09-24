@@ -781,7 +781,8 @@ export const SHIELD_SLAM: AbilityDef = {
  * 1013 [F], which replaces Classic Era's 261 [?] (threat.md#warrior, warrior.md Q1). It deals no
  * damage: one roll over miss, dodge, parry and block (combat-tables §3), and what lands is a hit, not a
  * crit (warrior.md §7). A miss, dodge or parry refunds 80% [C]. Its stacks on the boss take the place of
- * the Buffs tab's Sunder Armor ×5 (warrior.md §5.4 notes).
+ * the Buffs tab's Sunder Armor ×5 (warrior.md §5.4 notes). This is the `forever` row;
+ * `sunderArmor(profile)` is the profile's.
  */
 export const SUNDER_ARMOR: AbilityDef = {
   id: 'sunderArmor',
@@ -807,6 +808,20 @@ export const SUNDER_ARMOR: AbilityDef = {
   ...INSTANT,
   ...NO_CAST,
   aura: { id: 'sunderArmor', name: 'Sunder Armor', durationMs: 30000, maxStacks: 5, mods: { targetArmor: 450 } },
+}
+
+/**
+ * Sunder Armor's threat per landed application, by rule profile (threat.md#warrior, worked examples T1
+ * and T2): `forever` the Forever client's THREAT effect, 1013 [F] (its in-game total [?], warrior.md
+ * Q1); `classicEra` Classic Era's server-side 261 [C] (Magey), since the Classic Era client has no
+ * threat effect on the spell.
+ */
+export const SUNDER_ARMOR_THREAT = { forever: 1013, classicEra: 261 } as const
+
+/** Sunder Armor under a rule profile: its threat is the profile's (`SUNDER_ARMOR_THREAT`). */
+export function sunderArmor(profile: RulesProfile): AbilityDef {
+  const threat = SUNDER_ARMOR_THREAT[profile.id]
+  return threat === SUNDER_ARMOR.threatBonus ? SUNDER_ARMOR : { ...SUNDER_ARMOR, threatBonus: threat }
 }
 
 /**

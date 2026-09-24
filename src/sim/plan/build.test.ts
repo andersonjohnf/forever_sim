@@ -585,6 +585,13 @@ describe('assumptions', () => {
       expect.arrayContaining(['bossMelee', 'damageTakenRage', 'foreverBossParry', 'whiteThreat', 'defiance', 'classicShieldBlockValue', 'baseStatPlaceholders']),
     )
     expect(prot).not.toContain('shieldBlockValue')
+    // threat.md#warrior (W2): Sunder Armor's threat is the profile's, and so is the note's.
+    const whiteThreat = (config: SimConfig) => buildPlan(config).assumptions.find((a) => a.id === 'whiteThreat')!.text
+    const classicProt = withRules(defaultConfig('warrior-protection'), 'classicEra')
+    expect(buildPlan(classicProt).plan.abilities.find((a) => a.id === 'sunderArmor')!.threatBonus).toBe(261)
+    expect(buildPlan(defaultConfig('warrior-protection')).plan.abilities.find((a) => a.id === 'sunderArmor')!.threatBonus).toBe(1013)
+    expect(whiteThreat(defaultConfig('warrior-protection'))).toMatch(/Sunder Armor makes 1,013 threat, the Forever client’s value, in place of Classic Era’s 261/)
+    expect(whiteThreat(classicProt)).not.toMatch(/Sunder/)
     const classic = ids(withRules(defaultConfig('warrior-arms'), 'classicEra'))
     expect(classic).not.toContain('foreverGlancing')
     expect(classic).not.toContain('foreverWhiteRage')

@@ -1525,7 +1525,8 @@ Notes:
   slow from the Buffs tab counts instead of your own. The results list the three with their uptimes.
 - **Threat values** per ability, including the Forever Sunder question (Q1), live in
   [threat.md](../mechanics/threat.md#warrior). The engine uses the Forever client's 1013 for Sunder
-  Armor and Classic Era's values for the rest [?]. The Classic reference numbers are Magey's 1.13.6
+  Armor and Classic Era's values for the rest [?]; under the `classicEra` profile, Sunder's too
+  (261 [C]). The Classic reference numbers are Magey's 1.13.6
   measurements [magey-thr].
 - **Why Sunder Armor fills every free GCD.** With its 1013 threat for 9 rage, it makes about as
   much threat per GCD as a Shield Slam at this gear (more before crits and armor), and about twice

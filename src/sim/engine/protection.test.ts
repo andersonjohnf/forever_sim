@@ -11,9 +11,11 @@ import {
   SHIELD_BLOCK,
   SHIELD_SLAM,
   SUNDER_ARMOR,
+  sunderArmor,
   THUNDER_CLAP,
 } from '../classes/warrior/abilities'
 import { armorReduction } from '../core/formulas'
+import { PROFILES } from '../rules/profiles'
 import { defaultConfig, TALENT_DATA } from '../defaults'
 import { buildPlan } from '../plan/build'
 import { ACTION, type Plan, TRIGGER, TRIGGER_COUNT } from '../plan/types'
@@ -340,6 +342,32 @@ describe('Sunder Armor on the boss (warrior.md §3.2, §7)', () => {
     expect(counter(sim, row, FIELD.crits)).toBe(0)
     expect(counter(sim, row, FIELD.damage)).toBe(0)
     expect(counter(sim, row, FIELD.threat)).toBeCloseTo(1013 * plan.threatMult, 9)
+  })
+
+  it('threat.md T1 and T2: 1013 per landed Sunder in `forever`, 261 in `classicEra` (261 × 1.495 = 390.195)', () => {
+    expect(sunderArmor(PROFILES.forever).threatBonus).toBe(1013)
+    expect(sunderArmor(PROFILES.classicEra).threatBonus).toBe(261)
+    // The same Protection warrior (Defensive Stance, Defiance 3/3 with a shield) under each profile,
+    // at the worked examples' ×1.495: the default's gloves enchant (×1.02) left out.
+    for (const [profile, bonus, expected] of [
+      ['forever', 1013, 1514.435],
+      ['classicEra', 261, 390.195],
+    ] as const) {
+      const d = defaultConfig('warrior-protection')
+      const plan = protPlan(60000, { rules: { ...d.rules, profile } })
+      alwaysLandsNoCrit(plan)
+      expect(plan.threatMult).toBeCloseTo(1.3 * 1.15 * 1.02, 12)
+      plan.threatMult = 1.3 * 1.15
+      const sunder = addAbility(plan, sunderArmor(PROFILES[profile]), TALENTS)
+      expect(plan.abilities[sunder].threatBonus).toBe(bonus)
+      rageAtPull(plan, 100)
+      line(plan, sunder, at(plan, 0))
+      const sim = new Sim(plan)
+      sim.runFight(0)
+      const row = plan.abilities[sunder].source
+      expect(counter(sim, row, FIELD.hits)).toBe(1)
+      expect(counter(sim, row, FIELD.threat), profile).toBeCloseTo(expected, 9)
+    }
   })
 
   it('a Sunder that misses adds no stack and makes no threat', () => {

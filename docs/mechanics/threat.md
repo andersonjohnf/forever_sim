@@ -40,8 +40,8 @@ foreverchanges.pro tooltip gives the same fact, the tooltip is the primary citat
   0.8, Cat Form 0.71, Righteous Fury (Holy only), Salvation 0.7, threat enchants and items, and so
   on ([modifiers](#stance-and-form-modifiers), [global](#global-threat-modifiers)).
 - **Per-ability values** come from the tables in [per-ability threat](#per-ability-threat-at-max-rank).
-  Sunder uses the Forever client value. Everything else uses Classic Era values flagged `[?]`
-  for Forever.
+  Sunder uses the Forever client value in `forever` and Classic Era's 261 in `classicEra`.
+  Everything else uses Classic Era values flagged `[?]` for Forever.
 - **Non-damage threat** ([healing, power gains and buffs](#threat-from-healing-power-gains-and-buffs)):
   - healing: 0.5 per point of effective healing, split across enemies [C];
   - power gains: 5 per rage [C], and 5 per energy and 0.5 per mana [?], split, with no
@@ -185,7 +185,7 @@ All values are **before** global multipliers. "dmg" is the damage dealt by that 
 
 | Ability (rank, spell id) | Classic Era threat | Forever | Notes and sources |
 | --- | --- | --- | --- |
-| **Sunder Armor** (r5, 11597) | **261** flat per application, even at 5 stacks [C] (Magey) | **1013** flat. The client value is [F]; the in-game total is [?]. | Forever DB2 adds an explicit threat effect (effect 63) by rank: r1 **1**, r2 405, r3 608, r4 810, r5 1013. That is **2.25 × the armor removed** (180/270/360/450), as [warrior.md §1 and Q1](../classes/warrior.md#9-open-questions) notes. The Classic client has no such effect. Sources: [client] (SpellEffect, 1.60.1.69913) and [client] (SpellEffect, 1.15.9.69722); also read by [ElliotWood/Forever](https://github.com/ElliotWood/Forever/blob/master/docs/beta-pass/warrior.md). **Default: 1013 replaces Classic's server-side 261.** warrior.md Q1 asks whether it is instead added on top (1274). Rank 1 = 1 looks like a bug; 2.25 × 90 would be ~203. Players report low-rank Sunder "generating 10 threat instead of 100" ([forum](https://us.forums.blizzard.com/en/wow/t/warrior-rage-normalization-auto-attack-crits-dont-generate-extra-rage/2355684)). **Engine:** 1013 × the global multipliers per landed application (a hit or a block), in both rule profiles; none for a miss, dodge or parry. It deals no damage and can't crit ([warrior.md §7](../classes/warrior.md#7-implementation-notes)). |
+| **Sunder Armor** (r5, 11597) | **261** flat per application, even at 5 stacks [C] (Magey) | **1013** flat. The client value is [F]; the in-game total is [?]. | Forever DB2 adds an explicit threat effect (effect 63) by rank: r1 **1**, r2 405, r3 608, r4 810, r5 1013. That is **2.25 × the armor removed** (180/270/360/450), as [warrior.md §1 and Q1](../classes/warrior.md#9-open-questions) notes. The Classic client has no such effect. Sources: [client] (SpellEffect, 1.60.1.69913) and [client] (SpellEffect, 1.15.9.69722); also read by [ElliotWood/Forever](https://github.com/ElliotWood/Forever/blob/master/docs/beta-pass/warrior.md). **Default: 1013 replaces Classic's server-side 261.** warrior.md Q1 asks whether it is instead added on top (1274). Rank 1 = 1 looks like a bug; 2.25 × 90 would be ~203. Players report low-rank Sunder "generating 10 threat instead of 100" ([forum](https://us.forums.blizzard.com/en/wow/t/warrior-rage-normalization-auto-attack-crits-dont-generate-extra-rage/2355684)). **Engine:** the profile's value × the global multipliers per landed application (a hit or a block): 1013 in `forever`, Classic Era's 261 in `classicEra` (`sunderArmor(profile)`; worked examples T1 and T2); none for a miss, dodge or parry. It deals no damage and can't crit ([warrior.md §7](../classes/warrior.md#7-implementation-notes)). |
 | Heroic Strike (r9, 25286; +157 dmg) | dmg + **173** [C] (Magey). r8 (11567): dmg + 145. | [?] | Tooltip unchanged ("high amount of threat"). LTC2 uses 175. **Engine:** dmg + 173. |
 | Revenge (r6, 25288) | **2.25 × dmg + 270** [C] (Magey). r5: 2.25 × dmg + 243. | [?] | Forever damage rose from 81–99 to **138–168** [F], so with the Classic formula Revenge threat rises a lot. LTC2's older code uses a flat 355, which the measurements supersede. **Engine:** 2.25 × dmg + 270. |
 | Shield Slam (r4, 23925) | dmg + **254** [C] (Magey) | [?] | Forever damage 640–670 + block value [F] (Classic 342–358). The tooltip changed from "a high amount of threat" to "**a very high** amount of threat", so the bonus may have risen. **Engine:** dmg + 254. |
@@ -398,12 +398,13 @@ function globalMultiplier(a: Actor, school: SchoolMask): number {
 
 ## Worked examples
 
-Each of these becomes a unit test.
+Each of these becomes a unit test. T1 and T2 run in the engine under each profile
+(`src/sim/engine/protection.test.ts`).
 
 | # | Input | Expected threat |
 | --- | --- | --- |
 | T1 | Forever warrior: Defensive Stance, 3/3 Defiance, shield; Sunder r5 | 1013 × 1.3 × 1.15 = **1514.435** |
-| T2 | Classic warrior: Defensive Stance, 5/5 Defiance; Sunder r5 | 261 × 1.495 = **390.195** |
+| T2 | Classic warrior (`classicEra`): Defensive Stance, 5/5 Defiance; Sunder r5 | 261 × 1.495 = **390.195** |
 | T3 | Forever warrior as T1 but **two-handed** (no shield) | Multiplier 1.3; Sunder = **1316.9** |
 | T4 | Warrior ×1.495; Heroic Strike r9 hits for 500 | (500 + 173) × 1.495 = **1006.135** |
 | T5 | Warrior ×1.495; Revenge hits for 150 (Classic formula) | (2.25 × 150 + 270) × 1.495 = **908.2125** |

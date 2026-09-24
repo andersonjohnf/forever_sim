@@ -1,7 +1,8 @@
 // Simulation runs (docs/ux.md#results): progress and cancel, the previous result for deltas,
-// and staleness when the setup changes after a run.
+// and staleness when the setup changes after a run. A spec switch cancels the run under way.
 import { create } from 'zustand'
 import { simulate, type SimConfig, type SimProgress, type SimResult, type SpecId } from '@/sim'
+import { useSetup } from './setup-store'
 
 type Status = 'idle' | 'running' | 'done' | 'error'
 
@@ -31,6 +32,7 @@ interface SimState {
    */
   errorKey: string | null
   run: (config: SimConfig) => Promise<void>
+  /** Stops the run under way at once, keeping each spec's last result. */
   cancel: () => void
 }
 
@@ -69,7 +71,7 @@ export const useSim = create<SimState>()((set, get) => ({
     } catch (err) {
       if (controller !== current) return
       if (err instanceof DOMException && err.name === 'AbortError') {
-        set({ status: get().result ? 'done' : 'idle', progress: null, runKey: null })
+        set(cancelled(get()))
       } else {
         const error = err instanceof Error ? err.message : String(err)
         set({ status: 'error', error, errorKey: key, progress: null, runKey: null })
@@ -78,5 +80,23 @@ export const useSim = create<SimState>()((set, get) => ({
       if (controller === current) controller = null
     }
   },
-  cancel: () => controller?.abort(),
+  // The state changes here, not when the aborted run's promise settles, so nothing renders the run
+  // as under way after a spec switch cancelled it, not even for a moment.
+  cancel: () => {
+    if (!controller) return
+    const current = controller
+    controller = null
+    current.abort()
+    set(cancelled(get()))
+  },
 }))
+
+/** What a cancelled run leaves: every spec's last result, as it was before the run. */
+const cancelled = (state: SimState): Partial<SimState> => ({ status: state.result ? 'done' : 'idle', progress: null, runKey: null })
+
+// A spec switch cancels the run under way (docs/ux.md#states "Running", a user decision): a run is
+// never left going out of sight, so nothing of one spec's run shows or is announced under another.
+// Whatever switched the spec (the switcher, a shared link, a saved setup), the run stops.
+useSetup.subscribe((state, previous) => {
+  if (state.config.spec !== previous.config.spec) useSim.getState().cancel()
+})

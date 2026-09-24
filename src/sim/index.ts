@@ -65,8 +65,9 @@ export {
   normalizeAplOrder,
   storedAplOrder,
 } from './classes/apl'
-// What a run that stopped answering says, so the results can tell it from a setup's own refusal.
-export { WORKER_HANG_MESSAGE } from './run/pool'
+// What a run whose worker hung, failed to start or crashed says, so the results can tell it from a
+// setup's own refusal and leave out advice the message already gives.
+export { WORKER_CRASH_MESSAGE, WORKER_HANG_MESSAGE, WORKER_START_MESSAGE } from './run/pool'
 // The boss → player table's constants, for the results to explain it (docs/mechanics/combat-tables.md#8-boss--player-tanks).
 export { CRUSH_MIN_LEVEL_GAP, DEFENSE_PER_POINT, mobSkill, PLAYER_LEVEL } from './core/attack-table'
 
@@ -344,8 +345,13 @@ export function computeSheet(config: SimConfig): CharacterSheet | null {
 
 let pool: WorkerPool | null = null
 
+/**
+ * The pool's workers, or this thread where there are none, or where they've failed to start in two
+ * runs in a row (the site updated since the page loaded, most likely): a slower run on the page beats
+ * none until a reload (docs/architecture.md#iterations-determinism-and-workers).
+ */
 function executorFor(plan: Parameters<typeof localExecutor>[0]): ChunkExecutor {
-  if (WorkerPool.supported()) {
+  if (WorkerPool.supported() && !pool?.unstartable) {
     try {
       pool ??= new WorkerPool(WorkerPool.defaultSize())
       return pool.executor(plan)

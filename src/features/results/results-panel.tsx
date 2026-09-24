@@ -1,4 +1,4 @@
-import { ChevronRight, ChevronsDown, Loader2, Play, RotateCw, Square, TriangleAlert } from 'lucide-react'
+import { ChevronRight, ChevronsDown, Loader2, Play, RefreshCw, RotateCw, Square, TriangleAlert } from 'lucide-react'
 import { Fragment, type ReactNode, useId, useRef } from 'react'
 import { focusSection } from '@/app/section-focus'
 import { type Section, useSetup } from '@/app/setup-store'
@@ -11,7 +11,7 @@ import { CHOICE_ITEM } from '@/lib/choice'
 import { formatInt, formatOne, formatPct, formatSeconds } from '@/lib/format'
 import { casterSheetRows, rangedSheetRows } from './caster-sheet'
 import { cn } from '@/lib/utils'
-import type { SimConfig, SimResult, Summary } from '@/sim'
+import { WORKER_START_MESSAGE, type SimConfig, type SimResult, type Summary } from '@/sim'
 import { AssumptionList } from './assumption-list'
 import { Delta } from './delta'
 import { ManaPerFight } from './mana-results'
@@ -200,8 +200,9 @@ function StaleBadge() {
 
 /** What a failed run says, and the way forward (docs/ux.md#states "Error"). */
 function RunError({ message }: { message: string }) {
-  // The engine's refusals name what to change, and a hung worker's message says to run it again;
-  // only other failures get the retry advice.
+  // The engine's refusals name what to change, a hung worker's message says to run it again, and
+  // workers that couldn't start say to reload, with a button for it; only other failures get the
+  // retry advice.
   const setup = isSetupError(message)
   const advice = !carriesItsOwnAdvice(message)
   return (
@@ -212,6 +213,13 @@ function RunError({ message }: { message: string }) {
         <p>{message}</p>
         {advice && (
           <p className="text-muted-foreground">Try again. If it keeps failing, reset this spec to its defaults from the More menu (⋯).</p>
+        )}
+        {/* Workers that couldn't start: most likely the site updated since the page loaded, and a
+            reload fetches the new one (docs/ux.md#states "Error"). */}
+        {message === WORKER_START_MESSAGE && (
+          <Button variant="outline" className="mt-1 h-11 self-start" onClick={() => window.location.reload()}>
+            <RefreshCw aria-hidden /> Reload page
+          </Button>
         )}
       </div>
     </div>

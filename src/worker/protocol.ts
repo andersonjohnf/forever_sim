@@ -8,5 +8,7 @@ export type ToWorker =
   | { type: 'chunk'; jobId: number; planId: number; chunk: number; fights: number }
 
 export type FromWorker =
+  /** Sent once its script has loaded and run, so a later failure isn't taken for one to start. */
+  | { type: 'ready' }
   | { type: 'result'; jobId: number; result: ChunkResult }
   | { type: 'error'; jobId: number; message: string }

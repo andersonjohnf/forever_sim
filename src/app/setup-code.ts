@@ -18,7 +18,8 @@ export const MIN_CODE_CHARS = 24
 /**
  * The code in what was pasted, or null if there's none to find:
  * - Anything with a URL fragment (a share link, or just its #s=…): the fragment's `s` parameter,
- *   among any others (#s=…&x=1, #x=1&s=…), up to the first character a code can't have. Text
+ *   among any others (#s=…&x=1, #x=1&s=…, or a chat app's #s=…?utm_source=…, as an opened link
+ *   reads them: `fragmentCode` in ./share.ts), up to the first character a code can't have. Text
  *   around the link is ignored, a comma after it included.
  * - Otherwise a bare code, with any whitespace in it dropped: a long code pasted from a chat or an
  *   email may have been wrapped.
@@ -26,7 +27,7 @@ export const MIN_CODE_CHARS = 24
  */
 export function findSetupCode(text: string): string | null {
   for (const [, fragment] of text.matchAll(/#([^\s#]*)/g)) {
-    const param = fragment.split('&').find((p) => p.startsWith('s='))
+    const param = fragment.split(/[&?]/).find((p) => p.startsWith('s='))
     if (param !== undefined) return /^[A-Za-z0-9_-]*/.exec(param.slice(2))![0]
   }
   const bare = text.replace(/\s+/g, '')

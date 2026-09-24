@@ -905,6 +905,12 @@ Every view handles these states:
     it, so the badge comes back.
   - A polite live region, mounted once at every width, says "Simulating…" when a run starts
     and then "Done: 682.5 DPS" or "Simulation cancelled."
+  - Switching spec cancels a run in progress, as Cancel does, however the spec changed (the
+    switcher, a shared link, a saved setup): there's never a run going on out of sight, so no
+    progress or number from one spec's run shows, or is announced, under another. The live region
+    says "Simulation cancelled." The spec switched to shows its own last result, or is ready to
+    simulate, in the panel, the sheet and the phone's bar alike, and switching back shows the
+    cancelled spec as Cancel would have left it: its last completed result, or ready to simulate.
 - **Stale:** the setup changed after the last run, so results are dimmed with a "Re-run" hint.
   - The whole result dims, the breakdown and details included, not just the headline. Dimmed
     text turns to the muted text color, which still meets AA; bars and icons fade to gray. The
@@ -921,7 +927,14 @@ Every view handles these states:
     and its message says what to change, so no retry advice follows it. Any other failure is
     titled "The simulation failed" and suggests trying again, then resetting the spec, except a
     run that stopped answering for a minute: "The simulation stopped responding for a minute, so
-    it was stopped. Run it again." says all there is to say, since no setup causes a hang.
+    it was stopped. Run it again." says all there is to say, since no setup causes a hang. Nor does
+    a run whose workers couldn't start (most likely the site updated since the page loaded): "The
+    simulation couldn't start. Reload the page, then run it again." A "Reload page" button (44 px)
+    under it does that, in the panel and the phone's sheet; the phone's bar says "Failed" as for
+    any failure. A run whose worker stopped after it had started says "The simulation stopped
+    unexpectedly.", with the retry advice. The next Simulate replaces any worker that failed. If
+    the workers fail to start in two runs in a row, later runs go on the page itself instead,
+    slower but with a result, until a reload.
   - On a phone the bottom bar shows the failure itself: a warning icon, "Failed" and the
     start of the reason, in AA colors. "Show results and details" stays enabled, with or without an
     earlier result, and opens the sheet with the full message. The live region reads it out
@@ -939,6 +952,13 @@ Every view handles these states:
   than every change failing (`autoSaveStorage` in `src/app/setup-store.ts`). It says what makes
   room as the Setups sheet does: deleting saved setups, or with none shown, that the storage is
   full of something else and clearing the site's data makes room.
+- **A stored save is read carefully,** like a shared link: anything in it that this version doesn't
+  save falls back to the default instead of breaking the page. A tab that no longer exists opens
+  Gear; a setup stored under a spec the sim doesn't know, or under another spec's name, is dropped,
+  so that spec opens on its defaults; a last-used spec it doesn't know opens the default spec, on
+  your own stored setup for it; a save that isn't a setup at all, or isn't JSON, opens the
+  defaults; and a save from another version of the app is read the same way (`merge` in
+  `src/app/setup-store.ts`). Nothing is announced: there's nothing you can do about it.
 - **What you never changed follows the defaults.** A gear slot or talent build that still holds
   the spec's default when the setup is saved takes the newer default on the next visit; what you
   changed stays yours ([architecture, "Following the defaults"](architecture.md#following-the-defaults)).
@@ -1005,6 +1025,12 @@ Every view handles these states:
 - **A toast stays solid over an open sheet or dialog** (the results sheet, the item picker,
   About): a tap on it lands on the toast, not on what's under it, and neither a tap nor a swipe
   closes the sheet. (`src/app/toast-layer.ts` explains how.)
+- A link's setup is the `s` parameter of its fragment, whatever else is there: chat apps append
+  tracking parameters to a link they pass on, in the query (`?utm_source=…#s=…`) or after the code
+  (`#s=…&fbclid=…`, `#s=…?utm_source=…`), and those links load as they are. `&` or `?` ends the
+  code, and the code itself is read as it is, so a damaged one is still refused. The whole fragment
+  leaves the URL when it's read; the query stays (`fragmentCode` in `src/app/share.ts`). Import's
+  field reads a pasted link the same way.
 - Setups are versioned, so an old link still loads, or explains why it can't.
 - A link to a spec the app doesn't offer yet shows an error toast and leaves the current setup
   alone. A saved setup for such a spec is kept for later, and the default spec opens.

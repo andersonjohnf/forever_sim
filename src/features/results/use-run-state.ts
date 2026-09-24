@@ -16,6 +16,7 @@ export { headlineText, METRIC_LABEL, type Metric, metricsFor } from './run-logic
  *   brings it back unchanged, even after running the other. `previous` is the one before it, for
  *   the ▲/▼ change, which never compares specs.
  * - `stale`: the setup changed after that run. `dimmed`: stale, or a re-run is under way.
+ * - `running`: a run is under way. It's always this spec's: a spec switch cancels it.
  * - `rerunning`: a run is under way for the current setup, so it's about to replace a stale result
  *   (no "Setup changed" beside its progress).
  * - `runConfig`: the setup `result` was run for, which can differ from `config` while stale.

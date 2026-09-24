@@ -1,9 +1,9 @@
 // Simulation worker (docs/architecture.md#engine-design-m1, decision D15).
 //
 // Stays warm between runs: it keeps one engine per plan and runs chunks as they arrive. It imports
-// only the engine, never the datasets; the main thread sends the resolved plan.
-import { runChunk } from '@/sim/engine/chunk'
-import { Sim } from '@/sim/engine/sim'
+// only the engine, never the datasets; the main thread sends the resolved plan. The messages are
+// handled in ./handler, which tests can import.
+import { createHandler } from './handler'
 import type { FromWorker, ToWorker } from './protocol'
 
 interface WorkerScope {
@@ -12,19 +12,8 @@ interface WorkerScope {
 }
 
 const scope = self as unknown as WorkerScope
-let current: { planId: number; sim: Sim } | null = null
-
-scope.onmessage = (event) => {
-  const message = event.data
-  if (message.type === 'plan') {
-    current = { planId: message.planId, sim: new Sim(message.plan) }
-    return
-  }
-  try {
-    if (!current || current.planId !== message.planId) throw new Error('The worker has no plan for this chunk.')
-    const result = runChunk(current.sim.plan, message.chunk, message.fights, current.sim)
-    scope.postMessage({ type: 'result', jobId: message.jobId, result }, [result.counters.buffer, result.auraUpMs.buffer, result.auraApplications.buffer, result.auraStackMs.buffer])
-  } catch (error) {
-    scope.postMessage({ type: 'error', jobId: message.jobId, message: error instanceof Error ? error.message : String(error) })
-  }
-}
+const handle = createHandler((message, transfer) => scope.postMessage(message, transfer))
+scope.onmessage = (event) => handle(event.data)
+// The script loaded and ran: a later error is the simulation stopping, not failing to start
+// (WORKER_START_MESSAGE and WORKER_CRASH_MESSAGE in src/sim/run/pool.ts).
+scope.postMessage({ type: 'ready' })

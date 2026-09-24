@@ -290,6 +290,7 @@ export type PreRaidBisSpec =
   | "warrior-protection"
   | "druid-feral-cat"
   | "druid-feral-bear"
+  | "druid-balance"
   | "paladin-retribution"
   | "paladin-protection"
   | "shaman-enhancement"

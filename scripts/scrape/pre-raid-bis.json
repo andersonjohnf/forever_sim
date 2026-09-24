@@ -1652,6 +1652,240 @@
         ]
       }
     },
+    "druid-balance": {
+      "name": "Balance Druid",
+      "source": {
+        "title": "Classic Balance Druid Best in Slot (BiS) Gear Guide - WoW Classic 1.13 (section: Pre-Raid Best in Slot Gear for Balance Druids - Phase 6)",
+        "url": "https://classic.wowhead.com/guides/balance-druid-dps-gear-bis-classic-wow",
+        "archivedUrl": "https://web.archive.org/web/20210516224841/https://classic.wowhead.com/guides/balance-druid-dps-gear-bis-classic-wow",
+        "snapshot": "2021-05-16"
+      },
+      "note": "Wowhead had no stand-alone Classic Balance pre-raid guide before Season of Mastery (its balance-druid-dps-pre-raid-best-in-slot-bis-gear-wow-classic page is first archived in December 2021), so this list is the 'Pre-Raid Best in Slot Gear for Balance Druids - Phase 6' section of its Balance BiS gear guide (last modified 2021-05-15). The guide marks two items Best in the waist, ring and trinket rows; they keep the guide's order as ranks 1 and 2. It lists only three trinkets, two belts, two cloaks, two gloves, two legs and two boots, and no idol, so there is no relic row. Its one Weapon table lists the main-hand pair first, then the Rod of the Ogre Magi (Two-Hand), then Witchblade; each slot numbers its own items from 1, and the default takes the main hand and off-hand. The guide names both Arathi Basin exalted daggers, Sageclaw (League of Arathor, Alliance) and Mindfang (The Defilers, Horde), so they share rank 1 and no counterpart was added. It links no PvP rank items and no raid drops. Random-suffix items are listed by their base id, and the pool has only the base row's stats (no suffix). One whose base row has no spell stats is left out like a raid drop, and the entries below it move up: Eternal Crown (head), Eternal Spaulders (shoulder), Archivist Cape (back), Flameweave Cuffs (wrist), Slaghide Gauntlets (hands) and Adventurer's Belt (waist), all of Arcane Wrath in the guide. Abyssal Cloth Amice (of Sorcery) keeps its rank on its base row's spell hit, without the suffix. Diana's Pearl Necklace (22403) carries the client's name, Nacreous Shell Necklace. The Bloodvine set is crafted, but its Tailoring patterns need Zandalar Tribe reputation and its Bloodvine reagent comes from Zul'Gurub.",
+      "slots": {
+        "head": [
+          {
+            "id": 22267,
+            "name": "Spellweaver's Turban",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire (General Drakkisath)"
+          },
+          {
+            "id": 22109,
+            "name": "Feralheart Cowl",
+            "rank": 2,
+            "notes": "Quest - Dungeon Set 2 questline"
+          }
+        ],
+        "neck": [
+          {
+            "id": 22403,
+            "name": "Nacreous Shell Necklace",
+            "rank": 1,
+            "notes": "Dungeon - Stratholme (Live), Cannon Master Willey; the guide's tooltip named it Diana's Pearl Necklace"
+          },
+          {
+            "id": 19426,
+            "name": "Orb of the Darkmoon",
+            "rank": 2,
+            "notes": "Darkmoon Faire - 1200 Tickets quest"
+          },
+          {
+            "id": 12103,
+            "name": "Star of Mystaria",
+            "rank": 3,
+            "notes": "Dungeon - Stratholme (Live), Balnazzar"
+          }
+        ],
+        "shoulder": [
+          {
+            "id": 20686,
+            "name": "Abyssal Cloth Amice",
+            "rank": 1,
+            "notes": "Silithus summoned boss (Baron Kazum, per the guide); the guide's suffix: of Sorcery"
+          },
+          {
+            "id": 18681,
+            "name": "Burial Shawl",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance (multiple bosses)"
+          }
+        ],
+        "back": [
+          {
+            "id": 11623,
+            "name": "Spritecaster Cape",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths (High Interrogator Gerstahn)"
+          }
+        ],
+        "chest": [
+          {
+            "id": 19682,
+            "name": "Bloodvine Vest",
+            "rank": 1,
+            "notes": "Crafted - Tailoring (300); pattern from the Zandalar Tribe (Revered)"
+          },
+          {
+            "id": 22113,
+            "name": "Feralheart Vest",
+            "rank": 2,
+            "notes": "Quest - Dungeon Set 2 questline"
+          },
+          {
+            "id": 18385,
+            "name": "Robe of Everlasting Night",
+            "rank": 3,
+            "notes": "Dungeon - Dire Maul West (Immol'thar)"
+          }
+        ],
+        "wrist": [
+          {
+            "id": 21186,
+            "name": "Rockfury Bracers",
+            "rank": 1,
+            "notes": "Quest - Stalwart's Battlegear, Cenarion Circle Revered (Vargus, Cenarion Hold, Silithus)"
+          },
+          {
+            "id": 22108,
+            "name": "Feralheart Bracers",
+            "rank": 2,
+            "notes": "Quest - Dungeon Set 2 questline"
+          }
+        ],
+        "hands": [
+          {
+            "id": 13253,
+            "name": "Hands of Power",
+            "rank": 1,
+            "notes": "Dungeon - Lower Blackrock Spire (Quartermaster Zigris)"
+          }
+        ],
+        "waist": [
+          {
+            "id": 11662,
+            "name": "Ban'thok Sash",
+            "rank": 1,
+            "notes": "Dungeon - Blackrock Depths (Ring of Law); marked Best"
+          }
+        ],
+        "legs": [
+          {
+            "id": 19683,
+            "name": "Bloodvine Leggings",
+            "rank": 1,
+            "notes": "Crafted - Tailoring (300); pattern from the Zandalar Tribe (Honored)"
+          },
+          {
+            "id": 13170,
+            "name": "Skyshroud Leggings",
+            "rank": 2,
+            "notes": "Dungeon - Lower Blackrock Spire (Highlord Omokk)"
+          }
+        ],
+        "feet": [
+          {
+            "id": 19684,
+            "name": "Bloodvine Boots",
+            "rank": 1,
+            "notes": "Crafted - Tailoring (300); pattern from the Zandalar Tribe (Friendly)"
+          },
+          {
+            "id": 22231,
+            "name": "Kayser's Boots of Precision",
+            "rank": 2,
+            "notes": "Dungeon - Lower Blackrock Spire (War Master Voone)"
+          }
+        ],
+        "finger": [
+          {
+            "id": 20682,
+            "name": "Elemental Focus Band",
+            "rank": 1,
+            "notes": "Silithus summoned boss (Prince Skaldrenox, per the guide)"
+          },
+          {
+            "id": 22339,
+            "name": "Rune Band of Wizardry",
+            "rank": 2,
+            "notes": "Dungeon - Upper Blackrock Spire (Lord Valthalak, summoned with the Brazier of Invocation)"
+          },
+          {
+            "id": 12543,
+            "name": "Songstone of Ironforge",
+            "rank": 3,
+            "notes": "Quest - Blackrock Depths (The Princess's Surprise; Alliance quest)"
+          },
+          {
+            "id": 13001,
+            "name": "Maiden's Circle",
+            "rank": 4,
+            "notes": "World drop (BoE)"
+          }
+        ],
+        "trinket": [
+          {
+            "id": 12930,
+            "name": "Briarwood Reed",
+            "rank": 1,
+            "notes": "Dungeon - Upper Blackrock Spire (Jed Runewatcher)"
+          },
+          {
+            "id": 13968,
+            "name": "Eye of the Beast",
+            "rank": 2,
+            "notes": "Quest - Upper Blackrock Spire (General Drakkisath's Demise or For The Horde!)"
+          },
+          {
+            "id": 22268,
+            "name": "Draconic Infused Emblem",
+            "rank": 3,
+            "notes": "Dungeon - Upper Blackrock Spire (General Drakkisath)"
+          }
+        ],
+        "mainHand": [
+          {
+            "id": 20070,
+            "name": "Sageclaw",
+            "rank": 1,
+            "notes": "PvP reputation - League of Arathor Exalted (Arathi Basin); Alliance version"
+          },
+          {
+            "id": 20214,
+            "name": "Mindfang",
+            "rank": 1,
+            "notes": "PvP reputation - The Defilers Exalted (Arathi Basin); Horde version"
+          },
+          {
+            "id": 13964,
+            "name": "Witchblade",
+            "rank": 2,
+            "notes": "Dungeon - Scholomance (Darkmaster Gandling)"
+          }
+        ],
+        "offHand": [
+          {
+            "id": 19308,
+            "name": "Tome of Arcane Domination",
+            "rank": 1,
+            "notes": "PvP reputation - Alterac Valley Exalted (Stormpike or Frostwolf)"
+          },
+          {
+            "id": 22329,
+            "name": "Scepter of Interminable Focus",
+            "rank": 2,
+            "notes": "Dungeon - Stratholme (Live), Jarien and Sothos (summoned with the Brazier of Invocation)"
+          }
+        ],
+        "twoHand": [
+          {
+            "id": 18534,
+            "name": "Rod of the Ogre Magi",
+            "rank": 1,
+            "notes": "Dungeon - Dire Maul North (tribute, Mizzle the Crafty)"
+          }
+        ]
+      }
+    },
     "paladin-retribution": {
       "name": "Retribution Paladin",
       "source": {

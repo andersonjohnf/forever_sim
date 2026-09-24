@@ -568,6 +568,7 @@ copies are cited instead. Wowhead's Season of Discovery guides weren't used eith
 | `warrior-protection` | [Warrior Tank Pre-Raid BiS, Phase 6](https://web.archive.org/web/20210518024651/https://classic.wowhead.com/guides/wow-classic-warrior-tank-pre-raid-best-in-slot-gear) | 2021-05-18 | armor, jewelry, Main Hand, Shield, Ranged; the dual-wield Off-Hand row is left out |
 | `druid-feral-cat` | [Feral Druid DPS Pre-Raid BiS, Phase 6](https://web.archive.org/web/20210518013648/https://classic.wowhead.com/guides/wow-classic-feral-druid-dps-pre-raid-best-in-slot-gear) | 2021-05-18 | all rows (Two-Hand, One-Hand, Off-Hand, Idol) |
 | `druid-feral-bear` | [Druid Tank Pre-Raid BiS, Phase 6](https://web.archive.org/web/20210518140340/https://classic.wowhead.com/guides/wow-classic-feral-druid-tank-pre-raid-best-in-slot-gear) | 2021-05-18 | all rows |
+| `druid-balance` | [Balance Druid BiS Gear Guide, WoW Classic 1.13](https://web.archive.org/web/20210516224841/https://classic.wowhead.com/guides/balance-druid-dps-gear-bis-classic-wow), its "Pre-Raid Best in Slot Gear for Balance Druids - Phase 6" section: Wowhead had no stand-alone Classic Balance pre-raid guide before Season of Mastery | 2021-05-16 | all rows (Main Hand, Off-Hand, Two-Hand; no idol) |
 | `paladin-retribution` | [Paladin DPS Pre-Raid BiS, Phase 6](https://web.archive.org/web/20210517000811/https://classic.wowhead.com/guides/wow-classic-paladin-dps-pre-raid-best-in-slot-gear) | 2021-05-17 | all rows (Two-Hand, Relic) |
 | `paladin-protection` | [Paladin Tank Pre-Raid BiS, Phase 3](https://web.archive.org/web/20210505223134/https://classic.wowhead.com/guides/wow-classic-paladin-tank-pre-raid-best-in-slot-gear) | 2021-05-05 | all rows (Main Hand, Shield; the guide has no libram) |
 | `shaman-enhancement` | [Enhancement Shaman Pre-Raid BiS, Phase 6](https://web.archive.org/web/20210515151721/https://classic.wowhead.com/guides/wow-classic-enhancement-shaman-dps-pre-raid-best-in-slot-gear) | 2021-05-15 | armor, jewelry, One-Handed (as the main hand), Two-Hand, Totem; the guide lists no shield |
@@ -584,7 +585,7 @@ counterpart is added at the same rank, as is the Frostwolf twin of Stormpike Ins
 Slot keys are the paperdoll slots plus `twoHand` and `relic`; tanks' shields are under
 `offHand`. **Random-suffix items** are listed by their base id, and the pool has only the base
 row's stats; one whose base row has no spell stats is left out like a raid drop, and the entries
-below it move up (the mage lists' notes name them).
+below it move up (the mage and Balance lists' notes name them).
 
 **Left out for Forever.** An item Forever redesigned out of the spec's role is taken off the
 list, and the spec's `note` says why; the other entries keep the guide's rank. So far that's

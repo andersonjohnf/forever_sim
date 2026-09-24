@@ -344,7 +344,10 @@ SpellMisc, 1.60.1.69913); other mechanics [C] (the pre-SoD WarriorSim's `DeepWou
   default in [damage-and-timing §4](../mechanics/damage-and-timing.md#4-dots-and-bleeds).
 - **Refresh.** A refresh restarts the 12 s, with the next tick 3 s after the refresh. Old
   damage does not roll over. That rolling behaviour is WarriorSim's later SoD `DeepWounds`
-  class, which we don't use [C] [ws-spell].
+  class, which we don't use [C] [ws-spell]. Whether Forever's bleed restarts its tick timer is
+  [?] (Q21): a Fury warrior crits about every 1.6 s, so the default's 115 procs a fight give
+  about 17 ticks; a refresh that kept the timer would give about 60, worth about 2% of Fury's
+  DPS and 1.5% of Arms'. The results' assumptions say so.
 - **Modifiers.** The bleed ignores armor. Physical damage-done modifiers apply (Death Wish,
   Enrage, Two-Handed Weapon Specialization, stance) [C] [ws-spell]. It cannot crit (its Forever
   bleed lacks the periodic-crit flag, [F] [client] (SpellMisc, 1.60.1.69913)) and doesn't proc
@@ -2602,7 +2605,13 @@ boss conditions. For threat, use the threat macro from [magey-thr]:
     [client] (SpellName, SpellEffect, SpellMisc, 1.60.1.69913). Still to check in game: whether
     the bleed recomputes on each tick (Classic: yes, [C]), its refresh behaviour, and whether
     Rend's ticks really crit in combat, as the `forever` profile assumes [?] ([damage-and-timing
-    OQ 2](../mechanics/damage-and-timing.md#open-questions)).
+    OQ 2](../mechanics/damage-and-timing.md#open-questions)). The refresh is the one that moves
+    the result most: restarting the tick timer on every crit (§2.5) costs Fury about 2% of its
+    DPS against a refresh that keeps it. The sim's rogue model assumes the other rule for Deadly
+    Poison, whose new stack renews the duration without restarting the tick timer ([rogue
+    Q8](rogue.md#10-open-questions)); the two can't both be the modern engine's one rule, so one
+    of them is wrong for Forever. The guild test is [open-questions
+    B79](../open-questions.md#b79-deep-wounds-refresh-restart-or-keep-the-tick-timer).
 22. **Demoralizing Shout scaling.** The level-60 tooltip is **−204** [F]: the client data's −196
     plus −1.4 per level above 54, which its `SpellLevels` (54–64) don't cap below 60, is −204.4,
     shown as 204 [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913). The −196 this doc called

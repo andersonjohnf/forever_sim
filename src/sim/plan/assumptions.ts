@@ -223,7 +223,7 @@ const REGISTRY = {
     docRef: `${CT}#9-spell-hit-and-crit-generic`,
   },
   deepWounds: {
-    text: 'Deep Wounds follows Classic Era rules: recomputed each tick from current attack power, and it can’t crit.',
+    text: 'Deep Wounds follows Classic Era rules: recomputed each tick from current attack power, and it can’t crit. Each crit restarts it with its next tick 3 s away, so while you crit more often than that it rarely ticks; if a crit kept its tick timer instead, Fury would do about 2% more DPS. Untested in Forever.',
     docRef: `${WAR}#25-crits-impale-flurry-deep-wounds`,
   },
   angerManagement: {

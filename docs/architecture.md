@@ -59,6 +59,59 @@ UI state ──► SimConfig (plain, serializable) ──► Plan ──► Work
   saves or shares it, so it can grow fields freely.
 - Class data is loaded lazily (dynamic `import()` per class), so the first paint stays small.
 
+### Following the defaults
+
+The automatic save (`src/app/setup-store.ts`, localStorage key `forever-sim:setup`) keeps each
+spec's gear and talents as **overrides of the defaults**, as rotation settings are: what the player
+never changed follows the spec's current defaults, so a returning visitor gets a new threat set or
+talent build, and what they changed stays theirs.
+
+- **A part follows the default while it holds it.** A gear slot follows while its item and enchant
+  are the spec's default for the setup's race (`defaultGearFor`, normalized, in
+  `src/features/gear/default-set.ts`); the talent build follows while it's the spec's default build.
+  Picking the default item back, **Equip the threat set** (or pre-raid best in slot) and **Reset
+  setup** make parts follow again; any other change makes them the player's.
+- **The save says which parts follow.** Beside `config`, `bySpec` and `section`, the saved state
+  holds `following: { [spec]: { gear: GearSlot[], talents: boolean } }`, worked out by comparison
+  on every save (`following()`), for the current setup and each spec's last one. The setups
+  themselves are saved whole, so an older copy of the app reading the save still gets a full setup.
+- **A load puts today's defaults in the parts that follow** (`followDefaults()`), then normalizes.
+  The player's own slots go in first: a default item that would break a Unique rule with one of
+  them, or a default two-hander beside their own off hand, leaves its slot as it was, and a
+  hunter's own ranged weapon keeps ammo it fires. Such a **blocked slot still follows**: the store
+  remembers what it held (`blockedSlots` in `setup-store.ts`) and the save keeps it in `following`
+  while it holds that, so the next load tries again; a change to the slot, or a replaced setup,
+  makes it the player's. A spec whose setup this moved gets a notice
+  ([ux.md](ux.md#persistence-and-sharing)), and the load saves at once (hydration itself doesn't),
+  so the next load finds nothing to move and says nothing. The notice also records a digest of the
+  move in its own small key, `forever-sim:defaults-notice`, so when that save can't be written (full
+  storage) and every visit makes the same move again, it's still said once. A share link the page
+  opens with leaves its spec out of the notice (`useDefaultsNotice` reads the link before it loads).
+- **A race change is the same move**: slots that held the old race's default take the new race's
+  (`changeRace` in `src/features/character/faction-gear.ts`), so a Horde paladin gets its own threat
+  set pieces rather than keeping Alliance-only ones; the player's own items swap for their faction
+  twins as before.
+- **Saves from before `following` migrate** (`legacyFollowing()` in `src/app/follow-defaults.ts`),
+  by **frozen tables only, never today's defaults**, so a save that holds an old default keeps
+  migrating however the defaults change later. The snapshot, `src/app/legacy-defaults.ts`, is the
+  defaults as deployed at `ee171d2a`, the last build before `following`: for each spec its default
+  talents and the class's default race, and for every race the class can be, its default gear
+  (`defaultGearFor`) and v1's pick (the pre-raid lists alone, `preRaidListGear` without the interim
+  sets), items and enchants. It's generated once by `scripts/freeze-legacy-defaults.mjs`, which reads
+  that commit's source rather than the working tree, and is never regenerated from a newer one;
+  `legacy-defaults.test.ts` checks its shape. Beside it, hand-kept tables from git history add
+  earlier defaults: any item a former interim set (`INTERIM_GEAR`, any version) put in a slot, and
+  the former default talent builds (`stored-builds.json`'s "former default" builds, and the
+  Protection paladin's `-0530513321301551-50215`). A slot follows if it holds one of the snapshot's
+  entries, or one of those items with one of the slot's frozen enchants (or none, where the former
+  default had none: the Protection paladin's head, legs and weapon), for the setup's race or the
+  class's default race, or a race change's faction twin of one. The talent build follows if it's one
+  of those builds. Saves now say what follows, so later default changes need nothing added here.
+- **Share links, setup codes and saved setups are deliberate** and are loaded exactly as they are:
+  they're `SimConfig`s with no `following`, loaded with `replace`, and never migrated. After that,
+  the autosave treats one as any setup: its slots that happen to hold today's defaults follow them
+  from then on, and the rest are the player's.
+
 ## Engine design (M1)
 
 The engine is one general event-driven simulator ([D15](decisions.md#d15-engine-architecture-2026-09-22)).

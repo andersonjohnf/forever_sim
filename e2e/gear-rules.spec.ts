@@ -74,8 +74,9 @@ test.describe('faction gear', () => {
     await page.getByRole('tab', { name: 'Character', exact: true }).click()
     await page.getByRole('radio', { name: /Orc/ }).click()
     await page.getByRole('tab', { name: 'Gear', exact: true }).click()
-    await page.getByRole('button', { name: 'Gear options' }).click()
-    await page.getByRole('menuitem', { name: 'Equip pre-raid best in slot' }).click()
+    // The race change moved the untouched set to the Orc's own, so it matches and nothing waits to be equipped.
+    await expect(page.getByText('Wearing pre-raid best in slot.', { exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Equip pre-raid best in slot' })).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Shoulders: Champion\'s Plate Shoulders' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Feet: Blood Guard\'s Plate Greaves' })).toBeVisible()
     await page.getByRole('button', { name: /^Feet: / }).click(onIcon)

@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 48,
       "consumable": 82,
-      "docs": 421,
+      "docs": 457,
       "enchant": 125,
       "item": 421,
       "racial": 44,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 872,
     "notInClient": 0,
-    "seeds": 2230,
-    "spells": 2377
+    "seeds": 2237,
+    "spells": 2384
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -4077,7 +4077,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "604": {
       "categories": {
@@ -49050,7 +49050,7 @@
           "powerType": -2
         }
       ],
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "11693": {
       "categories": {
@@ -49737,7 +49737,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "11717": {
       "auraOptions": {
@@ -64026,7 +64026,7 @@
         "spellIconFileDataId": 135831
       },
       "name": "Cataclysm",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "17783": {
       "classOptions": {
@@ -64086,7 +64086,7 @@
         "spellIconFileDataId": 136146
       },
       "name": "Bane",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "17793": {
       "auraOptions": {
@@ -64112,7 +64112,7 @@
         "spellIconFileDataId": 136197
       },
       "name": "Improved Shadow Bolt",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "17794": {
       "categories": {
@@ -64207,7 +64207,7 @@
         "spellIconFileDataId": 136118
       },
       "name": "Improved Corruption",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "17818": {
       "auraOptions": {
@@ -64927,7 +64927,7 @@
         "spellIconFileDataId": 135827
       },
       "name": "Agonizing Flames",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "17928": {
       "auraOptions": {
@@ -64998,6 +64998,40 @@
       "targetRestrictions": {
         "maxTargets": 5
       }
+    },
+    "17941": {
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1,
+        "preventionType": 1
+      },
+      "classOptions": {
+        "spellClassSet": 5
+      },
+      "duration": {
+        "duration": 10000,
+        "maxDuration": 10000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 108,
+          "effectBasePointsF": -100,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [10, 0],
+          "effectSpellClassMask": [1, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 17941,
+      "misc": {
+        "attributes": [65536, 0, 268435456, 196608, 128, 16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 136223
+      },
+      "name": "Shadow Trance",
+      "sources": ["docs"]
     },
     "17951": {
       "castTime": {
@@ -65157,7 +65191,7 @@
         "spellIconFileDataId": 136207
       },
       "name": "Ruin",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "17962": {
       "auraRestrictions": {
@@ -65718,7 +65752,7 @@
         "spellIconFileDataId": 136223
       },
       "name": "Nightfall",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "18098": {
       "effects": [
@@ -65817,7 +65851,7 @@
         "spellIconFileDataId": 135805
       },
       "name": "Aftermath",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "18124": {
       "categories": {
@@ -65958,7 +65992,7 @@
         "spellIconFileDataId": 136230
       },
       "name": "Suppression",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "18182": {
       "classOptions": {
@@ -65980,7 +66014,7 @@
         "spellIconFileDataId": 136126
       },
       "name": "Improved Life Tap",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "18191": {
       "auraOptions": {
@@ -66348,7 +66382,7 @@
         "spellIconFileDataId": 136195
       },
       "name": "Shadow Mastery",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "18276": {
       "categories": {
@@ -67796,7 +67830,7 @@
         "spellIconFileDataId": 136150
       },
       "name": "Fel Vitality",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "18754": {
       "classOptions": {
@@ -67914,7 +67948,180 @@
       "range": {
         "rangeMax": [100, 100]
       },
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
+    },
+    "18789": {
+      "categories": {
+        "preventionType": 1
+      },
+      "classOptions": {
+        "spellClassSet": 5
+      },
+      "duration": {
+        "duration": 7200000,
+        "maxDuration": 7200000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 79,
+          "effectBasePointsF": 15,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 112,
+          "effectBasePointsF": 1,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [2228, 0],
+          "effectSpellClassMask": [536870912, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18789,
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 4,
+        "spellIconFileDataId": 136184
+      },
+      "name": "Burning Shadow",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["docs"]
+    },
+    "18790": {
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 2
+      },
+      "classOptions": {
+        "spellClassSet": 5
+      },
+      "duration": {
+        "duration": 7200000,
+        "maxDuration": 7200000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 20,
+          "effectAuraPeriod": 4000,
+          "effectBasePointsF": 3,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 112,
+          "effectBasePointsF": 1,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [2228, 0],
+          "effectSpellClassMask": [536870912, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18790,
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 136184
+      },
+      "name": "Fel Stamina",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["docs"]
+    },
+    "18791": {
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1
+      },
+      "classOptions": {
+        "spellClassSet": 5
+      },
+      "duration": {
+        "duration": 7200000,
+        "maxDuration": 7200000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 79,
+          "effectBasePointsF": 15,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [4, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 112,
+          "effectBasePointsF": 1,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [2228, 0],
+          "effectSpellClassMask": [536870912, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18791,
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 136184
+      },
+      "name": "Touch of Fire",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["docs"]
+    },
+    "18792": {
+      "classOptions": {
+        "spellClassSet": 5
+      },
+      "duration": {
+        "duration": 7200000,
+        "maxDuration": 7200000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 21,
+          "effectAuraPeriod": 4000,
+          "effectBasePointsF": 2,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 112,
+          "effectBasePointsF": 1,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectMiscValue": [2228, 0],
+          "effectSpellClassMask": [536870912, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18792,
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 136184
+      },
+      "name": "Fel Energy",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["docs"]
     },
     "18797": {
       "auraOptions": {
@@ -68225,7 +68432,7 @@
         "spellIconFileDataId": 136139
       },
       "name": "Improved Bane of Agony",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "18833": {
       "auraOptions": {
@@ -68569,7 +68776,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "18879": {
       "categories": {
@@ -68728,7 +68935,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "18930": {
       "auraRestrictions": {
@@ -68884,7 +69091,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "18960": {
       "castTime": {
@@ -85177,7 +85384,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25309": {
       "castTime": {
@@ -85247,7 +85454,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25311": {
       "castTime": {
@@ -85303,7 +85510,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25345": {
       "categories": {
@@ -91078,7 +91285,7 @@
         "spellIconFileDataId": 135821
       },
       "name": "Fire and Brimstone",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "412758": {
       "castTime": {
@@ -91608,7 +91815,7 @@
         "spellIconFileDataId": 135823
       },
       "name": "Shadow and Flame",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "427712": {
       "classOptions": {
@@ -91633,7 +91840,7 @@
         "spellIconFileDataId": 136227
       },
       "name": "Pandemic",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "429144": {
       "classOptions": {
@@ -93275,7 +93482,7 @@
         "spellIconFileDataId": 136137
       },
       "name": "Malediction",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "1225214": {
       "auraOptions": {
@@ -98346,6 +98553,31 @@
         "targets": 64
       }
     },
+    "1282590": {
+      "duration": {
+        "duration": 15000,
+        "maxDuration": 15000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 4,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1282590,
+      "misc": {
+        "attributes": [536871296, 1024, 4, 269484032, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 4,
+        "spellIconFileDataId": 135817
+      },
+      "name": "Immolate",
+      "range": {
+        "rangeMax": [50000, 50000]
+      },
+      "sources": ["docs"]
+    },
     "1282733": {
       "auraOptions": {
         "cumulativeAura": 3,
@@ -99482,7 +99714,34 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
+    },
+    "1293816": {
+      "categories": {
+        "defenseType": 1
+      },
+      "duration": {
+        "duration": 20000,
+        "maxDuration": 20000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 79,
+          "effectBasePointsF": 10,
+          "effectIndex": 0,
+          "effectMiscValue": [32, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1293816,
+      "misc": {
+        "attributes": [0, 0, 0, 1073741824, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 132851
+      },
+      "name": "Shadow",
+      "sources": ["docs"]
     },
     "1293817": {
       "auraRestrictions": {
@@ -103074,7 +103333,7 @@
         "spellIconFileDataId": 136158
       },
       "name": "Malevolence",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "1310994": {
       "auraOptions": {

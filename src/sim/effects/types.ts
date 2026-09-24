@@ -61,7 +61,8 @@ export type FlatStat =
   | 'spellPen'
 
 /** Stats that % modifiers multiply (character-stats.md#derived-stat-pipeline, step 3 and 4). */
-export type MultStat = 'str' | 'agi' | 'sta' | 'int' | 'spi' | 'allStats' | 'ap' | 'health' | 'blockValue'
+/** `mana`: maximum mana (Fel Vitality, a warlock's Expansive Mind; docs/classes/warlock.md#4-talents). */
+export type MultStat = 'str' | 'agi' | 'sta' | 'int' | 'spi' | 'allStats' | 'ap' | 'health' | 'blockValue' | 'mana'
 
 /** Effects that depend on the rule profile (Classic Era spell values), resolved per run. */
 export type EffectList = Effect[] | ((profile: RulesProfile) => Effect[])
@@ -311,6 +312,8 @@ export interface AuraSpec {
     castHaste?: number
     /** Spell damage, all schools, per stack (docs/mechanics/spells.md §5). */
     spellDamage?: number
+    /** Spell damage %, every school's, multiplicative (Forever's Blood Fury, docs/classes/warlock.md#72-race). */
+    spellDamagePct?: number
     spiritRegen?: number
     castingRegen?: number
     /** The mana cost of your abilities %, per stack, while it's up (Arcane Power's +30%, docs/classes/mage.md#arcane-power). */

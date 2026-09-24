@@ -1,0 +1,25 @@
+// The Affliction warlock's priority list (docs/classes/warlock.md §6.2): Curse of the Elements,
+// Corruption, Bane of Agony and Siphon Life kept up, an instant Shadow Bolt on Nightfall's Shadow Trance,
+// Shadow Bolt, Life Tap; the Classic Era common priority adapted to Forever (Dark Pact is gone), with the
+// first-pass search's picks (D27, §6.3).
+import type { RotationValue } from '../../types'
+import type { ClassRotationContext } from '../rotation'
+import type { ClassRotation } from '../warrior/shared'
+import { afflictionOptions, CURSE_BUFF, warlockIds, warlockRotation, warlockUnusedSettings, type WarlockDefaults } from './shared'
+import type { TalentRanks } from './talents'
+
+/** The first-pass defaults (warlock.md §6.3). */
+export const AFFLICTION_DEFAULTS: WarlockDefaults = { sacrifice: 'imp', filler: 'shadowBolt', shadowburn: false, lifeTapPct: 10, bane: 'doom' }
+export const AFFLICTION_OPTIONS = afflictionOptions(AFFLICTION_DEFAULTS)
+export const AFFLICTION_IDS = warlockIds('affliction')
+
+export function afflictionRotation(values: Record<string, RotationValue>, talents: TalentRanks, auraIndex: (id: string) => number, context: Partial<ClassRotationContext> = {}): ClassRotation {
+  return warlockRotation('affliction', AFFLICTION_OPTIONS, values, talents, auraIndex, context)
+}
+
+/** Its own Curse of the Elements, while the rotation keeps it up. */
+export function afflictionMaintainedBuffs(values: Record<string, RotationValue>): string[] {
+  return values[AFFLICTION_IDS.curse] === false ? [] : [CURSE_BUFF]
+}
+
+export const afflictionUnusedSettings = (values: Record<string, RotationValue>, talents: TalentRanks) => warlockUnusedSettings('affliction', values, talents)

@@ -16,6 +16,7 @@ import { paladinAssumptions, paladinManaPlan } from '../classes/paladin/setup'
 import { SHAMAN_WINDFURY_WEAPON, shamanAssumptions, shamanManaPlan } from '../classes/shaman/setup'
 import { rogueAssumptions, rogueEnergy } from '../classes/rogue/setup'
 import { mageAssumptions, mageFreeCast, mageManaPlan } from '../classes/mage/setup'
+import { warlockAssumptions, warlockManaPlan } from '../classes/warlock/setup'
 import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance } from '../classes/rotation'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
@@ -292,6 +293,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   }
   weapons[HAND.main] = makeWeapon(HAND.main, mhItem)
   if (!twoHand) weapons[HAND.off] = makeWeapon(HAND.off, ohItem)
+  // A caster fights from range with its spells (docs/mechanics/spells.md §12): it doesn't swing its
+  // weapon, whose stats still count, and its weapon's procs and enchants' procs never fire.
+  if (meta.caster) {
+    weapons[HAND.main] = null
+    weapons[HAND.off] = null
+  }
 
   // --- Stat block: base ----------------------------------------------------------------------
   const base = CLASS_BASE[classId]
@@ -358,7 +365,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // The paladin uses mana, not rage (paladin.md#mana-model), and so does the shaman
   // (docs/classes/shaman.md#mana); the rogue uses Energy (rogue.md §2.1). None has a rage pool, and
   // their hits give none either (`rageFromHits`), so no rage assumption applies to them.
-  const usesMana = classId === 'paladin' || classId === 'shaman' || classId === 'mage'
+  const usesMana = classId === 'paladin' || classId === 'shaman' || classId === 'mage' || classId === 'warlock'
   const usesRage = classId === 'warrior' || classId === 'druid'
   if (!setup.simulated && attributes) blockers.push(`${meta.className} simulation isn’t available yet.`)
   // A druid in an animal form attacks with the form's weapon, whatever is equipped; the item's
@@ -595,8 +602,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     for (const e of sheetOnly) if (e.kind === 'stat') sheetBlock[e.stat] += e.value
     shown = deriveStats(sheetBlock, deriveOptions, new DerivedStats())
   }
-  // A mage never swings its weapon (docs/classes/mage.md#what-the-sim-needs): nothing melee applies to it.
-  const mh = classId === 'mage' ? null : weapons[HAND.main]
+  // A caster never swings its weapon (above; docs/classes/mage.md#what-the-sim-needs): nothing melee applies to it.
+  const mh = weapons[HAND.main]
   const sheet: CharacterSheet = {
     strength: shown.strength,
     agility: shown.agility,
@@ -712,6 +719,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spec.mods.schoolCrit ? { schoolCrit: spec.mods.schoolCrit } : {}),
       ...(spec.mods.castHaste ? { castHaste: spec.mods.castHaste } : {}),
       ...(spec.mods.spellDamage ? { spellDamage: spec.mods.spellDamage } : {}),
+      ...(spec.mods.spellDamagePct ? { spellDamagePct: spec.mods.spellDamagePct } : {}),
       ...(spec.mods.spiritRegen ? { spiritRegen: spec.mods.spiritRegen } : {}),
       ...(spec.mods.castingRegen ? { castingRegen: spec.mods.castingRegen } : {}),
       // The mage's (docs/classes/mage.md#combustion, #arcane-power), only when set.
@@ -913,6 +921,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         maxMana: block.hasMana ? derived.mana : 0,
         jotcRule: config.rules.jotcBonus ?? 'coefficient',
         buffGroups: new Set(filledGroups.keys()),
+        spirit: derived.spirit,
       })
     : { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
   // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), a
@@ -941,7 +950,25 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     }
   }
   const abilities: AbilityPlan[] = classRot.abilities.map((def) => {
-    const { offHand, aura, vsCreature: _, window, spellDef, tickSpellDef, auraCrit: __, noCooldownWhile: ___, stackAuraId: ____, instantAuraId: ______, selfAuraSpec, tickAuraSpec, costStacks: _____, opensWindow, ...a } = def
+    const {
+      offHand,
+      aura,
+      vsCreature: _,
+      window,
+      spellDef,
+      tickSpellDef,
+      auraCrit: __,
+      noCooldownWhile: ___,
+      stackAuraId: ____,
+      selfAuraSpec,
+      tickAuraSpec,
+      costStacks: _____,
+      opensWindow,
+      instantAuraId: ______,
+      needsAuraId: _______,
+      consumesDotOf: ________,
+      ...a
+    } = def
     const source = sourceIndex(a.id, a.name, a.icon)
     // A bleed's row counts applications and ticks (Rend: its ticks crit only where periodic
     // effects can, damage-and-timing §4).
@@ -1023,13 +1050,30 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   })
   for (const { spell, boost } of spellBoosts) {
     const aura = auras.findIndex((x) => x.id === boost.aura)
-    if (aura >= 0) Object.assign(spells[spell], { boostAura: aura, boostPct: boost.pct })
+    // docs/classes/warlock.md §3: Incinerate's boost reads Immolate's marker and keeps it up.
+    if (aura >= 0) Object.assign(spells[spell], { boostAura: aura, boostPct: boost.pct, ...(boost.keep ? { boostKeep: true } : {}) })
   }
   // docs/classes/mage.md#winters-chill: a spell an aura's stacks give crit, once the procs' auras are in.
   for (const { spell, critAura } of spellCritAuras) {
     const aura = auras.findIndex((x) => x.id === critAura.aura)
     if (aura >= 0) Object.assign(spells[spell], { critAura: aura, critAuraPct: critAura.pctPerStack })
   }
+  // docs/classes/warlock.md §8: an ability that needs an aura up (Conflagrate: Immolate's marker) and
+  // one whose landing ends another spell's DoT (Conflagrate consumes Immolate). Without the aura in the
+  // plan it can never be used, so its lines are left out.
+  const neverUsable = new Set<number>()
+  classRot.abilities.forEach((def, i) => {
+    if (def.needsAuraId !== undefined) {
+      const aura = auras.findIndex((x) => x.id === def.needsAuraId)
+      if (aura >= 0) abilities[i].needsAura = aura
+      else neverUsable.add(i)
+    }
+    if (def.consumesDotOf) {
+      const row = sources.findIndex((x) => x.id === def.consumesDotOf!.spell)
+      const s = spells.findIndex((x) => x.source === row && (x.dotTicks ?? 0) > 0)
+      if (s >= 0) Object.assign(abilities[i], { consumesDot: s, consumeChance: def.consumesDotOf.chance })
+    }
+  })
   // A druid's proc bound to forms rolls only in them: always if it holds in every form the fight can
   // be in (the starting one and those its shapeshifts enter), and left out if in none (druid.md §2.8).
   const reachable = forms
@@ -1137,8 +1181,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(abilities.some((a) => a.bleedingTargetPct) ? { othersBleed } : {}),
     },
     stats: block,
-    // docs/classes/mage.md#what-the-sim-needs: a mage casts and never swings its weapon, whose stats still count.
-    weapons: classId === 'mage' ? [null, null] : [weapons[0]?.plan ?? null, weapons[1]?.plan ?? null],
+    // A caster casts and never swings its weapon, whose stats still count (above; docs/classes/mage.md#what-the-sim-needs).
+    weapons: [weapons[0]?.plan ?? null, weapons[1]?.plan ?? null],
     hasShield,
     damageMult: c.damageMult,
     physicalMult: c.physicalMult,
@@ -1160,7 +1204,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     triggers,
     sources,
     abilities,
-    rotation: classRot.rotation,
+    rotation: neverUsable.size > 0 ? classRot.rotation.filter((e) => !neverUsable.has(e.ability)) : classRot.rotation,
     prepull: classRot.prepull,
     ...(forms && setup.form ? druidPlan(forms, setup.form, setup.talents, derived, auras) : {}),
     ...(spells.length > 0 ? { spells } : {}),
@@ -1174,6 +1218,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     ...(classId === 'rogue' ? { energy: rogueEnergy(setup.talents) } : {}),
     // docs/classes/mage.md#mana: the same model, with Mage Armor's and Arcane Meditation's regeneration while casting, and Clearcasting's free cast.
     ...(classId === 'mage' ? { mana: mageManaPlan(derived, block.mp5, setup.talents, profile), ...mageFreeCast(auras) } : {}),
+    // docs/classes/warlock.md §5: the same mana model, with the warlock's Spirit regeneration.
+    ...(classId === 'warlock' ? { mana: warlockManaPlan(derived, block.mp5) } : {}),
     ...(c.holyThreatMult !== 1 ? { holyThreatMult: c.holyThreatMult } : {}),
     // docs/mechanics/spells.md §3, §9: the schools' numbers, when any isn't plain.
     ...(schools ? { schools } : {}),
@@ -1188,7 +1234,21 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // paladin's on mana.
   const energy = abilities.some((a) => a.resource === 'energy')
   if (classRot.rotation.length > 0)
-    notes.add(classId === 'rogue' ? 'reactionTimeRogue' : energy ? 'reactionTimeEnergy' : classId === 'paladin' ? 'reactionTimeMana' : classId === 'shaman' ? 'reactionTimeShaman' : classId === 'mage' ? 'reactionTimeMage' : 'reactionTime')
+    notes.add(
+      classId === 'rogue'
+        ? 'reactionTimeRogue'
+        : energy
+          ? 'reactionTimeEnergy'
+          : classId === 'paladin'
+            ? 'reactionTimeMana'
+            : classId === 'shaman'
+              ? 'reactionTimeShaman'
+              : classId === 'mage'
+                ? 'reactionTimeMage'
+                : classId === 'warlock'
+                  ? 'reactionTimeWarlock'
+                  : 'reactionTime',
+    )
   if (abilities.some((a) => a.gcdMs > 0)) notes.add(setup.form === 'cat' ? 'gcdHasteCat' : classId === 'rogue' ? 'gcdHasteRogue' : 'gcdHaste')
   // Rage refunds; a druid's Energy refunds are in `energyTicks`, and a bear's rage refunds and
   // Maul's swing in `bearRage` (druid.md §4.1).
@@ -1207,8 +1267,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (setup.talents.has('Unbridled Wrath') && mh) notes.add('unbridledWrathSwings')
   // The rogue's off-hand strike (Mutilate) has its own note (rogueAssumptions, `mutilate`).
   if (classId !== 'rogue' && abilities.some((a) => a.offHandSource >= 0)) notes.add('ragingBlows')
-  // A mage's spells need no weapon (docs/classes/mage.md), and it swings none: no note.
-  if (!mh && classId !== 'mage') {
+  // A caster's spells need no weapon (docs/classes/mage.md, warlock.md), and it swings none: no note.
+  if (!mh && !meta.caster) {
     // warrior.md §7 "Without a main-hand weapon": the attacks that need none are still used: the
     // spell-table ones, and with a shield the ones that need it instead, which roll the main hand's
     // special-attack table at the base skill. Without a shield, nothing that needs one is named.
@@ -1432,6 +1492,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   for (const id of rogueAssumptions(plan, setup.talents)) notes.add(id)
   // docs/classes/mage.md#open-questions: what the mage's spells, procs and mana rely on.
   for (const id of mageAssumptions(plan)) notes.add(id)
+  // docs/classes/warlock.md §9: what the warlock's spells, mana and talents rely on.
+  for (const id of warlockAssumptions(plan)) notes.add(id)
 
   return { plan, sheet, assumptions: notes.toArray(), blockers }
 }
@@ -1455,6 +1517,7 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
       } else if (e.stat === 'ap') b.apMult *= m
       else if (e.stat === 'health') b.healthMult *= m
       else if (e.stat === 'blockValue') b.blockValueMult *= m
+      else if (e.stat === 'mana') b.manaMult *= m
       else b[ATTRIBUTE_MULT[e.stat]] *= m
       return
     }

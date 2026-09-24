@@ -391,6 +391,10 @@ export class Sim {
   private readonly auraChargeReadyAt: Float64Array
   /** The plan aura a spell is boosted by and uses up when it lands (−1: none), and by how much %: Stormstrike's (shaman.md). */
   private readonly splBoostAura: Int32Array
+  /** 1: the boost's aura stays up when the spell lands (Incinerate on Immolate, docs/classes/warlock.md §3). */
+  private readonly splBoostKeep: Uint8Array
+  /** A DoT's own multiplier, snapshotted in place of `splDamageMult` (docs/classes/warlock.md §4). */
+  private readonly splDotMult: Float64Array
   private readonly splBoostPct: Float64Array
   /**
    * The shaman's (docs/classes/shaman.md): the aura whose stacks cut an ability's cast time and cost
@@ -476,6 +480,7 @@ export class Sim {
   private readonly aSchool: Uint8Array
   /** Spell damage, all schools, per stack (§5): a stat, so it re-derives the stats. */
   private readonly aSpellDamage: Float64Array
+  private readonly aSpellDamagePct: Float64Array
   /** Casting speed shortens its cast time (§4). */
   private readonly abCastHasted: Uint8Array
   /** `channel`: ticks after which it's cut off (0: all of them; §6). */
@@ -503,6 +508,10 @@ export class Sim {
   private readonly abUnavoidable: Uint8Array
   /** The aura it needs and ends, or −1 (the Overpower window, warrior.md §2.8). */
   private readonly abWindow: Int32Array
+  /** The warlock's (docs/classes/warlock.md §8): the spell whose DoT a landed spell ends, its chance, and threat-free gains. */
+  private readonly abConsumesDot: Int32Array
+  private readonly abConsumeChance: Float64Array
+  private readonly abNoThreat: Uint8Array
   /**
    * Some line dances for it (warrior.md §7): GCD-safe counts it as coming up even while the stance
    * refuses it, as long as that dance could happen at the current rage (§7 "GCD-safe and stances").
@@ -879,6 +888,8 @@ export class Sim {
   private dynSpellCrit = 0
   /** Spell damage from the active auras (docs/mechanics/spells.md §5). */
   private dynSpellDamage = 0
+  /** Product of the active spell damage % auras (Forever's Blood Fury, docs/classes/warlock.md#72-race). */
+  private dynSpellDamageMult = 1
   private auraHasteMult = 1
   /** Defensive aura deltas (combat-tables §8) and the product of damage-taken aura mods. */
   private dynDodge = 0
@@ -1162,6 +1173,8 @@ export class Sim {
     this.auraStackMs = new Float64Array(na)
     // docs/mechanics/spells.md §5: an aura's spell damage, a stat like the others.
     this.aSpellDamage = Float64Array.from(auras, (a) => a.spellDamage ?? 0)
+    // docs/classes/warlock.md#72-race: a spell damage % (Blood Fury's), a stat too.
+    this.aSpellDamagePct = Float64Array.from(auras, (a) => a.spellDamagePct ?? 0)
     const chargeAuras: number[] = []
     const critChargeAuras: number[] = []
     const blockChargeAuras: number[] = []
@@ -1193,7 +1206,7 @@ export class Sim {
       const defensive = this.aDodge[i] || this.aParry[i] || this.aBlock[i] || this.aBlockValue[i] || this.aArmor[i] || this.aItemArmorPct[i]
       // A debuff's armor (Faerie Fire, druid.md §3.8; Sunder Armor, warrior.md §7) re-derives the
       // armor factor with the stats.
-      this.aStatful[i] = a.str || a.agi || a.ap || a.apPct || a.crit || a.spellCrit || defensive || this.aTargetArmor[i] || this.aSpellDamage[i] ? 1 : 0
+      this.aStatful[i] = a.str || a.agi || a.ap || a.apPct || a.crit || a.spellCrit || defensive || this.aTargetArmor[i] || this.aSpellDamage[i] || this.aSpellDamagePct[i] ? 1 : 0
       this.aCritCharges[i] = a.critCharges
       if (a.whiteSwingCharges > 0) chargeAuras.push(i)
       if (a.critCharges > 0) critChargeAuras.push(i)
@@ -1248,6 +1261,8 @@ export class Sim {
     this.splCritAuraPct = Float64Array.from(spells, (x) => x.critAuraPct ?? 0)
     this.splBoostAura = Int32Array.from(spells, (x) => x.boostAura ?? -1)
     this.splBoostPct = Float64Array.from(spells, (x) => x.boostPct ?? 0)
+    this.splBoostKeep = Uint8Array.from(spells, (x) => (x.boostKeep ? 1 : 0))
+    this.splDotMult = Float64Array.from(spells, (x) => x.dotDamageMult ?? x.damageMult)
     this.splSource = Int32Array.from(spells, (x) => x.source)
     this.splSchool = Int32Array.from(spells, (x) => x.school)
     this.splDefense = Int32Array.from(spells, (x) => x.defense)
@@ -1420,6 +1435,9 @@ export class Sim {
     this.cdAfterStart = new Int32Array(na + 1)
     for (let k = 0; k < na; k++) this.cdAfterStart[k + 1] = this.cdAfterStart[k] + cdAfter[k].length
     this.cdAfterAbility = Int32Array.from(cdAfter.flat())
+    this.abConsumesDot = Int32Array.from(abilities, (a) => a.consumesDot ?? -1)
+    this.abConsumeChance = Float64Array.from(abilities, (a) => a.consumeChance ?? 0)
+    this.abNoThreat = Uint8Array.from(abilities, (a) => (a.noThreat ? 1 : 0))
     for (let i = 0; i < nb; i++) {
       const a = abilities[i]
       // docs/classes/druid.md §2.4–§2.8: the pool it pays from, its forms, combo points and Clearcasting.
@@ -1554,7 +1572,8 @@ export class Sim {
       c.code === COND.executeWithin ||
       c.code === COND.executeNotWithin ||
       c.code === COND.abilityAuraRefresh
-    const nc = rotation.reduce((n, e) => n + e.conditions.filter((c) => !resolved(c)).length + (abilities[e.ability].window >= 0 ? 1 : 0), 0)
+    const needs = (a: number) => (abilities[a].needsAura ?? -1) >= 0
+    const nc = rotation.reduce((n, e) => n + e.conditions.filter((c) => !resolved(c)).length + (abilities[e.ability].window >= 0 ? 1 : 0) + (needs(e.ability) ? 1 : 0), 0)
     this.condCode = new Int32Array(nc)
     this.condA = new Float64Array(nc)
     this.condB = new Float64Array(nc)
@@ -1592,6 +1611,13 @@ export class Sim {
       if (ability.window >= 0) {
         this.condCode[k] = COND.windowOpen
         this.condA[k] = ability.window
+        this.condB[k] = 0
+        k++
+      }
+      // docs/classes/warlock.md §8: an ability that needs an aura up (Conflagrate: your Immolate) checks it first too.
+      if (needs(entry.ability)) {
+        this.condCode[k] = COND.auraUp
+        this.condA[k] = ability.needsAura!
         this.condB[k] = 0
         k++
       }
@@ -1971,6 +1997,7 @@ export class Sim {
     this.dynCrit = 0
     this.dynSpellCrit = 0
     this.dynSpellDamage = 0
+    this.dynSpellDamageMult = 1
     this.auraHasteMult = 1
     this.resetDefense()
     this.exHead = 0
@@ -2089,6 +2116,7 @@ export class Sim {
     s.spellCrit = base.spellCrit + this.dynSpellCrit + this.stanceSpellCrit
     // docs/mechanics/spells.md §5: the auras' spell damage (a trinket's).
     s.spellDamage = base.spellDamage + this.dynSpellDamage
+    s.spellDamageMult = base.spellDamageMult * this.dynSpellDamageMult
     this.defensiveScratch(s, base)
     const d = deriveStats(s, this.deriveOptions, this.derived)
     this.ap = d.attackPower
@@ -2751,10 +2779,11 @@ export class Sim {
     // A `cast` that builds (Premeditation) or finishes (Slice and Dice) moves combo points once its
     // aura has read them (rogue.md §3.3, §3.10).
     if (this.abCp[a] !== 0 || this.abFinisher[a] === 1) this.landComboPoints(a, false)
-    this.gainPower(this.abRes[a], this.castRageTenths(a), source)
-    // A mana potion or rune (buffs-debuffs-consumables.md §3.5): its mana at once, capped.
+    this.gainPower(this.abRes[a], this.castRageTenths(a), source, this.abNoThreat[a] === 0)
+    // A mana potion or rune (buffs-debuffs-consumables.md §3.5): its mana at once, capped. Life Tap's
+    // makes no threat (docs/classes/warlock.md §3).
     const spread = this.abManaSpread[a]
-    if (this.abManaGain[a] > 0) this.gainMana(this.abManaGain[a] + (spread > 0 ? Math.floor(this.rngProc.next() * (spread + 1)) : 0), source)
+    if (this.abManaGain[a] > 0) this.gainMana(this.abManaGain[a] + (spread > 0 ? Math.floor(this.rngProc.next() * (spread + 1)) : 0), source, this.abNoThreat[a] === 0)
     if (this.abManaReturn[a] > 0) this.returnMana(a)
     this.startTicks(a)
     // paladin.md#protection-tree: Swift Judgement ends Judgement's cooldown.
@@ -2804,7 +2833,7 @@ export class Sim {
 
   /** One tick of a cast: its rage, and its spell if it has one (Consecration, paladin.md#other-abilities), each with its own rolls [?]. */
   private castTick(a: number): void {
-    this.gainPower(this.abRes[a], this.abTickRage[a], this.abSource[a])
+    this.gainPower(this.abRes[a], this.abTickRage[a], this.abSource[a], this.abNoThreat[a] === 0)
     if (this.abTickSpell[a] >= 0) {
       if (this.trace !== null) this.trace(this.abSource[a], -1, this.now)
       this.castCostTenths = this.abCost[a]
@@ -3299,6 +3328,14 @@ export class Sim {
         }
         this.dynApMult = m
       }
+      if (this.aSpellDamagePct[a]) {
+        // Spell damage % auras multiply the same way (docs/classes/warlock.md#72-race).
+        let m = 1
+        for (let i = 0; i < this.auraActive.length; i++) {
+          if (this.auraActive[i] && this.aSpellDamagePct[i]) m *= 1 + (this.aSpellDamagePct[i] * this.auraStacks[i]) / 100
+        }
+        this.dynSpellDamageMult = m
+      }
       this.recomputeStats()
     }
     if (this.aHaste[a] || this.aDamage[a] || this.aHoly[a] || this.aEnergyRegen[a] || this.aPoisonDamage[a] || this.aPoisonChance[a] || this.aBleedDamage[a]) this.recomputeMultipliers()
@@ -3551,6 +3588,9 @@ export class Sim {
     const landed = s < 0 || this.castSpell(s, false)
     this.castCostTenths = 0
     if (landed && this.abManaReturn[a] > 0) this.returnMana(a)
+    // docs/classes/warlock.md §3: a landed Conflagrate ends your Immolate, unless Shadow and Flame keeps it.
+    const consumed = this.abConsumesDot[a]
+    if (landed && consumed >= 0 && (this.abConsumeChance[a] >= 1 || this.rngProc.next() < this.abConsumeChance[a])) this.cancelSpellDot(consumed)
     // paladin.md#protection-tree: a landed Holy Strike puts Iron Creed's buff up. A caster's DoT
     // marker (docs/mechanics/spells.md §7) is its DoT's, which put it up as it landed.
     const aura = this.abAura[a]
@@ -3679,7 +3719,7 @@ export class Sim {
     const boost = this.splBoostAura[s]
     if (boost >= 0 && this.auraActive[boost]) {
       damage *= 1 + this.splBoostPct[s] / 100
-      this.removeAura(boost)
+      if (this.splBoostKeep[s] === 0) this.removeAura(boost)
     }
     if (crit) {
       damage *= this.splCritMult[s]
@@ -3781,7 +3821,7 @@ export class Sim {
     const now = this.now
     if (this.spDotTicksLeft[s] > 0 && this.spDotNextAt[s] === now) this.spellDotTick(s)
     const school = this.splSchool[s]
-    let snapshot = (this.splDotTick[s] + this.splDotCoef[s] * this.spSchool[school]) * this.splDamageMult[s] * this.magicMult * this.schDamage[school]
+    let snapshot = (this.splDotTick[s] + this.splDotCoef[s] * this.spSchool[school]) * this.splDotMult[s] * this.magicMult * this.schDamage[school]
     if (school === SCHOOL.holy) snapshot *= this.holyMult
     this.spDotDamage[s] = snapshot
     this.spDotCrit[s] = this.splDotCanCrit[s] === 1 ? this.spellCritPct + this.splBonusCrit[s] + this.schCrit[school] : -1
@@ -4053,10 +4093,11 @@ export class Sim {
   }
 
   /** Gains a resource from a cast or an energize (`source` ≥ 0: its threat goes on that row). */
-  private gainPower(res: number, tenths: number, source: number): void {
+  /** `threat`: false for a gain that makes none (Life Tap's, docs/classes/warlock.md §3); only mana reads it. */
+  private gainPower(res: number, tenths: number, source: number, threat = true): void {
     if (res === RES_RAGE) this.gainRage(tenths, source)
     else if (res === RES_ENERGY) this.gainEnergy(tenths, source)
-    else this.gainMana(tenths, source)
+    else this.gainMana(tenths, source, threat)
   }
 
   /**
@@ -4084,7 +4125,7 @@ export class Sim {
    * Adds mana in tenths, capped (druid.md §2.8, paladin.md#mana-model); an energize (`source` ≥ 0:
    * Sanctified Judgement, Shield Specialization) makes 0.5 threat per mana on its row [?].
    */
-  private gainMana(tenths: number, source: number): void {
+  private gainMana(tenths: number, source: number, makesThreat = true): void {
     if (tenths <= 0) return
     const gained = Math.min(tenths, this.manaMax - this.mana)
     this.mana += gained
@@ -4092,6 +4133,7 @@ export class Sim {
     if (gained > 0) this.actPending = this.hasRotation
     if (source >= 0 && gained > 0) {
       this.manaBySource[source] += gained
+      if (!makesThreat) return
       const threat = gained * THREAT_PER_MANA_TENTH
       this.counters[source * FIELD_COUNT + FIELD.threat] += threat
       this.fightThreat += threat

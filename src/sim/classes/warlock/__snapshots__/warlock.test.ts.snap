@@ -1,0 +1,210 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden runs (fixed config and seed) > keeps the default warlock-affliction’s result unchanged 1`] = `
+{
+  "abilities": [
+    [
+      "corruption",
+      14636864.040512558,
+      10442,
+      45420,
+      9119,
+      837,
+    ],
+    [
+      "baneOfDoom",
+      11403346.949586939,
+      2303,
+      1767,
+      344,
+      192,
+    ],
+    [
+      "baneOfAgony",
+      3087177.9683732735,
+      2203,
+      14507,
+      2905,
+      177,
+    ],
+    [
+      "siphonLife",
+      4566588.911783102,
+      6567,
+      55249,
+      0,
+      486,
+    ],
+    [
+      "shadowBolt",
+      38560153.06415586,
+      48471,
+      37216,
+      7479,
+      3776,
+    ],
+  ],
+  "cooldowns": [
+    [
+      "demonicSacrifice",
+      1,
+      100,
+    ],
+    [
+      "bloodFury",
+      2,
+      16.69539926329436,
+    ],
+    [
+      "majorManaPotion",
+      2,
+      null,
+    ],
+    [
+      "curseOfTheElements",
+      1.088,
+      99.9265402432415,
+    ],
+    [
+      "lifeTap",
+      18.327,
+      null,
+    ],
+    [
+      "shadowTrance",
+      null,
+      2.301013351744871,
+    ],
+  ],
+  "dps": {
+    "ci95": 1.3749939317980016,
+    "mean": 402.0700518417809,
+    "stdev": 22.18465557372106,
+  },
+  "mana": {
+    "max": 6518,
+    "regeneratedPerFight": 2418.007,
+    "restored": [
+      {
+        "id": "majorManaPotion",
+        "name": "Major Mana Potion",
+        "perFight": 3601.2034,
+      },
+      {
+        "id": "lifeTap",
+        "name": "Life Tap",
+        "perFight": 14163.105599999999,
+      },
+    ],
+    "restoredPerFight": 17764.309,
+    "spentPerFight": 25748.36,
+  },
+}
+`;
+
+exports[`golden runs (fixed config and seed) > keeps the default warlock-destruction’s result unchanged 1`] = `
+{
+  "abilities": [
+    [
+      "immolate",
+      5953617.094826402,
+      12145,
+      9846,
+      1325,
+      974,
+    ],
+    [
+      "immolateDot",
+      8237534.279018904,
+      11171,
+      46981,
+      6166,
+      0,
+    ],
+    [
+      "conflagrate",
+      12093451.771920659,
+      15833,
+      9152,
+      5451,
+      1230,
+    ],
+    [
+      "shadowburn",
+      6412057.662803292,
+      10937,
+      8919,
+      1131,
+      887,
+    ],
+    [
+      "incinerate",
+      38962027.42679036,
+      47056,
+      38371,
+      5048,
+      3637,
+    ],
+  ],
+  "cooldowns": [
+    [
+      "demonicSacrifice",
+      1,
+      100,
+    ],
+    [
+      "bloodFury",
+      2,
+      16.69539926329436,
+    ],
+    [
+      "majorManaPotion",
+      2,
+      null,
+    ],
+    [
+      "curseOfTheElements",
+      1.088,
+      99.9265402432415,
+    ],
+    [
+      "lifeTap",
+      17.563,
+      null,
+    ],
+    [
+      "shadowAndFlameShadow",
+      null,
+      95.54621174656904,
+    ],
+    [
+      "shadowAndFlameFire",
+      null,
+      90.7249583118663,
+    ],
+  ],
+  "dps": {
+    "ci95": 1.127618552560247,
+    "mean": 398.8779423579889,
+    "stdev": 18.193410624274662,
+  },
+  "mana": {
+    "max": 6518,
+    "regeneratedPerFight": 2335.918,
+    "restored": [
+      {
+        "id": "majorManaPotion",
+        "name": "Major Mana Potion",
+        "perFight": 3601.3025,
+      },
+      {
+        "id": "lifeTap",
+        "name": "Life Tap",
+        "perFight": 13572.6864,
+      },
+    ],
+    "restoredPerFight": 17173.9889,
+    "spentPerFight": 25324.635,
+  },
+}
+`;

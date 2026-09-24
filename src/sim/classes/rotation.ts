@@ -22,10 +22,13 @@ import { mageOptions, mageRotation } from './mage/rotation'
 import { SPEC_META } from '../specs'
 import { FURY_OPTIONS, FURY_RENAMED_OPTIONS, furyMaintainedBuffs, furyRotation } from './warrior/fury'
 import { RACIAL_COOLDOWNS } from './warrior/abilities'
+import { WARLOCK_RACIALS } from './warlock/abilities'
 import { PROTECTION_OPTIONS, protectionMaintainedBuffs, protectionRotation } from './warrior/protection'
 import { COMBAT_OPTIONS, combatMaintainedBuffs, combatRotation } from './rogue/combat'
 import { ASSASSINATION_OPTIONS, assassinationMaintainedBuffs, assassinationRotation } from './rogue/assassination'
 import { SUBTLETY_OPTIONS, subtletyMaintainedBuffs, subtletyRotation, subtletyUnusedSettings } from './rogue/subtlety'
+import { DESTRUCTION_OPTIONS, destructionMaintainedBuffs, destructionRotation, destructionUnusedSettings } from './warlock/destruction'
+import { AFFLICTION_OPTIONS, afflictionMaintainedBuffs, afflictionRotation, afflictionUnusedSettings } from './warlock/affliction'
 import type { TalentRanks } from './warrior/modifiers'
 import type { ClassRotation } from './warrior/shared'
 import type { Stance } from './warrior/talents'
@@ -52,6 +55,8 @@ export interface ClassRotationContext extends PaladinContext {
    * Absent: not known (a test's context).
    */
   weaponTypes?: readonly [WeaponType | null, WeaponType | null]
+  /** The sheet's Spirit at the pull: the warlock's Life Tap reads it (docs/classes/warlock.md §3.3). Absent: 0. */
+  spirit?: number
 }
 
 /**
@@ -82,6 +87,8 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   if (spec === 'rogue-subtlety') return SUBTLETY_OPTIONS
   // docs/classes/mage.md: Fire, Frost and Arcane.
   if (SPEC_META[spec].classId === 'mage') return mageOptions(spec)
+  if (spec === 'warlock-destruction') return DESTRUCTION_OPTIONS
+  if (spec === 'warlock-affliction') return AFFLICTION_OPTIONS
   return []
 }
 
@@ -121,6 +128,8 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
   if (spec === 'rogue-combat' || spec === 'rogue-assassination' || spec === 'rogue-subtlety') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
   // docs/classes/mage.md "First-pass defaults" (D27).
   if (SPEC_META[spec].classId === 'mage') return 'The defaults are the common priority.'
+  // docs/classes/warlock.md §6.3: the same for the warlock.
+  if (spec === 'warlock-destruction' || spec === 'warlock-affliction') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
   return undefined
 }
 
@@ -150,6 +159,8 @@ export const RACIAL_SETTING: Partial<Record<SpecId, string>> = {
   'mage-fire': 'mage.fire.racial.enabled',
   'mage-frost': 'mage.frost.racial.enabled',
   'mage-arcane': 'mage.arcane.racial.enabled',
+  'warlock-destruction': 'warlock.destruction.racial.enabled',
+  'warlock-affliction': 'warlock.affliction.racial.enabled',
 }
 
 /**
@@ -161,6 +172,8 @@ export interface UnusedSetup {
   raceName: string
   othersBleed: boolean
   buffGroups: ReadonlySet<string>
+  /** Talent ranks by name: the warlock's Demonic Sacrifice and Incinerate settings need their talents. Absent: none. */
+  talents?: ReadonlyMap<string, number>
 }
 
 /**
@@ -174,7 +187,9 @@ export interface UnusedSetup {
 export function unusedSettings(spec: SpecId, values: Record<string, RotationValue>, setup: UnusedSetup): Record<string, string> {
   const out: Record<string, string> = {}
   const racial = RACIAL_SETTING[spec]
-  if (racial && !RACIAL_COOLDOWNS[setup.race]) {
+  // The warlock's racial cooldowns are its own caster versions (warlock.md §7.2): Orc and Troll.
+  const warlock = spec === 'warlock-destruction' || spec === 'warlock-affliction'
+  if (racial && !(warlock ? WARLOCK_RACIALS[setup.race] : RACIAL_COOLDOWNS[setup.race])) {
     out[racial] =
       setup.race === 'alliance-gnome'
         ? 'Not used: the Gnome’s Eureka! isn’t simulated.'
@@ -189,6 +204,8 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   if (spec === 'druid-feral-cat') Object.assign(out, catUnusedSettings(values, setup.othersBleed))
   if (spec === 'druid-feral-bear') Object.assign(out, bearUnusedSettings(values, setup))
   if (spec === 'rogue-subtlety') Object.assign(out, subtletyUnusedSettings(values))
+  if (spec === 'warlock-destruction') Object.assign(out, destructionUnusedSettings(values, setup.talents ?? new Map()))
+  if (spec === 'warlock-affliction') Object.assign(out, afflictionUnusedSettings(values, setup.talents ?? new Map()))
   return out
 }
 
@@ -208,6 +225,9 @@ export function maintainedBuffs(spec: SpecId, values: Record<string, RotationVal
   if (spec === 'rogue-combat') return combatMaintainedBuffs(values)
   if (spec === 'rogue-assassination') return assassinationMaintainedBuffs(values)
   if (spec === 'rogue-subtlety') return subtletyMaintainedBuffs(values)
+  // docs/classes/warlock.md §6: its own Curse of the Elements.
+  if (spec === 'warlock-destruction') return destructionMaintainedBuffs(values)
+  if (spec === 'warlock-affliction') return afflictionMaintainedBuffs(values)
   return []
 }
 
@@ -245,5 +265,8 @@ export function classRotation(
   if (spec === 'rogue-subtlety') return subtletyRotation(values, talents, context)
   // docs/classes/mage.md "Fire priority", "Frost priority", "Arcane priority".
   if (SPEC_META[spec].classId === 'mage') return mageRotation(spec, values, talents, auraIndex, context)
+  // docs/classes/warlock.md §6.
+  if (spec === 'warlock-destruction') return destructionRotation(values, talents, auraIndex, context)
+  if (spec === 'warlock-affliction') return afflictionRotation(values, talents, auraIndex, context)
   return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
 }

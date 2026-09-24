@@ -304,6 +304,14 @@ A spec is data plus small ability modules, never its own loop.
   the plan's free-cast aura (`Plan.freeCastAura`). Conditions `auraStacksBelow` (42) and
   `auraEndsWithin` (43) keep a stacking debuff up (Scorch's Fire Vulnerability). A one-use ability's
   last use still holds its cooldown category (the mana gems, which the Demonic Rune joins).
+- **The warlock's pieces** ([warlock.md §8](classes/warlock.md#8-implementation-notes)), on the caster
+  core, each optional so a plan without them runs as before: a DoT's own multiplier
+  (`SpellDef.dotDamageMult`), a boost that keeps its aura (`boost.keep`: Incinerate on Immolate), an
+  ability usable only while an aura is up, checked first on its lines (`needsAura`: Conflagrate) and
+  one whose landing ends another spell's DoT with a chance (`consumesDot`, `consumeChance`), gains
+  with no threat (`noThreat`: Life Tap), a spell damage % aura (`spellDamagePct`: Forever's Blood
+  Fury) and a maximum-mana % (`StatBlock.manaMult`). A caster spec (`SpecMeta.caster`) swings no
+  weapon: its plan has none, though the weapon's stats count.
 - **Hot-loop discipline:** one monomorphic `Sim` class over typed arrays, no allocation per event,
   per-fight state reset rather than reallocated, and a plan flattened once in the constructor.
   The default Fury warrior (with its M2.2c rotation: the pre-pull, Battle Shout's upkeep and the

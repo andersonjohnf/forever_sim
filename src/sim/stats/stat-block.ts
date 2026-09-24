@@ -106,6 +106,11 @@ export class StatBlock {
   arcaneSpellDamage = 0
   spellPen = 0
   castHaste = 1
+  /**
+   * Spell damage %, a product over every school's (Forever's Blood Fury, aura 317: +10% spell power
+   * for 15 s; docs/classes/warlock.md#72-race). 1 for every plan without it.
+   */
+  spellDamageMult = 1
 
   // Pools.
   baseHealth = 0
@@ -116,6 +121,11 @@ export class StatBlock {
   mana = 0
   /** Mana per 5 s from gear and buffs (character-stats.md#spirit-and-mana-regeneration). */
   mp5 = 0
+  /**
+   * Maximum mana %, a product (Fel Vitality's +15%, the Gnome's Forever Expansive Mind +5% for a
+   * warlock: aura 178; docs/classes/warlock.md#4-talents). 1 for every plan without it.
+   */
+  manaMult = 1
 
   copyFrom(o: StatBlock): this {
     Object.assign(this, o)
@@ -234,7 +244,9 @@ export function deriveStats(b: StatBlock, o: DeriveOptions, out: DerivedStats = 
   out.armor = floorStat(b.itemArmor * (1 + b.itemArmorPct) + b.bonusArmor * (1 + b.bonusArmorPct) + b.armorPerAgi * out.agility)
 
   out.health = floorStat((b.baseHealth + healthFromStamina(out.stamina) + b.health) * b.healthMult)
-  out.mana = b.hasMana ? b.baseMana + manaFromIntellect(out.intellect) + b.mana : 0
+  const mana = b.hasMana ? b.baseMana + manaFromIntellect(out.intellect) + b.mana : 0
+  // docs/classes/warlock.md#4-talents: a maximum-mana % rounds down [?]; without one, the sum as before.
+  out.mana = b.manaMult === 1 ? mana : floorStat(mana * b.manaMult)
   // docs/mechanics/spells.md §5: each school's own line adds to the all-schools one, and so does a
   // talent's share of Intellect: the paladin's Champion of the Light ("up to 100% of your Intellect";
   // the floor is [?], paladin.md#retribution-tree, #conventions-used-below: SP = all schools plus
@@ -246,6 +258,16 @@ export function deriveStats(b: StatBlock, o: DeriveOptions, out: DerivedStats = 
   out.shadowSpellDamage = allSchools + b.shadowSpellDamage
   out.natureSpellDamage = allSchools + b.natureSpellDamage
   out.arcaneSpellDamage = allSchools + b.arcaneSpellDamage
+  // docs/classes/warlock.md#72-race: a spell damage % (Blood Fury's) on every school's, not rounded [?].
+  if (b.spellDamageMult !== 1) {
+    const m = b.spellDamageMult
+    out.holySpellDamage *= m
+    out.fireSpellDamage *= m
+    out.frostSpellDamage *= m
+    out.shadowSpellDamage *= m
+    out.natureSpellDamage *= m
+    out.arcaneSpellDamage *= m
+  }
   // docs/mechanics/spells.md §4: casting speed, with haste rating's % where it applies (D12) [?].
   out.castHasteMult = b.castHaste * (1 + out.hasteRatingPct / 100)
   return out

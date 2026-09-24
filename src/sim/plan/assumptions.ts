@@ -17,6 +17,8 @@ const PAL = 'docs/classes/paladin.md'
 const SHAM = 'docs/classes/shaman.md'
 const ROGUE = 'docs/classes/rogue.md'
 const MAGE = 'docs/classes/mage.md'
+const LOCK = 'docs/classes/warlock.md'
+const SPELLS = 'docs/mechanics/spells.md'
 
 const REGISTRY = {
   whiteSwingsOnly: {
@@ -704,6 +706,71 @@ const REGISTRY = {
   manaRegenMage: {
     text: 'Mana regenerates every 2 s, from a random moment in the first 2 s of the fight: 13 + Spirit / 4 when you’ve spent none for 5 s, and inside that rule Mage Armor’s share (kept up all fight) with Arcane Meditation’s; your mp5 always. Mana gems are conjured before the pull.',
     docRef: `${MAGE}#mana`,
+  },
+  // --- The warlock's (docs/classes/warlock.md §9), and the caster core's rules it relies on ---
+  reactionTimeWarlock: {
+    text: 'The rotation reacts instantly: it acts at the very moment a cast or the global cooldown ends, a DoT runs out, Shadow Trance procs or you have the mana, with no reaction time or latency.',
+    docRef: `${DT}#36-server-tick-and-spell-batching`,
+  },
+  warlockMana: {
+    text: 'Mana regenerates every 2 s, from a random moment in the first 2 s of the fight: 8 + Spirit / 4 when you’ve cast nothing that costs mana for 5 s, and your mp5 always, as in Classic Era. A spell’s mana is paid as its cast completes.',
+    docRef: `${LOCK}#5-mana`,
+  },
+  casterSpellRules: {
+    text: 'Spells miss a level-63 boss 17% of the time before hit, and lose 6% of their damage on average to its resistance (24, a Classic Era estimate): the average, not the 25/50/75% partial resists. Casting speed shortens cast times, not the 1.5 s global cooldown. Untested in Forever.',
+    docRef: `${SPELLS}#3-resistances`,
+  },
+  casterDotCrits: {
+    text: 'Your DoTs’ ticks can crit, as Forever’s periodic-crit flag on them says, at the crit chance you had when the DoT landed and your spells’ crit bonus; they fire no crit procs. A DoT keeps your spell damage and buffs from when it landed, and reads the boss’s debuffs at each tick. Untested.',
+    docRef: `${SPELLS}#7-dots`,
+  },
+  casterDots: {
+    text: 'A DoT keeps your spell damage and buffs from when it landed, and reads the boss’s debuffs at each tick; its ticks never crit in Classic Era. Recasting it restarts it and loses the partial tick.',
+    docRef: `${SPELLS}#7-dots`,
+  },
+  lifeTap: {
+    text: 'Life Tap gives 424 mana plus your Spirit at the pull, as its Forever tooltip reads, with Improved Life Tap’s bonus; its health cost isn’t simulated (you’re healed), and neither is threat from its mana.',
+    docRef: `${LOCK}#33-curses-life-tap-and-buffs`,
+  },
+  demonicSacrifice: {
+    text: 'Demonic Sacrifice’s buff is up from before the pull, with no pet: sacrificing it is the only use the sim makes of a demon until the pet core arrives.',
+    docRef: `${LOCK}#34-demonic-sacrifice`,
+  },
+  warlockNoPet: {
+    text: 'Your demon isn’t simulated yet, so neither its damage nor the talents that need it (Soul Link, Master Demonologist, Demonic Knowledge).',
+    docRef: `${LOCK}#34-demonic-sacrifice`,
+  },
+  curseOfTheElementsOwn: {
+    text: 'Your own Curse of the Elements is recast when it misses; a curse that’s resisted isn’t rolled apart from the miss, and its −75 resistance changes nothing on a boss. Untested.',
+    docRef: `${LOCK}#33-curses-life-tap-and-buffs`,
+  },
+  conflagrate: {
+    text: 'Conflagrate needs your Immolate on the boss and ends it when it lands, unless Shadow and Flame keeps it (100% at 5/5); a miss leaves it. Untested in Forever.',
+    docRef: `${LOCK}#31-destruction`,
+  },
+  incinerate: {
+    text: 'Incinerate’s 25% more on a target with your Immolate multiplies the rest of its damage, as its tooltip reads. Untested.',
+    docRef: `${LOCK}#31-destruction`,
+  },
+  shadowburnShards: {
+    text: 'Shadowburn’s Soul Shard isn’t tracked: you’re taken to have one for every cast (Shadow and Flame at 5/5 refunds it).',
+    docRef: `${LOCK}#31-destruction`,
+  },
+  nightfall: {
+    text: 'Nightfall rolls its chance on every Corruption tick, as in Classic Era, and Shadow Trance makes the next Shadow Bolt instant; it’s spent even by a Shadow Bolt that misses. Untested in Forever.',
+    docRef: `${LOCK}#42-affliction`,
+  },
+  improvedShadowBolt: {
+    text: 'Improved Shadow Bolt’s Shadow Vulnerability is your own: +20% Shadow damage taken from you for 12 s after a Shadow Bolt crit, DoT ticks included, with no charges, as Forever’s client has it. Untested.',
+    docRef: `${LOCK}#41-destruction`,
+  },
+  baneOfAgonyRamp: {
+    text: 'Bane of Agony deals its average each tick: its ramp from weak to strong ticks is server-side, and changes only a Bane the fight ends early.',
+    docRef: `${LOCK}#32-affliction`,
+  },
+  warlockTalentStacking: {
+    text: 'Talents that raise the same spell’s damage multiply with each other (Agonizing Flames and Aftermath on Immolate, Malediction and Shadow Mastery on the DoTs), as the modern client does; the additive reading would be under 1% lower. Untested.',
+    docRef: `${LOCK}#4-talents`,
   },
 } satisfies Record<string, { text: string; docRef: string }>
 

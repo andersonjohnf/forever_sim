@@ -168,7 +168,7 @@ export interface SpellDef {
    * +20% to the shaman's next Lightning Bolt or Earth Shock (docs/classes/shaman.md#stormstrike).
    * Absent: none.
    */
-  boost?: { aura: string; pct: number }
+  boost?: { aura: string; pct: number; keep?: boolean }
   // --- The caster core (docs/mechanics/spells.md). All optional: absent, a spell behaves as before. ---
   /**
    * A binary spell (docs/mechanics/spells.md §3): one with an effect besides damage (a slow, a debuff)
@@ -194,6 +194,12 @@ export interface SpellDef {
    * stack for "your Ice Lance and Frostbolt" (docs/classes/mage.md#winters-chill). Absent: none.
    */
   critAura?: { aura: string; pctPerStack: number }
+  /**
+   * Its DoT's own multiplier, which a DoT snapshots in place of `damageMult` (docs/classes/warlock.md
+   * §4: Aftermath's +50% is Immolate's direct hit only, Malediction's +5% its ticks only). Absent: the
+   * DoT uses `damageMult`, as every spell before the warlock's.
+   */
+  dotDamageMult?: number
 }
 
 export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense' | 'boost' | 'critAura'> {
@@ -207,6 +213,8 @@ export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | '
   /** `SpellDef.boost` resolved: the plan aura it's boosted by and uses up, and the % (shaman.md#stormstrike). Absent: none. */
   boostAura?: number
   boostPct?: number
+  /** The boost's aura stays up when the spell lands (Incinerate's +25% on an Immolated target, docs/classes/warlock.md §3). Absent: used up. */
+  boostKeep?: boolean
   /**
    * Its DoT's breakdown row, when it has a direct part too (Fireball's, Immolate's: "<name> (DoT)");
    * absent: its own row (a pure DoT: Corruption).
@@ -370,6 +378,8 @@ export interface AuraPlan {
   castHaste?: number
   /** Spell damage, all schools, per stack (a trinket's: Talisman of Ephemeral Power; docs/mechanics/spells.md §5). */
   spellDamage?: number
+  /** Spell damage %, every school's, multiplicative (Forever's Blood Fury: +10%; docs/classes/warlock.md#72-race). */
+  spellDamagePct?: number
   /**
    * Mana hooks for the class slices (docs/mechanics/spells.md §8): Spirit regeneration % more
    * (Innervate), and the % of it that goes on inside the five-second rule, added to the plan's share.
@@ -813,6 +823,20 @@ export interface AbilityPlan {
    * it isn't ready while the aura is up.
    */
   cooldownAfterAura?: boolean
+  // --- The warlock's (docs/classes/warlock.md §8). All optional: absent, a row behaves as before. ---
+  /**
+   * Usable only while this plan aura is up, which using it doesn't end (Conflagrate needs your
+   * Immolate on the target): the engine checks it first on each of its lines. Absent or −1: none.
+   */
+  needsAura?: number
+  /**
+   * When its spell lands it ends this plan spell's DoT, ticks and marker, with `consumeChance`
+   * (Conflagrate consumes Immolate, unless Shadow and Flame's chance keeps it). Absent or −1: none.
+   */
+  consumesDot?: number
+  consumeChance?: number
+  /** Its mana and power gains make no threat (Life Tap, Demonic Sacrifice's Fel Energy; warlock.md §3). Absent: they make an energize's. */
+  noThreat?: boolean
 }
 
 /**
@@ -839,6 +863,9 @@ export type AbilityDef = Omit<
   | 'opensAura'
   | 'opensAuraChance'
   | 'instantAura'
+  | 'needsAura'
+  | 'consumesDot'
+  | 'consumeChance'
 > & {
   /** The id of the aura that makes its cast instant (Presence of Mind, docs/classes/mage.md): resolved into `instantAura`, left out if no ability or proc puts it up. */
   instantAuraId?: string
@@ -868,6 +895,10 @@ export type AbilityDef = Omit<
   stackAuraId?: string
   /** An aura it puts on the player when used (Improved Stormstrike's, shaman.md): the plan adds it to its auras as `selfAura`. */
   selfAuraSpec?: AuraSpec
+  /** The aura, by id, it needs up (Conflagrate: Immolate's marker); the plan resolves it into `needsAura`, and drops the ability's lines without it. */
+  needsAuraId?: string
+  /** The spell, by id, whose DoT it ends when it lands, with this chance (Conflagrate's Immolate); resolved into `consumesDot`. */
+  consumesDotOf?: { spell: string; chance: number }
   /** `bleed`: the aura each tick puts up (Thousand Cuts, rogue.md §5.3); the plan adds it to its auras. */
   tickAuraSpec?: AuraSpec
   /** The aura, by id, whose stacks make it cheaper and that using it takes down (Thousand Cuts); resolved and dropped as `auraCrit`. */

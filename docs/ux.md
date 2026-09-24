@@ -253,8 +253,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     since a Classic Era feral would look for it. The bear's names the duties its default keeps and
     says it's tuned for threat around them
     ([D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
-    "The defaults keep your duties, Demoralizing Roar and Faerie Fire on the boss, and within them
-    are tuned for threat in the default setup."
+    "The defaults keep your duties, Demoralizing Roar and Faerie Fire on the boss, by the tank
+    duties' rule, and around them are tuned for threat in the default setup."
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
     **Consumables**, in that order. Under each heading the settings keep the spec's priority

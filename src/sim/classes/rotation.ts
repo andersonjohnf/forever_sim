@@ -94,8 +94,8 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
   if (spec === 'druid-feral-cat') {
     return 'The defaults are tuned for the default setup. There’s no powershifting: in Forever, Furor keeps your Energy through a shift, so it gains nothing.'
   }
-  // A tank's default keeps its duties, and is tuned for threat within them (decision D26).
-  if (spec === 'druid-feral-bear') return 'The defaults keep your duties, Demoralizing Roar and Faerie Fire on the boss, and within them are tuned for threat in the default setup.'
+  // A tank's default keeps its duties by their rule, and is tuned for threat around them (decision D26).
+  if (spec === 'druid-feral-bear') return 'The defaults keep your duties, Demoralizing Roar and Faerie Fire on the boss, by the tank duties’ rule, and around them are tuned for threat in the default setup.'
   return undefined
 }
 

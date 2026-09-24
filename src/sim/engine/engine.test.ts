@@ -639,6 +639,14 @@ describe('golden run (fixed config and seed)', () => {
   //   white swings 4,815 → 8,020); DPS 314.15 → 313.81 → 327.32 → 340.37 → 351.64 → 357.79. Over
   //   400,000 paired fights on seed 7474, +8.63 TPS (+1.28%) and +31.94 DPS (+9.79%) against the
   //   first round's defaults.
+  // - The rebase onto main: the bear uses the cat's pieces, and a `spellHit` cast's row counts casts
+  //   and misses, not hits, as the cat's Faerie Fire's does, so the roar's and Faerie Fire's hits read
+  //   0 (3,465 and 10,390 before); nothing else moves.
+  // - D26's fixed duty rule (PW4): Faerie Fire is refreshed from 6 s left, its cooldown, and the roar
+  //   from 1.5 s, one global cooldown, where the search had both at 3 s. On this seed's 500 fights:
+  //   roars 3,901 → 3,717, Faerie Fires 12,360 → 12,133, and the rage and global cooldowns they free go
+  //   to Maul (29,146 → 29,269 casts) and Mangle (17,608 → 17,710). TPS 683.85 → 686.37, DPS 357.79 →
+  //   359.69. The threat abilities' search around the rule moved nothing (druid.md §6.3).
   it('keeps the default Feral bear’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('druid-feral-bear'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)

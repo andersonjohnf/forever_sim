@@ -28,7 +28,7 @@ test.describe('Feral bear (preview)', () => {
     await page.goto(BEAR)
     await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
     const tab = page.getByRole('tabpanel', { name: 'Rotation' })
-    await expect(tab.getByText(/The defaults keep your duties, Demoralizing Roar and Faerie Fire on the boss, and within them are tuned for threat in the default setup\./)).toBeVisible()
+    await expect(tab.getByText('The defaults keep your duties, Demoralizing Roar and Faerie Fire on the boss, by the tank duties’ rule, and around them are tuned for threat in the default setup.')).toBeVisible()
     for (const name of ['Demoralizing Roar', 'Faerie Fire', 'Maul', 'Mangle', 'Lacerate']) await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
     await expect(tab.getByRole('switch', { name: 'Enrage in combat', exact: true })).toBeChecked()
     await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
@@ -38,6 +38,20 @@ test.describe('Feral bear (preview)', () => {
       await expect(own).toBeDisabled()
     }
     await expect(page.getByText('−204 boss attack power (instead of Demoralizing Shout). You keep it up yourself (see Rotation), so it isn’t added twice.')).toBeVisible()
+  })
+
+  test('times its duties by the tank duties’ rule: Faerie Fire from 6 s left, the roar from 1.5 s (PW4)', async ({ page }) => {
+    await page.goto(BEAR)
+    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+    const tab = page.getByRole('tabpanel', { name: 'Rotation' })
+    const cooldowns = tab.getByRole('region', { name: 'Cooldowns and buffs' })
+    await cooldowns.getByRole('button', { name: /^Advanced settings for Cooldowns and buffs/ }).click()
+    const faerieFire = cooldowns.getByRole('textbox', { name: 'Faerie Fire again with', exact: true })
+    const roar = cooldowns.getByRole('textbox', { name: 'Demoralizing Roar again with', exact: true })
+    await expect(faerieFire).toHaveValue('6')
+    await expect(roar).toHaveValue('1.5')
+    await expect(faerieFire).toHaveAccessibleDescription(/The default, 6 s \(its cooldown\), follows the tank duties’ rule: refresh while a miss can still be tried again before it falls off\./)
+    await expect(roar).toHaveAccessibleDescription(/The default, 1\.5 s \(one global cooldown\), follows the tank duties’ rule/)
   })
 
   test('with its roar off, the Buffs tab’s is off and unlocked, for another druid’s; without another druid it needs one (BU3, BU14)', async ({ page }) => {

@@ -14,7 +14,7 @@ import type { RotationOption, SimConfig } from '../../types'
 import { talentRanksByName } from '../index'
 import { maintainedBuffs, rotationOptions } from '../rotation'
 import { NO_CONTEXT } from '../warrior/shared'
-import { BEAR_IDS, BEAR_OPTIONS, bearMaintainedBuffs, bearRotation, PREPULL_ENRAGE_MS } from './bear'
+import { BEAR_IDS, BEAR_OPTIONS, bearMaintainedBuffs, bearRotation, DEMO_ROAR_REFRESH_SEC, FAERIE_FIRE_REFRESH_SEC, PREPULL_ENRAGE_MS } from './bear'
 import {
   BEAR_GCD_MS,
   DEMORALIZING_ROAR_THREAT,
@@ -235,6 +235,18 @@ describe('the bear’s Rotation settings (druid.md §6.3)', () => {
     expect(toggle(BEAR_IDS.ffEnabled).maintainsBuff).toBe('faerieFire')
   })
 
+  it('time the duties by D26’s fixed rule: Faerie Fire from its 6 s cooldown, the roar from one 1.5 s global cooldown (PW4)', () => {
+    expect(FAERIE_FIRE_REFRESH_SEC).toBe(FAERIE_FIRE_BEAR.cooldownMs / 1000)
+    expect(FAERIE_FIRE_REFRESH_SEC).toBe(6)
+    expect(DEMO_ROAR_REFRESH_SEC).toBe(BEAR_GCD_MS / 1000)
+    expect(DEMO_ROAR_REFRESH_SEC).toBe(1.5)
+    const refresh = (id: string) => option(id) as Extract<RotationOption, { kind: 'number' }>
+    expect(refresh(BEAR_IDS.ffRefresh).default).toBe(6)
+    expect(refresh(BEAR_IDS.roarRefresh).default).toBe(1.5)
+    expect(refresh(BEAR_IDS.ffRefresh).help).toContain('The default, 6 s (its cooldown), follows the tank duties’ rule')
+    expect(refresh(BEAR_IDS.roarRefresh).help).toContain('The default, 1.5 s (one global cooldown), follows the tank duties’ rule')
+  })
+
   it('keep the Buffs tab’s Faerie Fire and Demoralizing Roar out while the bear keeps its own', () => {
     expect(maintainedBuffs('druid-feral-bear', {})).toEqual(['faerieFire', 'demoralizingRoar'])
     expect(bearMaintainedBuffs({ [BEAR_IDS.roarEnabled]: false })).toEqual(['faerieFire'])
@@ -257,6 +269,13 @@ describe('the bear’s priority list (druid.md §6.3)', () => {
   it('with the defaults: Berserk and Maul off the GCD, then the duties, Mangle, Lacerate and the Faerie Fire filler; no Swipe', () => {
     const all = ['berserk', 'enrage', 'maul', 'demoralizingRoar', 'faerieFire', 'mangle', 'lacerate', 'lacerate', 'faerieFire']
     expect(lines().ids).toEqual(all)
+    // The duties are the first lines on the GCD, before any threat ability there (D26's rule), and
+    // refresh by it: the roar from 1.5 s left, Faerie Fire from 6 s.
+    const { r } = lines()
+    const onGcd = r.rotation.filter((e) => r.abilities[e.ability].gcdMs > 0).map((e) => r.abilities[e.ability].id)
+    expect(onGcd.slice(0, 2)).toEqual(['demoralizingRoar', 'faerieFire'])
+    const refreshMs = (id: string) => r.rotation.find((e) => r.abilities[e.ability].id === id)!.conditions.find((c) => c.code === COND.abilityAuraRefresh)!.b
+    expect([refreshMs('demoralizingRoar'), refreshMs('faerieFire')]).toEqual([1500, 6000])
     // A raid whose warriors keep the boss bleeding keeps Lacerate too (§6.3, BL1), unless it's set
     // to wait for no other bleeds.
     expect(lines({}, { othersBleed: true }).ids).toEqual(all)

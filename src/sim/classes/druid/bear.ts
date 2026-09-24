@@ -1,9 +1,10 @@
 // The Feral bear's priority list and its settings (docs/classes/druid.md §6.3, §7.4).
 //
 // A tank's default keeps its duties first (decision D26 as amended): Demoralizing Roar and Faerie
-// Fire on the boss, in full. Within that, the settings are the best found on TPS, with DPS beside it
-// (decision D23; §6.3 "Tuning the defaults"). Each duty is a setting of its own, so a rotation that
-// drops them (Max TPS) is a matter of setting them.
+// Fire on the boss, timed by the duty rule, which is fixed and never tuned. Around them, the threat
+// abilities' settings are the best found on TPS, with DPS beside it (decision D23; §6.3 "Tuning the
+// defaults"). Each duty is a setting of its own, so a rotation that drops them (Max TPS) is a matter
+// of setting them.
 //
 // Off the GCD: Berserk, Enrage (before the pull, and in combat on cooldown), the racial cooldown
 // (Night Elf), on-use items, the Mighty Rage Potion and Juju Flurry when they're selected in Buffs,
@@ -20,6 +21,7 @@ import { ELUNES_LIGHT } from '../warrior/abilities'
 import { type ClassRotation, JUJU_FLURRY, maxRage, minRage, NO_CONTEXT, RAGE_POTION, reader, seconds } from '../warrior/shared'
 import { WOLFSHEAD_HELM } from './abilities'
 import {
+  BEAR_GCD_MS,
   demoralizingRoar,
   ENRAGE_RAGE_TENTHS,
   ENRAGE_TICK_TENTHS,
@@ -99,13 +101,25 @@ const refreshOption = (id: string, label: string, help: string, def: number, max
   dependsOn,
 })
 
+/**
+ * The tank duties' refresh rule (druid.md §6.3, decision D26's amendment): a debuff is refreshed as
+ * soon as a miss could still be tried again before it falls off, so from its own cooldown, or from
+ * one global cooldown if it has none. It's a fixed rule, never tuned: Faerie Fire from its 6 s
+ * cooldown, Demoralizing Roar, which has none, from the 1.5 s global cooldown.
+ */
+export const FAERIE_FIRE_REFRESH_SEC = FAERIE_FIRE_BEAR.cooldownMs / 1000
+export const DEMO_ROAR_REFRESH_SEC = BEAR_GCD_MS / 1000
+/** A duty's refresh help, second sentence: where the default comes from, the duty rule (druid.md §6.3). */
+const DUTY_RULE = (sec: number, why: string) =>
+  ` The default, ${sec} s (${why}), follows the tank duties’ rule: refresh while a miss can still be tried again before it falls off.`
+
 /** Enrage's rage, 10 at once and 20 over 10 s: 30 (druid.md §4.5). */
 const ENRAGE_RAGE = (ENRAGE_RAGE_TENTHS + ENRAGE_TICKS * ENRAGE_TICK_TENTHS) / 10
 
 /**
- * Defaults from druid.md §6.3's table, in priority order. They keep the tank's duties (D26) and are
- * the best rotation found for the default setup within them (D23; §6.3 "Tuning the defaults",
- * measured on TPS and DPS with scripts/tune/rotation.mjs).
+ * Defaults from druid.md §6.3's table, in priority order. They keep the tank's duties by D26's fixed
+ * rule, and the rest is the best rotation found around them for the default setup (D23; §6.3
+ * "Tuning the defaults", measured on TPS and DPS with scripts/tune/rotation.mjs).
  */
 export const BEAR_OPTIONS: RotationOption[] = [
   {
@@ -168,8 +182,8 @@ export const BEAR_OPTIONS: RotationOption[] = [
   refreshOption(
     ID.ffRefresh,
     'Faerie Fire again with',
-    'Refresh it when this much of it is left, unless it lasts to the end of the fight. At 0, once it has run out.',
-    3,
+    `Refresh it when this much of it is left, unless it lasts to the end of the fight.${DUTY_RULE(FAERIE_FIRE_REFRESH_SEC, 'its cooldown')}`,
+    FAERIE_FIRE_REFRESH_SEC,
     40,
     ID.ffEnabled,
     'Cooldowns and buffs',
@@ -186,8 +200,8 @@ export const BEAR_OPTIONS: RotationOption[] = [
   refreshOption(
     ID.roarRefresh,
     'Demoralizing Roar again with',
-    'Refresh it when this much of it is left, unless it lasts to the end of the fight. At 0, once it has run out.',
-    3,
+    `Refresh it when this much of it is left, unless it lasts to the end of the fight.${DUTY_RULE(DEMO_ROAR_REFRESH_SEC, 'one global cooldown')}`,
+    DEMO_ROAR_REFRESH_SEC,
     30,
     ID.roarEnabled,
     'Cooldowns and buffs',
@@ -359,7 +373,8 @@ export function bearRotation(
   if (v.on(ID.maulEnabled)) b.add(MAUL, [minRage(toTenths(v.num(ID.maulMinRage)))])
 
   // --- On the GCD -----------------------------------------------------------------------------------
-  // Row 4: the duties first (D26): Demoralizing Roar and Faerie Fire, when down or with ≤ refreshBelowSec left.
+  // Row 4: the duties first, before any threat ability on the GCD (D26's rule): Demoralizing Roar and
+  // Faerie Fire, when down or with ≤ refreshBelowSec left (the rule's 1.5 s and 6 s by default).
   // A Demoralizing Shout in the Buffs tab takes the roar's place on the boss, so then it isn't used.
   if (v.on(ID.roarEnabled) && !roarDisplaced(ctx)) {
     const def = demoralizingRoar(ctx.profile)

@@ -107,6 +107,25 @@ describe('race', () => {
     expect(Math.abs(result.closest!.vsLeader.mean)).toBeLessThan(result.closest!.vsLeader.halfWidth)
   })
 
+  it('counts as unseparated only the survivors the leader isn’t clear of at 95%, and names a closest only on a budget ending (OV-5)', async () => {
+    // Twins, and a third well behind that an elimination bar too high to drop anyone keeps in the race: the budget
+    // ends it with the third a survivor the leader is clear of, so only the other twin is unseparated.
+    const toys: Toy[] = [{ dps: 1000 }, { dps: 1020 }, { dps: 1020 }, { dps: 1005 }]
+    const result = await race(options(toys, { budget: 20_000, eliminationZ: 1e6 }))
+    expect(result.status).toBe('budget')
+    const third = result.standings.find((st) => st.candidate === 3)!
+    expect(third.state).toBe('survivor')
+    expect(third.vsLeader.mean - third.vsLeader.halfWidth).toBeGreaterThan(0)
+    const twin = result.leader === 1 ? 2 : 1
+    expect(result.unseparated).toEqual([twin])
+    expect(result.closest!.candidate).toBe(twin)
+    // A separated race has neither.
+    const clear = await race(options(field))
+    expect(clear.status).toBe('separated')
+    expect(clear.unseparated).toEqual([])
+    expect(clear.closest).toBeUndefined()
+  })
+
   it('corrects the elimination bar for the number of survivors, so the true best survives the first round (O1-2)', async () => {
     // The winner's curse: 1,000 candidates level at 1,000 and one ahead by 0.1, a small share of a
     // candidate's own standard error over the first round's 50 fights (1.4). The leader is the
@@ -126,8 +145,9 @@ describe('race', () => {
       if (dropped(await run({ eliminationZ: Z99 }))) fixedDrops++
       const corrected = await run({})
       if (dropped(corrected)) correctedDrops++
-      // The bar is Student's t at 0.5% ÷ the survivors compared with the leader.
-      expect(corrected.rounds[0].eliminationZ).toBeCloseTo(eliminationZ(count - 1, 50), 12)
+      // The bar is Student's t at 0.5% ÷ the survivors compared with the leader: the 999 candidates
+      // (the baseline is none) less the leader.
+      expect(corrected.rounds[0].eliminationZ).toBeCloseTo(eliminationZ(count - 2, 50), 12)
     }
     expect(fixedDrops).toBeGreaterThan(0)
     expect(correctedDrops).toBe(0)
@@ -152,9 +172,8 @@ describe('race', () => {
 
   it('keeps the baseline running and pairs every standing with its fights', async () => {
     const result = await race(options(field))
-    const base = result.standings.find((s) => s.candidate === 0)
     expect(result.baseline.fights).toBe(Math.max(...result.standings.map((s) => s.fights)))
-    if (base) expect(base.vsBaseline.dps.mean).toBe(0)
+    expect(result.standings.some((s) => s.candidate === 0)).toBe(false)
   })
 
   it('drops a candidate clearly outside a result constraint, and only a feasible one leads', async () => {
@@ -166,20 +185,33 @@ describe('race', () => {
     expect(out.droppedAs).toBe('infeasible')
     expect(out.feasible).toBe(false)
     expect(result.rounds[0].infeasible).toBe(1)
+    expect(result.outside).toEqual([1])
   })
 
-  it('a reference-only candidate runs every round but never leads nor drops another', async () => {
-    // The baseline is the best here, but it's only a reference (it breaks the talent constraints).
+  it('has no leader when every candidate is clearly outside a result constraint', async () => {
+    const toys: Toy[] = [{ dps: 1000 }, { dps: 1050, taken: 600 }, { dps: 1030, taken: 620 }]
+    const result = await race(options(toys, { constraints: [{ on: 'result', metric: 'taken', max: 1.05, relative: true }] }))
+    expect(result.status).toBe('none')
+    expect(result.leader).toBeNull()
+    expect(result.outside).toEqual([2])
+    expect(result.standings.every((st) => st.state === 'dropped' && st.droppedAs === 'infeasible')).toBe(true)
+    expect(result.unseparated).toEqual([])
+  })
+
+  it('the baseline is only the measuring stick: it runs every round but never leads, drops another or stands', async () => {
+    // The baseline is the best here, but it's never an answer.
     const toys: Toy[] = [{ dps: 1050 }, { dps: 1000 }, { dps: 1030 }, { dps: 1010 }]
-    const result = await race(options(toys, { referenceOnly: [0] }))
+    const result = await race(options(toys))
     expect(result.leader).toBe(2)
-    const base = result.standings.find((st) => st.candidate === 0)!
-    expect(base.state).toBe('reference')
-    expect(base.fights).toBe(result.baseline.fights)
-    expect(result.standings[1].candidate).toBe(0)
     expect(result.status).toBe('separated')
-    // If every candidate is a reference, they all race.
-    expect((await race(options(toys.slice(0, 2), { referenceOnly: [0, 1] }))).leader).toBe(0)
+    expect(result.standings.map((st) => st.candidate)).not.toContain(0)
+    expect(result.baseline.fights).toBe(Math.max(...result.standings.map((st) => st.fights)))
+    // The leader's change from it is below zero: it's still what every candidate is measured against.
+    expect(result.standings[0].vsBaseline.dps.mean).toBeLessThan(0)
+    // With the baseline alone there's no candidate and no answer; its first round still runs.
+    const alone = await race(options(toys.slice(0, 1)))
+    expect(alone).toMatchObject({ status: 'none', leader: null, standings: [], spent: 100 })
+    expect(alone.baseline.fights).toBe(100)
   })
 
   it('rejects a budget that does not cover the first round', async () => {

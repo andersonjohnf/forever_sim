@@ -53,14 +53,18 @@ export {
   candidatePlan,
   confirm,
   type Confirmation,
+  type Excluded,
   firstRound,
   fitBudget,
+  isSetup,
   MIN_FIRST_ROUND,
   optimize,
   optimizeInTurns,
   type OptimizeOptions,
   type OptimizeProgress,
   type OptimizeReport,
+  setupCandidate,
+  talentConstraintsOf,
   type TalentSearch,
 } from './optimize'
 export { race, type RaceOptions, type RaceProgress, type RaceResult, type RaceStatus, type RoundLog, type Standing } from './race'

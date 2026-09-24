@@ -15,22 +15,28 @@
 //   npm run optimize -- --spec druid-feral-bear --search both --sweep maul.minRage=10:40:10
 //   npm run optimize -- --spec druid-feral-bear --turns --sweep maul.minRage=10:40:10
 //
+// The setup as it is is the baseline: every candidate is measured against it, fight for fight, but
+// it's never the answer. Every answer meets every constraint below; the setup itself races as a
+// candidate like any other when it does. When none does, the tool says which constraints block.
+//
 // What to search:
 //   --search talents      talents (the default); the setup's rotation
-//   --search rotation     rotation settings only (--sweep and --rotation give the variants); the setup's talents
+//   --search rotation     rotation settings only (--sweep and --rotation give the variants); the setup's
+//                         talents, with no talent constraints
 //   --search both         every build with every rotation variant, and with the setup's own rotation
 //   --turns               talents, then the rotation variants with the winning build, then talents again,
 //                         until a pass keeps its start (docs/optimizer.md#talents-and-rotation-together).
-//                         Every pass races its start too, so a pass never ends worse than it began.
+//                         Every pass races its start too, and holds every candidate to every constraint.
 //   --sweep id=a:b:step   rotation variants, as rotation.mjs's --sweep (id=a|b|c for a list); repeatable, the
 //                         cartesian product of all of them
 //   --rotation "a=1,b=2"  one rotation variant; repeatable
 //
-// Talent constraints (names as the talent trees show them):
+// Talent constraints (names as the talent trees show them), when talents are searched:
 //   --talents <code>      the setup's build: the baseline every result is compared with, and where the
 //                         search starts (default: the spec's default build)
 //   --min-tree <tree>=<n> at least n points in that tree (repeatable): "Protection=31". A tank's default is
-//                         31 in its tank tree; "--min-tree Protection=0" drops it
+//                         31 in its tank tree, which a minimum for another tree joins; "--min-tree
+//                         Protection=0" drops it
 //   --keep <talent>[=r]   in every build at rank r (default: its max); repeatable, or comma-separated. Kept
 //                         talents extend the survival floor for this search
 //   --exclude <talent>    never taken; repeatable, or comma-separated
@@ -42,11 +48,12 @@
 //   --require <limit>     name>=value or name<=value; a % makes it a share of the baseline's value.
 //                         Sheet: ehp (effective health: health ÷ (1 − armor's reduction vs the boss)),
 //                         health, armor, stamina, defense, dodgePct, parryPct, blockPct, blockValue,
-//                         critReductionPct, hitPct, critPct, attackPower. Results: dps, tps, taken (damage
-//                         taken per second), bossCritPct and bossCrushPct (the boss's crit and crushing blow
-//                         chances against you). "ehp>=95%", "health>=8000", "taken<=102%".
+//                         critReductionPct, hitPct, critPct, attackPower, bossCritPct and bossCrushPct
+//                         (the boss's crit and crushing blow chances against you). Results: dps, tps,
+//                         taken (damage taken per second). "ehp>=95%", "health>=8000", "taken<=102%".
 //   --no-ehp-floor        drop a tank's default floor, 90% of the default's effective health (D30)
-//   --crit-immune         the boss can't crit you (bossCritPct<=0: 440 defense vs a level-63 boss); off by default
+//   --crit-immune         the boss can't crit you (bossCritPct<=0: 440 defense vs a level-63 boss, on the
+//                         table with no block buff up); off by default
 //   --crush-immune        the boss can't crush you (bossCrushPct<=0: miss, dodge, parry and block fill the
 //                         table; a Protection paladin's with Holy Shield up); off by default
 //
@@ -345,7 +352,7 @@ async function main() {
     onProgress: (p) => {
       if (p.phase === 'space') {
         describeSpace(p)
-        console.log(`candidates: ${count(p.candidates)}${searchTalents ? ` (${count(p.builds)} builds × ${1 + rotations.length} rotations, the setup's own and ${rotations.length} variants, with the baseline and the start)` : ''}, first round ${count(p.budget.initialFights)} fights each${p.budget.fights !== budget.fights ? `, budget ${count(p.budget.fights)} fights` : ''}`)
+        console.log(`candidates: ${count(p.candidates)}, each paired with the baseline; first round ${count(p.budget.initialFights)} fights each${p.budget.fights !== budget.fights ? `, budget ${count(p.budget.fights)} fights` : ''}`)
         for (const note of p.notes) console.log(`  note: ${note}`)
       }
       if (p.phase === 'race' && p.jobsDone === p.jobs && p.round !== lastRound) {
@@ -389,42 +396,50 @@ async function main() {
       const name = (id) => data.trees.flatMap((t) => t.talents).find((t) => t.id === id).name
       if (r.space.constrained.length) console.log(`  searched for the constraints (they change what a limit reads): ${r.space.constrained.map(name).join(', ')}`)
       if (r.space.minPoints && Object.values(r.space.minPoints).some((n) => n > 0))
-        console.log(`  minimum points: ${Object.entries(r.space.minPoints).map(([t, n]) => `${t} ${n}`).join(', ')}${Object.keys(minPoints).length ? '' : " (the tank's default)"}`)
+        console.log(`  minimum points: ${Object.entries(r.space.minPoints).map(([t, n]) => `${t} ${n}${t in minPoints ? '' : " (the tank's default)"}`).join(', ')}`)
     }
-    if (r.excluded) console.log(`  ${count(r.excluded)} candidates miss a sheet constraint and don't race`)
-    for (const [c, why] of Object.entries(r.referenceOnly ?? {}))
-      console.log(`  ${Number(c) === 0 ? 'the baseline' : 'the start'} doesn't keep the talent constraints (${why.join(', ')}): it races as a reference, not as an answer`)
+    const some = (n) => (n === 1 ? '1 candidate' : `${count(n)} candidates`)
+    if (r.excluded.talents) console.log(`  left out for a talent constraint: ${some(r.excluded.talents)}`)
+    if (r.excluded.sheet) console.log(`  left out for a sheet constraint: ${some(r.excluded.sheet)}`)
+    if (r.setupFails.length) console.log(`  the setup itself fails ${r.setupFails.join(', ')}: it's the baseline every candidate is measured against, never an answer`)
   }
   function printStandings(r) {
     const race = r.race
     const describe = (c) => {
       const cand = r.candidates[c]
+      if (engine.isSetup(config, cand)) return 'the setup itself'
       const changes = engine.describeBuildChange(data, config.talents, cand.talents)
       const rot = Object.entries(cand.rotation).map(([id, v]) => `${id.startsWith(spec.prefix) ? id.slice(spec.prefix.length) : id}=${v}`)
-      return [...changes, ...rot].join(', ') || 'the baseline'
+      return [...changes, ...rot].join(', ')
     }
     const unit = objective === 'balanced' ? ' (pts)' : ''
     console.log('')
-    console.log(`| # | Build | Changes from the default | ${tank ? 'TPS | ' : ''}DPS | ${tank ? 'Taken/s | Health | EHP | Boss crit | Boss crush | ' : ''}Δ score${unit} (95% CI) |${tank ? ' Δ TPS (95% CI) | Δ DPS (95% CI) | Δ taken (95% CI) |' : ' Δ DPS % |'} Fights | State |`)
-    console.log(`| --- | --- | --- | ${tank ? '--- | ' : ''}--- | ${tank ? '--- | --- | --- | --- | --- | ' : ''}--- |${tank ? ' --- | --- | --- |' : ' --- |'} --- | --- |`)
-    race.standings.forEach((s, i) => {
-      const cand = r.candidates[s.candidate]
-      const sheet = r.sheets[s.candidate]
-      const state =
-        s.state === 'dropped'
-          ? `dropped r${s.droppedInRound}${s.droppedAs === 'infeasible' ? ' (outside a limit)' : ''}`
-          : s.state === 'reference'
-            ? `reference only: doesn't keep ${r.referenceOnly[s.candidate].join(', ')}`
-            : s.state
-      console.log(
-        `| ${i + 1} | \`${cand.talents}\` | ${describe(s.candidate)} | ${tank ? `${s.mean.tps.toFixed(1)} | ` : ''}${s.mean.dps.toFixed(1)} | ${tank ? `${s.mean.taken.toFixed(1)} | ${Math.round(sheet.health)} | ${Math.round(sheet.ehp)} | ${chance(sheet.bossCritPct)} | ${chance(sheet.bossCrushPct)} | ` : ''}${ci(s.vsBaseline.score)} |` +
-          (tank ? ` ${ci(s.vsBaseline.tps, 1)} | ${ci(s.vsBaseline.dps, 1)} | ${ci(s.vsBaseline.taken, 1)} |` : ` ${pct((100 * s.vsBaseline.dps.mean) / race.baseline.dps)} |`) +
-          ` ${count(s.fights)} | ${state}${s.feasible || s.droppedAs === 'infeasible' ? '' : ', misses a limit'}${s.ties.length ? `, ${s.ties.length} ties` : ''} |`,
-      )
-    })
+    if (race.standings.length === 0) console.log('no candidate raced')
+    else {
+      console.log(`| # | Build | Changes from the default | ${tank ? 'TPS | ' : ''}DPS | ${tank ? 'Taken/s | Health | EHP | Boss crit | Boss crush | ' : ''}Δ score${unit} (95% CI) |${tank ? ' Δ TPS (95% CI) | Δ DPS (95% CI) | Δ taken (95% CI) |' : ' Δ DPS % |'} Fights | State |`)
+      console.log(`| --- | --- | --- | ${tank ? '--- | ' : ''}--- | ${tank ? '--- | --- | --- | --- | --- | ' : ''}--- |${tank ? ' --- | --- | --- |' : ' --- |'} --- | --- |`)
+      race.standings.forEach((s, i) => {
+        const cand = r.candidates[s.candidate]
+        const sheet = r.sheets[s.candidate]
+        const state = s.state === 'dropped' ? `dropped r${s.droppedInRound}${s.droppedAs === 'infeasible' ? ' (outside a limit)' : ''}` : s.state
+        console.log(
+          `| ${i + 1} | \`${cand.talents}\` | ${describe(s.candidate)} | ${tank ? `${s.mean.tps.toFixed(1)} | ` : ''}${s.mean.dps.toFixed(1)} | ${tank ? `${s.mean.taken.toFixed(1)} | ${Math.round(sheet.health)} | ${Math.round(sheet.ehp)} | ${chance(sheet.bossCritPct)} | ${chance(sheet.bossCrushPct)} | ` : ''}${ci(s.vsBaseline.score)} |` +
+            (tank ? ` ${ci(s.vsBaseline.tps, 1)} | ${ci(s.vsBaseline.dps, 1)} | ${ci(s.vsBaseline.taken, 1)} |` : ` ${pct((100 * s.vsBaseline.dps.mean) / race.baseline.dps)} |`) +
+            ` ${count(s.fights)} | ${state}${s.feasible || s.droppedAs === 'infeasible' ? '' : ', misses a limit'}${s.ties.length ? `, ${s.ties.length} ties` : ''} |`,
+        )
+      })
+    }
     console.log('')
     const bs = r.sheets[0]
     console.log(`baseline: TPS ${race.baseline.tps.toFixed(1)}, DPS ${race.baseline.dps.toFixed(1)}${tank ? `, taken ${race.baseline.taken.toFixed(1)}/s, health ${Math.round(bs.health)}, EHP ${Math.round(bs.ehp)}, boss crit ${chance(bs.bossCritPct)}, crush ${chance(bs.bossCrushPct)}` : ''} over ${count(race.baseline.fights)} fights`)
+    const seconds = r.ms / 1000
+    const speed = `${count(r.fights)} fights in ${seconds.toFixed(1)} s on ${threads} threads: ${count(Math.round(r.fights / seconds))} fights a second`
+    if (race.leader === null) {
+      console.log('result: no setup meets these constraints:')
+      for (const line of r.blocked) console.log(`  - ${line}`)
+      console.log(speed)
+      return
+    }
     const leader = race.standings[0]
     const infeasible = race.rounds.reduce((n, round) => n + round.infeasible, 0)
     console.log(
@@ -435,17 +450,21 @@ async function main() {
     )
     const leaderBeatsBase = leader.vsBaseline.score.mean - leader.vsBaseline.score.halfWidth > 0
     const units = objective === 'balanced' ? ' points' : ` ${objective.toUpperCase()}`
-    console.log(`leader vs the default: ${ci(leader.vsBaseline.score)}${units}${leaderBeatsBase ? ', above zero' : r.race.leader === 0 ? ' (the default leads)' : ', not clear of the default'}`)
-    const seconds = r.ms / 1000
-    console.log(`${count(r.fights)} fights in ${seconds.toFixed(1)} s on ${threads} threads: ${count(Math.round(r.fights / seconds))} fights a second`)
+    const own = engine.isSetup(config, r.candidates[race.leader])
+    const below = leader.vsBaseline.score.mean + leader.vsBaseline.score.halfWidth < 0
+    console.log(
+      `leader vs the default: ${ci(leader.vsBaseline.score)}${units}${own ? ' (the setup itself leads)' : leaderBeatsBase ? ', above zero' : below ? ', below the default, which fails a constraint' : ', not clear of the default'}`,
+    )
+    console.log(speed)
   }
 
   // --- D23's confirmation on a fresh seed ---
   const final = reports[reports.length - 1]
-  const winner = final.candidates[final.race.leader]
+  const winner = final.race.leader === null ? null : final.candidates[final.race.leader]
   let confirmation
-  if (args.confirm && final.race.leader === 0) console.log('\nconfirmation: the default leads, so there is nothing to confirm')
-  if (args.confirm && final.race.leader !== 0) {
+  if (args.confirm && winner === null) console.log('\nconfirmation: no setup meets the constraints, so there is nothing to confirm')
+  else if (args.confirm && engine.isSetup(config, winner)) console.log('\nconfirmation: the setup itself leads, so there is nothing to confirm')
+  else if (args.confirm) {
     const confirmFights = flagNumber('confirm-fights', args['confirm-fights'], { min: 100, whole: true })
     // A seed the search never used.
     const fresh = (seed + 0x9e3779b9) >>> 0

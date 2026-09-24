@@ -5,15 +5,15 @@
     "counts": {
       "byTab": {
         "changed": 370,
-        "missing": 767,
+        "missing": 770,
         "new": 328,
-        "unchanged": 232
+        "unchanged": 233
       },
-      "items": 1697,
+      "items": 1701,
       "sets": 102,
       "statsFrom": {
-        "classic": 767,
-        "forever": 930
+        "classic": 770,
+        "forever": 931
       }
     },
     "descriptionCoverage": {
@@ -62,9 +62,9 @@
     },
     "fallbackEffects": {
       "effectsFromForever": 112,
-      "items": 518,
-      "spells": 644,
-      "spellsFromForever": 644
+      "items": 521,
+      "spells": 647,
+      "spellsFromForever": 647
     },
     "filter": {
       "equippableOnly": true,
@@ -149,10 +149,10 @@
       }
     ],
     "preRaidBis": {
-      "addedByList": 117,
+      "addedByList": 121,
       "file": "scripts/scrape/pre-raid-bis.json",
-      "inPool": 333,
-      "listedItems": 333,
+      "inPool": 343,
+      "listedItems": 343,
       "notInData": [],
       "specs": {
         "druid-feral-bear": {
@@ -221,6 +221,16 @@
             "snapshot": "2021-05-17",
             "title": "Paladin DPS Pre-Raid Best in Slot Gear (BiS) - WoW Classic Phase 6",
             "url": "https://classic.wowhead.com/guides/wow-classic-paladin-dps-pre-raid-best-in-slot-gear"
+          }
+        },
+        "priest-shadow": {
+          "name": "Shadow Priest",
+          "note": "The guide's Phase 6 list (patch 1.13.7). Its random-suffix entries (Green Lens, Archivist Cape, Tearfall Bracers, Flameweave Cuffs, Master's Bracers, Drakestone and Lunar Wand, each 'of Shadow Wrath') are left out and keep no rank: the pool has no suffixes, so the base item would carry none of its Shadow damage. The others keep the guide's rank. Its Weapon (1H) row is the main hand and its Wand row the ranged slot. Its PvP items sit below the top three in every slot, so none is kept.",
+          "source": {
+            "archivedUrl": "https://web.archive.org/web/20210518011006/https://classic.wowhead.com/guides/wow-classic-shadow-priest-dps-pre-raid-best-in-slot-gear",
+            "snapshot": "2021-05-18",
+            "title": "Classic Shadow Priest Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic 1.13",
+            "url": "https://classic.wowhead.com/guides/wow-classic-shadow-priest-dps-pre-raid-best-in-slot-gear"
           }
         },
         "rogue-assassination": {
@@ -3230,6 +3240,11 @@
           "rank": 3,
           "slot": "head",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 3,
+          "slot": "head",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -3538,7 +3553,13 @@
       "name": "Bloodvine Goggles",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 4,
+          "slot": "head",
+          "spec": "priest-shadow"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -4187,6 +4208,11 @@
           "rank": 3,
           "slot": "head",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -8266,6 +8292,11 @@
           "rank": 3,
           "slot": "neck",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "neck",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -8353,7 +8384,13 @@
       "name": "Anastari Heirloom",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9413 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "neck",
+          "spec": "priest-shadow"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -8595,6 +8632,11 @@
           "rank": 2,
           "slot": "neck",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 3,
+          "slot": "neck",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -10778,6 +10820,55 @@
       "weaponType": null
     },
     {
+      "armorType": "cloth",
+      "binding": "BoE",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["shoulder"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_shoulder_14",
+      "id": 13013,
+      "itemClass": "Armor",
+      "itemLevel": 56,
+      "itemSubclass": "Cloth",
+      "name": "Elder Wizard's Mantle",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9416 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "shoulder",
+          "spec": "priest-shadow"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 51,
+      "requirements": [],
+      "sellPrice": 12355,
+      "setId": null,
+      "slot": "shoulder",
+      "source": null,
+      "statSpellIds": [9416],
+      "stats": {
+        "armor": 60,
+        "intellect": 20,
+        "spellPower": 11
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
       "armorType": "leather",
       "binding": "BoE",
       "classes": null,
@@ -11260,6 +11351,11 @@
           "rank": 2,
           "slot": "shoulder",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -13408,6 +13504,11 @@
           "rank": 3,
           "slot": "shoulder",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -18397,7 +18498,13 @@
       "name": "Shroud of the Exile",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 4,
+          "slot": "back",
+          "spec": "priest-shadow"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -18678,6 +18785,11 @@
           "rank": 1,
           "slot": "back",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "back",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -19003,6 +19115,11 @@
           "rank": 2,
           "slot": "back",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 3,
+          "slot": "back",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -21394,6 +21511,57 @@
       "flavor": null,
       "foreverData": false,
       "foreverSource": null,
+      "icon": "inv_chest_cloth_12",
+      "id": 13314,
+      "itemClass": "Armor",
+      "itemLevel": 62,
+      "itemSubclass": "Cloth",
+      "name": "Alanna's Embrace",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 14799 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "chest",
+          "spec": "priest-shadow"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 57,
+      "requirements": [],
+      "sellPrice": 30222,
+      "setId": null,
+      "slot": "chest",
+      "source": null,
+      "statSpellIds": [14799],
+      "stats": {
+        "armor": 96,
+        "intellect": 20,
+        "spellPower": 20,
+        "spirit": 20,
+        "stamina": 20
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["chest"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
       "icon": "inv_chest_cloth_08",
       "id": 13346,
       "itemClass": "Armor",
@@ -21690,6 +21858,11 @@
           "rank": 2,
           "slot": "chest",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "chest",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -24294,6 +24467,11 @@
           "rank": 1,
           "slot": "chest",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "chest",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -29872,6 +30050,11 @@
           "rank": 1,
           "slot": "wrist",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 4,
+          "slot": "wrist",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -33106,6 +33289,56 @@
       "weaponType": null
     },
     {
+      "armorType": "cloth",
+      "binding": "BoE",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["hands"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_gauntlets_18",
+      "id": 10019,
+      "itemClass": "Armor",
+      "itemLevel": 45,
+      "itemSubclass": "Cloth",
+      "name": "Dreamweave Gloves",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "hands",
+          "spec": "priest-shadow"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 40,
+      "requirements": [],
+      "sellPrice": 3944,
+      "setId": null,
+      "slot": "hands",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 41,
+        "intellect": 4,
+        "spellPower": 18,
+        "spirit": 7
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
       "armorType": "mail",
       "binding": "BoP",
       "classes": null,
@@ -33582,6 +33815,11 @@
           "rank": 3,
           "slot": "hands",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "hands",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -36162,6 +36400,11 @@
           "rank": 2,
           "slot": "hands",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "hands",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -41119,6 +41362,11 @@
           "rank": 1,
           "slot": "waist",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "waist",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -41782,6 +42030,11 @@
           "rank": 3,
           "slot": "waist",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -43845,6 +44098,11 @@
           "rank": 3,
           "slot": "waist",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -48881,7 +49139,13 @@
       "name": "Spiritshroud Leggings",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 14254 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "legs",
+          "spec": "priest-shadow"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -49041,6 +49305,11 @@
           "rank": 1,
           "slot": "legs",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -51815,6 +52084,11 @@
           "rank": 1,
           "slot": "legs",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -56396,6 +56670,11 @@
           "rank": 2,
           "slot": "feet",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 3,
+          "slot": "feet",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -59504,6 +59783,11 @@
           "rank": 1,
           "slot": "feet",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "feet",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -59724,6 +60008,11 @@
           "rank": 1,
           "slot": "feet",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -64522,6 +64811,11 @@
           "rank": 3,
           "slot": "finger",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -64840,6 +65134,11 @@
           "rank": 1,
           "slot": "finger",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -64952,6 +65251,11 @@
           "rank": 1,
           "slot": "finger",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -65101,6 +65405,11 @@
           "rank": 2,
           "slot": "finger",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 3,
+          "slot": "finger",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -67682,6 +67991,11 @@
           "rank": 1,
           "slot": "finger",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -69126,7 +69440,13 @@
       "name": "Second Wind",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spells 9408, 15604 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 4,
+          "slot": "trinket",
+          "spec": "priest-shadow"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -69198,6 +69518,11 @@
           "rank": 4,
           "slot": "trinket",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 3,
+          "slot": "trinket",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -69285,6 +69610,11 @@
           "rank": 1,
           "slot": "trinket",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -69773,6 +70103,11 @@
           "rank": 2,
           "slot": "trinket",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "trinket",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -72182,6 +72517,11 @@
           "rank": 2,
           "slot": "twoHand",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "twoHand",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -74221,6 +74561,11 @@
           "rank": 1,
           "slot": "twoHand",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -76849,7 +77194,13 @@
       "name": "Scepter of the Unholy",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9326 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "priest-shadow"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -77247,6 +77598,11 @@
           "rank": 1,
           "slot": "mainHand",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "mainHand",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -79537,6 +79893,11 @@
           "rank": 2,
           "slot": "mainHand",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 3,
+          "slot": "mainHand",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -83042,6 +83403,11 @@
           "rank": 3,
           "slot": "offHand",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "offHand",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -83633,6 +83999,11 @@
           "rank": 2,
           "slot": "offHand",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 4,
+          "slot": "offHand",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -83807,6 +84178,11 @@
           "rank": 1,
           "slot": "offHand",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 3,
+          "slot": "offHand",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -84633,6 +85009,11 @@
           "rank": 1,
           "slot": "ranged",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 1,
+          "slot": "ranged",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -84755,6 +85136,11 @@
           "rank": 2,
           "slot": "ranged",
           "spec": "warlock-affliction"
+        },
+        {
+          "rank": 2,
+          "slot": "ranged",
+          "spec": "priest-shadow"
         }
       ],
       "procs": [],
@@ -85746,6 +86132,61 @@
       },
       "weaponSkill": null,
       "weaponType": "bow"
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ranged"],
+      "flavor": "Woe to those who oppose.",
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_wand_09",
+      "id": 20082,
+      "itemClass": "Weapon",
+      "itemLevel": 52,
+      "itemSubclass": "Wand",
+      "name": "Woestave",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9412 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "ranged",
+          "spec": "priest-shadow"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 24229,
+      "setId": null,
+      "slot": "ranged",
+      "source": null,
+      "statSpellIds": [9412],
+      "stats": {
+        "shadowSpellDamage": 11,
+        "stamina": 3
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": {
+        "dps": 51.3,
+        "max": 127,
+        "min": 68,
+        "school": "Shadow",
+        "skill": "Wands",
+        "speed": 1.9
+      },
+      "weaponSkill": null,
+      "weaponType": "wand"
     },
     {
       "armorType": null,

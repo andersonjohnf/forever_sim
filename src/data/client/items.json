@@ -4987,10 +4987,10 @@
     "consumablesWithEffects": 89,
     "foreverDataFalseWithItemSparseRow": 0,
     "foreverDataTrueWithoutItemSparseRow": 0,
-    "items": 1697,
+    "items": 1701,
     "withEffects": 246,
-    "withItemRow": 1697,
-    "withItemSparseRow": 930
+    "withItemRow": 1701,
+    "withItemSparseRow": 931
   },
   "items": {
     "868": {
@@ -5460,6 +5460,41 @@
         "subclassId": 5
       },
       "itemSparse": null
+    },
+    "10019": {
+      "effects": [],
+      "id": 10019,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132952,
+        "inventoryType": 10,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 2,
+        "damageType": 0,
+        "display": "Dreamweave Gloves",
+        "dmgVariance": 0.2,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 10,
+        "itemDelay": 0,
+        "itemLevel": 45,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 3,
+        "requiredLevel": 40,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [6, 5, 45, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [3684, 2105, 9474, 0, 0, 0, 0, 0, 0, 0]
+      }
     },
     "10504": {
       "effects": [],
@@ -8014,6 +8049,19 @@
       },
       "itemSparse": null
     },
+    "13013": {
+      "effects": [],
+      "id": 13013,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 135045,
+        "inventoryType": 3,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": null
+    },
     "13015": {
       "effects": [],
       "id": 13015,
@@ -9208,6 +9256,19 @@
         "material": 1,
         "sheatheType": 3,
         "subclassId": 0
+      },
+      "itemSparse": null
+    },
+    "13314": {
+      "effects": [],
+      "id": 13314,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132653,
+        "inventoryType": 20,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
       },
       "itemSparse": null
     },
@@ -27609,6 +27670,19 @@
         "statModifierBonusStat": [7, -1, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [4444, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       }
+    },
+    "20082": {
+      "effects": [],
+      "id": 20082,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 135471,
+        "inventoryType": 26,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 19
+      },
+      "itemSparse": null
     },
     "20134": {
       "effects": [],

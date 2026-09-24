@@ -5198,6 +5198,1724 @@
       ],
       "traitTreeId": 1100
     },
+    "priest": {
+      "tabs": [
+        {
+          "index": 0,
+          "posX": [1020, 2820],
+          "tree": "Discipline"
+        },
+        {
+          "index": 1,
+          "posX": [5020, 6820],
+          "tree": "Holy"
+        },
+        {
+          "index": 2,
+          "posX": [9080, 10880],
+          "tree": "Shadow"
+        }
+      ],
+      "talents": [
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Power in Light",
+          "col": 0,
+          "id": "priest-discipline-power-in-light",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Power in Light",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109048,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [1309969, 1309969, 1309969, 1309969, 1309969],
+          "spellId": 1309969,
+          "tier": 0,
+          "traitDefinitionId": 142599,
+          "traitNodeEntryId": 137845,
+          "traitNodeId": 110853,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Wand Specialization",
+          "col": 1,
+          "id": "priest-discipline-wand-specialization",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Wand Specialization",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83144,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [13, 25]
+            }
+          ],
+          "rankSpellIds": [14524, 14524],
+          "spellId": 14524,
+          "tier": 0,
+          "traitDefinitionId": 135380,
+          "traitNodeEntryId": 130579,
+          "traitNodeId": 105850,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Twin Disciplines",
+          "col": 2,
+          "id": "priest-discipline-twin-disciplines",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Twin Disciplines",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83143,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            },
+            {
+              "curveId": 100636,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            },
+            {
+              "curveId": 100635,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [1225132, 1225132, 1225132, 1225132, 1225132],
+          "spellId": 1225132,
+          "tier": 0,
+          "traitDefinitionId": 135379,
+          "traitNodeEntryId": 130578,
+          "traitNodeId": 105849,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Silent Resolve",
+          "col": 0,
+          "id": "priest-discipline-silent-resolve",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Silent Resolve",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83142,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-10, -20, -30]
+            },
+            {
+              "curveId": 108480,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-5, -10, -15]
+            },
+            {
+              "curveId": 108479,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [-5, -10, -15]
+            },
+            {
+              "curveId": 108478,
+              "effectIndex": 3,
+              "operationType": 0,
+              "values": [-5, -10, -15]
+            }
+          ],
+          "rankSpellIds": [14523, 14523, 14523],
+          "spellId": 14523,
+          "tier": 1,
+          "traitDefinitionId": 135378,
+          "traitNodeEntryId": 130577,
+          "traitNodeId": 105848,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Holy Precision",
+          "col": 1,
+          "id": "priest-discipline-holy-precision",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Holy Precision",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109040,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [6, 12, 18]
+            }
+          ],
+          "rankSpellIds": [1309957, 1309957, 1309957],
+          "spellId": 1309957,
+          "tier": 1,
+          "traitDefinitionId": 142598,
+          "traitNodeEntryId": 137844,
+          "traitNodeId": 110852,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Power Word: Shield",
+          "col": 2,
+          "id": "priest-discipline-improved-power-word-shield",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Power Word: Shield",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83140,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [7, 14, 20]
+            }
+          ],
+          "rankSpellIds": [14748, 14748, 14748],
+          "spellId": 14748,
+          "tier": 1,
+          "traitDefinitionId": 135376,
+          "traitNodeEntryId": 130575,
+          "traitNodeId": 105846,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Martyrdom",
+          "col": 3,
+          "id": "priest-discipline-martyrdom",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Martyrdom",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83139,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [50, 100]
+            }
+          ],
+          "rankSpellIds": [14531, 14531],
+          "spellId": 14531,
+          "tier": 1,
+          "traitDefinitionId": 135375,
+          "traitNodeEntryId": 130574,
+          "traitNodeId": 105845,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Mental Agility",
+          "col": 0,
+          "id": "priest-discipline-mental-agility",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Mental Agility",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83137,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-3, -7, -10]
+            }
+          ],
+          "rankSpellIds": [14520, 14520, 14520],
+          "spellId": 14520,
+          "tier": 2,
+          "traitDefinitionId": 135372,
+          "traitNodeEntryId": 130571,
+          "traitNodeId": 105842,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Inner Focus",
+          "col": 1,
+          "id": "priest-discipline-inner-focus",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Inner Focus",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [14751],
+          "spellId": 14751,
+          "tier": 2,
+          "traitDefinitionId": 135374,
+          "traitNodeEntryId": 130573,
+          "traitNodeId": 105844,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Meditation",
+          "col": 3,
+          "id": "priest-discipline-meditation",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Meditation",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83138,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [17, 33, 50]
+            }
+          ],
+          "rankSpellIds": [14521, 14521, 14521],
+          "spellId": 14521,
+          "tier": 2,
+          "traitDefinitionId": 135373,
+          "traitNodeEntryId": 130572,
+          "traitNodeId": 105843,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Inner Fire",
+          "col": 0,
+          "id": "priest-discipline-improved-inner-fire",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Inner Fire",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83136,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [15, 30, 45]
+            },
+            {
+              "curveId": 83135,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [4, 8, 12]
+            }
+          ],
+          "rankSpellIds": [14747, 14747, 14747],
+          "spellId": 14747,
+          "tier": 3,
+          "traitDefinitionId": 135371,
+          "traitNodeEntryId": 130570,
+          "traitNodeId": 105841,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Mental Strength",
+          "col": 1,
+          "id": "priest-discipline-mental-strength",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Mental Strength",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83132,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 6, 9, 12, 15]
+            }
+          ],
+          "rankSpellIds": [18551, 18551, 18551, 18551, 18551],
+          "spellId": 18551,
+          "tier": 3,
+          "traitDefinitionId": 135367,
+          "traitNodeEntryId": 130566,
+          "traitNodeId": 105837,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [105846],
+            "prerequisiteTalentIds": ["priest-discipline-improved-power-word-shield"],
+            "tier": 3
+          },
+          "clientName": "Soul Warding",
+          "col": 2,
+          "id": "priest-discipline-soul-warding",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Soul Warding",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [402000],
+          "spellId": 402000,
+          "tier": 3,
+          "traitDefinitionId": 135369,
+          "traitNodeEntryId": 130568,
+          "traitNodeId": 105839,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Mana Burn",
+          "col": 3,
+          "id": "priest-discipline-improved-mana-burn",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Mana Burn",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83133,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-500, -1000]
+            }
+          ],
+          "rankSpellIds": [14750, 14750],
+          "spellId": 14750,
+          "tier": 3,
+          "traitDefinitionId": 135368,
+          "traitNodeEntryId": 130567,
+          "traitNodeId": 105838,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Penance",
+          "col": 1,
+          "id": "priest-discipline-penance",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Penance",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [402174],
+          "spellId": 402174,
+          "tier": 4,
+          "traitDefinitionId": 135364,
+          "traitNodeEntryId": 130563,
+          "traitNodeId": 105834,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [105839],
+            "prerequisiteTalentIds": ["priest-discipline-soul-warding"],
+            "tier": 4
+          },
+          "clientName": "Renewed Hope",
+          "col": 2,
+          "id": "priest-discipline-renewed-hope",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Renewed Hope",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83131,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            },
+            {
+              "curveId": 83130,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-1000, -2000, -3000, -4000, -5000]
+            }
+          ],
+          "rankSpellIds": [425280, 425280, 425280, 425280, 425280],
+          "spellId": 425280,
+          "tier": 4,
+          "traitDefinitionId": 135365,
+          "traitNodeEntryId": 130564,
+          "traitNodeId": 105835,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Divine Aegis",
+          "col": 2,
+          "id": "priest-discipline-divine-aegis",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Divine Aegis",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83134,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            }
+          ],
+          "rankSpellIds": [431622, 431622, 431622],
+          "spellId": 431622,
+          "tier": 5,
+          "traitDefinitionId": 135370,
+          "traitNodeEntryId": 130569,
+          "traitNodeId": 105840,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105834],
+            "prerequisiteTalentIds": ["priest-discipline-penance"],
+            "tier": 6
+          },
+          "clientName": "Power Infusion",
+          "col": 1,
+          "id": "priest-discipline-power-infusion",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Power Infusion",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [10060],
+          "spellId": 10060,
+          "tier": 6,
+          "traitDefinitionId": 135366,
+          "traitNodeEntryId": 130565,
+          "traitNodeId": 105836,
+          "tree": "Discipline",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Twilight Focus",
+          "col": 0,
+          "id": "priest-holy-twilight-focus",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Twilight Focus",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83172,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [23, 47, 70]
+            }
+          ],
+          "rankSpellIds": [14913, 14913, 14913],
+          "spellId": 14913,
+          "tier": 0,
+          "traitDefinitionId": 135397,
+          "traitNodeEntryId": 130596,
+          "traitNodeId": 105867,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Renew",
+          "col": 1,
+          "id": "priest-holy-improved-renew",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Renew",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83171,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            }
+          ],
+          "rankSpellIds": [14908, 14908, 14908],
+          "spellId": 14908,
+          "tier": 0,
+          "traitDefinitionId": 135396,
+          "traitNodeEntryId": 130595,
+          "traitNodeId": 105866,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Holy Specialization",
+          "col": 2,
+          "id": "priest-holy-holy-specialization",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Holy Specialization",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109314,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [14889, 14889, 14889, 14889, 14889],
+          "spellId": 14889,
+          "tier": 0,
+          "traitDefinitionId": 142601,
+          "traitNodeEntryId": 137847,
+          "traitNodeId": 110855,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Spell Warding",
+          "col": 1,
+          "id": "priest-holy-spell-warding",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Spell Warding",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83168,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-2, -4, -6, -8, -10]
+            }
+          ],
+          "rankSpellIds": [27900, 27900, 27900, 27900, 27900],
+          "spellId": 27900,
+          "tier": 1,
+          "traitDefinitionId": 135394,
+          "traitNodeEntryId": 130593,
+          "traitNodeId": 105864,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Divine Fury",
+          "col": 2,
+          "id": "priest-holy-divine-fury",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Divine Fury",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83167,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-100, -200, -300, -400, -500]
+            }
+          ],
+          "rankSpellIds": [18530, 18530, 18530, 18530, 18530],
+          "spellId": 18530,
+          "tier": 1,
+          "traitDefinitionId": 135393,
+          "traitNodeEntryId": 130592,
+          "traitNodeId": 105863,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Holy Nova",
+          "col": 0,
+          "id": "priest-holy-holy-nova",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Holy Nova",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [15237],
+          "spellId": 15237,
+          "tier": 2,
+          "traitDefinitionId": 135392,
+          "traitNodeEntryId": 130591,
+          "traitNodeId": 105862,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Blessed Recovery",
+          "col": 1,
+          "id": "priest-holy-blessed-recovery",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Blessed Recovery",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83166,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [8, 17, 25]
+            }
+          ],
+          "rankSpellIds": [27811, 27811, 27811],
+          "spellId": 27811,
+          "tier": 2,
+          "traitDefinitionId": 135391,
+          "traitNodeEntryId": 130590,
+          "traitNodeId": 105861,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Inspiration",
+          "col": 3,
+          "id": "priest-holy-inspiration",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Inspiration",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83165,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [8, 17, 25]
+            }
+          ],
+          "rankSpellIds": [14892, 14892, 14892],
+          "spellId": 14892,
+          "tier": 2,
+          "traitDefinitionId": 135390,
+          "traitNodeEntryId": 130589,
+          "traitNodeId": 105860,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Holy Reach",
+          "col": 0,
+          "id": "priest-holy-holy-reach",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Holy Reach",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83164,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20]
+            },
+            {
+              "curveId": 97488,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20]
+            }
+          ],
+          "rankSpellIds": [27789, 27789],
+          "spellId": 27789,
+          "tier": 3,
+          "traitDefinitionId": 135389,
+          "traitNodeEntryId": 130588,
+          "traitNodeId": 105859,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Healing",
+          "col": 1,
+          "id": "priest-holy-improved-healing",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Healing",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83163,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-5, -10, -15]
+            }
+          ],
+          "rankSpellIds": [14912, 14912, 14912],
+          "spellId": 14912,
+          "tier": 3,
+          "traitDefinitionId": 135388,
+          "traitNodeEntryId": 130587,
+          "traitNodeId": 105858,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [105863],
+            "prerequisiteTalentIds": ["priest-holy-divine-fury"],
+            "tier": 3
+          },
+          "clientName": "Searing Light",
+          "col": 2,
+          "id": "priest-holy-searing-light",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Searing Light",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83162,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 5]
+            },
+            {
+              "curveId": 110197,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [5, 10]
+            }
+          ],
+          "rankSpellIds": [14909, 14909],
+          "spellId": 14909,
+          "tier": 3,
+          "traitDefinitionId": 135387,
+          "traitNodeEntryId": 130586,
+          "traitNodeId": 105857,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Binding Heal",
+          "col": 3,
+          "id": "priest-holy-binding-heal",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Binding Heal",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [401937],
+          "spellId": 401937,
+          "tier": 3,
+          "traitDefinitionId": 135386,
+          "traitNodeEntryId": 130585,
+          "traitNodeId": 105856,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Litany of Light",
+          "col": 0,
+          "id": "priest-holy-litany-of-light",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Litany of Light",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83161,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10]
+            }
+          ],
+          "rankSpellIds": [1317006, 1317006],
+          "spellId": 1317006,
+          "tier": 4,
+          "traitDefinitionId": 135385,
+          "traitNodeEntryId": 130584,
+          "traitNodeId": 105855,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Spirit of Redemption",
+          "col": 1,
+          "id": "priest-holy-spirit-of-redemption",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Spirit of Redemption",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [20711],
+          "spellId": 20711,
+          "tier": 4,
+          "traitDefinitionId": 135384,
+          "traitNodeEntryId": 130583,
+          "traitNodeId": 105854,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Spiritual Guidance",
+          "col": 2,
+          "id": "priest-holy-spiritual-guidance",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Spiritual Guidance",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83160,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 3, 5, 6, 8]
+            },
+            {
+              "curveId": 87617,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [5, 10, 15, 20, 25]
+            }
+          ],
+          "rankSpellIds": [14901, 14901, 14901, 14901, 14901],
+          "spellId": 14901,
+          "tier": 4,
+          "traitDefinitionId": 135383,
+          "traitNodeEntryId": 130582,
+          "traitNodeId": 105853,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Spiritual Healing",
+          "col": 2,
+          "id": "priest-holy-spiritual-healing",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Spiritual Healing",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83159,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 7, 10]
+            },
+            {
+              "curveId": 87616,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [3, 7, 10]
+            }
+          ],
+          "rankSpellIds": [14898, 14898, 14898],
+          "spellId": 14898,
+          "tier": 5,
+          "traitDefinitionId": 135382,
+          "traitNodeEntryId": 130581,
+          "traitNodeId": 105852,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105854],
+            "prerequisiteTalentIds": ["priest-holy-spirit-of-redemption"],
+            "tier": 6
+          },
+          "clientName": "Prayer of Mending",
+          "col": 1,
+          "id": "priest-holy-prayer-of-mending",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Prayer of Mending",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [401859],
+          "spellId": 401859,
+          "tier": 6,
+          "traitDefinitionId": 135381,
+          "traitNodeEntryId": 130580,
+          "traitNodeId": 105851,
+          "tree": "Holy",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Shadow Focus",
+          "col": 0,
+          "id": "priest-shadow-shadow-focus",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Shadow Focus",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109036,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [15260, 15260, 15260, 15260, 15260],
+          "spellId": 15260,
+          "tier": 0,
+          "traitDefinitionId": 142597,
+          "traitNodeEntryId": 137843,
+          "traitNodeId": 110851,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Blackout",
+          "col": 1,
+          "id": "priest-shadow-blackout",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Blackout",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83157,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [15326, 15326, 15326, 15326, 15326],
+          "spellId": 15326,
+          "tier": 0,
+          "traitDefinitionId": 135362,
+          "traitNodeEntryId": 130561,
+          "traitNodeId": 105832,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Spirit Tap",
+          "col": 2,
+          "id": "priest-shadow-spirit-tap",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Spirit Tap",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83158,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            }
+          ],
+          "rankSpellIds": [15270, 15270, 15270, 15270, 15270],
+          "spellId": 15270,
+          "tier": 0,
+          "traitDefinitionId": 135363,
+          "traitNodeEntryId": 130562,
+          "traitNodeId": 105833,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Shadow Affinity",
+          "col": 0,
+          "id": "priest-shadow-shadow-affinity",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Shadow Affinity",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83156,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-10, -20, -30]
+            }
+          ],
+          "rankSpellIds": [15318, 15318, 15318],
+          "spellId": 15318,
+          "tier": 1,
+          "traitDefinitionId": 135361,
+          "traitNodeEntryId": 130560,
+          "traitNodeId": 105831,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Shadow Word: Pain",
+          "col": 2,
+          "id": "priest-shadow-improved-shadow-word-pain",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Shadow Word: Pain",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83155,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3000, 6000]
+            }
+          ],
+          "rankSpellIds": [15275, 15275],
+          "spellId": 15275,
+          "tier": 1,
+          "traitDefinitionId": 135360,
+          "traitNodeEntryId": 130559,
+          "traitNodeId": 105830,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Shadow Reach",
+          "col": 3,
+          "id": "priest-shadow-shadow-reach",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Shadow Reach",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83154,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20]
+            }
+          ],
+          "rankSpellIds": [17322, 17322],
+          "spellId": 17322,
+          "tier": 1,
+          "traitDefinitionId": 135359,
+          "traitNodeEntryId": 130558,
+          "traitNodeId": 105829,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Improved Mind Blast",
+          "col": 0,
+          "id": "priest-shadow-improved-mind-blast",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Improved Mind Blast",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83152,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-500, -1000, -1500, -2000, -2500]
+            }
+          ],
+          "rankSpellIds": [15273, 15273, 15273, 15273, 15273],
+          "spellId": 15273,
+          "tier": 2,
+          "traitDefinitionId": 135357,
+          "traitNodeEntryId": 130556,
+          "traitNodeId": 105827,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105832],
+            "prerequisiteTalentIds": ["priest-shadow-blackout"],
+            "tier": 2
+          },
+          "clientName": "Improved Psychic Scream",
+          "col": 1,
+          "id": "priest-shadow-improved-psychic-scream",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Psychic Scream",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83153,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-2000, -4000]
+            }
+          ],
+          "rankSpellIds": [15392, 15392],
+          "spellId": 15392,
+          "tier": 2,
+          "traitDefinitionId": 135358,
+          "traitNodeEntryId": 130557,
+          "traitNodeId": 105828,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Mind Flay",
+          "col": 2,
+          "id": "priest-shadow-mind-flay",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Mind Flay",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [15407],
+          "spellId": 15407,
+          "tier": 2,
+          "traitDefinitionId": 135356,
+          "traitNodeEntryId": 130555,
+          "traitNodeId": 105826,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [105826],
+            "prerequisiteTalentIds": ["priest-shadow-mind-flay"],
+            "tier": 2
+          },
+          "clientName": "Improved Mind Flay",
+          "col": 3,
+          "id": "priest-shadow-improved-mind-flay",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Mind Flay",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83151,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20]
+            },
+            {
+              "curveId": 83150,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [5, 10]
+            },
+            {
+              "curveId": 87682,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [15, 30]
+            }
+          ],
+          "rankSpellIds": [1225139, 1225139],
+          "spellId": 1225139,
+          "tier": 2,
+          "traitDefinitionId": 135355,
+          "traitNodeEntryId": 130554,
+          "traitNodeId": 105825,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Improved Fade",
+          "col": 0,
+          "id": "priest-shadow-improved-fade",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Fade",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83149,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-3000, -6000]
+            }
+          ],
+          "rankSpellIds": [15274, 15274],
+          "spellId": 15274,
+          "tier": 3,
+          "traitDefinitionId": 135353,
+          "traitNodeEntryId": 130552,
+          "traitNodeId": 105823,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Vampiric Embrace",
+          "col": 1,
+          "id": "priest-shadow-vampiric-embrace",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Vampiric Embrace",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [15286],
+          "spellId": 15286,
+          "tier": 3,
+          "traitDefinitionId": 135350,
+          "traitNodeEntryId": 130549,
+          "traitNodeId": 105820,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Shadow Weaving",
+          "col": 2,
+          "id": "priest-shadow-shadow-weaving",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Shadow Weaving",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83147,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [33, 67, 100]
+            }
+          ],
+          "rankSpellIds": [15257, 15257, 15257],
+          "spellId": 15257,
+          "tier": 3,
+          "traitDefinitionId": 135351,
+          "traitNodeEntryId": 130550,
+          "traitNodeId": 105821,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Silence",
+          "col": 0,
+          "id": "priest-shadow-silence",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Silence",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [15487],
+          "spellId": 15487,
+          "tier": 4,
+          "traitDefinitionId": 135354,
+          "traitNodeEntryId": 130553,
+          "traitNodeId": 105824,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Devouring Contagion",
+          "col": 2,
+          "id": "priest-shadow-devouring-contagion",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Devouring Contagion",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83146,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-25, -50]
+            },
+            {
+              "curveId": 109037,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [5, 10]
+            }
+          ],
+          "rankSpellIds": [1309950, 1309950],
+          "spellId": 1309950,
+          "tier": 4,
+          "traitDefinitionId": 135349,
+          "traitNodeEntryId": 130548,
+          "traitNodeId": 105819,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Early Demise",
+          "col": 0,
+          "id": "priest-shadow-early-demise",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Early Demise",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 109097,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [15, 30]
+            }
+          ],
+          "rankSpellIds": [1310076, 1310076],
+          "spellId": 1310076,
+          "tier": 5,
+          "traitDefinitionId": 142600,
+          "traitNodeEntryId": 137846,
+          "traitNodeId": 110854,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Darkness",
+          "col": 2,
+          "id": "priest-shadow-darkness",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Darkness",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83145,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [15259, 15259, 15259, 15259, 15259],
+          "spellId": 15259,
+          "tier": 5,
+          "traitDefinitionId": 135348,
+          "traitNodeEntryId": 130547,
+          "traitNodeId": 105818,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105820],
+            "prerequisiteTalentIds": ["priest-shadow-vampiric-embrace"],
+            "tier": 6
+          },
+          "clientName": "Shadowform",
+          "col": 1,
+          "id": "priest-shadow-shadowform",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Shadowform",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [15473],
+          "spellId": 15473,
+          "tier": 6,
+          "traitDefinitionId": 135347,
+          "traitNodeEntryId": 130546,
+          "traitNodeId": 105817,
+          "tree": "Shadow",
+          "visibleSpellId": 0
+        }
+      ],
+      "traitTreeId": 1114
+    },
     "rogue": {
       "tabs": [
         {
@@ -12054,10 +13772,10 @@
     }
   },
   "counts": {
-    "byName": 365,
+    "byName": 418,
     "byPosition": 0,
-    "mapped": 365,
-    "talents": 365,
+    "mapped": 418,
+    "talents": 418,
     "unmapped": 0
   },
   "unmapped": []

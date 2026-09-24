@@ -1061,7 +1061,7 @@ export const BUFFS: BuffSpec[] = [
     forClasses: MANA_CLASSES,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'majorManaPotion', name: 'Major Mana Potion', use: MAJOR_MANA_POTION }],
-    presets: { raid: [...PALADINS, ...SHAMAN], max: [...PALADINS, ...SHAMAN] },
+    presets: { raid: [...PALADINS, ...SHAMAN, ...CASTER_SPECS], max: [...PALADINS, ...SHAMAN, ...CASTER_SPECS] },
   },
   {
     id: 'demonicRune',

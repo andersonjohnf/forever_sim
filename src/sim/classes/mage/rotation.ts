@@ -102,7 +102,7 @@ function sharedOptions(spec: Spec): { cooldowns: RotationOption[]; mana: Rotatio
         id: ID.evocation,
         group: COOLDOWNS,
         label: 'Evocation',
-        help: 'Channel Evocation (8 s: your mana regeneration ×16, all of it while casting; every 8 minutes) once your mana falls to the level below.',
+        help: 'Channel Evocation (8 s: your mana regeneration ×16, all of it while casting; every 8 minutes) when you can’t pay for your next main spell, or earlier at the level below.',
         default: true,
       },
       {
@@ -110,12 +110,12 @@ function sharedOptions(spec: Spec): { cooldowns: RotationOption[]; mana: Rotatio
         id: ID.evocationMana,
         group: COOLDOWNS,
         label: 'Evocation at',
-        help: 'Channel it when your mana is at or below this much of your maximum.',
+        help: 'Also channel it when your mana is at or below this much of your maximum. At 0%, only when your next main spell costs more than you have.',
         unit: '% mana',
         min: 0,
         max: 100,
         step: 5,
-        default: 20,
+        default: 0,
         dependsOn: ID.evocation,
       },
     ],
@@ -227,12 +227,12 @@ function fireOptions(): RotationOption[] {
       id: ID.pyroblastStacks,
       group: CORE,
       label: 'Pyroblast at',
-      help: 'Wait for at least this many Hot Streak stacks. At 3, Pyroblast casts in 1.5 s.',
+      help: 'Wait for at least this many Hot Streak stacks. Each cuts its 6 s cast by 1.5 s; at 3 it casts in 1.5 s.',
       unit: 'stacks',
       min: 1,
       max: 3,
       step: 1,
-      default: 3,
+      default: 1,
       dependsOn: ID.pyroblast,
     },
     {
@@ -399,8 +399,14 @@ export function mageRotation(
     pressed.push(id)
     if (v.on(setting)) add(consumable(use, id === MANA_RUNE ? { category: GEM_CATEGORY } : {}), [missing(v.num(need))])
   }
-  // Evocation at mana ≤ x% (on the GCD, a channel), before any spell.
-  if (v.on(ID.evocation)) add(EVOCATION, [{ code: COND.maxMana, a: Math.round((v.num(ID.evocationMana) / 100) * maxManaTenths), b: 0 }])
+  // Evocation at mana ≤ x% (on the GCD, a channel), before any spell, or once the spec's filler
+  // (Fireball, Frostbolt, Arcane Missiles) costs more than you have, so a low threshold never leaves
+  // you waiting for regeneration with Evocation ready.
+  if (v.on(ID.evocation)) {
+    add(EVOCATION, [{ code: COND.maxMana, a: Math.round((v.num(ID.evocationMana) / 100) * maxManaTenths), b: 0 }])
+    const filler = withTalents(spec === 'fire' ? FIREBALL : spec === 'frost' ? FROSTBOLT : ARCANE_MISSILES, talents)
+    add(EVOCATION, [{ code: COND.maxMana, a: filler.costTenths - 1, b: 0 }])
+  }
 
   if (spec === 'fire') {
     // Scorch until Fire Vulnerability has 5 stacks, or when it has at most x s left.

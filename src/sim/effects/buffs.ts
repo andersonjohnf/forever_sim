@@ -1236,7 +1236,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_stone_sharpeningstone_05',
     category: 'consumable',
     group: 'Weapon',
-    summary: '+8 weapon damage on each weapon (one stone or oil per weapon)',
+    summary: '+8 weapon damage on each weapon',
     forSpecs: 'melee',
     exclusiveGroup: TEMP_ENCHANT,
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
@@ -1253,7 +1253,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_stone_02',
     category: 'consumable',
     group: 'Weapon',
-    summary: '+2% crit for each weapon it’s on (one stone or oil per weapon)',
+    summary: '+2% crit for each weapon it’s on',
     forSpecs: 'melee',
     exclusiveGroup: TEMP_ENCHANT,
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
@@ -1269,7 +1269,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_potion_104',
     category: 'consumable',
     group: 'Weapon',
-    summary: '+30 spell damage, on your main hand (one stone or oil per weapon)',
+    summary: '+30 spell damage, on your main hand',
     forClasses: MANA_CLASSES,
     forCasterSpecs: true,
     exclusiveGroup: TEMP_ENCHANT,
@@ -1278,7 +1278,7 @@ export const BUFFS: BuffSpec[] = [
     // [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722).
     effects: [{ kind: 'tempEnchant', id: 'wizardOil', priority: 3, hand: 'main', spellDamage: 30 }],
     classicEra: {
-      summary: '+24 spell damage, on your main hand (one stone or oil per weapon)',
+      summary: '+24 spell damage, on your main hand',
       effects: [{ kind: 'tempEnchant', id: 'wizardOil', priority: 3, hand: 'main', spellDamage: 24 }],
     },
     presets: { raid: PROTECTION_PALADIN },
@@ -1289,7 +1289,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_potion_105',
     category: 'consumable',
     group: 'Weapon',
-    summary: '+36 spell damage and +1% spell crit, on your main hand (one stone or oil per weapon)',
+    summary: '+36 spell damage and +1% spell crit, on your main hand',
     forClasses: MANA_CLASSES,
     forCasterSpecs: true,
     exclusiveGroup: TEMP_ENCHANT,
@@ -1366,7 +1366,7 @@ export const BUFFS: BuffSpec[] = [
     group: 'Potions and bombs',
     // When it's drunk, if at all, is the spec's Rotation setting (a warrior's execute phase, a cat's
     // Berserk); a spec whose rotation has no potion setting doesn't drink it.
-    summary: '45–75 rage and +60 Strength for 20 s, once a fight, if your rotation uses it (see Rotation). One kind of potion, as potions share a cooldown',
+    summary: '45–75 rage and +60 Strength for 20 s, once a fight, if your rotation uses it (see Rotation). Potions share a cooldown, so one is on at a time',
     // Forever lets warriors and druids drink it (buffs doc §3.5), no one else.
     forClasses: ['warrior', 'druid'],
     forSpecs: 'melee',
@@ -1384,7 +1384,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_potion_76',
     category: 'consumable',
     group: 'Potions and bombs',
-    summary: '1,350–2,250 mana, every 2 min; the Rotation tab says when. One kind of potion, as potions share a cooldown',
+    summary: '1,350–2,250 mana, every 2 min; the Rotation tab says when. Potions share a cooldown, so one is on at a time',
     forClasses: MANA_REGEN_CLASSES,
     forCasterSpecs: true,
     exclusiveGroup: COOLDOWN_GROUP.potion,
@@ -1457,7 +1457,7 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_potion_69',
     category: 'consumable',
     group: 'Potions and bombs',
-    summary: '+2,000 armor for 2 min, drunk on cooldown from the pull. One kind of potion, as potions share a cooldown',
+    summary: '+2,000 armor for 2 min, drunk on cooldown from the pull. Potions share a cooldown, so one is on at a time',
     exclusiveGroup: COOLDOWN_GROUP.potion,
     docRef: `${DOC}#35-potions-and-runes`,
     // Every rotation drinks it on cooldown from the pull (classes/shared-consumables.ts).

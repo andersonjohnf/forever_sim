@@ -354,7 +354,7 @@ test.describe('Feral bear', () => {
     await expect(lotp).toBeChecked()
     await expect(lotp).toBeDisabled()
     await expect(page.getByText('+3% crit (feral druid in your party). Your talents bring it (see Talents), so it isn’t added twice.')).toBeVisible()
-    await expect(page.getByText('+8 weapon damage on each weapon (one stone or oil per weapon). Not used in Dire Bear Form: your attacks there don’t use your weapon’s damage.')).toBeVisible()
+    await expect(page.getByText('+8 weapon damage on each weapon. Not used in Dire Bear Form: your attacks there don’t use your weapon’s damage.')).toBeVisible()
     const presets = page.getByRole('radiogroup', { name: 'Preset' })
     await expect(presets.getByRole('radio', { name: 'Standard raid (default)' })).toHaveAttribute('aria-checked', 'true')
     // Self only leaves only what the bear brings itself on, and still matches its preset.

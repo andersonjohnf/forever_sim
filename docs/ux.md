@@ -243,9 +243,12 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     Demoralizing Roar, and the other way round.
   - Entries of which only one can be on turn each other off when one is switched on: one flask,
     one stone or oil (a weapon takes one temporary enchant), one potion (potions share a cooldown).
-    The stones' and oils' summaries end "(one stone or oil per weapon)", and the potions' say
-    "One kind of potion, as potions share a cooldown", so the switch that turns off isn't a
-    surprise ([buffs doc](mechanics/buffs-debuffs-consumables.md#exclusivity-groups)).
+    The stones' and oils' summaries end with what the spec can put on its weapons: "(one stone per
+    weapon)" for a warrior, "(one stone or poison per weapon)" for a rogue, "(one stone or oil per
+    weapon)" for a Retribution paladin, "(one oil at a time)" for a caster; one the spec can't use
+    says why instead (`src/features/buffs/weapon-note.ts`). The potions' end "Potions share a
+    cooldown, so one is on at a time". So the switch that turns off isn't a surprise
+    ([buffs doc](mechanics/buffs-debuffs-consumables.md#exclusivity-groups)).
   - Under Classic Era rules, a note at the top says the buff, debuff and consumable values are
     Classic Era's, with a link to **Character → Advanced** that opens the rule profile with focus
     on it.

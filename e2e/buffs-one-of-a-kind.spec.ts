@@ -14,7 +14,7 @@ test('a warrior’s stones and potions: one of each, the other switched off', as
   const elemental = buffs.getByRole('switch', { name: 'Elemental Sharpening Stone' })
   await expect(elemental).toBeChecked()
   await expect(dense).not.toBeChecked()
-  await expect(dense).toHaveAccessibleDescription('+8 weapon damage on each weapon (one stone or oil per weapon)')
+  await expect(dense).toHaveAccessibleDescription('+8 weapon damage on each weapon (one stone per weapon)')
   await dense.click()
   await expect(dense).toBeChecked()
   await expect(elemental).not.toBeChecked()
@@ -27,7 +27,7 @@ test('a warrior’s stones and potions: one of each, the other switched off', as
   // No preset throws the bomb (buffs doc §6.3); it's yours to turn on.
   await expect(bomb).not.toBeChecked()
   await bomb.click()
-  await expect(stoneshield).toHaveAccessibleDescription('+2,000 armor for 2 min, drunk on cooldown from the pull. One kind of potion, as potions share a cooldown')
+  await expect(stoneshield).toHaveAccessibleDescription('+2,000 armor for 2 min, drunk on cooldown from the pull. Potions share a cooldown, so one is on at a time')
   await stoneshield.click()
   await expect(stoneshield).toBeChecked()
   await expect(rage).not.toBeChecked()
@@ -47,6 +47,8 @@ test('a mage’s oils: one at a time, and the potion stays beside the rune', asy
   const brilliant = buffs.getByRole('switch', { name: 'Brilliant Wizard Oil' })
   await expect(brilliant).toBeChecked()
   await expect(wizard).not.toBeChecked()
+  // A caster sees only oils, on its one weapon (docs/ux.md "Buffs").
+  await expect(wizard).toHaveAccessibleDescription('+30 spell damage, on your main hand (one oil at a time)')
   await wizard.click()
   await expect(wizard).toBeChecked()
   await expect(brilliant).not.toBeChecked()

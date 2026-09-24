@@ -459,7 +459,7 @@ too. It is aura crit, so crit suppression against a +3 boss applies
 
 | Name | ID | Effect | Duration | Stacking | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Elemental Sharpening Stone | 18262 → enchant 2506 | +2% melee crit to all melee attacks, on any melee weapon (above) | 30 min | Temporary-enchant slot of that weapon; one stone or oil per weapon (`temp-enchant`), and two stack [?] | Blacksmithing (Same) | [F] | [fc-items] · [client] (SpellItemEnchantment, SpellEquippedItems, 1.60.1.69913) |
+| Elemental Sharpening Stone | 18262 → enchant 2506 | +2% melee crit to all melee attacks, on any melee weapon (above) | 30 min | Temporary-enchant slot of that weapon; one stone, oil or poison per weapon (`temp-enchant`), and two stack [?] | Blacksmithing (Same) | [F] | [fc-items] · [client] (SpellItemEnchantment, SpellEquippedItems, 1.60.1.69913) |
 | Dense Sharpening Stone | 12404 → enchant 1643 | +8 weapon damage | 30 min | As above | Same | [F] | [fc-items] |
 | Dense Weightstone | 12643 → enchant 1703 | +8 weapon damage (blunt) | 30 min | As above | Same | [F] | [fc-items] |
 | Consecrated Sharpening Stone | 23122 → enchant 2684 | +100 AP vs Undead (tooltip unchanged; the Forever client's spell 28893 reads 99) | 30 min | As above | Argent Dawn (Same) | [F] | [fc-items] · [client] (SpellItemEnchantment, 1.60.1.69913) |

@@ -40,14 +40,18 @@
 // build (docs/data/talents.md), so builds are compared on the same fights as settings are.
 // `order=<row>><row>…` is one too, for a priority-list spec (D31): the rows' order, as the Rotation
 // tab stores it (`order=sunder>shieldSlam` puts Sunder Armor's upkeep above Shield Slam; rows it
-// doesn't name keep their places around those it does, as for a stored order).
+// doesn't name keep their places around those it does, as for a stored order). Each id must be one
+// of the spec's rows, named once.
 // `--base` changes the baseline from the spec's defaults, and each candidate is applied on top of it.
 //
-// `--against <commit>` runs the baseline on the engine and defaults of another commit (any git
-// ref, bundled from its src/), so a change of semantics can be compared with the rotation it
-// replaces, fight by fight on the same seeds. Then `--base` applies to the baseline only (in that
-// commit's settings), each candidate is the current defaults plus its own settings, and with no
-// candidates given, the candidate is the current defaults.
+// `--against <commit>` runs the baseline on the engine and rotation defaults of another commit (any
+// git ref, bundled from its src/), so a change of semantics can be compared with the rotation it
+// replaces, fight by fight on the same seeds. The setup around the rotation is this commit's for
+// both sides: the default gear, talents, race and Buffs come from this commit's `defaultConfig`, so
+// a change to those defaults isn't what's compared (give the other build with `talents=` if it is).
+// Then `--base` applies to the baseline only (in that commit's settings), each candidate is the
+// current defaults plus its own settings, and with no candidates given, the candidate is the current
+// defaults.
 //
 // Options (numbers are checked against the app's own limits):
 //   --spec warrior-arms   the spec (a SpecId with rotation settings: warrior-fury, warrior-arms, warrior-protection, druid-feral-cat,
@@ -69,7 +73,7 @@
 //                         else in the raid keeps them up); each must be on in the spec's default setup
 //   --metric dps|tps      what to compare (default: tps for a tank spec, dps otherwise)
 //   --workers <n>         worker threads (default: available cores − 1)
-//   --against <commit>    the baseline is that commit's engine and defaults (see above)
+//   --against <commit>    the baseline is that commit's engine and rotation defaults, on this commit's setup (see above)
 //   --help                this text
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
@@ -96,7 +100,7 @@ const ENTRY_SOURCE = `
 export { defaultConfig } from '@/sim/defaults'
 export { buildPlan } from '@/sim/plan/build'
 export { Sim } from '@/sim/engine/sim'
-export { rotationOptions } from '@/sim/classes/rotation'
+export { rotationApl, rotationOptions } from '@/sim/classes/rotation'
 export { normalizeConfig } from '@/sim/config/normalize'
 export { SPEC_IDS, SPEC_META } from '@/sim/specs'
 export { FULL_RAID } from '@/sim/defaults'
@@ -321,11 +325,22 @@ function parseSweep(text, spec) {
   return values.split('|').map((v) => [id, parseValue(v)])
 }
 
-/** Checks each setting against the spec's options: a known id, and a value of the right kind. */
-function validate(settings, options) {
+/**
+ * Checks each setting against the spec's options: a known id, and a value of the right kind; an
+ * order against the spec's priority-list rows (`rows`: their ids, or null for a spec without a list,
+ * or undefined when the engine can't say, an older commit's with --against).
+ */
+function validate(settings, options, rows) {
   for (const [id, value] of settings) {
     if (id === ORDER) {
       if (typeof value !== 'string' || value.split('>').some((row) => row === '')) throw new Error(`order is row ids joined by ">", got "${value}"`)
+      if (rows === null) throw new Error('order is for a spec with a priority list, and this one has none')
+      if (rows === undefined) continue
+      const named = value.split('>')
+      const unknown = named.filter((row) => !rows.includes(row))
+      if (unknown.length > 0) throw new Error(`order: unknown row ${unknown.join(', ')}; the rows are ${rows.join(', ')}`)
+      const twice = named.filter((row, i) => named.indexOf(row) !== i)
+      if (twice.length > 0) throw new Error(`order: ${twice.join(', ')} named more than once`)
       continue
     }
     if (id === TALENTS) {
@@ -432,7 +447,9 @@ async function main() {
   // --base is the baseline's: with --against, that commit's settings.
   const baseOptions = refEngine.rotationOptions(specId)
   const base = parseSettings(args.base, ref ? settingIds(baseOptions) : spec)
-  validate(base, baseOptions)
+  /** A spec's priority-list row ids, null without a list, undefined when the engine predates them. */
+  const rowIds = (e) => (typeof e.rotationApl === 'function' ? (e.rotationApl(specId)?.rows.map((r) => r.id) ?? null) : undefined)
+  validate(base, baseOptions, rowIds(refEngine))
 
   const candidates = positionals.map((p) => parseSettings(p, spec))
   if (args.sweep.length > 0) {
@@ -443,7 +460,7 @@ async function main() {
   // Against another commit, the current defaults are the candidate when none is given.
   if (candidates.length === 0 && ref) candidates.push([])
   if (candidates.length === 0) throw new Error('No candidates: give settings, or --sweep')
-  for (const c of candidates) validate(c, options)
+  for (const c of candidates) validate(c, options, rowIds(engine))
 
   const requested = flagNumber('fights', args.fights, { min: 1, whole: true })
   const seed = flagNumber('seed', args.seed, { min: 0, max: 0xffffffff, whole: true })
@@ -506,7 +523,7 @@ async function main() {
     `${fights} fights per candidate, paired`,
   ].join('; ')
   console.log(setup)
-  const defaults = ref ? `the defaults at ${args.against} (${ref.commit.slice(0, 7)})` : 'the defaults'
+  const defaults = ref ? `the rotation defaults at ${args.against} (${ref.commit.slice(0, 7)}), on this commit's setup` : 'the defaults'
   console.log(`baseline: ${base.length ? `${defaults} with ${label(base, prefix)}` : defaults}`)
   if (ref) console.log('candidates: the current defaults, with their settings')
 

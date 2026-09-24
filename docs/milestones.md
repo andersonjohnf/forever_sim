@@ -462,6 +462,10 @@ robustness grid in the class doc), and its low findings in the known gaps are wo
 
 Found while building. Each should go to the owning doc or `open-questions.md` when its
 slice is worked:
+- **The DPS specs' Rotation intros say "with a first quick search; they aren't tuned yet"** (tank
+  integration review TU-9): process jargon, which the tanks' intros replaced with "hasn't been fully
+  tuned yet". The rogues, warlocks, Shadow Priest, hunters, Elemental and Balance still carry it, with
+  their e2e tests; ux.md's intro rule for them changes with it.
 - **The warrior's interim gear** (T4 review): Adaptive Combat Assistant's use (a 450 absorb every
   90 s, 90–110 Nature damage when it breaks) isn't simulated, about +1.7 TPS (0.15%) and −5 damage
   taken a second (T4R-3); the greedy EHP search never revisits a swap, so Dal'Rend's Sacred Charge

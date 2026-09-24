@@ -11,7 +11,8 @@ on the 1.13 client. WoW Forever keeps that shape but changes several key numbers
 - **Bears** lose Feral Instinct's threat, so they stay at a flat ×1.3.
 - **Righteous Fury** is +90% baseline. Improved Righteous Fury now reduces damage taken instead.
 - **Thunder Clap** is usable in Defensive Stance.
-- **Tranquil Air Totem** and **Blessing of Sanctuary** are gone.
+- **Blessing of Sanctuary** is gone. **Tranquil Air Totem** exists: the 1.60.1.70009 notes name it
+  among the air totems that no longer stack ([buffs §1.2](buffs-debuffs-consumables.md#12-threat-defense-and-mana)).
 
 Every other per-ability value is still server-side and unverified in Forever. The engine uses the
 Classic Era numbers and flags them. A new ability whose tooltip names its threat ("a high amount
@@ -152,7 +153,7 @@ heals and buffs, and LTC2 alone is not a [C] source: RF on heals and buffs is [?
 | Modifier | Value | Tag | Source / notes |
 | --- | --- | --- | --- |
 | Blessing of Salvation / Greater Blessing of Salvation | ×0.7 (all) | [F][C] | [client] (SpellEffect, 1.60.1.69913): 1038 / 25895 aura 10 = −30. Forever duration 1 h ([spellbook](https://foreverchanges.pro/spellbook/paladin)). |
-| **Tranquil Air Totem** | Classic ×0.8 (party within 20 yd) | [C]; **[F] removed** | DB2 25909 = −20 still exists, but the totem is listed "In a Classic Shaman's spellbook, not in Forever" ([spellbook/shaman](https://foreverchanges.pro/spellbook/shaman)) |
+| **Tranquil Air Totem** | ×0.8 (party) | [F] notes; [C] value | [client] (SpellEffect, 1.60.1.70009): 25909 aura 10 = −20. The 1.60.1.70009 development notes name it among the air totems that no longer stack, so it exists, though Forever's trainer data has no row for the totem ([buffs §1.2](buffs-debuffs-consumables.md#12-threat-defense-and-mana)). Not in the catalogue: it takes the tank's air totem from Windfury or Grace of Air |
 | Enchant Gloves – Threat | ×1.02 | [F][C] | [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913): enchant 2613 → spell 25063 (+2) |
 | Enchant Cloak – Subtlety | ×0.98 | [F][C] | [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913): enchant 2621 → spell 25070 (−2) |
 | Fetish of the Sand Reaver (use: Arcane Shroud) | ×0.3 for 20 s, 3 min CD | [F][C] | [client] (SpellEffect, ItemEffect, 1.60.1.69913): 26400 aura 10 = −70, duration 20 s; item 21647 CD 180 s. LTC2 adds level scaling above 60 (not relevant). |
@@ -336,7 +337,7 @@ threat talents are out of scope.
 | Thunder Clap | Battle Stance only, 10% slow, 4 s CD | **Usable in Defensive Stance**, 20% slow, 6 s CD | [F] |
 | Revenge / Shield Slam damage | 81–99 / 342–358 | 138–168 / 640–670 (threat grows with damage) | [F] damage; threat formula [?] |
 | Shield Slam tooltip | "a high amount of threat" | "a **very high** amount of threat" | [F] text; value [?] |
-| Tranquil Air Totem | ×0.8 | **Not in Forever** | [F] |
+| Tranquil Air Totem | ×0.8 | **Unchanged**, and exclusive with Windfury and Grace of Air even from another shaman (1.60.1.70009) | [F] |
 | Blessing of Sanctuary | Talent; Holy damage on block | **Removed** | [F] |
 | Faerie Fire (Feral) | Talent, usable in forms | **Removed**; plain Faerie Fire usable in forms (mana cost) | [F] |
 | Lacerate, Mangle (Bear) | — | New. Lacerate's "high amount of threat": +261 by the [wording table](#threat-wording-table); Mangle unknown (dmg × 1) | [F] spells, [?] threat |

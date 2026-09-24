@@ -10,6 +10,7 @@ import spellsJson from '@/data/client/spells.json'
 import type { ClientItems, ClientSpells } from '@/data/client/types'
 import itemJson from '@/data/items/pre-bis.json'
 import type { ItemData, WeaponType } from '@/data/items/types'
+import { normalizeConfig } from '../config/normalize'
 import { defaultConfig } from '../defaults'
 import { forSpecClass, presetBuffIds } from './presets'
 import { buildPlan } from '../plan/build'
@@ -158,12 +159,29 @@ describe('Ironfoe (item 11684 → spell 1301046; damage-and-timing §5.2)', () =
   })
 })
 
+describe('the air totems don’t stack, even from different shamans (buffs doc `totem:air`, 1.60.1.70009)', () => {
+  it('Windfury (10612), Grace of Air (25360) and Tranquil Air (25909) carry the same new Attributes[11] 0x400 flag, and no other spell the dataset holds does', () => {
+    const flagged = Object.entries(spells).filter(([, s]) => ((s.misc?.attributes?.[11] ?? 0) & 0x400) !== 0)
+    expect(flagged.map(([id]) => id).sort()).toEqual(['10612', '25360', '25909'])
+  })
+
+  it('keeps one of Windfury Totem and Grace of Air Totem when a setup has both, and says why', () => {
+    const d = defaultConfig('warrior-fury')
+    const { config, warnings } = normalizeConfig({ ...d, buffs: { raid: d.buffs.raid, enabled: ['windfuryTotem', 'graceOfAir'] } })
+    expect(BUFFS_BY_ID.get('windfuryTotem')!.exclusiveGroup).toBe(BUFFS_BY_ID.get('graceOfAir')!.exclusiveGroup)
+    expect(config.buffs.enabled.filter((id) => id === 'windfuryTotem' || id === 'graceOfAir')).toHaveLength(1)
+    expect(warnings.some((w) => /Windfury Totem|Grace of Air Totem/.test(w))).toBe(true)
+  })
+})
+
 describe('Windfury Totem’s internal cooldown (spell 10612; damage-and-timing §5.4)', () => {
   const d = defaultConfig('warrior-fury')
   const config = (profile: RuleProfileId) => withRules({ ...d, buffs: { raid: ['shaman'], enabled: ['windfuryTotem'] } }, profile)
 
   it('is the Forever client’s ProcCategoryRecovery 100 in `forever`, and none in `classicEra`', () => {
     expect(spells['10612'].auraOptions).toMatchObject({ procChance: 20, procCategoryRecovery: 100 })
+    // A party proc-trigger aura (42) since 1.60.1.70009 (a dummy, 4, before), still pointing at 10610.
+    expect(spells['10612'].effects[0]).toMatchObject({ effect: 35, effectAura: 42, effectBasePointsF: 10610 })
     expect(FOREVER.values.windfuryIcdMs).toBe(100)
     expect(procOf(config('forever'), 'windfury')!.icdMs).toBe(100)
     expect(procOf(config('classicEra'), 'windfury')!.icdMs).toBe(0)

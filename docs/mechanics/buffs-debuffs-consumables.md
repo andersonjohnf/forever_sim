@@ -7,8 +7,9 @@ Warrior's, Feral Druid's or Paladin's DPS or TPS. **WoW Forever changed a lot he
 long-duration buffs now last 1 hour. Battle Shout, Blessing of Might and Strength of Earth
 got weaker, and the talents that improved them are gone. Mark of the Wild, Grace of Air,
 Fortitude and Expose Armor got stronger. Trueshot Aura no longer gives melee attack power.
-Windfury Totem became a party aura, and Sanctity Aura, Tranquil Air, Blessing of Sanctuary
-and Faerie Fire (Feral) were removed. Food now gives flat attack power or crit, many glove
+Windfury Totem became a party aura, and Sanctity Aura, Blessing of Sanctuary and Faerie Fire
+(Feral) were removed. Windfury, Grace of Air and Tranquil Air don't stack, even from different
+shamans (1.60.1.70009). Food now gives flat attack power or crit, many glove
 and bracer enchants were buffed, and alchemy gained new elixirs. A new camping system
 gives weaker 1-hour copies of the class buffs. Both factions can field paladins and
 shamans. Class-specific self-buffs (seals, stances, forms, Seal of the
@@ -185,7 +186,7 @@ see [data/races.md](../data/races.md)), but the client table is the primary sour
 | Blessing of Salvation | 1038 | −30% threat generated | **1 h** (C: 5 min) | One Blessing per paladin. **Default off for tanks** | Paladin | [F] | [fc-sb-paladin] · [client] (SpellEffect, 1.60.1.69913) |
 | Greater Blessing of Salvation | 25895 | −30% threat, class-wide | **1 h** (C: 15 min) | Class-wide, so it also hits warrior/druid/paladin tanks of the same class unless they cancel it | Paladin | [F] | [fc-sb-paladin] |
 | Blessing / Greater Blessing of Sanctuary | 20914 / 25899 | **Not in Forever** (C: −24 damage taken per hit, 35 Holy on block) | — | — | Removed spell and talent | [F] | [fc-sb-paladin] (missing list) · [fc-changes] |
-| Tranquil Air Totem | 25908 | **Not in Forever** (C: −20% threat, party) | — | — | Removed | [F] | [fc-sb-shaman] (missing list) |
+| Tranquil Air Totem | 25908 → 25909 | −20% threat, party (aura 10 = −20) | 5 min | An air totem: doesn't stack with Windfury or Grace of Air, **even from another shaman** (1.60.1.70009) | Shaman; not in the catalogue: it only lowers threat, in the air slot Windfury or Grace of Air fills | [F] notes; [?] how it's learned | [dev-70009] · [client] (SpellEffect, SpellMisc, 1.60.1.70009): 25909 gains the air totems' shared `Attributes[11]` 0x400. Forever's trainer data (SkillLineAbility) has no row for the totem 25908, which this doc read as removed until the notes named it |
 | Devotion Aura (r7) | 10293 | +735 armor, party within 30 yd | Aura | One Aura per paladin on a player. **Improved Devotion Aura removed** (C: +25%) | Paladin | [F] | [fc-sb-paladin] · [fc-changes] |
 | Retribution Aura (r5) | 10301 | **30** Holy damage to each melee attacker (C: 20) | Aura | One Aura per paladin; Improved Retribution Aura removed | Paladin | [F] | [fc-sb-paladin] |
 | Sanctity Aura | talent (C: 20218) | **Removed** (C: +10% Holy damage, party) | — | — | — | [F] | [fc-changes] |
@@ -252,14 +253,18 @@ which doesn't matter inside one fight [F] [[fc-camping]].
   attack with **246** extra melee attack power. Lasts 5 min." Windfury Weapon's Forever
   tooltip adds: "When applied to main hand, disables any benefit you personally receive
   from Windfury Totem" [[fc-sb-shaman]]. Client detail ([client] (SpellEffect,
-  SpellAuraOptions, 1.60.1.69913)): 10612 is now a party area aura (dummy aura, 20% proc
-  chance) that triggers 10610 directly, with a **100 ms internal cooldown**
-  (`ProcCategoryRecovery` 100). 10610 grants +246 AP and 1 extra attack; its AP aura has 2
-  charges and lasts 1 s. 10611, the spell that applied the weapon enchant, no longer exists.
+  SpellAuraOptions, SpellName, 1.60.1.70009)): 10612 is now a party area aura, a **proc-trigger
+  aura** (aura 42; a dummy, aura 4, until 1.60.1.70009, when it was also renamed "Windfury
+  Totem" from "Windfury Totem Passive") with a 20% proc chance that triggers 10610 directly, with
+  a **100 ms internal cooldown** (`ProcCategoryRecovery` 100). 10610 grants +246 AP and 1 extra
+  attack; its AP aura has 2 charges and lasts 1 s. 10611, the spell that applied the weapon
+  enchant, no longer exists. Nothing the sim does changes with the aura type: the proc was
+  already modelled as one.
 - **Consequence [?]:** in Forever, a main-hand sharpening stone or weightstone should
   coexist with Windfury Totem. The sim should allow it, flagged as an assumption until the
-  beta confirms. Twisting Windfury with Grace of Air probably no longer works, because the
-  aura disappears with the totem. See [Open questions](#open-questions).
+  beta confirms. Twisting Windfury with Grace of Air no longer works: the aura disappears with
+  the totem, and since 1.60.1.70009 the two don't stack even from different shamans
+  ([dev-70009]). See [Open questions](#open-questions).
 - **`classicEra` [C]:** the totem's enchant takes the main hand's temporary-enchant slot, so
   a main-hand stone does nothing while the totem is up; the off hand keeps its own (which is
   where Classic warriors put an Elemental Sharpening Stone). With a two-hander, no stone
@@ -954,7 +959,9 @@ the weapon's Crusader sits beside the imbue, which is the temporary enchant
   exclusive with the new all-crit Moonkin Aura.
 - Totems: 5 min, 30 yd. Strength of Earth 77 → **53**, Grace of Air 77 → **89**, Windfury
   315 → **246** AP and now a **party aura** instead of a weapon enchant. Enhancing Totems,
-  Improved Weapon Totems, Totemic Mastery and **Tranquil Air** removed.
+  Improved Weapon Totems and Totemic Mastery removed. The site listed **Tranquil Air** as removed
+  too; the 1.60.1.70009 development notes name it among the air totems that no longer stack
+  ([dev-70009]), so it exists (§1.2).
 - Sanctity Aura and Improved Devotion Aura removed. Retribution Aura 20 → 30.
 - Both factions have paladins and shamans ([F] client `CharBaseInfo`; the site's own list is
   community-reported).
@@ -1036,7 +1043,7 @@ stones, `buffUnusedReason`) did nothing, so it goes without a note.
 | `blessing:<type>` | Blessing and Greater Blessing of the same type; one Blessing per paladin (model it as one toggle per type) | [F] |
 | `party-crit-aura` | Leader of the Pack, Moonkin Aura, Camp Chair | [F] (Camp Chair vs LotP [?]) |
 | `camp:<copied buff>` | Each camp object and the class buff it copies (Lodestone / Might, Sharpening Wheel / Strength of Earth, Fish Bowl / Kings, Enchanted Lute / Mark of the Wild, First Aid Kit / Fortitude, …) | [F] |
-| `totem:air` (per shaman) | Windfury Totem, Grace of Air Totem | [F] |
+| `totem:air` (one per group, even from different shamans, since 1.60.1.70009) | Windfury Totem, Grace of Air Totem (and Tranquil Air, not in the catalogue) | [F] [dev-70009]; [client] (SpellMisc `Attributes[11]` 0x400 on 10612, 25360 and 25909, 1.60.1.70009) |
 | `totem:earth` (per shaman) | Strength of Earth Totem, Stoneskin Totem | [F] |
 | `flask` | All flasks | [F] |
 | `elixir:strength` | Elixir of Greater Strength (Giants), Juju Power; probably Brute Force, and maybe the new Str elixirs | [C] core, [?] rest |
@@ -1576,6 +1583,7 @@ multipliers) · [forever-system-changes](forever-system-changes.md) ·
 [fc-sb-paladin]: https://foreverchanges.pro/spellbook/paladin
 [fc-sb-druid]: https://foreverchanges.pro/spellbook/druid
 [fc-sb-shaman]: https://foreverchanges.pro/spellbook/shaman
+[dev-70009]: https://us.forums.blizzard.com/en/wow/t/wow-forever-beta-development-notes-updated-september-24/2360696
 [fc-sb-priest]: https://foreverchanges.pro/spellbook/priest
 [fc-sb-mage]: https://foreverchanges.pro/spellbook/mage
 [fc-sb-hunter]: https://foreverchanges.pro/spellbook/hunter

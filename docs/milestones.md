@@ -336,7 +336,8 @@ sets. Each spec's defaults are then its results.
       O3 ([optimizer.md](optimizer.md)). After its review
       ([log](reviews/2026-09-24-optimizer-o1.md)): every search races its start, the elimination
       bar corrects for the winner's curse, crit and crush immunity (off by default, no
-      damage-taken cap), the floor's Anticipation and Deflection (user decision), a tank's 31
+      damage-taken cap), the floor's Deflection with Anticipation as the preferred filler (user
+      decisions, D30), a tank's 31
       points in its tree by default, and budgets that fit a large space. After its verification:
       the setup is only ever the baseline, never an answer; every candidate meets every
       constraint, or the search says which block (user decision, simpler design); the bear's

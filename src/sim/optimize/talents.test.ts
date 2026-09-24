@@ -136,6 +136,39 @@ describe('talentSpace', () => {
     expectLegal(negative.builds.map((b) => b.code))
   })
 
+  it('gives leftover points to the preferred filler after the partial ranks and before the fillers, whatever its role (D30)', () => {
+    // Shield Slam's 31 points in Protection, and 20 left over: Anticipation takes 5 of them before
+    // Toughness, a survival filler, even screened as harmful or as a dimension below zero.
+    const base = { data: warrior, minPoints: { Protection: 31 }, preferTree: 'Protection' }
+    const anticipation = [id('Anticipation')]
+    const plain = talentSpace({ ...base, roles: roles(['Shield Slam'], { Toughness: 'survival', Anticipation: 'harmful' }) })
+    expect(plain.builds.map((b) => rank(b.code, 'Anticipation'))).toEqual([0])
+    for (const role of ['harmful', 'survival', 'none'] as const) {
+      const space = talentSpace({ ...base, roles: roles(['Shield Slam'], { Toughness: 'survival', Anticipation: role }), preferred: anticipation })
+      expect(space.builds.map((b) => rank(b.code, 'Anticipation'))).toEqual([5])
+      expect(space.fillOrder.indexOf(id('Anticipation'))).toBeLessThan(space.fillOrder.indexOf(id('Toughness')))
+      expectLegal(space.builds.map((b) => b.code))
+    }
+    // As a dimension screened below zero, builds with and without it race, and leftover points go to it.
+    const dim = talentSpace({ ...base, roles: roles(['Shield Slam', 'Anticipation'], { Toughness: 'survival' }), values: new Map([[id('Anticipation'), -0.05]]), preferred: anticipation })
+    expect(new Set(dim.builds.map((b) => rank(b.code, 'Anticipation')))).toEqual(new Set([5]))
+    expect(dim.fillOrder.slice(0, 2)).toEqual([id('Shield Slam'), id('Anticipation')])
+    // After an objective talent's partial ranks: Arms at 47 leaves 4 points in Fury's first tier and
+    // Protection's; Cruelty's partial ranks come first.
+    const arms = talentSpace({ data: warrior, roles: roles(['Cruelty']), values: new Map([[id('Cruelty'), 1]]), minPoints: { Arms: 47 }, preferred: anticipation })
+    expect(arms.builds.map((b) => [rank(b.code, 'Cruelty'), rank(b.code, 'Anticipation')])).toEqual([[4, 0]])
+    // Before Toughness even when a constraint makes Toughness a dimension (the effective-health floor).
+    const floor = talentSpace({ ...base, roles: roles(['Shield Slam'], { Toughness: 'survival' }), constrained: new Set([id('Toughness')]), preferred: anticipation })
+    expect(floor.fillOrder.indexOf(id('Anticipation'))).toBeLessThan(floor.fillOrder.indexOf(id('Toughness')))
+    expect(new Set(floor.builds.map((b) => rank(b.code, 'Anticipation')))).toEqual(new Set([5]))
+    expect(new Set(floor.builds.map((b) => rank(b.code, 'Toughness')))).toContain(5)
+    // Kept or excluded, it's left alone.
+    const kept = talentSpace({ ...base, roles: roles(['Shield Slam'], { Toughness: 'survival' }), keep: { [id('Anticipation')]: 2 }, preferred: anticipation })
+    expect(kept.builds.map((b) => rank(b.code, 'Anticipation'))).toEqual([2])
+    const out = talentSpace({ ...base, roles: roles(['Shield Slam'], { Toughness: 'survival' }), exclude: anticipation, preferred: anticipation })
+    expect(out.builds.map((b) => rank(b.code, 'Anticipation'))).toEqual([0])
+  })
+
   it('rejects contradictory constraints', () => {
     expect(() => talentSpace({ data: warrior, roles: roles(['Cruelty']), keep: { [id('Cruelty')]: 5 }, exclude: [id('Cruelty')] })).toThrow(/both kept and excluded/)
     expect(() => talentSpace({ data: warrior, roles: roles(['Cruelty']), minPoints: { Arms: 31, Fury: 31 } })).toThrow(/more than 51/)

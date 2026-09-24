@@ -10,7 +10,8 @@ keeps, how the talent space is built, and how a spec's defaults come from its re
 constraints with effective health and crit and crush immunity, and the command line
 (`npm run optimize`), with the review's and the verification's fixes
 ([review log](reviews/2026-09-24-optimizer-o1.md)); the setup is only ever the baseline, never an
-answer (user decision). Gear is O2, the
+answer (user decision); Anticipation is the warrior's and paladin's preferred filler rather than
+a floor talent (user decision, D30). Gear is O2, the
 app's Optimize flow O3, and defaults set from the results O4 ([milestones](milestones.md)). The
 code is `src/sim/optimize/` (pure TypeScript, seeded, no DOM) and
 [`scripts/tune/optimize.mjs`](../scripts/tune/optimize.mjs).
@@ -53,15 +54,17 @@ budget:
 4. **Race** the candidates on common random numbers until the leader is clear of the rest at 95%
    or the budget runs out ([below](#racing)), beside the **baseline**. The budget and the first
    round are fitted to the number of candidates first ([budgets](#budgets)).
-5. **Confirm** the winner against the baseline on a fresh seed (D23; the CLI's `--confirm`).
+5. **Answer** with the race's leader, unless a warrior's or paladin's **preferred filler** prefers a
+   candidate level with it that has more Anticipation ([below](#the-preferred-filler)). The
+   report's `answer` is the one to use; `race.leader` is the best mean.
+6. **Confirm** the answer against the baseline on a fresh seed (D23; the CLI's `--confirm`).
 
 **The baseline is only a measuring stick** (user decision). It's the setup as it is (the spec's
 current default, unless the caller changed it): it runs every round, so every candidate's change is
 paired with it fight for fight, and `balanced` and relative limits are measured against it, but
 it's never an answer. The setup can still win, as a regular candidate: a copy of it races like any
-other when it meets every constraint, and leads if it's the best. When it breaks one (the paladin's
-default lacks Anticipation, a floor talent), it's only the baseline, and the CLI says which it
-breaks.
+other when it meets every constraint, and leads if it's the best. When it breaks one (a search that excludes a talent the default takes, or
+keeps one it lacks), it's only the baseline, and the CLI says which it breaks.
 
 **No setup meets these constraints.** If every candidate breaks a constraint, or every one is
 clearly outside a result constraint in the race, there's no answer: the report's leader is null and
@@ -270,11 +273,15 @@ not every legal one, which would be astronomically many:
   the effective-health floor) is a dimension too, whatever its role, so builds with and without it
   both race. A harmful one (Heart of the Wild, when the floor doesn't keep it) is searched but
   never forced by the maximality rule below, nor given leftover points.
-- **Leftover points go to partial ranks, then fillers.** Points the core leaves go first to
-  partial ranks of objective talents, where the sim measures them, the most score per point first,
-  and then to **fillers**, the talents that can't change the score: survival ones first (a
-  tie-break on damage taken), then the rest; the spec's own tree first, then the shallower tier,
-  then code order. So a partial rank goes where the leftover points do the most. `--partials`
+- **Leftover points go to partial ranks, the preferred filler, then fillers.** Points the core
+  leaves go first to partial ranks of objective talents, where the sim measures them, the most
+  score per point first; then to a warrior's or paladin's **preferred filler**, Anticipation
+  ([below](#the-preferred-filler)), whatever the screen made of it; then to partial ranks of the
+  dimensions only a constraint made (Toughness under the effective-health floor); and then to
+  **fillers**, the talents that can't change the score: survival ones first (a tie-break on damage
+  taken), then the rest; the spec's own tree first, then the shallower tier, then code order. So a
+  partial rank goes where the leftover points do the most, and D30's "points a build has left after
+  its threat talents go to Anticipation before Toughness or other weaker talents" holds. `--partials`
   (`searchPartials`) searches partial ranks instead, one per build, a far larger space.
 - **Tier gates and arrows** (5 points a tier in the lower tiers of the same tree; an arrow's
   prerequisite at max rank, [talents.md](data/talents.md#tier-gates)) are met with fillers where
@@ -290,13 +297,15 @@ not every legal one, which would be astronomically many:
   [warrior §6.4](classes/warrior.md#64-survival-floor),
   [druid §7.6](classes/druid.md#76-survival-floor),
   [paladin](classes/paladin.md#protection-survival-floor). It holds the defensive cooldowns and,
-  by user decision (D30), the avoidance talents: a warrior's and a paladin's **Anticipation 5/5
-  and Deflection 5/5**, and a bear's **Feral Swiftness 2/2**: the model says avoided hits cost a
-  tank rage, mana and Reckoning procs, so a threat-first search drops them, but tanks take them. Toughness is optional: the search decides its ranks (under the
-  effective-health floor it's a dimension). `--no-floor` drops the floor; `--keep` extends it for one search
-  (kept talents join it in every build); a spec's default floor changes in `SURVIVAL_FLOOR` and
-  its class doc together. Harmful talents are never taken unless kept or searched for a
-  constraint.
+  by user decision (D30), the avoidance talents: a warrior's and a paladin's **Deflection 5/5**,
+  and a bear's **Feral Swiftness 2/2**: the model says avoided hits cost a tank rage, mana and
+  Reckoning procs, so a threat-first search drops them, but tanks take them. **Anticipation is not
+  in the floor** (user decision, D30): it's the warrior's and paladin's **preferred filler**
+  ([below](#the-preferred-filler)). Toughness is optional: the search decides its ranks (under the
+  effective-health floor it's a dimension). `--no-floor` drops the floor; `--keep` extends it for
+  one search (kept talents join it in every build: `--keep Anticipation` holds it at 5/5); a
+  spec's default floor changes in `SURVIVAL_FLOOR` and its class doc together. Harmful talents are
+  never taken unless kept, searched for a constraint, or the preferred filler.
 - **Maximal builds only.** If another objective talent fits at max rank in the points a core
   leaves (they'd otherwise go to partial ranks and fillers), the build that takes it scores at
   least as well, since no objective talent lowers the score, so only that one is kept. The check
@@ -311,25 +320,56 @@ not every legal one, which would be astronomically many:
 Every build is checked with the app's own `validateTalentBuild`, encoded with `encodeTalentCode`,
 and must decode back to the same ranks.
 
-The spaces at the default setups (tanks with 31 points in their tree, their survival floor with
-the avoidance talents, and the effective-health floor, which makes Toughness a dimension), from
-the screens of 2026-09-24 after the verification's fixes (the defaults of that day's T3 and T4
-gear; the kept talents aren't dimensions). The candidates are the builds and the setup itself
-when it keeps the constraints (the warrior's default isn't among its space's builds; the
-bear's is; the paladin's breaks the floor), and each race runs the baseline beside them:
+### The preferred filler
+
+**Anticipation is a warrior's and a paladin's preferred filler** (user decision, D30, after the
+guild's lead theorycrafter's Protection paladin build, `240003-0530213321301551-502`, took
+Anticipation 2/5 and measured +1.0% TPS over the floor-bound default; `PREFERRED_FILLER` in
+`src/sim/optimize/floor.ts`). It left the survival floor, so a build may take fewer than 5 ranks,
+but tanks take it, and the sim sees only half of what it does: its avoided hits cost threat in the
+model (no rage from a dodged hit, no Reckoning charge or Shield Specialization mana), and what
+they're worth, the damage a tank doesn't take, isn't in the score. So it's preferred twice:
+
+- **In the space:** a build's leftover points go to it after the objective talents' partial ranks
+  and before Toughness or any other filler ([above](#the-talent-space)), whatever the screen made
+  of it (`preferred` in `talentSpace`). Where the screen makes it an objective talent, builds with
+  and without it race as for any other.
+- **At the race's end** (`preferFiller`, `src/sim/optimize/prefer.ts`): a candidate with more
+  Anticipation than the leader is the **answer** if it's within **0.5% of the leader's score**
+  (`PREFERENCE_TOLERANCE`; about 1 point of `balanced`, whose leader scores about 200, or 5 DPS on
+  1,000), or **inside the leader's paired 95% interval** (the leader isn't clear of it), and its
+  means meet every result limit. Among several, the one with the most Anticipation, then the first
+  in the standings' order. It's D30's rule for an item whose value rests on an unmeasured rating
+  (within 0.5%, or inside the paired interval), for what the model can't see.
+
+The report's `answer` is that candidate, and `preferred` says which and why; the CLI prints
+"preferred for Anticipation (filler): `<build>`, Anticipation 5 to the leader's 2: −0.12 (−0.30 to
++0.06) against the leader (inside the CI)" and marks its row "the answer". `--confirm` and a
+search in turns use the answer. `--exclude Anticipation` searches without it, and `--keep
+Anticipation` holds it at 5/5 as the floor used to. The bear has no preferred filler: its
+avoidance, Feral Swiftness, is in its floor.
+
+The spaces at the default setups (tanks with 31 points in their tree, their survival floor, the
+preferred filler, and the effective-health floor, which makes Toughness a dimension), from the
+screens of 2026-09-24 with D30's preferred filler (the
+defaults of that day's T3 and T4 gear; the kept talents aren't dimensions; Anticipation is one of
+the warrior's and paladin's objective ones). The candidates are the builds and the setup itself
+when it keeps the constraints (the warrior's default isn't among its space's builds; the bear's
+and the paladin's are), and each race runs the baseline beside them:
 
 | Spec | Dimensions | Builds | Candidates | Legal tree cores | Dominated |
 | --- | --- | --- | --- | --- | --- |
-| `warrior-protection` | 22 objective + Toughness | 3,544 | 3,545 | 1,648 | 4,193 |
+| `warrior-protection` | 23 objective + Toughness | 4,735 | 4,736 | 3,184 | 6,758 |
 | `druid-feral-bear` | 17 objective | 129 | 129 | 1,314 | 1,080 |
-| `paladin-protection` | 27 objective + Toughness | 10,805 | 10,805 | 2,240 | 2,705 |
+| `paladin-protection` | 27 objective + Toughness | 8,918 | 8,918 | 2,752 | 3,585 |
 | `warrior-fury` (no constraints) | 20 objective | 288 | | 1,636 | 1,507 |
 
-So on `quick` the warrior's space runs 126 fights each in the first round, the paladin's 50 (36% of
-the budget, past the usual 30%: [budgets](#budgets)) and the bear's and Fury's 1,000. Before
-Feral Swiftness joined the bear's floor, its space was 199 builds (200 candidates with the setup). Enumerating takes about a
-second. Before the tree-by-tree combination and the leftover-point rule, the Protection warrior's
-space was 17,644 builds and took eight minutes to list; the paladin's passed 50,000.
+So on `quick` the warrior's space runs 94 fights each in the first round, the paladin's 50 and the
+bear's and Fury's 1,000. With Anticipation 5/5 in the floor (before D30's preferred filler) the
+warrior's space was 3,544 builds and the paladin's 10,805; before Feral Swiftness joined the bear's
+floor, its space was 199 builds (200 candidates with the setup). Enumerating takes about a second.
+Before the tree-by-tree combination and the leftover-point rule, the Protection warrior's space was
+17,644 builds and took eight minutes to list; the paladin's passed 50,000.
 
 ## Talents and rotation together
 
@@ -431,7 +471,9 @@ Candidates dropped early ran fewer fights, so their intervals are wider; the tab
 leader, then the survivors, then the dropped by how long they lasted. The baseline isn't a row:
 its numbers are the line under the table. The CLI also says what the setup itself fails (it's then
 only the baseline), how many candidates each kind of constraint left out, and, when there's no
-answer, "no setup meets these constraints" with `blocked`'s reasons.
+answer, "no setup meets these constraints" with `blocked`'s reasons. When the preferred filler
+chose the answer, its row says "the answer (preferred for Anticipation)", a line under the result
+says why, and the line after compares the answer, not the leader, with the default.
 
 ## Limits of the method
 
@@ -453,6 +495,10 @@ answer, "no setup meets these constraints" with `blocked`'s reasons.
 - **Maximality is one talent at a time** (above): swaps are left to the race.
 - **A result constraint is judged by its mean** when choosing the leader; a leader near its limit
   may be over it on another seed.
+- **The preferred filler reads a dropped candidate's interval over its own fights.** A candidate
+  dropped in the first round was compared with the leader over 50 to 1,000 fights, so "within 0.5%"
+  rests on that mean; the CLI prints the interval beside it, and `--confirm` checks the answer on a
+  fresh seed.
 
 ## Worked examples
 
@@ -483,8 +529,14 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
   before the review's fix).
 - **Every pass holds the constraints.** The bear in turns with Ferocity excluded and Maul held for
   90 rage: no pass answers with the default, which takes Ferocity (`optimize.test.ts`, OV-1).
-- **No setup.** The Protection paladin under crit immunity on its default gear: every build has
-  Anticipation, and the best reaches 330 defense (the boss's crit 4.40%), so no candidate races
-  and the report says crit immunity blocks it (OV-2).
+- **No setup.** The Protection paladin under crit immunity on its default gear: the builds with
+  Anticipation 5/5 reach 330 defense at best (the boss's crit 4.40%), so no candidate races and the
+  report says crit immunity blocks it (OV-2).
 - **The setup wins as a candidate.** The bear with one rotation variant, Maul held for 90 rage:
   its own rotation leads, as the copy of the setup, 0 ± 0 against the baseline it's identical to.
+- **The preferred filler.** A balanced leader scoring 204 with Anticipation 0: a candidate with
+  Anticipation 5 that's 0.9 ± 0.2 points behind (clearly behind, but within 0.5%, 1.02 points) is
+  the answer over one with Anticipation 2 inside the leader's interval (0.3 ± 0.5); one 1.1 ± 0.05
+  behind isn't. On 1,000 DPS the tolerance is 5 DPS (`prefer.test.ts`). In the space, Shield Slam's
+  31 points in Protection leave 20, and Anticipation takes 5 of them before Toughness, whether the
+  screen calls it harmful, survival or no effect (`talents.test.ts`).

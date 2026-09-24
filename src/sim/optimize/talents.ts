@@ -13,12 +13,14 @@
 //   first to partial ranks of objective talents, where the sim can measure them, in the order of the
 //   score per point the screen measured (./screen.ts), and only then to fillers. So a partial rank
 //   is where the leftover points do the most, not a dimension of its own (`searchPartials` makes it
-//   one, for a small space).
+//   one, for a small space). A tank's **preferred filler** (D30: Anticipation, ./floor.ts) comes
+//   between the two: after the partial ranks, before the fillers, whatever the screen made of it.
 // - A talent that changes what a constraint reads (damage taken, health, effective health, …) is a
 //   search dimension too, whatever it does to the score (`constrained`): with a limit on damage
 //   taken, a build that keeps Toughness is one to try, not a tie.
 // - Kept talents (the class's survival floor, and the player's) sit at their rank in every build;
-//   excluded and **harmful** talents (those that lower the score, ./screen.ts) are never taken. A
+//   excluded and **harmful** talents (those that lower the score, ./screen.ts) are never taken, but
+//   for the preferred filler. A
 //   prerequisite comes with its talent, as a filler if it's not objective itself.
 // - A build must be **maximal**: if another objective talent fits at max rank in the points the
 //   core leaves over (they'd otherwise go to partial ranks and fillers), the build that takes it
@@ -75,6 +77,12 @@ export interface TalentSpaceOptions extends TalentConstraints {
    * harmful one is never taken to fill leftover points, nor counted as a raise).
    */
   constrained?: ReadonlySet<string>
+  /**
+   * The preferred filler, by id (D30; PREFERRED_FILLER in ./floor.ts): leftover points go to it
+   * after the objective talents' partial ranks and before every other filler, whatever the screen
+   * made of it (harmful, or a dimension whose effect is below zero). Kept or excluded, it's left alone.
+   */
+  preferred?: readonly string[]
   /** Search partial ranks too, one per build, instead of only filling leftover points with them (a far larger space). */
   searchPartials?: boolean
   /** Stop after this many builds (the space is reported as larger). Default 200,000. */
@@ -211,9 +219,13 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
   // Fillers: every other talent that may be taken, the ones that lower damage taken first, then the
   // spec's own tree, then the shallower tier, then code order.
   const preferTree = options.preferTree === undefined ? -1 : treeIndex(options.preferTree)
+  // The preferred filler (D30): after the raisable dimensions' partial ranks, before the fillers.
+  const preferred = (options.preferred ?? []).map(lookup).filter((i) => !keep.has(i) && !excluded.has(i))
+  const isPreferred = new Uint8Array(count)
+  for (const i of preferred) isPreferred[i] = 1
   const fillerOrder = nodes
     .map((_, i) => i)
-    .filter((i) => !isDim[i] && !keep.has(i) && !excluded.has(i) && nodes[i].role !== 'harmful' && nodes[i].role !== 'objective')
+    .filter((i) => !isDim[i] && !isPreferred[i] && !keep.has(i) && !excluded.has(i) && nodes[i].role !== 'harmful' && nodes[i].role !== 'objective')
     .sort((a, b) => {
       const rank = (i: number) => (nodes[i].role === 'survival' ? 0 : 1)
       const tree = (i: number) => (nodes[i].tree === preferTree ? 0 : 1)
@@ -221,9 +233,15 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
     })
   const isFiller = new Uint8Array(count)
   for (const i of fillerOrder) isFiller[i] = 1
-  // Leftover points: partial ranks of objective talents, the most score per point first, then fillers.
+  for (const i of preferred) if (!isDim[i]) isFiller[i] = 1
+  // Leftover points: partial ranks of objective talents, the most score per point first, then the
+  // preferred filler, then the dimensions only a constraint made (Toughness under the
+  // effective-health floor: D30's "before Toughness"), then the fillers.
   const value = (i: number) => options.values?.get(nodes[i].t.id) ?? -Infinity
-  const fillOrder = [...dims.filter(raisable).sort((a, b) => value(b) - value(a) || a - b), ...fillerOrder]
+  const partials = dims.filter((i) => raisable(i) && !isPreferred[i]).sort((a, b) => value(b) - value(a) || a - b)
+  const objectivePartials = partials.filter((i) => nodes[i].role === 'objective')
+  const constraintPartials = partials.filter((i) => nodes[i].role !== 'objective')
+  const fillOrder = [...objectivePartials, ...preferred, ...constraintPartials, ...fillerOrder]
   const searchPartials = options.searchPartials ?? false
 
   const treeCount = data.trees.length

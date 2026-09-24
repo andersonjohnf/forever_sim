@@ -23,7 +23,7 @@
 //   --search talents      talents (the default); the setup's rotation
 //   --search rotation     rotation settings only (--sweep and --rotation give the variants); the setup's
 //                         talents, with no talent constraints
-//   --search both         every build with every rotation variant, and with the setup's own rotation
+//   --search both        every build with every rotation variant, and with the setup's own rotation
 //   --turns               talents, then the rotation variants with the winning build, then talents again,
 //                         until a pass keeps its start (docs/optimizer.md#talents-and-rotation-together).
 //                         Every pass races its start too, and holds every candidate to every constraint.
@@ -40,7 +40,10 @@
 //   --keep <talent>[=r]   in every build at rank r (default: its max); repeatable, or comma-separated. Kept
 //                         talents extend the survival floor for this search
 //   --exclude <talent>    never taken; repeatable, or comma-separated
-//   --no-floor            drop the spec's survival floor (a tank's; docs/classes/*.md "Survival floor")
+//   --no-floor            drop the spec's survival floor (a tank's; docs/classes/*.md "Survival floor"). A
+//                         warrior's or paladin's preferred filler, Anticipation, isn't in it: leftover points go
+//                         to it first, and a candidate level with the leader (within 0.5% or inside its 95%
+//                         interval) that has more of it is the answer (D30); --exclude it to search without
 //   --partials            search partial ranks too, one per build (a far larger space)
 //   --screen-fights <n>   fights per plan in the talent screen (default 400)
 //
@@ -394,6 +397,8 @@ async function main() {
       if (floor.length) console.log(`  survival floor kept: ${floor.join(', ')}${kept.length ? `; and kept (--keep): ${kept.join(', ')}` : ''}`)
       else if (kept.length) console.log(`  kept (--keep): ${kept.join(', ')}`)
       const name = (id) => data.trees.flatMap((t) => t.talents).find((t) => t.id === id).name
+      if (r.space.preferred)
+        console.log(`  preferred filler (D30): ${name(r.space.preferred)}, first for leftover points; a candidate level with the leader that has more of it is the answer`)
       if (r.space.constrained.length) console.log(`  searched for the constraints (they change what a limit reads): ${r.space.constrained.map(name).join(', ')}`)
       if (r.space.minPoints && Object.values(r.space.minPoints).some((n) => n > 0))
         console.log(`  minimum points: ${Object.entries(r.space.minPoints).map(([t, n]) => `${t} ${n}${t in minPoints ? '' : " (the tank's default)"}`).join(', ')}`)
@@ -421,7 +426,9 @@ async function main() {
       race.standings.forEach((s, i) => {
         const cand = r.candidates[s.candidate]
         const sheet = r.sheets[s.candidate]
-        const state = s.state === 'dropped' ? `dropped r${s.droppedInRound}${s.droppedAs === 'infeasible' ? ' (outside a limit)' : ''}` : s.state
+        const state =
+          (s.state === 'dropped' ? `dropped r${s.droppedInRound}${s.droppedAs === 'infeasible' ? ' (outside a limit)' : ''}` : s.state) +
+          (r.preferred && s.candidate === r.answer ? `, the answer (preferred for ${r.preferred.talent})` : '')
         console.log(
           `| ${i + 1} | \`${cand.talents}\` | ${describe(s.candidate)} | ${tank ? `${s.mean.tps.toFixed(1)} | ` : ''}${s.mean.dps.toFixed(1)} | ${tank ? `${s.mean.taken.toFixed(1)} | ${Math.round(sheet.health)} | ${Math.round(sheet.ehp)} | ${chance(sheet.bossCritPct)} | ${chance(sheet.bossCrushPct)} | ` : ''}${ci(s.vsBaseline.score)} |` +
             (tank ? ` ${ci(s.vsBaseline.tps, 1)} | ${ci(s.vsBaseline.dps, 1)} | ${ci(s.vsBaseline.taken, 1)} |` : ` ${pct((100 * s.vsBaseline.dps.mean) / race.baseline.dps)} |`) +
@@ -434,13 +441,12 @@ async function main() {
     console.log(`baseline: TPS ${race.baseline.tps.toFixed(1)}, DPS ${race.baseline.dps.toFixed(1)}${tank ? `, taken ${race.baseline.taken.toFixed(1)}/s, health ${Math.round(bs.health)}, EHP ${Math.round(bs.ehp)}, boss crit ${chance(bs.bossCritPct)}, crush ${chance(bs.bossCrushPct)}` : ''} over ${count(race.baseline.fights)} fights`)
     const seconds = r.ms / 1000
     const speed = `${count(r.fights)} fights in ${seconds.toFixed(1)} s on ${threads} threads: ${count(Math.round(r.fights / seconds))} fights a second`
-    if (race.leader === null) {
+    if (r.answer === null) {
       console.log('result: no setup meets these constraints:')
       for (const line of r.blocked) console.log(`  - ${line}`)
       console.log(speed)
       return
     }
-    const leader = race.standings[0]
     const infeasible = race.rounds.reduce((n, round) => n + round.infeasible, 0)
     console.log(
       race.status === 'separated'
@@ -448,19 +454,28 @@ async function main() {
         : `result: the budget ran out after ${race.rounds.length} rounds with ${count(race.unseparated.length)} candidates the leader isn't clear of at 95%` +
             (race.closest ? `; the closest (\`${r.candidates[race.closest.candidate].talents}\`: ${describe(race.closest.candidate)}) is ${ci(race.closest.vsLeader)}${unit} behind (95% CI)` : ''),
     )
-    const leaderBeatsBase = leader.vsBaseline.score.mean - leader.vsBaseline.score.halfWidth > 0
+    // The preferred filler (D30): a candidate level with the leader that has more of it answers instead.
+    const p = r.preferred
+    if (p) {
+      const within = p.within === 'interval' ? 'inside the CI' : `within 0.5% of the leader's score, ${fmt(p.tolerance)}${unit}`
+      console.log(
+        `preferred for ${p.talent} (filler): \`${r.candidates[p.candidate].talents}\`, ${p.talent} ${p.ranks} to the leader's ${p.leaderRanks}: ${ci({ mean: -p.vsLeader.mean, halfWidth: p.vsLeader.halfWidth })}${unit} against the leader (${within})`,
+      )
+    }
+    const answer = race.standings.find((s) => s.candidate === r.answer)
+    const beatsBase = answer.vsBaseline.score.mean - answer.vsBaseline.score.halfWidth > 0
     const units = objective === 'balanced' ? ' points' : ` ${objective.toUpperCase()}`
-    const own = engine.isSetup(config, r.candidates[race.leader])
-    const below = leader.vsBaseline.score.mean + leader.vsBaseline.score.halfWidth < 0
+    const own = engine.isSetup(config, r.candidates[r.answer])
+    const below = answer.vsBaseline.score.mean + answer.vsBaseline.score.halfWidth < 0
     console.log(
-      `leader vs the default: ${ci(leader.vsBaseline.score)}${units}${own ? ' (the setup itself leads)' : leaderBeatsBase ? ', above zero' : below ? ', below the default, which fails a constraint' : ', not clear of the default'}`,
+      `${p ? 'answer' : 'leader'} vs the default: ${ci(answer.vsBaseline.score)}${units}${own ? ` (the setup itself ${p ? 'is the answer' : 'leads'})` : beatsBase ? ', above zero' : below ? ', below the default, which fails a constraint' : ', not clear of the default'}`,
     )
     console.log(speed)
   }
 
   // --- D23's confirmation on a fresh seed ---
   const final = reports[reports.length - 1]
-  const winner = final.race.leader === null ? null : final.candidates[final.race.leader]
+  const winner = final.answer === null ? null : final.candidates[final.answer]
   let confirmation
   if (args.confirm && winner === null) console.log('\nconfirmation: no setup meets the constraints, so there is nothing to confirm')
   else if (args.confirm && engine.isSetup(config, winner)) console.log('\nconfirmation: the setup itself leads, so there is nothing to confirm')

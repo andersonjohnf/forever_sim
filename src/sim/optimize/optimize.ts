@@ -7,7 +7,9 @@
 // 3. Race them on common random numbers (./race.ts) within the budget, beside the baseline, the
 //    setup as it is: the measuring stick every candidate is paired with, never an answer. If no
 //    candidate meets the constraints, there's no answer, and the report says which ones block.
-// 4. Optionally confirm the winner against the baseline on a fresh seed (D23).
+// 4. The answer is the race's leader, unless a tank's preferred filler (./prefer.ts, D30) prefers a
+//    candidate level with it that has more Anticipation.
+// 5. Optionally confirm the answer against the baseline on a fresh seed (D23).
 // Everything runs through a FightRunner, so the same code runs on this thread, in the app's worker
 // pool and in Node's worker threads, with the same result for the same inputs and seed.
 import { type TalentData, type TalentRanksById, decodeTalentCode, talentsInCodeOrder } from '@/data/talents/types'
@@ -18,8 +20,9 @@ import { SPEC_META } from '../specs'
 import type { Assumption, RotationValue, SimConfig, SpecId } from '../types'
 import { type FightRunner, type PlanSource, planKey } from './fights'
 import { type Constraint, constraintName, formatConstraint, limits, meetsSheet, type ResultConstraint, type SheetConstraint, sheetValues, type SheetValues } from './constraints'
-import { SURVIVAL_FLOOR, TANK_TREE, TANK_TREE_POINTS } from './floor'
+import { PREFERRED_FILLER, SURVIVAL_FLOOR, TANK_TREE, TANK_TREE_POINTS } from './floor'
 import { defaultObjective, type Interval, lower, type ObjectiveId } from './objective'
+import { type FillerPreference, preferFiller } from './prefer'
 import { race, type RaceProgress, type RaceResult } from './race'
 import { screenTalents, type TalentScreen, type TalentVerdict } from './screen'
 import { brokenConstraints, type TalentConstraints, talentSpace, type TalentSpace } from './talents'
@@ -197,7 +200,14 @@ export interface OptimizeReport {
    * The talent space (its builds counted, not listed), the floor it kept, and the talents that are
    * dimensions because a constraint reads what they change, by id.
    */
-  space?: Omit<TalentSpace, 'builds'> & { builds: number; floor: Record<string, number>; constrained: string[]; minPoints?: Readonly<Record<string, number>> }
+  space?: Omit<TalentSpace, 'builds'> & {
+    builds: number
+    floor: Record<string, number>
+    constrained: string[]
+    minPoints?: Readonly<Record<string, number>>
+    /** The preferred filler's id (D30), when the spec has one the search neither keeps nor excludes. */
+    preferred?: string
+  }
   /**
    * Index 0 is the baseline, the setup as it is: the measuring stick every candidate is paired with,
    * never an answer. Then every candidate that raced, each one meeting every talent and sheet
@@ -211,8 +221,15 @@ export interface OptimizeReport {
   /** The reference's sheet values (relative sheet constraints are shares of them), and each reported candidate's, by index. */
   reference: SheetValues
   sheets: Record<number, SheetValues>
-  /** The answer is `race.leader`; null when no setup meets the constraints. */
+  /**
+   * The race. Its standings are the top ones, and the preferred candidate when it isn't among them.
+   * Its leader is the best mean; the answer is `answer`.
+   */
   race: RaceResult
+  /** The answer, by index: the race's leader, or the candidate the preferred filler prefers to it. Null when no setup meets the constraints. */
+  answer: number | null
+  /** When the preferred filler's rule (./prefer.ts, D30) answered with another candidate than the leader: which, and why. */
+  preferred?: FillerPreference & { talent: string }
   /** Why no setup meets the constraints, a line a blocking constraint; empty when there's an answer. */
   blocked: string[]
   /** Fights run: the screen's and the race's. */
@@ -291,6 +308,9 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   const constraints = [...(options.constraints ?? [])]
   const search = options.talents
   const talentRules = search ? talentConstraintsOf(spec, search) : undefined
+  // A tank's preferred filler (D30): first for leftover points, and the tie-break at the race's end.
+  const fillerName = PREFERRED_FILLER[spec]
+  const fillerId = fillerName ? talentId(data, fillerName) : undefined
   let screen: TalentScreen | undefined
   let space: OptimizeReport['space']
   let builds = [start.talents]
@@ -312,6 +332,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     const reads = (v: TalentVerdict) =>
       constraints.some((c) => (c.on === 'sheet' ? v.sheetStats.includes(c.stat) : c.metric === 'taken' ? v.takenChanges : v.scoreChanges))
     const constrained = new Set(screen.verdicts.filter((v) => v.role !== 'objective' && !(v.id in keep) && reads(v)).map((v) => v.id))
+    const preferred = fillerId !== undefined && !(fillerId in keep) && !exclude.includes(fillerId) ? fillerId : undefined
     const found = talentSpace({
       data,
       roles: screen.roles,
@@ -320,13 +341,21 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
       keep,
       exclude,
       minPoints,
+      ...(preferred ? { preferred: [preferred] } : {}),
       preferTree: search.preferTree ?? mainTree(data, start.talents),
       searchPartials: search.searchPartials,
       limit: search.limit,
     })
     builds = found.builds.map((b) => b.code)
     const { builds: list, ...rest } = found
-    space = { ...rest, builds: list.length, floor: talentRules.floor, constrained: [...constrained], ...(minPoints ? { minPoints } : {}) }
+    space = {
+      ...rest,
+      builds: list.length,
+      floor: talentRules.floor,
+      constrained: [...constrained],
+      ...(minPoints ? { minPoints } : {}),
+      ...(preferred ? { preferred } : {}),
+    }
   }
 
   // The candidates: the setup itself (if it's valid and best, it wins like any candidate), the start
@@ -376,19 +405,43 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   // Build the baseline's plan now, so a setup that can't be simulated fails before any fights.
   sources[0].plan()
   const resultRules = constraints.filter((c): c is ResultConstraint => c.on === 'result')
-  const result = await race({
+  const raced = await race({
     sources,
     runner,
     objective,
     budget: planned.fights,
     initialFights: planned.initialFights,
     constraints: resultRules,
-    top: options.top,
+    // Every standing, for the preferred filler's rule; trimmed to `top` below.
+    top: Infinity,
     signal,
     onProgress: (p) => options.onProgress?.({ phase: 'race', ...p }),
   })
+
+  // The preferred filler (D30): a candidate level with the leader that has more of it answers instead.
+  let preferred: OptimizeReport['preferred']
+  if (raced.leader !== null && fillerId !== undefined) {
+    const ranksOf = (c: number) => {
+      try {
+        return decodeTalentCode(data, candidates[c].talents)[fillerId] ?? 0
+      } catch {
+        return 0
+      }
+    }
+    const [lead, ...others] = raced.standings
+    const pick = preferFiller(
+      { candidate: lead.candidate, ranks: ranksOf(lead.candidate), score: lead.mean.score },
+      others.map((s) => ({ candidate: s.candidate, ranks: ranksOf(s.candidate), vsLeader: s.vsLeader!, eligible: s.feasible && s.droppedAs !== 'infeasible' })),
+    )
+    if (pick) preferred = { ...pick, talent: fillerName! }
+  }
+  const answer = preferred?.candidate ?? raced.leader
+  const top = raced.standings.slice(0, options.top ?? 10)
+  if (preferred && !top.some((s) => s.candidate === preferred.candidate)) top.push(raced.standings.find((s) => s.candidate === preferred.candidate)!)
+  const result: RaceResult = { ...raced, standings: top }
+
   let blocked: string[] = []
-  if (result.leader === null)
+  if (answer === null)
     blocked =
       valid.length === 0
         ? whyNoneBefore({ pool, talentFails, keepsTalents, sheets, reference, sheetRules })
@@ -409,6 +462,8 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
     // Every result shows its health, effective health and damage taken (D30).
     sheets: Object.fromEntries([0, ...result.standings.map((st) => st.candidate)].map((i) => [i, i === 0 ? baselineSheet : sheetOf(candidates[i])])),
     race: result,
+    answer,
+    ...(preferred ? { preferred } : {}),
     blocked,
     fights: (screen?.fights ?? 0) + result.spent,
     ms: now() - began,
@@ -556,8 +611,8 @@ export async function optimizeInTurns(options: OptimizeOptions & { passes?: numb
     })
     reports.push(report)
     options.onPass?.(report, pass)
-    if (report.race.leader === null) break
-    const winner = report.candidates[report.race.leader]
+    if (report.answer === null) break
+    const winner = report.candidates[report.answer]
     const moved = winner.talents !== start.talents || !sameRotation(winner.rotation, start.rotation)
     start = winner
     if (!moved && pass > 0) break

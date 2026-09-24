@@ -24,7 +24,8 @@ export {
   sheetValues,
   type SheetValues,
 } from './constraints'
-export { SURVIVAL_FLOOR, TANK_TREE, TANK_TREE_POINTS } from './floor'
+export { PREFERRED_FILLER, SURVIVAL_FLOOR, TANK_TREE, TANK_TREE_POINTS } from './floor'
+export { type FillerContender, type FillerPreference, PREFERENCE_TOLERANCE, preferFiller } from './prefer'
 export {
   defaultObjective,
   ELIMINATION_TAIL,

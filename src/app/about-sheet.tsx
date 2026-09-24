@@ -4,6 +4,7 @@ import { DataAttribution } from '@/components/data-attribution'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { formatReleaseTime, RELEASE, shortCommit } from './release'
 import type { useSheetFocus } from './sheet-focus'
 import { appSentence, coverageSentence } from './specs'
 
@@ -51,6 +52,7 @@ export function AboutSheet({
           </SheetTitle>
           {/* What it is, then the specs it covers, which grow as they ship (docs/ux.md principle 8). */}
           <SheetDescription>{appSentence()} Everything runs in your browser.</SheetDescription>
+          <ReleaseStamp />
           <p className="mt-1 text-sm text-muted-foreground">{coverageSentence()}</p>
         </SheetHeader>
         <SheetClose asChild>
@@ -126,3 +128,15 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
     </section>
   )
 }
+
+/** When this release went out, in the viewer's time zone, and its build (docs/ux.md "About & data"). */
+function ReleaseStamp() {
+  const commit = shortCommit(RELEASE.commit)
+  return (
+    <p className="mt-1 text-sm text-muted-foreground">
+      Updated <time dateTime={RELEASE.time.toISOString()}>{formatReleaseTime(RELEASE.time)}</time>
+      {commit && <span className="whitespace-nowrap"> · build {commit}</span>}
+    </p>
+  )
+}
+

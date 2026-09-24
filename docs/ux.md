@@ -53,7 +53,11 @@ simulator" while only DPS specs did), then the specs it covers on their own line
 time ("Covers Warriors: Fury, Arms and Protection · Druids: Feral (Cat) · Paladins:
 Retribution and Protection"), which grows as specs ship (principle 8). The page's meta and Open
 Graph descriptions in `index.html` carry the same description line, so they changed once, when
-the first tank spec shipped; an e2e test compares them.
+the first tank spec shipped; an e2e test compares them. Right under the description line, above
+the specs, the **release stamp** says when
+this release went out, in the viewer's own time zone, and its build: "Updated 8:05 PM EDT · Sep 24,
+2026 · build 1a2b3c4". Players check it to see whether a fix they heard about is live, and quote
+the build when they report something.
 
 **Section tabs** are 44 px tall. When they scroll sideways, a fade marks each edge with more
 tabs past it (none at an end), and the chosen tab scrolls into view clear of the fades, as does

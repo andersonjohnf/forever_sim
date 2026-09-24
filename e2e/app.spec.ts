@@ -410,6 +410,10 @@ test.describe('about', () => {
     await expect(about).toContainText('all come from the WoW Forever beta client')
     await expect(about).toContainText(/Items\s*Build 1\.60\./)
     await expect(about).not.toContainText(/foreverchanges/i)
+    // The release stamp (docs/ux.md "About & data"): the build's time, in the viewer's zone, and its commit.
+    const stamp = about.getByText(/^Updated /)
+    await expect(stamp).toHaveText(/^Updated \d{1,2}:\d{2}\s?[AP]M \S+ · [A-Z][a-z]{2} \d{1,2}, \d{4}( · build [0-9a-f]{7})?$/)
+    await expect(stamp.locator('time')).toHaveAttribute('datetime', /^\d{4}-\d{2}-\d{2}T/)
   })
 })
 

@@ -1,4 +1,5 @@
 /// <reference types="vitest/config" />
+import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath, URL } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
@@ -68,8 +69,27 @@ function slimData(): Plugin {
   }
 }
 
+/**
+ * The release stamp (docs/architecture.md "Release stamp"): when this build was made and from which
+ * commit, shown in About. The deploy builds on every push to main, so its time is the release's.
+ * BUILD_TIME can pin it (a test's build); GitHub Actions gives the commit as GITHUB_SHA.
+ */
+function gitCommit(): string {
+  try {
+    return execSync('git rev-parse HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim()
+  } catch {
+    return ''
+  }
+}
+const BUILD_TIME = process.env.BUILD_TIME ?? new Date().toISOString()
+const BUILD_COMMIT = process.env.GITHUB_SHA ?? gitCommit()
+
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    __BUILD_TIME__: JSON.stringify(BUILD_TIME),
+    __BUILD_COMMIT__: JSON.stringify(BUILD_COMMIT),
+  },
   // Served from the root of https://sim.decades.gg/, GitHub Pages' custom domain. The old
   // https://andersonjohnf.github.io/forever_sim/ redirects there, keeping a link's #s= setup.
   base: '/',

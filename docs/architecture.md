@@ -495,3 +495,12 @@ A spec is data plus small ability modules, never its own loop.
    `dist/`. The full suite has passed locally before the push (CLAUDE.md), and Full regression
    runs it again beside the deploy, without holding it up.
 2. One-time setup: repository **Settings → Pages → Source: GitHub Actions**.
+
+### Release stamp
+
+Each build carries its time and commit, set by Vite's `define` in `vite.config.ts`
+(`__BUILD_TIME__`, `__BUILD_COMMIT__`, read in `src/app/release.ts`). The deploy builds on every
+push to `main`, so a build's time is its release's; GitHub Actions supplies the commit as
+`GITHUB_SHA`, and a local build reads it from git (empty when there's none). `BUILD_TIME` in the
+environment pins the time. The About sheet shows it in the viewer's own time zone
+([ux.md](ux.md), "About & data").

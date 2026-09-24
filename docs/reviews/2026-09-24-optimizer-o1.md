@@ -142,3 +142,51 @@ Scope `0eed941`..`b29e3fc` (the log commit needs no pass). Worth checking:
 - `--search rotation` has no talent constraints (documented), while `--turns` does;
 - the bear's new default search: the setup leads by 8 points in round 0, the space's structure
   (every build keeping Feral Swiftness and 31 in Feral), and whether that's plausible.
+
+## Second verification (OV2)
+
+A fresh reviewer's second pass over `0eed941`..`b29e3fc` (probes in the O1 worktree's
+`.cache/probes/o1-verify2/`) confirmed OV-1 to OV-8 fixed and found nothing at medium or worse. Its
+eight lows, all fixed after the branch was rebased onto `main` (D27, D28, D30's preferred filler and
+D33):
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| OV2-1 | low | pre-existing (O1's race) | A result constraint was judged on the leader's mean alone: a leader truly over its limit could drop a feasible candidate as worse and end separated in round 0 (the probe's toy: limit 505 damage taken, the leader at 507, a feasible 1,050 DPS at 495, lost in 5 of 30 seeds). optimizer.md's limits understated it. | fixed, `f76aa2d`: until the leader's constrained metrics' 95% intervals lie inside every limit it drops no one as worse and the race can't end separated; `leaderInsideLimits` and the CLI's note when the budget ends first; the toy race is a unit test (30 seeds, the feasible one answers each time); "Limits of the method" rewritten |
+| OV2-2 | low | pre-existing (CLI) | `--search rotation` silently ignored `--keep`, `--exclude`, `--min-tree` and `--no-floor`. | fixed, `f76aa2d`: the CLI refuses them (and `--partials`) with one line naming the flags and `--search both` or `--turns` |
+| OV2-3 | low | introduced | With an empty talent space, `blocked` listed only the setup's failures ("Wild Growth 0/1"), not the real block. | fixed, `f76aa2d`: "no legal 51-point build fits the talent constraints together: the survival floor (…); kept talents (…); excluded talents (…); at least 31 points in Feral Combat"; a test (the bear keeping Moonkin Form) |
+| OV2-4 | low | introduced | The result-constraint count left out candidates merged as ties ("156 of 157"). | fixed, `f76aa2d`: a candidate dropped as outside counts its ties in `outside`; a toy test |
+| OV2-5 | low | introduced (perf) | The setup's copy ran the baseline's fights again (a third of a one-variant rotation search). | fixed, `f76aa2d`: the race's `copies` take the baseline's samples (the same plan on the same seed, so the pairing is exact) and cost no fights; the bear's default search runs 149,800 fights where it ran 150,800; a toy test |
+| OV2-6 | low | pre-existing (CLI) | In `--turns`, `=== pass N ===` printed after that pass's space lines and rounds. | fixed, `f76aa2d`: it prints on the pass's first progress event (checked in `.cache/probes/o1-ov2/bear-turns.log`) |
+| OV2-7 | low | introduced | With no leader, each standing's `vsLeader` was `{0, Infinity}`, written as `"halfWidth": null`. | fixed, `f76aa2d`: `vsLeader` is left out when there's no leader; a test |
+| OV2-8 | low | introduced (tests) | Only the crit-immune line of `blocked` had a test. | fixed, `f76aa2d`: tests for the talent line (a kept build that takes an excluded talent), the "together" line (armor ≥ the most and ≤ the least), the optimize-level result-constraint line ("2 of 2"), and the budget line with a null leader |
+
+**User decision (D30 on `main`, `15d2fd5`): Anticipation leaves the tanks' floor and becomes the
+preferred filler.** `65799755`, with the CLI's wording in `73595b4`: Deflection 5/5 stays in the
+warrior's and paladin's `SURVIVAL_FLOOR`; `PREFERRED_FILLER` names Anticipation. Leftover points go
+to it after the objective talents' partial ranks and before Toughness or any other filler, even
+when a constraint makes Toughness a dimension; and when the race ends, a candidate with more
+Anticipation than the leader is the answer if it's within 0.5% of the leader's score or inside the
+leader's paired 95% interval (`preferFiller`, `src/sim/optimize/prefer.ts`, unit-tested; D30's
+unmeasured-rating item rule, turned to what the model can't see). The report has `answer` and
+`preferred`; turns and `--confirm` use the answer. Docs: optimizer.md's new "The preferred filler",
+warrior.md §6.4, paladin.md's floor and defaults, milestones.
+
+### The numbers after this round
+
+The default searches (`quick`, seed 1, `--confirm` on seed 2654435770, 40,000 fights each; logs in
+`.cache/probes/o1-ov2/`):
+
+| Spec | Space | Result | Confirmed vs the default | Before (OV) |
+| --- | --- | --- | --- | --- |
+| Protection warrior | 4,735 builds, 4,736 candidates (the default's build isn't in the space) | Improved Rend 0→3, Deep Wounds 0→3, Improved Thunder Clap 0→3 for Anticipation 5→0, Toughness 1→0, Master of Defense 2→0, Vanguard 1→0; separated after 3 rounds. No candidate with Anticipation is within 0.5% (the top ten all have none) | **+4.43** (+4.35 to +4.50), clears with ratings either way; boss crit 4.56% → 5.36% | +0.54 |
+| Protection paladin | 8,918 builds and candidates (the default, which has Anticipation 5, is one) | `050003-0530213321301511-50205`: Divine Strength 0→5, Improved Seals 0→3, Anticipation 5→2, Iron Creed 5→1, Holy Conduit 1→0 (Anticipation takes the leftover points before Toughness); separated after round 0 | **+6.48** (+6.40 to +6.56), clears with ratings either way | +5.30 |
+| Feral bear | 129 builds and candidates, unchanged (no preferred filler) | **the setup itself**, separated after round 0; the next best −8.33 | nothing to confirm | the setup itself |
+
+The paladin's answer takes Anticipation 2/5, the shape of the theorycrafter's build D30 cites. The
+warrior's drops Anticipation entirely: its five points buy Deep Wounds and Improved Rend in Arms,
+worth about 4 points, far past the 0.5% tolerance, so the rule keeps the leader. That is D30 working
+as decided, but it costs the warrior 0.8% more boss crits, and the lead may want the user to see it.
+
+Checks: lint and typecheck clean; `npx vitest run src/sim/optimize` 65 passed. No UI changed, so no
+e2e run or screenshots.

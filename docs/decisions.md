@@ -431,11 +431,18 @@ had no known number was modelled with none. Both are now rules:
   bonus as on a warrior's ability that says it. When the ability has no tier 1–2 value, it takes
   the value of the known abilities with the same wording, scaled the way those values scale,
   as a `[?]` assumption shown in the results. A guild measurement replaces it.
-- **Zero is a claim too.** When a source (a tooltip, the client's data or a talent's text) says
-  an effect exists but no allowed source gives its size, it is never modelled as nothing. It
-  takes the closest analog from allowed sources, flagged `[?]`. Only an allowed source that
-  gives no effect at all can make it zero.
-- **Presets are geared for what the spec measures.** A spec's gear preset is built for its own
+- **Every value that affects the result has a default.** Leaving a known variable blank was
+  meant as caution, but it models the effect as zero, and that made the sim far less accurate.
+  Anything we know exists (from a tooltip, the client, a talent's text or how the game plays)
+  gets a sensible default from the closest allowed analog or an estimate reasoned from allowed
+  sources. It's flagged `[?]` and shown in the results' assumptions, never left out. Only an
+  allowed source that gives no effect at all makes it zero. The forbidden sources still can't
+  supply the number; that rule decides where a default comes from, never whether there is one.
+- **Talent builds and gear suit how the spec is played.** A tank talents for the balanced
+  approach (threat and damage, with the mitigation that matters, like D28's Balanced rotation),
+  never for pure defense.
+- **Presets are real pre-raid BiS, geared for what the spec measures.** A spec's gear preset is
+  the set its players would actually wear, built for its own
   headline metric: TPS for tanks, DPS otherwise. It uses the stats that the spec's damage and
   threat actually scale with, measured by the sim's stat weights: a Protection paladin's Holy
   threat scales with spell power, so its preset leans to spell damage. A pre-raid guide supplies

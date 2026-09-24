@@ -129,12 +129,17 @@ npm run scrape:client # just src/data/client, the raw client tables (cached; -- 
   don't use it. **One exception (D24):** a value Classic Era kept unchanged from 1.12 (class base
   attributes, base health), found only in an emulator database, may stand in as a flagged `[?]`
   placeholder until a tier 1–3 source replaces it; see D24 for the conditions.
-- **Zero is a claim too (D29).** If a tooltip, the client or a talent says an effect exists but
-  no allowed source sizes it, never model it as nothing: use the closest allowed analog, tagged
-  `[?]` and shown in the results' assumptions. **The same threat wording means the same threat
-  on every tank:** "a high amount of threat" on a bear's or paladin's ability carries the bonus
-  the warrior's abilities with those words carry (threat.md's wording table).
-- **Presets are geared for what the spec measures (D29):** TPS for tanks, DPS otherwise, using
+- **Every value that affects the result has a default (D29).** Never leave a known variable
+  blank: a blank models it as zero, which is the least accurate guess. Anything a tooltip, the
+  client, a talent or how the game plays says exists gets a sensible default from the closest
+  allowed analog or a reasoned estimate, tagged `[?]` and shown in the results' assumptions.
+  "Unknown" or "no allowed source" is never a reason to leave it out; the sourcing rules only
+  decide where a default comes from. **The same threat wording means the same threat on every
+  tank:** "a high amount of threat" on a bear's or paladin's ability carries the bonus the
+  warrior's abilities with those words carry (threat.md's wording table).
+- **Defaults are what the spec's players actually run (D29).** Talent builds suit the role as
+  it's played: tanks talent for the balanced approach, never pure defense.
+- **Presets are real pre-raid BiS, geared for what the spec measures (D29):** TPS for tanks, DPS otherwise, using
   the stats the spec actually scales with (a Protection paladin's threat is Holy damage, so
   spell power), checked with the sim's stat weights. Guides supply candidates, never survival
   picks; the tanks' sets are like for like; no preset item may have lost its stats.

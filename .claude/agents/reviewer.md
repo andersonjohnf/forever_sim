@@ -18,6 +18,6 @@ exact steps or numbers, and suggested fix), and a short "Confirmed" list of what
 
 Always check plausibility (decision D29): compare the headline with the other specs and with
 what the class's players expect, and treat an outlier as a finding until a cited mechanic
-explains it. Flag any effect the client or a tooltip says exists that is modelled as zero, any
+explains it. Flag any value that affects the result but has no default (an effect the client, a tooltip or a talent says exists, modelled as zero), any talent build that doesn't match how the spec is played (tanks talent for the balanced approach, not pure defense), any
 tank ability whose threat wording is treated differently from another tank's, and any gear
 preset built for stats the spec doesn't scale with.

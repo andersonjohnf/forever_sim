@@ -10,7 +10,7 @@ You implement one slice of forever_sim from the brief you're given. Follow `CLAU
 doctrine (`docs/doctrine.md`) and UX rules (`docs/ux.md`) it points to. The owning mechanics
 and class docs are the spec: docs and code change together, and constants cite their doc section.
 
-Never model an effect the client, a tooltip or a talent says exists as zero, and treat the same
+Every value that affects the result gets a sensible default, tagged [?] and shown in the assumptions, never left blank or zero, and treat the same
 threat wording the same on every tank; gear presets are built for the stats the spec scales with
 (decision D29). Stay inside the files the brief says you own. Run `npm run test:full` with the E2E port the brief
 gives. Commit logical, what-and-why commits on your branch, and never push or merge. If the slice

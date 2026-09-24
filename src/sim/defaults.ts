@@ -361,7 +361,9 @@ const holds = (item: Item) => (item.itemSubclass === 'Ammo Pouch' ? 'bullet' : '
 
 /**
  * The gear after its ranged weapon changed to `ranged` (a hunter's; docs/classes/hunter.md#73-gear):
- * ammo the new weapon can't fire becomes the default ammo it can, as `defaultGear` picks; a quiver
+ * ammo the new weapon can't fire becomes the ammo it can fire with the closest damage per second,
+ * its twin when there is one (Swiftfeather Arrow ↔ Swiftstrike Shot), preferring the default on a
+ * tie, so a bow-against-gun comparison isn't skewed by the ammo; a quiver
  * or ammo pouch of the other kind becomes the one of this kind with the same ranged attack speed
  * (the default when there's a choice), so the setup's haste doesn't change. A thrown weapon fires
  * no ammo and leaves both alone. Returns the same object when nothing changes.
@@ -376,7 +378,17 @@ export function matchSupplies(
   let next = gear
   const ammo = byId(gear.ammo?.itemId)
   if (ammo?.ammo && ammo.ammo.projectile !== kind) {
-    next = { ...next, ammo: { itemId: kind === 'arrow' ? DEFAULT_SUPPLIES.arrows : DEFAULT_SUPPLIES.bullets } }
+    const dps = ammo.ammo.dps
+    const preferred = kind === 'arrow' ? DEFAULT_SUPPLIES.arrows : DEFAULT_SUPPLIES.bullets
+    const gap = (i: Item) => Math.abs((i.ammo?.dps ?? 0) - dps)
+    const closest = items
+      .filter((i) => i.ammo?.projectile === kind)
+      .reduce<Item | undefined>((best, i) => {
+        if (!best || gap(i) < gap(best) - 1e-9) return i
+        if (Math.abs(gap(i) - gap(best)) <= 1e-9 && i.id === preferred) return i
+        return best
+      }, undefined)
+    next = { ...next, ammo: { itemId: closest?.id ?? preferred } }
   }
   const quiver = byId(gear.quiver?.itemId)
   if (quiver && quiver.slot === 'quiver' && holds(quiver) !== kind) {

@@ -103,7 +103,7 @@ describe('matchSupplies (docs/classes/hunter.md#73-gear)', () => {
   })
 
   it('swaps arrows and a quiver for bullets and a pouch when a gun replaces a bow, as defaultGear picks', () => {
-    const gear = { ranged: { itemId: bow.id }, ammo: { itemId: 274387 }, quiver: { itemId: DEFAULT_SUPPLIES.quiver } }
+    const gear = { ranged: { itemId: bow.id }, ammo: { itemId: DEFAULT_SUPPLIES.arrows }, quiver: { itemId: DEFAULT_SUPPLIES.quiver } }
     expect(matchSupplies(gear, gun)).toEqual({
       ranged: { itemId: bow.id },
       ammo: { itemId: DEFAULT_SUPPLIES.bullets },
@@ -113,6 +113,16 @@ describe('matchSupplies (docs/classes/hunter.md#73-gear)', () => {
       ammo: { itemId: DEFAULT_SUPPLIES.arrows },
       quiver: { itemId: DEFAULT_SUPPLIES.quiver },
     })
+  })
+
+  it('keeps the ammo’s damage: arrows become their bullet twin, else the closest bullet (VF3)', () => {
+    // Swiftfeather Arrow 274387 ↔ Swiftstrike Shot 274388, both 24.617; Doomshot 12654 (20.244) has
+    // no twin, so it becomes Miniature Cannon Balls 13377 (20.901), the closest bullet.
+    expect(matchSupplies({ ammo: { itemId: 274387 } }, gun)).toEqual({ ammo: { itemId: 274388 } })
+    expect(matchSupplies({ ammo: { itemId: 274388 } }, bow)).toEqual({ ammo: { itemId: 274387 } })
+    expect(matchSupplies({ ammo: { itemId: 12654 } }, gun)).toEqual({ ammo: { itemId: 13377 } })
+    // A tie (Thorium Shells and Thorium Headed Arrow, 17.715) keeps to the default.
+    expect(matchSupplies({ ammo: { itemId: DEFAULT_SUPPLIES.bullets } }, bow)).toEqual({ ammo: { itemId: DEFAULT_SUPPLIES.arrows } })
   })
 
   it('keeps the quiver’s haste: a 13% quiver becomes the 13% pouch', () => {

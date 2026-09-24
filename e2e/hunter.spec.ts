@@ -219,6 +219,10 @@ test.describe('Hunters on a phone', () => {
     await expect(ranged).toBeHidden()
     await expect(gear.getByRole('button', { name: 'Ammo: Thorium Headed Arrow' })).toBeVisible()
     await expect(gear.getByRole('button', { name: 'Quiver: Harpy Hide Quiver' })).toBeVisible()
+    // Screen readers hear what was swapped in (docs/ux.md "Gear").
+    await expect(page.getByRole('status', { name: 'Announcements' })).toHaveText(
+      'Swapped in Thorium Headed Arrow and Harpy Hide Quiver to match the ranged weapon.',
+    )
 
     // Bullets can still be picked with a bow: they add nothing, and the slot says why.
     await gear.getByRole('button', { name: 'Ammo: Thorium Headed Arrow' }).click(onIcon)

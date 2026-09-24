@@ -268,34 +268,16 @@ talents and default build, abilities, rotation, defaults, e2e, shipped.
       Scorch, Winter's Chill), mana with the five-second rule
       ([review](reviews/2026-09-24-caster-core.md))
 - [x] **K2 Mage:** Fire, Frost, Arcane ([review](reviews/2026-09-24-mage.md))
-- [x] **K3 Warlock:** Destruction, Affliction (Demonology with the pet core, P1 below). Built on its
-  branch, awaiting review ([warlock.md](classes/warlock.md)). ([review](reviews/2026-09-24-warlock.md))
+- [x] **K3 Warlock:** Destruction, Affliction (Demonology with the pet core, H3 below)
+      ([warlock.md](classes/warlock.md)) ([review](reviews/2026-09-24-warlock.md))
 - [x] **K4 Shadow Priest** ([review](reviews/2026-09-24-shadow-priest.md))
 - [x] **K5 Elemental Shaman** ([review](reviews/2026-09-24-elemental-shaman.md))
 - [x] **K6 Balance Druid:** Moonkin Form ([review](reviews/2026-09-24-balance-druid.md))
 - [x] **H1 Ranged and pet core:** Auto Shot and ranged weapons, ammo, and pets with their own
-      attacks. Built on its branch, awaiting review
-      ([ranged-and-pets.md](mechanics/ranged-and-pets.md)) ([review](reviews/2026-09-24-ranged-and-pet-core.md))
+      attacks ([ranged-and-pets.md](mechanics/ranged-and-pets.md)) ([review](reviews/2026-09-24-ranged-and-pet-core.md))
 - [x] **H2 Hunter:** Beast Mastery, Marksmanship, Survival, on the ranged and pet core with
       first-pass defaults ([hunter.md](classes/hunter.md)) ([review](reviews/2026-09-24-hunter.md)).
       The Demonology Warlock on the pet core is still to come
-
-## M5.7: The optimizer (D30) 🚧 top priority
-
-The sim finds the best talents, gear and rotation for a setup, within constraints the player
-sets. Each spec's defaults are then its results.
-- [ ] **O1 Search core and talents:** a pure-TS search in `src/sim/optimize/` (paired same-seed
-      racing over candidates in the worker pool, with confidence intervals), the talent build
-      enumerator (tree rules, required talents, the minimum points in a tree, the class's
-      survival floor), rotation settings as candidates, the objective per role, and a CLI
-      (`npm run optimize`)
-- [ ] **O2 Gear:** per-slot candidates from the pool (item level range, sources, faction, class,
-      locked slots), enchants, unique-equipped, two-hand vs dual wield, set bonuses, hit caps;
-      coordinate ascent with restarts; talents, gear and rotation alternated until stable
-- [ ] **O3 In the app:** an Optimize flow (what to search, constraints, a search budget, progress
-      and cancel, the top results with their TPS and DPS and one-tap apply) at 390 and 1280 px
-- [ ] **O4 Defaults from the optimizer:** every spec's talents, gear and rotation, confirmed on a
-      fresh seed, tanks after M5.6's threat fixes
 
 ## M5.6: Tanks, reviewed against the guild (D28, D29) 🚧
 
@@ -318,6 +300,23 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
       stay selectable
 - [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,
       Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken
+
+## M5.7: The optimizer (D30) 🚧 top priority
+
+The sim finds the best talents, gear and rotation for a setup, within constraints the player
+sets. Each spec's defaults are then its results.
+- [ ] **O1 Search core and talents:** a pure-TS search in `src/sim/optimize/` (paired same-seed
+      racing over candidates in the worker pool, with confidence intervals), the talent build
+      enumerator (tree rules, required talents, the minimum points in a tree, the class's
+      survival floor), rotation settings as candidates, the objective per role, and a CLI
+      (`npm run optimize`)
+- [ ] **O2 Gear:** per-slot candidates from the pool (item level range, sources, faction, class,
+      locked slots), enchants, unique-equipped, two-hand vs dual wield, set bonuses, hit caps;
+      coordinate ascent with restarts; talents, gear and rotation alternated until stable
+- [ ] **O3 In the app:** an Optimize flow (what to search, constraints, a search budget, progress
+      and cancel, the top results with their TPS and DPS and one-tap apply) at 390 and 1280 px
+- [ ] **O4 Defaults from the optimizer:** every spec's talents, gear and rotation, confirmed on a
+      fresh seed, tanks after M5.6's threat fixes
 
 ## M6: Multi-target 💤
 
@@ -405,6 +404,8 @@ robustness grid in the class doc), and its low findings in the known gaps are wo
 
 Found while building. Each should go to the owning doc or `open-questions.md` when its
 slice is worked:
+- **A DPS spec's "Setup changed" badge wraps to two lines** in the phone bar at 360 px (phone
+  bar verification VF7, pre-existing). The bar stays 65 px and nothing overlaps.
 - **A tank's phone bar grows 16 px** (65 to 81) while the "Setup changed" or "…%" badge row
   shows (details review DR9, pre-existing). It pushes nothing out of view; the badge could sit
   on the TPS row instead.

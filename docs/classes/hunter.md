@@ -206,7 +206,9 @@ rare and bind-on-pickup, with no Forever row (Classic Era data, D6), and Forever
 Swiftfeather Arrow and Swiftstrike Shot (24.617), whose source the client doesn't give. The quiver is
 the 15% **Gnoll Skin Bandolier** or **Harpy Hide Quiver** (required level 55)
 [F] ([items.md](../data/items.md#ammo-and-quivers)). Picking a ranged weapon that fires the other kind
-swaps the ammo for that default, and the quiver or pouch for the other kind's with the same haste
+swaps the ammo for the other kind's with the closest damage per second (its twin when there is one,
+Swiftfeather Arrow ↔ Swiftstrike Shot; the default on a tie), and the quiver or pouch for the other
+kind's with the same haste
 (`matchSupplies`); a thrown weapon fires none and keeps both. The Gear tab dims ammo the weapon doesn't
 fire, in its slot and in the picker, where it sorts last: "For bows and crossbows: your gun fires
 bullets" ([ux.md](../ux.md), "Gear").

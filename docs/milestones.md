@@ -276,9 +276,9 @@ talents and default build, abilities, rotation, defaults, e2e, shipped.
 - [x] **H1 Ranged and pet core:** Auto Shot and ranged weapons, ammo, and pets with their own
       attacks. Built on its branch, awaiting review
       ([ranged-and-pets.md](mechanics/ranged-and-pets.md)) ([review](reviews/2026-09-24-ranged-and-pet-core.md))
-- [ ] **H2 Hunter:** Beast Mastery, Marksmanship, Survival, on the ranged and pet core with
-      first-pass defaults. Built on its branch, awaiting review ([hunter.md](classes/hunter.md));
-      then Demonology Warlock on the pet core
+- [x] **H2 Hunter:** Beast Mastery, Marksmanship, Survival, on the ranged and pet core with
+      first-pass defaults ([hunter.md](classes/hunter.md)) ([review](reviews/2026-09-24-hunter.md)).
+      The Demonology Warlock on the pet core is still to come
 
 ## M5.7: The optimizer (D30) 🚧 top priority
 
@@ -484,7 +484,24 @@ slice is worked:
   - **Melee weaving and Summon Hawk** aren't simulated, and the pet is a cat only (no Wolf's Furious
     Howl or other families); Multi-Shot's extra targets wait for M6.
   - **The Survival tree leans to melee in Forever** (Mongoose Bite, Lacerate, Predator's Edge,
-    Strider Kick): the sim's Survival hunter shoots, with only its ranged talents.
+    Strider Kick): the sim's Survival hunter shoots, with only its ranged talents. The result's
+    `hunterNoMelee` note names only Raptor Strike, not these (HN6; the doc and this list say so).
+  - **The Rotation tab's fixed rows don't follow the talents:** Trueshot Aura reads "With the
+    talent" and Pet "Cat, or none with Lone Wolf" on every build (HN3; the runs are right, only
+    the rows' wording is static).
+  - **Rapid Recuperation and Resourcefulness aren't simulated or named in hunter.md §4** (HN4):
+    Forever's mana-while-casting talents. A permanent 50% share leaves the 180 s defaults unchanged;
+    they matter in long fights.
+  - **Survival's default spends 5 points in Improved Arcane Shot** with Arcane Shot off (HN5):
+    Improved Stings 3, Rapid Killing 2, Improved Arcane Shot 1 sims 2.0% higher, within D27's ±5%;
+    D23's tuning picks the build.
+  - **"Wait for Auto Shot" isn't dimmed** while Shared cooldown is "Neither" (HN8), and **Battle
+    Shout stays on, unmarked, for a Lone Wolf hunter** with no pet to reach (HN10): both do nothing
+    then, and cost nothing; marking Battle Shout needs the talents in `buffUnusedReason`.
+  - **The ranged sheet shows no spell crit** (HN12), which Serpent Sting's ticks use [?]
+    (hunter.md OQ-H1).
+  - **Blackhand's Breadth's use and Dwarven Hand Cannon's chance on hit** aren't simulated (HN13,
+    about 0.6% of DPS); both are flagged in the assumptions, as other items' effects are.
 - **The caster core's gaps** (K1, [spells.md](mechanics/spells.md#open-questions)):
   - **The paladin doesn't get Curse of the Elements** though the buffs doc's presets list it for
     them (§6.2): K1 left every shipped result unchanged, as its brief required. It's +10% on every

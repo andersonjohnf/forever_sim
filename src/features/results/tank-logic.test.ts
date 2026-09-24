@@ -192,20 +192,28 @@ describe('bossTableIntro', () => {
 
 describe('damageTakenText', () => {
   it('says it counts the boss’s melee after avoidance, how often it swung, its swing size and the debuffs on it (TU4)', () => {
-    expect(damageTakenText(80.46, protection().fight.boss)).toBe(
+    expect(damageTakenText(80.46, protection().fight.boss, 'warrior-protection')).toBe(
       'The health the boss’s melee swings cost you, after avoidance, armor, block and other reductions. ' +
         'It swung 80.5 times a fight on average, set to 4,500 to 5,500 a swing before armor (Fight\u00a0→\u00a0Advanced). ' +
         'Debuffs on it, such as Demoralizing Shout and Thunder Clap, lower its damage and slow its swings, whether yours (Rotation) or the raid’s (Buffs).',
     )
   })
 
+  it('names those debuffs as a warrior tank’s, in Buffs, for another tank, whose rotation never uses them (D26)', () => {
+    for (const spec of ['paladin-protection', 'druid-feral-bear'] as const) {
+      const text = damageTakenText(80.46, protection().fight.boss, spec)
+      expect(text, spec).toMatch(/ Debuffs on it, such as a warrior tank’s Demoralizing Shout and Thunder Clap \(Buffs\), lower its damage and slow its swings\.$/)
+      expect(text, spec).not.toContain('yours')
+    }
+  })
+
   it('leaves the swing size out when the fight can’t be read', () => {
-    expect(damageTakenText(80.46, null)).toContain('It swung 80.5 times a fight on average. Debuffs')
+    expect(damageTakenText(80.46, null, 'warrior-protection')).toContain('It swung 80.5 times a fight on average. Debuffs')
   })
 
   it('keeps "(Fight → Advanced)" on one line, with non-breaking spaces around the arrow (TU10)', () => {
     expect(FIGHT_ADVANCED).toBe('(Fight\u00a0→\u00a0Advanced)')
-    expect(damageTakenText(80, protection().fight.boss)).toContain(FIGHT_ADVANCED)
+    expect(damageTakenText(80, protection().fight.boss, 'warrior-protection')).toContain(FIGHT_ADVANCED)
     expect(crushingText({ kind: 'off' })).toContain(FIGHT_ADVANCED)
   })
 })

@@ -1,7 +1,7 @@
 // Pure helpers for a tank's results (docs/ux.md#results): the boss's swings against you, and
 // whether it can land crushing blows. No React, no stores, so unit tests can import them.
 import { formatInt, formatOne, formatPct } from '@/lib/format'
-import { type BossOutcomes, type CharacterSheet, CRUSH_MIN_LEVEL_GAP, DEFENSE_PER_POINT, type FightConfig, mobSkill, PLAYER_LEVEL } from '@/sim'
+import { type BossOutcomes, type CharacterSheet, CRUSH_MIN_LEVEL_GAP, DEFENSE_PER_POINT, type FightConfig, mobSkill, PLAYER_LEVEL, SPEC_META, type SpecId } from '@/sim'
 
 /**
  * The boss's outcomes in the order its one roll takes them (docs/mechanics/combat-tables.md#8-boss--player-tanks):
@@ -142,16 +142,24 @@ export function bossTableIntro(bossLevel: number | null, avoidance: readonly Avo
   return lines.join(' ')
 }
 
+/** A warrior tank's debuffs that lower the boss's damage and slow its swings (buffs doc §6.2, D26). */
+const WARRIOR_TANK_DEBUFFS = ['demoralizingShout', 'thunderClap']
+
 /**
  * The line under damage taken per second: what it counts, how often the boss swung, and what set
- * the size of its swings. Without the fight (null) it leaves out the swing size.
+ * the size of its swings. Without the fight (null) it leaves out the swing size. The debuffs it
+ * names are a warrior tank's: yours to keep up (Rotation) as a Protection warrior, and only the
+ * raid's (Buffs) for another tank, whose presets leave them out (D26).
  */
-export function damageTakenText(swingsPerFight: number, boss: Pick<FightConfig['boss'], 'damageMin' | 'damageMax'> | null): string {
+export function damageTakenText(swingsPerFight: number, boss: Pick<FightConfig['boss'], 'damageMin' | 'damageMax'> | null, spec: SpecId): string {
   const swings = `It swung ${formatOne(swingsPerFight)} times a fight on average`
+  const yours = WARRIOR_TANK_DEBUFFS.some((id) => SPEC_META[spec].ownBuffs?.includes(id))
   return [
     'The health the boss’s melee swings cost you, after avoidance, armor, block and other reductions.',
     boss ? `${swings}, set to ${swingDamageText(boss)} a swing before armor ${FIGHT_ADVANCED}.` : `${swings}.`,
-    'Debuffs on it, such as Demoralizing Shout and Thunder Clap, lower its damage and slow its swings, whether yours (Rotation) or the raid’s (Buffs).',
+    yours
+      ? 'Debuffs on it, such as Demoralizing Shout and Thunder Clap, lower its damage and slow its swings, whether yours (Rotation) or the raid’s (Buffs).'
+      : 'Debuffs on it, such as a warrior tank’s Demoralizing Shout and Thunder Clap (Buffs), lower its damage and slow its swings.',
   ].join(' ')
 }
 

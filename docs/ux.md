@@ -417,7 +417,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     after avoidance, armor, block and other reductions. It swung 80.5 times a fight on average,
     set to 4,500 to 5,500 a swing before armor (Fight → Advanced). Debuffs on it, such as
     Demoralizing Shout and Thunder Clap, lower its damage and slow its swings, whether yours
-    (Rotation) or the raid's (Buffs)." The swings
+    (Rotation) or the raid's (Buffs)." For another tank, whose rotation never uses a warrior
+    tank's debuffs, its last sentence reads "Debuffs on it, such as a warrior tank's Demoralizing
+    Shout and Thunder Clap (Buffs), lower its damage and slow its swings." The swings
     include parry-hastened ones; a fixed swing size reads "5,000". Its "(Fight → Advanced)", and
     the crushing line's, have non-breaking spaces around the arrow, so they never split at 390 px.
 - **Breakdown:** a per-ability damage share bar, then casts, hit/crit/miss/dodge/glance

@@ -287,7 +287,7 @@ export function ResultsPanel({ variant = 'panel', onNavigate }: { variant?: 'pan
     <div data-dimmed={dimmed} className={cn('flex flex-col gap-5', DIM_ROOT)}>
       {/* Tanks: what the boss's swings cost you comes first, since it has no headline of its own. How
           they landed follows the breakdown, so the breakdown stays near the top (docs/ux.md#results). */}
-      {result.tank && <DamageTaken tank={result.tank} previous={previous?.tank?.dtps.mean ?? null} fight={runConfig?.fight ?? null} />}
+      {result.tank && <DamageTaken tank={result.tank} previous={previous?.tank?.dtps.mean ?? null} fight={runConfig?.fight ?? null} spec={result.spec} />}
       {!empty && <Breakdown result={result} />}
       {result.tank && <SwingOutcomes tank={result.tank} />}
       {result.mana && <ManaPerFight mana={result.mana} />}

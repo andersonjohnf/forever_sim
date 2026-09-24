@@ -4,7 +4,7 @@
 import { useId } from 'react'
 import { formatOne, formatPct } from '@/lib/format'
 import { cn } from '@/lib/utils'
-import type { BossOutcomes, FightConfig, TankResult } from '@/sim'
+import type { BossOutcomes, FightConfig, SpecId, TankResult } from '@/sim'
 import { Delta } from './delta'
 import { DIM_FILL } from './dim'
 import { type Avoidance, type BlockBuffUp, BOSS_OUTCOMES, bossTableIntro, crushingState, crushingText, damageTakenText } from './tank-logic'
@@ -24,12 +24,15 @@ export function DamageTaken({
   tank,
   previous,
   fight,
+  spec,
 }: {
   tank: TankResult
   /** The previous run's damage taken per second, for the change. */
   previous: number | null
   /** The fight the result was run for, for the swing size; null if it can't be read. */
   fight: FightConfig | null
+  /** The spec the result was run for: whose the debuffs it names are. */
+  spec: SpecId
 }) {
   const headingId = useId()
   return (
@@ -43,7 +46,7 @@ export function DamageTaken({
         <Delta value={tank.dtps.mean} previous={previous} lowerIsBetter className="text-sm" />
       </span>
       {/* The swing size is the Fight setting's; attack-power debuffs on the boss lower it in the fight. */}
-      <p className="text-xs text-muted-foreground tabular-nums">{damageTakenText(tank.bossSwingsPerFight, fight?.boss ?? null)}</p>
+      <p className="text-xs text-muted-foreground tabular-nums">{damageTakenText(tank.bossSwingsPerFight, fight?.boss ?? null, spec)}</p>
     </section>
   )
 }

@@ -179,6 +179,17 @@ test.describe('Protection paladin rotation', () => {
     await expect(preset(page)).toBeFocused()
   })
 
+  test('with no main hand, Holy Strike says it isn’t used, dimmed, and Hammer of the Righteous turned on says so too (TV-3)', async ({ page }) => {
+    const tab = await openRotation(page, link({ gear: {} }))
+    const noWeapon = 'Not used: needs a weapon in your main hand.'
+    await expect(row(tab, 'holyStrike')).toContainText(noWeapon)
+    await expect(row(tab, 'holyStrike')).not.toContainText('On cooldown')
+    await expect(row(tab, 'holyStrike')).toHaveAttribute('data-inactive')
+    await list(tab).getByRole('switch', { name: 'Hammer of the Righteous', exact: true }).click()
+    await expect(row(tab, 'hammerOfTheRighteous')).toContainText('Not used: needs a one-handed axe, mace or sword in your main hand.')
+    await expect(row(tab, 'holyStrike')).toContainText(noWeapon)
+  })
+
   test('a setup saved with D26’s rotations loads them by their new names (D28)', async ({ page }) => {
     await openRotation(page, link({ rotation: { 'paladin.protection.priority': 'duties' } }))
     await expect(preset(page)).toHaveText('Defensive')

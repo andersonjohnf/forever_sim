@@ -801,7 +801,7 @@ and the shared cooldown decides, as a real priority list would: the higher row i
 can be, and the lower only when the higher can't be paid for. Hammer of the Righteous sits just
 above Holy Strike by default, off, so turning it on puts it in Holy Strike's place, with Holy Strike
 as its fallback when Hammer's 90 mana isn't there (rarely, in the default setup); moving it below
-Holy Strike keeps Holy Strike, which costs 20 and so leaves Hammer nothing. In the default order the plan is the one the rotation gave before the list, fight for
+Holy Strike keeps Holy Strike, which costs 20 and so leaves Hammer nothing, and the plan leaves Hammer out (and its weapon-DPS assumption with it). In the default order the plan is the one the rotation gave before the list, fight for
 fight (`protection-apl.test.ts`).
 
 | # | Action | Condition (setting, default) | Default |
@@ -814,7 +814,7 @@ fight (`protection-apl.test.ts`).
 | 3 | Judgement (the seal's) | `judgement.enabled`; ready (off GCD), with the seal up | on |
 | 4 | Swift Judgement | `swiftJudgement.enabled`; the talent; Judgement has at least `swiftJudgement.minCooldownSec` (4.5 s) of cooldown left and the seal is up (off GCD). It ends Judgement's cooldown, and row 3 judges again at once, for free | on |
 | 5b | Hammer of the Righteous in Holy Strike's place (listed just above it) | `hammerOfTheRighteous.enabled`; ready; a 1H axe, mace or sword (with anything else, row 5 instead). They share one cooldown, so the higher of the two rows is used whenever it can be: this one, while it's above Holy Strike and on, with Holy Strike when its 90 mana isn't there. The Rotation tab's Holy Strike row then says so ("Rarely used: Hammer of the Righteous, above it, takes its place (they share a cooldown). It's used when you can't pay Hammer's 90 mana."); its own row says when the main hand can't use it (and that Holy Strike is used, or to turn Holy Strike on; with no main hand, neither is), or when Holy Strike, moved above it, takes its place | **off in every preset**: Holy Strike makes more threat, and its Iron Creed cuts damage taken, which Balanced keeps (user decision in D28, [below](#priority-defensive-balanced-or-max-tps)) |
-| 5 | Holy Strike | `holyStrike.enabled`; ready | on |
+| 5 | Holy Strike | `holyStrike.enabled`; ready; a weapon in the main hand (with none, the Rotation tab says "Not used: needs a weapon in your main hand.") | on |
 | 6 | Exorcism | `exorcism.enabled`; target Undead or Demon and mana ≥ `exorcism.minManaPct` (0%). Dimmed on the Rotation tab, with a link to Fight's creature type, against anything else | on (gated by target type) |
 | 7 | Consecration (rank 5) | `consecration.enabled`; mana ≥ `consecration.minManaPct` (20%: T2's re-check, [below](#tuning-the-defaults-c3)) | on |
 | 7b | Consecration (rank 1) | `consecrationRank1.enabled`; mana ≥ `consecrationRank1.minManaPct` (10%). The ranks share one 8 s cooldown | on (T2) |

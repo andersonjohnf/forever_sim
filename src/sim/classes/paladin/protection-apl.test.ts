@@ -107,10 +107,11 @@ describe('Protection paladin’s priority list (D31)', () => {
     expect(ids(r).filter((id) => id === 'holyStrike' || id === 'hammerOfTheRighteous')).toEqual(['hammerOfTheRighteous', 'holyStrike'])
     // Off, as in every preset, Holy Strike.
     expect(ids(protectionRotation({}, TALENTS, noAura, CONTEXT, order)).filter((id) => id === 'holyStrike' || id === 'hammerOfTheRighteous')).toEqual(['holyStrike'])
-    // On but below Holy Strike, which shares its cooldown: Holy Strike first, the higher row.
+    // On but below Holy Strike, which shares its cooldown and costs less, so always takes it: Holy
+    // Strike alone, and Hammer of the Righteous, never cast, is left out (TV-2).
     const below = moveAplRow(PROTECTION_APL, defaultAplOrder(PROTECTION_APL), 'hammerOfTheRighteous', defaultAplOrder(PROTECTION_APL).indexOf('holyStrike'))!
     expect(below.indexOf('hammerOfTheRighteous')).toBeGreaterThan(below.indexOf('holyStrike'))
-    expect(ids(protectionRotation(hammerOn, TALENTS, noAura, CONTEXT, below)).filter((id) => id === 'holyStrike' || id === 'hammerOfTheRighteous')).toEqual(['holyStrike', 'hammerOfTheRighteous'])
+    expect(ids(protectionRotation(hammerOn, TALENTS, noAura, CONTEXT, below)).filter((id) => id === 'holyStrike' || id === 'hammerOfTheRighteous')).toEqual(['holyStrike'])
     // …and Hammer of the Righteous there once Holy Strike is off.
     expect(
       ids(protectionRotation({ ...hammerOn, [ID.holyStrike]: false }, TALENTS, noAura, CONTEXT, below)).filter((id) => id === 'holyStrike' || id === 'hammerOfTheRighteous'),

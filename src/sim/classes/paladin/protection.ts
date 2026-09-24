@@ -647,8 +647,8 @@ const hammerAbove = (order: readonly string[] | undefined): boolean => {
  * the lower only when you can't pay for the higher: Holy Strike under Hammer of the Righteous when
  * Hammer's 90 mana isn't there, and Hammer under Holy Strike never, since Holy Strike costs less.
  * Hammer of the Righteous needs a one-handed axe, mace or sword; with any other main hand it can't
- * be used, and Holy Strike is if it's on; with no main hand, neither is. The weapon's note waits
- * while the main hand isn't known (the Buffs tab's reading).
+ * be used, and Holy Strike is if it's on; with no main hand, neither is, and Holy Strike says so
+ * too. The weapon's notes wait while the main hand isn't known (the Buffs tab's reading).
  */
 export function protectionUnusedSettings(
   values: Record<string, RotationValue>,
@@ -656,12 +656,13 @@ export function protectionUnusedSettings(
   order?: readonly string[],
 ): Record<string, string> {
   const v = reader(PROTECTION_OPTIONS, values)
-  if (!v.on(ID.hammerOfTheRighteous)) return {}
   const strike = v.on(ID.holyStrike)
+  // No main hand: Holy Strike, a weapon strike, can't be used (TV-3), nor Hammer of the Righteous.
+  const noWeapon = strike && mainHand === null ? { [ID.holyStrike]: 'Not used: needs a weapon in your main hand.' } : {}
+  if (!v.on(ID.hammerOfTheRighteous)) return noWeapon
   if (mainHand !== undefined && !hammerFits(mainHand)) {
     const why = 'Not used: needs a one-handed axe, mace or sword in your main hand'
-    // No main hand: Holy Strike, a weapon strike, can't be used either.
-    if (mainHand === null) return { [ID.hammerOfTheRighteous]: `${why}.` }
+    if (mainHand === null) return { ...noWeapon, [ID.hammerOfTheRighteous]: `${why}.` }
     return { [ID.hammerOfTheRighteous]: strike ? `${why}, so Holy Strike is used.` : `${why}. Turn Holy Strike on to use it instead.` }
   }
   if (!strike) return {}
@@ -849,8 +850,9 @@ export function protectionRotation(
   // Row 5b: Hammer of the Righteous, with a one-handed axe, mace or sword. It shares Holy Strike's
   // cooldown (row 5), so with both on, the shared cooldown decides, as in a real priority list: the
   // higher row is used whenever it can be, and the lower when it can't (Holy Strike when Hammer's 90
-  // mana isn't there).
-  const hammer = v.on(ID.hammerOfTheRighteous) && hammerFits(ctx.mainHand)
+  // mana isn't there). Below Holy Strike (on), which costs less, it's never cast, so it's left out
+  // of the plan, and with it its weapon-DPS assumption (TV-2).
+  const hammer = v.on(ID.hammerOfTheRighteous) && hammerFits(ctx.mainHand) && (hammerAbove(order) || !v.on(ID.holyStrike))
 
   compileAplRows(PROTECTION_APL, order, {
     // Row 0c (paladin.md "the opener"), as Retribution's: Seal of the Crusader goes up 1.5 s before
@@ -900,8 +902,8 @@ export function protectionRotation(
       const creed = talents.get('Iron Creed') ?? 0
       if (creed > 0) abilities[strike] = { ...abilities[strike], aura: ironCreedAura(creed) }
     },
-    // Row 5b: Hammer of the Righteous on cooldown, in Holy Strike's place, when Holy Strike above it
-    // hasn't taken the shared cooldown (which, costing less, it always has).
+    // Row 5b: Hammer of the Righteous on cooldown, in Holy Strike's place: above Holy Strike, or with
+    // Holy Strike off (below Holy Strike, `hammer` leaves it out).
     hammerOfTheRighteous: () => {
       if (hammer) add(hammerOfTheRighteousAbility(ctx.hotrWeaponDps !== 'weaponOnly'), [])
     },

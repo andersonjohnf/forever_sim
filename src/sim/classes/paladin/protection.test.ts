@@ -910,8 +910,15 @@ describe('what Holy Shield and Swift Judgement need (docs/ux.md "Rotation")', ()
     expect(unusedRotationSettings({ ...twoHander, rotation: { ...hammer.rotation, [ID.holyStrike]: false } })).toEqual({
       [ID.hammerOfTheRighteous]: 'Not used: needs a one-handed axe, mace or sword in your main hand. Turn Holy Strike on to use it instead.',
     })
-    // With no main hand, Holy Strike can't be used either, so the note doesn't promise it.
-    expect(unusedRotationSettings({ ...hammer, gear: {} })).toEqual({ [ID.hammerOfTheRighteous]: 'Not used: needs a one-handed axe, mace or sword in your main hand.' })
+    // With no main hand, Holy Strike can't be used either, so the note doesn't promise it, and Holy
+    // Strike says so too, with Hammer on or off (TV-3); off, it has nothing to say.
+    const noWeapon = 'Not used: needs a weapon in your main hand.'
+    expect(unusedRotationSettings({ ...hammer, gear: {} })).toEqual({
+      [ID.holyStrike]: noWeapon,
+      [ID.hammerOfTheRighteous]: 'Not used: needs a one-handed axe, mace or sword in your main hand.',
+    })
+    expect(unusedRotationSettings({ ...d, gear: {} })).toEqual({ [ID.holyStrike]: noWeapon })
+    expect(unusedRotationSettings({ ...d, gear: {}, rotation: { [ID.holyStrike]: false } })).toEqual({})
     const below = { ...hammer, rotationOrder: ['holyStrike', 'hammerOfTheRighteous'] }
     expect(unusedRotationSettings(below)).toEqual({
       [ID.hammerOfTheRighteous]: 'Not used: Holy Strike, above it, takes its place (they share a cooldown). Move it above Holy Strike to use it instead.',
@@ -1069,6 +1076,21 @@ describe('Hammer of the Righteous’s fallback, Holy Strike (TI-5)', () => {
     sim.runFight(0)
     expect(field(sim, starved, 'hammerOfTheRighteous', FIELD.casts)).toBe(0)
     expect(field(sim, starved, 'holyStrike', FIELD.casts)).toBeGreaterThan(0)
+  })
+
+  it('below Holy Strike (on), which always takes the shared cooldown, it’s left out of the plan, and its assumption with it (TV-2)', () => {
+    const on = { [ID.hammerOfTheRighteous]: true }
+    const below = buildPlan({ ...defaultConfig(PROT), rotation: on, rotationOrder: ['holyStrike', 'hammerOfTheRighteous'] })
+    expect(below.plan.abilities.map((a) => a.id)).not.toContain('hammerOfTheRighteous')
+    expect(below.plan.abilities.map((a) => a.id)).toContain('holyStrike')
+    expect(below.assumptions.map((a) => a.id).filter((id) => id.startsWith('hammerOfTheRighteous'))).toEqual([])
+    // It plays exactly as Hammer off.
+    const off = buildPlan(defaultConfig(PROT))
+    expect(below.plan.rotation).toEqual(off.plan.rotation)
+    // With Holy Strike off, it's used wherever it sits.
+    const alone = buildPlan({ ...defaultConfig(PROT), rotation: { ...on, [ID.holyStrike]: false }, rotationOrder: ['holyStrike', 'hammerOfTheRighteous'] })
+    expect(alone.plan.abilities.map((a) => a.id)).toContain('hammerOfTheRighteous')
+    expect(alone.assumptions.map((a) => a.id)).toContain('hammerOfTheRighteous')
   })
 })
 

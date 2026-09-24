@@ -369,7 +369,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       instead."). Hammer of the Righteous says when the main hand can't use it, and what happens
       instead: "Not used: needs a one-handed axe, mace or sword in your main hand, so Holy Strike is
       used.", or with Holy Strike off "… main hand. Turn Holy Strike on to use it instead.", and
-      with no main hand, where Holy Strike can't be used either, just "… in your main hand.".
+      with no main hand, where Holy Strike can't be used either, just "… in your main hand.". With
+      no main hand, Holy Strike (on) says so too, with Hammer on or off: "Not used: needs a weapon
+      in your main hand."
     - A row's conditions are its own and move with it. Moving Heroic Strike above Bloodthirst
       lets it queue before Bloodthirst spends the rage, still from its 40 rage; moving
       Hamstring above Bloodthirst changes nothing, since it still waits while Bloodthirst and

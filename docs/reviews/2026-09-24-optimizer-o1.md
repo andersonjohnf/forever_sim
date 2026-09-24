@@ -361,7 +361,7 @@ in this worktree's `.cache/demos/`. The effective-health floor (90%) holds for e
   (threat.md, warrior.md §4.3), not for the optimizer.
 - **Balanced drops survival talents.** With no floor, the tanks' Balanced answers drop Deflection,
   Anticipation (the warrior's), Improved Righteous Fury, Sacred Duty and the bear's Heart of the
-  Wild and Feral Swiftness, for 8–11% more damage taken. That's the user's "objectively" by the
+  Wild and Feral Swiftness, for 8–13% more damage taken. That's the user's "objectively" by the
   Balanced goal; D29's "tanks talent for the balanced approach, never pure defense" is about
   defaults, which O4 sets.
 - **The effective-health floor stays on by default for tanks.** D30 set it "on by default", and

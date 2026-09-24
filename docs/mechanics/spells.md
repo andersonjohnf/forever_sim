@@ -262,6 +262,11 @@ The API the caster class slices (K2–K6) build on, in `src/sim/plan/types.ts`:
   mana and spell damage entries go by class (`forClasses`), to a class whose every spec is a caster;
   a class with a melee spec too (the druid's Feral specs beside Balance) needs those gated per spec
   instead.
+- **No melee**: a spec with `SpecMeta.caster` casts from range and never swings. Its plan has no
+  weapon (the weapon's stats still count), and the notes about swings are left out (the mage in K2,
+  the Elemental shaman in K5, whose Enhancement spec keeps the shaman out of `CASTER_CLASSES`).
+- **A spell an aura boosts without using it up** (`SpellDef.boost.keep`): Lava Burst's +20% while
+  your Flame Shock is on the target (K5).
 
 ---
 

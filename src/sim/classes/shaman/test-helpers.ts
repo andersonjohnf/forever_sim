@@ -13,6 +13,7 @@ import { buildPlan } from '../../plan/build'
 import { type Plan, TRIGGER_COUNT } from '../../plan/types'
 import type { RotationValue } from '../../types'
 import { ENHANCEMENT_IDS as ID, ENHANCEMENT_OPTIONS } from './enhancement'
+import { ELEMENTAL_IDS, ELEMENTAL_OPTIONS } from './elemental'
 
 export const ENH = 'shaman-enhancement'
 
@@ -168,4 +169,58 @@ export function events(plan: Plan, fight = 0) {
   }
   sim.runFight(fight)
   return { sim, list }
+}
+
+// --- Elemental (docs/classes/shaman.md#elemental-worked-examples) --------------------------------------
+
+export const ELE = 'shaman-elemental'
+
+/** Every Elemental switch off, Chain Lightning never and no downrank: Lightning Bolt rank 10 alone. */
+export const ELEMENTAL_OFF: Record<string, RotationValue> = {
+  ...Object.fromEntries(ELEMENTAL_OPTIONS.flatMap((o) => (o.kind === 'toggle' ? [[o.id, false]] : []))),
+  [ELEMENTAL_IDS.chainLightning]: 'never',
+}
+
+export interface ElementalExampleOptions {
+  /** Talent ranks by name; absent, the default build. */
+  talents?: Record<string, number>
+  /** Rotation settings on top of ELEMENTAL_OFF. */
+  rotation?: Record<string, RotationValue>
+  /** Spell damage for every school. */
+  sp?: number
+  /** Spells land and never crit (the worked examples' default). */
+  landNoCrit?: boolean
+  durationMs?: number
+  manaTenths?: number
+  /** Procs to leave out by id (e.g. `elementalFocus`, `lightningOverload`). */
+  dropProcs?: string[]
+  race?: string
+}
+
+/**
+ * The Elemental worked examples' shaman (shaman.md#elemental-worked-examples): the Elemental plan for
+ * these talents and settings with no gear or buffs, spell damage set exactly, a mana pool that never
+ * runs dry and a fight of exactly `durationMs`.
+ */
+export function elementalPlan(o: ElementalExampleOptions = {}): Plan {
+  const d = defaultConfig(ELE, o.race)
+  const plan = buildPlan({
+    ...d,
+    ...(o.talents ? { talents: talentCode(o.talents) } : {}),
+    gear: {},
+    buffs: { raid: [], enabled: [] },
+    rotation: { ...ELEMENTAL_OFF, ...o.rotation },
+    fight: { ...d.fight, durationVariationPct: 0, durationSec: (o.durationMs ?? 60000) / 1000 },
+  }).plan
+  plan.fight.durationMs = o.durationMs ?? 60000
+  const s = plan.stats
+  for (const k of ['str', 'agi', 'sta', 'int', 'spi', 'ap', 'hitRating', 'critRating', 'spellDamage', 'holySpellDamage', 'mp5'] as const) s[k] = 0
+  if (o.landNoCrit ?? true) {
+    s.spellHit = 100
+    s.spellCrit = -100
+  }
+  plan.mana!.maxTenths = o.manaTenths ?? 1e9
+  if (o.dropProcs) dropProcs(plan, o.dropProcs)
+  setSp(plan, o.sp ?? 400)
+  return plan
 }

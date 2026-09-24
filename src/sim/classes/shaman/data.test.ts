@@ -36,7 +36,26 @@ import {
   WINDFURY_WEAPON_AP,
   windfuryWeaponProc,
 } from './abilities'
-import { TOTEM_OF_RAGE_PCT } from './enhancement'
+import { TOTEM_OF_RAGE_PCT, TOTEM_OF_THE_STORM, TOTEM_OF_THE_STORM_SP } from './enhancement'
+import {
+  CHAIN_LIGHTNING,
+  CHAIN_LIGHTNING_SPELL,
+  ELEMENTAL_CLEARCASTING,
+  elementalFocusProc,
+  FLAME_SHOCK,
+  FLAME_SHOCK_AURA,
+  FLAME_SHOCK_SPELL,
+  LAVA_BURST,
+  LAVA_BURST_FLAME_SHOCK_PCT,
+  LAVA_BURST_SPELL,
+  LIGHTNING_BOLT_R4,
+  LIGHTNING_BOLT_R4_SPELL,
+  LIGHTNING_OVERLOAD_PCT,
+  MANA_TIDE_TOTEM,
+} from './abilities'
+import { MANA_TIDE_MANA } from './elemental'
+import { MINDFULNESS_PCT } from './setup'
+import { ELEMENTAL_ALACRITY_MS } from './talents'
 import { ELEMENTAL_WEAPONS_ROCKBITER, ELEMENTAL_WEAPONS_WINDFURY, maelstromPctPerStack, TALENT_EFFECTS, withSpellTalents, withTalents } from './talents'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
@@ -52,7 +71,7 @@ const attrs = (id: number) => {
   return { noActiveDefense: (a[0] & 0x200000) !== 0, alwaysHit: (a[3] & 0x40000) !== 0 }
 }
 const DEFENSE_TYPE = { none: 0, magic: 1, melee: 2, ranged: 3 } as const
-const SCHOOL_MASK = { nature: 8, frost: 16 } as const
+const SCHOOL_MASK = { fire: 4, nature: 8, frost: 16 } as const
 /** A spell's first class-mask word (SpellClassOptions), which talents' and items' masks select. */
 const classMask = (id: number) => spell(id).classOptions!.spellClassMask![0] >>> 0
 /** Whether an effect's class mask (word 0) selects the spell. */
@@ -364,5 +383,143 @@ describe('the triggered spells the imbues and the talents’ procs apply', () =>
     expect(spell(16257).duration?.duration).toBe(15000)
     expect([aura(30165, 0), spell(30165).duration?.duration]).toEqual([52, 10000])
     expect([aura(1238931, 0), effect(1238931, 0).effectBasePointsF, spell(1238931).duration?.duration]).toEqual([134, 100 * IMPROVED_STORMSTRIKE_SHARE, IMPROVED_STORMSTRIKE_AURA.durationMs])
+  })
+})
+
+// --- Elemental (docs/classes/shaman.md#elemental-abilities, #elemental-talents) ----------------------------
+
+describe('the Elemental spells against the client (shaman.md#elemental-abilities)', () => {
+  /** A spell def against its client row: school, damage class, coefficient and its range at 60. */
+  function matches(def: SpellDef, id: number, index: number) {
+    const s = spell(id)
+    expect(s.misc!.schoolMask, def.id).toBe(SCHOOL_MASK[def.school as keyof typeof SCHOOL_MASK])
+    expect(s.categories!.defenseType, def.id).toBe(DEFENSE_TYPE[def.defense])
+    expect(attrs(id), def.id).toEqual({ noActiveDefense: def.noActiveDefense, alwaysHit: def.alwaysHit })
+    const e = effect(id, index)
+    expect(e.effect, def.id).toBe(2)
+    expect(e.effectBonusCoefficient, def.id).toBe(def.spCoefficient)
+    const levels = s.levels!
+    const grow = atLevel60(0, e.effectRealPointsPerLevel ?? 0, levels.baseLevel!, levels.maxLevel ?? Infinity)
+    const [lo, hi] = spread(e.effectBasePointsF!, e.variance ?? 0)
+    expect(def.min, def.id).toBeCloseTo(lo + grow, 9)
+    expect(def.max, def.id).toBeCloseTo(hi + grow, 9)
+  }
+  /** Mana, cooldown, GCD and cast time against the client row. */
+  function costs(def: AbilityDef, id: number) {
+    const s = spell(id)
+    expect({ mana: mana(def), cooldown: def.cooldownMs, gcd: def.gcdMs, cast: def.castMs }, def.id).toEqual({
+      mana: s.power![0].manaCost,
+      cooldown: s.cooldowns!.categoryRecoveryTime ?? 0,
+      gcd: s.cooldowns!.startRecoveryTime,
+      cast: s.castTime?.base ?? 0,
+    })
+  }
+
+  it('Lightning Bolt r4 (915): 50 ± 6.7%, +0.6 a level from 20 to 25 (49.63–56.37), 0.714 as rank 10’s, 60 mana, 2.5 s', () => {
+    matches(LIGHTNING_BOLT_R4_SPELL, 915, 0)
+    expect([LIGHTNING_BOLT_R4_SPELL.min, LIGHTNING_BOLT_R4_SPELL.max].map((x) => Math.round(x * 100) / 100)).toEqual([49.63, 56.37])
+    costs(LIGHTNING_BOLT_R4, 915)
+    expect(classMask(915)).toBe(classMask(LB))
+  })
+
+  it('Chain Lightning r4 (10605): 123 ± 5.6%, +0.8 a level from 56 to 61 (119.37–133.03), 0.571, 485 mana, 2.0 s, its own 6 s', () => {
+    matches(CHAIN_LIGHTNING_SPELL, CL, 0)
+    costs(CHAIN_LIGHTNING, CL)
+    expect(CHAIN_LIGHTNING.castHasted).toBe(true)
+  })
+
+  it('Flame Shock r6 (29228): 166 at once (0.214), 4 × 44 every 3 s (0.1 a tick) over 12 s, the periodic-crit flag, 410 mana, the shocks’ category', () => {
+    matches(FLAME_SHOCK_SPELL, 29228, 0)
+    const dot = effect(29228, 1)
+    expect([dot.effectAura, dot.effectAuraPeriod, dot.effectBasePointsF, dot.effectBonusCoefficient]).toEqual([3, FLAME_SHOCK_SPELL.dotTickMs, FLAME_SHOCK_SPELL.dotTickDamage, FLAME_SHOCK_SPELL.dotSpCoefficient])
+    expect(spell(29228).duration!.duration).toBe(FLAME_SHOCK_SPELL.dotTicks! * FLAME_SHOCK_SPELL.dotTickMs!)
+    expect(FLAME_SHOCK_AURA.durationMs).toBe(spell(29228).duration!.duration)
+    expect((spell(29228).misc!.attributes![8] & 0x200) !== 0).toBe(FLAME_SHOCK_SPELL.dotCanCrit)
+    costs(FLAME_SHOCK, 29228)
+    expect(spell(29228).categories!.category).toBe(19)
+    expect(FLAME_SHOCK.category).toBe(SHOCK_CATEGORY)
+  })
+
+  it('Lava Burst r3 (1238300): 220 ± 12.7%, +1.3 a level from 60 (192.14–247.86), 0.714, Fire, 265 mana, 2.5 s, 10 s; +20% with Flame Shock (a dummy)', () => {
+    matches(LAVA_BURST_SPELL, 1238300, 0)
+    costs(LAVA_BURST, 1238300)
+    expect(effect(1238300, 1)).toMatchObject({ effect: 3, effectBasePointsF: LAVA_BURST_FLAME_SHOCK_PCT })
+    expect(LAVA_BURST_SPELL.boost).toEqual({ aura: FLAME_SHOCK_AURA.id, pct: 20, keep: true })
+    // The talent (408490) is rank 1; the spellbook's rank 3 at 60 has the same cast, cost family and cooldown category.
+    expect(spell(408490).categories!.category).toBe(spell(1238300).categories!.category)
+  })
+
+  it('Mana Tide Totem r3 (17359): 60 mana, a 5 min cooldown, a 1 s GCD; 4 × 290 mana', () => {
+    const s = spell(17359)
+    expect(s.power![0].manaCost).toBe(mana(MANA_TIDE_TOTEM))
+    expect(s.cooldowns).toMatchObject({ categoryRecoveryTime: MANA_TIDE_TOTEM.cooldownMs, startRecoveryTime: MANA_TIDE_TOTEM.gcdMs })
+    expect(MANA_TIDE_TOTEM.rageTickTenths * MANA_TIDE_TOTEM.rageTicks).toBe(10 * MANA_TIDE_MANA)
+  })
+
+  it('Clearcasting (16246): Elemental Focus’s 10% on damage spells, one charge, −100% cost (aura 108, misc 14), 15 s', () => {
+    expect(spell(16164).auraOptions).toMatchObject({ procChance: 10, procTypeMask: [0x15550, 0] })
+    expect(effect(16164, 0)).toMatchObject({ effectAura: 42, effectTriggerSpell: 16246 })
+    expect(spell(16246).auraOptions!.procCharges).toBe(1)
+    expect(effect(16246, 0)).toMatchObject({ effectAura: 108, effectBasePointsF: -100, effectMiscValue: [14, 0] })
+    expect(spell(16246).duration!.duration).toBe(ELEMENTAL_CLEARCASTING.durationMs)
+    expect(elementalFocusProc()).toMatchObject({ trigger: 'spellLanded', chance: { pct: 10 }, schools: ['fire', 'frost', 'nature'] })
+    // Its mask covers every damage spell the sim casts.
+    for (const id of [LB, 915, CL, ES, 29228]) expect(selects(16246, 0, id), String(id)).toBe(true)
+  })
+
+  it('Totem of the Storm (23199): 33 to Lightning Bolt and Chain Lightning (28857, mask 0x3)', () => {
+    expect(TOTEM_OF_THE_STORM).toBe(23199)
+    expect(effect(28857, 0)).toMatchObject({ effectAura: 112, effectBasePointsF: TOTEM_OF_THE_STORM_SP })
+    expect(effect(28857, 0).effectSpellClassMask![0]).toBe(0x3)
+  })
+
+  it('the caster’s racials: Blood Fury’s +10% spell power (aura 317), Berserking’s +10% casting speed (aura 65)', () => {
+    expect(effect(20572, 2)).toMatchObject({ effectAura: 317, effectBasePointsF: 10 })
+    expect(effect(20554, 2)).toMatchObject({ effectAura: 65, effectBasePointsF: 10 })
+  })
+})
+
+describe('the Elemental talents against the client (shaman.md#elemental-talents)', () => {
+  it('Lightning Overload 3 / 7 / 10%; Mindfulness 17 / 33 / 50%; Elemental Alacrity −170 / 330 / 500 ms; Call of Flame 5 / 10 / 15%', () => {
+    expect(curve('Lightning Overload')).toEqual(LIGHTNING_OVERLOAD_PCT.slice(1))
+    expect(curve('Mindfulness')).toEqual(MINDFULNESS_PCT.slice(1))
+    expect(effect(1223033, 0).effectAura).toBe(134)
+    expect(curve('Elemental Alacrity').map((x) => -x)).toEqual(ELEMENTAL_ALACRITY_MS.slice(1))
+    expect([curve('Call of Flame', 0), curve('Call of Flame', 1)]).toEqual([
+      [5, 10, 15],
+      [5, 10, 15],
+    ])
+  })
+
+  it('their masks: Alacrity and Convection cover Lava Burst (word 1 0x1000); Call of Flame Flame Shock (and its ticks, misc 22) and Lava Burst; Call of Thunder and Concussion Chain Lightning', () => {
+    const word1 = (id: number, index: number) => (effect(id, index).effectSpellClassMask![1] ?? 0) >>> 0
+    const lavaBit = spell(1238300).classOptions!.spellClassMask![1] >>> 0
+    expect(lavaBit).toBe(0x1000)
+    for (const [id, index] of [
+      [16578, 0],
+      [16039, 0],
+      [16038, 0],
+    ] as const)
+      expect(word1(id, index) & lavaBit, `${id}`).toBe(lavaBit)
+    expect(selects(16038, 0, 29228)).toBe(true)
+    expect(effect(16038, 1)).toMatchObject({ effectMiscValue: [22, 0] })
+    expect(selects(16038, 1, 29228)).toBe(true)
+    for (const id of [16120, 16035, 16578]) expect(selects(id, 0, CL), String(id)).toBe(true)
+    expect(selects(16039, 0, 29228)).toBe(true)
+  })
+
+  it('the build’s rows: costs, casts and multipliers from the default build', () => {
+    const talents = ranks({ Convection: 5, Concussion: 5, Reverberation: 4, 'Call of Flame': 3, 'Elemental Focus': 1, 'Elemental Fury': 5, 'Call of Thunder': 1, 'Elemental Alacrity': 3 })
+    expect(mana(withTalents(LAVA_BURST, talents))).toBe(238)
+    expect(mana(withTalents(CHAIN_LIGHTNING, talents))).toBe(436)
+    expect(mana(withTalents(FLAME_SHOCK, talents))).toBe(369)
+    expect(withTalents(FLAME_SHOCK, talents).cooldownMs).toBe(5200)
+    expect(withTalents(LAVA_BURST, talents).castMs).toBe(2000)
+    expect(withTalents(CHAIN_LIGHTNING, talents).castMs).toBe(1500)
+    expect(withSpellTalents(FLAME_SHOCK_SPELL, talents).damageMult).toBeCloseTo(1.15, 12)
+    expect(withSpellTalents(LAVA_BURST_SPELL, talents).damageMult).toBeCloseTo(1.15, 12)
+    expect(withSpellTalents(CHAIN_LIGHTNING_SPELL, talents)).toMatchObject({ bonusCrit: 3, critMultiplier: 2 })
+    expect(withSpellTalents(CHAIN_LIGHTNING_SPELL, talents).damageMult).toBeCloseTo(1.05, 12)
+    for (const def of [LIGHTNING_BOLT, LIGHTNING_BOLT_R4, CHAIN_LIGHTNING, LAVA_BURST, FLAME_SHOCK, EARTH_SHOCK]) expect(withTalents(def, talents).clearcastable, def.id).toBe(true)
   })
 })

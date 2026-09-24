@@ -434,13 +434,16 @@ slice is worked:
     and the melee's go by spec (`forSpecs`, `SpecMeta.caster`), but Arcane Brilliance, Blessing
     of Wisdom, the mana potions and the spell damage elixirs are `forClasses`, so the druid's Feral
     specs would get Balance's if the druid were a mana class; K6 gates them per spec.
-  - **The Enhancement shaman is on the core, with two switches off (K5 turns them on):** rebased
-    onto S1, the engine has one cast time (Maelstrom Weapon's cut, then casting speed), one regen
-    share inside the five-second rule (Improved Stormstrike is a `castingRegen` aura) and one
-    Intellect share of spell damage (Mental Quickness adds to every school). So its numbers don't
-    move before Elemental, its Lightning Bolt isn't `castHasted` (Rage of the Farseer doesn't
-    shorten a cast bolt, [shaman.md](classes/shaman.md#open-questions) OQ 5) and its Nature-only
-    and Frost-only spell damage lines are zeroed (OQ 9). K5 turns both on, with a golden update.
+  - **The Enhancement shaman is on the core** since K5: its Lightning Bolt is hasted and its
+    Nature-, Frost- and Fire-only spell damage lines count; its default result and golden didn't
+    move ([shaman.md](classes/shaman.md#enhancement-on-the-core)).
+- **The Elemental shaman's first-pass gaps** (K5, [shaman.md](classes/shaman.md#elemental-open-questions)):
+  - **Caster enchants and consumables** (Spell Power on the weapon, Arcanum of Focus, Zandalar
+    Signet of Mojo, Brilliant Wizard Oil, Nightfin Soup) aren't in the catalogue: about 110 spell
+    damage, roughly +12% for an Elemental shaman; the mages have the same gap ([mage.md](classes/mage.md)) (E9).
+  - **Eye of the Beast's use** (+7% spell hit for 20 s) needs a spell-hit aura mod (E7).
+  - **Alliance gear**: the pre-raid list's honor mail and weapons are Horde's, and the Alliance's
+    honor chain has no spell power, so a Dwarf is 15% behind (E8).
 - **A run on one spec shows its progress over another spec's result:** start a Fury run, switch to
   Arms, and Arms's result dims with Fury's "Simulating…" (CV2 in
   [the cat's review](reviews/2026-09-23-feral-cat.md)). Show progress only for the run's own spec.

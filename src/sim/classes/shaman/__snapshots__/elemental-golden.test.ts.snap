@@ -1,0 +1,109 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden run (fixed config and seed) > keeps the default Elemental shaman’s result unchanged 1`] = `
+{
+  "abilities": [
+    [
+      "flameShock",
+      4003595.575269266,
+      11660,
+      8939,
+      2257,
+      464,
+    ],
+    [
+      "flameShockDot",
+      5176339.702159673,
+      11196,
+      34539,
+      8826,
+      0,
+    ],
+    [
+      "lavaBurst",
+      8699456.680613723,
+      10769,
+      8303,
+      2072,
+      394,
+    ],
+    [
+      "chainLightning",
+      1882250.6827034208,
+      3809,
+      2811,
+      849,
+      149,
+    ],
+    [
+      "lightningBolt",
+      23622976.949395828,
+      34897,
+      25689,
+      7925,
+      1283,
+    ],
+    [
+      "lightningBoltRank4",
+      15375653.811528508,
+      31550,
+      23197,
+      7114,
+      1239,
+    ],
+    [
+      "lightningOverloadChain",
+      95263.14374323466,
+      382,
+      280,
+      88,
+      14,
+    ],
+    [
+      "lightningOverload",
+      1113027.8705642219,
+      3304,
+      2438,
+      739,
+      127,
+    ],
+    [
+      "lightningOverloadRank4",
+      736304.4586735156,
+      3038,
+      2219,
+      682,
+      137,
+    ],
+  ],
+  "dps": {
+    "ci95": 0.9548659753850068,
+    "mean": 337.99757125651223,
+    "stdev": 15.406157287749839,
+  },
+  "durationSec": 179.690222,
+  "mana": {
+    "max": 4735,
+    "regeneratedPerFight": 4772.2103,
+    "restored": [
+      {
+        "id": "manaTideTotem",
+        "name": "Mana Tide Totem",
+        "perFight": 1160,
+      },
+      {
+        "id": "majorManaPotion",
+        "name": "Major Mana Potion",
+        "perFight": 3601.5586000000003,
+      },
+    ],
+    "restoredPerFight": 4761.558599999999,
+    "spentPerFight": 13994.348,
+  },
+  "tps": {
+    "ci95": 0.6616742540762596,
+    "mean": 242.31621531911415,
+    "stdev": 10.675694698874562,
+  },
+}
+`;

@@ -9,6 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { WowIcon } from '@/components/wow-icon'
 import { CHOICE_ITEM } from '@/lib/choice'
 import { formatInt, formatOne, formatPct, formatSeconds } from '@/lib/format'
+import { casterSheetRows } from './caster-sheet'
 import { cn } from '@/lib/utils'
 import type { SimConfig, SimResult, Summary } from '@/sim'
 import { AssumptionList } from './assumption-list'
@@ -568,7 +569,11 @@ function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: S
   // left and spells on the right, row by row (Attack power | Spell damage, Crit | Spell crit, …).
   const spell = s.spell
   const weaponSkill = dualWield ? `${s.weaponSkill.mainHand} main hand / ${s.weaponSkill.offHand} off hand` : String(s.weaponSkill.mainHand)
-  const rows: [string, string][] = spell
+  // A caster's sheet (docs/mechanics/spells.md §12): spell damage by school, crit, hit, casting speed, mana.
+  const casterRows = casterSheetRows(s)
+  const rows: [string, string][] = casterRows
+    ? casterRows
+    : spell
     ? [
         ['Attack power', formatInt(s.attackPower)],
         // Holy: every paladin spell is (Champion of the Light's share of Intellect included).

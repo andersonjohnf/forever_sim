@@ -299,14 +299,15 @@ It corroborates the client data above but isn't a guild measurement.
   builder takes the rule (`coefficient`, the default, or `flat`), set as `rules.jotcBonus` under
   **Character → Advanced**, beside the other untested switch, "Count untested ratings" ("A share"
   or "All of it"). It's not a rotation choice, so the Rotation tab doesn't show it.
-- **Another paladin's JotC** [?]: a Protection paladin judges Seal of Fury, so the Crusader on the
-  boss is a second paladin's, the Buffs tab's `judgementOfTheCrusader` ([buffs §4.2, §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)).
-  It raises every paladin's Holy damage, yours too, by the same rule (Character → Advanced routes
-  it for Protection as for Retribution), and it's on by default when the raid has another paladin
-  ([open question 26](#open-questions)): +80.3 TPS (+17%) in the default setup, from Judgement of
-  Fury (+27), Seal of Fury's procs (+27), Consecration (+23), Holy Strike (+17), Holy Shield (+8) and
-  Hammer of Wrath (+4). A Retribution paladin's own judgement makes the Buffs tab's its own, so the
-  two never count twice.
+- **A Protection paladin judges it too** (user, 2026-09-24): it opens with Seal of the Crusader
+  before the pull, judges it at the pull to place JotC, then puts Seal of Fury up and judges Fury for
+  every judgement after; its landed auto attacks keep JotC up all fight
+  ([the opener](#forever-priority-list-default-1)). In the T2 default setup that's **+84.7 TPS
+  (+11.7%) and +41.6 DPS** against no JotC (40,000 paired fights, seed 777), for one Judgement of Fury
+  and 90 mana at the pull. The Character → Advanced rule applies to Protection's Holy hits as to
+  Retribution's (it didn't before T2). The Buffs tab's `judgementOfTheCrusader` is then yours, counted
+  once; with your own off it's another paladin's, on the boss from the pull
+  ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)).
 - **Where the bonus goes** [?]: as a flat bonus on the *target*, it's added after your own damage
   multipliers (Improved Seals, Vengeance, Crusade), which don't raise it, and before the crit
   multiplier, which does. That follows the Classic engine's order for flat damage taken; it's
@@ -753,13 +754,13 @@ the potion only when missing 2,250), on the setup without Prayer of Spirit and A
 
 ### Threat sources, in expected order of size
 
-Measured in the default setup after T2 (180 s, the Standard raid with another paladin's Judgement
-of the Crusader, the interim gear and talents, 379 Holy spell damage; 818.6 TPS and 438.3 DPS over
-20,000 fights on seed 12345): Seal of Fury's procs (19% of TPS), Consecration (16%), Judgement of
-Fury (15%), Holy Shield's block damage (14%, ×2.28 threat), Holy Strike (11%, ×2.375), white hits
-with their Windfury, Flurry Axe and Reckoning extra attacks (14% together, ×1), Hammer of Wrath in
-the execute phase (5%), and the mana Shield Specialization, Improved Seal of Fury and the potion
-give (5%, 0.5 a mana). Retribution Aura adds 3% with Max TPS; Exorcism counts only against Undead
+Measured in the default setup after T2 (180 s, the Standard raid, your own Judgement of the
+Crusader from the opener, the interim gear and talents, 379 Holy spell damage; 810.8 TPS and 434.2
+DPS over 20,000 fights on seed 12345): Seal of Fury's procs (20% of TPS), Consecration (16%),
+Judgement of Fury (15%), Holy Shield's block damage (14%, ×2.28 threat), Holy Strike (11%, ×2.375),
+white hits with their Windfury, Flurry Axe and Reckoning extra attacks (15% together, ×1), Hammer of
+Wrath in the execute phase (5%), and the mana Shield Specialization, Improved Seal of Fury and the
+potion give (5%, 0.5 a mana). Retribution Aura adds 3% with Max TPS; Exorcism counts only against Undead
 and Demons. Before T2 (C3's setup, 424.8 TPS) Holy Shield led with 24%.
 Righteous Fury, cast before the pull, is behind every Holy share: the Rotation tab shows it as a
 fixed row, always on, and the results list it up all fight.
@@ -786,7 +787,8 @@ Rotation tab picks the tank's duties first or Max TPS ([below](#priority-tank-du
 | --- | --- | --- | --- |
 | 0 | Aura: Devotion Aura, the duty, or Retribution Aura instead (`devotionAura.enabled`) | 4.5 s before the pull, first: a duty comes before any threat ability (D26's fixed rule, [below](#priority-tank-duties-first-or-max-tps)). Free, and it lasts all fight. Retribution Aura deals 30 Holy to the boss on each of its swings that lands on you | Devotion; Retribution with Max TPS |
 | 0b | Righteous Fury | up all fight, cast 3 s before the pull, a global cooldown after the aura and before the seal (free; the plan's ×1.9 Holy threat). The Rotation tab shows it as a fixed row with no switch | on (forced, no setting) |
-| 1 | Seal: Seal of Fury, or Seal of Righteousness (`seal.primary`) | 1.5 s before the pull (free), then missing or with at most `seal.refreshBelowSec` (2.5 s) left | Fury |
+| 0c | **The opener: Judgement of the Crusader** (`judgementOfTheCrusader.enabled`) | Seal of the Crusader 1.5 s before the pull (free) in the seal's place; judge it at the pull (off the GCD), placing JotC; then row 1 puts the main seal up. Your landed auto attacks restart JotC's 40 s, so it stays up; if it's ever missing (40 s with no landed swing), Seal of the Crusader and its judgement again, the same way. As Retribution's rows 0–2 | on (user, 2026-09-24) |
+| 1 | Seal: Seal of Fury, or Seal of Righteousness (`seal.primary`) | 1.5 s before the pull (free) without the opener; then missing or with at most `seal.refreshBelowSec` (2.5 s) left, but not over Seal of the Crusader before its judgement has landed | Fury |
 | 2 | Holy Shield | `holyShield.enabled`; the talent and a shield; its buff gone (4 blocks used, or its 10 s over). Its cooldown is its duration | on |
 | 3 | Judgement (the seal's) | `judgement.enabled`; ready (off GCD), with the seal up | on |
 | 4 | Swift Judgement | `swiftJudgement.enabled`; the talent; Judgement has at least `swiftJudgement.minCooldownSec` (4.5 s) of cooldown left and the seal is up (off GCD). It ends Judgement's cooldown, and row 3 judges again at once, for free | on |
@@ -806,8 +808,9 @@ Holy Strike and HotR share category 2404: casting one locks the other for that s
 cooldown [F] [client] (SpellCategories, 1.60.1.69913). Single target: Holy Strike wins, though HotR
 comes every 6 s to its 10. It scales with SP (0.429) and with another paladin's Judgement of the
 Crusader, and Iron Creed adds 25% threat and cuts damage taken; HotR has no SP coefficient in the
-data. In the T2 default setup, HotR in its place makes **−16.8 TPS (−2.1%)** and +0.1 DPS, even with
-attack power counted in its weapon DPS, for 5% more damage taken (20,000 paired fights, seed 777).
+data. In the T2 default setup, HotR in its place makes **−13.4 TPS (−1.65%)** and +2.5 DPS (+0.57%),
+even with attack power counted in its weapon DPS, for 5% more damage taken (40,000 paired fights,
+seed 777): −1.1% on the balanced objective.
 A slow, high-DPS one-hander with little spell damage is where HotR could win.
 
 #### Priority: tank duties first, or Max TPS
@@ -861,7 +864,7 @@ from 20% −0.07%, and the early potion at 1,250 missing −0.08% and at 1,750 �
 | Weapon | **Flurry Axe** (1.5 s, the weapon's +30 spell damage) and **Draconian Aegis of the Legion** (+20 spell damage). Of the pool's spell damage one-handers, Simone's Cultivating Hammer (the gear search's pick, 46 spell damage, 1.8 s) makes 8.7 TPS and 8.1 DPS less after T2's model fixes, and the Elderwild Construction Hammer (68, 2.4 s) 22.6 TPS less: a fast weapon's swings carry Seal of Fury's flat 35 and Windfury's chances. A 1H axe, mace or sword keeps Hammer of the Righteous usable | measured (20,000 fights, seed 12345) |
 | Gear | **Interim, measured** (T2; `INTERIM_GEAR` in `src/sim/defaults.ts`; the optimizer replaces it): the gear review's slot-by-slot paired search for threat from the pool (`.cache/probes/gear-review`), Lionheart Helm, Orb of the Darkmoon, Lieutenant Commander's Lamellar Shoulders, Crystalline Threaded Cape, Knight-Captain's Lamellar Breastplate and Leggings, Battleborn Armbraces, Soulforge Belt, Knight-Lieutenant's Lamellar Sabatons, Elemental Focus Band, Don Julio's Band, Weakness Analyzer, Briarwood Reed, with **Deathbone Gauntlets** in place of its Darkrune Gauntlets for the effective-health floor: 90.6% of v1's (5,241 health, 8,512 armor, 12,993) where the search's set had 89.4%, for 8.0 TPS. 379 Holy spell damage and 4,382 mana with the Standard raid; damage taken 898 a second (v1's preset 681 in the same setup), defense 310, so the boss crits for 5.2% (v1: 433, 0.3%). A Horde race takes the pre-raid list's pick where a piece is Alliance's (the Lamellar PvP set): a known gap | measured; user's floor |
 | Seal | **Seal of Fury** (SoR selectable) | [F] |
-| Raid debuff | **Another paladin's Judgement of the Crusader** (+161 Holy damage taken), in the Standard and Max raids when the raid has another paladin [?]: a raid's Holy or Retribution paladin usually judges the Crusader ([open question 26](#open-questions)) | [buffs §4.2](../mechanics/buffs-debuffs-consumables.md#42-other-debuffs), D29 |
+| Judgement of the Crusader | **Your own**, from the opener (row 0c): +161 Holy damage taken all fight, +84.7 TPS | user, 2026-09-24 |
 | Enchants | The Prot paladin column of [buffs §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec): Arcanum of Focus on head and legs (+8 spell damage each), Superior Defense cloak, Greater Stats, Superior Stamina bracers, Threat gloves, Greater Agility boots, **Spell Power (+30) on the weapon** and Greater Stamina on the shield. The shoulders stay empty until Zandalar is confirmed. Holy threat scales with spell damage, so the caster enchants are worth 5.4% of TPS (+22.9) in the default setup ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)) | buffs doc owns the values |
 | Aura | Devotion Aura, your own, kept up by the rotation; Retribution Aura with Max TPS (30 × 1.9 threat per hit taken) | [F]; [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23) |
 | Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of Greater Defense (Classic: Superior Defense), Elixir of Fortitude (+200 health), Elixir of Holy Power (+40 Holy), Nightfin Soup (+22 spell damage), Wizard Oil, Major Mana Potion. The Max-consumables preset adds Flask of Supreme Power, Greater Arcane Elixir, Brilliant Wizard Oil (replacing Wizard Oil) and Demonic/Dark Rune. No world buffs. Nightfin Soup and the wizard oils are the caster food and oils of [buffs §3.4 and §3.6](../mechanics/buffs-debuffs-consumables.md#34-food), in the catalogue since T2: +52 spell damage in the Standard raid, worth 5.8% of TPS (+25.9) in the default setup. The Standard raid's paladin-only buffs are Prayer of Spirit, Arcane Brilliance, Blessing of Wisdom and Mana Spring Totem ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset), "Pal"): 4,382 mana with the default gear. The raid preset has no Devotion Aura (yours), Thunder Clap or Demoralizing Shout (a warrior tank's; D26) | buffs doc owns names, values and presets |
@@ -874,9 +877,12 @@ and the interim gear and talents ([above](#protection-defaults)) raise the pool 
 the Holy spell damage to 379, so Consecration's threshold moved: **from 20%, with rank 1 on (from
 10%)**, +4.55 TPS (+0.56%, 95% CI +4.47 to +4.63) and +2.56 DPS over 100,000 paired fights on seed
 9091, which the search (seed 777, 40,000 fights: 0 to 60% in steps of 5 and 10, rank 1 on and off)
-didn't use; 20% alone is +0.45%. Hammer of the Righteous in Holy Strike's place loses 2.1%; Max TPS
-now gains +3.1% TPS (+25.2) for 5.7% more damage taken. The other thresholds weren't re-searched:
-the optimizer (O4) re-tunes them with the talents and gear. The grid by fight length below is C3's.
+didn't use; 20% alone is +0.45%. The opener ([row 0c](#forever-priority-list-default-1)) came after,
+and the re-check around it (seed 777, 40,000 paired fights) holds every value: Consecration from 30%
+−0.02% and from 10% −0.06%, rank 1 off −0.09%, the seal with 2 s left −0.06%, Swift Judgement with
+4 s −0.55%. Hammer of the Righteous in Holy Strike's place loses 1.65%; Max TPS gains +3.1% TPS
+(+25.2) for 5.7% more damage taken. The optimizer (O4) re-tunes all of them with the talents and
+gear. The grid by fight length below is C3's.
 
 The defaults are the best rotation found on 2026-09-24 per
 [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23) and, keeping
@@ -1230,9 +1236,17 @@ default setup.
     750 of it can be lost to the cap; after that it waits until it's missing 2,250, so none is. A
     Demonic or Dark Rune: 900–1,500, its own 2 minute cooldown.
 
-23. **Another paladin's Judgement of the Crusader (Protection)**: each landed Judgement of Fury gets
+23. **Judgement of the Crusader on a Protection paladin's hits**: each landed Judgement of Fury gets
     161 × 0.45 = **+72.45** (a crit ×2: +144.9), each Seal of Fury proc 161 × 0.1 = **+16.1**, after
     your own damage multipliers; with the flat rule, +161 each. Runs in `protection.test.ts`.
+24. **Hammer of the Righteous**, a 150-damage one-hander of 2.7 s speed and 1,200 attack power:
+    3 × (150 + 1,200 / 14 × 2.7) / 2.7 = **423.81** Holy, threat ×1.9 = 805.24; weapon only,
+    3 × 150 / 2.7 = **166.67**. Runs in `protection.test.ts`.
+25. **The Protection opener** (the default settings): Devotion Aura at −4.5 s, Righteous Fury at
+    −3 s, Seal of the Crusader at −1.5 s, all free. At 0: Judgement of the Crusader (off the GCD,
+    90 mana), which starts Judgement's 8 s cooldown; then Seal of Fury on the first GCD; Swift
+    Judgement at once, since Judgement has 8 s of cooldown left, and Judgement of Fury, free; Holy
+    Shield at 1.5 s. Runs in `protection.test.ts`.
 
 ---
 
@@ -1370,11 +1384,8 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     setup would make 0.6% more TPS. *Test:* count the blocks that deal Holy Shield's damage in one
     10 s buff against a fast-hitting mob.
 
-26. **Another paladin's Judgement of the Crusader** [?]: the Protection defaults assume a raid with
-    another paladin keeps it on the boss (the Buffs tab's `judgementOfTheCrusader`, +80 TPS). A
-    raid's other paladins may judge Wisdom or Light instead. *Test:* ask the guild's Holy and
-    Retribution paladins which judgement they keep on a boss when a Protection paladin tanks; if it's
-    rarely the Crusader, the default goes off. Each Holy hit's share of it is open question 5.
+26. *(Withdrawn in T2: the Protection defaults judged another paladin's Judgement of the Crusader
+    into the raid; a Protection paladin judges its own instead, [the opener](#forever-priority-list-default-1).)*
 27. **Holy Strike's third effect** (77, a script): the sim reads it as Sacred Arbiter's "refresh all
     Judgement effects" (Judgement 20271 carries the same effect; Sacred Arbiter's aura 1311087 holds
     only its +10% damage), with no threat of its own, since the tooltip has no threat wording (D29).

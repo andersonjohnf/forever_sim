@@ -29,10 +29,18 @@ const JOTC_ID = 'jotc-bonus'
 
 type JotcBonus = NonNullable<SimConfig['rules']['jotcBonus']>
 const JOTC_LABEL: Record<JotcBonus, string> = { coefficient: 'A share', flat: 'All of it' }
-/** Retribution's switch for Judgement of the Crusader: while it's off, the rule changes nothing. */
-const CRUSADER_SETTING = 'paladin.retribution.judgementOfTheCrusader.enabled'
+/** Each paladin spec's switch for its own Judgement of the Crusader: while it's off, the rule changes nothing. */
+const CRUSADER_SETTING: Partial<Record<string, string>> = {
+  'paladin-retribution': 'paladin.retribution.judgementOfTheCrusader.enabled',
+  'paladin-protection': 'paladin.protection.judgementOfTheCrusader.enabled',
+}
 /** The Buffs tab's Judgement of the Crusader, another paladin's: a Protection paladin's only one (buffs doc §4.2). */
 const RAID_JOTC = 'judgementOfTheCrusader'
+const HOTR_ID = 'hotr-weapon-dps'
+type HotrWeaponDps = NonNullable<SimConfig['rules']['hotrWeaponDps']>
+const HOTR_LABEL: Record<HotrWeaponDps, string> = { withAttackPower: 'With attack power', weaponOnly: 'Weapon only' }
+/** Protection's switch for Hammer of the Righteous: while it's off, the rule changes nothing. */
+const HOTR_SETTING = 'paladin.protection.hammerOfTheRighteous.enabled'
 
 /** The selected race's tile, the race picker's one tab stop. */
 const selectedRace = () => document.querySelector<HTMLElement>('[aria-labelledby="race-label"] [aria-checked="true"]')
@@ -56,15 +64,28 @@ export function CharacterSection() {
   const paladin = meta.classId === 'paladin'
   const jotc: JotcBonus = config.rules.jotcBonus ?? 'coefficient'
   const jotcChanged = paladin && jotc !== (defaults.rules.jotcBonus ?? 'coefficient')
+  // Off in Rotation, with no other paladin's in Buffs either (buffs doc §4.2): the rule changes nothing.
+  const setting = CRUSADER_SETTING[meta.id]
   const crusaderOff = useMemo(
-    () => paladin && meta.id === 'paladin-retribution' && rotationValues({ spec: meta.id, talents: config.talents, rotation: config.rotation })[CRUSADER_SETTING] === false,
-    [paladin, meta.id, config.talents, config.rotation],
+    () => paladin && setting !== undefined && rotationValues({ spec: meta.id, talents: config.talents, rotation: config.rotation })[setting] === false,
+    [paladin, setting, meta.id, config.talents, config.rotation],
   )
-  // A Protection paladin judges Seal of Fury: the judgement on the boss is another paladin's, from
-  // Buffs (buffs doc §4.2), so the rule changes nothing without it.
+  const raidJotc = config.buffs.enabled.includes(RAID_JOTC) && config.buffs.raid.includes('paladin')
+  const jotcUnused = crusaderOff && !raidJotc
   const protection = meta.id === 'paladin-protection'
-  const raidJotcOff = protection && !(config.buffs.enabled.includes(RAID_JOTC) && config.buffs.raid.includes('paladin'))
-  const jotcUnused = crusaderOff || raidJotcOff
+  // A Protection paladin's Hammer of the Righteous rule (paladin.md open question 11): it changes
+  // nothing while the rotation doesn't use it, and is dimmed then.
+  const hotr: HotrWeaponDps = config.rules.hotrWeaponDps ?? 'withAttackPower'
+  const hotrChanged = protection && hotr !== (defaults.rules.hotrWeaponDps ?? 'withAttackPower')
+  const hotrOff = useMemo(
+    () => protection && rotationValues({ spec: meta.id, talents: config.talents, rotation: config.rotation })[HOTR_SETTING] !== true,
+    [protection, meta.id, config.talents, config.rotation],
+  )
+  const setHotr = (value: HotrWeaponDps) =>
+    update((c) => {
+      const { hotrWeaponDps: _, ...rules } = c.rules
+      return { ...c, rules: value === 'withAttackPower' ? rules : { ...rules, hotrWeaponDps: value } }
+    })
   const setJotc = (value: JotcBonus) =>
     update((c) => {
       const { jotcBonus: _, ...rules } = c.rules
@@ -118,7 +139,7 @@ export function CharacterSection() {
       </div>
 
       {/* Opens by itself while a setting in it differs from its default, so Classic Era rules are never out of sight. */}
-      <Advanced changed={Number(profileChanged) + Number(ratingsChanged) + Number(jotcChanged)}>
+      <Advanced changed={Number(profileChanged) + Number(ratingsChanged) + Number(jotcChanged) + Number(hotrChanged)}>
         <div className="flex flex-col gap-2">
           <Field
             label="Rules"
@@ -224,14 +245,12 @@ export function CharacterSection() {
             </ToggleGroup>
             <p id="jotc-help" className="text-xs text-muted-foreground">
               {protection
-                ? 'Untested in Forever: how much of the +161 Holy damage another paladin’s judgement adds to each of your Holy hits. A share (the default), by the spell’s coefficient: a Seal of Fury proc 10%, Judgement of Fury 45%, Holy Strike 43%. Or all of it on seal procs, judgements and Holy Strike. Consecration, Holy Shield and Hammer of Wrath get their share either way.'
+                ? 'Untested in Forever: how much of the +161 Holy damage each Holy hit gets. A share (the default), by the spell’s coefficient: a Seal of Fury proc 10%, Judgement of Fury 45%, Holy Strike 43%. Or all of it on seal procs, judgements and Holy Strike. Consecration, Holy Shield and Hammer of Wrath get their share either way.'
                 : 'Untested in Forever: how much of the +161 Holy damage each Holy hit gets. A share (the default), by the spell’s coefficient: a Seal of Command proc about 20%, Judgement of Command and Holy Strike 43%. Or all of it on seal procs, judgements and Holy Strike. Consecration, Exorcism and Hammer of Wrath get their share either way.'}
             </p>
             {jotcUnused && (
               <p id="jotc-off" className="text-xs text-muted-foreground">
-                {raidJotcOff
-                  ? 'Not used: no other paladin’s Judgement of the Crusader is on in Buffs.'
-                  : 'Not used: Judgement of the Crusader is off in Rotation.'}
+                Not used: Judgement of the Crusader is off in Rotation.
               </p>
             )}
             {jotcChanged && (
@@ -243,6 +262,52 @@ export function CharacterSection() {
                   changeAndFocus(
                     () => setJotc('coefficient'),
                     () => selectedOption(JOTC_ID),
+                  )
+                }
+              />
+            )}
+          </div>
+        )}
+        {protection && (
+          // Dimmed by colour, never opacity, while the rotation doesn't use Hammer of the Righteous.
+          <div data-inactive={hotrOff || undefined} className={cn('flex flex-col gap-2', hotrOff && 'text-muted-foreground')}>
+            <span id="hotr-label" className="text-sm font-medium">
+              Hammer of the Righteous’s weapon DPS
+            </span>
+            <ToggleGroup
+              id={HOTR_ID}
+              type="single"
+              variant="outline"
+              value={hotr}
+              onValueChange={(value) => value && setHotr(value as HotrWeaponDps)}
+              aria-labelledby="hotr-label"
+              aria-describedby={['hotr-help', hotrOff && 'hotr-off', hotrChanged && 'hotr-default'].filter(Boolean).join(' ')}
+              className="w-full"
+            >
+              {(['withAttackPower', 'weaponOnly'] as const).map((value) => (
+                <ToggleGroupItem key={value} value={value} className={cn('h-11 flex-1', CHOICE_ITEM, hotrOff && CHOICE_ITEM_INACTIVE)}>
+                  {HOTR_LABEL[value]}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+            <p id="hotr-help" className="text-xs text-muted-foreground">
+              Untested in Forever: it deals 3 times your main hand’s damage per second. With attack power (the default), the weapon
+              DPS your character sheet shows; or the weapon’s own damage only, about a third of that with the default axe.
+            </p>
+            {hotrOff && (
+              <p id="hotr-off" className="text-xs text-muted-foreground">
+                Not used: Hammer of the Righteous is off in Rotation.
+              </p>
+            )}
+            {hotrChanged && (
+              <ChangedHint
+                id="hotr-default"
+                label="Hammer of the Righteous’s weapon DPS"
+                value={HOTR_LABEL.withAttackPower}
+                onReset={() =>
+                  changeAndFocus(
+                    () => setHotr('withAttackPower'),
+                    () => selectedOption(HOTR_ID),
                   )
                 }
               />

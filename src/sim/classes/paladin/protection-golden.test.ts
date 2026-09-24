@@ -70,6 +70,10 @@ describe('golden run (fixed config and seed)', () => {
   //   2-4530013321301551-50205 (Conviction 5 for Anticipation 5); Consecration from 20% with rank 1
   //   on (T2’s re-check). Hammer of the Righteous is in the rotation, off. TPS 590.07 → 817.61, DPS
   //   312.91 → 438.06, damage taken 682 → 899 a second.
+  // - T2, the opener (user): a Protection paladin judges its own Judgement of the Crusader, Seal of
+  //   the Crusader before the pull and judged at the pull, then Seal of Fury; the Buffs tab's (another
+  //   paladin's) leaves the Standard raid. TPS 817.61 → 809.18, DPS 438.06 → 433.62 (the opener's
+  //   judgement and 90 mana), damage taken 899 → 898.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

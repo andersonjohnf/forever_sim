@@ -26,10 +26,12 @@ import {
   hammerOfTheRighteousAbility,
   HAMMER_OF_WRATH_ABILITY,
   HOLY_STRIKE_ABILITY,
+  JUDGE_CRUSADER,
   JUDGEMENT_OF,
   PALADIN,
   SEAL_OF_FURY,
   SEAL_OF_RIGHTEOUSNESS,
+  SEAL_OF_THE_CRUSADER,
 } from './abilities'
 import { JUJU_FLURRY, MANA_POTION, MANA_RUNE, paladinConsumables } from './consumables'
 import { EXORCISM_TARGETS, manaOption } from './retribution'
@@ -48,6 +50,7 @@ const ID = {
   swiftJudgement: `${P}.swiftJudgement.enabled`,
   swiftJudgementCooldown: `${P}.swiftJudgement.minCooldownSec`,
   devotionAura: `${P}.devotionAura.enabled`,
+  crusader: `${P}.judgementOfTheCrusader.enabled`,
   judgement: `${P}.judgement.enabled`,
   holyStrike: `${P}.holyStrike.enabled`,
   hammerOfTheRighteous: `${P}.hammerOfTheRighteous.enabled`,
@@ -356,6 +359,16 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
   },
   {
     kind: 'toggle',
+    id: ID.crusader,
+    // A debuff kept up all fight, like Retribution's, placed at the pull (paladin.md "the opener").
+    group: 'Cooldowns and buffs',
+    label: 'Judgement of the Crusader',
+    help: 'Put Seal of the Crusader up before the pull and judge it at the pull, then Seal of Fury: the boss takes +161 Holy damage for 40 s, and your auto attacks keep it up. If it’s ever missing, it’s judged again the same way. While this is on, the Buffs tab’s Judgement of the Crusader is yours.',
+    default: true,
+    maintainsBuff: 'judgementOfTheCrusader',
+  },
+  {
+    kind: 'toggle',
     id: ID.holyShield,
     group: 'Cooldowns and buffs',
     label: 'Holy Shield',
@@ -590,10 +603,12 @@ export const PROTECTION_FIXED_ROWS: FixedRotationRow[] = [
 
 /**
  * Buff catalogue ids the rotation keeps up itself with these settings, so the plan drops the Buffs
- * switch's static version: your own Devotion Aura (paladin.md "Priority", D26).
+ * switch's static version: your own Devotion Aura (paladin.md "Priority", D26) and your own
+ * Judgement of the Crusader (paladin.md "the opener").
  */
 export function protectionMaintainedBuffs(values: Record<string, RotationValue>): string[] {
-  return reader(PROTECTION_OPTIONS, values).on(ID.devotionAura) ? ['devotionAura'] : []
+  const v = reader(PROTECTION_OPTIONS, values)
+  return [...(v.on(ID.devotionAura) ? ['devotionAura'] : []), ...(v.on(ID.crusader) ? ['judgementOfTheCrusader'] : [])]
 }
 
 /** The seal the settings choose (paladin.md "Protection defaults": Seal of Fury, Seal of Righteousness selectable). */
@@ -645,6 +660,7 @@ export function protectionRotation(
     return pct > 0 ? [{ code: COND.minMana, a: Math.round((pct / 100) * maxManaTenths), b: 0 }] : []
   }
   const auraUp = (a: number): RotationCondition => ({ code: COND.abilityAuraUp, a, b: 0 })
+  const auraDown = (a: number): RotationCondition => ({ code: COND.abilityAuraDown, a, b: 0 })
   const procs: ProcSpec[] = []
 
   // Abilities 0 and 1: the seal and its judgement. Seal of Fury's absorb needs a shield.
@@ -652,9 +668,26 @@ export function protectionRotation(
   const seal = index(sealDef)
   const judge = index(JUDGEMENT_OF[sealDef.id])
   if (sealDef.id === SEAL_OF_FURY.id && ctx.hasShield) procs.push(SEAL_OF_FURY_SHIELD_PROC)
+  const refresh: RotationCondition = { code: COND.abilityAuraRefresh, a: seal, b: seconds(v, ID.sealRefresh) }
+  let prepullSeal = seal
 
-  // Row 1: the seal when it's missing or has at most refreshBelowSec left.
-  add(sealDef, [{ code: COND.abilityAuraRefresh, a: seal, b: seconds(v, ID.sealRefresh) }])
+  if (v.on(ID.crusader)) {
+    // Rows 0c and 1 (paladin.md "the opener"), as Retribution's: Seal of the Crusader goes up 1.5 s
+    // before the pull; while it's up and Judgement of the Crusader is missing, judge it (at the pull,
+    // then only if the debuff ever drops: your landed auto attacks restart its 40 s). If it's missing
+    // without the seal, cast the seal first. The main seal when it's missing or about to end, but
+    // not over Seal of the Crusader before its judgement has landed.
+    const sotc = index(SEAL_OF_THE_CRUSADER)
+    const jotc = index(JUDGE_CRUSADER)
+    add(JUDGE_CRUSADER, [auraUp(sotc), auraDown(jotc)])
+    add(SEAL_OF_THE_CRUSADER, [auraDown(jotc), auraDown(sotc)])
+    add(sealDef, [refresh, auraDown(sotc)])
+    add(sealDef, [refresh, auraUp(jotc)])
+    prepullSeal = sotc
+  } else {
+    // Row 1: the seal when it's missing or has at most refreshBelowSec left.
+    add(sealDef, [refresh])
+  }
 
   // Row 2: Holy Shield (the talent, with a shield) whenever its buff is gone: its 4 blocks used or
   // its 10 s over. Its cooldown is its duration, so that's on cooldown unless blocks end it early.
@@ -717,7 +750,7 @@ export function protectionRotation(
       casts: [
         { ability: aura, atMs: PREPULL_AURA_MS },
         { ability: fury, atMs: PREPULL_RIGHTEOUS_FURY_MS },
-        { ability: seal, atMs: PREPULL_SEAL_MS },
+        { ability: prepullSeal, atMs: PREPULL_SEAL_MS },
       ],
       chargeTenths: 0,
       keepTenths: -1,

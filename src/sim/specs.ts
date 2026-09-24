@@ -106,8 +106,9 @@ export const SPEC_META: Record<SpecId, SpecMeta> = {
     name: 'Protection',
     role: 'tank',
     icon: 'spell_holy_devotionaura',
-    // Its duty, Devotion Aura, which Tank duties first keeps up and Max TPS drops (paladin.md "Priority", D26).
-    ownBuffs: ['devotionAura'],
+    // Its duty, Devotion Aura, which Tank duties first keeps up and Max TPS drops (paladin.md "Priority",
+    // D26), and its own Judgement of the Crusader, placed at the pull (paladin.md "the opener").
+    ownBuffs: ['devotionAura', 'judgementOfTheCrusader'],
   },
   // docs/classes/shaman.md: its own totems are the Buffs tab's (their `selfCast`), as a paladin's
   // Blessing of Might is, so it has no `ownBuffs`.

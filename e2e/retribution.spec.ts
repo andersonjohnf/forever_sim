@@ -137,6 +137,21 @@ test.describe('Retribution', () => {
     await expect(again.getByText('Not used: Judgement of the Crusader is off in Rotation.')).toBeVisible()
   })
 
+  test('its own Judgement of the Crusader makes the Buffs tab’s, another paladin’s, its own (T2)', async ({ page }) => {
+    await switchToRetribution(page)
+    const buffs = await openTab(page, 'Buffs')
+    const jotc = buffs.getByRole('switch', { name: 'Judgement of the Crusader', exact: true })
+    await expect(jotc).toBeChecked()
+    await expect(jotc).toBeDisabled()
+    await expect(jotc).toHaveAccessibleDescription(/You keep it up yourself \(see Rotation\), so it isn’t added twice\./)
+    const rotation = await openTab(page, 'Rotation')
+    await rotation.getByRole('switch', { name: 'Judgement of the Crusader', exact: true }).click()
+    const again = await openTab(page, 'Buffs')
+    const off = again.getByRole('switch', { name: 'Judgement of the Crusader', exact: true })
+    await expect(off).not.toBeChecked()
+    await expect(off).toHaveAccessibleDescription(/You’re not keeping it up \(see Rotation\); turn this on if another paladin does\./)
+  })
+
   test('a warrior’s Character tab has no Judgement of the Crusader rule', async ({ page }) => {
     await page.goto('./')
     const character = await openTab(page, 'Character')

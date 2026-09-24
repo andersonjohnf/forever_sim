@@ -120,7 +120,7 @@ describe('class-only catalogue entries', () => {
     ])
     // Max consumables adds Elixir of Holy Power, a rune and Flask of Supreme Power; the caster food and
     // oils are Protection's (§6.3).
-    // Another paladin's Judgement of the Crusader too: Retribution judges its own (SpecMeta.ownBuffs).
+    // The Buffs tab's Judgement of the Crusader is in no preset: each paladin spec judges its own (SpecMeta.ownBuffs).
     const PROT_ONLY = ['nightfinSoup', 'wizardOil', 'brilliantWizardOil', 'judgementOfTheCrusader']
     expect(max('paladin-retribution').filter((id) => PALADIN_ONLY.includes(id)).sort()).toEqual(PALADIN_ONLY.filter((id) => !PROT_ONLY.includes(id)).sort())
     // Protection: Elixir of Holy Power, Nightfin Soup, Wizard Oil and the potion in Standard; Greater
@@ -130,13 +130,12 @@ describe('class-only catalogue entries', () => {
       'arcaneBrilliance',
       'blessingOfWisdom',
       'manaSpringTotem',
-      'judgementOfTheCrusader',
       'elixirOfHolyPower',
       'nightfinSoup',
       'wizardOil',
       'majorManaPotion',
     ])
-    expect(max('paladin-protection').filter((id) => PALADIN_ONLY.includes(id)).sort()).toEqual(PALADIN_ONLY.filter((id) => id !== 'wizardOil').sort())
+    expect(max('paladin-protection').filter((id) => PALADIN_ONLY.includes(id)).sort()).toEqual(PALADIN_ONLY.filter((id) => id !== 'wizardOil' && id !== 'judgementOfTheCrusader').sort())
     expect(presetBuffIds('dungeon', 'paladin-protection', FULL_RAID)).toContain('nightfinSoup')
     // Each needs its provider: no shaman, no Mana Spring; no priest or mage, no Spirit or Intellect.
     expect(presetBuffIds('raid', 'paladin-retribution', FULL_RAID.filter((c) => c !== 'shaman'))).not.toContain('manaSpringTotem')

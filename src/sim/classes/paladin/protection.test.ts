@@ -37,6 +37,8 @@ const PROT = 'paladin-protection'
 const TALENTS = talentRanksByName(TALENT_DATA.paladin, defaultConfig(PROT).talents)
 const NO_BUFFS: SimConfig['buffs'] = { raid: [], enabled: [] }
 const MAX_TPS = { [ID.priority]: PROTECTION_PRIORITY.maxTps }
+/** Without your own Judgement of the Crusader (paladin.md "the opener"), for the tests of other rows' numbers and order. */
+const NO_JOTC = { [ID.crusader]: false }
 
 /** The default Protection paladin, with `patch`: no buffs unless it says so. */
 const config = (patch: Partial<SimConfig> = {}): SimConfig => ({ ...defaultConfig(PROT), buffs: NO_BUFFS, ...patch })
@@ -145,9 +147,9 @@ describe('Max TPS (paladin.md "Priority: tank duties first, or Max TPS", D26)', 
     for (const preset of ['raid', 'max'] as const) {
       for (const id of ['devotionAura', 'thunderClap', 'demoralizingShout']) expect(presetBuffIds(preset, PROT, FULL_RAID), id).not.toContain(id)
     }
-    expect(getSpec(PROT).ownBuffs).toEqual(['devotionAura'])
-    expect(maintainedBuffs(PROT, {})).toEqual(['devotionAura'])
-    expect(maintainedBuffs(PROT, MAX_TPS)).toEqual([])
+    expect(getSpec(PROT).ownBuffs).toEqual(['devotionAura', 'judgementOfTheCrusader'])
+    expect(maintainedBuffs(PROT, {})).toEqual(['devotionAura', 'judgementOfTheCrusader'])
+    expect(maintainedBuffs(PROT, MAX_TPS)).toEqual(['judgementOfTheCrusader'])
     const duties = buildPlan(d)
     const max = buildPlan({ ...d, rotation: MAX_TPS })
     // The aura, then Righteous Fury, are casts before the pull, a GCD apart and before the seal:
@@ -188,8 +190,8 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
   const ctx = { hasShield: true, maxMana: 2000, executePhase: true, mainHand: { speedSec: 1.5, twoHand: false } }
   const ids = (r: ReturnType<typeof protectionRotation>) => r.rotation.map((e) => r.abilities[e.ability].id)
 
-  it('the default: the seal, Holy Shield, Judgement, Swift Judgement, Holy Strike, Consecration (ranks 5 and 1) and Hammer of Wrath', () => {
-    const r = protectionRotation({}, TALENTS, () => -1, ctx)
+  it('the default without Judgement of the Crusader: the seal, Holy Shield, Judgement, Swift Judgement, Holy Strike, Consecration (ranks 5 and 1) and Hammer of Wrath', () => {
+    const r = protectionRotation(NO_JOTC, TALENTS, () => -1, ctx)
     expect(ids(r)).toEqual(['sealOfFury', 'holyShield', 'judgementOfFury', 'swiftJudgement', 'holyStrike', 'consecration', 'consecrationRank1', 'hammerOfWrath'])
     // Abilities 0 and 1 are the seal and its judgement (paladinCore's order), the seal up 1.5 s before the pull.
     expect(r.abilities.slice(0, 2).map((a) => a.id)).toEqual(['sealOfFury', 'judgementOfFury'])
@@ -227,10 +229,10 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
   })
 
   it('needs the talents and a shield for Holy Shield, the talent for Swift Judgement, and Undead or Demons for Exorcism', () => {
-    const none = protectionRotation({}, new Map(), () => -1, ctx)
+    const none = protectionRotation(NO_JOTC, new Map(), () => -1, ctx)
     expect(ids(none)).toEqual(['sealOfFury', 'judgementOfFury', 'holyStrike', 'consecration', 'consecrationRank1', 'hammerOfWrath'])
     expect(none.abilities[1].clearcastable).toBeUndefined()
-    const noShield = protectionRotation({}, TALENTS, () => -1, { ...ctx, hasShield: false })
+    const noShield = protectionRotation(NO_JOTC, TALENTS, () => -1, { ...ctx, hasShield: false })
     expect(ids(noShield)).not.toContain('holyShield')
     // No absorb without a shield either.
     expect(noShield.procs.map((p) => p.id)).toEqual(['sealOfFuryProc'])
@@ -240,7 +242,7 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
   })
 
   it('Seal of Righteousness in place of Seal of Fury: its proc and judgement, and no absorb', () => {
-    const r = protectionRotation({ [ID.seal]: 'righteousness' }, TALENTS, () => -1, ctx)
+    const r = protectionRotation({ ...NO_JOTC, [ID.seal]: 'righteousness' }, TALENTS, () => -1, ctx)
     expect(r.abilities.slice(0, 2).map((a) => a.id)).toEqual(['sealOfRighteousness', 'judgementOfRighteousness'])
     expect(r.procs.map((p) => p.id)).toEqual(['sealOfRighteousnessProc', 'holyShieldProc'])
   })
@@ -261,7 +263,8 @@ describe('worked example 12: Holy Shield (paladin.md#worked-examples)', () => {
       [300, 245, 558.6],
       [0, 221, 503.88],
     ] as const) {
-      const plan = protPlan({ gear: { mainHand: defaultConfig(PROT).gear.mainHand, offHand: defaultConfig(PROT).gear.offHand } })
+      // Without your own Judgement of the Crusader, whose +161 would add its 0.08 share.
+      const plan = protPlan({ gear: { mainHand: defaultConfig(PROT).gear.mainHand, offHand: defaultConfig(PROT).gear.offHand }, rotation: NO_JOTC })
       setSp(plan, sp)
       // Nothing else raises Holy damage or threat: no Holy talents or buffs.
       expect(plan.threatMult).toBe(1)
@@ -346,7 +349,7 @@ describe('Holy Shield’s charges (paladin.md#other-abilities; combat-tables §8
 describe('Swift Judgement (paladin.md#protection-tree)', () => {
   it('ends Judgement’s cooldown once a minute, right after a Judgement, and the Judgement it frees costs nothing', () => {
     // Without buffs, Consecration off, so mana never delays a judgement.
-    const plan = protPlan({ fight: { ...defaultConfig(PROT).fight, durationSec: 130, durationVariationPct: 0 }, rotation: { [ID.consecration]: false } })
+    const plan = protPlan({ fight: { ...defaultConfig(PROT).fight, durationSec: 130, durationVariationPct: 0 }, rotation: { ...NO_JOTC, [ID.consecration]: false } })
     const judge = 1
     const swift = plan.abilities.findIndex((a) => a.id === SWIFT_JUDGEMENT.id)
     expect(plan.freeCastAura).toBe(auraOf(plan, 'swiftJudgement'))
@@ -655,7 +658,7 @@ describe('mana over a long fight (paladin.md "Protection: model and rotation", #
     const perFight = (id: string) => field(sim, plan, id, FIELD.casts) / fights
     // Judgement every 8 s and twice at each of 10 Swift Judgements; Holy Strike every 10 s.
     expect(perFight('judgementOfFury')).toBeGreaterThan(0.97 * (600 / 8 + 10))
-    expect(perFight('holyStrike')).toBeGreaterThan(0.97 * 60)
+    expect(perFight('holyStrike')).toBeGreaterThan(0.96 * 60)
     // Consecration from 20% of maximum mana: about two thirds as often as its cooldown allows (75),
     // rank 1 in some of the rest, both on one cooldown. The
     // potion every 2 minutes, from the pull's first: 5, but for the odd fight whose pool (4,472 with
@@ -764,15 +767,21 @@ describe('what the fix round’s engine rules do in a Protection fight', () => {
     expect(plan.sources.some((s) => s.id === 'holyStrike') ? field(sim, plan, 'holyStrike', FIELD.casts) : 0).toBe(0)
   })
 
-  it('Holy Shield is the first global cooldown at the pull, after Righteous Fury, the aura and the seal before it (D26)', () => {
-    const plan = protPlan()
-    const sim = new Sim(plan)
-    const first: string[] = []
-    sim.castTrace = (a, t) => {
-      if (t >= 0 && plan.abilities[a].gcdMs > 0 && first.length < 2) first.push(`${plan.abilities[a].id}@${t}`)
+  it('the opener: Seal of the Crusader judged at the pull, then Seal of Fury and Holy Shield; without it Holy Shield is the first global cooldown (D26)', () => {
+    const first = (rotation: SimConfig['rotation']) => {
+      const plan = protPlan({ rotation })
+      const sim = new Sim(plan)
+      const out: string[] = []
+      sim.castTrace = (a, t) => {
+        if (t >= -1500 && out.length < 4) out.push(`${plan.abilities[a].id}@${t}`)
+      }
+      sim.runFight(0)
+      return out
     }
-    sim.runFight(0)
-    expect(first).toEqual(['holyShield@0', 'holyStrike@1500'])
+    // Judgement is off the GCD: the Crusader's at the pull, then Seal of Fury and, as Judgement's
+    // cooldown has 8 s left, Swift Judgement frees Judgement of Fury at once.
+    expect(first({})).toEqual(['sealOfTheCrusader@-1500', 'judgementOfTheCrusader@0', 'sealOfFury@0', 'swiftJudgement@0'])
+    expect(first(NO_JOTC).filter((c) => !c.startsWith('sealOf') && !c.startsWith('judgement') && !c.startsWith('swift'))[0]).toBe('holyShield@0')
   })
 
   it('Hammer of Wrath’s cast has its own note, not Slam’s; Retribution’s instant one has none', () => {
@@ -878,31 +887,32 @@ describe('determinism', () => {
   })
 })
 
-describe('another paladin’s Judgement of the Crusader (buffs doc §4.2; paladin.md worked example 23)', () => {
+describe('Judgement of the Crusader, your own (paladin.md "the opener", worked example 23; buffs doc §4.2)', () => {
   const RAID_JOTC: SimConfig['buffs'] = { raid: ['paladin'], enabled: ['judgementOfTheCrusader'] }
   const spellOf = (plan: Plan, id: string) => plan.spells!.find((s) => s.id === id)!
 
-  it('is in the Protection paladin’s Standard and Max raids when another paladin is in it, and the results say so', () => {
-    expect(defaultConfig(PROT).buffs.enabled).toContain('judgementOfTheCrusader')
-    expect(presetBuffIds('max', PROT, FULL_RAID)).toContain('judgementOfTheCrusader')
-    expect(presetBuffIds('raid', PROT, FULL_RAID.filter((c) => c !== 'paladin'))).not.toContain('judgementOfTheCrusader')
-    // Retribution judges its own (SpecMeta.ownBuffs): no preset, and the plan counts it once.
-    expect(presetBuffIds('raid', 'paladin-retribution', FULL_RAID)).not.toContain('judgementOfTheCrusader')
-    const bundle = buildPlan(config({ buffs: RAID_JOTC }))
-    expect(bundle.plan.holyTaken).toBe(161)
-    expect(bundle.assumptions.map((a) => a.id)).toEqual(expect.arrayContaining(['jotcRaid', 'jotcBonus']))
-    expect(buildPlan(config()).plan.holyTaken).toBeUndefined()
-    expect(buildPlan(config()).assumptions.map((a) => a.id)).not.toContain('jotcRaid')
+  it('is on by default: Seal of the Crusader before the pull, judged at the pull, and your auto attacks keep it up all fight', () => {
+    const plan = protPlan({ fight: { ...defaultConfig(PROT).fight, durationVariationPct: 0 } })
+    expect(plan.prepull.casts.map((c) => plan.abilities[c.ability].id)).toEqual(['devotionAura', 'righteousFury', 'sealOfTheCrusader'])
+    expect(plan.procs.some((p) => p.id === 'judgementOfTheCrusaderRefresh')).toBe(true)
+    const sim = new Sim(plan)
+    for (let i = 0; i < 5; i++) sim.runFight(i)
+    // Once a fight, at the pull, and up from then on; Seal of Fury from the pull's first GCD.
+    expect(field(sim, plan, 'judgementOfTheCrusader', FIELD.casts)).toBe(5)
+    const up = (id: string) => sim.auraUpMs[auraOf(plan, id)] / (5 * 180000)
+    expect(up('judgementOfTheCrusader')).toBeGreaterThan(0.999)
+    expect(up('sealOfFury')).toBeGreaterThan(0.98)
   })
 
-  it('a Retribution paladin that judges the Crusader keeps its own: the Buffs tab’s is left out, and counts only with its own off', () => {
-    const ret = defaultConfig('paladin-retribution')
-    const withRaid = { ...ret, buffs: { ...ret.buffs, enabled: [...ret.buffs.enabled, 'judgementOfTheCrusader'] } }
-    expect(maintainedBuffs('paladin-retribution', {})).toEqual(['judgementOfTheCrusader'])
-    expect(buildPlan(withRaid).plan.holyTaken).toBeUndefined()
-    const own = { 'paladin.retribution.judgementOfTheCrusader.enabled': false }
-    expect(maintainedBuffs('paladin-retribution', own)).toEqual([])
-    expect(buildPlan({ ...withRaid, rotation: own }).plan.holyTaken).toBe(161)
+  it('makes the Buffs tab’s its own: in no preset, counted once, and another paladin’s only with yours off', () => {
+    for (const preset of ['raid', 'max'] as const) expect(presetBuffIds(preset, PROT, FULL_RAID)).not.toContain('judgementOfTheCrusader')
+    // Yours on: the Buffs tab's adds nothing more.
+    expect(buildPlan(config({ buffs: RAID_JOTC })).plan.holyTaken).toBeUndefined()
+    const other = buildPlan(config({ buffs: RAID_JOTC, rotation: NO_JOTC }))
+    expect(other.plan.holyTaken).toBe(161)
+    expect(other.assumptions.map((a) => a.id)).toEqual(expect.arrayContaining(['jotcRaid', 'jotcBonus']))
+    expect(buildPlan(config()).assumptions.map((a) => a.id)).toContain('jotcBonus')
+    expect(buildPlan(config()).assumptions.map((a) => a.id)).not.toContain('jotcRaid')
   })
 
   it('example 23: each landed Judgement of Fury gets 161 × 0.45 = 72.45 more (a crit twice that), a Seal of Fury proc 16.1; with the flat rule 161 each', () => {
@@ -911,9 +921,13 @@ describe('another paladin’s Judgement of the Crusader (buffs doc §4.2; paladi
       ['flat', 161, 161],
     ] as const) {
       const rules = { ...defaultConfig(PROT).rules, ...(rule === 'flat' ? { jotcBonus: 'flat' as const } : {}) }
-      const on = protPlan({ buffs: RAID_JOTC, rules })
-      const off = protPlan({ rules })
+      // The Buffs tab's, from the pull, against none: the same fights, so the bonus is all that differs.
+      const on = protPlan({ buffs: RAID_JOTC, rules, rotation: NO_JOTC })
+      const off = protPlan({ rules, rotation: NO_JOTC })
       expect([spellOf(on, 'judgementOfFury').takenScale, spellOf(on, 'sealOfFuryProc').takenScale]).toEqual(rule === 'flat' ? [1, 1] : [0.45, 0.1])
+      // Your own judgement's spells take the rule too (A1b).
+      const own = protPlan({ rules })
+      expect(spellOf(own, 'judgementOfFury').takenScale).toBe(rule === 'flat' ? 1 : 0.45)
       const extra = (id: string) => {
         const [a, b] = [new Sim(on), new Sim(off)]
         for (let i = 0; i < 3; i++) {

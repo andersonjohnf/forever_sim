@@ -645,11 +645,10 @@ export const BUFFS: BuffSpec[] = [
     },
     presets: { raid: CASTER_SPECS, max: CASTER_SPECS },
   },
-  // Another paladin's Judgement of the Crusader (buffs doc §4.2; docs/classes/paladin.md
-  // "Protection defaults"): a Protection paladin judges Seal of Fury, so the +161 is a second
-  // paladin's, on by default when the raid has one [?] (D29). Only paladins deal Holy damage among
-  // the specs in scope. A Retribution paladin that judges the Crusader itself keeps it up (its
-  // rotation's, SpecMeta.ownBuffs), so the two never count twice.
+  // Judgement of the Crusader on the boss (buffs doc §4.2): every paladin spec judges its own at the
+  // pull and keeps it up (their rotations', SpecMeta.ownBuffs; docs/classes/paladin.md), so no preset
+  // has it, and the Buffs tab's is yours while your own is on. Turned on with yours off, it's another
+  // paladin's. Only paladins deal Holy damage among the specs in scope.
   {
     id: 'judgementOfTheCrusader',
     name: 'Judgement of the Crusader',
@@ -664,7 +663,7 @@ export const BUFFS: BuffSpec[] = [
     // 1.60.1.69913 and 1.15.9.69722). Each Holy hit's share is the Character → Advanced rule.
     effects: [{ kind: 'holyTaken', value: 161 }],
     classicEra: { summary: '+140 Holy damage taken', effects: [{ kind: 'holyTaken', value: 140 }] },
-    presets: { raid: PROTECTION_PALADIN, max: PROTECTION_PALADIN },
+    presets: NOT_IN_PRESETS,
   },
   // A Feral bear's duty (docs/classes/druid.md §6.3), which it keeps up itself (SpecMeta.ownBuffs), so
   // no preset has it; turned on here, it's another druid's.

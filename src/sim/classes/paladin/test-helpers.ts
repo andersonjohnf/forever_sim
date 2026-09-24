@@ -43,6 +43,11 @@ export const RETRIBUTION_CORE_ONLY: Record<string, RotationValue> = {
   [RETRIBUTION_IDS.rune]: false,
 }
 
+/** Protection's settings for the worked examples: its own Judgement of the Crusader off (paladin.md "the opener"). */
+export const PROTECTION_CORE_ONLY: Record<string, RotationValue> = {
+  'paladin.protection.judgementOfTheCrusader.enabled': false,
+}
+
 export interface ExampleOptions {
   spec?: SpecId
   talents?: Record<string, number>
@@ -73,7 +78,7 @@ export function examplePlan(o: ExampleOptions = {}): Plan {
     // Only the main hand's weapon, unenchanted: its item stats are cleared below.
     gear: { mainHand: { itemId: d.gear.mainHand!.itemId } },
     buffs: { raid: [], enabled: [] },
-    rotation: { ...(spec === 'paladin-retribution' ? RETRIBUTION_CORE_ONLY : {}), ...o.rotation },
+    rotation: { ...(spec === 'paladin-retribution' ? RETRIBUTION_CORE_ONLY : PROTECTION_CORE_ONLY), ...o.rotation },
     fight: { ...d.fight, durationVariationPct: 0, durationSec: (o.durationMs ?? 60000) / 1000 },
   }).plan
   const w = o.weapon ?? { min: 200, max: 300, speedSec: 3.5 }

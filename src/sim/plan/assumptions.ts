@@ -421,9 +421,9 @@ const REGISTRY = {
     text: 'Judgement of the Crusader’s +161 Holy damage is added in full to each melee-class Holy hit (seal procs, judgements, Holy Strike), as set under Character → Advanced, and by its coefficient’s share to spells; untested, and the biggest uncertainty in a paladin’s Holy damage.',
     docRef: `${PAL}#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc`,
   },
-  // The Buffs tab's Judgement of the Crusader, another paladin's (buffs doc §4.2; paladin.md "Protection defaults").
+  // The Buffs tab's Judgement of the Crusader, another paladin's, with your own off (buffs doc §4.2).
   jotcRaid: {
-    text: 'Another paladin in the raid keeps Judgement of the Crusader on the boss all fight (+161 Holy damage taken), as a raid with a second paladin would; whether it’s there is up to your raid, and how much each of your Holy hits gets is the rule above.',
+    text: 'Another paladin keeps Judgement of the Crusader on the boss all fight (+161 Holy damage taken), as set in Buffs with your own off; how much each of your Holy hits gets is the rule above.',
     docRef: `${BUFFS}#42-other-debuffs`,
   },
   holyStrike: {

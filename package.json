@@ -13,7 +13,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:smoke": "vitest run --config vitest.smoke.config.ts && playwright test --grep @smoke",
-    "test:full": "npm run lint && npm run typecheck && npm test && npm run test:e2e",
+    "test:full": "npm run lint && npm run typecheck && npm test && npm run scrape:check -- --if-cached && npm run test:e2e",
     "snap": "node scripts/snap.mjs --build",
     "optimize": "node scripts/tune/optimize.mjs",
     "scrape:spells": "node scripts/scrape/spells-client.mjs",
@@ -25,7 +25,8 @@
     "diff:talents": "node scripts/scrape/talents-client.mjs --diff",
     "diff:spells": "node scripts/scrape/spells-client.mjs --diff",
     "diff:races": "node scripts/scrape/races-client.mjs --diff",
-    "scrape": "node scripts/scrape/all.mjs"
+    "scrape": "node scripts/scrape/all.mjs",
+    "scrape:check": "node scripts/scrape/all.mjs --check"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -42,7 +43,6 @@
     "radix-ui": "^1.6.7",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "shadcn": "^4.21.0",
     "sonner": "^2.0.8",
     "tailwindcss": "^4.3.3",
     "tw-animate-css": "^1.4.0",
@@ -56,6 +56,7 @@
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "oxlint": "^1.81.0",
+    "shadcn": "^4.21.0",
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
     "vitest": "^5.0.1"

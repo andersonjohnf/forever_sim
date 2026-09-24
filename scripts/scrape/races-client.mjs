@@ -12,6 +12,11 @@
 //   --diff     then diff the written file against the committed one; report in
 //              .cache/client/<build>/races-diff.md (+ .json)
 //   --against  the git ref whose dataset is "committed" (default HEAD)
+//   --check    from the cache alone, compare the races with the file in src/data, writing nothing
+//              to src/data or the cache; exits non-zero if it differs. It regenerates the build
+//              and WoWDBDefs commit the committed data records unless --version/--dbdefs
+//              say otherwise; --fresh=<dir> also keeps the fresh generation under <dir>
+//              (all.mjs --check; lib/output.mjs)
 //
 // Saved setups and share links store race ids, so the run refuses to write if the race ids, a
 // race's name or faction, or the classes each race can be in Forever and in Classic Era differ
@@ -24,11 +29,11 @@
 // cached under .cache/client/, once per build). Zero dependencies (Node >= 22). See
 // docs/data/races.md.
 
-import fs from "node:fs";
 import path from "node:path";
 import { describeRef, readCommitted } from "./lib/committed.mjs";
 import { createFetcher } from "./lib/http.mjs";
 import { compareText, stableStringify } from "./lib/json.mjs";
+import { checkConflicts, createOutput, recordedSource } from "./lib/output.mjs";
 import { RACE_TABLES, classSlugs, classesOfMask, groupByText, isHidden, raceNames, racialId, racialRows } from "./lib/race-data.mjs";
 import { SPELL_TEXT_TABLES, createSpellTextContext, renderSpellText } from "./lib/spell-text.mjs";
 import { SPELLBOOK_TABLES, castTimeOf, cooldownOf, costOf, createBookContext, norm, rangeOf } from "./lib/spellbook.mjs";
@@ -50,19 +55,21 @@ const SIM_CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage", "
  */
 const RACE_ICON_OVERRIDES = { 95: "inv_misc_head_elf_01", 96: "inv_misc_head_elf_02" };
 
-const opts = { diff: false, "accept-race-changes": false, "skip-committed-check": false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
+const opts = { diff: false, "accept-race-changes": false, "skip-committed-check": false, refresh: false, check: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
 for (const arg of process.argv.slice(2)) {
   const m = /^--([a-z-]+)(?:=(.*))?$/.exec(arg);
   if (!m) usage(`Unknown argument: ${arg}`);
   const [, key, value] = m;
-  if (["diff", "accept-race-changes", "skip-committed-check", "refresh"].includes(key) && value === undefined) opts[key] = true;
-  else if (["version", "baseline", "dbdefs", "against"].includes(key) && value) opts[key] = value;
+  if (["diff", "accept-race-changes", "skip-committed-check", "refresh", "check"].includes(key) && value === undefined) opts[key] = true;
+  else if (["version", "baseline", "dbdefs", "against", "fresh"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
+for (const conflict of checkConflicts(opts)) usage(conflict);
 function usage(msg) {
-  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--accept-race-changes] [--skip-committed-check] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
+  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--accept-race-changes] [--skip-committed-check] [--refresh] [--check [--fresh=<dir>]] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
   process.exit(2);
 }
+const output = createOutput({ repoRoot: REPO_ROOT, check: opts.check, fresh: opts.fresh });
 
 const errors = [];
 const warnings = [];
@@ -73,15 +80,16 @@ const warn = (msg) => warnings.push(msg);
 // Tables
 // ---------------------------------------------------------------------------
 
-const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh });
-const latest = await latestBuild(fetcher, PRODUCT);
-const version = opts.version ?? latest.version;
+const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh, offline: opts.check });
+// --check regenerates the build the committed data records, not the cache's latest (lib/output.mjs).
+const recorded = opts.check ? recordedSource(path.join(REPO_ROOT, OUT_FILE)) : {};
+const version = opts.version ?? recorded.version ?? (await latestBuild(fetcher, PRODUCT)).version;
 /** The build's creation date on wago.tools, from its build list (lib/wago.mjs buildRecord). */
 const foreverBuildDate = await buildDate(fetcher, PRODUCT, version);
-const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs);
+const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs ?? recorded.dbdefs);
 
 async function load(build) {
-  const source = createClientSource({ fetcher, cacheDir: CACHE_DIR, version: build, dbdefsSha });
+  const source = createClientSource({ fetcher, cacheDir: CACHE_DIR, version: build, dbdefsSha, readOnly: opts.check });
   const tables = {};
   const used = new Map();
   for (const name of [...new Set([...RACE_TABLES, ...SPELLBOOK_TABLES, ...SPELL_TEXT_TABLES])]) {
@@ -357,8 +365,9 @@ if (errors.length) {
   process.exit(1);
 }
 const text = stableStringify(next);
-fs.writeFileSync(path.join(REPO_ROOT, OUT_FILE), text);
-console.log(`Wrote ${OUT_FILE} (${(text.length / 1024).toFixed(0)} KB)`);
+output.write(path.join(REPO_ROOT, OUT_FILE), text);
+if (!opts.check) console.log(`Wrote ${OUT_FILE} (${(text.length / 1024).toFixed(0)} KB)`);
+output.finish();
 if (opts.diff) {
   if (!old) {
     console.error(`No committed dataset at ${against}: nothing to diff against.`);

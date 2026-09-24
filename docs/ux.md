@@ -103,7 +103,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     whether this class can wear it, so a warrior's Sergeant Major's Plate Wristguards (warriors
     and paladins) swap for First Sergeant's Plate Bracers (warriors). The swap happens out of
     sight, on the Gear tab, so a notice names the new items. An item with no twin stays, and the
-    notice says so.
+    notice says so. A slot still holding the spec's default takes the new race's default instead
+    ([architecture, "Following the defaults"](architecture.md#following-the-defaults)), so an
+    untouched set stays the default set: a Horde paladin gets the Horde threat set's own pieces,
+    and the notice says where they're from ("Swapped 4 items for Horde gear": "Premier Scaled
+    Shoulders, …, from the Horde threat set.").
   - Advanced: the rule profile (`Forever`, the default, or `Classic Era`) and the switch for
     unmeasured ratings
     ([D12](decisions.md#d12-unmeasured-forever-ratings-apply-by-hypothesis-with-a-switch-2026-09-22)).
@@ -129,6 +133,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     paladin sees Retribution's and Protection's. The spec
     default is selected. Only the current spec's default is marked "(default)"; another spec's
     reads plainly ("Arms default"), so the menu never shows two defaults.
+  - While the build is the spec's default, a quiet line under the buttons says so, as Gear's does
+    for its set: a check and "Using the default build." in muted text. It's gone once a point
+    changes, and it's what follows newer defaults
+    ([Persistence and sharing](#persistence-and-sharing)).
   - Interactive trees: three side by side on desktop, one tab per tree on mobile (a segmented
     control named "Talent tree", each tab as wide as its name and points need, with tight padding,
     so "Feral Combat 37" fits beside Balance and Restoration down to 360 px, and a warrior's three
@@ -156,8 +164,23 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - The tab says what the gear starts as: a DPS spec's pre-raid best in slot ("Starts as Fury Warrior
     pre-raid best in slot"), or for a tank, whose default is the sim's measured threat set rather
     than a guide's list (D29, D30), "Starts as the Protection Paladin threat set: pre-raid items
-    measured for threat, keeping an effective-health floor". The options menu's first item puts it
-    back: "Equip pre-raid best in slot", or "Equip the threat set" for a tank.
+    measured for threat, keeping an effective-health floor".
+  - Under it, a bordered row puts the default set back in one tap: a 44 px **Equip pre-raid best in
+    slot** button, or **Equip the threat set** for a tank, beside a line on how the gear compares.
+    While any slot's item or enchant differs from the default for the spec and race, the line
+    names them and says what the button replaces, since it replaces them all at once and there's
+    no undo ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)):
+    "3 slots differ from the threat set: Head, Legs and Main hand. Equipping it replaces all 3."
+    ("… replaces that slot." for one), after a dot in the primary colour (the changed-setting
+    marker of Character and Rotation); the row takes a muted fill and the button is the primary
+    one. Once the gear matches, it's quiet: a check and "Wearing the threat set." in muted text,
+    and no button, since there's nothing to equip. Equipping from the keyboard moves focus to that
+    line as the button goes. The line is the button's description for screen readers. Below 640 px
+    the button takes the row's full width under the line. The button used to hide in the options menu;
+    it's the tab's main action, and on a returning visit the likeliest one, so it's in view, and the
+    menu (**Gear options**) keeps only **Remove all gear**, which empties every slot with no undo
+    ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)),
+    so it stays a deliberate step away.
   - Slots in paper-doll order. Each row shows the item icon, its name in its quality color,
     a one-line summary of its key stats, and an enchant chip. Empty slots have their own
     state. The columns are `minmax(0, 1fr)`, so a long name or enchant truncates rather than
@@ -208,8 +231,6 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     selected option, with a check. Focus goes back to the chip when it closes, or to the slot's
     button if the chip has gone meanwhile (a share link pasted into the tab took the item away).
     Under Classic Era rules it says its values are Classic Era's, as Buffs does.
-  - A gear-set menu: "Pre-raid BiS" (the spec default, in the race's faction's PvP gear),
-    "Empty", and later saved sets.
 - **Buffs.**
   - Presets: Self only, Dungeon group, Standard raid (the default, named "Standard raid
     (default)", like the talent presets), Max consumables. Each shows what it brings in a line
@@ -793,7 +814,9 @@ Every view handles these states:
   forward (retry, or reset to defaults).
   - A setup the engine refuses (a Skyborne warrior or hunter) is titled "This setup can't be simulated",
     and its message says what to change, so no retry advice follows it. Any other failure is
-    titled "The simulation failed" and suggests trying again, then resetting the spec.
+    titled "The simulation failed" and suggests trying again, then resetting the spec, except a
+    run that stopped answering for a minute: "The simulation stopped responding for a minute, so
+    it was stopped. Run it again." says all there is to say, since no setup causes a hang.
   - On a phone the bottom bar shows the failure itself: a warning icon, "Failed" and the
     start of the reason, in AA colors. "Show results and details" stays enabled, with or without an
     earlier result, and opens the sheet with the full message. The live region reads it out
@@ -811,6 +834,19 @@ Every view handles these states:
   than every change failing (`autoSaveStorage` in `src/app/setup-store.ts`). It says what makes
   room as the Setups sheet does: deleting saved setups, or with none shown, that the storage is
   full of something else and clearing the site's data makes room.
+- **What you never changed follows the defaults.** A gear slot or talent build that still holds
+  the spec's default when the setup is saved takes the newer default on the next visit; what you
+  changed stays yours ([architecture, "Following the defaults"](architecture.md#following-the-defaults)).
+  A visit that moved anything says so once, naming the spec, the current one first: "Updated to
+  the new default gear and talents for Protection Paladin", "Gear and talents you changed yourself
+  are kept." (two specs are both named; more read "Protection Warrior and 2 other specs"). The next
+  visit says nothing, even when the save couldn't be written and the visit makes the same move
+  again. A share link the page opens with leaves its own spec out of the notice, since the link's
+  setup replaces that spec's; with nothing else moved, there's no notice. A default item that can't
+  go in beside one of your own (a Unique rule, or a two-hander with your off hand) leaves its slot as
+  it was, still following the default, and the next visit tries again. Share links, codes and
+  saved setups are loaded exactly as they are; after that, anything in them that is the default
+  follows it.
 - **Share** copies a URL with the compressed setup in the hash (`#s=…`). The clipboard write
   starts within the tap itself, with the link as a promise (`ClipboardItem`), because Safari
   refuses one that follows an await. A notice says the link was copied, or that the browser
@@ -829,7 +865,8 @@ Every view handles these states:
   never cover the header.
   - A change gets a notice only when it happens out of sight or needs saying: a shared link
     loaded, **Reset setup** (it changes every tab), a race change that swapped faction gear
-    (on the Gear tab), and a setup saved, loaded, deleted or imported ([Setups](#setups)). A
+    (on the Gear tab), a visit that moved untouched gear or talents to newer defaults, and a
+    setup saved, loaded, deleted or imported ([Setups](#setups)). A
     change you watch happen, like gear, a talent build or Reset rotation, gets none, but screen
     readers still hear it ([Accessibility](#accessibility)). Setups' **Copy setup code** and
     **Download all setups** say what they did in a line under their buttons instead, since a

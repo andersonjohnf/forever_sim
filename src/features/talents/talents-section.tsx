@@ -1,4 +1,4 @@
-import { CircleAlert, ClipboardCopy, ClipboardPaste, Minus, Plus, RotateCcw } from 'lucide-react'
+import { Check, CircleAlert, ClipboardCopy, ClipboardPaste, Minus, Plus, RotateCcw } from 'lucide-react'
 import { useId, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { announce } from '@/app/announce'
@@ -28,7 +28,7 @@ import { SectionHeader } from '@/features/section'
 import { useIsDesktop, useMediaQuery } from '@/hooks/use-media-query'
 import { CHOICE_HINT, CHOICE_ITEM } from '@/lib/choice'
 import { cn } from '@/lib/utils'
-import { TALENT_DATA, talentPresets } from '@/sim'
+import { defaultTalents, TALENT_DATA, talentPresets } from '@/sim'
 import { canAdd, canRemove, lockReason, presetSpec, readBuildCode, removeReason, totalPoints, withRank } from './logic'
 
 export function TalentsSection() {
@@ -39,6 +39,7 @@ export function TalentsSection() {
   const ranks = useMemo(() => safeDecode(data, code), [data, code])
   const perTree = pointsPerTree(data, ranks)
   const spent = totalPoints(ranks)
+  const isDefault = code === defaultTalents(meta.id)
   // Only the builds of specs the app offers (docs/ux.md principle 8): no paladin or druid builds
   // until those specs ship, and the menu grows as specs do.
   // "(default)" marks only this spec's default build; another spec's reads plainly ("Arms
@@ -130,11 +131,20 @@ export function TalentsSection() {
         </Button>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        {finePointer
-          ? 'Click a talent to add a point, right-click to remove one. On a focused talent, Enter adds a point and Backspace removes one.'
-          : 'Tap a talent to see what it does and add or remove points.'}
-      </p>
+      <div className="flex flex-col gap-2">
+        {/* As Gear's line says it wears the default set (docs/ux.md "Talents"). */}
+        {isDefault && (
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Check aria-hidden className="size-4 shrink-0" />
+            Using the default build.
+          </p>
+        )}
+        <p className="text-xs text-muted-foreground">
+          {finePointer
+            ? 'Click a talent to add a point, right-click to remove one. On a focused talent, Enter adds a point and Backspace removes one.'
+            : 'Tap a talent to see what it does and add or remove points.'}
+        </p>
+      </div>
 
       {isDesktop ? (
         <div className="grid grid-cols-3 gap-4">

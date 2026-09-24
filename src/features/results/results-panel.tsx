@@ -16,7 +16,7 @@ import { AssumptionList } from './assumption-list'
 import { Delta } from './delta'
 import { ManaPerFight } from './mana-results'
 import { DIM_FILL, DIM_ICON, DIM_ROOT } from './dim'
-import { breakdownRows, isSetupError, neverHit } from './run-logic'
+import { breakdownRows, carriesItsOwnAdvice, isSetupError, neverHit } from './run-logic'
 import { avoidanceOf, CRIT_REDUCTION_LABEL, formatCritReduction } from './tank-logic'
 import { BossTable, DamageTaken, SwingOutcomes } from './tank-results'
 import { useScrollEdges } from './use-scroll-edges'
@@ -199,15 +199,17 @@ function StaleBadge() {
 
 /** What a failed run says, and the way forward (docs/ux.md#states "Error"). */
 function RunError({ message }: { message: string }) {
-  // The engine's refusals name what to change; only other failures get the retry advice.
+  // The engine's refusals name what to change, and a hung worker's message says to run it again;
+  // only other failures get the retry advice.
   const setup = isSetupError(message)
+  const advice = !carriesItsOwnAdvice(message)
   return (
     <div role="alert" className="flex gap-2 rounded-lg border border-destructive/50 p-3 text-sm">
       <TriangleAlert className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden />
       <div className="flex min-w-0 flex-col gap-1">
         <p className="font-medium text-destructive">{setup ? 'This setup can’t be simulated' : 'The simulation failed'}</p>
         <p>{message}</p>
-        {!setup && (
+        {advice && (
           <p className="text-muted-foreground">Try again. If it keeps failing, reset this spec to its defaults from the More menu (⋯).</p>
         )}
       </div>

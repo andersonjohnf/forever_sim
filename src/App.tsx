@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Announcer } from '@/app/announcer'
 import { DecadesCredit } from '@/app/decades-credit'
+import { useDefaultsNotice } from '@/app/defaults-notice'
 import { Header } from '@/app/header'
 import { useScrollFade } from '@/app/scroll-fade'
 import { useSetup, type Section } from '@/app/setup-store'
@@ -93,6 +94,7 @@ export default function App() {
   const { ref: tabsRef, fade } = useScrollFade<HTMLDivElement>(section)
   const simBar = useSimBarHeight()
   const tabBar = useStickyTop()
+  useDefaultsNotice()
   useSharedLink()
 
   return (

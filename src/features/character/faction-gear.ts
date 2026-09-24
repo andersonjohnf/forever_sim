@@ -5,7 +5,8 @@ import type { Item } from '@/data/items/types'
 import raceJson from '@/data/races/races.json'
 import type { Faction, RaceData } from '@/data/races/types'
 import { itemData, itemsById } from '@/lib/items'
-import { canUse, fitsFaction, itemFaction, SPEC_META, uniqueConflicts, type ClassId, type GearSlot, type SimConfig } from '@/sim'
+import { canUse, fitsFaction, GEAR_SLOTS, itemFaction, SPEC_META, uniqueConflicts, type ClassId, type GearSlot, type SimConfig } from '@/sim'
+import { followDefaults, following } from '@/features/gear/default-set'
 
 const races = (raceJson as unknown as RaceData).races
 
@@ -73,21 +74,37 @@ export interface FactionGearChange {
   config: SimConfig
   /** Items swapped for the new faction's twin, in paper-doll order of the config's gear. */
   swapped: { slot: GearSlot; from: Item; to: Item }[]
+  /**
+   * Default items swapped for the new race's default, which isn't their twin (a Horde paladin's own
+   * threat set pieces), in paper-doll order.
+   */
+  defaulted: { slot: GearSlot; from: Item; to: Item }[]
   /** The other faction's items with no twin, kept as they are. */
   kept: { slot: GearSlot; item: Item }[]
 }
 
 /**
- * Changes the race, swapping each item the new race's faction can't wear for its twin. An item
- * with no twin, or whose twin would break a Unique rule with the rest of the gear, stays.
- * Enchants stay with the slot: the twins take the same enchants.
+ * Changes the race. The slots that hold the spec's default for the old race take the new race's
+ * default (docs/architecture.md "Following the defaults"), so an untouched set stays the default set;
+ * then each other item the new race's faction can't wear swaps for its twin. An item with no twin,
+ * or whose twin would break a Unique rule with the rest of the gear, stays. Enchants stay with the
+ * slot: the twins take the same enchants.
  */
 export function changeRace(config: SimConfig, race: string): FactionGearChange {
   const faction = factionOf(race)
   const { classId } = SPEC_META[config.spec]
-  const gear = { ...config.gear }
   const swapped: FactionGearChange['swapped'] = []
+  const defaulted: FactionGearChange['defaulted'] = []
   const kept: FactionGearChange['kept'] = []
+  const follow = following(config)
+  const gear = { ...followDefaults({ ...config, race }, { gear: follow.gear, talents: false }).config.gear }
+  for (const slot of follow.gear) {
+    const from = config.gear[slot] && itemsById.get(config.gear[slot].itemId)
+    const to = gear[slot] && itemsById.get(gear[slot].itemId)
+    if (!from || !to || from.id === to.id) continue
+    if (faction && factionTwin(from, faction, classId)?.id === to.id) swapped.push({ slot, from, to })
+    else defaulted.push({ slot, from, to })
+  }
   if (faction) {
     const worn: Partial<Record<GearSlot, Item>> = {}
     for (const [slot, entry] of Object.entries(gear) as [GearSlot, { itemId: number } | undefined][]) {
@@ -106,5 +123,6 @@ export function changeRace(config: SimConfig, race: string): FactionGearChange {
       }
     }
   }
-  return { config: { ...config, race, gear }, swapped, kept }
+  const order = (a: { slot: GearSlot }, b: { slot: GearSlot }) => GEAR_SLOTS.indexOf(a.slot) - GEAR_SLOTS.indexOf(b.slot)
+  return { config: { ...config, race, gear }, swapped: swapped.sort(order), defaulted, kept }
 }

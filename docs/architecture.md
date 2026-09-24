@@ -62,6 +62,59 @@ UI state ──► SimConfig (plain, serializable) ──► Plan ──► Work
   saves or shares it, so it can grow fields freely.
 - Class data is loaded lazily (dynamic `import()` per class), so the first paint stays small.
 
+### Following the defaults
+
+The automatic save (`src/app/setup-store.ts`, localStorage key `forever-sim:setup`) keeps each
+spec's gear and talents as **overrides of the defaults**, as rotation settings are: what the player
+never changed follows the spec's current defaults, so a returning visitor gets a new threat set or
+talent build, and what they changed stays theirs.
+
+- **A part follows the default while it holds it.** A gear slot follows while its item and enchant
+  are the spec's default for the setup's race (`defaultGearFor`, normalized, in
+  `src/features/gear/default-set.ts`); the talent build follows while it's the spec's default build.
+  Picking the default item back, **Equip the threat set** (or pre-raid best in slot) and **Reset
+  setup** make parts follow again; any other change makes them the player's.
+- **The save says which parts follow.** Beside `config`, `bySpec` and `section`, the saved state
+  holds `following: { [spec]: { gear: GearSlot[], talents: boolean } }`, worked out by comparison
+  on every save (`following()`), for the current setup and each spec's last one. The setups
+  themselves are saved whole, so an older copy of the app reading the save still gets a full setup.
+- **A load puts today's defaults in the parts that follow** (`followDefaults()`), then normalizes.
+  The player's own slots go in first: a default item that would break a Unique rule with one of
+  them, or a default two-hander beside their own off hand, leaves its slot as it was, and a
+  hunter's own ranged weapon keeps ammo it fires. Such a **blocked slot still follows**: the store
+  remembers what it held (`blockedSlots` in `setup-store.ts`) and the save keeps it in `following`
+  while it holds that, so the next load tries again; a change to the slot, or a replaced setup,
+  makes it the player's. A spec whose setup this moved gets a notice
+  ([ux.md](ux.md#persistence-and-sharing)), and the load saves at once (hydration itself doesn't),
+  so the next load finds nothing to move and says nothing. The notice also records a digest of the
+  move in its own small key, `forever-sim:defaults-notice`, so when that save can't be written (full
+  storage) and every visit makes the same move again, it's still said once. A share link the page
+  opens with leaves its spec out of the notice (`useDefaultsNotice` reads the link before it loads).
+- **A race change is the same move**: slots that held the old race's default take the new race's
+  (`changeRace` in `src/features/character/faction-gear.ts`), so a Horde paladin gets its own threat
+  set pieces rather than keeping Alliance-only ones; the player's own items swap for their faction
+  twins as before.
+- **Saves from before `following` migrate** (`legacyFollowing()` in `src/app/follow-defaults.ts`),
+  by **frozen tables only, never today's defaults**, so a save that holds an old default keeps
+  migrating however the defaults change later. The snapshot, `src/app/legacy-defaults.ts`, is the
+  defaults as deployed at `ee171d2a`, the last build before `following`: for each spec its default
+  talents and the class's default race, and for every race the class can be, its default gear
+  (`defaultGearFor`) and v1's pick (the pre-raid lists alone, `preRaidListGear` without the interim
+  sets), items and enchants. It's generated once by `scripts/freeze-legacy-defaults.mjs`, which reads
+  that commit's source rather than the working tree, and is never regenerated from a newer one;
+  `legacy-defaults.test.ts` checks its shape. Beside it, hand-kept tables from git history add
+  earlier defaults: any item a former interim set (`INTERIM_GEAR`, any version) put in a slot, and
+  the former default talent builds (`stored-builds.json`'s "former default" builds, and the
+  Protection paladin's `-0530513321301551-50215`). A slot follows if it holds one of the snapshot's
+  entries, or one of those items with one of the slot's frozen enchants (or none, where the former
+  default had none: the Protection paladin's head, legs and weapon), for the setup's race or the
+  class's default race, or a race change's faction twin of one. The talent build follows if it's one
+  of those builds. Saves now say what follows, so later default changes need nothing added here.
+- **Share links, setup codes and saved setups are deliberate** and are loaded exactly as they are:
+  they're `SimConfig`s with no `following`, loaded with `replace`, and never migrated. After that,
+  the autosave treats one as any setup: its slots that happen to hold today's defaults follow them
+  from then on, and the rest are the player's.
+
 ## Engine design (M1)
 
 The engine is one general event-driven simulator ([D15](decisions.md#d15-engine-architecture-2026-09-22)).
@@ -497,10 +550,18 @@ A spec is data plus small ability modules, never its own loop.
   (100–100,000).
 - **Workers:** a persistent pool of `navigator.hardwareConcurrency − 1` module workers (at least
   one), created on the first run and kept warm. Each run sends its plan once per worker, then
-  chunks; cancelling stops dispatch and ignores chunks still running. Where workers don't exist
-  (Node, tests), the same chunks run on the calling thread. The optimizer asks the same workers
-  for per-fight samples instead of chunks (`fights` messages, `WorkerPool.fightRunner`), each
-  worker keeping a few engines by plan key ([optimizer.md](optimizer.md#fights-and-runners)).
+  chunks; cancelling stops dispatch and ignores chunks still running. A watchdog fails the run
+  with an error when a worker that has work doesn't answer for 60 s of awake time (a chunk takes
+  well under a second on a desktop even at the longest fight), and replaces that worker; it never
+  changes a result. It counts in 1 s heartbeats while the pool has work, and a beat adds at most
+  2 s however long it's been since the last one, so a tab the phone or Energy Saver froze resumes
+  its run instead of failing it on waking; time the page is hidden doesn't count either. Any
+  future pool work (the optimizer's) must also answer within 60 s of awake time, or scale the
+  timeout. Where workers don't exist (Node, tests), the same chunks run on the calling thread,
+  where nothing can interrupt a chunk. The optimizer asks the same workers for per-fight samples
+  instead of chunks (`fights` messages, `WorkerPool.fightRunner`), each worker keeping a few
+  engines by plan key ([optimizer.md](optimizer.md#fights-and-runners)); the watchdog covers
+  those jobs too.
 
 ## Testing
 
@@ -522,10 +583,12 @@ A spec is data plus small ability modules, never its own loop.
     share codes and the sim's API) and the e2e tests tagged `@smoke`: the app opens, every
     section opens without an error, Fury and Arms simulate, a share link restores, the phone
     layout, and Setups save and load.
-  - The **full suite** (`npm run test:full`: lint, typecheck, every unit and e2e test) runs
-    before every push, as the review gate's first step. The **Full regression** workflow also
-    runs it on the deploy's platform (Linux x64, Node from `.nvmrc`), beside the deploy on every
-    push to `main`, and by hand (Actions → Full regression → Run workflow).
+  - The **full suite** (`npm run test:full`: lint, typecheck, every unit test, the committed-data
+    check `npm run scrape:check` and every e2e test) runs before every push, as the review gate's
+    first step. The **Full regression** workflow also runs it on the deploy's platform (Linux
+    x64, Node from `.nvmrc`), beside the deploy on every push to `main`, and by hand (Actions →
+    Full regression → Run workflow); it has no client cache, so its data check is skipped there
+    ([data/README.md § Checking the committed data](data/README.md#checking-the-committed-data)).
   - Tag an e2e test `{ tag: '@smoke' }` only if it covers a core flow, and keep the suite
     small.
 
@@ -544,3 +607,24 @@ push to `main`, so a build's time is its release's; GitHub Actions supplies the 
 `GITHUB_SHA`, and a local build reads it from git (empty when there's none). `BUILD_TIME` in the
 environment pins the time. The About sheet shows it in the viewer's own time zone
 ([ux.md](ux.md), "About & data").
+
+### Content-Security-Policy
+
+GitHub Pages sets no response headers, so the policy is a `<meta http-equiv>` in `index.html`:
+
+| Directive | Allows | Why |
+| --- | --- | --- |
+| `default-src`, `script-src`, `worker-src`, `connect-src`, `font-src` | `'self'` | The bundle, the sim worker, and the Geist and Josefin Sans fonts all ship with the build (Fontsource, no font CDN); the app fetches nothing at runtime |
+| `img-src` | `'self' https://wow.zamimg.com` | Game icons from Wowhead's CDN; the wago.tools and Decades logos are local |
+| `style-src` | `'self' 'unsafe-inline'` | The stylesheet, plus the `<style>` elements the drawer, toasts, scroll lock and theme switch add at runtime with computed values, which no hash or nonce can cover on a static host |
+| `object-src` | `'none'` | |
+| `base-uri`, `form-action` | `'self'` | |
+
+`worker-src` governs loading the worker, not what it does: a same-origin dedicated worker takes
+its own policy from its script's response headers, which Pages doesn't send, so nothing but
+`worker-src` applies to it. It fetches nothing today. A meta policy can't carry
+`frame-ancestors` or reporting. `vite dev` strips the tag
+(`vite.config.ts`), since React Refresh's inline preamble and the HMR websocket need what it
+forbids; `vite preview`, the e2e suite and the deploy all serve the build with it. The e2e
+fixture (`e2e/fixtures.ts`) turns any violation into a console error, which fails the test, so
+a new external resource shows up there first.

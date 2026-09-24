@@ -4,10 +4,15 @@
 // (wow_classic_beta), rank by rank, next to the same spell in the Classic Era client
 // (wow_classic_era).
 //
-//   node scripts/scrape/spells-client.mjs [--diff] [--against=<git ref>] [--refresh]
+//   node scripts/scrape/spells-client.mjs [--diff] [--against=<git ref>] [--refresh] [--check]
 //        [--version=<Forever build>] [--baseline=<Classic Era build>] [--dbdefs=<sha>]
 //
 //   (default)  derive the three books and write src/data/spells/<class>.json
+//   --check    from the cache alone, compare the books with the files in src/data, writing nothing
+//              to src/data or the cache; exits non-zero if one differs. It regenerates the build
+//              and WoWDBDefs commit the committed data records unless --version/--dbdefs
+//              say otherwise; --fresh=<dir> also keeps the fresh generation under <dir>
+//              (all.mjs --check; lib/output.mjs)
 //   --diff     then diff the written books against the committed ones, spell by spell; report in
 //              .cache/client/<build>/spells-diff.md (+ .json)
 //   --against  the git ref whose dataset is "committed" (default HEAD)
@@ -26,6 +31,7 @@ import path from "node:path";
 import { committedJson, describeRef } from "./lib/committed.mjs";
 import { createFetcher } from "./lib/http.mjs";
 import { compareText, stableStringify } from "./lib/json.mjs";
+import { checkConflicts, createOutput, recordedSource } from "./lib/output.mjs";
 import { SPELL_TEXT_TABLES, createSpellTextContext } from "./lib/spell-text.mjs";
 import {
   CLASS_NAME,
@@ -83,19 +89,21 @@ function unresolvable(token) {
   return null;
 }
 
-const opts = { diff: false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
+const opts = { diff: false, refresh: false, check: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
 for (const arg of process.argv.slice(2)) {
   const m = /^--([a-z]+)(?:=(.*))?$/.exec(arg);
   if (!m) usage(`Unknown argument: ${arg}`);
   const [, key, value] = m;
-  if (["diff", "refresh"].includes(key) && value === undefined) opts[key] = true;
-  else if (["version", "baseline", "dbdefs", "against"].includes(key) && value) opts[key] = value;
+  if (["diff", "refresh", "check"].includes(key) && value === undefined) opts[key] = true;
+  else if (["version", "baseline", "dbdefs", "against", "fresh"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
+for (const conflict of checkConflicts(opts)) usage(conflict);
 function usage(msg) {
-  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
+  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--refresh] [--check [--fresh=<dir>]] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
   process.exit(2);
 }
+const output = createOutput({ repoRoot: REPO_ROOT, check: opts.check, fresh: opts.fresh });
 
 const errors = [];
 const warnings = [];
@@ -105,15 +113,16 @@ const fail = (msg) => errors.push(msg);
 // Tables
 // ---------------------------------------------------------------------------
 
-const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh });
-const latest = await latestBuild(fetcher, PRODUCT);
-const version = opts.version ?? latest.version;
+const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh, offline: opts.check });
+// --check regenerates the build the committed data records, not the cache's latest (lib/output.mjs).
+const recorded = opts.check ? recordedSource(path.join(REPO_ROOT, OUT_DIR, "warrior.json")) : {};
+const version = opts.version ?? recorded.version ?? (await latestBuild(fetcher, PRODUCT)).version;
 /** The build's creation date on wago.tools, from its build list (lib/wago.mjs buildRecord). */
 const foreverBuildDate = await buildDate(fetcher, PRODUCT, version);
-const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs);
+const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs ?? recorded.dbdefs);
 
 async function load(build, names) {
-  const source = createClientSource({ fetcher, cacheDir: CACHE_DIR, version: build, dbdefsSha });
+  const source = createClientSource({ fetcher, cacheDir: CACHE_DIR, version: build, dbdefsSha, readOnly: opts.check });
   const tables = {};
   const used = new Map(); // table → FileDataID
   for (const name of [...new Set(names)]) {
@@ -353,8 +362,10 @@ async function write() {
   printSummary(built);
   // Every SkillLineAbility row left out, with the rule that left it out (for docs/data/spells.md).
   const leftOut = Object.fromEntries(built.map((b) => [b.data.class, b.report.excluded]));
-  fs.mkdirSync(path.join(CACHE_DIR, version), { recursive: true });
-  fs.writeFileSync(path.join(CACHE_DIR, version, "spells-left-out.json"), `${JSON.stringify(leftOut, null, 1)}\n`);
+  if (!opts.check) {
+    fs.mkdirSync(path.join(CACHE_DIR, version), { recursive: true });
+    fs.writeFileSync(path.join(CACHE_DIR, version, "spells-left-out.json"), `${JSON.stringify(leftOut, null, 1)}\n`);
+  }
   if (errors.length) {
     for (const e of errors) console.error(`ERROR: ${e}`);
     console.error(`\nNot writing ${OUT_DIR}: ${errors.length} check(s) failed.`);
@@ -364,9 +375,10 @@ async function write() {
   for (const b of built) {
     const file = path.join(REPO_ROOT, OUT_DIR, `${b.data.class}.json`);
     const text = stableStringify(b.data);
-    fs.writeFileSync(file, text);
-    console.log(`Wrote ${path.relative(REPO_ROOT, file)} (${(text.length / 1024).toFixed(0)} KB)`);
+    output.write(file, text);
+    if (!opts.check) console.log(`Wrote ${path.relative(REPO_ROOT, file)} (${(text.length / 1024).toFixed(0)} KB)`);
   }
+  output.finish();
 }
 
 function printSummary(built) {

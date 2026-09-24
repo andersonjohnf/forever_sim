@@ -70,6 +70,19 @@ function slimData(): Plugin {
 }
 
 /**
+ * The Content-Security-Policy in index.html is the built app's. The dev server needs what it
+ * forbids (React Refresh's inline preamble, the HMR websocket), so `vite dev` serves the page
+ * without it; `vite preview`, the e2e suite and GitHub Pages serve the build, which keeps it.
+ */
+function devWithoutCsp(): Plugin {
+  return {
+    name: 'forever-sim:dev-without-csp',
+    apply: 'serve',
+    transformIndexHtml: (html) => html.replace(/\s*<meta http-equiv="Content-Security-Policy"[^>]*>/, ''),
+  }
+}
+
+/**
  * The release stamp (docs/architecture.md "Release stamp"): when this build was made and from which
  * commit, shown in About. The deploy builds on every push to main, so its time is the release's.
  * BUILD_TIME can pin it (a test's build); GitHub Actions gives the commit as GITHUB_SHA.
@@ -97,7 +110,7 @@ export default defineConfig({
   // No SPA fallback: like GitHub Pages, unknown paths 404 instead of serving index.html, so
   // dev, preview and e2e runs surface missing assets. Use hash routing if routing is needed.
   appType: 'mpa',
-  plugins: [slimData(), react(), tailwindcss()],
+  plugins: [slimData(), devWithoutCsp(), react(), tailwindcss()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

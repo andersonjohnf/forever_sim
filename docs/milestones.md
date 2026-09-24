@@ -308,7 +308,11 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
 - [ ] **T5 Balanced rotation (D28)** for all three tanks, the new default; Defensive and Max TPS
       stay selectable
 - [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,
-      Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken
+      Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken.
+      The bear is already above the benchmark (1,081.9 TPS). Two bears' logs of 23–24 Sep suggest
+      more rage for it (hits taken rise with the mob's level; one auto at the two-hander's rate),
+      not adopted until the logs listed in
+      [rage.md](mechanics/rage.md#bear-logs-of-23-and-24-sep-) settle it
 
 ## M5.65: The Rotation tab as a priority list (D31) 🚧 before the optimizer's app screens
 

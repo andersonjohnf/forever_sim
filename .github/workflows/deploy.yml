@@ -5,10 +5,12 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Least privilege: the build job (checkout, npm ci, tests, build) reads the repo and nothing else.
+# upload-pages-artifact stores dist/ as a workflow artifact through the runner's own artifact
+# token, not GITHUB_TOKEN, so it needs no extra scope. Only deploy-pages publishes, and it alone
+# gets Pages write and the OIDC token it proves the run with.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -37,6 +39,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

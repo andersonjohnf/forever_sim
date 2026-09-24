@@ -12,6 +12,7 @@ import type { SimConfig, SimProgress } from '../types'
 import { type Aggregate, emptyAggregate, mergeChunk } from './aggregate'
 import { ADAPTIVE, type ChunkExecutor, drive, headlineMetrics, type Metric, preciseEnough, projectedFights } from './driver'
 import { localExecutor } from './local'
+import { WORKER_HANG_MESSAGE } from './pool'
 
 const planFor = (spec: SimConfig['spec'], seed = 1) =>
   buildPlan({ ...defaultConfig(spec), run: { mode: 'adaptive', iterations: 3000, seed } }).plan
@@ -193,4 +194,25 @@ describe('determinism for tank runs (decisions D15, D18)', () => {
     expect(one.fights % CHUNK_SIZE).toBe(0)
     // Three full adaptive runs: a few seconds here, past vitest's 5 s default on a 4-core CI runner.
   }, 60_000)
+})
+
+describe('a failed chunk (a crashed worker, or one the pool watchdog gave up on)', () => {
+  it('fails the run with the chunk’s error and dispatches nothing more', async () => {
+    const plan = planFor('warrior-fury')
+    const real = syntheticExecutor(plan, 2, { tps: 0.02, dps: 0.02 })
+    const asked: number[] = []
+    const failing: ChunkExecutor = {
+      lanes: 2,
+      run: (chunk, fights) => {
+        asked.push(chunk)
+        if (chunk === 3) return Promise.reject(new Error(WORKER_HANG_MESSAGE))
+        return real.run(chunk, fights)
+      },
+    }
+    await expect(drive(plan, failing, { mode: 'fixed', iterations: 100 * CHUNK_SIZE })).rejects.toThrow(WORKER_HANG_MESSAGE)
+    const dispatched = asked.length
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(asked.length).toBe(dispatched)
+    expect(dispatched).toBeLessThan(100)
+  })
 })

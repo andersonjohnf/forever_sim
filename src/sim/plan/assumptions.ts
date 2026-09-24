@@ -27,7 +27,7 @@ const RANGED = 'docs/mechanics/ranged-and-pets.md'
 const REGISTRY = {
   whiteSwingsOnly: {
     text: 'Only white swings, talents, procs and buffs are simulated for now: abilities, cooldowns and on-use items arrive with the rotation.',
-    docRef: 'docs/milestones.md#m2-warrior-dps-with-the-production-ux',
+    docRef: 'docs/milestones.md#m2-warrior-dps-with-the-production-ux-',
   },
   knownFightTimings: {
     text: 'The rotation knows exactly when the execute phase starts and when the fight ends, and times its cooldowns and the Mighty Rage Potion to them, where a player has to judge both.',
@@ -863,11 +863,11 @@ const REGISTRY = {
   masterDemonologist: {
     // docs/classes/warlock.md §11.4; the plan names the demon out, its school and its spell ({detail}).
     text: 'Master Demonologist gives {detail}. Untested.',
-    docRef: `${LOCK}#113-talents`,
+    docRef: `${LOCK}#114-your-demons-passives`,
   },
   decimation: {
     text: 'Decimation: below 35% health your Soul Fire casts 40% faster, costs no Soul Shard and cools down in 6 s from the moment the boss reaches 35% (in game a Shadow Bolt cast there starts it), and Shadow Bolt deals 6% more. Untested.',
-    docRef: `${LOCK}#113-talents`,
+    docRef: `${LOCK}#113-talents-in-the-sim`,
   },
   warlockTalentStacking: {
     text: 'Talents that raise the same spell’s damage multiply with each other (Agonizing Flames and Aftermath on Immolate, Malediction and Shadow Mastery on the DoTs), as the modern client does; the additive reading would be under 1% lower. Untested.',

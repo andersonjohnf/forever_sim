@@ -413,7 +413,7 @@ changes: that is what most of the "armor changed" items were (Whitesoul Helm 509
 The engine sums the two into total armor (`src/sim/stats/stat-block.ts`:
 `itemArmor × (1 + Toughness %) + bonusArmor + 2 × Agility`), so Toughness applies to base
 armor only. It has no bear-form armor multiplier yet; when it gets one, whether that
-multiplies stat 50 is an open question ([client.md](client.md#what-m15c-2-needs-to-know)).
+multiplies stat 50 is an open question ([client.md](client.md#what-m15c-2-needed-to-know-and-what-it-did)).
 
 **Shield block value.** The Forever client has no innate shield block value (no
 `ShieldBlockRegular` game table, no per-shield field); Classic Era's comes from that game

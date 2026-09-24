@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 48,
       "consumable": 82,
-      "docs": 570,
+      "docs": 577,
       "enchant": 125,
       "item": 432,
       "racial": 44,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 872,
     "notInClient": 0,
-    "seeds": 2836,
-    "spells": 3112
+    "seeds": 2839,
+    "spells": 3114
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -72866,7 +72866,7 @@
       },
       "name": "Thorns",
       "nameSubtext": "Rank 1",
-      "sources": ["item"]
+      "sources": ["docs", "item"]
     },
     "15464": {
       "effects": [
@@ -82315,6 +82315,39 @@
         "spellIconFileDataId": 132953
       },
       "name": "Increased Agility",
+      "sources": ["docs"]
+    },
+    "18194": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "classOptions": {
+        "spellClassSet": 13
+      },
+      "duration": {
+        "duration": 600000,
+        "maxDuration": 600000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 24,
+          "effectAuraPeriod": 5000,
+          "effectBasePointsF": 8,
+          "effectIndex": 0,
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 18194,
+      "levels": {
+        "spellLevel": 16
+      },
+      "misc": {
+        "attributes": [671088640, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136053
+      },
+      "name": "Mana Regeneration",
       "sources": ["docs"]
     },
     "18196": {
@@ -109177,7 +109210,7 @@
         "spellIconFileDataId": 136235
       },
       "name": "Wizard Oil",
-      "sources": ["consumable"],
+      "sources": ["consumable", "docs"],
       "targetRestrictions": {
         "targets": 16
       }
@@ -109209,7 +109242,7 @@
         "spellIconFileDataId": 136235
       },
       "name": "Brilliant Wizard Oil",
-      "sources": ["consumable"],
+      "sources": ["consumable", "docs"],
       "targetRestrictions": {
         "targets": 16
       }
@@ -110980,6 +111013,40 @@
       },
       "name": "Seal of Righteousness",
       "nameSubtext": "Rank 8",
+      "range": {
+        "rangeMax": [50000, 50000]
+      },
+      "sources": ["docs"]
+    },
+    "25742": {
+      "categories": {
+        "defenseType": 2
+      },
+      "classOptions": {
+        "spellClassMask": [0, 536870912, 0, 0],
+        "spellClassSet": 10
+      },
+      "effects": [
+        {
+          "effect": 2,
+          "effectBasePointsF": 4,
+          "effectBonusCoefficient": 0.1,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 25742,
+      "levels": {
+        "baseLevel": 1,
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [2359296, 0, 0, 262144, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 2,
+        "spellIconFileDataId": 132325
+      },
+      "name": "Seal of Righteousness",
+      "nameSubtext": "Rank 1",
       "range": {
         "rangeMax": [50000, 50000]
       },
@@ -124631,7 +124698,7 @@
         "spellIconFileDataId": 134062
       },
       "name": "Nutritious Food",
-      "sources": ["consumable"]
+      "sources": ["consumable", "docs"]
     },
     "1249515": {
       "categories": {
@@ -124730,7 +124797,7 @@
         "spellIconFileDataId": 133943
       },
       "name": "Well Fed",
-      "sources": ["trigger"]
+      "sources": ["docs", "trigger"]
     },
     "1249522": {
       "categories": {

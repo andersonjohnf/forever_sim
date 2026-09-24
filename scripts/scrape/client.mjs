@@ -118,6 +118,27 @@ for (const name of TABLES) {
   }
   for (const w of t[name].warnings) fail(`${name}: ${w}`);
 }
+
+// Tables a mechanics doc cites that no dataset writes yet, read at the builds the doc cites them from,
+// so a run reproduces the doc's sources from the cache (docs/data/client.md#tables-the-docs-cite).
+// docs/mechanics/ranged-and-pets.md §1, §6: ammo damage per second by item level and quality, and
+// the pet families, from Forever 1.60.1.69977 and Classic Era 1.15.9.69722.
+const DOC_TABLES = [
+  { build: "1.60.1.69977", tables: ["ItemDamageAmmo", "CreatureFamily"] },
+  { build: DEFAULT_BASELINE, tables: ["ItemDamageAmmo", "CreatureFamily"] },
+];
+for (const { build, tables } of DOC_TABLES) {
+  const docSource = build === version ? source : createClientSource({ fetcher, cacheDir: CACHE_DIR, version: build, dbdefsSha });
+  for (const name of tables) {
+    try {
+      const table = await docSource.table(name);
+      if (!table.present) fail(`${name}: not in build ${build}`);
+      for (const w of table.warnings) fail(`${name} (${build}): ${w}`);
+    } catch (e) {
+      fail(`${name} (${build}): ${e.message}`);
+    }
+  }
+}
 if (errors.length) finish();
 
 const GAMETABLES = {

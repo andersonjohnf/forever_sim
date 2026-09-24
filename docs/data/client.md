@@ -75,7 +75,10 @@ added **4 more**, all HTTP 200: the Classic Era `SkillLineAbility`, `SkillLine`,
 `ItemSubClass` tables (their `.dbd` files were cached; [spells.md](spells.md#requests)). The
 first-release fixes (F2) added **1 more**, HTTP 200: wago.tools' build list, `/api/builds`
 (541 KB), for build dates that don't depend on the cached "latest" build. Every table they read
-(`SpellLevels`, `SpellEquippedItems` in both builds) was cached.
+(`SpellLevels`, `SpellEquippedItems` in both builds) was cached. The ranged and pet core (H1) added
+**6 more**, all HTTP 200: `ItemDamageAmmo` and `CreatureFamily` from Forever 1.60.1.69977 and Classic
+Era 1.15.9.69722, and their two `.dbd` files; its review added **1 more**, `ItemDamageAmmo` from
+1.60.1.69913 ([Tables the docs cite](#tables-the-docs-cite)).
 
 A later run from the cache makes no requests. A fresh build costs 44 wago.tools requests for
 the datasets (38 DB2 files, 4 game tables, the build lookup and the file list), about 30 more
@@ -111,6 +114,18 @@ The download layer ([`lib/wago.mjs`](../../scripts/scrape/lib/wago.mjs)) is gene
 and build, and every table it touches is kept whole in `tables/`, not just the extracted subset.
 Both builds' tables are already cached: 82 DB2 files for 1.60.1.69913 and 51 for 1.15.9.69722
 (plus its `shieldblockregular.txt` game table).
+
+### Tables the docs cite
+
+A mechanics doc can cite a client table that no dataset writes yet. The scraper reads each one at the
+builds the doc cites it from (`DOC_TABLES` in [`client.mjs`](../../scripts/scrape/client.mjs)),
+whatever `--version` says, so a run keeps the doc's sources in the cache and fails if one stops
+parsing. From a warm cache that costs no requests.
+
+| Table | Builds | Cited by |
+| --- | --- | --- |
+| `ItemDamageAmmo` | 1.60.1.69977, 1.15.9.69722 | [ranged-and-pets.md §1](../mechanics/ranged-and-pets.md#1-ranged-weapons-ammo-and-quivers): ammo damage per second by item level and quality |
+| `CreatureFamily` | 1.60.1.69977, 1.15.9.69722 | [ranged-and-pets.md §6](../mechanics/ranged-and-pets.md#6-pets-stats-and-white-swings), [WoW Forever deviations](../mechanics/ranged-and-pets.md#wow-forever-deviations): the pet families (Forever's new Fox) |
 
 ## Parser coverage
 

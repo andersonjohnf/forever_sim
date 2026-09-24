@@ -379,7 +379,8 @@ Test: a pet's sheet with Blessing of Might, Mark of the Wild and Battle Shout.
   Classic Era 1.15.9.69722, read through the wago.tools API ([data/client.md](../data/client.md)):
   Spell, SpellMisc, SpellEffect, SpellCastTimes, SpellCooldowns, SpellCategories, SpellEquippedItems,
   SpellPower, SkillLineAbility, ChrClasses, PlayerExpectedStat, PowerType, ItemSparse, Item,
-  ItemXItemEffect, ItemDamageAmmo and CreatureFamily (the last two fetched for this doc, 4 requests).
+  ItemXItemEffect, ItemDamageAmmo and CreatureFamily (the last two fetched for this doc: 4 wago.tools
+  requests and 2 `.dbd` files; the scraper reads them at these builds, [data/client.md](../data/client.md#tables-the-docs-cite)).
 - Classic Era hunter research on the 1.13 beta and after: [ranged attack table][wys-table], [attack
   formulas][wys-formulas] (a community wiki, 2019–21); [crit suppression][magey-crit] (Magey et al.).
 - Blizzard's Classic forums: [hit tables][bnet-hit], ["Not a Bug" list][nab]; players' tests: [the

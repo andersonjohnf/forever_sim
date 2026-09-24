@@ -3529,9 +3529,7 @@ export class Sim {
       // docs/mechanics/spells.md §10: a landed spell's procs, then its crit's (their schools filter them).
       if (this.hasSpellLanded && defense !== DEFENSE.ranged) this.spellProcs(TRIGGER.spellLanded, s)
       if (crit) {
-        this.procSchool = school
-        this.procSource = source
-        this.fireProcs(TRIGGER.spellCrit, -1)
+        this.fireSpellTrigger(TRIGGER.spellCrit, school, source)
         this.useCritCharges()
       }
     }
@@ -3540,9 +3538,22 @@ export class Sim {
 
   /** Fires a spell trigger for plan spell s: its school and row filter the procs that name them (docs/mechanics/spells.md §10). */
   private spellProcs(trigger: number, s: number): void {
-    this.procSchool = this.splSchool[s]
-    this.procSource = this.splSource[s]
+    this.fireSpellTrigger(trigger, this.splSchool[s], this.splSource[s])
+  }
+
+  /**
+   * Fires a spell trigger for a spell of `school` on row `source`. A proc it fires can cast a spell
+   * that fires spell triggers of its own; the filters come back afterwards, so the rest of this
+   * trigger's procs still see this spell's school and row (docs/mechanics/spells.md §10).
+   */
+  private fireSpellTrigger(trigger: number, school: number, source: number): void {
+    const outerSchool = this.procSchool
+    const outerSource = this.procSource
+    this.procSchool = school
+    this.procSource = source
     this.fireProcs(trigger, -1)
+    this.procSchool = outerSchool
+    this.procSource = outerSource
   }
 
   /**
@@ -3610,7 +3621,8 @@ export class Sim {
    * counts the cast. Its `spell`, if any, is cast now: a miss ends the channel at once (the GCD runs
    * on), and its DoT is the channel's ticks (Mind Flay). Otherwise its `tickSpell` ticks from now
    * (Arcane Missiles). It holds the GCD until it ends, and everything else with `castHoldsOffGcd`,
-   * after `channelTicks` ticks when it's cut off, or all of them.
+   * after `channelTicks` ticks when it's cut off, or all of them. Its `aura`, unless that's its
+   * DoT's marker, is up on the player while it channels (Evocation's regeneration, §8).
    */
   private channel(a: number): void {
     const now = this.now
@@ -3629,12 +3641,24 @@ export class Sim {
     this.castGcdEnd = this.gcdEnd
     this.gcdEnd = Infinity
     if (this.abCastHolds[a]) this.castHolding = true
-    this.q.push(now + n * tickMs, EV_CHANNEL_END, a, ++this.channelGen)
+    const end = now + n * tickMs
+    this.q.push(end, EV_CHANNEL_END, a, ++this.channelGen)
+    // Queued after the end, so the end (and a tick due then) comes first and takes it down.
+    const aura = this.channelAura(a)
+    if (aura >= 0) this.putAura(aura, end)
+  }
+
+  /** A channel's own aura on the player (docs/mechanics/spells.md §6, §8), or −1: its `aura` unless that marks its DoT. */
+  private channelAura(a: number): number {
+    const aura = this.abAura[a]
+    const s = this.abSpell[a]
+    return s >= 0 && aura === this.splDotAura[s] ? -1 : aura
   }
 
   /**
    * A channel ends (docs/mechanics/spells.md §6): a tick due this very moment lands first, and the
-   * ticks it cut off are lost; the GCD ends when it would have on its own, and the rotation walks.
+   * ticks it cut off are lost, and its own aura with them; the GCD ends when it would have on its
+   * own, and the rotation walks.
    */
   private endChannel(a: number): void {
     const now = this.now
@@ -3647,6 +3671,8 @@ export class Sim {
       this.abTicksLeft[a] = 0
       this.abTickGen[a]++
     }
+    const aura = this.channelAura(a)
+    if (aura >= 0 && this.auraActive[aura]) this.removeAura(aura)
     this.channeling = -1
     this.castHolding = false
     this.gcdEnd = this.castGcdEnd

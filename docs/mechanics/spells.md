@@ -133,6 +133,8 @@ multipliers ([§9](#9-caster-raid-buffs-and-debuffs)).
 | Cost | paid as it starts, which starts the five-second rule | [?] (no source for channels; the client's cost is the spell's) |
 | Cutting it off (clipping) | a rotation can stop it after any tick: the ticks after that are lost, the GCD still runs its 1.5 s from the start | [C] (a player can stop a channel); the engine's `channelTicks` |
 | A missed start | ends the channel at once; the GCD runs on | [?] |
+| Its aura on the caster | a channel's own buff (Evocation's regeneration) is up while it channels and ends with it, cut off or not: the ability's `aura`, unless that's its DoT's marker. A `selfAura` instead lasts its own duration | [?] (a channel's auras end when it stops; no source for Classic Era) |
+| Its procs | a DoT channel fires `spellLanded` once, as its hit lands at the start; a channel that triggers a spell fires it for **each missile** that lands, if the missile triggers procs ([§10](#10-spell-procs)) | [?] |
 
 ## 7. DoTs
 
@@ -164,8 +166,9 @@ the pull, costs paid from it, one power tick every 2 s from a random phase.
 | Potions and runes | the Major Mana Potion and the runes of [buffs §3.5](buffs-debuffs-consumables.md#35-potions-and-runes) | [F] |
 
 The mana abilities come with the class slices, on hooks the core has: Evocation as a channel
-with a Spirit-regeneration aura, Life Tap as a cast that restores mana (`AbilityPlan.manaTenths`),
-Innervate as an aura (`spiritRegen`, `castingRegen`; [§12](#12-what-a-class-slice-uses)).
+whose `aura` is its Spirit-regeneration buff, up while it channels ([§6](#6-channels)), Life Tap
+as a cast that restores mana (`AbilityPlan.manaTenths`), Innervate as an aura (`spiritRegen`,
+`castingRegen`; [§12](#12-what-a-class-slice-uses)).
 
 ## 9. Caster raid buffs and debuffs
 
@@ -200,13 +203,16 @@ a plan.
 Two triggers join `spellCrit` ([combat-tables §9](combat-tables.md#9-spell-hit-and-crit-generic)):
 
 - `spellLanded` (20): a spell of the magic or `none` class landed: a direct hit, a DoT's
-  application, a channel's start. Shadow Weaving, Improved Scorch, Winter's Chill, Clearcasting.
+  application, a DoT channel's start (its one hit roll), or **each missile** of a channel that
+  triggers a spell (Arcane Missiles: every missile is a spell of its own, and fires it if it
+  triggers procs). Shadow Weaving, Improved Scorch, Winter's Chill, Clearcasting.
 - `spellTick` (21): a spell DoT ticked. Nightfall's Shadow Trance.
 
 A proc on them can name the **schools** that fire it (Shadow Weaving: Shadow) or **one spell**
-(Improved Scorch: Scorch; `ProcSpec.schools`, `fromSpell`). Item procs that deal magic damage
-(Fiery Weapon) get their school's resist and multipliers too. Codes 14–19 are left to the parallel
-tracks.
+(Improved Scorch: Scorch; `ProcSpec.schools`, `fromSpell`). A proc that casts a spell (a seal's)
+fires that spell's triggers inside the first; the rest of the first trigger's procs still see its
+own school and spell. Item procs that deal magic damage (Fiery Weapon) get their school's resist
+and multipliers too. Codes 14–19 are left to the parallel tracks.
 
 ## 11. Rotation conditions
 
@@ -235,6 +241,11 @@ The API the caster class slices (K2–K6) build on, in `src/sim/plan/types.ts`:
   `castHaste`, and the stats `fireSpellDamage` … `arcaneSpellDamage`, `spellPen`.
 - **Procs** (`ProcSpec`): the `spellLanded` and `spellTick` triggers, `schools`, `fromSpell`.
 - **Mana**: `ManaPlan` with `regenTickTenths` from `spiritRegenTickTenths(spirit, class)`.
+- **Naming: ticks.** A channel that triggers a spell counts its ticks in `rageTicks` and
+  `rageTickMs`: the cast ticks' fields, named for the warrior's Bloodrage, which Consecration's
+  ticks already share. A DoT channel's ticks are its spell's `SpellDef.dotTicks` and `dotTickMs`.
+  An ability's own `dotTicks`, `dotTickMs` and `dotTickDamage` are a **bleed's** (Rend, Rake): a
+  caster ability never sets them, and a channel ignores them.
 - **Buffs**: add the class to `CASTER_CLASSES` and its specs to `CASTER_SPECS` in
   `sim/effects/buffs.ts`, and set `SpecMeta.caster` for the sheet's spell block. A class whose
   other specs cast no spells (the druid) needs its entries gated per spec instead.
@@ -293,7 +304,8 @@ What the Forever client changes for casters, read from its tables against Classi
   the last tick.
 - **Channels** reuse the cast ticks (Consecration's) for a triggering channel, or the spell's DoT
   for a DoT channel, and an end event (`EV_CHANNEL_END`) that delivers a tick due that moment
-  first, then cuts off the rest.
+  first, then cuts off the rest and takes down the channel's own aura (`channelAura`), which is
+  queued to expire just after it.
 - **Casting speed** is the derived stats' (`castHasteMult`: Π casting speed × haste rating's %)
   times the auras'. It divides only the casts marked `castHasted`, so Slam and Hammer of Wrath keep
   their fixed cast times.

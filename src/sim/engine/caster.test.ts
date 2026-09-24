@@ -371,6 +371,55 @@ describe('channels (docs/mechanics/spells.md §6)', () => {
     // Up for the two ticks of each channel: 10 s of 10.
     expect(t.sim.auraUpMs[marker]).toBe(10000)
   })
+
+  /**
+   * An Evocation: a channel of 4 ticks 2 s apart with no spell, cut after `channelTicks`, whose
+   * regeneration aura (Spirit regeneration ×16) is its `aura`, or its `selfAura`; 100 tenths of
+   * Spirit regeneration a power tick, no cost.
+   */
+  function evocation(channelTicks: number, as: 'aura' | 'selfAura') {
+    const plan = casterPlan(20000)
+    plan.mana!.regenTickTenths = 100
+    const regen = addAura(plan, { id: 'evocation', name: 'Evocation', durationMs: 8000, mods: {} })
+    Object.assign(plan.auras[regen], { spiritRegen: 1500 })
+    const evo = addCaster(plan, -1, { kind: 'channel', rageTicks: 4, rageTickMs: 2000, cooldownMs: 60000, channelTicks, [as]: regen })
+    line(plan, evo)
+    const sim = new Sim(plan)
+    const regenTicks: [number, number][] = []
+    sim.manaTrace = (time, tenths) => regenTicks.push([time, tenths])
+    sim.runFight(0)
+    return { sim, regen, regenTicks }
+  }
+
+  it('puts its own aura up while it channels, and takes it down with the ticks a cut cuts off (Evocation, §8)', () => {
+    for (const [channelTicks, upMs] of [
+      [0, 8000],
+      [2, 4000],
+    ]) {
+      const { sim, regen, regenTicks } = evocation(channelTicks, 'aura')
+      expect(sim.auraApplications[regen], `${channelTicks}`).toBe(1)
+      expect(sim.auraUpMs[regen], `${channelTicks}`).toBe(upMs)
+      // Spirit regeneration ×16 on the power ticks inside the channel, ×1 after it (one due at its end may land either side).
+      const inside = regenTicks.filter(([time]) => time < upMs)
+      expect(inside.length, `${channelTicks}`).toBeGreaterThan(0)
+      for (const [time, tenths] of regenTicks) if (time !== upMs) expect(tenths, `${channelTicks} at ${time}`).toBe(time < upMs ? 1600 : 100)
+    }
+  })
+
+  it('keeps its own aura up for the tick due as it ends', () => {
+    const { plan, channel, missile } = missiles(0, 7000)
+    const focus = addAura(plan, { id: 'focus', name: 'Focus', durationMs: 5000, mods: {} })
+    Object.assign(plan.auras[focus], { schoolMask: schoolMask(['arcane']), schoolDamage: 100 })
+    plan.abilities[channel].aura = focus
+    // Missiles at 1–5 s, the last as the channel and its aura end: all five doubled.
+    expect(damages(plan, plan.spells![missile].source, 1).slice(0, 5).map(round)).toEqual(Array(5).fill(round(200 * (1 - RESIST))))
+  })
+
+  it('leaves a `selfAura` up for its own duration when the channel is cut off', () => {
+    const { sim, regen } = evocation(2, 'selfAura')
+    expect(sim.auraApplications[regen]).toBe(1)
+    expect(sim.auraUpMs[regen]).toBe(8000)
+  })
 })
 
 describe('spell DoTs (docs/mechanics/spells.md §7)', () => {
@@ -468,6 +517,25 @@ describe('school auras and spell procs (docs/mechanics/spells.md §9, §10, §11
     const hits = damages(plan, plan.spells![scorch].source, 1).map(round)
     // Casts at 0 and 1.5 s under PI (up 0–3 s); then 3, 4.5, 6, 7.5, … at 1.03 per stack, up to 5.
     expect(hits.slice(0, 8)).toEqual([1000 * 1.2 * f, 1000 * 1.2 * 1.03 * f, 1000 * 1.06 * f, 1000 * 1.09 * f, 1000 * 1.12 * f, 1000 * 1.15 * f, 1000 * 1.15 * f, 1000 * 1.15 * f].map(round))
+  })
+
+  it('keeps a spell trigger’s school and row for its later procs when an earlier one casts a spell of its own', () => {
+    const plan = casterPlan(3000)
+    const shadow = addSpell(plan, { school: SCHOOL.shadow, min: 1, max: 1 })
+    const fire = addSpell(plan, { min: 1, max: 1 })
+    const first = addAura(plan, { id: 'first', name: 'First', durationMs: 60000, mods: {} })
+    const second = addAura(plan, { id: 'second', name: 'Second', durationMs: 60000, mods: {} })
+    const third = addAura(plan, { id: 'third', name: 'Third', durationMs: 60000, mods: {} })
+    const fromShadow = plan.spells![shadow].source
+    // Shadow's first proc casts the Fire spell, which fires the same trigger for Fire; Shadow's later ones still roll as Shadow's.
+    addProc(plan, { trigger: TRIGGER.spellLanded, chance: [1, 1], hands: 0, action: ACTION.spell, amount: fire, b: 0, schools: schoolMask(['shadow']) })
+    addProc(plan, { trigger: TRIGGER.spellLanded, chance: [1, 1], hands: 0, action: ACTION.aura, amount: first, b: 0, fromSource: fromShadow })
+    addProc(plan, { trigger: TRIGGER.spellLanded, chance: [1, 1], hands: 0, action: ACTION.aura, amount: second, b: 0, schools: schoolMask(['shadow']) })
+    addProc(plan, { trigger: TRIGGER.spellLanded, chance: [1, 1], hands: 0, action: ACTION.aura, amount: third, b: 0, schools: schoolMask(['fire']) })
+    line(plan, addCaster(plan, shadow, { cooldownMs: 60000 }))
+    const sim = run(plan, 1)
+    expect(counter(sim, plan.spells![fire].source, FIELD.casts)).toBe(1)
+    expect([sim.auraApplications[first], sim.auraApplications[second], sim.auraApplications[third]]).toEqual([1, 1, 1])
   })
 
   it('fires a spell proc only for its schools or its one spell, and spellTick on each DoT tick', () => {

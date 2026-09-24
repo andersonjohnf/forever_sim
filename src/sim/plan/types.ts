@@ -44,8 +44,9 @@ export const TRIGGER = {
   // 14–19 are left to the parallel tracks (rogue, shaman). The caster core's (docs/mechanics/spells.md §10):
   /**
    * A plan spell of the magic or `none` class landed on the target (a direct hit, a DoT's
-   * application, a channel's start): Shadow Weaving, Winter's Chill, Improved Scorch. A proc can
-   * name the schools (`ProcPlan.schools`) or the one spell (`ProcPlan.fromSource`) that fire it.
+   * application, a DoT channel's start, each missile of a channel that triggers a spell): Shadow
+   * Weaving, Winter's Chill, Improved Scorch. A proc can name the schools (`ProcPlan.schools`) or
+   * the one spell (`ProcPlan.fromSource`) that fire it.
    */
   spellLanded: 20,
   /** A spell DoT ticked (docs/mechanics/spells.md §7): Nightfall's Shadow Trance. The same filters. */
@@ -468,7 +469,8 @@ export interface AbilityPlan {
    * holds the GCD (and with `castHoldsOffGcd` everything else) while it channels. Its `spell`, if
    * any, is cast at the start: a miss ends the channel there, and its periodic part is the channel's
    * ticks (Mind Flay, Drain Soul). Otherwise its `tickSpell` is cast every `rageTickMs`, `rageTicks`
-   * times (Arcane Missiles). `channelTicks` cuts it off after that many ticks.
+   * times (Arcane Missiles): the cast ticks' fields, not the bleed's `dotTicks` (§12's note).
+   * `channelTicks` cuts it off after that many ticks, and its `aura` with them.
    * A `weaponStrike`, `meleeSpell` or `spellTable` with an `aura` puts it on the target when it lands
    * (Sunder Armor's stacks, Thunder Clap's slow, Demoralizing Shout's attack power; warrior.md §7).
    */
@@ -556,7 +558,9 @@ export interface AbilityPlan {
    * application until its last tick, so rotation conditions can read it, as Bloodthrill's proc
    * will (Rend).
    * `spell`: the plan aura it puts on the player when its spell lands (Iron Creed's −10% damage
-   * taken after Holy Strike, paladin.md#protection-tree).
+   * taken after Holy Strike, paladin.md#protection-tree), or its DoT's marker on the boss.
+   * `channel`: its DoT's marker, or else a plan aura on the player while it channels, which ends
+   * with the channel, cut off or not (Evocation's regeneration, docs/mechanics/spells.md §6, §8).
    */
   aura: number
   /**

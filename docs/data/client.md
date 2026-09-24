@@ -670,7 +670,7 @@ no item id, an empty step, two enchants, an `enchant` step that isn't `enchant N
 neither one nor the items' (`1 / 2 / 3 → 10 / 20`). So does a §4 cell with an item or an arrow
 that isn't `item N → S` (`Item` is read in any case), and a §1, §3, §4 or §5 table with no
 ID column (`ID`, `IDs`, `IDs (spell / enchant)` or `Item → enchant`), apart from §1.3's camp
-buffs, which have no ids.
+buffs and a rules table (§3.7's `Rule | Value | Tag`), which have no ids by design.
 
 So a commit that edits one of these docs regenerates the data in the same commit
 (`npm run scrape:client`, zero requests from a warm cache). `npm run test:full` checks it

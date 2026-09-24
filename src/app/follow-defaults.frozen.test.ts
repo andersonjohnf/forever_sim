@@ -5,8 +5,8 @@ import { LEGACY_DEFAULTS, type LegacyEntry } from './legacy-defaults'
 
 // docs/architecture.md "Following the defaults": the migration reads a frozen snapshot, never
 // today's defaults, so a save holding ee171d2a's defaults keeps migrating after they change. Here
-// the Protection paladin's defaults change as another branch is about to change them: a new talent
-// build, and a new helm. Fury's helm changes too, in its default and its pre-raid list alike: Fury
+// the Protection paladin's defaults change as the tank integration changed them (a new talent
+// build), and to a new helm. Fury's helm changes too, in its default and its pre-raid list alike: Fury
 // has no FORMER_GEAR table, so its ee171d2a gear can only be recognised from the snapshot.
 
 const NEW_TALENTS = '240003-0530213321301551-502'

@@ -73,3 +73,20 @@ Checks: lint, typecheck and `npm test` (2,541 tests) green; the e2e specs protec
 paladin-protection, paladin-protection-rotation, rotation-tab and priority-list green (58 tests).
 TV-2 changed which abilities a plan carries (engine logic) and TV-1 a note's rule, so these fixes
 get a quick fresh check of their commits (step 5).
+
+## The merge onto main (43551892) and the TV fixes' quick check
+
+A fresh reviewer checked the TV fix commits and the merge that brought the tank integration onto
+main (conflicts in `src/sim/index.ts` imports and milestones T6). The tanks' defaults match exactly
+(1,240.98 / 1,115.34 / 832.09 TPS, seed 31101, 100,000 fights); no condition number is used twice;
+a returning paladin's save with `-0530513321301551-50215` migrates to the theorycrafter's 9/35/7 with
+one notice, end to end.
+
+| id | sev | origin | finding | disposition |
+| --- | --- | --- | --- | --- |
+| TM-1 | high | merge | `e2e/follow-defaults.spec.ts` still expected the paladin's former 0/38/13. | fixed by the lead: 9/35/7 |
+| TM-2 | low | TV-1 | ux.md and a comment said a duty below Balanced's filler keeps "most" of its casts; it keeps about a third. | fixed by the lead |
+| TM-3 | low | merge | Battle Shout's refresh at 0 read "Again with 0 s left". | fixed by the lead: a summary part's `zeroText` ("again once it runs out"), Protection and Fury; test |
+| TM-4 | low | merge | Three test comments still said the default change was coming. | fixed by the lead |
+| TM-5 | low | pre-existing | The picked bomb and Stoneshield run ahead of the tanks' lists, which their docs don't say. | known gap in the milestones |
+| TM-6 | info | TV-1 | With "waits for Shield Slam" on, the note is off by the odd global cooldown. | none needed |

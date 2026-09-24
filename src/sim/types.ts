@@ -318,6 +318,8 @@ export interface AplSummaryPart {
   when?: boolean
   /** A number's part is left out at this value (Execute's extra rage at 0). */
   hideWhen?: number
+  /** A number's part reads this instead at 0 (Battle Shout's refresh: "again once it runs out"). */
+  zeroText?: string
   /**
    * Switches of other rows that must be on and apply too, for a part about them (Fury's fillers:
    * "while Bloodthirst and Whirlwind cool down").

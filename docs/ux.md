@@ -177,7 +177,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     warrior's off hand beside a one-hander, is cleared, by name: "… replaces 1 slot and clears Off
     hand.", "… fills 15 empty slots, replaces 1 and clears Ammo and Quiver.", or "… clears Off
     hand." alone). A no-break space joins each count to the word before it, so a wrapped line never
-    ends on "all", "fills", "replaces" or "the other". The line follows a dot in the primary colour
+    splits a count from that word ("all 17", "the other 3"). The line follows a dot in the primary colour
     (the changed-setting marker of Character and Rotation); the row takes a muted fill and the
     button is the primary one. Once the gear matches, it's quiet: a check and "Wearing the threat set." in muted text,
     and no button, since there's nothing to equip. Equipping from the keyboard moves focus to that
@@ -392,7 +392,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       Armor filler (on), says so in place of its summary, dimmed, with the filler's threshold (or
       Sunder Armor's cost, if that's higher): "Below the Sunder Armor filler: used only while your
       rage is under its 9." It's a fact about the order, whatever the threshold, and judges nothing:
-      below Defensive's 9 the duty is hardly ever cast, below Balanced's 60 most of the time.
+      below Defensive's 9 the duty is hardly ever cast, below Balanced's 60 about a third of its casts.
       Thunder Clap on cooldown (its "only to keep the slow up" off) is tried just above the filler
       wherever its row is, so it has no note.
     - **Presets and Custom.** The picker lists the spec's rotations: "Default" for a spec without

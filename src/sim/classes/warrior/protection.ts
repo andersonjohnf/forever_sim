@@ -387,7 +387,7 @@ const BELOW_FILLER: readonly { row: string; enabled: string }[] = [
  * keeps its refresh rule below the filler; but the filler takes the global cooldown first whenever
  * rage is at its threshold, so the duty gets one only while rage is under it. The note says that
  * fact and judges nothing: below Defensive's filler from 9, Demoralizing Shout gets under one cast a
- * fight; below Balanced's from 60, most of its casts. It's on any enabled Thunder Clap, Demoralizing
+ * fight; below Balanced's from 60, about a third of its casts. It's on any enabled Thunder Clap, Demoralizing
  * Shout or Battle Shout below the enabled filler, with the filler's threshold, or Sunder Armor's cost
  * if that's higher (the filler can't be cast for less). Thunder Clap on cooldown (`maintainOnly` off)
  * is tried just above the filler, wherever its own row is, so it has no note. (TI-4, simplified under
@@ -486,7 +486,7 @@ export const PROTECTION_APL: AplDefinition = {
       icon: 'ability_warrior_battleshout',
       enabledId: ID.bsEnabled,
       optionIds: [ID.bsRefresh],
-      summary: [{ option: ID.bsRefresh, text: 'again with {}' }],
+      summary: [{ option: ID.bsRefresh, text: 'again with {}', zeroText: 'again once it runs out' }],
     },
     {
       id: 'sunder',

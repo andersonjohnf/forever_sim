@@ -190,6 +190,8 @@ export function aplRowSummary(row: AplRow, options: readonly RotationOption[], r
     if (!option || !state || state.inactive) continue
     if (option.kind === 'toggle') {
       if (Boolean(state.value) === (part.when ?? true)) parts.push(part.text)
+    } else if (option.kind === 'number' && part.zeroText !== undefined && state.value === 0) {
+      parts.push(part.zeroText)
     } else if (option.kind !== 'number' || part.hideWhen === undefined || state.value !== part.hideWhen) {
       parts.push(part.text.replace('{}', formatSetting(option, state.value)))
     }

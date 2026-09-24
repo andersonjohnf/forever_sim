@@ -82,3 +82,12 @@ fix round's worktree).
 | Protection warrior (TPS) | 1,189.2 | 1,179.8 | −0.79% |
 | Feral bear (TPS) | 1,152.3 | 1,150.9 | −0.12% |
 | Protection paladin (TPS) | 948.2 | 948.2 | 0.00% |
+
+## Quick check of the CV fixes (on main 6e2a794e)
+
+| id | sev | origin | finding | disposition |
+| --- | --- | --- | --- | --- |
+| QC-1 | low | CV-5 | The swing-window throw stalls when a melee spec's GCD is always busy (a bear waited up to 151.6 s; 2.69 throws in 180 s), which also hides the bomb's cost. The second round of findings on the throw's timing. | step 6: the swing window is cut; see the next section |
+| QC-2 | low | LC-0 | client.md didn't name §3.7's rules table among the tables with no ids. | fixed by the lead |
+| QC-3 | low | CV-5 | §6.3's ±1.4 DPS intervals are the 5,000-fight runs', not the 2,000-fight headline's (±2.0–2.2). | rewritten with QC-1's change |
+| QC-4 | low | LC-4 | ux.md promised a wrapped Gear line never ends on "fills" or "replaces"; only the counts are joined. | fixed by the lead: "never splits a count from that word" |

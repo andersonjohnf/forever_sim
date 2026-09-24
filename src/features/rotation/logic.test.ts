@@ -323,6 +323,9 @@ describe('a priority list’s rows (decision D31)', () => {
     expect(summary('execute')).toBe('Execute phase')
     expect(summary('execute', { 'warrior.fury.execute.minExtraRage': 10 })).toBe('Execute phase · 10 rage extra')
     expect(summary('executeBloodthirst')).toBe('From 2,220 AP')
+    // A number with a zeroText reads it at 0 (review finding TM-3: not "again with 0 s left").
+    expect(summary('battleShout', { 'warrior.fury.battleShout.refreshBelowSec': 0 })).toBe('Again once it runs out')
+    expect(summary('battleShout', { 'warrior.fury.battleShout.refreshBelowSec': 3 })).toBe('Again with 3 s left')
     expect(summary('whirlwind')).toBe('Bloodthirst 0.5 s away')
     // Off, it says so; the pre-pull, with no switch, lists what it does, or None.
     expect(summary('slam')).toBe('Off')

@@ -464,6 +464,11 @@ robustness grid in the class doc), and its low findings in the known gaps are wo
 
 ## Known gaps and follow-ups
 
+- **The shared consumables run ahead of every priority list (TM-5).** EZ-Thro Dark Bomb and Greater
+  Stoneshield Potion, when picked in Buffs, run before any row of Fury's or a tank's list
+  (`withSharedConsumables`), and the Rotation tab shows no row for them. The buffs doc says so;
+  the tanks' and Fury's priority-list docs don't yet. Both are off by default.
+
 Found while building. Each should go to the owning doc or `open-questions.md` when its
 slice is worked:
 - **The DPS specs' Rotation intros say "with a first quick search; they aren't tuned yet"** (tank

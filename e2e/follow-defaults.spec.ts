@@ -59,9 +59,9 @@ test.describe('a returning visitor’s untouched gear and talents follow the def
     await expect(gear.getByRole('button', { name: 'Head: Helm of Valor' })).toBeVisible()
     await expect(gear.getByText('1 slot differs from the threat set: Head. Equipping it replaces that slot.', { exact: true })).toBeVisible()
 
-    // Today's default build, 0/38/13.
+    // Today's default build, the guild theorycrafter's 9/35/7 (D30).
     await page.getByRole('tab', { name: 'Talents', exact: true }).click()
-    await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText(/0\s*\/\s*38\s*\/\s*13/).first()).toBeVisible()
+    await expect(page.getByRole('tabpanel', { name: 'Talents' }).getByText(/9\s*\/\s*35\s*\/\s*7/).first()).toBeVisible()
 
     // The load saved what follows, so a reload moves nothing and says nothing.
     await page.reload()

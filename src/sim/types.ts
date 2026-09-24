@@ -519,6 +519,8 @@ export interface AbilityResult {
    * On a `procs` row an extra-attacks proc feeds (Windfury Weapon, Ironfoe, Hand of Justice): the
    * times it fired, over every fight, which is the row's count. Its `casts` count the extra swings
    * (Windfury Weapon's and Ironfoe's two a proc), and its crit and avoided shares are over those.
+   * A fire whose swing becomes a queued Heroic Strike or Maul still counts here, but that swing's
+   * damage lands on the Heroic Strike's or Maul's row.
    */
   procs?: number
   /**

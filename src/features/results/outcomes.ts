@@ -52,7 +52,10 @@ export function outcomeLines(a: AbilityResult, fights: number, damageMetric: boo
   } else {
     const attempts = landed + avoided
     if (attempts > 0) {
-      parts.push(`${formatPct((100 * a.crits) / attempts)} crit`, `${formatPct((100 * avoided) / attempts)} avoided`)
+      // A cast that lands more than once (Consecration, Arcane Missiles) names what its shares are of,
+      // since its count is casts (review finding PV-3).
+      const of = a.landing ? { crit: `${a.landing} crit`, avoided: `of ${a.landing}s avoided` } : { crit: 'crit', avoided: 'avoided' }
+      parts.push(`${formatPct((100 * a.crits) / attempts)} ${of.crit}`, `${formatPct((100 * avoided) / attempts)} ${of.avoided}`)
       if (a.glances > 0) parts.push(`${formatPct((100 * a.glances) / attempts)} glancing`)
     }
   }

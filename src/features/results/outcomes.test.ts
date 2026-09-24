@@ -74,10 +74,12 @@ describe('outcomeLines', () => {
   it('averages a cast that lands more than once per tick or per missile', () => {
     // Consecration: 20 casts, 8 ticks each, 150 landed and 10 resisted.
     const consecration = row({ unit: 'casts', landing: 'tick', casts: 20, hits: 140, crits: 10, misses: 10, damage: 15_000 })
-    expect(line(consecration)).toBe('2.0 casts a fight · 6.3% crit · 6.3% avoided · 100 avg tick')
+    expect(line(consecration)).toBe('2.0 casts a fight · 6.3% tick crit · 6.3% of ticks avoided · 100 avg tick')
     // Arcane Missiles: 30 casts, 5 missiles each, 140 landed and 10 resisted.
     const missiles = row({ unit: 'casts', landing: 'missile', casts: 30, hits: 110, crits: 30, misses: 10, damage: 56_000 })
-    expect(line(missiles)).toBe('3.0 casts a fight · 20.0% crit · 6.7% avoided · 400 avg missile')
+    expect(line(missiles)).toBe('3.0 casts a fight · 20.0% missile crit · 6.7% of missiles avoided · 400 avg missile')
+    // On a tank's Threat view there's no average, so the shares carry the unit on their own (PV-3).
+    expect(line(consecration, 10, false)).toBe('2.0 casts a fight · 6.3% tick crit · 6.3% of ticks avoided')
   })
 
   // Review finding PC-3: a channel you press (Mind Flay) counts its casts, its ticks a DoT's.

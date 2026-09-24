@@ -541,7 +541,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     (Mind Flay, Arcane Missiles), whatever its ticks do, and a rage cast a tank's Threat view shows
     (Bloodrage, Enrage) included. Swings, shots, casts and procs count attempts, misses included.
     An extra-attacks proc counts the times it fired, so Windfury Weapon's and Ironfoe's two swings
-    are one proc; its crit and avoided shares are over the swings. A row with a count of its own
+    are one proc; its crit and avoided shares are over the swings. A fire whose swing becomes a
+    queued Heroic Strike or Maul still counts, but that swing's damage lands on that row. A row with a count of its own
     (Holy Shield's blocks, Reckoning's extra attacks) shows that one instead, and a talent's row
     of mana or rage (Shield Specialization, Primal Fury) shows none: one count a row.
   - **The average ends the line,** on the Damage metric only: the row's damage over its landed

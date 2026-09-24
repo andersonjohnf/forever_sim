@@ -3,7 +3,7 @@ import { ci95, combine, emptyMoments, type Moments, stdev } from '../core/welfor
 import type { ChunkResult } from '../engine/chunk'
 import { BOSS_OUTCOME, BOSS_OUTCOME_COUNT, FIELD, FIELD_COUNT } from '../engine/sim'
 import type { Plan, PlanBundle } from '../plan/types'
-import type { AbilityResult, BossOutcomes, CooldownResult, ManaRestored, ManaResult, SimResult, Summary, TankResult } from '../types'
+import type { AbilityResult, AbilityUnit, BossOutcomes, CooldownResult, ManaRestored, ManaResult, SimResult, Summary, TankResult } from '../types'
 
 export interface Aggregate {
   fights: number
@@ -216,6 +216,25 @@ export function manaResult(plan: Plan, agg: Aggregate): ManaResult | null {
   }
 }
 
+/**
+ * What breakdown row `i`'s count counts (docs/ux.md#results "Breakdown", `AbilityResult.unit`), from
+ * what in the plan lands on it: the white swings (rows 0 and 1, and the pet's), Auto Shot's, an
+ * ability's casts (a bleed's or DoT's: its applications), a proc's, a DoT's own row's applications
+ * (Moonfire's, Lacerate's). A row that lands with no cast counted is a periodic effect's own row:
+ * it counts its ticks. `casts` and `attempts` are the row's counters, over every fight.
+ */
+export function rowUnit(plan: Plan, i: number, casts: number, attempts: number): AbilityUnit | undefined {
+  const source = plan.sources[i]
+  if (source.counts || (casts === 0 && attempts === 0)) return undefined
+  if (i === 0 || i === 1 || plan.pet?.source === i) return 'swings'
+  if (plan.ranged?.source === i) return 'shots'
+  if (casts === 0) return 'ticks'
+  const pressed = plan.abilities.some((a) => a.source === i || a.offHandSource === i) || (plan.pet?.abilities.some((a) => a.source === i) ?? false)
+  if (pressed) return source.bleed ? 'applications' : 'casts'
+  if (plan.procs.some((p) => p.source === i)) return 'procs'
+  return source.bleed ? 'applications' : 'casts'
+}
+
 export function toResult(bundle: PlanBundle, agg: Aggregate, elapsedMs: number): SimResult {
   const { plan } = bundle
   const c = agg.counters
@@ -246,6 +265,9 @@ export function toResult(bundle: PlanBundle, agg: Aggregate, elapsedMs: number):
     }
     if (source.certain) result.certain = true
     if (source.counts) result.counts = source.counts
+    const attempts = result.hits + result.crits + result.glances + result.blocks + result.misses + result.dodges + result.parries
+    const unit = rowUnit(plan, i, result.casts, attempts)
+    if (unit) result.unit = unit
     // A row whose threat is the mana it gave (Shield Specialization, Improved Seal of Fury): that
     // mana, from the ledger's count per row.
     const mana = agg.manaBySource[i] ?? 0

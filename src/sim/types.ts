@@ -501,7 +501,20 @@ export interface AbilityResult {
   spell?: true
   /** The pet's name, on a row of the pet's damage, which counts toward your DPS (docs/mechanics/ranged-and-pets.md §10). */
   pet?: string
+  /**
+   * What the row's count a fight counts, which its outcomes line starts with (docs/ux.md#results
+   * "Breakdown"): `swings`, a white melee swing's (Main hand, Off hand, a form's or a pet's Auto
+   * attack); `shots`, Auto Shot's; `procs`, an item's, talent's, weapon's or seal's proc (Hand of
+   * Justice, Windfury, Seal of Command, Deep Wounds, Deadly Poison, Ignite); `applications`, a bleed's
+   * or DoT's put on the boss (Rend, Corruption, Rake's bleed); `ticks`, a periodic effect's ticks
+   * where nothing counts its casts; `casts`, everything else. Each is `casts` but `ticks`, which is
+   * its attempts (hits, crits, glances, blocks, misses, dodges, parries). Absent for a row that shows
+   * its own count (`counts`) or counts nothing (a row of mana or rage).
+   */
+  unit?: AbilityUnit
 }
+
+export type AbilityUnit = 'casts' | 'swings' | 'shots' | 'procs' | 'applications' | 'ticks'
 
 export interface BleedResult {
   /** Its ticks can crit (Rend in the `forever` profile; damage-and-timing §4). */

@@ -1,5 +1,6 @@
 // The results model (docs/ux.md#results): "Cooldowns and buffs" (casts per fight and uptimes of
-// what deals no damage) and bleed rows (applications and ticks), from merged chunk results.
+// what deals no damage), bleed rows (applications and ticks) and what each row counts, from merged
+// chunk results.
 import { describe, expect, it } from 'vitest'
 import { BLOOD_FURY, BLOODRAGE, REND } from '../classes/warrior/abilities'
 import { defaultConfig } from '../defaults'
@@ -8,8 +9,8 @@ import { FIELD, FIELD_COUNT, Sim } from '../engine/sim'
 import { addAbility, addAura, armsPlan } from '../engine/test-helpers'
 import { buildPlan } from '../plan/build'
 import type { Plan } from '../plan/types'
-import type { SimConfig, SimResult } from '../types'
-import { type Aggregate, cooldownResults, emptyAggregate, mergeChunk, toResult } from './aggregate'
+import type { SimConfig, SimResult, SpecId } from '../types'
+import { type Aggregate, cooldownResults, emptyAggregate, mergeChunk, rowUnit, toResult } from './aggregate'
 
 function run(config: SimConfig, fights = 1000): SimResult {
   const bundle = buildPlan({ ...config, run: { mode: 'fixed', iterations: fights, seed: 3 } })
@@ -145,5 +146,57 @@ describe('bleed rows', () => {
   it('leaves every other row without bleed information', () => {
     const result = run(defaultConfig('warrior-fury'), 250)
     expect(result.abilities.filter((a) => a.bleed).map((a) => a.id)).toEqual(['deepWounds'])
+  })
+})
+
+describe('what each breakdown row counts (AbilityResult.unit, docs/ux.md#results "Breakdown")', () => {
+  const units = (spec: SpecId) => {
+    const result = run(defaultConfig(spec), 100)
+    return { result, unit: Object.fromEntries(result.abilities.map((a) => [a.id, a.unit ?? null])) }
+  }
+
+  it.each<[SpecId, Record<string, string | null>]>([
+    // White swings, extra attacks and Deep Wounds' procs, and the rotation's casts.
+    ['warrior-fury', { mainHand: 'swings', offHand: 'swings', handOfJustice: 'procs', windfury: 'procs', deepWounds: 'procs', bloodthirst: 'casts', whirlwind: 'casts', whirlwindOffHand: 'casts', heroicStrike: 'casts', execute: 'casts' }],
+    // Rend, a bleed the rotation casts, counts its applications.
+    ['warrior-arms', { mainHand: 'swings', rend: 'applications', mortalStrike: 'casts', deepWounds: 'procs' }],
+    ['rogue-combat', { mainHand: 'swings', offHand: 'swings', sinisterStrike: 'casts', eviscerate: 'casts', instantPoison: 'procs', deadlyPoison: 'procs' }],
+    // Consecration's ticks share its row, which counts its casts; Seal of Command's hits are procs.
+    ['paladin-retribution', { mainHand: 'swings', sealOfCommandProc: 'procs', consecration: 'casts', judgementOfCommand: 'casts', holyStrike: 'casts' }],
+    // Holy Shield and Reckoning show their own counts; the mana rows count nothing.
+    ['paladin-protection', { mainHand: 'swings', sealOfFuryProc: 'procs', thorns: 'procs', holyShieldProc: null, reckoning: null, shieldSpecialization: null, improvedSealOfFury: null, consecration: 'casts' }],
+    ['shaman-enhancement', { mainHand: 'swings', windfuryWeapon: 'procs', stormstrike: 'casts', earthShock: 'casts' }],
+    // Auto Shot fires shots; the pet's melee swings, and its abilities are casts.
+    ['hunter-beast-mastery', { autoShot: 'shots', 'cat.melee': 'swings', 'cat.bite': 'casts', serpentSting: 'applications', arcaneShot: 'casts' }],
+    // A hybrid's DoT row counts the applications its hits put on the boss; Ignite counts the crits that feed it.
+    ['mage-fire', { fireball: 'casts', fireballDot: 'applications', pyroblastDot: 'applications', ignite: 'procs', scorch: 'casts' }],
+    ['warlock-affliction', { corruption: 'applications', siphonLife: 'applications', baneOfAgony: 'applications', shadowBolt: 'casts' }],
+    ['warlock-demonology', { 'imp.firebolt': 'casts', shadowBolt: 'casts' }],
+    // A form's Auto attack swings; Lacerate's bleed counts the applications its hits make; Faerie Fire is cast.
+    ['druid-feral-bear', { mainHand: 'swings', maul: 'casts', lacerate: 'casts', lacerateBleed: 'applications', faerieFire: 'casts', primalFury: null }],
+  ])('%s', (spec, expected) => {
+    expect(units(spec).unit).toMatchObject(expected)
+  })
+
+  it('gives every row that deals damage a count: its unit or its own', () => {
+    for (const spec of ['warrior-fury', 'paladin-protection', 'hunter-beast-mastery', 'priest-shadow', 'mage-arcane'] as const) {
+      for (const a of units(spec).result.abilities) if (a.damage > 0) expect(a.unit ?? a.counts, `${spec} ${a.id}`).toBeDefined()
+    }
+  })
+
+  it('counts a swing’s or cast’s attempts, misses included', () => {
+    const { result } = units('warrior-fury')
+    for (const a of result.abilities.filter((r) => r.unit === 'swings' || r.unit === 'casts')) {
+      expect(a.hits + a.crits + a.glances + a.blocks + a.misses + a.dodges + a.parries, a.id).toBe(a.casts)
+    }
+  })
+
+  it('counts the ticks of a row that lands with no cast counted, and nothing on a row that neither lands nor is cast', () => {
+    const plan = armsPlan(100000)
+    plan.sources.push({ id: 'tick', name: 'Tick', icon: 'x' })
+    const i = plan.sources.length - 1
+    expect(rowUnit(plan, i, 0, 12)).toBe('ticks')
+    expect(rowUnit(plan, i, 0, 0)).toBeUndefined()
+    expect(rowUnit(plan, 0, 30, 30)).toBe('swings')
   })
 })

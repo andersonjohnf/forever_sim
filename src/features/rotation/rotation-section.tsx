@@ -270,6 +270,12 @@ function OptionRow({ option, ctx, nested = false }: { option: RotationOption; ct
         <p id={ids.help} className="text-xs text-muted-foreground">
           {option.help}
         </p>
+        {/* A setting the rest of the setup leaves unused says why, as a switch does (the Balance filler under Eclipse). */}
+        {row.notUsed && (
+          <p id={ids.notUsed} className="mt-1 text-xs text-muted-foreground">
+            {row.notUsed}
+          </p>
+        )}
         {row.changed && <DefaultHint option={option} row={row} ctx={ctx} className="mt-1" />}
       </div>
       {option.kind === 'choice' ? (
@@ -277,7 +283,7 @@ function OptionRow({ option, ctx, nested = false }: { option: RotationOption; ct
           type="single"
           variant="outline"
           aria-labelledby={ids.label}
-          aria-describedby={[ids.help, row.changed && ids.default].filter(Boolean).join(' ')}
+          aria-describedby={[ids.help, row.notUsed && ids.notUsed, row.changed && ids.default].filter(Boolean).join(' ')}
           value={String(row.value)}
           onValueChange={(v) => v && ctx.set(option.id, v)}
           className="w-full shrink-0 sm:w-auto"
@@ -299,7 +305,7 @@ function OptionRow({ option, ctx, nested = false }: { option: RotationOption; ct
           unit={option.unit}
           grouping={groupsThousands(option)}
           aria-label={option.label}
-          aria-describedby={[ids.help, row.changed && ids.default].filter(Boolean).join(' ')}
+          aria-describedby={[ids.help, row.notUsed && ids.notUsed, row.changed && ids.default].filter(Boolean).join(' ')}
         />
       )}
     </div>

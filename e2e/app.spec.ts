@@ -28,8 +28,8 @@ test.describe('setup', () => {
     await expect(warriors.getByRole('menuitem', { name: /Arms/ })).toBeVisible()
     // Protection, the first tank, since P2; its role reads "Tank" on the item's second line.
     await expect(warriors.getByRole('menuitem', { name: /Protection/ })).toContainText('Tank')
-    // The Feral cat since B2, and the bear, a tank, since B4, under the Druid heading.
-    await expect(page.getByRole('group', { name: 'Druid' }).getByRole('menuitem')).toHaveText([/^Feral \(Cat\)\s*DPS$/, /^Feral \(Bear\)\s*Tank$/])
+    // The Feral cat since B2, the bear, a tank, since B4, and Balance since K6, under the Druid heading.
+    await expect(page.getByRole('group', { name: 'Druid' }).getByRole('menuitem')).toHaveText([/^Feral \(Cat\)\s*DPS$/, /^Feral \(Bear\)\s*Tank$/, /^Balance\s*DPS$/])
     // Retribution since C2 and the Protection paladin, a tank, since C3, under the Paladin heading.
     const paladins = page.getByRole('group', { name: 'Paladin' })
     await expect(page.getByRole('menu').getByText('Paladin', { exact: true })).toBeVisible()
@@ -44,7 +44,7 @@ test.describe('setup', () => {
     await expect(page.getByRole('group', { name: 'Warlock' }).getByRole('menuitem')).toHaveText([/^Destruction\s*DPS$/, /^Affliction\s*DPS$/])
     // The Shadow Priest since K4, under the Priest heading.
     await expect(page.getByRole('group', { name: 'Priest' }).getByRole('menuitem')).toHaveText([/^Shadow\s*DPS$/])
-    await expect(page.getByRole('menuitem')).toHaveCount(18)
+    await expect(page.getByRole('menuitem')).toHaveCount(19)
     await expect(page.getByRole('menu').getByRole('group')).toHaveText([/^Warrior/, /^Druid/, /^Paladin/, /^Shaman/, /^Rogue/, /^Mage/, /^Warlock/, /^Priest/])
   })
 

@@ -2004,8 +2004,8 @@ values the avoidance talents below what tanks give them: an avoided hit gives no
 first searches dropped Anticipation and Deflection for threat. By user decision (D30, 2026-09-24)
 Deflection is in the floor too: tanks take it. **Anticipation isn't in the floor but is the
 preferred filler** (user decision, D30): a build's leftover points go to it before Toughness or
-any other filler, and when the search ends, a candidate with more of it wins over the leader if
-it's within 0.5% of the leader's score or inside the leader's paired 95% interval
+any other filler. That fill order is all it is: the search's leader is the answer, even one that
+drops Anticipation when its gain is clear (user decision, D30: the Deep Wounds build, +4.4 points)
 ([optimizer.md](../optimizer.md#the-preferred-filler); `PREFERRED_FILLER`, the same file).
 **Toughness is optional** (user decision): the search
 decides its ranks. Under the effective-health floor it's a search dimension, since its armor

@@ -218,7 +218,7 @@ describe('optimize', () => {
     expect(report.blocked[0]).toMatch(/^crit immune: no candidate reaches the defense it needs on this gear; the closest has \d+ defense, leaving the boss \d+\.\d\d% crit$/)
     // The default keeps the floor (Anticipation left it for the preferred filler, D30) but breaks crit immunity itself.
     expect(report.setupFails).toEqual(['crit immune'])
-    expect(report.answer).toBeNull()
+    expect(report.race.leader).toBeNull()
     expect(report.excluded.sheet).toBeGreaterThan(1000)
   }, 120_000)
 
@@ -226,7 +226,7 @@ describe('optimize', () => {
     // Moonkin Form kept, beside the bear's floor and 31 in Feral Combat: no 51-point build fits.
     const report = await optimize({ config: bear, talents: { screenFights: 10, keep: { 'Moonkin Form': 1 } }, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner() })
     expect(report.space!.builds).toBe(0)
-    expect(report.answer).toBeNull()
+    expect(report.race.leader).toBeNull()
     expect(report.blocked).toEqual([
       'talents: no legal 51-point build fits the talent constraints together: the survival floor (Heart of the Wild 5, Thick Hide 3, Feral Swiftness 2); kept talents (Moonkin Form 1); at least 31 points in Feral Combat',
     ])
@@ -262,7 +262,7 @@ describe('optimize', () => {
       budget: { fights: 4_000, initialFights: 2 },
       runner: localFightRunner(),
     })
-    expect(report.answer).toBeNull()
+    expect(report.race.leader).toBeNull()
     expect(report.blocked).toEqual([`no candidate meets armor>=${Math.max(...armor)} and armor<=${Math.min(...armor)} together, though each alone is met`])
   }, 120_000)
 
@@ -276,7 +276,7 @@ describe('optimize', () => {
       runner: localFightRunner(),
     })
     expect(report.race.status).toBe('none')
-    expect(report.answer).toBeNull()
+    expect(report.race.leader).toBeNull()
     expect(report.blocked).toEqual(['taken<=50%: 2 of 2 candidates were clearly outside it in the race'])
   }, 60_000)
 
@@ -290,29 +290,20 @@ describe('optimize', () => {
     ])
   })
 
-  it('answers with the leader, or a level candidate with more of the preferred filler (D30)', async () => {
+  it('answers with the leader; the preferred filler is only the fill order, before Toughness (D30, step 6)', async () => {
     const warrior = fixed(defaultConfig('warrior-protection'))
     const report = await optimize({ config: warrior, talents: { screenFights: 20 }, budget: { fights: 60_000, initialFights: 40 }, runner: localFightRunner(), top: 3 })
-    const anticipation = TALENT_DATA.warrior.trees.flatMap((t) => t.talents).find((t) => t.name === 'Anticipation')!.id
+    const talent = (name: string) => TALENT_DATA.warrior.trees.flatMap((t) => t.talents).find((t) => t.name === name)!.id
+    const anticipation = talent('Anticipation')
     expect(report.space!.preferred).toBe(anticipation)
     expect(report.space!.floor).not.toHaveProperty(anticipation)
-    const ranks = (c: number) => decodeTalentCode(TALENT_DATA.warrior, report.candidates[c].talents)[anticipation] ?? 0
+    const order = report.space!.fillOrder
+    expect(order).toContain(anticipation)
+    expect(order.indexOf(anticipation)).toBeLessThan(order.indexOf(talent('Toughness')))
+    // The answer is the leader, first in the standings.
     expect(report.race.leader).not.toBeNull()
-    if (report.preferred) {
-      // The preferred one has more ranks and is level with the leader, and it's in the standings.
-      expect(report.answer).toBe(report.preferred.candidate)
-      expect(report.preferred.talent).toBe('Anticipation')
-      expect(ranks(report.answer!)).toBeGreaterThan(ranks(report.race.leader!))
-      const { vsLeader, tolerance } = report.preferred
-      expect(vsLeader.mean - vsLeader.halfWidth <= 0 || vsLeader.mean <= tolerance).toBe(true)
-      expect(report.race.standings.some((s) => s.candidate === report.answer)).toBe(true)
-    } else expect(report.answer).toBe(report.race.leader)
-    // No standing ranks above the answer with more Anticipation while level with the leader.
-    for (const s of report.race.standings) {
-      if (s.candidate === report.answer || !s.vsLeader || s.droppedAs === 'infeasible' || !s.feasible) continue
-      const level = s.vsLeader.mean - s.vsLeader.halfWidth <= 0 || s.vsLeader.mean <= 0.005 * report.race.standings[0].mean.score
-      if (level) expect(ranks(s.candidate)).toBeLessThanOrEqual(ranks(report.answer!))
-    }
+    expect(report.race.standings[0].candidate).toBe(report.race.leader)
+    expect(report.race.standings[0].state).toBe('leader')
   }, 120_000)
 
   it('a rotation search races the start’s own rotation beside its variants, each setup once (O1-1)', async () => {

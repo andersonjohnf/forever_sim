@@ -26,10 +26,9 @@ export const SURVIVAL_FLOOR: Partial<Record<SpecId, Readonly<Record<string, numb
 /**
  * A tank's **preferred filler** (user decision, D30; docs/optimizer.md#the-preferred-filler): not in
  * the floor, but where a build's leftover points go first, after the objective talents' partial
- * ranks and before Toughness or any other filler. The model counts only what its avoided hits cost
- * in threat, so when the race ends a candidate with more of it is preferred to the leader if it's
- * within PREFERENCE_TOLERANCE of the leader's score or inside the leader's paired 95% interval
- * (`preferFiller`, ./prefer.ts). The bear has none: its avoidance, Feral Swiftness, is in its floor.
+ * ranks and before Toughness or any other filler. That fill order is all it is: the race's leader is
+ * the answer, with no end-of-race preference for more of it (step 6 of O1's review, D30). The bear
+ * has none: its avoidance, Feral Swiftness, is in its floor.
  */
 export const PREFERRED_FILLER: Partial<Record<SpecId, string>> = {
   // docs/classes/warrior.md#64-survival-floor

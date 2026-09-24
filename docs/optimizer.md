@@ -10,8 +10,9 @@ keeps, how the talent space is built, and how a spec's defaults come from its re
 constraints with effective health and crit and crush immunity, and the command line
 (`npm run optimize`), with the review's and both verifications' fixes
 ([review log](reviews/2026-09-24-optimizer-o1.md)); the setup is only ever the baseline, never an
-answer (user decision); Anticipation is the warrior's and paladin's preferred filler rather than
-a floor talent (user decision, D30). Gear is O2, the
+answer (user decision); Anticipation is the warrior's and paladin's preferred filler, first in the
+fill order, rather than a floor talent (user decision, D30); the leader is the answer, and the race
+takes no result limits (step 6 of the review, D30). Gear is O2, the
 app's Optimize flow O3, and defaults set from the results O4 ([milestones](milestones.md)). The
 code is `src/sim/optimize/` (pure TypeScript, seeded, no DOM) and
 [`scripts/tune/optimize.mjs`](../scripts/tune/optimize.mjs).
@@ -54,9 +55,9 @@ budget:
 4. **Race** the candidates on common random numbers until the leader is clear of the rest at 95%
    or the budget runs out ([below](#racing)), beside the **baseline**. The budget and the first
    round are fitted to the number of candidates first ([budgets](#budgets)).
-5. **Answer** with the race's leader, unless a warrior's or paladin's **preferred filler** prefers a
-   candidate level with it that has more Anticipation ([below](#the-preferred-filler)). The
-   report's `answer` is the one to use; `race.leader` is the best mean.
+5. **Answer** with the race's leader (`race.leader`), the best mean. A warrior's or paladin's
+   **preferred filler**, Anticipation, is only where the talent space puts leftover points
+   ([below](#the-preferred-filler)); nothing prefers it once the race has run.
 6. **Confirm** the answer against the baseline on a fresh seed (D23; the CLI's `--confirm`).
 
 **The baseline is only a measuring stick** (user decision). It's the setup as it is (the spec's
@@ -345,27 +346,20 @@ Anticipation 2/5 and measured +1.0% TPS over the floor-bound default; `PREFERRED
 `src/sim/optimize/floor.ts`). It left the survival floor, so a build may take fewer than 5 ranks,
 but tanks take it, and the sim sees only half of what it does: its avoided hits cost threat in the
 model (no rage from a dodged hit, no Reckoning charge or Shield Specialization mana), and what
-they're worth, the damage a tank doesn't take, isn't in the score. So it's preferred twice:
+they're worth, the damage a tank doesn't take, isn't in the score. So it's preferred **in the
+fill order**, and only there: a build's leftover points go to it after the objective talents'
+partial ranks and before Toughness or any other filler ([above](#the-talent-space)), whatever the
+screen made of it (`preferred` in `talentSpace`). Where the screen makes it an objective talent,
+builds with and without it race as for any other; and a build with room for 5 more points and no
+Toughness keeps them for Anticipation rather than being dropped for want of Toughness (OV3-1).
 
-- **In the space:** a build's leftover points go to it after the objective talents' partial ranks
-  and before Toughness or any other filler ([above](#the-talent-space)), whatever the screen made
-  of it (`preferred` in `talentSpace`). Where the screen makes it an objective talent, builds with
-  and without it race as for any other.
-- **At the race's end** (`preferFiller`, `src/sim/optimize/prefer.ts`): a candidate with more
-  Anticipation than the leader is the **answer** if it's within **0.5% of the leader's score**
-  (`PREFERENCE_TOLERANCE`; about 1 point of `balanced`, whose leader scores about 200, or 5 DPS on
-  1,000), or **inside the leader's paired 95% interval** (the leader isn't clear of it), and its
-  means meet every result limit. Among several, the one with the most Anticipation, then the first
-  in the standings' order. It's D30's rule for an item whose value rests on an unmeasured rating
-  (within 0.5%, or inside the paired interval), for what the model can't see.
-
-The report's `answer` is that candidate, and `preferred` says which and why; the CLI prints
-"preferred for Anticipation (filler): `<build>`, Anticipation 5 to the leader's 2: −0.12 (−0.30 to
-+0.06) points against the leader (inside the CI)" and marks its row "the answer
-(preferred for Anticipation)". `--confirm` and a
-search in turns use the answer. `--exclude Anticipation` searches without it, and `--keep
-Anticipation` holds it at 5/5 as the floor used to. The bear has no preferred filler: its
-avoidance, Feral Swiftness, is in its floor.
+**The race's leader is the answer**, whatever its Anticipation. An end-of-race rule that preferred a
+candidate level with the leader that had more Anticipation (within 0.5% of its score or inside its
+paired interval) was cut at step 6 of O1's review, after two rounds in a row found new problems in
+it (D30, "Simplified after O1's third review round"). An answer that drops Anticipation entirely
+when the gain is clear is acceptable (user decision: the warrior's Deep Wounds build, +4.4 points).
+`--exclude Anticipation` searches without it, and `--keep Anticipation` holds it at 5/5 as the
+floor used to. The bear has no preferred filler: its avoidance, Feral Swiftness, is in its floor.
 
 The spaces at the default setups (tanks with 31 points in their tree, their survival floor, the
 preferred filler, and the effective-health floor, which makes Toughness a dimension), from the
@@ -497,10 +491,9 @@ Candidates dropped early ran fewer fights, so their intervals are wider; the tab
 leader, then the survivors, then the dropped by how long they lasted. The baseline isn't a row:
 its numbers are the line under the table. The CLI also says what the setup itself fails (it's then
 only the baseline), how many candidates each kind of constraint left out, and, when there's no
-answer, "no setup meets these constraints" with `blocked`'s reasons. When the preferred filler
-chose the answer, its row says "the answer (preferred for Anticipation)", a line under the result
-says why, and the line after compares the answer, not the leader, with the default. With no leader,
-the standings have no comparison with one (`vsLeader` is left out of the JSON).
+answer, "no setup meets these constraints" with `blocked`'s reasons. The line after the result
+compares the leader, the answer, with the default. With no leader, the standings have no
+comparison with one (`vsLeader` is left out of the JSON).
 
 ## Limits of the method
 
@@ -527,10 +520,6 @@ the standings have no comparison with one (`vsLeader` is left out of the JSON).
   by its means alone, and the CLI says so; a relative limit also moves with the baseline's own mean
   (a limit of exactly 100% on the setup's copy is never inside at 95%, so such a race runs to its
   budget). A leader inside a limit on this seed may still be near it on another.
-- **The preferred filler reads a dropped candidate's interval over its own fights.** A candidate
-  dropped in the first round was compared with the leader over 50 to 1,000 fights, so "within 0.5%"
-  rests on that mean; the CLI prints the interval beside it, and `--confirm` checks the answer on a
-  fresh seed.
 
 ## Worked examples
 
@@ -567,12 +556,11 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
 - **The setup wins as a candidate.** The bear with one rotation variant, Maul held for 90 rage:
   its own rotation leads, as the copy of the setup, 0 ± 0 against the baseline it's identical to,
   and it runs no fights of its own (OV2-5).
-- **The preferred filler.** A balanced leader scoring 204 with Anticipation 0: a candidate with
-  Anticipation 5 that's 0.9 ± 0.2 points behind (clearly behind, but within 0.5%, 1.02 points) is
-  the answer over one with Anticipation 2 inside the leader's interval (0.3 ± 0.5); one 1.1 ± 0.05
-  behind isn't. On 1,000 DPS the tolerance is 5 DPS (`prefer.test.ts`). In the space, Shield Slam's
-  31 points in Protection leave 20, and Anticipation takes 5 of them before Toughness, whether the
-  screen calls it harmful, survival or no effect (`talents.test.ts`).
+- **The preferred filler.** Shield Slam's 31 points in Protection leave 20, and Anticipation takes
+  5 of them before Toughness, whether the screen calls it harmful, survival or no effect. A
+  Protection build kept whole at 34 points with 5 to 9 left over: the build without Toughness keeps
+  them, Anticipation 5 and the rest to Toughness, beside the build with Toughness 5, whether the
+  screen calls Anticipation objective, no effect or harmful (OV3-1; `talents.test.ts`).
 - **A leader over its limit.** A limit of 505 damage taken a second; the best DPS takes 507, the
   next 1,050 DPS at 495. In 30 seeds the answer is the feasible one every time, and the one over the
   limit is only ever dropped as outside it (OV2-1; before the fix it answered with itself in 5).

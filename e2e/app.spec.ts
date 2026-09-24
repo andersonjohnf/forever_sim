@@ -242,6 +242,13 @@ test.describe('simulation', () => {
     for (const ability of ['Bloodthirst', 'Execute', 'Whirlwind', 'Heroic Strike', 'Main hand', 'Off hand']) {
       await expect(breakdown.getByText(ability, { exact: true })).toBeVisible()
     }
+    // Each row's line starts with its count a fight, named for what it counts, and ends with its
+    // average per landed hit (docs/ux.md#results "Breakdown").
+    const row = (name: string) => breakdown.getByRole('listitem').filter({ hasText: new RegExp(`^${name}\\d`) })
+    await expect(row('Main hand')).toContainText(/\d+\.\d swings a fight · \d+\.\d% crit · \d+\.\d% avoided · \d+\.\d% glancing · [\d,]+ avg hit/)
+    await expect(row('Bloodthirst')).toContainText(/\d+\.\d casts a fight · \d+\.\d% crit · \d+\.\d% avoided · [\d,]+ avg hit/)
+    await expect(row('Hand of Justice')).toContainText(/\d+\.\d procs a fight/)
+    await expect(row('Deep Wounds')).toContainText(/\d+\.\d procs a fight · [\d,]+ avg tick/)
   })
 
   test('shows Fury’s cooldowns and buffs with uptimes and casts per fight, collapsed until opened', async ({ page }) => {
@@ -281,7 +288,8 @@ test.describe('simulation', () => {
     await expect(rend).toContainText(/\d+\.\d% uptime on the boss/)
     await expect(rend).toContainText(/\d+\.\d% tick crit/)
     await expect(rend).toContainText(/\d+\.\d% of applications avoided/)
-    await expect(breakdown.getByRole('listitem').filter({ hasText: /^Deep Wounds/ })).toContainText(/\d+\.\d ticks per fight/)
+    await expect(rend).toContainText(/\d+\.\d applications a fight · \d+\.\d% tick crit/)
+    await expect(breakdown.getByRole('listitem').filter({ hasText: /^Deep Wounds/ })).toContainText(/\d+\.\d procs a fight · [\d,]+ avg tick/)
     // The Overpower window is among the buffs.
     await results.getByRole('button', { name: 'Cooldowns and buffs' }).click()
     await expect(results.getByRole('table').getByRole('row', { name: /^Overpower window \d+\.\d% none$/ })).toBeVisible()

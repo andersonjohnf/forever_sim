@@ -173,9 +173,13 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     "3 slots differ from the threat set: Head, Legs and Main hand. Equipping it replaces all 3."
     ("… replaces that slot." for one, "… replaces both." for two; an empty slot, as after Remove all
     gear, is filled rather than replaced: "… fills all 17.", or for a mix "… fills 2 empty slots and
-    replaces the other 3."), after a dot in the primary colour (the changed-setting
-    marker of Character and Rotation); the row takes a muted fill and the button is the primary
-    one. Once the gear matches, it's quiet: a check and "Wearing the threat set." in muted text,
+    replaces the other 3."; a slot the default leaves empty but the player filled, such as an Arms
+    warrior's off hand beside a one-hander, is cleared, by name: "… replaces 1 slot and clears Off
+    hand.", "… fills 15 empty slots, replaces 1 and clears Ammo and Quiver.", or "… clears Off
+    hand." alone). A no-break space joins each count to the word before it, so a wrapped line never
+    ends on "all", "fills", "replaces" or "the other". The line follows a dot in the primary colour
+    (the changed-setting marker of Character and Rotation); the row takes a muted fill and the
+    button is the primary one. Once the gear matches, it's quiet: a check and "Wearing the threat set." in muted text,
     and no button, since there's nothing to equip. Equipping from the keyboard moves focus to that
     line as the button goes. The line is the button's description for screen readers. Below 640 px
     the button takes the row's full width under the line. The button used to hide in the options menu;

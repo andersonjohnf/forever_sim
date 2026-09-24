@@ -148,7 +148,7 @@ export function GearSection() {
           <span className={cn(offDefault === 0 && 'text-muted-foreground')}>
             {offDefault === 0
               ? `Wearing ${setName}.`
-              : `${offDefault} ${offDefault === 1 ? 'slot differs' : 'slots differ'} from ${setName}: ${slotList(offSlots)}. Equipping it ${equipEffect(config.gear, offSlots)}.`}
+              : `${offDefault} ${offDefault === 1 ? 'slot differs' : 'slots differ'} from ${setName}: ${slotList(offSlots)}. Equipping it ${equipEffect(config.gear, offSlots, defaultGearFor(config.spec, config.race))}.`}
           </span>
         </p>
         {/* Only while there's something to equip: once the gear matches, the line says so and nothing waits to be pressed. */}

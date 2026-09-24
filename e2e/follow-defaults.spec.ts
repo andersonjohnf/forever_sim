@@ -125,6 +125,29 @@ test.describe('the Gear tab’s default set button (docs/ux.md "Gear")', () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
     })
   }
+
+  test('names a slot it clears: an Arms warrior’s own off hand, which the two-hander leaves empty', async ({ page }) => {
+    await page.goto('about:blank')
+    await page.goto(`./${await linkFor(page, { version: 1, spec: 'warrior-arms' })}`)
+    const gear = page.getByRole('tabpanel', { name: 'Gear' })
+    const onIcon = { position: { x: 24, y: 24 } }
+    for (const [slot, search, item] of [
+      ['main hand', 'ironfoe', /Ironfoe/],
+      ['off hand', 'mirah', /Mirah/],
+    ] as const) {
+      await gear.getByRole('button', { name: new RegExp(`^${slot[0].toUpperCase()}${slot.slice(1)}: `) }).click(onIcon)
+      const picker = page.getByRole('dialog', { name: `Choose ${slot}` })
+      await picker.getByLabel('Search items').fill(search)
+      await picker.getByRole('button', { name: item }).click(onIcon)
+      await expect(picker).toBeHidden()
+    }
+    await expect(gear.locator('#gear-default-status')).toHaveText(
+      /^2 slots differ from pre-raid best in slot: Main hand and Off hand\. Equipping it replaces\s1 slot and clears Off hand\.$/,
+    )
+    await gear.getByRole('button', { name: 'Equip pre-raid best in slot' }).click()
+    await expect(gear.getByRole('button', { name: /^Main hand: Blackblade of Shahram/ })).toBeVisible()
+    await expect(gear.getByRole('button', { name: /^Off hand: two-handed weapon equipped/ })).toBeVisible()
+  })
 })
 
 test.describe('the Talents tab’s default build line (docs/ux.md "Talents")', () => {

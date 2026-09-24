@@ -377,7 +377,7 @@ These judgements are debuffs: taking one replaces your JotC.
 
 | Ability (max rank) | Numbers at 60 | Cost / CD / GCD | Class, hit table | Tag, source |
 | --- | --- | --- | --- | --- |
-| **Holy Strike** r8 (10333), new, trained at 6 | Effects: `NORMALIZED_WEAPON_DMG` +93 (81–105) then `WEAPON_PERCENT_DAMAGE` 40% ⇒ **0.40 × (normalized MH damage + 81..105)**, plus **0.429 × SP**. **All Holy**, so no armor | 20 mana; **12 s** (category 2404, shared with HotR); Improved Holy Strike −2 s → 10 s; GCD 1.5 s | Melee special: miss, dodge, parry, block, crit ×2. Doesn't proc damage seals [F]; doesn't reset the swing timer (instant special) [C] | [F] [client] (SpellEffect, SpellCategories, SpellMisc school 2, 1.60.1.69913; [10333][f10333]). The ×0.40 on the flat part and how the 0.429 applies are [?] (the tooltip prints the raw 81–105; the BlizzCon build printed "36 to 46", i.e. 40%) |
+| **Holy Strike** r8 (10333), new, trained at 6 | Effects: `NORMALIZED_WEAPON_DMG` +93 (81–105) and `WEAPON_PERCENT_DAMAGE` 40%, read as the tooltip prints them, "40% weapon damage plus an additional 81 to 105" ⇒ **0.40 × normalized MH damage + 81..105**, plus **0.429 × SP**. **All Holy**, so no armor. Its third effect, 77 (a script), is Sacred Arbiter's "refresh all Judgement effects": the same effect is on Judgement 20271, and Sacred Arbiter's own aura (1311087) holds only its +10% damage. No threat wording, so no threat of its own (D29) | 20 mana; **12 s** (category 2404, shared with HotR); Improved Holy Strike −2 s → 10 s; GCD 1.5 s | Melee special: miss, dodge, parry, block, crit ×2. Doesn't proc damage seals [F]; doesn't reset the swing timer (instant special) [C] | [F] [client] (SpellEffect, SpellCategories, SpellMisc school 2, 1.60.1.69913; [10333][f10333]). The flat part outside the 40% is the tooltip's reading [?] (rank 8 prints "81 to 105", rank 1 "25% … plus 11 to 14", both the raw base points; the BlizzCon build printed "36 to 46", i.e. 40%, the other reading); how the 0.429 applies is [?] too ([open question 6](#open-questions), guild test T2) |
 | **Consecration** r5 (20924), baseline from 20 | Per 1 s tick for 8 s (spell 1280349): **12 Holy to every enemy** (no coefficient) **+ 27 Holy + 0.095 × SP to the first 4 enemies**. Single target: **312 + 0.76 × SP** per cast | 565 mana; 8 s; GCD 1.5 s | Magic class; each tick is a separate direct-damage spell (spell hit roll per tick [?]; crit [?]). The ticks lack NOT_A_PROC, so they trigger no procs [?] ([conventions](#conventions-used-below)) | [F] [F 20924][f20924]; tick split and 0.095: [client] (SpellEffect, 1.60.1.69913; [1280349][f1280349]). Classic: 48/tick, 0.042 ([C 20924][c20924]) |
 | Consecration ranks 1–4 | per tick all + first-4: r1 2 + 4, r2 3 + 7, r3 6 + 11, r4 8 + 20; **every rank has the full 0.095** | 135 / 235 / 320 / 435 mana | as above | [F] tick spells 1280345–1280348, [F 26573][f26573]. Downranking is mana-efficient: r1 is `48 + 0.76 × SP` for 135 mana |
 | **Exorcism** r6 (10314) | **475–529 + 0.429 × SP** Holy; **Undead or Demon only** | 345 mana; 15 s; GCD 1.5 s | Magic: spell hit, crit ×1.5 | [F] [F 10314][f10314] |
@@ -1155,10 +1155,11 @@ default setup.
    JoR's in example 4. (`classicEra`: magic class, spell hit and ×1.5 crit.)
 4. **Judgement of Righteousness r8 at 60**: (162..178) + 8.2 → average 178.2 + 0.5 × 100 =
    **228.2**; ×1.15 = **262.43**.
-5. **Holy Strike r8**: normalized MH = 250 + 1200 × 3.3 / 14 = 532.857; + 93 (average of
-   81.375..104.625) = 625.857; × 0.40 = 250.343; + 0.429 × 100 = **293.24**; Sacred Arbiter
-   ×1.10 = **322.57**. Range with Sacred Arbiter: **295.45–349.68**. Holy school: boss
-   armor doesn't reduce it.
+5. **Holy Strike r8**, its tooltip's reading: normalized MH = 250 + 1200 × 3.3 / 14 = 532.857;
+   × 0.40 = 213.143; + 93 (average of 81.375..104.625) = 306.143; + 0.429 × 100 = **349.04**;
+   Sacred Arbiter ×1.10 = **383.95**. Range with Sacred Arbiter: **349.16–418.73**. Holy school:
+   boss armor doesn't reduce it. (The other reading, 0.40 × (532.857 + 93) + 42.9, is 293.24:
+   [open question 6](#open-questions).)
 6. **SoR proc, 2H, r8 at 60**: 1.2 × 18.80 × 3.5 = 78.96 + 0.1 × 100 = **88.96**; ×1.15 =
    **102.30**. Same weapon 1H-style (0.85): 55.93 + 10 = 65.93.
 7. **Consecration r5, SP 300, one target**: per tick 12 + 27 + 0.095 × 300 = **67.5**; 8 ticks
@@ -1241,7 +1242,11 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
    *Test:* JoC and SoC-proc damage with and without your JotC on a mob, then again with
    Vengeance stacked. This is the biggest single uncertainty for Ret DPS.
 6. **Holy Strike formula**: is the flat 81–105 multiplied by 40%, and is the 0.429 SP added
-   in full? *Test:* no-SP and +SP swings; compare with 0.4 × (normalized weapon + 93).
+   in full? The sim follows the tooltip: 0.4 × normalized weapon + 81–105 + 0.429 × SP [?]; the
+   scaled reading, 0.4 × (weapon + 81–105), is 10.6 TPS less in the review's setup. *Test (guild
+   test T2):* 50+ non-crit Holy Strikes with no spell damage and a known attack power; compare with
+   0.4 × (normalized weapon + 93) and 0.4 × normalized weapon + 93; then again at +100 spell damage
+   (is the 0.429 full, or × 0.4?).
 7. **Judgement of Command SP**: is the coefficient halved with the base when the target
    isn't stunned? *Test:* JoC on a mob with and without +SP.
 8. **Redoubt proc chance** per rank (10% flat per the tooltips vs 2%/rank per the trait
@@ -1349,6 +1354,12 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     raid's other paladins may judge Wisdom or Light instead. *Test:* ask the guild's Holy and
     Retribution paladins which judgement they keep on a boss when a Protection paladin tanks; if it's
     rarely the Crusader, the default goes off. Each Holy hit's share of it is open question 5.
+27. **Holy Strike's third effect** (77, a script): the sim reads it as Sacred Arbiter's "refresh all
+    Judgement effects" (Judgement 20271 carries the same effect; Sacred Arbiter's aura 1311087 holds
+    only its +10% damage), with no threat of its own, since the tooltip has no threat wording (D29).
+    Were it a Heroic Strike-like bonus, about +102 threat a strike (+14 TPS in the review's setup).
+    *Test (guild test T4):* a Holy Strike's threat ÷ (its damage × 1.9 × 1.25 × the gloves' 1.02):
+    1.00 means no bonus; repeat without Iron Creed.
 
 ---
 

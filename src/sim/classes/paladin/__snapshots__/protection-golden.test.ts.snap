@@ -89,8 +89,8 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
     [
       "holyStrike",
-      3423697.192797873,
-      8293906.449552763,
+      4203581.67774527,
+      10183176.614337895,
       18050,
       11008,
       1016,
@@ -208,9 +208,9 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     ],
   ],
   "dps": {
-    "ci95": 0.991853933559549,
-    "mean": 308.57092507459,
-    "stdev": 16.00293454872612,
+    "ci95": 1.0028959275320373,
+    "mean": 312.9076299981632,
+    "stdev": 16.181090122697587,
   },
   "dtps": {
     "ci95": 3.5534327540276114,
@@ -242,9 +242,9 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
     "spentPerFight": 18176.86,
   },
   "tps": {
-    "ci95": 1.9322275799838375,
-    "mean": 579.5665501086348,
-    "stdev": 31.17526729440385,
+    "ci95": 1.9630787881064362,
+    "mean": 590.072217785991,
+    "stdev": 31.673031982963643,
   },
 }
 `;

@@ -63,6 +63,8 @@ describe('golden run (fixed config and seed)', () => {
   //   Protection's spells (it didn't). TPS 472.18 → 552.32, DPS 255.01 → 294.51.
   // - T2 (P4): Seal of Fury's seal value, 0.85 × 16.91 × 1.5 = 21.56 on top of its 35 with the
   //   default axe [?] (Seal of Righteousness’s rule; OQ 10). TPS 552.32 → 579.57, DPS 294.51 → 308.57.
+  // - T2 (P6/A3): Holy Strike's flat 81–105 after its 40%, as its tooltip reads [?] (OQ 6): TPS
+  //   579.57 → 590.07, DPS 308.57 → 312.91.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

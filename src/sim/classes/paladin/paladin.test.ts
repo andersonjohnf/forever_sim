@@ -138,10 +138,10 @@ describe('worked examples 3 and 4: Judgement of Command and Judgement of Righteo
 })
 
 describe('worked example 5: Holy Strike', () => {
-  it('is 0.40 × (normalized main hand + 81–105) + 0.429 × SP = 293.24; with Sacred Arbiter 322.57, from 295.45 to 349.68; armor doesn’t touch it', () => {
+  it('is 0.40 × normalized main hand + 81–105 + 0.429 × SP = 349.04 (its tooltip’s reading); with Sacred Arbiter 383.95, from 349.16 to 418.73; armor doesn’t touch it', () => {
     const fixed = examplePlan({ core: false, weapon: { min: 250, max: 250, speedSec: 3.5 } })
     once(fixed, HOLY_STRIKE_ABILITY)
-    expectMean(damagesOf(fixed, 'holyStrike', 400), 293.24)
+    expectMean(damagesOf(fixed, 'holyStrike', 400), 349.043)
     const arbiter = (armor: number) => {
       const plan = examplePlan({ core: false, talents: { 'Sacred Arbiter': 1 } })
       plan.fight.targetArmor = armor
@@ -149,9 +149,9 @@ describe('worked example 5: Holy Strike', () => {
       return damagesOf(plan, 'holyStrike', 400)
     }
     const hs = arbiter(0)
-    expect(Math.min(...hs)).toBeGreaterThanOrEqual(295.45 - 0.01)
-    expect(Math.max(...hs)).toBeLessThanOrEqual(349.68 + 0.01)
-    expectMean(hs, 322.57)
+    expect(Math.min(...hs)).toBeGreaterThanOrEqual(349.16 - 0.01)
+    expect(Math.max(...hs)).toBeLessThanOrEqual(418.73 + 0.01)
+    expectMean(hs, 383.947)
     expect(arbiter(5000)).toEqual(hs)
   })
 })

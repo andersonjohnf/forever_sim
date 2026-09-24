@@ -33,6 +33,8 @@ describe('golden run (fixed config and seed)', () => {
   //   Consecration from 60% (was 65%) and rank 1 from 15% (was 20%), +0.26% over 400,000 fights;
   //   Exorcism back at 20%, which the default setup (no creature type) doesn't use. On this seed,
   //   DPS 624.07 and TPS 367.10.
+  // - T2 (P6): Holy Strike's flat 81–105 after its 40%, as its tooltip reads [?] (OQ 6): DPS 624.07 →
+  //   632.76, TPS 367.10 → 371.98.
   it('keeps the default Retribution paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-retribution'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

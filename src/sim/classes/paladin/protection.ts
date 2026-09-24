@@ -437,7 +437,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.holyStrike,
     group: 'Core abilities',
     label: 'Holy Strike',
-    help: 'Use Holy Strike whenever it’s ready: 40% of a normalized swing plus spell damage, all Holy, with 25% more threat from Iron Creed 5/5. 20 mana.',
+    help: 'Use Holy Strike whenever it’s ready: 40% of a normalized swing plus 81 to 105 and spell damage, all Holy, with 25% more threat from Iron Creed 5/5. 20 mana.',
     default: true,
   },
   {

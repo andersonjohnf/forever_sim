@@ -445,6 +445,8 @@ export class Sim {
   private readonly splMax: Float64Array
   private readonly splWeaponPct: Float64Array
   private readonly splNormalized: Uint8Array
+  /** A weapon-damage spell's flat part outside its weapon share (SpellDef.flatApart: Holy Strike). */
+  private readonly splFlatApart: Uint8Array
   private readonly splSpCoef: Float64Array
   private readonly splTakenScale: Float64Array
   private readonly splCritMult: Float64Array
@@ -1464,6 +1466,7 @@ export class Sim {
     this.splMax = Float64Array.from(spells, (x) => x.max)
     this.splWeaponPct = Float64Array.from(spells, (x) => x.weaponPercent)
     this.splNormalized = Uint8Array.from(spells, (x) => (x.normalized ? 1 : 0))
+    this.splFlatApart = Uint8Array.from(spells, (x) => (x.flatApart ? 1 : 0))
     this.splSpCoef = Float64Array.from(spells, (x) => x.spCoefficient)
     this.splTakenScale = Float64Array.from(spells, (x) => x.takenScale)
     this.splCritMult = Float64Array.from(spells, (x) => x.critMultiplier)
@@ -4193,7 +4196,8 @@ export class Sim {
       const speed = this.splNormalized[s] ? this.wNormSpeed[h] : this.wSpeedSec[h]
       const roll = this.rngDamage.uniform(this.wMin[h], this.wMax[h])
       const flat = this.splMin[s] === this.splMax[s] ? this.splMin[s] : this.rngDamage.uniform(this.splMin[s], this.splMax[s])
-      base = (roll + this.wFlat[h] + (this.ap / 14) * speed + flat) * pct
+      // paladin.md#other-abilities: Holy Strike's flat 81–105 comes after its 40% (flatApart) [?].
+      base = this.splFlatApart[s] === 1 ? (roll + this.wFlat[h] + (this.ap / 14) * speed) * pct + flat : (roll + this.wFlat[h] + (this.ap / 14) * speed + flat) * pct
     } else {
       base = this.splMin[s] === this.splMax[s] ? this.splMin[s] : this.rngDamage.uniform(this.splMin[s], this.splMax[s])
     }

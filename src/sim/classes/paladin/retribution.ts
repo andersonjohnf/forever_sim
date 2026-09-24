@@ -145,7 +145,7 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     id: ID.holyStrike,
     group: 'Core abilities',
     label: 'Holy Strike',
-    help: 'Use Holy Strike whenever it’s ready: 40% of a normalized swing plus spell damage, all Holy, for 18 mana.',
+    help: 'Use Holy Strike whenever it’s ready: 40% of a normalized swing plus 81 to 105 and spell damage, all Holy, for 18 mana.',
     default: true,
   },
   {

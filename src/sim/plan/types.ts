@@ -178,6 +178,12 @@ export interface SpellDef {
    */
   cannotCrit?: boolean
   /**
+   * A weapon-damage spell whose flat `min`–`max` is added after its weapon share, not inside it: Holy
+   * Strike's tooltip, "40% weapon damage plus an additional 81 to 105" (paladin.md#other-abilities,
+   * OQ 6). Absent: the flat part is inside the share, as a warrior's specials have it.
+   */
+  flatApart?: boolean
+  /**
    * More damage while an aura (by id) is up, which the spell uses up when it lands: Stormstrike's
    * +20% to the shaman's next Lightning Bolt or Earth Shock (docs/classes/shaman.md#stormstrike).
    * Absent: none. With `keep`, the spell doesn't use the aura up: Lava Burst's +20% while your Flame

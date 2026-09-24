@@ -279,7 +279,7 @@ tagged:
 
 The engine (`sim/engine/sim.ts`) adds these as optional parts: a plan without `ranged`, a pet, a
 ranged spell or the new conditions never enters them, so every shipped spec's result is unchanged
-bit for bit (probed: all 16 specs in both profiles, identical `SimResult`s).
+bit for bit (probed: every shipped spec in both profiles, identical `SimResult`s).
 
 - **Auto Shot** is its own event. After a shot at `t` the reload ends at `t + cycle − wind-up`, and
   the next shot fires at `max(reload end, held until) + wind-up`, where a cast or channel sets "held

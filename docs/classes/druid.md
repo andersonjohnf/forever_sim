@@ -974,12 +974,13 @@ This is derived for Forever [?]. Mangle and Lacerate have no Classic analogue, a
 multipliers are unknown (Q15).
 
 **A tank's duties come first** ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)).
-The default keeps the bear's raid and survival duties: **Demoralizing Roar** on the boss (the
-attack-power debuff, a warrior's Demoralizing Shout for a bear), **Faerie Fire** on the boss (the
-raid's armor debuff), and **no Enrage in combat**, whose armor loss is a survival cost (§4.5).
-Within them, D23's search tuned the rest on TPS ([Tuning the defaults](#tuning-the-defaults-b3)
-below). Each duty is a setting, so the Max TPS rotation (the next slice) drops them by setting
-them.
+The default keeps the bear's raid duties up in full: **Demoralizing Roar** on the boss (the
+attack-power debuff, a warrior's Demoralizing Shout for a bear) and **Faerie Fire** on the boss
+(the raid's armor debuff), each refreshed before it falls off. Within them, D23's search tuned
+the rest on TPS, with DPS beside it ([Tuning the defaults](#tuning-the-defaults-b3) below).
+Enrage in combat isn't a duty: its armor loss costs 0.14% more damage taken for 3.9% more TPS
+(below), so the search decides it. Each duty is a setting, so the Max TPS rotation (the next
+slice) drops them by setting them.
 
 **In the engine** (`src/sim/classes/druid/bear.ts`), whenever the bear can act (a GCD ends, rage
 arrives, a cooldown or debuff runs out):
@@ -987,8 +988,8 @@ arrives, a cooldown or debuff runs out):
 **Off-GCD:**
 
 1. **Berserk** on cooldown, with the talent (one target: Mangle without a cooldown for 15 s).
-2. **Enrage** 1.5 s before the pull (`enrage.prepull`), and in combat only with `enrage.inCombat`,
-   at rage ≤ `enrage.maxRage`.
+2. **Enrage** 1.5 s before the pull (`enrage.prepull`), and in combat on cooldown
+   (`enrage.inCombat`), at rage ≤ `enrage.maxRage`.
 3. **Elune's Light** (Night Elf) and on-use items the sim models on cooldown; the **Mighty Rage
    Potion** once, the first time rage ≤ `ragePotion.maxRage`, and **Juju Flurry** on cooldown,
    when they're selected in Buffs.
@@ -1000,12 +1001,15 @@ arrives, a cooldown or debuff runs out):
 **On the GCD:**
 
 5. **Demoralizing Roar** (duty) when it's off the boss or has ≤ `demoRoar.refreshBelowSec` left,
-   unless it lasts to the end of the fight.
+   unless it lasts to the end of the fight. Not while a Demoralizing Shout in the Buffs tab (another
+   warrior's) fills the same attack-power group: only one applies, so the roar would change
+   nothing on the boss (§4.5). The Rotation tab says why it's not used.
 6. **Faerie Fire** (duty) the same, with `faerieFire.refreshBelowSec`.
 7. **Mangle** whenever it's ready, with the talent.
 8. **Lacerate** while it has fewer than 5 stacks, or at 5 with ≤ `lacerate.refreshBelowSec` of its
-   bleed left; with `lacerate.onlyWithoutOtherBleeds` (the default), only while nothing else
-   keeps the boss bleeding (a raid without warriors, whose Deep Wounds Rend and Tear counts, §5.1).
+   bleed left. With `lacerate.onlyWithoutOtherBleeds` (off by default), only while nothing else
+   keeps the boss bleeding (a raid without warriors, whose Deep Wounds Rend and Tear counts, §5.1);
+   the Rotation tab then says why it's not used.
 9. **Swipe** at rage ≥ `swipe.minRage` (the Classic "spare rage" rule), when it's on. §6.3's target
    count (`swipeMinTargets`) is left out: the sim has one target.
 10. **Faerie Fire** as a filler whenever it's ready (`faerieFire.filler`): free, 108 threat.
@@ -1014,13 +1018,13 @@ arrives, a cooldown or debuff runs out):
 | --- | --- | --- |
 | `berserk.enabled` | **on** | Needs the talent |
 | `enrage.prepull` | **on** | 12 rage at the pull; 16% less item armor for its first 8.5 s |
-| `enrage.inCombat`, `enrage.maxRage` | **off** (duty), 70 | In-combat Enrage costs armor ([F] [se-f] tooltip: −27%/−16% base armor); 70 is the cap minus its 30 rage |
+| `enrage.inCombat`, `enrage.maxRage` | **on**, 70 | Tuned (below). Its armor loss ([F] [se-f] tooltip: −27%/−16% base armor) costs 0.14% more damage taken; 70 is the cap minus its 30 rage |
 | `racial.enabled`, `onUseItems.enabled` | **on**, **on** | Elune's Light (Night Elf); Weakness Analyzer, the on-use item the sim models |
 | `faerieFire.enabled`, `faerieFire.refreshBelowSec` | **on** (duty), 3 s | Free in form, 6 s CD; the Buffs tab's Faerie Fire adds nothing more while it's on |
-| `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** (duty), 3 s | 10 rage; the Buffs tab's Demoralizing Roar adds nothing more, and a Demoralizing Shout there takes its place (§4.5) |
-| `maul.enabled`, `maul.minRage` | **on**, 10 | Maul's cost with Ferocity 5/5 |
+| `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** (duty), 3 s | 10 rage; the Buffs tab's Demoralizing Roar adds nothing more, and a Demoralizing Shout there takes its place, so the roar isn't used (§4.5) |
+| `maul.enabled`, `maul.minRage` | **on**, 20 | Tuned (below): from 20, rage stays for Mangle and Lacerate |
 | `mangle.enabled` | **on** | Needs the talent |
-| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **on**, 6 s | Tuned (below): with the default raid's warriors, no Lacerate |
+| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 6 s | Kept with the raid's warriors: leaving it out rests on its untested threat (below); refresh tuned |
 | `swipe.enabled`, `swipe.minRage` | **off**, 60 | Tuned (below); 60 is the [?] rule of thumb, see §6.1, Q31 |
 | `faerieFire.filler` | **on** | Keeps Faerie Fire up too |
 | `ragePotion.enabled`, `ragePotion.maxRage` | **on**, 25 | The cap minus 75; needs the potion selected in Buffs |
@@ -1031,62 +1035,112 @@ arrives, a cooldown or debuff runs out):
 The defaults above are the best rotation found on 2026-09-23, per
 [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23), on TPS, the
 tank's headline, within the duties above
-([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23));
-[D18](../decisions.md#d18-tank-specs-report-tps-and-dps-as-equals-2026-09-22) keeps DPS beside it.
-Against the first priority as built (commit `11e9fbf`), the result is **+30.01 TPS (+4.91%, 95% CI
-+29.85 to +30.17)**, 611.23 → 641.24, and **−7.89 DPS (−2.45%, −7.97 to −7.81)**, 321.77 →
-313.88, over 400,000 paired fights on seed 3131, which no search used.
+([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)
+as amended); [D18](../decisions.md#d18-tank-specs-report-tps-and-dps-as-equals-2026-09-22) keeps
+DPS beside it. Over 400,000 paired fights on seed 7474, which no search used:
+
+| Against | TPS | Δ TPS (95% CI) | DPS | Δ DPS (95% CI) |
+| --- | --- | --- | --- | --- |
+| The first priority as built (`11e9fbf`) | 649.26 → 684.01 | +34.75 (+34.59 to +34.91), +5.35% | 337.30 → 358.16 | +20.86 (+20.78 to +20.94), +6.18% |
+| The first round's tuned defaults (`9377c50`) | 675.38 → 684.01 | +8.63 (+8.47 to +8.79), +1.28% | 326.22 → 358.16 | +31.94 (+31.86 to +32.02), +9.79% |
+
+Both baselines run on their own engine and settings in today's setup, so they include Faerie
+Fire's resistance (§4.5): on the first round's defaults it costs 0.20% of TPS (−1.37, −1.40 to
+−1.34) and 0.06% of DPS.
 
 - **Method.** As Arms' ([warrior.md §5.3](warrior.md#tuning-the-defaults-m25a)):
-  `scripts/tune/rotation.mjs --spec druid-feral-bear --metric tps` runs the real engine with common random numbers (and `--metric dps` for the DPS column).
-  The setup is the default bear (Tauren, the 8/43/0 build, pre-raid BiS with Warden Staff, the
-  Standard raid buffs, 180 s ± 10%, armor 3,731), the rotation aside. The search used seeds 1–6
-  (20,000–100,000 fights a candidate; seeds 7–9 for a raid without warriors), option by option with each adopted change in the base
-  (coordinate descent). The winner was frozen and confirmed on seed 3131: against the first
-  priority (`--against 11e9fbf`), and against itself with each change reverted. It holds at 60 s
-  (+5.26%) and 300 s (+5.23%; seed 3132, 200,000 fights); the bear has no execute-phase ability.
-- **What the search may change.** The duties stay in: Demoralizing Roar and Faerie Fire kept up
-  (their refresh timings too), and no Enrage in combat. The sim scores threat and damage, not
-  survival, so a search on TPS alone drops them (below): that's Max TPS's search, per D26.
+  `scripts/tune/rotation.mjs --spec druid-feral-bear --metric both` runs the real engine with
+  common random numbers and reports TPS and DPS from the same fights. The setup is the default
+  bear (Tauren, the 8/43/0 build, pre-raid BiS with Warden Staff, the Standard raid buffs, 180 s
+  ± 10%, armor 3,731), the rotation aside. Its raid has no Thunder Clap, a warrior tank's duty
+  ([buffs doc §6.1](../mechanics/buffs-debuffs-consumables.md#61-composition-flags-not-factions)).
+  A raid without warriors is `--raid -warrior`: it drops the buffs only a warrior brings
+  (Battle Shout, Sunder Armor), as the Buffs tab's class button does. The execute phase changes
+  nothing: the bear reads nothing from it (0% and 20% give the same fights).
+- **Two rounds.** The first (seeds 1–9, confirmed on 3131 and 3132) left Lacerate out while the
+  raid's warriors keep the boss bleeding, and kept Enrage out of combat as a duty. The review
+  (BL1, BL2) undid both: dropping Lacerate rests on its untested threat, and Enrage in combat
+  isn't a duty. The second round searched from there on seeds 11–18 (40,000–100,000 fights a
+  candidate), option by option with each adopted change in the base (coordinate descent). The
+  winner was frozen and confirmed on seed 7474, against both baselines and against itself with
+  each change reverted, with the robustness grid on seed 7475 (200,000 fights each).
+- **What the search may change.** The duties stay in full: Demoralizing Roar and Faerie Fire,
+  each refreshed before it falls off (D26 as amended). A change that costs a larger share of DPS
+  than it gains in TPS isn't adopted, nor is dropping an ability whose gain rests on an untested
+  threat value.
 
 | Setting | Old → new | In the winner, Δ TPS (95% CI) | Δ DPS |
 | --- | --- | --- | --- |
-| `lacerate.onlyWithoutOtherBleeds` | (none) → on | +26.94 (+26.78 to +27.10) | −10.52 |
-| `swipe.enabled` | on → off | +0.55 (+0.50 to +0.60) | +0.17 |
-| `lacerate.refreshBelowSec` | 3 → 6 s | 0 (no Lacerate with warriors) | 0 |
+| `enrage.inCombat` | off → on | +25.58 (+25.45 to +25.71), +3.88% | +8.07, +2.30% |
+| `maul.minRage` | 10 → 20 | +4.61 (+4.45 to +4.77), +0.68% | +7.28, +2.07% |
+| `lacerate.refreshBelowSec` | 3 → 6 s (first round) | +6.39 (+6.24 to +6.54), +0.94% | +4.64, +1.31% |
+| `swipe.enabled` | on → off (first round) | +1.30 (+1.23 to +1.37), +0.19% | +0.40, +0.11% |
+| `lacerate.onlyWithoutOtherBleeds` | on → off (the review) | −5.55 (−5.71 to −5.39), −0.80% | +26.30, +7.93% |
 
-"In the winner" is the winner against a copy with that change reverted, on seed 3131 (400,000
-fights).
+"In the winner" is the winner against a copy with that change reverted, on seed 7474 (400,000
+fights); the % is of the reverted copy.
 
-- **Lacerate only when nothing else bleeds.** With the Standard raid's warriors on the boss, their
-  Deep Wounds already turn on Rend and Tear [?] (Q9), so Lacerate adds only its own threat: 15 rage
-  for its hit and ticks at one threat per damage (Q15), where Maul makes about half again as much
-  for the rage. Without warriors in the raid it's the only bleed, and it pays: +21.37 TPS (+4.91%)
-  on in a warrior-less raid (seed 7, 20,000 fights). So the rule follows the raid, not the rotation
-  alone ([D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23): the
-  raid's choices aren't rotation defaults). It costs 3.2% of the DPS with warriors, less than the
-  TPS it gains; Lacerate's unknown threat bonus ("high threat", Q15) could turn it round.
-- **Lacerate's refresh at 6 s**, measured where it's used, in a raid without warriors: +3.46 TPS
-  (+0.76%) over 3 s, and 7 s within 0.1% of it; 1.5 s −2.0%, and at 0 s, which lets the stacks drop,
-  −4.0% (seeds 8, 9, 40,000 fights). At 6 s left the refresh comes right after a tick, with a GCD's
-  slack before the bleed runs out.
-- **No Swipe.** On one target it's 118.69 damage for 15 rage and a GCD, and Maul does more with the
-  rage; from 90 rage it never fires, level with off.
-- **Not adopted** (on search seeds, against the winner or its predecessor): Maul from 12–40 rage,
-  all level or worse (every swing its rage pays for, 10, is best: −0.13% at 15, −2.81% at 40); the
-  potion up to 0 rage (−3.2%; up to 10–60 is the same as 25: it's drunk at the pull); Berserk off
-  (−0.55%), Mangle off (−11.6%), the Faerie Fire filler off (−2.5%), no Enrage before the pull
-  (−1.65%).
-- **What the duties cost** (seed 6, 100,000 fights, against the tuned defaults):
+- **Enrage in combat** makes 3.9% more TPS and 2.3% more DPS for 0.14% more damage taken
+  (574.38 → 575.19 a second, +0.81, +0.77 to +0.84; seed 7474, 200,000 fights): it's up 18% of
+  the fight, and its armor loss is 16% of item armor (§4.5). Its limit, `enrage.maxRage`, is
+  level from 40 up, since the bar is rarely that full (10: −0.21%, 0: −3.7%; seed 12). In a 30 s
+  fight it never fires: the pre-pull Enrage's 1 min cooldown outlasts it.
+- **Maul from 20** leaves rage for Mangle's and Lacerate's global cooldowns. 19, 20 and 21 are
+  level (+0.71%, +0.70% and +0.71% over 10; seed 14, 60,000 fights), 15 and 25 lower (−0.15%,
+  −0.10% against 20; seed 17). It's the default fight's best, not every fight's (seed 18, 100,000
+  fights, against 10): −2.07% at 30 s, −0.70% at 60 s, −0.08% at 90 s, +0.68% at 180 s and
+  +0.75% at 300 s. Its DPS gains from 60 s on (+1.2–2.3%). While Lacerate builds its stacks,
+  their rage makes little threat, so in short fights Maul does more with it; the setting's help
+  says so.
+- **Lacerate kept** (the review, BL1). With the Standard raid's warriors on the boss, their Deep
+  Wounds already turn on Rend and Tear [?] (Q9), so Lacerate adds only its own damage and threat.
+  As modelled, one threat per damage (Q15), leaving it out would gain 0.80% TPS for 7.3% of the
+  DPS, which the DPS rule doesn't adopt. Its tooltip's "high threat" makes a bonus likely, and a
+  small one turns the TPS round too [?]: leaving it out wins only if Lacerate adds less than about
+  **+40 threat per landed application, or ×1.1** on its hit and ticks (seed 7476, 40,000 fights;
+  +50 gains 0.20% by keeping it, +100 1.23%, +150 2.26%; ×1.2 0.91%). With the first round's Maul
+  from 10 the break-even was about **+200, or ×1.6** (the review's measurement: +200 level, +300
+  +2.13%; ×1.5 −0.70%, ×1.75 +1.08%; seed 4242, 20,000 fights). Both are D24 effect estimates in
+  Q15. In short fights Lacerate costs more as modelled, since its first applications deal little:
+  5.2% of TPS at 30 s and 3.9% at 60 s against leaving it out (seed 18, 100,000 fights), and at
+  30 s 0.8% of DPS too.
+- **Lacerate's refresh at 6 s** now acts in the default setup. On the robustness grid (seed 7475,
+  200,000 fights, 6 s against 3 s), with the raid's warriors: level at 30 s (the stacks never need
+  a refresh), −0.12% at 60 s, +0.93% at 180 s and +0.88% at 300 s; without warriors
+  (`--raid -warrior`): level, −0.11%, +1.06% and +1.03%. The second round's search (seeds 12, 13,
+  15) found 6.5 s level and the rest lower: 7 s −0.07%, 5.5 s −0.09%, 5 s −0.17%, 4.5 s −0.41%,
+  7.5 s −0.64 to −1.00%, 9 s −0.74%, 1.5 s −2.70%, 0 s (the stacks drop) −4.83%. At 6 s left the
+  refresh comes right after a tick, with a GCD's slack before the bleed runs out.
+- **No Swipe.** On one target it's 118.69 damage for 15 rage and a GCD, and Maul does more with
+  the rage: −0.21% from 60 rage, −1.43% from 40, −0.03% from 80, −0.01% from 90 (seeds 15, 17).
+- **Not adopted** (on search seeds, against the winner or its predecessor): Demoralizing Roar
+  refreshed from 2 s or 1.5 s left (+0.24% and +0.20% TPS, seeds 7474 and 16), since its uptime
+  drops from 99.86% to 99.73% and 99.68% (seed 7474, 100,000 fights; D26: duties in full);
+  Faerie Fire's refresh at 1.5 or 6 s, level (the filler keeps it fresh); the potion up to 0 rage
+  (−3.3%; 10–50 is the same as 25: it's drunk at the pull); Berserk off (−0.92%), Mangle off
+  (−4.95%), the Faerie Fire filler off (−1.95%); Enrage before the pull off, level now that
+  Enrage comes in combat too.
+- **Robustness** (seed 7475, which no search used, 200,000 paired fights each): the defaults
+  against both baselines by fight length. They lose in short fights: Lacerate as modelled (above)
+  and Maul from 20 (−2.07% at 30 s, −0.70% at 60 s) cost more there than in-combat Enrage gains
+  (nothing at 30 s, +0.60% at 60 s).
+
+  | Fight | Δ TPS vs `11e9fbf` | Δ DPS vs `11e9fbf` | Δ TPS vs `9377c50` | Δ DPS vs `9377c50` |
+  | --- | --- | --- | --- | --- |
+  | 30 s | −18.10 (−18.39 to −17.81), −2.27% | −1.21, −0.29% | −50.90 (−51.30 to −50.50), −6.14% | −5.51, −1.32% |
+  | 60 s | −2.57 (−2.89 to −2.26), −0.37% | +5.46, +1.49% | −32.06 (−32.41 to −31.70), −4.38% | +10.61, +2.94% |
+  | 180 s | +34.76 (+34.54 to +34.99), +5.36% | +20.85, +6.18% | +8.73 (+8.50 to +8.96), +1.29% | +31.96, +9.80% |
+  | 300 s | +37.88 (+37.70 to +38.06), +5.97% | +22.89, +6.93% | +9.82 (+9.64 to +10.00), +1.48% | +33.36, +10.42% |
+
+- **What the duties cost** (seed 7477, 100,000 fights, against the tuned defaults):
 
   | Change | Δ TPS (95% CI) | Δ DPS |
   | --- | --- | --- |
-  | Demoralizing Roar off | +22.76 (+22.48 to +23.03), +3.55% | +10.83 |
-  | Enrage in combat on | +23.84 (+23.64 to +24.03), +3.72% | +8.12 |
-  | Both | +44.63 (+44.35 to +44.91), +6.96% | +18.22 |
-  | Demoralizing Roar refreshed once it has run out (0 s) | +1.97 (+1.71 to +2.23) | +0.88 |
-  | Faerie Fire's upkeep off, the filler on | −5.25 (−5.52 to −4.97) | −1.57 |
-  | No Faerie Fire at all | −17.79 (−18.07 to −17.50) | +2.92 |
+  | Demoralizing Roar off | +25.78 (+25.45 to +26.11), +3.77% | +12.38 |
+  | Demoralizing Roar refreshed once it has run out (0 s) | +2.23 (+1.92 to +2.54), +0.33% | +1.19 |
+  | Demoralizing Roar refreshed from 2 s left | +1.74 (+1.45 to +2.04), +0.26% | +0.71 |
+  | Faerie Fire's upkeep off, the filler on | −5.82 (−6.15 to −5.49), −0.85% | −1.68 |
+  | No Faerie Fire at all | −12.66 (−13.00 to −12.33), −1.85% | +4.11 |
 
   With the bear's own roar off, the Buffs tab's Demoralizing Roar (the bear's preset, another
   druid's) takes its place from the pull, so that row measures the roar's rage and global cooldowns,
@@ -1417,7 +1471,7 @@ ranks.
 | Q12 | Savage Fury on Rake's bleed (10%) | Mask on the periodic mod [F] | Rake ticks with 0 vs 2 points |
 | Q13 | Furor re-entry formula and rounding; Energy on entering cat without Furor | Tooltip [F]; 0 without Furor [C] [wh-rot] (inferred) | Shift at known Energy, time the caster phase |
 | Q14 | Wolfshead +20 on Tiger's Fury stacks with King of the Jungle | Tooltip [F] | Press TF at 0 Energy with the helm |
-| Q15 | Threat: Maul/Swipe ×1.75, FF 108, Demo Roar 39 (Classic and Forever)? Mangle, Lacerate ("high threat") | [?] for all: Maul, Swipe, FF and Demo Roar come only from LibThreatClassic2 [ltc2] ([threat.md OQ 4](../mechanics/threat.md#open-questions)) | Threat-meter addon (ThreatClassic2-style) or `UnitDetailedThreatSituation` with a two-player test |
+| Q15 | Threat: Maul/Swipe ×1.75, FF 108, Demo Roar 39 (Classic and Forever)? Mangle, Lacerate ("high threat") | [?] for all: Maul, Swipe, FF and Demo Roar come only from LibThreatClassic2 [ltc2] ([threat.md OQ 4](../mechanics/threat.md#open-questions)). Lacerate's bonus, left at none, is a D24 effect estimate: each +50 threat per landed application adds about 1% to the default bear's TPS (+100: +2.1%, ×1.2: +1.8%). Leaving Lacerate out while warriors keep the boss bleeding wins on TPS only below about +40 (×1.1) with the default Maul from 20, and +200 (×1.6) with Maul from 10 (§6.3), so the default keeps it | Threat-meter addon (ThreatClassic2-style) or `UnitDetailedThreatSituation` with a two-player test |
 | Q16 | Lacerate: per-stack bleed and the "10% weapon damage per existing application" hit; does an application restart the ticks (the tick under way lost) or keep their timer? | Tooltip [F]; the SoD precedent is forbidden. The engine hits for 10% × the stacks already there and restarts the ticks, as a reapplied Rend does (§4.3) [?] | Apply 1→5 stacks on a mob; log hits and ticks, and the time from the fifth application to the next tick |
 | Q17 | Ranks available from the trainer: Mangle ranks 2–4, Ferocious Bite rank 5 (Classic: an AQ book) | [F] spellbook lists ranks | Trainer window at 36/48/56/60 |
 | Q18 | Combo points on the player or on the target | Forever uses modern CP costs [F] | Build CP, swap target, check |
@@ -1433,7 +1487,7 @@ ranks.
 | Q28 | Form attacks and items (secondary source only): does haste (MCP, Wind Blessed, T1 2-piece) speed form swings; do PPM procs use the form speed (1.0 / 2.5); is "+X Attack Power in Cat, Bear, and Dire Bear forms" added 1:1; is there no normalization; is MCP the right default weapon? | [?] (secondary [ws-forms] [ws-talents] [ws-presets] [ws-apl] [ws-shred]) | Swing timer with MCP active (addon or combat log); Crusader proc count in cat vs caster; character-sheet AP with and without a feral-AP item |
 | Q29 | Energy cap 100; builders refund 80% on miss/dodge/parry; finishers refund nothing and keep combo points | [?] (standard values; secondary [ws-energy] [ws-shred] [ws-rip] [ws-fb]) | Energy bar maximum; log Energy before and after a dodged Shred and a dodged Bite, and CP after a missed finisher |
 | Q30 | Druid base terms: the −20 AP offset and 0.9% base melee crit | [?] placeholders in use ([D24](../decisions.md#d24-small-assumptions-dont-gate-features-2026-09-23)); origin: [ws-base] and [rb-vanilla], which copy a private server's tables, not evidence. The AP offset is about 0.7% of cat DPS; the crit's plausible range, 0–1%, moves cat DPS by up to about 1.5%, over D24's 1%, so it's measured first. The conversions themselves (2 AP per Str, 20 Agi per 1% crit [F]; spirit regen 15 + Spirit/5 per 2 s [C]) come from [character-stats.md](../mechanics/character-stats.md) | Owned by character-stats ([OQ-3](../mechanics/character-stats.md#oq-3-base-melee-and-spell-crit), [OQ-7](../mechanics/character-stats.md#oq-7-base-attack-power-formulas)): check character-sheet AP and crit at two Str/Agi levels |
-| Q31 | Bear rotation thresholds: Maul every swing, Swipe with ≥ 60 spare Rage, Enrage pre-pull only | [?] (the only Classic write-up is Season of Mastery-labelled, not usable). The sim's search (§6.3 "Tuning the defaults"): Maul whenever its rage is there, no Swipe on one target, and no Lacerate while warriors keep the boss bleeding; in-combat Enrage stays off as a survival duty (D26) | Sim sensitivity plus guild tank feedback; threat-meter test once Q15 is answered |
+| Q31 | Bear rotation thresholds: Maul every swing, Swipe with ≥ 60 spare Rage, Enrage pre-pull only | [?] (the only Classic write-up is Season of Mastery-labelled, not usable). The sim's search (§6.3 "Tuning the defaults"): Maul from 20 rage (10 in fights under a minute), no Swipe on one target, Enrage in combat on cooldown, and Lacerate kept with a 6 s refresh | Sim sensitivity plus guild tank feedback; threat-meter test once Q15 is answered |
 | Q32 | Demoralizing Roar at 60: does the debuff apply the level-60 tooltip's −204 in combat? | Tooltip −204 [F] [client]: −193 − 1.4/level with `SpellLevels` 52–62, so `MaxLevel` doesn't cap it below 60 (the −193 read before was the unscaled base). In combat [?] | Owned by [buffs-debuffs-consumables OQ 19](../mechanics/buffs-debuffs-consumables.md#open-questions): read the debuff on a target at 60 |
 | Q33 | Cat and bear special-attack rolls: weapon-damage abilities one roll; Rake's initial hit, Ferocious Bite and Swipe two rolls? | The split is Classic Era [C] for warrior abilities ([combat-tables §3](../mechanics/combat-tables.md#3-special-yellow-attacks)); mapping the druid's non-weapon specials onto it is [?] | Owned by [combat-tables OQ 6](../mechanics/combat-tables.md#open-questions): crit rate per attempt vs per landed hit for Shred and Ferocious Bite from the front vs mobs three levels above you |
 | Q34 | Shapeshifting and the timers: does a shapeshift reset or keep the swing timer, and do Energy and mana regenerate on one shared 2 s tick? Does entering cat before ever leaving it in a fight keep a full bar under Furor? | The engine keeps the swing in progress and one power tick for both, running through shifts, and counts a full bar as the Energy last left in cat [?] (§2.4, §2.8) | Log swings and Energy and mana ticks with an addon around a powershift (Cat Form → Cat Form) and a cat → bear → cat shift |

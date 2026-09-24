@@ -1,11 +1,11 @@
 // The Feral bear's priority list and its settings (docs/classes/druid.md §6.3, §7.4).
 //
-// A tank's default keeps its duties first (decision D26): Demoralizing Roar and Faerie Fire on the
-// boss, and no Enrage in combat, whose armor loss is a survival cost. Within that, the settings are
-// the best found on TPS (decision D23; §6.3 "Tuning the defaults"). Each duty is a setting of its
-// own, so a rotation that drops them (Max TPS) is a matter of setting them.
+// A tank's default keeps its duties first (decision D26 as amended): Demoralizing Roar and Faerie
+// Fire on the boss, in full. Within that, the settings are the best found on TPS, with DPS beside it
+// (decision D23; §6.3 "Tuning the defaults"). Each duty is a setting of its own, so a rotation that
+// drops them (Max TPS) is a matter of setting them.
 //
-// Off the GCD: Berserk, Enrage (before the pull; in combat only when set), the racial cooldown
+// Off the GCD: Berserk, Enrage (before the pull, and in combat on cooldown), the racial cooldown
 // (Night Elf), on-use items, the Mighty Rage Potion and Juju Flurry when they're selected in Buffs,
 // and the Maul queue. On the GCD: Demoralizing Roar's and Faerie Fire's upkeep, Mangle, Lacerate's
 // stacks, Swipe with spare rage, and Faerie Fire as a filler. The sim has one target, so Swipe's
@@ -105,7 +105,7 @@ const ENRAGE_RAGE = (ENRAGE_RAGE_TENTHS + ENRAGE_TICKS * ENRAGE_TICK_TENTHS) / 1
 /**
  * Defaults from druid.md §6.3's table, in priority order. They keep the tank's duties (D26) and are
  * the best rotation found for the default setup within them (D23; §6.3 "Tuning the defaults",
- * measured on TPS with scripts/tune/rotation.mjs).
+ * measured on TPS and DPS with scripts/tune/rotation.mjs).
  */
 export const BEAR_OPTIONS: RotationOption[] = [
   {
@@ -129,8 +129,8 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.enrageInCombat,
     group: 'Cooldowns and buffs',
     label: 'Enrage in combat',
-    help: `Use Enrage on cooldown in the fight too: ${ENRAGE_RAGE} rage over 10 s, 5 more at once with Wolfshead Helm. Off by default: for those 10 s your armor from items is 16% lower, so you take more damage.`,
-    default: false,
+    help: `Use Enrage on cooldown in the fight too: ${ENRAGE_RAGE} rage over 10 s, 5 more at once with Wolfshead Helm. For those 10 s your armor from items is 16% lower, which costs the default bear under 0.2% more damage taken.`,
+    default: true,
   },
   rageOption(
     ID.enrageMaxRage,
@@ -200,7 +200,14 @@ export const BEAR_OPTIONS: RotationOption[] = [
     help: 'Queue Maul on your next swing: your weapon damage plus 128, 10% more with Savage Fury, for 10 rage with Ferocity 5/5, at 1.75 threat per damage. The swing it replaces gives no rage.',
     default: true,
   },
-  rageOption(ID.maulMinRage, 'Maul from', 'Queue it at or above this much rage. It costs 10 with Ferocity 5/5.', 10, ID.maulEnabled, 'Core abilities'),
+  rageOption(
+    ID.maulMinRage,
+    'Maul from',
+    'Queue it at or above this much rage. It costs 10 with Ferocity 5/5; from 20, rage stays for Mangle and Lacerate. In fights under a minute, 10 makes more threat.',
+    20,
+    ID.maulEnabled,
+    'Core abilities',
+  ),
   {
     kind: 'toggle',
     id: ID.mangleEnabled,
@@ -222,7 +229,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.lacerateAlone,
     group: 'Core abilities',
     label: 'Lacerate only when nothing else bleeds',
-    help: 'Leave Lacerate out while warriors in the raid (the Buffs tab) keep their Deep Wounds on the boss, which turns on Rend and Tear without it. Its rage then goes to Maul, which makes more threat only if Lacerate’s untested “high threat” is under about 200 more an application. Off by default: that threat is likely there.',
+    help: 'Leave Lacerate out while warriors in the raid (the Buffs tab) keep their Deep Wounds on the boss, which turns on Rend and Tear without it. Its rage then goes to Maul, which makes more threat only if Lacerate’s untested “high threat” adds under about 40 an application, and less damage. Off by default: that threat is likely there.',
     default: false,
     dependsOn: ID.lacerateEnabled,
   },
@@ -336,7 +343,7 @@ export function bearRotation(
   // --- Off the GCD (§6.3 rows 1–3) ------------------------------------------------------------------
   // Row 1: Berserk on cooldown, with the talent.
   if (talents.has('Berserk') && v.on(ID.berserk)) b.add(BERSERK, [])
-  // Row 2: Enrage before the pull (below), and in combat when set, at rage ≤ maxRage.
+  // Row 2: Enrage before the pull (below), and in combat on cooldown, at rage ≤ maxRage.
   const enrageDef = enrage(ctx.equipped.has(WOLFSHEAD_HELM))
   if (v.on(ID.enrageInCombat)) b.add(enrageDef, [maxRage(v.num(ID.enrageMaxRage))])
   // The racial cooldown (Elune's Light, §7.2) and on-use items on cooldown.
@@ -362,8 +369,8 @@ export function bearRotation(
   // Row 5: Mangle (the talent) whenever it's ready.
   if (talents.has('Mangle') && v.on(ID.mangleEnabled)) b.add(MANGLE, [])
   // Row 6: Lacerate while it has fewer than 5 stacks, or they have ≤ refreshBelowSec left and would
-  // run out before the fight does; with onlyWithoutOtherBleeds, not at all while others keep the
-  // boss bleeding (a raid with warriors: Rend and Tear applies without it).
+  // run out before the fight does; with onlyWithoutOtherBleeds (off by default), not at all while
+  // others keep the boss bleeding (a raid with warriors: Rend and Tear applies without it).
   if (v.on(ID.lacerateEnabled) && !lacerateWaits(v.on(ID.lacerateAlone), ctx)) {
     const lacerate = b.ability(LACERATE)
     b.add(LACERATE, [stacksBelow(lacerate, LACERATE_MAX_STACKS)])

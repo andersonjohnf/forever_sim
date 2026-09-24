@@ -503,17 +503,20 @@ describe('the default bear (druid.md §6.3)', () => {
     expect(runChunk(plan, 3, 50, reused)).toEqual(a)
   })
 
-  it('keeps its own Faerie Fire and Demoralizing Roar up nearly all fight', () => {
+  it('keeps its own Faerie Fire and Demoralizing Roar up all fight, but for their first casts and misses (D26: the duties in full)', () => {
     const { plan } = buildPlan(config())
     const sim = new Sim(plan)
     let ms = 0
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 100; i++) {
       sim.runFight(i)
       ms += sim.fightMs
     }
     const uptime = (id: string) => sim.auraUpMs[plan.auras.findIndex((a) => a.id === id)] / ms
-    expect(uptime('faerieFire')).toBeGreaterThan(0.95)
-    expect(uptime('demoralizingRoar')).toBeGreaterThan(0.9)
+    // The roar goes up with the first GCD, and a miss is recast in time from 3 s left: 99.86% over
+    // 100,000 fights (druid.md §6.3). Faerie Fire follows at 1.5 s, and a resisted one waits out
+    // its 6 s cooldown: 98.40%.
+    expect(uptime('demoralizingRoar')).toBeGreaterThanOrEqual(0.995)
+    expect(uptime('faerieFire')).toBeGreaterThanOrEqual(0.98)
     // Its settings name every duty.
     expect(Object.values(BEAR_IDS)).toEqual(expect.arrayContaining(['druid.bear.demoRoar.enabled', 'druid.bear.faerieFire.enabled', 'druid.bear.enrage.inCombat']))
   })

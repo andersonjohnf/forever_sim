@@ -227,10 +227,10 @@ describe('the bear’s Rotation settings (druid.md §6.3)', () => {
     for (const o of BEAR_OPTIONS) expect(o.id).toMatch(/^druid\.bear\.[a-zA-Z]+\.[a-zA-Z]+$/)
   })
 
-  it('keep the tank’s duties by default (D26): Demoralizing Roar and Faerie Fire kept up, no Enrage in combat', () => {
+  it('keep the tank’s duties by default (D26): Demoralizing Roar and Faerie Fire kept up; Enrage in combat isn’t one, and is on (tuned)', () => {
     expect(toggle(BEAR_IDS.roarEnabled).default).toBe(true)
     expect(toggle(BEAR_IDS.ffEnabled).default).toBe(true)
-    expect(toggle(BEAR_IDS.enrageInCombat).default).toBe(false)
+    expect(toggle(BEAR_IDS.enrageInCombat).default).toBe(true)
     expect(toggle(BEAR_IDS.roarEnabled).maintainsBuff).toBe('demoralizingRoar')
     expect(toggle(BEAR_IDS.ffEnabled).maintainsBuff).toBe('faerieFire')
   })
@@ -255,12 +255,12 @@ describe('the bear’s priority list (druid.md §6.3)', () => {
   }
 
   it('with the defaults: Berserk and Maul off the GCD, then the duties, Mangle, Lacerate and the Faerie Fire filler; no Swipe', () => {
-    const all = ['berserk', 'maul', 'demoralizingRoar', 'faerieFire', 'mangle', 'lacerate', 'lacerate', 'faerieFire']
+    const all = ['berserk', 'enrage', 'maul', 'demoralizingRoar', 'faerieFire', 'mangle', 'lacerate', 'lacerate', 'faerieFire']
     expect(lines().ids).toEqual(all)
     // A raid whose warriors keep the boss bleeding keeps Lacerate too (§6.3, BL1), unless it's set
     // to wait for no other bleeds.
     expect(lines({}, { othersBleed: true }).ids).toEqual(all)
-    expect(lines({ [BEAR_IDS.lacerateAlone]: true }, { othersBleed: true }).ids).toEqual(['berserk', 'maul', 'demoralizingRoar', 'faerieFire', 'mangle', 'faerieFire'])
+    expect(lines({ [BEAR_IDS.lacerateAlone]: true }, { othersBleed: true }).ids).toEqual(['berserk', 'enrage', 'maul', 'demoralizingRoar', 'faerieFire', 'mangle', 'faerieFire'])
     expect(lines({ [BEAR_IDS.lacerateAlone]: true }).ids).toEqual(all)
     // A Demoralizing Shout in the Buffs tab takes the roar's group: no roar.
     expect(lines({}, { buffGroups: new Set(['ap-reduction']) }).ids).not.toContain('demoralizingRoar')
@@ -268,12 +268,12 @@ describe('the bear’s priority list (druid.md §6.3)', () => {
     expect(lines({ [BEAR_IDS.swipeEnabled]: true }).ids.slice(-2)).toEqual(['swipe', 'faerieFire'])
   })
 
-  it('Enrage 1.5 s before the pull, and in combat only when set, up to the cap minus its 30 rage', () => {
+  it('Enrage 1.5 s before the pull, and in combat on cooldown, up to the cap minus its 30 rage', () => {
     const { r } = lines()
     expect(r.prepull.casts).toEqual([{ ability: r.abilities.findIndex((a) => a.id === 'enrage'), atMs: PREPULL_ENRAGE_MS }])
-    const inCombat = lines({ [BEAR_IDS.enrageInCombat]: true }).r
-    const line = inCombat.rotation.find((e) => inCombat.abilities[e.ability].id === 'enrage')!
+    const line = r.rotation.find((e) => r.abilities[e.ability].id === 'enrage')!
     expect(line.conditions).toEqual([{ code: COND.maxRage, a: 700, b: 0 }])
+    expect(lines({ [BEAR_IDS.enrageInCombat]: false }).ids).not.toContain('enrage')
     expect(lines({ [BEAR_IDS.enragePrepull]: false }).r.prepull.casts).toEqual([])
   })
 
@@ -299,6 +299,7 @@ describe('the bear’s priority list (druid.md §6.3)', () => {
       [BEAR_IDS.mangleEnabled]: false,
       [BEAR_IDS.lacerateEnabled]: false,
       [BEAR_IDS.swipeEnabled]: false,
+      [BEAR_IDS.enrageInCombat]: false,
     }).ids
     expect(off).toEqual([])
     // Without the talents, no Mangle and no Berserk.

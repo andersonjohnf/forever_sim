@@ -24,7 +24,8 @@
 //   node scripts/tune/rotation.mjs --spec druid-feral-cat --sweep ferociousBite.minComboPoints=3:5:1
 //   node scripts/tune/rotation.mjs --spec paladin-retribution --creature undead exorcism.minManaPct=40
 //   node scripts/tune/rotation.mjs --spec paladin-protection --metric tps consecration.minManaPct=50
-//   node scripts/tune/rotation.mjs --spec druid-feral-bear --metric tps --sweep maul.minRage=10:40:5
+//   node scripts/tune/rotation.mjs --spec druid-feral-bear --sweep maul.minRage=10:40:5
+//   node scripts/tune/rotation.mjs --spec druid-feral-bear --raid=-warrior lacerate.refreshBelowSec=3
 //
 // A setting is `id=value`. An id is either a full setting id of the spec, or one without the spec's
 // prefix, which the tool works out from the spec's own setting ids (`warrior.arms.` for Arms, so
@@ -52,6 +53,10 @@
 //   --creature <type>     target creature type (default none)
 //   --position <side>     behind or front (default: the spec's, behind for DPS)
 //   --profile <id>        the rules profile, forever or classicEra (default forever)
+//   --raid <classes>      the raid's classes (default: the spec's default raid): a comma-separated list
+//                         (warrior,druid,...), or changes to the default (-warrior drops the warriors,
+//                         +warlock adds one). Buffs nobody left in the raid brings are turned off, as the
+//                         Buffs tab does, and listed; the rest of the default buffs stay.
 //   --buffs-off <ids>     Buffs switches to turn off, comma-separated (e.g. thunderClap,demoralizingShout: nobody
 //                         else in the raid keeps them up); each must be on in the spec's default setup
 //   --metric dps|tps      what to compare (default: tps for a tank spec, dps otherwise)
@@ -86,6 +91,9 @@ export { Sim } from '@/sim/engine/sim'
 export { rotationOptions } from '@/sim/classes/rotation'
 export { normalizeConfig } from '@/sim/config/normalize'
 export { SPEC_IDS, SPEC_META } from '@/sim/specs'
+export { FULL_RAID } from '@/sim/defaults'
+export { BUFFS } from '@/sim/effects/buffs'
+export { buffProvided } from '@/sim/effects/presets'
 `
 
 /** What a baseline from another commit needs (`--against`): the modules every version has. */
@@ -312,6 +320,32 @@ function flagNumber(name, text, { min = -Infinity, max = Infinity, whole = false
   return n
 }
 
+/**
+ * The raid for --raid and the buffs that follow it: the default raid, or a comma-separated list of
+ * classes, or changes to the default (`-warrior`, `+warlock`). As the Buffs tab's class buttons do,
+ * a buff nobody left in the raid brings is turned off (listed in `dropped`); the other default
+ * buffs stay, so the setup is the default one but for the raid.
+ */
+function raidBuffs(engine, d, text) {
+  if (text === undefined) return { ...d.buffs, dropped: [] }
+  const parts = text.split(',').map((p) => p.trim()).filter(Boolean)
+  const changes = parts.every((p) => p.startsWith('-') || p.startsWith('+'))
+  if (!changes && parts.some((p) => p.startsWith('-') || p.startsWith('+'))) throw new Error(`--raid takes a list of classes or changes (-warrior,+warlock), not both: "${text}"`)
+  let raid = changes ? [...d.buffs.raid] : []
+  for (const p of parts) {
+    const cls = changes ? p.slice(1) : p
+    if (!engine.FULL_RAID.includes(cls)) throw new Error(`--raid: "${cls}" isn't a class (${engine.FULL_RAID.join(', ')})`)
+    if (!changes || p.startsWith('+')) raid = raid.includes(cls) ? raid : [...raid, cls]
+    else raid = raid.filter((c) => c !== cls)
+  }
+  // Someone left in the raid brings it, or you cast it on yourself (a druid's Mark of the Wild).
+  const brings = (id) => {
+    const buff = engine.BUFFS.find((b) => b.id === id)
+    return !buff || engine.buffProvided(buff, raid, d.spec)
+  }
+  return { raid, enabled: d.buffs.enabled.filter(brings), dropped: d.buffs.enabled.filter((id) => !brings(id)) }
+}
+
 const short = (id, prefix) => (id.startsWith(prefix) ? id.slice(prefix.length) : id)
 const label = (settings, prefix) => settings.map(([id, v]) => `${short(id, prefix)}=${v}`).join(', ')
 const fmt = (x, digits = 2) => (x >= 0 ? '+' : '') + x.toFixed(digits)
@@ -330,6 +364,7 @@ async function main() {
       creature: { type: 'string' },
       position: { type: 'string' },
       profile: { type: 'string' },
+      raid: { type: 'string' },
       'buffs-off': { type: 'string', default: '' },
       metric: { type: 'string' },
       base: { type: 'string', default: '' },
@@ -396,9 +431,11 @@ async function main() {
   if (args.position !== undefined) fight.position = args.position
   const rules = args.profile === undefined ? d.rules : { ...d.rules, profile: args.profile }
   // Raid composition, not the rotation (D23): the same Buffs for every config.
+  // The raid (--raid): its buffs follow it, as the Buffs tab's class buttons do; then --buffs-off.
+  const raid = raidBuffs(engine, d, args.raid)
   const buffsOff = args['buffs-off'] ? args['buffs-off'].split(',').map((b) => b.trim()) : []
   for (const b of buffsOff) if (!d.buffs.enabled.includes(b)) throw new Error(`--buffs-off: ${b} isn't on in ${specId}'s default setup (${d.buffs.enabled.join(', ')})`)
-  const buffs = { ...d.buffs, enabled: d.buffs.enabled.filter((b) => !buffsOff.includes(b)) }
+  const buffs = { raid: raid.raid, enabled: raid.enabled.filter((b) => !buffsOff.includes(b)) }
   const config = (settings) => ({
     ...d,
     buffs,
@@ -429,6 +466,7 @@ async function main() {
     `creature ${fight.creatureType}`,
     `${fight.position}`,
     `profile ${rules.profile}`,
+    ...(args.raid === undefined ? [] : [`raid ${raid.raid.join(',')}${raid.dropped.length ? ` (off: ${raid.dropped.join(', ')})` : ''}`]),
     ...(buffsOff.length ? [`Buffs off: ${buffsOff.join(', ')}`] : []),
     `seed ${seed}`,
     `${fights} fights per candidate, paired`,

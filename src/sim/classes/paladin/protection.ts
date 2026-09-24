@@ -333,7 +333,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     kind: 'choice',
     id: ID.priority,
     label: 'Priority',
-    help: 'Tank duties first keeps your Devotion Aura up, for its 735 armor. Max TPS runs Retribution Aura instead: the boss takes 30 Holy damage each time it hits you, for about 5% more TPS and 6% more damage taken in the default setup. Pick it when threat is short and your healers can take the damage, or when another paladin in your group keeps Devotion Aura up. It turns Devotion Aura off by default, here and in the Buffs tab.',
+    help: 'Tank duties first keeps your Devotion Aura up, +735 armor, so you take less damage. Max TPS runs Retribution Aura instead for threat, 30 Holy damage to the boss each time it hits you: about 5% more TPS and 6% more damage taken in the default setup. Pick it when another paladin in your group keeps Devotion Aura up, or the raid covers your survival. The Buffs tab’s Devotion Aura stays off unless you turn it on there for another paladin’s.',
     choices: [
       { value: PROTECTION_PRIORITY.duties, label: 'Tank duties first' },
       { value: PROTECTION_PRIORITY.maxTps, label: 'Max TPS' },
@@ -355,7 +355,7 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     id: ID.holyShield,
     group: 'Cooldowns and buffs',
     label: 'Holy Shield',
-    help: 'Keep Holy Shield up: +20% block chance for 10 s or 4 blocks, and each block deals 221 Holy damage plus 8% of your spell damage, with 20% more threat. Needs the talent and a shield. 240 mana.',
+    help: 'Keep Holy Shield up: +20% block chance for 10 s or 4 blocks, and each block deals 221 Holy damage plus 8% of your spell damage, with 20% more threat. It stays on with Max TPS: it makes about a quarter of your threat. Needs the talent and a shield. 240 mana.',
     default: true,
     requires: { talent: 'Holy Shield', shield: true },
   },

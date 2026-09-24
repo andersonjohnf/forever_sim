@@ -243,17 +243,17 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
     **Consumables**, in that order. Under each heading the settings keep the spec's priority
     order (warrior.md §5.2–§5.4). The spec gives each setting its heading
-    (`RotationOption.group`). The few settings that shape the rest (Arms' stance, Protection's
+    (`RotationOption.group`). The few settings that shape the rest (Arms' stance, a tank's
     priority) have no heading and come first. A heading holds at least two settings: a spec
     with only one for a phase files it under another heading, its help naming the phase
     (Protection's Execute, under Core abilities).
   - **A tank's priority** ([D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
     a choice at the top, **Tank duties first** (the default) or **Max TPS**. Its help names the
-    duties Max TPS drops (Shield Block, Thunder Clap and Demoralizing Shout for a warrior), why
-    the default keeps them (you take less damage), what Max TPS gains and costs in the default
-    setup, when to pick it, and that the Buffs tab's
-    Thunder Clap and Demoralizing Shout stay off unless you turn them on there for another
-    player's (Buffs, above). Choosing it moves only
+    duties Max TPS drops (Shield Block, Thunder Clap and Demoralizing Shout for a warrior; Devotion
+    Aura, for Retribution Aura, for a paladin), why the default keeps them (you take less damage),
+    what Max TPS gains and costs in the default setup, when to pick it, and that the Buffs tab's
+    versions (Thunder Clap and Demoralizing Shout; Devotion Aura) stay off unless you turn them on
+    there for another player's (Buffs, above). Choosing it moves only
     defaults, like Arms' stance below: the dropped switches show off and unmarked, each one's
     help says "Off by default with Max TPS", and a value you set yourself stays set.
   - A setting that depends on another under the same heading sits under it, indented on a

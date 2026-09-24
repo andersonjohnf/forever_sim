@@ -793,14 +793,15 @@ the Rotation tab opens with a Priority choice (`priority`), as Warrior Protectio
   it) and costs Retribution Aura's threat, 20.0 TPS (4.7%) and 10.3 DPS (4.5%). **Tank duties
   first**, the default, keeps it up all fight (`devotionAura.enabled`), and the Buffs tab's
   Devotion Aura is then yours: the switch shows it on, and it counts once.
-- **Its timing is D26's fixed rule, never tuned** (user decision, D26's amendment): the duties
-  come first in the priority, before any threat ability on the global cooldown; a duty with a
-  cooldown is used when it's ready; and a buff or debuff is refreshed as soon as a miss could still
-  be retried before it falls off, from its own cooldown, or from one global cooldown if it has
-  none. For the paladin that's one line: Devotion Aura is cast first, 4.5 s before the pull,
-  before Righteous Fury (3 s) and the seal (1.5 s), so it's up from the pull. It has no cooldown,
-  can't miss, and lasts until you cancel it, so it never needs a refresh. The search tunes only
-  the threat abilities around it.
+- **Its timing is D26's fixed rule, never tuned** (user decision, D26's "How it applies"): the
+  duties come first in the priority, before any threat ability on the global cooldown; a duty that
+  isn't a debuff on the boss is used when it's ready; and a debuff, with or without a cooldown, is
+  refreshed as soon as a missed cast could still be tried again before it falls off, from its own
+  cooldown, or from one global cooldown if it has none. For the paladin that's one line: Devotion
+  Aura, a buff with no cooldown, is ready before the pull, so it's cast first, 4.5 s before it,
+  ahead of Righteous Fury (3 s) and the seal (1.5 s), and it's up from the pull. It can't miss and
+  lasts until you cancel it, so it never needs a refresh. The search tunes only the threat
+  abilities around it.
 - **Max TPS** drops it for Retribution Aura, 30 Holy damage to the boss on each of its swings
   that lands, ×1.9 threat. The Buffs tab's Devotion Aura is then off by default, and says so:
   "You're not keeping it up (see Rotation); turn this on if another paladin does." It's the

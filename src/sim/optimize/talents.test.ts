@@ -124,6 +124,18 @@ describe('talentSpace', () => {
     expect(new Set(harmful.builds.map((b) => rank(b.code, 'Toughness')))).toEqual(new Set([0, 5]))
   })
 
+  it('never forces an objective talent whose screened effect is below zero: builds with and without it race (O1-5)', () => {
+    // Deflection's screen mean below zero (it's objective: its interval reaches zero). With room
+    // for it, a build without it isn't dropped as dominated, and leftover points don't go to it.
+    const base = { data: warrior, roles: roles(['Cruelty', 'Deflection']) }
+    const positive = talentSpace({ ...base, values: new Map([[id('Cruelty'), 2], [id('Deflection'), 0.1]]) })
+    expect(new Set(positive.builds.map((b) => rank(b.code, 'Deflection')))).toEqual(new Set([5]))
+    const negative = talentSpace({ ...base, values: new Map([[id('Cruelty'), 2], [id('Deflection'), -0.1]]) })
+    expect(new Set(negative.builds.map((b) => rank(b.code, 'Deflection')))).toEqual(new Set([0, 5]))
+    expect(negative.fillOrder).not.toContain(id('Deflection'))
+    expectLegal(negative.builds.map((b) => b.code))
+  })
+
   it('rejects contradictory constraints', () => {
     expect(() => talentSpace({ data: warrior, roles: roles(['Cruelty']), keep: { [id('Cruelty')]: 5 }, exclude: [id('Cruelty')] })).toThrow(/both kept and excluded/)
     expect(() => talentSpace({ data: warrior, roles: roles(['Cruelty']), minPoints: { Arms: 31, Fury: 31 } })).toThrow(/more than 51/)

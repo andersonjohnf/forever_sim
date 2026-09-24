@@ -24,6 +24,8 @@
 //   core leaves over (they'd otherwise go to partial ranks and fillers), the build that takes it
 //   scores at least as well, since no objective talent lowers the score, so only that one is kept.
 //   A harmful talent that's a dimension (for a constraint) is never a raise: it lowers the score.
+//   Nor is an objective one whose screened effect is below zero, though not clearly (Feral
+//   Swiftness for a bear): both builds race.
 //   The trees are enumerated one at a time and combined by their points, since the tree rules
 //   never reach across trees: only the 51-point total does.
 // Every build is checked with the app's own validator (validateTalentBuild) and encoded with its
@@ -64,7 +66,8 @@ export interface TalentSpaceOptions extends TalentConstraints {
   preferTree?: string
   /**
    * Score per point of each objective talent, by id (the screen's measured effect ÷ its ranks): the
-   * order leftover points go to partial ranks. A talent missing from it comes after those in it.
+   * order leftover points go to partial ranks. A talent missing from it comes after those in it; one
+   * below zero never takes leftover points nor counts as a raise.
    */
   values?: ReadonlyMap<string, number>
   /**
@@ -113,6 +116,31 @@ interface Node {
 }
 
 const DEFAULT_LIMIT = 200_000
+
+/**
+ * The ways a build breaks the talent constraints, in words (none: it keeps them): a kept talent at
+ * another rank, an excluded one taken, a tree below its minimum. Every build `talentSpace` makes
+ * keeps them; the setup's own build (the baseline) may not.
+ */
+export function brokenConstraints(data: TalentData, code: string, constraints: TalentConstraints): string[] {
+  let ranks: TalentRanksById = {}
+  try {
+    ranks = decodeTalentCode(data, code)
+  } catch {
+    /* an unreadable build has no talents */
+  }
+  const byId = new Map(talentsInCodeOrder(data).flat().map((t) => [t.id, t]))
+  const out: string[] = []
+  for (const [id, rank] of Object.entries(constraints.keep ?? {}))
+    if ((ranks[id] ?? 0) !== rank) out.push(`${byId.get(id)?.name ?? id} ${ranks[id] ?? 0}/${rank}`)
+  for (const id of constraints.exclude ?? []) if ((ranks[id] ?? 0) > 0) out.push(`${byId.get(id)?.name ?? id} taken`)
+  for (const [tree, min] of Object.entries(constraints.minPoints ?? {})) {
+    const t = data.trees.find((x) => x.id === tree || x.name === tree)
+    const points = t ? t.talents.reduce((n, x) => n + (ranks[x.id] ?? 0), 0) : 0
+    if (points < min) out.push(`${t?.name ?? tree} ${points}/${min} points`)
+  }
+  return out
+}
 
 /** Every sensible build under the constraints, in a fixed order: the same inputs give the same list. */
 export function talentSpace(options: TalentSpaceOptions): TalentSpace {
@@ -170,8 +198,13 @@ export function talentSpace(options: TalentSpaceOptions): TalentSpace {
   const dims = nodes
     .map((_, i) => i)
     .filter((i) => (nodes[i].role === 'objective' || options.constrained?.has(nodes[i].t.id)) && !keep.has(i) && !excluded.has(i))
-  /** A dimension more points in which never lower the score: every one but a harmful one. */
-  const raisable = (i: number) => nodes[i].role !== 'harmful'
+  /**
+   * A dimension more points in which shouldn't lower the score: not a harmful one, nor an objective
+   * one whose screened effect is below zero (not harmful only because its interval reaches zero).
+   * Maximality never forces one that isn't, and leftover points never go to it: builds with and
+   * without it both race.
+   */
+  const raisable = (i: number) => nodes[i].role !== 'harmful' && !((options.values?.get(nodes[i].t.id) ?? 0) < 0)
   const isDim = new Uint8Array(count)
   for (const i of dims) isDim[i] = 1
 

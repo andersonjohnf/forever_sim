@@ -461,9 +461,7 @@ export function matchSupplies(
     next = { ...next, quiver: { itemId: twin?.id ?? preferred } }
   }
   return next
-
 }
-
 
 /**
  * The spec's pre-raid BiS gear for a character of this race: each slot takes its best-ranked item

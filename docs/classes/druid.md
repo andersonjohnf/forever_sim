@@ -1104,7 +1104,7 @@ arrives, a cooldown or debuff runs out):
 | `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** (duty; off with Max TPS), 1.5 s | 10 rage; the refresh is one global cooldown, by the duty rule. The Buffs tab's Demoralizing Roar adds nothing more, and is off by default when it's off; a Demoralizing Shout there takes its place, so the roar isn't used (§4.5). No preset has a warrior's Shout for the bear |
 | `maul.enabled`, `maul.minRage` | **on**, 20 | Tuned (below): from 20, rage stays for Mangle and Lacerate |
 | `mangle.enabled` | **on** | Needs the talent |
-| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 12 s (Max TPS too) | Kept with the raid's warriors: with its +261 threat an application [?], leaving it out costs 15% of TPS and 16% of DPS; refresh from 12 s since T3 ([T3's re-check](#t3s-re-check-of-the-defaults)) |
+| `lacerate.enabled`, `lacerate.onlyWithoutOtherBleeds`, `lacerate.refreshBelowSec` | **on**, **off**, 12 s (Max TPS too) | Kept with the raid's warriors: with its +261 threat an application [?], leaving it out costs about 12% of TPS and 14% of DPS; refresh from 12 s since T3 ([T3's re-check](#t3s-re-check-of-the-defaults)) |
 | `swipe.enabled`, `swipe.minRage` | **off**, 60 | Tuned (below); 60 is the [?] rule of thumb, see §6.1, Q31 |
 | `faerieFire.filler` | **on** | Keeps Faerie Fire up too |
 | `ragePotion.enabled`, `ragePotion.maxRage` | **on**, 25 | The cap minus 75; needs the potion selected in Buffs |

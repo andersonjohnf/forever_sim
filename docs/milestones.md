@@ -293,9 +293,12 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
       (Nightfin Soup, Wizard Oil), its own Judgement of the Crusader (the opener) and the JotC
       rule, Seal of Fury's seal value, Holy Strike's tooltip damage, Hammer of the Righteous,
       Naglering's thorns; interim measured gear, talents and Consecration (810.8 TPS, 434.2 DPS),
-      which the optimizer's results replace (O4). Awaiting its review
-- [ ] **T3 Bear:** Lacerate's threat bonus, Idol of Brutality, Thorns on the tank, Thick Hide's
-      armor; its talents and gear then come from the optimizer (O4)
+      which the optimizer's results replace (O4)
+- [x] **T3 Bear:** Lacerate's threat bonus, Idol of Brutality, Thorns on the tank, Thick Hide's
+      armor; its talents and gear then come from the optimizer (O4). A quick fix ahead of the
+      optimizer: the four fixes, threat.md's wording table, Classic
+      Era Sunder at 261 (T1's), and interim 9/42/0 talents and threat gear with an effective-health
+      floor ([druid.md §7.1, §7.3a](classes/druid.md#73a-interim-gear-m56-t3))
 - [ ] **T4 Warrior:** its talent build and preset come from the optimizer (O4)
 - [ ] **T5 Balanced rotation (D28)** for all three tanks, the new default; Defensive and Max TPS
       stay selectable
@@ -328,31 +331,6 @@ sets. Each spec's defaults are then its results.
       and cancel, the top results with their TPS and DPS and one-tap apply) at 390 and 1280 px
 - [ ] **O4 Defaults from the optimizer:** every spec's talents, gear and rotation, confirmed on a
       fresh seed, tanks after M5.6's threat fixes
-
-## M5.6: Tanks, reviewed against the guild (D28, D29) 🚧
-
-The officers' review of v1 found the Protection paladin and the bear far behind the warrior:
-survival presets, known effects modelled as zero, and tank abilities treated differently for the
-same threat wording. The adversarial reviews (2026-09-24) are in `.cache/probes/tank-review-*`
-until each slice logs its own review. The guild's benchmark (D29): a paladin and a bear at about
-800–900 TPS, a warrior no more than about 50% ahead.
-- [ ] **T1 Shared:** threat.md's wording table (D29); Classic Era Sunder back to 261; the
-      armor-only data-integrity test and the random-suffix bases it finds; like-for-like tank
-      presets built for threat (the gear review)
-- [ ] **T2 Protection paladin:** its documented enchants and consumables
-      (Nightfin Soup, Wizard Oil), another paladin's Judgement of the Crusader and the JotC
-      rule, Seal of Fury's seal value, Holy Strike's tooltip damage, Hammer of the Righteous; its
-      talents and gear then come from the optimizer (O4)
-- [ ] **T3 Bear:** Lacerate's threat bonus, Idol of Brutality, Thorns on the tank, Thick Hide's
-      armor; its talents and gear then come from the optimizer (O4). Built on its branch as a quick
-      fix ahead of the optimizer, awaiting review: the four fixes, threat.md's wording table, Classic
-      Era Sunder at 261 (T1's), and interim 9/42/0 talents and threat gear with an effective-health
-      floor ([druid.md §7.1, §7.3a](classes/druid.md#73a-interim-gear-m56-t3))
-- [ ] **T4 Warrior:** its talent build and preset come from the optimizer (O4)
-- [ ] **T5 Balanced rotation (D28)** for all three tanks, the new default; Defensive and Max TPS
-      stay selectable
-- [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,
-      Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken
 
 ## M6: Multi-target 💤
 

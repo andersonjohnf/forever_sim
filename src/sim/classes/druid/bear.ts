@@ -201,7 +201,7 @@ export const BEAR_OPTIONS: RotationOption[] = [
     id: ID.items,
     group: 'Cooldowns and buffs',
     label: 'On-use items',
-    help: 'Use Weakness Analyzer and Earthstrike on cooldown if you wear them. Other on-use items, such as armor and health trinkets, aren’t simulated.',
+    help: 'Use the Manual Crowd Pummeler (+50% attack speed for 30 s, 3 charges), Weakness Analyzer and Earthstrike on cooldown if you wear them. Other on-use items, such as armor and health trinkets, aren’t simulated.',
     default: true,
   },
   {

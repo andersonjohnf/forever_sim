@@ -202,7 +202,7 @@ own ([threat.md's wording table](threat.md#threat-wording-table): no threat word
 on itself before the pull (it lasts 10 min), so it's in every bear preset and Self only
 (`selfCast`); any other tank has it from a druid in the raid, turned on in Buffs. Only a tank takes
 the boss's swings, so for any other spec it does nothing, and the Buffs tab says so. About 10 TPS
-for a bear (+1.0%), 9.5 for a warrior (+1.0%) and 7.3 for a Protection paladin (+1.7%; seed 424242, 20,000 fights).
+for a bear (+1.0%), 9.5 for a warrior (+1.0%) and 9.1 for a Protection paladin (+1.1%, on its T2 defaults; seed 424242, 20,000 fights).
 
 ### 1.3 Camp buffs (new Forever system)
 

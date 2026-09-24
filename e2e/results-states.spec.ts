@@ -110,8 +110,12 @@ test.describe('run states', () => {
   test('a run whose worker stops answering ends after a minute, and says to run it again', async ({ page }) => {
     // A worker that never answers, and a clock the test moves (docs/architecture.md#iterations-determinism-and-workers).
     await page.route('**/assets/sim.worker*.js', (route) => route.fulfill({ contentType: 'text/javascript', body: 'self.onmessage = () => {}' }))
-    await page.clock.install()
+    // Paused before the run, so only runFor moves it: real time spent between the worker starting
+    // and runFor (a second or more under load) doesn't count toward the minute.
+    const start = new Date('2026-01-01T00:00:00Z').getTime()
+    await page.clock.install({ time: start })
     await page.goto('./')
+    await page.clock.pauseAt(start + 3_600_000)
     await results(page).getByRole('button', { name: 'Simulate' }).click()
     await expect(results(page).getByRole('button', { name: 'Cancel' })).toBeVisible()
     await page.clock.runFor(59_000)
@@ -139,6 +143,7 @@ test.describe('run states', () => {
     await expect(alert).toContainText('The simulation failed')
     await expect(alert).toContainText('The simulation couldn’t start. Reload the page, then run it again.')
     await expect(alert).not.toContainText('reset this spec')
+    await expect(alert.getByRole('button', { name: 'Reload page' })).toBeVisible()
     // No worker is started again until a run asks for one.
     const afterFailure = loads
     await page.waitForTimeout(1_000)
@@ -148,6 +153,67 @@ test.describe('run states', () => {
     await simulate(panel)
     await expect(alert).toHaveCount(0)
     await expect(panel.getByRole('group', { name: 'DPS' })).toContainText(/\d+\.\d/)
+  })
+
+  test('a worker the site no longer serves (a 404 page): reload offered, and after two failed starts runs go on the page (AR-7, AR-10)', async ({ page, pageProblems }) => {
+    // As after a deploy: the old page asks for a worker script that's gone, and gets the 404 page.
+    let loads = 0
+    await page.route('**/assets/sim.worker*.js', (route) => {
+      loads++
+      return route.fulfill({ status: 404, contentType: 'text/html', body: '<!doctype html><title>Not found</title><h1>404</h1>' })
+    })
+    await page.goto('./')
+    const panel = results(page)
+    const alert = panel.getByRole('alert')
+    const run = () => panel.getByRole('button', { name: /^(Simulate|Run again)$/ }).click()
+    await run()
+    await expect(alert).toContainText('The simulation couldn’t start. Reload the page, then run it again.')
+    const reload = alert.getByRole('button', { name: 'Reload page' })
+    await expect(reload).toBeVisible()
+    expect((await reload.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+
+    // A second failed start, then the third run goes on the page itself: a result, and no worker asked for.
+    await run()
+    await expect(alert).toContainText('couldn’t start')
+    const loaded = loads
+    await run()
+    await expect(panel.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 60_000 })
+    await expect(alert).toHaveCount(0)
+    await expect(panel.getByRole('group', { name: 'DPS' })).toContainText(/\d+\.\d/)
+    expect(loads).toBe(loaded)
+
+    // The 404s are what this test serves; nothing else may fail.
+    const others = pageProblems.filter((p) => !/^HTTP 404 .*\/assets\/sim\.worker/.test(p))
+    pageProblems.splice(0, pageProblems.length, ...others)
+  })
+
+  test('Reload page reloads, with the setup kept', async ({ page }) => {
+    await page.route('**/assets/sim.worker*.js', (route) => route.fulfill({ contentType: 'text/javascript', body: 'throw new Error("no worker")' }))
+    await page.goto('./')
+    await page.getByRole('tab', { name: 'Character', exact: true }).click()
+    await page.getByRole('radio', { name: /Orc/ }).click()
+    const panel = results(page)
+    await panel.getByRole('button', { name: 'Simulate' }).click()
+    const alert = panel.getByRole('alert')
+    await Promise.all([page.waitForEvent('load'), alert.getByRole('button', { name: 'Reload page' }).click()])
+    await expect(alert).toHaveCount(0)
+    await expect(page.getByRole('radio', { name: /Orc/ })).toBeChecked()
+  })
+
+  test('a worker that started and then failed says the simulation stopped, not that it couldn’t start (AR-1)', async ({ page }) => {
+    // A runtime error in a worker that loaded fine: reloading wouldn't help, so no Reload button.
+    await page.route('**/assets/sim.worker*.js', async (route) => {
+      const response = await route.fetch()
+      const body = `${await response.text()}\n;self.addEventListener('message', (e) => { if (e.data.type === 'plan') throw new Error('engine bug') })`
+      return route.fulfill({ response, body })
+    })
+    await page.goto('./')
+    const panel = results(page)
+    await panel.getByRole('button', { name: 'Simulate' }).click()
+    const alert = panel.getByRole('alert')
+    await expect(alert).toContainText('The simulation stopped unexpectedly.')
+    await expect(alert).toContainText('Try again.')
+    await expect(alert.getByRole('button', { name: 'Reload page' })).toHaveCount(0)
   })
 
   test('says how many fights of what length, and how long the run took', async ({ page }) => {
@@ -273,6 +339,19 @@ test.describe('on a phone', () => {
     await expect(sheet.getByRole('alert')).toContainText('a Skyborne warrior can’t be simulated')
     // A setup the engine refuses says what to change; retrying wouldn't help.
     await expect(sheet.getByRole('alert')).not.toContainText('Try again')
+  })
+
+  test('workers that couldn’t start: the bar says Failed, and the sheet offers Reload page (AR-8)', async ({ page }) => {
+    await page.route('**/assets/sim.worker*.js', (route) => route.fulfill({ contentType: 'text/javascript', body: 'throw new Error("no worker")' }))
+    await page.goto('./')
+    await page.getByRole('button', { name: 'Simulate', exact: true }).click()
+    const bar = page.getByRole('button', { name: 'Show results' })
+    await expect(bar).toContainText('Failed')
+    await expect(status(page)).toContainText('The simulation couldn’t start.')
+    await bar.click()
+    const reload = page.getByRole('dialog', { name: 'Results' }).getByRole('alert').getByRole('button', { name: 'Reload page' })
+    await expect(reload).toBeVisible()
+    expect((await reload.boundingBox())!.height).toBeGreaterThanOrEqual(44)
   })
 
   test('a failed re-run shows in the bar too, and the sheet keeps the last result', async ({ page }) => {

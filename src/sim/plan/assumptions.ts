@@ -175,7 +175,7 @@ const REGISTRY = {
   },
   eureka: {
     // src/sim/classes/eureka.ts; the plan names the class's cut and its resource ({detail}).
-    text: 'Eureka! spends a charge on each of the next 3 abilities it modifies (the client’s spell masks) as you pay for it, landed or not, and cuts its cost by {detail}, rounded down to whole points; their damage and their DoTs’ get +10%. Untested.',
+    text: 'Eureka! spends a charge on each of the next 3 abilities it modifies (the client’s spell masks) as you pay for it, landed or not, and cuts its cost by {detail}, rounded down to whole points; those its damage masks cover deal 10% more, their DoTs too. Untested.',
     docRef: `${STATS}#racials-that-matter-to-the-sim`,
   },
   touchOfTheGrave: {

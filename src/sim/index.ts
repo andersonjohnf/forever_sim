@@ -52,8 +52,9 @@ export {
   normalizeAplOrder,
   storedAplOrder,
 } from './classes/apl'
-// The boss → player table's constants, for the results to explain it (docs/mechanics/combat-tables.md#8-boss--player-tanks).
+// What a run that stopped answering says, so the results can tell it from a setup's own refusal.
 export { WORKER_HANG_MESSAGE } from './run/pool'
+// The boss → player table's constants, for the results to explain it (docs/mechanics/combat-tables.md#8-boss--player-tanks).
 export { CRUSH_MIN_LEVEL_GAP, DEFENSE_PER_POINT, mobSkill, PLAYER_LEVEL } from './core/attack-table'
 
 /**

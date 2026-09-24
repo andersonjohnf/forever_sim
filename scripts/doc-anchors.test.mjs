@@ -69,19 +69,23 @@ describe("doc citations", () => {
 });
 
 describe("the docs' own anchored links", () => {
-  it("are found relative, within the doc and in angle brackets, but not in code or off-site", () => {
+  it("are found relative, within the doc, in angle brackets and in reference definitions, but not in code or off-site; a malformed escape is kept", () => {
     const md = [
       "See [client](client.md#what-it-did) and [seals](#seals), [up](../ux.md#layout \"Layout\").",
       "[odd](<rage.md#forever->) `[not](x.md#code)` [web](https://example.com/a.md#x)",
       "```",
       "[fenced](y.md#z)",
       "```",
+      "[client]: ../data/client.md#doc-claims",
+      "[bad](#50%zz)",
     ].join("\n");
     expect(docLinks(md).map((l) => `${l.line} ${l.file}#${l.anchor}`)).toEqual([
       "1 client.md#what-it-did",
       "1 #seals",
       "1 ../ux.md#layout",
       "2 rage.md#forever-",
+      "6 ../data/client.md#doc-claims",
+      "7 #50%zz",
     ]);
   });
 

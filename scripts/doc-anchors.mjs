@@ -150,7 +150,8 @@ export function brokenCitations(root, sourceDirs, { sourcePattern = /\.(ts|tsx|m
 /**
  * The links in a Markdown doc's text that carry an anchor: relative ones to another doc
  * ("](client.md#what-it-needs)") and ones within the doc ("](#seals)"), outside code blocks and
- * inline code. External links (a scheme or "//") never match. A same-doc link has `file: ""`.
+ * inline code, and reference definitions ("[x]: client.md#a"). External links (a scheme or "//") and
+ * root-absolute ones ("/docs/x.md#a", none today) never match. A same-doc link has `file: ""`.
  */
 export function docLinks(markdown) {
   const out = [];
@@ -164,11 +165,22 @@ export function docLinks(markdown) {
     }
     if (fence) return;
     const prose = line.replace(/`[^`]*`/g, "");
-    for (const m of prose.matchAll(/\]\(<?((?:[\w.-]+\/)*[\w.-]+\.md)?#([^)\s>]+)>?(?:\s+"[^"]*")?\)/g)) {
-      out.push({ file: m[1] ?? "", anchor: decodeURIComponent(m[2]), line: i + 1 });
-    }
+    const push = (file, anchor) => out.push({ file: file ?? "", anchor: decoded(anchor), line: i + 1 });
+    for (const m of prose.matchAll(/\]\(<?((?:[\w.-]+\/)*[\w.-]+\.md)?#([^)\s>]+)>?(?:\s+"[^"]*")?\)/g)) push(m[1], m[2]);
+    // A reference definition: "[client]: ../data/client.md#doc-claims".
+    const ref = /^\s{0,3}\[[^\]]+\]:\s*<?((?:[\w.-]+\/)*[\w.-]+\.md)?#([^\s>]+)>?/.exec(prose);
+    if (ref) push(ref[1], ref[2]);
   });
   return out;
+}
+
+/** An anchor as written, decoded; a malformed escape stays as written, so it's reported rather than thrown. */
+function decoded(anchor) {
+  try {
+    return decodeURIComponent(anchor);
+  } catch {
+    return anchor;
+  }
 }
 
 /** The anchored links between (and within) the docs under `root`/docs that open at no heading of their target. */

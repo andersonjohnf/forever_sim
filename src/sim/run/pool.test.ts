@@ -103,7 +103,10 @@ describe('WorkerPool watchdog', () => {
     expect(FakeWorker.all[1].terminated).toBe(false)
   })
 
-  it('doesn’t count time the page was frozen: a 65 s suspension mid-chunk doesn’t fail it', async () => {
+  // A frozen page's overdue timers all fire on waking, which fake timers can't reproduce: this pins the
+  // counting (a 65 s gap between beats counts at most 2 s); the review's SIGSTOP probe covers the rest
+  // (docs/reviews/2026-09-24-infra.md, OR-1).
+  it('counts a 65 s gap between beats as at most 2 s of silence', async () => {
     const pool = new WorkerPool(1, { now })
     const outcome = settle(pool.executor(plan).run(0, 250))
     await vi.advanceTimersByTimeAsync(30_000)

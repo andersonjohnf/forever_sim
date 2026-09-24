@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Announcer } from '@/app/announcer'
+import { DecadesCredit } from '@/app/decades-credit'
 import { Header } from '@/app/header'
 import { useScrollFade } from '@/app/scroll-fade'
 import { useSetup, type Section } from '@/app/setup-store'
@@ -143,8 +144,10 @@ export default function App() {
               <Content />
             </TabsContent>
           ))}
-          <footer className="mt-12 border-t pt-6">
+          {/* The game data's credit, then the guild's (docs/ux.md#brand): one line, or two on a phone. */}
+          <footer className="mt-12 flex flex-wrap items-center gap-x-8 border-t pt-6">
             <DataAttribution />
+            <DecadesCredit />
           </footer>
         </Tabs>
         <aside className="hidden lg:block" aria-label="Results">

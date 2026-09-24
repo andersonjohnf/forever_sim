@@ -451,6 +451,37 @@ test.describe('brand', () => {
           }
         })
 
+        test('the footer pairs the game data’s credit with the guild’s, which links to decades.gg', async ({ page }) => {
+          await stubDecades(page)
+          await page.goto('./')
+          const footer = page.locator('footer')
+          await footer.scrollIntoViewIfNeeded()
+          await expect(footer).toContainText('Game data from')
+          await expect(footer).toContainText('An app by')
+          const wago = footer.getByRole('link', { name: /^wago\.tools/ })
+          const link = footer.getByRole('link', { name: 'Decades (opens in a new tab)' })
+          await expectTouchTargets(link)
+
+          // A pair: the same lead-in styling, the marks as tall and centred alike, the guild's to the
+          // right of wago.tools' on a wide screen and under it on a phone, each on one line.
+          const [w, d] = [(await wago.boundingBox())!, (await link.boundingBox())!]
+          const [wImg, dMark] = [(await wago.locator('img').filter({ visible: true }).boundingBox())!, (await link.locator('svg').boundingBox())!]
+          expect(dMark.height).toBe(wImg.height)
+          if (phone) expect(d.y).toBeGreaterThanOrEqual(w.y + w.height)
+          else {
+            expect(d.x).toBeGreaterThan(w.x + w.width)
+            expect(d.y + d.height / 2).toBeCloseTo(w.y + w.height / 2, 0)
+          }
+          const leadIns = footer.getByText(/^(Game data from|An app by)$/)
+          const styles = await leadIns.evaluateAll((els) => els.map((el) => { const c = getComputedStyle(el); return `${c.fontSize} ${c.color}` }))
+          expect(styles[0]).toBe(styles[1])
+          expect(await contrast(footer.getByText('An app by', { exact: true }))).toBeGreaterThanOrEqual(4.5)
+          expect(await contrast(link.locator('span').first())).toBeGreaterThanOrEqual(4.5)
+          expect(await contrast(link.locator('svg g.fill-brand-gold'), 'svg')).toBeGreaterThanOrEqual(3)
+          expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width)
+          await expectSafeDecadesLink(page, link)
+        })
+
         test('About ends with the guild’s section, its logo for the theme, and a link to decades.gg', async ({ page }) => {
           await stubDecades(page)
           await page.goto('./')

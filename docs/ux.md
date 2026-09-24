@@ -67,6 +67,10 @@ ends with **Made by Decades** ([Brand](#brand)) and the line that neither Foreve
 is affiliated with or endorsed by Blizzard Entertainment. Every link in the sheet opens in a new
 tab, so the sheet stays open, with `rel="noopener"` and "(opens in a new tab)" for screen readers.
 
+**Footer:** "Game data from" the wago.tools logo (decision D16, its logo exactly as its branding
+guidelines supply it), then "An app by" the Decades mark ([Brand](#brand)): side by side on a wide
+screen, one under the other on a phone.
+
 **Section tabs** are 44 px tall. When they scroll sideways, a fade marks each edge with more
 tabs past it (none at an end), and the chosen tab scrolls into view clear of the fades, as does
 a tab that arrow keys move focus to. Arrow keys move between tabs and Enter or Space opens one
@@ -666,13 +670,18 @@ the sim (principle 1).
   - **About's last section, "Made by Decades":** under a gold hairline, its heading in the guild's
     lettering in gold, the guild's full logo, one line of the guild's own positioning ("a gaming
     community since 2005. Community first: we invest in our players."), and **Visit decades.gg**.
+  - **The footer's credit,** "An app by" and the Decades mark, beside wago.tools' credit and
+    paired with it: the same muted 12 px lead-in, then a 44 px link holding a 24 px mark, as tall
+    as wago.tools' logo (`DecadesCredit` in `src/app/decades-credit.tsx`). The guild's full logo
+    stacks its wordmark under the crest and can't be read at 24 px, so the mark is the crest with
+    "Decades" beside it in the guild's lettering (14 px, the text colour), as the header has it.
   - **The dark theme's surfaces** lean toward the guild's ink navy (hue 285, a little chroma) at the
     stock lightness, so every contrast measured on them holds (within 0.03:1).
   - Not the favicon: the sim keeps its own mark there, since the crest's detail is lost at 16 px.
 - **Links** to the guild's site open in a new tab, with `rel="noopener"`, and say so to screen
   readers ("opens in a new tab"). The header's is named "Decades: decades.gg, opens in a new tab",
   which holds its visible word (WCAG 2.5.3), and its tooltip says "decades.gg (opens in a new
-  tab)" for sighted users with a mouse.
+  tab)" for sighted users with a mouse. The footer's is named "Decades (opens in a new tab)".
 - **Assets:** the crest is the guild's own path data, unchanged (`src/components/decades-crest.tsx`):
   its blades take the text colour and its hourglass `--brand-gold`, so one drawing serves both
   themes. The full logo is two files in `public/brand/`: the guild's own, white and gold, for dark
@@ -688,7 +697,8 @@ the sim (principle 1).
 
   The guild's own gold, #c4a75e, is 2.3:1 on white, so light surfaces never take it, as text or as
   a graphic. The lockup's "Decades" is muted text (4.7:1 light, 7.7:1 dark), and on hover the text
-  colour on the hover fill (18:1 light, 17:1 dark).
+  colour on the hover fill (18:1 light, 17:1 dark). The footer's lead-in is muted text too (4.7:1,
+  7.7:1) and its "Decades" the text colour (20:1, 19:1).
 - **What the brand may say** follows the guild's own rules (its site's content guide): the game is
   World of Warcraft: Forever, never renamed. About's first mention of it gives the full name (its
   description line, which the page's meta description shares); after that, "WoW Forever" is the

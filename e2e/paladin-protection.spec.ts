@@ -111,6 +111,22 @@ test.describe('Protection paladin', () => {
     await expect(page.getByRole('dialog').getByText('Covers Warriors: Fury, Arms and Protection · Druids: Feral (Cat), Feral (Bear) and Balance · Paladins: Retribution and Protection · Shamans: Enhancement and Elemental · Rogues: Combat, Assassination and Subtlety · Mages: Fire, Frost and Arcane · Warlocks: Destruction, Affliction and Demonology · Priests: Shadow · Hunters: Marksmanship, Beast\u00a0Mastery and Survival.', { exact: true })).toBeVisible()
   })
 
+  test('its Gear tab starts as the measured threat set, not a guide’s pre-raid list, and puts it back (T3R-7)', async ({ page }) => {
+    await switchToProtection(page)
+    const gear = await openTab(page, 'Gear')
+    await expect(gear.getByText('Starts as the Protection Paladin threat set: pre-raid items measured for threat, keeping an effective-health floor. Choose a slot to change its item.', { exact: true })).toBeVisible()
+    await expect(gear.getByText(/best in slot/)).toHaveCount(0)
+    await gear.getByRole('button', { name: 'Gear options' }).click()
+    await page.getByRole('menuitem', { name: 'Remove all gear' }).click()
+    await gear.getByRole('button', { name: 'Gear options' }).click()
+    await page.getByRole('menuitem', { name: 'Equip the threat set' }).click()
+    await expect(gear.getByText('Lionheart Helm')).toBeVisible()
+    // A DPS spec's still starts as its pre-raid best in slot.
+    await page.getByRole('button', { name: /^Spec: Protection Paladin/ }).click()
+    await page.getByRole('group', { name: 'Paladin' }).getByRole('menuitem', { name: /Retribution/ }).click()
+    await expect(gear.getByText('Starts as Retribution Paladin pre-raid best in slot. Choose a slot to change its item.', { exact: true })).toBeVisible()
+  })
+
   test('its Rotation tab under tank duties and under Max TPS', async ({ page }) => {
     await switchToProtection(page)
     await expectBothPriorities(await openTab(page, 'Rotation'))

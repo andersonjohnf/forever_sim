@@ -11,7 +11,7 @@ import { ClassicEraNote } from '@/features/character/classic-era-note'
 import { SectionHeader } from '@/features/section'
 import { itemsById } from '@/lib/items'
 import { cn } from '@/lib/utils'
-import { defaultConfig, isTwoHand, matchSupplies, uniqueConflicts, type GearSlot, type SimConfig } from '@/sim'
+import { defaultConfig, hasThreatSet, isTwoHand, matchSupplies, uniqueConflicts, type GearSlot, type SimConfig } from '@/sim'
 import { EnchantPicker } from './enchant-picker'
 import { enchantsFor } from './enchants'
 import { ItemPicker } from './item-picker'
@@ -69,11 +69,16 @@ export function GearSection() {
   const twoHanded = mainHand ? isTwoHand(mainHand) : false
   const ranged = config.gear.ranged ? itemsById.get(config.gear.ranged.itemId) : undefined
 
+  // A tank's default is the sim's measured threat set, not a guide's pre-raid list, and the tab says
+  // so (docs/ux.md "Gear").
+  const threatSet = hasThreatSet(config.spec)
+  const defaultSet = threatSet ? `the ${meta.name} ${meta.className} threat set` : `${meta.name} ${meta.className} pre-raid best in slot`
+
   // No visible notice for these: the slots change in front of you. Screen readers hear them
   // (src/app/announce.ts).
   const loadBis = () => {
     update((c) => ({ ...c, gear: defaultConfig(c.spec, c.race).gear }))
-    announce(`Equipped ${meta.name} ${meta.className} pre-raid best in slot.`)
+    announce(`Equipped ${defaultSet}.`)
   }
   const clearAll = () => {
     update((c) => ({ ...c, gear: {} }))
@@ -84,7 +89,11 @@ export function GearSection() {
     <div className="flex flex-col gap-6">
       <SectionHeader
         title="Gear"
-        description={`Starts as ${meta.name} ${meta.className} pre-raid best in slot. Choose a slot to change its item.`}
+        description={
+          threatSet
+            ? `Starts as ${defaultSet}: pre-raid items measured for threat, keeping an effective-health floor. Choose a slot to change its item.`
+            : `Starts as ${defaultSet}. Choose a slot to change its item.`
+        }
         action={
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -94,7 +103,7 @@ export function GearSection() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem className="min-h-11" onSelect={loadBis}>
-                Equip pre-raid best in slot
+                {threatSet ? 'Equip the threat set' : 'Equip pre-raid best in slot'}
               </DropdownMenuItem>
               <DropdownMenuItem className="min-h-11" onSelect={clearAll}>
                 Remove all gear

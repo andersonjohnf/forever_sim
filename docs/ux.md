@@ -137,6 +137,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     closes. **Clear** disables itself, so it moves focus to the preset menu (now "Custom build")
     first.
 - **Gear.**
+  - The tab says what the gear starts as: a DPS spec's pre-raid best in slot ("Starts as Fury Warrior
+    pre-raid best in slot"), or for a tank, whose default is the sim's measured threat set rather
+    than a guide's list (D29, D30), "Starts as the Protection Paladin threat set: pre-raid items
+    measured for threat, keeping an effective-health floor". The options menu's first item puts it
+    back: "Equip pre-raid best in slot", or "Equip the threat set" for a tank.
   - Slots in paper-doll order. Each row shows the item icon, its name in its quality color,
     a one-line summary of its key stats, and an enchant chip. Empty slots have their own
     state. The columns are `minmax(0, 1fr)`, so a long name or enchant truncates rather than
@@ -888,7 +893,7 @@ to the menu's button when it closes. Saving and the list come first, then **Expo
 - Toasts are read out as they come (a polite live region), and Alt+T reaches them from the
   keyboard; see Notices under [Persistence and sharing](#persistence-and-sharing).
 - **A change with no notice is still announced** (WCAG 4.1.3), through a polite live region in
-  the app shell (`announce()` in `src/app/announce.ts`): Equip pre-raid best in slot, Remove all
+  the app shell (`announce()` in `src/app/announce.ts`): Equip pre-raid best in slot (or the threat set), Remove all
   gear, a talent preset, a pasted build and Clear (with the points in each tree), Reset rotation,
   and renaming a save. Radix hides the page from screen readers while a sheet is open, but leaves
   live regions alone, so it's heard from a sheet too.

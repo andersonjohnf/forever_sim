@@ -421,6 +421,12 @@ const INTERIM_GEAR: Partial<Record<SpecId, Partial<Record<GearSlot, readonly num
   },
 }
 
+/**
+ * Whether the spec's default gear is its measured threat set (`INTERIM_GEAR`) rather than a guide's
+ * pre-raid list: the Gear tab says which (docs/ux.md "Gear").
+ */
+export const hasThreatSet = (spec: SpecId): boolean => INTERIM_GEAR[spec] !== undefined
+
 const itemById = new Map(items.map((i) => [i.id, i]))
 
 /**

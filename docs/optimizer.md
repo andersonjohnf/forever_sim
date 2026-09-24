@@ -8,7 +8,7 @@ keeps, how the talent space is built, and how a spec's defaults come from its re
 
 **Status (O1, 2026-09-24):** the search core, the talent space, rotation settings as candidates,
 constraints with effective health and crit and crush immunity, and the command line
-(`npm run optimize`), with the review's and the verification's fixes
+(`npm run optimize`), with the review's and both verifications' fixes
 ([review log](reviews/2026-09-24-optimizer-o1.md)); the setup is only ever the baseline, never an
 answer (user decision); Anticipation is the warrior's and paladin's preferred filler rather than
 a floor talent (user decision, D30). Gear is O2, the
@@ -63,7 +63,9 @@ budget:
 current default, unless the caller changed it): it runs every round, so every candidate's change is
 paired with it fight for fight, and `balanced` and relative limits are measured against it, but
 it's never an answer. The setup can still win, as a regular candidate: a copy of it races like any
-other when it meets every constraint, and leads if it's the best. When it breaks one (a search that excludes a talent the default takes, or
+other when it meets every constraint, and leads if it's the best. That copy is the baseline's own
+plan on the same seed, so it takes the baseline's fights rather than running them again
+([racing](#racing)). When it breaks one (a search that excludes a talent the default takes, or
 keeps one it lacks), it's only the baseline, and the CLI says which it breaks.
 
 **No setup meets these constraints.** If every candidate breaks a constraint, or every one is
@@ -72,7 +74,12 @@ clearly outside a result constraint in the race, there's no answer: the report's
 closest one's value ("crit immune: no candidate reaches the defense it needs on this gear; the
 closest has 330 defense, leaving the boss 4.40% crit", the paladin's default gear); sheet
 constraints each met but never together say so; a result constraint gives how many candidates were
-clearly outside it. The baseline still runs its first round, so the report has its numbers.
+clearly outside it, the ties merged into each counted too. When no legal build fits the talent
+constraints at all (the space is empty), it says so and lists them together: the survival floor,
+the kept and excluded talents and the trees' minimums ("no legal 51-point build fits the talent
+constraints together: the survival floor (Heart of the Wild 5, Thick Hide 3, Feral Swiftness 2);
+kept talents (Moonkin Form 1); at least 31 points in Feral Combat"). The baseline still runs its
+first round, so the report has its numbers.
 
 The same inputs and seed give the same result, on any number of threads.
 
@@ -134,16 +141,23 @@ rely on.
 1. Every survivor runs the same fights up to the round's count: the first round's (see
    [budgets](#budgets)), then twice as many each round. The baseline runs every round beside
    them, so every candidate's change from it is paired on the same fights; it's never a survivor,
-   and never leads, drops another or is dropped.
+   and never leads, drops another or is dropped. The setup's copy (`copies`: the baseline's own
+   plan, racing as a candidate) runs no fights: it takes the baseline's, which are the fights it
+   would have run, so it costs the budget nothing and stays paired with every candidate.
 2. **First round only:** candidates with the same DPS and TPS on every fight are one candidate.
    The one with the least damage taken represents them (D30: what the sim can't value in the
    score is a tie-break), then the earlier one; the others are listed as its ties.
 3. **Constraints on results** drop a survivor whose interval of a constrained metric (Student's t,
    0.5% a side) lies wholly outside its limit ([constraints](#constraints)): the true best is
-   dropped by bad luck at most 0.5% a round a limit. If that drops every survivor, the race ends
-   with no answer (`none`).
+   dropped by bad luck at most 0.5% a round a limit; the ties merged into it count as outside with
+   it (`outside`). If that drops every survivor, the race ends with no answer (`none`).
 4. The **leader** is the survivor with the best mean score whose means meet every limit. While
-   none does, there's no leader and no survivor is dropped as worse.
+   none does, there's no leader and no survivor is dropped as worse. A leader whose mean meets a
+   limit may still be over it, so until its constrained metrics' 95% intervals (Student's t) lie
+   inside every limit, it drops no one as worse and the race can't end separated: it runs on until
+   they do, or until the budget ends it (the verification's toy: a leader truly at 507 damage taken
+   a second against a limit of 505 used to drop a feasible candidate at 495 as worse after one
+   round, in 5 of 30 seeds, and answer with itself).
 5. A survivor whose paired interval against the leader lies wholly below zero at the
    **elimination bar** is dropped. The leader is the best of many noisy means, so it's usually one
    that got lucky (the **winner's curse**): with thousands of survivors, the luckiest is several
@@ -172,7 +186,7 @@ rely on.
    the survivors the leader isn't clear of at 95% (`unseparated`: a survivor the elimination bar
    kept but the leader is clear of isn't one), and the closest of them with its paired interval
    behind the leader (`closest`). A budget ending with no survivor whose means meet every limit has
-   no answer.
+   no answer; one whose leader meets a limit by its means alone says so (`leaderInsideLimits`).
 
 Everything is decided at a round's end over whole arrays, and each job's samples go to fixed
 positions, so neither the number of lanes nor the order jobs finish in changes anything.
@@ -389,12 +403,20 @@ rotation.mjs's `id=value` form (`scripts/tune/lib.mjs`), each variant on top of 
   the default, which takes it). The baseline stays the setup itself, so `balanced` is always
   relative to it.
 - **Rotation only** (`--search rotation`): the variants with the setup's talents. No talent is
-  searched, so there are no talent constraints; sheet and result constraints still hold.
+  searched, so there are no talent constraints; sheet and result constraints still hold. The CLI
+  refuses the talent flags with it (`--keep`, `--exclude`, `--min-tree`, `--no-floor`,
+  `--partials`) rather than drop them: search talents too (`--search both` or `--turns`) to use
+  them.
+
+In turns, the CLI prints each pass's header (`=== pass 2: rotation ===`) before its space and
+rounds.
 
 ## Budgets
 
 A budget is the race's fights, all candidates' together, the baseline's included. The screen's
-fights come on top (20,000–27,000 for the four specs in the table above).
+fights come on top (20,000–27,000 for the four specs in the table above). The setup's copy costs
+nothing: it takes the baseline's fights ([racing](#racing)), where it used to run the same ones
+again (a third of a rotation search with one variant).
 
 | Budget | Fights | 15 threads, ~80,000 fights a second | A browser's 8 workers, ~40,000 |
 | --- | --- | --- | --- |
@@ -473,7 +495,8 @@ its numbers are the line under the table. The CLI also says what the setup itsel
 only the baseline), how many candidates each kind of constraint left out, and, when there's no
 answer, "no setup meets these constraints" with `blocked`'s reasons. When the preferred filler
 chose the answer, its row says "the answer (preferred for Anticipation)", a line under the result
-says why, and the line after compares the answer, not the leader, with the default.
+says why, and the line after compares the answer, not the leader, with the default. With no leader,
+the standings have no comparison with one (`vsLeader` is left out of the JSON).
 
 ## Limits of the method
 
@@ -493,8 +516,13 @@ says why, and the line after compares the answer, not the leader, with the defau
   fights would be merged; with 50 or more three-minute fights that's an effect far below anything
   the race could separate.
 - **Maximality is one talent at a time** (above): swaps are left to the race.
-- **A result constraint is judged by its mean** when choosing the leader; a leader near its limit
-  may be over it on another seed.
+- **A result constraint is judged by its mean** when choosing the leader, but a leader drops no
+  one as worse, and the race doesn't end separated, until its constrained metrics' 95% intervals
+  lie inside the limits ([racing](#racing)). So a feasible candidate isn't lost to a leader that's
+  over a limit on the same seed. When the budget ends the race first, the leader may meet a limit
+  by its means alone, and the CLI says so; a relative limit also moves with the baseline's own mean
+  (a limit of exactly 100% on the setup's copy is never inside at 95%, so such a race runs to its
+  budget). A leader inside a limit on this seed may still be near it on another.
 - **The preferred filler reads a dropped candidate's interval over its own fights.** A candidate
   dropped in the first round was compared with the leader over 50 to 1,000 fights, so "within 0.5%"
   rests on that mean; the CLI prints the interval beside it, and `--confirm` checks the answer on a
@@ -533,10 +561,17 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
   Anticipation 5/5 reach 330 defense at best (the boss's crit 4.40%), so no candidate races and the
   report says crit immunity blocks it (OV-2).
 - **The setup wins as a candidate.** The bear with one rotation variant, Maul held for 90 rage:
-  its own rotation leads, as the copy of the setup, 0 ± 0 against the baseline it's identical to.
+  its own rotation leads, as the copy of the setup, 0 ± 0 against the baseline it's identical to,
+  and it runs no fights of its own (OV2-5).
 - **The preferred filler.** A balanced leader scoring 204 with Anticipation 0: a candidate with
   Anticipation 5 that's 0.9 ± 0.2 points behind (clearly behind, but within 0.5%, 1.02 points) is
   the answer over one with Anticipation 2 inside the leader's interval (0.3 ± 0.5); one 1.1 ± 0.05
   behind isn't. On 1,000 DPS the tolerance is 5 DPS (`prefer.test.ts`). In the space, Shield Slam's
   31 points in Protection leave 20, and Anticipation takes 5 of them before Toughness, whether the
   screen calls it harmful, survival or no effect (`talents.test.ts`).
+- **A leader over its limit.** A limit of 505 damage taken a second; the best DPS takes 507, the
+  next 1,050 DPS at 495. In 30 seeds the answer is the feasible one every time, and the one over the
+  limit is only ever dropped as outside it (OV2-1; before the fix it answered with itself in 5).
+- **Nothing fits the talent constraints.** The bear keeping Moonkin Form: no legal 51-point build
+  holds it, the floor and 31 points in Feral Combat together, and the report lists all three
+  (OV2-3).

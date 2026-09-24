@@ -341,7 +341,9 @@ sets. Each spec's defaults are then its results.
       points in its tree by default, and budgets that fit a large space. After its verification:
       the setup is only ever the baseline, never an answer; every candidate meets every
       constraint, or the search says which block (user decision, simpler design); the bear's
-      floor gains Feral Swiftness 2/2 (user decision)
+      floor gains Feral Swiftness 2/2 (user decision). After its second verification: a leader
+      over a result limit drops no one, empty spaces and blocked searches say why, and the setup's
+      copy costs no fights
 - [ ] **O2 Gear:** per-slot candidates from the pool (item level range, sources, faction, class,
       locked slots), enchants, unique-equipped, two-hand vs dual wield, set bonuses, hit caps;
       coordinate ascent with restarts; talents, gear and rotation alternated until stable

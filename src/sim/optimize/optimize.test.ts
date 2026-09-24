@@ -11,7 +11,8 @@ import { CRIT_IMMUNE, CRUSH_IMMUNE, defaultConstraints, effectiveHealth, formatC
 import { describeBuildChange } from './describe'
 import { type FightRunner, localFightRunner } from './fights'
 import { SURVIVAL_FLOOR } from './floor'
-import { applyCandidate, confirm, firstRound, fitBudget, isSetup, MIN_FIRST_ROUND, optimize, optimizeInTurns, setupCandidate } from './optimize'
+import { applyCandidate, confirm, firstRound, fitBudget, isSetup, MIN_FIRST_ROUND, optimize, optimizeInTurns, setupCandidate, whyNoneInRace } from './optimize'
+import type { RaceResult } from './race'
 import { screenTalents } from './screen'
 import { brokenConstraints } from './talents'
 
@@ -220,6 +221,74 @@ describe('optimize', () => {
     expect(report.answer).toBeNull()
     expect(report.excluded.sheet).toBeGreaterThan(1000)
   }, 120_000)
+
+  it('with no legal build fitting the talent constraints, it says so and lists them together (OV2-3)', async () => {
+    // Moonkin Form kept, beside the bear's floor and 31 in Feral Combat: no 51-point build fits.
+    const report = await optimize({ config: bear, talents: { screenFights: 10, keep: { 'Moonkin Form': 1 } }, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner() })
+    expect(report.space!.builds).toBe(0)
+    expect(report.answer).toBeNull()
+    expect(report.blocked).toEqual([
+      'talents: no legal 51-point build fits the talent constraints together: the survival floor (Heart of the Wild 5, Thick Hide 3, Feral Swiftness 2); kept talents (Moonkin Form 1); at least 31 points in Feral Combat',
+    ])
+  }, 60_000)
+
+  it('a search that keeps its build names the talent constraints the build breaks (OV2-8)', async () => {
+    // A rotation pass holds the talents without searching them: the default takes Ferocity.
+    const report = await optimize({
+      config: bear,
+      talents: { fixedBuild: true, exclude: ['Ferocity'] },
+      rotations: [{ [MAUL]: 90 }],
+      budget: { fights: 4_000, initialFights: 2 },
+      runner: localFightRunner(),
+    })
+    expect(report.candidates).toEqual([setupCandidate(bear)])
+    expect(report.blocked).toEqual(["talents: no candidate keeps the talent constraints (the survival floor, kept and excluded talents, the trees' minimums): Ferocity taken"])
+  }, 60_000)
+
+  it('names sheet constraints each met but never together (OV2-8)', async () => {
+    // The warrior's builds differ in armor (Toughness): at least the most and at most the least can't both hold.
+    const warrior = fixed(defaultConfig('warrior-protection'))
+    const talents = { screenFights: 10 }
+    const probe = await optimize({ config: warrior, talents, budget: { fights: 4_000, initialFights: 2 }, runner: localFightRunner(), top: 1 })
+    const armor = probe.candidates.slice(1).map((c) => buildPlan(applyCandidate(warrior, c)).sheet.armor)
+    expect(Math.max(...armor)).toBeGreaterThan(Math.min(...armor))
+    const report = await optimize({
+      config: warrior,
+      talents,
+      constraints: [
+        { on: 'sheet', stat: 'armor', min: Math.max(...armor) },
+        { on: 'sheet', stat: 'armor', max: Math.min(...armor) },
+      ],
+      budget: { fights: 4_000, initialFights: 2 },
+      runner: localFightRunner(),
+    })
+    expect(report.answer).toBeNull()
+    expect(report.blocked).toEqual([`no candidate meets armor>=${Math.max(...armor)} and armor<=${Math.min(...armor)} together, though each alone is met`])
+  }, 120_000)
+
+  it('names a result constraint every candidate was clearly outside, counting each one (OV2-8)', async () => {
+    // Half the default's damage taken: no bear rotation gets near it.
+    const report = await optimize({
+      config: bear,
+      rotations: [{ [MAUL]: 90 }],
+      constraints: [{ on: 'result', metric: 'taken', max: 0.5, relative: true }],
+      budget: { fights: 4_000, initialFights: 50 },
+      runner: localFightRunner(),
+    })
+    expect(report.race.status).toBe('none')
+    expect(report.answer).toBeNull()
+    expect(report.blocked).toEqual(['taken<=50%: 2 of 2 candidates were clearly outside it in the race'])
+  }, 60_000)
+
+  it('says when the budget ran out before any candidate’s means met a result constraint (OV2-8)', () => {
+    const rules = [{ on: 'result', metric: 'taken', max: 505 } as const]
+    const race = { status: 'budget', outside: [0] } as unknown as RaceResult
+    expect(whyNoneInRace(rules, race, 2)).toEqual(["the budget ran out before any candidate's means met taken<=505"])
+    expect(whyNoneInRace(rules, { ...race, outside: [1] }, 2)).toEqual([
+      'taken<=505: 1 of 2 candidates were clearly outside it in the race',
+      "the budget ran out before any candidate's means met taken<=505",
+    ])
+  })
 
   it('answers with the leader, or a level candidate with more of the preferred filler (D30)', async () => {
     const warrior = fixed(defaultConfig('warrior-protection'))

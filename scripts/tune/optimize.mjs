@@ -22,7 +22,7 @@
 // What to search:
 //   --search talents      talents (the default); the setup's rotation
 //   --search rotation     rotation settings only (--sweep and --rotation give the variants); the setup's
-//                         talents, with no talent constraints
+//                         talents, with no talent constraints (the talent flags below are refused with it)
 //   --search both        every build with every rotation variant, and with the setup's own rotation
 //   --turns               talents, then the rotation variants with the winning build, then talents again,
 //                         until a pass keeps its start (docs/optimizer.md#talents-and-rotation-together).
@@ -247,6 +247,11 @@ async function main() {
   }
   const rotations = variants.map((v) => Object.fromEntries(v))
   const searchTalents = args.turns || args.search !== 'rotation'
+  // A rotation-only search keeps the setup's talents with no talent constraints: say so, rather than drop the flags (OV2-2).
+  if (!searchTalents) {
+    const given = ['keep', 'exclude', 'min-tree'].filter((f) => args[f].length > 0).concat(['no-floor', 'partials'].filter((f) => args[f]))
+    if (given.length) throw new Error(`--search rotation keeps the setup's talents, with no talent constraints: drop ${given.map((f) => `--${f}`).join(', ')}, or search talents too (--search both or --turns)`)
+  }
   if ((args.turns || args.search !== 'talents') && rotations.length === 0) throw new Error('Searching the rotation needs variants: --sweep or --rotation')
 
   const treeOf = (name) => {
@@ -344,6 +349,8 @@ async function main() {
   const runner = threadRunner(engine, bundle, threads)
   const started = performance.now()
   let lastRound = -1
+  // In turns, a pass's header prints on its first progress event, before its space and rounds (OV2-6).
+  let pendingPass = args.turns ? 0 : null
   const talents = searchTalents ? { ...(Object.keys(minPoints).length ? { minPoints } : {}), keep, exclude, floor: !args['no-floor'], searchPartials: args.partials, screenFights: flagNumber('screen-fights', args['screen-fights'], { min: 10, whole: true }) } : undefined
   const common = {
     config,
@@ -353,6 +360,10 @@ async function main() {
     runner,
     top,
     onProgress: (p) => {
+      if (pendingPass !== null) {
+        console.log(`\n=== pass ${pendingPass + 1}: ${pendingPass % 2 === 0 ? 'talents' : 'rotation'} ===`)
+        pendingPass = null
+      }
       if (p.phase === 'space') {
         describeSpace(p)
         console.log(`candidates: ${count(p.candidates)}, each paired with the baseline; first round ${count(p.budget.initialFights)} fights each${p.budget.fights !== budget.fights ? `, budget ${count(p.budget.fights)} fights` : ''}`)
@@ -378,8 +389,8 @@ async function main() {
   }
   function report(r, pass) {
     lastRound = -1
-    if (pass !== undefined) console.log(`\n=== pass ${pass + 1}: ${pass % 2 === 0 ? 'talents' : 'rotation'} ===`)
     printStandings(r)
+    if (pass !== undefined) pendingPass = pass + 1
   }
   function describeSpace(r) {
     if (r.screen) {
@@ -454,6 +465,10 @@ async function main() {
         : `result: the budget ran out after ${race.rounds.length} rounds with ${count(race.unseparated.length)} candidates the leader isn't clear of at 95%` +
             (race.closest ? `; the closest (\`${r.candidates[race.closest.candidate].talents}\`: ${describe(race.closest.candidate)}) is ${ci(race.closest.vsLeader)}${unit} behind (95% CI)` : ''),
     )
+    if (!race.leaderInsideLimits)
+      console.log(
+        `note: the leader meets ${r.constraints.filter((c) => c.on === 'result').map(engine.formatConstraint).join(' and ')} by its means alone: the budget ended before its 95% intervals were inside the limits`,
+      )
     // The preferred filler (D30): a candidate level with the leader that has more of it answers instead.
     const p = r.preferred
     if (p) {

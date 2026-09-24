@@ -407,6 +407,8 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   const resultRules = constraints.filter((c): c is ResultConstraint => c.on === 'result')
   const raced = await race({
     sources,
+    // The setup's copy is the baseline's own plan: it takes the baseline's samples (OV2-5).
+    copies: candidates.flatMap((c, i) => (i > 0 && isSetup(config, c) ? [i] : [])),
     runner,
     objective,
     budget: planned.fights,
@@ -444,7 +446,7 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
   if (answer === null)
     blocked =
       valid.length === 0
-        ? whyNoneBefore({ pool, talentFails, keepsTalents, sheets, reference, sheetRules })
+        ? whyNoneBefore({ pool, talentFails, keepsTalents, sheets, reference, sheetRules, space, talentRules: talentRules?.constraints, data })
         : whyNoneInRace(resultRules, result, valid.length)
   return {
     spec,
@@ -474,20 +476,50 @@ export async function optimize(options: OptimizeOptions): Promise<OptimizeReport
 const show = (x: number) => (Math.abs(x) < 100 ? x.toFixed(2) : Math.round(x).toLocaleString('en-US'))
 
 /**
- * Why no candidate reached the race, a line a blocking constraint: the talent constraints when no
- * candidate keeps them; else each sheet constraint no candidate that keeps them meets, with the
- * closest one's value; else the sheet constraints no candidate meets together.
+ * The talent constraints in words, for a search whose space is empty: the survival floor, the kept
+ * talents beyond it, the excluded ones and the trees' minimums.
  */
-function whyNoneBefore(from: {
+function describeTalentRules(data: TalentData, rules: TalentConstraints, floor: Record<string, number>): string {
+  const name = (id: string) =>
+    talentsInCodeOrder(data)
+      .flat()
+      .find((t) => t.id === id)?.name ?? id
+  const ranked = (entries: [string, number][]) => entries.map(([id, rank]) => `${name(id)} ${rank}`).join(', ')
+  const kept = Object.entries(rules.keep ?? {}).filter(([id, rank]) => floor[id] !== rank)
+  const parts = [
+    ...(Object.keys(floor).length ? [`the survival floor (${ranked(Object.entries(floor))})`] : []),
+    ...(kept.length ? [`kept talents (${ranked(kept)})`] : []),
+    ...(rules.exclude?.length ? [`excluded talents (${rules.exclude.map(name).join(', ')})`] : []),
+    ...Object.entries(rules.minPoints ?? {})
+      .filter(([, points]) => points > 0)
+      .map(([tree, points]) => `at least ${points} points in ${data.trees.find((t) => t.id === tree)?.name ?? tree}`),
+  ]
+  return parts.join('; ')
+}
+
+/**
+ * Why no candidate reached the race, a line a blocking constraint: the talent constraints together
+ * when no legal build fits them all (the space is empty); the ones the start's build breaks when no
+ * candidate keeps them otherwise (a search that keeps its build); else each sheet constraint no
+ * candidate that keeps them meets, with the closest one's value; else the sheet constraints no
+ * candidate meets together.
+ */
+export function whyNoneBefore(from: {
   pool: Candidate[]
   talentFails: (c: Candidate) => string[]
   keepsTalents: Candidate[]
   sheets: SheetValues[]
   reference: SheetValues
   sheetRules: SheetConstraint[]
+  data: TalentData
+  space?: OptimizeReport['space']
+  talentRules?: TalentConstraints
 }): string[] {
-  const { pool, talentFails, keepsTalents, sheets, reference, sheetRules } = from
+  const { pool, talentFails, keepsTalents, sheets, reference, sheetRules, space, talentRules } = from
   if (keepsTalents.length === 0) {
+    // No legal build fits them all (OV2-3): the setup's and the start's failures aren't the reason.
+    if (space && space.builds === 0 && talentRules)
+      return [`talents: no legal ${from.data.rules.maxPoints}-point build fits the talent constraints together: ${describeTalentRules(from.data, talentRules, space.floor)}`]
     const fails = [...new Set(pool.flatMap(talentFails))]
     return [`talents: no candidate keeps the talent constraints (the survival floor, kept and excluded talents, the trees' minimums): ${fails.join(', ')}`]
   }
@@ -509,7 +541,7 @@ function whyNoneBefore(from: {
 }
 
 /** Why the race ended with no leader: the result constraints its candidates were clearly outside, or the budget ran out first. */
-function whyNoneInRace(rules: ResultConstraint[], race: RaceResult, candidates: number): string[] {
+export function whyNoneInRace(rules: ResultConstraint[], race: RaceResult, candidates: number): string[] {
   const lines = rules.flatMap((c, i) => (race.outside[i] > 0 ? [`${formatConstraint(c)}: ${race.outside[i].toLocaleString('en-US')} of ${candidates.toLocaleString('en-US')} candidates were clearly outside it in the race`] : []))
   if (race.status === 'budget') lines.push(`the budget ran out before any candidate's means met ${rules.map(formatConstraint).join(' and ')}`)
   return lines

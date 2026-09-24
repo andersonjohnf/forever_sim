@@ -510,8 +510,7 @@ leader, then the survivors, then the dropped by how long they lasted. The baseli
 its numbers are the line under the table. The CLI also says what the setup itself fails (it's then
 only the baseline), how many candidates each kind of constraint left out, and, when there's no
 answer, "no setup meets these constraints" with `blocked`'s reasons. The line after the result
-compares the leader, the answer, with the default. With no leader, the standings have no
-comparison with one (`vsLeader` is left out of the JSON).
+compares the leader, the answer, with the default.
 
 ## Limits of the method
 

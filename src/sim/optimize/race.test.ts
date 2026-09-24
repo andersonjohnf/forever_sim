@@ -115,7 +115,7 @@ describe('race', () => {
     expect(result.status).toBe('budget')
     const third = result.standings.find((st) => st.candidate === 3)!
     expect(third.state).toBe('survivor')
-    expect(third.vsLeader!.mean - third.vsLeader!.halfWidth).toBeGreaterThan(0)
+    expect(third.vsLeader.mean - third.vsLeader.halfWidth).toBeGreaterThan(0)
     const twin = result.leader === 1 ? 2 : 1
     expect(result.unseparated).toEqual([twin])
     expect(result.closest!.candidate).toBe(twin)

@@ -89,8 +89,8 @@ export interface Standing {
   mean: { dps: number; tps: number; taken: number; score: number }
   /** Candidate − baseline, fight by fight, with 95% intervals; `score` in the objective's units. */
   vsBaseline: { dps: Interval; tps: Interval; taken: Interval; score: Interval }
-  /** Leader − candidate in score, 95%, over the candidate's fights (zero for the leader; left out when there's no leader). */
-  vsLeader?: Interval
+  /** Leader − candidate in score, 95%, over the candidate's fights (zero for the leader). */
+  vsLeader: Interval
   state: 'leader' | 'survivor' | 'dropped'
   /** The round it was dropped in, as clearly worse than the leader. */
   droppedInRound?: number
@@ -359,6 +359,7 @@ export async function race(options: RaceOptions): Promise<RaceResult> {
   // --- Standings, over each candidate's own fights, in the final baseline's units ---
   const base = baselineMeans(n)
   const score = scorer(options.objective, base)
+  // A candidate has a standing only if it raced, and then the race has a leader.
   const lead = leader === null ? null : scoresOf(leader, score, n)
   const standing = (c: number): Standing => {
     const m = samples[c].n
@@ -371,7 +372,7 @@ export async function race(options: RaceOptions): Promise<RaceResult> {
       fights: m,
       mean: { dps: meanInterval(x.dps, m).mean, tps: meanInterval(x.tps, m).mean, taken: meanInterval(x.taken, m).mean, score: meanInterval(s, m).mean },
       vsBaseline: { dps: pairedInterval(x.dps, o.dps, m), tps: pairedInterval(x.tps, o.tps, m), taken: pairedInterval(x.taken, o.taken, m), score: pairedInterval(s, b, m) },
-      ...(lead === null ? {} : { vsLeader: c === leader ? { mean: 0, halfWidth: 0 } : pairedInterval(lead, s, m) }),
+      vsLeader: c === leader || lead === null ? { mean: 0, halfWidth: 0 } : pairedInterval(lead, s, m),
       state: c === leader ? 'leader' : droppedIn.has(c) ? 'dropped' : 'survivor',
       ...(droppedIn.has(c) ? { droppedInRound: droppedIn.get(c) } : {}),
       ties: ties.get(c) ?? [],

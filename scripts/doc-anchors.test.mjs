@@ -1,9 +1,9 @@
-// Every doc citation with an anchor in the code resolves to a heading (CLAUDE.md, "Docs and code
+// Every doc citation with an anchor in the code, and every anchored link between the docs, resolves to a heading (CLAUDE.md, "Docs and code
 // stay in sync"): the results panel's assumption links open the doc on GitHub at that anchor, and
 // a renamed or renumbered heading, or a status emoji at its end, silently sends them to the top.
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { brokenCitations, citedAnchors, docAnchors, githubSlug } from "./doc-anchors.mjs";
+import { brokenCitations, brokenDocLinks, citedAnchors, docAnchors, docLinks, githubSlug } from "./doc-anchors.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 
@@ -65,5 +65,27 @@ describe("doc citations", () => {
     const broken = brokenCitations(ROOT, ["src", "scripts", "e2e"], { skip: (file) => file.startsWith("scripts/doc-anchors") })
       .filter((b) => !FICTIONAL.some((f) => b.startsWith(f)));
     expect(broken).toEqual([]);
+  });
+});
+
+describe("the docs' own anchored links", () => {
+  it("are found relative, within the doc and in angle brackets, but not in code or off-site", () => {
+    const md = [
+      "See [client](client.md#what-it-did) and [seals](#seals), [up](../ux.md#layout \"Layout\").",
+      "[odd](<rage.md#forever->) `[not](x.md#code)` [web](https://example.com/a.md#x)",
+      "```",
+      "[fenced](y.md#z)",
+      "```",
+    ].join("\n");
+    expect(docLinks(md).map((l) => `${l.line} ${l.file}#${l.anchor}`)).toEqual([
+      "1 client.md#what-it-did",
+      "1 #seals",
+      "1 ../ux.md#layout",
+      "2 rage.md#forever-",
+    ]);
+  });
+
+  it("all open at a heading of their target", () => {
+    expect(brokenDocLinks(ROOT)).toEqual([]);
   });
 });

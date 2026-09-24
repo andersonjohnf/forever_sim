@@ -146,3 +146,47 @@ export function brokenCitations(root, sourceDirs, { sourcePattern = /\.(ts|tsx|m
   }
   return broken;
 }
+
+/**
+ * The links in a Markdown doc's text that carry an anchor: relative ones to another doc
+ * ("](client.md#what-it-needs)") and ones within the doc ("](#seals)"), outside code blocks and
+ * inline code. External links (a scheme or "//") never match. A same-doc link has `file: ""`.
+ */
+export function docLinks(markdown) {
+  const out = [];
+  let fence = null;
+  markdown.split(/\r?\n/).forEach((line, i) => {
+    const f = /^\s{0,3}(`{3,}|~{3,})/.exec(line);
+    if (f) {
+      if (!fence) fence = f[1][0];
+      else if (f[1][0] === fence) fence = null;
+      return;
+    }
+    if (fence) return;
+    const prose = line.replace(/`[^`]*`/g, "");
+    for (const m of prose.matchAll(/\]\(<?((?:[\w.-]+\/)*[\w.-]+\.md)?#([^)\s>]+)>?(?:\s+"[^"]*")?\)/g)) {
+      out.push({ file: m[1] ?? "", anchor: decodeURIComponent(m[2]), line: i + 1 });
+    }
+  });
+  return out;
+}
+
+/** The anchored links between (and within) the docs under `root`/docs that open at no heading of their target. */
+export function brokenDocLinks(root) {
+  const anchorsOf = new Map();
+  const anchors = (file) => {
+    if (!anchorsOf.has(file)) anchorsOf.set(file, docAnchors(fs.readFileSync(file, "utf8")));
+    return anchorsOf.get(file);
+  };
+  const rel = (file) => path.relative(root, file).split(path.sep).join("/");
+  const broken = [];
+  for (const doc of walk(path.join(root, "docs"), /\.md$/)) {
+    for (const link of docLinks(fs.readFileSync(doc, "utf8"))) {
+      const target = link.file ? path.resolve(path.dirname(doc), link.file) : doc;
+      const at = `${rel(doc)}:${link.line} ${link.file}#${link.anchor}`;
+      if (!fs.existsSync(target)) broken.push(`${at}: no such doc`);
+      else if (!anchors(target).has(link.anchor)) broken.push(`${at}: no such heading in ${rel(target)}`);
+    }
+  }
+  return broken;
+}

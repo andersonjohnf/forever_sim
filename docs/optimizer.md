@@ -8,7 +8,9 @@ keeps, how the talent space is built, and how a spec's defaults come from its re
 
 **Status (O1, 2026-09-24):** the search core, the talent space, rotation settings as candidates,
 constraints with effective health and crit and crush immunity, and the command line
-(`npm run optimize`), with the review's fixes ([review log](reviews/2026-09-24-optimizer-o1.md)). Gear is O2, the
+(`npm run optimize`), with the review's and the verification's fixes
+([review log](reviews/2026-09-24-optimizer-o1.md)); the setup is only ever the baseline, never an
+answer (user decision). Gear is O2, the
 app's Optimize flow O3, and defaults set from the results O4 ([milestones](milestones.md)). The
 code is `src/sim/optimize/` (pure TypeScript, seeded, no DOM) and
 [`scripts/tune/optimize.mjs`](../scripts/tune/optimize.mjs).
@@ -40,20 +42,34 @@ budget:
    ([below](#which-talents-matter)). Only when talents are searched.
 2. **Build the candidates:** every sensible talent build under the constraints
    ([below](#the-talent-space)), each with the start's own rotation and with every rotation
-   variant given. Candidate 0, the **baseline**, is the setup itself: the spec's current default,
-   unless the caller changed it. Candidate 1 is the **start**, where the search begins, when it
-   isn't the baseline (a pass of a search [in turns](#talents-and-rotation-together) starts from
-   the last pass's winner). The start always races, so a search never ends worse than where it
-   began. Two candidates that make the same setup race once. A candidate that misses a sheet
-   constraint (effective health, say) is left out here, before any fight. A baseline or start
-   whose build doesn't keep the talent constraints (a tank's survival floor, a kept or excluded
-   talent, a tree's minimum) races as a **reference only**: it runs every round, so every change is
-   still paired with it, but it never leads or drops another, so the answer always keeps them (D30:
-   the default search always keeps the floor). The CLI says which constraints it breaks.
-3. **Race** the candidates on common random numbers until the leader is clear of the rest at 95%
-   or the budget runs out ([below](#racing)). The budget and the first round are fitted to the
-   number of candidates first ([budgets](#budgets)).
-4. **Confirm** the winner against the baseline on a fresh seed (D23; the CLI's `--confirm`).
+   variant given, and beside them the setup itself and the **start**, where the search begins (a
+   pass of a search [in turns](#talents-and-rotation-together) starts from the last pass's
+   winner). Two candidates that make the same setup race once.
+3. **Hold every candidate to every constraint**, the same way for each: the talent constraints (a
+   tank's survival floor, kept and excluded talents, the trees' minimums), checked on its build;
+   the sheet constraints (effective health, crit and crush immunity), checked on its character
+   sheet before any fight; and the result constraints, judged in the race. A candidate that breaks
+   one is left out.
+4. **Race** the candidates on common random numbers until the leader is clear of the rest at 95%
+   or the budget runs out ([below](#racing)), beside the **baseline**. The budget and the first
+   round are fitted to the number of candidates first ([budgets](#budgets)).
+5. **Confirm** the winner against the baseline on a fresh seed (D23; the CLI's `--confirm`).
+
+**The baseline is only a measuring stick** (user decision). It's the setup as it is (the spec's
+current default, unless the caller changed it): it runs every round, so every candidate's change is
+paired with it fight for fight, and `balanced` and relative limits are measured against it, but
+it's never an answer. The setup can still win, as a regular candidate: a copy of it races like any
+other when it meets every constraint, and leads if it's the best. When it breaks one (the paladin's
+default lacks Anticipation, a floor talent), it's only the baseline, and the CLI says which it
+breaks.
+
+**No setup meets these constraints.** If every candidate breaks a constraint, or every one is
+clearly outside a result constraint in the race, there's no answer: the report's leader is null and
+`blocked` names what blocks, a line a constraint. A sheet constraint no candidate reaches gives the
+closest one's value ("crit immune: no candidate reaches the defense it needs on this gear; the
+closest has 330 defense, leaving the boss 4.40% crit", the paladin's default gear); sheet
+constraints each met but never together say so; a result constraint gives how many candidates were
+clearly outside it. The baseline still runs its first round, so the report has its numbers.
 
 The same inputs and seed give the same result, on any number of threads.
 
@@ -113,16 +129,18 @@ rely on.
 `race()` (`src/sim/optimize/race.ts`) runs in rounds:
 
 1. Every survivor runs the same fights up to the round's count: the first round's (see
-   [budgets](#budgets)), then twice as many each round. The baseline runs every round, survivor or
-   not, so every candidate's change from it is paired on the same fights.
+   [budgets](#budgets)), then twice as many each round. The baseline runs every round beside
+   them, so every candidate's change from it is paired on the same fights; it's never a survivor,
+   and never leads, drops another or is dropped.
 2. **First round only:** candidates with the same DPS and TPS on every fight are one candidate.
    The one with the least damage taken represents them (D30: what the sim can't value in the
    score is a tie-break), then the earlier one; the others are listed as its ties.
 3. **Constraints on results** drop a survivor whose interval of a constrained metric (Student's t,
    0.5% a side) lies wholly outside its limit ([constraints](#constraints)): the true best is
-   dropped by bad luck at most 0.5% a round a limit.
-4. The **leader** is the survivor with the best mean score whose means meet every limit. A
-   reference-only candidate ([the steps](#the-steps)) runs every round but is never a survivor.
+   dropped by bad luck at most 0.5% a round a limit. If that drops every survivor, the race ends
+   with no answer (`none`).
+4. The **leader** is the survivor with the best mean score whose means meet every limit. While
+   none does, there's no leader and no survivor is dropped as worse.
 5. A survivor whose paired interval against the leader lies wholly below zero at the
    **elimination bar** is dropped. The leader is the best of many noisy means, so it's usually one
    that got lucky (the **winner's curse**): with thousands of survivors, the luckiest is several
@@ -148,8 +166,10 @@ rely on.
 6. The race ends **separated** when the leader's paired 95% interval against every survivor lies
    above zero, D23's bar, or **budget** when the next round no longer fits: the last round then
    runs as many fights as the budget has left, the same for every survivor. A budget ending names
-   the survivors the leader isn't clear of, and the closest of them with its paired interval behind
-   the leader (`closest`).
+   the survivors the leader isn't clear of at 95% (`unseparated`: a survivor the elimination bar
+   kept but the leader is clear of isn't one), and the closest of them with its paired interval
+   behind the leader (`closest`). A budget ending with no survivor whose means meet every limit has
+   no answer.
 
 Everything is decided at a round's end over whole arrays, and each job's samples go to fixed
 positions, so neither the number of lanes nor the order jobs finish in changes anything.
@@ -186,13 +206,15 @@ or crush you, read from the same boss table the engine rolls and the Results sho
 `bossOutcomeShares`):
 
 - **Crit immune** (`--crit-immune`, `CRIT_IMMUNE`, `bossCritPct<=0`): the boss's crit chance
-  against you is 0, `5% + (315 − defense) × 0.04%` at or below zero: **440 defense**.
+  against you is 0, `5% + (315 − defense) × 0.04%` at or below zero: **440 defense**. It reads
+  the table with no block buff up: only defense pushes crits off, and an immunity that held only
+  while Holy Shield is up wouldn't be one.
 - **Crush immune** (`--crush-immune`, `CRUSH_IMMUNE`, `bossCrushPct<=0`): your miss, dodge,
   parry and block (each less 0.6% for the boss's 315 skill) fill the table before its crushing
   blows: 102.4% on the sheet at 440 defense. A bear can't reach it without block. A tank whose
   rotation keeps a block buff up (a Protection paladin's Holy Shield) is judged on the table with
   it up, the Results' second table ([ux.md](ux.md#results)), since that's what most of the
-  fight's swings roll on (`immunityTable`); it's the paladin's classic way to be uncrushable.
+  fight's swings roll on (`immunityTables`); it's the paladin's classic way to be uncrushable.
 
 Shares under 1e-9 points (the table's rounding at 100%) count as none. Every reported result shows
 its health, effective health, damage taken, and the boss's crit and crush chances.
@@ -261,14 +283,16 @@ not every legal one, which would be astronomically many:
 - **Constraints:** a tree's minimum points (`--min-tree Protection=31`), talents kept at a rank
   (`--keep`) and excluded (`--exclude`). A tank's search spends **at least 31 points in its tank
   tree** unless told otherwise (D30; `TANK_TREE`, `src/sim/optimize/floor.ts`): Protection for
-  the warrior and paladin, Feral Combat for the bear. `--min-tree Protection=0` drops it. A tank's
+  the warrior and paladin, Feral Combat for the bear. `--min-tree` merges with it: a minimum for
+  the tank tree replaces its 31 (`--min-tree Protection=0` drops it), and one for another tree
+  joins it. A tank's
   **survival floor** is kept in every build (`SURVIVAL_FLOOR`, the same file), from its class doc:
   [warrior §6.4](classes/warrior.md#64-survival-floor),
   [druid §7.6](classes/druid.md#76-survival-floor),
   [paladin](classes/paladin.md#protection-survival-floor). It holds the defensive cooldowns and,
-  by user decision (D30), a warrior's and a paladin's **Anticipation 5/5 and Deflection 5/5**:
-  the model says avoided hits cost a tank rage, mana and Reckoning procs, so a threat-first search
-  drops them, but tanks take them. Toughness is optional: the search decides its ranks (under the
+  by user decision (D30), the avoidance talents: a warrior's and a paladin's **Anticipation 5/5
+  and Deflection 5/5**, and a bear's **Feral Swiftness 2/2**: the model says avoided hits cost a
+  tank rage, mana and Reckoning procs, so a threat-first search drops them, but tanks take them. Toughness is optional: the search decides its ranks (under the
   effective-health floor it's a dimension). `--no-floor` drops the floor; `--keep` extends it for one search
   (kept talents join it in every build); a spec's default floor changes in `SURVIVAL_FLOOR` and
   its class doc together. Harmful talents are never taken unless kept or searched for a
@@ -288,19 +312,22 @@ Every build is checked with the app's own `validateTalentBuild`, encoded with `e
 and must decode back to the same ranks.
 
 The spaces at the default setups (tanks with 31 points in their tree, their survival floor with
-Anticipation and Deflection, and the effective-health floor, which makes Toughness a dimension),
-from the screens of 2026-09-24 after the review's fixes (the defaults of that day's T3 and T4
-gear; the kept talents aren't dimensions):
+the avoidance talents, and the effective-health floor, which makes Toughness a dimension), from
+the screens of 2026-09-24 after the verification's fixes (the defaults of that day's T3 and T4
+gear; the kept talents aren't dimensions). The candidates are the builds and the setup itself
+when it keeps the constraints (the warrior's default isn't among its space's builds; the
+bear's is; the paladin's breaks the floor), and each race runs the baseline beside them:
 
-| Spec | Dimensions | Builds | Legal tree cores | Dominated |
-| --- | --- | --- | --- | --- |
-| `warrior-protection` | 22 objective + Toughness | 3,544 | 1,648 | 4,193 |
-| `druid-feral-bear` | 18 objective | 199 | 2,610 | 2,248 |
-| `paladin-protection` | 27 objective + Toughness | 10,805 | 2,240 | 2,705 |
-| `warrior-fury` (no constraints) | 20 objective | 288 | 1,636 | 1,507 |
+| Spec | Dimensions | Builds | Candidates | Legal tree cores | Dominated |
+| --- | --- | --- | --- | --- | --- |
+| `warrior-protection` | 22 objective + Toughness | 3,544 | 3,545 | 1,648 | 4,193 |
+| `druid-feral-bear` | 17 objective | 129 | 129 | 1,314 | 1,080 |
+| `paladin-protection` | 27 objective + Toughness | 10,805 | 10,805 | 2,240 | 2,705 |
+| `warrior-fury` (no constraints) | 20 objective | 288 | | 1,636 | 1,507 |
 
 So on `quick` the warrior's space runs 126 fights each in the first round, the paladin's 50 (36% of
-the budget, past the usual 30%: [budgets](#budgets)) and the bear's and Fury's 1,000. Enumerating takes about a
+the budget, past the usual 30%: [budgets](#budgets)) and the bear's and Fury's 1,000. Before
+Feral Swiftness joined the bear's floor, its space was 199 builds (200 candidates with the setup). Enumerating takes about a
 second. Before the tree-by-tree combination and the leftover-point rule, the Protection warrior's
 space was 17,644 builds and took eight minutes to list; the paladin's passed 50,000.
 
@@ -313,12 +340,16 @@ rotation.mjs's `id=value` form (`scripts/tune/lib.mjs`), each variant on top of 
   variant too, so a talent that only a variant uses counts.
 - **In turns** (`--turns`, `optimizeInTurns`): the talents with the setup's rotation, then the
   variants with the winning build, then the talents again with the winning variant, until a pass
-  keeps its start. Each pass spends the whole budget. Every pass races its start, the last pass's
-  winner, beside the new candidates, so a rotation pass whose variants are all worse keeps the
-  talent pass's winner rather than falling back to the baseline; the answer never gets worse
-  from one pass to the next, up to the race's own error. The baseline stays the setup itself, so
-  `balanced` is always relative to it.
-- **Rotation only** (`--search rotation`): the variants with the setup's talents.
+  keeps its start or has no answer. Each pass spends the whole budget. Every pass races its start,
+  the last pass's winner, beside the new candidates, so a rotation pass whose variants are all
+  worse keeps the talent pass's winner; the answer never gets worse from one pass to the next, up
+  to the race's own error. Every pass holds every candidate to every constraint, the talent ones
+  included: a rotation pass keeps the start's build, but the setup itself races in it only if it
+  keeps them (the verification's repro: with Ferocity excluded, the rotation pass once fell back to
+  the default, which takes it). The baseline stays the setup itself, so `balanced` is always
+  relative to it.
+- **Rotation only** (`--search rotation`): the variants with the setup's talents. No talent is
+  searched, so there are no talent constraints; sheet and result constraints still hold.
 
 ## Budgets
 
@@ -332,7 +363,7 @@ fights come on top (20,000–27,000 for the four specs in the table above).
 | `thorough` | 24,000,000 | at most ~5 min | ~10 min |
 
 The first round runs 30% of the budget over the candidates, between 50 and 1,000 fights each
-(`firstRound`): 20,000 candidates get 90 each on `standard`, the bear's 180 get 1,000.
+(`firstRound`): 20,000 candidates get 90 each on `standard`, the bear's 129 get 1,000.
 `fitBudget` fits a space too big for its budget rather than failing, and the CLI prints a note
 saying what it changed:
 
@@ -374,7 +405,7 @@ fresh seed. This is O4's process, after the tanks' threat fixes (M5.6):
 
 1. Run the search at the default setup with the spec's default constraints: a tank with 31 points
    in its tree, its survival floor and the effective-health floor; a DPS spec with none. Use the
-   `thorough` budget.
+   `thorough` budget. When the setup itself leads, as a candidate, the default stands.
 2. A result that ends on the budget isn't a winner yet: run again with more budget, or, when the
    survivors are within the noise of each other, take the leader and say so.
 3. Confirm the leader on a fresh seed with `--confirm`. It replaces the default only if it clears
@@ -387,7 +418,8 @@ fresh seed. This is O4's process, after the tanks' threat fixes (M5.6):
 The CLI prints the screen, the space, each round, a table of standings and the result, and writes
 a JSON report under `.cache/optimize/`. A standing has:
 
-- the build and its changes from the default ("Shredding Attacks 0→3")
+- the build and its changes from the default ("Shredding Attacks 0→3"), or "the setup itself"
+  for the copy of the setup that raced as a candidate
 - mean TPS, DPS, damage taken per second, health, effective health, and the boss's crit and crush
   chances against it
 - its paired change from the baseline in score, TPS, DPS and damage taken, each with its 95%
@@ -396,7 +428,10 @@ a JSON report under `.cache/optimize/`. A standing has:
   as outside a result constraint), with the candidates tied with it
 
 Candidates dropped early ran fewer fights, so their intervals are wider; the table lists the
-leader, then the survivors, then the dropped by how long they lasted.
+leader, then the survivors, then the dropped by how long they lasted. The baseline isn't a row:
+its numbers are the line under the table. The CLI also says what the setup itself fails (it's then
+only the baseline), how many candidates each kind of constraint left out, and, when there's no
+answer, "no setup meets these constraints" with `blocked`'s reasons.
 
 ## Limits of the method
 
@@ -446,3 +481,10 @@ These are unit tests (`src/sim/optimize/*.test.ts`).
   finds a build 14.2 points ahead; holding Maul for 90 rage costs it 1.6 points, so the rotation
   pass keeps the talent pass's winner with the setup's rotation (it fell back to the baseline
   before the review's fix).
+- **Every pass holds the constraints.** The bear in turns with Ferocity excluded and Maul held for
+  90 rage: no pass answers with the default, which takes Ferocity (`optimize.test.ts`, OV-1).
+- **No setup.** The Protection paladin under crit immunity on its default gear: every build has
+  Anticipation, and the best reaches 330 defense (the boss's crit 4.40%), so no candidate races
+  and the report says crit immunity blocks it (OV-2).
+- **The setup wins as a candidate.** The bear with one rotation variant, Maul held for 90 rage:
+  its own rotation leads, as the copy of the setup, 0 ± 0 against the baseline it's identical to.

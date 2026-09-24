@@ -940,7 +940,7 @@ effective-health floor it's a search dimension, since its armor changes effectiv
 
 The default build ([Protection defaults](#protection-defaults)) has all but Anticipation, which T2
 traded for Conviction: the optimizer's result (O4) replaces it with one that keeps the whole
-floor. Until then a search races the default as a reference only
+floor. Until then the default is only a search's baseline, never its answer
 ([optimizer.md](../optimizer.md#the-steps)), since it doesn't keep Anticipation 5.
 
 #### Tuning the defaults (C3)

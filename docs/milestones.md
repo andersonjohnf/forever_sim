@@ -337,7 +337,10 @@ sets. Each spec's defaults are then its results.
       ([log](reviews/2026-09-24-optimizer-o1.md)): every search races its start, the elimination
       bar corrects for the winner's curse, crit and crush immunity (off by default, no
       damage-taken cap), the floor's Anticipation and Deflection (user decision), a tank's 31
-      points in its tree by default, and budgets that fit a large space
+      points in its tree by default, and budgets that fit a large space. After its verification:
+      the setup is only ever the baseline, never an answer; every candidate meets every
+      constraint, or the search says which block (user decision, simpler design); the bear's
+      floor gains Feral Swiftness 2/2 (user decision)
 - [ ] **O2 Gear:** per-slot candidates from the pool (item level range, sources, faction, class,
       locked slots), enchants, unique-equipped, two-hand vs dual wield, set bonuses, hit caps;
       coordinate ascent with restarts; talents, gear and rotation alternated until stable

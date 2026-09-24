@@ -14,6 +14,11 @@ export const test = base.extend<{ pageProblems: string[] }>({
   pageProblems: [
     async ({ page }, use) => {
       await page.route('https://wow.zamimg.com/**', (route) => route.fulfill({ contentType: 'image/png', body: PIXEL }))
+      // Anything the Content-Security-Policy (index.html) blocks, stated plainly whatever the
+      // browser's own console message says.
+      await page.addInitScript(() =>
+        document.addEventListener('securitypolicyviolation', (e) => console.error(`CSP violation: ${e.effectiveDirective} blocked ${e.blockedURI || '(inline)'}`)),
+      )
       const problems: string[] = []
       page.on('console', (msg) => {
         if (msg.type() === 'error') problems.push(`console.error: ${msg.text()}`)

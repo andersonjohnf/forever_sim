@@ -542,3 +542,21 @@ push to `main`, so a build's time is its release's; GitHub Actions supplies the 
 `GITHUB_SHA`, and a local build reads it from git (empty when there's none). `BUILD_TIME` in the
 environment pins the time. The About sheet shows it in the viewer's own time zone
 ([ux.md](ux.md), "About & data").
+
+### Content-Security-Policy
+
+GitHub Pages sets no response headers, so the policy is a `<meta http-equiv>` in `index.html`:
+
+| Directive | Allows | Why |
+| --- | --- | --- |
+| `default-src`, `script-src`, `worker-src`, `connect-src`, `font-src` | `'self'` | The bundle, the sim worker, and the Geist and Josefin Sans fonts all ship with the build (Fontsource, no font CDN); the app fetches nothing at runtime |
+| `img-src` | `'self' https://wow.zamimg.com` | Game icons from Wowhead's CDN; the wago.tools and Decades logos are local |
+| `style-src` | `'self' 'unsafe-inline'` | The stylesheet, plus the `<style>` elements the drawer, toasts, scroll lock and theme switch add at runtime with computed values, which no hash or nonce can cover on a static host |
+| `object-src` | `'none'` | |
+| `base-uri`, `form-action` | `'self'` | |
+
+A meta policy can't carry `frame-ancestors` or reporting. `vite dev` strips the tag
+(`vite.config.ts`), since React Refresh's inline preamble and the HMR websocket need what it
+forbids; `vite preview`, the e2e suite and the deploy all serve the build with it. The e2e
+fixture (`e2e/fixtures.ts`) turns any violation into a console error, which fails the test, so
+a new external resource shows up there first.

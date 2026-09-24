@@ -292,11 +292,13 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     order and marks the default, "Balanced (default)", as the talent and Buffs presets do; there's
     no separate "Default". Beside it, an **About the presets** button (the info icon, 44 px) opens
     a popover that lists all three with their full help: what each keeps and drops, what it
-    measures against Defensive in the default setup (TPS, DPS and damage taken), when to pick it,
-    and the Buffs tab's versions of the duties it drops. Under the picker, **one short line** on
-    the one picked: what it keeps and gives up, three lines at most at 390 px (a test holds each
-    to 125 characters), with a number or two; at Custom, that the list matches no preset and
-    picking one starts again from it. The picker's trigger takes that line as its description.
+    measures against Defensive in the default setup (TPS, DPS and damage taken; a bear's Max TPS
+    against Balanced too, which it differs from by one setting), when to pick it, and the Buffs
+    tab's versions of the duties it drops. The popover keeps 16 px from the window's edges. Under
+    the picker, **one short line** on the one picked: what it keeps and gives up, three lines at
+    most at 390 px (a test holds each to 125 characters), with a number or two, its damage-taken
+    cost among them; at Custom, "Custom: the list matches none of the presets. Pick one to start
+    again from it." The picker's trigger takes that line as its description.
     A tank's Priority choice has no control of its own: the picker sets it (`AplDefinition.presets`,
     architecture.md). Under Priority list there's then only **Reset order**, which hands focus to
     the list's first row, and **Reset rotation** hands focus to the picker.
@@ -370,10 +372,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     common priority" for a spec until then. The cat's also says there's no powershifting, and why
     ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
     since a Classic Era feral would look for it. A tank's says which of its presets are tuned and
-    which are a first quick search (D27): "Defensive and Max TPS are tuned for the default setup;
-    Balanced, the default, is a first quick search and isn't tuned yet." (the warrior); "Defensive is
-    tuned for the default setup; Balanced, the default, and Max TPS are a first quick search on top
-    of it." (the bear); "Defensive and Max TPS are tuned for the default setup; Balanced, the
+    which aren't yet, in players' words rather than the process's (D27): "Defensive and Max TPS are
+    tuned for the default setup; Balanced, the default, hasn't been fully tuned yet." (the warrior);
+    "Defensive is tuned for the default setup; Balanced, the default, and Max TPS haven't been fully
+    tuned yet." (the bear); "Defensive and Max TPS are tuned for the default setup; Balanced, the
     default, plays as Defensive." (the paladin).
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and

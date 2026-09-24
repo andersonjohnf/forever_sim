@@ -1040,8 +1040,11 @@ control of its own:
 - **Max TPS** (`maxTps`) drops the roar, from a first-pass search on TPS alone
   ([Max TPS](#max-tps-b4) below; since T3 it refreshes Lacerate as Defensive does). It keeps
   Faerie Fire: for a bear its armor is threat, since it makes every attack hit harder, and
-  dropping its upkeep costs 1% of TPS. In the default setup it plays as Balanced does: the roar
-  is the only duty that costs threat, and neither search moved anything else.
+  dropping its upkeep costs 1% of TPS. Its search moved one thing: it Mauls from 14 rage, where
+  Balanced waits for 20, a little more threat for a little less damage (on seed 31101, 100,000
+  paired fights, against Balanced: +0.16% TPS, −0.22% DPS, the same damage taken; against
+  Defensive +3.3% TPS, +2.6% DPS and 0.7% more damage taken). The roar is the only duty that costs
+  threat.
 
 The Buffs tab's Demoralizing Roar is the bear's own, so no preset turns it on: with Balanced or
 Max TPS the boss is at full attack power unless you turn it on there because another druid keeps

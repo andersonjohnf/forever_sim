@@ -152,7 +152,7 @@ export function fixedRotationRows(spec: SpecId): FixedRotationRow[] {
  */
 export function rotationDefaultsNote(spec: SpecId): string | undefined {
   // D28, D27: Balanced, the Protection warrior's default since T5, is a first pass; Defensive and Max TPS are tuned.
-  if (spec === 'warrior-protection') return 'Defensive and Max TPS are tuned for the default setup; Balanced, the default, is a first quick search and isn’t tuned yet.'
+  if (spec === 'warrior-protection') return 'Defensive and Max TPS are tuned for the default setup; Balanced, the default, hasn’t been fully tuned yet.'
   if (spec === 'warrior-arms' || spec === 'warrior-fury' || spec === 'paladin-retribution') return 'The defaults are tuned for the default setup.'
   // D28 (user decision): a paladin's Balanced keeps Holy Strike, so it's Defensive's tuned list.
   if (spec === 'paladin-protection') return 'Defensive and Max TPS are tuned for the default setup; Balanced, the default, plays as Defensive.'
@@ -160,7 +160,7 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
     return 'The defaults are tuned for the default setup. There’s no powershifting: in Forever, Furor keeps your Energy through a shift, so it gains nothing.'
   }
   // docs/classes/druid.md §6.3 "Balanced", "Max TPS": D28's default and Max TPS's Maul, a first pass (D27) around Defensive's tuned settings.
-  if (spec === 'druid-feral-bear') return 'Defensive is tuned for the default setup; Balanced, the default, and Max TPS are a first quick search on top of it.'
+  if (spec === 'druid-feral-bear') return 'Defensive is tuned for the default setup; Balanced, the default, and Max TPS haven’t been fully tuned yet.'
   // Decision D27: a spec landed in the 90/10 mode starts from the common priority until the tuning milestone.
   if (spec === 'shaman-enhancement') {
     return 'The defaults are the common priority. There’s no totem twisting: in Forever, Windfury Totem is an aura that ends with the totem.'

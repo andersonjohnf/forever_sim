@@ -163,7 +163,7 @@ test.describe('Protection paladin rotation', () => {
     await pick(page, 'Defensive')
     await list(tab).getByRole('switch', { name: 'Consecration (Rank 1)', exact: true }).click()
     await expect(preset(page)).toHaveText('Custom')
-    await expect(preset(page)).toHaveAccessibleDescription('Custom: you’ve changed the list from every preset. Pick one to start again from it.')
+    await expect(preset(page)).toHaveAccessibleDescription('Custom: the list matches none of the presets. Pick one to start again from it.')
     await pick(page, 'Defensive')
     await expect(list(tab).getByRole('switch', { name: 'Consecration (Rank 1)', exact: true })).toBeChecked()
     // Moving a row makes it Custom too; Reset order hands focus to the list's first row.

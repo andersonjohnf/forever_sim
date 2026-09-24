@@ -60,7 +60,7 @@ test.describe('Protection rotation', () => {
   test('is Balanced by default: the preset picker first on the tab, its line and info, and §5.4’s rows with only the pre-pull pinned', async ({ page }) => {
     const tab = await openProtectionRotation(page)
     await expect(
-      tab.getByText('Which abilities the sim uses, and when. Defensive and Max TPS are tuned for the default setup; Balanced, the default, is a first quick search and isn’t tuned yet.', {
+      tab.getByText('Which abilities the sim uses, and when. Defensive and Max TPS are tuned for the default setup; Balanced, the default, hasn’t been fully tuned yet.', {
         exact: true,
       }),
     ).toBeVisible()
@@ -144,7 +144,7 @@ test.describe('Protection rotation', () => {
     await expect(rowSwitch(page, 'shieldBlock')).toBeChecked()
     await expect(rowSwitch(page, 'shieldBlock')).toHaveAccessibleDescription(/^Changed\./)
     await expect(preset(page)).toHaveText('Custom')
-    await expect(preset(page)).toHaveAccessibleDescription('Custom: you’ve changed the list from every preset. Pick one to start again from it.')
+    await expect(preset(page)).toHaveAccessibleDescription('Custom: the list matches none of the presets. Pick one to start again from it.')
     // So is a row moved: back to Max TPS, then Battle Shout above Shield Slam.
     await pick(page, 'Max TPS')
     await expect(rowSwitch(page, 'shieldBlock')).not.toBeChecked()

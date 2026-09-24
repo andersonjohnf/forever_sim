@@ -501,8 +501,8 @@ export const BEAR_APL: AplDefinition = {
     {
       id: 'maxTps',
       label: 'Max TPS',
-      summary: 'Drops the roar and Mauls from 14 rage, tuned on threat alone: +3.3% TPS, +2.6% DPS vs Defensive.',
-      help: 'Tuned on threat alone: drops Demoralizing Roar, keeps Faerie Fire, whose armor makes your attacks, and so your threat, bigger, and Mauls from 14 rage rather than 20, a little more threat for a little less damage. Against Defensive in the default setup: 3.3% more TPS, 2.6% more DPS and 0.7% more damage taken. Pick it when another tank or the raid covers your survival.',
+      summary: 'Balanced, but Mauls from 14 rage: +0.2% TPS, −0.2% DPS, the same damage taken (0.7% more than Defensive).',
+      help: 'Tuned on threat alone: drops Demoralizing Roar, keeps Faerie Fire, whose armor makes your attacks, and so your threat, bigger, and Mauls from 14 rage rather than Balanced’s 20. Against Balanced in the default setup that’s 0.2% more TPS for 0.2% less DPS, and the same damage taken; against Defensive, 3.3% more TPS, 2.6% more DPS and 0.7% more damage taken. Pick it when threat is all that matters and another tank or the raid covers your survival. The Buffs tab’s Demoralizing Roar stays off unless you turn it on there for another druid’s.',
       values: { [ID.priority]: BEAR_PRIORITY.maxTps },
     },
   ],

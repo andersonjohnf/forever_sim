@@ -210,6 +210,13 @@ describe('every spec’s presets (decision D28, docs/ux.md "Rotation")', () => {
         expect(p.summary, `${spec} ${p.id}`).toBeDefined()
         expect(p.summary!.length, `${spec} ${p.id}`).toBeLessThanOrEqual(125)
         expect(p.help.length, `${spec} ${p.id}`).toBeGreaterThan(p.summary!.length)
+        // A preset that drops a duty (every one but Defensive, and the paladin's Balanced, which plays
+        // as Defensive) says in its line what that costs in damage taken (docs/ux.md "A tank's
+        // presets"), and in its help names the Buffs tab's version of the duty ("A tank's priority").
+        const dropsDuty = p.id !== 'defensive' && !(spec === 'paladin-protection' && p.id === DEFAULT_APL_PRESET)
+        if (!dropsDuty) continue
+        expect(p.summary, `${spec} ${p.id}`).toMatch(/damage taken/)
+        expect(p.help, `${spec} ${p.id}`).toMatch(/The Buffs tab’s .* stays? off unless you turn (it|them) on there/)
       }
     }
   })

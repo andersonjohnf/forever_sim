@@ -150,7 +150,7 @@ export function AplPresetPicker({ apl }: { apl: AplDefinition }) {
   const helpId = useId()
   const infoTitleId = useId()
   const current = presets.find((p) => p.id === preset)
-  const line = preset === CUSTOM_APL_PRESET ? 'Custom: you’ve changed the list from every preset. Pick one to start again from it.' : (current?.summary ?? current?.help)
+  const line = preset === CUSTOM_APL_PRESET ? 'Custom: the list matches none of the presets. Pick one to start again from it.' : (current?.summary ?? current?.help)
   return (
     <section aria-labelledby="apl-preset-heading" className="flex flex-col gap-2">
       <div className="flex min-h-11 items-center">
@@ -167,7 +167,7 @@ export function AplPresetPicker({ apl }: { apl: AplDefinition }) {
               <Info aria-hidden />
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="end" aria-labelledby={infoTitleId} className="flex max-h-(--radix-popover-content-available-height) w-[min(24rem,calc(100vw-2rem))] flex-col gap-3 overflow-y-auto text-sm">
+          <PopoverContent align="end" collisionPadding={16} aria-labelledby={infoTitleId} className="flex max-h-(--radix-popover-content-available-height) w-[min(24rem,calc(100vw-2rem))] flex-col gap-3 overflow-y-auto text-sm">
             <p id={infoTitleId} className="font-medium">
               The presets
             </p>

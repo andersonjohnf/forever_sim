@@ -1,6 +1,6 @@
 import { ChevronDown, FolderOpen, Info, Link2, MoreHorizontal, Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { type Ref, useRef, useState } from 'react'
+import { type Ref, useId, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -64,6 +64,7 @@ export function Header() {
 function SpecSwitcher() {
   const meta = useSpecMeta()
   const setSpec = useSetup((s) => s.setSpec)
+  const labelId = useId()
   const byClass = new Map<ClassId, ReturnType<typeof visibleSpecs>>()
   for (const spec of visibleSpecs()) byClass.set(spec.classId, [...(byClass.get(spec.classId) ?? []), spec])
 
@@ -81,9 +82,13 @@ function SpecSwitcher() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64">
         {[...byClass.entries()].map(([classId, classSpecs], index) => (
-          <DropdownMenuGroup key={classId}>
+          // Each class's specs are a group named by its heading, so two classes' specs of one name
+          // (a warrior's and a paladin's Protection) are told apart by ear too.
+          <DropdownMenuGroup key={classId} aria-labelledby={`${labelId}-${classId}`}>
             {index > 0 && <DropdownMenuSeparator />}
-            <DropdownMenuLabel className={CLASS_TEXT[classId]}>{SPEC_META[classSpecs[0].id].className}</DropdownMenuLabel>
+            <DropdownMenuLabel id={`${labelId}-${classId}`} className={CLASS_TEXT[classId]}>
+              {SPEC_META[classSpecs[0].id].className}
+            </DropdownMenuLabel>
             {classSpecs.map((spec) => (
               <DropdownMenuItem key={spec.id} onSelect={() => setSpec(spec.id)} className="min-h-11 gap-3">
                 <WowIcon icon={spec.icon} size="xs" />

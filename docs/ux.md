@@ -40,7 +40,9 @@ When a design decision isn't covered here, make it, then add it here.
 | **< 640 px** | A compact header. The section tabs are a horizontally scrollable segmented bar, sticky under the header. The sticky bottom bar works as above. Pickers open as full-height sheets. |
 
 **Header:** the app mark, "Forever Sim" (the page's one `<h1>`, visually hidden on phones),
-and the **spec switcher**, which shows the class icon and spec in the class color. Then
+and the **spec switcher**, which shows the class icon and spec in the class color. Its menu lists
+the specs under their class's heading, each class a group named by it, so a screen reader tells a
+warrior's Protection from a paladin's too. Then
 **Share** (copies a link to this setup) and an overflow menu with Setups…
 ([Setups](#setups)), About & data, Theme (system, light, dark) and Reset setup. Menu items are
 44 px tall.

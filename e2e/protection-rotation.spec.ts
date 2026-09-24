@@ -9,7 +9,7 @@ import { expect, test } from './fixtures.ts'
 async function openProtectionRotation(page: Page) {
   await page.goto('./')
   await page.getByRole('button', { name: /Spec: Fury Warrior/ }).click()
-  await page.getByRole('menuitem', { name: /Protection/ }).click()
+  await page.getByRole('group', { name: 'Warrior' }).getByRole('menuitem', { name: /Protection/ }).click()
   await expect(page.getByRole('button', { name: /Spec: Protection Warrior/ })).toBeVisible()
   await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
   return page.getByRole('tabpanel', { name: 'Rotation' })

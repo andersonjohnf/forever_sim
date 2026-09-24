@@ -124,3 +124,12 @@ request. The hotfix checks out: no asset or link assumes `/forever_sim/`, share 
 | PP-6 | low | introduced (7f1c2222) | `newTab` also added the external-link icon, so the footer's wago credit had one and its Decades pair didn't. | fixed: the icon is its own option, shown in About only |
 | PP-7 | low | pre-existing | README's coverage table still listed three classes in the future tense. | fixed: every class, present tense |
 
+**Quick check of 745a8ee6: gate passes.** PP-1 confirmed (Undead 793.96 TPS, 91.87%; Human
+unchanged, 823.59), and the `canUse` filter changes no other default across all 23 specs and 148
+spec-race pairs. Three lows, for the next push: PV-1, README's "report" should read "reports";
+PV-2, the stamp's second line opens on its "·" separator at 390 px (cosmetic); PV-3, a test that
+every `INTERIM_GEAR` id is wearable by its class, now that `defaultGear` silently skips one that
+isn't.
+
+**Verdict: ready to push.**
+

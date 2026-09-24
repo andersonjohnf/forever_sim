@@ -434,6 +434,9 @@ slice is worked:
   assumptions list it (T4R-8).
 - **The pet's ranged hit and crit share has no test** (Demonology verification DV3-1): every
   default setup has no ranged hit or crit bonus, so a test with a ranged plan's bonuses would pin it.
+- **Pre-push check lows** (PV-1..PV-3, tank quick-fix log): README's "report" → "reports"; the release
+  stamp's second line opens on its separator at 390 px; a test that every `INTERIM_GEAR` id is
+  wearable by its class.
 - **A DPS spec's "Setup changed" badge wraps to two lines** in the phone bar at 360 px (phone
   bar verification VF7, pre-existing). The bar stays 65 px and nothing overlaps.
 - **The Protection paladin's threat review lows** (T2; the review in `.cache/probes/tank-review-paladin`),

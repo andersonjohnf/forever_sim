@@ -71,6 +71,9 @@ function usage(msg) {
   process.exit(2);
 }
 const output = createOutput({ repoRoot: REPO_ROOT, check: opts.check });
+const outDir = path.resolve(REPO_ROOT, opts.out);
+/** file -> bytes emitted; declared before the first finish() call, which can come early (a table that fails). */
+const written = {};
 
 const errors = [];
 const warnings = [];
@@ -594,8 +597,6 @@ function meta(names) {
   };
 }
 
-const outDir = path.resolve(REPO_ROOT, opts.out);
-const written = {};
 function emit(file, data) {
   const text = stableStringify(data);
   output.write(path.join(outDir, file), text);

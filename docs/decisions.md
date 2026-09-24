@@ -415,7 +415,8 @@ Balanced. Each tank spec's Priority choice offers three rotations:
   mitigation and the raid's armor debuff, drops the debuffs that only lower the boss's damage,
   and tunes the rest for DPS:
   - a warrior uses Shield Block when it's ready and keeps Sunder Armor at 5 stacks, refreshed
-    by D26's duty rule but not used as a filler; it drops Thunder Clap and Demoralizing Shout
+    by D26's duty rule, and uses it as a filler only above 60% rage (user decision, 2026-09-24,
+    replacing "not used as a filler"); it drops Thunder Clap and Demoralizing Shout
   - a bear keeps Faerie Fire and drops Demoralizing Roar
   - a paladin keeps Devotion Aura and Holy Shield, and Holy Strike too, whose Iron Creed cuts
     damage taken by 10% (user decision: that's active mitigation Balanced keeps), so a paladin's
@@ -436,9 +437,11 @@ kept the old default gets Balanced, like any other changed default. Settings you
 hand stay as you set them: choosing Balanced moves only the defaults of the abilities it drops,
 as Max TPS does.
 
-Status: decided. The rotation slice (T5 in the milestones) comes after the tanks' threat fixes;
-the Protection paladin's is built (Balanced is Defensive with Hammer of the Righteous in Holy
-Strike's place, [paladin.md](classes/paladin.md#priority-defensive-balanced-or-max-tps)).
+Status: built for all three tanks (T5, with their priority lists in M5.65 A2), first-pass (D27):
+the warrior's Balanced against Defensive +9.5% TPS, +6.4% DPS and 21% more damage taken
+([warrior.md §5.4](classes/warrior.md#balanced-t5)); the bear's +3.1%, +2.8% and 0.7%, and its Max
+TPS, tuned on TPS alone, Mauls from 14 ([druid.md §6.3](classes/druid.md#balanced-t5)); the
+paladin's plays as Defensive ([paladin.md](classes/paladin.md#priority-defensive-balanced-or-max-tps)).
 
 ### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
 User directive, after v1's tank numbers embarrassed the user in front of the guild: the

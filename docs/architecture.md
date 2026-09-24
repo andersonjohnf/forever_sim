@@ -90,25 +90,29 @@ A spec is data plus small ability modules, never its own loop.
   of a few named values).
 - **Rotation as a priority list** ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24)).
   A spec on the list declares its rotation as an `AplDefinition` (`sim/types.ts`, returned by
-  `rotationApl` in `sim/classes/rotation.ts`; Fury first, the Protection paladin in A2, the rest
-  in M5.65 A2):
+  `rotationApl` in `sim/classes/rotation.ts`; Fury first, then the three tanks in A2, the rest in
+  M5.65 A2):
   - **Rows**, in the default order. Each has a stable `id`, a label and icon, the switch that turns
     it on (`enabledId`), its own settings (`optionIds`) and a summary built from them. Row settings
     are the spec's ordinary `RotationOption`s, so the resolver, `normalizeConfig`, the unused
-    notes and the changed marks work as before. A `pinned` row's place is a rule (the pre-pull):
-    it doesn't move and no row crosses it.
-  - **Spec-wide settings** (`specWide`: a stance, a pet, a tank's priority, the consumables) sit
-    above the list, not in a row.
-  - **Presets** (`presets`): an order plus values for the rows' settings. The spec's defaults are
-    the implicit `default` preset, unless the spec lists a preset with that id itself, which names
-    and places it (the Protection paladin's Balanced, between Defensive and Max TPS).
-    `activeAplPreset` says which one the list matches, or `custom`. Picking one (`applyAplPreset`)
-    sets its order and row values and resets the rest of the rows' settings, keeping the spec-wide
-    ones you set. A spec-wide setting a preset names (a tank's Priority choice, D28) is the
-    presets' too: picking any preset sets it, to its value or its default, and the match compares
-    it, so a stored Max TPS reads as Max TPS even where its rows resolve as the default's. The
-    Rotation tab shows it only as the preset picker, which for such a spec sits at the top of the
-    tab.
+    notes and the changed marks work as before. A `pinned` row's place is a rule: only the
+    pre-pull and opener are pinned, first; it doesn't move and no row crosses it. D26's duties are
+    ordinary rows (D31): their timing rule is their own condition, so it holds wherever they sit.
+  - **Spec-wide settings** (`specWide`: a stance, a pet, the consumables) sit above the list, not
+    in a row.
+  - **Presets** (`presets`, one mechanism for every spec): an order plus values for the rows'
+    settings, with `help` (the full text, for a tank's with its measured numbers) and `summary`
+    (the short line under the picker). The spec's defaults are the `default` preset: a spec
+    without named rotations gets an implicit one, "Default", first (Fury); a spec with them lists
+    it itself, which names and places it (a tank's Balanced, between Defensive and Max TPS, with
+    empty values and no order, since it's the defaults). `activeAplPreset` says which one the
+    list matches, or `custom`. Picking one (`applyAplPreset`) sets its order and row values and
+    resets the rest of the rows' settings, keeping the spec-wide ones you set. **A setting a
+    preset names is the presets'** (a tank's Priority choice, D28, whose value is the preset): it
+    isn't in `specWide` and has no control but the picker; picking any preset sets it, to its
+    value or its default, and the match compares it, so a stored Max TPS reads as Max TPS even
+    where its rows resolve as the default's. For such a spec the Rotation tab puts the picker at
+    the top of the tab (`AplPresetPicker`, docs/ux.md "A tank's presets").
   - **The order** is `SimConfig.rotationOrder`, row ids, stored only while it differs from the
     default. `normalizeAplOrder` (`sim/classes/apl.ts`) reads any stored order. It drops unknown
     ids, and keeps pinned rows fixed. A row the order doesn't name goes just after the nearest
@@ -128,10 +132,17 @@ A spec is data plus small ability modules, never its own loop.
     wherever it sits, so a row that refers to another's ability (Whirlwind waiting on
     Bloodthirst) resolves it by definition (`RotationBuilder.ability`). In the default order,
     that returns the index the earlier row gave it, so the plan is byte-identical to the one
-    before the list. Rows off the GCD that aren't in the list (Fury's consumables) and the
-    pre-pull are built after it, unless they had a place of their own in the priority before
-    the list: the bear's consumables take their turn with its on-use items' row, wherever it
-    sits, so its plans stay byte-identical.
+    before the list. Rows off the GCD that aren't in the list (Fury's and the paladin's
+    consumables) and the pre-pull are built after it, unless they had a place of their own in the
+    priority before the list: the warrior's and the bear's consumables take their turn with the
+    on-use trinkets' or items' row, wherever it sits, which in the default order is where they
+    were, so their plans stay byte-identical. Two rows that share a cooldown (the paladin's
+    Hammer of the Righteous and Holy Strike) read the order: the higher one that's on is used,
+    and `unusedRotationSettings` takes `rotationOrder` so the lower one says why it isn't.
+  - **Equivalence.** Each tank moved onto the list with a snapshot of 200 random setups' plans
+    taken on the code before it (`*-apl-cases.ts`, `*-apl.test.ts`): Defensive and Max TPS give
+    them byte for byte (the bear's Max TPS with Maul at its old 20, since T5 moved it on purpose),
+    and each tank keeps a Defensive golden equal to its old default's.
 - A buff the rotation keeps up itself (the warrior's own Battle Shout) is left out of the static
   effects and becomes an aura in the fight, so it counts once; the character sheet still shows
   it. On-use items (`sim/effects/items.ts`) and consumables (`sim/effects/buffs.ts`) carry their

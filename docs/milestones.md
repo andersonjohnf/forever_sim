@@ -305,14 +305,17 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
       like the paladin's and the bear's (1,124.2 TPS, 357.0 DPS;
       [warrior.md §6.3](classes/warrior.md#63-protection-gear-interim-measured-m56-t4)); its talents
       still come from the optimizer
-- [ ] **T5 Balanced rotation (D28)** for all three tanks, the new default; Defensive and Max TPS
-      stay selectable. **Protection paladin done** (with its A2): Balanced is Defensive with Hammer
-      of the Righteous in Holy Strike's place, a first pass (D27): −0.36% TPS, +1.27% DPS, +4.3%
-      damage taken against Defensive ([paladin.md](classes/paladin.md#priority-defensive-balanced-or-max-tps))
-      - [x] Bear: Balanced drops the roar and keeps Faerie Fire; its first-pass search moved
-            nothing else (+3.1% TPS, +2.8% DPS, +0.7% damage taken against Defensive), so Max TPS
-            plays the same in the default setup
-            ([druid.md §6.3 "Balanced"](classes/druid.md#balanced-t5))
+- [x] **T5 Balanced rotation (D28)** for all three tanks, the new default; Defensive and Max TPS
+      stay selectable. First pass (D27), against Defensive in the default setup:
+      - Warrior ([warrior.md §5.4 "Balanced"](classes/warrior.md#balanced-t5)): Shield Block and
+        Sunder Armor's 5 stacks kept, no Thunder Clap or Demoralizing Shout, the Sunder filler only
+        from 60 rage (user decision), Heroic Strike from 84: +9.5% TPS, +6.4% DPS, +21% damage taken
+      - Bear ([druid.md §6.3 "Balanced"](classes/druid.md#balanced-t5)): the roar dropped, Faerie
+        Fire kept: +3.1% TPS, +2.8% DPS, +0.7% damage taken. Max TPS, tuned on TPS alone, now
+        Mauls from 14 ([Max TPS](classes/druid.md#max-tps-b4)): +3.3% TPS, +2.6% DPS
+      - Paladin ([paladin.md](classes/paladin.md#priority-defensive-balanced-or-max-tps)): plays as
+        Defensive, Holy Strike kept for Iron Creed (user decision); Hammer of the Righteous a row,
+        off, above Holy Strike
 - [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,
       Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken
 
@@ -327,13 +330,15 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
       tanks declare named ones
 - [ ] **A2 Every other spec on the list:** the tanks after M5.6's fixes merge, then the rest in
       batches; each spec's toggles become rows and row options, with its goldens unchanged at the
-      default order. **Protection paladin done**: its rows in paladin.md's order, the pre-pull and
-      opener pinned, D28's rotations as presets at the top of the tab; Defensive and Max TPS give
-      200 random setups their plans from before the list (its golden moved only for Balanced)
-      - [x] Feral bear: its rows in druid.md §6.3's order, Enrage before the pull pinned, the
-            duties movable with their timing rule, D28's three rotations as presets (the picker
-            is the priority); Defensive's and Max TPS's plans byte-identical for 200 random setups
-            ([druid.md §6.3 "The priority list"](classes/druid.md#the-priority-list-a2))
+      default order
+      - [x] The three tanks (Protection warrior, Feral bear, Protection paladin): their rows in
+            their class docs' order, only the pre-pull and opener pinned, D26's duties movable with
+            their timing rule, D28's rotations as one preset mechanism (the `default` preset named
+            and placed by the spec, the Priority set only by the picker, which sits at the top of
+            the tab with a short line and every preset's numbers in its info). Defensive's and Max
+            TPS's plans byte-identical to before the list for 200 random setups each, and a
+            Defensive golden per tank equal to its old default's
+            ([architecture.md](architecture.md), "Rotation as a priority list")
 
 ## M5.7: The optimizer (D30) 🚧 top priority
 

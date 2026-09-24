@@ -80,6 +80,27 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
   Pushing `main` deploys to GitHub Pages. After each push, watch the deploy and the Full
   regression run through to green, and fix anything they catch.
 
+## Release updates
+
+When the user asks for an update to post, write it for the sim's dedicated channel in the guild
+Discord. Its readers already know what the sim is, where it lives and how to report issues.
+- **No preamble or sign-off.** Leave out what the sim is, the site link, "report issues on
+  GitHub" and "thanks for the reports" footers. Start with a plain heading and end on the
+  last change.
+- **No emoji or decorative icons.** Use plain Discord markdown: one `##` heading, bold
+  section labels and `•` bullets. Keep it under Discord's 2,000 characters.
+- **Group by who notices:** Tanks, the affected DPS specs, Your setup, Fixes, then anything
+  else. Leave out an empty group. Lead each bullet with the change as a player sees it, and
+  name specs, abilities, talents and items the way players do.
+- **Give numbers when the result moves:** "Prot Paladin +1% TPS". Credit a guild member whose
+  build or test the change adopts.
+- **No internals:** decision or finding ids, branches, reviews, CSP, workers, scrapers or
+  test names. Mention infrastructure only by what a player feels ("long sims survive
+  switching apps on your phone").
+- **Say only what's true when it's posted.** Cover only what's pushed or about to be. If it
+  isn't deployed yet, say it's coming in the next update, and list work in progress only
+  under a short "Coming soon" line.
+
 ## Working with agents: small slices, fresh contexts
 
 Large work is split into **slices** listed under each milestone in `docs/milestones.md`.

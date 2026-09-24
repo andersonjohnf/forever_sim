@@ -291,3 +291,87 @@ In every space, no build has Toughness above 0 with Anticipation below 5 (the ve
 
 Checks: lint and typecheck clean; `npx vitest run src/sim/optimize src/sim/run` 87 passed; `npm
 test` 2,632 passed and 6 skipped. No UI changed, so no e2e run or screenshots.
+
+## User decision: goals, no talent rules
+
+After the fifth verification (OV5; its probes in the O1 worktree's `.cache/probes/o1-verify5/`)
+the user decided (D30's superseding paragraph): "The optimizer shouldn't have any X before Y rules
+for specific talents. The optimizer should be told to optimize for defense, DPS, TPS, or a balanced
+approach and run all the possible iterations of talents, or gear, or rotation, and find the best
+outcome objectively." They also chose to remove the tanks' survival floor. `9a98bacc` does both.
+
+- **Goals** ([optimizer.md](../optimizer.md#goals)): `defense` (the least damage taken a second,
+  TPS breaking a tie; a tank's only), `dps`, `tps` (the least damage taken breaking a tie) and
+  `balanced` (ΔTPS% + ΔDPS% against the default; DPS alone for a DPS spec). Every score is higher
+  when better (Defense's is minus the damage taken), so the race, the elimination and separation
+  bars and the confirmation need no sign of their own. The race merges what the goal can't tell
+  apart and breaks ties by the goal's tie-break; the screen's `survival` role is now `tie-break`,
+  with its measured tie-break effect. CLI `--goal`; the JSON carries `goal` and `scoredGoal`.
+  Defaults: tanks Balanced, DPS specs DPS.
+- **No talent rules:** `SURVIVAL_FLOOR`, `PREFERRED_FILLER` and `floor.ts` are gone, with the
+  preferred filler's fill-order place, OV4-1's constraint-only narrowing (`constraintOnly` in
+  `emit`) and `--no-floor`. Fillers take spare points by their measured tie-break. Maximality is the
+  one pruning rule, and a measured one. The effective-health floor (on by default for a tank, as D30
+  set it) and crit and crush immunity stay as sheet constraints; the tank tree's 31 points stays (a
+  tree rule). The class docs' floor sections and `defaults.test.ts`'s floor check are gone.
+- **Tests:** the preferred-filler, OV3-1 and OV4-1 tests are replaced by a fill order that follows
+  the measured tie-break whatever the talent's name, and by OV5-1's repro (both the default and its
+  Toughness-over-Anticipation twin race). New tests for each goal: the scores and tie-breaks, the
+  defaults, Balanced for a DPS spec, Defense refused for one; toy races for Defense (the least
+  damage taken leads, its score +50 for 50 less taken; ties merged on damage taken, TPS breaking
+  them) and TPS; the warrior for Defense on the real engine (Toughness objective, Defiance a
+  tie-break, the answer takes less damage, confirmed on a fresh seed); the bear for TPS.
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| OV5-1 | medium | introduced by `e43e686d` (OV4-1's narrowing) | The narrowing lost feasible builds: a Toughness-over-Anticipation build the effective-health floor needed never raced. | resolved by the removal, `9a98bacc`: no rule ties Toughness's ranks to Anticipation's; the repro is a unit test (both builds race) |
+| OV5-2 | low | pre-existing | `firstRound`'s parameter was named `candidates` though it's given plans, the baseline included. | fixed, `9a98bacc`: `plans`, with its doc comment, and optimizer.md's first-round text and worked examples say plans |
+| OV5-3 | low | pre-existing | optimizer.md's Budgets table headed its first column "Candidates" for a count of plans. | fixed, `9a98bacc`: "Plans (the candidates and the baseline)", and the text under it says plans |
+| OV5-4 | low | pre-existing | The CLI printed "1 builds", "1 survivors", "after 1 rounds". | fixed, `9a98bacc`: a `plural` helper for every count the CLI prints with a noun |
+
+### The numbers after this change
+
+`quick`, seed 1, 10 threads, `--confirm` on seed 2654435770 (40,000 fights each); logs and reports
+in this worktree's `.cache/demos/`. The effective-health floor (90%) holds for each tank search.
+
+| Spec | Goal | Space | Answer against the default | Confirmed |
+| --- | --- | --- | --- | --- |
+| Protection warrior | Balanced | 2,087 builds, 24 dimensions | Unbridled Wrath 5, Enrage 5, Booming Voice 5, Toughness 1→3 for Deflection, Anticipation, Last Stand, Improved Shield Wall, Improved Heroic Strike and Vanguard; separated after 8 rounds | **+10.49 points** (+10.37 to +10.60): TPS +44.7, DPS +26.6, taken +62.8 a second; +10.33 with ratings ignored |
+| Protection warrior | TPS | 700 builds, 23 dimensions | no Shield Slam (screened harmful for TPS, −30.5), Deep Wounds 3, Improved Rend 3, Improved Tactical Mastery 5, Toughness 1→4, no Deflection, Anticipation or cooldowns; separated after 1 round | **+66.4 TPS** (+66.0 to +66.9), DPS −81.3; +63.5 with ratings ignored |
+| Protection warrior | Defense | 222 builds, 17 dimensions | Toughness 1→5, Improved Thunder Clap 3, Improved Disarm 3, Improved Charge 2; keeps Deflection 5, Anticipation 5 and Shield Slam; drops Shield Specialization, Master of Defense, Focused Rage and Improved Shield Wall; separated after 2 rounds | **32.2 less damage taken a second** (−4.4%), TPS −265.4 |
+| Protection warrior, `--require "ehp>=103%"` | Balanced | 2,087 builds, 304 left out | as Balanced but Toughness 5, Boundless Rage 3, Booming Voice 2, no Improved Bloodrage (EHP 13,910, 103.5%); separated after 11 rounds | **+9.67 points**, taken +48.8 |
+| Protection paladin | Balanced | 23,841 builds, 31 dimensions | Divine Strength 5, Anticipation 2→5, Benediction 5, Conviction 5 for Improved Holy Strike, Improved Righteous Fury, Sacred Duty, Deflection and two Iron Creed ranks; separated after 7 rounds | **+7.65 points**: TPS +25.3, DPS +20.6, taken +114.7 |
+| Protection paladin | Defense | 15,135 builds, 24 dimensions | Toughness 5, Anticipation 2→5, Divine Intellect 4, keeping Improved Righteous Fury, Deflection, Iron Creed and Holy Shield; no Reckoning, Improved Seals or 1HWS; the budget ended with 89 unseparated (the closest +0.25 ± 1.09) | **63.5 less damage taken a second** (−7%), TPS −111.3 |
+| Feral bear | Balanced | 303 builds, 20 dimensions | Feral Instinct 3, Nature's Focus 5, Naturalist 5 for Heart of the Wild, Feral Swiftness and Natural Reaction; keeps Thick Hide; separated after 4 rounds | **+6.56 points**: TPS +28.9, DPS +21.7, taken +69.5 |
+| Fury warrior | DPS | 288 builds, 20 dimensions (unchanged) | Precision 3, Improved Execute 2, Improved Overpower 2, Deflection 2, Booming Voice 2 for Deep Wounds, Impale, Improved Rend and Improved Cleave; separated after 1 round | **+27.4 DPS** (+3.9%) |
+
+**For the reviewers:**
+- **Plausibility of Defense.** The warrior's and paladin's Defense answers take what a pure-defense
+  tank takes where the sim measures it: Toughness 5, Anticipation 5, Deflection 5 (and the
+  paladin's Improved Righteous Fury and Holy Shield), and they give up threat for it (−21% and −13%
+  TPS). They drop what the sim can't measure: Last Stand and Improved Shield Wall (cooldowns the
+  rotation never presses) and Sacred Duty's cooldown part, as every goal does. A real pure-defense
+  build keeps those; the sim is indifferent to them. The warrior's Defense answer also drops Shield
+  Specialization (screened −0.04 ± 1.61 for Defense: its extra blocks barely move damage taken in
+  the model) and takes Improved Thunder Clap (its attack-speed slow is modelled). Worth a look.
+- **TPS without Shield Slam.** For TPS the screen calls the warrior's Shield Slam harmful (−30.5 TPS
+  at max rank, in every context), so the TPS answer drops it; for Balanced it's the most valuable
+  talent (+31.7 points, all of it DPS). That's the model's Shield Slam threat against the rage it
+  takes from Heroic Strike and Revenge; a plausibility question for the warrior's threat model
+  (threat.md, warrior.md §4.3), not for the optimizer.
+- **Balanced drops survival talents.** With no floor, the tanks' Balanced answers drop Deflection,
+  Anticipation (the warrior's), Improved Righteous Fury, Sacred Duty and the bear's Heart of the
+  Wild and Feral Swiftness, for 8–11% more damage taken. That's the user's "objectively" by the
+  Balanced goal; D29's "tanks talent for the balanced approach, never pure defense" is about
+  defaults, which O4 sets.
+- **The effective-health floor stays on by default for tanks.** D30 set it "on by default", and
+  the superseding paragraph keeps sheet constraints "as options the player sets". Read here as
+  unchanged (`--no-ehp-floor` drops it); if the user meant it off by default, it's one line in
+  `defaultConstraints`.
+- **OV5-2 and OV5-3** were given as one line in the brief ("rename `firstRound`'s `candidates` to
+  `plans`, and the Budgets table heading"); they're split here that way.
+
+Checks: lint and typecheck clean; `npx vitest run src/sim/optimize src/sim/run src/worker` 186
+passed; `npm test` 2,859 passed, the one-core Fury benchmark failing only under the machine's load
+(load average 23) and passing rerun alone; `scrape:check` matches. No UI changed, so no e2e run or
+screenshots.

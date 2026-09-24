@@ -494,8 +494,11 @@ A spec is data plus small ability modules, never its own loop.
   (100–100,000).
 - **Workers:** a persistent pool of `navigator.hardwareConcurrency − 1` module workers (at least
   one), created on the first run and kept warm. Each run sends its plan once per worker, then
-  chunks; cancelling stops dispatch and ignores chunks still running. Where workers don't exist
-  (Node, tests), the same chunks run on the calling thread.
+  chunks; cancelling stops dispatch and ignores chunks still running. A watchdog fails the run
+  with an error when a worker that has work doesn't answer for 60 s (a chunk takes well under a
+  second on a desktop even at the longest fight), and replaces that worker; it never changes a
+  result. Where workers don't exist (Node, tests), the same chunks run on the calling thread,
+  where nothing can interrupt a chunk.
 
 ## Testing
 

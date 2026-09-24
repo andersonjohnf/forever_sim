@@ -3,16 +3,29 @@
 // `navigator.hardwareConcurrency − 1` workers (at least 1), created on the first run and kept
 // warm. Each run sends its plan once per worker, then chunks; the driver merges results in chunk
 // order, so which worker ran what never changes the numbers. Cancelling stops dispatching; the
-// few chunks already running finish in the background and are ignored.
+// few chunks already running finish in the background and are ignored. A watchdog fails a worker
+// that has work but stays silent for CHUNK_TIMEOUT_MS, so a hung chunk ends the run with an error
+// instead of leaving it running forever.
 import type { FromWorker, ToWorker } from '@/worker/protocol'
 import type { ChunkResult } from '../engine/chunk'
 import type { Plan } from '../plan/types'
 import type { ChunkExecutor } from './driver'
 
+/**
+ * How long a worker with work may go without answering before it counts as hung
+ * (docs/architecture.md#iterations-determinism-and-workers). A chunk of the slowest spec at the
+ * longest fight (900 s, ±25%) takes about 0.3 s on a desktop, so this leaves a slow phone a
+ * hundredfold margin while a hang still ends within a minute. It only fails the run; it never
+ * changes a result.
+ */
+export const CHUNK_TIMEOUT_MS = 60_000
+
 interface Slot {
   worker: Worker
   planId: number
   busy: number
+  /** Armed while the worker has work: its time to answer. */
+  watchdog?: ReturnType<typeof setTimeout>
 }
 
 interface Job {
@@ -27,9 +40,11 @@ export class WorkerPool {
   private nextJob = 1
   private nextPlan = 1
   readonly size: number
+  private readonly chunkTimeoutMs: number
 
-  constructor(size: number) {
+  constructor(size: number, { chunkTimeoutMs = CHUNK_TIMEOUT_MS }: { chunkTimeoutMs?: number } = {}) {
     this.size = size
+    this.chunkTimeoutMs = chunkTimeoutMs
   }
 
   /** Whether this environment can run module workers. */
@@ -56,7 +71,7 @@ export class WorkerPool {
             slot.planId = planId
           }
           const jobId = this.nextJob++
-          slot.busy++
+          if (slot.busy++ === 0) this.arm(slot)
           this.jobs.set(jobId, { slot, resolve, reject })
           this.post(slot, { type: 'chunk', jobId, planId, chunk, fights })
         }),
@@ -80,6 +95,9 @@ export class WorkerPool {
       if (!job) return
       this.jobs.delete(message.jobId)
       slot.busy--
+      // An answer is progress: the next queued chunk gets a full timeout of its own.
+      if (slot.busy > 0) this.arm(slot)
+      else clearTimeout(slot.watchdog)
       if (message.type === 'result') job.resolve(message.result)
       else job.reject(new Error(message.message))
     }
@@ -90,8 +108,18 @@ export class WorkerPool {
     return slot
   }
 
-  /** A worker crashed: fail its jobs and replace it. */
+  /** Starts (or restarts) `slot`'s time to answer. */
+  private arm(slot: Slot) {
+    clearTimeout(slot.watchdog)
+    slot.watchdog = setTimeout(() => {
+      const seconds = Math.round(this.chunkTimeoutMs / 1000)
+      this.fail(slot, new Error(`A simulation worker stopped responding (no answer in ${seconds} s), so the run was stopped.`))
+    }, this.chunkTimeoutMs)
+  }
+
+  /** A worker crashed or hung: fail its jobs and replace it. */
   private fail(slot: Slot, error: Error) {
+    clearTimeout(slot.watchdog)
     for (const [id, job] of this.jobs) {
       if (job.slot !== slot) continue
       this.jobs.delete(id)

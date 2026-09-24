@@ -537,6 +537,28 @@ describe('mana gems (docs/classes/mage.md#mana)', () => {
     expect(new Set(gains.manaRuby).size).toBeGreaterThan(10)
   })
 
+  it('go whichever fits first, the Ruby on a tie: the default Fire mage’s Citrine first nearly always, the Arcane mage’s Ruby mostly (mage.md "Mana gems")', () => {
+    const firsts = (spec: MageSpec) => {
+      const plan = buildPlan(defaultConfig(SPEC_ID[spec])).plan
+      const sim = new Sim(plan)
+      const tally = { manaRuby: 0, manaCitrine: 0 }
+      for (let i = 0; i < 100; i++) {
+        let first: string | undefined
+        sim.castTrace = (a) => {
+          const id = plan.abilities[a].id
+          if (!first && (id === 'manaRuby' || id === 'manaCitrine')) first = id
+        }
+        sim.runFight(i)
+        if (first) tally[first as keyof typeof tally]++
+      }
+      return tally
+    }
+    const fire = firsts('fire')
+    expect(fire.manaCitrine).toBeGreaterThan(90)
+    const arcane = firsts('arcane')
+    expect(arcane.manaRuby).toBeGreaterThan(arcane.manaCitrine)
+  })
+
   it('share their cooldown with the Demonic Rune (category 1153): a Rune at the pull holds the Ruby for 2 min', () => {
     const plan = examplePlan({ rotation: { [F.gems]: true, [F.rune]: true, [F.runeMissing]: 0 }, buffs: ['demonicRune'], manaTenths: 'plan', durationMs: 200000 })
     const cats = ['manaRuby', 'manaCitrine', 'demonicRune'].map((id) => plan.abilities[abilityOf(plan, id)].category)

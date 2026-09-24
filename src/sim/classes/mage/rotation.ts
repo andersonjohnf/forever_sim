@@ -125,7 +125,7 @@ function sharedOptions(spec: Spec): { cooldowns: RotationOption[]; mana: Rotatio
         id: ID.gems,
         group: MANA,
         label: 'Mana gems',
-        help: 'Use a Mana Ruby (1,000–1,200 mana), then a Mana Citrine (775–925), conjured before the pull, once all they restore fits. They share a 2-minute cooldown with the Demonic Rune.',
+        help: 'Use a Mana Ruby (1,000–1,200 mana) and a Mana Citrine (775–925), conjured before the pull, each once all it restores fits: whichever fits first, the Ruby if both do. They share a 2-minute cooldown with each other and the Demonic Rune.',
         default: true,
       },
       {
@@ -386,6 +386,8 @@ export function mageRotation(
   // Mana (mage.md "Mana"), off the GCD, before the spells so a gem or potion goes as soon as it fits:
   // the gems, then the rune (they share category 1153), and the potion on its own cooldown.
   const missing = (mana: number): RotationCondition => ({ code: COND.maxMana, a: maxManaTenths - 10 * mana, b: 0 })
+  // Each gem once all it restores fits (mage.md "Mana gems"): the Citrine's smaller restore usually
+  // fits first; the Ruby, listed first, goes when both do.
   if (v.on(ID.gems)) {
     add(MANA_RUBY, [missing(1200)])
     add(MANA_CITRINE, [missing(925)])

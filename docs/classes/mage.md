@@ -356,11 +356,16 @@ check uses the base cost, not Arcane Power's.
 
 ### Mana gems, potion and rune
 
-- **Mana Ruby, then Mana Citrine**, once each, conjured before the pull [?] (`manaRegenMage`), when
-  all they can restore fits (missing 1,200, then 925). Off the GCD.
+- **Mana Ruby and Mana Citrine**, once each, conjured before the pull [?] (`manaRegenMage`), each
+  when all it can restore fits: missing 1,200 for the Ruby, 925 for the Citrine. Off the GCD.
+  Whichever fits first goes first, and the Ruby when both fit at once. So the Citrine usually goes
+  first for Fire and Frost, whose mana falls a spell at a time past 925 before 1,200, and the Ruby
+  usually first for Arcane, whose Arcane Missiles (655) often carry it past both at once. The
+  sooner the first gem goes, the sooner their shared cooldown lets the second go, and neither
+  restores more than is missing.
 - They share **category 1153**'s 2 min cooldown with the **Demonic Rune** [F] [client] (ItemEffect):
-  a gem's use, its last included, holds the category, so the Citrine waits 2 min after the Ruby and
-  the rune 2 min after the Citrine. The rune goes when missing **Demonic Rune when missing** (default
+  a gem's use, its last included, holds the category, so the second gem waits 2 min after the
+  first, and the rune 2 min after the second. The rune goes when missing **Demonic Rune when missing** (default
   1,500).
 - The **Major Mana Potion** has its own 2 min cooldown: when missing **Major Mana Potion when
   missing** (default 2,250).
@@ -482,7 +487,7 @@ the prefix below), in the Rotation tab's groups. A mana threshold is a share of 
 | 2 | Berserking (Troll), off the GCD | `racial.enabled`; on cooldown | on |
 | 3 | On-use trinkets, off the GCD | `trinkets.enabled`; on cooldown | on |
 | 4 | Power Infusion, off the GCD | `powerInfusion.enabled`, with Power Infusion selected in Buffs; ready | on (Buffs: off) |
-| 5 | Mana Ruby, then Mana Citrine | `manaGems.enabled`; missing 1,200 / 925 | on |
+| 5 | Mana Ruby or Mana Citrine, whichever fits first (the Ruby on a tie) | `manaGems.enabled`; missing 1,200 / 925 | on |
 | 6 | Major Mana Potion | `manaPotion.enabled`, selected in Buffs (Standard raid); missing `manaPotion.missingMana` | on, 2,250 |
 | 7 | Demonic Rune | `rune.enabled`, selected in Buffs (Max consumables); missing `rune.missingMana`; after the gems | on, 1,500 |
 | 8 | Evocation | `evocation.enabled`; mana ≤ `evocation.maxManaPct`, or below Fireball's cost | on, 0% |

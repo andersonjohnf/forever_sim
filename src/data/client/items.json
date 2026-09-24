@@ -4651,7 +4651,7 @@
         "enchantIds": [],
         "name": "EZ-Thro Dark Bomb",
         "section": "3.7 Engineering and explosives",
-        "spellIds": []
+        "spellIds": [1269334]
       },
       "docMismatches": [],
       "effects": [

@@ -5,6 +5,7 @@
 import { useEffect } from 'react'
 import { toast } from 'sonner'
 import { normalizeConfig, SPEC_META, type SimConfig } from '@/sim'
+import { showWhenClear } from './held-toasts'
 import { replacedDescription } from './load-notice'
 import { setupProblem, type SetupProblem } from './setup-code'
 import { useSetup } from './setup-store'
@@ -51,7 +52,12 @@ let latest = 0
 /** One notice at a time: a newer link's replaces this one's, loaded or refused. */
 const NOTICE_ID = 'shared-link'
 
-function loadSharedLink() {
+/**
+ * Loads the URL's link. `onOpen`: the page's own link, whose notice waits while What's New is open
+ * (src/app/held-toasts.ts); a link pasted in later says so at once.
+ */
+function loadSharedLink(onOpen = false) {
+  const notify = onOpen ? showWhenClear : (show: () => void) => show()
   // Reading a link takes it out of the URL before decoding it (src/app/share.ts), so a second
   // call for the same link (React's dev double effects) finds none, and doesn't count as a newer one.
   if (!hasSharedSetup()) return
@@ -59,31 +65,32 @@ function loadSharedLink() {
   readSharedSetup()
     .then((raw) => {
       if (raw === undefined || attempt !== latest) return
-      apply(raw)
+      apply(raw, notify)
     })
     .catch(() => {
       if (attempt !== latest) return
-      toast.error(BROKEN_LINK.title, { id: NOTICE_ID, description: BROKEN_LINK.description })
+      notify(() => toast.error(BROKEN_LINK.title, { id: NOTICE_ID, description: BROKEN_LINK.description }))
     })
 }
 
-function apply(raw: unknown) {
+function apply(raw: unknown, notify: (show: () => void) => void) {
   const read = readLinkSetup(raw)
   if (!read.ok) {
-    toast.error(read.title, { id: NOTICE_ID, description: read.description })
+    notify(() => toast.error(read.title, { id: NOTICE_ID, description: read.description }))
     return
   }
   const { config, warnings } = read
   const switched = config.spec !== useSetup.getState().config.spec
   useSetup.getState().replace(config)
-  toast('Loaded a shared setup', { id: NOTICE_ID, description: replacedDescription(config.spec, switched, warnings) })
+  notify(() => toast('Loaded a shared setup', { id: NOTICE_ID, description: replacedDescription(config.spec, switched, warnings) }))
 }
 
 /** Loads share links on open and on hashchange. Call once, from App. */
 export function useSharedLink() {
   useEffect(() => {
-    loadSharedLink()
-    window.addEventListener('hashchange', loadSharedLink)
-    return () => window.removeEventListener('hashchange', loadSharedLink)
+    loadSharedLink(true)
+    const pasted = () => loadSharedLink()
+    window.addEventListener('hashchange', pasted)
+    return () => window.removeEventListener('hashchange', pasted)
   }, [])
 }

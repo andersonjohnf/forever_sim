@@ -6,6 +6,7 @@ import { Header } from '@/app/header'
 import { useScrollFade } from '@/app/scroll-fade'
 import { SECTION_IDS, useSetup, type Section } from '@/app/setup-store'
 import { useSharedLink } from '@/app/shared-link'
+import { WhatsNew } from '@/app/whats-new'
 import { DataAttribution } from '@/components/data-attribution'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BuffsSection } from '@/features/buffs/buffs-section'
@@ -166,6 +167,8 @@ export default function App() {
       </div>
       {/* Screen readers hear bulk changes that have no visible notice (src/app/announce.ts). */}
       <Announcer />
+      {/* A returning visitor's first load of a newer release says what changed (docs/ux.md "What's new"). */}
+      <WhatsNew />
     </div>
   )
 }

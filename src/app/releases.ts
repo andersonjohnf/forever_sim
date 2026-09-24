@@ -1,0 +1,223 @@
+// The release notes: what each release brought players, newest first (docs/architecture.md
+// "Release notes"). Hand-written, not generated. Every push that brings player-facing changes adds
+// an entry at the top, written by CLAUDE.md's "Release updates" rules (player terms, numbers when a
+// result moves, no internals, no emoji), with the push's time. What's New shows a returning visitor
+// the entries they haven't seen (src/app/whats-new.tsx), and Release history lists them all.
+//
+// No imports: the e2e fixtures read this file too (e2e/fixtures.ts).
+
+/** One group of changes, labelled by who notices: "Tanks", a spec, "Your setup", "Fixes"… */
+export interface ReleaseGroup {
+  label: string
+  items: string[]
+}
+
+export interface Release {
+  /** Stable and unique, the release's date and its number that day: "2026-09-24.3". Never changed once pushed. */
+  id: string
+  /** When it went out: ISO 8601 with an offset ("Z" for UTC). */
+  time: string
+  groups: ReleaseGroup[]
+}
+
+/** Every release, newest first. */
+export const RELEASES: readonly Release[] = [
+  {
+    id: '2026-09-24.3',
+    time: '2026-09-24T18:46:19Z',
+    groups: [
+      {
+        label: 'Tanks',
+        items: [
+          'Protection Warrior about 980 to 1,130 TPS: a threat set that keeps about 90% of the old pre-raid best in slot set’s effective health.',
+          'Feral Bear about 690 to 1,080 TPS: Lacerate’s threat, Idol of Brutality, new talents and a threat set.',
+          'Protection Paladin about 425 to 820 TPS: spell damage enchants, Nightfin Soup and Wizard Oil, its own Judgement of the Crusader, and the full damage of Seal of Fury and Holy Strike.',
+          'Hammer of the Righteous is simulated, as an option in place of Holy Strike.',
+          'New default talents for Protection Paladin and Feral Bear.',
+          'Lacerate makes the high threat its tooltip promises, and Idol of Brutality takes 2 rage off Maul and Swipe.',
+          'A raid druid’s Thorns now reaches every tank in the raid presets.',
+          'Horde paladins get Horde pieces where the default gear is Alliance-only.',
+        ],
+      },
+      {
+        label: 'DPS specs',
+        items: [
+          'New: Marksmanship, Beast Mastery and Survival Hunters, with pets, ammo and quivers.',
+          'New: Demonology Warlock, with the Imp out by default.',
+          'Elemental Shaman +9.6% DPS: its raid preset brings Nightfin Soup and Brilliant Wizard Oil.',
+          'Retribution +1.4% DPS: Holy Strike’s bonus damage now adds in full, as its tooltip reads.',
+          'Fury’s Rotation tab is a priority list: drag a row, or use Move up and Move down, to change the order.',
+        ],
+      },
+      {
+        label: 'Everything else',
+        items: [
+          'Forever Sim now lives at sim.decades.gg and carries the Decades guild’s crest. Old links still open, shared setups included.',
+          'About shows when this release went out and its build.',
+          'On a phone, the result bar has a labelled Details button.',
+        ],
+      },
+    ],
+  },
+  {
+    id: '2026-09-24.2',
+    time: '2026-09-24T11:05:44Z',
+    groups: [
+      {
+        label: 'DPS specs',
+        items: [
+          'New: Enhancement and Elemental Shaman.',
+          'New: Combat, Assassination and Subtlety Rogue.',
+          'New: Fire, Frost and Arcane Mage.',
+          'New: Destruction and Affliction Warlock.',
+          'New: Shadow Priest and Balance Druid.',
+          'Each starts on its spec’s common priority, with pre-raid best in slot gear.',
+        ],
+      },
+      {
+        label: 'Casters',
+        items: [
+          'A caster’s character sheet shows spell damage by school, spell hit and crit, casting speed and mana.',
+          'Gear shows spell damage, spell hit, spell crit and spell penetration.',
+          'Buffs lists only what helps a caster: melee-only buffs are left out.',
+        ],
+      },
+    ],
+  },
+  {
+    id: '2026-09-24.1',
+    time: '2026-09-24T05:38:38Z',
+    groups: [
+      {
+        label: 'Tanks',
+        items: [
+          'New: Protection Warrior, Protection Paladin and Feral Bear, with TPS and DPS side by side.',
+          'Tank results show the damage you take and how the boss’s swings land on you.',
+          'Each tank’s Rotation tab has a Priority choice: tank duties first, the default, or Max TPS.',
+        ],
+      },
+      {
+        label: 'DPS specs',
+        items: [
+          'New: Feral Cat and Retribution Paladin.',
+          'Retribution’s results show its mana through the fight: what it spent, and what restored it.',
+          'Feral Cat’s results count its Clearcasting procs.',
+        ],
+      },
+      {
+        label: 'Your setup',
+        items: [
+          'The spec switcher lists specs under their class.',
+          'Each spec keeps its latest result while the page is open, so switching back brings it back.',
+        ],
+      },
+    ],
+  },
+  {
+    id: '2026-09-23.1',
+    time: '2026-09-23T22:54:59Z',
+    groups: [
+      {
+        label: 'Warriors',
+        items: [
+          'Simulate Fury and Arms Warriors at level 60, on WoW Forever’s own spell, talent, item and race data.',
+          'Both start on the best rotation the sim found: Arms +6.1% and Fury +6.4% DPS over the common priority.',
+        ],
+      },
+      {
+        label: 'Your setup',
+        items: [
+          'Gear starts on pre-raid best in slot, with enchants and a searchable item picker.',
+          'Buffs and consumables come in presets, from Self only to Max consumables.',
+          'Share copies a link to your exact setup.',
+          'Setups saves, loads and renames named setups, and moves them between browsers as codes or files.',
+          'Your setup is kept in this browser between visits.',
+        ],
+      },
+      {
+        label: 'Results',
+        items: [
+          'DPS with its ± range, a breakdown by ability, cooldowns, uptimes and bleeds.',
+          'Every result lists the assumptions it rests on that nobody has tested in game yet.',
+          'Switch to Classic Era rules under Character, Advanced, to compare.',
+        ],
+      },
+    ],
+  },
+]
+
+/** Where the id of the newest release this browser has seen is kept. */
+export const LAST_SEEN_RELEASE_KEY = 'forever-sim:last-seen-release'
+
+/**
+ * Keys only an earlier visit leaves: the automatic save (src/app/setup-store.ts) and the named
+ * setups (src/app/saved-setups.ts). Written as literals, since this file imports nothing;
+ * releases.test.ts holds them to those files' keys.
+ */
+export const EARLIER_VISIT_KEYS = ['forever-sim:setup', 'forever-sim:saved-setups'] as const
+
+const RELEASE_ID = /^(\d{4}-\d{2}-\d{2})\.(\d+)$/
+
+/**
+ * Orders two release ids: by their date, then by the day's number, numerically ("…24.10" after
+ * "…24.9"). Negative when `a` is older, positive when newer, NaN when either isn't a release id.
+ */
+export function compareReleaseIds(a: string, b: string): number {
+  const x = RELEASE_ID.exec(a)
+  const y = RELEASE_ID.exec(b)
+  if (!x || !y) return Number.NaN
+  if (x[1] !== y[1]) return x[1] < y[1] ? -1 : 1
+  return Number(x[2]) - Number(y[2])
+}
+
+/**
+ * The releases newer than `seenId`, newest first. None for a first visit (no id) or an id the list
+ * doesn't have (it can't be placed, so the whole history isn't dumped on the visitor).
+ */
+export function releasesSince(seenId: string | null, releases: readonly Release[] = RELEASES): Release[] {
+  if (seenId === null) return []
+  const at = releases.findIndex((r) => r.id === seenId)
+  return at < 0 ? [] : releases.slice(0, at)
+}
+
+type ReleaseStorage = Pick<Storage, 'getItem' | 'setItem'>
+
+/**
+ * What What's New shows on this load (docs/ux.md "What's new"): the releases since the one this
+ * browser last saw. Stores the newest id as it goes, so a release is shown once, whether or not it's
+ * dismissed.
+ *
+ * - No id stored: a first visit shows nothing. But a browser with an automatic save or named setups
+ *   (EARLIER_VISIT_KEYS) was here before What's New shipped, so it's treated as having seen the
+ *   release before the newest, and shown the newest alone. Call this before anything writes the
+ *   automatic save on this load, or a first visit would pass for an earlier one.
+ * - An id the list doesn't know shows nothing. It's replaced by the newest only if it sorts older
+ *   (or isn't a release id at all): a newer one, from a later release a newer tab has seen, is kept,
+ *   so going back to that release doesn't show it again.
+ * - Storage that can't be read shows nothing (it couldn't remember that it had); storage that can't
+ *   be written still shows what's new this time.
+ */
+export function checkReleases(storage: ReleaseStorage | null, releases: readonly Release[] = RELEASES): Release[] {
+  const newest = releases[0]?.id
+  if (!storage || !newest) return []
+  let seen: string | null
+  let earlierVisit = false
+  try {
+    seen = storage.getItem(LAST_SEEN_RELEASE_KEY)
+    if (seen === null) earlierVisit = EARLIER_VISIT_KEYS.some((key) => storage.getItem(key) !== null)
+  } catch {
+    return []
+  }
+  const known = seen !== null && releases.some((r) => r.id === seen)
+  // NaN for a junk id, which isn't newer, so it's replaced.
+  const unknownNewer = seen !== null && !known && compareReleaseIds(seen, newest) > 0
+  if (seen !== newest && !unknownNewer) {
+    try {
+      storage.setItem(LAST_SEEN_RELEASE_KEY, newest)
+    } catch {
+      // Full or blocked: shown now, and maybe again next time.
+    }
+  }
+  if (seen === null) return earlierVisit ? releases.slice(0, 1) : []
+  return releasesSince(seen, releases)
+}

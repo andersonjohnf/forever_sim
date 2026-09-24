@@ -46,7 +46,8 @@ export { CRUSH_MIN_LEVEL_GAP, DEFENSE_PER_POINT, mobSkill, PLAYER_LEVEL } from '
 /**
  * Specs whose sim and UI are complete (docs/ux.md principle 8): Fury from M2.2c, Arms from M2.3c,
  * Protection, the first tank, from P2, the Feral cat from B2, Retribution from C2, the Protection
- * paladin from C3, the Feral bear from B4, the Enhancement shaman from S1, and the three rogues from R1.
+ * paladin from C3, the Feral bear from B4, the Enhancement shaman from S1, the three rogues from R1, the
+ * three mages from K2, and the Destruction and Affliction warlocks from K3.
  */
 const AVAILABLE: ReadonlySet<SpecId> = new Set([
   'warrior-fury',
@@ -65,6 +66,9 @@ const AVAILABLE: ReadonlySet<SpecId> = new Set([
   'mage-fire',
   'mage-frost',
   'mage-arcane',
+  // docs/classes/warlock.md: landed under D27's first-pass defaults (K3).
+  'warlock-destruction',
+  'warlock-affliction',
 ])
 
 /**
@@ -115,6 +119,7 @@ export function unusedRotationSettings(config: Pick<SimConfig, 'spec' | 'talents
     raceName: raceName(config.race),
     othersBleed: othersKeepBleeding(config.buffs.raid),
     buffGroups: filledBuffGroups(config.buffs.enabled, config.buffs.raid, config.spec, [...maintainedBuffs(config.spec, values), ...talentBuffs(config)]),
+    talents: talentRanksByName(TALENT_DATA[SPEC_META[config.spec].classId], config.talents),
   })
 }
 

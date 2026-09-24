@@ -332,6 +332,8 @@ for (const width of [1280, 390]) {
     test.use({ viewport: { width, height: 900 } })
 
     test('keep the value and its unit apart: Fury’s rage, s and %, the cat’s Energy and combo points, the Fight tab’s', async ({ page }) => {
+      // It opens and closes every Fury row's sheet on a phone.
+      test.slow(width < 1024)
       const tab = await openRotation(page)
       for (const button of await tab.getByRole('button', { name: /^Advanced settings for/ }).all()) await button.click()
       await unitsClear(page, 1)

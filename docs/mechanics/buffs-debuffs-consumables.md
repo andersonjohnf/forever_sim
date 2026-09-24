@@ -641,7 +641,8 @@ blessing whoever casts it, so it counts once.
 ### 6.2 Buffs and debuffs by preset
 
 `DPS` = Arms, Fury, Cat, Ret · `Tank` = Prot warrior, Bear, Prot paladin · `Pal` = paladin
-specs only (the effect does nothing for the others) · `all` = every spec.
+specs only (the effect does nothing for the others) · `all` = every spec · `Pal (your own)`,
+`Druid (your own)` = that class's buff it casts on itself (`selfCast`), which Self only brings.
 
 Spirit and Intellect are mana, and among the classes in scope only the paladin spends mana in a
 rotation the sim ships: a warrior has none, and a Feral druid spends none in its form. The cat

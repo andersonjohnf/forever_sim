@@ -14,7 +14,7 @@ reader [`lib/spellbook.mjs`](../../scripts/scrape/lib/spellbook.mjs), the talent
 | | |
 | --- | --- |
 | Source | `https://wago.tools/api/casc/<fdid>?version=<build>` (raw client files, [D16](../decisions.md#d16-use-the-wagotools-api-with-attribution-2026-09-22)), parsed with [WoWDBDefs](https://github.com/wowdev/WoWDBDefs) |
-| Forever build | `wow_classic_beta` · `1.60.1.69913` (wago.tools lists it as created 2026-09-18) |
+| Forever build | `wow_classic_beta` · `1.60.1.70009` (wago.tools lists it as created 2026-09-24); 1.60.1.69913 until 2026-09-24 ([client.md § Re-running](client.md#re-running)) |
 | Classic build | `wow_classic_era` · `1.15.9.69722` |
 | Generated | 2026-09-23 (`meta.scrapedAt` is the latest download among the files read: the Classic Era `ItemSubClass` table, fetched 02:51 UTC) |
 
@@ -307,7 +307,7 @@ client `meta` envelope. **Changed:** `missing` adds Sanctity Aura, which the sit
 
 ## Caveats
 
-- **Beta data.** Client build 1.60.1.69913. Re-run and diff after each beta build.
+- **Beta data.** Client build 1.60.1.70009. Re-run and diff after each beta build.
 - **Raw client files, no hotfixes** ([client.md § Hotfix caveat](client.md#hotfix-caveat)).
   The foreverchanges dataset, which saw hotfixes, agreed with every cost, cast time, cooldown
   and range, so no spellbook hotfix showed in this build. A later build's hotfixes can't be

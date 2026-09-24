@@ -16,7 +16,7 @@ Interfaces and two small helpers (`racesForClass`, `racialEffectForClass`) are i
 | | |
 | --- | --- |
 | Source | `https://wago.tools/api/casc/<fdid>?version=<build>` (raw client files, [D16](../decisions.md#d16-use-the-wagotools-api-with-attribution-2026-09-22)), parsed with [WoWDBDefs](https://github.com/wowdev/WoWDBDefs) |
-| Forever build | `wow_classic_beta` · `1.60.1.69913` (wago.tools lists it as created 2026-09-18) |
+| Forever build | `wow_classic_beta` · `1.60.1.70009` (wago.tools lists it as created 2026-09-24); 1.60.1.69913 until 2026-09-24 ([client.md § Re-running](client.md#re-running)) |
 | Classic build | `wow_classic_era` · `1.15.9.69722` (`meta.classicBuild`, `null` in the foreverchanges dataset) |
 | Generated | 2026-09-23 (`meta.scrapedAt` is the latest download among the files read: the Classic Era `ItemSubClass` table, fetched 02:51 UTC) |
 

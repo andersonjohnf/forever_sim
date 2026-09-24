@@ -11,8 +11,8 @@ Interfaces are in [`src/data/client/types.ts`](../../src/data/client/types.ts); 
 
 | | |
 | --- | --- |
-| Source | `https://wago.tools/api/casc/<fdid>?version=1.60.1.69913` (raw client files by FileDataID) |
-| Product · build | `wow_classic_beta` · `1.60.1.69913` (wago.tools lists it as created 2026-09-18 03:02:04) |
+| Source | `https://wago.tools/api/casc/<fdid>?version=1.60.1.70009` (raw client files by FileDataID) |
+| Product · build | `wow_classic_beta` · `1.60.1.70009` (wago.tools lists it as created 2026-09-24 22:02:03); until 2026-09-24, `1.60.1.69913` (created 2026-09-18), which the docs' `[client]` citations name ([Re-running](#re-running)) |
 | Classic Era baseline | `wow_classic_era` · `1.15.9.69722` (read only for the doc-claim comparisons below) |
 | Definitions | WoWDBDefs commit [`2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e`](https://github.com/wowdev/WoWDBDefs/tree/2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e) (2026-09-22) |
 | Scraped | 2026-09-22 (`meta.scrapedAt`, the latest download time of the files a dataset reads) |
@@ -41,7 +41,7 @@ Only the documented API endpoints are called, and the fetch layer
 
 | Endpoint | Used for |
 | --- | --- |
-| `GET https://wago.tools/api/builds/wow_classic_beta/latest` | confirm the build (`1.60.1.69913`) |
+| `GET https://wago.tools/api/builds/wow_classic_beta/latest` | confirm the build (`1.60.1.70009`) |
 | `GET https://wago.tools/api/builds` | the build list (every product), for the requested build's creation date; cached per build |
 | `GET https://wago.tools/api/files?version=<build>&format=json` | the build's file list: FileDataIDs of the game tables, whether a DB2 ships in the build, icon file names |
 | `GET https://wago.tools/api/casc/<fdid>?version=<build>` | each raw DB2 and game-table file, once |
@@ -86,7 +86,10 @@ first-release fixes (F2) added **1 more**, HTTP 200: wago.tools' build list, `/a
 (`SpellLevels`, `SpellEquippedItems` in both builds) was cached. The ranged and pet core (H1) added
 **6 more**, all HTTP 200: `ItemDamageAmmo` and `CreatureFamily` from Forever 1.60.1.69977 and Classic
 Era 1.15.9.69722, and their two `.dbd` files; its review added **1 more**, `ItemDamageAmmo` from
-1.60.1.69913 ([Tables the docs cite](#tables-the-docs-cite)).
+1.60.1.69913 ([Tables the docs cite](#tables-the-docs-cite)). The 1.60.1.70009 regeneration
+(2026-09-24) added **79 more**, all HTTP 200 and all to wago.tools: the latest-build lookup, the
+build list, the build's file list and 76 raw files from `/api/casc` for 1.60.1.70009 (one of them
+for `--claims`); WoWDBDefs was not re-pinned, so none went to GitHub ([Re-running](#re-running)).
 
 A later run from the cache makes no requests. A fresh build costs 44 wago.tools requests for
 the datasets (38 DB2 files, 4 game tables, the build lookup and the file list), about 30 more
@@ -641,6 +644,26 @@ the citations committed since the last run as `docs` sources: 18194 and 25742 ne
 `spells.json`; 15438, 25121, 25122, 1249513 and 1249520 gained the source. The engine doesn't
 read `src/data/client` (its numbers are written out in `src/sim` and checked against it by tests),
 and no test reads these records from it, so no test or golden moved.
+
+The 1.60.1.70009 run (2026-09-24, the build wago.tools listed as created 22:02:03 that day; 79
+requests, [Requests](#requests)) took the new beta build with `npm run scrape --
+--version=1.60.1.70009 --diff`, then the races, items and client scrapers on their own. **The
+talent trees stay at 1.60.1.69913:** the talent scraper refuses the new build, and rightly. It
+moves build-code positions (paladin Holy loses Improved Holy Strike and Retribution loses
+Crusade, shifting every later position; Feral Combat's Mangle and Primal Fury become Primal Bite
+and Blood Frenzy; Elemental swaps Elemental Fury and Elemental Alacrity), and four stored codes
+no longer decode (the Retribution and Protection paladin defaults and the Holy build: Unyielding
+Faith is now 2 ranks; the Elemental default: Elemental Alacrity is now 3). Taking it needs the
+app to migrate stored codes and new defaults first, then `--accept-code-changes`
+([README § Refreshing](README.md#refreshing)). So this commit mixes builds: spellbooks, races,
+items and `src/data/client` at 1.60.1.70009, talents at 1.60.1.69913, and `talents.json` here
+maps the old trees onto the new client (Improved Holy Strike and Crusade unmapped; Mangle and
+Primal Fury matched by position). The claim check (`--claims`) now reads 115 match, 4 partly,
+10 differ; the differences are the values this build changed: Sunder Armor's threat effect
+(1013 → 206 at rank 5), Holy Strike (10 s, 50% weapon at rank 8), Vengeance (3 stacks), Slam
+(18 s), Overpower's window stacks, Bloodthrill's proc mask, Windfury Totem's aura, the Frenzy
+potions (now attack power) and Righteous Fury (+60%). The engine's constants still carry the
+1.60.1.69913 values, so the tests that check them against this data fail until each is adopted.
 
 ### What the docs decide
 

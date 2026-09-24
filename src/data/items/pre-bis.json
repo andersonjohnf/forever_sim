@@ -5,15 +5,15 @@
     "counts": {
       "byTab": {
         "changed": 370,
-        "missing": 780,
+        "missing": 783,
         "new": 330,
-        "unchanged": 249
+        "unchanged": 246
       },
       "items": 1729,
       "sets": 102,
       "statsFrom": {
-        "classic": 780,
-        "forever": 949
+        "classic": 783,
+        "forever": 946
       }
     },
     "descriptionCoverage": {
@@ -58,13 +58,13 @@
           "usedBy": ["item 16022"]
         }
       ],
-      "rendered": 546
+      "rendered": 545
     },
     "fallbackEffects": {
       "effectsFromForever": 116,
-      "items": 527,
-      "spells": 653,
-      "spellsFromForever": 653
+      "items": 529,
+      "spells": 655,
+      "spellsFromForever": 655
     },
     "filter": {
       "equippableOnly": true,
@@ -84,8 +84,8 @@
         "reqLevel": [40, 60]
       }
     },
-    "foreverBuild": "1.60.1.69913",
-    "foreverBuildDate": "2026-09-18",
+    "foreverBuild": "1.60.1.70009",
+    "foreverBuildDate": "2026-09-24",
     "noClientRow": [
       {
         "id": 272491,
@@ -411,7 +411,7 @@
         },
         "ratingPerUnit": 1,
         "replaces": ["defense"],
-        "samples": 64,
+        "samples": 63,
         "unit": "rating per point of Defense"
       },
       "dodgeRating": {
@@ -440,7 +440,7 @@
         "unit": "rating per 1% parry"
       }
     },
-    "scrapedAt": "2026-09-24T10:38:00Z",
+    "scrapedAt": "2026-09-24T22:51:28Z",
     "scraper": "scripts/scrape/items-client.mjs",
     "source": "https://wago.tools/api/casc",
     "tables": {
@@ -8465,8 +8465,8 @@
       "classicName": null,
       "equipSlots": ["neck"],
       "flavor": null,
-      "foreverData": true,
-      "foreverSource": "client",
+      "foreverData": false,
+      "foreverSource": null,
       "icon": "inv_jewelry_necklace_03",
       "id": 18678,
       "itemClass": "Armor",
@@ -8491,8 +8491,8 @@
         "intellect": 5,
         "stamina": 8
       },
-      "statsFrom": "forever",
-      "tab": "unchanged",
+      "statsFrom": "classic",
+      "tab": "missing",
       "unique": false,
       "uniqueEquipped": null,
       "useEffects": [],
@@ -67596,27 +67596,19 @@
       "armorType": null,
       "binding": "BoE",
       "classes": null,
-      "classic": {
-        "stats": {
-          "defense": 3,
-          "stamina": 8,
-          "strength": 8
-        },
-        "weapon": null,
-        "weaponSkill": null
-      },
+      "classic": null,
       "classicName": null,
       "equipSlots": ["finger"],
       "flavor": null,
-      "foreverData": true,
-      "foreverSource": "client",
+      "foreverData": false,
+      "foreverSource": null,
       "icon": "inv_jewelry_ring_14",
       "id": 18674,
       "itemClass": "Armor",
       "itemLevel": 59,
       "itemSubclass": "Miscellaneous",
       "name": "Hardened Stone Band",
-      "notes": [],
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 7516 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
         {
@@ -67634,14 +67626,14 @@
       "setId": null,
       "slot": "finger",
       "source": null,
-      "statSpellIds": [],
+      "statSpellIds": [7516],
       "stats": {
-        "defenseRating": 3,
+        "defense": 3,
         "stamina": 8,
         "strength": 8
       },
-      "statsFrom": "forever",
-      "tab": "changed",
+      "statsFrom": "classic",
+      "tab": "missing",
       "unique": false,
       "uniqueEquipped": null,
       "useEffects": [],
@@ -69448,7 +69440,7 @@
       "flavor": null,
       "foreverData": true,
       "foreverSource": "client",
-      "icon": "inv_jewelry_ring_28",
+      "icon": "inv_jewelry_ring_20",
       "id": 272064,
       "itemClass": "Armor",
       "itemLevel": 63,
@@ -74303,7 +74295,7 @@
       "preRaidBis": [],
       "procs": [
         {
-          "raw": "Chance on hit: Heal self for 270 to 450 and Increases Strength by 120 for 30 sec.",
+          "raw": "Chance on hit: Heal yourself for 270 to 450 and increase your Strength by 120 for 30 sec.",
           "spellId": 16916
         }
       ],
@@ -79098,7 +79090,7 @@
       "preRaidBis": [],
       "procs": [
         {
-          "raw": "Chance on hit: Blasts a target for 35 Fire damage.",
+          "raw": "Chance on hit: Blasts a target for 90 Fire damage.",
           "spellId": 13442
         }
       ],
@@ -80568,7 +80560,7 @@
       "preRaidBis": [],
       "procs": [
         {
-          "raw": "Chance on hit: Target's movement slowed by 30% and increasing the time between attacks by 25% for 5 sec.",
+          "raw": "Chance on hit: Slows the target's movement speed by 30% and increases the time between their attacks by 25% for 5 sec.",
           "spellId": 16927
         }
       ],
@@ -81228,7 +81220,7 @@
       "preRaidBis": [],
       "procs": [
         {
-          "raw": "Chance on hit: Steals 210 life from target enemy.",
+          "raw": "Chance on hit: Steals 85 life from target enemy.",
           "spellId": 17505
         }
       ],
@@ -83560,13 +83552,13 @@
       "itemLevel": 59,
       "itemSubclass": "Fist Weapon",
       "name": "Gargoyle Shredder Talons",
-      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spell 18202 read from the Forever client."],
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spell 1320824 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [],
       "procs": [
         {
-          "raw": "Chance on hit: Wounds the target causing them to bleed for 98 damage over 14 sec.",
-          "spellId": 18202
+          "raw": "Chance on hit: Wounds the target causing them to bleed for 140 damage over 14 sec.",
+          "spellId": 1320824
         }
       ],
       "quality": 3,
@@ -84837,15 +84829,15 @@
       "classicName": null,
       "equipSlots": ["offHand"],
       "flavor": null,
-      "foreverData": true,
-      "foreverSource": "client",
+      "foreverData": false,
+      "foreverSource": null,
       "icon": "inv_ore_arcanite_02",
       "id": 11904,
       "itemClass": "Armor",
       "itemLevel": 56,
       "itemSubclass": "Miscellaneous",
       "name": "Spirit of Aquementas",
-      "notes": [],
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 14799 read from the Forever client."],
       "otherEquip": [],
       "preRaidBis": [
         {
@@ -84883,12 +84875,12 @@
       "setId": null,
       "slot": "heldInOffHand",
       "source": null,
-      "statSpellIds": [],
+      "statSpellIds": [14799],
       "stats": {
         "spellPower": 20
       },
-      "statsFrom": "forever",
-      "tab": "unchanged",
+      "statsFrom": "classic",
+      "tab": "missing",
       "unique": false,
       "uniqueEquipped": null,
       "useEffects": [],
@@ -88349,9 +88341,22 @@
     },
     {
       "armorType": null,
-      "binding": null,
+      "binding": "BoP",
       "classes": null,
-      "classic": null,
+      "classic": {
+        "stats": {
+          "agility": 11
+        },
+        "weapon": {
+          "dps": 37.3,
+          "max": 146,
+          "min": 78,
+          "school": "Physical",
+          "skill": "Thrown",
+          "speed": 3
+        },
+        "weaponSkill": null
+      },
       "classicName": null,
       "equipSlots": ["ranged"],
       "flavor": null,
@@ -88380,7 +88385,7 @@
         "agility": 11
       },
       "statsFrom": "forever",
-      "tab": "unchanged",
+      "tab": "changed",
       "unique": false,
       "uniqueEquipped": null,
       "useEffects": [],
@@ -91818,20 +91823,12 @@
           "pieces": 3,
           "spellId": 7598,
           "text": "Improves your chance to get a critical strike with melee attacks by 2.0%."
-        },
-        {
-          "parsed": {
-            "fireResistance": 10
-          },
-          "pieces": 4,
-          "spellId": 14590,
-          "text": "+10 Fire Resistance."
         }
       ],
       "bonusesFrom": "forever",
-      "itemIds": [15050, 15051, 15052, 16984],
+      "itemIds": [15050, 15051, 15052],
       "name": "Black Dragon Mail",
-      "size": 4
+      "size": 3
     },
     "491": {
       "bonuses": [

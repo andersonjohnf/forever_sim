@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": "1.60.1.69913",
-    "buildCreatedAt": "2026-09-18 03:02:04",
+    "build": "1.60.1.70009",
+    "buildCreatedAt": "2026-09-24 22:02:03",
     "product": "wow_classic_beta",
-    "scrapedAt": "2026-09-22T23:09:33Z",
+    "scrapedAt": "2026-09-24T22:50:53Z",
     "scraper": "scripts/scrape/client.mjs",
     "source": "https://wago.tools/api/casc",
     "tables": {
@@ -4990,7 +4990,7 @@
     "items": 1729,
     "withEffects": 255,
     "withItemRow": 1729,
-    "withItemSparseRow": 949
+    "withItemSparseRow": 946
   },
   "items": {
     "868": {
@@ -5360,7 +5360,7 @@
         "iconFileDataId": 132790,
         "inventoryType": 23,
         "material": 3,
-        "sheatheType": 7,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": null
@@ -5761,7 +5761,7 @@
         "iconFileDataId": 134335,
         "inventoryType": 23,
         "material": 3,
-        "sheatheType": 7,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": null
@@ -6360,32 +6360,10 @@
         "iconFileDataId": 134564,
         "inventoryType": 23,
         "material": 3,
-        "sheatheType": 7,
+        "sheatheType": 3,
         "subclassId": 0
       },
-      "itemSparse": {
-        "allowableClass": -1,
-        "allowableRace": [-1, -1],
-        "bonding": 1,
-        "damageType": 0,
-        "display": "Spirit of Aquementas",
-        "dmgVariance": 0.2,
-        "flags": [0, 24580, 0, 0, 0],
-        "inventoryType": 23,
-        "itemDelay": 0,
-        "itemLevel": 56,
-        "itemRange": 0,
-        "itemSet": 0,
-        "material": 3,
-        "maxCount": 0,
-        "overallQualityId": 2,
-        "requiredLevel": 0,
-        "requiredSkill": 0,
-        "requiredSkillRank": 0,
-        "sheatheType": 7,
-        "statModifierBonusStat": [45, -1, -1, -1, -1, -1, -1, -1, -1, -1],
-        "statPercentEditor": [14286, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-      }
+      "itemSparse": null
     },
     "11924": {
       "effects": [],
@@ -6512,7 +6490,7 @@
         "iconFileDataId": 134337,
         "inventoryType": 23,
         "material": 3,
-        "sheatheType": 7,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": null
@@ -9507,7 +9485,7 @@
         "iconFileDataId": 135471,
         "inventoryType": 23,
         "material": 3,
-        "sheatheType": 7,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": null
@@ -10039,7 +10017,7 @@
         "iconFileDataId": 133737,
         "inventoryType": 23,
         "material": 3,
-        "sheatheType": 7,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": null
@@ -10237,7 +10215,7 @@
           "legacySlotIndex": 0,
           "playerConditionId": 0,
           "spellCategoryId": 0,
-          "spellId": 18202,
+          "spellId": 1320824,
           "triggerType": 2
         }
       ],
@@ -10403,7 +10381,7 @@
         "iconFileDataId": 133730,
         "inventoryType": 23,
         "material": 3,
-        "sheatheType": 7,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": null
@@ -12665,7 +12643,7 @@
         "iconFileDataId": 133941,
         "inventoryType": 23,
         "material": 3,
-        "sheatheType": 7,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": null
@@ -12800,7 +12778,7 @@
         "iconFileDataId": 135148,
         "inventoryType": 23,
         "material": 3,
-        "sheatheType": 7,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": {
@@ -12822,7 +12800,7 @@
         "requiredLevel": 0,
         "requiredSkill": 0,
         "requiredSkillRank": 0,
-        "sheatheType": 7,
+        "sheatheType": 3,
         "statModifierBonusStat": [51, 52, 56, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [5263, 5263, 5263, 0, 0, 0, 0, 0, 0, 0]
       }
@@ -19561,7 +19539,7 @@
         "iconFileDataId": 134336,
         "inventoryType": 23,
         "material": 3,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": null
@@ -21573,7 +21551,7 @@
         "iconFileDataId": 134333,
         "inventoryType": 23,
         "material": 3,
-        "sheatheType": 7,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": null
@@ -21742,7 +21720,7 @@
         "iconFileDataId": 133738,
         "inventoryType": 23,
         "material": 8,
-        "sheatheType": 7,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": null
@@ -21819,7 +21797,7 @@
         "iconFileDataId": 133738,
         "inventoryType": 23,
         "material": 4,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": {
@@ -21841,7 +21819,7 @@
         "requiredLevel": 0,
         "requiredSkill": 0,
         "requiredSkillRank": 0,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "statModifierBonusStat": [7, 46, 88, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [6315, 6315, 6842, 0, 0, 0, 0, 0, 0, 0]
       }
@@ -21992,29 +21970,7 @@
         "sheatheType": 0,
         "subclassId": 0
       },
-      "itemSparse": {
-        "allowableClass": -1,
-        "allowableRace": [-1, -1],
-        "bonding": 2,
-        "damageType": 0,
-        "display": "Hardened Stone Band",
-        "dmgVariance": 0,
-        "flags": [0, 24580, 0, 0, 0],
-        "inventoryType": 11,
-        "itemDelay": 0,
-        "itemLevel": 59,
-        "itemRange": 0,
-        "itemSet": 0,
-        "material": 1,
-        "maxCount": 0,
-        "overallQualityId": 2,
-        "requiredLevel": 54,
-        "requiredSkill": 0,
-        "requiredSkillRank": 0,
-        "sheatheType": 0,
-        "statModifierBonusStat": [4, 7, 12, -1, -1, -1, -1, -1, -1, -1],
-        "statPercentEditor": [5714, 5714, 2143, 0, 0, 0, 0, 0, 0, 0]
-      }
+      "itemSparse": null
     },
     "18676": {
       "effects": [],
@@ -22040,29 +21996,7 @@
         "sheatheType": 0,
         "subclassId": 0
       },
-      "itemSparse": {
-        "allowableClass": -1,
-        "allowableRace": [-1, -1],
-        "bonding": 2,
-        "damageType": 0,
-        "display": "Tempestria's Frozen Necklace",
-        "dmgVariance": 0,
-        "flags": [0, 24580, 0, 0, 0],
-        "inventoryType": 2,
-        "itemDelay": 0,
-        "itemLevel": 61,
-        "itemRange": 0,
-        "itemSet": 0,
-        "material": 3,
-        "maxCount": 0,
-        "overallQualityId": 3,
-        "requiredLevel": 56,
-        "requiredSkill": 0,
-        "requiredSkillRank": 0,
-        "sheatheType": 0,
-        "statModifierBonusStat": [7, 5, 52, -1, -1, -1, -1, -1, -1, -1],
-        "statPercentEditor": [4000, 2500, 7500, 0, 0, 0, 0, 0, 0, 0]
-      }
+      "itemSparse": null
     },
     "18680": {
       "effects": [],
@@ -22228,7 +22162,7 @@
         "iconFileDataId": 133738,
         "inventoryType": 23,
         "material": 8,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": null
@@ -24426,7 +24360,7 @@
         "iconFileDataId": 133733,
         "inventoryType": 23,
         "material": 8,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": {
@@ -24448,7 +24382,7 @@
         "requiredLevel": 60,
         "requiredSkill": 0,
         "requiredSkillRank": 0,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "statModifierBonusStat": [89, 43, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [12593, 1111, 0, 0, 0, 0, 0, 0, 0, 0]
       }
@@ -24461,7 +24395,7 @@
         "iconFileDataId": 133738,
         "inventoryType": 23,
         "material": 8,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": {
@@ -24483,7 +24417,7 @@
         "requiredLevel": 60,
         "requiredSkill": 0,
         "requiredSkillRank": 0,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "statModifierBonusStat": [7, 88, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [2963, 12593, 0, 0, 0, 0, 0, 0, 0, 0]
       }
@@ -24496,7 +24430,7 @@
         "iconFileDataId": 133743,
         "inventoryType": 23,
         "material": 8,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": {
@@ -24518,7 +24452,7 @@
         "requiredLevel": 60,
         "requiredSkill": 0,
         "requiredSkillRank": 0,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "statModifierBonusStat": [5, 87, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [3333, 12593, 0, 0, 0, 0, 0, 0, 0, 0]
       }
@@ -24531,7 +24465,7 @@
         "iconFileDataId": 133741,
         "inventoryType": 23,
         "material": 8,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": {
@@ -24553,7 +24487,7 @@
         "requiredLevel": 60,
         "requiredSkill": 0,
         "requiredSkillRank": 0,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "statModifierBonusStat": [85, -1, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [14815, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       }
@@ -24566,7 +24500,7 @@
         "iconFileDataId": 133749,
         "inventoryType": 23,
         "material": 3,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": {
@@ -24588,7 +24522,7 @@
         "requiredLevel": 60,
         "requiredSkill": 0,
         "requiredSkillRank": 0,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "statModifierBonusStat": [5, 45, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [0, 11666, 0, 0, 0, 0, 0, 0, 0, 0]
       }
@@ -27147,7 +27081,7 @@
         "iconFileDataId": 133728,
         "inventoryType": 23,
         "material": 3,
-        "sheatheType": 7,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": null
@@ -30928,7 +30862,7 @@
       "itemSparse": {
         "allowableClass": -1,
         "allowableRace": [-1, -1],
-        "bonding": 0,
+        "bonding": 1,
         "damageType": 0,
         "display": "Assassin's Throwing Axe",
         "dmgVariance": 0.6,
@@ -33909,7 +33843,7 @@
         "iconFileDataId": 133738,
         "inventoryType": 23,
         "material": 7,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": null
@@ -34130,7 +34064,7 @@
         "iconFileDataId": 133739,
         "inventoryType": 23,
         "material": 7,
-        "sheatheType": 7,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": null
@@ -34234,7 +34168,7 @@
         "iconFileDataId": 135469,
         "inventoryType": 23,
         "material": 8,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": null
@@ -37161,7 +37095,7 @@
         "iconFileDataId": 133727,
         "inventoryType": 23,
         "material": 2,
-        "sheatheType": 7,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": null
@@ -40135,7 +40069,7 @@
       "id": 272064,
       "item": {
         "classId": 4,
-        "iconFileDataId": 133370,
+        "iconFileDataId": 133362,
         "inventoryType": 11,
         "material": 4,
         "sheatheType": 0,
@@ -50020,7 +49954,7 @@
         "iconFileDataId": 0,
         "inventoryType": 23,
         "material": 7,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "subclassId": 0
       },
       "itemSparse": {
@@ -50042,7 +49976,7 @@
         "requiredLevel": 53,
         "requiredSkill": 0,
         "requiredSkillRank": 0,
-        "sheatheType": 0,
+        "sheatheType": 3,
         "statModifierBonusStat": [7, 41, 6, 42, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [5259, 11570, 5258, 3857, 0, 0, 0, 0, 0, 0]
       }

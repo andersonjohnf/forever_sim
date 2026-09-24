@@ -2,8 +2,8 @@
   "meta": {
     "classicBuild": "1.15.9.69722",
     "classicProduct": "wow_classic_era",
-    "foreverBuild": "1.60.1.69913",
-    "foreverBuildDate": "2026-09-18",
+    "foreverBuild": "1.60.1.70009",
+    "foreverBuildDate": "2026-09-24",
     "noClientData": [
       {
         "acquireMethod": 0,
@@ -355,7 +355,7 @@
       }
     ],
     "product": "wow_classic_beta",
-    "scrapedAt": "2026-09-23T02:51:35Z",
+    "scrapedAt": "2026-09-24T22:47:45Z",
     "scraper": "scripts/scrape/spells-client.mjs",
     "source": "https://wago.tools/api/casc",
     "tables": {
@@ -4992,7 +4992,7 @@
       "id": "hunter-multi-shot",
       "isTalent": false,
       "level": 18,
-      "maxRank": 1,
+      "maxRank": null,
       "name": "Multi-Shot",
       "races": null,
       "ranks": [
@@ -5070,13 +5070,13 @@
               "raw": "8-35 yd range",
               "yards": 35
             },
-            "rankLabel": "Rank 1",
+            "rankLabel": null,
             "requires": "Bows, Guns, Crossbows",
             "school": "physical",
             "spellId": 2643,
             "text": "Fires several missiles, hitting 3 targets. Multi-Shot shares its cooldown with Aimed Shot."
           },
-          "rank": 1
+          "rank": null
         },
         {
           "classic": {
@@ -5688,7 +5688,7 @@
       "id": "hunter-scorpid-sting",
       "isTalent": false,
       "level": 22,
-      "maxRank": 1,
+      "maxRank": null,
       "name": "Scorpid Sting",
       "races": null,
       "ranks": [
@@ -5752,13 +5752,13 @@
               "raw": "8-35 yd range",
               "yards": 35
             },
-            "rankLabel": "Rank 1",
+            "rankLabel": null,
             "requires": "Bows, Guns, Crossbows",
             "school": "nature",
             "spellId": 3043,
             "text": "Stings the target, reducing the target's chance to hit with attacks by 2% for 20 sec. Only one Sting per Hunter can be active on any one target."
           },
-          "rank": 1
+          "rank": null
         },
         {
           "classic": {
@@ -10297,7 +10297,7 @@
             "requires": "Melee Weapon",
             "school": "physical",
             "spellId": 1317257,
-            "text": "A powerful kick that deals 100% melee weapon damage."
+            "text": "A powerful kick that deals 100% melee weapon damage and increases movement speed by 30% for 3 sec."
           },
           "rank": 1
         }

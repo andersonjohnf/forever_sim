@@ -323,7 +323,7 @@ sets. Each spec's defaults are then its results.
 - [ ] **O2 Gear:** per-slot candidates from the pool (item level range, sources, faction, class,
       locked slots), enchants, unique-equipped, two-hand vs dual wield, set bonuses, hit caps;
       coordinate ascent with restarts; talents, gear and rotation alternated until stable
-- [ ] **O3 In the app (after M5.65):** an Optimize flow (what to search, constraints, a search budget, progress
+- [ ] **O3 In the app (after M5.65):** the Optimizer, named so in the app (user decision), a flow (what to search, constraints, a search budget, progress
       and cancel, the top results with their TPS and DPS and one-tap apply) at 390 and 1280 px
 - [ ] **O4 Defaults from the optimizer:** every spec's talents, gear and rotation, confirmed on a
       fresh seed, tanks after M5.6's threat fixes

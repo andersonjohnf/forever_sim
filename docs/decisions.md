@@ -477,7 +477,8 @@ had no known number was modelled with none. Both are now rules:
   the guild's in-game tests or to combat logs.
 
 ### D30: The sim finds the best talents, gear and rotation itself; defaults are its results (2026-09-24)
-User decision, now the top priority. Talent builds, gear sets and rotations have a numerically
+User decision, now the top priority. The feature is called **the Optimizer** (user's name for it;
+not "Top Gear", which is Raidbots'). Talent builds, gear sets and rotations have a numerically
 best answer for a given setup, so the sim searches for it rather than assuming one, as Raidbots'
 Top Gear and the retail optimizers do:
 - **An optimizer in the engine and the app.** It runs tens of thousands of fights over

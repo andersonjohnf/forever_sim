@@ -56,7 +56,7 @@ npm run lint         # oxlint
 npm test             # vitest: unit and data-integrity tests
 npm run test:e2e     # Playwright: headless Chromium against the production build
 npm run test:smoke   # the smoke suite each deploy runs: core unit files + e2e tagged @smoke
-npm run test:full    # lint, typecheck, every unit and e2e test (before every push)
+npm run test:full    # lint, typecheck, unit tests, scrape:check (if cached), e2e (before every push)
 npm run snap         # screenshot + console/network check (add -- --dark --width 390 for phone/dark)
 ```
 

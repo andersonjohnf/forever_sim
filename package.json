@@ -13,7 +13,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:smoke": "vitest run --config vitest.smoke.config.ts && playwright test --grep @smoke",
-    "test:full": "npm run lint && npm run typecheck && npm test && npm run test:e2e",
+    "test:full": "npm run lint && npm run typecheck && npm test && npm run scrape:check -- --if-cached && npm run test:e2e",
     "snap": "node scripts/snap.mjs --build",
     "scrape:spells": "node scripts/scrape/spells-client.mjs",
     "scrape:talents": "node scripts/scrape/talents-client.mjs",
@@ -24,7 +24,8 @@
     "diff:talents": "node scripts/scrape/talents-client.mjs --diff",
     "diff:spells": "node scripts/scrape/spells-client.mjs --diff",
     "diff:races": "node scripts/scrape/races-client.mjs --diff",
-    "scrape": "node scripts/scrape/all.mjs"
+    "scrape": "node scripts/scrape/all.mjs",
+    "scrape:check": "node scripts/scrape/all.mjs --check"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

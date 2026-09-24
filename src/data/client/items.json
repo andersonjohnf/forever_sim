@@ -2243,7 +2243,7 @@
         "enchantIds": [],
         "name": "Nightfin Soup",
         "section": "3.4 Food",
-        "spellIds": []
+        "spellIds": [1249513]
       },
       "docMismatches": [],
       "effects": [
@@ -2971,7 +2971,7 @@
         "enchantIds": [2628],
         "name": "Brilliant Wizard Oil",
         "section": "3.6 Weapon enhancements (temporary)",
-        "spellIds": []
+        "spellIds": [25122]
       },
       "docMismatches": [],
       "effects": [
@@ -3027,7 +3027,7 @@
         "enchantIds": [2627],
         "name": "Wizard Oil",
         "section": "3.6 Weapon enhancements (temporary)",
-        "spellIds": []
+        "spellIds": [25121]
       },
       "docMismatches": [],
       "effects": [

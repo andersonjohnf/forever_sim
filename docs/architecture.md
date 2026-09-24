@@ -524,10 +524,12 @@ A spec is data plus small ability modules, never its own loop.
     share codes and the sim's API) and the e2e tests tagged `@smoke`: the app opens, every
     section opens without an error, Fury and Arms simulate, a share link restores, the phone
     layout, and Setups save and load.
-  - The **full suite** (`npm run test:full`: lint, typecheck, every unit and e2e test) runs
-    before every push, as the review gate's first step. The **Full regression** workflow also
-    runs it on the deploy's platform (Linux x64, Node from `.nvmrc`), beside the deploy on every
-    push to `main`, and by hand (Actions → Full regression → Run workflow).
+  - The **full suite** (`npm run test:full`: lint, typecheck, every unit test, the committed-data
+    check `npm run scrape:check` and every e2e test) runs before every push, as the review gate's
+    first step. The **Full regression** workflow also runs it on the deploy's platform (Linux
+    x64, Node from `.nvmrc`), beside the deploy on every push to `main`, and by hand (Actions →
+    Full regression → Run workflow); it has no client cache, so its data check is skipped there
+    ([data/README.md § Checking the committed data](data/README.md#checking-the-committed-data)).
   - Tag an e2e test `{ tag: '@smoke' }` only if it covers a core flow, and keep the suite
     small.
 

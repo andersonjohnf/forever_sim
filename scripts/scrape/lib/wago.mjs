@@ -41,7 +41,11 @@ export function assertCommitSha(sha) {
   return sha;
 }
 
-export function createClientSource({ fetcher, cacheDir, version, dbdefsSha }) {
+/**
+ * `readOnly`: don't write the parsed-table and game-table copies (<version>/tables, <version>/gametables)
+ * the cache keeps next to the raw files (a generator's --check writes nothing; lib/output.mjs).
+ */
+export function createClientSource({ fetcher, cacheDir, version, dbdefsSha, readOnly = false }) {
   assertBuildVersion(version);
   assertCommitSha(dbdefsSha);
   const manifestCache = { value: null };
@@ -129,7 +133,7 @@ export function createClientSource({ fetcher, cacheDir, version, dbdefsSha }) {
       matchedBy,
       byId: new Map(parsed.rows.map((r) => [r.ID, r])),
     };
-    writeParsedCache(result);
+    if (!readOnly) writeParsedCache(result);
     tableCache.set(name, result);
     return result;
   }
@@ -182,9 +186,11 @@ export function createClientSource({ fetcher, cacheDir, version, dbdefsSha }) {
     if (!fdid) return { file: fileName, fdid: null, present: false };
     const buf = await casc(fdid);
     const parsed = parseGameTable(buf.toString("utf8"));
-    const out = path.join(cacheDir, version, "gametables", `${path.basename(fileName, ".txt")}.json`);
-    fs.mkdirSync(path.dirname(out), { recursive: true });
-    fs.writeFileSync(out, `${JSON.stringify({ file: fileName, fdid, ...parsed })}\n`);
+    if (!readOnly) {
+      const out = path.join(cacheDir, version, "gametables", `${path.basename(fileName, ".txt")}.json`);
+      fs.mkdirSync(path.dirname(out), { recursive: true });
+      fs.writeFileSync(out, `${JSON.stringify({ file: fileName, fdid, ...parsed })}\n`);
+    }
     return { file: fileName, fdid, present: true, ...parsed };
   }
 

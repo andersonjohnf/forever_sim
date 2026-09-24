@@ -12,6 +12,11 @@
 //   --against   the git ref whose dataset is "committed" (default HEAD)
 //   --fixtures  regenerate scripts/scrape/lib/__fixtures__/item-stats.json (unit-test rows); on
 //               its own it doesn't write the pool
+//   --check     from the cache alone, compare the pool with the file in src/data, writing nothing
+//               to src/data or the cache; exits non-zero if it differs. It regenerates the build
+//               and WoWDBDefs commit the committed data records unless --version/--dbdefs
+//               say otherwise; --fresh=<dir> also keeps the fresh generation under <dir>
+//               (all.mjs --check; lib/output.mjs)
 //
 // Downloads go through lib/wago.mjs (documented wago.tools API only, one request at a time,
 // cached under .cache/client/, once per build). Zero dependencies (Node >= 22). The derivation
@@ -25,6 +30,7 @@ import { createFetcher } from "./lib/http.mjs";
 import { buildPool, measureRatingConversions } from "./lib/item-pool.mjs";
 import { ITEM_GAMETABLES, ITEM_TABLES, createItemContext } from "./lib/item-stats.mjs";
 import { compareText, stableStringify } from "./lib/json.mjs";
+import { checkConflicts, createOutput, recordedSource } from "./lib/output.mjs";
 import { SPELL_TEXT_TABLES, createSpellTextContext } from "./lib/spell-text.mjs";
 import { buildDate, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
 
@@ -107,20 +113,22 @@ const PRODUCT = "wow_classic_beta";
 const BASELINE_PRODUCT = "wow_classic_era";
 const DEFAULT_BASELINE = "1.15.9.69722";
 
-const opts = { write: false, diff: false, fixtures: false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
+const opts = { write: false, diff: false, fixtures: false, refresh: false, check: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
 for (const arg of process.argv.slice(2)) {
   const m = /^--([a-z]+)(?:=(.*))?$/.exec(arg);
   if (!m) usage(`Unknown argument: ${arg}`);
   const [, key, value] = m;
-  if (["write", "diff", "fixtures", "refresh"].includes(key) && value === undefined) opts[key] = true;
-  else if (["version", "baseline", "dbdefs", "against"].includes(key) && value) opts[key] = value;
+  if (["write", "diff", "fixtures", "refresh", "check"].includes(key) && value === undefined) opts[key] = true;
+  else if (["version", "baseline", "dbdefs", "against", "fresh"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
+for (const conflict of checkConflicts(opts)) usage(conflict);
 if (!opts.fixtures || opts.diff) opts.write = true;
 function usage(msg) {
-  console.error(`${msg}\nUsage: node ${SCRAPER} [--write] [--diff] [--against=<git ref>] [--fixtures] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
+  console.error(`${msg}\nUsage: node ${SCRAPER} [--write] [--diff] [--against=<git ref>] [--fixtures] [--refresh] [--check [--fresh=<dir>]] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
   process.exit(2);
 }
+const output = createOutput({ repoRoot: REPO_ROOT, check: opts.check, fresh: opts.fresh });
 
 const errors = [];
 const warnings = [];
@@ -131,18 +139,19 @@ const warn = (msg) => warnings.push(msg);
 // Tables
 // ---------------------------------------------------------------------------
 
-const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh });
-const latest = await latestBuild(fetcher, PRODUCT);
-const version = opts.version ?? latest.version;
+const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh, offline: opts.check });
+// --check regenerates the build the committed data records, not the cache's latest (lib/output.mjs).
+const recorded = opts.check ? recordedSource(path.join(REPO_ROOT, OUT_FILE)) : {};
+const version = opts.version ?? recorded.version ?? (await latestBuild(fetcher, PRODUCT)).version;
 /** The build's creation date on wago.tools, from its build list (lib/wago.mjs buildRecord). */
 const foreverBuildDate = await buildDate(fetcher, PRODUCT, version);
-const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs);
+const dbdefsSha = await wowDbDefsCommit(fetcher, opts.dbdefs ?? recorded.dbdefs);
 
 /** Tables beyond the derivation and the text renderer: names, limits, icons, races. */
 const LOOKUP_TABLES = ["ItemSubClass", "Faction", "SkillLine", "ItemLimitCategory", "ChrClasses", "ChrRaces", "CharBaseInfo", "ItemModifiedAppearance", "ItemAppearance"];
 
 async function load(key, build, { lookups = false } = {}) {
-  const source = createClientSource({ fetcher, cacheDir: CACHE_DIR, version: build, dbdefsSha });
+  const source = createClientSource({ fetcher, cacheDir: CACHE_DIR, version: build, dbdefsSha, readOnly: opts.check });
   const tables = {};
   const used = new Map(); // table → FileDataID
   const names = [...new Set([...ITEM_TABLES, ...SPELL_TEXT_TABLES, ...(lookups ? LOOKUP_TABLES : ["ChrClasses"])])];
@@ -363,8 +372,9 @@ async function write() {
     return;
   }
   const text = stableStringify(out);
-  fs.writeFileSync(outPath, text);
-  console.log(`\nWrote ${OUT_FILE}: ${items.length} items, ${Object.keys(sets).length} sets (${(text.length / 1024).toFixed(0)} KB)`);
+  output.write(outPath, text);
+  if (!opts.check) console.log(`\nWrote ${OUT_FILE}: ${items.length} items, ${Object.keys(sets).length} sets (${(text.length / 1024).toFixed(0)} KB)`);
+  output.finish();
 }
 
 function printSummary(out, report) {

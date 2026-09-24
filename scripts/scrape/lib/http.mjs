@@ -85,7 +85,12 @@ export function cachePath(cacheDir, cacheKey) {
   return file;
 }
 
-export function createFetcher({ cacheDir, refresh = false, log = console.log, fetchImpl = fetch }) {
+/**
+ * `offline`: answer from the cache only, and throw for anything it lacks instead of fetching it
+ * (a generator's --check, lib/output.mjs).
+ */
+export function createFetcher({ cacheDir, refresh = false, offline = false, log = console.log, fetchImpl = fetch }) {
+  if (offline && refresh) throw new Error("an offline fetcher can't refresh the cache");
   let lastRequestAt = 0;
   let requests = 0;
   let cacheHits = 0;
@@ -125,6 +130,7 @@ export function createFetcher({ cacheDir, refresh = false, log = console.log, fe
         return fs.readFileSync(file);
       }
     }
+    if (offline) throw new Error(`${url} isn't in the cache (${path.relative(process.cwd(), file)}), and an offline run makes no requests`);
     for (let attempt = 0; ; attempt++) {
       let res;
       let error;

@@ -110,7 +110,7 @@ test.describe('the Gear tab’s default set button (docs/ux.md "Gear")', () => {
       await gear.getByRole('button', { name: 'Gear options' }).click()
       await page.getByRole('menuitem', { name: 'Remove all gear' }).click()
       await expect(page.getByRole('menuitem', { name: /Equip/ })).toHaveCount(0)
-      const differs = 'slots differ from pre-raid best in slot: Head, Neck, Shoulders and \\d+ more\\. Equipping it replaces all '
+      const differs = 'slots differ from pre-raid best in slot: Head, Neck, Shoulders and \\d+ more\\. Equipping it fills all\\s'
       await expect(equip).toHaveAccessibleDescription(new RegExp(`^(\\d+) ${differs}\\1\\.$`))
       expect((await equip.boundingBox())!.height).toBeGreaterThanOrEqual(44)
 

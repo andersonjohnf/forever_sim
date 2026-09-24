@@ -7,12 +7,14 @@ baseline is well understood (a damage-based formula with conversion constant 230
 of rage set by weapon speed (3.46 × speed with a one-hander and 4.5 × speed with a
 two-hander). Crits give no extra rage. Misses, dodges and parries give none. Each hit you take
 gives `10 × its damage before armor, block and absorbs ÷ your maximum health`, which about 2,000
-logged beta hits fit. The beta tracker confirms the normalization is intentional. Forever
-also adds 5-rage procs on blocks, dodges and parries, and makes Tactical Mastery baseline. Both
-models are documented below. The Forever model is the engine default. It still counts as
-unverified (`[?]`) until it has been measured at level 60.
+logged beta hits fit. Two bears' logs of 23–24 Sep suggest it also rises with the attacker's
+level ([bear logs](#bear-logs-of-23-and-24-sep-)); the default doesn't change until more logs
+settle it. The beta tracker confirms the normalization is intentional. Forever also adds 5-rage
+procs on blocks, dodges and parries, and makes Tactical Mastery baseline. Both models are
+documented below. The Forever model is the engine default. It still counts as unverified (`[?]`)
+until it has been measured at level 60.
 
-Status: researched 2026-09-22; rage from damage taken and rounding 2026-09-23 (beta logs of 18–22 Sep, build 1.60.1) · Forever client build 1.60.1.69913 · Classic Era 1.15.9.69722 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
+Status: researched 2026-09-22; rage from damage taken and rounding 2026-09-23 (beta logs of 18–22 Sep, build 1.60.1); two bears' logs of 23–24 Sep recorded 2026-09-24, defaults unchanged · Forever client build 1.60.1.69913 · Classic Era 1.15.9.69722 · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 
 **Client-data values.** Values cited as `[client] (Table, build)` come from the raw Forever
 client files (build 1.60.1.69913; Classic Era 1.15.9.69722 for the Classic halves), read through
@@ -165,7 +167,7 @@ server-side, so the client tables can't confirm it.
 | Hasted or base speed | Base (unhasted) weapon speed | With the hasted interval, haste would be rage-neutral per second. Both Forever sims use base speed. |
 | Level scaling | None: the same `k` at every level | Nothing points to scaling, but it is untested. |
 | Extra attacks (Windfury, Sword procs, Reckoning) | Give rage like a normal landed hit | Same as Classic. Untested. |
-| Bear form | The one-hander's `k × 2.5 s` = 8.65 per landed bear auto | Unmeasured. Players report "these rage changes also affect bears". The ElliotWood sim uses the 1H factor on the bear's 2.5 s attack. |
+| Bear form | The one-hander's `k × 2.5 s` = 8.65 per landed bear auto | Players report "these rage changes also affect bears". The ElliotWood sim uses the 1H factor on the bear's 2.5 s attack. One logged bear auto gave 11.3, the two-hander's `4.5 × 2.5` ([bear logs](#bear-logs-of-23-and-24-sep-), n = 1); the default stays until 20 or more are logged. |
 
 ### Outcome summary for a white swing
 
@@ -235,7 +237,8 @@ rage = 2.5 × damageTaken / c(L)      // c(60) = 230.6  →  1 rage per 92.24 da
 ```
 rage per hit that lands on you = 10 × D_pre / maxHealth
 D_pre = the hit's damage before armor, block, absorbs and damage-taken modifiers
-        (a crit or crushing blow at its multiplied size [?])
+        (a crit at 2 × and a crushing blow at 1.5 × the log's unmitigated amount;
+        measured on two bears, see the bear logs below)
 blocked, partly or fully:   full rage (D_pre is unchanged)
 absorbed, partly or fully:  full rage [?]
 miss, dodge, parry:         0
@@ -269,12 +272,16 @@ rage is unchanged by this analysis ([above](#forever-normalized-rage-per-swing-)
   cooldown with several attackers; no rage from avoided attacks.
 - **What's assumed** `[?]`:
   - It holds at level 60, where a tank has 6,000–8,000 maximum health and takes 4,000–6,000 per
-    boss hit before armor. **The logs can't tell maximum health from a level term**: both rose
-    together in them. A term in level instead of health would change level-60 rage.
+    boss hit before armor. **The 18–22 Sep logs can't tell maximum health from a level term**:
+    both rose together in them. The [bear logs of 23–24 Sep](#bear-logs-of-23-and-24-sep-) keep
+    the division by maximum health but find the factor rising with the attacker's level, or
+    with the level gap. The default stays at 10 until that is settled.
   - Damage-taken modifiers (Defensive Stance −10%, Berserker Stance +10%, Death Wish +5%,
     Recklessness +20%) don't change `D_pre`: the log's unmitigated amount, which the rage
     follows, is the hit before all mitigation. Untested: the logs show no hits in those stances.
-  - A crit counts at 2 × and a crushing blow at 1.5 × the hit's `D_pre`.
+  - A crit counts at 2 × and a crushing blow at 1.5 × the log's unmitigated amount. The
+    [bear logs](#bear-logs-of-23-and-24-sep-) measure this against mobs of level 25–56 (38
+    crits and crushing blows); it is untested at 60.
   - Several attackers still count in full on later builds.
 - **The sim's maximum health uses a placeholder for base health** (1,689 for a warrior),
   which isn't measured at 60
@@ -298,6 +305,136 @@ in its rules (`rules.damageTakenRage`), though the app has no control for it yet
 
 Rage from damage taken is still the least certain rage number for Forever tanks at 60. Open
 question 1 lists the tests that would settle it.
+
+### Bear logs of 23 and 24 Sep [?]
+
+A combat-log sheet from two Bear Form druids ([sheet][bear-sheet]) adds what the earlier logs
+couldn't separate: the attacker's level. It is the first evidence that rage per hit taken
+**rises with the mob's level**. It is tagged `[?]` and **not adopted**: it comes from two testers,
+not a guild test, and D22 asks for a result that holds across many independent characters
+([D22](../decisions.md#d22-reproducible-log-analyses-can-set-server-side-forever-defaults-2026-09-23)).
+
+**Provenance.** Build 1.60.1, realms ClassicBetaPvE and ClassicBetaPvE2, logged 23 and 24 Sep
+2026 with advanced combat logging. Both characters were in Bear Form and were hit by mobs.
+
+| Character | Level | Hit by (mob level) | Max health, armor |
+| --- | --- | --- | --- |
+| Liwiec, Tauren | 20. The log doesn't give it; it follows from Bear Form's attack power (`30 + 3 × (L − 10)`) and health (`20 + 18 × (L − 10)`, before the Tauren 5%) | Highborne Apparition (45), Winterspring Owl (55) | 1,011, armor 1,514 |
+| Perseis | About 20–22 (not in the log) | Nightbane Worgen (26), Black Ravager Mastiff (25); later Sky Shadow (56) | 893 and then 613 (armor 1,570, then 669) against the level 25–26 mobs; 980 (armor 1,710) against Sky Shadow |
+
+**What the log's unmitigated field is.** The advanced log's second damage field is the hit
+before armor **and** before the crit or crushing multiplier. On every hit, the damage taken is
+that amount after armor, × 2 for a crit and × 1.5 for a crushing blow. So:
+
+```
+D_pre = unmitigated        (a normal hit)
+      = unmitigated × 2    (a crit)
+      = unmitigated × 1.5  (a crushing blow)
+```
+
+**Method.** As [above](#forever-): for each clean hit (no cast, shift or other rage source since
+the previous power snapshot), the factor is `F = rage gained × maxHealth ÷ D_pre`, where the
+default's `F` is 10. Each fight's `F` is fitted on its hits' sums, so carried fractions
+([rounding](#rounding)) cancel. The raw tabs are in the sheet, so anyone can re-run it.
+
+| Fight | Character | Mob (level) | Hits | Max health | `F` |
+| --- | --- | --- | --- | --- | --- |
+| 23 Sep 16:42 | Perseis | Nightbane Worgen (26) | 9 | 893 | 11.02 |
+| 23 Sep 18:29 | Perseis | Nightbane Worgen (26) | 5 | 613 | 10.94 |
+| 23 Sep 18:29 | Perseis | Black Ravager Mastiff (25) | 7 | 613 | 10.49 |
+| 23 Sep 18:55 | Perseis | Sky Shadow (56) | 5 | 980 | 15.96 |
+| 24 Sep 17:52 | Liwiec | Highborne Apparition (45) | 10 | 1,011 | 13.72 |
+| 24 Sep 18:07 | Liwiec | Winterspring Owl (55) | 13 | 1,011 | 15.53 |
+
+That's 49 hits over 6 fights. The residual per hit is 0.28–0.43 tenths of rage, which is the
+log's rounding floor. By attacker level:
+
+| Attacker level | `F` |
+| --- | --- |
+| 25–26 | 10.5–11.0 |
+| 45 | 13.7 |
+| 55 | 15.5 |
+| 56 | 16.0 |
+
+**What it shows:**
+
+- **Maximum-health normalization holds.** Perseis's maximum health fell from 893 to 613 (armor
+  1,570 to 669), and against the same Worgen `F` stayed at 11.02 and 10.94, within 1%. The
+  health-lost models don't fit (`foreverHealthLost`, and Classic's `c`): against that Worgen,
+  `10 × health lost ÷ maxHealth`'s factor went from 17.5 to 13.6 as armor fell.
+- **Crits and crushing blows count at their multiplied size.** Within each fight, `F` for normal
+  hits, crits and crushing blows agrees within 2%. For example, against the Worgen at 893 health
+  it was 11.06 for hits (5), 10.90 for crits (2) and 11.12 for crushes (2); against the owl, 15.48
+  for crushes (10) and 15.65 for crits (3). This measures the default's rule: `D_pre` counts a
+  crit at 2 × and a crushing blow at 1.5 ×.
+- **`F` rises with the mob's level.** Two models fit every fight within about 2%:
+
+  ```
+  attacker level:  F = 6.64 + 0.162 × mobLevel                  (weighted fit, 49 hits)
+  level gap:       F ≈ 10 + 0.16 × (mobLevel − playerLevel)     (about 1.6% per level)
+  ```
+
+  The level-gap fit is within 2% of every fight if Perseis is level 18–20, and within 2.6% and
+  3.5% at 21 and 22. The two models can't be told apart here, because both characters are about
+  level 20.
+- **Only the level-gap model agrees with the earlier logs.** They show `F` flat at 9.6–9.9 from
+  level 5 to 25, against mobs of about the character's own level ([above](#forever-)). The level-gap
+  model gives about 10 at any level when the gap is 0. The attacker-level model gives 7.5 against
+  a level-5 mob and 10.7 against a level-25 one, a slope the earlier logs don't show.
+- **At level 60 against a level-63 boss** (a probe of the default setups, 5,000 fights each on
+  the same seeds, changing only `F`):
+
+  | Model | `F` at 60 vs 63 | Protection warrior TPS | Bear TPS | Fury DPS |
+  | --- | --- | --- | --- | --- |
+  | Default | 10 | 1,134.4 | 1,081.3 | 713.0 |
+  | Level gap | about 10.5 (10.2–10.7 as Perseis's level goes from 19 to 22) | +0.4% | +1.1% | unchanged |
+  | Attacker level | about 16.5 (the fit gives 16.8) | +4.9% | +8.5% | unchanged |
+
+**Bear white rage.** One clean bear auto, a glancing hit for 9, gave +11.3 rage. That is
+`4.5 × 2.5` = 11.25, the two-hander's rate, where the default gives `3.46 × 2.5` = 8.65
+([bear rage](#bear-druid-rage)). It matches one player's report of about 11 per hit
+([US 2355684 #97][f-bear]). It is one swing (n = 1), read across a Bash cast in the same
+millisecond with Bash's 10-rage cost added back. If it holds, bear TPS rises 1.8% (1,081.3 to
+1,100.4), and 8.7% together with the attacker-level model's `F`.
+
+**Other sources in these logs:**
+
+- Dodges and misses give 0 rage, as [above](#forever-).
+- Where two mobs were hitting Perseis (23 Sep 18:29), each mob's hits counted in full.
+- Enrage's instant +10 rage is confirmed ([bear rage](#bear-druid-rage)): Perseis's rage rose by
+  exactly 10.0 between two snapshots with nothing else in between, as Enrage lowered the armor
+  from 1,570 to 1,146.
+- Two Rend ticks from mobs gave about 2 × the same fight's swing rate: 11 damage gave +0.4 rage
+  (`F` 22.3), and 29 damage gave +0.9 (`F` 30.4). Armor doesn't reduce a bleed, so this fits the
+  [low-armor doubling](#forever-) being a mitigation threshold. **Not modelled** (n = 2).
+- Each shift into Bear Form started at 0 rage: the first power reading in form is the first hit's
+  own gain. This is weak evidence for the reset (open question 6): each shift came before the pull,
+  when rage had most likely decayed to 0 already, so a reset and a carried-over pool look the
+  same.
+
+**The defaults don't change** (user decision, 2026-09-24: "change no numbers yet"). `F` stays 10
+and a bear auto 8.65 until the logs below settle them, because:
+
+- The data is two characters at about level 20, and the two models disagree on the effect at 60
+  by more than tenfold (+0.4% or +4.9% Protection warrior TPS).
+- The bear already runs above the guild's benchmark: 1,081.9 TPS by default
+  ([druid.md §7.3a](../classes/druid.md#73a-interim-gear-m56-t3)), against 800–900
+  ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24),
+  logged under [milestones T6](../milestones.md#m56-tanks-reviewed-against-the-guild-d28-d29-)).
+  Both changes would raise it further.
+
+**Logs that would settle it** (advanced combat logging and `UNIT_POWER_UPDATE`, recording each
+hit as in [open question 1](#open-questions)):
+
+1. **Level gap or attacker level.** One character hit by the same mob type at several relative
+   levels (the mob 0, +3 and +10 levels above you), then a second character at a different level
+   against the same mobs. If `F` follows the gap, the level-gap model holds; if it follows the
+   mob's level alone, the attacker-level model does.
+2. **A level-60 tank against a level-63 mob**, which settles the value the sim uses directly.
+3. **20 or more bear autos with nothing else giving rage** (no hits taken, no Enrage, Furor or
+   Primal Fury), to confirm 11.25 or 8.65 per landed swing.
+4. **Rend or other spell ticks alongside swings from the same mob**, to measure the periodic
+   rate against the swing rate on one character.
 
 ---
 
@@ -458,13 +595,13 @@ Rage changes nothing else about stances. Stance threat and damage modifiers are 
 
 | Rule | Classic Era | Forever | Tags / source |
 | --- | --- | --- | --- |
-| Shifting into Bear or Dire Bear Form | Rage set to 0 | Assumed the same | [C] common Classic knowledge; Forever untested [?] |
+| Shifting into Bear or Dire Bear Form | Rage set to 0 | Assumed the same | [C] common Classic knowledge; Forever [?]: the [bear logs](#bear-logs-of-23-and-24-sep-) start each shift at 0, but each shift came before the pull, when it was likely 0 already (weak) |
 | Furor (5 ranks) | 20% per rank to gain 10 rage on shifting to bear | Same bear effect (Cat part reworked) | [F] [client] (CurvePoint, SpellEffect, 1.60.1.69913): curve 20…100, 17057 energize 100; [C] |
-| Rage from bear white hits | `7.5 × dmg / c` (same formula as warriors; bear attack speed 2.5 s) | Assumed `3.46 × 2.5` = 8.65 per landed auto, crits no bonus | [C]; Forever [?] (see [Forever model](#forever-normalized-rage-per-swing-)) |
+| Rage from bear white hits | `7.5 × dmg / c` (same formula as warriors; bear attack speed 2.5 s) | Assumed `3.46 × 2.5` = 8.65 per landed auto, crits no bonus. One logged auto gave 11.3 (`4.5 × 2.5`); not adopted, n = 1 | [C]; Forever [?] (see [Forever model](#forever-normalized-rage-per-swing-), [bear logs](#bear-logs-of-23-and-24-sep-)) |
 | Rage in Cat and caster form | Their power isn't rage | The sim gives no rage from white hits or hits taken outside bear; a hit taken still fires the damage-taken procs, and an energize adds rage in whatever form it fires in (outside bear, Natural Reaction and a Mighty Rage Potion; Furor's and Primal Fury's fire only in bear). A druid gains rage from hits taken only if its fight can be in bear (the plan's `rage.fromDamageTaken`), and then only while in bear | [?] (the sim's model; [druid.md §8](../classes/druid.md#8-implementation-notes) "Rage from hits", [§4.8](../classes/druid.md#48-bear-threat-and-druid-rage-numbers-summary-for-the-shared-docs)) |
-| Rage from damage taken | `2.5 × dmg / c` | Same model as warriors (`10 × D_pre / maxHealth`). 33 logged hits on likely bears fit it at a median ratio of 0.93. Whether Power Word: Shield stops it for bears is open. | [C]; Forever [?] ([damage taken](#forever-), open question 3) |
+| Rage from damage taken | `2.5 × dmg / c` | Same model as warriors (`10 × D_pre / maxHealth`). 33 logged hits on likely bears fit it at a median ratio of 0.93, and 49 hits on two known bears keep its division by maximum health, with a factor that rises with the mob's level (10.5–16.0; not adopted). Whether Power Word: Shield stops it for bears is open. | [C]; Forever [?] ([damage taken](#forever-), [bear logs](#bear-logs-of-23-and-24-sep-), open question 3) |
 | Maul | On-next-swing; the replaced swing gives no rage | Same | [C]; [F] spell unchanged (DB2 9881) |
-| Enrage (1 min CD, 10 s, lowers armor) | 20 rage over 10 s (2 rage/s) | **10 rage now, plus 20 over 10 s (30 total)** | [F] [client] (SpellEffect, 1.60.1.69913): 5229 energize 100 + periodic 20/s; [C] periodic only |
+| Enrage (1 min CD, 10 s, lowers armor) | 20 rage over 10 s (2 rage/s) | **10 rage now, plus 20 over 10 s (30 total)** | [F] [client] (SpellEffect, 1.60.1.69913): 5229 energize 100 + periodic 20/s; the instant 10 seen in the [bear logs](#bear-logs-of-23-and-24-sep-); [C] periodic only |
 | Improved Enrage | +5 / +10 instant | Removed (folded into Enrage) | [F] [class/druid](https://foreverchanges.pro/class/druid) |
 | Wolfshead Helm (item 8345) | +5 rage on shifting into bear | **+5 rage from Enrage** instead (the bonus on shifting is removed) | [F] per [druid.md](../classes/druid.md), which owns it |
 | Primal Fury (2 ranks) | 50% / 100% chance to gain 5 rage on any crit in bear form | Same bear effect (Cat part added) | [F][C] [client] (SpellEffect, 1.60.1.69913): 16959 energize 50 |
@@ -707,21 +844,28 @@ sample size (doctrine §2, tier 2).
 
 1. **Rage from damage taken: confirm the logged fit (highest priority for tank TPS).** The
    default, `10 × D_pre / maxHealth`, fits third-party logs at levels about 5–25 on the 18 Sep
-   build ([Forever](#forever-)). Turn on advanced combat logging and log `/combatlog` with
-   `UNIT_POWER_UPDATE`. For each hit, record the log's unmitigated amount, the health lost, any
-   blocked or absorbed amount, and your maximum health, armor and level. Take ≥50 hits per
-   condition. The tests:
+   build ([Forever](#forever-)). **Partly answered** by the
+   [bear logs of 23–24 Sep](#bear-logs-of-23-and-24-sep-) (two testers, `[?]`, defaults
+   unchanged): maximum-health normalization holds, the factor rises with the mob's level or the
+   level gap, two mobs' hits each count in full, and crits and crushing blows count at 2 × and
+   1.5 × the unmitigated amount. That section's "Logs that would settle it" list comes first.
+   Turn on advanced combat logging and log `/combatlog` with `UNIT_POWER_UPDATE`. For each hit,
+   record the log's unmitigated amount, the health lost, any blocked or absorbed amount, and your
+   maximum health, armor and level. Take ≥50 hits per condition. The tests:
    - **Several attackers on the current build** (2026-09-24 or later): rage per hit from 1 mob,
-     then from 3 or more at once. The 18 Sep logs show no cap or internal cooldown; a newer build
-     could add one.
+     then from 3 or more at once. The 18 Sep logs show no cap or internal cooldown, and the bear
+     logs of 23 Sep show two mobs' hits each counting in full; a newer build could add a cap.
    - **Maximum health or level:** at one level, change maximum health (Stamina gear, Power Word:
      Fortitude) with armor held; then compare two levels at about the same maximum health. The
-     logs can't tell the two apart, since both rose together in them.
+     18–22 Sep logs can't tell the two apart, since both rose together in them. The bear logs
+     confirm maximum health (893 to 613 kept the factor within 1%) and find a level term; which
+     one (the mob's level or the gap) is the open part.
    - **Berserker Rage** on and off, against the same mobs (item 5).
    - **Defensive Stance** against Battle Stance: does its −10% damage taken lower the rage? The
      default says no.
    - **Mob crits and crushing blows:** rage per crit or crush against a plain hit's. The default
-     counts them at 2 × and 1.5 × `D_pre`.
+     counts them at 2 × and 1.5 × `D_pre`; the bear logs agree within 2% (38 crits and crushes).
+     Confirm on a warrior.
    - **Power Word: Shield**, on a warrior and on a bear in form: rage from fully absorbed hits.
      Two logged hits and the tracker's triager say warriors still get it; forum reports
      disagree, and say bears get none.
@@ -741,7 +885,11 @@ sample size (doctrine §2, tier 2).
    get hit" ([US 2355684 #97][f-bear]); one anecdote, so the default stays. Log landed bear autos
    and the rage each gives. Does the damage-taken formula apply to bears too? 33 logged hits on
    likely bears fit it at a median ratio of 0.93 ([Forever](#forever-)); log rage per hit taken in
-   Bear Form as in item 1.
+   Bear Form as in item 1. **Partly answered** by the
+   [bear logs of 23–24 Sep](#bear-logs-of-23-and-24-sep-): 49 hits on two known bears fit the
+   damage-taken formula's shape, with a factor that rises with the mob's level; one clean bear
+   auto gave 11.3 rage, the two-hander's `4.5 × 2.5`. Not adopted (n = 1; the bear is already
+   above the guild's benchmark); log 20 or more autos with nothing else giving rage.
 4. **Refunds in Forever**: miss/dodge/parry refund percentage, and which abilities are exempt.
    Specifically:
    - Does Cleave refund? Magey says no; WarriorSim says yes.
@@ -754,7 +902,10 @@ sample size (doctrine §2, tier 2).
    For Forever, [wowsims/forever f9f9f21883][wsf-rage] uses ×2 as its own guess ("TODO: Ingame
    test needed"), also not adopted. Test: take a series of equal hits with and without Berserker
    Rage active.
-6. **Shapeshift rage reset.** Does shifting to bear still set rage to 0 in Forever?
+6. **Shapeshift rage reset.** Does shifting to bear still set rage to 0 in Forever? Weakly
+   supported by the [bear logs](#bear-logs-of-23-and-24-sep-): each shift started at 0, but came
+   before the pull, when rage had likely decayed to 0 already. Test: shift out and back in with rage
+   above 0 (no Furor).
 7. **Anger Management tick phase**: from the start of combat, or from when the talent is gained.
    It is a minor issue.
 8. **Classic dodge/parry 75% rule** (only matters in `classic` mode): is "would-be damage" taken
@@ -795,6 +946,7 @@ sample size (doctrine §2, tier 2).
 | [ElliotWood/Forever#252](https://github.com/ElliotWood/Forever/issues/252) | Beta combat-log measurement: rage per landed white hit ∝ weapon speed (63 pairs, 9 warriors, levels 10–15) | Forever (third-party measurement) |
 | [ClassicWoWCommunity/forever-bugs #47](https://github.com/ClassicWoWCommunity/forever-bugs/issues/47), [#72][fb72], [#78][fb78] | Crit normalization "intentional"; damage-taken rage measurements and fits; #78, closed 2026-09-23 as "[Incorrect Report]": a warrior hit through Power Word: Shield still gains rage, and hitting a shielded target gives none, by design | Forever (community tracker) |
 | [tzcnt/forever-data @c7d1746 › raw-logs][fd-logs] | 7 public advanced combat logs, 18–19 Sep 2026, build 1.60.1, many players: our 2026-09-23 re-analysis of rage from damage taken (about 2,000 hits; blocks, absorbs, several attackers, low armor, likely bears) | Forever (third-party logs) |
+| [Bear Form combat-log sheet][bear-sheet] | Two Bear Form druids' logs, 23–24 Sep 2026, build 1.60.1 (ClassicBetaPvE and ClassicBetaPvE2): 49 hits taken from mobs of level 25–56 at two maximum-health levels, one bear auto, Rend ticks, Enrage; our 2026-09-24 fit ([bear logs](#bear-logs-of-23-and-24-sep-)) | Forever (third-party logs, two testers) |
 | [1337LutZ's logs (gist)][lutz-gist] and [magey/forever-warrior#3][fw3] | 12 logs of one warrior at levels 8–9 (22 Sep 2026), and his write-up fitting `10 × damage before armor ÷ max health` | Forever (third-party measurement) |
 | [wowsims/forever f9f9f21883][wsf-rage] | A Forever sim's rage port (1337LutZ, 2026-09-22): 3.46 / 4.5, off hand half, damage taken as `10 × damage before armor ÷ max health`, Berserker Rage ×2 as a guess | Forever (secondary sim) |
 | Blizzard forums, Forever beta: [US 2354715 #2][f-pws1], [US 2356535 #1][f-pws2], [US 2358789 #2][f-pws3], [US 2353811 #103][f-2mobs], [US 2358514 #1][f-4th], [US 2355684 #25][f-geared], [US 2355684 #97][f-bear], [EU 630258][f-eu1], [EU 630912][f-eu2] | Player impressions: Power Word: Shield and rage, several mobs, low rage from being hit, a bear's ~11 rage per auto | Forever beta (anecdotal) |
@@ -810,6 +962,7 @@ sample size (doctrine §2, tier 2).
 [client]: ../data/client.md#doc-claims-checked-against-the-raw-client
 [fd-logs]: https://github.com/tzcnt/forever-data/tree/c7d17462c50d1eb0103aa5e2aff52f77f33e3418/raw-logs
 [lutz-gist]: https://gist.github.com/077264a1aada001889e5ce0f47674623
+[bear-sheet]: https://docs.google.com/spreadsheets/d/1weJmcrnK-Zj7tW6iWY4InpKZRsJ9c685fxzn0Ec-qXs
 [fb72]: https://github.com/ClassicWoWCommunity/forever-bugs/issues/72
 [fb78]: https://github.com/ClassicWoWCommunity/forever-bugs/issues/78
 [fw3]: https://github.com/magey/forever-warrior/issues/3

@@ -120,7 +120,7 @@ const common = (spec: WarlockSpec, d: WarlockDefaults): { head: RotationOption[]
         id: ID.racial,
         group: 'Cooldowns and buffs',
         label: 'Racial cooldown',
-        help: 'Use Blood Fury (Orc: +10% spell power for 15 s), Berserking (Troll: +10% casting speed for 10 s) or Eureka! (Gnome: your next 3 spells cost 50% less and deal 10% more) on cooldown from the pull.',
+        help: 'Use Blood Fury (Orc: +10% spell power for 15 s), Berserking (Troll: +10% casting speed for 10 s) or Eureka! (Gnome: your next 3 spells cost 10% less and deal 10% more) on cooldown from the pull.',
         default: true,
       },
       {

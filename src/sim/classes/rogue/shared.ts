@@ -78,7 +78,7 @@ export const cooldownOptions = (ids: RogueIds): RotationOption[] => [
     id: ids.racial,
     group: 'Cooldowns and buffs',
     label: 'Racial cooldown',
-    help: 'Use Blood Fury (Orc, +10% attack power for 15 s), Berserking (Troll, +10% attack speed for 10 s), Elune’s Light (Night Elf, +10% crit for 15 s) or Eureka! (Gnome, your next 3 attacks cost 20% less Energy and deal 10% more) on cooldown.',
+    help: 'Use Blood Fury (Orc, +10% attack power for 15 s), Berserking (Troll, +10% attack speed for 10 s), Elune’s Light (Night Elf, +10% crit for 15 s) or Eureka! (Gnome, your next 3 attacks cost 10% less Energy and deal 10% more) on cooldown.',
     default: true,
   },
   {

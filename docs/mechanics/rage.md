@@ -564,7 +564,7 @@ These live in the warrior class doc. They are listed here so the rage budget is 
 | Talent | Effect | Tag |
 | --- | --- | --- |
 | Focused Rage (Prot, 3 ranks) | −1 rage per rank on the abilities in its class mask: nearly every attack, shout and utility ability. **Battle Shout, Shield Block, Berserker Rage and Bloodrage are not reduced.** The full list is in [warrior.md §2.3](../classes/warrior.md#23-rage-warrior-specific). | [F] [class/warrior](https://foreverchanges.pro/class/warrior); class mask per warrior.md |
-| Gnome Eureka! (racial) | The next 3 damaging abilities cost 40% less, rounded down to whole rage | [F]; the rounding is [?] (warrior.md Q18) |
+| Gnome Eureka! (racial) | The next 3 damaging abilities cost 10% less (40% until 1.60.1.70009), rounded down to whole rage | [F] [client] (1.60.1.70009); the rounding is [?] (warrior.md Q18) |
 | Improved Heroic Strike | −1 / −2 / −3 | [F][C] |
 | Improved Sunder Armor | −1 / −2 / −3 | [F][C] |
 | Improved Thunder Clap (moved to Prot) | −2 / −4 / −6 (Thunder Clap 20 → 14) | [F]. Classic was −1 / −2 / −4. |

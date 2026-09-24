@@ -1066,6 +1066,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       }),
     }
   }
+  // An on-use item's charges cap its uses a fight, whichever class presses it (the Manual Crowd
+  // Pummeler's 3; effects/types.ts OnUseSpec.charges, docs/classes/druid.md §7.3).
+  const itemCharges = new Map(itemUses.flatMap((u) => (u.charges ? [[u.id, u.charges] as const] : [])))
   const abilities: AbilityPlan[] = classRot.abilities.map((def) => {
     const {
       offHand,
@@ -1105,6 +1108,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     }
     return {
       ...a,
+      ...(itemCharges.has(a.id) && !a.usesPerFight ? { usesPerFight: itemCharges.get(a.id)! } : {}),
       weaponPercent: weaponPercentVs(def, fight.creatureType),
       source,
       offHandSource: offHand && weapons[HAND.off] ? sourceIndex(`${a.id}OffHand`, `${a.name} (off hand)`, a.icon) : -1,

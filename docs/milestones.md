@@ -432,6 +432,13 @@ slice is worked:
   could return for +1.3 TPS at 90.5% EHP (T4R-2, waived: it keeps an EHP margin, and O4 replaces
   the set); gear cards show "+20 Expertise" with no percentage and no D12 flag, though the results'
   assumptions list it (T4R-8).
+- **Spell-hit casts roll only the plain spell miss** (issue #9): Curse of the Elements, the
+  moonkin's and the cat's Faerie Fire and Vampiric Embrace (`cast` abilities with `spellHit`) are
+  binary debuffs, but the engine's `cast` rolls neither the boss's average resistance nor the
+  school's own hit (Shadow Focus for Vampiric Embrace). castSpell and the bear's spell-table Faerie
+  Fire do both. Fixing it needs each ability's school on its row and moves the warlock, Balance
+  and cat goldens: a Curse of the Elements resisted 6% of the time costs a GCD and 200 mana to
+  recast, well under 0.1% of DPS.
 - **The pet's ranged hit and crit share has no test** (Demonology verification DV3-1): every
   default setup has no ranged hit or crit bonus, so a test with a ranged plan's bonuses would pin it.
 - **Pre-push check lows** (PV-1..PV-3, tank quick-fix log): README's "report" → "reports"; the release

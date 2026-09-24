@@ -62,7 +62,7 @@ row says otherwise.
 | Orc | Horde | yes | yes | Blood Fury: +10% attack power and +10% spell power for 15 s, 2 min ([character-stats](../mechanics/character-stats.md#racials-that-matter-to-the-sim)); Axe Specialization (+1% crit with an axe) |
 | Tauren | Horde | yes | yes | Endurance: +1% hit with attacks and spells |
 | Troll | Horde | yes | yes | Berserking: +10% attack and casting speed for 10 s, 3 min |
-| Windshaper Skyborne | Horde | — (new race) | yes | Wind Blessed: +1% haste |
+| Windshaper Skyborne | Horde | — (new race) | yes | Wind Blessed: +1% attack and casting speed (auras 342, 65) |
 | Dwarf | Alliance | no | **yes (new)** | Mace Specialization: +1% crit with a mace |
 
 [F] [client] (ChrRaces, CharBaseInfo, 1.60.1.69913; `src/data/races/races.json`). Blizzard's

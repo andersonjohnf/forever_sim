@@ -61,7 +61,7 @@ row says otherwise. Spell ranges are at level 60 before spell damage.
 | Undead | Horde | yes | yes | nothing the sim models for a caster |
 | Human | Alliance | yes | yes | The Human Spirit (+5% Spirit); Sword Specialization (+2% crit, spells too, with a sword) |
 | Gnome | Alliance | yes | yes | Expansive Mind (20591): **+5% maximum mana** (aura 178) instead of Classic's +5% Intellect [F]; Eureka! isn't simulated |
-| High Order Skyborne | Alliance | — (new race) | yes | Wind Blessed (+1% haste): the sim doesn't apply it to casts yet (a known gap) |
+| High Order Skyborne | Alliance | — (new race) | yes | Wind Blessed (1259710): +1% melee and ranged haste (aura 342) and **+1% casting speed** (aura 65) [F] |
 
 [F] [client] (ChrRaces, CharBaseInfo, SkillLineAbility, SpellEffect, 1.60.1.69913;
 `src/data/races/races.json`; racials in

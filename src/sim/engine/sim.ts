@@ -744,11 +744,11 @@ export class Sim {
   private readonly abSpellHit: Uint8Array
   // And the bear's (druid.md §4), 0 or −1 on every other row:
   /**
-   * The boss's average resistance to a `spellTable` ability, 0–1: a binary spell of a resistible
-   * school (the bear's Faerie Fire, Nature) is resisted whole that share of the time it would land
-   * (combat-tables §9); 0 without a school, and for Physical and Holy.
+   * The school of a `spellTable` ability whose binary spell the boss can resist (the bear's Faerie
+   * Fire, Nature), or −1: none, Physical or Holy. It's resisted whole at the school's average
+   * resistance, penetration and debuffs included, that share of the time it would land (combat-tables §9).
    */
-  private readonly abResist: Float64Array
+  private readonly abResistSchool: Int32Array
   /** Weapon share per stack of its own bleed already on the target (Lacerate, §4.3). */
   private readonly abPctPerStack: Float64Array
   /** The aura while which it starts no cooldown (Berserk's Mangle, §4.6), or −1. */
@@ -1608,7 +1608,7 @@ export class Sim {
     this.abBleedPct = new Float64Array(nb)
     this.abDotSource = new Int32Array(nb)
     this.abSpellHit = new Uint8Array(nb)
-    this.abResist = new Float64Array(nb)
+    this.abResistSchool = new Int32Array(nb).fill(-1)
     this.abPctPerStack = new Float64Array(nb)
     this.abNoCdAura = new Int32Array(nb).fill(-1)
     this.abAuraMsPerCp = Float64Array.from(abilities, (a) => a.auraMsPerComboPoint ?? 0)
@@ -1686,8 +1686,7 @@ export class Sim {
       // druid.md §4: the bear's Faerie Fire's resist (combat-tables §9: a binary spell's, at the boss's
       // level-based resistance; Physical and Holy have none), Lacerate's per-stack hit, and Berserk's Mangle.
       const school = a.spellSchool
-      this.abResist[i] =
-        a.kind === 'spellTable' && school !== undefined && school !== SCHOOL.holy && school !== SCHOOL.physical ? averageResist(this.bossLevelResist, plan.playerLevel) : 0
+      this.abResistSchool[i] = a.kind === 'spellTable' && school !== undefined && school !== SCHOOL.holy && school !== SCHOOL.physical ? school : -1
       this.abPctPerStack[i] = a.weaponPercentPerStack ?? 0
       this.abNoCdAura[i] = a.noCooldownAura ?? -1
       this.abPlainRage[i] = this.abRes[i] === RES_RAGE && this.abForms[i] === 0 && !a.finisher && !this.abCp[i] && !this.abFree[i] ? 1 : 0
@@ -3512,9 +3511,11 @@ export class Sim {
     const c = this.counters
     c[row + FIELD.casts]++
     // A binary spell of a resistible school is also resisted whole at the boss's average resistance
-    // (the bear's Faerie Fire, druid.md §4.5): one roll against miss + (1 − miss) × resist.
-    const miss = this.spellMissPct
-    if (this.rngTable.roll100() < miss + (100 - miss) * this.abResist[a]) {
+    // (the bear's Faerie Fire, druid.md §4.5): one roll against miss + (1 − miss) × resist, the
+    // school's own miss and resistance (spell penetration and debuffs), as castSpell's (spells.md §2, §3).
+    const school = this.abResistSchool[a]
+    const miss = school >= 0 && this.hasSchoolHit ? this.schMiss[school] : this.spellMissPct
+    if (this.rngTable.roll100() < miss + (100 - miss) * (school >= 0 ? this.resistChance[school] : 0)) {
       c[row + FIELD.misses]++
       if (this.abPlainRage[a] === 1) {
         const refund = Math.floor(this.abRefund[a] * this.abCost[a] + 1e-9)
@@ -3925,6 +3926,8 @@ export class Sim {
     // docs/mechanics/spells.md §3, §9: its school's average resist (Holy has none) and multipliers, and crit.
     const school = this.pSchool[p]
     let damage = this.rngDamage.uniform(this.pA[p], this.pB[p]) * this.resistFactor[school] * this.magicMult * this.schDamage[school] * this.schTaken[school]
+    // paladin.md#conventions-used-below: Holy damage's own multiplier (Vengeance's), as a Holy spell's.
+    if (school === SCHOOL.holy) damage *= this.holyMult
     // A rogue's poison: the auras' damage bonus (Venom, rogue.md §4.4).
     if (this.pPoison[p] === 1) damage *= this.poisonMult
     const crit = this.rngProc.roll100() < this.spellCritPct + this.schCrit[school]
@@ -4733,6 +4736,8 @@ export class Sim {
     }
     if (r < th[2]) {
       c[row + (r < th[1] ? FIELD.dodges : FIELD.parries)]++
+      // damage-and-timing §3.4: a parry hastes the boss's swing, whoever it parried.
+      if (r >= th[1]) this.onBossParried()
       return
     }
     let damage = (rng.uniform(this.petWMin, this.petWMax) + (this.petAp / 14) * this.petWSpeedSec) * this.petDamageMult * this.petArmorFactor
@@ -4855,6 +4860,8 @@ export class Sim {
       }
       if (r < th[2]) {
         c[row + (r < th[1] ? FIELD.dodges : FIELD.parries)]++
+        // damage-and-timing §3.4: a parry hastes the boss's swing, whoever it parried.
+        if (r >= th[1]) this.onBossParried()
         return
       }
       blocked = r < th[4]

@@ -194,7 +194,8 @@ and the docs it links; this list only summarizes them, with the same tags.
   level-based partial resists apply to melee-class Holy spells is an
   [open question](#open-questions).
 - **Multipliers.** Different auras multiply (e.g. Vengeance × Crusade ×
-  Two-Handed Weapon Specialization). Percent spell modifiers (`ADD_PCT_MODIFIER`: Improved
+  Two-Handed Weapon Specialization). Vengeance's Holy share multiplies every Holy hit, a Holy
+  item proc's too. Percent spell modifiers (`ADD_PCT_MODIFIER`: Improved
   Seals, Sacred Arbiter, Benediction, Holy Conduit) are a separate factor. When two of them
   hit the same spell (Benediction + Holy Conduit on Consecration's cost), **add** them
   (Classic engine convention) [?].

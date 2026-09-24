@@ -150,7 +150,7 @@ matters for tanking survival (not modelled for DPS/TPS unless noted); *ignore* =
 | Troll | Berserking (20554) | +10% melee attack speed (aura 319), +10% ranged attack speed (140) and +10% cast speed (65) for **10 s**; 3 min cooldown; **no resource cost** | +10% to +30% attack and cast speed depending on missing health, 10 s, 3 min; warriors pay 5 Rage | CD | [F] [client] (SpellEffect, SpellMisc, SpellPower, 1.60.1.69913) |
 | Troll | Beast Slaying (20557) | +5% damage vs Beasts (aura 168) | same | cond: target type | [F] [client] (SpellEffect, 1.60.1.69913) |
 | Troll | Regeneration, Rapid Regeneration; Bow and Throwing Specialization | health regen; Bow/Throwing **removed** | — | ignore | [F] [racials][fc-racials] |
-| Skyborne (both) | Wind Blessed | +1% spell, melee and ranged haste (passive) | new race | stat (haste, see [damage-and-timing.md](damage-and-timing.md)) | [F] [racials][fc-racials] |
+| Skyborne (both) | Wind Blessed (1259710) | +1% spell, melee and ranged haste (passive): aura 342 (melee and ranged) and aura 65 (casting speed), 1 each | new race | stat: haste and casting speed ([damage-and-timing.md](damage-and-timing.md), [spells.md §4](spells.md#4-cast-times-casting-speed-and-the-gcd)) | [F] [racials][fc-racials]; [client] (SpellEffect, 1.60.1.69913) |
 | Skyborne (both) | Elemental Insight | +5% damage vs Elementals | new race | cond: target type | [F] [racials][fc-racials] |
 | Skyborne | Walk on Air; Read Ley Line (High Order) / Skysight (Windshaper) | glide; +100% health and mana regen / movement speed | new race | ignore | [F] [racials][fc-racials] |
 

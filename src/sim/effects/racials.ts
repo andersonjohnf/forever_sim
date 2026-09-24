@@ -23,8 +23,10 @@ const weaponRacial = (value: number, types: WeaponType[]): Effect[] => [
 ]
 
 const SKYBORNE: Effect[] = [
-  // Wind Blessed: +1% melee, ranged and spell haste [F] (character-stats racials table)
+  // Wind Blessed (1259710): +1% melee and ranged haste (aura 342) and +1% casting speed (aura 65) [F]
+  // [client] (SpellEffect, 1.60.1.69913; character-stats racials table)
   { kind: 'haste', pct: 1 },
+  { kind: 'castHaste', pct: 1 },
   // Elemental Insight: +5% damage vs Elementals [F]
   { kind: 'damage', pct: 5, when: { creature: ['elemental'] } },
 ]

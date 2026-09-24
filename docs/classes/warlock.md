@@ -628,14 +628,14 @@ Improved Imp's hidden effect as Firebolt's cast time: without it the default dea
 Succubus build. The optimizer (D30, O4) confirms the build on a fresh seed, and the guild's test of
 Q19 settles the reading; if it fails, the default goes back to the Succubus.
 
-**Talents: Demonology 0/32/19** (`-0325003221120001351-0450305003`): Improved Imp 3, Demonic Embrace 2,
+**Talents: Demonology 0/31/20** (`-0325003221120001351-0450305003`): Improved Imp 3, Demonic Embrace 2,
 Unholy Power 5, Fel Vitality 3, Demonic Energies 2, Improved Sayaad 2, Demonic Sacrifice, Master
 Summoner 1, Decimation 2, Soul Link, Demonic Knowledge 3, Master Demonologist 5, Demonic Pact; Improved
 Shadow Bolt 4, Bane 5, Cataclysm 3, Ruin 5, Agonizing Flames 3. Demonic Pact needs 30 points in the
-tiers above it and the build has 31 there, so one point can leave them: with the Imp out, Improved
-Sayaad's 3rd point did nothing (Lash of Pain is the Succubus's), and Improved Shadow Bolt 4/5 (+16%
-Shadow Vulnerability) takes it, **+0.4%** (531.9 → 534.2; the first pass's 3/5 and 3/3 are
-`-0325003231120001351-0350305003`). The Succubus build gains from the same point too (499.5 → 502.2).
+tiers above it and the first pass's 0/32/19 (`-0325003231120001351-0350305003`) had 31 there, so one
+point could leave them: with the Imp out, Improved Sayaad's 3rd point did nothing (Lash of Pain is the
+Succubus's), and Improved Shadow Bolt 4/5 (+16% Shadow Vulnerability) takes it, **+0.4%** (531.9 →
+534.2). The Succubus build gains from the same point too (499.5 → 502.2).
 The other Demonology points add no DPS in the sim (Demonic Embrace, Master Summoner; Demonic Brand is
 Q21's, not cast), so they only fill the tiers, and the optimizer's talent search (O4) takes up the
 rest.

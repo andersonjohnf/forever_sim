@@ -68,7 +68,7 @@ test.describe('Demonology warlock', () => {
     await expect(page.getByRole('button', { name: DEMONOLOGY })).toBeVisible()
     const talents = await openTab(page, 'Talents')
     await expect(talents.getByRole('combobox', { name: 'Talent build presets' })).toHaveText('Demonology (default)')
-    await expect(page.getByText('0 / 32 / 19')).toBeVisible()
+    await expect(page.getByText('0 / 31 / 20')).toBeVisible()
     await page.getByRole('button', { name: 'More' }).click()
     await page.getByRole('menuitem', { name: /About/ }).click()
     await expect(page.getByRole('dialog').getByText(/ · Warlocks: Destruction, Affliction and Demonology( · .+)?\.$/)).toBeVisible()

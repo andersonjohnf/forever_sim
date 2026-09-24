@@ -362,10 +362,13 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   } else {
     unknown.push('base attributes')
     notes.add('unknownBaseAttributes')
+    // Every class is simulated, so a missing row is the race's: Skyborne's are unknown (OQ-1) for
+    // the classes with no class-row placeholder (the warrior and the hunter).
+    const cls = meta.className.toLowerCase()
     blockers.push(
-      classId === 'warrior'
-        ? 'Skyborne base stats at level 60 aren’t known yet, so a Skyborne warrior can’t be simulated. Pick another race.'
-        : `${meta.className} simulation isn’t available yet.`,
+      config.race.includes('skyborne')
+        ? `Skyborne base stats at level 60 aren’t known yet, so a Skyborne ${cls} can’t be simulated. Pick another race.`
+        : `This race’s base stats at level 60 aren’t known yet, so this ${cls} can’t be simulated. Pick another race.`,
     )
   }
   // Avoidance matters only when the boss attacks you, so only a tank lists its avoidance

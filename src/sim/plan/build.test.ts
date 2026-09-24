@@ -561,7 +561,15 @@ describe('base values the sim stands in for (D24), and setups it can’t run yet
 
   it('blocks Skyborne warriors, whose base stats are unknown', () => {
     const bundle = buildPlan({ ...defaultConfig('warrior-fury'), race: 'horde-skyborne-windshaper' })
-    expect(bundle.blockers[0]).toMatch(/Skyborne/)
+    expect(bundle.blockers[0]).toBe('Skyborne base stats at level 60 aren’t known yet, so a Skyborne warrior can’t be simulated. Pick another race.')
+  })
+
+  it('names the class when a Skyborne hunter is blocked, as the warrior is', () => {
+    // docs/classes/hunter.md#75-base-values: the hunter has no Skyborne row and no class-row placeholder.
+    for (const race of ['horde-skyborne-windshaper', 'alliance-skyborne-high-order']) {
+      const bundle = buildPlan({ ...defaultConfig('hunter-marksmanship'), race })
+      expect(bundle.blockers).toEqual(['Skyborne base stats at level 60 aren’t known yet, so a Skyborne hunter can’t be simulated. Pick another race.'])
+    }
   })
 })
 

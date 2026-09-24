@@ -11,7 +11,7 @@ import { BUFFS } from './effects/buffs'
 import { ENCHANTS } from './effects/enchants'
 import { ITEM_EFFECTS, itemEffectsApply } from './effects/items'
 import { filledBuffGroups, presetBuffIds } from './effects/presets'
-import { catalogueSummary } from './effects/types'
+import { catalogueEffects, catalogueSummary } from './effects/types'
 import { buildPlan, UnsupportedSetupError, wieldsShield } from './plan/build'
 import { toResult } from './run/aggregate'
 import { type ChunkExecutor, drive } from './run/driver'
@@ -132,6 +132,12 @@ function perProfile<T>(build: (profile: RuleProfileId) => T): Record<RuleProfile
   return { forever: build('forever'), classicEra: build('classicEra') }
 }
 
+/** Its effects act only on the boss's melee swings: an attack-power debuff or a slow (encounter.md §5). */
+const onBossMeleeOnly = (b: (typeof BUFFS)[number]) => {
+  const effects = catalogueEffects(b, PROFILES.forever)
+  return effects.length > 0 && effects.every((e) => e.kind === 'bossAp' || e.kind === 'bossSlow')
+}
+
 const BUFF_CATALOGUES = perProfile((profile): BuffDefinition[] =>
   BUFFS.map((b) => ({
     id: b.id,
@@ -144,6 +150,7 @@ const BUFF_CATALOGUES = perProfile((profile): BuffDefinition[] =>
     ...(b.selfCast ? { selfCast: true } : {}),
     ...(b.forClasses ? { forClasses: b.forClasses } : {}),
     ...(b.exclusiveGroup ? { exclusiveGroup: b.exclusiveGroup } : {}),
+    ...(onBossMeleeOnly(b) ? { bossMelee: true as const } : {}),
     docRef: b.docRef,
   })),
 )

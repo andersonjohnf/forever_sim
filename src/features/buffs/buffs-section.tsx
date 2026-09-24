@@ -224,6 +224,8 @@ export function BuffsSection() {
                       const unused = own ? undefined : inert[def.id]
                       const unavailable = missing || unused !== undefined
                       const providerName = def.providedBy ? CLASS_LABEL[def.providedBy].toLowerCase() : ''
+                      // A debuff on the boss's swings changes only a tank's results (docs/ux.md "Buffs").
+                      const tankOnly = def.bossMelee === true && meta.role !== 'tank'
                       let help = def.summary
                       if (talent) help = `${def.summary}. Your talents bring it (see Talents), so it isn’t added twice.`
                       else if (replacedBy) help = `${def.summary}. ${replacedBy.name} takes its place on the boss, since only one applies; yours still makes its threat (untested).`
@@ -235,6 +237,7 @@ export function BuffsSection() {
                       else if (missing) help = `Needs ${def.providedBy === meta.classId ? 'another' : 'a'} ${providerName} in the raid`
                       else if (dropped) help = `${def.summary}. You’re not keeping it up (see Rotation); turn this on if another ${providerName} does.`
                       else if (dutyOf) help = `${def.summary}. A ${dutyOf} tank’s duty, so presets leave it out; turn this on if one keeps it up.`
+                      else if (tankOnly) help = `${def.summary}. Only the tank takes the boss’s swings, so it changes nothing for you.`
                       return (
                         // A buff nobody in the raid brings, or one that does nothing for you, is dimmed by
                         // colour, never opacity: its text turns to the muted colour (AA) and its icon to

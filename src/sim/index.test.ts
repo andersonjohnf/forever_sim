@@ -347,6 +347,15 @@ describe('catalogues and presets', () => {
     expect(getSpec('druid-feral-bear').ownBuffs).toEqual(['faerieFire', 'demoralizingRoar'])
   })
 
+  it('marks the debuffs on the boss’s swings, and each attack-power debuff names its rival (BU1)', () => {
+    expect(buffCatalogue.filter((b) => b.bossMelee).map((b) => b.id)).toEqual(['demoralizingRoar', 'demoralizingShout', 'thunderClap'])
+    const summary = (id: string, profile: 'forever' | 'classicEra' = 'forever') => buffCatalogueFor(profile).find((b) => b.id === id)!.summary
+    expect(summary('demoralizingRoar')).toBe('−204 boss attack power (instead of Demoralizing Shout)')
+    expect(summary('demoralizingShout')).toBe('−204 boss attack power (instead of Demoralizing Roar)')
+    expect(summary('demoralizingRoar', 'classicEra')).toBe('−138 boss attack power (instead of Demoralizing Shout)')
+    expect(summary('demoralizingShout', 'classicEra')).toBe('−146 boss attack power (instead of Demoralizing Roar)')
+  })
+
   it('follows composition, not faction', () => {
     const noShaman = presetBuffs('raid', 'warrior-fury', FULL_RAID.filter((c) => c !== 'shaman'))
     expect(noShaman).not.toContain('windfuryTotem')

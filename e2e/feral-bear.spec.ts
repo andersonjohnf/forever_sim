@@ -37,7 +37,7 @@ test.describe('Feral bear (preview)', () => {
       await expect(own).toBeChecked()
       await expect(own).toBeDisabled()
     }
-    await expect(page.getByText('−204 boss attack power. You keep it up yourself (see Rotation), so it isn’t added twice.')).toBeVisible()
+    await expect(page.getByText('−204 boss attack power (instead of Demoralizing Shout). You keep it up yourself (see Rotation), so it isn’t added twice.')).toBeVisible()
   })
 
   test('with its roar off, the Buffs tab’s is off and unlocked, for another druid’s; without another druid it needs one (BU3, BU14)', async ({ page }) => {

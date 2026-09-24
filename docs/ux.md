@@ -203,6 +203,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     (Blessing of Wisdom, mana potions, spell damage elixirs) show for paladins only
     ([buffs doc](mechanics/buffs-debuffs-consumables.md#class-only-entries)). An entry your class
     can use but your spec can't (the weapon stones in a form) is listed, locked off, as above.
+  - The **Boss damage** debuffs act on the boss's swings, which only a tank takes. For a DPS spec
+    each says so after its summary ("Only the tank takes the boss's swings, so it changes nothing
+    for you."), and its switch stays usable. The two attack-power debuffs, of which only one
+    applies, name each other: "−204 boss attack power (instead of Demoralizing Shout)" for
+    Demoralizing Roar, and the other way round.
   - Under Classic Era rules, a note at the top says the buff, debuff and consumable values are
     Classic Era's, with a link to **Character → Advanced** that opens the rule profile with focus
     on it.

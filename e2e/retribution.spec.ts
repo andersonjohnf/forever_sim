@@ -85,10 +85,12 @@ test.describe('Retribution', () => {
     await switchToRetribution(page)
     const tab = await openTab(page, 'Rotation')
     await expect(tab.getByText('The defaults are tuned for the default setup.')).toBeVisible()
-    for (const heading of ['Before the pull', 'Cooldowns and buffs', 'Core abilities', 'Fillers', 'Execute phase', 'Consumables']) {
+    for (const heading of ['Cooldowns and buffs', 'Core abilities', 'Fillers', 'Execute phase', 'Consumables']) {
       await expect(tab.getByRole('heading', { name: heading, exact: true })).toBeVisible()
     }
-    for (const name of ['Judgement of the Crusader', 'Blessing of Might on yourself', 'On-use trinkets', 'Judgement', 'Holy Strike', 'Exorcism', 'Consecration', 'Consecration (Rank 1)', 'Hammer of Wrath', 'Major Mana Potion']) {
+    // Your own Blessing of Might is the Buffs tab's, so nothing's left before the pull to set.
+    await expect(tab.getByRole('heading', { name: 'Before the pull', exact: true })).toHaveCount(0)
+    for (const name of ['Judgement of the Crusader', 'On-use trinkets', 'Judgement', 'Holy Strike', 'Exorcism', 'Consecration', 'Consecration (Rank 1)', 'Hammer of Wrath', 'Major Mana Potion']) {
       await expect(tab.getByRole('switch', { name, exact: true })).toBeChecked()
     }
     await expect(tab.getByRole('radio', { name: 'Command' })).toBeChecked()
@@ -143,16 +145,23 @@ test.describe('Retribution', () => {
     await expect(character.getByText('Judgement of the Crusader’s bonus')).toHaveCount(0)
   })
 
-  test('with no other paladin in the raid, the blessings need one, and yours is still on (RU9)', async ({ page }) => {
+  test('with no other paladin in the raid, the other blessings need one, and your own Might is still yours to switch (RU9)', async ({ page }) => {
     await switchToRetribution(page)
     const buffs = await openTab(page, 'Buffs')
     await buffs.getByRole('button', { name: 'Paladin', exact: true }).click()
     await expect(buffs.getByRole('switch', { name: 'Blessing of Kings' })).toBeDisabled()
     await expect(buffs.getByRole('switch', { name: 'Blessing of Kings' })).toHaveAccessibleDescription('Needs another paladin in the raid')
+    // You bless yourself with Might, as a druid gives itself Mark of the Wild: on, and yours to turn off.
     const might = buffs.getByRole('switch', { name: 'Blessing of Might' })
     await expect(might).toBeChecked()
-    await expect(might).toBeDisabled()
-    await expect(might).toHaveAccessibleDescription(/You keep it up yourself \(see Rotation\)/)
+    await expect(might).toBeEnabled()
+    await expect(might).toHaveAccessibleDescription('+133 attack power')
+    await might.click()
+    await expect(might).not.toBeChecked()
+    // The Standard raid preset without a paladin still blesses you with Might.
+    await buffs.getByRole('radio', { name: /^Standard raid/ }).click()
+    await expect(might).toBeChecked()
+    await expect(buffs.getByRole('switch', { name: 'Blessing of Kings' })).not.toBeChecked()
   })
 
   test('its Fight and Buffs tabs: Hammer of Wrath’s execute phase, Exorcism’s creature types, and a paladin’s buffs', async ({ page }) => {

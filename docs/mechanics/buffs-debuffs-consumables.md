@@ -633,7 +633,10 @@ When the sim'd player *is* the warrior, druid or paladin providing a buff (their
 Shout, Leader of the Pack or Sunders), the class doc models it as self-applied and the
 external toggle is ignored. A druid casts Mark of the Wild on itself, so for a druid player
 `comp.druid` is always met for it (the entry's `selfCast`): Gift of the Wild never needs another
-druid. Faerie Fire in Buffs still does, since a cat's own is its rotation's.
+druid. Faerie Fire in Buffs still does, since a cat's own is its rotation's. A paladin blesses
+itself with Might the same way, so for a paladin player Blessing of Might never needs another
+paladin; Kings, Salvation and Wisdom do, one blessing per paladin on a player. The switch is the
+blessing whoever casts it, so it counts once.
 
 ### 6.2 Buffs and debuffs by preset
 

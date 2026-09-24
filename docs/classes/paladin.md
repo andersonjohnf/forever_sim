@@ -532,7 +532,6 @@ rotation found for the default setup ([D23](../decisions.md#d23-the-default-rota
 | # | Action | Condition (setting, default) | Default |
 | --- | --- | --- | --- |
 | 0 | Pre-pull: Seal of the Crusader at −1.5 s (free, no five-second rule), its judgement at the pull, then the main seal | `judgementOfTheCrusader.enabled` | on |
-| 0 | Pre-pull: your own Blessing of Might, for the fight: a static buff whoever is in the raid, in place of the Buffs switch, which shows it on and locked (another paladin's Might is the same blessing) | `blessingOfMight.enabled` | on |
 | — | On-use trinkets (Weakness Analyzer) and Juju Flurry, off the GCD, on cooldown from the pull: nothing in the list is worth saving them for | `trinkets.enabled`; `jujuFlurry.enabled` with Juju Flurry selected in Buffs | on; neither acts in the default setup |
 | 1 | The main seal: Seal of Command, or Seal of Righteousness (`seal.primary`) | the seal missing, or at most `seal.refreshBelowSec` (1.5 s) of it left. With row 0 on, never over Seal of the Crusader before its judgement has landed | Command |
 | 2 | Judgement of the Crusader | the debuff is missing: cast Seal of the Crusader (GCD) when neither it nor the debuff is up, judge it when Judgement is ready, then recast the main seal (row 1). Your landed auto attacks restart its 40 s, so after the pull this fires only if it drops | with row 0 |
@@ -579,9 +578,9 @@ Notes:
 | Weapon | slowest high-DPS pre-raid 2H (speed ≥ 3.4 preferred; ties → sword for Human) from `src/data/items` | SoC scales with weapon damage per swing; the 7 PPM normalizes procs/min, so a slow weapon gives bigger procs and more procs per swing |
 | Seal / judgement | SoC; JotC maintained by you | [F] rotation above |
 | Aura | Retribution Aura (no DPS effect unless you're hit); raid aura choice lives in the buffs doc | — |
-| Buffs | standard raid buffs from the buffs doc: Kings and Might (133) from paladins, Windfury and totems in a melee group, both factions | [F] factions |
+| Buffs | standard raid buffs from the buffs doc: Kings and Might (133) from paladins, Windfury and totems in a melee group, both factions. Might is yours when no other paladin brings it: you bless yourself (the entry's `selfCast`, [buffs §6.1](../mechanics/buffs-debuffs-consumables.md#61-composition-flags-not-factions)), while Kings, Wisdom and Salvation need another paladin | [F] factions |
 | Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of the Mongoose, Elixir of Greater Strength (Classic: Giants), Greater Arcane Elixir (the buffs doc's per-spec entry for Ret: spell power matters now), Smoked Desert Dumplings, a Dense Sharpening Stone, Major Mana Potion. The Max-consumables preset adds Juju Power, Juju Might, R.O.I.D.S., Elixir of Holy Power, an Elemental stone, Demonic/Dark Rune and Flask of Supreme Power. The Standard raid's paladin-only buffs are Prayer of Spirit, Arcane Brilliance, Blessing of Wisdom and Mana Spring Totem ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset), "Pal"): 3,392 mana with the default gear. **No world buffs** ([doctrine §1](../doctrine.md#1-what-were-building)) | buffs doc owns names, values and presets |
-| Rotation | the [priority list](#forever-priority-list-default) with its tuned defaults: Judgement of the Crusader and your own Blessing of Might before the pull, Seal of Command, Consecration from 60% mana and rank 1 from 15%, Exorcism from 20%, Hammer of Wrath at any mana, the potion early from 1,500 missing, on-use trinkets and Juju Flurry on cooldown | [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23): the best found, [below](#tuning-the-defaults-c2) |
+| Rotation | the [priority list](#forever-priority-list-default) with its tuned defaults: Judgement of the Crusader from before the pull, Seal of Command, Consecration from 60% mana and rank 1 from 15%, Exorcism from 20%, Hammer of Wrath at any mana, the potion early from 1,500 missing, on-use trinkets and Juju Flurry on cooldown | [D23](../decisions.md#d23-the-default-rotation-is-the-best-one-weve-found-2026-09-23): the best found, [below](#tuning-the-defaults-c2) |
 
 #### Tuning the defaults (C2)
 
@@ -686,11 +685,10 @@ the potion only when missing 2,250), on the setup without Prayer of Spirit and A
   20%), won +0.87% in the default fight but lost 0.55% in a 120 s fight and 0.23% against Undead:
   it drank early whatever the fight's length.
 - **Not tuned:** the rune's pair (not in the default Standard raid preset); on-use trinkets and
-  Juju Flurry (on cooldown, with nothing to save them for, and in no default setup); your own
-  Blessing of Might (it only matters with no other paladin in the raid); the Judgement of the
-  Crusader rule (an engine switch for [open question 5](#open-questions) under Character →
-  Advanced, not a rotation choice: All of it adds +46.24 DPS, +7.60%, on the first round's setup);
-  and seal twisting (not simulated).
+  Juju Flurry (on cooldown, with nothing to save them for, and in no default setup); the
+  Judgement of the Crusader rule (an engine switch for [open question 5](#open-questions) under
+  Character → Advanced, not a rotation choice: All of it adds +46.24 DPS, +7.60%, on the first
+  round's setup); and seal twisting (not simulated).
 - Rerun with, for example, `node scripts/tune/rotation.mjs --spec paladin-retribution --fights
   400000 --seed 6464 consecration.minManaPct=65` (a candidate against the defaults) or
   `--sweep consecration.minManaPct=50:70:2`.

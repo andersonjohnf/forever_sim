@@ -134,6 +134,9 @@ export const BUFFS: BuffSpec[] = [
     group: 'Attack power',
     summary: '+133 attack power',
     providedBy: 'paladin',
+    // A paladin blesses itself with Might, so for one the raid needs no other; its other blessings
+    // are another paladin's (one blessing per paladin on a player; buffs doc §6.1).
+    selfCast: true,
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [{ kind: 'stat', stat: 'ap', value: 133 }],
     classicEra: { summary: '+185 attack power', effects: [{ kind: 'stat', stat: 'ap', value: 185 }] },

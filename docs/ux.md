@@ -191,7 +191,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     brings says so ("Needs a paladin in the raid"; for a paladin, "Needs another paladin in the
     raid", since you're one) and is dimmed by colour, not opacity: its text takes the muted text
     colour (AA), its icon turns gray, and its switch is off and disabled. You count for a buff you
-    cast on yourself: a druid's Gift of the Wild never needs another druid.
+    cast on yourself: a druid's Gift of the Wild never needs another druid, nor a paladin's
+    Blessing of Might another paladin. Its switch is an ordinary one, yours to turn off.
     One that does nothing for your spec is dimmed and locked off the same way, and says why: for a
     druid, a Dense Sharpening Stone or Weightstone ("Not used in Cat Form: your attacks there don't
     use your weapon's damage.").
@@ -203,10 +204,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     Classic Era's, with a link to **Character → Advanced** that opens the rule profile with focus
     on it.
   - World buffs don't exist here ([D8](decisions.md#d8-world-buffs-are-excluded-2026-09-22)).
-  - A buff the rotation keeps up itself (a warrior's own Battle Shout, a cat's own Faerie Fire, a
-    paladin's own Blessing of Might) shows its switch on and locked, with a note saying the
-    rotation keeps it up, so it's never counted twice. One the talents bring (a druid's Leader of
-    the Pack) is on and locked the same way, and its note says the talents bring it.
+  - A buff the rotation keeps up itself (a warrior's own Battle Shout, a cat's own Faerie Fire)
+    shows its switch on and locked, with a note saying the rotation keeps it up, so it's never
+    counted twice. One the talents bring (a druid's Leader of the Pack) is on and locked the same
+    way, and its note says the talents bring it.
   - Some of these are the spec's own: the raid's version is assumed to be yours (a cat's Faerie
     Fire, [druid §6.2](classes/druid.md#62-forever-cat-priority)). When the rotation drops one,
     its Buffs switch is off by default and unlocked, and its note says so: "You're not keeping it

@@ -5,8 +5,8 @@
 // main seal (row 1: Seal of Command, or Seal of Righteousness), its judgement (row 3), Hammer of
 // Wrath in the execute phase (row 4), Holy Strike (row 5), Exorcism against Undead and Demons
 // (row 6), Consecration rank 5 and rank 1 by mana (rows 7 and 8), and the mana potion and rune.
-// Your own Blessing of Might goes up before the pull. Seal twisting (row 9) is off by default and
-// not simulated yet, nor is Holy Wrath. Setting ids are `paladin.retribution.<ability>.<param>`;
+// Your own Blessing of Might is the Buffs tab's (its `selfCast`). Seal twisting (row 9) is off by
+// default and not simulated yet, nor is Holy Wrath. Setting ids are `paladin.retribution.<ability>.<param>`;
 // mana thresholds are percentages of maximum mana. Abilities are resolved with the build's talents
 // (talents.ts) and the Judgement of the Crusader rule (spells.ts; Character → Advanced, OQ 5)
 // before their costs or spells feed anything.
@@ -35,7 +35,6 @@ const P = 'paladin.retribution'
 const ID = {
   seal: `${P}.seal.primary`,
   crusader: `${P}.judgementOfTheCrusader.enabled`,
-  might: `${P}.blessingOfMight.enabled`,
   trinkets: `${P}.trinkets.enabled`,
   juju: `${P}.jujuFlurry.enabled`,
   sealRefresh: `${P}.seal.refreshBelowSec`,
@@ -62,8 +61,6 @@ export const RETRIBUTION_IDS = ID
 export const MANA_POTION = 'majorManaPotion'
 export const MANA_RUNE = 'demonicRune'
 export const JUJU_FLURRY = 'jujuFlurry'
-/** The catalogue's Blessing of Might: your own, when you bless yourself (effects/buffs.ts). */
-export const BLESSING_OF_MIGHT = 'blessingOfMight'
 
 /** The creature types Exorcism can be cast on (paladin.md#other-abilities). */
 export const EXORCISM_TARGETS: readonly CreatureType[] = ['undead', 'demon']
@@ -104,19 +101,11 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
   {
     kind: 'toggle',
     id: ID.crusader,
-    group: 'Before the pull',
+    // A debuff kept up all fight, like a cat's Faerie Fire, though it starts before the pull.
+    group: 'Cooldowns and buffs',
     label: 'Judgement of the Crusader',
     help: 'Put Seal of the Crusader up before the pull and judge it at the pull, then your seal: the boss takes +161 Holy damage for 40 s, and your auto attacks keep it up. If it’s ever missing, it’s judged again.',
     default: true,
-  },
-  {
-    kind: 'toggle',
-    id: ID.might,
-    group: 'Before the pull',
-    label: 'Blessing of Might on yourself',
-    help: 'Bless yourself with Might before the pull, so its attack power is there for the fight with or without another paladin in the raid. Another paladin’s Might is the same blessing, so it counts once.',
-    default: true,
-    maintainsBuff: BLESSING_OF_MIGHT,
   },
   {
     kind: 'toggle',
@@ -276,13 +265,6 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
 /** The seal the settings choose (paladin.md "Forever priority list" notes: `sealPrimary`). */
 export const retributionSeal = (values: Record<string, RotationValue>): AbilityDef =>
   reader(RETRIBUTION_OPTIONS, values).str(ID.seal) === 'righteousness' ? SEAL_OF_RIGHTEOUSNESS : SEAL_OF_COMMAND
-
-/**
- * Buff catalogue ids you put on yourself before the pull and keep for the fight: your own Blessing
- * of Might. The plan applies them whoever is in the raid, in place of their Buffs switches.
- */
-export const retributionSelfBuffs = (values: Record<string, RotationValue>): string[] =>
-  reader(RETRIBUTION_OPTIONS, values).on(ID.might) ? [BLESSING_OF_MIGHT] : []
 
 /**
  * What misjudging the fight's end costs the early potion line, measured with the default setup

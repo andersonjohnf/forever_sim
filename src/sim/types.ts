@@ -276,7 +276,7 @@ export interface BuffDefinition {
   providedBy?: ClassSlug
   /**
    * A player of the `providedBy` class casts it on themselves, so for one the raid needs no other
-   * (a druid's Mark of the Wild; buffs doc §6.1).
+   * (a druid's Mark of the Wild, a paladin's Blessing of Might; buffs doc §6.1).
    */
   selfCast?: boolean
   /**

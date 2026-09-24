@@ -3,7 +3,10 @@
 // Wrath in the execute phase, Exorcism against Undead and Demons, Consecration by mana, the mana
 // potion and rune, running out of mana, and determinism. The worked examples 20–22 run here too.
 import { describe, expect, it } from 'vitest'
+import { normalizeConfig } from '../../config/normalize'
 import { defaultConfig, FULL_RAID } from '../../defaults'
+import { BUFFS_BY_ID } from '../../effects/buffs'
+import { buffProvided, presetBuffIds } from '../../effects/presets'
 import { runChunk } from '../../engine/chunk'
 import { FIELD, FIELD_COUNT, Sim } from '../../engine/sim'
 import { buildPlan } from '../../plan/build'
@@ -147,26 +150,34 @@ describe('on-use trinkets and Juju Flurry (RU2)', () => {
   })
 })
 
-describe('your own Blessing of Might (RU9)', () => {
+describe('your own Blessing of Might (RU9): the Buffs tab’s, which a paladin casts on itself (selfCast)', () => {
   const ap = (o: Parameters<typeof config>[0]) => buildPlan(config(o)).sheet.attackPower
   const noPaladin = FULL_RAID.filter((c) => c !== 'paladin')
+  const MIGHT = BUFFS_BY_ID.get('blessingOfMight')!
 
-  it('counts once: the raid’s Might adds nothing more, and with no other paladin yours is still there', () => {
-    const standard = ap({})
-    expect(ap({ raid: noPaladin, buffs: defaultConfig(RET).buffs.enabled.filter((id) => id !== 'blessingOfKings') })).toBe(
-      ap({ buffs: defaultConfig(RET).buffs.enabled.filter((id) => id !== 'blessingOfKings') }),
-    )
-    // Off, and no paladin in the raid: no Might at all (133, before Kings).
-    const off = { [ID.might]: false }
-    expect(ap({ rotation: off, raid: noPaladin, buffs: [] })).toBe(ap({ buffs: [] }) - 133)
-    // Off with the raid's Might: the same as yours.
-    expect(ap({ rotation: off })).toBe(standard)
+  it('needs no other paladin, where the other blessings do, and counts once', () => {
+    expect(buffProvided(MIGHT, noPaladin, RET)).toBe(true)
+    expect(buffProvided(BUFFS_BY_ID.get('blessingOfKings')!, noPaladin, RET)).toBe(false)
+    expect(buffProvided(MIGHT, noPaladin, 'warrior-fury')).toBe(false)
+    // The Standard raid without a paladin still blesses you with Might, but not with Kings.
+    const preset = presetBuffIds('raid', RET, noPaladin)
+    expect(preset).toContain('blessingOfMight')
+    expect(preset).not.toContain('blessingOfKings')
+    // With or without another paladin, it's the same one blessing.
+    const noKings = defaultConfig(RET).buffs.enabled.filter((id) => id !== 'blessingOfKings')
+    expect(ap({ raid: noPaladin, buffs: noKings })).toBe(ap({ buffs: noKings }))
+    // A saved setup keeps it when the raid has no paladin.
+    const saved = normalizeConfig({ ...config({ raid: noPaladin, buffs: ['blessingOfMight'] }) })
+    expect(saved.config.buffs.enabled).toEqual(['blessingOfMight'])
   })
 
-  it('is there in Self only, at the profile’s value', () => {
-    expect(ap({ buffs: [] }) - ap({ buffs: [], rotation: { [ID.might]: false } })).toBe(133)
-    const classic = { buffs: [] as string[], rules: { profile: 'classicEra' as const } }
-    expect(ap(classic) - ap({ ...classic, rotation: { [ID.might]: false } })).toBe(185)
+  it('is its switch: +133 attack power (Classic Era 185), and nothing with it off', () => {
+    const alone = { raid: noPaladin }
+    expect(ap({ ...alone, buffs: ['blessingOfMight'] }) - ap({ ...alone, buffs: [] })).toBe(133)
+    const classic = { ...alone, rules: { profile: 'classicEra' as const } }
+    expect(ap({ ...classic, buffs: ['blessingOfMight'] }) - ap({ ...classic, buffs: [] })).toBe(185)
+    // Self only is no one's buffs, as for a druid's Mark of the Wild.
+    expect(presetBuffIds('self', RET, FULL_RAID)).toEqual([])
   })
 })
 

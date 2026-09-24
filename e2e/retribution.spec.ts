@@ -221,6 +221,22 @@ test.describe('Retribution on a phone', () => {
     await expect(tab.getByRole('switch', { name: 'Holy Strike', exact: true })).toBeChecked()
     const overflow = () => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
     expect(await overflow(), 'no horizontal page scroll').toBeLessThanOrEqual(0)
+    // Every number fits its field, its unit after it, never over it: a grouped mana value too
+    // ("1,500 mana", RU6), as rotation-tab.spec.ts checks the other specs' (CU1).
+    for (const button of await tab.getByRole('button', { name: /^Advanced settings for/ }).all()) await button.click()
+    await expect(tab.getByRole('textbox', { name: 'Major Mana Potion early, when missing', exact: true })).toHaveValue('1,500')
+    const fields = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>('[data-slot="input-group"]')]
+        .filter((g) => g.offsetParent !== null)
+        .map((group) => {
+          const input = group.querySelector('input')!
+          const unit = group.querySelector<HTMLElement>('[data-slot="input-group-addon"]')!
+          return { name: input.getAttribute('aria-label'), fits: input.scrollWidth <= input.clientWidth, clear: unit.getBoundingClientRect().left >= input.getBoundingClientRect().right - 1 }
+        }),
+    )
+    expect(fields.length).toBeGreaterThanOrEqual(9)
+    for (const f of fields) expect(f, f.name ?? '').toMatchObject({ fits: true, clear: true })
+    expect(await overflow(), 'no horizontal page scroll with Advanced open').toBeLessThanOrEqual(0)
 
     await simulate(page)
     const bar = page.getByRole('button', { name: 'Show results' })

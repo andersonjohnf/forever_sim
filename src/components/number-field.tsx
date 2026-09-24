@@ -167,8 +167,9 @@ export function NumberField({
         // one field to a screen reader, the textbox its label names, as it was with the unit laid
         // over it: the wrappers aren't groups.
         // At least as wide as a field without a unit (w-24), so a short unit ("%", "s") lines up with them.
+        // The value's box holds four digits, or a grouped value's comma too ("1,500" beside "mana").
         <InputGroup role="presentation" className="h-11 w-auto min-w-24">
-          <InputGroupInput {...inputProps} className="h-full w-14 flex-1 pr-1 text-right tabular-nums" />
+          <InputGroupInput {...inputProps} className={cn('h-full flex-1 pr-1 text-right tabular-nums', grouping ? 'w-16' : 'w-14')} />
           <InputGroupAddon role="presentation" align="inline-end" className="pl-0 text-xs font-normal whitespace-nowrap">
             {unit}
           </InputGroupAddon>

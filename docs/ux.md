@@ -284,7 +284,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     the setup lets it, and the settings under it aren't dimmed with it: one may be the way to use
     it.
   - Numbers carry their unit in the field and in the hint: "60% mana" for a share of maximum
-    mana, "1,500 mana" (thousands grouped) for mana missing.
+    mana, "1,500 mana" (thousands grouped) for mana missing. The field is as wide as its unit
+    needs, and at least as wide as one without a unit; a grouped value's box has room for its
+    comma, so "1,500" never runs under its edge.
   - A consumable's row needs its Buffs switch. While that's off, its own switch shows off and
     locked, whatever it's set to, and the row says so ("Not used: turn on … in Buffs first"),
     with **Buffs** a link to that tab (a 44 px hit area, like a row's Reset). The link opens

@@ -12,6 +12,7 @@ import { COND, type Plan } from '../../plan/types'
 import { emptyAggregate, mergeChunk } from '../../run/aggregate'
 import { defaultAplOrder, moveAplRow, normalizeAplOrder } from '../apl'
 import { FURY_APL, FURY_OPTIONS, furyRotation } from './fury'
+import { fingerprint, furyCases } from './fury-apl-cases'
 
 const TALENTS = talentRanksByName(TALENT_DATA.warrior, defaultConfig('warrior-fury').talents)
 const CONTEXT = { consumables: [MIGHTY_RAGE_POTION] }
@@ -68,6 +69,21 @@ describe('Fury’s priority list (D31)', () => {
       'mightyRagePotion',
       'mightyRagePotion',
     ])
+  })
+
+  it('gives 200 random setups the plan they had before the list, in the default order', () => {
+    // Settings, talents, race, on-use items, consumables, phase and rules at random; the switch the
+    // list added (row 6's) at its default, on, as it always was before. The snapshot is of the
+    // rotation before the priority list (A1), checked byte for byte against it then: a change to
+    // it is a change to what Fury plays.
+    const before = FURY_OPTIONS.filter((o) => o.id !== 'warrior.fury.execute.bloodthirst')
+    const hashes = furyCases(before, 200).map(({ values, talents, context }) => {
+      const none = furyRotation(values, talents, noAura, context)
+      expect(furyRotation(values, talents, noAura, context, defaultAplOrder(FURY_APL))).toEqual(none)
+      return fingerprint(JSON.stringify(none))
+    })
+    expect(new Set(hashes).size).toBeGreaterThan(150)
+    expect(hashes).toMatchSnapshot()
   })
 
   it('builds the list in the stored order', () => {

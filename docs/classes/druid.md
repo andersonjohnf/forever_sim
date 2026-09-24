@@ -1889,7 +1889,9 @@ SpellCastTimes, SpellLevels, SpellDuration, SpellAuraOptions, CurvePoint, 1.60.1
 Classic Era's [C] [client] (1.15.9.69722)):
 
 - The nukes are far weaker at base and keep their coefficients: Starfire r7 350–412 (Classic Era
-  496–584), Wrath r8 62–69 at 60 (236–264), and Wrath costs 120 mana (180).
+  496–584), Wrath r8 92–102 at 60 (236–264), and Wrath costs 120 mana (180). Wrath's base damage
+  rose about 50% on every rank in 1.60.1.70009 (rank 8 was 62–69; [development notes][dev-70009])
+  [F] [client] (SpellEffect, 1.60.1.70009).
 - **Moonfire and Insect Swarm carry the periodic-crit flag** (SpellMisc Attributes[8] 0x200), so
   their ticks crit in `forever` ([spells §7](../mechanics/spells.md#7-dots)); Classic Era's don't.
 - New talents: Genesis (+5% periodic), Nature's Majesty (+4% crit), Nature's Splendor (longer
@@ -1925,7 +1927,7 @@ base × (1 ± variance / 2) plus that growth (paladin.md#conventions-used-below)
 | Spell (id) | Damage at 60 | Coefficient | Cast, cost | Other | Tag |
 | --- | --- | --- | --- | --- | --- |
 | **Starfire** r7 (25298) | 381 base, variance 0.16296296: **349.96–412.04** | 1.0 | 3.5 s, 340 mana | Arcane; its stun (Improved Starfire) does nothing to a boss | [F] [client] |
-| **Wrath** r8 (9912) | 61 base, variance 0.112, +0.7 a level 54–60: **61.78–68.62** | 0.571 | 2.0 s, 120 mana | Nature; speed 20 (travel time not simulated, spells.md §4) | [F] [client] |
+| **Wrath** r8 (9912) | 91 base, variance 0.112, +1 a level 54–60: **91.90–102.10** (61.78–68.62 until 1.60.1.70009) | 0.571 | 2.0 s, 120 mana | Nature; speed 20 (travel time not simulated, spells.md §4) | [F] [client] (1.60.1.70009) |
 | **Moonfire** r10 (9835) | hit 135, variance 0.15609756, +2.3 a level 58–63: **129.06–150.14**; DoT **60 every 3 s, 12 s** | 0.15; **0.13 a tick** | instant, 375 mana | Arcane; one hit roll for both parts; not binary; ticks flagged 0x200 | [F] [client] |
 | **Insect Swarm** r5 (24977) | DoT **31 every 2 s, 12 s** | **0.158 a tick** | instant, 160 mana | Nature; −2% hit on the target (#1, aura 54) makes it **binary** (spells.md §3); ticks flagged 0x200 | [F] [client] |
 | **Faerie Fire** r4 (9907) | −505 armor, 40 s | — | instant, 115 mana | Nature, rolls spell hit; only attacks feel the armor | [F] [client] |
@@ -2031,6 +2033,11 @@ The adopted defaults run at **426.0 DPS** on that seed. Innervate's 40% sits in 
 from the drop above 50%. The defaults aren't tuned beyond this (D27); the Rotation tab says "the
 common priority, with a first quick search".
 
+**1.60.1.70009's Wrath** (+50% base) moves the defaults to **432.28 ± 0.31 DPS** on seed 1 (20,000
+fights). The same search again, paired: the Wrath filler changes nothing (Starfire's mana is always
+there), no Eclipse weaving −25.34 (−5.9%), and no Eclipse with the Wrath filler −46.01 (−10.6%). So
+the defaults stand: Wrath is still worth only its Eclipse weave.
+
 ### 11.6 Defaults
 
 | What | Default | Tag |
@@ -2055,7 +2062,7 @@ resist of 24 (6% on average), averages of uniform rolls. Unit tests in
 
 - **B1. Starfire.** (381 + 1.0 × 500) × Moonfury 1.10 × 0.94 = **910.95**; a crit with Vengeance
   5/5 (×2.0): **1,821.91**.
-- **B2. Wrath.** (65.2 + 0.571 × 500) × 1.10 × 0.94 = **362.62**; a crit: **725.25**.
+- **B2. Wrath.** (97 + 0.571 × 500) × 1.10 × 0.94 = **395.51**; a crit: **791.01**.
 - **B3. Moonfire** with Improved Moonfire 2/2, Genesis 5/5, Nature's Splendor and Moonfury. Hit:
   (139.6 + 0.15 × 500) × 1.10 × 1.10 × 0.94 = **244.09**. Each tick: (60 × 1.05 + 0.13 × 1.05 × 500)
   × 1.10 × 1.10 × 0.94 = **149.29**, over 5 ticks **746.42**.
@@ -2215,3 +2222,4 @@ the same spell ids and was ignored except where Forever reuses the id with Forev
 [wsf-repo]: https://github.com/wowsims/forever
 [wsf-mangle]: https://github.com/wowsims/forever/blob/master/sim/druid/mangle.go
 [wsf-shred]: https://github.com/wowsims/forever/blob/master/sim/druid/shred.go
+[dev-70009]: https://us.forums.blizzard.com/en/wow/t/wow-forever-beta-development-notes-updated-september-24/2360696

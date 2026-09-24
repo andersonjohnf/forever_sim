@@ -1041,7 +1041,7 @@ buff removed, talents reset or listed, caster form or Battle Stance, then hover 
 #### B50. Gnome maximum rage and Eureka!
 **Low · M2 · ≤20**
 - **Assumes:** Expansive Mind +5% maximum rage; how it combines with Boundless Rage [?]; Eureka!'s
-  −40% cost rounding (down, to whole rage), that it cuts only Execute's base cost, and that a miss
+  −10% cost rounding (−40% until 1.60.1.70009; down, to whole rage), that it cuts only Execute's base cost, and that a miss
   spends a charge [?] (the `eureka` assumption; every class's variant models the same rules).
 - **Test:** Gnome warrior with Boundless Rage 1/3: maximum rage reads 115.5 or 115. Use Eureka!
   on abilities with known costs, and on an avoided ability.

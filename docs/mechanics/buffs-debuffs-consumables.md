@@ -986,7 +986,8 @@ Flask of Supreme Power, the Major Mana Potion and the Demonic Rune (a Dark Rune 
 The shaman spends mana and deals Nature and Frost spell damage, so every one of them is the
 shaman's too, except the Elixir of Holy Power: its +40 is Holy only, which no shaman spell uses
 ([shaman](../classes/shaman.md#spell-damage)). The caster classes (`CASTER_CLASSES`: those whose
-every spec is a caster, the mage since K2) get them too, all but Elixir of Holy Power.
+every spec is a caster, the mage since K2 and the warlock since K3) get them too, all but Elixir of
+Holy Power.
 Warriors and druids in feral forms spend rage or energy, not mana (the cat never powershifts,
 [druid §2.8](../classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)), and
 deal no spell damage. The Mighty Rage Potion is for warriors and druids, the only classes Forever

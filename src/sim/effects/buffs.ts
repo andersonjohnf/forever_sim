@@ -104,9 +104,9 @@ const poisonOn = (hand: 'main' | 'off', proc: ProcSpec): Effect[] => [{ kind: 't
  * below (attack power, Strength and Agility, weapon enchants, the boss's armor) leave the spec's
  * presets, Buffs tab, saved setups and plan; the `forSpecs: 'caster'` ones (Moonkin Aura, Power
  * Infusion, Curse of the Elements) come in (buffs doc "Class-only entries"). The caster classes are
- * those whose every spec is a caster (the mage since K2, docs/classes/mage.md): the mana and spell
- * damage entries go to them by class. A class with a melee spec too (the druid's Feral specs beside
- * Balance) gets those per spec instead.
+ * those whose every spec is a caster (the mage since K2, docs/classes/mage.md; the warlock since
+ * K3, docs/classes/warlock.md): the mana and spell damage entries go to them by class. A class with a
+ * melee spec too (the druid's Feral specs beside Balance) gets those per spec instead.
  */
 export const CASTER_SPECS: readonly SpecId[] = SPEC_IDS.filter((s) => SPEC_META[s].caster === true)
 export const CASTER_CLASSES: readonly ClassId[] = [...new Set(CASTER_SPECS.map((s) => SPEC_META[s].classId))].filter((c) =>

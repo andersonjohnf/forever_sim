@@ -51,3 +51,25 @@ Lint, typecheck and `npm test` (2,539 tests) green; the e2e specs feral-bear, pa
 paladin-protection-rotation, protection-rotation, rotation-tab, tank-results, priority-list,
 share-links, setups and setup-defaults green (125 tests). The fix round's engine changes (TI-1's
 scaling, TI-5's fallback) need the verification pass (CLAUDE.md step 5).
+
+## Verification pass (TV)
+
+A fresh reviewer's pass over the fix round (CLAUDE.md step 5), at `47e60756`. Probes:
+`.cache/probes/ti-verify/` in the integration worktree. It confirmed every TI and TU disposition
+and found nothing the fixes introduced at medium or worse, so the gate passed; its five findings
+were then fixed. The fixes' screenshots are `.cache/snaps/tv-fix/` in their own worktree: the
+warrior's Rotation tab with Demoralizing Shout below Defensive's filler, and the paladin's with no
+main hand, each at 390 px dark and 1280 px light.
+
+| # | Severity | Origin | Finding | Disposition |
+| --- | --- | --- | --- | --- |
+| TV-1 | low | introduced (TI-4) | TI-4's "Rarely used" rule missed starved duties: its Shield Slam exemption cleared the note while Demoralizing Shout got 0.40 casts a fight below the filler (5.19 above it) and Thunder Clap 0.03 (8.40), and a filler threshold just above a duty's cost cleared it while the duty stayed starved. | fixed in `a4b20d91`. **TI-4 simplified under CLAUDE.md step 6** (a second round of findings in the same area), without asking, as the step allows: any enabled Thunder Clap (with `maintainOnly`), Demoralizing Shout or Battle Shout below the enabled Sunder Armor filler reads "Below the Sunder Armor filler: used only while your rage is under its N.", N the resolved threshold (60% of the bar resolves to 60, or a Gnome's 63), or Sunder Armor's cost if that's higher. The Shield Slam and cost exemptions and the "raise the filler's rage" advice are gone: the note is a fact about the order, not a judgement of how often. Thunder Clap on cooldown keeps no note (its cooldown line is tried just above the filler, wherever its row is). Unit tests cover each of the verifier's cases (Shield Slam wait, thresholds 15 and 18, Balanced's 60, a Gnome's 63, a threshold under the cost) and the e2e test the new copy; ux.md and warrior.md §5.4 follow |
+| TV-2 | low | introduced (TI-5) | With Hammer of the Righteous on and moved below Holy Strike, the plan included Hammer (0 casts), so its `hammerOfTheRighteous` assumption listed. | fixed in `38dcf699`: Hammer joins the plan only above Holy Strike or with Holy Strike off; Holy Strike stays its fallback above it. A unit test: below Holy Strike, no Hammer, no assumption, and the rotation identical to Hammer off; with Holy Strike off, Hammer and its assumption. The 200-case snapshot and the golden are unchanged: every case keeps the default order, where Hammer sits above Holy Strike, so none has it below. paladin.md says so |
+| TV-3 | low | pre-existing | With no main hand, Holy Strike's row read "On cooldown" though it's cast 0 times. | fixed in `38dcf699`: "Not used: needs a weapon in your main hand." on Holy Strike (on) with no main hand, Hammer on or off; with the gear unknown (the Buffs tab's reading) it waits, as the weapon notes do. Unit and e2e tests; ux.md's "Rows that share a cooldown" and paladin.md's row 5 say so |
+| TV-4 | info | — | T6 in the milestones gave the bear 1,116 and the paladin 833 TPS, while D28 and this log say 1,115.34 and 832.09 from 100,000 fights. | fixed in `7599979c`: T6 and D28 both quote the 100,000-fight run on seed 31101 (the warrior's 1,241, the bear's 1,115 with 547 DPS, the paladin's 832); T6's threat-by-ability breakdown keeps its own stated 10,000 fights |
+| TV-5 | info | — | With `--against`, a `--base order=` wasn't checked: the other commit's bundle exports no `rotationApl`. | fixed in `433c9028`: it's checked against this commit's rows as a proxy (an older src/ may have no `rotationApl` to export); the script's header says what the proxy misses: a row the other commit didn't have is dropped there, as a stored order's unknown row is, and a commit from before D31 ignores the order |
+
+Checks: lint, typecheck and `npm test` (2,541 tests) green; the e2e specs protection-rotation,
+paladin-protection, paladin-protection-rotation, rotation-tab and priority-list green (58 tests).
+TV-2 changed which abilities a plan carries (engine logic) and TV-1 a note's rule, so these fixes
+get a quick fresh check of their commits (step 5).

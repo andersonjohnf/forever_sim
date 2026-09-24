@@ -57,7 +57,7 @@ test.describe('a returning visitor’s untouched gear and talents follow the def
     await expect(gear.getByRole('button', { name: "Shoulders: Lieutenant Commander's Lamellar Shoulders" })).toBeVisible()
     await expect(gear.getByRole('button', { name: 'Trinket 1: Weakness Analyzer' })).toBeVisible()
     await expect(gear.getByRole('button', { name: 'Head: Helm of Valor' })).toBeVisible()
-    await expect(gear.getByText('1 slot differs from the threat set: Head.', { exact: true })).toBeVisible()
+    await expect(gear.getByText('1 slot differs from the threat set: Head. Equipping it replaces that slot.', { exact: true })).toBeVisible()
 
     // Today's default build, 0/38/13.
     await page.getByRole('tab', { name: 'Talents', exact: true }).click()
@@ -97,27 +97,47 @@ test.describe('a share link and the defaults notice (docs/ux.md "Persistence and
 
 test.describe('the Gear tab’s default set button (docs/ux.md "Gear")', () => {
   for (const width of [390, 1280]) {
-    test(`says how the gear compares and puts the default set back, from the keyboard, ${width} px`, async ({ page }) => {
+    test(`says what it replaces, puts the default set back from the keyboard, then goes, ${width} px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 })
       await page.goto('./')
       const gear = page.getByRole('tabpanel', { name: 'Gear' })
       const equip = gear.getByRole('button', { name: 'Equip pre-raid best in slot' })
-      await expect(gear.getByText('Wearing pre-raid best in slot.', { exact: true })).toBeVisible()
-      await expect(equip).toHaveAccessibleDescription('Wearing pre-raid best in slot.')
-      expect((await equip.boundingBox())!.height).toBeGreaterThanOrEqual(44)
+      const status = gear.locator('#gear-default-status')
+      // Matching: the line says so, and no button waits that would do nothing.
+      await expect(status).toHaveText('Wearing pre-raid best in slot.')
+      await expect(equip).toHaveCount(0)
 
       await gear.getByRole('button', { name: 'Gear options' }).click()
       await page.getByRole('menuitem', { name: 'Remove all gear' }).click()
       await expect(page.getByRole('menuitem', { name: /Equip/ })).toHaveCount(0)
-      const differs = 'slots differ from pre-raid best in slot: Head, Neck, Shoulders and '
-      await expect(equip).toHaveAccessibleDescription(new RegExp(`^\\d+ ${differs}\\d+ more\\.$`))
+      const differs = 'slots differ from pre-raid best in slot: Head, Neck, Shoulders and \\d+ more\\. Equipping it replaces all '
+      await expect(equip).toHaveAccessibleDescription(new RegExp(`^(\\d+) ${differs}\\1\\.$`))
+      expect((await equip.boundingBox())!.height).toBeGreaterThanOrEqual(44)
 
       await equip.focus()
       await page.keyboard.press('Enter')
       await expect(gear.getByRole('button', { name: /^Head: Lionheart Helm/ })).toBeVisible()
-      await expect(equip).toHaveAccessibleDescription('Wearing pre-raid best in slot.')
+      await expect(status).toHaveText('Wearing pre-raid best in slot.')
+      await expect(equip).toHaveCount(0)
+      // Focus moved to the line as the button went, not to the page.
+      await expect(status).toBeFocused()
       // No horizontal scroll at either width.
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
     })
   }
+})
+
+test.describe('the Talents tab’s default build line (docs/ux.md "Talents")', () => {
+  test('shows while the build is the default, and goes once the points change', async ({ page }) => {
+    await page.goto('./')
+    await page.getByRole('tab', { name: 'Talents', exact: true }).click()
+    const talents = page.getByRole('tabpanel', { name: 'Talents' })
+    const line = talents.getByText('Using the default build.', { exact: true })
+    await expect(line).toBeVisible()
+    await talents.getByRole('button', { name: 'Clear' }).click()
+    await expect(line).toHaveCount(0)
+    await page.getByRole('combobox', { name: 'Talent build presets' }).click()
+    await page.getByRole('option', { name: /\(default\)/ }).click()
+    await expect(line).toBeVisible()
+  })
 })

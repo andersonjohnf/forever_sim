@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { WowIcon } from '@/components/wow-icon'
 import type { Item } from '@/data/items/types'
 import { ClassicEraNote } from '@/features/character/classic-era-note'
+import { changeAndFocus } from '@/features/refocus'
 import { SectionHeader } from '@/features/section'
 import { itemsById } from '@/lib/items'
 import { cn } from '@/lib/utils'
@@ -72,6 +73,7 @@ export function GearSection() {
   const [picking, setPicking] = useState<GearSlot | null>(null)
   // Each slot's button, which takes focus back when the picker closes (docs/ux.md#accessibility).
   const slotButtons = useRef(new Map<GearSlot, HTMLButtonElement>())
+  const statusRef = useRef<HTMLParagraphElement>(null)
 
   const mainHand = config.gear.mainHand ? itemsById.get(config.gear.mainHand.itemId) : undefined
   const twoHanded = mainHand ? isTwoHand(mainHand) : false
@@ -88,8 +90,12 @@ export function GearSection() {
 
   // No visible notice for these: the slots change in front of you. Screen readers hear them
   // (src/app/announce.ts).
+  // The button goes once the gear matches, so focus moves to the line that says so.
   const loadBis = () => {
-    update((c) => ({ ...c, gear: { ...defaultGearFor(c.spec, c.race) } }))
+    changeAndFocus(
+      () => update((c) => ({ ...c, gear: { ...defaultGearFor(c.spec, c.race) } })),
+      () => statusRef.current,
+    )
     announce(`Equipped ${defaultSet}.`)
   }
   const clearAll = () => {
@@ -127,7 +133,13 @@ export function GearSection() {
           offDefault > 0 && 'bg-muted/50',
         )}
       >
-        <p id="gear-default-status" className="flex min-w-0 flex-1 items-center gap-2 text-sm">
+        {/* Focus lands here when the button that equipped the set goes away (docs/ux.md#accessibility). */}
+        <p
+          ref={statusRef}
+          id="gear-default-status"
+          tabIndex={-1}
+          className="flex min-w-0 flex-1 items-center gap-2 rounded-md text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        >
           {offDefault > 0 ? (
             <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-primary" />
           ) : (
@@ -136,17 +148,15 @@ export function GearSection() {
           <span className={cn(offDefault === 0 && 'text-muted-foreground')}>
             {offDefault === 0
               ? `Wearing ${setName}.`
-              : `${offDefault} ${offDefault === 1 ? 'slot differs' : 'slots differ'} from ${setName}: ${slotList(offSlots)}.`}
+              : `${offDefault} ${offDefault === 1 ? 'slot differs' : 'slots differ'} from ${setName}: ${slotList(offSlots)}. Equipping it replaces ${offDefault === 1 ? 'that slot' : `all ${offDefault}`}.`}
           </span>
         </p>
-        <Button
-          variant={offDefault > 0 ? 'default' : 'outline'}
-          className="h-11 w-full px-4 sm:w-auto"
-          aria-describedby="gear-default-status"
-          onClick={loadBis}
-        >
-          {threatSet ? 'Equip the threat set' : 'Equip pre-raid best in slot'}
-        </Button>
+        {/* Only while there's something to equip: once the gear matches, the line says so and nothing waits to be pressed. */}
+        {offDefault > 0 && (
+          <Button className="h-11 w-full px-4 sm:w-auto" aria-describedby="gear-default-status" onClick={loadBis}>
+            {threatSet ? 'Equip the threat set' : 'Equip pre-raid best in slot'}
+          </Button>
+        )}
       </div>
       <ClassicEraNote what="Enchants" />
 

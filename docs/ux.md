@@ -133,6 +133,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     paladin sees Retribution's and Protection's. The spec
     default is selected. Only the current spec's default is marked "(default)"; another spec's
     reads plainly ("Arms default"), so the menu never shows two defaults.
+  - While the build is the spec's default, a quiet line under the buttons says so, as Gear's does
+    for its set: a check and "Using the default build." in muted text. It's gone once a point
+    changes, and it's what follows newer defaults
+    ([Persistence and sharing](#persistence-and-sharing)).
   - Interactive trees: three side by side on desktop, one tab per tree on mobile (a segmented
     control named "Talent tree", each tab as wide as its name and points need, with tight padding,
     so "Feral Combat 37" fits beside Balance and Restoration down to 360 px, and a warrior's three
@@ -164,11 +168,15 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - Under it, a bordered row puts the default set back in one tap: a 44 px **Equip pre-raid best in
     slot** button, or **Equip the threat set** for a tank, beside a line on how the gear compares.
     While any slot's item or enchant differs from the default for the spec and race, the line
-    reads "3 slots differ from the threat set." after a dot in the primary colour (the changed-setting
-    marker of Character and Rotation), the row takes a muted fill and the button is the primary
-    one. Once the gear matches, it's quiet: a check, "Wearing the threat set." in muted text, and
-    an outline button. The line is the button's description for screen readers. Below 640 px the
-    button takes the row's full width under the line. The button used to hide in the options menu;
+    names them and says what the button replaces, since it replaces them all at once and there's
+    no undo ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)):
+    "3 slots differ from the threat set: Head, Legs and Main hand. Equipping it replaces all 3."
+    ("… replaces that slot." for one), after a dot in the primary colour (the changed-setting
+    marker of Character and Rotation); the row takes a muted fill and the button is the primary
+    one. Once the gear matches, it's quiet: a check and "Wearing the threat set." in muted text,
+    and no button, since there's nothing to equip. Equipping from the keyboard moves focus to that
+    line as the button goes. The line is the button's description for screen readers. Below 640 px
+    the button takes the row's full width under the line. The button used to hide in the options menu;
     it's the tab's main action, and on a returning visit the likeliest one, so it's in view, and the
     menu (**Gear options**) keeps only **Remove all gear**, which empties every slot with no undo
     ([D21](decisions.md#d21-no-undo-setups-are-saved-loaded-exported-and-imported-2026-09-23)),

@@ -169,6 +169,37 @@ describe('talentSpace', () => {
     expect(out.builds.map((b) => rank(b.code, 'Anticipation'))).toEqual([0])
   })
 
+  it('keeps a build with the preferred filler and no Toughness when 5–9 points are left over, whatever the filler’s role (OV3-1)', () => {
+    // A Protection build kept whole (34 points with its prerequisites), and Arms filled to its
+    // minimum: 51 − 34 − arms points are left over. Toughness is a dimension only because the
+    // effective-health floor reads it, so it has no screened value and isn't a raise: the build
+    // without it keeps its spare points for Anticipation, which takes 5 of them before Toughness
+    // takes the rest (the fill order).
+    const protection = {
+      'Shield Specialization': 5, 'Improved Thunder Clap': 3, 'Last Stand': 1, 'Master of Defense': 2, 'Improved Revenge': 3, Defiance: 3,
+      'Improved Sunder Armor': 3, 'Improved Shield Wall': 2, Bastion: 5, 'Focused Rage': 3, 'Shield Slam': 1,
+    }
+    const keep = Object.fromEntries(Object.entries({ ...protection, Deflection: 5 }).map(([n, r]) => [id(n), r]))
+    for (const left of [5, 6, 7, 8, 9]) {
+      for (const role of ['objective', 'none', 'harmful'] as const) {
+        const space = talentSpace({
+          data: warrior,
+          roles: roles([], { Toughness: 'survival', Anticipation: role }),
+          keep,
+          minPoints: { Protection: 31, Arms: 51 - 34 - left },
+          constrained: new Set([id('Toughness')]),
+          preferred: [id('Anticipation')],
+          preferTree: 'Protection',
+        })
+        expectLegal(space.builds.map((b) => b.code))
+        const pairs = space.builds.map((b) => [rank(b.code, 'Anticipation'), rank(b.code, 'Toughness')])
+        expect(pairs, `${left} left over, Anticipation ${role}`).toContainEqual([5, left - 5])
+        // And the build with Toughness races beside it.
+        expect(pairs.some(([, t]) => t === 5)).toBe(true)
+      }
+    }
+  })
+
   it('rejects contradictory constraints', () => {
     expect(() => talentSpace({ data: warrior, roles: roles(['Cruelty']), keep: { [id('Cruelty')]: 5 }, exclude: [id('Cruelty')] })).toThrow(/both kept and excluded/)
     expect(() => talentSpace({ data: warrior, roles: roles(['Cruelty']), minPoints: { Arms: 31, Fury: 31 } })).toThrow(/more than 51/)

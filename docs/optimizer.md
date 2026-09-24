@@ -322,9 +322,12 @@ not every legal one, which would be astronomically many:
   never taken unless kept, searched for a constraint, or the preferred filler.
 - **Maximal builds only.** If another objective talent fits at max rank in the points a core
   leaves (they'd otherwise go to partial ranks and fillers), the build that takes it scores at
-  least as well, since no objective talent lowers the score, so only that one is kept. The check
-  is one talent at a time: a build that could only do better by swapping one talent for another
-  stays, and the race decides.
+  least as well, since no objective talent lowers the score, so only that one is kept. Only an
+  objective dimension is a raise: one only a constraint made (Toughness under the effective-health
+  floor) has no screened value, so a build without it may score better, and a core that leaves
+  room for it keeps its points for the fill order (Anticipation first) instead of being dropped
+  (OV3-1). The check is one talent at a time: a build that could only do better by swapping one
+  talent for another stays, and the race decides.
 - **One tree at a time.** Tier gates and arrows never cross trees; only the 51-point total does.
   So each tree's cores are enumerated alone, each with the least points it can be legal in and the
   fewest extra points any one more objective talent would cost, and cores are combined across trees

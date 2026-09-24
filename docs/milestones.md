@@ -301,6 +301,16 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
 - [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,
       Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken
 
+## M5.65: The Rotation tab as a priority list (D31) 🚧 before the optimizer's app screens
+
+- [ ] **A1 APL core and the Rotation tab:** rotation rows as data with their own options, a stored
+      order, the plan compiler following it, pinned rows, D28's rotations as named presets and
+      "Custom"; the drag-and-drop list with keyboard and button moves, per-row switches, the
+      selected row's options (side panel on desktop, sheet on phones); Fury as the pilot spec
+- [ ] **A2 Every other spec on the list:** the tanks after M5.6's fixes merge, then the rest in
+      batches; each spec's toggles become rows and row options, with its goldens unchanged at the
+      default order
+
 ## M5.7: The optimizer (D30) 🚧 top priority
 
 The sim finds the best talents, gear and rotation for a setup, within constraints the player
@@ -313,7 +323,7 @@ sets. Each spec's defaults are then its results.
 - [ ] **O2 Gear:** per-slot candidates from the pool (item level range, sources, faction, class,
       locked slots), enchants, unique-equipped, two-hand vs dual wield, set bonuses, hit caps;
       coordinate ascent with restarts; talents, gear and rotation alternated until stable
-- [ ] **O3 In the app:** an Optimize flow (what to search, constraints, a search budget, progress
+- [ ] **O3 In the app (after M5.65):** an Optimize flow (what to search, constraints, a search budget, progress
       and cancel, the top results with their TPS and DPS and one-tap apply) at 390 and 1280 px
 - [ ] **O4 Defaults from the optimizer:** every spec's talents, gear and rotation, confirmed on a
       fresh seed, tanks after M5.6's threat fixes

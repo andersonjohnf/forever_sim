@@ -507,3 +507,28 @@ Top Gear and the retail optimizers do:
   has a default (D29), and the optimizer is only as right as those values, so the tanks' threat
   fixes land first.
 
+### D31: The Rotation tab is an action priority list you reorder (2026-09-24)
+User decision, ahead of the optimizer's app screens. Each spec's rotation is an **action priority
+list (APL)**, as SimulationCraft and wowsims model one, rather than a set of toggles. Each global
+cooldown the sim takes the first ability in the list whose conditions hold.
+- **The list is the rotation.** The Rotation tab shows the abilities in priority order. You
+  **drag an ability to reorder it** (with a handle), or move it up and down with buttons or the
+  keyboard. A switch on each row turns it off.
+- **The selected row's options.** Tapping a row opens its own settings: rage or mana minimums,
+  refresh windows, execute-phase only, and so on. They open beside the list on desktop and in a
+  sheet on phones. The row shows a short summary of them ("Rage ≥ 45").
+- **Spec-wide settings stay above the list:** a stance, a pet, a demon to sacrifice, the tank's
+  Priority choice and consumables. The tank rotations of D28 (Defensive, Balanced, Max TPS)
+  become named presets of the list: an order plus which rows are on. Editing the list after
+  picking one makes it "Custom".
+- **What can't move is shown but pinned:** the pre-pull and opener sequence, and rows whose place
+  is a rule rather than a preference (D26's duty timing keeps its own rule wherever the duty
+  sits in the list).
+- **Saved setups and shared links keep working.** The config stores the order of the rows you
+  moved and the options you changed, as it stores overrides today; a setup with no order gets
+  the default list.
+- **Conditions are each row's own options for now,** the ones the rotations already have. A
+  general condition builder (any stat, aura or timer) can come later if players want one.
+- **The optimizer (D30) searches the list too:** row order and options are candidates like
+  talents and gear.
+

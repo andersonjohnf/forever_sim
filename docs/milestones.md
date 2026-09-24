@@ -263,9 +263,10 @@ talents and default build, abilities, rotation, defaults, e2e, shipped.
       ([review](reviews/2026-09-24-rogue.md))
 - [x] **S1 Enhancement Shaman:** Stormstrike (Forever: self only), Windfury Weapon, shocks,
       totems as its own buffs, mana ([review](reviews/2026-09-24-enhancement-shaman.md))
-- [ ] **K1 Caster core:** casts and channels, DoTs, spell power and coefficients, spell hit,
+- [x] **K1 Caster core:** casts and channels, DoTs, spell power and coefficients, spell hit,
       crit and partial resists, the caster debuffs (Curse of the Elements, Shadow Weaving,
       Scorch, Winter's Chill), mana with the five-second rule
+      ([review](reviews/2026-09-24-caster-core.md))
 - [ ] **K2 Mage:** Fire, Frost, Arcane
 - [ ] **K3 Warlock:** Destruction, Affliction (Demonology with the pet core, P1 below)
 - [ ] **K4 Shadow Priest**

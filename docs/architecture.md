@@ -411,7 +411,16 @@ A spec is data plus small ability modules, never its own loop.
   (medians of five, alternating with main's): Fury 7,164, 7,236, 7,140 and 7,146 against 7,265,
   7,259, 7,225 and 7,335; Arms 13,543, 13,553, 13,334 and 13,593 against 13,625, 13,716, 13,410
   and 13,933; Retribution, whose spells take its extra reads, 8,624, 8,841, 8,832 and 8,657
-  against 8,865, 8,968, 8,847 and 8,925.
+  against 8,865, 8,968, 8,847 and 8,925. The Fire mage's casting-speed fix (its two extra Scorch
+  lines, COND 44 and 45) cost the default Fire mage about 14%: most of it was the condition
+  switch, whose `case COND.x` labels V8 tests one by one (and in Vitest, through the module
+  runner's import bindings). Its labels are now COND's numbers with each name after them
+  (`engine/cond-cases.test.ts` checks the pairs), and COND 44 tries the casts' base times before
+  their casting-speed times. Results are unchanged. Medians of eight runs, one process, the
+  engines alternating: bundled in Node, 20,621 fights a second before and 22,092 after, against
+  23,839 before the fix; in Vitest, 8,368 before and 17,686 after (medians of six), against
+  10,556 before the fix. The default Fury warrior gained about 6% in Vitest (6,334 to 6,717,
+  medians of five) and nothing bundled (9,067 and 9,147).
 - **Abilities** are rows of `Plan.abilities` (`AbilityPlan`), resolved by one switch on `kind`:
   `weaponStrike` (one roll: Whirlwind, Hamstring, …), `meleeSpell` (two rolls: Bloodthirst,
   Execute, …), `onNextSwing` (Heroic Strike: queued off the GCD, it replaces the next

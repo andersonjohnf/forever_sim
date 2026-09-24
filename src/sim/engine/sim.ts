@@ -1106,6 +1106,11 @@ export class Sim {
   private readonly splRanged: Uint8Array
   /** Ranged haste shortens its cast time (Aimed Shot's, §4). */
   private readonly abCastRangedHasted: Uint8Array
+  /**
+   * Its cast time now (`castMsNow`) is never longer than `abCastMs` while casting speed is at least
+   * ×1: no ranged haste, and its stacks only shorten it. COND 44's cheap first test relies on it.
+   */
+  private readonly abCastBounded: Uint8Array
   /** Some line reads Auto Shot's timer (COND 62, 63), so each Auto Shot is a decision point. */
   private readonly walksOnAutoShot: boolean
   /** Auras' ranged attack power, its %, and ranged haste %, per stack. */
@@ -1993,6 +1998,7 @@ export class Sim {
     this.rFirstShotMs = r?.firstShotMs ?? 0
     this.rSource = r?.source ?? -1
     this.abCastRangedHasted = Uint8Array.from(abilities, (a) => (a.castRangedHasted && r ? 1 : 0))
+    this.abCastBounded = Uint8Array.from(abilities, (_, i) => (this.abCastRangedHasted[i] === 0 && this.abStackCast[i] >= 0 ? 1 : 0))
     this.walksOnAutoShot = this.hasRanged && (this.condCode.includes(COND.autoShotClear) || this.condCode.includes(COND.autoShotWithin))
     // §6–§10: the pet.
     const pet = plan.pet
@@ -2960,22 +2966,28 @@ export class Sim {
     this.recomputeMultipliers()
   }
 
+  /**
+   * A line's conditions, each by its code (plan/types.ts COND). The case labels are COND's numbers,
+   * each with its name after it (engine/cond-cases.test.ts checks them): number labels let V8 jump
+   * straight to the case, where `COND.x` labels test them one by one. Every walk runs this for each
+   * line it reaches, so it's the hottest switch in the engine.
+   */
   private conditionsHold(e: number): boolean {
     const now = this.now
     for (let k = this.condStart[e]; k < this.condStart[e + 1]; k++) {
       const a = this.condA[k]
       const b = this.condB[k]
       switch (this.condCode[k]) {
-        case COND.windowOpen:
+        case 12: // COND.windowOpen
           if (!this.auraActive[a]) return false
           break
-        case COND.minRage:
+        case 0: // COND.minRage
           if (this.rage < a) return false
           break
-        case COND.cooldownAtLeast:
+        case 1: // COND.cooldownAtLeast
           if (this.abReadyAt[a] - now < b) return false
           break
-        case COND.gcdSafe:
+        case 2: // COND.gcdSafe
           // docs/classes/warrior.md#51-conventions-for-rotation-settings: each has ≥ one GCD of cooldown
           // left. One the current stance refuses isn't coming up, unless a line dances for it and that
           // dance could happen at this rage: the swap keeps enough to pay for it, and rage is within
@@ -2987,53 +2999,53 @@ export class Sim {
             if (this.abDances[i] === 1 && Math.min(rage, this.swapKeep) >= this.abCost[i] && rage <= this.abDanceMaxRage[i]) return false
           }
           break
-        case COND.auraDown:
+        case 3: // COND.auraDown
           if (a >= 0 && this.auraActive[a]) return false
           break
-        case COND.apAtLeast:
+        case 5: // COND.apAtLeast
           if (this.ap < a) return false
           break
-        case COND.apBelow:
+        case 6: // COND.apBelow
           if (this.ap >= a) return false
           break
-        case COND.maxRage:
+        case 7: // COND.maxRage
           if (this.rage > a) return false
           break
-        case COND.abilityAuraUp: {
+        case 10: { // COND.abilityAuraUp
           const aura = this.abAura[a]
           if (aura < 0 || !this.auraActive[aura]) return false
           break
         }
         // docs/classes/druid.md §6.2: Energy and combo-point thresholds.
-        case COND.minEnergy:
+        case 14: // COND.minEnergy
           if (this.energy < a) return false
           break
-        case COND.maxEnergy:
+        case 15: // COND.maxEnergy
           if (this.energy > a) return false
           break
-        case COND.minComboPoints:
+        case 16: // COND.minComboPoints
           if (this.comboPoints < a) return false
           break
         // rogue.md §6: room for a cast's combo points (Premeditation).
-        case COND.maxComboPoints:
+        case 30: // COND.maxComboPoints
           if (this.comboPoints > a) return false
           break
-        case COND.abilityAuraDown: {
+        case 17: { // COND.abilityAuraDown
           const aura = this.abAura[a]
           if (aura >= 0 && this.auraActive[aura]) return false
           break
         }
         // paladin.md: a mana threshold.
-        case COND.minMana:
+        case 18: // COND.minMana
           if (this.mana < a) return false
           break
-        case COND.maxMana:
+        case 19: // COND.maxMana
           if (this.mana > a) return false
           break
         // docs/classes/mage.md#fire-priority: Pyroblast waits, up to b ms, for its own DoT's next tick
         // rather than land just before it and cut it off; the walk stops and resumes as it can land
         // with the tick (a tick due that moment lands first, spells.md §7).
-        case COND.dotTickWait: {
+        case 45: { // COND.dotTickWait
           const s = this.abSpell[a]
           if (s >= 0 && this.spDotTicksLeft[s] > 0) {
             // The first of its ticks due as the cast lands or after: the ticks before it land first.
@@ -3053,52 +3065,59 @@ export class Sim {
           break
         }
         // docs/mechanics/spells.md §11: a plan aura is up (Clearcasting, Shadow Trance).
-        case COND.auraUp:
+        case 38: // COND.auraUp
           if (!this.auraActive[a]) return false
           break
-        case COND.abilityAuraStacksBelow: {
+        case 20: { // COND.abilityAuraStacksBelow
           // warrior.md §5.4 row 10: Sunder Armor's stacks below 5; druid.md §6.3: Lacerate's (down counts as none).
           const aura = this.abAura[a]
           if (aura >= 0 && this.auraActive[aura] && this.auraStacks[aura] >= b) return false
           break
         }
         // docs/classes/shaman.md#enhancement-priority: Lightning Bolt at 5 Maelstrom Weapon stacks.
-        case COND.auraStacksAtLeast:
+        case 34: // COND.auraStacksAtLeast
           if (!this.auraActive[a] || this.auraStacks[a] < b) return false
           break
         // docs/classes/mage.md#fire-priority: Scorch until Fire Vulnerability has 5 stacks, or before it runs out.
-        case COND.auraStacksBelow:
+        case 42: // COND.auraStacksBelow
           if (this.auraActive[a] && this.auraStacks[a] >= b) return false
           break
-        case COND.auraEndsWithin:
+        case 43: // COND.auraEndsWithin
           if (this.auraActive[a] && this.auraEndAt(a) - now > b) return false
           break
         // docs/classes/mage.md#fire-priority: Scorch now if the Pyroblast or Fireball below would let
         // Fire Vulnerability run out before a Scorch after it lands (a tie counts as running out).
-        case COND.auraEndsBeforeCasts:
-          if (this.auraActive[a] && this.auraEndAt(a) - now > this.castMsNow(b) + this.castMsNow(this.rotAbility[e])) return false
+        case 44: { // COND.auraEndsBeforeCasts
+          if (!this.auraActive[a]) break
+          const left = this.auraEndAt(a) - now
+          const l = this.rotAbility[e]
+          // Cheap first: while no cast can take longer than its base time, more left than both base
+          // times is more left than both casts now (castMsNow) take. Nearly every walk ends here.
+          if (this.castHasteMult >= 1 && (this.abCastBounded[b] & this.abCastBounded[l]) === 1 && left > this.abCastMs[b] + this.abCastMs[l]) return false
+          if (left > this.castMsNow(b) + this.castMsNow(l)) return false
           break
+        }
         // docs/classes/priest.md#6-rotation: Inner Focus waits until Mind Blast could start now.
-        case COND.abilityReady:
+        case 50: // COND.abilityReady
           if (this.abReadyAt[a] > now || (this.abGcd[a] > 0 && this.gcdEnd > now)) return false
           if (this.abPlainRage[a] === 1 ? this.rage < this.abCost[a] : !this.affordable(a)) return false
           break
         // docs/mechanics/ranged-and-pets.md §11: Auto Shot's timer and the pet's power.
-        case COND.autoShotClear:
+        case 62: // COND.autoShotClear
           if (!this.autoShotClear(a, b)) return false
           break
-        case COND.autoShotWithin:
+        case 63: // COND.autoShotWithin
           if (!this.hasRanged || now - this.rLastShotAt > a) return false
           break
-        case COND.petPowerAtLeast:
+        case 64: // COND.petPowerAtLeast
           if (!this.hasPet || this.petPower < a) return false
           break
-        case COND.petPowerAtMost:
+        case 65: // COND.petPowerAtMost
           if (!this.hasPet || this.petPower > a) return false
           break
         // docs/classes/warlock.md §11.3: the target below a% health, from t = floor(L × (1 − a/100)),
         // the execute phase's rule. Read on each walk: a caster walks as each cast lands.
-        case COND.healthAtMost:
+        case 70: // COND.healthAtMost
           if (now < executePhaseStart(this.fightEnd, a)) return false
           break
       }
@@ -4876,21 +4895,21 @@ export class Sim {
     }
   }
 
-  /** A pet line's conditions (§7, §11): its power, and a plan aura up or down. */
+  /** A pet line's conditions (§7, §11): its power, and a plan aura up or down. The labels are COND's numbers, as conditionsHold's. */
   private petConditionsHold(l: number): boolean {
     for (let k = this.petCondStart[l]; k < this.petCondStart[l + 1]; k++) {
       const a = this.petCondA[k]
       switch (this.petCondCode[k]) {
-        case COND.petPowerAtLeast:
+        case 64: // COND.petPowerAtLeast
           if (this.petPower < a) return false
           break
-        case COND.petPowerAtMost:
+        case 65: // COND.petPowerAtMost
           if (this.petPower > a) return false
           break
-        case COND.auraUp:
+        case 38: // COND.auraUp
           if (!this.auraActive[a]) return false
           break
-        case COND.auraDown:
+        case 3: // COND.auraDown
           if (a >= 0 && this.auraActive[a]) return false
           break
       }

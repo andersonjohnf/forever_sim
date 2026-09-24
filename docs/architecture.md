@@ -559,7 +559,9 @@ GitHub Pages sets no response headers, so the policy is a `<meta http-equiv>` in
 | `object-src` | `'none'` | |
 | `base-uri`, `form-action` | `'self'` | |
 
-A meta policy can't carry `frame-ancestors` or reporting. `vite dev` strips the tag
+`worker-src` governs loading the worker, not what it does: a same-origin dedicated worker takes
+its own policy from its script's response headers, which Pages doesn't send, so nothing but
+`worker-src` applies to it. It fetches nothing today. A meta policy can't carry `frame-ancestors` or reporting. `vite dev` strips the tag
 (`vite.config.ts`), since React Refresh's inline preamble and the HMR websocket need what it
 forbids; `vite preview`, the e2e suite and the deploy all serve the build with it. The e2e
 fixture (`e2e/fixtures.ts`) turns any violation into a console error, which fails the test, so

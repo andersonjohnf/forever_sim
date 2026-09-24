@@ -9,7 +9,16 @@ test.describe('Content-Security-Policy', () => {
     const icon = page.locator('img[src^="https://wow.zamimg.com/"]').first()
     await expect(icon).toBeVisible()
     await expect.poll(() => icon.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true)
-    await expect.poll(() => page.evaluate(() => document.fonts.check('16px "Geist Variable"'))).toBe(true)
+    // Each self-hosted family actually loaded a face (fonts.check alone passes when none is needed).
+    await expect
+      .poll(() =>
+        page.evaluate(async () => {
+          await document.fonts.ready
+          const loaded = new Set([...document.fonts].filter((face) => face.status === 'loaded').map((face) => face.family.replace(/["']/g, '')))
+          return ['Geist Variable', 'Josefin Sans'].filter((family) => loaded.has(family))
+        }),
+      )
+      .toEqual(['Geist Variable', 'Josefin Sans'])
     const results = page.getByRole('complementary', { name: 'Results' })
     await results.getByRole('button', { name: 'Simulate' }).click()
     await expect(results.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })

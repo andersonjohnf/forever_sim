@@ -453,6 +453,12 @@ export interface CharacterSheet {
   parryPct: number
   blockPct: number
   blockValue: number
+  /**
+   * The class can parry, and block with a shield: false for a druid, whose sheet leaves those rows
+   * out (docs/ux.md#results). Absent: it can.
+   */
+  canParry?: boolean
+  canBlock?: boolean
   defense: number
   /**
    * How much your defense lowers an attacker's crit chance, % (0.04 per point above 300; negative

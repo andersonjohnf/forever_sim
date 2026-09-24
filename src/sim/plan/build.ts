@@ -22,7 +22,7 @@ import { ITEM_EFFECTS, itemEffectsApply } from '../effects/items'
 import { buffGroupFillers, buffProvided, buffUnusedReason, forSpecClass } from '../effects/presets'
 import { COOLDOWN_RACIALS, racialEffects } from '../effects/racials'
 import { type AuraSpec, catalogueEffects, type Condition, type DruidForm, type Effect, type FlatStat, type OnUseSpec, type ProcSpec } from '../effects/types'
-import { isTwoHand } from '../equip'
+import { isTwoHand, PROFICIENCY } from '../equip'
 import { currentDamageTakenRageModel, PROFILES, type RulesProfile } from '../rules/profiles'
 import { SPEC_META } from '../specs'
 import { BASE_PLACEHOLDERS, CLASS_BASE } from '../stats/base-stats'
@@ -559,6 +559,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     parryPct: shown.parry,
     blockPct: shown.block,
     blockValue: shown.blockValue,
+    // A druid can't parry or use a shield (character-stats §other base values): its sheet leaves them out.
+    ...(base.baseParry > 0 ? {} : { canParry: false }),
+    ...(PROFICIENCY[classId].shield ? {} : { canBlock: false }),
     defense: shown.defense,
     critReductionPct: shown.critReduction,
     // docs/mechanics/combat-tables.md#8-boss--player-tanks: the boss's table against this sheet.

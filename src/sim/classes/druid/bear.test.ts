@@ -354,6 +354,14 @@ describe('the default bear’s plan', () => {
     expect(classicRow.bleed?.ticksCanCrit).toBe(false)
   })
 
+  it('its sheet says it can neither parry nor block, so those rows stay off it (BU15); a warrior’s can', () => {
+    const sheet = buildPlan(defaultConfig('druid-feral-bear')).sheet
+    expect(sheet).toMatchObject({ canParry: false, canBlock: false, parryPct: 0, blockPct: 0 })
+    const prot = buildPlan(defaultConfig('warrior-protection')).sheet
+    expect(prot.canParry).toBeUndefined()
+    expect(prot.canBlock).toBeUndefined()
+  })
+
   it('Mangle’s cooldown stops under Berserk’s aura', () => {
     expect(plan.auras[ability('mangle').noCooldownAura!].id).toBe('berserk')
   })

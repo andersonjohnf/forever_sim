@@ -499,7 +499,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     Expertise, Strength | Agility, Stamina | Intellect, Health | Mana, Spirit | Mana per 5 s, then
     Haste | Armor. Each label fits on one line at 390 px.
   - Defense, dodge, parry, block and block value join them for a tank, and for anyone with
-    defense above 300 or block value. A tank's sheet adds **Crit reduction (boss's crits)** after
+    defense above 300 or block value; a class that can't parry or block (a druid) leaves those
+    rows out. A tank's sheet adds **Crit reduction (boss's crits)** after
     Defense, on a row of its own, since your own Crit is a few rows above: how much defense lowers
     the boss's crit chance, 0.04% a point above 300 ("5.6%" at 440, where a raid boss can't crit
     you; a minus sign below 300, where it raises it;

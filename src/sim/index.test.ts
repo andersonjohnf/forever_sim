@@ -390,6 +390,7 @@ describe('catalogues and presets', () => {
 
   it('locks a weapon stone’s damage off for a cat, whose attacks in Cat Form don’t use the weapon’s damage (Q25)', () => {
     expect(unusedBuffs('druid-feral-cat')).toEqual({ denseSharpeningStone: 'Not used in Cat Form: your attacks there don’t use your weapon’s damage' })
+    expect(unusedBuffs('druid-feral-bear')).toEqual({ denseSharpeningStone: 'Not used in Dire Bear Form: your attacks there don’t use your weapon’s damage' })
     expect(unusedBuffs('warrior-fury')).toEqual({})
     // The plan leaves it out; the Elemental Sharpening Stone's crit still applies.
     const cat = defaultConfig('druid-feral-cat')

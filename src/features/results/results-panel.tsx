@@ -608,9 +608,14 @@ function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: S
           ['Defense', formatInt(s.defense)],
           ...(bossTable ? ([[CRIT_REDUCTION_LABEL, formatCritReduction(s.critReductionPct)]] as [string, string][]) : []),
           ['Dodge', formatPct(s.dodgePct)],
-          ['Parry', formatPct(s.parryPct)],
-          ['Block', formatPct(s.blockPct)],
-          ['Block value', formatInt(s.blockValue)],
+          // A druid can neither parry nor block: no rows for them (BU15).
+          ...(s.canParry === false ? [] : ([['Parry', formatPct(s.parryPct)]] as [string, string][])),
+          ...(s.canBlock === false
+            ? []
+            : ([
+                ['Block', formatPct(s.blockPct)],
+                ['Block value', formatInt(s.blockValue)],
+              ] as [string, string][])),
         ] as [string, string][])
       : []),
   )

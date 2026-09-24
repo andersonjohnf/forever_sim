@@ -245,7 +245,7 @@ export function CharacterSection() {
             </ToggleGroup>
             <p id="jotc-help" className="text-xs text-muted-foreground">
               {protection
-                ? 'Untested in Forever: how much of the +161 Holy damage each Holy hit gets. A share (the default), by the spell’s coefficient: a Seal of Fury proc 10%, Judgement of Fury 45%, Holy Strike 43%. Or all of it on seal procs, judgements and Holy Strike. Consecration, Holy Shield and Hammer of Wrath get their share either way.'
+                ? 'Untested in Forever: how much of the +161 Holy damage each Holy hit gets. A share (the default), by the spell’s coefficient: a Seal of Fury proc 10%, Judgement of Fury 45%, Holy Strike 43%, Hammer of the Righteous none. Or all of it on seal procs, judgements, Holy Strike and Hammer of the Righteous. Consecration, Holy Shield and Hammer of Wrath get their share either way.'
                 : 'Untested in Forever: how much of the +161 Holy damage each Holy hit gets. A share (the default), by the spell’s coefficient: a Seal of Command proc about 20%, Judgement of Command and Holy Strike 43%. Or all of it on seal procs, judgements and Holy Strike. Consecration, Exorcism and Hammer of Wrath get their share either way.'}
             </p>
             {jotcUnused && (

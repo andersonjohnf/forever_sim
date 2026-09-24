@@ -460,6 +460,12 @@ slice is worked:
   chance (defense 310, v1's 433) and 32% more damage taken than v1's preset (898 a second against
   681), within the user's effective-health floor (90.6% of v1's). The optimizer (O2) replaces the set;
   D30's survival constraint for it is the class doc's floor.
+- **Caster food and oil across the caster presets** (T2 review T2R-6, pre-existing, low): Nightfin
+  Soup and Brilliant Wizard Oil are in Elemental's Standard raid and the mages' Max consumables, and
+  Nightfin Soup and Wizard Oil in the Protection paladin's Standard raid, but in no warlock, Shadow
+  Priest or Balance preset ([buffs §6.3](mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset)).
+  Each is a Buffs switch those specs can turn on; aligning the presets waits for the consumables' own
+  review (or the optimizer's), since it moves every caster golden.
 - **Hammer of the Righteous's extra targets** (its effect 1, 120 to 3 chain targets, and the other 3
   targets' weapon damage) wait for M6, as does Consecration's 12 to every enemy.
 - **Crit from auras and the paladin (GR9, not a bug):** against a +3 boss the first 1.8% of crit from

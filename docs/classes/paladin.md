@@ -385,7 +385,7 @@ These judgements are debuffs: taking one replaces your JotC.
 | Consecration ranks 1–4 | per tick all + first-4: r1 2 + 4, r2 3 + 7, r3 6 + 11, r4 8 + 20; **every rank has the full 0.095** | 135 / 235 / 320 / 435 mana | as above | [F] tick spells 1280345–1280348, [F 26573][f26573]. Downranking is mana-efficient: r1 is `48 + 0.76 × SP` for 135 mana |
 | **Exorcism** r6 (10314) | **475–529 + 0.429 × SP** Holy; **Undead or Demon only** | 345 mana; 15 s; GCD 1.5 s | Magic: spell hit, crit ×1.5 | [F] [F 10314][f10314] |
 | **Hammer of Wrath** r3 (24239) | **474–522 + 0.429 × SP** Holy; target **≤ 20% health** | 425 mana; 6 s; 1.0 s cast (Instrument of Law −0.5/−1.0 s → instant); **GCD 1.0 s**. The cast stops your auto attacks, which start again from a full swing when it ends, as [damage-and-timing §3.3](../mechanics/damage-and-timing.md#33-swing-reset-rules) has every cast do, and holds everything else until it ends, the off-GCD Judgement too: in game you can't cast one spell during another [?]. It pays its mana and starts its cooldown when the cast ends. The default Retribution build's Instrument of Law 2/2 makes it instant; the default Protection build casts it in 1 s (row 8), where the cast costs 1.8% of TPS against letting swings and Judgement go on | **Ranged** class (DefenseType 3): ranged hit/crit table, see combat-tables | [F] [F 24239][f24239]; the cast's effect on swings and Judgement [?] ([open question 22](#open-questions)) |
-| **Hammer of the Righteous** (407632), trained at 40 | **3 × MH weapon DPS** as Holy to the target and up to 3 more (DB2 target field is 3 in Forever, 4 in SoD's copy [?]); no SP coefficient in data | 6% base mana (90); **6 s**, category 2404: **shares its cooldown with Holy Strike** (casting it holds Holy Strike 6 s; Holy Strike holds it for its own 10–12 s); GCD 1.5 s; needs a 1H axe, mace or sword (subclass mask 145) | Melee class, neither No Active Defense nor Always Hit: the full special table, crit ×2; no weapon share, so it rolls to hit and then to crit, as the judgements do [?] ([one roll or two](#conventions-used-below)). A cast spell: it triggers procs, not the seals' | [F] [F 407632][f407632]; category 2404 with 6 s, cost 6%, subclass mask 145: [client] (SpellCategories, SpellCooldowns, SpellPower, SpellEquippedItems, 1.60.1.69913). It's SoD's spell id, but Forever changed its level, cooldown category and target count, so it's a deliberate Forever spell. The damage is effect 0 (a script) at effect 2's 3 × weapon DPS; effect 1 (120, 3 chain targets) is read as the extra targets' part, left out on one target ([M6](../milestones.md#m6-multi-target-)). **Whether "weapon DPS" counts attack power** is [?] ([open question 11](#open-questions), guild test T3): the sim counts it by default, the weapon DPS a character sheet shows, since that reading fits the guild's benchmark ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)); **Character → Advanced** switches to the weapon's own (`rules.hotrWeaponDps`). Worked example 24 |
+| **Hammer of the Righteous** (407632), trained at 40 | **3 × MH weapon DPS** as Holy to the target and up to 3 more (the tooltip's "up to 3 additional"; the client's chain-target fields are 4 on effect 0, 3 on effect 1 and 4 on effect 2 [F] [client] (SpellEffect, 1.60.1.69913), so 4 targets in all with the first); no SP coefficient in data | 6% base mana (90); **6 s**, category 2404: **shares its cooldown with Holy Strike** (casting it holds Holy Strike 6 s; Holy Strike holds it for its own 10–12 s); GCD 1.5 s; needs a 1H axe, mace or sword (subclass mask 145) | Melee class, neither No Active Defense nor Always Hit: the full special table, crit ×2; no weapon share, so it rolls to hit and then to crit, as the judgements do [?] ([one roll or two](#conventions-used-below)). A cast spell: it triggers procs, not the seals' | [F] [F 407632][f407632]; category 2404 with 6 s, cost 6%, subclass mask 145: [client] (SpellCategories, SpellCooldowns, SpellPower, SpellEquippedItems, 1.60.1.69913). It's SoD's spell id, but Forever changed its level, cooldown category and target count, so it's a deliberate Forever spell. The damage is effect 0 (a script) at effect 2's 3 × weapon DPS; effect 1 (120, 3 chain targets) is read as the extra targets' part, left out on one target ([M6](../milestones.md#m6-multi-target-)). **Whether "weapon DPS" counts attack power** is [?] ([open question 11](#open-questions), guild test T3): the sim counts it by default, the weapon DPS a character sheet shows, since that reading fits the guild's benchmark ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)); **Character → Advanced** switches to the weapon's own (`rules.hotrWeaponDps`). Worked example 24 |
 | **Holy Shield** r3 (20928), tier-7 (31-point) Prot talent | **+20% block** for 10 s, **4 charges**; each block deals **221 + 0.08 × SP** Holy; the damage has **+20% threat** | 240 mana; 10 s (category); GCD 1.5 s | Block damage is the buff's own effect (aura 43, `PROC_TRIGGER_DAMAGE`), with no damage spell of its own. The client marks spell 20928 **magic** (DefenseType 1), which would give the damage the spell table: a miss roll (14% for the default build against a level-63 boss) and spell crit. The sim overrides it and has the damage always land and never crit [?]: 20928's table is the one its cast rolls, on yourself, and nothing in the client says the damage its aura deals rolls one again. Untested ([open question 16](#open-questions)). Needs a shield | [F] [client] (SpellEffect, SpellAuraOptions, SpellCategories, 1.60.1.69913; [20928][f20928]) |
 | **Righteous Fury** (25780) | **+90% threat from Holy damage**; Improved RF adds −2/4/6% damage taken | 30% base mana (453); 30 min | — | [F] [client] (SpellEffect, TraitDefinitionEffectPoints, 1.60.1.69913; [25780][f25780]) |
 | **Holy Wrath** r2 (10318) | 490–576 Holy, AoE 20 yd, Undead/Demon only, now also stuns 2 s | 805 mana; 60 s; 2 s cast | Magic | [F]. Off by default |
@@ -759,14 +759,15 @@ the potion only when missing 2,250), on the setup without Prayer of Spirit and A
 
 ### Threat sources, in expected order of size
 
-Measured in the default setup after T2 (180 s, the Standard raid, your own Judgement of the
-Crusader from the opener, the interim gear and talents, 379 Holy spell damage; 810.8 TPS and 434.2
-DPS over 20,000 fights on seed 12345): Seal of Fury's procs (20% of TPS), Consecration (16%),
-Judgement of Fury (15%), Holy Shield's block damage (14%, ×2.28 threat), Holy Strike (11%, ×2.375),
-white hits with their Windfury, Flurry Axe and Reckoning extra attacks (15% together, ×1), Hammer of
-Wrath in the execute phase (5%), and the mana Shield Specialization, Improved Seal of Fury and the
-potion give (5%, 0.5 a mana). Retribution Aura adds 3% with Max TPS; Exorcism counts only against Undead
-and Demons. Before T2 (C3's setup, 424.8 TPS) Holy Shield led with 24%.
+Measured in the default setup after T2's fix round (2026-09-24: 180 s, the Standard raid with a
+druid's Thorns, your own Judgement of the Crusader from the opener, the interim gear and talents, 379
+Holy spell damage; 823.6 TPS and 446.8 DPS over 20,000 fights on seed 12345): Seal of Fury's procs
+(19% of TPS), Consecration (19%), Judgement of Fury (15%), Holy Shield's block damage (13%, ×2.28
+threat), Holy Strike (9%, ×2.375), white hits with their Windfury, Flurry Axe and Reckoning extra
+attacks (14% together, ×1), Hammer of Wrath in the execute phase (5%), the mana Shield
+Specialization, Improved Seal of Fury and the potion give (5%, 0.5 a mana), and Thorns (1%).
+Retribution Aura adds 3% with Max TPS; Exorcism counts only against Undead and Demons. Before T2
+(C3's setup, 2026-09-23, 424.8 TPS) Holy Shield led with 24%.
 Righteous Fury, cast before the pull, is behind every Holy share: the Rotation tab shows it as a
 fixed row, always on, and the results list it up all fight.
 
@@ -846,13 +847,16 @@ the Rotation tab opens with a Priority choice (`priority`), as Warrior Protectio
   Max TPS moves only that setting's default, and a value you set yourself still wins.
 - **Not duties.** Holy Shield (+20% block, and a block's damage), Seal of Fury (its absorb, and
   its judgement's taunt) and Holy Strike (Iron Creed's −10% damage taken) help you survive too,
-  but each also makes more threat than what would replace it, so no priority gives them up: Holy
-  Shield off loses 24% of TPS (and takes 2.9% more damage), Seal of Righteousness 10% with the
-  default 1.5 s axe, Holy Strike 5.8% (and takes 3.8% more damage). Nothing is dropped for an
-  untested threat value, and every threshold's best value is the same for both priorities. Holy
-  Shield is still the first global cooldown at the pull, and the seal is up from before it.
+  but each also makes more threat than what would replace it, so no priority gives them up. In
+  the default setup after T2's fix round (40,000 paired fights, seed 777): Holy Shield off loses
+  14.4% of TPS (and takes 0.4% more damage), Seal of Righteousness 3.9% with the default 1.5 s axe,
+  Holy Strike 9.2% (and takes 3.1% more damage). Nothing is dropped for an untested threat value,
+  and every threshold's best value is the same for both priorities. The seal is up from before the
+  pull: with the opener it's Seal of the Crusader, judged at the pull, so the first global cooldown
+  at the pull puts Seal of Fury up and Holy Shield follows at 1.5 s
+  ([worked example 25](#worked-examples)); without the opener Holy Shield is the first.
 
-Max TPS against the default (C3's setup; after T2 it's +25.2 TPS, +3.1%, for 5.7% more damage taken, [T2's re-check](#tuning-the-defaults-c3)): **+19.98 TPS (+4.70%, 95% CI +19.98 to +19.99)** and +10.31 DPS
+Max TPS against the default (C3's setup; after T2 it's +25.2 TPS, +3.1%, for 5.7% more damage taken, [T2's re-check](#tuning-the-defaults-c3); after T2's fix round +24.4 TPS, +3.0%, and +12.6 DPS, for 5.7% more): **+19.98 TPS (+4.70%, 95% CI +19.98 to +19.99)** and +10.31 DPS
 (+4.46%), for 38.1 more damage taken a second (+5.6%), over 400,000 paired fights on seed 4482,
 which no search used; +4.54% at 60 s and +4.82% at 300 s. Its search on its own base (seed 1,
 40,000 fights) found the default's thresholds best too: around them, Consecration from 35% −0.06%

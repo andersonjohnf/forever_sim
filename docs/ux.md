@@ -509,6 +509,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     Light's share of Intellect included), Crit | Spell crit, Hit | Spell hit, Weapon skill |
     Expertise, Strength | Agility, Stamina | Intellect, Health | Mana, Spirit | Mana per 5 s, then
     Haste | Armor. Each label fits on one line at 390 px.
+  - A caster's (a spec the caster core marks, [spells §12](mechanics/spells.md#12-what-a-class-slice-uses);
+    none ships yet) are its spell stats first: Spell damage (all schools), then each school whose
+    own lines add to it ("Shadow damage"), Spell crit, Spell hit, Casting speed, Spell penetration
+    when it has any, Intellect, Spirit, Mana, Mana per 5 s, Stamina, Health, then Armor. The
+    caster slices check them at 390 px as they ship.
   - Defense, dodge, parry, block and block value join them for a tank, and for anyone with
     defense above 300 or block value; a class that can't parry or block (a druid) leaves those
     rows out. A tank's sheet adds **Crit reduction (boss's crits)** after

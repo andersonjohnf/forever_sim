@@ -1,4 +1,4 @@
-// Rule profiles (docs/architecture.md#engine-design-m1, docs/milestones.md#m1-engine-core).
+// Rule profiles (docs/architecture.md#engine-design-m1, docs/milestones.md#m1-engine-core-).
 //
 // Every mechanic where the Forever client and Classic Era disagree, or where Forever is
 // unmeasured, is a number in one of these objects, never a branch in the engine. A guild

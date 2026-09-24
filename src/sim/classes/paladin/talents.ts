@@ -196,7 +196,7 @@ export function righteousFuryEffects(on: boolean, talents: TalentRanks): Effect[
 /** Reverence: 10% of Spirit regen per rank continues inside the five-second rule (paladin.md#mana-model). */
 export const reverenceShare = (talents: TalentRanks) => 0.1 * rank(talents, 'Reverence')
 
-/** Improved Seals' spell mask: the damage seals' procs and the damage judgements (paladin.md#holy-tree). */
+/** Improved Seals' spell mask: the damage seals' procs and the damage judgements (paladin.md#holy-tree-points-ret-and-prot-builds-take). */
 export const IMPROVED_SEALS: ReadonlySet<string> = new Set([
   'sealOfCommandProc',
   'sealOfRighteousnessProc',

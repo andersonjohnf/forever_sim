@@ -8,12 +8,12 @@ const offering = (...ids: SpecId[]) => ids.map((id) => specs.find((s) => s.id ==
 // spec ships; the coverage line lists the specs one class at a time.
 describe('the About sheet and page description', () => {
   test('say DPS until a tank spec ships, then DPS and TPS', () => {
-    expect(appSentence(offering('warrior-fury', 'warrior-arms'))).toBe('A DPS simulator for WoW Forever.')
-    expect(appSentence(offering('warrior-fury', 'warrior-arms', 'druid-feral-cat'))).toBe('A DPS simulator for WoW Forever.')
-    expect(appSentence(offering('warrior-fury', 'warrior-protection'))).toBe('A DPS and TPS simulator for WoW Forever.')
+    expect(appSentence(offering('warrior-fury', 'warrior-arms'))).toBe('A DPS simulator for World of Warcraft: Forever.')
+    expect(appSentence(offering('warrior-fury', 'warrior-arms', 'druid-feral-cat'))).toBe('A DPS simulator for World of Warcraft: Forever.')
+    expect(appSentence(offering('warrior-fury', 'warrior-protection'))).toBe('A DPS and TPS simulator for World of Warcraft: Forever.')
     // What ships today: Protection, the first tank since P2, so index.html's descriptions say
     // "A DPS and TPS simulator" too.
-    expect(appSentence()).toBe('A DPS and TPS simulator for WoW Forever.')
+    expect(appSentence()).toBe('A DPS and TPS simulator for World of Warcraft: Forever.')
   })
 
   test('list the specs one class at a time', () => {

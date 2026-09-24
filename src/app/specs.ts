@@ -25,11 +25,13 @@ const list = (words: string[]) => (words.length < 3 ? words.join(' and ') : `${w
 
 /**
  * What the app is, without naming specs, so it reads right as specs ship (docs/ux.md principle
- * 8): "A DPS simulator for WoW Forever.", and "A DPS and TPS simulator…" once a tank spec ships.
+ * 8): "A DPS simulator for World of Warcraft: Forever.", and "A DPS and TPS simulator…" once a
+ * tank spec ships. It's About's first mention of the game, so it gives the full name; "WoW
+ * Forever" is the short form after it (docs/ux.md#brand).
  */
 export function appSentence(offered: readonly SpecDefinition[] = visibleSpecs()): string {
   const metrics = offered.some((s) => s.role === 'tank') ? 'DPS and TPS' : 'DPS'
-  return `A ${metrics} simulator for WoW Forever.`
+  return `A ${metrics} simulator for World of Warcraft: Forever.`
 }
 
 /**

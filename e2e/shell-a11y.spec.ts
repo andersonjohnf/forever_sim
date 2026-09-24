@@ -143,7 +143,7 @@ test.describe('About', () => {
     // index.html has to be kept in step (its "DPS and TPS" once a tank spec ships).
     expect(meta).toBe(about)
     expect(og).toBe(about)
-    expect(about).toMatch(hasTank ? /^A DPS and TPS simulator for WoW Forever\./ : /^A DPS simulator for WoW Forever\./)
+    expect(about).toMatch(hasTank ? /^A DPS and TPS simulator for World of Warcraft: Forever\./ : /^A DPS simulator for World of Warcraft: Forever\./)
     for (const spec of specs) expect(about).not.toContain(spec)
     // The specs it covers are listed on their own line, each name kept whole with non-breaking
     // spaces ("Feral (Cat)" never wraps between its words).

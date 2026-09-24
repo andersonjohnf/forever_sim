@@ -94,9 +94,18 @@ test.describe('touch targets in the shell (RU7)', () => {
     await page.getByRole('menuitem', { name: 'About & data' }).click()
     const about = page.getByRole('dialog', { name: 'About Forever Sim' })
     const links = about.getByRole('link')
-    // wago.tools, the repository, what still needs testing, and decades.gg.
-    await expect(links).toHaveCount(4)
+    // Every link in About opens in a new tab, so the sheet stays open, and says so.
+    const names = [
+      'wago.tools (opens in a new tab)',
+      'GitHub repository (opens in a new tab)',
+      'What still needs testing in game (opens in a new tab)',
+      'Visit decades.gg (opens in a new tab)',
+    ]
+    await expect(links).toHaveCount(names.length)
+    for (const [i, name] of names.entries()) await expect(links.nth(i)).toHaveAccessibleName(name)
     for (const link of await links.all()) {
+      await expect(link).toHaveAttribute('target', '_blank')
+      await expect(link).toHaveAttribute('rel', /\bnoopener\b/)
       await link.scrollIntoViewIfNeeded()
       await expect.poll(async () => (await link.boundingBox())!.height).toBeGreaterThanOrEqual(44)
     }

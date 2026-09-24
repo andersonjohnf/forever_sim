@@ -54,7 +54,7 @@ warrior's Protection from a paladin's too. Then
 44 px tall.
 
 **About & data** opens a sheet that starts with what the app is, without naming specs ("A DPS
-and TPS simulator for WoW Forever", since Protection, the first tank spec, shipped; "A DPS
+and TPS simulator for World of Warcraft: Forever", since Protection, the first tank spec, shipped; "A DPS
 simulator" while only DPS specs did), then the specs it covers on their own line, one class at a
 time ("Covers Warriors: Fury, Arms and Protection · Druids: Feral (Cat) · Paladins:
 Retribution and Protection"), which grows as specs ship (principle 8). The page's meta and Open
@@ -64,7 +64,8 @@ the specs, the **release stamp** says when this release went out, in the viewer'
 and its build: "Updated 8:05 PM EDT · Sep 24, 2026 · build 1a2b3c4". Players check it to see
 whether a fix they heard about is live, and quote the build when they report something. The sheet
 ends with **Made by Decades** ([Brand](#brand)) and the line that neither Forever Sim nor Decades
-is affiliated with or endorsed by Blizzard Entertainment.
+is affiliated with or endorsed by Blizzard Entertainment. Every link in the sheet opens in a new
+tab, so the sheet stays open, with `rel="noopener"` and "(opens in a new tab)" for screen readers.
 
 **Section tabs** are 44 px tall. When they scroll sideways, a fade marks each edge with more
 tabs past it (none at an end), and the chosen tab scrolls into view clear of the fades, as does
@@ -689,8 +690,10 @@ the sim (principle 1).
   a graphic. The lockup's "Decades" is muted text (4.7:1 light, 7.7:1 dark), and on hover the text
   colour on the hover fill (18:1 light, 17:1 dark).
 - **What the brand may say** follows the guild's own rules (its site's content guide): the game is
-  World of Warcraft: Forever, never renamed; neither the app nor the guild claims any Blizzard
-  affiliation, so About says neither is affiliated with or endorsed by Blizzard Entertainment; and
+  World of Warcraft: Forever, never renamed. About's first mention of it gives the full name (its
+  description line, which the page's meta description shares); after that, "WoW Forever" is the
+  accepted short form, in the app and the docs alike. Neither the app nor the guild claims any
+  Blizzard affiliation, so About says neither is affiliated with or endorsed by Blizzard Entertainment; and
   nothing states the guild's raid nights, raid sizes or rules, or any guild fact beyond its
   founding in 2005 and its positioning.
 

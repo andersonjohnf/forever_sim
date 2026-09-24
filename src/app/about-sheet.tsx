@@ -84,7 +84,7 @@ export function AboutSheet({
             </p>
           </Section>
           <Section title="Game data">
-            <DataAttribution />
+            <DataAttribution newTab />
             <p className="text-muted-foreground">
               Spellbooks, talents, races, items and ability numbers all come from the WoW Forever beta
               client&apos;s own data tables, served by wago.tools. Classic Era comparisons come from the Classic Era
@@ -105,12 +105,8 @@ export function AboutSheet({
           {/* The links are 44 px tall touch targets (docs/ux.md principle 4), and as wide as their text. */}
           <Section title="Source and docs">
             <div className="flex flex-col items-start">
-              <a className="inline-flex min-h-11 items-center gap-1 underline underline-offset-2" href={REPO}>
-                GitHub repository <ExternalLink className="size-3.5" aria-hidden />
-              </a>
-              <a className="inline-flex min-h-11 items-center gap-1 underline underline-offset-2" href={`${REPO}/blob/main/docs/open-questions.md`}>
-                What still needs testing in game <ExternalLink className="size-3.5" aria-hidden />
-              </a>
+              <ExternalTextLink href={REPO}>GitHub repository</ExternalTextLink>
+              <ExternalTextLink href={`${REPO}/blob/main/docs/open-questions.md`}>What still needs testing in game</ExternalTextLink>
             </div>
           </Section>
           <MadeByDecades />
@@ -143,18 +139,23 @@ function MadeByDecades() {
           <p>
             Forever Sim is made by Decades, a gaming community since 2005. Community first: we invest in our players.
           </p>
-          <a
-            className="inline-flex min-h-11 items-center gap-1 underline underline-offset-2"
-            href={DECADES_URL}
-            target="_blank"
-            rel="noopener"
-          >
-            Visit decades.gg <ExternalLink className="size-3.5" aria-hidden />
-            <span className="sr-only">(opens in a new tab)</span>
-          </a>
+          <ExternalTextLink href={DECADES_URL}>Visit decades.gg</ExternalTextLink>
         </div>
       </div>
     </section>
+  )
+}
+
+/**
+ * A link out of the app, as every link in About is: a new tab, so the sheet stays open, that says so
+ * to screen readers (docs/ux.md, "About & data").
+ */
+function ExternalTextLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a className="inline-flex min-h-11 items-center gap-1 underline underline-offset-2" href={href} target="_blank" rel="noopener">
+      {children} <ExternalLink className="size-3.5" aria-hidden />
+      <span className="sr-only">(opens in a new tab)</span>
+    </a>
   )
 }
 

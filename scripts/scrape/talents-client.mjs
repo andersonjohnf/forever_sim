@@ -12,6 +12,8 @@
 //   --diff     then diff the written trees against the committed ones, talent by talent; report
 //              in .cache/client/<build>/talents-diff.md (+ .json) and talents-changes.md
 //   --against  the git ref whose dataset is "committed" (default HEAD)
+//   --check    from the cache alone, compare the trees with the files in src/data and write
+//              nothing; exits non-zero if one differs (lib/output.mjs)
 //
 // Every run also checks build-code compatibility. Share links and saved setups store build
 // codes, so every position of the code (tree, then talent in tier/column order) must hold the
@@ -32,6 +34,7 @@ import path from "node:path";
 import { describeRef, readCommitted } from "./lib/committed.mjs";
 import { createFetcher } from "./lib/http.mjs";
 import { compareText, stableStringify } from "./lib/json.mjs";
+import { checkConflicts, createOutput } from "./lib/output.mjs";
 import { SPELL_TEXT_TABLES, createSpellTextContext } from "./lib/spell-text.mjs";
 import {
   CLASSIC_TREE_TABLES,
@@ -79,19 +82,21 @@ const storedCodes = (cls) => Object.keys(STORED_BUILDS[cls] ?? {});
 const CODE_FORMAT =
   'Wowhead-style string of three "-"-separated segments, one per tree in `trees` order. Each segment has one decimal digit per talent (its rank, 0..maxRank), in `order` = sorted by tier, then col (both 0-based). Trailing zeros in a segment are trimmed; empty segments are kept, so a full code always has two "-" (e.g. "30305213132515201-05050103-"). Every position keeps its talent and max rank from build to build (new talents only at the end of a tree), so every code keeps its meaning.';
 
-const opts = { diff: false, "accept-code-changes": false, "skip-committed-check": false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
+const opts = { diff: false, "accept-code-changes": false, "skip-committed-check": false, refresh: false, check: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
 for (const arg of process.argv.slice(2)) {
   const m = /^--([a-z-]+)(?:=(.*))?$/.exec(arg);
   if (!m) usage(`Unknown argument: ${arg}`);
   const [, key, value] = m;
-  if (["diff", "accept-code-changes", "skip-committed-check", "refresh"].includes(key) && value === undefined) opts[key] = true;
+  if (["diff", "accept-code-changes", "skip-committed-check", "refresh", "check"].includes(key) && value === undefined) opts[key] = true;
   else if (["version", "baseline", "dbdefs", "against"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
+if (opts.check) for (const conflict of checkConflicts(opts)) usage(conflict);
 function usage(msg) {
-  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--accept-code-changes] [--skip-committed-check] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
+  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--accept-code-changes] [--skip-committed-check] [--refresh] [--check] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
   process.exit(2);
 }
+const output = createOutput({ repoRoot: REPO_ROOT, check: opts.check });
 
 const errors = [];
 const warnings = [];
@@ -102,7 +107,7 @@ const warn = (msg) => warnings.push(msg);
 // Tables
 // ---------------------------------------------------------------------------
 
-const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh });
+const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh, offline: opts.check });
 const latest = await latestBuild(fetcher, PRODUCT);
 const version = opts.version ?? latest.version;
 /** The build's creation date on wago.tools, from its build list (lib/wago.mjs buildRecord). */
@@ -383,9 +388,10 @@ async function write() {
   for (const b of built) {
     const file = path.join(REPO_ROOT, OUT_DIR, `${b.data.class}.json`);
     const text = stableStringify(b.data);
-    fs.writeFileSync(file, text);
-    console.log(`Wrote ${path.relative(REPO_ROOT, file)} (${(text.length / 1024).toFixed(0)} KB)`);
+    output.write(file, text);
+    if (!opts.check) console.log(`Wrote ${path.relative(REPO_ROOT, file)} (${(text.length / 1024).toFixed(0)} KB)`);
   }
+  output.finish();
 }
 
 function printSummary(built, codeResults) {

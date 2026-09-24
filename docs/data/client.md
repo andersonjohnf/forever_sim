@@ -601,12 +601,14 @@ npm run scrape:client -- --version=<build>        # a specific build (e.g. the n
 npm run scrape:client -- --refresh                # re-ask for the latest build and re-download
 npm run scrape:client -- --claims                 # also re-check the doc claims (Classic Era 1.15.9.69722)
 npm run scrape:client -- --dbdefs=<sha>           # pin a WoWDBDefs commit
+npm run scrape:client -- --check                  # compare with src/data/client, from the cache, writing nothing
 git diff --stat src/data/client
 ```
 
 The scraper reads `src/data/{spells,talents,races,items}/*.json`, the buffs doc and the class,
 mechanics and open-questions docs to build the interest set, so it runs after the four dataset
-scrapers, and again after a doc cites a new spell id. For a new build: pass `--version=` (or
+scrapers, and again after any edit to a doc it reads ([What the docs decide](#what-the-docs-decide)).
+For a new build: pass `--version=` (or
 run `npm run scrape -- --version=<build>`), and pin a fresh WoWDBDefs commit (delete
 `.cache/client/github/wowdbdefs_head.json`, or pass `--dbdefs=`) if the new build's layouts
 aren't in the cached definitions; the run fails loudly on an unknown layout. Then review the
@@ -619,6 +621,44 @@ with M1.5e and the docs: Frenzied Regeneration's heal 22845 left the interest se
 spellbooks no longer count it as a rank, and nothing else cites it), each race's `racials`
 took the client's `SkillLineAbility` order, and the Diamond Flask ids warrior.md Q30 now cites
 joined as `docs` sources (24427 and 363880 added; 363881 and 1318073 gained the source).
+
+The 2026-09-24 run (same build, 0 requests) caught up with the tank fixes' doc edits, which
+hadn't regenerated the data. Before it, a regeneration from the cache would have **dropped**
+Wizard Oil's and Brilliant Wizard Oil's enchants (2627, 2628; `enchants.json` 79 → 77) and their
+equip spells 25111 and 25113: T2 rewrote their ID cells as full chains ("20750 → 25121 → enchant
+2627 → 25111"), and the parser read only the first two steps. It now reads the whole chain
+([What the docs decide](#what-the-docs-decide)), so `enchants.json` is unchanged. The run gave
+`items.json`'s Nightfin Soup and the two oils their doc spells (1249513, 25121, 25122), and added
+the citations committed since the last run as `docs` sources: 18194 and 25742 new to
+`spells.json`; 15438, 25121, 25122, 1249513 and 1249520 gained the source. The engine doesn't
+read `src/data/client` (its numbers are written out in `src/sim` and checked against it by tests),
+and no test reads these records from it, so no test or golden moved.
+
+### What the docs decide
+
+Part of the interest set comes from the docs rather than from the other datasets, so **a doc
+edit can change `src/data/client`**:
+
+| Doc | What it adds | Parser |
+| --- | --- | --- |
+| [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md) §3 | each consumable's item (its `items.json` record and item effects), the buff spell and the enchant its ID cell names, and that enchant's spells | `parseBuffsDoc` |
+| the same, §5 (and §3's enchants) | the `enchants.json` rows, and the enchanting and proc spells | `parseBuffsDoc` |
+| the same, §1 and §4 | the buff and debuff spells (`buffsDoc` source) | `parseBuffsDoc` |
+| `docs/classes/*.md`, `docs/mechanics/*.md`, `docs/open-questions.md` | every spell id cited with a marker or after its client name (`docs` source) | `docSpellMentions` |
+
+Both parsers are in [`lib/docrefs.mjs`](../../scripts/scrape/lib/docrefs.mjs). A §3 ID cell is a
+chain: the item ids, then optionally the item's spell, spells it triggers, `enchant N` and the
+enchant's own spells (`18262 → enchant 2506`, `20750 → 25121 → enchant 2627 → 25111`,
+`13810 → 18124 → 18125`). The enchant's spells the doc names are checked against the client's
+enchant row (a `docMismatches` entry otherwise), a row's catalogue key (`` (`wizardOil`) ``) isn't
+part of its name, and a cell the parser can't read (no item id, an empty step, two enchants)
+fails the run instead of dropping its ids.
+
+So a commit that edits one of these docs regenerates the data in the same commit
+(`npm run scrape:client`, zero requests from a warm cache). `npm test` checks it
+([README § Checking the committed data](README.md#checking-the-committed-data)): without the
+cache it compares what the docs decide with the committed files, and with the cache it
+regenerates every dataset and compares byte for byte (`npm run scrape:check`).
 
 ## Phase 2 notes: what this client ships
 

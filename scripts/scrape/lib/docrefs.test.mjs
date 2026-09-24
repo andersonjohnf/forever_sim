@@ -16,7 +16,12 @@ const consumablesDoc = (...rows) =>
     "",
   ].join("\n");
 
-const consumables = (...rows) => parseBuffsDoc(consumablesDoc(...rows)).consumables.map(({ section, ...c }) => c);
+/** The parsed consumables, each checked for the table's section and returned without it. */
+const consumables = (...rows) =>
+  parseBuffsDoc(consumablesDoc(...rows)).consumables.map(({ section, ...c }) => {
+    expect(section).toBe("3.6 Weapon enhancements (temporary)");
+    return c;
+  });
 
 describe("parseBuffsDoc §3 ID cells", () => {
   it("reads an item and its buff spell, and pairs item and spell lists index-wise", () => {

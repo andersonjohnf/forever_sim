@@ -43,7 +43,12 @@ export function assertAllowed(url) {
   throw new Error(`Refusing to fetch ${url}: host not allowed`);
 }
 
-export function createFetcher({ cacheDir, refresh = false, log = console.log }) {
+/**
+ * `offline`: answer from the cache only, and throw for anything it lacks instead of fetching it
+ * (a generator's --check, lib/output.mjs).
+ */
+export function createFetcher({ cacheDir, refresh = false, offline = false, log = console.log }) {
+  if (offline && refresh) throw new Error("an offline fetcher can't refresh the cache");
   let lastRequestAt = 0;
   let requests = 0;
   let cacheHits = 0;
@@ -69,6 +74,7 @@ export function createFetcher({ cacheDir, refresh = false, log = console.log }) 
         return fs.readFileSync(file);
       }
     }
+    if (offline) throw new Error(`${url} isn't in the cache (${path.relative(process.cwd(), file)}), and an offline run makes no requests`);
     for (let attempt = 0; ; attempt++) {
       const wait = lastRequestAt + MIN_GAP_MS - Date.now();
       if (wait > 0) await sleep(wait);

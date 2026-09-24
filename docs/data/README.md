@@ -61,7 +61,9 @@ The item, talent, spell and race datasets start with:
   unit), never by `localeCompare` or `Intl.Collator`, which follow the machine's locale, and a
   build's date comes from wago.tools' build list for that build, not from whichever build the
   cache holds as "latest" (review finding L35; `scripts/scrape/lib/json.test.mjs` sorts under a
-  Swedish and a Turkish locale).
+  Swedish and a Turkish locale). The committed data is always that regeneration: a change that
+  moves it (a scraper, its curated inputs, or a doc the client scraper reads) commits the
+  regenerated files with it, and `npm test` checks it ([Checking the committed data](#checking-the-committed-data)).
 - **Keep both sides.** Where the Forever and Classic Era clients differ, we store both. The
   engine uses Forever values; Classic ones are there for comparison and fallback.
 - **Storage contracts hold across builds.** Share links and saved setups store build codes
@@ -111,3 +113,30 @@ re-downloads every file a scraper reads, cached or not.) After a refresh, review
 update the build number in any doc whose values moved, and re-check the doc claims
 (`npm run scrape:client -- --claims`).
 
+
+## Checking the committed data
+
+The client scraper takes part of what it extracts from the docs (the buffs doc's tables and the
+spell ids the class and mechanics docs cite; [client.md § What the docs decide](client.md#what-the-docs-decide)),
+so a commit that edits a doc can leave `src/data` stale without touching it. Two guards catch
+that, in [`scripts/scrape/committed-data.test.mjs`](../../scripts/scrape/committed-data.test.mjs),
+part of `npm test`:
+
+- **Everywhere, CI included:** what the current docs decide agrees with `src/data/client`: the
+  buffs doc's consumables (with the doc's names and ids), its enchants and its buff spells, and
+  every doc citation of a spell the data already carries. Every ID cell of the buffs doc must
+  also parse.
+- **Where the raw client files are cached** (`.cache/client`, from `npm run scrape`; skipped
+  without it): `npm run scrape:check` regenerates every dataset and compares it byte for byte
+  with `src/data`. It passes `--check` to each scraper, which reads the cache alone (its fetcher
+  is offline: a file the cache lacks fails the run instead of being downloaded) and writes
+  nothing. It runs every step and names each file that differs.
+
+```sh
+npm run scrape:check                          # every dataset, from the cache: exits 1 if one is stale
+npm run scrape:client -- --check              # one scraper (each takes --check)
+```
+
+When either fails, regenerate (`npm run scrape`) and commit the data with the change that moved
+it. A citation of a spell the data doesn't carry yet is seen only by the second guard, since
+recognising it needs the client's spell names.

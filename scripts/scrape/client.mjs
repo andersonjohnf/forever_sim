@@ -20,6 +20,9 @@
 //   gametables.json  level-60 rows of the combat-rating, base-mana, HP-per-Stamina,
 //                    armor-mitigation and PlayerExpectedStat tables
 //
+// --check compares the five files with the ones in --out (default src/data/client) instead of
+// writing them, from the cache alone, and exits non-zero if one differs (lib/output.mjs).
+//
 // --claims[=<build>] also checks the wago.tools values the docs marked for human
 // confirmation against the raw files (Classic Era comparisons read <build>, default
 // 1.15.9.69722) and writes the report to .cache/client/<version>/claims.md.
@@ -35,6 +38,7 @@ import { createSpellIndex, compactSpell, SPELL_TABLES, pick, camel } from "./lib
 import { mapTalents, TALENT_TABLES } from "./lib/talents.mjs";
 import { BUFFS_DOC, citingDocs, parseBuffsDoc, docSpellMentions } from "./lib/docrefs.mjs";
 import { stableStringify } from "./lib/json.mjs";
+import { checkConflicts, createOutput } from "./lib/output.mjs";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
@@ -47,12 +51,13 @@ const DEFAULT_BASELINE = "1.15.9.69722";
 // Arguments
 // ---------------------------------------------------------------------------
 
-const opts = { refresh: false, version: null, product: DEFAULT_PRODUCT, dbdefs: null, out: "src/data/client", claims: null };
+const opts = { refresh: false, check: false, version: null, product: DEFAULT_PRODUCT, dbdefs: null, out: "src/data/client", claims: null };
 for (const arg of process.argv.slice(2)) {
   const m = /^--([a-z]+)(?:=(.*))?$/.exec(arg);
   if (!m) usage(`Unknown argument: ${arg}`);
   const [, key, value] = m;
   if (key === "refresh" && value === undefined) opts.refresh = true;
+  else if (key === "check" && value === undefined) opts.check = true;
   else if (key === "version" && value) opts.version = value;
   else if (key === "product" && value) opts.product = value;
   else if (key === "dbdefs" && value) opts.dbdefs = value;
@@ -60,10 +65,12 @@ for (const arg of process.argv.slice(2)) {
   else if (key === "claims") opts.claims = value || DEFAULT_BASELINE;
   else usage(`Unknown argument: ${arg}`);
 }
+if (opts.check) for (const conflict of checkConflicts(opts)) usage(conflict);
 function usage(msg) {
-  console.error(`${msg}\nUsage: node ${SCRAPER} [--refresh] [--version=<build>] [--product=<product>] [--dbdefs=<sha>] [--out=<dir>] [--claims[=<build>]]`);
+  console.error(`${msg}\nUsage: node ${SCRAPER} [--refresh] [--check] [--version=<build>] [--product=<product>] [--dbdefs=<sha>] [--out=<dir>] [--claims[=<build>]]`);
   process.exit(2);
 }
+const output = createOutput({ repoRoot: REPO_ROOT, check: opts.check });
 
 const errors = [];
 const warnings = [];
@@ -76,7 +83,7 @@ const byNumber = (a, b) => a - b;
 // Build, definitions and tables
 // ---------------------------------------------------------------------------
 
-const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh });
+const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh, offline: opts.check });
 const latest = await latestBuild(fetcher, opts.product);
 const version = opts.version ?? latest.version;
 if (opts.version && opts.version !== latest.version) {
@@ -570,11 +577,10 @@ function meta(names) {
 }
 
 const outDir = path.resolve(REPO_ROOT, opts.out);
-fs.mkdirSync(outDir, { recursive: true });
 const written = {};
 function emit(file, data) {
   const text = stableStringify(data);
-  fs.writeFileSync(path.join(outDir, file), text);
+  output.write(path.join(outDir, file), text);
   written[file] = text.length;
 }
 
@@ -649,5 +655,6 @@ function finish() {
   }
   for (const w of warnings) console.warn(`warning: ${w}`);
   for (const e of errors) console.error(`error: ${e}`);
-  process.exit(errors.length ? 1 : 0);
+  output.finish();
+  process.exit(errors.length ? 1 : (process.exitCode ?? 0));
 }

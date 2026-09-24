@@ -4,10 +4,12 @@
 // (wow_classic_beta), rank by rank, next to the same spell in the Classic Era client
 // (wow_classic_era).
 //
-//   node scripts/scrape/spells-client.mjs [--diff] [--against=<git ref>] [--refresh]
+//   node scripts/scrape/spells-client.mjs [--diff] [--against=<git ref>] [--refresh] [--check]
 //        [--version=<Forever build>] [--baseline=<Classic Era build>] [--dbdefs=<sha>]
 //
 //   (default)  derive the three books and write src/data/spells/<class>.json
+//   --check    from the cache alone, compare the books with the files in src/data and write
+//              nothing; exits non-zero if one differs (lib/output.mjs)
 //   --diff     then diff the written books against the committed ones, spell by spell; report in
 //              .cache/client/<build>/spells-diff.md (+ .json)
 //   --against  the git ref whose dataset is "committed" (default HEAD)
@@ -26,6 +28,7 @@ import path from "node:path";
 import { committedJson, describeRef } from "./lib/committed.mjs";
 import { createFetcher } from "./lib/http.mjs";
 import { compareText, stableStringify } from "./lib/json.mjs";
+import { checkConflicts, createOutput } from "./lib/output.mjs";
 import { SPELL_TEXT_TABLES, createSpellTextContext } from "./lib/spell-text.mjs";
 import {
   CLASS_NAME,
@@ -83,19 +86,21 @@ function unresolvable(token) {
   return null;
 }
 
-const opts = { diff: false, refresh: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
+const opts = { diff: false, refresh: false, check: false, version: null, baseline: DEFAULT_BASELINE, dbdefs: null, against: "HEAD" };
 for (const arg of process.argv.slice(2)) {
   const m = /^--([a-z]+)(?:=(.*))?$/.exec(arg);
   if (!m) usage(`Unknown argument: ${arg}`);
   const [, key, value] = m;
-  if (["diff", "refresh"].includes(key) && value === undefined) opts[key] = true;
+  if (["diff", "refresh", "check"].includes(key) && value === undefined) opts[key] = true;
   else if (["version", "baseline", "dbdefs", "against"].includes(key) && value) opts[key] = value;
   else usage(`Unknown argument: ${arg}`);
 }
+if (opts.check) for (const conflict of checkConflicts(opts)) usage(conflict);
 function usage(msg) {
-  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--refresh] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
+  console.error(`${msg}\nUsage: node ${SCRAPER} [--diff] [--against=<git ref>] [--refresh] [--check] [--version=<build>] [--baseline=<build>] [--dbdefs=<sha>]`);
   process.exit(2);
 }
+const output = createOutput({ repoRoot: REPO_ROOT, check: opts.check });
 
 const errors = [];
 const warnings = [];
@@ -105,7 +110,7 @@ const fail = (msg) => errors.push(msg);
 // Tables
 // ---------------------------------------------------------------------------
 
-const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh });
+const fetcher = createFetcher({ cacheDir: CACHE_DIR, refresh: opts.refresh, offline: opts.check });
 const latest = await latestBuild(fetcher, PRODUCT);
 const version = opts.version ?? latest.version;
 /** The build's creation date on wago.tools, from its build list (lib/wago.mjs buildRecord). */
@@ -364,9 +369,10 @@ async function write() {
   for (const b of built) {
     const file = path.join(REPO_ROOT, OUT_DIR, `${b.data.class}.json`);
     const text = stableStringify(b.data);
-    fs.writeFileSync(file, text);
-    console.log(`Wrote ${path.relative(REPO_ROOT, file)} (${(text.length / 1024).toFixed(0)} KB)`);
+    output.write(file, text);
+    if (!opts.check) console.log(`Wrote ${path.relative(REPO_ROOT, file)} (${(text.length / 1024).toFixed(0)} KB)`);
   }
+  output.finish();
 }
 
 function printSummary(built) {

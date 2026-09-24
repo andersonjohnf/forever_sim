@@ -100,6 +100,8 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     label: 'Judgement of the Crusader',
     help: 'Put Seal of the Crusader up before the pull and judge it at the pull, then your seal: the boss takes +161 Holy damage for 40 s, and your auto attacks keep it up. If it’s ever missing, it’s judged again.',
     default: true,
+    // The Buffs tab's Judgement of the Crusader (another paladin's) is then yours (buffs doc §4.2).
+    maintainsBuff: 'judgementOfTheCrusader',
   },
   {
     kind: 'toggle',
@@ -265,6 +267,14 @@ export const retributionSeal = (values: Record<string, RotationValue>): AbilityD
  * (paladin.md "Tuning the defaults (C2)"): its "another will be ready" judged 10 or 20 s off.
  */
 export const KNOWN_FIGHT_END = 'with the default setup, judging it 10 to 20 s off costs up to 0.37%'
+
+/**
+ * Buff catalogue ids the rotation keeps up itself with these settings, so the plan drops the Buffs
+ * switch's static version: your own Judgement of the Crusader (buffs doc §4.2).
+ */
+export function retributionMaintainedBuffs(values: Record<string, RotationValue>): string[] {
+  return reader(RETRIBUTION_OPTIONS, values).on(ID.crusader) ? ['judgementOfTheCrusader'] : []
+}
 
 /**
  * The Retribution priority list from the settings (paladin.md "Forever priority list (default)").

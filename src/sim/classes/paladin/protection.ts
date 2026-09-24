@@ -32,6 +32,7 @@ import {
 import { JUJU_FLURRY, MANA_POTION, MANA_RUNE, paladinConsumables } from './consumables'
 import { EXORCISM_TARGETS, manaOption } from './retribution'
 import { type PaladinContext, paladinProcs, PREPULL_SEAL_MS } from './setup'
+import { type JotcRule, withJotcRule } from './spells'
 import { type TalentRanks, withTalents } from './talents'
 
 const DOC = 'docs/classes/paladin.md'
@@ -604,13 +605,21 @@ export function protectionRotation(
 ): ClassRotation {
   const ctx: PaladinContext = { ...NO_CONTEXT, ...context }
   const v = reader(PROTECTION_OPTIONS, values, talents)
+  // The Judgement of the Crusader rule (Character → Advanced), for another paladin's judgement on the
+  // boss: each Holy hit's share of its +161, as Retribution's (paladin.md, OQ 5).
+  const rule: JotcRule = ctx.jotcRule ?? 'coefficient'
   const abilities: AbilityDef[] = []
   const rotation: RotationEntry[] = []
-  /** The ability's index, resolved with the build's talents on first use. */
+  /** The ability's index, resolved with the build's talents and the JotC rule on first use. */
   const index = (def: AbilityDef): number => {
     const i = abilities.findIndex((a) => a.id === def.id)
     if (i >= 0) return i
-    abilities.push(withTalents(def, talents))
+    const a = withTalents(def, talents)
+    abilities.push({
+      ...a,
+      ...(a.spellDef ? { spellDef: withJotcRule(a.spellDef, rule) } : {}),
+      ...(a.tickSpellDef ? { tickSpellDef: withJotcRule(a.tickSpellDef, rule) } : {}),
+    })
     return abilities.length - 1
   }
   const add = (def: AbilityDef, conditions: RotationCondition[]) => {
@@ -698,7 +707,7 @@ export function protectionRotation(
       keepTenths: -1,
     },
     onUse: pressed,
-    procs: [...paladinProcs(abilities, talents, ctx), ...procs],
+    procs: [...paladinProcs(abilities, talents, ctx, rule), ...procs],
     ...(timed ? { assumes: [{ id: 'knownFightEnd' as const, detail: PROTECTION_KNOWN_FIGHT_END }] } : {}),
   }
 }

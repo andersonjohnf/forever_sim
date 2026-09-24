@@ -10,7 +10,7 @@ import { CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from 
 import { BEAR_OPTIONS, bearMaintainedBuffs, bearRotation, bearUnusedSettings } from './druid/bear'
 import { BALANCE_OPTIONS, balanceMaintainedBuffs, balanceRotation, balanceUnusedSettings } from './druid/balance'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
-import { RETRIBUTION_OPTIONS, retributionRotation } from './paladin/retribution'
+import { RETRIBUTION_OPTIONS, retributionMaintainedBuffs, retributionRotation } from './paladin/retribution'
 import {
   PROTECTION_FIXED_ROWS,
   PROTECTION_OPTIONS as PALADIN_PROTECTION_OPTIONS,
@@ -256,6 +256,8 @@ export function maintainedBuffs(spec: SpecId, values: Record<string, RotationVal
   if (spec === 'druid-feral-cat') return catMaintainedBuffs(values)
   // docs/classes/paladin.md "Priority": a Protection paladin's own Devotion Aura.
   if (spec === 'paladin-protection') return paladinProtectionMaintainedBuffs(values)
+  // docs/classes/paladin.md "Retribution defaults": its own Judgement of the Crusader.
+  if (spec === 'paladin-retribution') return retributionMaintainedBuffs(values)
   if (spec === 'druid-feral-bear') return bearMaintainedBuffs(values)
   if (spec === 'druid-balance') return balanceMaintainedBuffs(values)
   if (spec === 'rogue-combat') return combatMaintainedBuffs(values)

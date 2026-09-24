@@ -162,6 +162,7 @@ export const ASSUMPTION_GROUP = {
   shapeshifts: 'class',
   jotcBonus: 'class',
   jotcBonusFlat: 'class',
+  jotcRaid: 'class',
   holyStrike: 'class',
   consecrationTicks: 'class',
   hammerOfWrath: 'class',

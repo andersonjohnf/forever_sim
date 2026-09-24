@@ -645,6 +645,27 @@ export const BUFFS: BuffSpec[] = [
     },
     presets: { raid: CASTER_SPECS, max: CASTER_SPECS },
   },
+  // Another paladin's Judgement of the Crusader (buffs doc §4.2; docs/classes/paladin.md
+  // "Protection defaults"): a Protection paladin judges Seal of Fury, so the +161 is a second
+  // paladin's, on by default when the raid has one [?] (D29). Only paladins deal Holy damage among
+  // the specs in scope. A Retribution paladin that judges the Crusader itself keeps it up (its
+  // rotation's, SpecMeta.ownBuffs), so the two never count twice.
+  {
+    id: 'judgementOfTheCrusader',
+    name: 'Judgement of the Crusader',
+    icon: 'spell_holy_holysmite',
+    category: 'targetDebuff',
+    group: 'Spell damage',
+    summary: '+161 Holy damage taken',
+    providedBy: 'paladin',
+    forClasses: PALADIN_ONLY,
+    docRef: `${DOC}#42-other-debuffs`,
+    // 20303 #0: aura 14, school mask 2 (Holy), 161 [F]; Classic Era's 139 + 1 [C] (SpellEffect,
+    // 1.60.1.69913 and 1.15.9.69722). Each Holy hit's share is the Character → Advanced rule.
+    effects: [{ kind: 'holyTaken', value: 161 }],
+    classicEra: { summary: '+140 Holy damage taken', effects: [{ kind: 'holyTaken', value: 140 }] },
+    presets: { raid: PROTECTION_PALADIN, max: PROTECTION_PALADIN },
+  },
   // A Feral bear's duty (docs/classes/druid.md §6.3), which it keeps up itself (SpecMeta.ownBuffs), so
   // no preset has it; turned on here, it's another druid's.
   {

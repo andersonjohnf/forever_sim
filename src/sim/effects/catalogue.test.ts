@@ -46,6 +46,7 @@ function digest(effects: Effect[]): Line[] {
         break
       case 'weaponDamage':
       case 'targetArmor':
+      case 'holyTaken':
       case 'bossAp':
         lines.push([e.kind, e.value])
         break
@@ -193,6 +194,8 @@ const ROWS: Record<string, Row> = {
   demoralizingRoar: { forever: [['bossAp', -204]], classicEra: [['bossAp', -138]], rows: [S(9898)] },
   demoralizingShout: { forever: [['bossAp', -204]], classicEra: [['bossAp', -146]], rows: [S(11556)] },
   thunderClap: { forever: [['bossSlow', 20]], classicEra: [['bossSlow', 10]], rows: [S(11581, 1)] },
+  // Another paladin's (buffs doc §4.2): 20303 #0, aura 14 (Holy damage taken), 161; Classic Era 139 + 1.
+  judgementOfTheCrusader: { forever: [['holyTaken', 161]], classicEra: [['holyTaken', 140]], rows: [S(20303)] },
   // Consumables
   // Forever: #1 is all crit (aura 290), so spell crit too; Classic Era: aura 52.
   elixirOfTheMongoose: {
@@ -342,7 +345,7 @@ const ENTRIES: [string, CatalogueEntry][] = [...BUFFS.map((b) => [b.id, b] as [s
 describe('the catalogue in both profiles (buffs doc, Classic Era values)', () => {
   it('lists every entry once in the table, as the doc does', () => {
     expect(Object.keys(ROWS).sort()).toEqual(ENTRIES.map(([id]) => id).sort())
-    expect(ENTRIES).toHaveLength(123)
+    expect(ENTRIES).toHaveLength(124)
   })
 
   it.each(ENTRIES)('%s: Forever’s values, and Classic Era’s where they differ', (id, entry) => {

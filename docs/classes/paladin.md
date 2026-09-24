@@ -299,6 +299,14 @@ It corroborates the client data above but isn't a guild measurement.
   builder takes the rule (`coefficient`, the default, or `flat`), set as `rules.jotcBonus` under
   **Character → Advanced**, beside the other untested switch, "Count untested ratings" ("A share"
   or "All of it"). It's not a rotation choice, so the Rotation tab doesn't show it.
+- **Another paladin's JotC** [?]: a Protection paladin judges Seal of Fury, so the Crusader on the
+  boss is a second paladin's, the Buffs tab's `judgementOfTheCrusader` ([buffs §4.2, §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset)).
+  It raises every paladin's Holy damage, yours too, by the same rule (Character → Advanced routes
+  it for Protection as for Retribution), and it's on by default when the raid has another paladin
+  ([open question 26](#open-questions)): +80.3 TPS (+17%) in the default setup, from Judgement of
+  Fury (+27), Seal of Fury's procs (+27), Consecration (+23), Holy Strike (+17), Holy Shield (+8) and
+  Hammer of Wrath (+4). A Retribution paladin's own judgement makes the Buffs tab's its own, so the
+  two never count twice.
 - **Where the bonus goes** [?]: as a flat bonus on the *target*, it's added after your own damage
   multipliers (Improved Seals, Vengeance, Crusade), which don't raise it, and before the crit
   multiplier, which does. That follows the Classic engine's order for flat damage taken; it's
@@ -832,6 +840,7 @@ from 20% −0.07%, and the early potion at 1,250 missing −0.08% and at 1,750 �
 | Race | Human / Undead (Horde) | The default weapon is an axe (below), so Human's Sword Specialization (+2% crit, with a sword) doesn't apply, nor Dwarf's Mace Specialization; the race changes only base stats until you pick a sword or mace. Dwarf is a close choice for Stoneform |
 | Weapon | best pre-raid 1H **sword, mace or axe** (so HotR is usable) + shield: the pre-raid lists give the Flurry Axe (1.5 s) and Draconian Deflector | [F] HotR requirement |
 | Seal | **Seal of Fury** (SoR selectable) | [F] |
+| Raid debuff | **Another paladin's Judgement of the Crusader** (+161 Holy damage taken), in the Standard and Max raids when the raid has another paladin [?]: a raid's Holy or Retribution paladin usually judges the Crusader ([open question 26](#open-questions)) | [buffs §4.2](../mechanics/buffs-debuffs-consumables.md#42-other-debuffs), D29 |
 | Enchants | The Prot paladin column of [buffs §6.4](../mechanics/buffs-debuffs-consumables.md#64-enchant-defaults-by-spec): Arcanum of Focus on head and legs (+8 spell damage each), Superior Defense cloak, Greater Stats, Superior Stamina bracers, Threat gloves, Greater Agility boots, **Spell Power (+30) on the weapon** and Greater Stamina on the shield. The shoulders stay empty until Zandalar is confirmed. Holy threat scales with spell damage, so the caster enchants are worth 5.4% of TPS (+22.9) in the default setup ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)) | buffs doc owns the values |
 | Aura | Devotion Aura, your own, kept up by the rotation; Retribution Aura with Max TPS (30 × 1.9 threat per hit taken) | [F]; [D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23) |
 | Consumables tier | The **Standard raid** preset from [buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset): Elixir of Greater Defense (Classic: Superior Defense), Elixir of Fortitude (+200 health), Elixir of Holy Power (+40 Holy), Nightfin Soup (+22 spell damage), Wizard Oil, Major Mana Potion. The Max-consumables preset adds Flask of Supreme Power, Greater Arcane Elixir, Brilliant Wizard Oil (replacing Wizard Oil) and Demonic/Dark Rune. No world buffs. Nightfin Soup and the wizard oils are the caster food and oils of [buffs §3.4 and §3.6](../mechanics/buffs-debuffs-consumables.md#34-food), in the catalogue since T2: +52 spell damage in the Standard raid, worth 5.8% of TPS (+25.9) in the default setup. The Standard raid's paladin-only buffs are Prayer of Spirit, Arcane Brilliance, Blessing of Wisdom and Mana Spring Totem ([buffs §6.2](../mechanics/buffs-debuffs-consumables.md#62-buffs-and-debuffs-by-preset), "Pal"): 3,227 mana with the default gear. The raid preset has no Devotion Aura (yours), Thunder Clap or Demoralizing Shout (a warrior tank's; D26) | buffs doc owns names, values and presets |
@@ -1188,6 +1197,10 @@ default setup.
     750 of it can be lost to the cap; after that it waits until it's missing 2,250, so none is. A
     Demonic or Dark Rune: 900–1,500, its own 2 minute cooldown.
 
+23. **Another paladin's Judgement of the Crusader (Protection)**: each landed Judgement of Fury gets
+    161 × 0.45 = **+72.45** (a crit ×2: +144.9), each Seal of Fury proc 161 × 0.1 = **+16.1**, after
+    your own damage multipliers; with the flat rule, +161 each. Runs in `protection.test.ts`.
+
 ---
 
 ## Open questions
@@ -1307,6 +1320,12 @@ date, method and sample size ([doctrine §2](../doctrine.md#2-where-numbers-come
     If blocks used no charges, Holy Shield would last its full 10 s, and the default Protection
     setup would make 0.6% more TPS. *Test:* count the blocks that deal Holy Shield's damage in one
     10 s buff against a fast-hitting mob.
+
+26. **Another paladin's Judgement of the Crusader** [?]: the Protection defaults assume a raid with
+    another paladin keeps it on the boss (the Buffs tab's `judgementOfTheCrusader`, +80 TPS). A
+    raid's other paladins may judge Wisdom or Light instead. *Test:* ask the guild's Holy and
+    Retribution paladins which judgement they keep on a boss when a Protection paladin tanks; if it's
+    rarely the Crusader, the default goes off. Each Holy hit's share of it is open question 5.
 
 ---
 

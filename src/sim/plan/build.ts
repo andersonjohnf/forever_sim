@@ -220,6 +220,8 @@ interface Collected {
   maxRageFlat: number
   maxRageMult: number
   targetArmor: number
+  /** The boss's static flat Holy damage taken: another paladin's Judgement of the Crusader (buffs doc §4.2). */
+  holyTaken: number
   bossAp: number
   bossSlowPct: number
   offHand: { damagePct: number; hit: number; ragePct: number }
@@ -441,6 +443,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     maxRageFlat: 0,
     maxRageMult: 1,
     targetArmor: 0,
+    holyTaken: 0,
     bossAp: 0,
     bossSlowPct: 0,
     offHand: { damagePct: 0, hit: 0, ragePct: 0 },
@@ -1362,6 +1365,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // docs/classes/hunter.md#5-mana: the same model, with the hunter's Spirit regeneration and Bestial Discipline.
     ...(classId === 'hunter' ? { mana: hunterManaPlan(derived, block.mp5, setup.talents) } : {}),
     ...(c.holyThreatMult !== 1 ? { holyThreatMult: c.holyThreatMult } : {}),
+    ...(c.holyTaken ? { holyTaken: c.holyTaken } : {}),
     // docs/mechanics/spells.md §3, §9: the schools' numbers, when any isn't plain.
     ...(schools ? { schools } : {}),
     // docs/classes/mage.md#ignite: the rolling Ignite, when a proc feeds it.
@@ -1730,6 +1734,9 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
       return
     case 'targetArmor':
       c.targetArmor += e.value
+      return
+    case 'holyTaken':
+      c.holyTaken += e.value
       return
     case 'bossAp':
       c.bossAp += e.value

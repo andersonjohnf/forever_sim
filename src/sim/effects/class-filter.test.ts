@@ -23,9 +23,11 @@ const PALADIN_ONLY = [
   'nightfinSoup',
   'wizardOil',
   'brilliantWizardOil',
+  // Another paladin's Judgement of the Crusader: Holy damage, which only a paladin deals (buffs doc §4.2).
+  'judgementOfTheCrusader',
 ]
-/** The mana and all-schools spell damage entries are the shaman's too (docs/classes/shaman.md); Holy Power isn't. */
-const SHAMAN_TOO = PALADIN_ONLY.filter((id) => id !== 'elixirOfHolyPower')
+/** The mana and all-schools spell damage entries are the shaman's too (docs/classes/shaman.md); Holy Power and Judgement of the Crusader, Holy only, aren't. */
+const SHAMAN_TOO = PALADIN_ONLY.filter((id) => id !== 'elixirOfHolyPower' && id !== 'judgementOfTheCrusader')
 /** And the casters': the mage, the first (docs/classes/mage.md), the warlock (docs/classes/warlock.md) and the priest (docs/classes/priest.md; docs/mechanics/spells.md §12). */
 const CASTERS_TOO = SHAMAN_TOO
 /** And every caster spec's, whatever its class (`forCasterSpecs`): the Balance druid's (docs/classes/druid.md §11.6). */
@@ -118,7 +120,8 @@ describe('class-only catalogue entries', () => {
     ])
     // Max consumables adds Elixir of Holy Power, a rune and Flask of Supreme Power; the caster food and
     // oils are Protection's (§6.3).
-    const PROT_ONLY = ['nightfinSoup', 'wizardOil', 'brilliantWizardOil']
+    // Another paladin's Judgement of the Crusader too: Retribution judges its own (SpecMeta.ownBuffs).
+    const PROT_ONLY = ['nightfinSoup', 'wizardOil', 'brilliantWizardOil', 'judgementOfTheCrusader']
     expect(max('paladin-retribution').filter((id) => PALADIN_ONLY.includes(id)).sort()).toEqual(PALADIN_ONLY.filter((id) => !PROT_ONLY.includes(id)).sort())
     // Protection: Elixir of Holy Power, Nightfin Soup, Wizard Oil and the potion in Standard; Greater
     // Arcane Elixir, the flask, Brilliant Wizard Oil (in place of Wizard Oil) and a rune in Max.
@@ -127,6 +130,7 @@ describe('class-only catalogue entries', () => {
       'arcaneBrilliance',
       'blessingOfWisdom',
       'manaSpringTotem',
+      'judgementOfTheCrusader',
       'elixirOfHolyPower',
       'nightfinSoup',
       'wizardOil',

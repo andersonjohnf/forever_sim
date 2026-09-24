@@ -58,6 +58,9 @@ describe('golden run (fixed config and seed)', () => {
   // - T2 (P3): the Standard raid's caster food and oil reach the catalogue and the Protection preset,
   //   Nightfin Soup (+22 spell damage) and Wizard Oil (+30): 86 → 138. TPS 446.30 → 472.18, DPS
   //   242.25 → 255.01.
+  // - T2 (A1, A1b): another paladin's Judgement of the Crusader (+161 Holy damage taken) in the
+  //   Standard raid, with a second paladin [?], and the Character → Advanced JotC rule now reaches
+  //   Protection's spells (it didn't). TPS 472.18 → 552.32, DPS 255.01 → 294.51.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

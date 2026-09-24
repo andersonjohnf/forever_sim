@@ -480,7 +480,7 @@ matters for armor, only for who spends the GCDs. Armor math itself is in
 
 | Name | ID | Effect | Duration | Stacking / exclusivity | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Judgement of the Crusader (r6) | 20303 | +**161** Holy damage taken (C: 140; Improved Seal of the Crusader's 15% is now baseline and the talent is removed). Whether each Holy hit gets the flat +161 or +161 × its coefficient is open; see [paladin](../classes/paladin.md) | **40 s** (C: 10 s); the judging paladin's melee hits refresh it | One Judgement per paladin; several paladins can keep different Judgements up. Debuff Judgements always hit ([paladin](../classes/paladin.md)) | Paladin | [F] value · [?] application | [fc-sb-paladin] · [client] (SpellEffect, 1.60.1.69913) |
+| Judgement of the Crusader (r6) (`judgementOfTheCrusader`, another paladin's) | 20303 | +**161** Holy damage taken (C: 140; Improved Seal of the Crusader's 15% is now baseline and the talent is removed). Whether each Holy hit gets the flat +161 or +161 × its coefficient is open; see [paladin](../classes/paladin.md). The Buffs entry is another paladin's judgement, on the boss all fight: on by default for a Protection paladin when the raid has another paladin [?] (below) | **40 s** (C: 10 s); the judging paladin's melee hits refresh it | One Judgement per paladin; several paladins can keep different Judgements up. Debuff Judgements always hit ([paladin](../classes/paladin.md)) | Paladin | [F] value · [?] application | [fc-sb-paladin] · [client] (SpellEffect, 1.60.1.69913) |
 | Judgement of Wisdom (r3) | 20355 | Attacks and spells against the target may restore 59 mana | **40 s** (C: 10 s) | One per paladin; always hits | Paladin (only paladins use it) | [F] | [fc-sb-paladin] |
 | Judgement of Light (r4) | 20346 | Melee attacks against the target may heal the attacker for 61 | **40 s** (C: 10 s) | One per paladin; always hits | Paladin | [F] | [fc-sb-paladin] |
 | Curse of the Elements (r4) | 1311680 | −75 resistance to **all magic schools**, **+10% magic damage taken, Holy included** (C: r3, 11722, Fire and Frost only) | 5 min | One curse per warlock | Warlock; new rank 4 at level 50. **Curse of Shadow removed** (merged in) | [F] | [fc-sb-warlock] · [client] (SpellEffect, 1.60.1.69913) |
@@ -714,6 +714,7 @@ Mana Spring.
 | Faerie Fire † | — | — | all (not the Feral cat's or bear's: see below) | all (the same) |
 | Curse of Recklessness † | — | — | all | all |
 | Curse of the Elements | — | — | Mage; Pal once it reaches the paladin ([spells OQ-S12](spells.md#open-questions)) | the same |
+| Judgement of the Crusader (another paladin's) | — | — | Prot paladin (Retribution judges its own: see below) | Prot paladin |
 | Power Infusion | — | — | — (an option for a Mage) | — |
 | Judgement of Wisdom | — | — | Pal | Pal |
 | Armor Shatter ×3 (Annihilator) † | — | — | — | all |
@@ -750,8 +751,20 @@ Moonkin Aura spell crit only, so each goes to the specs it helps. Power Infusion
 no preset has it; turned on, a mage's rotation takes it whenever it's ready
 ([mage](../classes/mage.md#defaults)).
 
-Judgement of the Crusader is not a raid toggle: Ret and Prot paladins apply it themselves
-(see [paladin](../classes/paladin.md)), and it does nothing for warriors or druids.
+**Judgement of the Crusader (another paladin's)** is a raid debuff for a paladin (`judgementOfTheCrusader`,
+[§4.2](#42-other-debuffs)): only paladins deal Holy damage among the specs in scope, so no other
+class sees it. A Retribution paladin judges it itself (its rotation's, `SpecMeta.ownBuffs`), so no
+preset has it for Retribution, and the Buffs tab's shows as yours while your own is on, counted
+once. A Protection paladin judges Seal of Fury, so the judgement on the boss is a second paladin's:
+the Standard and Max raids have it whenever the raid has another paladin [?]. A raid with more than
+one paladin keeps one judgement per paladin up, and a Holy or Retribution paladin's is usually the
+Crusader, since it raises every paladin's Holy damage; that's the default's reason, a reading of how
+raids play rather than a measurement ([D29](../decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24):
+known effects get a default). It's +80 TPS (+17%) in the default Protection setup, and each Holy
+hit's share of its +161 is the same Character → Advanced rule as your own judgement's
+([paladin](../classes/paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc)).
+Turn it off for a raid whose other paladins judge Wisdom or Light ([open question
+26](../classes/paladin.md#open-questions)).
 
 ### 6.3 Consumables by spec and preset
 
@@ -998,7 +1011,9 @@ An entry that does nothing for some classes carries the classes it's for (`forCl
 `src/sim/effects/buffs.ts`). So far these are the paladin's: Prayer of Spirit, Arcane
 Brilliance, Blessing of Wisdom, Mana Spring Totem, Greater Arcane Elixir, Elixir of Holy Power,
 Flask of Supreme Power, the Major Mana Potion and the Demonic Rune (a Dark Rune is the same),
-and since T2 the caster food and oils, Nightfin Soup, Wizard Oil and Brilliant Wizard Oil.
+and since T2 the caster food and oils, Nightfin Soup, Wizard Oil and Brilliant Wizard Oil. Another
+paladin's Judgement of the Crusader is the paladin's alone: it's Holy damage taken, which no other
+class in scope deals.
 The shaman spends mana and deals Nature and Frost spell damage, so every one of them is the
 shaman's too, except the Elixir of Holy Power: its +40 is Holy only, which no shaman spell uses
 ([shaman](../classes/shaman.md#spell-damage)). The caster classes (`CASTER_CLASSES`: those whose
@@ -1057,8 +1072,8 @@ compared (59 buffs, debuffs and consumables, the rogue's four poisons and Thistl
 clients. The caster core (2026-09-24, [spells §9](spells.md#9-caster-raid-buffs-and-debuffs))
 added three, the casters' own: Moonkin Aura and Curse of the Elements differ, Power Infusion is
 the same; and Minor Haste now differs, by Forever's casting speed. The Protection paladin's
-threat fixes (T2, 2026-09-24) added three: Nightfin Soup and Wizard Oil differ, Brilliant Wizard Oil
-is the same. Two of the 34 differ only in the
+threat fixes (T2, 2026-09-24) added four: Nightfin Soup, Wizard Oil and Judgement of the Crusader
+(another paladin's) differ, Brilliant Wizard Oil is the same. Two of the 34 differ only in the
 kind of crit: Leader of the Pack and Mongoose are all crit (aura 290, spells too) in Forever and
 melee and ranged crit (aura 52) in Classic Era.
 
@@ -1120,6 +1135,7 @@ melee and ranged crit (aura 52) in Classic Era.
 | Demoralizing Roar (`demoralizingRoar`) | −204 boss AP | **−138 boss AP** | 9898 #0: −131 + 1, and −1 per level from 52, so −138 at 60 (as for Demoralizing Shout, whether combat applies the per-level term is [OQ 19](#open-questions)) | [C] |
 | Demoralizing Shout (`demoralizingShout`) | −204 boss AP | **−146 boss AP** | 11556 #0: −141 + 1, and −1 per level from 54, so −146 at 60 (both clients carry a per-level term; whether combat applies it is [OQ 19](#open-questions)) | [C] |
 | Thunder Clap (`thunderClap`) | boss attacks 20% slower | **10% slower** | 11581 #1 (aura 138): −11 + 1 | [C] |
+| Judgement of the Crusader r6 (`judgementOfTheCrusader`), another paladin's | +161 Holy damage taken | **+140** | 20303 #0 (aura 14, Holy): 139 + 1 | [C] |
 | Curse of the Elements (`curseOfTheElements`), the casters' | +10% damage taken from every magic school, Holy included; −75 resistance (r4, 1311680) | **Fire and Frost only** | r3 11722 #1 (aura 87, misc 20): 9 + 1; #0 (aura 22): −76 + 1 | [C] |
 
 **Consumables**

@@ -186,6 +186,12 @@ export type Effect = (
   | { kind: 'poisonDamage'; pct: number }
   /** Target armor reduction (docs/mechanics/buffs-debuffs-consumables.md#41-armor-reduction). */
   | { kind: 'targetArmor'; value: number }
+  /**
+   * The boss's flat Holy damage taken, all fight: another paladin's Judgement of the Crusader
+   * (docs/mechanics/buffs-debuffs-consumables.md#42-other-debuffs). Each Holy hit gets its share, as
+   * your own judgement's (docs/classes/paladin.md#seal-of-the-crusader-sotc-and-judgement-of-the-crusader-jotc).
+   */
+  | { kind: 'holyTaken'; value: number }
   /** Boss attack power (+ raises it, − lowers it) and attack-speed slow (encounter.md#5-boss-melee-tank-modeling). */
   | { kind: 'bossAp'; value: number }
   | { kind: 'bossSlow'; pct: number }

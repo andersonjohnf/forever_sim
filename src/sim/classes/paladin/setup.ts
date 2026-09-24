@@ -126,10 +126,13 @@ export function paladinAssumptions(plan: Plan): AssumptionId[] {
   if (abilities.has('judgementOfCommand')) ids.push('judgementOfCommand')
   if ((plan.spells ?? []).some((s) => s.defense === DEFENSE.melee)) ids.push('meleeSpellProcs')
   // The Judgement of the Crusader rule (Character → Advanced): flat gives melee-class hits all of it.
-  if (plan.auras.some((a) => (a.holyTaken ?? 0) > 0)) {
+  // Another paladin's Judgement of the Crusader, from the Buffs tab (buffs doc §4.2), counts the same way.
+  const raidJotc = (plan.holyTaken ?? 0) > 0
+  if (raidJotc || plan.auras.some((a) => (a.holyTaken ?? 0) > 0)) {
     const flat = (plan.spells ?? []).some((s) => s.defense === DEFENSE.melee && s.takenScale === 1)
     ids.push(flat ? 'jotcBonusFlat' : 'jotcBonus')
   }
+  if (raidJotc) ids.push('jotcRaid')
   if (abilities.has('holyStrike')) ids.push('holyStrike')
   if (abilities.has('consecration') || abilities.has('consecrationRank1')) ids.push('consecrationTicks')
   if (abilities.has('hammerOfWrath')) ids.push('hammerOfWrath')

@@ -2353,7 +2353,8 @@ export class Sim {
     this.damageTakenMult = this.plan.damageTakenMult * this.sTaken[base]
     this.rotList = this.rotNormal
     this.rotOffList = this.offGcdNormal
-    this.holyTaken = 0
+    // paladin.md: another paladin's Judgement of the Crusader is on the boss from the pull (buffs doc §4.2).
+    this.holyTaken = this.plan.holyTaken ?? 0
     this.auraTakenCharges.fill(0)
     // docs/mechanics/spells.md: no spell DoTs, no channel, and the schools' static numbers.
     this.spDotTicksLeft.fill(0)

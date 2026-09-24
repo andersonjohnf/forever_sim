@@ -178,7 +178,8 @@ describe('Max TPS (paladin.md "Priority: tank duties first, or Max TPS", D26)', 
     }
     const duties = run({})
     const max = run(MAX_TPS)
-    expect(max.tps.mean).toBeGreaterThan(duties.tps.mean * 1.04)
+    // Retribution Aura's 30 a hit has no spell damage coefficient, so its share falls as spell damage rises.
+    expect(max.tps.mean).toBeGreaterThan(duties.tps.mean * 1.02)
     expect(max.tank!.dtps.mean).toBeGreaterThan(duties.tank!.dtps.mean * 1.03)
   })
 })
@@ -868,6 +869,59 @@ describe('determinism', () => {
       expect(b.tps).toEqual(a.tps)
       expect(b.damageTaken).toEqual(a.damageTaken)
       expect(runChunk({ ...plan, seed: plan.seed + 1 }, 0, 50).tps.mean).not.toBe(a.tps.mean)
+    }
+  })
+})
+
+describe('another paladin’s Judgement of the Crusader (buffs doc §4.2; paladin.md worked example 23)', () => {
+  const RAID_JOTC: SimConfig['buffs'] = { raid: ['paladin'], enabled: ['judgementOfTheCrusader'] }
+  const spellOf = (plan: Plan, id: string) => plan.spells!.find((s) => s.id === id)!
+
+  it('is in the Protection paladin’s Standard and Max raids when another paladin is in it, and the results say so', () => {
+    expect(defaultConfig(PROT).buffs.enabled).toContain('judgementOfTheCrusader')
+    expect(presetBuffIds('max', PROT, FULL_RAID)).toContain('judgementOfTheCrusader')
+    expect(presetBuffIds('raid', PROT, FULL_RAID.filter((c) => c !== 'paladin'))).not.toContain('judgementOfTheCrusader')
+    // Retribution judges its own (SpecMeta.ownBuffs): no preset, and the plan counts it once.
+    expect(presetBuffIds('raid', 'paladin-retribution', FULL_RAID)).not.toContain('judgementOfTheCrusader')
+    const bundle = buildPlan(config({ buffs: RAID_JOTC }))
+    expect(bundle.plan.holyTaken).toBe(161)
+    expect(bundle.assumptions.map((a) => a.id)).toEqual(expect.arrayContaining(['jotcRaid', 'jotcBonus']))
+    expect(buildPlan(config()).plan.holyTaken).toBeUndefined()
+    expect(buildPlan(config()).assumptions.map((a) => a.id)).not.toContain('jotcRaid')
+  })
+
+  it('a Retribution paladin that judges the Crusader keeps its own: the Buffs tab’s is left out, and counts only with its own off', () => {
+    const ret = defaultConfig('paladin-retribution')
+    const withRaid = { ...ret, buffs: { ...ret.buffs, enabled: [...ret.buffs.enabled, 'judgementOfTheCrusader'] } }
+    expect(maintainedBuffs('paladin-retribution', {})).toEqual(['judgementOfTheCrusader'])
+    expect(buildPlan(withRaid).plan.holyTaken).toBeUndefined()
+    const own = { 'paladin.retribution.judgementOfTheCrusader.enabled': false }
+    expect(maintainedBuffs('paladin-retribution', own)).toEqual([])
+    expect(buildPlan({ ...withRaid, rotation: own }).plan.holyTaken).toBe(161)
+  })
+
+  it('example 23: each landed Judgement of Fury gets 161 × 0.45 = 72.45 more (a crit twice that), a Seal of Fury proc 16.1; with the flat rule 161 each', () => {
+    for (const [rule, jof, sof] of [
+      ['coefficient', 161 * 0.45, 161 * 0.1],
+      ['flat', 161, 161],
+    ] as const) {
+      const rules = { ...defaultConfig(PROT).rules, ...(rule === 'flat' ? { jotcBonus: 'flat' as const } : {}) }
+      const on = protPlan({ buffs: RAID_JOTC, rules })
+      const off = protPlan({ rules })
+      expect([spellOf(on, 'judgementOfFury').takenScale, spellOf(on, 'sealOfFuryProc').takenScale]).toEqual(rule === 'flat' ? [1, 1] : [0.45, 0.1])
+      const extra = (id: string) => {
+        const [a, b] = [new Sim(on), new Sim(off)]
+        for (let i = 0; i < 3; i++) {
+          a.runFight(i)
+          b.runFight(i)
+        }
+        // The same fights: the bonus changes no roll, so every hit and crit is the same.
+        expect(field(a, on, id, FIELD.hits)).toBe(field(b, off, id, FIELD.hits))
+        const weight = field(a, on, id, FIELD.hits) + 2 * field(a, on, id, FIELD.crits)
+        return (field(a, on, id, FIELD.damage) - field(b, off, id, FIELD.damage)) / weight
+      }
+      expect(extra('judgementOfFury'), rule).toBeCloseTo(jof, 6)
+      expect(extra('sealOfFuryProc'), rule).toBeCloseTo(sof, 6)
     }
   })
 })

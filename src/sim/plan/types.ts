@@ -1322,6 +1322,12 @@ export interface Plan {
   /** Multiplier on Holy threat, static: Righteous Fury ×1.9 (paladin.md#threat-paladin-specific). */
   holyThreatMult?: number
   /**
+   * The boss's flat Holy damage taken all fight, from the Buffs tab: another paladin's Judgement of
+   * the Crusader (buffs doc §4.2). Your own judgement's aura adds to it; a paladin that judges the
+   * Crusader itself has the Buffs entry as its own (maintained), so the two never count twice.
+   */
+  holyTaken?: number
+  /**
    * The spell schools' multipliers, crit and the boss's resistance (docs/mechanics/spells.md §5, §9);
    * absent when every school is plain.
    */

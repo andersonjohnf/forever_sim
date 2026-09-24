@@ -31,6 +31,8 @@ type JotcBonus = NonNullable<SimConfig['rules']['jotcBonus']>
 const JOTC_LABEL: Record<JotcBonus, string> = { coefficient: 'A share', flat: 'All of it' }
 /** Retribution's switch for Judgement of the Crusader: while it's off, the rule changes nothing. */
 const CRUSADER_SETTING = 'paladin.retribution.judgementOfTheCrusader.enabled'
+/** The Buffs tab's Judgement of the Crusader, another paladin's: a Protection paladin's only one (buffs doc §4.2). */
+const RAID_JOTC = 'judgementOfTheCrusader'
 
 /** The selected race's tile, the race picker's one tab stop. */
 const selectedRace = () => document.querySelector<HTMLElement>('[aria-labelledby="race-label"] [aria-checked="true"]')
@@ -58,6 +60,11 @@ export function CharacterSection() {
     () => paladin && meta.id === 'paladin-retribution' && rotationValues({ spec: meta.id, talents: config.talents, rotation: config.rotation })[CRUSADER_SETTING] === false,
     [paladin, meta.id, config.talents, config.rotation],
   )
+  // A Protection paladin judges Seal of Fury: the judgement on the boss is another paladin's, from
+  // Buffs (buffs doc §4.2), so the rule changes nothing without it.
+  const protection = meta.id === 'paladin-protection'
+  const raidJotcOff = protection && !(config.buffs.enabled.includes(RAID_JOTC) && config.buffs.raid.includes('paladin'))
+  const jotcUnused = crusaderOff || raidJotcOff
   const setJotc = (value: JotcBonus) =>
     update((c) => {
       const { jotcBonus: _, ...rules } = c.rules
@@ -195,7 +202,7 @@ export function CharacterSection() {
         </div>
         {paladin && (
           // Dimmed by colour, never opacity, while the rotation doesn't judge the Crusader.
-          <div data-inactive={crusaderOff || undefined} className={cn('flex flex-col gap-2', crusaderOff && 'text-muted-foreground')}>
+          <div data-inactive={jotcUnused || undefined} className={cn('flex flex-col gap-2', jotcUnused && 'text-muted-foreground')}>
             <span id="jotc-label" className="text-sm font-medium">
               Judgement of the Crusader’s bonus
             </span>
@@ -206,23 +213,25 @@ export function CharacterSection() {
               value={jotc}
               onValueChange={(value) => value && setJotc(value as JotcBonus)}
               aria-labelledby="jotc-label"
-              aria-describedby={['jotc-help', crusaderOff && 'jotc-off', jotcChanged && 'jotc-default'].filter(Boolean).join(' ')}
+              aria-describedby={['jotc-help', jotcUnused && 'jotc-off', jotcChanged && 'jotc-default'].filter(Boolean).join(' ')}
               className="w-full"
             >
               {(['coefficient', 'flat'] as const).map((value) => (
-                <ToggleGroupItem key={value} value={value} className={cn('h-11 flex-1', CHOICE_ITEM, crusaderOff && CHOICE_ITEM_INACTIVE)}>
+                <ToggleGroupItem key={value} value={value} className={cn('h-11 flex-1', CHOICE_ITEM, jotcUnused && CHOICE_ITEM_INACTIVE)}>
                   {JOTC_LABEL[value]}
                 </ToggleGroupItem>
               ))}
             </ToggleGroup>
             <p id="jotc-help" className="text-xs text-muted-foreground">
-              Untested in Forever: how much of the +161 Holy damage each Holy hit gets. A share (the default), by the spell’s
-              coefficient: a Seal of Command proc about 20%, Judgement of Command and Holy Strike 43%. Or all of it on seal
-              procs, judgements and Holy Strike. Consecration, Exorcism and Hammer of Wrath get their share either way.
+              {protection
+                ? 'Untested in Forever: how much of the +161 Holy damage another paladin’s judgement adds to each of your Holy hits. A share (the default), by the spell’s coefficient: a Seal of Fury proc 10%, Judgement of Fury 45%, Holy Strike 43%. Or all of it on seal procs, judgements and Holy Strike. Consecration, Holy Shield and Hammer of Wrath get their share either way.'
+                : 'Untested in Forever: how much of the +161 Holy damage each Holy hit gets. A share (the default), by the spell’s coefficient: a Seal of Command proc about 20%, Judgement of Command and Holy Strike 43%. Or all of it on seal procs, judgements and Holy Strike. Consecration, Exorcism and Hammer of Wrath get their share either way.'}
             </p>
-            {crusaderOff && (
+            {jotcUnused && (
               <p id="jotc-off" className="text-xs text-muted-foreground">
-                Not used: Judgement of the Crusader is off in Rotation.
+                {raidJotcOff
+                  ? 'Not used: no other paladin’s Judgement of the Crusader is on in Buffs.'
+                  : 'Not used: Judgement of the Crusader is off in Rotation.'}
               </p>
             )}
             {jotcChanged && (

@@ -95,6 +95,9 @@ export const SPEC_META: Record<SpecId, SpecMeta> = {
     name: 'Retribution',
     role: 'dps',
     icon: 'spell_holy_auraoflight',
+    // Its rotation judges the Crusader (paladin.md "Retribution defaults"), so the Buffs tab's, another
+    // paladin's, is in no preset for it, and on only if you turn your own off (buffs doc §4.2).
+    ownBuffs: ['judgementOfTheCrusader'],
   },
   'paladin-protection': {
     id: 'paladin-protection',

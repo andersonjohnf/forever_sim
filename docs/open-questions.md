@@ -1581,14 +1581,16 @@ These wait for the cap to lift, launch (2026-11-04) or the raids (2026-12-09).
 #### C12. New elixirs and Frenzy potions
 **Medium · M2**
 - **Assumes:** the new elixirs (Grizzly, Ferocity, Cunning, Phalanx, Strength, Fortitude,
-  Greater Fortitude) default off until their stacking groups are known [?]; Frenzy potions give
-  +AP per the tooltip but flat physical damage per the data [?]; they **share the 120 s potion
+  Greater Fortitude) default off until their stacking groups are known [?]; ✅ Frenzy potions give
+  attack power and ranged attack power, +80 / +56 / +40 (auras 99 and 124): 1.60.1.70009 settled
+  the tooltip-versus-data split (it was flat physical damage, aura 13) [F client `SpellEffect`];
+  they **share the 120 s potion
   cooldown**: their spells 1251937/1251938/1251940 sit in cooldown category 4, although their
   item effects carry no category [F client `SpellCategories`, corrected by the client-data
   check (D13); whether the server enforces it ?].
-- **Test:** drink each pair and watch the buffs; with a Frenzy potion, compare sheet AP and
-  white-hit damage, and drink one after another potion to confirm the shared cooldown.
-- **Samples:** one per pair; ≥100 hits per Frenzy state.
+- **Test:** drink each pair and watch the buffs; drink a Frenzy potion after another potion to
+  confirm the shared cooldown.
+- **Samples:** one per pair.
 - **Changes:** consumable presets.
 - **Docs:** [buffs §3.2](mechanics/buffs-debuffs-consumables.md#32-elixirs),
   [§3.5](mechanics/buffs-debuffs-consumables.md#35-potions-and-runes),

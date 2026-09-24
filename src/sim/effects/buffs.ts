@@ -1273,18 +1273,15 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_potion_104',
     category: 'consumable',
     group: 'Weapon',
-    summary: '+30 spell damage, on your main hand',
+    summary: '+24 spell damage, on your main hand',
     forClasses: MANA_CLASSES,
     forCasterSpecs: true,
     exclusiveGroup: TEMP_ENCHANT,
     docRef: `${DOC}#36-weapon-enhancements-temporary`,
-    // 20750 → 25121 → enchant 2627 → 25111: aura 13, school mask 126, 30 [F]; Classic Era's 24 [C]
-    // [client] (SpellItemEnchantment, SpellEffect, 1.60.1.69913 and 1.15.9.69722).
-    effects: [{ kind: 'tempEnchant', id: 'wizardOil', priority: 3, hand: 'main', spellDamage: 30 }],
-    classicEra: {
-      summary: '+24 spell damage, on your main hand',
-      effects: [{ kind: 'tempEnchant', id: 'wizardOil', priority: 3, hand: 'main', spellDamage: 24 }],
-    },
+    // 20750 → 25121 → enchant 2627 → 25111: aura 13, school mask 126, 24 [F], the same as Classic
+    // Era's since 1.60.1.70009 reverted it from 30 [client] (SpellItemEnchantment, SpellEffect,
+    // 1.60.1.70009 and 1.15.9.69722).
+    effects: [{ kind: 'tempEnchant', id: 'wizardOil', priority: 3, hand: 'main', spellDamage: 24 }],
     presets: { raid: PROTECTION_PALADIN },
   },
   {

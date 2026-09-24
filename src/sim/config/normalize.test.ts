@@ -181,6 +181,20 @@ describe('normalizeConfig', () => {
     expect(rogue.buffs.enabled).toEqual(expect.arrayContaining(['deadlyPoisonMainHand', 'instantPoisonOffHand']))
   })
 
+  // Issue #14: consumables on one shared cooldown (buffs doc "On-use items and cooldown categories").
+  it('keeps one potion, the one the rotation drinks, and says they share a cooldown', () => {
+    const prot = defaultConfig('warrior-protection')
+    for (const enabled of [['greaterStoneshieldPotion', 'mightyRagePotion'], ['mightyRagePotion', 'greaterStoneshieldPotion']]) {
+      const { config, warnings } = normalizeConfig({ ...prot, buffs: { raid: prot.buffs.raid, enabled } })
+      expect(config.buffs.enabled).toEqual(['mightyRagePotion'])
+      expect(warnings).toEqual(['Greater Stoneshield Potion shares a cooldown with Mighty Rage Potion, so it was turned off.'])
+    }
+    const ret = defaultConfig('paladin-retribution')
+    const { config } = normalizeConfig({ ...ret, buffs: { raid: ret.buffs.raid, enabled: ['greaterStoneshieldPotion', 'majorManaPotion', 'demonicRune', 'ezThroDarkBomb'] } })
+    // The rune and the bomb have cooldowns of their own, apart from the potions'.
+    expect(config.buffs.enabled).toEqual(['majorManaPotion', 'demonicRune', 'ezThroDarkBomb'])
+  })
+
   // RL4: the comparison reads each entry's Classic Era values in `classicEra` (catalogueEffects).
   it('compares exclusive rivals by the profile’s own values, Classic Era’s included', () => {
     const giants = BUFFS_BY_ID.get('elixirOfGreaterStrength')! // +25 Strength in both clients

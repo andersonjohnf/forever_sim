@@ -158,6 +158,22 @@ export const ELEMENTAL_STONE_WEAPONS = ['axe', 'mace', 'polearm', 'sword', 'staf
 export const TEMP_ENCHANT = 'temp-enchant'
 
 /**
+ * The shared cooldown categories of the on-use consumables, as exclusive groups (buffs doc "On-use
+ * items and cooldown categories"): the category on each item's ItemEffect row [F] [client]
+ * (ItemEffect, 1.60.1.69913). Only one of a category is on at a time: the rotation uses it on that
+ * category's cooldown, and a second one would only take its turns. effects/client-values.test.ts ties
+ * each entry's group to its item's category.
+ */
+export const COOLDOWN_GROUP = {
+  /** Category 4, 120 s: every potion (Mighty Rage, Major Mana, Greater Stoneshield). */
+  potion: 'cooldown:potion',
+  /** Category 1153, 120 s: the Demonic and Dark Runes, and Thistle Tea (beside its own 5 min). */
+  rune: 'cooldown:rune',
+  /** Category 24, 60 s: the explosives (EZ-Thro Dark Bomb). */
+  explosive: 'cooldown:explosive',
+} as const
+
+/**
  * Mighty Rage Potion (item 13442 → spell 17528; buffs doc §3.5): an energize of 600 tenths with
  * variance 0.5, so 45–75 rage, drawn as 450 + a whole 0…300 tenths (Classic Era's 449 + 1d301),
  * and +60 Strength (aura 29) for 20 s. No GCD on the spell; the potion category's 2 min cooldown
@@ -1276,10 +1292,11 @@ export const BUFFS: BuffSpec[] = [
     group: 'Potions and bombs',
     // When it's drunk, if at all, is the spec's Rotation setting (a warrior's execute phase, a cat's
     // Berserk); a spec whose rotation has no potion setting doesn't drink it.
-    summary: '45–75 rage and +60 Strength for 20 s, once a fight, if your rotation uses it (see Rotation)',
+    summary: '45–75 rage and +60 Strength for 20 s, once a fight, if your rotation uses it (see Rotation). One kind of potion, as potions share a cooldown',
     // Forever lets warriors and druids drink it (buffs doc §3.5), no one else.
     forClasses: ['warrior', 'druid'],
     forSpecs: 'melee',
+    exclusiveGroup: COOLDOWN_GROUP.potion,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'mightyRagePotion', name: 'Mighty Rage Potion', use: MIGHTY_RAGE_POTION }],
     presets: {
@@ -1293,9 +1310,10 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_potion_76',
     category: 'consumable',
     group: 'Potions and bombs',
-    summary: '1,350–2,250 mana, every 2 min; the Rotation tab says when',
+    summary: '1,350–2,250 mana, every 2 min; the Rotation tab says when. One kind of potion, as potions share a cooldown',
     forClasses: MANA_REGEN_CLASSES,
     forCasterSpecs: true,
+    exclusiveGroup: COOLDOWN_GROUP.potion,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'majorManaPotion', name: 'Major Mana Potion', use: MAJOR_MANA_POTION }],
     presets: { raid: [...PALADINS, ...SHAMAN, ...CASTER_SPECS, ...HUNTERS], max: [...PALADINS, ...SHAMAN, ...CASTER_SPECS, ...HUNTERS] },
@@ -1310,6 +1328,7 @@ export const BUFFS: BuffSpec[] = [
     summary: '900–1,500 mana (a Dark Rune is the same), every 2 min apart from potions; the Rotation tab says when',
     forClasses: MANA_REGEN_CLASSES,
     forCasterSpecs: true,
+    exclusiveGroup: COOLDOWN_GROUP.rune,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'demonicRune', name: 'Demonic Rune', use: DEMONIC_RUNE }],
     presets: { max: [...PALADINS, ...SHAMAN, ...CASTER_SPECS, ...HUNTERS] },
@@ -1323,6 +1342,8 @@ export const BUFFS: BuffSpec[] = [
     summary: '+100 Energy, every 5 min; the Rotation tab says when',
     // Forever lets druids use it too (AllowableClass 1032), but only the rogue's rotation drinks it.
     forClasses: ROGUE_ONLY,
+    // The runes' category too (1153), beside its own 5 min; no class sees both.
+    exclusiveGroup: COOLDOWN_GROUP.rune,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'thistleTea', name: 'Thistle Tea', use: THISTLE_TEA }],
     presets: { raid: ROGUES, max: ROGUES },
@@ -1347,6 +1368,8 @@ export const BUFFS: BuffSpec[] = [
     category: 'consumable',
     group: 'Potions and bombs',
     summary: '225–675 Fire damage, every minute',
+    // The explosives' category (24), apart from potions and runes; the only explosive here.
+    exclusiveGroup: COOLDOWN_GROUP.explosive,
     docRef: `${DOC}#37-engineering-and-explosives`,
     effects: [{ kind: 'onUse', id: 'ezThroDarkBomb', name: 'EZ-Thro Dark Bomb' }],
     presets: { max: WARRIOR_DPS },
@@ -1357,10 +1380,13 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_potion_69',
     category: 'consumable',
     group: 'Potions and bombs',
-    summary: '+2,000 armor for 2 min',
+    summary: '+2,000 armor for 2 min. One kind of potion, as potions share a cooldown',
+    exclusiveGroup: COOLDOWN_GROUP.potion,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'greaterStoneshieldPotion', name: 'Greater Stoneshield Potion' }],
-    presets: { max: MELEE_TANKS },
+    // In no preset: it shares the potion cooldown with the tanks' Mighty Rage Potion, which their
+    // rotations drink, and its armor isn't simulated (buffs doc §6.3).
+    presets: NOT_IN_PRESETS,
   },
 ]
 

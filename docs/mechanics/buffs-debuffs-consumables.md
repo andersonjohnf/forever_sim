@@ -93,7 +93,8 @@ in both clients with its client rows.
     The last three matter only for tank rage and survival.
 - **Cooldown categories for on-use items**: potions, Frenzy potions included (shared 2 min), runes (shared 2 min,
   separate from potions), explosives (shared 1 min), and the Blasted Lands buffs (shared
-  1 h). See [Implementation notes](#on-use-items-and-cooldown-categories).
+  1 h). One entry of a category is on at a time, as an exclusive group. See
+  [Implementation notes](#on-use-items-and-cooldown-categories).
 - **One temporary enchant per weapon** (stone, oil or poison): one stone or oil is on at a time,
   and a rogue picks a poison per hand. In Classic, Windfury Totem
   took the main-hand slot, and the `classicEra` profile models that; in Forever it probably
@@ -404,6 +405,16 @@ differently named buffs, so whether they stack with a Well Fed buff is [?].
 | Demonic Rune / Dark Rune | 12662 / 20520 → 16666 / 27869 | +900–1500 mana; costs 600–1000 health | 2 min, **rune category** (1153, separate from potions) | Runes share a cooldown with each other | Same | [F] | [fc-items] · [client] (ItemEffect, 1.60.1.69913) |
 | Thistle Tea | 7676 → 9512 | +100 Energy | Its own 5 min, and the rune category's 2 min (1153) | Shares the runes' category | Rogues, and **druids in Forever** (AllowableClass 1032; C: rogues) | [F] | [client] (ItemEffect, ItemSparse, SpellEffect, 1.60.1.69913) |
 
+**One kind of potion, one rune.** The cooldown that counts is the category on the item's
+`ItemEffect` row: 4 with 120 s for every potion above (the Frenzy potions' is on their spells),
+1153 with 120 s for the Demonic and Dark Runes and Thistle Tea, and 24 with 60 s for the
+explosives [F] [client] (ItemEffect, 1.60.1.69913). (The spells carry older categories of their own: Greater Stoneshield's 17540 is in
+28, "Item - Quick Buff", and the runes' 16666 and 27869 in 30, "Item - Healing", each 60 s [F]
+[client] (SpellCategories, SpellCooldowns, 1.60.1.69913); the item's row is the one the potion
+category and its 2 min come from.) So a Major Mana Potion and a Greater Stoneshield Potion share one
+2 min cooldown, and a rune or an EZ-Thro Dark Bomb doesn't touch it. The Buffs tab lets you pick
+one entry of each category ([On-use items and cooldown categories](#on-use-items-and-cooldown-categories)).
+
 ### 3.6 Weapon enhancements (temporary)
 
 One temporary enchant per weapon, 30 min: a second one replaces the first [C]. Dense sharpening
@@ -459,8 +470,10 @@ which goes where are the rogue's ([rogue §4](../classes/rogue.md#4-poisons)).
 
 ### 3.7 Engineering and explosives
 
-All explosives share a **1-minute cooldown** (category 24 [F] [client] (ItemEffect, 1.60.1.69913)). The Sapper also has its own
-5-minute cooldown [F: "(1 Min Cooldown)" / "(5 Min Cooldown)" in the tooltips].
+All explosives share a **1-minute cooldown** (category 24 [F] [client] (ItemEffect, 1.60.1.69913)), apart from the
+potions' and runes'. The Sapper also has its own 5-minute cooldown [F: "(1 Min Cooldown)" /
+"(5 Min Cooldown)" in the tooltips]. EZ-Thro Dark Bomb is the catalogue's only explosive, in its
+own `cooldown:explosive` group.
 
 | Name | ID | Effect | Cooldown | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -794,9 +807,9 @@ their stacking group is verified; the UI offers them as options.
 | Spec | Pre-raid dungeon group | Standard raid | Max-consumables raid (adds / replaces) |
 | --- | --- | --- | --- |
 | Arms / Fury | Smoked Desert Dumplings; Dense Sharpening Stone / Weightstone | Mongoose; Elixir of Greater Strength (Giants); Winterfall Firewater; Smoked Desert Dumplings; Dense stone on each weapon; Mighty Rage Potion | Juju Power (replaces Giants); Juju Might (replaces Firewater); R.O.I.D.S.; Juju Flurry (on use); Elemental Sharpening Stone (replaces Dense on each weapon); EZ-Thro Dark Bomb (or Sapper + Dense Dynamite if `engineer`) |
-| Prot warrior | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude (+200); Mongoose; Giants; Smoked Desert Dumplings; Dense stone; Mighty Rage Potion | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum Black Label; Elemental stone (replaces Dense); Greater Stoneshield Potion (on use) |
+| Prot warrior | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude (+200); Mongoose; Giants; Smoked Desert Dumplings; Dense stone; Mighty Rage Potion | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum Black Label; Elemental stone (replaces Dense). Keeps the Mighty Rage Potion: Greater Stoneshield shares its cooldown (below) |
 | Feral cat | Flank au Poivre (+20 Agi) | Mongoose; Giants; Flank au Poivre | Juju Power; Juju Might; Ground Scorpok Assay; Mighty Rage Potion (for its +60 Str; the rage is wasted in cat) |
-| Feral bear | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude; Mongoose; Giants; Smoked Desert Dumplings; Mighty Rage Potion (druids can use it in Forever) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum; Greater Stoneshield Potion |
+| Feral bear | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude; Mongoose; Giants; Smoked Desert Dumplings; Mighty Rage Potion (druids can use it in Forever) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum. Keeps the Mighty Rage Potion (below) |
 | Retribution | Smoked Desert Dumplings; Dense stone | Mongoose; Giants; **Greater Arcane Elixir** (per-spec entry: Forever Ret's seals, judgements and Holy Strike scale with spell power, see [paladin](../classes/paladin.md#retribution-defaults)); Smoked Desert Dumplings; Dense stone; Major Mana Potion | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Elixir of Holy Power; Elemental stone; Demonic / Dark Rune; Flask of Supreme Power (whether it pays off depends on Ret's Holy-damage scaling, see [paladin](../classes/paladin.md)) |
 | Enhancement shaman | Smoked Desert Dumplings | Mongoose; Giants; Smoked Desert Dumplings; Major Mana Potion. No stone: the weapon imbue is the main hand's temporary enchant ([shaman](../classes/shaman.md#defaults)) | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Greater Arcane Elixir; Flask of Supreme Power; Demonic / Dark Rune |
 | Elemental shaman | — | Greater Arcane Elixir; Nightfin Soup; Brilliant Wizard Oil; Major Mana Potion. No stones: a caster never swings, and the melee entries leave its Buffs tab ([shaman](../classes/shaman.md#elemental-defaults)) | Flask of Supreme Power; Demonic / Dark Rune |
@@ -805,6 +818,11 @@ their stacking group is verified; the UI offers them as options.
 | Shadow Priest | — | Greater Arcane Elixir; Elixir of Shadow Power; Major Mana Potion ([priest](../classes/priest.md#74-enchants-and-consumables)) | Flask of Supreme Power; Demonic / Dark Rune |
 | Prot paladin | Nightfin Soup | Elixir of Greater Defense; Elixir of Fortitude; Elixir of Holy Power; Nightfin Soup (+22 spell damage); Wizard Oil; Major Mana Potion | Flask of Supreme Power; Greater Arcane Elixir; Brilliant Wizard Oil (replaces Wizard Oil); Demonic / Dark Rune |
 | Mage (Fire, Frost, Arcane) | — | Greater Arcane Elixir; Major Mana Potion. Conjured mana gems are the mage's own ([mage](../classes/mage.md#mana)) | Flask of Supreme Power; Demonic / Dark Rune; Nightfin Soup; Brilliant Wizard Oil. Elixir of Frost Power and the other caster foods aren't in the catalogue yet (a known gap) |
+
+**One potion in Max consumables.** The potions share one cooldown, so a preset turns on one: the
+tanks keep the Mighty Rage Potion, which their rotations drink for rage, and Greater Stoneshield
+Potion is in no preset. It stays in the Buffs tab (it isn't simulated, and the result says so),
+where turning it on turns the rage potion off.
 
 Druids in forms and weapon temporary enchants: whether stones or oils do anything in cat or
 bear form is owned by [druid](../classes/druid.md). A shaman's weapon imbue is its main hand's
@@ -935,7 +953,8 @@ the Buffs tab turns the others of its group off.
 change different things (Mightfish Steak's attack power against Smoked Desert Dumplings'
 Strength), it keeps the one the spec's Max consumables preset picks, and otherwise the first. A
 stone or oil keeps the one a weapon would take, by its priority ([§3.6](#36-weapon-enhancements-temporary)). The
-note says why the other went: it "doesn't stack with" or "takes the same weapon as" the one kept.
+note says why the other went: it "doesn't stack with", "takes the same weapon as" or "shares a
+cooldown with" the one kept.
 
 | Group key | Members | Tag |
 | --- | --- | --- |
@@ -954,6 +973,9 @@ note says why the other went: it "doesn't stack with" or "takes the same weapon 
 | `health-elixir` | Lesser Fortitude, Fortitude, Greater Fortitude | [?] |
 | `temp-enchant` | Dense and Elemental Sharpening Stones, Wizard Oil, Brilliant Wizard Oil: one stone on each weapon, or one oil on the only weapon of a class that can use oils ([§3.6](#36-weapon-enhancements-temporary)); Windfury Totem takes the main hand's in Classic only | [C] |
 | `poison:mainHand`, `poison:offHand` | The rogue's poisons, one per hand, each in place of a stone there ([rogue §4](../classes/rogue.md#4-poisons)) | [C] |
+| `cooldown:potion` | Mighty Rage, Major Mana and Greater Stoneshield Potions: ItemEffect category 4, 120 s | [F] |
+| `cooldown:rune` | Demonic Rune (a Dark Rune is the same) and Thistle Tea: category 1153, 120 s | [F] |
+| `cooldown:explosive` | EZ-Thro Dark Bomb: category 24, 60 s | [F] |
 | `armor-major` | Sunder Armor ×5, Expose Armor | [C] / [?] |
 | `ap-reduction` | Demoralizing Shout, Demoralizing Roar | [?] |
 | `curse:<warlock n>` | One curse per warlock | [F] |
@@ -968,9 +990,20 @@ SpellCategories, 1.60.1.69913).
 | Category | Members | Shared cooldown |
 | --- | --- | --- |
 | Potion (4) | Mighty / Great Rage, Major Mana, Major Healing, Greater Stoneshield, Free Action, and the Frenzy potions (whose category is on their spells, not their item effects) | 120 s |
-| Rune (1153) | Demonic Rune, Dark Rune | 120 s (independent of potions) |
+| Rune (1153) | Demonic Rune, Dark Rune, Thistle Tea | 120 s (independent of potions; Thistle Tea also has its own 300 s) |
 | Explosive (24) | Sapper, Dense Dynamite, Thorium Grenade, EZ-Thro / SAF-T items | 60 s (the Sapper also has its own 300 s) |
 | Own cooldown only | Juju Flurry, Juju Might, Juju Power, Winterfall Firewater | 60 s |
+
+**One of a category at a time.** Each category is an exclusive group (`cooldown:potion`,
+`cooldown:rune`, `cooldown:explosive`, [Exclusivity groups](#exclusivity-groups)), so the Buffs tab
+has at most one potion, one rune and one explosive on, and each is used on its category's
+cooldown. That's how the rotations use them: a warrior or a bear drinks its Mighty Rage Potion once
+a fight, and anyone who spends mana drinks their Major Mana Potion whenever they're short of it, on
+the 2 min cooldown, so a second kind of potion would only take the first one's turns; the rune,
+on a cooldown of its own, goes beside the potion. The one pairing players do use, a tank's Greater
+Stoneshield Potion on the pull and a rage potion 2 min later, would add only Stoneshield's armor,
+which the sim doesn't simulate. `effects/client-values.test.ts` ties each entry's group to its
+item's category.
 
 **Which the rotation uses** ([warrior §5.2](../classes/warrior.md#52-fury-dual-wield) rows 16
 and 17): the Fury rotation drinks the Mighty Rage Potion once, from the start of the execute

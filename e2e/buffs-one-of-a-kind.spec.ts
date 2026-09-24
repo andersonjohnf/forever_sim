@@ -1,9 +1,10 @@
 import { expect, test } from './fixtures.ts'
 
 // docs/ux.md "Buffs": entries of which only one can be on turn each other off, and their summaries
-// say so. A weapon takes one stone or oil (issue #13; buffs doc "Exclusivity groups").
+// say so. A weapon takes one stone or oil (issue #13), and potions share one cooldown (issue #14;
+// buffs doc "Exclusivity groups", "On-use items and cooldown categories").
 
-test('a warrior’s stones: one at a time, the other switched off', async ({ page }) => {
+test('a warrior’s stones and potions: one of each, the other switched off', async ({ page }) => {
   await page.goto('./')
   await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
   const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
@@ -18,9 +19,19 @@ test('a warrior’s stones: one at a time, the other switched off', async ({ pag
   await expect(dense).toBeChecked()
   await expect(elemental).not.toBeChecked()
   await expect(page.getByText('Custom selection.')).toBeVisible()
+
+  const rage = buffs.getByRole('switch', { name: 'Mighty Rage Potion' })
+  const stoneshield = buffs.getByRole('switch', { name: 'Greater Stoneshield Potion' })
+  await expect(rage).toBeChecked()
+  await expect(stoneshield).toHaveAccessibleDescription('+2,000 armor for 2 min. One kind of potion, as potions share a cooldown')
+  await stoneshield.click()
+  await expect(stoneshield).toBeChecked()
+  await expect(rage).not.toBeChecked()
+  // The bomb has a cooldown of its own: it stays on.
+  await expect(buffs.getByRole('switch', { name: 'EZ-Thro Dark Bomb' })).toBeChecked()
 })
 
-test('a mage’s oils: one at a time', async ({ page }) => {
+test('a mage’s oils: one at a time, and the potion stays beside the rune', async ({ page }) => {
   await page.goto('./')
   await page.getByRole('button', { name: /^Spec: / }).click()
   await page.getByRole('group', { name: 'Mage' }).getByRole('menuitem', { name: /^Fire/ }).click()
@@ -38,4 +49,7 @@ test('a mage’s oils: one at a time', async ({ page }) => {
   await brilliant.click()
   await expect(brilliant).toBeChecked()
   await expect(wizard).not.toBeChecked()
+
+  await expect(buffs.getByRole('switch', { name: 'Major Mana Potion' })).toBeChecked()
+  await expect(buffs.getByRole('switch', { name: 'Demonic Rune' })).toBeChecked()
 })

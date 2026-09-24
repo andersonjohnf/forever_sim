@@ -327,6 +327,7 @@ export function compareEffects(a: BuffSpec, b: BuffSpec, profile: RulesProfile):
 /** Why two entries of an exclusive group can't both be on, as the repair note says it (buffs doc, "Exclusivity groups"). */
 function rivalReason(group: string): string {
   if (group === TEMP_ENCHANT) return 'takes the same weapon as'
+  if (group.startsWith('cooldown:')) return 'shares a cooldown with'
   return 'doesn’t stack with'
 }
 

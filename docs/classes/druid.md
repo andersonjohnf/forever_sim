@@ -1470,7 +1470,7 @@ preset):
 | --- | --- | --- |
 | Pre-raid dungeon group | Flank au Poivre (+20 Agi) | Smoked Desert Dumplings (+20 Str) |
 | **Standard raid (default)** | Elixir of the Mongoose; Elixir of Greater Strength (Classic: Elixir of Giants); Flank au Poivre | Elixir of Greater Defense; Elixir of Fortitude (+200 health); Mongoose; Greater Strength; Smoked Desert Dumplings; Mighty Rage Potion (druids can use it in Forever) |
-| Max-consumables raid (adds / replaces) | Juju Power (replaces Greater Strength); Juju Might; Ground Scorpok Assay; Mighty Rage Potion (for its +60 Str) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum Black Label; Greater Stoneshield Potion |
+| Max-consumables raid (adds / replaces) | Juju Power (replaces Greater Strength); Juju Might; Ground Scorpok Assay; Mighty Rage Potion (for its +60 Str) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum Black Label. It keeps the Mighty Rage Potion: Greater Stoneshield Potion shares its cooldown, and a preset has one potion ([buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset)) |
 
 The sim's presets follow these rows. Flank au Poivre is in the buff catalogue for them: +20
 Agility from Nutritious Food 1248399, whose Well Fed 1248420 is Agility [F] [client] (SpellEffect,

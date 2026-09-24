@@ -117,6 +117,17 @@ measured: the server may disagree with the client's display.
 derived from raw client tables disagrees with it (e.g. per-level scaling), use the tooltip
 number as **[F]** and record the derived one as an open question.
 
+**Zero is a claim too** ([D29](decisions.md#d29-same-threat-words-same-threat-presets-geared-for-what-they-measure-2026-09-24)).
+When a tooltip, the client's data or a talent's text says an effect exists but no allowed source
+gives its size, never model it as nothing. Use the closest analog from allowed sources, tag it
+**[?]**, list it in the open questions and show it in the results' assumptions until a guild
+measurement replaces it. Only an allowed source that gives no effect at all makes it zero.
+
+**The same threat wording means the same threat on every tank** (D29). "A high amount of threat"
+on a bear's or a paladin's ability is the bonus the warrior's abilities with those words carry,
+scaled the way those values scale (by rank, level or cost). The wording table in
+[threat.md](mechanics/threat.md) maps each phrase to its value.
+
 **Worked examples name their rule profile** (`forever` or `classicEra`) whenever the
 profiles differ on anything the example uses.
 
@@ -181,7 +192,14 @@ player can execute (D23). The defaults are:
 
 - the talent build is the spec's documented default in its class doc, a build a typical
   raider runs. The defaults began as the most popular Forever builds in September 2026
-- the gear is the spec's pre-raid BiS set ([D11](decisions.md#d11-known-pre-raid-bis-items-are-always-in-the-pool-2026-09-22))
+- the gear is the spec's pre-raid BiS set, **geared for what the spec measures** (D29): its
+  headline metric (TPS for tanks, DPS otherwise), using the stats its damage and threat scale
+  with, checked against the sim's stat weights. A Protection paladin's Holy threat scales with
+  spell power, so its set leans to spell damage. Pre-raid guides
+  ([D11](decisions.md#d11-known-pre-raid-bis-items-are-always-in-the-pool-2026-09-22)) supply
+  candidates; their survival picks (resistances, defense, stamina) don't make a preset. The
+  tanks' sets are like for like: the same phase and item level range, all built for threat. No
+  preset item may have lost its stats: an armor-only item is a data bug until shown otherwise
 - raid buffs for a typical raid composition, and common consumables. Buffs are keyed to
   composition, not faction: both factions have paladins and shamans in Forever
 - never world buffs (they don't exist in Forever raids, see §1)
@@ -210,6 +228,12 @@ finding is fixed or waived with a written reason, and the log is committed as
 - **New specs until the tuning milestone** get one combined logic and UX review; high and
   medium findings are fixed, lows go to the known gaps, and only engine fixes get a
   verification pass ([D27](decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24)).
+
+- **Plausibility is part of the logic review** (D29). A reviewer compares the headline with
+  the other specs and with what the class's players expect. An outlier, such as a tank below
+  most DPS specs' threat or one tank at twice another, is a finding until a cited mechanic
+  explains it or a fix removes it; "every formula matches its doc" doesn't close it. A gear
+  preset gets the same scrutiny: stat weights, and each slot against the pool's best.
 
 The procedure and checklists are in
 [CLAUDE.md](../CLAUDE.md#core-doctrine-adversarial-review-before-every-push) and

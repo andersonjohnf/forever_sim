@@ -24,6 +24,8 @@ review *and* an adversarial UX review.** Commit freely; push only through this g
      boundaries, zero resources
    - determinism: same config + seed → same result
    - statistical sanity: iterations and confidence interval
+   - plausibility: the headline against the other specs and what players expect; an unknown
+     effect modelled as zero; a gear preset built for the wrong stats (D29)
    - performance, data integrity, and test gaps
 3. **Adversarial UX review.** An independent reviewer inspects `npm run snap` screenshots of
    every changed screen at **390 px and 1280 px, light and dark**. It covers the default,
@@ -127,6 +129,18 @@ npm run scrape:client # just src/data/client, the raw client tables (cached; -- 
   don't use it. **One exception (D24):** a value Classic Era kept unchanged from 1.12 (class base
   attributes, base health), found only in an emulator database, may stand in as a flagged `[?]`
   placeholder until a tier 1–3 source replaces it; see D24 for the conditions.
+- **Zero is a claim too (D29).** If a tooltip, the client or a talent says an effect exists but
+  no allowed source sizes it, never model it as nothing: use the closest allowed analog, tagged
+  `[?]` and shown in the results' assumptions. **The same threat wording means the same threat
+  on every tank:** "a high amount of threat" on a bear's or paladin's ability carries the bonus
+  the warrior's abilities with those words carry (threat.md's wording table).
+- **Presets are geared for what the spec measures (D29):** TPS for tanks, DPS otherwise, using
+  the stats the spec actually scales with (a Protection paladin's threat is Holy damage, so
+  spell power), checked with the sim's stat weights. Guides supply candidates, never survival
+  picks; the tanks' sets are like for like; no preset item may have lost its stats.
+- **Sanity-check the headline against the other specs (D29).** A tank below most DPS specs'
+  threat, or one tank at twice another, is a finding until a cited mechanic explains it,
+  however well each formula matches its doc.
 - **No world buffs.** They aren't available in WoW Forever raids: no toggles, presets or
   defaults for them (doctrine §1, decision D8).
 - **Docs and code stay in sync.** Mechanic constants in `src/sim` cite their doc section

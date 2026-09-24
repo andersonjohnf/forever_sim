@@ -421,3 +421,30 @@ Balanced. Each tank spec's Priority choice offers three rotations:
 
 A saved setup or shared link that chose a rotation still loads it under its new name. One that
 kept the old default gets Balanced, like any other changed default.
+
+### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
+User directive, after v1's tank numbers embarrassed the user in front of the guild: the
+Paladin and bear presets came from survival guides, and every tank ability whose extra threat
+had no known number was modelled with none. Both are now rules:
+- **Equal threat wording across tanks.** A tooltip's threat wording means the same thing on
+  every tank class. "A high amount of threat" on a bear's or a paladin's ability is the same
+  bonus as on a warrior's ability that says it. When the ability has no tier 1–2 value, it takes
+  the value of the known abilities with the same wording, scaled the way those values scale,
+  as a `[?]` assumption shown in the results. A guild measurement replaces it.
+- **Zero is a claim too.** When a source (a tooltip, the client's data or a talent's text) says
+  an effect exists but no allowed source gives its size, it is never modelled as nothing. It
+  takes the closest analog from allowed sources, flagged `[?]`. Only an allowed source that
+  gives no effect at all can make it zero.
+- **Presets are geared for what the spec measures.** A spec's gear preset is built for its own
+  headline metric: TPS for tanks, DPS otherwise. It uses the stats that the spec's damage and
+  threat actually scale with, measured by the sim's stat weights: a Protection paladin's Holy
+  threat scales with spell power, so its preset leans to spell damage. A pre-raid guide supplies
+  candidates, not the answer, and its survival picks (resistances, defense, stamina) don't make
+  a preset. The three tanks' presets are like for like: the same phase and item level range,
+  all built for threat.
+- **No item in a preset has lost its stats.** An item whose only stat is armor is a data bug
+  until shown otherwise, and a data-integrity test fails on it.
+- **Plausibility is part of the logic review.** A headline far from the other specs, or from
+  what the class's players expect, is a finding in itself: a tank below most DPS specs' threat,
+  or one tank at twice another. "Every formula matches its doc" doesn't close that finding; a
+  cited mechanic that explains the gap does, or a fix.

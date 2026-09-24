@@ -15,3 +15,9 @@ Never modify tracked files or commit. Put probes under the git-ignored `.cache/p
 the E2E port the brief gives. Report concisely: a verdict line ("Blocking: …", "Nothing is
 blocking", or "Gate passes"), a findings table (id, severity, origin, finding with file:line and
 exact steps or numbers, and suggested fix), and a short "Confirmed" list of what you checked.
+
+Always check plausibility (decision D29): compare the headline with the other specs and with
+what the class's players expect, and treat an outlier as a finding until a cited mechanic
+explains it. Flag any effect the client or a tooltip says exists that is modelled as zero, any
+tank ability whose threat wording is treated differently from another tank's, and any gear
+preset built for stats the spec doesn't scale with.

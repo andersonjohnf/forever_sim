@@ -182,7 +182,8 @@ export const FURY_OPTIONS: RotationOption[] = [
     id: ID.exBtOverAp,
     group: 'Execute phase',
     label: 'Bloodthirst over Execute from',
-    help: `In the execute phase, keep using Bloodthirst at or above this attack power. ${BT_OVER_EXECUTE_AP} is the break-even at Execute’s 15 rage cost; use 2434 with Improved Execute 2/2.`,
+    // Its field groups thousands ("2,220 AP"), so the help writes them the same way.
+    help: `In the execute phase, keep using Bloodthirst at or above this attack power. ${BT_OVER_EXECUTE_AP.toLocaleString('en-US')} is the break-even at Execute’s 15 rage cost; use 2,434 with Improved Execute 2/2.`,
     unit: 'AP',
     min: 0,
     max: 5000,

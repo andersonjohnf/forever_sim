@@ -399,7 +399,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   (crit, crushing, normal hit) on the right, and a screen reader hears them in the roll's order.
   Its heading names the list, so the list has no name of its own to read twice.
 - **Mana per fight** (paladins): the section after the breakdown, a ledger of the average fight,
-  one row per line with the numbers right-aligned: "At the pull 3,392", "Regenerated +2,323",
+  one row per line with the numbers right-aligned: "At the pull 3,392", "Regenerated +2,364",
   one line for each thing that restored mana ("Sanctified Judgement +…", "Major Mana Potion +…",
   "Demonic Rune +…", each only when it restored some), "Spent −…", then, under a rule, "Left at
   the end" (never below 0). A line under it says what "Regenerated" counts: "Spirit and mana per

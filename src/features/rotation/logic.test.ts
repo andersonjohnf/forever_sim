@@ -173,6 +173,14 @@ describe('rotation rows', () => {
     expect(noPhase.get('paladin.retribution.hammerOfWrath.minManaPct')?.inactive).toBe(true)
   })
 
+  it('writes thousands in a setting’s help as its field shows them, grouped where the field groups (RV7)', () => {
+    const grouped = specs.flatMap((s) => s.rotationOptions.filter((o) => o.kind === 'number' && groupsThousands(o)))
+    expect(grouped.map((o) => o.id)).toContain('warrior.fury.execute.btOverExecuteAp')
+    for (const option of grouped) expect(option.help, option.id).not.toMatch(/\b\d{4,}\b/)
+    const fury = getSpec('warrior-fury').rotationOptions.find((o) => o.id === 'warrior.fury.execute.btOverExecuteAp')!
+    expect(fury.help).toContain('2,220 is the break-even at Execute’s 15 rage cost; use 2,434 with Improved Execute 2/2.')
+  })
+
   it('puts the number settings behind Advanced and keeps switches and choices in view', () => {
     const options = [...getSpec('warrior-fury').rotationOptions, ...getSpec('warrior-arms').rotationOptions, ...getSpec('druid-feral-cat').rotationOptions]
     for (const o of options) expect(isAdvanced(o), o.id).toBe(o.kind === 'number')

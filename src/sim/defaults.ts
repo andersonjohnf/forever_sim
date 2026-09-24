@@ -249,9 +249,9 @@ const WARLOCK_ENCHANTS: Partial<Record<GearSlot, string>> = {
 const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>>> = {
   'warlock-destruction': WARLOCK_ENCHANTS,
   'warlock-affliction': WARLOCK_ENCHANTS,
-  // docs/classes/priest.md#74-enchants-and-consumables: the catalogue has no caster enchants yet
-  // (Arcanum of Focus, spell power on the weapon), so Greater Stats on the chest and Forever's Minor
-  // Haste gloves, which cast faster.
+  // docs/classes/priest.md#74-enchants-and-consumables: Greater Stats on the chest and Forever's Minor
+  // Haste gloves, which cast faster. The warlock's spell damage enchants (Arcanum of Focus, the
+  // weapon's Spell Power) aren't in its defaults yet, a known gap.
   'priest-shadow': { chest: 'chestGreaterStats', hands: 'gloveMinorHaste' },
   'rogue-combat': ROGUE_ENCHANTS,
   'rogue-assassination': ROGUE_ENCHANTS,

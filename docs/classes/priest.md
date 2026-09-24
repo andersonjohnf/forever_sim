@@ -274,9 +274,10 @@ none is evidence. Only the base spell crit moves DPS: each 1% is about 1% of it.
 
 ### 7.4 Enchants and consumables
 
-The enchant catalogue has no caster enchants yet (Arcanum of Focus, the +30 Spell Power weapon,
-Mana Oil), so the defaults are Greater Stats on the chest and Forever's **Minor Haste** gloves (+1%
-casting speed) [F]; the rest is a known gap. Consumables by preset
+The defaults are Greater Stats on the chest and Forever's **Minor Haste** gloves (+1% casting speed)
+[F]. Arcanum of Focus and the +30 Spell Power weapon enchant, which the warlock's slice (K3) added to
+the catalogue, aren't in the priest's defaults yet (you can pick them on the Gear tab); Mana Oil isn't
+in the catalogue. Both are a known gap. Consumables by preset
 ([buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset)):
 Standard raid has Greater Arcane Elixir (+35), **Elixir of Shadow Power** (+40 Shadow; 11474, 30 min
 [F] [C]) and the Major Mana Potion; Max adds Flask of Supreme Power and the Demonic Rune. Brilliant

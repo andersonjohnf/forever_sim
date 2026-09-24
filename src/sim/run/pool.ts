@@ -10,9 +10,11 @@
 // replaced only when the next run starts, never at once: one whose script can't load (after a deploy,
 // say) would otherwise fail and respawn forever, with no run asking for it (issue #1). A cancelled
 // run's workers that are still busy with its chunks are terminated too, so a chunk that hung after
-// the cancel can't fail the next run. Once fresh workers have failed to start in two runs in a row,
-// the pool reports itself `unstartable` and runs go on the calling thread instead (`executorFor` in
-// src/sim/index.ts).
+// the cancel can't fail the next run; the optimizer's fight jobs on such a worker aren't the run's,
+// so they move to another worker rather than fail (OG-5). Once fresh workers have failed to start in
+// two runs in a row (an optimizer search counts as a run, OG-6), the pool reports itself
+// `unstartable` and runs and searches go on the calling thread instead (`executorFor` and
+// `optimizerRunner` in src/sim/index.ts).
 import type { FromWorker, ToWorker } from '@/worker/protocol'
 import type { ChunkResult } from '../engine/chunk'
 import { EngineCache, ENGINES_PER_LANE, type FightRunner, type FightSamples } from '../optimize/fights'
@@ -88,6 +90,8 @@ interface Job {
   planId: number
   resolve: (result: never) => void
   reject: (error: Error) => void
+  /** Sends an optimizer job again, to whichever worker is least busy then (OG-5). */
+  redo?: () => void
 }
 
 export class WorkerPool {
@@ -145,10 +149,20 @@ export class WorkerPool {
     return {
       lanes: this.slots.length,
       // The run was cancelled: a worker still busy with its chunks is terminated, so a chunk that
-      // hangs can't fail the next run, and the next run replaces it.
+      // hangs can't fail the next run. The optimizer's fights on such a worker aren't this run's:
+      // they're sent again, to the workers left and the worker that replaces it (OG-5).
       abandon: () => {
         const busy = new Set([...this.jobs.values()].filter((job) => job.planId === planId).map((job) => job.slot))
+        const moved: Job[] = []
+        for (const [id, job] of this.jobs)
+          if (busy.has(job.slot) && job.redo) {
+            this.jobs.delete(id)
+            moved.push(job)
+          }
         for (const slot of busy) this.drop(slot, abortError())
+        if (moved.length === 0) return
+        this.ensureWorkers()
+        for (const job of moved) job.redo!()
       },
       run: (chunk, fights) =>
         new Promise<ChunkResult>((resolve, reject) => {
@@ -175,38 +189,43 @@ export class WorkerPool {
    * The optimizer's runner on the pool (docs/optimizer.md#fights-and-runners): a job goes to the
    * least busy worker, one that has the plan's engine if there's a tie, and the plan is sent only
    * to a worker whose cache lacks it. Samples don't depend on where they ran. The watchdog covers
-   * these jobs as it does chunks.
+   * these jobs as it does chunks. Making a runner counts as a run (OG-6): a search whose fresh
+   * workers fail to start counts toward `unstartable`, as a run's do.
    */
   fightRunner(): FightRunner {
     this.ensureWorkers()
+    this.runs++
     return {
       lanes: this.slots.length,
       run: (source, from, count) =>
         new Promise<FightSamples>((resolve, reject) => {
-          // Every worker failed since the runner was made: fail the job rather than wait.
-          if (this.slots.length === 0) {
-            reject(this.lastFailure ?? new Error(WORKER_CRASH_MESSAGE))
-            return
+          const dispatch = () => {
+            // Every worker failed since the runner was made: fail the job rather than wait.
+            if (this.slots.length === 0) {
+              reject(this.lastFailure ?? new Error(WORKER_CRASH_MESSAGE))
+              return
+            }
+            const least = Math.min(...this.slots.map((s) => s.busy))
+            const slot = this.slots.find((s) => s.busy === least && s.engines.has(source.key)) ?? this.slots.find((s) => s.busy === least)!
+            const known = slot.engines.has(source.key)
+            // Build the plan before any bookkeeping: if it throws, the job fails with the mirror and
+            // the worker's load as they were.
+            let plan: Plan | undefined
+            try {
+              if (!known) plan = source.plan()
+            } catch (error) {
+              reject(error instanceof Error ? error : new Error(String(error)))
+              return
+            }
+            if (known) slot.engines.get(source.key)
+            else slot.engines.set(source.key, true)
+            const jobId = this.nextJob++
+            this.startHeartbeat()
+            if (slot.busy++ === 0) this.resetSilence(slot)
+            this.jobs.set(jobId, { slot, planId: 0, resolve: resolve as (result: never) => void, reject, redo: dispatch })
+            this.post(slot, { type: 'fights', jobId, key: source.key, ...(plan ? { plan } : {}), from, count })
           }
-          const least = Math.min(...this.slots.map((s) => s.busy))
-          const slot = this.slots.find((s) => s.busy === least && s.engines.has(source.key)) ?? this.slots.find((s) => s.busy === least)!
-          const known = slot.engines.has(source.key)
-          // Build the plan before any bookkeeping: if it throws, the job fails with the mirror and
-          // the worker's load as they were.
-          let plan: Plan | undefined
-          try {
-            if (!known) plan = source.plan()
-          } catch (error) {
-            reject(error instanceof Error ? error : new Error(String(error)))
-            return
-          }
-          if (known) slot.engines.get(source.key)
-          else slot.engines.set(source.key, true)
-          const jobId = this.nextJob++
-          this.startHeartbeat()
-          if (slot.busy++ === 0) this.resetSilence(slot)
-          this.jobs.set(jobId, { slot, planId: 0, resolve: resolve as (result: never) => void, reject })
-          this.post(slot, { type: 'fights', jobId, key: source.key, ...(plan ? { plan } : {}), from, count })
+          dispatch()
         }),
     }
   }

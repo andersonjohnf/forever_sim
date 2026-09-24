@@ -97,15 +97,17 @@ A `FightRunner` runs a candidate's fights _from_ … _from + count − 1_ wherev
 
 | Runner | Where | Used by |
 | --- | --- | --- |
-| `localFightRunner` | this thread, a job at a time | tests; where there are no workers |
-| `WorkerPool.fightRunner` | the app's worker pool (`sim/run/pool.ts`, the worker's `fights` message) | the app (O3) |
+| `localFightRunner` | this thread, a job at a time | tests; the app where there are no workers, or they failed to start in two runs or searches in a row (`optimizerRunner`, OG-6) |
+| `WorkerPool.fightRunner` | the app's worker pool (`sim/run/pool.ts`, the worker's `fights` message) | the app (O3), through `optimizerRunner` (`src/sim/index.ts`) |
 | `threadRunner` | Node worker threads | `scripts/tune/optimize.mjs` |
 
 Each lane keeps a few engines by plan key, least recently used out (`EngineCache`, 48 a lane), so
 a candidate's later rounds reuse its engine. The pool and the CLI mirror each worker's cache (the
 same operations in the same order), so a plan (about 17 KB) is sent only to a worker that lacks
 it. A plan costs about 0.3 ms to build and an engine about 0.5 ms, so thousands of candidates are
-cheap to set up.
+cheap to set up. A search shares the pool with the app's runs: a run's cancel terminates the
+workers busy with its chunks, and a search's jobs on them are sent again elsewhere rather than
+failed (OG-5; [architecture](architecture.md#iterations-determinism-and-workers)).
 
 ## Goals
 

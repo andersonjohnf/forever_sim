@@ -607,7 +607,11 @@ A spec is data plus small ability modules, never its own loop.
   where nothing can interrupt a chunk. The optimizer asks the same workers for per-fight samples
   instead of chunks (`fights` messages, `WorkerPool.fightRunner`), each worker keeping a few
   engines by plan key ([optimizer.md](optimizer.md#fights-and-runners)); the watchdog covers
-  those jobs too.
+  those jobs too. A cancelled run's `abandon` doesn't fail a search's jobs on a worker it
+  terminates: they're sent again to the worker that replaces it and the others (OG-5). Making a
+  search's runner counts as a run, so searches whose workers fail to start make the pool
+  `unstartable` too, and `optimizerRunner` (`src/sim/index.ts`) then runs a search's fights on the
+  page's own thread (`localFightRunner`), as `executorFor` does a run's (OG-6).
 
 ## Testing
 

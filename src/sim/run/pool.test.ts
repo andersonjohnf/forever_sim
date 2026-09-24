@@ -41,6 +41,13 @@ class FakeWorker {
   terminate() {
     this.terminated = true
   }
+  /** Answers the oldest optimizer job not yet answered with its fights' samples. */
+  answerFights() {
+    const job = this.received.find((m): m is Extract<ToWorker, { type: 'fights' }> => m.type === 'fights' && !this.answered.has(m.jobId))!
+    this.answered.add(job.jobId)
+    const dps = Float64Array.from({ length: job.count }, (_, i) => job.from + i)
+    this.onmessage?.({ data: { type: 'samples', jobId: job.jobId, samples: { dps, tps: dps.slice(), taken: dps.slice() } } } as MessageEvent<FromWorker>)
+  }
   /** Answers the oldest chunk not yet answered. */
   answer() {
     const chunk = this.received.find((m): m is Extract<ToWorker, { type: 'chunk' }> => m.type === 'chunk' && !this.answered.has(m.jobId))!
@@ -435,6 +442,18 @@ describe('WorkerPool that can’t start workers', () => {
     expect(pool.unstartable).toBe(false)
   })
 
+  it('counts an optimizer search as a run: two whose workers fail to start make it unstartable (OG-6)', async () => {
+    FakeWorker.failOnStart = true
+    const pool = new WorkerPool(2, { now })
+    for (let search = 0; search < 2; search++) {
+      const runner = pool.fightRunner()
+      const outcomes = [settle(runner.run({ key: 1, plan: () => plan }, 0, 5)), settle(runner.run({ key: 1, plan: () => plan }, 5, 5))]
+      await vi.advanceTimersByTimeAsync(10)
+      expect(await Promise.all(outcomes)).toEqual([WORKER_START_MESSAGE, WORKER_START_MESSAGE])
+      expect(pool.unstartable).toBe(search === 1)
+    }
+  })
+
   it('doesn’t count a hang or a crash as a failure to start', async () => {
     const pool = new WorkerPool(1, { chunkTimeoutMs: 1000, now })
     for (let run = 0; run < 3; run++) {
@@ -476,6 +495,44 @@ describe('WorkerPool cancel', () => {
     const fresh = FakeWorker.all.find((w) => !w.terminated && w.received.some((m) => m.type === 'chunk'))!
     fresh.answer()
     await expect(next).resolves.toMatchObject({ chunk: 0 })
+  })
+
+  it('moves the optimizer’s jobs off a worker a cancelled run abandons, and they finish there (OG-5)', async () => {
+    const pool = new WorkerPool(1, { now, chunkTimeoutMs: 5_000 })
+    const runner = pool.fightRunner()
+    const source = { key: 3, plan: () => plan }
+    const search = runner.run(source, 10, 5)
+    const run = pool.executor(plan)
+    const chunk = settle(run.run(0, 250))
+    const [shared] = FakeWorker.all
+    expect(shared.received.map((m) => m.type)).toEqual(['fights', 'plan', 'chunk'])
+    run.abandon?.()
+    // The run's worker is terminated, as before, and its chunk abandoned; the search's job isn't.
+    expect(shared.terminated).toBe(true)
+    expect(await chunk).toBe(abortError().message)
+    // Its job went to the worker that replaced it, with the plan, since that one's cache is empty.
+    expect(FakeWorker.all).toHaveLength(2)
+    const fresh = FakeWorker.all[1]
+    expect(fresh.received).toEqual([expect.objectContaining({ type: 'fights', key: 3, from: 10, count: 5, plan })])
+    fresh.answerFights()
+    expect(Array.from((await search).dps)).toEqual([10, 11, 12, 13, 14])
+    // Nothing left to time out.
+    await vi.advanceTimersByTimeAsync(10_000)
+    expect(fresh.terminated).toBe(false)
+  })
+
+  it('leaves a worker running only the optimizer’s jobs alone when a run is cancelled (OG-5)', async () => {
+    const pool = new WorkerPool(2, { now })
+    const runner = pool.fightRunner()
+    const run = pool.executor(plan)
+    // The search's job goes to the first worker, the run's chunk to the second, the least busy.
+    const search = runner.run({ key: 4, plan: () => plan }, 0, 2)
+    const chunk = settle(run.run(0, 250))
+    run.abandon?.()
+    expect(FakeWorker.all.map((w) => w.terminated)).toEqual([false, true])
+    expect(await chunk).toBe(abortError().message)
+    FakeWorker.all[0].answerFights()
+    expect((await search).dps).toHaveLength(2)
   })
 
   it('keeps an idle worker warm, and never counts an abandoned worker as failing to start', async () => {

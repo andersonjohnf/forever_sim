@@ -609,7 +609,7 @@ covers the generic table.
 | Floor ("always 1% miss") | `classicEra`: 1% (max 99% hit, cap 16% vs +3) | [C] ([AMR][amr-hit]) |
 | | `forever`: 0% (tooltip "To never miss Raid Bosses: 17.00% Spells"; equal-level cap 4.00%) | [F] tooltip ([gs][gs-forever]); [?] in combat, see [Open questions](#open-questions) |
 | Spell hit from gear | same hit % as melee (unified stat) | [F] ([Blizzard Deep Dive][bz-deepdive]) |
-| Roll structure | roll 1 hit/miss; roll 2 crit on landed spells, at the caster's sheet spell crit ([character-stats](character-stats.md#derived-stat-pipeline)). Weapon and item procs that deal magic damage (Fiery Weapon) are spells here: the engine rolls both | [C] (the pre-SoD WarriorSim's `magicproc`: a miss roll, then a crit roll, [ws-player]); no Forever change found |
+| Roll structure | roll 1 hit/miss; roll 2 crit on landed spells, at the caster's sheet spell crit ([character-stats](character-stats.md#derived-stat-pipeline)). Weapon and item procs that deal magic damage (Fiery Weapon), and an explosive's damage (EZ-Thro Dark Bomb, [buffs §3.7](buffs-debuffs-consumables.md#37-engineering-and-explosives)), are spells here: the engine rolls both | [C] (the pre-SoD WarriorSim's `magicproc`: a miss roll, then a crit roll, [ws-player]); no Forever change found |
 | Spell crit damage | ×1.5 ("Spell and Healing critical strikes are 50% more effective") | [F] tooltip `STAT_CRIT_BONUS` ([gs][gs-forever]); [C] |
 | Spell crit suppression vs +3 | none | [C] (the pre-SoD WarriorSim applies none, [ws-player]). An SoD sim uses 2.1%; **not adopted**, see [Open questions](#open-questions) |
 | Dodge / parry / block / glancing | never, for spells | [C] |

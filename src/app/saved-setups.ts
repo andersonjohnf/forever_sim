@@ -48,7 +48,7 @@ export interface SavedSetup {
   name: string
   savedAt: string
   config: SimConfig
-  /** What normalizing repaired: the parts that were out of date, now back to their defaults. */
+  /** What normalizing changed, in its own words: a setting reset, a rival buff turned off (load-notice.ts). */
   warnings: string[]
 }
 

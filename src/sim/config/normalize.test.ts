@@ -159,6 +159,55 @@ describe('normalizeConfig', () => {
     expect(keep(['flaskOfNaturalAggression', 'flaskOfTheTitans'], prot).config.buffs.enabled).toEqual(['flaskOfTheTitans'])
   })
 
+  // Issue #13: one stone or oil a weapon; the one the plan would put on it stays (buffs doc §3.6).
+  it('keeps one stone or oil, the one with the weapon’s higher priority, and says they take the same weapon', () => {
+    const mage = defaultConfig('mage-fire')
+    for (const enabled of [['wizardOil', 'brilliantWizardOil'], ['brilliantWizardOil', 'wizardOil']]) {
+      const { config, warnings } = normalizeConfig({ ...mage, buffs: { raid: mage.buffs.raid, enabled } })
+      expect(config.buffs.enabled).toEqual(['brilliantWizardOil'])
+      expect(warnings).toEqual(['Wizard Oil takes the same weapon as Brilliant Wizard Oil, so it was turned off.'])
+    }
+    const ret = defaultConfig('paladin-retribution')
+    const keep = (enabled: string[]) => normalizeConfig({ ...ret, buffs: { raid: ret.buffs.raid, enabled } }).config.buffs.enabled
+    expect(keep(['elementalSharpeningStone', 'denseSharpeningStone'])).toEqual(['elementalSharpeningStone'])
+    expect(keep(['denseSharpeningStone', 'wizardOil'])).toEqual(['wizardOil'])
+    // The plan put the same one on the weapon before, so a saved setup's result doesn't move.
+    const both = buildPlan({ ...ret, buffs: { raid: ret.buffs.raid, enabled: [...ret.buffs.enabled, 'elementalSharpeningStone'] } })
+    const kept = buildPlan(normalizeConfig({ ...ret, buffs: { raid: ret.buffs.raid, enabled: [...ret.buffs.enabled, 'elementalSharpeningStone'] } }).config)
+    expect(kept.sheet.critPct).toBe(both.sheet.critPct)
+    // Poisons are chosen per hand and keep their own groups: both hands' stay.
+    const rogue = defaultConfig('rogue-combat')
+    expect(normalizeConfig(rogue).warnings).toEqual([])
+    expect(rogue.buffs.enabled).toEqual(expect.arrayContaining(['deadlyPoisonMainHand', 'instantPoisonOffHand']))
+  })
+
+  // Issue #14: consumables on one shared cooldown (buffs doc "On-use items and cooldown categories").
+  it('keeps one potion, the one the rotation drinks, and says they share a cooldown', () => {
+    const prot = defaultConfig('warrior-protection')
+    for (const enabled of [['greaterStoneshieldPotion', 'mightyRagePotion'], ['mightyRagePotion', 'greaterStoneshieldPotion']]) {
+      const { config, warnings } = normalizeConfig({ ...prot, buffs: { raid: prot.buffs.raid, enabled } })
+      expect(config.buffs.enabled).toEqual(['mightyRagePotion'])
+      expect(warnings).toEqual(['Greater Stoneshield Potion shares a cooldown with Mighty Rage Potion, so it was turned off.'])
+    }
+    const ret = defaultConfig('paladin-retribution')
+    const { config } = normalizeConfig({ ...ret, buffs: { raid: ret.buffs.raid, enabled: ['greaterStoneshieldPotion', 'majorManaPotion', 'demonicRune', 'ezThroDarkBomb'] } })
+    // The rune and the bomb have cooldowns of their own, apart from the potions'.
+    expect(config.buffs.enabled).toEqual(['majorManaPotion', 'demonicRune', 'ezThroDarkBomb'])
+  })
+
+  // Review CR-3: a rival that's locked off for the spec anyway did nothing, so its going needs no note.
+  it('drops an Enhancement shaman’s second stone without a note: its imbue takes the weapon anyway', () => {
+    const enh = defaultConfig('shaman-enhancement')
+    const { config, warnings } = normalizeConfig({ ...enh, buffs: { raid: enh.buffs.raid, enabled: ['denseSharpeningStone', 'elementalSharpeningStone'] } })
+    expect(config.buffs.enabled).toEqual(['elementalSharpeningStone'])
+    expect(warnings).toEqual([])
+    // A warrior's two stones still say why one went.
+    const fury = defaultConfig('warrior-fury')
+    expect(normalizeConfig({ ...fury, buffs: { raid: fury.buffs.raid, enabled: ['denseSharpeningStone', 'elementalSharpeningStone'] } }).warnings).toEqual([
+      'Dense Sharpening Stone / Weightstone takes the same weapon as Elemental Sharpening Stone, so it was turned off.',
+    ])
+  })
+
   // RL4: the comparison reads each entry's Classic Era values in `classicEra` (catalogueEffects).
   it('compares exclusive rivals by the profile’s own values, Classic Era’s included', () => {
     const giants = BUFFS_BY_ID.get('elixirOfGreaterStrength')! // +25 Strength in both clients

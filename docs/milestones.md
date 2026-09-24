@@ -475,12 +475,16 @@ slice is worked:
   taken than v1's preset (905 a second against 681 in C3's setup), within the user's effective-health
   floor. The optimizer (O2) replaces the set; D30's survival constraint for it is the class doc's
   floor, and its crit-immune switch the crit.
-- **Caster food and oil across the caster presets** (T2 review T2R-6, pre-existing, low): Nightfin
-  Soup and Brilliant Wizard Oil are in Elemental's Standard raid and the mages' Max consumables, and
-  Nightfin Soup and Wizard Oil in the Protection paladin's Standard raid, but in no warlock, Shadow
-  Priest or Balance preset ([buffs §6.3](mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset)).
-  Each is a Buffs switch those specs can turn on; aligning the presets waits for the consumables' own
-  review (or the optimizer's), since it moves every caster golden.
+- **Caster food across the caster presets** (T2 review T2R-6, pre-existing, low): Brilliant Wizard
+  Oil is in every caster's Max consumables since the consumables review (CR-6), but Nightfin Soup is
+  in Elemental's Standard raid, the mages' Max and the Protection paladin's presets only, in no
+  warlock, Shadow Priest or Balance preset ([buffs §6.3](mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset)).
+  It's a Buffs switch those specs can turn on; the optimizer (O2) or a presets pass aligns it.
+- **Consumables left for later** (consumables review, 2026-09-24): EZ-Thro Dark Bomb is a small gain
+  for a caster (a Fire mage +0.8%) and in no caster's Max consumables yet; the Sapper, Dense Dynamite
+  and the other explosives aren't in the catalogue; one entry per cooldown category means a tank's
+  Stoneshield-then-rage-potion pairing isn't simulated, and simulating an item with a longer cooldown
+  of its own beside another of its category needs an alternation model ([buffs doc](mechanics/buffs-debuffs-consumables.md#on-use-items-and-cooldown-categories)).
 - **Hammer of the Righteous's extra targets** (its effect 1, 120 to 3 chain targets, and the other 3
   targets' weapon damage) wait for M6, as does Consecration's 12 to every enemy.
 - **Crit from auras and the paladin (GR9, not a bug):** against a +3 boss the first 1.8% of crit from
@@ -552,8 +556,8 @@ slice is worked:
 - **The Shadow Priest's gaps** (K4, [priest.md](classes/priest.md#9-open-questions)):
   - **The caster enchants aren't in its defaults** (Arcanum of Focus, the +30 Spell Power weapon),
     though the catalogue has them, and Brilliant Mana Oil isn't in the catalogue: the priest's
-    enchants are Greater Stats and Minor Haste only (priest.md §7.4). Brilliant Wizard Oil is in the
-    catalogue since T2, in no priest preset (the buffs doc's §6.3 gives it none). A few percent of DPS.
+    enchants are Greater Stats and Minor Haste only (priest.md §7.4). Brilliant Wizard Oil is in its Max
+    consumables since the consumables review, in no Standard raid. A few percent of DPS.
   - **Shadowfiend** waits for the pet core (H1): its mana is left out (priest.md §5).
   - **Item effects the sim doesn't model on the priest's list:** Briarwood Reed's zone-bound spell
     power and Eye of the Beast's on-use +7% spell hit (priest.md §7.5).

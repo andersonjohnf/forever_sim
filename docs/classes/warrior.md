@@ -938,9 +938,11 @@ Notes:
 - **Juju Flurry** (row 17) is used on cooldown from the pull: no source ties it to Death Wish,
   and it's off the GCD (no start recovery in the client). Each use is +3% attack speed for 20 s,
   multiplied with other haste from the next swing (W17).
-- **Consumables and on-use items not simulated:** EZ-Thro Dark Bomb, Greater Stoneshield Potion
-  and on-use items with no damage use (Counterattack Lodestone's disarm, for one). If selected
-  or equipped, the result lists them.
+- **On-use items not simulated:** those with no damage use (Counterattack Lodestone's disarm, for
+  one). If equipped, the result lists them. EZ-Thro Dark Bomb and Greater Stoneshield Potion are
+  used on cooldown from the pull, ahead of the spec's own lines, when they're selected
+  ([buffs §3.5, §3.7](../mechanics/buffs-debuffs-consumables.md#37-engineering-and-explosives)); the
+  bomb's 1 s throw restarts both swings, so it's in no preset.
 - **2H Fury** (Fury talents with a two-hander) is supported by the engine but has no default
   preset. Unbridled Wrath's 2 rage per proc suits it, but Dual Wield Specialization and Raging
   Blows are wasted, and Improved Slam is out of reach in the Arms tree. Use it only if a guild

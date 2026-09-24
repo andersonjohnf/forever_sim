@@ -697,10 +697,13 @@ describe('assumptions', () => {
     expect(d.buffs.enabled).toContain('mightyRagePotion')
     // Blackhand's Breadth (default trinket 2) has Forever's use, which isn't simulated (review L5).
     expect(note(d)).toBe("Some on-use items and consumables aren’t simulated: Blackhand's Breadth.")
-    // Max consumables: Juju Flurry is used too; the bomb isn't.
+    // Max consumables: Juju Flurry is used too, and so is the bomb when it's on (every rotation
+    // throws it, buffs doc "On-use items and cooldown categories").
     const max = { ...d, buffs: { raid: d.buffs.raid, enabled: presetBuffIds('max', 'warrior-fury', d.buffs.raid) } }
-    expect(max.buffs.enabled).toEqual(expect.arrayContaining(['jujuFlurry', 'ezThroDarkBomb']))
-    expect(note(max)).toBe("Some on-use items and consumables aren’t simulated: EZ-Thro Dark Bomb, Blackhand's Breadth.")
+    expect(max.buffs.enabled).toContain('jujuFlurry')
+    expect(note(max)).toBe("Some on-use items and consumables aren’t simulated: Blackhand's Breadth.")
+    const bomb = { ...max, buffs: { ...max.buffs, enabled: [...max.buffs.enabled, 'ezThroDarkBomb'] } }
+    expect(note(bomb)).toBe("Some on-use items and consumables aren’t simulated: Blackhand's Breadth.")
     // Weakness Analyzer is used (with its own note); Counterattack Lodestone's disarm isn't.
     const trinkets = { ...d, gear: { ...d.gear, trinket1: { itemId: 272438 }, trinket2: { itemId: 18537 } } }
     expect(note(trinkets)).toBe('Some on-use items and consumables aren’t simulated: Counterattack Lodestone.')

@@ -252,6 +252,13 @@ export interface OnUseSpec {
   /** Mana at once, the same way (a mana potion or rune; buffs doc §3.5). Absent: none. */
   manaTenths?: number
   manaSpreadTenths?: number
+  /**
+   * The damaging spell it casts on the boss (an explosive: EZ-Thro Dark Bomb, buffs doc §3.7), its
+   * cast time in ms, and whether that cast stops your swings. Absent: it deals no damage and is instant.
+   */
+  spell?: SpellDef
+  castMs?: number
+  castStopsSwings?: boolean
 }
 
 /** Timed buff applied by a proc or a `cast` ability (plan/types.ts AbilityPlan). Mods apply per stack. */

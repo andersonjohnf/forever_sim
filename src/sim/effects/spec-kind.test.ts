@@ -64,7 +64,7 @@ function attacksOnly(e: Effect): boolean {
       return e.proc.trigger === 'meleeLanded'
     case 'onUse':
       // An attack-speed or Strength buff, and rage (Juju Flurry, the Mighty Rage Potion).
-      return e.use !== undefined && !e.use.manaTenths && Object.keys(e.use.aura?.mods ?? {}).every((m) => m === 'haste' || m === 'str')
+      return e.use !== undefined && !e.use.manaTenths && !e.use.spell && Object.keys(e.use.aura?.mods ?? {}).every((m) => m === 'haste' || m === 'str')
     default:
       return false
   }

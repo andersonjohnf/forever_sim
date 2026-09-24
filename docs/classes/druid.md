@@ -757,7 +757,8 @@ One target: the extra targets add nothing.
   character-stats.md OQ-8). In `forever` its second aura also
   multiplies bonus armor by 4.6 [?] (OQ-8, Q19); `classicEra`'s Dire Bear Form has only the item
   armor aura. Armor matters to the `classic` damage-taken rage model and to survival, not to
-  `forever`'s rage.
+  `forever`'s rage. Greater Stoneshield Potion's +2,000 is bonus armor, so in `forever` Dire Bear
+  Form makes it 9,200 [?] ([buffs §3.5](../mechanics/buffs-debuffs-consumables.md#35-potions-and-runes)).
 - **Thick Hide in the engine** (`talents.ts`, BR6): its base armor joins the item armor in the
   forms, so Dire Bear Form's +360% multiplies it, as its tooltip's "further increased by
   multipliers from those forms" says [?] (Q19). "Base armor" is the pool the form's aura 142
@@ -1470,7 +1471,7 @@ preset):
 | --- | --- | --- |
 | Pre-raid dungeon group | Flank au Poivre (+20 Agi) | Smoked Desert Dumplings (+20 Str) |
 | **Standard raid (default)** | Elixir of the Mongoose; Elixir of Greater Strength (Classic: Elixir of Giants); Flank au Poivre | Elixir of Greater Defense; Elixir of Fortitude (+200 health); Mongoose; Greater Strength; Smoked Desert Dumplings; Mighty Rage Potion (druids can use it in Forever) |
-| Max-consumables raid (adds / replaces) | Juju Power (replaces Greater Strength); Juju Might; Ground Scorpok Assay; Mighty Rage Potion (for its +60 Str) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum Black Label; Greater Stoneshield Potion |
+| Max-consumables raid (adds / replaces) | Juju Power (replaces Greater Strength); Juju Might; Ground Scorpok Assay; Mighty Rage Potion (for its +60 Str) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum Black Label. It keeps the Mighty Rage Potion: Greater Stoneshield Potion shares its cooldown, and a preset has one potion ([buffs §6.3](../mechanics/buffs-debuffs-consumables.md#63-consumables-by-spec-and-preset)) |
 
 The sim's presets follow these rows. Flank au Poivre is in the buff catalogue for them: +20
 Agility from Nutritious Food 1248399, whose Well Fed 1248420 is Agility [F] [client] (SpellEffect,
@@ -1932,7 +1933,7 @@ common priority, with a first quick search".
 | Race | Tauren (the druid's default, §7.2): Endurance's +1% hit is spell hit too | [F] |
 | Gear | the Balance pre-raid BiS list (D11): Wowhead's Classic Balance guide's Phase 6 pre-raid section, archived 2021-05-16 (`scripts/scrape/pre-raid-bis.json`, [items.md](../data/items.md#pre-raid-bis-lists)): main hand and off hand (Mindfang for the Horde, Sageclaw for the Alliance; Tome of Arcane Domination) | [C] |
 | Enchants | Greater Stats on the chest, the one caster enchant the catalogue has | buffs doc §6.4 |
-| Buffs and consumables | the casters' Standard raid, as the mage's: the raid buffs, Arcane Brilliance, Blessing of Wisdom, Mana Spring, its own Moonkin Aura, Curse of the Elements, Greater Arcane Elixir and the Major Mana Potion; no attack-power or armor entries (`forSpecs: 'melee'`) | buffs doc §6.2, [spells §12](../mechanics/spells.md#12-what-a-class-slice-uses) |
+| Buffs and consumables | the casters' Standard raid, as the mage's: the raid buffs, Arcane Brilliance, Blessing of Wisdom, Mana Spring, its own Moonkin Aura, Curse of the Elements, Greater Arcane Elixir and the Major Mana Potion; Max consumables adds Flask of Supreme Power, the Demonic Rune and Brilliant Wizard Oil; no attack-power or armor entries (`forSpecs: 'melee'`) | buffs doc §6.2, §6.3, [spells §12](../mechanics/spells.md#12-what-a-class-slice-uses) |
 
 **The druid's caster entries are per spec.** The druid isn't a caster class (its Feral specs aren't
 casters), so Arcane Brilliance, Blessing of Wisdom, Mana Spring Totem, Prayer of Spirit, the spell

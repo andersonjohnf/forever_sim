@@ -2,7 +2,7 @@
 // (docs/data/client.md), and what the plan builder makes of them: Hand of Justice's and Ironfoe's
 // chances and internal cooldowns per profile (damage-and-timing §5.2), Windfury Totem's internal cooldown
 // (§5.4), and the weapons an Elemental Sharpening Stone fits and how two of them stack (buffs doc
-// §3.6).
+// §3.6), with the stones' and oils' one group; the on-use consumables' shared cooldown categories.
 import { describe, expect, it } from 'vitest'
 import enchantsJson from '@/data/client/enchants.json'
 import itemsJson from '@/data/client/items.json'
@@ -11,11 +11,13 @@ import type { ClientItems, ClientSpells } from '@/data/client/types'
 import itemJson from '@/data/items/pre-bis.json'
 import type { ItemData, WeaponType } from '@/data/items/types'
 import { defaultConfig } from '../defaults'
-import { presetBuffIds } from './presets'
+import { forSpecClass, presetBuffIds } from './presets'
 import { buildPlan } from '../plan/build'
 import { CLASSIC_ERA, FOREVER } from '../rules/profiles'
 import type { RuleProfileId, SimConfig } from '../types'
-import { BUFFS_BY_ID, ELEMENTAL_STONE_WEAPONS } from './buffs'
+import { BUFFS_BY_ID, COOLDOWN_GROUP, DEMONIC_RUNE, ELEMENTAL_STONE_WEAPONS, EZ_THRO_DARK_BOMB, GREATER_STONESHIELD_POTION, MAJOR_MANA_POTION, MIGHTY_RAGE_POTION, TEMP_ENCHANT } from './buffs'
+import { PROFICIENCY } from '../equip'
+import { SPEC_IDS, SPEC_META } from '../specs'
 import { HAND_OF_JUSTICE_ICD_MS, ITEM_EFFECTS } from './items'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
@@ -246,6 +248,99 @@ describe('Elemental Sharpening Stone (item 18262 → 22756 → enchant 2506 → 
     const one = buildPlan({ ...arms, buffs: { raid: arms.buffs.raid, enabled: [...arms.buffs.enabled, 'elementalSharpeningStone'] } })
     expect(one.sheet.critPct - buildPlan(arms).sheet.critPct).toBeCloseTo(2, 9)
     expect(one.assumptions.map((a) => a.id)).not.toContain('elementalStone')
+  })
+})
+
+describe('shared cooldown categories of the on-use consumables (ItemEffect; buffs doc "On-use items and cooldown categories")', () => {
+  const consumables = (itemsJson as unknown as ClientItems).consumables
+  /** The catalogue's on-use entries and the items they stand for (a Dark Rune is the Demonic Rune's twin). */
+  const ITEMS: Record<string, number[]> = {
+    mightyRagePotion: [13442],
+    majorManaPotion: [13444],
+    greaterStoneshieldPotion: [13455],
+    demonicRune: [12662, 20520],
+    thistleTea: [7676],
+    ezThroDarkBomb: [260817],
+    jujuFlurry: [12450],
+  }
+  /** SpellCategory id → its exclusive group, and the category's shared cooldown. */
+  const CATEGORY: Record<number, { group: string; ms: number }> = {
+    4: { group: COOLDOWN_GROUP.potion, ms: 120000 },
+    1153: { group: COOLDOWN_GROUP.rune, ms: 120000 },
+    24: { group: COOLDOWN_GROUP.explosive, ms: 60000 },
+  }
+  const categoryOf = (id: string) => {
+    const rows = ITEMS[id].flatMap((item) => consumables[String(item)].effects)
+    expect(new Set(rows.map((r) => r.spellCategoryId)).size, id).toBe(1)
+    return rows[0]
+  }
+
+  it('lists every on-use consumable in the catalogue (Power Infusion is a raid buff, no item)', () => {
+    const onUse = [...BUFFS_BY_ID.values()].filter((b) => b.category === 'consumable' && Array.isArray(b.effects) && b.effects.some((e) => e.kind === 'onUse')).map((b) => b.id)
+    expect(onUse.sort()).toEqual(Object.keys(ITEMS).sort())
+  })
+
+  it('puts each entry in its item’s category’s group: potions 4, runes and Thistle Tea 1153, explosives 24, Juju Flurry none', () => {
+    for (const id of Object.keys(ITEMS)) {
+      const row = categoryOf(id)
+      const category = CATEGORY[row.spellCategoryId]
+      if (row.spellCategoryId === 0) {
+        expect(BUFFS_BY_ID.get(id)!.exclusiveGroup, id).toBeUndefined()
+        continue
+      }
+      expect(category, `${id}: category ${row.spellCategoryId}`).toBeDefined()
+      expect(row.categoryCoolDownMSec, id).toBe(category.ms)
+      expect(BUFFS_BY_ID.get(id)!.exclusiveGroup, id).toBe(category.group)
+    }
+    expect(categoryOf('greaterStoneshieldPotion').spellCategoryId).toBe(categoryOf('majorManaPotion').spellCategoryId)
+    expect(categoryOf('demonicRune').spellCategoryId).not.toBe(categoryOf('majorManaPotion').spellCategoryId)
+    expect(categoryOf('ezThroDarkBomb').spellCategoryId).not.toBe(categoryOf('demonicRune').spellCategoryId)
+  })
+
+  it('uses each simulated one on its category’s cooldown, or its own when that’s longer', () => {
+    for (const [id, use] of [
+      ['mightyRagePotion', MIGHTY_RAGE_POTION],
+      ['majorManaPotion', MAJOR_MANA_POTION],
+      ['demonicRune', DEMONIC_RUNE],
+      ['greaterStoneshieldPotion', GREATER_STONESHIELD_POTION],
+      ['ezThroDarkBomb', EZ_THRO_DARK_BOMB],
+    ] as const) {
+      const row = categoryOf(id)
+      expect(use.cooldownMs, id).toBe(Math.max(row.categoryCoolDownMSec, row.coolDownMSec))
+    }
+  })
+
+  it('leaves a tank one potion in Max consumables: the Mighty Rage Potion its rotation drinks', () => {
+    for (const spec of ['warrior-protection', 'druid-feral-bear'] as const) {
+      const max = presetBuffIds('max', spec, defaultConfig(spec).buffs.raid)
+      expect(max, spec).toContain('mightyRagePotion')
+      expect(max, spec).not.toContain('greaterStoneshieldPotion')
+    }
+  })
+})
+
+describe('one stone or oil a weapon (buffs doc §3.6)', () => {
+  it('puts the stones and the wizard oils in one group, and the Max preset’s Elemental stone replaces the dense one', () => {
+    for (const id of ['denseSharpeningStone', 'elementalSharpeningStone', 'wizardOil', 'brilliantWizardOil']) expect(BUFFS_BY_ID.get(id)!.exclusiveGroup, id).toBe(TEMP_ENCHANT)
+    for (const spec of ['warrior-fury', 'warrior-arms', 'warrior-protection', 'paladin-retribution'] as const) {
+      const max = presetBuffIds('max', spec, defaultConfig(spec).buffs.raid)
+      expect(max, spec).toContain('elementalSharpeningStone')
+      expect(max, spec).not.toContain('denseSharpeningStone')
+    }
+    const paladin = presetBuffIds('max', 'paladin-protection', defaultConfig('paladin-protection').buffs.raid)
+    expect(paladin).toContain('brilliantWizardOil')
+    expect(paladin).not.toContain('wizardOil')
+    // Review CR-6: every caster's Max consumables has Brilliant Wizard Oil (§6.3).
+    for (const spec of SPEC_IDS.filter((s) => SPEC_META[s].caster)) expect(presetBuffIds('max', spec, defaultConfig(spec).buffs.raid), spec).toContain('brilliantWizardOil')
+  })
+
+  it('no class that can use an oil dual-wields, so an oil is always its only weapon’s', () => {
+    for (const id of ['wizardOil', 'brilliantWizardOil']) {
+      for (const spec of SPEC_IDS) {
+        if (!forSpecClass(BUFFS_BY_ID.get(id)!, spec)) continue
+        expect(PROFICIENCY[SPEC_META[spec].classId].dualWield, `${id}: ${spec}`).toBe(false)
+      }
+    }
   })
 })
 

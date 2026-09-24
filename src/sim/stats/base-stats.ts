@@ -164,6 +164,24 @@ const PRIEST_ROWS: Readonly<Record<string, Attributes>> = {
   'horde-troll': { str: 36, agi: 42, sta: 51, int: 116, spi: 126 },
 }
 
+/**
+ * Hunter base attributes at level 60, [?] placeholders (D24 rule 2; docs/classes/hunter.md#75-base-values,
+ * character-stats.md OQ-1). Origin: the mangos emulator's 1.12 rows,
+ * https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_levelstats.sql, not
+ * evidence: the class row Str 55, Agi 125, Sta 90, Int 65, Spi 70 plus the [C] race offsets (Orc 58,
+ * 122, 92, 62, 73; Dwarf 57, 121, 93, 64, 69; Night Elf 52, 130, 89, 65, 70; Tauren 60, 120, 92, 60, 72;
+ * Troll 56, 127, 91, 61, 71). The Human, a hunter only in Forever, is the class row, Spirit raw (its
+ * +5% is a racial). No Skyborne row: their base stats aren't known.
+ */
+const HUNTER_ROWS: Readonly<Record<string, Attributes>> = {
+  'alliance-human': { str: 55, agi: 125, sta: 90, int: 65, spi: 70 },
+  'alliance-dwarf': { str: 57, agi: 121, sta: 93, int: 64, spi: 69 },
+  'alliance-night-elf': { str: 52, agi: 130, sta: 89, int: 65, spi: 70 },
+  'horde-orc': { str: 58, agi: 122, sta: 92, int: 62, spi: 73 },
+  'horde-tauren': { str: 60, agi: 120, sta: 92, int: 60, spi: 72 },
+  'horde-troll': { str: 56, agi: 127, sta: 91, int: 61, spi: 71 },
+}
+
 export interface ClassBase {
   /** Base attributes by race id; null = unknown (OQ-1). */
   attributes: (race: string) => Attributes | null
@@ -193,6 +211,13 @@ export interface ClassBase {
    */
   apPerStr?: number
   apPerAgi?: number
+  /**
+   * Ranged attack power before Agility, and per point of Agility (docs/mechanics/ranged-and-pets.md §3):
+   * a class that shoots (the hunter). Absent: none, and no ranged attack power from Agility. `baseRap`
+   * null: unknown, a placeholder's.
+   */
+  baseRap?: number | null
+  rapPerAgi?: number
 }
 
 export const CLASS_BASE: Record<ClassId, ClassBase> = {
@@ -353,6 +378,31 @@ export const CLASS_BASE: Record<ClassId, ClassBase> = {
     // PlayerExpectedStat.BaseMana 1376 [F] (docs/mechanics/spells.md §8)
     baseMana: 1376,
   },
+  hunter: {
+    // Unmeasured (docs/classes/hunter.md#75-base-values): the attribute rows, attack power, ranged
+    // attack power, crit, spell crit, dodge and health are D24 placeholders, in BASE_PLACEHOLDERS below.
+    attributes: () => null,
+    baseAp: null,
+    baseCrit: null,
+    // PlayerExpectedStat.CritPerAgility 0.000189, 52.9 Agility per 1% [F] (docs/mechanics/ranged-and-pets.md §3)
+    critPerAgi: 0.0189,
+    // PlayerExpectedStat.SpellCritPerIntellect 0.000165 [F]
+    spellCritPerInt: 0.0165,
+    baseSpellCrit: null,
+    baseDodge: null,
+    // A hunter parries with a melee weapon [C]; its hunter doesn't swing one, and it can't block.
+    baseParry: 5,
+    baseBlock: 0,
+    baseHealth: null,
+    // PlayerExpectedStat.BaseMana 1720 [F]
+    baseMana: 1720,
+    // ChrClasses: 1 melee attack power per Strength and per Agility, 2 ranged per Agility [F]
+    // (docs/mechanics/ranged-and-pets.md §3).
+    apPerStr: 1,
+    apPerAgi: 1,
+    rapPerAgi: 2,
+    baseRap: null,
+  },
 }
 
 /**
@@ -372,6 +422,8 @@ export interface BasePlaceholders {
   baseCrit?: number
   /** Base spell crit %, before Intellect (character-stats OQ-3). */
   baseSpellCrit?: number
+  /** Ranged attack power before Agility (docs/mechanics/ranged-and-pets.md OQ-1). */
+  baseRap?: number
 }
 
 /**
@@ -497,5 +549,22 @@ export const BASE_PLACEHOLDERS: Record<ClassId, BasePlaceholders> = {
     baseCrit: 3,
     baseSpellCrit: 0.8,
     baseDodge: 3,
+  },
+  // docs/classes/hunter.md#75-base-values: every hunter base value nobody has measured, each "[?]
+  // placeholder (D24)": attributes and health 1,467 from the mangos emulator's tables
+  // (player_classlevelstats.sql, as the other classes'); ranged attack power 2 × 60 − 10 = 110 and
+  // melee attack power 2 × 60 − 20 = 100 before the stats, the Classic formulas vanilla wikis and the
+  // emulators give (ranged-and-pets.md OQ-1); 0% base melee crit and dodge and 3.6% base spell crit
+  // from RatingBuster's Classic Era table at its pre-SoD commit
+  // (https://github.com/raethkcj/RatingBuster/blob/d11164cf6de90688a635a6ff880b71ea9ea07367/libs/StatLogic/Vanilla_Logic.lua).
+  // Not evidence. The ranged attack power is about 3% of a hunter's damage.
+  hunter: {
+    attributes: HUNTER_ROWS,
+    baseAp: 100,
+    baseRap: 110,
+    baseHealth: 1467,
+    baseCrit: 0,
+    baseSpellCrit: 3.6,
+    baseDodge: 0,
   },
 }

@@ -7,7 +7,7 @@ import type { PreRaidBisSpec } from '@/data/items/types'
 import type { ClassSlug } from '@/data/races/types'
 
 export type SpecId = PreRaidBisSpec
-export type ClassId = 'warrior' | 'druid' | 'paladin' | 'shaman' | 'rogue' | 'mage' | 'warlock' | 'priest'
+export type ClassId = 'warrior' | 'druid' | 'paladin' | 'shaman' | 'rogue' | 'mage' | 'warlock' | 'priest' | 'hunter'
 export type Role = 'dps' | 'tank'
 
 /** Paper-doll slots. Rings and trinkets have two each. */
@@ -29,6 +29,9 @@ export type GearSlot =
   | 'mainHand'
   | 'offHand'
   | 'ranged'
+  /** A ranged weapon's arrows or bullets, and a quiver or ammo pouch (docs/mechanics/ranged-and-pets.md §1). */
+  | 'ammo'
+  | 'quiver'
 
 export interface EquippedItem {
   itemId: number
@@ -455,6 +458,13 @@ export interface CooldownResult {
 
 /** Final stats as the sim computed them (docs/mechanics/character-stats.md). */
 export interface CharacterSheet {
+  /**
+   * A ranged spec's (SpecMeta.ranged; docs/classes/hunter.md#9-implementation-notes): ranged attack
+   * power, crit and hit % with the ranged weapon (its own bonuses included, before the +3 crit
+   * suppression), its time between Auto Shots in seconds with the static ranged haste (null without a
+   * ranged weapon), its weapon skill, the ammo's damage per second, and mana per 5 s. Absent otherwise.
+   */
+  ranged?: { rangedAttackPower: number; critPct: number; hitPct: number; speedSec: number | null; weaponSkill: number; ammoDps: number; mp5: number }
   strength: number
   agility: number
   stamina: number

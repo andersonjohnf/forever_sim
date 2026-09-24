@@ -19,6 +19,7 @@ import { balanceAssumptions } from '../classes/druid/balance'
 import { mageAssumptions, mageFreeCast, mageManaPlan } from '../classes/mage/setup'
 import { warlockAssumptions, warlockManaPlan } from '../classes/warlock/setup'
 import { priestAssumptions, priestManaPlan, priestPlan } from '../classes/priest/setup'
+import { hunterAssumptions, hunterManaPlan } from '../classes/hunter/setup'
 import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance } from '../classes/rotation'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
@@ -36,7 +37,7 @@ import { DerivedStats, deriveStats, StatBlock } from '../stats/stat-block'
 import type { CharacterSheet, ClassId, GearSlot, SimConfig } from '../types'
 import { Assumptions, BEAR_TEXT } from './assumptions'
 import { PET_BUFFS, petPlan } from './pet'
-import { isRangedWeapon, noRangedMods, rangedPlan, type RangedMods } from './ranged'
+import { firesAmmo, isRangedWeapon, noRangedMods, rangedPlan, type RangedMods } from './ranged'
 import {
   type AbilityPlan,
   ACTION,
@@ -401,13 +402,16 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // The rogue's 1 attack power per Strength and per Agility (docs/classes/rogue.md#76-base-values).
   if (base.apPerStr !== undefined) block.apPerStr = base.apPerStr
   if (base.apPerAgi !== undefined) block.apPerAgi = base.apPerAgi
+  // The hunter's ranged attack power: 2 per Agility [F] and its base [?] (docs/classes/hunter.md#75-base-values).
+  if (base.rapPerAgi !== undefined) block.rapPerAgi = base.rapPerAgi
+  if (base.baseRap !== undefined) block.baseRap = baseValue(base.baseRap, stand.baseRap, 'base ranged attack power')
 
   // --- Effects -------------------------------------------------------------------------------
   const setup = classSetup(classId, config.spec, config.talents, profile, rotationBaseStance(config.spec, config.rotation))
   // The paladin uses mana, not rage (paladin.md#mana-model), and so does the shaman
   // (docs/classes/shaman.md#mana); the rogue uses Energy (rogue.md §2.1). None has a rage pool, and
   // their hits give none either (`rageFromHits`), so no rage assumption applies to them.
-  const usesMana = classId === 'paladin' || classId === 'shaman' || meta.caster === true
+  const usesMana = classId === 'paladin' || classId === 'shaman' || classId === 'hunter' || meta.caster === true
   const usesRage = classId === 'warrior' || (classId === 'druid' && !meta.caster)
   if (!setup.simulated && attributes) blockers.push(`${meta.className} simulation isn’t available yet.`)
   // A druid in an animal form attacks with the form's weapon, whatever is equipped; the item's
@@ -487,6 +491,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         if (slot === 'ranged') c.ranged.flatDamage += value
         else for (const w of weapons) if (w && (origin === null || w.hand === origin)) w.plan.flatDamage += value
       }
+      // docs/mechanics/ranged-and-pets.md §1: a quiver's or ammo pouch's ranged attack speed, multiplied.
+      else if (key === 'rangedAttackSpeed') c.ranged.hasteMult *= 1 + value / 100
     }
     for (const [skill, value] of Object.entries(item.weaponSkill ?? {}) as [WeaponSkill, number][]) {
       weaponSkill[skill] = (weaponSkill[skill] ?? 0) + value
@@ -503,6 +509,12 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (override?.use) itemUses.push(override.use)
     else if (item.useEffects.length > 0) onUseItems.push(item.name)
   }
+  // docs/mechanics/ranged-and-pets.md §1, §3: ammo adds its damage per second to the ranged weapon's
+  // shots when it's the kind that weapon fires: arrows for bows and crossbows, bullets for guns.
+  const ammoItem = equipped.get('ammo')
+  const rangedWeapon = equipped.get('ranged')
+  const ammoFired = !ammoItem?.ammo || !rangedWeapon?.weaponType || firesAmmo(rangedWeapon.weaponType, ammoItem.ammo.projectile)
+  if (ammoItem?.ammo && rangedWeapon?.weaponType && ammoFired) c.ranged.ammoDps += ammoItem.ammo.dps
   // docs/data/items.md#stats-armor-and-block-value: the Forever client has no innate shield block
   // value. A shield with no Forever data uses its Classic Era stats (D6), and with them its Classic
   // Era block value, flagged [?] (character-stats.md#strength).
@@ -652,6 +664,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // count: nothing melee applies to it.
   const melee = !meta.caster
   const mh = weapons[HAND.main]
+  // docs/mechanics/ranged-and-pets.md §2–§4: a ranged spec's sheet shows its ranged weapon's numbers.
+  const sheetRanged = meta.ranged ? equipped.get('ranged') : undefined
+  const sheetRangedWeapon = sheetRanged?.weapon && sheetRanged.weaponType && sheetRanged.weaponType !== 'wand' ? sheetRanged.weapon : null
   const sheet: CharacterSheet = {
     strength: shown.strength,
     agility: shown.agility,
@@ -694,8 +709,23 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // docs/classes/paladin.md#mana-model, #conventions-used-below: the paladin's spell stats, as the
     // engine starts the fight with them (Holy spell damage with Champion of the Light's share).
     // The shaman's the same way: its spell damage for Nature and Frost (docs/classes/shaman.md#spell-damage).
-    ...(usesMana && !meta.caster
+    ...(usesMana && !meta.caster && !meta.ranged
       ? { spell: { holyDamage: shown.holySpellDamage, critPct: shown.spellCrit, hitPct: shown.spellHit, mp5: block.mp5 } }
+      : {}),
+    // docs/classes/hunter.md#9-implementation-notes: a ranged spec's ranged attack power, crit, hit,
+    // attack speed and weapon skill with its ranged weapon, as the fight starts, and its mana per 5 s.
+    ...(meta.ranged
+      ? {
+          ranged: {
+            rangedAttackPower: shown.rangedAttackPower,
+            critPct: shown.crit + c.ranged.crit,
+            hitPct: shown.hit + c.ranged.hit,
+            speedSec: sheetRangedWeapon ? sheetRangedWeapon.speed / (shown.hasteMult * c.ranged.hasteMult) : null,
+            weaponSkill: 5 * PLAYER_LEVEL + (sheetRangedWeapon?.skill ? (weaponSkill[sheetRangedWeapon.skill] ?? 0) : 0),
+            ammoDps: c.ranged.ammoDps,
+            mp5: block.mp5,
+          },
+        }
       : {}),
     // docs/mechanics/spells.md §3–§5: a caster's spell stats, by school.
     ...(meta.caster ? { spell: casterSheet(shown, block, c.schools) } : {}),
@@ -1315,6 +1345,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // docs/classes/priest.md#5-mana: the same model, with Meditation's share while casting; Inner
     // Focus is the free-cast aura (#35-inner-focus-14751).
     ...(classId === 'priest' ? { mana: priestManaPlan(derived, block.mp5, setup.talents), ...priestPlan(auras) } : {}),
+    // docs/classes/hunter.md#5-mana: the same model, with the hunter's Spirit regeneration and Bestial Discipline.
+    ...(classId === 'hunter' ? { mana: hunterManaPlan(derived, block.mp5, setup.talents) } : {}),
     ...(c.holyThreatMult !== 1 ? { holyThreatMult: c.holyThreatMult } : {}),
     // docs/mechanics/spells.md §3, §9: the schools' numbers, when any isn't plain.
     ...(schools ? { schools } : {}),
@@ -1337,7 +1369,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         ? 'reactionTimeRogue'
         : energy
           ? 'reactionTimeEnergy'
-          : classId === 'paladin' || classId === 'priest' || (classId === 'shaman' && !melee)
+          : classId === 'paladin' || classId === 'priest' || classId === 'hunter' || (classId === 'shaman' && !melee)
             ? 'reactionTimeMana'
             : classId === 'shaman'
               ? 'reactionTimeShaman'
@@ -1368,7 +1400,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   // The rogue's off-hand strike (Mutilate) has its own note (rogueAssumptions, `mutilate`).
   if (classId !== 'rogue' && abilities.some((a) => a.offHandSource >= 0)) notes.add('ragingBlows')
   // A caster's spells need no weapon (docs/classes/mage.md, warlock.md, priest.md; the Balance druid's, druid.md §11.1), and it swings none: no note.
-  if (!mh && !meta.caster) {
+  // Nor a ranged spec's shots, which need its ranged weapon (docs/classes/hunter.md#9-implementation-notes).
+  if (!mh && !meta.caster && !meta.ranged) {
     // warrior.md §7 "Without a main-hand weapon": the attacks that need none are still used: the
     // spell-table ones, and with a shield the ones that need it instead, which roll the main hand's
     // special-attack table at the base skill. Without a shield, nothing that needs one is named.
@@ -1456,6 +1489,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (placeholders.includes('base block')) standIns.push(`base block ${block.baseBlock}%`)
   if (placeholders.includes('base crit')) standIns.push(`base melee crit ${block.baseCrit}%`)
   if (placeholders.includes('base spell crit')) standIns.push(`base spell crit ${block.baseSpellCrit}%`)
+  // docs/mechanics/ranged-and-pets.md OQ-1: the hunter's base ranged attack power.
+  if (placeholders.includes('base ranged attack power')) standIns.push(`base ranged attack power ${block.baseRap} before Agility`)
   if (standIns.length > 0) notes.add('baseStatPlaceholders', standIns.join('; '))
   // A weapon racial with one matching weapon and one other: all attacks get it, as its tooltip reads;
   // Weaponmaster's axe or polearm with another weapon: only that weapon's attacks, as its tooltip
@@ -1469,6 +1504,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   if (setup.simulated && COOLDOWN_RACIALS[config.race]?.simulated === false) notes.add('cooldownRacial')
   if (config.race === 'horde-undead') notes.add('touchOfTheGrave')
   if (classicItems.length) notes.add('classicItems', classicItems.join(', '))
+  // docs/mechanics/ranged-and-pets.md §1: ammo the ranged weapon doesn't fire (arrows in a gun) adds nothing.
+  if (meta.ranged && ammoItem && !ammoFired) notes.add('ammoNotFired', ammoItem.name)
   if (unmodelled.length) notes.add('unmodelledProcs', unmodelled.join(', '))
   if (unmodelledSetBonuses.length) notes.add('unmodelledSetBonuses', unmodelledSetBonuses.join(', '))
   const procIds = new Set(procs.map((p) => p.id))
@@ -1598,6 +1635,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   for (const id of priestAssumptions(plan, setup.talents)) notes.add(id)
   // docs/classes/druid.md §11.8: what the Balance druid's spells, procs and mana rely on.
   for (const id of balanceAssumptions(plan)) notes.add(id)
+  // docs/classes/hunter.md#11-open-questions: what the hunter's shots, pet, talents and mana rely on.
+  for (const id of hunterAssumptions(plan, setup.talents)) notes.add(id)
 
   return { plan, sheet, assumptions: notes.toArray(), blockers }
 }
@@ -1721,6 +1760,7 @@ function applyEffect(c: Collected, e: Effect, origin: 0 | 1 | null, weapons: [We
       r.hasteMult *= 1 + (e.hastePct ?? 0) / 100
       r.flatDamage += e.flatDamage ?? 0
       r.ammoDps += e.ammoDps ?? 0
+      r.critDamagePct += e.critDamagePct ?? 0
       return
     }
   }

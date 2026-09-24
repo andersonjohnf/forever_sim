@@ -1,5 +1,6 @@
 import type { Item, PreRaidBisSlot, WeaponType } from '@/data/items/types'
-import type { GearSlot, SpecId } from '@/sim'
+import type { ClassId, GearSlot, SpecId } from '@/sim'
+import { usesSupplies } from '@/sim/equip'
 
 export const SLOT_LABEL: Record<GearSlot, string> = {
   head: 'Head',
@@ -19,6 +20,8 @@ export const SLOT_LABEL: Record<GearSlot, string> = {
   mainHand: 'Main hand',
   offHand: 'Off hand',
   ranged: 'Ranged',
+  ammo: 'Ammo',
+  quiver: 'Quiver',
 }
 
 /** Paper-doll order, grouped as the game does. */
@@ -27,6 +30,15 @@ export const SLOT_GROUPS: { label: string; slots: GearSlot[] }[] = [
   { label: 'Jewelry', slots: ['neck', 'finger1', 'finger2', 'trinket1', 'trinket2'] },
   { label: 'Weapons', slots: ['mainHand', 'offHand', 'ranged'] },
 ]
+
+/**
+ * The slot groups for a class: SLOT_GROUPS, and for a hunter its ammo and quiver after its ranged
+ * weapon (docs/mechanics/ranged-and-pets.md §1).
+ */
+export function slotGroups(classId: ClassId): { label: string; slots: GearSlot[] }[] {
+  if (!usesSupplies(classId)) return SLOT_GROUPS
+  return SLOT_GROUPS.map((g) => (g.label === 'Weapons' ? { ...g, slots: [...g.slots, 'ammo', 'quiver'] } : g))
+}
 
 /** Icon shown for an empty slot. */
 export const EMPTY_SLOT_ICON: Record<GearSlot, string> = {
@@ -47,6 +59,8 @@ export const EMPTY_SLOT_ICON: Record<GearSlot, string> = {
   mainHand: 'inv_sword_04',
   offHand: 'inv_shield_04',
   ranged: 'inv_weapon_bow_07',
+  ammo: 'inv_ammo_arrow_02',
+  quiver: 'inv_misc_quiver_06',
 }
 
 /** The item's BiS rank for this spec in this slot, if it's on the spec's pre-raid list. */
@@ -60,7 +74,9 @@ export function bisRank(item: Item, spec: SpecId, slot: GearSlot): number | null
           ? ['mainHand', 'twoHand']
           : slot === 'ranged'
             ? ['ranged', 'relic']
-            : [slot]
+            : slot === 'ammo' || slot === 'quiver'
+              ? []
+              : [slot]
   const entry = item.preRaidBis.find((p) => p.spec === spec && bisSlots.includes(p.slot))
   return entry?.rank ?? null
 }
@@ -99,6 +115,8 @@ export function itemKind(item: Item): string | null {
   if (item.slot === 'shield') return 'Shield'
   if (item.slot === 'heldInOffHand') return 'Held in off hand'
   if (item.slot === 'relic') return item.itemSubclass
+  // Arrows and bullets, quivers and ammo pouches: the client's subclass ("Arrow", "Ammo Pouch").
+  if (item.slot === 'ammo' || item.slot === 'quiver') return item.itemSubclass
   return null
 }
 

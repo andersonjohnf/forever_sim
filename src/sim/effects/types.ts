@@ -62,6 +62,8 @@ export type FlatStat =
   /** Ranged attack power, flat, and per point of Agility (docs/mechanics/ranged-and-pets.md §3). */
   | 'rap'
   | 'rapPerAgi'
+  /** Ranged attack power per point of Intellect (the hunter's Careful Aim, docs/classes/hunter.md#4-talents). */
+  | 'rapPerInt'
 
 /** Stats that % modifiers multiply (character-stats.md#derived-stat-pipeline, step 3 and 4). */
 /** `mana`: maximum mana (Fel Vitality, a warlock's Expansive Mind; docs/classes/warlock.md#4-talents). */
@@ -208,9 +210,10 @@ export type Effect = (
   /**
    * The ranged weapon's (docs/mechanics/ranged-and-pets.md §2–§4; plan/ranged.ts): hit % and crit %
    * for its attacks only, damage % (multiplicative), ranged attack speed % (multiplicative: a quiver or
-   * ammo pouch), flat damage per shot (a scope) and ammo's damage per second.
+   * ammo pouch), flat damage per shot (a scope), ammo's damage per second, and the % its crit damage
+   * bonus rises by (the hunter's Mortal Shots on Auto Shot, docs/classes/hunter.md#4-talents).
    */
-  | { kind: 'ranged'; hit?: number; crit?: number; damagePct?: number; hastePct?: number; flatDamage?: number; ammoDps?: number }
+  | { kind: 'ranged'; hit?: number; crit?: number; damagePct?: number; hastePct?: number; flatDamage?: number; ammoDps?: number; critDamagePct?: number }
 ) & { when?: Condition }
 
 /**

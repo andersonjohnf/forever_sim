@@ -8,6 +8,7 @@ import type { BuffDefinition, BuffPreset, SpecId } from '../types'
 import { FOREVER } from '../rules/profiles'
 import { type Audience, BUFFS, BUFFS_BY_ID, type BuffSpec } from './buffs'
 import { catalogueEffects } from './types'
+import { PET_BUFFS } from '../plan/pet'
 
 /**
  * Whether the entry does anything for the spec: for its class (`forClasses`; absent, every class), or
@@ -51,6 +52,17 @@ export function buffUnusedReason(buff: BuffSpec, spec: SpecId): string | undefin
   // enchant, so a stone or oil has no weapon to go on. An Elemental shaman uses no imbue.
   if (SPEC_META[spec].classId === 'shaman' && !SPEC_META[spec].caster && catalogueEffects(buff, FOREVER).some((e) => e.kind === 'tempEnchant'))
     return 'Not used: your weapon imbue is your main hand’s temporary enchant'
+  // docs/classes/hunter.md#74-enchants-and-consumables: a ranged spec's melee weapons never swing, and
+  // its shots read ranged attack power, not melee's: a stone, an oil or Windfury Totem has no attack to
+  // go on, and melee attack power and Strength add nothing (Battle Shout still reaches its pet).
+  if (SPEC_META[spec].ranged) {
+    const effects = catalogueEffects(buff, FOREVER)
+    if (effects.length > 0 && effects.every((e) => e.kind === 'tempEnchant' || (e.kind === 'proc' && e.proc.trigger === 'meleeLanded')))
+      return 'Not used: you shoot your ranged weapon, and your melee weapons don’t swing'
+    const meleeOnly = (e: (typeof effects)[number]) => (e.kind === 'stat' && (e.stat === 'ap' || e.stat === 'str')) || (e.kind === 'mult' && (e.stat === 'ap' || e.stat === 'str'))
+    if (!PET_BUFFS.has(buff.id) && effects.length > 0 && effects.every(meleeOnly)) return 'Not used: it raises melee attack power, which your shots don’t use'
+    return undefined
+  }
   const form = FORM_NAME[spec]
   if (!form) return undefined
   const effects = catalogueEffects(buff, FOREVER)

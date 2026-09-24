@@ -343,6 +343,11 @@ A spec is data plus small ability modules, never its own loop.
     its shares of your stats as they change. Its damage counts toward your DPS, not your threat, on
     rows that name it (`SourcePlan.pet`, `AbilityResult.pet`). Conditions `petPowerAtLeast` and
     `petPowerAtMost` (64, 65).
+- **The hunter's pieces** ([hunter.md §9](classes/hunter.md#9-implementation-notes)), each optional
+  and absent for every other spec: ranged attack power from Intellect (`rapPerInt`, Careful Aim); the
+  `ranged` effect's `critDamagePct` (Mortal Shots on Auto Shot); the character sheet's `ranged` block;
+  and the **ammo** and **quiver** gear slots, a quiver's `rangedAttackSpeed` and the ammo's damage
+  per second when the weapon fires it. Its specs are `SpecMeta.ranged`, its pet a `ClassRotation.pet`.
 - **Hot-loop discipline:** one monomorphic `Sim` class over typed arrays, no allocation per event,
   per-fight state reset rather than reallocated, and a plan flattened once in the constructor.
   The default Fury warrior (with its M2.2c rotation: the pre-pull, Battle Shout's upkeep and the

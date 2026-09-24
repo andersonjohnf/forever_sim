@@ -20,6 +20,8 @@ const MAGE = 'docs/classes/mage.md'
 const LOCK = 'docs/classes/warlock.md'
 const SPELLS = 'docs/mechanics/spells.md'
 const PRIEST = 'docs/classes/priest.md'
+const HUNTER = 'docs/classes/hunter.md'
+const RANGED = 'docs/mechanics/ranged-and-pets.md'
 
 const REGISTRY = {
   whiteSwingsOnly: {
@@ -879,6 +881,87 @@ const REGISTRY = {
   manaRegenBalance: {
     text: 'Mana regenerates every 2 s, from a random moment in the first 2 s of the fight: 15 + Spirit / 5 when you’ve spent none for 5 s, five times that and all of it while casting in Innervate’s 20 s, and your mp5 always. You’re in Moonkin Form at the pull.',
     docRef: `${DRUID}#114-mana`,
+  },
+  // --- The hunter's (docs/classes/hunter.md §11; docs/mechanics/ranged-and-pets.md open questions) ---
+  hunterNoMelee: {
+    text: 'You stand at range and shoot: no melee swings or melee weaving (Raptor Strike) are simulated, though your melee weapons’ stats count.',
+    docRef: `${HUNTER}#9-implementation-notes`,
+  },
+  manaRegenHunter: {
+    text: 'Mana regenerates every 2 s, from a random moment in the first 2 s of the fight: 15 + Spirit / 5 when you’ve spent none for 5 s, Bestial Discipline’s share of it while casting, and your mp5 always, as in Classic Era; untested in Forever.',
+    docRef: `${HUNTER}#5-mana`,
+  },
+  autoShotWindup: {
+    text: 'Auto Shot aims for its last 0.5 s, not shortened by haste, and a cast or channel still going then holds that shot back until it ends, as in Classic Era. Forever testers report shots firing through Aimed Shot; untested.',
+    docRef: `${RANGED}#oq-4-auto-shot-and-casts`,
+  },
+  ammoDamage: {
+    text: 'Your ammo adds its damage per second from the client’s table (17.715 for Thorium arrows or shells) × your weapon’s speed to every shot, normalized shots too. Untested in Forever.',
+    docRef: `${RANGED}#oq-3-ammo-damage`,
+  },
+  rangedTableRolls: {
+    text: 'A ranged attack rolls to hit (and to be blocked, from the front) and then separately to crit, as a Classic Era hunter wiki says; one roll would give about 8% fewer crits. Untested.',
+    docRef: `${RANGED}#oq-2-two-rolls-or-one`,
+  },
+  shotCastHaste: {
+    text: 'Ranged attack speed (your quiver, Rapid Fire, Quick Shots) shortens Aimed Shot’s, Multi-Shot’s and Sniper Shot’s casts, as Classic Era players measured for Aimed Shot. Untested in Forever.',
+    docRef: `${RANGED}#4-auto-shot-the-timer-the-wind-up-and-clipping`,
+  },
+  serpentStingCrits: {
+    text: 'Serpent Sting’s ticks can crit, as the Forever client’s flag says, at your spell crit when it lands, for 1.5 times the damage (Mortal Shots raises it). Untested in combat.',
+    docRef: `${HUNTER}#34-serpent-sting-r9-25295`,
+  },
+  arcaneShotResists: {
+    text: 'Arcane Shot and Serpent Sting lose the boss’s average resist of their school (6% at level 63), as spells do; untested for shots.',
+    docRef: 'docs/mechanics/spells.md#3-resistances',
+  },
+  huntersMarkLands: {
+    text: 'Hunter’s Mark always lands, and its +71 ranged attack power counts for your shots and Auto Shots only, not your pet’s bites.',
+    docRef: `${HUNTER}#36-hunters-mark-r4-14325`,
+  },
+  petBaseStats: {
+    text: 'Your cat’s base numbers aren’t in the client: 45.8 damage a swing every 2.0 s, 252 attack power and 5% crit, from a Classic Era player’s report, Happy (×1.25) and a cat (×1.10). Not evidence; untested in Forever.',
+    docRef: `${RANGED}#oq-6-pet-stats-and-inheritance`,
+  },
+  petInheritance: {
+    text: 'Your pet gets none of your stats, as in Classic Era. Forever ships pet scaling auras whose amounts are server-side; testers report 10% of your attack power and all of your crit. Untested.',
+    docRef: `${RANGED}#oq-6-pet-stats-and-inheritance`,
+  },
+  focusRegen: {
+    text: 'Your pet gains 5 Focus a second (6 with Bestial Discipline), as Classic Era players measured; Forever testers report 10. Untested.',
+    docRef: `${RANGED}#oq-5-focus-regeneration`,
+  },
+  petTable: {
+    text: 'Your pet attacks from behind with a player’s attack table at its level and skill: it misses, is dodged and glances against a level-63 boss as a player would. Untested.',
+    docRef: `${RANGED}#oq-7-the-pets-attack-table`,
+  },
+  petBuffs: {
+    text: 'Of the Buffs tab’s entries, only Battle Shout reaches your pet, as Classic Era’s notes say; Forever testers report pets can’t be buffed at all. Untested.',
+    docRef: `${RANGED}#oq-8-buffs-on-pets`,
+  },
+  carefulAim: {
+    text: 'Careful Aim adds 100% of your Intellect to both your attack power and your ranged attack power: the Forever client has two new auras for it, and its text says “Attack Power”. Untested.',
+    docRef: `${HUNTER}#4-talents`,
+  },
+  rangedWeaponSpecialization: {
+    text: 'Ranged Weapon Specialization’s +5% raises your ranged weapon’s damage: Auto Shot and the physical shots, not Arcane Shot or Serpent Sting. Untested.',
+    docRef: `${HUNTER}#4-talents`,
+  },
+  focusedFire: {
+    text: 'Focused Fire’s +2% is a server script in the Forever client; the sim gives it to all your damage and your pet’s while the pet is out, as its text says. Untested.',
+    docRef: `${HUNTER}#4-talents`,
+  },
+  loneWolf: {
+    text: 'With Lone Wolf you fight without a pet, for its +20% to all your damage.',
+    docRef: `${HUNTER}#6-pets`,
+  },
+  ammoNotFired: {
+    text: 'Your ammo, {detail}, isn’t what your ranged weapon fires (arrows for bows and crossbows, bullets for guns), so it adds no damage.',
+    docRef: `${RANGED}#1-ranged-weapons-ammo-and-quivers`,
+  },
+  summonHawkNotSimulated: {
+    text: 'Summon Hawk isn’t simulated: its hawk’s attacks after the first dive are a creature’s the client doesn’t describe.',
+    docRef: `${HUNTER}#11-open-questions`,
   },
 } satisfies Record<string, { text: string; docRef: string }>
 

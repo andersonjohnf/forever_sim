@@ -43,6 +43,8 @@ export class StatBlock {
    */
   baseRap = 0
   rapPerAgi = 0
+  /** Per point of Intellect (the hunter's Careful Aim, docs/classes/hunter.md#4-talents). */
+  rapPerInt = 0
   rap = 0
   rapMult = 1
 
@@ -226,7 +228,7 @@ export function deriveStats(b: StatBlock, o: DeriveOptions, out: DerivedStats = 
     (b.baseAp + b.apPerStr * out.strength + b.apPerAgi * out.agility + b.apPerInt * out.intellect + b.ap) * b.apMult,
   )
   // docs/mechanics/ranged-and-pets.md §3: ranged attack power, floored like melee's.
-  out.rangedAttackPower = floorStat((b.baseRap + b.rapPerAgi * out.agility + b.rap) * b.rapMult)
+  out.rangedAttackPower = floorStat((b.baseRap + b.rapPerAgi * out.agility + b.rapPerInt * out.intellect + b.rap) * b.rapMult)
   const ratingCrit = b.critRating / r.crit
   out.auraCrit = b.crit + ratingCrit
   out.crit = b.baseCrit + out.agility * b.critPerAgi + out.auraCrit

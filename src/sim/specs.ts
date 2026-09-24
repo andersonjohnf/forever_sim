@@ -211,6 +211,35 @@ export const SPEC_META: Record<SpecId, SpecMeta> = {
     icon: 'spell_shadow_shadowwordpain',
     caster: true,
   },
+  // docs/classes/hunter.md: the three hunter specs, on the ranged and pet core (H1), landed under D27
+  // (H2). Each shoots its ranged weapon: Auto Shot and the shots (`ranged`).
+  'hunter-marksmanship': {
+    id: 'hunter-marksmanship',
+    classId: 'hunter',
+    className: 'Hunter',
+    name: 'Marksmanship',
+    role: 'dps',
+    icon: 'ability_marksmanship',
+    ranged: true,
+  },
+  'hunter-beast-mastery': {
+    id: 'hunter-beast-mastery',
+    classId: 'hunter',
+    className: 'Hunter',
+    name: 'Beast Mastery',
+    role: 'dps',
+    icon: 'ability_hunter_beasttaming',
+    ranged: true,
+  },
+  'hunter-survival': {
+    id: 'hunter-survival',
+    classId: 'hunter',
+    className: 'Hunter',
+    name: 'Survival',
+    role: 'dps',
+    icon: 'ability_hunter_swiftstrike',
+    ranged: true,
+  },
 }
 
 export const SPEC_IDS = Object.keys(SPEC_META) as SpecId[]
@@ -225,4 +254,5 @@ export const CLASS_COLOR: Record<ClassId, string> = {
   mage: '#3FC7EB',
   warlock: '#8788EE',
   priest: '#FFFFFF',
+  hunter: '#AAD372',
 }

@@ -31,6 +31,9 @@ const SUMMARY_STATS: [keyof Stats, string, '%' | ''][] = [
   ['intellect', 'Int', ''],
   ['spirit', 'Spi', ''],
   ['attackPower', 'AP', ''],
+  // Ranged attack power beyond the melee-and-ranged AP line, and a quiver's ranged attack speed (docs/mechanics/ranged-and-pets.md §1).
+  ['rangedAttackPower', 'Ranged AP', ''],
+  ['rangedAttackSpeed', 'Ranged speed', '%'],
   ['feralAttackPower', 'Feral AP', ''],
   ['hitRating', 'Hit', ''],
   ['hit', 'Hit', '%'],
@@ -82,6 +85,8 @@ export function summarizeItem(item: Item): string {
   if (item.weapon?.dps && item.weapon.speed) {
     parts.push(`${item.weapon.dps.toFixed(1)} DPS · ${item.weapon.speed.toFixed(2)} s`)
   }
+  // An arrow's or bullet's damage per second, which each shot adds × the weapon's speed (docs/data/items.md#ammo-and-quivers).
+  if (item.ammo) parts.push(`+${item.ammo.dps.toFixed(1)} DPS`)
   const stats = item.stats as Record<string, number | undefined>
   for (const [key, label, unit] of SUMMARY_STATS) {
     const value = stats[key]

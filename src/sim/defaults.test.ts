@@ -18,7 +18,7 @@ const FITS: Record<GearSlot, string[]> = {
   head: ['head'], neck: ['neck'], shoulder: ['shoulder'], back: ['back'], chest: ['chest'],
   wrist: ['wrist'], hands: ['hands'], waist: ['waist'], legs: ['legs'], feet: ['feet'],
   finger1: ['finger'], finger2: ['finger'], trinket1: ['trinket'], trinket2: ['trinket'],
-  mainHand: ['mainHand'], offHand: ['offHand'], ranged: ['ranged'],
+  mainHand: ['mainHand'], offHand: ['offHand'], ranged: ['ranged'], ammo: ['ammo'], quiver: ['quiver'],
 }
 
 describe.each(SPEC_IDS)('default setup for %s', (spec) => {

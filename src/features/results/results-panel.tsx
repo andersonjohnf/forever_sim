@@ -9,7 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { WowIcon } from '@/components/wow-icon'
 import { CHOICE_ITEM } from '@/lib/choice'
 import { formatInt, formatOne, formatPct, formatSeconds } from '@/lib/format'
-import { casterSheetRows } from './caster-sheet'
+import { casterSheetRows, rangedSheetRows } from './caster-sheet'
 import { cn } from '@/lib/utils'
 import type { SimConfig, SimResult, Summary } from '@/sim'
 import { AssumptionList } from './assumption-list'
@@ -429,7 +429,8 @@ function Breakdown({ result }: { result: SimResult }) {
               <WowIcon icon={a.icon} size="sm" className={DIM_ICON} />
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <div className="flex items-baseline justify-between gap-2 text-sm">
-                  <span className="truncate">{a.name}</span>
+                  {/* docs/mechanics/ranged-and-pets.md §10: a pet's rows name it, "Auto attack · Cat". */}
+                  <span className="truncate">{a.pet ? `${a.name} · ${a.pet}` : a.name}</span>
                   <span className="shrink-0 tabular-nums">
                     {formatOne(perSecond(value(a)))} <span className="text-muted-foreground">· {formatPct(share)}</span>
                   </span>
@@ -570,7 +571,8 @@ function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: S
   const dualWield = s.weaponSkill.offHand !== null && s.weaponSkill.offHand > 0
   // A tank's sheet has the boss's table against it (docs/ux.md#results).
   const bossTable = s.bossTable ?? null
-  const defensive = bossTable !== null || s.defense > 300 || s.blockValue > 0
+  // A ranged spec's gear defense (Dal'Rend's Tribal Guardian's +7) doesn't make it a tank's sheet (docs/classes/hunter.md#9-implementation-notes).
+  const defensive = bossTable !== null || (!s.ranged && (s.defense > 300 || s.blockValue > 0))
   // Decision D24: the unmeasured base values in the numbers shown, the ones the assumptions name
   // (a tank's avoidance placeholders only with their rows).
   const placeholders = (s.placeholders ?? []).filter((p) => defensive || !AVOIDANCE_BASES.has(p))
@@ -580,7 +582,11 @@ function CharacterSheet({ result, runConfig }: { result: SimResult; runConfig: S
   const weaponSkill = dualWield ? `${s.weaponSkill.mainHand} main hand / ${s.weaponSkill.offHand} off hand` : String(s.weaponSkill.mainHand)
   // A caster's sheet (docs/mechanics/spells.md §12): spell damage by school, crit, hit, casting speed, mana.
   const casterRows = casterSheetRows(s)
-  const rows: [string, string][] = casterRows
+  // A ranged spec's sheet (docs/classes/hunter.md#9-implementation-notes): its ranged weapon's numbers, then its mana.
+  const rangedRows = rangedSheetRows(s)
+  const rows: [string, string][] = rangedRows
+    ? rangedRows
+    : casterRows
     ? casterRows
     : spell
     ? [

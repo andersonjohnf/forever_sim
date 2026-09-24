@@ -11,10 +11,11 @@ import rogueTalents from '@/data/talents/rogue.json'
 import mageTalents from '@/data/talents/mage.json'
 import warlockTalents from '@/data/talents/warlock.json'
 import priestTalents from '@/data/talents/priest.json'
+import hunterTalents from '@/data/talents/hunter.json'
 import type { TalentData } from '@/data/talents/types'
 import warriorTalents from '@/data/talents/warrior.json'
 import { presetBuffIds } from './effects/presets'
-import { fitsFaction, uniqueConflicts } from './equip'
+import { fitsFaction, uniqueConflicts, usesSupplies } from './equip'
 import { SPEC_META } from './specs'
 import type { ClassId, EquippedItem, GearSlot, SimConfig, SpecId } from './types'
 
@@ -29,6 +30,7 @@ export const TALENT_DATA: Record<ClassId, TalentData> = {
   mage: mageTalents as unknown as TalentData,
   warlock: warlockTalents as unknown as TalentData,
   priest: priestTalents as unknown as TalentData,
+  hunter: hunterTalents as unknown as TalentData,
 }
 
 /**
@@ -58,7 +60,15 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'warlock-affliction': '2555002003520105-0050203001-005',
   // docs/classes/priest.md#71-talents: Shadow 20/0/31, Shadowform with Twin Disciplines, Inner Focus and Meditation
   'priest-shadow': '025300031303--500320501201312051',
+  // docs/classes/hunter.md#71-talents: Marksmanship 10/41/0 with Lone Wolf, Beast Mastery 31/20/0 with
+  // Bestial Wrath, Survival 0/21/30 with Lightning Reflexes and Surefooted
+  'hunter-marksmanship': '55-0053552511503051-',
+  'hunter-beast-mastery': '5023001505011251-00505505-',
+  'hunter-survival': '-00505515-55005003124000005',
 }
+
+/** docs/classes/hunter.md#71-talents: Marksmanship 10/41/0 without Lone Wolf, fighting with its cat. */
+const HUNTER_MARKSMANSHIP_PET = '5023-1053552501503051-'
 
 export interface TalentPreset {
   name: string
@@ -127,6 +137,13 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
     // docs/classes/priest.md#71-talents: Discipline 20 / Holy 0 / Shadow 31
     { name: 'Shadow (default)', code: DEFAULT_TALENTS['priest-shadow'] },
   ],
+  hunter: [
+    // docs/classes/hunter.md#71-talents
+    { name: 'Marksmanship (default)', code: DEFAULT_TALENTS['hunter-marksmanship'] },
+    { name: 'Marksmanship with a pet', code: HUNTER_MARKSMANSHIP_PET },
+    { name: 'Beast Mastery (default)', code: DEFAULT_TALENTS['hunter-beast-mastery'] },
+    { name: 'Survival (default)', code: DEFAULT_TALENTS['hunter-survival'] },
+  ],
 }
 
 /** The documented talent presets of a class (TALENT_PRESETS). */
@@ -148,6 +165,8 @@ const DEFAULT_RACE: Record<ClassId, string> = {
   warlock: 'horde-orc',
   // docs/classes/priest.md#72-race-and-weapons: Troll, for Berserking's casting speed
   priest: 'horde-troll',
+  // docs/classes/hunter.md#72-race: Orc, for Forever's Blood Fury (+10% ranged attack power for 15 s)
+  hunter: 'horde-orc',
 }
 
 /** A 40-player raid with every class present (buffs follow composition, not faction). */
@@ -249,7 +268,25 @@ const WARLOCK_ENCHANTS: Partial<Record<GearSlot, string>> = {
   hands: 'gloveMinorHaste',
   mainHand: 'weaponSpellPower',
 }
+/**
+ * The hunter's enchants (buffs doc §6.4; docs/classes/hunter.md#74-enchants-and-consumables): the
+ * rogue's Agility column without weapon enchants, whose melee weapons never swing. The catalogue has
+ * no scope yet.
+ */
+const HUNTER_ENCHANTS: Partial<Record<GearSlot, string>> = {
+  head: 'arcanumVoracityAgility',
+  legs: 'arcanumVoracityAgility',
+  back: 'cloakAgility',
+  chest: 'chestGreaterStats',
+  wrist: 'bracerSuperiorAgility',
+  hands: 'gloveGreaterAgility',
+  feet: 'bootsGreaterAgility',
+  neck: 'neckAgility',
+}
 const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>>> = {
+  'hunter-marksmanship': HUNTER_ENCHANTS,
+  'hunter-beast-mastery': HUNTER_ENCHANTS,
+  'hunter-survival': HUNTER_ENCHANTS,
   'warlock-destruction': WARLOCK_ENCHANTS,
   'warlock-affliction': WARLOCK_ENCHANTS,
   // docs/classes/priest.md#74-enchants-and-consumables: Greater Stats on the chest and Forever's Minor
@@ -302,6 +339,13 @@ const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>
 const TWO_HAND_SPECS: ReadonlySet<SpecId> = new Set(['druid-feral-cat', 'druid-feral-bear', 'shaman-enhancement'])
 
 /**
+ * The hunter's default ammo and quiver (docs/classes/hunter.md#73-gear): Thorium Headed Arrows or
+ * Thorium Shells (17.715 damage per second, crafted), and the 15% Harpy Hide Quiver or Gnoll Skin
+ * Bandolier (required level 55), by what the ranged weapon fires.
+ */
+export const DEFAULT_SUPPLIES = { arrows: 18042, bullets: 15997, quiver: 19319, pouch: 19320 } as const
+
+/**
  * The spec's pre-raid BiS gear for a character of this race: each slot takes its best-ranked item
  * that the race's faction can wear and that breaks no Unique or Unique-Equipped rule with the
  * slots filled before it (docs/data/items.md#equipping-rules). So faction twins listed at the same
@@ -337,6 +381,18 @@ export function defaultGear(spec: SpecId, race = DEFAULT_RACE[SPEC_META[spec].cl
   }
   // Paladins and druids equip a relic in the ranged slot.
   if (!gear.ranged) put('ranged', bisFor(spec, 'relic'))
+  // docs/classes/hunter.md#73-gear: the ammo the ranged weapon fires and the quiver or ammo pouch that
+  // holds it, the best the pool has outside raids (the guide lists neither).
+  if (usesSupplies(SPEC_META[spec].classId)) {
+    const gun = worn.ranged?.weaponType === 'gun'
+    for (const [slot, id] of [
+      ['ammo', gun ? DEFAULT_SUPPLIES.bullets : DEFAULT_SUPPLIES.arrows],
+      ['quiver', gun ? DEFAULT_SUPPLIES.pouch : DEFAULT_SUPPLIES.quiver],
+    ] as const) {
+      const item = items.find((i) => i.id === id)
+      if (item) put(slot, [item])
+    }
+  }
   for (const [slot, enchantId] of Object.entries(DEFAULT_ENCHANTS[spec] ?? {}) as [GearSlot, string | undefined][]) {
     const equipped = gear[slot]
     if (equipped && enchantId) gear[slot] = { ...equipped, enchantId }

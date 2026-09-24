@@ -88,6 +88,7 @@ const ITEM = {
   flavor: true,
   classic: true,
   classicShieldBlockValue: false,
+  ammo: false,
   notes: true,
 } satisfies Shape<Item>
 const WEAPON = { min: true, max: true, speed: true, dps: true, school: true, skill: true, extraDamage: false } satisfies Shape<Weapon>

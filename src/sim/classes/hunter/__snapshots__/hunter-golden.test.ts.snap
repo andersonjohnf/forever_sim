@@ -1,0 +1,309 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`golden runs (fixed config and seed) > keeps the default hunter-beast-mastery’s result unchanged 1`] = `
+{
+  "abilities": [
+    [
+      "multiShot",
+      null,
+      9356403.881364066,
+      18025,
+      14047,
+      3594,
+      384,
+    ],
+    [
+      "arcaneShot",
+      null,
+      7902727.786800778,
+      32069,
+      24923,
+      6530,
+      616,
+    ],
+    [
+      "serpentSting",
+      null,
+      4579438.777200464,
+      8444,
+      34788,
+      5494,
+      165,
+    ],
+    [
+      "autoShot",
+      null,
+      44876888.51111741,
+      83543,
+      64862,
+      17084,
+      1597,
+    ],
+    [
+      "cat.melee",
+      "Cat",
+      16090412.549821366,
+      107745,
+      33458,
+      15555,
+      8563,
+    ],
+    [
+      "cat.bite",
+      "Cat",
+      2739392.468271666,
+      18476,
+      13079,
+      2733,
+      1527,
+    ],
+    [
+      "cat.claw",
+      "Cat",
+      1711136.193109703,
+      19698,
+      14003,
+      2843,
+      1615,
+    ],
+  ],
+  "cooldowns": [
+    [
+      "bloodFury",
+      2,
+      16.69539926329436,
+    ],
+    [
+      "rapidFire",
+      1,
+      8.34769963164718,
+    ],
+    [
+      "bestialWrath",
+      2,
+      19.84486056230706,
+    ],
+    [
+      "majorManaPotion",
+      2,
+      null,
+    ],
+    [
+      "huntersMark",
+      2,
+      99.66458720274719,
+    ],
+    [
+      "quickShots",
+      null,
+      40.8310236268727,
+    ],
+    [
+      "frenzy",
+      null,
+      61.14740344636004,
+    ],
+  ],
+  "dps": {
+    "ci95": 1.0041530948470438,
+    "mean": 485.61021347692486,
+    "stdev": 16.201373720491716,
+  },
+  "durationSec": 179.690222,
+  "mana": {
+    "max": 3600,
+    "regeneratedPerFight": 4600.8238,
+    "restored": [
+      {
+        "id": "majorManaPotion",
+        "name": "Major Mana Potion",
+        "perFight": 3604.3448,
+      },
+    ],
+    "restoredPerFight": 3604.3448,
+    "spentPerFight": 11244.312,
+  },
+}
+`;
+
+exports[`golden runs (fixed config and seed) > keeps the default hunter-marksmanship’s result unchanged 1`] = `
+{
+  "abilities": [
+    [
+      "aimedShot",
+      null,
+      20594601.448829025,
+      20117,
+      15679,
+      4038,
+      400,
+    ],
+    [
+      "serpentSting",
+      null,
+      9448581.320640426,
+      12031,
+      49544,
+      8086,
+      258,
+    ],
+    [
+      "autoShot",
+      null,
+      60085271.697618484,
+      84195,
+      65351,
+      17255,
+      1589,
+    ],
+  ],
+  "cooldowns": [
+    [
+      "bloodFury",
+      2,
+      16.69539926329436,
+    ],
+    [
+      "rapidFire",
+      1.482,
+      10.682511149660664,
+    ],
+    [
+      "majorManaPotion",
+      1.051,
+      null,
+    ],
+    [
+      "huntersMark",
+      2,
+      99.92594755656766,
+    ],
+    [
+      "quickShots",
+      null,
+      40.831283518587895,
+    ],
+  ],
+  "dps": {
+    "ci95": 1.469407435435413,
+    "mean": 501.47060558076134,
+    "stdev": 23.707957612563753,
+  },
+  "durationSec": 179.690222,
+  "mana": {
+    "max": 3600,
+    "regeneratedPerFight": 3481.3779,
+    "restored": [
+      {
+        "id": "majorManaPotion",
+        "name": "Major Mana Potion",
+        "perFight": 1892.9549,
+      },
+    ],
+    "restoredPerFight": 1892.9549,
+    "spentPerFight": 8109.543,
+  },
+}
+`;
+
+exports[`golden runs (fixed config and seed) > keeps the default hunter-survival’s result unchanged 1`] = `
+{
+  "abilities": [
+    [
+      "aimedShot",
+      null,
+      17010108.87056125,
+      23219,
+      18225,
+      4994,
+      0,
+    ],
+    [
+      "serpentSting",
+      null,
+      6298588.440001085,
+      11503,
+      48444,
+      7948,
+      0,
+    ],
+    [
+      "autoShot",
+      null,
+      40389708.5140719,
+      72034,
+      56468,
+      15566,
+      0,
+    ],
+    [
+      "cat.melee",
+      "Cat",
+      9308493.011112975,
+      90354,
+      37122,
+      4058,
+      7193,
+    ],
+    [
+      "cat.bite",
+      "Cat",
+      1837749.718235843,
+      17934,
+      14554,
+      780,
+      1478,
+    ],
+    [
+      "cat.claw",
+      "Cat",
+      778979.0344616629,
+      13462,
+      10848,
+      606,
+      1112,
+    ],
+  ],
+  "cooldowns": [
+    [
+      "bloodFury",
+      2,
+      16.69539926329436,
+    ],
+    [
+      "rapidFire",
+      1,
+      8.34769963164718,
+    ],
+    [
+      "majorManaPotion",
+      1.273,
+      null,
+    ],
+    [
+      "huntersMark",
+      2,
+      100,
+    ],
+  ],
+  "dps": {
+    "ci95": 0.7428167145093405,
+    "mean": 420.9503524940061,
+    "stdev": 11.984876867233863,
+  },
+  "durationSec": 179.690222,
+  "mana": {
+    "max": 3600,
+    "regeneratedPerFight": 3704.0882,
+    "restored": [
+      {
+        "id": "majorManaPotion",
+        "name": "Major Mana Potion",
+        "perFight": 2291.5412,
+      },
+    ],
+    "restoredPerFight": 2291.5412,
+    "spentPerFight": 8765.233,
+  },
+}
+`;

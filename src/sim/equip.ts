@@ -18,6 +18,11 @@ interface Proficiency {
   ranged: WeaponType[]
   relic: string | null
   dualWield: boolean
+  /**
+   * Arrows or bullets in the ammo slot and a quiver or ammo pouch in the quiver slot: the hunter's
+   * (docs/mechanics/ranged-and-pets.md §1). Absent: neither slot.
+   */
+  supplies?: boolean
 }
 
 export const PROFICIENCY: Record<ClassId, Proficiency> = {
@@ -104,9 +109,22 @@ export const PROFICIENCY: Record<ClassId, Proficiency> = {
     relic: null,
     dualWield: false,
   },
+  // docs/classes/hunter.md#72-race: cloth, leather and mail (mail from level 40), one-handed axes and
+  // swords, daggers and fist weapons, two-handed axes and swords, polearms and staves, bows, guns,
+  // crossbows and thrown weapons, dual wield, no shields [C]; ammo and a quiver.
+  hunter: {
+    armor: ['cloth', 'leather', 'mail'],
+    shield: false,
+    oneHand: ['axe', 'sword', 'dagger', 'fist'],
+    twoHand: ['axe', 'sword', 'polearm', 'staff'],
+    ranged: ['bow', 'gun', 'crossbow', 'thrown'],
+    relic: null,
+    dualWield: true,
+    supplies: true,
+  },
 }
 
-const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', paladin: 'Paladin', druid: 'Druid', shaman: 'Shaman', rogue: 'Rogue', mage: 'Mage', warlock: 'Warlock', priest: 'Priest' }
+const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', paladin: 'Paladin', druid: 'Druid', shaman: 'Shaman', rogue: 'Rogue', mage: 'Mage', warlock: 'Warlock', priest: 'Priest', hunter: 'Hunter' }
 
 /** The item gear slots each paper-doll slot accepts. */
 const SLOT_EQUIPS: Record<GearSlot, Item['equipSlots'][number]> = {
@@ -127,11 +145,16 @@ const SLOT_EQUIPS: Record<GearSlot, Item['equipSlots'][number]> = {
   mainHand: 'mainHand',
   offHand: 'offHand',
   ranged: 'ranged',
+  ammo: 'ammo',
+  quiver: 'quiver',
 }
 
 export function isTwoHand(item: Item): boolean {
   return item.slot === 'twoHand'
 }
+
+/** Whether the class fills the ammo and quiver slots (the hunter; docs/mechanics/ranged-and-pets.md §1). */
+export const usesSupplies = (classId: ClassId) => PROFICIENCY[classId].supplies === true
 
 /** Can this class use the item at all (armor type, weapon type, relic, class restriction)? */
 export function canUse(classId: ClassId, item: Item): boolean {
@@ -144,6 +167,8 @@ export function canUse(classId: ClassId, item: Item): boolean {
     if (item.slot === 'back' || !item.armorType) return true
     return p.armor.includes(item.armorType)
   }
+  // docs/mechanics/ranged-and-pets.md §1: arrows, bullets, quivers and ammo pouches, the hunter's.
+  if (item.itemClass === 'Projectile' || item.itemClass === 'Quiver') return p.supplies === true
   if (item.itemClass === 'Weapon' && item.weaponType) {
     if (item.slot === 'ranged' || item.slot === 'thrown') return p.ranged.includes(item.weaponType)
     return (isTwoHand(item) ? p.twoHand : p.oneHand).includes(item.weaponType)

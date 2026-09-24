@@ -26,6 +26,11 @@ const SHAMAN_TOO = PALADIN_ONLY.filter((id) => id !== 'elixirOfHolyPower')
 const CASTERS_TOO = SHAMAN_TOO
 /** And every caster spec's, whatever its class (`forCasterSpecs`): the Balance druid's (docs/classes/druid.md §11.6). */
 const CASTER_TOO = SHAMAN_TOO
+/**
+ * And the hunter's mana entries (docs/classes/hunter.md#74-enchants-and-consumables): Intellect, Spirit,
+ * mana per 5 s, potions and runes, not the spell damage ones (no hunter spell reads spell damage).
+ */
+const HUNTER_TOO = ['prayerOfSpirit', 'arcaneBrilliance', 'blessingOfWisdom', 'manaSpringTotem', 'majorManaPotion', 'demonicRune']
 
 describe('class-only catalogue entries', () => {
   it('give the caster core’s buffs and debuffs to the casters only: the mage since K2, the warlock since K3, the Shadow Priest since K4, the Elemental shaman since K5 and the Balance druid since K6, so no warrior, feral druid, paladin, Enhancement shaman or rogue gets them (docs/mechanics/spells.md §12)', () => {
@@ -59,7 +64,10 @@ describe('class-only catalogue entries', () => {
 
   it('are the paladin’s mana and spell damage entries, the shaman’s but for Holy Power, the casters’, and the Mighty Rage Potion (warriors and druids only)', () => {
     expect(BUFFS.filter((b) => b.forClasses?.includes('paladin')).map((b) => b.id).sort()).toEqual([...PALADIN_ONLY].sort())
-    for (const id of PALADIN_ONLY) expect(BUFFS.find((b) => b.id === id)!.forClasses).toEqual(SHAMAN_TOO.includes(id) ? ['paladin', 'shaman', 'mage', 'warlock', 'priest'] : ['paladin'])
+    for (const id of PALADIN_ONLY)
+      expect(BUFFS.find((b) => b.id === id)!.forClasses, id).toEqual(
+        HUNTER_TOO.includes(id) ? ['paladin', 'shaman', 'mage', 'warlock', 'priest', 'hunter'] : SHAMAN_TOO.includes(id) ? ['paladin', 'shaman', 'mage', 'warlock', 'priest'] : ['paladin'],
+      )
     expect(BUFFS.filter((b) => b.forClasses && !b.forClasses.includes('paladin')).map((b) => [b.id, b.forClasses])).toEqual([
       ['elixirOfShadowPower', ['warlock', 'priest']],
       ['instantPoisonMainHand', ['rogue']],
@@ -77,7 +85,7 @@ describe('class-only catalogue entries', () => {
       for (const preset of ['dungeon', 'raid', 'max'] as const) {
         const ids = presetBuffIds(preset, spec, FULL_RAID)
         const classId = SPEC_META[spec].classId
-        for (const id of PALADIN_ONLY) if (classId !== 'paladin' && !(classId === 'shaman' && SHAMAN_TOO.includes(id)) && !(CASTER_CLASSES.includes(classId) && CASTERS_TOO.includes(id)) && !(SPEC_META[spec].caster === true && CASTER_TOO.includes(id))) expect(ids, `${spec} ${preset}`).not.toContain(id)
+        for (const id of PALADIN_ONLY) if (classId !== 'paladin' && !(classId === 'shaman' && SHAMAN_TOO.includes(id)) && !(CASTER_CLASSES.includes(classId) && CASTERS_TOO.includes(id)) && !(SPEC_META[spec].caster === true && CASTER_TOO.includes(id)) && !(classId === 'hunter' && HUNTER_TOO.includes(id))) expect(ids, `${spec} ${preset}`).not.toContain(id)
       }
     }
     expect(forSpecClass({ forClasses: ['paladin'] }, 'warrior-fury')).toBe(false)

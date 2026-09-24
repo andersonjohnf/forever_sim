@@ -31,6 +31,13 @@ export function isRangedWeapon(item: Item | undefined): item is Item & { weapon:
 }
 
 /**
+ * Whether a ranged weapon fires this ammo (docs/mechanics/ranged-and-pets.md §1): arrows from bows and
+ * crossbows, bullets from guns [C]; thrown weapons take none.
+ */
+export const firesAmmo = (weapon: string, projectile: 'arrow' | 'bullet') =>
+  projectile === 'arrow' ? weapon === 'bow' || weapon === 'crossbow' : weapon === 'gun'
+
+/**
  * What the setup's effects add to the ranged weapon (effects/types.ts `ranged`, summed): hit % and
  * crit % for its attacks only, damage % (multiplied), ranged haste % (multiplied: quivers and ammo
  * pouches, aura 557), flat damage per shot (a scope) and the ammo's damage per second (§3).
@@ -42,9 +49,11 @@ export interface RangedMods {
   hasteMult: number
   flatDamage: number
   ammoDps: number
+  /** % added to Auto Shot's crit damage bonus (the hunter's Mortal Shots: ×2 → ×2.3; docs/classes/hunter.md#4-talents). */
+  critDamagePct: number
 }
 
-export const noRangedMods = (): RangedMods => ({ hit: 0, crit: 0, damageMult: 1, hasteMult: 1, flatDamage: 0, ammoDps: 0 })
+export const noRangedMods = (): RangedMods => ({ hit: 0, crit: 0, damageMult: 1, hasteMult: 1, flatDamage: 0, ammoDps: 0, critDamagePct: 0 })
 
 /**
  * The plan's ranged weapon (docs/mechanics/ranged-and-pets.md §2–§4), or null when the item isn't a
@@ -71,7 +80,8 @@ export function rangedPlan(item: Item | undefined, skill: number, mods: RangedMo
     windupMs: AUTO_SHOT.windupMs,
     windupHasted: AUTO_SHOT.windupHasted,
     castsHoldAutoShot: AUTO_SHOT.castsHoldAutoShot,
-    critMultiplier: AUTO_SHOT.critMultiplier,
+    // docs/classes/hunter.md#4-talents: Mortal Shots raises the crit damage bonus (×2 → ×2.3) [C].
+    critMultiplier: 1 + (AUTO_SHOT.critMultiplier - 1) * (1 + mods.critDamagePct / 100),
     firstShotMs: AUTO_SHOT.firstShotMs,
     source,
   }

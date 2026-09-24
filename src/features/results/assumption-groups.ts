@@ -8,7 +8,7 @@ export type AssumptionGroup = 'gear' | 'character' | 'class' | 'combat'
 
 export const GROUP_ORDER: readonly AssumptionGroup[] = ['gear', 'character', 'class', 'combat']
 
-const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', druid: 'Druid', paladin: 'Paladin', shaman: 'Shaman', rogue: 'Rogue', mage: 'Mage', warlock: 'Warlock', priest: 'Priest' }
+const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', druid: 'Druid', paladin: 'Paladin', shaman: 'Shaman', rogue: 'Rogue', mage: 'Mage', warlock: 'Warlock', priest: 'Priest', hunter: 'Hunter' }
 
 export function groupTitle(group: AssumptionGroup, classId: ClassId): string {
   switch (group) {
@@ -74,6 +74,27 @@ export const ASSUMPTION_GROUP = {
   omenOfClarityCat: 'class',
   noPowershift: 'class',
   energyTicks: 'class',
+  // The hunter's (docs/classes/hunter.md §11).
+  hunterNoMelee: 'class',
+  manaRegenHunter: 'class',
+  autoShotWindup: 'combat',
+  ammoDamage: 'gear',
+  rangedTableRolls: 'combat',
+  shotCastHaste: 'class',
+  serpentStingCrits: 'class',
+  arcaneShotResists: 'combat',
+  huntersMarkLands: 'class',
+  petBaseStats: 'class',
+  petInheritance: 'class',
+  focusRegen: 'class',
+  petTable: 'combat',
+  petBuffs: 'class',
+  carefulAim: 'class',
+  rangedWeaponSpecialization: 'class',
+  focusedFire: 'class',
+  loneWolf: 'class',
+  summonHawkNotSimulated: 'class',
+  ammoNotFired: 'gear',
   // The Shadow Priest's (docs/classes/priest.md §9).
   priestSpellResists: 'class',
   priestPeriodicCrits: 'class',

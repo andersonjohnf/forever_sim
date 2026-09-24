@@ -278,7 +278,7 @@ describe('the saved list', () => {
     const list = [
       stored('arcane', 'Tank', stamp(3), { version: 1, spec: 'mage-spellblade' }),
       stored('newer', 'Newer', stamp(2), { version: 2, spec: 'warrior-fury' }),
-      stored('unknown', 'Unknown', stamp(1), { version: 1, spec: 'hunter-marksmanship' }),
+      stored('unknown', 'Unknown', stamp(1), { version: 1, spec: 'warrior-gladiator' }),
       stored('fury', 'Fury', stamp(4)),
     ]
     expect(names(listSetups(list))).toEqual(['Fury'])

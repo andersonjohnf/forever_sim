@@ -191,7 +191,7 @@ export function manaResult(plan: Plan, agg: Aggregate): ManaResult | null {
   // And the warlock's (docs/classes/warlock.md §5): Life Tap, potions and Fel Energy restore it.
   // And the priest's (docs/classes/priest.md#5-mana); and the Balance druid's (docs/classes/druid.md
   // §11.4), not a feral's.
-  if ((plan.classId !== 'paladin' && plan.classId !== 'shaman' && plan.classId !== 'mage' && plan.classId !== 'warlock' && plan.classId !== 'priest' && plan.spec !== 'druid-balance') || !plan.mana || agg.fights === 0) return null
+  if ((plan.classId !== 'paladin' && plan.classId !== 'shaman' && plan.classId !== 'mage' && plan.classId !== 'warlock' && plan.classId !== 'priest' && plan.classId !== 'hunter' && plan.spec !== 'druid-balance') || !plan.mana || agg.fights === 0) return null
   const perFight = (tenths: number) => tenths / 10 / agg.fights
   // A source row's ability: the judgements return mana (Sanctified Judgement), a potion or rune restores it.
   const returns = new Set(plan.abilities.filter((a) => (a.manaReturnTenths ?? 0) > 0).map((a) => a.source))

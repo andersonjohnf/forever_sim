@@ -38,6 +38,8 @@ export const GEAR_SLOTS: GearSlot[] = [
   'mainHand',
   'offHand',
   'ranged',
+  'ammo',
+  'quiver',
 ]
 
 const CLASS_SLUGS: ClassSlug[] = ['warrior', 'hunter', 'mage', 'rogue', 'priest', 'warlock', 'paladin', 'druid', 'shaman']

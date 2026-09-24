@@ -214,7 +214,7 @@ const ROWS: Record<string, Row> = {
   flaskOfNaturalPrecision: { foreverOnly: true, rows: [S(1293742, 0), S(1293742, 1)] },
   flaskOfNaturalSwiftness: { foreverOnly: true, rows: [S(1293743, 0), S(1293743, 1)] },
   winterfallFirewater: { rows: [S(17038)] },
-  jujuMight: { rows: [S(16329)] },
+  jujuMight: { rows: [S(16329), S(16329, 1)] },
   roids: { rows: [S(10667)] },
   groundScorpokAssay: { rows: [S(10669)] },
   rumseyRum: { rows: [S(25804)] },

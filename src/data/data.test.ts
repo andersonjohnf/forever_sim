@@ -16,6 +16,7 @@ import rogueSpellJson from './spells/rogue.json'
 import mageSpellJson from './spells/mage.json'
 import warlockSpellJson from './spells/warlock.json'
 import priestSpellJson from './spells/priest.json'
+import hunterSpellJson from './spells/hunter.json'
 import type { SpellBook } from './spells/types'
 import warriorSpellJson from './spells/warrior.json'
 import druidTalentJson from './talents/druid.json'
@@ -25,6 +26,7 @@ import rogueTalentJson from './talents/rogue.json'
 import mageTalentJson from './talents/mage.json'
 import warlockTalentJson from './talents/warlock.json'
 import priestTalentJson from './talents/priest.json'
+import hunterTalentJson from './talents/hunter.json'
 import {
   decodeTalentCode,
   encodeTalentCode,
@@ -45,6 +47,7 @@ const spellBooks = {
   mage: mageSpellJson as unknown as SpellBook,
   warlock: warlockSpellJson as unknown as SpellBook,
   priest: priestSpellJson as unknown as SpellBook,
+  hunter: hunterSpellJson as unknown as SpellBook,
 }
 const talentData = {
   warrior: warriorTalentJson as unknown as TalentData,
@@ -55,6 +58,7 @@ const talentData = {
   mage: mageTalentJson as unknown as TalentData,
   warlock: warlockTalentJson as unknown as TalentData,
   priest: priestTalentJson as unknown as TalentData,
+  hunter: hunterTalentJson as unknown as TalentData,
 }
 const races = raceJson as unknown as RaceData
 const items = itemJson as unknown as ItemData
@@ -81,7 +85,7 @@ describe.each(Object.entries(allDatasets))('%s', (_name, data) => {
 // (a profession-like category), so its book has none (docs/classes/rogue.md#1-wow-forever-changes).
 // The warlock's 22 are Curse of Agony, Curse of Shadow and Curse of Doom (Forever's Banes replace
 // two, docs/classes/warlock.md#1-wow-forever-changes), Dark Pact, and the conjured stones and mounts.
-const BOOK_SIZES = { warrior: [42, 0], druid: [60, 1], paladin: [56, 3], shaman: [56, 5], rogue: [35, 22], mage: [61, 1], warlock: [55, 22], priest: [56, 0] } as const
+const BOOK_SIZES = { warrior: [42, 0], druid: [60, 1], paladin: [56, 3], shaman: [56, 5], rogue: [35, 22], mage: [61, 1], warlock: [55, 22], priest: [56, 0], hunter: [86, 2] } as const
 
 describe.each(Object.entries(spellBooks))('spells/%s', (cls, book) => {
   const all = book.spells.flatMap((s) => s.ranks)
@@ -199,6 +203,11 @@ const CODE_ORDER: Record<keyof typeof talentData, Record<string, string>> = {
     Demonology: 'Improved Health Funnel 2, Improved Imp 3, Demonic Embrace 5, Unholy Power 5, Demonic Aegis 2, Improved Voidwalker 3, Fel Vitality 3, Demonic Energies 2, Improved Sayaad 3, Demonic Sacrifice 1, Master Summoner 2, Decimation 2, Fel Domination 1, Demonic Brand 3, Improved Felhunter 3, Soul Link 1, Demonic Knowledge 3, Master Demonologist 5, Demonic Pact 1',
     Destruction: 'Destructive Reach 2, Improved Shadow Bolt 5, Bane 5, Molten Skin 5, Cataclysm 3, Aftermath 5, Ruin 5, Shadowburn 1, Intensity 3, Agonizing Flames 3, Conflagrate 1, Pyroclasm 2, Bane of Havoc 1, Fire and Brimstone 3, Shadow and Flame 5, Incinerate 1',
   },
+  hunter: {
+    'Beast Mastery': 'Deadly Aspects 5, Endurance Training 5, Focused Fire 2, Improved Aspect of the Monkey 3, Pathfinding 2, Improved Revive Pet 2, Bestial Swiftness 1, Unleashed Fury 5, Improved Mend Pet 2, Ferocity 5, Summon Hawk 1, Spirit Bond 2, Intimidation 1, Bestial Discipline 2, Frenzy 5, Bestial Wrath 1',
+    Marksmanship: 'Hawk Eye 3, Improved Concussive Shot 5, Lethal Attacks 5, Improved Stings 3, Efficiency 5, Careful Aim 5, Rapid Killing 2, Improved Arcane Shot 5, Lone Wolf 1, Trueshot Aura 1, Mortal Shots 5, Rapid Recuperation 2, Barrage 3, Scatter Shot 1, Ranged Weapon Specialization 5, Sniper Shot 1',
+    Survival: "Improved Tracking 5, Deflection 5, Entrapment 5, Savage Strikes 2, Survivalist 5, Improved Wing Clip 3, Clever Traps 2, Surefooted 3, Deterrence 1, Survival Tactics 2, Predator's Edge 5, Counterattack 1, Resourcefulness 2, Expose Prey 2, Survivalist's Discipline 2, Strider Kick 1, Lightning Reflexes 5, Lacerating Strikes 1",
+  },
 }
 
 /** Ranks by talent name, per tree, in code order: "Name rank, Name rank". */
@@ -274,7 +283,7 @@ describe('talent presets and defaults', () => {
       const { classId } = SPEC_META[spec]
       expect(Object.keys(STORED_BUILDS[classId]), spec).toContain(defaultConfig(spec).talents)
     }
-    for (const classId of ['warrior', 'druid', 'paladin', 'shaman', 'rogue', 'mage', 'warlock', 'priest'] as const) {
+    for (const classId of ['warrior', 'druid', 'paladin', 'shaman', 'rogue', 'mage', 'warlock', 'priest', 'hunter'] as const) {
       const presets = talentPresets(classId)
       expect(presets.length, classId).toBeGreaterThan(0)
       expect(new Set(presets.map((p) => p.name)).size, classId).toBe(presets.length)
@@ -308,7 +317,7 @@ describe('talent names the engine keys on', () => {
   it('exist in the talent data', () => {
     const namesOf = (cls: keyof typeof talentData) => new Set(talentData[cls].trees.flatMap((t) => t.talents.map((x) => x.name)))
     const missing = uses.filter((u) =>
-      u.cls ? !namesOf(u.cls).has(u.name) : !(['warrior', 'druid', 'paladin', 'shaman', 'rogue', 'mage', 'warlock', 'priest'] as const).some((c) => namesOf(c).has(u.name)),
+      u.cls ? !namesOf(u.cls).has(u.name) : !(['warrior', 'druid', 'paladin', 'shaman', 'rogue', 'mage', 'warlock', 'priest', 'hunter'] as const).some((c) => namesOf(c).has(u.name)),
     )
     expect(missing).toEqual([])
   })
@@ -406,7 +415,7 @@ describe('races', () => {
   })
 
   it('offers every simulated class to at least one race per faction', () => {
-    for (const cls of ['warrior', 'druid', 'paladin', 'shaman', 'mage', 'priest']) {
+    for (const cls of ['warrior', 'druid', 'paladin', 'shaman', 'mage', 'priest', 'hunter']) {
       const factions = new Set(
         races.races.filter((r) => r.classes.forever.includes(cls as never)).map((r) => r.faction),
       )
@@ -430,7 +439,9 @@ describe('items/pre-bis', () => {
 
   it('is Rare equippable gear, apart from listed pre-raid BiS items (decisions D11)', () => {
     for (const item of items.items) {
-      if (item.preRaidBis.length === 0) expect(item.quality, item.name).toBe(3)
+      // docs/data/items.md#ammo-and-quivers: arrows, bullets, quivers and ammo pouches have their own rule.
+      const supply = item.slot === 'ammo' || item.slot === 'quiver'
+      if (item.preRaidBis.length === 0 && !supply) expect(item.quality, item.name).toBe(3)
       expect(item.slot, item.name).toBeTruthy()
       expect(item.equipSlots.length, item.name).toBeGreaterThan(0)
       expect(item.icon, item.name).toMatch(/^[a-z0-9_-]+$/)
@@ -452,6 +463,12 @@ describe('items/pre-bis', () => {
       expect(excludedItemIds[String(item.id)], item.name).toBeUndefined()
       expect(junk.test(item.name), item.name).toBe(false)
       if (item.preRaidBis.length > 0) continue // listed items join at any quality or level
+      if (item.slot === 'ammo' || item.slot === 'quiver') {
+        // docs/data/items.md#ammo-and-quivers: the supplies' own quality and required-level rule.
+        expect(meta.filter.supplies.qualities, item.name).toContain(item.quality)
+        expect(item.reqLevel >= meta.filter.supplies.reqLevel[0] && item.reqLevel <= meta.filter.supplies.reqLevel[1], item.name).toBe(true)
+        continue
+      }
       const levelOk =
         (item.reqLevel >= reqLevel[0] && item.reqLevel <= reqLevel[1]) ||
         (minItemLevel !== null && item.itemLevel >= minItemLevel)

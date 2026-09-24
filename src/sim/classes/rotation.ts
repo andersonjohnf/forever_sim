@@ -32,6 +32,7 @@ import { SUBTLETY_OPTIONS, subtletyMaintainedBuffs, subtletyRotation, subtletyUn
 import { DESTRUCTION_OPTIONS, destructionMaintainedBuffs, destructionRotation, destructionUnusedSettings } from './warlock/destruction'
 import { AFFLICTION_OPTIONS, afflictionMaintainedBuffs, afflictionRotation, afflictionUnusedSettings } from './warlock/affliction'
 import { SHADOW_FIXED_ROWS, SHADOW_OPTIONS, shadowRotation, shadowUnusedSettings } from './priest/shadow'
+import { hunterFixedRows, hunterOptions, hunterRotation, hunterUnusedSettings, isHunterSpec } from './hunter/rotation'
 import type { TalentRanks } from './warrior/modifiers'
 import type { ClassRotation } from './warrior/shared'
 import type { Stance } from './warrior/talents'
@@ -97,6 +98,8 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   if (spec === 'warlock-destruction') return DESTRUCTION_OPTIONS
   if (spec === 'warlock-affliction') return AFFLICTION_OPTIONS
   if (spec === 'priest-shadow') return SHADOW_OPTIONS
+  // docs/classes/hunter.md §8: the three hunter specs share one list of settings.
+  if (isHunterSpec(spec)) return hunterOptions(spec)
   return []
 }
 
@@ -106,6 +109,8 @@ export function fixedRotationRows(spec: SpecId): FixedRotationRow[] {
   if (spec === 'shaman-elemental') return ELEMENTAL_FIXED_ROWS
   // docs/classes/priest.md §6: Shadowform, up all fight.
   if (spec === 'priest-shadow') return SHADOW_FIXED_ROWS
+  // docs/classes/hunter.md §8: Aspect of the Hawk, Trueshot Aura, the pet and Auto Shot.
+  if (isHunterSpec(spec)) return hunterFixedRows(spec)
   return []
 }
 
@@ -145,6 +150,8 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
   // docs/classes/warlock.md §6.3: the same for the warlock.
   if (spec === 'warlock-destruction' || spec === 'warlock-affliction') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
   if (spec === 'priest-shadow') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
+  // docs/classes/hunter.md "First-pass defaults" (D27).
+  if (isHunterSpec(spec)) return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
   // docs/classes/druid.md §11.5: landed under D27's first-pass defaults (K6).
   if (spec === 'druid-balance') return 'The defaults are the common priority, with a first quick search; they aren’t tuned yet.'
   return undefined
@@ -181,6 +188,9 @@ export const RACIAL_SETTING: Partial<Record<SpecId, string>> = {
   'warlock-destruction': 'warlock.destruction.racial.enabled',
   'warlock-affliction': 'warlock.affliction.racial.enabled',
   'priest-shadow': 'priest.shadow.racial.enabled',
+  'hunter-marksmanship': 'hunter.marksmanship.racial.enabled',
+  'hunter-beast-mastery': 'hunter.beastMastery.racial.enabled',
+  'hunter-survival': 'hunter.survival.racial.enabled',
 }
 
 /**
@@ -229,6 +239,8 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   // docs/classes/priest.md §6: Starshards and Dark Sacrifice are the Night Elf's and the Undead's.
   if (spec === 'priest-shadow') Object.assign(out, shadowUnusedSettings(setup.race, setup.raceName))
   if (spec === 'druid-balance') Object.assign(out, balanceUnusedSettings(values, setup.talents ?? new Map()))
+  // docs/classes/hunter.md §8: the pet's settings with Lone Wolf.
+  if (isHunterSpec(spec)) Object.assign(out, hunterUnusedSettings(spec, setup.talents ?? new Map()))
   return out
 }
 
@@ -298,5 +310,7 @@ export function classRotation(
   if (spec === 'warlock-affliction') return afflictionRotation(values, talents, auraIndex, context)
   // docs/classes/priest.md §6.
   if (spec === 'priest-shadow') return shadowRotation(values, talents, context)
+  // docs/classes/hunter.md §7.
+  if (isHunterSpec(spec)) return hunterRotation(spec, values, talents, context)
   return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
 }

@@ -49,7 +49,7 @@ uses it yet: the Hunter (H2) and the Demonology Warlock come next
 | Weapons Auto Shot fires | bows, guns and crossbows (Auto Shot 75's `SpellEquippedItems`: weapon subclass mask 262156); thrown weapons have their own Throw, which the sim treats as Auto Shot | [F] [client] (SpellEquippedItems, 1.60.1.69977); thrown [?] |
 | Ammo | arrows for bows and crossbows, bullets for guns. The client stores ammo damage per second in `ItemDamageAmmo[item level].Quality[q]`, the same table in both builds; Forever's `ItemSparse` has no damage fields | [F] [client] (ItemDamageAmmo, ItemSparse, 1.60.1.69977); [C] (1.15.9.69722) |
 | Quivers and ammo pouches | ranged attack speed from their equip spell's aura **557** (no spell in either build uses aura 141): Quickdraw Quiver and Thick Leather Ammo Pouch 13%, Harpy Hide Quiver, Gnoll Skin Bandolier and Ancient Sinew Wrapped Lamina 15%, Ribbly's Quiver and Bandolier 14% (no Forever row); a quiver holds arrows, an ammo pouch bullets | [F] [client] (ItemXItemEffect, SpellEffect, 1.60.1.69977); [C] |
-| The item pool | 11 bows, 7 guns, 5 crossbows and 2 thrown weapons, from the D10 rule; no ammo and no quivers yet (the pool keeps weapons and armor only), and no hunter pre-raid list | [F] (`src/data/items/pre-bis.json`) |
+| The item pool | 11 bows, 7 guns, 5 crossbows and 2 thrown weapons, from the D10 rule; since H2, 12 kinds of ammo and 7 quivers and ammo pouches in their own `ammo` and `quiver` slots ([items.md](../data/items.md#ammo-and-quivers)), and the hunter's pre-raid list | [F] (`src/data/items/pre-bis.json`) |
 
 Endgame and pre-raid ammo, damage per second from the table, min–max as the client rounds it
 ([items.md](../data/items.md)):
@@ -68,7 +68,8 @@ the rounded min–max ((17 + 18) / 2 = 17.5) is [?] ([OQ-3](#oq-3-ammo-damage)).
 
 **Proficiency.** A level-60 hunter uses bows, guns, crossbows and thrown weapons, mail from level 40,
 and axes, swords, daggers, fist weapons, polearms and staves [C]. `PROFICIENCY` (`sim/equip.ts`) is
-keyed by `ClassId`, which has no hunter yet: the hunter's slice adds its row with its class.
+keyed by `ClassId`; the hunter's row (H2, [hunter.md](../classes/hunter.md#72-race)) also fills the
+ammo and quiver slots.
 
 ## 2. The ranged attack table
 

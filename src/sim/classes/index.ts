@@ -14,6 +14,7 @@ import { rogueEffects } from './rogue/setup'
 import { mageEffects } from './mage/setup'
 import { warlockEffects } from './warlock/setup'
 import { priestEffects } from './priest/setup'
+import { hunterEffects } from './hunter/setup'
 import { stanceEffects, TALENT_EFFECTS, type Stance } from './warrior/talents'
 
 export interface ClassSetup {
@@ -77,6 +78,8 @@ export function classSetup(classId: ClassId, spec: SpecId, talentCode: string, p
   if (classId === 'warlock') return { effects: warlockEffects(talents), stance: null, talents, simulated: true }
   // docs/classes/priest.md §4: its talents and Shadowform; mana is the plan's (priestManaPlan).
   if (classId === 'priest') return { effects: priestEffects(talents), stance: null, talents, simulated: true }
+  // docs/classes/hunter.md §4: its talents and Aspect of the Hawk; mana is the plan's (hunterManaPlan).
+  if (classId === 'hunter') return { effects: hunterEffects(talents), stance: null, talents, simulated: true }
   if (classId !== 'warrior') return { effects: [], stance: null, talents, simulated: false }
   stance ??= WARRIOR_STANCE[spec] ?? 'battle'
   const effects: Effect[] = [...stanceEffects(profile)[stance]]

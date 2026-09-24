@@ -75,6 +75,10 @@ const AVAILABLE: ReadonlySet<SpecId> = new Set([
   'priest-shadow',
   // docs/classes/druid.md §11: landed under D27's first-pass defaults (K6).
   'druid-balance',
+  // docs/classes/hunter.md: landed under D27's first-pass defaults (H2), on the ranged and pet core.
+  'hunter-marksmanship',
+  'hunter-beast-mastery',
+  'hunter-survival',
 ])
 
 /**

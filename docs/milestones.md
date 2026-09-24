@@ -276,7 +276,9 @@ talents and default build, abilities, rotation, defaults, e2e, shipped.
 - [x] **H1 Ranged and pet core:** Auto Shot and ranged weapons, ammo, and pets with their own
       attacks. Built on its branch, awaiting review
       ([ranged-and-pets.md](mechanics/ranged-and-pets.md)) ([review](reviews/2026-09-24-ranged-and-pet-core.md))
-- [ ] **H2 Hunter:** Beast Mastery, Marksmanship, Survival; then Demonology Warlock on the pet core
+- [ ] **H2 Hunter:** Beast Mastery, Marksmanship, Survival, on the ranged and pet core with
+      first-pass defaults. Built on its branch, awaiting review ([hunter.md](classes/hunter.md));
+      then Demonology Warlock on the pet core
 
 ## M5.7: The optimizer (D30) 🚧 top priority
 
@@ -473,15 +475,17 @@ slice is worked:
   - **Shadowfiend** waits for the pet core (H1): its mana is left out (priest.md §5).
   - **Item effects the sim doesn't model on the priest's list:** Briarwood Reed's zone-bound spell
     power and Eye of the Beast's on-use +7% spell hit (priest.md §7.5).
-- **The ranged and pet core's gaps** (H1, [ranged-and-pets.md](mechanics/ranged-and-pets.md#open-questions)),
-  each the Hunter's slice (H2) to close, since no spec uses the core yet:
-  - **No ammo or quivers in the item pool, and no gear slots for them:** the pool keeps weapons and
-    armor only. The scraper needs ammo (item class 6) with its DPS from `ItemDamageAmmo` and quivers
-    (class 11) with their aura-557 haste, a pool rule that keeps uncommon ammo, and the Gear tab a
-    hunter-only ammo and quiver slot. Until then a class slice passes both as a `ranged` effect.
-  - **No `hunter` class id:** `PROFICIENCY`, the base stats, the talents and the specs come with it.
-  - **The sheet shows no ranged attack power**, and the breakdown doesn't yet show a row's `pet`
-    label; both wait for a spec that has them.
+- **The ranged and pet core's gaps** (H1, [ranged-and-pets.md](mechanics/ranged-and-pets.md#open-questions)):
+  H2 closed them (ammo and quivers in the pool and their Gear slots, the `hunter` class, the ranged
+  sheet, the pets' labelled rows).
+- **The hunter's first-pass gaps** (H2, [hunter.md](classes/hunter.md#11-open-questions)):
+  - **No scope** in the enchant catalogue (Sniper Scope's +7 damage, Biznicks 247x128 Accurascope's
+    +3% hit), and no mismatch warning in the Gear tab for ammo the weapon doesn't fire (the result's
+    assumptions say so).
+  - **Melee weaving and Summon Hawk** aren't simulated, and the pet is a cat only (no Wolf's Furious
+    Howl or other families); Multi-Shot's extra targets wait for M6.
+  - **The Survival tree leans to melee in Forever** (Mongoose Bite, Lacerate, Predator's Edge,
+    Strider Kick): the sim's Survival hunter shoots, with only its ranged talents.
 - **The caster core's gaps** (K1, [spells.md](mechanics/spells.md#open-questions)):
   - **The paladin doesn't get Curse of the Elements** though the buffs doc's presets list it for
     them (§6.2): K1 left every shipped result unchanged, as its brief required. It's +10% on every

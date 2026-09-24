@@ -17,7 +17,7 @@ import { enchantsFor } from './enchants'
 import { ItemPicker } from './item-picker'
 import { itemDescription } from './item-flags'
 import { ItemSummary } from './item-row'
-import { bisRank, EMPTY_SLOT_ICON, SLOT_GROUPS, SLOT_LABEL } from './slots'
+import { bisRank, EMPTY_SLOT_ICON, SLOT_LABEL, slotGroups } from './slots'
 
 /** The items equipped in each slot. */
 function wornItems(gear: SimConfig['gear']): Partial<Record<GearSlot, Item>> {
@@ -93,7 +93,7 @@ export function GearSection() {
       />
       <ClassicEraNote what="Enchants" />
 
-      {SLOT_GROUPS.map((group) => (
+      {slotGroups(meta.classId).map((group) => (
         <section key={group.label} className="flex min-w-0 flex-col gap-2">
           <h3 className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{group.label}</h3>
           {/* minmax(0, 1fr) columns: a long enchant or item name truncates instead of widening the page. */}

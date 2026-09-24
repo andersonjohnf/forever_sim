@@ -41,7 +41,8 @@ const MELEE = [
 ]
 
 /** Stats that only attacks read: a caster's spells use none of them (character-stats.md, spells.md §3–§5). */
-const ATTACK_STATS: readonly FlatStat[] = ['ap', 'str', 'agi', 'crit', 'hit', 'expertise', 'armorPen', 'apPerAgi', 'critRating', 'hitRating', 'expertiseRating']
+// Ranged attack power too: only a hunter's shots read it (Juju Might's; docs/classes/hunter.md).
+const ATTACK_STATS: readonly FlatStat[] = ['ap', 'rap', 'str', 'agi', 'crit', 'hit', 'expertise', 'armorPen', 'apPerAgi', 'critRating', 'hitRating', 'expertiseRating']
 
 /** Whether an effect changes only attacks (or the boss's swings, which a caster doesn't take). */
 function attacksOnly(e: Effect): boolean {

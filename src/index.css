@@ -58,6 +58,7 @@
     --color-class-mage: var(--class-mage);
     --color-class-warlock: var(--class-warlock);
     --color-class-priest: var(--class-priest);
+    --color-class-hunter: var(--class-hunter);
 }
 
 :root {
@@ -126,6 +127,8 @@
     --class-warlock: oklch(0.5 0.16 278);
     /* Priest #FFFFFF is 1:1 on white; a neutral grey, 5.7:1. */
     --class-priest: oklch(0.5 0 0);
+    /* Hunter #AAD372 is 1.8:1 on white; a darker green for AA. */
+    --class-hunter: oklch(0.5 0.12 130);
     --switch-off: oklch(0.64 0 0);
 }
 
@@ -180,6 +183,7 @@
     --class-mage: #3fc7eb;
     --class-warlock: #8788ee;
     --class-priest: #ffffff;
+    --class-hunter: #aad372;
     /* The switch draws its off track at 80% of this. */
     --switch-off: oklch(0.62 0 0);
 }

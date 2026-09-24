@@ -126,6 +126,14 @@ const MANA_CLASSES: readonly ClassId[] = [...new Set([...MANA_USERS, ...CASTER_C
 /** `Pal` in the presets (§6.2), the Enhancement shaman, and the casters. */
 const MANA_SPECS: readonly SpecId[] = [...new Set([...PALADINS, ...SHAMAN, ...CASTER_SPECS])]
 /**
+ * The hunter specs (docs/classes/hunter.md#74-enchants-and-consumables): they spend mana on their
+ * shots, so the mana entries (Intellect, Spirit, mana per 5 s, mana potions and runes) are theirs too;
+ * the spell damage ones aren't, since no hunter spell reads spell damage.
+ */
+const HUNTERS: SpecId[] = ['hunter-marksmanship', 'hunter-beast-mastery', 'hunter-survival']
+const MANA_REGEN_CLASSES: readonly ClassId[] = [...MANA_CLASSES, 'hunter']
+const MANA_REGEN_SPECS: readonly SpecId[] = [...MANA_SPECS, ...HUNTERS]
+/**
  * A tank's duties are in no preset (buffs doc §6.2; D26's amendment): a warrior tank's Thunder Clap
  * and Demoralizing Shout, a Protection warrior's own (SpecMeta.ownBuffs), so a bear's or a Protection
  * paladin's raid has none unless you add them in Buffs; and a bear's Demoralizing Roar, its own.
@@ -325,12 +333,12 @@ export const BUFFS: BuffSpec[] = [
     summary: '+40 Spirit',
     providedBy: 'priest',
     // Spirit regenerates mana, which the paladin and the shaman spend in combat.
-    forClasses: MANA_CLASSES,
+    forClasses: MANA_REGEN_CLASSES,
     forCasterSpecs: true,
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     // 27681 #0 (Divine Spirit 27841 the same): aura 29, misc 4 (Spirit), 40; Classic Era's 39 + 1.
     effects: [{ kind: 'stat', stat: 'spi', value: 40 }],
-    presets: { raid: MANA_SPECS, max: MANA_SPECS },
+    presets: { raid: MANA_REGEN_SPECS, max: MANA_REGEN_SPECS },
   },
   {
     id: 'arcaneBrilliance',
@@ -341,12 +349,12 @@ export const BUFFS: BuffSpec[] = [
     summary: '+31 Intellect',
     providedBy: 'mage',
     // Intellect is mana, spell crit and (Champion of the Light) spell damage: the paladin's alone.
-    forClasses: MANA_CLASSES,
+    forClasses: MANA_REGEN_CLASSES,
     forCasterSpecs: true,
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     // 23028 #0 (Arcane Intellect 10157 the same): aura 29, misc 3 (Intellect), 31; Classic Era's 30 + 1.
     effects: [{ kind: 'stat', stat: 'int', value: 31 }],
-    presets: { raid: MANA_SPECS, max: MANA_SPECS },
+    presets: { raid: MANA_REGEN_SPECS, max: MANA_REGEN_SPECS },
   },
   {
     id: 'leaderOfThePack',
@@ -400,8 +408,9 @@ export const BUFFS: BuffSpec[] = [
     ],
     classicEra: { summary: '20% chance on a main-hand hit for an extra attack with +315 attack power; replaces a main-hand stone' },
     // Not for the Enhancement shaman: its Windfury Weapon disables the totem's benefit for it, so its
-    // own air totem is Grace of Air (docs/classes/shaman.md#totems).
-    presets: { raid: { not: SHAMAN }, max: { not: SHAMAN } },
+    // own air totem is Grace of Air (docs/classes/shaman.md#totems). Nor for a hunter, whose melee
+    // weapons never swing: its group's air totem is Grace of Air (docs/classes/hunter.md#74-enchants-and-consumables).
+    presets: { raid: { not: [...SHAMAN, ...HUNTERS] }, max: { not: [...SHAMAN, ...HUNTERS] } },
   },
   {
     id: 'graceOfAir',
@@ -418,7 +427,7 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#11-attack-power-stats-and-crit`,
     effects: [{ kind: 'stat', stat: 'agi', value: 89 }],
     classicEra: { summary: '+77 Agility', effects: [{ kind: 'stat', stat: 'agi', value: 77 }] },
-    presets: { dungeon: SHAMAN, raid: SHAMAN, max: SHAMAN },
+    presets: { dungeon: SHAMAN, raid: [...SHAMAN, ...HUNTERS], max: [...SHAMAN, ...HUNTERS] },
   },
   {
     id: 'strengthOfEarth',
@@ -471,13 +480,13 @@ export const BUFFS: BuffSpec[] = [
     group: 'Mana',
     summary: '+40 mana every 5 s',
     providedBy: 'paladin',
-    forClasses: MANA_CLASSES,
+    forClasses: MANA_REGEN_CLASSES,
     forCasterSpecs: true,
     docRef: `${DOC}#12-threat-defense-and-mana`,
     // 25290 #0: aura 24, 40 every 5 s; the sim's mana ticks every 2 s, so 16 a tick.
     effects: [{ kind: 'stat', stat: 'mp5', value: 40 }],
     classicEra: { summary: '+33 mana every 5 s', effects: [{ kind: 'stat', stat: 'mp5', value: 33 }] },
-    presets: { raid: MANA_SPECS, max: MANA_SPECS },
+    presets: { raid: MANA_REGEN_SPECS, max: MANA_REGEN_SPECS },
   },
   {
     id: 'manaSpringTotem',
@@ -488,12 +497,12 @@ export const BUFFS: BuffSpec[] = [
     summary: '+10 mana every 2 s',
     providedBy: 'shaman',
     selfCast: true,
-    forClasses: MANA_CLASSES,
+    forClasses: MANA_REGEN_CLASSES,
     forCasterSpecs: true,
     docRef: `${DOC}#12-threat-defense-and-mana`,
     // The totem's Mana Spring 10494 #0: aura 24, 10 every 2 s, which is 25 mana per 5 s.
     effects: [{ kind: 'stat', stat: 'mp5', value: 25 }],
-    presets: { dungeon: [...SHAMAN, ...ELEMENTAL], raid: MANA_SPECS, max: MANA_SPECS },
+    presets: { dungeon: [...SHAMAN, ...ELEMENTAL], raid: MANA_REGEN_SPECS, max: MANA_REGEN_SPECS },
   },
 
   // The caster core's raid buffs (docs/mechanics/spells.md §9, §12; buffs doc §1.1): the casters' only.
@@ -909,12 +918,16 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_misc_monsterscales_07',
     category: 'consumable',
     group: 'Other buffs',
-    summary: '+40 attack power',
+    summary: '+40 attack power and ranged attack power',
     exclusiveGroup: 'buff:ap-drink',
     forSpecs: 'melee',
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
-    effects: [{ kind: 'stat', stat: 'ap', value: 40 }],
-    presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN, ...ROGUES] },
+    // 16329: aura 99 and aura 124, +40 melee and +40 ranged attack power [F] [client] (SpellEffect, 1.60.1.69913).
+    effects: [
+      { kind: 'stat', stat: 'ap', value: 40 },
+      { kind: 'stat', stat: 'rap', value: 40 },
+    ],
+    presets: { max: [...WARRIOR_DPS, 'warrior-protection', 'druid-feral-cat', 'druid-feral-bear', 'paladin-retribution', ...SHAMAN, ...ROGUES, ...HUNTERS] },
   },
   {
     id: 'roids',
@@ -1128,11 +1141,11 @@ export const BUFFS: BuffSpec[] = [
     category: 'consumable',
     group: 'Potions and bombs',
     summary: '1,350–2,250 mana, every 2 min; the Rotation tab says when',
-    forClasses: MANA_CLASSES,
+    forClasses: MANA_REGEN_CLASSES,
     forCasterSpecs: true,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'majorManaPotion', name: 'Major Mana Potion', use: MAJOR_MANA_POTION }],
-    presets: { raid: [...PALADINS, ...SHAMAN, ...CASTER_SPECS], max: [...PALADINS, ...SHAMAN, ...CASTER_SPECS] },
+    presets: { raid: [...PALADINS, ...SHAMAN, ...CASTER_SPECS, ...HUNTERS], max: [...PALADINS, ...SHAMAN, ...CASTER_SPECS, ...HUNTERS] },
   },
   {
     id: 'demonicRune',
@@ -1142,11 +1155,11 @@ export const BUFFS: BuffSpec[] = [
     group: 'Potions and bombs',
     // A Dark Rune is the same, on the same cooldown, so one entry stands for both.
     summary: '900–1,500 mana (a Dark Rune is the same), every 2 min apart from potions; the Rotation tab says when',
-    forClasses: MANA_CLASSES,
+    forClasses: MANA_REGEN_CLASSES,
     forCasterSpecs: true,
     docRef: `${DOC}#35-potions-and-runes`,
     effects: [{ kind: 'onUse', id: 'demonicRune', name: 'Demonic Rune', use: DEMONIC_RUNE }],
-    presets: { max: [...PALADINS, ...SHAMAN, ...CASTER_SPECS] },
+    presets: { max: [...PALADINS, ...SHAMAN, ...CASTER_SPECS, ...HUNTERS] },
   },
   {
     id: 'thistleTea',

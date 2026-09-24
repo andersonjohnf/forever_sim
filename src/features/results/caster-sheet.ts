@@ -43,3 +43,28 @@ export function casterSheetRows(s: CharacterSheet): [string, string][] | null {
   )
   return rows
 }
+
+/**
+ * A ranged spec's sheet rows (docs/classes/hunter.md#9-implementation-notes; docs/ux.md "Results"):
+ * ranged attack power, crit and hit with its ranged weapon, its time between Auto Shots, weapon skill
+ * and ammo, then the stats it reads and its mana; null for a sheet without a ranged block.
+ */
+export function rangedSheetRows(s: CharacterSheet): [string, string][] | null {
+  const r = s.ranged
+  if (!r) return null
+  return [
+    ['Ranged attack power', formatInt(r.rangedAttackPower)],
+    ['Ranged crit', formatPct(r.critPct)],
+    ['Ranged hit', formatPct(r.hitPct)],
+    ['Shot speed', r.speedSec === null ? 'No ranged weapon' : `${r.speedSec.toFixed(2)} s`],
+    ['Ranged weapon skill', formatInt(r.weaponSkill)],
+    ['Ammo damage', r.ammoDps > 0 ? `${r.ammoDps.toFixed(1)} a second` : 'None'],
+    ['Agility', formatInt(s.agility)],
+    ['Intellect', formatInt(s.intellect)],
+    ['Mana', formatInt(s.mana ?? 0)],
+    ['Mana per 5 s', formatInt(r.mp5)],
+    ['Spirit', formatInt(s.spirit)],
+    ['Stamina', formatInt(s.stamina)],
+    ['Health', formatInt(s.health)],
+  ]
+}

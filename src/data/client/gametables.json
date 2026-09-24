@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": "1.60.1.69913",
-    "buildCreatedAt": "2026-09-18 03:02:04",
+    "build": "1.60.1.70009",
+    "buildCreatedAt": "2026-09-24 22:02:03",
     "product": "wow_classic_beta",
-    "scrapedAt": "2026-09-22T23:11:37Z",
+    "scrapedAt": "2026-09-24T22:52:30Z",
     "scraper": "scripts/scrape/client.mjs",
     "source": "https://wago.tools/api/casc",
     "tables": {

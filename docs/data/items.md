@@ -14,7 +14,7 @@ Interfaces are in [`src/data/items/types.ts`](../../src/data/items/types.ts); th
 | | |
 | --- | --- |
 | Source | the [wago.tools API](https://wago.tools/apis): raw client files by FileDataID, `https://wago.tools/api/casc/<fdid>?version=<build>` ([D16](../decisions.md#d16-use-the-wagotools-api-with-attribution-2026-09-22)) |
-| Forever build | `wow_classic_beta` `1.60.1.69913` (created on wago.tools 2026-09-18) |
+| Forever build | `wow_classic_beta` `1.60.1.70009` (created on wago.tools 2026-09-24); 1.60.1.69913 until 2026-09-24 ([client.md § Re-running](client.md#re-running)) |
 | Classic Era build | `wow_classic_era` `1.15.9.69722` (fallback rows and comparisons) |
 | Definitions | WoWDBDefs commit [`2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e`](https://github.com/wowdev/WoWDBDefs/tree/2f0893f8b18b45a9cbe7cbbfb0da73c00da6651e) |
 | BiS lists | [`scripts/scrape/pre-raid-bis.json`](../../scripts/scrape/pre-raid-bis.json), hand-curated from Wowhead's 2019–2021 WoW Classic guides (see [Pre-raid BiS lists](#pre-raid-bis-lists)) |

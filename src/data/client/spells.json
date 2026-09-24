@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": "1.60.1.69913",
-    "buildCreatedAt": "2026-09-18 03:02:04",
+    "build": "1.60.1.70009",
+    "buildCreatedAt": "2026-09-24 22:02:03",
     "product": "wow_classic_beta",
-    "scrapedAt": "2026-09-22T23:08:47Z",
+    "scrapedAt": "2026-09-24T22:52:19Z",
     "scraper": "scripts/scrape/client.mjs",
     "source": "https://wago.tools/api/casc",
     "tables": {
@@ -38,18 +38,18 @@
     "bySource": {
       "buffsDoc": 48,
       "consumable": 82,
-      "docs": 578,
-      "enchant": 125,
-      "item": 432,
+      "docs": 573,
+      "enchant": 124,
+      "item": 431,
       "racial": 44,
       "spellbook": 1638,
-      "talent": 468,
-      "trigger": 310
+      "talent": 466,
+      "trigger": 311
     },
-    "encryptedSpellNameRecords": 872,
+    "encryptedSpellNameRecords": 884,
     "notInClient": 0,
-    "seeds": 2839,
-    "spells": 3114
+    "seeds": 2833,
+    "spells": 3109
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -1559,7 +1559,7 @@
         "spellLevel": 6
       },
       "misc": {
-        "attributes": [329728, 0, 2621440, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [329728, 0, 2621440, 0, 1048576, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 2,
         "spellIconFileDataId": 135940
       },
@@ -2430,7 +2430,7 @@
       "misc": {
         "attributes": [65536, 131072, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
-        "spellIconFileDataId": 136153
+        "spellIconFileDataId": 136152
       },
       "name": "Detect Invisibility",
       "nameSubtext": "Rank 1",
@@ -2545,7 +2545,7 @@
         "spellLevel": 12
       },
       "misc": {
-        "attributes": [65536, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 4, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 132179
       },
@@ -2597,7 +2597,7 @@
         "spellLevel": 8
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 2,
         "spellIconFileDataId": 135953
       },
@@ -4379,7 +4379,7 @@
       "effects": [
         {
           "effect": 2,
-          "effectBasePointsF": 35,
+          "effectBasePointsF": 45,
           "effectBonusCoefficient": 0.714,
           "effectIndex": 0,
           "effectRealPointsPerLevel": 0.6,
@@ -4862,7 +4862,7 @@
         "spellLevel": 12
       },
       "misc": {
-        "attributes": [327680, 0, 2621440, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [327680, 0, 2621440, 0, 1048576, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 2,
         "spellIconFileDataId": 135940
       },
@@ -5134,7 +5134,7 @@
         "spellLevel": 18
       },
       "misc": {
-        "attributes": [327680, 0, 2621440, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [327680, 0, 2621440, 0, 1048576, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 2,
         "spellIconFileDataId": 135940
       },
@@ -5783,7 +5783,7 @@
         "spellClassSet": 10
       },
       "cooldowns": {
-        "categoryRecoveryTime": 12000,
+        "categoryRecoveryTime": 10000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -5798,7 +5798,7 @@
         },
         {
           "effect": 31,
-          "effectBasePointsF": 25,
+          "effectBasePointsF": 29,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         },
@@ -5848,7 +5848,7 @@
         "spellClassSet": 10
       },
       "cooldowns": {
-        "categoryRecoveryTime": 12000,
+        "categoryRecoveryTime": 10000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -5913,7 +5913,7 @@
         "spellClassSet": 10
       },
       "cooldowns": {
-        "categoryRecoveryTime": 12000,
+        "categoryRecoveryTime": 10000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -5928,7 +5928,7 @@
         },
         {
           "effect": 31,
-          "effectBasePointsF": 30,
+          "effectBasePointsF": 36,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         },
@@ -7266,7 +7266,7 @@
         "spellLevel": 30
       },
       "misc": {
-        "attributes": [65536, 64, 524288, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 64, 524288, 0, 0, 0, 0, 0, 4608, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 136107
       },
@@ -7340,7 +7340,7 @@
         "spellLevel": 12
       },
       "misc": {
-        "attributes": [65536, 16388, 2056, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 16388, 536872968, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
         "spellIconFileDataId": 136168
       },
@@ -7692,7 +7692,7 @@
         "spellLevel": 4
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 136081
       },
@@ -8554,7 +8554,7 @@
       "effects": [
         {
           "effect": 2,
-          "effectBasePointsF": 50,
+          "effectBasePointsF": 56,
           "effectBonusCoefficient": 0.714,
           "effectIndex": 0,
           "effectRealPointsPerLevel": 0.6,
@@ -10054,7 +10054,7 @@
         "spellLevel": 10
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 136081
       },
@@ -11489,7 +11489,7 @@
         "spellLevel": 16
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 136081
       },
@@ -11952,7 +11952,7 @@
         "spellClassSet": 4
       },
       "cooldowns": {
-        "categoryRecoveryTime": 15000,
+        "categoryRecoveryTime": 18000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -14439,7 +14439,7 @@
         "spellClassSet": 10
       },
       "cooldowns": {
-        "categoryRecoveryTime": 12000,
+        "categoryRecoveryTime": 10000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -14454,7 +14454,7 @@
         },
         {
           "effect": 31,
-          "effectBasePointsF": 30,
+          "effectBasePointsF": 32,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         },
@@ -15391,7 +15391,7 @@
         "spellLevel": 28
       },
       "misc": {
-        "attributes": [1077346320, 134480160, 268435456, 0, 0, 32, 4, 0, 0, 0, 0, 0, 0, 128, 0, 8192, 0],
+        "attributes": [1077346320, 134480160, 268435456, 1, 0, 32, 4, 0, 0, 0, 0, 0, 0, 128, 0, 8192, 0],
         "schoolMask": 1,
         "spellIconFileDataId": 132310
       },
@@ -15456,7 +15456,7 @@
         "spellLevel": 22
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 136081
       },
@@ -15516,7 +15516,7 @@
         "spellLevel": 28
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 136081
       },
@@ -16293,7 +16293,7 @@
         "spellClassSet": 10
       },
       "cooldowns": {
-        "categoryRecoveryTime": 12000,
+        "categoryRecoveryTime": 10000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -16308,7 +16308,7 @@
         },
         {
           "effect": 31,
-          "effectBasePointsF": 35,
+          "effectBasePointsF": 39,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         },
@@ -16382,7 +16382,7 @@
         "spellLevel": 16
       },
       "misc": {
-        "attributes": [327696, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [327696, 0, 0, 2, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 1,
         "spellIconFileDataId": 132110
       },
@@ -16742,7 +16742,6 @@
         "spellIconFileDataId": 132330
       },
       "name": "Multi-Shot",
-      "nameSubtext": "Rank 1",
       "power": [
         {
           "powerCostPct": 13.9
@@ -18287,7 +18286,6 @@
         "spellIconFileDataId": 132169
       },
       "name": "Scorpid Sting",
-      "nameSubtext": "Rank 1",
       "power": [
         {
           "powerCostPct": 9
@@ -18453,7 +18451,7 @@
         "spellLevel": 20
       },
       "misc": {
-        "attributes": [65536, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 4, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 132179
       },
@@ -19062,7 +19060,7 @@
         "spellLevel": 34
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 136081
       },
@@ -19116,7 +19114,7 @@
         "spellLevel": 28
       },
       "misc": {
-        "attributes": [65536, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 4, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 132179
       },
@@ -19166,7 +19164,7 @@
         "spellLevel": 36
       },
       "misc": {
-        "attributes": [65536, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 4, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 132179
       },
@@ -19300,7 +19298,7 @@
         "spellLevel": 20
       },
       "misc": {
-        "attributes": [65536, 16388, 2056, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 16388, 536872968, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
         "spellIconFileDataId": 136168
       },
@@ -19374,7 +19372,7 @@
         "spellLevel": 28
       },
       "misc": {
-        "attributes": [65536, 16388, 2056, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 16388, 536872968, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
         "spellIconFileDataId": 136168
       },
@@ -19448,7 +19446,7 @@
         "spellLevel": 36
       },
       "misc": {
-        "attributes": [65536, 16388, 2056, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 16388, 536872968, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
         "spellIconFileDataId": 136168
       },
@@ -19505,7 +19503,7 @@
         "spellLevel": 24
       },
       "misc": {
-        "attributes": [327680, 0, 2621440, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [327680, 0, 2621440, 0, 1048576, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 2,
         "spellIconFileDataId": 135940
       },
@@ -20604,10 +20602,10 @@
       "effects": [
         {
           "effect": 2,
-          "effectBasePointsF": 10,
+          "effectBasePointsF": 15,
           "effectBonusCoefficient": 0.429,
           "effectIndex": 0,
-          "effectRealPointsPerLevel": 0.3,
+          "effectRealPointsPerLevel": 0.4,
           "implicitTarget": [6, 0],
           "variance": 0.15384616
         }
@@ -20660,10 +20658,10 @@
       "effects": [
         {
           "effect": 2,
-          "effectBasePointsF": 15,
+          "effectBasePointsF": 23,
           "effectBonusCoefficient": 0.486,
           "effectIndex": 0,
-          "effectRealPointsPerLevel": 0.4,
+          "effectRealPointsPerLevel": 0.6,
           "implicitTarget": [6, 0],
           "variance": 0.14814815
         }
@@ -20716,10 +20714,10 @@
       "effects": [
         {
           "effect": 2,
-          "effectBasePointsF": 20,
+          "effectBasePointsF": 30,
           "effectBonusCoefficient": 0.571,
           "effectIndex": 0,
-          "effectRealPointsPerLevel": 0.5,
+          "effectRealPointsPerLevel": 0.7,
           "implicitTarget": [6, 0],
           "variance": 0.16666667
         }
@@ -20772,10 +20770,10 @@
       "effects": [
         {
           "effect": 2,
-          "effectBasePointsF": 25,
+          "effectBasePointsF": 38,
           "effectBonusCoefficient": 0.571,
           "effectIndex": 0,
-          "effectRealPointsPerLevel": 0.6,
+          "effectRealPointsPerLevel": 0.9,
           "implicitTarget": [6, 0],
           "variance": 0.14705883
         }
@@ -20828,10 +20826,10 @@
       "effects": [
         {
           "effect": 2,
-          "effectBasePointsF": 30,
+          "effectBasePointsF": 45,
           "effectBonusCoefficient": 0.571,
           "effectIndex": 0,
-          "effectRealPointsPerLevel": 0.6,
+          "effectRealPointsPerLevel": 0.9,
           "implicitTarget": [6, 0],
           "variance": 0.12962963
         }
@@ -22615,7 +22613,7 @@
         "spellClassSet": 10
       },
       "cooldowns": {
-        "categoryRecoveryTime": 12000,
+        "categoryRecoveryTime": 10000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -22630,7 +22628,7 @@
         },
         {
           "effect": 31,
-          "effectBasePointsF": 35,
+          "effectBasePointsF": 43,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         },
@@ -23556,20 +23554,22 @@
       "effects": [
         {
           "effect": 6,
-          "effectAura": 57,
+          "effectAura": 108,
           "effectBasePointsF": 5,
           "effectBonusCoefficient": 1,
           "effectIndex": 0,
+          "effectMiscValue": [7, 0],
+          "effectSpellClassMask": [33612840, 538970752, 8256, 67108864],
           "implicitTarget": [1, 0]
         },
         {
           "effect": 6,
           "effectAura": 108,
-          "effectBasePointsF": 10,
+          "effectBasePointsF": 15,
           "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectMiscValue": [7, 0],
-          "effectSpellClassMask": [2097152, 0, 0, 0],
+          "effectSpellClassMask": [2097152, 0, 0, 32768],
           "implicitTarget": [1, 0]
         }
       ],
@@ -23861,7 +23861,7 @@
         "spellLevel": 30
       },
       "misc": {
-        "attributes": [327680, 0, 2621440, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [327680, 0, 2621440, 0, 1048576, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 2,
         "spellIconFileDataId": 135940
       },
@@ -23920,7 +23920,7 @@
         "spellLevel": 36
       },
       "misc": {
-        "attributes": [327680, 0, 2621440, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [327680, 0, 2621440, 0, 1048576, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 2,
         "spellIconFileDataId": 135940
       },
@@ -23975,7 +23975,7 @@
         "spellLevel": 14
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 2,
         "spellIconFileDataId": 135953
       },
@@ -24031,7 +24031,7 @@
         "spellLevel": 20
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 2,
         "spellIconFileDataId": 135953
       },
@@ -24087,7 +24087,7 @@
         "spellLevel": 26
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 2,
         "spellIconFileDataId": 135953
       },
@@ -24143,7 +24143,7 @@
         "spellLevel": 32
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 2,
         "spellIconFileDataId": 135953
       },
@@ -24199,7 +24199,7 @@
         "spellLevel": 38
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 2,
         "spellIconFileDataId": 135953
       },
@@ -25498,7 +25498,6 @@
         {
           "effect": 28,
           "effectBasePointsF": 1,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMiscValue": [11199, 6792],
           "implicitTarget": [47, 0]
@@ -25506,7 +25505,6 @@
         {
           "effect": 0,
           "effectBasePointsF": 2,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1
         }
       ],
@@ -27078,7 +27076,7 @@
         "spellLevel": 10
       },
       "misc": {
-        "attributes": [1077346320, 134480160, 268435456, 0, 0, 32, 4, 0, 0, 0, 0, 0, 0, 128, 0, 8192, 0],
+        "attributes": [1077346320, 134480160, 268435456, 1, 0, 32, 4, 0, 0, 0, 0, 0, 0, 128, 0, 8192, 0],
         "schoolMask": 1,
         "spellIconFileDataId": 132310
       },
@@ -27238,10 +27236,10 @@
       "effects": [
         {
           "effect": 2,
-          "effectBasePointsF": 36,
+          "effectBasePointsF": 54,
           "effectBonusCoefficient": 0.571,
           "effectIndex": 0,
-          "effectRealPointsPerLevel": 0.6,
+          "effectRealPointsPerLevel": 0.9,
           "implicitTarget": [6, 0],
           "variance": 0.12162162
         }
@@ -28028,7 +28026,7 @@
         "spellLevel": 8
       },
       "misc": {
-        "attributes": [65536, 0, 4194304, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8192, 0],
+        "attributes": [65536, 0, 4194308, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8192, 0],
         "schoolMask": 64,
         "speed": 20,
         "spellIconFileDataId": 136096
@@ -28066,7 +28064,7 @@
         "spellLevel": 16
       },
       "misc": {
-        "attributes": [65536, 0, 4194304, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8192, 0],
+        "attributes": [65536, 0, 4194308, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8192, 0],
         "schoolMask": 64,
         "speed": 20,
         "spellIconFileDataId": 136096
@@ -28104,7 +28102,7 @@
         "spellLevel": 24
       },
       "misc": {
-        "attributes": [65536, 0, 4194304, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8192, 0],
+        "attributes": [65536, 0, 4194308, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8192, 0],
         "schoolMask": 64,
         "speed": 20,
         "spellIconFileDataId": 136096
@@ -29006,7 +29004,7 @@
         },
         {
           "effect": 63,
-          "effectBasePointsF": 1,
+          "effectBasePointsF": 34,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         }
@@ -29207,7 +29205,7 @@
         },
         {
           "effect": 63,
-          "effectBasePointsF": 405,
+          "effectBasePointsF": 75,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         }
@@ -29289,7 +29287,7 @@
         "spellIconFileDataId": 136235
       },
       "name": "Increased Defense",
-      "sources": ["enchant", "item"]
+      "sources": ["item"]
     },
     "7518": {
       "auraOptions": {
@@ -33176,7 +33174,7 @@
         },
         {
           "effect": 63,
-          "effectBasePointsF": 608,
+          "effectBasePointsF": 117,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         }
@@ -33848,7 +33846,7 @@
         "spellLevel": 40
       },
       "misc": {
-        "attributes": [65536, 0, 4194304, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8192, 0],
+        "attributes": [65536, 0, 4194308, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8192, 0],
         "schoolMask": 64,
         "speed": 20,
         "spellIconFileDataId": 136096
@@ -33886,7 +33884,7 @@
         "spellLevel": 32
       },
       "misc": {
-        "attributes": [65536, 0, 4194304, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8192, 0],
+        "attributes": [65536, 0, 4194308, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8192, 0],
         "schoolMask": 64,
         "speed": 20,
         "spellIconFileDataId": 136096
@@ -36258,7 +36256,7 @@
         "spellClassSet": 4
       },
       "cooldowns": {
-        "categoryRecoveryTime": 15000,
+        "categoryRecoveryTime": 18000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -36418,10 +36416,10 @@
       "effects": [
         {
           "effect": 2,
-          "effectBasePointsF": 45,
+          "effectBasePointsF": 68,
           "effectBonusCoefficient": 0.571,
           "effectIndex": 0,
-          "effectRealPointsPerLevel": 0.6,
+          "effectRealPointsPerLevel": 0.9,
           "implicitTarget": [6, 0],
           "variance": 0.11055277
         }
@@ -36608,7 +36606,7 @@
         "spellLevel": 40
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 136081
       },
@@ -36719,7 +36717,7 @@
         "spellLevel": 40
       },
       "misc": {
-        "attributes": [65536, 64, 524288, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 64, 524288, 0, 0, 0, 0, 0, 4608, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 136107
       },
@@ -41488,7 +41486,7 @@
         "spellLevel": 46
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 136081
       },
@@ -41548,7 +41546,7 @@
         "spellLevel": 52
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 136081
       },
@@ -41608,7 +41606,7 @@
         "spellLevel": 58
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 67108992, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 67108992, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 136081
       },
@@ -42158,7 +42156,7 @@
         "spellLevel": 50
       },
       "misc": {
-        "attributes": [65536, 64, 524288, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 64, 524288, 0, 0, 0, 0, 0, 4608, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 136107
       },
@@ -42214,7 +42212,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [65536, 64, 524288, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 64, 524288, 0, 0, 0, 0, 0, 4608, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 136107
       },
@@ -43463,10 +43461,10 @@
       "effects": [
         {
           "effect": 2,
-          "effectBasePointsF": 61,
+          "effectBasePointsF": 91,
           "effectBonusCoefficient": 0.571,
           "effectIndex": 0,
-          "effectRealPointsPerLevel": 0.7,
+          "effectRealPointsPerLevel": 1,
           "implicitTarget": [6, 0],
           "variance": 0.112
         }
@@ -46383,7 +46381,7 @@
         "spellLevel": 48
       },
       "misc": {
-        "attributes": [65536, 0, 4194304, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8192, 0],
+        "attributes": [65536, 0, 4194308, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8192, 0],
         "schoolMask": 64,
         "speed": 20,
         "spellIconFileDataId": 136096
@@ -46421,7 +46419,7 @@
         "spellLevel": 56
       },
       "misc": {
-        "attributes": [65536, 0, 4194304, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8192, 0],
+        "attributes": [65536, 0, 4194308, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8192, 0],
         "schoolMask": 64,
         "speed": 20,
         "spellIconFileDataId": 136096
@@ -47491,7 +47489,7 @@
         "spellClassSet": 10
       },
       "cooldowns": {
-        "categoryRecoveryTime": 12000,
+        "categoryRecoveryTime": 10000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -47506,7 +47504,7 @@
         },
         {
           "effect": 31,
-          "effectBasePointsF": 40,
+          "effectBasePointsF": 46,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         },
@@ -47556,7 +47554,7 @@
         "spellClassSet": 10
       },
       "cooldowns": {
-        "categoryRecoveryTime": 12000,
+        "categoryRecoveryTime": 10000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -47571,7 +47569,7 @@
         },
         {
           "effect": 31,
-          "effectBasePointsF": 40,
+          "effectBasePointsF": 50,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         },
@@ -49879,7 +49877,7 @@
       "effects": [
         {
           "effect": 35,
-          "effectAura": 4,
+          "effectAura": 42,
           "effectBasePointsF": 10610,
           "effectIndex": 0,
           "effectRadiusIndex": [10, 10],
@@ -49892,11 +49890,11 @@
         "spellLevel": 52
       },
       "misc": {
-        "attributes": [320, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [320, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1024, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 136114
       },
-      "name": "Windfury Totem Passive",
+      "name": "Windfury Totem",
       "nameSubtext": "Rank 3",
       "sources": ["docs"]
     },
@@ -51032,7 +51030,7 @@
         "spellLevel": 42
       },
       "misc": {
-        "attributes": [327680, 0, 2621440, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [327680, 0, 2621440, 0, 1048576, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 2,
         "spellIconFileDataId": 135940
       },
@@ -51091,7 +51089,7 @@
         "spellLevel": 48
       },
       "misc": {
-        "attributes": [327680, 0, 2621440, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [327680, 0, 2621440, 0, 1048576, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 2,
         "spellIconFileDataId": 135940
       },
@@ -51150,7 +51148,7 @@
         "spellLevel": 54
       },
       "misc": {
-        "attributes": [327680, 0, 2621440, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [327680, 0, 2621440, 0, 1048576, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 2,
         "spellIconFileDataId": 135940
       },
@@ -51209,7 +51207,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [327680, 0, 2621440, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [327680, 0, 2621440, 0, 1048576, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 2,
         "spellIconFileDataId": 135940
       },
@@ -51658,7 +51656,7 @@
         "spellLevel": 44
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 2,
         "spellIconFileDataId": 135953
       },
@@ -51714,7 +51712,7 @@
         "spellLevel": 50
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 2,
         "spellIconFileDataId": 135953
       },
@@ -51770,7 +51768,7 @@
         "spellLevel": 56
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 2,
         "spellIconFileDataId": 135953
       },
@@ -55231,7 +55229,7 @@
         "spellLevel": 48
       },
       "misc": {
-        "attributes": [1077346320, 134480160, 268435456, 0, 0, 32, 4, 0, 0, 0, 0, 0, 0, 128, 0, 8192, 0],
+        "attributes": [1077346320, 134480160, 268435456, 1, 0, 32, 4, 0, 0, 0, 0, 0, 0, 128, 0, 8192, 0],
         "schoolMask": 1,
         "spellIconFileDataId": 132310
       },
@@ -57245,7 +57243,7 @@
         },
         {
           "effect": 63,
-          "effectBasePointsF": 810,
+          "effectBasePointsF": 158,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         }
@@ -57310,7 +57308,7 @@
         },
         {
           "effect": 63,
-          "effectBasePointsF": 1013,
+          "effectBasePointsF": 206,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
         }
@@ -57477,7 +57475,7 @@
         "spellClassSet": 4
       },
       "cooldowns": {
-        "categoryRecoveryTime": 15000,
+        "categoryRecoveryTime": 18000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -57533,7 +57531,7 @@
         "spellClassSet": 4
       },
       "cooldowns": {
-        "categoryRecoveryTime": 15000,
+        "categoryRecoveryTime": 18000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -58747,7 +58745,7 @@
         "spellLevel": 44
       },
       "misc": {
-        "attributes": [65536, 16388, 2056, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 16388, 536872968, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
         "spellIconFileDataId": 136168
       },
@@ -58821,7 +58819,7 @@
         "spellLevel": 52
       },
       "misc": {
-        "attributes": [65536, 16388, 2056, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 16388, 536872968, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
         "spellIconFileDataId": 136168
       },
@@ -58895,7 +58893,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [536936448, 16388, 2056, 0, 0, 134217728, 0, 0, 4096, 0, 2, 0, 65536, 67108864, 0, 8192, 0],
+        "attributes": [536936448, 16388, 536872968, 0, 0, 134217728, 0, 0, 4096, 0, 2, 0, 65536, 67108864, 0, 8192, 0],
         "schoolMask": 32,
         "spellIconFileDataId": 136168
       },
@@ -62462,9 +62460,18 @@
         },
         {
           "effect": 6,
+          "effectAura": 107,
+          "effectBasePointsF": -3000,
+          "effectIndex": 2,
+          "effectMiscValue": [11, 0],
+          "effectSpellClassMask": [2097152, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
           "effectAura": 332,
           "effectBasePointsF": 1310196,
-          "effectIndex": 2,
+          "effectIndex": 3,
           "effectMiscValue": [1240193, 0],
           "implicitTarget": [1, 0]
         },
@@ -62472,7 +62479,7 @@
           "effect": 6,
           "effectAura": 332,
           "effectBasePointsF": 1310197,
-          "effectIndex": 3,
+          "effectIndex": 4,
           "effectMiscValue": [1464, 0],
           "implicitTarget": [1, 0]
         },
@@ -62480,7 +62487,7 @@
           "effect": 6,
           "effectAura": 332,
           "effectBasePointsF": 1310198,
-          "effectIndex": 4,
+          "effectIndex": 5,
           "effectMiscValue": [8820, 0],
           "implicitTarget": [1, 0]
         },
@@ -62488,7 +62495,7 @@
           "effect": 6,
           "effectAura": 332,
           "effectBasePointsF": 1310199,
-          "effectIndex": 5,
+          "effectIndex": 6,
           "effectMiscValue": [11604, 0],
           "implicitTarget": [1, 0]
         },
@@ -62496,7 +62503,7 @@
           "effect": 6,
           "effectAura": 332,
           "effectBasePointsF": 1310200,
-          "effectIndex": 6,
+          "effectIndex": 7,
           "effectMiscValue": [11605, 0],
           "implicitTarget": [1, 0]
         }
@@ -63327,7 +63334,7 @@
         "spellLevel": 50
       },
       "misc": {
-        "attributes": [262144, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [262144, 0, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 1,
         "spellIconFileDataId": 132155
       },
@@ -63654,9 +63661,6 @@
       }
     },
     "13442": {
-      "auraOptions": {
-        "procChance": 101
-      },
       "castTime": {
         "base": 3000,
         "minimum": 3000
@@ -63667,7 +63671,7 @@
       "effects": [
         {
           "effect": 2,
-          "effectBasePointsF": 35,
+          "effectBasePointsF": 90,
           "effectIndex": 0,
           "implicitTarget": [6, 0]
         }
@@ -63785,7 +63789,7 @@
         "spellLevel": 44
       },
       "misc": {
-        "attributes": [65536, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 4, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 132179
       },
@@ -63835,7 +63839,7 @@
         "spellLevel": 52
       },
       "misc": {
-        "attributes": [65536, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 4, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 132179
       },
@@ -63885,7 +63889,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [65536, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 4, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 132179
       },
@@ -66835,6 +66839,11 @@
       "sources": ["talent"]
     },
     "14168": {
+      "auraOptions": {
+        "procCategoryRecovery": 500,
+        "procChance": 100,
+        "procTypeMask": [4112, 0]
+      },
       "classOptions": {
         "spellClassSet": 8
       },
@@ -66851,10 +66860,11 @@
         },
         {
           "effect": 6,
-          "effectAura": 4,
+          "effectAura": 231,
           "effectBasePointsF": 2,
           "effectBonusCoefficient": 1,
           "effectIndex": 1,
+          "effectTriggerSpell": 1310697,
           "implicitTarget": [1, 0]
         },
         {
@@ -70017,33 +70027,6 @@
       "name": "Martyrdom",
       "sources": ["talent"]
     },
-    "14590": {
-      "auraOptions": {
-        "procChance": 101
-      },
-      "duration": {
-        "duration": -1,
-        "maxDuration": -1
-      },
-      "effects": [
-        {
-          "effect": 6,
-          "effectAura": 22,
-          "effectBasePointsF": 10,
-          "effectIndex": 0,
-          "effectMiscValue": [4, 0],
-          "implicitTarget": [1, 0]
-        }
-      ],
-      "id": 14590,
-      "misc": {
-        "attributes": [192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
-        "schoolMask": 1,
-        "spellIconFileDataId": 136235
-      },
-      "name": "Increased Fire Resist 10",
-      "sources": ["item"]
-    },
     "14747": {
       "classOptions": {
         "spellClassSet": 6
@@ -70773,7 +70756,7 @@
           "effectBasePointsF": 70,
           "effectIndex": 0,
           "effectMiscValue": [9, 0],
-          "effectSpellClassMask": [9846416, 8486916, 128, 1048576],
+          "effectSpellClassMask": [11943568, 8486916, 128, 1048576],
           "implicitTarget": [1, 0]
         }
       ],
@@ -73064,14 +73047,12 @@
         {
           "effect": 19,
           "effectBasePointsF": 2,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         },
         {
           "effect": 6,
           "effectAura": 75,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectMiscValue": [6, 0],
           "implicitTarget": [1, 0]
@@ -73182,7 +73163,6 @@
           "effect": 6,
           "effectAura": 42,
           "effectBasePointsF": 1,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectTriggerSpell": 15601,
           "implicitTarget": [1, 0]
@@ -73191,7 +73171,6 @@
           "effect": 6,
           "effectAura": 4,
           "effectBasePointsF": 3,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectTriggerSpell": 15601,
           "implicitTarget": [1, 0]
@@ -73245,7 +73224,6 @@
           "effectAura": 24,
           "effectAuraPeriod": 1000,
           "effectBasePointsF": 63,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         }
@@ -75405,7 +75383,6 @@
       "effects": [
         {
           "effect": 61,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMiscValue": [4622, 0]
         }
@@ -75613,7 +75590,6 @@
           "effect": 6,
           "effectAura": 4,
           "effectBasePointsF": 1,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         }
@@ -75967,7 +75943,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "speed": 30,
         "spellIconFileDataId": 136016
@@ -76151,7 +76127,6 @@
         {
           "effect": 28,
           "effectBasePointsF": 1,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMiscValue": [10718, 5121],
           "effectRadiusIndex": [15, 0],
@@ -76422,7 +76397,6 @@
         {
           "effect": 6,
           "effectAura": 56,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         }
@@ -77176,9 +77150,6 @@
       }
     },
     "16916": {
-      "auraOptions": {
-        "procChance": 101
-      },
       "categories": {
         "dispelType": 1
       },
@@ -77204,9 +77175,9 @@
       ],
       "id": 16916,
       "misc": {
-        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 2,
-        "spellIconFileDataId": 135940
+        "spellIconFileDataId": 135349
       },
       "name": "Strength of the Champion",
       "range": {
@@ -77335,7 +77306,7 @@
       ],
       "id": 16927,
       "misc": {
-        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 16,
         "spellIconFileDataId": 135864
       },
@@ -77362,7 +77333,6 @@
           "effect": 6,
           "effectAura": 22,
           "effectBasePointsF": -165,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMiscValue": [1, 0],
           "implicitTarget": [6, 0]
@@ -77598,9 +77568,9 @@
       "misc": {
         "attributes": [464, 0, 0, 67108864, 0, 0, 0, 0, 0, 0, 0, 16, 0, 0, 0, 8192, 0],
         "schoolMask": 1,
-        "spellIconFileDataId": 132278
+        "spellIconFileDataId": 132152
       },
-      "name": "Primal Fury",
+      "name": "Blood Frenzy",
       "shapeshift": {
         "shapeshiftMask": [145, 0]
       },
@@ -77621,13 +77591,13 @@
       "misc": {
         "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 1,
-        "spellIconFileDataId": 132278
+        "spellIconFileDataId": 132152
       },
-      "name": "Primal Fury",
+      "name": "Blood Frenzy",
       "shapeshift": {
         "shapeshiftMask": [144, 0]
       },
-      "sources": ["docs", "trigger"]
+      "sources": ["trigger"]
     },
     "16966": {
       "classOptions": {
@@ -78228,7 +78198,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [0, 136, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [0, 136, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 136016
       },
@@ -79408,7 +79378,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 1,
         "spellIconFileDataId": 132155
       },
@@ -79481,7 +79451,7 @@
         "spellLevel": 30
       },
       "misc": {
-        "attributes": [65536, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [65536, 0, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
         "speed": 20,
         "spellIconFileDataId": 136145
@@ -79527,7 +79497,7 @@
         "spellLevel": 40
       },
       "misc": {
-        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
         "spellIconFileDataId": 136160
       },
@@ -79664,7 +79634,7 @@
         {
           "effect": 9,
           "effectAmplitude": 1,
-          "effectBasePointsF": 210,
+          "effectBasePointsF": 85,
           "effectIndex": 0,
           "implicitTarget": [6, 0]
         }
@@ -79732,7 +79702,6 @@
           "effect": 6,
           "effectAura": 29,
           "effectBasePointsF": 60,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "implicitTarget": [1, 0]
         }
@@ -79833,7 +79802,6 @@
           "effect": 6,
           "effectAura": 29,
           "effectBasePointsF": 18,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectMiscValue": [2, 0],
           "implicitTarget": [1, 0]
@@ -79872,7 +79840,6 @@
           "effect": 6,
           "effectAura": 290,
           "effectBasePointsF": 2,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "implicitTarget": [1, 0]
         }
@@ -82054,7 +82021,6 @@
         {
           "effect": 64,
           "effectBasePointsF": 1,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectTriggerSpell": 18125,
           "implicitTarget": [1, 0]
@@ -82377,43 +82343,6 @@
       "name": "Increased Defense",
       "sources": ["item"]
     },
-    "18202": {
-      "auraOptions": {
-        "procChance": 101
-      },
-      "categories": {
-        "defenseType": 2,
-        "mechanic": 15
-      },
-      "duration": {
-        "duration": 14000,
-        "maxDuration": 14000
-      },
-      "effects": [
-        {
-          "effect": 6,
-          "effectAura": 3,
-          "effectAuraPeriod": 2000,
-          "effectBasePointsF": 14,
-          "effectIndex": 0,
-          "implicitTarget": [6, 0]
-        }
-      ],
-      "id": 18202,
-      "levels": {
-        "spellLevel": 50
-      },
-      "misc": {
-        "attributes": [262144, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
-        "schoolMask": 1,
-        "spellIconFileDataId": 132155
-      },
-      "name": "Rend",
-      "range": {
-        "rangeMax": [100, 100]
-      },
-      "sources": ["item"]
-    },
     "18203": {
       "auraOptions": {
         "procChance": 101
@@ -82441,7 +82370,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 136016
       },
@@ -82757,7 +82686,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 135914
       },
@@ -83074,7 +83003,6 @@
           "effect": 6,
           "effectAura": 23,
           "effectAuraPeriod": 5000,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectTriggerSpell": 17512,
           "implicitTarget": [1, 0]
@@ -83522,7 +83450,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
         "spellIconFileDataId": 136118
       },
@@ -83626,7 +83554,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [0, 268435456, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [0, 268435456, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
         "spellIconFileDataId": 136082
       },
@@ -83663,7 +83591,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
         "spellIconFileDataId": 136118
       },
@@ -84448,7 +84376,6 @@
         {
           "effect": 19,
           "effectBasePointsF": 1,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         }
@@ -84523,7 +84450,6 @@
           "effect": 6,
           "effectAura": 42,
           "effectBasePointsF": 1,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectTriggerSpell": 18798,
           "implicitTarget": [1, 0]
@@ -84681,7 +84607,6 @@
           "effect": 6,
           "effectAura": 42,
           "effectBasePointsF": 3,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectTriggerSpell": 18817,
           "implicitTarget": [1, 0]
@@ -84709,7 +84634,6 @@
           "effect": 6,
           "effectAura": 42,
           "effectBasePointsF": 2,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectTriggerSpell": 18818,
           "implicitTarget": [1, 0]
@@ -89508,7 +89432,6 @@
           "effect": 6,
           "effectAura": 12,
           "effectBasePointsF": 3,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectMechanic": 14,
           "effectRadiusIndex": [15, 0],
@@ -92405,7 +92328,7 @@
     "20049": {
       "auraOptions": {
         "procChance": 100,
-        "procTypeMask": [332116, 0]
+        "procTypeMask": [69972, 0]
       },
       "classOptions": {
         "spellClassMask": [0, 0, 0, 4194304],
@@ -92433,7 +92356,7 @@
     },
     "20050": {
       "auraOptions": {
-        "cumulativeAura": 5,
+        "cumulativeAura": 3,
         "procChance": 101
       },
       "categories": {
@@ -96713,7 +96636,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [262144, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [262144, 0, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 136022
       },
@@ -96976,7 +96899,7 @@
           "effectBasePointsF": 5,
           "effectBonusCoefficient": 1,
           "effectIndex": 0,
-          "effectMiscValue": [4, 0],
+          "effectMiscValue": [4, 16],
           "implicitTarget": [1, 0]
         }
       ],
@@ -101126,7 +101049,6 @@
       "effects": [
         {
           "effect": 252,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 17]
         }
@@ -101154,7 +101076,6 @@
       "effects": [
         {
           "effect": 252,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 17]
         }
@@ -101246,7 +101167,6 @@
           "effect": 6,
           "effectAura": 4,
           "effectBasePointsF": 1,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         }
@@ -101259,6 +101179,38 @@
       },
       "name": "Onyxia Scale Cloak",
       "sources": ["item"]
+    },
+    "22725": {
+      "castTime": {
+        "base": 3000,
+        "minimum": 3000
+      },
+      "effects": [
+        {
+          "effect": 53,
+          "effectIndex": 0,
+          "effectMiscValue": [2503, 0]
+        }
+      ],
+      "equippedItems": {
+        "equippedItemClass": 4,
+        "equippedItemInvTypes": 1050016,
+        "equippedItemSubclass": 30
+      },
+      "id": 22725,
+      "levels": {
+        "spellLevel": 25
+      },
+      "misc": {
+        "attributes": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Core Armor Kit",
+      "sources": ["docs"],
+      "targetRestrictions": {
+        "targets": 16
+      }
     },
     "22738": {
       "auraOptions": {
@@ -101428,7 +101380,6 @@
           "effect": 6,
           "effectAura": 107,
           "effectBasePointsF": -30,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMiscValue": [14, 0],
           "effectSpellClassMask": [2, 0, 0, 0],
@@ -101569,7 +101520,6 @@
           "effect": 6,
           "effectAura": 107,
           "effectBasePointsF": 15,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMiscValue": [12, 0],
           "effectSpellClassMask": [2048, 0, 0, 0],
@@ -102240,7 +102190,6 @@
         "spellIconFileDataId": 135869
       },
       "name": "Arcane Brilliance",
-      "nameSubtext": "Rank 1",
       "power": [
         {
           "manaCost": 3400
@@ -102364,7 +102313,6 @@
           "effect": 6,
           "effectAura": 108,
           "effectBasePointsF": 50,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMiscValue": [9, 0],
           "effectSpellClassMask": [256, 0, 0, 0],
@@ -102463,7 +102411,6 @@
           "effect": 6,
           "effectAura": 107,
           "effectBasePointsF": 3000,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMiscValue": [1, 0],
           "effectSpellClassMask": [64, 0, 0, 0],
@@ -102531,7 +102478,6 @@
           "effectAmplitude": 1,
           "effectAura": 74,
           "effectBasePointsF": 100,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMiscValue": [4, 0],
           "implicitTarget": [1, 0]
@@ -102560,7 +102506,6 @@
           "effectAmplitude": 1,
           "effectAura": 74,
           "effectBasePointsF": 100,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMiscValue": [32, 0],
           "implicitTarget": [1, 0]
@@ -102591,7 +102536,6 @@
           "effect": 6,
           "effectAura": 107,
           "effectBasePointsF": -15,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMiscValue": [14, 0],
           "effectSpellClassMask": [2048, 0, 0, 0],
@@ -102802,7 +102746,6 @@
           "effect": 6,
           "effectAura": 107,
           "effectBasePointsF": 20,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMiscValue": [8, 0],
           "effectSpellClassMask": [536870912, 0, 0, 0],
@@ -104049,7 +103992,6 @@
           "effect": 6,
           "effectAura": 58,
           "effectBasePointsF": 8,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "implicitTarget": [1, 0]
         }
@@ -104103,7 +104045,7 @@
         "spellLevel": 30
       },
       "misc": {
-        "attributes": [327696, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [327696, 512, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 1,
         "spellIconFileDataId": 132155
       },
@@ -104160,7 +104102,7 @@
         "spellLevel": 40
       },
       "misc": {
-        "attributes": [327696, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [327696, 512, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 1,
         "spellIconFileDataId": 132155
       },
@@ -104217,7 +104159,7 @@
         "spellLevel": 50
       },
       "misc": {
-        "attributes": [327696, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [327696, 512, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 1,
         "spellIconFileDataId": 132155
       },
@@ -104536,7 +104478,6 @@
           "effectAura": 24,
           "effectAuraPeriod": 5000,
           "effectBasePointsF": 60,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         }
@@ -104774,7 +104715,6 @@
           "effect": 6,
           "effectAura": 82,
           "effectBasePointsF": 1,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "implicitTarget": [1, 0]
         },
@@ -104782,7 +104722,6 @@
           "effect": 6,
           "effectAura": 58,
           "effectBasePointsF": 25,
-          "effectBonusCoefficient": 1,
           "effectIndex": 2,
           "implicitTarget": [1, 0]
         }
@@ -104850,7 +104789,6 @@
           "effect": 6,
           "effectAura": 29,
           "effectBasePointsF": 50,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectMiscValue": [2, 0],
           "implicitTarget": [1, 0]
@@ -105036,7 +104974,7 @@
       ],
       "id": 24427,
       "misc": {
-        "attributes": [16, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [16, 0, 536870912, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 132788
       },
@@ -107693,7 +107631,6 @@
           "effect": 6,
           "effectAura": 55,
           "effectBasePointsF": 10,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         }
@@ -109087,7 +109024,7 @@
         {
           "effect": 6,
           "effectAura": 13,
-          "effectBasePointsF": 30,
+          "effectBasePointsF": 24,
           "effectIndex": 0,
           "effectMiscValue": [126, 0],
           "implicitTarget": [1, 0]
@@ -109095,7 +109032,7 @@
         {
           "effect": 6,
           "effectAura": 135,
-          "effectBasePointsF": 30,
+          "effectBasePointsF": 24,
           "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectMiscValue": [126, 0],
@@ -109108,7 +109045,7 @@
         "schoolMask": 8,
         "spellIconFileDataId": 136235
       },
-      "name": "Increase Spell Dam 30",
+      "name": "Increase Spell Dam 24",
       "sources": ["enchant"]
     },
     "25113": {
@@ -109898,7 +109835,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 136081
       },
@@ -110437,7 +110374,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777216, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524288, 128, 1048576, 0, 0, 0, 16777728, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 2,
         "spellIconFileDataId": 135953
       },
@@ -110597,7 +110534,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [65536, 0, 4194304, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8192, 0],
+        "attributes": [65536, 0, 4194308, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 8192, 0],
         "schoolMask": 64,
         "speed": 20,
         "spellIconFileDataId": 136096
@@ -110826,7 +110763,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [320, 0, 0, 256, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [320, 0, 0, 256, 0, 0, 0, 0, 0, 0, 0, 1024, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 136046
       },
@@ -110936,7 +110873,6 @@
           "effect": 6,
           "effectAura": 23,
           "effectAuraPeriod": 10000,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectTriggerSpell": 25661,
           "implicitTarget": [1, 0]
@@ -111077,7 +111013,7 @@
         {
           "effect": 6,
           "effectAura": 10,
-          "effectBasePointsF": 90,
+          "effectBasePointsF": 60,
           "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMiscValue": [2, 0],
@@ -111260,7 +111196,6 @@
         "spellIconFileDataId": 135909
       },
       "name": "Greater Blessing of Light",
-      "nameSubtext": "Rank 1",
       "power": [
         {
           "manaCost": 260
@@ -111284,7 +111219,6 @@
           "effect": 6,
           "effectAura": 99,
           "effectBasePointsF": 280,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         },
@@ -111292,7 +111226,6 @@
           "effect": 6,
           "effectAura": 124,
           "effectBasePointsF": 280,
-          "effectBonusCoefficient": 1,
           "effectIndex": 2,
           "implicitTarget": [1, 0]
         }
@@ -111489,7 +111422,6 @@
           "effect": 6,
           "effectAura": 42,
           "effectBasePointsF": 100,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectTriggerSpell": 25907,
           "implicitTarget": [1, 0]
@@ -111564,7 +111496,7 @@
         "spellLevel": 50
       },
       "misc": {
-        "attributes": [320, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [320, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1024, 0, 0, 0, 8192, 0],
         "schoolMask": 8,
         "spellIconFileDataId": 136013
       },
@@ -111745,7 +111677,6 @@
           "effect": 6,
           "effectAura": 13,
           "effectBasePointsF": 50,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMiscValue": [126, 0],
           "implicitTarget": [1, 0]
@@ -111754,7 +111685,6 @@
           "effect": 6,
           "effectAura": 123,
           "effectBasePointsF": -100,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectMiscValue": [124, 0],
           "implicitTarget": [1, 0]
@@ -112281,7 +112211,6 @@
         "spellIconFileDataId": 135945
       },
       "name": "Prayer of Shadow Protection",
-      "nameSubtext": "Rank 1",
       "power": [
         {
           "manaCost": 1300
@@ -112309,7 +112238,6 @@
           "effect": 6,
           "effectAura": 54,
           "effectBasePointsF": 2,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         }
@@ -112549,7 +112477,6 @@
           "effect": 6,
           "effectAura": 42,
           "effectBasePointsF": 1,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectTriggerSpell": 21330,
           "implicitTarget": [1, 0]
@@ -114435,7 +114362,6 @@
           "effect": 6,
           "effectAura": 54,
           "effectBasePointsF": 2,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         }
@@ -115677,8 +115603,8 @@
         "spellClassSet": 3
       },
       "duration": {
-        "duration": 15000,
-        "maxDuration": 15000
+        "duration": 20000,
+        "maxDuration": 20000
       },
       "effects": [
         {
@@ -116520,9 +116446,9 @@
       "misc": {
         "attributes": [262160, 134218240, 256, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 1,
-        "spellIconFileDataId": 132135
+        "spellIconFileDataId": 132278
       },
-      "name": "Mangle",
+      "name": "Primal Bite",
       "nameSubtext": "Rank 1",
       "power": [
         {
@@ -116537,7 +116463,7 @@
       "shapeshift": {
         "shapeshiftMask": [144, 0]
       },
-      "sources": ["docs", "spellbook", "talent"]
+      "sources": ["spellbook", "talent"]
     },
     "408120": {
       "categories": {
@@ -116586,7 +116512,7 @@
         "spellLevel": 40
       },
       "misc": {
-        "attributes": [65536, 0, 524544, 128, 1048576, 0, 67108864, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524544, 128, 1048576, 0, 67108864, 0, 4608, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 236153
       },
@@ -116935,7 +116861,7 @@
       "effects": [
         {
           "effect": 2,
-          "effectBasePointsF": 113,
+          "effectBasePointsF": 164,
           "effectBonusCoefficient": 0.714,
           "effectIndex": 0,
           "effectRealPointsPerLevel": 0.9,
@@ -117198,7 +117124,7 @@
         "spellLevel": 40
       },
       "misc": {
-        "attributes": [65536, 0, 256, 128, 0, 0, 67108864, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 256, 128, 0, 0, 67108864, 0, 4608, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 252995
       },
@@ -117334,7 +117260,7 @@
         "spellLevel": 1
       },
       "misc": {
-        "attributes": [8388608, 136, 536870916, 1107558400, 0, 8389632, 0, 0, 0, 0, 0, 0, 0, 33554432, 0, 8192, 0],
+        "attributes": [8388608, 136, 536870916, 1107558400, 0, 8389632, 536870912, 0, 0, 0, 2, 0, 0, 33554432, 0, 8192, 0],
         "schoolMask": 4,
         "spellIconFileDataId": 135818
       },
@@ -118304,13 +118230,6 @@
           "effectAura": 61,
           "effectBasePointsF": 30,
           "effectIndex": 1,
-          "implicitTarget": [1, 0]
-        },
-        {
-          "effect": 6,
-          "effectAura": 65,
-          "effectBasePointsF": 30,
-          "effectIndex": 2,
           "implicitTarget": [1, 0]
         }
       ],
@@ -119974,7 +119893,6 @@
           "effect": 6,
           "effectAura": 10,
           "effectBasePointsF": -70,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMiscValue": [127, 0],
           "implicitTarget": [1, 0]
@@ -119983,7 +119901,6 @@
           "effect": 6,
           "effectAura": 61,
           "effectBasePointsF": -70,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "implicitTarget": [1, 0]
         }
@@ -121680,177 +121597,6 @@
       },
       "sources": ["spellbook"]
     },
-    "1238069": {
-      "categories": {
-        "category": 971,
-        "defenseType": 2,
-        "preventionType": 2,
-        "startRecoveryCategory": 133
-      },
-      "classOptions": {
-        "spellClassMask": [0, 64, 0, 0],
-        "spellClassSet": 7
-      },
-      "cooldowns": {
-        "categoryRecoveryTime": 6000,
-        "startRecoveryTime": 1500
-      },
-      "effects": [
-        {
-          "effect": 58,
-          "effectBasePointsF": 38,
-          "effectBonusCoefficient": 1,
-          "effectIndex": 0,
-          "implicitTarget": [6, 0]
-        },
-        {
-          "effect": 31,
-          "effectBasePointsF": 100,
-          "effectIndex": 1,
-          "implicitTarget": [6, 0]
-        }
-      ],
-      "id": 1238069,
-      "levels": {
-        "baseLevel": 36,
-        "spellLevel": 36
-      },
-      "misc": {
-        "attributes": [262160, 134218240, 256, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
-        "schoolMask": 1,
-        "spellIconFileDataId": 132135
-      },
-      "name": "Mangle",
-      "nameSubtext": "Rank 2",
-      "power": [
-        {
-          "manaCost": 200,
-          "powerType": 1
-        }
-      ],
-      "range": {
-        "flags": 1,
-        "rangeMax": [5, 5]
-      },
-      "shapeshift": {
-        "shapeshiftMask": [144, 0]
-      },
-      "sources": ["docs"]
-    },
-    "1238070": {
-      "categories": {
-        "category": 971,
-        "defenseType": 2,
-        "preventionType": 2,
-        "startRecoveryCategory": 133
-      },
-      "classOptions": {
-        "spellClassMask": [0, 64, 0, 0],
-        "spellClassSet": 7
-      },
-      "cooldowns": {
-        "categoryRecoveryTime": 6000,
-        "startRecoveryTime": 1500
-      },
-      "effects": [
-        {
-          "effect": 58,
-          "effectBasePointsF": 59,
-          "effectBonusCoefficient": 1,
-          "effectIndex": 0,
-          "implicitTarget": [6, 0]
-        },
-        {
-          "effect": 31,
-          "effectBasePointsF": 100,
-          "effectIndex": 1,
-          "implicitTarget": [6, 0]
-        }
-      ],
-      "id": 1238070,
-      "levels": {
-        "baseLevel": 48,
-        "spellLevel": 48
-      },
-      "misc": {
-        "attributes": [262160, 134218240, 256, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
-        "schoolMask": 1,
-        "spellIconFileDataId": 132135
-      },
-      "name": "Mangle",
-      "nameSubtext": "Rank 3",
-      "power": [
-        {
-          "manaCost": 200,
-          "powerType": 1
-        }
-      ],
-      "range": {
-        "flags": 1,
-        "rangeMax": [5, 5]
-      },
-      "shapeshift": {
-        "shapeshiftMask": [144, 0]
-      },
-      "sources": ["docs"]
-    },
-    "1238073": {
-      "categories": {
-        "category": 971,
-        "defenseType": 2,
-        "preventionType": 2,
-        "startRecoveryCategory": 133
-      },
-      "classOptions": {
-        "spellClassMask": [0, 64, 0, 0],
-        "spellClassSet": 7
-      },
-      "cooldowns": {
-        "categoryRecoveryTime": 6000,
-        "startRecoveryTime": 1500
-      },
-      "effects": [
-        {
-          "effect": 58,
-          "effectBasePointsF": 77,
-          "effectBonusCoefficient": 1,
-          "effectIndex": 0,
-          "implicitTarget": [6, 0]
-        },
-        {
-          "effect": 31,
-          "effectBasePointsF": 100,
-          "effectIndex": 1,
-          "implicitTarget": [6, 0]
-        }
-      ],
-      "id": 1238073,
-      "levels": {
-        "baseLevel": 60,
-        "spellLevel": 60
-      },
-      "misc": {
-        "attributes": [262160, 134218240, 256, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
-        "schoolMask": 1,
-        "spellIconFileDataId": 132135
-      },
-      "name": "Mangle",
-      "nameSubtext": "Rank 4",
-      "power": [
-        {
-          "manaCost": 200,
-          "powerType": 1
-        }
-      ],
-      "range": {
-        "flags": 1,
-        "rangeMax": [5, 5]
-      },
-      "shapeshift": {
-        "shapeshiftMask": [144, 0]
-      },
-      "sources": ["docs"]
-    },
     "1238122": {
       "categories": {
         "category": 2182,
@@ -121953,7 +121699,7 @@
         "spellLevel": 50
       },
       "misc": {
-        "attributes": [65536, 0, 524544, 128, 1048576, 0, 67108864, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524544, 128, 1048576, 0, 67108864, 0, 4608, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 236153
       },
@@ -122020,7 +121766,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [65536, 0, 524544, 128, 1048576, 0, 67108864, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 524544, 128, 1048576, 0, 67108864, 0, 4608, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 236153
       },
@@ -122062,7 +121808,7 @@
       "effects": [
         {
           "effect": 2,
-          "effectBasePointsF": 179,
+          "effectBasePointsF": 196,
           "effectBonusCoefficient": 0.714,
           "effectIndex": 0,
           "effectRealPointsPerLevel": 1.1,
@@ -122247,7 +121993,7 @@
         "spellLevel": 50
       },
       "misc": {
-        "attributes": [65536, 0, 256, 128, 0, 0, 67108864, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 256, 128, 0, 0, 67108864, 0, 4608, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 252995
       },
@@ -122321,7 +122067,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [65536, 0, 256, 128, 0, 0, 67108864, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 16],
+        "attributes": [65536, 0, 256, 128, 0, 0, 67108864, 0, 4608, 0, 0, 0, 0, 0, 0, 8192, 16],
         "schoolMask": 8,
         "spellIconFileDataId": 252995
       },
@@ -122820,7 +122566,7 @@
         "spellClassSet": 4
       },
       "cooldowns": {
-        "categoryRecoveryTime": 15000,
+        "categoryRecoveryTime": 18000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -123894,7 +123640,6 @@
           "effectAura": 227,
           "effectAuraPeriod": 10000,
           "effectBasePointsF": 15,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectTriggerSpell": 1248406,
           "implicitTarget": [1, 0]
@@ -123933,7 +123678,6 @@
           "effectAura": 227,
           "effectAuraPeriod": 10000,
           "effectBasePointsF": 15,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectTriggerSpell": 1248420,
           "implicitTarget": [1, 0]
@@ -123972,7 +123716,6 @@
           "effectAura": 227,
           "effectAuraPeriod": 10000,
           "effectBasePointsF": 15,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectTriggerSpell": 1248422,
           "implicitTarget": [1, 0]
@@ -124011,7 +123754,6 @@
           "effectAura": 227,
           "effectAuraPeriod": 10000,
           "effectBasePointsF": 20,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectTriggerSpell": 1248406,
           "implicitTarget": [1, 0]
@@ -124050,7 +123792,6 @@
           "effectAura": 227,
           "effectAuraPeriod": 10000,
           "effectBasePointsF": 20,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectTriggerSpell": 1248420,
           "implicitTarget": [1, 0]
@@ -124089,7 +123830,6 @@
           "effectAura": 227,
           "effectAuraPeriod": 10000,
           "effectBasePointsF": 20,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectTriggerSpell": 1248422,
           "implicitTarget": [1, 0]
@@ -124646,7 +124386,6 @@
           "effectAura": 227,
           "effectAuraPeriod": 10000,
           "effectBasePointsF": 30,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectTriggerSpell": 1249519,
           "implicitTarget": [1, 0]
@@ -124724,7 +124463,6 @@
           "effectAura": 227,
           "effectAuraPeriod": 10000,
           "effectBasePointsF": 40,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectTriggerSpell": 1249519,
           "implicitTarget": [1, 0]
@@ -124823,7 +124561,6 @@
           "effectAura": 227,
           "effectAuraPeriod": 10000,
           "effectBasePointsF": 1,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectTriggerSpell": 1249523,
           "implicitTarget": [1, 0]
@@ -125071,10 +124808,16 @@
       "effects": [
         {
           "effect": 6,
-          "effectAura": 13,
-          "effectBasePointsF": 20,
+          "effectAura": 99,
+          "effectBasePointsF": 40,
           "effectIndex": 0,
-          "effectMiscValue": [1, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 40,
+          "effectIndex": 1,
           "implicitTarget": [1, 0]
         }
       ],
@@ -125101,10 +124844,16 @@
       "effects": [
         {
           "effect": 6,
-          "effectAura": 13,
-          "effectBasePointsF": 28,
+          "effectAura": 99,
+          "effectBasePointsF": 56,
           "effectIndex": 0,
-          "effectMiscValue": [1, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 56,
+          "effectIndex": 1,
           "implicitTarget": [1, 0]
         }
       ],
@@ -125131,10 +124880,16 @@
       "effects": [
         {
           "effect": 6,
-          "effectAura": 13,
-          "effectBasePointsF": 40,
+          "effectAura": 99,
+          "effectBasePointsF": 80,
           "effectIndex": 0,
-          "effectMiscValue": [1, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 124,
+          "effectBasePointsF": 80,
+          "effectIndex": 1,
           "implicitTarget": [1, 0]
         }
       ],
@@ -125146,57 +124901,6 @@
       },
       "name": "Major Frenzy Potion",
       "sources": ["consumable"]
-    },
-    "1253389": {
-      "auraOptions": {
-        "procCategoryRecovery": 30000,
-        "procChance": 20,
-        "procTypeMask": [20, 32]
-      },
-      "effects": [
-        {
-          "effect": 6,
-          "effectAura": 231,
-          "effectBasePointsF": -150,
-          "effectIndex": 0,
-          "effectTriggerSpell": 1253404,
-          "implicitTarget": [1, 0]
-        }
-      ],
-      "id": 1253389,
-      "misc": {
-        "attributes": [-1996488640, 2080, 268976128, 4194816, 4096, 393224, 4100, 0, 4128, 2048, 4194304, 67108866, 0, 2, 16, 8192, 0],
-        "schoolMask": 1,
-        "spellIconFileDataId": 1036119
-      },
-      "name": "Adaptation",
-      "sources": ["docs"]
-    },
-    "1253404": {
-      "duration": {
-        "duration": 6000,
-        "maxDuration": 6000
-      },
-      "effects": [
-        {
-          "effect": 6,
-          "effectAura": 22,
-          "effectIndex": 0,
-          "effectMiscValue": [1, 0],
-          "implicitTarget": [6, 0]
-        }
-      ],
-      "id": 1253404,
-      "misc": {
-        "attributes": [67108864, 0, 268435456, 458752, 8388608, 0, 4, 0, 4096, 0, 0, 2, 0, 0, 0, 8192, 0],
-        "schoolMask": 1,
-        "spellIconFileDataId": 463566
-      },
-      "name": "Crushed Armor",
-      "range": {
-        "rangeMax": [60, 60]
-      },
-      "sources": ["trigger"]
     },
     "1257049": {
       "effects": [
@@ -125643,7 +125347,7 @@
         {
           "effect": 6,
           "effectAura": 108,
-          "effectBasePointsF": -20,
+          "effectBasePointsF": -10,
           "effectIndex": 0,
           "effectMiscValue": [14, 0],
           "effectSpellClassMask": [68290334, 2099464, 0, 0],
@@ -125712,7 +125416,7 @@
         {
           "effect": 6,
           "effectAura": 108,
-          "effectBasePointsF": -40,
+          "effectBasePointsF": -10,
           "effectIndex": 0,
           "effectMiscValue": [14, 0],
           "effectSpellClassMask": [710934758, 4, 0, 0],
@@ -125781,7 +125485,7 @@
         {
           "effect": 6,
           "effectAura": 108,
-          "effectBasePointsF": -50,
+          "effectBasePointsF": -10,
           "effectIndex": 0,
           "effectMiscValue": [14, 0],
           "effectSpellClassMask": [545397431, 4096, 0, 0],
@@ -125850,7 +125554,7 @@
         {
           "effect": 6,
           "effectAura": 108,
-          "effectBasePointsF": -50,
+          "effectBasePointsF": -10,
           "effectIndex": 0,
           "effectMiscValue": [14, 0],
           "effectSpellClassMask": [542127, 8388994, 0, 0],
@@ -125919,7 +125623,7 @@
         {
           "effect": 6,
           "effectAura": 108,
-          "effectBasePointsF": -15,
+          "effectBasePointsF": -10,
           "effectIndex": 0,
           "effectMiscValue": [14, 0],
           "effectSpellClassMask": [183811792, 8486916, 64, 0],
@@ -129693,7 +129397,6 @@
           "effect": 6,
           "effectAura": 12,
           "effectBasePointsF": 3,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectMechanic": 14,
           "effectRadiusIndex": [15, 0],
@@ -129808,7 +129511,6 @@
         {
           "effect": 3,
           "effectBasePointsF": 3,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [6, 0]
         }
@@ -129851,7 +129553,7 @@
       "effects": [
         {
           "effect": 6,
-          "effectAura": 3,
+          "effectAura": 226,
           "effectAuraPeriod": 3000,
           "effectBasePointsF": 80,
           "effectIndex": 0,
@@ -129875,7 +129577,7 @@
         "spellLevel": 20
       },
       "misc": {
-        "attributes": [-2147483648, 1024, 33554432, 0, 4096, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [-2147483648, 1024, 570425344, 0, 4096, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
         "spellIconFileDataId": 5852175
       },
@@ -129905,7 +129607,7 @@
       "effects": [
         {
           "effect": 6,
-          "effectAura": 3,
+          "effectAura": 226,
           "effectAuraPeriod": 3000,
           "effectBasePointsF": 136,
           "effectIndex": 0,
@@ -129929,7 +129631,7 @@
         "spellLevel": 30
       },
       "misc": {
-        "attributes": [-2147483648, 1024, 33554432, 0, 4096, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [-2147483648, 1024, 570425344, 0, 4096, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
         "spellIconFileDataId": 5852175
       },
@@ -129959,7 +129661,7 @@
       "effects": [
         {
           "effect": 6,
-          "effectAura": 3,
+          "effectAura": 226,
           "effectAuraPeriod": 3000,
           "effectBasePointsF": 196,
           "effectIndex": 0,
@@ -129983,7 +129685,7 @@
         "spellLevel": 40
       },
       "misc": {
-        "attributes": [-2147483648, 1024, 33554432, 0, 4096, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [-2147483648, 1024, 570425344, 0, 4096, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
         "spellIconFileDataId": 5852175
       },
@@ -130013,7 +129715,7 @@
       "effects": [
         {
           "effect": 6,
-          "effectAura": 3,
+          "effectAura": 226,
           "effectAuraPeriod": 3000,
           "effectBasePointsF": 258,
           "effectIndex": 0,
@@ -130037,7 +129739,7 @@
         "spellLevel": 50
       },
       "misc": {
-        "attributes": [-2147483648, 1024, 33554432, 0, 4096, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [-2147483648, 1024, 570425344, 0, 4096, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
         "spellIconFileDataId": 5852175
       },
@@ -130067,7 +129769,7 @@
       "effects": [
         {
           "effect": 6,
-          "effectAura": 3,
+          "effectAura": 226,
           "effectAuraPeriod": 3000,
           "effectBasePointsF": 320,
           "effectIndex": 0,
@@ -130091,7 +129793,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [-2147483648, 1024, 33554432, 0, 4096, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [-2147483648, 1024, 536870912, 0, 4096, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 32,
         "spellIconFileDataId": 5852175
       },
@@ -130166,7 +129868,8 @@
       },
       "sources": ["spellbook"],
       "targetRestrictions": {
-        "maxTargets": 1
+        "maxTargets": 1,
+        "targetCreatureType": 64
       }
     },
     "1277332": {
@@ -130236,7 +129939,8 @@
       },
       "sources": ["spellbook"],
       "targetRestrictions": {
-        "maxTargets": 1
+        "maxTargets": 1,
+        "targetCreatureType": 64
       }
     },
     "1277333": {
@@ -130306,7 +130010,8 @@
       },
       "sources": ["spellbook"],
       "targetRestrictions": {
-        "maxTargets": 1
+        "maxTargets": 1,
+        "targetCreatureType": 64
       }
     },
     "1277334": {
@@ -130376,7 +130081,8 @@
       },
       "sources": ["spellbook"],
       "targetRestrictions": {
-        "maxTargets": 1
+        "maxTargets": 1,
+        "targetCreatureType": 64
       }
     },
     "1277335": {
@@ -130446,7 +130152,8 @@
       },
       "sources": ["spellbook"],
       "targetRestrictions": {
-        "maxTargets": 1
+        "maxTargets": 1,
+        "targetCreatureType": 64
       }
     },
     "1277370": {
@@ -131289,7 +130996,7 @@
         "spellLevel": 20
       },
       "misc": {
-        "attributes": [0, 136, 1073741824, 1073741824, 32896, 1024, 0, 0, 4096, 1048584, 0, 0, 0, 1, 0, 8192, 0],
+        "attributes": [0, 136, 1073741824, 1107296256, 32896, 1024, 0, 0, 4096, 1048584, 0, 0, 0, 1, 0, 8192, 0],
         "schoolMask": 2,
         "spellIconFileDataId": 135926
       },
@@ -131337,7 +131044,7 @@
         "spellLevel": 30
       },
       "misc": {
-        "attributes": [0, 136, 1073741824, 1073741824, 32896, 1024, 0, 0, 4096, 1048584, 0, 0, 0, 1, 0, 8192, 0],
+        "attributes": [0, 136, 1073741824, 1107296256, 32896, 1024, 0, 0, 4096, 1048584, 0, 0, 0, 1, 0, 8192, 0],
         "schoolMask": 2,
         "spellIconFileDataId": 135926
       },
@@ -131385,7 +131092,7 @@
         "spellLevel": 40
       },
       "misc": {
-        "attributes": [0, 136, 1073741824, 1073741824, 32896, 1024, 0, 0, 4096, 1048584, 0, 0, 0, 1, 0, 8192, 0],
+        "attributes": [0, 136, 1073741824, 1107296256, 32896, 1024, 0, 0, 4096, 1048584, 0, 0, 0, 1, 0, 8192, 0],
         "schoolMask": 2,
         "spellIconFileDataId": 135926
       },
@@ -131433,7 +131140,7 @@
         "spellLevel": 50
       },
       "misc": {
-        "attributes": [0, 136, 1073741824, 1073741824, 32896, 1024, 0, 0, 4096, 1048584, 0, 0, 0, 1, 0, 8192, 0],
+        "attributes": [0, 136, 1073741824, 1107296256, 32896, 1024, 0, 0, 4096, 1048584, 0, 0, 0, 1, 0, 8192, 0],
         "schoolMask": 2,
         "spellIconFileDataId": 135926
       },
@@ -131481,7 +131188,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [0, 136, 1073741824, 1073741824, 32896, 1024, 0, 0, 4096, 1048584, 0, 0, 0, 1, 0, 8192, 0],
+        "attributes": [0, 136, 1073741824, 1107296256, 32896, 1024, 0, 0, 4096, 1048584, 0, 0, 0, 1, 0, 8192, 0],
         "schoolMask": 2,
         "spellIconFileDataId": 135926
       },
@@ -131521,10 +131228,6 @@
       "sources": ["docs"]
     },
     "1282733": {
-      "auraOptions": {
-        "cumulativeAura": 3,
-        "procChance": 101
-      },
       "duration": {
         "duration": 5000,
         "maxDuration": 5000
@@ -131565,7 +131268,7 @@
       "range": {
         "rangeMax": [50000, 50000]
       },
-      "sources": ["docs"]
+      "sources": ["docs", "trigger"]
     },
     "1284536": {
       "auraOptions": {
@@ -131626,7 +131329,6 @@
           "effect": 6,
           "effectAura": 99,
           "effectBasePointsF": 28,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         },
@@ -131634,7 +131336,6 @@
           "effect": 6,
           "effectAura": 124,
           "effectBasePointsF": 28,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "implicitTarget": [1, 0]
         }
@@ -131711,7 +131412,7 @@
     "1289682": {
       "auraOptions": {
         "procChance": 100,
-        "procTypeMask": [4, 0]
+        "procTypeMask": [20, 32]
       },
       "classOptions": {
         "spellClassSet": 4
@@ -131719,9 +131420,10 @@
       "effects": [
         {
           "effect": 6,
-          "effectAura": 4,
+          "effectAura": 42,
           "effectBasePointsF": 15,
           "effectIndex": 0,
+          "effectTriggerSpell": 1282733,
           "implicitTarget": [1, 0]
         }
       ],
@@ -131730,7 +131432,7 @@
         "spellLevel": 1
       },
       "misc": {
-        "attributes": [464, 0, 0, 0, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [464, 0, 0, 1024, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 1,
         "spellIconFileDataId": 135271
       },
@@ -133461,7 +133163,6 @@
         {
           "effect": 6,
           "effectAura": 4,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         }
@@ -133571,7 +133272,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [327696, 512, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [327696, 512, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 1,
         "spellIconFileDataId": 132155
       },
@@ -133698,7 +133399,6 @@
           "effect": 6,
           "effectAura": 12,
           "effectBasePointsF": 2,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMechanic": 12,
           "implicitTarget": [6, 0]
@@ -133964,7 +133664,7 @@
         "schoolMask": 32,
         "spellIconFileDataId": 136203
       },
-      "name": "Necrophile Drain",
+      "name": "Necropile Drain",
       "range": {
         "rangeMax": [100, 100]
       },
@@ -133995,7 +133695,7 @@
         "schoolMask": 1,
         "spellIconFileDataId": 136130
       },
-      "name": "Necrophile Drain",
+      "name": "Necropile Drain",
       "sources": ["item"]
     },
     "1299738": {
@@ -134045,7 +133745,7 @@
         "spellLevel": 60
       },
       "misc": {
-        "attributes": [262144, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [262144, 0, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 1,
         "spellIconFileDataId": 132155
       },
@@ -134230,7 +133930,6 @@
           "effect": 6,
           "effectAura": 42,
           "effectBasePointsF": 1,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectTriggerSpell": 15494,
           "implicitTarget": [1, 0]
@@ -134239,7 +133938,6 @@
           "effect": 6,
           "effectAura": 4,
           "effectBasePointsF": 2,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectTriggerSpell": 15601,
           "implicitTarget": [1, 0]
@@ -134923,7 +134621,7 @@
       ],
       "id": 1302343,
       "misc": {
-        "attributes": [0, 0, 0, 65536, 8388608, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [0, 0, 0, 65536, 8388608, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 4,
         "speed": 30,
         "spellIconFileDataId": 135811
@@ -135656,7 +135354,6 @@
         {
           "effect": 108,
           "effectBasePointsF": 1,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectMiscValue": [3, 0],
           "implicitTarget": [21, 0]
@@ -136011,7 +135708,7 @@
         "spellClassSet": 4
       },
       "cooldowns": {
-        "categoryRecoveryTime": 15000,
+        "categoryRecoveryTime": 18000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -136067,7 +135764,7 @@
         "spellClassSet": 4
       },
       "cooldowns": {
-        "categoryRecoveryTime": 15000,
+        "categoryRecoveryTime": 18000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -136123,7 +135820,7 @@
         "spellClassSet": 4
       },
       "cooldowns": {
-        "categoryRecoveryTime": 15000,
+        "categoryRecoveryTime": 18000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -136179,7 +135876,7 @@
         "spellClassSet": 4
       },
       "cooldowns": {
-        "categoryRecoveryTime": 15000,
+        "categoryRecoveryTime": 18000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -136235,7 +135932,7 @@
         "spellClassSet": 4
       },
       "cooldowns": {
-        "categoryRecoveryTime": 15000,
+        "categoryRecoveryTime": 18000,
         "startRecoveryTime": 1500
       },
       "effects": [
@@ -136695,6 +136392,33 @@
       },
       "sources": ["docs", "spellbook", "talent"]
     },
+    "1310697": {
+      "effects": [
+        {
+          "effect": 30,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [4, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 3,
+          "effectIndex": 1,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 1310697,
+      "misc": {
+        "attributes": [16, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136235
+      },
+      "name": "Improved Expose Armor",
+      "range": {
+        "rangeMax": [50000, 50000]
+      },
+      "sources": ["trigger"]
+    },
     "1310703": {
       "categories": {
         "preventionType": 2,
@@ -137123,10 +136847,18 @@
         "procChance": 100,
         "procTypeMask": [4, 0]
       },
+      "classOptions": {
+        "spellClassSet": 10
+      },
       "effects": [
         {
-          "effect": 3,
+          "effect": 6,
+          "effectAura": 108,
+          "effectBasePointsF": -20,
+          "effectBonusCoefficient": 1,
           "effectIndex": 0,
+          "effectMiscValue": [14, 0],
+          "effectSpellClassMask": [167773696, 637534208, 0, 0],
           "implicitTarget": [1, 0]
         }
       ],
@@ -137321,31 +137053,6 @@
       "name": "Reverence",
       "sources": ["talent"]
     },
-    "1310902": {
-      "classOptions": {
-        "spellClassSet": 10
-      },
-      "effects": [
-        {
-          "effect": 6,
-          "effectAura": 107,
-          "effectBasePointsF": -2000,
-          "effectBonusCoefficient": 1,
-          "effectIndex": 0,
-          "effectMiscValue": [11, 0],
-          "effectSpellClassMask": [0, 0, 0, 32768],
-          "implicitTarget": [1, 0]
-        }
-      ],
-      "id": 1310902,
-      "misc": {
-        "attributes": [464, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
-        "schoolMask": 1,
-        "spellIconFileDataId": 626003
-      },
-      "name": "Improved Holy Strike",
-      "sources": ["talent"]
-    },
     "1310904": {
       "classOptions": {
         "spellClassSet": 10
@@ -137422,12 +137129,6 @@
           "effect": 3,
           "effectBasePointsF": 75,
           "effectIndex": 1,
-          "implicitTarget": [25, 0]
-        },
-        {
-          "effect": 3,
-          "effectBasePointsF": 1,
-          "effectIndex": 2,
           "implicitTarget": [25, 0]
         }
       ],
@@ -137579,7 +137280,7 @@
         "spellLevel": 30
       },
       "misc": {
-        "attributes": [262160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [262160, 0, 0, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 2,
         "spellIconFileDataId": 236264
       },
@@ -137735,7 +137436,7 @@
         "spellIconFileDataId": 135889
       },
       "name": "Crusade",
-      "sources": ["docs", "talent"]
+      "sources": ["docs"]
     },
     "1311084": {
       "classOptions": {
@@ -137812,7 +137513,7 @@
         {
           "effect": 6,
           "effectAura": 108,
-          "effectBasePointsF": 10,
+          "effectBasePointsF": 20,
           "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "effectSpellClassMask": [0, 0, 0, 32768],
@@ -137857,12 +137558,6 @@
           "effect": 3,
           "effectBasePointsF": 75,
           "effectIndex": 1,
-          "implicitTarget": [25, 0]
-        },
-        {
-          "effect": 3,
-          "effectBasePointsF": 1,
-          "effectIndex": 2,
           "implicitTarget": [25, 0]
         }
       ],
@@ -137918,12 +137613,6 @@
           "effect": 3,
           "effectBasePointsF": 75,
           "effectIndex": 1,
-          "implicitTarget": [25, 0]
-        },
-        {
-          "effect": 3,
-          "effectBasePointsF": 1,
-          "effectIndex": 2,
           "implicitTarget": [25, 0]
         }
       ],
@@ -138822,6 +138511,10 @@
         "recoveryTime": 8000,
         "startRecoveryTime": 1500
       },
+      "duration": {
+        "duration": 3000,
+        "maxDuration": 3000
+      },
       "effects": [
         {
           "effect": 121,
@@ -138835,6 +138528,14 @@
           "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "implicitTarget": [6, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 31,
+          "effectBasePointsF": 30,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 2,
+          "implicitTarget": [1, 0]
         }
       ],
       "equippedItems": {
@@ -138847,7 +138548,7 @@
         "spellLevel": 30
       },
       "misc": {
-        "attributes": [262144, 512, 0, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "attributes": [262144, 512, 0, 1024, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
         "schoolMask": 1,
         "spellIconFileDataId": 132198
       },
@@ -138891,7 +138592,6 @@
           "effect": 6,
           "effectAura": 99,
           "effectBasePointsF": 14,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         },
@@ -138899,7 +138599,6 @@
           "effect": 6,
           "effectAura": 124,
           "effectBasePointsF": 14,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "implicitTarget": [1, 0]
         }
@@ -138918,7 +138617,6 @@
         {
           "effect": 6,
           "effectAura": 4,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         }
@@ -138940,7 +138638,6 @@
         {
           "effect": 6,
           "effectAura": 4,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         }
@@ -139186,7 +138883,6 @@
         {
           "effect": 6,
           "effectAura": 4,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         }
@@ -139289,7 +138985,6 @@
           "effect": 6,
           "effectAura": 124,
           "effectBasePointsF": 30,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "implicitTarget": [1, 0]
         },
@@ -139305,7 +139000,6 @@
           "effect": 6,
           "effectAura": 131,
           "effectBasePointsF": 30,
-          "effectBonusCoefficient": 1,
           "effectIndex": 3,
           "effectMiscValue": [256, 0],
           "implicitTarget": [1, 0]
@@ -139359,7 +139053,6 @@
         {
           "effect": 6,
           "effectAura": 4,
-          "effectBonusCoefficient": 1,
           "effectIndex": 0,
           "implicitTarget": [1, 0]
         }
@@ -139463,7 +139156,6 @@
           "effectAura": 227,
           "effectAuraPeriod": 10000,
           "effectBasePointsF": 150,
-          "effectBonusCoefficient": 1,
           "effectIndex": 1,
           "effectTriggerSpell": 1319310,
           "implicitTarget": [1, 0]
@@ -139477,6 +139169,43 @@
       },
       "name": "Nutritious Food",
       "sources": ["consumable"]
+    },
+    "1320824": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "categories": {
+        "defenseType": 2,
+        "mechanic": 15
+      },
+      "duration": {
+        "duration": 14000,
+        "maxDuration": 14000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 3,
+          "effectAuraPeriod": 2000,
+          "effectBasePointsF": 20,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 1320824,
+      "levels": {
+        "spellLevel": 50
+      },
+      "misc": {
+        "attributes": [262144, 0, 0, 0, 0, 0, 0, 0, 512, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 132155
+      },
+      "name": "Rend",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["item"]
     }
   }
 }

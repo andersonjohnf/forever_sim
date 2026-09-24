@@ -2,8 +2,8 @@
   "meta": {
     "classicBuild": "1.15.9.69722",
     "classicProduct": "wow_classic_era",
-    "foreverBuild": "1.60.1.69913",
-    "foreverBuildDate": "2026-09-18",
+    "foreverBuild": "1.60.1.70009",
+    "foreverBuildDate": "2026-09-24",
     "noClientData": [
       {
         "acquireMethod": 0,
@@ -355,7 +355,7 @@
       }
     ],
     "product": "wow_classic_beta",
-    "scrapedAt": "2026-09-23T02:51:35Z",
+    "scrapedAt": "2026-09-24T22:47:45Z",
     "scraper": "scripts/scrape/spells-client.mjs",
     "source": "https://wago.tools/api/casc",
     "tables": {
@@ -2042,7 +2042,7 @@
             "requires": null,
             "school": "shadow",
             "spellId": 1454,
-            "text": "Converts 30 health into 30 Mana for you. Spirit increases the amount of Mana converted. Mana gained is increased by your Spirit."
+            "text": "Converts 30 Health into 30 Mana for you. Spirit increases the amount converted."
           },
           "rank": 1
         },
@@ -2087,7 +2087,7 @@
             "requires": null,
             "school": "shadow",
             "spellId": 1455,
-            "text": "Converts 75 health into 75 Mana for you. Spirit increases the amount of Mana converted. Mana gained is increased by your Spirit."
+            "text": "Converts 75 Health into 75 Mana for you. Spirit increases the amount converted."
           },
           "rank": 2
         },
@@ -2132,7 +2132,7 @@
             "requires": null,
             "school": "shadow",
             "spellId": 1456,
-            "text": "Converts 140 health into 140 Mana for you. Spirit increases the amount of Mana converted. Mana gained is increased by your Spirit."
+            "text": "Converts 140 Health into 140 Mana for you. Spirit increases the amount converted."
           },
           "rank": 3
         },
@@ -2177,7 +2177,7 @@
             "requires": null,
             "school": "shadow",
             "spellId": 11687,
-            "text": "Converts 220 health into 220 Mana for you. Spirit increases the amount of Mana converted. Mana gained is increased by your Spirit."
+            "text": "Converts 220 Health into 220 Mana for you. Spirit increases the amount converted."
           },
           "rank": 4
         },
@@ -2222,7 +2222,7 @@
             "requires": null,
             "school": "shadow",
             "spellId": 11688,
-            "text": "Converts 310 health into 310 Mana for you. Spirit increases the amount of Mana converted. Mana gained is increased by your Spirit."
+            "text": "Converts 310 Health into 310 Mana for you. Spirit increases the amount converted."
           },
           "rank": 5
         },
@@ -2267,7 +2267,7 @@
             "requires": null,
             "school": "shadow",
             "spellId": 11689,
-            "text": "Converts 424 health into 424 Mana for you. Spirit increases the amount of Mana converted. Mana gained is increased by your Spirit."
+            "text": "Converts 424 Health into 424 Mana for you. Spirit increases the amount converted."
           },
           "rank": 6
         }
@@ -6854,7 +6854,7 @@
         "wasTalent": false
       },
       "grantedByTalent": false,
-      "icon": "spell_shadow_detectlesserinvisibility",
+      "icon": "spell_shadow_detectinvisibility",
       "id": "warlock-detect-invisibility",
       "isTalent": false,
       "level": 26,
@@ -6909,7 +6909,7 @@
               "resource": "mana"
             },
             "forms": null,
-            "icon": "spell_shadow_detectlesserinvisibility",
+            "icon": "spell_shadow_detectinvisibility",
             "level": 26,
             "range": {
               "melee": false,
@@ -7238,7 +7238,7 @@
             "requires": null,
             "school": "fire",
             "spellId": 17952,
-            "text": "Creates a Greater Firestone which can be used to enchant your weapon with Fire, increasing your spell critical strike chance by 2% and the damage done by your Fire spells by up to 17."
+            "text": "Creates a Greater Firestone which can be used to enchant your weapon with Fire, increasing your spell critical strike chance by 2% and the damage done by your Fire spells by up to 17.\n\nConjured items disappear if logged out for more than 15 minutes."
           },
           "rank": 3
         },
@@ -7265,7 +7265,7 @@
             "requires": null,
             "school": "fire",
             "spellId": 17953,
-            "text": "Creates a Major Firestone which can be used to enchant your weapon with Fire, increasing your spell critical strike chance by 2% and the damage done by your Fire spells by up to 21."
+            "text": "Creates a Major Firestone which can be used to enchant your weapon with Fire, increasing your spell critical strike chance by 2% and the damage done by your Fire spells by up to 21.\n\nConjured items disappear if logged out for more than 15 minutes."
           },
           "rank": 4
         }

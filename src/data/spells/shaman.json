@@ -2,8 +2,8 @@
   "meta": {
     "classicBuild": "1.15.9.69722",
     "classicProduct": "wow_classic_era",
-    "foreverBuild": "1.60.1.69913",
-    "foreverBuildDate": "2026-09-18",
+    "foreverBuild": "1.60.1.70009",
+    "foreverBuildDate": "2026-09-24",
     "noClientData": [
       {
         "acquireMethod": 0,
@@ -235,7 +235,7 @@
       }
     ],
     "product": "wow_classic_beta",
-    "scrapedAt": "2026-09-23T02:51:35Z",
+    "scrapedAt": "2026-09-24T22:47:45Z",
     "scraper": "scripts/scrape/spells-client.mjs",
     "source": "https://wago.tools/api/casc",
     "tables": {
@@ -314,21 +314,6 @@
         "spellId": 556,
         "token": "$z",
         "why": "the player's home location, which only the game knows: the text reads \"your home location\""
-      },
-      {
-        "spellId": 8512,
-        "token": "$8514a1",
-        "why": "reads spell 8514, which the build doesn't have"
-      },
-      {
-        "spellId": 10613,
-        "token": "$10607a1",
-        "why": "reads spell 10607, which the build doesn't have"
-      },
-      {
-        "spellId": 10614,
-        "token": "$10611a1",
-        "why": "reads spell 10611, which the build doesn't have"
       }
     ],
     "wowDbDefs": {
@@ -4026,8 +4011,8 @@
           },
           "differences": [
             {
-              "field": "text",
-              "text": "Tooltip rewritten"
+              "field": "value",
+              "text": "30 instead of 20, 95 instead of 122, 5 instead of 2, reworded"
             }
           ],
           "forever": {
@@ -4050,7 +4035,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8512,
-            "text": "Summons a Windfury Totem with 5 health at the feet of the caster. The totem enhances the melee attacks of all party members within yards. Each main hand hit has a 20% chance of granting the attacker 1 extra attack with 95 extra melee attack power. Lasts 5 min."
+            "text": "Summons a Windfury Totem with 5 health at the feet of the caster. The totem enhances the melee attacks of all party members within 30 yards. Each main hand hit has a 20% chance of granting the attacker 1 extra attack with 95 extra melee attack power. Lasts 5 min."
           },
           "rank": 1
         },
@@ -4079,8 +4064,8 @@
           },
           "differences": [
             {
-              "field": "text",
-              "text": "Tooltip rewritten"
+              "field": "value",
+              "text": "30 instead of 20, 179 instead of 229, 5 instead of 2, reworded"
             }
           ],
           "forever": {
@@ -4103,7 +4088,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 10613,
-            "text": "Summons a Windfury Totem with 5 health at the feet of the caster. The totem enhances the melee attacks of all party members within yards. Each main hand hit has a 20% chance of granting the attacker 1 extra attack with 179 extra melee attack power. Lasts 5 min."
+            "text": "Summons a Windfury Totem with 5 health at the feet of the caster. The totem enhances the melee attacks of all party members within 30 yards. Each main hand hit has a 20% chance of granting the attacker 1 extra attack with 179 extra melee attack power. Lasts 5 min."
           },
           "rank": 2
         },
@@ -4132,8 +4117,8 @@
           },
           "differences": [
             {
-              "field": "text",
-              "text": "Tooltip rewritten"
+              "field": "value",
+              "text": "30 instead of 20, 246 instead of 315, 5 instead of 2, reworded"
             }
           ],
           "forever": {
@@ -4156,7 +4141,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 10614,
-            "text": "Summons a Windfury Totem with 5 health at the feet of the caster. The totem enhances the melee attacks of all party members within yards. Each main hand hit has a 20% chance of granting the attacker 1 extra attack with 246 extra melee attack power. Lasts 5 min."
+            "text": "Summons a Windfury Totem with 5 health at the feet of the caster. The totem enhances the melee attacks of all party members within 30 yards. Each main hand hit has a 20% chance of granting the attacker 1 extra attack with 246 extra melee attack power. Lasts 5 min."
           },
           "rank": 3
         }
@@ -4617,7 +4602,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 425336,
-            "text": "Increases your melee attack speed and spell casting speed by 30% for 25 sec."
+            "text": "Increases your attack speed by 30% for 25 sec."
           },
           "rank": null
         }
@@ -7762,7 +7747,7 @@
           "differences": [
             {
               "field": "value",
-              "text": "35 instead of 48, 41 instead of 56"
+              "text": "44 instead of 48, 52 instead of 56"
             }
           ],
           "forever": {
@@ -7789,7 +7774,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 548,
-            "text": "Casts a bolt of lightning at the target for 35 to 41 Nature damage."
+            "text": "Casts a bolt of lightning at the target for 44 to 52 Nature damage."
           },
           "rank": 3
         },
@@ -7831,7 +7816,7 @@
             },
             {
               "field": "value",
-              "text": "50 instead of 88, 56 instead of 100"
+              "text": "55 instead of 88, 63 instead of 100"
             }
           ],
           "forever": {
@@ -7858,7 +7843,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 915,
-            "text": "Casts a bolt of lightning at the target for 50 to 56 Nature damage."
+            "text": "Casts a bolt of lightning at the target for 55 to 63 Nature damage."
           },
           "rank": 4
         },
@@ -11245,7 +11230,7 @@
             "requires": null,
             "school": "fire",
             "spellId": 408490,
-            "text": "You hurl molten lava at the target, dealing 106 to 134 Fire damage. If your Flame Shock is on the target, Lava Burst deals 20% increased damage."
+            "text": "You hurl molten lava at the target, dealing 150 to 192 Fire damage. If your Flame Shock is on the target, Lava Burst deals 20% increased damage."
           },
           "rank": 1
         },
@@ -11279,7 +11264,7 @@
             "requires": null,
             "school": "fire",
             "spellId": 1238299,
-            "text": "You hurl molten lava at the target, dealing 164 to 210 Fire damage. If your Flame Shock is on the target, Lava Burst deals 20% increased damage."
+            "text": "You hurl molten lava at the target, dealing 179 to 229 Fire damage. If your Flame Shock is on the target, Lava Burst deals 20% increased damage."
           },
           "rank": 2
         },

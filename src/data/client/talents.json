@@ -1,9 +1,9 @@
 {
   "meta": {
-    "build": "1.60.1.69913",
-    "buildCreatedAt": "2026-09-18 03:02:04",
+    "build": "1.60.1.70009",
+    "buildCreatedAt": "2026-09-24 22:02:03",
     "product": "wow_classic_beta",
-    "scrapedAt": "2026-09-22T23:10:58Z",
+    "scrapedAt": "2026-09-24T22:47:25Z",
     "scraper": "scripts/scrape/client.mjs",
     "source": "https://wago.tools/api/casc",
     "tables": {
@@ -948,12 +948,12 @@
             "prerequisiteTalentIds": ["druid-feral-combat-savage-fury"],
             "tier": 3
           },
-          "clientName": "Mangle",
+          "clientName": "Primal Bite",
           "col": 1,
           "id": "druid-feral-combat-mangle",
-          "matchedBy": "name",
+          "matchedBy": "position",
           "maxRank": 1,
-          "mismatches": [],
+          "mismatches": ["name: scraped \"Mangle\", client \"Primal Bite\""],
           "name": "Mangle",
           "overridesSpellId": 0,
           "rankEffects": [],
@@ -1005,12 +1005,12 @@
             "prerequisiteTalentIds": ["druid-feral-combat-sharpened-claws"],
             "tier": 3
           },
-          "clientName": "Primal Fury",
+          "clientName": "Blood Frenzy",
           "col": 3,
           "id": "druid-feral-combat-primal-fury",
-          "matchedBy": "name",
+          "matchedBy": "position",
           "maxRank": 2,
-          "mismatches": [],
+          "mismatches": ["name: scraped \"Primal Fury\", client \"Blood Frenzy\""],
           "name": "Primal Fury",
           "overridesSpellId": 0,
           "rankEffects": [
@@ -5185,38 +5185,6 @@
       "talents": [
         {
           "client": {
-            "col": 0,
-            "prerequisiteNodeIds": [],
-            "prerequisiteTalentIds": [],
-            "tier": 0
-          },
-          "clientName": "Improved Holy Strike",
-          "col": 0,
-          "id": "paladin-holy-improved-holy-strike",
-          "matchedBy": "name",
-          "maxRank": 2,
-          "mismatches": [],
-          "name": "Improved Holy Strike",
-          "overridesSpellId": 0,
-          "rankEffects": [
-            {
-              "curveId": 82970,
-              "effectIndex": 0,
-              "operationType": 0,
-              "values": [-1000, -2000]
-            }
-          ],
-          "rankSpellIds": [1310902, 1310902],
-          "spellId": 1310902,
-          "tier": 0,
-          "traitDefinitionId": 134823,
-          "traitNodeEntryId": 130022,
-          "traitNodeId": 105328,
-          "tree": "Holy",
-          "visibleSpellId": 0
-        },
-        {
-          "client": {
             "col": 1,
             "prerequisiteNodeIds": [],
             "prerequisiteTalentIds": [],
@@ -5718,7 +5686,7 @@
               "curveId": 110324,
               "effectIndex": 1,
               "operationType": 0,
-              "values": [2, 4, 6, 8, 10]
+              "values": [3, 6, 9, 12, 15]
             }
           ],
           "rankSpellIds": [5923, 5923, 5923, 5923, 5923],
@@ -6633,44 +6601,6 @@
         },
         {
           "client": {
-            "col": 3,
-            "prerequisiteNodeIds": [],
-            "prerequisiteTalentIds": [],
-            "tier": 3
-          },
-          "clientName": "Crusade",
-          "col": 3,
-          "id": "paladin-retribution-crusade",
-          "matchedBy": "name",
-          "maxRank": 2,
-          "mismatches": [],
-          "name": "Crusade",
-          "overridesSpellId": 0,
-          "rankEffects": [
-            {
-              "curveId": 110354,
-              "effectIndex": 0,
-              "operationType": 0,
-              "values": [1, 2]
-            },
-            {
-              "curveId": 110353,
-              "effectIndex": 1,
-              "operationType": 0,
-              "values": [1, 2]
-            }
-          ],
-          "rankSpellIds": [1311083, 1311083],
-          "spellId": 1311083,
-          "tier": 3,
-          "traitDefinitionId": 142635,
-          "traitNodeEntryId": 137881,
-          "traitNodeId": 110883,
-          "tree": "Retribution",
-          "visibleSpellId": 0
-        },
-        {
-          "client": {
             "col": 0,
             "prerequisiteNodeIds": [],
             "prerequisiteTalentIds": [],
@@ -6689,7 +6619,7 @@
               "curveId": 82980,
               "effectIndex": 0,
               "operationType": 0,
-              "values": [3, 6, 9]
+              "values": [2, 4, 6]
             }
           ],
           "rankSpellIds": [20111, 20111, 20111],
@@ -10556,16 +10486,16 @@
         {
           "client": {
             "col": 2,
-            "prerequisiteNodeIds": [],
-            "prerequisiteTalentIds": [],
-            "tier": 2
+            "prerequisiteNodeIds": [104762],
+            "prerequisiteTalentIds": ["shaman-elemental-call-of-thunder"],
+            "tier": 5
           },
           "clientName": "Elemental Fury",
           "col": 2,
           "id": "shaman-elemental-elemental-fury",
           "matchedBy": "name",
           "maxRank": 5,
-          "mismatches": [],
+          "mismatches": ["tier: scraped 2, client 5", "prerequisite: scraped none, client shaman-elemental-call-of-thunder"],
           "name": "Elemental Fury",
           "overridesSpellId": 0,
           "rankEffects": [
@@ -10658,8 +10588,8 @@
         {
           "client": {
             "col": 2,
-            "prerequisiteNodeIds": [104766],
-            "prerequisiteTalentIds": ["shaman-elemental-elemental-fury"],
+            "prerequisiteNodeIds": [104765],
+            "prerequisiteTalentIds": ["shaman-elemental-elemental-alacrity"],
             "tier": 3
           },
           "clientName": "Call of Thunder",
@@ -10667,7 +10597,7 @@
           "id": "shaman-elemental-call-of-thunder",
           "matchedBy": "name",
           "maxRank": 1,
-          "mismatches": [],
+          "mismatches": ["prerequisite: scraped shaman-elemental-elemental-fury, client shaman-elemental-elemental-alacrity"],
           "name": "Call of Thunder",
           "overridesSpellId": 0,
           "rankEffects": [],
@@ -10778,16 +10708,16 @@
         {
           "client": {
             "col": 2,
-            "prerequisiteNodeIds": [104762],
-            "prerequisiteTalentIds": ["shaman-elemental-call-of-thunder"],
-            "tier": 5
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
           },
           "clientName": "Elemental Alacrity",
           "col": 2,
           "id": "shaman-elemental-elemental-alacrity",
           "matchedBy": "name",
           "maxRank": 3,
-          "mismatches": [],
+          "mismatches": ["tier: scraped 5, client 2", "prerequisite: scraped shaman-elemental-call-of-thunder, client none"],
           "name": "Elemental Alacrity",
           "overridesSpellId": 0,
           "rankEffects": [
@@ -14104,7 +14034,7 @@
               "curveId": 109366,
               "effectIndex": 0,
               "operationType": 0,
-              "values": [2, 4, 6, 8, 10]
+              "values": [4, 8, 12, 16, 20]
             }
           ],
           "rankSpellIds": [1289682, 1289682, 1289682, 1289682, 1289682],
@@ -14212,6 +14142,12 @@
               "effectIndex": 1,
               "operationType": 0,
               "values": [-250, -500]
+            },
+            {
+              "curveId": 124012,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [-1500, -3000]
             }
           ],
           "rankSpellIds": [12862, 12862],
@@ -15430,11 +15366,26 @@
     }
   },
   "counts": {
-    "byName": 468,
-    "byPosition": 0,
-    "mapped": 468,
+    "byName": 464,
+    "byPosition": 2,
+    "mapped": 466,
     "talents": 468,
-    "unmapped": 0
+    "unmapped": 2
   },
-  "unmapped": []
+  "unmapped": [
+    {
+      "class": "paladin",
+      "name": "Improved Holy Strike",
+      "reason": "no Trait node with this name or position in the tab",
+      "talentId": "paladin-holy-improved-holy-strike",
+      "tree": "Holy"
+    },
+    {
+      "class": "paladin",
+      "name": "Crusade",
+      "reason": "no Trait node with this name or position in the tab",
+      "talentId": "paladin-retribution-crusade",
+      "tree": "Retribution"
+    }
+  ]
 }

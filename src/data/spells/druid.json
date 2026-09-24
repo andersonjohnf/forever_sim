@@ -2,8 +2,8 @@
   "meta": {
     "classicBuild": "1.15.9.69722",
     "classicProduct": "wow_classic_era",
-    "foreverBuild": "1.60.1.69913",
-    "foreverBuildDate": "2026-09-18",
+    "foreverBuild": "1.60.1.70009",
+    "foreverBuildDate": "2026-09-24",
     "noClientData": [
       {
         "acquireMethod": 0,
@@ -234,14 +234,6 @@
         "supersedes": null
       },
       {
-        "acquireMethod": 2,
-        "classic": null,
-        "encrypted": false,
-        "skillLine": "Restoration",
-        "spellId": 414854,
-        "supersedes": null
-      },
-      {
         "acquireMethod": 0,
         "classic": null,
         "encrypted": false,
@@ -283,7 +275,7 @@
       }
     ],
     "product": "wow_classic_beta",
-    "scrapedAt": "2026-09-23T02:51:35Z",
+    "scrapedAt": "2026-09-24T22:47:45Z",
     "scraper": "scripts/scrape/spells-client.mjs",
     "source": "https://wago.tools/api/casc",
     "tables": {
@@ -456,7 +448,7 @@
             },
             {
               "field": "value",
-              "text": "10 instead of 13, 12 instead of 15"
+              "text": "15 instead of 13, 17 instead of 15"
             }
           ],
           "forever": {
@@ -483,7 +475,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5176,
-            "text": "Causes 10 to 12 Nature damage to the target."
+            "text": "Causes 15 to 17 Nature damage to the target."
           },
           "rank": 1
         },
@@ -521,7 +513,7 @@
             },
             {
               "field": "value",
-              "text": "16 instead of 28, 18 instead of 32"
+              "text": "24 instead of 28, 28 instead of 32"
             }
           ],
           "forever": {
@@ -548,7 +540,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5177,
-            "text": "Causes 16 to 18 Nature damage to the target."
+            "text": "Causes 24 to 28 Nature damage to the target."
           },
           "rank": 2
         },
@@ -586,7 +578,7 @@
             },
             {
               "field": "value",
-              "text": "21 instead of 48, 25 instead of 56"
+              "text": "31 instead of 48, 37 instead of 56"
             }
           ],
           "forever": {
@@ -613,7 +605,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5178,
-            "text": "Causes 21 to 25 Nature damage to the target."
+            "text": "Causes 31 to 37 Nature damage to the target."
           },
           "rank": 3
         },
@@ -651,7 +643,7 @@
             },
             {
               "field": "value",
-              "text": "26 instead of 69, 30 instead of 79"
+              "text": "40 instead of 69, 46 instead of 79"
             }
           ],
           "forever": {
@@ -678,7 +670,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5179,
-            "text": "Causes 26 to 30 Nature damage to the target."
+            "text": "Causes 40 to 46 Nature damage to the target."
           },
           "rank": 4
         },
@@ -716,7 +708,7 @@
             },
             {
               "field": "value",
-              "text": "31 instead of 108, 35 instead of 122"
+              "text": "47 instead of 108, 53 instead of 122"
             }
           ],
           "forever": {
@@ -743,7 +735,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 5180,
-            "text": "Causes 31 to 35 Nature damage to the target."
+            "text": "Causes 47 to 53 Nature damage to the target."
           },
           "rank": 5
         },
@@ -781,7 +773,7 @@
             },
             {
               "field": "value",
-              "text": "37 instead of 148, 41 instead of 166"
+              "text": "56 instead of 148, 62 instead of 166"
             }
           ],
           "forever": {
@@ -808,7 +800,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 6780,
-            "text": "Causes 37 to 41 Nature damage to the target."
+            "text": "Causes 56 to 62 Nature damage to the target."
           },
           "rank": 6
         },
@@ -846,7 +838,7 @@
             },
             {
               "field": "value",
-              "text": "46 instead of 198, 50 instead of 220"
+              "text": "69 instead of 198, 77 instead of 220"
             }
           ],
           "forever": {
@@ -873,7 +865,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 8905,
-            "text": "Causes 46 to 50 Nature damage to the target."
+            "text": "Causes 69 to 77 Nature damage to the target."
           },
           "rank": 7
         },
@@ -911,7 +903,7 @@
             },
             {
               "field": "value",
-              "text": "62 instead of 248, 68 instead of 276"
+              "text": "92 instead of 248, 102 instead of 276"
             }
           ],
           "forever": {
@@ -938,7 +930,7 @@
             "requires": null,
             "school": "nature",
             "spellId": 9912,
-            "text": "Causes 62 to 68 Nature damage to the target."
+            "text": "Causes 92 to 102 Nature damage to the target."
           },
           "rank": 8
         }
@@ -9486,7 +9478,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 417141,
-            "text": "Requires Cat Form, Bear Form, Dire Bear Form\nCauses your Mangle ability to strike up to 3 targets, removes its cooldown, and increases the critical strike chance of your Combo Point-generating abilities by 100%. Clears and grants immunity to Fear effects for the duration. Lasts 15 sec."
+            "text": "Requires Cat Form, Bear Form, Dire Bear Form\nCauses your Primal Bite ability to strike up to 3 targets, removes its cooldown, and increases the critical strike chance of your Combo Point-generating abilities by 100%. Clears and grants immunity to Fear effects for the duration. Lasts 15 sec."
           },
           "rank": null
         }
@@ -9588,12 +9580,12 @@
     {
       "classic": null,
       "grantedByTalent": true,
-      "icon": "ability_druid_mangle2",
-      "id": "druid-mangle",
+      "icon": "ability_racial_cannibalize",
+      "id": "druid-primal-bite",
       "isTalent": true,
       "level": null,
       "maxRank": 1,
-      "name": "Mangle",
+      "name": "Primal Bite",
       "races": null,
       "ranks": [
         {
@@ -9615,7 +9607,7 @@
               "resource": "rage"
             },
             "forms": ["Bear Form", "Dire Bear Form"],
-            "icon": "ability_druid_mangle2",
+            "icon": "ability_racial_cannibalize",
             "level": null,
             "range": {
               "melee": true,
@@ -9626,7 +9618,7 @@
             "requires": null,
             "school": "physical",
             "spellId": 407995,
-            "text": "Mangle the target for 100% normal damage plus 26."
+            "text": "Bite the target for 100% normal damage plus 26."
           },
           "rank": 1
         }

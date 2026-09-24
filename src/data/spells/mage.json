@@ -2,8 +2,8 @@
   "meta": {
     "classicBuild": "1.15.9.69722",
     "classicProduct": "wow_classic_era",
-    "foreverBuild": "1.60.1.69913",
-    "foreverBuildDate": "2026-09-18",
+    "foreverBuild": "1.60.1.70009",
+    "foreverBuildDate": "2026-09-24",
     "noClientData": [
       {
         "acquireMethod": 0,
@@ -703,7 +703,7 @@
       }
     ],
     "product": "wow_classic_beta",
-    "scrapedAt": "2026-09-23T02:51:35Z",
+    "scrapedAt": "2026-09-24T22:47:45Z",
     "scraper": "scripts/scrape/spells-client.mjs",
     "source": "https://wago.tools/api/casc",
     "tables": {
@@ -5710,7 +5710,7 @@
       "id": "mage-arcane-brilliance",
       "isTalent": false,
       "level": 56,
-      "maxRank": 1,
+      "maxRank": null,
       "name": "Arcane Brilliance",
       "races": null,
       "ranks": [
@@ -5767,13 +5767,13 @@
               "raw": "40 yd range",
               "yards": 40
             },
-            "rankLabel": "Rank 1",
+            "rankLabel": null,
             "requires": null,
             "school": "arcane",
             "spellId": 23028,
             "text": "Infuses the target's party and raid with brilliance, increasing their Intellect by 31 for 1 hour."
           },
-          "rank": 1
+          "rank": null
         }
       ],
       "status": "changed",

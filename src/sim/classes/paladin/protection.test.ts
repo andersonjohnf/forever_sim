@@ -1001,6 +1001,23 @@ describe('Hammer of the Righteous (paladin.md#other-abilities, worked example 24
   })
 })
 
+describe('Naglering’s thorns (15438; paladin.md#other-abilities)', () => {
+  it('3 Arcane to the boss on each of its swings that lands on you, a damage shield: never crits, no Righteous Fury', () => {
+    const plan = protPlan({ gear: { ...defaultConfig(PROT).gear, finger1: { itemId: 11669 } } })
+    expect(plan.procs.find((p) => p.id === 'naglering')).toMatchObject({ trigger: TRIGGER.meleeTaken })
+    const sim = new Sim(plan)
+    for (let i = 0; i < 3; i++) sim.runFight(i)
+    const hits = field(sim, plan, 'naglering', FIELD.hits)
+    expect(hits).toBeGreaterThan(100)
+    expect(field(sim, plan, 'naglering', FIELD.crits)).toBe(0)
+    // Arcane: the boss's average partial resist at most, and threat × the global multiplier only.
+    const damage = field(sim, plan, 'naglering', FIELD.damage)
+    expect(damage / hits).toBeLessThanOrEqual(3)
+    expect(damage / hits).toBeGreaterThan(2.5)
+    expect(field(sim, plan, 'naglering', FIELD.threat) / damage).toBeCloseTo(plan.threatMult, 9)
+  })
+})
+
 describe('HOLY_SHIELD', () => {
   it('is the client’s r3: 240 mana, 10 s, on the GCD', () => {
     expect(HOLY_SHIELD).toMatchObject({ id: 'holyShield', kind: 'cast', costTenths: 2400, cooldownMs: 10000, gcdMs: 1500, resource: 'mana' })

@@ -1134,6 +1134,9 @@ The class foundation (`src/sim/classes/paladin/`) and the engine's generic spell
   - **Reckoning** is two procs on the boss's swings, 8% a rank on a block and 20% a rank on a crit
     taken, each an extra main-hand attack the tank core swings at once. **Redoubt** is a 10% proc on
     each landed swing taken, an aura of +6% block a rank with 5 block charges.
+  - **Naglering's thorns** (an item: 15438, 3 Arcane to each attacker that hits you) is a damage
+    shield like Retribution Aura's: a proc on each of the boss's swings that lands on you, always
+    landing and never critting [?], Arcane, so without Righteous Fury (`src/sim/effects/items.ts`).
   - **The aura** is a `cast` 3 s before the pull, in one exclusive group: **Devotion Aura**'s
     +735 armor, which the plan counts once with the Buffs tab's (`maintainedBuffs`), or
     **Retribution Aura**, whose damage is a proc on each landed swing taken while it's up.

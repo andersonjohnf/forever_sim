@@ -409,7 +409,9 @@ Against a +3 boss, table crit = sheet crit − (skill part) − (aura part):
   gear `Equip:` crit, buffs, consumables). Measured ~1.8% ±0.17 over 60k hits [C]
   ([Magey crit suppression][magey-crit]). In `forever`, gear crit is a *rating*
   ([§10](#10-ratings)), so whether it still counts as "aura" crit is unknown. It
-  doesn't matter at 60, where talents and buffs alone exceed 1.8% [?].
+  seldom matters at 60, where talents and buffs alone exceed 1.8% [?]; a Protection paladin without
+  Conviction or a crit buff has none, so its first 1.8% of aura crit is suppressed whole (the gear
+  review's GR9, 2026-09-24: +2% crit gave +0.2%).
 - Crit suppression applies to melee and ranged physical attacks (white and yellow), not to
   spells ([§9](#9-spell-hit-and-crit-generic)).
 

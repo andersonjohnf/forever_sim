@@ -289,10 +289,11 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
 - [ ] **T1 Shared:** threat.md's wording table (D29); Classic Era Sunder back to 261; the
       armor-only data-integrity test and the random-suffix bases it finds; like-for-like tank
       presets built for threat (the gear review)
-- [ ] **T2 Protection paladin:** its documented enchants and consumables
-      (Nightfin Soup, Wizard Oil), another paladin's Judgement of the Crusader and the JotC
-      rule, Seal of Fury's seal value, Holy Strike's tooltip damage, Hammer of the Righteous; its
-      talents and gear then come from the optimizer (O4)
+- [x] **T2 Protection paladin:** its documented enchants and consumables
+      (Nightfin Soup, Wizard Oil), its own Judgement of the Crusader (the opener) and the JotC
+      rule, Seal of Fury's seal value, Holy Strike's tooltip damage, Hammer of the Righteous,
+      Naglering's thorns; interim measured gear, talents and Consecration (810.8 TPS, 434.2 DPS),
+      which the optimizer's results replace (O4). Awaiting its review
 - [ ] **T3 Bear:** Lacerate's threat bonus, Idol of Brutality, Thorns on the tank, Thick Hide's
       armor; its talents and gear then come from the optimizer (O4)
 - [ ] **T4 Warrior:** its talent build and preset come from the optimizer (O4)
@@ -416,6 +417,38 @@ Found while building. Each should go to the owning doc or `open-questions.md` wh
 slice is worked:
 - **A DPS spec's "Setup changed" badge wraps to two lines** in the phone bar at 360 px (phone
   bar verification VF7, pre-existing). The bar stays 65 px and nothing overlaps.
+- **The Protection paladin's threat review lows** (T2; the review in `.cache/probes/tank-review-paladin`),
+  each under 2% of TPS, kept as they are until a guild test or the optimizer settles them:
+  - **P9:** Holy Shield's 20% more threat multiplies Righteous Fury's (×2.28, not ×2.1) and its
+    damage never misses: both [?] lean high, about −1.9% and −3.4% the other way (guild test T6,
+    paladin.md OQ 16).
+  - **P10:** Consecration's ticks miss at the spell rate (14% against a boss); never missing would be
+    +1.8% (guild test T7, OQ 18).
+  - **P11:** the talent variants (Improved Seals, Sanctified Judgement, Vindication): the interim
+    build takes Conviction only; the optimizer (O1) searches the rest, within the survival floor.
+  - **P12:** mana-gain threat (Shield Specialization, Improved Seal of Fury, the potion) skips the
+    Threat gloves' 1.02 (sim.ts's mana threat); about 0.1%.
+  - **A6:** Undead's Touch of the Grave (5% of maximum health as Shadow damage a proc, [?]) isn't
+    simulated for any Undead spec, the paladin, rogue, mage, warlock and priest alike: about +1.7%
+    of a Protection paladin's TPS as Undead; the default race is Human.
+  - **A7:** Eye for an Eye (Holy damage × Righteous Fury [?]) isn't simulated; no default build
+    takes it.
+  - **A10 (survival only):** Seal of Fury's absorb isn't taken off the hit it absorbs (~20 damage,
+    about −5 damage taken a second), Force of Will's 51-damage cut (~5% [?]) isn't simulated, and
+    Templar's Bulwark and Divine Protection aren't used.
+  - **A11:** mana-gain threat doesn't take the global multiplier [?] (+0.1%).
+- **Interim Protection paladin gear** (T2): the Lamellar PvP pieces are Alliance's, so a Horde race
+  takes the pre-raid list's survival pick in those slots; and the threat set leaves the boss 5.2% crit
+  chance (defense 310, v1's 433) and 32% more damage taken than v1's preset (898 a second against
+  681), within the user's effective-health floor (90.6% of v1's). The optimizer (O2) replaces the set;
+  D30's survival constraint for it is the class doc's floor.
+- **Hammer of the Righteous's extra targets** (its effect 1, 120 to 3 chain targets, and the other 3
+  targets' weapon damage) wait for M6, as does Consecration's 12 to every enemy.
+- **Seal of Righteousness's proc base:** Forever's 25713 carries 35, the same as Seal of Fury's, and the
+  sim's Classic formula leaves it out (paladin.md OQ 10, guild test T1 on Seal of Righteousness).
+- **Crit from auras and the paladin (GR9, not a bug):** against a +3 boss the first 1.8% of crit from
+  auras is suppressed (combat-tables §4.4), and v1's Protection paladin had none, so its first +2%
+  crit from gear or buffs gave +0.2%. The interim build's Conviction (+5%) is past it.
 - **A tank's phone bar grows 16 px** (65 to 81) while the "Setup changed" or "…%" badge row
   shows (details review DR9, pre-existing). It pushes nothing out of view; the badge could sit
   on the TPS row instead.

@@ -1,6 +1,7 @@
 // Item effects the tooltip parser leaves as text: the engine's documented override layer
 // (docs/doctrine.md#3-data). Each entry cites where its numbers come from. An equipped item with a
 // proc or use effect that isn't here is reported as not simulated.
+import type { SpellDef } from '../plan/types'
 import type { SpecId } from '../types'
 import type { EffectList, OnUseSpec } from './types'
 
@@ -36,6 +37,30 @@ const ITEM_EFFECT_SPECS: Record<number, readonly SpecId[]> = {
 
 /** Whether an item's equip effects can do anything for this spec (ITEM_EFFECT_SPECS). */
 export const itemEffectsApply = (itemId: number, spec: SpecId): boolean => ITEM_EFFECT_SPECS[itemId]?.includes(spec) ?? true
+
+/** Naglering's thorns (15438): 3 Arcane to each attacker that hits you, a damage shield that always lands and never crits [?]. */
+const NAGLERING_THORNS: SpellDef = {
+  id: 'naglering',
+  name: 'Naglering',
+  icon: 'inv_jewelry_ring_05',
+  school: 'arcane',
+  defense: 'none',
+  noActiveDefense: true,
+  alwaysHit: true,
+  triggersProcs: false,
+  min: 3,
+  max: 3,
+  weaponPercent: 0,
+  normalized: false,
+  spCoefficient: 0,
+  takenScale: 0,
+  critMultiplier: 1.5,
+  bonusCrit: 0,
+  damageMult: 1,
+  threatMult: 1,
+  threatBonus: 0,
+  cannotCrit: true,
+}
 
 export const ITEM_EFFECTS: Record<number, ItemEffects> = {
   // Hand of Justice (spell 15600, proc mask 0x14: white and yellow melee hits). Forever: ProcChance 3,
@@ -169,6 +194,28 @@ export const ITEM_EFFECTS: Record<number, ItemEffects> = {
   23199: {
     source: 'Forever client: spell 28857 (1.60.1.69913); the shaman rotations’ Lightning Bolt and Chain Lightning add its 33 spell damage',
     effects: [],
+  },
+  // Naglering: "When struck in combat inflicts 3 Arcane damage to the attacker" (equip 15438, aura 15, a
+  // damage shield, 3, school mask 64) [F] [client] (SpellEffect, 1.60.1.69913). As every damage shield
+  // (Retribution Aura's, docs/classes/paladin.md#other-abilities): on each of the boss's swings that
+  // lands on you, a blocked one too; it always lands and never crits [?]; Arcane, so no Righteous Fury.
+  11669: {
+    source: 'Forever client: spell 15438 (1.60.1.69913); the damage-shield rule of Retribution Aura (paladin.md)',
+    effects: [
+      {
+        kind: 'proc',
+        proc: {
+          id: 'naglering',
+          name: 'Naglering',
+          icon: 'inv_jewelry_ring_05',
+          trigger: 'meleeTaken',
+          from: 'any',
+          chance: { pct: 100 },
+          action: { kind: 'spell', spell: NAGLERING_THORNS },
+          docRef: 'docs/classes/paladin.md#other-abilities',
+        },
+      },
+    ],
   },
   // Flurry Axe: "Grants 1 extra attack on your next swing"; 1.8 PPM [C].
   871: {

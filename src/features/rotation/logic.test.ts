@@ -30,7 +30,7 @@ describe('rotation rows', () => {
   })
 
   it('marks nothing changed by default, and shows each value as its default', () => {
-    for (const config of [fury, arms, defaultConfig('druid-feral-cat')]) {
+    for (const config of [fury, arms, defaultConfig('druid-feral-cat'), defaultConfig('druid-feral-bear')]) {
       for (const [id, row] of rows(config)) {
         expect(row.changed, id).toBe(false)
         expect(row.value, id).toEqual(row.default)
@@ -212,7 +212,12 @@ describe('rotation rows', () => {
   })
 
   it('puts the number settings behind Advanced and keeps switches and choices in view', () => {
-    const options = [...getSpec('warrior-fury').rotationOptions, ...getSpec('warrior-arms').rotationOptions, ...getSpec('druid-feral-cat').rotationOptions]
+    const options = [
+      ...getSpec('warrior-fury').rotationOptions,
+      ...getSpec('warrior-arms').rotationOptions,
+      ...getSpec('druid-feral-cat').rotationOptions,
+      ...getSpec('druid-feral-bear').rotationOptions,
+    ]
     for (const o of options) expect(isAdvanced(o), o.id).toBe(o.kind === 'number')
   })
 

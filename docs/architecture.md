@@ -104,8 +104,8 @@ A spec is data plus small ability modules, never its own loop.
   white-hit rage (normalized or damage-based), the damage-taken rage model (overridable per config:
   `forever`, `foreverFlat`, `foreverHealthLost`, `classic`; the legacy `foreverHp` and
   `foreverHpPreArmor` still load), the spell values worked examples tie to
-  a profile (Curse of Recklessness, Armor Shatter, Expose Armor, Demoralizing Shout, Thunder Clap,
-  Windfury's attack power), and which column of the buff, consumable and enchant catalogue it
+  a profile (Curse of Recklessness, Armor Shatter, Expose Armor, Demoralizing Shout and Roar,
+  Thunder Clap, Windfury's attack power), and which column of the buff, consumable and enchant catalogue it
   reads. A catalogue entry whose Classic Era value differs carries it (`classicEra` on its
   `sim/effects` entry, from the Classic Era client), and `catalogueEffects` picks the profile's
   column; entries new in Forever keep Forever's values in both
@@ -241,6 +241,15 @@ A spec is data plus small ability modules, never its own loop.
   attack that bleeds, its bleed (the cat's Rake waits while Rip bleeds). A `cast` can restore mana at
   once, a fixed amount plus a roll from the proc stream (a mana potion or rune). A plan without
   forms, Energy or mana never enters these paths.
+- **The bear's pieces** ([druid.md §4, §8](classes/druid.md#8-implementation-notes)), each an
+  optional field no other row sets, on top of the cat's (a debuff's `targetArmor`, a `cast`'s
+  `spellHit`, Rend and Tear's `bleedingTargetPct`, an attack that also bleeds on its own row,
+  `dotSource`). An aura's `bossAp` is a debuff on the boss's attack power (AP ÷ 14 × the boss's
+  unslowed swing speed off each swing). A `spellHit` cast that misses refunds its share of what it
+  paid, and one that lands makes its flat threat. A marker aura with several stacks makes a bleed
+  a stacking one, whose ticks and hit read the stacks (Lacerate), and condition 20 reads them.
+  `noCooldownAura` suspends a cooldown (Berserk's Mangle), and `itemArmorPct` joins the defensive
+  aura mods (Enrage).
 - **Hot-loop discipline:** one monomorphic `Sim` class over typed arrays, no allocation per event,
   per-fight state reset rather than reallocated, and a plan flattened once in the constructor.
   The default Fury warrior (with its M2.2c rotation: the pre-pull, Battle Shout's upkeep and the

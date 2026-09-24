@@ -437,6 +437,22 @@ export const BUFFS: BuffSpec[] = [
     classicEra: { summary: '−600 armor (Armor Shatter from a raid member’s Annihilator)' },
     presets: { max: 'all' },
   },
+  // A Feral bear keeps its own Demoralizing Roar up (docs/classes/druid.md §6.3), so its presets take
+  // the `ap-reduction` group with it: it comes first, and no other spec's preset reaches it.
+  {
+    id: 'demoralizingRoar',
+    name: 'Demoralizing Roar',
+    icon: 'ability_druid_demoralizingroar',
+    category: 'targetDebuff',
+    group: 'Boss damage',
+    summary: '−204 boss attack power',
+    providedBy: 'druid',
+    exclusiveGroup: 'ap-reduction',
+    docRef: `${DOC}#42-other-debuffs`,
+    effects: (p) => [{ kind: 'bossAp', value: -p.values.demoralizingRoarAp }],
+    classicEra: { summary: '−138 boss attack power' },
+    presets: { raid: ['druid-feral-bear'], max: ['druid-feral-bear'] },
+  },
   {
     id: 'demoralizingShout',
     name: 'Demoralizing Shout',

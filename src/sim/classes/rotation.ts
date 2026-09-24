@@ -6,6 +6,7 @@
 import { NO_PREPULL } from '../plan/types'
 import type { FixedRotationRow, RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
 import { CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from './druid/cat'
+import { BEAR_OPTIONS, bearMaintainedBuffs, bearRotation } from './druid/bear'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
 import { RETRIBUTION_OPTIONS, retributionRotation } from './paladin/retribution'
 import {
@@ -27,7 +28,7 @@ export type { PaladinContext } from './paladin/setup'
 
 /** What a rotation needs from the rest of the setup: the warrior's and paladin's context, and what the druid's reads. */
 export interface ClassRotationContext extends PaladinContext {
-  /** Ids of the equipped items (Wolfshead Helm's Energy on Tiger's Fury, druid.md §3.6). */
+  /** Ids of the equipped items (Wolfshead Helm's Energy on Tiger's Fury, druid.md §3.6, and rage on Enrage, §4.5). */
   equipped: ReadonlySet<number>
   /** Others keep the target bleeding all fight: a raid with warriors (Rip's and Rake's settings, druid.md §6.2). */
   othersBleed: boolean
@@ -56,6 +57,7 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
   if (spec === 'druid-feral-cat') return CAT_OPTIONS
   if (spec === 'paladin-retribution') return RETRIBUTION_OPTIONS
   if (spec === 'paladin-protection') return PALADIN_PROTECTION_OPTIONS
+  if (spec === 'druid-feral-bear') return BEAR_OPTIONS
   return []
 }
 
@@ -145,6 +147,7 @@ export function maintainedBuffs(spec: SpecId, values: Record<string, RotationVal
   if (spec === 'druid-feral-cat') return catMaintainedBuffs(values)
   // docs/classes/paladin.md "Priority": a Protection paladin's own Devotion Aura.
   if (spec === 'paladin-protection') return paladinProtectionMaintainedBuffs(values)
+  if (spec === 'druid-feral-bear') return bearMaintainedBuffs(values)
   return []
 }
 
@@ -173,5 +176,6 @@ export function classRotation(
   if (spec === 'paladin-retribution') return retributionRotation(values, talents, auraIndex, context)
   // docs/classes/paladin.md "Protection: model and rotation".
   if (spec === 'paladin-protection') return paladinProtectionRotation(values, talents, auraIndex, context)
+  if (spec === 'druid-feral-bear') return bearRotation(values, talents, auraIndex, context)
   return { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
 }

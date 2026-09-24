@@ -17,8 +17,9 @@
 // combo points, Clearcasting's free ability, and forms a shapeshift swaps in (docs/classes/druid.md
 // §2). For the paladin it adds damaging spells on their own tables, mp5 and a share of spirit
 // regeneration inside the five-second rule, Holy damage and threat multipliers, cooldown
-// categories and exclusive auras (seals; docs/classes/paladin.md). A plan without them never
-// enters those paths.
+// categories and exclusive auras (seals; docs/classes/paladin.md). For the bear (druid.md §4) it
+// adds stacking bleeds (Lacerate), a cooldown an aura suspends (Berserk's Mangle) and an item-armor
+// aura (Enrage). A plan without them never enters those paths.
 import {
   averageResist,
   bossSlices,
@@ -318,6 +319,8 @@ export class Sim {
   private readonly aTaken: Float64Array
   private readonly aBlockCharges: Int32Array
   private readonly blockChargeAuras: Int32Array
+  /** An aura's item-armor % on the player, per stack (Enrage, druid.md §4.5). */
+  private readonly aItemArmorPct: Float64Array
   /** Each block-charged aura's `auraGen` as a blocked swing lands, before its procs (`useBlockCharges`). */
   private readonly blockChargeGen: Int32Array
   /**
@@ -571,10 +574,15 @@ export class Sim {
   private readonly abCritAuraPct: Float64Array
   /** Damage % on its direct damage while the target bleeds (Rend and Tear, §5.1). */
   private readonly abBleedPct: Float64Array
-  /** The breakdown row of its bleed's ticks: its own for an attack that also bleeds (Rake, §3.3). */
+  /** The breakdown row of its bleed's ticks: its own for an attack that also bleeds (Rake, §3.3; Lacerate, §4.3). */
   private readonly abDotSource: Int32Array
-  /** A `cast` that rolls spell hit on the target (Faerie Fire, §3.8). */
+  /** A `cast` that rolls spell hit on the target (Faerie Fire, §3.8; Demoralizing Roar, §4.5). */
   private readonly abSpellHit: Uint8Array
+  // And the bear's (druid.md §4), 0 or −1 on every other row:
+  /** Weapon share per stack of its own bleed already on the target (Lacerate, §4.3). */
+  private readonly abPctPerStack: Float64Array
+  /** The aura while which it starts no cooldown (Berserk's Mangle, §4.6), or −1. */
+  private readonly abNoCdAura: Int32Array
   /** Others keep the target bleeding (Plan.fight.othersBleed). */
   private readonly othersBleed: boolean
   /** PPM procs that can roll on the main hand, and their rates: a shapeshift re-resolves their chance (druid.md §2.1). */
@@ -616,7 +624,7 @@ export class Sim {
   private lastPaid = 0
   /** When mana was last spent (the five-second rule, druid.md §2.8, paladin.md#mana-model). */
   private manaSpentAt = -Infinity
-  /** The player's bleeds on the target now (`bleed` abilities' and Rake's; druid.md §5.1 Rend and Tear). */
+  /** The player's bleeds on the target now (`bleed` abilities', Rake's and Lacerate's; druid.md §5.1 Rend and Tear). */
   private activeDots = 0
   /**
    * White hits and hits taken give rage: for a warrior, in a druid's bear form (FormPlan.rage), and
@@ -723,6 +731,8 @@ export class Sim {
   private dynTargetArmor = 0
   private dynBossSlow = 0
   private dynBossDamage = 0
+  /** The item-armor % of the player's auras (Enrage, druid.md §4.5). */
+  private dynItemArmorPct = 0
 
   // Derived per hand, refreshed on stat changes.
   private ap = 0
@@ -897,6 +907,7 @@ export class Sim {
     this.aBossSlow = new Float64Array(na)
     this.aBossAp = new Float64Array(na)
     this.aBossDebuff = new Uint8Array(na)
+    this.aItemArmorPct = new Float64Array(na)
     this.auraActive = new Uint8Array(na)
     this.auraStacks = new Int32Array(na)
     this.auraCharges = new Int32Array(na)
@@ -933,7 +944,8 @@ export class Sim {
       this.aBossSlow[i] = a.bossSlow ?? 0
       this.aBossAp[i] = a.bossAp ?? 0
       this.aBossDebuff[i] = this.aBossSlow[i] || this.aBossAp[i] ? 1 : 0
-      const defensive = this.aDodge[i] || this.aParry[i] || this.aBlock[i] || this.aBlockValue[i] || this.aArmor[i]
+      this.aItemArmorPct[i] = a.itemArmorPct ?? 0
+      const defensive = this.aDodge[i] || this.aParry[i] || this.aBlock[i] || this.aBlockValue[i] || this.aArmor[i] || this.aItemArmorPct[i]
       // A debuff's armor (Faerie Fire, druid.md §3.8; Sunder Armor, warrior.md §7) re-derives the
       // armor factor with the stats.
       this.aStatful[i] = a.str || a.agi || a.ap || a.apPct || a.crit || a.spellCrit || defensive || this.aTargetArmor[i] ? 1 : 0
@@ -1048,6 +1060,8 @@ export class Sim {
     this.abBleedPct = new Float64Array(nb)
     this.abDotSource = new Int32Array(nb)
     this.abSpellHit = new Uint8Array(nb)
+    this.abPctPerStack = new Float64Array(nb)
+    this.abNoCdAura = new Int32Array(nb).fill(-1)
     this.othersBleed = plan.fight.othersBleed === true
     this.freeAura = plan.freeCastAura ?? -1
     this.abTickAt = new Float64Array(nb)
@@ -1082,6 +1096,9 @@ export class Sim {
       this.abBleedPct[i] = a.bleedingTargetPct ?? 0
       this.abDotSource[i] = a.dotSource ?? a.source
       this.abSpellHit[i] = a.spellHit ? 1 : 0
+      // druid.md §4: Lacerate's per-stack hit, and Berserk's Mangle.
+      this.abPctPerStack[i] = a.weaponPercentPerStack ?? 0
+      this.abNoCdAura[i] = a.noCooldownAura ?? -1
       this.abPlainRage[i] = this.abRes[i] === RES_RAGE && this.abForms[i] === 0 && !a.finisher && !this.abCp[i] && !this.abFree[i] ? 1 : 0
       this.abKind[i] = KIND_CODE[a.kind]
       this.abCost[i] = a.costTenths
@@ -1115,6 +1132,7 @@ export class Sim {
       this.abBlockValueCoef[i] = a.blockValueCoefficient ?? 0
       this.abNoDamage[i] =
         a.weaponPercent === 0 &&
+        (a.weaponPercentPerStack ?? 0) === 0 &&
         a.flatDamage === 0 &&
         a.apCoefficient === 0 &&
         a.damagePerExtraRage === 0 &&
@@ -1694,8 +1712,8 @@ export class Sim {
         this.specCrit[h] = ch.crit
       }
       // docs/mechanics/damage-and-timing.md#12-armor-reduction-debuffs-and-penetration: flat reductions, then % ignored
-      // A debuff the player keeps up (Faerie Fire, druid.md §3.8; Sunder Armor's stacks, warrior.md
-      // §7) takes its armor off first.
+      // A debuff the player keeps up (Faerie Fire, druid.md §3.8, §4.5; Sunder Armor's stacks,
+      // warrior.md §7) takes its armor off first.
       let armor = f.targetArmor - this.dynTargetArmor - d.armorPen
       if (armor > 0 && armed) armor *= 1 - this.wArmorPenPct[h]
       this.armorFactor[h] = 1 - armorReduction(armor, plan.playerLevel, plan.profile)
@@ -2054,7 +2072,7 @@ export class Sim {
           if (this.mana > a) return false
           break
         case COND.abilityAuraStacksBelow: {
-          // warrior.md §5.4 row 10: Sunder Armor's stacks below 5 (down counts as none).
+          // warrior.md §5.4 row 10: Sunder Armor's stacks below 5; druid.md §6.3: Lacerate's (down counts as none).
           const aura = this.abAura[a]
           if (aura >= 0 && this.auraActive[aura] && this.auraStacks[aura] >= b) return false
           break
@@ -2085,7 +2103,9 @@ export class Sim {
       this.gcdEnd = this.now + gcd
       this.q.push(this.gcdEnd, EV_ACT, 0, 0)
     }
-    const cd = this.abCd[a]
+    // druid.md §4.6: while Berserk is up, Mangle starts no cooldown.
+    const noCd = this.abNoCdAura[a]
+    const cd = noCd >= 0 && this.auraActive[noCd] ? 0 : this.abCd[a]
     if (!this.countUse(a) && cd > 0) {
       this.abReadyAt[a] = this.now + cd
       this.q.push(this.abReadyAt[a], EV_ACT, 0, 0)
@@ -2195,10 +2215,16 @@ export class Sim {
   private cast(a: number): void {
     const source = this.abSource[a]
     this.counters[source * FIELD_COUNT + FIELD.casts]++
-    // A spell on the target rolls spell hit first; a miss applies nothing (Faerie Fire, druid.md §3.8).
-    if (this.abSpellHit[a] === 1 && this.rngTable.roll100() < this.spellMissPct) {
-      this.counters[source * FIELD_COUNT + FIELD.misses]++
-      return
+    // A spell on the target rolls spell hit first (combat-tables §9). A miss applies nothing, makes no
+    // threat, and refunds its share of what it paid [?]; a landed one makes its threat (threat.md: a
+    // debuff's, × the global multipliers). Faerie Fire (druid.md §3.8, §4.5), Demoralizing Roar (§4.5).
+    if (this.abSpellHit[a] === 1) {
+      if (this.rngTable.roll100() < this.spellMissPct) {
+        this.counters[source * FIELD_COUNT + FIELD.misses]++
+        this.refundPaid(a)
+        return
+      }
+      if (this.abThreatBonus[a] !== 0) this.addDamage(source, 0, this.abThreatBonus[a] * this.threatMult)
     }
     const aura = this.abAura[a]
     if (aura >= 0) this.putAura(aura, this.now + this.aDuration[aura])
@@ -2315,12 +2341,16 @@ export class Sim {
     const blocked = !unavoidable && r < th[o + 4]
     const critChance = this.specCrit[hand] + this.abBonusCrit[a] + this.auraCritPct(a)
     // The crit slice follows the block slice, or the miss slice for an unavoidable attack. An ability
-    // that deals no damage (Sunder Armor) can't crit: what lands in the crit slice is a hit (§7).
+    // that deals no damage (Sunder Armor) can't crit: what lands in the crit slice is a hit (§7). Nor
+    // can Lacerate with none of its stacks on the target, which deals no direct damage (druid.md §4.3).
     const critFrom = unavoidable ? th[o] : th[o + 4]
     const crit =
       this.abKind[a] === KIND_MELEE_SPELL
         ? this.rngTable.roll100() < critChance // roll 2, not truncated by roll 1
-        : !blocked && r < Math.min(100, critFrom + Math.max(0, critChance)) && this.abNoDamage[a] === 0
+        : !blocked &&
+          r < Math.min(100, critFrom + Math.max(0, critChance)) &&
+          this.abNoDamage[a] === 0 &&
+          (this.abPctPerStack[a] === 0 || this.stacksOn(a) > 0)
     let damage = this.abilityDamage(a, hand, bonusAp)
     if (crit) {
       damage *= this.abCritMult[a]
@@ -2340,15 +2370,17 @@ export class Sim {
       } else this.emptyPool(this.abRes[a])
       this.actPending = this.hasRotation
     }
-    // druid.md §3.3: an attack that also bleeds (Rake) lands its bleed with its hit.
+    // druid.md §3.3, §4.3: an attack that also bleeds (Rake, Lacerate) lands its bleed with its hit,
+    // after the hit read the stacks already on the target.
     if (main && this.abDotTicks[a] > 0) this.applyDot(a)
     // druid.md §2.5: a landed builder awards its combo points (Primal Fury one more on a crit), a
     // finisher spends them, after its damage read them.
     if (main && (this.abCp[a] !== 0 || this.abFinisher[a] === 1)) this.landComboPoints(a, crit)
     // docs/mechanics/threat.md#base-rule-and-how-modifiers-stack: (dmg × mult + bonus) × global
     this.addDamage(source, damage, (damage * this.abThreatMult[a] + this.abThreatBonus[a]) * this.threatMult)
-    // A landed strike puts its debuff on the boss: Sunder Armor adds a stack (warrior.md §7).
-    if (main && this.abAura[a] >= 0) this.applyAura(this.abAura[a])
+    // A landed strike puts its debuff on the boss: Sunder Armor adds a stack (warrior.md §7). An
+    // attack that also bleeds put its marker up with its bleed, above (Rake; Lacerate's stacks).
+    if (main && this.abAura[a] >= 0 && this.abDotTicks[a] === 0) this.applyAura(this.abAura[a])
     // An on-next-swing ability's swing counts as a landed swing (Unbridled Wrath, warrior.md §2.3 [?]).
     if (this.abKind[a] === KIND_ON_NEXT_SWING) this.fireProcs(TRIGGER.swingLanded, hand)
     this.fireProcs(TRIGGER.meleeLanded, hand)
@@ -2366,10 +2398,13 @@ export class Sim {
   private abilityDamage(a: number, hand: number, bonusAp: number): number {
     const ap = this.ap + bonusAp
     let base: number
-    if (this.abWeaponPct[a] > 0) {
+    const perStack = this.abPctPerStack[a]
+    if (this.abWeaponPct[a] > 0 || perStack > 0) {
       const speed = this.abNormalized[a] ? this.wNormSpeed[hand] : this.wSpeedSec[hand]
       const roll = this.rngDamage.uniform(this.wMin[hand], this.wMax[hand])
-      base = (roll + this.wFlat[hand] + (ap / 14) * speed + this.abFlat[a]) * this.abWeaponPct[a] * this.wHandMult[hand]
+      // druid.md §4.3: Lacerate's share grows with its stacks already on the target.
+      const pct = perStack > 0 ? perStack * this.stacksOn(a) : this.abWeaponPct[a]
+      base = (roll + this.wFlat[hand] + (ap / 14) * speed + this.abFlat[a]) * pct * this.wHandMult[hand]
     } else {
       if (this.abPlainRage[a] === 1) {
         base = this.abFlat[a] + this.abApCoef[a] * ap + (this.abPerExtraRage[a] * this.rage) / 10
@@ -2393,6 +2428,12 @@ export class Sim {
   private auraCritPct(a: number): number {
     const aura = this.abCritAura[a]
     return aura >= 0 && this.auraActive[aura] ? this.abCritAuraPct[a] : 0
+  }
+
+  /** Stacks of ability a's own bleed on the target now: its marker's (Lacerate, druid.md §4.3), 0 when it's down. */
+  private stacksOn(a: number): number {
+    const marker = this.abAura[a]
+    return marker >= 0 && this.auraActive[marker] ? this.auraStacks[marker] : 0
   }
 
   /** A finisher's combo-point terms: damage per point, and attack power per point up to its cap (druid.md §3.4, §3.5). */
@@ -2707,13 +2748,17 @@ export class Sim {
     if (this.dotTicksLeft[a] > 0 && this.dotNextAt[a] === now) this.onDotTick(a)
     // druid.md §5.1: the target bleeds while any of the player's bleeds has ticks to come.
     if (this.dotTicksLeft[a] === 0) this.activeDots++
-    // An attack that also bleeds (Rake) counts its applications on the bleed's own row.
+    // An attack that also bleeds (Rake, Lacerate) counts its applications on the bleed's own row.
     if (this.abDotSource[a] !== this.abSource[a]) this.counters[this.abDotSource[a] * FIELD_COUNT + FIELD.casts]++
     this.dotTicksLeft[a] = this.abDotTicks[a]
+    // druid.md §4.3: a stacking bleed ticks for every stack, the one this application adds included
+    // (its marker's stacks, up to its maximum); any other bleed has one.
+    const marker = this.abAura[a]
+    const stacks = marker >= 0 ? Math.min(this.aMaxStacks[marker], this.stacksOn(a) + 1) : 1
     // druid.md §2.9, §3.4: a finisher's bleed snapshots its combo points and attack power too (Rip).
     const cp = this.comboPoints
     const perCp = this.abFinisher[a] === 1 ? this.abDotPerCp[a] * cp + this.abDotApPerCp[a] * Math.min(cp, this.abCpApCap[a]) * this.ap : 0
-    this.dotDamage[a] = (this.abDotTick[a] + perCp) * this.physMult
+    this.dotDamage[a] = (this.abDotTick[a] * stacks + perCp) * this.physMult
     this.dotCrit[a] = this.abDotCanCrit[a] ? this.specCrit[HAND.main] + this.abBonusCrit[a] + this.auraCritPct(a) : -1
     this.dotNextAt[a] = now + this.abDotTickMs[a]
     this.q.push(this.dotNextAt[a], EV_DOT_TICK, a, ++this.dotGen[a])
@@ -2743,7 +2788,13 @@ export class Sim {
     if (--this.dotTicksLeft[a] > 0) {
       this.dotNextAt[a] = this.now + this.abDotTickMs[a]
       this.q.push(this.dotNextAt[a], EV_DOT_TICK, a, this.dotGen[a])
-    } else this.activeDots--
+      return
+    }
+    this.activeDots--
+    // druid.md §4.3: a stacking bleed's marker ends with its last tick, so an application at that
+    // very moment starts again from one stack, whichever of the two events comes first.
+    const marker = this.abAura[a]
+    if (marker >= 0 && this.aMaxStacks[marker] > 1 && this.auraActive[marker]) this.removeAura(marker)
   }
 
   /** Deep Wounds-style bleed tick: share × main-hand average swing / ticks, current AP, no armor (warrior.md §2.5). */
@@ -3216,7 +3267,8 @@ export class Sim {
     const rng = this.rngBoss
     const r = rng.roll100()
     let raw = rng.uniform(boss.minDamage, boss.maxDamage)
-    // The rotation's own attack-power debuff (Demoralizing Shout, warrior.md §7), never below 0.
+    // The rotation's own attack-power debuff (Demoralizing Shout, warrior.md §7; Demoralizing Roar,
+    // druid.md §4.5), never below 0.
     if (this.dynBossDamage !== 0) raw = Math.max(0, raw + this.dynBossDamage)
     const th = this.thrBoss
     if (this.bossTrace !== null) this.bossTrace(this.now)
@@ -3334,6 +3386,7 @@ export class Sim {
     s.block = base.block + this.dynBlock
     s.blockValue = base.blockValue + this.dynBlockValue
     s.bonusArmor = base.bonusArmor + this.dynArmor
+    s.itemArmorPct = base.itemArmorPct + this.dynItemArmorPct
   }
 
   /** Aura a's defensive mods, `deltaStacks` stacks of them, added to the deltas. */
@@ -3343,6 +3396,8 @@ export class Sim {
     this.dynBlock += this.aBlock[a] * deltaStacks
     this.dynBlockValue += this.aBlockValue[a] * deltaStacks
     this.dynArmor += this.aArmor[a] * deltaStacks
+    // An item-armor % (Enrage −16, druid.md §4.5), as a fraction like the stat block's.
+    this.dynItemArmorPct += (this.aItemArmorPct[a] * deltaStacks) / 100
   }
 
   /**
@@ -3370,6 +3425,7 @@ export class Sim {
     this.fightDamageTaken = 0
     this.dynBossSlow = 0
     this.dynBossDamage = 0
+    this.dynItemArmorPct = 0
   }
 
   /**

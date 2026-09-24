@@ -12,7 +12,7 @@ import { COND, type RotationCondition } from '../../plan/types'
 import type { RotationOption, RotationValue } from '../../types'
 import type { ClassRotationContext } from '../rotation'
 import { ELUNES_LIGHT } from '../warrior/abilities'
-import { type ClassRotation, NO_CONTEXT, reader, RotationBuilder, seconds, timeLeftAtLeast, timeLeftAtMost } from '../warrior/shared'
+import { type ClassRotation, NO_CONTEXT, reader, seconds, timeLeftAtLeast, timeLeftAtMost } from '../warrior/shared'
 import { MAX_ENERGY_TENTHS, WOLFSHEAD_HELM } from './abilities'
 import {
   BERSERK,
@@ -26,7 +26,8 @@ import {
   tigersFury,
   tigersFuryEnergy,
 } from './cat-abilities'
-import { type TalentRanks, withDruidTalents } from './modifiers'
+import { DruidRotationBuilder } from './builder'
+import type { TalentRanks } from './modifiers'
 import type { AbilityDef } from './abilities'
 
 const ID = {
@@ -312,16 +313,6 @@ export function catUnusedSettings(values: Record<string, RotationValue>, othersB
 /** Buff catalogue ids the cat keeps up itself with these settings: its Faerie Fire (druid.md §3.8). */
 export function catMaintainedBuffs(values: Record<string, RotationValue>): string[] {
   return reader(CAT_OPTIONS, values).on(ID.ffEnabled) ? ['faerieFire'] : []
-}
-
-/** Resolves abilities with the druid's talents (modifiers.ts) rather than the warrior's. */
-class DruidRotationBuilder extends RotationBuilder {
-  override ability(def: AbilityDef): number {
-    const i = this.abilities.findIndex((a) => a.id === def.id)
-    if (i >= 0) return i
-    this.abilities.push(withDruidTalents(def, this.talents))
-    return this.abilities.length - 1
-  }
 }
 
 const minEnergy = (energy: number): RotationCondition => ({ code: COND.minEnergy, a: 10 * energy, b: 0 })

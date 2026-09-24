@@ -34,6 +34,10 @@ describe('the plan’s code tables', () => {
     expect([ACTION.spell, ACTION.mana]).toEqual([5, 6])
   })
 
+  it('the bear’s stack condition is Warrior Protection’s, at 20', () => {
+    expect(COND.abilityAuraStacksBelow).toBe(20)
+  })
+
   it('executeWithin’s opposite, executeNotWithin (Fury’s potion, M2.5b), takes 29, after the codes the other tracks hold', () => {
     expect(COND.executeNotWithin).toBe(29)
   })

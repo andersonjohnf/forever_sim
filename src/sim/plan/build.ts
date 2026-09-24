@@ -630,10 +630,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(spec.mods.holyTaken ? { holyTaken: spec.mods.holyTaken } : {}),
       ...(spec.group ? { group: spec.group } : {}),
       // Debuffs the player keeps on the boss (Faerie Fire, druid.md §3.8; warrior.md §7 "Debuffs on
-      // the boss"), only when set.
+      // the boss"), and an item-armor aura (Enrage, druid.md §4.5), only when set.
       ...(spec.mods.targetArmor ? { targetArmor: spec.mods.targetArmor } : {}),
       ...(spec.mods.bossSlow ? { bossSlow: spec.mods.bossSlow } : {}),
       ...(spec.mods.bossAp ? { bossAp: spec.mods.bossAp } : {}),
+      ...(spec.mods.itemArmorPct ? { itemArmorPct: spec.mods.itemArmorPct } : {}),
     })
     return auras.length - 1
   }
@@ -786,13 +787,13 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     }
   }
   const abilities: AbilityPlan[] = classRot.abilities.map((def) => {
-    const { offHand, aura, vsCreature: _, window, spellDef, tickSpellDef, auraCrit: __, ...a } = def
+    const { offHand, aura, vsCreature: _, window, spellDef, tickSpellDef, auraCrit: __, noCooldownWhile: ___, ...a } = def
     const source = sourceIndex(a.id, a.name, a.icon)
     // A bleed's row counts applications and ticks (Rend: its ticks crit only where periodic
     // effects can, damage-and-timing §4).
     const ticksCanCrit = a.periodicCanCrit && profile.combat.periodicCrits
     if (a.kind === 'bleed') sources[source].bleed = { ticksCanCrit, avoidable: true }
-    // An attack that also bleeds (Rake, druid.md §3.3): its ticks get a row of their own, whose
+    // An attack that also bleeds (Rake, druid.md §3.3; Lacerate, §4.3): its ticks get a row of their own, whose
     // applications come from landed hits, so they can't be avoided.
     let dotSource: number | undefined
     if (a.kind !== 'bleed' && a.dotTicks > 0) {
@@ -812,12 +813,18 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       ...(dotSource !== undefined ? { dotSource } : {}),
     }
   })
-  // Crit an aura gives some abilities (Berserk's, druid.md §3.7), once every ability's aura is in;
-  // without an ability that puts it up, there's none.
+  // Crit an aura gives some abilities (Berserk's, druid.md §3.7), and the aura that suspends an
+  // ability's cooldown (Berserk's Mangle, §4.6), once every ability's aura is in; without an ability
+  // that puts it up, there's none.
   classRot.abilities.forEach((def, i) => {
-    if (!def.auraCrit) return
-    const aura = auras.findIndex((x) => x.id === def.auraCrit!.aura)
-    if (aura >= 0) abilities[i].auraCrit = { aura, pct: def.auraCrit.pct }
+    if (def.auraCrit) {
+      const aura = auras.findIndex((x) => x.id === def.auraCrit!.aura)
+      if (aura >= 0) abilities[i].auraCrit = { aura, pct: def.auraCrit.pct }
+    }
+    if (def.noCooldownWhile) {
+      const aura = auras.findIndex((x) => x.id === def.noCooldownWhile)
+      if (aura >= 0) abilities[i].noCooldownAura = aura
+    }
   })
   // The rotation's own procs (the Overpower window's openers, warrior.md §2.8). A proc that needs an
   // aura (Bloodthrill: your Rend on the target) is rolled only while it's up, and left out if the plan
@@ -848,10 +855,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const triggers: number[][] = Array.from({ length: TRIGGER_COUNT }, () => [])
   procs.forEach((p, i) => triggers[p.trigger].push(i))
   // A debuff the rotation keeps on the boss is the aura named after its Buffs entry (Protection's
-  // Sunder Armor, Thunder Clap and Demoralizing Shout, warrior.md §5.4). When the Buffs tab fills its
-  // exclusive group with another (Expose Armor for Sunder Armor), only one applies in game, and the
-  // Buffs tab's stays: the rotation's changes nothing on the boss, and its threat still counts (§7),
-  // though in Classic Era a Sunder Armor may fail to apply over a stronger Expose Armor [?] (Q35).
+  // Sunder Armor, Thunder Clap and Demoralizing Shout, warrior.md §5.4; the bear's Faerie Fire and
+  // Demoralizing Roar, druid.md §6.3). When the Buffs tab fills its exclusive group with another
+  // (Expose Armor for Sunder Armor, Demoralizing Shout for the roar), only one applies in game, and
+  // the Buffs tab's stays: the rotation's changes nothing on the boss, and its threat still counts
+  // (§7), though in Classic Era a Sunder Armor may fail to apply over a stronger Expose Armor [?] (Q35).
   for (const aura of auras) {
     const group = maintained.includes(aura.id) ? BUFFS_BY_ID.get(aura.id)?.exclusiveGroup : undefined
     const by = group === undefined ? undefined : filledGroups.get(group)
@@ -956,10 +964,11 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   const energy = abilities.some((a) => a.resource === 'energy')
   if (classRot.rotation.length > 0) notes.add(energy ? 'reactionTimeEnergy' : classId === 'paladin' ? 'reactionTimeMana' : 'reactionTime')
   if (abilities.some((a) => a.gcdMs > 0)) notes.add(setup.form === 'cat' ? 'gcdHasteCat' : 'gcdHaste')
-  // Rage refunds; a druid's Energy refunds are in `energyTicks`.
-  if (abilities.some((a) => a.costTenths > 0 && (a.resource ?? 'rage') === 'rage')) notes.add('abilityRefunds')
+  // Rage refunds; a druid's Energy refunds are in `energyTicks`, and a bear's rage refunds and
+  // Maul's swing in `bearRage` (druid.md §4.1).
+  if (abilities.some((a) => a.costTenths > 0 && (a.resource ?? 'rage') === 'rage')) notes.add(setup.form === 'bear' ? 'bearRage' : 'abilityRefunds')
   const queues = abilities.some((a) => a.kind === 'onNextSwing')
-  if (queues && mh) notes.add('onNextSwingRage')
+  if (queues && mh && setup.form !== 'bear') notes.add('onNextSwingRage')
   // What the rotation's settings rest on without an ability that shows it (Arms' Heroic Strike off):
   // a warrior's rest on its swings, so only with a main hand. A paladin's rotation acts without one
   // too (Consecration, the mana potion), so its assumptions stand either way (knownFightEnd).
@@ -1153,8 +1162,17 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     if (has('rake') || has('ferociousBite')) notes.add('catTwoRolls')
     if (setup.talents.has('Predatory Instincts') && abilities.some((a) => a.critMultiplier > CRIT_MULTIPLIER.melee)) notes.add('predatoryInstincts')
     if (abilities.some((a) => a.bleedingTargetPct)) notes.add('rendAndTear')
-    if (has('berserk') && setup.talents.has('Primal Fury')) notes.add('berserkCrits')
+    if (setup.form === 'cat' && has('berserk') && setup.talents.has('Primal Fury')) notes.add('berserkCrits')
     if ((setup.form === 'cat' || setup.form === 'bear') && (auras.some((a) => a.haste) || derived.hasteMult > 1)) notes.add('formHaste')
+    // druid.md §4, §8 "Uncertainty surfacing": the bear's abilities.
+    if (setup.form === 'bear') {
+      if (['maul', 'swipe', 'mangle', 'lacerate', 'faerieFire', 'demoralizingRoar'].some(has)) notes.add('bearThreat')
+      if (has('lacerate')) notes.add('lacerate')
+      if (has('swipe')) notes.add('bearTwoRolls')
+      if (has('demoralizingRoar')) notes.add('demoralizingRoar')
+      if (abilities.some((a) => (a.noCooldownAura ?? -1) >= 0)) notes.add('berserkMangle')
+      if (auras.some((a) => a.itemArmorPct)) notes.add('enrageArmor')
+    }
     if (setup.form === 'bear' && profile.catalogue.column === 'forever') notes.add('bearArmor')
   }
   // docs/classes/paladin.md#open-questions: what the paladin's seals, judgements and mana rely on.

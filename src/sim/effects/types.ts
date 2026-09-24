@@ -242,6 +242,8 @@ export interface AuraSpec {
     targetArmor?: number
     bossSlow?: number
     bossAp?: number
+    /** Item-armor % while it's up, added to the other item-armor bonuses (Enrage, druid.md §4.5). */
+    itemArmorPct?: number
   }
 }
 

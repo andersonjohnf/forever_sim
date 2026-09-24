@@ -480,6 +480,35 @@ const REGISTRY = {
     text: 'Seal of Fury’s absorb is one shield, replaced by each of its procs and used up by the next hit that costs you health, which restores Improved Seal of Fury’s mana (87 against a level-63 boss); the absorb itself isn’t taken off the hit. Untested.',
     docRef: `${PAL}#seal-of-fury-sof-new-the-protection-seal`,
   },
+  // docs/classes/druid.md §4, §8 "Uncertainty surfacing": the bear's abilities.
+  bearThreat: {
+    text: 'Maul and Swipe make 1.75 threat per damage, Faerie Fire 108 and Demoralizing Roar 39, as a Classic Era threat library has them; Mangle and Lacerate make 1 threat per damage, since theirs is unknown (Lacerate’s tooltip calls it high). None is measured in Forever.',
+    docRef: `${THREAT}#druid-bear`,
+  },
+  lacerate: {
+    text: 'Lacerate stacks to 5 on the boss. Each one hits for 10% of your weapon damage per stack already there (nothing for the first), and restarts its bleed for every stack, losing the tick under way, as a warrior’s Rend does. Its ticks keep your crit chance and damage bonuses from the last one and can crit in Forever. The hit and the restart are readings of its tooltip; untested.',
+    docRef: `${DRUID}#43-lacerate-r3-1235827`,
+  },
+  bearTwoRolls: {
+    text: 'Swipe rolls to hit and then to crit, like Bloodthirst, since it deals no weapon damage; Maul, Mangle and Lacerate roll once. Untested for druids.',
+    docRef: `${DRUID}#44-swipe-r5-9908`,
+  },
+  bearRage: {
+    text: 'A Maul swing gives no rage: the white swing it replaces would give 8.65. A bear attack that misses or is dodged or parried refunds 80% of its rage (Swipe nothing, like a warrior’s area attacks), as in Classic Era; untested for bears in Forever.',
+    docRef: `${RAGE}#bear-druid-rage`,
+  },
+  demoralizingRoar: {
+    text: 'Demoralizing Roar lowers the boss’s attack power by 204, its level-60 tooltip; whether combat applies all of it is untested. It rolls to hit as a spell does, and a roar that misses refunds 80% of its rage, as a warrior’s shout does in the sim; untested.',
+    docRef: `${DRUID}#45-other-bear-abilities`,
+  },
+  berserkMangle: {
+    text: 'Under Berserk a Mangle starts no cooldown, and one already running when Berserk starts keeps running; untested. The sim has one target, so Mangle’s and Swipe’s extra targets add nothing.',
+    docRef: `${DRUID}#46-berserk-bear-use`,
+  },
+  enrageArmor: {
+    text: 'Enrage lowers the armor from your items by 16% of it for 10 s (Dire Bear Form’s +360% becomes +344%), a reading of its tooltip; the client leaves the effect to the server.',
+    docRef: `${DRUID}#45-other-bear-abilities`,
+  },
   noWeapon: {
     text: 'No main-hand weapon: unarmed attacks aren’t simulated, and neither is any ability that needs one; only cooldowns and buffs are used.',
     docRef: `${WAR}#7-implementation-notes`,

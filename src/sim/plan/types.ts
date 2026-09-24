@@ -231,6 +231,11 @@ export interface AuraPlan {
   targetArmor?: number
   bossSlow?: number
   bossAp?: number
+  /**
+   * Item-armor %, added to the other item-armor bonuses while it's up (Enrage −16 in Dire Bear
+   * Form, druid.md §4.5 [?]); absent = 0.
+   */
+  itemArmorPct?: number
 }
 
 export interface ProcPlan {
@@ -528,15 +533,19 @@ export interface AbilityPlan {
   /** Usable only from behind the target (Shred, druid.md §3.1): from the front it's never used. */
   behindOnly?: boolean
   /**
-   * An attack that also lands a bleed (Rake, druid.md §3.3): its hit deals its damage, and on a
-   * landed hit its `dotTicks` start as a `bleed`'s would, with `aura` as their marker. Their
-   * breakdown row, which counts the applications and ticks; absent for a `bleed`, whose row is
-   * `source`.
+   * An attack that also lands a bleed (Rake, druid.md §3.3; Lacerate, §4.3): its hit deals its
+   * damage, and on a landed hit its `dotTicks` start as a `bleed`'s would, with `aura` as their
+   * marker. Their breakdown row, which counts the applications and ticks; absent for a `bleed`,
+   * whose row is `source`. A marker with more than one stack makes a stacking bleed (Lacerate): each
+   * application adds a stack, restarts the ticks and snapshots them for every stack, and the marker
+   * ends with the last tick.
    */
   dotSource?: number
   /**
    * `cast`: it's a spell on the target that rolls spell hit (combat-tables §9); a miss applies
-   * nothing (Faerie Fire, druid.md §3.8).
+   * nothing, makes no threat and refunds `refundShare` of what it paid (Faerie Fire, druid.md §3.8,
+   * §4.5; Demoralizing Roar, §4.5). A landed one puts `aura` on the boss and makes `threatBonus`
+   * threat.
    */
   spellHit?: boolean
   /**
@@ -544,6 +553,19 @@ export interface AbilityPlan {
    * Swift Judgement ends Judgement's (paladin.md#protection-tree). Absent or −1: none.
    */
   endsCooldownOf?: number
+  // --- Fields the bear's abilities brought (docs/classes/druid.md §4). All optional: absent, a row
+  // behaves as before. ---
+  /**
+   * Weapon share per stack of its own bleed already on the target when it lands (Lacerate's "10%
+   * weapon damage per existing application", druid.md §4.3 [?]); with none on it, the attack deals
+   * no direct damage and can't crit. Absent or 0: the plain `weaponPercent`.
+   */
+  weaponPercentPerStack?: number
+  /**
+   * While this plan aura is up, using it starts no cooldown (Berserk's Mangle, druid.md §4.6); a
+   * cooldown already running keeps running [?]. Absent or −1: none.
+   */
+  noCooldownAura?: number
 }
 
 /**
@@ -553,7 +575,7 @@ export interface AbilityPlan {
  * to its auras; `vsCreature` is a different weapon share against some creature types (Spearing
  * Strike), which the plan resolves against the encounter's creature type (encounter §6).
  */
-export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura' | 'window' | 'spell' | 'tickSpell' | 'auraCrit' | 'dotSource'> & {
+export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura' | 'window' | 'spell' | 'tickSpell' | 'auraCrit' | 'dotSource' | 'noCooldownAura'> & {
   offHand: boolean
   aura: AuraSpec | null
   /** The spell it casts on use, and on each tick (paladin abilities); the plan adds them to Plan.spells. */
@@ -567,6 +589,11 @@ export type AbilityDef = Omit<AbilityPlan, 'source' | 'offHandSource' | 'aura' |
    * id once every ability's aura is in, and drops it if no ability puts that aura up.
    */
   auraCrit?: { aura: string; pct: number }
+  /**
+   * The id of the aura while which it starts no cooldown (Berserk's Mangle, druid.md §4.6), resolved
+   * and dropped the same way.
+   */
+  noCooldownWhile?: string
 }
 
 /** An ability's weapon share against the encounter's creature type (Spearing Strike ×3 vs Giants and Dragonkin, warrior.md §3.1). */
@@ -648,7 +675,7 @@ export const COND = {
   maxMana: 19,
   /**
    * the aura that ability a puts on the target has fewer than b stacks (down counts as none): Sunder
-   * Armor's upkeep, "stacks below 5" (warrior.md §5.4 row 10)
+   * Armor's upkeep, "stacks below 5" (warrior.md §5.4 row 10), and Lacerate's (druid.md §6.3)
    */
   abilityAuraStacksBelow: 20,
   // 21–24 are the bear's, 25–28 the Protection paladin's: tracks that merge separately.

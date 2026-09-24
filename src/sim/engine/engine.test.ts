@@ -617,6 +617,20 @@ describe('golden run (fixed config and seed)', () => {
     const result = toResult(bundle, agg, 0)
     expect({ dps: result.dps, tps: result.tps, abilities: result.abilities.map((a) => [a.id, a.damage, a.threat, a.parries, a.blocks]) }).toMatchSnapshot()
   })
+
+  // - B3: the default Feral bear (docs/classes/druid.md §6.3), added with its rotation at the doc's
+  //   first priority: Maul, Mangle, Lacerate, Swipe, Faerie Fire and Demoralizing Roar, Berserk,
+  //   Enrage before the pull and the Mighty Rage Potion.
+  it('keeps the default Feral bear’s result unchanged', () => {
+    const bundle = buildPlan({ ...defaultConfig('druid-feral-bear'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
+    const agg = runFights(bundle.plan, 500)
+    const result = toResult(bundle, agg, 0)
+    expect({
+      dps: result.dps,
+      tps: result.tps,
+      abilities: result.abilities.map((a) => [a.id, a.damage, a.threat, a.casts, a.hits, a.crits, a.misses, a.dodges, a.parries]),
+    }).toMatchSnapshot()
+  })
 })
 
 describe('benchmark', () => {

@@ -188,7 +188,7 @@ export function tigersFury(kingOfTheJungleRank: number, wolfshead: boolean): Abi
 /**
  * Berserk (spells.json 417141, the talent): free, off the GCD, `RecoveryTime` 180000; for 15000 ms
  * the builders' crit (`auraCrit` on Shred, Claw and Rake) [F] (druid.md §3.7). Usable in cat and bear;
- * its bear part (Mangle's cooldown and targets) comes with the bear.
+ * its bear part is Mangle's: no cooldown while it's up (`noCooldownWhile`, bear-abilities.ts, §4.6).
  */
 export const BERSERK: AbilityDef = {
   id: 'berserk',

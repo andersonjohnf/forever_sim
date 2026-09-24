@@ -6,6 +6,7 @@
 // src/sim/stats/base-stats.ts (D24 placeholders among them); the examples set their own attack power.
 import { describe, expect, it } from 'vitest'
 import { NO_STRIKE, shapeshift, spiritRegenTickTenths } from '../classes/druid/abilities'
+import { rotationOptions } from '../classes/rotation'
 import { armorReduction } from '../core/formulas'
 import { FORM_INDEX, formBit } from '../classes/druid/forms'
 import { type TalentRanks, withDruidTalents } from '../classes/druid/modifiers'
@@ -627,9 +628,9 @@ describe('determinism and the default druids', () => {
       expect(a.dps).toEqual(b.dps)
       expect(a.tps).toEqual(b.tps)
       expect(a.dps.mean).toBeGreaterThan(0)
-      // White swings only until the bear's rotation arrives (the cat's is in engine/cat.test.ts);
-      // Clearcasting shows among the buffs.
-      if (spec === 'druid-feral-bear') expect(a.assumptions.map((x) => x.id)).toContain('whiteSwingsOnly')
+      // White swings only until a spec's rotation arrives (the bear's came with B3); Clearcasting
+      // shows among the buffs.
+      if (rotationOptions(spec).length === 0) expect(a.assumptions.map((x) => x.id)).toContain('whiteSwingsOnly')
       expect(a.cooldowns.map((x) => x.id)).toContain('clearcasting')
     }
   })

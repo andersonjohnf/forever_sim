@@ -137,6 +137,8 @@ export interface RulesProfile {
     armorShatterPerStack: number
     exposeArmor: number
     demoralizingShoutAp: number
+    /** The bear's Demoralizing Roar at 60 (buffs §4.2; docs/classes/druid.md §4.5, W18). */
+    demoralizingRoarAp: number
     thunderClapSlow: number
     windfuryAp: number
     /** Windfury Totem's internal cooldown, ms (damage-and-timing §5.4). */
@@ -211,6 +213,10 @@ export const FOREVER: RulesProfile = {
     // docs/mechanics/buffs-debuffs-consumables.md#42-other-debuffs: rank 5's level-60 tooltip, base −196
     // and −1.4 per level from 54 (11556); whether combat applies the per-level term is OQ 19
     demoralizingShoutAp: 204,
+    // docs/mechanics/buffs-debuffs-consumables.md#42-other-debuffs, druid.md W18: rank 5's level-60
+    // tooltip, base −193 and −1.4 per level from 52 (9898), −204.2, which the client shows as 204;
+    // whether combat applies the per-level term is OQ 19
+    demoralizingRoarAp: 204,
     thunderClapSlow: 0.2,
     // docs/mechanics/buffs-debuffs-consumables.md#11-attack-power-stats-and-crit (Windfury Totem r3)
     windfuryAp: 246,
@@ -275,6 +281,9 @@ export const CLASSIC_ERA: RulesProfile = {
     // docs/mechanics/buffs-debuffs-consumables.md#42-other-debuffs (Classic Era columns): rank 5 at
     // level 60, −140 − 1 per level from 54 (11556, 1.15.9)
     demoralizingShoutAp: 146,
+    // docs/mechanics/buffs-debuffs-consumables.md#42-other-debuffs (Classic Era columns): rank 5 at
+    // level 60, −130 − 1 per level from 52 (9898, 1.15.9)
+    demoralizingRoarAp: 138,
     thunderClapSlow: 0.1,
     windfuryAp: 315,
     // docs/mechanics/damage-and-timing.md#54-extra-attacks-and-chaining: none in Classic Era

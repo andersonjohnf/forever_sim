@@ -996,6 +996,7 @@ melee and ranged crit (aura 52) in Classic Era.
 | Curse of Recklessness (`curseOfRecklessness`) | −505 armor | **−640 armor, +90 boss AP** | 11717 #1: −641 + 1; #0 (aura 99): 89 + 1 (Forever's #0 is a dummy) | [C] |
 | Faerie Fire (`faerieFire`) | −505 armor | same | 9907 #0: −506 + 1 | [C] |
 | Annihilator ×3 (`armorShatter`) | −495 armor | **−600 armor** | 16928 #0: −201 + 1, ×3 | [C] |
+| Demoralizing Roar (`demoralizingRoar`) | −204 boss AP | **−138 boss AP** | 9898 #0: −131 + 1, and −1 per level from 52, so −138 at 60 (as for Demoralizing Shout, whether combat applies the per-level term is [OQ 19](#open-questions)) | [C] |
 | Demoralizing Shout (`demoralizingShout`) | −204 boss AP | **−146 boss AP** | 11556 #0: −141 + 1, and −1 per level from 54, so −146 at 60 (both clients carry a per-level term; whether combat applies it is [OQ 19](#open-questions)) | [C] |
 | Thunder Clap (`thunderClap`) | boss attacks 20% slower | **10% slower** | 11581 #1 (aura 138): −11 + 1 | [C] |
 

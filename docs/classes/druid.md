@@ -15,8 +15,9 @@ rotation setting and default the engine needs for cat DPS and bear TPS at level 
 
 Status: researched 2026-09-22 · foundation in the engine 2026-09-23 (forms, Energy, combo points,
 Clearcasting, shapeshifts, talents and defaults) · the cat's abilities and tuned rotation
-2026-09-23 ([§3](#3-feral-cat-sim-model), [§6.2](#62-forever-cat-priority)); the bear's come next
-([§8](#8-implementation-notes)) · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
+2026-09-23 ([§3](#3-feral-cat-sim-model), [§6.2](#62-forever-cat-priority)) · the bear's abilities
+and rotation in the engine 2026-09-23 ([§4](#4-feral-bear-sim-model), [§6.3](#63-forever-bear-priority-tps))
+· ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 
 Forever client build `1.60.1.69913`, Classic Era client build `1.15.9.69722`. Source links use
 short labels, which are resolved under [Sources](#sources).
@@ -583,6 +584,16 @@ Cat Form's threat modifier is **×0.71** (−29%). [F] [client] (SpellEffect 302
 [rage.md](../mechanics/rage.md); threat constants by [threat.md](../mechanics/threat.md). Below
 are only the druid-specific numbers.
 
+**In the engine** (`src/sim/classes/druid/bear-abilities.ts`, checked against the client in
+`bear.test.ts`) each ability below is a row with the talents of §5 applied by `withDruidTalents`,
+and Rend and Tear (+2% a rank on the direct damage of Maul, Swipe, Mangle and Lacerate against a
+bleeding target, §5.1) by the bear's rotation builder. A bear attack that's missed, dodged or
+parried refunds 80% of its rage [?] ([rage.md](../mechanics/rage.md#rage-refunds-on-avoided-abilities)).
+The sim has one target, so Swipe's and Berserk's Mangle's extra targets add nothing.
+Clearcasting pays for Maul, Swipe, Mangle, Lacerate and Demoralizing Roar: 16870's class mask
+covers all five and leaves out Faerie Fire, which is free in form anyway [F] [client]
+(SpellEffect, SpellClassOptions, 1.60.1.69913).
+
 ### 4.1 Maul (r7, 9881)
 
 On next swing: replaces the white swing with a yellow attack for `(W_b + 128) × SF`. It can't
@@ -591,6 +602,11 @@ when the swing lands. No GCD. [F] [se-f] [sp-f]
 
 Threat ×1.75 before the form modifier [?] (LibThreatClassic2 only, [ltc2]; see
 [threat.md](../mechanics/threat.md#druid-bear); Q15).
+
+**In the engine** it's an on-next-swing row (the warrior's Heroic Strike queue, §8 "Maul"): queued
+off the GCD, paid when its swing lands, one roll on the special table. The swing it replaces gives
+no rage, where a landed white swing would give 8.65 [?]
+([rage.md](../mechanics/rage.md#yellow-damage-and-on-next-swing-attacks)).
 
 ### 4.2 Mangle (bear only; 1238073 at level 60)
 
@@ -602,6 +618,7 @@ Threat ×1.75 before the form modifier [?] (LibThreatClassic2 only, [ltc2]; see
   ranks 2–4 (Q17).
 - [F] [client] (SpellEffect, SpellCooldowns, SpellPower, SpellShapeshift, 1.60.1.69913)
 - Threat multiplier unknown; assume ×1.0 before the form modifier (Q15).
+- **In the engine**: one roll on the special table (it deals weapon damage, like Shred).
 
 ### 4.3 Lacerate (r3, 1235827)
 
@@ -616,6 +633,18 @@ Threat ×1.75 before the form modifier [?] (LibThreatClassic2 only, [ltc2]; see
 - In `forever` its ticks may crit [?] (§2.9).
 - [F] [client] (SpellEffect, SpellDuration, SpellAuraOptions, 1.60.1.69913: period 3000 ms,
   15,000 ms, `CumulativeAura` 5)
+- **In the engine** it's an attack that also bleeds, with a stacking bleed [?] (Q16):
+  - One roll on the special table (it deals weapon damage). The hit reads the stacks already on
+    the boss: with none, the first application deals no direct damage and can't crit, so it's
+    counted as a hit. Rend and Tear applies to the hit; Savage Fury doesn't.
+  - A landed application adds a stack (at most 5), and restarts the bleed for every stack, as a
+    reapplied Rend does ([damage-and-timing WE-9](../mechanics/damage-and-timing.md#4-dots-and-bleeds)):
+    the tick under way is lost, and all the ticks snapshot the application's damage multipliers
+    and crit chance (§2.9). A tick due at that very moment lands first.
+  - The bleed ends with its fifth tick, 15 s after the last application, and its stacks with it:
+    an application at that moment starts again from one stack.
+  - Its ticks count on a row of their own, "Lacerate (bleed)", whose casts are the landed
+    applications. Hit and ticks make one threat per damage (Q15).
 
 ### 4.4 Swipe (r5, 9908)
 
@@ -624,22 +653,52 @@ Threat ×1.75 before the form modifier [?] (LibThreatClassic2 only, [ltc2]; see
 
 Threat ×1.75 [?] (LibThreatClassic2 only, [ltc2]; Q15).
 
+**In the engine** it rolls twice, miss/dodge/parry and then crit, like Bloodthirst, since it
+deals no weapon damage [?] (Q33). Like the warrior's area attacks, Whirlwind and Cleave, it
+refunds nothing when it's avoided [?] ([rage.md](../mechanics/rage.md#rage-refunds-on-avoided-abilities)).
+One target: 118.69 a Swipe with the default build (W16).
+
 ### 4.5 Other bear abilities
 
 | Ability | Numbers | Tag |
 | --- | --- | --- |
 | Demoralizing Roar r5 | −204 melee AP on nearby enemies at 60 (the level-60 tooltip; in combat, Q32), 30 s, 10 Rage, 1.5 s GCD. Threat 39 per target | [F] [client] (SpellEffect, SpellLevels, 1.60.1.69913) [fc-book] [se-f]; in combat [?] (Q32); threat [?] [ltc2] |
-| Faerie Fire (bear) | −505 armor, free, 6 s CD, 1.5 s GCD. Threat 108 | [F] [se-f]; threat [?] [ltc2] |
+| Faerie Fire (bear) | −505 armor, free, 6 s CD, 1.5 s GCD. Threat 108 | [F] [client] (SpellEffect 9635 #4, #5, 1.60.1.69913: Dire Bear Form (Passive), −100% cost and +6000 ms cooldown on its class mask) [se-f]; threat [?] [ltc2] |
 | Growl | Taunt, 8 s CD. Not simmed | [F] [scd-f] |
-| Enrage | +10 Rage now, +2 Rage/s for 10 s, 1 min CD, no GCD. −27% (bear) / −16% (dire bear) base armor for 10 s; +5 Rage with Wolfshead | [F] [client] (SpellEffect, 1.60.1.69913) [fc-wolf] |
+| Enrage | +10 Rage now, +2 Rage/s for 10 s, 1 min CD, no GCD. −27% (bear) / −16% (dire bear) base armor for 10 s; +5 Rage with Wolfshead | [F] [client] (SpellEffect, 1.60.1.69913) [fc-wolf]; the armor part is a dummy effect (server-side), so only the tooltip gives it |
 | Frenzied Regeneration | Not simmed (TPS only) | [F] |
 | Bash | Not simmed | |
+
+**In the engine:**
+
+- **Faerie Fire and Demoralizing Roar** are casts on the boss that roll spell hit
+  ([combat-tables §9](../mechanics/combat-tables.md#9-spell-hit-and-crit-generic); `DefenseType`
+  Magic [F]). A landed one puts its debuff on the boss (Faerie Fire's armor, the roar's attack
+  power: AP ÷ 14 × the boss's unslowed swing speed off each swing, as the Buffs tab's AP debuffs,
+  [encounter §5](../mechanics/encounter.md#5-boss-melee-tank-modeling)) and makes its threat × the
+  form's. A miss applies nothing and makes no threat; a missed roar refunds 80% of its 10 rage, as
+  a missed melee ability does [?]. Each aura is named after its Buffs entry, which the bear's
+  upkeep replaces (the Buffs tab's Faerie Fire and Demoralizing Roar add nothing more while it's
+  on). A Demoralizing Shout in the Buffs tab, another warrior's, fills the same attack-power group
+  (buffs doc, `ap-reduction`): then it's the one on the boss, and the roar makes threat only.
+  `forever`'s roar is the tooltip's −204, `classicEra`'s −138 (W18).
+- **Enrage** is a cast off the GCD: its rage at once and its ticks are energizes, 5 threat a rage
+  ([threat.md](../mechanics/threat.md#threat-from-healing-power-gains-and-buffs)); Wolfshead Helm
+  adds 5 at once. Before the pull (§6.3), its rage then is there at the pull and makes no threat.
+  Its armor loss is read as −16% of **item** armor, added to Dire Bear Form's +360% like the other
+  item-armor bonuses (§4.7): the default bear's 1,614 item armor loses 258 of its 8,772 armor
+  (Buffs aside) [?] (Q35). The other reading, −16% of the whole form armor, would take about 1,400.
 
 ### 4.6 Berserk (bear use)
 
 For 15 s, Mangle has **no cooldown** and hits **up to 3 targets**. 3 min cooldown. The crit part
 doesn't affect bear abilities (its mask holds only cat builders). [F] [client] (SpellEffect,
 1.60.1.69913)
+
+**In the engine** the no-cooldown part is 417141 #1's −100% cooldown modifier on Mangle's class
+mask: a Mangle used while Berserk is up starts no cooldown, and a cooldown already running when
+it starts keeps running [?] (Q36). So under Berserk Mangle can take every GCD the rage pays for.
+One target: the extra targets add nothing.
 
 ### 4.7 Bear armor (low priority: TPS doesn't need it)
 
@@ -908,34 +967,56 @@ early is worth more than its lost Energy, since its cooldown starts sooner.
 This is derived for Forever [?]. Mangle and Lacerate have no Classic analogue, and their threat
 multipliers are unknown (Q15).
 
+**A tank's duties come first** ([D26](../decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)).
+The default keeps the bear's raid and survival duties: **Demoralizing Roar** on the boss (the
+attack-power debuff, a warrior's Demoralizing Shout for a bear), **Faerie Fire** on the boss (the
+raid's armor debuff), and **no Enrage in combat**, whose armor loss is a survival cost (§4.5).
+Within them, D23's search tunes the rest on TPS. Each duty is a setting, so the Max TPS rotation
+(the next slice) drops them by setting them.
+
+**In the engine** (`src/sim/classes/druid/bear.ts`), whenever the bear can act (a GCD ends, rage
+arrives, a cooldown or debuff runs out):
+
 **Off-GCD:**
 
-1. **Berserk** if ready and `useBerserk` (single target: Mangle without a cooldown for 15 s; with
-   2+ targets it also cleaves).
-2. **Enrage** if `enragePrepull` at −1.5 s, or `enrageInCombat` and Rage < `enrageBelowRage`.
-3. **Maul** queued on the next swing when Rage ≥ `maulMinRage` (default: Maul cost + Mangle cost
-   when Mangle comes off cooldown within the swing, otherwise Maul cost). Classic practice is to
-   Maul every swing ([?], §6.1, Q31).
+1. **Berserk** on cooldown, with the talent (one target: Mangle without a cooldown for 15 s).
+2. **Enrage** 1.5 s before the pull (`enrage.prepull`), and in combat only with `enrage.inCombat`,
+   at rage ≤ `enrage.maxRage`.
+3. **Elune's Light** (Night Elf) and on-use items the sim models on cooldown; the **Mighty Rage
+   Potion** once, the first time rage ≤ `ragePotion.maxRage`, and **Juju Flurry** on cooldown,
+   when they're selected in Buffs.
+4. **Maul** queued on the next swing at rage ≥ `maul.minRage`. Classic practice is to Maul every
+   swing ([?], §6.1, Q31). §6.3 first proposed an automatic threshold (Maul's cost, plus Mangle's
+   when Mangle comes off cooldown within the swing); the sim takes a number, which the search
+   tunes.
 
 **On the GCD:**
 
-4. **Demoralizing Roar** if `maintainDemoRoar` and the debuff is missing or < 3 s.
-5. **Mangle** if ready.
-6. **Lacerate** if `useLacerate` and (stacks < 5 or remaining < `lacerateRefreshAt`).
-7. **Swipe** if targets ≥ `swipeMinTargets`, or Rage ≥ `swipeSpareRage` (the Classic "spare rage"
-   rule).
-8. **Faerie Fire** if off cooldown (free threat and debuff upkeep) and `useFaerieFire`.
+5. **Demoralizing Roar** (duty) when it's off the boss or has ≤ `demoRoar.refreshBelowSec` left,
+   unless it lasts to the end of the fight.
+6. **Faerie Fire** (duty) the same, with `faerieFire.refreshBelowSec`.
+7. **Mangle** whenever it's ready, with the talent.
+8. **Lacerate** while it has fewer than 5 stacks, or at 5 with ≤ `lacerate.refreshBelowSec` of its
+   bleed left.
+9. **Swipe** at rage ≥ `swipe.minRage` (the Classic "spare rage" rule). §6.3's target count
+   (`swipeMinTargets`) is left out: the sim has one target.
+10. **Faerie Fire** as a filler whenever it's ready (`faerieFire.filler`): free, 108 threat.
 
-| Setting | Default | Notes |
+| Setting (`druid.bear.…`) | Default | Notes |
 | --- | --- | --- |
-| `useMaul`, `maulMinRage` | **on**, **auto** (above) | |
-| `useMangle` | **on** | Needs the talent |
-| `useLacerate`, `lacerateRefreshAt` | **on**, **3 s** | |
-| `swipeMinTargets`, `swipeSpareRage` | **2**, **60** ([?] rule of thumb, see §6.1, Q31) | |
-| `useFaerieFire` | **on** | Free in form, 6 s CD |
-| `maintainDemoRoar` | **off** | Usually a warrior's Demoralizing Shout. Turn on if the bear owns the AP debuff |
-| `useBerserk` | **on** | |
-| `enragePrepull`, `enrageInCombat`, `enrageBelowRage` | **on**, **off**, 20 | In-combat Enrage costs armor ([F] [se-f] tooltip: −27%/−16% base armor); keeping it pre-pull only is [?] practice (Q31) |
+| `berserk.enabled` | **on** | Needs the talent |
+| `enrage.prepull` | **on** | 12 rage at the pull; 16% less item armor for its first 8.5 s |
+| `enrage.inCombat`, `enrage.maxRage` | **off** (duty), 70 | In-combat Enrage costs armor ([F] [se-f] tooltip: −27%/−16% base armor); 70 is the cap minus its 30 rage |
+| `racial.enabled`, `onUseItems.enabled` | **on**, **on** | Elune's Light (Night Elf); Weakness Analyzer, the on-use item the sim models |
+| `faerieFire.enabled`, `faerieFire.refreshBelowSec` | **on** (duty), 3 s | Free in form, 6 s CD; the Buffs tab's Faerie Fire adds nothing more while it's on |
+| `demoRoar.enabled`, `demoRoar.refreshBelowSec` | **on** (duty), 3 s | 10 rage; the Buffs tab's Demoralizing Roar adds nothing more, and a Demoralizing Shout there takes its place (§4.5) |
+| `maul.enabled`, `maul.minRage` | **on**, 10 | Maul's cost with Ferocity 5/5 |
+| `mangle.enabled` | **on** | Needs the talent |
+| `lacerate.enabled`, `lacerate.refreshBelowSec` | **on**, 3 s | |
+| `swipe.enabled`, `swipe.minRage` | **on**, 60 | [?] rule of thumb, see §6.1, Q31 |
+| `faerieFire.filler` | **on** | Keeps Faerie Fire up too |
+| `ragePotion.enabled`, `ragePotion.maxRage` | **on**, 25 | The cap minus 75; needs the potion selected in Buffs |
+| `jujuFlurry.enabled` | **on** | Needs it selected in Buffs (not in the bear's presets) |
 
 ---
 
@@ -1086,7 +1167,11 @@ the buffs doc as a per-spec entry.
   (Q33), Predatory Instincts' 2.2× (Q10), Rend and Tear's scope and others' bleeds (Q9), Berserk's
   crits and Primal Fury (Q8), attack speed in form (Q28), and why the cat never powershifts
   (§2.8, an inference from the tooltips). The form weapon's and Omen of Clarity's lines give only
-  the form's own figures: a cat's 1.0 s swing and 3.33% of landed hits.
+  the form's own figures: a cat's 1.0 s swing and 3.33% of landed hits. The bear's rotation adds
+  its threat values (Q15), Lacerate's stacks and hit (Q16), Swipe's two rolls (Q33), Maul's swing
+  and the bear's refunds, Demoralizing Roar in combat (Q32), Berserk's running cooldown (Q36) and
+  Enrage's armor (Q35), with Rend and Tear (Q9) and Predatory Instincts (Q10) as the cat has them,
+  each only when the setup uses it.
 
 **What the engine provides** (`src/sim/classes/druid/`, and plan/types.ts `AbilityPlan`). A cat or
 bear ability is a row with these fields, and its talents come from `withDruidTalents`
@@ -1121,12 +1206,22 @@ The cat added, generically (plan/types.ts `AbilityPlan`, §3.12):
 
 What Warrior Protection added serves these rows too: an aura's `bossAp`, the attack power a debuff
 takes off the boss (Demoralizing Roar's, §4.5; [warrior.md §7](warrior.md#7-implementation-notes)
-"Debuffs on the boss"); and `kind: 'spell'`, the spell table (warrior.md §7 "Spell-table
+"Debuffs on the boss"); and `kind: 'spellTable'`, the spell table (warrior.md §7 "Spell-table
 abilities"), whose miss refunds a druid row's share of what it paid, as above (§2.4). A row with no
 damage of its own never crits (warrior.md §7), except a combo-point row: a finisher's damage is per
-point, and a builder's crit awards Primal Fury's point (§2.5).
+point, and a builder's crit awards Primal Fury's point (§2.5). Warrior Protection's condition
+"its stacks below n" (code 20) serves Lacerate as it does Sunder Armor.
 
-The bear still needs a stacking bleed (Lacerate, §4.3) and Swipe's extra targets (§4.4).
+The bear's rotation added, on top of those (plan/types.ts `AbilityPlan`, `AuraPlan`; each field
+optional, so no other row changes):
+- a `spellHit` cast that refunds its share of what it paid on a miss and makes its flat threat
+  when it lands (§4.5);
+- a stacking bleed (a marker aura with more than one stack) and a hit that grows with the stacks
+  (`weaponPercentPerStack`; Lacerate, §4.3);
+- a cooldown an aura suspends (`noCooldownAura`; Berserk's Mangle, §4.6), and an item-armor aura
+  (`itemArmorPct`; Enrage, §4.5).
+
+Swipe's extra targets (§4.4) aren't simulated: the sim has one target.
 
 ---
 
@@ -1141,8 +1236,9 @@ If Q5 changes those numbers, recompute the examples; the formulas stay.
 Unit tests: W1, W2, W9, W10, W13 and W17, and the talent arithmetic of W3, W5 and W6
 (`src/sim/classes/druid/druid.test.ts`, `src/sim/engine/druid.test.ts`); W3–W8 and W11 with the
 cat's abilities in the engine, and W8's Energy against the client (`src/sim/engine/cat.test.ts`,
-`src/sim/classes/druid/cat.test.ts`). W12 compares W6 and W7 by hand; the rest come with the
-bear.
+`src/sim/classes/druid/cat.test.ts`); the bear's W14, W15, W16, W18 and W19
+(`src/sim/classes/druid/bear.test.ts`, with W14–W16 and W19 also in the engine,
+`src/sim/engine/bear.test.ts`). W12 compares W6 and W7 by hand.
 
 1. **Cat AP.** Str 200 (after HotW), Agi 300, +310 AP from gear and buffs, Predatory Strikes 3/3:
    `2×200 − 20 + 300 + 120 + 90 + 310 = 1200`. [F] form terms; [?] `2×Str − 20` (character-stats.md)
@@ -1246,7 +1342,7 @@ ranks.
 | Q13 | Furor re-entry formula and rounding; Energy on entering cat without Furor | Tooltip [F]; 0 without Furor [C] [wh-rot] (inferred) | Shift at known Energy, time the caster phase |
 | Q14 | Wolfshead +20 on Tiger's Fury stacks with King of the Jungle | Tooltip [F] | Press TF at 0 Energy with the helm |
 | Q15 | Threat: Maul/Swipe ×1.75, FF 108, Demo Roar 39 (Classic and Forever)? Mangle, Lacerate ("high threat") | [?] for all: Maul, Swipe, FF and Demo Roar come only from LibThreatClassic2 [ltc2] ([threat.md OQ 4](../mechanics/threat.md#open-questions)) | Threat-meter addon (ThreatClassic2-style) or `UnitDetailedThreatSituation` with a two-player test |
-| Q16 | Lacerate: per-stack bleed and the "10% weapon damage per existing application" hit | Tooltip [F]; the SoD precedent is forbidden | Apply 1→5 stacks on a mob; log hits and ticks |
+| Q16 | Lacerate: per-stack bleed and the "10% weapon damage per existing application" hit; does an application restart the ticks (the tick under way lost) or keep their timer? | Tooltip [F]; the SoD precedent is forbidden. The engine hits for 10% × the stacks already there and restarts the ticks, as a reapplied Rend does (§4.3) [?] | Apply 1→5 stacks on a mob; log hits and ticks, and the time from the fifth application to the next tick |
 | Q17 | Ranks available from the trainer: Mangle ranks 2–4, Ferocious Bite rank 5 (Classic: an AQ book) | [F] spellbook lists ranks | Trainer window at 36/48/56/60 |
 | Q18 | Combo points on the player or on the target | Forever uses modern CP costs [F] | Build CP, swap target, check |
 | Q19 | Bear armor: does the new aura 466 (+360% "bonus armor") also scale non-item armor? Is passive 1306459 live? | [F] data only | Character-sheet armor in and out of Dire Bear with an armor buff |
@@ -1265,6 +1361,8 @@ ranks.
 | Q32 | Demoralizing Roar at 60: does the debuff apply the level-60 tooltip's −204 in combat? | Tooltip −204 [F] [client]: −193 − 1.4/level with `SpellLevels` 52–62, so `MaxLevel` doesn't cap it below 60 (the −193 read before was the unscaled base). In combat [?] | Owned by [buffs-debuffs-consumables OQ 19](../mechanics/buffs-debuffs-consumables.md#open-questions): read the debuff on a target at 60 |
 | Q33 | Cat and bear special-attack rolls: weapon-damage abilities one roll; Rake's initial hit, Ferocious Bite and Swipe two rolls? | The split is Classic Era [C] for warrior abilities ([combat-tables §3](../mechanics/combat-tables.md#3-special-yellow-attacks)); mapping the druid's non-weapon specials onto it is [?] | Owned by [combat-tables OQ 6](../mechanics/combat-tables.md#open-questions): crit rate per attempt vs per landed hit for Shred and Ferocious Bite from the front vs mobs three levels above you |
 | Q34 | Shapeshifting and the timers: does a shapeshift reset or keep the swing timer, and do Energy and mana regenerate on one shared 2 s tick? Does entering cat before ever leaving it in a fight keep a full bar under Furor? | The engine keeps the swing in progress and one power tick for both, running through shifts, and counts a full bar as the Energy last left in cat [?] (§2.4, §2.8) | Log swings and Energy and mana ticks with an addon around a powershift (Cat Form → Cat Form) and a cat → bear → cat shift |
+| Q35 | Enrage's armor loss: 16% of which armor, and how does it combine with Dire Bear Form's +360%? | Tooltip only [F]: the client's effect is a dummy. The engine takes 16% of item armor, added to the +360% (§4.5) [?]. The other reading, 16% of the whole form armor, loses about five times as much. It moves damage taken only, not rage (`forever`) or threat | Character-sheet armor in Dire Bear Form before and during Enrage, with and without an armor buff |
+| Q36 | Berserk and a Mangle already on cooldown: does it reset the cooldown, or only stop new ones? | 417141 #1 is a −100% cooldown modifier on Mangle [F] [client]; the engine lets a running cooldown run (§4.6) [?] | Mangle, then Berserk 1 s later; see whether Mangle is ready at once |
 
 ---
 

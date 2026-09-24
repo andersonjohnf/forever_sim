@@ -252,7 +252,8 @@ describe('rotationValues', () => {
       'warrior.protection.shieldSlam.enabled': true,
       'warrior.protection.heroicStrike.minRage': 45,
     })
-    expect(rotationValues(defaultConfig('druid-feral-bear'))).toEqual({})
+    // A spec without settings has no values.
+    expect(rotationValues(defaultConfig('paladin-protection'))).toEqual({})
   })
 })
 

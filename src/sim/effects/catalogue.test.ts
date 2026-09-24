@@ -159,6 +159,8 @@ const ROWS: Record<string, Row> = {
   armorShatter: { forever: [['targetArmor', 495]], classicEra: [['targetArmor', 600]], rows: [S(16928, 0, { times: 3 })] },
   // Level 60: the base points and the per-level term from 54 (−196 − 1.4 × 6; Classic −140 − 6).
   // Whether combat applies the per-level term is OQ 19's.
+  // Level 60: −193 − 1.4 × 8, truncated to −204 (Classic −130 − 8): the bear's own (druid.md §4.5).
+  demoralizingRoar: { forever: [['bossAp', -204]], classicEra: [['bossAp', -138]], rows: [S(9898)] },
   demoralizingShout: { forever: [['bossAp', -204]], classicEra: [['bossAp', -146]], rows: [S(11556)] },
   thunderClap: { forever: [['bossSlow', 20]], classicEra: [['bossSlow', 10]], rows: [S(11581, 1)] },
   // Consumables
@@ -275,7 +277,7 @@ const ENTRIES: [string, CatalogueEntry][] = [...BUFFS.map((b) => [b.id, b] as [s
 describe('the catalogue in both profiles (buffs doc, Classic Era values)', () => {
   it('lists every entry once in the table, as the doc does', () => {
     expect(Object.keys(ROWS).sort()).toEqual(ENTRIES.map(([id]) => id).sort())
-    expect(ENTRIES).toHaveLength(108)
+    expect(ENTRIES).toHaveLength(109)
   })
 
   it.each(ENTRIES)('%s: Forever’s values, and Classic Era’s where they differ', (id, entry) => {

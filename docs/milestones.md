@@ -250,7 +250,7 @@ placeholders, and M9 replaces them.
       default and a Max TPS priority (D26), tuned, and shipped
       ([review](reviews/2026-09-24-paladin-protection.md))
 
-## M5.5: Every other DPS spec (D27) 🚧
+## M5.5: Every other DPS spec (D27) ✅
 
 Every DPS spec in the game, before multi-target, landed in the 90/10 mode of
 [D27](decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24):
@@ -277,8 +277,8 @@ talents and default build, abilities, rotation, defaults, e2e, shipped.
       attacks ([ranged-and-pets.md](mechanics/ranged-and-pets.md)) ([review](reviews/2026-09-24-ranged-and-pet-core.md))
 - [x] **H2 Hunter:** Beast Mastery, Marksmanship, Survival, on the ranged and pet core with
       first-pass defaults ([hunter.md](classes/hunter.md)) ([review](reviews/2026-09-24-hunter.md))
-- [ ] **H3 Demonology Warlock:** a demon kept out beside a sacrificed one (Demonic Pact), on the pet
-      core. Built on its branch, awaiting review ([warlock.md §11](classes/warlock.md#11-demonology))
+- [x] **H3 Demonology Warlock:** a demon kept out beside a sacrificed one (Demonic Pact), on the pet
+      core ([warlock.md §11](classes/warlock.md#11-demonology)) ([review](reviews/2026-09-24-demonology.md))
 
 ## M5.6: Tanks, reviewed against the guild (D28, D29) 🚧
 
@@ -561,6 +561,16 @@ slice is worked:
     (hunter.md OQ-H1).
   - **Blackhand's Breadth's use and Dwarven Hand Cannon's chance on hit** aren't simulated (HN13,
     about 0.6% of DPS); both are flagged in the assumptions, as other items' effects are.
+- **The Demonology warlock's first-pass gaps** (H3, [warlock.md §11.7](classes/warlock.md#117-open-questions);
+  [its review](reviews/2026-09-24-demonology.md)):
+  - **The demon's spells take your Shadow Vulnerability** (DM2), whose aura 270 is damage taken from
+    you alone: Lash of Pain gets +12% for about a quarter of the fight, +0.3 DPS (0.06%). It needs an
+    aura flag for "from the caster only" that pet damage skips, with its test (DM12's last).
+  - **The Buffs tab's armor debuffs don't say they reach only your demon's swings** (DM8), and stay
+    with no "changes nothing" note when the Imp or no demon is out (ux.md "Buffs"). `SpecMeta.petMelee`
+    is per spec; the note needs the setup's demon. Low: the default Succubus swings.
+  - **"Voidwalker" touches its button's borders at 390 px** in the Demonic Sacrifice choice (DM9,
+    pre-existing, Destruction too): wrap the four choices 2 × 2 at phone width, or pad the button.
 - **The caster core's gaps** (K1, [spells.md](mechanics/spells.md#open-questions)):
   - **The paladin doesn't get Curse of the Elements** though the buffs doc's presets list it for
     them (§6.2): K1 left every shipped result unchanged, as its brief required. It's +10% on every

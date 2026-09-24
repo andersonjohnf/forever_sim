@@ -53,8 +53,8 @@ export const EUREKA_DOT = 4
 
 /**
  * The sim's abilities each class's Eureka! modifies, by ability id: the client spell it casts (its
- * cost and charge), the spell whose damage it deals when that's another (Arcane Missiles' missiles),
- * and the bits the masks give. An ability not listed isn't modified and spends no charge (Pyroblast,
+ * cost and charge), the spell whose damage it deals when that's another (Arcane Missiles' missiles,
+ * Mutilate's strikes), and the bits the masks give. An ability not listed isn't modified and spends no charge (Pyroblast,
  * Incinerate, Siphon Life, Hemorrhage, Sunder Armor, Revenge, Spearing Strike: outside the masks).
  */
 export const EUREKA_ABILITIES: Readonly<Record<EurekaClass, Readonly<Record<string, { spell: number; damageSpell?: number; bits: number }>>>> = {
@@ -78,8 +78,8 @@ export const EUREKA_ABILITIES: Readonly<Record<EurekaClass, Readonly<Record<stri
     ghostlyStrike: { spell: 14278, bits: EUREKA_COST | EUREKA_DAMAGE },
     eviscerate: { spell: 31016, bits: EUREKA_COST | EUREKA_DAMAGE },
     rupture: { spell: 11275, bits: EUREKA_COST | EUREKA_DAMAGE | EUREKA_DOT },
-    // Mutilate's cost is in the cost mask, its damage outside the damage mask.
-    mutilate: { spell: 1310707, bits: EUREKA_COST },
+    // Mutilate's cast (1241584) is in the cost mask, its strikes (1241586, 1241590) in the damage mask.
+    mutilate: { spell: 1241584, damageSpell: 1241586, bits: EUREKA_COST | EUREKA_DAMAGE },
     bladeFlurry: { spell: 13877, bits: EUREKA_COST | EUREKA_DAMAGE },
   },
   mage: {
@@ -98,6 +98,7 @@ export const EUREKA_ABILITIES: Readonly<Record<EurekaClass, Readonly<Record<stri
     baneOfDoom: { spell: 603, bits: EUREKA_COST | EUREKA_DAMAGE | EUREKA_DOT },
     conflagrate: { spell: 1293818, bits: EUREKA_COST | EUREKA_DAMAGE },
     shadowburn: { spell: 18871, bits: EUREKA_COST | EUREKA_DAMAGE },
+    soulFire: { spell: 17924, bits: EUREKA_COST | EUREKA_DAMAGE },
   },
   priest: {
     mindBlast: { spell: 10947, bits: EUREKA_COST | EUREKA_DAMAGE },

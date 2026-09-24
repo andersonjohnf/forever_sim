@@ -8,7 +8,9 @@ import { Sim } from '../engine/sim'
 import { alwaysLandNoCrit } from '../engine/test-helpers'
 import { buildPlan } from '../plan/build'
 import { EUREKA, EUREKA_ABILITIES, EUREKA_COST, EUREKA_DAMAGE, EUREKA_DOT, type EurekaClass } from './eureka'
+import { SPEC_IDS, SPEC_META } from '../specs'
 import { MAGE_IDS } from './mage/rotation'
+import { rotationOptions } from './rotation'
 import { auraOf, events, examplePlan, fixSpell } from './mage/test-helpers'
 
 const spells = (spellsJson as unknown as ClientSpells).spells
@@ -43,6 +45,8 @@ describe('Eureka! against the client (eureka.ts)', () => {
         expect(bits, `${cls} ${id}`).toBe(want)
       }
     }
+    // Mutilate's cast only cuts its cost; its strikes, the damage spell, take the +10% (EV-1).
+    expect(EUREKA_ABILITIES.rogue.mutilate.bits).toBe(EUREKA_COST | EUREKA_DAMAGE)
     // Outside the masks: Pyroblast (18809), Incinerate (1293813), Siphon Life (18881), Hemorrhage (16511), Sunder Armor (11597), Revenge (25288).
     const outside: [EurekaClass, number][] = [['mage', 18809], ['warlock', 1293813], ['warlock', 18881], ['rogue', 16511], ['warrior', 11597], ['warrior', 25288]]
     for (const [cls, id] of outside) {
@@ -50,6 +54,46 @@ describe('Eureka! against the client (eureka.ts)', () => {
       const mask = spell(id).classOptions!.spellClassMask!
       expect(overlaps(mask, cost) || overlaps(mask, damage), `${cls} ${id}`).toBe(false)
     }
+  })
+
+  it('no ability in any of its classes’ plans, every setting on, is in a mask but missing from the list', () => {
+    // Consumables: items, not the class's spells, so no client spell of theirs carries its name.
+    const items = new Set(['mightyRagePotion', 'thistleTea', 'manaRuby', 'manaCitrine', 'majorManaPotion'])
+    const byName = new Map<string, number[]>()
+    for (const s of Object.values(spells)) byName.set(s.name, [...(byName.get(s.name) ?? []), s.id])
+    let seen = 0
+    for (const spec of SPEC_IDS) {
+      const cls = SPEC_META[spec].classId
+      if (!(cls in EUREKA)) continue
+      const e = spell(EUREKA[cls as EurekaClass].spellId)
+      const set = e.classOptions!.spellClassSet
+      const masks = e.effects.map((x) => x.effectSpellClassMask ?? [])
+      const table = EUREKA_ABILITIES[cls as EurekaClass]
+      // Every switch on, and each choice at each of its values (Arms's stance, the warlock's demon).
+      const options = rotationOptions(spec)
+      const on = Object.fromEntries(options.flatMap((o) => (o.kind === 'toggle' ? [[o.id, true]] : [])))
+      const settings = [on, ...options.flatMap((o) => (o.kind === 'choice' ? o.choices.map((c) => ({ ...on, [o.id]: c.value })) : []))]
+      const abilities = new Map<string, string>()
+      for (const rotation of settings) for (const a of buildPlan({ ...defaultConfig(spec), race: 'alliance-gnome', rotation }).plan.abilities) abilities.set(a.id, a.name)
+      for (const [id, name] of abilities) {
+        seen++
+        if (id === 'eureka' || items.has(id)) continue
+        // Each is a client spell, by its name: a new ability the sim names otherwise must be added above.
+        const ids = byName.get(name) ?? []
+        expect(ids.length, `${spec} ${id}: no client spell is named ${name}`).toBeGreaterThan(0)
+        const listed = table[id]
+        if (listed) {
+          expect(spell(listed.spell).name, `${spec} ${id}`).toBe(name)
+          continue
+        }
+        const inMask = ids.filter((i) => {
+          const o = spell(i).classOptions
+          return o?.spellClassSet === set && o.spellClassMask !== undefined && masks.some((m) => overlaps(o.spellClassMask!, m))
+        })
+        expect(inMask, `${spec} ${id} (${name}) is in ${cls}'s Eureka! masks but not in EUREKA_ABILITIES`).toEqual([])
+      }
+    }
+    expect(seen).toBeGreaterThan(100)
   })
 })
 
@@ -130,6 +174,40 @@ describe('Eureka! in the engine (eureka.ts)', () => {
     // Its +10% is the strike's damage path, the warrior's above (Sinister Strike rolls the weapon).
     expect(dealt.length).toBeGreaterThan(3)
     expect(plan.abilities[ss].eureka).toBe(EUREKA_COST | EUREKA_DAMAGE)
+  })
+
+  it('a Gnome Assassination rogue: the next 3 Mutilates cost 48 Energy, not 60, and both hands’ strikes deal +10%', () => {
+    const d = defaultConfig('rogue-assassination')
+    const plan = buildPlan({ ...d, race: 'alliance-gnome', buffs: { raid: d.buffs.raid, enabled: [] } }).plan
+    alwaysLandNoCrit(plan)
+    plan.fight.targetArmor = 0
+    // Fixed weapon rolls and no poison bonus, so nothing but Eureka! changes a strike's damage.
+    for (const w of plan.weapons) if (w) w.max = w.min
+    const keep = new Set(['eureka', 'mutilate'])
+    plan.rotation = plan.rotation.filter((r) => keep.has(plan.abilities[r.ability].id))
+    const m = plan.abilities.findIndex((a) => a.id === 'mutilate')
+    plan.abilities[m].poisonedTargetPct = 0
+    const { source, offHandSource } = plan.abilities[m]
+    expect(offHandSource).toBeGreaterThanOrEqual(0)
+    const sim = new Sim(plan)
+    const paid: number[] = []
+    const main: number[] = []
+    const off: number[] = []
+    let before = 0
+    sim.castTrace = (a, _t, pool) => {
+      if (a === m) before = pool
+    }
+    sim.damageTrace = (s, dmg) => {
+      if (s === source) {
+        main.push(dmg)
+        paid.push(before - sim.resources().energy)
+      } else if (s === offHandSource) off.push(dmg)
+    }
+    sim.runFight(0)
+    expect(paid.slice(0, 4)).toEqual([480, 480, 480, 600])
+    for (const hand of [main, off]) {
+      for (const k of [0, 1, 2]) expect(hand[k] / hand[3], `strike ${k + 1}`).toBeCloseTo(1.1, 9)
+    }
   })
 
   it('an ability it doesn’t modify spends no charge: a Gnome Fire mage’s Pyroblast', () => {

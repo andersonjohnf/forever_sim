@@ -481,8 +481,9 @@ and no racial cooldown. Orcs (Blood Fury), Trolls (Berserking) and Night Elves (
 theirs on cooldown. A Gnome's Expansive Mind raises the Energy cap by 5% ([§2.1](#21-energy)), and
 it presses Eureka! (1259812) on cooldown: the next 3 of Sinister Strike, Backstab, Ambush, Ghostly
 Strike, Eviscerate, Rupture, Mutilate and Blade Flurry cost 20% less Energy, rounded down, and deal
-+10% (Rupture's bleed +10%; Mutilate only its cost, its damage is outside the mask; not Hemorrhage)
-(`src/sim/classes/eureka.ts`, [?] `eureka`): +0.75% Combat, +1.75% Assassination, +0.87% Subtlety
++10% (Rupture's bleed +10%; Mutilate's cast, 1241584, is in the cost mask and its strikes, 1241586
+and 1241590, in the damage mask, so both hands' +10%; not Hemorrhage) [F] [client]
+(`src/sim/classes/eureka.ts`, [?] `eureka`): +0.75% Combat, +2.04% Assassination, +0.87% Subtlety
 (Gnome, racial on vs off, the defaults, seed 12345, 20,000 fights).
 
 ### 7.3 Weapons and gear

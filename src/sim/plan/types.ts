@@ -138,8 +138,8 @@ export interface SpellDef {
   threatMult: number
   threatBonus: number
   /**
-   * Never crits, and rolls no crit (Holy Shield's block damage and Retribution Aura's, a damage
-   * shield's: paladin.md#protection-model-and-rotation [?]). Absent: it can crit.
+   * Never crits, and rolls no crit, on any table (Holy Shield's block damage and Retribution Aura's:
+   * paladin.md#other-abilities [?]). Absent: it can crit.
    */
   cannotCrit?: boolean
 }
@@ -339,6 +339,12 @@ export interface AbilityPlan {
    * (Slam without Improved Slam; damage-and-timing §3.3). Otherwise the timers are untouched.
    */
   castStopsSwings: boolean
+  /**
+   * Nothing else is used during the cast, off-GCD lines included: a paladin's spell cast (Hammer of
+   * Wrath without Instrument of Law holds Judgement, paladin.md#other-abilities [?]). Absent: off-GCD
+   * lines still act (Slam's Heroic Strike, warrior.md §7).
+   */
+  castHoldsOffGcd?: boolean
   /** Needs a two-handed weapon (Spearing Strike, warrior.md §3.1): never used with one-handers. */
   twoHandOnly: boolean
   /** Needs a shield (Shield Slam, Shield Block; warrior.md §3.1, §3.2): never used without one. Absent = no. */
@@ -398,6 +404,8 @@ export interface AbilityPlan {
    * `bleed`: the plan aura that marks the bleed on the target, with no stat mods: up from the
    * application until its last tick, so rotation conditions can read it, as Bloodthrill's proc
    * will (Rend).
+   * `spell`: the plan aura it puts on the player when its spell lands (Iron Creed's −10% damage
+   * taken after Holy Strike, paladin.md#protection-tree).
    */
   aura: number
   /**

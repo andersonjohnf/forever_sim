@@ -349,6 +349,8 @@ export class Sim {
   private readonly aTakenCharges: Int32Array
   private readonly takenChargeAuras: Int32Array
   private readonly auraTakenCharges: Int32Array
+  /** Each taken-charged aura's `auraGen` as a hit that costs health lands, before its procs (`onDamageTaken`). */
+  private readonly takenChargeGen: Int32Array
 
   // Spells, flattened (paladin.md#conventions-used-below; Plan.spells).
   private readonly splSource: Int32Array
@@ -368,7 +370,7 @@ export class Sim {
   private readonly splDamageMult: Float64Array
   private readonly splThreatMult: Float64Array
   private readonly splThreatBonus: Float64Array
-  /** Rolls no crit (a damage shield's: Holy Shield's block damage, Retribution Aura; paladin.md [?]). */
+  /** Rolls no crit on any table (Holy Shield's block damage, Retribution Aura's; paladin.md [?]). */
   private readonly splNoCrit: Uint8Array
 
   // Abilities and the rotation, flattened.
@@ -379,6 +381,8 @@ export class Sim {
   /** Cast time (0 = instant), and whether the cast stops white swings and restarts the timers (Slam, warrior.md §3.1). */
   private readonly abCastMs: Float64Array
   private readonly abCastStopsSwings: Uint8Array
+  /** Nothing else is used during its cast, off-GCD lines included (a paladin's Hammer of Wrath, paladin.md#other-abilities). */
+  private readonly abCastHolds: Uint8Array
   /** Abilities this setup can never use (Spearing Strike without a two-hander): never ready. */
   private readonly abNeverReady: Uint8Array
   /** Can't be dodged, parried or blocked: only a miss avoids it (Overpower, combat-tables §3). */
@@ -526,9 +530,10 @@ export class Sim {
   private readonly hasRotation: boolean
   private readonly hasAbilities: boolean
   /**
-   * Some ability attacks without a weapon (a spell-table one, or one that needs only a shield:
-   * Thunder Clap, Shield Slam; warrior.md §7 "Without a main-hand weapon"), so an empty main hand
-   * still gets its special-attack table.
+   * Some ability or spell attacks without a weapon: a spell-table one, or one that needs only a
+   * shield (Thunder Clap, Shield Slam; warrior.md §7 "Without a main-hand weapon"), or a paladin
+   * spell of the melee or ranged class (its judgements, Hammer of Wrath; paladin.md#how-the-engine-does-it),
+   * so an empty main hand still gets its special-attack table.
    */
   private readonly hasWeaponlessAttacks: boolean
   /** Some proc fires after a landed white swing's own procs (the paladin's damage seals). */
@@ -671,6 +676,8 @@ export class Sim {
   private castGcdEnd = 0
   /** A cast that stops white swings is running: no swing timers are pending (damage-and-timing §3.3). */
   private swingsStopped = false
+  /** A cast that holds every other action is running: the rotation waits for it (paladin.md#other-abilities). */
+  private castHolding = false
   /** The STANCE bit the warrior is in: the base stance, or the one a dance swapped to (warrior.md §7). */
   private stance = 0
   /**
@@ -946,6 +953,7 @@ export class Sim {
     this.aTakenCharges = Int32Array.from(auras, (a) => a.takenCharges ?? 0)
     this.takenChargeAuras = Int32Array.from(auras.flatMap((a, i) => ((a.takenCharges ?? 0) > 0 ? [i] : [])))
     this.auraTakenCharges = new Int32Array(na)
+    this.takenChargeGen = new Int32Array(this.takenChargeAuras.length)
 
     const spells = plan.spells ?? []
     this.splSource = Int32Array.from(spells, (x) => x.source)
@@ -977,6 +985,7 @@ export class Sim {
     this.abGcd = new Float64Array(nb)
     this.abCastMs = new Float64Array(nb)
     this.abCastStopsSwings = new Uint8Array(nb)
+    this.abCastHolds = new Uint8Array(nb)
     this.abNeverReady = new Uint8Array(nb)
     this.abUnavoidable = new Uint8Array(nb)
     this.abWindow = new Int32Array(nb)
@@ -1080,6 +1089,7 @@ export class Sim {
       this.abGcd[i] = a.gcdMs
       this.abCastMs[i] = a.castMs
       this.abCastStopsSwings[i] = a.castStopsSwings ? 1 : 0
+      this.abCastHolds[i] = a.castHoldsOffGcd ? 1 : 0
       // warrior.md §3.1: Spearing Strike needs a two-hander. §7 "Without a main-hand weapon": every
       // ability that attacks (strikes, melee spells, bleeds, the on-next-swing queue) needs one; casts
       // don't, nor does a shapeshift (druid.md §2.8), nor a spell unless it deals weapon damage (Holy
@@ -1272,7 +1282,9 @@ export class Sim {
     this.hasRotation = rotation.length > 0
     // Spells on the melee table read the special-attack tables too (paladin.md#conventions-used-below).
     this.hasAbilities = nb > 0 || spells.length > 0
-    this.hasWeaponlessAttacks = abilities.some((a) => a.kind === 'spellTable' || (a.shieldOnly === true && a.kind !== 'cast'))
+    this.hasWeaponlessAttacks =
+      abilities.some((a) => a.kind === 'spellTable' || (a.shieldOnly === true && a.kind !== 'cast')) ||
+      spells.some((x) => x.defense === DEFENSE.melee || x.defense === DEFENSE.ranged)
     this.hasWhiteResolved = (plan.triggers[TRIGGER.whiteResolved] ?? []).length > 0
     // docs/classes/druid.md §2.4, §2.8: forms, Furor, and the power tick's Energy and mana.
     const shift = plan.shapeshift
@@ -1551,6 +1563,7 @@ export class Sim {
     this.gcdEnd = 0
     this.castGcdEnd = 0
     this.swingsStopped = false
+    this.castHolding = false
     for (let i = 0; i < this.abReadyAt.length; i++) this.abReadyAt[i] = this.abNeverReady[i] ? Infinity : 0
     this.abUses.fill(0)
     this.abTicksLeft.fill(0)
@@ -1895,6 +1908,8 @@ export class Sim {
    */
   private act(): void {
     this.actPending = false
+    // A cast that holds everything (Hammer of Wrath's, paladin.md#other-abilities): its end walks again.
+    if (this.castHolding) return
     const now = this.now
     if (this.stance !== this.home && this.stanceReadyAt <= now) this.swapStance(this.home)
     // While the GCD runs only off-GCD entries can be used; skipping the others changes nothing.
@@ -1919,6 +1934,8 @@ export class Sim {
       if (dance !== 0) this.swapStance(dance)
       if (this.entryStay[e] !== 0) this.home = this.stance
       this.use(a)
+      // A cast that holds everything (Hammer of Wrath's) ends the walk too: its end walks again.
+      if (this.castHolding) return
     }
   }
 
@@ -2105,14 +2122,17 @@ export class Sim {
   /**
    * Starts an ability's cast (Slam, warrior.md §3.1 "Slam" and §7): the GCD runs from now, but no
    * GCD ability starts until the cast completes, so the GCD is held until then; off-GCD lines
-   * still act. A cast that stops swings cancels both pending swings (damage-and-timing §3.3 and
-   * its implementation notes). The cost, cooldown and strike wait for the cast to complete.
+   * still act, unless the cast holds them too (a paladin's Hammer of Wrath holds Judgement,
+   * paladin.md#other-abilities [?]). A cast that stops swings cancels both pending swings
+   * (damage-and-timing §3.3 and its implementation notes). The cost, cooldown and strike wait for
+   * the cast to complete.
    */
   private startCast(a: number): void {
     const now = this.now
     this.castGcdEnd = now + this.abGcd[a]
     this.gcdEnd = Infinity
     this.q.push(now + this.abCastMs[a], EV_CAST_END, a, 0)
+    if (this.abCastHolds[a]) this.castHolding = true
     if (this.abCastStopsSwings[a]) {
       this.swingGen[HAND.main]++
       this.swingGen[HAND.off]++
@@ -2128,6 +2148,7 @@ export class Sim {
    */
   private onCastEnd(a: number): void {
     const now = this.now
+    this.castHolding = false
     this.gcdEnd = this.castGcdEnd
     if (this.gcdEnd > now) this.q.push(this.gcdEnd, EV_ACT, 0, 0)
     this.actPending = this.hasRotation
@@ -2194,13 +2215,19 @@ export class Sim {
   /**
    * Ability b and every ability of its category are ready now (Swift Judgement "finishes the
    * remaining cooldown on your Judgement ability", paladin.md#protection-tree), and the rotation
-   * walks again so it can use them.
+   * walks again so it can use them. One never ready again (used up, or needing a weapon the setup
+   * lacks: ready at Infinity) stays so.
    */
   private endCooldown(b: number): void {
-    const now = this.now
-    if (this.abReadyAt[b] > now) this.abReadyAt[b] = now
-    for (let c = this.abCatNext[b]; c !== b; c = this.abCatNext[c]) if (this.abReadyAt[c] > now) this.abReadyAt[c] = now
+    this.readyNow(b)
+    for (let c = this.abCatNext[b]; c !== b; c = this.abCatNext[c]) this.readyNow(c)
     this.actPending = this.hasRotation
+  }
+
+  /** Ability a is ready now, if it's cooling down (`endCooldown`). */
+  private readyNow(a: number): void {
+    const at = this.abReadyAt[a]
+    if (at > this.now && at !== Infinity) this.abReadyAt[a] = this.now
   }
 
   /**
@@ -2765,6 +2792,9 @@ export class Sim {
     const s = this.abSpell[a]
     const landed = s < 0 || this.castSpell(s, false)
     if (landed && this.abManaReturn[a] > 0) this.returnMana(a)
+    // paladin.md#protection-tree: a landed Holy Strike puts Iron Creed's buff up.
+    const aura = this.abAura[a]
+    if (landed && aura >= 0) this.putAura(aura, this.now + this.aDuration[aura])
     this.startTicks(a)
   }
 
@@ -2776,7 +2806,8 @@ export class Sim {
    * avoidance, roll 2 for crit on anything that landed, blocked too: combat-tables §3 "melee spells"
    * [?]); `ranged` is miss, block, then a crit roll [?]; `magic` is the spell table, a
    * miss roll unless it always hits, then a crit roll at spell crit; `none` always lands and rolls
-   * spell crit, unless, like a damage shield, it can't crit (Holy Shield's block damage [?]). Damage: base (or weapon-based) + SP × coefficient, × its own and its school's
+   * spell crit. A spell that can't crit (`cannotCrit`: Holy Shield's block damage and Retribution
+   * Aura's, paladin.md [?]) rolls no crit on any table. Damage: base (or weapon-based) + SP × coefficient, × its own and its school's
    * multipliers, then + the target's flat Holy damage taken × its share (JotC's bonus comes after
    * your own multipliers [?]), × the crit multiplier. Threat: (damage × mult + bonus) × Righteous
    * Fury for Holy × the global multiplier. A landed melee-class spell fires on-hit procs, and its
@@ -2803,10 +2834,12 @@ export class Sim {
         return false
       }
       const critChance = this.specCrit[HAND.main] + this.splBonusCrit[s]
+      // A spell that can't crit rolls no crit (splNoCrit), on every table.
+      const canCrit = this.splNoCrit[s] === 0
       if (defense === DEFENSE.ranged) {
         // combat-tables §3 "Defense type": ranged is miss, then block (from the front), then a second crit roll.
         blocked = r < missTh + (th[4] - th[2])
-        crit = this.rngTable.roll100() < critChance
+        crit = canCrit && this.rngTable.roll100() < critChance
       } else {
         let critFrom = missTh
         if (this.splNoActive[s] === 0) {
@@ -2827,11 +2860,11 @@ export class Sim {
         }
         if (this.splWeaponPct[s] > 0) {
           // A weapon-damage spell (Seal of Command's proc, Holy Strike): one roll, the crit slice after the rest.
-          crit = !blocked && r < Math.min(100, critFrom + Math.max(0, critChance))
+          crit = canCrit && !blocked && r < Math.min(100, critFrom + Math.max(0, critChance))
         } else {
           // combat-tables §3 "melee spells" (the damage judgements): roll 2 for crit, not truncated by
           // roll 1. When roll 1 has no slices (Always Hit and No Active Defense), its roll is the crit roll.
-          crit = (critFrom === 0 ? r : this.rngTable.roll100()) < critChance
+          crit = canCrit && (critFrom === 0 ? r : this.rngTable.roll100()) < critChance
         }
       }
     } else {
@@ -3409,14 +3442,16 @@ export class Sim {
   /**
    * A hit that cost health: the damage-taken procs, then a charge of each aura such hits use up,
    * so a proc that needs the aura still sees it (Seal of Fury's absorb and Improved Seal of Fury's
-   * mana, paladin.md#protection-tree).
+   * mana, paladin.md#protection-tree). As with blocks (`useBlockCharges`), only an aura up before
+   * these procs pays: one they applied or refreshed has a new generation and keeps its charges.
    */
   private onDamageTaken(): void {
-    this.fireProcs(TRIGGER.damageTaken, -1)
     const list = this.takenChargeAuras
+    for (let i = 0; i < list.length; i++) this.takenChargeGen[i] = this.auraGen[list[i]]
+    this.fireProcs(TRIGGER.damageTaken, -1)
     for (let i = 0; i < list.length; i++) {
       const a = list[i]
-      if (this.auraActive[a] && --this.auraTakenCharges[a] <= 0) this.removeAura(a)
+      if (this.auraActive[a] && this.auraGen[a] === this.takenChargeGen[i] && --this.auraTakenCharges[a] <= 0) this.removeAura(a)
     }
   }
 }

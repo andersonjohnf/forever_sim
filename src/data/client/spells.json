@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 48,
       "consumable": 82,
-      "docs": 519,
+      "docs": 548,
       "enchant": 125,
       "item": 432,
       "racial": 44,
@@ -16752,7 +16752,7 @@
         "rangeMax": [35, 35],
         "rangeMin": [8, 8]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "2645": {
       "castTime": {
@@ -18417,7 +18417,7 @@
           "manaCost": 100
         }
       ],
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "3111": {
       "categories": {
@@ -68533,7 +68533,7 @@
         "rangeMax": [35, 35],
         "rangeMin": [8, 8]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "14294": {
       "categories": {
@@ -85524,7 +85524,7 @@
         "spellIconFileDataId": 136047
       },
       "name": "Lightning Reflexes",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "19184": {
       "auraOptions": {
@@ -87262,7 +87262,7 @@
         "spellIconFileDataId": 132219
       },
       "name": "Surefooted",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "19295": {
       "effects": [
@@ -88086,7 +88086,7 @@
         "spellIconFileDataId": 135865
       },
       "name": "Efficiency",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "19426": {
       "classOptions": {
@@ -88109,7 +88109,7 @@
         "spellIconFileDataId": 132312
       },
       "name": "Lethal Attacks",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "19434": {
       "castTime": {
@@ -88190,7 +88190,7 @@
         "spellIconFileDataId": 132218
       },
       "name": "Improved Arcane Shot",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "19461": {
       "classOptions": {
@@ -88223,7 +88223,7 @@
         "spellIconFileDataId": 132330
       },
       "name": "Barrage",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "19485": {
       "classOptions": {
@@ -88249,7 +88249,7 @@
         "spellIconFileDataId": 132271
       },
       "name": "Mortal Shots",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "19498": {
       "classOptions": {
@@ -88413,7 +88413,7 @@
         "spellIconFileDataId": 135615
       },
       "name": "Ranged Weapon Specialization",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "19549": {
       "classOptions": {
@@ -88482,7 +88482,7 @@
         "spellIconFileDataId": 136076
       },
       "name": "Deadly Aspects",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "19559": {
       "classOptions": {
@@ -88682,7 +88682,7 @@
       "range": {
         "rangeMax": [100, 100]
       },
-      "sources": ["spellbook", "talent"],
+      "sources": ["docs", "spellbook", "talent"],
       "targetRestrictions": {
         "targetCreatureType": 1
       }
@@ -88832,7 +88832,7 @@
         "spellIconFileDataId": 136006
       },
       "name": "Bestial Discipline",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "19596": {
       "classOptions": {
@@ -88882,7 +88882,7 @@
         "spellIconFileDataId": 134297
       },
       "name": "Ferocity",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "19616": {
       "classOptions": {
@@ -88907,7 +88907,7 @@
         "spellIconFileDataId": 132091
       },
       "name": "Unleashed Fury",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "19621": {
       "classOptions": {
@@ -88932,7 +88932,7 @@
         "spellIconFileDataId": 134296
       },
       "name": "Frenzy",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "19675": {
       "categories": {
@@ -98580,7 +98580,7 @@
         "rangeMax": [35, 35],
         "rangeMin": [8, 8]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "20905": {
       "categories": {
@@ -104554,7 +104554,7 @@
         "spellIconFileDataId": 134154
       },
       "name": "Improved Tracking",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "24347": {
       "categories": {
@@ -109448,7 +109448,7 @@
         "rangeMax": [35, 35],
         "rangeMin": [8, 8]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25296": {
       "auraOptions": {
@@ -109503,7 +109503,7 @@
           "manaCost": 120
         }
       ],
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "25297": {
       "castTime": {
@@ -116786,7 +116786,7 @@
           "powerCostPct": 8
         }
       ],
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "412538": {
       "auraOptions": {
@@ -117219,7 +117219,7 @@
         "spellIconFileDataId": 132266
       },
       "name": "Lone Wolf",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "415405": {
       "auraOptions": {
@@ -117256,7 +117256,7 @@
         "spellIconFileDataId": 132205
       },
       "name": "Rapid Killing",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "415423": {
       "auraOptions": {
@@ -119929,7 +119929,7 @@
         "spellIconFileDataId": 135539
       },
       "name": "Focused Fire",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "1223984": {
       "classOptions": {
@@ -119964,7 +119964,7 @@
         "spellIconFileDataId": 132217
       },
       "name": "Careful Aim",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "1223987": {
       "auraOptions": {
@@ -135998,7 +135998,7 @@
         "spellIconFileDataId": 1412206
       },
       "name": "Improved Stings",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "1310687": {
       "castTime": {
@@ -136053,7 +136053,7 @@
         "rangeMax": [35, 35],
         "rangeMin": [8, 8]
       },
-      "sources": ["spellbook", "talent"]
+      "sources": ["docs", "spellbook", "talent"]
     },
     "1310703": {
       "categories": {
@@ -136607,7 +136607,7 @@
         "rangeMax": [35, 35],
         "rangeMin": [8, 8]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "1310897": {
       "classOptions": {

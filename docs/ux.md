@@ -280,11 +280,15 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   back to their defaults. It disables itself, so it moves focus to the first setting, the next
   control after it (the list's first row when nothing is above the list).
   - **A priority list** ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24)).
-    A spec on the list (Fury first; the rest follow in M5.65 A2) shows its rotation as the
-    abilities in the order the sim tries them. Its spec-wide settings (a stance, a pet, a tank's
-    priority, the consumables) sit under their headings above the list, as below. Under
+    A spec on the list (Fury first, then the Feral bear; the rest follow in M5.65 A2) shows its
+    rotation as the abilities in the order the sim tries them. Its spec-wide settings (a stance,
+    a pet, the consumables) sit under their headings above the list, as below. Under
     **Priority list** (a heading, with one line: each global cooldown the sim uses the first
-    ability whose conditions hold) come the preset picker and **Reset order**, then the list.
+    ability whose conditions hold) come the preset picker and **Reset order**, then the list. A
+    tank on the list has no Priority choice of its own: its rotations (D28's Defensive, Balanced
+    and Max TPS) are the picker's presets, and a line under the picker says what the one you're
+    on keeps and drops, with what it gains and costs against Defensive in the default setup, or,
+    at Custom, how to get back to one. The picker's trigger takes that line as its description.
     - **Each row** is an ordered list item: a drag handle, the ability's icon, its name, a
       short summary of its settings ("From 40 rage · cancel below 20 rage", or "Off"), and
       its switch. The handle, the row's button and the switch are each 44 px. A row that's off,
@@ -318,11 +322,13 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
       settings move it one place and say where it went; one that reaches the end disables
       itself and hands focus to the other. The handle's name says its place ("Move Whirlwind,
       position 11").
-    - **Pinned rows** (the pre-pull, and later D26's duties) show a lock where the handle would
-      be, have no Move up or down, and no row can be dragged past them. The settings of a
-      pinned row say "Fixed at position 1 of 16".
-    - **Presets and Custom.** The picker lists the spec's rotations: Default, and any named
-      ones (D28's Defensive, Balanced and Max TPS for tanks). Once you move a row or change one
+    - **Pinned rows** (the pre-pull) show a lock where the handle would be, have no Move up or
+      down, and no row can be dragged past them. The settings of a pinned row say "Fixed at
+      position 1 of 16". D26's duties aren't pinned: every tank preset puts them first, and their
+      timing rule is their own condition, so it moves with them (a moved duty is Custom).
+    - **Presets and Custom.** The picker lists the spec's rotations: its defaults first
+      ("Default", or for a tank its default rotation, Balanced), then any named ones (a tank's
+      Defensive and Max TPS). Once you move a row or change one
       of the list's settings away from every preset it reads "Custom". Picking a preset sets
       its order and its values for the list's settings and puts the rest of the list's settings
       at their defaults. The spec-wide settings you set stay. **Reset order** (enabled while
@@ -338,7 +344,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     since C2, the Feral bear since B3), "the common priority" for a spec until then. The cat's
     also says there's no powershifting, and why ([druid §2.8](classes/druid.md#28-shapeshifting-furor-wolfshead-helm-powershifting-mana)),
     since a Classic Era feral would look for it. A tank's says no more: its priority choice,
-    first on the tab, names the duties its default keeps (below).
+    first on the tab, names the duties its default keeps (below). The bear's, on the list, says
+    which of its rotations are tuned: "Defensive is tuned for the default setup; Balanced and Max
+    TPS drop the roar from it, with a first quick search."
   - The settings sit under headings, the way the Buffs tab groups its switches: **Before the
     pull**, **Cooldowns and buffs**, **Core abilities**, **Fillers**, **Execute phase** and
     **Consumables**, in that order. Under each heading the settings keep the spec's priority
@@ -348,7 +356,8 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     with only one for a phase files it under another heading, its help naming the phase
     (Protection's Execute, under Core abilities; the bear's "Enrage before the pull", under
     Cooldowns and buffs).
-  - **A tank's priority** ([D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)):
+  - **A tank's priority** ([D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23)),
+    for a tank still on switches (a tank on the priority list has its presets instead, above):
     a choice at the top, **Tank duties first** (the default) or **Max TPS**. Its help names the
     duties Max TPS drops (Shield Block, Thunder Clap and Demoralizing Shout for a warrior; Devotion
     Aura, for Retribution Aura, for a paladin; the roar for a bear, which keeps Faerie Fire because

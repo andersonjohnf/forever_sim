@@ -644,15 +644,25 @@ edit can change `src/data/client`**:
 | [buffs-debuffs-consumables.md](../mechanics/buffs-debuffs-consumables.md) §3 | each consumable's item (its `items.json` record and item effects), the buff spell and the enchant its ID cell names, and that enchant's spells | `parseBuffsDoc` |
 | the same, §5 (and §3's enchants) | the `enchants.json` rows, and the enchanting and proc spells | `parseBuffsDoc` |
 | the same, §1 and §4 | the buff and debuff spells (`buffsDoc` source) | `parseBuffsDoc` |
+| the same, §4's `item N → S` cells (Annihilator, Rivenspike, Nightfall) | the weapon's `items.json` consumable record (item effects, doc name and section) and its proc spell `S` (`consumable` source), checked against the item's effects like a §3 item's spell | `parseBuffsDoc` |
 | `docs/classes/*.md`, `docs/mechanics/*.md`, `docs/open-questions.md` | every spell id cited with a marker or after its client name (`docs` source) | `docSpellMentions` |
 
 Both parsers are in [`lib/docrefs.mjs`](../../scripts/scrape/lib/docrefs.mjs). A §3 ID cell is a
 chain: the item ids, then optionally the item's spell, spells it triggers, `enchant N` and the
 enchant's own spells (`18262 → enchant 2506`, `20750 → 25121 → enchant 2627 → 25111`,
-`13810 → 18124 → 18125`). The enchant's spells the doc names are checked against the client's
-enchant row (a `docMismatches` entry otherwise), a row's catalogue key (`` (`wizardOil`) ``) isn't
-part of its name, and a cell the parser can't read (no item id, an empty step, two enchants)
-fails the run instead of dropping its ids.
+`13810 → 18124 → 18125`); `enchant` is read in any case. The client checks each link, and a
+link it contradicts is a `docMismatches` entry on the item's `items.json` record: the item's
+spell must be one of its item effects, each later spell before the enchant must be reached from
+it through `EffectTriggerSpell` (so `20749 → 25122 → 25113 → enchant 2628` is reported: 25113 is
+the enchant's spell, not one 25122 triggers), the enchant must be one the item's spells apply,
+and the enchant's spells must be on its enchant row. A row's catalogue key (`` (`wizardOil`) ``)
+isn't part of its name. A cell the parser can't read fails the run instead of dropping its ids:
+no item id, an empty step, two enchants, an `enchant` step that isn't `enchant N`, an ASCII
+`->`, an items step that isn't a `/` list of ids (`13931 (x2)`), or a spell step whose count is
+neither one nor the items' (`1 / 2 / 3 → 10 / 20`). So does a §4 cell with an item or an arrow
+that isn't `item N → S` (`Item` is read in any case), and a §1, §3, §4 or §5 table with no
+ID column (`ID`, `IDs`, `IDs (spell / enchant)` or `Item → enchant`), apart from §1.3's camp
+buffs, which have no ids.
 
 So a commit that edits one of these docs regenerates the data in the same commit
 (`npm run scrape:client`, zero requests from a warm cache). `npm test` checks it

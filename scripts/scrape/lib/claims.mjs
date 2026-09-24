@@ -451,7 +451,7 @@ export async function checkClaims(ctx) {
   // ---------------------------------------------------------------- D19 item → spell
   claim("D19", "The item → buff spell ids in buffs §3 (and §4 item procs)", () => {
     const docs = Object.values(consumables).filter((x) => x.doc.spellIds.length);
-    const bad = docs.filter((x) => x.docMismatches.some((m) => m.includes("→ spell")));
+    const bad = docs.filter((x) => x.docMismatches.some((m) => m.startsWith(`doc says item ${x.id} → spell `)));
     return [bad.length === 0 ? OK : PART, `${docs.length - bad.length} of ${docs.length} match. ${bad.map((x) => `${x.doc.name} ${x.id}: the item casts ${x.effects.map((e) => e.spellId).join(", ")}${x.id === 13810 ? `, which triggers ${eff(f(18124), 1)?.effectTriggerSpell} (the doc's buff id, reached through the trigger)` : ""}`).join("; ")}`];
   });
   claim("D19", "Distilled Firewater → 17038; Smoked Desert Dumplings → 1248401 (the Well Fed family)", () => {

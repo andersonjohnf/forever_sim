@@ -327,6 +327,19 @@ for (const f of citingDocs(REPO_ROOT)) {
 }
 
 // 8. Transitive closure over EffectTriggerSpell.
+/** The spells `ids` trigger, directly or through other triggered spells (not `ids` themselves). */
+function triggerClosure(ids) {
+  const found = new Set();
+  const queue = [...ids];
+  while (queue.length) {
+    for (const e of spells.effects(queue.pop())) {
+      if (e.DifficultyID !== 0 || !e.EffectTriggerSpell || found.has(e.EffectTriggerSpell)) continue;
+      found.add(e.EffectTriggerSpell);
+      queue.push(e.EffectTriggerSpell);
+    }
+  }
+  return found;
+}
 const seedCount = interest.size;
 for (let changed = true; changed; ) {
   changed = false;
@@ -415,6 +428,11 @@ for (const c of buffsDoc.consumables) {
   const clientSpells = rec.effects.map((e) => e.spellId);
   for (const s of c.spellIds) {
     if (!clientSpells.includes(s)) rec.docMismatches.push(`doc says item ${c.itemId} → spell ${s}; client item effects: ${clientSpells.join(", ") || "none"}`);
+  }
+  // The chain's later spell steps ("13810 → 18124 → 18125") must be reached from the item's spell.
+  const reached = triggerClosure(c.spellIds);
+  for (const s of c.triggeredSpellIds) {
+    if (!reached.has(s)) rec.docMismatches.push(`doc says spell ${s} follows item ${c.itemId}'s spell ${c.spellIds.join(" / ")}; client: its triggers don't reach ${s}`);
   }
   for (const en of c.enchantIds) {
     if (!rec.appliesEnchantIds.includes(en)) rec.docMismatches.push(`doc says item ${c.itemId} → enchant ${en}; client: ${rec.appliesEnchantIds.join(", ") || "none"}`);

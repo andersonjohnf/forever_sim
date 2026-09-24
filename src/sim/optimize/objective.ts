@@ -218,11 +218,12 @@ function betaI(x: number, a: number, b: number): number {
   return (front * h) / a
 }
 
-/** Student's t with ν degrees of freedom: the upper tail P(T > t), t ≥ 0. */
+/** Student's t with ν degrees of freedom: the upper tail P(T > t), for any t (0.5 at zero, by symmetry below it). */
 export function tTail(t: number, dof: number): number {
-  if (!(dof > 0)) return 0.5
-  if (t <= 0) return 1 - tTail(-t, dof)
-  return 0.5 * betaI(dof / (dof + t * t), dof / 2, 0.5)
+  if (Number.isNaN(t)) return NaN
+  if (!(dof > 0) || t === 0) return 0.5
+  const tail = 0.5 * betaI(dof / (dof + t * t), dof / 2, 0.5)
+  return t > 0 ? tail : 1 - tail
 }
 
 /**

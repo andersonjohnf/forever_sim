@@ -205,6 +205,12 @@ describe('quantiles', () => {
     expect(tQuantile(0.005, 49)).toBeCloseTo(2.6799519, 6)
     expect(tQuantile(0.0005, 60)).toBeCloseTo(3.4602004, 6)
     expect(tTail(2.2281388519649385, 10)).toBeCloseTo(0.025, 10)
+    // At zero and below it, by symmetry (OV-3: zero once recursed forever).
+    expect(tTail(0, 10)).toBe(0.5)
+    expect(tTail(-0, 10)).toBe(0.5)
+    expect(tTail(-2.2281388519649385, 10)).toBeCloseTo(0.975, 10)
+    expect(tTail(-3, 5) + tTail(3, 5)).toBeCloseTo(1, 12)
+    expect(tTail(Number.NaN, 5)).toBeNaN()
     // Many degrees of freedom: the normal's.
     expect(tQuantile(0.005, 1e7)).toBeCloseTo(Z99, 9)
   })

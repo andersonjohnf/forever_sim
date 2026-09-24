@@ -464,6 +464,10 @@ robustness grid in the class doc), and its low findings in the known gaps are wo
 
 ## Known gaps and follow-ups
 
+- **Breakdown shares that can't happen (CM-4).** A no-damage strike (Sunder Armor) shows "0.0% crit"
+  and a proc that can't be avoided (Seal of Fury) "0.0% avoided"; leave such a share out, as Faerie
+  Fire's row shows only "missed".
+
 - **The shared consumables run ahead of every priority list (TM-5).** EZ-Thro Dark Bomb and Greater
   Stoneshield Potion, when picked in Buffs, run before any row of Fury's or a tank's list
   (`withSharedConsumables`), and the Rotation tab shows no row for them. The buffs doc says so;

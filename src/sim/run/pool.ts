@@ -3,7 +3,8 @@
 // `navigator.hardwareConcurrency − 1` workers (at least 1), created on the first run and kept
 // warm. Each run sends its plan once per worker, then chunks; the driver merges results in chunk
 // order, so which worker ran what never changes the numbers. Cancelling stops dispatching, and the
-// workers still running its chunks are terminated (below). A watchdog fails a worker
+// workers still running its chunks are terminated (below); the driver keeps every worker busy, so
+// that is normally the whole pool, replaced by the next run. A watchdog fails a worker
 // that has work but stays silent for CHUNK_TIMEOUT_MS of awake time, so a hung chunk ends the run
 // with an error instead of leaving it running forever, while a tab the phone or browser froze for
 // a while resumes its run instead of failing it. A worker that crashes or hangs is terminated and

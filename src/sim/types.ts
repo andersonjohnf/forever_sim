@@ -533,7 +533,7 @@ export interface AbilityResult {
    * attack); `shots`, Auto Shot's; `procs`, an item's, talent's, weapon's or seal's proc (Hand of
    * Justice, Windfury, Seal of Command, Deep Wounds, Deadly Poison, Ignite); `applications`, a bleed's
    * or DoT's put on the boss (Rend, Corruption, Rake's bleed); `ticks`, a periodic effect's ticks
-   * where nothing counts its casts; `uses`, a consumable's (a potion, a rune); `casts`, everything
+   * where nothing counts its casts; `uses`, a consumable's (a potion, a rune, a bomb); `casts`, everything
    * else, a channel's (Mind Flay, Arcane Missiles) and a rage cast's (Bloodrage, Enrage) included.
    * The count is `casts`, but `procs` where the row has it (an extra-attacks proc's fires) and its
    * attempts (hits, crits, glances, blocks, misses, dodges, parries) for `ticks`. Absent for a row

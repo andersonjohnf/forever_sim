@@ -57,3 +57,17 @@ Only the multi-landing rows' lines changed (10 of 362 row-and-metric lines over 
 | --- | --- | --- | --- | --- |
 | PQ-1 | low | PV-3 | ux.md's Consecration example, the `outcomeLines` docstring and the `landing` comment still described the old shares. | fixed by the lead |
 | PQ-2 | nit | PV-1 | ux.md's "lands on that row" was unclear, and the line ran long. | fixed by the lead: "the Heroic Strike's or Maul's row", rewrapped |
+
+## Merge onto main (62f9818a, e9c3e608)
+
+A fresh reviewer checked the merge onto the tank, consumables and infra work and the lead's
+follow-up. Stripping `consumable` and `landing` from the tanks' plan fingerprints hides nothing: no
+engine path reads either, they appear only on `plan.sources[]`, and every other part of every plan
+is identical. The tanks' lines read correctly under all three presets. **Passes.**
+
+| id | sev | origin | finding | disposition |
+| --- | --- | --- | --- | --- |
+| CM-1 | low | pre-existing | open-questions.md's tally was one short (B78 never counted). | fixed by the lead: 147 entries, 124 open, Route B 79 (22 / 27 / 30) |
+| CM-2 | low | merge | The EZ-Thro Dark Bomb's row counts "uses", which ux.md and the `unit` comment gave only to potions and runes. | fixed by the lead: "a potion, a rune, a bomb" |
+| CM-3 | low | e9c3e608 | No test pins a warrior spell-on-the-boss row (Demoralizing Shout, Defensive) or Hammer of the Righteous. | known gap: the per-spec unit table pins the defaults; Defensive and Hammer are covered by the tanks' own tests |
+| CM-4 | low | pre-existing | Sunder Armor shows "0.0% crit" and Seal of Fury "0.0% avoided", shares that can't be anything else. | known gap |

@@ -24,7 +24,7 @@ client-data check the same day ([client.md](data/client.md)); B9, B14, C2 and C2
 [its review](reviews/2026-09-24-ability-counts.md)) · Forever beta 1.60.1.69913 · Classic Era
 1.15.9.69722 · beta capped at level 20 (rising to 30), launch 2026-11-04, raids unlock 2026-12-09
 
-**146 entries, 123 open:** Route A 8 (High 1, Medium 2, Low 5) · Route B 78 (21 / 27 / 30) ·
+**147 entries, 124 open:** Route A 8 (High 1, Medium 2, Low 5) · Route B 79 (22 / 27 / 30) ·
 Route C 37 (9 / 14 / 14) · Route D 23, all ✅ resolved from client data (was 7 / 11 / 5), plus
 7 items settled by the sim or a guild decision. The client-data check added in-game checks to
 B41, C11 and C12 rather than new entries.

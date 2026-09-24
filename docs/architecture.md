@@ -582,7 +582,8 @@ A spec is data plus small ability modules, never its own loop.
   one), created on the first run and kept warm. Each run sends its plan once per worker, then
   chunks; cancelling stops dispatch, and a worker still busy with the cancelled run's chunks is
   terminated (`abandon` on the executor), so a chunk that hung after the cancel can't fail the next
-  run; the next run replaces it, while an idle worker stays warm. A watchdog fails the run with an
+  run; the next run replaces it. Since the driver keeps every worker busy, a cancel (and so a spec
+  switch mid-run) normally replaces the whole pool, once, from the HTTP cache. A watchdog fails the run with an
   error when a worker that has work doesn't answer for 60 s of awake time (a chunk takes well
   under a second on a desktop even at the longest fight), and drops that worker; it never
   changes a result. A worker that crashes is dropped the same way. The next run replaces what was

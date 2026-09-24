@@ -633,7 +633,7 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     weapon or seal fires (Hand of Justice, Windfury, Seal of Command, Thorns, Deep Wounds, Deadly
     Poison, Ignite), **applications** for a bleed or DoT the rotation puts on the boss (Rend,
     Corruption, "Rake (bleed)", "Fireball (DoT)"), **ticks** for a periodic effect whose casts
-    nothing counts, **uses** for a potion or rune, and **casts** for the rest: a channel you press
+    nothing counts, **uses** for a consumable (a potion, a rune, a bomb), and **casts** for the rest: a channel you press
     (Mind Flay, Arcane Missiles), whatever its ticks do, and a rage cast a tank's Threat view shows
     (Bloodrage, Enrage) included. Swings, shots, casts and procs count attempts, misses included.
     An extra-attacks proc counts the times it fired, so Windfury Weapon's and Ironfoe's two swings

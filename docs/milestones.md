@@ -272,7 +272,7 @@ talents and default build, abilities, rotation, defaults, e2e, shipped.
   branch, awaiting review ([warlock.md](classes/warlock.md)). ([review](reviews/2026-09-24-warlock.md))
 - [x] **K4 Shadow Priest** ([review](reviews/2026-09-24-shadow-priest.md))
 - [x] **K5 Elemental Shaman** ([review](reviews/2026-09-24-elemental-shaman.md))
-- [ ] **K6 Balance Druid:** Moonkin Form
+- [x] **K6 Balance Druid:** Moonkin Form ([review](reviews/2026-09-24-balance-druid.md))
 - [ ] **H1 Ranged and pet core:** Auto Shot and ranged weapons, ammo, and pets with their own
       attacks
 - [ ] **H2 Hunter:** Beast Mastery, Marksmanship, Survival; then Demonology Warlock on the pet core
@@ -484,6 +484,9 @@ slice is worked:
   card shows no stats.
 - **Caster enchants and consumables** (weapon spell power, Arcanum of Focus, Brilliant Wizard Oil,
   Nightfin Soup) are partly missing from the catalogue, roughly +12% for a caster.
+- **A flaky e2e test:** `tank-results.spec.ts`'s "the results sheet has damage taken and the boss's
+  table, inside the screen" (phone) fails about 1 run in 15, on main as well; it passes on rerun.
+  Find the timing it depends on.
 - **Bearweaving:** rage from damage taken divides by the maximum health of the form the fight
   started in, which only holds while no rotation shifts into bear to take hits. A cat that did
   would gain about 47% too much; divide by the current form's health first

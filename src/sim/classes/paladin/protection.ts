@@ -1,15 +1,15 @@
 // The Protection priority list and its settings (docs/classes/paladin.md "Protection: model and
 // rotation": "Forever priority list (default)", rows 0–8, and "Protection defaults").
 //
-// Rows: Righteous Fury is up all fight (row 0, the plan's static Holy threat, setup.ts); the seal
-// (row 1: Seal of Fury, or Seal of Righteousness) before the pull and whenever it's missing or about
-// to end; Holy Shield whenever its buff is gone (row 2); the seal's judgement (row 3) and Swift
-// Judgement right after it (row 4); Holy Strike (row 5); Exorcism against Undead and Demons (row 6);
-// Consecration rank 5 and rank 1 by mana (row 7); Hammer of Wrath in the execute phase (row 8); the
-// consumables: on-use trinkets, Juju Flurry, the mana potion and the rune (consumables.ts); and the
-// paladin's aura, Devotion Aura (its duty) or Retribution Aura. A Priority choice at the top picks
-// the tank's duties first (the default) or Max TPS (decision D26), which moves defaults the way
-// Warrior Protection's does. Setting ids are `paladin.protection.<ability>.<param>`; mana
+// Rows: the paladin's aura before the pull, Devotion Aura (its duty, first by D26's fixed rule) or
+// Retribution Aura (row 0); Righteous Fury, up all fight (row 0b, the plan's static Holy threat,
+// setup.ts); the seal (row 1: Seal of Fury, or Seal of Righteousness) before the pull and whenever
+// it's missing or about to end; Holy Shield whenever its buff is gone (row 2); the seal's judgement
+// (row 3) and Swift Judgement right after it (row 4); Holy Strike (row 5); Exorcism against Undead
+// and Demons (row 6); Consecration rank 5 and rank 1 by mana (row 7); Hammer of Wrath in the
+// execute phase (row 8); and the consumables: on-use trinkets, Juju Flurry, the mana potion and
+// the rune (consumables.ts). A Priority choice at the top picks the tank's duties first (the
+// default) or Max TPS (decision D26), which moves defaults the way Warrior Protection's does. Setting ids are `paladin.protection.<ability>.<param>`; mana
 // thresholds are percentages of maximum mana. Abilities are resolved with the build's talents
 // (talents.ts) before their costs or spells feed anything. Hammer of the Righteous (row 5b) is off
 // by default and not simulated yet.
@@ -234,11 +234,15 @@ export const PALADIN_AURA_GROUP = 'paladinAura'
 /** An aura lasts until you cancel it: longer than any fight (the Fight tab's longest is 15 min ± 10%). */
 const AURA_DURATION_MS = 60 * 60 * 1000
 
-/** Put up 3 s before the pull, a global cooldown before the seal (paladin.md "Forever priority list", row 0b). */
-export const PREPULL_AURA_MS = -3000
+/**
+ * The aura goes up first, 4.5 s before the pull: with tank duties first it's the duty, Devotion
+ * Aura, and a duty comes before any threat ability (D26's fixed rule; paladin.md "Forever priority
+ * list", row 0).
+ */
+export const PREPULL_AURA_MS = -4500
 
-/** Righteous Fury goes up a global cooldown before the aura (paladin.md "Forever priority list", row 0). */
-export const PREPULL_RIGHTEOUS_FURY_MS = -4500
+/** Righteous Fury goes up a global cooldown after the aura and before the seal (paladin.md "Forever priority list", row 0b). */
+export const PREPULL_RIGHTEOUS_FURY_MS = -3000
 
 /** A paladin aura as a `cast` the rotation puts up before the pull: no GCD cost at the pull, no mana. */
 const paladinAura = (id: string, name: string, icon: string, mods: AuraSpec['mods']): AbilityDef => ({
@@ -337,15 +341,6 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
   },
   {
     kind: 'toggle',
-    id: ID.holyShield,
-    group: 'Cooldowns and buffs',
-    label: 'Holy Shield',
-    help: 'Keep Holy Shield up: +20% block chance for 10 s or 4 blocks, and each block deals 221 Holy damage plus 8% of your spell damage, with 20% more threat. Needs the talent and a shield. 240 mana.',
-    default: true,
-    requires: { talent: 'Holy Shield', shield: true },
-  },
-  {
-    kind: 'toggle',
     id: ID.devotionAura,
     group: 'Cooldowns and buffs',
     label: 'Devotion Aura',
@@ -353,6 +348,15 @@ export const PROTECTION_OPTIONS: RotationOption[] = [
     default: true,
     defaultWhen: [{ ...MAX_TPS, default: false }],
     maintainsBuff: 'devotionAura',
+  },
+  {
+    kind: 'toggle',
+    id: ID.holyShield,
+    group: 'Cooldowns and buffs',
+    label: 'Holy Shield',
+    help: 'Keep Holy Shield up: +20% block chance for 10 s or 4 blocks, and each block deals 221 Holy damage plus 8% of your spell damage, with 20% more threat. Needs the talent and a shield. 240 mana.',
+    default: true,
+    requires: { talent: 'Holy Shield', shield: true },
   },
   {
     kind: 'toggle',
@@ -673,10 +677,11 @@ export function protectionRotation(
   // The early lines rest on knowing when the fight ends (paladin.md "Tuning the defaults (C3)").
   const timed = rotation.some((e) => e.conditions.some((c) => c.code === COND.timeLeftAtLeast))
 
-  // Righteous Fury, then the aura, from 4.5 and 3 s before the pull, a GCD apart and before the
-  // seal: Devotion Aura, or Retribution Aura and its damage on the boss's swings. They need no line.
-  const fury = index(RIGHTEOUS_FURY)
+  // The aura, then Righteous Fury, from 4.5 and 3 s before the pull, a GCD apart and before the
+  // seal: the duty first (D26's fixed rule), Devotion Aura, or with Max TPS Retribution Aura and its
+  // damage on the boss's swings. An aura lasts until you cancel it, so neither needs a line.
   const aura = index(v.on(ID.devotionAura) ? DEVOTION_AURA : RETRIBUTION_AURA)
+  const fury = index(RIGHTEOUS_FURY)
   if (!v.on(ID.devotionAura)) procs.push(RETRIBUTION_AURA_PROC)
 
   return {
@@ -684,8 +689,8 @@ export function protectionRotation(
     rotation,
     prepull: {
       casts: [
-        { ability: fury, atMs: PREPULL_RIGHTEOUS_FURY_MS },
         { ability: aura, atMs: PREPULL_AURA_MS },
+        { ability: fury, atMs: PREPULL_RIGHTEOUS_FURY_MS },
         { ability: seal, atMs: PREPULL_SEAL_MS },
       ],
       chargeTenths: 0,

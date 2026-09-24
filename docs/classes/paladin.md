@@ -758,8 +758,8 @@ Rotation tab picks the tank's duties first or Max TPS ([below](#priority-tank-du
 
 | # | Action | Condition (setting, default) | Default |
 | --- | --- | --- | --- |
-| 0 | Righteous Fury | up all fight, cast 4.5 s before the pull, a global cooldown before the aura (free; the plan's ×1.9 Holy threat). The Rotation tab shows it as a fixed row with no switch | on (forced, no setting) |
-| 0b | Aura: Devotion Aura, or Retribution Aura instead (`devotionAura.enabled`) | 3 s before the pull, a global cooldown before the seal (free); it lasts all fight. Retribution Aura deals 30 Holy to the boss on each of its swings that lands on you | Devotion; Retribution with Max TPS |
+| 0 | Aura: Devotion Aura, the duty, or Retribution Aura instead (`devotionAura.enabled`) | 4.5 s before the pull, first: a duty comes before any threat ability (D26's fixed rule, [below](#priority-tank-duties-first-or-max-tps)). Free, and it lasts all fight. Retribution Aura deals 30 Holy to the boss on each of its swings that lands on you | Devotion; Retribution with Max TPS |
+| 0b | Righteous Fury | up all fight, cast 3 s before the pull, a global cooldown after the aura and before the seal (free; the plan's ×1.9 Holy threat). The Rotation tab shows it as a fixed row with no switch | on (forced, no setting) |
 | 1 | Seal: Seal of Fury, or Seal of Righteousness (`seal.primary`) | 1.5 s before the pull (free), then missing or with at most `seal.refreshBelowSec` (2 s) left | Fury |
 | 2 | Holy Shield | `holyShield.enabled`; the talent and a shield; its buff gone (4 blocks used, or its 10 s over). Its cooldown is its duration | on |
 | 3 | Judgement (the seal's) | `judgement.enabled`; ready (off GCD), with the seal up | on |
@@ -789,9 +789,15 @@ the Rotation tab opens with a Priority choice (`priority`), as Warrior Protectio
   cost. In the default setup it saves 38 damage taken a second (5.3% of the 719 you'd take without
   it) and costs Retribution Aura's threat, 20.0 TPS (5.5%) and 10.3 DPS (5.0%). **Tank duties
   first**, the default, keeps it up all fight (`devotionAura.enabled`), and the Buffs tab's
-  Devotion Aura is then yours: the switch shows it on, and it counts once. It's cast 3 s before
-  the pull, so it's up from the pull, before any threat ability, as D26 asks of a duty; and an
-  aura lasts until you cancel it, so it never needs a refresh.
+  Devotion Aura is then yours: the switch shows it on, and it counts once.
+- **Its timing is D26's fixed rule, never tuned** (user decision, D26's amendment): the duties
+  come first in the priority, before any threat ability on the global cooldown; a duty with a
+  cooldown is used when it's ready; and a buff or debuff is refreshed as soon as a miss could still
+  be retried before it falls off, from its own cooldown, or from one global cooldown if it has
+  none. For the paladin that's one line: Devotion Aura is cast first, 4.5 s before the pull,
+  before Righteous Fury (3 s) and the seal (1.5 s), so it's up from the pull. It has no cooldown,
+  can't miss, and lasts until you cancel it, so it never needs a refresh. The search tunes only
+  the threat abilities around it.
 - **Max TPS** drops it for Retribution Aura, 30 Holy damage to the boss on each of its swings
   that lands, ×1.9 threat. The Buffs tab's Devotion Aura is then off by default, and says so:
   "You're not keeping it up (see Rotation); turn this on if another paladin does." It's the

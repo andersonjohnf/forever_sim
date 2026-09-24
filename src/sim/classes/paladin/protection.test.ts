@@ -142,11 +142,11 @@ describe('Max TPS (paladin.md "Priority: tank duties first, or Max TPS", D26)', 
     expect(maintainedBuffs(PROT, MAX_TPS)).toEqual([])
     const duties = buildPlan(d)
     const max = buildPlan({ ...d, rotation: MAX_TPS })
-    // Righteous Fury, then the aura, are casts before the pull, a GCD apart and before the seal:
-    // Devotion Aura's +735 armor, or Retribution Aura.
-    const aura = (b: typeof duties) => b.plan.abilities[b.plan.prepull.casts[1].ability]
+    // The aura, then Righteous Fury, are casts before the pull, a GCD apart and before the seal:
+    // the duty first (D26's fixed rule), Devotion Aura's +735 armor, or with Max TPS Retribution Aura.
+    const aura = (b: typeof duties) => b.plan.abilities[b.plan.prepull.casts[0].ability]
     expect(duties.plan.prepull.casts.map((c) => c.atMs)).toEqual([-4500, -3000, -1500])
-    expect(duties.plan.abilities[duties.plan.prepull.casts[0].ability].id).toBe('righteousFury')
+    expect(duties.plan.abilities[duties.plan.prepull.casts[1].ability].id).toBe('righteousFury')
     expect(aura(duties).id).toBe('devotionAura')
     expect(duties.plan.auras[aura(duties).aura]).toMatchObject({ armor: 735, group: 'paladinAura' })
     expect(aura(max).id).toBe('retributionAura')
@@ -184,12 +184,12 @@ describe('the Protection priority list (paladin.md rows 0–8)', () => {
     expect(ids(r)).toEqual(['sealOfFury', 'holyShield', 'judgementOfFury', 'swiftJudgement', 'holyStrike', 'consecration', 'hammerOfWrath'])
     // Abilities 0 and 1 are the seal and its judgement (paladinCore's order), the seal up 1.5 s before the pull.
     expect(r.abilities.slice(0, 2).map((a) => a.id)).toEqual(['sealOfFury', 'judgementOfFury'])
-    // Righteous Fury 4.5 s before the pull, Devotion Aura at 3 s, then the seal.
+    // The duty first (D26's fixed rule): Devotion Aura 4.5 s before the pull, Righteous Fury at 3 s, then the seal.
     const fury = r.abilities.findIndex((a) => a.id === 'righteousFury')
     const devotion = r.abilities.findIndex((a) => a.id === 'devotionAura')
     expect(r.prepull.casts).toEqual([
-      { ability: fury, atMs: -4500 },
-      { ability: devotion, atMs: -3000 },
+      { ability: devotion, atMs: -4500 },
+      { ability: fury, atMs: -3000 },
       { ability: 0, atMs: -1500 },
     ])
     // Righteous Fury's buff has no mods: its ×1.9 Holy threat is the plan's all fight.

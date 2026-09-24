@@ -43,6 +43,9 @@ describe('golden run (fixed config and seed)', () => {
   // - QU13: the rotation drinks the Major Mana Potion the Standard raid brings, on Retribution's
   //   lines and defaults for now (1,500 early, 2,250 after; consumables.ts): 0.41 a fight here,
   //   TPS 398.23 (its mana makes threat too) and DPS 220.95.
+  // - D26's fixed duty rule: the duty first, so Devotion Aura goes up 4.5 s before the pull and
+  //   Righteous Fury at 3 s (they were the other way round). Casts before the pull are free and
+  //   roll nothing, so only the cooldowns' order moves: Devotion Aura before Righteous Fury.
   it('keeps the default Protection paladin’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('paladin-protection'), run: { mode: 'fixed', iterations: 1000, seed: 12345 } })
     const agg = runFights(bundle.plan, 1000)

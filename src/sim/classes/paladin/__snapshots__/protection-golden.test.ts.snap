@@ -182,12 +182,12 @@ exports[`golden run (fixed config and seed) > keeps the default Protection palad
       0.406,
     ],
     [
-      "righteousFury",
+      "devotionAura",
       100,
       1,
     ],
     [
-      "devotionAura",
+      "righteousFury",
       100,
       1,
     ],

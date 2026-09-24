@@ -13,7 +13,7 @@ import { ENCHANTS } from './effects/enchants'
 import { ITEM_EFFECTS, itemEffectsApply } from './effects/items'
 import { filledBuffGroups, presetBuffIds } from './effects/presets'
 import { catalogueEffects, catalogueSummary } from './effects/types'
-import { buildPlan, UnsupportedSetupError, wieldsShield } from './plan/build'
+import { buildPlan, mainHandWeapon, UnsupportedSetupError, wieldsShield } from './plan/build'
 import { toResult } from './run/aggregate'
 import { type ChunkExecutor, drive } from './run/driver'
 import { localExecutor } from './run/local'
@@ -149,7 +149,9 @@ export function rotationPreset(config: Pick<SimConfig, 'spec' | 'talents' | 'rot
  * a raid whose warriors keep the boss bleeding, and the bear's Demoralizing Roar while the Buffs
  * tab's Demoralizing Shout takes its place. The Buffs tab is read as the plan reads it.
  */
-export function unusedRotationSettings(config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'race' | 'buffs'>): Record<string, string> {
+export function unusedRotationSettings(
+  config: Pick<SimConfig, 'spec' | 'talents' | 'rotation' | 'race' | 'buffs'> & Partial<Pick<SimConfig, 'gear'>>,
+): Record<string, string> {
   const values = rotationValues(config)
   return unusedSettings(config.spec, values, {
     race: config.race,
@@ -157,6 +159,8 @@ export function unusedRotationSettings(config: Pick<SimConfig, 'spec' | 'talents
     othersBleed: othersKeepBleeding(config.buffs.raid),
     buffGroups: filledBuffGroups(config.buffs.enabled, config.buffs.raid, config.spec, [...maintainedBuffs(config.spec, values), ...talentBuffs(config)]),
     talents: talentRanksByName(TALENT_DATA[SPEC_META[config.spec].classId], config.talents),
+    // A Protection paladin's Hammer of the Righteous needs the weapon for it (paladin.md row 5b).
+    ...(config.gear ? { mainHand: mainHandWeapon(config.gear) } : {}),
   })
 }
 

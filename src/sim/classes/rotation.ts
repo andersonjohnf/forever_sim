@@ -12,10 +12,12 @@ import { BALANCE_OPTIONS, balanceMaintainedBuffs, balanceRotation, balanceUnused
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
 import { RETRIBUTION_OPTIONS, retributionMaintainedBuffs, retributionRotation } from './paladin/retribution'
 import {
+  PROTECTION_APL as PALADIN_PROTECTION_APL,
   PROTECTION_FIXED_ROWS,
   PROTECTION_OPTIONS as PALADIN_PROTECTION_OPTIONS,
   protectionMaintainedBuffs as paladinProtectionMaintainedBuffs,
   protectionRotation as paladinProtectionRotation,
+  protectionUnusedSettings as paladinProtectionUnusedSettings,
 } from './paladin/protection'
 import type { PaladinContext } from './paladin/setup'
 import { ENHANCEMENT_OPTIONS, enhancementRotation } from './shaman/enhancement'
@@ -111,6 +113,8 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
  */
 export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'warrior-fury') return FURY_APL
+  // docs/classes/paladin.md "Forever priority list (default)", with D28's rotations as its presets.
+  if (spec === 'paladin-protection') return PALADIN_PROTECTION_APL
   return undefined
 }
 
@@ -139,11 +143,12 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
     spec === 'warrior-fury' ||
     spec === 'warrior-protection' ||
     spec === 'druid-feral-bear' ||
-    spec === 'paladin-retribution' ||
-    spec === 'paladin-protection'
+    spec === 'paladin-retribution'
   ) {
     return 'The defaults are tuned for the default setup.'
   }
+  // D28, D27: Balanced, the default, is Defensive's tuned list with a first quick search on top.
+  if (spec === 'paladin-protection') return 'Defensive and Max TPS are tuned for the default setup; Balanced, the default, has a first quick search on top of them.'
   if (spec === 'druid-feral-cat') {
     return 'The defaults are tuned for the default setup. There’s no powershifting: in Forever, Furor keeps your Energy through a shift, so it gains nothing.'
   }
@@ -216,6 +221,8 @@ export interface UnusedSetup {
   buffGroups: ReadonlySet<string>
   /** Talent ranks by name: the warlock's Demonic Sacrifice and Incinerate settings need their talents, and the Balance filler Eclipse overrides. Absent: none. */
   talents?: ReadonlyMap<string, number>
+  /** The main hand, whether it's a two-hander and its type, or null for none: a Protection paladin's Hammer of the Righteous needs a one-handed axe, mace or sword. Absent: not known. */
+  mainHand?: { twoHand: boolean; type?: WeaponType } | null
 }
 
 /**
@@ -252,6 +259,8 @@ export function unusedSettings(spec: SpecId, values: Record<string, RotationValu
   // docs/classes/priest.md §6: Starshards and Dark Sacrifice are the Night Elf's and the Undead's.
   if (spec === 'priest-shadow') Object.assign(out, shadowUnusedSettings(setup.race, setup.raceName))
   if (spec === 'druid-balance') Object.assign(out, balanceUnusedSettings(values, setup.talents ?? new Map()))
+  // docs/classes/paladin.md row 5b: Hammer of the Righteous in Holy Strike's place, with the weapon for it.
+  if (spec === 'paladin-protection') Object.assign(out, paladinProtectionUnusedSettings(values, setup.mainHand))
   // docs/classes/hunter.md §8: the pet's settings with Lone Wolf.
   if (isHunterSpec(spec)) Object.assign(out, hunterUnusedSettings(spec, setup.talents ?? new Map()))
   return out
@@ -309,7 +318,7 @@ export function classRotation(
   // docs/classes/paladin.md "Retribution: model and rotation".
   if (spec === 'paladin-retribution') return retributionRotation(values, talents, auraIndex, context)
   // docs/classes/paladin.md "Protection: model and rotation".
-  if (spec === 'paladin-protection') return paladinProtectionRotation(values, talents, auraIndex, context)
+  if (spec === 'paladin-protection') return paladinProtectionRotation(values, talents, auraIndex, context, order)
   if (spec === 'druid-feral-bear') return bearRotation(values, talents, auraIndex, context)
   // docs/classes/druid.md §11.5.
   if (spec === 'druid-balance') return balanceRotation(values, talents, auraIndex, context)

@@ -76,6 +76,13 @@ export function wieldsShield(gear: SimConfig['gear']): boolean {
   return !(mh && isTwoHand(mh)) && oh?.slot === 'shield'
 }
 
+/** The main-hand weapon's hands and type, or null without one: what a Protection paladin's Hammer of the Righteous needs (paladin.md row 5b). */
+export function mainHandWeapon(gear: SimConfig['gear']): { twoHand: boolean; type?: WeaponType } | null {
+  const mh = gear.mainHand && ITEMS.get(gear.mainHand.itemId)
+  if (!mh || mh.itemClass !== 'Weapon') return null
+  return { twoHand: isTwoHand(mh), ...(mh.weaponType ? { type: mh.weaponType } : {}) }
+}
+
 /** Item stat → stat block field (character-stats.md#derived-stat-pipeline, step 2). */
 const ITEM_STAT: Partial<Record<keyof Stats, FlatStat>> = {
   strength: 'str',

@@ -66,7 +66,7 @@ for (const [name, device] of [
 test.describe('the phone results sheet (RU12)', () => {
   test.use(PHONE)
 
-  test('has a 44 px close button that hands focus back to Show results', async ({ page }) => {
+  test('has a 44 px close button that hands focus back to Show results and details', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('button', { name: 'Simulate', exact: true }).click()
     await expect(page.getByRole('button', { name: 'Run again' })).toBeVisible({ timeout: 30_000 })

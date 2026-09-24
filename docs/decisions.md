@@ -329,6 +329,9 @@ change too. After each merge, `npm run test:full` runs on `main`. A merge that r
 or re-snapshotted goldens gets a verification pass scoped to the merge before the push.
 
 ### D26: A tank's default keeps its duties; Max TPS is a selectable rotation (2026-09-23)
+**Amended by [D28](#d28-three-tank-rotations-defensive-balanced-and-max-tps-2026-09-24):** this
+default is now named Defensive, and Balanced is the default.
+
 User decision, from Warrior Protection's tuning. On threat alone, the tuner would drop Shield
 Block, Thunder Clap and Demoralizing Shout (+9% TPS together), and Shield Slam (+2% TPS but
 −28% DPS). A real tank keeps them up, for its own survival and for the raid's debuffs. So:
@@ -419,8 +422,18 @@ Balanced. Each tank spec's Priority choice offers three rotations:
   rule turned around. Until the tuning milestone, Balanced's defaults are first-pass (D27).
 - **Max TPS** is unchanged (D26).
 
+What Balanced keeps is settled per class, since the classes differ: a bear has no active
+mitigation, and a paladin has no armor debuff but a survival aura. A paladin's Balanced keeps
+the same upkeep as Defensive, so the two differ only in what the search tunes: DPS for
+Balanced, TPS for Defensive.
+
 A saved setup or shared link that chose a rotation still loads it under its new name. One that
-kept the old default gets Balanced, like any other changed default.
+kept the old default gets Balanced, like any other changed default. Settings you changed by
+hand stay as you set them: choosing Balanced moves only the defaults of the abilities it drops,
+as Max TPS does.
+
+Status: decided, not built yet. The rotation slice (T5 in the milestones) comes after the tanks'
+threat fixes.
 
 ### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
 User directive, after v1's tank numbers embarrassed the user in front of the guild: the

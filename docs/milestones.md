@@ -278,6 +278,28 @@ talents and default build, abilities, rotation, defaults, e2e, shipped.
       ([ranged-and-pets.md](mechanics/ranged-and-pets.md)) ([review](reviews/2026-09-24-ranged-and-pet-core.md))
 - [ ] **H2 Hunter:** Beast Mastery, Marksmanship, Survival; then Demonology Warlock on the pet core
 
+## M5.6: Tanks, reviewed against the guild (D28, D29) 🚧
+
+The officers' review of v1 found the Protection paladin and the bear far behind the warrior:
+survival presets, known effects modelled as zero, and tank abilities treated differently for the
+same threat wording. The adversarial reviews (2026-09-24) are in `.cache/probes/tank-review-*`
+until each slice logs its own review. The guild's benchmark (D29): a paladin and a bear at about
+800–900 TPS, a warrior no more than about 50% ahead.
+- [ ] **T1 Shared:** threat.md's wording table (D29); Classic Era Sunder back to 261; the
+      armor-only data-integrity test and the random-suffix bases it finds; like-for-like tank
+      presets built for threat (the gear review)
+- [ ] **T2 Protection paladin:** a spell-damage preset, its documented enchants and consumables
+      (Nightfin Soup, Wizard Oil), another paladin's Judgement of the Crusader and the JotC
+      rule, Seal of Fury's seal value, Holy Strike's tooltip damage, Hammer of the Righteous, a
+      balanced talent build
+- [ ] **T3 Bear:** Lacerate's threat bonus, Idol of Brutality, a balanced talent build, Thorns on
+      the tank, Thick Hide's armor, a threat preset
+- [ ] **T4 Warrior:** a balanced talent build and a like-for-like preset under D29
+- [ ] **T5 Balanced rotation (D28)** for all three tanks, the new default; Defensive and Max TPS
+      stay selectable
+- [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,
+      Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken
+
 ## M6: Multi-target 💤
 
 The engine fights one target today. The design is
@@ -364,6 +386,9 @@ robustness grid in the class doc), and its low findings in the known gaps are wo
 
 Found while building. Each should go to the owning doc or `open-questions.md` when its
 slice is worked:
+- **A tank's phone bar grows 16 px** (65 to 81) while the "Setup changed" or "…%" badge row
+  shows (details review DR9, pre-existing). It pushes nothing out of view; the badge could sit
+  on the TPS row instead.
 - **Encounter settings the contract lacks:** `biome`, `extraTargetUptimePct` and
   `bossExtraDtps` ([encounter.md](mechanics/encounter.md#encounter-settings)).
 - **Engine choices where the docs are silent (made in M1):**

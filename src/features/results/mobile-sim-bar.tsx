@@ -44,7 +44,7 @@ export function MobileSimBar() {
             type="button"
             onClick={() => setOpen(true)}
             disabled={!canOpen}
-            className="flex min-h-12 min-w-0 flex-1 items-center gap-2 rounded-lg text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="flex min-h-12 min-w-0 flex-1 items-center gap-2 rounded-lg pr-1 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
             aria-label="Show results and details"
             aria-describedby={summaryId}
           >
@@ -54,13 +54,14 @@ export function MobileSimBar() {
             {/* A labelled pill, not a bare chevron: people missed the chevron and took the headline for
                 the whole result. Below 360 px there's room only for its outline and chevron. */}
             {canOpen && (
-              <span className="flex h-9 shrink-0 items-center gap-1 rounded-md border bg-background px-2.5 text-sm font-medium shadow-xs max-[359px]:px-2">
+              <span className="flex h-9 shrink-0 items-center gap-1 rounded-md border border-input bg-background px-2.5 text-sm font-medium shadow-xs max-[359px]:px-2">
                 <span className="max-[359px]:hidden">Details</span>
                 <ChevronUp className="size-4 text-muted-foreground" aria-hidden />
               </span>
             )}
           </button>
-          <SimulateButton className="px-5" />
+          {/* Below 430 px the button drops its icon, so the headline has room beside Details. */}
+          <SimulateButton className="px-5 max-[429px]:px-4" iconClassName="max-[429px]:hidden" />
         </div>
       </div>
       <Drawer open={open} onOpenChange={setOpen}>
@@ -92,7 +93,7 @@ export function MobileSimBar() {
 function BarError({ message }: { message: string }) {
   return (
     <span className="flex min-w-0 flex-col">
-      <span className="flex items-center gap-1.5 text-sm font-medium text-destructive">
+      <span className="flex items-center gap-1.5 text-sm font-medium whitespace-nowrap text-destructive">
         <TriangleAlert className="size-4 shrink-0" aria-hidden />
         Couldn’t simulate
       </span>

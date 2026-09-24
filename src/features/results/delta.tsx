@@ -14,11 +14,14 @@ export function Delta({
   previous,
   lowerIsBetter = false,
   className,
+  amountClassName,
 }: {
   value: number
   previous: number | null
   lowerIsBetter?: boolean
   className?: string
+  /** Hides the amount where it doesn't fit (the phone bar), leaving the arrow and the spoken text. */
+  amountClassName?: string
 }) {
   if (previous === null) return null
   const delta = value - previous
@@ -29,7 +32,7 @@ export function Delta({
   return (
     <span className={cn('flex items-center font-medium tabular-nums', better ? 'text-positive' : 'text-negative', DIM_TEXT, className)}>
       {up ? <ArrowUp className="size-3.5" aria-hidden /> : <ArrowDown className="size-3.5" aria-hidden />}
-      <span aria-hidden>{`${up ? '+' : '−'}${amount}`}</span>
+      <span aria-hidden className={amountClassName}>{`${up ? '+' : '−'}${amount}`}</span>
       <span className="sr-only">{`${up ? 'up' : 'down'} ${amount} from the last run, ${better ? 'better' : 'worse'}`}</span>
     </span>
   )

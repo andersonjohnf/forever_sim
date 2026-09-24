@@ -153,7 +153,7 @@ test.describe('About', () => {
 test.describe('phone', () => {
   test.use({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true })
 
-  test('the results sheet takes focus and gives it back to Show results', async ({ page }) => {
+  test('the results sheet takes focus and gives it back to Show results and details', async ({ page }) => {
     await page.goto('./')
     await page.getByRole('button', { name: 'Simulate', exact: true }).click()
     const show = page.getByRole('button', { name: 'Show results' })

@@ -36,7 +36,7 @@ When a design decision isn't covered here, make it, then add it here.
 | Width | Layout |
 | --- | --- |
 | **≥ 1024 px** | A header, then two columns. **Left:** the setup, as section tabs. **Right:** a sticky results panel with the Simulate button. |
-| **640–1023 px** | One column of setup sections. A sticky bottom bar shows the latest result, a labelled **Details** button and the Simulate button; tapping the result or Details opens the full results as a sheet. A bare chevron isn't enough: people missed it and took the headline for the whole result. Below 360 px only the button's outline and chevron fit, and a tank's ± column moves to the sheet below 400 px. |
+| **640–1023 px** | One column of setup sections. A sticky bottom bar shows the latest result, a labelled **Details** button and the Simulate button; tapping the result or Details opens the full results as a sheet. A bare chevron isn't enough: people missed it and took the headline for the whole result. Below 360 px only the button's outline and chevron fit. Below 430 px the ± and the change's amount move to the sheet, leaving the value and the change's arrow. The button's outline takes `--input`, like any outline button. |
 | **< 640 px** | A compact header. The section tabs are a horizontally scrollable segmented bar, sticky under the header. The sticky bottom bar works as above. Pickers open as full-height sheets. |
 
 **Header:** the app mark, "Forever Sim" (the page's one `<h1>`, visually hidden on phones),
@@ -422,7 +422,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     ([D18](decisions.md#d18-tank-specs-report-tps-and-dps-as-equals-2026-09-22)): side by side
     in the results panel, TPS first, each with its own ± CI and its own change from the
     previous run. The phone's bottom bar stacks them in two rows next to the Simulate button;
-    below 375 px wide it leaves out the ± values, which the results sheet still shows.
+    below 430 px wide, beside the Details button, it leaves out the ± values and the changes'
+    amounts (the arrows stay), which the results sheet still shows. A DPS spec's bar does the
+    same below 430 px.
 - **Damage taken** (tank specs, [encounter §5](mechanics/encounter.md#5-boss-melee-tank-modeling)):
   the first section under the headline card, above the breakdown, since it has no headline of
   its own (`src/features/results/tank-results.tsx`). It stays short, so the breakdown is still near

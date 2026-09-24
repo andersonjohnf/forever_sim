@@ -286,7 +286,7 @@ export const cooldownOptions = (ids: SharedIds): RotationOption[] => [
     id: ids.racialEnabled,
     group: 'Cooldowns and buffs',
     label: 'Racial cooldown',
-    help: 'Use your race’s cooldown: Blood Fury (Orc), Berserking (Troll), Elune’s Light (Night Elf) or Eureka! (Gnome: your next 3 attacks cost 40% less rage and deal 10% more).',
+    help: 'Use your race’s cooldown: Blood Fury (Orc), Berserking (Troll), Elune’s Light (Night Elf) or Eureka! (Gnome: the next 3 of the attacks it covers cost 40% less rage and deal 10% more).',
     default: true,
   },
   {

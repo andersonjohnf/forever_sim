@@ -28,4 +28,19 @@ describe('the condition switches’ case labels (sim.ts)', () => {
       }
     }
   })
+
+  // Review finding EM-4: a COND with no case would silently hold (the switch has no default), and a
+  // repeated number's second case would never run.
+  it('covers every COND once: a case in one switch, or resolved before the walk', () => {
+    const numbers = (from: string, to: string) => [...body(from, to).matchAll(/^\s*case (\d+):/gm)].map((m) => Number(m[1]))
+    const own = numbers('private conditionsHold(', 'private use(')
+    const pet = numbers('private petConditionsHold(', 'private petUse(')
+    expect(new Set(own).size, 'conditionsHold repeats a case').toBe(own.length)
+    expect(new Set(pet).size, 'petConditionsHold repeats a case').toBe(pet.length)
+    // Resolved when the plan is read, before any walk: the walk never sees them.
+    const RESOLVED_UP_FRONT = [4, 8, 9, 11, 13, 29]
+    const covered = new Set([...own, ...pet, ...RESOLVED_UP_FRONT])
+    const missing = Object.entries(COND).filter(([, n]) => !covered.has(n as number))
+    expect(missing).toEqual([])
+  })
 })

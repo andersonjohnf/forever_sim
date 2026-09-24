@@ -70,7 +70,7 @@ export const SHADOW_OPTIONS: RotationOption[] = [
     id: ID.racial,
     group: 'Cooldowns and buffs',
     label: 'Racial cooldown',
-    help: 'Use Berserking (Troll: +10% casting speed for 10 s), Elune’s Light (Night Elf: +10% crit for 15 s) or Eureka! (Gnome: your next 3 spells cost 15% less and deal 10% more) on cooldown from the pull.',
+    help: 'Use Berserking (Troll: +10% casting speed for 10 s), Elune’s Light (Night Elf: +10% crit for 15 s) or Eureka! (Gnome: the next 3 of the spells it covers cost 15% less and deal 10% more) on cooldown from the pull.',
     default: true,
   },
   {

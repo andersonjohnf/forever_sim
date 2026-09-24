@@ -23,6 +23,54 @@ export interface Release {
 /** Every release, newest first. */
 export const RELEASES: readonly Release[] = [
   {
+    id: '2026-09-24.4',
+    time: '2026-09-24T23:29:09Z',
+    groups: [
+      {
+        label: 'Tanks',
+        items: [
+          'Pick a rotation style: Defensive, Balanced (the new default) or Max TPS, and reorder the priority list on the Rotation tab.',
+          'Protection Warrior Balanced: Shield Block and 5 Sunders kept, no Thunder Clap or Demoralizing Shout: about +10% TPS for about 21% more damage taken.',
+          'Feral Bear Balanced: +3% TPS and +3% DPS for under 1% more damage taken; Max TPS Mauls from 14 rage.',
+          'Protection Paladin uses our lead theorycrafter’s talents: +1% TPS.',
+        ],
+      },
+      {
+        label: 'DPS specs',
+        items: [
+          'Horde Frost and Arcane Mages wear Mindfang (+8 to 9%); Alliance Fire Mages (+9%) and Dwarf Elemental Shamans (+13%) wear Sageclaw.',
+          'Fire Mage gains from casting speed again, and Orc mages get Blood Fury’s spell power (+0.7 to 0.8%).',
+          'Gnome Eureka! for every class (+0.4 to 2.2%), and Expansive Mind for mages, priests and rogues.',
+          'Max consumables add Brilliant Wizard Oil for Warlocks, Shadow Priests and Balance Druids: Destruction +4.7%, Shadow +3.5%, Balance +5%.',
+        ],
+      },
+      {
+        label: 'Your setup',
+        items: [
+          'Gear and talents you never changed follow new defaults; your own changes are kept.',
+          'Equip pre-raid best in slot is now a button on the Gear tab.',
+          'Fight details show each ability’s casts, swings, procs or ticks a fight and its average hit.',
+          'What’s new, and a Release history in the menu.',
+        ],
+      },
+      {
+        label: 'Fixes',
+        items: [
+          'Arms Whirlwind no longer stalls after Recklessness.',
+          'Switching spec cancels a running sim, and a sim that gets stuck stops after a minute and offers a reload.',
+          'Share links work with the tracking bits chat apps add.',
+        ],
+      },
+      {
+        label: 'Consumables',
+        items: [
+          'One stone or oil per weapon; potions, runes and explosives share cooldowns.',
+          'Greater Stoneshield and the EZ-Thro Dark Bomb are simulated; no preset uses the bomb (it costs melee a little, and casters would need to stand within 15 yards).',
+        ],
+      },
+    ],
+  },
+  {
     id: '2026-09-24.3',
     time: '2026-09-24T18:46:19Z',
     groups: [
@@ -30,7 +78,7 @@ export const RELEASES: readonly Release[] = [
         label: 'Tanks',
         items: [
           'Protection Warrior about 980 to 1,130 TPS: a threat set that keeps about 90% of the old pre-raid best in slot set’s effective health.',
-          'Feral Bear about 690 to 1,080 TPS, from the three changes below and a threat set.',
+          'Feral Bear about 690 to 1,080 TPS: Lacerate’s threat, Idol of Brutality, new talents and a threat set.',
           'Protection Paladin about 425 to 820 TPS: spell damage enchants, Nightfin Soup and Wizard Oil, its own Judgement of the Crusader, and the full damage of Seal of Fury and Holy Strike.',
           'Hammer of the Righteous is simulated, as an option in place of Holy Strike.',
           'New default talents for Protection Paladin and Feral Bear.',
@@ -195,7 +243,8 @@ type ReleaseStorage = Pick<Storage, 'getItem' | 'setItem'>
  *   (or isn't a release id at all): a newer one, from a later release a newer tab has seen, is kept,
  *   so going back to that release doesn't show it again.
  * - Storage that can't be read shows nothing (it couldn't remember that it had); storage that can't
- *   be written still shows what's new this time.
+ *   be written still shows what's new this time, except to an earlier visitor with no stored id,
+ *   who'd otherwise see it on every load.
  */
 export function checkReleases(storage: ReleaseStorage | null, releases: readonly Release[] = RELEASES): Release[] {
   const newest = releases[0]?.id

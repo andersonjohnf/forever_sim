@@ -52,3 +52,21 @@ at a load average of about 30 pass alone) · e2e: see the fixes' report.
 
 EV-1 changed engine data (which abilities Eureka! modifies) and EV-3 the engine's hot loop, so both
 go to a fresh check of their commits.
+
+## The merge onto main (921a35a5) and the EV fixes' check
+
+A fresh reviewer compared all 23 specs' defaults and every race each class can be (148 setups)
+byte for byte against main's parent: only the intended results moved (Fire, Elemental and
+Enhancement defaults; Gnomes of the five Eureka! classes; Skyborne casters; Orc mages; Fire at every
+race). EV-3's literal case labels are kept: V8 builds a jump table only for integer literals (Fire
+10.5k → 17.3k fights/s in tests, about 7% bundled). The bomb never spends a Eureka! charge.
+
+| id | sev | origin | finding | disposition |
+| --- | --- | --- | --- | --- |
+| EM-1 | high | merge | `spells.json` wasn't regenerated for seven racial spells the docs now cite, so `npm test` and `scrape:check` failed. | fixed by the lead: regenerated from the cache, zero requests |
+| EM-2 | low | engine branch | warrior.md's Protection row 3 didn't list Eureka!. | fixed by the lead |
+| EM-3 | low | EI-2 | The warrior, warlock, rogue and priest racial help said "your next 3" though Eureka! covers only some abilities. | fixed by the lead: "the next 3 of the attacks (spells) it covers" |
+| EM-4 | low | pre-existing | `cond-cases.test.ts` didn't catch a COND with no case or a repeated case number. | fixed by the lead: every COND is a case or resolved before the walk, and none repeats; test |
+| EM-5 | info | pre-existing | `types.ts` said 35–37 were free; 35 is `mainHandSwung`. | fixed by the lead |
+| EM-6 | medium | pre-existing | The default Frost and Arcane mage (Troll) wore Witchblade: the list had Sageclaw but not its Horde twin Mindfang; Alliance Fire mages and Elemental shamans lacked Sageclaw. | fixed by the lead: the twins added to the four lists; Frost and Arcane goldens re-taken (about +8.8% and +8.1%); mage.md corrected |
+| EM-7 | low | pre-existing | A spec-switch e2e test can see the run finish first under heavy load. | known gap |

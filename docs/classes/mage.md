@@ -57,7 +57,7 @@ row says otherwise. Spell ranges are at level 60 before spell damage.
 | Race | Faction | Mage in Classic | Mage in Forever | What matters to the sim |
 | --- | --- | --- | --- | --- |
 | Troll | Horde | yes | yes | **Berserking** (20554): +10% casting and attack speed for 10 s, 3 min (auras 65, 319, 140) [F]; the default race |
-| Orc | Horde | no | **yes (new)** | **Blood Fury** (20572): +10% attack power and **+10% spell power** (aura 317) for 15 s, 2 min [F]: the casters' shared definition, a live multiplier on your spell damage while it's up ([warlock.md §7.2](warlock.md#72-race)). Simulated since issue #10; on the defaults (seed 12345, 20,000 fights) an Orc measures level with or above a Troll: Fire 521.13 vs 516.26, Frost 411.11 vs 410.81, Arcane 405.13 vs 402.32 (± 0.2–0.5). For Fire a Human (520.65) and an Undead (517.96) measure above a Troll too: Fire's mana binds, so Berserking's casting speed mostly spends it sooner (+0.45 DPS). The default race stays Troll until the tuning milestone looks at it |
+| Orc | Horde | no | **yes (new)** | **Blood Fury** (20572): +10% attack power and **+10% spell power** (aura 317) for 15 s, 2 min [F]: the casters' shared definition, a live multiplier on your spell damage while it's up ([warlock.md §7.2](warlock.md#72-race)). Simulated since issue #10; on the defaults (seed 12345, 20,000 fights) an Orc measures level with or above a Troll: Fire 521.13 vs 516.26, Frost about 448 vs 447, Arcane about 438 vs 435 on Mindfang (± 0.2–0.5; before Mindfang they were 411.11 vs 410.81 and 405.13 vs 402.32). For Fire an Undead (517.96) measures above a Troll too (a Human, 509.3, is below): Fire's mana binds, so Berserking's casting speed mostly spends it sooner (+0.45 DPS). The default race stays Troll until the tuning milestone looks at it |
 | Undead | Horde | yes | yes | nothing the sim models for a caster |
 | Human | Alliance | yes | yes | The Human Spirit (+5% Spirit); Sword Specialization (+2% crit, spells too, with a sword) |
 | Gnome | Alliance | yes | yes | Expansive Mind (20591): **+5% maximum mana** (aura 178) instead of Classic's +5% Intellect [F]; **Eureka!** (1259817), pressed on cooldown from the pull: the next 3 of Fireball, Scorch, Fire Blast, Frostbolt and Arcane Missiles cost 50% less mana and deal +10% (Fireball's DoT +10%; Arcane Missiles only its cost, its missiles are outside the mask; not Pyroblast) [F], its rules [?] (`src/sim/classes/eureka.ts`, `eureka`): +1.98% Fire, +0.84% Frost, +0.32% Arcane (Gnome, racial on vs off, the defaults, seed 12345, 20,000 fights) |
@@ -632,9 +632,9 @@ nothing for a mage.
   list). A Troll wears: Champion's Silk Cowl, Orb of the Darkmoon, Boreal Mantle, Amplifying Cloak, Robe
   of the Archmage, Rockfury Bracers, Hands of Power, Ban'thok Sash, Legionnaire's Silk Legguards, Blood
   Guard's Silk Walkers, Rune Band of Wizardry, Don Mauricio's Band of Domination, Briarwood Reed, Eye of
-  the Beast, Witchblade, Therazane's Touch and Wand of Biting Cold. The list's rank-1 dagger, Sageclaw,
-  needs the League of Arathor (Alliance), and the list has no Horde twin, so a Troll's main hand is the
-  rank-2 Witchblade.
+  the Beast, Mindfang, Therazane's Touch and Wand of Biting Cold. The list's rank-1 dagger is Sageclaw
+  (League of Arathor, Alliance) or its Horde twin Mindfang (The Defilers), so a Troll's main hand is
+  Mindfang (+8.8% Frost, +8.1% Arcane over the Witchblade it wore before; engine merge check EM-6).
 - **Random-suffix items** whose base item has no spell stats are dropped, and the entries below them
   move up; the lists' notes name them (`scripts/scrape/pre-raid-bis.json`).
 

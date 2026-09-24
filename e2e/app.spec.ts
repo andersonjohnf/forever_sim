@@ -34,15 +34,15 @@ test.describe('setup', () => {
     const paladins = page.getByRole('group', { name: 'Paladin' })
     await expect(page.getByRole('menu').getByText('Paladin', { exact: true })).toBeVisible()
     await expect(paladins.getByRole('menuitem')).toHaveText([/^Retribution\s*DPS$/, /^Protection\s*Tank$/])
-    // Enhancement since S1, under the Shaman heading.
-    await expect(page.getByRole('group', { name: 'Shaman' }).getByRole('menuitem')).toHaveText([/^Enhancement\s*DPS$/])
+    // Enhancement since S1 and Elemental since K5, under the Shaman heading.
+    await expect(page.getByRole('group', { name: 'Shaman' }).getByRole('menuitem')).toHaveText([/^Enhancement\s*DPS$/, /^Elemental\s*DPS$/])
     // The three rogues since R1, under their class's heading.
     await expect(page.getByRole('group', { name: 'Rogue' }).getByRole('menuitem')).toHaveText([/^Combat\s*DPS$/, /^Assassination\s*DPS$/, /^Subtlety\s*DPS$/])
     // Fire, Frost and Arcane since K2, under the Mage heading.
     await expect(page.getByRole('group', { name: 'Mage' }).getByRole('menuitem')).toHaveText([/^Fire\s*DPS$/, /^Frost\s*DPS$/, /^Arcane\s*DPS$/])
     // The Destruction and Affliction warlocks since K3.
     await expect(page.getByRole('group', { name: 'Warlock' }).getByRole('menuitem')).toHaveText([/^Destruction\s*DPS$/, /^Affliction\s*DPS$/])
-    await expect(page.getByRole('menuitem')).toHaveCount(16)
+    await expect(page.getByRole('menuitem')).toHaveCount(17)
     await expect(page.getByRole('menu').getByRole('group')).toHaveText([/^Warrior/, /^Druid/, /^Paladin/, /^Shaman/, /^Rogue/, /^Mage/, /^Warlock/])
   })
 

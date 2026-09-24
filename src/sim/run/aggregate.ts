@@ -218,10 +218,11 @@ export function manaResult(plan: Plan, agg: Aggregate): ManaResult | null {
 
 /**
  * What breakdown row `i`'s count counts (docs/ux.md#results "Breakdown", `AbilityResult.unit`), from
- * what in the plan lands on it: the white swings (rows 0 and 1, and the pet's), Auto Shot's, an
- * ability's casts (a bleed's or DoT's: its applications), a proc's, a DoT's own row's applications
- * (Moonfire's, Lacerate's). A row that lands with no cast counted is a periodic effect's own row:
- * it counts its ticks. `casts` and `attempts` are the row's counters, over every fight.
+ * what in the plan lands on it: the white swings (rows 0 and 1, and the pet's), Auto Shot's, a
+ * consumable's uses, an ability's casts (a bleed's or DoT's: its applications; a channel's, Mind
+ * Flay's, its casts), a proc's, a DoT's own row's applications (Moonfire's, Lacerate's). A row that
+ * lands with no cast counted is a periodic effect's own row: it counts its ticks. `casts` and
+ * `attempts` are the row's counters, over every fight.
  */
 export function rowUnit(plan: Plan, i: number, casts: number, attempts: number): AbilityUnit | undefined {
   const source = plan.sources[i]
@@ -229,8 +230,12 @@ export function rowUnit(plan: Plan, i: number, casts: number, attempts: number):
   if (i === 0 || i === 1 || plan.pet?.source === i) return 'swings'
   if (plan.ranged?.source === i) return 'shots'
   if (casts === 0) return 'ticks'
-  const pressed = plan.abilities.some((a) => a.source === i || a.offHandSource === i) || (plan.pet?.abilities.some((a) => a.source === i) ?? false)
-  if (pressed) return source.bleed ? 'applications' : 'casts'
+  if (source.consumable) return 'uses'
+  const pressed = plan.abilities.filter((a) => a.source === i || a.offHandSource === i)
+  if (pressed.length > 0 || plan.pet?.abilities.some((a) => a.source === i)) {
+    // A channel you press is cast, whatever its ticks do (Mind Flay's DoT, Arcane Missiles' missiles).
+    return source.bleed && !pressed.some((a) => a.kind === 'channel') ? 'applications' : 'casts'
+  }
   if (plan.procs.some((p) => p.source === i)) return 'procs'
   return source.bleed ? 'applications' : 'casts'
 }
@@ -268,6 +273,11 @@ export function toResult(bundle: PlanBundle, agg: Aggregate, elapsedMs: number):
     const attempts = result.hits + result.crits + result.glances + result.blocks + result.misses + result.dodges + result.parries
     const unit = rowUnit(plan, i, result.casts, attempts)
     if (unit) result.unit = unit
+    // An extra-attacks proc's row counts its fires, not the swings they gave (FIELD.procs).
+    const procs = c[row + FIELD.procs]
+    if (unit === 'procs' && procs > 0) result.procs = procs
+    // A row whose casts each land more than once (Consecration's ticks, Arcane Missiles' missiles).
+    if (unit === 'casts' && source.landing) result.landing = source.landing
     // A row whose threat is the mana it gave (Shield Specialization, Improved Seal of Fury): that
     // mana, from the ledger's count per row.
     const mana = agg.manaBySource[i] ?? 0

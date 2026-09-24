@@ -286,9 +286,8 @@ test.describe('simulation', () => {
     // Rend's row reads its ticks and its applications apart (docs/ux.md#results).
     const rend = breakdown.getByRole('listitem').filter({ hasText: /^Rend/ })
     await expect(rend).toContainText(/\d+\.\d% uptime on the boss/)
-    await expect(rend).toContainText(/\d+\.\d% tick crit/)
-    await expect(rend).toContainText(/\d+\.\d% of applications avoided/)
-    await expect(rend).toContainText(/\d+\.\d applications a fight · \d+\.\d% tick crit/)
+    // Its count names what its avoided share is of.
+    await expect(rend).toContainText(/\d+\.\d applications a fight · \d+\.\d% tick crit · \d+\.\d% avoided · [\d,]+ avg tick/)
     await expect(breakdown.getByRole('listitem').filter({ hasText: /^Deep Wounds/ })).toContainText(/\d+\.\d procs a fight · [\d,]+ avg tick/)
     // The Overpower window is among the buffs.
     await results.getByRole('button', { name: 'Cooldowns and buffs' }).click()

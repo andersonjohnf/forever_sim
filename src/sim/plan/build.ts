@@ -855,7 +855,9 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       if (direct) {
         dotSource = sourceIndex(`${def.id}Dot`, `${def.name} (DoT)`, def.icon)
         sources[dotSource].bleed = { ticksCanCrit, avoidable: false }
-      } else sources[source].bleed = { ticksCanCrit, avoidable: defense === 'magic' && !def.alwaysHit }
+        // A pure DoT's application rolls to land (Corruption's spell hit, Serpent Sting's ranged hit),
+        // so its row shows the share avoided.
+      } else sources[source].bleed = { ticksCanCrit, avoidable: (defense === 'magic' || defense === 'ranged') && !def.alwaysHit }
     }
     spells.push({ ...rest, school: SCHOOL[school], defense: DEFENSE[defense], source, ...(dotSource !== undefined ? { dotSource } : {}) })
     // One that always lands and never crits (Holy Shield's damage) shows no crit or avoided shares.
@@ -1072,6 +1074,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       window,
       spellDef,
       tickSpellDef,
+      tickNoun,
       auraCrit: __,
       noCooldownWhile: ___,
       stackAuraId: ____,
@@ -1094,6 +1097,8 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // Shout): it can't crit, and its only failure is a miss or a resist.
     const noDamage = a.weaponPercent === 0 && a.flatDamage === 0 && a.apCoefficient === 0 && a.damagePerExtraRage === 0 && !(a.blockValueCoefficient ?? 0)
     if (a.spellHit || (a.kind === 'spellTable' && noDamage)) sources[source].spell = true
+    // A potion's or rune's row counts its uses (docs/ux.md#results "Breakdown").
+    if (BUFFS_BY_ID.get(a.id)?.category === 'consumable') sources[source].consumable = true
     // An attack that also bleeds (Rake, druid.md §3.3; Lacerate, §4.3): its ticks get a row of their own, whose
     // applications come from landed hits, so they can't be avoided.
     let dotSource: number | undefined
@@ -1101,16 +1106,25 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       dotSource = sourceIndex(`${a.id}Bleed`, `${a.name} (bleed)`, a.icon)
       sources[dotSource].bleed = { ticksCanCrit, avoidable: false }
     }
+    // In this order, as the plan's sources, auras and spells are numbered as they're first met.
+    const offHandSource = offHand && weapons[HAND.off] ? sourceIndex(`${a.id}OffHand`, `${a.name} (off hand)`, a.icon) : -1
+    const auraRef = aura ? auraIndex(aura, aura.id, a.icon) : -1
+    const windowRef = window ? auraIndex(window, window.id, a.icon) : -1
+    const spell = spellDef ? spellIndex(spellDef) : undefined
+    const tickSpell = tickSpellDef ? spellIndex(tickSpellDef) : undefined
+    // Ticks that cast a spell onto the ability's own row (Consecration's, Arcane Missiles'): the row
+    // lands more often than it's cast, so its average is per landing (docs/ux.md#results "Breakdown").
+    if (tickSpell !== undefined && spells[tickSpell].source === source) sources[source].landing = tickNoun ?? 'tick'
     return {
       ...a,
       weaponPercent: weaponPercentVs(def, fight.creatureType),
       source,
-      offHandSource: offHand && weapons[HAND.off] ? sourceIndex(`${a.id}OffHand`, `${a.name} (off hand)`, a.icon) : -1,
-      aura: aura ? auraIndex(aura, aura.id, a.icon) : -1,
-      window: window ? auraIndex(window, window.id, a.icon) : -1,
+      offHandSource,
+      aura: auraRef,
+      window: windowRef,
       // A paladin ability's spells (paladin.md): its own shares its row.
-      ...(spellDef ? { spell: spellIndex(spellDef) } : {}),
-      ...(tickSpellDef ? { tickSpell: spellIndex(tickSpellDef) } : {}),
+      ...(spell !== undefined ? { spell } : {}),
+      ...(tickSpell !== undefined ? { tickSpell } : {}),
       ...(dotSource !== undefined ? { dotSource } : {}),
       // docs/classes/shaman.md: an aura it puts on the player when used (Improved Stormstrike's).
       ...(selfAuraSpec ? { selfAura: auraIndex(selfAuraSpec, selfAuraSpec.id, a.icon) } : {}),

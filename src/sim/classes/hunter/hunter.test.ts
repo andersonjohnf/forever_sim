@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { defaultConfig, DEFAULT_SUPPLIES } from '../../defaults'
 import { BUFFS_BY_ID } from '../../effects/buffs'
 import { buffUnusedReason, presetBuffIds } from '../../effects/presets'
-import { Sim } from '../../engine/sim'
+import { FIELD_COUNT, Sim } from '../../engine/sim'
 import { addShot, rangedPlan } from '../../engine/ranged-helpers'
 import { damages, expectMean, line } from '../../engine/test-helpers'
 import { buildPlan } from '../../plan/build'
@@ -251,7 +251,7 @@ describe('the pet’s procs roll on its own stream (docs/mechanics/ranged-and-pe
       for (let i = 0; i < 50; i++) sim.runFight(i)
       const pets = new Set(p.sources.flatMap((s, i) => (s.pet ? [i] : [])))
       const counters = Array.from(sim.counters)
-      const perRow = (keep: (row: number) => boolean) => counters.filter((_, i) => keep(Math.floor(i / 10)))
+      const perRow = (keep: (row: number) => boolean) => counters.filter((_, i) => keep(Math.floor(i / FIELD_COUNT)))
       return { yours: perRow((r) => !pets.has(r)), pet: perRow((r) => pets.has(r)), uptime: Array.from(sim.auraUpMs) }
     }
     const a = rows(0.6)

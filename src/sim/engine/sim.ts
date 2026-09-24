@@ -156,8 +156,13 @@ export const FIELD = {
   parries: 7,
   glances: 8,
   blocks: 9,
+  /**
+   * Times an extra-attacks proc fired (docs/ux.md#results "Breakdown"): its row's count, as its
+   * casts count each extra swing it gave (Windfury Weapon's and Ironfoe's two swings are one proc).
+   */
+  procs: 10,
 } as const
-export const FIELD_COUNT = 10
+export const FIELD_COUNT = 11
 
 /** Source rows 0 and 1 are always the white swings of each hand. */
 export const SOURCE_MAIN_HAND = 0
@@ -3640,6 +3645,8 @@ export class Sim {
     switch (this.pAction[p]) {
       case ACTION.extraAttacks: {
         if (!this.hasWeapon[HAND.main]) return
+        // One proc, however many swings it gives: its row's casts count the swings (FIELD.procs).
+        this.counters[this.pSource[p] * FIELD_COUNT + FIELD.procs]++
         // This source is used up for the rest of the root swing's chain (damage-and-timing §5.4).
         this.chainMask |= this.pChainBit[p]
         const n = this.pAmount[p]

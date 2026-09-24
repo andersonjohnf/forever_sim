@@ -545,6 +545,14 @@ export interface SourcePlan {
   counts?: 'blocks' | 'extraAttacks'
   /** A spell cast on the boss (Faerie Fire, Demoralizing Roar): it can't crit, and it can only miss (or be resisted). */
   spell?: boolean
+  /** A consumable the rotation uses (a potion, a rune): its breakdown row counts uses, not casts (docs/ux.md#results "Breakdown"). */
+  consumable?: true
+  /**
+   * What one of its landings is, on the row of an ability whose ticks cast a spell onto that same
+   * row (`AbilityPlan.tickSpell`): a tick (Consecration) or a missile (Arcane Missiles). Its
+   * breakdown row counts casts, and its average is per landing (docs/ux.md#results "Breakdown").
+   */
+  landing?: 'tick' | 'missile'
   /**
    * The pet's name, on a row of the pet's damage (its melee, its abilities): the results label the
    * row with it, and the damage counts toward your DPS but makes none of your threat
@@ -985,6 +993,8 @@ export type AbilityDef = Omit<
   /** The spell it casts on use, and on each tick (paladin abilities); the plan adds them to Plan.spells. */
   spellDef?: SpellDef
   tickSpellDef?: SpellDef
+  /** What each of `tickSpellDef`'s landings is called in the breakdown's average: a missile (Arcane Missiles); absent, a tick (Consecration). */
+  tickNoun?: 'missile'
   vsCreature?: { types: readonly CreatureType[]; weaponPercent: number }
   /** The reactive window it needs and ends (the Overpower window, warrior.md §2.8); the plan adds it to its auras. */
   window?: AuraSpec

@@ -537,23 +537,31 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     weapon or seal fires (Hand of Justice, Windfury, Seal of Command, Thorns, Deep Wounds, Deadly
     Poison, Ignite), **applications** for a bleed or DoT the rotation puts on the boss (Rend,
     Corruption, "Rake (bleed)", "Fireball (DoT)"), **ticks** for a periodic effect whose casts
-    nothing counts, and **casts** for the rest. Swings, shots, casts and procs count attempts,
-    misses included; a row whose ticks share it (Consecration, Arcane Missiles) counts its casts.
-    A row with a count of its own (Holy Shield's blocks, Reckoning's extra attacks) shows that
-    one instead, and a row of mana or rage shows none: one count a row.
+    nothing counts, **uses** for a potion or rune, and **casts** for the rest: a channel you press
+    (Mind Flay, Arcane Missiles), whatever its ticks do, and a rage cast a tank's Threat view shows
+    (Bloodrage, Enrage) included. Swings, shots, casts and procs count attempts, misses included.
+    An extra-attacks proc counts the times it fired, so Windfury Weapon's and Ironfoe's two swings
+    are one proc; its crit and avoided shares are over the swings. A row with a count of its own
+    (Holy Shield's blocks, Reckoning's extra attacks) shows that one instead, and a talent's row
+    of mana or rage (Shield Specialization, Primal Fury) shows none: one count a row.
   - **The average ends the line,** on the Damage metric only: the row's damage over its landed
     hits (hits, crits, glances and blocks; misses left out), "1,204 avg hit", or "412 avg tick"
-    for a bleed's, a DoT's or a periodic effect's row. A row with no damage or no landed hits has
-    none. A screen reader hears it in words: "1,204 damage a hit on average". The line may wrap
-    at 390 px.
+    for a bleed's, a DoT's or a periodic effect's row. A cast whose every cast lands several times
+    on its own row counts its casts, but its average and shares are per landing, named for what
+    lands: "21.3 casts a fight · 9.1% crit · 11.0% avoided · 95 avg tick" (Consecration's ticks),
+    "430 avg missile" (Arcane Missiles). A row with no damage or no landed hits has
+    none. A screen reader hears it in words: "1,204 damage a hit on average". Each part stays
+    whole, so the line wraps only between parts; at 390 px a DoT's or bleed's line may take three
+    or four lines, its uptime included.
   - A **bleed's** row counts its applications and its ticks apart, so its outcomes read
-    "9.0 applications a fight · 32.2% tick crit · 1.1% of applications avoided · 40 avg tick",
+    "9.0 applications a fight · 32.2% tick crit · 1.1% avoided · 40 avg tick", the avoided share
+    being of what the count counts (its applications, a proc's procs, a channel's casts),
     with its uptime on the boss on a second
     line (Rend, a cat's Rip; Rake's bleed has a row of its own, "Rake (bleed)", right after its
     hit's row, whatever their damage). The tick crit shows only where ticks can crit (the Forever profile), and the
-    avoidance only for an application that rolls (Rend; a proc's that rolls, Deadly Poison, reads
-    "of procs avoided"). A bleed that does neither, such as Deep Wounds (a crit applies it, and its
-    ticks can't crit), shows only its count and its average tick. A bleed
+    avoidance only for an application that rolls (Rend, Corruption, Serpent Sting, Deadly
+    Poison's procs, Mind Flay's casts). A bleed that does neither, such as Deep Wounds (a crit
+    applies it, and its ticks can't crit), shows only its count and its average tick. A bleed
     that stacks adds its average stacks to the uptime line ("89.4% uptime on the boss, 4.6
     stacks on average": the bear's "Lacerate (bleed)"), and its marker stays out of Cooldowns
     and buffs.
@@ -563,7 +571,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
   - A **pet's rows** name it after the ability, in the muted color: "Auto attack · Succubus",
     "Firebolt · Imp" ([ranged-and-pets §10](mechanics/ranged-and-pets.md#10-pet-damage-in-the-results)).
   - Casts that deal no damage (Death Wish, Recklessness, Bloodrage, racials, the potion) stay
-    out of the breakdown. They're under **Cooldowns and buffs**.
+    out of the breakdown's Damage view. They're under **Cooldowns and buffs**. On a tank's Threat
+    view, one whose rage or mana makes threat has a row: "3.5 casts a fight" (Bloodrage), "1.5
+    uses a fight · from 2,628 mana a fight" (a paladin's Major Mana Potion).
   - A row that can neither crit nor be avoided (Holy Shield's damage, Retribution Aura's) shows
     no crit or avoided shares. A row that counts something of its own shows it a fight, in place
     of its unit's count: "35.6 blocks a fight" (Holy Shield's damage), "14.8 extra attacks a

@@ -507,14 +507,28 @@ export interface AbilityResult {
    * attack); `shots`, Auto Shot's; `procs`, an item's, talent's, weapon's or seal's proc (Hand of
    * Justice, Windfury, Seal of Command, Deep Wounds, Deadly Poison, Ignite); `applications`, a bleed's
    * or DoT's put on the boss (Rend, Corruption, Rake's bleed); `ticks`, a periodic effect's ticks
-   * where nothing counts its casts; `casts`, everything else. Each is `casts` but `ticks`, which is
-   * its attempts (hits, crits, glances, blocks, misses, dodges, parries). Absent for a row that shows
-   * its own count (`counts`) or counts nothing (a row of mana or rage).
+   * where nothing counts its casts; `uses`, a consumable's (a potion, a rune); `casts`, everything
+   * else, a channel's (Mind Flay, Arcane Missiles) and a rage cast's (Bloodrage, Enrage) included.
+   * The count is `casts`, but `procs` where the row has it (an extra-attacks proc's fires) and its
+   * attempts (hits, crits, glances, blocks, misses, dodges, parries) for `ticks`. Absent for a row
+   * that shows its own count (`counts`) or has nothing to count (a talent's row of mana or rage:
+   * Shield Specialization, Improved Seal of Fury).
    */
   unit?: AbilityUnit
+  /**
+   * On a `procs` row an extra-attacks proc feeds (Windfury Weapon, Ironfoe, Hand of Justice): the
+   * times it fired, over every fight, which is the row's count. Its `casts` count the extra swings
+   * (Windfury Weapon's and Ironfoe's two a proc), and its crit and avoided shares are over those.
+   */
+  procs?: number
+  /**
+   * What one of its landings is, on a `casts` row that lands more than once a cast: a tick
+   * (Consecration) or a missile (Arcane Missiles). Its average damage is per landing: "95 avg tick".
+   */
+  landing?: 'tick' | 'missile'
 }
 
-export type AbilityUnit = 'casts' | 'swings' | 'shots' | 'procs' | 'applications' | 'ticks'
+export type AbilityUnit = 'casts' | 'swings' | 'shots' | 'procs' | 'applications' | 'ticks' | 'uses'
 
 export interface BleedResult {
   /** Its ticks can crit (Rend in the `forever` profile; damage-and-timing §4). */

@@ -209,6 +209,8 @@ export const ARCANE_MISSILES: AbilityDef = {
   rageTickMs: 1000,
   clearcastable: true,
   tickSpellDef: ARCANE_MISSILE_SPELL,
+  // Its breakdown row's average is per missile (docs/ux.md#results "Breakdown").
+  tickNoun: 'missile',
 }
 
 /** A mana `cast` row with no cost and no cast time: a cooldown, a gem, a consumable. */

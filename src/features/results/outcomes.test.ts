@@ -53,7 +53,7 @@ describe('outcomeLines', () => {
       damage: 5000,
       bleed: { ticksCanCrit: true, avoidable: true, uptimePct: 88 },
     })
-    expect(line(a)).toBe('2.0 applications a fight · 10.0% tick crit · 10.0% of applications avoided · 50 avg tick')
+    expect(line(a)).toBe('2.0 applications a fight · 10.0% tick crit · 10.0% avoided · 50 avg tick')
     expect(outcomeLines(a, 10, true).uptime).toBe('88.0% uptime on the boss')
   })
 
@@ -61,7 +61,34 @@ describe('outcomeLines', () => {
     const dw = row({ unit: 'procs', casts: 100, hits: 40, damage: 2000, bleed: { ticksCanCrit: false, avoidable: false, uptimePct: null } })
     expect(line(dw)).toBe('10.0 procs a fight · 50 avg tick')
     const poison = row({ unit: 'procs', casts: 50, misses: 5, hits: 60, damage: 6000, bleed: { ticksCanCrit: false, avoidable: true, uptimePct: 70 } })
-    expect(line(poison)).toBe('5.0 procs a fight · 10.0% of procs avoided · 100 avg tick')
+    expect(line(poison)).toBe('5.0 procs a fight · 10.0% avoided · 100 avg tick')
+  })
+
+  // Review finding PC-1: Windfury Weapon's two extra swings a proc are one proc.
+  it('counts an extra-attacks proc’s fires, and its shares over the swings they gave', () => {
+    const a = row({ unit: 'procs', procs: 100, casts: 200, hits: 120, crits: 40, glances: 20, misses: 20, damage: 180_000 })
+    expect(line(a)).toBe('10.0 procs a fight · 20.0% crit · 10.0% avoided · 10.0% glancing · 1,000 avg hit')
+  })
+
+  // Review finding PC-2: the count is casts, the average per landing.
+  it('averages a cast that lands more than once per tick or per missile', () => {
+    // Consecration: 20 casts, 8 ticks each, 150 landed and 10 resisted.
+    const consecration = row({ unit: 'casts', landing: 'tick', casts: 20, hits: 140, crits: 10, misses: 10, damage: 15_000 })
+    expect(line(consecration)).toBe('2.0 casts a fight · 6.3% crit · 6.3% avoided · 100 avg tick')
+    // Arcane Missiles: 30 casts, 5 missiles each, 140 landed and 10 resisted.
+    const missiles = row({ unit: 'casts', landing: 'missile', casts: 30, hits: 110, crits: 30, misses: 10, damage: 56_000 })
+    expect(line(missiles)).toBe('3.0 casts a fight · 20.0% crit · 6.7% avoided · 400 avg missile')
+  })
+
+  // Review finding PC-3: a channel you press (Mind Flay) counts its casts, its ticks a DoT's.
+  it('gives a channel’s DoT row its casts and its share of casts avoided', () => {
+    const a = row({ unit: 'casts', casts: 50, misses: 5, hits: 110, crits: 15, damage: 50_000, bleed: { ticksCanCrit: true, avoidable: true, uptimePct: 68 } })
+    expect(line(a)).toBe('5.0 casts a fight · 12.0% tick crit · 10.0% avoided · 400 avg tick')
+  })
+
+  // Review finding PC-4: a potion or rune is used, and its mana follows.
+  it('counts a consumable’s uses', () => {
+    expect(line(row({ unit: 'uses', casts: 15, mana: 26_000, threat: 13_000 }), 10, false)).toBe('1.5 uses a fight · from 2,600 mana a fight')
   })
 
   it('counts a periodic effect’s ticks from its attempts', () => {

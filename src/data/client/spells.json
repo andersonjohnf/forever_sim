@@ -38,7 +38,7 @@
     "bySource": {
       "buffsDoc": 48,
       "consumable": 82,
-      "docs": 548,
+      "docs": 570,
       "enchant": 125,
       "item": 432,
       "racial": 44,
@@ -48,8 +48,8 @@
     },
     "encryptedSpellNameRecords": 872,
     "notInClient": 0,
-    "seeds": 2826,
-    "spells": 3102
+    "seeds": 2836,
+    "spells": 3112
   },
   "excludedWorldBuffs": {
     "15366": "Songflower Serenade",
@@ -60060,6 +60060,67 @@
       },
       "sources": ["spellbook"]
     },
+    "11763": {
+      "castTime": {
+        "base": 2000,
+        "minimum": 2000
+      },
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1,
+        "startRecoveryCategory": 133
+      },
+      "classOptions": {
+        "spellClassMask": [4096, 0, 0, 0],
+        "spellClassSet": 5
+      },
+      "cooldowns": {
+        "startRecoveryTime": 1000
+      },
+      "effects": [
+        {
+          "effect": 2,
+          "effectBasePointsF": 44,
+          "effectBonusCoefficient": 0.571,
+          "effectIndex": 0,
+          "effectRealPointsPerLevel": 0.6,
+          "implicitTarget": [6, 0],
+          "variance": 0.11363637
+        },
+        {
+          "effect": 3,
+          "effectBasePointsF": 44,
+          "effectBonusCoefficient": 0.571,
+          "effectIndex": 1,
+          "effectRealPointsPerLevel": 0.6,
+          "implicitTarget": [6, 0],
+          "variance": 0.11363637
+        }
+      ],
+      "id": 11763,
+      "levels": {
+        "baseLevel": 58,
+        "maxLevel": 63,
+        "spellLevel": 58
+      },
+      "misc": {
+        "attributes": [65536, 0, 0, 0, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 4,
+        "speed": 16,
+        "spellIconFileDataId": 135809
+      },
+      "name": "Firebolt",
+      "nameSubtext": "Rank 7",
+      "power": [
+        {
+          "manaCost": 115
+        }
+      ],
+      "range": {
+        "rangeMax": [30, 30]
+      },
+      "sources": ["docs"]
+    },
     "11767": {
       "classOptions": {
         "spellClassSet": 5
@@ -60097,6 +60158,53 @@
         "rangeMax": [20, 20]
       },
       "sources": ["buffsDoc", "docs"]
+    },
+    "11780": {
+      "categories": {
+        "category": 40,
+        "defenseType": 1,
+        "preventionType": 1,
+        "startRecoveryCategory": 133
+      },
+      "classOptions": {
+        "spellClassMask": [8192, 0, 0, 0],
+        "spellClassSet": 5
+      },
+      "cooldowns": {
+        "categoryRecoveryTime": 12000,
+        "startRecoveryTime": 1500
+      },
+      "effects": [
+        {
+          "effect": 2,
+          "effectBasePointsF": 50,
+          "effectBonusCoefficient": 0.429,
+          "effectIndex": 0,
+          "implicitTarget": [6, 0]
+        }
+      ],
+      "id": 11780,
+      "levels": {
+        "baseLevel": 60,
+        "spellLevel": 60
+      },
+      "misc": {
+        "attributes": [262160, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 136136
+      },
+      "name": "Lash of Pain",
+      "nameSubtext": "Rank 6",
+      "power": [
+        {
+          "manaCost": 160
+        }
+      ],
+      "range": {
+        "flags": 1,
+        "rangeMax": [5, 5]
+      },
+      "sources": ["docs"]
     },
     "11958": {
       "auraRestrictions": {
@@ -80821,7 +80929,7 @@
       "range": {
         "rangeMax": [30, 30]
       },
-      "sources": ["spellbook"]
+      "sources": ["docs", "spellbook"]
     },
     "17925": {
       "auraOptions": {
@@ -83776,7 +83884,7 @@
         "spellIconFileDataId": 136218
       },
       "name": "Improved Imp",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "18697": {
       "effects": [
@@ -83806,7 +83914,7 @@
         "spellIconFileDataId": 136172
       },
       "name": "Demonic Embrace",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "18703": {
       "classOptions": {
@@ -84041,7 +84149,7 @@
         "spellIconFileDataId": 4352493
       },
       "name": "Improved Sayaad",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "18769": {
       "classOptions": {
@@ -84066,7 +84174,7 @@
         "spellIconFileDataId": 136206
       },
       "name": "Unholy Power",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "18787": {
       "categories": {
@@ -85475,7 +85583,7 @@
       "shapeshift": {
         "shapeshiftExclude": [2097152, 0]
       },
-      "sources": ["spellbook", "talent"],
+      "sources": ["docs", "spellbook", "talent"],
       "targetRestrictions": {
         "targetCreatureType": 4
       }
@@ -103029,6 +103137,59 @@
       "name": "Increased Spell Hit Chance 1",
       "sources": ["item"]
     },
+    "23759": {
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 119,
+          "effectAura": 79,
+          "effectBasePointsF": 10,
+          "effectIndex": 0,
+          "effectMiscValue": [4, 0],
+          "effectRadiusIndex": [12, 12],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 23759,
+      "misc": {
+        "attributes": [536870912, 0, 4, 268435456, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 136203
+      },
+      "name": "Master Demonologist",
+      "range": {
+        "rangeMax": [50000, 50000]
+      },
+      "sources": ["docs"]
+    },
+    "23761": {
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 119,
+          "effectAura": 79,
+          "effectBasePointsF": 10,
+          "effectIndex": 0,
+          "effectMiscValue": [32, 0],
+          "effectRadiusIndex": [12, 12],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 23761,
+      "misc": {
+        "attributes": [536870912, 0, 0, 268435456, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 136203
+      },
+      "name": "Master Demonologist",
+      "sources": ["docs"]
+    },
     "23785": {
       "effects": [
         {
@@ -103071,7 +103232,7 @@
         "spellIconFileDataId": 136203
       },
       "name": "Master Demonologist",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "23793": {
       "duration": {
@@ -109084,6 +109245,55 @@
       "targetRestrictions": {
         "targets": 16
       }
+    },
+    "25228": {
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1,
+        "preventionType": 1,
+        "startRecoveryCategory": 133
+      },
+      "cooldowns": {
+        "startRecoveryTime": 1500
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 119,
+          "effectAura": 79,
+          "effectBasePointsF": 3,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [127, 0],
+          "effectRadiusIndex": [12, 12],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 119,
+          "effectAmplitude": 1,
+          "effectAura": 81,
+          "effectBasePointsF": 30,
+          "effectIndex": 1,
+          "effectMiscValue": [127, 0],
+          "effectRadiusIndex": [12, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 25228,
+      "levels": {
+        "baseLevel": 40,
+        "spellLevel": 40
+      },
+      "misc": {
+        "attributes": [537198592, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 136160
+      },
+      "name": "Soul Link",
+      "sources": ["docs"]
     },
     "25286": {
       "categories": {
@@ -115938,6 +116148,208 @@
       "name": "Improved Drains",
       "sources": ["talent"]
     },
+    "403789": {
+      "auraOptions": {
+        "procChance": 101
+      },
+      "categories": {
+        "startRecoveryCategory": 133
+      },
+      "classOptions": {
+        "spellClassMask": [0, 0, 8192, 0],
+        "spellClassSet": 5
+      },
+      "cooldowns": {
+        "startRecoveryTime": 1500
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 36,
+          "effectIndex": 0,
+          "effectMiscValue": [22, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 108,
+          "effectBasePointsF": -100,
+          "effectIndex": 1,
+          "effectMiscValue": [10, 0],
+          "effectSpellClassMask": [256, 0, 0, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 332,
+          "effectBasePointsF": 403828,
+          "effectIndex": 2,
+          "effectMiscValue": [5782, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 4,
+          "effectBasePointsF": 10000,
+          "effectIndex": 3,
+          "effectSpellClassMask": [0, 2097152, 0, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 4,
+          "effectBasePointsF": -25,
+          "effectIndex": 4,
+          "effectSpellClassMask": [0, 2097152, 0, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 4,
+          "effectBasePointsF": 6,
+          "effectIndex": 5,
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 332,
+          "effectBasePointsF": 403835,
+          "effectIndex": 6,
+          "effectMiscValue": [686, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 332,
+          "effectBasePointsF": 403839,
+          "effectIndex": 7,
+          "effectMiscValue": [695, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 332,
+          "effectBasePointsF": 403840,
+          "effectIndex": 8,
+          "effectMiscValue": [705, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 332,
+          "effectBasePointsF": 403841,
+          "effectIndex": 9,
+          "effectMiscValue": [1088, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 332,
+          "effectBasePointsF": 403842,
+          "effectIndex": 10,
+          "effectMiscValue": [1106, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 332,
+          "effectBasePointsF": 403843,
+          "effectIndex": 11,
+          "effectMiscValue": [7641, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 332,
+          "effectBasePointsF": 403844,
+          "effectIndex": 12,
+          "effectMiscValue": [11659, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 332,
+          "effectBasePointsF": 403848,
+          "effectIndex": 13,
+          "effectMiscValue": [11660, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 332,
+          "effectBasePointsF": 403851,
+          "effectIndex": 14,
+          "effectMiscValue": [11661, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 332,
+          "effectBasePointsF": 403852,
+          "effectIndex": 15,
+          "effectMiscValue": [25307, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 332,
+          "effectBasePointsF": 412789,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 16,
+          "effectMiscValue": [412784, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 332,
+          "effectBasePointsF": 412788,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 17,
+          "effectMiscValue": [412783, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 332,
+          "effectBasePointsF": 442226,
+          "effectIndex": 18,
+          "effectMiscValue": [6213, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 332,
+          "effectBasePointsF": 442233,
+          "effectIndex": 19,
+          "effectMiscValue": [6215, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 403789,
+      "levels": {
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [537198608, 0, 256, 0, 0, 0, 0, 0, 4096, 4194304, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 237558
+      },
+      "name": "Metamorphosis",
+      "nameSubtext": "Shapeshift",
+      "power": [
+        {
+          "powerCostPct": 100
+        }
+      ],
+      "shapeshift": {
+        "shapeshiftExclude": [1073741824, 0]
+      },
+      "sources": ["docs"]
+    },
     "407632": {
       "categories": {
         "category": 2404,
@@ -116928,7 +117340,7 @@
         "spellIconFileDataId": 136165
       },
       "name": "Demonic Knowledge",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "412751": {
       "classOptions": {
@@ -117869,7 +118281,7 @@
         "spellIconFileDataId": 5927650
       },
       "name": "Demonic Pact",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "426065": {
       "auraOptions": {
@@ -117969,6 +118381,54 @@
       },
       "name": "Pandemic",
       "sources": ["docs", "talent"]
+    },
+    "427733": {
+      "castTime": {
+        "base": 10000,
+        "minimum": 10000
+      },
+      "categories": {
+        "defenseType": 1,
+        "preventionType": 1,
+        "startRecoveryCategory": 133
+      },
+      "classOptions": {
+        "spellClassMask": [536870912, 0, 0, 0],
+        "spellClassSet": 5
+      },
+      "cooldowns": {
+        "startRecoveryTime": 1500
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 56,
+          "effectBasePointsF": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [213450, 1],
+          "implicitTarget": [32, 0]
+        }
+      ],
+      "id": 427733,
+      "levels": {
+        "spellLevel": 10
+      },
+      "misc": {
+        "attributes": [65536, 131073, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 136216
+      },
+      "name": "Summon Felguard",
+      "nameSubtext": "Summon",
+      "power": [
+        {
+          "powerCostPct": 80
+        }
+      ],
+      "sources": ["docs"]
     },
     "429144": {
       "classOptions": {
@@ -118469,7 +118929,49 @@
         "spellIconFileDataId": 135808
       },
       "name": "Decimation",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
+    },
+    "440873": {
+      "categories": {
+        "defenseType": 1,
+        "dispelType": 1
+      },
+      "classOptions": {
+        "spellClassSet": 5
+      },
+      "duration": {
+        "duration": 10000,
+        "maxDuration": 10000
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 108,
+          "effectBasePointsF": -40,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 0,
+          "effectMiscValue": [10, 0],
+          "effectSpellClassMask": [0, 128, 0, 0],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 6,
+          "effectAura": 256,
+          "effectBasePointsF": -40,
+          "effectBonusCoefficient": 1,
+          "effectIndex": 1,
+          "effectSpellClassMask": [0, 128, 0, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 440873,
+      "misc": {
+        "attributes": [0, 0, 0, 0, 512, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 4,
+        "spellIconFileDataId": 135808
+      },
+      "name": "Decimation",
+      "sources": ["docs"]
     },
     "440892": {
       "categories": {
@@ -119366,6 +119868,30 @@
         "targets": 16
       }
     },
+    "1214101": {
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 6,
+          "effectAura": 79,
+          "effectBasePointsF": 10,
+          "effectIndex": 0,
+          "effectMiscValue": [127, 0],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1214101,
+      "misc": {
+        "attributes": [536870912, 0, 0, 268435456, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 32,
+        "spellIconFileDataId": 136203
+      },
+      "name": "Master Demonologist",
+      "sources": ["docs"]
+    },
     "1219503": {
       "categories": {
         "defenseType": 1,
@@ -120258,7 +120784,7 @@
         "spellIconFileDataId": 237564
       },
       "name": "Demonic Energies",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "1225217": {
       "classOptions": {
@@ -123229,6 +123755,53 @@
       },
       "name": "Resourcefulness",
       "sources": ["trigger"]
+    },
+    "1243120": {
+      "categories": {
+        "defenseType": 1
+      },
+      "classOptions": {
+        "spellClassSet": 5
+      },
+      "duration": {
+        "duration": -1,
+        "maxDuration": -1
+      },
+      "effects": [
+        {
+          "effect": 143,
+          "effectAura": 13,
+          "effectBasePointsF": 10,
+          "effectIndex": 0,
+          "effectMiscValue": [126, 0],
+          "effectRadiusIndex": [12, 12],
+          "implicitTarget": [1, 0]
+        },
+        {
+          "effect": 143,
+          "effectAura": 135,
+          "effectBasePointsF": 10,
+          "effectIndex": 1,
+          "effectMiscValue": [126, 0],
+          "effectRadiusIndex": [12, 12],
+          "implicitTarget": [1, 0]
+        }
+      ],
+      "id": 1243120,
+      "levels": {
+        "baseLevel": 1,
+        "spellLevel": 1
+      },
+      "misc": {
+        "attributes": [134217728, 0, 256, 1073741824, 0, 0, 0, 0, 4096, 0, 0, 0, 0, 0, 0, 8192, 0],
+        "schoolMask": 1,
+        "spellIconFileDataId": 136165
+      },
+      "name": "Demonic Knowledge",
+      "range": {
+        "rangeMax": [100, 100]
+      },
+      "sources": ["docs"]
     },
     "1248394": {
       "categories": {
@@ -132026,7 +132599,7 @@
         "spellIconFileDataId": 4226151
       },
       "name": "Demonic Brand",
-      "sources": ["talent"]
+      "sources": ["docs", "talent"]
     },
     "1293740": {
       "auraOptions": {

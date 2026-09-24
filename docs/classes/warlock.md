@@ -1,4 +1,4 @@
-# Warlock: Destruction, Affliction
+# Warlock: Destruction, Affliction, Demonology
 
 WoW Forever rebuilds the warlock more than any class so far. Every damage spell's base damage is
 about half of Classic Era's (Shadow Bolt 253–283 against 482–538) with the same or higher
@@ -11,10 +11,11 @@ schools**: the Imp now gives +15% Shadow and the Succubus +15% Fire. The trees a
 is gone. This doc reads every value from the Forever client, compares it with Classic Era's, and
 gives Destruction's and Affliction's first-pass rotations and defaults under
 [D27](../decisions.md#d27-land-every-dps-spec-first-in-a-9010-mode-tune-later-2026-09-24).
-Demonology waits for the pet core.
+**Demonology** (§11) keeps a demon out beside a sacrificed one, with Forever's Demonic Pact, on the
+pet core ([ranged-and-pets.md](../mechanics/ranged-and-pets.md)).
 
-Status: researched and built 2026-09-24 (slice K3) · Destruction and Affliction shipped
-([§6](#6-rotation-and-priority)) · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
+Status: researched and built 2026-09-24 (slices K3 and H3) · Destruction and Affliction shipped
+([§6](#6-rotation-and-priority)), Demonology shipped ([§11](#11-demonology)) · ruleset tags: [F] Forever · [C] Classic Era · [?] unverified
 
 Forever client build `1.60.1.69913`, Classic Era client build `1.15.9.69722`. Source links use short
 labels, resolved under [Sources](#sources).
@@ -41,6 +42,7 @@ labels, resolved under [Sources](#sources).
 9. [Implementation notes](#8-implementation-notes)
 10. [Open questions](#9-open-questions)
 11. [Worked examples](#10-worked-examples)
+12. [Demonology](#11-demonology)
 
 ---
 
@@ -147,8 +149,9 @@ Demonic Sacrifice (18788) gives up your demon for a 2 h buff [F] [client] (Spell
 | Voidwalker | Fel Energy (18792): 2% of maximum mana every 4 s | 3% health every 4 s |
 | Felhunter | Fel Stamina (18790): 3% of maximum health every 4 s | 2% mana every 4 s |
 
-The sim casts it 3 s before the pull, with no pet: the pet core comes later. Without the talent, or
-with "None", no pet is simulated either (Q12).
+Destruction and Affliction cast it 3 s before the pull, with no pet. Without the talent, or with
+"None", they simulate no pet either (Q12). Demonology keeps another demon out with Demonic Pact
+(§11.4).
 
 ## 4. Talents
 
@@ -188,7 +191,8 @@ spells it names come from its class mask (§8). Different talents' percentages o
 ### 4.3 Demonology
 
 Fel Vitality (18731) is +5% maximum mana a rank (#1, aura 178) [F]; Demonic Embrace +3% Stamina a
-rank, as its tooltip reads (Q9); Demonic Sacrifice §3.4. The pet talents do nothing without a pet.
+rank, as its tooltip reads (Q9); Demonic Sacrifice §3.4. The pet talents do nothing without a pet;
+Demonology's are §11.
 
 ## 5. Mana
 
@@ -375,7 +379,8 @@ Each with its estimated effect on DPS, per [D24](../decisions.md).
   Under 0.1% through Life Tap.
 - **Q10 Talent stacking**: multiplicative, not additive; under 1%.
 - **Q11 Fire and Brimstone's first effect** (10 at 3/3, a dummy) isn't in its tooltip; not simulated.
-- **Q12 The pet**: none is simulated (the pet core). An unsacrificed demon's damage is missing.
+- **Q12 The pet**: Destruction and Affliction simulate none; Demonology keeps one out (§11). An
+  unsacrificed demon's damage is missing from the other two.
 - **Q13 Wrack** (a 6 s channel that raises your other Shadow DoTs 10%) isn't cast: at pre-raid spell
   damage it deals about a third of a Shadow Bolt's damage per second.
 
@@ -402,6 +407,239 @@ Each is a unit test in `src/sim/classes/warlock/warlock.test.ts`. Profile `forev
 9. **Fel Energy.** 6,518 maximum mana: 2% = 130.36 mana every 4 s.
 10. **Spirit regeneration.** 220 Spirit: `8 + 220 / 4 = 63` a tick outside the five-second rule.
 
+## 11. Demonology
+
+Forever's Demonology tree is built around a demon you **keep out**. Classic Era's raid warlock gave
+its demon up for Demonic Sacrifice's buff (§6, [wh-talents]); Forever adds **Demonic Pact**, which keeps
+that buff when you then summon a different demon, and rewrites the talents that need one out: Master
+Demonologist gives you and your demon +10% Fire (the Imp) or Shadow (the Succubus), Demonic Knowledge
+adds spell damage equal to your level, Unholy Power raises all its damage, and Soul Link adds 3% to
+you both. So the Forever build sacrifices one demon and fights beside another. The demon is the pet
+core's second attacker ([ranged-and-pets §12](../mechanics/ranged-and-pets.md#12-what-a-class-slice-uses)).
+
+### 11.1 WoW Forever changes
+
+The tree, talent by talent, with its Forever values per rank from the Trait curves and the tooltips
+[F] [client] (TraitDefinitionEffectPoints, SpellEffect, 1.60.1.69913), against Classic Era's
+[C] [client] (SpellEffect, 1.15.9.69722):
+
+| Talent (id) | Forever, per rank | Classic Era | In the sim |
+| --- | --- | --- | --- |
+| Improved Imp (18694) | Firebolt +10% (#1, aura 108, mask 4096), Fire Shield +10% (#0); #2 a dummy of −300/−700/−1000 its tooltip doesn't show (Q19) | Firebolt, Fire Shield and Blood Pact +10% | Firebolt |
+| Demonic Embrace (18697) | +3% Stamina | the same, −1% Spirit | §4.3 |
+| Unholy Power (18769) | all your demon's damage +2% (its tooltip: Imp, Voidwalker, Succubus, Felhunter) | melee +4% (the Imp's Firebolt not in 1.15's tooltip) | all its damage |
+| Fel Vitality (18731) | your demon's health and mana +5% (#0), your mana +5% (#1) | Fel Intellect: the demon's mana +3% | both manas |
+| Demonic Energies (1225214, new) | heals your demon for 8/15% of your spell damage (#0); it gains 50/100% of the mana your Life Tap gives (#1) | none | the mana |
+| Improved Sayaad (18754) | Lash of Pain and Soothing Kiss +10% (#0, aura 108, mask 8192) | the same | Lash of Pain |
+| Demonic Sacrifice (18788) | §3.4: tier 3, schools swapped | tier 5 | §3.4 |
+| Decimation (440870, new) | Soul Fire's cooldown −45% (#1); below 35% health (#2) a Shadow Bolt or Searing Pain gives 10 s of Soul Fire −20% cast time and no Soul Shard (Decimation 440873), and they deal +3% (#3, mask 257) | none | §11.3 |
+| Demonic Brand (1293695, new) | Searing Pain brands the target: your demon's next 6 attacks deal 65–68 Fire or Shadow | none | not cast (Q21) |
+| Soul Link (19028) | aura 25228: all damage +3% (#0), you and your demon; 30% of your damage taken to it | the same, tier 7 | §11.4 |
+| Demonic Knowledge (412732, new) | spell damage +33/67/100% of your level, you and your demon, while it's out (its aura 1243120) | none | §11.4 |
+| Master Demonologist (23785) | while your demon is out, you and it: Imp +2% Fire (23759), Succubus +2% Shadow (23761), Voidwalker −2% physical taken, Felhunter −2% magic taken | Imp −4% threat, Succubus +2% all damage, Felhunter resistances | §11.4 |
+| Demonic Pact (425464, new) | your sacrifice's buff isn't cancelled by summoning a *different* demon | none | §11.4 |
+
+Master Summoner, Fel Domination, Improved Health Funnel, Improved Voidwalker, Improved Felhunter and
+Demonic Aegis change nothing a DPS result reads. **Dark Pact is gone** (§1.1), so Life Tap is the mana
+ability, and Demonic Energies passes its mana to your demon.
+
+**Not in Forever.** Summon Felguard (427733) has no `SkillLineAbility` row for any class, and
+Metamorphosis (403789) only an "acquired by another spell" one (AcquireMethod 3, a Season of
+Discovery rune): the spellbook leaves both out, and no spell is named Demonic Empowerment [F] [client]
+(SkillLineAbility, SpellName, 1.60.1.69913). They're Season of Discovery data; the sim has none.
+
+**The demons' spells** at their top ranks [F] [C] [client] (SpellEffect, SpellPower, SpellMisc,
+SpellCooldowns, SpellLevels, both builds):
+
+| Spell (rank, id) | Forever | Classic Era |
+| --- | --- | --- |
+| Firebolt (7, 11763), the Imp's | 44 Fire, variance 0.1136, +0.6 a level from 58: **42.70–47.70** at 60; coefficient 0.571; 115 mana; a 2 s cast, a 1 s GCD | 83–94 +1.2 a level |
+| Lash of Pain (6, 11780), the Succubus's | **50** Shadow, coefficient 0.429; 160 mana; instant, a 12 s cooldown | 99 |
+| Blood Pact (5, 11767), the Imp's party aura | +49 Stamina + 0.5 a level from 50 | 38 + 0.4 a level |
+| Soul Fire (2, 17924), yours | 431 Fire, variance 0.2247, +1.9 a level from 56: **390.17–486.03**; coefficient 1.0; 335 mana; a 6 s cast; 60 s cooldown and a Soul Shard | — |
+
+Blood Pact is Stamina only, which no DPS result reads (buffs doc "Skipped"); the sim doesn't cast it.
+
+### 11.2 Your demon
+
+The Rotation tab's **Demon** is the one you keep out: the **Imp** (Firebolt, 2 s casts from range, no
+melee), the **Succubus** (melee and Lash of Pain), the **Felhunter** (melee; its Tainted Blood, Spell
+Lock, Devour Magic and Paranoia deal no damage), or none. The Voidwalker is a tank's demon, whose
+Master Demonologist cuts only physical damage taken, so it isn't offered to keep out.
+
+Neither client holds a demon's stats, nor how much of yours it inherits
+([ranged-and-pets §6](../mechanics/ranged-and-pets.md#6-pets-stats-and-white-swings), OQ-6). The sim
+uses, all [?]:
+
+| | Imp | Succubus | Felhunter |
+| --- | --- | --- | --- |
+| Strength, Agility, Intellect, Spirit at 60 | 122, 27, 264, 197 | 130, 87, 106, 98 | 130, 87, 106, 101 |
+| Mana at 60 (× Fel Vitality) | 1,898 | 1,874 | 1,874 |
+| Attack power | — | 2 × Strength − 20 = **240** | 240 |
+| Swing | — | 36.64–54.96 every 2.0 s | the same |
+| Crit, melee and spell | 5% | 5% | 5% |
+| Mana regeneration | 8 + Spirit / 4 every 2 s, casting or not: 57.25 | 32.5 | — |
+
+- The attributes and mana are the mangoszero database's `pet_levelstats` rows (Imp 416, Succubus
+  1863, Felhunter 417): [?] placeholder (D24); origin [mangos-pets], not evidence. They're Classic
+  Era's values as an emulator records them; no tier 1–3 source has them (Q14).
+- The attack power rule and the swing are the level-60 hunter pet's reported numbers
+  ([ranged-and-pets §6](../mechanics/ranged-and-pets.md#6-pets-stats-and-white-swings): 2 × Strength
+  − 20; 22.9 damage a second), the swing ±20% [?] (Q14).
+- **Inheritance: none**, as in Classic Era, except Demonic Knowledge's spell damage (§11.4); Forever's
+  "Warlock Pet Scaling" (416189) carries server-side amounts [?] (Q15).
+- Its tables are a player's at its level (ranged-and-pets §6, §7): its spells miss a level-63 boss
+  17% of the time with no hit, lose 6% to its resistance and crit for ×1.5; its swings, from behind,
+  miss, are dodged and glance, against the boss's armor after the Buffs tab's debuffs. Demonology is
+  a caster whose demon swings (`SpecMeta.petMelee`), so its Buffs tab keeps the melee's armor debuffs
+  on the boss ([buffs "Class-only entries"](../mechanics/buffs-debuffs-consumables.md#class-only-entries)).
+  Your Curse of the Elements raises its spells as yours.
+- Its mana regenerates as the warlock's formula of its Spirit, without the five-second rule [?]
+  (Q16); Demonic Energies 2/2 gives it the mana of each Life Tap, so the Imp never runs dry in the
+  default build.
+- It's out from the pull and never dies; its threat and Soul Link's damage transfer aren't simulated.
+
+### 11.3 Talents in the sim
+
+- **Unholy Power** and **Soul Link** multiply all your demon's damage; **Improved Imp** Firebolt;
+  **Improved Sayaad** Lash of Pain; **Master Demonologist** the demon's spells of its school (the Imp's
+  Firebolt, the Succubus's Lash of Pain, not its swings). Different talents multiply (Q10).
+- **Fel Vitality** raises the demon's mana 15% at 3/3, and yours as §4.3.
+- **Demonic Energies** gives the demon 50/100% of Life Tap's mana at once, capped at its maximum
+  (`AbilityPlan.petPowerTenths`); its healing isn't simulated.
+- **Decimation** (the sim's Soul Fire is the setting **Soul Fire below 35%**): Soul Fire's cooldown
+  60 s × (1 − 0.9) = **6 s**; below 35% health a Soul Fire's cast is Bane's 6 − 2 = 4 s × (1 − 0.4) =
+  **2.4 s** and costs no Soul Shard, from the moment the boss reaches 35% (`COND.healthAtMost` 70); in
+  game a Shadow Bolt cast there starts the buff, and each one refreshes it for 10 s [?] (Q20). Below
+  35%, Shadow Bolt deals **+6%** (#3, `SpellDef.lowHealthPct`). Ruin, Cataclysm and Agonizing Flames
+  cover Soul Fire (their masks, 997 and [0, 128]) [F].
+
+### 11.4 Your demon's passives
+
+With a demon out, the sim puts these on you before the pull (2 s before it, after Demonic
+Sacrifice's 3 s), each lasting the fight, as Demonic Sacrifice's buff does:
+
+- **Soul Link** (19028, aura 25228): +3% damage, every magic school (your spells), and ×1.03 on the
+  demon.
+- **Master Demonologist** (23785): with the Imp +10% Fire (its aura Master Demonologist 23759), with the
+  Succubus +10% Shadow (Master Demonologist 23761), on you and on its spells of that school. With the Felhunter it gives no damage, so no aura.
+- **Demonic Knowledge** (412732): +60 spell damage at 3/3 (60 × 100%; 19 and 40 at 1 and 2 ranks,
+  rounded down [?]), on you and on the demon.
+- **Demonic Sacrifice** (§3.4) stays up only with **Demonic Pact** and a demon other than the one you
+  sacrificed; without the Pact, a demon out cancels it (the Rotation tab says so).
+
+### 11.5 Rotation and priority
+
+Classic Era's warlocks raided with Demonic Sacrifice and no demon, Shadow Bolt after the assigned
+curse ([wh-rotation]; [wh-talents]); a demon kept out with Soul Link and Master Demonologist wasn't a
+raid build there [?]. Forever's tree makes it one, so the priority is the common warlock priority with
+the demon and its passives added:
+
+1. Before the pull: Demonic Sacrifice (the Imp, +15% Shadow), then the **Succubus** summoned, and its
+   passives (§11.4).
+2. Off the GCD: the racial cooldown, Power Infusion, the Major Mana Potion and Demonic Rune, as §6.1.
+3. Curse of the Elements.
+4. Immolate, recast as it runs out.
+5. Corruption, then the Bane: Bane of Doom while a minute is left, then Bane of Agony (§6.2).
+6. Soul Fire below 35% (off by default, §11.6).
+7. Life Tap at or below 10% mana; Shadow Bolt; Life Tap when Shadow Bolt can't be paid for.
+
+The demon walks its own list: the Imp casts Firebolt whenever it has the mana; the Succubus swings and
+casts Lash of Pain on cooldown.
+
+### 11.6 Defaults
+
+**First-pass search (D27).** 20,000 fights on seed 2701 each, the default setup otherwise (Orc, the
+pre-raid list, the Standard raid, which with Demonology keeps the boss's armor debuffs). DPS ± the 95%
+interval; the first search's baseline had Immolate off and Soul Fire on:
+
+| Demon kept out, demon sacrificed | DPS |
+| --- | --- |
+| **Succubus, Imp** (+15% Shadow and +10% Shadow from Master Demonologist) | 485.6 ±0.4 |
+| Felhunter, Imp | 438.8 |
+| Imp, Succubus (the Fire build: +15% and +10% Fire, Soul Fire) | 421.9 |
+| Imp, Voidwalker | 434.4 |
+| Succubus, Voidwalker / none | 453.4 / 432.2 |
+| None, Imp: the Classic Era approach, no demon | 364.6 |
+
+| From Succubus, Imp | DPS |
+| --- | --- |
+| Immolate on / Soul Fire off | 489.3 / 489.3 |
+| Bane of Agony instead of Doom / no Corruption | 469.9 / 465.7 |
+| Affliction's 19 points (Suppression, Improved Corruption, Malediction) instead of Ruin's | 438.1 |
+
+Then with Immolate on and Soul Fire off (492.4): Soul Fire back on 489.1, Life Tap at 5 / 10 / 0% 492.4
+/ 492.8 / 492.4, and the Imp with the Succubus sacrificed and Soul Fire 451.0.
+
+So Demonology defaults to the **Succubus out and the Imp sacrificed**, Immolate on, Corruption and Bane
+of Doom, Life Tap at 10%, and Soul Fire off: with every buff on Shadow, a Shadow Bolt (+6% below 35%)
+out-damages a 2.4 s Soul Fire, which only Soul Link raises. **492.8** ±0.4 DPS, 35% above the Classic
+Era approach with no demon (364.6). Soul Fire stays a choice for the Fire build.
+
+**Talents: Demonology 0/32/19** (`-0325003231120001351-0350305003`): Improved Imp 3, Demonic Embrace 2,
+Unholy Power 5, Fel Vitality 3, Demonic Energies 2, Improved Sayaad 3, Demonic Sacrifice, Master
+Summoner 1, Decimation 2, Soul Link, Demonic Knowledge 3, Master Demonologist 5, Demonic Pact; Improved
+Shadow Bolt 3, Bane 5, Cataclysm 3, Ruin 5, Agonizing Flames 3. Both Improved Imp and Improved Sayaad,
+so either demon is full strength; Demonic Embrace and Master Summoner only fill the tiers.
+
+**Race, gear, enchants, consumables:** as the other warlocks (§7.2–§7.5): Orc, the same pre-raid list,
+the caster enchants, the Standard raid's elixirs and mana potion. The Talents tab has the build as a
+preset.
+
+### 11.7 Open questions
+
+Each with its estimated effect on Demonology's DPS.
+
+- **Q14 The demon's stats and swing** (§11.2) are placeholders: attributes from an emulator's table,
+  and a hunter pet's attack power rule and damage. The Succubus's swings are about 7% of the default's
+  damage; ±30% on them is ±2%. Test: the pet's sheet and 200 swings on a target dummy.
+- **Q15 Inheritance.** Forever's Warlock Pet Scaling may give the demon a share of your spell damage,
+  crit or hit: at 10% of your spell damage the Succubus's Lash of Pain gains a few percent, under 0.5%;
+  a share of your hit would cut the Imp's 17% misses. Test: the demon's sheet with two gear sets.
+- **Q16 The demon's mana regeneration** (8 + Spirit / 4, casting or not): with Demonic Energies 2/2
+  nothing changes; without it the Imp would run dry after about 75 s and then cast at half its rate. Test: the Imp's
+  mana over a minute of Firebolt.
+- **Q17 Master Demonologist on the Succubus's swings.** Forever's tooltip says Shadow damage; the
+  client has a Master Demonologist aura of +10% all damage (1214101) too, perhaps the demon's. If the
+  Succubus gets +10% on its swings, +0.7%.
+- **Q18 Demonic Knowledge's rounding** (19 or 20 at 1 rank): nothing at 3/3.
+- **Q19 Improved Imp's #2** (−300/−700/−1000, a dummy): if it's Firebolt's cast time (−1 s at 3/3),
+  the Imp casts about twice as often, about +13% on an Imp build; the default keeps the Succubus out.
+- **Q20 Decimation's buff** comes from a Shadow Bolt cast below 35%; the sim takes it as up from the
+  moment the boss reaches 35%. Under 0.2% with Soul Fire on.
+- **Q21 Demonic Brand and Searing Pain** aren't simulated: Searing Pain (1.5 s, 116 Fire at 0.429)
+  deals less a second than Shadow Bolt, but its brand's 6 × 66.5 on the demon's next attacks is
+  about 400 damage every 10 s. A Searing Pain each 10 s in place of Shadow Bolt nets about +15 damage a
+  second, **about +3%**, for 3 points the default spends on Demonic Embrace and Master Summoner.
+  Whether the brand's damage takes your or the demon's multipliers is unknown. The tuning milestone's.
+- **Q22 The pet's glancing and table** (ranged-and-pets OQ-7).
+
+### 11.8 Implementation notes and worked examples
+
+- `src/sim/classes/warlock/demons.ts` holds the demons (`demonPet`: a `PetDef`), their spells, the
+  passives on you and Soul Fire; `shared.ts` builds Demonology's list with the other two specs', and
+  `demonology.ts` is its spec. A pet spell's own damage % (Improved Imp, Master Demonologist) is folded
+  into its base damage and coefficient alike, the same product.
+- Each engine addition is optional, so no other plan changes: `AbilityPlan.petPowerTenths` (Demonic
+  Energies), `SpellDef.lowHealthPct` (Decimation's Shadow Bolt) and `COND.healthAtMost` (70).
+
+Worked examples, unit tests in `warlock.test.ts` (profile `forever`):
+
+1. **Firebolt at 60.** 44 × (1 ± 0.05681818) + 0.6 × 2 = **42.70–47.70**, average 45.2. With Demonic
+   Knowledge 3/3 (60), Improved Imp 3/3 and the Imp's Master Demonologist 5/5:
+   `(45.2 + 0.571 × 60) × 1.3 × 1.1 = 113.63`; with Unholy Power 5/5 and Soul Link, × 1.1 × 1.03 =
+   **128.74**, before the boss's resist and Curse of the Elements.
+2. **Lash of Pain.** `(50 + 0.429 × 60) × 1.3 × 1.1 = 108.31`, × 1.133 = **122.71**.
+3. **The Succubus's swing.** 2 × 130 − 20 = 240 attack power: `(45.8 + 240 / 14 × 2) × 1.133` =
+   **90.74** on average before armor, glancing and crits.
+4. **Demonic Knowledge.** 60 × 33 / 67 / 100% = 19.8 / 40.2 / 60 → **19 / 40 / 60**.
+5. **The Imp's mana.** 1,898 × 1.15 = **2,182.7**; 8 + 197 / 4 = **57.25** every 2 s. A 772.8-mana Life Tap
+   (§10 ex. 6) gives it **772.8** with Demonic Energies 2/2.
+6. **Soul Fire with Bane 5/5 and Decimation 2/2.** (6,000 − 2,000) × 0.6 = **2,400 ms**; its cooldown
+   60 s × 0.1 = **6 s**.
+7. **Shadow in the default.** Burning Shadow 1.15 × Master Demonologist 1.10 × Soul Link 1.03 =
+   **×1.30295** on your Shadow spells.
+
 ---
 
 ## Sources
@@ -421,3 +659,4 @@ Each is a unit test in `src/sim/classes/warlock/warlock.test.ts`. Profile `forev
   and `player_classlevelstats.sql` (D24 placeholders, not evidence).
 - [ws-base] https://github.com/wowsims/classic/blob/master/sim/core/base_stats.go (placeholder origin).
 - [rb] RatingBuster at d11164cf (pre-SoD): https://github.com/raethkcj/RatingBuster/blob/d11164cf6de90688a635a6ff880b71ea9ea07367/libs/StatLogic/Vanilla_Logic.lua
+- [mangos-pets] https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/pet_levelstats.sql (D24 placeholders, not evidence).

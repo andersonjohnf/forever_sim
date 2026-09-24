@@ -208,6 +208,27 @@ describe('normalizeConfig', () => {
     ])
   })
 
+  // Review CV-8: a rival the spec can use beats a bigger one locked off for it.
+  it('keeps a hunter’s Grilled Squid over Smoked Desert Dumplings, whose attack power its shots don’t use', () => {
+    const hunter = defaultConfig('hunter-marksmanship')
+    for (const enabled of [
+      ['smokedDesertDumplings', 'grilledSquid'],
+      ['grilledSquid', 'smokedDesertDumplings'],
+    ]) {
+      const { config, warnings } = normalizeConfig({ ...hunter, buffs: { raid: hunter.buffs.raid, enabled } })
+      expect(config.buffs.enabled, enabled.join()).toEqual(['grilledSquid'])
+      // The one that goes did nothing for a hunter, so its going needs no note (CR-3).
+      expect(warnings, enabled.join()).toEqual([])
+    }
+    const roids = normalizeConfig({ ...hunter, buffs: { raid: hunter.buffs.raid, enabled: ['roids', 'groundScorpokAssay'] } })
+    expect(roids.config.buffs.enabled).toEqual(['groundScorpokAssay'])
+    // Both usable: the bigger one still wins, for a warrior.
+    const fury = defaultConfig('warrior-fury')
+    expect(normalizeConfig({ ...fury, buffs: { raid: fury.buffs.raid, enabled: ['grilledSquid', 'smokedDesertDumplings'] } }).config.buffs.enabled).toEqual([
+      'smokedDesertDumplings',
+    ])
+  })
+
   // RL4: the comparison reads each entry's Classic Era values in `classicEra` (catalogueEffects).
   it('compares exclusive rivals by the profile’s own values, Classic Era’s included', () => {
     const giants = BUFFS_BY_ID.get('elixirOfGreaterStrength')! // +25 Strength in both clients

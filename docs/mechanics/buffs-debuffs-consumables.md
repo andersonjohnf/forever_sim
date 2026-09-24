@@ -1010,7 +1010,9 @@ auras ([§2](#2-world-buffs-excluded)).
 Encode these as data (`exclusiveGroup` on each entry). When several entries in a group
 are selected, keep only the one with the largest effect and warn in the UI. Turning one on in
 the Buffs tab turns the others of its group off.
-`normalizeConfig` compares effects when both entries change the same things (Juju Power's
+`normalizeConfig` first keeps one the spec can use over one locked off for it (`buffUnusedReason`:
+a hunter's Grilled Squid over Smoked Desert Dumplings, whose attack power its shots don't use).
+Then it compares effects when both entries change the same things (Juju Power's
 +30 Strength beats Elixir of Greater Strength's +25) and keeps the first on a tie. When they
 change different things (Mightfish Steak's attack power against Smoked Desert Dumplings'
 Strength), it keeps the one the spec's Max consumables preset picks, and otherwise the first. A

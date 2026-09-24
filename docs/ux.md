@@ -800,13 +800,12 @@ Every view handles these states:
     it, so the badge comes back.
   - A polite live region, mounted once at every width, says "Simulating…" when a run starts
     and then "Done: 682.5 DPS" or "Simulation cancelled."
-  - A run belongs to the spec it was started on, as its result does. Switching spec mid-run
-    leaves it running, out of sight: the other spec shows its own state, ready to simulate, with
-    no progress, Cancel or numbers from the run, in the panel, the sheet and the phone's bar
-    alike. Switching back shows its progress again, and its result lands under its own spec.
-    When it ends while another spec is showing, the live region names it: "Fury Warrior's run is
-    done: 682.5 DPS", or "Fury Warrior's run failed: … Switch back to it for details." One run
-    goes at a time, so Simulate on another spec stops it, leaving its spec as it was before.
+  - Switching spec cancels a run in progress, as Cancel does, however the spec changed (the
+    switcher, a shared link, a saved setup): there's never a run going on out of sight, so no
+    progress or number from one spec's run shows, or is announced, under another. The live region
+    says "Simulation cancelled." The spec switched to shows its own last result, or is ready to
+    simulate, in the panel, the sheet and the phone's bar alike, and switching back shows the
+    cancelled spec as Cancel would have left it: its last completed result, or ready to simulate.
 - **Stale:** the setup changed after the last run, so results are dimmed with a "Re-run" hint.
   - The whole result dims, the breakdown and details included, not just the headline. Dimmed
     text turns to the muted text color, which still meets AA; bars and icons fade to gray. The

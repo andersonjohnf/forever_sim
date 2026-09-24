@@ -99,29 +99,21 @@ describe('headlineText', () => {
   })
 })
 
-// A run that ends while another spec is showing names its own spec, so its headline is never heard
-// as this spec's (#5, docs/ux.md#states "Running").
+// What the live region says when a run ends (docs/ux.md#states "Running").
 describe('runOutcomeMessage', () => {
   const summary = (mean: number) => ({ mean, stdev: 1, ci95: 0.5 })
   const fury = { spec: 'warrior-fury', dps: summary(682.46), tps: summary(0) } as unknown as SimResult
-  const base = { status: 'done', error: null, result: fury, runSpec: 'warrior-fury' as SpecId, currentSpec: 'warrior-fury' as SpecId, desktop: true }
+  const base = { status: 'done', error: null, result: fury, desktop: true }
 
-  it('says a run on this spec is done, or was cancelled', () => {
+  it('says a run is done, or was cancelled', () => {
     expect(runOutcomeMessage(base)).toBe('Done: 682.5 DPS')
     expect(runOutcomeMessage({ ...base, status: 'idle', result: null })).toBe('Simulation cancelled.')
   })
 
-  it('names the spec of a run that finished while another spec was showing', () => {
-    expect(runOutcomeMessage({ ...base, currentSpec: 'warrior-arms' })).toBe('Fury Warrior’s run is done: 682.5 DPS')
-  })
-
-  it('reads a failure on a phone, or at any width when it was another spec’s run', () => {
+  it('reads a failure on a phone; on desktop the panel’s alert does', () => {
     const failed = { ...base, status: 'error', error: 'This setup can’t be simulated.', result: null }
     expect(runOutcomeMessage(failed)).toBe('')
     expect(runOutcomeMessage({ ...failed, desktop: false })).toBe('Couldn’t simulate: This setup can’t be simulated. Open the results for details.')
-    expect(runOutcomeMessage({ ...failed, currentSpec: 'warrior-arms' })).toBe(
-      'Fury Warrior’s run failed: This setup can’t be simulated. Switch back to it for details.',
-    )
   })
 })
 

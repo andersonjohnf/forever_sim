@@ -185,7 +185,7 @@ export const RETRIBUTION_OPTIONS: RotationOption[] = [
     id: ID.hammerOfWrath,
     group: 'Execute phase',
     label: 'Hammer of Wrath',
-    help: 'In the execute phase, use Hammer of Wrath whenever it’s ready, ahead of Holy Strike. Instant with Instrument of Law 2/2.',
+    help: 'In the execute phase, use Hammer of Wrath whenever it’s ready, ahead of Holy Strike. Instant with Instrument of Law 2/2. Needs an execute phase under Fight.',
     default: true,
     needsExecutePhase: true,
   },

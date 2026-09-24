@@ -2,7 +2,7 @@
 // changed mark, a consumable switch without its Buffs switch, settings whose parent is off, and
 // those that need an execute phase.
 import { describe, expect, it } from 'vitest'
-import { defaultConfig, getSpec, type SimConfig, unusedRotationSettings } from '@/sim'
+import { defaultConfig, getSpec, type SimConfig, specs, unusedRotationSettings } from '@/sim'
 import { formatSetting, groupsThousands, isAdvanced, rotationRows } from './logic'
 
 const rows = (config: SimConfig, rotation: SimConfig['rotation'] = {}, enabled = config.buffs.enabled) =>
@@ -141,6 +141,12 @@ describe('rotation rows', () => {
     ])
     // Any phase at all counts.
     expect(rows({ ...fury, fight: { ...fury.fight, executePct: 0.5 } }).get('warrior.fury.execute.enabled')?.inactive).toBe(false)
+  })
+
+  it('says in the help of every switch that needs an execute phase that it needs one under Fight, in every spec (RV5)', () => {
+    const needing = specs.flatMap((s) => s.rotationOptions.filter((o) => o.kind === 'toggle' && o.needsExecutePhase))
+    expect(needing.map((o) => o.label)).toEqual(expect.arrayContaining(['Execute', 'Hammer of Wrath']))
+    for (const option of needing) expect(option.help, option.id).toMatch(/ Needs an execute phase under Fight\.$/)
   })
 
   it('dims Retribution’s Exorcism and its threshold unless the target is Undead or a Demon, and Hammer of Wrath without an execute phase (RU7)', () => {

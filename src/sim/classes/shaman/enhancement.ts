@@ -163,7 +163,7 @@ export const ENHANCEMENT_OPTIONS: RotationOption[] = [
     min: 0,
     max: 100,
     step: 5,
-    default: 20,
+    default: 10,
   },
   {
     kind: 'toggle',

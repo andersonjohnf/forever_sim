@@ -843,7 +843,8 @@ export const BUFFS: BuffSpec[] = [
     summary: '+3% attack speed for 20 s, every minute',
     docRef: `${DOC}#33-juju-firewater-blasted-lands-and-other-buffs`,
     effects: [{ kind: 'onUse', id: 'jujuFlurry', name: 'Juju Flurry', use: JUJU_FLURRY }],
-    presets: { max: WARRIOR_DPS },
+    // Retribution uses it on cooldown too: more swings, more Seal of Command procs (buffs doc §6.3).
+    presets: { max: [...WARRIOR_DPS, ...RETRIBUTION] },
   },
   {
     id: 'ezThroDarkBomb',

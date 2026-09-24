@@ -193,6 +193,15 @@ describe('on-use trinkets and Juju Flurry (RU2)', () => {
     expect(planOf({ buffs: ['jujuFlurry'], rotation: { [ID.juju]: false } }).abilities.map((a) => a.id)).not.toContain('jujuFlurry')
     expect(buildPlan(config({ buffs: ['jujuFlurry'], rotation: { [ID.juju]: false } })).assumptions.find((a) => a.id === 'onUseConsumables')?.text ?? '').not.toContain('Juju')
   })
+
+  it('has Juju Flurry in the Max consumables preset, as the warriors do, but not in the Standard raid (RV3)', () => {
+    expect(presetBuffIds('max', RET, FULL_RAID)).toContain('jujuFlurry')
+    expect(presetBuffIds('raid', RET, FULL_RAID)).not.toContain('jujuFlurry')
+    expect(presetBuffIds('max', 'paladin-protection', FULL_RAID)).not.toContain('jujuFlurry')
+    // So Max consumables uses it on cooldown from the pull.
+    const max = buildPlan(config({ buffs: presetBuffIds('max', RET, FULL_RAID) })).plan
+    expect(times(casts(max).casts, 'jujuFlurry')[0]).toBe(0)
+  })
 })
 
 describe('your own Blessing of Might (RU9): the Buffs tab’s, which a paladin casts on itself (selfCast)', () => {

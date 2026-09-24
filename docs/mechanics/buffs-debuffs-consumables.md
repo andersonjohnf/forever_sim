@@ -694,7 +694,7 @@ their stacking group is verified; the UI offers them as options.
 | Prot warrior | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude (+200); Mongoose; Giants; Smoked Desert Dumplings; Dense stone; Mighty Rage Potion | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum Black Label; Elemental stone; Greater Stoneshield Potion (on use) |
 | Feral cat | Flank au Poivre (+20 Agi) | Mongoose; Giants; Flank au Poivre | Juju Power; Juju Might; Ground Scorpok Assay; Mighty Rage Potion (for its +60 Str; the rage is wasted in cat) |
 | Feral bear | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude; Mongoose; Giants; Smoked Desert Dumplings; Mighty Rage Potion (druids can use it in Forever) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum; Greater Stoneshield Potion |
-| Retribution | Smoked Desert Dumplings; Dense stone | Mongoose; Giants; **Greater Arcane Elixir** (per-spec entry: Forever Ret's seals, judgements and Holy Strike scale with spell power, see [paladin](../classes/paladin.md#retribution-defaults)); Smoked Desert Dumplings; Dense stone; Major Mana Potion | Juju Power; Juju Might; R.O.I.D.S.; Elixir of Holy Power; Elemental stone; Demonic / Dark Rune; Flask of Supreme Power (whether it pays off depends on Ret's Holy-damage scaling, see [paladin](../classes/paladin.md)) |
+| Retribution | Smoked Desert Dumplings; Dense stone | Mongoose; Giants; **Greater Arcane Elixir** (per-spec entry: Forever Ret's seals, judgements and Holy Strike scale with spell power, see [paladin](../classes/paladin.md#retribution-defaults)); Smoked Desert Dumplings; Dense stone; Major Mana Potion | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Elixir of Holy Power; Elemental stone; Demonic / Dark Rune; Flask of Supreme Power (whether it pays off depends on Ret's Holy-damage scaling, see [paladin](../classes/paladin.md)) |
 | Prot paladin | Nightfin Soup | Elixir of Greater Defense; Elixir of Fortitude; Elixir of Holy Power; Nightfin Soup (+22 spell damage); Wizard Oil; Major Mana Potion | Flask of Supreme Power; Greater Arcane Elixir; Brilliant Wizard Oil (replaces Wizard Oil); Demonic / Dark Rune |
 
 Druids in forms and weapon temporary enchants: whether stones or oils do anything in cat or
@@ -848,14 +848,16 @@ and 17): the Fury rotation drinks the Mighty Rage Potion once, from the start of
 phase, and uses Juju Flurry on cooldown from the pull, each only when it's selected here; both
 are off the GCD. The Feral cat ([druid §6.2](../classes/druid.md#62-forever-cat-priority)) drinks the
 potion once, with Berserk, for its +60 Strength, and uses Juju Flurry on cooldown. Retribution
-([paladin](../classes/paladin.md#forever-priority-list-default)) drinks the Major Mana Potion and
-uses a Demonic or Dark Rune whenever it's missing at least the mana its setting names, off the GCD
-and each on its own category's cooldown; a rune's 600–1000 health cost isn't simulated. EZ-Thro
-Dark Bomb and Greater Stoneshield Potion aren't simulated, and a result that selects them says so.
-An on-use *item* (a trinket, the Manual Crowd Pummeler) keeps its own cooldown and charges from
-its item effect: the Pummeler's +50% attack speed is ready every 180 s, 3 times a fight [F]
-[client] (ItemEffect, 1.60.1.69913; [druid §7.3](../classes/druid.md#73-weapon)). The long buffs above (Juju Might, Juju Power, Firewater, elixirs,
-food) are static: used before the pull and up all fight.
+([paladin](../classes/paladin.md#forever-priority-list-default)) uses Juju Flurry on cooldown from
+the pull too (more swings, more Seal of Command procs), and drinks the Major Mana Potion and uses
+a Demonic or Dark Rune whenever it's missing at least the mana its setting names, off the GCD and
+each on its own category's cooldown; a rune's 600–1000 health cost isn't simulated. EZ-Thro Dark
+Bomb and Greater Stoneshield Potion aren't simulated, and a result that selects them says so. An
+on-use *item* (a trinket, the Manual Crowd Pummeler) keeps its own cooldown and charges from its
+item effect: the Pummeler's +50% attack speed is ready every 180 s, 3 times a fight [F] [client]
+(ItemEffect, 1.60.1.69913; [druid §7.3](../classes/druid.md#73-weapon)). The long buffs above
+(Juju Might, Juju Power, Firewater, elixirs, food) are static: used before the pull and up all
+fight.
 ### Modelling rules
 
 - **Static external buffs** (blessings, shouts, marks, totems, auras, elixirs, food) are

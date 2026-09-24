@@ -652,11 +652,11 @@ and its Faerie Fire is free in Cat Form. So they're `Pal`, like Blessing of Wisd
 | Entry | Self-buffs only | Pre-raid dungeon group | Standard raid | Max-consumables raid |
 | --- | --- | --- | --- | --- |
 | Battle Shout | — | all | all | all |
-| Blessing of Might | — | DPS | all | all |
+| Blessing of Might | Pal (your own) | DPS | all | all |
 | Blessing of Kings | — | Tank | all | all |
 | Blessing of Salvation | — | — | DPS | DPS |
 | Blessing of Wisdom | — | — | Pal | Pal |
-| Mark / Gift of the Wild | — | all | all | all |
+| Mark / Gift of the Wild | Druid (your own) | all | all | all |
 | Power Word / Prayer of Fortitude | — | all | all | all |
 | Divine Spirit / Prayer of Spirit, Arcane Brilliance | — | — | Pal | Pal |
 | Leader of the Pack or Moonkin Aura | — | — | DPS | DPS |

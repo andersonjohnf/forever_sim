@@ -230,8 +230,8 @@ describe('your own Blessing of Might (RU9): the Buffs tab’s, which a paladin c
     expect(ap({ ...alone, buffs: ['blessingOfMight'] }) - ap({ ...alone, buffs: [] })).toBe(133)
     const classic = { ...alone, rules: { profile: 'classicEra' as const } }
     expect(ap({ ...classic, buffs: ['blessingOfMight'] }) - ap({ ...classic, buffs: [] })).toBe(185)
-    // Self only is no one's buffs, as for a druid's Mark of the Wild.
-    expect(presetBuffIds('self', RET, FULL_RAID)).toEqual([])
+    // Self only is the buffs you cast on yourself: your Might, as a druid's Mark of the Wild.
+    expect(presetBuffIds('self', RET, FULL_RAID)).toEqual(['blessingOfMight'])
   })
 })
 

@@ -56,12 +56,17 @@ export function unusedBuffs(spec: SpecId): Record<string, string> {
 }
 
 export function presetBuffIds(preset: BuffPreset['id'], spec: SpecId, raid: readonly ClassSlug[]): string[] {
-  if (preset === 'self') return []
-  const ids: string[] = []
-  const taken = new Set<string>()
   // The spec's own buffs (the cat's Faerie Fire): its rotation keeps them up, so no preset adds the
   // Buffs tab's, which then means someone else's (SpecMeta.ownBuffs; buffs doc §6.2).
   const own = SPEC_META[spec].ownBuffs ?? []
+  // Self only is the buffs you cast on yourself: a paladin's Blessing of Might, a druid's Mark of
+  // the Wild (buffs doc §6.2).
+  if (preset === 'self') {
+    const classId = SPEC_META[spec].classId
+    return BUFFS.filter((b) => b.selfCast === true && b.providedBy === classId && forSpecClass(b, spec) && !own.includes(b.id)).map((b) => b.id)
+  }
+  const ids: string[] = []
+  const taken = new Set<string>()
   for (const buff of BUFFS) {
     const audience = buff.presets[preset]
     if (!audience || !reaches(audience, spec) || !forSpecClass(buff, spec) || own.includes(buff.id)) continue

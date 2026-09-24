@@ -312,6 +312,9 @@ describe('catalogues and presets', () => {
     expect(noShaman).not.toContain('windfuryTotem')
     expect(noShaman).not.toContain('strengthOfEarth')
     expect(presetBuffs('self', 'warrior-fury', FULL_RAID)).toEqual([])
+    // Self only is what you cast on yourself: a paladin's Might, a druid's Mark of the Wild.
+    expect(presetBuffs('self', 'paladin-retribution', FULL_RAID)).toEqual(['blessingOfMight'])
+    expect(presetBuffs('self', 'druid-feral-cat', [])).toEqual(['markOfTheWild'])
     expect(presetBuffs('max', 'warrior-fury', FULL_RAID)).toEqual(expect.arrayContaining(['jujuPower', 'jujuMight', 'roids', 'armorShatter', 'elementalSharpeningStone']))
     expect(presetBuffs('max', 'warrior-fury', FULL_RAID)).not.toContain('elixirOfGreaterStrength')
     expect(buffPresets.map((p) => p.id)).toEqual(['self', 'dungeon', 'raid', 'max'])

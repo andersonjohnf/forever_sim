@@ -238,7 +238,9 @@ placeholders, and M9 replaces them.
 - [x] **C1 paladin foundation:** spells and the Holy school, seals, Judgement, Consecration,
       Righteous Fury, talents, and mana on the druid's model
       ([review](reviews/2026-09-23-paladin-foundation.md)). No paladin spec is offered yet.
-- [ ] **C2 Retribution DPS:** its rotation, mana potions and runes, tuned under D23, and shipped
+- [x] **C2 Retribution DPS:** its rotation, mana potions and runes, trinkets and Juju Flurry,
+      +1.3% over the doc's first priority under D23, a mana ledger, and shipped
+      ([review](reviews/2026-09-23-retribution.md))
 - [ ] **C3 Protection TPS:** Holy Shield, Reckoning, Redoubt, Consecration; duties first by
       default and a Max TPS priority (D26), tuned, and shipped
 
@@ -380,6 +382,11 @@ slice is worked:
 - **A run on one spec shows its progress over another spec's result:** start a Fury run, switch to
   Arms, and Arms's result dims with Fury's "Simulating…" (CV2 in
   [the cat's review](reviews/2026-09-23-feral-cat.md)). Show progress only for the run's own spec.
+- **A paladin with no main hand:** its judgements and Hammer of Wrath show 0.0% crit, since the
+  special-attack table is built only for a held weapon (RV6 in
+  [Retribution's review](reviews/2026-09-23-retribution.md)).
+- **The load warning for a buff nobody provides** says "needs a paladin in the raid" to a
+  paladin, where the Buffs tab says "another" (RM3).
 - **Bearweaving:** rage from damage taken divides by the maximum health of the form the fight
   started in, which only holds while no rotation shifts into bear to take hits. A cat that did
   would gain about 47% too much; divide by the current form's health first

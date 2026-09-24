@@ -351,7 +351,7 @@ describe('Swift Judgement (paladin.md#protection-tree)', () => {
     // Without buffs, Consecration off, so mana never delays a judgement.
     const plan = protPlan({ fight: { ...defaultConfig(PROT).fight, durationSec: 130, durationVariationPct: 0 }, rotation: { ...NO_JOTC, [ID.consecration]: false } })
     const judge = 1
-    const swift = plan.abilities.findIndex((a) => a.id === SWIFT_JUDGEMENT.id)
+    expect(plan.abilities.some((a) => a.id === SWIFT_JUDGEMENT.id)).toBe(true)
     expect(plan.freeCastAura).toBe(auraOf(plan, 'swiftJudgement'))
     const sim = new Sim(plan)
     const casts: [id: string, time: number, mana: number, cost: number][] = []

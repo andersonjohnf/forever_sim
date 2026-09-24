@@ -462,12 +462,20 @@ function Outcomes({ ability, fights, damageMetric }: { ability: SimResult['abili
     <span className="flex flex-col text-xs text-muted-foreground tabular-nums">
       {(parts.length > 0 || average) && (
         <span>
-          {parts.join(' · ')}
+          {/* It wraps only between parts, never inside one ("1,318 avg | hit"). */}
+          {parts.map((p, i) => (
+            <Fragment key={p}>
+              {i > 0 && ' · '}
+              <span className="whitespace-nowrap">{p}</span>
+            </Fragment>
+          ))}
           {average && (
             <>
               <span aria-hidden>
                 {parts.length > 0 ? ' · ' : ''}
-                {average.value} avg {average.per}
+                <span className="whitespace-nowrap">
+                  {average.value} avg {average.per}
+                </span>
               </span>
               <span className="sr-only">
                 {parts.length > 0 ? ', ' : ''}

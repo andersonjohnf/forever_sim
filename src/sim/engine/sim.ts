@@ -794,7 +794,11 @@ export class Sim {
   private readonly freeAura: number
   /** Spell crit % the ability that uses the free-cast charge gets (Inner Focus's 25, docs/classes/priest.md); 0 for Clearcasting. */
   private readonly freeCritPct: number
-  /** That crit while the ability that used the charge resolves its spell, else 0. */
+  /**
+   * That crit while the ability that used the charge resolves its own spell, else 0: set only for a
+   * spell or a channel with a spell, cleared once that spell resolves, and never carried into a proc
+   * the spell fires or into the next fight (docs/classes/priest.md#35-inner-focus-14751).
+   */
   private freeCrit = 0
   /** The form the fight starts in (−1: no forms), and the forms Furor's rules name (druid.md §2.8). */
   private readonly startForm: number
@@ -2311,6 +2315,7 @@ export class Sim {
     this.mana = this.manaMax
     this.comboPoints = 0
     this.lastPaid = 0
+    this.freeCrit = 0
     this.manaSpentAt = -Infinity
     this.activeDots = 0
     this.poisonedDots = 0
@@ -3666,9 +3671,14 @@ export class Sim {
       case ACTION.spellDamage:
         this.spellProc(p)
         return
-      case ACTION.spell:
+      case ACTION.spell: {
+        // priest.md#35-inner-focus-14751: the free-cast crit is its own spell's, not a proc's it fires.
+        const free = this.freeCrit
+        this.freeCrit = 0
         this.castSpell(this.pAmount[p], true)
+        this.freeCrit = free
         return
+      }
       case ACTION.mana:
         this.gainMana((this.manaMax * this.pAmount[p]) / 100, this.pSource[p])
         return
@@ -4962,8 +4972,11 @@ export class Sim {
     if (cost > 0 && this.abFree[a] === 1 && this.auraActive[this.freeAura]) {
       this.lastPaid = 0
       this.removeAura(this.freeAura)
-      // docs/classes/priest.md#35-inner-focus-14751: the charge's crit goes to this ability's spell.
-      this.freeCrit = this.freeCritPct
+      // docs/classes/priest.md#35-inner-focus-14751: the charge's crit goes to this ability's spell,
+      // if it has one it resolves now; spent on anything else (a strike, a shapeshift, a channel of
+      // tick spells), it goes to nothing.
+      const kind = this.abKind[a]
+      if (kind === KIND_SPELL || (kind === KIND_CHANNEL && this.abSpell[a] >= 0)) this.freeCrit = this.freeCritPct
       return
     }
     const res = this.abRes[a]

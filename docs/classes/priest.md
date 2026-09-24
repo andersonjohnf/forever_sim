@@ -118,7 +118,9 @@ An aura with one charge (`ProcCharges` 1): the next spell costs nothing (aura 10
 gets +25% crit (aura 107) [F]. A 3 min cooldown, off the GCD, no cost. The sim makes it the plan's
 free-cast aura: the next priest spell with a cost uses the charge, and the rotation presses Inner
 Focus only when Mind Blast could start at once (COND `abilityReady`), so that's the spell. The +25%
-covers a DoT's snapshot too.
+covers a DoT's snapshot too, and nothing else: not a spell that spell's procs cast, and not the next
+spell when the charge goes on an ability with no spell of its own (the engine's free-cast crit is
+cleared once its spell resolves, and at every fight's start, so fights stay reproducible).
 
 ### 3.6 Shadowform (15473)
 

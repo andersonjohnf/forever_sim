@@ -1041,7 +1041,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         hotrWeaponDps: config.rules.hotrWeaponDps ?? 'withAttackPower',
         buffGroups: new Set(filledGroups.keys()),
         spirit: derived.spirit,
-      }, config.rotationOrder), consumables)
+      }, config.rotationOrder), consumables, !meta.caster && !meta.ranged)
     : { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
   // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), a
   // cast's buff or a bleed's marker joins the plan's auras (Death Wish, Recklessness, racial

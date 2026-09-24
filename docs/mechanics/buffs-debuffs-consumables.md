@@ -495,21 +495,25 @@ own `cooldown:explosive` group.
 item 260817 uses spell 1269334 with the explosive category's 60 s; the spell is School Damage 450
 with variance 1, so **225–675 Fire**, and a 4 s stun; Fire school, the Magic `DefenseType`, no spell
 damage coefficient, a **1 s cast** and no GCD [F] [client] (ItemEffect, SpellEffect, SpellMisc,
-SpellCategories, SpellCastTimes, 1.60.1.69913). Every rotation throws it on cooldown from the pull
-(`classes/shared-consumables.ts`), and the results list the rules below (`explosiveThrow`).
+SpellCategories, SpellCastTimes, 1.60.1.69913), and a 15 yd range (`SpellRange`). Every rotation
+throws it on cooldown (`classes/shared-consumables.ts`): a caster or a hunter from the pull, a spec
+that swings just after a main-hand swing (below), and the results list the rules below
+(`explosiveThrow`).
 
 | Rule | Value | Tag |
 | --- | --- | --- |
 | Hit and crit | the spell table, like Fiery Weapon's damage: your spell hit, then your spell crit at ×1.5 ([combat-tables §9](combat-tables.md#9-spell-hit-and-crit-generic)) | [C] rule; [?] for this item |
 | Resistance | the stun beside the damage makes it a **binary** spell: resisted whole at the boss's average Fire resistance, 6% at 24, with no partial resist on a landed one ([spells §3](spells.md#3-resistances)); a boss is immune to the stun itself | [?] |
-| Its cast | stops your swings, which start again from a full swing when it lands, as a Lightning Bolt's or Hammer of Wrath's cast does ([shaman](../classes/shaman.md#shocks-and-lightning-bolt), [paladin](../classes/paladin.md#other-abilities)); no GCD ability starts during it ([spells §4](spells.md#4-cast-times-casting-speed-and-the-gcd)), so the engine gives it a GCD as long as its cast, and it waits for a free GCD; nor does an off-GCD one (a Heroic Strike queue, Bloodrage, a potion), since you can't use one during another's cast, as with Hammer of Wrath (`castHoldsOffGcd`) | [?] rule; the wait is an engine choice |
+| Its cast | stops your melee swings, which start again from a full swing when it lands, as a Lightning Bolt's or Hammer of Wrath's cast does ([shaman](../classes/shaman.md#shocks-and-lightning-bolt), [paladin](../classes/paladin.md#other-abilities)); no GCD ability starts during it ([spells §4](spells.md#4-cast-times-casting-speed-and-the-gcd)), so the engine gives it a GCD as long as its cast, and it waits for a free GCD; nor does an off-GCD one (a Heroic Strike queue, Bloodrage, a potion), since you can't use one during another's cast, as with Hammer of Wrath (`castHoldsOffGcd`). A caster's next cast waits for it, and a hunter's Auto Shot is held until it lands ([ranged §4](ranged-and-pets.md#4-auto-shot-the-timer-the-wind-up-and-clipping)) | [?] rule; the wait is an engine choice |
+| When a melee spec throws it | **just after a main-hand swing**: within 200 ms of one, white or a Heroic Strike's, with its GCD free, else at the next (`COND.mainSwingWithin`, `THROW_AFTER_SWING_MS`); so not at the pull but after the first swing. A throw restarts the swing timer from full as it lands, so thrown right after a swing it costs the 1 s of the throw, and thrown mid-swing it would cost the part of the swing already run too: players use a Slam without Improved Slam the same way ([damage-and-timing §3.3](damage-and-timing.md#33-swing-reset-rules)). 200 ms is a reaction time; at 150 or 400 ms Fury and Arms measured the same, at 1,000 ms within 0.12%. A caster or a hunter throws it as it's ready | [?] engine choice |
 | Threat | its damage × your threat multipliers; no tooltip names a threat of its own, as Thorns' doesn't | [?] |
 | Talents and buffs | **none of your class's.** Spell 1269334 has no `SpellClassOptions` row, and the talents that would touch it are class-mask spell modifiers: Critical Mass and Elemental Precision are aura 107 with the mage's class set 3 and a spell mask [F] [client] (SpellEffect, SpellClassOptions, 1.60.1.69913), as Fire Power is; so it gets no school hit or crit from talents, no Combustion crit or charge, no per-spell crit (Winter's Chill), and triggers none of your spell procs (Ignite, Combustion's stacks, Master of Elements). Your spell hit and crit, your all-damage multiplier and the boss's Fire damage taken (Curse of the Elements, Improved Scorch) apply; your own school multipliers don't, which also leaves out the few plain school auras that would reach it (Power Infusion's +20% for the first throw, a warlock's sacrificed Imp's +15% for every one): at most 0.25% of DPS. A crit still ends a charge any crit ends (Weakness Analyzer) (`SpellDef.itemSpell`) | [?] |
 
 A warrior with no spell hit fails 17% + 83% × 6% = **21.98%** of its throws, and at 5% spell crit a
-throw averages 0.7802 × 450 × 1.025 = **359.87** damage (worked example 12). Three throws land in
-a 3 min fight. For a melee spec the throw costs more than it deals: the swings it restarts lose
-white damage and rage, so it's in no preset ([§6.3](#63-consumables-by-spec-and-preset)).
+throw averages 0.7802 × 450 × 1.025 = **359.87** damage (worked example 12). About three throws
+land in a 3 min fight. For a warrior the throw costs more than it deals: the swings it restarts and
+the GCD it holds lose white damage and rage, so it's in no warrior preset
+([§6.3](#63-consumables-by-spec-and-preset)).
 
 | Name | ID | Effect | Cooldown | Availability | Tag | Source |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -842,7 +846,7 @@ their stacking group is verified; the UI offers them as options.
 
 | Spec | Pre-raid dungeon group | Standard raid | Max-consumables raid (adds / replaces) |
 | --- | --- | --- | --- |
-| Arms / Fury | Smoked Desert Dumplings; Dense Sharpening Stone / Weightstone | Mongoose; Elixir of Greater Strength (Giants); Winterfall Firewater; Smoked Desert Dumplings; Dense stone on each weapon; Mighty Rage Potion | Juju Power (replaces Giants); Juju Might (replaces Firewater); R.O.I.D.S.; Juju Flurry (on use); Elemental Sharpening Stone (replaces Dense on each weapon). No explosive: EZ-Thro Dark Bomb's throw costs a warrior more than it deals (below), and the Sapper and Dense Dynamite aren't in the catalogue; one explosive would be on at a time anyway (`cooldown:explosive`) |
+| Arms / Fury | Smoked Desert Dumplings; Dense Sharpening Stone / Weightstone | Mongoose; Elixir of Greater Strength (Giants); Winterfall Firewater; Smoked Desert Dumplings; Dense stone on each weapon; Mighty Rage Potion | Juju Power (replaces Giants); Juju Might (replaces Firewater); R.O.I.D.S.; Juju Flurry (on use); Elemental Sharpening Stone (replaces Dense on each weapon). No explosive: EZ-Thro Dark Bomb's throw costs a warrior more than it deals, even just after a swing (Fury −1.1%, Arms −0.6%, below), and the Sapper and Dense Dynamite aren't in the catalogue; one explosive would be on at a time anyway (`cooldown:explosive`) |
 | Prot warrior | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude (+200); Mongoose; Giants; Smoked Desert Dumplings; Dense stone; Mighty Rage Potion | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum Black Label; Elemental stone (replaces Dense). Keeps the Mighty Rage Potion: Greater Stoneshield shares its cooldown (below) |
 | Feral cat | Flank au Poivre (+20 Agi) | Mongoose; Giants; Flank au Poivre | Juju Power; Juju Might; Ground Scorpok Assay; Mighty Rage Potion (for its +60 Str; the rage is wasted in cat) |
 | Feral bear | Smoked Desert Dumplings | Elixir of Greater Defense; Elixir of Fortitude; Mongoose; Giants; Smoked Desert Dumplings; Mighty Rage Potion (druids can use it in Forever) | Flask of the Titans; Juju Power; Juju Might; R.O.I.D.S.; Rumsey Rum. Keeps the Mighty Rage Potion (below) |
@@ -865,12 +869,22 @@ Max consumables it lowers a Protection warrior's damage taken from 609 to 531 a 
 from 627 to 554 and a Protection paladin's (in place of its Major Mana Potion) from 904 to 788,
 for 0.7–3.7% less threat without the rage potion or the mana potion (seed 12345, 2,000 fights).
 
-**No bomb in Max consumables.** EZ-Thro Dark Bomb deals about 7 damage a second over a 3 min fight,
-and for a melee spec its 1 s throw costs more: it restarts both swings and holds the next GCD, so
-white damage and rage are lost. At Max consumables it takes Fury from 814.5 to 794.7 DPS (−2.4%) and
-Arms from 728.7 to 703.4 (−3.5%), and the other melee specs lose 0.9–3.1% too, so no preset throws it.
-A caster loses one second of casting instead, and comes out slightly ahead (a Fire mage +0.8%); the
-casters' Max consumables don't include it yet.
+**No bomb in Max consumables.** EZ-Thro Dark Bomb deals about 7 damage a second over a 3 min fight.
+For a spec that swings its 1 s throw restarts both swings and holds the next GCD, so white damage and
+rage are lost, even thrown just after a main-hand swing ([§3.7](#37-engineering-and-explosives)). At
+Max consumables (seed 12345, 2,000 fights; seed 424242, 5,000 fights in brackets) it takes **Fury
+from 814.5 to 805.8 DPS (−1.07%; −1.18%)** and **Arms from 728.7 to 724.6 (−0.56%; −0.59%)**, beyond
+their ±1.4 DPS confidence intervals, so no warrior preset throws it. The other melee specs come out
+within ±0.5%: Enhancement −0.11%, the rogues −0.41% to +0.19%, Retribution +0.24% (−0.07%), and a Feral
+cat +0.28% (+0.35%), the one small gain that held on both seeds; whether a druid can throw it in Cat
+or Bear Form at all is open ([open questions](#open-questions)), so the cat's Max waits for that. The
+tanks gain no threat (Protection warrior −0.8% TPS, bear −0.1%, Protection paladin ±0). A caster
+loses a second of casting instead, and its result is mixed: a Fire mage +0.63%, Affliction +0.24%,
+Elemental +0.24% and Balance +0.16%, while Frost and Arcane −0.10%, Destruction −0.21%, Shadow
+−0.33% and Demonology −0.45% lose. The hunters, whose Auto Shot it only holds, gain: Marksmanship
++0.89%, Survival +0.85%, Beast Mastery +0.51%. Its 15 yd range is the catch for both: a caster or
+hunter at 30 yd or more would have to move in to throw it, which the sim doesn't model, so no caster
+or hunter preset throws it yet (a known gap in the [milestones](../milestones.md)).
 
 Druids in forms and weapon temporary enchants: whether stones or oils do anything in cat or
 bear form is owned by [druid](../classes/druid.md). A shaman's weapon imbue is its main hand's
@@ -1068,7 +1082,8 @@ the pull too (more swings, more Seal of Command procs), and drinks the Major Man
 a Demonic or Dark Rune whenever it's missing at least the mana its setting names, off the GCD and
 each on its own category's cooldown; a rune's 600–1000 health cost isn't simulated. Every
 rotation uses Greater Stoneshield Potion and EZ-Thro Dark Bomb, when they're selected, on their
-categories' cooldowns from the pull, ahead of its own lines (`classes/shared-consumables.ts`;
+categories' cooldowns from the pull, ahead of its own lines, and a spec that swings throws the bomb
+just after a main-hand swing (`classes/shared-consumables.ts`;
 [§3.5](#35-potions-and-runes), [§3.7](#37-engineering-and-explosives)). An
 on-use *item* (a trinket, the Manual Crowd Pummeler) keeps its own cooldown and charges from its
 item effect: the Pummeler's +50% attack speed is ready every 180 s, 3 times a fight [F] [client]
@@ -1291,8 +1306,8 @@ melee and ranged crit (aura 52) in Classic Era.
 | Instant Poison VI (`instantPoisonMainHand`, `instantPoisonOffHand`) | 20%: 76–100 Nature | **112–148** | 8928 → 11340 → enchant 625: 20%, proc 11337 #0: 111 + 1d37 | [C] |
 | Deadly Poison V (`deadlyPoisonMainHand`, `deadlyPoisonOffHand`) | 30%: 23 a stack every 3 s, 5 stacks; ticks may crit | **34** a tick; no periodic-crit flag | 20844 → 25351 → enchant 2630: 30%, proc 25349 #0: 33 + 1, `CumulativeAura` 5 | [C] |
 | Thistle Tea (`thistleTea`) | +100 Energy | same | 7676 → 9512 #0: 99 + 1 | [C] |
-| EZ-Thro Dark Bomb (`ezThroDarkBomb`) | not simulated | none: new in Forever (260817) | — | [F] |
-| Greater Stoneshield Potion (`greaterStoneshieldPotion`) | not simulated (+2000 armor) | same | 13455 → 17540 #0: 1999 + 1 | [C] |
+| EZ-Thro Dark Bomb (`ezThroDarkBomb`) | 225–675 Fire, a 1 s throw, every 60 s ([§3.7](#37-engineering-and-explosives)) | none: new in Forever (260817) | — | [F] |
+| Greater Stoneshield Potion (`greaterStoneshieldPotion`) | +2,000 armor for 2 min ([§3.5](#35-potions-and-runes)) | same | 13455 → 17540 #0: 1999 + 1 | [C] |
 
 **Enchants**
 

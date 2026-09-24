@@ -1083,6 +1083,10 @@ export class Sim {
   private rNextAt = 0
   private rGen = 0
   private rLastShotAt = -Infinity
+  /** When the main hand last swung (COND.mainSwingWithin); −∞ before its first swing. */
+  private lastMainSwingAt = -Infinity
+  /** A line waits for `mainSwingWithin`, so each main-hand swing walks the list. */
+  private readonly walksOnSwing: boolean
   /** A spell is a shot with the ranged weapon (SpellDef.ranged): the ranged table and weapon. */
   private readonly splRanged: Uint8Array
   /** Ranged haste shortens its cast time (Aimed Shot's, §4). */
@@ -1968,6 +1972,7 @@ export class Sim {
     this.rSource = r?.source ?? -1
     this.abCastRangedHasted = Uint8Array.from(abilities, (a) => (a.castRangedHasted && r ? 1 : 0))
     this.walksOnAutoShot = this.hasRanged && (this.condCode.includes(COND.autoShotClear) || this.condCode.includes(COND.autoShotWithin))
+    this.walksOnSwing = this.condCode.includes(COND.mainSwingWithin)
     // §6–§10: the pet.
     const pet = plan.pet
     this.hasPet = pet !== undefined
@@ -2416,6 +2421,7 @@ export class Sim {
     this.rangedHasteAura = 1
     this.rGen++
     this.rLastShotAt = -Infinity
+    this.lastMainSwingAt = -Infinity
     this.rHeldUntil = 0
     this.dynPetAp = 0
     this.dynPetCrit = 0
@@ -2681,6 +2687,9 @@ export class Sim {
    * the queue is used up (warrior.md §2.4 items 1 and 7).
    */
   private mainHandSwing(source: number, bonusAp: number): void {
+    // COND.mainSwingWithin: a line waiting for a swing walks now, after this swing resolves.
+    this.lastMainSwingAt = this.now
+    if (this.walksOnSwing) this.actPending = this.hasRotation
     const a = this.queued
     if (a >= 0) {
       this.queued = -1
@@ -3020,6 +3029,10 @@ export class Sim {
           break
         case COND.autoShotWithin:
           if (!this.hasRanged || now - this.rLastShotAt > a) return false
+          break
+        // buffs doc §3.7: a throw that stops your swings waits until just after a main-hand swing.
+        case COND.mainSwingWithin:
+          if (this.hasWeapon[HAND.main] && now - this.lastMainSwingAt > a) return false
           break
         case COND.petPowerAtLeast:
           if (!this.hasPet || this.petPower < a) return false

@@ -6,9 +6,10 @@
 import { describe, expect, it } from 'vitest'
 import { armorReduction, bossHitHealthLost } from '../core/formulas'
 import { defaultConfig } from '../defaults'
+import { THROW_AFTER_SWING_MS } from '../classes/shared-consumables'
 import { EZ_THRO_DARK_BOMB, GREATER_STONESHIELD_POTION } from '../effects/buffs'
 import { buildPlan } from '../plan/build'
-import { SCHOOL, type Plan } from '../plan/types'
+import { COND, SCHOOL, type Plan } from '../plan/types'
 import { FOREVER } from '../rules/profiles'
 import { emptyAggregate, mergeChunk, toResult } from '../run/aggregate'
 import type { SimConfig, SpecId } from '../types'
@@ -108,27 +109,40 @@ describe('Greater Stoneshield Potion (buffs doc §3.5)', () => {
 describe('EZ-Thro Dark Bomb (buffs doc §3.7)', () => {
   const fury = (enabled: string[]) => buildPlan(config('warrior-fury', enabled)).plan
 
-  it('is thrown on its 60 s cooldown from the pull, a 1 s cast during which neither hand swings', () => {
+  it('is thrown on its 60 s cooldown just after a main-hand swing, a 1 s cast during which neither hand swings (review CV-5)', () => {
     const plan = fury(['ezThroDarkBomb'])
     const a = plan.abilities.findIndex((x) => x.id === EZ_THRO_DARK_BOMB.id)
     expect(plan.abilities[a]).toMatchObject({ kind: 'spell', castMs: 1000, gcdMs: 1000, castStopsSwings: true, cooldownMs: 60000 })
-    for (let fight = 0; fight < 5; fight++) {
+    let waited = 0
+    for (let fight = 0; fight < 20; fight++) {
       const { uses, swings } = timeline(plan, fight)
       const throws = uses[a]
       expect(throws.length).toBe(3)
-      expect(throws[0]).toBe(0)
+      // Not at the pull: the first throw follows the first swing.
+      expect(throws[0]).toBeGreaterThanOrEqual(swings[0][0])
       for (let i = 1; i < throws.length; i++) {
-        // The explosive category's 60 s from the cast's end, and the GCD it may wait for.
+        // The explosive category's 60 s from the cast's end, then the wait for a swing.
         expect(throws[i] - throws[i - 1]).toBeGreaterThanOrEqual(61000)
-        expect(throws[i] - throws[i - 1]).toBeLessThanOrEqual(61000 + 1500)
+        expect(throws[i] - throws[i - 1]).toBeLessThanOrEqual(61000 + 10000)
+        if (throws[i] - throws[i - 1] > 61000 + 1500) waited++
       }
-      for (const t of throws) for (const hand of swings) expect(hand.filter((s) => s > t && s < t + 1000)).toEqual([])
+      for (const t of throws) {
+        // Each throw starts at most THROW_AFTER_SWING_MS after a main-hand swing (white, or a Heroic
+        // Strike's), which restarts from full as it lands: no swing of either hand during it.
+        const mainSwings = [...swings[0], ...plan.abilities.flatMap((x, b) => (x.kind === 'onNextSwing' ? uses[b] : []))]
+        const last = Math.max(...mainSwings.filter((s) => s <= t))
+        expect(t - last).toBeLessThanOrEqual(THROW_AFTER_SWING_MS)
+        for (const hand of swings) expect(hand.filter((s) => s > t && s < t + 1000)).toEqual([])
+      }
     }
+    // Its cooldown sometimes ends mid-swing, so it waits for the next.
+    expect(waited).toBeGreaterThan(0)
   })
 
   it('holds your off-GCD abilities too while it’s thrown, as Hammer of Wrath’s cast does (review CV-6)', () => {
-    // Greater Stoneshield, off the GCD, comes after the bomb in the list: both are ready at the pull.
-    const plan = fury(['ezThroDarkBomb', 'greaterStoneshieldPotion'])
+    // A Fire mage throws it at the pull, where Greater Stoneshield, off the GCD and after it in the
+    // list, is ready too.
+    const plan = buildPlan(config('mage-fire', ['ezThroDarkBomb', 'greaterStoneshieldPotion'])).plan
     const a = plan.abilities.findIndex((x) => x.id === EZ_THRO_DARK_BOMB.id)
     expect(plan.abilities[a].castHoldsOffGcd).toBe(true)
     /** Uses of the other abilities from a throw's start, after it, until it lands, over 20 fights. */
@@ -239,7 +253,14 @@ describe('EZ-Thro Dark Bomb (buffs doc §3.7)', () => {
       expect(bundle.assumptions.map((x) => x.id), spec).toContain('explosiveThrow')
       const result = toResult(bundle, aggregate(bundle.plan, 20), 0)
       const row = result.abilities.find((x) => x.id === EZ_THRO_DARK_BOMB.id)
-      expect(row?.casts, spec).toBe(60)
+      // A melee spec waits for a main-hand swing; a caster or a hunter, who doesn't swing, throws when it's ready.
+      const line = bundle.plan.rotation.find((e) => bundle.plan.abilities[e.ability].id === EZ_THRO_DARK_BOMB.id)!
+      const swings = spec !== 'mage-fire' && spec !== 'hunter-marksmanship'
+      expect(line.conditions, spec).toEqual(swings ? [{ code: COND.mainSwingWithin, a: THROW_AFTER_SWING_MS, b: 0 }] : [])
+      // Three throws a 3 min fight; a melee spec's wait for a swing with its GCD free sometimes costs
+      // it the third (a bear, whose GCD is rarely free).
+      if (spec === 'mage-fire' || spec === 'hunter-marksmanship') expect(row?.casts, spec).toBe(60)
+      else expect(row?.casts, spec).toBeGreaterThanOrEqual(45)
       expect(row!.damage, spec).toBeGreaterThan(0)
     }
   })

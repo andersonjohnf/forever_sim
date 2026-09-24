@@ -1451,8 +1451,9 @@ export const BUFFS: BuffSpec[] = [
     docRef: `${DOC}#37-engineering-and-explosives`,
     // Every rotation throws it on cooldown from the pull (classes/shared-consumables.ts).
     effects: [{ kind: 'onUse', id: 'ezThroDarkBomb', name: 'EZ-Thro Dark Bomb', use: EZ_THRO_DARK_BOMB }],
-    // In no preset: a melee's swings lose more than the bomb deals, as its throw restarts them
-    // (Fury −2.4% at Max consumables, buffs doc §6.3).
+    // In no preset: a warrior's swings and GCD lose more than the bomb deals, even thrown just after
+    // a swing (Fury −1.1%, Arms −0.6% at Max consumables); a caster or hunter would have to move in to
+    // its 15 yd range, which isn't modelled (buffs doc §6.3).
     presets: NOT_IN_PRESETS,
   },
   {

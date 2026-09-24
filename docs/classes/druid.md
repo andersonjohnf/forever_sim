@@ -674,9 +674,11 @@ One target: 118.69 a Swipe with the default build (W16).
 
 **In the engine:**
 
-- **Faerie Fire and Demoralizing Roar** are casts on the boss that roll spell hit
+- **Faerie Fire and Demoralizing Roar** are on the spell table, as a warrior's Thunder Clap and
+  Demoralizing Shout are (`kind: 'spellTable'`, [warrior.md §7](warrior.md#7-implementation-notes)
+  "Spell-table abilities"): they roll spell hit
   ([combat-tables §9](../mechanics/combat-tables.md#9-spell-hit-and-crit-generic); `DefenseType`
-  Magic [F]). Faerie Fire is a binary Nature spell (`SchoolMask` 8 [F]), so the boss's
+  Magic [F]), and deal no damage, so they never crit. Faerie Fire is a binary Nature spell (`SchoolMask` 8 [F]), so the boss's
   resistance also resists it whole: one roll against `miss + (1 − miss) × 6%` at +3 levels
   (resistance 24 [?]), about 16% for the default bear's 11% spell miss. The roar is Physical
   (`SchoolMask` 1 [F]), with no resistance. A landed one puts its debuff on the boss (Faerie Fire's armor, the roar's attack
@@ -1398,8 +1400,9 @@ point, and a builder's crit awards Primal Fury's point (§2.5). Warrior Protecti
 
 The bear's rotation added, on top of those (plan/types.ts `AbilityPlan`, `AuraPlan`; each field
 optional, so no other row changes):
-- a `spellHit` cast that refunds its share of what it paid on a miss and makes its flat threat
-  when it lands (§4.5);
+- a school on a spell-table row (`spellSchool`), whose resistance it rolls with its hit: the bear's
+  Faerie Fire, a binary Nature spell (§4.5), where the cat's, a `cast`, rolls only its spell hit
+  (§3.8);
 - a stacking bleed (a marker aura with more than one stack) and a hit that grows with the stacks
   (`weaponPercentPerStack`; Lacerate, §4.3);
 - a cooldown an aura suspends (`noCooldownAura`; Berserk's Mangle, §4.6), and an item-armor aura

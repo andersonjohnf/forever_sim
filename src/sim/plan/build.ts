@@ -797,9 +797,10 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
     // effects can, damage-and-timing §4).
     const ticksCanCrit = a.periodicCanCrit && profile.combat.periodicCrits
     if (a.kind === 'bleed') sources[source].bleed = { ticksCanCrit, avoidable: true }
-    // A spell on the boss (Faerie Fire, druid.md §3.8, §4.5; Demoralizing Roar): it can't crit, and
-    // its only failure is a miss or a resist.
-    if (a.spellHit) sources[source].spell = true
+    // A spell on the boss that deals no damage (Faerie Fire, druid.md §3.8, §4.5; Demoralizing Roar and
+    // Shout): it can't crit, and its only failure is a miss or a resist.
+    const noDamage = a.weaponPercent === 0 && a.flatDamage === 0 && a.apCoefficient === 0 && a.damagePerExtraRage === 0 && !(a.blockValueCoefficient ?? 0)
+    if (a.spellHit || (a.kind === 'spellTable' && noDamage)) sources[source].spell = true
     // An attack that also bleeds (Rake, druid.md §3.3; Lacerate, §4.3): its ticks get a row of their own, whose
     // applications come from landed hits, so they can't be avoided.
     let dotSource: number | undefined
@@ -1190,7 +1191,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
       if (uses.swipe) notes.add('bearTwoRolls')
       if (uses.roar || uses.faerieFire) {
         // combat-tables §9: a binary Nature spell's resist at the boss's level-based resistance, in %.
-        const resist = abilities.some((a) => a.spellHit && a.spellSchool !== undefined) ? Math.round(100 * averageResist(levelResistance(fight.bossLevel, PLAYER_LEVEL), PLAYER_LEVEL)) : 0
+        const resist = abilities.some((a) => a.kind === 'spellTable' && a.spellSchool !== undefined) ? Math.round(100 * averageResist(levelResistance(fight.bossLevel, PLAYER_LEVEL), PLAYER_LEVEL)) : 0
         notes.addText(
           'demoralizingRoar',
           BEAR_TEXT.spells({ roar: uses.roar, faerieFire: uses.faerieFire, roarAp: profile.values.demoralizingRoarAp, classicEra: profile.id === 'classicEra', resistPct: resist }),

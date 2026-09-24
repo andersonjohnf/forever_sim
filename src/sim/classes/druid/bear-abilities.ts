@@ -140,15 +140,17 @@ export const LACERATE: AbilityDef = {
 /**
  * Faerie Fire rank 4 (spells.json 9907) in Dire Bear Form: −505 armor on the boss for 40000 ms, GCD
  * 1500. Dire Bear Form (Passive) 9635 makes it free (effect 4: −100% cost) and adds a 6000 ms
- * cooldown (effect 5) [F] [client] (SpellEffect, 1.60.1.69913; druid.md §4.5). `DefenseType` Magic:
- * it rolls spell hit, and as a binary Nature spell (`SchoolMask` 8) the boss's resistance too
- * (combat-tables §9). Threat 108 [?]. Clearcasting's class mask leaves it out.
+ * cooldown (effect 5) [F] [client] (SpellEffect, 1.60.1.69913; druid.md §4.5). `DefenseType` Magic,
+ * so on the spell table as a warrior's Thunder Clap is (warrior.md §7 "Spell-table abilities"): it
+ * rolls spell hit, and as a binary Nature spell (`SchoolMask` 8) the boss's resistance too
+ * (combat-tables §9). It deals no damage, so it never crits. Threat 108 [?]. Clearcasting's class
+ * mask leaves it out.
  */
 export const FAERIE_FIRE_BEAR: AbilityDef = {
   id: 'faerieFire',
   name: 'Faerie Fire',
   icon: 'spell_nature_faeriefire',
-  kind: 'cast',
+  kind: 'spellTable',
   ...BEAR_ATTACK,
   resource: 'mana',
   costTenths: 0,
@@ -156,7 +158,6 @@ export const FAERIE_FIRE_BEAR: AbilityDef = {
   refundShare: 0,
   threatMult: 0,
   threatBonus: FAERIE_FIRE_THREAT,
-  spellHit: true,
   spellSchool: SCHOOL.nature,
   aura: { id: 'faerieFire', name: 'Faerie Fire', durationMs: 40000, mods: { targetArmor: FAERIE_FIRE_ARMOR } },
 }
@@ -164,9 +165,10 @@ export const FAERIE_FIRE_BEAR: AbilityDef = {
 /**
  * Demoralizing Roar rank 5 (spells.json 9898): 10 rage, GCD 1500; the boss's attack power −204 for
  * 30000 ms in `forever` (the level-60 tooltip; in combat, Q32 [?]), −138 in `classicEra` [F] [C]
- * (druid.md §4.5, W18). `DefenseType` Magic: it rolls spell hit, and refunds 80% when it misses, as a
- * missed melee ability does [?]. Its school is Physical (`SchoolMask` 1), so no resistance. Threat
- * 39 [?]. Clearcasting's class mask covers it.
+ * (druid.md §4.5, W18). `DefenseType` Magic, so on the spell table as a warrior's Demoralizing Shout
+ * is (warrior.md §7): it rolls spell hit, and refunds 80% of what it paid when it misses, as a missed
+ * melee ability does [?]. Its school is Physical (`SchoolMask` 1), so no resistance. It deals no
+ * damage, so it never crits. Threat 39 [?]. Clearcasting's class mask covers it.
  * The aura is named after its Buffs entry, which the bear's upkeep replaces.
  */
 export function demoralizingRoar(profile: RulesProfile): AbilityDef {
@@ -174,12 +176,11 @@ export function demoralizingRoar(profile: RulesProfile): AbilityDef {
     id: 'demoralizingRoar',
     name: 'Demoralizing Roar',
     icon: 'ability_druid_demoralizingroar',
-    kind: 'cast',
+    kind: 'spellTable',
     ...BEAR_ATTACK,
     costTenths: 100,
     threatMult: 0,
     threatBonus: DEMORALIZING_ROAR_THREAT,
-    spellHit: true,
     clearcastable: true,
     aura: { id: 'demoralizingRoar', name: 'Demoralizing Roar', durationMs: 30000, mods: { bossAp: -profile.values.demoralizingRoarAp } },
   }

@@ -545,9 +545,7 @@ export interface AbilityPlan {
   dotSource?: number
   /**
    * `cast`: it's a spell on the target that rolls spell hit (combat-tables §9); a miss applies
-   * nothing, makes no threat and refunds `refundShare` of what it paid (Faerie Fire, druid.md §3.8,
-   * §4.5; Demoralizing Roar, §4.5). A landed one puts `aura` on the boss and makes `threatBonus`
-   * threat.
+   * nothing (Faerie Fire, druid.md §3.8).
    */
   spellHit?: boolean
   /**
@@ -558,8 +556,8 @@ export interface AbilityPlan {
   // --- Fields the bear's abilities brought (docs/classes/druid.md §4). All optional: absent, a row
   // behaves as before. ---
   /**
-   * With `spellHit`: its school (`SCHOOL`), absent for one no resistance applies to. A binary spell
-   * of a school the boss resists (not Physical or Holy) is resisted whole at its average resistance,
+   * `spellTable`: its school (`SCHOOL`), absent for one no resistance applies to. A binary spell of a
+   * school the boss resists (not Physical or Holy) is resisted whole at its average resistance,
    * rolled with the hit (combat-tables §9): the bear's Faerie Fire, Nature (druid.md §4.5).
    */
   spellSchool?: number

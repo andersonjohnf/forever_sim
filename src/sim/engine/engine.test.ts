@@ -620,33 +620,24 @@ describe('golden run (fixed config and seed)', () => {
 
   // - B3: the default Feral bear (docs/classes/druid.md §6.3), added with its rotation at the doc's
   //   first priority: Maul, Mangle, Lacerate, Swipe, Faerie Fire and Demoralizing Roar, Berserk,
-  //   Enrage before the pull and the Mighty Rage Potion. TPS 613.47, DPS 322.95.
-  // - B3 (decision D23, within D26's duties): the default bear is the best rotation a paired search
-  //   found on TPS (druid.md §6.3 "Tuning the defaults"): Lacerate only when nothing else bleeds the
-  //   boss, so none with the Standard raid's warriors (Rend and Tear applies anyway), and no Swipe;
-  //   Lacerate's refresh moves 3 → 6 s, which changes nothing here. Over 400,000 paired fights on a
-  //   seed the search never used, +30.01 TPS (+4.91%, 611.23 → 641.24) and −7.89 DPS (−2.45%). On this
-  //   seed's 500 fights: the Lacerate and Swipe rows are gone, their rage goes to Maul (25,465 →
-  //   31,847 casts, so 10,731 → 4,815 white swings) and the freed global cooldowns to Faerie Fire
-  //   (12,671 → 14,063 casts). TPS 613.47 → 641.99, DPS 322.95 → 314.15.
-  // - B3's review (BL1, BL2, BL5, BL9; D26 as amended): Faerie Fire rolls the boss's resistance too,
-  //   the bear's presets leave out a warrior tank's Thunder Clap, the default keeps Lacerate with the
-  //   raid's warriors, and the second round's search turned Enrage in combat on and Maul from 20
-  //   (druid.md §6.3). On this seed's 500 fights, step by step: TPS 641.99 → 640.37 (the resist:
-  //   Faerie Fire's misses 1,548 → 1,970 of 12,360 casts) → 676.36 (no Thunder Clap: the boss swings
-  //   20% more often, and its hits give rage) → 651.44 (Lacerate: 12,620 applications, and its bleed's
-  //   row) → 680.74 (Enrage in combat: 500 → 1,766 casts) → 683.85 (Maul from 20: 29,146 Mauls, and
-  //   white swings 4,815 → 8,020); DPS 314.15 → 313.81 → 327.32 → 340.37 → 351.64 → 357.79. Over
-  //   400,000 paired fights on seed 7474, +8.63 TPS (+1.28%) and +31.94 DPS (+9.79%) against the
-  //   first round's defaults.
-  // - The rebase onto main: the bear uses the cat's pieces, and a `spellHit` cast's row counts casts
-  //   and misses, not hits, as the cat's Faerie Fire's does, so the roar's and Faerie Fire's hits read
-  //   0 (3,465 and 10,390 before); nothing else moves.
+  //   Enrage before the pull and the Mighty Rage Potion, in a raid without a warrior tank's Thunder
+  //   Clap or Demoralizing Shout (in no preset on main). TPS 651.51, DPS 338.61.
+  // - B3 (decision D23, within D26's duties): the first round's search (druid.md §6.3 "Tuning the
+  //   defaults"): Lacerate only when nothing else bleeds the boss, so none with the Standard raid's
+  //   warriors, no Swipe, and Lacerate's refresh 3 → 6 s. TPS 651.51 → 677.79, DPS 338.61 → 327.53.
+  // - B3's review (BL1, BL2, BL5; D26 as amended), step by step on this seed's 500 fights: Faerie Fire
+  //   rolls the boss's resistance too (TPS 676.36, DPS 327.32); the default keeps Lacerate with the
+  //   raid's warriors (651.44, 340.37); and the second round's search turned Enrage in combat on and
+  //   Maul from 20 (683.85, 357.79). Over 400,000 paired fights on seed 7474, +8.63 TPS (+1.28%) and
+  //   +31.94 DPS (+9.79%) against the first round's defaults.
   // - D26's fixed duty rule (PW4): Faerie Fire is refreshed from 6 s left, its cooldown, and the roar
   //   from 1.5 s, one global cooldown, where the search had both at 3 s. On this seed's 500 fights:
   //   roars 3,901 → 3,717, Faerie Fires 12,360 → 12,133, and the rage and global cooldowns they free go
   //   to Maul (29,146 → 29,269 casts) and Mangle (17,608 → 17,710). TPS 683.85 → 686.37, DPS 357.79 →
   //   359.69. The threat abilities' search around the rule moved nothing (druid.md §6.3).
+  // - On main's spell table (the warrior's Thunder Clap and Demoralizing Shout's `spellTable` kind),
+  //   Faerie Fire's and the roar's rows count their landed casts as hits (10,149 of 12,133 and 3,310
+  //   of 3,717); nothing else moves.
   it('keeps the default Feral bear’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('druid-feral-bear'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)

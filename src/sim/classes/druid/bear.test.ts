@@ -104,7 +104,7 @@ describe('the bear’s abilities against the client (druid.md §4)', () => {
     expect(demoralizingRoar(CLASSIC_ERA).aura!.mods.bossAp).toBe(-138)
     // `DefenseType` Magic: it rolls spell hit.
     expect(s.categories?.defenseType).toBe(1)
-    expect(demoralizingRoar(FOREVER)).toMatchObject({ kind: 'cast', spellHit: true, threatBonus: DEMORALIZING_ROAR_THREAT, refundShare: 0.8 })
+    expect(demoralizingRoar(FOREVER)).toMatchObject({ kind: 'spellTable', threatBonus: DEMORALIZING_ROAR_THREAT, refundShare: 0.8 })
     // Physical (`SchoolMask` 1): no resistance.
     expect(s.misc?.schoolMask).toBe(1)
     expect(demoralizingRoar(FOREVER).spellSchool).toBeUndefined()
@@ -119,7 +119,7 @@ describe('the bear’s abilities against the client (druid.md §4)', () => {
     // Its shapeshift mask allows Bear and Dire Bear (144); 9635's −100% cost and +6000 ms cooldown
     // aren't in the committed dataset, only in the raw client (druid.md §4.5).
     expect((s.shapeshift?.shapeshiftMask ?? [0])[0] & 144).toBe(144)
-    expect(FAERIE_FIRE_BEAR).toMatchObject({ kind: 'cast', costTenths: 0, cooldownMs: 6000, spellHit: true, threatBonus: FAERIE_FIRE_THREAT })
+    expect(FAERIE_FIRE_BEAR).toMatchObject({ kind: 'spellTable', costTenths: 0, cooldownMs: 6000, threatBonus: FAERIE_FIRE_THREAT })
     // A Nature spell (`SchoolMask` 8), so the boss's resistance applies to it (combat-tables §9).
     expect(s.misc?.schoolMask).toBe(8)
     expect(FAERIE_FIRE_BEAR.spellSchool).toBe(SCHOOL.nature)

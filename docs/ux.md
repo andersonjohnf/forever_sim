@@ -454,8 +454,9 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     that stacks adds its average stacks to the uptime line ("89.4% uptime on the boss, 4.6
     stacks on average": the bear's "Lacerate (bleed)"), and its marker stays out of Cooldowns
     and buffs.
-  - A **spell on the boss** that can't crit (the bear's Faerie Fire and Demoralizing Roar) shows
-    only the share of its casts that missed ("16.4% missed"), resists included.
+  - A **spell on the boss** that deals no damage, so can't crit (the bear's Faerie Fire and
+    Demoralizing Roar, a warrior's Demoralizing Shout), shows only the share of its casts that
+    missed ("16.4% missed"), resists included.
   - Casts that deal no damage (Death Wish, Recklessness, Bloodrage, racials, the potion) stay
     out of the breakdown. They're under **Cooldowns and buffs**.
   - A row that can neither crit nor be avoided (Holy Shield's damage, Retribution Aura's) shows

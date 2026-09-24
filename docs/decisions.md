@@ -444,6 +444,9 @@ the warrior's Balanced against Defensive +9.5% TPS, +6.4% DPS and 21% more damag
 ([warrior.md §5.4](classes/warrior.md#balanced-t5)); the bear's +3.1%, +2.8% and 0.7%, and its Max
 TPS, tuned on TPS alone, Mauls from 14 ([druid.md §6.3](classes/druid.md#balanced-t5)); the
 paladin's plays as Defensive ([paladin.md](classes/paladin.md#priority-defensive-balanced-or-max-tps)).
+The warrior leads: its Balanced makes 1,241 TPS against the paladin's 832, **+49.1%**, at D29's
+ceiling, and Sunder Armor's 1,013 threat [F] is 33% of the warrior's threat. The next change that
+moves either tank checks against this.
 
 ### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
 User directive, after v1's tank numbers embarrassed the user in front of the guild: the

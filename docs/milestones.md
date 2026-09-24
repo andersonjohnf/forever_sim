@@ -318,6 +318,25 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
         off, above Holy Strike
 - [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,
       Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken
+      - **Open plausibility finding (TI-2, the tank integration review, 2026-09-24): the bear is
+        above D29's benchmark, and the model stays as it is until a test explains it.** The default
+        bear (Balanced) makes **1,116 TPS** on seed 31101 (548 DPS), against the officers' 800–900
+        for a paladin or a bear; the warrior's Balanced makes 1,241 and the paladin's 833. Its
+        threat by ability (seed 31101, 10,000 fights, share of threat, TPS, casts a fight): Maul
+        **58.8%, 657, 73.6**; Lacerate 14.2%, 159, 53.2, and its bleed 3.5%, 39; Mangle 14.1%, 158,
+        37.9; Windfury Attack 3.2%, 36; the auto attack 2.2%, 24; Faerie Fire 1.3%, 15, 21.9;
+        Thorns 0.9%, 10; the rest (Primal Fury, Enrage, Hand of Justice, Natural Reaction, the
+        Mighty Rage Potion) under 1% each. Maul alone is more than half, so the candidates are
+        what sets Maul's threat and how often the bear can pay for it. To test in game, in this
+        order:
+        - **Maul's threat modifier,** ×1.75 [?] from LibThreatClassic2 only (druid.md §4.8, Q15):
+          threat on the boss from one Maul against its damage, with no other threat source
+        - **Rage from damage dealt and taken,** both `forever` [?] models (rage.md): the rage bar
+          after a measured stretch of white swings, and after a measured stretch of hits taken
+        - **The Dire Bear Form threat multiplier,** ×1.3 [F] from Bear Form Passive2 (21178), and
+          whether anything else in Forever stacks on it (druid.md §4.8)
+        - **Savage Fury's** ×1.10 on Maul (druid.md §2.3, [F]): whether it reaches Maul's threat as
+          well as its damage
 
 ## M5.65: The Rotation tab as a priority list (D31) 🚧 before the optimizer's app screens
 

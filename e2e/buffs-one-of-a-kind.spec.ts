@@ -26,8 +26,13 @@ test('a warrior’s stones and potions: one of each, the other switched off', as
   await expect(rage).toBeChecked()
   // No preset throws the bomb (buffs doc §6.3); it's yours to turn on.
   await expect(bomb).not.toBeChecked()
+  // Its throw stops a warrior's swings (buffs doc §3.7, review CV-2).
+  await expect(bomb).toHaveAccessibleDescription('225–675 Fire damage, every minute; its 1 s throw stops your melee swings')
   await bomb.click()
-  await expect(stoneshield).toHaveAccessibleDescription('+2,000 armor for 2 min, drunk on cooldown from the pull. Potions share a cooldown, so one is on at a time')
+  // Armor changes nothing for a DPS spec, and the entry says so (review CV-1).
+  await expect(stoneshield).toHaveAccessibleDescription(
+    '+2,000 armor for 2 min, drunk on cooldown from the pull. Potions share a cooldown, so one is on at a time. Only the tank takes the boss’s swings, so it changes nothing for you.',
+  )
   await stoneshield.click()
   await expect(stoneshield).toBeChecked()
   await expect(rage).not.toBeChecked()
@@ -58,4 +63,6 @@ test('a mage’s oils: one at a time, and the potion stays beside the rune', asy
 
   await expect(buffs.getByRole('switch', { name: 'Major Mana Potion' })).toBeChecked()
   await expect(buffs.getByRole('switch', { name: 'Demonic Rune' })).toBeChecked()
+  // A caster never swings: the bomb's throw holds its next cast (review CV-2).
+  await expect(buffs.getByRole('switch', { name: 'EZ-Thro Dark Bomb' })).toHaveAccessibleDescription('225–675 Fire damage, every minute; its 1 s throw holds your next cast')
 })

@@ -22,7 +22,7 @@ import { warlockAssumptions, warlockManaPlan } from '../classes/warlock/setup'
 import { priestAssumptions, priestManaPlan, priestPlan } from '../classes/priest/setup'
 import { hunterAssumptions, hunterManaPlan } from '../classes/hunter/setup'
 import { classRotation, maintainedBuffs, othersKeepBleeding, rotationBaseStance } from '../classes/rotation'
-import { withSharedConsumables } from '../classes/shared-consumables'
+import { explosiveThrowDetail, swingsInMelee, withSharedConsumables } from '../classes/shared-consumables'
 import { STANCE_SWAP_COOLDOWN_MS, stanceSwapKeepTenths } from '../classes/warrior/abilities'
 import { type Stance, stanceEffects } from '../classes/warrior/talents'
 import { BUFFS_BY_ID, EZ_THRO_DARK_BOMB } from '../effects/buffs'
@@ -1041,7 +1041,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
         hotrWeaponDps: config.rules.hotrWeaponDps ?? 'withAttackPower',
         buffGroups: new Set(filledGroups.keys()),
         spirit: derived.spirit,
-      }, config.rotationOrder), consumables, !meta.caster && !meta.ranged)
+      }, config.rotationOrder), consumables, swingsInMelee(config.spec))
     : { abilities: [], rotation: [], prepull: NO_PREPULL, onUse: [], procs: [] }
   // Raging Blows' off-hand strike gets its own row next to the ability's (warrior.md §3.1), a
   // cast's buff or a bleed's marker joins the plan's auras (Death Wish, Recklessness, racial
@@ -1583,7 +1583,7 @@ export function buildPlan(config: SimConfig): PlanBundle & { blockers: string[] 
   ]
   if (setup.simulated && notPressed.length) notes.add('onUseConsumables', notPressed.join(', '))
   // buffs doc §3.7: the bomb's throw and table [?].
-  if (abilities.some((a) => a.id === EZ_THRO_DARK_BOMB.id)) notes.add('explosiveThrow')
+  if (abilities.some((a) => a.id === EZ_THRO_DARK_BOMB.id)) notes.add('explosiveThrow', explosiveThrowDetail(config.spec))
   if (abilities.some((a) => a.id === 'weaknessAnalyzer')) notes.add(classId === 'paladin' ? 'weaknessAnalyzerPaladin' : 'weaknessAnalyzer')
   // warrior.md §2.8: the reactive windows this rotation waits for, Q10 and Q12.
   const windows = new Set(abilities.filter((a) => a.window >= 0).map((a) => auras[a.window].id))

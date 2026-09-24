@@ -6,6 +6,8 @@
 // presses one (its `onUse`) keeps its own line.
 import type { OnUseSpec } from '../effects/types'
 import { COND, STANCE_ANY, type AbilityDef, type RotationEntry } from '../plan/types'
+import { SPEC_META } from '../specs'
+import type { SpecId } from '../types'
 import { NO_STRIKE } from './warrior/abilities'
 import type { ClassRotation } from './warrior/shared'
 
@@ -42,12 +44,35 @@ export function sharedConsumableAbility(use: OnUseSpec): AbilityDef {
 }
 
 /**
- * How soon after a main-hand swing a melee spec throws a cast that stops its swings: within 400 ms
- * of the swing, or it waits for the next [?] (buffs doc §3.7). A player throws right after a swing
- * lands, as a Slam without Improved Slam is used (damage-and-timing §3.3), so the throw restarts the
- * swing timer with the least of it lost; 400 ms leaves room for a GCD that ends just after the swing.
+ * How soon after a main-hand swing a melee spec throws a cast that stops its swings: within 200 ms
+ * of the swing, a reaction time, or it waits for the next [?] (buffs doc §3.7). A player throws right
+ * after a swing lands, as a Slam without Improved Slam is used (damage-and-timing §3.3), so the throw
+ * restarts the swing timer with the least of it lost. 150 and 400 ms measured the same for Fury and
+ * Arms, 1,000 ms within 0.12%.
  */
 export const THROW_AFTER_SWING_MS = 200
+
+/** Whether the spec swings in melee: not a caster, not a hunter (whose melee weapons never swing). */
+export const swingsInMelee = (spec: SpecId): boolean => !SPEC_META[spec].caster && !SPEC_META[spec].ranged
+
+/**
+ * What a throw that stops your swings holds for this spec, as the Buffs tab and the results say it
+ * (buffs doc §3.7, review CV-2): a melee spec's swings, a caster's next cast, a hunter's Auto Shot.
+ */
+export function throwHolds(spec: SpecId): string {
+  if (SPEC_META[spec].ranged) return 'holds your Auto Shot'
+  return SPEC_META[spec].caster ? 'holds your next cast' : 'stops your melee swings'
+}
+
+/**
+ * The start of the results' `explosiveThrow` assumption for this spec (buffs doc §3.7): when it's
+ * thrown and what its throw holds; a caster or hunter is assumed within its 15 yd range.
+ */
+export function explosiveThrowDetail(spec: SpecId): string {
+  if (swingsInMelee(spec))
+    return `EZ-Thro Dark Bomb is thrown on cooldown, within ${THROW_AFTER_SWING_MS} ms after a main-hand swing. Its 1 s throw ${throwHolds(spec)}, which start again from a full swing when it lands, and holds your other abilities until then.`
+  return `EZ-Thro Dark Bomb is thrown on cooldown from the pull, from within its 15 yd range. Its 1 s throw ${throwHolds(spec)} and your other abilities until it lands.`
+}
 
 /**
  * The rotation with a line for each selected shared consumable it doesn't press itself, first in

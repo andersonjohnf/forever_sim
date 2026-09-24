@@ -274,6 +274,11 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     says why instead (`src/features/buffs/weapon-note.ts`). The potions' end "Potions share a
     cooldown, so one is on at a time". So the switch that turns off isn't a surprise
     ([buffs doc](mechanics/buffs-debuffs-consumables.md#exclusivity-groups)).
+  - EZ-Thro Dark Bomb's summary ends with what its 1 s throw costs your spec, in its own terms: "its
+    1 s throw stops your melee swings" for a spec that swings, "holds your next cast" for a caster,
+    "holds your Auto Shot" for a hunter (`buffSummaryFor`;
+    [buffs §3.7](mechanics/buffs-debuffs-consumables.md#37-engineering-and-explosives)). The results'
+    assumption about it says the same, and when the spec throws it.
   - Under Classic Era rules, a note at the top says the buff, debuff and consumable values are
     Classic Era's, with a link to **Character → Advanced** that opens the rule profile with focus
     on it.

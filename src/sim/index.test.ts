@@ -5,6 +5,7 @@ import {
   buffCatalogueFor,
   buffPresets,
   buffProvided,
+  buffSummaryFor,
   computeSheet,
   defaultConfig,
   enchantCatalogue,
@@ -392,6 +393,17 @@ describe('catalogues and presets', () => {
     expect(summary('demoralizingShout')).toBe('−204 boss attack power (instead of Demoralizing Roar)')
     expect(summary('demoralizingRoar', 'classicEra')).toBe('−138 boss attack power (instead of Demoralizing Shout)')
     expect(summary('demoralizingShout', 'classicEra')).toBe('−146 boss attack power (instead of Demoralizing Roar)')
+  })
+
+  it('says what EZ-Thro Dark Bomb’s throw holds for each kind of spec, and leaves other summaries alone (review CV-2)', () => {
+    const bomb = buffCatalogue.find((b) => b.id === 'ezThroDarkBomb')!
+    const base = '225–675 Fire damage, every minute; its 1 s throw'
+    expect(buffSummaryFor(bomb, 'warrior-fury')).toBe(`${base} stops your melee swings`)
+    expect(buffSummaryFor(bomb, 'druid-feral-bear')).toBe(`${base} stops your melee swings`)
+    expect(buffSummaryFor(bomb, 'mage-fire')).toBe(`${base} holds your next cast`)
+    expect(buffSummaryFor(bomb, 'warlock-demonology')).toBe(`${base} holds your next cast`)
+    expect(buffSummaryFor(bomb, 'hunter-marksmanship')).toBe(`${base} holds your Auto Shot`)
+    for (const b of buffCatalogue) if (b.id !== 'ezThroDarkBomb') expect(buffSummaryFor(b, 'mage-fire'), b.id).toBe(b.summary)
   })
 
   it('follows composition, not faction', () => {

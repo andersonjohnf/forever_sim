@@ -251,6 +251,12 @@ describe('EZ-Thro Dark Bomb (buffs doc §3.7)', () => {
       expect(bundle.assumptions.find((x) => x.id === 'onUseConsumables')?.text ?? '', spec).not.toContain('EZ-Thro')
       // Its [?] rules are listed (buffs doc §3.7).
       expect(bundle.assumptions.map((x) => x.id), spec).toContain('explosiveThrow')
+      // …in this spec's words: what its throw holds, and when it's thrown (review CV-2).
+      const rules = bundle.assumptions.find((x) => x.id === 'explosiveThrow')!.text
+      const holds = spec === 'mage-fire' ? 'holds your next cast' : spec === 'hunter-marksmanship' ? 'holds your Auto Shot' : 'stops your melee swings'
+      expect(rules, spec).toContain(`Its 1 s throw ${holds}`)
+      expect(rules, spec).toContain(spec === 'mage-fire' || spec === 'hunter-marksmanship' ? 'from the pull, from within its 15 yd range' : 'within 200 ms after a main-hand swing')
+      expect(rules, spec).not.toMatch(/stops your swings/)
       const result = toResult(bundle, aggregate(bundle.plan, 20), 0)
       const row = result.abilities.find((x) => x.id === EZ_THRO_DARK_BOMB.id)
       // A melee spec waits for a main-hand swing; a caster or a hunter, who doesn't swing, throws when it's ready.

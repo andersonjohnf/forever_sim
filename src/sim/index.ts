@@ -8,6 +8,7 @@ import { fixedRotationRows, maintainedBuffs, othersKeepBleeding, ROTATION_GROUPS
 import { raceName } from './equip'
 import { normalizeConfig } from './config/normalize'
 import { TALENT_DATA } from './defaults'
+import { throwHolds } from './classes/shared-consumables'
 import { BUFFS } from './effects/buffs'
 import { ENCHANTS } from './effects/enchants'
 import { ITEM_EFFECTS, itemEffectsApply } from './effects/items'
@@ -273,6 +274,18 @@ export const buffPresets: BuffPreset[] = [
 ]
 
 export { buffProvided, forSpecClass, unusedBuffs } from './effects/presets'
+
+/**
+ * A Buffs entry's summary for this spec: the catalogue's, and for a consumable whose cast stops your
+ * swings (EZ-Thro Dark Bomb), what its throw holds for you: your melee swings, your next cast or your
+ * Auto Shot (buffs doc §3.7; docs/ux.md "Sections").
+ */
+export function buffSummaryFor(def: Pick<BuffDefinition, 'id' | 'summary'>, spec: SpecId): string {
+  const buff = BUFFS.find((b) => b.id === def.id)
+  const use = buff ? catalogueEffects(buff, PROFILES.forever).find((e) => e.kind === 'onUse') : undefined
+  const cast = use?.kind === 'onUse' && use.use?.castStopsSwings ? (use.use.castMs ?? 0) : 0
+  return cast > 0 ? `${def.summary}; its ${cast / 1000} s throw ${throwHolds(spec)}` : def.summary
+}
 
 /** The buff ids a preset enables for a spec, given the raid composition (buffs doc §6). */
 export function presetBuffs(preset: BuffPreset['id'], spec: SpecId, raid: ClassSlug[]): string[] {

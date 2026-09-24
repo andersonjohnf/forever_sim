@@ -1445,7 +1445,8 @@ export const BUFFS: BuffSpec[] = [
     icon: 'inv_misc_bomb_05',
     category: 'consumable',
     group: 'Potions and bombs',
-    summary: '225–675 Fire damage, every minute; its 1 s throw stops your swings',
+    // The Buffs tab adds what its throw holds for your spec (`buffSummaryFor`, review CV-2).
+    summary: '225–675 Fire damage, every minute',
     // The explosives' category (24), apart from potions and runes; the only explosive here.
     exclusiveGroup: COOLDOWN_GROUP.explosive,
     docRef: `${DOC}#37-engineering-and-explosives`,

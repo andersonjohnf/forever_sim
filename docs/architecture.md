@@ -90,7 +90,8 @@ A spec is data plus small ability modules, never its own loop.
   of a few named values).
 - **Rotation as a priority list** ([D31](decisions.md#d31-the-rotation-tab-is-an-action-priority-list-you-reorder-2026-09-24)).
   A spec on the list declares its rotation as an `AplDefinition` (`sim/types.ts`, returned by
-  `rotationApl` in `sim/classes/rotation.ts`; Fury first, the rest in M5.65 A2):
+  `rotationApl` in `sim/classes/rotation.ts`; Fury first, then the Feral bear, the rest in M5.65
+  A2):
   - **Rows**, in the default order. Each has a stable `id`, a label and icon, the switch that turns
     it on (`enabledId`), its own settings (`optionIds`) and a summary built from them. Row settings
     are the spec's ordinary `RotationOption`s, so the resolver, `normalizeConfig`, the unused
@@ -99,9 +100,14 @@ A spec is data plus small ability modules, never its own loop.
   - **Spec-wide settings** (`specWide`: a stance, a pet, a tank's priority, the consumables) sit
     above the list, not in a row.
   - **Presets** (`presets`): an order plus values for the rows' settings. The spec's defaults are
-    the implicit `default` preset. `activeAplPreset` says which one the list matches, or `custom`.
+    the implicit `default` preset, named by `defaultPreset` where they're a named rotation (a
+    tank's Balanced, D28). `activeAplPreset` says which one the list matches, or `custom`.
     Picking one (`applyAplPreset`) sets its order and row values and resets the rest of the rows'
-    settings, keeping the spec-wide ones you set.
+    settings, keeping the spec-wide ones you set. A spec-wide setting a preset names (a tank's
+    Priority, whose value is the preset and which has no control but the picker) is the
+    presets' too: picking any preset sets it or puts it back at its default, and every preset is
+    compared on it, so two presets whose rows resolve the same (the bear's Balanced and Max TPS)
+    stay apart.
   - **The order** is `SimConfig.rotationOrder`, row ids, stored only while it differs from the
     default. `normalizeAplOrder` (`sim/classes/apl.ts`) reads any stored order. It drops unknown
     ids, and keeps pinned rows fixed. A row the order doesn't name goes just after the nearest
@@ -122,7 +128,9 @@ A spec is data plus small ability modules, never its own loop.
     Bloodthirst) resolves it by definition (`RotationBuilder.ability`). In the default order,
     that returns the index the earlier row gave it, so the plan is byte-identical to the one
     before the list. Rows off the GCD that aren't in the list (Fury's consumables) and the
-    pre-pull are built after it.
+    pre-pull are built after it, unless they had a place of their own in the priority before
+    the list: the bear's consumables take their turn with its on-use items' row, wherever it
+    sits, so its plans stay byte-identical.
 - A buff the rotation keeps up itself (the warrior's own Battle Shout) is left out of the static
   effects and becomes an aura in the fight, so it counts once; the character sheet still shows
   it. On-use items (`sim/effects/items.ts`) and consumables (`sim/effects/buffs.ts`) carry their

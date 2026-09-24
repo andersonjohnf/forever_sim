@@ -651,6 +651,12 @@ describe('golden run (fixed config and seed)', () => {
   // - On main's spell table (the warrior's Thunder Clap and Demoralizing Shout's `spellTable` kind),
   //   Faerie Fire's and the roar's rows count their landed casts as hits (10,149 of 12,133 and 3,310
   //   of 3,717); nothing else moves.
+  // - M5.65 A2 and M5.6 T5 (decisions D28, D31): the bear's rotation is a priority list with three
+  //   presets, and the default is Balanced, which drops Demoralizing Roar and keeps Faerie Fire
+  //   (druid.md §6.3 "Balanced"). On this seed's 500 fights, Defensive (tank duties first, the
+  //   default before; its plans unchanged, bear-apl.test.ts) gives TPS 1,081.78, DPS 532.43 and 629.00
+  //   damage taken a second, as before; Balanced TPS 1,114.45, DPS 547.00 and 633.32. The roar's
+  //   3,747 casts go: Maul 35,653 → 36,750, Mangle 18,198 → 18,936, Lacerate 24,790 → 26,578.
   it('keeps the default Feral bear’s result unchanged', () => {
     const bundle = buildPlan({ ...defaultConfig('druid-feral-bear'), run: { mode: 'fixed', iterations: 500, seed: 12345 } })
     const agg = runFights(bundle.plan, 500)

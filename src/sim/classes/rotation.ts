@@ -7,7 +7,7 @@ import type { WeaponType } from '@/data/items/types'
 import { NO_PREPULL } from '../plan/types'
 import type { AplDefinition, FixedRotationRow, RotationGroup, RotationOption, RotationValue, SpecId } from '../types'
 import { CAT_OPTIONS, catMaintainedBuffs, catRotation, catUnusedSettings } from './druid/cat'
-import { BEAR_OPTIONS, bearMaintainedBuffs, bearRotation, bearUnusedSettings } from './druid/bear'
+import { BEAR_APL, BEAR_OPTIONS, bearMaintainedBuffs, bearRotation, bearUnusedSettings } from './druid/bear'
 import { BALANCE_OPTIONS, balanceMaintainedBuffs, balanceRotation, balanceUnusedSettings } from './druid/balance'
 import { ARMS_OPTIONS, armsBaseStance, armsMaintainedBuffs, armsRotation } from './warrior/arms'
 import { RETRIBUTION_OPTIONS, retributionMaintainedBuffs, retributionRotation } from './paladin/retribution'
@@ -107,10 +107,11 @@ export function rotationOptions(spec: SpecId): RotationOption[] {
 
 /**
  * The spec's rotation as a priority list you reorder (decision D31), or undefined for a spec still
- * on switches (M5.65 A2 moves the rest): Fury, the pilot.
+ * on switches (M5.65 A2 moves the rest): Fury, the pilot, and the Feral bear.
  */
 export function rotationApl(spec: SpecId): AplDefinition | undefined {
   if (spec === 'warrior-fury') return FURY_APL
+  if (spec === 'druid-feral-bear') return BEAR_APL
   return undefined
 }
 
@@ -128,17 +129,17 @@ export function fixedRotationRows(spec: SpecId): FixedRotationRow[] {
 /**
  * What the Rotation tab's intro says about the spec's defaults (docs/ux.md "Rotation"): tuned for
  * the default setup once a paired search has tuned them (decision D23; Arms since M2.5a, Fury since
- * M2.5b, the Feral cat since B2, Protection since P1, Retribution since C2, the Feral bear since B3,
- * Protection paladins since C3), the common priority until then. A tank's priority choice, first on
- * the tab, names its duties (D26). None for a spec without rotation settings. The cat's also says
- * why there's no powershifting, which a Classic Era feral would look for (druid.md §2.8).
+ * M2.5b, the Feral cat since B2, Protection since P1, Retribution since C2, Protection paladins since
+ * C3), the common priority until then. A tank's priority choice, first on the tab, names its duties
+ * (D26). The bear's says which of its presets are tuned: Defensive since B3, Balanced and Max TPS a
+ * first pass (D27, D28). None for a spec without rotation settings. The cat's also says why there's
+ * no powershifting, which a Classic Era feral would look for (druid.md §2.8).
  */
 export function rotationDefaultsNote(spec: SpecId): string | undefined {
   if (
     spec === 'warrior-arms' ||
     spec === 'warrior-fury' ||
     spec === 'warrior-protection' ||
-    spec === 'druid-feral-bear' ||
     spec === 'paladin-retribution' ||
     spec === 'paladin-protection'
   ) {
@@ -147,6 +148,8 @@ export function rotationDefaultsNote(spec: SpecId): string | undefined {
   if (spec === 'druid-feral-cat') {
     return 'The defaults are tuned for the default setup. There’s no powershifting: in Forever, Furor keeps your Energy through a shift, so it gains nothing.'
   }
+  // docs/classes/druid.md §6.3 "Balanced": D28's default, a first pass (D27) around Defensive's tuned settings.
+  if (spec === 'druid-feral-bear') return 'Defensive is tuned for the default setup; Balanced and Max TPS drop the roar from it, with a first quick search.'
   // Decision D27: a spec landed in the 90/10 mode starts from the common priority until the tuning milestone.
   if (spec === 'shaman-enhancement') {
     return 'The defaults are the common priority. There’s no totem twisting: in Forever, Windfury Totem is an aura that ends with the totem.'
@@ -310,7 +313,7 @@ export function classRotation(
   if (spec === 'paladin-retribution') return retributionRotation(values, talents, auraIndex, context)
   // docs/classes/paladin.md "Protection: model and rotation".
   if (spec === 'paladin-protection') return paladinProtectionRotation(values, talents, auraIndex, context)
-  if (spec === 'druid-feral-bear') return bearRotation(values, talents, auraIndex, context)
+  if (spec === 'druid-feral-bear') return bearRotation(values, talents, auraIndex, context, order)
   // docs/classes/druid.md §11.5.
   if (spec === 'druid-balance') return balanceRotation(values, talents, auraIndex, context)
   // docs/classes/shaman.md "Enhancement priority".

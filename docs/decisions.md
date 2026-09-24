@@ -432,8 +432,9 @@ kept the old default gets Balanced, like any other changed default. Settings you
 hand stay as you set them: choosing Balanced moves only the defaults of the abilities it drops,
 as Max TPS does.
 
-Status: decided, not built yet. The rotation slice (T5 in the milestones) comes after the tanks'
-threat fixes.
+Status: decided; built for the bear (T5, with its priority list in M5.65 A2), whose Balanced and
+Max TPS play the same in the default setup (druid.md §6.3 "Balanced"). The warrior's and the
+paladin's follow.
 
 ### D29: Same threat words, same threat; presets geared for what they measure (2026-09-24)
 User directive, after v1's tank numbers embarrassed the user in front of the guild: the

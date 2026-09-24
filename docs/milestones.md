@@ -307,6 +307,10 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
       still come from the optimizer
 - [ ] **T5 Balanced rotation (D28)** for all three tanks, the new default; Defensive and Max TPS
       stay selectable
+      - [x] Bear: Balanced drops the roar and keeps Faerie Fire; its first-pass search moved
+            nothing else (+3.1% TPS, +2.8% DPS, +0.7% damage taken against Defensive), so Max TPS
+            plays the same in the default setup
+            ([druid.md §6.3 "Balanced"](classes/druid.md#balanced-t5))
 - [ ] **T6 The guild's in-game threat tests,** written up for the officers: Sunder, Lacerate,
       Seal of Fury, Holy Strike, Hammer of the Righteous, Holy Shield, rage from hits taken
 
@@ -322,6 +326,10 @@ until each slice logs its own review. The guild's benchmark (D29): a paladin and
 - [ ] **A2 Every other spec on the list:** the tanks after M5.6's fixes merge, then the rest in
       batches; each spec's toggles become rows and row options, with its goldens unchanged at the
       default order
+      - [x] Feral bear: its rows in druid.md §6.3's order, Enrage before the pull pinned, the
+            duties movable with their timing rule, D28's three rotations as presets (the picker
+            is the priority); Defensive's and Max TPS's plans byte-identical for 200 random setups
+            ([druid.md §6.3 "The priority list"](classes/druid.md#the-priority-list-a2))
 
 ## M5.7: The optimizer (D30) 🚧 top priority
 

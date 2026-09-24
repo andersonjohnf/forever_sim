@@ -57,6 +57,11 @@ UI state ──► SimConfig (plain, serializable) ──► Plan ──► Work
   casts and buffs that deal no damage (`cooldowns`), the character sheet, the assumptions,
   and later optionally one sample combat log. A `SimResult` lives only in memory: nothing
   saves or shares it, so it can grow fields freely.
+- **Runs and results are keyed by spec** (`src/app/sim-store.ts`). Each spec keeps its latest
+  result and the config it ran (`bySpec`, `resultKey`), and the run under way records its spec
+  (`runSpec`) and config (`runKey`). The results UI (`useRunState`) shows a run's progress only
+  under its own spec, so switching spec mid-run never mixes two specs' numbers; the run carries on
+  and its result lands under its spec. One run goes at a time: a new one aborts the last.
 - Class data is loaded lazily (dynamic `import()` per class), so the first paint stays small.
 
 ### Following the defaults

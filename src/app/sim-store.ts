@@ -24,6 +24,11 @@ interface SimState {
   bySpec: Partial<Record<SpecId, SpecResult>>
   /** The config of the run under way (JSON), so a re-run that applies the setup isn't marked stale. */
   runKey: string | null
+  /**
+   * The spec of the run under way. A run belongs to its spec as its result does: another spec shows
+   * no progress for it, and its result lands under its own spec (docs/ux.md#states "Running").
+   */
+  runSpec: SpecId | null
   error: string | null
   /**
    * The config the failed run was given (JSON). Like a result, a failure belongs to its setup: it
@@ -44,6 +49,7 @@ export const useSim = create<SimState>()((set, get) => ({
   result: null,
   bySpec: {},
   runKey: null,
+  runSpec: null,
   error: null,
   errorKey: null,
   run: async (config) => {
@@ -51,7 +57,7 @@ export const useSim = create<SimState>()((set, get) => ({
     const current = new AbortController()
     controller = current
     const key = configKey(config)
-    set({ status: 'running', progress: null, error: null, errorKey: null, runKey: key })
+    set({ status: 'running', progress: null, error: null, errorKey: null, runKey: key, runSpec: config.spec })
     try {
       const result = await simulate(config, {
         signal: current.signal,
@@ -64,15 +70,16 @@ export const useSim = create<SimState>()((set, get) => ({
         result,
         bySpec: { ...bySpec, [result.spec]: { result, previous: bySpec[result.spec]?.result ?? null, resultKey: key } },
         runKey: null,
+        runSpec: null,
         progress: null,
       })
     } catch (err) {
       if (controller !== current) return
       if (err instanceof DOMException && err.name === 'AbortError') {
-        set({ status: get().result ? 'done' : 'idle', progress: null, runKey: null })
+        set({ status: get().result ? 'done' : 'idle', progress: null, runKey: null, runSpec: null })
       } else {
         const error = err instanceof Error ? err.message : String(err)
-        set({ status: 'error', error, errorKey: key, progress: null, runKey: null })
+        set({ status: 'error', error, errorKey: key, progress: null, runKey: null, runSpec: null })
       }
     } finally {
       if (controller === current) controller = null

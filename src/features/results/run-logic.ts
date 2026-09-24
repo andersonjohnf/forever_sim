@@ -22,6 +22,38 @@ export function headlineText(result: SimResult): string {
 }
 
 /**
+ * What the live region says when a run ends (docs/ux.md#states "Running"): "Done: 682.5 DPS", "Simulation
+ * cancelled.", or a failure (on desktop the panel's alert reads that out, so nothing). A run that
+ * ends while another spec is showing names its own spec, so its numbers aren't heard as this spec's:
+ * "Fury Warrior’s run is done: 682.5 DPS"; its failure is read out at every width, since this spec's
+ * panel doesn't show it. `result` is the new result, or null when the run brought none (cancelled).
+ */
+export function runOutcomeMessage({
+  status,
+  error,
+  result,
+  runSpec,
+  currentSpec,
+  desktop,
+}: {
+  status: string
+  error: string | null
+  result: SimResult | null
+  runSpec: SpecId | null
+  currentSpec: SpecId
+  desktop: boolean
+}): string {
+  const elsewhere = runSpec !== null && runSpec !== currentSpec
+  const whose = elsewhere ? `${SPEC_META[runSpec].name} ${SPEC_META[runSpec].className}’s run` : ''
+  if (status === 'error') {
+    if (elsewhere) return `${whose} failed: ${error ?? ''} Switch back to it for details.`
+    return desktop ? '' : `Couldn’t simulate: ${error ?? ''} Open the results for details.`
+  }
+  if (!result) return 'Simulation cancelled.'
+  return elsewhere ? `${whose} is done: ${headlineText(result)}` : `Done: ${headlineText(result)}`
+}
+
+/**
  * The breakdown's rows (docs/ux.md#results): those that add to the metric, most first, except that
  * a bleed with a hit of its own (Rake's) sits right after that hit.
  */

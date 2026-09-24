@@ -60,6 +60,24 @@ test.describe('Feral bear (preview)', () => {
     await expect(mark).toBeEnabled()
   })
 
+  test('with a Demoralizing Shout from Buffs, its roar shows off, naming the Shout, and Rotation says it isn’t cast (BU2)', async ({ page }) => {
+    await page.goto(BEAR)
+    await page.getByRole('tab', { name: 'Buffs', exact: true }).click()
+    const buffs = page.getByRole('tabpanel', { name: 'Buffs' })
+    const roar = buffs.getByRole('switch', { name: 'Demoralizing Roar', exact: true })
+    await expect(roar).toBeChecked()
+    await buffs.getByRole('switch', { name: 'Demoralizing Shout', exact: true }).click()
+    await expect(roar).not.toBeChecked()
+    await expect(roar).toBeDisabled()
+    await expect(roar).toHaveAccessibleDescription(
+      '−204 boss attack power (instead of Demoralizing Shout). Your raid’s Demoralizing Shout is on the boss instead, so you don’t cast it (see Rotation).',
+    )
+    await page.getByRole('tab', { name: 'Rotation', exact: true }).click()
+    const tab = page.getByRole('tabpanel', { name: 'Rotation' })
+    await expect(tab.getByText('Not used: the Demoralizing Shout in Buffs is on the boss instead, so you don’t cast the roar.')).toBeVisible()
+    await expect(tab.getByRole('switch', { name: 'Demoralizing Roar', exact: true })).toBeChecked()
+  })
+
   test('says why Lacerate does nothing while it waits for no other bleeds in a raid with warriors, as the cat’s Rake does (BU4)', async ({ page }) => {
     await page.goto(BEAR)
     await page.getByRole('tab', { name: 'Rotation', exact: true }).click()

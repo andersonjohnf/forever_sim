@@ -17,6 +17,7 @@ import {
   buffProvided,
   unusedBuffs,
   defaultConfig,
+  unusedRotationSettings,
   FULL_RAID,
   getSpec,
   presetBuffs,
@@ -92,6 +93,13 @@ export function BuffsSection() {
   }, [meta.id, meta.role, meta.classId])
   // Buffs that do nothing for the spec (a weapon stone's damage in Cat Form): off and locked, saying why.
   const inert = useMemo(() => unusedBuffs(meta.id), [meta.id])
+  // Your own buffs whose Rotation setting the setup leaves unused (the bear's roar while a Demoralizing
+  // Shout here takes its place, druid.md §6.3): your rotation doesn't cast them.
+  const race = useSetup((s) => s.config.race)
+  const notCastOwn = useMemo(() => {
+    const unused = unusedRotationSettings({ spec: meta.id, talents, rotation, race, buffs })
+    return new Set(getSpec(meta.id).rotationOptions.flatMap((o) => (o.kind === 'toggle' && o.maintainsBuff && unused[o.id] !== undefined ? [o.maintainsBuff] : [])))
+  }, [meta.id, talents, rotation, race, buffs])
 
   // A preset matches on what you choose here: a buff your rotation keeps up shows on whatever the
   // preset says, so it's left out of both sides (your own Devotion Aura, D26).
@@ -226,8 +234,12 @@ export function BuffsSection() {
                       const providerName = def.providedBy ? CLASS_LABEL[def.providedBy].toLowerCase() : ''
                       // A debuff on the boss's swings changes only a tank's results (docs/ux.md "Buffs").
                       const tankOnly = def.bossMelee === true && meta.role !== 'tank'
+                      // Replaced, and your rotation doesn't cast it then (a bear's roar under a Demoralizing
+                      // Shout: its Rotation setting says it isn't used; druid.md §6.3).
+                      const notCast = replacedBy !== undefined && notCastOwn.has(def.id)
                       let help = def.summary
                       if (talent) help = `${def.summary}. Your talents bring it (see Talents), so it isn’t added twice.`
+                      else if (replacedBy && notCast) help = `${def.summary}. Your raid’s ${replacedBy.name} is on the boss instead, so you don’t cast it (see Rotation).`
                       else if (replacedBy) help = `${def.summary}. ${replacedBy.name} takes its place on the boss, since only one applies; yours still makes its threat (untested).`
                       else if (own) help = `${def.summary}. You keep it up yourself (see Rotation), so it isn’t added twice.`
                       else if (unused !== undefined) help = `${def.summary}. ${unused}.`
@@ -259,7 +271,7 @@ export function BuffsSection() {
                           </span>
                           <Switch
                             id={buffSwitchId(def.id)}
-                            checked={own || (!unavailable && buffs.enabled.includes(def.id))}
+                            checked={notCast ? false : own || (!unavailable && buffs.enabled.includes(def.id))}
                             disabled={own || unavailable}
                             onCheckedChange={(on) => toggleBuff(def, on)}
                             aria-label={def.name}

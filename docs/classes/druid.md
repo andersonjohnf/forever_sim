@@ -686,7 +686,9 @@ One target: 118.69 a Swipe with the default build (W16).
   a missed melee ability does [?]. Each aura is named after its Buffs entry, which the bear's
   upkeep replaces (the Buffs tab's Faerie Fire and Demoralizing Roar add nothing more while it's
   on). A Demoralizing Shout in the Buffs tab, another warrior's, fills the same attack-power group
-  (buffs doc, `ap-reduction`): then it's the one on the boss, and the roar makes threat only.
+  (buffs doc, `ap-reduction`): then it's the one on the boss, and the rotation doesn't cast the roar
+  (§6.3 row 5). The Buffs tab shows the roar off, saying the Shout is on the boss instead, and its
+  Rotation setting says it isn't used.
   `forever`'s roar is the tooltip's −204, `classicEra`'s −138 (W18).
 - **Enrage** is a cast off the GCD: its rage at once and its ticks are energizes, 5 threat a rage
   ([threat.md](../mechanics/threat.md#threat-from-healing-power-gains-and-buffs)); Wolfshead Helm

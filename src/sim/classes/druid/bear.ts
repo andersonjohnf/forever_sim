@@ -305,7 +305,7 @@ export function bearUnusedSettings(values: Record<string, RotationValue>, setup:
   const v = reader(BEAR_OPTIONS, values)
   const out: Record<string, string> = {}
   const label = (id: string) => BEAR_OPTIONS.find((o) => o.id === id)!.label
-  if (roarDisplaced(setup)) out[ID.roarEnabled] = 'Not used: the Demoralizing Shout in Buffs takes its place on the boss.'
+  if (roarDisplaced(setup)) out[ID.roarEnabled] = 'Not used: the Demoralizing Shout in Buffs is on the boss instead, so you don’t cast the roar.'
   if (lacerateWaits(v.on(ID.lacerateAlone), setup)) {
     out[ID.lacerateEnabled] = `Not used in this raid: its warriors keep the boss bleeding. Turn off “${label(ID.lacerateAlone)}” to use it anyway.`
   }

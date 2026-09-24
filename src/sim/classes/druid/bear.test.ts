@@ -419,7 +419,7 @@ describe('the default bear’s plan', () => {
     // The Rotation tab says why.
     const unused = (config: SimConfig) => unusedRotationSettings(config)[BEAR_IDS.roarEnabled]
     expect(unused(d)).toBeUndefined()
-    expect(unused({ ...d, buffs })).toBe('Not used: the Demoralizing Shout in Buffs takes its place on the boss.')
+    expect(unused({ ...d, buffs })).toBe('Not used: the Demoralizing Shout in Buffs is on the boss instead, so you don’t cast the roar.')
     // Without a warrior in the raid, nobody brings the Shout: the roar is used again.
     const noWarrior = { raid: d.buffs.raid.filter((c) => c !== 'warrior'), enabled: buffs.enabled }
     expect(buildPlan({ ...d, buffs: noWarrior }).plan.abilities.map((a) => a.id)).toContain('demoralizingRoar')

@@ -219,6 +219,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     only one applies (Expose Armor over a Protection warrior's Sunder Armor), it stays on and
     locked, and its note says so instead: "Expose Armor takes its place on the boss, since only
     one applies; yours still makes its threat (untested)." The result lists the same assumption.
+    If your rotation doesn't cast it then (a bear's roar under a Demoralizing Shout, whose
+    Rotation setting says it isn't used), it shows off and locked, and says which is on the boss:
+    "… Your raid's Demoralizing Shout is on the boss instead, so you don't cast it (see
+    Rotation)."
   - Some of these are the spec's own: the raid's version is assumed to be yours (a cat's Faerie
     Fire, [druid §6.2](classes/druid.md#62-forever-cat-priority); a tank's duties under
     [D26](decisions.md#d26-a-tanks-default-keeps-its-duties-max-tps-is-a-selectable-rotation-2026-09-23):
@@ -320,9 +324,10 @@ beside the action (`SectionHeader` in `src/features/section.tsx`).
     simulated), a cat's Rake or Rip or a bear's Lacerate while its "only when nothing else bleeds"
     meets a raid whose warriors keep the boss bleeding ("Not used in this raid: its warriors keep
     the boss bleeding. Turn off … to use it anyway."), and a bear's Demoralizing Roar while a
-    Demoralizing Shout in Buffs takes its place ("Not used: the Demoralizing Shout in Buffs takes
-    its place on the boss."). Its switch stays usable, since it takes effect once the setup lets
-    it, and the settings under it aren't dimmed with it: one may be the way to use it.
+    Demoralizing Shout in Buffs takes its place ("Not used: the Demoralizing Shout in Buffs is on
+    the boss instead, so you don't cast the roar."). Its switch stays usable, since it takes effect
+    once the setup lets it, and the settings under it aren't dimmed with it: one may be the way to
+    use it.
   - Numbers carry their unit in the field and in the hint: "60% mana" for a share of maximum
     mana, "1,500 mana" (thousands grouped) for mana missing. The field is as wide as its unit
     needs, and at least as wide as one without a unit; a grouped value's box has room for its

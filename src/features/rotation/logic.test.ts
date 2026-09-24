@@ -226,7 +226,7 @@ describe('rotation rows', () => {
     expect(waits.get('druid.bear.lacerate.onlyWithoutOtherBleeds')?.inactive).toBe(false)
     // A Demoralizing Shout in Buffs takes the roar's place.
     const shout = { ...bear, buffs: { ...bear.buffs, enabled: [...bear.buffs.enabled.filter((id) => id !== 'demoralizingRoar'), 'demoralizingShout'] } }
-    expect(unusedRows(shout).get(roar)).toMatchObject({ on: true, inactive: true, notUsed: 'Not used: the Demoralizing Shout in Buffs takes its place on the boss.' })
+    expect(unusedRows(shout).get(roar)).toMatchObject({ on: true, inactive: true, notUsed: 'Not used: the Demoralizing Shout in Buffs is on the boss instead, so you don’t cast the roar.' })
   })
 
   it('puts the number settings behind Advanced and keeps switches and choices in view', () => {

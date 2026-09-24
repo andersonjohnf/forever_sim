@@ -152,6 +152,28 @@ export const SPEC_META: Record<SpecId, SpecMeta> = {
     icon: 'spell_holy_magicalsentry',
     caster: true,
   },
+  // docs/classes/warlock.md: Destruction and Affliction, landed under D27; Demonology waits for the pet core.
+  'warlock-destruction': {
+    id: 'warlock-destruction',
+    classId: 'warlock',
+    className: 'Warlock',
+    name: 'Destruction',
+    role: 'dps',
+    icon: 'spell_shadow_rainoffire',
+    // Its Curse of the Elements is its own, which its rotation keeps up (warlock.md §6).
+    ownBuffs: ['curseOfTheElements'],
+    caster: true,
+  },
+  'warlock-affliction': {
+    id: 'warlock-affliction',
+    classId: 'warlock',
+    className: 'Warlock',
+    name: 'Affliction',
+    role: 'dps',
+    icon: 'spell_shadow_deathcoil',
+    ownBuffs: ['curseOfTheElements'],
+    caster: true,
+  },
 }
 
 export const SPEC_IDS = Object.keys(SPEC_META) as SpecId[]
@@ -164,4 +186,5 @@ export const CLASS_COLOR: Record<ClassId, string> = {
   shaman: '#0070DD',
   rogue: '#FFF468',
   mage: '#3FC7EB',
+  warlock: '#8788EE',
 }

@@ -56,6 +56,7 @@
     --color-class-shaman: var(--class-shaman);
     --color-class-rogue: var(--class-rogue);
     --color-class-mage: var(--class-mage);
+    --color-class-warlock: var(--class-warlock);
 }
 
 :root {
@@ -120,6 +121,8 @@
     --class-rogue: oklch(0.54 0.11 102);
     /* The mage's light blue, #3fc7eb, is 1.9:1 on light surfaces: they take a deeper cyan (4.6:1). */
     --class-mage: #0a7fa3;
+    /* Warlock #8788EE is 3.3:1 on white; this is darker for AA. */
+    --class-warlock: oklch(0.5 0.16 278);
     --switch-off: oklch(0.64 0 0);
 }
 
@@ -172,6 +175,7 @@
     --class-rogue: #fff468;
     /* #3fc7eb is 10:1 on the dark background. */
     --class-mage: #3fc7eb;
+    --class-warlock: #8788ee;
     /* The switch draws its off track at 80% of this. */
     --switch-off: oklch(0.62 0 0);
 }

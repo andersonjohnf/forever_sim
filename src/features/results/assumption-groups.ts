@@ -8,7 +8,7 @@ export type AssumptionGroup = 'gear' | 'character' | 'class' | 'combat'
 
 export const GROUP_ORDER: readonly AssumptionGroup[] = ['gear', 'character', 'class', 'combat']
 
-const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', druid: 'Druid', paladin: 'Paladin', shaman: 'Shaman', rogue: 'Rogue', mage: 'Mage' }
+const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', druid: 'Druid', paladin: 'Paladin', shaman: 'Shaman', rogue: 'Rogue', mage: 'Mage', warlock: 'Warlock' }
 
 export function groupTitle(group: AssumptionGroup, classId: ClassId): string {
   switch (group) {
@@ -89,6 +89,23 @@ export const ASSUMPTION_GROUP = {
   quietus: 'class',
   thousandCuts: 'class',
   cutthroat: 'class',
+  // The warlock's (docs/classes/warlock.md §9): the caster core's spell rules first.
+  casterSpellRules: 'combat',
+  casterDotCrits: 'class',
+  casterDots: 'class',
+  improvedShadowBolt: 'class',
+  nightfall: 'class',
+  conflagrate: 'class',
+  incinerate: 'class',
+  lifeTap: 'class',
+  warlockMana: 'class',
+  demonicSacrifice: 'class',
+  warlockNoPet: 'class',
+  curseOfTheElementsOwn: 'class',
+  baneOfAgonyRamp: 'class',
+  shadowburnShards: 'class',
+  warlockTalentStacking: 'class',
+  reactionTimeWarlock: 'combat',
   deadlyPoisonTicks: 'class',
   rogueArmorPen: 'class',
   poisons: 'gear',

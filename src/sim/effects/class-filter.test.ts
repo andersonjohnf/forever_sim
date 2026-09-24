@@ -22,27 +22,34 @@ const PALADIN_ONLY = [
 ]
 /** The mana and all-schools spell damage entries are the shaman's too (docs/classes/shaman.md); Holy Power isn't. */
 const SHAMAN_TOO = PALADIN_ONLY.filter((id) => id !== 'elixirOfHolyPower')
-/** And the mage's, the first caster (docs/classes/mage.md; docs/mechanics/spells.md §12). */
-const MAGE_TOO = SHAMAN_TOO
+/** And the casters': the mage, the first (docs/classes/mage.md), and the warlock (docs/classes/warlock.md; docs/mechanics/spells.md §12). */
+const CASTERS_TOO = SHAMAN_TOO
 
 describe('class-only catalogue entries', () => {
-  it('give the caster core’s buffs and debuffs to the casters only: the mage since K2, so no warrior, druid, paladin, shaman or rogue gets them (docs/mechanics/spells.md §12)', () => {
-    expect([CASTER_CLASSES, CASTER_SPECS]).toEqual([['mage'], ['mage-fire', 'mage-frost', 'mage-arcane']])
+  it('give the caster core’s buffs and debuffs to the casters only: the mage since K2 and the warlock since K3, so no warrior, druid, paladin, shaman or rogue gets them (docs/mechanics/spells.md §12)', () => {
+    expect([CASTER_CLASSES, CASTER_SPECS]).toEqual([
+      ['mage', 'warlock'],
+      ['mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction'],
+    ])
     const caster = ['moonkinAura', 'powerInfusion', 'curseOfTheElements']
     expect(BUFFS.filter((b) => b.forSpecs === 'caster').map((b) => b.id)).toEqual(caster)
     for (const spec of SPEC_IDS) {
-      if (SPEC_META[spec].classId === 'mage') continue
-      for (const id of caster) expect(forSpecClass(BUFFS.find((b) => b.id === id)!, spec), `${spec} ${id}`).toBe(false)
+      const isCaster = CASTER_SPECS.includes(spec)
+      for (const id of caster) expect(forSpecClass(BUFFS.find((b) => b.id === id)!, spec), `${spec} ${id}`).toBe(isCaster)
+      if (isCaster) continue
       for (const preset of ['self', 'dungeon', 'raid', 'max'] as const) {
         for (const id of caster) expect(presetBuffIds(preset, spec, FULL_RAID), `${spec} ${preset}`).not.toContain(id)
       }
     }
+    // A warlock keeps its own curse (SpecMeta.ownBuffs), so no preset adds the Buffs tab's.
+    for (const preset of ['self', 'dungeon', 'raid', 'max'] as const) expect(presetBuffIds(preset, 'warlock-destruction', FULL_RAID)).not.toContain('curseOfTheElements')
   })
 
   it('are the paladin’s mana and spell damage entries, the shaman’s but for Holy Power, the casters’, and the Mighty Rage Potion (warriors and druids only)', () => {
     expect(BUFFS.filter((b) => b.forClasses?.includes('paladin')).map((b) => b.id).sort()).toEqual([...PALADIN_ONLY].sort())
-    for (const id of PALADIN_ONLY) expect(BUFFS.find((b) => b.id === id)!.forClasses).toEqual(SHAMAN_TOO.includes(id) ? ['paladin', 'shaman', 'mage'] : ['paladin'])
+    for (const id of PALADIN_ONLY) expect(BUFFS.find((b) => b.id === id)!.forClasses).toEqual(SHAMAN_TOO.includes(id) ? ['paladin', 'shaman', 'mage', 'warlock'] : ['paladin'])
     expect(BUFFS.filter((b) => b.forClasses && !b.forClasses.includes('paladin')).map((b) => [b.id, b.forClasses])).toEqual([
+      ['elixirOfShadowPower', ['warlock']],
       ['instantPoisonMainHand', ['rogue']],
       ['deadlyPoisonMainHand', ['rogue']],
       ['instantPoisonOffHand', ['rogue']],
@@ -58,7 +65,7 @@ describe('class-only catalogue entries', () => {
       for (const preset of ['dungeon', 'raid', 'max'] as const) {
         const ids = presetBuffIds(preset, spec, FULL_RAID)
         const classId = SPEC_META[spec].classId
-        for (const id of PALADIN_ONLY) if (classId !== 'paladin' && !(classId === 'shaman' && SHAMAN_TOO.includes(id)) && !(classId === 'mage' && MAGE_TOO.includes(id))) expect(ids, `${spec} ${preset}`).not.toContain(id)
+        for (const id of PALADIN_ONLY) if (classId !== 'paladin' && !(classId === 'shaman' && SHAMAN_TOO.includes(id)) && !(CASTER_CLASSES.includes(classId) && CASTERS_TOO.includes(id))) expect(ids, `${spec} ${preset}`).not.toContain(id)
       }
     }
     expect(forSpecClass({ forClasses: ['paladin'] }, 'warrior-fury')).toBe(false)

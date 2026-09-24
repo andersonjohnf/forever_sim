@@ -747,6 +747,62 @@
         "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       }
     },
+    "9264": {
+      "appliesEnchantIds": [],
+      "doc": {
+        "enchantIds": [],
+        "name": "Elixir of Shadow Power",
+        "section": "3.2 Elixirs",
+        "spellIds": [11474]
+      },
+      "docMismatches": [],
+      "effects": [
+        {
+          "categoryCoolDownMSec": 3000,
+          "charges": -1,
+          "chrSpecializationId": 0,
+          "coolDownMSec": 0,
+          "id": 98675,
+          "legacySlotIndex": 0,
+          "playerConditionId": 0,
+          "spellCategoryId": 79,
+          "spellId": 11474,
+          "triggerType": 0
+        }
+      ],
+      "id": 9264,
+      "item": {
+        "classId": 0,
+        "iconFileDataId": 134828,
+        "inventoryType": 0,
+        "material": 3,
+        "sheatheType": 0,
+        "subclassId": 2
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 0,
+        "damageType": 0,
+        "display": "Elixir of Shadow Power",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 0, 0],
+        "inventoryType": 0,
+        "itemDelay": 0,
+        "itemLevel": 50,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 3,
+        "maxCount": 0,
+        "overallQualityId": 1,
+        "requiredLevel": 40,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [-1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "10646": {
       "appliesEnchantIds": [],
       "doc": {
@@ -4927,14 +4983,14 @@
     }
   },
   "counts": {
-    "consumables": 88,
-    "consumablesWithEffects": 88,
+    "consumables": 89,
+    "consumablesWithEffects": 89,
     "foreverDataFalseWithItemSparseRow": 0,
     "foreverDataTrueWithoutItemSparseRow": 0,
-    "items": 1678,
-    "withEffects": 245,
-    "withItemRow": 1678,
-    "withItemSparseRow": 917
+    "items": 1691,
+    "withEffects": 246,
+    "withItemRow": 1691,
+    "withItemSparseRow": 926
   },
   "items": {
     "868": {
@@ -5087,6 +5143,19 @@
         "iconFileDataId": 134334,
         "inventoryType": 0,
         "material": 3,
+        "sheatheType": 0,
+        "subclassId": 0
+      },
+      "itemSparse": null
+    },
+    "1980": {
+      "effects": [],
+      "id": 1980,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133357,
+        "inventoryType": 11,
+        "material": 1,
         "sheatheType": 0,
         "subclassId": 0
       },
@@ -5291,6 +5360,19 @@
         "statModifierBonusStat": [5, 87, -1, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [4286, 12857, 0, 0, 0, 0, 0, 0, 0, 0]
       }
+    },
+    "7553": {
+      "effects": [],
+      "id": 7553,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133353,
+        "inventoryType": 11,
+        "material": 5,
+        "sheatheType": 1,
+        "subclassId": 0
+      },
+      "itemSparse": null
     },
     "8345": {
       "effects": [
@@ -5868,6 +5950,41 @@
         "subclassId": 0
       },
       "itemSparse": null
+    },
+    "11904": {
+      "effects": [],
+      "id": 11904,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 134564,
+        "inventoryType": 23,
+        "material": 3,
+        "sheatheType": 7,
+        "subclassId": 0
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Spirit of Aquementas",
+        "dmgVariance": 0.2,
+        "flags": [0, 24580, 0, 0, 0],
+        "inventoryType": 23,
+        "itemDelay": 0,
+        "itemLevel": 56,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 3,
+        "maxCount": 0,
+        "overallQualityId": 2,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 7,
+        "statModifierBonusStat": [45, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [14286, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
     },
     "11924": {
       "effects": [],
@@ -9569,6 +9686,19 @@
       },
       "itemSparse": null
     },
+    "13396": {
+      "effects": [],
+      "id": 13396,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 133729,
+        "inventoryType": 26,
+        "material": 2,
+        "sheatheType": 0,
+        "subclassId": 19
+      },
+      "itemSparse": null
+    },
     "13397": {
       "effects": [],
       "id": 13397,
@@ -10516,6 +10646,146 @@
       },
       "itemSparse": null
     },
+    "14106": {
+      "effects": [],
+      "id": 14106,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132650,
+        "inventoryType": 20,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 2,
+        "damageType": 0,
+        "display": "Felcloth Robe",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 20,
+        "itemDelay": 0,
+        "itemLevel": 61,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 2,
+        "requiredLevel": 56,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [7, 88, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [2593, 13333, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "14107": {
+      "effects": [],
+      "id": 14107,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 134586,
+        "inventoryType": 7,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 2,
+        "damageType": 0,
+        "display": "Felcloth Pants",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 7,
+        "itemDelay": 0,
+        "itemLevel": 55,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 2,
+        "requiredLevel": 50,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [5, 88, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [5000, 10833, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "14112": {
+      "effects": [],
+      "id": 14112,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 135054,
+        "inventoryType": 3,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 2,
+        "damageType": 0,
+        "display": "Felcloth Shoulders",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 3,
+        "itemDelay": 0,
+        "itemLevel": 62,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 2,
+        "requiredLevel": 57,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [6, 88, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [2500, 13000, 0, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "14136": {
+      "effects": [],
+      "id": 14136,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132690,
+        "inventoryType": 20,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 2,
+        "damageType": 0,
+        "display": "Robe of Winter Night",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 20,
+        "itemDelay": 0,
+        "itemLevel": 57,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 3,
+        "requiredLevel": 52,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [5, 88, 87, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [3636, 12121, 12121, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
     "14137": {
       "effects": [],
       "id": 14137,
@@ -10702,6 +10972,54 @@
         "sheatheType": 0,
         "statModifierBonusStat": [5, 45, 32, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [2667, 8889, 3111, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "14153": {
+      "effects": [
+        {
+          "categoryCoolDownMSec": 0,
+          "charges": 0,
+          "chrSpecializationId": 0,
+          "coolDownMSec": 600000,
+          "id": 99907,
+          "legacySlotIndex": 1,
+          "playerConditionId": 0,
+          "spellCategoryId": 0,
+          "spellId": 18386,
+          "triggerType": 0
+        }
+      ],
+      "id": 14153,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132692,
+        "inventoryType": 20,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": 31488,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Robe of the Void",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 20,
+        "itemDelay": 0,
+        "itemLevel": 62,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 57,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [7, 5, 45, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [2222, 2000, 10222, 0, 0, 0, 0, 0, 0, 0]
       }
     },
     "14340": {
@@ -18068,6 +18386,19 @@
       },
       "itemSparse": null
     },
+    "17719": {
+      "effects": [],
+      "id": 17719,
+      "item": {
+        "classId": 2,
+        "iconFileDataId": 135312,
+        "inventoryType": 21,
+        "material": 1,
+        "sheatheType": 3,
+        "subclassId": 7
+      },
+      "itemSparse": null
+    },
     "17774": {
       "effects": [
         {
@@ -23453,6 +23784,41 @@
         "sheatheType": 0,
         "statModifierBonusStat": [7, 51, 45, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [4286, 3265, 8776, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "19309": {
+      "effects": [],
+      "id": 19309,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133738,
+        "inventoryType": 23,
+        "material": 8,
+        "sheatheType": 0,
+        "subclassId": 0
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Tome of Shadow Force",
+        "dmgVariance": 0,
+        "flags": [32768, 24580, 0, 0, 0],
+        "inventoryType": 23,
+        "itemDelay": 0,
+        "itemLevel": 65,
+        "itemRange": 0,
+        "itemSet": 0,
+        "material": 8,
+        "maxCount": 1,
+        "overallQualityId": 4,
+        "requiredLevel": 60,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [7, 88, -1, -1, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [2963, 12593, 0, 0, 0, 0, 0, 0, 0, 0]
       }
     },
     "19310": {
@@ -31612,6 +31978,76 @@
         "sheatheType": 0,
         "statModifierBonusStat": [5, 7, 45, -1, -1, -1, -1, -1, -1, -1],
         "statPercentEditor": [5714, 5714, 4286, 0, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "22074": {
+      "effects": [],
+      "id": 22074,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 133131,
+        "inventoryType": 1,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Deathmist Mask",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 1,
+        "itemDelay": 0,
+        "itemLevel": 60,
+        "itemRange": 0,
+        "itemSet": 518,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [5, 7, 45, 31, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [5455, 5455, 3636, 2273, 0, 0, 0, 0, 0, 0]
+      }
+    },
+    "22077": {
+      "effects": [],
+      "id": 22077,
+      "item": {
+        "classId": 4,
+        "iconFileDataId": 132966,
+        "inventoryType": 10,
+        "material": 7,
+        "sheatheType": 0,
+        "subclassId": 1
+      },
+      "itemSparse": {
+        "allowableClass": -1,
+        "allowableRace": [-1, -1],
+        "bonding": 1,
+        "damageType": 0,
+        "display": "Deathmist Wraps",
+        "dmgVariance": 0,
+        "flags": [0, 24580, 0, 32, 0],
+        "inventoryType": 10,
+        "itemDelay": 0,
+        "itemLevel": 55,
+        "itemRange": 0,
+        "itemSet": 518,
+        "material": 7,
+        "maxCount": 0,
+        "overallQualityId": 4,
+        "requiredLevel": 0,
+        "requiredSkill": 0,
+        "requiredSkillRank": 0,
+        "sheatheType": 0,
+        "statModifierBonusStat": [7, 5, 45, 31, -1, -1, -1, -1, -1, -1],
+        "statPercentEditor": [5333, 4333, 4333, 3333, 0, 0, 0, 0, 0, 0]
       }
     },
     "22078": {

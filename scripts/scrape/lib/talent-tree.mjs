@@ -50,9 +50,16 @@ export const FOREVER_TREE_TABLES = [
 export const CLASSIC_TREE_TABLES = ["Talent", "TalentTab", "ChrClasses"];
 
 /** SpellClassOptions.SpellClassSet of each class (the spell family). */
-const SPELL_FAMILY = { warrior: 4, paladin: 10, druid: 7, shaman: 11, rogue: 8, mage: 3 };
+const SPELL_FAMILY = { warrior: 4, paladin: 10, druid: 7, shaman: 11, rogue: 8, mage: 3, warlock: 5 };
 /** ChrClasses.Name_lang of each class slug. */
-const CLASS_NAME = { warrior: "Warrior", paladin: "Paladin", druid: "Druid", shaman: "Shaman", rogue: "Rogue", mage: "Mage" };
+const CLASS_NAME = { warrior: "Warrior", paladin: "Paladin", druid: "Druid", shaman: "Shaman", rogue: "Rogue", mage: "Mage", warlock: "Warlock" };
+/**
+ * Tabs whose nodes leave a whole edge column empty, so the node positions alone can't tell the
+ * left edge, with the edge that places them. The warlock's Destruction (1.60.1.69913) has no talent
+ * in its fourth column: its nodes span PosX 9080–10280, and every other class's third tab starts at
+ * 9080 too (its first column), so its left edge is 9080. A new build that moves it fails the check.
+ */
+const NARROW_TABS = new Map([["warlock Destruction", { left: 9080, columns: 3 }]]);
 
 const rowsOf = (t) => t?.rows ?? [];
 const groupBy = (rows, key) => {
@@ -176,6 +183,11 @@ export function readForeverTree(t, cls) {
   }));
   for (const tab of tabs) {
     const width = Math.round((tab.right - tab.left) / GRID);
+    const narrow = NARROW_TABS.get(`${cls} ${tab.name}`);
+    if (narrow && tab.left === narrow.left && width + 1 === narrow.columns) {
+      notes.push(`${cls} ${tab.name}: nodes span ${width + 1} columns; its left edge is ${narrow.left}, as documented (NARROW_TABS)`);
+      continue;
+    }
     if (width !== 3) problems.push(`${cls} ${tab.name}: nodes span ${width + 1} columns (want 4), so the left edge is unknown`);
   }
   const top = Math.min(...nodes.map((n) => n.PosY));

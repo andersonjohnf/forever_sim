@@ -44,7 +44,7 @@ import {
 import { CLASSIC_TREE_TABLES, FOREVER_TREE_TABLES, createTooltipContext, isPassive, readClassicTrees, readForeverTree } from "./lib/talent-tree.mjs";
 import { buildDate, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
 
-const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage"];
+const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage", "warlock"];
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
 const SCRAPER = "scripts/scrape/spells-client.mjs";
@@ -54,11 +54,12 @@ const BASELINE_PRODUCT = "wow_classic_era";
 const DEFAULT_BASELINE = "1.15.9.69722";
 const RACE_TABLES = ["ChrRaces", "CharBaseInfo"];
 /**
- * Player stats for tooltips that scale with them (Victory Rush: "${1+$AP*$m3/100} damage"): a
- * reader with no attack power, so the text depends on the client files alone.
+ * Player stats for tooltips that scale with them (Victory Rush: "${1+$AP*$m3/100} damage"; Forever's
+ * Life Tap: "${($m1+$SPI*1)*…} mana"): a reader with no attack power and no Spirit, so the text
+ * depends on the client files alone.
  * docs/data/spells.md#caveats.
  */
-const TOOLTIP_STATS = { AP: 0 };
+const TOOLTIP_STATS = { AP: 0, SPI: 0 };
 /**
  * Classic Era rows that pass every rule but that no trainer teaches: cut content left in the
  * client's skill lines. Classic Era 22570 "Mangle" is a Feral finishing move (level 6, icon

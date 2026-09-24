@@ -51,6 +51,8 @@ export const ENCHANTS: EnchantSpec[] = [
     ],
   },
   { id: 'weaponAgility', name: 'Agility', slots: WEAPON_SLOTS, requires: 'weapon', summary: '+15 Agility', docRef: `${DOC}#51-weapon`, effects: [stat('agi', 15)] },
+  // 22749 → 2504 → 22747: +30 spell damage and healing (aura 13, all magic schools), the same in both clients.
+  { id: 'weaponSpellPower', name: 'Spell Power', slots: ['mainHand'], requires: 'weapon', summary: '+30 spell damage', docRef: `${DOC}#51-weapon`, effects: [stat('spellDamage', 30)] },
   { id: 'weaponStrength', name: 'Strength', slots: WEAPON_SLOTS, requires: 'weapon', summary: '+15 Strength', docRef: `${DOC}#51-weapon`, effects: [stat('str', 15)] },
   {
     id: 'superiorStriking',
@@ -105,6 +107,8 @@ export const ENCHANTS: EnchantSpec[] = [
   { id: 'arcanumConstitution', name: 'Lesser Arcanum of Constitution', slots: HEAD_LEGS, summary: '+100 health', docRef: `${DOC}#53-head-and-legs-arcanums-zg-idols-armor-kits`, effects: [stat('health', 100)] },
   { id: 'arcanumTenacity', name: 'Lesser Arcanum of Tenacity', slots: HEAD_LEGS, summary: '+125 armor', docRef: `${DOC}#53-head-and-legs-arcanums-zg-idols-armor-kits`, effects: [stat('bonusArmor', 125)] },
   { id: 'arcanumRapidity', name: 'Arcanum of Rapidity', slots: HEAD_LEGS, summary: '+1% attack speed', docRef: `${DOC}#53-head-and-legs-arcanums-zg-idols-armor-kits`, effects: [{ kind: 'haste', pct: 1 }] },
+  // 18330 → 2544 → 22843: +8 spell damage and healing (aura 13, all magic schools), the same in both clients.
+  { id: 'arcanumFocus', name: 'Arcanum of Focus', slots: HEAD_LEGS, summary: '+8 spell damage', docRef: `${DOC}#53-head-and-legs-arcanums-zg-idols-armor-kits`, effects: [stat('spellDamage', 8)] },
   { id: 'arcanumProtection', name: 'Arcanum of Protection', slots: HEAD_LEGS, summary: '+1% dodge', docRef: `${DOC}#53-head-and-legs-arcanums-zg-idols-armor-kits`, effects: [stat('dodge', 1)] },
   {
     id: 'presenceOfMight',

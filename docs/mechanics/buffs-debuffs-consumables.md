@@ -324,6 +324,7 @@ in the tooltips; category 79 [F] [client] (ItemEffect, 1.60.1.69913)).
 | Elixir of the Phalanx *(new)* | 250329 → 1250920 | +400 max health, +500 armor | 30 min | Unknown | New, required level 55 | [F] effect · [?] stacking | [fc/250329](https://foreverchanges.pro/item/250329) |
 | Elixir of Strength *(new)* | 250349 | +10 Str | 30 min | Unknown | New, required level 45 | [F] effect · [?] stacking | [fc/250349](https://foreverchanges.pro/item/250349) |
 | Greater Arcane Elixir | 13454 → 17539 | +35 spell damage (all schools, so Holy too) | 1 h | — | Alchemy (Same). Paladins only | [F] | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
+| Elixir of Shadow Power | 9264 → 11474 | +40 Shadow spell damage | 30 min | — | Alchemy (Same). Warlocks only among the classes in scope ([warlock](../classes/warlock.md#74-enchants-and-consumables)) | [F] | [client] (SpellEffect, 1.60.1.69913) |
 | Elixir of Holy Power *(Classic: Elixir of Greater Firepower)* | 21546 → 1310077 | **+40 Holy spell damage** (C: +40 Fire) | 30 min | — | Alchemy. Renamed and re-schooled, so it is now a paladin elixir | [F] | [fc/21546](https://foreverchanges.pro/item/21546) |
 | Gift of Arthas | 9088 → 11371 | +10 Shadow resistance. When the drinker is struck, it may put a debuff on the attacker: +8 physical damage taken for 3 min (11374) | 30 min | — | Alchemy (Same) | [F] | [fc-items] · [client] (SpellEffect, 1.60.1.69913) |
 
@@ -520,7 +521,7 @@ foreverchanges' item data [[fc-items]]. Classic values come from foreverchanges'
 | Icy Chill | 20029 / 1894 → 20005 | On hit: target attack speed −25% and movement speed −30% | 1.6 PPM [?] | Formula (Same) | [F] effect | [fc-ench] · [wiki-ppm] |
 | Lifestealing | 20032 / 1898 → 20004 | On hit: drains 30 Shadow health | 6 PPM [C] | Formula (Same) | [F] effect · [C] rate | [fc-ench] · [ws-gear] |
 | Unholy Weapon | 20033 / 1899 → 20006 | On hit: target's physical damage done −15 | 3 PPM [?] | Formula (Same) | [F] effect | [fc-ench] · [wiki-ppm] |
-| Weapon – Spell Power | 22749 / 2504 | +30 spell damage and healing | Permanent | Formula (Same). A paladin option | [F] | [fc-ench] |
+| Weapon – Spell Power | 22749 / 2504 | +30 spell damage and healing | Permanent | Formula (Same). A paladin option; the warlock's default ([warlock](../classes/warlock.md#74-enchants-and-consumables)) | [F] | [fc-ench] |
 | Recovery *(new)* | 1248760 / 8721 | When parried or dodged: heal 5% of max health (10 s cooldown) | — | New formula | [F] | [fc-ench] |
 | Demonslaying | 13915 / 912 | Vs demons: **100** damage + stun (C: 75) | Proc | Formula | [F] | [fc-ench] |
 | Grand Crusader | 1231128 / 7940 | On hit: +120 Str for 20 s, heals 350–450 | Proc | **No recipe item in Forever** | [F] effect · [?] availability | [fc-ench] · [client] (SpellItemEnchantment, 1.60.1.69913) |
@@ -759,6 +760,7 @@ their stacking group is verified; the UI offers them as options.
 | Retribution | Smoked Desert Dumplings; Dense stone | Mongoose; Giants; **Greater Arcane Elixir** (per-spec entry: Forever Ret's seals, judgements and Holy Strike scale with spell power, see [paladin](../classes/paladin.md#retribution-defaults)); Smoked Desert Dumplings; Dense stone; Major Mana Potion | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Elixir of Holy Power; Elemental stone; Demonic / Dark Rune; Flask of Supreme Power (whether it pays off depends on Ret's Holy-damage scaling, see [paladin](../classes/paladin.md)) |
 | Enhancement shaman | Smoked Desert Dumplings | Mongoose; Giants; Smoked Desert Dumplings; Major Mana Potion. No stone: the weapon imbue is the main hand's temporary enchant ([shaman](../classes/shaman.md#defaults)) | Juju Power; Juju Might; R.O.I.D.S.; Juju Flurry (on use); Greater Arcane Elixir; Flask of Supreme Power; Demonic / Dark Rune |
 | Rogue (all three) | Flank au Poivre; Deadly Poison V (main hand), Instant Poison VI (off hand) | Mongoose; Flank au Poivre; the same poisons; Thistle Tea | Juju Power; Juju Might; Ground Scorpok Assay; Juju Flurry (on use) |
+| Warlock (both) | — | Greater Arcane Elixir; Elixir of Shadow Power; Major Mana Potion ([warlock](../classes/warlock.md#74-enchants-and-consumables)) | Flask of Supreme Power; Demonic / Dark Rune |
 | Prot paladin | Nightfin Soup | Elixir of Greater Defense; Elixir of Fortitude; Elixir of Holy Power; Nightfin Soup (+22 spell damage); Wizard Oil; Major Mana Potion | Flask of Supreme Power; Greater Arcane Elixir; Brilliant Wizard Oil (replaces Wizard Oil); Demonic / Dark Rune |
 | Mage (Fire, Frost, Arcane) | — | Greater Arcane Elixir; Major Mana Potion. Conjured mana gems are the mage's own ([mage](../classes/mage.md#mana)) | Flask of Supreme Power; Demonic / Dark Rune. Brilliant Wizard Oil, Elixir of Frost Power and the caster foods aren't in the catalogue yet (a known gap) |
 
@@ -786,6 +788,11 @@ are defaults only if the guild confirms the content exists; the fallback is in b
 | Weapon | Crusader (each weapon) | Crusader | 2H Agility (+25) | 2H Agility (+25) | Crusader | Spell Power (+30) |
 | Shield | — | Greater Stamina (+9) | — | — | — | Greater Stamina (+9) |
 | Necklace (new) | Strength (+5) | Strength (+5) | Agility (+5) | Agility (+5) | Strength (+5) | — |
+
+**Warlock** ([warlock](../classes/warlock.md#74-enchants-and-consumables)): Arcanum of Focus (+8 spell
+damage) on head and legs, Greater Stats on the chest, Minor Haste gloves (Forever's +1% casting
+speed), and the weapon's Spell Power (+30). The catalogue has no caster enchant for the other slots
+yet, so they stay empty.
 
 The Superior Strength and Superior Agility gloves (+15) are stronger than Greater (+10) but
 come from harder-to-get formulas. Offer them as options; don't default to them.
@@ -1102,6 +1109,7 @@ melee and ranged crit (aura 52) in Classic Era.
 | Flask of the Titans (`flaskOfTheTitans`) | +1200 health | same | 13510 → 17626 #0: 1199 + 1 | [C] |
 | Flask of Supreme Power (`flaskOfSupremePower`) | +150 spell damage | same | 13512 → 17628 #0 (aura 13, all magic schools): 149 + 1 | [C] |
 | Greater Arcane Elixir (`greaterArcaneElixir`) | +35 spell damage | same | 13454 → 17539 #0 (aura 13, all magic schools): 34 + 1 | [C] |
+| Elixir of Shadow Power (`elixirOfShadowPower`) | +40 Shadow spell damage | same | 9264 → 11474 #0 (aura 13, Shadow): 39 + 1 | [C] |
 | Elixir of Holy Power (`elixirOfHolyPower`) | +40 Holy spell damage | **+40 Fire spell damage** (Elixir of Greater Firepower): nothing for Holy | 21546 → 26276 #0 (aura 13, Fire): 39 + 1 (Forever: 1310077, Holy) | [C] |
 | Flasks of Natural Accuracy, Aggression, Precision, Swiftness (`flaskOfNatural…`) | +60 Sta and a zone bonus | none: new in Forever (274273–274276) | — | [F] |
 | Winterfall Firewater (`winterfallFirewater`) | +35 AP | same | 12820 → 17038 #0: 34 + 1 | [C] |
@@ -1130,6 +1138,7 @@ melee and ranged crit (aura 52) in Classic Era.
 | --- | --- | --- | --- | --- |
 | Crusader (`crusader`) | +100 Str for 15 s | same | 20034 → 1900 → 20007 #0: 99 + 1; 15 s (the PPM is server-side) | [C] |
 | Weapon – Agility, Strength (`weaponAgility`, `weaponStrength`) | +15 Agi, +15 Str | same | 23800 → 2564 → 23794: 14 + 1; 23799 → 2563 → 23793: 14 + 1 | [C] |
+| Weapon – Spell Power (`weaponSpellPower`) | +30 spell damage | same | 22749 → 2504 → 22747 #0 (aura 13, all magic schools): 29 + 1 | [C] |
 | Superior Striking (`superiorStriking`) | +5 weapon damage | same | 20031 → 1897: 5 | [C] |
 | Fiery Weapon (`fieryWeapon`) | 40 Fire damage | same | 13898 → 803 → 13897 #0: 39 + 1 | [C] |
 | 2H Weapon – Agility (`twoHandAgility`) | +25 Agi | same | 27837 → 2646 → 27836: 24 + 1 | [C] |
@@ -1137,6 +1146,7 @@ melee and ranged crit (aura 52) in Classic Era.
 | 2H Weapon – Superior Impact (`superiorImpact`) | +9 weapon damage | same | 20030 → 1896: 9 | [C] |
 | Lesser Arcanum of Voracity (`arcanumVoracityStrength`, `…Agility`, `…Stamina`) | +8 | same | 1506, 1508, 1507 → 15396, 15401, 15399: 7 + 1 | [C] |
 | Lesser Arcanum of Constitution, Tenacity (`arcanumConstitution`, `arcanumTenacity`) | +100 health, +125 armor | same | 1503 → 15388: 99 + 1; 1504 → 15390: 124 + 1 | [C] |
+| Arcanum of Focus (`arcanumFocus`) | +8 spell damage | same | 2544 → 22843 #0 (aura 13, all magic schools): 7 + 1 | [C] |
 | Arcanum of Rapidity, Protection (`arcanumRapidity`, `arcanumProtection`) | +1% attack speed, +1% dodge | same | 2543 → 22841 #0 (aura 138): 0 + 1; 2545 → 22847: 0 + 1 | [C] |
 | Presence of Might (`presenceOfMight`) | +10 Sta, +7 defense, +15 block value | same | 2583 → 24148: 9 + 1, 6 + 1, 14 + 1 | [C] |
 | Forceful Rugged, Wild Leather Armor Kit (`forcefulRuggedArmorKit`, `wildLeatherArmorKit`) | +10 AP and +40 armor; +4 defense and +10 Sta | none: new in Forever (enchants 8491, 8719) | — | [F] |

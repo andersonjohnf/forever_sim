@@ -179,5 +179,23 @@
         ""
       ]
     }
+  },
+  "warlock": {
+    "25-0050203001-0050355103101351": {
+      "note": "Destruction default (7/11/33, Fire), warlock.md §7.1",
+      "ranks": [
+        "Improved Life Tap 2, Suppression 5",
+        "Demonic Embrace 5, Demonic Aegis 2, Fel Vitality 3, Demonic Sacrifice 1",
+        "Bane 5, Cataclysm 3, Aftermath 5, Ruin 5, Shadowburn 1, Agonizing Flames 3, Conflagrate 1, Bane of Havoc 1, Fire and Brimstone 3, Shadow and Flame 5, Incinerate 1"
+      ]
+    },
+    "2555002003520105-0050203001-005": {
+      "note": "Affliction default (35/11/5), warlock.md §7.1",
+      "ranks": [
+        "Improved Life Tap 2, Suppression 5, Improved Corruption 5, Malediction 5, Improved Bane of Agony 2, Pandemic 3, Malevolence 5, Nightfall 2, Siphon Life 1, Shadow Mastery 5",
+        "Demonic Embrace 5, Demonic Aegis 2, Fel Vitality 3, Demonic Sacrifice 1",
+        "Bane 5"
+      ]
+    }
   }
 }

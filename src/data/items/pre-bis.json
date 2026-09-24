@@ -4,16 +4,16 @@
     "classicProduct": "wow_classic_era",
     "counts": {
       "byTab": {
-        "changed": 365,
-        "missing": 761,
+        "changed": 368,
+        "missing": 765,
         "new": 328,
-        "unchanged": 224
+        "unchanged": 230
       },
-      "items": 1678,
+      "items": 1691,
       "sets": 102,
       "statsFrom": {
-        "classic": 761,
-        "forever": 917
+        "classic": 765,
+        "forever": 926
       }
     },
     "descriptionCoverage": {
@@ -58,13 +58,13 @@
           "usedBy": ["item 16022"]
         }
       ],
-      "rendered": 543
+      "rendered": 544
     },
     "fallbackEffects": {
       "effectsFromForever": 112,
-      "items": 513,
-      "spells": 639,
-      "spellsFromForever": 639
+      "items": 517,
+      "spells": 643,
+      "spellsFromForever": 643
     },
     "filter": {
       "equippableOnly": true,
@@ -149,10 +149,10 @@
       }
     ],
     "preRaidBis": {
-      "addedByList": 98,
+      "addedByList": 111,
       "file": "scripts/scrape/pre-raid-bis.json",
-      "inPool": 291,
-      "listedItems": 291,
+      "inPool": 316,
+      "listedItems": 316,
       "notInData": [],
       "specs": {
         "druid-feral-bear": {
@@ -261,6 +261,26 @@
             "snapshot": "2021-05-15",
             "title": "Classic Enhancement Shaman Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic Phase 6",
             "url": "https://classic.wowhead.com/guides/wow-classic-enhancement-shaman-dps-pre-raid-best-in-slot-gear"
+          }
+        },
+        "warlock-affliction": {
+          "name": "Affliction Warlock",
+          "note": "The same guide's one list for every warlock, as for Destruction (see its note).",
+          "source": {
+            "archivedUrl": "https://web.archive.org/web/20210518023319/https://classic.wowhead.com/guides/wow-classic-warlock-dps-pre-raid-best-in-slot-gear",
+            "snapshot": "2021-05-18",
+            "title": "Classic Warlock Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic 1.13",
+            "url": "https://classic.wowhead.com/guides/wow-classic-warlock-dps-pre-raid-best-in-slot-gear"
+          }
+        },
+        "warlock-destruction": {
+          "name": "Destruction Warlock",
+          "note": "The guide has one table ('Warlock Pre-Raid Best in Slot Gear (BiS) - WoW Classic Phase 6') for every warlock. It does not split Affliction and Destruction. Its 15 'of Shadow Wrath' random-suffix items are left out, and the items below them move up. Their shadow damage comes only from the random suffix (RandomSelect), which the item pool doesn't model, so the base items have no spell stats. They are: Eternal Crown and Green Lens (head), Eternal Spaulders, Archivist Cape and Master's Cloak, Master's Vest, Tearfall Bracers, Flameweave Cuffs and Master's Bracers, Atal'ai Gloves, Master's Boots, Bloodstrike Dagger (one-hand), Drakestone (off-hand), Solstice Staff and Lunar Wand. That is why back and wrist keep fewer than three items. The Horde Dreadweave PvP pieces (Rank 7-10) get their Alliance counterpart at the same rank. The guide already lists both factions' battleground belts and Blackrock Depths rings.",
+          "source": {
+            "archivedUrl": "https://web.archive.org/web/20210518023319/https://classic.wowhead.com/guides/wow-classic-warlock-dps-pre-raid-best-in-slot-gear",
+            "snapshot": "2021-05-18",
+            "title": "Classic Warlock Best in Slot (BiS) Pre-Raid Gear Guide - WoW Classic 1.13",
+            "url": "https://classic.wowhead.com/guides/wow-classic-warlock-dps-pre-raid-best-in-slot-gear"
           }
         },
         "warrior-arms": {
@@ -3130,6 +3150,16 @@
           "rank": 3,
           "slot": "head",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 3,
+          "slot": "head",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 3,
+          "slot": "head",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -3943,6 +3973,72 @@
       "armorType": "cloth",
       "binding": "BoP",
       "classes": null,
+      "classic": {
+        "stats": {
+          "armor": 75,
+          "intellect": 24,
+          "spellHit": 1,
+          "spellPower": 16,
+          "stamina": 24
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["head"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_helmet_29",
+      "id": 22074,
+      "itemClass": "Armor",
+      "itemLevel": 60,
+      "itemSubclass": "Cloth",
+      "name": "Deathmist Mask",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "head",
+          "spec": "warlock-affliction"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 20067,
+      "setId": "518",
+      "slot": "head",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 75,
+        "hitRating": 10,
+        "intellect": 24,
+        "spellPower": 16,
+        "stamina": 24
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": null,
       "classic": null,
       "classicName": null,
       "equipSlots": ["head"],
@@ -4640,7 +4736,18 @@
       "name": "Champion's Dreadweave Cowl",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "warlock-affliction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -5151,7 +5258,18 @@
       "name": "Lieutenant Commander's Dreadweave Cowl",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "head",
+          "spec": "warlock-affliction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -7025,6 +7143,16 @@
           "rank": 3,
           "slot": "neck",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 1,
+          "slot": "neck",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "neck",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -8004,7 +8132,18 @@
       "name": "Dark Advisor's Pendant",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9327 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "neck",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 3,
+          "slot": "neck",
+          "spec": "warlock-affliction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -8317,6 +8456,16 @@
           "rank": 1,
           "slot": "neck",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 2,
+          "slot": "neck",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "neck",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -10953,6 +11102,60 @@
       "armorType": "cloth",
       "binding": "BoE",
       "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["shoulder"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_shoulder_23",
+      "id": 14112,
+      "itemClass": "Armor",
+      "itemLevel": 62,
+      "itemSubclass": "Cloth",
+      "name": "Felcloth Shoulders",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "shoulder",
+          "spec": "warlock-affliction"
+        }
+      ],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 57,
+      "requirements": [],
+      "sellPrice": 13509,
+      "setId": null,
+      "slot": "shoulder",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 60,
+        "shadowSpellDamage": 26,
+        "spirit": 5
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoE",
+      "classes": null,
       "classic": {
         "stats": {
           "armor": 65,
@@ -13056,6 +13259,16 @@
           "rank": 3,
           "slot": "shoulder",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 3,
+          "slot": "shoulder",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 3,
+          "slot": "shoulder",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -15050,7 +15263,18 @@
       "name": "Champion's Dreadweave Spaulders",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "warlock-affliction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -15550,7 +15774,18 @@
       "name": "Lieutenant Commander's Dreadweave Spaulders",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "shoulder",
+          "spec": "warlock-affliction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -18278,6 +18513,16 @@
           "rank": 1,
           "slot": "back",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 1,
+          "slot": "back",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "back",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -18588,6 +18833,16 @@
           "rank": 2,
           "slot": "back",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 2,
+          "slot": "back",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "back",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -21133,6 +21388,115 @@
       "armorType": "cloth",
       "binding": "BoE",
       "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["chest"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_chest_cloth_09",
+      "id": 14106,
+      "itemClass": "Armor",
+      "itemLevel": 61,
+      "itemSubclass": "Cloth",
+      "name": "Felcloth Robe",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "chest",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 3,
+          "slot": "chest",
+          "spec": "warlock-affliction"
+        }
+      ],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 56,
+      "requirements": [],
+      "sellPrice": 18053,
+      "setId": null,
+      "slot": "chest",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 79,
+        "shadowSpellDamage": 36,
+        "stamina": 7
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoE",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["chest"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_chest_cloth_49",
+      "id": 14136,
+      "itemClass": "Armor",
+      "itemLevel": 57,
+      "itemSubclass": "Cloth",
+      "name": "Robe of Winter Night",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "chest",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "chest",
+          "spec": "warlock-affliction"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 52,
+      "requirements": [],
+      "sellPrice": 17025,
+      "setId": null,
+      "slot": "chest",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 81,
+        "frostSpellDamage": 40,
+        "intellect": 12,
+        "shadowSpellDamage": 40
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoE",
+      "classes": null,
       "classic": {
         "stats": {
           "armor": 85,
@@ -21252,6 +21616,75 @@
           "cooldownSec": 300,
           "raw": "Use: Restores 375 to 625 mana. (5 Min Cooldown)",
           "spellId": 18385
+        }
+      ],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": ["Warlock"],
+      "classic": {
+        "stats": {
+          "armor": 96,
+          "spellPower": 46,
+          "stamina": 14
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["chest"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_chest_cloth_51",
+      "id": 14153,
+      "itemClass": "Armor",
+      "itemLevel": 62,
+      "itemSubclass": "Cloth",
+      "name": "Robe of the Void",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "chest",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "chest",
+          "spec": "warlock-affliction"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 57,
+      "requirements": [],
+      "sellPrice": 28920,
+      "setId": null,
+      "slot": "chest",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 96,
+        "intellect": 9,
+        "spellPower": 46,
+        "stamina": 10
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [
+        {
+          "cooldownSec": 600,
+          "raw": "Use: Heal your pet for 450 to 750. (10 Min Cooldown)",
+          "spellId": 18386
         }
       ],
       "weapon": null,
@@ -29146,6 +29579,16 @@
           "rank": 3,
           "slot": "wrist",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 1,
+          "slot": "wrist",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "wrist",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -32831,6 +33274,16 @@
           "rank": 1,
           "slot": "hands",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 3,
+          "slot": "hands",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 3,
+          "slot": "hands",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -35401,7 +35854,18 @@
       "name": "Felcloth Gloves",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "hands",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "hands",
+          "spec": "warlock-affliction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -36894,6 +37358,72 @@
         "armor": 108,
         "stamina": 9,
         "strength": 12
+      },
+      "statsFrom": "forever",
+      "tab": "changed",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoP",
+      "classes": null,
+      "classic": {
+        "stats": {
+          "armor": 54,
+          "intellect": 13,
+          "spellHit": 1,
+          "spellPower": 13,
+          "stamina": 16
+        },
+        "weapon": null,
+        "weaponSkill": null
+      },
+      "classicName": null,
+      "equipSlots": ["hands"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_gauntlets_32",
+      "id": 22077,
+      "itemClass": "Armor",
+      "itemLevel": 55,
+      "itemSubclass": "Cloth",
+      "name": "Deathmist Wraps",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "hands",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "hands",
+          "spec": "warlock-affliction"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 10299,
+      "setId": "518",
+      "slot": "hands",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 54,
+        "hitRating": 10,
+        "intellect": 13,
+        "spellPower": 13,
+        "stamina": 16
       },
       "statsFrom": "forever",
       "tab": "changed",
@@ -40264,6 +40794,16 @@
           "rank": 1,
           "slot": "waist",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 1,
+          "slot": "waist",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "waist",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -40917,6 +41457,16 @@
           "rank": 2,
           "slot": "waist",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 3,
+          "slot": "waist",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -43950,6 +44500,16 @@
           "rank": 2,
           "slot": "waist",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -44085,6 +44645,16 @@
           "rank": 2,
           "slot": "waist",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "waist",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -48129,6 +48699,16 @@
           "rank": 2,
           "slot": "legs",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "legs",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -48376,6 +48956,60 @@
         "armor": 63,
         "frostSpellDamage": 26,
         "spirit": 12
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": "cloth",
+      "binding": "BoE",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["legs"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_pants_06",
+      "id": 14107,
+      "itemClass": "Armor",
+      "itemLevel": 55,
+      "itemSubclass": "Cloth",
+      "name": "Felcloth Pants",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "legs",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 3,
+          "slot": "legs",
+          "spec": "warlock-affliction"
+        }
+      ],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 50,
+      "requirements": [],
+      "sellPrice": 13140,
+      "setId": null,
+      "slot": "legs",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "armor": 62,
+        "intellect": 12,
+        "shadowSpellDamage": 26
       },
       "statsFrom": "forever",
       "tab": "unchanged",
@@ -53162,7 +53796,18 @@
       "name": "Legionnaire's Dreadweave Legguards",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "warlock-affliction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -53601,7 +54246,18 @@
       "name": "Knight-Captain's Dreadweave Legguards",
       "notes": [],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "legs",
+          "spec": "warlock-affliction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -55382,6 +56038,16 @@
           "rank": 2,
           "slot": "feet",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 2,
+          "slot": "feet",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "feet",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -57972,6 +58638,16 @@
           "rank": 3,
           "slot": "feet",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 3,
+          "slot": "feet",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 3,
+          "slot": "feet",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -58464,7 +59140,18 @@
       "name": "Maleki's Footwraps",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 18009 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "feet",
+          "spec": "warlock-affliction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -63458,6 +64145,60 @@
       "flavor": null,
       "foreverData": false,
       "foreverSource": null,
+      "icon": "inv_jewelry_ring_15",
+      "id": 1980,
+      "itemClass": "Armor",
+      "itemLevel": 43,
+      "itemSubclass": "Miscellaneous",
+      "name": "Underworld Band",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9414 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "finger",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 3,
+          "slot": "finger",
+          "spec": "warlock-affliction"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 38,
+      "requirements": [],
+      "sellPrice": 6200,
+      "setId": null,
+      "slot": "finger",
+      "source": null,
+      "statSpellIds": [9414],
+      "stats": {
+        "shadowSpellDamage": 14,
+        "spirit": 6,
+        "stamina": 10
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoE",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["finger"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
       "icon": "inv_jewelry_ring_05",
       "id": 2246,
       "itemClass": "Armor",
@@ -63501,6 +64242,58 @@
       "statsFrom": "classic",
       "tab": "missing",
       "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoE",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["finger"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_jewelry_ring_11",
+      "id": 7553,
+      "itemClass": "Armor",
+      "itemLevel": 48,
+      "itemSubclass": "Miscellaneous",
+      "name": "Band of the Unicorn",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9342 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 4,
+          "slot": "finger",
+          "spec": "warlock-affliction"
+        }
+      ],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 43,
+      "requirements": [],
+      "sellPrice": 2542,
+      "setId": null,
+      "slot": "finger",
+      "source": null,
+      "statSpellIds": [9342],
+      "stats": {
+        "spellPower": 13
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
       "uniqueEquipped": null,
       "useEffects": [],
       "weapon": null,
@@ -63678,6 +64471,16 @@
           "rank": 4,
           "slot": "finger",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -63780,6 +64583,16 @@
           "rank": 4,
           "slot": "finger",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "finger",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -63914,7 +64727,18 @@
       "name": "Maiden's Circle",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9346 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "finger",
+          "spec": "warlock-affliction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -67941,6 +68765,16 @@
           "rank": 3,
           "slot": "trinket",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 4,
+          "slot": "trinket",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 4,
+          "slot": "trinket",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -68013,6 +68847,16 @@
           "rank": 1,
           "slot": "trinket",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "trinket",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -68486,6 +69330,16 @@
           "rank": 2,
           "slot": "trinket",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 2,
+          "slot": "trinket",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "trinket",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -69424,7 +70278,18 @@
       "name": "Royal Seal of Eldre'Thalas",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are the Forever client's item effects; spell 1318479 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "trinket",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 3,
+          "slot": "trinket",
+          "spec": "warlock-affliction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -70863,6 +71728,16 @@
           "rank": 2,
           "slot": "twoHand",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 2,
+          "slot": "twoHand",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "twoHand",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -72887,6 +73762,16 @@
           "rank": 1,
           "slot": "twoHand",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "twoHand",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -75823,7 +76708,18 @@
       "name": "Blade of the New Moon",
       "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9326 read from the Forever client."],
       "otherEquip": [],
-      "preRaidBis": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "mainHand",
+          "spec": "warlock-affliction"
+        }
+      ],
       "procs": [],
       "quality": 3,
       "races": null,
@@ -78092,6 +78988,16 @@
           "rank": 2,
           "slot": "mainHand",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 2,
+          "slot": "mainHand",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "mainHand",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -78587,6 +79493,65 @@
       },
       "weaponSkill": null,
       "weaponType": "axe"
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["mainHand", "offHand"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
+      "icon": "inv_sword_14",
+      "id": 17719,
+      "itemClass": "Weapon",
+      "itemLevel": 53,
+      "itemSubclass": "One-Handed Swords",
+      "name": "Inventor's Focal Sword",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 18384 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "mainHand",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 3,
+          "slot": "mainHand",
+          "spec": "warlock-affliction"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 48,
+      "requirements": [],
+      "sellPrice": 32106,
+      "setId": null,
+      "slot": "oneHand",
+      "source": null,
+      "statSpellIds": [18384],
+      "stats": {
+        "spellCrit": 1
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": {
+        "dps": 35.2,
+        "max": 101,
+        "min": 54,
+        "school": "Physical",
+        "skill": "Swords",
+        "speed": 2.2
+      },
+      "weaponSkill": null,
+      "weaponType": "sword"
     },
     {
       "armorType": null,
@@ -81513,6 +82478,58 @@
       "classicName": null,
       "equipSlots": ["offHand"],
       "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
+      "icon": "inv_ore_arcanite_02",
+      "id": 11904,
+      "itemClass": "Armor",
+      "itemLevel": 56,
+      "itemSubclass": "Miscellaneous",
+      "name": "Spirit of Aquementas",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 3,
+          "slot": "offHand",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 3,
+          "slot": "offHand",
+          "spec": "warlock-affliction"
+        }
+      ],
+      "procs": [],
+      "quality": 2,
+      "races": null,
+      "reqLevel": 0,
+      "requirements": [],
+      "sellPrice": 13815,
+      "setId": null,
+      "slot": "heldInOffHand",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "spellPower": 20
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["offHand"],
+      "flavor": null,
       "foreverData": false,
       "foreverSource": null,
       "icon": "inv_mace_13",
@@ -82054,6 +83071,59 @@
       "flavor": null,
       "foreverData": true,
       "foreverSource": "client",
+      "icon": "inv_misc_book_06",
+      "id": 19309,
+      "itemClass": "Armor",
+      "itemLevel": 65,
+      "itemSubclass": "Miscellaneous",
+      "name": "Tome of Shadow Force",
+      "notes": [],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 2,
+          "slot": "offHand",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "offHand",
+          "spec": "warlock-affliction"
+        }
+      ],
+      "procs": [],
+      "quality": 4,
+      "races": null,
+      "reqLevel": 60,
+      "requirements": [],
+      "sellPrice": 125000,
+      "setId": null,
+      "slot": "heldInOffHand",
+      "source": null,
+      "statSpellIds": [],
+      "stats": {
+        "shadowSpellDamage": 34,
+        "stamina": 8
+      },
+      "statsFrom": "forever",
+      "tab": "unchanged",
+      "unique": true,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": null,
+      "weaponSkill": null,
+      "weaponType": null
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["offHand"],
+      "flavor": null,
+      "foreverData": true,
+      "foreverSource": "client",
       "icon": "inv_misc_book_11",
       "id": 19310,
       "itemClass": "Armor",
@@ -82178,6 +83248,16 @@
           "rank": 1,
           "slot": "offHand",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 1,
+          "slot": "offHand",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "offHand",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -82981,6 +84061,65 @@
       "flavor": null,
       "foreverData": false,
       "foreverSource": null,
+      "icon": "inv_misc_bone_elfskull_01",
+      "id": 13396,
+      "itemClass": "Weapon",
+      "itemLevel": 57,
+      "itemSubclass": "Wand",
+      "name": "Skul's Ghastly Touch",
+      "notes": ["Stats from Classic Era (no Forever ItemSparse row); effects are Classic Era's item effects (the Forever client links none); spell 9414 read from the Forever client."],
+      "otherEquip": [],
+      "preRaidBis": [
+        {
+          "rank": 1,
+          "slot": "ranged",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 1,
+          "slot": "ranged",
+          "spec": "warlock-affliction"
+        }
+      ],
+      "procs": [],
+      "quality": 3,
+      "races": null,
+      "reqLevel": 52,
+      "requirements": [],
+      "sellPrice": 30853,
+      "setId": null,
+      "slot": "ranged",
+      "source": null,
+      "statSpellIds": [9414],
+      "stats": {
+        "shadowSpellDamage": 14
+      },
+      "statsFrom": "classic",
+      "tab": "missing",
+      "unique": false,
+      "uniqueEquipped": null,
+      "useEffects": [],
+      "weapon": {
+        "dps": 55.8,
+        "max": 131,
+        "min": 70,
+        "school": "Shadow",
+        "skill": "Wands",
+        "speed": 1.8
+      },
+      "weaponSkill": null,
+      "weaponType": "wand"
+    },
+    {
+      "armorType": null,
+      "binding": "BoP",
+      "classes": null,
+      "classic": null,
+      "classicName": null,
+      "equipSlots": ["ranged"],
+      "flavor": null,
+      "foreverData": false,
+      "foreverSource": null,
       "icon": "inv_weapon_shortblade_18",
       "id": 13534,
       "itemClass": "Weapon",
@@ -83052,6 +84191,16 @@
           "rank": 2,
           "slot": "ranged",
           "spec": "mage-arcane"
+        },
+        {
+          "rank": 2,
+          "slot": "ranged",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 2,
+          "slot": "ranged",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],
@@ -84426,6 +85575,16 @@
           "rank": 3,
           "slot": "ranged",
           "spec": "mage-fire"
+        },
+        {
+          "rank": 3,
+          "slot": "ranged",
+          "spec": "warlock-destruction"
+        },
+        {
+          "rank": 3,
+          "slot": "ranged",
+          "spec": "warlock-affliction"
         }
       ],
       "procs": [],

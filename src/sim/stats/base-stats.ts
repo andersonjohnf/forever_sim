@@ -128,6 +128,24 @@ const MAGE_ROWS: Readonly<Record<string, Attributes>> = {
   'horde-troll': { str: 31, agi: 37, sta: 46, int: 121, spi: 121 },
 }
 
+/**
+ * Warlock base attributes at level 60, [?] placeholders (D24 rule 2; docs/classes/warlock.md#76-base-values,
+ * character-stats.md OQ-1). Origin: the mangos emulator's 1.12 rows,
+ * https://github.com/mangoszero/database/blob/master/World/Setup/FullDB/player_levelstats.sql, not
+ * evidence; wowsims/classic's `base_stats.go` has the class row Str 45, Agi 50, Sta 65, Int 110, Spi 115,
+ * which is the Human row. Stored raw, before a racial: mangos's Human Spirit 120 is 115 × 1.05, and
+ * its Gnome Intellect 119 is 113 × 1.05, a Classic racial Forever removed. Classic Era had no Troll
+ * warlock: its row is the class row plus the [C] Troll offset (+1/+2/+1/−4/+1), a placeholder too.
+ * Skyborne can't be warlocks.
+ */
+const WARLOCK_ROWS: Readonly<Record<string, Attributes>> = {
+  'alliance-human': { str: 45, agi: 50, sta: 65, int: 110, spi: 115 },
+  'alliance-gnome': { str: 40, agi: 53, sta: 64, int: 113, spi: 115 },
+  'horde-orc': { str: 48, agi: 47, sta: 66, int: 107, spi: 118 },
+  'horde-undead': { str: 44, agi: 48, sta: 66, int: 108, spi: 120 },
+  'horde-troll': { str: 46, agi: 52, sta: 66, int: 106, spi: 116 },
+}
+
 export interface ClassBase {
   /** Base attributes by race id; null = unknown (OQ-1). */
   attributes: (race: string) => Attributes | null
@@ -279,6 +297,25 @@ export const CLASS_BASE: Record<ClassId, ClassBase> = {
     // docs/classes/mage.md#base-stats: PlayerExpectedStat.BaseMana and basemp.txt, 1213 [F]
     baseMana: 1213,
   },
+  warlock: {
+    // Unmeasured (docs/classes/warlock.md#76-base-values): the attribute rows, attack power, crit,
+    // spell crit, dodge and health are D24 placeholders, in BASE_PLACEHOLDERS below.
+    attributes: () => null,
+    baseAp: null,
+    baseCrit: null,
+    // PlayerExpectedStat.CritPerAgility 0.0005, 20 Agility per 1% [F]
+    critPerAgi: 0.05,
+    // PlayerExpectedStat.SpellCritPerIntellect 0.000165, 60.6 Intellect per 1% [F]
+    spellCritPerInt: 0.0165,
+    baseSpellCrit: null,
+    baseDodge: null,
+    // A warlock can't parry or block (no skill, no shield) [C].
+    baseParry: 0,
+    baseBlock: 0,
+    baseHealth: null,
+    // PlayerExpectedStat.BaseMana 1373 [F] (docs/mechanics/spells.md §8)
+    baseMana: 1373,
+  },
 }
 
 /**
@@ -398,5 +435,18 @@ export const BASE_PLACEHOLDERS: Record<ClassId, BasePlaceholders> = {
     baseSpellCrit: 0.2,
     /** Base dodge before Agility, %: matters only to a tank. */
     baseDodge: 3.2,
+  },
+  // docs/classes/warlock.md#76-base-values: every warlock base value nobody has measured, each "[?]
+  // placeholder (D24)": attributes and health 1,414 from the mangos emulator (wowsims/classic copies
+  // them), attack power −10 before Strength (wowsims/classic), and base spell crit 1.7%, melee crit
+  // and dodge 2% (wowsims/classic; RatingBuster's pre-SoD table reads spell crit −0.3%, so the sources
+  // conflict, as for the shaman). Not evidence.
+  warlock: {
+    attributes: WARLOCK_ROWS,
+    baseAp: -10,
+    baseHealth: 1414,
+    baseCrit: 2,
+    baseSpellCrit: 1.7,
+    baseDodge: 2,
   },
 }

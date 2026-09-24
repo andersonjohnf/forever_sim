@@ -14,6 +14,7 @@ import paladinSpellJson from './spells/paladin.json'
 import shamanSpellJson from './spells/shaman.json'
 import rogueSpellJson from './spells/rogue.json'
 import mageSpellJson from './spells/mage.json'
+import warlockSpellJson from './spells/warlock.json'
 import type { SpellBook } from './spells/types'
 import warriorSpellJson from './spells/warrior.json'
 import druidTalentJson from './talents/druid.json'
@@ -21,6 +22,7 @@ import paladinTalentJson from './talents/paladin.json'
 import shamanTalentJson from './talents/shaman.json'
 import rogueTalentJson from './talents/rogue.json'
 import mageTalentJson from './talents/mage.json'
+import warlockTalentJson from './talents/warlock.json'
 import {
   decodeTalentCode,
   encodeTalentCode,
@@ -39,6 +41,7 @@ const spellBooks = {
   shaman: shamanSpellJson as unknown as SpellBook,
   rogue: rogueSpellJson as unknown as SpellBook,
   mage: mageSpellJson as unknown as SpellBook,
+  warlock: warlockSpellJson as unknown as SpellBook,
 }
 const talentData = {
   warrior: warriorTalentJson as unknown as TalentData,
@@ -47,6 +50,7 @@ const talentData = {
   shaman: shamanTalentJson as unknown as TalentData,
   rogue: rogueTalentJson as unknown as TalentData,
   mage: mageTalentJson as unknown as TalentData,
+  warlock: warlockTalentJson as unknown as TalentData,
 }
 const races = raceJson as unknown as RaceData
 const items = itemJson as unknown as ItemData
@@ -71,7 +75,9 @@ describe.each(Object.entries(allDatasets))('%s', (_name, data) => {
 // adds or drops a spell fails here on purpose, so the change gets looked at and documented.
 // The rogue's 22 are its Poisons tab: Forever moved the Poisons skill line out of the class lines
 // (a profession-like category), so its book has none (docs/classes/rogue.md#1-wow-forever-changes).
-const BOOK_SIZES = { warrior: [42, 0], druid: [60, 1], paladin: [56, 3], shaman: [56, 5], rogue: [35, 22], mage: [61, 1] } as const
+// The warlock's 22 are Curse of Agony, Curse of Shadow and Curse of Doom (Forever's Banes replace
+// two, docs/classes/warlock.md#1-wow-forever-changes), Dark Pact, and the conjured stones and mounts.
+const BOOK_SIZES = { warrior: [42, 0], druid: [60, 1], paladin: [56, 3], shaman: [56, 5], rogue: [35, 22], mage: [61, 1], warlock: [55, 22] } as const
 
 describe.each(Object.entries(spellBooks))('spells/%s', (cls, book) => {
   const all = book.spells.flatMap((s) => s.ranks)
@@ -177,6 +183,11 @@ const CODE_ORDER: Record<keyof typeof talentData, Record<string, string>> = {
     Fire: 'Wake of Fire 2, Incineration 3, Improved Fireball 5, Ignite 5, Flame Throwing 2, Impact 3, Burning Soul 3, Improved Flamestrike 3, Pyroblast 1, Improved Scorch 3, Improved Fire Ward 2, Hot Streak 1, Master of Elements 3, Critical Mass 3, Blast Wave 1, Fire Power 5, Combustion 1',
     Frost: "Frost Warding 2, Improved Frostbolt 5, Elemental Precision 5, Ice Shards 5, Permafrost 3, Improved Frost Nova 2, Frostbite 3, Piercing Ice 3, Frost Channeling 3, Ice Lance 1, Improved Blizzard 3, Arctic Reach 2, Ice Block 1, Shatter 3, Improved Cone of Cold 3, Cold Snap 1, Fingers of Frost 2, Winter's Chill 5, Ice Barrier 1",
   },
+  warlock: {
+    Affliction: 'Improved Life Tap 2, Suppression 5, Improved Corruption 5, Malediction 5, Soul Harvesting 2, Improved Drains 3, Improved Bane of Agony 2, Fel Concentration 3, Amplify Curse 1, Pandemic 3, Malevolence 5, Nightfall 2, Curse of Exhaustion 1, Siphon Life 1, Soul Siphon 3, Shadow Mastery 5, Wrack 1',
+    Demonology: 'Improved Health Funnel 2, Improved Imp 3, Demonic Embrace 5, Unholy Power 5, Demonic Aegis 2, Improved Voidwalker 3, Fel Vitality 3, Demonic Energies 2, Improved Sayaad 3, Demonic Sacrifice 1, Master Summoner 2, Decimation 2, Fel Domination 1, Demonic Brand 3, Improved Felhunter 3, Soul Link 1, Demonic Knowledge 3, Master Demonologist 5, Demonic Pact 1',
+    Destruction: 'Destructive Reach 2, Improved Shadow Bolt 5, Bane 5, Molten Skin 5, Cataclysm 3, Aftermath 5, Ruin 5, Shadowburn 1, Intensity 3, Agonizing Flames 3, Conflagrate 1, Pyroclasm 2, Bane of Havoc 1, Fire and Brimstone 3, Shadow and Flame 5, Incinerate 1',
+  },
 }
 
 /** Ranks by talent name, per tree, in code order: "Name rank, Name rank". */
@@ -252,7 +263,7 @@ describe('talent presets and defaults', () => {
       const { classId } = SPEC_META[spec]
       expect(Object.keys(STORED_BUILDS[classId]), spec).toContain(defaultConfig(spec).talents)
     }
-    for (const classId of ['warrior', 'druid', 'paladin', 'shaman', 'rogue', 'mage'] as const) {
+    for (const classId of ['warrior', 'druid', 'paladin', 'shaman', 'rogue', 'mage', 'warlock'] as const) {
       const presets = talentPresets(classId)
       expect(presets.length, classId).toBeGreaterThan(0)
       expect(new Set(presets.map((p) => p.name)).size, classId).toBe(presets.length)
@@ -273,7 +284,7 @@ const NAME_USES = [/\btalents\.(?:has|get)\(\s*(['"])(.+?)\1/g, /\brank\(\s*tale
 describe('talent names the engine keys on', () => {
   const uses: { file: string; cls: keyof typeof talentData | null; name: string }[] = []
   for (const [file, source] of Object.entries(SIM_SOURCES)) {
-    const cls = (/\/classes\/(warrior|druid|paladin|shaman|rogue|mage)\//.exec(file)?.[1] ?? null) as keyof typeof talentData | null
+    const cls = (/\/classes\/(warrior|druid|paladin|shaman|rogue|mage|warlock)\//.exec(file)?.[1] ?? null) as keyof typeof talentData | null
     for (const re of NAME_USES) for (const m of source.matchAll(re)) uses.push({ file, cls, name: m[2] })
   }
   for (const name of Object.keys(TALENT_EFFECTS)) uses.push({ file: '../sim/classes/warrior/talents.ts (TALENT_EFFECTS)', cls: 'warrior', name })
@@ -286,7 +297,7 @@ describe('talent names the engine keys on', () => {
   it('exist in the talent data', () => {
     const namesOf = (cls: keyof typeof talentData) => new Set(talentData[cls].trees.flatMap((t) => t.talents.map((x) => x.name)))
     const missing = uses.filter((u) =>
-      u.cls ? !namesOf(u.cls).has(u.name) : !(['warrior', 'druid', 'paladin', 'shaman', 'rogue', 'mage'] as const).some((c) => namesOf(c).has(u.name)),
+      u.cls ? !namesOf(u.cls).has(u.name) : !(['warrior', 'druid', 'paladin', 'shaman', 'rogue', 'mage', 'warlock'] as const).some((c) => namesOf(c).has(u.name)),
     )
     expect(missing).toEqual([])
   })

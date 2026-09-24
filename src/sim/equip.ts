@@ -81,9 +81,20 @@ export const PROFICIENCY: Record<ClassId, Proficiency> = {
     relic: null,
     dualWield: false,
   },
+  // docs/classes/warlock.md#73-gear: cloth, daggers and swords, staves, wands, and an item held in
+  // the off hand; no shields or dual wield [C].
+  warlock: {
+    armor: ['cloth'],
+    shield: false,
+    oneHand: ['dagger', 'sword'],
+    twoHand: ['staff'],
+    ranged: ['wand'],
+    relic: null,
+    dualWield: false,
+  },
 }
 
-const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', paladin: 'Paladin', druid: 'Druid', shaman: 'Shaman', rogue: 'Rogue', mage: 'Mage' }
+const CLASS_NAME: Record<ClassId, string> = { warrior: 'Warrior', paladin: 'Paladin', druid: 'Druid', shaman: 'Shaman', rogue: 'Rogue', mage: 'Mage', warlock: 'Warlock' }
 
 /** The item gear slots each paper-doll slot accepts. */
 const SLOT_EQUIPS: Record<GearSlot, Item['equipSlots'][number]> = {

@@ -28,9 +28,9 @@ export const SPELLBOOK_TABLES = [
 ];
 
 /** ChrClasses.Name_lang of each class slug. */
-export const CLASS_NAME = { warrior: "Warrior", paladin: "Paladin", druid: "Druid", shaman: "Shaman", rogue: "Rogue", mage: "Mage" };
+export const CLASS_NAME = { warrior: "Warrior", paladin: "Paladin", druid: "Druid", shaman: "Shaman", rogue: "Rogue", mage: "Mage", warlock: "Warlock" };
 /** SpellClassOptions.SpellClassSet of each class (the spell family). */
-const SPELL_FAMILY = { warrior: 4, paladin: 10, druid: 7, shaman: 11, rogue: 8, mage: 3 };
+const SPELL_FAMILY = { warrior: 4, paladin: 10, druid: 7, shaman: 11, rogue: 8, mage: 3, warlock: 5 };
 
 /** SkillLine.CategoryID of class skill lines (Arms, Feral Combat, Holy, Mounts, …). */
 const CLASS_SKILL_CATEGORY = 7;

@@ -49,7 +49,7 @@ import {
 import { buildDate, createClientSource, latestBuild, wowDbDefsCommit } from "./lib/wago.mjs";
 import { codeOrder, codePositionChanges, decodeByName, describeRanks, validate } from "./lib/build-codes.mjs";
 
-const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage"];
+const CLASSES = ["warrior", "druid", "paladin", "shaman", "rogue", "mage", "warlock"];
 const REPO_ROOT = path.resolve(import.meta.dirname, "..", "..");
 const CACHE_DIR = path.join(REPO_ROOT, ".cache", "client");
 const SCRAPER = "scripts/scrape/talents-client.mjs";
@@ -63,6 +63,13 @@ const DEFAULT_BASELINE = "1.15.9.69722";
  * with the ranks by talent name each decoded to when it was written: the one list, which
  * src/data/data.test.ts reads too.
  */
+/**
+ * Player stats for talent tooltips that scale with them: a reader with no spell power, so the text
+ * depends on the client files alone (the warlock's Demonic Brand, "$<minDam> to $<maxDam>", reads
+ * the higher of Shadow and Fire spell power).
+ */
+const TOOLTIP_STATS = { SPS: 0, SPFI: 0 };
+
 const STORED_BUILDS_FILE = "scripts/scrape/stored-builds.json";
 const STORED_BUILDS = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, STORED_BUILDS_FILE), "utf8"));
 const storedCodes = (cls) => Object.keys(STORED_BUILDS[cls] ?? {});
@@ -111,7 +118,7 @@ async function load(build, names) {
     tables[name] = t;
     used.set(name, t.fdid);
   }
-  return { build, source, tables, used, text: createSpellTextContext(tables) };
+  return { build, source, tables, used, text: createSpellTextContext(tables, { stats: TOOLTIP_STATS }) };
 }
 
 const forever = await load(version, [...FOREVER_TREE_TABLES, ...SPELL_TEXT_TABLES]);

@@ -205,6 +205,7 @@ const ROWS: Record<string, Row> = {
   flaskOfTheTitans: { rows: [S(17626)] },
   flaskOfSupremePower: { forever: [['spellDamage', 150]], rows: [S(17628)] },
   greaterArcaneElixir: { forever: [['spellDamage', 35]], rows: [S(17539)] },
+  elixirOfShadowPower: { forever: [['shadowSpellDamage', 40]], rows: [S(11474)] },
   // Classic Era's item is Elixir of Greater Firepower (26276), Fire spell damage: nothing for Holy.
   elixirOfHolyPower: { forever: [['holySpellDamage', 40]], classicEra: [], rows: [S(1310077)], classicRows: [] },
   flaskOfNaturalAccuracy: { foreverOnly: true, rows: [S(1293740, 0), S(1293740, 1)] },
@@ -261,6 +262,7 @@ const ROWS: Record<string, Row> = {
   // Enchants
   crusader: { rows: [null, S(20007)] },
   weaponAgility: { rows: [E(2564, 23800)] },
+  weaponSpellPower: { forever: [['spellDamage', 30]], rows: [E(2504, 22749)] },
   weaponStrength: { rows: [E(2563, 23799)] },
   superiorStriking: { rows: [E(1897, 20031)] },
   fieryWeapon: { rows: [null, S(13897)] },
@@ -275,6 +277,7 @@ const ROWS: Record<string, Row> = {
   arcanumTenacity: { rows: [E(1504)] },
   arcanumRapidity: { rows: [E(2543)] },
   arcanumProtection: { rows: [E(2545)] },
+  arcanumFocus: { forever: [['spellDamage', 8]], rows: [E(2544)] },
   presenceOfMight: { rows: [S(24148, 0), S(24148, 2), S(24148, 1)] },
   forcefulRuggedArmorKit: { foreverOnly: true, rows: [E(8491, 1254772, 1), E(8491, 1254772, 0)] },
   wildLeatherArmorKit: { foreverOnly: true, rows: [E(8719, 1306907, 0), E(8719, 1306907, 1)] },
@@ -330,7 +333,7 @@ const ENTRIES: [string, CatalogueEntry][] = [...BUFFS.map((b) => [b.id, b] as [s
 describe('the catalogue in both profiles (buffs doc, Classic Era values)', () => {
   it('lists every entry once in the table, as the doc does', () => {
     expect(Object.keys(ROWS).sort()).toEqual(ENTRIES.map(([id]) => id).sort())
-    expect(ENTRIES).toHaveLength(117)
+    expect(ENTRIES).toHaveLength(120)
   })
 
   it.each(ENTRIES)('%s: Forever’s values, and Classic Era’s where they differ', (id, entry) => {

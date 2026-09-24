@@ -74,7 +74,7 @@ describe('melee and caster entries (forSpecs)', () => {
   it('are these, and the caster specs are those whose SpecMeta sets caster', () => {
     expect(BUFFS.filter((b) => b.forSpecs === 'melee').map((b) => b.id)).toEqual(MELEE)
     expect(CASTER_SPECS).toEqual(casters)
-    expect(casters).toEqual(['mage-fire', 'mage-frost', 'mage-arcane'])
+    expect(casters).toEqual(['mage-fire', 'mage-frost', 'mage-arcane', 'warlock-destruction', 'warlock-affliction'])
   })
 
   it('mark as melee exactly the entries whose Forever effects change only attacks, and Classic Era’s nothing a spell reads', () => {

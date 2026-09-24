@@ -16,6 +16,7 @@ export const CLASS_TEXT: Record<ClassId, string> = {
   shaman: 'text-class-shaman',
   rogue: 'text-class-rogue',
   mage: 'text-class-mage',
+  warlock: 'text-class-warlock',
 }
 
 const list = (words: string[]) => (words.length < 3 ? words.join(' and ') : `${words.slice(0, -1).join(', ')} and ${words.at(-1)}`)

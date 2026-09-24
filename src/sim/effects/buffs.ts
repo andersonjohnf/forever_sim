@@ -50,6 +50,9 @@ const ROGUES: SpecId[] = ['rogue-combat', 'rogue-assassination', 'rogue-subtlety
 /** The melee DPS specs: Leader of the Pack's audience, which the casters' Moonkin Aura rivals. */
 const MELEE_DPS: SpecId[] = [...WARRIOR_DPS, 'druid-feral-cat', 'paladin-retribution', ...SHAMAN, ...ROGUES]
 const ROGUE_ONLY: readonly ClassId[] = ['rogue']
+/** The warlock specs (docs/classes/warlock.md#74-enchants-and-consumables), and entries only a warlock uses among the classes in scope. */
+const WARLOCKS: SpecId[] = ['warlock-destruction', 'warlock-affliction']
+const WARLOCK_ONLY: readonly ClassId[] = ['warlock']
 const ROGUE_DOC = 'docs/classes/rogue.md'
 
 /**
@@ -752,6 +755,19 @@ export const BUFFS: BuffSpec[] = [
     // 17539 #0: aura 13, school mask 126, all magic schools, so Holy too.
     effects: [{ kind: 'stat', stat: 'spellDamage', value: 35 }],
     presets: { raid: [...RETRIBUTION, ...CASTER_SPECS], max: [...PALADINS, ...SHAMAN, ...CASTER_SPECS] },
+  },
+  {
+    id: 'elixirOfShadowPower',
+    name: 'Elixir of Shadow Power',
+    icon: 'inv_potion_46',
+    category: 'consumable',
+    group: 'Elixirs',
+    summary: '+40 Shadow spell damage',
+    forClasses: WARLOCK_ONLY,
+    docRef: `${DOC}#32-elixirs`,
+    // 9264 → 11474 #0: aura 13, school mask 32 (Shadow), the same in both clients.
+    effects: [{ kind: 'stat', stat: 'shadowSpellDamage', value: 40 }],
+    presets: { raid: WARLOCKS, max: WARLOCKS },
   },
   {
     id: 'elixirOfHolyPower',

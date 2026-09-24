@@ -22,6 +22,7 @@
 //   $gmale:female;         the first form      $lsingular:plural;  by the last number
 //   $@spelldesc123 / $@spelltooltip123 / $@spellname123 / $@auradesc123
 //   $AP $RAP $SP $SPH      player stats inside ${…}, only when the caller passes `stats`
+//   $SPI $SPS $SPFI        (Spirit, Shadow and Fire spell power: the warlock's Life Tap, Demonic Brand)
 // Effect indexes run 1–9 (Forever spells have more than Classic's three effects).
 // Effect points are read at level 60: an effect with EffectRealPointsPerLevel adds that much per
 // level above the spell's SpellLevels.SpellLevel, up to its MaxLevel (scalingLevels below;
@@ -71,7 +72,8 @@ function firstBySpell(t) {
 
 /**
  * Build the lookups the renderer needs from SPELL_TEXT_TABLES (rows or parsed tables). `stats`
- * gives player stats for `$AP`, `$RAP`, `$SP`, `$SPH` in expressions (e.g. { AP: 0 }); without
+ * gives player stats for `$AP`, `$RAP`, `$SP`, `$SPH`, `$SPI` (Spirit), `$SPS`, `$SPFI` (Shadow and Fire
+ * spell power) in expressions (e.g. { AP: 0 }); without
  * it such expressions stay unrendered.
  */
 export function createSpellTextContext(tables, { stats = null } = {}) {
@@ -670,7 +672,7 @@ export function evaluate(ctx, spellId, expr, depth = 0, conditions = null) {
       i += pl[0].length;
       continue;
     }
-    const stat = /^\$(AP|RAP|SP|SPH)\b/.exec(rest);
+    const stat = /^\$(AP|RAP|SP|SPH|SPI|SPS|SPFI)\b/.exec(rest);
     if (stat) {
       const v = ctx.stats?.[stat[1]];
       if (v === undefined) return null;

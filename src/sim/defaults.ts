@@ -9,6 +9,7 @@ import paladinTalents from '@/data/talents/paladin.json'
 import shamanTalents from '@/data/talents/shaman.json'
 import rogueTalents from '@/data/talents/rogue.json'
 import mageTalents from '@/data/talents/mage.json'
+import warlockTalents from '@/data/talents/warlock.json'
 import type { TalentData } from '@/data/talents/types'
 import warriorTalents from '@/data/talents/warrior.json'
 import { presetBuffIds } from './effects/presets'
@@ -25,6 +26,7 @@ export const TALENT_DATA: Record<ClassId, TalentData> = {
   shaman: shamanTalents as unknown as TalentData,
   rogue: rogueTalents as unknown as TalentData,
   mage: mageTalents as unknown as TalentData,
+  warlock: warlockTalents as unknown as TalentData,
 }
 
 /**
@@ -47,6 +49,9 @@ const DEFAULT_TALENTS: Record<SpecId, string> = {
   'mage-fire': '230225-23550000130133051-005', // docs/classes/mage.md#talents
   'mage-frost': '230225200100301--055510033002000105', // docs/classes/mage.md#talents
   'mage-arcane': '050225003100301531-2355001010003-', // docs/classes/mage.md#talents
+  // docs/classes/warlock.md#71-talents: Destruction 7/11/33 (Fire, Demonic Sacrifice), Affliction 35/11/5
+  'warlock-destruction': '25-0050203001-0050355103101351',
+  'warlock-affliction': '2555002003520105-0050203001-005',
 }
 
 export interface TalentPreset {
@@ -102,6 +107,12 @@ const TALENT_PRESETS: Record<ClassId, TalentPreset[]> = {
     { name: 'Frost (default)', code: DEFAULT_TALENTS['mage-frost'] },
     { name: 'Arcane (default)', code: DEFAULT_TALENTS['mage-arcane'] },
   ],
+  warlock: [
+    // docs/classes/warlock.md#71-talents: Destruction 7/11/33, Fire, with Demonic Sacrifice
+    { name: 'Destruction (default)', code: DEFAULT_TALENTS['warlock-destruction'] },
+    // docs/classes/warlock.md#71-talents: Affliction 35/11/5 with Demonic Sacrifice
+    { name: 'Affliction (default)', code: DEFAULT_TALENTS['warlock-affliction'] },
+  ],
 }
 
 /** The documented talent presets of a class (TALENT_PRESETS). */
@@ -119,6 +130,8 @@ const DEFAULT_RACE: Record<ClassId, string> = {
   rogue: 'alliance-human',
   // docs/classes/mage.md#defaults: Berserking's casting speed.
   mage: 'horde-troll',
+  // docs/classes/warlock.md#72-race: Orc, for Forever's Blood Fury (+10% spell power for 15 s)
+  warlock: 'horde-orc',
 }
 
 /** A 40-player raid with every class present (buffs follow composition, not faction). */
@@ -207,7 +220,22 @@ const ROGUE_ENCHANTS: Partial<Record<GearSlot, string>> = {
   offHand: 'crusader',
   neck: 'neckAgility',
 }
+/**
+ * The warlock's enchants (buffs doc §6.4; docs/classes/warlock.md#74-enchants-and-consumables): spell
+ * damage where the catalogue offers it (Arcanum of Focus, the weapon's Spell Power), Greater Stats,
+ * and Forever's Minor Haste gloves for their casting speed. Its other slots have no caster enchant in
+ * the catalogue yet, so they stay empty.
+ */
+const WARLOCK_ENCHANTS: Partial<Record<GearSlot, string>> = {
+  head: 'arcanumFocus',
+  legs: 'arcanumFocus',
+  chest: 'chestGreaterStats',
+  hands: 'gloveMinorHaste',
+  mainHand: 'weaponSpellPower',
+}
 const DEFAULT_ENCHANTS: Partial<Record<SpecId, Partial<Record<GearSlot, string>>>> = {
+  'warlock-destruction': WARLOCK_ENCHANTS,
+  'warlock-affliction': WARLOCK_ENCHANTS,
   'rogue-combat': ROGUE_ENCHANTS,
   'rogue-assassination': ROGUE_ENCHANTS,
   'rogue-subtlety': ROGUE_ENCHANTS,

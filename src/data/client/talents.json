@@ -8569,6 +8569,1788 @@
       ],
       "traitTreeId": 1082
     },
+    "warlock": {
+      "tabs": [
+        {
+          "index": 0,
+          "posX": [1020, 2820],
+          "tree": "Affliction"
+        },
+        {
+          "index": 1,
+          "posX": [5020, 6820],
+          "tree": "Demonology"
+        },
+        {
+          "index": 2,
+          "posX": [9080, 10280],
+          "tree": "Destruction"
+        }
+      ],
+      "talents": [
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Life Tap",
+          "col": 0,
+          "id": "warlock-affliction-improved-life-tap",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Life Tap",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83225,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20]
+            }
+          ],
+          "rankSpellIds": [18182, 18182],
+          "spellId": 18182,
+          "tier": 0,
+          "traitDefinitionId": 135452,
+          "traitNodeEntryId": 130651,
+          "traitNodeId": 105921,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Suppression",
+          "col": 1,
+          "id": "warlock-affliction-suppression",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Suppression",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83231,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            },
+            {
+              "curveId": 88021,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            },
+            {
+              "curveId": 88020,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [-4, -8, -12, -16, -20]
+            }
+          ],
+          "rankSpellIds": [18174, 18174, 18174, 18174, 18174],
+          "spellId": 18174,
+          "tier": 0,
+          "traitDefinitionId": 135456,
+          "traitNodeEntryId": 130655,
+          "traitNodeId": 105925,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Corruption",
+          "col": 2,
+          "id": "warlock-affliction-improved-corruption",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Improved Corruption",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83229,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-400, -800, -1200, -1600, -2000]
+            },
+            {
+              "curveId": 83228,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [17810, 17810, 17810, 17810, 17810],
+          "spellId": 17810,
+          "tier": 0,
+          "traitDefinitionId": 135455,
+          "traitNodeEntryId": 130654,
+          "traitNodeId": 105924,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Malediction",
+          "col": 0,
+          "id": "warlock-affliction-malediction",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Malediction",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83227,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            },
+            {
+              "curveId": 98030,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [1225177, 1225177, 1225177, 1225177, 1225177],
+          "spellId": 1225177,
+          "tier": 1,
+          "traitDefinitionId": 135454,
+          "traitNodeEntryId": 130653,
+          "traitNodeId": 105923,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Soul Harvesting",
+          "col": 1,
+          "id": "warlock-affliction-soul-harvesting",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Soul Harvesting",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83226,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [50, 100]
+            },
+            {
+              "curveId": 111989,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [50, 100]
+            }
+          ],
+          "rankSpellIds": [437032, 437032],
+          "spellId": 437032,
+          "tier": 1,
+          "traitDefinitionId": 135453,
+          "traitNodeEntryId": 130652,
+          "traitNodeId": 105922,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Drains",
+          "col": 2,
+          "id": "warlock-affliction-improved-drains",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Drains",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83224,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [7, 13, 20]
+            }
+          ],
+          "rankSpellIds": [403511, 403511, 403511],
+          "spellId": 403511,
+          "tier": 1,
+          "traitDefinitionId": 135451,
+          "traitNodeEntryId": 130650,
+          "traitNodeId": 105920,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Improved Bane of Agony",
+          "col": 0,
+          "id": "warlock-affliction-improved-bane-of-agony",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Bane of Agony",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83222,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10]
+            }
+          ],
+          "rankSpellIds": [18827, 18827],
+          "spellId": 18827,
+          "tier": 2,
+          "traitDefinitionId": 135450,
+          "traitNodeEntryId": 130649,
+          "traitNodeId": 105919,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Fel Concentration",
+          "col": 1,
+          "id": "warlock-affliction-fel-concentration",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Fel Concentration",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83221,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [23, 47, 70]
+            }
+          ],
+          "rankSpellIds": [17783, 17783, 17783],
+          "spellId": 17783,
+          "tier": 2,
+          "traitDefinitionId": 135449,
+          "traitNodeEntryId": 130648,
+          "traitNodeId": 105918,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Amplify Curse",
+          "col": 2,
+          "id": "warlock-affliction-amplify-curse",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Amplify Curse",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [18288],
+          "spellId": 18288,
+          "tier": 2,
+          "traitDefinitionId": 135447,
+          "traitNodeEntryId": 130646,
+          "traitNodeId": 105916,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Pandemic",
+          "col": 3,
+          "id": "warlock-affliction-pandemic",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Pandemic",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 86666,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [33, 67, 100]
+            }
+          ],
+          "rankSpellIds": [427712, 427712, 427712],
+          "spellId": 427712,
+          "tier": 2,
+          "traitDefinitionId": 135448,
+          "traitNodeEntryId": 130647,
+          "traitNodeId": 105917,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Malevolence",
+          "col": 0,
+          "id": "warlock-affliction-malevolence",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Malevolence",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 110330,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [1310949, 1310949, 1310949, 1310949, 1310949],
+          "spellId": 1310949,
+          "tier": 3,
+          "traitDefinitionId": 142628,
+          "traitNodeEntryId": 137874,
+          "traitNodeId": 110876,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Nightfall",
+          "col": 1,
+          "id": "warlock-affliction-nightfall",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Nightfall",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83218,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4]
+            }
+          ],
+          "rankSpellIds": [18094, 18094],
+          "spellId": 18094,
+          "tier": 3,
+          "traitDefinitionId": 135445,
+          "traitNodeEntryId": 130644,
+          "traitNodeId": 105914,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [105916],
+            "prerequisiteTalentIds": ["warlock-affliction-amplify-curse"],
+            "tier": 3
+          },
+          "clientName": "Curse of Exhaustion",
+          "col": 2,
+          "id": "warlock-affliction-curse-of-exhaustion",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Curse of Exhaustion",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [18223],
+          "spellId": 18223,
+          "tier": 3,
+          "traitDefinitionId": 135444,
+          "traitNodeEntryId": 130643,
+          "traitNodeId": 105913,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Siphon Life",
+          "col": 1,
+          "id": "warlock-affliction-siphon-life",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Siphon Life",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [18265],
+          "spellId": 18265,
+          "tier": 4,
+          "traitDefinitionId": 135443,
+          "traitNodeEntryId": 130642,
+          "traitNodeId": 105912,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Soul Siphon",
+          "col": 2,
+          "id": "warlock-affliction-soul-siphon",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Soul Siphon",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83217,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [4, 8, 12]
+            }
+          ],
+          "rankSpellIds": [17804, 17804, 17804],
+          "spellId": 17804,
+          "tier": 4,
+          "traitDefinitionId": 135442,
+          "traitNodeEntryId": 130641,
+          "traitNodeId": 105911,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Shadow Mastery",
+          "col": 2,
+          "id": "warlock-affliction-shadow-mastery",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Shadow Mastery",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83215,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            },
+            {
+              "curveId": 88067,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [1, 2, 3, 4, 5]
+            }
+          ],
+          "rankSpellIds": [18271, 18271, 18271, 18271, 18271],
+          "spellId": 18271,
+          "tier": 5,
+          "traitDefinitionId": 135441,
+          "traitNodeEntryId": 130640,
+          "traitNodeId": 105910,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105912],
+            "prerequisiteTalentIds": ["warlock-affliction-siphon-life"],
+            "tier": 6
+          },
+          "clientName": "Wrack",
+          "col": 1,
+          "id": "warlock-affliction-wrack",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Wrack",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1316697],
+          "spellId": 1316697,
+          "tier": 6,
+          "traitDefinitionId": 135440,
+          "traitNodeEntryId": 130639,
+          "traitNodeId": 105909,
+          "tree": "Affliction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Health Funnel",
+          "col": 0,
+          "id": "warlock-demonology-improved-health-funnel",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Improved Health Funnel",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83208,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40]
+            },
+            {
+              "curveId": 83207,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-15, -30]
+            },
+            {
+              "curveId": 103073,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [-50, -100]
+            },
+            {
+              "curveId": 111673,
+              "effectIndex": 3,
+              "operationType": 0,
+              "values": [-15, -30]
+            }
+          ],
+          "rankSpellIds": [18703, 18703],
+          "spellId": 18703,
+          "tier": 0,
+          "traitDefinitionId": 135436,
+          "traitNodeEntryId": 130635,
+          "traitNodeId": 105905,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Imp",
+          "col": 1,
+          "id": "warlock-demonology-improved-imp",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Imp",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83214,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20, 30]
+            },
+            {
+              "curveId": 83213,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20, 30]
+            },
+            {
+              "curveId": 88072,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [-300, -700, -1000]
+            }
+          ],
+          "rankSpellIds": [18694, 18694, 18694],
+          "spellId": 18694,
+          "tier": 0,
+          "traitDefinitionId": 135439,
+          "traitNodeEntryId": 130638,
+          "traitNodeId": 105908,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Demonic Embrace",
+          "col": 2,
+          "id": "warlock-demonology-demonic-embrace",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Demonic Embrace",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83212,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 6, 9, 12, 15]
+            }
+          ],
+          "rankSpellIds": [18697, 18697, 18697, 18697, 18697],
+          "spellId": 18697,
+          "tier": 0,
+          "traitDefinitionId": 135438,
+          "traitNodeEntryId": 130637,
+          "traitNodeId": 105907,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Unholy Power",
+          "col": 3,
+          "id": "warlock-demonology-unholy-power",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Unholy Power",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83209,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [18769, 18769, 18769, 18769, 18769],
+          "spellId": 18769,
+          "tier": 0,
+          "traitDefinitionId": 135437,
+          "traitNodeEntryId": 130636,
+          "traitNodeId": 105906,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Demonic Aegis",
+          "col": 0,
+          "id": "warlock-demonology-demonic-aegis",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Demonic Aegis",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83204,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [15, 30]
+            }
+          ],
+          "rankSpellIds": [1235316, 1235316],
+          "spellId": 1235316,
+          "tier": 1,
+          "traitDefinitionId": 135433,
+          "traitNodeEntryId": 130632,
+          "traitNodeId": 105902,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Improved Voidwalker",
+          "col": 1,
+          "id": "warlock-demonology-improved-voidwalker",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Voidwalker",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83206,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20, 30]
+            }
+          ],
+          "rankSpellIds": [18705, 18705, 18705],
+          "spellId": 18705,
+          "tier": 1,
+          "traitDefinitionId": 135435,
+          "traitNodeEntryId": 130634,
+          "traitNodeId": 105904,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Fel Vitality",
+          "col": 2,
+          "id": "warlock-demonology-fel-vitality",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Fel Vitality",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83205,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            },
+            {
+              "curveId": 103061,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [5, 10, 15]
+            }
+          ],
+          "rankSpellIds": [18731, 18731, 18731],
+          "spellId": 18731,
+          "tier": 1,
+          "traitDefinitionId": 135434,
+          "traitNodeEntryId": 130633,
+          "traitNodeId": 105903,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Demonic Energies",
+          "col": 3,
+          "id": "warlock-demonology-demonic-energies",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Demonic Energies",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83198,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [8, 15]
+            },
+            {
+              "curveId": 103070,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [50, 100]
+            }
+          ],
+          "rankSpellIds": [1225214, 1225214],
+          "spellId": 1225214,
+          "tier": 1,
+          "traitDefinitionId": 135430,
+          "traitNodeEntryId": 130629,
+          "traitNodeId": 105899,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Improved Sayaad",
+          "col": 0,
+          "id": "warlock-demonology-improved-sayaad",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Sayaad",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83201,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20, 30]
+            },
+            {
+              "curveId": 83200,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20, 30]
+            }
+          ],
+          "rankSpellIds": [18754, 18754, 18754],
+          "spellId": 18754,
+          "tier": 2,
+          "traitDefinitionId": 135432,
+          "traitNodeEntryId": 130631,
+          "traitNodeId": 105901,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Demonic Sacrifice",
+          "col": 1,
+          "id": "warlock-demonology-demonic-sacrifice",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Demonic Sacrifice",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [18788],
+          "spellId": 18788,
+          "tier": 2,
+          "traitDefinitionId": 135431,
+          "traitNodeEntryId": 130630,
+          "traitNodeId": 105900,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Master Summoner",
+          "col": 2,
+          "id": "warlock-demonology-master-summoner",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Master Summoner",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83199,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-2000, -4000]
+            },
+            {
+              "curveId": 103071,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-20, -40]
+            }
+          ],
+          "rankSpellIds": [18709, 18709],
+          "spellId": 18709,
+          "tier": 2,
+          "traitDefinitionId": 135429,
+          "traitNodeEntryId": 130628,
+          "traitNodeId": 105898,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Decimation",
+          "col": 0,
+          "id": "warlock-demonology-decimation",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Decimation",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83197,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-20, -40]
+            },
+            {
+              "curveId": 83196,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-45, -90]
+            },
+            {
+              "curveId": 110390,
+              "effectIndex": 3,
+              "operationType": 0,
+              "values": [3, 6]
+            }
+          ],
+          "rankSpellIds": [440870, 440870],
+          "spellId": 440870,
+          "tier": 3,
+          "traitDefinitionId": 135428,
+          "traitNodeEntryId": 130627,
+          "traitNodeId": 105897,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [105898],
+            "prerequisiteTalentIds": ["warlock-demonology-master-summoner"],
+            "tier": 3
+          },
+          "clientName": "Fel Domination",
+          "col": 2,
+          "id": "warlock-demonology-fel-domination",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Fel Domination",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [18708],
+          "spellId": 18708,
+          "tier": 3,
+          "traitDefinitionId": 135426,
+          "traitNodeEntryId": 130625,
+          "traitNodeId": 105895,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 3,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Demonic Brand",
+          "col": 3,
+          "id": "warlock-demonology-demonic-brand",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Demonic Brand",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83195,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-17, -33, -50]
+            },
+            {
+              "curveId": 103069,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [2, 4, 6]
+            }
+          ],
+          "rankSpellIds": [1293695, 1293695, 1293695],
+          "spellId": 1293695,
+          "tier": 3,
+          "traitDefinitionId": 135427,
+          "traitNodeEntryId": 130626,
+          "traitNodeId": 105896,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Improved Felhunter",
+          "col": 0,
+          "id": "warlock-demonology-improved-felhunter",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Improved Felhunter",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83194,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20, 30]
+            },
+            {
+              "curveId": 83193,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-2000, -4000, -6000]
+            }
+          ],
+          "rankSpellIds": [1225217, 1225217, 1225217],
+          "spellId": 1225217,
+          "tier": 4,
+          "traitDefinitionId": 135425,
+          "traitNodeEntryId": 130624,
+          "traitNodeId": 105894,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105900],
+            "prerequisiteTalentIds": ["warlock-demonology-demonic-sacrifice"],
+            "tier": 4
+          },
+          "clientName": "Soul Link",
+          "col": 1,
+          "id": "warlock-demonology-soul-link",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Soul Link",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [19028],
+          "spellId": 19028,
+          "tier": 4,
+          "traitDefinitionId": 135423,
+          "traitNodeEntryId": 130622,
+          "traitNodeId": 105892,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Demonic Knowledge",
+          "col": 2,
+          "id": "warlock-demonology-demonic-knowledge",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Demonic Knowledge",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83192,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [33, 67, 100]
+            }
+          ],
+          "rankSpellIds": [412732, 412732, 412732],
+          "spellId": 412732,
+          "tier": 4,
+          "traitDefinitionId": 135424,
+          "traitNodeEntryId": 130623,
+          "traitNodeId": 105893,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Master Demonologist",
+          "col": 2,
+          "id": "warlock-demonology-master-demonologist",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Master Demonologist",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83191,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            },
+            {
+              "curveId": 85471,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-2, -4, -6, -8, -10]
+            },
+            {
+              "curveId": 85470,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            },
+            {
+              "curveId": 85469,
+              "effectIndex": 3,
+              "operationType": 0,
+              "values": [-2, -4, -6, -8, -10]
+            }
+          ],
+          "rankSpellIds": [23785, 23785, 23785, 23785, 23785],
+          "spellId": 23785,
+          "tier": 5,
+          "traitDefinitionId": 135422,
+          "traitNodeEntryId": 130621,
+          "traitNodeId": 105891,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105892],
+            "prerequisiteTalentIds": ["warlock-demonology-soul-link"],
+            "tier": 6
+          },
+          "clientName": "Demonic Pact",
+          "col": 1,
+          "id": "warlock-demonology-demonic-pact",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Demonic Pact",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [425464],
+          "spellId": 425464,
+          "tier": 6,
+          "traitDefinitionId": 135421,
+          "traitNodeEntryId": 130620,
+          "traitNodeId": 105890,
+          "tree": "Demonology",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Destructive Reach",
+          "col": 0,
+          "id": "warlock-destruction-destructive-reach",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Destructive Reach",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83179,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [10, 20]
+            }
+          ],
+          "rankSpellIds": [17917, 17917],
+          "spellId": 17917,
+          "tier": 0,
+          "traitDefinitionId": 135412,
+          "traitNodeEntryId": 130611,
+          "traitNodeId": 105881,
+          "tree": "Destruction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Improved Shadow Bolt",
+          "col": 1,
+          "id": "warlock-destruction-improved-shadow-bolt",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Improved Shadow Bolt",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83190,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [4, 8, 12, 16, 20]
+            }
+          ],
+          "rankSpellIds": [17793, 17793, 17793, 17793, 17793],
+          "spellId": 17793,
+          "tier": 0,
+          "traitDefinitionId": 135420,
+          "traitNodeEntryId": 130619,
+          "traitNodeId": 105889,
+          "tree": "Destruction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 0
+          },
+          "clientName": "Bane",
+          "col": 2,
+          "id": "warlock-destruction-bane",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Bane",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83189,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-100, -200, -300, -400, -500]
+            },
+            {
+              "curveId": 83188,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [-400, -800, -1200, -1600, -2000]
+            }
+          ],
+          "rankSpellIds": [17788, 17788, 17788, 17788, 17788],
+          "spellId": 17788,
+          "tier": 0,
+          "traitDefinitionId": 135419,
+          "traitNodeEntryId": 130618,
+          "traitNodeId": 105888,
+          "tree": "Destruction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Molten Skin",
+          "col": 0,
+          "id": "warlock-destruction-molten-skin",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Molten Skin",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83187,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-2, -4, -6, -8, -10]
+            }
+          ],
+          "rankSpellIds": [1225220, 1225220, 1225220, 1225220, 1225220],
+          "spellId": 1225220,
+          "tier": 1,
+          "traitDefinitionId": 135416,
+          "traitNodeEntryId": 130615,
+          "traitNodeId": 105885,
+          "tree": "Destruction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Cataclysm",
+          "col": 1,
+          "id": "warlock-destruction-cataclysm",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Cataclysm",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83186,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [-3, -6, -10]
+            }
+          ],
+          "rankSpellIds": [17778, 17778, 17778],
+          "spellId": 17778,
+          "tier": 1,
+          "traitDefinitionId": 135418,
+          "traitNodeEntryId": 130617,
+          "traitNodeId": 105887,
+          "tree": "Destruction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 1
+          },
+          "clientName": "Aftermath",
+          "col": 2,
+          "id": "warlock-destruction-aftermath",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Aftermath",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83185,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            },
+            {
+              "curveId": 83184,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [10, 20, 30, 40, 50]
+            }
+          ],
+          "rankSpellIds": [18119, 18119, 18119, 18119, 18119],
+          "spellId": 18119,
+          "tier": 1,
+          "traitDefinitionId": 135417,
+          "traitNodeEntryId": 130616,
+          "traitNodeId": 105886,
+          "tree": "Destruction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Ruin",
+          "col": 1,
+          "id": "warlock-destruction-ruin",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Ruin",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83183,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            }
+          ],
+          "rankSpellIds": [17959, 17959, 17959, 17959, 17959],
+          "spellId": 17959,
+          "tier": 2,
+          "traitDefinitionId": 135414,
+          "traitNodeEntryId": 130613,
+          "traitNodeId": 105883,
+          "tree": "Destruction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 2
+          },
+          "clientName": "Shadowburn",
+          "col": 2,
+          "id": "warlock-destruction-shadowburn",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Shadowburn",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [17877],
+          "spellId": 17877,
+          "tier": 2,
+          "traitDefinitionId": 135415,
+          "traitNodeEntryId": 130614,
+          "traitNodeId": 105884,
+          "tree": "Destruction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Intensity",
+          "col": 0,
+          "id": "warlock-destruction-intensity",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Intensity",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83182,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [23, 47, 70]
+            }
+          ],
+          "rankSpellIds": [18135, 18135, 18135],
+          "spellId": 18135,
+          "tier": 3,
+          "traitDefinitionId": 135413,
+          "traitNodeEntryId": 130612,
+          "traitNodeId": 105882,
+          "tree": "Destruction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Agonizing Flames",
+          "col": 1,
+          "id": "warlock-destruction-agonizing-flames",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Agonizing Flames",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83181,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 7, 10]
+            },
+            {
+              "curveId": 83180,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [3, 7, 10]
+            },
+            {
+              "curveId": 103096,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [3, 7, 10]
+            }
+          ],
+          "rankSpellIds": [17927, 17927, 17927],
+          "spellId": 17927,
+          "tier": 3,
+          "traitDefinitionId": 135410,
+          "traitNodeEntryId": 130609,
+          "traitNodeId": 105879,
+          "tree": "Destruction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 3
+          },
+          "clientName": "Conflagrate",
+          "col": 2,
+          "id": "warlock-destruction-conflagrate",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Conflagrate",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1293817],
+          "spellId": 1293817,
+          "tier": 3,
+          "traitDefinitionId": 135411,
+          "traitNodeEntryId": 130610,
+          "traitNodeId": 105880,
+          "tree": "Destruction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 0,
+            "prerequisiteNodeIds": [105882],
+            "prerequisiteTalentIds": ["warlock-destruction-intensity"],
+            "tier": 4
+          },
+          "clientName": "Pyroclasm",
+          "col": 0,
+          "id": "warlock-destruction-pyroclasm",
+          "matchedBy": "name",
+          "maxRank": 2,
+          "mismatches": [],
+          "name": "Pyroclasm",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83178,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [13, 26]
+            }
+          ],
+          "rankSpellIds": [18073, 18073],
+          "spellId": 18073,
+          "tier": 4,
+          "traitDefinitionId": 135409,
+          "traitNodeEntryId": 130608,
+          "traitNodeId": 105878,
+          "tree": "Destruction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 4
+          },
+          "clientName": "Bane of Havoc",
+          "col": 1,
+          "id": "warlock-destruction-bane-of-havoc",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Bane of Havoc",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [1225228],
+          "spellId": 1225228,
+          "tier": 4,
+          "traitDefinitionId": 135407,
+          "traitNodeEntryId": 130606,
+          "traitNodeId": 105876,
+          "tree": "Destruction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [105880],
+            "prerequisiteTalentIds": ["warlock-destruction-conflagrate"],
+            "tier": 4
+          },
+          "clientName": "Fire and Brimstone",
+          "col": 2,
+          "id": "warlock-destruction-fire-and-brimstone",
+          "matchedBy": "name",
+          "maxRank": 3,
+          "mismatches": [],
+          "name": "Fire and Brimstone",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83177,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [3, 7, 10]
+            },
+            {
+              "curveId": 83176,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [8, 17, 25]
+            }
+          ],
+          "rankSpellIds": [412751, 412751, 412751],
+          "spellId": 412751,
+          "tier": 4,
+          "traitDefinitionId": 135408,
+          "traitNodeEntryId": 130607,
+          "traitNodeId": 105877,
+          "tree": "Destruction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 2,
+            "prerequisiteNodeIds": [],
+            "prerequisiteTalentIds": [],
+            "tier": 5
+          },
+          "clientName": "Shadow and Flame",
+          "col": 2,
+          "id": "warlock-destruction-shadow-and-flame",
+          "matchedBy": "name",
+          "maxRank": 5,
+          "mismatches": [],
+          "name": "Shadow and Flame",
+          "overridesSpellId": 0,
+          "rankEffects": [
+            {
+              "curveId": 83175,
+              "effectIndex": 0,
+              "operationType": 0,
+              "values": [4, 8, 12, 16, 20]
+            },
+            {
+              "curveId": 103097,
+              "effectIndex": 1,
+              "operationType": 0,
+              "values": [20, 40, 60, 80, 100]
+            },
+            {
+              "curveId": 111672,
+              "effectIndex": 2,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            },
+            {
+              "curveId": 111671,
+              "effectIndex": 3,
+              "operationType": 0,
+              "values": [2, 4, 6, 8, 10]
+            }
+          ],
+          "rankSpellIds": [426316, 426316, 426316, 426316, 426316],
+          "spellId": 426316,
+          "tier": 5,
+          "traitDefinitionId": 135406,
+          "traitNodeEntryId": 130605,
+          "traitNodeId": 105875,
+          "tree": "Destruction",
+          "visibleSpellId": 0
+        },
+        {
+          "client": {
+            "col": 1,
+            "prerequisiteNodeIds": [105876],
+            "prerequisiteTalentIds": ["warlock-destruction-bane-of-havoc"],
+            "tier": 6
+          },
+          "clientName": "Incinerate",
+          "col": 1,
+          "id": "warlock-destruction-incinerate",
+          "matchedBy": "name",
+          "maxRank": 1,
+          "mismatches": [],
+          "name": "Incinerate",
+          "overridesSpellId": 0,
+          "rankEffects": [],
+          "rankSpellIds": [412758],
+          "spellId": 412758,
+          "tier": 6,
+          "traitDefinitionId": 135405,
+          "traitNodeEntryId": 130604,
+          "traitNodeId": 105874,
+          "tree": "Destruction",
+          "visibleSpellId": 0
+        }
+      ],
+      "traitTreeId": 1116
+    },
     "warrior": {
       "tabs": [
         {
@@ -10272,10 +12054,10 @@
     }
   },
   "counts": {
-    "byName": 313,
+    "byName": 365,
     "byPosition": 0,
-    "mapped": 313,
-    "talents": 313,
+    "mapped": 365,
+    "talents": 365,
     "unmapped": 0
   },
   "unmapped": []

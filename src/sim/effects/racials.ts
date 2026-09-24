@@ -51,6 +51,8 @@ export function racialEffects(race: string, classId: ClassId): Effect[] {
       return [{ kind: 'stat', stat: 'dodge', value: 1 }]
     case 'alliance-gnome':
       // Expansive Mind, warrior version (1259802): maximum Rage +5% [F]; how it combines with Boundless Rage is [?] (warrior Q17)
+      // Forever's caster version (20591): maximum mana +5% (aura 178) [F] (docs/classes/warlock.md#72-race).
+      if (classId === 'warlock') return [{ kind: 'mult', stat: 'mana', pct: 5 }]
       return classId === 'warrior' ? [{ kind: 'maxRagePct', pct: 5 }] : []
     case 'horde-orc':
       // Axe Specialization (20574): +1% crit while an axe is equipped [F]; either hand [?] (warrior Q15)

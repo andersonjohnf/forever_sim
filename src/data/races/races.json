@@ -1328,6 +1328,10 @@
       "classic": ["horde-orc", "horde-tauren", "horde-troll"],
       "forever": ["horde-orc", "horde-tauren", "horde-troll", "horde-skyborne-windshaper", "alliance-dwarf"]
     },
+    "warlock": {
+      "classic": ["horde-orc", "horde-undead", "alliance-human", "alliance-gnome"],
+      "forever": ["horde-orc", "horde-undead", "horde-troll", "alliance-human", "alliance-gnome"]
+    },
     "warrior": {
       "classic": ["horde-orc", "horde-undead", "horde-tauren", "horde-troll", "alliance-human", "alliance-dwarf", "alliance-night-elf", "alliance-gnome"],
       "forever": ["horde-orc", "horde-undead", "horde-tauren", "horde-troll", "horde-skyborne-windshaper", "alliance-human", "alliance-dwarf", "alliance-night-elf", "alliance-gnome", "alliance-skyborne-high-order"]

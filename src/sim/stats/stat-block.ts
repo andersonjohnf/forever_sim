@@ -37,6 +37,14 @@ export class StatBlock {
   apPerInt = 0
   ap = 0
   apMult = 1
+  /**
+   * Ranged attack power (docs/mechanics/ranged-and-pets.md §3): class base + per Agility + flat,
+   * then × its multiplier. Only a plan with a ranged weapon (`Plan.ranged`) reads it.
+   */
+  baseRap = 0
+  rapPerAgi = 0
+  rap = 0
+  rapMult = 1
 
   // Crit and hit (percentage points; ratings converted by the profile).
   baseCrit = 0
@@ -141,6 +149,8 @@ export class DerivedStats {
   intellect = 0
   spirit = 0
   attackPower = 0
+  /** Ranged attack power (docs/mechanics/ranged-and-pets.md §3). */
+  rangedAttackPower = 0
   /** Sheet melee crit %, without per-weapon bonuses. */
   crit = 0
   /** The part of `crit` that comes from auras (combat-tables §4.4). */
@@ -215,6 +225,8 @@ export function deriveStats(b: StatBlock, o: DeriveOptions, out: DerivedStats = 
   out.attackPower = floorStat(
     (b.baseAp + b.apPerStr * out.strength + b.apPerAgi * out.agility + b.apPerInt * out.intellect + b.ap) * b.apMult,
   )
+  // docs/mechanics/ranged-and-pets.md §3: ranged attack power, floored like melee's.
+  out.rangedAttackPower = floorStat((b.baseRap + b.rapPerAgi * out.agility + b.rap) * b.rapMult)
   const ratingCrit = b.critRating / r.crit
   out.auraCrit = b.crit + ratingCrit
   out.crit = b.baseCrit + out.agility * b.critPerAgi + out.auraCrit

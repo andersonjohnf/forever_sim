@@ -13,9 +13,11 @@ export const STREAM = {
   damage: 2,
   proc: 3,
   boss: 4,
+  /** The pet's rolls, its power tick's phase included (docs/mechanics/ranged-and-pets.md §6). */
+  pet: 5,
 } as const
 
-export const STREAM_COUNT = 5
+export const STREAM_COUNT = 6
 
 const TWO_POW_32 = 4294967296
 

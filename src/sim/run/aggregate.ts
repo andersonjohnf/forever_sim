@@ -241,6 +241,8 @@ export function toResult(bundle: PlanBundle, agg: Aggregate, elapsedMs: number):
       glances: c[row + FIELD.glances],
       blocks: c[row + FIELD.blocks],
       ...(source.spell ? { spell: true as const } : {}),
+      // docs/mechanics/ranged-and-pets.md §10: the pet's rows name it.
+      ...(source.pet ? { pet: source.pet } : {}),
     }
     if (source.certain) result.certain = true
     if (source.counts) result.counts = source.counts

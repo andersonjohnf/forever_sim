@@ -85,6 +85,21 @@ const EV_SPELL_DOT_TICK = 15
 const EV_CHANNEL_END = 16
 /** The mage's rolling Ignite ticks (docs/classes/mage.md#ignite; data = 0). */
 const EV_IGNITE_TICK = 17
+// The ranged and pet core (docs/mechanics/ranged-and-pets.md):
+/** An Auto Shot fires (§4; data = 0). */
+const EV_AUTO_SHOT = 18
+/** The pet's white swing (§6; data = 0). */
+const EV_PET_SWING = 19
+/** The pet may act: its global cooldown or an ability's cooldown ended, or it arrives (§7). */
+const EV_PET_ACT = 20
+/** The pet's power tick (§7). */
+const EV_PET_POWER = 21
+/** The pet's cast completes (§7; data = its ability). */
+const EV_PET_CAST_END = 22
+
+/** `trace` hook hand codes beyond the melee hands: an Auto Shot, and the pet's white swing. */
+export const TRACE_RANGED = 2
+export const TRACE_PET = 3
 
 /** Ability kinds (AbilityPlan.kind). */
 const KIND_STRIKE = 0
@@ -1000,6 +1015,146 @@ export class Sim {
   private igNextAt = 0
   private igGen = 0
 
+  // The ranged and pet core (docs/mechanics/ranged-and-pets.md), flattened. A plan without a ranged
+  // weapon or a pet has none of these auras, spells, conditions or events, so none of this changes
+  // what it does.
+  /** The ranged weapon (Plan.ranged, §2–§5): its numbers, Auto Shot's wind-up and first shot, and its row. */
+  private readonly hasRanged: boolean
+  private readonly rMin: number
+  private readonly rMax: number
+  private readonly rSpeedSec: number
+  private readonly rFlat: number
+  private readonly rSkill: number
+  private readonly rHitBonus: number
+  private readonly rCritBonus: number
+  private readonly rDamageMult: number
+  private readonly rStaticHaste: number
+  private readonly rNormSpeed: number
+  /** Auto Shot's wind-up, ms, now (÷ ranged haste when it's hasted), its unhasted length, and whether casts hold it back. */
+  private rWindupMs = 0
+  private readonly rBaseWindupMs: number
+  private readonly rWindupHasted: boolean
+  private readonly rCastsHold: boolean
+  private readonly rCritMult: number
+  private readonly rFirstShotMs: number
+  private readonly rSource: number
+  /** The ranged table (§2): miss, 0, 0 (no dodge or parry), 0 (no glancing), block, crit; and its crit % before truncation. */
+  private readonly thrRanged = new Float64Array(6)
+  private rCritPct = 0
+  /** Ranged attack power now (§3), and 1 − the boss's armor reduction for ranged attacks. */
+  private rap = 0
+  private rArmorFactor = 1
+  /** One Auto Shot cycle now, ms: speed ÷ ranged haste (§4). */
+  private rCycleMs = 0
+  /** The product of the active ranged-haste auras (Rapid Fire). */
+  private rangedHasteAura = 1
+  /** Ranged attack power from the active auras, and the product of their ranged attack power %. */
+  private dynRap = 0
+  private dynRapMult = 1
+  /**
+   * Auto Shot's timer (§4): when the reload part of the cycle ends, until when a cast or channel
+   * holds the wind-up back, when the next shot fires (and its event's generation), and when the last
+   * one fired.
+   */
+  private rReloadAt = 0
+  private rHeldUntil = 0
+  private rNextAt = 0
+  private rGen = 0
+  private rLastShotAt = -Infinity
+  /** A spell is a shot with the ranged weapon (SpellDef.ranged): the ranged table and weapon. */
+  private readonly splRanged: Uint8Array
+  /** Ranged haste shortens its cast time (Aimed Shot's, §4). */
+  private readonly abCastRangedHasted: Uint8Array
+  /** Some line reads Auto Shot's timer (COND 62, 63), so each Auto Shot is a decision point. */
+  private readonly walksOnAutoShot: boolean
+  /** Auras' ranged attack power, its %, and ranged haste %, per stack. */
+  private readonly aRap: Float64Array
+  private readonly aRapPct: Float64Array
+  private readonly aRangedHaste: Float64Array
+  /** Auras' pet mods (§8), per stack, and whether an aura has any. */
+  private readonly aPetAp: Float64Array
+  private readonly aPetCrit: Float64Array
+  private readonly aPetHaste: Float64Array
+  private readonly aPetDamage: Float64Array
+  private readonly aPetful: Uint8Array
+  /** The pet (Plan.pet, §6–§10): its static numbers, as the plan builder derived them. */
+  private readonly hasPet: boolean
+  private readonly rngPet = new Rng()
+  private readonly petHasWeapon: boolean
+  private readonly petWMin: number
+  private readonly petWMax: number
+  private readonly petWSpeedSec: number
+  private readonly petLevel: number
+  private readonly petSkill: number
+  private readonly petBaseAp: number
+  private readonly petBaseCrit: number
+  private readonly petAuraCritBase: number
+  private readonly petHit: number
+  private readonly petBaseSp: number
+  private readonly petSpellCrit: number
+  private readonly petSpellHit: number
+  private readonly petApFromAp: number
+  private readonly petApFromRap: number
+  private readonly petSpFromOwner: number
+  private readonly petStaticDamage: number
+  private readonly petStaticHaste: number
+  private readonly petCritMult: number
+  private readonly petGlances: boolean
+  private readonly petGlanceLow: number
+  private readonly petGlanceHigh: number
+  private readonly petFront: boolean
+  private readonly petStartMs: number
+  private readonly petSource: number
+  private readonly hasPetPower: boolean
+  private readonly petPowerMax: number
+  private readonly petPowerStart: number
+  private readonly petPowerTick: number
+  private readonly petPowerTickMs: number
+  /** The pet's abilities (PetAbilityPlan), flattened: 0 melee, 1 spell. */
+  private readonly pabKind: Uint8Array
+  private readonly pabSchool: Int32Array
+  private readonly pabCost: Int32Array
+  private readonly pabCd: Float64Array
+  private readonly pabGcd: Float64Array
+  private readonly pabCast: Float64Array
+  private readonly pabMin: Float64Array
+  private readonly pabMax: Float64Array
+  private readonly pabApCoef: Float64Array
+  private readonly pabSpCoef: Float64Array
+  private readonly pabWeaponPct: Float64Array
+  private readonly pabBonusCrit: Float64Array
+  private readonly pabCritMult: Float64Array
+  private readonly pabAura: Int32Array
+  private readonly pabSource: Int32Array
+  private readonly pabReadyAt: Float64Array
+  /** The pet's priority list: line l's ability, and its conditions (code, a) at petCondStart[l] … petCondStart[l + 1] − 1. */
+  private readonly petLineAbility: Int32Array
+  private readonly petCondStart: Int32Array
+  private readonly petCondCode: Int32Array
+  private readonly petCondA: Float64Array
+  /** The pet now: its power, global cooldown, the ability it casts (−1: none), and whether it should walk its list. */
+  private petPower = 0
+  private petGcdEnd = 0
+  private petCasting = -1
+  private petActPending = false
+  private petNextSwingAt = 0
+  private petSwingGen = 0
+  /** Its derived numbers: attack power, crit, damage multiplier, swing ms, armor factor, tables and spell miss. */
+  private petAp = 0
+  private petCritPct = 0
+  private petDamageMult = 1
+  private petSwingMs = 0
+  private petArmorFactor = 1
+  private petSpellMissPct = 0
+  private petSpecCrit = 0
+  private readonly petThrWhite = new Float64Array(6)
+  private readonly petThrSpecial = new Float64Array(6)
+  /** The active auras' pet mods: attack power and crit added, attack speed and damage multiplied. */
+  private dynPetAp = 0
+  private dynPetCrit = 0
+  private petAuraHaste = 1
+  private petAuraDamage = 1
+
   // Scratch for recomputeStats, so re-deriving the tables allocates nothing (architecture.md).
   private readonly meleeIn: MeleeInputs = {
     attackerLevel: 0,
@@ -1267,6 +1422,16 @@ export class Sim {
     this.aCritChargeSchools = Int32Array.from(auras, (a) => a.critChargeSchools ?? 0)
     this.aKeepsCharges = Uint8Array.from(auras, (a) => (a.refreshKeepsCharges ? 1 : 0))
     this.aManaCost = Float64Array.from(auras, (a) => a.manaCostPct ?? 0)
+    // docs/mechanics/ranged-and-pets.md §3, §4, §8: ranged attack power and haste, and the pet mods.
+    this.aRap = Float64Array.from(auras, (a) => a.rap ?? 0)
+    this.aRapPct = Float64Array.from(auras, (a) => a.rapPct ?? 0)
+    this.aRangedHaste = Float64Array.from(auras, (a) => a.rangedHaste ?? 0)
+    this.aPetAp = Float64Array.from(auras, (a) => a.petAp ?? 0)
+    this.aPetCrit = Float64Array.from(auras, (a) => a.petCrit ?? 0)
+    this.aPetHaste = Float64Array.from(auras, (a) => a.petHaste ?? 0)
+    this.aPetDamage = Float64Array.from(auras, (a) => a.petDamage ?? 0)
+    this.aPetful = Uint8Array.from(auras, (a) => (a.petAp || a.petCrit || a.petHaste || a.petDamage ? 1 : 0))
+    for (let i = 0; i < na; i++) if (this.aRap[i] || this.aRapPct[i]) this.aStatful[i] = 1
     // docs/classes/mage.md#ignite: the rolling Ignite's numbers, all 0 without one.
     const ignite = plan.ignite
     this.igPct = ignite?.pct ?? 0
@@ -1302,6 +1467,8 @@ export class Sim {
     this.splThreatMult = Float64Array.from(spells, (x) => x.threatMult)
     this.splThreatBonus = Float64Array.from(spells, (x) => x.threatBonus)
     this.splNoCrit = Uint8Array.from(spells, (x) => (x.cannotCrit ? 1 : 0))
+    // docs/mechanics/ranged-and-pets.md §5: a shot rolls the ranged table, with the ranged weapon.
+    this.splRanged = Uint8Array.from(spells, (x) => (x.ranged && plan.ranged ? 1 : 0))
     this.staticHolyMult = plan.holyMult ?? 1
     this.holyThreatMult = plan.holyThreatMult ?? 1
     // docs/mechanics/spells.md §3, §7: binary spells and DoTs. A tick crits only with the spell's
@@ -1504,7 +1671,9 @@ export class Sim {
       // don't, nor does a shapeshift (druid.md §2.8), nor a spell unless it deals weapon damage (Holy
       // Strike, paladin.md), nor a spell-table ability (Thunder Clap, Demoralizing Shout) or one that
       // needs a shield instead (Shield Slam; Shield Block is a cast). Those need a shield (§3.1, §3.2).
-      const weaponSpell = a.kind === 'spell' && a.spell !== undefined && a.spell >= 0 && spells[a.spell].weaponPercent > 0
+      // docs/mechanics/ranged-and-pets.md §5: a shot needs the ranged weapon, not the main hand.
+      const shot = a.kind === 'spell' && a.spell !== undefined && a.spell >= 0 && spells[a.spell].ranged === true
+      const weaponSpell = a.kind === 'spell' && a.spell !== undefined && a.spell >= 0 && spells[a.spell].weaponPercent > 0 && !shot
       const needsWeapon =
         a.kind === 'spell'
           ? weaponSpell
@@ -1514,6 +1683,7 @@ export class Sim {
         (a.twoHandOnly && !this.wTwoHand[HAND.main]) ||
         (a.shieldOnly === true && !plan.hasShield) ||
         (needsWeapon && !this.hasWeapon[HAND.main]) ||
+        ((shot || a.needsRanged === true) && !plan.ranged) ||
         (a.behindOnly && plan.fight.front)
           ? 1
           : 0
@@ -1741,6 +1911,87 @@ export class Sim {
     // Hits give rage in a form whose power is rage, and for a class with a rage pool: a warrior, not a
     // paladin (plan.rage.maxTenths 0, paladin.md#mana-model).
     this.gainsRage = this.startForm >= 0 ? plan.forms![this.startForm].rage : this.maxRage > 0
+
+    // docs/mechanics/ranged-and-pets.md §2–§5: the ranged weapon and Auto Shot.
+    const r = plan.ranged
+    this.hasRanged = r !== undefined
+    this.rMin = r?.min ?? 0
+    this.rMax = r?.max ?? 0
+    this.rSpeedSec = r?.speedSec ?? 0
+    this.rFlat = r?.flatDamage ?? 0
+    this.rSkill = r?.skill ?? 0
+    this.rHitBonus = r?.hitBonus ?? 0
+    this.rCritBonus = r?.critBonus ?? 0
+    this.rDamageMult = r?.damageMult ?? 1
+    this.rStaticHaste = r?.hasteMult ?? 1
+    this.rNormSpeed = r?.normalizedSpeed ?? 0
+    this.rBaseWindupMs = r?.windupMs ?? 0
+    this.rWindupMs = this.rBaseWindupMs
+    this.rWindupHasted = r?.windupHasted === true
+    this.rCastsHold = r?.castsHoldAutoShot === true
+    this.rCritMult = r?.critMultiplier ?? CRIT_MULTIPLIER.melee
+    this.rFirstShotMs = r?.firstShotMs ?? 0
+    this.rSource = r?.source ?? -1
+    this.abCastRangedHasted = Uint8Array.from(abilities, (a) => (a.castRangedHasted && r ? 1 : 0))
+    this.walksOnAutoShot = this.hasRanged && (this.condCode.includes(COND.autoShotClear) || this.condCode.includes(COND.autoShotWithin))
+    // §6–§10: the pet.
+    const pet = plan.pet
+    this.hasPet = pet !== undefined
+    this.petHasWeapon = pet?.weapon != null
+    this.petWMin = pet?.weapon?.min ?? 0
+    this.petWMax = pet?.weapon?.max ?? 0
+    this.petWSpeedSec = pet?.weapon?.speedSec ?? 0
+    this.petLevel = pet?.level ?? plan.playerLevel
+    this.petSkill = pet?.skill ?? 0
+    this.petBaseAp = pet?.ap ?? 0
+    this.petBaseCrit = pet?.crit ?? 0
+    this.petAuraCritBase = pet?.auraCrit ?? 0
+    this.petHit = pet?.hit ?? 0
+    this.petBaseSp = pet?.spellDamage ?? 0
+    this.petSpellCrit = pet?.spellCrit ?? 0
+    this.petSpellHit = pet?.spellHit ?? 0
+    this.petApFromAp = pet?.apFromOwnerAp ?? 0
+    this.petApFromRap = pet?.apFromOwnerRap ?? 0
+    this.petSpFromOwner = pet?.spellDamageFromOwner ?? 0
+    this.petStaticDamage = pet?.damageMult ?? 1
+    this.petStaticHaste = pet?.hasteMult ?? 1
+    this.petCritMult = pet?.critMultiplier ?? CRIT_MULTIPLIER.melee
+    this.petGlances = pet?.glances ?? false
+    this.petGlanceLow = pet?.glanceLow ?? 1
+    this.petGlanceHigh = pet?.glanceHigh ?? 1
+    this.petFront = pet?.front ?? false
+    this.petStartMs = pet?.startMs ?? 0
+    this.petSource = pet?.source ?? -1
+    const power = pet?.power ?? null
+    this.hasPetPower = power !== null
+    this.petPowerMax = power?.maxTenths ?? 0
+    this.petPowerStart = power?.startTenths ?? 0
+    this.petPowerTick = power?.tickTenths ?? 0
+    this.petPowerTickMs = power?.tickMs ?? 0
+    const pabs = pet?.abilities ?? []
+    this.pabKind = Uint8Array.from(pabs, (x) => (x.kind === 'spell' ? 1 : 0))
+    this.pabSchool = Int32Array.from(pabs, (x) => x.school)
+    this.pabCost = Int32Array.from(pabs, (x) => x.costTenths)
+    this.pabCd = Float64Array.from(pabs, (x) => x.cooldownMs)
+    this.pabGcd = Float64Array.from(pabs, (x) => x.gcdMs)
+    this.pabCast = Float64Array.from(pabs, (x) => x.castMs)
+    this.pabMin = Float64Array.from(pabs, (x) => x.min)
+    this.pabMax = Float64Array.from(pabs, (x) => x.max)
+    this.pabApCoef = Float64Array.from(pabs, (x) => x.apCoefficient)
+    this.pabSpCoef = Float64Array.from(pabs, (x) => x.spCoefficient)
+    this.pabWeaponPct = Float64Array.from(pabs, (x) => x.weaponPercent)
+    this.pabBonusCrit = Float64Array.from(pabs, (x) => x.bonusCrit)
+    this.pabCritMult = Float64Array.from(pabs, (x) => x.critMultiplier)
+    this.pabAura = Int32Array.from(pabs, (x) => x.aura)
+    this.pabSource = Int32Array.from(pabs, (x) => x.source)
+    this.pabReadyAt = new Float64Array(pabs.length)
+    const petLines = pet?.rotation ?? []
+    this.petLineAbility = Int32Array.from(petLines, (l) => l.ability)
+    this.petCondStart = new Int32Array(petLines.length + 1)
+    for (let l = 0; l < petLines.length; l++) this.petCondStart[l + 1] = this.petCondStart[l] + petLines[l].conditions.length
+    const petConds = petLines.flatMap((l) => l.conditions)
+    this.petCondCode = Int32Array.from(petConds, (c) => c.code)
+    this.petCondA = Float64Array.from(petConds, (c) => c.a)
   }
 
   /**
@@ -1789,6 +2040,8 @@ export class Sim {
     this.rngDamage.seed(seed, index, STREAM.damage)
     this.rngProc.seed(seed, index, STREAM.proc)
     this.rngBoss.seed(seed, index, STREAM.boss)
+    // docs/mechanics/ranged-and-pets.md §6: the pet rolls from a stream of its own.
+    if (this.hasPet) this.rngPet.seed(seed, index, STREAM.pet)
 
     // docs/mechanics/encounter.md#implementation-notes: L_i = round(L × (1 + v × (2u − 1)))
     const f = plan.fight
@@ -1820,6 +2073,9 @@ export class Sim {
     if (this.preAbility.length > 0 || this.preChargeTenths > 0) this.prepull()
 
     const q = this.q
+    // docs/mechanics/ranged-and-pets.md §4: the first Auto Shot, queued before the rotation's first
+    // walk so a cast at the pull comes after the pull's shot.
+    if (this.hasRanged) this.startAutoShot()
     if (this.hasRotation) {
       q.push(0, EV_ACT, 0, 0)
       if (hasExecute) q.push(this.executeAtMs, EV_EXECUTE, 0, 0)
@@ -1843,6 +2099,8 @@ export class Sim {
     if (this.hasPowerTick) q.push(Math.floor(this.rngFight.next() * POWER_TICK_MS), EV_POWER_TICK, 0, 0)
     const periodic = plan.periodicRage
     for (let i = 0; i < periodic.length; i++) q.push(periodic[i].periodMs, EV_PERIODIC_RAGE, i, 0)
+    // docs/mechanics/ranged-and-pets.md §6, §7: the pet arrives, swings, walks its list and gains power.
+    if (this.hasPet) this.startPet()
 
     const end = this.fightEnd
     while (q.pop()) {
@@ -1912,6 +2170,22 @@ export class Sim {
         case EV_IGNITE_TICK:
           if (q.gen === this.igGen) this.igniteTick()
           break
+        case EV_AUTO_SHOT:
+          if (q.gen === this.rGen) this.onAutoShot()
+          break
+        case EV_PET_SWING:
+          if (q.gen === this.petSwingGen) this.petSwing()
+          break
+        case EV_PET_ACT:
+          this.petActPending = true
+          break
+        case EV_PET_POWER:
+          this.gainPetPower(this.petPowerTick)
+          q.push(t + this.petPowerTickMs, EV_PET_POWER, 0, 0)
+          break
+        case EV_PET_CAST_END:
+          this.onPetCastEnd(data)
+          break
         case EV_EXECUTE:
           this.rotList = this.rotExecute
           this.rotOffList = this.offGcdExecute
@@ -1922,6 +2196,14 @@ export class Sim {
       }
       // A decision point: the event changed rage, the GCD, a cooldown, an aura or the queue.
       while (this.actPending) this.act()
+      // The pet's own decision point (docs/mechanics/ranged-and-pets.md §7), after yours; what it
+      // does can make one for you (a howl's buff).
+      if (this.hasPet) {
+        while (this.petActPending) {
+          this.petAct()
+          while (this.actPending) this.act()
+        }
+      }
     }
     // Auras still up when the fight ends count until its end.
     const active = this.auraActive
@@ -1966,12 +2248,25 @@ export class Sim {
       schoolCrit: Array.from(this.schCrit),
       resistFactor: Array.from(this.resistFactor),
       castHaste: this.castHasteMult,
+      // docs/mechanics/ranged-and-pets.md: the ranged table, attack power and cycle, and the pet's numbers.
+      rangedAttackPower: this.rap,
+      rangedThresholds: Array.from(this.thrRanged),
+      rangedCrit: this.rCritPct,
+      rangedCycleMs: this.rCycleMs,
+      rangedArmorFactor: this.rArmorFactor,
+      petAttackPower: this.petAp,
+      petWhiteThresholds: Array.from(this.petThrWhite),
+      petSpecialThresholds: Array.from(this.petThrSpecial),
+      petSwingMs: this.petSwingMs,
+      petArmorFactor: this.petArmorFactor,
+      petSpellMiss: this.petSpellMissPct,
+      petPower: this.petPower,
     }
   }
 
   /** Test hook: the pools, combo points and form now (druid.md §2), e.g. from a trace or after a fight. */
   resources() {
-    return { rage: this.rage, energy: this.energy, mana: this.mana, comboPoints: this.comboPoints, form: this.form }
+    return { rage: this.rage, energy: this.energy, mana: this.mana, comboPoints: this.comboPoints, form: this.form, petPower: this.petPower }
   }
 
   private reset(): void {
@@ -2074,6 +2369,23 @@ export class Sim {
     this.manaCostMult = 1
     this.castCostTenths = 0
     this.gcdMult = 1
+    // docs/mechanics/ranged-and-pets.md: no ranged or pet aura mods, Auto Shot not yet fired, the pet fresh.
+    this.dynRap = 0
+    this.dynRapMult = 1
+    this.rangedHasteAura = 1
+    this.rGen++
+    this.rLastShotAt = -Infinity
+    this.rHeldUntil = 0
+    this.dynPetAp = 0
+    this.dynPetCrit = 0
+    this.petAuraHaste = 1
+    this.petAuraDamage = 1
+    this.petPower = this.petPowerStart
+    this.petGcdEnd = 0
+    this.petCasting = -1
+    this.petActPending = false
+    this.petSwingGen++
+    this.pabReadyAt.fill(0)
     this.recomputeStats()
     this.recomputeMultipliers()
   }
@@ -2143,6 +2455,9 @@ export class Sim {
     // docs/mechanics/spells.md §5: the auras' spell damage (a trinket's).
     s.spellDamage = base.spellDamage + this.dynSpellDamage
     s.spellDamageMult = base.spellDamageMult * this.dynSpellDamageMult
+    // docs/mechanics/ranged-and-pets.md §3: the auras' ranged attack power.
+    s.rap = base.rap + this.dynRap
+    s.rapMult = base.rapMult * this.dynRapMult
     this.defensiveScratch(s, base)
     const d = deriveStats(s, this.deriveOptions, this.derived)
     this.ap = d.attackPower
@@ -2203,8 +2518,42 @@ export class Sim {
       this.armorFactor[h] = 1 - armorReduction(armor, plan.playerLevel, plan.profile)
     }
     if (f.bossSwing) this.updateBossTable(d)
+    if (this.hasRanged) this.updateRangedTable(d)
     this.hasteMult = d.hasteMult * this.auraHasteMult
     this.updateSwingSpeeds()
+    // The pet's shares of your stats, and the armor your debuffs leave the boss (ranged-and-pets.md §6).
+    if (this.hasPet) this.recomputePet()
+  }
+
+  /**
+   * The ranged table and ranged attack power against the current stats (docs/mechanics/ranged-and-pets.md
+   * §2, §3): the special-attack table's miss at the ranged weapon's skill, with its own hit, no dodge
+   * or parry (creatures dodge and parry melee only), a block from the front, and the sheet's crit plus
+   * the ranged weapon's, suppressed vs +3 like a melee attack's; and the boss's armor, as the main
+   * hand's without a weapon's armor penetration.
+   */
+  private updateRangedTable(d: DerivedStats): void {
+    const plan = this.plan
+    const f = plan.fight
+    const inputs = this.meleeIn
+    const ch = this.chances
+    inputs.attackerLevel = plan.playerLevel
+    inputs.targetLevel = f.targetLevel
+    inputs.skill = this.rSkill
+    inputs.hit = d.hit + this.rHitBonus
+    inputs.sheetCrit = d.crit + this.rCritBonus
+    inputs.auraCrit = d.auraCrit + this.rCritBonus
+    inputs.expertise = 0
+    inputs.front = f.front
+    inputs.canDodge = false
+    inputs.canParry = false
+    inputs.canBlock = f.bossCanBlock
+    meleeChances(plan.profile, inputs, false, false, ch)
+    thresholds(specialSlices(ch, 0, this.slices), this.thrRanged)
+    this.rCritPct = ch.crit
+    this.rap = d.rangedAttackPower
+    const armor = f.targetArmor - this.dynTargetArmor - d.armorPen
+    this.rArmorFactor = 1 - armorReduction(armor, plan.playerLevel, plan.profile)
   }
 
   /** Damage and haste multipliers from auras (multiplicative, damage-and-timing §2.4 and §3.1). */
@@ -2218,10 +2567,13 @@ export class Sim {
     let poison = 1
     let poisonChance = 0
     let bleed = 1
+    // docs/mechanics/ranged-and-pets.md §4: ranged attack speed multiplies too.
+    let ranged = 1
     for (let i = 0; i < this.auraActive.length; i++) {
       if (!this.auraActive[i]) continue
       const stacks = this.auraStacks[i]
       if (this.aHaste[i]) haste *= 1 + (this.aHaste[i] * stacks) / 100
+      if (this.aRangedHaste[i]) ranged *= 1 + (this.aRangedHaste[i] * stacks) / 100
       if (this.aDamage[i]) damage *= 1 + (this.aDamage[i] * stacks) / 100
       if (this.aHoly[i]) holy *= 1 + (this.aHoly[i] * stacks) / 100
       if (this.aEnergyRegen[i]) energy *= 1 + (this.aEnergyRegen[i] * stacks) / 100
@@ -2230,6 +2582,7 @@ export class Sim {
       if (this.aBleedDamage[i]) bleed *= 1 + (this.aBleedDamage[i] * stacks) / 100
     }
     this.bleedMult = bleed
+    this.rangedHasteAura = ranged
     this.energyRegenMult = energy
     this.poisonMult = poison
     this.poisonChance = poisonChance
@@ -2247,6 +2600,21 @@ export class Sim {
     for (let h = 0; h < 2; h++) {
       if (this.hasWeapon[h]) this.swingMs[h] = swingMs(this.wSpeedSec[h], this.hasteMult)
     }
+    // docs/mechanics/ranged-and-pets.md §4: Auto Shot's cycle, from the next shot, like a swing.
+    if (this.hasRanged) {
+      const haste = this.rangedHaste()
+      this.rCycleMs = swingMs(this.rSpeedSec, haste)
+      if (this.rWindupHasted) this.rWindupMs = hastedCastMs(this.rBaseWindupMs, haste)
+    }
+  }
+
+  /**
+   * Ranged attack speed now (docs/mechanics/ranged-and-pets.md §4): the stat block's attack speed
+   * (haste rating and the static "attack speed" effects, which cover melee and ranged [?]) × the
+   * quiver's × the ranged-haste auras'. Melee-only auras (Flurry) don't count.
+   */
+  private rangedHaste(): number {
+    return this.derived.hasteMult * this.rStaticHaste * this.rangedHasteAura
   }
 
   // ------------------------------------------------------------------------------------------
@@ -2605,6 +2973,19 @@ export class Sim {
           if (this.abReadyAt[a] > now || (this.abGcd[a] > 0 && this.gcdEnd > now)) return false
           if (this.abPlainRage[a] === 1 ? this.rage < this.abCost[a] : !this.affordable(a)) return false
           break
+        // docs/mechanics/ranged-and-pets.md §11: Auto Shot's timer and the pet's power.
+        case COND.autoShotClear:
+          if (!this.autoShotClear(a, b)) return false
+          break
+        case COND.autoShotWithin:
+          if (!this.hasRanged || now - this.rLastShotAt > a) return false
+          break
+        case COND.petPowerAtLeast:
+          if (!this.hasPet || this.petPower < a) return false
+          break
+        case COND.petPowerAtMost:
+          if (!this.hasPet || this.petPower > a) return false
+          break
       }
     }
     return true
@@ -2647,6 +3028,8 @@ export class Sim {
         this.dropStack(charge)
       }
       if (this.abCastHasted[a]) castMs = hastedCastMs(castMs, this.castHasteMult)
+      // docs/mechanics/ranged-and-pets.md §4: ranged haste shortens a shot's cast (Aimed Shot) [?].
+      if (this.abCastRangedHasted[a]) castMs = hastedCastMs(castMs, this.rangedHaste())
       if (stack >= 0 && this.auraActive[stack]) this.removeAura(stack)
     }
     // Improved Stormstrike's regeneration comes when it's used, whether or not it lands (shaman.md).
@@ -2746,6 +3129,8 @@ export class Sim {
     this.gcdEnd = Infinity
     this.q.push(now + castMs, EV_CAST_END, a, 0)
     if (this.abCastHolds[a]) this.castHolding = true
+    // docs/mechanics/ranged-and-pets.md §4: a cast holds Auto Shot's wind-up back until it completes.
+    if (this.rCastsHold) this.holdAutoShot(now + castMs)
     if (this.abCastStopsSwings[a]) {
       this.swingGen[HAND.main]++
       this.swingGen[HAND.off]++
@@ -3255,6 +3640,10 @@ export class Sim {
       case ACTION.manaOfCost:
         this.gainMana(Math.floor((this.pAmount[p] * this.castCostTenths) / 100), this.pSource[p])
         return
+      // docs/mechanics/ranged-and-pets.md §7: power for the pet.
+      case ACTION.petPower:
+        if (this.hasPet) this.gainPetPower(this.pAmount[p])
+        return
       case ACTION.weaponBleed: {
         const slot = this.pBleedSlot[p]
         // A tick due this very moment lands before the refresh, as Rend's does (damage-and-timing
@@ -3392,6 +3781,15 @@ export class Sim {
         }
         this.dynApMult = m
       }
+      // docs/mechanics/ranged-and-pets.md §3: ranged attack power, and its % the same way.
+      this.dynRap += this.aRap[a] * deltaStacks
+      if (this.aRapPct[a]) {
+        let m = 1
+        for (let i = 0; i < this.auraActive.length; i++) {
+          if (this.auraActive[i] && this.aRapPct[i]) m *= 1 + (this.aRapPct[i] * this.auraStacks[i]) / 100
+        }
+        this.dynRapMult = m
+      }
       if (this.aSpellDamagePct[a]) {
         // Spell damage % auras multiply the same way (docs/classes/warlock.md#72-race).
         let m = 1
@@ -3402,11 +3800,16 @@ export class Sim {
       }
       this.recomputeStats()
     }
-    if (this.aHaste[a] || this.aDamage[a] || this.aHoly[a] || this.aEnergyRegen[a] || this.aPoisonDamage[a] || this.aPoisonChance[a] || this.aBleedDamage[a]) this.recomputeMultipliers()
+    if (this.aHaste[a] || this.aDamage[a] || this.aHoly[a] || this.aEnergyRegen[a] || this.aPoisonDamage[a] || this.aPoisonChance[a] || this.aBleedDamage[a] || this.aRangedHaste[a]) this.recomputeMultipliers()
     if (this.aTaken[a]) this.recomputeTakenMult()
     if (this.aBossDebuff[a]) this.recomputeBossDebuffs()
     if (this.aSchool[a]) this.recomputeSchools()
     if (this.aManaCost[a]) this.recomputeManaCost()
+    // docs/mechanics/ranged-and-pets.md §7, §8: the pet's mods, and any aura is a decision point for its list.
+    if (this.hasPet) {
+      if (this.aPetful[a]) this.petAuraChanged(a, deltaStacks)
+      this.petActPending = true
+    }
   }
 
   /** The active auras' mana-cost multiplier (Arcane Power's +30%, docs/classes/mage.md#arcane-power), from the active ones, so no drift. */
@@ -3693,20 +4096,29 @@ export class Sim {
     const alwaysHit = this.splAlwaysHit[s] === 1
     let crit = false
     let blocked = false
+    /** A shot with the ranged weapon (docs/mechanics/ranged-and-pets.md §5): the ranged table and weapon. */
+    const shot = this.splRanged[s] === 1
     if (defense === DEFENSE.melee || defense === DEFENSE.ranged) {
-      const th = this.thrSpecial
+      const th = shot ? this.thrRanged : this.thrSpecial
       const r = this.rngTable.roll100()
       const missTh = alwaysHit ? 0 : th[0]
       if (r < missTh) {
         c[row + FIELD.misses]++
         return false
       }
-      const critChance = this.specCrit[HAND.main] + this.splBonusCrit[s]
+      const critChance = (shot ? this.rCritPct : this.specCrit[HAND.main]) + this.splBonusCrit[s]
       // A spell that can't crit rolls no crit (splNoCrit), on every table.
       const canCrit = this.splNoCrit[s] === 0
       if (defense === DEFENSE.ranged) {
         // combat-tables §3 "Defense type": ranged is miss, then block (from the front), then a second crit roll.
-        blocked = r < missTh + (th[4] - th[2])
+        const blockTh = missTh + (th[4] - th[2])
+        blocked = r < blockTh
+        if (shot && this.splHasDirect[s] === 0) {
+          // ranged-and-pets.md §5: a sting (a pure DoT) lands its DoT and rolls no crit.
+          this.applySpellDot(s)
+          if (this.splTriggersProcs[s] === 1) this.fireProcs(TRIGGER.rangedLanded, -1)
+          return true
+        }
         crit = canCrit && this.rngTable.roll100() < critChance
       } else {
         let critFrom = missTh
@@ -3760,7 +4172,14 @@ export class Sim {
 
     let base: number
     const pct = this.splWeaponPct[s]
-    if (pct > 0) {
+    if (pct > 0 && shot) {
+      // ranged-and-pets.md §3, §5: the ranged weapon's roll, its flat damage (ammo, scope) and ranged
+      // attack power ÷ 14 × its speed, or the normalized 2.8 [?].
+      const speed = this.splNormalized[s] ? this.rNormSpeed : this.rSpeedSec
+      const roll = this.rngDamage.uniform(this.rMin, this.rMax)
+      const flat = this.splMin[s] === this.splMax[s] ? this.splMin[s] : this.rngDamage.uniform(this.splMin[s], this.splMax[s])
+      base = (roll + this.rFlat + (this.rap / 14) * speed + flat) * pct
+    } else if (pct > 0) {
       const h = HAND.main
       const speed = this.splNormalized[s] ? this.wNormSpeed[h] : this.wSpeedSec[h]
       const roll = this.rngDamage.uniform(this.wMin[h], this.wMax[h])
@@ -3778,7 +4197,8 @@ export class Sim {
       // docs/mechanics/spells.md §9: the school's multipliers, the boss's damage taken last (Curse of the Elements) [?].
       damage = (damage * this.magicMult * this.holyMult * this.schDamage[school] + this.holyTaken * this.splTakenScale[s]) * this.schTaken[school]
     } else if (school === SCHOOL.physical) {
-      damage *= this.physMult * this.armorFactor[HAND.main]
+      // ranged-and-pets.md §5: a physical shot takes the ranged damage multiplier and armor.
+      damage *= shot ? this.physMult * this.rArmorFactor * this.rDamageMult : this.physMult * this.armorFactor[HAND.main]
     } else {
       // docs/mechanics/spells.md §3, §9: the school's multipliers, and a partial resist on average unless binary.
       damage *= this.magicMult * this.schDamage[school] * this.schTaken[school] * (this.splBinary[s] === 1 ? 1 : this.resistFactor[school])
@@ -3805,7 +4225,14 @@ export class Sim {
     if (this.splDotTicks[s] > 0) this.applySpellDot(s)
     // paladin.md#conventions-used-below: a triggered spell without NOT_A_PROC triggers nothing [?].
     if (this.splTriggersProcs[s] === 0) return true
-    if (defense === DEFENSE.melee) {
+    if (shot) {
+      // ranged-and-pets.md §9: a shot fires the ranged procs, not the melee or spell ones.
+      this.fireProcs(TRIGGER.rangedLanded, -1)
+      if (crit) {
+        this.fireProcs(TRIGGER.rangedCrit, -1)
+        this.useCritCharges(school)
+      }
+    } else if (defense === DEFENSE.melee) {
       this.fireProcs(TRIGGER.meleeLanded, HAND.main)
       if (crit) this.onCrit(HAND.main)
     } else {
@@ -3967,6 +4394,8 @@ export class Sim {
     if (this.abCastHolds[a]) this.castHolding = true
     const end = now + n * tickMs
     this.q.push(end, EV_CHANNEL_END, a, ++this.channelGen)
+    // docs/mechanics/ranged-and-pets.md §4: so does a channel, until it ends.
+    if (this.rCastsHold) this.holdAutoShot(end)
     // Queued after the end, so the end (and a tick due then) comes first and takes it down.
     const aura = this.channelAura(a)
     if (aura >= 0) this.putAura(aura, end)
@@ -4009,6 +4438,373 @@ export class Sim {
     this.gcdEnd = this.castGcdEnd
     if (this.gcdEnd > now) this.q.push(this.gcdEnd, EV_ACT, 0, 0)
     this.actPending = this.hasRotation
+  }
+
+  // ------------------------------------------------------------------------------------------
+  // The ranged weapon and Auto Shot (docs/mechanics/ranged-and-pets.md §2–§5)
+  // ------------------------------------------------------------------------------------------
+
+  /**
+   * The fight's first Auto Shot, at `firstShotMs` (§4): its wind-up came before, so a cast at the
+   * pull doesn't hold it back.
+   */
+  private startAutoShot(): void {
+    const at = this.rFirstShotMs
+    this.rReloadAt = at - this.rWindupMs
+    this.rNextAt = at
+    this.q.push(at, EV_AUTO_SHOT, 0, ++this.rGen)
+  }
+
+  /**
+   * Auto Shot fires (§4): it resolves, then the next cycle starts: the reload part, cycle − wind-up,
+   * then the wind-up, which a cast or channel still running then holds back until it ends. The new
+   * cycle's length is read now, so a haste change applies from the next shot, as a swing's does.
+   */
+  private onAutoShot(): void {
+    const now = this.now
+    this.rLastShotAt = now
+    this.autoShot()
+    this.rReloadAt = now + Math.max(0, this.rCycleMs - this.rWindupMs)
+    this.rNextAt = Math.max(this.rReloadAt, this.rHeldUntil) + this.rWindupMs
+    this.q.push(this.rNextAt, EV_AUTO_SHOT, 0, ++this.rGen)
+    // A line that reads the timer (COND 62, 63) may be usable now.
+    if (this.walksOnAutoShot) this.actPending = this.hasRotation
+  }
+
+  /**
+   * A cast or channel runs until `until` (§4): Auto Shot's wind-up can't run meanwhile, so the next
+   * shot fires a wind-up after both the reload and the cast are over. A cast that ends before the
+   * reload does delays nothing; one that starts during the wind-up restarts it after the cast.
+   */
+  private holdAutoShot(until: number): void {
+    if (until <= this.rHeldUntil) return
+    this.rHeldUntil = until
+    const at = Math.max(this.rReloadAt, until) + this.rWindupMs
+    if (at > this.rNextAt) {
+      this.rNextAt = at
+      this.q.push(at, EV_AUTO_SHOT, 0, ++this.rGen)
+    }
+  }
+
+  /**
+   * An Auto Shot (§2, §3): roll 1 over miss and block (from the front), no dodge, parry or glancing;
+   * roll 2 for crit on anything that landed, blocked too, as combat-tables §3's ranged defense type
+   * [?]. Damage is the weapon's roll + its flat damage (the ammo's DPS × its speed, a scope's) +
+   * ranged attack power ÷ 14 × its speed, × the ranged and physical multipliers and armor; a crit ×
+   * its multiplier. It fires the ranged procs, and makes threat as a white swing does, but no rage.
+   */
+  private autoShot(): void {
+    const source = this.rSource
+    const row = source * FIELD_COUNT
+    const c = this.counters
+    c[row + FIELD.casts]++
+    if (this.trace !== null) this.trace(source, TRACE_RANGED, this.now)
+    const th = this.thrRanged
+    const r = this.rngTable.roll100()
+    if (r < th[0]) {
+      c[row + FIELD.misses]++
+      return
+    }
+    const roll = this.rngDamage.uniform(this.rMin, this.rMax)
+    let damage = (roll + this.rFlat + (this.rap / 14) * this.rSpeedSec) * this.rDamageMult * this.physMult * this.rArmorFactor
+    const crit = this.rngTable.roll100() < this.rCritPct
+    if (crit) {
+      damage *= this.rCritMult
+      c[row + FIELD.crits]++
+    } else if (r < th[4]) {
+      // Mob block value is 0 [?] (combat-tables §2.4): a blocked shot deals full damage.
+      c[row + FIELD.blocks]++
+    } else {
+      c[row + FIELD.hits]++
+    }
+    this.dealDamage(source, damage)
+    this.fireProcs(TRIGGER.rangedLanded, -1)
+    this.fireProcs(TRIGGER.autoShotLanded, -1)
+    if (crit) {
+      this.fireProcs(TRIGGER.rangedCrit, -1)
+      this.useCritCharges(SCHOOL.physical)
+    }
+  }
+
+  /**
+   * COND.autoShotClear (§11): ability a, started now, completes at least `spare` ms before the next
+   * Auto Shot's wind-up begins, so it holds nothing back. An instant always does; without a ranged
+   * weapon, nothing does. Its cast time is the one `use` would start: an instant-cast aura, its
+   * stacks' cut, casting speed and ranged haste.
+   */
+  private autoShotClear(a: number, spare: number): boolean {
+    if (!this.hasRanged) return false
+    let castMs = this.abCastMs[a]
+    if (castMs === 0) return true
+    const instant = this.abInstantAura[a]
+    if (instant >= 0 && this.auraActive[instant]) return true
+    if (this.abStackAura[a] >= 0) castMs *= this.stackCut(a, this.abStackCast[a])
+    if (this.abCastHasted[a]) castMs = hastedCastMs(castMs, this.castHasteMult)
+    if (this.abCastRangedHasted[a]) castMs = hastedCastMs(castMs, this.rangedHaste())
+    if (castMs === 0) return true
+    return this.now + castMs + spare <= this.rNextAt - this.rWindupMs
+  }
+
+  // ------------------------------------------------------------------------------------------
+  // The pet (docs/mechanics/ranged-and-pets.md §6–§10): a second attacker in the same fight
+  // ------------------------------------------------------------------------------------------
+
+  /** The pet arrives at `startMs`: its first swing, its first walk, and its power tick from a random phase (§7) [?]. */
+  private startPet(): void {
+    const at = this.petStartMs
+    if (this.petHasWeapon) {
+      this.petNextSwingAt = at
+      this.q.push(at, EV_PET_SWING, 0, ++this.petSwingGen)
+    }
+    this.q.push(at, EV_PET_ACT, 0, 0)
+    if (this.hasPetPower && this.petPowerTickMs > 0) this.q.push(at + Math.floor(this.rngPet.next() * this.petPowerTickMs), EV_PET_POWER, 0, 0)
+  }
+
+  /**
+   * The pet's numbers against the current stats and auras (§6, §8): attack power (its own, the
+   * auras' and its shares of yours), crit, damage and attack speed; its white and special tables
+   * against the boss at its level and skill (combat-tables §2–§4, from behind or the front, glancing
+   * only if it glances); its spell miss (combat-tables §9); and the boss's armor, less your debuffs on
+   * it, at its level.
+   */
+  private recomputePet(): void {
+    const plan = this.plan
+    const f = plan.fight
+    this.petAp = Math.max(0, this.petBaseAp + this.dynPetAp + this.petApFromAp * this.ap + this.petApFromRap * this.rap)
+    this.petCritPct = this.petBaseCrit + this.dynPetCrit
+    this.petDamageMult = this.petStaticDamage * this.petAuraDamage
+    if (this.petHasWeapon) this.petSwingMs = swingMs(this.petWSpeedSec, this.petStaticHaste * this.petAuraHaste)
+    const inputs = this.meleeIn
+    const ch = this.chances
+    inputs.attackerLevel = this.petLevel
+    inputs.targetLevel = f.targetLevel
+    inputs.skill = this.petSkill
+    inputs.hit = this.petHit
+    inputs.sheetCrit = this.petCritPct
+    inputs.auraCrit = this.petAuraCritBase + this.dynPetCrit
+    inputs.expertise = 0
+    inputs.front = this.petFront
+    inputs.canDodge = f.bossCanDodge
+    inputs.canParry = f.bossCanParry
+    inputs.canBlock = f.bossCanBlock
+    meleeChances(plan.profile, inputs, true, false, ch)
+    if (!this.petGlances) ch.glance = 0
+    thresholds(whiteSlices(ch, this.slices), this.petThrWhite)
+    meleeChances(plan.profile, inputs, false, false, ch)
+    thresholds(specialSlices(ch, 0, this.slices), this.petThrSpecial)
+    this.petSpecCrit = ch.crit
+    this.petSpellMissPct = spellMiss(plan.profile, this.petLevel, f.targetLevel, this.petSpellHit)
+    this.petArmorFactor = 1 - armorReduction(f.targetArmor - this.dynTargetArmor, this.petLevel, plan.profile)
+  }
+
+  /** Aura a's pet mods changed by `deltaStacks` stacks (§8): attack power and crit add; attack speed and damage multiply, from the active auras. */
+  private petAuraChanged(a: number, deltaStacks: number): void {
+    this.dynPetAp += this.aPetAp[a] * deltaStacks
+    this.dynPetCrit += this.aPetCrit[a] * deltaStacks
+    let haste = 1
+    let damage = 1
+    for (let i = 0; i < this.auraActive.length; i++) {
+      if (!this.auraActive[i] || !this.aPetful[i]) continue
+      const stacks = this.auraStacks[i]
+      if (this.aPetHaste[i]) haste *= 1 + (this.aPetHaste[i] * stacks) / 100
+      if (this.aPetDamage[i]) damage *= 1 + (this.aPetDamage[i] * stacks) / 100
+    }
+    this.petAuraHaste = haste
+    this.petAuraDamage = damage
+    this.recomputePet()
+  }
+
+  /** The pet's power gained, capped (§7), and a decision point for its list. */
+  private gainPetPower(tenths: number): void {
+    if (!this.hasPetPower || tenths <= 0) return
+    this.petPower = Math.min(this.petPowerMax, this.petPower + tenths)
+    this.petActPending = true
+  }
+
+  /** The pet's damage (§10): your DPS counts it, on its own row; it makes none of your threat. */
+  private addPetDamage(source: number, damage: number): void {
+    this.counters[source * FIELD_COUNT + FIELD.damage] += damage
+    this.fightDamage += damage
+    if (this.damageTrace !== null) this.damageTrace(source, damage)
+  }
+
+  /**
+   * The pet's white swing (§6): one roll over its white table (miss, dodge, parry and block from the
+   * front, glancing only if it glances, crit × its multiplier); damage its roll + its attack power
+   * ÷ 14 × its speed, × its damage multiplier and the boss's armor at its level. It fires `petLanded`
+   * and `petCrit`; the next swing comes a hasted swing later, at the speed its procs leave.
+   */
+  private petSwing(): void {
+    this.petWhiteSwing()
+    // The next swing at the speed its procs left it (a Frenzy from this crit), as a hand's is.
+    this.petNextSwingAt = this.now + this.petSwingMs
+    this.q.push(this.petNextSwingAt, EV_PET_SWING, 0, ++this.petSwingGen)
+  }
+
+  private petWhiteSwing(): void {
+    const now = this.now
+    const source = this.petSource
+    const row = source * FIELD_COUNT
+    const c = this.counters
+    c[row + FIELD.casts]++
+    if (this.trace !== null) this.trace(source, TRACE_PET, now)
+    const rng = this.rngPet
+    const th = this.petThrWhite
+    const r = rng.roll100()
+    if (r < th[0]) {
+      c[row + FIELD.misses]++
+      return
+    }
+    if (r < th[2]) {
+      c[row + (r < th[1] ? FIELD.dodges : FIELD.parries)]++
+      return
+    }
+    let damage = (rng.uniform(this.petWMin, this.petWMax) + (this.petAp / 14) * this.petWSpeedSec) * this.petDamageMult * this.petArmorFactor
+    let crit = false
+    if (r < th[3]) {
+      damage *= rng.uniform(this.petGlanceLow, this.petGlanceHigh)
+      c[row + FIELD.glances]++
+    } else if (r < th[4]) {
+      c[row + FIELD.blocks]++
+    } else if (r < th[5]) {
+      damage *= this.petCritMult
+      crit = true
+      c[row + FIELD.crits]++
+    } else {
+      c[row + FIELD.hits]++
+    }
+    this.addPetDamage(source, damage)
+    this.fireProcs(TRIGGER.petLanded, -1)
+    if (crit) this.fireProcs(TRIGGER.petCrit, -1)
+  }
+
+  /**
+   * The pet walks its priority list (§7): it uses every line, in order, whose ability is off
+   * cooldown, affordable from its power, clear of its global cooldown (for one that starts it) and
+   * whose conditions hold; not while it casts, nor before it arrives.
+   */
+  private petAct(): void {
+    this.petActPending = false
+    const now = this.now
+    if (this.petCasting >= 0 || now < this.petStartMs) return
+    const lines = this.petLineAbility
+    for (let l = 0; l < lines.length; l++) {
+      const a = lines[l]
+      if (this.pabReadyAt[a] > now || this.petPower < this.pabCost[a]) continue
+      if (this.pabGcd[a] > 0 && this.petGcdEnd > now) continue
+      if (!this.petConditionsHold(l)) continue
+      this.petUse(a)
+      if (this.petCasting >= 0) return
+    }
+  }
+
+  /** A pet line's conditions (§7, §11): its power, and a plan aura up or down. */
+  private petConditionsHold(l: number): boolean {
+    for (let k = this.petCondStart[l]; k < this.petCondStart[l + 1]; k++) {
+      const a = this.petCondA[k]
+      switch (this.petCondCode[k]) {
+        case COND.petPowerAtLeast:
+          if (this.petPower < a) return false
+          break
+        case COND.petPowerAtMost:
+          if (this.petPower > a) return false
+          break
+        case COND.auraUp:
+          if (!this.auraActive[a]) return false
+          break
+        case COND.auraDown:
+          if (a >= 0 && this.auraActive[a]) return false
+          break
+      }
+    }
+    return true
+  }
+
+  /** The pet uses ability a (§7): it pays, starts its cooldown and global cooldown, and strikes now or when its cast completes. */
+  private petUse(a: number): void {
+    const now = this.now
+    this.petPower -= this.pabCost[a]
+    if (this.pabCd[a] > 0) {
+      this.pabReadyAt[a] = now + this.pabCd[a]
+      this.q.push(this.pabReadyAt[a], EV_PET_ACT, 0, 0)
+    }
+    if (this.pabGcd[a] > 0) {
+      this.petGcdEnd = now + this.pabGcd[a]
+      this.q.push(this.petGcdEnd, EV_PET_ACT, 0, 0)
+    }
+    if (this.pabCast[a] > 0) {
+      this.petCasting = a
+      this.q.push(now + this.pabCast[a], EV_PET_CAST_END, a, 0)
+      return
+    }
+    this.petStrike(a)
+  }
+
+  /** The pet's cast completes (§7): its spell strikes, and the pet walks its list again. */
+  private onPetCastEnd(a: number): void {
+    this.petCasting = -1
+    this.petStrike(a)
+    this.petActPending = true
+  }
+
+  /**
+   * One of the pet's abilities strikes (§7). `melee`: one roll on its special table (miss, dodge,
+   * parry and block from the front, crit), damage `min…max` + its coefficient × the pet's attack
+   * power + a share of its swing, × the boss's armor at its level. `spell`: its spell miss, then a crit
+   * roll at its spell crit; damage `min…max` + its coefficient × the pet's spell damage (its own and
+   * its share of yours in that school), × the boss's damage taken of the school and its average
+   * resist. Both × the pet's damage multiplier and the ability's crit multiplier on a crit; then its
+   * aura, if any, and `petLanded`, then `petCrit` on a crit.
+   */
+  private petStrike(a: number): void {
+    const source = this.pabSource[a]
+    const row = source * FIELD_COUNT
+    const c = this.counters
+    c[row + FIELD.casts]++
+    const rng = this.rngPet
+    let damage = this.pabMin[a] === this.pabMax[a] ? this.pabMin[a] : rng.uniform(this.pabMin[a], this.pabMax[a])
+    let crit: boolean
+    let blocked = false
+    if (this.pabKind[a] === 0) {
+      const th = this.petThrSpecial
+      const r = rng.roll100()
+      if (r < th[0]) {
+        c[row + FIELD.misses]++
+        return
+      }
+      if (r < th[2]) {
+        c[row + (r < th[1] ? FIELD.dodges : FIELD.parries)]++
+        return
+      }
+      blocked = r < th[4]
+      crit = !blocked && r < Math.min(100, th[4] + Math.max(0, this.petSpecCrit + this.pabBonusCrit[a]))
+      damage += this.pabApCoef[a] * this.petAp
+      if (this.pabWeaponPct[a] > 0 && this.petHasWeapon) {
+        damage += this.pabWeaponPct[a] * (rng.uniform(this.petWMin, this.petWMax) + (this.petAp / 14) * this.petWSpeedSec)
+      }
+      damage *= this.petDamageMult * this.petArmorFactor
+    } else {
+      const school = this.pabSchool[a]
+      if (rng.roll100() < this.petSpellMissPct) {
+        c[row + FIELD.misses]++
+        return
+      }
+      const sp = this.petBaseSp + this.petSpFromOwner * this.spSchool[school]
+      damage = (damage + this.pabSpCoef[a] * sp) * this.petDamageMult * this.schTaken[school] * this.resistFactor[school]
+      crit = rng.roll100() < this.petSpellCrit + this.pabBonusCrit[a]
+    }
+    if (crit) {
+      damage *= this.pabCritMult[a]
+      c[row + FIELD.crits]++
+    } else if (blocked) {
+      c[row + FIELD.blocks]++
+    } else {
+      c[row + FIELD.hits]++
+    }
+    this.addPetDamage(source, damage)
+    if (this.pabAura[a] >= 0) this.applyAura(this.pabAura[a])
+    this.fireProcs(TRIGGER.petLanded, -1)
+    if (crit) this.fireProcs(TRIGGER.petCrit, -1)
   }
 
   // ------------------------------------------------------------------------------------------

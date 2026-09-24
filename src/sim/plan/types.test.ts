@@ -65,12 +65,20 @@ describe('the plan’s code tables', () => {
 
   it('the caster core’s codes (docs/mechanics/spells.md §10, §11): triggers spellLanded 20 and spellTick 21, past the 14–19 the other tracks hold, and condition auraUp 38', () => {
     expect([TRIGGER.spellLanded, TRIGGER.spellTick]).toEqual([20, 21])
-    expect(TRIGGER_COUNT).toBe(22)
+    // The ranged and pet core's triggers follow them (below).
+    expect(TRIGGER_COUNT).toBeGreaterThanOrEqual(22)
     expect(COND.auraUp).toBe(38)
   })
 
   it('the Shadow Priest’s code (K4): abilityReady takes 50, the first of its 50–53, and adds no trigger or action', () => {
     expect(COND.abilityReady).toBe(50)
     for (const [key, code] of Object.entries(COND)) if (code >= 50 && code <= 53) expect(key).toBe('abilityReady')
+  })
+
+  it('the ranged and pet core’s codes (docs/mechanics/ranged-and-pets.md §9, §11): conditions 62–65, triggers 22–26 and action petPower 22, past main’s highest', () => {
+    expect([COND.autoShotClear, COND.autoShotWithin, COND.petPowerAtLeast, COND.petPowerAtMost]).toEqual([62, 63, 64, 65])
+    expect([TRIGGER.rangedLanded, TRIGGER.autoShotLanded, TRIGGER.rangedCrit, TRIGGER.petLanded, TRIGGER.petCrit]).toEqual([22, 23, 24, 25, 26])
+    expect(TRIGGER_COUNT).toBe(27)
+    expect(ACTION.petPower).toBe(22)
   })
 })

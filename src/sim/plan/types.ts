@@ -51,8 +51,19 @@ export const TRIGGER = {
   spellLanded: 20,
   /** A spell DoT ticked (docs/mechanics/spells.md §7): Nightfall's Shadow Trance. The same filters. */
   spellTick: 21,
+  // The ranged and pet core's (docs/mechanics/ranged-and-pets.md §9), past main's highest:
+  /** A ranged attack landed: an Auto Shot or a ranged-weapon shot (a `SpellDef.ranged` spell). Hand −1. */
+  rangedLanded: 22,
+  /** An Auto Shot landed (Improved Aspect of the Hawk's Quick Shots: "normal ranged attacks"). */
+  autoShotLanded: 23,
+  /** A ranged attack crit, Auto Shot or a shot (Go for the Throat's kind of proc). */
+  rangedCrit: 24,
+  /** The pet's attack landed, white or special (Plan.pet). */
+  petLanded: 25,
+  /** The pet's attack crit, white or special (Frenzy, Ferocious Inspiration). */
+  petCrit: 26,
 } as const
-export const TRIGGER_COUNT = 22
+export const TRIGGER_COUNT = 27
 
 /**
  * Warrior stances as bits (docs/classes/warrior.md#21-stances). An ability's `stances` mask says
@@ -107,6 +118,9 @@ export const ACTION = {
   ignite: 20,
   /** Mana: `amount` % of the cost of the ability whose spell fired it (Master of Elements, docs/classes/mage.md#talents). */
   manaOfCost: 21,
+  // The ranged and pet core's (docs/mechanics/ranged-and-pets.md §9):
+  /** The pet's power (Focus, Energy or mana): `amount` tenths, capped at its maximum. */
+  petPower: 22,
 } as const
 
 /**
@@ -201,6 +215,15 @@ export interface SpellDef {
    * DoT uses `damageMult`, as every spell before the warlock's.
    */
   dotDamageMult?: number
+  /**
+   * A shot with the ranged weapon (docs/mechanics/ranged-and-pets.md §5): it rolls the ranged table
+   * (`Plan.ranged`: its miss and block from the front, then a second roll for its ranged crit) and
+   * its weapon part is the ranged weapon's roll, flat damage and ranged attack power ÷ 14 × its speed
+   * (normalized: 2.8), × the ranged damage multiplier. A pure DoT (a sting) rolls only the first. Its
+   * `defense` is `ranged`. Absent: a spell as before (the paladin's Hammer of Wrath rolls the main
+   * hand's table).
+   */
+  ranged?: boolean
 }
 
 export interface SpellPlan extends Omit<SpellDef, 'name' | 'icon' | 'school' | 'defense' | 'boost' | 'critAura'> {
@@ -404,6 +427,23 @@ export interface AuraPlan {
    * auras: Nature's Grace's −10% (docs/classes/druid.md §11.3). Absent = 0.
    */
   gcdPct?: number
+  // --- The ranged and pet core's (docs/mechanics/ranged-and-pets.md §3, §8). All optional, absent = 0. ---
+  /** Ranged attack power, per stack (an Aimed-Shot-style buff; Blood Fury's ranged half is `rapPct`). */
+  rap?: number
+  /** Ranged attack power %, multiplicative (Forever's Blood Fury, aura 167). */
+  rapPct?: number
+  /** Ranged attack speed %, multiplicative, from the next Auto Shot (Rapid Fire, Quick Shots, Berserking's ranged part). */
+  rangedHaste?: number
+  /**
+   * What it does to the pet (`Plan.pet`), per stack, while it's up: attack power, melee crit %,
+   * attack speed % (multiplicative), and all its damage % (multiplicative). An aura on the pet
+   * (Bestial Wrath, Frenzy) has only these; an owner's buff that reaches the pet too (Ferocious
+   * Inspiration) has both.
+   */
+  petAp?: number
+  petCrit?: number
+  petHaste?: number
+  petDamage?: number
 }
 
 export interface ProcPlan {
@@ -482,6 +522,12 @@ export interface SourcePlan {
   counts?: 'blocks' | 'extraAttacks'
   /** A spell cast on the boss (Faerie Fire, Demoralizing Roar): it can't crit, and it can only miss (or be resisted). */
   spell?: boolean
+  /**
+   * The pet's name, on a row of the pet's damage (its melee, its abilities): the results label the
+   * row with it, and the damage counts toward your DPS but makes none of your threat
+   * (docs/mechanics/ranged-and-pets.md §10).
+   */
+  pet?: string
 }
 
 /**
@@ -864,6 +910,14 @@ export interface AbilityPlan {
    */
   chargeAura?: number
   chargeCastMs?: number
+  // --- The ranged and pet core's (docs/mechanics/ranged-and-pets.md §4, §5). All optional. ---
+  /**
+   * Ranged haste shortens its cast time (Aimed Shot's, Multi-Shot's): `castMs` ÷ the current ranged
+   * attack speed multiplier, to a whole ms [?]. Its cast pauses Auto Shot as every cast does (§4).
+   */
+  castRangedHasted?: boolean
+  /** It needs a ranged weapon (a shot): never used without `Plan.ranged`. */
+  needsRanged?: boolean
 }
 
 /**
@@ -1059,6 +1113,19 @@ export const COND = {
    * that uses its charge (docs/classes/priest.md#6-rotation). Checked on each walk.
    */
   abilityReady: 50,
+  // 62–65 the ranged and pet core's (docs/mechanics/ranged-and-pets.md §11).
+  /**
+   * ability a, started now, completes at least b ms before the next Auto Shot's wind-up begins, so
+   * it doesn't delay that shot ("no clipping"): an instant always does. False without a ranged
+   * weapon. An Auto Shot is a decision point, so a line waiting for this walks as each one fires.
+   */
+  autoShotClear: 62,
+  /** the last Auto Shot fired at most a ms ago (a shot right after an Auto Shot); false before the first */
+  autoShotWithin: 63,
+  /** the pet's power (Focus, Energy or mana) ≥ a, in tenths: a pet line keeping Focus for Bite; false without a pet */
+  petPowerAtLeast: 64,
+  /** the pet's power ≤ a, in tenths; false without a pet */
+  petPowerAtMost: 65,
 } as const
 
 export interface RotationCondition {
@@ -1261,6 +1328,149 @@ export interface Plan {
   schools?: SchoolPlan
   /** The mage's rolling Ignite (docs/classes/mage.md#ignite), which `ignite` procs feed; absent without it. */
   ignite?: IgnitePlan
+  /**
+   * The ranged weapon and its Auto Shot (docs/mechanics/ranged-and-pets.md §2–§5): a timer of its
+   * own, beside the melee swings. Absent: no ranged attacks, and nothing here runs.
+   */
+  ranged?: RangedPlan
+  /**
+   * The pet: a second attacker in the same fight, with its own stats, swing timer, abilities and
+   * power (docs/mechanics/ranged-and-pets.md §6–§10). Absent: no pet.
+   */
+  pet?: PetPlan
+}
+
+/**
+ * The ranged weapon, as Auto Shot and the shots use it (docs/mechanics/ranged-and-pets.md §2–§5).
+ * Its attack power is the stat block's ranged attack power (`StatBlock.baseRap` …).
+ */
+export interface RangedPlan {
+  name: string
+  icon: string
+  min: number
+  max: number
+  speedSec: number
+  /** Added to each roll: the ammo's DPS × the weapon's speed, and a scope's flat damage (§3). */
+  flatDamage: number
+  /** Weapon skill with it: 5 × level plus its type's bonuses (§2). */
+  skill: number
+  /** Hit % and crit % only its attacks get (a scope's, a ranged-only talent's). */
+  hitBonus: number
+  critBonus: number
+  /** Damage % of its attacks, multiplicative (a ranged-weapon talent's); 1 for none. */
+  damageMult: number
+  /** Static ranged attack speed, a product: the quiver's or ammo pouch's (§4). */
+  hasteMult: number
+  /** Speed its normalized shots use (§3): 2.8 [?]. */
+  normalizedSpeed: number
+  /**
+   * Auto Shot's wind-up, ms (§4): the last part of each cycle, which a cast or channel in progress
+   * holds back until it ends (when `castsHoldAutoShot`); ÷ ranged haste when `windupHasted` [?].
+   */
+  windupMs: number
+  windupHasted: boolean
+  /** A cast or channel holds Auto Shot's wind-up back until it ends (Classic Era's clipping, §4) [?]. */
+  castsHoldAutoShot: boolean
+  /** Auto Shot's crit multiplier (×2, §2). */
+  critMultiplier: number
+  /** When the first Auto Shot fires, ms from the pull (§4). */
+  firstShotMs: number
+  /** Auto Shot's breakdown row. */
+  source: number
+}
+
+/** The pet's power (docs/mechanics/ranged-and-pets.md §7): Focus, Energy or mana, in tenths. */
+export interface PetPowerPlan {
+  kind: 'focus' | 'energy' | 'mana'
+  maxTenths: number
+  startTenths: number
+  /** Gained every `tickMs`, from the pull's random phase, capped. */
+  tickTenths: number
+  tickMs: number
+}
+
+/**
+ * One of the pet's abilities (docs/mechanics/ranged-and-pets.md §7). `melee`: one roll on the pet's
+ * special-attack table (miss, dodge, parry and block from the front, crit ×`critMultiplier`), its
+ * damage `min…max` + `apCoefficient` × the pet's attack power (+ `weaponPercent` of its swing),
+ * against armor. `spell`: the pet's spell table (miss, the school's average resist, then crit),
+ * `min…max` + `spCoefficient` × the pet's spell damage.
+ */
+export interface PetAbilityPlan {
+  id: string
+  name: string
+  icon: string
+  kind: 'melee' | 'spell'
+  /** `SCHOOL` code: physical for melee. */
+  school: number
+  costTenths: number
+  cooldownMs: number
+  /** The pet's own global cooldown this starts, ms (0: none). */
+  gcdMs: number
+  /** Cast time, ms (the Imp's Firebolt); its melee swings keep their timer. */
+  castMs: number
+  min: number
+  max: number
+  apCoefficient: number
+  spCoefficient: number
+  /** Share of the pet's white swing it adds (0: none). */
+  weaponPercent: number
+  bonusCrit: number
+  critMultiplier: number
+  /** A plan aura it puts up when it lands (a howl's buff on you and the pet), or −1. */
+  aura: number
+  /** Breakdown row. */
+  source: number
+}
+
+/**
+ * The pet (docs/mechanics/ranged-and-pets.md §6–§10): its stats as the plan builder derived them,
+ * its melee, its abilities and its power. Owner auras reach it through their pet mods
+ * (`AuraPlan.petAp` …), and through its shares of your stats, read as they change.
+ */
+export interface PetPlan {
+  id: string
+  /** Its name for the results' rows (Cat, Imp). */
+  name: string
+  icon: string
+  level: number
+  /** Its melee, or null for a pet that only casts (the Imp). */
+  weapon: { min: number; max: number; speedSec: number } | null
+  /** Weapon skill: 5 × its level (§6). */
+  skill: number
+  /** Attack power, and melee crit and hit %, from its own stats and the buffs that reach it (§6, §8). */
+  ap: number
+  crit: number
+  /** The part of `crit` from buffs, which the +3 crit suppression reads as a player's aura crit (§6) [?]. */
+  auraCrit: number
+  hit: number
+  /** Spell damage, spell crit % and spell hit % for its spells (§7). */
+  spellDamage: number
+  spellCrit: number
+  spellHit: number
+  /** Shares of your stats it gets, read whenever they change (§6): 0 in Classic Era [C]. */
+  apFromOwnerAp: number
+  apFromOwnerRap: number
+  spellDamageFromOwner: number
+  /** All its damage %, as a product: its family's, happiness's, your talents' (§6). */
+  damageMult: number
+  /** Static attack speed, a product (1: none). */
+  hasteMult: number
+  /** Its melee crit multiplier (×2) and whether its white swings glance (§6). */
+  critMultiplier: number
+  glances: boolean
+  glanceLow: number
+  glanceHigh: number
+  /** It attacks from the front (the boss can parry and block it) or from behind (§6). */
+  front: boolean
+  /** When it starts attacking, ms from the pull. */
+  startMs: number
+  power: PetPowerPlan | null
+  abilities: PetAbilityPlan[]
+  /** Its priority list: each line's ability, used when ready, affordable and its conditions hold (§7). */
+  rotation: { ability: number; conditions: RotationCondition[] }[]
+  /** Its white swings' breakdown row. */
+  source: number
 }
 
 /**

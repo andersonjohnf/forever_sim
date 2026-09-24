@@ -22,7 +22,7 @@ import {
   weaponPercentVs,
 } from '../plan/types'
 import type { CreatureType, SpecId } from '../types'
-import { FIELD_COUNT, Sim } from './sim'
+import { FIELD_COUNT, Sim, TRACE_PET, TRACE_RANGED } from './sim'
 
 /** "Two-hander T" and "one-hander O" of warrior.md §8. */
 export const T: Partial<WeaponPlan> = { min: 105, max: 157, speedSec: 3.8, twoHand: true, normalizedSpeed: 3.3 }
@@ -187,7 +187,7 @@ export function expectMean(xs: number[], expected: number) {
   expect(Math.abs(m.mean - expected), `mean ${m.mean} vs ${expected} (SE ${se})`).toBeLessThanOrEqual(4 * se)
 }
 
-/** One fight's white swings per hand, bleed ticks, uses per ability (with rage at each), and stance swaps. */
+/** One fight's white swings per hand, bleed ticks, uses per ability (with rage at each), stance swaps, Auto Shots and the pet's swings. */
 export function timeline(plan: Plan, fight = 0) {
   const sim = new Sim(plan)
   const swings: [number[], number[]] = [[], []]
@@ -195,14 +195,18 @@ export function timeline(plan: Plan, fight = 0) {
   const uses: number[][] = plan.abilities.map(() => [])
   const rageAtUse: number[][] = plan.abilities.map(() => [])
   const swaps: { stance: number; time: number; before: number; after: number }[] = []
-  sim.trace = (_source, hand, time) => (hand >= 0 ? swings[hand].push(time) : ticks.push(time))
+  // docs/mechanics/ranged-and-pets.md: Auto Shots and the pet's swings, beside the hands' swings.
+  const shots: number[] = []
+  const petSwings: number[] = []
+  sim.trace = (_source, hand, time) =>
+    hand === TRACE_RANGED ? shots.push(time) : hand === TRACE_PET ? petSwings.push(time) : hand >= 0 ? swings[hand].push(time) : ticks.push(time)
   sim.castTrace = (a, time, rage) => {
     uses[a].push(time)
     rageAtUse[a].push(rage)
   }
   sim.stanceTrace = (stance, time, before, after) => swaps.push({ stance, time, before, after })
   sim.runFight(fight)
-  return { sim, swings, ticks, uses, rageAtUse, swaps }
+  return { sim, swings, ticks, uses, rageAtUse, swaps, shots, petSwings }
 }
 
 export const counter = (sim: Sim, row: number, field: number) => sim.counters[row * FIELD_COUNT + field]

@@ -407,6 +407,8 @@ export interface AbilityResult {
   mana?: number
   /** A spell cast on the boss (Faerie Fire, Demoralizing Roar): it can't crit, and its misses count its resists too. */
   spell?: true
+  /** The pet's name, on a row of the pet's damage, which counts toward your DPS (docs/mechanics/ranged-and-pets.md §10). */
+  pet?: string
 }
 
 export interface BleedResult {
